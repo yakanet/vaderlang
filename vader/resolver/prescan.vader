@@ -5,9 +5,8 @@
 // orphan-rule check : `Type implements Trait[Args]` is legal only when
 // the current module owns `Type` *or* `Trait` (primitives exempt).
 //
-// Mirror of `src/resolver/resolve.ts` lines 230-244 ; lives in its
-// own file so future project-level checks (e.g. cross-module dup-decl)
-// have a clear home.
+// Lives in its own file so future project-level checks (e.g.
+// cross-module dup-decl) have a clear home.
 
 module "vader/resolver"
 

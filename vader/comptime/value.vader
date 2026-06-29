@@ -130,9 +130,9 @@ export type_val :: fn(value: Type) -> ComptimeValue {
     return TypeValue { .value = value }
 }
 
-/// Render a `ComptimeValue` as the snapshot-stable string. Mirrors
-/// `displayValue` in `src/comptime/value.ts` byte-for-byte ; divergence
-/// here triggers mass `comptime.snapshot` mismatches across 200+ tests.
+/// Render a `ComptimeValue` as the snapshot-stable string. The format is
+/// load-bearing — divergence here triggers mass `comptime.snapshot`
+/// mismatches across 200+ tests.
 /// @param value  the value to render.
 /// @return       the printable form.
 export display_value :: fn(value: ComptimeValue) -> string = match value {

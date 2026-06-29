@@ -183,8 +183,7 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx) -> voi
         // on primitives (`i32 implements Equals`) inline their dedicated op so
         // the cc-emitted C (and the VM without its host-dispatch fallback)
         // lands on a real op rather than an unbound host import ; genuine host
-        // shims (`string` FNV `Hash`) forward via `call.import`. Mirror of TS's
-        // `synthesiseIntrinsicWrappers` (`OP_INTRINSIC_BY_MANGLED` branch).
+        // shims (`string` FNV `Hash`) forward via `call.import`.
         body :: build_intrinsic_wrapper_body(imp, import_index)
         debug: (DebugPos | null)[] = []
         for _d in 0..<body.len() { debug.push(null) }
@@ -216,16 +215,15 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
     // Key on the struct *type*'s intern key (display_type), not the
     // mangled name — `intern_type` for a `StructType` derives the same
     // key, so a referenced instance dedupes with this reserved
-    // definition. Mirror of `src/bytecode/emit.ts::internStructDecl`.
-    // Without this, a `ref` placeholder minted earlier under the
-    // intern key stays orphaned and downstream `intern_type` calls see
-    // a `ref` slot instead of the populated `BcStruct`.
+    // definition. Without this, a `ref` placeholder minted earlier under
+    // the intern key stays orphaned and downstream `intern_type` calls
+    // see a `ref` slot instead of the populated `BcStruct`.
     //
     // Slot order: reserve the struct's slot BEFORE recursing into
     // field types so self-referential structs (linked-list nodes etc.)
-    // terminate AND the struct's slot lands at the lower index — TS
-    // does the same (internStructDecl, emit.ts:456-466) ; reversing
-    // the order produces a fn/struct slot swap on fn-typed fields.
+    // terminate AND the struct's slot lands at the lower index ;
+    // reversing the order produces a fn/struct slot swap on fn-typed
+    // fields.
     if s.origin.symbol is Symbol as sym {
         struct_type :: mk_struct(sym, s.origin.type_arguments)
         key :: type_intern_key(struct_type)
@@ -352,31 +350,29 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // rewritten body / fn and the caller threads it back into
             // `ctx.functions[i]`.
             //
-            // Order mirrors TS :
-            // applyLocalRules → propagateConstSingleUse → dropDeadStores.
+            // Order : run_bc_peephole (Rule 1) → propagate_const_single_use
+            // → drop_dead_stores.
             // Running propagate AFTER Rule 1 leaves slots Rule 1 didn't
             // fold (non-adjacent set+get because the CFG interleaves
             // sibling operand-sets) for propagate to inline. Reversing
             // the order causes Rule 1 to fold the now-adjacent set+get
-            // post-propagate and over-folds compared to TS.
+            // post-propagate and over-folds.
             phr :: run_bc_peephole(ctx.functions[i])
             f :: ctx.functions[i]
             ctx.functions[i] = BcFunction { .name = f.name, .is_main = f.is_main, .signature = f.signature, .locals = f.locals, .body = phr.body, .debug = f.debug, .jump_table = phr.jump_table }
             // Iterate propagate to fixpoint : inlining slot N's const may
             // expose slot M (whose set was preceded by `LocalGet N`, now
-            // an inlined const) as the next propagateable slot. Mirrors
-            // TS's behaviour : applyLocalRules + propagate together
-            // converge on a single sweep when adjacency already holds,
-            // but Vader's emit pattern produces chained moves (`%2 =
-            // move %1 = move %0 = const`) that need at least two
-            // iterations to unwind.
+            // an inlined const) as the next propagateable slot.
+            // Peephole + propagate together converge on a single sweep
+            // when adjacency already holds, but Vader's emit pattern
+            // produces chained moves (`%2 = move %1 = move %0 = const`)
+            // that need at least two iterations to unwind.
             ctx.functions[i] = propagate_const_single_use(ctx.functions[i])
             ctx.functions[i] = propagate_const_single_use(ctx.functions[i])
             ctx.functions[i] = propagate_const_single_use(ctx.functions[i])
             // Const-fold-arith runs AFTER propagate so chains like
             // `const ; set N ; get N ; const ; mul` (post-propagate :
-            // `const ; const ; mul`) collapse. Mirror of TS pipeline
-            // (src/bytecode/peephole.ts:54-67).
+            // `const ; const ; mul`) collapse.
             cfa :: run_bc_const_fold_arith(ctx.functions[i])
             cf :: ctx.functions[i]
             ctx.functions[i] = BcFunction { .name = cf.name, .is_main = cf.is_main, .signature = cf.signature, .locals = cf.locals, .body = cfa.body, .debug = cf.debug, .jump_table = cfa.jump_table }
@@ -385,29 +381,26 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // fold. drop_dead_stores opens new const-before-return windows
             // by removing dead tees / sets ; re-running the full
             // `run_bc_peephole` here would also re-fold set+get pairs that
-            // slot-renumbering made adjacent, over-folding compared to TS.
+            // slot-renumbering made adjacent, over-folding.
             rlf :: run_bc_return_lit_fold(ctx.functions[i])
             g :: ctx.functions[i]
             ctx.functions[i] = BcFunction { .name = g.name, .is_main = g.is_main, .signature = g.signature, .locals = g.locals, .body = rlf.body, .debug = g.debug, .jump_table = rlf.jump_table }
             // Final pass — same-ValType non-overlapping live ranges
-            // coalesce onto shared physical slots. Mirror of TS
-            // `coalesceSlots`. Runs LAST so the
+            // coalesce onto shared physical slots. Runs LAST so the
             // peephole / propagate / DCE passes see the original slot
             // identities ; their gates depend on per-slot set/get
             // counts which coalescing would corrupt.
             ctx.functions[i] = coalesce_slots(ctx.functions[i])
         }
-        // Pass 4 — whole-program prunes on the EmitterCtx. Mirrors
-        // the late-emit prune cascade in `src/midir/emit.ts:125-133`.
+        // Pass 4 — whole-program prunes on the EmitterCtx.
         // Order matters : functions → imports → types so each pass's root
-        // set reflects the previous pass's drops. (TS's pruneUnusedVtables
-        // has no peer pass : vtable rows are reachability-filtered when
+        // set reflects the previous pass's drops. (There is no separate
+        // vtable-prune pass : vtable rows are reachability-filtered when
         // built — see `build_vtables_from_entries` — and the `used_vt_keys`
         // set below gates which vtable targets root the fn walk.)
         // Collect (trait, method) keys actually dispatched on so the
         // vtable-target rooting AND the impl-table type pinning below
-        // can both gate on real virtual.call sites. This is the inlined
-        // equivalent of TS pruneUnusedVtables.
+        // can both gate on real virtual.call sites.
         used_vt_keys: MutableMap<string, bool> = MutableMap<string, bool> {}
         for f in ctx.functions {
             for op in f.body {
@@ -418,10 +411,9 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         for ve in cfg.vtable_entries {
             key :: "${ve.trait_name}.${ve.method_name}"
             if used_vt_keys[key] !is bool { continue }
-            // Pin the receiver struct type — TS roots impl_table keys
-            // in pruneUnusedTypes (dce.ts:623), so structs only kept
-            // through an impl row survive when the row's trait is
-            // actually dispatched on.
+            // Pin the receiver struct type so structs only kept through an
+            // impl row survive when the row's trait is actually dispatched
+            // on.
             key_str :: type_intern_key(ve.struct_type)
             existing_t :: ctx.type_key[key_str]
             if existing_t is i32 as ti { ctx.pinned_types.push(ti) }
@@ -455,7 +447,7 @@ resolve_vtable_fn_index :: fn(fn_symbol: Symbol, ctx: EmitterCtx) -> i32 {
 /// group by `<trait>.<method>` for the `virtual.call` op's vtable-key
 /// lookup. Entries whose fn target was pruned drop silently. Rows
 /// whose `<trait>.<method>` key isn't referenced by any `VirtualCall`
-/// op also drop — mirror of TS `pruneUnusedVtables`.
+/// op also drop.
 build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx) -> VtableRow[] {
     // Collect every `(trait, method)` key referenced by a surviving
     // VirtualCall — only rows in this set survive.
@@ -499,7 +491,7 @@ build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], ctx: EmitterCt
         // interned (i.e. some real call site referenced it). intern_type
         // here would otherwise mint a fresh `ref` placeholder for a
         // struct that's been DCE'd everywhere else (`Foo implements
-        // Into<Foo>` rejected by typecheck — TS drops Foo entirely).
+        // Into<Foo>` rejected by typecheck, so Foo is dropped entirely).
         key_str :: type_intern_key(entry.struct_type)
         existing :: ctx.type_key[key_str]
         if existing !is i32 { continue }
@@ -519,8 +511,7 @@ build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], ctx: EmitterCt
 // Per-fn structurer
 // ============================================================================
 
-/// Active structured scope. Mirrors `FunctionBuilder::ScopeEntry` but
-/// keyed by source-CFG BlockId instead of label string. `opener_pc` is
+/// Active structured scope, keyed by source-CFG BlockId. `opener_pc` is
 /// the pc of the `Block`/`Loop`/`If` op that opened this scope ; used
 /// to fill `jump_table[opener_pc]` at `end` (block/if) or right away
 /// (loop : target = opener_pc + 1).
@@ -577,8 +568,7 @@ intern_data_value_strings :: fn(v: BcDataValue, ctx: EmitterCtx) -> void {
 /// Stack-pass-through hints — see vader/midir/scheduler. Queried by
 /// emit_get / emit_set / TermReturn to elide the local.set + local.get
 /// pair when an instruction's single-use result flows directly to the
-/// next consumer. Mirrors TS's `scheduler.skipSet / skipFirstGet /
-/// skipTerminatorGet`.
+/// next consumer.
 
 emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx, string_index_map: i32[]) -> void {
     slot :: ctx.functions[usize(fn_idx)]
@@ -613,8 +603,7 @@ emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx, 
 }
 
 // ============================================================================
-// Scope wiring — mirrors FunctionBuilder::block/loop_/if_/else_/end/br/br_if
-// but indexes scopes by source-CFG BlockId target instead of label string.
+// Scope wiring — indexes scopes by source-CFG BlockId target.
 // Maintains `slot.body` and `slot.jump_table` in parallel.
 // ============================================================================
 
@@ -680,10 +669,9 @@ defer_or_resolve_branch :: fn(ctx: FnEmitCfg, target_blk: BlockId, pc: i32) -> v
     // are preferred over enclosing IF/BLOCK scopes whose `target_blk`
     // happens to equal the loop's — without this, a body's
     // `br loop_header` lands on the wrapping if's End label instead of
-    // the loop's opener. TS doesn't hit this because its IF scope's
-    // target is `merge ?? -1` (never coincidental with a loop's real
-    // target), but Vader's `cond_branch_merge` can return the loop's
-    // own header for back-edge-only branches.
+    // the loop's opener. This collision arises because Vader's
+    // `cond_branch_merge` can return the loop's own header for
+    // back-edge-only branches.
     sp :: ctx.scopes.len()
     iL := i64(sp) - 1
     for iL >= 0 {
@@ -761,7 +749,7 @@ emit_range :: fn(ctx: FnEmitCfg, start: BlockId, until: BlockId) -> void {
             // id (or a later structural pass) sees it as a fresh header again.
             // Without this the header stays marked forever — re-encountered
             // back-edges then emit inline with no loop scope and the structurer
-            // recurses without bound (mirror of TS `wrappedLoopHeaders.delete`).
+            // recurses without bound.
             ctx.wrapped_loop_headers.remove(i32(cur))
             cf_end(ctx, block.span)
             // close loop scope
@@ -818,8 +806,7 @@ emit_block_contents :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> 
                 push_emit(ctx, Box { .type_id = intern_type(rv_type, ctx.project) }, r.span)
             }
         }
-        // Fuse `<const> + Return → ReturnLit X` post-emit. Mirrors
-        // `midir/emit.ts:283-293`.
+        // Fuse `<const> + Return → ReturnLit X` post-emit.
         body :: ctx.slot.body
         if body.len() > 0 {
             last :: body[body.len() - 1]
@@ -865,9 +852,9 @@ emit_block_contents :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> 
         // Early-return flattening : when the then-branch's last op is a
         // genuine exit (Return / ReturnLit / Branch / unreachable-equivalent),
         // the else-body becomes the post-`end` continuation instead of
-        // an `else` arm — mirrors `src/midir/emit.ts:325-333`. Without
-        // this, `if c { return X } y()` would emit an `else` wrapping
-        // the trailing `y()` even though it's reachable on both paths.
+        // an `else` arm. Without this, `if c { return X } y()` would emit
+        // an `else` wrapping the trailing `y()` even though it's reachable
+        // on both paths.
         body :: ctx.slot.body
         body_len :: body.len()
         then_exits := false
@@ -925,14 +912,12 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     }
     if ins is InstrCall as c {
         // Intern each arg's static type + the result type so the type
-        // table mirrors TS (`expectedResultType` / `argTypeIndices` on
-        // every Call). Vader's Call op doesn't carry these indices, so we
-        // pin them under THIS function (via the cached per-fn bucket) — TS
-        // keeps them on the op, so they vanish when the function is pruned ;
-        // a per-function bucket reproduces that (a global list would keep dead
-        // arg types — and the impl rows / `Range` monomorphs they anchor —
-        // alive even after the call's function is DCE'd). Mirror of
-        // `src/midir/emit.ts:473-478` + `dce.ts:609`.
+        // table carries them. Vader's Call op doesn't carry these
+        // indices, so we pin them under THIS function (via the cached
+        // per-fn bucket) — pinning per-function means they vanish when
+        // the function is pruned ; a global list would keep dead arg
+        // types — and the impl rows / `Range` monomorphs they anchor —
+        // alive even after the call's function is DCE'd.
         pins :: ctx.pinned_types_bucket
         for a in c.args {
             pins.push(intern_type(ctx.fn_.locals[usize(a)].type, ctx.project))
@@ -1045,7 +1030,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         // Remember whether the scheduler elided our receiver get BEFORE
         // emitting it ; if it did, the tail op belongs to the producer
         // instruction, not us, and `try_fuse_local_field` would corrupt
-        // it. Mirrors TS `skippedReceiverGet`.
+        // it.
         skipped_receiver_get :: ctx.hints.skip_first_get.contains(pos)
         emit_first_get(ctx, pos, fg.target, fg.span)
         field_slot :: find_struct_field_index(ctx.project, type_index, fg.field)
@@ -1062,8 +1047,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
 
         field_index :: i32(field_slot)
         // Fuse `local.get N ; struct.get T F` → `local.field N T F`
-        // when the just-emitted op is the receiver's slot read. Mirrors
-        // the TS midir emit.
+        // when the just-emitted op is the receiver's slot read.
         fused := false
         if !skipped_receiver_get {
             fused = try_fuse_local_field(ctx, type_index, field_index)
@@ -1074,7 +1058,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         // Unboxing cast : the BcStruct field stores a boxed `ref`
         // (vader_box_t) ; downstream typed ops expect the unboxed
         // primitive. Skip when the static field type is itself a ref-
-        // class (ref/any/void). Mirrors `src/midir/emit.ts::emitStructGet`.
+        // class (ref/any/void).
         if needs_ref_cast(fg.type) {
             push_emit(ctx, RefCast { .type_id = intern_type(fg.type, ctx.project) }, fg.span)
         }
@@ -1260,8 +1244,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     if ins is InstrMakeClosure as mc {
         emit_first_get(ctx, pos, mc.env, mc.span)
         // Operand is the CLOSURE's own type id (fn type), not the env
-        // struct's — matches `src/midir/emit.ts::emitMakeClosureInstr`'s
-        // `internType(ctx.project, ins.type)`.
+        // struct's.
         closure_type_id :: intern_type(mc.type, ctx.project)
         fn_idx_opt :: ctx.project.function_index_by_symbol_id[mc.fn_symbol.id]
         if fn_idx_opt is i32 as fn_idx {
@@ -1333,9 +1316,9 @@ convert_eligible :: fn(v: ValType) -> bool = match v {
 }
 
 /// Map an InstrIntrinsic's canonical name onto its dedicated Op.
-/// Mirror of TS `INTRINSIC_TABLE`. Returns
-/// null when the name doesn't map to a known intrinsic ; the sole caller
-/// panics on `null` rather than emitting a function-truncating stub.
+/// Returns null when the name doesn't map to a known intrinsic ; the
+/// sole caller panics on `null` rather than emitting a function-
+/// truncating stub.
 intrinsic_op_for_name :: fn(name: string) -> Op | null {
     if name == "size_of.type" { return SizeOfType {} }
     if name == "array.repeat" { return ArrayRepeat {} }
@@ -1402,8 +1385,8 @@ emit_get :: fn(ctx: FnEmitCfg, local_id: LocalId, span: Span) -> void {
 
 /// First stack-pushed operand of an instruction. When the scheduler
 /// flagged `pos` as `skip_first_get`, the previous instruction's result
-/// is already on the stack — no `local.get` needed. Mirrors TS
-/// `emitFirstOperand`. `pos` is `pos_key(block, idx)`.
+/// is already on the stack — no `local.get` needed. `pos` is
+/// `pos_key(block, idx)`.
 emit_first_get :: fn(ctx: FnEmitCfg, pos: i64, local_id: LocalId, span: Span) -> void {
     if ctx.hints.skip_first_get.contains(pos) { return }
     emit_get(ctx, local_id, span)
@@ -1411,8 +1394,7 @@ emit_first_get :: fn(ctx: FnEmitCfg, pos: i64, local_id: LocalId, span: Span) ->
 
 /// Final write for an instruction's result. When the scheduler flagged
 /// `pos` as `skip_set`, the value stays on the stack for the next
-/// instruction's first operand — no `local.set` needed. Mirrors TS
-/// `emitInstrResult`.
+/// instruction's first operand — no `local.set` needed.
 emit_result :: fn(ctx: FnEmitCfg, pos: i64, dst: LocalId, span: Span) -> void {
     if ctx.hints.skip_set.contains(pos) { return }
     emit_set(ctx, dst, span)
@@ -1428,7 +1410,6 @@ emit_result_if_any :: fn(ctx: FnEmitCfg, pos: i64, dst: LocalId | null, span: Sp
 // True when a struct.get / array.get / cell-deref result needs an
 // unboxing `ref.cast` to recover its static primitive type. Skips
 // ref-class statics (ref/any/void) where no narrowing is meaningful.
-// Mirror of TS `valTypeOf(t) !== "ref" && !== "any" && !== "void"`.
 needs_ref_cast :: fn(t: Type) -> bool {
     if t !is PrimitiveType { return false }
     return t.name != "void"

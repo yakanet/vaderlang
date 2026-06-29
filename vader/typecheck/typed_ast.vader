@@ -1,7 +1,7 @@
 // vader/typecheck/typed_ast — output shape of the typechecker.
 //
-// Mirror of `src/typecheck/typed-ast.ts`'s `TypedProgram` interface, but
-// MVP-trimmed : side-tables that depend on passes not yet ported
+// The `TypedProgram` interface is MVP-trimmed : side-tables that depend on
+// passes not yet ported
 // (FieldResolution / BinaryOpResolution / IntoCoercion / …) are added
 // alongside their producing pass. Side-tables are span-keyed (line:col)
 // — same convention as `vader/resolver/body.vader::ResolvedFile.idents`,
@@ -44,8 +44,7 @@ export TypedProgram :: struct {
     /// (minted by `assign_node_ids` at parse time, re-minted on cloned
     /// nodes inside materialised trait default-method bodies). Lets the
     /// dump emit multiple entries for cloned nodes that share the same
-    /// source span — needed for byte-for-byte parity with TS, whose
-    /// `exprTypes: WeakMap<Expr, Type>` keys on JS object identity.
+    /// source span.
     expr_types: MutableMap<usize, Type>
 
     /// Type of every `:=` / `::` local binding, keyed by binding span
@@ -246,7 +245,7 @@ export TypedProgram :: struct {
     /// Lets `validate_extern` (decl.vader) emit T3050 on the second
     /// declaration of the same C symbol — the linker would otherwise
     /// silently bind both call sites to one prototype, producing UB at
-    /// mismatched ABIs. Mirrors `src/typecheck/ctx.ts::externSymbols`.
+    /// mismatched ABIs.
     extern_symbols: MutableMap<string, FnDecl>
 
     /// In-fn type aliases : `t :: i32` inside a fn body. Keyed by the
@@ -255,7 +254,6 @@ export TypedProgram :: struct {
     /// RHS is a structural type expression and the binding is
     /// immutable. Consumed at use sites — `@size_of(t)` and friends
     /// fold to a literal when the ident resolves to a key here.
-    /// Mirrors `globals.letTypeAliases` in `src/typecheck/ctx.ts`.
     let_type_aliases: MutableMap<i32, Type>
 
     /// FieldExpr.id → resolved trait name. Populated when a
@@ -263,8 +261,6 @@ export TypedProgram :: struct {
     /// resolves `.hash` through the Hash trait). The lower consumes
     /// this to emit `vcall Hash.hash` on erased-to-Any receivers
     /// instead of a direct field-call to an unresolved member.
-    /// Mirrors TS' FieldResolution.trait carried in
-    /// `t.fieldResolutions` for `kind = "trait-method"` entries.
     bounded_dispatch_trait: MutableMap<usize, string>
 
     /// Generic fn AST-node id → true when its body trait-dispatches on a
@@ -274,16 +270,14 @@ export TypedProgram :: struct {
     /// CONCRETE (per-instance subst) instead of erasing every type-param
     /// to `Any` — erasure would lower the dispatch to `virtual.call` on a
     /// `ref _` receiver that no vtable resolves. Keyed by node id (not
-    /// name) so overloaded generics don't collide. Functional mirror of
-    /// TS' `shouldErase` exception for trait-dispatching instances.
+    /// name) so overloaded generics don't collide.
     fn_trait_dispatches: MutableMap<usize, bool>
 
     /// Callee `IdentExpr.id` → true when overload resolution picked a
     /// non-primary overload for a direct call (`describe(b)` choosing
     /// the `Bag` overload while the resolver bound the `Box` primary).
     /// The lowerer emits the call's *result* type on the callee ident
-    /// for these, matching TS' `calleeSym !== resolverSym` branch
-    /// Direct calls to the primary
+    /// for these. Direct calls to the primary
     /// (or non-overloaded names) keep the fn-type display.
     overload_result_callees: MutableMap<usize, bool>
 
@@ -291,8 +285,7 @@ export TypedProgram :: struct {
     /// `check_for`. Unlike `FnContext.loop_depth` (not threaded through the
     /// expression checker, so lost inside `if`/`match` branch blocks), this
     /// survives arbitrary expression nesting — `check_loop_jump` reads it for
-    /// W0004 so `for { for { if c { continue } } }` is flagged. Mirrors TS,
-    /// whose `FnContext.loopDepth` is threaded through `checkExpr`.
+    /// W0004 so `for { for { if c { continue } } }` is flagged.
     loop_depth: i32 = 0
 }
 

@@ -1,8 +1,7 @@
 // vader/comptime/eval_seq_lit — `[e0, e1, …]` literal evaluator.
 //
 // Tuples (typed `[T0, T1, …]`) materialise as `StructValue` with
-// synthetic `_0`, `_1`, … field names — mirrors the TS VM's tuple
-// representation. Arrays (typed `T[]`)
+// synthetic `_0`, `_1`, … field names. Arrays (typed `T[]`)
 // materialise as `ArrayValue`. The discriminator is the type-checker's
 // `expr_types[expr.id]` ; both shapes recurse through the dispatcher
 // to evaluate elements.

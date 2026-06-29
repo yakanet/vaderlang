@@ -37,9 +37,8 @@ export new_import_target_table :: fn() -> ImportTargetTable {
     }
 }
 
-/// Wire every ImportBinding across every loaded module. Mirrors
-/// `src/resolver/wire.ts::wireImports`. Emits R2003 / R2008 on the
-/// binding's own span into `project.diags`.
+/// Wire every ImportBinding across every loaded module. Emits
+/// R2003 / R2008 on the binding's own span into `project.diags`.
 export wire_imports :: fn(project: LoadedProject) -> ImportTargetTable {
     out :: new_import_target_table()
     // One name → id map for the whole project ; reused across every

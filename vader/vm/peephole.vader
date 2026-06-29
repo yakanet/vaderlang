@@ -1,5 +1,5 @@
 // vader/vm/peephole — local op-sequence rewrites on a freshly emitted
-// `BcFunction.body`. Mirrors a subset of `src/bytecode/peephole.ts`.
+// `BcFunction.body`.
 //
 // Operates on `vader/bytecode::BcFunction` ; it imports the opcode set + the
 // function shape from `vader/bytecode` — the one-way `vm -> bytecode` edge.
@@ -8,7 +8,7 @@
 // jump table is computed for that function. Every rule below collapses
 // a contiguous 2-op window into 0 or 1 ops ; running them before
 // jump-table resolution means the parser-style `wire_control_flow`
-// walk (see `vader/vm/builder` or the TS `parseVir`) reads the already-
+// walk (see `vader/vm/builder`) reads the already-
 // optimised stream and produces a consistent jump table directly. The
 // alternative — running peephole on a function whose jump_table is
 // populated — would shift every later branch target and require a
@@ -19,22 +19,22 @@
 // Block / Loop / If / Else / End / Branch / BranchIf : the structural
 // scope shape is invariant.
 //
-// Rules implemented (mirror of `src/bytecode/peephole.ts`) :
+// Rules implemented :
 //   1. `LocalSet N ; LocalGet N`        → `LocalTee N`
 //   2. `<num>.cmp ; BoolNot`            → `<num>.inverse cmp`
 //   3. `BoolConst X ; BoolNot`          → `BoolConst !X`
 //   4. `BoolNot ; BoolNot`              → ε (both ops dropped)
 //
-// Rules 5–6 from the TS-side peephole (dead-store elimination + const
-// propagation through single-use locals) are not ported yet — they need
+// Two further rules (dead-store elimination + const propagation through
+// single-use locals) are not implemented yet — they need
 // per-local val types so a typed-cmp after the propagated const doesn't
 // lose the implicit coerce. The data is now available (`bc.BcFunction`
 // carries `locals: BcLocal[]` with each local's `val` type), so the gate
-// is just the porting work, not a schema gap as it once was.
+// is just the implementation work, not a schema gap as it once was.
 //
 // All rules are gated by a single `optimize` flag passed to
 // `run_peepholes` ; pass `false` to disable everything (matches the
-// `--no-bytecode-opt` CLI escape hatch on the TS side).
+// `--no-bytecode-opt` CLI escape hatch).
 
 module "vader/vm"
 
@@ -45,8 +45,8 @@ bc :: import "vader/bytecode"
 /// peephole — see the file header).
 ///
 /// @param function  the bytecode function to rewrite.
-/// @param optimize  pass `false` to bail without rewriting (parity with
-///                  the TS CLI's `--no-bytecode-opt` flag).
+/// @param optimize  pass `false` to bail without rewriting (maps to the
+///                  `--no-bytecode-opt` CLI flag).
 export run_peepholes :: fn(function: bc.BcFunction, optimize: bool) -> void {
     if !optimize { return }
     apply_local_rules(function)
@@ -146,8 +146,8 @@ push_op_at :: fn(items: bc.Op[], sp: usize, value: bc.Op) -> void {
 
 /// If `o` is a typed comparison (`<width>.lt` / `.le` / `.gt` / `.ge`
 /// / `.eq` / `.ne`), return its inverse-op variant ; otherwise `null`.
-/// Mirrors `INVERSE_VERB` in `src/bytecode/peephole.ts`. Hand-rolled
-/// per-variant because Vader doesn't expose op-kind strings at runtime.
+/// Hand-rolled per-variant because Vader doesn't expose op-kind strings
+/// at runtime.
 // @partial: only the comparison ops have an inverse; every other Op → null.
 invert_cmp :: fn(o: bc.Op) -> bc.Op | null = @partial match o {
     is bc.I32Lt   -> bc.I32Ge {}

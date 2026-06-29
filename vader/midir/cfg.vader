@@ -8,8 +8,7 @@
 //
 // Cross-IR carry : MonoEntry, Type, Symbol, LoweredBinaryOp /
 // LoweredUnaryOp, VtableEntry are imported from upstream phases.
-// IntrinsicName is a `string` here (TS uses a const-literal union
-// over the 5 fixed names ; Vader stores the verbatim string).
+// IntrinsicName is a `string` here — Vader stores the verbatim name.
 
 module "vader/midir"
 
@@ -448,8 +447,7 @@ export InstrMakeClosure :: struct {
 }
 
 /// Compiler/runtime intrinsic call (`size_of.type`). `name` is the
-/// verbatim intrinsic name ; TS uses a const-literal union but Vader
-/// stores the string.
+/// verbatim intrinsic name.
 export InstrIntrinsic :: struct {
     span:        Span
     dst:         LocalId | null

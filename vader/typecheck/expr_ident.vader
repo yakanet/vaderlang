@@ -1,6 +1,5 @@
 // vader/typecheck/expr_ident — type for an IdentExpr in value position.
 //
-// Mirror of `src/typecheck/passes/expr.ts::inferIdent` + `typeOfSymbol`.
 // Resolves the ident via the resolver's `idents` map and routes per
 // SymbolKind :
 //   - Fn / Struct / Enum / Trait / TypeAlias / Const → look up the

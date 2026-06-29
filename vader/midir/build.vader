@@ -41,7 +41,7 @@ import "vader/typecheck" { equals_type, is_void }
 import "std/abort" { panic }
 
 /// Project-level interning context — accumulates strings into a single
-/// pool shared by every fn's CFG. Mirrors `ProjectCtx` in `build.ts`.
+/// pool shared by every fn's CFG.
 ProjectCtx :: struct {
     strings:      string[]
     string_index: MutableMap<string, i32>
@@ -112,7 +112,7 @@ import "vader/comptime" { MonoEntry }
 // ============================================================================
 
 /// Top-level entry — walk the lowered project, emit one `CFGModule` per
-/// lowered module. Mirrors `src/midir/build.ts::buildCFGProject`.
+/// lowered module.
 ///
 /// @param lp  the lowered project from the lowerer pass.
 /// @return    a fresh `CFGProject` with one entry per non-stdlib module.
@@ -257,7 +257,7 @@ FnMetadata :: struct {
 import "vader/parser" { FnDecl, Decl }
 
 /// Extract source-level metadata bytecode-emit needs to route a fn to
-/// imports / exports. Mirrors `fnMetadata` in `build.ts`.
+/// imports / exports.
 fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
     extern_name := d.mangled
     is_extern := false

@@ -21,7 +21,7 @@
 module "vader/bytecode"
 
 
-/// One Vader function body, post-lowering. Closely mirrors TS `BcFunction`.
+/// One Vader function body, post-lowering.
 ///
 /// `is_main` is propagated from `MonoEntry.isMain` through the IR layers
 /// so the VM and the C-emit can locate the entry without re-parsing the
@@ -97,9 +97,9 @@ export BcExport :: struct {
 /// One row of the impl table — `struct_type_index implements trait_name`.
 /// Materialised side-by-side with the per-(trait, method) vtable so
 /// `is Trait` patterns can be answered without walking every fn name.
-/// In TS, the impl table is a `Map<number, readonly string[]>` keyed by
-/// struct type-index ; here we use an explicit-row representation to
-/// keep the shape data-only (no map encoding into Vader maps).
+/// We use an explicit-row representation (rather than a map keyed by
+/// struct type-index) to keep the shape data-only (no map encoding into
+/// Vader maps).
 export ImplEntry :: struct {
     struct_type_index: i32
     trait_name: string

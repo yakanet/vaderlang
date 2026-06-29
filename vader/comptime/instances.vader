@@ -78,7 +78,7 @@ export add :: fn(registry: InstanceRegistry, symbol: Symbol, raw_args: Type[]) -
 /// instance whose args list is non-empty AND made of resolved types
 /// (no `Unresolved` / `FreeInt` / `FreeFloat` / `Self`). TypeParam
 /// references are accepted — they appear in the snapshot as the bare
-/// name (`T`), matching what TS does.
+/// name (`T`).
 /// @param registry  the registry.
 /// @param t         the type to scan.
 export observe :: fn(registry: InstanceRegistry, t: Type) -> void {
@@ -111,9 +111,8 @@ walk_type :: fn(registry: InstanceRegistry, t: Type) -> void {
     }
 }
 
-// Filter that mirrors TS `isConcrete` but allows TypeParam through —
-// the TS code does too in practice (the registry stores `Yield(T)` etc.
-// as observed alongside `Yield(i32)`). Rejects only types that signal
+// Filter that allows TypeParam through — the registry stores `Yield(T)`
+// etc. as observed alongside `Yield(i32)`. Rejects only types that signal
 // "not yet resolved" or "free literal".
 all_concrete_enough :: fn(args: Type[]) -> bool {
     for arg in args {
@@ -135,7 +134,7 @@ build_display_key :: fn(symbol: Symbol, args: Type[]) -> string {
     return "${symbol.id}(${canonical_args_key(args)})"
 }
 
-// Mirror of `canonicalArgsKey` from TS. Stable, structure-anchored —
+// Stable, structure-anchored —
 // type-param symbol ids make `T_struct_A_t` and `T_struct_B_t` distinct
 // keys, so the same surface name `T` can register multiple instances.
 /// Canonical, structure-anchored stringification of a type-arg list.
@@ -185,15 +184,15 @@ canonical_type_key :: fn(t: Type) -> string = match t {
 }
 
 /// Return the registry's instances sorted alphabetically by
-/// `display_key`. Matches `InstanceRegistry.entries()` in TS.
+/// `display_key`.
 /// @param registry  the registry.
 /// @return          the sorted instance list.
 export sorted_instances :: fn(registry: InstanceRegistry) -> GenericInstance[] {
     return sort(registry.order, (a: GenericInstance, b: GenericInstance) -> compare_ascending(a.display_key, b.display_key))
 }
 
-/// Render an instance as the dump-line text. Matches TS's
-/// `${symbol.name}(${args.map(displayType).join(", ")})`.
+/// Render an instance as the dump-line text — `name<arg0, arg1, …>` with
+/// each arg rendered via `display_type`.
 /// @param instance  the instance.
 /// @return          the rendered text without leading indentation.
 export render_instance :: fn(instance: GenericInstance) -> string {

@@ -63,8 +63,8 @@ emit_stmt :: fn(stmt: LoweredStmt, state: FnEmitState, ctx: EmitterCtx) -> void 
             emit_expr(expr_stmt.expr, state, ctx)
             // Skip the Drop when the expression leaves nothing on the
             // stack — void returns and `never`-typed exprs (calls that
-            // diverge) have no value to discard. Mirrors TS, which only
-            // emits drop when the expr's static type carries a value.
+            // diverge) have no value to discard. Drop is emitted only
+            // when the expr's static type carries a value.
             if !expr_leaves_no_value(type_of(expr_stmt.expr)) {
                 push_op(state, Drop {})
             }
@@ -307,8 +307,7 @@ emit_call :: fn(call: LoweredCall, state: FnEmitState, ctx: EmitterCtx) -> void 
 /// Vader side : that pass double-registers intrinsic symbols in BOTH
 /// the fn-table and the import table. The intrinsic-name check has
 /// to fire first or we'd emit `Call <wrapper>` instead of inlining
-/// the op. The TS dispatcher
-/// gates the intrinsic check on the import map for the same reason.
+/// the op.
 emit_call_to_symbol :: fn(symbol: Symbol, state: FnEmitState, ctx: EmitterCtx) -> void {
     intrinsic :: intrinsic_op_for_symbol_name(symbol)
     if intrinsic !is null {
@@ -362,10 +361,9 @@ emit_if :: fn(if_expr: LoweredIf, state: FnEmitState, ctx: EmitterCtx) -> void {
 /// order — the bytecode `StructNew` op pops fields back in the same
 /// order) then `StructNew { type_id }`.
 ///
-/// The lowerer normalises `struct_lit.fields` into declaration order
-/// (TS-side does the same via `pickFieldOrder`) ; we trust that
-/// invariant rather than re-sorting against the BcStruct's fields
-/// list.
+/// The lowerer normalises `struct_lit.fields` into declaration order ;
+/// we trust that invariant rather than re-sorting against the BcStruct's
+/// fields list.
 emit_struct_lit :: fn(struct_lit: LoweredStructLit, state: FnEmitState, ctx: EmitterCtx) -> void {
     type_id :: intern_type(struct_lit.type, ctx)
     for i in 0..<struct_lit.fields.len() {
@@ -390,7 +388,6 @@ emit_field_access :: fn(field_access: LoweredFieldAccess, state: FnEmitState, ct
     }
     field_index :: i32(field_slot)
     // Fuse `local.get N ; struct.get T F` → `local.field N T F`
-    // (mirrors `src/midir/emit.ts::emitStructGet`'s in-place fold).
     fused :: try_fuse_local_field(state, target_type_id, field_index)
     if !fused {
         push_op(state, StructGet {
@@ -404,7 +401,7 @@ emit_field_access :: fn(field_access: LoweredFieldAccess, state: FnEmitState, ct
     // downstream typed ops (`i32.add`, `f64.eq`, …) need an unboxing
     // `ref.cast` to recover the primitive ValType. Skip when the static
     // type is itself a ref-class (`ref`/`any`/`void`) — no narrowing
-    // needed. Mirrors `src/midir/emit.ts::emitStructGet`'s gate.
+    // needed.
     field_type :: type_of(field_access)
     if needs_ref_cast(field_type) {
         push_op(state, RefCast { .type_id = intern_type(field_type, ctx) })
@@ -581,8 +578,7 @@ emit_data_const :: fn(data_const: LoweredDataConst, state: FnEmitState, ctx: Emi
 /// resolves the lifted lambda fn's slot.
 emit_make_closure :: fn(closure: LoweredMakeClosure, state: FnEmitState, ctx: EmitterCtx) -> void {
     emit_expr(closure.env, state, ctx)
-    // Operand is the closure's own type (fn type), not the env struct's —
-    // matches `src/midir/emit.ts::emitMakeClosureInstr`'s `internType(ins.type)`.
+    // Operand is the closure's own type (fn type), not the env struct's.
     closure_type_id :: intern_type(closure.type, ctx)
     target :: ctx.function_index_by_symbol_id[closure.fn_symbol.id]
     match target {
@@ -637,7 +633,7 @@ emit_intrinsic_call :: fn(intrinsic: LoweredIntrinsicCall, state: FnEmitState, c
 /// Lowered onto a synthetic `$Cell<T>` struct (one field `value: T`)
 /// interned via `intern_cell_type`. Pushes the inner value, then
 /// `StructNew` over the cell type — the struct constructor pops the
-/// single field arg back. Same shape as the TS pipeline.
+/// single field arg back.
 emit_cell_new :: fn(cell_new: LoweredCellNew, state: FnEmitState, ctx: EmitterCtx) -> void {
     cell_type_id :: intern_cell_type(cell_new.value_type, ctx)
     emit_expr(cell_new.value, state, ctx)

@@ -58,9 +58,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
     // Explicit-args generic call : `identity<i32>(42)`. The callee
     // is a GenericInstExpr whose inner callee is the fn IdentExpr.
     // Type args come from the GenericInstExpr's type_args slot,
-    // bypassing the inference step the bare-ident path uses. Mirror
-    // of TS' `expr.callee.kind === "GenericInstExpr"` handling
-    // (`src/lower/passes/expr.ts:110-127`).
+    // bypassing the inference step the bare-ident path uses.
     if call.callee is GenericInstExpr as gi {
         if gi.callee is IdentExpr as inner_id {
             sym_or_null :: ctx.typed.resolved.idents[inner_id.span.hash()]
@@ -288,8 +286,7 @@ infer_type_args :: fn(ft: FnType, call: CallExpr, ctx: FnLowerCtx) -> Type[] {
             // call inside an erased generic body (`outer<T>` calling
             // `inner_count(arr)`) resolves the inner type-arg through
             // `T -> Any`, yielding `inner_count__Any` rather than a
-            // dangling `inner_count__T`. Mirror of TS' transitive mono
-            // which substitutes call-site args under the outer subst.
+            // dangling `inner_count__T`.
             _ -> { out.push(substitute(v, ctx.subst)) }
         }
     }
@@ -319,10 +316,9 @@ unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type
     }
     // Trait param vs concrete arg : recover the trait's generic args by
     // walking the impl table, then unify them with the pattern's args.
-    // Mirror of TS `unifyTraitParamWithConcrete` (`unify.ts:101`). Drives
-    // monomorphisation of `fn[T](it: Iterator(T))` etc. from any arg that
-    // implements the trait (struct, primitive, raw array, or a value
-    // already boxed into the trait type).
+    // Drives monomorphisation of `fn[T](it: Iterator(T))` etc. from any
+    // arg that implements the trait (struct, primitive, raw array, or a
+    // value already boxed into the trait type).
     if pattern is TraitType as ptr {
         trait_args :: trait_concrete_args(ptr, concrete, ctx)
         if trait_args != null {

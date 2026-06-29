@@ -20,8 +20,8 @@
 
 /// Stack-machine value class — every operand the VM / C-emit can carry
 /// in a local or on the operand stack lands in exactly one of these
-/// classes. Mirrors the TS `ValType` string union one-for-one. Closed
-/// enum so `match` arms stay exhaustive across the pipeline.
+/// classes. Closed enum so `match` arms stay exhaustive across the
+/// pipeline.
 module "vader/bytecode"
 
 export ValType :: enum(u8) {
@@ -511,7 +511,7 @@ export BcField :: struct {
 /// is `-1` when unknown ; distinct monomorphisations of the same
 /// generic source decl share a `symbol_id`, which C-emit uses to find
 /// a struct's all-`Any` counterpart for the erasure boundary
-/// conversion (mirrors `BcStruct.symbolId` in TS).
+/// conversion.
 export BcStruct :: struct {
     name: string
     fields: BcField[]

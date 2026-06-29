@@ -159,7 +159,7 @@ try_read_dir :: fn(path: string) -> string[] | null {
 export join_path :: fn(base: string, seg: string) -> string {
     // Strip a leading `./` from the relative segment so module ids
     // stay normalised — `from/./mod_a` would render as `## from/./mod_a`
-    // in the typecheck dump and mismatch parity with the TS reference.
+    // in the typecheck dump.
     s :: trim_prefix(seg, "./")
     if base == "" { return s }
     baseb :: base.bytes()

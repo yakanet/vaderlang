@@ -19,9 +19,8 @@ as_field_expr :: fn(expr: Expr) -> FieldExpr | null {
 /// `recv.method(args)` against a concrete-typed receiver (primitive,
 /// struct, enum) lowers to a direct call when an impl member with the
 /// matching name exists. The receiver becomes the first arg.
-/// Mirror of `lowerUfcsCall` in `src/lower/passes/expr.ts` — runs after
-/// the trait-virtual probe so virtual dispatch wins for trait-typed
-/// receivers and UFCS picks up the concrete-type residue.
+/// Runs after the trait-virtual probe so virtual dispatch wins for
+/// trait-typed receivers and UFCS picks up the concrete-type residue.
 try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
     callee_field :: as_field_expr(call.callee)
     if callee_field is null { return null }
@@ -138,8 +137,7 @@ find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsM
     // Cross-module free fn — `s.len()` against `MutableSet`'s
     // `len :: fn[T](self: MutableSet(T)) -> usize` defined in
     // `stdlib/std/collections.vader` even though the user file never
-    // `import`s `len`. Mirror of TS's `inferField` which scans every
-    // loaded module's exports via `fieldRefs` (`ufcs-free` ref).
+    // `import`s `len`.
     for [_, ep] in ctx.project.evaluated.modules {
         bucket :: ep.typed.resolved.fn_overloads[name]
         if bucket is Symbol[] as bucket_syms {
@@ -289,8 +287,7 @@ harvest_ufcs_fn_instance :: fn(
         owner_module :: fn_sym.module
         // Use the owning module's *display* path (the declared
         // `module "..."` name) for the mangle, not its filesystem
-        // id. Matches the direct-call path at line 775 and TS'
-        // `program.module.displayPath` in `src/comptime/specialize.ts:384`.
+        // id. Matches the direct-call path at line 775.
         // Falls back to fn_sym.module when the lookup misses (defensive).
         display :: lookup_module_display_path(ctx, owner_module)
         mod_mangle :: mangle_module_id(if display == null { owner_module } else { display })

@@ -1,5 +1,4 @@
-// Version constants — mirror of `src/version.ts`. Keep the two files in
-// lockstep ; the self-host CLI surfaces `CLI_VERSION` via `vader --version`,
+// Version constants. The CLI surfaces `CLI_VERSION` via `vader --version`,
 // and any future binary-bytecode I/O on the Vader side will read the
 // `BYTECODE_VERSION_*` constants.
 

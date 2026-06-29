@@ -9,10 +9,10 @@
 //
 // Scope: only what the LSP semantic-tokens classifier needs. Type
 // resolution, generic substitution, impl-block dispatch, and
-// decorator validation all live on the TS side until §2.6 (self-host
-// typechecker) lands. The output here is intentionally a flat
+// decorator validation live in the compiler-grade resolver /
+// typechecker, not here. The output here is intentionally a flat
 // AST.IdentExpr → Symbol map ; richer per-expr metadata stays in the
-// compiler-grade resolver when that's ported.
+// compiler-grade resolver.
 
 module "vader/resolver"
 
@@ -27,7 +27,7 @@ import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, new_factory,
 /// file-local and unique per node). Consumers look up a span to get
 /// the bound symbol's kind ; `Variable` is the fallback for un-resolvable
 /// idents (the resolver is intentionally lenient — diagnostics are
-/// the TS-side resolver's job).
+/// the compiler-grade resolver's job).
 export ResolvedFile :: struct {
     /// Top-level declarations of this file, indexed for downstream use.
     top_level: MutableMap<string, Symbol>
@@ -253,8 +253,8 @@ walk_decorators :: fn(self: ResolveState, decs: AST.Decorator[]) -> void {
     }
 }
 
-/// Whitelist mirroring `src/parser/decorators.ts::KNOWN_DECORATORS`.
-/// Update both sides together when SPEC §12 grows a new decorator.
+/// Whitelist of known decorators.
+/// Update when SPEC §12 grows a new decorator.
 is_known_decorator :: fn(name: string) -> bool {
     return name == "comptime"
         || name == "extern"

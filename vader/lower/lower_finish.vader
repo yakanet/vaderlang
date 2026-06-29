@@ -14,7 +14,6 @@ import "vader/resolver/symbol" { Symbol, SymbolKind }
 
 // Walk every module's impl decls × surviving impl-member fns and yield
 // one `VtableEntry` per `(trait, method, receiver type, impl fn)`.
-// Mirror of `src/lower/lower.ts::collectVtableEntries`.
 collect_vtable_entries :: fn(
     project: LoweredProject, loaded: LoadedProject, typed: TypedProject,
 ) -> VtableEntry[] {
@@ -55,8 +54,7 @@ ImplTraitMethod :: struct { trait_name: string, method: string }
 // + method. The lowerer's `impl_member_mangled` emits this shape ;
 // non-impl fns return null. We can't pull the trait/method directly
 // from the FnDecl because impl members ship as plain LoweredFnDecls
-// (TS keeps a richer ImplRegistry through emit, Vader's mangle
-// round-trip is the cheap substitute).
+// (the mangle round-trip is the cheap substitute).
 impl_trait_method_from_mangled :: fn(mangled: string) -> ImplTraitMethod | null {
     parts :: split_dollar(mangled)
     if parts.len() < 4 { return null }

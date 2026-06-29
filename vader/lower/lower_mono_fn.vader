@@ -23,8 +23,7 @@ import "vader/resolver/symbol" { Symbol }
 /// Walk `evaluated.instances` and emit a synthetic monomorphic decl
 /// per concrete generic instance. Structs land as
 /// `Symbol__T1__T2 { field: ConcreteT }` ; generic-impl members
-/// follow as `Symbol$Trait$method__T1__T2(...)`. Mirror of TS's
-/// `monomorphizeProject` pass-2.
+/// follow as `Symbol$Trait$method__T1__T2(...)`.
 /// Build phase of generic-fn-instance materialisation. Drains the
 /// `fn_instances_order` + `pending_generic_impl_recv` queues into
 /// `project_ctx.generic_collected`, lowering each instance body against a
@@ -100,21 +99,18 @@ drain_generic_fn_instances :: fn(
 
 /// Flush phase of generic-fn-instance materialisation. Sorts every instance
 /// `drain_generic_fn_instances` collected by `<fn_symbol.id>::<args_key>`
-/// (matching TS's `displayKey` ordering, `src/comptime/instances.ts:33` — the
-/// `symbol.id` prefix groups a fn's overloads, args sort alphabetically within
-/// a group), erasure-dedups, and pushes to modules. Runs ONCE after the joint
-/// fixpoint converges so emission order is a single deterministic sort over the
-/// whole set — `inner` (lower symbol id) emits before `outer` regardless of
-/// discovery order.
+/// (the `symbol.id` prefix groups a fn's overloads, args sort alphabetically
+/// within a group), erasure-dedups, and pushes to modules. Runs ONCE after the
+/// joint fixpoint converges so emission order is a single deterministic sort
+/// over the whole set — `inner` (lower symbol id) emits before `outer`
+/// regardless of discovery order.
 flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx, project: LoweredProject) -> void {
     // Erasure-dedupe : every instance of a NON-trait-dispatching free
     // generic fn erases to the same Any-typed body, so collapse a fn's
     // group to a single decl keyed by `fn_symbol.id`, keeping the first
     // by sort order (`outer<i32>` + `outer<string>` -> one `outer__i32`).
-    // Mirror of TS' `erasureDedupe` collapsing each fn group to one
-    // representative. Impl-member
-    // instances never reach `fn_instances` (they route through the mono
-    // / vtable path), so this only collapses free generic fns.
+    // Impl-member instances never reach `fn_instances` (they route through
+    // the mono / vtable path), so this only collapses free generic fns.
     //
     // A trait-dispatching free generic fn (GATE A : `dispatches`, built
     // CONCRETE per instance) does NOT erase — `get__string` and `get__i32`

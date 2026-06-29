@@ -13,8 +13,6 @@ import "vader/diagnostics" { Span }
 
 // Sentinel id used at parser construction time, before a future
 // `assign_node_ids` walker replaces it with a fresh unique value (≥ 1).
-// Mirrors `UNASSIGNED_NODE_ID = 0` on the TS side so
-// the construct/walk pattern is identical across both implementations.
 // Used as a struct-field default so node constructions can omit `.id`.
 export UNASSIGNED_NODE_ID :: usize(0)
 
@@ -138,7 +136,7 @@ export ImportName :: struct {
 
 // `sam_synthetic` and `is_expression_bodied` are `bool` (defaults `false`)
 // rather than `bool | null` — Vader has no optional fields. The dumper emits
-// them only when `true` to match the TS shape.
+// them only when `true`.
 export FnDecl :: struct {
     span:                  Span
     id:                  usize = UNASSIGNED_NODE_ID
@@ -407,9 +405,9 @@ export DeferBody :: DeferStmtBody | DeferBlockBody
 export IntLitExpr :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
-    // Unsigned magnitude, full u64 range (matches TS-side `bigint` ; the
-    // snapshot format renders the value as a decimal string with the
-    // trailing `n` so 0..u64.MAX all round-trip losslessly). Negative
+    // Unsigned magnitude, full u64 range (the snapshot format renders the
+    // value as a decimal string with the trailing `n` so 0..u64.MAX all
+    // round-trip losslessly). Negative
     // literals are wrapped by the parser in `UnaryExpr.neg`.
     value:  u64
 }
@@ -453,8 +451,7 @@ export StringLitInterp :: struct { expr:  Expr,   span: Span, id: usize = UNASSI
 // `is_type_param_intro` is set when the source was a dollar-prefixed
 // name — a legacy type-param introduction in a generic signature. Both
 // are `bool` (defaults `false`) ; the dumper emits the JSON keys
-// `implicitDot` / `isTypeParamIntro` only when `true` to match the TS
-// `JSON.stringify`-of-`undefined` shape.
+// `implicitDot` / `isTypeParamIntro` only when `true`.
 export IdentExpr :: struct {
     span:                Span
     id:                  usize = UNASSIGNED_NODE_ID

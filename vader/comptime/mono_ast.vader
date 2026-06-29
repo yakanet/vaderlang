@@ -1,10 +1,9 @@
 // vader/comptime/mono_ast — monomorphizer output shapes.
 //
-// Mirror of `src/comptime/specialize.ts`'s `MonoProject` + `MonoEntry`.
-// The shapes are filled to match the TS reference (decl + symbol +
-// substitution + type-args + owning module + mangled name + entry-id +
-// lookup maps + erasure redirects) so the specialisation pass + the
-// downstream lowerer / bytecode emit / c_emit can rely on them.
+// Defines the `MonoProject` + `MonoEntry` shapes. They carry decl +
+// symbol + substitution + type-args + owning module + mangled name +
+// entry-id + lookup maps + erasure redirects, so the specialisation pass
+// + the downstream lowerer / bytecode emit / c_emit can rely on them.
 //
 // Companion files :
 //   - `specialize.vader` — fills the entries via the four-pass
@@ -32,13 +31,12 @@ import "vader/resolver/symbol" { Symbol }
 ///
 /// Distinct from any `canonical_args_key` output : non-generic impls
 /// key on `""`, generic ones on type-id-prefixed strings (`p<name>`,
-/// `s<id>`, …) — neither collides with `$erased`. Mirrors
-/// `ERASED_KEY` in `src/comptime/specialize.ts:30`.
+/// `s<id>`, …) — neither collides with `$erased`.
 ///
 /// NB: the `\$` escape is required — Vader strings interpolate
 /// `$<ident>` (no braces) as a variable reference, so the literal
 /// `"$erased"` would be parsed as `${erased}`. Resulting byte value
-/// is the plain `"$erased"` ASCII string, identical to TS.
+/// is the plain `"$erased"` ASCII string.
 export ERASED_KEY :: "\$erased"
 
 /// Specialised view of every fn / struct / const / impl-member decl
@@ -147,8 +145,7 @@ export new_mono_project :: fn() -> MonoProject {
 // `vader/lower/lower_for_in`) inlines their bodies and needs the
 // per-instantiation source.
 //
-// Mirror of `isSpecialized` in `src/comptime/specialize.ts:36`. Lifted
-// to a public helper here so both the specialisation pass and the
+// Lifted to a public helper here so both the specialisation pass and the
 // erasure dedupe pass can share the check without duplicating the
 // decorator-name string literal.
 

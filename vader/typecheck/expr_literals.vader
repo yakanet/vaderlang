@@ -1,6 +1,5 @@
 // vader/typecheck/expr_literals — type inference for literal expressions.
 //
-// Mirror of the literal arms in `src/typecheck/passes/expr.ts::inferExpr`.
 // Each fn returns the natural type of a literal ; suffix-typed integers
 // and floats fold to the concrete primitive, the bare form stays as a
 // Free numeric until the bidirectional pass narrows it.

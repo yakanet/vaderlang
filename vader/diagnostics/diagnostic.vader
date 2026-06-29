@@ -1,7 +1,6 @@
 // vader/diagnostics/diagnostic — structured diagnostic shape consumed by the
-// terminal renderer and (eventually) the LSP. Mirrors `src/diagnostics/`
-// shapes (Severity / Position / Span / Diagnostic) so a Vader-driven LSP
-// emits the same JSON schema as the TS compiler.
+// terminal renderer and (eventually) the LSP. Carries the Severity /
+// Position / Span / Diagnostic shapes the LSP serialises to JSON.
 
 module "vader/diagnostics"
 
@@ -15,9 +14,8 @@ export Severity :: enum {
 }
 
 // Source position. `offset` is a raw UTF-8 byte offset ; `column` is a
-// 1-based **codepoint** index within the line (matches both the Vader
-// self-host lexer counting leading bytes and the TS lexer skipping low
-// surrogates). The LSP boundary translates to UTF-16 column counts when
+// 1-based **codepoint** index within the line (the lexer counts leading
+// bytes). The LSP boundary translates to UTF-16 column counts when
 // needed.
 export Position :: struct {
     file: string
@@ -71,9 +69,7 @@ export empty_span :: fn() -> Span {
 
 /// Sentinel file name on spans that belong to AST nodes cloned from a
 /// trait's default-method body into an implementing struct's impl.
-/// The typecheck dump renders these spans as `undefined:undefined`
-/// (mirrors TS's accidental render of nodes whose `span.start.line/column`
-/// are JS `undefined`).
+/// The typecheck dump renders these spans as `undefined:undefined`.
 export MATERIALIZED_FILE :: "<materialized>"
 
 /// Span marker for substituted leaves in materialised bodies. Line/column

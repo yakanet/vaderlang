@@ -48,9 +48,8 @@ materialize_representatives :: fn(
 /// concrete generic instance. The representative shares the first
 /// instance's body shape (every field already erased to `Any`) but
 /// carries a distinct mangled name: the bare struct mangle plus the
-/// any-leaves args. Mirrors `src/comptime/erasure-dedupe.ts:217-257`'s
-/// extraStructEntries emission. Deduped on the representative mangle so
-/// two concrete instantiations of the same generic shape only emit one.
+/// any-leaves args. Deduped on the representative mangle so two concrete
+/// instantiations of the same generic shape only emit one.
 materialize_representative :: fn(
     inst: GenericInstance, loaded: LoadedProject, typed: TypedProject,
     project_ctx: LowerProjectCtx, project: LoweredProject,
@@ -67,8 +66,8 @@ materialize_representative :: fn(
     if owner_typed is TypedProgram as owner_typed_ok {
         // `join_any_displays` already renders nested wrappers with `_`
         // (`Box(Box(i32))` → `Box_Any`), so one top-level `__` join keeps
-        // nesting intact. TS extraStructEntries uses the empty-typeArgs
-        // template, so its `first.mangled` likewise has no `__<arg>` segment.
+        // nesting intact. The representative uses the empty-typeArgs template,
+        // so `first.mangled` likewise has no `__<arg>` segment.
         bare_mangled :: "${mangle_module_id(owner_typed_ok.resolved.display_path)}$${sym.name}"
         any_args :: build_any_args_list(inst.args)
         rep_mangled :: "${bare_mangled}__${join_any_displays(any_args)}"
@@ -301,10 +300,8 @@ materialize_struct_instance :: fn(
 /// MutableMap`. This pass walks every emitted struct decl's fields,
 /// materialises each referenced generic-struct shape that has no decl
 /// yet (keyed by mangled name), and drains to a fixpoint over the
-/// shapes the newly-emitted decls reference in turn. Mirrors the shapes
-/// TS' mono pass produces when substituting a representative body's
-/// type-params. Bounded by `MAX_FIELD_SHAPES` against a pathological
-/// ever-growing generic.
+/// shapes the newly-emitted decls reference in turn. Bounded by
+/// `MAX_FIELD_SHAPES` against a pathological ever-growing generic.
 close_over_field_shapes :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
     project: LoweredProject,
@@ -340,7 +337,6 @@ close_over_field_shapes :: fn(
 
 /// Cap on representative field shapes materialised per project — guards
 /// against a pathological generic that grows its type at each level.
-/// Matches TS' `MAX_INSTANCES`.
 MAX_FIELD_SHAPES :: 4096
 
 /// `for_each_type` visitor : push a struct shape onto `out` the first

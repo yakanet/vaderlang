@@ -3,9 +3,9 @@
 //
 // `Foo :: struct[T: Display] { … }` + `Foo[T] implements Bar` should
 // inherit `T: Display` into the impl block's typeParam scope so
-// `Bar`'s methods see the bound. The TS side walks each ImplDecl,
-// finds the struct's typeParams (when ImplDecl.forType is a generic
-// instantiation), and merges bounds.
+// `Bar`'s methods see the bound. The intended algorithm walks each
+// ImplDecl, finds the struct's typeParams (when ImplDecl.forType is a
+// generic instantiation), and merges bounds.
 //
 // MVP : the Vader parser doesn't expose typeParam bounds on
 // `StructDecl.type_params` yet (bounds are parsed as decorators,

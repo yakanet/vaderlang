@@ -8,7 +8,7 @@
 //
 // Out of scope in Phase 4 : tuple-with-union narrowing (`is null | [a, b]`
 // case) — emits a simple sequential check without the union-variant cast.
-// The full TS-side `narrowToTupleVariant` lands when the typecheck-side
+// Full tuple-variant narrowing lands when the typecheck-side
 // `union_variants` accessor surfaces.
 //
 // Callback parameters break the `lower_expr ↔ lower_match` import

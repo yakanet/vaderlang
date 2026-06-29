@@ -30,8 +30,6 @@ export infer_range :: fn(
         element = pick_bound_or_default(upper)
         // Retype the still-free side to `element` so downstream
         // consumers (slice lowering, dump) see the same width.
-        // Mirrors TS' `t.exprTypes.set` writes in `inferRange`
-        // (`src/typecheck/passes/expr.ts:618`).
         target_id :: if upper is FreeIntType { e.upper.id } else { e.lower.id }
         typed.expr_types[target_id] = element
     } else {

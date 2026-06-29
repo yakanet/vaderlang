@@ -90,7 +90,7 @@ export EvaluatedProject :: struct {
     /// into `comptime_value_by_symbol_id` so use sites inline the
     /// literal. Kept SEPARATE from per-module `comptime_decls` so
     /// the comptime dump's `@comptime` listing only shows user-
-    /// marked decls (matches TS' filter behaviour).
+    /// marked decls.
     file_baked_consts: MutableMap<i32, ComptimeValue>
 
     /// `@file("path")` expression-position calls baked at comptime,

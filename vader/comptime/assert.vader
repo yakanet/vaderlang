@@ -1,8 +1,7 @@
 // vader/comptime/assert — `@assert(cond)` decl evaluation.
 //
-// Mirror of TS's per-`AssertDecl` walker in
-// `src/comptime/evaluate.ts` (lines 86-110). Each top-level `@assert`
-// has its `condition` evaluated through the same tree-walker the
+// Each top-level `@assert` has its `condition` evaluated through the same
+// tree-walker the
 // `@comptime const` decls use ; a `Bool(false)` result fires `C4015`.
 // Asserts that fall back to `C4001` (cannot-evaluate, needs VM) are
 // skipped silently — the build can't validate them yet but the

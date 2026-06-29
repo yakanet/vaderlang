@@ -3,7 +3,7 @@
 // Symbols are minted by the resolver as
 // it walks the AST and consumed by every later phase. The MVP carries the
 // kind, name, visibility and the source span ; the AST-decl back-reference
-// the TS resolver stores is deferred until typecheck/lower needs it.
+// is deferred until typecheck/lower needs it.
 
 module "vader/resolver/symbol"
 
@@ -58,8 +58,7 @@ export Symbol :: struct {
     defined_at:  Span | null
 }
 
-// IDs start at 1 — the TS factory does the same, so dumps keyed on the id
-// stay aligned across implementations.
+// IDs start at 1 so dumps keyed on the id stay stable.
 export SymbolFactory :: struct {
     next: i32
 }

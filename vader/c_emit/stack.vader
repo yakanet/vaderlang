@@ -5,8 +5,7 @@
 // `StackVal`. Each push records HOW to spell the value at its eventual
 // consumer — a literal, an inlined side-effect-free expression, a local
 // slot `lN`, or a materialised temp `tN` — and the consumer pops and
-// inlines that text. This is the Vader port of the `FnState` / `StackVal`
-// core in `src/c_emit/body.ts`.
+// inlines that text.
 //
 // T1 covers the expr-only subset : `StackTmp` and the tmp / aux counters
 // exist for T1b (`local.set` / calls / allocations), but nothing
@@ -87,9 +86,9 @@ FnState :: struct {
     stack:    StackVal[]
     /// ValType of each materialised temp `tN` (index = N). Drives the
     /// prelude temp declarations. Allocation is monotone — no free-list
-    /// recycling (simpler than TS ; the run-oracle is the gate, not
-    /// byte-parity, and monotone matches TS exactly while a fn allocates
-    /// each temp at most once).
+    /// recycling ; the run-oracle is the gate, not byte-parity, and
+    /// monotone allocation is fine since a fn allocates each temp at most
+    /// once).
     tmp_types: ValType[]
     /// Monotone `_aN` scratch allocator for struct storage / call args
     /// (T4+). Never recycled, so it can't collide with a reused name.
@@ -182,8 +181,7 @@ push_local_ref :: fn(s: FnState, slot: i32, val: ValType) -> void {
 /// unreachable code — the lowerer emits dead ops after a terminator (e.g.
 /// a `drop` / `call` past an exhaustive-returning match), and the walker
 /// tracks no reachability (T2). Return a defensive dummy so the dead op
-/// emits harmless (never-executed) C rather than trapping. Mirrors TS
-/// `pop`'s `{ name: "0", val: "i32" }` fallback.
+/// emits harmless (never-executed) C rather than trapping.
 pop :: fn(s: FnState) -> StackVal {
     n :: s.stack.len()
     if n == 0 { return StackLit { .text = "0", .val = .I32 } }
@@ -194,7 +192,7 @@ pop :: fn(s: FnState) -> StackVal {
 
 /// Discard the top of the operand stack — the `drop` op. An empty stack
 /// means a dead `drop` in unreachable code (see `pop`) ; no-op rather than
-/// trap. Mirrors TS `drop`'s `s.stack.pop()` (no-op on empty).
+/// trap.
 drop_top :: fn(s: FnState) -> void {
     n :: s.stack.len()
     if n == 0 { return }
@@ -239,7 +237,7 @@ push_into_tmp :: fn(s: FnState, expr: string, val: ValType) -> void {
 /// Allocate a fresh monotone scratch C identifier `_aN_<suffix>` — block-
 /// local storage that isn't an operand-stack temp (struct stack storage,
 /// the obj pointer, call-arg buffers). Never recycled, so names never
-/// collide with a reused `tN`. Mirrors `aux` in `src/c_emit/body.ts`.
+/// collide with a reused `tN`.
 aux :: fn(s: FnState, suffix: string) -> string {
     name :: "_a${s.aux_counter}_${suffix}"
     s.aux_counter = s.aux_counter + 1
@@ -269,7 +267,7 @@ entry_needs_materialise :: fn(e: StackVal, slot: i32) -> bool = match e {
 /// Materialise every stack entry that a write to slot `slot` would
 /// invalidate, in bottom-to-top order (so the emitted `tN = …;` lines
 /// keep stack order). Run before a `local.set` / `local.tee` mutates the
-/// slot. Mirrors TS `materializeStackForSlot`.
+/// slot.
 materialize_stack_for_slot :: fn(s: FnState, slot: i32) -> void {
     for i in 0..<s.stack.len() {
         e :: s.stack[i]

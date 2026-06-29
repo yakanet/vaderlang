@@ -12,15 +12,14 @@ import "vader/types" { Type, TupleType, mk_primitive, StructType, EnumType }
 
 lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> LoweredExpr {
     // Index the literal's provided values by name so we can walk the
-    // struct decl in declaration order ; this matches the TS emit's
-    // canonical field ordering even when the source literal reorders
+    // struct decl in declaration order ; this yields a canonical field
+    // ordering even when the source literal reorders
     // fields or omits ones with defaults.
     provided: MutableMap<string, Expr> = MutableMap<string, Expr> {}
     // Bind each `...spread` source to a synthetic temp so it's
     // evaluated exactly once even when several fields inherit from it.
     // Later spreads win, so `spread_sym` tracks the LAST source —
-    // omitted fields read from it. Mirror of TS' `lowerStructLit`
-    // (`src/lower/passes/expr.ts:1181`).
+    // omitted fields read from it.
     spread_stmts: LoweredStmt[] = []
     spread_sym: Symbol | null = null
     for item in lit.items {
@@ -161,8 +160,7 @@ enum_type_or_unwrap :: fn(ctx: FnLowerCtx, type: Type) -> Type {
 // so an AST expr that originated in that module (a struct field DEFAULT from a
 // foreign struct decl) resolves its idents / expr-types against the right
 // module's tables instead of the construction site's. No-op (returns `ctx`)
-// when the module isn't in the project's typed set. Mirror of TS'
-// `findForeignTyped` + the `typed`/`types` swap in `lowerExprMaybeForeign`.
+// when the module isn't in the project's typed set.
 ctx_in_owning_module :: fn(ctx: FnLowerCtx, module_id: string, decl: StructDecl, args: Type[]) -> FnLowerCtx {
     owner_typed :: ctx.project.evaluated.typed.modules[module_id]
     if owner_typed is null { return ctx }
@@ -173,7 +171,7 @@ ctx_in_owning_module :: fn(ctx: FnLowerCtx, module_id: string, decl: StructDecl,
     // (`build_struct_mixed_subst`). Without this the default lowers in the owner's
     // ERASED view (`K = Any` → boxed array) while the construction + later usage
     // are monomorphised (`K = i32` → raw): a box-vs-raw representation mismatch
-    // that silently corrupts the struct cross-module (this is the TS `extraSubst`).
+    // that silently corrupts the struct cross-module.
     merged :: merge_subst(ctx.subst, build_struct_mixed_subst(decl, owner_typed, args))
     return FnLowerCtx {
         ...ctx,
@@ -201,8 +199,7 @@ build_struct_lit_fields :: fn(
             // (the spans belong to another module's parse), so a const default
             // like `UNASSIGNED_NODE_ID` (vader/parser) is unresolved when the
             // struct is built in vader/lower → the whole struct lit degrades to a
-            // drop. Lower defaults with the owning module's typed view. Mirror of
-            // TS' `lowerExprMaybeForeign`.
+            // drop. Lower defaults with the owning module's typed view.
             default_ctx :: ctx_in_owning_module(ctx, st.symbol.module, decl, st.args)
             for field_decl in decl.fields {
                 // Resolve the field's declared type so a union-typed
@@ -213,7 +210,7 @@ build_struct_lit_fields :: fn(
                 if user_value is null {
                     // Omitted field : inherit from the last `...spread`
                     // source via a field access, else fall back to the
-                    // declared default. Matches TS' `lowerStructLit`.
+                    // declared default.
                     if spread_sym is Symbol as sym {
                         out.push(LoweredStructLitField {
                             .name = field_decl.name,

@@ -7,7 +7,7 @@
 //   Phase 3+ — data pool, fn bodies, op switch, vtable dispatchers,
 //              erasure boundary, B1 (nullable-ref inline rep).
 //
-// Strategy mirrors TS :
+// Strategy :
 //   - one C function per BcFunction with a C signature derived from
 //     `BcSignature` ;
 //   - the bytecode's value stack maps to a chain of generated C tmp
@@ -23,8 +23,7 @@
 //     tag-aware ones receive the BcType indices resolved per module.
 //
 // Output : a single `string` containing the C source, terminated by
-// two newlines (TS `out.join("\n") + "\n"` where the last `out` entry
-// already carries a `\n`).
+// two newlines (the last appended entry already carries a `\n`).
 
 module "vader/c_emit"
 
@@ -43,7 +42,7 @@ import "vader/bytecode" {
 }
 import "std/collections" { MutableMap }
 
-/// Options threaded through the emit. Mirrors TS `EmitOptions`.
+/// Options threaded through the emit.
 ///
 /// `release` gates `#line` directives in the per-op body emit — debug
 /// builds emit them so `gdb` / `lldb` step through the original Vader
@@ -73,7 +72,7 @@ export default_emit_options :: fn() -> EmitOptions = EmitOptions { .release = fa
 /// Phase 2 carries `struct_c_names` (parallel to `module.types`, with
 /// `""` for non-struct slots). Later phases will populate `fn_names`,
 /// `primitive_tag_of`, `may_alloc`, `mutated_structs`,
-/// `any_counterpart_of`, …, matching the TS `EmitCtx` field-by-field.
+/// `any_counterpart_of`, ….
 export EmitCtx :: struct {
     module: BytecodeModule
     /// `vader_struct_<sanitised>_t` per BcStruct slot, `""` elsewhere.
@@ -125,8 +124,7 @@ new_ctx :: fn(m: BytecodeModule, release: bool) -> EmitCtx {
 /// intern hash) ; every other literal gets a contiguous id `1..M`.
 ///
 /// An empty literal MUST resolve to 0 so it compares equal to a
-/// runtime-produced empty string (also atom 0). Mirrors TS
-/// `computeAtomIds`.
+/// runtime-produced empty string (also atom 0).
 ///
 /// @param strings  the bytecode string-literal pool.
 /// @return         atom ids parallel to `strings`.
@@ -145,8 +143,7 @@ compute_atom_ids :: fn(strings: string[]) -> i32[] {
 }
 
 /// Top-level entry — produces the C source for a `BytecodeModule`.
-/// Output ends with a trailing newline, matching `out.join("\n") + "\n"`
-/// in TS.
+/// Output ends with a trailing newline.
 ///
 /// @param m     the bytecode module to lower.
 /// @param opts  emit-time switches (see `EmitOptions`).
@@ -180,15 +177,12 @@ export emit_c :: fn(m: BytecodeModule, opts: EmitOptions) -> string {
 // Section emitters
 // =========================================================================
 //
-// Each section mirrors a function in `src/c_emit/emit.ts`. The section
-// order matches TS exactly so the output stays byte-identical.
+// The section order is fixed so the output stays deterministic.
 
 /// Per-type forward decls, struct bodies, string-literal statics, and
 /// data-pool .rodata blocks. Each sub-section is followed by a blank
 /// line so the resulting C reads cleanly even when a sub-section is
 /// empty.
-///
-/// TS reference : `emitTypeDecls` in `src/c_emit/emit.ts`.
 emit_type_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     // Forward decls for every struct so field references compile in
     // any declaration order.
@@ -201,8 +195,8 @@ emit_type_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     out.append("\n")
 
     // Struct bodies — `vader_obj_header_t` first then one field per
-    // line. Phase 2 skips the packed-payload mirror twin (which TS
-    // emits next to the regular typedef for inline-variant POD shapes).
+    // line. Phase 2 skips the packed-payload mirror twin (emitted next to
+    // the regular typedef for inline-variant POD shapes).
     for j in 0..<ctx.module.types.len() {
         if ctx.module.types[j] is BcStruct as s { emit_struct_body(ctx, s, j, out) }
     }
@@ -211,7 +205,7 @@ emit_type_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     // Comptime atom table — every non-empty literal serialised as a PERM
     // atom in `.rodata`. `string.const` resolves to a bare atom id
     // (`ctx.atom_ids[i]`) inlined at each use site, so no per-literal
-    // `vader_str_<i>` global is emitted (matches TS `emitTypeDecls`).
+    // `vader_str_<i>` global is emitted.
     emit_atom_comptime_table(ctx, out)
 
     emit_data_pool(ctx, out)
@@ -223,8 +217,6 @@ emit_type_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
 /// into the live atom table at indices `1..M` (index 0 is
 /// VADER_ATOM_EMPTY). A `vader_string_t` is a u32 atom id, so a literal
 /// is referenced by its bare `ctx.atom_ids[i]` at each use site.
-///
-/// TS reference : `emitAtomComptimeTable` in `src/c_emit/emit.ts`.
 emit_atom_comptime_table :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     out.append("/* Compile-time atom table — see docs/ATOM_INTERNING.md. */\n")
     strings :: ctx.module.strings
@@ -584,8 +576,6 @@ c_type_for_array_kind :: fn(k: ArrayKind) -> string = match k {
 /// `static <sig>;` forward decl for every fn in the module so call sites
 /// compile in any declaration order. A trailing blank line closes the
 /// section.
-///
-/// TS reference : `emitForwardDecls` in `src/c_emit/emit.ts`.
 emit_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     fns :: ctx.module.functions
     for i in 0..<fns.len() {
@@ -604,8 +594,6 @@ emit_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
 /// T12. Until then every slot uses its plain `c_type_for_val_bare`
 /// spelling and the `lN` name.
 ///
-/// TS reference : `signatureFor` in `src/c_emit/body.ts`.
-///
 /// @param function  the bytecode function to render a signature for.
 /// @return          e.g. `int32_t snippet_main(void)`.
 signature_for :: fn(function: BcFunction) -> string {
@@ -623,8 +611,6 @@ signature_for :: fn(function: BcFunction) -> string {
 /// Per-`BcFn` function-pointer typedef + per-arity canonical erased
 /// typedef. The canonical erased family is always emitted at least for
 /// arity 0 (used by the closure dispatch path's lift / tramp wrapper).
-///
-/// TS reference : `emitFnSigTypedefs` in `src/c_emit/emit.ts`.
 emit_fn_sig_typedefs :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     // Per-BcFn typedef. Phase 1-2 : no fn types.
 
@@ -676,8 +662,6 @@ erased_sig_params :: fn(n: i32) -> string {
 /// from which both the offset-array decls (`static const uint16_t
 /// vader_type_N_ptrs[] = …`) and the info-row counts derive. Avoids
 /// the two-pass duplication of the earlier draft.
-///
-/// TS reference : `emitTypeInfoTable` in `src/c_emit/emit.ts`.
 ///
 /// @param ctx  the emit context.
 /// @param out  the accumulating C source.
@@ -834,9 +818,8 @@ emit_struct_info_row :: fn(ctx: EmitCtx, _s: BcStruct, offs: StructOffsets, type
 
 /// Shims that route `call.import` to runtime helpers (`vader_*`) or
 /// extern user symbols. The per-import shim body lands in T4 ; the
-/// section always closes with a blank line (unconditional in TS
-/// `emitImportShims`, even with no imports) so the spacing before the
-/// function bodies stays byte-identical.
+/// section always closes with a blank line (unconditional, even with no
+/// imports) so the spacing before the function bodies stays consistent.
 // `emit_import_shims` lives in `host.vader` (same module) — the
 // `call.import` host-fn dispatch is a distinct responsibility.
 //
@@ -849,8 +832,6 @@ emit_struct_info_row :: fn(ctx: EmitCtx, _s: BcStruct, offs: StructOffsets, type
 /// `[string]` argv construction, and the call to the user `main`
 /// (`return (int) main()` for an `i32` result, `main(); return 0;` for
 /// `void`). T3033 guarantees the signature is `()` or `([string])`.
-///
-/// TS reference : `emitMain` in `src/c_emit/emit.ts`.
 emit_main :: fn(ctx: EmitCtx, out: StringBuilder, entry_mangled: string) -> void {
     main_index :: find_main(ctx.module, entry_mangled)
     if main_index < 0 {

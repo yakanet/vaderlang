@@ -1,12 +1,7 @@
 // vader/cli/main — entry point of the Vader-in-Vader CLI.
 //
-// Mirrors `src/cli.ts` : the TS host CLI is the spec for command surface,
-// flag set, help text, and error wording. Self-hosted commands stub out
-// with the same messages so users see identical output regardless of
-// whether they invoked `bun src/index.ts ...` or `./build/vader ...`.
-// The only command that actually runs in self-hosted today is
-// `dump --stage=lexer` ; everything else exits 2 with a TS-identical
-// "not yet implemented" message.
+// Defines the command surface, flag set, help text, and error wording for
+// the self-hosted `./build/vader` binary.
 
 module "vader/cli"
 
@@ -57,10 +52,10 @@ import "vader/bytecode" { EmitOptions }
 import "vader/lower" { LoweredFnDecl }
 import "vader/parser" { FnDecl }
 
-// Byte-for-byte copy of `HELP` in `src/cli.ts`. Triple-quoted strings drop
-// the newline immediately after the opening `"""`, so the body starts at
-// `vader —` ; the closing `"""` sits on its own line so the string ends
-// with a single trailing newline (matching the TS template literal).
+// The CLI help text. Triple-quoted strings drop the newline immediately
+// after the opening `"""`, so the body starts at `vader —` ; the closing
+// `"""` sits on its own line so the string ends with a single trailing
+// newline.
 HELP :: """vader ${CLI_VERSION} — the Vader compiler
 
 USAGE:
@@ -367,8 +362,7 @@ cmd_fmt :: fn(args: string[]) -> i32 {
 
 cmd_lsp :: fn(args: string[]) -> i32 = run_server(args)
 
-// Directories never descended into during `@test` discovery (mirror of TS
-// `test.ts::SKIP_DIRS`).
+// Directories never descended into during `@test` discovery.
 SKIP_TEST_DIRS: const string[]: ["node_modules", "dist", "build", ".git", "target"]
 
 /// One discovered `@test` fn : its mangled name (the VM entry) + the display
@@ -381,8 +375,7 @@ DiscoveredTest :: struct {
 /// `vader test [path]` — discover `@test` fns under `path` (default `.`),
 /// compile each module keeping the tests as roots, and run every test in
 /// isolation on the VM. A trap (e.g. a failed `assert`) is a FAIL ; clean
-/// return is a pass. Mirror of `src/cli/commands/test.ts` — now NATIVE, so the
-/// memory-ABI opcodes (which the legacy TS compiler doesn't know) are testable.
+/// return is a pass. Runs NATIVE, so the memory-ABI opcodes are testable.
 ///
 /// @param args  positional args ; `args[0]` is the target path (file or dir).
 /// @return      0 when every test passed, 1 on any failure, 2 when no `.vader`
@@ -510,8 +503,7 @@ walk_test_dir :: fn(dir: string, out: string[]) -> void {
 /// Single-file dir → the file. Folder module (no sibling-name imports) → the
 /// dir (the resolver loads every sibling as one module). Per-file modules
 /// (siblings import each other) → only the files no sibling imports, the
-/// entries whose transitive imports drag the rest in. Mirror of TS
-/// `pickModuleRepresentatives`.
+/// entries whose transitive imports drag the rest in.
 pick_module_representatives :: fn(files: string[]) -> string[] {
     by_dir :: MutableMap<string, string[]> {}
     for f in files {
@@ -655,8 +647,7 @@ cmd_build :: fn(args: string[]) -> i32 {
 
     // TODO: --target=ir / --target=ir-text — write the binary (.vir) / text
     // (.virt) bytecode module. The bytecode already exists post
-    // `prepare_cfg_bytecode` ; this only needs the writer wired (TS reference:
-    // `src/cli/commands/build.ts::buildIr`, via `writeBinary` / `writeVir`).
+    // `prepare_cfg_bytecode` ; this only needs the writer wired.
     // TODO: --target=wasm — the WebAssembly backend is not ported yet (no
     // wasm emitter in `vader/`). Recognised here so the flag round-trips with
     // a clear message instead of an "unknown target" error.
@@ -685,8 +676,8 @@ emit_c_source :: fn(file: string, release: bool, include_path_flags: string[]) -
 }
 
 // Render the merged pipeline diagnostics to stderr and report whether the
-// build may proceed. Mirrors TS `flushDiagnostics` : any error-severity
-// diagnostic aborts the build (return false) ; warnings / info still print.
+// build may proceed : any error-severity diagnostic aborts the build
+// (return false) ; warnings / info still print.
 flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
     all :: merge_diagnostics(pre, lower)
     if all.len() > 0 { eprintln(all.dump_diagnostics()) }
@@ -877,7 +868,7 @@ cmd_dump :: fn(args: string[]) -> i32 {
         return run_dced_stage(file, module_filter)
     }
 
-    // Recognised TS stages — we know about them but can't run them yet.
+    // Recognised stages we know about but can't run yet.
     if stage == "wasm" {
         eprintln("vader dump: stage \"${stage}\" not yet implemented")
         return 2
@@ -917,7 +908,7 @@ run_lexer_stage :: fn(file: string) -> i32 {
 }
 
 // Parser dump : `# AST\n` + 2-space-indented JSON to stdout, plus the same
-// `# Diagnostics` block on stdout for parity with TS `formatProgram`.
+// `# Diagnostics` block on stdout.
 run_parser_stage :: fn(file: string) -> i32 {
     src :: read_source(file)
     if src is null { return 1 }
@@ -934,7 +925,6 @@ run_parser_stage :: fn(file: string) -> i32 {
 // that aggregates loader-time R2xxx (R2020/R2022/R2023 from discover,
 // R2001/R2024/R2025/R2028 from import-path resolution, R2002/R2004/
 // R2011 from collect) and per-module body-walker R2xxx (R2006/R2019).
-// Mirrors the TS `dumpResolver` / `formatResolverDump` shape.
 // The explicit `--module` list, else the entry's own module as the default
 // scope. The two-arg form lets a caller that already holds the entry's display
 // path (the typecheck stage, which has no `LoadedProject`) reuse the default.
@@ -995,7 +985,7 @@ import "vader/resolver" { wire_imports, run_orphan_rule_check_for_module }
 
 // Merge loader-time and body-walker diagnostics into one ordered list.
 // Body diags carry no global span ordering ; concatenated by module-
-// iteration order, mirroring TS's DiagnosticCollector.
+// iteration order.
 collect_resolver_diags :: fn(project: LoadedProject, resolved: ResolvedProject) -> Diagnostic[] {
     all: Diagnostic[] = []
     for d in project.diags { all.push(d) }
@@ -1005,8 +995,8 @@ collect_resolver_diags :: fn(project: LoadedProject, resolved: ResolvedProject) 
 
 // Typecheck dump : per-module decl + expression types. MVP output covers
 // top-level decl types only — expression / local types arrive with Phase 3
-// (body checking). Format matches `src/typecheck/dump-text.ts` so the
-// future parity stage can byte-diff stdout.
+// (body checking). The dump format is stable so snapshots can byte-diff
+// stdout.
 run_typecheck_stage :: fn(file: string, module_filter: string[]) -> i32 {
     // `check_file` is the shared load+typecheck+merge the LSP also routes
     // through, so the editor's squiggles and this dump never diverge.
@@ -1143,9 +1133,8 @@ CfgBytecode :: struct {
 /// The CFG path materialises 3-address `local.set` / `local.get`
 /// temps ; the legacy `emit_project` tree-walker
 /// elides them and diverges on ~150 snippets, so both `dump --stage`
-/// consumers route through here. Const-fold is deliberately NOT run (TS's
-/// `dumpBytecode` skips it too, so arith collapse would over-shrink vs the
-/// parity snapshot).
+/// consumers route through here. Const-fold is deliberately NOT run, since
+/// arith collapse would over-shrink vs the parity snapshot.
 prepare_cfg_bytecode :: fn(file: string) -> CfgBytecode = prepare_cfg_bytecode_with(file, [])
 
 prepare_cfg_bytecode_with :: fn(file: string, include_path_flags: string[]) -> CfgBytecode {
@@ -1177,10 +1166,10 @@ run_bytecode_stage :: fn(file: string, annotate: bool) -> i32 {
         return 0
     }
     // `dump_bytecode` already returns a trailing-newline-terminated
-    // string ; use `print` (no auto-newline) to match TS
-    // `process.stdout.write(writeVir(...))` byte-for-byte. `--annotate`
-    // routes through the disassembly variant — NOT round-trippable, so it
-    // never feeds `parse_virt` or the parity snapshots.
+    // string ; use `print` (no auto-newline) so the output isn't
+    // double-newlined. `--annotate` routes through the disassembly
+    // variant — NOT round-trippable, so it never feeds `parse_virt` or
+    // the parity snapshots.
     out_text :: if annotate { dump_bytecode_annotated(b.module, b.entry) } else { dump_bytecode(b.module, b.entry) }
     print(out_text)
     print_dump_diags(b)
@@ -1200,15 +1189,13 @@ run_c_stage :: fn(file: string) -> i32 {
     // module's `main` — a multi-module input (the compiler imports
     // `vader/lsp`, which has its own `main`) flags several fns `is_main`.
     // `emit_c` already returns a trailing-newline-terminated string ; use
-    // `print` (no auto-newline) to match the TS `Bun.write(emitC(...))`
-    // output byte-for-byte.
+    // `print` (no auto-newline) so the output isn't double-newlined.
     print(emit_c(b.module, CEmitOptions { .release = false, .entry_mangled = b.entry }))
     print_dump_diags(b)
     return 0
 }
 
-/// Mirror of TS `moduleNameFromFile` in `src/pipeline.ts:166` — strips
-/// the directory components and the `.vader` extension so a file like
+/// Strips the directory components and the `.vader` extension so a file like
 /// `tests/snippets/arith/_main.vader` becomes the bytecode module name
 /// `_main`.
 // Mangled name of the entry module's `main` (e.g. `vader_cli$main`), used to

@@ -297,8 +297,7 @@ export dominates :: fn(idom: i32[], a: BlockId, b: BlockId) -> bool {
 /// it so the post-dom walk always reaches a fixed point.
 ///
 /// Returns `ipdom[b]` = immediate post-dominator of `b`, or `-1` when
-/// `b`'s every path returns (no proper post-dominator). Mirrors
-/// `src/midir/emit.ts::computePostDominators`.
+/// `b`'s every path returns (no proper post-dominator).
 ///
 /// @param fn_  the CFG function to analyse.
 /// @return     `i32[n]` with one ipdom per block, `-1` when none.
@@ -376,8 +375,7 @@ walk_rpo_reverse :: fn(preds: BlockId[][], b: BlockId, visited: bool[], order: B
 
 /// For each loop header H, the unique exit block — the first block
 /// reachable from the natural-loop body but outside it. Returns null
-/// when the loop has no natural exit (infinite loop). Mirrors
-/// `src/midir/emit.ts::findLoopExits`.
+/// when the loop has no natural exit (infinite loop).
 ///
 /// @param fn_    the CFG function.
 /// @param preds  per-block predecessor lists (from `predecessors_of`).

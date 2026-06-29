@@ -68,16 +68,14 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             ns_const :: try_lower_namespace_const(ctx, e, type)
             if ns_const != null { return ns_const }
             // Tuple `t.0` → `_0` : tuple types are backed by an anonymous
-            // struct whose slots are named `_0`, `_1`, … — mirror the TS
-            // lowerer's `isNumeric` rewrite so the dump shows `._0`.
+            // struct whose slots are named `_0`, `_1`, … — rewrite the
+            // numeric field so the dump shows `._0`.
             field_name :: if e.is_numeric { "_${e.field}" } else { e.field }
             // Union-typed receiver with a common field (every variant
             // carries `f` at the same offset+type) — emit a single cast
             // to the first variant, then a regular field access. The
             // boxed values share `ref` ValType so the cast is free at the
-            // bytecode level. Mirror of `lowerUnionFieldAccess`'s
-            // `sameOffsetShortcutApplies` short-circuit in
-            // `src/lower/passes/expr.ts:1072-1080`.
+            // bytecode level.
             target_type :: ctx.types.expr_type(e.target)
             shortcut :: try_lower_common_union_field(ctx, e, type, target_type, field_name)
             if shortcut != null { return shortcut }
@@ -85,16 +83,14 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             // Comptime fold : `<LoweredStructLit>.field` resolves to
             // the field's value when the struct lit was synthesised
             // at lower time (typically via @comptime for substitution
-            // of `f` to a `Field { name, type }` literal). Mirror of
-            // TS's `LoweredFieldAccess` shortcut in
-            // `src/lower/passes/expr.ts:445-455`.
+            // of `f` to a `Field { name, type }` literal).
             //
             // Skip the fold when the target is a *comptime const* baked
-            // to a compound struct/array : TS defers that struct-lit
-            // substitution to its `inlineConsts` pass, so the fold guard
-            // never sees it and `DIM.0` keeps a real `LoweredFieldAccess`
-            // over the re-materialised tuple lit (`._0 :i32`). Only
-            // `@comptime`-substituted loop-var lits fold.
+            // to a compound struct/array : compound-const struct-lit
+            // substitution is deferred to the `inline_consts` pass, so the
+            // fold guard never sees it and `DIM.0` keeps a real
+            // `LoweredFieldAccess` over the re-materialised tuple lit
+            // (`._0 :i32`). Only `@comptime`-substituted loop-var lits fold.
             if lowered_target is LoweredStructLit as sl {
                 if !field_target_is_comptime_const(ctx, e.target) {
                     for f in sl.fields {
@@ -158,8 +154,6 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             // resolves to the per-iter literal. Checked before the
             // regular paths so the binding "wins" over any captured-
             // cell / lifted-env handling for the same symbol.
-            // Mirror of `lowerIdent`'s `comptimeBindings` check in
-            // `src/lower/passes/expr.ts:542-543`.
             // Size short-circuit : `comptime_bindings` is empty for
             // every fn that doesn't use `@comptime for`, so skip the
             // hash probe in the 99% case. Per-ident hot path.
@@ -169,8 +163,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             }
             // TypeMeta-typed ident in value position — reify the
             // underlying Type so the bytecode emit can lower it to
-            // `type.const N`. Mirror of `lowerIdent`'s TypeMeta branch in
-            // `src/lower/passes/expr.ts:533-538`.
+            // `type.const N`.
             if type is TypeMetaType {
                 meta :: resolve_type_meta_symbol(ctx, resolved)
                 if !(meta is null) {
@@ -185,8 +178,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             via_env :: try_route_through_env(ctx, resolved, ident.span, type)
             if via_env != null { return via_env }
             // Local captured by an inner lambda : the slot stores a cell
-            // ref, the value lives behind a `LoweredCellGet`. Mirror of
-            // `lowerIdent`'s captured-symbol path in `expr.ts:559-561`.
+            // ref, the value lives behind a `LoweredCellGet`.
             if ctx.project.closures.captured_symbols.contains(resolved.id) {
                 cell_ref :: LoweredIdent {
                     .span = ident.span, .type = type, .symbol = resolved,
@@ -198,11 +190,10 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             }
             // Scalar const inlining : when a `const` decl carries a
             // comptime-baked scalar (int / float / bool / char / string /
-            // null), substitute its value at every use site. Mirror of
-            // the TS `inlineConsts` pass's scalar bucket. Compound values
-            // (arrays, structs) are deferred — they'd need data-pool /
-            // fn-wrap routing for byte-parity. Also covers param /
-            // import-binding symbols when the resolver chained the
+            // null), substitute its value at every use site. Compound
+            // values (arrays, structs) are deferred — they'd need
+            // data-pool / fn-wrap routing for byte-parity. Also covers
+            // param / import-binding symbols when the resolver chained the
             // ident to the original const symbol via aliasing.
             folded :: fold_const_symbol(ctx, resolved, type, ident.span)
             if folded != null { return folded }
@@ -210,7 +201,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             // (e.g. `Error | string`), the typed-AST narrows this use to a
             // concrete variant (e.g. `string`) — emit a `LoweredCast` so the
             // dump and the runtime unbox via the variant layout instead of
-            // the union slot. Mirror of `lowerIdent` in `expr.ts:563-573`.
+            // the union slot.
             declared :: declared_type_of_symbol(ctx, resolved)
             if declared is UnionType {
                 if !equals_type(declared, type) {
@@ -224,8 +215,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             }
             // Named import-binding redirect : `import "p" { foo as bar }`
             // means every `bar` reference dumps with the target's
-            // identity. Mirror of TS's `resolveImportRedirect` (
-            // `src/resolver/resolve.ts:809-815`) applied at idents.set time.
+            // identity.
             final_sym :: follow_import_binding(ctx, resolved)
             // A fn used as a VALUE (passed as a `fn(...)` arg, stored, etc.)
             // lowers to a `FnRef`. If it's a non-generic stdlib free fn,
@@ -254,8 +244,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
 // True when `target` is a bare ident resolving to a `@comptime` const
 // whose baked value is a compound struct / array. Such references keep
 // a real field access at the use site (the tuple lit rides as the
-// access target) rather than folding to the projected element — mirror
-// of TS deferring const substitution to `inlineConsts`.
+// access target) rather than folding to the projected element.
 field_target_is_comptime_const :: fn(ctx: FnLowerCtx, target: Expr) -> bool {
     if target is IdentExpr as id {
         symbol :: ctx.typed.resolved.idents[id.span.hash()]
@@ -341,8 +330,7 @@ is_numeric_conversion_of_literal :: fn(c: CallExpr) -> bool {
 }
 
 /// Materialise a `ComptimeValue` as a `LoweredExpr` literal. Compound
-/// values (arrays, structs) recurse field-by-field. Mirror of
-/// `comptimeValueToLowered` in `src/lower/lower.ts:245-275`.
+/// values (arrays, structs) recurse field-by-field.
 export comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: Span) -> LoweredExpr {
     match v {
         is IntValue    as iv -> { return LoweredIntLit { .span = span, .type = type_hint, .value = iv.value } }
@@ -364,7 +352,7 @@ export comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: 
             // tuples / structs rely on for dump parity. Sort the
             // names alphabetically — for tuples (`_0`, `_1`, `_2`)
             // that matches the positional order ; for named structs
-            // the same ordering is what TS' dump uses.
+            // the same ordering keeps the dump stable.
             sorted_names :: sort(sv.fields.keys(), (a: string, b: string) -> compare_ascending(a, b))
             fields: LoweredStructLitField[] = []
             for name in sorted_names {
@@ -402,13 +390,12 @@ is_scalar_comptime :: fn(v: ComptimeValue) -> bool {
         is CharValue   -> { return true }
         is StringValue -> { return true }
         is NullValue   -> { return true }
-        // Small tuple / struct values inline at use sites — TS'
-        // `inlineConsts` pass keeps these as `LoweredStructLit` /
-        // `LoweredArrayLit` at every reference. Vader doesn't have a
-        // size gate yet (TS' data-pool / fn-wrap split kicks in at
-        // ≥ 4 elements) ; small tuple consts are the dominant pattern
-        // that hits this path so blind inlining matches the snapshot
-        // shape. Revisit when data-pool / fn-wrap lands.
+        // Small tuple / struct values inline at use sites, kept as
+        // `LoweredStructLit` / `LoweredArrayLit` at every reference.
+        // There's no size gate yet (a data-pool / fn-wrap split would
+        // kick in at ≥ 4 elements) ; small tuple consts are the dominant
+        // pattern that hits this path so blind inlining keeps the snapshot
+        // shape stable. Revisit when data-pool / fn-wrap lands.
         is StructValue -> { return true }
         is ArrayValue  -> { return true }
         is VoidValue   -> { return false }
@@ -416,8 +403,7 @@ is_scalar_comptime :: fn(v: ComptimeValue) -> bool {
     }
 }
 
-/// Reify a TypeMeta-typed symbol's underlying Type. Mirror of
-/// `resolveTypeMetaSymbol` in `src/lower/passes/expr.ts:646-657`.
+/// Reify a TypeMeta-typed symbol's underlying Type.
 /// Sources: `@comptime const X :: Type` aliases land in
 /// `resolved.alias_types`; primitive builtins reconstruct from their
 /// name. Returns null for shapes we can't reify yet (e.g. type-params).
@@ -501,8 +487,7 @@ try_route_through_env :: fn(
                 .span = span, .type = TY_UNRESOLVED, .target = env_ident, .field = name,
             }
             // The env-struct slot holds a cell ref ; unwrap via
-            // `LoweredCellGet` to materialise the value. Mirror of
-            // `lowerIdent`'s lifted-context branch in `expr.ts:550-555`.
+            // `LoweredCellGet` to materialise the value.
             return LoweredCellGet {
                 .span = span, .type = type,
                 .target = cell_ref, .value_type = type,
@@ -518,8 +503,7 @@ lower_if :: fn(ctx: FnLowerCtx, if_expr: IfExpr, type: Type) -> LoweredExpr {
     // Else-less `if` : the body's value is unobservable (the typechecker
     // widens to `T | void`, but `void` has no representation), so force
     // the if to `void` and convert the then-block's trailing expression
-    // into an `ExprStmt`. Mirror of `lowerIf`'s else-null branch in
-    // `src/lower/passes/expr.ts:1005-1010`.
+    // into an `ExprStmt`.
     if else_block is null {
         then_void :: voidify_block(then_block)
         return LoweredIf {
@@ -543,8 +527,7 @@ voidify_block :: fn(block: LoweredBlock) -> LoweredBlock {
 /// Prepend a `let <bind_as> = cast → T (scrut)` when the if-condition is
 /// `<scrut> is T as <bind_as>`. The binding only lives inside the
 /// then-block ; the lowering site materialises its slot once and every
-/// downstream read sees the narrowed type. Mirror of `lowerThenWithBinding`
-/// in `src/lower/passes/expr.ts:1020-1044`.
+/// downstream read sees the narrowed type.
 lower_then_with_binding :: fn(ctx: FnLowerCtx, if_expr: IfExpr) -> LoweredBlock {
     block :: lower_block(ctx, if_expr.then_block, false, false)
     cond :: if_expr.cond

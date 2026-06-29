@@ -88,8 +88,7 @@ export u8_array_to_value :: fn(bs: const u8[], type_id: i32) -> ArrayVal {
 
 /// Locate the module's `string[]` `ArrayType` index — the type id a
 /// host-produced string array must carry so `is string[]` narrows.
-/// Mirrors `findStringArrayTypeIndex` in `src/vm/host.ts`. Returns 0 when
-/// no `string` primitive or no `string[]` array entry exists (the caller's
+/// Returns 0 when no `string` primitive or no `string[]` array entry exists (the caller's
 /// `type_check` then fails loudly rather than masking the miss). Compute
 /// once per run — the scan is linear in the type-table size.
 /// @param types  the running module's type table.
@@ -376,8 +375,7 @@ export value_ref_eq :: fn(a: Value, b: Value, at_pc: i32, label: string) -> bool
 }
 
 /// Type-check : does `v`'s runtime tag match `state.bc.types[type_id]` ?
-/// Mirrors `typeMatches` + `matchTo` in `src/vm/exec.ts`. Returns `false`
-/// for `BcFn` (placeholder until ref/trait dispatch lands).
+/// Returns `false` for `BcFn` (placeholder until ref/trait dispatch lands).
 export type_matches :: fn(state: VmState, v: Value, type_id: i32) -> bool {
     if type_id < 0 || usize(type_id) >= state.bc.types.len() { return false }
     type_decl :: state.bc.types[usize(type_id)]
@@ -402,7 +400,7 @@ export type_matches :: fn(state: VmState, v: Value, type_id: i32) -> bool {
 /// Erasure-aware sibling check : returns true when both struct types
 /// come from the same generic source declaration. Post-path-γ a value
 /// may carry a sibling shape's tag (e.g. `Yield(Any)` runtime flowing
-/// into a match arm typed `is Yield(i32)`). We approximate the TS
+/// into a match arm typed `is Yield(i32)`). We approximate a
 /// `symbolId`-based grouping by comparing mangled-name prefixes up to
 /// the first `__` (which separates the source name from the type-arg
 /// suffix).
@@ -462,8 +460,7 @@ prefix_before_double_underscore :: fn(s: string) -> string {
     return ""
 }
 
-/// Match a value against a `ref Trait` type. Mirrors `matchTo`'s
-/// `case "ref"` arm in `src/vm/exec.ts` — `is Error` routes to
+/// Match a value against a `ref Trait` type. `is Error` routes to
 /// `ErrorVal` + impl-table check, `ref _` (empty trait name) accepts any
 /// heap variant, other trait names resolve through the impl table.
 export ref_type_matches :: fn(state: VmState, v: Value, trait_name: string) -> bool {
@@ -625,7 +622,7 @@ export union_matches :: fn(state: VmState, v: Value, variant_type_ids: i32[]) ->
 /// Sprint 4 (b2) added `ArrayVal` for the array ops ; Sprint 4 (b4) added
 /// `FnVal` for `fn.ref` / `call.indirect` ; Sprint 5a adds `NullVal` /
 /// `BoolVal` / `CharVal` for the corresponding const + comparison op
-/// families. Mirrors `src/vm/value.ts`.
+/// families.
 export Value :: I32Val
        | I64Val
        | F64Val
@@ -704,9 +701,9 @@ export NullVal :: struct {}
 /// arms still push `I32Val { 0|1 }` for back-compat with vm_if/vm_for).
 export BoolVal :: struct { value: bool }
 
-/// Unicode codepoint payload. Sprint 5a addition. Mirrors `src/vm/value.ts`'s
-/// `char` tag — the bytecode emits `char.const N` where N is the u32
-/// codepoint ; equality and ordering use the underlying numeric.
+/// Unicode codepoint payload. Sprint 5a addition. The bytecode emits
+/// `char.const N` where N is the u32 codepoint ; equality and ordering
+/// use the underlying numeric.
 export CharVal :: struct { value: char }
 
 /// Error value — the Vader runtime sentinel for a failed fallible call.
@@ -814,7 +811,7 @@ StructVal implements Display {
 }
 
 /// Renders as `[elem0, elem1, …]` — empty arrays as `[]`. Example :
-/// `[1, 2, 3]`. Matches `displayValue` in `src/vm/value.ts`.
+/// `[1, 2, 3]`.
 ArrayVal implements Display {
     to_string :: fn(self) -> string {
         sb :: StringBuilder {}

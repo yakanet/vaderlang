@@ -825,7 +825,7 @@ parse_call :: fn(line: string) -> bc.Op | null {
     return bc.Call { .function_index = parsed }
 }
 
-/// Parse `bool.const true` / `bool.const false`. The TS bytecode
+/// Parse `bool.const true` / `bool.const false`. The bytecode
 /// writer only emits the textual literal —
 /// no numeric path to support.
 ///

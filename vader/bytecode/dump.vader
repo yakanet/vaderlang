@@ -223,7 +223,7 @@ format_bc_type :: fn(t: BcType) -> string = match t {
     is BcFn as f        -> "fn (${format_variants(f.params)}) -> ${f.return_type}"
 }
 
-/// `name:idx` joined by `,`. Matches TS `formatType` for struct fields.
+/// `name:idx` joined by `,` for struct fields.
 format_fields :: fn(fields: BcField[]) -> string {
     sb :: StringBuilder {}
     for i in 0..<fields.len() {
@@ -244,8 +244,8 @@ format_variants :: fn(items: i32[]) -> string {
 }
 
 /// Quote `s` when it contains characters outside `[A-Za-z0-9_$.]`.
-/// Mirrors `src/bytecode/text.ts::quoteIdent`. The mangled-name space
-/// uses `$` and `.` ; user-facing extern names can carry anything.
+/// The mangled-name space uses `$` and `.` ; user-facing extern names
+/// can carry anything.
 quote_ident :: fn(s: string) -> string {
     if is_simple_ident(s) { return s }
     return "${json_escape(s)}"
@@ -336,10 +336,9 @@ write_entry_main :: fn(sb: StringBuilder, functions: BcFunction[], entry_mangled
 }
 
 write_exports :: fn(sb: StringBuilder, exports: BcExport[], functions: BcFunction[]) -> void {
-    // Mirror TS `writeVir` — iterate the
-    // emitted exports list only, no implicit `export main`. The host
-    // recognises the entry via `BcFunction.is_main`, not via an export
-    // directive.
+    // Iterate the emitted exports list only, no implicit `export main`.
+    // The host recognises the entry via `BcFunction.is_main`, not via an
+    // export directive.
     for i in 0..<exports.len() {
         sb.append("export ${exports[i].extern_name} ${exports[i].fn_index}\n")
     }
@@ -372,7 +371,7 @@ write_function :: fn(sb: StringBuilder, module: BytecodeModule, function_decl: B
 // `$L<N>` label and indent two more spaces ; `end` closes the innermost
 // scope ; `else` lives at the parent indent. `br` / `br_if` rewrite their
 // integer depth into the matching `$L<N>` label by walking the label
-// stack from the top. Mirrors `src/bytecode/text.ts::writeBodyLines`.
+// stack from the top.
 write_body_with_scopes :: fn(sb: StringBuilder, module: BytecodeModule, function_decl: BcFunction, annotate: bool) -> void {
     body        :: function_decl.body
     jump_table  :: function_decl.jump_table

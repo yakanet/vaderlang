@@ -10,14 +10,12 @@ import "vader/types" { Type, PrimitiveType, ArrayType, TY_BOOL, TY_VOID, TY_UNRE
 
 lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt {
     // `m[k] = v` over an IndexSet-impl receiver lowers to a static
-    // `set_at(m, k, v)` call (mirrors TS's IndexSet sugar). Detected
-    // off the LHS shape : `target` is an IndexExpr whose receiver
-    // type has a user-defined IndexSet impl.
+    // `set_at(m, k, v)` call. Detected off the LHS shape : `target` is
+    // an IndexExpr whose receiver type has a user-defined IndexSet impl.
     via_index_set :: try_lower_index_set_assign(ctx, assign_stmt)
     if via_index_set != null { return via_index_set }
     // Reassignment to a captured local : write into its cell rather than
-    // overwriting the slot. Mirror of `lowerStmt`'s captured-symbol
-    // branch in `src/lower/passes/block.ts:159-169`.
+    // overwriting the slot.
     via_cell :: try_lower_cell_set_assign(ctx, assign_stmt)
     if via_cell != null { return via_cell }
     return LoweredAssign {
@@ -73,8 +71,7 @@ try_lower_cell_set_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> Low
 /// Lvalue lowerer — bypasses the match-narrowing `LoweredCast` wrap that
 /// `lower_ident` applies on use-site reads. The bytecode emitter resolves
 /// assignment slots via the raw `LoweredIdent` ; a cast in target position
-/// breaks that pattern match. Mirror of `rawIdentTarget` in
-/// `src/lower/passes/block.ts:177-179`.
+/// breaks that pattern match.
 lower_assign_target :: fn(ctx: FnLowerCtx, target: Expr) -> LoweredExpr {
     if target is IdentExpr as ident {
         symbol :: ctx.typed.resolved.idents[ident.span.hash()]
@@ -98,9 +95,7 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
     is_range :: index_is_range(ctx, expr.index)
     if is_range {
         // `arr[r]` → zero-copy `LoweredArraySlice` ; `s[r]` (string) →
-        // codepoint-range `LoweredStringSlice`. Mirror of TS' two
-        // `lowerRangeSlice(..., "array" | "string")` dispatch arms
-        // (`src/lower/passes/expr.ts:305`).
+        // codepoint-range `LoweredStringSlice`.
         if target_type is ArrayType {
             sliced :: try_lower_range_slice(ctx, expr, type, false)
             if sliced != null { return sliced }
@@ -113,10 +108,9 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
         }
     }
     // Index trait routing : `s[i]` on a `string` / user struct with an
-    // `Index<I, T>` impl rewrites to a direct `at(s, i)` call. Mirror of
-    // TS' `indexResolutions` consumed by `lowerIndexTraitCall`
-    // Skip for ArrayType (built-in
-    // path above) and for Range-typed indices (slicing handled above).
+    // `Index<I, T>` impl rewrites to a direct `at(s, i)` call. Skip for
+    // ArrayType (built-in path above) and for Range-typed indices
+    // (slicing handled above).
     if !(target_type is ArrayType) && !is_range {
         member :: find_impl_member_for(ctx, target_type, "at")
         if member is UfcsMember as found {
@@ -173,8 +167,7 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type, as_str
     }
     // Range-typed *value* index (`let r = 0..<n ; arr[r]`) — bind the
     // range to a temp so the three field reads (`.start`, `.end`,
-    // `.inclusive`) share one evaluation, then emit the slice. Mirrors
-    // TS' `lowerRangeSlice` second branch.
+    // `.inclusive`) share one evaluation, then emit the slice.
     idx_type :: ctx.types.expr_type(expr.index)
     if idx_type is StructType as st {
         if st.symbol.name != "Range" { return null }
@@ -227,8 +220,7 @@ adjust_hi_inclusive_dynamic :: fn(hi: LoweredExpr, inclusive: LoweredExpr, span:
 }
 
 cast_to_usize :: fn(value: LoweredExpr, span: Span) -> LoweredExpr {
-    // No-op when already usize — mirrors TS' `castToUsize`
-    // (`src/lower/passes/expr.ts:864`).
+    // No-op when already usize.
     vt :: type_of(value)
     if vt is PrimitiveType as p {
         if p.name == "usize" { return value }

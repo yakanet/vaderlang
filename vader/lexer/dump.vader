@@ -107,8 +107,8 @@ append_token_detail :: fn(sb: StringBuilder, t: Token) -> void {
     }
 }
 
-// TokenKind → the snake_case name that matches `src/lexer/token.ts` so the
-// dump output stays stable. Public so the
+// TokenKind → its snake_case name, used by the dump so output stays stable.
+// Public so the
 // parser's `describe_token` can reuse it (folder-modules ignore `private`
 // across files but the explicit visibility documents intent).
 export kind_name :: fn(k: TokenKind) = match k {

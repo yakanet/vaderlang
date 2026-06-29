@@ -294,7 +294,7 @@ match_or_peek :: fn(p: Parser, kind: TokenKind) -> Token {
     return p.peek()
 }
 
-// `expect` emits a diagnostic on mismatch but does NOT advance ; mirrors TS.
+// `expect` emits a diagnostic on mismatch but does NOT advance.
 expect :: fn(p: Parser, kind: TokenKind, what: string) -> Token {
     if p.check(kind) { return p.advance() }
     t :: p.peek()
@@ -410,9 +410,8 @@ parse_optional_module_decl :: fn(p: Parser) -> ModuleDecl | null {
     }
 }
 
-// Hand-rolled grammar check : mirrors the TS regex
-// `/^[a-z][a-z0-9_]*(\/[a-z][a-z0-9_]*)*$/` from
-// `src/parser/passes/program.ts`. Avoiding `std/regex` keeps the
+// Hand-rolled grammar check for the pattern
+// `/^[a-z][a-z0-9_]*(\/[a-z][a-z0-9_]*)*$/`. Avoiding `std/regex` keeps the
 // parser dependency surface minimal. Predicates take `char` to align
 // with the lexer's `is_ident_start` / `is_ident_continue` idiom.
 is_valid_module_name :: fn(name: string) -> bool {
@@ -451,9 +450,9 @@ parse_decl :: fn(p: Parser) -> Decl | null {
     }
 
     // `@assert(condition)` is a "decorator-statement" that stands on its
-    // own at the top level rather than annotating a following decl. Mirrors
-    // `src/parser/passes/decl.ts::parseDecl` ; only the lone-decorator form
-    // promotes — mixing `@comptime @assert(...)` would be ambiguous.
+    // own at the top level rather than annotating a following decl. Only
+    // the lone-decorator form promotes — mixing `@comptime @assert(...)`
+    // would be ambiguous.
     if decorators.len() == 1 && decorators[0].name == "assert" {
         dec :: decorators[0]
         if dec.args.len() < 1 || dec.args.len() > 2 {
@@ -741,8 +740,8 @@ parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
     for_type :: p.parse_type()
     p.expect(.KwImplements, "`implements` keyword")
     // Optional bounded-generic typeParam list immediately after `implements` :
-    // `Foo<T> implements<T: Bound> Trait<T> { … }`. Mirrors the TS parser ;
-    // the angle list follows the keyword that introduces a typeParam scope
+    // `Foo<T> implements<T: Bound> Trait<T> { … }`. The angle list follows
+    // the keyword that introduces a typeParam scope
     // (`fn<T>`, `struct<T>`, `trait<T>`, `implements<T>`).
     type_params: TypeParam[] = []
     if p.check(.Lt) {
@@ -1836,9 +1835,8 @@ parse_block :: fn(p: Parser) -> BlockExpr {
 parse_stmt :: fn(p: Parser) -> Stmt | null {
     if p.check(.KwReturn)   { return p.parse_return() }
     if p.check(.KwFor)      { return p.parse_for(null, false) }
-    // `@comptime for x in <arr> { body }` — Layer 6 unroll. The TS parser
-    // accepts the same form ; only `@comptime` on `for` is recognised as
-    // a decorator-on-stmt here.
+    // `@comptime for x in <arr> { body }` — Layer 6 unroll. Only
+    // `@comptime` on `for` is recognised as a decorator-on-stmt here.
     if p.check(.At) && p.peek_at(1).kind == .Ident && p.peek_at(1).text == "comptime" && p.check_at(.KwFor, 2) {
         p.advance()  // @
         p.advance()  // comptime
@@ -2116,9 +2114,9 @@ parse_for :: fn(p: Parser, label: string | null, is_comptime: bool) -> ForStmt {
         iter :: p.parse_expr(0)
         p.allow_struct_lit = saved_allow
         body :: p.parse_block()
-        // Encoding-invariant synth name : line/column are codepoint-based
-        // on both lexers (TS / self-host), whereas `offset` diverges (UTF-16
-        // units vs UTF-8 bytes) — see stmt.ts comment for the parity reason.
+        // Encoding-invariant synth name : line/column are codepoint-based,
+        // whereas `offset` would diverge with the source encoding (UTF-16
+        // units vs UTF-8 bytes).
         synth :: "__for_${start.span.start.line}_${start.span.start.column}"
         synth_ident :: ident_expr(binding_span, synth)
         desugared :: LetStmt {
@@ -2242,7 +2240,7 @@ parse_defer :: fn(p: Parser) -> DeferStmt {
 // Expressions — Pratt + prefix + postfix
 // ============================================================================
 
-// Precedence levels (mirror src/parser/passes/expr.ts:25-53).
+// Precedence levels :
 //   logical : or 10/11, and 12/13
 //   compare : 20 (non-assoc)
 //   range   : 30 (non-assoc, encoded as Lt/Lte for snapshot parity)
@@ -2656,9 +2654,8 @@ parse_prefix :: fn(p: Parser) -> Expr {
                     for !p.check(.RParen) && !p.check(.Eof) { p.advance() }
                     if p.check(.RParen) { p.advance() }
                 }
-                // Placeholder is a NullLitExpr (mirror of TS's
-                // `placeholderExpr`) so downstream stages don't try to
-                // resolve a synthetic ident named after the bad decorator
+                // Placeholder is a NullLitExpr so downstream stages don't try
+                // to resolve a synthetic ident named after the bad decorator
                 // — which would cascade an R2006 the user can't act on.
                 return NullLitExpr { .span = p.span_of(at_tok, name_tok) }
             }
@@ -3142,7 +3139,7 @@ parse_if_expr :: fn(p: Parser) -> IfExpr {
     // keeps the infix chain going), so `if (i + 1) % 4 == 0` and
     // `if (Point { .x = 1 }).ok` parse as the full expression. A bespoke
     // `if (...)` grabber used to eat just the first paren group and leave the
-    // rest dangling — that was the bug. Mirror of the TS `parseIfExpr` fix.
+    // rest dangling — that was the bug.
     p.allow_struct_lit = false
     cond :: p.parse_expr(0)
     p.allow_struct_lit = saved_allow

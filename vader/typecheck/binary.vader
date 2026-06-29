@@ -4,7 +4,7 @@
 // is recursively checked ; the result type is derived per `OpKind`
 // classification (see `classify` below for the op → kind mapping).
 //
-// MVP-trimmed against the TS reference :
+// MVP-trimmed :
 //   - No trait dispatch for user types (no `Numeric` / `Equals` /
 //     `Comparable` impl lookup). Operations on non-primitive operands
 //     surface T3017 ("operator not defined for these operand types").
@@ -38,8 +38,8 @@ export infer_binary :: fn(
     left_ctx :: if e.op == .Mul && expected is ArrayType { expected } else { null }
     left := check_expr_fn(e.left, left_ctx, typed, diags)
     // `x is T` — right side is a type expression. Record its
-    // resolved type directly so dump entries match TS (e.g. `i32`
-    // instead of the `type` metatype).
+    // resolved type directly so dump entries show e.g. `i32`
+    // instead of the `type` metatype.
     if e.op == AST.BinaryOp.Is {
         rhs_ty :: type_from_expr(e.right, typed.resolved, diags)
         typed.expr_types[e.right.id] = rhs_ty

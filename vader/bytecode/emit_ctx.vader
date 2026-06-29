@@ -21,7 +21,7 @@ export EmitOptions :: struct {
     keep_mangles: string[]
 }
 
-/// Default options : peephole ON (matches TS default), no extra roots.
+/// Default options : peephole ON, no extra roots.
 /// @return  a fresh `EmitOptions` with `optimize = true`.
 export default_emit_options :: fn() -> EmitOptions = EmitOptions { .optimize = true, .keep_mangles = [] }
 
@@ -87,10 +87,9 @@ export EmitterCtx :: struct {
     pinned_types: i32[]
 
     /// Per-function arg/result type pins, keyed by fn index. Each Call's
-    /// arg + dst static types (which TS carries on `op.argTypeIndices`)
-    /// are pinned here under the emitting function, so `prune_unused_types`
-    /// roots them only for SURVIVING functions — when a function is
-    /// pruned, its pins drop with it (matching TS, where the roots live on
+    /// arg + dst static types are pinned here under the emitting function,
+    /// so `prune_unused_types` roots them only for SURVIVING functions —
+    /// when a function is pruned, its pins drop with it (the roots live on
     /// the op). A global list would keep dead types (and the impl rows /
     /// monomorphised `Range` types they anchor) alive in every program.
     /// `prune_unused_functions` re-keys this by the post-prune index.
@@ -142,8 +141,7 @@ export intern_type :: fn(t: Type, ctx: EmitterCtx) -> i32 {
     existing :: ctx.type_key[key]
     if existing is i32 { return existing }
     // Reserve placeholder so recursive / self types don't loop.
-    // Matches `src/bytecode/emit.ts::internType:356-360` exactly :
-    // push a `BcRef { trait_name = null }` first, register the index,
+    // Push a `BcRef { trait_name = null }` first, register the index,
     // then overwrite with the proper translation. The placeholder is
     // visible to any nested `intern_type` call that re-enters with the
     // same key.
@@ -194,9 +192,9 @@ export intern_cell_type :: fn(slot_type: Type, ctx: EmitterCtx) -> i32 {
     fields.push(field)
     // Name keys on the inner type's intern key, not the (volatile) post-
     // DCE slot — so a closure capturing the same T always materialises
-    // with the same `$Cell_<T>` name across re-emits and across the TS /
-    // Vader pipelines. The slot id approach froze whatever slot the cell
-    // happened to land in before DCE remapped it.
+    // with the same `$Cell_<T>` name across re-emits. The slot id approach
+    // froze whatever slot the cell happened to land in before DCE
+    // remapped it.
     ctx.types.push(BcStruct {
         .name      = "\$Cell_${type_intern_key(slot_type)}",
         .fields    = fields,

@@ -241,16 +241,15 @@ export CallIndirect :: struct { type_id: i32 }
 /// keyed by `vtable_key` (format `"<TraitName>.<MethodName>"`), then
 /// invokes the resolved fn with `[receiver, ...args]`. `parameter_count`
 /// includes the receiver — so the executor pops `parameter_count - 1`
-/// user args plus the receiver itself. Mirrors `src/vm/exec.ts:306-330`.
-/// Sprint 6 addition.
+/// user args plus the receiver itself. Sprint 6 addition.
 export VirtualCall :: struct { parameter_count: i32, vtable_key: string }
 
 /// Allocate a struct of type `type_id`. Pops `field_count` values (in
 /// field-declaration order) from the value stack and wraps them in a
 /// `StructVal`. The bytecode pipeline emits two variants — `struct.new`
 /// and `struct.new_stack` — that share this VM op : the heap/stack
-/// distinction is a codegen concern, not a runtime one (TS VM
-/// `src/vm/exec.ts` collapses both cases too). Sprint 4 (b1) addition.
+/// distinction is a codegen concern, not a runtime one. Sprint 4 (b1)
+/// addition.
 export StructNew :: struct { type_id: i32, stack: bool }
 /// Pop a `StructVal`, push `struct.fields[field_index]`. `type_id` is
 /// kept for diagnostics (the executor traps if the popped value's
@@ -282,7 +281,7 @@ export ArrayGet :: struct { type_id: i32 }
 /// Sprint 4 (b2) addition.
 export ArraySet :: struct { type_id: i32 }
 /// Pop an array, push its element count (approximated as an i32 ;
-/// the TS VM pushes a usize but our `Value` doesn't carry width tags).
+/// our `Value` doesn't carry width tags).
 /// Sprint 4 (b2) addition.
 export ArrayLen :: struct {}
 
@@ -332,7 +331,7 @@ export DataConst :: struct { pool_index: i32, type_id: i32 }
 /// `ref` to a concrete element type. Our VM's Values already carry
 /// their concrete tag, so the cast is purely informational ; the op's
 /// type_id operand is intentionally dropped at parse time. Sprint 4
-/// (b2) addition (mirrors `src/vm/exec.ts` which also bumps pc).
+/// (b2) addition.
 export RefCast :: struct { type_id: i32 }
 
 /// Box a concrete primitive value on the stack into an erased `vader_box_t`
@@ -373,9 +372,9 @@ export ConvertTarget :: enum(u8) {
 }
 
 /// Pop one value and push a `BoolVal` indicating whether its runtime
-/// type matches `module.types[type_id]`. Mirrors `src/vm/exec.ts`'s
-/// `type_check` op ; recurses through `UnionType` variants. Drives
-/// `match` arm dispatch and `if x is T` narrowing. Sprint 5b addition.
+/// type matches `module.types[type_id]`. Recurses through `UnionType`
+/// variants. Drives `match` arm dispatch and `if x is T` narrowing.
+/// Sprint 5b addition.
 export TypeCheck :: struct { type_id: i32 }
 
 /// Push a `TypeVal { type_id }` — the runtime reification of a `type`
@@ -386,8 +385,7 @@ export TypeConst :: struct { type_id: i32 }
 /// Pop a closure (fn ref + env) and append it to the current frame's
 /// defer-stack. Drained later by `DeferPopExec` on normal exits or by
 /// the panic-unwind walker around `exec` when an op traps. A8 single-
-/// track defer model — see TS counterpart at `src/bytecode/ops.ts`
-/// `kind: "defer.push"`.
+/// track defer model.
 export DeferPush :: struct {}
 
 /// Pop and execute the last `count` entries on the current frame's
@@ -736,9 +734,8 @@ export F32ToBits :: struct {}
 /// Pops a `u32`, pushes the `f32`. NOT `f32(x)` (which widens the integer VALUE).
 export BitsToF32 :: struct {}
 
-/// Primitive literal-producing op carried by `ReturnLit`. Mirrors the
-/// TS `ConstOp` extracted from `Op`. Each variant produces exactly one
-/// `Value` push.
+/// Primitive literal-producing op carried by `ReturnLit`. Each variant
+/// produces exactly one `Value` push.
 export ConstOp ::
     | I32Const
     | I64Const

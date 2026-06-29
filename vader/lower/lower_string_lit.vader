@@ -276,8 +276,7 @@ cast_to_width :: fn(inner: LoweredExpr, width: string, span: Span) -> LoweredExp
 
 // Build a `<T>.Display.to_string(value)` call shape. Prefers a direct
 // `LoweredCall` to the per-receiver impl member when the impl is
-// statically resolvable (concrete struct / enum types) — mirrors TS
-// `wrapAsDisplay` in `src/lower/passes/display-coerce.ts`. Falls back
+// statically resolvable (concrete struct / enum types). Falls back
 // to `LoweredVirtualCall` for primitives / generic-T receivers where
 // the impl exists per-instantiation but isn't reachable at lower-time.
 build_display_to_string_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Span) -> LoweredExpr {

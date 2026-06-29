@@ -1,6 +1,5 @@
 // vader/midir/cfg_dce — CFG-level dead-code elimination.
 //
-// Mirror of `src/midir/dce.ts`'s `optimiseFunction` pipeline.
 // Runs intra-procedurally on each `CFGFunction` :
 //
 //   Pass 0 — `fold_moves` : copy-fold `producer.dst=X ; Move dst=Y src=X`
@@ -9,13 +8,13 @@
 //            bindings (`a :: 7 ; b :: 5 ; a*b` would otherwise stall at
 //            the moves).
 //
-// Future passes (mirror TS) :
+// Future passes :
 //   Pass 1 — `die_once` (dead instruction elimination via per-store
 //            liveness). Runs to fixpoint, max 8 iters.
 //   Pass 2 — `compact_locals` (drop unreferenced locals, renumber).
 //
-// Pass 0 is enough to align Vader's CFG with TS for the simple-arith
-// snippets that motivated the port ; the deeper passes come incremental.
+// Pass 0 is enough for the simple-arith snippets that motivated this
+// pass ; the deeper passes come incremental.
 
 module "vader/midir"
 
@@ -23,7 +22,7 @@ import "std/collections" { MutableMap, MutableSet }
 
 /// Top-level entry — apply all CFG-level optimisations to every fn in
 /// the project. Pure : returns a fresh CFGProject sharing unchanged
-/// modules with the input. Mirror of TS `eliminateDeadCFG`.
+/// modules with the input.
 export eliminate_dead_cfg :: fn(p: CFGProject) -> CFGProject {
     new_modules :: MutableMap<string, CFGModule> {}
     for [module_id, m] in p.modules {
@@ -70,7 +69,7 @@ changed_blocks :: fn(a: CFGFunction, b: CFGFunction) -> bool {
 // Pass 1 — die_once : per-store liveness DIE
 //
 // Walk each block backward ; drop pure instructions whose `dst` isn't
-// in the live set at that point. Mirror of TS `dieOnce` (dce.ts:348).
+// in the live set at that point.
 // ============================================================================
 
 die_once :: fn(f: CFGFunction) -> CFGFunction {
@@ -251,8 +250,7 @@ fold_moves_in_block :: fn(
 // `local.set` to land even when the value goes unread). Builds a new
 // `locals[]` containing only referenced entries, renumbers every read
 // + write to the compact index space. Pure instructions whose dst
-// renumbered to -1 (unused) drop entirely. Mirror of TS `compactLocals`
-// (dce.ts:393).
+// renumbered to -1 (unused) drop entirely.
 // ============================================================================
 
 compact_locals :: fn(f: CFGFunction) -> CFGFunction {

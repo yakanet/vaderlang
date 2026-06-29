@@ -123,8 +123,7 @@ export Type ::
 
 // ---- name registries ------------------------------------------------------
 
-/// Canonical primitive type names. Same set as
-/// `src/typecheck/types.ts::PRIMITIVE_NAMES`.
+/// Canonical primitive type names.
 export PRIMITIVE_NAMES :: [
     "i8", "i16", "i32", "i64", "isize",
     "u8", "u16", "u32", "u64", "usize",
@@ -208,9 +207,8 @@ export TY_BOOL       :: PrimitiveType { .name = "bool" }
 
 // ---- display --------------------------------------------------------------
 
-/// Render `t` as a human-readable string. Format mirrors
-/// `src/typecheck/types.ts::displayType` byte-for-byte so dumps stay
-/// stable across the TS↔Vader parity harness.
+/// Render `t` as a human-readable string. The format is fixed so dumps
+/// stay stable across snapshots.
 ///
 /// Fast path : leaf types whose display form is a single constant
 /// string skip the builder entirely. Profiling showed `display_type`

@@ -54,8 +54,8 @@ export evaluate_project :: fn(
 }
 
 // Walk every typed module's expr / decl / param / local type tables
-// and register each generic instance. Mirrors TS's `collectInstances`
-// minus the for-in / Into / fn-call passes (those land alongside the
+// and register each generic instance. The for-in / Into / fn-call passes
+// are not handled yet (those land alongside the
 // lowerer port when their downstream consumers exist).
 harvest_instances :: fn(typed: TypedProject) -> GenericInstance[] {
     registry :: new_registry()
@@ -180,8 +180,7 @@ evaluate_module_decls :: fn(
 // referenced file's content (resolved relative to the source file's
 // directory), and store the content under `project.file_exprs[id]`
 // so `lower_intrinsic`'s `@file` arm can substitute the materialised
-// literal. Mirror of `evalFileExpr` in
-// `src/comptime/evaluate.ts:225-257`.
+// literal.
 bake_file_exprs :: fn(
     decls: AST.Decl[], typed: TypedProgram,
     project: EvaluatedProject, program: EvaluatedProgram, diags: Diagnostic[],
@@ -206,7 +205,7 @@ bake_file_exprs :: fn(
     // keyed by the const's Symbol id. The lower aggregates this with
     // `comptime_decls` into `comptime_value_by_symbol_id` so use
     // sites of these consts inline the literal. Kept OUT of
-    // `comptime_decls` itself because TS' comptime dump filters
+    // `comptime_decls` itself because the comptime dump filters
     // `@file`-baked consts out of the `@comptime` listing (the const
     // wasn't user-marked `@comptime`).
     for decl in decls {

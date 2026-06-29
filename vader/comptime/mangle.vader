@@ -2,14 +2,12 @@
 // the monomorphizer (`specialize.vader`) and the erasure-dedupe pass
 // (`erasure_dedupe.vader`).
 //
-// Mirror of the private helpers `mangle`, `forTypeName`, `sanitise`,
-// `uniq` in `src/comptime/specialize.ts` (lines 383-432). Exported
-// here so the dedupe pass can reuse `mangle` for the extra Any-flavoured
-// struct entries it synthesises (TS `erasure-dedupe.ts:243`).
+// Holds the helpers `mangle`, `forTypeName`, `sanitise`, `uniq`. `mangle`
+// is exported here so the dedupe pass can reuse it for the extra
+// Any-flavoured struct entries it synthesises.
 //
-// Two design notes against the TS reference :
-//   - TS routes through `program.module.displayPath`. The Vader-side
-//     `ResolvedModule` keeps `path: string` flat, so the public entry
+// Two design notes :
+//   - `ResolvedModule` keeps `path: string` flat, so the public entry
 //     `mangle` here takes `module_path` directly. Callers thread
 //     `module.path` (matches what the loader writes).
 //   - `sanitise_ident` is distinct from `vader/c_emit/body.sanitise` :
@@ -27,7 +25,7 @@ import "vader/types" { Type, display_type, strip_distinct }
 import "vader/text" { is_ident_byte }
 
 /// Mangled name for a `(decl_name, module_path, type_arguments)` triple.
-/// Format mirrors TS `mangle` exactly so the bytecode emitter, the C
+/// Format is fixed so the bytecode emitter, the C
 /// emitter, and the binary writer all read the same string :
 ///
 ///   - non-generic top-level decl, module name matches decl name :
@@ -98,8 +96,7 @@ export sanitise_ident :: fn(raw: string) -> string {
 
 /// Return a candidate name that's not yet in `seen`, suffixing with
 /// `_1` / `_2` / ... until a fresh one is found. Adds the result to
-/// `seen` so subsequent calls don't reuse it. Mirrors TS `uniq` in
-/// `src/comptime/specialize.ts:425`.
+/// `seen` so subsequent calls don't reuse it.
 ///
 /// @param seen        registry of names already taken.
 /// @param candidate   the preferred name ; returned as-is when free.
@@ -126,8 +123,7 @@ export uniq :: fn(seen: MutableMap<string, bool>, candidate: string) -> string {
 }
 
 /// Name part used for impl-member mangling (`<for_type>$<trait>$<method>`).
-/// Mirrors TS `forTypeName` in `src/comptime/specialize.ts:391`. Returns
-/// `"?"` for the rare degenerate TypeExpr shapes (lambda / fn-type in
+/// Returns `"?"` for the rare degenerate TypeExpr shapes (lambda / fn-type in
 /// impl position) — the resulting mangled name carries the literal `?`
 /// so a downstream consumer can spot it.
 ///
@@ -204,7 +200,7 @@ import "vader/diagnostics" { Position, Span }
 @test test_for_type_name_ident :: fn() -> void {
     p :: Position { .file = "<test>", .offset = 0, .line = 1, .column = 1 }
     sp :: Span { .start = p, .end = p }
-    // Set `.id` explicitly — the TS host lowerer's foreign-default
+    // Set `.id` explicitly — the host lowerer's foreign-default
     // expansion stumbles when an imported const (here `UNASSIGNED_NODE_ID`
     // from `vader/parser/ast`) is referenced from a default field value
     // in a struct lit, and lands the whole fn on `LoweredUnreachable`.

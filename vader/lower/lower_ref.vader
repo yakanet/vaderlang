@@ -270,7 +270,7 @@ ref_expr :: fn(e: LoweredExpr, visit_fn: fn(i32, string) -> void, visit_virtual:
         // so DCE keeps it alive. Without this, `add` (or any fn passed
         // by value but not directly called) gets pruned and the
         // bytecode emit hits the defensive `Return` stub when it
-        // tries to resolve the fn-index. Mirror of TS's same walk.
+        // tries to resolve the fn-index.
         //
         // A `Const` ident is also visited : a fn-wrapped const's accessor
         // (`inline_consts`) REUSES the const's symbol id, so a reference to

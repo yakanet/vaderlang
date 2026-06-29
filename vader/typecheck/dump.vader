@@ -15,12 +15,10 @@
 //
 // The `expr` lines are sorted lexicographically after formatting so the
 // dump is stable regardless of the underlying side-table iteration order.
-// Literal variants (Int/Float/Bool/Null/Char) and BlockExpr are skipped
-// (matches TS).
+// Literal variants (Int/Float/Bool/Null/Char) and BlockExpr are skipped.
 //
 // MVP : single-module only — multi-module orchestration waits for
-// `wire.vader`. The TS pass iterates `typed.modules` ; here we render a
-// single `TypedProgram`.
+// `wire.vader`. Here we render a single `TypedProgram`.
 
 module "vader/typecheck"
 
@@ -63,8 +61,8 @@ export dump_program_with_others :: fn(
 }
 
 build_decl_lines :: fn(typed: TypedProgram) -> string[] {
-    // Sort by symbol name (case-insensitive, matches TS
-    // `name.localeCompare`) rather than by the formatted line —
+    // Sort by symbol name (case-insensitive) rather than by the
+    // formatted line —
     // otherwise `S`tructDecl always wins over `T`raitDecl regardless
     // of the actual name ordering. Fn symbols expand into every
     // overload Symbol from `fn_overloads` so the dump lists each
@@ -107,9 +105,8 @@ build_expr_lines :: fn(typed: TypedProgram) -> string[] {
         loc :: start_loc_for_id(typed, id)
         out.push("  expr ${loc.pad_end(8, ' ')} ${kind.pad_end(14, ' ')} :: ${ty_str}")
     }
-    // Byte-wise sort (matches TS `Array.prototype.sort` default) :
-    // case-insensitive would put `i32` before `Inner` ; TS keeps
-    // `Inner` first because `I` (0x49) < `i` (0x69).
+    // Byte-wise sort : case-insensitive would put `i32` before `Inner` ;
+    // byte order keeps `Inner` first because `I` (0x49) < `i` (0x69).
     return sort(out, (a: string, b: string) -> compare_ascending(a, b))
 }
 
@@ -139,7 +136,7 @@ is_skipped_kind :: fn(kind: string) -> bool {
 }
 
 /// Map a `SymbolKind` to the matching AST `*Decl` kind name used by the
-/// TS dump (`FnDecl`, `StructDecl`, `EnumDecl`, …). Returns `""` for
+/// dump (`FnDecl`, `StructDecl`, `EnumDecl`, …). Returns `""` for
 /// kinds the dump skips (import bindings, locals, params, …).
 // @partial: only declaring kinds map to a *Decl name; other SymbolKinds are dump-skipped → "".
 ast_decl_kind :: fn(s: Symbol) -> string = @partial match s.kind {
@@ -178,7 +175,7 @@ dump_test :: fn(src: string) -> string {
 @test
 test_dump_renders_fn_decl :: fn() -> void {
     // Expected string excludes the trailing newline — `println` adds it
-    // at the CLI boundary, matching the TS reference.
+    // at the CLI boundary.
     expected :: "# Typecheck\n\n## t\n  FnDecl         add                  :: fn(i32, i32) -> i32"
     assert_eq(dump_test("add :: fn(a: i32, b: i32) -> i32 { return a + b }"), expected)
 }

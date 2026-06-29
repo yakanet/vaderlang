@@ -1,8 +1,7 @@
 // vader/comptime/eval_call — tree-walk interpreter for `simple_fn(args)`
 // calls at comptime.
 //
-// Mirrors the subset of TS `src/comptime/run.ts::executeComptime` that
-// covers `@comptime X :: simple_fn(...)` patterns. The interpreter looks
+// Covers `@comptime X :: simple_fn(...)` patterns. The interpreter looks
 // up the callee's `FnDecl` via `typed.fn_decls`, evaluates each arg in
 // the caller's context, binds args to the callee's param Symbols (made
 // addressable by `vader/resolver/body.vader::walk_fn_decl`'s

@@ -1,7 +1,7 @@
 // vader/lower/lower_for_in — `for x in iter` lowering.
 //
-// Mirror of `src/lower/passes/for-in.ts::lowerForIn` (MVP slow path).
-// Desugars `for x in <iter> { body }` into the Iterator step loop :
+// The MVP slow path. Desugars `for x in <iter> { body }` into the
+// Iterator step loop :
 //
 //   let __iter_n :: <iter, optionally array-wrapped>
 //   loop {
@@ -12,11 +12,10 @@
 //   }
 //
 // Auto-wraps `T[]` iterators into `ArrayIterator(T)` so the loop
-// dispatches through the standard Iterator impl. The TS code has
-// several fast paths (int-range counter loop, std/iter chain fusion,
-// MutableMap inline) that the Vader MVP skips — they're snapshot-
-// matching wins for ~5-10 specific snippets but each is a substantial
-// port.
+// dispatches through the standard Iterator impl. Several fast paths
+// (int-range counter loop, std/iter chain fusion, MutableMap inline)
+// the Vader MVP skips — they're snapshot-matching wins for ~5-10
+// specific snippets but each is a substantial port.
 
 module "vader/lower"
 
@@ -66,16 +65,14 @@ export lower_for_in :: fn(
     // Fast path : `for x in arr` over a raw `T[]` lowers to a counter
     // loop with index lookup. No ArrayIterator allocation, no per-iter
     // virtual call. Falls through to the slow path when the iter type
-    // isn't a plain array. Mirrors TS `lowerForInRawArray` in
-    // `src/lower/passes/for-in.ts:346`.
+    // isn't a plain array.
     raw_array :: try_lower_for_in_raw_array(ctx, for_stmt, in_form, iter_lowered_raw, iter_type_raw, recurse, block_lowerer)
     if raw_array != null { return raw_array }
 
     // Fast path : `for entry in m` over `MutableMap(K, V)` (or
     // `for v in s` over `MutableSet(T)`) inlines the bucket-walk +
     // chain-traversal, skipping the MappedIterator allocation and the
-    // per-iter `next()` + `Yield` allocations. Mirror of TS'
-    // `tryLowerForInMapSetIterInline`.
+    // per-iter `next()` + `Yield` allocations.
     map_set :: try_lower_for_in_map_set(ctx, for_stmt, in_form, iter_lowered_raw, iter_type_raw, span, block_lowerer)
     if map_set != null { return map_set }
 
@@ -89,14 +86,13 @@ export lower_for_in :: fn(
 
     // M5001 — `for x in iter` needs an Iterator impl on `iter`. When
     // wrapping leaves the iter as a primitive (string / numeric / …),
-    // no Iterator dispatch is reachable from the lower step-loop. Mirrors
-    // TS `src/lower/passes/for-in.ts:178` which emits B5001 ; Vader uses
-    // M5001 (IteratorImplMissing) instead.
+    // no Iterator dispatch is reachable from the lower step-loop. Vader
+    // emits M5001 (IteratorImplMissing).
     if iter_type is PrimitiveType {
         // No Iterator impl is reachable from the step-loop for a bare
         // primitive (string / numeric / …) — emit the diagnostic and a
         // single `unreachable` rather than a dispatch loop that would
-        // call `next()` on the primitive. Matches TS.
+        // call `next()` on the primitive.
         ctx.project.diags.push(lower_error(.IteratorImplMissing, span,
             "`for x in iter` requires an Iterator impl on ${display_type(iter_type)}"))
         return LoweredExprStmt {
@@ -234,8 +230,7 @@ WrapResult :: struct {
 // Wrap a non-iterator receiver into a concrete struct iterator so the
 // step-loop has something to dispatch `next()` on :
 //   - `T[]`     → `ArrayIterator(T)` (struct-wrapped in place ; avoids the
-//                 erased-`Iterator(T)` virtual-call hazard, mirror of TS's
-//                 raw-array path).
+//                 erased-`Iterator(T)` virtual-call hazard).
 //   - `string`  → `StringChars` via a synthesised `chars(s)` call. `string`
 //                 implements `Into(Iterator(char))`, but routing through
 //                 `into()` yields the erased `Iterator(char)` trait (the same
@@ -243,7 +238,7 @@ WrapResult :: struct {
 //                 which `build_step_call`'s StructType path already resolves
 //                 (so `for c in s` matches `for c in s.chars()`). `chars` is
 //                 materialised by the normal reachability walk over the emitted
-//                 call. Mirror of TS `for-in.ts` resolving `string`'s iterator.
+//                 call.
 // Returns the input verbatim when no wrap applies.
 try_wrap_array_iter :: fn(
     ctx: FnLowerCtx, iter: LoweredExpr, iter_type: Type, span: Span,
@@ -467,7 +462,6 @@ resolve_binding_or_synth :: fn(ctx: FnLowerCtx, in_form: AST.InFor) -> Symbol {
 
 // `for x in arr` over a raw `T[]` lowers to a counter loop with index
 // lookup — no ArrayIterator allocation, no per-iter virtual call.
-// Mirrors TS `lowerForInRawArray` in `src/lower/passes/for-in.ts:346`.
 //
 // Returns null when the iter type isn't a plain array ; caller falls
 // back to the wrap-into-ArrayIterator slow path.
@@ -560,7 +554,7 @@ try_lower_for_in_raw_array :: fn(
 
 
 // `for x in lo..<hi` / `for x in lo..=hi` over an integer-typed range
-// bottom emits a counter loop. Mirrors TS's `tryLowerForInIntRange`.
+// bottom emits a counter loop.
 // Returns null when the bound isn't an integer ; caller falls back to
 // the slow path (Iterator step dispatch).
 try_lower_for_in_int_range :: fn(
@@ -577,9 +571,8 @@ try_lower_for_in_int_range :: fn(
     // FreeInt literal on either side adopts the other's width. When
     // both bounds are concrete, the lower side wins (matches the
     // typer's left-to-right inference). When both are FreeInt, fall
-    // back to the i32 default via `default_if_free`. Mirror of TS'
-    // for-in counter typing where the Range's element type is
-    // already settled by the bidirectional infer.
+    // back to the i32 default via `default_if_free`. The Range's
+    // element type is already settled by the bidirectional infer.
     bound_type :: if raw_lower is FreeIntType {
         if is_integer_type(raw_upper) { default_if_free(raw_upper) } else { default_if_free(raw_lower) }
     } else {
@@ -587,8 +580,7 @@ try_lower_for_in_int_range :: fn(
     }
     // For-in bindings that the body never references don't surface
     // in `resolved.idents` (the use-site map). Synthesize a placeholder
-    // when the lookup misses so the dump still renders ; matches the
-    // shape TS produces via its dedicated `resolved.forIns` table.
+    // when the lookup misses so the dump still renders.
     binding_symbol :: resolve_binding_or_synth(ctx, in_form)
     span :: for_stmt.span
     // Re-type FreeInt literals on either bound to the resolved
@@ -603,8 +595,7 @@ try_lower_for_in_int_range :: fn(
     // `__for_hi_N` synthetic let so the loop condition reads a
     // single slot per iteration instead of re-evaluating the
     // expression. Cheap shapes (Ident / FieldAccess / IntLit /
-    // CharLit) skip the hoist. Mirror of TS' `isCheapInvariant`
-    // gate.
+    // CharLit) skip the hoist.
     hoist_stmts: LoweredStmt[] = []
     hi: LoweredExpr = hi_raw
     if !is_cheap_invariant(hi_raw) {
@@ -693,8 +684,7 @@ widen_int_lit :: fn(e: LoweredExpr, t: Type) -> LoweredExpr {
 
 // True for expressions cheap enough to re-read every loop iteration —
 // the loop bound stays inline rather than getting hoisted into a
-// `__for_hi_N` synthetic let. Mirror of `isCheapInvariant` in
-// `src/lower/passes/for-in.ts:694-699`.
+// `__for_hi_N` synthetic let.
 is_cheap_invariant :: fn(e: LoweredExpr) -> bool {
     if e is LoweredIdent       { return true }
     if e is LoweredFieldAccess { return true }
@@ -708,7 +698,6 @@ is_integer_type :: fn(t: Type) -> bool {
     // integers; every other Type → false.
     @partial match t {
         is PrimitiveType as p -> {
-            // Mirrors `isInteger` in `typecheck/types.ts`.
             if p.name == "i8"    { return true }
             if p.name == "i16"   { return true }
             if p.name == "i32"   { return true }
@@ -754,8 +743,7 @@ build_int_range_body :: fn(user_body: LoweredBlock, inc_stmt: LoweredStmt, loop_
 // a back-edge to the loop header and would skip that increment, spinning
 // forever on the same counter value. Rewrite each `continue` that targets
 // this loop into `{ inc ; continue }` so every back-edge advances the
-// counter. Mirrors `prependIncBeforeMatchingContinue` in
-// `src/lower/passes/for-in.ts:707`.
+// counter.
 //
 // @param block       the lowered user body to rewrite.
 // @param inc         the counter-increment stmt to splice before each
@@ -903,7 +891,7 @@ try_lower_chain_fusion :: fn(
     chain :: descend_chain(ctx, in_form.iter)
     if chain is null { return null }
     // Bare ranges already hit the int-range fast path ; bypassing
-    // would lose `default_if_free` + counter-name fidelity vs TS.
+    // would lose `default_if_free` + counter-name fidelity.
     if chain.kind == IterChainKind.Range { return null }
     binding_symbol :: resolve_binding_or_synth(ctx, in_form)
     user_body :: block_lowerer(ctx, for_stmt.body, false, true)
@@ -1022,8 +1010,7 @@ FluentCombinator :: struct {
 
 // Recognise the fluent `it.map(f)` / `it.filter(p)` (UFCS) and the direct
 // `map(it, f)` / `filter(it, p)` shapes. Returns the receiver + fn arg, or
-// null when the call isn't one of the two fusible combinators. Mirror of
-// `src/lower/passes/for-in.ts::unpackFluentCombinator`.
+// null when the call isn't one of the two fusible combinators.
 unpack_fluent_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> FluentCombinator | null {
     // @partial: only a FieldExpr (UFCS) or IdentExpr (direct call) callee can be
     // a fusible combinator; every other Expr callee → null.
@@ -1298,8 +1285,7 @@ emit_fused_range :: fn(
 // `MutableSet(T)` — inline the bucket-walk + chain-traversal so the loop
 // skips the MappedIterator struct, the per-iter `next()` call, and the
 // per-iter `Yield` allocation. Returns null when the iter type isn't a
-// recognised map/set or std/collections isn't loaded. Mirror of TS'
-// `tryLowerForInMapSetIterInline`.
+// recognised map/set or std/collections isn't loaded.
 try_lower_for_in_map_set :: fn(
     ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
     src_value: LoweredExpr, src_type: Type, span: Span,
