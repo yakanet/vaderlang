@@ -46,7 +46,6 @@ export const_fold_project :: fn(p: CFGProject) -> CFGProject {
         .vtable_entries  = p.vtable_entries,
         .strings         = p.strings,
         .data_pool       = p.data_pool,
-        .symbol_redirects = p.symbol_redirects,
     }
 }
 

@@ -499,9 +499,6 @@ export CFGProject :: struct {
     /// `BytecodeModule.dataPool`. InstrDataConst references entries by
     /// index.
     data_pool: BcDataEntry[]
-    /// Forwarded from LoweredProject.symbolRedirects ; consumed by the
-    /// bytecode emit (fnIndexBySymId builder).
-    symbol_redirects: MutableMap<i32, i32>
 }
 
 export CFGModule :: struct {
