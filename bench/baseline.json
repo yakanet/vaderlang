@@ -1,181 +1,181 @@
 {
   "mandelbrot": {
     "vader-native": {
-      "minMs": 16.09204099999988,
+      "minMs": 16.166334000000006,
       "checksum": "mandelbrot 240x180 iter=500 checksum=5705449"
     },
     "bun-ts": {
-      "minMs": 24.69137499999988,
+      "minMs": 25.27312499999971,
       "checksum": "mandelbrot 240x180 iter=500 checksum=5705453"
     },
     "go": {
-      "minMs": 18.148249999999734,
+      "minMs": 17.74091700000008,
       "checksum": "mandelbrot 240x180 iter=500 checksum=5689008"
     },
     "java": {
-      "minMs": 48.09937500000024,
+      "minMs": 50.22862500000019,
       "checksum": "mandelbrot 240x180 iter=500 checksum=5705453"
     }
   },
   "primes": {
     "vader-native": {
-      "minMs": 24.05729199999996,
+      "minMs": 24.59045799999967,
       "checksum": "primes N=1000000 count=78498 sum=37550402023"
     },
     "bun-ts": {
-      "minMs": 41.10758399999986,
+      "minMs": 39.98154199999999,
       "checksum": "primes N=1000000 count=78498 sum=37550402023"
     },
     "go": {
-      "minMs": 24.89037499999995,
+      "minMs": 25.381624999999985,
       "checksum": "primes N=1000000 count=78498 sum=37550402023"
     },
     "java": {
-      "minMs": 58.15595800000028,
+      "minMs": 62.00787500000024,
       "checksum": "primes N=1000000 count=78498 sum=37550402023"
     }
   },
   "iter_chain": {
     "vader-native": {
-      "minMs": 2.1488749999998618,
+      "minMs": 1.7177920000003724,
       "checksum": "iter_chain N=1000000 total=166666166667000000"
     },
     "bun-ts": {
-      "minMs": 35.20816599999944,
+      "minMs": 36.43495900000016,
       "checksum": "iter_chain N=1000000 total=166666166667000000"
     },
     "go": {
-      "minMs": 2.8661669999992228,
+      "minMs": 2.817041999999674,
       "checksum": "iter_chain N=1000000 total=166666166667000000"
     },
     "java": {
-      "minMs": 36.50433299999986,
+      "minMs": 37.744957999999315,
       "checksum": "iter_chain N=1000000 total=166666166667000000"
     }
   },
   "binary_trees": {
     "vader-native": {
-      "minMs": 6.7716669999999795,
+      "minMs": 6.104000000000269,
       "checksum": "binary_trees depth=17 count=262143"
     },
     "bun-ts": {
-      "minMs": 12.200291999999536,
+      "minMs": 12.373833999999988,
       "checksum": "binary_trees depth=17 count=262143"
     },
     "go": {
-      "minMs": 7.461124999999811,
+      "minMs": 7.505833000000166,
       "checksum": "binary_trees depth=17 count=262143"
     },
     "java": {
-      "minMs": 33.19108299999971,
+      "minMs": 33.51474999999937,
       "checksum": "binary_trees depth=17 count=262143"
     }
   },
   "string_builder": {
     "vader-native": {
-      "minMs": 7.88300000000072,
+      "minMs": 8.644624999999905,
       "checksum": "string_builder N=80000 len=3600000"
     },
     "bun-ts": {
-      "minMs": 8.942833000000064,
+      "minMs": 9.037124999999833,
       "checksum": "string_builder N=80000 len=3600000"
     },
     "go": {
-      "minMs": 4.819833000001381,
+      "minMs": 5.051291000000674,
       "checksum": "string_builder N=80000 len=3600000"
     },
     "java": {
-      "minMs": 34.956709000000046,
+      "minMs": 35.71470899999986,
       "checksum": "string_builder N=80000 len=3600000"
     }
   },
   "map_iter": {
     "vader-native": {
-      "minMs": 3.6622499999994034,
+      "minMs": 3.3456659999992553,
       "checksum": "map_iter inner=1000 outer=1000 total=499500000"
     },
     "bun-ts": {
-      "minMs": 31.768582999999126,
+      "minMs": 32.24183300000004,
       "checksum": "map_iter inner=1000 outer=1000 total=499500000"
     },
     "go": {
-      "minMs": 8.235415999999532,
+      "minMs": 8.79504199999974,
       "checksum": "map_iter inner=1000 outer=1000 total=499500000"
     },
     "java": {
-      "minMs": 42.240749999999025,
+      "minMs": 42.19420899999932,
       "checksum": "map_iter inner=1000 outer=1000 total=499500000"
     }
   },
   "arr_rw": {
     "vader-native": {
-      "minMs": 61.847083000000566,
+      "minMs": 62.026332999999795,
       "checksum": "arr_rw 5172428800000"
     },
     "bun-ts": {
-      "minMs": 82.98308299999917,
+      "minMs": 83.12445900000057,
       "checksum": "arr_rw 5172428800000"
     },
     "go": {
-      "minMs": 35.64879199999996,
+      "minMs": 35.96429199999875,
       "checksum": "arr_rw 5172428800000"
     },
     "java": {
-      "minMs": 85.12833299999875,
+      "minMs": 88.08466700000099,
       "checksum": "arr_rw 5172428800000"
     }
   },
   "arr_push": {
     "vader-native": {
-      "minMs": 65.08870800000113,
+      "minMs": 68.62620900000002,
       "checksum": "arr_push 20000000"
     },
     "bun-ts": {
-      "minMs": 47.53575000000092,
+      "minMs": 48.693624999999884,
       "checksum": "arr_push 20000000"
     },
     "go": {
-      "minMs": 31.08441700000003,
+      "minMs": 32.30683400000089,
       "checksum": "arr_push 20000000"
     },
     "java": {
-      "minMs": 52.70366599999761,
+      "minMs": 56.204750000000786,
       "checksum": "arr_push 20000000"
     }
   },
   "str_concat": {
     "vader-native": {
-      "minMs": 30.154458999997587,
+      "minMs": 34.504541000000245,
       "checksum": "str_concat 3900000"
     },
     "bun-ts": {
-      "minMs": 8.29979099999764,
+      "minMs": 8.373125000000073,
       "checksum": "str_concat 3900000"
     },
     "go": {
-      "minMs": 10.702916000002006,
+      "minMs": 11.291833999999653,
       "checksum": "str_concat 3900000"
     },
     "java": {
-      "minMs": 48.04533299999821,
+      "minMs": 49.0099999999984,
       "checksum": "str_concat 3900000"
     }
   },
   "interp": {
     "vader-native": {
-      "minMs": 30.59308300000339,
+      "minMs": 32.8055409999979,
       "checksum": "interp 5322221"
     },
     "bun-ts": {
-      "minMs": 19.094750000000204,
+      "minMs": 21.630332999997336,
       "checksum": "interp 5322221"
     },
     "go": {
-      "minMs": 18.592915999997786,
+      "minMs": 19.242707999997947,
       "checksum": "interp 5322221"
     },
     "java": {
-      "minMs": 47.89500000000044,
+      "minMs": 49.25174999999945,
       "checksum": "interp 5322221"
     }
   }

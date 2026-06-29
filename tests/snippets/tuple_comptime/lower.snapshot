@@ -144,135 +144,122 @@
           _1: int(20) :?
         }
   fn concat_6(p0: string, p1: string, p2: string, p3: string, p4: string, p5: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let c2: usize =
+      add :usize
+        l:
+          c1 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p2 :string
+    let c3: usize =
+      add :usize
+        l:
+          c2 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p3 :string
+    let c4: usize =
+      add :usize
+        l:
+          c3 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p4 :string
+    let c5: usize =
+      add :usize
+        l:
+          c4 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p5 :string
     let buf: Buffer =
       call :Buffer
         callee:
           new_byte_buffer :Buffer
         arg0:
-          add :usize
-            l:
-              add :usize
-                l:
-                  add :usize
-                    l:
-                      add :usize
-                        l:
-                          add :usize
-                            l:
-                              call :usize
-                                callee:
-                                  byte_len :usize
-                                arg0:
-                                  p0 :string
-                            r:
-                              call :usize
-                                callee:
-                                  byte_len :usize
-                                arg0:
-                                  p1 :string
-                        r:
-                          call :usize
-                            callee:
-                              byte_len :usize
-                            arg0:
-                              p2 :string
-                    r:
-                      call :usize
-                        callee:
-                          byte_len :usize
-                        arg0:
-                          p3 :string
-                r:
-                  call :usize
-                    callee:
-                      byte_len :usize
-                    arg0:
-                      p4 :string
-            r:
-              call :usize
-                callee:
-                  byte_len :usize
-                arg0:
-                  p5 :string
-    let off: usize = int(0) :usize
-    assign
-      target:
-        off :usize
-      value:
-        call :usize
-          callee:
-            write_string_at :usize
-          arg0:
-            buf :Buffer
-          arg1:
-            off :usize
-          arg2:
-            p0 :string
-    assign
-      target:
-        off :usize
-      value:
-        call :usize
-          callee:
-            write_string_at :usize
-          arg0:
-            buf :Buffer
-          arg1:
-            off :usize
-          arg2:
-            p1 :string
-    assign
-      target:
-        off :usize
-      value:
-        call :usize
-          callee:
-            write_string_at :usize
-          arg0:
-            buf :Buffer
-          arg1:
-            off :usize
-          arg2:
-            p2 :string
-    assign
-      target:
-        off :usize
-      value:
-        call :usize
-          callee:
-            write_string_at :usize
-          arg0:
-            buf :Buffer
-          arg1:
-            off :usize
-          arg2:
-            p3 :string
-    assign
-      target:
-        off :usize
-      value:
-        call :usize
-          callee:
-            write_string_at :usize
-          arg0:
-            buf :Buffer
-          arg1:
-            off :usize
-          arg2:
-            p4 :string
-    assign
-      target:
-        off :usize
-      value:
-        call :usize
-          callee:
-            write_string_at :usize
-          arg0:
-            buf :Buffer
-          arg1:
-            off :usize
-          arg2:
-            p5 :string
+          c5 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c1 :usize
+      arg2:
+        p2 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c2 :usize
+      arg2:
+        p3 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c3 :usize
+      arg2:
+        p4 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c4 :usize
+      arg2:
+        p5 :string
     ~>
       call :string
         callee:
@@ -280,53 +267,48 @@
         arg0:
           buf :Buffer
         arg1:
-          off :usize
+          c5 :usize
   fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
     let buf: Buffer =
       call :Buffer
         callee:
           new_byte_buffer :Buffer
         arg0:
-          add :usize
-            l:
-              call :usize
-                callee:
-                  byte_len :usize
-                arg0:
-                  p0 :string
-            r:
-              call :usize
-                callee:
-                  byte_len :usize
-                arg0:
-                  p1 :string
-    let off: usize = int(0) :usize
-    assign
-      target:
-        off :usize
-      value:
-        call :usize
-          callee:
-            write_string_at :usize
-          arg0:
-            buf :Buffer
-          arg1:
-            off :usize
-          arg2:
-            p0 :string
-    assign
-      target:
-        off :usize
-      value:
-        call :usize
-          callee:
-            write_string_at :usize
-          arg0:
-            buf :Buffer
-          arg1:
-            off :usize
-          arg2:
-            p1 :string
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
     ~>
       call :string
         callee:
@@ -334,74 +316,67 @@
         arg0:
           buf :Buffer
         arg1:
-          off :usize
+          c1 :usize
   fn concat_3(p0: string, p1: string, p2: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let c2: usize =
+      add :usize
+        l:
+          c1 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p2 :string
     let buf: Buffer =
       call :Buffer
         callee:
           new_byte_buffer :Buffer
         arg0:
-          add :usize
-            l:
-              add :usize
-                l:
-                  call :usize
-                    callee:
-                      byte_len :usize
-                    arg0:
-                      p0 :string
-                r:
-                  call :usize
-                    callee:
-                      byte_len :usize
-                    arg0:
-                      p1 :string
-            r:
-              call :usize
-                callee:
-                  byte_len :usize
-                arg0:
-                  p2 :string
-    let off: usize = int(0) :usize
-    assign
-      target:
-        off :usize
-      value:
-        call :usize
-          callee:
-            write_string_at :usize
-          arg0:
-            buf :Buffer
-          arg1:
-            off :usize
-          arg2:
-            p0 :string
-    assign
-      target:
-        off :usize
-      value:
-        call :usize
-          callee:
-            write_string_at :usize
-          arg0:
-            buf :Buffer
-          arg1:
-            off :usize
-          arg2:
-            p1 :string
-    assign
-      target:
-        off :usize
-      value:
-        call :usize
-          callee:
-            write_string_at :usize
-          arg0:
-            buf :Buffer
-          arg1:
-            off :usize
-          arg2:
-            p2 :string
+          c2 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c1 :usize
+      arg2:
+        p2 :string
     ~>
       call :string
         callee:
@@ -409,95 +384,86 @@
         arg0:
           buf :Buffer
         arg1:
-          off :usize
+          c2 :usize
   fn concat_4(p0: string, p1: string, p2: string, p3: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let c2: usize =
+      add :usize
+        l:
+          c1 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p2 :string
+    let c3: usize =
+      add :usize
+        l:
+          c2 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p3 :string
     let buf: Buffer =
       call :Buffer
         callee:
           new_byte_buffer :Buffer
         arg0:
-          add :usize
-            l:
-              add :usize
-                l:
-                  add :usize
-                    l:
-                      call :usize
-                        callee:
-                          byte_len :usize
-                        arg0:
-                          p0 :string
-                    r:
-                      call :usize
-                        callee:
-                          byte_len :usize
-                        arg0:
-                          p1 :string
-                r:
-                  call :usize
-                    callee:
-                      byte_len :usize
-                    arg0:
-                      p2 :string
-            r:
-              call :usize
-                callee:
-                  byte_len :usize
-                arg0:
-                  p3 :string
-    let off: usize = int(0) :usize
-    assign
-      target:
-        off :usize
-      value:
-        call :usize
-          callee:
-            write_string_at :usize
-          arg0:
-            buf :Buffer
-          arg1:
-            off :usize
-          arg2:
-            p0 :string
-    assign
-      target:
-        off :usize
-      value:
-        call :usize
-          callee:
-            write_string_at :usize
-          arg0:
-            buf :Buffer
-          arg1:
-            off :usize
-          arg2:
-            p1 :string
-    assign
-      target:
-        off :usize
-      value:
-        call :usize
-          callee:
-            write_string_at :usize
-          arg0:
-            buf :Buffer
-          arg1:
-            off :usize
-          arg2:
-            p2 :string
-    assign
-      target:
-        off :usize
-      value:
-        call :usize
-          callee:
-            write_string_at :usize
-          arg0:
-            buf :Buffer
-          arg1:
-            off :usize
-          arg2:
-            p3 :string
+          c3 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c1 :usize
+      arg2:
+        p2 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c2 :usize
+      arg2:
+        p3 :string
     ~>
       call :string
         callee:
@@ -505,4 +471,4 @@
         arg0:
           buf :Buffer
         arg1:
-          off :usize
+          c3 :usize

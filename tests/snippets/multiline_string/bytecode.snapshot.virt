@@ -63,9 +63,10 @@ fn 0 snippet$main () -> i32
 end
 
 fn 1 concat_2 (string,string) -> string
-  local $call_2 usize
-  local $call_3 usize
+  local c0 usize
+  local $call_4 usize
   local buf ref
+  local $k_9 usize
   local.get 0
   call 4
   local.set 2
@@ -75,22 +76,21 @@ fn 1 concat_2 (string,string) -> string
   local.get 2
   local.get 3
   i64.add
+  local.tee 3
   call 2
   local.set 4
   i64.const 0
-  local.set 2
+  local.set 5
   local.get 4
-  local.get 2
+  local.get 5
   local.get 0
-  call 5
-  local.set 2
+  call 12
   local.get 4
   local.get 2
   local.get 1
-  call 5
-  local.set 2
+  call 12
   local.get 4
-  local.get 2
+  local.get 3
   call 3
   return
 end

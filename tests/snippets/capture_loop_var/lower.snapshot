@@ -228,8 +228,8 @@
               "thunk " :string
             arg1:
               LoweredCellGet
-  struct __defer_env_17 { cap_0: ? }
-  fn __defer_16(__env_8: __defer_env_17) -> void
+  struct __defer_env_18 { cap_0: ? }
+  fn __defer_17(__env_8: __defer_env_18) -> void
     ~>
       call :void
         callee:
@@ -278,8 +278,8 @@
                   __buf_0 :Buffer
                 arg1:
                   __off_1 :usize
-  struct __lambda_env_25 { cap_0: ? }
-  fn __lambda_24(__env_12: __lambda_env_25) -> void
+  struct __lambda_env_26 { cap_0: ? }
+  fn __lambda_25(__env_12: __lambda_env_26) -> void
     ~>
       call :void
         callee:
@@ -328,8 +328,8 @@
                   __buf_0 :Buffer
                 arg1:
                   __off_1 :usize
-  struct __defer_env_34 { cap_0: ? }
-  fn __defer_33(__env_17: __defer_env_34) -> void
+  struct __defer_env_35 { cap_0: ? }
+  fn __defer_34(__env_17: __defer_env_35) -> void
     ~>
       call :void
         callee:
@@ -378,8 +378,8 @@
                   __buf_0 :Buffer
                 arg1:
                   __off_1 :usize
-  struct __lambda_env_43 { cap_0: ? }
-  fn __lambda_42(__env_0: __lambda_env_43) -> void
+  struct __lambda_env_44 { cap_0: ? }
+  fn __lambda_43(__env_0: __lambda_env_44) -> void
     ~>
       call :void
         callee:
@@ -427,8 +427,8 @@
                   __buf_0 :Buffer
                 arg1:
                   __off_1 :usize
-  struct __lambda_env_40 {  }
-  fn __lambda_39(__env_19: __lambda_env_40, n: i64) -> void
+  struct __lambda_env_41 {  }
+  fn __lambda_40(__env_19: __lambda_env_41, n: i64) -> void
     let n: ? =
       LoweredCellNew
     let twice: fn() -> void =
@@ -438,51 +438,46 @@
         callee:
           twice :fn() -> void
   fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
     let buf: Buffer =
       call :Buffer
         callee:
           new_byte_buffer :Buffer
         arg0:
-          add :usize
-            l:
-              call :usize
-                callee:
-                  byte_len :usize
-                arg0:
-                  p0 :string
-            r:
-              call :usize
-                callee:
-                  byte_len :usize
-                arg0:
-                  p1 :string
-    let off: usize = int(0) :usize
-    assign
-      target:
-        off :usize
-      value:
-        call :usize
-          callee:
-            write_string_at :usize
-          arg0:
-            buf :Buffer
-          arg1:
-            off :usize
-          arg2:
-            p0 :string
-    assign
-      target:
-        off :usize
-      value:
-        call :usize
-          callee:
-            write_string_at :usize
-          arg0:
-            buf :Buffer
-          arg1:
-            off :usize
-          arg2:
-            p1 :string
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
     ~>
       call :string
         callee:
@@ -490,4 +485,4 @@
         arg0:
           buf :Buffer
         arg1:
-          off :usize
+          c1 :usize

@@ -144,47 +144,48 @@ fn 5 snippet$main () -> i32
   local.set 2
   local.get 0
   call 0
-  call 12
+  call 11
   local.get 2
   call 0
-  call 12
+  call 11
   local.get 0
   call 1
-  call 12
+  call 11
   local.get 2
   call 1
-  call 12
+  call 11
   local.get 0
   call 2
-  call 12
+  call 11
   local.get 2
   call 2
-  call 12
+  call 11
   local.get 0
   call 3
-  call 12
+  call 11
   local.get 2
   call 3
-  call 12
+  call 11
   local.get 0
   local.get 1
   call 4
-  call 12
+  call 11
   local.get 2
   local.get 1
   call 4
-  call 12
+  call 11
   local.get 0
   local.get 2
   call 4
-  call 12
+  call 11
   return.lit i32.const 0
 end
 
 fn 6 concat_2 (string,string) -> string
-  local $call_2 usize
-  local $call_3 usize
+  local c0 usize
+  local $call_4 usize
   local buf ref
+  local $k_9 usize
   local.get 0
   call 9
   local.set 2
@@ -194,30 +195,31 @@ fn 6 concat_2 (string,string) -> string
   local.get 2
   local.get 3
   i64.add
+  local.tee 3
   call 8
   local.set 4
   i64.const 0
-  local.set 2
+  local.set 5
   local.get 4
-  local.get 2
+  local.get 5
   local.get 0
-  call 10
-  local.set 2
+  call 14
   local.get 4
   local.get 2
   local.get 1
-  call 10
-  local.set 2
+  call 14
   local.get 4
-  local.get 2
-  call 11
+  local.get 3
+  call 10
   return
 end
 
 fn 7 concat_3 (string,string,string) -> string
-  local $call_3 usize
-  local $call_4 usize
+  local c0 usize
+  local $call_5 usize
+  local $call_8 usize
   local buf ref
+  local $k_13 usize
   local.get 0
   call 9
   local.set 3
@@ -227,41 +229,39 @@ fn 7 concat_3 (string,string,string) -> string
   local.get 3
   local.get 4
   i64.add
-  local.set 3
+  local.set 4
   local.get 2
   call 9
-  local.set 4
-  local.get 3
-  local.get 4
-  i64.add
-  call 8
   local.set 5
+  local.get 4
+  local.get 5
+  i64.add
+  local.tee 5
+  call 8
+  local.set 6
   i64.const 0
-  local.set 3
-  local.get 5
-  local.get 3
+  local.set 7
+  local.get 6
+  local.get 7
   local.get 0
-  call 10
-  local.set 3
-  local.get 5
+  call 14
+  local.get 6
   local.get 3
   local.get 1
-  call 10
-  local.set 3
-  local.get 5
-  local.get 3
+  call 14
+  local.get 6
+  local.get 4
   local.get 2
-  call 10
-  local.set 3
+  call 14
+  local.get 6
   local.get 5
-  local.get 3
-  call 11
+  call 10
   return
 end
 
 fn 8 std_core$new_byte_buffer (usize) -> ref
   local.get 0
-  call 13
+  call 12
   return
 end
 
@@ -272,30 +272,14 @@ fn 9 std_core$byte_len (string) -> usize
   return
 end
 
-fn 10 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+fn 10 std_core$finish_buffer (ref,usize) -> string
   local.get 0
   local.get 1
-  local.get 2
-  call 15
-  local.get 2
-  call.import 0
-  array.len
-  local.set 3
-  local.get 1
-  local.get 3
-  i64.add
+  call 13
   return
 end
 
-fn 11 std_core$finish_buffer (ref,usize) -> string
-  local.get 0
-  local.get 1
-  call 14
-  return
-end
-
-fn 12 std_io$println__string (string) -> void
+fn 11 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 1
@@ -305,20 +289,20 @@ fn 12 std_io$println__string (string) -> void
   return
 end
 
-fn 13 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 12 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 14 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 13 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 15 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 14 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2

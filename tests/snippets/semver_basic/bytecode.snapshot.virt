@@ -207,9 +207,10 @@ fn 1 snippet$parse_one (string) -> ref
 end
 
 fn 2 concat_2 (string,string) -> string
-  local $call_2 usize
-  local $call_3 usize
+  local c0 usize
+  local $call_4 usize
   local buf ref
+  local $k_9 usize
   local.get 0
   call 4
   local.set 2
@@ -219,23 +220,22 @@ fn 2 concat_2 (string,string) -> string
   local.get 2
   local.get 3
   i64.add
+  local.tee 3
   call 3
   local.set 4
   i64.const 0
-  local.set 2
+  local.set 5
   local.get 4
-  local.get 2
+  local.get 5
   local.get 0
-  call 5
-  local.set 2
+  call 61
   local.get 4
   local.get 2
   local.get 1
-  call 5
-  local.set 2
+  call 61
   local.get 4
-  local.get 2
-  call 6
+  local.get 3
+  call 5
   return
 end
 
@@ -251,7 +251,14 @@ fn 4 std_core$byte_len (string) -> usize
   return
 end
 
-fn 5 std_core$write_string_at (ref,usize,string) -> usize
+fn 5 std_core$finish_buffer (ref,usize) -> string
+  local.get 0
+  local.get 1
+  call 60
+  return
+end
+
+fn 6 std_core$write_string_at (ref,usize,string) -> usize
   local $call_3 usize
   local.get 0
   local.get 1
@@ -263,13 +270,6 @@ fn 5 std_core$write_string_at (ref,usize,string) -> usize
   local.get 1
   local.get 3
   i64.add
-  return
-end
-
-fn 6 std_core$finish_buffer (ref,usize) -> string
-  local.get 0
-  local.get 1
-  call 60
   return
 end
 
@@ -5514,7 +5514,7 @@ fn 31 std_semver$Version$Display$to_string (ref) -> string
   local.get 2
   local.get 3
   string.const 31
-  call 5
+  call 6
   local.set 3
   local.field 0 3 1
   ref.cast 1
@@ -5528,7 +5528,7 @@ fn 31 std_semver$Version$Display$to_string (ref) -> string
   local.get 2
   local.get 3
   string.const 31
-  call 5
+  call 6
   local.set 3
   local.field 0 3 2
   ref.cast 1
@@ -5541,7 +5541,7 @@ fn 31 std_semver$Version$Display$to_string (ref) -> string
   local.set 3
   local.get 2
   local.get 3
-  call 6
+  call 5
   local.set 5
   local.get 1
   local.get 5
