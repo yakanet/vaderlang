@@ -163,20 +163,20 @@
   },
   "interp": {
     "vader-native": {
-      "minMs": 32.8055409999979,
-      "checksum": "interp 5322221"
+      "minMs": 39.6,
+      "checksum": "interp 5722221"
     },
     "bun-ts": {
-      "minMs": 21.630332999997336,
-      "checksum": "interp 5322221"
+      "minMs": 42.9,
+      "checksum": "interp 5722221"
     },
     "go": {
-      "minMs": 19.242707999997947,
-      "checksum": "interp 5322221"
+      "minMs": 20.4,
+      "checksum": "interp 5722221"
     },
     "java": {
-      "minMs": 49.25174999999945,
-      "checksum": "interp 5322221"
+      "minMs": 55.7,
+      "checksum": "interp 5722221"
     }
   }
 }
