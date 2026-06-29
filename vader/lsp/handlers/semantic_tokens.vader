@@ -139,15 +139,15 @@ classify_token :: fn(t: Token) -> i32 {
     if k == .InterpOpen   { return i32(TokenType.Operator) }
     if k == .InterpClose  { return i32(TokenType.Operator) }
 
-    // Identifiers — skip. With only the lexer to work from we can't
-    // tell `function` from `parameter` from `variable` reliably, and
-    // emitting the wrong type makes clients (LSP4IJ in particular)
-    // decorate every word with the `variable` / `type` color scheme
-    // (which underlines all of them in IntelliJ's defaults). The
-    // shared TextMate grammar already paints idents correctly ;
-    // letting it own that surface keeps the editor clean. A proper
-    // AST-driven classification is tracked at TODO §priority "LSP
-    // semantic classification via the AST".
+    // Identifiers — skip in THIS (lexer-driven) pass. With only the lexer
+    // to work from we can't tell `function` from `parameter` from
+    // `variable` reliably, and emitting the wrong type makes clients
+    // (LSP4IJ in particular) decorate every word with the `variable` /
+    // `type` color scheme (which underlines all of them in IntelliJ's
+    // defaults). The AST-driven classification that does paint idents
+    // (Function / Type / Parameter / Variable / …) lives in
+    // `ast_tokens.vader` (`collect_ast_idents`), which the handler runs
+    // alongside this pass.
     if k == .Ident { return -1 }
 
     // Operators.

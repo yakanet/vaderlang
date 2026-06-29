@@ -29,8 +29,7 @@ import "vader/resolver" { LoadedProject }
 
 /// One captured-by-an-inner-lambda binding. `symbol` is the outer slot
 /// (param / local / pattern binding) and `type` its statically-known type
-/// at capture time. Phase 5's `closure_analysis` populates the list per
-/// lambda ; Phase 1 ships the shape so other modules can reference it.
+/// at capture time. `closure_analysis` populates the list per lambda.
 export Capture :: struct {
     symbol: Symbol
     type:   Type
@@ -42,7 +41,7 @@ export Capture :: struct {
 /// mirrors this order). `defer_captures` plays the same role for
 /// `defer body` thunks — the body lifts to a synthetic fn carrying its
 /// captured outer symbols through a `__defer_env_N` struct. Both
-/// populated by Phase 5's `analyze_closures`.
+/// populated by `analyze_closures`.
 ///
 /// `lambda_captures` / `defer_captures` key by `capture_key(module, node.id)`
 /// — a MODULE-QUALIFIED node id, NOT the bare `node.id`. AST node ids are
@@ -129,8 +128,8 @@ export LowerProjectCtx :: struct {
     /// lookup into a constant-time probe.
     local_symbol_indices: MutableMap<string, MutableMap<u64, Symbol>>
 
-    /// Free-variable analysis output. Phase 5 populates ; Phase 1-4
-    /// callers see an empty analysis (no captures).
+    /// Free-variable analysis output, populated by `closure_analysis`.
+    /// A closure-free project leaves it empty (no captures).
     closures:            ClosureAnalysis
 
     /// Synthetic decls produced during lowering — chiefly the lifted
@@ -305,10 +304,9 @@ export GenericFnInstance :: struct {
     owner_module: string
 }
 
-/// Build an empty `LowerProjectCtx` bound to the given `evaluated`
-/// view. Phase 2's orchestrator extends this with the mono / impl /
-/// closure tables ; Phase 1 ships the constructor so call sites can
-/// at least allocate the shape.
+/// Build a `LowerProjectCtx` bound to the given `evaluated` view, with
+/// fresh empty mono / impl / closure-analysis tables and generic-instance
+/// queues that the lowering passes populate as they run.
 /// @param evaluated  the comptime engine's output for this project.
 /// @return           a fresh project context with empty side-tables.
 export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedProject, typed: TypedProject) -> LowerProjectCtx {

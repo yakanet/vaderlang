@@ -583,12 +583,13 @@ export IntToChar :: struct {}
 /// same codepoint. Emitted for every `char.to_<int>` Convert op so the
 /// downstream integer arms see the expected tag.
 export CharToInt :: struct {}
-/// Pop two references ; push `BoolVal` for identity equality. In the
-/// VM today, all reference-typed Values are heap-allocated so identity
-/// matches Vader's reference semantics for struct / array / fn.
-/// Sprint 5a addition.
+/// Pop two references ; push `BoolVal` for identity equality. Delegates to
+/// `vm/value.vader::value_ref_eq`, which compares `null` + primitive operands
+/// and traps on heap-allocated variants (struct / array / fn). Dormant in the
+/// current pipeline: `op_select` lowers ref `==` / `!=` to `I32Eq` / `I32Ne`,
+/// so the emitter never produces these — they only appear via hand-written `.virt`.
 export RefEq :: struct {}
-/// Pop two references ; push `BoolVal` for identity inequality.
+/// Pop two references ; push `BoolVal` for identity inequality. See `RefEq`.
 export RefNe :: struct {}
 /// Pop and discard the top of the value stack. Sprint 5a addition —
 /// emitted by the lowerer when a value is computed but never read

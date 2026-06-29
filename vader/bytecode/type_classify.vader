@@ -5,7 +5,7 @@
 // (e.g. the data-pool encoder, the WASM emit, the LSP type-info
 // renderer).
 //
-// Three helpers :
+// Four helpers :
 //   - `type_intern_key(t)` — string used as cache key by `intern_type`.
 //     Primitives use the bare name (no allocation) ; every composite
 //     shape falls back to `display_type(t)`.
@@ -13,9 +13,13 @@
 //     by name ; every composite (struct / array / union / ref / fn)
 //     collapses to `Ref` so the operand stack carries a uniform
 //     reference width.
-//   - `bc_type_of(t)` — translate a `Type` to a `BcType`. Phase 1
-//     covers primitives ; composite shapes land as
-//     `BcPrimitive{.val=Ref}` until the lower-decl walker lands.
+//   - `bc_type_of(t)` — context-free `Type` → `BcType`. Classifies
+//     primitives precisely ; every composite collapses to a
+//     `BcPrimitive{.val=Ref}` placeholder.
+//   - `bc_type_of_with_ctx(t, ctx, slot)` — the context-aware walker :
+//     recursively interns nested types so composites carry accurate
+//     `BcArray` / `BcUnion` / `BcFn` / `BcStruct` shapes. This is the
+//     production path, reached through `intern_type`.
 
 module "vader/bytecode"
 
@@ -119,11 +123,12 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
     is AnyType            -> ValType.Ref
 }
 
-/// Translate a `Type` to a `BcType`. Phase 1 covers primitives ;
-/// composite shapes (struct / array / union / ref / fn) return a
-/// placeholder `BcPrimitive{.val=Ref}` — the runtime sees
-/// `vader_box_t` either way, type-table accuracy for those shapes
-/// lands in Phase 2 alongside the lower-decl walker.
+/// Context-free `Type` → `BcType`. Classifies primitives precisely ;
+/// composite shapes (struct / array / union / ref / fn) collapse to a
+/// placeholder `BcPrimitive{.val=Ref}` — the runtime sees `vader_box_t`
+/// either way. Accurate composite type-table entries come from the
+/// context-aware `bc_type_of_with_ctx` walker (the production path via
+/// `intern_type`), not from this context-free helper.
 ///
 /// Derived from `val_type_of_type` to keep the two classifiers in
 /// lock-step ; a previous double-table drifted when one was updated

@@ -6,13 +6,16 @@
 // Later passes (body checking, ImplRegistry building) read this side
 // table without re-walking the AST.
 //
-// MVP-trimmed :
-//   - No `@extern` ABI validation (T3050/T3051) — lands when call.vader
-//     wires up extern decoration handling.
-//   - No Layer 4-sugar const-as-type-alias detection. Plain ConstDecls
-//     get their annotated type ; un-annotated ones stay un-typed at
-//     decl level (their literal type lands in `expr_types` at body time).
-//   - ImplDecls contribute to `ImplRegistry` (Phase 2.4), not here.
+// Handled here :
+//   - `@extern` ABI validation (T3050 / T3051) via `validate_extern`.
+//   - Layer 4-sugar const-as-type-alias detection : an un-annotated const
+//     whose value is in type position registers an alias / distinct type
+//     (`is_type_position_value` → `alias_for`) ; an annotated const gets
+//     its annotated type ; an un-annotated value const stays un-typed at
+//     decl level (its literal type lands in `expr_types` at body time).
+//
+// Not handled here :
+//   - ImplDecls are registered into `ImplRegistry` (`impls.vader`), not here.
 //   - AssertDecl is a no-op (handled by comptime).
 
 module "vader/typecheck"
@@ -143,7 +146,7 @@ declare_decl :: fn(
         }
         is AST.TypeAliasDecl as ta -> { declare_type_alias(ta, resolved, typed, diags) }
         is AST.ConstDecl as cd   -> { declare_const(cd, resolved, typed, diags) }
-        // ImplDecl → ImplRegistry (Phase 2.4). AssertDecl → comptime only.
+        // ImplDecl → ImplRegistry (impls.vader). AssertDecl → comptime only.
         // ImportDecl was wired by the resolver. No-op here for all three.
         is AST.ImplDecl   -> {}
         is AST.AssertDecl -> {}

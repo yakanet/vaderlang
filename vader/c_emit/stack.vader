@@ -7,10 +7,10 @@
 // slot `lN`, or a materialised temp `tN` — and the consumer pops and
 // inlines that text.
 //
-// T1 covers the expr-only subset : `StackTmp` and the tmp / aux counters
-// exist for T1b (`local.set` / calls / allocations), but nothing
-// materialises yet. `EmitCtx` is same-module (`vader/c_emit`), so it
-// needs no import here.
+// `StackTmp` is the materialised case : `local.set`, call results, and
+// allocations force their value into a fresh `tN` temp (see the
+// materialisation helpers below). `EmitCtx` is same-module
+// (`vader/c_emit`), so it needs no import here.
 
 module "vader/c_emit"
 
@@ -27,8 +27,7 @@ import "std/collections" { MutableMap }
 StackVal :: StackTmp | StackLit | StackLocalRef | StackExpr
 
 /// A value already materialised into a fresh `tN` C local — the eager
-/// case (calls, allocations, anything with a side effect). Unused until
-/// T1b.
+/// case (calls, allocations, anything with a side effect).
 StackTmp :: struct {
     name: string
     val:  ValType
@@ -43,15 +42,15 @@ StackLit :: struct {
 
 /// A snapshot of local slot `slot`, spelled `lN` at the consumer.
 /// Inlined directly unless a `local.set` / `local.tee` on the same slot
-/// intervenes before the pop (then it is materialised — T1b).
+/// intervenes before the pop (then it is materialised first).
 StackLocalRef :: struct {
     slot: i32
     val:  ValType
 }
 
 /// A side-effect-free C expression (`(l0 + l1)`, `(a == b)`). Inlined
-/// verbatim ; materialised on `dup` or any `local.set` / `local.tee`
-/// (T1b), since operand dependencies are not tracked.
+/// verbatim ; materialised on `dup` or any `local.set` / `local.tee`,
+/// since operand dependencies are not tracked.
 StackExpr :: struct {
     text: string
     val:  ValType
@@ -90,8 +89,8 @@ FnState :: struct {
     /// monotone allocation is fine since a fn allocates each temp at most
     /// once).
     tmp_types: ValType[]
-    /// Monotone `_aN` scratch allocator for struct storage / call args
-    /// (T4+). Never recycled, so it can't collide with a reused name.
+    /// Monotone `_aN` scratch allocator for struct storage / call args.
+    /// Never recycled, so it can't collide with a reused name.
     aux_counter: i32
     /// Current C indent depth in 4-space units. Level 1 is the function
     /// body top (matching the historical hard-coded 4-space prefix), so
@@ -227,7 +226,7 @@ push_tmp :: fn(s: FnState, name: string, val: ValType) -> void {
 /// Materialise a ready C expression into a fresh `tN` : emit
 /// `tN = <expr>;` and push the temp. The eager-result idiom shared by
 /// every op that forces its value into a slot (`push_eager`'s div/rem,
-/// call results, struct/array results in later tranches).
+/// call results, struct/array results).
 push_into_tmp :: fn(s: FnState, expr: string, val: ValType) -> void {
     name :: fresh_tmp(s, val)
     line(s, "${name} = ${expr};")

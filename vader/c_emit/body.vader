@@ -1,11 +1,10 @@
-// vader/c_emit/body — per-function C emit machinery + shared name/type
-// helpers used across the C-emit pipeline.
+// vader/c_emit/body — shared name/type helpers for the C-emit pipeline.
 //
-// Holds the shared name/type helpers (the `c_type_for*` / `sanitise` /
-// `box_expr` / `unbox_expr` / `signature_for` family) plus the per-op /
-// per-fn body walker. Phase 2 of the port lands the shared helpers ;
-// later phases will fill in `emit_function_body` (per-op emit, label
-// table, structured control, B1 prologue / epilogue, …).
+// Holds the C identifier / literal escaping helpers and the
+// `BcType` / `ValType` → C type mapping + box / unbox / coerce helpers
+// (`c_type_for*` / `sanitise` / `box_expr` / `unbox_expr` / `coerce_expr`
+// family) used across the C-emit pipeline. The per-op / per-fn body walker
+// lives in `walker.vader` (same module).
 //
 // Two categories of public helpers :
 //

@@ -6,8 +6,9 @@
 // and duplicate-value detection emit T3030 / T3031.
 //
 // Repr resolution (`null` → `i32`, or evaluating an explicit TypeExpr)
-// belongs to `type_expr.vader` (Phase 2.2). This file handles only what
-// needs no type-expression machinery — repr is passed in as a string.
+// is handled by `decl.vader`'s `resolve_repr` (via `type_from_expr`).
+// This file handles only what needs no type-expression machinery — the
+// resolved repr is passed in as a string.
 
 module "vader/typecheck"
 

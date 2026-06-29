@@ -142,8 +142,8 @@ export find_u8_array_type_id :: fn(types: bc.BcType[]) -> i32 {
 ///
 /// @param v  the tagged value.
 /// @return   `"i32"` / `"i64"` / `"f64"` / `"string"` / `"struct"` / `"array"`
-///           / `"builder"` / `"fn"` / `"null"` / `"bool"` / `"char"` / `"error"`
-///           / `"type"`.
+///           / `"fn"` / `"null"` / `"bool"` / `"char"` / `"error"` / `"type"`
+///           / `"object"`.
 export describe_value_tag :: fn(v: Value) = match v {
     is I32Val     -> "i32"
     is I64Val     -> "i64"

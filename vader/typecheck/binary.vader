@@ -4,15 +4,15 @@
 // is recursively checked ; the result type is derived per `OpKind`
 // classification (see `classify` below for the op → kind mapping).
 //
-// MVP-trimmed :
-//   - No trait dispatch for user types (no `Numeric` / `Equals` /
-//     `Comparable` impl lookup). Operations on non-primitive operands
-//     surface T3017 ("operator not defined for these operand types").
-//   - No T3040 ("test never matches") soundness check on `is`.
-//   - No Layer 4-sugar `T | U` type-meta union construction.
-//   - Numeric width-promotion : we accept any combination of Free*
-//     and same-name primitive ; mixed widths (`i32 + i64`) surface
-//     T3017 instead of widening.
+// Trait dispatch for user types is wired : `<`/`<=`/… route through
+// `Comparable::compare`, `==` through `Equals`, `in` through a `contains`
+// impl (T3043 names the missing trait when no impl exists). `x is T` runs
+// the T3040 "test never matches" soundness check, and a value-position
+// `T | U` of two metatypes builds a type-meta union.
+//
+// No implicit numeric width-promotion : any combination of Free* and
+// same-name primitive is accepted, but mixed concrete widths
+// (`i32 + i64`) surface T3017 — widen with an explicit cast.
 
 module "vader/typecheck"
 

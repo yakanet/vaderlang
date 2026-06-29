@@ -1,6 +1,6 @@
 // vader/lower/lower_for_in — `for x in iter` lowering.
 //
-// The MVP slow path. Desugars `for x in <iter> { body }` into the
+// The generic slow path desugars `for x in <iter> { body }` into the
 // Iterator step loop :
 //
 //   let __iter_n :: <iter, optionally array-wrapped>
@@ -11,11 +11,14 @@
 //     <body>
 //   }
 //
-// Auto-wraps `T[]` iterators into `ArrayIterator(T)` so the loop
-// dispatches through the standard Iterator impl. Several fast paths
-// (int-range counter loop, std/iter chain fusion, MutableMap inline)
-// the Vader MVP skips — they're snapshot-matching wins for ~5-10
-// specific snippets but each is a substantial port.
+// and auto-wraps `T[]` iterators into `ArrayIterator(T)` so the loop
+// dispatches through the standard Iterator impl. Before falling back to
+// it, `lower_for_in` tries a series of fast paths that bypass the
+// Iterator dispatch entirely : `try_lower_chain_fusion` (std/iter
+// `map`/`filter` chains over an int range), `try_lower_for_in_int_range`
+// (counter loop over `lo..<hi`), `try_lower_for_in_raw_array` (index
+// loop over a raw `T[]`), and `try_lower_for_in_map_set` (inlined
+// bucket walk over `MutableMap` / `MutableSet`).
 
 module "vader/lower"
 

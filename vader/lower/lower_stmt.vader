@@ -13,9 +13,10 @@ import "vader/types" { Type, UnionType, ArrayType, TypeMetaType, TY_VOID }
 import "vader/comptime" { uniq }
 import "vader/resolver" { ResolvedModule }
 
-/// Lower a `BlockExpr` to a `LoweredBlock`. Block frames are pushed
-/// onto `ctx.blocks` so defer-aware lowering (Phase 5) can replay
-/// in reverse at every exit edge ; Phase 3 just bookkeeps the stack.
+/// Lower a `BlockExpr` to a `LoweredBlock`. Block frames are pushed onto
+/// `ctx.blocks` so the defers registered in a frame are replayed (in
+/// reverse) at every exit edge — the fall-through drain is emitted here,
+/// `return` / `break` / `continue` drain at their own sites.
 /// @param ctx           the fn-body context.
 /// @param block         the source block.
 /// @param is_fn_root    true when this is the enclosing fn's body.
@@ -385,8 +386,8 @@ union_contains_variant :: fn(union: Type, variant: Type) -> bool {
     return false
 }
 
-// Phase 3 covers infinite-for and while-for. for-in collapses to an
-// Iterator step-loop via Phase 5's dedicated module ; emit a stub here.
+// Dispatch by for-form : infinite-for and while-for lower here ; for-in
+// (and a while-for that desugars to one) delegates to `lower_for_in`.
 lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
     // `@comptime for x in <arr> { body }` — unroll at lower time when
     // the iter folds to a `LoweredArrayLit`. Threads the per-iter

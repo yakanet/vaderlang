@@ -472,6 +472,9 @@ export CallArg :: struct {
     id:     usize = UNASSIGNED_NODE_ID
     name:   string | null
     value:  Expr
+    /// Reserved for argument-spread `f(...xs)` — not parsed yet, so always
+    /// `false` today. The consumers (printer / dump / ufcs) already honour it
+    /// so the feature only needs `parse_call_args` to set it.
     spread: bool
 }
 
