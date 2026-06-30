@@ -8,7 +8,7 @@
 module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, typecheck_error, warning }
-import "vader/types" { Type, UnionType, EnumType, display_type, mk_primitive, TY_BOOL, TY_FREE_INT }
+import "vader/types" { Type, UnionType, EnumType, display_type, TY_BOOL, TY_FREE_INT, TY_STRING }
 AST :: import "vader/parser"
 
 /// Type-check a `MatchExpr`. `expected` flows into every arm body so
@@ -372,7 +372,7 @@ match_expr_check_stub :: fn(
     @partial match e {
         is AST.IntLitExpr    as x -> { return narrow_for_expected(TY_FREE_INT, expected) }
         is AST.BoolLitExpr   as x -> { return TY_BOOL }
-        is AST.StringLitExpr as x -> { return mk_primitive("string") }
+        is AST.StringLitExpr as x -> { return TY_STRING }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
         is AST.MatchExpr     as x -> { return infer_match(x, expected, typed, diags, null, match_expr_check_stub) }
         _ -> { return TY_UNRESOLVED }

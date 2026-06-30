@@ -9,7 +9,7 @@ import "vader/parser" { Expr, IdentExpr, CallExpr, FieldExpr, Visibility, Decl, 
 import "vader/diagnostics" { Span }
 import "vader/typecheck" { type_list_equals, TypedProgram }
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, FnType, PrimitiveType, TraitType, ArrayType, AnyType, mk_primitive, mk_fn }
+import "vader/types" { Type, FnType, PrimitiveType, TraitType, ArrayType, AnyType, mk_primitive, mk_fn, TY_STRING }
 import "vader/comptime" { EvaluatedProgram }
 import "vader/resolver" { ImportTargetTable }
 
@@ -395,7 +395,7 @@ fold_bytes_len :: fn(ctx: FnLowerCtx, target: LoweredExpr, span: Span) -> Lowere
                         .span = span, .type = mk_primitive("usize"),
                         .callee = LoweredIdent {
                             .span = span,
-                            .type = mk_fn([mk_primitive("string")], mk_primitive("usize")),
+                            .type = mk_fn([TY_STRING], mk_primitive("usize")),
                             .symbol = byte_len_sym,
                         },
                         .args = [lc.args[0]],

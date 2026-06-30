@@ -29,7 +29,7 @@ AST :: import "vader/parser"
 import "vader/types" {
     ArrayType, Type, FnType, StructType, TraitType, TypeMetaType, UnresolvedType,
     FreeIntType, FreeFloatType,
-    display_type, mk_array, mk_primitive, TY_FREE_INT, TY_UNRESOLVED, TY_NEVER,
+    display_type, mk_array, TY_FREE_INT, TY_STRING, TY_UNRESOLVED, TY_NEVER,
 }
 import "vader/resolver/symbol" { SymbolKind }
 
@@ -682,7 +682,7 @@ call_check_stub :: fn(
     // tests build are typed; every other Expr is irrelevant → unresolved.
     @partial match e {
         is AST.IntLitExpr    as x -> { return TY_FREE_INT }
-        is AST.StringLitExpr as x -> { return mk_primitive("string") }
+        is AST.StringLitExpr as x -> { return TY_STRING }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
         is AST.CallExpr      as x -> { return infer_call(x, typed, diags, call_check_stub) }
         _ -> { return TY_UNRESOLVED }

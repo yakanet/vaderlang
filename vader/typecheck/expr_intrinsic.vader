@@ -14,7 +14,7 @@ import "vader/diagnostics" { Diagnostic, typecheck_error }
 import "vader/parser" { intrinsic_spec, IntrinsicArgKind }
 import "vader/resolver/symbol" { Symbol }
 import "vader/types" {
-    Type, mk_array, mk_primitive, mk_struct, TY_BOOL, TY_TYPE, TY_UNRESOLVED,
+    Type, mk_array, mk_primitive, mk_struct, TY_BOOL, TY_TYPE, TY_STRING, TY_UNRESOLVED,
 }
 AST :: import "vader/parser"
 
@@ -104,7 +104,7 @@ import "vader/types" { StructType, UnresolvedType }
 type_for_result :: fn(name: string, typed: TypedProgram) -> Type {
     if name == "usize"      { return mk_primitive("usize") }
     if name == "bool"       { return TY_BOOL }
-    if name == "string"     { return mk_primitive("string") }
+    if name == "string"     { return TY_STRING }
     if name == "type"       { return TY_TYPE }
     if name == "type_array" { return mk_array(TY_TYPE, false) }
     if name == "field_array" {

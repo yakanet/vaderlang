@@ -24,7 +24,7 @@ import "vader/resolver/symbol" { Symbol, SymbolKind }
 AST :: import "vader/parser"
 import "vader/types" {
     Type, mk_primitive, mk_array, mk_fn, mk_struct, mk_trait, mk_tuple,
-    mk_type_param, is_primitive_name, TY_TYPE, TY_SELF, TY_UNRESOLVED, TY_VOID,
+    mk_type_param, is_primitive_name, TY_TYPE, TY_SELF, TY_NULL, TY_UNRESOLVED, TY_VOID,
 }
 
 /// Lower `expr` from type position to a `Type`. Unresolvable shapes
@@ -50,7 +50,7 @@ export type_from_expr :: fn(
         is AST.ArrayTypeExpr as e -> {
             return mk_array(type_from_expr(e.element, resolved, diags), e.immutable)
         }
-        is AST.NullLitExpr -> { return mk_primitive("null") }
+        is AST.NullLitExpr -> { return TY_NULL }
         is AST.SeqLitExpr as e -> {
             elements: Type[] = []
             for el in e.elements { elements.push(type_from_expr(el, resolved, diags)) }

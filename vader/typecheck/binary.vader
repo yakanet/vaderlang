@@ -22,7 +22,7 @@ import "vader/resolver/symbol" { SymbolKind }
 import "vader/types" {
     Type, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, UnresolvedType,
     EnumType, FnType, StructType, TraitType, ArrayType, DistinctType,
-    display_type, type_base_name, mk_primitive, TY_BOOL, TY_FREE_INT, TY_UNRESOLVED,
+    display_type, type_base_name, TY_BOOL, TY_FREE_INT, TY_STRING, TY_UNRESOLVED,
 }
 
 /// Type-check a `BinaryExpr`. `check_expr_fn` is threaded to break the
@@ -105,7 +105,7 @@ check_arith :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgra
     // numeric path for all three so they reach the lookup ; a missing/mismatched
     // impl is then a clean error (`instant + instant`, `[…] * <non-usize>`).
     if !(left is DistinctType) && !(right is DistinctType) && !(left is ArrayType) {
-        if e.op == .Add && is_string(left) && is_string(right) { return mk_primitive("string") }
+        if e.op == .Add && is_string(left) && is_string(right) { return TY_STRING }
         if is_numeric(left) || is_numeric(right) {
             return numeric_result(e, left, right, diags)
         }
@@ -497,7 +497,7 @@ binary_check_stub :: fn(
     // binary tests build are typed; every other Expr is irrelevant → unresolved.
     @partial match e {
         is AST.IntLitExpr    as x -> { return narrow(TY_FREE_INT, expected) }
-        is AST.StringLitExpr as x -> { return mk_primitive("string") }
+        is AST.StringLitExpr as x -> { return TY_STRING }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
         is AST.BinaryExpr    as x -> { return infer_binary(x, null, typed, diags, binary_check_stub) }
         _ -> { return TY_UNRESOLVED }

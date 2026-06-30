@@ -21,7 +21,7 @@ import "vader/parser" { Expr, IntLitExpr, FloatLitExpr, BoolLitExpr, NullLitExpr
 import "vader/diagnostics" { Span }
 import "vader/typecheck" { primitive_from_name, default_if_free, equals_type, substitute, new_substitution }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, PrimitiveType, UnionType, ArrayType, TypeMetaType, TY_BOOL, TY_VOID, TY_UNRESOLVED, mk_primitive, is_primitive_name, StructType }
+import "vader/types" { Type, PrimitiveType, UnionType, ArrayType, TypeMetaType, TY_BOOL, TY_VOID, TY_UNRESOLVED, TY_STRING, TY_NULL, mk_primitive, is_primitive_name, StructType }
 import "vader/comptime" { ComptimeValue, IntValue, FloatValue, BoolValue, CharValue, StringValue, NullValue, VoidValue, ArrayValue, StructValue, TypeValue }
 
 /// Lower an `AST.Expr` to its `LoweredExpr` form.
@@ -48,7 +48,7 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
         is IntLitExpr     as e -> { return LoweredIntLit { .span = e.span, .type = default_if_free(type), .value = i64(e.value) } }
         is FloatLitExpr   as e -> { return LoweredFloatLit { .span = e.span, .type = default_if_free(type), .value = e.value } }
         is BoolLitExpr    as e -> { return LoweredBoolLit { .span = e.span, .type = TY_BOOL, .value = e.value } }
-        is NullLitExpr    as e -> { return LoweredNullLit { .span = e.span, .type = mk_primitive("null") } }
+        is NullLitExpr    as e -> { return LoweredNullLit { .span = e.span, .type = TY_NULL } }
         is CharLitExpr    as e -> { return lower_char_lit(e, default_if_free(type)) }
         is StringLitExpr  as e -> { return lower_string_lit(ctx, e, type) }
         is IdentExpr      as e -> { return lower_ident(ctx, e, type) }
@@ -337,8 +337,8 @@ export comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: 
         is FloatValue  as fv -> { return LoweredFloatLit { .span = span, .type = type_hint, .value = fv.value } }
         is BoolValue   as bv -> { return LoweredBoolLit { .span = span, .type = TY_BOOL, .value = bv.value } }
         is CharValue   as cv -> { return LoweredCharLit { .span = span, .type = mk_primitive("char"), .value = cv.value } }
-        is StringValue as sv -> { return LoweredStringLit { .span = span, .type = mk_primitive("string"), .value = sv.value } }
-        is NullValue         -> { return LoweredNullLit { .span = span, .type = mk_primitive("null") } }
+        is StringValue as sv -> { return LoweredStringLit { .span = span, .type = TY_STRING, .value = sv.value } }
+        is NullValue         -> { return LoweredNullLit { .span = span, .type = TY_NULL } }
         is VoidValue         -> { return LoweredUnreachable { .span = span, .type = type_hint, .reason = "comptime void value" } }
         is ArrayValue as av -> {
             element_type :: array_element_type(type_hint)

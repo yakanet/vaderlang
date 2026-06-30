@@ -29,7 +29,7 @@ module "vader/lower"
 import "vader/diagnostics" { empty_span }
 import "vader/parser" { Visibility }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, mk_primitive, TY_VOID }
+import "vader/types" { Type, mk_primitive, TY_VOID, TY_STRING }
 
 /// Return the shared `concat_N` fn symbol for arity `n`, synthesising it on
 /// first use. The call site lowers to `mk_lowered_call(<this>, operands, …)` ;
@@ -66,7 +66,7 @@ get_or_create_concat :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
 //       finish_buffer(buf, total)
 //   }
 synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
-    string_type :: mk_primitive("string")
+    string_type :: TY_STRING
     usize_type :: mk_primitive("usize")
     span :: empty_span()
 

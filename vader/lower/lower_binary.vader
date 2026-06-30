@@ -6,7 +6,7 @@ module "vader/lower"
 import "std/collections" { MutableMap }
 
 import "vader/parser" { Expr, NullLitExpr, FieldExpr, BinaryExpr, BinaryOp, RangeExpr, IdentExpr }
-import "vader/types" { Type, PrimitiveType, UnionType, TypeParamType, AnyType, ArrayType, TY_BOOL, mk_primitive }
+import "vader/types" { Type, PrimitiveType, UnionType, TypeParamType, AnyType, ArrayType, TY_BOOL, mk_primitive, TY_NULL }
 
 // Peel a narrowing `LoweredCast` off a type-check operand. `lower_ident`
 // inserts such a cast (`LoweredCast { value: LoweredIdent : <union> }`) when the
@@ -363,7 +363,7 @@ try_lower_null_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr | nu
     check :: LoweredTypeCheck {
         .span = binary.span, .type = TY_BOOL,
         .value = lower_expr(ctx, union_operand),
-        .check_type = mk_primitive("null"),
+        .check_type = TY_NULL,
     }
     if binary.op == BinaryOp.Eq { return check }
     return LoweredUnary {

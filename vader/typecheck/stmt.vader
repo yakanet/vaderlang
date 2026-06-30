@@ -14,7 +14,7 @@ AST :: import "vader/parser"
 import "vader/types" {
     Type, ArrayType, FnType, StructType, TupleType, TypeParamType, UnresolvedType, display_type,
     NeverType,
-    TY_BOOL, TY_FREE_INT, TY_NEVER, TY_VOID, TY_UNRESOLVED,
+    TY_BOOL, TY_FREE_INT, TY_NEVER, TY_STRING, TY_NULL, TY_VOID, TY_UNRESOLVED,
 }
 
 /// Check every statement in `block`, then type the trailing expression
@@ -601,7 +601,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
             // narrows aren't popped) and poisons the authoritative re-walk.
             if base is UnresolvedType { return null }
             current :: narrow_for_binding(typed, sym.id, base)
-            null_ty :: mk_primitive("null")
+            null_ty :: TY_NULL
             if cond.op == AST.BinaryOp.Eq {
                 return BlockNarrow {
                     .sym_id    = sym.id,
@@ -615,7 +615,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
         if !(field_side is null) {
             target :: resolve_field_chain_static(field_side, typed)
             if !(target is null) {
-                null_ty :: mk_primitive("null")
+                null_ty :: TY_NULL
                 current :: narrow_for_field(typed, target.field_key, target.static_ty)
                 if cond.op == AST.BinaryOp.Eq {
                     return BlockNarrow {
@@ -672,7 +672,6 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     return null
 }
 
-import "vader/types" { mk_primitive }
 
 
 diag_sink_stmt :: fn() -> Diagnostic[] { return [] }
@@ -853,7 +852,7 @@ stmt_check_stub :: fn(
     // tests build are typed; every other Expr is irrelevant here → unresolved.
     @partial match e {
         is AST.IntLitExpr    as x -> { return narrow_for_expected(TY_FREE_INT, expected) }
-        is AST.StringLitExpr as x -> { return mk_primitive("string") }
+        is AST.StringLitExpr as x -> { return TY_STRING }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
         _ -> { return TY_UNRESOLVED }
     }

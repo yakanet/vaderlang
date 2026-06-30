@@ -19,10 +19,10 @@ import "std/abort" { unreachable }
 import "vader/parser" { StringLitExpr, StringLitText, StringLitInterp }
 import "vader/diagnostics" { Span }
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, FnType, FreeFloatType, mk_primitive }
+import "vader/types" { Type, FnType, FreeFloatType, mk_primitive, TY_STRING }
 
 lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> LoweredExpr {
-    string_type :: mk_primitive("string")
+    string_type :: TY_STRING
     if !has_interp_part(expr) {
         body := ""
         for part in expr.parts {
@@ -50,7 +50,7 @@ lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> Lowe
 // N-leaf concat ; the call site stays one `call`.
 lower_concat_chain :: fn(ctx: FnLowerCtx, operands: LoweredExpr[], span: Span) -> LoweredExpr {
     n :: operands.len()
-    string_type :: mk_primitive("string")
+    string_type :: TY_STRING
     // A 1-leaf "chain" can't arise from `+` (always ≥ 2 leaves), but the all-
     // string `${}` path can collect a single operand ; pass it through.
     if n == 1 { return operands[0] }
@@ -126,7 +126,7 @@ classify_kind :: fn(t: Type) -> WriterKind {
 // interpolation has no digit to format, so it stays on the leaner all-string
 // `concat_N` path (`concat_from_collected`). Each part is lowered once.
 lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
-    string_type :: mk_primitive("string")
+    string_type :: TY_STRING
     usize_type :: mk_primitive("usize")
     span :: expr.span
     // Lower every part once, classifying interpolated values by type.
@@ -280,7 +280,7 @@ cast_to_width :: fn(inner: LoweredExpr, width: string, span: Span) -> LoweredExp
 // to `LoweredVirtualCall` for primitives / generic-T receivers where
 // the impl exists per-instantiation but isn't reachable at lower-time.
 build_display_to_string_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Span) -> LoweredExpr {
-    string_type :: mk_primitive("string")
+    string_type :: TY_STRING
     no_args: LoweredExpr[] = []
     direct :: try_direct_display_call(ctx, value, span)
     if direct != null { return direct }
@@ -303,7 +303,7 @@ build_display_to_string_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Sp
 // when reachable ; null otherwise. The mangling matches what
 // `lower_impl_members` registers in `lower.vader`.
 try_direct_display_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Span) -> LoweredExpr | null {
-    string_type :: mk_primitive("string")
+    string_type :: TY_STRING
     source_type := type_of(value)
     // A `FreeFloat` literal (un-defaulted at lower-time) displays as `f64`:
     // pin it so the lookup finds f64's concrete Ryu `Display` impl rather than
