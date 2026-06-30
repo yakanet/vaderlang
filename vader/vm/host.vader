@@ -12,7 +12,9 @@ module "vader/vm"
 
 bc :: import "vader/bytecode"
 
-import "std/io" { read_file_bytes, write_file_bytes, exists, is_dir, read_dir, print, eprint, temp_dir }
+import "std/io" { read_file_bytes, write_file_bytes, exists, is_dir, read_dir, print, eprint, temp_dir, Stream }
+import "std/env" { get_env }
+import "std/tty" { is_tty }
 import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
 import "std/math" { sqrt, pow, floor, ceil, round, sin }
 import "std/time" { now, monotonic }
@@ -25,13 +27,16 @@ export HostCallResult :: HostOk | Trap
 export HostOk :: struct { value: Value }
 
 // Hosts denied during comptime evaluation : the clock (`std/time` — non-
-// deterministic), process spawning (`std/process`) and all filesystem / stream
-// I/O (`std/io` — external state + side effects). Everything else (pure compute:
-// `std/math`, `std/string`) is allowed ; `@file` / `@env` are baked through a
-// separate comptime-host path, not this VM dispatcher. Determinism is load-
-// bearing — comptime output must be reproducible across runs.
+// deterministic), process spawning (`std/process`), all filesystem / stream
+// I/O (`std/io` — external state + side effects), environment reads
+// (`std/env` — build-machine state) and terminal detection (`std/tty` —
+// host-dependent). Everything else (pure compute: `std/math`, `std/string`) is
+// allowed ; `@file` / `@env` are baked through a separate comptime-host path,
+// not this VM dispatcher. Determinism is load-bearing — comptime output must be
+// reproducible across runs.
 comptime_host_denied :: fn(mangled: string) -> bool =
-    mangled.starts_with("std_time$") || mangled.starts_with("std_process$") || mangled.starts_with("std_io$")
+    mangled.starts_with("std_time$") || mangled.starts_with("std_process$") || mangled.starts_with("std_io$") ||
+    mangled.starts_with("std_env$") || mangled.starts_with("std_tty$")
 
 /// Pop two strings, run a binary predicate, wrap as `BoolVal`. Used
 /// by `starts_with` / `ends_with` / `contains`.
@@ -436,6 +441,20 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     }
     if info.mangled_name == r"std_process$spawn_last_stderr" {
         return HostOk { .value = StringVal { .value = spawn_last_stderr() } }
+    }
+    // ---- std/tty + std/env ----------------------------------------------
+    if info.mangled_name == r"std_tty$is_tty" {
+        tag :: read_i32(stack[arg_base], at_pc, "is_tty stream")
+        if tag is Trap { return tag }
+        stream :: if tag.value == 1 { Stream.Stderr } else { Stream.Stdout }
+        return HostOk { .value = BoolVal { .value = is_tty(stream) } }
+    }
+    if info.mangled_name == r"std_env$get_env" {
+        name :: read_string(stack[arg_base], at_pc, "get_env name")
+        if name is Trap { return name }
+        value :: get_env(name.value)
+        if value == null { return HostOk { .value = NullVal {} } }
+        return HostOk { .value = StringVal { .value = value } }
     }
     // ---- std/abort -------------------------------------------------------
     if info.mangled_name == r"std_abort$panic" {

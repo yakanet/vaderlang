@@ -13,10 +13,11 @@ export IOError :: struct {
 
 IOError implements Error -> self.msg
 
-// Module-private target stream picked by the four `print` / `println` /
-// `eprint` / `eprintln` wrappers below. Kept unexported : the only
-// supported user-facing API is the wrappers.
-Stream :: enum {
+/// A standard output stream. Used by the `print` / `println` / `eprint` /
+/// `eprintln` wrappers below to pick a target, and exported so terminal-aware
+/// code (e.g. `std/tty::is_tty`) can name a stream. The two variants carry tags
+/// 0 (`Stdout`) and 1 (`Stderr`), matching the runtime write primitive.
+export Stream :: enum {
     Stdout,
     Stderr,
 }

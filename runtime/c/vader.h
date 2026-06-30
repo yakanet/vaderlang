@@ -934,6 +934,17 @@ vader_bool_t   vader_poll_stdin(int32_t timeout_ms);
 vader_box_t    vader_read_dir(vader_string_t path, uint32_t arr_type,
                               uint32_t str_type, uint32_t err_tag);
 
+/* ----------------------------------------------------------------- terminal / env
+ * `vader_is_tty` reports whether `stream` (0 = stdout, 1 = stderr) is an
+ * interactive terminal whose ANSI escapes will render; on Windows it enables
+ * virtual-terminal processing on first probe (false when the console is too old
+ * for it). Cached per stream for the process lifetime (Vader has no module-scope
+ * run-once, so the memo lives here). Backs `std/tty::is_tty`. `vader_get_env`
+ * reads an environment variable and boxes the value as a string (str_tag), or
+ * returns a null box when unset; backs `std/env::get_env`. */
+vader_bool_t   vader_is_tty(int32_t stream);
+vader_box_t    vader_get_env(vader_string_t name, uint32_t str_tag);
+
 /* ----------------------------------------------------------------- process
  * `spawn_run` blocks on the child, stashes captured stdout/stderr into
  * runtime-owned buffers, and returns the exit status (>= 0) or one of the

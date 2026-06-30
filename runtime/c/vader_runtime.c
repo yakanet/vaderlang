@@ -3331,6 +3331,59 @@ vader_string_t vader_temp_dir(void) {
     return vader_string_new(buf, n);
 }
 
+/* ----------------------------------------------------------------- terminal / env
+ *
+ * `vader_is_tty` backs `std/tty::is_tty`. It reports whether `stream` (0 =
+ * stdout, 1 = stderr) is an interactive terminal that will render ANSI escapes;
+ * on Windows it also enables virtual-terminal processing on first probe (and
+ * reports false on a console too old for it, so callers fall back to plain
+ * text). The result is cached per stream for the process lifetime — Vader has
+ * no module-scope run-once, so the memo lives here. `vader_get_env` backs
+ * `std/env::get_env`: it boxes the variable's value as a string (str_tag) or
+ * returns a null box when the variable is unset.
+ */
+#if defined(_WIN32)
+#  ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+#    define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+#  endif
+/* True iff the Windows console behind `f` is interactive AND virtual-terminal
+ * processing can be enabled on it — only then do ANSI escapes render rather
+ * than print literally. Idempotent: re-enabling VT on an already-VT console is
+ * a no-op, and the per-stream cache means it runs at most once. */
+static int vader_win_console_supports_ansi(FILE* f) {
+    if (!_isatty(_fileno(f))) return 0;
+    HANDLE h = (HANDLE) _get_osfhandle(_fileno(f));
+    if (h == INVALID_HANDLE_VALUE) return 0;
+    DWORD mode = 0;
+    if (!GetConsoleMode(h, &mode)) return 0;
+    return SetConsoleMode(h, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING) ? 1 : 0;
+}
+#endif
+
+vader_bool_t vader_is_tty(int32_t stream) {
+    /* Index by Stream tag: Stdout = 0, Stderr = 1. */
+    static int cache[2] = { -1, -1 };
+    int i = (stream == 1) ? 1 : 0;
+    if (cache[i] < 0) {
+#if defined(_WIN32)
+        cache[i] = vader_win_console_supports_ansi(i == 1 ? stderr : stdout);
+#else
+        cache[i] = isatty(i == 1 ? STDERR_FILENO : STDOUT_FILENO) ? 1 : 0;
+#endif
+    }
+    return cache[i] != 0;
+}
+
+vader_box_t vader_get_env(vader_string_t name, uint32_t str_tag) {
+    const char* key = vader_string_to_cstr(name);
+    const char* val = getenv(key);
+    vader_box_t out = (val == NULL)
+        ? vader_box_null()
+        : vader_box_string(str_tag, vader_string_new(val, strlen(val)));
+    vader_cstr_free(key);
+    return out;
+}
+
 /* ----------------------------------------------------------------- process
  *
  * `vader_spawn_run` posix_spawn-s a child with stdout/stderr redirected to
