@@ -17,7 +17,7 @@ import "std/math" { min }
 import "vader/diagnostics" { Diagnostic, typecheck_error }
 import "vader/types" {
     Type, ArrayType, TupleType, TypeParamType, UnionType, UnresolvedType,
-    display_type, mk_array, mk_tuple, TY_UNRESOLVED,
+    display_type, mk_array, mk_tuple, TY_FREE_INT, TY_UNRESOLVED,
 }
 AST :: import "vader/parser"
 
@@ -150,8 +150,8 @@ seq_lit_check_stub :: fn(
     // @partial: test stub — only the literal / ident / seq expr kinds the seq
     // tests build are typed; every other Expr is irrelevant → unresolved.
     @partial match e {
-        is AST.IntLitExpr    as x -> { return narrow_for_expected(infer_int_lit(x), expected) }
-        is AST.StringLitExpr as x -> { return infer_string_lit(x) }
+        is AST.IntLitExpr    as x -> { return narrow_for_expected(TY_FREE_INT, expected) }
+        is AST.StringLitExpr as x -> { return mk_primitive("string") }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
         is AST.SeqLitExpr    as x -> { return infer_seq_lit(x, expected, typed, diags, seq_lit_check_stub) }
         _ -> { return TY_UNRESOLVED }

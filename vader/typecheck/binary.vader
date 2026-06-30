@@ -22,7 +22,7 @@ import "vader/resolver/symbol" { SymbolKind }
 import "vader/types" {
     Type, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, UnresolvedType,
     EnumType, FnType, StructType, TraitType, ArrayType, DistinctType,
-    display_type, type_base_name, mk_primitive, TY_BOOL, TY_UNRESOLVED,
+    display_type, type_base_name, mk_primitive, TY_BOOL, TY_FREE_INT, TY_UNRESOLVED,
 }
 
 /// Type-check a `BinaryExpr`. `check_expr_fn` is threaded to break the
@@ -496,8 +496,8 @@ binary_check_stub :: fn(
     // @partial: test stub — only the literal / ident / binary expr kinds the
     // binary tests build are typed; every other Expr is irrelevant → unresolved.
     @partial match e {
-        is AST.IntLitExpr    as x -> { return narrow(infer_int_lit(x), expected) }
-        is AST.StringLitExpr as x -> { return infer_string_lit(x) }
+        is AST.IntLitExpr    as x -> { return narrow(TY_FREE_INT, expected) }
+        is AST.StringLitExpr as x -> { return mk_primitive("string") }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
         is AST.BinaryExpr    as x -> { return infer_binary(x, null, typed, diags, binary_check_stub) }
         _ -> { return TY_UNRESOLVED }

@@ -19,7 +19,7 @@ module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, warning, typecheck_error }
 AST :: import "vader/parser"
-import "vader/types" { Type, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, TY_UNRESOLVED }
+import "vader/types" { Type, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, TY_FREE_INT, TY_FREE_FLOAT, TY_FREE_CHAR, TY_BOOL, TY_UNRESOLVED }
 
 /// Type-check `expr`. `expected` provides bidirectional context — pass
 /// `null` for fresh-position uses. The returned `Type` is the post-
@@ -95,11 +95,11 @@ infer_expr :: fn(
     // Every Expr variant has a dedicated arm — the match is exhaustive, so
     // T3013 now guards it: a new Expr variant trips the check here.
     match expr {
-        is AST.IntLitExpr    as e -> { return infer_int_lit(e) }
-        is AST.FloatLitExpr  as e -> { return infer_float_lit(e) }
-        is AST.BoolLitExpr   as e -> { return infer_bool_lit(e) }
-        is AST.NullLitExpr   as e -> { return infer_null_lit(e) }
-        is AST.CharLitExpr   as e -> { return infer_char_lit(e) }
+        is AST.IntLitExpr    -> { return TY_FREE_INT }
+        is AST.FloatLitExpr  -> { return TY_FREE_FLOAT }
+        is AST.BoolLitExpr   -> { return TY_BOOL }
+        is AST.NullLitExpr   -> { return mk_primitive("null") }
+        is AST.CharLitExpr   -> { return TY_FREE_CHAR }
         is AST.StringLitExpr as e -> {
             // Walk interpolation parts so `"${x}"`'s `x` lands in
             // `expr_types`. T3018 Display
@@ -107,7 +107,7 @@ infer_expr :: fn(
             for part in e.parts {
                 if part is AST.StringLitInterp as p { check_expr(p.expr, null, typed, diags) }
             }
-            return infer_string_lit(e)
+            return mk_primitive("string")
         }
         is AST.IdentExpr     as e -> {
             sym :: typed.resolved.idents[e.span.hash()]

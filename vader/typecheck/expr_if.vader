@@ -12,7 +12,7 @@
 module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, typecheck_error }
-import "vader/types" { Type, UnresolvedType, PrimitiveType, FreeIntType, FreeFloatType, display_type, mk_primitive, TY_BOOL, TY_VOID, TY_UNRESOLVED }
+import "vader/types" { Type, UnresolvedType, PrimitiveType, FreeIntType, FreeFloatType, display_type, mk_primitive, TY_BOOL, TY_FREE_INT, TY_VOID, TY_UNRESOLVED }
 AST :: import "vader/parser"
 
 /// Combine the two branch types of an `if`/`else`. A free numeric-literal branch
@@ -359,8 +359,8 @@ expr_if_check_stub :: fn(
     // @partial: test stub — only the literal / ident / if expr kinds the if
     // tests build are typed; every other Expr is irrelevant → unresolved.
     @partial match e {
-        is AST.IntLitExpr  as x -> { return narrow_for_expected(infer_int_lit(x), expected) }
-        is AST.BoolLitExpr as x -> { return infer_bool_lit(x) }
+        is AST.IntLitExpr  as x -> { return narrow_for_expected(TY_FREE_INT, expected) }
+        is AST.BoolLitExpr as x -> { return TY_BOOL }
         is AST.IdentExpr   as x -> { return infer_ident(x, typed) }
         is AST.IfExpr      as x -> { return infer_if(x, expected, typed, diags, null, expr_if_check_stub) }
         _ -> { return TY_UNRESOLVED }
