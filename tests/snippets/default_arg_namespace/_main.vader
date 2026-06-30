@@ -1,0 +1,17 @@
+// Regression: a namespace-qualified call `G.greet(...)` with a trailing default
+// parameter. The typer's `callee_param_decls` resolves the namespace member's
+// declared params (via `namespace_export_params`), so `normalize_call_args`
+// reorders named args and fills omitted defaults — previously `G.greet("Bob")`
+// errored with T3003 (`mod.foo` calls stayed positional). Guards the fill on the
+// namespace path for direct, explicit, and named-argument forms.
+module "snippet"
+
+import "std/io" { println }
+G :: import "snippet/greeter"
+
+main :: fn() -> i32 {
+    println(G.greet("Bob"))                       // default prefix filled
+    println(G.greet("Eve", "Hello"))              // explicit positional
+    println(G.greet(name = "Al", prefix = "Yo"))  // named args
+    return 0
+}

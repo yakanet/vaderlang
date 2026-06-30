@@ -152,6 +152,14 @@ export TypedProgram :: struct {
     /// `mod.foo` accesses can resolve to the export's concrete type.
     namespace_exports: MutableMap<string, MutableMap<string, Type>>
 
+    /// Declared parameters of exported FN members, per namespace :
+    /// `module_id → fn_name → params`. Populated alongside
+    /// `namespace_exports` for every `name :: import "p"` binding, but only
+    /// for fn members. Consumed by `call.vader::callee_param_decls` so a
+    /// namespace-qualified call (`mod.foo(...)`) can reorder named args and
+    /// fill omitted defaults from each param's `default_value`.
+    namespace_export_params: MutableMap<string, MutableMap<string, AST.FnParam[]>>
+
     /// `std/core` exported symbols indexed by name. Populated by
     /// the orchestrator after loading core, consumed by passes that
     /// need to refer to core types (Range, Field, Display, Error,
@@ -323,6 +331,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .import_targets  = null,
         .external_types  = MutableMap<i32, Type> {},
         .namespace_exports = MutableMap<string, MutableMap<string, Type>> {},
+        .namespace_export_params = MutableMap<string, MutableMap<string, AST.FnParam[]>> {},
         .core_symbols    = MutableMap<string, Symbol> {},
         .imported_fn_overloads = MutableMap<string, FnType[]> {},
         .iter_element_types = MutableMap<string, Type> {},
