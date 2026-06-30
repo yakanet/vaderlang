@@ -14,7 +14,7 @@ lookup_pre_resolved_field_for_lit :: fn(struct_id: i32, name: string, typed: Typ
     if fmap is null { return null }
     return fmap[name]
 }
-import "vader/types" { Type, StructType, display_type, TY_UNRESOLVED }
+import "vader/types" { Type, StructType, display_type, mk_primitive, TY_FREE_INT, TY_UNRESOLVED }
 AST :: import "vader/parser"
 
 /// Type-check a `StructLitExpr`. Always returns the struct type even
@@ -148,8 +148,8 @@ struct_lit_check_stub :: fn(
     // @partial: test stub — only the literal / ident / struct-lit expr kinds the
     // struct-lit tests build are typed; every other Expr is irrelevant → unresolved.
     @partial match e {
-        is AST.IntLitExpr    as x -> { return narrow_for_expected(infer_int_lit(x), expected) }
-        is AST.StringLitExpr as x -> { return infer_string_lit(x) }
+        is AST.IntLitExpr    as x -> { return narrow_for_expected(TY_FREE_INT, expected) }
+        is AST.StringLitExpr as x -> { return mk_primitive("string") }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
         is AST.StructLitExpr as x -> { return infer_struct_lit(x, typed, diags, struct_lit_check_stub) }
         _ -> { return TY_UNRESOLVED }

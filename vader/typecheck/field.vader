@@ -22,7 +22,7 @@ import "vader/resolver" { ResolvedModule }
 import "vader/types" {
     Type, ArrayType, EnumType, PrimitiveType, StructType, TraitType, TupleType, UnionType, UnresolvedType,
     FreeIntType, FreeFloatType, FreeCharType,
-    display_type, type_base_name, TY_UNRESOLVED,
+    display_type, type_base_name, TY_FREE_INT, TY_UNRESOLVED,
 }
 
 /// Type-check a `FieldExpr`. Chains the per-target-shape attempts in
@@ -962,8 +962,8 @@ field_check_stub :: fn(
     // @partial: test stub — only the ident / field / literal expr kinds the
     // field tests build are typed; every other Expr is irrelevant → unresolved.
     @partial match e {
-        is AST.IntLitExpr    as x -> { return infer_int_lit(x) }
-        is AST.StringLitExpr as x -> { return infer_string_lit(x) }
+        is AST.IntLitExpr    as x -> { return TY_FREE_INT }
+        is AST.StringLitExpr as x -> { return mk_primitive("string") }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
         is AST.FieldExpr     as x -> { return infer_field(x, typed, diags, field_check_stub) }
         _ -> { return TY_UNRESOLVED }
