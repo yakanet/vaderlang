@@ -23,6 +23,10 @@
           {
             "name": "read_file_bytes",
             "alias": null
+          },
+          {
+            "name": "temp_dir",
+            "alias": null
           }
         ]
       },
@@ -79,8 +83,19 @@
               "kind": "StringLitExpr",
               "parts": [
                 {
+                  "kind": "interp",
+                  "expr": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "temp_dir"
+                    },
+                    "args": []
+                  }
+                },
+                {
                   "kind": "text",
-                  "value": "/tmp/vader_ppm_roundtrip.ppm"
+                  "value": "/vader_ppm_roundtrip.ppm"
                 }
               ]
             }

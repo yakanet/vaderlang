@@ -2370,6 +2370,7 @@ exists     :: fn(path: string) -> bool
 is_dir     :: fn(path: string) -> bool
 read_dir   :: fn(path: string) -> string[] | Error  // names only (no recursion)
 current_executable_location :: fn() -> string       // absolute path of the running binary
+temp_dir   :: fn() -> string                        // OS temp dir, `/`-separated, no trailing slash
 ```
 
 `print` / `println` / `eprint` / `eprintln` are generic over `Display`:

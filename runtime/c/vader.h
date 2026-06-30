@@ -900,6 +900,10 @@ vader_bool_t   vader_is_dir(vader_string_t path);
 /* The running executable's full path, `/`-separated ; "." on failure. Backs the
  * `std/io::current_executable_location` intrinsic for sidecar resolution. */
 vader_string_t vader_current_executable_location(void);
+/* The OS temp directory, `/`-separated, no trailing separator. Honours $TMPDIR
+ * (POSIX) / GetTempPath (Windows), falling back to "/tmp". Backs the
+ * `std/io::temp_dir` intrinsic. */
+vader_string_t vader_temp_dir(void);
 /* Read EXACTLY `n` bytes from stdin into a fresh string. Boxes the result
  * (success or `Error`). EOF before `n` bytes is reported as an error —
  * the LSP transport's Content-Length framing relies on this contract. */

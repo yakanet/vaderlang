@@ -2,7 +2,16 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let path: string = "/tmp/vader_io_roundtrip.txt" :string
+    let path: string =
+      call :string
+        callee:
+          concat_2 :string
+        arg0:
+          call :string
+            callee:
+              temp_dir :fn() -> string
+        arg1:
+          "/vader_io_roundtrip.txt" :string
     call :Error | null
       callee:
         write_file_string :fn(string, string) -> Error | null

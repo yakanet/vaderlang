@@ -1,13 +1,13 @@
 module "snippet"
 
-import "std/io" { println, write_file_bytes, read_file_bytes }
+import "std/io" { println, write_file_bytes, read_file_bytes, temp_dir }
 import "std/images/ppm" { Ppm, PpmError, encode, decode }
 
 // End-to-end: build a Ppm, encode to P6 bytes, persist via the byte-oriented
 // file I/O, read it back, decode, and confirm the raster survived — including
 // bytes >= 0x80 (the whole point of lossless `*_bytes` I/O vs the string path).
 main :: fn() -> i32 {
-    path :: "/tmp/vader_ppm_roundtrip.ppm"
+    path :: "${temp_dir()}/vader_ppm_roundtrip.ppm"
     px: u8[] = [0x00, 0x80, 0xff, 0x10, 0x20, 0x30, 0xc3, 0x28, 0xa9, 0x7f, 0x01, 0xfe]
     img :: Ppm { .width = 2, .height = 2, .maxval = 255, .pixels = px }
 

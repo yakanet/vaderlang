@@ -12,7 +12,7 @@ type 9 union 10,0
 type 10 ref Error
 type 11 union 10,2
 type 12 union 10,6
-string 0 "/tmp/vader_io_roundtrip.txt"
+string 0 "/vader_io_roundtrip.txt"
 string 1 "hello from vader"
 string 2 "exists: "
 string 3 "read: "
@@ -26,16 +26,21 @@ import 2 write std_io$write (i32,string) -> void
 import 3 read_file_bytes std_io$read_file_bytes (string) -> ref
 import 4 write_file_bytes std_io$write_file_bytes (string,ref) -> ref
 import 5 exists std_io$exists (string) -> bool
+import 6 temp_dir std_io$temp_dir () -> string
 impl 5 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  local path string
+  local $call_0 string
   local __buf_0 ref
   local __off_1 usize
-  local $call_11 bool
+  local $call_13 bool
   local __scrut_2 ref
+  call.import 6
+  local.set 0
+  local.get 0
   string.const 0
+  call 1
   local.set 0
   local.get 0
   string.const 1
@@ -61,7 +66,7 @@ fn 0 snippet$main () -> i32
   local.set 2
   local.get 1
   local.get 2
-  call 3
+  call 4
   call 9
   local.get 0
   call 8
@@ -94,10 +99,10 @@ fn 1 concat_2 (string,string) -> string
   local buf ref
   local $k_9 usize
   local.get 0
-  call 4
+  call 3
   local.set 2
   local.get 1
-  call 4
+  call 3
   local.set 3
   local.get 2
   local.get 3
@@ -117,7 +122,7 @@ fn 1 concat_2 (string,string) -> string
   call 12
   local.get 4
   local.get 3
-  call 3
+  call 4
   return
 end
 
@@ -127,17 +132,17 @@ fn 2 std_core$new_byte_buffer (usize) -> ref
   return
 end
 
-fn 3 std_core$finish_buffer (ref,usize) -> string
-  local.get 0
-  local.get 1
-  call 11
-  return
-end
-
-fn 4 std_core$byte_len (string) -> usize
+fn 3 std_core$byte_len (string) -> usize
   local.get 0
   call.import 1
   array.len
+  return
+end
+
+fn 4 std_core$finish_buffer (ref,usize) -> string
+  local.get 0
+  local.get 1
+  call 11
   return
 end
 
