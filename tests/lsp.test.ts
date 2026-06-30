@@ -435,6 +435,63 @@ test("lsp: member completion resolves an imported struct's fields", async () => 
   expect(list.items.find((i) => i.label === "width")?.detail).toBe("i32");
 }, { timeout: MEDIUM_BUILD });
 
+// Member completion on a NAMESPACE-import alias (`G.<member>` where
+// `G :: import "p"`). Regression: the receiver types as UnresolvedType; without
+// the namespace-export path completion fell into the UFCS loop and offered every
+// imported free fn (print/println/eprint/…) instead of the module's exports.
+const NAMESPACE_MEMBER_SOURCE = `module "demo"
+
+G :: import "demo/greeter"
+
+main :: fn() -> i32 {
+    G.
+    return 0
+}
+`;
+
+test("lsp: member completion on a namespace alias lists its module's exports", async () => {
+  // Line 5 = `    G.` ; cursor at char 6 is just past the dot on `G`.
+  const results = await driveLsp(NAMESPACE_MEMBER_SOURCE, [
+    { method: "textDocument/completion", position: { line: 5, character: 6 } },
+  ], {
+    "greeter/greeter.vader":
+      `module "demo/greeter"\n\nexport greet :: fn(name: string) -> string = name\n`,
+  });
+  const list = results[0]!.result as CompletionList;
+  const labels = new Set(list.items.map((i) => i.label));
+  // The greeter module's export.
+  expect(labels.has("greet")).toBe(true);
+  // NOT every imported free fn (the old UFCS-soup bug surfaced these).
+  expect(labels.has("println")).toBe(false);
+  expect(labels.has("eprint")).toBe(false);
+}, { timeout: MEDIUM_BUILD });
+
+// Member completion on a receiver typed as a trait-bounded generic param
+// (`msg: T` where `T: Display`). Regression: completion now resolves T's bound
+// and offers the trait's methods (`to_string`) instead of UFCS-matching every
+// free fn whose first param accepts a type param (which surfaced bytes_to_string).
+const TYPEPARAM_BOUND_SOURCE = `module "lsp_test"
+
+show :: fn<T: Display>(msg: T) -> void {
+    msg.
+}
+
+main :: fn() -> i32 { return 0 }
+`;
+
+test("lsp: member completion on a trait-bounded generic param lists the bound's methods", async () => {
+  // Line 3 = `    msg.` ; cursor at char 8 is just past the dot on `msg`.
+  const results = await driveLsp(TYPEPARAM_BOUND_SOURCE, [
+    { method: "textDocument/completion", position: { line: 3, character: 8 } },
+  ]);
+  const list = results[0]!.result as CompletionList;
+  const labels = new Set(list.items.map((i) => i.label));
+  // Display's method, reached through the `T: Display` bound.
+  expect(labels.has("to_string")).toBe(true);
+  // NOT the UFCS-soup that a type-param receiver used to match.
+  expect(labels.has("bytes_to_string")).toBe(false);
+}, { timeout: MEDIUM_BUILD });
+
 interface TextEditT { newText: string }
 interface WorkspaceEditT { changes: Record<string, TextEditT[]> }
 interface CodeActionT { title: string; kind: string; edit: WorkspaceEditT }
