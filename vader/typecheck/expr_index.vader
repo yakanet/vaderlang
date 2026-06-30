@@ -10,7 +10,7 @@ module "vader/typecheck"
 import "vader/diagnostics" { Diagnostic, typecheck_error }
 import "vader/types" {
     Type, ArrayType, PrimitiveType, FreeIntType, StructType, UnresolvedType,
-    display_type, mk_array, mk_primitive, TY_UNRESOLVED,
+    display_type, mk_array, mk_primitive, TY_STRING, TY_UNRESOLVED,
 }
 AST :: import "vader/parser"
 
@@ -31,7 +31,7 @@ export infer_index :: fn(
     // `"hello"[r]` where `r: Range(T)` — codepoint slice returning string.
     if target is PrimitiveType {
         if target.name == "string" {
-            if is_range_type(index) { return mk_primitive("string") }
+            if is_range_type(index) { return TY_STRING }
             if !is_integer_index(index) {
                 diags.push(typecheck_error(.TypeMismatch, e.index.span,
                     "string index must be an integer, got ${display_type(index)}"))

@@ -12,7 +12,7 @@
 module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, typecheck_error }
-import "vader/types" { Type, UnresolvedType, PrimitiveType, FreeIntType, FreeFloatType, display_type, mk_primitive, TY_BOOL, TY_FREE_INT, TY_VOID, TY_UNRESOLVED }
+import "vader/types" { Type, UnresolvedType, PrimitiveType, FreeIntType, FreeFloatType, display_type, mk_primitive, TY_BOOL, TY_FREE_INT, TY_NULL, TY_VOID, TY_UNRESOLVED }
 AST :: import "vader/parser"
 
 /// Combine the two branch types of an `if`/`else`. A free numeric-literal branch
@@ -258,7 +258,7 @@ detect_is_narrow :: fn(
             // `?` ; recording a `?` narrowing here poisons every later
             // reference (it survives into the authoritative re-walk).
             if base is UnresolvedType { return null }
-            null_ty :: mk_primitive("null")
+            null_ty :: TY_NULL
             non_null :: subtract_type(base, null_ty)
             if cond.op == AST.BinaryOp.Eq {
                 return IsNarrow { .sym_id = sym.id, .static_ty = base, .then_ty = null_ty, .else_ty = non_null }
@@ -270,7 +270,7 @@ detect_is_narrow :: fn(
         if !(field_side is null) {
             field_info :: resolve_field_chain_static(field_side, typed)
             if !(field_info is null) {
-                null_ty :: mk_primitive("null")
+                null_ty :: TY_NULL
                 // Compose against the field's current flow-narrowed type (like
                 // the ident path below and stmt.vader) so sequential field
                 // guards refine instead of resetting to the declared union.

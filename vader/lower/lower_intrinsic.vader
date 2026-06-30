@@ -7,7 +7,7 @@ import "vader/parser" { Expr, IdentExpr, IntrinsicCallExpr, StructDecl, StringLi
 import "vader/diagnostics" { Span, Diagnostic }
 import "vader/typecheck" { type_from_expr, type_to_target_symbol, has_user, substitute }
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, FnType, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, UnionType, TraitType, TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType, SelfType, NeverType, TY_UNRESOLVED, TY_TYPE, mk_primitive, display_type, STRUCT_FIELD, StructType, EnumType, UnresolvedType, DistinctType }
+import "vader/types" { Type, FnType, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, UnionType, TraitType, TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType, SelfType, NeverType, TY_UNRESOLVED, TY_TYPE, display_type, STRUCT_FIELD, StructType, EnumType, UnresolvedType, DistinctType, TY_STRING }
 import "vader/comptime" { TypeValue, byte_size, byte_align }
 
 // Preserve the `@<name>(args)` call shape. Comptime-foldable variants
@@ -24,7 +24,7 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
             is null -> {}
             is string as text -> {
                 return LoweredStringLit {
-                    .span = intrinsic.span, .type = mk_primitive("string"), .value = text,
+                    .span = intrinsic.span, .type = TY_STRING, .value = text,
                 }
             }
         }
@@ -95,10 +95,10 @@ try_late_fold_type_arg :: fn(name: string, args: LoweredExpr[], span: Span, type
         return LoweredIntLit { .span = span, .type = type, .value = byte_align(ty) }
     }
     if name == "type_name" {
-        return LoweredStringLit { .span = span, .type = mk_primitive("string"), .value = display_type(ty) }
+        return LoweredStringLit { .span = span, .type = TY_STRING, .value = display_type(ty) }
     }
     if name == "type_kind" {
-        return LoweredStringLit { .span = span, .type = mk_primitive("string"), .value = kind_string_of_type(ty) }
+        return LoweredStringLit { .span = span, .type = TY_STRING, .value = kind_string_of_type(ty) }
     }
     return null
 }
@@ -161,10 +161,10 @@ try_fold_static_intrinsic :: fn(
         return LoweredIntLit { .span = intrinsic.span, .type = type, .value = byte_align(ty) }
     }
     if name == "type_name" {
-        return LoweredStringLit { .span = intrinsic.span, .type = mk_primitive("string"), .value = display_type(ty) }
+        return LoweredStringLit { .span = intrinsic.span, .type = TY_STRING, .value = display_type(ty) }
     }
     if name == "type_kind" {
-        return LoweredStringLit { .span = intrinsic.span, .type = mk_primitive("string"), .value = kind_string_of_type(ty) }
+        return LoweredStringLit { .span = intrinsic.span, .type = TY_STRING, .value = kind_string_of_type(ty) }
     }
     return null
 }
@@ -325,7 +325,7 @@ try_fold_fields :: fn(
     // Build the type-param → arg substitution using the existing
     // helper that the generic-instance materialiser uses.
     subst :: build_struct_subst(decl, target_struct.args, owner_typed)
-    string_type :: mk_primitive("string")
+    string_type :: TY_STRING
     elements: LoweredExpr[] = []
     for f in decl.fields {
         raw_ty :: resolve_field_type(f.ty, owner_typed, decl, target_struct.args)

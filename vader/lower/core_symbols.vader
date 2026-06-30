@@ -10,7 +10,7 @@ module "vader/lower"
 
 import "std/collections" { MutableMap }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, StructType, TraitType, mk_struct, mk_union, mk_primitive }
+import "vader/types" { Type, StructType, TraitType, mk_struct, mk_union, mk_primitive, TY_NULL }
 
 /// Resolve a `std/core` symbol by name from the project's cache.
 /// @param ctx   the fn-body context.
@@ -63,7 +63,7 @@ export find_core_trait :: fn(ctx: LowerProjectCtx, name: string) -> Symbol | nul
 /// @param yielded  the element type yielded by the iterator.
 /// @return         the resolved union type.
 export union_of_yield_null :: fn(yielded: Type) -> Type {
-    return mk_union([yielded, mk_primitive("null")])
+    return mk_union([yielded, TY_NULL])
 }
 
 import "vader/typecheck" { ImplEntry, find_user, type_to_target_symbol }

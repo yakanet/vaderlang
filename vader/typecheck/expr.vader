@@ -19,7 +19,7 @@ module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, warning, typecheck_error }
 AST :: import "vader/parser"
-import "vader/types" { Type, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, TY_FREE_INT, TY_FREE_FLOAT, TY_FREE_CHAR, TY_BOOL, TY_UNRESOLVED }
+import "vader/types" { Type, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, TY_FREE_INT, TY_FREE_FLOAT, TY_FREE_CHAR, TY_BOOL, TY_STRING, TY_NULL, TY_UNRESOLVED }
 
 /// Type-check `expr`. `expected` provides bidirectional context — pass
 /// `null` for fresh-position uses. The returned `Type` is the post-
@@ -98,7 +98,7 @@ infer_expr :: fn(
         is AST.IntLitExpr    -> { return TY_FREE_INT }
         is AST.FloatLitExpr  -> { return TY_FREE_FLOAT }
         is AST.BoolLitExpr   -> { return TY_BOOL }
-        is AST.NullLitExpr   -> { return mk_primitive("null") }
+        is AST.NullLitExpr   -> { return TY_NULL }
         is AST.CharLitExpr   -> { return TY_FREE_CHAR }
         is AST.StringLitExpr as e -> {
             // Walk interpolation parts so `"${x}"`'s `x` lands in
@@ -107,7 +107,7 @@ infer_expr :: fn(
             for part in e.parts {
                 if part is AST.StringLitInterp as p { check_expr(p.expr, null, typed, diags) }
             }
-            return mk_primitive("string")
+            return TY_STRING
         }
         is AST.IdentExpr     as e -> {
             sym :: typed.resolved.idents[e.span.hash()]

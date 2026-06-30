@@ -22,7 +22,7 @@ import "vader/resolver" { ResolvedModule }
 import "vader/types" {
     Type, ArrayType, EnumType, PrimitiveType, StructType, TraitType, TupleType, UnionType, UnresolvedType,
     FreeIntType, FreeFloatType, FreeCharType,
-    display_type, type_base_name, TY_FREE_INT, TY_UNRESOLVED,
+    display_type, type_base_name, TY_FREE_INT, TY_STRING, TY_NULL, TY_UNRESOLVED,
 }
 
 /// Type-check a `FieldExpr`. Chains the per-target-shape attempts in
@@ -444,7 +444,7 @@ array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
         usize_t :: mk_primitive("usize")
         return mk_fn([usize_t, mk_array(arr.element, false), usize_t, usize_t], TY_VOID)
     }
-    if name == "remove_last" { return mk_fn([], mk_union([arr.element, mk_primitive("null")])) }
+    if name == "remove_last" { return mk_fn([], mk_union([arr.element, TY_NULL])) }
     if name == "clear" { return mk_fn([], TY_VOID) }
     return null
 }
@@ -963,7 +963,7 @@ field_check_stub :: fn(
     // field tests build are typed; every other Expr is irrelevant → unresolved.
     @partial match e {
         is AST.IntLitExpr    as x -> { return TY_FREE_INT }
-        is AST.StringLitExpr as x -> { return mk_primitive("string") }
+        is AST.StringLitExpr as x -> { return TY_STRING }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
         is AST.FieldExpr     as x -> { return infer_field(x, typed, diags, field_check_stub) }
         _ -> { return TY_UNRESOLVED }

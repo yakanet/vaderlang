@@ -29,7 +29,7 @@ import "vader/types" {
     Type, ArrayType, StructType, TraitType, EnumType, PrimitiveType,
     UnresolvedType,
     mk_struct, mk_array, mk_primitive, display_type,
-    TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED,
+    TY_BOOL, TY_VOID, TY_NEVER, TY_NULL, TY_UNRESOLVED,
     STRUCT_ARRAY_ITERATOR, STRUCT_YIELD, TRAIT_ITERATOR,
 }
 
@@ -137,7 +137,7 @@ export lower_for_in :: fn(
 
     step_ref :: LoweredIdent { .span = span, .type = step_union, .symbol = step_symbol }
     is_done :: LoweredTypeCheck {
-        .span = span, .type = TY_BOOL, .value = step_ref, .check_type = mk_primitive("null"),
+        .span = span, .type = TY_BOOL, .value = step_ref, .check_type = TY_NULL,
     }
 
     yield_cast :: LoweredCast { .span = span, .type = yield_type, .value = step_ref }
