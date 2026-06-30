@@ -570,6 +570,31 @@ test("lsp: completion of struct-literal field keys", async () => {
   expect(labels.has("Point")).toBe(false);
 }, { timeout: MEDIUM_BUILD });
 
+// Enum completion in a match-arm PATTERN (`match e { .<here> }`). The expected
+// type is the scrutinee's; the dot is a pattern, not an expression.
+const MATCH_ARM_SOURCE = `module "lsp_test"
+
+Color :: enum { Red, Green, Blue }
+
+classify :: fn(c: Color) -> i32 {
+    match c {
+        .
+    }
+}
+`;
+
+test("lsp: enum completion in a match-arm pattern", async () => {
+  // Line 6 = `        .` ; the `.` is at char 8, cursor at char 9.
+  const results = await driveLsp(MATCH_ARM_SOURCE, [
+    { method: "textDocument/completion", position: { line: 6, character: 9 } },
+  ]);
+  const list = results[0]!.result as CompletionList;
+  const labels = new Set(list.items.map((i) => i.label));
+  expect(labels.has("Red")).toBe(true);
+  expect(labels.has("Green")).toBe(true);
+  expect(labels.has("Blue")).toBe(true);
+}, { timeout: MEDIUM_BUILD });
+
 interface TextEditT { newText: string }
 interface WorkspaceEditT { changes: Record<string, TextEditT[]> }
 interface CodeActionT { title: string; kind: string; edit: WorkspaceEditT }
