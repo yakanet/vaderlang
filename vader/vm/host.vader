@@ -12,7 +12,7 @@ module "vader/vm"
 
 bc :: import "vader/bytecode"
 
-import "std/io" { read_file_bytes, write_file_bytes, exists, is_dir, read_dir, print, eprint }
+import "std/io" { read_file_bytes, write_file_bytes, exists, is_dir, read_dir, print, eprint, temp_dir }
 import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
 import "std/math" { sqrt, pow, floor, ceil, round, sin }
 import "std/time" { now, monotonic }
@@ -401,6 +401,9 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         path :: read_string(stack[arg_base], at_pc, "is_dir")
         if path is Trap { return path }
         return HostOk { .value = BoolVal { .value = is_dir(path.value) } }
+    }
+    if info.mangled_name == r"std_io$temp_dir" {
+        return HostOk { .value = StringVal { .value = temp_dir() } }
     }
     if info.mangled_name == r"std_io$read_dir" {
         path :: read_string(stack[arg_base], at_pc, "read_dir")

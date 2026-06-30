@@ -159,3 +159,11 @@ export write_file_string :: fn(path: string, content: string) -> null | Error =
 /// C runtime) next to the binary. Falls back to `"."` if the OS query fails.
 /// @return  the executable's own path.
 @intrinsic export current_executable_location :: fn() -> string
+
+/// OS scratch directory for temporary files, `/`-separated and WITHOUT a
+/// trailing separator — join with `"/name"` to build a path. Honours the
+/// platform temp-dir environment (`$TMPDIR` on POSIX, `%TMP%` / `%TEMP%` via
+/// `GetTempPath` on Windows), falling back to `"/tmp"` when unset. The
+/// directory is assumed to exist and be writable ; this does not create it.
+/// @return  the temp directory path, e.g. `"/tmp"` or `"/var/folders/…/T"`.
+@intrinsic export temp_dir :: fn() -> string

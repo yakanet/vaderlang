@@ -391,10 +391,6 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
-  "process_spawn": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
   "range_widths": {
     "leakedNodes": 0,
     "leakedBytes": 0

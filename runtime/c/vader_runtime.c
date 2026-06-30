@@ -3304,6 +3304,33 @@ vader_string_t vader_current_executable_location(void) {
     return vader_string_new(buf, n);
 }
 
+/* `vader_temp_dir` backs the `std/io::temp_dir` intrinsic — the OS scratch
+ * directory for temporary files, `/`-separated and WITHOUT a trailing
+ * separator (callers join with "/name"). Honours $TMPDIR (POSIX) / GetTempPath
+ * (Windows, which itself reads %TMP% / %TEMP% / %USERPROFILE%), so a sandboxed
+ * CI runner's redirected temp is respected ; falls back to "/tmp" when unset. */
+vader_string_t vader_temp_dir(void) {
+    char buf[4096];
+    size_t n = 0;
+#if defined(_WIN32)
+    /* GetTempPathA writes the directory plus a trailing backslash. */
+    DWORD len = GetTempPathA((DWORD) sizeof(buf), buf);
+    if (len > 0 && len < sizeof(buf)) n = (size_t) len;
+#else
+    const char* env = getenv("TMPDIR");
+    if (env != NULL && env[0] != '\0') {
+        n = strlen(env);
+        if (n >= sizeof(buf)) n = sizeof(buf) - 1;
+        memcpy(buf, env, n);
+    }
+#endif
+    if (n == 0) { memcpy(buf, "/tmp", 4); n = 4; }
+    vader_path_to_slash(buf, n);
+    /* Drop any trailing separator so `temp_dir() + "/name"` stays clean. */
+    while (n > 1 && buf[n - 1] == '/') n--;
+    return vader_string_new(buf, n);
+}
+
 /* ----------------------------------------------------------------- process
  *
  * `vader_spawn_run` posix_spawn-s a child with stdout/stderr redirected to

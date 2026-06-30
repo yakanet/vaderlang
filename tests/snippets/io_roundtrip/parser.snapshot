@@ -27,6 +27,10 @@
           {
             "name": "exists",
             "alias": null
+          },
+          {
+            "name": "temp_dir",
+            "alias": null
           }
         ]
       },
@@ -57,8 +61,19 @@
               "kind": "StringLitExpr",
               "parts": [
                 {
+                  "kind": "interp",
+                  "expr": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "temp_dir"
+                    },
+                    "args": []
+                  }
+                },
+                {
                   "kind": "text",
-                  "value": "/tmp/vader_io_roundtrip.txt"
+                  "value": "/vader_io_roundtrip.txt"
                 }
               ]
             }

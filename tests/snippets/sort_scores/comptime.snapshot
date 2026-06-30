@@ -7,10 +7,10 @@
   MappedIterator<T, U>
   MappedIterator<T, U>
   MappedIterator<T, U>
-  FilterIterator<T>
-  FilterIterator<T>
-  FilterIterator<T>
   Add<Rhs, Out>
+  FilterIterator<T>
+  FilterIterator<T>
+  FilterIterator<T>
   TakeIterator<T>
   TakeIterator<T>
   TakeIterator<T>

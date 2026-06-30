@@ -3,6 +3,8 @@
 ## tests/snippets/ppm_roundtrip
   FnDecl         main                 :: fn() -> i32
   expr 10:13    StringLitExpr  :: string
+  expr 10:16    CallExpr       :: string
+  expr 10:16    IdentExpr      :: fn() -> string
   expr 11:16    SeqLitExpr     :: u8[]
   expr 12:12    StructLitExpr  :: Ppm
   expr 12:68    IdentExpr      :: u8[]

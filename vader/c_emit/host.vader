@@ -77,6 +77,7 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     if m == "std_io\$exists" { return "${head} { return vader_exists(a0); }" }
     if m == "std_io\$is_dir" { return "${head} { return vader_is_dir(a0); }" }
     if m == "std_io\$current_executable_location" { return "${head} { return vader_current_executable_location(); }" }
+    if m == "std_io\$temp_dir" { return "${head} { return vader_temp_dir(); }" }
     if m == "std_io\$read_dir" {
         if ctx.string_tag < 0 { return "${head} { vader_trap(\"read_dir: no string type\"); }" }
         if ctx.string_array_tag < 0 { return "${head} { vader_trap(\"read_dir: no [string] type\"); }" }
