@@ -4,7 +4,7 @@
 > **Author**: Mathieu BROUTIN
 > **Last revision**: 2026-05-12
 
-This document describes the Vader language, its execution model, type system, MVP standard library, and bootstrap strategy. It serves as the reference for the TypeScript implementation of the compiler, then for its self-rewrite in Vader.
+This document describes the Vader language, its execution model, type system, MVP standard library, and bootstrap strategy. It served as the reference for the original TypeScript implementation of the compiler, then for its self-rewrite in Vader — now the sole, self-hosted compiler.
 
 ---
 
@@ -2803,7 +2803,7 @@ A single C native backend + a single WASM backend + IR text + IR binary emission
 | `vader build --target=ir` | Emits a binary `.vir` bytecode module *(not yet implemented)* |
 | `vader build --target=c` | Emits the generated C source only |
 | `vader fmt [path]` | Single opinionated formatter, **no config**; defaults to recursive walk under `.` |
-| `vader test [path]` | Runs all functions marked `@test` *(not yet implemented in the native CLI; the test suite runs through the TS driver today)* |
+| `vader test [path]` | Runs all functions marked `@test`, each in an isolated process. |
 | `vader lsp` | Runs the Language Server (JSON-RPC over stdin/stdout). Spawned by VS Code / IntelliJ |
 | `vader dump --stage=<stage> file.vader` | Dumps an IR stage (text or JSON depending on stage) |
 | `vader init [name]` *(post-MVP)* | Scaffolds a new Vader project: directory, `examples/hello.vader`, default `vader.json` |
@@ -2922,7 +2922,7 @@ Diagnostic plumbing is **MVP-mandatory** and consumed by both the CLI rendering 
 - `B5xxx` backend (per-target codegen)
 - `W0xxx` warnings (non-fatal)
 
-A registry of codes lives in `src/diagnostics/codes.ts` (TypeScript) and `vader/diagnostics/codes.vader` (self-host). The two registries are kept in lockstep — same IDs, same wording, same enum order.
+A registry of codes lives in `vader/diagnostics/codes.vader` — the single source of truth for IDs, wording, and enum order.
 
 Notable cross-pass placement rules:
 - **`R2006`** (unresolved identifier) and **`R2009`** (trait name does not refer to a trait) are emitted at the resolver stage by the body-walker / project pre-resolve pass, not by the typechecker.
@@ -2945,7 +2945,7 @@ Subsequent evolutions:
 
 ### Goal — self-host as soon as possible
 
-As soon as the TS compiler can compile simple functions (a syntactic subset: fns, ifs, loops, structs, arrays, strings, imports, traits), we begin porting piece by piece. The intent: **validate the language design early** by using it to write itself.
+Once the original TypeScript compiler could compile a syntactic subset (fns, ifs, loops, structs, arrays, strings, imports, traits), the port proceeded piece by piece. The intent: **validate the language design early** by using it to write itself.
 
 ### Porting order
 
@@ -2965,7 +2965,7 @@ As soon as the TS compiler can compile simple functions (a syntactic subset: fns
 
 Legend: ✅ ported, ⏳ not yet (post-MVP).
 
-The full native pipeline is self-hosted. The only stage still TS-only is the WASM
+The full native pipeline is self-hosted. The only stage not yet ported is the WASM
 emitter, which is post-MVP.
 
 ### Bootstrap status — achieved
@@ -2977,10 +2977,10 @@ compiler rebuild the entire toolchain from source with no Bun or TypeScript in
 the cold-start path — see [`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md). CI rebuilds
 from the seed on every push.
 
-The TypeScript compiler under `src/` is now only the day-to-day development
-driver and the reference the self-host port is checked against; it is slated for
-removal (TODO §2.8) once the self-host is fully sealed. Snapshot and parity tests
-run the native Vader CLI as the oracle for every stage.
+The TypeScript compiler under `src/` has been removed (TODO §2.8); the native
+Vader CLI is the only compiler. Snapshot tests run that CLI as the oracle for
+every stage, and the bootstrap fixed-point check (`bootstrap/verify.sh`) guards
+self-host correctness against the committed seed.
 
 ---
 

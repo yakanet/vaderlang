@@ -15,8 +15,8 @@ import "vader/diagnostics" { Diagnostic, render }
 
 // Per-file outcome. Typed so call sites can pattern-match instead of
 // chaining magic-number comparisons. Discriminants ARE the OS exit codes —
-// `i32(r)` at the call site collapses to the integer ; mirrors the
-// contract in the TS shim.
+// `i32(r)` at the call site collapses to the integer (e.g. `Drift` is exit
+// code 1 under `--check`).
 FileResult :: enum(u8) {
     Ok,           // 0 — no change, or written successfully
     Drift,        // 1 — --check : would format
@@ -88,8 +88,8 @@ collect_files :: fn(root: string, out: string[]) -> void {
 
 /// Drive the formatter over the resolved file set. Aggregates per-file
 /// `FileResult`s and collapses to a single OS exit code at the end.
-/// Entry point invoked from `vader/cli/main.vader::cmd_fmt` ; the TS-side
-/// shim routes through the same path.
+/// Entry point invoked from `vader/cli/main.vader::cmd_fmt` — the CLI's
+/// sole formatter driver.
 ///
 /// @param args  argv tail (everything after `vader fmt`). Recognised
 ///              flags : `--check`, `--stdout`. Remaining tokens are file
