@@ -20,7 +20,7 @@ import "vader/types" { ArrayType, StructType, EnumType, UnresolvedType, TypePara
 import "vader/text" { is_ident_byte }
 import "vader/typecheck" {
     TypedProgram, ufcs_methods_for, UfcsMethod, array_builtin_methods, ArrayBuiltinMethod,
-    namespace_base_mod_id, typeparam_bound_method_names, lift_enum_placeholder,
+    namespace_base_mod_id, typeparam_bound_method_names, lift_enum_placeholder, type_from_expr,
 }
 import "vader/lsp/protocol" {
     position_uri, position_line, position_character, span_contains,
@@ -311,8 +311,14 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
 // means member access ; anything else (`(`, `,`, `=`, `{`, `>` from `->`, start
 // of input) means the dot opens an enum literal whose type comes from context.
 is_leading_dot :: fn(source: string, line0: i32, dot_col: i32) -> bool {
-    b :: byte_before_dot(source, line0, dot_col)
-    if b == 0 { return true }
+    // The byte IMMEDIATELY before the dot (no whitespace skip): a member access
+    // is `recv.field` with the value glued to the dot, so a value end (ident /
+    // `)` / `]`) right before it means member access. A space / `(` / `=` / `{`
+    // / keyword-gap (`return .`) / start-of-input means a leading dot.
+    sb :: source.bytes()
+    dot_off :: lsp_to_offset(source, line0, dot_col - 1)
+    if dot_off == 0 { return true }
+    b :: sb[dot_off - 1]
     if is_ident_byte(b) { return false }
     if b == ')' || b == ']' { return false }
     return true
@@ -407,6 +413,145 @@ expected_enum_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgr
     if ms != null {
         en :: as_enum_type(ms, typed)
         if en != null { return en }
+    }
+    sv :: struct_field_value_type_at(decls, line, col, typed)
+    if sv != null {
+        en :: as_enum_type(sv, typed)
+        if en != null { return en }
+    }
+    mr :: match_result_type_at(decls, line, col, typed)
+    if mr != null {
+        en :: as_enum_type(mr, typed)
+        if en != null { return en }
+    }
+    se :: stmt_expected_type_at(decls, line, col, typed)
+    if se != null {
+        en :: as_enum_type(se, typed)
+        if en != null { return en }
+    }
+    return null
+}
+
+// Field-value position inside a struct literal (`S { .f = .| }`): the expected
+// type is field `f`'s declared type. Finds the enclosing struct literal and the
+// item whose value span holds the cursor.
+struct_field_value_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
+    chain :: enclosing_exprs(decls, line, col)
+    for i in 0..<chain.len() {
+        e :: chain[i]
+        if e is AST.StructLitExpr as sl {
+            t :: typed.expr_types[sl.id]
+            if t is StructType as st {
+                fmap :: typed.struct_field_types[st.symbol.id]
+                if fmap == null { return null }
+                for j in 0..<sl.items.len() {
+                    it :: sl.items[j]
+                    if it is AST.StructLitField as f {
+                        if span_contains(f.value.span, line, col) { return fmap[f.name] }
+                    }
+                }
+            }
+            return null
+        }
+    }
+    return null
+}
+
+// Arm-body position of a match (`match e { _ -> .| }`): the expected type is the
+// match's own result type. (The pattern position is handled by
+// match_scrutinee_type_at, which returns null when the cursor is in a body.)
+match_result_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
+    chain :: enclosing_exprs(decls, line, col)
+    for i in 0..<chain.len() {
+        e :: chain[i]
+        if e is AST.MatchExpr as me {
+            for j in 0..<me.arms.len() {
+                if span_contains(me.arms[j].body.span, line, col) { return typed.expr_types[me.id] }
+            }
+            return null
+        }
+    }
+    return null
+}
+
+// Statement-context expected type : a `return .|` value (the enclosing fn's
+// return type) or a typed local's value (`x: T = .|` → the annotation `T`).
+// Walks fn bodies, threading the fn's return TypeExpr ; explicit `return` is
+// honoured at any depth, the implicit-return value only at the fn-body trailing.
+stmt_expected_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
+    for d in decls {
+        if d is AST.FnDecl as fd {
+            r :: scan_fn_body(fd, line, col, typed)
+            if r != null { return r }
+        } else if d is AST.ImplDecl as impl_ {
+            for m in impl_.members {
+                r :: scan_fn_body(m, line, col, typed)
+                if r != null { return r }
+            }
+        }
+    }
+    return null
+}
+
+scan_fn_body :: fn(fd: AST.FnDecl, line: i32, col: i32, typed: TypedProgram) -> Type | null {
+    if fd.body is AST.BlockExpr as b {
+        if !span_contains(b.span, line, col) { return null }
+        return scan_block(b, line, col, fd.return_type, typed, true)
+    }
+    return null
+}
+
+scan_block :: fn(b: AST.BlockExpr, line: i32, col: i32, ret_ty: AST.TypeExpr | null, typed: TypedProgram, fn_body: bool) -> Type | null {
+    for i in 0..<b.stmts.len() {
+        r :: scan_stmt(b.stmts[i], line, col, ret_ty, typed)
+        if r != null { return r }
+    }
+    tr :: b.trailing
+    if tr != null {
+        r :: scan_value_expr(tr, line, col, ret_ty, typed)
+        if r != null { return r }
+    }
+    // Fn-body fallback: a leading dot anywhere in the body that wasn't a typed
+    // local or a nested block is a `return` / implicit-return value → the fn's
+    // return type. Nested blocks pass fn_body = false, so they don't trigger it.
+    if fn_body && ret_ty != null { return type_from_expr(ret_ty, typed.resolved, []) }
+    return null
+}
+
+scan_stmt :: fn(s: AST.Stmt, line: i32, col: i32, ret_ty: AST.TypeExpr | null, typed: TypedProgram) -> Type | null {
+    if s is AST.LetStmt as ls {
+        ann :: ls.ty
+        if ann != null && span_contains(ls.value.span, line, col) {
+            return type_from_expr(ann, typed.resolved, [])
+        }
+        return scan_value_expr(ls.value, line, col, ret_ty, typed)
+    }
+    if s is AST.ReturnStmt as rs {
+        rv :: rs.value
+        if rv != null { return scan_value_expr(rv, line, col, ret_ty, typed) }
+        return null
+    }
+    if s is AST.ExprStmt as es { return scan_value_expr(es.expr, line, col, ret_ty, typed) }
+    if s is AST.ForStmt as fs { return scan_block(fs.body, line, col, ret_ty, typed, false) }
+    return null
+}
+
+// Descend a value-position expr into the nested blocks it may carry (if / match
+// arms / block), so a `return` / typed local inside them is still reached.
+scan_value_expr :: fn(e: AST.Expr, line: i32, col: i32, ret_ty: AST.TypeExpr | null, typed: TypedProgram) -> Type | null {
+    if e is AST.BlockExpr as b { return scan_block(b, line, col, ret_ty, typed, false) }
+    if e is AST.IfExpr as ie {
+        r :: scan_block(ie.then_block, line, col, ret_ty, typed, false)
+        if r != null { return r }
+        eb :: ie.else_branch
+        if eb is AST.IfElseBlock as blk { return scan_block(blk.block, line, col, ret_ty, typed, false) }
+        if eb is AST.IfElseIf as elif { return scan_value_expr(elif.branch, line, col, ret_ty, typed) }
+    }
+    if e is AST.MatchExpr as me {
+        for j in 0..<me.arms.len() {
+            r :: scan_value_expr(me.arms[j].body, line, col, ret_ty, typed)
+            if r != null { return r }
+        }
     }
     return null
 }
