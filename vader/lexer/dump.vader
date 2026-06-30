@@ -27,26 +27,45 @@ export dump_tokens :: fn(l: Lexer) -> string {
     return sb.to_string()
 }
 
-export dump_diagnostics :: fn(diags: Diagnostic[]) -> string {
-    // Order by (file, offset, code) so the output stays stable when several
-    // diagnostics share a line:col.
-    sorted :: sort(diags, diag_less)
+/// Render `diags` as a `# Diagnostics` block, ordered by (offset, code). The
+/// sole producer of the `lexer.snapshot` fixtures — keep its signature frozen.
+export dump_diagnostics :: fn(diags: Diagnostic[]) -> string = render_diagnostics(diags, false)
+
+/// Like `dump_diagnostics`, but prefixes every line with the source file and
+/// orders by (file, offset, code). For the build renderers (each
+/// `flush_build_diags`), whose diagnostics span every compiled module — without
+/// the file a `[line:col]` can't be traced back to a module. The dump stages run
+/// one file at a time and omit it so their snapshots stay machine-independent.
+export dump_diagnostics_with_file :: fn(diags: Diagnostic[]) -> string = render_diagnostics(diags, true)
+
+// Shared body for both public renderers. `show_file` switches the per-line file
+// prefix AND the sort (file-grouped vs offset-only) in lockstep.
+render_diagnostics :: fn(diags: Diagnostic[], show_file: bool) -> string {
+    sorted :: if show_file { sort(diags, diag_less_with_file) } else { sort(diags, diag_less) }
     sb := StringBuilder {}
     sb.append("\n# Diagnostics")
     for d in sorted {
         sb.append_char('\n')
-        sb.format_diagnostic(d)
+        sb.format_diagnostic(d, show_file)
     }
     return sb.to_string()
 }
 
 diag_less :: fn(a: Diagnostic, b: Diagnostic) -> bool {
-    // Diagnostics in a single dump-stage run come from one file, so we skip
-    // the file-name tie-breaker that `DiagnosticCollector.sorted()` uses.
-    // Order by (offset, code) is sufficient for a stable dump.
+    // A single dump-stage run comes from one file, so order by (offset, code)
+    // only — `diag_less_with_file` adds the file tie-break for the build path.
     if a.primary.start.offset < b.primary.start.offset { return true }
     if a.primary.start.offset > b.primary.start.offset { return false }
     return string_less(a.code.id, b.code.id)
+}
+
+// Build-renderer ordering : group by file first (build diagnostics span every
+// compiled module), then defer to `diag_less` for the (offset, code) tie-break.
+diag_less_with_file :: fn(a: Diagnostic, b: Diagnostic) -> bool {
+    af :: a.primary.start.file
+    bf :: b.primary.start.file
+    if af != bf { return string_less(af, bf) }
+    return diag_less(a, b)
 }
 
 format_token :: fn(sb: StringBuilder, t: Token) -> void {
@@ -197,7 +216,7 @@ export kind_name :: fn(k: TokenKind) = match k {
     .Eof     -> "eof"
 }
 
-format_diagnostic :: fn(sb: StringBuilder, d: Diagnostic) -> void {
+format_diagnostic :: fn(sb: StringBuilder, d: Diagnostic, show_file: bool) -> void {
     sev :: match d.severity {
         .Error   -> "error"
         .Warning -> "warning"
@@ -209,5 +228,8 @@ format_diagnostic :: fn(sb: StringBuilder, d: Diagnostic) -> void {
     if !d.detail.is_empty() {
         detail = ": ${d.detail}"
     }
-    sb.append("[${p.line}:${p.column}] ${sev}[${d.code.id}] ${d.code.message}${detail}")
+    // The build renderers span every compiled module, so they prefix the file ;
+    // single-file dump stages omit it to keep their snapshots machine-independent.
+    loc :: if show_file { "${p.file}:${p.line}:${p.column}" } else { "${p.line}:${p.column}" }
+    sb.append("[${loc}] ${sev}[${d.code.id}] ${d.code.message}${detail}")
 }

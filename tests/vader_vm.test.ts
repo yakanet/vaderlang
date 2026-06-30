@@ -228,7 +228,7 @@ const VADER_SELF_EMIT = new Set<string>([
   "file_decorator", "gc_array_survive", "gc_chain_survive", "gc_multi_collect",
   "generic_helper_chain", "generic_struct", "generic_type_alias",
   "if_is_field_after_narrow", "if_without_else_stmt", "impl_bounded_typeparam",
-  "implicit_dot_variant", "io_roundtrip", "is_union_alias_warn", "lambda_no_fn",
+  "implicit_dot_variant", "io_roundtrip", "is_union_runtime", "lambda_no_fn",
   "match_struct_pattern_in_union", "multiline_string", "op_overload_eq_ord",
   "parse_int_match", "std_math", "std_string_builder", "struct_lit_field_order",
   "struct_name_collision", "trait_virtual_dispatch", "transitive_mono",

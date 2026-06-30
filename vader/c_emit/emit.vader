@@ -431,7 +431,6 @@ type_id_for_struct_symbol :: fn(types: BcType[], symbol_id: i32) -> i32 {
         }
     }
     panic("c_emit: baked struct symbol_id ${symbol_id} not in the module type table")
-    return 0
 }
 
 // Type-table index of a `BcStruct` by display name, or 0 (nested-array element).

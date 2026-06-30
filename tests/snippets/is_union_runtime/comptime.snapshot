@@ -1,6 +1,6 @@
 # Comptime
 
-## tests/snippets/is_union_alias_warn
+## tests/snippets/is_union_runtime
 
 ## generic instances
   Into<Target>
@@ -25,7 +25,3 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
-
-# Diagnostics
-[24:22] warning[W0003] `is` against a union type always returns false at runtime: match against each variant of `Cat | Dog` instead
-[32:22] warning[W0003] `is` against a union type always returns false at runtime: match against each variant of `i32 | string` instead

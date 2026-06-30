@@ -13,7 +13,7 @@ import "std/path" { to_posix, to_path, filename }
 import "std/process" { spawn, ProcessError }
 import "std/cli" { FlagSpec, parse_known, bool_flag, string_flag }
 import "vader/version" { CLI_VERSION }
-import "vader/lexer" { tokenize, dump_tokens, dump_diagnostics }
+import "vader/lexer" { tokenize, dump_tokens, dump_diagnostics, dump_diagnostics_with_file }
 import "vader/parser" { parse_source, dump_program }
 import "vader/resolver/symbol" { new_factory }
 import "vader/resolver" { ResolvedProject, ResolvedModule, resolve_module }
@@ -680,7 +680,7 @@ emit_c_source :: fn(file: string, release: bool, include_path_flags: string[]) -
 // (return false) ; warnings / info still print.
 flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
     all :: merge_diagnostics(pre, lower)
-    if all.len() > 0 { eprintln(all.dump_diagnostics()) }
+    if all.len() > 0 { eprintln(all.dump_diagnostics_with_file()) }
     return !any_error_diag(all)
 }
 

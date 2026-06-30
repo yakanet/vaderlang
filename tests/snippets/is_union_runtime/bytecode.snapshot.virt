@@ -1,0 +1,167 @@
+module _main
+type 0 primitive null
+type 1 union 2,3,4
+type 2 struct snippet$Cat { name:7 }
+type 3 struct snippet$Dog { sound:7 }
+type 4 struct snippet$Fish { fins:6 }
+type 5 primitive bool
+type 6 primitive i32
+type 7 primitive string
+type 8 primitive usize
+type 9 struct std_core$Buffer {  }
+type 10 array 11
+type 11 primitive u8
+type 12 primitive void
+type 13 union 2,3
+string 0 "felix"
+string 1 "woof"
+string 2 "true"
+string 3 "false"
+string 4 "\n"
+import 0 bytes std_core$bytes (string) -> ref
+import 1 write std_io$write (i32,string) -> void
+impl 9 ByteAccess
+export main 1
+
+fn 0 snippet$is_pet (ref) -> bool
+  local.get 0
+  type_check 13
+  return
+end
+
+fn 1 snippet$main () -> i32
+  local __buf_0 ref
+  local __off_1 usize
+  local $call_7 bool
+  i64.const 5
+  call 2
+  local.set 0
+  i64.const 0
+  local.set 1
+  string.const 0
+  struct.new 2
+  call 0
+  local.set 2
+  local.get 0
+  local.get 1
+  local.get 2
+  call 5
+  local.set 1
+  local.get 0
+  local.get 1
+  call 3
+  call 6
+  i64.const 5
+  call 2
+  local.set 0
+  i64.const 0
+  local.set 1
+  string.const 1
+  struct.new 3
+  call 0
+  local.set 2
+  local.get 0
+  local.get 1
+  local.get 2
+  call 5
+  local.set 1
+  local.get 0
+  local.get 1
+  call 3
+  call 6
+  i64.const 5
+  call 2
+  local.set 0
+  i64.const 0
+  local.set 1
+  i32.const 4
+  struct.new 4
+  call 0
+  local.set 2
+  local.get 0
+  local.get 1
+  local.get 2
+  call 5
+  local.set 1
+  local.get 0
+  local.get 1
+  call 3
+  call 6
+  return.lit i32.const 0
+end
+
+fn 2 std_core$new_byte_buffer (usize) -> ref
+  local.get 0
+  call 7
+  return
+end
+
+fn 3 std_core$finish_buffer (ref,usize) -> string
+  local.get 0
+  local.get 1
+  call 8
+  return
+end
+
+fn 4 std_core$write_string_at (ref,usize,string) -> usize
+  local $len_4 usize
+  local.get 0
+  local.get 1
+  local.get 2
+  call 9
+  local.get 2
+  call.import 0
+  array.len
+  local.set 3
+  local.get 1
+  local.get 3
+  i64.add
+  return
+end
+
+fn 5 std_core$write_bool (ref,usize,bool) -> usize
+  local.get 2
+  if $L0 void
+    local.get 0
+    local.get 1
+    string.const 2
+    call 4
+    return
+  end $L0
+  local.get 0
+  local.get 1
+  string.const 3
+  call 4
+  return
+end
+
+fn 6 std_io$println__string (string) -> void
+  i32.const 0
+  local.get 0
+  call.import 1
+  i32.const 0
+  string.const 4
+  call.import 1
+  return
+end
+
+fn 7 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+  local.get 0
+  object_new 0
+  return
+end
+
+fn 8 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+  local.get 0
+  local.get 1
+  buffer_to_string
+  return
+end
+
+fn 9 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+  local.get 0
+  local.get 1
+  local.get 2
+  buffer_write_string
+  return
+end
