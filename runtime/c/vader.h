@@ -32,6 +32,18 @@
 #  define _GNU_SOURCE
 #endif
 
+/* Windows: `GetCurrentThreadStackLimits` (the conservative old-gen stack scan,
+ * vader_runtime.c) and `GetSystemTimePreciseAsFileTime` (the wall clock) are
+ * Windows 8 APIs, declared by `<windows.h>` only when `_WIN32_WINNT >= 0x0602`.
+ * Some mingw-w64 toolchains leave `_WIN32_WINNT` unset (or below 0x0602),
+ * gating those declarations out — `-Wimplicit-function-declaration` errors.
+ * Pin the minimum target before any system include ; only ever RAISE it, so a
+ * caller targeting a newer Windows (a higher value) keeps theirs. */
+#if defined(_WIN32) && (!defined(_WIN32_WINNT) || (_WIN32_WINNT < 0x0602))
+#  undef _WIN32_WINNT
+#  define _WIN32_WINNT 0x0602
+#endif
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
