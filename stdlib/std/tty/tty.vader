@@ -29,14 +29,11 @@ import "std/env" { get_env }
 // ---- detection ------------------------------------------------------------
 
 /// True when `stream` is connected to an interactive terminal whose ANSI codes
-/// will render. On Windows this also enables virtual-terminal processing on the
-/// stream (and reports false when the console is too old to support it). The
-/// result is memoized per stream — the syscall runs once.
-///
-/// Pass the stream explicitly (`is_tty(.Stdout)` / `is_tty(.Stderr)`): the
-/// compiler does not yet fill default parameter values (SPEC §1067), so a
-/// default here would not let callers omit the argument.
-@intrinsic export is_tty :: fn(stream: Stream) -> bool
+/// will render; defaults to stdout, so `is_tty()` checks stdout. On Windows this
+/// also enables virtual-terminal processing on the stream (and reports false
+/// when the console is too old to support it). The result is memoized per
+/// stream — the syscall runs once.
+@intrinsic export is_tty :: fn(stream: Stream = .Stdout) -> bool
 
 /// True when ANSI color should be emitted: either standard stream is a terminal
 /// and `NO_COLOR` is unset or empty. Per the NO_COLOR convention, a non-empty

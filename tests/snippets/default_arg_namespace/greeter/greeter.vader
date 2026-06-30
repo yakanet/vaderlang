@@ -1,0 +1,5 @@
+// Greeter module for the default_arg_namespace regression snippet.
+module "snippet/greeter"
+
+/// Build a greeting. `prefix` defaults to "Hi", so `greet("Bob")` works.
+export greet :: fn(name: string, prefix: string = "Hi") -> string = "${prefix}, ${name}"

@@ -296,15 +296,34 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
         return overload_params_matching(ie.name, callee_ty, typed)
     }
     if c.callee is AST.FieldExpr as fe {
-        // Only genuine UFCS dispatch (the receiver type was stashed when the
-        // FieldExpr was typed) — not namespace member calls (`mod.foo(...)`),
-        // which carry no `self` and stay positional for now.
+        // Genuine UFCS dispatch (the receiver type was stashed when the
+        // FieldExpr was typed) curries away `self`.
         recv :: typed.ufcs_receiver_types[fe.id]
         if recv != null {
             return ufcs_method_params(fe.field, recv, callee_ty, typed)
         }
+        // Otherwise a namespace member call (`mod.foo(...)`) : reach the
+        // export's declared params so named args + defaults fill, same as the
+        // IdentExpr path above.
+        return namespace_member_params(fe, callee_ty, typed)
     }
     return null
+}
+
+// Declared params of a namespace-qualified callee `mod.foo`. Mirrors
+// `field.vader::try_namespace_field`'s base→module resolution but reads the
+// params table populated by `build_namespace_export_params`. Returns null
+// unless `fe` is a namespace member fn call whose arity matches `callee_ty`
+// (a mismatch stays positional rather than mis-filling).
+namespace_member_params :: fn(fe: AST.FieldExpr, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
+    mod_id :: namespace_call_mod_id(fe, typed)
+    if mod_id is null { return null }
+    by_name :: typed.namespace_export_params[mod_id]
+    if by_name is null { return null }
+    ps :: by_name[fe.field]
+    if ps is null { return null }
+    if ps.len() != callee_ty.params.len() { return null }
+    return ps
 }
 
 // Scan the local overload bucket for the candidate whose fn-type the

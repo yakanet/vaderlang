@@ -450,6 +450,9 @@ populate_from :: fn(
         if entry_typed.namespace_exports[mod_id] is null {
             entry_typed.namespace_exports[mod_id] = build_namespace_exports(mod_id, project, per_module)
         }
+        if entry_typed.namespace_export_params[mod_id] is null {
+            entry_typed.namespace_export_params[mod_id] = build_namespace_export_params(mod_id, project, per_module)
+        }
     }
 }
 
@@ -1399,6 +1402,33 @@ build_namespace_exports :: fn(
         }
         aliased :: typed.resolved.alias_types[sym.id]
         if !(aliased is null) { out[name] = aliased }
+    }
+    return out
+}
+
+// Declared params of `mod_id`'s exported FN members, by name. Parallels
+// `build_namespace_exports` (which carries only the Type) so a namespace-
+// qualified call `mod.foo(...)` can reach each param's `default_value` for
+// named-arg reordering + default filling (see `call.vader::callee_param_decls`).
+//
+// First-overload-only: `collected.symbols` is keyed by name with first-decl-wins
+// (collect.vader), and `pick_overload` bails for non-IdentExpr callees, so a
+// namespace-qualified call never overload-resolves — only the first overload's
+// params are reachable here. To support overloaded namespace calls this map
+// would need to become bucket-valued and selection move into
+// `namespace_member_params`, mirroring `overload_params_matching`.
+build_namespace_export_params :: fn(
+    mod_id: string, project: LoadedProject,
+    per_module: MutableMap<string, TypedProgram>,
+) -> MutableMap<string, AST.FnParam[]> {
+    out :: MutableMap<string, AST.FnParam[]> {}
+    loaded :: project.modules[mod_id]
+    if loaded is null { return out }
+    typed :: per_module[mod_id]
+    if typed is null { return out }
+    for [name, sym] in loaded.collected.symbols {
+        decl :: typed.fn_decls[sym.id]
+        if decl is AST.FnDecl as fd { out[name] = fd.params }
     }
     return out
 }
