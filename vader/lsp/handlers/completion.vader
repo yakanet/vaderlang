@@ -338,10 +338,10 @@ dot_after_brace_or_comma :: fn(source: string, line0: i32, dot_col: i32) -> bool
     return b == '{' || b == ','
 }
 
-// Leading-dot completion (`S { .`, `f(.`, `= .`): the dot has no receiver, so
-// what follows comes from context — a struct-literal field key (after `{` / `,`)
-// or an enum literal (elsewhere). MVP scope for the enum side: a fn parameter's
-// default value and a fn-call argument slot (match-arm patterns are deferred).
+// Leading-dot completion (`S { .`, `f(.`, `= .`, `match e { .`): the dot has no
+// receiver, so what follows comes from context — a struct-literal field key
+// (after `{` / `,`) or an enum literal (elsewhere). The enum side covers a fn
+// parameter's default value, a fn-call argument slot, and a match-arm pattern.
 leading_dot_completion :: fn(decls: AST.Decl[], typed: TypedProgram, line: i32, col: i32, struct_key: bool) -> JsonValue {
     // `S { .field }` — the enclosing struct literal's field names.
     if struct_key {
@@ -402,6 +402,29 @@ expected_enum_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgr
     if ca != null {
         en :: as_enum_type(ca, typed)
         if en != null { return en }
+    }
+    ms :: match_scrutinee_type_at(decls, line, col, typed)
+    if ms != null {
+        en :: as_enum_type(ms, typed)
+        if en != null { return en }
+    }
+    return null
+}
+
+// Scrutinee type of the enclosing `match` when the cursor is in an arm PATTERN
+// position (`match e { .| }`) — i.e. inside the match but not inside any arm's
+// body expression (a value position, where the expected type would be the arm
+// result, not the scrutinee). Null otherwise.
+match_scrutinee_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
+    chain :: enclosing_exprs(decls, line, col)
+    for i in 0..<chain.len() {
+        e :: chain[i]
+        if e is AST.MatchExpr as me {
+            for j in 0..<me.arms.len() {
+                if span_contains(me.arms[j].body.span, line, col) { return null }
+            }
+            return typed.expr_types[me.scrutinee.id]
+        }
     }
     return null
 }
