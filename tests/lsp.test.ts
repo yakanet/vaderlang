@@ -540,6 +540,36 @@ test("lsp: enum completion in a fn-call argument slot", async () => {
   expect(labels.has("Blue")).toBe(true);
 }, { timeout: MEDIUM_BUILD });
 
+// Leading-dot completion inside a struct literal (`S { .<field> }`). The dot is a
+// field KEY (byte before it is `{` / `,`), not an enum literal or member access.
+const STRUCT_LIT_SOURCE = `module "lsp_test"
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+main :: fn() -> i32 {
+    p :: Point { . }
+    return 0
+}
+`;
+
+test("lsp: completion of struct-literal field keys", async () => {
+  // Line 8 = `    p :: Point { . }` ; the `.` is at char 17, cursor at char 18.
+  const results = await driveLsp(STRUCT_LIT_SOURCE, [
+    { method: "textDocument/completion", position: { line: 8, character: 18 } },
+  ]);
+  const list = results[0]!.result as CompletionList;
+  const labels = new Set(list.items.map((i) => i.label));
+  expect(labels.has("x")).toBe(true);
+  expect(labels.has("y")).toBe(true);
+  // The field's type rides in detail (like member completion).
+  expect(list.items.find((i) => i.label === "x")?.detail).toBe("i32");
+  // No keyword / buffer-word leakage.
+  expect(labels.has("Point")).toBe(false);
+}, { timeout: MEDIUM_BUILD });
+
 interface TextEditT { newText: string }
 interface WorkspaceEditT { changes: Record<string, TextEditT[]> }
 interface CodeActionT { title: string; kind: string; edit: WorkspaceEditT }
