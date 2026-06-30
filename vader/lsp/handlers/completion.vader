@@ -16,10 +16,11 @@ module "vader/lsp/handlers"
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonArray }
 import "std/collections" { MutableMap }
 import "std/string" { split }
-import "vader/types" { ArrayType, StructType, UnresolvedType, FreeIntType, FreeFloatType, display_type }
+import "vader/types" { ArrayType, StructType, UnresolvedType, TypeParamType, FreeIntType, FreeFloatType, display_type }
 import "vader/text" { is_ident_byte }
 import "vader/typecheck" {
     TypedProgram, ufcs_methods_for, UfcsMethod, array_builtin_methods, ArrayBuiltinMethod,
+    namespace_base_mod_id, typeparam_bound_method_names,
 }
 import "vader/lsp/protocol" {
     position_uri, position_line, position_character, span_contains,
@@ -198,6 +199,22 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
     recv_type :: cached.result.typed.expr_types[recv.id]
     if recv_type == null { return completion_list([]) }
 
+    // Namespace-import alias receiver (`G.<member>` where `G :: import "p"`) :
+    // list the target module's exports. The receiver types as UnresolvedType,
+    // and the UFCS loop below — via is_assignable's Unresolved-matches-every
+    // -free-fn rule — would otherwise offer every imported free fn (print/…).
+    ns_mod :: namespace_base_mod_id(recv, cached.result.typed)
+    if ns_mod != null {
+        exports :: cached.result.typed.namespace_exports[ns_mod]
+        if exports != null {
+            ns_items: JsonValue[] = []
+            for [name, ty] in exports {
+                ns_items.push(completion_item(name, import_ci_kind(name), display_type(ty)))
+            }
+            return completion_list(ns_items)
+        }
+    }
+
     items: JsonValue[] = []
     seen :: MutableMap<string, bool> {}
 
@@ -254,10 +271,25 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
     // Free-fn UFCS methods — a free `fn(self: T, …)` called as `recv.f(…)`, e.g.
     // `mint :: fn(self: NodeIdFactory)` invoked `f.mint()`. Not in an impl block,
     // so the loop above misses them ; match every free fn whose first param fits.
-    for um in ufcs_methods_for(recv_type, cached.result.typed) {
-        if seen[um.name] != null { continue }
-        seen[um.name] = true
-        items.push(completion_item(um.name, .Method, display_type(um.curried)))
+    // Skipped for UnresolvedType / TypeParamType receivers : is_assignable matches
+    // those against EVERY free fn (type_assign.vader), so the loop would be noise —
+    // a bound type param's real methods come from the bound walk just below.
+    if !(recv_type is UnresolvedType) && !(recv_type is TypeParamType) {
+        for um in ufcs_methods_for(recv_type, cached.result.typed) {
+            if seen[um.name] != null { continue }
+            seen[um.name] = true
+            items.push(completion_item(um.name, .Method, display_type(um.curried)))
+        }
+    }
+
+    // Trait methods reachable through a generic param's bound (`t: T` where
+    // `T: Display` → offer `to_string`). The impl + UFCS loops can't see these.
+    if recv_type is TypeParamType as tp {
+        for mname in typeparam_bound_method_names(tp, cached.result.typed) {
+            if seen[mname] != null { continue }
+            seen[mname] = true
+            items.push(completion_item(mname, .Method, ""))
+        }
     }
 
     return completion_list(items)

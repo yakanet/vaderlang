@@ -885,15 +885,50 @@ try_namespace_field :: fn(e: AST.FieldExpr, typed: TypedProgram) -> Type | null 
 // Resolve a `mod.field` FieldExpr's base to the imported module id, or null
 // when the base isn't a namespace import binding. Shared by `try_namespace_field`
 // (value type) and `call.vader::namespace_member_params` (decl params).
-namespace_call_mod_id :: fn(e: AST.FieldExpr, typed: TypedProgram) -> string | null {
-    target :: e.target
-    if !(target is AST.IdentExpr) { return null }
-    sym :: typed.resolved.idents[target.span.hash()]
+namespace_call_mod_id :: fn(e: AST.FieldExpr, typed: TypedProgram) = namespace_base_mod_id(e.target, typed)
+
+/// Module id behind a namespace base expr — the `mod` in a `mod.field` access,
+/// where `mod` is an `import "p"` namespace binding. Null when `base` isn't such
+/// a binding. Exported so the LSP can list a namespace alias's exports on
+/// `mod.<member>` completion (shared with `namespace_call_mod_id`).
+export namespace_base_mod_id :: fn(base: AST.Expr, typed: TypedProgram) -> string | null {
+    if !(base is AST.IdentExpr) { return null }
+    sym :: typed.resolved.idents[base.span.hash()]
     if sym is null { return null }
     if sym.kind != SymbolKind.ImportBinding { return null }
     targets :: typed.import_targets
     if targets is null { return null }
     return targets.namespace_targets[sym.id]
+}
+
+/// Method names declared by a type parameter's bound trait(s) — a single trait
+/// or an `A & B` chain. For LSP completion on a `t.<member>` receiver typed as
+/// that param (`t: T` where `T: Display` → `to_string`). Empty when the param is
+/// unbound or its bound doesn't resolve to a trait.
+export typeparam_bound_method_names :: fn(tp: TypeParamType, typed: TypedProgram) -> string[] {
+    bound :: typed.resolved.type_param_bounds[tp.symbol.id]
+    if bound is null { return [] }
+    out: string[] = []
+    collect_bound_method_names(bound, typed, out)
+    return out
+}
+
+// Append every trait-method name reachable through `bound` (single trait or
+// `A & B`) into `out`. Mirrors `dispatch_bounded_method`'s bound walk.
+collect_bound_method_names :: fn(bound: AST.Expr, typed: TypedProgram, out: string[]) -> void {
+    if bound is AST.BinaryExpr {
+        if bound.op == AST.BinaryOp.BitAnd {
+            collect_bound_method_names(bound.left, typed, out)
+            collect_bound_method_names(bound.right, typed, out)
+            return
+        }
+    }
+    bound_ty :: type_from_expr(bound, typed.resolved, [])
+    if bound_ty is TraitType as tt {
+        decl :: typed.trait_decls[tt.symbol.id]
+        if decl is null { return }
+        for m in decl.members { out.push(m.name) }
+    }
 }
 
 import "vader/resolver/symbol" { SymbolKind }
