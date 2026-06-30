@@ -29,7 +29,7 @@ import "vader/lsp/protocol" {
 import "vader/lsp/analysis" {
     ServerState, DocIndex, DeclEntry, DeclKind, build_index,
     typed_project_for, source_file_for_path, find_expr_at,
-    find_receiver_before_dot, find_binding_rhs_type_at, find_enclosing_call,
+    find_receiver_before_dot, find_binding_rhs_type_at, find_enclosing_call, enclosing_exprs,
 }
 AST :: import "vader/parser"
 
@@ -61,7 +61,9 @@ export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonVal
             // struct fields + impl methods, resolved through the typed cache.
             dot :: member_context(index.source, line0, char0)
             if dot != null {
-                return member_completion(state, uri, line0, dot, is_leading_dot(index.source, line0, dot))
+                lead :: is_leading_dot(index.source, line0, dot)
+                skey :: dot_after_brace_or_comma(index.source, line0, dot)
+                return member_completion(state, uri, line0, dot, lead, skey)
             }
 
             // Tier 1 : in-scope identifiers + keywords. LSP positions are
@@ -177,7 +179,7 @@ member_context :: fn(source: string, line0: i32, char0: i32) -> i32 | null {
 // smallest typed expression ending at `dot_col - 1` (the char before the `.`) —
 // the parser error-recovers a trailing `.` into a `FieldExpr` whose target is
 // still typed, so the typed cache resolves the receiver even mid-edit.
-member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i32, leading: bool) -> JsonValue {
+member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i32, leading: bool, struct_key: bool) -> JsonValue {
     file_path :: uri_to_path(uri)
     if file_path == "" { return completion_list([]) }
     cached :: typed_project_for(state, file_path)
@@ -191,12 +193,12 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
     // call receiver (`f(a, b).m`) to the call itself, not its last argument —
     // whose exclusive-end overlaps the closing `)` under a plain positional
     // lookup. Fall back to the positional finder when nothing ends at the dot.
-    // A leading dot (`f(.`, `x = .`, `, .`) is an enum literal, not a member
-    // access — its variant's enum comes from context. Handle it before the
-    // receiver path, which would otherwise treat the enclosing call/expr that
-    // `find_expr_at` recovers as a bogus receiver.
+    // A leading dot (`S { .`, `f(.`, `x = .`) isn't a member access — it's a
+    // struct-literal field key or an enum literal, resolved from context. Handle
+    // it before the receiver path, which would otherwise treat the enclosing
+    // expr that `find_expr_at` recovers (e.g. the call for `f(.`) as a receiver.
     if leading {
-        return enum_literal_completion(sf.program.decls, cached.result.typed, line0 + 1, dot_col)
+        return leading_dot_completion(sf.program.decls, cached.result.typed, line0 + 1, dot_col, struct_key)
     }
 
     recv := find_receiver_before_dot(sf.program.decls, line0 + 1, dot_col, cached.result.typed)
@@ -309,24 +311,44 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
 // means member access ; anything else (`(`, `,`, `=`, `{`, `>` from `->`, start
 // of input) means the dot opens an enum literal whose type comes from context.
 is_leading_dot :: fn(source: string, line0: i32, dot_col: i32) -> bool {
-    sb :: source.bytes()
-    dot_off :: lsp_to_offset(source, line0, dot_col - 1)
-    if dot_off == 0 { return true }
-    i := dot_off - 1
-    for i > 0 {
-        if sb[i] == ' ' || sb[i] == '\t' { i = i - 1 } else { break }
-    }
-    b :: sb[i]
+    b :: byte_before_dot(source, line0, dot_col)
+    if b == 0 { return true }
     if is_ident_byte(b) { return false }
     if b == ')' || b == ']' { return false }
     return true
 }
 
-// Leading-dot enum-literal completion (`= .` / `f(.`): the dot has no receiver,
-// so the variant's enum type comes from context. Reconstruct the expected enum
-// from the enclosing AST node and list its variants. MVP scope: a fn parameter's
+// The source byte before the dot at 1-based `dot_col` on `line0`, skipping
+// whitespace ; 0 at the start of input. Shared by the leading-dot classifiers.
+byte_before_dot :: fn(source: string, line0: i32, dot_col: i32) -> u8 {
+    sb :: source.bytes()
+    dot_off :: lsp_to_offset(source, line0, dot_col - 1)
+    if dot_off == 0 { return 0 }
+    i := dot_off - 1
+    for i > 0 {
+        if sb[i] == ' ' || sb[i] == '\t' { i = i - 1 } else { break }
+    }
+    return sb[i]
+}
+
+// True when the dot opens a struct-literal field key — the byte before it (after
+// whitespace) is `{` or `,` (`S { .field` / `, .field`). A subset of is_leading_dot.
+dot_after_brace_or_comma :: fn(source: string, line0: i32, dot_col: i32) -> bool {
+    b :: byte_before_dot(source, line0, dot_col)
+    return b == '{' || b == ','
+}
+
+// Leading-dot completion (`S { .`, `f(.`, `= .`): the dot has no receiver, so
+// what follows comes from context — a struct-literal field key (after `{` / `,`)
+// or an enum literal (elsewhere). MVP scope for the enum side: a fn parameter's
 // default value and a fn-call argument slot (match-arm patterns are deferred).
-enum_literal_completion :: fn(decls: AST.Decl[], typed: TypedProgram, line: i32, col: i32) -> JsonValue {
+leading_dot_completion :: fn(decls: AST.Decl[], typed: TypedProgram, line: i32, col: i32, struct_key: bool) -> JsonValue {
+    // `S { .field }` — the enclosing struct literal's field names.
+    if struct_key {
+        si :: struct_lit_field_items(decls, typed, line, col)
+        if si != null { return completion_list(si) }
+    }
+    // Otherwise an enum literal whose enum is reconstructed from context.
     et :: expected_enum_at(decls, line, col, typed)
     if et == null { return completion_list([]) }
     items: JsonValue[] = []
@@ -334,6 +356,37 @@ enum_literal_completion :: fn(decls: AST.Decl[], typed: TypedProgram, line: i32,
         items.push(completion_item(name, .Enum, ""))
     }
     return completion_list(items)
+}
+
+// Field items of the struct literal enclosing `(line, col)`, or null when the
+// cursor isn't inside a typed struct literal. Mirrors the struct-field block of
+// `member_completion` (decl.fields + struct_field_types for the detail).
+struct_lit_field_items :: fn(decls: AST.Decl[], typed: TypedProgram, line: i32, col: i32) -> JsonValue[] | null {
+    chain :: enclosing_exprs(decls, line, col)
+    // Index loop (not `for x in arr`) sidesteps the materialisation gap (GATE B1)
+    // over the erased `AST.Expr[]` element type — same as find_enclosing_call.
+    for i in 0..<chain.len() {
+        e :: chain[i]
+        if e is AST.StructLitExpr as sl {
+            t :: typed.expr_types[sl.id]
+            if t is StructType as st {
+                decl :: typed.struct_decls[st.symbol.id]
+                if decl == null { return null }
+                fmap :: typed.struct_field_types[st.symbol.id]
+                items: JsonValue[] = []
+                for fld in decl.fields {
+                    detail := ""
+                    if fmap != null {
+                        ft :: fmap[fld.name]
+                        if ft != null { detail = display_type(ft) }
+                    }
+                    items.push(completion_item(fld.name, .Field, detail))
+                }
+                return items
+            }
+        }
+    }
+    return null
 }
 
 // The enum expected at a leading-dot position, or null. Tries a parameter
