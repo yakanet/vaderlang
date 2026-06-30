@@ -179,20 +179,25 @@ Keep LoweredAST distinct. Tree rewrites (match/try/for-in/range desugar) are cle
 
   - **Promoted to a dedicated plan (2026-06-16): [`.claude/plans/core-string-utf8-reorg.md`](.claude/plans/core-string-utf8-reorg.md).** It folds in the `string.len()` miscompile (UFCS to a non-imported, non-`core` free fn → invalid C), the **frozen import policy** (using a non-imported fn — except `std/core` the prelude — is a compilation error), the prelude/layering rule, and the emitter ICE backstop. The `bytes_to_string` reconciliation item below is folded into that plan's Phase 3.
 - [ ] **Future audits** — revisit when new stdlib modules land. A shared `Cursor(T)` trait could unify `std/json` and `vader/lexer`'s hand-rolled cursors when a real need arises.
-- [~] **Harden multi-file module support (compiler).** Surfaced 2026-06-08 splitting
-  `std/core` into `core.vader` + `primitives.vader` (same `module "std/core"`). The
-  comptime decl-lookup `files[0]`-only bug is fixed, but two latent single-file
-  assumptions remain (worked around, not fixed): (a) FRAGMENTATION — "a module's
-  decls" has 4 separate accessors (`lower::module_decls`,
+- [x] **Harden multi-file module support (compiler) — DONE (the correctness gap; verified 2026-07-01).** Surfaced 2026-06-08 splitting
+  `std/core` into `core.vader` + `primitives.vader` (same `module "std/core"`). **Gap (b)
+  — "the resolver body-walker is structurally `files[0]`-only" — is resolved**, and the
+  earlier framing was wrong: the typecheck/compile path body-walks EVERY file
+  (`typecheck/orchestrate::merge_module_program` concatenates all files' decls into one
+  `Program` before `resolve_program`). Empirically confirmed: a probe in the
+  `symbols_by_name` fallback fired ONLY for `Span`/`Type` (1458×) — pervasively-imported
+  types in **materialised / substituted decl clones** synthesised post-walk, NOT
+  sibling-file refs. So the `symbols_by_name` fallback (`type_expr.vader`) is load-bearing
+  for clone spans, not a multi-file workaround — comments at `type_expr.vader` +
+  `resolve.vader:40` corrected. The only `files[0]`-only resolve left is
+  `cli/main.vader::resolve_loaded_project`, used solely by the `dump --stage=resolved-ast`
+  path (`run_resolver_stage`) which never runs the typer — a dump-fidelity limit, not a
+  compile bug. Residual hygiene (not correctness, deferred): (a) FRAGMENTATION — "a module's
+  decls" still has 4 separate accessors (`lower::module_decls`,
   `comptime/check::lookup_module_decls`, `comptime/specialize::module_decls_for`,
-  `typecheck/orchestrate::merge_module_program`); one shared accessor would make
-  "a pass reads files[0] only" unrepresentable. (b) the resolver body-walker is
-  structurally `files[0]`-only (`resolver/resolve.vader:153`, exploited by the
-  dump path `cli/main.vader:592`), already patched over with `symbols_by_name`
-  fallbacks (`typecheck/type_expr.vader:95`, `resolver/resolve.vader:42`) — later
-  files of a multi-file module aren't body-walked. Stale comment to fix:
-  `lower/lower_mono_fn.vader:19-22` ("flattened at load time" — they aren't).
-  Cross-pass invariant change → review before landing.
+  `merge_module_program`); one shared accessor would make "a pass reads files[0] only"
+  unrepresentable. Stale comment still to fix if touched: `lower/lower_mono_fn.vader`
+  ("flattened at load time").
 - [x] **Reconcile `u8[] → string` to `bytes_to_string`.** Target-ABI S1 adds the
   canonical `bytes_to_string` (host intrinsic) in `std/core`. The tree still has
   the legacy `as_string` (`std/string`) and a `bytes_as_string` import alias
