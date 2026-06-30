@@ -595,6 +595,92 @@ test("lsp: enum completion in a match-arm pattern", async () => {
   expect(labels.has("Blue")).toBe(true);
 }, { timeout: MEDIUM_BUILD });
 
+// Enum completion in a `return` value — expected type is the fn's return type.
+const RETURN_ENUM_SOURCE = `module "lsp_test"
+
+Color :: enum { Red, Green, Blue }
+
+pick :: fn() -> Color {
+    return .
+}
+`;
+
+test("lsp: enum completion in a return value", async () => {
+  // Line 5 = `    return .` ; the `.` is at char 11, cursor at 12.
+  const results = await driveLsp(RETURN_ENUM_SOURCE, [
+    { method: "textDocument/completion", position: { line: 5, character: 12 } },
+  ]);
+  const labels = new Set((results[0]!.result as CompletionList).items.map((i) => i.label));
+  expect(labels.has("Red")).toBe(true);
+  expect(labels.has("Blue")).toBe(true);
+}, { timeout: MEDIUM_BUILD });
+
+// Enum completion in a typed local's value — expected type is the annotation.
+const TYPED_LOCAL_ENUM_SOURCE = `module "lsp_test"
+
+Color :: enum { Red, Green, Blue }
+
+main :: fn() -> i32 {
+    c: Color = .
+    return 0
+}
+`;
+
+test("lsp: enum completion in a typed local value", async () => {
+  // Line 5 = `    c: Color = .` ; the `.` is at char 15, cursor at 16.
+  const results = await driveLsp(TYPED_LOCAL_ENUM_SOURCE, [
+    { method: "textDocument/completion", position: { line: 5, character: 16 } },
+  ]);
+  const labels = new Set((results[0]!.result as CompletionList).items.map((i) => i.label));
+  expect(labels.has("Red")).toBe(true);
+  expect(labels.has("Green")).toBe(true);
+}, { timeout: MEDIUM_BUILD });
+
+// Enum completion in a struct-literal field VALUE — expected type is the field's.
+const STRUCT_FIELD_VALUE_ENUM_SOURCE = `module "lsp_test"
+
+Color :: enum { Red, Green, Blue }
+
+Pixel :: struct { c: Color }
+
+main :: fn() -> i32 {
+    p :: Pixel { .c = . }
+    return 0
+}
+`;
+
+test("lsp: enum completion in a struct-literal field value", async () => {
+  // Line 7 = `    p :: Pixel { .c = . }` ; the value `.` is at char 22, cursor at 23.
+  const results = await driveLsp(STRUCT_FIELD_VALUE_ENUM_SOURCE, [
+    { method: "textDocument/completion", position: { line: 7, character: 23 } },
+  ]);
+  const labels = new Set((results[0]!.result as CompletionList).items.map((i) => i.label));
+  expect(labels.has("Red")).toBe(true);
+  expect(labels.has("Blue")).toBe(true);
+}, { timeout: MEDIUM_BUILD });
+
+// Enum completion in a match-arm BODY — expected type is the match result.
+const MATCH_BODY_ENUM_SOURCE = `module "lsp_test"
+
+Color :: enum { Red, Green, Blue }
+
+rotate :: fn(c: Color) -> Color {
+    return match c {
+        _ -> .
+    }
+}
+`;
+
+test("lsp: enum completion in a match-arm body", async () => {
+  // Line 6 = `        _ -> .` ; the `.` is at char 13, cursor at 14.
+  const results = await driveLsp(MATCH_BODY_ENUM_SOURCE, [
+    { method: "textDocument/completion", position: { line: 6, character: 14 } },
+  ]);
+  const labels = new Set((results[0]!.result as CompletionList).items.map((i) => i.label));
+  expect(labels.has("Red")).toBe(true);
+  expect(labels.has("Green")).toBe(true);
+}, { timeout: MEDIUM_BUILD });
+
 interface TextEditT { newText: string }
 interface WorkspaceEditT { changes: Record<string, TextEditT[]> }
 interface CodeActionT { title: string; kind: string; edit: WorkspaceEditT }
