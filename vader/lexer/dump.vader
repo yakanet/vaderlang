@@ -15,6 +15,7 @@ import "std/string" { pad_start, pad_end, compare_ascending as string_less }
 import "std/numbers" { to_hex }
 import "std/sort" { sort }
 import "vader/text" { quote_simple }
+TTY :: import "std/tty"
 // Diagnostic info is now resolved at construction time — see vader/diagnostics.
 
 export dump_tokens :: fn(l: Lexer) -> string {
@@ -217,12 +218,23 @@ export kind_name :: fn(k: TokenKind) = match k {
 }
 
 format_diagnostic :: fn(sb: StringBuilder, d: Diagnostic, show_file: bool) -> void {
-    sev :: match d.severity {
+    sev_word :: match d.severity {
         .Error   -> "error"
         .Warning -> "warning"
         .Info    -> "info"
         .Hint    -> "hint"
     }
+    // Colorize the severity only on the build path (show_file true). The no-file
+    // dump stages feed the byte-stable lexer.snapshot fixtures, so they stay
+    // plain ; and TTY.red / TTY.yellow degrade to plain text anyway when neither
+    // stream is a terminal (so a piped build, including snapshot capture, is plain).
+    sev :: if show_file {
+        match d.severity {
+            .Error        -> TTY.red(sev_word)
+            .Warning      -> TTY.yellow(sev_word)
+            .Info | .Hint -> sev_word
+        }
+    } else { sev_word }
     p :: d.primary.start
     detail: string = ""
     if !d.detail.is_empty() {

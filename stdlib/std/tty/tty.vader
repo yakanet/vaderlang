@@ -1,0 +1,145 @@
+// std/tty — terminal detection and ANSI coloring.
+//
+// A small, terminal-aware coloring API. The color/style helpers return a string
+// that carries ANSI SGR codes only when coloring is enabled; otherwise they
+// return their input unchanged, so callers keep using `println` / `eprintln`
+// as-is.
+//
+// Coloring is enabled when either standard stream is an interactive terminal
+// (so a build that redirects only one of stdout/stderr still colors what stays
+// on the terminal) and the `NO_COLOR` convention is not in effect. The
+// detection is memoized once per stream in the runtime — see `vader_is_tty` in
+// runtime/c/vader_runtime.c. Vader has no module-scope run-once mechanism
+// (top-level consts are comptime-only, imports run no code), so the cache lives
+// on the C side.
+//
+// Cross-platform: the codes used here (the 16-color palette + bold/dim/italic/
+// underline/reverse) are understood by POSIX terminals and, on Windows 10+, by
+// the console once virtual-terminal processing is enabled — which `vader_is_tty`
+// does on first probe. On a console too old for VT, `is_tty` reports false, so
+// output degrades to plain text rather than leaking raw escapes. 256-color and
+// 24-bit "true color" are deliberately omitted: they are not reliably supported
+// across the three targets.
+
+module "std/tty"
+
+import "std/io" { Stream }
+import "std/env" { get_env }
+
+// ---- detection ------------------------------------------------------------
+
+/// True when `stream` is connected to an interactive terminal whose ANSI codes
+/// will render. On Windows this also enables virtual-terminal processing on the
+/// stream (and reports false when the console is too old to support it). The
+/// result is memoized per stream — the syscall runs once.
+///
+/// Pass the stream explicitly (`is_tty(.Stdout)` / `is_tty(.Stderr)`): the
+/// compiler does not yet fill default parameter values (SPEC §1067), so a
+/// default here would not let callers omit the argument.
+@intrinsic export is_tty :: fn(stream: Stream) -> bool
+
+/// True when ANSI color should be emitted: either standard stream is a terminal
+/// and `NO_COLOR` is unset or empty. Per the NO_COLOR convention, a non-empty
+/// `NO_COLOR` value disables color regardless of its content.
+export should_colorize :: fn() -> bool {
+    if !(is_tty(.Stdout) || is_tty(.Stderr)) { return false }
+    no_color :: get_env("NO_COLOR")
+    if no_color == null { return true }
+    return no_color == ""
+}
+
+// ---- coloring -------------------------------------------------------------
+//
+// The helpers are receiver-less module functions. Callers reach them through
+// the module — idiomatically aliased as `TTY` — so the call site reads
+// `TTY.red("error")`. (A struct-singleton receiver would force every call onto
+// UFCS, which doesn't materialise a cross-module, UFCS-only callee — GATE B1.)
+
+// SGR escape `\e[<code>m` for `code` (e.g. "31"), or "" when `enabled` is false.
+// Pure given `enabled` — the gating decision is supplied by the caller, which
+// keeps this unit testable independently of the runtime terminal state.
+escape :: fn(enabled: bool, code: string) = if enabled { "\u{1B}[${code}m" } else { "" }
+
+// Wrap `s` in SGR `code` + reset when coloring is enabled, else return `s`.
+// `should_colorize` is evaluated once per call.
+paint :: fn(code: string, s: string) -> string {
+    on :: should_colorize()
+    return escape(on, code) + s + escape(on, "0")
+}
+
+/// Wrap `s` in an arbitrary SGR sequence `code` (e.g. "1;31") when coloring is
+/// enabled, else return `s` unchanged. Escape hatch for combinations the named
+/// helpers don't cover; prefer the named helpers for the common cases.
+export sgr :: fn(code: string, s: string) = paint(code, s)
+
+// ---- styles ---------------------------------------------------------------
+
+/// Reset all SGR attributes (SGR 0) when coloring is enabled, else "". Useful
+/// when composing sequences by hand.
+export reset :: fn() = escape(should_colorize(), "0")
+/// Bold (SGR 1) — emphasis, e.g. diagnostic codes.
+export bold :: fn(s: string) = paint("1", s)
+/// Dim / faint (SGR 2). Renders on modern terminals; a no-op on consoles that
+/// don't support it (never raw escapes).
+export dim :: fn(s: string) = paint("2", s)
+/// Italic (SGR 3). As `dim`, degrades to a no-op where unsupported.
+export italic :: fn(s: string) = paint("3", s)
+/// Underline (SGR 4).
+export underline :: fn(s: string) = paint("4", s)
+/// Reverse video — swap foreground and background (SGR 7).
+export reverse :: fn(s: string) = paint("7", s)
+
+// ---- foreground colors (normal, SGR 30–37) --------------------------------
+
+/// Black foreground (SGR 30).
+export black :: fn(s: string) = paint("30", s)
+/// Red foreground (SGR 31) — errors / failures.
+export red :: fn(s: string) = paint("31", s)
+/// Green foreground (SGR 32) — successes.
+export green :: fn(s: string) = paint("32", s)
+/// Yellow foreground (SGR 33) — warnings (the ANSI stand-in for orange).
+export yellow :: fn(s: string) = paint("33", s)
+/// Blue foreground (SGR 34).
+export blue :: fn(s: string) = paint("34", s)
+/// Magenta foreground (SGR 35).
+export magenta :: fn(s: string) = paint("35", s)
+/// Cyan foreground (SGR 36).
+export cyan :: fn(s: string) = paint("36", s)
+/// White foreground (SGR 37).
+export white :: fn(s: string) = paint("37", s)
+
+// ---- foreground colors (bright, SGR 90–97) --------------------------------
+
+/// Bright black / gray foreground (SGR 90).
+export gray :: fn(s: string) = paint("90", s)
+/// Bright red foreground (SGR 91).
+export bright_red :: fn(s: string) = paint("91", s)
+/// Bright green foreground (SGR 92).
+export bright_green :: fn(s: string) = paint("92", s)
+/// Bright yellow foreground (SGR 93).
+export bright_yellow :: fn(s: string) = paint("93", s)
+/// Bright blue foreground (SGR 94).
+export bright_blue :: fn(s: string) = paint("94", s)
+/// Bright magenta foreground (SGR 95).
+export bright_magenta :: fn(s: string) = paint("95", s)
+/// Bright cyan foreground (SGR 96).
+export bright_cyan :: fn(s: string) = paint("96", s)
+/// Bright white foreground (SGR 97).
+export bright_white :: fn(s: string) = paint("97", s)
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+@test
+test_esc_enabled :: fn() -> void {
+    assert_eq(escape(true, "31"), "\u{1B}[31m")
+    assert_eq(escape(true, "0"), "\u{1B}[0m")
+    assert_eq(escape(true, "1;31"), "\u{1B}[1;31m")
+}
+
+@test
+test_esc_disabled :: fn() -> void {
+    assert_eq(escape(false, "31"), "")
+    assert_eq(escape(false, "0"), "")
+}

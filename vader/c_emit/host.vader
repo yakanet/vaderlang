@@ -149,6 +149,11 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     if m == "std_process\$spawn_last_stdout" { return "${head} { return vader_spawn_last_stdout(); }" }
     if m == "std_process\$spawn_last_stderr" { return "${head} { return vader_spawn_last_stderr(); }" }
 
+    // std/tty + std/env. `get_env` boxes the value as a string (or null box) —
+    // pass the module's `string` tag so the box narrows under `is string`.
+    if m == "std_tty\$is_tty"  { return "${head} { return vader_is_tty(a0); }" }
+    if m == "std_env\$get_env" { return "${head} { return vader_get_env(a0, ${tag_u(ctx.string_tag, "string")}); }" }
+
     // User `@extern` — forward to the real C symbol ; everything else is a
     // host fn the c-emit doesn't recognise (version skew) → trap loudly.
     if imp.is_extern { return user_extern_shim(imp, head, c_type_for_val_bare(sig.result)) }

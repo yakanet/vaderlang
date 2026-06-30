@@ -39,6 +39,7 @@ import "vader/bytecode" { dump_bytecode, dump_bytecode_annotated }
 import "vader/midir" { build_cfg_project, dump_cfg_project, DumpCfgOptions, emit_bytecode_from_cfg, const_fold_project, annotate_escape, eliminate_dead_cfg, array_load_forward_project }
 import "vader/c_emit" { emit_c, EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
 Prof :: import "vader/profile"
+TTY :: import "std/tty"
 import "vader/diagnostics" { Diagnostic }
 import "vader/fmt" { run_fmt }
 import "vader/vm" { run_virt, parse_virt_bc, prepare, exec_entry, Ok, Trap }
@@ -422,11 +423,11 @@ cmd_test :: fn(args: string[]) -> i32 {
             ran.add(t.mangled)
             match exec_fn(state, t.mangled) {
                 is Ok -> {
-                    println("  ok ${t.display}")
+                    println("  ${TTY.green("ok")} ${t.display}")
                     total_pass += 1
                 }
                 is Trap as tr -> {
-                    println("  FAIL ${t.display}")
+                    println("  ${TTY.red("FAIL")} ${t.display}")
                     println("    ${tr.message}")
                     total_fail += 1
                 }
@@ -439,7 +440,10 @@ cmd_test :: fn(args: string[]) -> i32 {
         return 2
     }
     println("")
-    println("${total} tests | ${total_pass} pass | ${total_fail} fail")
+    pass_part :: TTY.green("${total_pass} pass")
+    fail_text :: "${total_fail} fail"
+    fail_part :: if total_fail > 0 { TTY.red(fail_text) } else { fail_text }
+    println("${total} tests | ${pass_part} | ${fail_part}")
     if total_fail == 0 { return 0 }
     return 1
 }
