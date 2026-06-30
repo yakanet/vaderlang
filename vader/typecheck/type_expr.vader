@@ -94,12 +94,17 @@ lower_ident :: fn(e: AST.IdentExpr, resolved: ResolvedModule) -> Type {
     }
     bound :: resolved.idents[e.span.hash()]
     if !(bound is null) { return resolve_named_type(bound, resolved) }
-    // Multi-file module fallback : the resolver's body walker only
-    // visits `files[0]`, so a type ident in a sibling file's fn
-    // signature (e.g. `parse_source : fn(...) -> ParsedSource` in
-    // `vader/parser/parser.vader` where the walker started in
-    // `assign_ids.vader`) misses the span-keyed `idents` table. Look
-    // up by name against the module-wide collected symbols instead.
+    // By-name fallback for a type ident whose use-site span isn't in the
+    // span-keyed `idents` table. This is NOT a multi-file limitation — the
+    // body walker visits every file of a folder module
+    // (`typecheck/orchestrate::merge_module_program` concatenates all files'
+    // decls before the walk). The residual gap: `idents` doesn't capture
+    // every type-position span — chiefly references inside materialised /
+    // substituted decl clones (generic instances, default trait methods,
+    // SAM impls) synthesised after the body-walk, observed for pervasively
+    // imported types like `Span` / `Type`. Look the name up against the
+    // module-wide collected symbols instead. (Same `idents` incompleteness
+    // a sound unused-import check must walk around — see TODO §1.13d.)
     by_name :: resolved.symbols_by_name[e.name]
     if !(by_name is null) { return resolve_named_type(by_name, resolved) }
     // Auto-loaded core types (Error, Range, …) the resolver doesn't
@@ -241,9 +246,9 @@ lower_generic_inst :: fn(
 
 /// Resolve a type-position ident to its Symbol : prefer the
 /// scope-bound binding from `resolved.idents`, fall back to
-/// `resolved.symbols_by_name` (the module-wide lookup that covers
-/// sibling-file decls the body walker didn't visit), then to
-/// `resolved.core_symbols` for auto-imported core types (`Iterator`,
+/// `resolved.symbols_by_name` (the module-wide lookup covering type-position
+/// idents not captured in `idents`, e.g. materialised-clone signatures), then
+/// to `resolved.core_symbols` for auto-imported core types (`Iterator`,
 /// `Range`, `Error`, …). Mirrors the lookup chain in `lower_ident`.
 lookup_type_name :: fn(id: AST.IdentExpr, resolved: ResolvedModule) -> Symbol | null {
     bound :: resolved.idents[id.span.hash()]
