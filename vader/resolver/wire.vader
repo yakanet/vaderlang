@@ -102,12 +102,10 @@ wire_module :: fn(
 /// bindings / missing targets) returns `sym` unchanged — callers
 /// can detect the "still an import-binding" case via `sym.kind`.
 export resolve_import_redirect :: fn(sym: Symbol, table: ImportTargetTable) -> Symbol {
-    if i32(sym.kind) != i32(import_binding_kind()) { return sym }
+    if sym.kind != SymbolKind.ImportBinding { return sym }
     st :: table.symbol_targets[sym.id]
     if st == null { return sym }
     return st.symbol
 }
 
 import "vader/resolver/symbol" { SymbolKind }
-
-import_binding_kind :: fn() -> SymbolKind { return .ImportBinding }
