@@ -16,11 +16,11 @@ module "vader/lsp/handlers"
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonArray }
 import "std/collections" { MutableMap }
 import "std/string" { split }
-import "vader/types" { ArrayType, StructType, UnresolvedType, TypeParamType, FreeIntType, FreeFloatType, display_type }
+import "vader/types" { ArrayType, StructType, EnumType, UnresolvedType, TypeParamType, FreeIntType, FreeFloatType, Type, display_type }
 import "vader/text" { is_ident_byte }
 import "vader/typecheck" {
     TypedProgram, ufcs_methods_for, UfcsMethod, array_builtin_methods, ArrayBuiltinMethod,
-    namespace_base_mod_id, typeparam_bound_method_names,
+    namespace_base_mod_id, typeparam_bound_method_names, lift_enum_placeholder,
 }
 import "vader/lsp/protocol" {
     position_uri, position_line, position_character, span_contains,
@@ -29,7 +29,7 @@ import "vader/lsp/protocol" {
 import "vader/lsp/analysis" {
     ServerState, DocIndex, DeclEntry, DeclKind, build_index,
     typed_project_for, source_file_for_path, find_expr_at,
-    find_receiver_before_dot, find_binding_rhs_type_at,
+    find_receiver_before_dot, find_binding_rhs_type_at, find_enclosing_call,
 }
 AST :: import "vader/parser"
 
@@ -61,7 +61,7 @@ export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonVal
             // struct fields + impl methods, resolved through the typed cache.
             dot :: member_context(index.source, line0, char0)
             if dot != null {
-                return member_completion(state, uri, line0, dot)
+                return member_completion(state, uri, line0, dot, is_leading_dot(index.source, line0, dot))
             }
 
             // Tier 1 : in-scope identifiers + keywords. LSP positions are
@@ -177,7 +177,7 @@ member_context :: fn(source: string, line0: i32, char0: i32) -> i32 | null {
 // smallest typed expression ending at `dot_col - 1` (the char before the `.`) —
 // the parser error-recovers a trailing `.` into a `FieldExpr` whose target is
 // still typed, so the typed cache resolves the receiver even mid-edit.
-member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i32) -> JsonValue {
+member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i32, leading: bool) -> JsonValue {
     file_path :: uri_to_path(uri)
     if file_path == "" { return completion_list([]) }
     cached :: typed_project_for(state, file_path)
@@ -191,6 +191,14 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
     // call receiver (`f(a, b).m`) to the call itself, not its last argument —
     // whose exclusive-end overlaps the closing `)` under a plain positional
     // lookup. Fall back to the positional finder when nothing ends at the dot.
+    // A leading dot (`f(.`, `x = .`, `, .`) is an enum literal, not a member
+    // access — its variant's enum comes from context. Handle it before the
+    // receiver path, which would otherwise treat the enclosing call/expr that
+    // `find_expr_at` recovers as a bogus receiver.
+    if leading {
+        return enum_literal_completion(sf.program.decls, cached.result.typed, line0 + 1, dot_col)
+    }
+
     recv := find_receiver_before_dot(sf.program.decls, line0 + 1, dot_col, cached.result.typed)
     if recv == null {
         recv = find_expr_at(sf.program.decls, line0 + 1, dot_col - 1, cached.result.typed)
@@ -293,6 +301,96 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
     }
 
     return completion_list(items)
+}
+
+// True when the dot at 1-based `dot_col` on `line0` is a LEADING dot — an enum
+// literal `.Variant`, not a member access `recv.field`. Decided from the source
+// byte before the dot (skipping whitespace): a value end (`ident` / `)` / `]`)
+// means member access ; anything else (`(`, `,`, `=`, `{`, `>` from `->`, start
+// of input) means the dot opens an enum literal whose type comes from context.
+is_leading_dot :: fn(source: string, line0: i32, dot_col: i32) -> bool {
+    sb :: source.bytes()
+    dot_off :: lsp_to_offset(source, line0, dot_col - 1)
+    if dot_off == 0 { return true }
+    i := dot_off - 1
+    for i > 0 {
+        if sb[i] == ' ' || sb[i] == '\t' { i = i - 1 } else { break }
+    }
+    b :: sb[i]
+    if is_ident_byte(b) { return false }
+    if b == ')' || b == ']' { return false }
+    return true
+}
+
+// Leading-dot enum-literal completion (`= .` / `f(.`): the dot has no receiver,
+// so the variant's enum type comes from context. Reconstruct the expected enum
+// from the enclosing AST node and list its variants. MVP scope: a fn parameter's
+// default value and a fn-call argument slot (match-arm patterns are deferred).
+enum_literal_completion :: fn(decls: AST.Decl[], typed: TypedProgram, line: i32, col: i32) -> JsonValue {
+    et :: expected_enum_at(decls, line, col, typed)
+    if et == null { return completion_list([]) }
+    items: JsonValue[] = []
+    for [name, _] in et.indices {
+        items.push(completion_item(name, .Enum, ""))
+    }
+    return completion_list(items)
+}
+
+// The enum expected at a leading-dot position, or null. Tries a parameter
+// default value, then a fn-call argument slot ; lifts the placeholder a bare
+// enum name resolves to (see lift_enum_placeholder) into the real EnumType.
+expected_enum_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> EnumType | null {
+    pd :: param_default_type_at(decls, line, col, typed)
+    if pd != null {
+        en :: as_enum_type(pd, typed)
+        if en != null { return en }
+    }
+    ca :: call_arg_type_at(decls, line, col, typed)
+    if ca != null {
+        en :: as_enum_type(ca, typed)
+        if en != null { return en }
+    }
+    return null
+}
+
+as_enum_type :: fn(t: Type, typed: TypedProgram) -> EnumType | null {
+    lifted :: lift_enum_placeholder(t, typed)
+    if lifted is EnumType as en { return en }
+    return null
+}
+
+// Declared type of the parameter whose default value contains `(line, col)`.
+// Walks top-level fn decls (covers the `fn(s: Stream = .|)` site).
+param_default_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
+    for d in decls {
+        if d is AST.FnDecl as fd {
+            for p in fd.params {
+                dv :: p.default_value
+                if dv == null { continue }
+                if span_contains(dv.span, line, col) {
+                    return typed.param_types[p.span.hash()]
+                }
+            }
+        }
+    }
+    return null
+}
+
+// Declared type of the parameter slot the cursor sits in for an enclosing call
+// `f(…, .|, …)`. Only an IdentExpr callee resolves (via lookup_fn_decl).
+call_arg_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
+    call :: find_enclosing_call(decls, line, col)
+    if call == null { return null }
+    fd :: lookup_fn_decl(call.callee, typed)
+    if fd == null { return null }
+    if fd.params.len() == 0 { return null }
+    // Clamp into range : an incomplete arg (`f(.`) can make active_param_index
+    // count "past" the only slot, and over-supplied args shouldn't index OOB —
+    // either way fall back to the last parameter's type.
+    idx := active_param_index(call, line, col)
+    if idx < 0 { idx = 0 }
+    if usize(idx) >= fd.params.len() { idx = i32(fd.params.len()) - 1 }
+    return typed.param_types[fd.params[usize(idx)].span.hash()]
 }
 
 /// Declarations reachable at `(line, col)` : every file-wide decl plus the

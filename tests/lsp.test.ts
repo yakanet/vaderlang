@@ -492,6 +492,54 @@ test("lsp: member completion on a trait-bounded generic param lists the bound's 
   expect(labels.has("bytes_to_string")).toBe(false);
 }, { timeout: MEDIUM_BUILD });
 
+// Leading-dot enum-literal completion. There's no receiver before the dot — the
+// variant's enum comes from context (a param default's type, a call arg's param
+// type). Without this, completion returned [] and the editor showed buffer words.
+const ENUM_DEFAULT_SOURCE = `module "lsp_test"
+
+Color :: enum { Red, Green, Blue }
+
+tint :: fn(c: Color = .) -> i32 = 0
+`;
+
+test("lsp: enum completion in a parameter default value", async () => {
+  // Line 4 = `tint :: fn(c: Color = .) -> i32 = 0` ; the `.` is at char 22,
+  // cursor just past it at char 23.
+  const results = await driveLsp(ENUM_DEFAULT_SOURCE, [
+    { method: "textDocument/completion", position: { line: 4, character: 23 } },
+  ]);
+  const list = results[0]!.result as CompletionList;
+  const labels = new Set(list.items.map((i) => i.label));
+  expect(labels.has("Red")).toBe(true);
+  expect(labels.has("Green")).toBe(true);
+  expect(labels.has("Blue")).toBe(true);
+  // No keyword / buffer-word leakage.
+  expect(labels.has("tint")).toBe(false);
+}, { timeout: MEDIUM_BUILD });
+
+const ENUM_ARG_SOURCE = `module "lsp_test"
+
+Color :: enum { Red, Green, Blue }
+
+paint :: fn(c: Color) -> i32 = 0
+
+main :: fn() -> i32 {
+    return paint(.)
+}
+`;
+
+test("lsp: enum completion in a fn-call argument slot", async () => {
+  // Line 7 = `    return paint(.)` ; the `.` is at char 17, cursor at char 18.
+  const results = await driveLsp(ENUM_ARG_SOURCE, [
+    { method: "textDocument/completion", position: { line: 7, character: 18 } },
+  ]);
+  const list = results[0]!.result as CompletionList;
+  const labels = new Set(list.items.map((i) => i.label));
+  expect(labels.has("Red")).toBe(true);
+  expect(labels.has("Green")).toBe(true);
+  expect(labels.has("Blue")).toBe(true);
+}, { timeout: MEDIUM_BUILD });
+
 interface TextEditT { newText: string }
 interface WorkspaceEditT { changes: Record<string, TextEditT[]> }
 interface CodeActionT { title: string; kind: string; edit: WorkspaceEditT }
