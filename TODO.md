@@ -138,7 +138,7 @@ Keep LoweredAST distinct. Tree rewrites (match/try/for-in/range desugar) are cle
 - [x] **GC** : Cheney semi-space copying GC (`runtime/c/vader_runtime.c`). Precise roots via shadow stack + emitted `vader_gc_frame_t`s ; per-type pointer maps from C-emit. Knobs : `VADER_GC_ARENA_BYTES`. Stress tests under `tests/snippets/gc_*`.
 - [x] **Arrays GC-tracked** — `vader_array_t` carries a header with single ref to a separately-allocated `vader_array_buf_t` ; Cheney scan dispatches on sentinel `0xFFFFFFFE`.
 - [x] **Strings off the GC arena** — string buffers `malloc`'d outside the arena. Strings leak for the program's lifetime ; fine for MVP.
-- [ ] **Array `pop` intrinsic** — O(1) pop is trivially `vader_array_t.length-- ; buf->length--` (both `length` fields are mirrored ; capacity is preserved so the slot is GC-collectable on the next sweep via the new length). No primitive today : `vader/lower/lower_expr.vader::lower_block` had to skip its `ctx.blocks` frame pop entirely because the only available shape was rebuild-array-minus-last (O(N) per pop). Self-host sites that want a real LIFO stack (lowerer block frames, future defer-replay walker, parser look-ahead buffers) need this. Implementation surface : add `vader_array_pop(vader_array_t*)` in `runtime/c/vader_runtime.c`, a `@array_pop` intrinsic + `LoweredArrayPop` opcode, and a stdlib `pop :: fn(arr: T[]) -> T | null` wrapper.
+- [x] **Array `pop` — covered by `remove_last`** (Array API chantier). `arr.remove_last()` IS O(1) pop-and-return : it shrinks `length` (`vader_array_remove_last`, capacity preserved) and returns the removed element as `T | null`. A separate `pop` intrinsic would be a pure alias — not added. (Original ask predated `remove_last`.)
 - [ ] String runtime polish, array runtime polish, StringBuilder support consolidation, panic handler.
 - [ ] libc-backed I/O glue for `std/io`.
 
@@ -956,21 +956,13 @@ Wall ~8 s, peak RSS 1.12 GB. Self-time is **~74 % substrate, not pass logic**: *
       `RUN_BROAD_PARITY=1` ; higher values defer sweeps further but
       let the adaptive `g_string_gc_threshold` trigger fire sooner.
       May be a net win if mark cost is now low.
-- [ ] **Array `pop` intrinsic** — see §1.11.
-- [ ] **GC arenas don't grow — hard OOM ceiling on large inputs**
-      (2026-06-04). The Cheney collector (`runtime/c/vader_runtime.c:878`)
-      allocates fixed semi-spaces (`VADER_GC_YOUNG_BYTES` 32 MB,
-      `VADER_GC_OLD_BYTES` 256 MB) and on overflow does
-      minor → major → **trap** (`:906`), never growing. Self-compiling
-      `vader/cli/main.vader` has a ~252 MB live set, so the default
-      256 MB old arena OOMs on *every* platform — it only "works" when
-      the env knobs are raised (`VADER_GC_OLD_BYTES=$((1024*1024*1024))`,
-      per SPEC §9). Surfaced as a hard blocker on Windows (native `.exe`,
-      no env var set ; not a platform bug — macOS native OOMs identically
-      at the default). Proper fix : grow the semi-spaces (realloc /
-      mmap-backed) so the heap adapts to input size instead of trapping
-      at a compile-time constant. Stopgap : raise the default old arena.
-      See §1.11.
+- [x] **GC arenas auto-grow — OOM ceiling removed** (DONE 2026-06-06).
+      The fixed-semi-space → minor → major → trap path was replaced by
+      flip-with-resize auto-grow (`27eff0fb`), then RAM-proportional sizing
+      (`f2acfb5c`, single `VADER_GC_RAM_PERCENT` knob) + adaptive young arena
+      (`d41e21ef`) + a non-moving mark-sweep old generation (`fcfd1148`). The
+      self-compile now runs with zero env knobs on any platform ; the env vars
+      remain an advanced escape hatch. (Original ask dated 2026-06-04.)
 - [ ] **Shrink the self-compile live set** (re-profiled 2026-06-05). At the
       **bytecode stage** (`VADER_GC_PROFILE=1 … dump --stage=bytecode
       vader/cli/main.vader`, arenas young 256 MB / old 1536 MB) the live set is
