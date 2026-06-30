@@ -236,7 +236,6 @@ bc_value_bits :: fn(el: LoweredExpr, name: string) -> u64 {
     // float leaves here (string/struct/array are handled before this tail). A hit
     // means the gate and this converter drifted out of sync.
     panic("midir: lowered_to_bc_value reached a non-primitive leaf — is_bakeable/converter drift")
-    return 0
 }
 
 

@@ -1,0 +1,30 @@
+# Typecheck
+
+## tests/snippets/is_union_runtime
+  StructDecl     Cat                  :: Cat
+  StructDecl     Dog                  :: Dog
+  StructDecl     Fish                 :: Fish
+  FnDecl         is_pet               :: fn(Cat | Dog | Fish) -> bool
+  FnDecl         main                 :: fn() -> i32
+  expr 17:45    BinaryExpr     :: bool
+  expr 17:45    IdentExpr      :: Cat | Dog | Fish
+  expr 20:13    StringLitExpr  :: string
+  expr 20:16    CallExpr       :: bool
+  expr 20:16    IdentExpr      :: fn(Cat | Dog | Fish) -> bool
+  expr 20:23    StructLitExpr  :: Cat
+  expr 20:37    StringLitExpr  :: string
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void
+  expr 21:13    StringLitExpr  :: string
+  expr 21:16    CallExpr       :: bool
+  expr 21:16    IdentExpr      :: fn(Cat | Dog | Fish) -> bool
+  expr 21:23    StructLitExpr  :: Dog
+  expr 21:38    StringLitExpr  :: string
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(T) -> void
+  expr 22:13    StringLitExpr  :: string
+  expr 22:16    CallExpr       :: bool
+  expr 22:16    IdentExpr      :: fn(Cat | Dog | Fish) -> bool
+  expr 22:23    StructLitExpr  :: Fish
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void

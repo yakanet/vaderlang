@@ -21,7 +21,7 @@ AST :: import "vader/parser"
 import "vader/resolver/symbol" { SymbolKind }
 import "vader/types" {
     Type, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, UnresolvedType,
-    EnumType, FnType, StructType, TraitType, UnionType, ArrayType, DistinctType,
+    EnumType, FnType, StructType, TraitType, ArrayType, DistinctType,
     display_type, type_base_name, mk_primitive, TY_BOOL, TY_UNRESOLVED,
 }
 
@@ -51,7 +51,6 @@ export infer_binary :: fn(
             // the right side of `is` is almost always a type ident (`is i32`).
             if e.right is AST.IdentExpr { typed.expr_kinds[e.right.id] = "IdentExpr" }
         }
-        check_is_against_union(e, rhs_ty, diags)
         check_is_overlap(e, left, rhs_ty, diags)
         return TY_BOOL
     }
@@ -229,20 +228,6 @@ is_null_type :: fn(t: Type) -> bool {
     if t is PrimitiveType as p { return p.name == "null" }
     return false
 }
-
-/// W0003 : `x is Union(...)` always returns false at runtime — `is` tests
-/// the concrete struct-tag, not a "union tag". The user should destructure
-/// into individual variants instead.
-check_is_against_union :: fn(
-    e: AST.BinaryExpr, tested: Type, diags: Diagnostic[],
-) -> void {
-    if tested is UnionType {
-        diags.push(warning(.IsAgainstUnion, e.right.span,
-            "match against each variant of `${display_type(tested)}` instead"))
-    }
-}
-
-import "vader/diagnostics" { warning }
 
 /// T3040 : `x is T` test where `T` can never be a runtime value of
 /// `x`'s static type. We surface the error for tests against `null`

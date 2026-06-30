@@ -23,7 +23,7 @@ import "std/collections" { keys }
 import "std/string" { trim_suffix }
 import "std/path" { to_posix, to_path, filename }
 
-import "vader/lexer" { dump_diagnostics }
+import "vader/lexer" { dump_diagnostics_with_file }
 import "vader/resolver" { load_project, LoadedProject }
 import "vader/typecheck" { check_project_with_bodies, CheckResult, TypedProject, new_typed_project }
 import "vader/comptime" { evaluate_project, EvaluatedProject }
@@ -77,7 +77,7 @@ emit_c_source :: fn(file: string) -> string | null {
 // false) ; warnings / info still print.
 flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
     all :: merge_diagnostics(pre, lower)
-    if all.len() > 0 { eprintln(all.dump_diagnostics()) }
+    if all.len() > 0 { eprintln(all.dump_diagnostics_with_file()) }
     for d in all {
         if d.severity == .Error { return false }
     }
