@@ -131,7 +131,6 @@ export check_project_with_bodies :: fn(
     )
     entry_typed :: new_typed_program(entry_rm)
     entry_typed.dump_types = dump_types
-    preload_core_symbols(entry_rm, project)
 
     // Pre-resolve every module first so we can register all type
     // aliases project-wide before any fn signature is lowered.
@@ -143,7 +142,6 @@ export check_project_with_bodies :: fn(
             merge_module_program(other.module.files), id, other.module.display_path,
             project.factory, other.collected, core_seed,
         )
-        preload_core_symbols(rm, project)
         typed :: new_typed_program(rm)
         typed.dump_types = dump_types
         per_module[id] = typed
@@ -337,7 +335,7 @@ export check_project_with_bodies :: fn(
     // so the CLI's `# Diagnostics` block surfaces them next to T-codes.
     for d in entry_typed.resolved.diags { diags.push(d) }
 
-    impls :: build_impl_registry(merge_module_program(entry_loaded.module.files).decls, entry_typed.resolved)
+    impls :: build_impl_registry(merge_module_program(entry_loaded.module.files).decls, entry_typed.resolved, core_seed)
     // Every directly-imported non-stdlib module gets its own `## <path>`
     // section in the dump.
     others: TypedProgram[] = collect_direct_imports(entry_loaded, project, per_module)
@@ -401,7 +399,6 @@ synth_resolved :: fn() -> ResolvedModule {
         .idents = MutableMap<u64, Symbol> {},
         .immutable_locals = MutableMap<i32, bool> {},
         .fn_overloads = MutableMap<string, Symbol[]> {},
-        .core_symbols = MutableMap<string, Symbol> {},
         .imports_to = MutableMap<i32, Symbol> {},
         .alias_types = MutableMap<i32, Type> {},
         .alias_decls = MutableMap<i32, AST.TypeAliasDecl> {},
@@ -1331,16 +1328,6 @@ populate_resolver_imports_for_others :: fn(
     }
 }
 
-preload_core_symbols :: fn(rm: ResolvedModule, project: LoadedProject) -> void {
-    core_id :: find_core_module_id(project)
-    if core_id is null { return }
-    core_loaded :: project.modules[core_id]
-    if core_loaded is null { return }
-    for [name, sym] in core_loaded.collected.symbols {
-        rm.core_symbols[name] = sym
-    }
-}
-
 populate_core_symbols :: fn(
     entry_typed: TypedProgram, project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
@@ -1363,20 +1350,24 @@ populate_core_symbols :: fn(
 populate_core_symbols_into :: fn(
     typed: TypedProgram, core_loaded: LoadedModule, core_typed: TypedProgram | null,
 ) -> void {
-    for [name, sym] in core_loaded.collected.symbols {
-        typed.core_symbols[name] = sym
-        // Mirror into the resolver's `core_symbols` table so
-        // `type_from_expr` can fall back to it for bare names
-        // referencing core types (Error, Range, …).
-        typed.resolved.core_symbols[name] = sym
-        // Also surface the type into `external_types` so a future
-        // reference to a core symbol (e.g. via `mk_struct(Range, ...)`)
-        // returns the concrete declared type.
-        if core_typed == null { continue }
+    // Surface each core symbol's declared type into `external_types` so a
+    // reference to a core symbol (e.g. via `mk_struct(Range, ...)`) returns the
+    // concrete declared type.
+    if core_typed == null {
+        // Still set the well-known slots below even without typed core types.
+        typed.range_symbol = core_loaded.collected.symbols["Range"]
+        typed.field_symbol = core_loaded.collected.symbols["Field"]
+        return
+    }
+    for [_, sym] in core_loaded.collected.symbols {
         t :: core_typed.decl_types[sym.id]
         if t == null { continue }
         typed.external_types[sym.id] = t
     }
+    // Well-known struct slots : Range (`a..b`) + Field (`@fields`), synthesised
+    // without a source span so they can't come through span-keyed `idents`.
+    typed.range_symbol = core_loaded.collected.symbols["Range"]
+    typed.field_symbol = core_loaded.collected.symbols["Field"]
 }
 
 

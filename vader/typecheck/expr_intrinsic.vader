@@ -111,7 +111,7 @@ type_for_result :: fn(name: string, typed: TypedProgram) -> Type {
         // `@fields(T) -> Field[]` — `Field` lives in std/core
         // (auto-imported). Fall back to Unresolved when std/core
         // hasn't been registered yet (compiling std/core itself).
-        field_sym :: typed.core_symbols["Field"]
+        field_sym :: typed.field_symbol
         match field_sym {
             is null -> { return TY_UNRESOLVED }
             is Symbol as fs -> { return mk_array(mk_struct(fs, []), false) }

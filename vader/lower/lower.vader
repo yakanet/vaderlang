@@ -40,10 +40,10 @@ export lower_project :: fn(
     // is precomputed so per-decl lowering can read it without re-
     // walking the AST.
     project_ctx.closures = analyze_closures(loaded, typed)
-    // Populate `core_symbols` from each module's `resolved.core_symbols`
-    // table (auto-imported std/core exports). Lookups like
-    // `find_core_type("Yield", [T])` go through this cache.
-    populate_core_symbols(typed, project_ctx)
+    // Populate the lowerer's core-symbol cache directly from the std/core
+    // module (one seed). Lookups like `find_core_type("Yield", [T])` go
+    // through this cache.
+    populate_core_symbols(loaded, project_ctx)
     // Build the global symbol_id -> ComptimeValue index so per-ident
     // const-baked lookups (`lookup_const_baked_value`) hit O(1) instead
     // of walking every loaded module's `comptime_decls` map per call.

@@ -11,7 +11,7 @@ module "vader/typecheck"
 import "vader/diagnostics" { Diagnostic }
 import "vader/parser" { Program }
 import "vader/resolver" { ResolvedModule }
-import "vader/resolver/symbol" { SymbolFactory }
+import "vader/resolver/symbol" { SymbolFactory, Symbol }
 import "std/collections" { MutableMap }
 
 /// Output of `check_module` — the typed program plus the impl registry
@@ -41,7 +41,10 @@ export check_module :: fn(
     program: Program, resolved: ResolvedModule,
     factory: SymbolFactory, diags: Diagnostic[],
 ) -> CheckResult {
-    impls :: build_impl_registry(program.decls, resolved)
+    // Standalone single-module check : no project-wide core seed available
+    // (core traits, if any, are already in `resolved.symbols`). Pass an empty
+    // core table.
+    impls :: build_impl_registry(program.decls, resolved, MutableMap<string, Symbol> {})
     typed :: new_typed_program(resolved)
     declare_module(program.decls, resolved, typed, factory, diags)
     return CheckResult {

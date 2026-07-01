@@ -68,15 +68,16 @@ export new_registry :: fn() -> ImplRegistry {
 /// impl. Idempotent if the same `decls` array is passed twice.
 export build_impl_registry :: fn(
     program_decls: Decl[], resolved: ResolvedModule,
+    core_syms: MutableMap<string, Symbol>,
 ) -> ImplRegistry {
     reg :: new_registry()
     by_name :: MutableMap<string, Symbol> {}
     for s in resolved.symbols { by_name[s.name] = s }
-    // Auto-imported traits (`Display`, `Iterator`, `Error`, …) live in
-    // `core_symbols`, not `symbols`. Fold them in so `impl T implements
-    // Display { … }` finds the trait symbol when Display wasn't
-    // explicitly imported in the user's module.
-    for [name, core_sym] in resolved.core_symbols {
+    // Auto-imported traits (`Display`, `Iterator`, `Error`, …) live in the
+    // core-symbol table (`core_syms`, threaded in), not `symbols`. Fold them
+    // in so `impl T implements Display { … }` finds the trait symbol when
+    // Display wasn't explicitly imported in the user's module.
+    for [name, core_sym] in core_syms {
         if by_name[name] is null {
             by_name[name] = core_sym
         }
@@ -207,7 +208,7 @@ build_test_registry :: fn(src: string) -> ImplRegistry {
     parsed :: parse_source(src, "t.vader")
     factory :: new_factory()
     rm :: resolve_module(parsed.program, "t", factory)
-    return build_impl_registry(parsed.program.decls, rm)
+    return build_impl_registry(parsed.program.decls, rm, MutableMap<string, Symbol> {})
 }
 
 @test
@@ -231,7 +232,7 @@ Point implements Display -> "point"
     parsed :: parse_source(src, "t.vader")
     factory :: new_factory()
     rm :: resolve_module(parsed.program, "t", factory)
-    reg :: build_impl_registry(parsed.program.decls, rm)
+    reg :: build_impl_registry(parsed.program.decls, rm, MutableMap<string, Symbol> {})
     // Pull the two symbols by name to query the registry.
     point :: lookup_named(rm, "Point")
     disp  :: lookup_named(rm, "Display")
