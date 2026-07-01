@@ -4,10 +4,10 @@
 
 ## generic instances
   Into<Target>
-  MappedIterator<T, U>
-  MappedIterator<T, U>
-  MappedIterator<T, U>
   Add<Rhs, Out>
+  MappedIterator<T, U>
+  MappedIterator<T, U>
+  MappedIterator<T, U>
   FilterIterator<T>
   FilterIterator<T>
   FilterIterator<T>
@@ -54,6 +54,7 @@
   Range<T>
   Range<T>
   Range<T>
+  ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>

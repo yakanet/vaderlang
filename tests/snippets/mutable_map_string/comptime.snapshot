@@ -51,10 +51,10 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  SetIterator<T>
-  SetIterator<T>
-  SetIterator<T>
   Into<Target>
+  SetIterator<T>
+  SetIterator<T>
+  SetIterator<T>
   Add<Rhs, Out>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
@@ -77,6 +77,7 @@
   Range<T>
   Range<T>
   Range<T>
+  ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>

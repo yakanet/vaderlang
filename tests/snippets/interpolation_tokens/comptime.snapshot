@@ -25,6 +25,7 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
+  ArrayIterator<T>
 
 # Diagnostics
 [3:26] error[R2006] unresolved identifier: `name`

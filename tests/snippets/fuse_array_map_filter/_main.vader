@@ -1,0 +1,18 @@
+// `arr.iter().map(f).filter(p)` under a `for` fuses to a single flat index loop
+// — no ArrayIterator, no MappedIterator/FilterIterator, no next(), no Yield box.
+// The lower snapshot is the regression guard: it must show the fused counter
+// loop with an inline index walk, not an iterator step-loop.
+module "snippet"
+
+import "std/io" { println }
+import "std/iter" { map, filter }
+
+double :: fn(x: i32) -> i32 = x * 10
+is_twenty_multiple :: fn(x: i32) -> bool = x % 20 == 0
+
+main :: fn() -> i32 {
+    for v in [1, 2, 3, 4, 5, 6].iter().map(double).filter(is_twenty_multiple) {
+        println("${v}")
+    }
+    return 0
+}

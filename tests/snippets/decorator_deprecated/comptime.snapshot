@@ -26,6 +26,7 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
+  ArrayIterator<T>
 
 # Diagnostics
 [21:10] warning[W0001] use of deprecated declaration: `old_helper`: use new_helper instead

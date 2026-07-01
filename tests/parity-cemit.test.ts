@@ -141,6 +141,10 @@ const C_PARITY = new Set<string>([
   "generator_filter",      // yield inside an `if`
   "generator_break",       // break + continue across a yield
   "generator_struct_elem", // struct element type, flattened
+  // Stream fusion (Couche 1): `arr.iter().map(f).filter(p)` under a `for`
+  // fuses to a flat index loop — no iterator structs. Native run validates the
+  // fused loop produces the same output as the boxed tower would.
+  "fuse_array_map_filter",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

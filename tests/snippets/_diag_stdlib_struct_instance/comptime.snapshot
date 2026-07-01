@@ -45,6 +45,7 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
+  ArrayIterator<T>
   Entry<i32, i32>
   Entry<K, V>
   Entry<K, V>

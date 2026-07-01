@@ -12,10 +12,10 @@
   TakeIterator<T>
   TakeIterator<T>
   TakeIterator<T>
-  SkipIterator<T>
-  SkipIterator<T>
-  SkipIterator<T>
   Into<Target>
+  SkipIterator<T>
+  SkipIterator<T>
+  SkipIterator<T>
   Add<Rhs, Out>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
@@ -52,6 +52,7 @@
   Range<T>
   Range<T>
   Range<T>
+  ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
