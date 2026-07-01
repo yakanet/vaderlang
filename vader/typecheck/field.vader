@@ -543,7 +543,13 @@ union_common_field :: fn(
         if !(v is StructType) { return null }
         decl :: typed.struct_decls[v.symbol.id]
         if decl is null { return null }
-        ty :: find_struct_field_type(decl, name, typed.resolved, diags)
+        // Prefer the owner-resolved field type from `struct_field_types`
+        // (populated once by the declaring module + broadcast). Only fall
+        // back to a local AST re-walk — which resolves against THIS module's
+        // `idents` and misses for imported structs — when the cache is cold.
+        cached :: lookup_pre_resolved_field(v.symbol.id, name, typed)
+        ty: Type | null = cached
+        if ty is null { ty = find_struct_field_type(decl, name, typed.resolved, diags) }
         if ty is null { return null }
         types.push(substitute_struct_field(ty, decl, v))
     }

@@ -311,7 +311,13 @@ bind_struct_pattern :: fn(
                 check_internal_field(st, decl, field.name, field.name_span, typed, diags)
                 match field.value {
                     is AST.PatternBinding as pb -> {
-                        ft :: find_struct_field_type(decl, field.name, typed.resolved, scratch_diags())
+                        // Prefer the owner-resolved field type from the cache
+                        // (see `union_common_field`) ; the local re-walk misses
+                        // for imported structs (resolves against this module's
+                        // `idents`).
+                        cached :: lookup_pre_resolved_field(st.symbol.id, field.name, typed)
+                        ft: Type | null = cached
+                        if ft is null { ft = find_struct_field_type(decl, field.name, typed.resolved, scratch_diags()) }
                         match ft {
                             is null -> {}
                             _ -> { typed.local_types[pb.span.hash()] = ft }
