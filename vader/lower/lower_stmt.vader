@@ -119,7 +119,15 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
             }
         }
         is YieldStmt    as yield_stmt    -> {
-            if ctx.in_generator {
+            if ctx.gen_inline_sink is GenInlineSink as sink {
+                // Couche 4 generator inline: `yield e` becomes the consumer's
+                // loop-var binding + its body, splicing the consumption site in
+                // place of the boxed `next()` dispatch. Multi-yield generators
+                // duplicate the sink body (v1 targets single-yield combinators).
+                value :: lower_expr(ctx, yield_stmt.value)
+                out.push(bind_loop_var(ctx, sink.binding_symbol, sink.binding_name, value, sink.element_type, yield_stmt.span))
+                out.push_all(block_stmts_with_trailing(sink.body))
+            } else if ctx.in_generator {
                 // Transient marker consumed by the generator state-machine
                 // transform (lower_generator.vader). Never reaches the backend.
                 out.push(LoweredYield {

@@ -1,0 +1,27 @@
+// An ESCAPING generator (stored in a local before consumption) keeps the
+// boxed state-machine path — the fused-inline fast path only fires on a direct
+// `for x in gen(...)`. This is the runtime guard for the `@generator` state
+// machine (`lower_generator.vader`) now that direct consumption inlines.
+module "snippet"
+
+import "std/io" { println }
+
+@generator
+count_up :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n { yield i }
+}
+
+@generator
+pairs :: fn(xs: i32[], ys: i32[]) -> Iterator<i32> {
+    for x in xs {
+        for y in ys { yield x + y }
+    }
+}
+
+main :: fn() -> i32 {
+    it :: count_up(4)
+    for x in it { println("c ${x}") }
+    p :: pairs([1, 2], [10, 20])
+    for v in p { println("p ${v}") }
+    return 0
+}
