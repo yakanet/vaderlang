@@ -350,6 +350,16 @@ export ReturnStmt :: struct {
     value: Expr | null
 }
 
+/// `yield expr` inside an `@generator` fn body — emit one element and suspend.
+/// Always carries a value (unlike `return`, which may be bare); the empty /
+/// exhausted case is a bare `return` or falling off the end. `value` must
+/// coerce to the `T` of the generator's `-> Iterator<T>` return.
+export YieldStmt :: struct {
+    span:  Span
+    id:    usize = UNASSIGNED_NODE_ID
+    value: Expr
+}
+
 export ForStmt :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
@@ -393,7 +403,7 @@ export DeferBlockBody :: struct { block: BlockExpr }
 // `Stmt` / `DeferBody` declared after their variant structs — the
 // resolver collects all decl names first then resolves types in a
 // second pass, so use-before-decl order works.
-export Stmt :: LetStmt | AssignStmt | ExprStmt | ReturnStmt | ForStmt | BreakStmt | ContinueStmt | DeferStmt
+export Stmt :: LetStmt | AssignStmt | ExprStmt | ReturnStmt | YieldStmt | ForStmt | BreakStmt | ContinueStmt | DeferStmt
 export DeferBody :: DeferStmtBody | DeferBlockBody
 
 // ============================================================================

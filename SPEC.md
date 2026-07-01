@@ -2115,6 +2115,7 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 | `@partial` | `match` expression | Opts out of exhaustiveness checking; missing variants no longer trigger `T3013`. Use with a deliberate `_`/binding catch-all (which also silences `W0005`) for "everything else does X" |
 | `@unreachable` | `match` expression | Opts out of exhaustiveness checking like `@partial`, but asserts the *uncovered* variants can never occur: handle the possible variants explicitly (no `_` arm, no fake value) and any uncovered variant traps at runtime (`reached unreachable`). Use for "handle A/B/C, the rest are impossible". Mutually exclusive with `@partial` |
 | `@specialize` | generic struct / fn | Marks the decl as ineligible for type-erasure; the compiler keeps a distinct monomorphisation per `(decl, typeArgs)` pair. Default behaviour for unmarked generics is erasure (one shared body, vtable dispatch on type-param method calls). Today used on stdlib iterator types (`ArrayIterator`, `Yield`, `MapIterator`, `FilterIterator`, `TakeIterator`, `SkipIterator`, `SetIterator`) whose for-in fusion inlining depends on the body being inline at the call site |
+| `@generator` | fn (`-> Iterator<T>`) | Marks a function as a **generator**: its body yields elements one at a time via the `yield` statement instead of building and returning a whole collection. The declared return type must be `Iterator<T>`; the body must contain at least one `yield e` (each `e` coerces to `T`), and a `return` with a value is rejected — a bare `return`, or falling off the end, stops the stream. The compiler lowers the body to a resumable state machine implementing `Iterator<T>`, so the result is a first-class iterator consumed unchanged by `for`-in, the lazy combinators, and `.collect()`. See § "Generators". |
 | `@no_return` | fn | Marks the fn as **diverging** — control never returns to the caller (it panics, aborts, or loops forever). A call to it types as `never`, so it is assignable into any slot (`_ -> todo("x")` where a value is expected type-checks) and terminates control flow (the call satisfies a non-`void` fn's return obligation; code after it is unreachable, `W0002`). Powers `panic` / `todo` / `unreachable` in `std/abort`. |
 | `@internal` | struct field | Restricts a single struct field to its **declaring module**. Struct fields are **public by default** (the opposite polarity to top-level `export`, which is private-by-default); `@internal` opts one field out. Reading, writing, constructing-with, or pattern-binding the field from another module is rejected with `T3054`. An `@internal` field should usually carry a `default` so the type stays constructible across modules via `T {}` (otherwise the type is constructible only from inside its module — a deliberate "factory-only" pattern). |
 | `@allow_unused` | any top-level decl | Exempts the declaration from the `W0007` dead-code lint (an unused private fn / const / type / enum / trait / alias). Use for intentional dead code : an API not yet wired, a helper kept for symmetry, or a test fixture's deliberate decoy. The declaration is treated as a reachability root — never flagged, and anything it references stays live. |
@@ -2616,6 +2617,49 @@ Iterator :: trait<T> {
   The auto-coerce `T[] implements<T> Into<Iterator<T>>` makes raw arrays drop into any `Iterator<T>` slot, so a raw `T[]` flows straight into the first combinator with no explicit wrap. Short-circuiting combinators (`any`, `all`, `find`, `find_map`) live in this family too — they take a single `Iterator<T>` (raw arrays auto-coerce) and stop on the first match.
 
 The eager and lazy families converge on the same `Iterator<T>` trait: an eager `collect(it)` materialises whatever the lazy chain produces; a lazy chain accepts a raw `T[]` via the same `Into<Iterator<T>>` coercion.
+
+### Generators (`@generator` + `yield`)
+
+> **Draft (surface landed; typecheck + lowering in progress).** The
+> `@generator` decorator and the `yield` statement parse and format today; the
+> semantic rules below are enforced by the typechecker and realised by the
+> lowerer as those phases land. See `.claude/plans/generator-functions-yield.md`.
+
+A **generator function** carries `@generator` and produces its elements lazily,
+one at a time, instead of building a whole collection up front. It is authoring
+sugar for an `Iterator<T>` impl — everything downstream (`for`-in, the lazy
+combinators, `.collect()`) consumes the result unchanged.
+
+```vader
+@generator
+concat_file_decls :: fn(files: SourceFile[]) -> Iterator<Decl> {
+    for f in files {
+        for d in f.program.decls { yield d }     // flatten = a nested `for`
+    }
+}
+
+// consumed lazily — no intermediate array is built
+for d in concat_file_decls(files) { process(d) }
+```
+
+Rules:
+
+- The declared return type **must** be `Iterator<T>` for some `T` — `T` is the
+  yielded element type.
+- The body **must** contain at least one `yield` (an `@generator` that never
+  yields is an error; the empty-iterator case is `T[] = []` / `[].iter()`).
+- `yield e` is a **statement**, legal only directly inside a generator body
+  (not inside a nested lambda). `e` must coerce to `T` (same path as `return`).
+- `return <value>` inside a generator is an **error** — a generator produces via
+  `yield`. A bare `return`, or falling off the end, means **exhausted**: every
+  subsequent `next()` returns `null`.
+- `break` / `continue` keep their normal loop meaning across `yield` suspension
+  points.
+- The generator's result is a **first-class `Iterator<T>` value**: it can be
+  stored, passed, returned, and fed to any combinator.
+
+There is no `yield from` / `yield*`: the flatten case is a nested `for`, already
+the language's flatten idiom.
 
 ### `std/runtime`
 

@@ -105,6 +105,7 @@ collect_from_stmt :: fn(s: AST.Stmt, typed: TypedProgram, out: JsonValue[]) -> v
                 _ -> { collect_from_expr(rs.value, typed, out) }
             }
         }
+        is AST.YieldStmt as ys -> { collect_from_expr(ys.value, typed, out) }
         is AST.AssignStmt as as_ -> {
             collect_from_expr(as_.target, typed, out)
             collect_from_expr(as_.value, typed, out)

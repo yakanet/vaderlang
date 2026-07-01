@@ -136,6 +136,7 @@ collect_stmt_names :: fn(s: AST.Stmt, out: string[]) -> void {
         }
         is AST.ExprStmt     as x -> { collect_expr_names(x.expr, out) }
         is AST.ReturnStmt   as x -> { collect_opt_expr_names(x.value, out) }
+        is AST.YieldStmt    as x -> { collect_expr_names(x.value, out) }
         is AST.ForStmt      as x -> {
             match x.form {
                 is AST.InfiniteFor      -> {}

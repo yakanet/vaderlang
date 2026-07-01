@@ -211,6 +211,7 @@ collect_stmt :: fn(s: AST.Stmt, out: Span[]) -> void {
         }
         is AST.ExprStmt     as x -> { collect_expr(x.expr, out) }
         is AST.ReturnStmt   as x -> { collect_opt_expr(x.value, out) }
+        is AST.YieldStmt    as x -> { collect_expr(x.value, out) }
         is AST.ForStmt      as x -> {
             match x.form {
                 is AST.InfiniteFor -> {}

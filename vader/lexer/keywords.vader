@@ -24,6 +24,7 @@ export lookup_keyword :: fn(text: string) -> TokenKind {
     if text == "for"        { return .KwFor }
     if text == "in"         { return .KwIn }
     if text == "return"     { return .KwReturn }
+    if text == "yield"      { return .KwYield }
     if text == "defer"      { return .KwDefer }
     if text == "break"      { return .KwBreak }
     if text == "continue"   { return .KwContinue }

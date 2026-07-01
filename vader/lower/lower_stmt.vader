@@ -5,7 +5,7 @@ module "vader/lower"
 
 import "std/collections" { MutableMap }
 
-import "vader/parser" { Expr, BlockExpr, Stmt, LetStmt, AssignStmt, ExprStmt, ReturnStmt, ForStmt, BreakStmt, ContinueStmt, DeferStmt, InfiniteFor, WhileFor, InFor, SimpleBinding, TupleBinding, WildcardBinding, RestBinding, Visibility }
+import "vader/parser" { Expr, BlockExpr, Stmt, LetStmt, AssignStmt, ExprStmt, ReturnStmt, YieldStmt, ForStmt, BreakStmt, ContinueStmt, DeferStmt, InfiniteFor, WhileFor, InFor, SimpleBinding, TupleBinding, WildcardBinding, RestBinding, Visibility }
 import "vader/diagnostics" { Span }
 import "vader/typecheck" { equals_type }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
@@ -117,6 +117,17 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
             } else {
                 out.push(exit)
             }
+        }
+        is YieldStmt    as yield_stmt    -> {
+            // Generator lowering (the §6 state-machine desugar) lands in Phase 3;
+            // until then a stray `yield` traps rather than mis-compiling silently.
+            out.push(LoweredExprStmt {
+                .span = yield_stmt.span,
+                .expr = LoweredUnreachable {
+                    .span = yield_stmt.span, .type = TY_VOID,
+                    .reason = "generator lowering not implemented (Phase 3)",
+                },
+            })
         }
         is ForStmt      as for_stmt      -> { out.push(lower_for(ctx, for_stmt)) }
         is BreakStmt    as break_stmt    -> {

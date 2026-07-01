@@ -1,0 +1,31 @@
+// Surface-level coverage for generator functions (`@generator` + `yield`).
+//
+// Phase 1 locks the lexer + parser shape only (`_config.json` restricts the
+// snapshot to those stages) — generator typecheck lands in Phase 2 and the
+// state-machine lowering in Phase 3, so this file is intentionally not driven
+// past parsing. Exercises: the `@generator` decorator, `yield` in nested loops
+// (flatten), `yield` inside an `if` (filter), and two straight-line yields.
+
+module "snippet"
+
+@generator
+concat_file_decls :: fn(files: SourceFile[]) -> Iterator<Decl> {
+    for f in files {
+        for d in f.program.decls { yield d }
+    }
+}
+
+@generator
+evens :: fn(xs: i32[]) -> Iterator<i32> {
+    for x in xs {
+        if x % 2 == 0 { yield x }
+    }
+}
+
+@generator
+each_twice :: fn(xs: i32[]) -> Iterator<i32> {
+    for x in xs {
+        yield x
+        yield x * 10
+    }
+}

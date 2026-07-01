@@ -630,6 +630,13 @@ write_stmt :: fn(sb: StringBuilder, s: Stmt, level: i32) -> void {
             sb.write_optional_expr(s.value, level + 1)
             sb.close_obj(level)
         }
+        is YieldStmt -> {
+            sb.open_obj()
+            sb.kind_entry(level + 1, "YieldStmt")
+            sb.entry(false, level + 1, "value")
+            sb.write_expr(s.value, level + 1)
+            sb.close_obj(level)
+        }
         is ForStmt -> {
             sb.open_obj()
             sb.kind_entry(level + 1, "ForStmt")

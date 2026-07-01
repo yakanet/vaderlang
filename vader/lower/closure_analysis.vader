@@ -190,6 +190,9 @@ walk_stmt :: fn(
                 _ -> { walk_expr(return_stmt.value, scope, out_captures, out_seen, ctx) }
             }
         }
+        is AST.YieldStmt as yield_stmt -> {
+            walk_expr(yield_stmt.value, scope, out_captures, out_seen, ctx)
+        }
         is AST.ForStmt as for_stmt -> { walk_for(for_stmt, scope, out_captures, out_seen, ctx) }
         is AST.BreakStmt -> {}
         is AST.ContinueStmt -> {}
