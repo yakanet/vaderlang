@@ -25,6 +25,7 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
+  ArrayIterator<T>
 
 # Diagnostics
 [4:16] error[C4005] comptime division by zero: /

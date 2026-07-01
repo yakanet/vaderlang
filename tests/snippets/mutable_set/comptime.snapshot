@@ -28,15 +28,15 @@
   MutableMap<K, V>
   MutableMap<K, V>
   MutableMap<K, V>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
   MutableMap<K, V>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
   MutableMap<K, V>
   MapIterator<K, V>
   MapIterator<K, V>
@@ -77,6 +77,7 @@
   Range<T>
   Range<T>
   Range<T>
+  ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>

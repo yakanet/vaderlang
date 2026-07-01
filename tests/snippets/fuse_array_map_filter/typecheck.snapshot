@@ -1,0 +1,24 @@
+# Typecheck
+
+## tests/snippets/fuse_array_map_filter
+  FnDecl         double               :: fn(i32) -> i32
+  FnDecl         is_twenty_multiple   :: fn(i32) -> bool
+  FnDecl         main                 :: fn() -> i32
+  expr 10:31    BinaryExpr     :: i32
+  expr 10:31    IdentExpr      :: i32
+  expr 11:44    BinaryExpr     :: bool
+  expr 11:44    BinaryExpr     :: i32
+  expr 11:44    IdentExpr      :: i32
+  expr 14:14    CallExpr       :: ArrayIterator<i32>
+  expr 14:14    CallExpr       :: FilterIterator<i32>
+  expr 14:14    CallExpr       :: MappedIterator<i32, i32>
+  expr 14:14    FieldExpr      :: fn() -> ArrayIterator<i32>
+  expr 14:14    FieldExpr      :: fn(fn(T) -> U) -> MappedIterator<T, U>
+  expr 14:14    FieldExpr      :: fn(fn(T) -> bool) -> FilterIterator<T>
+  expr 14:14    SeqLitExpr     :: i32[]
+  expr 14:44    IdentExpr      :: fn(i32) -> i32
+  expr 14:59    IdentExpr      :: fn(i32) -> bool
+  expr 15:17    StringLitExpr  :: string
+  expr 15:20    IdentExpr      :: i32
+  expr 15:9     CallExpr       :: void
+  expr 15:9     IdentExpr      :: fn(T) -> void

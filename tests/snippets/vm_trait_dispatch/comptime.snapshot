@@ -25,6 +25,7 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
+  ArrayIterator<T>
   Wrapper<i32>
   Wrapper<T>
 
