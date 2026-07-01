@@ -133,6 +133,14 @@ const C_PARITY = new Set<string>([
   // in the lifted lambda body). Closures stashed in the loop and run after it
   // must each see their own iteration's value — the run oracle is the guard.
   "capture_loop_var",
+  // Generators (`@generator` + `yield`) — the state-machine lowering emits a
+  // synthesized `g$State` struct + an `Iterator::next` state machine consumed by
+  // for-in; the native run validates the whole desugar end-to-end.
+  "generator_basic",       // single loop, one yield
+  "generator_nested",      // nested loops (resume mid-inner-loop)
+  "generator_filter",      // yield inside an `if`
+  "generator_break",       // break + continue across a yield
+  "generator_struct_elem", // struct element type, flattened
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

@@ -1,0 +1,14 @@
+// A basic generator: a single loop yielding each element (lazy, no array built).
+module "snippet"
+
+import "std/io" { println }
+
+@generator
+count_up :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n { yield i }
+}
+
+main :: fn() -> i32 {
+    for x in count_up(4) { println("${x}") }
+    return 0
+}

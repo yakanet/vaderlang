@@ -1,0 +1,18 @@
+// `break` and `continue` across a `yield` suspension point.
+module "snippet"
+
+import "std/io" { println }
+
+@generator
+positives_until_big :: fn(xs: i32[]) -> Iterator<i32> {
+    for x in xs {
+        if x < 0 { continue }
+        yield x
+        if x > 100 { break }
+    }
+}
+
+main :: fn() -> i32 {
+    for v in positives_until_big([-1, 7, 200, 9]) { println("${v}") }
+    return 0
+}

@@ -25,7 +25,7 @@ import "vader/resolver/symbol" { Symbol }
 import "vader/lower" {
     LoweredStmt, LoweredLet, LoweredAssign, LoweredCellSet,
     LoweredDeferPush, LoweredDeferPopExec,
-    LoweredExprStmt, LoweredReturn, LoweredLoop, LoweredBreak, LoweredContinue,
+    LoweredExprStmt, LoweredReturn, LoweredYield, LoweredLoop, LoweredBreak, LoweredContinue,
     LoweredExpr, LoweredIntLit, LoweredFloatLit, LoweredBoolLit, LoweredNullLit,
     LoweredCharLit, LoweredStringLit, LoweredIdent, LoweredCall,
     LoweredBlock, LoweredIf, LoweredStructLit, LoweredStructLitField,
@@ -60,6 +60,12 @@ export emit_block :: fn(block: LoweredBlock, state: FnEmitState, ctx: EmitterCtx
 emit_stmt :: fn(stmt: LoweredStmt, state: FnEmitState, ctx: EmitterCtx) -> void {
     match stmt {
         is LoweredReturn as return_stmt     -> emit_return(return_stmt, state, ctx)
+        is LoweredYield as _yield_stmt      -> {
+            // Transient generator marker — the state-machine transform
+            // (lower_generator.vader) must have consumed every one. Reaching
+            // bytecode emit is a compiler bug, not a user error.
+            panic("bytecode emit: unconsumed LoweredYield — generator lowering bug")
+        }
         is LoweredExprStmt as expr_stmt     -> {
             emit_expr(expr_stmt.expr, state, ctx)
             // Skip the Drop when the expression leaves nothing on the

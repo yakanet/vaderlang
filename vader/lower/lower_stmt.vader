@@ -119,15 +119,24 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
             }
         }
         is YieldStmt    as yield_stmt    -> {
-            // Generator lowering (the §6 state-machine desugar) lands in Phase 3;
-            // until then a stray `yield` traps rather than mis-compiling silently.
-            out.push(LoweredExprStmt {
-                .span = yield_stmt.span,
-                .expr = LoweredUnreachable {
-                    .span = yield_stmt.span, .type = TY_VOID,
-                    .reason = "generator lowering not implemented (Phase 3)",
-                },
-            })
+            if ctx.in_generator {
+                // Transient marker consumed by the generator state-machine
+                // transform (lower_generator.vader). Never reaches the backend.
+                out.push(LoweredYield {
+                    .span = yield_stmt.span,
+                    .value = lower_expr(ctx, yield_stmt.value),
+                })
+            } else {
+                // A `yield` outside a generator is a T3059 typecheck error; if
+                // one still reaches here, trap rather than mis-compile.
+                out.push(LoweredExprStmt {
+                    .span = yield_stmt.span,
+                    .expr = LoweredUnreachable {
+                        .span = yield_stmt.span, .type = TY_VOID,
+                        .reason = "yield outside a generator body",
+                    },
+                })
+            }
         }
         is ForStmt      as for_stmt      -> { out.push(lower_for(ctx, for_stmt)) }
         is BreakStmt    as break_stmt    -> {
