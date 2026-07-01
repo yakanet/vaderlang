@@ -11,7 +11,7 @@ import "std/collections" { MutableMap }
 import "vader/diagnostics" { Diagnostic }
 import "vader/types" { Type }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/resolver" { LoadedProject }
+import "vader/resolver" { LoadedProject, concat_file_decls }
 import "vader/typecheck" { TypedProject, TypedProgram }
 AST :: import "vader/parser"
 
@@ -95,14 +95,7 @@ lookup_module_decls :: fn(loaded: LoadedProject, module_id: string) -> AST.Decl[
     if module_loaded is null { return null }
     files :: module_loaded.module.files
     if files.len() == 0 { return null }
-    if files.len() == 1 { return files[0].program.decls }   // common case — zero-copy
-    out: AST.Decl[] = []
-    for source_file in files {
-        for decl in source_file.program.decls {
-            out.push(decl)
-        }
-    }
-    return out
+    return concat_file_decls(files)
 }
 
 evaluate_module_decls :: fn(

@@ -21,7 +21,7 @@ import "std/string_builder" { append }
 
 import "vader/diagnostics" { Diagnostic }
 import "vader/parser" { Decl, FnDecl, StructDecl, ConstDecl, ImplDecl, EnumDecl, TraitDecl, TypeAliasDecl, ImportDecl, AssertDecl }
-import "vader/resolver" { LoadedProject, LoadedModule }
+import "vader/resolver" { LoadedProject, LoadedModule, concat_file_decls }
 import "vader/typecheck" { TypedProject, TypedProgram }
 import "vader/comptime" { EvaluatedProject, ComptimeValue }
 import "vader/resolver/symbol" { Symbol }
@@ -314,17 +314,9 @@ seed_harvest_seen :: fn(
 module_decls :: fn(module_loaded: LoadedModule) -> Decl[] {
     files :: module_loaded.module.files
     if files.len() == 0 { return [] }
-    // Single-file module (the common case) : return the file's decls directly,
-    // no concat allocation — mirrors `comptime/check.vader::lookup_module_decls`.
-    // Hot : `call_site_fn_flavor` reaches through here per generic call site.
-    if files.len() == 1 { return files[0].program.decls }
-    out: Decl[] = []
-    for source_file in files {
-        for decl in source_file.program.decls {
-            out.push(decl)
-        }
-    }
-    return out
+    // Shared concat with the single-file zero-copy fast path. Hot :
+    // `call_site_fn_flavor` reaches through here per generic call site.
+    return concat_file_decls(files)
 }
 
 // ---- tests ----------------------------------------------------------------

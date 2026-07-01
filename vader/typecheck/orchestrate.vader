@@ -15,7 +15,7 @@ import "std/collections" { MutableMap }
 import "vader/diagnostics" { Diagnostic, Span }
 AST :: import "vader/parser"
 import "vader/parser" { Program }
-import "vader/resolver" { LoadedProject, LoadedModule, SourceFile, load_project_with_overlay }
+import "vader/resolver" { LoadedProject, LoadedModule, SourceFile, concat_file_decls, load_project_with_overlay }
 import "vader/resolver" { ResolvedModule, resolve_module, resolve_module_with_collected, resolve_module_with_collected_dp, resolve_module_with_collected_dp_seeded, build_core_seed, find_core_module_id }
 import "vader/resolver/symbol" { Symbol, SymbolFactory }
 import "vader/resolver" { wire_imports, ImportTargetTable, run_orphan_rule_check_for_module }
@@ -36,13 +36,9 @@ import "vader/types" {
 merge_module_program :: fn(files: SourceFile[]) -> Program {
     first :: files[0].program
     if files.len() == 1 { return first }
-    all_decls: AST.Decl[] = []
-    for f in files {
-        for d in f.program.decls { all_decls.push(d) }
-    }
     return Program {
         .file = first.file, .span = first.span, .id = first.id,
-        .module = first.module, .decls = all_decls,
+        .module = first.module, .decls = concat_file_decls(files),
     }
 }
 
