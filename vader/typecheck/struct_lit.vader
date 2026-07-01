@@ -71,9 +71,8 @@ check_field :: fn(
         // structs where the field type references another module's
         // type-params). Fall back to walking the AST locally.
         raw :: resolved_field_type(st.symbol.id, decl, f.name, typed, diags)
-        match raw {
-            is null -> {}
-            _ -> { expected = substitute_by_name(raw, decl.type_params, st.args) }
+        if raw !is null {
+            expected = substitute_by_name(raw, decl.type_params, st.args)
         }
     }
     got :: check_expr_fn(f.value, expected, typed, diags)
