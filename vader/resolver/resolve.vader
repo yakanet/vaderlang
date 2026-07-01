@@ -37,15 +37,6 @@ export ResolvedModule :: struct {
     /// stable key for cross-module side-tables.
     display_path: string
     symbols: Symbol[]
-    /// Module-wide top-level lookup, including symbols declared in every
-    /// file of a multi-file module. Used as the name-based fallback when
-    /// `type_from_expr` / `lookup_type_name` can't find a type ident's span
-    /// in `idents`. NOT a multi-file gap — the body walker visits every file
-    /// of a folder module (`merge_module_program`). The residual misses are
-    /// type-position spans the body-walk never saw : materialised /
-    /// substituted decl clones (generic instances, default trait methods,
-    /// SAM impls) synthesised post-walk.
-    symbols_by_name: MutableMap<string, Symbol>
     idents:  MutableMap<u64, Symbol>
     /// Local Symbol ids minted from `name :: ...` bindings (no `:=`).
     /// Consumed by stmt.vader::check_assign to surface T3041.
@@ -171,7 +162,6 @@ export resolve_module_with_collected_dp_seeded :: fn(
         .path             = module_path,
         .display_path     = display_path,
         .symbols          = sort_by_name(user_syms),
-        .symbols_by_name  = collected.symbols,
         .idents           = file.idents,
         .immutable_locals = file.immutable_locals,
         .fn_overloads     = collected.fn_overloads,
