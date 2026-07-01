@@ -2620,10 +2620,11 @@ The eager and lazy families converge on the same `Iterator<T>` trait: an eager `
 
 ### Generators (`@generator` + `yield`)
 
-> **Draft (surface landed; typecheck + lowering in progress).** The
-> `@generator` decorator and the `yield` statement parse and format today; the
-> semantic rules below are enforced by the typechecker and realised by the
-> lowerer as those phases land. See `.claude/plans/generator-functions-yield.md`.
+> **Surface + typecheck landed; lowering (the state-machine desugar) in
+> progress.** The `@generator` decorator and the `yield` statement parse,
+> format, and are fully type-checked today (the rules below fire as `T3056`–
+> `T3061`); the resumable-iterator lowering is the remaining phase. See
+> `.claude/plans/generator-functions-yield.md`.
 
 A **generator function** carries `@generator` and produces its elements lazily,
 one at a time, instead of building a whole collection up front. It is authoring

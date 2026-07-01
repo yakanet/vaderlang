@@ -85,6 +85,12 @@ export TypecheckCode :: enum(u8) {
     InternalFieldAccess,                // T3054
     CharLiteralOutOfRange,              // T3055
     OperatorTraitNotImplemented,        // T3043
+    GeneratorReturnMustBeIterator,      // T3056
+    GeneratorMissingYield,              // T3057
+    ReturnValueInGenerator,             // T3058
+    YieldOutsideGenerator,              // T3059
+    DeferInGenerator,                   // T3060
+    GeneratorYieldIncompatible,         // T3061
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -368,6 +374,12 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .InternalFieldAccess                -> CodeInfo { .id = "T3054", .message = "access to a struct field marked `@internal` from outside its declaring module" }
     .CharLiteralOutOfRange              -> CodeInfo { .id = "T3055", .message = "character literal's codepoint does not fit the target integer type" }
     .OperatorTraitNotImplemented        -> CodeInfo { .id = "T3043", .message = "operand type does not implement the trait this operator requires" }
+    .GeneratorReturnMustBeIterator      -> CodeInfo { .id = "T3056", .message = "an `@generator` function must return `Iterator<T>`" }
+    .GeneratorMissingYield              -> CodeInfo { .id = "T3057", .message = "an `@generator` function must contain at least one `yield`" }
+    .ReturnValueInGenerator             -> CodeInfo { .id = "T3058", .message = "a generator produces values via `yield`; `return` with a value is not allowed (use a bare `return` to stop)" }
+    .YieldOutsideGenerator              -> CodeInfo { .id = "T3059", .message = "`yield` is only allowed directly inside an `@generator` function body (not in a nested lambda or a non-generator function)" }
+    .DeferInGenerator                   -> CodeInfo { .id = "T3060", .message = "`defer` is not yet supported inside a generator" }
+    .GeneratorYieldIncompatible         -> CodeInfo { .id = "T3061", .message = "yielded value type does not match the generator's element type" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but
