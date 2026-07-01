@@ -312,6 +312,7 @@ binding_hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindBindingStat
             binding_hv_walk_expr(ls.value, typed, st)
         }
         is AST.ExprStmt as es -> { binding_hv_walk_expr(es.expr, typed, st) }
+        is AST.YieldStmt as ys -> { binding_hv_walk_expr(ys.value, typed, st) }
         is AST.ReturnStmt as rs -> {
             match rs.value {
                 is null -> {}

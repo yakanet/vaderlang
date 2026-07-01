@@ -231,6 +231,7 @@ t_find_in_stmt :: fn(s: AST.Stmt, pred: fn(AST.Expr) -> bool) -> AST.Expr | null
     match s {
         is AST.LetStmt    as ls -> { if pred(ls.value) { return ls.value } }
         is AST.ExprStmt   as es -> { if pred(es.expr)  { return es.expr } }
+        is AST.YieldStmt  as ys -> { if pred(ys.value) { return ys.value } }
         is AST.ReturnStmt as rs -> {
             v :: rs.value
             if v == null { return null }

@@ -532,6 +532,7 @@ scan_stmt :: fn(s: AST.Stmt, line: i32, col: i32, ret_ty: AST.TypeExpr | null, t
         return null
     }
     if s is AST.ExprStmt as es { return scan_value_expr(es.expr, line, col, ret_ty, typed) }
+    if s is AST.YieldStmt as ys { return scan_value_expr(ys.value, line, col, ret_ty, typed) }
     if s is AST.ForStmt as fs { return scan_block(fs.body, line, col, ret_ty, typed, false) }
     return null
 }
