@@ -1157,6 +1157,16 @@ The original TS-compiler bootstrap path was superseded by the C seed.
 - [~] Pattern matching extensions — **or-patterns DONE** (`OrPattern` ; `'a' | 'b'` / `.A | .B`, `4d097749`), **range-patterns open** (`'a'..='z'` as a match arm — no `RangePattern` node yet).
 - [ ] `@derive(Eq, Display)` to auto-generate trivial impls.
 - [ ] **Function overloading by full signature** (post-MVP elevation of receiver-only overloading) — pick the candidate whose *all* parameter types match. Generalises the resolver's overload table + typechecker's call resolution.
+- [~] **Generator functions (`@generator` + `yield`) — lazy element-by-element iteration** (idea 2026-07-01; **surface syntax DECIDED, plan written** → `.claude/plans/generator-functions-yield.md`). Today, "flatten / concat / filter into a new sequence" forces materialising a whole array even when the caller only walks it once (~183 array-returning fns, ~748 `out: T[] = []` accumulators; majority map/filter/flatten consumed by one downstream `for`). **Decided syntax:** `@generator` decorator + honest `-> Iterator<T>` return + `yield expr` statement; flatten = nested `for` (no `yield from`). The consumption side already exists (for-in lowers to a `next()` loop over `Iterator<T>`), so `yield` is sugar for authoring an `Iterator<T>` impl — everything downstream (for-in, combinators, `.collect()`) consumes it unchanged.
+  ```
+  @generator
+  concat_file_decls :: fn(files: SourceFile[]) -> Iterator<Decl> {
+      for f in files {
+          for d in f.program.decls { yield d }
+      }
+  }
+  ```
+  **Still open (see plan):** the lowering altitude — midir/CFG-level resumable state-machine (reuses existing liveness, recommended) vs AST-level structured desugar — gated behind a Phase-0 cascade spike. Perf (per-element virtual dispatch on the erased `Iterator<T>`; fusion + caller-monomorphization as Phase-5 levers) and migration (callers needing `.len()`/indexing break; audit before converting) also in the plan.
 
 ### 3.9 Companion projects
 > Shipped: Brainfuck compiler in Vader (`examples/brainfuck.vader`), targeting the Vader VM + native. BF `,` not wired.
