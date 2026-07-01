@@ -1,0 +1,18 @@
+# Typecheck
+
+## tests/snippets/generator_nested
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         pairs                :: fn(i32[], i32[]) -> Iterator<i32>
+  expr 14:14    CallExpr       :: Iterator<i32>
+  expr 14:14    IdentExpr      :: fn(i32[], i32[]) -> Iterator<i32>
+  expr 14:20    SeqLitExpr     :: i32[]
+  expr 14:31    SeqLitExpr     :: i32[]
+  expr 14:43    CallExpr       :: void
+  expr 14:43    IdentExpr      :: fn(T) -> void
+  expr 14:51    StringLitExpr  :: string
+  expr 14:54    IdentExpr      :: ?
+  expr 8:14     IdentExpr      :: i32[]
+  expr 9:18     IdentExpr      :: i32[]
+  expr 9:29     BinaryExpr     :: i32
+  expr 9:29     IdentExpr      :: i32
+  expr 9:33     IdentExpr      :: i32

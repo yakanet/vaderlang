@@ -147,6 +147,16 @@ emit_stmt :: fn(lines: string[], stmt: LoweredStmt, indent: string) -> void {
                 }
             }
         }
+        is LoweredYield as y -> {
+            inline_value :: expr_inline(y.value)
+            match inline_value {
+                is string as single -> { lines.push("${indent}yield ${single}") }
+                is null -> {
+                    lines.push("${indent}yield")
+                    emit_expr(lines, y.value, "${indent}  ")
+                }
+            }
+        }
         is LoweredLoop as loop_stmt -> {
             cond_suffix :: render_loop_cond(loop_stmt.cond)
             label_suffix :: render_label(loop_stmt.label)

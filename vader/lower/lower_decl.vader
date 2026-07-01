@@ -250,6 +250,23 @@ lower_fn_decl :: fn(
     }
     return_type :: return_type_of(fn_decl, types)
     entry :: stub_entry(fn_decl, typed)
+    // Generators (`@generator`) desugar to a state-machine iterator: lower the
+    // body in generator mode (yields → `LoweredYield` markers), then rewrite it
+    // + synthesize `g$State` / `Iterator::next` (generator-functions-yield.md §6).
+    gen_body :: fn_decl.body
+    if fn_is_generator(fn_decl) && gen_body != null {
+        gen_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, return_type, null)
+        gen_ctx.in_generator = true
+        lowered :: lower_block(gen_ctx, gen_body, true, false)
+        new_body :: lower_generator_fn(gen_ctx, fn_decl, params, lowered, return_type)
+        return LoweredFnDecl {
+            .mangled = entry.mangled,
+            .params = params,
+            .return_type = return_type,
+            .body = new_body,
+            .origin = entry,
+        }
+    }
     body :: lower_fn_body(fn_decl, typed, project_ctx, entry, subst, return_type)
     return LoweredFnDecl {
         .mangled     = entry.mangled,

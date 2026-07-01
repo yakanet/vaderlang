@@ -1,0 +1,16 @@
+// `yield` inside an `if` — a lazy filter.
+module "snippet"
+
+import "std/io" { println }
+
+@generator
+evens :: fn(xs: i32[]) -> Iterator<i32> {
+    for x in xs {
+        if x % 2 == 0 { yield x }
+    }
+}
+
+main :: fn() -> i32 {
+    for v in evens([1, 2, 3, 4, 5, 6]) { println("${v}") }
+    return 0
+}

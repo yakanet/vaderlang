@@ -1,0 +1,21 @@
+# Typecheck
+
+## tests/snippets/generator_break
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         positives_until_big  :: fn(i32[]) -> Iterator<i32>
+  expr 10:15    IdentExpr      :: i32
+  expr 11:12    BinaryExpr     :: bool
+  expr 11:12    IdentExpr      :: i32
+  expr 11:9     IfExpr         :: void
+  expr 16:14    CallExpr       :: Iterator<i32>
+  expr 16:14    IdentExpr      :: fn(i32[]) -> Iterator<i32>
+  expr 16:34    SeqLitExpr     :: i32[]
+  expr 16:35    UnaryExpr      :: i32
+  expr 16:53    CallExpr       :: void
+  expr 16:53    IdentExpr      :: fn(T) -> void
+  expr 16:61    StringLitExpr  :: string
+  expr 16:64    IdentExpr      :: ?
+  expr 8:14     IdentExpr      :: i32[]
+  expr 9:12     BinaryExpr     :: bool
+  expr 9:12     IdentExpr      :: i32
+  expr 9:9      IfExpr         :: void

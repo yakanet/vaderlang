@@ -178,6 +178,7 @@ collect_stmt :: fn(s: LoweredStmt, ctx: CollectCtx) -> void {
             v :: st.value
             if v != null { collect_expr(v, ctx) }
         }
+        is LoweredYield as st -> { collect_expr(st.value, ctx) }
         is LoweredLoop as st -> {
             c :: st.cond
             if c != null { collect_expr(c, ctx) }
@@ -290,6 +291,7 @@ transform_stmt :: fn(s: LoweredStmt, ctx: TransformCtx) -> LoweredStmt {
         }
         is LoweredExprStmt as st -> LoweredExprStmt { .span = st.span, .expr = transform_expr(st.expr, ctx) }
         is LoweredReturn as st -> LoweredReturn { .span = st.span, .value = transform_opt(st.value, ctx) }
+        is LoweredYield as st -> LoweredYield { .span = st.span, .value = transform_expr(st.value, ctx) }
         is LoweredLoop as st -> LoweredLoop {
             .span = st.span, .label = st.label, .cond = transform_opt(st.cond, ctx),
             .body = transform_block(st.body, ctx),

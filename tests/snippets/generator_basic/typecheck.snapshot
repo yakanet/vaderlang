@@ -1,0 +1,14 @@
+# Typecheck
+
+## tests/snippets/generator_basic
+  FnDecl         count_up             :: fn(i32) -> Iterator<i32>
+  FnDecl         main                 :: fn() -> i32
+  expr 12:14    CallExpr       :: Iterator<i32>
+  expr 12:14    IdentExpr      :: fn(i32) -> Iterator<i32>
+  expr 12:28    CallExpr       :: void
+  expr 12:28    IdentExpr      :: fn(T) -> void
+  expr 12:36    StringLitExpr  :: string
+  expr 12:39    IdentExpr      :: ?
+  expr 8:14     RangeExpr      :: Range<i32>
+  expr 8:18     IdentExpr      :: i32
+  expr 8:28     IdentExpr      :: i32

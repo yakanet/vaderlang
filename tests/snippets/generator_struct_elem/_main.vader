@@ -1,0 +1,24 @@
+// A generator whose element type is a struct, flattened from nested arrays.
+module "snippet"
+
+import "std/io" { println }
+
+Decl :: struct { name: string, id: i32 }
+FileMod :: struct { decls: Decl[] }
+
+@generator
+concat_decls :: fn(files: FileMod[]) -> Iterator<Decl> {
+    for f in files {
+        for d in f.decls { yield d }
+    }
+}
+
+main :: fn() -> i32 {
+    files :: [
+        FileMod { .decls = [Decl { .name = "a", .id = 1 }, Decl { .name = "b", .id = 2 }] },
+        FileMod { .decls = [] },
+        FileMod { .decls = [Decl { .name = "c", .id = 3 }] },
+    ]
+    for d in concat_decls(files) { println("${d.name}=${d.id}") }
+    return 0
+}
