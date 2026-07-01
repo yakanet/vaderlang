@@ -23,7 +23,7 @@ import "std/io" { exists, is_dir, read_dir, read_file_string, current_executable
 import "std/path" { Path, to_path, as_string, parent }
 import "std/sort" { sort }
 import "std/string" { trim_prefix, compare_ascending, ends_with, starts_with }
-import "vader/parser" { NodeIdFactory, Program, parse_source }
+import "vader/parser" { NodeIdFactory, Program, Decl, parse_source }
 
 /// `import "std/..."` and stdlib display paths share this prefix.
 export STDLIB_PREFIX :: "std/"
@@ -58,6 +58,23 @@ export SourceFile :: struct {
     content:    string
     program:    Program
     id_factory: NodeIdFactory
+}
+
+/// Concatenate every file's top-level decls of a (possibly multi-file) module
+/// into one `Decl[]`. Single-file modules (the common case) return the file's
+/// decls directly — zero-copy, no concat allocation. Shared by the typecheck /
+/// lower / comptime "decls of a module" accessors so the concat lives once.
+///
+/// @param files  the module's source files (`Module.files`).
+/// @return       every file's decls in file order ; the sole file's decls
+///               verbatim for a single-file module.
+export concat_file_decls :: fn(files: SourceFile[]) -> Decl[] {
+    if files.len() == 1 { return files[0].program.decls }
+    out: Decl[] = []
+    for f in files {
+        for d in f.program.decls { out.push(d) }
+    }
+    return out
 }
 
 /// A resolved module : `id` is its canonical absolute root path,
