@@ -56,6 +56,16 @@ export FnContext :: struct {
     /// `fn_trait_dispatches`. Keyed by id (not name) so overloaded fns
     /// don't collide. `0` for lambdas / synthetic contexts.
     fn_id: usize = 0
+    /// True when the enclosing fn carries `@generator`. Drives `yield`
+    /// legality, forbids `return <value>`, and suppresses the
+    /// missing-return obligation on the `-> Iterator<T>` body. False for
+    /// lambdas and synthetic contexts, so a `yield` inside a nested lambda
+    /// trips the "yield outside generator" check.
+    is_generator: bool = false
+    /// Element type `T` of the generator's `-> Iterator<T>` return —
+    /// `yield e` must coerce to it. Null when not a generator (or the
+    /// return type wasn't a valid `Iterator<T>`).
+    yield_type: Type | null = null
 }
 
 export new_fn_context :: fn(return_type: Type, self_type: Type | null) -> FnContext {

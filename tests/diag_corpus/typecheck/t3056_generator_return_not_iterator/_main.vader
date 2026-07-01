@@ -1,0 +1,6 @@
+module "snippet"
+
+@generator
+export gen :: fn(xs: i32[]) -> i32[] {
+    for x in xs { yield x }
+}

@@ -9,11 +9,11 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic, Span, typecheck_error, warning }
+import "vader/diagnostics" { Diagnostic, Span, TypecheckCode, typecheck_error, warning }
 AST :: import "vader/parser"
 import "vader/types" {
     Type, ArrayType, FnType, StructType, TupleType, TypeParamType, UnresolvedType, display_type,
-    NeverType,
+    NeverType, TraitType, TRAIT_ITERATOR,
     TY_BOOL, TY_FREE_INT, TY_NEVER, TY_STRING, TY_NULL, TY_VOID, TY_UNRESOLVED,
 }
 
@@ -98,16 +98,105 @@ export check_stmt :: fn(
         is AST.AssignStmt   as s -> { check_assign(s, typed, diags, check_expr_fn) }
         is AST.ExprStmt     as s -> { check_expr_fn(s.expr, null, typed, diags) }
         is AST.ReturnStmt   as s -> { check_return(s, typed, diags, ctx, check_expr_fn) }
-        // Phase 1: check the yielded value only; generator classification +
-        // diagnostics (incl. `return <value>` rejection) land in Phase 2
-        // (generator-functions-yield.md §2).
-        is AST.YieldStmt    as s -> { check_expr_fn(s.value, null, typed, diags) }
+        is AST.YieldStmt    as s -> { check_yield(s, typed, diags, ctx, check_expr_fn) }
         is AST.ForStmt      as s -> { check_for(s, typed, diags, ctx, check_expr_fn) }
         is AST.BreakStmt    as s -> { check_loop_jump(s.span, s.label, typed, ctx, diags) }
         is AST.ContinueStmt as s -> { check_loop_jump(s.span, s.label, typed, ctx, diags) }
         is AST.DeferStmt    as s -> { check_defer(s, typed, diags, ctx, check_expr_fn) }
     }
     return
+}
+
+/// True when `fn_decl` carries the `@generator` decorator.
+fn_is_generator :: fn(fn_decl: AST.FnDecl) -> bool {
+    for d in fn_decl.decorators { if d.name == "generator" { return true } }
+    return false
+}
+
+/// Element type `T` of a generator's `-> Iterator<T>` return, or `null`
+/// (plus a T3056 diagnostic) when the return type isn't a valid
+/// `Iterator<T>`. `@generator` mandates the honest `Iterator<T>` return.
+generator_element_type :: fn(fn_decl: AST.FnDecl, return_type: Type, diags: Diagnostic[]) -> Type | null {
+    if return_type is TraitType as tt {
+        if tt.symbol.name == TRAIT_ITERATOR && tt.args.len() > 0 {
+            return tt.args[0]
+        }
+    }
+    diags.push(typecheck_error(.GeneratorReturnMustBeIterator, fn_decl.name_span,
+        "`${fn_decl.name}` is `@generator` but returns ${display_type(return_type)}"))
+    return null
+}
+
+/// True when any statement in `block` (recursively, through nested
+/// blocks / loops / ifs / matches / defers) is a `yield`. Nested lambdas
+/// are NOT descended into — a `yield` there is illegal anyway.
+block_has_yield :: fn(block: AST.BlockExpr) -> bool {
+    for s in block.stmts { if stmt_has_yield(s) { return true } }
+    // A trailing `if` / `match` / nested block (e.g. a for-body whose only
+    // item is `if p { yield x }`) parses as the block's trailing expr, not a
+    // stmt — descend it too.
+    match block.trailing {
+        is null -> {}
+        _       -> { if expr_has_yield(block.trailing) { return true } }
+    }
+    return false
+}
+
+stmt_has_yield :: fn(s: AST.Stmt) -> bool {
+    match s {
+        is AST.YieldStmt    -> { return true }
+        is AST.ForStmt   as f -> { return block_has_yield(f.body) }
+        is AST.DeferStmt as d -> {
+            match d.body {
+                is AST.DeferStmtBody  as b -> { return stmt_has_yield(b.stmt) }
+                is AST.DeferBlockBody as b -> { return block_has_yield(b.block) }
+            }
+        }
+        is AST.LetStmt      -> { return false }
+        is AST.AssignStmt   -> { return false }
+        is AST.ExprStmt  as e -> { return expr_has_yield(e.expr) }
+        is AST.ReturnStmt as r -> {
+            if r.value == null { return false }
+            return expr_has_yield(r.value)
+        }
+        is AST.BreakStmt    -> { return false }
+        is AST.ContinueStmt -> { return false }
+    }
+}
+
+/// A `yield` can hide inside a block/if/match used in statement position
+/// (`yield` is a statement, so it only appears in a block's stmt list) —
+/// descend the expression forms that carry blocks, skipping lambdas.
+expr_has_yield :: fn(e: AST.Expr) -> bool {
+    match e {
+        is AST.BlockExpr as b -> { return block_has_yield(b) }
+        is AST.IfExpr    as i -> { return if_has_yield(i) }
+        is AST.MatchExpr as m -> {
+            for arm in m.arms { if expr_has_yield(arm.body) { return true } }
+            return false
+        }
+        // No other expression form carries a statement block a `yield` could
+        // live in ; a LambdaExpr body is deliberately NOT descended (a `yield`
+        // there is illegal — T3059 — so it must not count for the enclosing
+        // generator's yield check). Exhaustive so a new block-bearing Expr
+        // variant trips T3013 here rather than being silently missed.
+        is AST.IntLitExpr   | AST.FloatLitExpr  | AST.BoolLitExpr | AST.NullLitExpr
+         | AST.CharLitExpr  | AST.StringLitExpr | AST.IdentExpr   | AST.CallExpr
+         | AST.FieldExpr    | AST.IndexExpr     | AST.UnaryExpr   | AST.BinaryExpr
+         | AST.LambdaExpr   | AST.StructLitExpr | AST.SeqLitExpr  | AST.RangeExpr
+         | AST.TryExpr      | AST.CastExpr      | AST.GenericInstExpr
+         | AST.IntrinsicCallExpr | AST.DotVariantExpr | AST.FnTypeExpr
+         | AST.ArrayTypeExpr -> { return false }
+    }
+}
+
+if_has_yield :: fn(i: AST.IfExpr) -> bool {
+    if block_has_yield(i.then_block) { return true }
+    match i.else_branch {
+        is null                 -> { return false }
+        is AST.IfElseIf    as e -> { return if_has_yield(e.branch) }
+        is AST.IfElseBlock as e -> { return block_has_yield(e.block) }
+    }
 }
 
 /// Type-check a fn body. Reads the fn's declared return type from
@@ -120,6 +209,20 @@ export check_fn_body :: fn(
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     return_type :: lookup_return_type(fn_decl, typed)
+    is_generator :: fn_is_generator(fn_decl)
+    // Generators are classified up front: extract the `Iterator<T>`
+    // element type (T3056 if the return isn't `Iterator<T>`) and require
+    // at least one `yield` (T3057). The body yields rather than returning
+    // the iterator, so the missing-return / trailing-return check below is
+    // suppressed. See generator-functions-yield.md §3.
+    yield_type: Type | null = null
+    if is_generator {
+        yield_type = generator_element_type(fn_decl, return_type, diags)
+        if !block_has_yield(body) {
+            diags.push(typecheck_error(.GeneratorMissingYield, fn_decl.name_span,
+                "`${fn_decl.name}` is `@generator` but never yields"))
+        }
+    }
     // Expression-bodied without explicit return type : infer from
     // the trailing expression. `declare_fn_return` leaves this as
     // TY_UNRESOLVED ; we resolve it here and patch `decl_types` so
@@ -129,12 +232,15 @@ export check_fn_body :: fn(
     if inferred_return { expected = null }
     ctx :: FnContext {
         .return_type = return_type, .self_type = null, .loop_depth = 0,
-        .fn_id = fn_decl.id,
+        .fn_id = fn_decl.id, .is_generator = is_generator, .yield_type = yield_type,
     }
     prev :: typed.current_fn_ctx
     typed.current_fn_ctx = ctx
     got :: check_block(body, expected, typed, diags, ctx, check_expr_fn)
-    if inferred_return {
+    if is_generator {
+        // A generator returns its stream via `yield`, not the trailing
+        // expression — skip the implicit-return obligation entirely.
+    } else if inferred_return {
         // Recursive fns leave their return as `?` — the body's
         // inferred type contains an Unresolved leaf (the recursive
         // call) so substituting would just amplify the unresolved-
@@ -232,11 +338,27 @@ import "vader/types" { mk_fn, UnionType }
 // wording / arity stay in sync.
 emit_return_mismatch_if :: fn(
     got: Type, expected: Type, span: Span, typed: TypedProgram, diags: Diagnostic[],
+) -> void = emit_mismatch_if(got, expected, span, .BodyReturnIncompatible, typed, diags)
+
+// Push `code` when `got` doesn't flow into `expected` — neither assignable nor
+// `Into`-coercible. Shared by the return / yield mismatch checks so wording
+// stays in sync ; only the diagnostic code differs.
+emit_mismatch_if :: fn(
+    got: Type, expected: Type, span: Span, code: TypecheckCode,
+    typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     if is_assignable(got, expected, null) { return }
     if try_into(got, expected, typed) { return }
-    diags.push(typecheck_error(.BodyReturnIncompatible, span,
+    diags.push(typecheck_error(code, span,
         "expected ${display_type(expected)}, got ${display_type(got)}"))
+}
+
+// Resolve the effective fn-context: the arg-side `ctx` when present, else the
+// walk-global `current_fn_ctx` (the recursive `infer_if` / `infer_match` paths
+// pass `ctx = null`, so the body's return / yield targets need this fallback).
+resolve_ctx :: fn(ctx: FnContext | null, typed: TypedProgram) -> FnContext | null {
+    if ctx != null { return ctx }
+    return typed.current_fn_ctx
 }
 
 // ---- per-stmt helpers -----------------------------------------------------
@@ -355,14 +477,18 @@ check_return :: fn(
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
-    // Fall back to the typed-program-wide ctx when the arg-side ctx
-    // is null — the dispatcher's recursive paths (`infer_if`,
-    // `infer_match`) pass `null` so the body's return targets aren't
-    // visible without this fallback.
-    effective: FnContext | null = ctx
-    match ctx {
-        is null -> { effective = typed.current_fn_ctx }
-        _ -> {}
+    effective :: resolve_ctx(ctx, typed)
+    // Generator: `return <value>` is a mistake (produce via `yield` — T3058);
+    // a bare `return` stops the stream and needs no return-type check.
+    if effective != null && effective.is_generator {
+        match s.value {
+            is null -> {}
+            _ -> {
+                check_expr_fn(s.value, null, typed, diags)
+                diags.push(typecheck_error(.ReturnValueInGenerator, s.span, ""))
+            }
+        }
+        return
     }
     v :: s.value
     if v is null {
@@ -382,6 +508,26 @@ check_return :: fn(
         is null -> {}
         _ -> { emit_return_mismatch_if(got, effective.return_type, s.span, typed, diags) }
     }
+}
+
+check_yield :: fn(
+    s: AST.YieldStmt, typed: TypedProgram, diags: Diagnostic[],
+    ctx: FnContext | null,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> void {
+    effective :: resolve_ctx(ctx, typed)
+    if effective != null && effective.is_generator {
+        // `yield e` must coerce to the generator's element type `T` (T3061).
+        yt :: effective.yield_type
+        got :: check_expr_fn(s.value, yt, typed, diags)
+        if yt != null { emit_mismatch_if(got, yt, s.value.span, .GeneratorYieldIncompatible, typed, diags) }
+        return
+    }
+    // Legal only directly inside a generator body — a plain fn or a nested
+    // lambda (whose own ctx isn't a generator) trips T3059. Still type the
+    // value so downstream passes see its type.
+    check_expr_fn(s.value, null, typed, diags)
+    diags.push(typecheck_error(.YieldOutsideGenerator, s.span, ""))
 }
 
 check_for :: fn(
@@ -447,6 +593,12 @@ check_defer :: fn(
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
+    // `defer` inside a generator is forbidden in v1 — its interaction with
+    // suspension is unresolved and the runtime has no drop hook (T3060).
+    effective :: resolve_ctx(ctx, typed)
+    if effective != null && effective.is_generator {
+        diags.push(typecheck_error(.DeferInGenerator, s.span, ""))
+    }
     match s.body {
         is AST.DeferStmtBody  as b -> { check_stmt(b.stmt, typed, diags, ctx, check_expr_fn) }
         is AST.DeferBlockBody as b -> { check_block(b.block, null, typed, diags, ctx, check_expr_fn) }
@@ -459,10 +611,14 @@ check_defer :: fn(
 bump_loop_depth :: fn(ctx: FnContext | null) -> FnContext | null {
     if ctx is null { return null }
     return FnContext {
-        .return_type = ctx.return_type,
-        .self_type   = ctx.self_type,
-        .loop_depth  = ctx.loop_depth + 1,
-        .fn_id       = ctx.fn_id,
+        .return_type  = ctx.return_type,
+        .self_type    = ctx.self_type,
+        .loop_depth   = ctx.loop_depth + 1,
+        .fn_id        = ctx.fn_id,
+        // Preserve generator-ness so a `yield` inside a `for` / `while`
+        // (the common case) still sees `is_generator` / `yield_type`.
+        .is_generator = ctx.is_generator,
+        .yield_type   = ctx.yield_type,
     }
 }
 
