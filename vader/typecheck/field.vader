@@ -627,11 +627,11 @@ try_default_trait_method :: fn(
     trait_names :: typed.struct_implemented_traits[target_ty.symbol.name]
     if trait_names is null { return null }
     for trait_name in trait_names {
-        trait_sym :: lookup_trait_symbol(trait_name, typed)
-        if trait_sym is null { continue }
-        decl :: typed.trait_decls[trait_sym.id]
+        trait_id :: find_trait_id_by_name(trait_name, typed)
+        if trait_id == null { continue }
+        decl :: typed.trait_decls[trait_id]
         if decl is null { continue }
-        owner :: typed.trait_decl_owners[trait_sym.id]
+        owner :: typed.trait_decl_owners[trait_id]
         owner_resolved: ResolvedModule = typed.resolved
         match owner {
             is null -> {}
@@ -678,15 +678,15 @@ substitute_trait_typeparams :: fn(
     return substitute_by_name(t, trait_decl.type_params, resolved_args)
 }
 
-lookup_trait_symbol :: fn(name: string, typed: TypedProgram) -> Symbol | null {
-    for sym in typed.resolved.symbols {
-        if sym.name == name { return sym }
+/// Find a trait's global symbol id by name in the project-wide `trait_decls`
+/// registry (cross-published, so it includes core + every imported module's
+/// traits). Replaces the old `symbols`/`core_symbols` name scan — trait
+/// dispatch only needs the id (to index `trait_decls` / `trait_decl_owners`).
+find_trait_id_by_name :: fn(name: string, typed: TypedProgram) -> i32 | null {
+    for [id, decl] in typed.trait_decls {
+        if decl.name == name { return id }
     }
-    core :: typed.resolved.core_symbols[name]
-    match core {
-        is null -> { return null }
-        is Symbol as s -> { return s }
-    }
+    return null
 }
 
 // Pad a trait's use-site args with declared `<T = Default>` defaults when the
