@@ -1,0 +1,33 @@
+# Typecheck
+
+## tests/snippets/fuse_take_skip
+  FnDecl         main                 :: fn() -> i32
+  expr 10:14    CallExpr       :: ArrayIterator<i32>
+  expr 10:14    CallExpr       :: TakeIterator<T>
+  expr 10:14    FieldExpr      :: fn() -> ArrayIterator<i32>
+  expr 10:14    FieldExpr      :: fn(usize) -> TakeIterator<T>
+  expr 10:14    SeqLitExpr     :: i32[]
+  expr 10:52    CallExpr       :: void
+  expr 10:52    IdentExpr      :: fn(T) -> void
+  expr 10:60    StringLitExpr  :: string
+  expr 10:65    IdentExpr      :: T
+  expr 11:14    CallExpr       :: ArrayIterator<i32>
+  expr 11:14    CallExpr       :: SkipIterator<T>
+  expr 11:14    FieldExpr      :: fn() -> ArrayIterator<i32>
+  expr 11:14    FieldExpr      :: fn(usize) -> SkipIterator<T>
+  expr 11:14    SeqLitExpr     :: i32[]
+  expr 11:52    CallExpr       :: void
+  expr 11:52    IdentExpr      :: fn(T) -> void
+  expr 11:60    StringLitExpr  :: string
+  expr 11:65    IdentExpr      :: T
+  expr 12:14    CallExpr       :: ArrayIterator<i32>
+  expr 12:14    CallExpr       :: SkipIterator<T>
+  expr 12:14    CallExpr       :: TakeIterator<T>
+  expr 12:14    FieldExpr      :: fn() -> ArrayIterator<i32>
+  expr 12:14    FieldExpr      :: fn(usize) -> SkipIterator<T>
+  expr 12:14    FieldExpr      :: fn(usize) -> TakeIterator<T>
+  expr 12:14    SeqLitExpr     :: i32[]
+  expr 12:60    CallExpr       :: void
+  expr 12:60    IdentExpr      :: fn(T) -> void
+  expr 12:68    StringLitExpr  :: string
+  expr 12:74    IdentExpr      :: T

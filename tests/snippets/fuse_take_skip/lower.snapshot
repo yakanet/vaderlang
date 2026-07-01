@@ -1,0 +1,425 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    block :void
+      let __taken_0: usize = int(0) :usize
+      let __fuse_arr_1: i32[] =
+        array :i32[]
+          int(10) :i32
+          int(20) :i32
+          int(30) :i32
+          int(40) :i32
+          int(50) :i32
+      let __fuse_len_2: usize =
+        LoweredArrayLen
+      let __fuse_i_3: usize = int(0) :usize
+      loop while (<…>)
+        let v: i32 =
+          index :i32
+            on:
+              __fuse_arr_1 :i32[]
+            ix:
+              __fuse_i_3 :usize
+        if :void
+          cond:
+            gte :bool
+              l:
+                __taken_0 :usize
+              r:
+                int(3) :usize
+          then:
+            break
+        assign
+          target:
+            __taken_0 :usize
+          value:
+            add :usize
+              l:
+                __taken_0 :usize
+              r:
+                int(1) :usize
+        call :void
+          callee:
+            std_io$println__string :void
+          arg0:
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "t " :string
+              arg1:
+                vcall Display.to_string :string
+                  recv:
+                    v :T
+        assign
+          target:
+            __fuse_i_3 :usize
+          value:
+            add :usize
+              l:
+                __fuse_i_3 :usize
+              r:
+                int(1) :usize
+    block :void
+      let __skipped_4: usize = int(0) :usize
+      let __fuse_arr_5: i32[] =
+        array :i32[]
+          int(10) :i32
+          int(20) :i32
+          int(30) :i32
+          int(40) :i32
+          int(50) :i32
+      let __fuse_len_6: usize =
+        LoweredArrayLen
+      let __fuse_i_7: usize = int(0) :usize
+      loop while (<…>)
+        let v: i32 =
+          index :i32
+            on:
+              __fuse_arr_5 :i32[]
+            ix:
+              __fuse_i_7 :usize
+        if :void
+          cond:
+            lt :bool
+              l:
+                __skipped_4 :usize
+              r:
+                int(2) :usize
+          then:
+            assign
+              target:
+                __skipped_4 :usize
+              value:
+                add :usize
+                  l:
+                    __skipped_4 :usize
+                  r:
+                    int(1) :usize
+            block :void
+              assign
+                target:
+                  __fuse_i_7 :usize
+                value:
+                  add :usize
+                    l:
+                      __fuse_i_7 :usize
+                    r:
+                      int(1) :usize
+              continue
+        call :void
+          callee:
+            std_io$println__string :void
+          arg0:
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "s " :string
+              arg1:
+                vcall Display.to_string :string
+                  recv:
+                    v :T
+        assign
+          target:
+            __fuse_i_7 :usize
+          value:
+            add :usize
+              l:
+                __fuse_i_7 :usize
+              r:
+                int(1) :usize
+    block :void
+      let __taken_8: usize = int(0) :usize
+      let __skipped_9: usize = int(0) :usize
+      let __fuse_arr_10: i32[] =
+        array :i32[]
+          int(10) :i32
+          int(20) :i32
+          int(30) :i32
+          int(40) :i32
+          int(50) :i32
+      let __fuse_len_11: usize =
+        LoweredArrayLen
+      let __fuse_i_12: usize = int(0) :usize
+      loop while (<…>)
+        let v: i32 =
+          index :i32
+            on:
+              __fuse_arr_10 :i32[]
+            ix:
+              __fuse_i_12 :usize
+        if :void
+          cond:
+            lt :bool
+              l:
+                __skipped_9 :usize
+              r:
+                int(1) :usize
+          then:
+            assign
+              target:
+                __skipped_9 :usize
+              value:
+                add :usize
+                  l:
+                    __skipped_9 :usize
+                  r:
+                    int(1) :usize
+            block :void
+              assign
+                target:
+                  __fuse_i_12 :usize
+                value:
+                  add :usize
+                    l:
+                      __fuse_i_12 :usize
+                    r:
+                      int(1) :usize
+              continue
+        if :void
+          cond:
+            gte :bool
+              l:
+                __taken_8 :usize
+              r:
+                int(2) :usize
+          then:
+            break
+        assign
+          target:
+            __taken_8 :usize
+          value:
+            add :usize
+              l:
+                __taken_8 :usize
+              r:
+                int(1) :usize
+        call :void
+          callee:
+            std_io$println__string :void
+          arg0:
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "st " :string
+              arg1:
+                vcall Display.to_string :string
+                  recv:
+                    v :T
+        assign
+          target:
+            __fuse_i_12 :usize
+          value:
+            add :usize
+              l:
+                __fuse_i_12 :usize
+              r:
+                int(1) :usize
+    return int(0) :i32
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize
+  fn concat_3(p0: string, p1: string, p2: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let c2: usize =
+      add :usize
+        l:
+          c1 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p2 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          c2 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c1 :usize
+      arg2:
+        p2 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c2 :usize
+  fn concat_4(p0: string, p1: string, p2: string, p3: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let c2: usize =
+      add :usize
+        l:
+          c1 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p2 :string
+    let c3: usize =
+      add :usize
+        l:
+          c2 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p3 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          c3 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c1 :usize
+      arg2:
+        p2 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c2 :usize
+      arg2:
+        p3 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c3 :usize

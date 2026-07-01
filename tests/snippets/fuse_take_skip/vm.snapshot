@@ -1,0 +1,11 @@
+# stdout
+t 10
+t 20
+t 30
+s 30
+s 40
+s 50
+st 20
+st 30
+# exit
+0

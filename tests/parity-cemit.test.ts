@@ -145,6 +145,8 @@ const C_PARITY = new Set<string>([
   // fuses to a flat index loop — no iterator structs. Native run validates the
   // fused loop produces the same output as the boxed tower would.
   "fuse_array_map_filter",
+  // Couche 2: take/skip fuse via a pre-loop counter + break/continue guard.
+  "fuse_take_skip",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));
