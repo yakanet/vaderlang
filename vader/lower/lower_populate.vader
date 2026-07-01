@@ -5,7 +5,7 @@ module "vader/lower"
 
 import "std/collections" { MutableMap, values }
 
-import "vader/resolver" { LoadedProject, ResolvedModule }
+import "vader/resolver" { LoadedProject, ResolvedModule, build_core_seed }
 import "vader/typecheck" { TypedProject, build_impl_registry }
 import "vader/comptime" { EvaluatedProgram, ComptimeValue }
 import "vader/resolver/symbol" { Symbol }
@@ -15,16 +15,13 @@ import "vader/resolver/symbol" { Symbol }
 // … without re-walking the project per call. Per-module export lookups
 // (std/iter's `MappedIterator`, std/string's `bytes`, …) go through the lazy
 // `module_export` below instead of dedicated per-module tables.
-populate_core_symbols :: fn(typed: TypedProject, project_ctx: LowerProjectCtx) -> void {
-    for [_, module_typed] in typed.modules {
-        // `core_symbols` on `ResolvedModule` carries cross-module
-        // auto-import bindings — std/core's own entry has its
-        // exported symbols here. Iterate every module's table and
-        // copy into the project context ; std/core's entries
-        // dominate since every module imports them.
-        for [symbol_name, symbol] in module_typed.resolved.core_symbols {
-            project_ctx.core_symbols[symbol_name] = symbol
-        }
+populate_core_symbols :: fn(loaded: LoadedProject, project_ctx: LowerProjectCtx) -> void {
+    // Source std/core's exports directly from the core module (one seed) rather
+    // than from per-module `resolved.core_symbols` copies (removed). This is the
+    // lowerer's single core-symbol cache — `find_core_type` / `find_core_trait`
+    // / `lower_range` read it.
+    for [name, sym] in build_core_seed(loaded) {
+        project_ctx.core_symbols[name] = sym
     }
 }
 
@@ -80,7 +77,7 @@ populate_impls :: fn(loaded: LoadedProject, typed: TypedProject, project_ctx: Lo
         module_loaded :: loaded.modules[module_id]
         if module_loaded is null { continue }
         module_decls_list :: module_decls(module_loaded)
-        per_module :: build_impl_registry(module_decls_list, module_typed.resolved)
+        per_module :: build_impl_registry(module_decls_list, module_typed.resolved, project_ctx.core_symbols)
         for entry in per_module.all {
             project_ctx.impls.all.push(entry)
             match entry.for_symbol {

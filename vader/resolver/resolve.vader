@@ -45,11 +45,6 @@ export ResolvedModule :: struct {
     /// fn name — only one of which lands in `symbols`. The typecheck
     /// dump iterates this to surface every overload.
     fn_overloads: MutableMap<string, Symbol[]>
-    /// Auto-loaded `std/core` symbols (Error, Range, Field, …). Used
-    /// as fallback for `type_from_expr` when the local resolver scope
-    /// didn't bind the ident (since the resolver doesn't know about
-    /// `std/core`'s auto-load). Populated by the typecheck orchestrator.
-    core_symbols: MutableMap<string, Symbol>
     /// `imports_to[sym.id]` follows an ImportBinding symbol to its
     /// concrete exported counterpart. Lets `type_from_expr` resolve
     /// `ParseError` to the real struct symbol on the std/string side
@@ -165,7 +160,6 @@ export resolve_module_with_collected_dp_seeded :: fn(
         .idents           = file.idents,
         .immutable_locals = file.immutable_locals,
         .fn_overloads     = collected.fn_overloads,
-        .core_symbols     = MutableMap<string, Symbol> {},
         .imports_to       = MutableMap<i32, Symbol> {},
         .alias_types      = MutableMap<i32, Type> {},
         .alias_decls      = MutableMap<i32, TypeAliasDecl> {},

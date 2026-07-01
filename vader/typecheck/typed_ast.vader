@@ -164,7 +164,11 @@ export TypedProgram :: struct {
     /// the orchestrator after loading core, consumed by passes that
     /// need to refer to core types (Range, Field, Display, Error,
     /// Iterator, …) without going through a user-side import.
-    core_symbols: MutableMap<string, Symbol>
+    /// Well-known `std/core` struct symbols synthesised without a source span
+    /// (`Range` for `a..b`, `Field` for `@fields`). Populated once from core by
+    /// the orchestrator ; replaces the name-keyed core-symbol lookups for these.
+    range_symbol: Symbol | null
+    field_symbol: Symbol | null
 
     /// Imported fn overloads indexed by simple name. Populated by
     /// the orchestrator after wiring imports. Consumed by
@@ -332,7 +336,8 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .external_types  = MutableMap<i32, Type> {},
         .namespace_exports = MutableMap<string, MutableMap<string, Type>> {},
         .namespace_export_params = MutableMap<string, MutableMap<string, AST.FnParam[]>> {},
-        .core_symbols    = MutableMap<string, Symbol> {},
+        .range_symbol    = null,
+        .field_symbol    = null,
         .imported_fn_overloads = MutableMap<string, FnType[]> {},
         .iter_element_types = MutableMap<string, Type> {},
         .index_target_types = MutableMap<string, Type> {},
@@ -373,7 +378,6 @@ export empty_typed_program :: fn() -> TypedProgram {
         .idents = MutableMap<u64, Symbol> {},
         .immutable_locals = MutableMap<i32, bool> {},
         .fn_overloads = MutableMap<string, Symbol[]> {},
-        .core_symbols = MutableMap<string, Symbol> {},
         .imports_to = MutableMap<i32, Symbol> {},
         .alias_types = MutableMap<i32, Type> {},
         .alias_decls = MutableMap<i32, TypeAliasDecl> {},
@@ -398,7 +402,6 @@ fresh_module :: fn() -> ResolvedModule {
         .idents = MutableMap<u64, Symbol> {},
         .immutable_locals = MutableMap<i32, bool> {},
         .fn_overloads = MutableMap<string, Symbol[]> {},
-        .core_symbols = MutableMap<string, Symbol> {},
         .imports_to = MutableMap<i32, Symbol> {},
         .alias_types = MutableMap<i32, Type> {},
         .alias_decls = MutableMap<i32, TypeAliasDecl> {},
