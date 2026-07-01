@@ -918,6 +918,7 @@ emit_stmt :: fn(self: Printer, s: p.Stmt) -> void {
         is p.AssignStmt   as x -> self.emit_assign_stmt(x)
         is p.ExprStmt     as x -> self.emit_expr(x.expr)
         is p.ReturnStmt   as x -> self.emit_return_stmt(x)
+        is p.YieldStmt    as x -> self.emit_yield_stmt(x)
         is p.ForStmt      as x -> self.emit_for_stmt(x)
         is p.BreakStmt    as x -> self.emit_break_stmt(x)
         is p.ContinueStmt as x -> self.emit_continue_stmt(x)
@@ -1030,6 +1031,11 @@ compound_assign_symbol :: fn(s: p.AssignStmt) -> string | null {
 emit_return_stmt :: fn(self: Printer, s: p.ReturnStmt) -> void {
     self.write("return")
     self.emit_expr_with_prefix(" ", s.value)
+}
+
+emit_yield_stmt :: fn(self: Printer, s: p.YieldStmt) -> void {
+    self.write("yield ")
+    self.emit_expr(s.value)
 }
 
 emit_for_stmt :: fn(self: Printer, s: p.ForStmt) -> void {

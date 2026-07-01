@@ -1,0 +1,1 @@
+{"_comment": "Surface-only: Phase 1 of generator-functions-yield.md lands the lexer/parser shape for @generator + yield. Typecheck (Phase 2) and lowering (Phase 3) are not implemented, so snapshotting stops at parser.", "phases": ["lexer", "parser"]}

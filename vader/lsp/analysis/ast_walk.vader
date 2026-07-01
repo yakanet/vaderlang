@@ -129,6 +129,7 @@ hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindState) -> void {
                 _ -> { hv_walk_expr(rs.value, typed, st) }
             }
         }
+        is AST.YieldStmt as ys -> { hv_walk_expr(ys.value, typed, st) }
         is AST.AssignStmt as as_ -> {
             hv_walk_expr(as_.target, typed, st)
             hv_walk_expr(as_.value, typed, st)
@@ -438,6 +439,7 @@ ee_walk_stmt :: fn(s: AST.Stmt, st: EncloseState) -> void {
                 _ -> { ee_walk_expr(rs.value, st) }
             }
         }
+        is AST.YieldStmt as ys -> { ee_walk_expr(ys.value, st) }
         is AST.AssignStmt as as_ -> {
             ee_walk_expr(as_.target, st)
             ee_walk_expr(as_.value, st)

@@ -98,6 +98,10 @@ export check_stmt :: fn(
         is AST.AssignStmt   as s -> { check_assign(s, typed, diags, check_expr_fn) }
         is AST.ExprStmt     as s -> { check_expr_fn(s.expr, null, typed, diags) }
         is AST.ReturnStmt   as s -> { check_return(s, typed, diags, ctx, check_expr_fn) }
+        // Phase 1: check the yielded value only; generator classification +
+        // diagnostics (incl. `return <value>` rejection) land in Phase 2
+        // (generator-functions-yield.md §2).
+        is AST.YieldStmt    as s -> { check_expr_fn(s.value, null, typed, diags) }
         is AST.ForStmt      as s -> { check_for(s, typed, diags, ctx, check_expr_fn) }
         is AST.BreakStmt    as s -> { check_loop_jump(s.span, s.label, typed, ctx, diags) }
         is AST.ContinueStmt as s -> { check_loop_jump(s.span, s.label, typed, ctx, diags) }
@@ -542,6 +546,7 @@ stmt_span :: fn(s: AST.Stmt) -> Span {
         is AST.AssignStmt   as x -> { return x.span }
         is AST.ExprStmt     as x -> { return x.span }
         is AST.ReturnStmt   as x -> { return x.span }
+        is AST.YieldStmt    as x -> { return x.span }
         is AST.ForStmt      as x -> { return x.span }
         is AST.BreakStmt    as x -> { return x.span }
         is AST.ContinueStmt as x -> { return x.span }

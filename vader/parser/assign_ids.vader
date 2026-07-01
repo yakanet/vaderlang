@@ -356,6 +356,10 @@ walk_stmt :: fn(s: Stmt, f: NodeIdFactory) -> void {
                 _ -> { walk_expr(x.value, f) }
             }
         }
+        is YieldStmt as x -> {
+            x.id = f.mint()
+            walk_expr(x.value, f)
+        }
         is ForStmt as x -> {
             x.id = f.mint()
             walk_for_form(x.form, f)

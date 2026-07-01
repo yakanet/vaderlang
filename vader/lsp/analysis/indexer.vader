@@ -31,7 +31,7 @@ import "vader/parser" {
     FnDecl, StructDecl, EnumDecl, TraitDecl, TypeAliasDecl, ConstDecl,
     ImplDecl, AssertDecl,
     Decorator,
-    Stmt, LetStmt, AssignStmt, ExprStmt, ReturnStmt, ForStmt,
+    Stmt, LetStmt, AssignStmt, ExprStmt, ReturnStmt, YieldStmt, ForStmt,
     BreakStmt, ContinueStmt, DeferStmt,
     LetBinding, SimpleBinding, TupleBinding, WildcardBinding, RestBinding,
     InfiniteFor, WhileFor, InFor,
@@ -356,6 +356,7 @@ ix_walk_stmt :: fn(s: Stmt, block_span: Span, source: string, entries: DeclEntry
                 e       -> { ix_walk_expr(e, source, entries) }
             }
         }
+        is YieldStmt as y -> { ix_walk_expr(y.value, source, entries) }
         is ForStmt as f -> { ix_walk_for(f, source, entries) }
         is BreakStmt -> {}
         is ContinueStmt -> {}

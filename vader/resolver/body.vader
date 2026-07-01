@@ -266,6 +266,7 @@ is_known_decorator :: fn(name: string) -> bool {
         || name == "specialize"
         || name == "no_return"
         || name == "allow_unused"
+        || name == "generator"
 }
 
 walk_opt_expr :: fn(self: ResolveState, e: AST.Expr | null) -> void {
@@ -298,6 +299,7 @@ walk_stmt :: fn(self: ResolveState, s: AST.Stmt) -> void {
         }
         is AST.ExprStmt as x -> { self.walk_expr(x.expr) }
         is AST.ReturnStmt as x -> { self.walk_opt_expr(x.value) }
+        is AST.YieldStmt as x -> { self.walk_expr(x.value) }
         is AST.ForStmt as x -> { self.walk_for(x) }
         is AST.BreakStmt -> {}
         is AST.ContinueStmt -> {}

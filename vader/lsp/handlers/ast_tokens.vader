@@ -335,6 +335,7 @@ walk_stmt :: fn(s: AST.Stmt, out: RawToken[]) -> void {
         }
         is AST.ExprStmt     as x -> { walk_expr(x.expr, out) }
         is AST.ReturnStmt   as x -> { walk_opt_expr(x.value, out) }
+        is AST.YieldStmt    as x -> { walk_expr(x.value, out) }
         is AST.ForStmt      as x -> { walk_for(x, out) }
         is AST.BreakStmt    -> {}
         is AST.ContinueStmt -> {}

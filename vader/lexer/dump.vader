@@ -154,6 +154,7 @@ export kind_name :: fn(k: TokenKind) = match k {
     .KwFor        -> "kw_for"
     .KwIn         -> "kw_in"
     .KwReturn     -> "kw_return"
+    .KwYield      -> "kw_yield"
     .KwDefer      -> "kw_defer"
     .KwBreak      -> "kw_break"
     .KwContinue   -> "kw_continue"
