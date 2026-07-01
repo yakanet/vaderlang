@@ -8,12 +8,6 @@ module "vader/typecheck"
 
 import "std/string" { join }
 import "vader/diagnostics" { Diagnostic, typecheck_error }
-
-lookup_pre_resolved_field_for_lit :: fn(struct_id: i32, name: string, typed: TypedProgram) -> Type | null {
-    fmap :: typed.struct_field_types[struct_id]
-    if fmap is null { return null }
-    return fmap[name]
-}
 import "vader/types" { Type, StructType, display_type, TY_FREE_INT, TY_STRING, TY_UNRESOLVED }
 AST :: import "vader/parser"
 
@@ -76,10 +70,7 @@ check_field :: fn(
         // Prefer the pre-resolved field type (handles cross-module
         // structs where the field type references another module's
         // type-params). Fall back to walking the AST locally.
-        raw: Type | null = lookup_pre_resolved_field_for_lit(st.symbol.id, f.name, typed)
-        if raw is null {
-            raw = find_struct_field_type(decl, f.name, typed.resolved, diags)
-        }
+        raw :: resolved_field_type(st.symbol.id, decl, f.name, typed, diags)
         match raw {
             is null -> {}
             _ -> { expected = substitute_by_name(raw, decl.type_params, st.args) }

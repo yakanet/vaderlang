@@ -259,13 +259,7 @@ resolve_struct_field :: fn(
     // T3054 : reject reads (and assignment LHS, which types through here too)
     // of an `@internal` field from outside its declaring module.
     check_internal_field(target_ty, decl, e.field, e.field_span, typed, diags)
-    // Cross-module : `struct_field_types` carries already-resolved
-    // field types using the OWNING module's resolved.idents.
-    pre_resolved :: lookup_pre_resolved_field(target_ty.symbol.id, e.field, typed)
-    found: Type | null = pre_resolved
-    if found is null {
-        found = find_struct_field_type(decl, e.field, typed.resolved, diags)
-    }
+    found :: resolved_field_type(target_ty.symbol.id, decl, e.field, typed, diags)
     if found == null {
         diags.push(typecheck_error(.FieldDoesNotExist, e.field_span,
             "`${e.field}` on ${display_type(target_ty)}"))
@@ -328,6 +322,20 @@ lookup_pre_resolved_field :: fn(struct_id: i32, name: string, typed: TypedProgra
     fmap :: typed.struct_field_types[struct_id]
     if fmap is null { return null }
     return fmap[name]
+}
+
+/// Resolve field `name`'s type on the struct with symbol id `struct_id` — the
+/// owner-resolved `struct_field_types` cache first (authoritative cross-module),
+/// else a local AST re-walk of `decl` (same-module cold path). The
+/// cache-before-walk ordering lives HERE so no field-type consumer can reorder
+/// or skip it ; callers keep their own post-lookup substitution / narrowing.
+resolved_field_type :: fn(
+    struct_id: i32, decl: AST.StructDecl, name: string,
+    typed: TypedProgram, diags: Diagnostic[],
+) -> Type | null {
+    cached :: lookup_pre_resolved_field(struct_id, name, typed)
+    if !(cached is null) { return cached }
+    return find_struct_field_type(decl, name, typed.resolved, diags)
 }
 
 /// Substitute typeParam bindings from `decl.type_params` against
@@ -543,13 +551,7 @@ union_common_field :: fn(
         if !(v is StructType) { return null }
         decl :: typed.struct_decls[v.symbol.id]
         if decl is null { return null }
-        // Prefer the owner-resolved field type from `struct_field_types`
-        // (populated once by the declaring module + broadcast). Only fall
-        // back to a local AST re-walk — which resolves against THIS module's
-        // `idents` and misses for imported structs — when the cache is cold.
-        cached :: lookup_pre_resolved_field(v.symbol.id, name, typed)
-        ty: Type | null = cached
-        if ty is null { ty = find_struct_field_type(decl, name, typed.resolved, diags) }
+        ty :: resolved_field_type(v.symbol.id, decl, name, typed, diags)
         if ty is null { return null }
         types.push(substitute_struct_field(ty, decl, v))
     }
