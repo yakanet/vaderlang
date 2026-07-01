@@ -141,12 +141,16 @@ const C_PARITY = new Set<string>([
   "generator_filter",      // yield inside an `if`
   "generator_break",       // break + continue across a yield
   "generator_struct_elem", // struct element type, flattened
+  "generator_escapes",     // stored-then-consumed → boxed state machine (not inlined)
   // Stream fusion (Couche 1): `arr.iter().map(f).filter(p)` under a `for`
   // fuses to a flat index loop — no iterator structs. Native run validates the
   // fused loop produces the same output as the boxed tower would.
   "fuse_array_map_filter",
   // Couche 2: take/skip fuse via a pre-loop counter + break/continue guard.
   "fuse_take_skip",
+  // Couche 4: a directly-consumed @generator inlines its yield-loop as the
+  // fused body — native run validates it matches the boxed state machine.
+  "fuse_generator_direct",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

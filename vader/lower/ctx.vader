@@ -436,6 +436,26 @@ export FnLowerCtx :: struct {
     /// transient `LoweredYield` marker for `yield e` (consumed by the
     /// generator transform) instead of the not-implemented trap.
     in_generator:       bool = false
+
+    /// Non-null while INLINING a generator body at a for-in consumption site
+    /// (Couche 4): `lower_stmt` redirects each `yield e` to bind the consumer's
+    /// loop var + run its body. Transient (save/restore, like `comptime_bindings`).
+    /// Takes priority over `in_generator` — the two legitimately coexist when a
+    /// state-machine generator's body itself consumes another generator inline
+    /// (inner yields → the sink, outer yields → the enclosing state machine).
+    gen_inline_sink:    GenInlineSink | null = null
+}
+
+/// The consumer side of a generator inline (Couche 4, stream-fusion). Installed
+/// on `FnLowerCtx.gen_inline_sink` while a generator body is lowered at a for-in
+/// consumption site, so each `yield e` lowers to `<bind binding_symbol = e>` +
+/// the consumer's body instead of the state-machine marker. Lives here (not the
+/// fusion module) to avoid a `ctx` → fusion import cycle — mirrors `LiftedFnContext`.
+export GenInlineSink :: struct {
+    binding_symbol: Symbol
+    binding_name:   string
+    element_type:   Type
+    body:           LoweredBlock
 }
 
 /// Build a fresh `FnLowerCtx` for `entry`'s body. Populates the

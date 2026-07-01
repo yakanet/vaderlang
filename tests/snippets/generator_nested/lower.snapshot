@@ -18,42 +18,70 @@
       }
   fn snippet$main() -> i32
     block :void
-      let __iter_0: Iterator<i32> =
-        call :Iterator<i32>
-          callee:
-            pairs :fn(i32[], i32[]) -> Iterator<i32>
-          arg0:
-            array :i32[]
-              int(1) :i32
-              int(2) :i32
-              int(3) :i32
-          arg1:
-            array :i32[]
-              int(10) :i32
-              int(20) :i32
-      loop
-        let __step_1: Yield<i32> | null =
-          vcall Iterator.next :Yield<i32> | null
-            recv:
-              __iter_0 :Iterator<i32>
-        if :void
-          cond:
-            is null :bool
-              __step_1 :Yield<i32> | null
-          then:
-            break
-          else:
-            let v: i32 =
-              .value :i32
-                cast → Yield<i32>
-                  __step_1 :Yield<i32> | null
-            call :void
-              callee:
-                std_io$println__string :void
-              arg0:
-                vcall Display.to_string :string
-                  recv:
-                    v :?
+      let xs: i32[] =
+        array :i32[]
+          int(1) :i32
+          int(2) :i32
+          int(3) :i32
+      let ys: i32[] =
+        array :i32[]
+          int(10) :i32
+          int(20) :i32
+      block :void
+        let __for_arr_0: i32[] = xs :i32[]
+        let __for_len_1: usize =
+          LoweredArrayLen
+        let __for_i_2: usize = int(0) :usize
+        loop while (<…>)
+          let x: i32 =
+            index :i32
+              on:
+                __for_arr_0 :i32[]
+              ix:
+                __for_i_2 :usize
+          block :void
+            let __for_arr_3: i32[] = ys :i32[]
+            let __for_len_4: usize =
+              LoweredArrayLen
+            let __for_i_5: usize = int(0) :usize
+            loop while (<…>)
+              let y: i32 =
+                index :i32
+                  on:
+                    __for_arr_3 :i32[]
+                  ix:
+                    __for_i_5 :usize
+              let v: i32 =
+                add :i32
+                  l:
+                    x :i32
+                  r:
+                    y :i32
+              call :void
+                callee:
+                  std_io$println__string :void
+                arg0:
+                  vcall Display.to_string :string
+                    recv:
+                      v :?
+              assign
+                target:
+                  __for_i_5 :usize
+                value:
+                  add :usize
+                    l:
+                      __for_i_5 :usize
+                    r:
+                      int(1) :usize
+          assign
+            target:
+              __for_i_2 :usize
+            value:
+              add :usize
+                l:
+                  __for_i_2 :usize
+                r:
+                  int(1) :usize
     return int(0) :i32
   struct __gen_state_7 { s0: i32[], s1: i32[], s2: i32[], s3: usize, s4: usize, s5: i32, s6: i32[], s7: usize, s8: usize, s9: i32, state: i32 }
   fn snippet$__gen_state_7$Iterator$next(self: __gen_state_7) -> Yield<i32> | null

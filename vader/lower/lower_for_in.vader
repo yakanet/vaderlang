@@ -56,6 +56,12 @@ export lower_for_in :: fn(
     // reference (the slow path handles those).
     chain_form :: try_lower_chain_fusion(ctx, for_stmt, in_form, recurse, block_lowerer)
     if chain_form != null { return chain_form }
+    // Fast path : `for v in gen(args)` where `gen` is a directly-called
+    // `@generator` — inline its yield-loop with the consumer body as the
+    // `yield` sink (Couche 4), skipping the state-machine struct + virtual
+    // `next()`. Falls through when the callee isn't a recognised generator.
+    gen_inline :: try_lower_generator_inline(ctx, for_stmt, in_form, recurse, block_lowerer)
+    if gen_inline != null { return gen_inline }
     // Fast path : `for x in lo..<hi` / `for x in lo..=hi` over an
     // integer range lowers to a direct counter loop ; no Range
     // allocation, no `Iterator.next` dispatch. Falls through to the

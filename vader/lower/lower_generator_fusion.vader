@@ -1,0 +1,100 @@
+// vader/lower/lower_generator_fusion — inline a consumed `@generator` body into
+// its for-in (Couche 4, stream-fusion-generalization.md).
+//
+// `for v in gen(args) { body }` where `gen` carries `@generator` is lowered by
+// inlining gen's body with (a) each param bound to the matching call arg and
+// (b) each `yield e` redirected to the consumer's loop-var binding + body — no
+// state-machine struct, no boxed `Iterator`, no virtual `next()`. The generator's
+// own `for x in <param>` fuses through the existing for-in fast paths (raw array,
+// int range, map/set, chain fusion). Tried from `lower_for_in` right after the
+// combinator-chain fusion; a `null` result falls through to the boxed path.
+//
+// Increment 1: a DIRECT call to a NON-generic generator. Generic generators
+// (the `std/iter` combinator rewrites) reconstruct the instance substitution at
+// this site (Increment 2) via `lower_generic_call`'s `infer_type_args`; chained
+// combinators (`xs.iter().gen_map(f)`) recurse into the receiver (Increment 3).
+
+module "vader/lower"
+
+import "vader/diagnostics" { Span }
+AST :: import "vader/parser"
+import "vader/types" { Type, TY_VOID }
+
+// Recognise `for v in <gen-call>` where the callee is a directly-called,
+// non-generic `@generator` fn, and inline its yield-loop in place of the boxed
+// `next()` dispatch. Returns null for any non-matching shape (the caller falls
+// through to the generic step-loop).
+export try_lower_generator_inline :: fn(
+    ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+    block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
+) -> LoweredStmt | null {
+    // Direct-ident callee only (Increment 1): `gen(args)`, not `recv.gen(args)`.
+    // Both `is` bindings stay live in the inner block, so the worker takes them.
+    if in_form.iter is AST.CallExpr as call {
+        if call.callee is AST.IdentExpr as callee_id {
+            return inline_gen_ident_call(ctx, for_stmt, in_form, call, callee_id, recurse, block_lowerer)
+        }
+    }
+    return null
+}
+
+// The direct-call worker. Resolves the callee to its `@generator` FnDecl, binds
+// each param to its arg, and lowers the generator body with the consumer's body
+// installed as the `yield` sink (`ctx.gen_inline_sink`).
+inline_gen_ident_call :: fn(
+    ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor, call: AST.CallExpr,
+    callee_id: AST.IdentExpr,
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+    block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
+) -> LoweredStmt | null {
+    callee_sym :: ctx.typed.resolved.idents[callee_id.span.hash()]
+    if callee_sym is null { return null }
+    fn_decl :: ctx.typed.fn_decls[callee_sym.id]
+    if fn_decl is null { return null }
+    if !fn_is_generator(fn_decl) { return null }
+    // Non-generic only for now — a generic generator needs the instance subst.
+    if fn_decl.type_params.len() > 0 { return null }
+    gen_body :: fn_decl.body
+    if gen_body is null { return null }
+    if call.args.len() != fn_decl.params.len() { return null }
+
+    element_type :: generator_element_of(ctx.types.expr_type(in_form.iter))
+    if element_type == TY_VOID { return null }
+
+    // Bind each generator param to its call arg — a plain `let <param> = <arg>`
+    // ahead of the inlined body, so the body's references (e.g. `for x in xs`)
+    // resolve to the arg value and fuse through the normal for-in fast paths.
+    param_lets: LoweredStmt[] = []
+    for i in 0..<fn_decl.params.len() {
+        p :: fn_decl.params[i]
+        p_sym :: lookup_local_symbol(ctx.project, ctx.typed.resolved, p.span)
+        if p_sym is null { return null }
+        arg_lowered :: recurse(ctx, call.args[i].value)
+        param_lets.push(LoweredLet {
+            .span = p.span, .name = p.name, .symbol = p_sym,
+            .type = type_of(arg_lowered), .value = arg_lowered,
+        })
+    }
+
+    binding_symbol :: resolve_binding_or_synth(ctx, in_form)
+    consumer_body :: block_lowerer(ctx, for_stmt.body, false, true)
+
+    // Install the sink, lower the generator body (yields → consumer body), then
+    // restore — save/restore nests correctly for a generator that itself consumes
+    // another generator inline.
+    saved :: ctx.gen_inline_sink
+    ctx.gen_inline_sink = GenInlineSink {
+        .binding_symbol = binding_symbol,
+        .binding_name = in_form.binding,
+        .element_type = element_type,
+        .body = consumer_body,
+    }
+    lowered_gen :: block_lowerer(ctx, gen_body, false, false)
+    ctx.gen_inline_sink = saved
+
+    out: LoweredStmt[] = []
+    out.push_all(param_lets)
+    out.push_all(block_stmts_with_trailing(lowered_gen))
+    return wrap_stmts(for_stmt.span, out)
+}
