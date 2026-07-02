@@ -9,10 +9,10 @@
         r:
           int(1) :i32
   fn snippet$main() -> i32
-    let kept: T[] =
-      call :T[]
+    let kept: i32[] =
+      call :i32[]
         callee:
-          std_iter$std_iter$collect__i32 :T[]
+          std_iter$std_iter$collect__i32 :i32[]
         arg0:
           call :FilterIterator<i32>
             callee:

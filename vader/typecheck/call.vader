@@ -160,6 +160,12 @@ seed_ufcs_bindings :: fn(
     target_ty :: typed.expr_types[callee.target.id]
     if target_ty is null { return }
     unify_type_param(receiver_ty, target_ty, bindings)
+    // A struct receiver impl'ing the trait the first param expects (a concrete
+    // `FilterIterator<i32>` / `ArrayIterator<i32>` curried into `self: Iterator<T>`)
+    // binds `T` from the impl args — `unify_type_param` can't (different nominal
+    // heads). Without this a lazy combinator/terminal's SOURCE `T` stays unbound, so
+    // `filter`/`take`/`skip` (element = `T`) and `collect` (`-> T[]`) erase.
+    unify_struct_to_trait_args(receiver_ty, target_ty, typed, bindings)
 }
 
 // Seed `bindings` from a `f<T1, T2>(…)` callee's explicit type args.
@@ -647,7 +653,10 @@ unify_struct_to_trait_args :: fn(
     param: Type, arg: Type, typed: TypedProgram, out: MutableMap<i32, Type>,
 ) -> void {
     if !(param is TraitType) { return }
-    impl_args :: lookup_struct_trait_args(arg, param.symbol.name, typed)
+    // Resolve (not just look up) so a GENERIC impl's `[T]` args are substituted by
+    // the concrete receiver instance (`FilterIterator<i32>` → `[i32]`), binding the
+    // param's `T` to `i32` instead of the impl's own `T`.
+    impl_args :: resolve_struct_trait_args(arg, param.symbol.name, typed)
     if impl_args is null { return }
     n :: min(param.args.len(), impl_args.len())
     for i in 0..<n {

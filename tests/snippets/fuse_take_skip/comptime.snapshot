@@ -9,10 +9,12 @@
   FilterIterator<T>
   FilterIterator<T>
   FilterIterator<T>
+  TakeIterator<i32>
   TakeIterator<T>
   TakeIterator<T>
   TakeIterator<T>
   Into<Target>
+  SkipIterator<i32>
   SkipIterator<T>
   SkipIterator<T>
   SkipIterator<T>

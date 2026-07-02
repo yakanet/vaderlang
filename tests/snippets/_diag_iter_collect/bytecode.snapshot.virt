@@ -19,8 +19,6 @@ type 16 struct std_iter$FilterIterator__i32 { source:17,pred:19 }
 type 17 ref Iterator
 type 18 array 1
 type 19 fn (1) -> 2
-type 20 array 21
-type 21 ref _
 string 0 "len="
 string 1 "\n"
 import 0 bytes std_core$bytes (string) -> ref
