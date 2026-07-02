@@ -18,6 +18,7 @@ import "vader/parser" { Visibility }
 import "vader/diagnostics" { Diagnostic }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" { Type, StructType, FnType, mk_struct }
+import "std/collections" { MutableMap }
 
 // The `<fn>$State` naming convention — one source of truth shared by the symbol
 // mint (`gen_state_symbol`), the registry keys, and the lower-side recognition
@@ -58,21 +59,41 @@ export is_gen_state_struct :: fn(t: Type) -> bool {
     return false
 }
 
+// One `@generator`'s state-struct registration facts, collected from the module
+// that OWNS the fn (its `decl_types` / resolved symbol resolve the element).
+GenStateEntry :: struct { name: string, module: string, id: i32, element: Type }
+
 /// Register every `@generator` fn's synthetic state struct as `implements
-/// Iterator<U>` so a call to it types as a concrete iterator (chains resolve).
-/// Iterates `typed.fn_decls` (keyed by symbol id) — runs before the body walk so
-/// `try_trait_widen` sees `<fn>$State → Iterator` while typing chained receivers.
-export register_generator_iter_impls :: fn(typed: TypedProgram) -> void {
-    for [sym_id, fn_decl] in typed.fn_decls {
-        if !fn_is_generator(fn_decl) { continue }
+/// Iterator<U>` — into EVERY module's registry — so a call to it types as a
+/// concrete iterator (chains resolve) regardless of which module consumes it.
+/// Runs before any body walk so `try_trait_widen` sees `<fn>$State → Iterator`
+/// while typing chained receivers.
+///
+/// Cross-module: a generator's element resolves only in its OWNER module (whose
+/// `decl_types` carries its signature) — `cross_publish_fn_decls` copies fn_decls
+/// but not decl_types, so a copy in a consuming module's `fn_decls` yields
+/// `TY_UNRESOLVED` and is skipped, deduping the collection to one entry per fn.
+export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedProgram>) -> void {
+    entries: GenStateEntry[] = []
+    for [_, owner] in per_module {
         sink: Diagnostic[] = []
-        elem :: generator_element_type(fn_decl, lookup_return_type(fn_decl, typed), sink)
-        if elem is null { continue }
-        typed.has_generators = true
-        state_ty :: mk_struct(gen_state_symbol_of(sym_id, fn_decl.name, typed.resolved.path), [])
-        record_struct_trait(typed, state_ty, "Iterator")
-        record_struct_trait_args(typed, state_ty, "Iterator", [elem])
-        typed.iter_element_types[gen_state_name(fn_decl.name)] = elem
+        for [sym_id, fn_decl] in owner.fn_decls {
+            if !fn_is_generator(fn_decl) { continue }
+            elem :: generator_element_type(fn_decl, lookup_return_type(fn_decl, owner), sink)
+            if elem is null { continue }
+            entries.push(GenStateEntry {
+                .name = fn_decl.name, .module = owner.resolved.path, .id = sym_id, .element = elem,
+            })
+        }
+    }
+    for [_, tp] in per_module {
+        if entries.len() > 0 { tp.has_generators = true }
+        for e in entries {
+            state_ty :: mk_struct(gen_state_symbol_of(e.id, e.name, e.module), [])
+            record_struct_trait(tp, state_ty, "Iterator")
+            record_struct_trait_args(tp, state_ty, "Iterator", [e.element])
+            tp.iter_element_types[gen_state_name(e.name)] = e.element
+        }
     }
 }
 
@@ -111,10 +132,16 @@ is_generator_symbol :: fn(sym: Symbol, typed: TypedProgram) -> bool {
 }
 
 // The `@generator` free-fn symbol whose first param accepts `recv_ty` for a UFCS
-// `.name` call. Filters to generator candidates FIRST (a cheap decl lookup) so the
-// structural `receiver_fits_first_param` fit-check only runs on the rare generator
-// overloads, not every UFCS method call on the typecheck hot path.
+// `.name` call — local overload OR imported combinator. Filters to generator
+// candidates FIRST (a cheap `fn_decls` lookup, cross-published so it works for
+// imports too) so the structural `receiver_fits_first_param` fit-check only runs on
+// the rare generator overloads, not every UFCS method call on the typecheck hot path.
 ufcs_free_fn_symbol :: fn(name: string, recv_ty: Type, typed: TypedProgram) -> Symbol | null {
+    // O(1) bail: skip the overload / imported-symbol scans unless `name` is a
+    // registered generator (the `__genstate_<name>` key is a distinct namespace,
+    // present iff `register_generator_iter_impls` saw a generator by this name).
+    if typed.iter_element_types[gen_state_name(name)] is null { return null }
+    // 1. Local overloads — fit against the local `decl_types` signature.
     bucket :: typed.resolved.fn_overloads[name]
     if bucket is Symbol[] as syms {
         for sym in syms {
@@ -127,5 +154,32 @@ ufcs_free_fn_symbol :: fn(name: string, recv_ty: Type, typed: TypedProgram) -> S
             }
         }
     }
+    // 2. Imported combinator — follow the `import "p" { name }` ImportBinding to its
+    //    OWNER symbol (so `gen_state_symbol` matches the cross-module registration).
+    //    The owner's `decl_types` isn't published here, so confirm the first-param
+    //    fit against the imported FnType (`imported_fn_overloads`) instead.
+    for candidate in typed.resolved.symbols {
+        if candidate.name != name { continue }
+        if candidate.kind != SymbolKind.ImportBinding { continue }
+        target :: typed.resolved.imports_to[candidate.id]
+        if target is Symbol as t {
+            if is_generator_symbol(t, typed) && imported_first_param_fits(name, recv_ty, typed) {
+                return t
+            }
+        }
+    }
     return null
+}
+
+// Whether any imported overload named `name` has a first param accepting `recv_ty`.
+imported_first_param_fits :: fn(name: string, recv_ty: Type, typed: TypedProgram) -> bool {
+    imported :: typed.imported_fn_overloads[name]
+    if imported is FnType[] as fts {
+        for f in fts {
+            if f.params.len() > 0 {
+                if receiver_fits_first_param(recv_ty, f.params[0], typed) { return true }
+            }
+        }
+    }
+    return false
 }
