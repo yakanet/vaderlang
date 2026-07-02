@@ -24,6 +24,7 @@ import "vader/types" {
     Type, TraitType, PrimitiveType, mk_struct, mk_primitive, TY_NULL, TY_BOOL, TY_VOID, TRAIT_ITERATOR,
 }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/typecheck" { gen_state_symbol }
 import "std/collections" { MutableMap }
 import "vader/diagnostics" { Span }
 import "std/abort" { panic }
@@ -326,7 +327,15 @@ export lower_generator_fn :: fn(
     element_ty :: generator_element_of(return_type)
     i32_ty :: mk_primitive("i32")
 
-    state_sym :: fresh_lifted_symbol_with_prefix(fn_ctx, true, "__gen_", "__gen_state_")
+    // Direction A : mint the state struct under the SAME deterministic symbol
+    // typecheck uses (`gen_state_symbol` : `__genstate_<fn>`, id `BASE - fn.id`),
+    // so an escaping generator — now typed as the concrete `__genstate_<fn>` — has
+    // its `Iterator::next` mangle resolve at the consumer's devirtualized call.
+    // Falls back to a fresh lifted symbol when the fn symbol is unavailable.
+    state_sym :: match fn_ctx.entry.symbol {
+        is Symbol as fn_sym -> gen_state_symbol(fn_sym)
+        is null             -> fresh_lifted_symbol_with_prefix(fn_ctx, true, "__gen_", "__gen_state_")
+    }
     state_ty :: mk_struct(state_sym, [])
     self_sym :: fresh_synthetic_symbol(fn_ctx, "self")
 

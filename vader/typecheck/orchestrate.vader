@@ -272,6 +272,12 @@ export check_project_with_bodies :: fn(
     // No two functions in a module may share name + signature (a redefinition).
     check_fn_redefinitions(project, per_module, diags)
 
+    // Direction A : register each `@generator`'s synthetic `<fn>$State implements
+    // Iterator<U>` BEFORE the body walk — a chained combinator's receiver is the
+    // prior combinator's concrete `__genstate_<fn>` result, and typing its
+    // `self: Iterator<T>` param needs the struct→trait widening this registers.
+    register_generator_iter_impls(entry_typed)
+
     // Two-pass body walk : first pass infers expression-bodied fn
     // return types (forward-reference safe) ; second pass re-types
     // bodies with all returns settled. Diags are captured only on

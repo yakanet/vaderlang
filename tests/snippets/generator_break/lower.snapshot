@@ -3,7 +3,7 @@
 ## snippet
   fn snippet$positives_until_big(xs: i32[]) -> Iterator<i32>
     return
-      __gen_state_4 {
+      __genstate_positives_until_big {
         s0: xs :i32[]
         s1: null
         s2: int(0) :usize
@@ -56,9 +56,36 @@
             callee:
               std_io$println__string :void
             arg0:
-              vcall Display.to_string :string
-                recv:
-                  v :?
+              block :string
+                let __buf_0: Buffer =
+                  call :Buffer
+                    callee:
+                      new_byte_buffer :Buffer
+                    arg0:
+                      int(20) :usize
+                let __off_1: usize = int(0) :usize
+                assign
+                  target:
+                    __off_1 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_0 :Buffer
+                      arg1:
+                        __off_1 :usize
+                      arg2:
+                        cast → i64
+                          v :i32
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
+                    arg0:
+                      __buf_0 :Buffer
+                    arg1:
+                      __off_1 :usize
           if :void
             cond:
               gt :bool
@@ -78,22 +105,22 @@
                 r:
                   int(1) :usize
     return int(0) :i32
-  struct __gen_state_4 { s0: i32[], s1: i32[], s2: usize, s3: usize, s4: i32, state: i32 }
-  fn snippet$__gen_state_4$Iterator$next(self: __gen_state_4) -> Yield<i32> | null
+  struct __genstate_positives_until_big { s0: i32[], s1: i32[], s2: usize, s3: usize, s4: i32, state: i32 }
+  fn snippet$__genstate_positives_until_big$Iterator$next(self: __genstate_positives_until_big) -> Yield<i32> | null
     loop
       if :void
         cond:
           eq :bool
             l:
               .state :i32
-                __self_3 :__gen_state_4
+                __self_3 :__genstate_positives_until_big
             r:
               int(0) :i32
         then:
           assign
             target:
               .state :i32
-                __self_3 :__gen_state_4
+                __self_3 :__genstate_positives_until_big
             value:
               int(-1) :i32
         else:
@@ -102,14 +129,14 @@
               eq :bool
                 l:
                   .state :i32
-                    __self_3 :__gen_state_4
+                    __self_3 :__genstate_positives_until_big
                 r:
                   int(1) :i32
             then:
               assign
                 target:
                   .state :i32
-                    __self_3 :__gen_state_4
+                    __self_3 :__genstate_positives_until_big
                 value:
                   int(0) :i32
             else:
@@ -118,7 +145,7 @@
                   eq :bool
                     l:
                       .state :i32
-                        __self_3 :__gen_state_4
+                        __self_3 :__genstate_positives_until_big
                     r:
                       int(2) :i32
                 then:
@@ -127,22 +154,22 @@
                       lt :bool
                         l:
                           .s3 :usize
-                            __self_3 :__gen_state_4
+                            __self_3 :__genstate_positives_until_big
                         r:
                           .s2 :usize
-                            __self_3 :__gen_state_4
+                            __self_3 :__genstate_positives_until_big
                     then:
                       assign
                         target:
                           .state :i32
-                            __self_3 :__gen_state_4
+                            __self_3 :__genstate_positives_until_big
                         value:
                           int(13) :i32
                     else:
                       assign
                         target:
                           .state :i32
-                            __self_3 :__gen_state_4
+                            __self_3 :__genstate_positives_until_big
                         value:
                           int(1) :i32
                 else:
@@ -151,25 +178,25 @@
                       eq :bool
                         l:
                           .state :i32
-                            __self_3 :__gen_state_4
+                            __self_3 :__genstate_positives_until_big
                         r:
                           int(3) :i32
                     then:
                       assign
                         target:
                           .s3 :usize
-                            __self_3 :__gen_state_4
+                            __self_3 :__genstate_positives_until_big
                         value:
                           add :usize
                             l:
                               .s3 :usize
-                                __self_3 :__gen_state_4
+                                __self_3 :__genstate_positives_until_big
                             r:
                               int(1) :usize
                       assign
                         target:
                           .state :i32
-                            __self_3 :__gen_state_4
+                            __self_3 :__genstate_positives_until_big
                         value:
                           int(2) :i32
                     else:
@@ -178,14 +205,14 @@
                           eq :bool
                             l:
                               .state :i32
-                                __self_3 :__gen_state_4
+                                __self_3 :__genstate_positives_until_big
                             r:
                               int(4) :i32
                         then:
                           assign
                             target:
                               .state :i32
-                                __self_3 :__gen_state_4
+                                __self_3 :__genstate_positives_until_big
                             value:
                               int(3) :i32
                         else:
@@ -194,14 +221,14 @@
                               eq :bool
                                 l:
                                   .state :i32
-                                    __self_3 :__gen_state_4
+                                    __self_3 :__genstate_positives_until_big
                                 r:
                                   int(5) :i32
                             then:
                               assign
                                 target:
                                   .state :i32
-                                    __self_3 :__gen_state_4
+                                    __self_3 :__genstate_positives_until_big
                                 value:
                                   int(1) :i32
                             else:
@@ -210,7 +237,7 @@
                                   eq :bool
                                     l:
                                       .state :i32
-                                        __self_3 :__gen_state_4
+                                        __self_3 :__genstate_positives_until_big
                                     r:
                                       int(6) :i32
                                 then:
@@ -219,21 +246,21 @@
                                       gt :bool
                                         l:
                                           .s4 :i32
-                                            __self_3 :__gen_state_4
+                                            __self_3 :__genstate_positives_until_big
                                         r:
                                           int(100) :i32
                                     then:
                                       assign
                                         target:
                                           .state :i32
-                                            __self_3 :__gen_state_4
+                                            __self_3 :__genstate_positives_until_big
                                         value:
                                           int(5) :i32
                                     else:
                                       assign
                                         target:
                                           .state :i32
-                                            __self_3 :__gen_state_4
+                                            __self_3 :__genstate_positives_until_big
                                         value:
                                           int(3) :i32
                                 else:
@@ -242,21 +269,21 @@
                                       eq :bool
                                         l:
                                           .state :i32
-                                            __self_3 :__gen_state_4
+                                            __self_3 :__genstate_positives_until_big
                                         r:
                                           int(7) :i32
                                     then:
                                       assign
                                         target:
                                           .state :i32
-                                            __self_3 :__gen_state_4
+                                            __self_3 :__genstate_positives_until_big
                                         value:
                                           int(6) :i32
                                       return
                                         Yield<i32> {
                                           value:
                                             .s4 :i32
-                                              __self_3 :__gen_state_4
+                                              __self_3 :__genstate_positives_until_big
                                         }
                                     else:
                                       if :void
@@ -264,14 +291,14 @@
                                           eq :bool
                                             l:
                                               .state :i32
-                                                __self_3 :__gen_state_4
+                                                __self_3 :__genstate_positives_until_big
                                             r:
                                               int(8) :i32
                                         then:
                                           assign
                                             target:
                                               .state :i32
-                                                __self_3 :__gen_state_4
+                                                __self_3 :__genstate_positives_until_big
                                             value:
                                               int(7) :i32
                                         else:
@@ -280,14 +307,14 @@
                                               eq :bool
                                                 l:
                                                   .state :i32
-                                                    __self_3 :__gen_state_4
+                                                    __self_3 :__genstate_positives_until_big
                                                 r:
                                                   int(9) :i32
                                             then:
                                               assign
                                                 target:
                                                   .state :i32
-                                                    __self_3 :__gen_state_4
+                                                    __self_3 :__genstate_positives_until_big
                                                 value:
                                                   int(8) :i32
                                             else:
@@ -296,14 +323,14 @@
                                                   eq :bool
                                                     l:
                                                       .state :i32
-                                                        __self_3 :__gen_state_4
+                                                        __self_3 :__genstate_positives_until_big
                                                     r:
                                                       int(10) :i32
                                                 then:
                                                   assign
                                                     target:
                                                       .state :i32
-                                                        __self_3 :__gen_state_4
+                                                        __self_3 :__genstate_positives_until_big
                                                     value:
                                                       int(2) :i32
                                                 else:
@@ -312,25 +339,25 @@
                                                       eq :bool
                                                         l:
                                                           .state :i32
-                                                            __self_3 :__gen_state_4
+                                                            __self_3 :__genstate_positives_until_big
                                                         r:
                                                           int(11) :i32
                                                     then:
                                                       assign
                                                         target:
                                                           .s3 :usize
-                                                            __self_3 :__gen_state_4
+                                                            __self_3 :__genstate_positives_until_big
                                                         value:
                                                           add :usize
                                                             l:
                                                               .s3 :usize
-                                                                __self_3 :__gen_state_4
+                                                                __self_3 :__genstate_positives_until_big
                                                             r:
                                                               int(1) :usize
                                                       assign
                                                         target:
                                                           .state :i32
-                                                            __self_3 :__gen_state_4
+                                                            __self_3 :__genstate_positives_until_big
                                                         value:
                                                           int(10) :i32
                                                     else:
@@ -339,7 +366,7 @@
                                                           eq :bool
                                                             l:
                                                               .state :i32
-                                                                __self_3 :__gen_state_4
+                                                                __self_3 :__genstate_positives_until_big
                                                             r:
                                                               int(12) :i32
                                                         then:
@@ -348,21 +375,21 @@
                                                               lt :bool
                                                                 l:
                                                                   .s4 :i32
-                                                                    __self_3 :__gen_state_4
+                                                                    __self_3 :__genstate_positives_until_big
                                                                 r:
                                                                   int(0) :i32
                                                             then:
                                                               assign
                                                                 target:
                                                                   .state :i32
-                                                                    __self_3 :__gen_state_4
+                                                                    __self_3 :__genstate_positives_until_big
                                                                 value:
                                                                   int(11) :i32
                                                             else:
                                                               assign
                                                                 target:
                                                                   .state :i32
-                                                                    __self_3 :__gen_state_4
+                                                                    __self_3 :__genstate_positives_until_big
                                                                 value:
                                                                   int(7) :i32
                                                         else:
@@ -371,26 +398,26 @@
                                                               eq :bool
                                                                 l:
                                                                   .state :i32
-                                                                    __self_3 :__gen_state_4
+                                                                    __self_3 :__genstate_positives_until_big
                                                                 r:
                                                                   int(13) :i32
                                                             then:
                                                               assign
                                                                 target:
                                                                   .s4 :i32
-                                                                    __self_3 :__gen_state_4
+                                                                    __self_3 :__genstate_positives_until_big
                                                                 value:
                                                                   index :i32
                                                                     on:
                                                                       .s1 :i32[]
-                                                                        __self_3 :__gen_state_4
+                                                                        __self_3 :__genstate_positives_until_big
                                                                     ix:
                                                                       .s3 :usize
-                                                                        __self_3 :__gen_state_4
+                                                                        __self_3 :__genstate_positives_until_big
                                                               assign
                                                                 target:
                                                                   .state :i32
-                                                                    __self_3 :__gen_state_4
+                                                                    __self_3 :__genstate_positives_until_big
                                                                 value:
                                                                   int(12) :i32
                                                             else:
@@ -399,238 +426,34 @@
                                                                   eq :bool
                                                                     l:
                                                                       .state :i32
-                                                                        __self_3 :__gen_state_4
+                                                                        __self_3 :__genstate_positives_until_big
                                                                     r:
                                                                       int(14) :i32
                                                                 then:
                                                                   assign
                                                                     target:
                                                                       .s1 :i32[]
-                                                                        __self_3 :__gen_state_4
+                                                                        __self_3 :__genstate_positives_until_big
                                                                     value:
                                                                       .s0 :i32[]
-                                                                        __self_3 :__gen_state_4
+                                                                        __self_3 :__genstate_positives_until_big
                                                                   assign
                                                                     target:
                                                                       .s2 :usize
-                                                                        __self_3 :__gen_state_4
+                                                                        __self_3 :__genstate_positives_until_big
                                                                     value:
                                                                       LoweredArrayLen
                                                                   assign
                                                                     target:
                                                                       .s3 :usize
-                                                                        __self_3 :__gen_state_4
+                                                                        __self_3 :__genstate_positives_until_big
                                                                     value:
                                                                       int(0) :usize
                                                                   assign
                                                                     target:
                                                                       .state :i32
-                                                                        __self_3 :__gen_state_4
+                                                                        __self_3 :__genstate_positives_until_big
                                                                     value:
                                                                       int(2) :i32
                                                                 else:
                                                                   return null
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          new_byte_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          finish_buffer :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
-  fn concat_3(p0: string, p1: string, p2: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let c2: usize =
-      add :usize
-        l:
-          c1 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p2 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          new_byte_buffer :Buffer
-        arg0:
-          c2 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c1 :usize
-      arg2:
-        p2 :string
-    ~>
-      call :string
-        callee:
-          finish_buffer :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c2 :usize
-  fn concat_4(p0: string, p1: string, p2: string, p3: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let c2: usize =
-      add :usize
-        l:
-          c1 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p2 :string
-    let c3: usize =
-      add :usize
-        l:
-          c2 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p3 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          new_byte_buffer :Buffer
-        arg0:
-          c3 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c1 :usize
-      arg2:
-        p2 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c2 :usize
-      arg2:
-        p3 :string
-    ~>
-      call :string
-        callee:
-          finish_buffer :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c3 :usize

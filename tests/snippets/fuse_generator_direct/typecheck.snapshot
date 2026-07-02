@@ -17,21 +17,21 @@
   expr 26:16    IdentExpr      :: i32[][]
   expr 27:18    IdentExpr      :: i32[]
   expr 27:30    IdentExpr      :: i32
-  expr 32:14    CallExpr       :: Iterator<i32>
+  expr 32:14    CallExpr       :: __genstate_doubled
   expr 32:14    IdentExpr      :: fn(i32[]) -> Iterator<i32>
   expr 32:22    SeqLitExpr     :: i32[]
   expr 32:35    CallExpr       :: void
   expr 32:35    IdentExpr      :: fn(T) -> void
   expr 32:43    StringLitExpr  :: string
-  expr 32:48    IdentExpr      :: ?
-  expr 33:14    CallExpr       :: Iterator<i32>
+  expr 32:48    IdentExpr      :: i32
+  expr 33:14    CallExpr       :: __genstate_evens
   expr 33:14    IdentExpr      :: fn(i32[]) -> Iterator<i32>
   expr 33:20    SeqLitExpr     :: i32[]
   expr 33:42    CallExpr       :: void
   expr 33:42    IdentExpr      :: fn(T) -> void
   expr 33:50    StringLitExpr  :: string
-  expr 33:55    IdentExpr      :: ?
-  expr 34:14    CallExpr       :: Iterator<i32>
+  expr 33:55    IdentExpr      :: i32
+  expr 34:14    CallExpr       :: __genstate_flatten
   expr 34:14    IdentExpr      :: fn(i32[][]) -> Iterator<i32>
   expr 34:22    SeqLitExpr     :: i32[][]
   expr 34:23    SeqLitExpr     :: i32[]
@@ -40,4 +40,4 @@
   expr 34:47    CallExpr       :: void
   expr 34:47    IdentExpr      :: fn(T) -> void
   expr 34:55    StringLitExpr  :: string
-  expr 34:60    IdentExpr      :: ?
+  expr 34:60    IdentExpr      :: i32

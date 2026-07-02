@@ -6,7 +6,7 @@ module "vader/lower"
 import "std/collections" { MutableMap }
 
 import "vader/parser" { Expr, CallExpr, FieldExpr, CallArg, Visibility, StructDecl }
-import "vader/typecheck" { type_from_expr, default_if_free, is_assignable, substitute_by_name, try_array_to_iter }
+import "vader/typecheck" { type_from_expr, default_if_free, is_assignable, substitute_by_name, try_array_to_iter, struct_implements_trait }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" { Type, FnType, UnionType, TraitType, TypeParamType, TY_UNRESOLVED, StructType, EnumType, strip_distinct_each }
 import "vader/comptime" { EvaluatedProgram, uniq }
@@ -181,6 +181,12 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
         // registry so cross-module stdlib impls are reachable.
         if first is TraitType as tt {
             if find_impl_for(ctx.project, recv_type, tt.symbol.name) != null { return true }
+            // Direction A : a `@generator`'s synthetic `<fn>$State` result impls
+            // `Iterator<U>` via the typecheck-side registry (`register_generator_
+            // iter_impls`), not the AST-derived `ImplRegistry`. Consult it so the
+            // lowerer agrees with what typecheck resolved (chained generator
+            // combinators on a concrete `__genstate` receiver).
+            if struct_implements_trait(recv_type, tt.symbol.name, ctx.typed) { return true }
             // A raw array fits an `Iterator<T>` first param via the blanket
             // `T[] implements Into<Iterator<T>>` — the receiver is wrapped in
             // `.into()` at the call site (see `try_lower_ufcs_call`). Mirrors

@@ -3,13 +3,13 @@
 ## tests/snippets/generator_filter
   FnDecl         evens                :: fn(i32[]) -> Iterator<i32>
   FnDecl         main                 :: fn() -> i32
-  expr 14:14    CallExpr       :: Iterator<i32>
+  expr 14:14    CallExpr       :: __genstate_evens
   expr 14:14    IdentExpr      :: fn(i32[]) -> Iterator<i32>
   expr 14:20    SeqLitExpr     :: i32[]
   expr 14:42    CallExpr       :: void
   expr 14:42    IdentExpr      :: fn(T) -> void
   expr 14:50    StringLitExpr  :: string
-  expr 14:53    IdentExpr      :: ?
+  expr 14:53    IdentExpr      :: i32
   expr 8:14     IdentExpr      :: i32[]
   expr 9:12     BinaryExpr     :: bool
   expr 9:12     BinaryExpr     :: i32

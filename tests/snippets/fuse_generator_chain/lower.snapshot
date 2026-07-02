@@ -40,7 +40,7 @@
               arg1:
                 vcall Display.to_string :string
                   recv:
-                    v :?
+                    v :U
         assign
           target:
             __fuse_i_2 :usize
@@ -91,7 +91,7 @@
                   arg1:
                     vcall Display.to_string :string
                       recv:
-                        v :?
+                        v :T
         assign
           target:
             __fuse_i_6 :usize
@@ -151,7 +151,7 @@
                   arg1:
                     vcall Display.to_string :string
                       recv:
-                        v :?
+                        v :T
         assign
           target:
             __fuse_i_10 :usize
