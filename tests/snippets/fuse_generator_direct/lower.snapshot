@@ -92,17 +92,17 @@
           int(5) :i32
           int(6) :i32
       block :void
-        let __for_arr_3: i32[] = xs :i32[]
-        let __for_len_4: usize =
+        let __for_arr_0: i32[] = xs :i32[]
+        let __for_len_1: usize =
           LoweredArrayLen
-        let __for_i_5: usize = int(0) :usize
+        let __for_i_2: usize = int(0) :usize
         loop while (<…>)
           let x: i32 =
             index :i32
               on:
-                __for_arr_3 :i32[]
+                __for_arr_0 :i32[]
               ix:
-                __for_i_5 :usize
+                __for_i_2 :usize
           if :void
             cond:
               eq :bool
@@ -131,11 +131,11 @@
                           v :?
           assign
             target:
-              __for_i_5 :usize
+              __for_i_2 :usize
             value:
               add :usize
                 l:
-                  __for_i_5 :usize
+                  __for_i_2 :usize
                 r:
                   int(1) :usize
     block :void
@@ -150,29 +150,29 @@
             int(4) :i32
             int(5) :i32
       block :void
-        let __for_arr_6: i32[][] = xss :i32[][]
-        let __for_len_7: usize =
+        let __for_arr_0: i32[][] = xss :i32[][]
+        let __for_len_1: usize =
           LoweredArrayLen
-        let __for_i_8: usize = int(0) :usize
+        let __for_i_2: usize = int(0) :usize
         loop while (<…>)
           let row: i32[] =
             index :i32[]
               on:
-                __for_arr_6 :i32[][]
+                __for_arr_0 :i32[][]
               ix:
-                __for_i_8 :usize
+                __for_i_2 :usize
           block :void
-            let __for_arr_9: i32[] = row :i32[]
-            let __for_len_10: usize =
+            let __for_arr_3: i32[] = row :i32[]
+            let __for_len_4: usize =
               LoweredArrayLen
-            let __for_i_11: usize = int(0) :usize
+            let __for_i_5: usize = int(0) :usize
             loop while (<…>)
               let x: i32 =
                 index :i32
                   on:
-                    __for_arr_9 :i32[]
+                    __for_arr_3 :i32[]
                   ix:
-                    __for_i_11 :usize
+                    __for_i_5 :usize
               let v: i32 = x :i32
               call :void
                 callee:
@@ -189,20 +189,20 @@
                           v :?
               assign
                 target:
-                  __for_i_11 :usize
+                  __for_i_5 :usize
                 value:
                   add :usize
                     l:
-                      __for_i_11 :usize
+                      __for_i_5 :usize
                     r:
                       int(1) :usize
           assign
             target:
-              __for_i_8 :usize
+              __for_i_2 :usize
             value:
               add :usize
                 l:
-                  __for_i_8 :usize
+                  __for_i_2 :usize
                 r:
                   int(1) :usize
     return int(0) :i32

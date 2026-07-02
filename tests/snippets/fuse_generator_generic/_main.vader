@@ -1,0 +1,26 @@
+// A directly-consumed GENERIC `@generator` inlines like a non-generic one: the
+// instance substitution ({T, U}) is reconstructed at the fusion site (via
+// `infer_type_args` + the .NET-model flavor path), so `for v in gen_map(...)`
+// lowers to the flat loop — no boxed iterator, no virtual `next()`. This is the
+// path the `std/iter` combinator rewrites (map/filter as @generator) rely on.
+module "snippet"
+
+import "std/io" { println }
+
+// map shape: T -> U (element type changes).
+@generator
+gen_map :: fn<T, U>(xs: T[], f: fn(T) -> U) -> Iterator<U> {
+    for x in xs { yield f(x) }
+}
+
+// filter shape: T -> T, yield guarded by a predicate.
+@generator
+gen_filter :: fn<T>(xs: T[], pred: fn(T) -> bool) -> Iterator<T> {
+    for x in xs { if pred(x) { yield x } }
+}
+
+main :: fn() -> i32 {
+    for v in gen_map([1, 2, 3], x -> x * 10) { println("m ${v}") }
+    for v in gen_filter([1, 2, 3, 4, 5], x -> x % 2 == 1) { println("f ${v}") }
+    return 0
+}
