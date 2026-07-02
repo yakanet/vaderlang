@@ -17,7 +17,7 @@ AST :: import "vader/parser"
 import "vader/parser" { Visibility }
 import "vader/diagnostics" { Diagnostic }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, StructType, ArrayType, FnType, mk_struct }
+import "vader/types" { Type, StructType, ArrayType, TraitType, mk_struct }
 import "std/collections" { MutableMap }
 
 // The `<fn>$State` naming convention — one source of truth shared by the symbol
@@ -93,6 +93,10 @@ export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedP
             record_struct_trait(tp, state_ty, "Iterator")
             record_struct_trait_args(tp, state_ty, "Iterator", [e.element])
             tp.iter_element_types[gen_state_name(e.name)] = e.element
+            tp.generator_symbols[e.name] = Symbol {
+                .id = e.id, .kind = SymbolKind.Fn, .name = e.name,
+                .module = e.module, .visibility = Visibility.Private, .defined_at = null,
+            }
         }
     }
 }
@@ -112,17 +116,23 @@ export generator_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram) ->
 // ident callee and the UFCS field callee (free fn whose first param fits the
 // receiver).
 callee_generator_symbol :: fn(c: AST.CallExpr, typed: TypedProgram) -> Symbol | null {
-    sym :: @partial match c.callee {
-        is AST.IdentExpr as id -> typed.resolved.idents[id.span.hash()]
+    @partial match c.callee {
+        is AST.IdentExpr as id -> {
+            // Direct call `name(args)` : the resolver already picked the overload,
+            // so trust its bound symbol (a picked eager overload is simply not a
+            // generator).
+            sym :: typed.resolved.idents[id.span.hash()]
+            if sym is null { return null }
+            if is_generator_symbol(sym, typed) { return sym }
+            return null
+        }
         is AST.FieldExpr as fe -> {
             recv_ty :: typed.expr_types[fe.target.id]
-            if recv_ty is null { null } else { ufcs_free_fn_symbol(fe.field, recv_ty, typed) }
+            if recv_ty is null { return null }
+            return ufcs_generator_symbol(fe.field, recv_ty, typed)
         }
-        _ -> null
+        _ -> { return null }
     }
-    if sym is null { return null }
-    if is_generator_symbol(sym, typed) { return sym }
-    return null
 }
 
 is_generator_symbol :: fn(sym: Symbol, typed: TypedProgram) -> bool {
@@ -131,60 +141,24 @@ is_generator_symbol :: fn(sym: Symbol, typed: TypedProgram) -> bool {
     return false
 }
 
-// The `@generator` free-fn symbol whose first param accepts `recv_ty` for a UFCS
-// `.name` call — local overload OR imported combinator. Filters to generator
-// candidates FIRST (a cheap `fn_decls` lookup, cross-published so it works for
-// imports too) so the structural `receiver_fits_first_param` fit-check only runs on
-// the rare generator overloads, not every UFCS method call on the typecheck hot path.
-ufcs_free_fn_symbol :: fn(name: string, recv_ty: Type, typed: TypedProgram) -> Symbol | null {
-    // A bare ARRAY receiver never selects a lazy `@generator` combinator: `arr.map(f)`
-    // means the EAGER `map(arr: T[]) -> U[]` overload (lazy is opt-in via `arr.iter()`).
-    // `receiver_fits_first_param` would otherwise match `Iterator<T>` via the
-    // `T[] -> Iterator<T>` blanket and mis-type the call as `__genstate_<fn>`.
+// The `@generator` combinator named `name` for a UFCS `.name()` on an ITERATOR
+// receiver, or null. Consults the `generator_symbols` registry — authoritative for
+// an OVERLOADED name (`map` = eager `T[]` + lazy `Iterator<T>`), unlike following
+// the single import binding, which may resolve to the eager (non-generator) overload
+// and miss the generator. A bare ARRAY receiver never selects the lazy generator
+// (`arr.map(f)` is the eager overload; lazy is opt-in via `arr.iter()`).
+ufcs_generator_symbol :: fn(name: string, recv_ty: Type, typed: TypedProgram) -> Symbol | null {
     if recv_ty is ArrayType { return null }
-    // O(1) bail: skip the overload / imported-symbol scans unless `name` is a
-    // registered generator (the `__genstate_<name>` key is a distinct namespace,
-    // present iff `register_generator_iter_impls` saw a generator by this name).
-    if typed.iter_element_types[gen_state_name(name)] is null { return null }
-    // 1. Local overloads — fit against the local `decl_types` signature.
-    bucket :: typed.resolved.fn_overloads[name]
-    if bucket is Symbol[] as syms {
-        for sym in syms {
-            if !is_generator_symbol(sym, typed) { continue }
-            ft :: typed.decl_types[sym.id]
-            if ft is FnType as f {
-                if f.params.len() > 0 {
-                    if receiver_fits_first_param(recv_ty, f.params[0], typed) { return sym }
-                }
-            }
-        }
-    }
-    // 2. Imported combinator — follow the `import "p" { name }` ImportBinding to its
-    //    OWNER symbol (so `gen_state_symbol` matches the cross-module registration).
-    //    The owner's `decl_types` isn't published here, so confirm the first-param
-    //    fit against the imported FnType (`imported_fn_overloads`) instead.
-    for candidate in typed.resolved.symbols {
-        if candidate.name != name { continue }
-        if candidate.kind != SymbolKind.ImportBinding { continue }
-        target :: typed.resolved.imports_to[candidate.id]
-        if target is Symbol as t {
-            if is_generator_symbol(t, typed) && imported_first_param_fits(name, recv_ty, typed) {
-                return t
-            }
-        }
-    }
+    gen_sym :: typed.generator_symbols[name]
+    if gen_sym is null { return null }
+    if generator_receiver_is_iterator(recv_ty, typed) { return gen_sym }
     return null
 }
 
-// Whether any imported overload named `name` has a first param accepting `recv_ty`.
-imported_first_param_fits :: fn(name: string, recv_ty: Type, typed: TypedProgram) -> bool {
-    imported :: typed.imported_fn_overloads[name]
-    if imported is FnType[] as fts {
-        for f in fts {
-            if f.params.len() > 0 {
-                if receiver_fits_first_param(recv_ty, f.params[0], typed) { return true }
-            }
-        }
-    }
-    return false
+// Whether `recv_ty` is an actual iterator (a struct impl'ing `Iterator`, or the
+// erased `Iterator` trait) — so a combinator's `self: Iterator<T>` param accepts it.
+// Excludes the `T[] -> Iterator` blanket (the array case is guarded above).
+generator_receiver_is_iterator :: fn(recv_ty: Type, typed: TypedProgram) -> bool {
+    if recv_ty is TraitType as tt { return tt.symbol.name == "Iterator" }
+    return struct_implements_trait(recv_ty, "Iterator", typed)
 }

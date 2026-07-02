@@ -260,6 +260,13 @@ export TypedProgram :: struct {
     /// (the compiler's own self-compile today) instead of probing every call.
     has_generators: bool
 
+    /// `@generator` fn name → its OWNER symbol (id + module), from
+    /// `register_generator_iter_impls`. The authoritative map for a UFCS call's
+    /// generator recognition — a plain import binding resolves an OVERLOADED name
+    /// (`map` = eager `T[]` + lazy `Iterator<T>`) to only ONE overload, possibly
+    /// the eager (non-generator) one, so following it would miss the generator.
+    generator_symbols: MutableMap<string, Symbol>
+
     /// C symbol name → first `@extern`-decorated FnDecl that claimed it.
     /// Lets `validate_extern` (decl.vader) emit T3050 on the second
     /// declaration of the same C symbol — the linker would otherwise
@@ -357,6 +364,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .node_spans      = MutableMap<usize, Span> {},
         .dump_types      = false,
         .has_generators  = false,
+        .generator_symbols = MutableMap<string, Symbol> {},
         .extern_symbols  = MutableMap<string, FnDecl> {},
         .let_type_aliases = MutableMap<i32, Type> {},
         .bounded_dispatch_trait = MutableMap<usize, string> {},
