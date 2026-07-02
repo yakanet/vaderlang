@@ -106,6 +106,85 @@ BodyTemplate :: struct {
     user_body:      LoweredBlock
 }
 
+// ---- terminal fusion (B-terminals) ----------------------------------------
+//
+// A terminal (`count` / `collect` / … ) consuming a fusible chain fuses to a
+// flat loop with an ACCUMULATOR sink instead of materialising the lazy struct +
+// dispatching `next()`. Mirrors `try_lower_chain_fusion` but drives
+// `emit_fused_chain` with a template whose body is the accumulator step, wrapped
+// in `{ let acc = <init>; <loop>; acc }` (a block-expression). Called from
+// `lower_call`; `null` falls through to the trait default-method / free-fn call.
+//
+// Increment 1: `count` (→ usize). `collect`/`fold`/`sum` and the early-exit
+// terminals (any/all/find) land in later increments — `collect` first needs the
+// typechecker to concretise its erased `T[]` element (a lazy `.collect()` over a
+// `FilterIterator<i32>` currently types as `T[]`, so a raw-element fused push
+// would mismatch the boxed slot in the native backend).
+
+/// The iterator argument of a terminal call named `name`, or null. Recognises
+/// the UFCS form `<chain>.name()` (FieldExpr callee, no extra args) and the
+/// free-fn form `name(<chain>)` (IdentExpr callee, one arg).
+terminal_arg :: fn(call: AST.CallExpr, name: string) -> AST.Expr | null {
+    if call.callee is AST.FieldExpr as fe {
+        if fe.field == name && call.args.len() == 0 { return fe.target }
+    }
+    if call.callee is AST.IdentExpr as id {
+        if id.name == name && call.args.len() == 1 { return call.args[0].value }
+    }
+    return null
+}
+
+/// Fuse a `count` / `collect` terminal over a fusible chain into a flat
+/// accumulator loop, or null when the call isn't such a terminal-over-chain (a
+/// terminal over a non-chain — e.g. the eager `count(arr)` array overload —
+/// declines here and lowers normally).
+///
+/// @param call  the terminal call expression.
+/// @param type  the call's result type from typecheck (`usize` / `element[]`).
+/// @return      a block-expression evaluating to the accumulated result, or null.
+export try_lower_terminal_fusion :: fn(ctx: FnLowerCtx, call: AST.CallExpr, type: Type) -> LoweredExpr | null {
+    count_arg :: terminal_arg(call, "count")
+    if count_arg != null {
+        chain :: descend_chain(ctx, count_arg)
+        if chain == null { return null }
+        return emit_count_fusion(ctx, chain, call.span)
+    }
+    return null
+}
+
+// `{ let n: usize = 0; <fused loop: n += 1 per element>; n }`. The result is
+// definitionally `usize` (the `Iterator::count` contract).
+emit_count_fusion :: fn(ctx: FnLowerCtx, chain: IterChain, span: Span) -> LoweredExpr {
+    usize_ty :: mk_primitive("usize")
+    result_sym :: fresh_synthetic_symbol(ctx, "count")
+    elem_sym :: fresh_synthetic_symbol(ctx, "elem")
+    init :: LoweredLet {
+        .span = span, .name = result_sym.name, .symbol = result_sym, .type = usize_ty,
+        .value = LoweredIntLit { .span = span, .type = usize_ty, .value = 0 },
+    }
+    step :: LoweredAssign {
+        .span = span,
+        .target = LoweredIdent { .span = span, .type = usize_ty, .symbol = result_sym },
+        .value = LoweredBinary {
+            .span = span, .type = usize_ty, .op = LoweredBinaryOp.Add,
+            .left = LoweredIdent { .span = span, .type = usize_ty, .symbol = result_sym },
+            .right = LoweredIntLit { .span = span, .type = usize_ty, .value = 1 },
+        },
+    }
+    template :: BodyTemplate {
+        .binding_name = elem_sym.name, .binding_symbol = elem_sym,
+        .element_type = chain_element_type(chain),
+        .user_body = LoweredBlock { .span = span, .type = TY_VOID, .stmts = [step], .trailing = null },
+    }
+    stmts: LoweredStmt[] = [init]
+    stmts.push_all(emit_fused_chain(ctx, chain, null, span, template, lower_expr))
+    return LoweredBlock {
+        .span = span, .type = usize_ty, .stmts = stmts,
+        .trailing = LoweredIdent { .span = span, .type = usize_ty, .symbol = result_sym },
+    }
+}
+
+
 // Walk the iter expression top-down. Each layer either matches a
 // known `std/iter` combinator (struct literal with the source field
 // inline) or bottoms at an integer-typed `RangeExpr`. Anything else

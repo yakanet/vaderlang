@@ -23,6 +23,12 @@ import "vader/resolver" { ImportTargetTable }
 //   ident collapses to a direct `foo(args)` call ; the surrounding
 //   namespace prefix is purely a source-level concept.
 lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
+    // Terminal fusion (B-terminals): `<chain>.count()` / `.collect()` over a
+    // fusible iterator chain fuses to a flat accumulator loop, before the trait
+    // default-method / free-fn call is formed. Declines (null) for a terminal
+    // over a non-chain (e.g. the eager `count(arr)` array overload).
+    terminal_form :: try_lower_terminal_fusion(ctx, call, type)
+    if terminal_form != null { return terminal_form }
     array_form :: try_lower_array_op(ctx, call, type)
     if array_form != null { return array_form }
     namespace_form :: try_lower_namespace_call(ctx, call, type)

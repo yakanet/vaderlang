@@ -1,0 +1,26 @@
+// Terminal fusion (B-terminals, Increment 1): `<chain>.count()` over a fusible
+// lazy chain fuses to a flat accumulator loop — `n := 0; for … { n += 1 }; n` —
+// with NO `MappedIterator`/`FilterIterator` struct and NO `Iterator.next()`
+// dispatch (see the lower snapshot). The eager `count(arr: T[])` overload on a
+// bare array is untouched (a bare array isn't a fusible chain, so the terminal
+// fusion declines and it lowers to the normal call).
+module "snippet"
+
+import "std/io" { println }
+import "std/iter" { map, filter, count }
+
+main :: fn() -> i32 {
+    // map + filter + count over an array source — one flat loop.
+    a :: [1, 2, 3, 4, 5, 6].iter().map((x: i32) -> x * 2).filter((x: i32) -> x > 6).count()
+    println("a ${a}")                                    // 8,10,12 → 3
+
+    // filter + count over an integer-range source.
+    b :: (0..<10).filter((x: i32) -> x % 2 == 0).count()
+    println("b ${b}")                                    // 0,2,4,6,8 → 5
+
+    // eager overload on a bare array — NOT intercepted by terminal fusion.
+    c :: [10, 20, 30].count()
+    println("c ${c}")                                    // 3
+
+    return 0
+}

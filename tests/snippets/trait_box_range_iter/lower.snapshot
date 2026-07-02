@@ -13,16 +13,30 @@
           self :i32
   fn snippet$main() -> i32
     let a: i32 =
-      call :i32
-        callee:
-          snippet$count__i32 :i32
-        arg0:
-          Range<i32> {
-            start: int(0) :i32
-            end: int(5) :i32
-            inclusive: false
-            cursor: int(0) :i32
-          }
+      block :usize
+        let __count_0: usize = int(0) :usize
+        let __elem_1: i32 = int(0) :i32
+        loop while (<…>)
+          assign
+            target:
+              __count_0 :usize
+            value:
+              add :usize
+                l:
+                  __count_0 :usize
+                r:
+                  int(1) :usize
+          assign
+            target:
+              __elem_1 :i32
+            value:
+              add :i32
+                l:
+                  __elem_1 :i32
+                r:
+                  int(1) :i32
+        ~>
+          __count_0 :usize
     let b: i32 =
       call :i32
         callee:
