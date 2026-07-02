@@ -17,7 +17,7 @@ AST :: import "vader/parser"
 import "vader/parser" { Visibility }
 import "vader/diagnostics" { Diagnostic }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, StructType, FnType, mk_struct }
+import "vader/types" { Type, StructType, ArrayType, FnType, mk_struct }
 import "std/collections" { MutableMap }
 
 // The `<fn>$State` naming convention — one source of truth shared by the symbol
@@ -137,6 +137,11 @@ is_generator_symbol :: fn(sym: Symbol, typed: TypedProgram) -> bool {
 // imports too) so the structural `receiver_fits_first_param` fit-check only runs on
 // the rare generator overloads, not every UFCS method call on the typecheck hot path.
 ufcs_free_fn_symbol :: fn(name: string, recv_ty: Type, typed: TypedProgram) -> Symbol | null {
+    // A bare ARRAY receiver never selects a lazy `@generator` combinator: `arr.map(f)`
+    // means the EAGER `map(arr: T[]) -> U[]` overload (lazy is opt-in via `arr.iter()`).
+    // `receiver_fits_first_param` would otherwise match `Iterator<T>` via the
+    // `T[] -> Iterator<T>` blanket and mis-type the call as `__genstate_<fn>`.
+    if recv_ty is ArrayType { return null }
     // O(1) bail: skip the overload / imported-symbol scans unless `name` is a
     // registered generator (the `__genstate_<name>` key is a distinct namespace,
     // present iff `register_generator_iter_impls` saw a generator by this name).
