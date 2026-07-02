@@ -215,6 +215,27 @@ export lookup_struct_trait_args :: fn(t: Type, trait_name: string, typed: TypedP
     return per_struct[trait_name]
 }
 
+/// The trait args for `t implements <trait_name>`, with a GENERIC impl's recorded
+/// args resolved against `t`'s concrete instance args. A generic impl records the
+/// impl's own type-params (`FilterIterator<T> implements Iterator<T>` → `[T]`), so
+/// a concrete `FilterIterator<i32>` needs `[T]` substituted by `[i32]` (via the
+/// struct decl's `type_params` ↔ the instance's `.args`). Returns the raw args
+/// when `t` isn't a struct instance or its decl is unavailable. Mirrors
+/// `field.vader::substitute_trait_typeparams`; the source of truth for binding a
+/// combinator/terminal's `Iterator<T>` param `T` from a concrete receiver.
+export resolve_struct_trait_args :: fn(t: Type, trait_name: string, typed: TypedProgram) -> Type[] | null {
+    raw :: lookup_struct_trait_args(t, trait_name, typed)
+    if raw is null { return null }
+    if t is StructType as st {
+        struct_decl :: typed.struct_decls[st.symbol.id]
+        if struct_decl is null { return raw }
+        out: Type[] = []
+        for a in raw { out.push(substitute_by_name(a, struct_decl.type_params, st.args)) }
+        return out
+    }
+    return raw
+}
+
 
 /// Bidirectional narrowing : when a Free* literal flows into a slot that
 /// wants a concrete numeric of the matching family, fold the literal to
