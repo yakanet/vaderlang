@@ -25,10 +25,11 @@ module "vader/lower"
 import "vader/diagnostics" { Span, lower_error }
 AST :: import "vader/parser"
 import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/typecheck" { is_gen_state_struct }
 import "vader/types" {
     Type, ArrayType, StructType, TraitType, EnumType, PrimitiveType,
     UnresolvedType,
-    mk_struct, mk_array, mk_primitive, display_type,
+    mk_struct, mk_array, mk_primitive, mk_trait, display_type,
     TY_BOOL, TY_VOID, TY_NEVER, TY_NULL, TY_UNRESOLVED,
     STRUCT_ARRAY_ITERATOR, STRUCT_YIELD, TRAIT_ITERATOR,
 }
@@ -90,8 +91,16 @@ export lower_for_in :: fn(
     // value when the array iterator type isn't reachable.
     wrap_result :: try_wrap_array_iter(ctx, iter_lowered_raw, iter_type_raw, span)
     iter_lowered :: wrap_result.iter
-    iter_type :: wrap_result.iter_type
-    element_type :: resolve_element_type(ctx, iter_type_raw, iter_type, in_form.binding_span.hash())
+    iter_type_wrapped :: wrap_result.iter_type
+    element_type :: resolve_element_type(ctx, iter_type_raw, iter_type_wrapped, in_form.binding_span.hash())
+    // Direction A : an escaping `@generator` result is typed as its concrete
+    // `__genstate_<fn>` struct so combinator chains resolve at typecheck. When the
+    // for-in DIDN'T fuse (the fusion fast paths above declined), erase it back to
+    // `Iterator<element>` for the step loop so dispatch goes through the proven
+    // virtual `Iterator::next` vtable path (as before Direction A) rather than a
+    // devirtualized direct call to the state-machine `next` — whose synth decl the
+    // DCE prunes when it isn't reached by a symbol edge.
+    iter_type :: erase_genstate_for_dispatch(ctx, iter_type_wrapped, element_type)
 
     // M5001 — `for x in iter` needs an Iterator impl on `iter`. When
     // wrapping leaves the iter as a primitive (string / numeric / …),
@@ -341,6 +350,26 @@ resolve_element_type :: fn(ctx: FnLowerCtx, raw_iter_type: Type, iter_type: Type
     from_typed :: ctx.typed.iter_element_types[side_table_key]
     if !(from_typed is null) { return from_typed }
     return TY_UNRESOLVED
+}
+
+// Erase a concrete `__genstate_<fn>` iterator (a `@generator`'s Direction-A call
+// result) back to the trait `Iterator<element>`, so an un-fused for-in dispatches
+// `next()` virtually through the vtable instead of a devirtualized direct call.
+// Non-`__genstate` types (and `__genstate` with an unresolvable Iterator trait
+// symbol) pass through unchanged.
+//
+// Invariant this relies on: the generator fn still RETURNS a boxed `Iterator<U>`
+// (its declared return type), so a raw `__genstate` value only ever reaches (a) a
+// fusible chain — where it never materialises — or (b) this un-fused for-in. Every
+// other consumer (arg / slot / return) boxes it back to `Iterator` at the
+// `is_assignable` boundary. If a future pass inspects a generator result's
+// concrete type elsewhere, prefer routing it through that shared boundary
+// coercion over adding another erase site.
+erase_genstate_for_dispatch :: fn(ctx: FnLowerCtx, iter_type: Type, element_type: Type) -> Type {
+    if !is_gen_state_struct(iter_type) { return iter_type }
+    trait_sym :: find_core_trait(ctx.project, TRAIT_ITERATOR)
+    if trait_sym is Symbol as ts { return mk_trait(ts, [element_type]) }
+    return iter_type
 }
 
 // Build the per-iter `.next()` step call. Trait-typed iter →

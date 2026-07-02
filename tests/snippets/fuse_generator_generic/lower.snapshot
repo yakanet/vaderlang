@@ -40,7 +40,7 @@
                 arg1:
                   vcall Display.to_string :string
                     recv:
-                      v :?
+                      v :U
           assign
             target:
               __for_i_2 :usize
@@ -93,7 +93,7 @@
                     arg1:
                       vcall Display.to_string :string
                         recv:
-                          v :?
+                          v :T
           assign
             target:
               __for_i_2 :usize

@@ -255,6 +255,11 @@ export TypedProgram :: struct {
     /// walk (the typecheck pass is the self-compile's biggest GC churner).
     dump_types: bool
 
+    /// True once `register_generator_iter_impls` finds any `@generator` fn.
+    /// Lets `generator_call_result_type` bail in O(1) on a generator-free program
+    /// (the compiler's own self-compile today) instead of probing every call.
+    has_generators: bool
+
     /// C symbol name → first `@extern`-decorated FnDecl that claimed it.
     /// Lets `validate_extern` (decl.vader) emit T3050 on the second
     /// declaration of the same C symbol — the linker would otherwise
@@ -351,6 +356,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .current_fn_ctx  = null,
         .node_spans      = MutableMap<usize, Span> {},
         .dump_types      = false,
+        .has_generators  = false,
         .extern_symbols  = MutableMap<string, FnDecl> {},
         .let_type_aliases = MutableMap<i32, Type> {},
         .bounded_dispatch_trait = MutableMap<usize, string> {},

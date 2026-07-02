@@ -22,7 +22,7 @@ import "vader/diagnostics" { Span }
 AST :: import "vader/parser"
 import "vader/resolver/symbol" { Symbol }
 import "vader/types" { Type, FnType, TY_VOID, strip_distinct_each }
-import "vader/typecheck" { TypedProgram, Substitution, substitute, new_substitution, default_if_free }
+import "vader/typecheck" { TypedProgram, Substitution, substitute, new_substitution, default_if_free, gen_state_name }
 
 // Recognise `for v in <gen-call>` where the callee is a directly-called
 // `@generator` fn (generic or not), and inline its yield-loop in place of the
@@ -41,6 +41,16 @@ export try_lower_generator_inline :: fn(
         }
     }
     return null
+}
+
+// The yielded element type for a `@generator` fn, from the typecheck-side
+// registry (`register_generator_iter_impls`) substituted by the call's instance
+// subst. Null when the fn isn't registered (declines fusion). Shared by the
+// direct-call and combinator fusion sites.
+genstate_element :: fn(typed: TypedProgram, fn_name: string, subst: Substitution) -> Type | null {
+    raw :: typed.iter_element_types[gen_state_name(fn_name)]
+    if raw is null { return null }
+    return substitute(raw, subst)
 }
 
 // The direct-call worker. Resolves the callee to its `@generator` FnDecl, binds
@@ -63,15 +73,18 @@ inline_gen_ident_call :: fn(
     if gen_body is null { return null }
     if call.args.len() != fn_decl.params.len() { return null }
 
-    element_type :: generator_element_of(ctx.types.expr_type(in_form.iter))
-    if element_type == TY_VOID { return null }
-
     // The generator's instance substitution: empty for a non-generic generator ;
     // the inferred per-instance subst for a generic one. Null → a generic body
     // whose type args don't infer to all-concrete ; bail to the boxed path.
     subst_opt :: gen_instance_subst(ctx, callee_id, call, fn_decl, owner_typed)
     if subst_opt is null { return null }
     subst :: subst_opt
+
+    // Direction A: the call result is the concrete `__genstate_<fn>` struct, not
+    // `Iterator<U>` — take the yielded element from the registered element.
+    element_type :: genstate_element(ctx.typed, fn_decl.name, subst)
+    if element_type is null { return null }
+    if element_type == TY_VOID { return null }
 
     // Bind each generator param to its call arg — a `let <param> = <arg>` ahead
     // of the inlined body. Args lower in the CONSUMER ctx (they are consumer
@@ -203,8 +216,10 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
     if loopvar is null { return null }
     arg_sym :: lookup_local_symbol(ctx.project, owner.resolved, decl.params[1].span)
     if arg_sym is null { return null }
-    output_elem :: generator_element_of(ctx.types.expr_type(call))
-    if output_elem == TY_VOID { return null }
+    // Direction A: the call result is the concrete `__genstate_<fn>` struct, not
+    // `Iterator<U>` — take the yielded element from the registered element.
+    output_elem :: genstate_element(ctx.typed, decl.name, subst_opt)
+    if output_elem is null { return null }
     return mk_generator_chain(source, GenComboLayer {
         .decl = decl, .subst = subst_opt, .owner = owner,
         .loopvar = loopvar, .inner = loop_info.inner,

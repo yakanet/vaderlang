@@ -1,0 +1,131 @@
+// vader/typecheck/generator_iter — Direction A: a `@generator`'s call result is a
+// CONCRETE nominal type implementing `Iterator<U>`, not the erased trait.
+//
+// A `@generator fn -> Iterator<U>` returns the honest erased `Iterator<U>` in
+// source, but a call to it is typed as the concrete synthesized state struct
+// `<fn>$State` (which `implements Iterator<U>`), erased to `Iterator<U>` only at
+// boundaries. This makes a combinator chain `arr.iter().map(f).filter(p)` resolve
+// field/UFCS on a CONCRETE receiver (like the hand-written `MappedIterator`),
+// instead of the erased trait receiver that mis-resolves to a virtual dispatch.
+// The state-struct symbol is derived DETERMINISTICALLY from the fn symbol so the
+// lowerer (`lower_generator.vader`) reuses the same one — see
+// `.claude/plans/stream-fusion-generalization.md` §12 "Direction A".
+
+module "vader/typecheck"
+
+AST :: import "vader/parser"
+import "vader/parser" { Visibility }
+import "vader/diagnostics" { Diagnostic }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/types" { Type, StructType, FnType, mk_struct }
+
+// The `<fn>$State` naming convention — one source of truth shared by the symbol
+// mint (`gen_state_symbol`), the registry keys, and the lower-side recognition
+// (`is_gen_state_struct`).
+GEN_STATE_PREFIX :: "__genstate_"
+
+/// The deterministic state-struct name for a `@generator` fn named `fn_name`.
+export gen_state_name :: fn(fn_name: string) -> string = "${GEN_STATE_PREFIX}${fn_name}"
+
+// Reserved synthetic-id range for generator state structs — a large negative
+// offset distinct from the lowerer's small-magnitude `next_synthetic_id` pool
+// (which starts at -1 and decrements). Self-compile is nowhere near 1M synthetic
+// ids, so the two pools cannot meet ; the offset is a stopgap for resolver-minting
+// (see the plan's CLEANUP entry).
+GEN_STATE_ID_BASE :: -1000000
+
+/// The nominal state-struct symbol for a `@generator` from its `(id, name,
+/// module)` — deterministic (no counter, no side-table) so typecheck and lowering
+/// agree on it. Threaded via raw `(id, name, module)` so a caller holding those
+/// (the registry) needn't fabricate a throwaway `Symbol` just to be re-read.
+export gen_state_symbol_of :: fn(fn_id: i32, fn_name: string, module: string) -> Symbol = Symbol {
+    .id         = GEN_STATE_ID_BASE - fn_id,
+    .kind       = SymbolKind.Struct,
+    .name       = gen_state_name(fn_name),
+    .module     = module,
+    .visibility = Visibility.Private,
+    .defined_at = null,
+}
+
+/// The state-struct symbol for a `@generator` fn symbol.
+export gen_state_symbol :: fn(fn_sym: Symbol) -> Symbol =
+    gen_state_symbol_of(fn_sym.id, fn_sym.name, fn_sym.module)
+
+/// True when `t` is a `@generator`'s synthetic `<fn>$State` iterator struct.
+/// Recognises by the deterministic `gen_state_symbol` name (not user-derived).
+export is_gen_state_struct :: fn(t: Type) -> bool {
+    if t is StructType as st { return starts_with(st.symbol.name, GEN_STATE_PREFIX) }
+    return false
+}
+
+/// Register every `@generator` fn's synthetic state struct as `implements
+/// Iterator<U>` so a call to it types as a concrete iterator (chains resolve).
+/// Iterates `typed.fn_decls` (keyed by symbol id) — runs before the body walk so
+/// `try_trait_widen` sees `<fn>$State → Iterator` while typing chained receivers.
+export register_generator_iter_impls :: fn(typed: TypedProgram) -> void {
+    for [sym_id, fn_decl] in typed.fn_decls {
+        if !fn_is_generator(fn_decl) { continue }
+        sink: Diagnostic[] = []
+        elem :: generator_element_type(fn_decl, lookup_return_type(fn_decl, typed), sink)
+        if elem is null { continue }
+        typed.has_generators = true
+        state_ty :: mk_struct(gen_state_symbol_of(sym_id, fn_decl.name, typed.resolved.path), [])
+        record_struct_trait(typed, state_ty, "Iterator")
+        record_struct_trait_args(typed, state_ty, "Iterator", [elem])
+        typed.iter_element_types[gen_state_name(fn_decl.name)] = elem
+    }
+}
+
+/// The concrete result type for a call whose callee is a `@generator`, or null.
+/// `mk_struct(<fn>$State)` — a nominal type that `implements Iterator<U>`.
+export generator_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram) -> Type | null {
+    // Cheap program-level bail: a generator-free program (the compiler's own
+    // self-compile today) skips the per-call callee probe entirely.
+    if !typed.has_generators { return null }
+    fn_sym :: callee_generator_symbol(c, typed)
+    if fn_sym is null { return null }
+    return mk_struct(gen_state_symbol(fn_sym), [])
+}
+
+// The callee's fn symbol IF it is a `@generator`, else null. Handles the direct
+// ident callee and the UFCS field callee (free fn whose first param fits the
+// receiver).
+callee_generator_symbol :: fn(c: AST.CallExpr, typed: TypedProgram) -> Symbol | null {
+    sym :: @partial match c.callee {
+        is AST.IdentExpr as id -> typed.resolved.idents[id.span.hash()]
+        is AST.FieldExpr as fe -> {
+            recv_ty :: typed.expr_types[fe.target.id]
+            if recv_ty is null { null } else { ufcs_free_fn_symbol(fe.field, recv_ty, typed) }
+        }
+        _ -> null
+    }
+    if sym is null { return null }
+    if is_generator_symbol(sym, typed) { return sym }
+    return null
+}
+
+is_generator_symbol :: fn(sym: Symbol, typed: TypedProgram) -> bool {
+    fd :: typed.fn_decls[sym.id]
+    if fd is AST.FnDecl as f { return fn_is_generator(f) }
+    return false
+}
+
+// The `@generator` free-fn symbol whose first param accepts `recv_ty` for a UFCS
+// `.name` call. Filters to generator candidates FIRST (a cheap decl lookup) so the
+// structural `receiver_fits_first_param` fit-check only runs on the rare generator
+// overloads, not every UFCS method call on the typecheck hot path.
+ufcs_free_fn_symbol :: fn(name: string, recv_ty: Type, typed: TypedProgram) -> Symbol | null {
+    bucket :: typed.resolved.fn_overloads[name]
+    if bucket is Symbol[] as syms {
+        for sym in syms {
+            if !is_generator_symbol(sym, typed) { continue }
+            ft :: typed.decl_types[sym.id]
+            if ft is FnType as f {
+                if f.params.len() > 0 {
+                    if receiver_fits_first_param(recv_ty, f.params[0], typed) { return sym }
+                }
+            }
+        }
+    }
+    return null
+}

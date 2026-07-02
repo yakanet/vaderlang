@@ -5,7 +5,7 @@
   struct snippet$FileMod { decls: Decl[] }
   fn snippet$concat_decls(files: FileMod[]) -> Iterator<Decl>
     return
-      __gen_state_7 {
+      __genstate_concat_decls {
         s0: files :FileMod[]
         s1: null
         s2: int(0) :usize
@@ -77,21 +77,74 @@
                 callee:
                   std_io$println__string :void
                 arg0:
-                  call :string
-                    callee:
-                      concat_3 :string
-                    arg0:
-                      vcall Display.to_string :string
-                        recv:
-                          .name :?
-                            d :?
-                    arg1:
-                      "=" :string
-                    arg2:
-                      vcall Display.to_string :string
-                        recv:
-                          .id :?
-                            d :?
+                  block :string
+                    let __p_0: string =
+                      .name :string
+                        d :Decl
+                    let __buf_1: Buffer =
+                      call :Buffer
+                        callee:
+                          new_byte_buffer :Buffer
+                        arg0:
+                          add :usize
+                            l:
+                              int(21) :usize
+                            r:
+                              call :usize
+                                callee:
+                                  byte_len :usize
+                                arg0:
+                                  __p_0 :string
+                    let __off_2: usize = int(0) :usize
+                    assign
+                      target:
+                        __off_2 :usize
+                      value:
+                        call :usize
+                          callee:
+                            write_string_at :usize
+                          arg0:
+                            __buf_1 :Buffer
+                          arg1:
+                            __off_2 :usize
+                          arg2:
+                            __p_0 :string
+                    assign
+                      target:
+                        __off_2 :usize
+                      value:
+                        call :usize
+                          callee:
+                            write_string_at :usize
+                          arg0:
+                            __buf_1 :Buffer
+                          arg1:
+                            __off_2 :usize
+                          arg2:
+                            "=" :string
+                    assign
+                      target:
+                        __off_2 :usize
+                      value:
+                        call :usize
+                          callee:
+                            write_int :usize
+                          arg0:
+                            __buf_1 :Buffer
+                          arg1:
+                            __off_2 :usize
+                          arg2:
+                            cast → i64
+                              .id :i32
+                                d :Decl
+                    ~>
+                      call :string
+                        callee:
+                          finish_buffer :string
+                        arg0:
+                          __buf_1 :Buffer
+                        arg1:
+                          __off_2 :usize
               assign
                 target:
                   __for_i_5 :usize
@@ -111,22 +164,22 @@
                 r:
                   int(1) :usize
     return int(0) :i32
-  struct __gen_state_7 { s0: FileMod[], s1: FileMod[], s2: usize, s3: usize, s4: FileMod, s5: Decl[], s6: usize, s7: usize, s8: Decl, state: i32 }
-  fn snippet$__gen_state_7$Iterator$next(self: __gen_state_7) -> Yield<Decl> | null
+  struct __genstate_concat_decls { s0: FileMod[], s1: FileMod[], s2: usize, s3: usize, s4: FileMod, s5: Decl[], s6: usize, s7: usize, s8: Decl, state: i32 }
+  fn snippet$__genstate_concat_decls$Iterator$next(self: __genstate_concat_decls) -> Yield<Decl> | null
     loop
       if :void
         cond:
           eq :bool
             l:
               .state :i32
-                __self_6 :__gen_state_7
+                __self_6 :__genstate_concat_decls
             r:
               int(0) :i32
         then:
           assign
             target:
               .state :i32
-                __self_6 :__gen_state_7
+                __self_6 :__genstate_concat_decls
             value:
               int(-1) :i32
         else:
@@ -135,14 +188,14 @@
               eq :bool
                 l:
                   .state :i32
-                    __self_6 :__gen_state_7
+                    __self_6 :__genstate_concat_decls
                 r:
                   int(1) :i32
             then:
               assign
                 target:
                   .state :i32
-                    __self_6 :__gen_state_7
+                    __self_6 :__genstate_concat_decls
                 value:
                   int(0) :i32
             else:
@@ -151,7 +204,7 @@
                   eq :bool
                     l:
                       .state :i32
-                        __self_6 :__gen_state_7
+                        __self_6 :__genstate_concat_decls
                     r:
                       int(2) :i32
                 then:
@@ -160,22 +213,22 @@
                       lt :bool
                         l:
                           .s3 :usize
-                            __self_6 :__gen_state_7
+                            __self_6 :__genstate_concat_decls
                         r:
                           .s2 :usize
-                            __self_6 :__gen_state_7
+                            __self_6 :__genstate_concat_decls
                     then:
                       assign
                         target:
                           .state :i32
-                            __self_6 :__gen_state_7
+                            __self_6 :__genstate_concat_decls
                         value:
                           int(10) :i32
                     else:
                       assign
                         target:
                           .state :i32
-                            __self_6 :__gen_state_7
+                            __self_6 :__genstate_concat_decls
                         value:
                           int(1) :i32
                 else:
@@ -184,25 +237,25 @@
                       eq :bool
                         l:
                           .state :i32
-                            __self_6 :__gen_state_7
+                            __self_6 :__genstate_concat_decls
                         r:
                           int(3) :i32
                     then:
                       assign
                         target:
                           .s3 :usize
-                            __self_6 :__gen_state_7
+                            __self_6 :__genstate_concat_decls
                         value:
                           add :usize
                             l:
                               .s3 :usize
-                                __self_6 :__gen_state_7
+                                __self_6 :__genstate_concat_decls
                             r:
                               int(1) :usize
                       assign
                         target:
                           .state :i32
-                            __self_6 :__gen_state_7
+                            __self_6 :__genstate_concat_decls
                         value:
                           int(2) :i32
                     else:
@@ -211,14 +264,14 @@
                           eq :bool
                             l:
                               .state :i32
-                                __self_6 :__gen_state_7
+                                __self_6 :__genstate_concat_decls
                             r:
                               int(4) :i32
                         then:
                           assign
                             target:
                               .state :i32
-                                __self_6 :__gen_state_7
+                                __self_6 :__genstate_concat_decls
                             value:
                               int(3) :i32
                         else:
@@ -227,7 +280,7 @@
                               eq :bool
                                 l:
                                   .state :i32
-                                    __self_6 :__gen_state_7
+                                    __self_6 :__genstate_concat_decls
                                 r:
                                   int(5) :i32
                             then:
@@ -236,22 +289,22 @@
                                   lt :bool
                                     l:
                                       .s7 :usize
-                                        __self_6 :__gen_state_7
+                                        __self_6 :__genstate_concat_decls
                                     r:
                                       .s6 :usize
-                                        __self_6 :__gen_state_7
+                                        __self_6 :__genstate_concat_decls
                                 then:
                                   assign
                                     target:
                                       .state :i32
-                                        __self_6 :__gen_state_7
+                                        __self_6 :__genstate_concat_decls
                                     value:
                                       int(8) :i32
                                 else:
                                   assign
                                     target:
                                       .state :i32
-                                        __self_6 :__gen_state_7
+                                        __self_6 :__genstate_concat_decls
                                     value:
                                       int(4) :i32
                             else:
@@ -260,25 +313,25 @@
                                   eq :bool
                                     l:
                                       .state :i32
-                                        __self_6 :__gen_state_7
+                                        __self_6 :__genstate_concat_decls
                                     r:
                                       int(6) :i32
                                 then:
                                   assign
                                     target:
                                       .s7 :usize
-                                        __self_6 :__gen_state_7
+                                        __self_6 :__genstate_concat_decls
                                     value:
                                       add :usize
                                         l:
                                           .s7 :usize
-                                            __self_6 :__gen_state_7
+                                            __self_6 :__genstate_concat_decls
                                         r:
                                           int(1) :usize
                                   assign
                                     target:
                                       .state :i32
-                                        __self_6 :__gen_state_7
+                                        __self_6 :__genstate_concat_decls
                                     value:
                                       int(5) :i32
                                 else:
@@ -287,21 +340,21 @@
                                       eq :bool
                                         l:
                                           .state :i32
-                                            __self_6 :__gen_state_7
+                                            __self_6 :__genstate_concat_decls
                                         r:
                                           int(7) :i32
                                     then:
                                       assign
                                         target:
                                           .state :i32
-                                            __self_6 :__gen_state_7
+                                            __self_6 :__genstate_concat_decls
                                         value:
                                           int(6) :i32
                                       return
                                         Yield<Decl> {
                                           value:
                                             .s8 :Decl
-                                              __self_6 :__gen_state_7
+                                              __self_6 :__genstate_concat_decls
                                         }
                                     else:
                                       if :void
@@ -309,26 +362,26 @@
                                           eq :bool
                                             l:
                                               .state :i32
-                                                __self_6 :__gen_state_7
+                                                __self_6 :__genstate_concat_decls
                                             r:
                                               int(8) :i32
                                         then:
                                           assign
                                             target:
                                               .s8 :Decl
-                                                __self_6 :__gen_state_7
+                                                __self_6 :__genstate_concat_decls
                                             value:
                                               index :Decl
                                                 on:
                                                   .s5 :Decl[]
-                                                    __self_6 :__gen_state_7
+                                                    __self_6 :__genstate_concat_decls
                                                 ix:
                                                   .s7 :usize
-                                                    __self_6 :__gen_state_7
+                                                    __self_6 :__genstate_concat_decls
                                           assign
                                             target:
                                               .state :i32
-                                                __self_6 :__gen_state_7
+                                                __self_6 :__genstate_concat_decls
                                             value:
                                               int(7) :i32
                                         else:
@@ -337,34 +390,34 @@
                                               eq :bool
                                                 l:
                                                   .state :i32
-                                                    __self_6 :__gen_state_7
+                                                    __self_6 :__genstate_concat_decls
                                                 r:
                                                   int(9) :i32
                                             then:
                                               assign
                                                 target:
                                                   .s5 :Decl[]
-                                                    __self_6 :__gen_state_7
+                                                    __self_6 :__genstate_concat_decls
                                                 value:
                                                   .decls :Decl[]
                                                     .s4 :FileMod
-                                                      __self_6 :__gen_state_7
+                                                      __self_6 :__genstate_concat_decls
                                               assign
                                                 target:
                                                   .s6 :usize
-                                                    __self_6 :__gen_state_7
+                                                    __self_6 :__genstate_concat_decls
                                                 value:
                                                   LoweredArrayLen
                                               assign
                                                 target:
                                                   .s7 :usize
-                                                    __self_6 :__gen_state_7
+                                                    __self_6 :__genstate_concat_decls
                                                 value:
                                                   int(0) :usize
                                               assign
                                                 target:
                                                   .state :i32
-                                                    __self_6 :__gen_state_7
+                                                    __self_6 :__genstate_concat_decls
                                                 value:
                                                   int(5) :i32
                                             else:
@@ -373,26 +426,26 @@
                                                   eq :bool
                                                     l:
                                                       .state :i32
-                                                        __self_6 :__gen_state_7
+                                                        __self_6 :__genstate_concat_decls
                                                     r:
                                                       int(10) :i32
                                                 then:
                                                   assign
                                                     target:
                                                       .s4 :FileMod
-                                                        __self_6 :__gen_state_7
+                                                        __self_6 :__genstate_concat_decls
                                                     value:
                                                       index :FileMod
                                                         on:
                                                           .s1 :FileMod[]
-                                                            __self_6 :__gen_state_7
+                                                            __self_6 :__genstate_concat_decls
                                                         ix:
                                                           .s3 :usize
-                                                            __self_6 :__gen_state_7
+                                                            __self_6 :__genstate_concat_decls
                                                   assign
                                                     target:
                                                       .state :i32
-                                                        __self_6 :__gen_state_7
+                                                        __self_6 :__genstate_concat_decls
                                                     value:
                                                       int(9) :i32
                                                 else:
@@ -401,238 +454,34 @@
                                                       eq :bool
                                                         l:
                                                           .state :i32
-                                                            __self_6 :__gen_state_7
+                                                            __self_6 :__genstate_concat_decls
                                                         r:
                                                           int(11) :i32
                                                     then:
                                                       assign
                                                         target:
                                                           .s1 :FileMod[]
-                                                            __self_6 :__gen_state_7
+                                                            __self_6 :__genstate_concat_decls
                                                         value:
                                                           .s0 :FileMod[]
-                                                            __self_6 :__gen_state_7
+                                                            __self_6 :__genstate_concat_decls
                                                       assign
                                                         target:
                                                           .s2 :usize
-                                                            __self_6 :__gen_state_7
+                                                            __self_6 :__genstate_concat_decls
                                                         value:
                                                           LoweredArrayLen
                                                       assign
                                                         target:
                                                           .s3 :usize
-                                                            __self_6 :__gen_state_7
+                                                            __self_6 :__genstate_concat_decls
                                                         value:
                                                           int(0) :usize
                                                       assign
                                                         target:
                                                           .state :i32
-                                                            __self_6 :__gen_state_7
+                                                            __self_6 :__genstate_concat_decls
                                                         value:
                                                           int(2) :i32
                                                     else:
                                                       return null
-  fn concat_3(p0: string, p1: string, p2: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let c2: usize =
-      add :usize
-        l:
-          c1 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p2 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          new_byte_buffer :Buffer
-        arg0:
-          c2 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c1 :usize
-      arg2:
-        p2 :string
-    ~>
-      call :string
-        callee:
-          finish_buffer :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c2 :usize
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          new_byte_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          finish_buffer :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
-  fn concat_4(p0: string, p1: string, p2: string, p3: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let c2: usize =
-      add :usize
-        l:
-          c1 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p2 :string
-    let c3: usize =
-      add :usize
-        l:
-          c2 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p3 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          new_byte_buffer :Buffer
-        arg0:
-          c3 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c1 :usize
-      arg2:
-        p2 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c2 :usize
-      arg2:
-        p3 :string
-    ~>
-      call :string
-        callee:
-          finish_buffer :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c3 :usize
