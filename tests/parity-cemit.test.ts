@@ -151,6 +151,9 @@ const C_PARITY = new Set<string>([
   // Couche 4: a directly-consumed @generator inlines its yield-loop as the
   // fused body — native run validates it matches the boxed state machine.
   "fuse_generator_direct",
+  // Couche 4: a GENERIC @generator inlines too — instance subst reconstructed
+  // at the fusion site (gen_map / gen_filter, T -> U).
+  "fuse_generator_generic",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));
