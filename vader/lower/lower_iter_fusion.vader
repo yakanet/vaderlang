@@ -15,7 +15,7 @@ import "vader/diagnostics" { Span }
 AST :: import "vader/parser"
 import "vader/parser" { StructLitField as ASTStructLitField, StructLitSpread as ASTStructLitSpread }
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, StructType, mk_primitive, mk_array, TY_BOOL, TY_VOID, TY_UNRESOLVED, STRUCT_ARRAY_ITERATOR }
+import "vader/types" { Type, StructType, mk_primitive, mk_array, mk_union, TY_BOOL, TY_VOID, TY_NULL, TY_UNRESOLVED, STRUCT_ARRAY_ITERATOR }
 import "vader/typecheck" { default_if_free }
 
 // ---- chain fusion ---------------------------------------------------------
@@ -154,7 +154,141 @@ export try_lower_terminal_fusion :: fn(ctx: FnLowerCtx, call: AST.CallExpr, type
         if chain == null { return null }
         return emit_collect_fusion(ctx, chain, call.span)
     }
+    // Early-exit predicate terminals — any / all / find.
+    any_call :: terminal_pred_arg(call, "any")
+    if any_call != null {
+        chain :: descend_chain(ctx, any_call.chain_arg)
+        if chain == null { return null }
+        return emit_bool_terminal(ctx, chain, any_call.pred, call.span, false, true, false)
+    }
+    all_call :: terminal_pred_arg(call, "all")
+    if all_call != null {
+        chain :: descend_chain(ctx, all_call.chain_arg)
+        if chain == null { return null }
+        return emit_bool_terminal(ctx, chain, all_call.pred, call.span, true, false, true)
+    }
+    find_call :: terminal_pred_arg(call, "find")
+    if find_call != null {
+        chain :: descend_chain(ctx, find_call.chain_arg)
+        if chain == null { return null }
+        return emit_find_terminal(ctx, chain, find_call.pred, call.span)
+    }
     return null
+}
+
+// A terminal taking a predicate — its `(chain, pred)` args, or null. Recognises
+// the UFCS form `<chain>.name(pred)` (FieldExpr callee, one arg) and the free-fn
+// form `name(<chain>, pred)` (IdentExpr callee, two args).
+TerminalPredCall :: struct { chain_arg: AST.Expr, pred: AST.Expr }
+
+terminal_pred_arg :: fn(call: AST.CallExpr, name: string) -> TerminalPredCall | null {
+    if call.callee is AST.FieldExpr as fe {
+        if fe.field == name && call.args.len() == 1 {
+            return TerminalPredCall { .chain_arg = fe.target, .pred = call.args[0].value }
+        }
+    }
+    if call.callee is AST.IdentExpr as id {
+        if id.name == name && call.args.len() == 2 {
+            return TerminalPredCall { .chain_arg = call.args[0].value, .pred = call.args[1].value }
+        }
+    }
+    return null
+}
+
+// `!cond` when `negate`, else `cond`.
+maybe_negate :: fn(cond: LoweredExpr, negate: bool, span: Span) -> LoweredExpr {
+    if negate { return LoweredUnary { .span = span, .type = TY_BOOL, .op = LoweredUnaryOp.Not, .operand = cond } }
+    return cond
+}
+
+// `pred(<elem>)` — the predicate lowered + applied to the loop-var symbol, cell-aware.
+emit_pred_call :: fn(ctx: FnLowerCtx, pred: AST.Expr, elem_sym: Symbol, elem_ty: Type, span: Span) -> LoweredExpr =
+    LoweredCall {
+        .span = span, .type = TY_BOOL, .callee = lower_expr(ctx, pred),
+        .args = [read_local_cell_aware(ctx, elem_sym, elem_ty, span)],
+    }
+
+// `any` / `all`: `{ let r = init; <flat loop> if [!]pred(v) { r = hit; break }; r }`.
+// any → (init=false, hit=true, negate=false) ; all → (init=true, hit=false, negate=true).
+emit_bool_terminal :: fn(
+    ctx: FnLowerCtx, chain: IterChain, pred: AST.Expr, span: Span,
+    init: bool, hit: bool, negate: bool,
+) -> LoweredExpr {
+    elem_ty :: chain_element_type(chain)
+    result_sym :: fresh_synthetic_symbol(ctx, "acc")
+    elem_sym :: fresh_synthetic_symbol(ctx, "elem")
+    init_let :: LoweredLet {
+        .span = span, .name = result_sym.name, .symbol = result_sym, .type = TY_BOOL,
+        .value = LoweredBoolLit { .span = span, .type = TY_BOOL, .value = init },
+    }
+    cond :: maybe_negate(emit_pred_call(ctx, pred, elem_sym, elem_ty, span), negate, span)
+    hit_stmts: LoweredStmt[] = [
+        LoweredAssign {
+            .span = span, .target = LoweredIdent { .span = span, .type = TY_BOOL, .symbol = result_sym },
+            .value = LoweredBoolLit { .span = span, .type = TY_BOOL, .value = hit },
+        },
+        LoweredBreak { .span = span, .label = null },
+    ]
+    template :: BodyTemplate {
+        .binding_name = elem_sym.name, .binding_symbol = elem_sym, .element_type = elem_ty,
+        .user_body = LoweredBlock {
+            .span = span, .type = TY_VOID,
+            .stmts = [LoweredExprStmt {
+                .span = span,
+                .expr = LoweredIf {
+                    .span = span, .type = TY_VOID, .cond = cond,
+                    .then_block = LoweredBlock { .span = span, .type = TY_VOID, .stmts = hit_stmts, .trailing = null },
+                    .else_block = null,
+                },
+            }], .trailing = null,
+        },
+    }
+    stmts: LoweredStmt[] = [init_let]
+    stmts.push_all(emit_fused_chain(ctx, chain, null, span, template, lower_expr))
+    return LoweredBlock {
+        .span = span, .type = TY_BOOL, .stmts = stmts,
+        .trailing = LoweredIdent { .span = span, .type = TY_BOOL, .symbol = result_sym },
+    }
+}
+
+// `find`: `{ let r: element | null = null; <flat loop> if pred(v) { r = v; break }; r }`.
+emit_find_terminal :: fn(ctx: FnLowerCtx, chain: IterChain, pred: AST.Expr, span: Span) -> LoweredExpr {
+    elem_ty :: chain_element_type(chain)
+    result_ty :: mk_union([elem_ty, TY_NULL])
+    result_sym :: fresh_synthetic_symbol(ctx, "find")
+    elem_sym :: fresh_synthetic_symbol(ctx, "elem")
+    init_let :: LoweredLet {
+        .span = span, .name = result_sym.name, .symbol = result_sym, .type = result_ty,
+        .value = LoweredNullLit { .span = span, .type = result_ty },
+    }
+    hit_stmts: LoweredStmt[] = [
+        LoweredAssign {
+            .span = span, .target = LoweredIdent { .span = span, .type = result_ty, .symbol = result_sym },
+            .value = read_local_cell_aware(ctx, elem_sym, elem_ty, span),
+        },
+        LoweredBreak { .span = span, .label = null },
+    ]
+    template :: BodyTemplate {
+        .binding_name = elem_sym.name, .binding_symbol = elem_sym, .element_type = elem_ty,
+        .user_body = LoweredBlock {
+            .span = span, .type = TY_VOID,
+            .stmts = [LoweredExprStmt {
+                .span = span,
+                .expr = LoweredIf {
+                    .span = span, .type = TY_VOID,
+                    .cond = emit_pred_call(ctx, pred, elem_sym, elem_ty, span),
+                    .then_block = LoweredBlock { .span = span, .type = TY_VOID, .stmts = hit_stmts, .trailing = null },
+                    .else_block = null,
+                },
+            }], .trailing = null,
+        },
+    }
+    stmts: LoweredStmt[] = [init_let]
+    stmts.push_all(emit_fused_chain(ctx, chain, null, span, template, lower_expr))
+    return LoweredBlock {
+        .span = span, .type = result_ty, .stmts = stmts,
+        .trailing = LoweredIdent { .span = span, .type = result_ty, .symbol = result_sym },
+    }
 }
 
 // `{ let n: usize = 0; <fused loop: n += 1 per element>; n }`. The result is

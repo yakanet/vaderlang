@@ -1,0 +1,28 @@
+// Terminal fusion (B-terminals, Increment 2): the early-exit terminals `any` /
+// `all` / `find` over a fusible lazy chain fuse to a flat loop with an accumulator
+// + a `break` — no MappedIterator/FilterIterator struct, no Iterator.next()
+// dispatch (see the lower snapshot). The predicate is applied inline to each fused
+// element; the loop breaks as soon as the answer is known.
+module "snippet"
+
+import "std/io" { println }
+import "std/iter" { map, filter, any, all, find }
+
+main :: fn() -> i32 {
+    xs :: [1, 2, 3, 4, 5, 6]
+
+    // any: stops at the first match.
+    a :: xs.iter().map((x: i32) -> x * 2).any((x: i32) -> x > 8)       // 12 > 8 → true
+    // all: stops at the first failure.
+    b :: xs.iter().filter((x: i32) -> x > 0).all((x: i32) -> x < 4)    // 4 !< 4 → false
+    c :: xs.iter().map((x: i32) -> x * 2).all((x: i32) -> x % 2 == 0)  // all even → true
+    println("any ${a} all ${b} all2 ${c}")
+
+    // find: returns the first match (element | null), or null when none.
+    f :: xs.iter().map((x: i32) -> x * 10).find((x: i32) -> x > 25)    // 30
+    if f == null { println("f none") } else { println("f ${f}") }
+    g :: xs.iter().filter((x: i32) -> x > 100).find((x: i32) -> x > 0) // none
+    if g == null { println("g none") } else { println("g ${g}") }
+
+    return 0
+}
