@@ -32,6 +32,7 @@ IterChainKind :: enum(u8) {
     Filter,
     Take,
     Skip,
+    Generator,
 }
 
 IterChain :: struct {
@@ -51,7 +52,20 @@ IterChain :: struct {
     pred_fn:      AST.Expr | null
     // Take / Skip layers — the `usize` count expression. Defaulted.
     count_arg:    AST.Expr | null = null
+    // Generator combinator layer — the inlined `@generator` body (map/filter as
+    // `@generator`). Defaulted ; see `lower_generator_fusion.vader`.
+    gen_layer:    GenComboLayer | null = null
     span:         Span
+}
+
+// Build a `Generator` chain layer over `source` — the inlined `@generator`
+// combinator body carried in `gen_layer` (see `lower_generator_fusion.vader`).
+mk_generator_chain :: fn(source: IterChain, gen_layer: GenComboLayer, span: Span) -> IterChain = IterChain {
+    .kind = IterChainKind.Generator,
+    .range_lower = null, .range_upper = null, .inclusive = false,
+    .element_type = TY_UNRESOLVED,
+    .source = source, .map_fn = null, .output_type = TY_UNRESOLVED,
+    .pred_fn = null, .gen_layer = gen_layer, .span = span,
 }
 
 // Top-level entry — recognise `for x in <chain>` and emit the fused
@@ -140,6 +154,11 @@ descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
             // `ArrayIterator<T>` heading the chain; fuse over `arr` directly.
             arr_bottom :: descend_array_call(ctx, call)
             if arr_bottom != null { return arr_bottom }
+            // Generator combinator (`@generator` whose first param is the source
+            // iterator) — recognised by callee, independent of the std/iter struct
+            // symbols, so it keeps working once those structs are deleted (Phase D).
+            gen_combo :: try_descend_gen_combinator(ctx, call)
+            if gen_combo != null { return gen_combo }
             map_symbol_opt    :: module_export(ctx.project, "std/iter", "MappedIterator")
             filter_symbol_opt :: module_export(ctx.project, "std/iter", "FilterIterator")
             take_symbol_opt   :: module_export(ctx.project, "std/iter", "TakeIterator")
@@ -333,6 +352,10 @@ chain_element_type :: fn(chain: IterChain) -> Type {
     if chain.kind == IterChainKind.Range { return chain.element_type }
     if chain.kind == IterChainKind.Array { return chain.element_type }
     if chain.kind == IterChainKind.Map { return chain.output_type }
+    if chain.kind == IterChainKind.Generator {
+        if chain.gen_layer is GenComboLayer as gl { return gl.output_elem }
+        return TY_UNRESOLVED
+    }
     // Filter / Take / Skip : element type comes from the source (unchanged).
     if chain.source is null { return TY_UNRESOLVED }
     return chain_element_type(chain.source)
@@ -361,6 +384,9 @@ emit_fused_chain :: fn(
     }
     if chain.kind == IterChainKind.Skip {
         return emit_fused_chain_counter(ctx, chain, loop_label, outer_span, template, recurse, false)
+    }
+    if chain.kind == IterChainKind.Generator {
+        return emit_fused_gen_combinator(ctx, chain, loop_label, outer_span, template, recurse)
     }
     return emit_fused_chain_filter(ctx, chain, loop_label, outer_span, template, recurse)
 }
