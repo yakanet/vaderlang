@@ -9,8 +9,6 @@
   FilterIterator<T>
   TakeIterator<T>
   TakeIterator<T>
-  TakeIterator<T>
-  SkipIterator<T>
   SkipIterator<T>
   SkipIterator<T>
   Into<Target>

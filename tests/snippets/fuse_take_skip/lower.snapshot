@@ -3,42 +3,35 @@
 ## snippet
   fn snippet$main() -> i32
     block :void
-      let __taken_2: usize = int(0) :usize
-      let __fuse_arr_3: i32[] =
+      let n: usize = int(3) :usize
+      let i: usize = int(0) :usize
+      let __fuse_arr_2: i32[] =
         array :i32[]
           int(10) :i32
           int(20) :i32
           int(30) :i32
           int(40) :i32
           int(50) :i32
-      let __fuse_len_4: usize =
+      let __fuse_len_3: usize =
         LoweredArrayLen
-      let __fuse_i_5: usize = int(0) :usize
+      let __fuse_i_4: usize = int(0) :usize
       loop while (<…>)
-        let v: i32 =
+        let x: i32 =
           index :i32
             on:
-              __fuse_arr_3 :i32[]
+              __fuse_arr_2 :i32[]
             ix:
-              __fuse_i_5 :usize
+              __fuse_i_4 :usize
         if :void
           cond:
             gte :bool
               l:
-                __taken_2 :usize
+                i :usize
               r:
-                int(3) :usize
+                n :usize
           then:
             break
-        assign
-          target:
-            __taken_2 :usize
-          value:
-            add :usize
-              l:
-                __taken_2 :usize
-              r:
-                int(1) :usize
+        let v: i32 = x :?
         call :void
           callee:
             std_io$println__string :void
@@ -88,236 +81,229 @@
                     __off_1 :usize
         assign
           target:
-            __fuse_i_5 :usize
+            i :usize
           value:
             add :usize
               l:
-                __fuse_i_5 :usize
+                i :usize
               r:
                 int(1) :usize
-    block :void
-      let __skipped_8: usize = int(0) :usize
-      let __fuse_arr_9: i32[] =
-        array :i32[]
-          int(10) :i32
-          int(20) :i32
-          int(30) :i32
-          int(40) :i32
-          int(50) :i32
-      let __fuse_len_10: usize =
-        LoweredArrayLen
-      let __fuse_i_11: usize = int(0) :usize
-      loop while (<…>)
-        let v: i32 =
-          index :i32
-            on:
-              __fuse_arr_9 :i32[]
-            ix:
-              __fuse_i_11 :usize
-        if :void
-          cond:
-            lt :bool
-              l:
-                __skipped_8 :usize
-              r:
-                int(2) :usize
-          then:
-            assign
-              target:
-                __skipped_8 :usize
-              value:
-                add :usize
-                  l:
-                    __skipped_8 :usize
-                  r:
-                    int(1) :usize
-            block :void
-              assign
-                target:
-                  __fuse_i_11 :usize
-                value:
-                  add :usize
-                    l:
-                      __fuse_i_11 :usize
-                    r:
-                      int(1) :usize
-              continue
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            block :string
-              let __buf_6: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(22) :usize
-              let __off_7: usize = int(0) :usize
-              assign
-                target:
-                  __off_7 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_6 :Buffer
-                    arg1:
-                      __off_7 :usize
-                    arg2:
-                      "s " :string
-              assign
-                target:
-                  __off_7 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_6 :Buffer
-                    arg1:
-                      __off_7 :usize
-                    arg2:
-                      cast → i64
-                        v :i32
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_6 :Buffer
-                  arg1:
-                    __off_7 :usize
         assign
           target:
-            __fuse_i_11 :usize
+            __fuse_i_4 :usize
           value:
             add :usize
               l:
-                __fuse_i_11 :usize
+                __fuse_i_4 :usize
               r:
                 int(1) :usize
     block :void
-      let __taken_14: usize = int(0) :usize
-      let __skipped_15: usize = int(0) :usize
-      let __fuse_arr_16: i32[] =
+      let n: usize = int(2) :usize
+      let i: usize = int(0) :usize
+      let __fuse_arr_7: i32[] =
         array :i32[]
           int(10) :i32
           int(20) :i32
           int(30) :i32
           int(40) :i32
           int(50) :i32
-      let __fuse_len_17: usize =
+      let __fuse_len_8: usize =
         LoweredArrayLen
-      let __fuse_i_18: usize = int(0) :usize
+      let __fuse_i_9: usize = int(0) :usize
       loop while (<…>)
-        let v: i32 =
+        let x: i32 =
           index :i32
             on:
-              __fuse_arr_16 :i32[]
+              __fuse_arr_7 :i32[]
             ix:
-              __fuse_i_18 :usize
-        if :void
-          cond:
-            lt :bool
-              l:
-                __skipped_15 :usize
-              r:
-                int(1) :usize
-          then:
-            assign
-              target:
-                __skipped_15 :usize
-              value:
-                add :usize
-                  l:
-                    __skipped_15 :usize
-                  r:
-                    int(1) :usize
-            block :void
-              assign
-                target:
-                  __fuse_i_18 :usize
-                value:
-                  add :usize
-                    l:
-                      __fuse_i_18 :usize
-                    r:
-                      int(1) :usize
-              continue
+              __fuse_i_9 :usize
         if :void
           cond:
             gte :bool
               l:
-                __taken_14 :usize
+                i :usize
               r:
-                int(2) :usize
+                n :usize
           then:
-            break
+            let v: i32 = x :?
+            call :void
+              callee:
+                std_io$println__string :void
+              arg0:
+                block :string
+                  let __buf_5: Buffer =
+                    call :Buffer
+                      callee:
+                        new_byte_buffer :Buffer
+                      arg0:
+                        int(22) :usize
+                  let __off_6: usize = int(0) :usize
+                  assign
+                    target:
+                      __off_6 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_string_at :usize
+                        arg0:
+                          __buf_5 :Buffer
+                        arg1:
+                          __off_6 :usize
+                        arg2:
+                          "s " :string
+                  assign
+                    target:
+                      __off_6 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_int :usize
+                        arg0:
+                          __buf_5 :Buffer
+                        arg1:
+                          __off_6 :usize
+                        arg2:
+                          cast → i64
+                            v :i32
+                  ~>
+                    call :string
+                      callee:
+                        finish_buffer :string
+                      arg0:
+                        __buf_5 :Buffer
+                      arg1:
+                        __off_6 :usize
         assign
           target:
-            __taken_14 :usize
+            i :usize
           value:
             add :usize
               l:
-                __taken_14 :usize
+                i :usize
               r:
                 int(1) :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            block :string
-              let __buf_12: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(23) :usize
-              let __off_13: usize = int(0) :usize
-              assign
-                target:
-                  __off_13 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_12 :Buffer
-                    arg1:
-                      __off_13 :usize
-                    arg2:
-                      "st " :string
-              assign
-                target:
-                  __off_13 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_12 :Buffer
-                    arg1:
-                      __off_13 :usize
-                    arg2:
-                      cast → i64
-                        v :i32
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_12 :Buffer
-                  arg1:
-                    __off_13 :usize
         assign
           target:
-            __fuse_i_18 :usize
+            __fuse_i_9 :usize
           value:
             add :usize
               l:
-                __fuse_i_18 :usize
+                __fuse_i_9 :usize
+              r:
+                int(1) :usize
+    block :void
+      let n: usize = int(2) :usize
+      let i: usize = int(0) :usize
+      let n: usize = int(1) :usize
+      let i: usize = int(0) :usize
+      let __fuse_arr_12: i32[] =
+        array :i32[]
+          int(10) :i32
+          int(20) :i32
+          int(30) :i32
+          int(40) :i32
+          int(50) :i32
+      let __fuse_len_13: usize =
+        LoweredArrayLen
+      let __fuse_i_14: usize = int(0) :usize
+      loop while (<…>)
+        let x: i32 =
+          index :i32
+            on:
+              __fuse_arr_12 :i32[]
+            ix:
+              __fuse_i_14 :usize
+        if :void
+          cond:
+            gte :bool
+              l:
+                i :usize
+              r:
+                n :usize
+          then:
+            let x: i32 = x :?
+            if :void
+              cond:
+                gte :bool
+                  l:
+                    i :usize
+                  r:
+                    n :usize
+              then:
+                break
+            let v: i32 = x :?
+            call :void
+              callee:
+                std_io$println__string :void
+              arg0:
+                block :string
+                  let __buf_10: Buffer =
+                    call :Buffer
+                      callee:
+                        new_byte_buffer :Buffer
+                      arg0:
+                        int(23) :usize
+                  let __off_11: usize = int(0) :usize
+                  assign
+                    target:
+                      __off_11 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_string_at :usize
+                        arg0:
+                          __buf_10 :Buffer
+                        arg1:
+                          __off_11 :usize
+                        arg2:
+                          "st " :string
+                  assign
+                    target:
+                      __off_11 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_int :usize
+                        arg0:
+                          __buf_10 :Buffer
+                        arg1:
+                          __off_11 :usize
+                        arg2:
+                          cast → i64
+                            v :i32
+                  ~>
+                    call :string
+                      callee:
+                        finish_buffer :string
+                      arg0:
+                        __buf_10 :Buffer
+                      arg1:
+                        __off_11 :usize
+            assign
+              target:
+                i :usize
+              value:
+                add :usize
+                  l:
+                    i :usize
+                  r:
+                    int(1) :usize
+        assign
+          target:
+            i :usize
+          value:
+            add :usize
+              l:
+                i :usize
+              r:
+                int(1) :usize
+        assign
+          target:
+            __fuse_i_14 :usize
+          value:
+            add :usize
+              l:
+                __fuse_i_14 :usize
               r:
                 int(1) :usize
     return int(0) :i32

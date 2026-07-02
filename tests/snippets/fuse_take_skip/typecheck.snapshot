@@ -3,29 +3,29 @@
 ## tests/snippets/fuse_take_skip
   FnDecl         main                 :: fn() -> i32
   expr 10:14    CallExpr       :: ArrayIterator<i32>
-  expr 10:14    CallExpr       :: TakeIterator<i32>
+  expr 10:14    CallExpr       :: __genstate_take<i32>
   expr 10:14    FieldExpr      :: fn() -> ArrayIterator<i32>
-  expr 10:14    FieldExpr      :: fn(usize) -> TakeIterator<T>
+  expr 10:14    FieldExpr      :: fn(usize) -> Iterator<T>
   expr 10:14    SeqLitExpr     :: i32[]
   expr 10:52    CallExpr       :: void
   expr 10:52    IdentExpr      :: fn(T) -> void
   expr 10:60    StringLitExpr  :: string
   expr 10:65    IdentExpr      :: i32
   expr 11:14    CallExpr       :: ArrayIterator<i32>
-  expr 11:14    CallExpr       :: SkipIterator<i32>
+  expr 11:14    CallExpr       :: __genstate_skip<i32>
   expr 11:14    FieldExpr      :: fn() -> ArrayIterator<i32>
-  expr 11:14    FieldExpr      :: fn(usize) -> SkipIterator<T>
+  expr 11:14    FieldExpr      :: fn(usize) -> Iterator<T>
   expr 11:14    SeqLitExpr     :: i32[]
   expr 11:52    CallExpr       :: void
   expr 11:52    IdentExpr      :: fn(T) -> void
   expr 11:60    StringLitExpr  :: string
   expr 11:65    IdentExpr      :: i32
   expr 12:14    CallExpr       :: ArrayIterator<i32>
-  expr 12:14    CallExpr       :: SkipIterator<i32>
-  expr 12:14    CallExpr       :: TakeIterator<i32>
+  expr 12:14    CallExpr       :: __genstate_skip<i32>
+  expr 12:14    CallExpr       :: __genstate_take<i32>
   expr 12:14    FieldExpr      :: fn() -> ArrayIterator<i32>
-  expr 12:14    FieldExpr      :: fn(usize) -> SkipIterator<T>
-  expr 12:14    FieldExpr      :: fn(usize) -> TakeIterator<T>
+  expr 12:14    FieldExpr      :: fn(usize) -> Iterator<T>
+  expr 12:14    FieldExpr      :: fn(usize) -> Iterator<T>
   expr 12:14    SeqLitExpr     :: i32[]
   expr 12:60    CallExpr       :: void
   expr 12:60    IdentExpr      :: fn(T) -> void

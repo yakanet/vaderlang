@@ -12,9 +12,7 @@
   FilterIterator<T>
   TakeIterator<T>
   TakeIterator<T>
-  TakeIterator<T>
   Mul<Rhs, Out>
-  SkipIterator<T>
   SkipIterator<T>
   SkipIterator<T>
   Div<Rhs, Out>

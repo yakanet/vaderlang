@@ -189,6 +189,7 @@ GenComboLayer :: struct {
     arg_sym:     Symbol          // the single non-self param's symbol
     arg_expr:    AST.Expr        // the call's non-self argument (map's `f`, …)
     output_elem: Type            // the combinator's yielded element type
+    prelude:     AST.Stmt[]      // counter `let`s ahead of the source loop (take/skip)
 }
 
 // Recognise `<recv>.gen_combinator(arg)` (UFCS) or `gen_combinator(<recv>, arg)`
@@ -226,25 +227,35 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
         .decl = decl, .subst = subst_opt, .owner = owner,
         .loopvar = loopvar, .inner = loop_info.inner,
         .arg_sym = arg_sym, .arg_expr = fluent.fn_arg, .output_elem = output_elem,
+        .prelude = loop_info.prelude,
     }, call.span)
 }
 
 // The `for <loopvar> in <self-param>` loop that forms a generator combinator's
 // body. Returns the loop-var span + the loop body, or null when the body isn't a
 // single for-loop over the first param (Increment 3 handles that shape only).
-GenSourceLoop :: struct { loopvar_span: Span, inner: AST.BlockExpr }
+// A generator combinator's `[<prelude>] for <lv> in self { <inner> }` shape. The
+// `prelude` is the run of statements before the source loop — a leading counter
+// `let` for `take`/`skip` (`i: usize = 0`), empty for `map`/`filter`.
+GenSourceLoop :: struct { loopvar_span: Span, inner: AST.BlockExpr, prelude: AST.Stmt[] }
 
 extract_gen_source_loop :: fn(decl: AST.FnDecl) -> GenSourceLoop | null {
     body :: decl.body
     if body is null { return null }
-    if body.stmts.len() != 1 { return null }
     if body.trailing != null { return null }
+    if body.stmts.len() == 0 { return null }
     self_name :: decl.params[0].name
-    stmt :: body.stmts[0]
-    if stmt is AST.ForStmt as fs {
+    // The LAST statement must be `for <lv> in self { <inner> }` ; everything before
+    // is the prelude (a counter `let` initialised once ahead of the loop).
+    last :: body.stmts[body.stmts.len() - 1]
+    if last is AST.ForStmt as fs {
         if fs.form is AST.InFor as inf {
             if inf.iter is AST.IdentExpr as it {
-                if it.name == self_name { return GenSourceLoop { .loopvar_span = inf.binding_span, .inner = fs.body } }
+                if it.name == self_name {
+                    prelude: AST.Stmt[] = []
+                    for i in 0..<(body.stmts.len() - 1) { prelude.push(body.stmts[i]) }
+                    return GenSourceLoop { .loopvar_span = inf.binding_span, .inner = fs.body, .prelude = prelude }
+                }
             }
         }
     }
@@ -345,6 +356,15 @@ emit_fused_gen_combinator :: fn(
         }
         out: LoweredStmt[] = []
         out.push(arg_let)
+        // Emit the combinator's prelude (take/skip's counter `let`s) ONCE, ahead of
+        // the source loop — lowered in the gen-ctx so the inner body's counter refs
+        // resolve. Extract the block's stmts so the counter is a sibling of the loop
+        // (visible inside its body), not scoped to a nested block.
+        if layer.prelude.len() > 0 {
+            prelude_expr: AST.Expr = AST.BlockExpr { .span = chain.span, .stmts = layer.prelude, .trailing = null }
+            prelude_lowered :: recurse(gen_ctx, prelude_expr)
+            if prelude_lowered is LoweredBlock as pb { out.push_all(pb.stmts) }
+        }
         out.push_all(source_stmts)
         return out
     }
