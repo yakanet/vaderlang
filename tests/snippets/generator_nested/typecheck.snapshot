@@ -3,7 +3,7 @@
 ## tests/snippets/generator_nested
   FnDecl         main                 :: fn() -> i32
   FnDecl         pairs                :: fn(i32[], i32[]) -> Iterator<i32>
-  expr 14:14    CallExpr       :: __genstate_pairs
+  expr 14:14    CallExpr       :: __genstate_pairs<i32>
   expr 14:14    IdentExpr      :: fn(i32[], i32[]) -> Iterator<i32>
   expr 14:20    SeqLitExpr     :: i32[]
   expr 14:31    SeqLitExpr     :: i32[]

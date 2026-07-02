@@ -3,6 +3,8 @@
 ## tests/snippets/fuse_generator_chain
 
 ## generic instances
+  __genstate_my_map<i32>
+  __genstate_my_filter<i32>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

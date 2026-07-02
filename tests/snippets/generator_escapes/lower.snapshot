@@ -24,14 +24,14 @@
         state: int(11) :i32
       }
   fn snippet$main() -> i32
-    let it: __genstate_count_up =
-      call :__genstate_count_up
+    let it: __genstate_count_up<i32> =
+      call :__genstate_count_up<i32>
         callee:
           count_up :fn(i32) -> Iterator<i32>
         arg0:
           int(4) :i32
     block :void
-      let __iter_0: Iterator<i32> = it :__genstate_count_up
+      let __iter_0: Iterator<i32> = it :__genstate_count_up<i32>
       loop
         let __step_1: Yield<i32> | null =
           vcall Iterator.next :Yield<i32> | null
@@ -95,8 +95,8 @@
                         __buf_2 :Buffer
                       arg1:
                         __off_3 :usize
-    let p: __genstate_pairs =
-      call :__genstate_pairs
+    let p: __genstate_pairs<i32> =
+      call :__genstate_pairs<i32>
         callee:
           pairs :fn(i32[], i32[]) -> Iterator<i32>
         arg0:
@@ -108,7 +108,7 @@
             int(10) :i32
             int(20) :i32
     block :void
-      let __iter_4: Iterator<i32> = p :__genstate_pairs
+      let __iter_4: Iterator<i32> = p :__genstate_pairs<i32>
       loop
         let __step_5: Yield<i32> | null =
           vcall Iterator.next :Yield<i32> | null

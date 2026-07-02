@@ -336,6 +336,12 @@ export lower_generator_fn :: fn(
         is Symbol as fn_sym -> gen_state_symbol(fn_sym)
         is null             -> fresh_lifted_symbol_with_prefix(fn_ctx, true, "__gen_", "__gen_state_")
     }
+    // The lowered state struct stays NO-ARG (`__genstate_<fn>`) — its `next()` body
+    // accesses concrete fields (`self.state`, `self.s0`), so a parameterised type
+    // would break field resolution at emit. Typecheck's parameterised
+    // `__genstate_<fn><element>` only exists to concretise chain terminals; the boxed
+    // consumer erases it to `Iterator<element>` (name-based) before dispatch, so the
+    // runtime tag (this no-arg struct) still matches the vtable row.
     state_ty :: mk_struct(state_sym, [])
     self_sym :: fresh_synthetic_symbol(fn_ctx, "self")
 

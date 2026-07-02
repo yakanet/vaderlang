@@ -14,7 +14,7 @@
   expr 19:22    IdentExpr      :: fn(T) -> bool
   expr 19:27    IdentExpr      :: T
   expr 19:38    IdentExpr      :: T
-  expr 23:14    CallExpr       :: __genstate_gen_map
+  expr 23:14    CallExpr       :: __genstate_gen_map<i32>
   expr 23:14    IdentExpr      :: fn(T[], fn(T) -> U) -> Iterator<U>
   expr 23:22    SeqLitExpr     :: i32[]
   expr 23:33    LambdaExpr     :: fn(i32) -> i32
@@ -24,7 +24,7 @@
   expr 23:48    IdentExpr      :: fn(T) -> void
   expr 23:56    StringLitExpr  :: string
   expr 23:61    IdentExpr      :: U
-  expr 24:14    CallExpr       :: __genstate_gen_filter
+  expr 24:14    CallExpr       :: __genstate_gen_filter<i32>
   expr 24:14    IdentExpr      :: fn(T[], fn(T) -> bool) -> Iterator<T>
   expr 24:25    SeqLitExpr     :: i32[]
   expr 24:42    LambdaExpr     :: fn(i32) -> bool
