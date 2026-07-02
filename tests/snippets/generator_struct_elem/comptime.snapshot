@@ -3,6 +3,7 @@
 ## tests/snippets/generator_struct_elem
 
 ## generic instances
+  __genstate_concat_decls<Decl>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

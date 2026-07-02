@@ -3,6 +3,7 @@
 ## tests/snippets/generator_basic
 
 ## generic instances
+  __genstate_count_up<i32>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

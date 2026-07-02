@@ -3,6 +3,7 @@
 ## tests/snippets/generator_break
 
 ## generic instances
+  __genstate_positives_until_big<i32>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

@@ -20,6 +20,8 @@ type 17 primitive i64
 type 18 array 19
 type 19 primitive u8
 type 20 primitive void
+type 21 ref __genstate_count_up
+type 22 ref __genstate_pairs
 string 0 "c "
 string 1 "p "
 string 2 "\n"

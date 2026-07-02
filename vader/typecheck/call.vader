@@ -502,9 +502,12 @@ export infer_call :: fn(
         if diverges { return TY_NEVER }
         // Direction A : a `@generator` call is typed as its concrete `<fn>$State`
         // iterator (chains resolve on a concrete receiver), not the erased return.
-        gen_res :: generator_call_result_type(c, typed)
+        // The substituted return (`Iterator<i32>`) carries the concrete element so
+        // `<fn>$State<i32>` implements `Iterator<i32>` (collect/find concretise).
+        concrete_ret :: substitute_map(callee_ty.return_type, bindings)
+        gen_res :: generator_call_result_type(c, typed, concrete_ret)
         if gen_res != null { return gen_res }
-        return substitute_map(callee_ty.return_type, bindings)
+        return concrete_ret
     }
     for i in 0..<n {
         param_ty :: callee_ty.params[i]
@@ -516,7 +519,7 @@ export infer_call :: fn(
     }
     widen_empty_array_on_push(c, typed)
     if diverges { return TY_NEVER }
-    gen_res :: generator_call_result_type(c, typed)
+    gen_res :: generator_call_result_type(c, typed, callee_ty.return_type)
     if gen_res != null { return gen_res }
     return callee_ty.return_type
 }

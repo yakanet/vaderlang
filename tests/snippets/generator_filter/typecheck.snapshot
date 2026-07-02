@@ -3,7 +3,7 @@
 ## tests/snippets/generator_filter
   FnDecl         evens                :: fn(i32[]) -> Iterator<i32>
   FnDecl         main                 :: fn() -> i32
-  expr 14:14    CallExpr       :: __genstate_evens
+  expr 14:14    CallExpr       :: __genstate_evens<i32>
   expr 14:14    IdentExpr      :: fn(i32[]) -> Iterator<i32>
   expr 14:20    SeqLitExpr     :: i32[]
   expr 14:42    CallExpr       :: void

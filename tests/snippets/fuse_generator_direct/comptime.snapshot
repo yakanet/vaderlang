@@ -3,6 +3,9 @@
 ## tests/snippets/fuse_generator_direct
 
 ## generic instances
+  __genstate_doubled<i32>
+  __genstate_evens<i32>
+  __genstate_flatten<i32>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

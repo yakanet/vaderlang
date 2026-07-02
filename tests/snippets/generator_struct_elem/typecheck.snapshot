@@ -22,7 +22,7 @@
   expr 20:29    StructLitExpr  :: Decl
   expr 20:44    StringLitExpr  :: string
   expr 20:9     StructLitExpr  :: FileMod
-  expr 22:14    CallExpr       :: __genstate_concat_decls
+  expr 22:14    CallExpr       :: __genstate_concat_decls<Decl>
   expr 22:14    IdentExpr      :: fn(FileMod[]) -> Iterator<Decl>
   expr 22:27    IdentExpr      :: FileMod[]
   expr 22:36    CallExpr       :: void

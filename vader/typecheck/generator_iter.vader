@@ -102,14 +102,31 @@ export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedP
 }
 
 /// The concrete result type for a call whose callee is a `@generator`, or null.
-/// `mk_struct(<fn>$State)` — a nominal type that `implements Iterator<U>`.
-export generator_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram) -> Type | null {
+/// `mk_struct(<fn>$State, [element])` — a nominal type that `implements
+/// Iterator<element>`. The concrete element (from the call's substituted return
+/// `Iterator<i32>`) is carried as the sole type arg so a terminal returning the
+/// element (`collect -> element[]`, `find -> element | null`) on a chain of these
+/// concretises instead of erasing to `T[]` (the `<fn>$State<E> implements
+/// Iterator<E>` convention that `resolve_struct_trait_args` reads).
+export generator_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concrete_ret: Type) -> Type | null {
     // Cheap program-level bail: a generator-free program (the compiler's own
     // self-compile today) skips the per-call callee probe entirely.
     if !typed.has_generators { return null }
     fn_sym :: callee_generator_symbol(c, typed)
     if fn_sym is null { return null }
-    return mk_struct(gen_state_symbol(fn_sym), [])
+    elem :: iterator_element_of(concrete_ret)
+    if elem is null { return mk_struct(gen_state_symbol(fn_sym), []) }
+    return mk_struct(gen_state_symbol(fn_sym), [elem])
+}
+
+/// The element `E` of an `Iterator<E>`, or null when `t` isn't a single-arg
+/// `Iterator`. The `@generator`'s declared return is `Iterator<E>`, so the call's
+/// substituted return yields the concrete element.
+iterator_element_of :: fn(t: Type) -> Type | null {
+    if t is TraitType as tt {
+        if tt.symbol.name == "Iterator" && tt.args.len() > 0 { return tt.args[0] }
+    }
+    return null
 }
 
 // The callee's fn symbol IF it is a `@generator`, else null. Handles the direct

@@ -3,6 +3,7 @@
 ## tests/snippets/generator_filter
 
 ## generic instances
+  __genstate_evens<i32>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
