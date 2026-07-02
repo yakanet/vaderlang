@@ -159,18 +159,32 @@
       callee:
         std_io$println__usize :void
       arg0:
-        call :usize
-          callee:
-            std_core$Range$Iterator$count__i32 :usize
-          arg0:
-            Range<i32> {
-              start: int(0) :i32
-              end: int(5) :i32
-              inclusive: false
-              cursor: int(0) :i32
-            }
+        block :usize
+          let __count_0: usize = int(0) :usize
+          let __elem_1: i32 = int(0) :i32
+          loop while (<…>)
+            assign
+              target:
+                __count_0 :usize
+              value:
+                add :usize
+                  l:
+                    __count_0 :usize
+                  r:
+                    int(1) :usize
+            assign
+              target:
+                __elem_1 :i32
+              value:
+                add :i32
+                  l:
+                    __elem_1 :i32
+                  r:
+                    int(1) :i32
+          ~>
+            __count_0 :usize
     block :void
-      let __scrut_0: i32 | null =
+      let __scrut_2: i32 | null =
         call :i32 | null
           callee:
             std_core$Range$Iterator$last__i32 :i32 | null
@@ -185,11 +199,11 @@
         if :void
           cond:
             is i32 :bool
-              __scrut_0 :i32 | null
+              __scrut_2 :i32 | null
           then:
             let v: i32 =
               cast → i32
-                __scrut_0 :i32 | null
+                __scrut_2 :i32 | null
             ~>
               call :void
                 callee:
@@ -201,7 +215,7 @@
               if :void
                 cond:
                   is null :bool
-                    __scrut_0 :i32 | null
+                    __scrut_2 :i32 | null
                 then:
                   ~>
                     call :void

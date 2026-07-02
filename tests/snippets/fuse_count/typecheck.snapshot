@@ -1,0 +1,43 @@
+# Typecheck
+
+## tests/snippets/fuse_count
+  FnDecl         main                 :: fn() -> i32
+  expr 14:10    CallExpr       :: ArrayIterator<i32>
+  expr 14:10    CallExpr       :: FilterIterator<i32>
+  expr 14:10    CallExpr       :: MappedIterator<i32, i32>
+  expr 14:10    CallExpr       :: usize
+  expr 14:10    FieldExpr      :: fn() -> ArrayIterator<i32>
+  expr 14:10    FieldExpr      :: fn() -> usize
+  expr 14:10    FieldExpr      :: fn(fn(T) -> U) -> MappedIterator<T, U>
+  expr 14:10    FieldExpr      :: fn(fn(T) -> bool) -> FilterIterator<T>
+  expr 14:10    SeqLitExpr     :: i32[]
+  expr 14:40    LambdaExpr     :: fn(i32) -> i32
+  expr 14:52    BinaryExpr     :: i32
+  expr 14:52    IdentExpr      :: i32
+  expr 14:66    LambdaExpr     :: fn(i32) -> bool
+  expr 14:78    BinaryExpr     :: bool
+  expr 14:78    IdentExpr      :: i32
+  expr 15:13    StringLitExpr  :: string
+  expr 15:18    IdentExpr      :: usize
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void
+  expr 18:11    CallExpr       :: FilterIterator<i32>
+  expr 18:11    CallExpr       :: usize
+  expr 18:11    FieldExpr      :: fn() -> usize
+  expr 18:11    FieldExpr      :: fn(fn(T) -> bool) -> FilterIterator<T>
+  expr 18:11    RangeExpr      :: Range<i32>
+  expr 18:26    LambdaExpr     :: fn(i32) -> bool
+  expr 18:38    BinaryExpr     :: bool
+  expr 18:38    BinaryExpr     :: i32
+  expr 18:38    IdentExpr      :: i32
+  expr 19:13    StringLitExpr  :: string
+  expr 19:18    IdentExpr      :: usize
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(T) -> void
+  expr 22:10    CallExpr       :: usize
+  expr 22:10    FieldExpr      :: fn() -> usize
+  expr 22:10    SeqLitExpr     :: i32[]
+  expr 23:13    StringLitExpr  :: string
+  expr 23:18    IdentExpr      :: usize
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void
