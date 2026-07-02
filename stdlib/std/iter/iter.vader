@@ -298,14 +298,16 @@ export find_map :: fn<T, U>(it: Iterator<T>, f: fn(T) -> U | null) -> U | null {
 /// Fluent lazy `filter`. Distinct from the eager `T[]`-overload above —
 /// the resolver picks this one when the receiver implements `Iterator(T)`
 /// (Range, ArrayIterator, MutableMap, …).
-export filter :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> FilterIterator<T> {
-    return FilterIterator<T> { .source = self, .pred = pred }
+@generator
+export filter :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> Iterator<T> {
+    for x in self { if pred(x) { yield x } }
 }
 
 /// Fluent lazy `map`. Mirror of `filter` for transforms ; element type
 /// can change (`T` → `U`).
-export map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U) -> MappedIterator<T, U> {
-    return MappedIterator<T, U> { .source = self, .f = f }
+@generator
+export map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U) -> Iterator<U> {
+    for x in self { yield f(x) }
 }
 
 /// Fluent lazy `take`. Yields the first `n` items from `self`, then ends.

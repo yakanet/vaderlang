@@ -3,11 +3,9 @@
 ## tests/snippets/for_in_iter_trait
 
 ## generic instances
+  __genstate_filter<char>
   MappedIterator<T, U>
   MappedIterator<T, U>
-  MappedIterator<T, U>
-  FilterIterator<char>
-  FilterIterator<T>
   FilterIterator<T>
   FilterIterator<T>
   TakeIterator<T>
@@ -34,6 +32,7 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
+  Iterator<U>
   Iterator<T>
   Iterator<T>
   Iterator<T>

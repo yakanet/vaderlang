@@ -5,8 +5,8 @@
   FnDecl         main                 :: fn() -> i32
   expr 11:31    BinaryExpr     :: i32
   expr 11:31    IdentExpr      :: i32
-  expr 15:15    CallExpr       :: MappedIterator<i32, i32>
-  expr 15:15    FieldExpr      :: fn(fn(T) -> U) -> MappedIterator<T, U>
+  expr 15:15    CallExpr       :: __genstate_map<i32>
+  expr 15:15    FieldExpr      :: fn(fn(T) -> U) -> Iterator<U>
   expr 15:15    RangeExpr      :: Range<i32>
   expr 15:26    IdentExpr      :: fn(i32) -> i32
   expr 16:17    BinaryExpr     :: i32

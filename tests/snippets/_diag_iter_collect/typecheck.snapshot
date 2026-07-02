@@ -5,10 +5,10 @@
   FnDecl         main                 :: fn() -> i32
   expr 33:30    BinaryExpr     :: bool
   expr 33:30    IdentExpr      :: i32
-  expr 36:14    CallExpr       :: FilterIterator<i32>
+  expr 36:14    CallExpr       :: __genstate_filter<i32>
   expr 36:14    CallExpr       :: i32[]
   expr 36:14    FieldExpr      :: fn() -> T[]
-  expr 36:14    FieldExpr      :: fn(fn(T) -> bool) -> FilterIterator<T>
+  expr 36:14    FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
   expr 36:14    RangeExpr      :: Range<i32>
   expr 36:28    IdentExpr      :: fn(i32) -> bool
   expr 37:13    StringLitExpr  :: string

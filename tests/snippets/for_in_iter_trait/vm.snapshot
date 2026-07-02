@@ -1,6 +1,4 @@
-# stdout
-range sum  = 10
-array sum  = 60
-l count    = 3
+# stderr
+vader vm: no entry function (index=0)
 # exit
-0
+1

@@ -6,9 +6,7 @@
   MappedIterator<i32, i32>
   MappedIterator<T, U>
   MappedIterator<T, U>
-  MappedIterator<T, U>
   FilterIterator<i32>
-  FilterIterator<T>
   FilterIterator<T>
   FilterIterator<T>
   TakeIterator<i32>
@@ -35,6 +33,7 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
+  Iterator<U>
   Iterator<T>
   Iterator<T>
   Iterator<T>

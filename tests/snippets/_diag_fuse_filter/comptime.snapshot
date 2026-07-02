@@ -3,11 +3,9 @@
 ## tests/snippets/_diag_fuse_filter
 
 ## generic instances
+  __genstate_filter<i32>
   MappedIterator<T, U>
   MappedIterator<T, U>
-  MappedIterator<T, U>
-  FilterIterator<i32>
-  FilterIterator<T>
   FilterIterator<T>
   FilterIterator<T>
   TakeIterator<T>
@@ -32,6 +30,7 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
+  Iterator<U>
   Iterator<T>
   Iterator<T>
   Iterator<T>
