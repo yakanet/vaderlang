@@ -15,8 +15,6 @@
   FilterIterator<T>
   TakeIterator<T>
   TakeIterator<T>
-  TakeIterator<T>
-  SkipIterator<T>
   SkipIterator<T>
   SkipIterator<T>
   Entry<i32, i32>

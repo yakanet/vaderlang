@@ -14,8 +14,6 @@
   FilterIterator<T>
   TakeIterator<T>
   TakeIterator<T>
-  TakeIterator<T>
-  SkipIterator<T>
   SkipIterator<T>
   SkipIterator<T>
   Rem<Rhs, Out>

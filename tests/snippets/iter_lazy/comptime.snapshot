@@ -12,9 +12,7 @@
   TakeIterator<i32>
   TakeIterator<T>
   TakeIterator<T>
-  TakeIterator<T>
   SkipIterator<i32>
-  SkipIterator<T>
   SkipIterator<T>
   SkipIterator<T>
   Into<Target>

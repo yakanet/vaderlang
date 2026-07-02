@@ -311,14 +311,25 @@ export map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U) -> Iterator<U> {
 }
 
 /// Fluent lazy `take`. Yields the first `n` items from `self`, then ends.
-export take :: fn<T>(self: Iterator<T>, n: usize) -> TakeIterator<T> {
-    return TakeIterator<T> { .source = self, .remaining = n }
+@generator
+export take :: fn<T>(self: Iterator<T>, n: usize) -> Iterator<T> {
+    i: usize = 0
+    for x in self {
+        if i >= n { break }
+        yield x
+        i += 1
+    }
 }
 
 /// Fluent lazy `skip`. Drops the first `n` items from `self`, then forwards
 /// every subsequent item.
-export skip :: fn<T>(self: Iterator<T>, n: usize) -> SkipIterator<T> {
-    return SkipIterator<T> { .source = self, .remaining = n }
+@generator
+export skip :: fn<T>(self: Iterator<T>, n: usize) -> Iterator<T> {
+    i: usize = 0
+    for x in self {
+        if i >= n { yield x }
+        i += 1
+    }
 }
 
 /// Lazy map. `next()` pulls one item from `source`, transforms it via `f`,

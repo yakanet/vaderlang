@@ -3,17 +3,15 @@
 ## tests/snippets/fuse_take_skip
 
 ## generic instances
+  __genstate_take<i32>
+  __genstate_skip<i32>
   MappedIterator<T, U>
   MappedIterator<T, U>
   FilterIterator<T>
   FilterIterator<T>
-  TakeIterator<i32>
-  TakeIterator<T>
   TakeIterator<T>
   TakeIterator<T>
   Into<Target>
-  SkipIterator<i32>
-  SkipIterator<T>
   SkipIterator<T>
   SkipIterator<T>
   Add<Rhs, Out>
