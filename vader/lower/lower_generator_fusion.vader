@@ -62,8 +62,10 @@ inline_gen_ident_call :: fn(
     recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
     block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt | null {
-    callee_sym :: ctx.typed.resolved.idents[callee_id.span.hash()]
-    if callee_sym is null { return null }
+    raw_callee :: ctx.typed.resolved.idents[callee_id.span.hash()]
+    if raw_callee is null { return null }
+    // Follow a directly-called imported generator's ImportBinding to its owner fn.
+    callee_sym :: follow_import_binding(ctx, raw_callee)
     owner_typed :: resolve_owner_typed(ctx, callee_sym.module)
     if owner_typed is null { return null }
     fn_decl :: owner_typed.fn_decls[callee_sym.id]
@@ -258,7 +260,14 @@ combinator_callee_sym :: fn(ctx: FnLowerCtx, call: AST.CallExpr, receiver: AST.E
             if found is UfcsMember as m { return m.symbol }
             return null
         }
-        is AST.IdentExpr as id -> { return ctx.typed.resolved.idents[id.span.hash()] }
+        is AST.IdentExpr as id -> {
+            sym :: ctx.typed.resolved.idents[id.span.hash()]
+            if sym is null { return null }
+            // A directly-called imported combinator resolves to the `import`
+            // ImportBinding ; follow it to the OWNER fn so `resolve_owner_typed`
+            // + `gen_state_symbol` see the defining module.
+            return follow_import_binding(ctx, sym)
+        }
         _ -> { return null }
     }
 }
