@@ -4,15 +4,7 @@
 
 ## generic instances
   __genstate_filter<i32>
-  MappedIterator<T, U>
-  MappedIterator<T, U>
-  FilterIterator<T>
-  FilterIterator<T>
-  TakeIterator<T>
-  TakeIterator<T>
   Into<Target>
-  SkipIterator<T>
-  SkipIterator<T>
   Add<Rhs, Out>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
@@ -27,21 +19,12 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
-  Iterator<T>
   Iterator<U>
   Iterator<T>
   Iterator<T>
   Iterator<T>
   Iterator<T>
   Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Yield<T>
-  Yield<U>
-  Yield<T>
-  Yield<T>
-  Yield<T>
   Yield<T>
   Yield<T>
   Yield<T>

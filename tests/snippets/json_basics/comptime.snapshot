@@ -9,14 +9,6 @@
   Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>
-  MappedIterator<T, U>
-  MappedIterator<T, U>
-  FilterIterator<T>
-  FilterIterator<T>
-  TakeIterator<T>
-  TakeIterator<T>
-  SkipIterator<T>
-  SkipIterator<T>
   Entry<i32, i32>
   Entry<K, V>
   Entry<K, V>
@@ -66,10 +58,10 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
+  SetIterator<T>
+  SetIterator<T>
+  SetIterator<T>
   Index<I, T>
-  SetIterator<T>
-  SetIterator<T>
-  SetIterator<T>
   IndexSet<I, T>
   Contains<T>
   Iterator<char>
@@ -87,17 +79,8 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
   Yield<char>
   Yield<Entry<K, V>>
-  Yield<T>
-  Yield<U>
-  Yield<T>
-  Yield<T>
-  Yield<T>
   Yield<T>
   Yield<T>
   Yield<T>

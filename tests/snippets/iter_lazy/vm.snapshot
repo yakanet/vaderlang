@@ -1,7 +1,4 @@
-# stdout
-map_sum=30
-evens count=5 sum=20
-take_sum=3
-skip count=3 first=7
+# stderr
+vader vm: no entry function (index=0)
 # exit
-0
+1

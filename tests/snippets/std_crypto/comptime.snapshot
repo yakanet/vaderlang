@@ -6,15 +6,7 @@
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
-  MappedIterator<T, U>
-  MappedIterator<T, U>
-  FilterIterator<T>
-  FilterIterator<T>
-  TakeIterator<T>
-  TakeIterator<T>
   Mul<Rhs, Out>
-  SkipIterator<T>
-  SkipIterator<T>
   Div<Rhs, Out>
   Rem<Rhs, Out>
   Index<I, T>
@@ -32,15 +24,6 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Yield<T>
-  Yield<U>
-  Yield<T>
-  Yield<T>
-  Yield<T>
   Yield<T>
   Yield<T>
   Yield<T>

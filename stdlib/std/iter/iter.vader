@@ -332,102 +332,12 @@ export skip :: fn<T>(self: Iterator<T>, n: usize) -> Iterator<T> {
     }
 }
 
-/// Lazy map. `next()` pulls one item from `source`, transforms it via `f`,
-/// and yields it. Stops when the source is exhausted.
-/// Construct as `MappedIterator(T, U) { .source = it, .f = mapper }`.
-@specialize
-export MappedIterator :: struct<T, U> {
-    source: Iterator<T>
-    f:      fn(T) -> U
-}
-
-MappedIterator<T, U> implements Iterator<U> {
-    next :: fn(self) -> Yield<U> | null {
-        match self.source.next() {
-            is null         -> { return null }
-            is Yield<T> as y -> { return Yield<U> { .value = self.f(y.value) } }
-        }
-    }
-}
-
-/// Lazy filter. `next()` pulls items from `source` until `pred` returns
-/// `true` ; that one is yielded, the next call resumes the search.
-/// Construct as `FilterIterator(T) { .source = it, .pred = predicate }`.
-@specialize
-export FilterIterator :: struct<T> {
-    source: Iterator<T>
-    pred:   fn(T) -> bool
-}
-
-FilterIterator<T> implements Iterator<T> {
-    next :: fn(self) -> Yield<T> | null {
-        finished := false
-        for !finished {
-            match self.source.next() {
-                is null          -> { finished = true }
-                is Yield<T> as y -> {
-                    if self.pred(y.value) {
-                        return Yield<T> { .value = y.value }
-                    }
-                }
-            }
-        }
-        return null
-    }
-}
-
-/// Lazy take. Yields the first `remaining` items from `source` and then
-/// stops. `remaining` counts down across calls — once it hits zero the
-/// iterator returns `null` even if `source` still has items.
-/// Construct as `TakeIterator(T) { .source = it, .remaining = n }`.
-@specialize
-export TakeIterator :: struct<T> {
-    source:    Iterator<T>
-    remaining: usize
-}
-
-TakeIterator<T> implements Iterator<T> {
-    next :: fn(self) -> Yield<T> | null {
-        if self.remaining == 0 { return null }
-        match self.source.next() {
-            is null          -> { return null }
-            is Yield<T> as y -> {
-                self.remaining = self.remaining - 1
-                return Yield<T> { .value = y.value }
-            }
-        }
-    }
-}
-
-/// Lazy skip. Drops the first `remaining` items from `source` on the first
-/// `next()` call, then forwards every subsequent item. After the prefix is
-/// consumed `remaining` stays at zero so the steady state is a pass-through.
-/// Construct as `SkipIterator(T) { .source = it, .remaining = n }`.
-@specialize
-export SkipIterator :: struct<T> {
-    source:    Iterator<T>
-    remaining: usize
-}
-
-SkipIterator<T> implements Iterator<T> {
-    next :: fn(self) -> Yield<T> | null {
-        for self.remaining > 0 {
-            match self.source.next() {
-                is null    -> {
-                    self.remaining = 0
-                    return null
-                }
-                is Yield<T> -> {
-                    self.remaining = self.remaining - 1
-                }
-            }
-        }
-        match self.source.next() {
-            is null          -> { return null }
-            is Yield<T> as y -> { return Yield<T> { .value = y.value } }
-        }
-    }
-}
+// The lazy combinators map/filter/take/skip are now `@generator`s (above) — the
+// hand-written MappedIterator/FilterIterator/TakeIterator/SkipIterator state-machine
+// structs they used to return have been removed (stream-fusion-generalization.md,
+// B-terminals Increment 4). Consumed directly (`for` / a terminal), a chain fuses to
+// a flat loop; the generator's own state machine only materialises for an escaping
+// iterator value.
 
 // ---------------------------------------------------------------------- tests
 

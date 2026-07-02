@@ -4,8 +4,8 @@
   fn snippet$main() -> i32
     let sq: fn(i32) -> i32 =
       LoweredMakeClosure
-    let mi: MappedIterator<i32, i32> =
-      MappedIterator<i32, i32> {
+    let mi: ? =
+      ? {
         source:
           Range<i32> {
             start: int(0) :i32
@@ -17,34 +17,34 @@
       }
     let total: i32 = int(0) :i32
     block :void
-      let __iter_1: MappedIterator<i32, i32> = mi :MappedIterator<i32, i32>
+      let __iter_1: ? = mi :?
       loop
-        let __step_2: Yield<i32> | null =
-          call :Yield<i32> | null
+        let __step_2: Yield<?> | null =
+          call :Yield<?> | null
             callee:
-              std_iter$MappedIterator$Iterator$next__i32__i32 :?
+              next :?
             arg0:
-              __iter_1 :MappedIterator<i32, i32>
+              __iter_1 :?
         if :void
           cond:
             is null :bool
-              __step_2 :Yield<i32> | null
+              __step_2 :Yield<?> | null
           then:
             break
           else:
-            let v: i32 =
-              .value :i32
-                cast → Yield<i32>
-                  __step_2 :Yield<i32> | null
+            let v: ? =
+              .value :?
+                cast → Yield<?>
+                  __step_2 :Yield<?> | null
             assign
               target:
                 total :i32
               value:
-                add :i32
+                add :?
                   l:
                     total :i32
                   r:
-                    v :i32
+                    v :?
     call :void
       callee:
         std_io$println__string :void
@@ -94,8 +94,8 @@
                 __off_4 :usize
     let is_even: fn(i32) -> bool =
       LoweredMakeClosure
-    let fi: FilterIterator<i32> =
-      FilterIterator<i32> {
+    let fi: ? =
+      ? {
         source:
           Range<i32> {
             start: int(0) :i32
@@ -108,25 +108,25 @@
     let even_count: i32 = int(0) :i32
     let even_sum: i32 = int(0) :i32
     block :void
-      let __iter_6: FilterIterator<i32> = fi :FilterIterator<i32>
+      let __iter_6: ? = fi :?
       loop
-        let __step_7: Yield<i32> | null =
-          call :Yield<i32> | null
+        let __step_7: Yield<?> | null =
+          call :Yield<?> | null
             callee:
-              std_iter$FilterIterator$Iterator$next__i32 :?
+              next :?
             arg0:
-              __iter_6 :FilterIterator<i32>
+              __iter_6 :?
         if :void
           cond:
             is null :bool
-              __step_7 :Yield<i32> | null
+              __step_7 :Yield<?> | null
           then:
             break
           else:
-            let v: i32 =
-              .value :i32
-                cast → Yield<i32>
-                  __step_7 :Yield<i32> | null
+            let v: ? =
+              .value :?
+                cast → Yield<?>
+                  __step_7 :Yield<?> | null
             assign
               target:
                 even_count :i32
@@ -140,11 +140,11 @@
               target:
                 even_sum :i32
               value:
-                add :i32
+                add :?
                   l:
                     even_sum :i32
                   r:
-                    v :i32
+                    v :?
     call :void
       callee:
         std_io$println__string :void
@@ -219,8 +219,8 @@
                 __buf_8 :Buffer
               arg1:
                 __off_9 :usize
-    let ti: TakeIterator<i32> =
-      TakeIterator<i32> {
+    let ti: ? =
+      ? {
         source:
           Range<i32> {
             start: int(0) :i32
@@ -234,34 +234,34 @@
       }
     let take_sum: i32 = int(0) :i32
     block :void
-      let __iter_10: TakeIterator<i32> = ti :TakeIterator<i32>
+      let __iter_10: ? = ti :?
       loop
-        let __step_11: Yield<i32> | null =
-          call :Yield<i32> | null
+        let __step_11: Yield<?> | null =
+          call :Yield<?> | null
             callee:
-              std_iter$TakeIterator$Iterator$next__i32 :?
+              next :?
             arg0:
-              __iter_10 :TakeIterator<i32>
+              __iter_10 :?
         if :void
           cond:
             is null :bool
-              __step_11 :Yield<i32> | null
+              __step_11 :Yield<?> | null
           then:
             break
           else:
-            let v: i32 =
-              .value :i32
-                cast → Yield<i32>
-                  __step_11 :Yield<i32> | null
+            let v: ? =
+              .value :?
+                cast → Yield<?>
+                  __step_11 :Yield<?> | null
             assign
               target:
                 take_sum :i32
               value:
-                add :i32
+                add :?
                   l:
                     take_sum :i32
                   r:
-                    v :i32
+                    v :?
     call :void
       callee:
         std_io$println__string :void
@@ -309,8 +309,8 @@
                 __buf_12 :Buffer
               arg1:
                 __off_13 :usize
-    let si: SkipIterator<i32> =
-      SkipIterator<i32> {
+    let si: ? =
+      ? {
         source:
           Range<i32> {
             start: int(0) :i32
@@ -327,25 +327,25 @@
       neg :{integer}
         int(1) :i32
     block :void
-      let __iter_14: SkipIterator<i32> = si :SkipIterator<i32>
+      let __iter_14: ? = si :?
       loop
-        let __step_15: Yield<i32> | null =
-          call :Yield<i32> | null
+        let __step_15: Yield<?> | null =
+          call :Yield<?> | null
             callee:
-              std_iter$SkipIterator$Iterator$next__i32 :?
+              next :?
             arg0:
-              __iter_14 :SkipIterator<i32>
+              __iter_14 :?
         if :void
           cond:
             is null :bool
-              __step_15 :Yield<i32> | null
+              __step_15 :Yield<?> | null
           then:
             break
           else:
-            let v: i32 =
-              .value :i32
-                cast → Yield<i32>
-                  __step_15 :Yield<i32> | null
+            let v: ? =
+              .value :?
+                cast → Yield<?>
+                  __step_15 :Yield<?> | null
             if :void
               cond:
                 lt :bool
@@ -358,7 +358,7 @@
                   target:
                     skip_first :i32
                   value:
-                    v :i32
+                    v :?
             assign
               target:
                 skip_count :i32
@@ -463,3 +463,13 @@
               int(2) :i32
         r:
           int(0) :i32
+
+# Diagnostics
+[4:21] error[R2003] imported name not exported by module: `MappedIterator` from `std/iter`
+[4:37] error[R2003] imported name not exported by module: `FilterIterator` from `std/iter`
+[4:53] error[R2003] imported name not exported by module: `TakeIterator` from `std/iter`
+[4:67] error[R2003] imported name not exported by module: `SkipIterator` from `std/iter`
+[9:11] error[T3001] type mismatch: ? is not a struct
+[18:11] error[T3001] type mismatch: ? is not a struct
+[28:11] error[T3001] type mismatch: ? is not a struct
+[36:11] error[T3001] type mismatch: ? is not a struct
