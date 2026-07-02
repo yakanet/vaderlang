@@ -8,14 +8,6 @@
   Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>
-  MappedIterator<T, U>
-  MappedIterator<T, U>
-  FilterIterator<T>
-  FilterIterator<T>
-  TakeIterator<T>
-  TakeIterator<T>
-  SkipIterator<T>
-  SkipIterator<T>
   Rem<Rhs, Out>
   Index<I, T>
   IndexSet<I, T>
@@ -33,16 +25,7 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
   Yield<char>
-  Yield<T>
-  Yield<U>
-  Yield<T>
-  Yield<T>
-  Yield<T>
   Yield<T>
   Yield<T>
   Yield<T>

@@ -3,14 +3,6 @@
 ## tests/snippets/iter_combinators
 
 ## generic instances
-  MappedIterator<T, U>
-  MappedIterator<T, U>
-  FilterIterator<T>
-  FilterIterator<T>
-  TakeIterator<T>
-  TakeIterator<T>
-  SkipIterator<T>
-  SkipIterator<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
@@ -32,15 +24,6 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Yield<T>
-  Yield<U>
-  Yield<T>
-  Yield<T>
-  Yield<T>
   Yield<T>
   Yield<T>
   Yield<T>
