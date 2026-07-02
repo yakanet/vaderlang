@@ -154,6 +154,9 @@ const C_PARITY = new Set<string>([
   // Couche 4: a GENERIC @generator inlines too — instance subst reconstructed
   // at the fusion site (gen_map / gen_filter, T -> U).
   "fuse_generator_generic",
+  // Couche 4: a generator COMBINATOR (first param = source iterator) fuses as a
+  // chain layer — single UFCS combinator + nested direct-call chain.
+  "fuse_generator_chain",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

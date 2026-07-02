@@ -1,0 +1,33 @@
+# Comptime
+
+## tests/snippets/fuse_generator_chain
+
+## generic instances
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<i32>
+  Iterator<T>
+  Iterator<U>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Range<i32>
+  Range<usize>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<i32>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>

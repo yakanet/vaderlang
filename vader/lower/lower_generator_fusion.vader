@@ -17,10 +17,12 @@
 
 module "vader/lower"
 
+import "std/collections" { MutableMap }
 import "vader/diagnostics" { Span }
 AST :: import "vader/parser"
+import "vader/resolver/symbol" { Symbol }
 import "vader/types" { Type, FnType, TY_VOID, strip_distinct_each }
-import "vader/typecheck" { TypedProgram, Substitution, substitute, new_substitution }
+import "vader/typecheck" { TypedProgram, Substitution, substitute, new_substitution, default_if_free }
 
 // Recognise `for v in <gen-call>` where the callee is a directly-called
 // `@generator` fn (generic or not), and inline its yield-loop in place of the
@@ -133,12 +135,194 @@ gen_instance_subst :: fn(
     ft :: ctx.types.raw_expr_type(callee_id)
     if ft is FnType as f {
         concrete_args :: strip_distinct_each(infer_type_args(f, call, ctx))
-        if all_concrete(concrete_args) {
-            flavor :: fn_instance_flavor(fn_decl, owner_typed, concrete_args)
-            if flavor == InstanceFlavor.Mono { return build_fn_concrete_subst(fn_decl, owner_typed, concrete_args) }
-            if flavor == InstanceFlavor.Mixed { return build_fn_mixed_subst(fn_decl, owner_typed, concrete_args) }
-            return build_fn_any_subst(fn_decl, owner_typed)
+        if all_concrete(concrete_args) { return subst_from_flavor(fn_decl, owner_typed, concrete_args) }
+    }
+    return null
+}
+
+// Pick the per-instance substitution for `fn_decl<concrete_args>` via the
+// `.NET`-model flavor classifier — the shared tail of both the direct-call subst
+// (`gen_instance_subst`) and the chained-combinator subst.
+subst_from_flavor :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, concrete_args: Type[]) -> Substitution {
+    flavor :: fn_instance_flavor(fn_decl, owner_typed, concrete_args)
+    if flavor == InstanceFlavor.Mono { return build_fn_concrete_subst(fn_decl, owner_typed, concrete_args) }
+    if flavor == InstanceFlavor.Mixed { return build_fn_mixed_subst(fn_decl, owner_typed, concrete_args) }
+    return build_fn_any_subst(fn_decl, owner_typed)
+}
+
+// ---- chained generator combinators (Increment 3) --------------------------
+//
+// A generator whose FIRST param is the source iterator — `map`/`filter`
+// (`@generator fn<T, U>(self: Iterator<T>, f) -> Iterator<U> { for x in self { … } }`)
+// — consumed in a chain (`xs.iter().map(f)`). Unlike a direct call, `self` is
+// itself an iterator we want to FUSE into, not materialise: binding `let self =
+// xs.iter()` would leave a boxed `ArrayIterator`. So a generator combinator is a
+// `descend_chain` LAYER (`IterChainKind.Generator`) whose source recurses into the
+// receiver, exactly like the struct-based `MappedIterator` recognition — the
+// generator body's `for <lv> in self { <inner> }` becomes the source loop binding
+// `<lv>`, and `<inner>` (lowered in the gen-ctx with the outer sink) routes each
+// `yield e` to the consumer. Nested combinators thread sinks so the whole chain
+// flattens to one loop.
+
+// The inlined body of a generator combinator layer, carried on `IterChain`.
+GenComboLayer :: struct {
+    decl:        AST.FnDecl      // the generator combinator
+    subst:       Substitution    // its instance substitution
+    owner:       TypedProgram    // the module the generator is defined in
+    loopvar:     Symbol          // the body's `for <loopvar> in self` variable
+    inner:       AST.BlockExpr   // the for-loop body (contains the yield)
+    arg_sym:     Symbol          // the single non-self param's symbol
+    arg_expr:    AST.Expr        // the call's non-self argument (map's `f`, …)
+    output_elem: Type            // the combinator's yielded element type
+}
+
+// Recognise `<recv>.gen_combinator(arg)` (UFCS) or `gen_combinator(<recv>, arg)`
+// where the callee is an `@generator` fn `(self: Iterator<T>, arg) -> Iterator<U>`
+// whose body is `for <lv> in self { <inner> }`. Returns a `Generator` chain layer
+// whose source is `descend_chain(<recv>)`, else null (falls through to the
+// struct-based combinator recognition).
+try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | null {
+    fluent :: unpack_fluent_combinator(ctx, call)
+    if fluent is null { return null }
+    callee_sym :: combinator_callee_sym(ctx, call, fluent.receiver)
+    if callee_sym is null { return null }
+    owner :: resolve_owner_typed(ctx, callee_sym.module)
+    if owner is null { return null }
+    decl :: owner.fn_decls[callee_sym.id]
+    if decl is null { return null }
+    if !fn_is_generator(decl) { return null }
+    // v1: exactly `self` + one non-self param (map/filter/take/skip shape).
+    if decl.params.len() != 2 { return null }
+    loop_info :: extract_gen_source_loop(decl)
+    if loop_info is null { return null }
+    source :: descend_chain(ctx, fluent.receiver)
+    if source is null { return null }
+    subst_opt :: gen_combo_subst(ctx, decl, owner, callee_sym, fluent.receiver, fluent.fn_arg)
+    if subst_opt is null { return null }
+    loopvar :: lookup_local_symbol(ctx.project, owner.resolved, loop_info.loopvar_span)
+    if loopvar is null { return null }
+    arg_sym :: lookup_local_symbol(ctx.project, owner.resolved, decl.params[1].span)
+    if arg_sym is null { return null }
+    output_elem :: generator_element_of(ctx.types.expr_type(call))
+    if output_elem == TY_VOID { return null }
+    return mk_generator_chain(source, GenComboLayer {
+        .decl = decl, .subst = subst_opt, .owner = owner,
+        .loopvar = loopvar, .inner = loop_info.inner,
+        .arg_sym = arg_sym, .arg_expr = fluent.fn_arg, .output_elem = output_elem,
+    }, call.span)
+}
+
+// The `for <loopvar> in <self-param>` loop that forms a generator combinator's
+// body. Returns the loop-var span + the loop body, or null when the body isn't a
+// single for-loop over the first param (Increment 3 handles that shape only).
+GenSourceLoop :: struct { loopvar_span: Span, inner: AST.BlockExpr }
+
+extract_gen_source_loop :: fn(decl: AST.FnDecl) -> GenSourceLoop | null {
+    body :: decl.body
+    if body is null { return null }
+    if body.stmts.len() != 1 { return null }
+    if body.trailing != null { return null }
+    self_name :: decl.params[0].name
+    stmt :: body.stmts[0]
+    if stmt is AST.ForStmt as fs {
+        if fs.form is AST.InFor as inf {
+            if inf.iter is AST.IdentExpr as it {
+                if it.name == self_name { return GenSourceLoop { .loopvar_span = inf.binding_span, .inner = fs.body } }
+            }
         }
     }
     return null
+}
+
+// The resolved callee symbol of a combinator call — the free-fn symbol for a UFCS
+// `recv.name(arg)` (via the receiver type) or a direct `name(recv, arg)` ident.
+combinator_callee_sym :: fn(ctx: FnLowerCtx, call: AST.CallExpr, receiver: AST.Expr) -> Symbol | null {
+    @partial match call.callee {
+        is AST.FieldExpr as fe -> {
+            found :: find_free_fn_ufcs(ctx, ctx.types.expr_type(receiver), fe.field)
+            if found is UfcsMember as m { return m.symbol }
+            return null
+        }
+        is AST.IdentExpr as id -> { return ctx.typed.resolved.idents[id.span.hash()] }
+        _ -> { return null }
+    }
+}
+
+// The instance substitution for a generator combinator: empty when non-generic,
+// else inferred by unifying the generic signature's params with the receiver +
+// arg types (`unify_params` — the same engine `infer_type_args` uses, but driven
+// from the normalised `(receiver, fn_arg)` so it works for UFCS and direct alike).
+// Null when a type param stays unbound (bail to the struct/boxed path).
+gen_combo_subst :: fn(
+    ctx: FnLowerCtx, decl: AST.FnDecl, owner: TypedProgram, callee_sym: Symbol,
+    receiver: AST.Expr, fn_arg: AST.Expr,
+) -> Substitution | null {
+    if decl.type_params.len() == 0 { return new_substitution() }
+    ft :: owner.decl_types[callee_sym.id]
+    if ft is FnType as f {
+        if f.params.len() < 2 { return null }
+        bindings :: MutableMap<i32, Type> {}
+        order: i32[] = []
+        unify_params(f.params[0], default_if_free(ctx.types.expr_type(receiver)), bindings, order, ctx)
+        unify_params(f.params[1], default_if_free(ctx.types.expr_type(fn_arg)), bindings, order, ctx)
+        concrete_args: Type[] = []
+        for id in order {
+            v :: bindings[id]
+            if v is null { return null }
+            concrete_args.push(v)
+        }
+        concrete :: strip_distinct_each(concrete_args)
+        if !all_concrete(concrete) { return null }
+        return subst_from_flavor(decl, owner, concrete)
+    }
+    return null
+}
+
+// Emit a `Generator` chain layer: the source recursion binds the combinator's
+// loop var to each source element and runs the combinator's inner body, whose
+// `yield e` routes (via the gen-ctx sink) to the OUTER template's binding + body.
+// The single non-self param (map's `f`, …) binds once ahead of the loop.
+emit_fused_gen_combinator :: fn(
+    ctx: FnLowerCtx, chain: IterChain, loop_label: string | null, outer_span: Span,
+    template: BodyTemplate,
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+) -> LoweredStmt[] {
+    src :: chain.source
+    layer :: chain.gen_layer
+    if src is null { return [] }
+    if layer is null { return [] }
+
+    // Lower the combinator's inner body in its own gen-ctx (owner module + instance
+    // subst), with the OUTER template installed as the yield sink.
+    gen_return :: substitute(return_type_of(layer.decl, make_entry_types(layer.owner, layer.subst)), layer.subst)
+    gen_ctx :: new_fn_lower_ctx(ctx.project, stub_entry(layer.decl, layer.owner), layer.owner, layer.subst, gen_return, null)
+    gen_ctx.gen_inline_sink = GenInlineSink {
+        .binding_symbol = template.binding_symbol,
+        .binding_name = template.binding_name,
+        .element_type = template.element_type,
+        .body = template.user_body,
+    }
+    inner_lowered :: recurse(gen_ctx, layer.inner)
+    if inner_lowered is LoweredBlock as inner_block {
+        // The source binds the combinator's loop var to each element and runs the
+        // (yield-routed) inner body — recursing the chain (a source that is itself
+        // a generator combinator fuses the same way).
+        inner_template :: BodyTemplate {
+            .binding_name = layer.loopvar.name,
+            .binding_symbol = layer.loopvar,
+            .element_type = chain_element_type(src),
+            .user_body = inner_block,
+        }
+        source_stmts :: emit_fused_chain(ctx, src, loop_label, outer_span, inner_template, recurse)
+        arg_lowered :: recurse(ctx, layer.arg_expr)
+        arg_let :: LoweredLet {
+            .span = chain.span, .name = layer.arg_sym.name, .symbol = layer.arg_sym,
+            .type = type_of(arg_lowered), .value = arg_lowered,
+        }
+        out: LoweredStmt[] = []
+        out.push(arg_let)
+        out.push_all(source_stmts)
+        return out
+    }
+    return []
 }

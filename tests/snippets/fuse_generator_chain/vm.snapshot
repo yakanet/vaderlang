@@ -1,0 +1,14 @@
+# stdout
+m 10
+m 20
+m 30
+m 40
+m 50
+f 1
+f 3
+f 5
+c 2
+c 4
+c 6
+# exit
+0
