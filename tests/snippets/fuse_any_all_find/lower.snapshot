@@ -13,23 +13,25 @@
     let a: bool =
       block :bool
         let __acc_0: bool = false
-        let __fuse_arr_5: i32[] = xs :i32[]
-        let __fuse_len_6: usize =
+        let f: fn(i32) -> i32 =
+          LoweredMakeClosure
+        let __fuse_arr_3: i32[] = xs :i32[]
+        let __fuse_len_4: usize =
           LoweredArrayLen
-        let __fuse_i_7: usize = int(0) :usize
+        let __fuse_i_5: usize = int(0) :usize
         loop while (<…>)
-          let __src_3: i32 =
+          let x: i32 =
             index :i32
               on:
-                __fuse_arr_5 :i32[]
+                __fuse_arr_3 :i32[]
               ix:
-                __fuse_i_7 :usize
+                __fuse_i_5 :usize
           let __elem_1: i32 =
             call :i32
               callee:
-                LoweredMakeClosure
+                f :fn(i32) -> i32
               arg0:
-                __src_3 :i32
+                x :?
           if :void
             cond:
               call :bool
@@ -46,37 +48,40 @@
               break
           assign
             target:
-              __fuse_i_7 :usize
+              __fuse_i_5 :usize
             value:
               add :usize
                 l:
-                  __fuse_i_7 :usize
+                  __fuse_i_5 :usize
                 r:
                   int(1) :usize
         ~>
           __acc_0 :bool
     let b: bool =
       block :bool
-        let __acc_8: bool = true
-        let __fuse_arr_12: i32[] = xs :i32[]
-        let __fuse_len_13: usize =
+        let __acc_7: bool = true
+        let pred: fn(i32) -> bool =
+          LoweredMakeClosure
+        let __fuse_arr_10: i32[] = xs :i32[]
+        let __fuse_len_11: usize =
           LoweredArrayLen
-        let __fuse_i_14: usize = int(0) :usize
+        let __fuse_i_12: usize = int(0) :usize
         loop while (<…>)
-          let __elem_9: i32 =
+          let x: i32 =
             index :i32
               on:
-                __fuse_arr_12 :i32[]
+                __fuse_arr_10 :i32[]
               ix:
-                __fuse_i_14 :usize
+                __fuse_i_12 :usize
           if :void
             cond:
               call :bool
                 callee:
-                  LoweredMakeClosure
+                  pred :fn(i32) -> bool
                 arg0:
-                  __elem_9 :i32
+                  x :?
             then:
+              let __elem_8: i32 = x :?
               if :void
                 cond:
                   not :bool
@@ -84,45 +89,47 @@
                       callee:
                         LoweredMakeClosure
                       arg0:
-                        __elem_9 :i32
+                        __elem_8 :i32
                 then:
                   assign
                     target:
-                      __acc_8 :bool
+                      __acc_7 :bool
                     value:
                       false
                   break
           assign
             target:
-              __fuse_i_14 :usize
+              __fuse_i_12 :usize
             value:
               add :usize
                 l:
-                  __fuse_i_14 :usize
+                  __fuse_i_12 :usize
                 r:
                   int(1) :usize
         ~>
-          __acc_8 :bool
+          __acc_7 :bool
     let c: bool =
       block :bool
-        let __acc_15: bool = true
-        let __fuse_arr_20: i32[] = xs :i32[]
-        let __fuse_len_21: usize =
+        let __acc_14: bool = true
+        let f: fn(i32) -> i32 =
+          LoweredMakeClosure
+        let __fuse_arr_17: i32[] = xs :i32[]
+        let __fuse_len_18: usize =
           LoweredArrayLen
-        let __fuse_i_22: usize = int(0) :usize
+        let __fuse_i_19: usize = int(0) :usize
         loop while (<…>)
-          let __src_18: i32 =
+          let x: i32 =
             index :i32
               on:
-                __fuse_arr_20 :i32[]
+                __fuse_arr_17 :i32[]
               ix:
-                __fuse_i_22 :usize
-          let __elem_16: i32 =
+                __fuse_i_19 :usize
+          let __elem_15: i32 =
             call :i32
               callee:
-                LoweredMakeClosure
+                f :fn(i32) -> i32
               arg0:
-                __src_18 :i32
+                x :?
           if :void
             cond:
               not :bool
@@ -130,113 +137,113 @@
                   callee:
                     LoweredMakeClosure
                   arg0:
-                    __elem_16 :i32
+                    __elem_15 :i32
             then:
               assign
                 target:
-                  __acc_15 :bool
+                  __acc_14 :bool
                 value:
                   false
               break
           assign
             target:
-              __fuse_i_22 :usize
+              __fuse_i_19 :usize
             value:
               add :usize
                 l:
-                  __fuse_i_22 :usize
+                  __fuse_i_19 :usize
                 r:
                   int(1) :usize
         ~>
-          __acc_15 :bool
+          __acc_14 :bool
     call :void
       callee:
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_23: Buffer =
+          let __buf_21: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(30) :usize
-          let __off_24: usize = int(0) :usize
+          let __off_22: usize = int(0) :usize
           assign
             target:
-              __off_24 :usize
+              __off_22 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_23 :Buffer
+                  __buf_21 :Buffer
                 arg1:
-                  __off_24 :usize
+                  __off_22 :usize
                 arg2:
                   "any " :string
           assign
             target:
-              __off_24 :usize
+              __off_22 :usize
             value:
               call :usize
                 callee:
                   write_bool :usize
                 arg0:
-                  __buf_23 :Buffer
+                  __buf_21 :Buffer
                 arg1:
-                  __off_24 :usize
+                  __off_22 :usize
                 arg2:
                   a :bool
           assign
             target:
-              __off_24 :usize
+              __off_22 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_23 :Buffer
+                  __buf_21 :Buffer
                 arg1:
-                  __off_24 :usize
+                  __off_22 :usize
                 arg2:
                   " all " :string
           assign
             target:
-              __off_24 :usize
+              __off_22 :usize
             value:
               call :usize
                 callee:
                   write_bool :usize
                 arg0:
-                  __buf_23 :Buffer
+                  __buf_21 :Buffer
                 arg1:
-                  __off_24 :usize
+                  __off_22 :usize
                 arg2:
                   b :bool
           assign
             target:
-              __off_24 :usize
+              __off_22 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_23 :Buffer
+                  __buf_21 :Buffer
                 arg1:
-                  __off_24 :usize
+                  __off_22 :usize
                 arg2:
                   " all2 " :string
           assign
             target:
-              __off_24 :usize
+              __off_22 :usize
             value:
               call :usize
                 callee:
                   write_bool :usize
                 arg0:
-                  __buf_23 :Buffer
+                  __buf_21 :Buffer
                 arg1:
-                  __off_24 :usize
+                  __off_22 :usize
                 arg2:
                   c :bool
           ~>
@@ -244,54 +251,56 @@
               callee:
                 finish_buffer :string
               arg0:
-                __buf_23 :Buffer
+                __buf_21 :Buffer
               arg1:
-                __off_24 :usize
+                __off_22 :usize
     let f: i32 | null =
       block :i32 | null
-        let __find_25: i32 | null = null
-        let __fuse_arr_30: i32[] = xs :i32[]
-        let __fuse_len_31: usize =
+        let __find_23: i32 | null = null
+        let f: fn(i32) -> i32 =
+          LoweredMakeClosure
+        let __fuse_arr_26: i32[] = xs :i32[]
+        let __fuse_len_27: usize =
           LoweredArrayLen
-        let __fuse_i_32: usize = int(0) :usize
+        let __fuse_i_28: usize = int(0) :usize
         loop while (<…>)
-          let __src_28: i32 =
+          let x: i32 =
             index :i32
               on:
-                __fuse_arr_30 :i32[]
+                __fuse_arr_26 :i32[]
               ix:
-                __fuse_i_32 :usize
-          let __elem_26: i32 =
+                __fuse_i_28 :usize
+          let __elem_24: i32 =
             call :i32
               callee:
-                LoweredMakeClosure
+                f :fn(i32) -> i32
               arg0:
-                __src_28 :i32
+                x :?
           if :void
             cond:
               call :bool
                 callee:
                   LoweredMakeClosure
                 arg0:
-                  __elem_26 :i32
+                  __elem_24 :i32
             then:
               assign
                 target:
-                  __find_25 :i32 | null
+                  __find_23 :i32 | null
                 value:
-                  __elem_26 :i32
+                  __elem_24 :i32
               break
           assign
             target:
-              __fuse_i_32 :usize
+              __fuse_i_28 :usize
             value:
               add :usize
                 l:
-                  __fuse_i_32 :usize
+                  __fuse_i_28 :usize
                 r:
                   int(1) :usize
         ~>
-          __find_25 :i32 | null
+          __find_23 :i32 | null
     if :void
       cond:
         is null :bool
@@ -310,37 +319,37 @@
               std_io$println__string :void
             arg0:
               block :string
-                let __buf_33: Buffer =
+                let __buf_30: Buffer =
                   call :Buffer
                     callee:
                       new_byte_buffer :Buffer
                     arg0:
                       int(22) :usize
-                let __off_34: usize = int(0) :usize
+                let __off_31: usize = int(0) :usize
                 assign
                   target:
-                    __off_34 :usize
+                    __off_31 :usize
                   value:
                     call :usize
                       callee:
                         write_string_at :usize
                       arg0:
-                        __buf_33 :Buffer
+                        __buf_30 :Buffer
                       arg1:
-                        __off_34 :usize
+                        __off_31 :usize
                       arg2:
                         "f " :string
                 assign
                   target:
-                    __off_34 :usize
+                    __off_31 :usize
                   value:
                     call :usize
                       callee:
                         write_int :usize
                       arg0:
-                        __buf_33 :Buffer
+                        __buf_30 :Buffer
                       arg1:
-                        __off_34 :usize
+                        __off_31 :usize
                       arg2:
                         cast → i64
                           cast → i32
@@ -350,56 +359,59 @@
                     callee:
                       finish_buffer :string
                     arg0:
-                      __buf_33 :Buffer
+                      __buf_30 :Buffer
                     arg1:
-                      __off_34 :usize
+                      __off_31 :usize
     let g: i32 | null =
       block :i32 | null
-        let __find_35: i32 | null = null
-        let __fuse_arr_39: i32[] = xs :i32[]
-        let __fuse_len_40: usize =
+        let __find_32: i32 | null = null
+        let pred: fn(i32) -> bool =
+          LoweredMakeClosure
+        let __fuse_arr_35: i32[] = xs :i32[]
+        let __fuse_len_36: usize =
           LoweredArrayLen
-        let __fuse_i_41: usize = int(0) :usize
+        let __fuse_i_37: usize = int(0) :usize
         loop while (<…>)
-          let __elem_36: i32 =
+          let x: i32 =
             index :i32
               on:
-                __fuse_arr_39 :i32[]
+                __fuse_arr_35 :i32[]
               ix:
-                __fuse_i_41 :usize
+                __fuse_i_37 :usize
           if :void
             cond:
               call :bool
                 callee:
-                  LoweredMakeClosure
+                  pred :fn(i32) -> bool
                 arg0:
-                  __elem_36 :i32
+                  x :?
             then:
+              let __elem_33: i32 = x :?
               if :void
                 cond:
                   call :bool
                     callee:
                       LoweredMakeClosure
                     arg0:
-                      __elem_36 :i32
+                      __elem_33 :i32
                 then:
                   assign
                     target:
-                      __find_35 :i32 | null
+                      __find_32 :i32 | null
                     value:
-                      __elem_36 :i32
+                      __elem_33 :i32
                   break
           assign
             target:
-              __fuse_i_41 :usize
+              __fuse_i_37 :usize
             value:
               add :usize
                 l:
-                  __fuse_i_41 :usize
+                  __fuse_i_37 :usize
                 r:
                   int(1) :usize
         ~>
-          __find_35 :i32 | null
+          __find_32 :i32 | null
     if :void
       cond:
         is null :bool
@@ -418,37 +430,37 @@
               std_io$println__string :void
             arg0:
               block :string
-                let __buf_42: Buffer =
+                let __buf_39: Buffer =
                   call :Buffer
                     callee:
                       new_byte_buffer :Buffer
                     arg0:
                       int(22) :usize
-                let __off_43: usize = int(0) :usize
+                let __off_40: usize = int(0) :usize
                 assign
                   target:
-                    __off_43 :usize
+                    __off_40 :usize
                   value:
                     call :usize
                       callee:
                         write_string_at :usize
                       arg0:
-                        __buf_42 :Buffer
+                        __buf_39 :Buffer
                       arg1:
-                        __off_43 :usize
+                        __off_40 :usize
                       arg2:
                         "g " :string
                 assign
                   target:
-                    __off_43 :usize
+                    __off_40 :usize
                   value:
                     call :usize
                       callee:
                         write_int :usize
                       arg0:
-                        __buf_42 :Buffer
+                        __buf_39 :Buffer
                       arg1:
-                        __off_43 :usize
+                        __off_40 :usize
                       arg2:
                         cast → i64
                           cast → i32
@@ -458,9 +470,9 @@
                     callee:
                       finish_buffer :string
                     arg0:
-                      __buf_42 :Buffer
+                      __buf_39 :Buffer
                     arg1:
-                      __off_43 :usize
+                      __off_40 :usize
     return int(0) :i32
   struct __lambda_env_4 {  }
   fn __lambda_3(__env_2: __lambda_env_4, x: i32) -> bool
@@ -470,32 +482,32 @@
           x :i32
         r:
           int(8) :i32
-  struct __lambda_env_8 {  }
-  fn __lambda_7(__env_4: __lambda_env_8, x: i32) -> i32
+  struct __lambda_env_10 {  }
+  fn __lambda_9(__env_6: __lambda_env_10, x: i32) -> i32
     ~>
       mul :i32
         l:
           x :i32
         r:
           int(2) :i32
-  struct __lambda_env_16 {  }
-  fn __lambda_15(__env_10: __lambda_env_16, x: i32) -> bool
+  struct __lambda_env_15 {  }
+  fn __lambda_14(__env_9: __lambda_env_15, x: i32) -> bool
     ~>
       lt :bool
         l:
           x :i32
         r:
           int(4) :i32
-  struct __lambda_env_19 {  }
-  fn __lambda_18(__env_11: __lambda_env_19, x: i32) -> bool
+  struct __lambda_env_21 {  }
+  fn __lambda_20(__env_13: __lambda_env_21, x: i32) -> bool
     ~>
       gt :bool
         l:
           x :i32
         r:
           int(0) :i32
-  struct __lambda_env_27 {  }
-  fn __lambda_26(__env_17: __lambda_env_27, x: i32) -> bool
+  struct __lambda_env_26 {  }
+  fn __lambda_25(__env_16: __lambda_env_26, x: i32) -> bool
     ~>
       eq :bool
         l:
@@ -506,16 +518,16 @@
               int(2) :i32
         r:
           int(0) :i32
-  struct __lambda_env_31 {  }
-  fn __lambda_30(__env_19: __lambda_env_31, x: i32) -> i32
+  struct __lambda_env_32 {  }
+  fn __lambda_31(__env_20: __lambda_env_32, x: i32) -> i32
     ~>
       mul :i32
         l:
           x :i32
         r:
           int(2) :i32
-  struct __lambda_env_41 {  }
-  fn __lambda_40(__env_27: __lambda_env_41, x: i32) -> bool
+  struct __lambda_env_39 {  }
+  fn __lambda_38(__env_25: __lambda_env_39, x: i32) -> bool
     ~>
       gt :bool
         l:
@@ -530,8 +542,8 @@
           x :i32
         r:
           int(10) :i32
-  struct __lambda_env_55 {  }
-  fn __lambda_54(__env_37: __lambda_env_55, x: i32) -> bool
+  struct __lambda_env_52 {  }
+  fn __lambda_51(__env_34: __lambda_env_52, x: i32) -> bool
     ~>
       gt :bool
         l:

@@ -25,7 +25,7 @@
   expr 28:66    CallExpr       :: void
   expr 28:66    IdentExpr      :: fn(T) -> void
   expr 28:74    StringLitExpr  :: string
-  expr 28:79    IdentExpr      :: U
+  expr 28:79    IdentExpr      :: i32
   expr 29:14    CallExpr       :: ArrayIterator<i32>
   expr 29:14    CallExpr       :: __genstate_my_filter<i32>
   expr 29:14    FieldExpr      :: fn() -> ArrayIterator<i32>
@@ -38,7 +38,7 @@
   expr 29:73    CallExpr       :: void
   expr 29:73    IdentExpr      :: fn(T) -> void
   expr 29:81    StringLitExpr  :: string
-  expr 29:86    IdentExpr      :: T
+  expr 29:86    IdentExpr      :: i32
   expr 31:14    CallExpr       :: __genstate_my_filter<i32>
   expr 31:14    IdentExpr      :: fn(Iterator<T>, fn(T) -> bool) -> Iterator<T>
   expr 31:24    CallExpr       :: __genstate_my_map<i32>
@@ -54,6 +54,6 @@
   expr 31:90    BinaryExpr     :: i32
   expr 31:90    IdentExpr      :: i32
   expr 32:17    StringLitExpr  :: string
-  expr 32:22    IdentExpr      :: T
+  expr 32:22    IdentExpr      :: i32
   expr 32:9     CallExpr       :: void
   expr 32:9     IdentExpr      :: fn(T) -> void

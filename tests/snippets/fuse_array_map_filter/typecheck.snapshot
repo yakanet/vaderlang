@@ -10,11 +10,11 @@
   expr 11:44    BinaryExpr     :: i32
   expr 11:44    IdentExpr      :: i32
   expr 14:14    CallExpr       :: ArrayIterator<i32>
-  expr 14:14    CallExpr       :: FilterIterator<i32>
-  expr 14:14    CallExpr       :: MappedIterator<i32, i32>
+  expr 14:14    CallExpr       :: __genstate_filter<i32>
+  expr 14:14    CallExpr       :: __genstate_map<i32>
   expr 14:14    FieldExpr      :: fn() -> ArrayIterator<i32>
-  expr 14:14    FieldExpr      :: fn(fn(T) -> U) -> MappedIterator<T, U>
-  expr 14:14    FieldExpr      :: fn(fn(T) -> bool) -> FilterIterator<T>
+  expr 14:14    FieldExpr      :: fn(fn(T) -> U) -> Iterator<U>
+  expr 14:14    FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
   expr 14:14    SeqLitExpr     :: i32[]
   expr 14:44    IdentExpr      :: fn(i32) -> i32
   expr 14:59    IdentExpr      :: fn(i32) -> bool

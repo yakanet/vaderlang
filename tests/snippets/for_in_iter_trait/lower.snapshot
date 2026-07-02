@@ -42,19 +42,18 @@
     return
       call :usize
         callee:
-          std_iter$FilterIterator$Iterator$count__char :usize
-        arg0:
-          call :FilterIterator<char>
-            callee:
-              std_iter$std_iter$filter__char :FilterIterator<char>
-            arg0:
-              call :StringChars
-                callee:
-                  chars :StringChars
-                arg0:
-                  s :string
-            arg1:
-              is_l :fn(char) -> bool
+          .count :fn() -> usize
+            call :__genstate_filter<char>
+              callee:
+                std_iter$std_iter$filter__char :__genstate_filter<char>
+              arg0:
+                call :StringChars
+                  callee:
+                    chars :StringChars
+                  arg0:
+                    s :string
+              arg1:
+                is_l :fn(char) -> bool
   fn snippet$main() -> i32
     let a: i32 =
       call :i32

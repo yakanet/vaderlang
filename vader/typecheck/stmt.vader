@@ -848,6 +848,15 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
     @partial match iter_ty {
         is ArrayType as a -> { return a.element }
         is StructType as st -> {
+            // A `@generator`'s `<fn>$State<E>` carries the concrete element as its
+            // sole type arg (`<fn>$State<E> implements Iterator<E>`) — the synthetic
+            // struct has no `struct_decl` for the generic-substitution path below, so
+            // read the arg directly (else a captured loop var over a generator chain
+            // erases to the impl's generic `E`).
+            if is_gen_state_struct(iter_ty) {
+                if st.args.len() >= 1 { return st.args[0] }
+                return TY_UNRESOLVED
+            }
             elem :: typed.iter_element_types[st.symbol.name]
             if elem == null {
                 if st.args.len() >= 1 { return st.args[0] }

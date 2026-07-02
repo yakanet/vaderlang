@@ -3,13 +3,13 @@
 ## tests/snippets/fuse_collect
   FnDecl         main                 :: fn() -> i32
   expr 15:11    CallExpr       :: ArrayIterator<i32>
-  expr 15:11    CallExpr       :: FilterIterator<i32>
-  expr 15:11    CallExpr       :: MappedIterator<i32, i32>
+  expr 15:11    CallExpr       :: __genstate_filter<i32>
+  expr 15:11    CallExpr       :: __genstate_map<i32>
   expr 15:11    CallExpr       :: i32[]
   expr 15:11    FieldExpr      :: fn() -> ArrayIterator<i32>
   expr 15:11    FieldExpr      :: fn() -> T[]
-  expr 15:11    FieldExpr      :: fn(fn(T) -> U) -> MappedIterator<T, U>
-  expr 15:11    FieldExpr      :: fn(fn(T) -> bool) -> FilterIterator<T>
+  expr 15:11    FieldExpr      :: fn(fn(T) -> U) -> Iterator<U>
+  expr 15:11    FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
   expr 15:11    SeqLitExpr     :: i32[]
   expr 15:41    LambdaExpr     :: fn(i32) -> i32
   expr 15:53    BinaryExpr     :: i32
@@ -29,10 +29,10 @@
   expr 16:5     IdentExpr      :: fn(T) -> void
   expr 16:62    IdentExpr      :: i32[]
   expr 16:62    IndexExpr      :: i32
-  expr 19:12    CallExpr       :: FilterIterator<i32>
+  expr 19:12    CallExpr       :: __genstate_filter<i32>
   expr 19:12    CallExpr       :: i32[]
   expr 19:12    FieldExpr      :: fn() -> T[]
-  expr 19:12    FieldExpr      :: fn(fn(T) -> bool) -> FilterIterator<T>
+  expr 19:12    FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
   expr 19:12    RangeExpr      :: Range<i32>
   expr 19:27    LambdaExpr     :: fn(i32) -> bool
   expr 19:39    BinaryExpr     :: bool

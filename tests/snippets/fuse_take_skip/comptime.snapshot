@@ -5,8 +5,6 @@
 ## generic instances
   MappedIterator<T, U>
   MappedIterator<T, U>
-  MappedIterator<T, U>
-  FilterIterator<T>
   FilterIterator<T>
   FilterIterator<T>
   TakeIterator<i32>
@@ -33,6 +31,7 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
+  Iterator<U>
   Iterator<T>
   Iterator<T>
   Iterator<T>

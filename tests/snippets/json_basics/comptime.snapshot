@@ -11,8 +11,6 @@
   Rem<Rhs, Out>
   MappedIterator<T, U>
   MappedIterator<T, U>
-  MappedIterator<T, U>
-  FilterIterator<T>
   FilterIterator<T>
   FilterIterator<T>
   TakeIterator<T>
@@ -85,6 +83,7 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
+  Iterator<U>
   Iterator<T>
   Iterator<T>
   Iterator<T>
