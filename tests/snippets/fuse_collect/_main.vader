@@ -1,0 +1,23 @@
+// Terminal fusion (B-terminals, Increment 1b): `<chain>.collect()` over a fusible
+// lazy chain fuses to `out := []; for … { out.push(v) }; out` — one flat loop, NO
+// MappedIterator/FilterIterator struct and NO Iterator.next() dispatch (see the
+// lower snapshot). The collected element type is concrete (the UFCS receiver
+// type-param concretization binds the chain's source `T` from the receiver), so
+// reading an element works in the native backend. The eager `collect(arr: T[])`
+// overload on a bare array is untouched.
+module "snippet"
+
+import "std/io" { println }
+import "std/iter" { map, filter, collect }
+
+main :: fn() -> i32 {
+    // map + filter + collect over an array source — one flat loop.
+    ys :: [1, 2, 3, 4, 5, 6].iter().map((x: i32) -> x * 2).filter((x: i32) -> x > 6).collect()
+    println("len ${ys.len()} [0]=${ys[0]} [1]=${ys[1]} [2]=${ys[2]}")   // [8,10,12]
+
+    // filter + collect over an integer-range source.
+    zs :: (0..<10).filter((x: i32) -> x % 3 == 0).collect()
+    println("zlen ${zs.len()} [0]=${zs[0]} [3]=${zs[3]}")               // [0,3,6,9]
+
+    return 0
+}

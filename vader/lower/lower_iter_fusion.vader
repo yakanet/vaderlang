@@ -15,7 +15,7 @@ import "vader/diagnostics" { Span }
 AST :: import "vader/parser"
 import "vader/parser" { StructLitField as ASTStructLitField, StructLitSpread as ASTStructLitSpread }
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, StructType, mk_primitive, TY_BOOL, TY_VOID, TY_UNRESOLVED, STRUCT_ARRAY_ITERATOR }
+import "vader/types" { Type, StructType, mk_primitive, mk_array, TY_BOOL, TY_VOID, TY_UNRESOLVED, STRUCT_ARRAY_ITERATOR }
 import "vader/typecheck" { default_if_free }
 
 // ---- chain fusion ---------------------------------------------------------
@@ -115,11 +115,10 @@ BodyTemplate :: struct {
 // in `{ let acc = <init>; <loop>; acc }` (a block-expression). Called from
 // `lower_call`; `null` falls through to the trait default-method / free-fn call.
 //
-// Increment 1: `count` (→ usize). `collect`/`fold`/`sum` and the early-exit
-// terminals (any/all/find) land in later increments — `collect` first needs the
-// typechecker to concretise its erased `T[]` element (a lazy `.collect()` over a
-// `FilterIterator<i32>` currently types as `T[]`, so a raw-element fused push
-// would mismatch the boxed slot in the native backend).
+// Increments 1 + 1b: `count` (→ usize) + `collect` (→ element[]). `fold`/`sum` and
+// the early-exit terminals (any/all/find) land later. (`collect`'s element is now
+// concrete — the UFCS receiver type-param concretization in `call.vader` binds the
+// chain's source `T` from the receiver, so the fused raw push matches the slot.)
 
 /// The iterator argument of a terminal call named `name`, or null. Recognises
 /// the UFCS form `<chain>.name()` (FieldExpr callee, no extra args) and the
@@ -148,6 +147,12 @@ export try_lower_terminal_fusion :: fn(ctx: FnLowerCtx, call: AST.CallExpr, type
         chain :: descend_chain(ctx, count_arg)
         if chain == null { return null }
         return emit_count_fusion(ctx, chain, call.span)
+    }
+    collect_arg :: terminal_arg(call, "collect")
+    if collect_arg != null {
+        chain :: descend_chain(ctx, collect_arg)
+        if chain == null { return null }
+        return emit_collect_fusion(ctx, chain, call.span)
     }
     return null
 }
@@ -181,6 +186,38 @@ emit_count_fusion :: fn(ctx: FnLowerCtx, chain: IterChain, span: Span) -> Lowere
     return LoweredBlock {
         .span = span, .type = usize_ty, .stmts = stmts,
         .trailing = LoweredIdent { .span = span, .type = usize_ty, .symbol = result_sym },
+    }
+}
+
+// `{ let out: element[] = []; <fused loop: out.push(v) per element>; out }`. The
+// element type is concrete (the UFCS receiver concretization binds the chain's
+// source `T`), so the raw fused push matches the result slot in both backends.
+emit_collect_fusion :: fn(ctx: FnLowerCtx, chain: IterChain, span: Span) -> LoweredExpr {
+    elem_ty :: chain_element_type(chain)
+    arr_ty :: mk_array(elem_ty, false)
+    result_sym :: fresh_synthetic_symbol(ctx, "collect")
+    elem_sym :: fresh_synthetic_symbol(ctx, "elem")
+    init :: LoweredLet {
+        .span = span, .name = result_sym.name, .symbol = result_sym, .type = arr_ty,
+        .value = LoweredArrayLit { .span = span, .type = arr_ty, .elements = [] },
+    }
+    push :: LoweredArrayPush {
+        .span = span, .type = arr_ty,
+        .target = LoweredIdent { .span = span, .type = arr_ty, .symbol = result_sym },
+        .value = LoweredIdent { .span = span, .type = elem_ty, .symbol = elem_sym },
+    }
+    template :: BodyTemplate {
+        .binding_name = elem_sym.name, .binding_symbol = elem_sym, .element_type = elem_ty,
+        .user_body = LoweredBlock {
+            .span = span, .type = TY_VOID,
+            .stmts = [LoweredExprStmt { .span = span, .expr = push }], .trailing = null,
+        },
+    }
+    stmts: LoweredStmt[] = [init]
+    stmts.push_all(emit_fused_chain(ctx, chain, null, span, template, lower_expr))
+    return LoweredBlock {
+        .span = span, .type = arr_ty, .stmts = stmts,
+        .trailing = LoweredIdent { .span = span, .type = arr_ty, .symbol = result_sym },
     }
 }
 
