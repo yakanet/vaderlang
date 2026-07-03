@@ -816,7 +816,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     return Trap { .message = "call.import '${info.mangled_name}' needs ${arg_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc}" }
                 }
                 arg_base :: frame.sp - arg_count
-                dispatch_outcome :: dispatch_import(info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id, is_comptime)
+                dispatch_outcome :: dispatch_import(info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id)
                 if dispatch_outcome is Trap {
                     return dispatch_outcome
                 }
@@ -912,7 +912,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                             },
                             .is_extern    = false,
                         }
-                        host_outcome :: dispatch_import(synth_info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id, is_comptime)
+                        host_outcome :: dispatch_import(synth_info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id)
                         if host_outcome is Trap { return host_outcome }
                         if host_outcome is HostOk as hok {
                             frame.stack[arg_base] = hok.value
