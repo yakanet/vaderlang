@@ -35,8 +35,14 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
         // The lowered node (the repr value) is still passed as the `self` arg.
         surface_type :: ctx.types.expr_type(field_expr.target)
         recv_type :: if surface_type is EnumType { surface_type } else { type_of(receiver) }
-        // Trait-typed receivers route through vcall (handled above).
-        if recv_type is TraitType { return null }
+        // Trait-typed receivers normally route through vcall (handled above).
+        // BUT a combinator the typer resolved as a free-fn UFCS on an erased
+        // `Iterator<T>` receiver (`it.map(f)` — the trait has no `map` method)
+        // reaches here after `try_lower_virtual_call` declined ; resolve it as
+        // the free fn. `ufcs_receiver_types[id]` set ⇔ typer picked free-fn UFCS.
+        if recv_type is TraitType {
+            if ctx.typed.ufcs_receiver_types[field_expr.id] is null { return null }
+        }
         // Impl-member path first (e.g. `x.to_string()` over
         // `i32 implements Display { to_string }`).
         member :: find_impl_member_for(ctx, recv_type, field_expr.field)
@@ -108,11 +114,13 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
 find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsMember | null {
     // Unions have no nominal surface name ; they still dispatch UFCS to a
     // free fn whose first param is the same union (`shape.describe()` ->
-    // `describe(shape: Shape)`). `first_param_matches` handles both the
-    // name and the structural-union case, so don't bail on empty name
-    // unless the receiver is neither nominal nor a union.
+    // `describe(shape: Shape)`). A trait receiver likewise has no surface name
+    // but resolves a combinator whose first param is the SAME trait (`it.map(f)`
+    // over an erased `Iterator<T>`). `first_param_matches` handles both the
+    // structural-union and same-trait cases, so don't bail on empty name unless
+    // the receiver is neither nominal, a union, nor a trait.
     recv_name :: type_surface_name(recv_type)
-    if recv_name == "" && !(recv_type is UnionType) { return null }
+    if recv_name == "" && !(recv_type is UnionType) && !(recv_type is TraitType) { return null }
     overloads :: ctx.typed.resolved.fn_overloads[name]
     if overloads is Symbol[] as symbols {
         for sym in symbols {
@@ -180,6 +188,15 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
         // implements `Iterator<char>`). Consult the project-wide impl
         // registry so cross-module stdlib impls are reachable.
         if first is TraitType as tt {
+            // An erased trait receiver whose type is the SAME trait the first
+            // param wants — `it: Iterator<i32>` into `map(self: Iterator<T>, …)`.
+            // The first param's generic `T` unifies with the receiver's concrete
+            // arg (the typer already validated this and recorded the free-fn
+            // resolution) ; re-confirm structurally by trait name. Mirrors the
+            // typer's `receiver_fits_first_param`, keeping the two passes aligned.
+            if recv_type is TraitType as rt {
+                if rt.symbol.name == tt.symbol.name { return true }
+            }
             if find_impl_for(ctx.project, recv_type, tt.symbol.name) != null { return true }
             // Direction A : a `@generator`'s synthetic `<fn>$State` result impls
             // `Iterator<U>` via the typecheck-side registry (`register_generator_

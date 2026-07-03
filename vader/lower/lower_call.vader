@@ -166,6 +166,14 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Low
     if callee_field is FieldExpr as field_expr {
         receiver :: lower_expr(ctx, field_expr.target)
         if type_of(receiver) is TraitType as tt {
+            // A `.method()` the typer resolved as a FREE-FN UFCS — a combinator
+            // like `it.map(f)` on an erased `Iterator<T>` receiver, where the
+            // trait has NO such method — must NOT emit a virtual call (it would
+            // dispatch a non-existent `Iterator.map` → runtime miss). Decline so
+            // `try_lower_ufcs_call` picks up the free fn. The typer records
+            // `ufcs_receiver_types[id]` iff it resolved free-fn UFCS ; a genuine
+            // trait method leaves it null → the vcall below still fires.
+            if !(ctx.typed.ufcs_receiver_types[field_expr.id] is null) { return null }
             args: LoweredExpr[] = []
             for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
             // Record the dispatched trait so every primitive implementor is
