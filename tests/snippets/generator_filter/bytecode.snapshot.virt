@@ -14,16 +14,16 @@ impl 4 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  local __for_arr_0 ref
-  local __for_len_1 usize
-  local __for_i_2 usize
+  local __fuse_arr_2 ref
+  local __fuse_len_3 usize
+  local __fuse_i_4 usize
   local x i32
-  local $mod_17 i32
+  local $mod_16 i32
   local v i32
   local __buf_0 ref
   local __off_1 usize
-  local $cast_26 i64
-  local $k_29 usize
+  local $cast_25 i64
+  local $k_28 usize
   i32.const 1
   i32.const 2
   i32.const 3

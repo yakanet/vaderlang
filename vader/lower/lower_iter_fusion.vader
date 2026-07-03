@@ -412,30 +412,33 @@ descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
 // whether it's a `map` or a `filter`.
 FluentCombinator :: struct {
     receiver: AST.Expr
-    fn_arg:   AST.Expr
+    /// The combinator's single non-self argument (map's `f`, take's `n`), or
+    /// null for a 0-arg combinator whose only input is the source (`enumerate`).
+    fn_arg:   AST.Expr | null
 }
 
-// Recognise the fluent `it.map(f)` / `it.filter(p)` (UFCS) and the direct
-// `map(it, f)` / `filter(it, p)` shapes. Returns the receiver + fn arg, or
-// null when the call isn't one of the two fusible combinators.
+// Recognise the fluent `it.map(f)` / `it.enumerate()` (UFCS) and the direct
+// `map(it, f)` / `enumerate(it)` shapes. Returns the receiver + optional fn arg
+// (null for a 0-arg combinator), or null when the call isn't a fusible combinator.
 unpack_fluent_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> FluentCombinator | null {
     // @partial: only a FieldExpr (UFCS) or IdentExpr (direct call) callee can be
     // a fusible combinator; every other Expr callee → null.
     @partial match call.callee {
-        // UFCS form `it.map(f)` : the FieldExpr resolved as a free-fn UFCS
-        // dispatch (the typer stashed the receiver type under its id). The
-        // callee's target is the receiver ; the first arg is the transform.
+        // UFCS form `it.map(f)` / `it.enumerate()` : the FieldExpr resolved as a
+        // free-fn UFCS dispatch (the typer stashed the receiver type under its id).
+        // The callee's target is the receiver ; the first arg (if any) is the transform.
         is AST.FieldExpr as fe -> {
             recv_ty :: ctx.typed.ufcs_receiver_types[fe.id]
             if recv_ty is null { return null }
-            if call.args.len() < 1 { return null }
-            return FluentCombinator { .receiver = fe.target, .fn_arg = call.args[0].value }
+            fn_arg :: if call.args.len() > 0 { call.args[0].value } else { null }
+            return FluentCombinator { .receiver = fe.target, .fn_arg = fn_arg }
         }
-        // Direct-call form `map(it, f)` : first arg is the receiver, second
-        // is the transform / predicate.
+        // Direct-call form `map(it, f)` [2 args] or `enumerate(it)` [1 arg] :
+        // first arg is the receiver, the second (if any) is the transform / predicate.
         is AST.IdentExpr -> {
-            if call.args.len() < 2 { return null }
-            return FluentCombinator { .receiver = call.args[0].value, .fn_arg = call.args[1].value }
+            if call.args.len() == 0 { return null }
+            fn_arg :: if call.args.len() > 1 { call.args[1].value } else { null }
+            return FluentCombinator { .receiver = call.args[0].value, .fn_arg = fn_arg }
         }
         _ -> { return null }
     }

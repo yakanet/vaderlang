@@ -1,18 +1,20 @@
 // std/iter — lazy `@generator` iterator combinators + terminals.
 //
-//   - **Combinators** `map` / `filter` / `take` / `skip` are `@generator`s over
-//     a source `Iterator(T)` (bottom of this file). `arr.map(f)` / `it.map(f)`
-//     read like a pipeline and dispatch via UFCS ; consumed by a `for` loop or a
-//     terminal (`collect` / `count` / `any` / …), the chain fuses to a single
-//     flat loop — no intermediate arrays, no iterator struct, no `next()`
-//     dispatch (`vader/lower/lower_iter_fusion.vader`). The generator's state
-//     machine only materialises when the iterator value escapes.
+//   - **Combinators** `map` / `filter` / `take` / `skip` / `enumerate` /
+//     `flat_map` are `@generator`s over a source `Iterator(T)` (bottom of this
+//     file). `arr.map(f)` / `it.enumerate()` read like a pipeline and dispatch
+//     via UFCS ; consumed by a `for` loop or a terminal (`collect` / `count` /
+//     `any` / …), the chain fuses to a single flat loop — no intermediate
+//     arrays, no iterator struct, no `next()` dispatch
+//     (`vader/lower/lower_iter_fusion.vader`). `enumerate` is a 0-arg combinator
+//     (`self` only) ; its `[usize, T]` element destructures in a `for [i, x] in`.
+//     The generator's state machine only materialises when the value escapes.
 //   - **Terminals** `collect` / `fold` / `sum` / `any` / `all` / `find` /
 //     `find_map` take an `Iterator(T)` and consume it (a raw array auto-coerces
 //     at the call site). `count` / `is_empty` / `last` are the `Iterator` trait's
 //     own default methods (`std/core`).
-//   - **Array helpers** `clone` / `zip` / `chain` / `enumerate` / `flat_map`
-//     still take a `T[]` (pending their Iterator rewrite). For a plain array
+//   - **Array helpers** `clone` / `zip` / `chain` still take a `T[]` (`zip` /
+//     `chain` pending their two-source Iterator rewrite). For a plain array
 //     prefer the built-ins : `arr.len()`, `arr[start..<end]`, `arr.clone()`
 //     (not the removed `count`/`slice`/eager-`collect`).
 
@@ -122,23 +124,19 @@ export chain :: fn<T>(a: T[], b: T[]) -> T[] {
     return out
 }
 
-/// Pair each element with its index, starting at 0. Returns `[usize, T]`
-/// tuples so callers can `for [i, x] in arr.enumerate() { … }`.
-/// @param arr  source array.
-/// @return     `[[0, arr[0]], [1, arr[1]], …]`.
-// NOTE: still eager (`T[] -> [usize, T][]`). The lazy `@generator` form yields a
-// TUPLE element `[usize, T]` whose type-param `T` isn't substituted through the
-// generator/fusion concretization (surfaces as `no field value on Yield<[usize,
-// T]>` at emit) — composite-element concretization is a separate fix. `map`/
-// `filter`/`take`/`skip`/`flat_map` yield a simple element and are lazy.
-export enumerate :: fn<T>(arr: T[]) -> [usize, T][] {
-    out: [usize, T][] = [] * arr.len()
+/// Lazily pair each element with its index, starting at 0. Yields `[usize, T]`
+/// tuples so callers can `for [i, x] in it.enumerate() { … }` — the destructure
+/// binds `i` and `x` per step. A 0-arg combinator: fuses over the source with no
+/// intermediate array.
+/// @param self  source iterator (a raw array auto-coerces at the call site).
+/// @return      a lazy `Iterator([usize, T])` — `(0, self[0])`, `(1, self[1])`, …
+@generator
+export enumerate :: fn<T>(self: Iterator<T>) -> Iterator<[usize, T]> {
     i: usize = 0
-    for x in arr {
-        out.push([i, x])
-        i = i + 1
+    for x in self {
+        yield [i, x]
+        i += 1
     }
-    return out
 }
 
 /// Apply `f` to each element and concatenate the resulting arrays.
@@ -329,14 +327,17 @@ import "std/testing" { assert, assert_eq, fail }
 }
 
 @test test_enumerate :: fn() -> void {
-    pairs :: ["a", "b", "c"].enumerate()
-    assert_eq(pairs.len(), 3)
-    [i0, s0] :: pairs[0]
-    assert_eq(i0, 0)
-    assert_eq(s0, "a")
-    [i2, s2] :: pairs[2]
-    assert_eq(i2, 2)
-    assert_eq(s2, "c")
+    idxs: usize[] = []
+    vals: string[] = []
+    for [i, s] in ["a", "b", "c"].enumerate() {
+        idxs.push(i)
+        vals.push(s)
+    }
+    assert_eq(idxs.len(), 3)
+    assert_eq(idxs[0], 0)
+    assert_eq(vals[0], "a")
+    assert_eq(idxs[2], 2)
+    assert_eq(vals[2], "c")
 }
 
 @test test_any :: fn() -> void {

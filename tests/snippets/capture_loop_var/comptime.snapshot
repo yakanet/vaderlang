@@ -3,6 +3,7 @@
 ## tests/snippets/capture_loop_var
 
 ## generic instances
+  __genstate_enumerate<[usize, T]>
   __genstate_filter<i32>
   __genstate_map<i32>
   Into<Target>
@@ -15,6 +16,8 @@
   IndexSet<I, T>
   Contains<T>
   Iterator<i32>
+  Iterator<[usize, T]>
+  Iterator<T>
   Iterator<T>
   Iterator<T>
   Iterator<T>
