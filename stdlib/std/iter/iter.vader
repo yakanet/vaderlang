@@ -126,6 +126,11 @@ export chain :: fn<T>(a: T[], b: T[]) -> T[] {
 /// tuples so callers can `for [i, x] in arr.enumerate() { … }`.
 /// @param arr  source array.
 /// @return     `[[0, arr[0]], [1, arr[1]], …]`.
+// NOTE: still eager (`T[] -> [usize, T][]`). The lazy `@generator` form yields a
+// TUPLE element `[usize, T]` whose type-param `T` isn't substituted through the
+// generator/fusion concretization (surfaces as `no field value on Yield<[usize,
+// T]>` at emit) — composite-element concretization is a separate fix. `map`/
+// `filter`/`take`/`skip`/`flat_map` yield a simple element and are lazy.
 export enumerate :: fn<T>(arr: T[]) -> [usize, T][] {
     out: [usize, T][] = [] * arr.len()
     i: usize = 0
@@ -142,14 +147,13 @@ export enumerate :: fn<T>(arr: T[]) -> [usize, T][] {
 /// @param arr  source array.
 /// @param f    mapper from one element to an array of outputs.
 /// @return     concatenation of `f(arr[0]) ++ f(arr[1]) ++ …`.
-export flat_map :: fn<T, U>(arr: T[], f: fn(T) -> U[]) -> U[] {
-    out: U[] = []
-    for x in arr {
+@generator
+export flat_map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U[]) -> Iterator<U> {
+    for x in self {
         for y in f(x) {
-            out.push(y)
+            yield y
         }
     }
-    return out
 }
 
 // ---------------------------------------------------------------- short-circuit
