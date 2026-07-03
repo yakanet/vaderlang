@@ -9,7 +9,6 @@
 module "snippet"
 
 import "std/io" { println }
-import "std/iter" { slice as slice_array }
 
 Counter :: struct {
     n: usize = 0
@@ -54,12 +53,11 @@ main :: fn() -> i32 {
         println("isz_neg ok")
     }
 
-    // (6) generic UFCS through an import alias — the `0` and `n - 1` args
-    // adopt `usize` from `slice`'s declared param types (`start: usize,
-    // end: usize`) even when the fn is re-imported under a new name.
+    // (6) index-range bounds — the `0` and `n - 1` adopt `usize` from the
+    // built-in `arr[start..<end]` slice's index context (no cast needed).
     arr: i32[] = [10, 20, 30, 40, 50]
     n: usize = arr.len()
-    sub := arr.slice_array(0, n - 1)
+    sub := arr[0..<n - 1]
     println("slice_array: ${sub.len()}")
 
     // (7) return value with annotation

@@ -21,20 +21,6 @@
       "decorators": []
     },
     {
-      "kind": "ImportDecl",
-      "path": "std/iter",
-      "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "slice",
-            "alias": "slice_array"
-          }
-        ]
-      },
-      "decorators": []
-    },
-    {
       "kind": "StructDecl",
       "name": "Counter",
       "visibility": "private",
@@ -843,41 +829,31 @@
             },
             "type": null,
             "value": {
-              "kind": "CallExpr",
-              "callee": {
-                "kind": "FieldExpr",
-                "target": {
-                  "kind": "IdentExpr",
-                  "name": "arr"
-                },
-                "field": "slice_array"
+              "kind": "IndexExpr",
+              "target": {
+                "kind": "IdentExpr",
+                "name": "arr"
               },
-              "args": [
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "IntLitExpr",
-                    "value": "0n"
-                  },
-                  "spread": false
+              "index": {
+                "kind": "RangeExpr",
+                "inclusive": false,
+                "lower": {
+                  "kind": "IntLitExpr",
+                  "value": "0n"
                 },
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "BinaryExpr",
-                    "op": "sub",
-                    "left": {
-                      "kind": "IdentExpr",
-                      "name": "n"
-                    },
-                    "right": {
-                      "kind": "IntLitExpr",
-                      "value": "1n"
-                    }
+                "upper": {
+                  "kind": "BinaryExpr",
+                  "op": "sub",
+                  "left": {
+                    "kind": "IdentExpr",
+                    "name": "n"
                   },
-                  "spread": false
+                  "right": {
+                    "kind": "IntLitExpr",
+                    "value": "1n"
+                  }
                 }
-              ]
+              }
             }
           },
           {
