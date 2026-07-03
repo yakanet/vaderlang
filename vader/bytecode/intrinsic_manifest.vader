@@ -1,0 +1,154 @@
+// vader/bytecode/intrinsic_manifest — single authority on the primitive
+// `@intrinsic` host-mangle grammar.
+//
+// The lowerer is the sole PRODUCER of impl-member mangles
+// (`<module>$<Type>$<Trait>$<method>`, built in `lower_impl_member.vader`).
+// This module is the single CONSUMER-SIDE authority for the VM's runtime
+// re-derivations of that grammar: `vm/host` and `vm/exec` route through it
+// instead of re-encoding the `std_core$` prefix / `$` separator inline (two of
+// those sites parsed or rebuilt the mangle and so corrupted silently on any
+// spelling change). The static literal tables in `intrinsics.vader` and
+// `c_emit/host.vader` still inline the same shape — folding those through here
+// is the next step. The colocated tests pin the grammar against the real module
+// mangler so a consumer can't drift from the producer.
+//
+// Scope: `std/core` primitive members only (`Equals`, `Display`, and the widths
+// that carry them). `std_core` is not a guess — the orphan rule makes every
+// primitive core-trait impl live in `std/core`. Free-function host imports
+// (`std_io$write`, `std_math$sqrt`, …) use a different `<module>$<fn>` shape and
+// are matched directly in `dispatch_import`, not through here.
+
+module "vader/bytecode"
+
+import "std/string" { starts_with, ends_with }
+
+// Mangled module fragment for `std/core` (`mangle_module_id("std/core")`).
+// Pinned against the real mangler by `test_core_module_matches_mangler`.
+CORE_MODULE :: "std_core"
+
+// Prefix + member suffixes as module-level literals so the hot recognisers do
+// ZERO per-call string building (only the kind slice allocates). Pinned against
+// `CORE_MODULE` + `primitive_member_mangle` by the colocated tests, so they
+// can't drift from the grammar even though they're spelled out here.
+CORE_PREFIX        :: r"std_core$"
+EQUALS_SUFFIX      :: r"$Equals$equals"
+NOT_EQUALS_SUFFIX  :: r"$Equals$not_equals"
+DISPLAY_SUFFIX     :: r"$Display$to_string"
+
+// Integer-width primitive kinds — the widths whose `@intrinsic Equals` member
+// is bodyless and dispatched as a host call (they all carry as `I32Val` /
+// `I64Val` at runtime, so one handler pair covers them).
+INT_KINDS :: [
+    "i8", "i16", "i32", "i64", "isize",
+    "u8", "u16", "u32", "u64", "usize",
+]
+
+// Every primitive kind carrying a bodyless `<T>$Display$to_string` host.
+DISPLAY_KINDS :: [
+    "i8", "i16", "i32", "i64", "isize",
+    "u8", "u16", "u32", "u64", "usize",
+    "bool", "char", "string", "f32", "f64",
+]
+
+/// The mangle of a `std/core` primitive `@intrinsic` impl member:
+/// `("i32", "Equals", "equals")` → `"std_core$i32$Equals$equals"`. THE grammar
+/// authority for building a primitive host mangle — never inline the `$`
+/// separator or the `std_core$` prefix at a call site.
+///
+/// @param kind    the receiver primitive kind (`"i32"`, `"string"`, …).
+/// @param trait_  the trait segment (`"Equals"`, `"Display"`, …).
+/// @param method  the method segment (`"equals"`, `"to_string"`, …).
+/// @return        the fully mangled host-import name.
+export primitive_member_mangle :: fn(kind: string, trait_: string, method: string) -> string =
+    "${CORE_MODULE}$${kind}$${trait_}$${method}"
+
+/// `"equals"` / `"not_equals"` when `mangled` is an integer width's bodyless
+/// `@intrinsic Equals` member, else `""`. Recognises by prefix/suffix strip —
+/// no per-call string building, so the hot map-key `key.equals(other)` path
+/// stays cheap (one kind-slice allocation, matching the old byte-offset parse).
+///
+/// @param mangled  the host import's mangled name.
+/// @return         `"equals"` / `"not_equals"` for an integer `Equals` member,
+///                 `""` otherwise (`string`-Equals has its own arm upstream).
+export int_equals_method :: fn(mangled: string) -> string {
+    eq :: strip_core_member(mangled, EQUALS_SUFFIX)
+    if eq != null && is_kind(INT_KINDS, eq) { return "equals" }
+    neq :: strip_core_member(mangled, NOT_EQUALS_SUFFIX)
+    if neq != null && is_kind(INT_KINDS, neq) { return "not_equals" }
+    return ""
+}
+
+/// True iff `mangled` is a primitive `<T>$Display$to_string` host — one of the
+/// ten integer widths, plus `f32` / `f64` / `bool` / `char` / `string`.
+///
+/// @param mangled  the host import's mangled name.
+export is_display_to_string :: fn(mangled: string) -> bool {
+    kind :: strip_core_member(mangled, DISPLAY_SUFFIX)
+    return kind != null && is_kind(DISPLAY_KINDS, kind)
+}
+
+/// Subset of `is_display_to_string` covering the unsigned widths that overflow
+/// the signed `i64` carrier (`u32` / `u64` / `usize`) — these need the unsigned
+/// reinterpret path. `u8` / `u16` fit the signed carrier losslessly.
+///
+/// @param mangled  the host import's mangled name.
+export is_unsigned_display :: fn(mangled: string) -> bool {
+    kind :: strip_core_member(mangled, DISPLAY_SUFFIX)
+    return kind != null && (kind == "u32" || kind == "u64" || kind == "usize")
+}
+
+is_kind :: fn(kinds: string[], k: string) -> bool {
+    for candidate in kinds {
+        if candidate == k { return true }
+    }
+    return false
+}
+
+// Return the `<kind>` slice of a `std_core$<kind><suffix>` mangle, or null when
+// the prefix / suffix don't match. Lengths come from the constant strings — no
+// hand-counted byte offsets, no per-call string build (both `CORE_PREFIX` and
+// `suffix` are module-level literals). Only the returned kind slice allocates.
+strip_core_member :: fn(mangled: string, suffix: string) -> string | null {
+    if !mangled.starts_with(CORE_PREFIX) || !mangled.ends_with(suffix) { return null }
+    b :: mangled.bytes()
+    return b[CORE_PREFIX.bytes().len()..<b.len() - suffix.bytes().len()].bytes_to_string()
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+import "vader/lower" { mangle_module_id }
+
+@test test_core_module_matches_mangler :: fn() -> void {
+    // Pins the manifest's grammar against the real producer — if the module
+    // mangling scheme changes, this test breaks instead of the backends silently.
+    assert_eq(CORE_MODULE, mangle_module_id("std/core"))
+}
+
+@test test_grammar_constants_consistent :: fn() -> void {
+    // The hoisted literals must equal what `primitive_member_mangle` builds, so
+    // the perf hoist can't drift from the grammar.
+    assert_eq(CORE_PREFIX, "${CORE_MODULE}$")
+    assert_eq("${CORE_PREFIX}i32${EQUALS_SUFFIX}", primitive_member_mangle("i32", "Equals", "equals"))
+    assert_eq("${CORE_PREFIX}u64${DISPLAY_SUFFIX}", primitive_member_mangle("u64", "Display", "to_string"))
+}
+
+@test test_primitive_member_mangle :: fn() -> void {
+    assert_eq(primitive_member_mangle("i32", "Equals", "equals"), r"std_core$i32$Equals$equals")
+    assert_eq(primitive_member_mangle("string", "Display", "to_string"), r"std_core$string$Display$to_string")
+}
+
+@test test_int_equals_method :: fn() -> void {
+    assert_eq(int_equals_method(r"std_core$usize$Equals$not_equals"), "not_equals")
+    assert_eq(int_equals_method(r"std_core$i32$Equals$equals"), "equals")
+    assert_eq(int_equals_method(r"std_core$string$Equals$equals"), "")   // string ≠ int width
+    assert_eq(int_equals_method(r"std_io$write"), "")                    // non-core bails on prefix
+    assert_eq(int_equals_method(r"user_mod$Foo$Bar$baz"), "")
+}
+
+@test test_display_classifiers :: fn() -> void {
+    assert_eq(is_display_to_string(r"std_core$char$Display$to_string"), true)
+    assert_eq(is_display_to_string(r"std_core$char$Equals$equals"), false)
+    assert_eq(is_unsigned_display(r"std_core$u64$Display$to_string"), true)
+    assert_eq(is_unsigned_display(r"std_core$i64$Display$to_string"), false)
+}
