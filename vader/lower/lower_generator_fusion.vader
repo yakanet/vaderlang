@@ -21,7 +21,7 @@ import "std/collections" { MutableMap }
 import "vader/diagnostics" { Span }
 AST :: import "vader/parser"
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, FnType, TY_VOID, strip_distinct_each }
+import "vader/types" { Type, FnType, TraitType, TY_VOID, strip_distinct_each }
 import "vader/typecheck" { TypedProgram, Substitution, substitute, new_substitution, default_if_free, gen_state_name }
 
 // Recognise `for v in <gen-call>` where the callee is a directly-called
@@ -387,26 +387,38 @@ gen_combo_subst :: fn(
     // 0-arg combinator (`enumerate`): no fn arg to infer from — `self`'s only type
     // param IS the source element, so bind it straight from the fused source's
     // concrete element type (`substitute` then rewrites it through the yielded
-    // element, tuple included). NOTE: `source_elem` is the STRICTLY more general
-    // binding source — post-fusion concrete, with no erased-head ambiguity. A
-    // follow-up could retire the 1-arg receiver-unification below onto it (which
-    // would also let take/skip fuse over an erased head instead of boxing) ; that
-    // touches the reseed-sensitive subst core, so it's kept as a separate chantier.
+    // element, tuple included). `source_elem` is post-fusion concrete, with no
+    // erased-head ambiguity — the same unambiguous binding the 1-arg path uses.
     if fn_arg is null { return subst_from_concrete(decl, owner, [source_elem]) }
     ft :: owner.decl_types[callee_sym.id]
     if ft is FnType as f {
         if f.params.len() < 2 { return null }
         bindings :: MutableMap<i32, Type> {}
         order: i32[] = []
-        // Unify the fn ARG before the receiver : the transform/predicate carries
-        // the element concretely (`dbl : fn(i32) -> i32` → `T = i32`), whereas an
-        // ERASED head (`arr.into()` types as `Iterator<Any>`) would otherwise bind
-        // `T = Any` first and — `unify_params` keeps the first binding — block the
-        // concrete one. A concrete head agrees with the arg, so order is neutral
-        // there. (take/skip's arg is a bare `usize`, so an erased head still can't
-        // recover `T` — that stays boxed, off the map/filter fast path.)
+        // Bind the SOURCE element type-param from the post-fusion concrete
+        // `source_elem`, NOT from the receiver's (possibly erased) type. `self` is
+        // `Iterator(T)` for every combinator, so its element `T` is `params[0]`'s
+        // trait arg. This retires the old "unify arg before receiver" ordering
+        // hack (which only existed to stop an erased head binding `T = Any` first).
+        // For a concrete head `source_elem` equals the receiver's element, so the
+        // result (and the `order` / `concrete_args`) is byte-identical to the old
+        // path — see the task #25 note in project_stream_fusion_generators.
+        source_bound := false
+        if f.params[0] is TraitType as p0 {
+            if p0.args.len() >= 1 {
+                unify_params(p0.args[0], source_elem, bindings, order, ctx)
+                source_bound = true
+            }
+        }
+        // Non-`Iterator(T)` self shouldn't occur for these combinators ; keep the
+        // receiver-unify fallback so an unexpected shape behaves as before.
+        if !source_bound {
+            unify_params(f.params[0], default_if_free(ctx.types.expr_type(receiver)), bindings, order, ctx)
+        }
+        // Then the fn arg, for any param it introduces beyond the source element
+        // (map's `U` from `f: fn(T) -> U`). `T` is already pinned, and
+        // `unify_params` keeps the first binding, so a concrete arg just agrees.
         unify_params(f.params[1], default_if_free(ctx.types.expr_type(fn_arg)), bindings, order, ctx)
-        unify_params(f.params[0], default_if_free(ctx.types.expr_type(receiver)), bindings, order, ctx)
         concrete_args: Type[] = []
         for id in order {
             v :: bindings[id]
