@@ -40,6 +40,11 @@ IterChain :: struct {
     // Array bottom (`arr.iter()`) — the concrete source array. Defaulted so the
     // Range/Generator literals need no update.
     array_expr:   AST.Expr | null = null
+    // True when this Array bottom is a BARE array (`arr.map(f)`'s implicit head),
+    // vs an explicit `arr.iter()`/`arr.into()` cursor. A top-level bare Array is
+    // declined by `try_lower_chain_fusion` so a plain `for x in arr` keeps the
+    // raw-array fast path ; only a combinator chain over it fuses.
+    implicit_head: bool = false
     // Combinator layer — the source chain this layer sits on top of.
     source:       IterChain | null
     // Generator combinator layer — the inlined `@generator` body (map / filter /
@@ -65,7 +70,7 @@ try_lower_chain_fusion :: fn(
     recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
     block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt | null {
-    chain :: descend_chain(ctx, in_form.iter)
+    chain :: top_level_chain(ctx, in_form.iter)
     if chain is null { return null }
     // Bare ranges already hit the int-range fast path ; bypassing
     // would lose `default_if_free` + counter-name fidelity.
@@ -133,32 +138,32 @@ terminal_arg :: fn(call: AST.CallExpr, name: string) -> AST.Expr | null {
 export try_lower_terminal_fusion :: fn(ctx: FnLowerCtx, call: AST.CallExpr, type: Type) -> LoweredExpr | null {
     count_arg :: terminal_arg(call, "count")
     if count_arg != null {
-        chain :: descend_chain(ctx, count_arg)
+        chain :: top_level_chain(ctx, count_arg)
         if chain == null { return null }
         return emit_count_fusion(ctx, chain, call.span)
     }
     collect_arg :: terminal_arg(call, "collect")
     if collect_arg != null {
-        chain :: descend_chain(ctx, collect_arg)
+        chain :: top_level_chain(ctx, collect_arg)
         if chain == null { return null }
         return emit_collect_fusion(ctx, chain, call.span)
     }
     // Early-exit predicate terminals — any / all / find.
     any_call :: terminal_pred_arg(call, "any")
     if any_call != null {
-        chain :: descend_chain(ctx, any_call.chain_arg)
+        chain :: top_level_chain(ctx, any_call.chain_arg)
         if chain == null { return null }
         return emit_bool_terminal(ctx, chain, any_call.pred, call.span, false, true, false)
     }
     all_call :: terminal_pred_arg(call, "all")
     if all_call != null {
-        chain :: descend_chain(ctx, all_call.chain_arg)
+        chain :: top_level_chain(ctx, all_call.chain_arg)
         if chain == null { return null }
         return emit_bool_terminal(ctx, chain, all_call.pred, call.span, true, false, true)
     }
     find_call :: terminal_pred_arg(call, "find")
     if find_call != null {
-        chain :: descend_chain(ctx, find_call.chain_arg)
+        chain :: top_level_chain(ctx, find_call.chain_arg)
         if chain == null { return null }
         return emit_find_terminal(ctx, chain, find_call.pred, call.span)
     }
@@ -349,6 +354,19 @@ emit_collect_fusion :: fn(ctx: FnLowerCtx, chain: IterChain, span: Span) -> Lowe
 // `@generator` combinator call (via `try_descend_gen_combinator`) or
 // bottoms at an integer-typed `RangeExpr` / an `arr.iter()` cursor.
 // Anything else returns null.
+// `descend_chain` for a TOP-LEVEL consumer (a `for x in <expr>` or a terminal like
+// `<expr>.count()`). A BARE array here (`for x in arr`, `arr.collect()`) is NOT a
+// fusible chain — it keeps the raw-array fast path / the eager terminal overload.
+// The bare-array bottom is only meant as a COMBINATOR's source (`arr.map(f)`),
+// reached via `try_descend_gen_combinator` → `descend_chain` directly (which does
+// accept it). So a top-level bare `Array` bottom declines here.
+top_level_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
+    chain :: descend_chain(ctx, expr)
+    if chain is null { return null }
+    if chain.kind == IterChainKind.Array && chain.implicit_head { return null }
+    return chain
+}
+
 descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
     // @partial: only a Range bottom, an `arr.iter()` array cursor, or a
     // `@generator` combinator call forms a fusible chain; every other Expr → null.
@@ -376,7 +394,16 @@ descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
             // lower through here now the hand-written *Iterator structs are gone.
             return try_descend_gen_combinator(ctx, call)
         }
-        _ -> { return null }
+        _ -> {
+            // A BARE array-typed expr heading a lazy chain (`arr.map(f)` — the
+            // implicit `.iter()` head : no explicit `.iter()`/`.into()` cursor).
+            // Any array-typed expr is a fusible `Array` bottom. Reached via a
+            // combinator's source recursion ; a bare `for x in arr` is declined at
+            // the top by `try_lower_chain_fusion` so it keeps the raw-array fast path.
+            bare :: ctx.types.expr_type(expr)
+            if bare is ArrayType as at { return mk_array_chain(expr, at.element, span_of(expr), true) }
+            return null
+        }
     }
 }
 
@@ -419,6 +446,16 @@ unpack_fluent_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> FluentCom
 // the lazy `.map()`/`.filter()` combinators resolve — `.into()`'s erased
 // `Iterator<T>` does not) and the source array is statically extractable.
 // Returns an `Array` chain bottom, else null.
+// Build an `Array` chain bottom over `arr_expr`. `implicit` marks a bare-array
+// head (`arr.map(f)`) vs an explicit `.iter()`/`.into()` cursor — see the field
+// on `IterChain`.
+mk_array_chain :: fn(arr_expr: AST.Expr, elem: Type, span: Span, implicit: bool) -> IterChain = IterChain {
+    .kind = IterChainKind.Array,
+    .range_lower = null, .range_upper = null, .inclusive = false,
+    .element_type = elem, .array_expr = arr_expr, .implicit_head = implicit,
+    .source = null, .span = span,
+}
+
 descend_array_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | null {
     result_ty :: ctx.types.expr_type(call)
     if result_ty is StructType as st {
@@ -426,12 +463,7 @@ descend_array_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | nul
             arr_expr :: array_from_iter_call(ctx, call)
             if arr_expr == null { return null }
             elem :: if st.args.len() > 0 { st.args[0] } else { TY_UNRESOLVED }
-            return IterChain {
-                .kind = IterChainKind.Array,
-                .range_lower = null, .range_upper = null, .inclusive = false,
-                .element_type = elem, .array_expr = arr_expr,
-                .source = null, .span = call.span,
-            }
+            return mk_array_chain(arr_expr, elem, call.span, false)
         }
     }
     // `arr.into()` — erased `Iterator<T>` head over a statically-array receiver.
@@ -443,12 +475,7 @@ descend_array_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | nul
     if into_arr != null {
         arr_ty :: ctx.types.expr_type(into_arr)
         elem :: if arr_ty is ArrayType as a { a.element } else { TY_UNRESOLVED }
-        return IterChain {
-            .kind = IterChainKind.Array,
-            .range_lower = null, .range_upper = null, .inclusive = false,
-            .element_type = elem, .array_expr = into_arr,
-            .source = null, .span = call.span,
-        }
+        return mk_array_chain(into_arr, elem, call.span, false)
     }
     return null
 }

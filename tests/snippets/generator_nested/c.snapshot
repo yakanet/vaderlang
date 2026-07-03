@@ -77,22 +77,22 @@ static int32_t snippet_main(void) {
     vader_box_t* gc_roots[7] = { &l0, &l1, &l5, &l10, &t0, &t1, &t7 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 7u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(2u, 3u, 7u, 1u);
-    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 2u] = (int32_t) INT32_C(3);
-    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(2);
-    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(1);
+    vader_array_t* _a0_arr = vader_array_new(2u, 2u, 7u, 1u);
+    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(20);
+    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(10);
     t0 = vader_box_obj(2u, _a0_arr);
-    l1 = t0;
-    vader_array_t* _a1_arr = vader_array_new(2u, 2u, 7u, 1u);
-    ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 1u] = (int32_t) INT32_C(20);
-    ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 0u] = (int32_t) INT32_C(10);
+    l0 = t0;
+    vader_array_t* _a1_arr = vader_array_new(2u, 3u, 7u, 1u);
+    ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 2u] = (int32_t) INT32_C(3);
+    ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 1u] = (int32_t) INT32_C(2);
+    ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 0u] = (int32_t) INT32_C(1);
     t1 = vader_box_obj(2u, _a1_arr);
-    l0 = t1;
+    l1 = t1;
     t2 = ((vader_array_t*) l1.payload.obj)->length;
     l2 = t2;
     l3 = (size_t) (int64_t) INT64_C(0);
     {
-        loop_15: {
+        loop_14: {
             if ((l3 < l2)) {
                 vader_array_t* _a2_slotarr = ((vader_array_t*) l1.payload.obj);
                 while (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = (vader_array_buf_t*) _a2_slotarr->buf->header.forward; }
@@ -104,7 +104,7 @@ static int32_t snippet_main(void) {
                 l6 = t4;
                 l7 = (size_t) (int64_t) INT64_C(0);
                 {
-                    loop_31: {
+                    loop_30: {
                         if ((l7 < l6)) {
                             vader_array_t* _a3_slotarr = ((vader_array_t*) l5.payload.obj);
                             while (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = (vader_array_buf_t*) _a3_slotarr->buf->header.forward; }
@@ -125,7 +125,7 @@ static int32_t snippet_main(void) {
                             l13 = (size_t) (int64_t) INT64_C(1);
                             t11 = (l7 + l13);
                             l7 = (size_t) (int64_t) t11;
-                            goto loop_31;
+                            goto loop_30;
                         } else {
                         }
                     }
@@ -133,7 +133,7 @@ static int32_t snippet_main(void) {
                 l14 = (size_t) (int64_t) INT64_C(1);
                 t12 = (l3 + l14);
                 l3 = (size_t) (int64_t) t12;
-                goto loop_15;
+                goto loop_14;
             } else {
             }
         }

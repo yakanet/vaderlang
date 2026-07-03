@@ -3,6 +3,7 @@
 ## tests/snippets/_diag_fuse_map
 
 ## generic instances
+  __genstate_filter<i32>
   __genstate_map<i32>
   Into<Target>
   Add<Rhs, Out>
