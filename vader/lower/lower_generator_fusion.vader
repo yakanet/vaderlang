@@ -173,8 +173,7 @@ subst_from_flavor :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, concrete
 // itself an iterator we want to FUSE into, not materialise: binding `let self =
 // xs.iter()` would leave a boxed `ArrayIterator`. So a generator combinator is a
 // `descend_chain` LAYER (`IterChainKind.Generator`) whose source recurses into the
-// receiver, exactly like the struct-based `MappedIterator` recognition — the
-// generator body's `for <lv> in self { <inner> }` becomes the source loop binding
+// receiver — the generator body's `for <lv> in self { <inner> }` becomes the source loop binding
 // `<lv>`, and `<inner>` (lowered in the gen-ctx with the outer sink) routes each
 // `yield e` to the consumer. Nested combinators thread sinks so the whole chain
 // flattens to one loop.
@@ -195,8 +194,8 @@ GenComboLayer :: struct {
 // Recognise `<recv>.gen_combinator(arg)` (UFCS) or `gen_combinator(<recv>, arg)`
 // where the callee is an `@generator` fn `(self: Iterator<T>, arg) -> Iterator<U>`
 // whose body is `for <lv> in self { <inner> }`. Returns a `Generator` chain layer
-// whose source is `descend_chain(<recv>)`, else null (falls through to the
-// struct-based combinator recognition).
+// whose source is `descend_chain(<recv>)`, else null (the call isn't a fusible
+// combinator — the chain falls back to the generic boxed-iterator for-in path).
 try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | null {
     fluent :: unpack_fluent_combinator(ctx, call)
     if fluent is null { return null }

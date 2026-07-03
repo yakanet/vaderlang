@@ -13,7 +13,7 @@ import "vader/resolver/symbol" { Symbol }
 // Populate `core_symbols` from std/core's resolved view so the lowerer can
 // resolve `Range`, `Yield`, `ArrayIterator`, `Iterator`, `Display`, `Error`,
 // … without re-walking the project per call. Per-module export lookups
-// (std/iter's `MappedIterator`, std/string's `bytes`, …) go through the lazy
+// (std/collections' `MutableMap`, std/string's `bytes`, …) go through the lazy
 // `module_export` below instead of dedicated per-module tables.
 populate_core_symbols :: fn(loaded: LoadedProject, project_ctx: LowerProjectCtx) -> void {
     // Source std/core's exports directly from the core module (one seed) rather
@@ -26,10 +26,9 @@ populate_core_symbols :: fn(loaded: LoadedProject, project_ctx: LowerProjectCtx)
 }
 
 // Resolve a top-level export of a stdlib module by display path + name, e.g.
-// `module_export(ctx, "std/iter", "MappedIterator")`. Backs the for-in chain
-// fusion + MutableMap/Set inline + `s.bytes().len()` peephole + `${…}`→
-// StringBuilder desugar, which each used to carry a hardcoded per-module
-// symbol table. Lazily caches one `name -> Symbol` map per path (merging
+// `module_export(ctx, "std/collections", "MutableMap")`. Backs the MutableMap/Set
+// for-in destructure + `s.bytes().len()` peephole + `${…}`→StringBuilder desugar,
+// which each used to carry a hardcoded per-module symbol table. Lazily caches one `name -> Symbol` map per path (merging
 // every module sharing the path), keyed on the exact logical `display_path`
 // (a `module_id` substring match is fragile — it broke when a module moved
 // to a per-file subfolder, and `std/string` would match `std/string_builder`).
