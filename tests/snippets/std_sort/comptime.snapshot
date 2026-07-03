@@ -15,6 +15,8 @@
   IndexSet<I, T>
   Contains<T>
   Iterator<char>
+  Iterator<i32>
+  Iterator<T>
   Iterator<T>
   Iterator<T>
   Iterator<T>
