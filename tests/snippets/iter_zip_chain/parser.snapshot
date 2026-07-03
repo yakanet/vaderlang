@@ -262,48 +262,35 @@
             }
           },
           {
-            "kind": "LetStmt",
-            "mutable": false,
-            "binding": {
-              "kind": "SimpleBinding",
-              "name": "pairs"
-            },
-            "type": null,
-            "value": {
-              "kind": "CallExpr",
-              "callee": {
-                "kind": "IdentExpr",
-                "name": "zip"
-              },
-              "args": [
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "IdentExpr",
-                    "name": "keys"
-                  },
-                  "spread": false
-                },
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "IdentExpr",
-                    "name": "vals"
-                  },
-                  "spread": false
-                }
-              ]
-            }
-          },
-          {
             "kind": "ForStmt",
             "label": null,
             "form": {
               "kind": "in",
-              "binding": "__for_17_5",
+              "binding": "__for_16_5",
               "iter": {
-                "kind": "IdentExpr",
-                "name": "pairs"
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "zip"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IdentExpr",
+                      "name": "keys"
+                    },
+                    "spread": false
+                  },
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IdentExpr",
+                      "name": "vals"
+                    },
+                    "spread": false
+                  }
+                ]
               }
             },
             "body": {
@@ -328,7 +315,7 @@
                   "type": null,
                   "value": {
                     "kind": "IdentExpr",
-                    "name": "__for_17_5"
+                    "name": "__for_16_5"
                   }
                 }
               ],
@@ -532,7 +519,7 @@
             "label": null,
             "form": {
               "kind": "in",
-              "binding": "__for_30_5",
+              "binding": "__for_29_5",
               "iter": {
                 "kind": "CallExpr",
                 "callee": {
@@ -568,7 +555,7 @@
                   "type": null,
                   "value": {
                     "kind": "IdentExpr",
-                    "name": "__for_30_5"
+                    "name": "__for_29_5"
                   }
                 }
               ],
