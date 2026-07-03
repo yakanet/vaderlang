@@ -7,13 +7,14 @@
 //     flat loop — no intermediate arrays, no iterator struct, no `next()`
 //     dispatch (`vader/lower/lower_iter_fusion.vader`). The generator's state
 //     machine only materialises when the iterator value escapes.
-//   - **Terminals** `collect` / `any` / `all` / `find` / `find_map` take an
-//     `Iterator(T)` and consume it. `count` / `is_empty` / `last` are the
-//     `Iterator` trait's own default methods (`std/core`).
-//   - **Array helpers** `fold` / `sum` / `clone` / `zip` / `chain` / `enumerate`
-//     / `flat_map` still take a `T[]` (pending their Iterator rewrite). For a
-//     plain array prefer the built-ins : `arr.len()`, `arr[start..<end]`,
-//     `arr.clone()` (not the removed `count`/`slice`/eager-`collect`).
+//   - **Terminals** `collect` / `fold` / `sum` / `any` / `all` / `find` /
+//     `find_map` take an `Iterator(T)` and consume it (a raw array auto-coerces
+//     at the call site). `count` / `is_empty` / `last` are the `Iterator` trait's
+//     own default methods (`std/core`).
+//   - **Array helpers** `clone` / `zip` / `chain` / `enumerate` / `flat_map`
+//     still take a `T[]` (pending their Iterator rewrite). For a plain array
+//     prefer the built-ins : `arr.len()`, `arr[start..<end]`, `arr.clone()`
+//     (not the removed `count`/`slice`/eager-`collect`).
 
 module "std/iter"
 
@@ -46,27 +47,27 @@ export collect :: fn<T>(it: Iterator<T>) -> T[] {
 // unambiguously to the lazy `Iterator<U>` and fuses over the raw array (the
 // implicit `.iter()` head) ; drain to an array with `.collect()` when needed.
 
-/// Left-fold the array with seed `init`. `f(acc, x)` is called for every
-/// element in order ; the final accumulator is returned.
-/// @param arr   source array.
+/// Left-fold the iterator with seed `init`. `f(acc, x)` is called for every
+/// element in order ; the final accumulator is returned. A raw array coerces to
+/// `Iterator<T>` at the call site (`arr.fold(0, add)` / `fold(arr, 0, add)`).
+/// @param self  source iterator (or array, auto-coerced).
 /// @param init  initial accumulator value.
-/// @param f     reducer ; takes the running accumulator and the next
-///              element.
-/// @return      the accumulator after consuming the entire array.
-export fold :: fn<T, U>(arr: T[], init: U, f: fn(U, T) -> U) -> U {
+/// @param f     reducer ; takes the running accumulator and the next element.
+/// @return      the accumulator after consuming the iterator.
+export fold :: fn<T, U>(self: Iterator<T>, init: U, f: fn(U, T) -> U) -> U {
     acc := init
-    for x in arr {
+    for x in self {
         acc = f(acc, x)
     }
     return acc
 }
 
-/// Sum the elements of an `[i32]`. A generic `Sum`-trait variant is
-/// deferred until trait-method dispatch on `$T: Add + Default` works
-/// or a `T()` zero-init form is exposed.
-export sum :: fn(arr: i32[]) -> i32 {
+/// Sum the elements of an `Iterator<i32>` (an `i32[]` auto-coerces at the call
+/// site). A generic `Sum`-trait variant is deferred until trait-method dispatch
+/// on `$T: Add + Default` works or a `T()` zero-init form is exposed.
+export sum :: fn(self: Iterator<i32>) -> i32 {
     s := 0
-    for x in arr {
+    for x in self {
         s = s + x
     }
     return s
