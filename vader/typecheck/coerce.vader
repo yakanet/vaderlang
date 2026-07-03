@@ -15,19 +15,35 @@ import "vader/types" { Type, FnType, display_type }
 /// impls (e.g. `Into(i32)` AND `Into(string)`) without collision.
 /// Union targets never coerce — the typer can't pick a variant —
 /// so they fall through to the standard T3001 mismatch.
-export try_into :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool {
+///
+/// @param node_id  `Expr.id` of the coerced value. On a real `.into()`
+///                 coercion (a matched `Into` impl or the `T[] → Iterator`
+///                 blanket) the target type is recorded under this id in
+///                 `typed.into_coercions` so the LSP can surface a ghost
+///                 `.into()` hint ; trait widening records nothing.
+export try_into :: fn(got: Type, expected: Type, typed: TypedProgram, node_id: usize) -> bool {
     targeted :: typed.impl_methods["${display_type(got)}::into::${display_type(expected)}"]
     match targeted {
-        is FnType as f -> { return is_assignable(f.return_type, expected, null) }
+        is FnType as f -> {
+            if is_assignable(f.return_type, expected, null) {
+                typed.into_coercions[node_id] = expected
+                return true
+            }
+            return false
+        }
         _ -> {}
     }
-    // Trait widening : `Cat → Animal` when `Cat implements Animal`.
+    // Trait widening : `Cat → Animal` when `Cat implements Animal`. This
+    // is a subtype widen, not an `.into()` call — record nothing.
     if try_trait_widen(got, expected, typed) { return true }
     // `T[] → Iterator(T)` : lowerer materialises `ArrayIterator(T)`
     // at the call site. Lives in `try_into` (not `is_assignable`) to
     // keep the recursive assignability check small enough that
     // c-emit doesn't monomorphise a 3× larger main.c.
-    if try_array_to_iter(got, expected) { return true }
+    if try_array_to_iter(got, expected) {
+        typed.into_coercions[node_id] = expected
+        return true
+    }
     return false
 }
 
@@ -67,3 +83,43 @@ export try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> 
 
 
 import "vader/types" { StructType, TraitType, UnionType }
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert }
+import "vader/types" { mk_primitive, mk_array, mk_trait }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/parser" { Visibility }
+
+// A minimal `Iterator(elem)` trait type — `try_array_to_iter` only reads
+// `symbol.name` and `args`, so the other Symbol fields are placeholders.
+iter_trait_for_test :: fn(elem: Type) -> Type {
+    sym :: Symbol {
+        .id = 0, .kind = SymbolKind.Trait, .name = "Iterator",
+        .module = "std/core", .visibility = Visibility.Public, .defined_at = null,
+    }
+    return mk_trait(sym, [elem])
+}
+
+// `T[] → Iterator(T)` is a real `.into()` coercion : `try_into` records the
+// target type under the value's node id so the LSP can surface a `.into()`
+// hint (the array-into-Iterator param case from the feature request).
+@test
+test_try_into_records_array_to_iter :: fn() -> void {
+    typed :: empty_typed_program()
+    arr  :: mk_array(mk_primitive("i32"), false)
+    iter :: iter_trait_for_test(mk_primitive("i32"))
+    assert(try_into(arr, iter, typed, 7), "i32[] should coerce into Iterator(i32)")
+    assert(typed.into_coercions[7] !is null, "coercion must be recorded under node id 7")
+}
+
+// A plain mismatch (no `Into` impl, no trait widen, not an array→iter) coerces
+// to nothing and must leave the into-coercion table untouched — otherwise the
+// LSP would paint a spurious `.into()` hint on a value that never coerces.
+@test
+test_try_into_no_coercion_records_nothing :: fn() -> void {
+    typed :: empty_typed_program()
+    assert(!try_into(mk_primitive("i32"), mk_primitive("string"), typed, 9),
+        "i32 does not coerce into string")
+    assert(typed.into_coercions[9] is null, "no coercion recorded when none applies")
+}

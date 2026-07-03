@@ -257,7 +257,7 @@ export check_fn_body :: fn(
         // explicit `return`. Surface T3020 against the trailing's span.
         match body.trailing {
             is null -> {}
-            _ -> { emit_return_mismatch_if(got, return_type, body.trailing.span, typed, diags) }
+            _ -> { emit_return_mismatch_if(got, return_type, body.trailing.span, body.trailing.id, typed, diags) }
         }
     }
     typed.current_fn_ctx = prev
@@ -337,18 +337,20 @@ import "vader/types" { mk_fn, UnionType }
 // `check_return` and the implicit-return check in `check_fn_body` so
 // wording / arity stay in sync.
 emit_return_mismatch_if :: fn(
-    got: Type, expected: Type, span: Span, typed: TypedProgram, diags: Diagnostic[],
-) -> void = emit_mismatch_if(got, expected, span, .BodyReturnIncompatible, typed, diags)
+    got: Type, expected: Type, span: Span, node_id: usize,
+    typed: TypedProgram, diags: Diagnostic[],
+) -> void = emit_mismatch_if(got, expected, span, node_id, .BodyReturnIncompatible, typed, diags)
 
 // Push `code` when `got` doesn't flow into `expected` — neither assignable nor
 // `Into`-coercible. Shared by the return / yield mismatch checks so wording
-// stays in sync ; only the diagnostic code differs.
+// stays in sync ; only the diagnostic code differs. `node_id` is the coerced
+// value expr's `Expr.id`, forwarded to `try_into` for the LSP into-hint table.
 emit_mismatch_if :: fn(
-    got: Type, expected: Type, span: Span, code: TypecheckCode,
+    got: Type, expected: Type, span: Span, node_id: usize, code: TypecheckCode,
     typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     if is_assignable(got, expected, null) { return }
-    if try_into(got, expected, typed) { return }
+    if try_into(got, expected, typed, node_id) { return }
     diags.push(typecheck_error(code, span,
         "expected ${display_type(expected)}, got ${display_type(got)}"))
 }
@@ -378,7 +380,7 @@ check_let :: fn(
         is null -> { declared = default_if_free(got) }
         _ -> {
             declared = ann
-            if !is_assignable(got, ann, null) && !try_into(got, ann, typed) {
+            if !is_assignable(got, ann, null) && !try_into(got, ann, typed, s.value.id) {
                 diags.push(typecheck_error(.TypeMismatch, s.span,
                     "expected ${display_type(ann)}, got ${display_type(got)}"))
             }
@@ -494,7 +496,8 @@ check_return :: fn(
     if v is null {
         match effective {
             is null -> {}
-            _ -> { emit_return_mismatch_if(TY_VOID, effective.return_type, s.span, typed, diags) }
+            // Empty `return` : no value expr, so no coercion / hint site.
+            _ -> { emit_return_mismatch_if(TY_VOID, effective.return_type, s.span, s.id, typed, diags) }
         }
         return
     }
@@ -506,7 +509,7 @@ check_return :: fn(
     got :: check_expr_fn(v, expected, typed, diags)
     match effective {
         is null -> {}
-        _ -> { emit_return_mismatch_if(got, effective.return_type, s.span, typed, diags) }
+        _ -> { emit_return_mismatch_if(got, effective.return_type, s.span, v.id, typed, diags) }
     }
 }
 
@@ -520,7 +523,7 @@ check_yield :: fn(
         // `yield e` must coerce to the generator's element type `T` (T3061).
         yt :: effective.yield_type
         got :: check_expr_fn(s.value, yt, typed, diags)
-        if yt != null { emit_mismatch_if(got, yt, s.value.span, .GeneratorYieldIncompatible, typed, diags) }
+        if yt != null { emit_mismatch_if(got, yt, s.value.span, s.value.id, .GeneratorYieldIncompatible, typed, diags) }
         return
     }
     // Legal only directly inside a generator body — a plain fn or a nested

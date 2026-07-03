@@ -160,6 +160,16 @@ try_free_fn_ufcs_dispatch :: fn(
     free_ufcs :: try_free_fn_ufcs_with_first(e.field, target_ty, typed)
     if free_ufcs == null { return null }
     typed.ufcs_receiver_types[e.id] = free_ufcs.first_param
+    // A `T[]` receiver fitting an `Iterator(T)` first param coerces through the
+    // very `.into()` the lowerer synthesizes at `lower_ufcs`. Record it on the
+    // receiver expr so the LSP surfaces the `.into()` hint here too — the
+    // receiver decision goes through `receiver_fits_first_param`, not `try_into`,
+    // so without this `arr.method()` would miss the hint that `method(arr)` gets.
+    // Trait widening isn't an `.into()`, so (as in `try_into`) it's excluded :
+    // only the array→iterator blanket records.
+    if try_array_to_iter(target_ty, free_ufcs.first_param) {
+        typed.into_coercions[e.target.id] = free_ufcs.first_param
+    }
     return free_ufcs.curried
 }
 

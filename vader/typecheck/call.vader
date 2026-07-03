@@ -467,7 +467,7 @@ export infer_call :: fn(
             expected :: substitute_map(callee_ty.params[i], bindings)
             if type_contains_type_param(expected) { continue }
             if is_assignable(arg_types[i], expected, null) { continue }
-            if try_into(arg_types[i], expected, typed) { continue }
+            if try_into(arg_types[i], expected, typed, c.args[i].value.id) { continue }
             diags.push(typecheck_error(.TypeMismatch, c.args[i].span,
                 "expected ${display_type(expected)}, got ${display_type(arg_types[i])}"))
         }
@@ -513,7 +513,7 @@ export infer_call :: fn(
         param_ty :: callee_ty.params[i]
         arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
         if is_assignable(arg_ty, param_ty, null) { continue }
-        if try_into(arg_ty, param_ty, typed) { continue }
+        if try_into(arg_ty, param_ty, typed, c.args[i].value.id) { continue }
         diags.push(typecheck_error(.TypeMismatch, c.args[i].span,
             "expected ${display_type(param_ty)}, got ${display_type(arg_ty)}"))
     }
