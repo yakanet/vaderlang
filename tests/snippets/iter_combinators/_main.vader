@@ -7,11 +7,11 @@ main :: fn() -> i32 {
     nums := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     // map: square 1..=5 → [1, 4, 9, 16, 25] → sum 55
-    squares := map([1, 2, 3, 4, 5], (x: i32) -> x * x)
+    squares := map([1, 2, 3, 4, 5], (x: i32) -> x * x).collect()
     s1 := sum(squares)
 
     // filter: keep evens of 1..=10 → [2, 4, 6, 8, 10] → sum 30
-    evens := filter(nums, (x: i32) -> x % 2 == 0)
+    evens := filter(nums, (x: i32) -> x % 2 == 0).collect()
     s2 := sum(evens)
 
     // fold: product of 1..=5 → 120

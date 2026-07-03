@@ -15,30 +15,29 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local ys ref
+  local __fuse_arr_2 ref
+  local __fuse_len_3 usize
+  local __fuse_i_4 usize
+  local x i32
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local x i32
-  local __for_arr_3 ref
-  local __for_len_4 usize
-  local __for_i_5 usize
   local y i32
   local v i32
   local __buf_0 ref
   local __off_1 usize
-  local $cast_32 i64
-  local $k_35 usize
-  local $k_37 usize
-  i32.const 1
-  i32.const 2
-  i32.const 3
-  array.new 2 3
-  local.set 1
+  local $cast_31 i64
+  local $k_34 usize
+  local $k_36 usize
   i32.const 10
   i32.const 20
   array.new 2 2
   local.set 0
-  local.get 1
+  i32.const 1
+  i32.const 2
+  i32.const 3
+  array.new 2 3
+  local.tee 1
   array.len
   local.set 2
   i64.const 0

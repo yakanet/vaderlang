@@ -51,38 +51,10 @@ export collect :: fn<T>(it: Iterator<T>) -> T[] {
     return out
 }
 
-/// Apply `f` to every element, returning a fresh array of the results.
-/// Stable (preserves input order).
-/// @param arr  source array.
-/// @param f    mapper applied to each element.
-/// @return     a new array with `f` applied per element.
-export map :: fn<T, U>(arr: T[], f: fn(T) -> U) -> U[] {
-    out: U[] = [] * arr.len()
-    for x in arr {
-        out.push(f(x))
-    }
-    return out
-}
-
-/// Keep only the elements for which `pred` returns `true`. Stable.
-/// @param arr   source array.
-/// @param pred  predicate invoked on each element ; truthy → kept.
-/// @return      a fresh array of the kept elements.
-export filter :: fn<T>(arr: T[], pred: fn(T) -> bool) -> T[] {
-    // Reserve the upper bound (every element kept) — over-allocates when the
-    // predicate rejects some, but avoids repeated grows in the common case.
-    out: T[] = [] * arr.len()
-    for x in arr {
-        if pred(x) {
-            out.push(x)
-        }
-    }
-    return out
-}
-
-// Eager iterator `filter` removed — the lazy `@generator` overload below
-// (`filter :: fn[T](self: Iterator(T), ...) -> Iterator(T)`) is the new
-// default. Drain to an array with `.collect()` when needed.
+// Eager `map` / `filter` array overloads removed — `map` / `filter` are ONLY the
+// lazy `@generator` combinators now (bottom of this file). `arr.map(f)` resolves
+// unambiguously to the lazy `Iterator<U>` and fuses over the raw array (the
+// implicit `.iter()` head) ; drain to an array with `.collect()` when needed.
 
 /// Left-fold the array with seed `init`. `f(acc, x)` is called for every
 /// element in order ; the final accumulator is returned.
@@ -342,7 +314,7 @@ import "std/testing" { assert, assert_eq, fail }
 }
 
 @test test_map :: fn() -> void {
-    out :: [1, 2, 3].map((x: i32) -> x * 2)
+    out :: [1, 2, 3].map((x: i32) -> x * 2).collect()
     assert_eq(out.count(), 3)
     assert_eq(out[0], 2)
     assert_eq(out[1], 4)
@@ -350,7 +322,7 @@ import "std/testing" { assert, assert_eq, fail }
 }
 
 @test test_filter :: fn() -> void {
-    out :: [1, 2, 3, 4, 5].filter((x: i32) -> x % 2 == 0)
+    out :: [1, 2, 3, 4, 5].filter((x: i32) -> x % 2 == 0).collect()
     assert_eq(out.count(), 2)
     assert_eq(out[0], 2)
     assert_eq(out[1], 4)

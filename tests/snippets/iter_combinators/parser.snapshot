@@ -128,75 +128,83 @@
             "value": {
               "kind": "CallExpr",
               "callee": {
-                "kind": "IdentExpr",
-                "name": "map"
-              },
-              "args": [
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "SeqLitExpr",
-                    "elements": [
-                      {
-                        "kind": "IntLitExpr",
-                        "value": "1n"
-                      },
-                      {
-                        "kind": "IntLitExpr",
-                        "value": "2n"
-                      },
-                      {
-                        "kind": "IntLitExpr",
-                        "value": "3n"
-                      },
-                      {
-                        "kind": "IntLitExpr",
-                        "value": "4n"
-                      },
-                      {
-                        "kind": "IntLitExpr",
-                        "value": "5n"
-                      }
-                    ]
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "map"
                   },
-                  "spread": false
-                },
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "LambdaExpr",
-                    "params": [
-                      {
-                        "name": "x",
-                        "type": {
-                          "kind": "IdentExpr",
-                          "name": "i32"
-                        },
-                        "defaultValue": null,
-                        "variadic": false
-                      }
-                    ],
-                    "returnType": null,
-                    "body": {
-                      "kind": "BlockExpr",
-                      "stmts": [],
-                      "trailing": {
-                        "kind": "BinaryExpr",
-                        "op": "mul",
-                        "left": {
-                          "kind": "IdentExpr",
-                          "name": "x"
-                        },
-                        "right": {
-                          "kind": "IdentExpr",
-                          "name": "x"
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "SeqLitExpr",
+                        "elements": [
+                          {
+                            "kind": "IntLitExpr",
+                            "value": "1n"
+                          },
+                          {
+                            "kind": "IntLitExpr",
+                            "value": "2n"
+                          },
+                          {
+                            "kind": "IntLitExpr",
+                            "value": "3n"
+                          },
+                          {
+                            "kind": "IntLitExpr",
+                            "value": "4n"
+                          },
+                          {
+                            "kind": "IntLitExpr",
+                            "value": "5n"
+                          }
+                        ]
+                      },
+                      "spread": false
+                    },
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "LambdaExpr",
+                        "params": [
+                          {
+                            "name": "x",
+                            "type": {
+                              "kind": "IdentExpr",
+                              "name": "i32"
+                            },
+                            "defaultValue": null,
+                            "variadic": false
+                          }
+                        ],
+                        "returnType": null,
+                        "body": {
+                          "kind": "BlockExpr",
+                          "stmts": [],
+                          "trailing": {
+                            "kind": "BinaryExpr",
+                            "op": "mul",
+                            "left": {
+                              "kind": "IdentExpr",
+                              "name": "x"
+                            },
+                            "right": {
+                              "kind": "IdentExpr",
+                              "name": "x"
+                            }
+                          }
                         }
-                      }
+                      },
+                      "spread": false
                     }
-                  },
-                  "spread": false
-                }
-              ]
+                  ]
+                },
+                "field": "collect"
+              },
+              "args": []
             }
           },
           {
@@ -236,62 +244,70 @@
             "value": {
               "kind": "CallExpr",
               "callee": {
-                "kind": "IdentExpr",
-                "name": "filter"
-              },
-              "args": [
-                {
-                  "name": null,
-                  "value": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "CallExpr",
+                  "callee": {
                     "kind": "IdentExpr",
-                    "name": "nums"
+                    "name": "filter"
                   },
-                  "spread": false
-                },
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "LambdaExpr",
-                    "params": [
-                      {
-                        "name": "x",
-                        "type": {
-                          "kind": "IdentExpr",
-                          "name": "i32"
-                        },
-                        "defaultValue": null,
-                        "variadic": false
-                      }
-                    ],
-                    "returnType": null,
-                    "body": {
-                      "kind": "BlockExpr",
-                      "stmts": [],
-                      "trailing": {
-                        "kind": "BinaryExpr",
-                        "op": "eq",
-                        "left": {
-                          "kind": "BinaryExpr",
-                          "op": "mod",
-                          "left": {
-                            "kind": "IdentExpr",
-                            "name": "x"
-                          },
-                          "right": {
-                            "kind": "IntLitExpr",
-                            "value": "2n"
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "IdentExpr",
+                        "name": "nums"
+                      },
+                      "spread": false
+                    },
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "LambdaExpr",
+                        "params": [
+                          {
+                            "name": "x",
+                            "type": {
+                              "kind": "IdentExpr",
+                              "name": "i32"
+                            },
+                            "defaultValue": null,
+                            "variadic": false
                           }
-                        },
-                        "right": {
-                          "kind": "IntLitExpr",
-                          "value": "0n"
+                        ],
+                        "returnType": null,
+                        "body": {
+                          "kind": "BlockExpr",
+                          "stmts": [],
+                          "trailing": {
+                            "kind": "BinaryExpr",
+                            "op": "eq",
+                            "left": {
+                              "kind": "BinaryExpr",
+                              "op": "mod",
+                              "left": {
+                                "kind": "IdentExpr",
+                                "name": "x"
+                              },
+                              "right": {
+                                "kind": "IntLitExpr",
+                                "value": "2n"
+                              }
+                            },
+                            "right": {
+                              "kind": "IntLitExpr",
+                              "value": "0n"
+                            }
+                          }
                         }
-                      }
+                      },
+                      "spread": false
                     }
-                  },
-                  "spread": false
-                }
-              ]
+                  ]
+                },
+                "field": "collect"
+              },
+              "args": []
             }
           },
           {

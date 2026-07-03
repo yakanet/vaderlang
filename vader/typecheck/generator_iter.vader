@@ -158,24 +158,24 @@ is_generator_symbol :: fn(sym: Symbol, typed: TypedProgram) -> bool {
     return false
 }
 
-// The `@generator` combinator named `name` for a UFCS `.name()` on an ITERATOR
-// receiver, or null. Consults the `generator_symbols` registry — authoritative for
-// an OVERLOADED name (`map` = eager `T[]` + lazy `Iterator<T>`), unlike following
-// the single import binding, which may resolve to the eager (non-generator) overload
-// and miss the generator. A bare ARRAY receiver never selects the lazy generator
-// (`arr.map(f)` is the eager overload; lazy is opt-in via `arr.iter()`).
+// The `@generator` combinator named `name` for a UFCS `.name()` on an iterator
+// (or array) receiver, or null. Consults the `generator_symbols` registry —
+// authoritative for `map` / `filter` / `take` / `skip`, which are now ONLY the
+// lazy `@generator`s (the eager `T[]` overloads were dropped). A bare array
+// receiver selects the lazy combinator too : `arr.map(f)` is lazy and fuses over
+// the raw array (`T[] implements Into<Iterator<T>>` — the implicit `.iter()` head).
 ufcs_generator_symbol :: fn(name: string, recv_ty: Type, typed: TypedProgram) -> Symbol | null {
-    if recv_ty is ArrayType { return null }
     gen_sym :: typed.generator_symbols[name]
     if gen_sym is null { return null }
     if generator_receiver_is_iterator(recv_ty, typed) { return gen_sym }
     return null
 }
 
-// Whether `recv_ty` is an actual iterator (a struct impl'ing `Iterator`, or the
-// erased `Iterator` trait) — so a combinator's `self: Iterator<T>` param accepts it.
-// Excludes the `T[] -> Iterator` blanket (the array case is guarded above).
+// Whether `recv_ty` accepts a combinator's `self: Iterator<T>` param : an actual
+// iterator (a struct impl'ing `Iterator`, or the erased `Iterator` trait) OR a raw
+// array via the blanket `T[] implements Into<Iterator<T>>`.
 generator_receiver_is_iterator :: fn(recv_ty: Type, typed: TypedProgram) -> bool {
+    if recv_ty is ArrayType { return true }
     if recv_ty is TraitType as tt { return tt.symbol.name == "Iterator" }
     return struct_implements_trait(recv_ty, "Iterator", typed)
 }

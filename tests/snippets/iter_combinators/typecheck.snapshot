@@ -2,8 +2,10 @@
 
 ## tests/snippets/iter_combinators
   FnDecl         main                 :: fn() -> i32
+  expr 10:16    CallExpr       :: Iterator<i32>
   expr 10:16    CallExpr       :: i32[]
-  expr 10:16    IdentExpr      :: fn(T[], fn(T) -> U) -> U[]
+  expr 10:16    FieldExpr      :: fn() -> i32[]
+  expr 10:16    IdentExpr      :: fn(Iterator<T>, fn(T) -> U) -> Iterator<U>
   expr 10:20    SeqLitExpr     :: i32[]
   expr 10:37    LambdaExpr     :: fn(i32) -> i32
   expr 10:49    BinaryExpr     :: i32
@@ -12,8 +14,10 @@
   expr 11:11    CallExpr       :: i32
   expr 11:11    IdentExpr      :: fn(i32[]) -> i32
   expr 11:15    IdentExpr      :: i32[]
+  expr 14:14    CallExpr       :: Iterator<i32>
   expr 14:14    CallExpr       :: i32[]
-  expr 14:14    IdentExpr      :: fn(T[], fn(T) -> bool) -> T[]
+  expr 14:14    FieldExpr      :: fn() -> i32[]
+  expr 14:14    IdentExpr      :: fn(Iterator<T>, fn(T) -> bool) -> Iterator<T>
   expr 14:21    IdentExpr      :: i32[]
   expr 14:27    LambdaExpr     :: fn(i32) -> bool
   expr 14:39    BinaryExpr     :: bool
