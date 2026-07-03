@@ -42,13 +42,13 @@
   expr 30:16    StringLitExpr  :: string
   expr 30:25    StringLitExpr  :: string
   expr 30:35    StringLitExpr  :: string
-  expr 31:19    CallExpr       :: [usize, string][]
-  expr 31:19    FieldExpr      :: fn() -> [usize, string][]
+  expr 31:19    CallExpr       :: __genstate_enumerate<[usize, T]>
+  expr 31:19    FieldExpr      :: fn() -> Iterator<[usize, T]>
   expr 31:19    IdentExpr      :: string[]
-  expr 31:9     IdentExpr      :: [usize, string]
+  expr 31:9     IdentExpr      :: [usize, T]
   expr 32:17    StringLitExpr  :: string
   expr 32:20    IdentExpr      :: usize
-  expr 32:26    IdentExpr      :: string
+  expr 32:26    IdentExpr      :: T
   expr 32:9     CallExpr       :: void
   expr 32:9     IdentExpr      :: fn(T) -> void
   expr 36:15    CallExpr       :: Iterator<i32>

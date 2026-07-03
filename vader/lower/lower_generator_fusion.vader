@@ -149,8 +149,7 @@ gen_instance_subst :: fn(
     if fn_decl.type_params.len() == 0 { return new_substitution() }
     ft :: ctx.types.raw_expr_type(callee_id)
     if ft is FnType as f {
-        concrete_args :: strip_distinct_each(infer_type_args(f, call, ctx))
-        if all_concrete(concrete_args) { return subst_from_flavor(fn_decl, owner_typed, concrete_args) }
+        return subst_from_concrete(fn_decl, owner_typed, infer_type_args(f, call, ctx))
     }
     return null
 }
@@ -163,6 +162,15 @@ subst_from_flavor :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, concrete
     if flavor == InstanceFlavor.Mono { return build_fn_concrete_subst(fn_decl, owner_typed, concrete_args) }
     if flavor == InstanceFlavor.Mixed { return build_fn_mixed_subst(fn_decl, owner_typed, concrete_args) }
     return build_fn_any_subst(fn_decl, owner_typed)
+}
+
+// Strip distinct wrappers off `args`, require all-concrete, then pick the flavor
+// subst — the shared finalize tail of every generator subst path. Null when any
+// arg stays a free type param (the caller bails to the boxed path).
+subst_from_concrete :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, args: Type[]) -> Substitution | null {
+    concrete :: strip_distinct_each(args)
+    if !all_concrete(concrete) { return null }
+    return subst_from_flavor(fn_decl, owner_typed, concrete)
 }
 
 // ---- chained generator combinators (Increment 3) --------------------------
@@ -185,8 +193,8 @@ GenComboLayer :: struct {
     owner:       TypedProgram    // the module the generator is defined in
     loopvar:     Symbol          // the body's `for <loopvar> in self` variable
     inner:       AST.BlockExpr   // the for-loop body (contains the yield)
-    arg_sym:     Symbol          // the single non-self param's symbol
-    arg_expr:    AST.Expr        // the call's non-self argument (map's `f`, …)
+    arg_sym:     Symbol | null   // the single non-self param's symbol ; null for a 0-arg combinator (`enumerate`)
+    arg_expr:    AST.Expr | null // the call's non-self argument (map's `f`, …) ; null for `enumerate`
     output_elem: Type            // the combinator's yielded element type
     prelude:     AST.Stmt[]      // counter `let`s ahead of the source loop (take/skip)
 }
@@ -206,18 +214,19 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
     decl :: owner.fn_decls[callee_sym.id]
     if decl is null { return null }
     if !fn_is_generator(decl) { return null }
-    // v1: exactly `self` + one non-self param (map/filter/take/skip shape).
-    if decl.params.len() != 2 { return null }
+    // v1: `self` plus zero (`enumerate`) or one (map/filter/take/skip) non-self param.
+    if decl.params.len() != 1 && decl.params.len() != 2 { return null }
     loop_info :: extract_gen_source_loop(decl)
     if loop_info is null { return null }
     source :: descend_chain(ctx, fluent.receiver)
     if source is null { return null }
-    subst_opt :: gen_combo_subst(ctx, decl, owner, callee_sym, fluent.receiver, fluent.fn_arg)
+    subst_opt :: gen_combo_subst(ctx, decl, owner, callee_sym, fluent.receiver, fluent.fn_arg, chain_element_type(source))
     if subst_opt is null { return null }
     loopvar :: lookup_local_symbol(ctx.project, owner.resolved, loop_info.loopvar_span)
     if loopvar is null { return null }
-    arg_sym :: lookup_local_symbol(ctx.project, owner.resolved, decl.params[1].span)
-    if arg_sym is null { return null }
+    // The single non-self param's symbol — null for a 0-arg combinator (`enumerate`).
+    arg_sym :: combinator_arg_sym(ctx, decl, owner)
+    if decl.params.len() == 2 && arg_sym is null { return null }
     // Direction A: the call result is the concrete `__genstate_<fn>` struct, not
     // `Iterator<U>` — take the yielded element from the registered element.
     output_elem :: genstate_element(ctx.typed, decl.name, subst_opt)
@@ -228,6 +237,13 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
         .arg_sym = arg_sym, .arg_expr = fluent.fn_arg, .output_elem = output_elem,
         .prelude = loop_info.prelude,
     }, call.span)
+}
+
+// The symbol of a combinator's single non-self param (`decl.params[1]`), or null
+// for a 0-arg combinator (`enumerate`, whose only param is `self`).
+combinator_arg_sym :: fn(ctx: FnLowerCtx, decl: AST.FnDecl, owner: TypedProgram) -> Symbol | null {
+    if decl.params.len() < 2 { return null }
+    return lookup_local_symbol(ctx.project, owner.resolved, decl.params[1].span)
 }
 
 // The `for <loopvar> in <self-param>` loop that forms a generator combinator's
@@ -289,9 +305,18 @@ combinator_callee_sym :: fn(ctx: FnLowerCtx, call: AST.CallExpr, receiver: AST.E
 // Null when a type param stays unbound (bail to the struct/boxed path).
 gen_combo_subst :: fn(
     ctx: FnLowerCtx, decl: AST.FnDecl, owner: TypedProgram, callee_sym: Symbol,
-    receiver: AST.Expr, fn_arg: AST.Expr,
+    receiver: AST.Expr, fn_arg: AST.Expr | null, source_elem: Type,
 ) -> Substitution | null {
     if decl.type_params.len() == 0 { return new_substitution() }
+    // 0-arg combinator (`enumerate`): no fn arg to infer from — `self`'s only type
+    // param IS the source element, so bind it straight from the fused source's
+    // concrete element type (`substitute` then rewrites it through the yielded
+    // element, tuple included). NOTE: `source_elem` is the STRICTLY more general
+    // binding source — post-fusion concrete, with no erased-head ambiguity. A
+    // follow-up could retire the 1-arg receiver-unification below onto it (which
+    // would also let take/skip fuse over an erased head instead of boxing) ; that
+    // touches the reseed-sensitive subst core, so it's kept as a separate chantier.
+    if fn_arg is null { return subst_from_concrete(decl, owner, [source_elem]) }
     ft :: owner.decl_types[callee_sym.id]
     if ft is FnType as f {
         if f.params.len() < 2 { return null }
@@ -312,9 +337,7 @@ gen_combo_subst :: fn(
             if v is null { return null }
             concrete_args.push(v)
         }
-        concrete :: strip_distinct_each(concrete_args)
-        if !all_concrete(concrete) { return null }
-        return subst_from_flavor(decl, owner, concrete)
+        return subst_from_concrete(decl, owner, concrete_args)
     }
     return null
 }
@@ -355,13 +378,18 @@ emit_fused_gen_combinator :: fn(
             .user_body = inner_block,
         }
         source_stmts :: emit_fused_chain(ctx, src, loop_label, outer_span, inner_template, recurse)
-        arg_lowered :: recurse(ctx, layer.arg_expr)
-        arg_let :: LoweredLet {
-            .span = chain.span, .name = layer.arg_sym.name, .symbol = layer.arg_sym,
-            .type = type_of(arg_lowered), .value = arg_lowered,
-        }
         out: LoweredStmt[] = []
-        out.push(arg_let)
+        // Bind the combinator's single non-self arg (map's `f`, take's `n`) once,
+        // ahead of the source loop. A 0-arg combinator (`enumerate`) has none.
+        arg_expr :: layer.arg_expr
+        arg_sym :: layer.arg_sym
+        if arg_expr != null && arg_sym != null {
+            arg_lowered :: recurse(ctx, arg_expr)
+            out.push(LoweredLet {
+                .span = chain.span, .name = arg_sym.name, .symbol = arg_sym,
+                .type = type_of(arg_lowered), .value = arg_lowered,
+            })
+        }
         // Emit the combinator's prelude (take/skip's counter `let`s) ONCE, ahead of
         // the source loop — lowered in the gen-ctx so the inner body's counter refs
         // resolve. Extract the block's stmts so the counter is a sibling of the loop

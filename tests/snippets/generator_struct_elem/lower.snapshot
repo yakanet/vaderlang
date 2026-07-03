@@ -45,124 +45,122 @@
               }
         }
     block :void
-      let files: FileMod[] = files :FileMod[]
-      block :void
-        let __for_arr_0: FileMod[] = files :FileMod[]
-        let __for_len_1: usize =
-          LoweredArrayLen
-        let __for_i_2: usize = int(0) :usize
-        loop while (<…>)
-          let f: FileMod =
-            index :FileMod
-              on:
-                __for_arr_0 :FileMod[]
-              ix:
-                __for_i_2 :usize
-          block :void
-            let __for_arr_3: Decl[] =
-              .decls :Decl[]
-                f :FileMod
-            let __for_len_4: usize =
-              LoweredArrayLen
-            let __for_i_5: usize = int(0) :usize
-            loop while (<…>)
-              let d: Decl =
-                index :Decl
-                  on:
-                    __for_arr_3 :Decl[]
-                  ix:
-                    __for_i_5 :usize
-              let d: Decl = d :Decl
-              call :void
-                callee:
-                  std_io$println__string :void
-                arg0:
-                  block :string
-                    let __p_0: string =
-                      .name :string
-                        d :Decl
-                    let __buf_1: Buffer =
-                      call :Buffer
+      let __fuse_arr_3: FileMod[] = files :FileMod[]
+      let __fuse_len_4: usize =
+        LoweredArrayLen
+      let __fuse_i_5: usize = int(0) :usize
+      loop while (<…>)
+        let f: FileMod =
+          index :FileMod
+            on:
+              __fuse_arr_3 :FileMod[]
+            ix:
+              __fuse_i_5 :usize
+        block :void
+          let __for_arr_0: Decl[] =
+            .decls :Decl[]
+              f :FileMod
+          let __for_len_1: usize =
+            LoweredArrayLen
+          let __for_i_2: usize = int(0) :usize
+          loop while (<…>)
+            let d: Decl =
+              index :Decl
+                on:
+                  __for_arr_0 :Decl[]
+                ix:
+                  __for_i_2 :usize
+            let d: Decl = d :Decl
+            call :void
+              callee:
+                std_io$println__string :void
+              arg0:
+                block :string
+                  let __p_0: string =
+                    .name :string
+                      d :Decl
+                  let __buf_1: Buffer =
+                    call :Buffer
+                      callee:
+                        new_byte_buffer :Buffer
+                      arg0:
+                        add :usize
+                          l:
+                            int(21) :usize
+                          r:
+                            call :usize
+                              callee:
+                                byte_len :usize
+                              arg0:
+                                __p_0 :string
+                  let __off_2: usize = int(0) :usize
+                  assign
+                    target:
+                      __off_2 :usize
+                    value:
+                      call :usize
                         callee:
-                          new_byte_buffer :Buffer
-                        arg0:
-                          add :usize
-                            l:
-                              int(21) :usize
-                            r:
-                              call :usize
-                                callee:
-                                  byte_len :usize
-                                arg0:
-                                  __p_0 :string
-                    let __off_2: usize = int(0) :usize
-                    assign
-                      target:
-                        __off_2 :usize
-                      value:
-                        call :usize
-                          callee:
-                            write_string_at :usize
-                          arg0:
-                            __buf_1 :Buffer
-                          arg1:
-                            __off_2 :usize
-                          arg2:
-                            __p_0 :string
-                    assign
-                      target:
-                        __off_2 :usize
-                      value:
-                        call :usize
-                          callee:
-                            write_string_at :usize
-                          arg0:
-                            __buf_1 :Buffer
-                          arg1:
-                            __off_2 :usize
-                          arg2:
-                            "=" :string
-                    assign
-                      target:
-                        __off_2 :usize
-                      value:
-                        call :usize
-                          callee:
-                            write_int :usize
-                          arg0:
-                            __buf_1 :Buffer
-                          arg1:
-                            __off_2 :usize
-                          arg2:
-                            cast → i64
-                              .id :i32
-                                d :Decl
-                    ~>
-                      call :string
-                        callee:
-                          finish_buffer :string
+                          write_string_at :usize
                         arg0:
                           __buf_1 :Buffer
                         arg1:
                           __off_2 :usize
-              assign
-                target:
-                  __for_i_5 :usize
-                value:
-                  add :usize
-                    l:
-                      __for_i_5 :usize
-                    r:
-                      int(1) :usize
-          assign
-            target:
-              __for_i_2 :usize
-            value:
-              add :usize
-                l:
-                  __for_i_2 :usize
-                r:
-                  int(1) :usize
+                        arg2:
+                          __p_0 :string
+                  assign
+                    target:
+                      __off_2 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_string_at :usize
+                        arg0:
+                          __buf_1 :Buffer
+                        arg1:
+                          __off_2 :usize
+                        arg2:
+                          "=" :string
+                  assign
+                    target:
+                      __off_2 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_int :usize
+                        arg0:
+                          __buf_1 :Buffer
+                        arg1:
+                          __off_2 :usize
+                        arg2:
+                          cast → i64
+                            .id :i32
+                              d :Decl
+                  ~>
+                    call :string
+                      callee:
+                        finish_buffer :string
+                      arg0:
+                        __buf_1 :Buffer
+                      arg1:
+                        __off_2 :usize
+            assign
+              target:
+                __for_i_2 :usize
+              value:
+                add :usize
+                  l:
+                    __for_i_2 :usize
+                  r:
+                    int(1) :usize
+        assign
+          target:
+            __fuse_i_5 :usize
+          value:
+            add :usize
+              l:
+                __fuse_i_5 :usize
+              r:
+                int(1) :usize
     return int(0) :i32
   struct __genstate_concat_decls { s0: FileMod[], s1: FileMod[], s2: usize, s3: usize, s4: FileMod, s5: Decl[], s6: usize, s7: usize, s8: Decl, state: i32 }
   fn snippet$__genstate_concat_decls$Iterator$next(self: __genstate_concat_decls) -> Yield<Decl> | null

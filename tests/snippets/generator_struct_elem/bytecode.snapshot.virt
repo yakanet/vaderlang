@@ -26,18 +26,18 @@ fn 0 snippet$main () -> i32
   local $struct_2 ref
   local $struct_5 ref
   local $struct_14 ref
+  local __fuse_len_4 usize
+  local __fuse_i_5 usize
   local __for_len_1 usize
   local __for_i_2 usize
-  local __for_len_4 usize
-  local __for_i_5 usize
   local __p_0 string
-  local $k_38 usize
-  local $call_39 usize
+  local $k_37 usize
+  local $call_38 usize
   local __buf_1 ref
   local __off_2 usize
-  local $cast_49 i64
-  local $k_52 usize
-  local $k_54 usize
+  local $cast_48 i64
+  local $k_51 usize
+  local $k_53 usize
   string.const 0
   i32.const 1
   struct.new_stack 2
