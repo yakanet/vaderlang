@@ -7,8 +7,9 @@
   __genstate_enumerate<[usize, T]>
   __genstate_filter<i32>
   __genstate_map<i32>
-  __genstate_take<i32>
-  __genstate_skip<i32>
+  __genstate_take<T>
+  __genstate_take<T>
+  __genstate_skip<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
@@ -46,8 +47,6 @@
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<i32>
-  ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>

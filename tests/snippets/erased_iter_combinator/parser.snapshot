@@ -352,33 +352,25 @@
                 {
                   "name": null,
                   "value": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "FieldExpr",
-                      "target": {
-                        "kind": "SeqLitExpr",
-                        "elements": [
-                          {
-                            "kind": "IntLitExpr",
-                            "value": "1n"
-                          },
-                          {
-                            "kind": "IntLitExpr",
-                            "value": "2n"
-                          },
-                          {
-                            "kind": "IntLitExpr",
-                            "value": "3n"
-                          },
-                          {
-                            "kind": "IntLitExpr",
-                            "value": "4n"
-                          }
-                        ]
+                    "kind": "SeqLitExpr",
+                    "elements": [
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "1n"
                       },
-                      "field": "iter"
-                    },
-                    "args": []
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "2n"
+                      },
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "3n"
+                      },
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "4n"
+                      }
+                    ]
                   },
                   "spread": false
                 }
@@ -403,25 +395,17 @@
                 {
                   "name": null,
                   "value": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "FieldExpr",
-                      "target": {
-                        "kind": "SeqLitExpr",
-                        "elements": [
-                          {
-                            "kind": "IntLitExpr",
-                            "value": "5n"
-                          },
-                          {
-                            "kind": "IntLitExpr",
-                            "value": "6n"
-                          }
-                        ]
+                    "kind": "SeqLitExpr",
+                    "elements": [
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "5n"
                       },
-                      "field": "iter"
-                    },
-                    "args": []
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "6n"
+                      }
+                    ]
                   },
                   "spread": false
                 }

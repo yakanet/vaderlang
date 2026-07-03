@@ -20,10 +20,10 @@ type 17 array 18
 type 18 primitive u8
 type 19 primitive void
 type 20 fn (1) -> 2
-type 21 struct __gen_state_21 { s0:3,s1:20,s2:3,s3:22,s4:1,state:1 }
+type 21 struct __gen_state_18 { s0:3,s1:20,s2:3,s3:22,s4:1,state:1 }
 type 22 union 7,0
 type 23 fn (1) -> 1
-type 24 struct __gen_state_16 { s0:3,s1:23,s2:3,s3:22,s4:1,state:1 }
+type 24 struct __gen_state_13 { s0:3,s1:23,s2:3,s3:22,s4:1,state:1 }
 type 25 ref __genstate_map
 type 26 ref __genstate_filter
 string 0 "sum="
@@ -44,8 +44,8 @@ impl 24 Iterator
 vtable Iterator.next 5 5
 vtable Iterator.next 9 6
 vtable Iterator.next 12 7
-vtable Iterator.next 21 20
-vtable Iterator.next 24 22
+vtable Iterator.next 21 19
+vtable Iterator.next 24 21
 export main 4
 
 fn 0 snippet$triple (i32) -> i32
@@ -73,13 +73,13 @@ fn 2 snippet$sum_tripled_hi (ref) -> i32
   local.set 2
   local.get 0
   local.get 2
-  call 21
+  call 20
   local.set 2
   fn.ref 1 20
   local.set 3
   local.get 2
   local.get 3
-  call 19
+  call 18
   local.set 2
   block $L0 void
     loop $L1 void
@@ -111,98 +111,108 @@ fn 3 snippet$drain (ref) -> ref
   local.set 1
   local.get 0
   local.get 1
-  call 21
-  call 18
+  call 20
+  call 17
   return
 end
 
 fn 4 snippet$main () -> i32
+  local $arr_4 ref
+  local $k_5 usize
   local s i32
-  local d ref
   local __buf_0 ref
-  local __off_1 usize
-  local $cast_21 i64
-  local $cast_26 u64
+  local $cast_23 i64
+  local $cast_28 u64
   i32.const 1
   i32.const 2
   i32.const 3
   i32.const 4
   array.new 4 4
-  call 16
-  call 2
   local.set 0
+  i64.const 0
+  local.set 1
+  local.get 0
+  local.get 1
+  struct.new 12
+  call 2
+  local.set 2
   i32.const 5
   i32.const 6
   array.new 4 2
-  call 16
-  call 3
+  local.set 0
+  i64.const 0
   local.set 1
+  local.get 0
+  local.get 1
+  struct.new 12
+  call 3
+  local.set 0
   i64.const 99
   call 8
-  local.set 2
-  i64.const 0
   local.set 3
-  local.get 2
+  i64.const 0
+  local.set 1
   local.get 3
+  local.get 1
   string.const 0
   call 10
-  local.set 3
-  local.get 0
+  local.set 1
+  local.get 2
   i32.to_i64
   local.set 4
-  local.get 2
   local.get 3
+  local.get 1
   local.get 4
   call 11
-  local.set 3
-  local.get 2
+  local.set 1
   local.get 3
+  local.get 1
   string.const 1
   call 10
-  local.set 3
-  local.get 1
+  local.set 1
+  local.get 0
   array.len
   usize.to_i64
   local.set 5
-  local.get 2
   local.get 3
+  local.get 1
   local.get 5
   call 12
-  local.set 3
-  local.get 2
+  local.set 1
   local.get 3
+  local.get 1
   string.const 2
   call 10
-  local.set 3
-  local.get 1
+  local.set 1
+  local.get 0
   i32.const 0
   load_slot_i32
   i32.to_i64
   local.set 4
-  local.get 2
   local.get 3
+  local.get 1
   local.get 4
   call 11
-  local.set 3
-  local.get 2
+  local.set 1
   local.get 3
+  local.get 1
   string.const 3
   call 10
-  local.set 3
-  local.get 1
+  local.set 1
+  local.get 0
   i32.const 1
   load_slot_i32
   i32.to_i64
   local.set 4
-  local.get 2
   local.get 3
+  local.get 1
   local.get 4
   call 11
-  local.set 3
-  local.get 2
+  local.set 1
   local.get 3
+  local.get 1
   call 9
-  call 17
+  call 16
   return.lit i32.const 0
 end
 
@@ -379,14 +389,14 @@ end
 
 fn 8 std_core$new_byte_buffer (usize) -> ref
   local.get 0
-  call 23
+  call 22
   return
 end
 
 fn 9 std_core$finish_buffer (ref,usize) -> string
   local.get 0
   local.get 1
-  call 25
+  call 24
   return
 end
 
@@ -395,7 +405,7 @@ fn 10 std_core$write_string_at (ref,usize,string) -> usize
   local.get 0
   local.get 1
   local.get 2
-  call 26
+  call 25
   local.get 2
   call.import 0
   array.len
@@ -424,7 +434,7 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     local.get 3
-    call 24
+    call 23
     i64.const 1
     local.set 4
     local.get 1
@@ -515,7 +525,7 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
         local.get 0
         local.get 7
         local.get 10
-        call 24
+        call 23
         local.get 2
         i64.const 10
         i64.div
@@ -532,7 +542,7 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     local.get 3
-    call 24
+    call 23
   else
   end $L9
   local.get 1
@@ -562,7 +572,7 @@ fn 12 std_core$write_unsigned (ref,usize,u64) -> usize
     local.get 0
     local.get 1
     local.get 4
-    call 24
+    call 23
     i64.const 1
     local.set 5
     local.get 1
@@ -633,7 +643,7 @@ fn 12 std_core$write_unsigned (ref,usize,u64) -> usize
         local.get 0
         local.get 7
         local.get 11
-        call 24
+        call 23
         i64.const 10
         local.set 8
         local.get 2
@@ -733,17 +743,7 @@ fn 15 std_core$usize$Comparable$compare (usize,usize) -> i32
   return
 end
 
-fn 16 std_core$std_core$iter__i32 (ref) -> ref
-  local $k_1 usize
-  i64.const 0
-  local.set 1
-  local.get 0
-  local.get 1
-  struct.new 12
-  return
-end
-
-fn 17 std_io$println__string (string) -> void
+fn 16 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 1
@@ -753,7 +753,7 @@ fn 17 std_io$println__string (string) -> void
   return
 end
 
-fn 18 std_iter$std_iter$collect__i32 (ref) -> ref
+fn 17 std_iter$std_iter$collect__i32 (ref) -> ref
   local out ref
   local __iter_0 ref
   local __step_1 ref
@@ -785,7 +785,7 @@ fn 18 std_iter$std_iter$collect__i32 (ref) -> ref
   return
 end
 
-fn 19 std_iter$std_iter$filter__i32 (ref,ref) -> ref
+fn 18 std_iter$std_iter$filter__i32 (ref,ref) -> ref
   local $k_2 ref
   local $k_3 ref
   null.const
@@ -802,7 +802,7 @@ fn 19 std_iter$std_iter$filter__i32 (ref,ref) -> ref
   return
 end
 
-fn 20 std_iter$__gen_state_21$Iterator$next (ref) -> ref
+fn 19 std_iter$__gen_state_18$Iterator$next (ref) -> ref
   local $field_1 i32
   local $field_5 i32
   local $field_9 i32
@@ -1046,7 +1046,7 @@ fn 20 std_iter$__gen_state_21$Iterator$next (ref) -> ref
   return
 end
 
-fn 21 std_iter$std_iter$map__i32__i32 (ref,ref) -> ref
+fn 20 std_iter$std_iter$map__i32__i32 (ref,ref) -> ref
   local $k_2 ref
   local $k_3 ref
   null.const
@@ -1063,7 +1063,7 @@ fn 21 std_iter$std_iter$map__i32__i32 (ref,ref) -> ref
   return
 end
 
-fn 22 std_iter$__gen_state_16$Iterator$next (ref) -> ref
+fn 21 std_iter$__gen_state_13$Iterator$next (ref) -> ref
   local $field_1 i32
   local $field_5 i32
   local $field_9 i32
@@ -1272,13 +1272,13 @@ fn 22 std_iter$__gen_state_16$Iterator$next (ref) -> ref
   return
 end
 
-fn 23 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 22 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 24 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 23 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -1286,14 +1286,14 @@ fn 24 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 25 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 24 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 26 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 25 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2

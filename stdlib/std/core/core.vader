@@ -301,20 +301,6 @@ ArrayIterator<T> implements Iterator<T> {
     }
 }
 
-/// A concrete array cursor — the explicit opt-in to a lazy, fusible chain head.
-///
-/// Unlike `.into()` (which erases to `Iterator<T>` — the boxed-tower hazard, and
-/// on which the lazy `.map()`/`.filter()` combinators don't UFCS-resolve), `iter`
-/// returns the **concrete** `ArrayIterator<T>`, so `arr.iter().map(f).filter(p)`
-/// resolves the combinators and the fusion pass collapses it to the eager loop
-/// with nothing erased at the source. Mirrors `string.chars() -> StringChars`.
-///
-/// @param arr  the array to walk.
-/// @return     a fresh `ArrayIterator<T>` positioned at the first element.
-export iter :: fn<T>(arr: T[]) -> ArrayIterator<T> {
-    return ArrayIterator<T> { .arr = arr, .cursor = 0 }
-}
-
 // Blanket Into impls live here so the orphan rule passes — Into is owned
 // by std/core, the source shapes (`T[]`, bounded `T`) aren't.
 
