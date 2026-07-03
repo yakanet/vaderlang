@@ -1,0 +1,35 @@
+// Combinators UFCS-resolve on an ERASED `Iterator<T>` receiver (a fn param, an
+// `.into()` result, any boxed iterator) — not just on a concrete `.iter()` /
+// `__genstate` head. `it.map(f)` must lower to the free-fn combinator, NOT a
+// `virtual.call Iterator.map` (the trait has no `map` method → runtime miss).
+// Regression guard for the §5.3 lowering fix (try_lower_virtual_call declines
+// when the typer resolved free-fn UFCS ; find_free_fn_ufcs accepts a trait recv).
+
+module "snippet"
+
+import "std/io" { println }
+import "std/iter" { map, filter, collect }
+
+triple  :: fn(x: i32) -> i32 = x * 3
+keep_hi :: fn(x: i32) -> bool = x > 6
+
+// `.map` / `.filter` on the erased `Iterator<i32>` param — a chain + a terminal.
+sum_tripled_hi :: fn(it: Iterator<i32>) -> i32 {
+    total := 0
+    for x in it.map(triple).filter(keep_hi) {
+        total = total + x
+    }
+    return total
+}
+
+drain :: fn(it: Iterator<i32>) -> i32[] {
+    return it.map(triple).collect()
+}
+
+main :: fn() -> i32 {
+    // 1,2,3,4 → ×3 → 3,6,9,12 → keep >6 → 9,12 → sum 21
+    s :: sum_tripled_hi([1, 2, 3, 4].iter())
+    d :: drain([5, 6].iter())
+    println("sum=${s} drain=${d.len()} d0=${d[0]} d1=${d[1]}")
+    return 0
+}
