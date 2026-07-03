@@ -49,6 +49,16 @@ export TypedProgram :: struct {
     /// source span.
     expr_types: MutableMap<usize, Type>
 
+    /// Target type of every implicit `.into()` coercion, keyed by the
+    /// coerced value expression's `Expr.id`. Written by `coerce.vader::
+    /// try_into` on the two `.into()`-flavoured branches (a real `Into`
+    /// impl and the `T[] → Iterator(T)` blanket) — trait widening
+    /// (`Cat → Animal`) is a subtype widen with no synthesised call, so
+    /// it records nothing. Consumed only by the LSP inlay-hint handler,
+    /// which surfaces a ghost `.into()` at the value's end. Invisible to
+    /// lowering / bytecode — the coercion decision itself is unchanged.
+    into_coercions: MutableMap<usize, Type>
+
     /// Type of every `:=` / `::` local binding, keyed by binding span
     /// (the span on `SimpleBinding` / `RestBinding`, not the LetStmt)
     /// via `span_key` (packed `(line << 32) | column` `i64`).
@@ -331,6 +341,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
     return TypedProgram {
         .resolved        = resolved,
         .expr_types      = MutableMap<usize, Type> {},
+        .into_coercions  = MutableMap<usize, Type> {},
         .local_types     = MutableMap<u64, Type> {},
         .decl_types      = MutableMap<i32, Type> {},
         .impl_method_decl_types = MutableMap<u64, Type> {},

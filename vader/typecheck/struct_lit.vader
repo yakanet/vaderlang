@@ -90,7 +90,7 @@ check_field :: fn(
     }
     provided.push(f.name)
     if is_assignable(got, expected, null) { return }
-    if try_into(got, expected, typed) { return }
+    if try_into(got, expected, typed, f.value.id) { return }
     diags.push(typecheck_error(.TypeMismatch, f.span,
         "expected ${display_type(expected)}, got ${display_type(got)}"))
 }
