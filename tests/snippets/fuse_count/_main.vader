@@ -7,7 +7,7 @@
 module "snippet"
 
 import "std/io" { println }
-import "std/iter" { map, filter, count }
+import "std/iter" { map, filter }
 
 main :: fn() -> i32 {
     // map + filter + count over an array source — one flat loop.
@@ -19,7 +19,7 @@ main :: fn() -> i32 {
     println("b ${b}")                                    // 0,2,4,6,8 → 5
 
     // eager overload on a bare array — NOT intercepted by terminal fusion.
-    c :: [10, 20, 30].count()
+    c :: [10, 20, 30].len()
     println("c ${c}")                                    // 3
 
     return 0

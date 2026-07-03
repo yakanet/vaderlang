@@ -1229,10 +1229,9 @@ populate_imported_fn_overloads :: fn(
                 match ty {
                     is FnType as ft -> {
                         push_overload(entry_typed, st.symbol.name, ft)
-                        // Also push under the entry's binding name so
-                        // `import "std/iter" { slice as slice_array }`
-                        // is dispatchable as `arr.slice_array(...)`.
-                        // sym_id is the entry's ImportBinding ; find
+                        // Also push under the entry's binding name so a renamed
+                        // import (`import "p" { foo as bar }`) is dispatchable as
+                        // `x.bar(...)`. sym_id is the entry's ImportBinding ; find
                         // its local name in resolved.symbols.
                         for s in entry_typed.resolved.symbols {
                             if s.id == sym_id && s.name != st.symbol.name {

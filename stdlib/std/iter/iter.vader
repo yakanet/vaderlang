@@ -1,30 +1,24 @@
-// std/iter — array-based eager combinators + lazy `@generator` chains.
+// std/iter — lazy `@generator` iterator combinators + terminals.
 //
-// Two shapes coexist :
-//
-//   1. **Eager** : functions like `map` / `filter` / `take` / `skip` /
-//      `fold` / `sum` take a `T[]` array, allocate a fresh result array
-//      (or fold to a single value), and return immediately. Best for
-//      one-shot transformations where the result lives anyway.
-//
-//   2. **Lazy** : `map` / `filter` / `take` / `skip` are also declared as
-//      `@generator`s over a source `Iterator(T)` (at the bottom of this
-//      file). They read like an Iterator pipeline — `it.map(f).filter(p)`
-//      — and dispatch via UFCS through the first param's type, overload-
-//      resolved against the eager `T[]`-first-param siblings above.
-//      Consumed by a `for` loop or a terminal (`count` / `collect` /
-//      `any` / …), the whole chain fuses to a single flat counter loop :
-//      no intermediate arrays, no iterator struct, no `next()` dispatch
-//      (`vader/lower/lower_iter_fusion.vader`). The generator's own state
-//      machine only materialises when the iterator value escapes.
+//   - **Combinators** `map` / `filter` / `take` / `skip` are `@generator`s over
+//     a source `Iterator(T)` (bottom of this file). `arr.map(f)` / `it.map(f)`
+//     read like a pipeline and dispatch via UFCS ; consumed by a `for` loop or a
+//     terminal (`collect` / `count` / `any` / …), the chain fuses to a single
+//     flat loop — no intermediate arrays, no iterator struct, no `next()`
+//     dispatch (`vader/lower/lower_iter_fusion.vader`). The generator's state
+//     machine only materialises when the iterator value escapes.
+//   - **Terminals** `collect` / `any` / `all` / `find` / `find_map` take an
+//     `Iterator(T)` and consume it. `count` / `is_empty` / `last` are the
+//     `Iterator` trait's own default methods (`std/core`).
+//   - **Array helpers** `fold` / `sum` / `clone` / `zip` / `chain` / `enumerate`
+//     / `flat_map` still take a `T[]` (pending their Iterator rewrite). For a
+//     plain array prefer the built-ins : `arr.len()`, `arr[start..<end]`,
+//     `arr.clone()` (not the removed `count`/`slice`/eager-`collect`).
 
-/// Number of items in the array. Trivial wrapper over `arr.len()` ;
-/// exposed for symmetry with the future Iterator-driven `count(it)`.
 module "std/iter"
 
-export count :: fn<T>(arr: T[]) -> usize {
-    return arr.len()
-}
+// `count` : use `arr.len()` for an array (O(1)) ; `it.count()` is the
+// `Iterator` trait's default method for a lazy chain (consumes it, O(n)).
 
 /// True when `arr` carries no elements. Cheap one-liner — saves the
 /// `.len() == usize(0)` boilerplate that polluted call sites.
@@ -33,12 +27,8 @@ export count :: fn<T>(arr: T[]) -> usize {
 /// @return     true when `arr.len() == 0`.
 export is_empty :: fn<T>(arr: T[]) -> bool = arr.len() == 0
 
-/// Clone `arr` into a fresh allocation. Elements are NOT recursively
-/// cloned — for reference types the new array shares element references
-/// with the input. Symmetric with the future Iterator-driven `collect(it)`.
-/// @param arr  source array.
-/// @return     a fresh array with the same elements in the same order.
-export collect :: fn<T>(arr: T[]) -> T[] = arr.clone()
+// `collect` on an array is `arr.clone()` (built-in) ; the only `collect` here
+// is the Iterator terminal below — drains a lazy chain into a fresh array.
 
 /// Drain `it` into a fresh array. Pair with the lazy combinators
 /// (`it.filter(p).map(f).collect()`) when a snapshot is required ;
@@ -82,26 +72,9 @@ export sum :: fn(arr: i32[]) -> i32 {
     return s
 }
 
-/// `arr[start..<end)` as a zero-copy view — sharing the parent's buf on
-/// native. Bounds clamped (start to `[0, len]`, end to `[start, len]`).
-/// Pushing into the view detaches into a fresh buf, so the parent is
-/// never mutated through the slice.
-///
-/// For a fresh mutable copy, use `arr.clone()` ; for a partial copy
-/// chain `arr[lo..<hi].clone()`.
-/// @param arr    source array.
-/// @param start  inclusive lower bound (clamped to `[0, len]`).
-/// @param end    exclusive upper bound (clamped to `[start, len]`).
-export slice :: fn<T>(arr: T[], start: usize, end: usize) -> T[] {
-    return arr[start..<end]
-}
-
-/// `const T[]` overload — preserves the const-ness of the input through
-/// the view. The result type is `const T[]` so mutation stays rejected
-/// at typecheck on the slice just as on its parent.
-export slice :: fn<T>(arr: const T[], start: usize, end: usize) -> const T[] {
-    return arr[start..<end]
-}
+// `slice` removed — it was a trivial wrapper over the built-in `arr[start..<end]`
+// view (zero-copy, copy-on-write on push, const-preserving). Use the index-range
+// form directly.
 
 /// Fresh mutable copy of `arr`. Accepts both `T[]` (by subtype) and
 /// `const T[]` (by signature). The returned array is independent —
@@ -302,9 +275,10 @@ export skip :: fn<T>(self: Iterator<T>, n: usize) -> Iterator<T> {
 import "std/testing" { assert, assert_eq, fail }
 
 @test test_count :: fn() -> void {
-    assert_eq([1, 2, 3].count(), 3)
-    empty: i32[] = []
-    assert_eq(empty.count(), 0)
+    // `count` is the `Iterator` trait's default terminal — exercise it over a
+    // lazy chain (an array uses the O(1) built-in `arr.len()` instead).
+    assert_eq((0..<3).count(), 3)
+    assert_eq((0..<0).count(), 0)
 }
 
 @test test_sum :: fn() -> void {
@@ -315,7 +289,7 @@ import "std/testing" { assert, assert_eq, fail }
 
 @test test_map :: fn() -> void {
     out :: [1, 2, 3].map((x: i32) -> x * 2).collect()
-    assert_eq(out.count(), 3)
+    assert_eq(out.len(), 3)
     assert_eq(out[0], 2)
     assert_eq(out[1], 4)
     assert_eq(out[2], 6)
@@ -323,7 +297,7 @@ import "std/testing" { assert, assert_eq, fail }
 
 @test test_filter :: fn() -> void {
     out :: [1, 2, 3, 4, 5].filter((x: i32) -> x % 2 == 0).collect()
-    assert_eq(out.count(), 2)
+    assert_eq(out.len(), 2)
     assert_eq(out[0], 2)
     assert_eq(out[1], 4)
 }
@@ -336,22 +310,22 @@ import "std/testing" { assert, assert_eq, fail }
 }
 
 @test test_slice :: fn() -> void {
-    out :: [1, 2, 3, 4, 5].slice(1, 4)
-    assert_eq(out.count(), 3)
+    out :: [1, 2, 3, 4, 5][1..<4]
+    assert_eq(out.len(), 3)
     assert_eq(out[0], 2)
     assert_eq(out[2], 4)
 }
 
 @test test_chain :: fn() -> void {
     out :: chain([1, 2], [3, 4, 5])
-    assert_eq(out.count(), 5)
+    assert_eq(out.len(), 5)
     assert_eq(out[0], 1)
     assert_eq(out[4], 5)
 }
 
 @test test_enumerate :: fn() -> void {
     pairs :: ["a", "b", "c"].enumerate()
-    assert_eq(pairs.count(), 3)
+    assert_eq(pairs.len(), 3)
     [i0, s0] :: pairs[0]
     assert_eq(i0, 0)
     assert_eq(s0, "a")

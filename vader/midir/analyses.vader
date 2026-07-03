@@ -14,7 +14,6 @@
 module "vader/midir"
 
 import "std/collections" { MutableMap, MutableSet, add }
-import "std/iter" { slice }
 
 // ---- successor / predecessor edges ---------------------------------------
 
@@ -162,7 +161,7 @@ export natural_loop_bodies :: fn(
         for s in back_edge_sources { stack.push(s) }
         for stack.len() > 0 {
             cur :: stack[stack.len() - 1]
-            stack = stack.slice(0, stack.len() - 1)
+            stack = stack[0..<stack.len() - 1]
             if body.contains(cur) { continue }
             body.add(cur)
             for p in preds[i32(cur)] {

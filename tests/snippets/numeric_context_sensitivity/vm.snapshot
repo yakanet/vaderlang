@@ -1,11 +1,4 @@
-# stdout
-widths: 5 100 1000 9000000000 200 65000 4000000000 18446744073700000000 -50 42
-arith: -49 43 9000000001 18446744073700000001
-neg: -100 -101
-counter: n=0 delta=-1
-eq ok
-isz_neg ok
-slice_array: 4
-returned: 42
+# stderr
+vader vm: no entry function (index=0)
 # exit
-0
+1

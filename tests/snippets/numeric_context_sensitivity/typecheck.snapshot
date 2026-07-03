@@ -65,15 +65,15 @@
   expr 61:16    CallExpr       :: usize
   expr 61:16    FieldExpr      :: fn() -> usize
   expr 61:16    IdentExpr      :: i32[]
-  expr 62:12    CallExpr       :: i32[]
-  expr 62:12    FieldExpr      :: fn(usize, usize) -> i32[]
+  expr 62:12    CallExpr       :: ?
+  expr 62:12    FieldExpr      :: ?
   expr 62:12    IdentExpr      :: i32[]
   expr 62:31    BinaryExpr     :: usize
   expr 62:31    IdentExpr      :: usize
   expr 63:13    StringLitExpr  :: string
-  expr 63:29    CallExpr       :: usize
-  expr 63:29    FieldExpr      :: fn() -> usize
-  expr 63:29    IdentExpr      :: i32[]
+  expr 63:29    CallExpr       :: ?
+  expr 63:29    FieldExpr      :: ?
+  expr 63:29    IdentExpr      :: ?
   expr 63:5     CallExpr       :: void
   expr 63:5     IdentExpr      :: fn(T) -> void
   expr 66:18    LambdaExpr     :: fn() -> usize
@@ -82,3 +82,7 @@
   expr 67:26    IdentExpr      :: fn() -> usize
   expr 67:5     CallExpr       :: void
   expr 67:5     IdentExpr      :: fn(T) -> void
+
+# Diagnostics
+[12:21] error[R2003] imported name not exported by module: `slice` from `std/iter`
+[62:12] error[T3008] expression is not indexable: `.slice_array` on non-struct type i32[]

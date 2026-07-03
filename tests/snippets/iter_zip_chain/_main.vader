@@ -1,13 +1,13 @@
 module "snippet"
 
 import "std/io" { println }
-import "std/iter" { count, collect, zip, chain, enumerate, flat_map }
+import "std/iter" { zip, chain, enumerate, flat_map }
 
 main :: fn() -> i32 {
     // count + collect on arrays — eager forms, no laziness yet.
     nums :: [10, 20, 30]
-    println("count=${count(nums)}")
-    cloned :: collect(nums)
+    println("count=${nums.len()}")
+    cloned :: nums.clone()
     println("clone[0]=${cloned[0]}")
 
     // zip — parallel arrays paired into tuples, stops at shorter length.

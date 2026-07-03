@@ -15,7 +15,6 @@
 module "vader/c_emit"
 
 import "std/string_builder" { StringBuilder, append_repeated }
-import "std/iter" { slice }
 import "std/abort" { unreachable }
 import "vader/bytecode" { BcFunction, ValType }
 import "std/collections" { MutableMap }
@@ -185,7 +184,7 @@ pop :: fn(s: FnState) -> StackVal {
     n :: s.stack.len()
     if n == 0 { return StackLit { .text = "0", .val = .I32 } }
     top :: s.stack[n - 1]
-    s.stack = s.stack.slice(0, n - 1)
+    s.stack = s.stack[0..<n - 1]
     return top
 }
 
@@ -195,7 +194,7 @@ pop :: fn(s: FnState) -> StackVal {
 drop_top :: fn(s: FnState) -> void {
     n :: s.stack.len()
     if n == 0 { return }
-    s.stack = s.stack.slice(0, n - 1)
+    s.stack = s.stack[0..<n - 1]
 }
 
 /// C-storage `ValType` of local slot `slot` — params occupy the first

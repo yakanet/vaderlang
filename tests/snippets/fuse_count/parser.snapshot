@@ -33,10 +33,6 @@
           {
             "name": "filter",
             "alias": null
-          },
-          {
-            "name": "count",
-            "alias": null
           }
         ]
       },
@@ -371,7 +367,7 @@
                     }
                   ]
                 },
-                "field": "count"
+                "field": "len"
               },
               "args": []
             }

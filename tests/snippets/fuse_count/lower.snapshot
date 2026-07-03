@@ -193,14 +193,7 @@
               arg1:
                 __off_13 :usize
     let c: usize =
-      call :usize
-        callee:
-          std_iter$std_iter$count__i32 :usize
-        arg0:
-          array :i32[]
-            int(10) :i32
-            int(20) :i32
-            int(30) :i32
+      LoweredArrayLen
     call :void
       callee:
         std_io$println__string :void

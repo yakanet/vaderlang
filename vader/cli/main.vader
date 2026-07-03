@@ -8,7 +8,6 @@ module "vader/cli"
 import "std/io" { println, eprintln, read_file_string, write_file_string, print }
 import "std/collections" { MutableMap }
 import "std/string" { starts_with, ends_with, trim_suffix, split, trim }
-import "std/iter" { slice as slice_arr }
 import "std/path" { to_posix, to_path, filename }
 import "std/process" { spawn, ProcessError }
 import "std/cli" { FlagSpec, parse_known, bool_flag, string_flag }
@@ -179,11 +178,7 @@ parse_include_path_flag :: fn(raw: string) -> string[] =
 
 main :: fn(argv: string[]) -> i32 {
     // argv[0] is the binary path ; meaningful args start at index 1.
-    // Explicit `1` because the typechecker's FreeInt repinning doesn't
-    // currently propagate through the `slice as slice_arr` import alias on
-    // generic-fn callees ; the literal stays `i32` and trips a tag mismatch
-    // when `slice`'s body indexes into `usize`-typed locals.
-    args :: argv.slice_arr(1, argv.len())
+    args :: argv[1..<argv.len()]
     if args.len() == 0 { return cmd_repl() }
 
     r :: parse_global_opts(args)
@@ -195,7 +190,7 @@ main :: fn(argv: string[]) -> i32 {
     if rest.len() == 0 { return cmd_repl() }
 
     cmd :: rest[0]
-    cmd_args :: rest.slice_arr(1, rest.len())
+    cmd_args :: rest[1..<rest.len()]
 
     if cmd == "--help" || cmd == "-h" || cmd == "help" {
         println(HELP)
@@ -245,7 +240,7 @@ cmd_run :: fn(args: string[]) -> i32 {
 
 // Build the executed program's argv from the `run` args. argv[0] is `path`
 // (`args[0]`, the program path, which the program skips via
-// `argv.slice_arr(1, ...)`); everything after it is forwarded as the program's
+// `argv[1..<...]`); everything after it is forwarded as the program's
 // own args. A `--` separator is optional — `parse_known` already strips it
 // while keeping the trailing tokens as positionals, so the args land here
 // either way:  vader run prog.virt -- dump --stage=bytecode main.vader
