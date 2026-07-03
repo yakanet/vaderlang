@@ -32,14 +32,7 @@ import "vader/lsp/analysis" {
     find_receiver_before_dot, find_binding_rhs_type_at, find_enclosing_call, enclosing_exprs,
 }
 AST :: import "vader/parser"
-
-/// Language keywords offered as completions. Mirrors
-/// `vader/lexer/keywords.vader::lookup_keyword` plus the `module` soft keyword.
-COMPLETION_KEYWORDS: const string[]: [
-    "fn", "struct", "trait", "implements", "enum", "if", "else", "match",
-    "is", "for", "in", "return", "defer", "break", "continue", "import",
-    "as", "export", "true", "false", "null", "self", "const", "module",
-]
+import "vader/lexer" { KEYWORDS }
 
 /// Build the completion response for the position in `params`. Returns a
 /// `CompletionList` (`{ isIncomplete, items }`) — empty when the document was
@@ -91,10 +84,15 @@ export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonVal
                 items.push(completion_item(imp.local_name, import_ci_kind(imp.local_name), "import \"${imp.module_path}\""))
             }
 
-            for kw in COMPLETION_KEYWORDS {
+            for kw in KEYWORDS {
                 if seen[kw] != null { continue }
                 seen[kw] = true
                 items.push(completion_item(kw, .Keyword, ""))
+            }
+            // `module` is a soft keyword — recognised contextually by the parser,
+            // not by the lexer keyword table, so it is not in `KEYWORDS`.
+            if seen["module"] == null {
+                items.push(completion_item("module", .Keyword, ""))
             }
 
             return completion_list(items)
