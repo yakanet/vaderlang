@@ -77,7 +77,34 @@ export intrinsic_op_for_symbol_name :: fn(symbol: Symbol) -> Op | null {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing" { assert, assert_eq }
+
+@test test_arms_pinned_to_manifest_grammar :: fn() -> void {
+    // Every arm's key must equal what `primitive_member_mangle` builds — a
+    // drift in the `$` grammar or segment order breaks this test instead of
+    // silently de-opting the op back to a plain Call at emit time. Keeps the
+    // fast literal cascade above, but pins all 28 arms to the one authority.
+    cases :: [
+        ["i32", "Add", "add"], ["i32", "Sub", "sub"], ["i32", "Mul", "mul"],
+        ["i32", "Div", "div"], ["i32", "Equals", "equals"],
+        ["i64", "Add", "add"], ["i64", "Sub", "sub"], ["i64", "Mul", "mul"],
+        ["i64", "Div", "div"], ["i64", "Equals", "equals"],
+        ["f64", "Add", "add"], ["f64", "Sub", "sub"], ["f64", "Mul", "mul"],
+        ["f64", "Div", "div"], ["f64", "Equals", "equals"],
+        ["bool", "Equals", "equals"], ["char", "Equals", "equals"],
+        ["string", "Equals", "equals"],
+        ["usize", "BufferAlloc", "new_buffer"],
+        ["Buffer", "ByteAccess", "load_u8"], ["Buffer", "ByteAccess", "store_u8"],
+        ["Buffer", "ByteAccess", "memory_copy"], ["Buffer", "ByteAccess", "intern_string"],
+        ["Buffer", "ByteAccess", "write_string"],
+        ["f64", "FloatBits", "to_bits"], ["u64", "BitsFloat", "from_bits"],
+        ["f32", "Float32Bits", "to_bits"], ["u32", "Bits32Float", "from_bits"],
+    ]
+    for c in cases {
+        m :: primitive_member_mangle(c[0], c[1], c[2])
+        assert(intrinsic_op_for_mangled(m) != null, "arm drifted from grammar: ${m}")
+    }
+}
 
 @test test_intrinsic_op_for_mangled_i32_add :: fn() -> void {
     op :: intrinsic_op_for_mangled(r"std_core$i32$Add$add")
