@@ -186,24 +186,40 @@ subst_from_concrete :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, args: 
 // `yield e` to the consumer. Nested combinators thread sinks so the whole chain
 // flattens to one loop.
 
+// One source loop of a generator combinator body — `[<prelude>] for <loopvar> in
+// <param> { <inner> }`, fused over `source` (the `descend_chain` of the arg bound
+// to that param). A combinator with more than one source param (`chain`) carries
+// the extra loops beyond the primary `self` loop in `GenComboLayer.extra_sources`.
+GenSourceBinding :: struct {
+    source:  IterChain      // the param's arg chain
+    loopvar: Symbol         // the loop's binding variable
+    inner:   AST.BlockExpr  // the loop body (contains the yield)
+    prelude: AST.Stmt[]     // counter `let`s ahead of this loop (take/skip/enumerate)
+}
+
 // The inlined body of a generator combinator layer, carried on `IterChain`.
 GenComboLayer :: struct {
     decl:        AST.FnDecl      // the generator combinator
     subst:       Substitution    // its instance substitution
     owner:       TypedProgram    // the module the generator is defined in
-    loopvar:     Symbol          // the body's `for <loopvar> in self` variable
-    inner:       AST.BlockExpr   // the for-loop body (contains the yield)
-    arg_sym:     Symbol | null   // the single non-self param's symbol ; null for a 0-arg combinator (`enumerate`)
-    arg_expr:    AST.Expr | null // the call's non-self argument (map's `f`, …) ; null for `enumerate`
+    loopvar:     Symbol          // the body's primary `for <loopvar> in self` variable
+    inner:       AST.BlockExpr   // the primary for-loop body (contains the yield)
+    arg_sym:     Symbol | null   // the single non-self DATA param's symbol (map's `f`) ; null for a 0-arg combinator (`enumerate`) or when the non-self param is itself a source (`chain`)
+    arg_expr:    AST.Expr | null // the call's non-self DATA argument (map's `f`, …) ; null as above
     output_elem: Type            // the combinator's yielded element type
-    prelude:     AST.Stmt[]      // counter `let`s ahead of the source loop (take/skip)
+    prelude:     AST.Stmt[]      // counter `let`s ahead of the primary source loop (take/skip/enumerate)
+    // Additional source loops beyond the primary `self` loop, in body order —
+    // one per extra source param (`chain`'s `other`). Empty for every single-
+    // source combinator (map / filter / take / skip / enumerate / flat_map).
+    extra_sources: GenSourceBinding[] = []
 }
 
 // Recognise `<recv>.gen_combinator(arg)` (UFCS) or `gen_combinator(<recv>, arg)`
-// where the callee is an `@generator` fn `(self: Iterator<T>, arg) -> Iterator<U>`
-// whose body is `for <lv> in self { <inner> }`. Returns a `Generator` chain layer
-// whose source is `descend_chain(<recv>)`, else null (the call isn't a fusible
-// combinator — the chain falls back to the generic boxed-iterator for-in path).
+// where the callee is an `@generator` fn whose body is one or more `for <lv> in
+// <param> { <inner> }` source loops (map/filter/take/skip/enumerate: one loop over
+// `self` ; `chain`: two, over `self` and `other`). Returns a `Generator` chain
+// layer whose primary source is `descend_chain(<recv>)` and whose extra source
+// params fuse independently, else null (the chain falls back to the boxed path).
 try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | null {
     fluent :: unpack_fluent_combinator(ctx, call)
     if fluent is null { return null }
@@ -214,29 +230,66 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
     decl :: owner.fn_decls[callee_sym.id]
     if decl is null { return null }
     if !fn_is_generator(decl) { return null }
-    // v1: `self` plus zero (`enumerate`) or one (map/filter/take/skip) non-self param.
+    // v1: `self` plus zero (`enumerate`) or one (map/filter/take/skip/chain) non-self param.
     if decl.params.len() != 1 && decl.params.len() != 2 { return null }
-    loop_info :: extract_gen_source_loop(decl)
-    if loop_info is null { return null }
+    loops :: extract_gen_source_loops(decl)
+    if loops is null { return null }
+
+    // The primary loop iterates `self` (param 0) ; its source is the receiver.
+    primary :: find_source_loop(loops, 0)
+    if primary is null { return null }
     source :: descend_chain(ctx, fluent.receiver)
     if source is null { return null }
-    subst_opt :: gen_combo_subst(ctx, decl, owner, callee_sym, fluent.receiver, fluent.fn_arg, chain_element_type(source))
+    primary_loopvar :: lookup_local_symbol(ctx.project, owner.resolved, primary.loopvar_span)
+    if primary_loopvar is null { return null }
+
+    // Classify the non-self param (param 1, if any): a SOURCE — its own loop, as in
+    // `chain`'s `other` — fuses as an extra source ; otherwise it's DATA (map's `f`,
+    // take's `n`), bound once ahead of the loops.
+    param1_loop :: find_source_loop(loops, 1)
+    // The non-self param is DATA (map's `f`, take's `n`) unless it has its own source
+    // loop — `chain`'s `other`, which fuses as an extra source instead.
+    arg_is_data :: decl.params.len() == 2 && param1_loop is null
+    extra_sources: GenSourceBinding[] = []
+    if param1_loop is GenSourceLoop as sl {
+        other_expr :: fluent.fn_arg
+        if other_expr is null { return null }
+        other_src :: descend_chain(ctx, other_expr)
+        if other_src is null { return null }
+        other_loopvar :: lookup_local_symbol(ctx.project, owner.resolved, sl.loopvar_span)
+        if other_loopvar is null { return null }
+        extra_sources.push(GenSourceBinding {
+            .source = other_src, .loopvar = other_loopvar, .inner = sl.inner, .prelude = sl.prelude,
+        })
+    }
+    // No 3-source combinator exists — reject any loop over param ≥ 2.
+    if loops.len() > 1 + extra_sources.len() { return null }
+
+    // The non-self DATA arg (null for a 0-arg / all-source combinator) — seeds the
+    // instance subst (map/filter's transform carries the element concretely) and is
+    // bound once ahead of the loops.
+    data_arg :: if arg_is_data { fluent.fn_arg } else { null }
+    subst_opt :: gen_combo_subst(ctx, decl, owner, callee_sym, fluent.receiver, data_arg, chain_element_type(source))
     if subst_opt is null { return null }
-    loopvar :: lookup_local_symbol(ctx.project, owner.resolved, loop_info.loopvar_span)
-    if loopvar is null { return null }
-    // The single non-self param's symbol — null for a 0-arg combinator (`enumerate`).
-    arg_sym :: combinator_arg_sym(ctx, decl, owner)
-    if decl.params.len() == 2 && arg_sym is null { return null }
+    arg_sym :: if arg_is_data { combinator_arg_sym(ctx, decl, owner) } else { null }
+    if arg_is_data && arg_sym is null { return null }
+
     // Direction A: the call result is the concrete `__genstate_<fn>` struct, not
     // `Iterator<U>` — take the yielded element from the registered element.
     output_elem :: genstate_element(ctx.typed, decl.name, subst_opt)
     if output_elem is null { return null }
     return mk_generator_chain(source, GenComboLayer {
         .decl = decl, .subst = subst_opt, .owner = owner,
-        .loopvar = loopvar, .inner = loop_info.inner,
-        .arg_sym = arg_sym, .arg_expr = fluent.fn_arg, .output_elem = output_elem,
-        .prelude = loop_info.prelude,
+        .loopvar = primary_loopvar, .inner = primary.inner,
+        .arg_sym = arg_sym, .arg_expr = data_arg, .output_elem = output_elem,
+        .prelude = primary.prelude, .extra_sources = extra_sources,
     }, call.span)
+}
+
+// The source loop over param `param_index`, or null when no loop iterates it.
+find_source_loop :: fn(loops: GenSourceLoop[], param_index: usize) -> GenSourceLoop | null {
+    for l in loops { if l.param_index == param_index { return l } }
+    return null
 }
 
 // The symbol of a combinator's single non-self param (`decl.params[1]`), or null
@@ -246,30 +299,53 @@ combinator_arg_sym :: fn(ctx: FnLowerCtx, decl: AST.FnDecl, owner: TypedProgram)
     return lookup_local_symbol(ctx.project, owner.resolved, decl.params[1].span)
 }
 
-// The `for <loopvar> in <self-param>` loop that forms a generator combinator's
-// body. Returns the loop-var span + the loop body, or null when the body isn't a
-// single for-loop over the first param (Increment 3 handles that shape only).
-// A generator combinator's `[<prelude>] for <lv> in self { <inner> }` shape. The
-// `prelude` is the run of statements before the source loop — a leading counter
-// `let` for `take`/`skip` (`i: usize = 0`), empty for `map`/`filter`.
-GenSourceLoop :: struct { loopvar_span: Span, inner: AST.BlockExpr, prelude: AST.Stmt[] }
+// One source loop of a generator combinator body, tagged with the PARAM it
+// iterates. `prelude` is the run of non-loop statements ahead of it — a leading
+// counter `let` for `take`/`skip`/`enumerate` (`i: usize = 0`), empty otherwise.
+GenSourceLoop :: struct { param_index: usize, loopvar_span: Span, inner: AST.BlockExpr, prelude: AST.Stmt[] }
 
-extract_gen_source_loop :: fn(decl: AST.FnDecl) -> GenSourceLoop | null {
+// Split a generator combinator body into its ordered source loops. Each top-level
+// `for <lv> in <param_k> { <inner> }` statement is a source loop over param k ;
+// every other statement (a counter `let`) accrues as the `prelude` of the NEXT
+// loop. Null when the body dangles statements after its last loop, or has no loop
+// at all — shapes the fusion doesn't model. map/filter/take/skip/enumerate yield a
+// single loop over `self` ; `chain` yields two (over `self` and `other`).
+extract_gen_source_loops :: fn(decl: AST.FnDecl) -> GenSourceLoop[] | null {
     body :: decl.body
     if body is null { return null }
     if body.trailing != null { return null }
     if body.stmts.len() == 0 { return null }
-    self_name :: decl.params[0].name
-    // The LAST statement must be `for <lv> in self { <inner> }` ; everything before
-    // is the prelude (a counter `let` initialised once ahead of the loop).
-    last :: body.stmts[body.stmts.len() - 1]
-    if last is AST.ForStmt as fs {
+    loops: GenSourceLoop[] = []
+    pending: AST.Stmt[] = []
+    for stmt in body.stmts {
+        matched :: match_source_loop(stmt, decl)
+        if matched is GenSourceLoop as sl {
+            loops.push(GenSourceLoop {
+                .param_index = sl.param_index, .loopvar_span = sl.loopvar_span,
+                .inner = sl.inner, .prelude = pending,
+            })
+            pending = []
+        } else {
+            pending.push(stmt)
+        }
+    }
+    // A dangling prelude after the last loop isn't a fusible shape.
+    if pending.len() > 0 { return null }
+    if loops.len() == 0 { return null }
+    return loops
+}
+
+// The source loop `stmt` forms — `for <lv> in <param_k> { <inner> }`, tagged with
+// param k — or null when it isn't a top-level loop over one of `decl`'s params. The
+// returned `prelude` is empty ; the caller fills it with the preceding non-loop run.
+match_source_loop :: fn(stmt: AST.Stmt, decl: AST.FnDecl) -> GenSourceLoop | null {
+    if stmt is AST.ForStmt as fs {
         if fs.form is AST.InFor as inf {
             if inf.iter is AST.IdentExpr as it {
-                if it.name == self_name {
-                    prelude: AST.Stmt[] = []
-                    for i in 0..<(body.stmts.len() - 1) { prelude.push(body.stmts[i]) }
-                    return GenSourceLoop { .loopvar_span = inf.binding_span, .inner = fs.body, .prelude = prelude }
+                for i in 0..<decl.params.len() {
+                    if decl.params[i].name == it.name {
+                        return GenSourceLoop { .param_index = i, .loopvar_span = inf.binding_span, .inner = fs.body, .prelude = [] }
+                    }
                 }
             }
         }
@@ -342,10 +418,11 @@ gen_combo_subst :: fn(
     return null
 }
 
-// Emit a `Generator` chain layer: the source recursion binds the combinator's
-// loop var to each source element and runs the combinator's inner body, whose
-// `yield e` routes (via the gen-ctx sink) to the OUTER template's binding + body.
-// The single non-self param (map's `f`, …) binds once ahead of the loop.
+// Emit a `Generator` chain layer: each source loop binds its loop var to every
+// source element and runs the combinator's inner body, whose `yield e` routes (via
+// the shared gen-ctx sink) to the OUTER template's binding + body. The single non-
+// self DATA param (map's `f`, …) binds once ahead ; multi-source combinators
+// (`chain`) fuse each source loop in body order, all into the same sink.
 emit_fused_gen_combinator :: fn(
     ctx: FnLowerCtx, chain: IterChain, loop_label: string | null, outer_span: Span,
     template: BodyTemplate,
@@ -356,8 +433,8 @@ emit_fused_gen_combinator :: fn(
     if src is null { return [] }
     if layer is null { return [] }
 
-    // Lower the combinator's inner body in its own gen-ctx (owner module + instance
-    // subst), with the OUTER template installed as the yield sink.
+    // Shared gen-ctx (owner module + instance subst) with the OUTER template installed
+    // as the yield sink — every source loop routes its yields to the same consumer body.
     gen_return :: substitute(return_type_of(layer.decl, make_entry_types(layer.owner, layer.subst)), layer.subst)
     gen_ctx :: new_fn_lower_ctx(ctx.project, stub_entry(layer.decl, layer.owner), layer.owner, layer.subst, gen_return, null)
     gen_ctx.gen_inline_sink = GenInlineSink {
@@ -366,36 +443,49 @@ emit_fused_gen_combinator :: fn(
         .element_type = template.element_type,
         .body = template.user_body,
     }
-    inner_lowered :: recurse(gen_ctx, layer.inner)
+
+    out: LoweredStmt[] = []
+    // Bind the combinator's single non-self DATA arg (map's `f`, take's `n`) once,
+    // ahead of the loops. A 0-arg / all-source combinator (enumerate / chain) has none.
+    arg_expr :: layer.arg_expr
+    arg_sym :: layer.arg_sym
+    if arg_expr != null && arg_sym != null {
+        arg_lowered :: recurse(ctx, arg_expr)
+        out.push(LoweredLet {
+            .span = chain.span, .name = arg_sym.name, .symbol = arg_sym,
+            .type = type_of(arg_lowered), .value = arg_lowered,
+        })
+    }
+    // The primary `self` loop, then each extra source loop (chain's `other`), fused
+    // in body order — all binding into the shared sink.
+    primary_binding :: GenSourceBinding { .source = src, .loopvar = layer.loopvar, .inner = layer.inner, .prelude = layer.prelude }
+    out.push_all(fuse_source_loop(ctx, gen_ctx, primary_binding, loop_label, outer_span, chain.span, recurse))
+    for extra in layer.extra_sources {
+        out.push_all(fuse_source_loop(ctx, gen_ctx, extra, loop_label, outer_span, chain.span, recurse))
+    }
+    return out
+}
+
+// Fuse one source loop of a generator combinator: lower its inner body in the
+// shared gen-ctx (yields route to the installed sink), then emit its prelude (a
+// counter `let`, sibling of the loop so inner counter refs resolve) followed by the
+// fused source loop binding the loop var to each element.
+fuse_source_loop :: fn(
+    ctx: FnLowerCtx, gen_ctx: FnLowerCtx, binding: GenSourceBinding, loop_label: string | null,
+    outer_span: Span, span: Span, recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+) -> LoweredStmt[] {
+    inner_lowered :: recurse(gen_ctx, binding.inner)
     if inner_lowered is LoweredBlock as inner_block {
-        // The source binds the combinator's loop var to each element and runs the
-        // (yield-routed) inner body — recursing the chain (a source that is itself
-        // a generator combinator fuses the same way).
         inner_template :: BodyTemplate {
-            .binding_name = layer.loopvar.name,
-            .binding_symbol = layer.loopvar,
-            .element_type = chain_element_type(src),
+            .binding_name = binding.loopvar.name,
+            .binding_symbol = binding.loopvar,
+            .element_type = chain_element_type(binding.source),
             .user_body = inner_block,
         }
-        source_stmts :: emit_fused_chain(ctx, src, loop_label, outer_span, inner_template, recurse)
+        source_stmts :: emit_fused_chain(ctx, binding.source, loop_label, outer_span, inner_template, recurse)
         out: LoweredStmt[] = []
-        // Bind the combinator's single non-self arg (map's `f`, take's `n`) once,
-        // ahead of the source loop. A 0-arg combinator (`enumerate`) has none.
-        arg_expr :: layer.arg_expr
-        arg_sym :: layer.arg_sym
-        if arg_expr != null && arg_sym != null {
-            arg_lowered :: recurse(ctx, arg_expr)
-            out.push(LoweredLet {
-                .span = chain.span, .name = arg_sym.name, .symbol = arg_sym,
-                .type = type_of(arg_lowered), .value = arg_lowered,
-            })
-        }
-        // Emit the combinator's prelude (take/skip's counter `let`s) ONCE, ahead of
-        // the source loop — lowered in the gen-ctx so the inner body's counter refs
-        // resolve. Extract the block's stmts so the counter is a sibling of the loop
-        // (visible inside its body), not scoped to a nested block.
-        if layer.prelude.len() > 0 {
-            prelude_expr: AST.Expr = AST.BlockExpr { .span = chain.span, .stmts = layer.prelude, .trailing = null }
+        if binding.prelude.len() > 0 {
+            prelude_expr: AST.Expr = AST.BlockExpr { .span = span, .stmts = binding.prelude, .trailing = null }
             prelude_lowered :: recurse(gen_ctx, prelude_expr)
             if prelude_lowered is LoweredBlock as pb { out.push_all(pb.stmts) }
         }

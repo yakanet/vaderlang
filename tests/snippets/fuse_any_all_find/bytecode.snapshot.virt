@@ -3,15 +3,15 @@ type 0 primitive null
 type 1 primitive i32
 type 2 struct __lambda_env_4 {  }
 type 3 primitive bool
-type 4 struct __lambda_env_10 {  }
+type 4 struct __lambda_env_7 {  }
 type 5 struct __lambda_env_15 {  }
-type 6 struct __lambda_env_21 {  }
+type 6 struct __lambda_env_18 {  }
 type 7 struct __lambda_env_26 {  }
-type 8 struct __lambda_env_32 {  }
+type 8 struct __lambda_env_29 {  }
 type 9 struct __lambda_env_39 {  }
-type 10 struct __lambda_env_45 {  }
+type 10 struct __lambda_env_42 {  }
 type 11 struct __lambda_env_52 {  }
-type 12 struct __lambda_env_58 {  }
+type 12 struct __lambda_env_55 {  }
 type 13 primitive usize
 type 14 struct std_core$Buffer {  }
 type 15 primitive string
@@ -41,9 +41,9 @@ fn 0 snippet$main () -> i32
   local xs ref
   local __acc_0 bool
   local f ref
-  local __fuse_arr_3 ref
-  local __fuse_len_4 usize
-  local __fuse_i_5 usize
+  local __fuse_arr_4 ref
+  local __fuse_len_5 usize
+  local __fuse_i_6 usize
   local __elem_1 i32
   local $closure_24 ref
   local $k_27 usize
@@ -428,7 +428,7 @@ fn 1 __lambda_3 (ref,i32) -> bool
   return
 end
 
-fn 2 __lambda_9 (ref,i32) -> i32
+fn 2 __lambda_6 (ref,i32) -> i32
   local.get 1
   i32.const 2
   i32.mul
@@ -442,7 +442,7 @@ fn 3 __lambda_14 (ref,i32) -> bool
   return
 end
 
-fn 4 __lambda_20 (ref,i32) -> bool
+fn 4 __lambda_17 (ref,i32) -> bool
   local.get 1
   i32.const 0
   i32.gt
@@ -461,7 +461,7 @@ fn 5 __lambda_25 (ref,i32) -> bool
   return
 end
 
-fn 6 __lambda_31 (ref,i32) -> i32
+fn 6 __lambda_28 (ref,i32) -> i32
   local.get 1
   i32.const 2
   i32.mul
@@ -475,7 +475,7 @@ fn 7 __lambda_38 (ref,i32) -> bool
   return
 end
 
-fn 8 __lambda_44 (ref,i32) -> i32
+fn 8 __lambda_41 (ref,i32) -> i32
   local.get 1
   i32.const 10
   i32.mul
@@ -489,7 +489,7 @@ fn 9 __lambda_51 (ref,i32) -> bool
   return
 end
 
-fn 10 __lambda_57 (ref,i32) -> bool
+fn 10 __lambda_54 (ref,i32) -> bool
   local.get 1
   i32.const 100
   i32.gt

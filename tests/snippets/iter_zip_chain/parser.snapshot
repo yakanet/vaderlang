@@ -420,48 +420,35 @@
             }
           },
           {
-            "kind": "LetStmt",
-            "mutable": false,
-            "binding": {
-              "kind": "SimpleBinding",
-              "name": "joined"
-            },
-            "type": null,
-            "value": {
-              "kind": "CallExpr",
-              "callee": {
-                "kind": "IdentExpr",
-                "name": "chain"
-              },
-              "args": [
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "IdentExpr",
-                    "name": "head"
-                  },
-                  "spread": false
-                },
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "IdentExpr",
-                    "name": "tail"
-                  },
-                  "spread": false
-                }
-              ]
-            }
-          },
-          {
             "kind": "ForStmt",
             "label": null,
             "form": {
               "kind": "in",
               "binding": "x",
               "iter": {
-                "kind": "IdentExpr",
-                "name": "joined"
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "chain"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IdentExpr",
+                      "name": "head"
+                    },
+                    "spread": false
+                  },
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IdentExpr",
+                      "name": "tail"
+                    },
+                    "spread": false
+                  }
+                ]
               }
             },
             "body": {
@@ -545,7 +532,7 @@
             "label": null,
             "form": {
               "kind": "in",
-              "binding": "__for_31_5",
+              "binding": "__for_30_5",
               "iter": {
                 "kind": "CallExpr",
                 "callee": {
@@ -581,7 +568,7 @@
                   "type": null,
                   "value": {
                     "kind": "IdentExpr",
-                    "name": "__for_31_5"
+                    "name": "__for_30_5"
                   }
                 }
               ],

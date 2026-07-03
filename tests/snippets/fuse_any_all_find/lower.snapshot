@@ -15,17 +15,17 @@
         let __acc_0: bool = false
         let f: fn(i32) -> i32 =
           LoweredMakeClosure
-        let __fuse_arr_3: i32[] = xs :i32[]
-        let __fuse_len_4: usize =
+        let __fuse_arr_4: i32[] = xs :i32[]
+        let __fuse_len_5: usize =
           LoweredArrayLen
-        let __fuse_i_5: usize = int(0) :usize
+        let __fuse_i_6: usize = int(0) :usize
         loop while (<…>)
           let x: i32 =
             index :i32
               on:
-                __fuse_arr_3 :i32[]
+                __fuse_arr_4 :i32[]
               ix:
-                __fuse_i_5 :usize
+                __fuse_i_6 :usize
           let __elem_1: i32 =
             call :i32
               callee:
@@ -48,11 +48,11 @@
               break
           assign
             target:
-              __fuse_i_5 :usize
+              __fuse_i_6 :usize
             value:
               add :usize
                 l:
-                  __fuse_i_5 :usize
+                  __fuse_i_6 :usize
                 r:
                   int(1) :usize
         ~>
@@ -62,17 +62,17 @@
         let __acc_7: bool = true
         let pred: fn(i32) -> bool =
           LoweredMakeClosure
-        let __fuse_arr_10: i32[] = xs :i32[]
-        let __fuse_len_11: usize =
+        let __fuse_arr_11: i32[] = xs :i32[]
+        let __fuse_len_12: usize =
           LoweredArrayLen
-        let __fuse_i_12: usize = int(0) :usize
+        let __fuse_i_13: usize = int(0) :usize
         loop while (<…>)
           let x: i32 =
             index :i32
               on:
-                __fuse_arr_10 :i32[]
+                __fuse_arr_11 :i32[]
               ix:
-                __fuse_i_12 :usize
+                __fuse_i_13 :usize
           if :void
             cond:
               call :bool
@@ -99,11 +99,11 @@
                   break
           assign
             target:
-              __fuse_i_12 :usize
+              __fuse_i_13 :usize
             value:
               add :usize
                 l:
-                  __fuse_i_12 :usize
+                  __fuse_i_13 :usize
                 r:
                   int(1) :usize
         ~>
@@ -113,17 +113,17 @@
         let __acc_14: bool = true
         let f: fn(i32) -> i32 =
           LoweredMakeClosure
-        let __fuse_arr_17: i32[] = xs :i32[]
-        let __fuse_len_18: usize =
+        let __fuse_arr_18: i32[] = xs :i32[]
+        let __fuse_len_19: usize =
           LoweredArrayLen
-        let __fuse_i_19: usize = int(0) :usize
+        let __fuse_i_20: usize = int(0) :usize
         loop while (<…>)
           let x: i32 =
             index :i32
               on:
-                __fuse_arr_17 :i32[]
+                __fuse_arr_18 :i32[]
               ix:
-                __fuse_i_19 :usize
+                __fuse_i_20 :usize
           let __elem_15: i32 =
             call :i32
               callee:
@@ -147,11 +147,11 @@
               break
           assign
             target:
-              __fuse_i_19 :usize
+              __fuse_i_20 :usize
             value:
               add :usize
                 l:
-                  __fuse_i_19 :usize
+                  __fuse_i_20 :usize
                 r:
                   int(1) :usize
         ~>
@@ -259,17 +259,17 @@
         let __find_23: i32 | null = null
         let f: fn(i32) -> i32 =
           LoweredMakeClosure
-        let __fuse_arr_26: i32[] = xs :i32[]
-        let __fuse_len_27: usize =
+        let __fuse_arr_27: i32[] = xs :i32[]
+        let __fuse_len_28: usize =
           LoweredArrayLen
-        let __fuse_i_28: usize = int(0) :usize
+        let __fuse_i_29: usize = int(0) :usize
         loop while (<…>)
           let x: i32 =
             index :i32
               on:
-                __fuse_arr_26 :i32[]
+                __fuse_arr_27 :i32[]
               ix:
-                __fuse_i_28 :usize
+                __fuse_i_29 :usize
           let __elem_24: i32 =
             call :i32
               callee:
@@ -292,11 +292,11 @@
               break
           assign
             target:
-              __fuse_i_28 :usize
+              __fuse_i_29 :usize
             value:
               add :usize
                 l:
-                  __fuse_i_28 :usize
+                  __fuse_i_29 :usize
                 r:
                   int(1) :usize
         ~>
@@ -367,17 +367,17 @@
         let __find_32: i32 | null = null
         let pred: fn(i32) -> bool =
           LoweredMakeClosure
-        let __fuse_arr_35: i32[] = xs :i32[]
-        let __fuse_len_36: usize =
+        let __fuse_arr_36: i32[] = xs :i32[]
+        let __fuse_len_37: usize =
           LoweredArrayLen
-        let __fuse_i_37: usize = int(0) :usize
+        let __fuse_i_38: usize = int(0) :usize
         loop while (<…>)
           let x: i32 =
             index :i32
               on:
-                __fuse_arr_35 :i32[]
+                __fuse_arr_36 :i32[]
               ix:
-                __fuse_i_37 :usize
+                __fuse_i_38 :usize
           if :void
             cond:
               call :bool
@@ -403,11 +403,11 @@
                   break
           assign
             target:
-              __fuse_i_37 :usize
+              __fuse_i_38 :usize
             value:
               add :usize
                 l:
-                  __fuse_i_37 :usize
+                  __fuse_i_38 :usize
                 r:
                   int(1) :usize
         ~>
@@ -482,8 +482,8 @@
           x :i32
         r:
           int(8) :i32
-  struct __lambda_env_10 {  }
-  fn __lambda_9(__env_6: __lambda_env_10, x: i32) -> i32
+  struct __lambda_env_7 {  }
+  fn __lambda_6(__env_3: __lambda_env_7, x: i32) -> i32
     ~>
       mul :i32
         l:
@@ -498,8 +498,8 @@
           x :i32
         r:
           int(4) :i32
-  struct __lambda_env_21 {  }
-  fn __lambda_20(__env_13: __lambda_env_21, x: i32) -> bool
+  struct __lambda_env_18 {  }
+  fn __lambda_17(__env_10: __lambda_env_18, x: i32) -> bool
     ~>
       gt :bool
         l:
@@ -518,8 +518,8 @@
               int(2) :i32
         r:
           int(0) :i32
-  struct __lambda_env_32 {  }
-  fn __lambda_31(__env_20: __lambda_env_32, x: i32) -> i32
+  struct __lambda_env_29 {  }
+  fn __lambda_28(__env_17: __lambda_env_29, x: i32) -> i32
     ~>
       mul :i32
         l:
@@ -534,8 +534,8 @@
           x :i32
         r:
           int(25) :i32
-  struct __lambda_env_45 {  }
-  fn __lambda_44(__env_29: __lambda_env_45, x: i32) -> i32
+  struct __lambda_env_42 {  }
+  fn __lambda_41(__env_26: __lambda_env_42, x: i32) -> i32
     ~>
       mul :i32
         l:
@@ -550,8 +550,8 @@
           x :i32
         r:
           int(0) :i32
-  struct __lambda_env_58 {  }
-  fn __lambda_57(__env_38: __lambda_env_58, x: i32) -> bool
+  struct __lambda_env_55 {  }
+  fn __lambda_54(__env_35: __lambda_env_55, x: i32) -> bool
     ~>
       gt :bool
         l:

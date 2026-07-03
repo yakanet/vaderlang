@@ -18,11 +18,10 @@ main :: fn() -> i32 {
         println("${k}=${v}")
     }
 
-    // chain — concatenate two arrays.
+    // chain — concatenate two streams, consumed directly (fuses to two loops).
     head :: [1, 2, 3]
     tail :: [4, 5]
-    joined :: chain(head, tail)
-    for x in joined {
+    for x in chain(head, tail) {
         println("j=${x}")
     }
 

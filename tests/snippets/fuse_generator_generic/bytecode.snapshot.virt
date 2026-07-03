@@ -1,8 +1,8 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 struct __lambda_env_7 {  }
-type 3 struct __lambda_env_15 {  }
+type 2 struct __lambda_env_4 {  }
+type 3 struct __lambda_env_12 {  }
 type 4 primitive bool
 type 5 primitive usize
 type 6 struct std_core$Buffer {  }
@@ -24,9 +24,9 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local f ref
-  local __fuse_arr_2 ref
-  local __fuse_len_3 usize
-  local __fuse_i_4 usize
+  local __fuse_arr_3 ref
+  local __fuse_len_4 usize
+  local __fuse_i_5 usize
   local v i32
   local __buf_0 ref
   local __off_1 usize
@@ -157,14 +157,14 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 __lambda_6 (ref,i32) -> i32
+fn 1 __lambda_3 (ref,i32) -> i32
   local.get 1
   i32.const 10
   i32.mul
   return
 end
 
-fn 2 __lambda_14 (ref,i32) -> bool
+fn 2 __lambda_11 (ref,i32) -> bool
   local $mod_3 i32
   local.get 1
   i32.const 2
