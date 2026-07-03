@@ -23,7 +23,6 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
-  Iterator<T>
   Iterator<U>
   Iterator<T>
   Iterator<T>
@@ -32,6 +31,7 @@
   Iterator<T>
   Iterator<T>
   Iterator<U>
+  Iterator<T>
   Iterator<T>
   Iterator<T>
   Iterator<T>
@@ -44,7 +44,6 @@
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>

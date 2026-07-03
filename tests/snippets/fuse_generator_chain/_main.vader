@@ -25,10 +25,10 @@ my_filter :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> Iterator<T> {
 
 main :: fn() -> i32 {
     // single combinator over a concrete `arr.iter()` receiver (UFCS)
-    for v in [1, 2, 3, 4, 5].iter().my_map((x: i32) -> x * 10) { println("m ${v}") }
-    for v in [1, 2, 3, 4, 5].iter().my_filter((x: i32) -> x % 2 == 1) { println("f ${v}") }
+    for v in [1, 2, 3, 4, 5].my_map((x: i32) -> x * 10) { println("m ${v}") }
+    for v in [1, 2, 3, 4, 5].my_filter((x: i32) -> x % 2 == 1) { println("f ${v}") }
     // nested direct-call chain: my_filter(my_map(...)) — fuses end to end
-    for v in my_filter(my_map([1, 2, 3, 4, 5, 6].iter(), (x: i32) -> x + 1), (x: i32) -> x % 2 == 0) {
+    for v in my_filter(my_map([1, 2, 3, 4, 5, 6], (x: i32) -> x + 1), (x: i32) -> x % 2 == 0) {
         println("c ${v}")
     }
     return 0

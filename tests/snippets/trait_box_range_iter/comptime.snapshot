@@ -29,7 +29,6 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
-  ArrayIterator<T>
   Doubler<i32>
   Doubler<T>
   Doubler<T>

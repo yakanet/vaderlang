@@ -12,7 +12,7 @@ import "std/iter" { map, filter, collect }
 
 main :: fn() -> i32 {
     // map + filter + collect over an array source — one flat loop.
-    ys :: [1, 2, 3, 4, 5, 6].iter().map((x: i32) -> x * 2).filter((x: i32) -> x > 6).collect()
+    ys :: [1, 2, 3, 4, 5, 6].map((x: i32) -> x * 2).filter((x: i32) -> x > 6).collect()
     println("len ${ys.len()} [0]=${ys[0]} [1]=${ys[1]} [2]=${ys[2]}")   // [8,10,12]
 
     // filter + collect over an integer-range source.

@@ -72,41 +72,33 @@
                       "callee": {
                         "kind": "FieldExpr",
                         "target": {
-                          "kind": "CallExpr",
-                          "callee": {
-                            "kind": "FieldExpr",
-                            "target": {
-                              "kind": "SeqLitExpr",
-                              "elements": [
-                                {
-                                  "kind": "IntLitExpr",
-                                  "value": "1n"
-                                },
-                                {
-                                  "kind": "IntLitExpr",
-                                  "value": "2n"
-                                },
-                                {
-                                  "kind": "IntLitExpr",
-                                  "value": "3n"
-                                },
-                                {
-                                  "kind": "IntLitExpr",
-                                  "value": "4n"
-                                },
-                                {
-                                  "kind": "IntLitExpr",
-                                  "value": "5n"
-                                },
-                                {
-                                  "kind": "IntLitExpr",
-                                  "value": "6n"
-                                }
-                              ]
+                          "kind": "SeqLitExpr",
+                          "elements": [
+                            {
+                              "kind": "IntLitExpr",
+                              "value": "1n"
                             },
-                            "field": "iter"
-                          },
-                          "args": []
+                            {
+                              "kind": "IntLitExpr",
+                              "value": "2n"
+                            },
+                            {
+                              "kind": "IntLitExpr",
+                              "value": "3n"
+                            },
+                            {
+                              "kind": "IntLitExpr",
+                              "value": "4n"
+                            },
+                            {
+                              "kind": "IntLitExpr",
+                              "value": "5n"
+                            },
+                            {
+                              "kind": "IntLitExpr",
+                              "value": "6n"
+                            }
+                          ]
                         },
                         "field": "map"
                       },

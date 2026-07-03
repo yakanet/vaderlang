@@ -30,13 +30,9 @@
   expr 26:19    IdentExpr      :: fn(i32) -> i32
   expr 31:10    CallExpr       :: i32
   expr 31:10    IdentExpr      :: fn(Iterator<i32>) -> i32
-  expr 31:25    CallExpr       :: ArrayIterator<i32>
-  expr 31:25    FieldExpr      :: fn() -> ArrayIterator<i32>
   expr 31:25    SeqLitExpr     :: i32[]
   expr 32:10    CallExpr       :: i32[]
   expr 32:10    IdentExpr      :: fn(Iterator<i32>) -> i32[]
-  expr 32:16    CallExpr       :: ArrayIterator<i32>
-  expr 32:16    FieldExpr      :: fn() -> ArrayIterator<i32>
   expr 32:16    SeqLitExpr     :: i32[]
   expr 33:13    StringLitExpr  :: string
   expr 33:20    IdentExpr      :: i32

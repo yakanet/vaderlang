@@ -27,8 +27,6 @@
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<i32>
-  ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>

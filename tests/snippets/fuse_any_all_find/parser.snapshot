@@ -118,16 +118,8 @@
                   "callee": {
                     "kind": "FieldExpr",
                     "target": {
-                      "kind": "CallExpr",
-                      "callee": {
-                        "kind": "FieldExpr",
-                        "target": {
-                          "kind": "IdentExpr",
-                          "name": "xs"
-                        },
-                        "field": "iter"
-                      },
-                      "args": []
+                      "kind": "IdentExpr",
+                      "name": "xs"
                     },
                     "field": "map"
                   },
@@ -227,16 +219,8 @@
                   "callee": {
                     "kind": "FieldExpr",
                     "target": {
-                      "kind": "CallExpr",
-                      "callee": {
-                        "kind": "FieldExpr",
-                        "target": {
-                          "kind": "IdentExpr",
-                          "name": "xs"
-                        },
-                        "field": "iter"
-                      },
-                      "args": []
+                      "kind": "IdentExpr",
+                      "name": "xs"
                     },
                     "field": "filter"
                   },
@@ -336,16 +320,8 @@
                   "callee": {
                     "kind": "FieldExpr",
                     "target": {
-                      "kind": "CallExpr",
-                      "callee": {
-                        "kind": "FieldExpr",
-                        "target": {
-                          "kind": "IdentExpr",
-                          "name": "xs"
-                        },
-                        "field": "iter"
-                      },
-                      "args": []
+                      "kind": "IdentExpr",
+                      "name": "xs"
                     },
                     "field": "map"
                   },
@@ -507,16 +483,8 @@
                   "callee": {
                     "kind": "FieldExpr",
                     "target": {
-                      "kind": "CallExpr",
-                      "callee": {
-                        "kind": "FieldExpr",
-                        "target": {
-                          "kind": "IdentExpr",
-                          "name": "xs"
-                        },
-                        "field": "iter"
-                      },
-                      "args": []
+                      "kind": "IdentExpr",
+                      "name": "xs"
                     },
                     "field": "map"
                   },
@@ -692,16 +660,8 @@
                   "callee": {
                     "kind": "FieldExpr",
                     "target": {
-                      "kind": "CallExpr",
-                      "callee": {
-                        "kind": "FieldExpr",
-                        "target": {
-                          "kind": "IdentExpr",
-                          "name": "xs"
-                        },
-                        "field": "iter"
-                      },
-                      "args": []
+                      "kind": "IdentExpr",
+                      "name": "xs"
                     },
                     "field": "filter"
                   },

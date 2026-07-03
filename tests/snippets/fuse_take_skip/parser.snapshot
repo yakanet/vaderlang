@@ -62,37 +62,29 @@
                 "callee": {
                   "kind": "FieldExpr",
                   "target": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "FieldExpr",
-                      "target": {
-                        "kind": "SeqLitExpr",
-                        "elements": [
-                          {
-                            "kind": "IntLitExpr",
-                            "value": "10n"
-                          },
-                          {
-                            "kind": "IntLitExpr",
-                            "value": "20n"
-                          },
-                          {
-                            "kind": "IntLitExpr",
-                            "value": "30n"
-                          },
-                          {
-                            "kind": "IntLitExpr",
-                            "value": "40n"
-                          },
-                          {
-                            "kind": "IntLitExpr",
-                            "value": "50n"
-                          }
-                        ]
+                    "kind": "SeqLitExpr",
+                    "elements": [
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "10n"
                       },
-                      "field": "iter"
-                    },
-                    "args": []
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "20n"
+                      },
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "30n"
+                      },
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "40n"
+                      },
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "50n"
+                      }
+                    ]
                   },
                   "field": "take"
                 },
@@ -154,37 +146,29 @@
                 "callee": {
                   "kind": "FieldExpr",
                   "target": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "FieldExpr",
-                      "target": {
-                        "kind": "SeqLitExpr",
-                        "elements": [
-                          {
-                            "kind": "IntLitExpr",
-                            "value": "10n"
-                          },
-                          {
-                            "kind": "IntLitExpr",
-                            "value": "20n"
-                          },
-                          {
-                            "kind": "IntLitExpr",
-                            "value": "30n"
-                          },
-                          {
-                            "kind": "IntLitExpr",
-                            "value": "40n"
-                          },
-                          {
-                            "kind": "IntLitExpr",
-                            "value": "50n"
-                          }
-                        ]
+                    "kind": "SeqLitExpr",
+                    "elements": [
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "10n"
                       },
-                      "field": "iter"
-                    },
-                    "args": []
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "20n"
+                      },
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "30n"
+                      },
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "40n"
+                      },
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "50n"
+                      }
+                    ]
                   },
                   "field": "skip"
                 },
@@ -250,37 +234,29 @@
                     "callee": {
                       "kind": "FieldExpr",
                       "target": {
-                        "kind": "CallExpr",
-                        "callee": {
-                          "kind": "FieldExpr",
-                          "target": {
-                            "kind": "SeqLitExpr",
-                            "elements": [
-                              {
-                                "kind": "IntLitExpr",
-                                "value": "10n"
-                              },
-                              {
-                                "kind": "IntLitExpr",
-                                "value": "20n"
-                              },
-                              {
-                                "kind": "IntLitExpr",
-                                "value": "30n"
-                              },
-                              {
-                                "kind": "IntLitExpr",
-                                "value": "40n"
-                              },
-                              {
-                                "kind": "IntLitExpr",
-                                "value": "50n"
-                              }
-                            ]
+                        "kind": "SeqLitExpr",
+                        "elements": [
+                          {
+                            "kind": "IntLitExpr",
+                            "value": "10n"
                           },
-                          "field": "iter"
-                        },
-                        "args": []
+                          {
+                            "kind": "IntLitExpr",
+                            "value": "20n"
+                          },
+                          {
+                            "kind": "IntLitExpr",
+                            "value": "30n"
+                          },
+                          {
+                            "kind": "IntLitExpr",
+                            "value": "40n"
+                          },
+                          {
+                            "kind": "IntLitExpr",
+                            "value": "50n"
+                          }
+                        ]
                       },
                       "field": "skip"
                     },
