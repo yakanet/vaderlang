@@ -1,0 +1,27 @@
+// Implicit-array head fusion : `arr.into().map(f)` fuses over the RAW array —
+// `.into()`'s erased `Iterator<T>` head is unwrapped to its statically-array
+// receiver, so a for-in / terminal consumer lowers to a flat loop with no boxed
+// iterator (regression guard for the `descend_array_call` `.into()`-case +
+// the `gen_combo_subst` arg-before-receiver ordering that recovers `T` from the
+// concrete transform when the head erases to `Iterator<Any>`).
+
+module "snippet"
+
+import "std/io" { println }
+import "std/iter" { map, filter, collect }
+
+triple  :: fn(x: i32) -> i32 = x * 3
+keep_hi :: fn(x: i32) -> bool = x > 6
+
+main :: fn() -> i32 {
+    // for-in over `arr.into().map(f).filter(p)` — 1,2,3,4 → ×3 → 3,6,9,12 →
+    // keep >6 → 9,12 → sum 21.
+    total := 0
+    for x in [1, 2, 3, 4].into().map(triple).filter(keep_hi) {
+        total = total + x
+    }
+    // terminal `.collect()` over `arr.into().map(f)` — [10,20] → [30,60].
+    drained :: [10, 20].into().map(triple).collect()
+    println("sum=${total} drain=${drained.len()} d0=${drained[0]} d1=${drained[1]}")
+    return 0
+}

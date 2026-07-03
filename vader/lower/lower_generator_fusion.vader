@@ -297,8 +297,15 @@ gen_combo_subst :: fn(
         if f.params.len() < 2 { return null }
         bindings :: MutableMap<i32, Type> {}
         order: i32[] = []
-        unify_params(f.params[0], default_if_free(ctx.types.expr_type(receiver)), bindings, order, ctx)
+        // Unify the fn ARG before the receiver : the transform/predicate carries
+        // the element concretely (`dbl : fn(i32) -> i32` → `T = i32`), whereas an
+        // ERASED head (`arr.into()` types as `Iterator<Any>`) would otherwise bind
+        // `T = Any` first and — `unify_params` keeps the first binding — block the
+        // concrete one. A concrete head agrees with the arg, so order is neutral
+        // there. (take/skip's arg is a bare `usize`, so an erased head still can't
+        // recover `T` — that stays boxed, off the map/filter fast path.)
         unify_params(f.params[1], default_if_free(ctx.types.expr_type(fn_arg)), bindings, order, ctx)
+        unify_params(f.params[0], default_if_free(ctx.types.expr_type(receiver)), bindings, order, ctx)
         concrete_args: Type[] = []
         for id in order {
             v :: bindings[id]

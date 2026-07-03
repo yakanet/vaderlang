@@ -14,7 +14,7 @@ module "vader/lower"
 import "vader/diagnostics" { Span }
 AST :: import "vader/parser"
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, StructType, mk_primitive, mk_array, mk_union, TY_BOOL, TY_VOID, TY_NULL, TY_UNRESOLVED, STRUCT_ARRAY_ITERATOR }
+import "vader/types" { Type, StructType, ArrayType, mk_primitive, mk_array, mk_union, TY_BOOL, TY_VOID, TY_NULL, TY_UNRESOLVED, STRUCT_ARRAY_ITERATOR }
 import "vader/typecheck" { default_if_free }
 
 // ---- chain fusion ---------------------------------------------------------
@@ -434,7 +434,44 @@ descend_array_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | nul
             }
         }
     }
+    // `arr.into()` — erased `Iterator<T>` head over a statically-array receiver.
+    // Its result type is the trait (not `ArrayIterator`), but the receiver is an
+    // array, so fuse over the raw array. This is the implicit-array head the
+    // unified iterator model leans on : `arr.into().map(f).collect()` fuses to a
+    // flat loop instead of boxing.
+    into_arr :: array_from_into_call(ctx, call)
+    if into_arr != null {
+        arr_ty :: ctx.types.expr_type(into_arr)
+        elem :: if arr_ty is ArrayType as a { a.element } else { TY_UNRESOLVED }
+        return IterChain {
+            .kind = IterChainKind.Array,
+            .range_lower = null, .range_upper = null, .inclusive = false,
+            .element_type = elem, .array_expr = into_arr,
+            .source = null, .span = call.span,
+        }
+    }
     return null
+}
+
+// The source array of an `arr.into()` (UFCS) / `into(arr)` (direct) call whose
+// receiver is statically an array — else null (a non-array `.into()` head, e.g.
+// `set.into()`, is not a fusible array bottom).
+array_from_into_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> AST.Expr | null {
+    @partial match call.callee {
+        is AST.FieldExpr as fe -> {
+            if fe.field != "into" { return null }
+            if ctx.types.expr_type(fe.target) is ArrayType { return fe.target }
+            return null
+        }
+        is AST.IdentExpr as id -> {
+            if id.name != "into" { return null }
+            if call.args.len() != 1 { return null }
+            arg :: call.args[0].value
+            if ctx.types.expr_type(arg) is ArrayType { return arg }
+            return null
+        }
+        _ -> { return null }
+    }
 }
 
 // The source array of an `arr.iter()` (UFCS) / `iter(arr)` (direct) call, or
