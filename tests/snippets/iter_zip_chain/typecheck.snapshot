@@ -51,15 +51,15 @@
   expr 32:26    IdentExpr      :: string
   expr 32:9     CallExpr       :: void
   expr 32:9     IdentExpr      :: fn(T) -> void
-  expr 36:15    CallExpr       :: i32[]
-  expr 36:15    IdentExpr      :: fn(T[], fn(T) -> U[]) -> U[]
+  expr 36:15    CallExpr       :: Iterator<i32>
+  expr 36:15    IdentExpr      :: fn(Iterator<T>, fn(T) -> U[]) -> Iterator<U>
   expr 36:24    SeqLitExpr     :: i32[]
   expr 36:35    LambdaExpr     :: fn(i32) -> i32[]
   expr 36:47    SeqLitExpr     :: i32[]
   expr 36:48    IdentExpr      :: i32
   expr 36:51    BinaryExpr     :: i32
   expr 36:51    IdentExpr      :: i32
-  expr 37:14    IdentExpr      :: i32[]
+  expr 37:14    IdentExpr      :: Iterator<i32>
   expr 38:17    StringLitExpr  :: string
   expr 38:22    IdentExpr      :: i32
   expr 38:9     CallExpr       :: void

@@ -16,6 +16,8 @@
   Contains<T>
   Iterator<i32>
   Iterator<T>
+  Iterator<U>
+  Iterator<T>
   Iterator<T>
   Iterator<T>
   Iterator<T>

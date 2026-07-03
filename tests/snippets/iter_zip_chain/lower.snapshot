@@ -419,85 +419,86 @@
                 __for_i_18 :usize
               r:
                 int(1) :usize
-    let bursts: i32[] =
-      call :i32[]
+    let bursts: Iterator<i32> =
+      call :Iterator<i32>
         callee:
-          std_iter$flat_map__i32__i32 :i32[]
+          std_iter$flat_map__i32__i32 :Iterator<i32>
         arg0:
-          array :i32[]
-            int(1) :i32
-            int(2) :i32
-            int(3) :i32
+          ArrayIterator<i32> {
+            arr:
+              array :i32[]
+                int(1) :i32
+                int(2) :i32
+                int(3) :i32
+            cursor: int(0) :usize
+          }
         arg1:
           LoweredMakeClosure
     block :void
-      let __for_arr_24: i32[] = bursts :i32[]
-      let __for_len_25: usize =
-        LoweredArrayLen
-      let __for_i_26: usize = int(0) :usize
-      loop while (<…>)
-        let n: i32 =
-          index :i32
-            on:
-              __for_arr_24 :i32[]
-            ix:
-              __for_i_26 :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            block :string
-              let __buf_27: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(22) :usize
-              let __off_28: usize = int(0) :usize
-              assign
-                target:
-                  __off_28 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_27 :Buffer
-                    arg1:
-                      __off_28 :usize
-                    arg2:
-                      "b=" :string
-              assign
-                target:
-                  __off_28 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_27 :Buffer
-                    arg1:
-                      __off_28 :usize
-                    arg2:
-                      cast → i64
-                        n :i32
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_27 :Buffer
-                  arg1:
-                    __off_28 :usize
-        assign
-          target:
-            __for_i_26 :usize
-          value:
-            add :usize
-              l:
-                __for_i_26 :usize
-              r:
-                int(1) :usize
+      let __iter_24: Iterator<i32> = bursts :Iterator<i32>
+      loop
+        let __step_25: Yield<i32> | null =
+          vcall Iterator.next :Yield<i32> | null
+            recv:
+              __iter_24 :Iterator<i32>
+        if :void
+          cond:
+            is null :bool
+              __step_25 :Yield<i32> | null
+          then:
+            break
+          else:
+            let n: i32 =
+              .value :i32
+                cast → Yield<i32>
+                  __step_25 :Yield<i32> | null
+            call :void
+              callee:
+                std_io$println__string :void
+              arg0:
+                block :string
+                  let __buf_26: Buffer =
+                    call :Buffer
+                      callee:
+                        new_byte_buffer :Buffer
+                      arg0:
+                        int(22) :usize
+                  let __off_27: usize = int(0) :usize
+                  assign
+                    target:
+                      __off_27 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_string_at :usize
+                        arg0:
+                          __buf_26 :Buffer
+                        arg1:
+                          __off_27 :usize
+                        arg2:
+                          "b=" :string
+                  assign
+                    target:
+                      __off_27 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_int :usize
+                        arg0:
+                          __buf_26 :Buffer
+                        arg1:
+                          __off_27 :usize
+                        arg2:
+                          cast → i64
+                            n :i32
+                  ~>
+                    call :string
+                      callee:
+                        finish_buffer :string
+                      arg0:
+                        __buf_26 :Buffer
+                      arg1:
+                        __off_27 :usize
     return int(0) :i32
   struct __lambda_env_25 {  }
   fn __lambda_24(__env_23: __lambda_env_25, x: i32) -> i32[]
