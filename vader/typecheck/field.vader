@@ -438,9 +438,8 @@ array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
     // have a free-fn / trait fallback, so the typer must supply their signature.
     //
     // Everything else resolves elsewhere (import required, per the UFCS policy) :
-    // `is_empty` ⟶ `std/iter::is_empty(arr: T[])`, `slice` ⟶ `std/iter::slice`,
-    // `contains` ⟶ the `Contains` trait, `reverse`/`first`/`last` ⟶ std/iter free
-    // fns.
+    // `is_empty` ⟶ `std/iter::is_empty(arr: T[])`, `contains` ⟶ the `Contains`
+    // trait, `reverse`/`first`/`last` ⟶ std/iter free fns.
     if name == "len"  { return mk_fn([], mk_primitive("usize")) }
     if name == "push" { return mk_fn([arr.element], TY_VOID) }
     // `push_all` reads its source, so a `const T[]` param accepts both a
