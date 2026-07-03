@@ -41,10 +41,6 @@
           {
             "name": "sum",
             "alias": null
-          },
-          {
-            "name": "slice",
-            "alias": null
           }
         ]
       },
@@ -576,37 +572,23 @@
                           "callee": {
                             "kind": "FieldExpr",
                             "target": {
-                              "kind": "CallExpr",
-                              "callee": {
+                              "kind": "IndexExpr",
+                              "target": {
                                 "kind": "IdentExpr",
-                                "name": "slice"
+                                "name": "nums"
                               },
-                              "args": [
-                                {
-                                  "name": null,
-                                  "value": {
-                                    "kind": "IdentExpr",
-                                    "name": "nums"
-                                  },
-                                  "spread": false
+                              "index": {
+                                "kind": "RangeExpr",
+                                "inclusive": false,
+                                "lower": {
+                                  "kind": "IntLitExpr",
+                                  "value": "3n"
                                 },
-                                {
-                                  "name": null,
-                                  "value": {
-                                    "kind": "IntLitExpr",
-                                    "value": "3n"
-                                  },
-                                  "spread": false
-                                },
-                                {
-                                  "name": null,
-                                  "value": {
-                                    "kind": "IntLitExpr",
-                                    "value": "7n"
-                                  },
-                                  "spread": false
+                                "upper": {
+                                  "kind": "IntLitExpr",
+                                  "value": "7n"
                                 }
-                              ]
+                              }
                             },
                             "field": "len"
                           },
@@ -645,37 +627,23 @@
                           "callee": {
                             "kind": "FieldExpr",
                             "target": {
-                              "kind": "CallExpr",
-                              "callee": {
+                              "kind": "IndexExpr",
+                              "target": {
                                 "kind": "IdentExpr",
-                                "name": "slice"
+                                "name": "nums"
                               },
-                              "args": [
-                                {
-                                  "name": null,
-                                  "value": {
-                                    "kind": "IdentExpr",
-                                    "name": "nums"
-                                  },
-                                  "spread": false
+                              "index": {
+                                "kind": "RangeExpr",
+                                "inclusive": false,
+                                "lower": {
+                                  "kind": "IntLitExpr",
+                                  "value": "100n"
                                 },
-                                {
-                                  "name": null,
-                                  "value": {
-                                    "kind": "IntLitExpr",
-                                    "value": "100n"
-                                  },
-                                  "spread": false
-                                },
-                                {
-                                  "name": null,
-                                  "value": {
-                                    "kind": "IntLitExpr",
-                                    "value": "200n"
-                                  },
-                                  "spread": false
+                                "upper": {
+                                  "kind": "IntLitExpr",
+                                  "value": "200n"
                                 }
-                              ]
+                              }
                             },
                             "field": "len"
                           },
@@ -714,37 +682,23 @@
                           "callee": {
                             "kind": "FieldExpr",
                             "target": {
-                              "kind": "CallExpr",
-                              "callee": {
+                              "kind": "IndexExpr",
+                              "target": {
                                 "kind": "IdentExpr",
-                                "name": "slice"
+                                "name": "nums"
                               },
-                              "args": [
-                                {
-                                  "name": null,
-                                  "value": {
-                                    "kind": "IdentExpr",
-                                    "name": "nums"
-                                  },
-                                  "spread": false
+                              "index": {
+                                "kind": "RangeExpr",
+                                "inclusive": false,
+                                "lower": {
+                                  "kind": "IntLitExpr",
+                                  "value": "8n"
                                 },
-                                {
-                                  "name": null,
-                                  "value": {
-                                    "kind": "IntLitExpr",
-                                    "value": "8n"
-                                  },
-                                  "spread": false
-                                },
-                                {
-                                  "name": null,
-                                  "value": {
-                                    "kind": "IntLitExpr",
-                                    "value": "999n"
-                                  },
-                                  "spread": false
+                                "upper": {
+                                  "kind": "IntLitExpr",
+                                  "value": "999n"
                                 }
-                              ]
+                              }
                             },
                             "field": "len"
                           },

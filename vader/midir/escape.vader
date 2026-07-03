@@ -16,7 +16,6 @@
 module "vader/midir"
 
 import "std/collections" { MutableMap, MutableSet, add }
-import "std/iter" { slice }
 
 export EscapeStats :: struct {
     total_allocs: i32
@@ -96,7 +95,7 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
     }
     for worklist.len() > 0 {
         src :: worklist[worklist.len() - 1]
-        worklist = worklist.slice(0, worklist.len() - 1)
+        worklist = worklist[0..<worklist.len() - 1]
         consumers :: res.alias_from[src]
         if consumers !is null {
             for dst in consumers {
@@ -206,7 +205,7 @@ compute_carried_across_loop_headers :: fn(fn_: CFGFunction, alias_of: MutableMap
     for l in carried { work.push(l) }
     for work.len() > 0 {
         cur :: work[work.len() - 1]
-        work = work.slice(0, work.len() - 1)
+        work = work[0..<work.len() - 1]
         producers :: alias_of[cur]
         if producers !is null {
             for p in producers {
@@ -282,7 +281,7 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
     for l in escaping { work.push(l) }
     for work.len() > 0 {
         cur :: work[work.len() - 1]
-        work = work.slice(0, work.len() - 1)
+        work = work[0..<work.len() - 1]
         sources :: alias_of[cur]
         if sources !is null {
             for s in sources {

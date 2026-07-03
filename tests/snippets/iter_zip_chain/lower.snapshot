@@ -45,11 +45,7 @@
                   __off_1 :usize
                 arg2:
                   cast → u64
-                    call :usize
-                      callee:
-                        std_iter$count__i32 :usize
-                      arg0:
-                        nums :i32[]
+                    LoweredArrayLen
           ~>
             call :string
               callee:
@@ -61,7 +57,7 @@
     let cloned: i32[] =
       call :i32[]
         callee:
-          std_iter$collect__i32 :i32[]
+          std_iter$std_iter$clone__i32 :i32[]
         arg0:
           nums :i32[]
     call :void

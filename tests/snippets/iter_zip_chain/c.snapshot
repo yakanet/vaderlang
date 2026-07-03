@@ -72,8 +72,6 @@ static size_t std_core_write_string_at(vader_box_t l0, size_t l1, vader_string_t
 static size_t std_core_write_int(vader_box_t l0, size_t l1, int64_t l2);
 static size_t std_core_write_unsigned(vader_box_t l0, size_t l1, uint64_t l2);
 static void std_io_println__string(vader_string_t l0);
-static size_t std_iter_count__i32(vader_box_t l0);
-static vader_box_t std_iter_collect__i32(vader_box_t l0);
 static vader_box_t std_iter_std_iter_clone__i32(vader_box_t l0);
 static vader_box_t std_iter_zip__string__i32(vader_box_t l0, vader_box_t l1);
 static vader_box_t std_iter_chain__i32(vader_box_t l0, vader_box_t l1);
@@ -176,14 +174,14 @@ static int32_t snippet_main(void) {
     l2 = (size_t) (int64_t) INT64_C(0);
     t2 = std_core_write_string_at(l1, l2, 1u);
     l2 = t2;
-    t3 = std_iter_count__i32(l0);
+    t3 = ((vader_array_t*) l0.payload.obj)->length;
     t4 = ((int64_t) (size_t) t3);
     l3 = (uint64_t) (int64_t) t4;
     t5 = std_core_write_unsigned(l1, l2, l3);
     l2 = t5;
     t6 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t6);
-    t7 = std_iter_collect__i32(l0);
+    t7 = std_iter_std_iter_clone__i32(l0);
     l0 = t7;
     t8 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(29));
     l1 = t8;
@@ -597,22 +595,6 @@ static void std_io_println__string(vader_string_t l0) {
     vader_import_1(INT32_C(0), l0);
     vader_import_1(INT32_C(0), 14u);
     { vader_gc_top = gc_frame.prev; return; }
-    vader_gc_top = gc_frame.prev;
-}
-
-static size_t std_iter_count__i32(vader_box_t l0) {
-    size_t t0;
-    t0 = ((vader_array_t*) l0.payload.obj)->length;
-    return t0;
-}
-
-static vader_box_t std_iter_collect__i32(vader_box_t l0) {
-    vader_box_t t0 = vader_box_null();
-    vader_box_t* gc_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots };
-    vader_gc_top = &gc_frame;
-    t0 = std_iter_std_iter_clone__i32(l0);
-    { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 

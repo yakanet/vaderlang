@@ -27,14 +27,6 @@
         "kind": "destructure",
         "names": [
           {
-            "name": "count",
-            "alias": null
-          },
-          {
-            "name": "collect",
-            "alias": null
-          },
-          {
             "name": "zip",
             "alias": null
           },
@@ -116,19 +108,14 @@
                         "expr": {
                           "kind": "CallExpr",
                           "callee": {
-                            "kind": "IdentExpr",
-                            "name": "count"
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "nums"
+                            },
+                            "field": "len"
                           },
-                          "args": [
-                            {
-                              "name": null,
-                              "value": {
-                                "kind": "IdentExpr",
-                                "name": "nums"
-                              },
-                              "spread": false
-                            }
-                          ]
+                          "args": []
                         }
                       }
                     ]
@@ -149,19 +136,14 @@
             "value": {
               "kind": "CallExpr",
               "callee": {
-                "kind": "IdentExpr",
-                "name": "collect"
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "IdentExpr",
+                  "name": "nums"
+                },
+                "field": "clone"
               },
-              "args": [
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "IdentExpr",
-                    "name": "nums"
-                  },
-                  "spread": false
-                }
-              ]
+              "args": []
             }
           },
           {

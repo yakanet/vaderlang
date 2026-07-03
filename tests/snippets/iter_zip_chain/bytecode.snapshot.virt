@@ -67,7 +67,7 @@ fn 0 snippet$main () -> i32
   call 5
   local.set 2
   local.get 0
-  call 9
+  array.len
   usize.to_i64
   local.set 3
   local.get 1
@@ -80,7 +80,7 @@ fn 0 snippet$main () -> i32
   call 3
   call 8
   local.get 0
-  call 10
+  call 9
   local.set 0
   i64.const 29
   call 2
@@ -119,7 +119,7 @@ fn 0 snippet$main () -> i32
   local.set 1
   local.get 0
   local.get 1
-  call 12
+  call 10
   local.tee 0
   array.len
   local.set 2
@@ -197,7 +197,7 @@ fn 0 snippet$main () -> i32
   local.set 1
   local.get 0
   local.get 1
-  call 13
+  call 11
   local.tee 0
   array.len
   local.set 2
@@ -250,7 +250,7 @@ fn 0 snippet$main () -> i32
   string.const 9
   string.const 10
   array.new 12 3
-  call 14
+  call 12
   local.tee 0
   array.len
   local.set 2
@@ -327,7 +327,7 @@ fn 0 snippet$main () -> i32
   local.set 1
   local.get 0
   local.get 1
-  call 15
+  call 13
   local.tee 0
   array.len
   local.set 2
@@ -393,14 +393,14 @@ end
 
 fn 2 std_core$new_byte_buffer (usize) -> ref
   local.get 0
-  call 16
+  call 14
   return
 end
 
 fn 3 std_core$finish_buffer (ref,usize) -> string
   local.get 0
   local.get 1
-  call 18
+  call 16
   return
 end
 
@@ -416,7 +416,7 @@ fn 5 std_core$write_string_at (ref,usize,string) -> usize
   local.get 0
   local.get 1
   local.get 2
-  call 19
+  call 17
   local.get 2
   call.import 0
   array.len
@@ -445,7 +445,7 @@ fn 6 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     local.get 3
-    call 17
+    call 15
     i64.const 1
     local.set 4
     local.get 1
@@ -536,7 +536,7 @@ fn 6 std_core$write_int (ref,usize,i64) -> usize
         local.get 0
         local.get 7
         local.get 10
-        call 17
+        call 15
         local.get 2
         i64.const 10
         i64.div
@@ -553,7 +553,7 @@ fn 6 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     local.get 3
-    call 17
+    call 15
   else
   end $L9
   local.get 1
@@ -583,7 +583,7 @@ fn 7 std_core$write_unsigned (ref,usize,u64) -> usize
     local.get 0
     local.get 1
     local.get 4
-    call 17
+    call 15
     i64.const 1
     local.set 5
     local.get 1
@@ -654,7 +654,7 @@ fn 7 std_core$write_unsigned (ref,usize,u64) -> usize
         local.get 0
         local.get 7
         local.get 11
-        call 17
+        call 15
         i64.const 10
         local.set 8
         local.get 2
@@ -682,19 +682,7 @@ fn 8 std_io$println__string (string) -> void
   return
 end
 
-fn 9 std_iter$count__i32 (ref) -> usize
-  local.get 0
-  array.len
-  return
-end
-
-fn 10 std_iter$collect__i32 (ref) -> ref
-  local.get 0
-  call 11
-  return
-end
-
-fn 11 std_iter$std_iter$clone__i32 (ref) -> ref
+fn 9 std_iter$std_iter$clone__i32 (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
   array.new 3 0
@@ -712,7 +700,7 @@ fn 11 std_iter$std_iter$clone__i32 (ref) -> ref
   return
 end
 
-fn 12 std_iter$zip__string__i32 (ref,ref) -> ref
+fn 10 std_iter$zip__string__i32 (ref,ref) -> ref
   local n usize
   local m usize
   local out ref
@@ -781,7 +769,7 @@ fn 12 std_iter$zip__string__i32 (ref,ref) -> ref
   return
 end
 
-fn 13 std_iter$chain__i32 (ref,ref) -> ref
+fn 11 std_iter$chain__i32 (ref,ref) -> ref
   local $arr_2 ref
   local $len_3 usize
   local $len_4 usize
@@ -810,7 +798,7 @@ fn 13 std_iter$chain__i32 (ref,ref) -> ref
   return
 end
 
-fn 14 std_iter$std_iter$enumerate__string (ref) -> ref
+fn 12 std_iter$std_iter$enumerate__string (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
   local __for_arr_0 ref
@@ -876,7 +864,7 @@ fn 14 std_iter$std_iter$enumerate__string (ref) -> ref
   return
 end
 
-fn 15 std_iter$flat_map__i32__i32 (ref,ref) -> ref
+fn 13 std_iter$flat_map__i32__i32 (ref,ref) -> ref
   local out ref
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -950,13 +938,13 @@ fn 15 std_iter$flat_map__i32__i32 (ref,ref) -> ref
   return
 end
 
-fn 16 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 14 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 17 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 15 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -964,14 +952,14 @@ fn 17 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 18 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 16 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 19 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 17 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2

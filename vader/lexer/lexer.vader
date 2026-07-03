@@ -17,7 +17,6 @@ import "std/string" { decode_char_at, codepoint_byte_len, is_empty, parse_float,
 import "std/char" { is_alpha, is_alnum, is_digit }
 
 import "std/string_builder" { StringBuilder, append, append_char }
-import "std/iter" { slice as slice_array }
 import "std/numbers" {
     hex_digit_value, is_hex_digit, is_digit_in_base,
     parse_uint_in_base,
@@ -545,7 +544,7 @@ pop_interp :: fn(l: Lexer) -> void {
     // `0` because FreeInt repinning doesn't cross the `slice as
     // slice_array` import alias — the literal stays i32 and the VM traps
     // on the i32-vs-usize comparison inside iter.slice's body.
-    l.interp_stack = l.interp_stack.slice_array(0, n - 1) // FIXME: use `pop`
+    l.interp_stack = l.interp_stack[0..<n - 1] // FIXME: use `pop`
 }
 
 // Open a `"` / `r"` / `"""` / `r"""` literal. Emits StringBegin, then drives

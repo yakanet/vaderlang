@@ -3,8 +3,8 @@
 ## tests/snippets/iter_zip_chain
   FnDecl         main                 :: fn() -> i32
   expr 10:15    CallExpr       :: i32[]
-  expr 10:15    IdentExpr      :: fn(T[]) -> T[]
-  expr 10:23    IdentExpr      :: i32[]
+  expr 10:15    FieldExpr      :: fn() -> i32[]
+  expr 10:15    IdentExpr      :: i32[]
   expr 11:13    StringLitExpr  :: string
   expr 11:25    IdentExpr      :: i32[]
   expr 11:25    IndexExpr      :: i32
@@ -67,7 +67,7 @@
   expr 8:13     SeqLitExpr     :: i32[]
   expr 9:13     StringLitExpr  :: string
   expr 9:22     CallExpr       :: usize
-  expr 9:22     IdentExpr      :: fn(T[]) -> usize
-  expr 9:28     IdentExpr      :: i32[]
+  expr 9:22     FieldExpr      :: fn() -> usize
+  expr 9:22     IdentExpr      :: i32[]
   expr 9:5      CallExpr       :: void
   expr 9:5      IdentExpr      :: fn(T) -> void

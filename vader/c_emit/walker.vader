@@ -813,8 +813,8 @@ precompute_scopes :: fn(function: BcFunction) -> ScopeInfo[] {
                     .kind      = open_kind[n - 1],
                     .end_pc    = i32(pc),
                 })
-                open_pc   = open_pc.slice(0, n - 1)
-                open_kind = open_kind.slice(0, n - 1)
+                open_pc   = open_pc[0..<n - 1]
+                open_kind = open_kind[0..<n - 1]
             }
         }
     }

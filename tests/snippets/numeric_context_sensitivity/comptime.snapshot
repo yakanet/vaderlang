@@ -38,3 +38,7 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
+
+# Diagnostics
+[12:21] error[R2003] imported name not exported by module: `slice` from `std/iter`
+[62:12] error[T3008] expression is not indexable: `.slice_array` on non-struct type i32[]
