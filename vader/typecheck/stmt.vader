@@ -871,6 +871,22 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
             if decl is null { return elem }
             return substitute_by_name(elem, decl.type_params, st.args)
         }
+        // An erased `Iterator<E>` trait value (a boxed generator / a `.into()`
+        // result stored as the trait) carries its element as the sole type arg.
+        // Without this a `for x in it` over such a value leaves the loop var
+        // unresolved → it defaults to `i32`, which happens to match an i32
+        // element but mis-types every other (e.g. `Iterator<string>` → `i32.add`).
+        // Only a FULLY-CONCRETE element is returned : any type-param-bearing
+        // element — a bare `T` (in a generic body like `any<T>(it: Iterator<T>)`)
+        // or a composite like `Entry<K, V>` / `T[]` — must stay unresolved so
+        // per-instance monomorphisation substitutes it ; returning it here would
+        // strand un-subbed params in the resulting `Yield<…>`.
+        is TraitType as tt -> {
+            elem :: iterator_element_of(tt)
+            if elem == null { return TY_UNRESOLVED }
+            if type_contains_type_param(elem) { return TY_UNRESOLVED }
+            return elem
+        }
         _ -> { return TY_UNRESOLVED }
     }
 }

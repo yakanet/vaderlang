@@ -9,7 +9,7 @@ import "std/string" { compare_ascending }
 import "std/string_builder" { StringBuilder, append }
 
 import "vader/diagnostics" { Diagnostic, Span }
-import "vader/parser" { Decl, FnDecl, ConstDecl, ArrayTypeExpr, IdentExpr }
+import "vader/parser" { Decl, FnDecl, ConstDecl, ArrayTypeExpr, IdentExpr, BlockExpr }
 import "vader/resolver" { LoadedProject, LoadedModule }
 import "vader/typecheck" { TypedProject, TypedProgram, Substitution, substitute }
 import "vader/types" { Type, display_type }
@@ -172,6 +172,24 @@ fn_instance_key :: fn(inst: GenericFnInstance) -> string {
     return sb.to_string()
 }
 
+// Lower a `@generator` fn / impl member to its state-machine body — the shared
+// core of the three generator materialisation sites (`lower_decl` for top-level
+// fns, `build_fn_instance_decl` for free-fn instances, `materialize_impl_for_instance`
+// for impl-member instances). Lowers the body in generator mode (yields →
+// `LoweredYield` markers) then synthesizes `<State>` + `Iterator::next`
+// (`lower_generator_fn`). Keep the callers in lock-step : a site that lowers a
+// generator body WITHOUT this drops every `yield` and returns no value.
+lower_generator_body :: fn(
+    project_ctx: LowerProjectCtx, entry: MonoEntry, typed: TypedProgram,
+    subst: Substitution, fn_decl: FnDecl, gen_body: BlockExpr,
+    params: LoweredParam[], return_type: Type,
+) -> LoweredBlock {
+    gen_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, return_type, null)
+    gen_ctx.in_generator = true
+    lowered :: lower_block(gen_ctx, gen_body, true, false)
+    return lower_generator_fn(gen_ctx, fn_decl, params, lowered, return_type)
+}
+
 // Build (but don't push) the monomorphized `LoweredFnDecl` for `inst`.
 // Lowering the body here can register transitive fn instances into
 // `project_ctx.fn_instances_order` — the caller's fixpoint loop picks
@@ -245,7 +263,15 @@ build_fn_instance_decl :: fn(
         .type_arguments = inst.type_args,
         .module         = owner_typed,
     }
-    body :: lower_fn_body(fn_decl, owner_typed, project_ctx, entry, subst, return_type)
+    gen_body :: fn_decl.body
+    // A generic `@generator` instance that ESCAPES (boxed as `Iterator<T>`, not
+    // fused) needs the state-machine desugar — else the plain body lowering drops
+    // every `yield` and it returns no value (§11.1).
+    body :: if fn_is_generator(fn_decl) && gen_body != null {
+        lower_generator_body(project_ctx, entry, owner_typed, subst, fn_decl, gen_body, params, return_type)
+    } else {
+        lower_fn_body(fn_decl, owner_typed, project_ctx, entry, subst, return_type)
+    }
     return PendingFnInstance {
         .module_id    = owner_module_id,
         .key          = key,

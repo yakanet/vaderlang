@@ -74,7 +74,7 @@ queue_generic_impl_receiver :: fn(ctx: FnLowerCtx, recv: StructType) -> void {
 // call-site instance (`FilterIterator<char>`), while the erased fn body always
 // constructs the fully-erased tag (`FilterIterator<Any>`).
 //
-// MIXED instances (`MapIterator<string, Any>`, one arg concrete) are
+// MIXED instances (`MutableMap<string, Any>`, one arg concrete) are
 // deliberately excluded : the harvest already covers them, and queuing one here
 // forces a default-method body (`is_empty__string__Any`) whose sibling
 // (`next__string__Any`) the mixed-suffix materialiser never produces — the

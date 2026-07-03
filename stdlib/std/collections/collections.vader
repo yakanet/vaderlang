@@ -296,30 +296,18 @@ export values :: fn<K, V>(self: MutableMap<K, V>) -> V[] {
     return out
 }
 
-/// Lazy iterator over a `MutableMap`'s entries, in insertion order. Walks the
-/// dense entry arrays by index — no snapshot allocation. Mutating `self` while
-/// a `MapIterator` is live yields undefined behaviour.
-@specialize
-export MapIterator :: struct<K: Hash & Equals, V> {
-    src: MutableMap<K, V>
-    pos: usize
-}
-
-// `for entry in m` works directly thanks to the `Into(Iterator(...))`
-// impl below — no explicit `.iter()` call needed.
+// `for entry in m` works directly thanks to the `Into(Iterator(...))` impl
+// below — no explicit `.iter()` call needed. `into` is a `@generator` : consumed
+// by a `for` loop or a terminal it fuses (and `for entry in m` hits the map
+// fast-path in `lower_for_in`, never materialising it) ; an escaping `m.into()`
+// value materialises the generator's state machine. Walks the dense entry arrays
+// by index — no snapshot. Mutating `self` while an iterator is live is UB.
 
 MutableMap<K, V> implements<K, V> Into<Iterator<Entry<K, V>>> {
-    into :: fn(self) -> Iterator<Entry<K, V>> {
-        return MapIterator<K, V> { .src = self, .pos = 0 }
-    }
-}
-
-MapIterator<K, V> implements Iterator<Entry<K, V>> {
-    next :: fn(self) -> Yield<Entry<K, V>> | null {
-        if self.pos >= self.src.size { return null }
-        e :: Entry<K, V> { .key = self.src.ekeys[self.pos], .value = self.src.evals[self.pos] }
-        self.pos = self.pos + 1
-        return Yield<Entry<K, V>> { .value = e }
+    @generator into :: fn(self) -> Iterator<Entry<K, V>> {
+        for i in 0..<self.size {
+            yield Entry<K, V> { .key = self.ekeys[i], .value = self.evals[i] }
+        }
     }
 }
 
@@ -372,30 +360,16 @@ export clear :: fn<T>(self: MutableSet<T>) -> void = self.inner.clear()
 // reads more clearly than a hypothetical `s[v] = true`.
 MutableSet<T> implements Contains<T> -> value in self.inner
 
-/// Lazy iterator over a `MutableSet`'s members, in insertion order. Walks the
-/// backing map's dense key array by index. Same undefined-behaviour caveat as
-/// `MapIterator` on concurrent mutation.
-@specialize
-export SetIterator :: struct<T: Hash & Equals> {
-    set: MutableSet<T>
-    pos: usize
-}
-
-// `for v in s` works directly via the `Into(Iterator(...))` impl below —
-// same pattern as `MutableMap`.
+// `for v in s` works directly via the `Into(Iterator(...))` impl below — same
+// `@generator` pattern as `MutableMap` (fast-path for `for v in s`, state machine
+// only when the iterator escapes). Walks the backing map's dense key array by
+// index. Same undefined-behaviour caveat on concurrent mutation.
 
 MutableSet<T> implements<T> Into<Iterator<T>> {
-    into :: fn(self) -> Iterator<T> {
-        return SetIterator<T> { .set = self, .pos = 0 }
-    }
-}
-
-SetIterator<T> implements Iterator<T> {
-    next :: fn(self) -> Yield<T> | null {
-        if self.pos >= self.set.inner.size { return null }
-        k :: self.set.inner.ekeys[self.pos]
-        self.pos = self.pos + 1
-        return Yield<T> { .value = k }
+    @generator into :: fn(self) -> Iterator<T> {
+        for i in 0..<self.inner.size {
+            yield self.inner.ekeys[i]
+        }
     }
 }
 

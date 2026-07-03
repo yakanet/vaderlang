@@ -454,8 +454,8 @@ materialize_impl_for_instance :: fn(
         return_type :: return_type_of(member, types)
         // Mangle + emit under the IMPL's owning module (`impl_typed`), NOT the
         // instantiation context (`owner_typed`). A generic-impl member referenced
-        // from another module (e.g. `MapIterator`'s `next`, reached via
-        // `std/collections`'s `values()`) is resolved by the for-in / default-method
+        // from another module (e.g. `Range<T>`'s `Iterator::next`, reached from any
+        // module iterating a range) is resolved by the for-in / default-method
         // lowering under the impl's owning module (GATE B1, lower_for_in.vader:380) ;
         // materialising it under the caller's module produced a mangle the call
         // sites never reference (`std_collections$…next` vs `std_iter$…next`),
@@ -474,7 +474,16 @@ materialize_impl_for_instance :: fn(
             .module         = impl_typed,
         }
         synth_start :: project_ctx.synth_decls.len()
-        body :: lower_fn_body(member, impl_typed, project_ctx, entry, subst, return_type)
+        // A `@generator` impl member (e.g. `Into::into` yielding its elements)
+        // desugars to the state-machine form, same as a free-fn generator — else
+        // the plain body lowering drops every `yield` and the member returns no
+        // value. Shared with the free-fn paths via `lower_generator_body`.
+        gen_body :: member.body
+        body :: if fn_is_generator(member) && gen_body != null {
+            lower_generator_body(project_ctx, entry, impl_typed, subst, member, gen_body, params, return_type)
+        } else {
+            lower_fn_body(member, impl_typed, project_ctx, entry, subst, return_type)
+        }
         push_to_module(project, impl_typed.resolved.path, LoweredFnDecl {
             .mangled     = mangled,
             .params      = params,
