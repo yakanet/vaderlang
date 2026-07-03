@@ -1546,7 +1546,7 @@ plus(2, 3)
 UFCS dispatch works against five shapes of receiver–first-param relation, ranked weakest-wins-only-on-tie:
 1. **Concrete match**: the receiver's static type is assignable to the first param. `s.starts_with(p)` where `starts_with :: fn(s: string, prefix: string) -> bool`.
 2. **Symbolic match**: the receiver and the first param share a struct/trait symbol but differ in their type-args (e.g. `MutableList<i32>` against `fn<T>(self: MutableList<T>)`). The generic-fn-dispatch path closes over the type-args at the call site.
-3. **Trait-typed first param**: when the first param has trait type `Trait<T>` and the receiver implements that trait, UFCS dispatches to it. `source.chars().filter(is_bf_char)` resolves through `std/iter.filter :: fn<T>(it: Iterator<T>, pred) -> T[]` because `StringChars` implements `Iterator<char>`. Trait-typeparam unification happens through `unifyTraitParamWithConcrete`.
+3. **Trait-typed first param**: when the first param has trait type `Trait<T>` and the receiver implements that trait, UFCS dispatches to it. `source.chars().filter(is_bf_char)` resolves through `std/iter.filter :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> Iterator<T>` because `StringChars` implements `Iterator<char>`. Trait-typeparam unification happens through `unifyTraitParamWithConcrete`.
 4. **Union receivers**: `value.method()` on a union-typed `value` falls through to free-fn UFCS when no variant carries a struct field by that name. The first-param type can be the *union itself* (`fn read_i32(v: Value, …)`) — receiver and param match directly.
 5. **`Into<Target>` last-resort coercion**: strictly weaker than every other rank; only fires when no direct candidate exists.
 
@@ -1707,7 +1707,7 @@ fold :: fn() -> Iterator<i32> { return [1, 2, 3] }   // return coercion
 buf: Iterator<i32> : [4, 5, 6]                // typed-let coercion
 ```
 
-The coercion is gated on **canonical symbol identity** of `std/core::Iterator`; a user-defined trait that happens to be named `Iterator` is left alone. It does **not** fire on a generic `Iterator<T>` parameter — type-arg inference can't bind `T` from a `T[]` argument across the widening, so combinators that take `Iterator<T>` still need an explicit `ArrayIterator<T> { ... }` wrap (or an array-driven overload). Concrete trait-instance receivers (`Iterator<i32>`, `Iterator<string>`, …) are unaffected.
+The coercion is gated on **canonical symbol identity** of `std/core::Iterator`; a user-defined trait that happens to be named `Iterator` is left alone. The lazy `std/iter` combinators (`map` / `filter` / …, all `@generator`s over `self: Iterator<T>`) resolve **directly on a bare array** through the generator receiver-dispatch path — `arr.map(f)` needs no explicit `ArrayIterator<T> { ... }` wrap and there is no array-driven overload (§ `std/iter`). Concrete trait-instance receivers (`Iterator<i32>`, `Iterator<string>`, …) are unaffected.
 
 ```vader
 // Planned — not yet exported from std/core. Today user types iterate
@@ -2114,7 +2114,7 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 | `@assert(condition)` or `@assert(condition, "message")` | top-level | Compile-time assertion; condition must evaluate to `true` at comptime, otherwise build fails with `C4015`. The optional second argument must be a *static* string literal (no `${...}` interpolation) — when present, it is appended to the C4015 detail to surface meaningful context |
 | `@partial` | `match` expression | Opts out of exhaustiveness checking; missing variants no longer trigger `T3013`. Use with a deliberate `_`/binding catch-all (which also silences `W0005`) for "everything else does X" |
 | `@unreachable` | `match` expression | Opts out of exhaustiveness checking like `@partial`, but asserts the *uncovered* variants can never occur: handle the possible variants explicitly (no `_` arm, no fake value) and any uncovered variant traps at runtime (`reached unreachable`). Use for "handle A/B/C, the rest are impossible". Mutually exclusive with `@partial` |
-| `@specialize` | generic struct / fn | Marks the decl as ineligible for type-erasure; the compiler keeps a distinct monomorphisation per `(decl, typeArgs)` pair. Default behaviour for unmarked generics is erasure (one shared body, vtable dispatch on type-param method calls). Today used on stdlib iterator types (`ArrayIterator`, `Yield`, `MapIterator`, `FilterIterator`, `TakeIterator`, `SkipIterator`, `SetIterator`) whose for-in fusion inlining depends on the body being inline at the call site |
+| `@specialize` | generic struct / fn | Marks the decl as ineligible for type-erasure; the compiler keeps a distinct monomorphisation per `(decl, typeArgs)` pair. Default behaviour for unmarked generics is erasure (one shared body, vtable dispatch on type-param method calls). Today used on the surviving stdlib iterator types (`ArrayIterator`, `Yield`) whose for-in fusion / dispatch inlining depends on the body being inline at the call site — the `MapIterator` / `FilterIterator` / `TakeIterator` / `SkipIterator` structs were deleted once those combinators became `@generator`s |
 | `@generator` | fn (`-> Iterator<T>`) | Marks a function as a **generator**: its body yields elements one at a time via the `yield` statement instead of building and returning a whole collection. The declared return type must be `Iterator<T>`; the body must contain at least one `yield e` (each `e` coerces to `T`), and a `return` with a value is rejected — a bare `return`, or falling off the end, stops the stream. The compiler lowers the body to a resumable state machine implementing `Iterator<T>`, so the result is a first-class iterator consumed unchanged by `for`-in, the lazy combinators, and `.collect()`. See § "Generators". |
 | `@no_return` | fn | Marks the fn as **diverging** — control never returns to the caller (it panics, aborts, or loops forever). A call to it types as `never`, so it is assignable into any slot (`_ -> todo("x")` where a value is expected type-checks) and terminates control flow (the call satisfies a non-`void` fn's return obligation; code after it is unreachable, `W0002`). Powers `panic` / `todo` / `unreachable` in `std/abort`. |
 | `@internal` | struct field | Restricts a single struct field to its **declaring module**. Struct fields are **public by default** (the opposite polarity to top-level `export`, which is private-by-default); `@internal` opts one field out. Reading, writing, constructing-with, or pattern-binding the field from another module is rejected with `T3054`. An `@internal` field should usually carry a `default` so the type stays constructible across modules via `T {}` (otherwise the type is constructible only from inside its module — a deliberate "factory-only" pattern). |
@@ -2586,45 +2586,45 @@ Iterator :: trait<T> {
 
 `is_empty` / `count` / `last` are default methods (Layer 8d) — every Iterator impl inherits the bodies derived from `next`, the user only has to provide `next`.
 
-`std/iter` provides combinators on top of `Iterator<T>`. Two flavours coexist:
+`std/iter` provides **lazy combinators** on top of `Iterator<T>`. Each is a `@generator` returning `Iterator<U>`: nothing is materialised until a terminal drains the stream, and chains **fuse** through their `Iterator<T>` slots down to a single loop with no intermediate arrays. There is one family — no eager `T[]`-returning overloads and no `.iter()` cursor.
 
-- **Eager combinators** — take a `T[]` directly (an `Iterator<T>` also drops in via the `Into` coerce), allocate a fresh array for the result, return it. Suitable for the common case of "I want a `T[]` out of this pipeline".
+```vader
+map       :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U)      -> Iterator<U>
+filter    :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool)   -> Iterator<T>
+take      :: fn<T>(self: Iterator<T>, n: usize)              -> Iterator<T>
+skip      :: fn<T>(self: Iterator<T>, n: usize)              -> Iterator<T>
+enumerate :: fn<T>(self: Iterator<T>)                        -> Iterator<[usize, T]>
+flat_map  :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U[])    -> Iterator<U>
+chain     :: fn<T>(self: Iterator<T>, other: Iterator<T>)    -> Iterator<T>
+zip       :: fn<T, U>(self: T[], other: U[])                 -> Iterator<[T, U]>
+```
 
-  ```vader
-  map       :: fn<T, U>(arr: T[], f: fn(T) -> U) -> U[]
-  filter    :: fn<T>(arr: T[], pred: fn(T) -> bool) -> T[]
-  fold      :: fn<T, U>(arr: T[], init: U, f: fn(U, T) -> U) -> U
-  take      :: fn<T>(arr: T[], n: usize) -> T[]
-  skip      :: fn<T>(arr: T[], n: usize) -> T[]
-  slice     :: fn<T>(arr: T[], lo: usize, hi: usize) -> T[]
-  zip       :: fn<T, U>(a: T[], b: U[]) -> [T, U][]
-  chain     :: fn<T>(a: T[], b: T[]) -> T[]
-  enumerate :: fn<T>(arr: T[]) -> [usize, T][]
-  flat_map  :: fn<T, U>(arr: T[], f: fn(T) -> U[]) -> U[]
-  clone     :: fn<T>(arr: T[]) -> T[]
-  sum       :: fn(arr: i32[]) -> i32
-  count     :: fn<T>(arr: T[]) -> usize
-  is_empty  :: fn<T>(arr: T[]) -> bool
-  collect   :: fn<T>(it: Iterator<T>) -> T[]            // materialise an iterator (or T[]) into an array
-  ```
+**Terminals** drain the stream to a concrete value — `collect` materialises an array, the rest fold or short-circuit:
 
-- **Lazy combinators** — return a struct (`MapIterator<T, U>`, `FilterIterator<T>`, `TakeIterator<T>`, `SkipIterator<T>`) that itself implements `Iterator<T>`. Chains fuse through `Iterator<T>` slots without allocating intermediate arrays. UFCS lets calls chain fluently:
+```vader
+collect  :: fn<T>(it: Iterator<T>) -> T[]                    // the way to get a T[] back
+fold     :: fn<T, U>(it: Iterator<T>, init: U, f: fn(U, T) -> U) -> U
+sum / count / is_empty                                       // whole-stream reductions
+any / all / find / find_map                                 // stop on the first match
+```
 
-  ```vader
-  arr.filter(p).map(f).take(10).collect()
-  ```
+The blanket `T[] implements<T> Into<Iterator<T>>` makes a raw array drop into any `Iterator<T>` slot, so the combinators resolve **directly on a bare array** — no cursor, no explicit wrap:
 
-  The auto-coerce `T[] implements<T> Into<Iterator<T>>` makes raw arrays drop into any `Iterator<T>` slot, so a raw `T[]` flows straight into the first combinator with no explicit wrap. Short-circuiting combinators (`any`, `all`, `find`, `find_map`) live in this family too — they take a single `Iterator<T>` (raw arrays auto-coerce) and stop on the first match.
+```vader
+arr.map(f).filter(p).take(10).collect()     // arr : T[] ; `arr.map(f)` is lazy, `.collect()` yields the T[]
+for x in arr.filter(p) { ... }              // a lazy chain also drives for-in directly
+```
 
-The eager and lazy families converge on the same `Iterator<T>` trait: an eager `collect(it)` materialises whatever the lazy chain produces; a lazy chain accepts a raw `T[]` via the same `Into<Iterator<T>>` coercion.
+`arr.map(f)` returns a lazy `Iterator<U>`, never an array; call `.collect()` when you want the `T[]`. (`ArrayIterator<T>` is the concrete struct the `into` coercion materialises at a *non-fused* `Iterator<T>` boundary — e.g. passing `arr` to a `fn(it: Iterator<T>)` parameter; you rarely name it directly.)
 
 ### Generators (`@generator` + `yield`)
 
-> **Surface + typecheck landed; lowering (the state-machine desugar) in
-> progress.** The `@generator` decorator and the `yield` statement parse,
-> format, and are fully type-checked today (the rules below fire as `T3056`–
-> `T3061`); the resumable-iterator lowering is the remaining phase. See
-> `.claude/plans/generator-functions-yield.md`.
+> **Shipped.** The `@generator` decorator and the `yield` statement parse,
+> format, type-check (`T3056`–`T3061`), and lower to a resumable state machine.
+> The entire `std/iter` combinator family (`map` / `filter` / `take` / `skip` /
+> `enumerate` / `flat_map` / `chain` / `zip`) is authored as `@generator`s on top
+> of it. A fused chain inlines the generator body directly (no allocation, no
+> boxed iterator); an escaping generator falls back to the state-machine struct.
 
 A **generator function** carries `@generator` and produces its elements lazily,
 one at a time, instead of building a whole collection up front. It is authoring
@@ -2648,7 +2648,8 @@ Rules:
 - The declared return type **must** be `Iterator<T>` for some `T` — `T` is the
   yielded element type.
 - The body **must** contain at least one `yield` (an `@generator` that never
-  yields is an error; the empty-iterator case is `T[] = []` / `[].iter()`).
+  yields is an error; the empty-iterator case is an empty array `[]`, which
+  coerces to `Iterator<T>`).
 - `yield e` is a **statement**, legal only directly inside a generator body
   (not inside a nested lambda). `e` must coerce to `T` (same path as `return`).
 - `return <value>` inside a generator is an **error** — a generator produces via
@@ -3231,7 +3232,7 @@ Already landed (cross-reference for B's reader):
 - Resolver self-host (`vader/resolver/` — 9 modules)
 - Reflection intrinsics `@type_of`, `@fields`, `@type_args`, `@field`, `@comptime for` loop unrolling
 - FFI VM host registry (`@extern` user imports now run on the VM via a host-side handler table)
-- Lazy iterator combinators (`MapIterator`, `FilterIterator`, `TakeIterator`, `SkipIterator` in `std/iter`)
+- Lazy iterator combinators (`map` / `filter` / `take` / `skip` / `enumerate` / `flat_map` / `chain` / `zip` — all `@generator`s in `std/iter`)
 - Mid-IR CFG layer + escape analysis + loop-carried-dependency check
 - Single-binary distribution (`bun build --compile` + per-OS tarballs)
 - Reference benchmark suite (`bench/`)
