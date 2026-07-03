@@ -39,3 +39,25 @@ export lookup_keyword :: fn(text: string) -> TokenKind {
     return .Ident
 }
 
+/// Every keyword's source text — the single list tooling consults for the
+/// keyword set (LSP completion, …). Kept in lock-step with `lookup_keyword` by
+/// `test_keywords_match_lookup`. Excludes the `module` soft keyword, which
+/// `lookup_keyword` deliberately does not recognise (it is contextual).
+export KEYWORDS :: [
+    "fn", "struct", "trait", "implements", "enum", "if", "else", "match", "is",
+    "for", "in", "return", "yield", "defer", "break", "continue", "import",
+    "as", "export", "true", "false", "null", "self", "const",
+]
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert }
+
+@test test_keywords_match_lookup :: fn() -> void {
+    // Every KEYWORDS entry must be a real keyword — pins the tooling list to
+    // the lexer authority so a bogus or renamed entry breaks here.
+    for kw in KEYWORDS {
+        assert(lookup_keyword(kw) != .Ident, "KEYWORDS entry is not a keyword: ${kw}")
+    }
+}
+

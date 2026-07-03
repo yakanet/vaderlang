@@ -21,7 +21,7 @@ import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
 }
 import "std/collections" { MutableMap }
-import "vader/lexer" { tokenize, Token }
+import "vader/lexer" { tokenize, Token, make_token, empty_span }
 import "vader/fmt" { scan_comments, Comment }
 import "vader/lsp/protocol" { TokenType, RawToken, span_token_length, modifier_bit, position_uri, line_start_offset }
 import "vader/lsp/analysis" { ServerState }
@@ -103,66 +103,38 @@ token_to_raw :: fn(t: Token) -> RawToken | null {
     }
 }
 
-classify_token :: fn(t: Token) -> i32 {
-    k :: t.kind
-    // Keywords — every `Kw*` enum variant. Vader doesn't have or-patterns
-    // so the listing is explicit.
-    if k == .KwFn         { return i32(TokenType.Keyword) }
-    if k == .KwStruct     { return i32(TokenType.Keyword) }
-    if k == .KwTrait      { return i32(TokenType.Keyword) }
-    if k == .KwImplements { return i32(TokenType.Keyword) }
-    if k == .KwEnum       { return i32(TokenType.Keyword) }
-    if k == .KwIf         { return i32(TokenType.Keyword) }
-    if k == .KwElse       { return i32(TokenType.Keyword) }
-    if k == .KwMatch      { return i32(TokenType.Keyword) }
-    if k == .KwIs         { return i32(TokenType.Keyword) }
-    if k == .KwFor        { return i32(TokenType.Keyword) }
-    if k == .KwIn         { return i32(TokenType.Keyword) }
-    if k == .KwReturn     { return i32(TokenType.Keyword) }
-    if k == .KwDefer      { return i32(TokenType.Keyword) }
-    if k == .KwBreak      { return i32(TokenType.Keyword) }
-    if k == .KwContinue   { return i32(TokenType.Keyword) }
-    if k == .KwImport     { return i32(TokenType.Keyword) }
-    if k == .KwAs         { return i32(TokenType.Keyword) }
-    if k == .KwExport     { return i32(TokenType.Keyword) }
-    if k == .KwTrue       { return i32(TokenType.Keyword) }
-    if k == .KwFalse      { return i32(TokenType.Keyword) }
-    if k == .KwNull       { return i32(TokenType.Keyword) }
-    if k == .KwSelf       { return i32(TokenType.Keyword) }
+// Exhaustive over `TokenKind` (no wildcard) so a new variant — a new keyword in
+// particular — trips T3013 here instead of silently going uncoloured, the exact
+// drift that once left `yield` / `const` unhighlighted.
+classify_token :: fn(t: Token) -> i32 = match t.kind {
+    // Keywords — mirrors `lexer/keywords.vader::lookup_keyword`.
+    .KwFn | .KwStruct | .KwTrait | .KwImplements | .KwEnum | .KwIf | .KwElse
+        | .KwMatch | .KwIs | .KwFor | .KwIn | .KwReturn | .KwYield | .KwDefer
+        | .KwBreak | .KwContinue | .KwImport | .KwAs | .KwExport | .KwTrue
+        | .KwFalse | .KwNull | .KwSelf | .KwConst -> i32(TokenType.Keyword)
 
-    if k == .IntLit       { return i32(TokenType.Number) }
-    if k == .FloatLit     { return i32(TokenType.Number) }
-    if k == .CharLit      { return i32(TokenType.String) }
-    if k == .StringBegin  { return i32(TokenType.String) }
-    if k == .StringPart   { return i32(TokenType.String) }
-    if k == .StringEnd    { return i32(TokenType.String) }
-    if k == .InterpOpen   { return i32(TokenType.Operator) }
-    if k == .InterpClose  { return i32(TokenType.Operator) }
+    .IntLit | .FloatLit -> i32(TokenType.Number)
 
-    // Identifiers — skip in THIS (lexer-driven) pass. With only the lexer
-    // to work from we can't tell `function` from `parameter` from
-    // `variable` reliably, and emitting the wrong type makes clients
-    // (LSP4IJ in particular) decorate every word with the `variable` /
-    // `type` color scheme (which underlines all of them in IntelliJ's
-    // defaults). The AST-driven classification that does paint idents
-    // (Function / Type / Parameter / Variable / …) lives in
-    // `ast_tokens.vader` (`collect_ast_idents`), which the handler runs
-    // alongside this pass.
-    if k == .Ident { return -1 }
+    .CharLit | .StringBegin | .StringPart | .StringEnd -> i32(TokenType.String)
 
-    // Operators.
-    if k == .Plus || k == .Minus || k == .Star || k == .Slash || k == .Percent { return i32(TokenType.Operator) }
-    if k == .Amp || k == .Pipe || k == .Caret || k == .Tilde || k == .Shl || k == .Shr { return i32(TokenType.Operator) }
-    if k == .Eq || k == .Neq || k == .Lt || k == .Lte || k == .Gt || k == .Gte { return i32(TokenType.Operator) }
-    if k == .AndAnd || k == .OrOr || k == .Bang { return i32(TokenType.Operator) }
-    if k == .Assign || k == .PlusAssign || k == .MinusAssign || k == .StarAssign || k == .SlashAssign || k == .PercentAssign { return i32(TokenType.Operator) }
-    if k == .DeclConst || k == .DeclVar { return i32(TokenType.Operator) }
-    if k == .RangeExcl || k == .RangeIncl { return i32(TokenType.Operator) }
-    if k == .Arrow || k == .FatArrow { return i32(TokenType.Operator) }
-    if k == .Question { return i32(TokenType.Operator) }
+    // Operators + interpolation delimiters.
+    .InterpOpen | .InterpClose
+        | .Plus | .Minus | .Star | .Slash | .Percent
+        | .Amp | .Pipe | .Caret | .Tilde | .Shl | .Shr
+        | .Eq | .Neq | .Lt | .Lte | .Gt | .Gte
+        | .AndAnd | .OrOr | .Bang
+        | .Assign | .PlusAssign | .MinusAssign | .StarAssign | .SlashAssign | .PercentAssign
+        | .DeclConst | .DeclVar | .RangeExcl | .RangeIncl
+        | .Arrow | .FatArrow | .Question -> i32(TokenType.Operator)
 
-    // Punctuation, brackets, newline, EOF, etc. — no semantic token.
-    return -1
+    // No token in THIS lexer-driven pass. Identifiers are deliberately skipped —
+    // with only the lexer we can't tell function / parameter / variable apart,
+    // and mis-typing them makes clients (LSP4IJ) underline every word; the
+    // AST-driven pass (`ast_tokens.vader::collect_ast_idents`) paints idents.
+    // Punctuation / brackets / layout / `@` / `$` / `...` carry no token.
+    .Ident | .Eof | .Newline | .DotDotDot | .At | .Dollar
+        | .LParen | .RParen | .LBracket | .RBracket | .LBrace | .RBrace
+        | .Comma | .Dot | .Colon -> -1
 }
 
 // ---- comments → semantic tokens ------------------------------------------
@@ -437,4 +409,13 @@ test_doc_tag_columns :: fn() -> void {
     assert_eq(doc_token_col(indented, 1, i32(TokenType.Parameter)), 15)
     multibyte :: build_sorted_for_test("/// café @param y ok.\ng :: fn(y: i32) -> i32\n", "file:///d.vader")
     assert_eq(doc_token_col(multibyte, 0, i32(TokenType.Decorator)), 9)
+}
+
+@test
+test_yield_const_classified_as_keyword :: fn() -> void {
+    // Regression: `yield` / `const` were the two keywords the old if-cascade
+    // forgot, leaving them uncoloured. The exhaustive `match` now covers them.
+    sp :: empty_span("t.vader")
+    assert_eq(classify_token(make_token(.KwYield, "yield", sp)), i32(TokenType.Keyword))
+    assert_eq(classify_token(make_token(.KwConst, "const", sp)), i32(TokenType.Keyword))
 }
