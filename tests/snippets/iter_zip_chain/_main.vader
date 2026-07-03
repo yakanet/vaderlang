@@ -13,8 +13,7 @@ main :: fn() -> i32 {
     // zip — parallel arrays paired into tuples, stops at shorter length.
     keys :: ["a", "b", "c", "d"]
     vals :: [1, 2, 3]
-    pairs :: zip(keys, vals)
-    for [k, v] in pairs {
+    for [k, v] in zip(keys, vals) {
         println("${k}=${v}")
     }
 

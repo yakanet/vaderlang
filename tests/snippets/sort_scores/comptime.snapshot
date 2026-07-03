@@ -19,6 +19,7 @@
   Iterator<char>
   Iterator<i32>
   Iterator<[usize, T]>
+  Iterator<[T, U]>
   Iterator<T>
   Iterator<T>
   Iterator<T>

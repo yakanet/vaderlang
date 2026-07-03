@@ -62,7 +62,9 @@
   Iterator<char>
   Iterator<i32>
   Iterator<Entry<K, V>>
+  Iterator<[string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString]>
   Iterator<[usize, T]>
+  Iterator<[T, U]>
   Iterator<T>
   Iterator<T>
   Iterator<T>

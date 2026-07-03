@@ -38,21 +38,19 @@ type 35 union 23,24
 type 36 union 23,25
 type 37 union 23,0
 type 38 array 28
-type 39 struct std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString { ekeys:16,evals:43,index:48,mask:8,size:8,tombs:8 }
+type 39 struct std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString { ekeys:16,evals:46,index:45,mask:8,size:8,tombs:8 }
 type 40 struct std_string$StringChars { bytes:10,cursor:8,length:8 }
 type 41 struct __Tuple_61 { _0:4,_1:8 }
 type 42 union 19,12
-type 43 array 18
-type 44 array 45
-type 45 struct __Tuple_65 { _0:1,_1:18 }
-type 46 struct std_collections$MutableMap__string__Any___Any___Any___Any___Any___Any { ekeys:16,evals:43,index:48,mask:8,size:8,tombs:8 }
-type 47 struct std_collections$MutableMap__string__Any { ekeys:16,evals:43,index:48,mask:8,size:8,tombs:8 }
-type 48 array 3
-type 49 array 13
-type 50 array 51
-type 51 struct __Tuple_98 { _0:1,_1:28 }
-type 52 union 7,0
-type 53 array 4
+type 43 struct std_collections$MutableMap__string__Any___Any___Any___Any___Any___Any { ekeys:16,evals:46,index:45,mask:8,size:8,tombs:8 }
+type 44 struct std_collections$MutableMap__string__Any { ekeys:16,evals:46,index:45,mask:8,size:8,tombs:8 }
+type 45 array 3
+type 46 array 18
+type 47 array 13
+type 48 struct __Tuple_95 { _0:1,_1:18 }
+type 49 struct __Tuple_96 { _0:1,_1:28 }
+type 50 union 7,0
+type 51 array 4
 string 0 ": error: "
 string 1 ": "
 string 2 "null"
@@ -142,10 +140,10 @@ import 5 parse_float std_string$parse_float (string) -> ref
 impl 9 ByteAccess
 impl 40 Iterator
 impl 30 Display
-impl 46 Index
-impl 46 IndexSet
-impl 46 Contains
-impl 46 Into
+impl 43 Index
+impl 43 IndexSet
+impl 43 Contains
+impl 43 Into
 export main 1
 
 fn 0 snippet$show (string,string) -> void
@@ -329,15 +327,15 @@ fn 2 concat_3 (string,string,string) -> string
   local.get 6
   local.get 7
   local.get 0
-  call 82
+  call 81
   local.get 6
   local.get 3
   local.get 1
-  call 82
+  call 81
   local.get 6
   local.get 4
   local.get 2
-  call 82
+  call 81
   local.get 6
   local.get 5
   call 7
@@ -366,11 +364,11 @@ fn 3 concat_2 (string,string) -> string
   local.get 4
   local.get 5
   local.get 0
-  call 82
+  call 81
   local.get 4
   local.get 2
   local.get 1
-  call 82
+  call 81
   local.get 4
   local.get 3
   call 7
@@ -415,19 +413,19 @@ fn 4 concat_4 (string,string,string,string) -> string
   local.get 8
   local.get 9
   local.get 0
-  call 82
+  call 81
   local.get 8
   local.get 4
   local.get 1
-  call 82
+  call 81
   local.get 8
   local.get 5
   local.get 2
-  call 82
+  call 81
   local.get 8
   local.get 6
   local.get 3
-  call 82
+  call 81
   local.get 8
   local.get 7
   call 7
@@ -436,7 +434,7 @@ end
 
 fn 5 std_core$new_byte_buffer (usize) -> ref
   local.get 0
-  call 80
+  call 79
   return
 end
 
@@ -449,7 +447,7 @@ end
 fn 7 std_core$finish_buffer (ref,usize) -> string
   local.get 0
   local.get 1
-  call 81
+  call 80
   return
 end
 
@@ -671,7 +669,7 @@ fn 9 std_core$format_f64 (f64) -> string
   local d ref
   local $field_36 i32
   local.get 0
-  call 85
+  call 84
   local.set 1
   i64.const 63
   local.set 2
@@ -2282,7 +2280,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 351
     local.get 352
     local.get 353
-    array.new 49 342
+    array.new 47 342
     local.set 354
     local.get 13
     i32.to_i64
@@ -3317,7 +3315,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 357
     local.get 358
     local.get 359
-    array.new 49 342
+    array.new 47 342
     local.set 354
     local.get 13
     i32.to_i64
@@ -4416,7 +4414,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 338
     local.get 339
     local.get 340
-    array.new 49 326
+    array.new 47 326
     local.set 354
     local.get 2
     i32.to_i64
@@ -5403,7 +5401,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 339
     local.get 340
     local.get 341
-    array.new 49 326
+    array.new 47 326
     local.set 354
     local.get 2
     i32.to_i64
@@ -6840,7 +6838,7 @@ fn 27 std_core$format_unsigned (u64) -> string
     end $L2
   end $L1
   local.get 2
-  call 80
+  call 79
   local.set 6
   local.get 2
   local.set 4
@@ -6874,7 +6872,7 @@ fn 27 std_core$format_unsigned (u64) -> string
         local.get 6
         local.get 4
         local.get 10
-        call 84
+        call 83
         i64.const 10
         local.set 5
         local.get 0
@@ -6888,7 +6886,7 @@ fn 27 std_core$format_unsigned (u64) -> string
   end $L4
   local.get 6
   local.get 2
-  call 81
+  call 80
   return
 end
 
@@ -6943,7 +6941,7 @@ fn 30 std_json$stringify (ref) -> string
   i32.const 0
   call 36
   local.get 1
-  call 66
+  call 65
   return
 end
 
@@ -7161,7 +7159,7 @@ fn 36 std_json$write_value (ref,ref,i32,i32) -> void
   if $L0 void
     local.get 0
     string.const 2
-    call 63
+    call 62
     return
   end $L0
   local.get 4
@@ -7173,11 +7171,11 @@ fn 36 std_json$write_value (ref,ref,i32,i32) -> void
     if $L2 void
       local.get 0
       string.const 3
-      call 63
+      call 62
     else
       local.get 0
       string.const 4
-      call 63
+      call 62
     end $L2
     return
   end $L1
@@ -7340,7 +7338,7 @@ fn 38 std_json$parse_string (ref) -> ref
           local.set 10
           local.get 1
           local.get 10
-          call 63
+          call 62
           local.get 0
           local.get 3
           struct.set 29 2
@@ -7389,9 +7387,9 @@ fn 39 std_json$parse_object (ref) -> ref
   end $L0
   array.new 16 0
   local.set 1
-  array.new 43 0
+  array.new 46 0
   local.set 2
-  array.new 48 0
+  array.new 45 0
   local.set 3
   i64.const 0
   local.set 4
@@ -7475,7 +7473,7 @@ fn 39 std_json$parse_object (ref) -> ref
         local.get 1
         local.get 9
         local.get 11
-        call 67
+        call 66
         local.get 0
         call 33
         local.get 0
@@ -8192,16 +8190,19 @@ end
 fn 45 std_json$write_object (ref,ref,i32,i32) -> void
   local $call_5 usize
   local $k_6 usize
-  local ks ref
-  local vs ref
   local first bool
+  local self ref
+  local other ref
+  local $idx_30 string
+  local $idx_31 ref
+  local __tup_0 ref
   local k string
   local v ref
-  local $add_35 i32
-  local $add_41 i32
-  local $k_43 usize
+  local $add_42 i32
+  local $add_48 i32
+  local $k_50 usize
   local.field 1 26 0
-  call 73
+  call 72
   local.set 4
   i64.const 0
   local.set 5
@@ -8211,103 +8212,126 @@ fn 45 std_json$write_object (ref,ref,i32,i32) -> void
   if $L0 void
     local.get 0
     string.const 57
-    call 63
+    call 62
     return
   end $L0
   local.get 0
   char.const 123
-  call 64
+  call 63
+  local.field 1 26 0
+  call 73
+  local.set 7
   local.field 1 26 0
   call 74
-  local.set 6
-  local.field 1 26 0
-  call 75
-  local.set 7
-  bool.const true
   local.set 8
-  local.get 6
+  bool.const true
+  local.set 6
   local.get 7
-  call 62
-  local.tee 6
   array.len
+  local.set 4
+  local.get 8
+  array.len
+  local.set 5
+  local.get 4
+  local.get 5
+  u64.lt
+  if $L1 void
+    local.get 7
+    array.len
+    local.set 4
+  else
+    local.get 8
+    array.len
+    local.set 4
+  end $L1
+  local.get 4
   local.set 4
   i64.const 0
   local.set 5
-  block $L1 void
-    loop $L2 void
+  block $L2 void
+    loop $L3 void
       local.get 5
       local.get 4
       u64.lt
-      if $L3 void
-        local.get 6
+      if $L4 void
+        local.get 7
         local.get 5
-        array.get 50
-        local.set 7
-        local.field 7 51 0
+        array.get 16
         ref.cast 1
         local.set 9
-        local.field 7 51 1
-        local.set 10
         local.get 8
-        bool.not
-        if $L4 void
-          local.get 0
-          char.const 44
-          call 64
-        else
-        end $L4
-        local.get 3
-        i32.const 1
-        i32.add
-        local.set 11
-        local.get 0
-        local.get 2
-        local.get 11
-        call 52
-        local.get 0
+        local.get 5
+        array.get 38
+        local.set 10
         local.get 9
-        call 47
-        local.get 0
-        string.const 58
-        call 63
-        local.get 2
-        i32.const 0
-        i32.gt
+        local.get 10
+        struct.new_stack 48
+        local.set 11
+        local.field 11 49 0
+        ref.cast 1
+        local.set 12
+        local.field 11 49 1
+        local.set 13
+        local.get 6
+        bool.not
         if $L5 void
           local.get 0
-          char.const 32
-          call 64
+          char.const 44
+          call 63
         else
         end $L5
         local.get 3
         i32.const 1
         i32.add
-        local.set 12
+        local.set 14
         local.get 0
-        local.get 10
         local.get 2
+        local.get 14
+        call 52
+        local.get 0
         local.get 12
+        call 47
+        local.get 0
+        string.const 58
+        call 62
+        local.get 2
+        i32.const 0
+        i32.gt
+        if $L6 void
+          local.get 0
+          char.const 32
+          call 63
+        else
+        end $L6
+        local.get 3
+        i32.const 1
+        i32.add
+        local.set 15
+        local.get 0
+        local.get 13
+        local.get 2
+        local.get 15
         call 36
         bool.const false
-        local.set 8
+        local.set 6
         i64.const 1
-        local.set 13
+        local.set 16
         local.get 5
-        local.get 13
+        local.get 16
         i64.add
         local.set 5
-        br $L2
+        br $L3
       else
-      end $L3
-    end $L2
-  end $L1
+      end $L4
+    end $L3
+  end $L2
   local.get 0
   local.get 2
   local.get 3
   call 52
   local.get 0
   char.const 125
-  call 64
+  call 63
   return
 end
 
@@ -8331,12 +8355,12 @@ fn 46 std_json$write_array (ref,ref,i32,i32) -> void
   if $L0 void
     local.get 0
     string.const 59
-    call 63
+    call 62
     return
   end $L0
   local.get 0
   char.const 91
-  call 64
+  call 63
   bool.const true
   local.set 6
   local.field 1 21 0
@@ -8360,7 +8384,7 @@ fn 46 std_json$write_array (ref,ref,i32,i32) -> void
         if $L4 void
           local.get 0
           char.const 44
-          call 64
+          call 63
         else
         end $L4
         local.get 3
@@ -8399,7 +8423,7 @@ fn 46 std_json$write_array (ref,ref,i32,i32) -> void
   call 52
   local.get 0
   char.const 93
-  call 64
+  call 63
   return
 end
 
@@ -8413,7 +8437,7 @@ fn 47 std_json$write_string (ref,string) -> void
   local $call_35 string
   local.get 0
   char.const 34
-  call 64
+  call 63
   local.get 1
   call 54
   local.set 2
@@ -8437,7 +8461,7 @@ fn 47 std_json$write_string (ref,string) -> void
         if $L3 void
           local.get 0
           string.const 60
-          call 63
+          call 62
         else
           local.get 4
           char.const 92
@@ -8445,7 +8469,7 @@ fn 47 std_json$write_string (ref,string) -> void
           if $L4 void
             local.get 0
             string.const 61
-            call 63
+            call 62
           else
             local.get 4
             char.const 10
@@ -8453,7 +8477,7 @@ fn 47 std_json$write_string (ref,string) -> void
             if $L5 void
               local.get 0
               string.const 62
-              call 63
+              call 62
             else
               local.get 4
               char.const 9
@@ -8461,7 +8485,7 @@ fn 47 std_json$write_string (ref,string) -> void
               if $L6 void
                 local.get 0
                 string.const 63
-                call 63
+                call 62
               else
                 local.get 4
                 char.const 13
@@ -8469,7 +8493,7 @@ fn 47 std_json$write_string (ref,string) -> void
                 if $L7 void
                   local.get 0
                   string.const 64
-                  call 63
+                  call 62
                 else
                   local.get 5
                   i32.const 32
@@ -8477,10 +8501,10 @@ fn 47 std_json$write_string (ref,string) -> void
                   if $L8 void
                     local.get 0
                     string.const 65
-                    call 63
+                    call 62
                     local.get 5
                     i32.to_i64
-                    call 76
+                    call 75
                     local.set 6
                     i64.const 4
                     local.set 7
@@ -8491,11 +8515,11 @@ fn 47 std_json$write_string (ref,string) -> void
                     local.set 8
                     local.get 0
                     local.get 8
-                    call 63
+                    call 62
                   else
                     local.get 0
                     local.get 4
-                    call 64
+                    call 63
                   end $L8
                 end $L7
               end $L6
@@ -8508,18 +8532,18 @@ fn 47 std_json$write_string (ref,string) -> void
   end $L0
   local.get 0
   char.const 34
-  call 64
+  call 63
   return
 end
 
 fn 48 std_json$write_number (ref,f64) -> void
   local $call_2 string
   local.get 1
-  call 77
+  call 76
   local.set 2
   local.get 0
   local.get 2
-  call 63
+  call 62
   return
 end
 
@@ -8588,7 +8612,7 @@ fn 50 std_json$parse_string_with_escapes (ref,ref) -> ref
           local.get 0
           call 44
           local.get 1
-          call 66
+          call 65
           box 1
           return
         end $L3
@@ -8617,7 +8641,7 @@ fn 50 std_json$parse_string_with_escapes (ref,ref) -> ref
           if $L6 void
             local.get 1
             char.const 34
-            call 64
+            call 63
             br $L1
           end $L6
           local.get 3
@@ -8626,7 +8650,7 @@ fn 50 std_json$parse_string_with_escapes (ref,ref) -> ref
           if $L7 void
             local.get 1
             char.const 92
-            call 64
+            call 63
             br $L1
           end $L7
           local.get 3
@@ -8635,7 +8659,7 @@ fn 50 std_json$parse_string_with_escapes (ref,ref) -> ref
           if $L8 void
             local.get 1
             char.const 47
-            call 64
+            call 63
             br $L1
           end $L8
           local.get 3
@@ -8644,7 +8668,7 @@ fn 50 std_json$parse_string_with_escapes (ref,ref) -> ref
           if $L9 void
             local.get 1
             char.const 10
-            call 64
+            call 63
             br $L1
           end $L9
           local.get 3
@@ -8653,7 +8677,7 @@ fn 50 std_json$parse_string_with_escapes (ref,ref) -> ref
           if $L10 void
             local.get 1
             char.const 9
-            call 64
+            call 63
             br $L1
           end $L10
           local.get 3
@@ -8662,7 +8686,7 @@ fn 50 std_json$parse_string_with_escapes (ref,ref) -> ref
           if $L11 void
             local.get 1
             char.const 13
-            call 64
+            call 63
             br $L1
           end $L11
           local.get 3
@@ -8674,7 +8698,7 @@ fn 50 std_json$parse_string_with_escapes (ref,ref) -> ref
             local.set 4
             local.get 1
             local.get 4
-            call 64
+            call 63
             br $L1
           end $L12
           local.get 3
@@ -8686,7 +8710,7 @@ fn 50 std_json$parse_string_with_escapes (ref,ref) -> ref
             local.set 5
             local.get 1
             local.get 5
-            call 64
+            call 63
             br $L1
           end $L13
           local.get 3
@@ -8736,7 +8760,7 @@ fn 50 std_json$parse_string_with_escapes (ref,ref) -> ref
                   local.get 13
                   local.get 14
                   call 53
-                  call 78
+                  call 77
                   local.set 15
                   local.get 15
                   i32.const 0
@@ -8781,7 +8805,7 @@ fn 50 std_json$parse_string_with_escapes (ref,ref) -> ref
             local.set 20
             local.get 1
             local.get 20
-            call 64
+            call 63
             br $L1
           end $L14
           local.get 0
@@ -8791,7 +8815,7 @@ fn 50 std_json$parse_string_with_escapes (ref,ref) -> ref
         end $L4
         local.get 1
         local.get 2
-        call 64
+        call 63
         local.field 0 29 2
         ref.cast 8
         local.set 21
@@ -8907,7 +8931,7 @@ fn 52 std_json$write_indent (ref,i32,i32) -> void
   end $L0
   local.get 0
   char.const 10
-  call 64
+  call 63
   local.get 1
   local.get 2
   i32.mul
@@ -8915,7 +8939,7 @@ fn 52 std_json$write_indent (ref,i32,i32) -> void
   local.get 0
   char.const 32
   local.get 3
-  call 65
+  call 64
   return
 end
 
@@ -9262,7 +9286,7 @@ fn 55 std_string$pad_start (string,usize,char) -> string
       if $L3 void
         local.get 4
         local.get 2
-        call 64
+        call 63
         i64.const 1
         local.set 5
         local.get 3
@@ -9276,9 +9300,9 @@ fn 55 std_string$pad_start (string,usize,char) -> string
   end $L1
   local.get 4
   local.get 0
-  call 63
+  call 62
   local.get 4
-  call 66
+  call 65
   return
 end
 
@@ -9506,83 +9530,14 @@ fn 61 std_char$is_white_char (char) -> bool
   return
 end
 
-fn 62 std_iter$zip__string__Any (ref,ref) -> ref
-  local n usize
-  local m usize
-  local out ref
-  local $idx_15 string
-  local $idx_16 ref
-  local $struct_17 ref
-  local $k_18 usize
-  local.get 0
-  array.len
-  local.set 2
-  local.get 1
-  array.len
-  local.set 3
-  local.get 2
-  local.get 3
-  u64.lt
-  if $L0 void
-    local.get 2
-    local.set 2
-  else
-    local.get 3
-    local.set 2
-  end $L0
-  local.get 2
-  local.set 2
-  array.new 44 0
-  local.get 2
-  array.repeat
-  local.set 4
-  i64.const 0
-  local.set 3
-  block $L1 void
-    loop $L2 void
-      local.get 3
-      local.get 2
-      u64.lt
-      if $L3 void
-        local.get 0
-        local.get 3
-        array.get 16
-        ref.cast 1
-        local.set 5
-        local.get 1
-        local.get 3
-        array.get 43
-        local.set 6
-        local.get 5
-        local.get 6
-        struct.new 45
-        local.set 7
-        local.get 4
-        local.get 7
-        array.push 45
-        i64.const 1
-        local.set 8
-        local.get 3
-        local.get 8
-        i64.add
-        local.set 3
-        br $L2
-      else
-      end $L3
-    end $L2
-  end $L1
-  local.get 4
-  return
-end
-
-fn 63 std_string_builder$append (ref,string) -> void
+fn 62 std_string_builder$append (ref,string) -> void
   local.field 0 30 0
   local.get 1
   array.push 1
   return
 end
 
-fn 64 std_string_builder$append_char (ref,char) -> void
+fn 63 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
   local.field 0 30 0
@@ -9597,7 +9552,7 @@ fn 64 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 65 std_string_builder$append_repeated (ref,char,i32) -> void
+fn 64 std_string_builder$append_repeated (ref,char,i32) -> void
   local s string
   local _ i32
   local.get 1
@@ -9627,7 +9582,7 @@ fn 65 std_string_builder$append_repeated (ref,char,i32) -> void
   return
 end
 
-fn 66 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 65 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local n usize
   local $k_4 usize
   local $field_9 ref
@@ -9698,7 +9653,7 @@ fn 66 std_string_builder$StringBuilder$Display$to_string (ref) -> string
     end $L3
   end $L2
   local.get 1
-  call 80
+  call 79
   local.set 3
   i64.const 0
   local.set 2
@@ -9722,7 +9677,7 @@ fn 66 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 3
         local.get 2
         local.get 8
-        call 82
+        call 81
         local.get 8
         call.import 4
         local.set 6
@@ -9743,19 +9698,19 @@ fn 66 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L5
   local.get 3
   local.get 1
-  call 81
+  call 80
   return
 end
 
-fn 67 std_collections$MutableMap$IndexSet$set_at__string__Any (ref,string,ref) -> void
+fn 66 std_collections$MutableMap$IndexSet$set_at__string__Any (ref,string,ref) -> void
   local.get 0
   local.get 1
   local.get 2
-  call 72
+  call 71
   return
 end
 
-fn 68 std_collections$slot_for (u64,usize) -> usize
+fn 67 std_collections$slot_for (u64,usize) -> usize
   local.get 0
   u64.to_i64
   local.get 1
@@ -9763,12 +9718,12 @@ fn 68 std_collections$slot_for (u64,usize) -> usize
   return
 end
 
-fn 69 std_collections$std_collections$ensure_index__string__Any (ref) -> void
+fn 68 std_collections$std_collections$ensure_index__string__Any (ref) -> void
   local $len_2 usize
   local $k_3 usize
   local idx ref
   local $k_12 usize
-  local.field 0 47 2
+  local.field 0 44 2
   array.len
   local.set 1
   i64.const 0
@@ -9777,7 +9732,7 @@ fn 69 std_collections$std_collections$ensure_index__string__Any (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 48 0
+    array.new 45 0
     local.set 3
     i64.const 0
     local.set 1
@@ -9805,7 +9760,7 @@ fn 69 std_collections$std_collections$ensure_index__string__Any (ref) -> void
     end $L1
     local.get 0
     local.get 3
-    struct.set 47 2
+    struct.set 44 2
     i64.const 16
     local.set 1
     i64.const 1
@@ -9816,13 +9771,13 @@ fn 69 std_collections$std_collections$ensure_index__string__Any (ref) -> void
     local.set 1
     local.get 0
     local.get 1
-    struct.set 47 3
+    struct.set 44 3
   else
   end $L0
   return
 end
 
-fn 70 std_collections$std_collections$rehash__string__Any (ref,usize) -> void
+fn 69 std_collections$std_collections$rehash__string__Any (ref,usize) -> void
   local fresh ref
   local _ usize
   local $k_8 usize
@@ -9833,7 +9788,7 @@ fn 70 std_collections$std_collections$rehash__string__Any (ref,usize) -> void
   local $k_28 usize
   local $cast_30 i32
   local $k_31 usize
-  array.new 48 0
+  array.new 45 0
   local.set 2
   i64.const 0
   local.set 3
@@ -9867,20 +9822,20 @@ fn 70 std_collections$std_collections$rehash__string__Any (ref,usize) -> void
   local.set 4
   block $L3 void
     loop $L4 void
-      local.field 0 47 4
+      local.field 0 44 4
       ref.cast 8
       local.set 5
       local.get 4
       local.get 5
       u64.lt
       if $L5 void
-        local.field 0 47 0
+        local.field 0 44 0
         local.get 4
         array.get 16
         ref.cast 1
-        call 83
+        call 82
         local.get 3
-        call 68
+        call 67
         local.set 6
         block $L6 void
           loop $L7 void
@@ -9929,62 +9884,62 @@ fn 70 std_collections$std_collections$rehash__string__Any (ref,usize) -> void
   end $L3
   local.get 0
   local.get 2
-  struct.set 47 2
+  struct.set 44 2
   local.get 0
   local.get 3
-  struct.set 47 3
+  struct.set 44 3
   i64.const 0
   local.set 3
   local.get 0
   local.get 3
-  struct.set 47 5
+  struct.set 44 5
   return
 end
 
-fn 71 std_collections$std_collections$write_entry__string__Any (ref,string,ref) -> void
+fn 70 std_collections$std_collections$write_entry__string__Any (ref,string,ref) -> void
   local $field_3 usize
   local $len_5 usize
   local $field_7 ref
-  local.field 0 47 4
+  local.field 0 44 4
   ref.cast 8
   local.set 3
-  local.field 0 47 0
+  local.field 0 44 0
   array.len
   local.set 4
   local.get 3
   local.get 4
   u64.lt
   if $L0 void
-    local.field 0 47 0
+    local.field 0 44 0
     local.set 5
-    local.field 0 47 4
+    local.field 0 44 4
     ref.cast 8
     local.set 3
     local.get 5
     local.get 3
     local.get 1
     array.set 16
-    local.field 0 47 1
+    local.field 0 44 1
     local.set 5
-    local.field 0 47 4
+    local.field 0 44 4
     ref.cast 8
     local.set 3
     local.get 5
     local.get 3
     local.get 2
-    array.set 43
+    array.set 46
   else
-    local.field 0 47 0
+    local.field 0 44 0
     local.get 1
     array.push 1
-    local.field 0 47 1
+    local.field 0 44 1
     local.get 2
     array.push 18
   end $L0
   return
 end
 
-fn 72 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
+fn 71 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
   local $field_3 usize
   local $field_4 usize
   local $k_11 usize
@@ -10000,11 +9955,11 @@ fn 72 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
   local $idx_40 i32
   local $field_70 ref
   local.get 0
-  call 69
-  local.field 0 47 4
+  call 68
+  local.field 0 44 4
   ref.cast 8
   local.set 3
-  local.field 0 47 5
+  local.field 0 44 5
   ref.cast 8
   local.set 4
   local.get 3
@@ -10023,7 +9978,7 @@ fn 72 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
   local.get 4
   i64.mul
   local.set 3
-  local.field 0 47 3
+  local.field 0 44 3
   ref.cast 8
   local.set 4
   i64.const 1
@@ -10046,7 +10001,7 @@ fn 72 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
     local.set 3
     block $L1 void
       loop $L2 void
-        local.field 0 47 4
+        local.field 0 44 4
         ref.cast 8
         local.set 4
         i64.const 1
@@ -10084,25 +10039,25 @@ fn 72 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
     end $L1
     local.get 0
     local.get 3
-    call 70
+    call 69
   else
   end $L0
   local.get 1
-  call 83
+  call 82
   local.set 12
-  local.field 0 47 3
+  local.field 0 44 3
   ref.cast 8
   local.set 3
   local.get 12
   local.get 3
-  call 68
+  call 67
   local.set 3
   i64.const 1
   i64.neg
   local.set 13
   block $L4 void
     loop $L5 void
-      local.field 0 47 2
+      local.field 0 44 2
       local.get 3
       load_slot_i32
       local.set 14
@@ -10110,7 +10065,7 @@ fn 72 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
       i32.const 0
       i32.ne
       if $L6 void
-        local.field 0 47 2
+        local.field 0 44 2
         local.get 3
         load_slot_i32
         local.set 15
@@ -10133,7 +10088,7 @@ fn 72 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
           local.get 7
           i64.add
           local.set 8
-          local.field 0 47 3
+          local.field 0 44 3
           ref.cast 8
           local.set 9
           local.get 8
@@ -10142,7 +10097,7 @@ fn 72 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
           local.set 3
           br $L5
         end $L7
-        local.field 0 47 2
+        local.field 0 44 2
         local.get 3
         load_slot_i32
         i32.to_i64
@@ -10153,17 +10108,17 @@ fn 72 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
         local.get 5
         i64.sub
         local.set 6
-        local.field 0 47 0
+        local.field 0 44 0
         local.get 6
         array.get 16
         ref.cast 1
         local.get 1
         string.eq
         if $L9 void
-          local.field 0 47 1
+          local.field 0 44 1
           local.get 6
           local.get 2
-          array.set 43
+          array.set 46
           return
         end $L9
         i64.const 1
@@ -10172,7 +10127,7 @@ fn 72 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
         local.get 7
         i64.add
         local.set 8
-        local.field 0 47 3
+        local.field 0 44 3
         ref.cast 8
         local.set 9
         local.get 8
@@ -10201,7 +10156,7 @@ fn 72 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
   i64.const 0
   i64.ge
   if $L11 void
-    local.field 0 47 5
+    local.field 0 44 5
     ref.cast 8
     local.set 4
     i64.const 1
@@ -10212,16 +10167,16 @@ fn 72 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
     local.set 4
     local.get 0
     local.get 4
-    struct.set 47 5
+    struct.set 44 5
   else
   end $L11
   local.get 0
   local.get 1
   local.get 2
-  call 71
-  local.field 0 47 2
+  call 70
+  local.field 0 44 2
   local.set 16
-  local.field 0 47 4
+  local.field 0 44 4
   ref.cast 8
   local.set 4
   i64.const 1
@@ -10235,7 +10190,7 @@ fn 72 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
   local.get 3
   local.get 14
   store_slot_i32
-  local.field 0 47 4
+  local.field 0 44 4
   ref.cast 8
   local.set 3
   i64.const 1
@@ -10246,17 +10201,17 @@ fn 72 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
   local.set 3
   local.get 0
   local.get 3
-  struct.set 47 4
+  struct.set 44 4
   return
 end
 
-fn 73 std_collections$std_collections$len__string__Any (ref) -> usize
-  local.field 0 47 4
+fn 72 std_collections$std_collections$len__string__Any (ref) -> usize
+  local.field 0 44 4
   ref.cast 8
   return
 end
 
-fn 74 std_collections$std_collections$keys__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref) -> ref
+fn 73 std_collections$std_collections$keys__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref) -> ref
   local $arr_1 ref
   local $field_2 usize
   local $field_7 usize
@@ -10305,7 +10260,7 @@ fn 74 std_collections$std_collections$keys__string__JsonArray___JsonBool___JsonN
   return
 end
 
-fn 75 std_collections$std_collections$values__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref) -> ref
+fn 74 std_collections$std_collections$values__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref) -> ref
   local $arr_1 ref
   local $field_2 usize
   local $field_7 usize
@@ -10353,7 +10308,7 @@ fn 75 std_collections$std_collections$values__string__JsonArray___JsonBool___Jso
   return
 end
 
-fn 76 std_numbers$to_hex (u64) -> string
+fn 75 std_numbers$to_hex (u64) -> string
   local $k_1 u64
   local rev ref
   local x u64
@@ -10373,7 +10328,7 @@ fn 76 std_numbers$to_hex (u64) -> string
   if $L0 void
     return.lit string.const 35
   end $L0
-  array.new 53 0
+  array.new 51 0
   local.set 2
   i64.const 16
   local.set 1
@@ -10390,7 +10345,7 @@ fn 76 std_numbers$to_hex (u64) -> string
         local.get 3
         local.get 1
         u64.rem
-        call 79
+        call 78
         local.set 5
         local.get 2
         local.get 5
@@ -10432,7 +10387,7 @@ fn 76 std_numbers$to_hex (u64) -> string
         local.set 5
         local.get 6
         local.get 5
-        call 64
+        call 63
         i64.const 1
         local.set 11
         local.get 8
@@ -10445,11 +10400,11 @@ fn 76 std_numbers$to_hex (u64) -> string
     end $L5
   end $L4
   local.get 6
-  call 66
+  call 65
   return
 end
 
-fn 77 std_numbers$to_compact_str (f64) -> string
+fn 76 std_numbers$to_compact_str (f64) -> string
   local s string
   local sb ref
   local $k_7 usize
@@ -10487,7 +10442,7 @@ fn 77 std_numbers$to_compact_str (f64) -> string
   return
 end
 
-fn 78 std_numbers$hex_digit_value (char) -> i32
+fn 77 std_numbers$hex_digit_value (char) -> i32
   local and_res bool
   local $cast_7 u32
   local $k_8 u32
@@ -10583,7 +10538,7 @@ fn 78 std_numbers$hex_digit_value (char) -> i32
   return
 end
 
-fn 79 std_numbers$hex_digit (u64) -> char
+fn 78 std_numbers$hex_digit (u64) -> char
   local $k_1 u64
   local $k_3 u32
   local $cast_4 u32
@@ -10622,20 +10577,20 @@ fn 79 std_numbers$hex_digit (u64) -> char
   return
 end
 
-fn 80 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 79 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 81 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 80 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 82 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 81 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -10643,13 +10598,13 @@ fn 82 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   return
 end
 
-fn 83 std_core$string$Hash$hash_vt (string) -> u64
+fn 82 std_core$string$Hash$hash_vt (string) -> u64
   local.get 0
   call.import 2
   return
 end
 
-fn 84 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 83 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -10657,7 +10612,7 @@ fn 84 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 85 std_core$f64$FloatBits$to_bits_vt (f64) -> u64
+fn 84 std_core$f64$FloatBits$to_bits_vt (f64) -> u64
   local.get 0
   f64_to_bits
   return

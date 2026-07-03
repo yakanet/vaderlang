@@ -1,20 +1,20 @@
 // std/iter — lazy `@generator` iterator combinators + terminals.
 //
 //   - **Combinators** `map` / `filter` / `take` / `skip` / `enumerate` /
-//     `flat_map` are `@generator`s over a source `Iterator(T)` (bottom of this
-//     file). `arr.map(f)` / `it.enumerate()` read like a pipeline and dispatch
-//     via UFCS ; consumed by a `for` loop or a terminal (`collect` / `count` /
-//     `any` / …), the chain fuses to a single flat loop — no intermediate
-//     arrays, no iterator struct, no `next()` dispatch
-//     (`vader/lower/lower_iter_fusion.vader`). `enumerate` is a 0-arg combinator
-//     (`self` only) ; its `[usize, T]` element destructures in a `for [i, x] in`.
-//     The generator's state machine only materialises when the value escapes.
+//     `flat_map` / `chain` / `zip` are `@generator`s (bottom of this file).
+//     `arr.map(f)` / `it.enumerate()` read like a pipeline and dispatch via UFCS ;
+//     consumed by a `for` loop or a terminal (`collect` / `count` / `any` / …),
+//     the chain fuses to a single flat loop — no intermediate arrays, no iterator
+//     struct, no `next()` dispatch (`vader/lower/lower_iter_fusion.vader`).
+//     `enumerate` is a 0-arg combinator ; `chain` fuses two source loops ; `zip`
+//     stays `T[]`/`U[]` (its lockstep pull needs indexed access, unlike the
+//     source-driven combinators). Their tuple elements destructure in `for [x, y]
+//     in`. The generator's state machine only materialises when the value escapes.
 //   - **Terminals** `collect` / `fold` / `sum` / `any` / `all` / `find` /
 //     `find_map` take an `Iterator(T)` and consume it (a raw array auto-coerces
 //     at the call site). `count` / `is_empty` / `last` are the `Iterator` trait's
 //     own default methods (`std/core`).
-//   - **Array helpers** `clone` / `zip` / `chain` still take a `T[]` (`zip` /
-//     `chain` pending their two-source Iterator rewrite). For a plain array
+//   - **Array helpers** `clone` / `is_empty` take a `T[]`. For a plain array
 //     prefer the built-ins : `arr.len()`, `arr[start..<end]`, `arr.clone()`
 //     (not the removed `count`/`slice`/eager-`collect`).
 
@@ -95,21 +95,22 @@ export clone :: fn<T>(arr: const T[]) -> T[] {
     return out
 }
 
-/// Pair elements of `a` and `b` into tuples, stopping at the shorter of
-/// the two. Mirrors Python `zip` ; useful for stepping parallel arrays
-/// (e.g. keys + values from a map).
-/// @param a  left source array.
-/// @param b  right source array.
-/// @return   `[a[0], b[0]], [a[1], b[1]], …` capped at `min(len(a), len(b))`.
-export zip :: fn<T, U>(a: T[], b: U[]) -> [T, U][] {
-    n :: a.len()
-    m :: b.len()
-    k :: if n < m { n } else { m }
-    out: [T, U][] = [] * k
-    for i in 0..<k {
-        out.push([a[i], b[i]])
+/// Lazily pair elements of `self` and `other` into tuples, stopping at the
+/// shorter of the two. Mirrors Python `zip` ; useful for stepping parallel
+/// arrays in lockstep (e.g. keys + values from a map). Both inputs stay `T[]`/
+/// `U[]` — the lockstep pull needs indexed access, so unlike the source-driven
+/// combinators `zip` does not take a lazy `Iterator`. `for [x, y] in zip(a, b)`
+/// destructures each pair ; consumed directly it fuses to a single index loop.
+/// @param self   left source array.
+/// @param other  right source array.
+/// @return       a lazy `Iterator([T, U])` — `(self[0], other[0])`, … capped at
+///               `min(self.len(), other.len())`.
+@generator
+export zip :: fn<T, U>(self: T[], other: U[]) -> Iterator<[T, U]> {
+    n :: if self.len() < other.len() { self.len() } else { other.len() }
+    for i in 0..<n {
+        yield [self[i], other[i]]
     }
-    return out
 }
 
 /// Lazily yield every element of `self`, then every element of `other` — a
