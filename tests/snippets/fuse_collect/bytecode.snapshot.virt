@@ -1,9 +1,9 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 struct __lambda_env_7 {  }
-type 3 struct __lambda_env_10 {  }
-type 4 primitive bool
+type 2 struct __lambda_env_4 {  }
+type 3 primitive bool
+type 4 struct __lambda_env_7 {  }
 type 5 struct __lambda_env_17 {  }
 type 6 primitive usize
 type 7 struct std_core$Buffer {  }
@@ -14,7 +14,7 @@ type 11 array 12
 type 12 primitive u8
 type 13 primitive void
 type 14 array 1
-type 15 fn (1) -> 4
+type 15 fn (1) -> 3
 type 16 fn (1) -> 1
 string 0 "len "
 string 1 " [0]="
@@ -32,9 +32,9 @@ fn 0 snippet$main () -> i32
   local __collect_0 ref
   local pred ref
   local f ref
-  local __fuse_arr_2 ref
-  local __fuse_len_3 usize
-  local __fuse_i_4 usize
+  local __fuse_arr_4 ref
+  local __fuse_len_5 usize
+  local __fuse_i_6 usize
   local x i32
   local __elem_1 i32
   local $k_27 usize
@@ -42,11 +42,11 @@ fn 0 snippet$main () -> i32
   local $cast_44 i64
   array.new 14 0
   local.set 0
-  struct.new 3
-  make_closure 2 15
-  local.set 1
   struct.new 2
-  make_closure 1 16
+  make_closure 1 15
+  local.set 1
+  struct.new 4
+  make_closure 2 16
   local.set 2
   i32.const 1
   i32.const 2
@@ -254,17 +254,17 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 __lambda_6 (ref,i32) -> i32
-  local.get 1
-  i32.const 2
-  i32.mul
-  return
-end
-
-fn 2 __lambda_9 (ref,i32) -> bool
+fn 1 __lambda_3 (ref,i32) -> bool
   local.get 1
   i32.const 6
   i32.gt
+  return
+end
+
+fn 2 __lambda_6 (ref,i32) -> i32
+  local.get 1
+  i32.const 2
+  i32.mul
   return
 end
 

@@ -112,16 +112,16 @@ export zip :: fn<T, U>(a: T[], b: U[]) -> [T, U][] {
     return out
 }
 
-/// Concatenate `a` followed by `b` into a fresh array. Useful when
-/// building a flat stream out of two homogeneous sources.
-/// @param a  first source array.
-/// @param b  second source array, appended after `a`.
-/// @return   a fresh array of `a.len() + b.len()` elements.
-export chain :: fn<T>(a: T[], b: T[]) -> T[] {
-    out: T[] = [] * (a.len() + b.len())
-    out.push_all(a)
-    out.push_all(b)
-    return out
+/// Lazily yield every element of `self`, then every element of `other` — a
+/// concatenated stream. Fuses to two back-to-back source loops (no intermediate
+/// array) when consumed by a `for` loop or a terminal.
+/// @param self   first source iterator (a raw array auto-coerces at the call site).
+/// @param other  second source, streamed after `self` is exhausted.
+/// @return       a lazy `Iterator(T)` over `self` followed by `other`.
+@generator
+export chain :: fn<T>(self: Iterator<T>, other: Iterator<T>) -> Iterator<T> {
+    for x in self { yield x }
+    for y in other { yield y }
 }
 
 /// Lazily pair each element with its index, starting at 0. Yields `[usize, T]`
@@ -320,7 +320,10 @@ import "std/testing" { assert, assert_eq, fail }
 }
 
 @test test_chain :: fn() -> void {
-    out :: chain([1, 2], [3, 4, 5])
+    out: i32[] = []
+    for x in chain([1, 2], [3, 4, 5]) {
+        out.push(x)
+    }
     assert_eq(out.len(), 5)
     assert_eq(out[0], 1)
     assert_eq(out[4], 5)

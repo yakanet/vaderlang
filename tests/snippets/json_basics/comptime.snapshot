@@ -3,6 +3,7 @@
 ## tests/snippets/json_basics
 
 ## generic instances
+  __genstate_chain<T>
   __genstate_enumerate<[usize, T]>
   __genstate_filter<i32>
   __genstate_map<i32>
@@ -62,6 +63,7 @@
   Iterator<i32>
   Iterator<Entry<K, V>>
   Iterator<[usize, T]>
+  Iterator<T>
   Iterator<T>
   Iterator<T>
   Iterator<T>
