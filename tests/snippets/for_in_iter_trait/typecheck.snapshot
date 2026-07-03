@@ -6,9 +6,9 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         sum_iter             :: fn(Iterator<i32>) -> i32
   expr 23:14    IdentExpr      :: Iterator<i32>
-  expr 24:17    BinaryExpr     :: ?
+  expr 24:17    BinaryExpr     :: i32
   expr 24:17    IdentExpr      :: i32
-  expr 24:25    IdentExpr      :: ?
+  expr 24:25    IdentExpr      :: i32
   expr 24:9     IdentExpr      :: i32
   expr 26:12    IdentExpr      :: i32
   expr 33:38    BinaryExpr     :: bool

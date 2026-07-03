@@ -8,7 +8,6 @@
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>
-  Entry<K, V>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, i32>
@@ -29,7 +28,6 @@
   MutableMap<K, V>
   MutableMap<K, V>
   MutableMap<K, V>
-  MutableMap<K, V>
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<T, bool>
@@ -39,9 +37,6 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
-  MapIterator<K, V>
-  MapIterator<K, V>
-  MapIterator<K, V>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>
@@ -51,10 +46,6 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  MutableSet<T>
-  SetIterator<T>
-  SetIterator<T>
-  SetIterator<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
@@ -68,8 +59,6 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
-  Yield<Entry<K, V>>
-  Yield<T>
   Yield<T>
   Yield<T>
   Yield<T>

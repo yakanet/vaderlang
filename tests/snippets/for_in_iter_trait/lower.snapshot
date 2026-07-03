@@ -25,11 +25,11 @@
               target:
                 total :i32
               value:
-                add :?
+                add :i32
                   l:
                     total :i32
                   r:
-                    x :?
+                    x :i32
     return total :i32
   fn snippet$is_l(c: char) -> bool
     return
