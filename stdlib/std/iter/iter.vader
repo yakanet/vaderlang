@@ -1,4 +1,4 @@
-// std/iter — array-based eager combinators + lazy iterator chains.
+// std/iter — array-based eager combinators + lazy `@generator` chains.
 //
 // Two shapes coexist :
 //
@@ -7,26 +7,16 @@
 //      (or fold to a single value), and return immediately. Best for
 //      one-shot transformations where the result lives anyway.
 //
-//   2. **Lazy** : the `*Iterator` structs at the bottom of this file
-//      (`MappedIterator`, `FilterIterator`, `TakeIterator`, `SkipIterator`)
-//      wrap a source `Iterator(T)` and produce one element at a time via
-//      their `Iterator(U)` impl. Useful when chaining transformations
-//      without materialising intermediate arrays. Construct directly
-//      with the struct literal :
-//
-//          mi :: MappedIterator(i32, i32) {
-//              .source = 0..<10,
-//              .f      = fn(x: i32) -> i32 { return x * x },
-//          }
-//          for sq in mi { /* … */ }
-//
-//      No `lazy_map(it, f)` constructor helper — generic-fn inference on
-//      a trait-typed parameter (`fn[T](it: Iterator(T))`) doesn't unify
-//      `T` from the concrete arg today, so the explicit type-args on the
-//      struct literal carry the substitution instead. The trade-off is
-//      one extra `(T, U)` per call site ; the upside is zero new compiler
-//      support beyond what already works (struct lit with a trait-typed
-//      field auto-boxes the source).
+//   2. **Lazy** : `map` / `filter` / `take` / `skip` are also declared as
+//      `@generator`s over a source `Iterator(T)` (at the bottom of this
+//      file). They read like an Iterator pipeline — `it.map(f).filter(p)`
+//      — and dispatch via UFCS through the first param's type, overload-
+//      resolved against the eager `T[]`-first-param siblings above.
+//      Consumed by a `for` loop or a terminal (`count` / `collect` /
+//      `any` / …), the whole chain fuses to a single flat counter loop :
+//      no intermediate arrays, no iterator struct, no `next()` dispatch
+//      (`vader/lower/lower_iter_fusion.vader`). The generator's own state
+//      machine only materialises when the iterator value escapes.
 
 /// Number of items in the array. Trivial wrapper over `arr.len()` ;
 /// exposed for symmetry with the future Iterator-driven `count(it)`.
@@ -90,9 +80,9 @@ export filter :: fn<T>(arr: T[], pred: fn(T) -> bool) -> T[] {
     return out
 }
 
-// Eager iterator `filter` removed — the lazy fluent overload below
-// (`filter :: fn[T](self: Iterator(T), ...) -> FilterIterator(T)`)
-// is the new default. Drain to an array with `.collect()` when needed.
+// Eager iterator `filter` removed — the lazy `@generator` overload below
+// (`filter :: fn[T](self: Iterator(T), ...) -> Iterator(T)`) is the new
+// default. Drain to an array with `.collect()` when needed.
 
 /// Left-fold the array with seed `init`. `f(acc, x)` is called for every
 /// element in order ; the final accumulator is returned.
@@ -282,18 +272,14 @@ export find_map :: fn<T, U>(it: Iterator<T>, f: fn(T) -> U | null) -> U | null {
 // Lazy iterator chains
 // ============================================================================
 //
-// Each combinator below is a struct that *wraps* a source `Iterator(T)` and
-// implements `Iterator(U)` itself. Chained transformations stay lazy : an
-// element only flows through the chain when the downstream consumer calls
-// `next()` (or `for x in chain {…}` does).
-//
-// Two construction shapes : the struct literal (`MappedIterator(T, U) { … }`)
-// and the fluent free fns below. The fluent shape (`it.map(f).filter(p)`)
-// reads like an Iterator pipeline and dispatches via UFCS through the
-// first param's type — overload-resolved against the eager `T[]`-first-
-// param siblings declared above. The lowerer's iter-chain fusion path
-// recognises both shapes and folds them into a single counter loop when
-// the chain bottoms at an inline range.
+// Each combinator below is a `@generator` over a source `Iterator(T)` : it
+// `yield`s transformed elements one at a time, so a chain stays lazy — an
+// element only flows through when the downstream consumer pulls it (`next()`,
+// or `for x in chain {…}`). The fluent shape (`it.map(f).filter(p)`) reads
+// like an Iterator pipeline and dispatches via UFCS through the first param's
+// type — overload-resolved against the eager `T[]`-first-param siblings above.
+// The lowerer's iter-chain fusion folds a `for`/terminal-consumed chain into a
+// single counter loop when it bottoms at an inline range or `arr.iter()`.
 
 /// Fluent lazy `filter`. Distinct from the eager `T[]`-overload above —
 /// the resolver picks this one when the receiver implements `Iterator(T)`

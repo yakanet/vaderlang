@@ -13,25 +13,20 @@ module "vader/lower"
 
 import "vader/diagnostics" { Span }
 AST :: import "vader/parser"
-import "vader/parser" { StructLitField as ASTStructLitField, StructLitSpread as ASTStructLitSpread }
 import "vader/resolver/symbol" { Symbol }
 import "vader/types" { Type, StructType, mk_primitive, mk_array, mk_union, TY_BOOL, TY_VOID, TY_NULL, TY_UNRESOLVED, STRUCT_ARRAY_ITERATOR }
 import "vader/typecheck" { default_if_free }
 
 // ---- chain fusion ---------------------------------------------------------
 
-// One layer of an `it.map(f).filter(p)` chain. `Range` is the bottom
-// (integer-typed) ; `Map` / `Filter` wrap a `source` layer + the fn
-// expression. The chain bottoms out at a `RangeExpr` with an integer
-// bound type — non-int ranges, runtime-bound chains, etc fall back to
-// the generic slow path.
+// One layer of a fusible iterator chain. The two bottoms are `Range`
+// (an integer-typed `RangeExpr`) and `Array` (an `arr.iter()` cursor) ;
+// a `Generator` layer wraps a `source` layer with an inlined `@generator`
+// combinator body (map / filter / take / skip). Non-int ranges,
+// runtime-bound chains, etc fall back to the generic slow path.
 IterChainKind :: enum(u8) {
     Range,
     Array,
-    Map,
-    Filter,
-    Take,
-    Skip,
     Generator,
 }
 
@@ -43,17 +38,12 @@ IterChain :: struct {
     inclusive:    bool
     element_type: Type
     // Array bottom (`arr.iter()`) — the concrete source array. Defaulted so the
-    // existing Range/Map/Filter literals need no update.
+    // Range/Generator literals need no update.
     array_expr:   AST.Expr | null = null
-    // Map / Filter layers
+    // Combinator layer — the source chain this layer sits on top of.
     source:       IterChain | null
-    map_fn:       AST.Expr | null
-    output_type:  Type
-    pred_fn:      AST.Expr | null
-    // Take / Skip layers — the `usize` count expression. Defaulted.
-    count_arg:    AST.Expr | null = null
-    // Generator combinator layer — the inlined `@generator` body (map/filter as
-    // `@generator`). Defaulted ; see `lower_generator_fusion.vader`.
+    // Generator combinator layer — the inlined `@generator` body (map / filter /
+    // take / skip, all `@generator`). Defaulted ; see `lower_generator_fusion.vader`.
     gen_layer:    GenComboLayer | null = null
     span:         Span
 }
@@ -64,13 +54,12 @@ mk_generator_chain :: fn(source: IterChain, gen_layer: GenComboLayer, span: Span
     .kind = IterChainKind.Generator,
     .range_lower = null, .range_upper = null, .inclusive = false,
     .element_type = TY_UNRESOLVED,
-    .source = source, .map_fn = null, .output_type = TY_UNRESOLVED,
-    .pred_fn = null, .gen_layer = gen_layer, .span = span,
+    .source = source, .gen_layer = gen_layer, .span = span,
 }
 
 // Top-level entry — recognise `for x in <chain>` and emit the fused
-// counter loop. Returns null whenever the chain doesn't match the
-// MVP pattern (Map / Filter struct literals over an int Range bottom).
+// counter loop. Returns null whenever the chain doesn't match a fusible
+// shape (`@generator` combinators over an int-range or `arr.iter()` bottom).
 try_lower_chain_fusion :: fn(
     ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
     recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
@@ -357,12 +346,12 @@ emit_collect_fusion :: fn(ctx: FnLowerCtx, chain: IterChain, span: Span) -> Lowe
 
 
 // Walk the iter expression top-down. Each layer either matches a
-// known `std/iter` combinator (struct literal with the source field
-// inline) or bottoms at an integer-typed `RangeExpr`. Anything else
-// returns null.
+// `@generator` combinator call (via `try_descend_gen_combinator`) or
+// bottoms at an integer-typed `RangeExpr` / an `arr.iter()` cursor.
+// Anything else returns null.
 descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
-    // @partial: only a Range / iter-combinator struct-lit / fluent call forms a
-    // fusible chain; every other Expr → null (not a recognised combinator).
+    // @partial: only a Range bottom, an `arr.iter()` array cursor, or a
+    // `@generator` combinator call forms a fusible chain; every other Expr → null.
     @partial match expr {
         is AST.RangeExpr as range -> {
             bound :: ctx.types.expr_type(range.lower)
@@ -374,95 +363,18 @@ descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
                 .range_upper = range.upper,
                 .inclusive = range.inclusive,
                 .element_type = element,
-                .source = null, .map_fn = null, .output_type = TY_UNRESOLVED,
-                .pred_fn = null, .span = range.span,
+                .source = null, .span = range.span,
             }
         }
-        is AST.StructLitExpr as struct_lit -> {
-            map_symbol_opt    :: module_export(ctx.project, "std/iter", "MappedIterator")
-            filter_symbol_opt :: module_export(ctx.project, "std/iter", "FilterIterator")
-            struct_type :: ctx.types.expr_type(struct_lit)
-            match struct_type {
-                is StructType as st -> {
-                    if matches_iter_symbol(map_symbol_opt, st.symbol.id) {
-                        return descend_map(ctx, struct_lit, st)
-                    }
-                    if matches_iter_symbol(filter_symbol_opt, st.symbol.id) {
-                        return descend_filter(ctx, struct_lit, st)
-                    }
-                }
-                _ -> {}
-            }
-            return null
-        }
-        // Fluent form : `it.map(f)` / `it.filter(p)` (or the direct-call
-        // `map(it, f)` / `filter(it, p)`). The combinators are trivial
-        // std/iter constructors, so we recognise the call directly rather
-        // than waiting for inlining — mirror of the struct-lit arm above.
         is AST.CallExpr as call -> {
             // Array cursor bottom: `arr.iter()` (or `iter(arr)`) → an
             // `ArrayIterator<T>` heading the chain; fuse over `arr` directly.
             arr_bottom :: descend_array_call(ctx, call)
             if arr_bottom != null { return arr_bottom }
             // Generator combinator (`@generator` whose first param is the source
-            // iterator) — recognised by callee, independent of the std/iter struct
-            // symbols, so it keeps working once those structs are deleted (Phase D).
-            gen_combo :: try_descend_gen_combinator(ctx, call)
-            if gen_combo != null { return gen_combo }
-            map_symbol_opt    :: module_export(ctx.project, "std/iter", "MappedIterator")
-            filter_symbol_opt :: module_export(ctx.project, "std/iter", "FilterIterator")
-            take_symbol_opt   :: module_export(ctx.project, "std/iter", "TakeIterator")
-            skip_symbol_opt   :: module_export(ctx.project, "std/iter", "SkipIterator")
-            if map_symbol_opt == null && filter_symbol_opt == null { return null }
-            fluent :: unpack_fluent_combinator(ctx, call)
-            if fluent is null { return null }
-            inner :: descend_chain(ctx, fluent.receiver)
-            if inner is null { return null }
-            struct_type :: ctx.types.expr_type(call)
-            match struct_type {
-                is StructType as st -> {
-                    if matches_iter_symbol(map_symbol_opt, st.symbol.id) {
-                        if st.args.len() < 2 { return null }
-                        return IterChain {
-                            .kind = IterChainKind.Map,
-                            .range_lower = null, .range_upper = null, .inclusive = false,
-                            .element_type = TY_UNRESOLVED,
-                            .source = inner, .map_fn = fluent.fn_arg, .output_type = st.args[1],
-                            .pred_fn = null, .span = call.span,
-                        }
-                    }
-                    if matches_iter_symbol(filter_symbol_opt, st.symbol.id) {
-                        return IterChain {
-                            .kind = IterChainKind.Filter,
-                            .range_lower = null, .range_upper = null, .inclusive = false,
-                            .element_type = TY_UNRESOLVED,
-                            .source = inner, .map_fn = null, .output_type = TY_UNRESOLVED,
-                            .pred_fn = fluent.fn_arg, .span = call.span,
-                        }
-                    }
-                    // `take(n)` / `skip(n)` : the `fn_arg` is the `usize` count.
-                    if matches_iter_symbol(take_symbol_opt, st.symbol.id) {
-                        return IterChain {
-                            .kind = IterChainKind.Take,
-                            .range_lower = null, .range_upper = null, .inclusive = false,
-                            .element_type = TY_UNRESOLVED,
-                            .source = inner, .map_fn = null, .output_type = TY_UNRESOLVED,
-                            .pred_fn = null, .count_arg = fluent.fn_arg, .span = call.span,
-                        }
-                    }
-                    if matches_iter_symbol(skip_symbol_opt, st.symbol.id) {
-                        return IterChain {
-                            .kind = IterChainKind.Skip,
-                            .range_lower = null, .range_upper = null, .inclusive = false,
-                            .element_type = TY_UNRESOLVED,
-                            .source = inner, .map_fn = null, .output_type = TY_UNRESOLVED,
-                            .pred_fn = null, .count_arg = fluent.fn_arg, .span = call.span,
-                        }
-                    }
-                }
-                _ -> {}
-            }
-            return null
+            // iterator) — recognised by callee. map / filter / take / skip all
+            // lower through here now the hand-written *Iterator structs are gone.
+            return try_descend_gen_combinator(ctx, call)
         }
         _ -> { return null }
     }
@@ -518,8 +430,7 @@ descend_array_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | nul
                 .kind = IterChainKind.Array,
                 .range_lower = null, .range_upper = null, .inclusive = false,
                 .element_type = elem, .array_expr = arr_expr,
-                .source = null, .map_fn = null, .output_type = TY_UNRESOLVED,
-                .pred_fn = null, .span = call.span,
+                .source = null, .span = call.span,
             }
         }
     }
@@ -544,209 +455,22 @@ array_from_iter_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> AST.Expr | nu
     }
 }
 
-matches_iter_symbol :: fn(opt: Symbol | null, id: i32) -> bool {
-    match opt {
-        is null -> { return false }
-        is Symbol as s -> { return s.id == id }
-    }
+chain_element_type :: fn(chain: IterChain) -> Type = match chain.kind {
+    .Range | .Array -> chain.element_type
+    .Generator -> if chain.gen_layer is GenComboLayer as gl { gl.output_elem } else { TY_UNRESOLVED }
 }
 
-descend_map :: fn(ctx: FnLowerCtx, struct_lit: AST.StructLitExpr, struct_type: StructType) -> IterChain | null {
-    source_expr :: find_inline_field(struct_lit, "source")
-    map_fn      :: find_inline_field(struct_lit, "f")
-    if source_expr is null { return null }
-    if map_fn is null { return null }
-    inner :: descend_chain(ctx, source_expr)
-    if inner is null { return null }
-    if struct_type.args.len() < 2 { return null }
-    output_type :: struct_type.args[1]
-    return IterChain {
-        .kind = IterChainKind.Map,
-        .range_lower = null, .range_upper = null, .inclusive = false,
-        .element_type = TY_UNRESOLVED,
-        .source = inner, .map_fn = map_fn, .output_type = output_type,
-        .pred_fn = null, .span = struct_lit.span,
-    }
-}
-
-descend_filter :: fn(ctx: FnLowerCtx, struct_lit: AST.StructLitExpr, struct_type: StructType) -> IterChain | null {
-    source_expr :: find_inline_field(struct_lit, "source")
-    pred_fn     :: find_inline_field(struct_lit, "pred")
-    if source_expr is null { return null }
-    if pred_fn is null { return null }
-    inner :: descend_chain(ctx, source_expr)
-    if inner is null { return null }
-    return IterChain {
-        .kind = IterChainKind.Filter,
-        .range_lower = null, .range_upper = null, .inclusive = false,
-        .element_type = TY_UNRESOLVED,
-        .source = inner, .map_fn = null, .output_type = TY_UNRESOLVED,
-        .pred_fn = pred_fn, .span = struct_lit.span,
-    }
-}
-
-
-find_inline_field :: fn(struct_lit: AST.StructLitExpr, name: string) -> AST.Expr | null {
-    for item in struct_lit.items {
-        match item {
-            is ASTStructLitField as field -> {
-                if field.name == name { return field.value }
-            }
-            is ASTStructLitSpread -> { return null }
-        }
-    }
-    return null
-}
-
-chain_element_type :: fn(chain: IterChain) -> Type {
-    if chain.kind == IterChainKind.Range { return chain.element_type }
-    if chain.kind == IterChainKind.Array { return chain.element_type }
-    if chain.kind == IterChainKind.Map { return chain.output_type }
-    if chain.kind == IterChainKind.Generator {
-        if chain.gen_layer is GenComboLayer as gl { return gl.output_elem }
-        return TY_UNRESOLVED
-    }
-    // Filter / Take / Skip : element type comes from the source (unchanged).
-    if chain.source is null { return TY_UNRESOLVED }
-    return chain_element_type(chain.source)
-}
-
-// Emit the fused chain recursively : each Map layer wraps the inner
-// body with `let __mapped_n = f(prev)` ; each Filter layer guards
-// the inner body with `if pred(prev) { ... }`. The Range bottom
-// expands into the counter loop.
+// Emit the fused chain recursively. The Range / Array bottoms expand into a
+// counter loop ; a Generator layer inlines its `@generator` body over its
+// source (map / filter / take / skip all lower through here).
 emit_fused_chain :: fn(
     ctx: FnLowerCtx, chain: IterChain, loop_label: string | null, outer_span: Span,
     template: BodyTemplate,
     recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
-) -> LoweredStmt[] {
-    if chain.kind == IterChainKind.Range {
-        return emit_fused_range(ctx, chain, loop_label, outer_span, template, recurse)
-    }
-    if chain.kind == IterChainKind.Array {
-        return emit_fused_array(ctx, chain, loop_label, outer_span, template, recurse)
-    }
-    if chain.kind == IterChainKind.Map {
-        return emit_fused_chain_map(ctx, chain, loop_label, outer_span, template, recurse)
-    }
-    if chain.kind == IterChainKind.Take {
-        return emit_fused_chain_counter(ctx, chain, loop_label, outer_span, template, recurse, true)
-    }
-    if chain.kind == IterChainKind.Skip {
-        return emit_fused_chain_counter(ctx, chain, loop_label, outer_span, template, recurse, false)
-    }
-    if chain.kind == IterChainKind.Generator {
-        return emit_fused_gen_combinator(ctx, chain, loop_label, outer_span, template, recurse)
-    }
-    return emit_fused_chain_filter(ctx, chain, loop_label, outer_span, template, recurse)
-}
-
-emit_fused_chain_map :: fn(
-    ctx: FnLowerCtx, chain: IterChain, loop_label: string | null, outer_span: Span,
-    template: BodyTemplate,
-    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
-) -> LoweredStmt[] {
-    if chain.source is null { return [] }
-    if chain.map_fn is null { return [] }
-    inner_chain :: chain.source
-    map_fn :: chain.map_fn
-    output_type :: chain.output_type
-    span :: chain.span
-    // The source layer (range / filter below us) binds its value to a FRESH
-    // symbol typed by the source's element type — that's the input the map
-    // consumes. Our wrapped body reads it, computes `f(src)`, and binds the
-    // result to the OUTER template's symbol so the consumer above sees the
-    // mapped value. Distinct in / out symbols : reusing one would emit the
-    // self-referential `let x = f(x)`.
-    source_elem :: chain_element_type(inner_chain)
-    source_sym :: fresh_synthetic_symbol(ctx, "src")
-    inner_template :: BodyTemplate {
-        .binding_name = source_sym.name,
-        .binding_symbol = source_sym,
-        .element_type = source_elem,
-        .user_body = wrap_with_map(ctx, template, source_sym, source_elem, map_fn, output_type, span, recurse),
-    }
-    return emit_fused_chain(ctx, inner_chain, loop_label, outer_span, inner_template, recurse)
-}
-
-emit_fused_chain_filter :: fn(
-    ctx: FnLowerCtx, chain: IterChain, loop_label: string | null, outer_span: Span,
-    template: BodyTemplate,
-    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
-) -> LoweredStmt[] {
-    if chain.source is null { return [] }
-    if chain.pred_fn is null { return [] }
-    inner_chain :: chain.source
-    pred_fn :: chain.pred_fn
-    span :: chain.span
-    inner_template :: BodyTemplate {
-        .binding_name = template.binding_name,
-        .binding_symbol = template.binding_symbol,
-        .element_type = template.element_type,
-        .user_body = wrap_with_filter(ctx, template, pred_fn, span, recurse),
-    }
-    return emit_fused_chain(ctx, inner_chain, loop_label, outer_span, inner_template, recurse)
-}
-
-// Build the inner body for a Map layer : it reads the source value bound
-// by the layer below (`source_sym` : `source_type`), computes the mapped
-// value `f(source)`, binds it to the OUTER template's symbol (the value the
-// consumer above sees), then runs that consumer's body.
-wrap_with_map :: fn(
-    ctx: FnLowerCtx, template: BodyTemplate, source_sym: Symbol, source_type: Type,
-    map_fn: AST.Expr, output_type: Type, span: Span,
-    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
-) -> LoweredBlock {
-    callee :: recurse(ctx, map_fn)
-    arg_ref :: LoweredIdent {
-        .span = span, .type = source_type, .symbol = source_sym,
-    }
-    call_args: LoweredExpr[] = []
-    call_args.push(arg_ref)
-    mapped_call :: LoweredCall {
-        .span = span, .type = output_type,
-        .callee = callee, .args = call_args,
-    }
-    let_stmt :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, mapped_call, output_type, span)
-    out_stmts: LoweredStmt[] = []
-    out_stmts.push(let_stmt)
-    for stmt in template.user_body.stmts { out_stmts.push(stmt) }
-    return LoweredBlock {
-        .span = span, .type = TY_VOID,
-        .stmts = out_stmts, .trailing = template.user_body.trailing,
-    }
-}
-
-wrap_with_filter :: fn(
-    ctx: FnLowerCtx, template: BodyTemplate, pred_fn: AST.Expr, span: Span,
-    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
-) -> LoweredBlock {
-    callee :: recurse(ctx, pred_fn)
-    // Cell-aware : when the loop var is captured (and thus cell-promoted at the
-    // top of the range body), the predicate must read its value through the cell
-    // rather than treating the slot's cell as the raw element.
-    arg_ref :: read_local_cell_aware(ctx, template.binding_symbol, template.element_type, span)
-    call_args: LoweredExpr[] = []
-    call_args.push(arg_ref)
-    cond :: LoweredCall {
-        .span = span, .type = TY_BOOL,
-        .callee = callee, .args = call_args,
-    }
-    if_stmt :: LoweredExprStmt {
-        .span = span,
-        .expr = LoweredIf {
-            .span = span, .type = TY_VOID,
-            .cond = cond,
-            .then_block = template.user_body,
-            .else_block = null,
-        },
-    }
-    inner_stmts: LoweredStmt[] = []
-    inner_stmts.push(if_stmt)
-    return LoweredBlock {
-        .span = span, .type = TY_VOID,
-        .stmts = inner_stmts, .trailing = null,
-    }
+) -> LoweredStmt[] = match chain.kind {
+    .Range     -> emit_fused_range(ctx, chain, loop_label, outer_span, template, recurse)
+    .Array     -> emit_fused_array(ctx, chain, loop_label, outer_span, template, recurse)
+    .Generator -> emit_fused_gen_combinator(ctx, chain, loop_label, outer_span, template, recurse)
 }
 
 // Emit the counter loop at the Range bottom. The user binding is
@@ -876,116 +600,4 @@ emit_fused_array :: fn(
     out.push(idx_init)
     out.push(loop_stmt)
     return out
-}
-
-// Emit a `take(n)` / `skip(n)` layer (`is_take` discriminates): a `usize`
-// counter declared before the loop, plus a per-element guard the wrap installs
-// — `take` breaks after n yields, `skip` continues past the first n.
-emit_fused_chain_counter :: fn(
-    ctx: FnLowerCtx, chain: IterChain, loop_label: string | null, outer_span: Span,
-    template: BodyTemplate,
-    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
-    is_take: bool,
-) -> LoweredStmt[] {
-    if chain.source is null { return [] }
-    if chain.count_arg is null { return [] }
-    span :: chain.span
-    usize_type :: mk_primitive("usize")
-    counter_sym :: fresh_synthetic_symbol(ctx, if is_take { "taken" } else { "skipped" })
-    counter_init :: LoweredLet {
-        .span = span, .name = counter_sym.name, .symbol = counter_sym, .type = usize_type,
-        .value = LoweredIntLit { .span = span, .type = usize_type, .value = 0 },
-    }
-    wrapped :: if is_take {
-        wrap_with_take(ctx, template, counter_sym, chain.count_arg, span, recurse)
-    } else {
-        wrap_with_skip(ctx, template, counter_sym, chain.count_arg, span, recurse)
-    }
-    inner_template :: BodyTemplate {
-        .binding_name = template.binding_name,
-        .binding_symbol = template.binding_symbol,
-        .element_type = template.element_type,
-        .user_body = wrapped,
-    }
-    inner_stmts :: emit_fused_chain(ctx, chain.source, loop_label, outer_span, inner_template, recurse)
-    out: LoweredStmt[] = []
-    out.push(counter_init)
-    for s in inner_stmts { out.push(s) }
-    return out
-}
-
-// The `take(n)` wrap: `if taken >= n { break }` + `taken += 1` BEFORE the body
-// (so a `continue` in the body can't drop the count — `take` counts what it
-// yields, not what the consumer keeps).
-wrap_with_take :: fn(
-    ctx: FnLowerCtx, template: BodyTemplate, counter_sym: Symbol, count_arg: AST.Expr, span: Span,
-    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
-) -> LoweredBlock {
-    usize_type :: mk_primitive("usize")
-    counter_ref :: LoweredIdent { .span = span, .type = usize_type, .symbol = counter_sym }
-    n_lowered :: recurse(ctx, count_arg)
-    guard :: LoweredExprStmt {
-        .span = span,
-        .expr = LoweredIf {
-            .span = span, .type = TY_VOID,
-            .cond = LoweredBinary {
-                .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Gte,
-                .left = counter_ref, .right = n_lowered,
-            },
-            .then_block = LoweredBlock {
-                .span = span, .type = TY_VOID,
-                .stmts = [LoweredBreak { .span = span, .label = null }], .trailing = null,
-            },
-            .else_block = null,
-        },
-    }
-    inc :: LoweredAssign {
-        .span = span, .target = counter_ref,
-        .value = LoweredBinary {
-            .span = span, .type = usize_type, .op = LoweredBinaryOp.Add,
-            .left = counter_ref, .right = LoweredIntLit { .span = span, .type = usize_type, .value = 1 },
-        },
-    }
-    stmts: LoweredStmt[] = []
-    stmts.push(guard)
-    stmts.push(inc)
-    for s in block_stmts_with_trailing(template.user_body) { stmts.push(s) }
-    return LoweredBlock { .span = span, .type = TY_VOID, .stmts = stmts, .trailing = null }
-}
-
-// The `skip(n)` wrap: `if skipped < n { skipped += 1; continue }` before the
-// body, so the first n elements advance the source cursor without running it.
-wrap_with_skip :: fn(
-    ctx: FnLowerCtx, template: BodyTemplate, counter_sym: Symbol, count_arg: AST.Expr, span: Span,
-    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
-) -> LoweredBlock {
-    usize_type :: mk_primitive("usize")
-    counter_ref :: LoweredIdent { .span = span, .type = usize_type, .symbol = counter_sym }
-    n_lowered :: recurse(ctx, count_arg)
-    inc :: LoweredAssign {
-        .span = span, .target = counter_ref,
-        .value = LoweredBinary {
-            .span = span, .type = usize_type, .op = LoweredBinaryOp.Add,
-            .left = counter_ref, .right = LoweredIntLit { .span = span, .type = usize_type, .value = 1 },
-        },
-    }
-    guard :: LoweredExprStmt {
-        .span = span,
-        .expr = LoweredIf {
-            .span = span, .type = TY_VOID,
-            .cond = LoweredBinary {
-                .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Lt,
-                .left = counter_ref, .right = n_lowered,
-            },
-            .then_block = LoweredBlock {
-                .span = span, .type = TY_VOID,
-                .stmts = [inc, LoweredContinue { .span = span, .label = null }], .trailing = null,
-            },
-            .else_block = null,
-        },
-    }
-    stmts: LoweredStmt[] = []
-    stmts.push(guard)
-    for s in block_stmts_with_trailing(template.user_body) { stmts.push(s) }
-    return LoweredBlock { .span = span, .type = TY_VOID, .stmts = stmts, .trailing = null }
 }

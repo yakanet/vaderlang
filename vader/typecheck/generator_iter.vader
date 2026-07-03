@@ -5,8 +5,8 @@
 // source, but a call to it is typed as the concrete synthesized state struct
 // `<fn>$State` (which `implements Iterator<U>`), erased to `Iterator<U>` only at
 // boundaries. This makes a combinator chain `arr.iter().map(f).filter(p)` resolve
-// field/UFCS on a CONCRETE receiver (like the hand-written `MappedIterator`),
-// instead of the erased trait receiver that mis-resolves to a virtual dispatch.
+// field/UFCS on a CONCRETE nominal receiver, instead of the erased trait
+// receiver that mis-resolves to a virtual dispatch.
 // The state-struct symbol is derived DETERMINISTICALLY from the fn symbol so the
 // lowerer (`lower_generator.vader`) reuses the same one — see
 // `.claude/plans/stream-fusion-generalization.md` §12 "Direction A".
