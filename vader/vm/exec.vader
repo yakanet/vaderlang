@@ -586,10 +586,12 @@ primitive_kind_at :: fn(types: bc.BcType[], type_id: i32) -> string {
     return ""
 }
 
-/// Rebuild the host import mangle for an `@intrinsic` primitive impl member
-/// from the receiver kind + a `"Trait.method"` vtable key — e.g.
-/// `("string", "Hash.hash")` → `"std_core$string$Hash$hash"`. Returns "" when
-/// the kind is empty or the key has no `.`.
+/// Build the host import mangle for an `@intrinsic` primitive impl member from
+/// the receiver kind + a `"Trait.method"` vtable key — e.g.
+/// `("string", "Hash.hash")` → `"std_core$string$Hash$hash"`. The mangle
+/// grammar itself lives in `bytecode/intrinsic_manifest::primitive_member_mangle` ;
+/// this only splits the vtable key. Returns "" when the kind is empty or the
+/// key has no `.`.
 intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
     if kind == "" { return "" }
     dot :: vtable_key.index_of('.', 0)
@@ -597,7 +599,7 @@ intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
     kb :: vtable_key.bytes()
     trait_name :: kb[0..<usize(dot)].bytes_to_string()
     method :: kb[usize(dot) + 1..<kb.len()].bytes_to_string()
-    return "std_core$${kind}$${trait_name}$${method}"
+    return bc.primitive_member_mangle(kind, trait_name, method)
 }
 
 build_main_args :: fn(parameter_count: usize, host_argv: string[], string_array_type_id: i32) -> Value[] {
