@@ -16,9 +16,9 @@ import "std/io" { read_file_bytes, write_file_bytes, exists, is_dir, read_dir, p
 import "std/env" { get_env }
 import "std/tty" { is_tty }
 import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
-import "std/math" { sqrt, pow, floor, ceil, round, sin }
+import "std/math" { sqrt, pow, floor, ceil, round, sin, cos, tan }
 import "std/time" { now, monotonic }
-import "std/string" { trim, index_of, last_index_of }
+import "std/string" { trim }
 
 /// Outcome of a successful host call. `value` is unused when the import
 /// has `has_return == false` — the exec checks the import's signature
@@ -52,24 +52,6 @@ host_f64_binary :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: string
     if a is Trap { return a }
     if b is Trap { return b }
     return HostOk { .value = F64Val { .value = apply(a.value, b.value) } }
-}
-
-/// One i32 arg → one i32 result. Used by integer-typed `std/math`
-/// overloads (`abs_` / `min_` / `max_` `_`-suffixed variants).
-host_i32_unary :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: string, apply: fn(i32) -> i32) -> HostCallResult {
-    a :: read_i32(stack[arg_base], at_pc, label)
-    if a is Trap { return a }
-    return HostOk { .value = I32Val { .value = apply(a.value) } }
-}
-
-/// Two i32 args → one i32 result. Used by integer-typed `std/math`
-/// overloads.
-host_i32_binary :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: string, apply: fn(i32, i32) -> i32) -> HostCallResult {
-    a :: read_i32(stack[arg_base    ], at_pc, "${label} arg 0")
-    b :: read_i32(stack[arg_base + 1], at_pc, "${label} arg 1")
-    if a is Trap { return a }
-    if b is Trap { return b }
-    return HostOk { .value = I32Val { .value = apply(a.value, b.value) } }
 }
 
 /// Two integer args → bool. Reads both via `read_i64` (widening `I32Val`), so
@@ -164,15 +146,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if s is Trap { return s }
         return HostOk { .value = I64Val { .value = i64(s.value.hash()) } }
     }
-    .StringIndexOf -> {
-        s    :: read_string(stack[arg_base    ], at_pc, "index_of receiver")
-        c    :: read_char  (stack[arg_base + 1], at_pc, "index_of char")
-        from :: read_i32   (stack[arg_base + 2], at_pc, "index_of from")
-        if s    is Trap { return s }
-        if c    is Trap { return c }
-        if from is Trap { return from }
-        return HostOk { .value = I32Val { .value = i32(s.value.index_of(c.value, usize(from.value))) } }
-    }
     // `StringBuilder implements Display` moved to pure Vader in Target ABI S3 ;
     // the resolver materialises its body (a byte-Buffer read + `bytes_to_string`),
     // so the VM runs a real fn — there is no host shim to dispatch here.
@@ -195,15 +168,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
             seen   = seen + 1
         }
         return HostOk { .value = CharVal { .value = char(0) } }
-    }
-    .StringLastIndexOf -> {
-        s         :: read_string(stack[arg_base    ], at_pc, "last_index_of receiver")
-        c         :: read_char  (stack[arg_base + 1], at_pc, "last_index_of char")
-        min_index :: read_i32   (stack[arg_base + 2], at_pc, "last_index_of min_index")
-        if s         is Trap { return s }
-        if c         is Trap { return c }
-        if min_index is Trap { return min_index }
-        return HostOk { .value = I32Val { .value = i32(s.value.last_index_of(c.value, isize(min_index.value))) } }
     }
     // ---- std/core Display + Equals intrinsics ----------------------------
     // `string implements Hash` is now pure Vader (FNV-1a-64 over `bytes()`,
@@ -275,40 +239,12 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     // ---- std/math --------------------------------------------------------
     .MathSqrt  -> { return host_f64_unary(stack, arg_base, at_pc, "sqrt",  (a) -> sqrt(a)) }
     .MathSin   -> { return host_f64_unary(stack, arg_base, at_pc, "sin",   (a) -> sin(a)) }
+    .MathCos   -> { return host_f64_unary(stack, arg_base, at_pc, "cos",   (a) -> cos(a)) }
+    .MathTan   -> { return host_f64_unary(stack, arg_base, at_pc, "tan",   (a) -> tan(a)) }
     .MathFloor -> { return host_f64_unary(stack, arg_base, at_pc, "floor", (a) -> floor(a)) }
     .MathCeil  -> { return host_f64_unary(stack, arg_base, at_pc, "ceil",  (a) -> ceil(a)) }
     .MathRound -> { return host_f64_unary(stack, arg_base, at_pc, "round", (a) -> round(a)) }
-    .MathAbs   -> { return host_f64_unary(stack, arg_base, at_pc, "abs", (a) -> if a < 0.0 { -a } else { a }) }
     .MathPow   -> { return host_f64_binary(stack, arg_base, at_pc, "pow", (a, b) -> pow(a, b)) }
-    .MathMin   -> { return host_f64_binary(stack, arg_base, at_pc, "min", (a, b) -> if a < b { a } else { b }) }
-    .MathMax   -> { return host_f64_binary(stack, arg_base, at_pc, "max", (a, b) -> if a > b { a } else { b }) }
-    .MathMinI  -> { return host_i32_binary(stack, arg_base, at_pc, "min_", (a, b) -> if a < b { a } else { b }) }
-    .MathMaxI  -> { return host_i32_binary(stack, arg_base, at_pc, "max_", (a, b) -> if a > b { a } else { b }) }
-    .MathAbsI  -> { return host_i32_unary(stack, arg_base, at_pc, "abs_",  (a) -> if a < 0 { -a } else { a }) }
-    .MathClamp -> {
-        v :: read_f64(stack[arg_base    ], at_pc, "clamp value")
-        lo :: read_f64(stack[arg_base + 1], at_pc, "clamp lo")
-        hi :: read_f64(stack[arg_base + 2], at_pc, "clamp hi")
-        if v  is Trap { return v  }
-        if lo is Trap { return lo }
-        if hi is Trap { return hi }
-        result := v.value
-        if result < lo.value { result = lo.value }
-        if result > hi.value { result = hi.value }
-        return HostOk { .value = F64Val { .value = result } }
-    }
-    .MathClampI -> {
-        v :: read_i32(stack[arg_base    ], at_pc, "clamp value")
-        lo :: read_i32(stack[arg_base + 1], at_pc, "clamp lo")
-        hi :: read_i32(stack[arg_base + 2], at_pc, "clamp hi")
-        if v  is Trap { return v  }
-        if lo is Trap { return lo }
-        if hi is Trap { return hi }
-        result := v.value
-        if result < lo.value { result = lo.value }
-        if result > hi.value { result = hi.value }
-        return HostOk { .value = I32Val { .value = result } }
-    }
     .StringParseFloat -> {
         s :: read_string(stack[arg_base], at_pc, "parse_float")
         if s is Trap { return s }
@@ -419,7 +355,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     // Hosts served natively (C shims) but not by the VM, plus non-intrinsics —
     // grouped so a new IntrinsicId variant still trips T3013 here.
     .IoReadLine | .IoReadStdin | .IoPollStdin | .IoSetStdinUnbuffered
-        | .IoCurrentExecutableLocation | .MathCos | .MathTan | .NotIntrinsic -> {}
+        | .IoCurrentExecutableLocation | .NotIntrinsic -> {}
     }
     return Trap { .message = "unbound host import '${info.mangled_name}' at pc=${at_pc}" }
 }

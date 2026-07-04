@@ -151,14 +151,12 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     .TtyIsTty  -> { return "${head} { return vader_is_tty(a0); }" }
     .EnvGetEnv -> { return "${head} { return vader_get_env(a0, ${tag_u(ctx.string_tag, "string")}); }" }
 
-    // Served by the VM only, or materialised as pure Vader natively (primitive
-    // Equals/Display, string index_of/last_index_of, the extra math overloads),
-    // plus non-intrinsics — grouped so a new IntrinsicId variant trips T3013.
-    // Fall through to the @extern forwarder / loud unbound trap below.
-    .StringIndexOf | .StringLastIndexOf | .CoreStringEquals | .CoreStringNotEquals
-        | .PrimIntEquals | .PrimIntNotEquals | .PrimDisplayToString
-        | .MathAbs | .MathMin | .MathMax | .MathMinI | .MathMaxI | .MathAbsI
-        | .MathClamp | .MathClampI | .NotIntrinsic -> {}
+    // Served by the VM only — primitive Equals/Display, surfaced there by erased
+    // virtual dispatch, materialised as pure Vader natively — plus non-intrinsics.
+    // Grouped so a new IntrinsicId variant trips T3013. Fall through to the
+    // @extern forwarder / loud unbound trap below.
+    .CoreStringEquals | .CoreStringNotEquals
+        | .PrimIntEquals | .PrimIntNotEquals | .PrimDisplayToString | .NotIntrinsic -> {}
     }
 
     // User `@extern` — forward to the real C symbol ; everything else is a
