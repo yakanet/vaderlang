@@ -6,7 +6,7 @@
 // is lifted to the block's trailing expression so the synthetic expression-bodied
 // fn infers its return type.
 //
-// Expected: prints "9" then "42".
+// Expected: prints "9", "42", then "7".
 
 module "snippet"
 
@@ -24,8 +24,23 @@ build_answer :: fn() -> i32 = 41 + 1
 // Bare-call form.
 ANSWER :: @comptime build_answer()
 
+// Block with an early `return` inside a narrowing `if`. `lift_trailing_return`
+// moves the final `return 0` into the trailing slot, so the body carries both
+// preceding statements (a binding + an early is-narrowed `return mm.n`) AND a
+// trailing. The comptime tree-walk must NOT evaluate the trailing in isolation
+// (which would drop the binding + early return and bake `0`) — it defers to the
+// VM, which runs the full block. Regression guard for that silent-wrong-value.
+Maybe :: struct { n: i32 }
+some_or_none :: fn(k: i32) -> Maybe | null { if k == 0 { return null }  return Maybe { .n = k } }
+PICKED :: @comptime {
+    m :: some_or_none(7)
+    if m is Maybe as mm { return mm.n }
+    return 0
+}
+
 main :: fn() -> i32 {
     println("${SQUARES[3]}")
     println("${ANSWER}")
+    println("${PICKED}")
     return 0
 }

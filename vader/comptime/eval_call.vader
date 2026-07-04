@@ -88,7 +88,14 @@ evaluate_fn_body :: fn(
     }
     body :: fn_decl.body
     if !(body.trailing is null) {
-        return evaluate_expr(body.trailing, context)
+        // Sound ONLY with no preceding statements : earlier bindings and early
+        // `return`s would be silently dropped, and a self-contained trailing
+        // would bake a wrong value. `lift_trailing_return` (parser) puts the
+        // final `return <e>` here, so any other statement must route via the VM.
+        if body.stmts.len() == 0 {
+            return evaluate_expr(body.trailing, context)
+        }
+        return vm_required(call_span, "CallExpr (block has statements before trailing)")
     }
     // Block with statements only — accept a single `return <expr>`.
     if body.stmts.len() == 1 {
