@@ -21,6 +21,7 @@
 module "vader/bytecode"
 
 import "std/string" { starts_with, ends_with }
+import "vader/types" { is_int_name, is_primitive_name }
 
 // Mangled module fragment for `std/core` (`mangle_module_id("std/core")`).
 // Pinned against the real mangler by `test_core_module_matches_mangler`.
@@ -34,21 +35,6 @@ CORE_PREFIX        :: r"std_core$"
 EQUALS_SUFFIX      :: r"$Equals$equals"
 NOT_EQUALS_SUFFIX  :: r"$Equals$not_equals"
 DISPLAY_SUFFIX     :: r"$Display$to_string"
-
-// Integer-width primitive kinds — the widths whose `@intrinsic Equals` member
-// is bodyless and dispatched as a host call (they all carry as `I32Val` /
-// `I64Val` at runtime, so one handler pair covers them).
-INT_KINDS :: [
-    "i8", "i16", "i32", "i64", "isize",
-    "u8", "u16", "u32", "u64", "usize",
-]
-
-// Every primitive kind carrying a bodyless `<T>$Display$to_string` host.
-DISPLAY_KINDS :: [
-    "i8", "i16", "i32", "i64", "isize",
-    "u8", "u16", "u32", "u64", "usize",
-    "bool", "char", "string", "f32", "f64",
-]
 
 /// The mangle of a `std/core` primitive `@intrinsic` impl member:
 /// `("i32", "Equals", "equals")` → `"std_core$i32$Equals$equals"`. THE grammar
@@ -72,9 +58,9 @@ export primitive_member_mangle :: fn(kind: string, trait_: string, method: strin
 ///                 `""` otherwise (`string`-Equals has its own arm upstream).
 export int_equals_method :: fn(mangled: string) -> string {
     eq :: strip_core_member(mangled, EQUALS_SUFFIX)
-    if eq != null && is_kind(INT_KINDS, eq) { return "equals" }
+    if eq != null && is_int_name(eq) { return "equals" }
     neq :: strip_core_member(mangled, NOT_EQUALS_SUFFIX)
-    if neq != null && is_kind(INT_KINDS, neq) { return "not_equals" }
+    if neq != null && is_int_name(neq) { return "not_equals" }
     return ""
 }
 
@@ -84,7 +70,7 @@ export int_equals_method :: fn(mangled: string) -> string {
 /// @param mangled  the host import's mangled name.
 export is_display_to_string :: fn(mangled: string) -> bool {
     kind :: strip_core_member(mangled, DISPLAY_SUFFIX)
-    return kind != null && is_kind(DISPLAY_KINDS, kind)
+    return kind != null && is_primitive_name(kind) && kind != "void" && kind != "null"
 }
 
 /// Subset of `is_display_to_string` covering the unsigned widths that overflow
@@ -95,13 +81,6 @@ export is_display_to_string :: fn(mangled: string) -> bool {
 export is_unsigned_display :: fn(mangled: string) -> bool {
     kind :: strip_core_member(mangled, DISPLAY_SUFFIX)
     return kind != null && (kind == "u32" || kind == "u64" || kind == "usize")
-}
-
-is_kind :: fn(kinds: string[], k: string) -> bool {
-    for candidate in kinds {
-        if candidate == k { return true }
-    }
-    return false
 }
 
 // Return the `<kind>` slice of a `std_core$<kind><suffix>` mangle, or null when

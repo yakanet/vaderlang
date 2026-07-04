@@ -31,7 +31,7 @@ import "vader/types" {
     UnresolvedType,
     mk_struct, mk_array, mk_primitive, mk_trait, display_type,
     TY_BOOL, TY_VOID, TY_NEVER, TY_NULL, TY_UNRESOLVED,
-    STRUCT_ARRAY_ITERATOR, STRUCT_YIELD, TRAIT_ITERATOR,
+    STRUCT_ARRAY_ITERATOR, STRUCT_YIELD, TRAIT_ITERATOR, is_int_name,
 }
 
 /// Lower a `for x in iter { body }` statement to a step-loop driven
@@ -735,19 +735,7 @@ is_integer_type :: fn(t: Type) -> bool {
     // @partial: only primitive integers and the free int/char types are
     // integers; every other Type → false.
     @partial match t {
-        is PrimitiveType as p -> {
-            if p.name == "i8"    { return true }
-            if p.name == "i16"   { return true }
-            if p.name == "i32"   { return true }
-            if p.name == "i64"   { return true }
-            if p.name == "isize" { return true }
-            if p.name == "u8"    { return true }
-            if p.name == "u16"   { return true }
-            if p.name == "u32"   { return true }
-            if p.name == "u64"   { return true }
-            if p.name == "usize" { return true }
-            return false
-        }
+        is PrimitiveType as p -> { return is_int_name(p.name) }
         is FreeIntType -> { return true }
         is FreeCharType -> { return true }
         _ -> { return false }

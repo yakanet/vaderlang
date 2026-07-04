@@ -16,6 +16,7 @@ module "vader/comptime"
 
 import "std/collections" { MutableMap }
 import "vader/diagnostics" { Span, comptime_error }
+import "vader/types" { is_int_name }
 import "vader/diagnostics" { ComptimeCode }
 import "vader/resolver/symbol" { Symbol }
 AST :: import "vader/parser"
@@ -77,19 +78,7 @@ export evaluate_call_expr :: fn(
 
 // True for the 10 integer primitive type names — the ones that appear as a
 // cast callee (`usize(16)`) over an integer comptime value.
-is_primitive_int_name :: fn(name: string) -> bool {
-    if name == "i8"    { return true }
-    if name == "i16"   { return true }
-    if name == "i32"   { return true }
-    if name == "i64"   { return true }
-    if name == "isize" { return true }
-    if name == "u8"    { return true }
-    if name == "u16"   { return true }
-    if name == "u32"   { return true }
-    if name == "u64"   { return true }
-    if name == "usize" { return true }
-    return false
-}
+is_primitive_int_name :: fn(name: string) -> bool = is_int_name(name)
 
 evaluate_fn_body :: fn(
     fn_decl: AST.FnDecl, context: ComptimeContext, call_span: Span,

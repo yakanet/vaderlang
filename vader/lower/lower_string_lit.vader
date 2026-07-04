@@ -19,7 +19,7 @@ import "std/abort" { unreachable }
 import "vader/parser" { StringLitExpr, StringLitText, StringLitInterp }
 import "vader/diagnostics" { Span }
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, FnType, FreeFloatType, mk_primitive, TY_STRING }
+import "vader/types" { Type, FnType, FreeFloatType, mk_primitive, TY_STRING, is_signed_int_name, is_unsigned_int_name }
 
 lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> LoweredExpr {
     string_type :: TY_STRING
@@ -94,9 +94,6 @@ resolve_buffer_type :: fn(ctx: FnLowerCtx, wstr_sym: Symbol) -> Type | null {
     return null
 }
 
-WRITER_SIGNED_WIDTHS:   const string[]: ["i8", "i16", "i32", "i64", "isize"]
-WRITER_UNSIGNED_WIDTHS: const string[]: ["u8", "u16", "u32", "u64", "usize"]
-
 // How a `${value}` part writes into the buffer. `Str` also covers verbatim text.
 // How a part contributes : `Text` = verbatim literal, `Str` = a runtime string,
 // the rest = a primitive that formats its bytes directly.
@@ -108,8 +105,8 @@ WriterKind :: enum(u8) { Text, Str, Signed, Unsigned, Bool, Display }
 // wrongly write its raw backing integer. Only a bare primitive fast-paths.
 classify_kind :: fn(t: Type) -> WriterKind {
     if t is PrimitiveType as p {
-        if p.name in WRITER_SIGNED_WIDTHS   { return .Signed }
-        if p.name in WRITER_UNSIGNED_WIDTHS { return .Unsigned }
+        if is_signed_int_name(p.name)   { return .Signed }
+        if is_unsigned_int_name(p.name) { return .Unsigned }
         if p.name == "bool"   { return .Bool }
         if p.name == "string" { return .Str }
     }

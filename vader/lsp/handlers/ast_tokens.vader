@@ -22,6 +22,7 @@ AST :: import "vader/parser"
 import "vader/diagnostics" { Position, Span }
 import "vader/resolver" { resolve_program }
 import "vader/resolver/symbol" { Symbol, SymbolKind, new_factory }
+import "vader/types" { is_primitive_name }
 import "vader/lsp/protocol" { TokenType, RawToken, span_token_length }
 
 /// Primitive type names recognised by the lexer / typechecker but not as
@@ -29,26 +30,11 @@ import "vader/lsp/protocol" { TokenType, RawToken, span_token_length }
 /// expression position (`i32(x)` cast, `i32.MAX` field access, …) we
 /// paint it `Type` instead of the positional `Variable` default. Order
 /// doesn't matter — keep alphabetised for human scanning.
-is_primitive_type_name :: fn(name: string) -> bool {
-    if name == "i8"    { return true }
-    if name == "i16"   { return true }
-    if name == "i32"   { return true }
-    if name == "i64"   { return true }
-    if name == "isize" { return true }
-    if name == "u8"    { return true }
-    if name == "u16"   { return true }
-    if name == "u32"   { return true }
-    if name == "u64"   { return true }
-    if name == "usize" { return true }
-    if name == "f32"   { return true }
-    if name == "f64"   { return true }
-    if name == "bool"  { return true }
-    if name == "char"  { return true }
-    if name == "string"{ return true }
-    if name == "void"  { return true }
-    if name == "type"  { return true }
-    return false
-}
+// The canonical primitives paint as `Type`, minus `null` (a keyword, coloured
+// elsewhere) plus `type` (the metatype). Derives from `vader/types` so a new
+// primitive is picked up automatically.
+is_primitive_type_name :: fn(name: string) -> bool =
+    (is_primitive_name(name) && name != "null") || name == "type"
 
 /// Parse `source` and walk every AST node, pushing a `RawToken` for each
 /// identifier. The walk runs in two phases — the AST walker tags every

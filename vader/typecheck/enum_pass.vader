@@ -15,6 +15,7 @@ module "vader/typecheck"
 import "std/collections" { MutableMap, MutableSet, add }
 import "vader/diagnostics" { Diagnostic, Span, typecheck_error }
 import "vader/parser" { EnumDecl, EnumVariant }
+import "vader/types" { primitive_meta }
 
 /// Compute the canonical `name → value` map for `decl`. `repr` is the
 /// already-resolved backing type name (e.g. `"i32"`, `"u8"`) ; pass
@@ -83,23 +84,35 @@ contains :: fn(self: ReprRange, v: i64) -> bool {
     return self.min <= v && v <= self.max
 }
 
+// Inclusive `[min, max]` value range of a backing integer primitive, DERIVED
+// from its width + signedness (`vader/types::PRIMITIVE_META`) rather than a
+// per-width name table. Signed n-bit = `[-2^(n-1), 2^(n-1)-1]`; unsigned =
+// `[0, 2^n-1]`. The 64-bit widths (i64/isize + u64/usize) clamp `max` to
+// `i64.MAX`: values above it can't be carried in the AST. That clamp is a
+// typecheck-local decision, which is why the bounds live here and not in the
+// leaf `vader/types` (only the universal `size` / `is_signed` do).
 repr_range :: fn(repr: string) -> ReprRange {
-    // Signed integers : standard 2-complement ranges. i64 / isize hit
-    // the i64 max — we accept them at face value.
-    if repr == "i8"    { return ReprRange { .min = -128,                       .max = 127,                       .has_bounds = true } }
-    if repr == "i16"   { return ReprRange { .min = -32_768,                    .max = 32_767,                    .has_bounds = true } }
-    if repr == "i32"   { return ReprRange { .min = -2_147_483_648,             .max = 2_147_483_647,             .has_bounds = true } }
-    if repr == "i64"   { return ReprRange { .min = -9_223_372_036_854_775_808, .max = 9_223_372_036_854_775_807, .has_bounds = true } }
-    if repr == "isize" { return ReprRange { .min = -9_223_372_036_854_775_808, .max = 9_223_372_036_854_775_807, .has_bounds = true } }
-    if repr == "u8"    { return ReprRange { .min = 0,                          .max = 255,                       .has_bounds = true } }
-    if repr == "u16"   { return ReprRange { .min = 0,                          .max = 65_535,                    .has_bounds = true } }
-    if repr == "u32"   { return ReprRange { .min = 0,                          .max = 4_294_967_295,             .has_bounds = true } }
-    // u64 / usize : their range exceeds i64.max. We accept any non-negative
-    // i64 (cursor never wraps below 0 from a valid sequence). Variants
-    // with values > i64.max can't be carried in the AST today anyway.
-    if repr == "u64"   { return ReprRange { .min = 0, .max = 9_223_372_036_854_775_807, .has_bounds = true } }
-    if repr == "usize" { return ReprRange { .min = 0, .max = 9_223_372_036_854_775_807, .has_bounds = true } }
-    return ReprRange { .min = 0, .max = 0, .has_bounds = false }
+    m :: primitive_meta(repr)
+    if m == null  { return ReprRange { .min = 0, .max = 0, .has_bounds = false } }
+    if !m.is_int  { return ReprRange { .min = 0, .max = 0, .has_bounds = false } }
+    if m.size >= 8 {
+        lo: i64 = if m.is_signed { -9_223_372_036_854_775_808 } else { 0 }
+        return ReprRange { .min = lo, .max = 9_223_372_036_854_775_807, .has_bounds = true }
+    }
+    bits :: m.size * 8
+    if m.is_signed {
+        half :: pow2_i64(bits - 1)
+        return ReprRange { .min = -half, .max = half - 1, .has_bounds = true }
+    }
+    return ReprRange { .min = 0, .max = pow2_i64(bits) - 1, .has_bounds = true }
+}
+
+// 2^k as an i64 (k ≤ 32 here — narrower integer widths only; the 64-bit widths
+// are handled above without ever computing 2^64).
+pow2_i64 :: fn(k: i64) -> i64 {
+    r: i64 = 1
+    for _ in 0..<k { r = r * 2 }
+    return r
 }
 
 span_of_value :: fn(v: EnumVariant) -> Span {
