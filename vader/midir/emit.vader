@@ -200,11 +200,6 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx) -> voi
 }
 
 reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
-    // Fail loud on an unwired host : a bodyless `@intrinsic` fn whose mangle
-    // reaches neither a dedicated op nor a recognised `IntrinsicId` would emit
-    // an unbound `call.import` and trap at runtime (the cos/tan gap). `@extern`
-    // is exempt (link-resolved).
-    assert_host_import_wired(ext.mangled, ext.is_extern)
     signature :: build_cfg_signature(ext.params, ext.return_type, ctx)
     import_index :: i32(ctx.imports.len())
     ctx.imports.push(BcImport { .extern_name = ext.extern_name, .mangled_name = ext.mangled, .signature = signature, .is_extern = ext.is_extern })
@@ -431,6 +426,14 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         prune_unused_functions(ctx, vtable_roots, opts.keep_mangles)
         prune_unused_imports(ctx)
         prune_unused_types(ctx)
+        // Fail loud on an unwired host in the FINAL import table : a bodyless
+        // `@intrinsic` fn whose mangle reaches neither a dedicated op nor a
+        // recognised `IntrinsicId` would emit an unbound `call.import` and trap
+        // at runtime (the cos/tan gap). Checked here, post-DCE, so a declared-
+        // but-unused `@intrinsic` member (pruned above) never false-positives ;
+        // only hosts that actually survive into the emitted bytecode are
+        // validated. `@extern` imports are link-resolved and exempt.
+        for imp in ctx.imports { assert_host_import_wired(imp.mangled_name, imp.is_extern) }
     }
     return BytecodeModule { .name = module_name, .types = ctx.types, .strings = ctx.strings, .data_pool = cfg.data_pool, .functions = ctx.functions, .imports = ctx.imports, .exports = ctx.exports, .impl_table = build_impl_table_from_vtable(cfg.vtable_entries, ctx), .vtables = build_vtables_from_entries(cfg.vtable_entries, ctx) }
 }

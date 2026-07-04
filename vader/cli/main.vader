@@ -23,7 +23,7 @@ import "vader/typecheck" { CheckResult }
 import "vader/typecheck" { TypedProject, new_typed_project }
 import "vader/resolver" { load_project, resolve_sidecar }
 import "vader/typecheck" { dump_program as dump_typed, dump_program_with_others }
-import "vader/comptime" { evaluate_project }
+import "vader/comptime" { evaluate_project, new_evaluated_project }
 import "vader/comptime" { dump_evaluated }
 import "vader/comptime_vm" { resolve_vm_required_decls }
 import "vader/lower" { lower_project }
@@ -1355,10 +1355,26 @@ prepare_evaluated_project_with :: fn(file: string, include_path_flags: string[])
     Prof.prof_end(Prof.PHASE_TYPECHECK)
     comptime_diags: Diagnostic[] = []
     Prof.prof_begin(Prof.PHASE_COMPTIME)
-    evaluated :: evaluate_project(loaded, typed, comptime_diags)
-    // VM-backed comptime : bake any loop-bearing `@comptime` decls the tree-walk
-    // deferred (S2 two-pass — see vader/comptime_vm). No-op when none deferred.
-    resolve_vm_required_decls(loaded, typed, evaluated, comptime_diags)
+    // Skip comptime evaluation when the front end already errored. `@comptime`
+    // baking (esp. the VM-backed `resolve_vm_required_decls`) emits the project
+    // to bytecode and runs it ; on unresolved / malformed IR that ICEs at
+    // emit. A program with front-end errors never reaches codegen anyway, so
+    // there is nothing to bake — and a single prelude `@comptime` const (e.g.
+    // `std/core`'s parse-float table) would otherwise ICE every errored user
+    // compile. Mirrors the `any_error_diag(pre_diags)` gate on `lower_to_entry`.
+    front_end_ok :: !any_error_diag(loaded.diags)
+        && !any_error_diag(resolver_diags)
+        && !any_error_diag(typecheck_diags)
+    evaluated :: if front_end_ok {
+        ev :: evaluate_project(loaded, typed, comptime_diags)
+        // VM-backed comptime : bake any loop-bearing `@comptime` decls the
+        // tree-walk deferred (S2 two-pass — see vader/comptime_vm). No-op when
+        // none deferred.
+        resolve_vm_required_decls(loaded, typed, ev, comptime_diags)
+        ev
+    } else {
+        new_evaluated_project(typed)
+    }
     Prof.prof_end(Prof.PHASE_COMPTIME)
     return EvaluatedPipeline {
         .loaded          = loaded,
