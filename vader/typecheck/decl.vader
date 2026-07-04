@@ -201,6 +201,18 @@ declare_fn :: fn(
     if has_extern_decorator(decl.decorators) {
         validate_extern(decl, params, return_type, typed, diags)
     }
+    // A bodyless top-level free fn becomes a host import (`lower_decl.vader`
+    // returns a null body → `call.import`). Host-ness must be *declared* :
+    // `@intrinsic` for a stdlib host binding, `@extern` for a foreign C symbol.
+    // Without either, the import is unbound and traps at runtime — so require
+    // the annotation here. Impl members (`impl_is_intrinsic`) and trait-method
+    // signatures go through other declarers and never reach `declare_fn`.
+    if decl.body == null
+        && !has_intrinsic_decorator(decl.decorators)
+        && !has_extern_decorator(decl.decorators) {
+        diags.push(typecheck_error(.BodylessFnMustBeIntrinsic, decl.name_span,
+            "`${decl.name}` is bodyless and otherwise unbound at runtime ; for a function-*type*, spell the `fn(...)` type inline at its use sites rather than as a named bodyless declaration"))
+    }
     check_public_return_visibility(decl, return_type, diags)
 }
 
@@ -341,6 +353,11 @@ validate_extern :: fn(
 
 has_extern_decorator :: fn(decs: AST.Decorator[]) -> bool {
     for d in decs { if d.name == "extern" { return true } }
+    return false
+}
+
+has_intrinsic_decorator :: fn(decs: AST.Decorator[]) -> bool {
+    for d in decs { if d.name == "intrinsic" { return true } }
     return false
 }
 

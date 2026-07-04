@@ -1,0 +1,7 @@
+// A bodyless free fn that is neither `@intrinsic` nor `@extern` — T3062.
+// (A function with no body is otherwise an unbound host import.)
+module "snippet"
+
+frobnicate :: fn(x: i32) -> i32
+
+main :: fn() -> i32 { return frobnicate(1) }

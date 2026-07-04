@@ -1,4 +1,4 @@
-// vader/midir/lowered_walk — RefVisitor walks over LoweredDecl.
+// vader/midir/lowered_walk — for_each_reference walks over LoweredDecl.
 //
 // Visits every symbol / type
 // reference inside a LoweredDecl. The whole-program DCE in
@@ -6,12 +6,12 @@
 // passes through unchanged) and to seed externs that aren't in the
 // CFG.
 //
-// Three visitor channels :
-//   - RefVisitor(symbolId) — fires on every Symbol reference.
-//   - StructInstVisitor(key) — fires per concrete struct *instance*
+// Three visitor channels (the `WalkCtx` fields) :
+//   - `visit(symbolId)` — fires on every Symbol reference.
+//   - `visit_struct_inst(key)` — fires per concrete struct *instance*
 //     so DCE can prune mono variants (`ArrayIterator(string)` vs
 //     `ArrayIterator(i32)`) the symbol-only set can't distinguish.
-//   - VirtualCallVisitor(trait, method) — fires per LoweredVirtualCall
+//   - `visit_virtual(trait, method)` — fires per LoweredVirtualCall
 //     so DCE keeps every impl-fn-symbol alive for that (trait, method).
 
 module "vader/midir"
@@ -33,28 +33,17 @@ import "vader/lower" {
     LoweredDataConst, LoweredTypeConst,
 }
 
-/// Per-symbol-reference callback. DCE accumulates the reachable
-/// symbol set on each visit.
-export RefVisitor :: fn(sym_id: i32) -> void
-
-/// Concrete struct-instance callback. Keyed on
-/// `${symbol.id}|${canonical_args_key(args)}` — see `struct_inst_key`.
-export StructInstVisitor :: fn(key: string) -> void
-
-/// Per-LoweredVirtualCall callback. Receives the trait + method names ;
-/// DCE wires them to a `(trait, method) → impl-fn-symbols` index.
-export VirtualCallVisitor :: fn(trait_name: string, method_name: string) -> void
-
-/// Visitor bundle threaded through the walk. The virtual + struct-inst
-/// channels are optional — DCE uses both ; lighter callers may pass
-/// `null` for either.
+/// Visitor bundle threaded through the walk (see the file header for the
+/// three channels). `visit` fires on every symbol reference ;
+/// `visit_struct_inst` keys on `${symbol.id}|${canonical_args_key(args)}`
+/// (`struct_inst_key`) ; `visit_virtual` receives a `LoweredVirtualCall`'s
+/// trait + method names. The virtual + struct-inst channels are optional —
+/// DCE uses both ; lighter callers may pass `null` for either.
 ///
-/// NB: the fn-typed fields are spelled inline (rather than reusing the
-/// `RefVisitor` / `StructInstVisitor` / `VirtualCallVisitor` aliases
-/// above) because the Vader self-host typechecker currently mis-infers
-/// `ctx.<aliased-fn-field>(...)` as `? | void` instead of `void`,
-/// which breaks `match`-tail inference in every fn that walks the
-/// bundle. The aliases stay for external call-site signatures.
+/// NB: the fn-typed fields are spelled inline rather than via named
+/// `fn`-type aliases because the self-host typechecker mis-infers
+/// `ctx.<aliased-fn-field>(...)` as `? | void` instead of `void`, which
+/// breaks `match`-tail inference in every fn that walks the bundle.
 export WalkCtx :: struct {
     visit:             fn(i32) -> void
     visit_virtual:     (fn(string, string) -> void) | null

@@ -13,30 +13,30 @@ export e :: 2.718281828459045
 /// JS `Math.sqrt` in the VM.
 /// @param x  non-negative finite input.
 /// @return   `sqrt(x)`. `NaN` when `x < 0`.
-export sqrt :: fn(x: f64) -> f64
+@intrinsic export sqrt :: fn(x: f64) -> f64
 
 /// Power — `x^n`. Both base and exponent are floats ; for integer exponents
 /// the caller is expected to cast.
 /// @param x  base.
 /// @param n  exponent.
 /// @return   `x` raised to the `n`-th power.
-export pow :: fn(x: f64, n: f64) -> f64
+@intrinsic export pow :: fn(x: f64, n: f64) -> f64
 
 /// Largest integer `n` such that `n <= x`. `floor(-1.2)` → `-2.0`.
-export floor :: fn(x: f64) -> f64
+@intrinsic export floor :: fn(x: f64) -> f64
 /// Smallest integer `n` such that `n >= x`. `ceil(-1.2)` → `-1.0`.
-export ceil :: fn(x: f64) -> f64
+@intrinsic export ceil :: fn(x: f64) -> f64
 /// Round to the nearest integer, ties away from zero. `round(0.5)` → `1.0`.
-export round :: fn(x: f64) -> f64
+@intrinsic export round :: fn(x: f64) -> f64
 
 // ---- Trigonometry ---------------------------------------------------------
 
 /// Sine of `x` in radians.
-export sin :: fn(x: f64) -> f64
+@intrinsic export sin :: fn(x: f64) -> f64
 /// Cosine of `x` in radians.
-export cos :: fn(x: f64) -> f64
+@intrinsic export cos :: fn(x: f64) -> f64
 /// Tangent of `x` in radians.
-export tan :: fn(x: f64) -> f64
+@intrinsic export tan :: fn(x: f64) -> f64
 
 // ---- Comparison + helpers -------------------------------------------------
 //
