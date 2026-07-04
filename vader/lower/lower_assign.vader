@@ -6,7 +6,7 @@ module "vader/lower"
 import "vader/parser" { Expr, IdentExpr, IndexExpr, RangeExpr, AssignStmt, Visibility }
 import "vader/diagnostics" { Span }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, PrimitiveType, ArrayType, TY_BOOL, TY_VOID, TY_UNRESOLVED, mk_primitive, StructType }
+import "vader/types" { Type, PrimitiveType, ArrayType, TY_BOOL, TY_VOID, TY_UNRESOLVED, mk_primitive, StructType, STRUCT_RANGE, METHOD_AT }
 
 lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt {
     // `m[k] = v` over an IndexSet-impl receiver lowers to a static
@@ -112,7 +112,7 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
     // ArrayType (built-in path above) and for Range-typed indices
     // (slicing handled above).
     if !(target_type is ArrayType) && !is_range {
-        member :: find_impl_member_for(ctx, target_type, "at")
+        member :: find_impl_member_for(ctx, target_type, METHOD_AT)
         if member is UfcsMember as found {
             args: LoweredExpr[] = []
             args.push(lower_expr(ctx, expr.target))
@@ -136,7 +136,7 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
 index_is_range :: fn(ctx: FnLowerCtx, index_expr: Expr) -> bool {
     if index_expr is RangeExpr { return true }
     idx_type :: ctx.types.expr_type(index_expr)
-    if idx_type is StructType as st { return st.symbol.name == "Range" }
+    if idx_type is StructType as st { return st.symbol.name == STRUCT_RANGE }
     return false
 }
 
@@ -170,7 +170,7 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type, as_str
     // `.inclusive`) share one evaluation, then emit the slice.
     idx_type :: ctx.types.expr_type(expr.index)
     if idx_type is StructType as st {
-        if st.symbol.name != "Range" { return null }
+        if st.symbol.name != STRUCT_RANGE { return null }
         span :: expr.span
         range_sym :: fresh_synthetic_symbol(ctx, "slice_r")
         range_binding :: LoweredLet {

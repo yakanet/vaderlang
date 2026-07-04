@@ -8,7 +8,7 @@
 
 module "vader/typecheck"
 
-import "vader/types" { Type, FnType, display_type }
+import "vader/types" { Type, FnType, display_type, TRAIT_ITERATOR }
 
 /// Look up `${got}::into::${expected}` in the impl-method index. The
 /// per-target keying lets a source type carry multiple `Into(T)`
@@ -50,7 +50,7 @@ export try_into :: fn(got: Type, expected: Type, typed: TypedProgram, node_id: u
 export try_array_to_iter :: fn(got: Type, expected: Type) -> bool {
     if !(got is ArrayType) { return false }
     if !(expected is TraitType) { return false }
-    if expected.symbol.name != "Iterator" { return false }
+    if expected.symbol.name != TRAIT_ITERATOR { return false }
     if expected.args.len() != 1 { return false }
     // Element compatibility : TypeParam slot accepts anything ;
     // primitive/struct/etc. must equal.

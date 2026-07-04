@@ -23,6 +23,8 @@ import "vader/types" {
     Type, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, UnresolvedType,
     EnumType, FnType, StructType, TraitType, ArrayType, DistinctType,
     display_type, type_base_name, TY_BOOL, TY_FREE_INT, TY_STRING, TY_UNRESOLVED,
+    TRAIT_COMPARABLE, TRAIT_CONTAINS, TRAIT_EQUALS,
+    METHOD_ADD, METHOD_SUB, METHOD_MUL, METHOD_DIV, METHOD_REM, METHOD_COMPARE, METHOD_CONTAINS, METHOD_EQUALS,
 }
 
 /// Type-check a `BinaryExpr`. `check_expr_fn` is threaded to break the
@@ -135,11 +137,11 @@ check_arith :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgra
 }
 
 arith_trait_method :: fn(op: AST.BinaryOp) -> string {
-    if op == AST.BinaryOp.Add { return "add" }
-    if op == AST.BinaryOp.Sub { return "sub" }
-    if op == AST.BinaryOp.Mul { return "mul" }
-    if op == AST.BinaryOp.Div { return "div" }
-    if op == AST.BinaryOp.Mod { return "rem" }
+    if op == AST.BinaryOp.Add { return METHOD_ADD }
+    if op == AST.BinaryOp.Sub { return METHOD_SUB }
+    if op == AST.BinaryOp.Mul { return METHOD_MUL }
+    if op == AST.BinaryOp.Div { return METHOD_DIV }
+    if op == AST.BinaryOp.Mod { return METHOD_REM }
     return ""
 }
 
@@ -164,8 +166,8 @@ check_compare :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProg
     // User-struct overload via `Comparable::compare` — the lowerer
     // rewrites `a < b` into `a.compare(b) < 0` ; we only need to
     // confirm the impl exists here.
-    if has_impl_method(left, "compare", typed) { return TY_BOOL }
-    push_trait_missing(e, left, "Comparable", diags)
+    if has_impl_method(left, METHOD_COMPARE, typed) { return TY_BOOL }
+    push_trait_missing(e, left, TRAIT_COMPARABLE, diags)
     return TY_BOOL
 }
 
@@ -197,8 +199,8 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, 
     // matched through the `"[]"` base key (`type_base_name`) — no array special-case
     // needed (it used to be required because the element-specific `[string]` key
     // never matched the generic blanket).
-    if has_impl_method(right, "contains", typed) { return TY_BOOL }
-    push_trait_missing(e, right, "Contains", diags)
+    if has_impl_method(right, METHOD_CONTAINS, typed) { return TY_BOOL }
+    push_trait_missing(e, right, TRAIT_CONTAINS, diags)
     return TY_BOOL
 }
 
@@ -218,8 +220,8 @@ check_equality :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedPro
     if is_null_type(right) { check_is_overlap(e, left, right, diags) }
     else if is_null_type(left) { check_is_overlap(e, right, left, diags) }
     if left is StructType && right is StructType {
-        if has_impl_method(left, "equals", typed) { return TY_BOOL }
-        push_trait_missing(e, left, "Equals", diags)
+        if has_impl_method(left, METHOD_EQUALS, typed) { return TY_BOOL }
+        push_trait_missing(e, left, TRAIT_EQUALS, diags)
     }
     return TY_BOOL
 }

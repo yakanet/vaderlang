@@ -9,7 +9,7 @@ import "vader/parser" { Expr, IdentExpr, CallExpr, GenericInstExpr, ArrayTypeExp
 import "vader/diagnostics" { Span }
 import "vader/typecheck" { ImplEntry }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, FnType, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, UnionType, TraitType, TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType, SelfType, NeverType, mk_primitive, STRUCT_ARRAY_ITERATOR, StructType, EnumType, UnresolvedType, DistinctType, strip_distinct_each }
+import "vader/types" { Type, FnType, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, UnionType, TraitType, TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType, SelfType, NeverType, mk_primitive, STRUCT_ARRAY_ITERATOR, StructType, EnumType, UnresolvedType, DistinctType, strip_distinct_each, TRAIT_ITERATOR, TRAIT_INTO, METHOD_INTO }
 import "vader/comptime" { GenericInstance }
 
 UfcsMember :: struct {
@@ -340,7 +340,7 @@ mk_into_call :: fn(
 // used by the array→Iterator blanket and generic Into impls, whose element /
 // erased-instance mangles aren't wired into the coercion path yet.
 mk_bare_into_call :: fn(ctx: FnLowerCtx, arg: LoweredExpr, result_type: Type, span: Span) -> LoweredCall =
-    mk_into_call(arg, result_type, span, "into", ctx.typed.resolved.path)
+    mk_into_call(arg, result_type, span, METHOD_INTO, ctx.typed.resolved.path)
 
 // `T[] -> Iterator<T>` value-slot coercion. Returns `into(arr)` resolved to
 // std/core's blanket `T[] implements Into<Iterator<T>>` member, typed as the
@@ -355,7 +355,7 @@ try_array_iter_coercion :: fn(
 ) -> LoweredExpr | null {
     if arg_type is ArrayType as arr {
         if target_type is TraitType as tt {
-            if tt.symbol.name != "Iterator" { return null }
+            if tt.symbol.name != TRAIT_ITERATOR { return null }
             if tt.args.len() != 1 { return null }
             // Guard : the blanket wraps into `ArrayIterator<element>` — bail if
             // std/core's struct isn't loaded (nothing to materialise).
@@ -366,7 +366,7 @@ try_array_iter_coercion :: fn(
             // value slot dispatches `it.next()` virtually (the for-in path inlines
             // `next` and never needs the table).
             if wrapped is StructType as ai { queue_generic_impl_receiver(ctx, ai) }
-            member :: find_impl_member_for(ctx, arg_type, "into")
+            member :: find_impl_member_for(ctx, arg_type, METHOD_INTO)
             if member is null { return mk_bare_into_call(ctx, arg, target_type, span) }
             return LoweredCall {
                 .span = span, .type = target_type,
@@ -401,11 +401,11 @@ try_emit_into_coercion :: fn(
     if src_name == target_name { return null }
     for entry in ctx.project.impls.all {
         decl :: entry.decl
-        if decl.trait_name != "Into" { continue }
+        if decl.trait_name != TRAIT_INTO { continue }
         if !impl_targets_name(decl.for_type, src_name) { continue }
         if !impl_trait_first_arg_is(decl, target_name) { continue }
         for m in decl.members {
-            if m.name != "into" { continue }
+            if m.name != METHOD_INTO { continue }
             // Resolve to the impl member's materialised mangle so emit binds the
             // call — the bare `into` placeholder resolves to neither symbol id nor
             // mangle. The mangle mirrors `impl_member_mangled` (the materialiser's

@@ -26,6 +26,7 @@ import "vader/types" {
     TupleType, UnionType, PrimitiveType,
     mk_array, mk_fn, mk_struct, mk_tuple, mk_union, mk_enum,
     TY_UNRESOLVED, TY_TYPE, TY_VOID,
+    TRAIT_ITERATOR, TRAIT_INTO, TRAIT_INDEX, TRAIT_INDEX_SET, STRUCT_RANGE, STRUCT_FIELD, METHOD_INTO,
 }
 
 // Concatenate every file of a (possibly multi-file) module into one
@@ -627,14 +628,14 @@ merge_external_impl_methods :: fn(
                     base_key :: type_base_name(for_ty)
                     // `X implements Iterator(T)` — index the element
                     // type so `for x in X { … }` binds `x` to T.
-                    if id_decl.trait_name == "Iterator" && id_decl.trait_args.len() == 1 {
+                    if id_decl.trait_name == TRAIT_ITERATOR && id_decl.trait_args.len() == 1 {
                         elem :: type_from_expr(id_decl.trait_args[0], other.resolved, diag_sink())
                         entry_typed.iter_element_types[base_key] = elem
                     }
                     // `X implements Into(Iterator(T))` — for-in
                     // coercion : `for x in X` desugars to `Into(Iterator(T))::into()`
                     // then iterates the result, yielding T.
-                    if id_decl.trait_name == "Into" && id_decl.trait_args.len() == 1 {
+                    if id_decl.trait_name == TRAIT_INTO && id_decl.trait_args.len() == 1 {
                         elem :: into_iterator_element(id_decl.trait_args[0], other.resolved)
                         match elem {
                             is null -> {}
@@ -644,7 +645,7 @@ merge_external_impl_methods :: fn(
                     // `X implements Index[K, T]` — index the result
                     // type so `m[k]` returns T, and the key type K so a
                     // free-literal index pins to K instead of i32.
-                    if id_decl.trait_name == "Index" && id_decl.trait_args.len() == 2 {
+                    if id_decl.trait_name == TRAIT_INDEX && id_decl.trait_args.len() == 2 {
                         key_ty :: type_from_expr(id_decl.trait_args[0], other.resolved, diag_sink())
                         result_ty :: type_from_expr(id_decl.trait_args[1], other.resolved, diag_sink())
                         entry_typed.index_key_types[base_key] = key_ty
@@ -652,7 +653,7 @@ merge_external_impl_methods :: fn(
                     }
                     // `X implements IndexSet[K, V]` — index the key and
                     // write-value types so `m[k] = v` pins both literals.
-                    if id_decl.trait_name == "IndexSet" && id_decl.trait_args.len() == 2 {
+                    if id_decl.trait_name == TRAIT_INDEX_SET && id_decl.trait_args.len() == 2 {
                         key_ty :: type_from_expr(id_decl.trait_args[0], other.resolved, diag_sink())
                         value_ty :: type_from_expr(id_decl.trait_args[1], other.resolved, diag_sink())
                         entry_typed.index_key_types[base_key] = key_ty
@@ -676,7 +677,7 @@ into_iterator_element :: fn(
 ) -> Type | null {
     if !(arg is AST.GenericInstExpr) { return null }
     if !(arg.callee is AST.IdentExpr) { return null }
-    if arg.callee.name != "Iterator" { return null }
+    if arg.callee.name != TRAIT_ITERATOR { return null }
     if arg.type_args.len() != 1 { return null }
     return type_from_expr(arg.type_args[0], resolved, diag_sink())
 }
@@ -1362,8 +1363,8 @@ populate_core_symbols_into :: fn(
     // concrete declared type.
     if core_typed == null {
         // Still set the well-known slots below even without typed core types.
-        typed.range_symbol = core_loaded.collected.symbols["Range"]
-        typed.field_symbol = core_loaded.collected.symbols["Field"]
+        typed.range_symbol = core_loaded.collected.symbols[STRUCT_RANGE]
+        typed.field_symbol = core_loaded.collected.symbols[STRUCT_FIELD]
         return
     }
     for [_, sym] in core_loaded.collected.symbols {
@@ -1373,8 +1374,8 @@ populate_core_symbols_into :: fn(
     }
     // Well-known struct slots : Range (`a..b`) + Field (`@fields`), synthesised
     // without a source span so they can't come through span-keyed `idents`.
-    typed.range_symbol = core_loaded.collected.symbols["Range"]
-    typed.field_symbol = core_loaded.collected.symbols["Field"]
+    typed.range_symbol = core_loaded.collected.symbols[STRUCT_RANGE]
+    typed.field_symbol = core_loaded.collected.symbols[STRUCT_FIELD]
 }
 
 
@@ -1570,7 +1571,7 @@ register_impl_metadata :: fn(
     id: AST.ImplDecl, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     for_ty :: type_from_expr(id.for_type, typed.resolved, diags)
-    if id.trait_name == "Into" {
+    if id.trait_name == TRAIT_INTO {
         if id.trait_args.len() == 1 {
             target_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
             if equals_type(for_ty, target_ty) {
@@ -1582,21 +1583,21 @@ register_impl_metadata :: fn(
     // Index `X implements Iterator(T)` so `for x in X` binds `x` to T
     // (matches the external-impl path).
     local_base_key :: type_base_name(for_ty)
-    if id.trait_name == "Iterator" && id.trait_args.len() == 1 {
+    if id.trait_name == TRAIT_ITERATOR && id.trait_args.len() == 1 {
         elem :: type_from_expr(id.trait_args[0], typed.resolved, diags)
         typed.iter_element_types[local_base_key] = elem
     }
-    if id.trait_name == "Into" && id.trait_args.len() == 1 {
+    if id.trait_name == TRAIT_INTO && id.trait_args.len() == 1 {
         elem :: into_iterator_element(id.trait_args[0], typed.resolved)
         if elem != null { typed.iter_element_types[local_base_key] = elem }
     }
-    if id.trait_name == "Index" && id.trait_args.len() == 2 {
+    if id.trait_name == TRAIT_INDEX && id.trait_args.len() == 2 {
         key_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
         result_ty :: type_from_expr(id.trait_args[1], typed.resolved, diags)
         typed.index_key_types[local_base_key] = key_ty
         typed.index_target_types[local_base_key] = result_ty
     }
-    if id.trait_name == "IndexSet" && id.trait_args.len() == 2 {
+    if id.trait_name == TRAIT_INDEX_SET && id.trait_args.len() == 2 {
         key_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
         value_ty :: type_from_expr(id.trait_args[1], typed.resolved, diags)
         typed.index_key_types[local_base_key] = key_ty
@@ -1623,7 +1624,7 @@ register_impl_metadata :: fn(
         // `Into(T)` impls are indexed under a target-qualified key so
         // multiple `Into` impls for the same source (e.g. `Into(i32)` +
         // `Into(string)`) don't collide.
-        if id.trait_name == "Into" && id.trait_args.len() == 1 && m.name == "into" && ufcs_ty != null {
+        if id.trait_name == TRAIT_INTO && id.trait_args.len() == 1 && m.name == METHOD_INTO && ufcs_ty != null {
             target_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
             into_key :: "${display_type(for_ty)}::into::${display_type(target_ty)}"
             typed.impl_methods[into_key] = ufcs_ty

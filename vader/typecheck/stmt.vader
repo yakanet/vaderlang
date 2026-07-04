@@ -13,7 +13,7 @@ import "vader/diagnostics" { Diagnostic, Span, TypecheckCode, typecheck_error, w
 AST :: import "vader/parser"
 import "vader/types" {
     Type, ArrayType, FnType, StructType, TupleType, TypeParamType, UnresolvedType, display_type,
-    NeverType, TraitType, TRAIT_ITERATOR,
+    NeverType, TraitType, TRAIT_ITERATOR, TRAIT_INTO,
     TY_BOOL, TY_FREE_INT, TY_NEVER, TY_STRING, TY_NULL, TY_VOID, TY_UNRESOLVED,
 }
 
@@ -982,7 +982,7 @@ assign_tuple :: fn(
 // impl body (`into_tuple_fields`) to bind each leaf zero-alloc.
 into_tuple_target :: fn(declared: Type, arity: usize, typed: TypedProgram) -> Type | null {
     if declared is StructType as st {
-        into_args :: lookup_struct_trait_args(declared, "Into", typed)
+        into_args :: lookup_struct_trait_args(declared, TRAIT_INTO, typed)
         if into_args == null { return null }
         if into_args.len() != 1 { return null }
         decl :: typed.struct_decls[st.symbol.id]

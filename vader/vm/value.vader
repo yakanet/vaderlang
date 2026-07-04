@@ -18,6 +18,7 @@ module "vader/vm"
 import "std/string" { starts_with }
 import "std/string_builder" { StringBuilder, append }
 import "vader/bytecode" { ConvertTarget }
+import "vader/types" { TRAIT_ERROR }
 bc :: import "vader/bytecode"
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
@@ -464,11 +465,11 @@ prefix_before_double_underscore :: fn(s: string) -> string {
 /// `ErrorVal` + impl-table check, `ref _` (empty trait name) accepts any
 /// heap variant, other trait names resolve through the impl table.
 export ref_type_matches :: fn(state: VmState, v: Value, trait_name: string) -> bool {
-    if trait_name == "Error" {
+    if trait_name == TRAIT_ERROR {
         if v is ErrorVal { return true }
         // @partial: only a StructVal can implement Error via the impl table; else false.
         return @partial match v {
-            is StructVal as s -> trait_implemented_by(state, "Error", s.type_id)
+            is StructVal as s -> trait_implemented_by(state, TRAIT_ERROR, s.type_id)
             _                    -> false
         }
     }

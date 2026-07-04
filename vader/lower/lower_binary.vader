@@ -6,7 +6,11 @@ module "vader/lower"
 import "std/collections" { MutableMap }
 
 import "vader/parser" { Expr, NullLitExpr, FieldExpr, BinaryExpr, BinaryOp, RangeExpr, IdentExpr }
-import "vader/types" { Type, PrimitiveType, UnionType, TypeParamType, AnyType, ArrayType, TY_BOOL, mk_primitive, TY_NULL }
+import "vader/types" {
+    Type, PrimitiveType, UnionType, TypeParamType, AnyType, ArrayType, TY_BOOL, mk_primitive, TY_NULL,
+    TRAIT_ADD, TRAIT_SUB, TRAIT_MUL, TRAIT_DIV, TRAIT_REM, TRAIT_EQUALS, TRAIT_COMPARABLE,
+    METHOD_ADD, METHOD_SUB, METHOD_MUL, METHOD_DIV, METHOD_REM, METHOD_EQUALS, METHOD_COMPARE, METHOD_CONTAINS,
+}
 
 // Peel a narrowing `LoweredCast` off a type-check operand. `lower_ident`
 // inserts such a cast (`LoweredCast { value: LoweredIdent : <union> }`) when the
@@ -87,7 +91,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         // primitive ones (`Range<T> implements Contains<T>` via the
         // intrinsic decl in std/core).
         coll_type :: ctx.types.expr_type(binary.right)
-        member :: find_impl_member_for(ctx, coll_type, "contains")
+        member :: find_impl_member_for(ctx, coll_type, METHOD_CONTAINS)
         if member is UfcsMember as found {
             args: LoweredExpr[] = []
             args.push(lower_expr(ctx, binary.right))
@@ -337,17 +341,17 @@ OpTraitInfo :: struct {
 }
 
 op_trait_method :: fn(op: BinaryOp) -> OpTraitInfo | null {
-    if op == BinaryOp.Add { return OpTraitInfo { .trait_name = "Add", .method_name = "add", .shape = OpShape.DirectCall } }
-    if op == BinaryOp.Sub { return OpTraitInfo { .trait_name = "Sub", .method_name = "sub", .shape = OpShape.DirectCall } }
-    if op == BinaryOp.Mul { return OpTraitInfo { .trait_name = "Mul", .method_name = "mul", .shape = OpShape.DirectCall } }
-    if op == BinaryOp.Div { return OpTraitInfo { .trait_name = "Div", .method_name = "div", .shape = OpShape.DirectCall } }
-    if op == BinaryOp.Mod { return OpTraitInfo { .trait_name = "Rem", .method_name = "rem", .shape = OpShape.DirectCall } }
-    if op == BinaryOp.Eq  { return OpTraitInfo { .trait_name = "Equals", .method_name = "equals", .shape = OpShape.DirectCall } }
-    if op == BinaryOp.Neq { return OpTraitInfo { .trait_name = "Equals", .method_name = "equals", .shape = OpShape.NotCall } }
-    if op == BinaryOp.Lt  { return OpTraitInfo { .trait_name = "Comparable", .method_name = "compare", .shape = OpShape.CompareCmp } }
-    if op == BinaryOp.Lte { return OpTraitInfo { .trait_name = "Comparable", .method_name = "compare", .shape = OpShape.CompareCmp } }
-    if op == BinaryOp.Gt  { return OpTraitInfo { .trait_name = "Comparable", .method_name = "compare", .shape = OpShape.CompareCmp } }
-    if op == BinaryOp.Gte { return OpTraitInfo { .trait_name = "Comparable", .method_name = "compare", .shape = OpShape.CompareCmp } }
+    if op == BinaryOp.Add { return OpTraitInfo { .trait_name = TRAIT_ADD, .method_name = METHOD_ADD, .shape = OpShape.DirectCall } }
+    if op == BinaryOp.Sub { return OpTraitInfo { .trait_name = TRAIT_SUB, .method_name = METHOD_SUB, .shape = OpShape.DirectCall } }
+    if op == BinaryOp.Mul { return OpTraitInfo { .trait_name = TRAIT_MUL, .method_name = METHOD_MUL, .shape = OpShape.DirectCall } }
+    if op == BinaryOp.Div { return OpTraitInfo { .trait_name = TRAIT_DIV, .method_name = METHOD_DIV, .shape = OpShape.DirectCall } }
+    if op == BinaryOp.Mod { return OpTraitInfo { .trait_name = TRAIT_REM, .method_name = METHOD_REM, .shape = OpShape.DirectCall } }
+    if op == BinaryOp.Eq  { return OpTraitInfo { .trait_name = TRAIT_EQUALS, .method_name = METHOD_EQUALS, .shape = OpShape.DirectCall } }
+    if op == BinaryOp.Neq { return OpTraitInfo { .trait_name = TRAIT_EQUALS, .method_name = METHOD_EQUALS, .shape = OpShape.NotCall } }
+    if op == BinaryOp.Lt  { return OpTraitInfo { .trait_name = TRAIT_COMPARABLE, .method_name = METHOD_COMPARE, .shape = OpShape.CompareCmp } }
+    if op == BinaryOp.Lte { return OpTraitInfo { .trait_name = TRAIT_COMPARABLE, .method_name = METHOD_COMPARE, .shape = OpShape.CompareCmp } }
+    if op == BinaryOp.Gt  { return OpTraitInfo { .trait_name = TRAIT_COMPARABLE, .method_name = METHOD_COMPARE, .shape = OpShape.CompareCmp } }
+    if op == BinaryOp.Gte { return OpTraitInfo { .trait_name = TRAIT_COMPARABLE, .method_name = METHOD_COMPARE, .shape = OpShape.CompareCmp } }
     return null
 }
 

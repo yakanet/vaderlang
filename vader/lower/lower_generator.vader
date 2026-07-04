@@ -22,7 +22,7 @@ module "vader/lower"
 import "vader/parser" { FnDecl, Visibility }
 import "vader/types" {
     Type, TraitType, PrimitiveType, mk_struct, mk_primitive, TY_NULL, TY_BOOL, TY_VOID, TRAIT_ITERATOR,
-    is_float_name,
+    is_float_name, STRUCT_YIELD, METHOD_NEXT,
 }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck" { gen_state_symbol }
@@ -346,7 +346,7 @@ export lower_generator_fn :: fn(
     state_ty :: mk_struct(state_sym, [])
     self_sym :: fresh_synthetic_symbol(fn_ctx, "self")
 
-    yield_opt :: find_core_type(fn_ctx, "Yield", [element_ty])
+    yield_opt :: find_core_type(fn_ctx, STRUCT_YIELD, [element_ty])
     if yield_opt == null {
         panic("generator lowering: `Yield` core type not found")
     }
@@ -371,7 +371,7 @@ export lower_generator_fn :: fn(
     // by `${…}` (the `impl_member_mangled` idiom).
     module_seg :: mangle_module_id(fn_ctx.typed.resolved.display_path)
     iter_seg :: TRAIT_ITERATOR
-    next_seg :: "next"
+    next_seg :: METHOD_NEXT
     next_mangled :: "${module_seg}$${state_sym.name}$${iter_seg}$${next_seg}"
     next_sym :: Symbol {
         .id = next_synthetic_id(fn_ctx), .kind = SymbolKind.Fn, .name = next_mangled,

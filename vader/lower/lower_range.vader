@@ -15,7 +15,7 @@ module "vader/lower"
 import "vader/diagnostics" { Span }
 import "vader/parser" { RangeExpr, Expr }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, mk_struct, TY_BOOL, TY_UNRESOLVED }
+import "vader/types" { Type, mk_struct, TY_BOOL, TY_UNRESOLVED, STRUCT_RANGE }
 
 /// Lower a `RangeExpr` into a `Range` struct literal.
 /// @param ctx          the fn-body context.
@@ -27,7 +27,7 @@ export lower_range_expr :: fn(
     ctx: FnLowerCtx, expr: RangeExpr, result_type: Type,
     recurse: fn(FnLowerCtx, Expr) -> LoweredExpr,
 ) -> LoweredExpr {
-    range_symbol :: ctx.project.core_symbols["Range"]
+    range_symbol :: ctx.project.core_symbols[STRUCT_RANGE]
     match range_symbol {
         is null -> {
             return LoweredUnreachable {

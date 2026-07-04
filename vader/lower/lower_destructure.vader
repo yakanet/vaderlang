@@ -9,7 +9,7 @@ import "vader/parser" {
 }
 import "vader/diagnostics" { Span }
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, ArrayType, TupleType, TY_BOOL, TY_VOID, TY_UNRESOLVED, mk_primitive, UnresolvedType, display_type }
+import "vader/types" { Type, ArrayType, TupleType, TY_BOOL, TY_VOID, TY_UNRESOLVED, mk_primitive, UnresolvedType, display_type, TRAIT_INTO, METHOD_INTO }
 
 // Walk a `LetBinding` tree, emitting one `LoweredLet` per leaf with
 // the target ident's `_<i>` field (tuples) or `[i]` index (arrays).
@@ -71,10 +71,10 @@ into_tuple_fields :: fn(ctx: FnLowerCtx, target_type: Type) -> string[] | null {
     if surface == "" { return null }
     for entry in ctx.project.impls.all {
         decl :: entry.decl
-        if decl.trait_name != "Into" { continue }
+        if decl.trait_name != TRAIT_INTO { continue }
         if !impl_targets_name(decl.for_type, surface) { continue }
         for m in decl.members {
-            if m.name != "into" { continue }
+            if m.name != METHOD_INTO { continue }
             names :: seq_self_field_names(m)
             if names != null { return names }
         }

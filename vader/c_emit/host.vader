@@ -19,6 +19,7 @@ import "vader/bytecode" {
     BcImport, BcType, BcPrimitive, BcArray, BcRef, BcStruct, ValType,
     primitive_member_mangle,
 }
+import "vader/types" { TRAIT_INDEX, TRAIT_HASH, TRAIT_ERROR, METHOD_AT, METHOD_HASH }
 
 // ---- driver ---------------------------------------------------------------
 
@@ -99,7 +100,7 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
 
     // std/string internals.
     if m == "std_string\$byte_len" { return "${head} { return vader_string_byte_len(a0); }" }
-    if m == primitive_member_mangle("string", "Index", "at") { return "${head} { return vader_string_codepoint_at(a0, a1); }" }
+    if m == primitive_member_mangle("string", TRAIT_INDEX, METHOD_AT) { return "${head} { return vader_string_codepoint_at(a0, a1); }" }
     if m == "std_core\$bytes" {
         u8 :: prim_tag(types, .U8)
         if u8 < 0 { return "${head} { vader_trap(\"bytes: no u8 type\"); }" }
@@ -113,7 +114,7 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     if m == "std_string\$parse_float" { return "${head} { return vader_string_parse_float(a0, ${tag_u(prim_tag(types, .F64), "f64")}, ${tag_u(error_ref_tag(types), "error")}); }" }
     // `string implements Hash` reads the FNV-1a-64 cached on the atom (a0 :
     // vader_string_t) — O(1), no allocation. See vader.h::vader_string_hash.
-    if m == primitive_member_mangle("string", "Hash", "hash") { return "${head} { return vader_string_hash(a0); }" }
+    if m == primitive_member_mangle("string", TRAIT_HASH, METHOD_HASH) { return "${head} { return vader_string_hash(a0); }" }
 
     // Every primitive `Display.to_string` is now pure Vader : the integer /
     // bool / char / string impls moved in Target ABI S1, and f32 / f64 in S4
@@ -263,7 +264,7 @@ error_ref_tag :: fn(types: BcType[]) -> i32 {
     for i in 0..<types.len() {
         t :: types[i]
         if t is BcRef as r {
-            if r.trait_name == "Error" { return i32(i) }
+            if r.trait_name == TRAIT_ERROR { return i32(i) }
         }
     }
     return -1
