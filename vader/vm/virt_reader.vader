@@ -709,89 +709,9 @@ parse_f64_const :: fn(line: string) -> bc.Op | null {
         bits :: parse_uint_in_base(rest.bytes()[usize(sp) + 1..<rest.bytes().len()].bytes_to_string(), 10)
         if bits is u64 { return bc.F64Const { .value = bits.from_bits() } }
     }
-    parsed :: parse_decimal_f64(rest)
+    parsed :: parse_f64(rest)
     if parsed is null { return null }
     return bc.F64Const { .value = parsed }
-}
-
-/// Decimal float parser for `<int>(.<frac>)?(e<int>)?` (sign, exponent,
-/// and fractional parts all optional). Sufficient for `f64.const` — full
-/// IEEE-754 round-tripping (subnormals, hex floats, infinity / NaN) is
-/// out of scope. Walks the string once to find the `.` and `e` markers,
-/// then re-extracts the integer / fractional / exponent pieces via
-/// `parse_int_in_base`. Note : Vader's parser is sensitive to certain
-/// `if / else if` chains in this file, hence the explicit
-/// `if X { … } if !X { … }` shapes below — do not "simplify" to
-/// `else if` without retesting the build.
-///
-/// **Precision** : `parse_int_in_base` returns `i64`. Integer mantissas
-/// above 2^53 lose low bits when cast to `f64` — the same loss IEEE-754
-/// mandates for any decimal → f64 conversion, so no extra hardening is
-/// needed.
-///
-/// @param s  the decimal literal (digits only — no `f` / `d` suffix).
-/// @return   the parsed `f64`, or `null` on malformed input.
-export parse_decimal_f64 :: fn(s: string) -> f64 | null {
-    n :: s.bytes().len()
-    if n == 0 { return null }
-    cursor: usize = 0
-    negative := false
-    first_byte :: s.bytes()[0]
-    if first_byte == '-' {
-        negative = true
-        cursor = 1
-    }
-    if first_byte == '+' { cursor = 1 }
-    dot_index: i32 = -1
-    exp_index: i32 = -1
-    for i in cursor..<n {
-        b :: s.bytes()[i]
-        if b == '.' { if dot_index < 0 { if exp_index < 0 { dot_index = i32(i) } } }
-        if b == 'e' { if exp_index < 0 { exp_index = i32(i) } }
-        if b == 'E' { if exp_index < 0 { exp_index = i32(i) } }
-    }
-    int_end: usize = n
-    if dot_index >= 0 { int_end = usize(dot_index) }
-    if dot_index < 0 { if exp_index >= 0 { int_end = usize(exp_index) } }
-    int_text :: s.bytes()[cursor..<int_end].bytes_to_string()
-    int_part :: parse_int_in_base(int_text, 10)
-    if int_part is ParseError { return null }
-    result: f64 = f64(int_part)
-    if dot_index >= 0 {
-        frac_end: usize = n
-        if exp_index >= 0 { frac_end = usize(exp_index) }
-        frac_text :: s.bytes()[usize(dot_index) + 1..<frac_end].bytes_to_string()
-        if frac_text.bytes().len() > 0 {
-            frac_part :: parse_int_in_base(frac_text, 10)
-            if frac_part is ParseError { return null }
-            divisor: f64 = 1.0
-            frac_ten :: f64(10)
-            for d in 0..<frac_text.bytes().len() {
-                divisor = divisor * frac_ten
-            }
-            result = result + f64(frac_part) / divisor
-        }
-    }
-    if exp_index >= 0 {
-        exp_text :: s.bytes()[usize(exp_index) + 1..<n].bytes_to_string()
-        exp_part :: parse_int_in_base(exp_text, 10)
-        if exp_part is ParseError { return null }
-        abs_exp: i64 = exp_part
-        if abs_exp < 0 { abs_exp = -abs_exp }
-        // `f64.pow` isn't available at parse time (intrinsic, host-only),
-        // so iterate `* 10.0` to build the scale factor. Bounded by the
-        // literal's exponent — typical `.virt` snippets stay under 1e10.
-        // `ten` is hoisted to skip the int→f64 cast inside the loop.
-        ten :: f64(10)
-        scale: f64 = 1.0
-        for k in 0..<abs_exp {
-            scale = scale * ten
-        }
-        if exp_part >= 0 { result = result * scale }
-        if exp_part < 0 { result = result / scale }
-    }
-    if negative { return -result }
-    return result
 }
 
 parse_string_const :: fn(line: string) -> bc.Op | null {

@@ -373,7 +373,7 @@ lex_number :: fn(l: Lexer) -> void {
         parsed :: digits.parse_float()
         t.value = match parsed {
             is f64 -> parsed
-            is Error -> 0.0
+            is ParseError -> 0.0
         }
     } else {
         parsed :: parse_uint_in_base(digits, base)

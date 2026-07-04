@@ -2400,7 +2400,7 @@ to_lower    :: fn(s: string) -> string
 // Parsing. `ParseError` is the union arm raised on malformed / empty / overflow.
 ParseError  :: struct { msg: string }              // implements Error
 parse_int   :: fn(s: string) -> i32 | ParseError
-parse_float :: fn(s: string) -> f64 | Error          // host intrinsic: generic Error
+parse_float :: fn(s: string) -> f64 | ParseError     // pure-Vader, correctly rounded (std/core Eisel-Lemire)
 
 // Codepoint walkers. `s[i]` (Index impl in std/core) is the primary access form.
 len              :: fn(s: string) -> usize                      // codepoint count, allocation-free

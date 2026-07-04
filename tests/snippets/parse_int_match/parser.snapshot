@@ -317,7 +317,7 @@
                     "kind": "IsPattern",
                     "type": {
                       "kind": "IdentExpr",
-                      "name": "Error"
+                      "name": "ParseError"
                     },
                     "inner": null,
                     "bindAs": null
@@ -415,7 +415,7 @@
                     "kind": "IsPattern",
                     "type": {
                       "kind": "IdentExpr",
-                      "name": "Error"
+                      "name": "ParseError"
                     },
                     "inner": null,
                     "bindAs": null

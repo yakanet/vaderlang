@@ -118,7 +118,6 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     // `bytes_to_string` (Target ABI S1) — backing runtime symbol still named
     // `vader_string_as_string`.
     .CoreBytesToString -> { return "${head} { return vader_string_as_string((vader_array_t*) a0.payload.obj); }" }
-    .StringParseFloat -> { return "${head} { return vader_string_parse_float(a0, ${tag_u(prim_tag(types, .F64), "f64")}, ${tag_u(error_ref_tag(types), "error")}); }" }
     // `string implements Hash` reads the FNV-1a-64 cached on the atom (O(1)).
     .CoreStringHash -> { return "${head} { return vader_string_hash(a0); }" }
 

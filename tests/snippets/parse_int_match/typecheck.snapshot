@@ -22,23 +22,23 @@
   expr 17:26    CallExpr       :: void
   expr 17:26    IdentExpr      :: fn(T) -> void
   expr 17:34    StringLitExpr  :: string
-  expr 19:11    CallExpr       :: Error | f64
-  expr 19:11    IdentExpr      :: fn(string) -> Error | f64
+  expr 19:11    CallExpr       :: f64 | ParseError
+  expr 19:11    IdentExpr      :: fn(string) -> f64 | ParseError
   expr 19:23    StringLitExpr  :: string
   expr 19:5     MatchExpr      :: void
   expr 20:19    CallExpr       :: void
   expr 20:19    IdentExpr      :: fn(T) -> void
   expr 20:27    StringLitExpr  :: string
-  expr 21:21    CallExpr       :: void
-  expr 21:21    IdentExpr      :: fn(T) -> void
-  expr 21:29    StringLitExpr  :: string
-  expr 23:11    CallExpr       :: Error | f64
-  expr 23:11    IdentExpr      :: fn(string) -> Error | f64
+  expr 21:26    CallExpr       :: void
+  expr 21:26    IdentExpr      :: fn(T) -> void
+  expr 21:34    StringLitExpr  :: string
+  expr 23:11    CallExpr       :: f64 | ParseError
+  expr 23:11    IdentExpr      :: fn(string) -> f64 | ParseError
   expr 23:23    StringLitExpr  :: string
   expr 23:5     MatchExpr      :: void
   expr 24:19    CallExpr       :: void
   expr 24:19    IdentExpr      :: fn(T) -> void
   expr 24:27    StringLitExpr  :: string
-  expr 25:21    CallExpr       :: void
-  expr 25:21    IdentExpr      :: fn(T) -> void
-  expr 25:29    StringLitExpr  :: string
+  expr 25:26    CallExpr       :: void
+  expr 25:26    IdentExpr      :: fn(T) -> void
+  expr 25:34    StringLitExpr  :: string
