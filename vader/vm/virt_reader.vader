@@ -22,6 +22,7 @@ bc :: import "vader/bytecode"
 
 import "std/string" { starts_with, ends_with, trim, split, index_of, decode_escapes, ParseError }
 import "std/numbers" { hex_digit_value, parse_int_in_base, parse_uint_in_base }
+import "vader/types" { is_int_name, is_unsigned_int_name, is_numeric_name }
 
 // `ScopeEntry` and `PendingBranch` live in `vader/vm/builder.vader` —
 // same module, same shape, single source of truth. The parser threads
@@ -371,7 +372,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
             if suffix == "to_char" { return bc.IntToChar {} }
             if suffix.starts_with("to_") {
                 target :: suffix.bytes()["to_".bytes().len()..<suffix.bytes().len()].bytes_to_string()
-                if is_int_width(target) || target == "f32" || target == "f64" { return parse_convert(cleaned) }
+                if is_numeric_name(target) { return parse_convert(cleaned) }
             }
 
             if is_int {
@@ -631,14 +632,7 @@ parse_int_const_text :: fn(rest: string, width: string) -> bc.Op | null {
 ///
 /// @param width  the prefix candidate.
 /// @return       `true` for any of the 10 supported integer widths.
-is_int_width :: fn(width: string) -> bool {
-    if width == "i32"   { return true }
-    if width == "i8"    { return true }
-    if width == "i16"   { return true }
-    if width == "i64"   { return true }
-    if width == "isize" { return true }
-    return is_unsigned_width(width)
-}
+is_int_width :: fn(width: string) -> bool = is_int_name(width)
 
 /// True iff `width` is one of the 5 unsigned integer prefixes. Used by
 /// `int_op_for` to route cmp / div / rem / shr to the U* family so the
@@ -646,14 +640,7 @@ is_int_width :: fn(width: string) -> bool {
 ///
 /// @param width  the prefix candidate.
 /// @return       `true` for `u8` / `u16` / `u32` / `u64` / `usize`.
-is_unsigned_width :: fn(width: string) -> bool {
-    if width == "u8"    { return true }
-    if width == "u16"   { return true }
-    if width == "u32"   { return true }
-    if width == "u64"   { return true }
-    if width == "usize" { return true }
-    return false
-}
+is_unsigned_width :: fn(width: string) -> bool = is_unsigned_int_name(width)
 
 /// Strip `prefix` from `line`, trim, and parse the rest as a base-10
 /// integer. The five op-with-int parsers below all delegate here so the

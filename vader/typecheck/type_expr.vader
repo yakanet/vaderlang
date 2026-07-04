@@ -24,7 +24,8 @@ import "vader/resolver/symbol" { Symbol, SymbolKind }
 AST :: import "vader/parser"
 import "vader/types" {
     Type, mk_primitive, mk_array, mk_fn, mk_struct, mk_trait, mk_tuple,
-    mk_type_param, is_primitive_name, TY_TYPE, TY_SELF, TY_NULL, TY_UNRESOLVED, TY_VOID,
+    mk_type_param, is_primitive_name, resolve_primitive_alias,
+    TY_TYPE, TY_SELF, TY_NULL, TY_UNRESOLVED, TY_VOID,
 }
 
 /// Lower `expr` from type position to a `Type`. Unresolvable shapes
@@ -285,18 +286,15 @@ export type_from_symbol :: fn(sym: Symbol, args: Type[]) -> Type {
 
 /// Map a builtin type name to a Type, or null when the name isn't a
 /// primitive (caller falls back to symbol-driven resolution). Covers :
-///   - canonical primitives — every entry of `PRIMITIVE_NAMES`
+///   - canonical primitives — every `is_primitive_name`
 ///   - `type` / `Self` — dedicated singletons (not Primitive)
 ///   - friendly aliases — `int` / `long` / `float` / `double` / `byte`
 export primitive_from_name :: fn(name: string) -> Type | null {
     if is_primitive_name(name) { return mk_primitive(name) }
     if name == "type" { return TY_TYPE }
     if name == "Self" { return TY_SELF }
-    if name == "int"    { return mk_primitive("i32") }
-    if name == "long"   { return mk_primitive("i64") }
-    if name == "float"  { return mk_primitive("f32") }
-    if name == "double" { return mk_primitive("f64") }
-    if name == "byte"   { return mk_primitive("u8") }
+    canonical :: resolve_primitive_alias(name)
+    if canonical != name { return mk_primitive(canonical) }
     return null
 }
 

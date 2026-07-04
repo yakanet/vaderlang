@@ -13,6 +13,7 @@ import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType, TupleType,
     FnType, TypeParamType, TypeMetaType, UnionType, UnresolvedType, AnyType, DistinctType,
     SelfType, FreeIntType, FreeCharType, FreeFloatType, NeverType, display_type,
+    primitive_size, primitive_align,
 }
 import "vader/diagnostics" { Diagnostic, comptime_error }
 import "vader/diagnostics" { ComptimeCode }
@@ -169,29 +170,6 @@ export byte_align :: fn(t: Type) -> i64 = @partial match t {
     _ -> 0
 }
 
-primitive_size :: fn(name: string) -> i64 {
-    if name == "i8"     { return 1 }
-    if name == "u8"     { return 1 }
-    if name == "bool"   { return 1 }
-    if name == "i16"    { return 2 }
-    if name == "u16"    { return 2 }
-    if name == "i32"    { return 4 }
-    if name == "u32"    { return 4 }
-    if name == "char"   { return 4 }
-    if name == "f32"    { return 4 }
-    if name == "i64"    { return 8 }
-    if name == "u64"    { return 8 }
-    if name == "f64"    { return 8 }
-    if name == "isize"  { return 8 }
-    if name == "usize"  { return 8 }
-    if name == "string" { return 16 }
-    return 0
-}
-
-primitive_align :: fn(name: string) -> i64 {
-    // 64-bit targets : alignment == size for every primitive we expose.
-    return primitive_size(name)
-}
 
 // Stable `@type_kind(T)` discriminator. EXHAUSTIVE over `Type` (no `_`) and
 // kept in lock-step — same arms, same strings — with

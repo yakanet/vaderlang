@@ -22,6 +22,7 @@ module "vader/lower"
 import "vader/parser" { FnDecl, Visibility }
 import "vader/types" {
     Type, TraitType, PrimitiveType, mk_struct, mk_primitive, TY_NULL, TY_BOOL, TY_VOID, TRAIT_ITERATOR,
+    is_float_name,
 }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck" { gen_state_symbol }
@@ -62,7 +63,7 @@ generator_element_of :: fn(return_type: Type) -> Type {
 zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
     if ty is PrimitiveType as p {
         if p.name == "bool" { return LoweredBoolLit { .span = span, .type = ty, .value = false } }
-        if p.name == "f32" || p.name == "f64" { return LoweredFloatLit { .span = span, .type = ty, .value = 0.0 } }
+        if is_float_name(p.name) { return LoweredFloatLit { .span = span, .type = ty, .value = 0.0 } }
         if p.name == "string" { return LoweredStringLit { .span = span, .type = ty, .value = "" } }
         // every integer / char width
         return LoweredIntLit { .span = span, .type = ty, .value = 0 }

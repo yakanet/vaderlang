@@ -13,31 +13,33 @@ module "vader/resolver"
 
 import "std/collections" { MutableMap }
 import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, make }
-// `PRIMITIVE_NAMES` is the source of truth in `vader/typecheck/types.vader`.
-// Consumers needing the list import it directly from there.
-import "vader/types" { PRIMITIVE_NAMES }
+// `PRIMITIVE_META` / `PRIMITIVE_ALIASES` are the source of truth in
+// `vader/types`. The builtin scope derives from them so it can't drift.
+import "vader/types" { PRIMITIVE_META, PRIMITIVE_ALIASES }
 
 /// Synthetic module id every builtin symbol carries in its `.module` field.
 export BUILTIN_MODULE_ID :: "<builtin>"
 
-/// Friendly aliases that map transparently to canonical primitive names.
-export BUILTIN_TYPE_ALIASES :: ["int", "long", "float", "double", "byte"]
+/// Non-primitive, non-alias builtin names, minted after the primitives and
+/// aliases. `Self` is the trait self-type; `type` is the metatype.
+BUILTIN_EXTRA_NAMES :: ["Self", "type"]
 
-/// Names visible at every scope's root, in the order they are minted.
-/// Primitives + aliases + `Self` + `type`. `type` is the metatype.
-export BUILTIN_TYPE_NAMES :: [
-    "i8", "i16", "i32", "i64", "isize",
-    "u8", "u16", "u32", "u64", "usize",
-    "f32", "f64",
-    "bool", "char", "string", "void", "null",
-    "int", "long", "float", "double", "byte",
-    "Self",
-    "type",
-]
+/// Every builtin type name in mint order: canonical primitives
+/// (`PRIMITIVE_META`), then friendly aliases (`PRIMITIVE_ALIASES`), then
+/// `Self` / `type`. Order is load-bearing — symbol IDs mint in this sequence
+/// and are embedded in snapshots, so the three sources are concatenated in a
+/// fixed order rather than re-listed here.
+builtin_type_names :: fn() -> string[] {
+    out: string[] = []
+    for m in PRIMITIVE_META { out.push(m.name) }
+    for a in PRIMITIVE_ALIASES { out.push(a[0]) }
+    for e in BUILTIN_EXTRA_NAMES { out.push(e) }
+    return out
+}
 
 /// True iff `name` is one of the builtin type names.
 export is_builtin_type_name :: fn(name: string) -> bool {
-    for n in BUILTIN_TYPE_NAMES {
+    for n in builtin_type_names() {
         if n == name { return true }
     }
     return false
@@ -48,7 +50,7 @@ export is_builtin_type_name :: fn(name: string) -> bool {
 /// the resulting IDs are stable across implementations.
 export make_builtin_scope :: fn(factory: SymbolFactory) -> MutableMap<string, Symbol> {
     out :: MutableMap<string, Symbol> {}
-    for name in BUILTIN_TYPE_NAMES {
+    for name in builtin_type_names() {
         sym :: factory.make(.BuiltinType, name, BUILTIN_MODULE_ID, .Public, null)
         out[name] = sym
     }

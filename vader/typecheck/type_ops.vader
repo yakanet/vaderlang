@@ -17,6 +17,9 @@ import "vader/types" {
     UnresolvedType, FreeIntType, FreeFloatType, FreeCharType, NeverType, AnyType,
     DistinctType,
     TY_NEVER, display_type, mk_primitive, mk_union, type_base_name,
+    is_int_name as ty_is_int_name, is_signed_int_name as ty_is_signed_int_name,
+    is_unsigned_int_name as ty_is_unsigned_int_name, is_float_name as ty_is_float_name,
+    is_numeric_name as ty_is_numeric_name,
 }
 
 /// True when `t` is the `void` primitive. The canonical void test, shared by
@@ -28,20 +31,15 @@ export is_void :: fn(t: Type) -> bool {
 
 // ---- numeric registries (used by Free* defaulting + assignable) -----------
 //
-// Vader has no array-spread `[...A, ...B]` yet, so `ALL_INTS` / `NUMERIC`
-// would force duplicating every entry. We instead compose the predicates :
-// `is_int_name = is_signed_int_name || is_unsigned_int_name`, which keeps
-// each list as the single source of truth.
+// The int/signed/float partition is the single source of truth in
+// `vader/types::PRIMITIVE_META`. These thin re-exports keep the ~40 call sites
+// that import the predicates from `vader/typecheck` unchanged.
 
-export SIGNED_INTS   :: ["i8", "i16", "i32", "i64", "isize"]
-export UNSIGNED_INTS :: ["u8", "u16", "u32", "u64", "usize"]
-export FLOATS        :: ["f32", "f64"]
-
-export is_signed_int_name   :: fn(name: string) -> bool { return contains_name(SIGNED_INTS, name) }
-export is_unsigned_int_name :: fn(name: string) -> bool { return contains_name(UNSIGNED_INTS, name) }
-export is_float_name        :: fn(name: string) -> bool { return contains_name(FLOATS, name) }
-export is_int_name          :: fn(name: string) -> bool { return is_signed_int_name(name) || is_unsigned_int_name(name) }
-export is_numeric_name      :: fn(name: string) -> bool { return is_int_name(name) || is_float_name(name) }
+export is_signed_int_name   :: fn(name: string) -> bool = ty_is_signed_int_name(name)
+export is_unsigned_int_name :: fn(name: string) -> bool = ty_is_unsigned_int_name(name)
+export is_float_name        :: fn(name: string) -> bool = ty_is_float_name(name)
+export is_int_name          :: fn(name: string) -> bool = ty_is_int_name(name)
+export is_numeric_name      :: fn(name: string) -> bool = ty_is_numeric_name(name)
 
 /// Whether a Unicode codepoint fits the integer primitive `type_name`. A char
 /// literal coerces to an integer only when its codepoint is representable —
@@ -53,6 +51,7 @@ export char_fits :: fn(codepoint: u32, type_name: string) -> bool {
     return contains(repr_range(type_name), i64(codepoint))
 }
 
+// True when `target` is one of `names`. A small shared membership helper.
 contains_name :: fn(names: const string[], target: string) -> bool {
     for n in names { if n == target { return true } }
     return false
