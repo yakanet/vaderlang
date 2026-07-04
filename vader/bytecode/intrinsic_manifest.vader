@@ -108,7 +108,7 @@ export IntrinsicId :: enum(u8) {
     IoWrite, IoExists, IoIsDir, IoTempDir, IoReadDir, IoReadFileBytes, IoWriteFileBytes,
     IoReadLine, IoReadStdin, IoPollStdin, IoSetStdinUnbuffered, IoCurrentExecutableLocation,
     // std/string
-    StringByteLen, StringIndexOf, StringLastIndexOf, StringParseFloat,
+    StringByteLen, StringParseFloat,
     // std/core string + bytes
     CoreBytes, CoreBytesToString, CoreStringIndexAt, CoreStringHash,
     CoreStringEquals, CoreStringNotEquals,
@@ -118,9 +118,9 @@ export IntrinsicId :: enum(u8) {
     RuntimeCollect, RuntimeCollections, RuntimeBytesUsed, RuntimeBytesCopied,
     // std/time
     TimeNowUnixMs, TimeMonotonicNs,
-    // std/math
-    MathSqrt, MathSin, MathCos, MathTan, MathFloor, MathCeil, MathRound, MathAbs, MathPow,
-    MathMin, MathMax, MathMinI, MathMaxI, MathAbsI, MathClamp, MathClampI,
+    // std/math — libm transcendentals + rounding. min/max/abs/clamp are pure
+    // Vader (bodied → real fns, never host imports), so they are NOT here.
+    MathSqrt, MathSin, MathCos, MathTan, MathFloor, MathCeil, MathRound, MathPow,
     // std/process
     ProcessSpawnRun, ProcessSpawnLastStdout, ProcessSpawnLastStderr,
     // std/tty + std/env + std/abort
@@ -154,8 +154,6 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_io$current_executable_location"  { return .IoCurrentExecutableLocation }
 
     if mangled == r"std_string$byte_len"                 { return .StringByteLen }
-    if mangled == r"std_string$index_of"                 { return .StringIndexOf }
-    if mangled == r"std_string$last_index_of"            { return .StringLastIndexOf }
     if mangled == r"std_string$parse_float"              { return .StringParseFloat }
 
     if mangled == r"std_core$bytes"                      { return .CoreBytes }
@@ -180,15 +178,7 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_math$floor"                      { return .MathFloor }
     if mangled == r"std_math$ceil"                       { return .MathCeil }
     if mangled == r"std_math$round"                      { return .MathRound }
-    if mangled == r"std_math$abs"                        { return .MathAbs }
     if mangled == r"std_math$pow"                        { return .MathPow }
-    if mangled == r"std_math$min"                        { return .MathMin }
-    if mangled == r"std_math$max"                        { return .MathMax }
-    if mangled == r"std_math$min_"                       { return .MathMinI }
-    if mangled == r"std_math$max_"                       { return .MathMaxI }
-    if mangled == r"std_math$abs_"                       { return .MathAbsI }
-    if mangled == r"std_math$clamp"                      { return .MathClamp }
-    if mangled == r"std_math$clamp_"                     { return .MathClampI }
 
     if mangled == r"std_process$spawn_run"               { return .ProcessSpawnRun }
     if mangled == r"std_process$spawn_last_stdout"       { return .ProcessSpawnLastStdout }
