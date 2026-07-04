@@ -249,6 +249,25 @@ export STRUCT_ARRAY_ITERATOR :: "ArrayIterator"
 export STRUCT_YIELD          :: "Yield"
 export STRUCT_FIELD          :: "Field"
 
+/// Method names the compiler dispatches by, paired with the `TRAIT_*` above
+/// (`Add::add`, `Comparable::compare`, `Iterator::next`, …). Same rationale as
+/// the trait names: one source so a rename touches one line.
+export METHOD_ADD        :: "add"
+export METHOD_SUB        :: "sub"
+export METHOD_MUL        :: "mul"
+export METHOD_DIV        :: "div"
+export METHOD_REM        :: "rem"
+export METHOD_EQUALS     :: "equals"
+export METHOD_NOT_EQUALS :: "not_equals"
+export METHOD_COMPARE    :: "compare"
+export METHOD_CONTAINS   :: "contains"
+export METHOD_INTO       :: "into"
+export METHOD_NEXT       :: "next"
+export METHOD_TO_STRING  :: "to_string"
+export METHOD_HASH       :: "hash"
+export METHOD_ITER       :: "iter"
+export METHOD_AT         :: "at"
+
 // ---- constructors ---------------------------------------------------------
 
 export mk_primitive :: fn(name: string) -> Type = PrimitiveType { .name = name }

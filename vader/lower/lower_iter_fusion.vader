@@ -14,7 +14,7 @@ module "vader/lower"
 import "vader/diagnostics" { Span }
 AST :: import "vader/parser"
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, StructType, ArrayType, mk_primitive, mk_array, mk_union, TY_BOOL, TY_VOID, TY_NULL, TY_UNRESOLVED, STRUCT_ARRAY_ITERATOR }
+import "vader/types" { Type, StructType, ArrayType, mk_primitive, mk_array, mk_union, TY_BOOL, TY_VOID, TY_NULL, TY_UNRESOLVED, STRUCT_ARRAY_ITERATOR, METHOD_INTO, METHOD_ITER }
 import "vader/typecheck" { default_if_free }
 
 // ---- chain fusion ---------------------------------------------------------
@@ -489,12 +489,12 @@ descend_array_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | nul
 array_from_into_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> AST.Expr | null {
     @partial match call.callee {
         is AST.FieldExpr as fe -> {
-            if fe.field != "into" { return null }
+            if fe.field != METHOD_INTO { return null }
             if ctx.types.expr_type(fe.target) is ArrayType { return fe.target }
             return null
         }
         is AST.IdentExpr as id -> {
-            if id.name != "into" { return null }
+            if id.name != METHOD_INTO { return null }
             if call.args.len() != 1 { return null }
             arg :: call.args[0].value
             if ctx.types.expr_type(arg) is ArrayType { return arg }
@@ -509,12 +509,12 @@ array_from_into_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> AST.Expr | nu
 array_from_iter_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> AST.Expr | null {
     @partial match call.callee {
         is AST.FieldExpr as fe -> {
-            if fe.field != "iter" { return null }
+            if fe.field != METHOD_ITER { return null }
             if ctx.typed.ufcs_receiver_types[fe.id] is null { return null }
             return fe.target
         }
         is AST.IdentExpr as id -> {
-            if id.name != "iter" { return null }
+            if id.name != METHOD_ITER { return null }
             if call.args.len() != 1 { return null }
             return call.args[0].value
         }

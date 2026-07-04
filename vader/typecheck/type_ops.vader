@@ -16,7 +16,7 @@ import "vader/types" {
     FnType, ArrayType, TupleType, TypeParamType, TypeMetaType, SelfType,
     UnresolvedType, FreeIntType, FreeFloatType, FreeCharType, NeverType, AnyType,
     DistinctType,
-    TY_NEVER, display_type, mk_primitive, mk_union, type_base_name,
+    TY_NEVER, display_type, mk_primitive, mk_union, type_base_name, TRAIT_ITERATOR,
     is_int_name as ty_is_int_name, is_signed_int_name as ty_is_signed_int_name,
     is_unsigned_int_name as ty_is_unsigned_int_name, is_float_name as ty_is_float_name,
     is_numeric_name as ty_is_numeric_name,
@@ -226,7 +226,7 @@ export resolve_struct_trait_args :: fn(t: Type, trait_name: string, typed: Typed
     // A `@generator`'s `<fn>$State<E>` implements `Iterator<E>` — its trait args ARE
     // its own type args (the concrete element carried per instance). The synthetic
     // struct has no `struct_decl`, so the generic-substitution path below can't apply.
-    if trait_name == "Iterator" {
+    if trait_name == TRAIT_ITERATOR {
         if is_gen_state_struct(t) {
             if t is StructType as gst { return gst.args }
         }

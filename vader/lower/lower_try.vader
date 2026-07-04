@@ -25,7 +25,7 @@ AST :: import "vader/parser"
 import "vader/resolver/symbol" { Symbol }
 import "vader/types" {
     Type, UnionType, StructType, TraitType, PrimitiveType, EnumType,
-    TY_BOOL, TY_NEVER,
+    TY_BOOL, TY_NEVER, TRAIT_ERROR,
 }
 import "vader/typecheck" { ImplEntry }
 
@@ -124,13 +124,13 @@ is_error_variant :: fn(variant: Type, project: LowerProjectCtx) -> bool {
     // @partial: only trait / struct / enum types can carry an Error impl; every
     // other Type → not an error variant.
     @partial match variant {
-        is TraitType as tt -> { return tt.symbol.name == "Error" }
+        is TraitType as tt -> { return tt.symbol.name == TRAIT_ERROR }
         is StructType as st -> {
-            entry :: find_impl_for(project, variant, "Error")
+            entry :: find_impl_for(project, variant, TRAIT_ERROR)
             return entry is ImplEntry
         }
         is EnumType -> {
-            entry :: find_impl_for(project, variant, "Error")
+            entry :: find_impl_for(project, variant, TRAIT_ERROR)
             return entry is ImplEntry
         }
         _ -> { return false }

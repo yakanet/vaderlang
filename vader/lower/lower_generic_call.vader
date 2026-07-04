@@ -10,7 +10,7 @@ import "vader/parser" { IdentExpr, CallExpr, GenericInstExpr, Visibility, FnDecl
 import "vader/diagnostics" { Span }
 import "vader/typecheck" { type_from_expr, default_if_free, lookup_struct_trait_args, substitute, find_unused_equal }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, FnType, TraitType, TypeParamType, ArrayType, TupleType, StructType, UnionType, UnresolvedType, strip_distinct_each }
+import "vader/types" { Type, FnType, TraitType, TypeParamType, ArrayType, TupleType, StructType, UnionType, UnresolvedType, strip_distinct_each, TRAIT_ITERATOR }
 import "vader/comptime" { mangle_type_arg, uniq }
 import "vader/resolver" { ImportTargetTable, SymbolTarget }
 
@@ -402,7 +402,7 @@ trait_concrete_args :: fn(tt: TraitType, concrete: Type, ctx: FnLowerCtx) -> Typ
     if recorded != null {
         if all_concrete(recorded) { return recorded }
     }
-    if tt.symbol.name == "Iterator" && tt.args.len() == 1 {
+    if tt.symbol.name == TRAIT_ITERATOR && tt.args.len() == 1 {
         if concrete is StructType as st {
             if st.args.len() > 0 { return [st.args[0]] }
         }

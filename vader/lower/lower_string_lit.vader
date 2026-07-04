@@ -19,7 +19,7 @@ import "std/abort" { unreachable }
 import "vader/parser" { StringLitExpr, StringLitText, StringLitInterp }
 import "vader/diagnostics" { Span }
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, FnType, FreeFloatType, mk_primitive, TY_STRING, is_signed_int_name, is_unsigned_int_name }
+import "vader/types" { Type, FnType, FreeFloatType, mk_primitive, TY_STRING, is_signed_int_name, is_unsigned_int_name, TRAIT_DISPLAY, METHOD_TO_STRING }
 
 lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> LoweredExpr {
     string_type :: TY_STRING
@@ -284,12 +284,12 @@ build_display_to_string_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Sp
     // Erased Display dispatch (generic-`T` receiver) : record the trait so
     // every primitive `Display` impl enters the vtable (the boxed tag picks
     // the impl at runtime). See `virtually_dispatched_traits`.
-    ctx.project.virtually_dispatched_traits.add("Display")
+    ctx.project.virtually_dispatched_traits.add(TRAIT_DISPLAY)
     return LoweredVirtualCall {
         .span       = span,
         .type       = string_type,
-        .trait_name = "Display",
-        .method     = "to_string",
+        .trait_name = TRAIT_DISPLAY,
+        .method     = METHOD_TO_STRING,
         .receiver   = value,
         .args       = no_args,
     }
@@ -315,7 +315,7 @@ try_direct_display_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Span) -
     // call fell through to the emit's defensive `Return` (e.g. every `${usize}`
     // interpolation silently mis-compiled). `null` (no concrete Display impl:
     // generic-T / trait receiver) falls back to a `LoweredVirtualCall`.
-    member :: find_impl_member_for(ctx, source_type, "to_string")
+    member :: find_impl_member_for(ctx, source_type, METHOD_TO_STRING)
     if member is null { return null }
     // Build the direct `to_string(value)` call — or, when the member is the
     // identity `fn(self) = self` (string's `Display`), inline to `value` itself.

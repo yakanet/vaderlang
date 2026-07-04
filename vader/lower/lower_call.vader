@@ -9,7 +9,7 @@ import "vader/parser" { Expr, IdentExpr, CallExpr, FieldExpr, Visibility, Decl, 
 import "vader/diagnostics" { Span }
 import "vader/typecheck" { type_list_equals, TypedProgram }
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, FnType, PrimitiveType, TraitType, ArrayType, AnyType, mk_primitive, mk_fn, TY_STRING }
+import "vader/types" { Type, FnType, PrimitiveType, TraitType, ArrayType, AnyType, mk_primitive, mk_fn, TY_STRING, TRAIT_EQUALS, METHOD_EQUALS, METHOD_NOT_EQUALS }
 import "vader/comptime" { EvaluatedProgram }
 import "vader/resolver" { ImportTargetTable }
 
@@ -216,9 +216,9 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Low
                 // `equals` is `@intrinsic` on primitives ; `not_equals` is the
                 // trait default `!self.equals(...)`, which on a primitive is
                 // exactly `!=` — both reduce to a comparison primop here.
-                if tname == "Equals" && call.args.len() > 0 {
-                    if field_expr.field == "equals" || field_expr.field == "not_equals" {
-                        cmp_op :: if field_expr.field == "equals" { LoweredBinaryOp.Eq } else { LoweredBinaryOp.Neq }
+                if tname == TRAIT_EQUALS && call.args.len() > 0 {
+                    if field_expr.field == METHOD_EQUALS || field_expr.field == METHOD_NOT_EQUALS {
+                        cmp_op :: if field_expr.field == METHOD_EQUALS { LoweredBinaryOp.Eq } else { LoweredBinaryOp.Neq }
                         return LoweredBinary {
                             .span = call.span, .type = type, .op = cmp_op,
                             .left = receiver, .right = lower_expr(ctx, call.args[0].value),

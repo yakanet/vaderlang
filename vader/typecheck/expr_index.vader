@@ -10,7 +10,7 @@ module "vader/typecheck"
 import "vader/diagnostics" { Diagnostic, typecheck_error }
 import "vader/types" {
     Type, ArrayType, PrimitiveType, FreeIntType, StructType, UnresolvedType,
-    display_type, mk_array, mk_primitive, TY_STRING, TY_UNRESOLVED,
+    display_type, mk_array, mk_primitive, TY_STRING, TY_UNRESOLVED, STRUCT_RANGE,
 }
 AST :: import "vader/parser"
 
@@ -107,6 +107,6 @@ is_integer_index :: fn(t: Type) -> bool {
 }
 
 is_range_type :: fn(t: Type) -> bool {
-    if t is StructType as st { return st.symbol.name == "Range" }
+    if t is StructType as st { return st.symbol.name == STRUCT_RANGE }
     return false
 }

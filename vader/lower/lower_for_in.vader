@@ -31,7 +31,7 @@ import "vader/types" {
     UnresolvedType,
     mk_struct, mk_array, mk_primitive, mk_trait, display_type,
     TY_BOOL, TY_VOID, TY_NEVER, TY_NULL, TY_UNRESOLVED,
-    STRUCT_ARRAY_ITERATOR, STRUCT_YIELD, TRAIT_ITERATOR, is_int_name,
+    STRUCT_ARRAY_ITERATOR, STRUCT_YIELD, TRAIT_ITERATOR, is_int_name, METHOD_NEXT,
 }
 
 /// Lower a `for x in iter { body }` statement to a step-loop driven
@@ -385,7 +385,7 @@ build_step_call :: fn(
                 args: LoweredExpr[] = []
                 return LoweredVirtualCall {
                     .span = span, .type = step_union,
-                    .trait_name = TRAIT_ITERATOR, .method = "next",
+                    .trait_name = TRAIT_ITERATOR, .method = METHOD_NEXT,
                     .receiver = iter_ref, .args = args,
                 }
             }
@@ -402,7 +402,7 @@ build_step_call :: fn(
     // matches exactly. Cross-module user generic-impls would need the
     // impl's owning module (see GATE B1) — caller-module here covers the
     // colocated-struct case.
-    method_next :: "next"
+    method_next :: METHOD_NEXT
     next_name := method_next
     if iter_type is StructType as st {
         // Resolve the struct's Iterator impl entry. The materialised `next`
