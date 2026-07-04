@@ -17,9 +17,9 @@ import "std/string" { join, ends_with }
 import "std/string_builder" { StringBuilder, append }
 import "vader/bytecode" {
     BcImport, BcType, BcPrimitive, BcArray, BcRef, BcStruct, ValType,
-    primitive_member_mangle,
+    intrinsic_id_for,
 }
-import "vader/types" { TRAIT_INDEX, TRAIT_HASH, TRAIT_ERROR, METHOD_AT, METHOD_HASH }
+import "vader/types" { TRAIT_ERROR }
 
 // ---- driver ---------------------------------------------------------------
 
@@ -60,10 +60,10 @@ extern_decl :: fn(imp: BcImport) -> string {
 // ---- per-import shim ------------------------------------------------------
 
 /// The `vader_import_N` body for one import. Intrinsic stdlib ops route to
-/// their `vader_*` runtime helper by mangled name ; `@extern` falls through
-/// to `user_extern_shim` ; anything else traps loudly (compiler/runtime
-/// version skew). The mangled name is an open string domain, so this is an
-/// `if`-chain, not a closed-union `match`.
+/// their `vader_*` runtime helper by their `IntrinsicId` (classified from the
+/// mangled name by `bytecode/intrinsic_manifest::intrinsic_id_for`, shared with
+/// the VM's `dispatch_import`) ; `@extern` falls through to `user_extern_shim` ;
+/// anything else traps loudly (compiler/runtime version skew).
 import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     sig :: imp.signature
     parts: string[] = []
@@ -73,88 +73,93 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     m :: imp.mangled_name
     types :: ctx.module.types
 
-    // std/io routes — implemented by the runtime.
-    if m == "std_io\$write"  { return "${head} { vader_write(a0, a1); }" }
-    if m == "std_abort\$panic" { return "${head} { vader_panic(a0); }" }
-    if m == "std_io\$exists" { return "${head} { return vader_exists(a0); }" }
-    if m == "std_io\$is_dir" { return "${head} { return vader_is_dir(a0); }" }
-    if m == "std_io\$current_executable_location" { return "${head} { return vader_current_executable_location(); }" }
-    if m == "std_io\$temp_dir" { return "${head} { return vader_temp_dir(); }" }
-    if m == "std_io\$read_dir" {
+    // Route each recognised host `@intrinsic` to its `vader_*` runtime helper by
+    // its IntrinsicId (the same classification the VM's dispatch_import uses).
+    // Hosts the VM serves but c-emit doesn't — string index_of/last_index_of,
+    // the primitive Equals/Display (materialised as pure Vader natively), the
+    // extra std/math overloads — plus non-intrinsics fall through to the
+    // @extern / trap tail. Exhaustive, so a new IntrinsicId trips T3013 here.
+    match intrinsic_id_for(m) {
+    // std/io — implemented by the runtime.
+    .IoWrite -> { return "${head} { vader_write(a0, a1); }" }
+    .AbortPanic -> { return "${head} { vader_panic(a0); }" }
+    .IoExists -> { return "${head} { return vader_exists(a0); }" }
+    .IoIsDir -> { return "${head} { return vader_is_dir(a0); }" }
+    .IoCurrentExecutableLocation -> { return "${head} { return vader_current_executable_location(); }" }
+    .IoTempDir -> { return "${head} { return vader_temp_dir(); }" }
+    .IoReadDir -> {
         if ctx.string_tag < 0 { return "${head} { vader_trap(\"read_dir: no string type\"); }" }
         if ctx.string_array_tag < 0 { return "${head} { vader_trap(\"read_dir: no [string] type\"); }" }
         return "${head} { return vader_read_dir(a0, ${ctx.string_array_tag}u, ${ctx.string_tag}u, ${tag_u(error_ref_tag(types), "error")}); }"
     }
-    if m == "std_io\$read_file_bytes" {
+    .IoReadFileBytes -> {
         u8 :: prim_tag(types, .U8)
         if u8 < 0 { return "${head} { vader_trap(\"read_file_bytes: no u8 type\"); }" }
         u8arr :: array_tag(types, u8)
         if u8arr < 0 { return "${head} { vader_trap(\"read_file_bytes: no u8[] type\"); }" }
         return "${head} { return vader_read_file_bytes(a0, ${u8arr}u, ${u8}u, ${tag_u(error_ref_tag(types), "error")}); }"
     }
-    if m == "std_io\$write_file_bytes" { return "${head} { return vader_write_file_bytes(a0, (vader_array_t*) a1.payload.obj, ${tag_u(error_ref_tag(types), "error")}); }" }
-    if m == "std_io\$read_line"  { return "${head} { return vader_read_line(${tag_u(ctx.string_tag, "string")}, ${tag_u(error_ref_tag(types), "error")}); }" }
-    if m == "std_io\$read_stdin" { return "${head} { return vader_read_stdin(a0, ${tag_u(ctx.string_tag, "string")}, ${tag_u(error_ref_tag(types), "error")}); }" }
-    if m == "std_io\$poll_stdin" { return "${head} { return vader_poll_stdin(a0); }" }
-    if m == "std_io\$set_stdin_unbuffered" { return "${head} { vader_set_stdin_unbuffered(); }" }
+    .IoWriteFileBytes -> { return "${head} { return vader_write_file_bytes(a0, (vader_array_t*) a1.payload.obj, ${tag_u(error_ref_tag(types), "error")}); }" }
+    .IoReadLine -> { return "${head} { return vader_read_line(${tag_u(ctx.string_tag, "string")}, ${tag_u(error_ref_tag(types), "error")}); }" }
+    .IoReadStdin -> { return "${head} { return vader_read_stdin(a0, ${tag_u(ctx.string_tag, "string")}, ${tag_u(error_ref_tag(types), "error")}); }" }
+    .IoPollStdin -> { return "${head} { return vader_poll_stdin(a0); }" }
+    .IoSetStdinUnbuffered -> { return "${head} { vader_set_stdin_unbuffered(); }" }
 
-    // std/string internals.
-    if m == "std_string\$byte_len" { return "${head} { return vader_string_byte_len(a0); }" }
-    if m == primitive_member_mangle("string", TRAIT_INDEX, METHOD_AT) { return "${head} { return vader_string_codepoint_at(a0, a1); }" }
-    if m == "std_core\$bytes" {
+    // std/string internals + std/core string intrinsics.
+    .StringByteLen -> { return "${head} { return vader_string_byte_len(a0); }" }
+    .CoreStringIndexAt -> { return "${head} { return vader_string_codepoint_at(a0, a1); }" }
+    .CoreBytes -> {
         u8 :: prim_tag(types, .U8)
         if u8 < 0 { return "${head} { vader_trap(\"bytes: no u8 type\"); }" }
         u8arr :: array_tag(types, u8)
         if u8arr < 0 { return "${head} { vader_trap(\"bytes: no u8[] type\"); }" }
         return "${head} { return vader_box_obj(${u8arr}u, vader_string_bytes_view(a0, ${u8arr}u, ${u8}u)); }"
     }
-    // `bytes_to_string` (std/core, Target ABI S1) is the canonical bytes→string
-    // primitive. The backing runtime symbol is still named `vader_string_as_string`.
-    if m == "std_core\$bytes_to_string" { return "${head} { return vader_string_as_string((vader_array_t*) a0.payload.obj); }" }
-    if m == "std_string\$parse_float" { return "${head} { return vader_string_parse_float(a0, ${tag_u(prim_tag(types, .F64), "f64")}, ${tag_u(error_ref_tag(types), "error")}); }" }
-    // `string implements Hash` reads the FNV-1a-64 cached on the atom (a0 :
-    // vader_string_t) — O(1), no allocation. See vader.h::vader_string_hash.
-    if m == primitive_member_mangle("string", TRAIT_HASH, METHOD_HASH) { return "${head} { return vader_string_hash(a0); }" }
-
-    // Every primitive `Display.to_string` is now pure Vader : the integer /
-    // bool / char / string impls moved in Target ABI S1, and f32 / f64 in S4
-    // (the Ryu `format_f32` / `format_f64` formatters, §1.13). No host shim —
-    // the resolver materialises their bodies.
-
-    // `StringBuilder implements Display` moved to pure Vader in Target ABI S3
-    // (a byte-Buffer reader + `bytes_to_string`), so the resolver materialises
-    // its body — no host shim, and `vader_string_concat_all` is reached only
-    // through the legacy `[string]` path, now retired here.
+    // `bytes_to_string` (Target ABI S1) — backing runtime symbol still named
+    // `vader_string_as_string`.
+    .CoreBytesToString -> { return "${head} { return vader_string_as_string((vader_array_t*) a0.payload.obj); }" }
+    .StringParseFloat -> { return "${head} { return vader_string_parse_float(a0, ${tag_u(prim_tag(types, .F64), "f64")}, ${tag_u(error_ref_tag(types), "error")}); }" }
+    // `string implements Hash` reads the FNV-1a-64 cached on the atom (O(1)).
+    .CoreStringHash -> { return "${head} { return vader_string_hash(a0); }" }
 
     // std/runtime — GC introspection.
-    if m == "std_runtime\$collect"      { return "${head} { vader_gc_collect(); }" }
-    if m == "std_runtime\$collections"  { return "${head} { return (int32_t) vader_gc_get_stats().total_collections; }" }
-    if m == "std_runtime\$bytes_used"   { return "${head} { return (int32_t) vader_gc_get_stats().bytes_used; }" }
-    if m == "std_runtime\$bytes_copied" { return "${head} { return (int32_t) vader_gc_get_stats().total_copied; }" }
+    .RuntimeCollect      -> { return "${head} { vader_gc_collect(); }" }
+    .RuntimeCollections  -> { return "${head} { return (int32_t) vader_gc_get_stats().total_collections; }" }
+    .RuntimeBytesUsed    -> { return "${head} { return (int32_t) vader_gc_get_stats().bytes_used; }" }
+    .RuntimeBytesCopied  -> { return "${head} { return (int32_t) vader_gc_get_stats().total_copied; }" }
 
     // std/time.
-    if m == "std_time\$now_unix_ms"  { return "${head} { return vader_clock_realtime_ms(); }" }
-    if m == "std_time\$monotonic_ns" { return "${head} { return vader_clock_monotonic_ns(); }" }
+    .TimeNowUnixMs   -> { return "${head} { return vader_clock_realtime_ms(); }" }
+    .TimeMonotonicNs -> { return "${head} { return vader_clock_monotonic_ns(); }" }
 
     // std/math.
-    if m == "std_math\$sqrt"  { return "${head} { return vader_math_sqrt(a0); }" }
-    if m == "std_math\$pow"   { return "${head} { return vader_math_pow(a0, a1); }" }
-    if m == "std_math\$floor" { return "${head} { return vader_math_floor(a0); }" }
-    if m == "std_math\$ceil"  { return "${head} { return vader_math_ceil(a0); }" }
-    if m == "std_math\$round" { return "${head} { return vader_math_round(a0); }" }
-    if m == "std_math\$sin"   { return "${head} { return vader_math_sin(a0); }" }
-    if m == "std_math\$cos"   { return "${head} { return vader_math_cos(a0); }" }
-    if m == "std_math\$tan"   { return "${head} { return vader_math_tan(a0); }" }
+    .MathSqrt  -> { return "${head} { return vader_math_sqrt(a0); }" }
+    .MathPow   -> { return "${head} { return vader_math_pow(a0, a1); }" }
+    .MathFloor -> { return "${head} { return vader_math_floor(a0); }" }
+    .MathCeil  -> { return "${head} { return vader_math_ceil(a0); }" }
+    .MathRound -> { return "${head} { return vader_math_round(a0); }" }
+    .MathSin   -> { return "${head} { return vader_math_sin(a0); }" }
+    .MathCos   -> { return "${head} { return vader_math_cos(a0); }" }
+    .MathTan   -> { return "${head} { return vader_math_tan(a0); }" }
 
     // std/process.
-    if m == "std_process\$spawn_run"         { return "${head} { return vader_spawn_run((vader_array_t*) a0.payload.obj); }" }
-    if m == "std_process\$spawn_last_stdout" { return "${head} { return vader_spawn_last_stdout(); }" }
-    if m == "std_process\$spawn_last_stderr" { return "${head} { return vader_spawn_last_stderr(); }" }
+    .ProcessSpawnRun        -> { return "${head} { return vader_spawn_run((vader_array_t*) a0.payload.obj); }" }
+    .ProcessSpawnLastStdout -> { return "${head} { return vader_spawn_last_stdout(); }" }
+    .ProcessSpawnLastStderr -> { return "${head} { return vader_spawn_last_stderr(); }" }
 
-    // std/tty + std/env. `get_env` boxes the value as a string (or null box) —
-    // pass the module's `string` tag so the box narrows under `is string`.
-    if m == "std_tty\$is_tty"  { return "${head} { return vader_is_tty(a0); }" }
-    if m == "std_env\$get_env" { return "${head} { return vader_get_env(a0, ${tag_u(ctx.string_tag, "string")}); }" }
+    // std/tty + std/env. `get_env` boxes the value as a string (or null box).
+    .TtyIsTty  -> { return "${head} { return vader_is_tty(a0); }" }
+    .EnvGetEnv -> { return "${head} { return vader_get_env(a0, ${tag_u(ctx.string_tag, "string")}); }" }
+
+    // Served by the VM only, or materialised as pure Vader natively (primitive
+    // Equals/Display, string index_of/last_index_of, the extra math overloads),
+    // plus non-intrinsics — grouped so a new IntrinsicId variant trips T3013.
+    // Fall through to the @extern forwarder / loud unbound trap below.
+    .StringIndexOf | .StringLastIndexOf | .CoreStringEquals | .CoreStringNotEquals
+        | .PrimIntEquals | .PrimIntNotEquals | .PrimDisplayToString
+        | .MathAbs | .MathMin | .MathMax | .MathMinI | .MathMaxI | .MathAbsI
+        | .MathClamp | .MathClampI | .NotIntrinsic -> {}
+    }
 
     // User `@extern` — forward to the real C symbol ; everything else is a
     // host fn the c-emit doesn't recognise (version skew) → trap loudly.

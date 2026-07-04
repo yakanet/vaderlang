@@ -83,11 +83,12 @@ host_int_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: 
     return HostOk { .value = BoolVal { .value = apply(a.value, b.value) } }
 }
 
-/// Dispatch a host import. Walks a flat `if info.mangled_name == r"…"`
-/// cascade — every arm pops
-/// the args from `stack[arg_base ..]`, executes the host action, and
-/// returns either `HostOk { value }` (the result pushed onto the
-/// caller's value stack) or a `Trap` (surfaced verbatim).
+/// Dispatch a host import. Matches on `intrinsic_id_for(info.mangled_name)`
+/// (the single manifest classification) — every arm pops the args from
+/// `stack[arg_base ..]`, executes the host action, and returns either
+/// `HostOk { value }` (the result pushed onto the caller's value stack) or a
+/// `Trap` (surfaced verbatim). Hosts the VM doesn't serve (native-only C shims)
+/// and non-intrinsics fall through the grouped arm to the unbound `Trap`.
 ///
 /// @param info      the import descriptor (mangled name + signature).
 /// @param stack     caller value stack — args live at `[arg_base ..]`.
@@ -107,7 +108,8 @@ host_int_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: 
 /// @return          `HostOk { value }` on success ; `Trap` on a missing
 ///                  import, malformed arg, or host-level failure.
 export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32) -> HostCallResult {
-    if info.mangled_name == r"std_io$write" {
+    match bc.intrinsic_id_for(info.mangled_name) {
+    .IoWrite -> {
         // arg_base + 0 : Stream tag ; arg_base + 1 : the string payload.
         STDOUT :: i32(0)
         STDERR :: i32(1)
@@ -125,14 +127,14 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         return HostOk { .value = zero_value() }
     }
     // ---- std/string family ----------------------------------------------
-    if info.mangled_name == r"std_string$byte_len" {
+    .StringByteLen -> {
         // Internal fold target — `s.bytes().len()` lowers to a std_string$byte_len
         // import. The body's own `.bytes().len()` folds to the native byte_len.
         s :: read_string(stack[arg_base], at_pc, "byte_len")
         if s is Trap { return s }
         return HostOk { .value = I32Val { .value = i32(s.value.bytes().len()) } }
     }
-    if info.mangled_name == r"std_core$bytes_to_string" {
+    .CoreBytesToString -> {
         // bytes→string : the VM gathers the boxed u8 slots into a real `u8[]` and
         // lets the native intern them verbatim (no UTF-8 validation). Native
         // O(1)-reinterprets a borrowed slice.
@@ -146,14 +148,14 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         }
         return HostOk { .value = StringVal { .value = raw.bytes_to_string() } }
     }
-    if info.mangled_name == r"std_core$bytes" {
+    .CoreBytes -> {
         // Native zero-copies a `const u8[]` view ; the VM materialises a copy
         // (boxed slots can't alias the interned bytes) — same values.
         s :: read_string(stack[arg_base], at_pc, "bytes receiver")
         if s is Trap { return s }
         return HostOk { .value = bytes_to_value(s.value, u8_array_type_id) }
     }
-    if info.mangled_name == r"std_core$string$Hash$hash" {
+    .CoreStringHash -> {
         // String `Hash` reads the FNV-1a-64 cached on the interned atom. Calling
         // `.hash()` on the Vader string here lowers to the native
         // `vader_string_hash` intrinsic in the VM's own build, so the VM and
@@ -162,7 +164,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if s is Trap { return s }
         return HostOk { .value = I64Val { .value = i64(s.value.hash()) } }
     }
-    if info.mangled_name == r"std_string$index_of" {
+    .StringIndexOf -> {
         s    :: read_string(stack[arg_base    ], at_pc, "index_of receiver")
         c    :: read_char  (stack[arg_base + 1], at_pc, "index_of char")
         from :: read_i32   (stack[arg_base + 2], at_pc, "index_of from")
@@ -174,7 +176,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     // `StringBuilder implements Display` moved to pure Vader in Target ABI S3 ;
     // the resolver materialises its body (a byte-Buffer read + `bytes_to_string`),
     // so the VM runs a real fn — there is no host shim to dispatch here.
-    if info.mangled_name == r"std_core$string$Index$at" {
+    .CoreStringIndexAt -> {
         s :: read_string(stack[arg_base    ], at_pc, "string[] receiver")
         i :: read_i32   (stack[arg_base + 1], at_pc, "string[] index")
         if s is Trap { return s }
@@ -194,7 +196,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         }
         return HostOk { .value = CharVal { .value = char(0) } }
     }
-    if info.mangled_name == r"std_string$last_index_of" {
+    .StringLastIndexOf -> {
         s         :: read_string(stack[arg_base    ], at_pc, "last_index_of receiver")
         c         :: read_char  (stack[arg_base + 1], at_pc, "last_index_of char")
         min_index :: read_i32   (stack[arg_base + 2], at_pc, "last_index_of min_index")
@@ -210,28 +212,27 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     // `@intrinsic string implements Equals` — structural string compare.
     // Reached when map key lookups dispatch `key.equals(other)` virtually
     // (the virtual.call intrinsic fallback in exec.vader rebuilds this mangle).
-    if info.mangled_name == r"std_core$string$Equals$equals" {
+    .CoreStringEquals -> {
         return host_str_pair_to_bool(stack, arg_base, at_pc, "equals", (a, b) -> a == b)
     }
-    if info.mangled_name == r"std_core$string$Equals$not_equals" {
+    .CoreStringNotEquals -> {
         return host_str_pair_to_bool(stack, arg_base, at_pc, "not_equals", (a, b) -> a != b)
     }
     // `@intrinsic <intwidth> implements Equals` — bodyless for every integer
     // width, so an erased map-key lookup (`MutableMap<Any, K>` with integer K)
     // dispatches `key.equals(other)` virtually and surfaces it as a host import
     // (mirror of the string arms above). Reached e.g. by `MutableSet<i32>`.
-    int_eq :: bc.int_equals_method(info.mangled_name)
-    if int_eq == "equals" {
+    .PrimIntEquals -> {
         return host_int_pair_to_bool(stack, arg_base, at_pc, "equals", (a: i64, b: i64) -> a == b)
     }
-    if int_eq == "not_equals" {
+    .PrimIntNotEquals -> {
         return host_int_pair_to_bool(stack, arg_base, at_pc, "not_equals", (a: i64, b: i64) -> a != b)
     }
     // `<width> implements Display.to_string` for every primitive — the
     // VM emits the SPEC §9 canonical form via `display_value`. Width
     // doesn't matter at runtime (every integer collapses to `I32Val`),
     // so a single arm covers all the per-width manglings.
-    if bc.is_display_to_string(info.mangled_name) {
+    .PrimDisplayToString -> {
         // `u32` / `u64` / `usize` literals exceeding `i64.MAX` ride the
         // same `I64Val` carrier as signed `i64`. Default `display_value`
         // renders that bit pattern as signed i64 (e.g. `-9551616` instead
@@ -258,33 +259,33 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     // counter to be present + monotonic. `collect` bumps it, `collections`
     // returns the current value, `bytes_used` / `bytes_copied` stay at
     // zero (no real arena to measure).
-    if info.mangled_name == r"std_runtime$collect" {
+    .RuntimeCollect -> {
         gc_state[0] = gc_state[0] + 1
         return HostOk { .value = NullVal {} }
     }
-    if info.mangled_name == r"std_runtime$collections"  { return HostOk { .value = I32Val { .value = i32(gc_state[0]) } } }
-    if info.mangled_name == r"std_runtime$bytes_used"   { return HostOk { .value = I32Val { .value = 0 } } }
-    if info.mangled_name == r"std_runtime$bytes_copied" { return HostOk { .value = I32Val { .value = 0 } } }
+    .RuntimeCollections -> { return HostOk { .value = I32Val { .value = i32(gc_state[0]) } } }
+    .RuntimeBytesUsed   -> { return HostOk { .value = I32Val { .value = 0 } } }
+    .RuntimeBytesCopied -> { return HostOk { .value = I32Val { .value = 0 } } }
     // ---- std/time --------------------------------------------------------
     // `now_unix_ms` / `monotonic_ns` are module-private in std/time now ; reach
     // the native clock through the public `now()` / `monotonic()` (this host is
     // native, so these are native calls — no VM re-dispatch, no recursion).
-    if info.mangled_name == r"std_time$now_unix_ms"  { return HostOk { .value = I64Val { .value = i64(now()) / 1_000_000 } } }
-    if info.mangled_name == r"std_time$monotonic_ns" { return HostOk { .value = I64Val { .value = i64(monotonic()) } } }
+    .TimeNowUnixMs   -> { return HostOk { .value = I64Val { .value = i64(now()) / 1_000_000 } } }
+    .TimeMonotonicNs -> { return HostOk { .value = I64Val { .value = i64(monotonic()) } } }
     // ---- std/math --------------------------------------------------------
-    if info.mangled_name == r"std_math$sqrt"  { return host_f64_unary(stack, arg_base, at_pc, "sqrt",  (a) -> sqrt(a)) }
-    if info.mangled_name == r"std_math$sin"   { return host_f64_unary(stack, arg_base, at_pc, "sin",   (a) -> sin(a)) }
-    if info.mangled_name == r"std_math$floor" { return host_f64_unary(stack, arg_base, at_pc, "floor", (a) -> floor(a)) }
-    if info.mangled_name == r"std_math$ceil"  { return host_f64_unary(stack, arg_base, at_pc, "ceil",  (a) -> ceil(a)) }
-    if info.mangled_name == r"std_math$round" { return host_f64_unary(stack, arg_base, at_pc, "round", (a) -> round(a)) }
-    if info.mangled_name == r"std_math$abs"   { return host_f64_unary(stack, arg_base, at_pc, "abs", (a) -> if a < 0.0 { -a } else { a }) }
-    if info.mangled_name == r"std_math$pow"   { return host_f64_binary(stack, arg_base, at_pc, "pow", (a, b) -> pow(a, b)) }
-    if info.mangled_name == r"std_math$min"   { return host_f64_binary(stack, arg_base, at_pc, "min", (a, b) -> if a < b { a } else { b }) }
-    if info.mangled_name == r"std_math$max"   { return host_f64_binary(stack, arg_base, at_pc, "max", (a, b) -> if a > b { a } else { b }) }
-    if info.mangled_name == r"std_math$min_"   { return host_i32_binary(stack, arg_base, at_pc, "min_", (a, b) -> if a < b { a } else { b }) }
-    if info.mangled_name == r"std_math$max_"   { return host_i32_binary(stack, arg_base, at_pc, "max_", (a, b) -> if a > b { a } else { b }) }
-    if info.mangled_name == r"std_math$abs_"   { return host_i32_unary(stack, arg_base, at_pc, "abs_",  (a) -> if a < 0 { -a } else { a }) }
-    if info.mangled_name == r"std_math$clamp" {
+    .MathSqrt  -> { return host_f64_unary(stack, arg_base, at_pc, "sqrt",  (a) -> sqrt(a)) }
+    .MathSin   -> { return host_f64_unary(stack, arg_base, at_pc, "sin",   (a) -> sin(a)) }
+    .MathFloor -> { return host_f64_unary(stack, arg_base, at_pc, "floor", (a) -> floor(a)) }
+    .MathCeil  -> { return host_f64_unary(stack, arg_base, at_pc, "ceil",  (a) -> ceil(a)) }
+    .MathRound -> { return host_f64_unary(stack, arg_base, at_pc, "round", (a) -> round(a)) }
+    .MathAbs   -> { return host_f64_unary(stack, arg_base, at_pc, "abs", (a) -> if a < 0.0 { -a } else { a }) }
+    .MathPow   -> { return host_f64_binary(stack, arg_base, at_pc, "pow", (a, b) -> pow(a, b)) }
+    .MathMin   -> { return host_f64_binary(stack, arg_base, at_pc, "min", (a, b) -> if a < b { a } else { b }) }
+    .MathMax   -> { return host_f64_binary(stack, arg_base, at_pc, "max", (a, b) -> if a > b { a } else { b }) }
+    .MathMinI  -> { return host_i32_binary(stack, arg_base, at_pc, "min_", (a, b) -> if a < b { a } else { b }) }
+    .MathMaxI  -> { return host_i32_binary(stack, arg_base, at_pc, "max_", (a, b) -> if a > b { a } else { b }) }
+    .MathAbsI  -> { return host_i32_unary(stack, arg_base, at_pc, "abs_",  (a) -> if a < 0 { -a } else { a }) }
+    .MathClamp -> {
         v :: read_f64(stack[arg_base    ], at_pc, "clamp value")
         lo :: read_f64(stack[arg_base + 1], at_pc, "clamp lo")
         hi :: read_f64(stack[arg_base + 2], at_pc, "clamp hi")
@@ -296,7 +297,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if result > hi.value { result = hi.value }
         return HostOk { .value = F64Val { .value = result } }
     }
-    if info.mangled_name == r"std_math$clamp_" {
+    .MathClampI -> {
         v :: read_i32(stack[arg_base    ], at_pc, "clamp value")
         lo :: read_i32(stack[arg_base + 1], at_pc, "clamp lo")
         hi :: read_i32(stack[arg_base + 2], at_pc, "clamp hi")
@@ -308,7 +309,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if result > hi.value { result = hi.value }
         return HostOk { .value = I32Val { .value = result } }
     }
-    if info.mangled_name == r"std_string$parse_float" {
+    .StringParseFloat -> {
         s :: read_string(stack[arg_base], at_pc, "parse_float")
         if s is Trap { return s }
         trimmed :: s.value.trim()
@@ -323,7 +324,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     // intrinsics below, so the VM executes their bytecode directly (which
     // calls `std_io$read_file_bytes` / `std_io$write_file_bytes`) — no
     // dedicated host arm.
-    if info.mangled_name == r"std_io$read_file_bytes" {
+    .IoReadFileBytes -> {
         path :: read_string(stack[arg_base], at_pc, "read_file_bytes")
         if path is Trap { return path }
         result :: read_file_bytes(path.value)
@@ -335,7 +336,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         }
         return HostOk { .value = u8_array_to_value(result, u8_array_type_id) }
     }
-    if info.mangled_name == r"std_io$write_file_bytes" {
+    .IoWriteFileBytes -> {
         path :: read_string(stack[arg_base], at_pc, "write_file_bytes path")
         if path is Trap { return path }
         arr :: read_array(stack[arg_base + 1], at_pc, "write_file_bytes content")
@@ -350,20 +351,20 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if result is Error { return HostOk { .value = ErrorVal { .message = "write_file_bytes failed: ${path.value}" } } }
         return HostOk { .value = NullVal {} }
     }
-    if info.mangled_name == r"std_io$exists" {
+    .IoExists -> {
         path :: read_string(stack[arg_base], at_pc, "exists")
         if path is Trap { return path }
         return HostOk { .value = BoolVal { .value = exists(path.value) } }
     }
-    if info.mangled_name == r"std_io$is_dir" {
+    .IoIsDir -> {
         path :: read_string(stack[arg_base], at_pc, "is_dir")
         if path is Trap { return path }
         return HostOk { .value = BoolVal { .value = is_dir(path.value) } }
     }
-    if info.mangled_name == r"std_io$temp_dir" {
+    .IoTempDir -> {
         return HostOk { .value = StringVal { .value = temp_dir() } }
     }
-    if info.mangled_name == r"std_io$read_dir" {
+    .IoReadDir -> {
         path :: read_string(stack[arg_base], at_pc, "read_dir")
         if path is Trap { return path }
         // `read_dir` returns `string[] | Error`. The early-return
@@ -377,7 +378,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         return HostOk { .value = string_array_to_value(result, string_array_type_id) }
     }
     // ---- std/process spawn ----------------------------------------------
-    if info.mangled_name == r"std_process$spawn_run" {
+    .ProcessSpawnRun -> {
         argv :: read_array(stack[arg_base], at_pc, "spawn_run argv")
         if argv is Trap { return argv }
         argv_strings: string[] = []
@@ -389,20 +390,20 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         code :: spawn_run(argv_strings)
         return HostOk { .value = I32Val { .value = code } }
     }
-    if info.mangled_name == r"std_process$spawn_last_stdout" {
+    .ProcessSpawnLastStdout -> {
         return HostOk { .value = StringVal { .value = spawn_last_stdout() } }
     }
-    if info.mangled_name == r"std_process$spawn_last_stderr" {
+    .ProcessSpawnLastStderr -> {
         return HostOk { .value = StringVal { .value = spawn_last_stderr() } }
     }
     // ---- std/tty + std/env ----------------------------------------------
-    if info.mangled_name == r"std_tty$is_tty" {
+    .TtyIsTty -> {
         tag :: read_i32(stack[arg_base], at_pc, "is_tty stream")
         if tag is Trap { return tag }
         stream :: if tag.value == 1 { Stream.Stderr } else { Stream.Stdout }
         return HostOk { .value = BoolVal { .value = is_tty(stream) } }
     }
-    if info.mangled_name == r"std_env$get_env" {
+    .EnvGetEnv -> {
         name :: read_string(stack[arg_base], at_pc, "get_env name")
         if name is Trap { return name }
         value :: get_env(name.value)
@@ -410,10 +411,15 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         return HostOk { .value = StringVal { .value = value } }
     }
     // ---- std/abort -------------------------------------------------------
-    if info.mangled_name == r"std_abort$panic" {
+    .AbortPanic -> {
         message :: read_string(stack[arg_base], at_pc, "panic")
         if message is Trap { return message }
         return Trap { .message = "vader: panic — ${message.value}" }
+    }
+    // Hosts served natively (C shims) but not by the VM, plus non-intrinsics —
+    // grouped so a new IntrinsicId variant still trips T3013 here.
+    .IoReadLine | .IoReadStdin | .IoPollStdin | .IoSetStdinUnbuffered
+        | .IoCurrentExecutableLocation | .MathCos | .MathTan | .NotIntrinsic -> {}
     }
     return Trap { .message = "unbound host import '${info.mangled_name}' at pc=${at_pc}" }
 }
