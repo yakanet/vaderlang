@@ -3,6 +3,7 @@
 ## tests/snippets/for_in_into_iter
 
 ## generic instances
+  Into<Target>
   Entry<i32, i32>
   Entry<string, i32>
   Entry<K, V>
@@ -37,6 +38,8 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>
@@ -46,9 +49,6 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  Into<Target>
-  Add<Rhs, Out>
-  Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>

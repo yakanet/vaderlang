@@ -5,8 +5,9 @@
     let bs: const u8[] =
       call :const u8[]
         callee:
-          .bytes :fn() -> const u8[]
-            "abc" :string
+          bytes :const u8[]
+        arg0:
+          "abc" :string
     assign
       target:
         index :?
