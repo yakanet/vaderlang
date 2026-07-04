@@ -12,7 +12,7 @@ module "vader/vm"
 
 bc :: import "vader/bytecode"
 
-import "std/io" { read_file_bytes, write_file_bytes, exists, is_dir, read_dir, print, eprint, temp_dir, Stream }
+import "std/io" { read_file_bytes, write_file_bytes, exists, is_dir, read_dir, print, eprint, temp_dir, current_executable_location, Stream }
 import "std/env" { get_env }
 import "std/tty" { is_tty }
 import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
@@ -300,6 +300,13 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     .IoTempDir -> {
         return HostOk { .value = StringVal { .value = temp_dir() } }
     }
+    .IoCurrentExecutableLocation -> {
+        // Reached when a compile runs in the self-host VM: the resolver's
+        // `resolve_sidecar` (module.vader) queries the exe location on every
+        // stdlib-root resolution. Returns the VM process's own location; a
+        // wrong sidecar just fails the marker check and falls back to cwd.
+        return HostOk { .value = StringVal { .value = current_executable_location() } }
+    }
     .IoReadDir -> {
         path :: read_string(stack[arg_base], at_pc, "read_dir")
         if path is Trap { return path }
@@ -354,8 +361,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     }
     // Hosts served natively (C shims) but not by the VM, plus non-intrinsics —
     // grouped so a new IntrinsicId variant still trips T3013 here.
-    .IoReadLine | .IoReadStdin | .IoPollStdin | .IoSetStdinUnbuffered
-        | .IoCurrentExecutableLocation | .NotIntrinsic -> {}
+    .IoReadLine | .IoReadStdin | .IoPollStdin | .IoSetStdinUnbuffered | .NotIntrinsic -> {}
     }
     return Trap { .message = "unbound host import '${info.mangled_name}' at pc=${at_pc}" }
 }
