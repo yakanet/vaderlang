@@ -33,6 +33,43 @@
           build_answer :fn() -> i32
   const snippet$ANSWER: i32 =
     int(42) :i32
+  struct snippet$Maybe { n: i32 }
+  fn snippet$some_or_none(k: i32) -> Maybe | null
+    if :void
+      cond:
+        eq :bool
+          l:
+            k :i32
+          r:
+            int(0) :i32
+      then:
+        return null
+    return
+      Maybe {
+        n: k :i32
+      }
+  fn snippet$__comptime_PICKED() -> i32
+    let m: Maybe | null =
+      call :Maybe | null
+        callee:
+          some_or_none :fn(i32) -> Maybe | null
+        arg0:
+          int(7) :i32
+    if :void
+      cond:
+        is Maybe :bool
+          m :Maybe | null
+      then:
+        let mm: Maybe =
+          cast → Maybe
+            m :Maybe | null
+        return
+          .n :i32
+            mm :Maybe
+    ~>
+      int(0) :i32
+  const snippet$PICKED: i32 =
+    int(7) :i32
   fn snippet$main() -> i32
     call :void
       callee:
@@ -106,4 +143,38 @@
                 __buf_2 :Buffer
               arg1:
                 __off_3 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_4: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(20) :usize
+          let __off_5: usize = int(0) :usize
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  cast → i64
+                    int(7) :i32
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_4 :Buffer
+              arg1:
+                __off_5 :usize
     return int(0) :i32

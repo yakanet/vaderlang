@@ -2,10 +2,14 @@
 
 ## tests/snippets/_diag_comptime_inline
   FnDecl         __comptime_ANSWER    :: fn() -> i32
+  FnDecl         __comptime_PICKED    :: fn() -> i32
   FnDecl         __comptime_SQUARES   :: fn() -> u32[]
   ConstDecl      ANSWER               :: i32
   FnDecl         build_answer         :: fn() -> i32
   FnDecl         main                 :: fn() -> i32
+  StructDecl     Maybe                :: Maybe
+  ConstDecl      PICKED               :: i32
+  FnDecl         some_or_none         :: fn(i32) -> Maybe | null
   ConstDecl      SQUARES              :: const u32[]
   expr 16:1     IdentExpr      :: fn() -> u32[]
   expr 16:12    CallExpr       :: u32[]
@@ -25,12 +29,31 @@
   expr 25:11    CallExpr       :: i32
   expr 25:21    CallExpr       :: i32
   expr 25:21    IdentExpr      :: fn() -> i32
-  expr 28:13    StringLitExpr  :: string
-  expr 28:16    IdentExpr      :: const u32[]
-  expr 28:16    IndexExpr      :: u32
-  expr 28:5     CallExpr       :: void
-  expr 28:5     IdentExpr      :: fn(T) -> void
-  expr 29:13    StringLitExpr  :: string
-  expr 29:16    IdentExpr      :: i32
-  expr 29:5     CallExpr       :: void
-  expr 29:5     IdentExpr      :: fn(T) -> void
+  expr 34:46    IfExpr         :: void
+  expr 34:49    BinaryExpr     :: bool
+  expr 34:49    IdentExpr      :: i32
+  expr 34:80    StructLitExpr  :: Maybe
+  expr 34:93    IdentExpr      :: i32
+  expr 35:1     IdentExpr      :: fn() -> i32
+  expr 35:11    CallExpr       :: i32
+  expr 36:10    CallExpr       :: Maybe | null
+  expr 36:10    IdentExpr      :: fn(i32) -> Maybe | null
+  expr 37:13    IdentExpr      :: Maybe
+  expr 37:34    FieldExpr      :: i32
+  expr 37:34    IdentExpr      :: Maybe
+  expr 37:5     IfExpr         :: void
+  expr 37:8     BinaryExpr     :: bool
+  expr 37:8     IdentExpr      :: Maybe | null
+  expr 42:13    StringLitExpr  :: string
+  expr 42:16    IdentExpr      :: const u32[]
+  expr 42:16    IndexExpr      :: u32
+  expr 42:5     CallExpr       :: void
+  expr 42:5     IdentExpr      :: fn(T) -> void
+  expr 43:13    StringLitExpr  :: string
+  expr 43:16    IdentExpr      :: i32
+  expr 43:5     CallExpr       :: void
+  expr 43:5     IdentExpr      :: fn(T) -> void
+  expr 44:13    StringLitExpr  :: string
+  expr 44:16    IdentExpr      :: i32
+  expr 44:5     CallExpr       :: void
+  expr 44:5     IdentExpr      :: fn(T) -> void
