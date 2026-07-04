@@ -190,6 +190,27 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     return .NotIntrinsic
 }
 
+/// Fail loud when a bodyless `@intrinsic` host import is not wired into the
+/// manifest. Called per-import at emit (`midir/emit.vader::reserve_cfg_extern`).
+///
+/// A non-`@extern` import whose mangle is served by NEITHER a dedicated
+/// bytecode op (`intrinsic_op_for_mangled`) NOR a recognised `IntrinsicId`
+/// (`intrinsic_id_for`) would lower to an unbound `call.import` and trap at
+/// runtime — exactly the cos/tan gap the intrinsic audit surfaced. This closes
+/// the host-wiring chain at compile time : bodyless ⟹ `@intrinsic` (T3062) ⟹
+/// recognised here ⟹ served by the VM + c_emit dispatch (T3013 on both matchs).
+/// `@extern` imports resolve at link time and are exempt.
+///
+/// @param mangled    the import's mangled host name.
+/// @param is_extern  true for `@extern` foreign symbols (exempt) ; false for
+///                   `@intrinsic`-style stdlib host bindings (must be wired).
+export assert_host_import_wired :: fn(mangled: string, is_extern: bool) -> void {
+    if is_extern { return }
+    if intrinsic_op_for_mangled(mangled) != null { return }
+    if intrinsic_id_for(mangled) != .NotIntrinsic { return }
+    panic("bytecode emit: bodyless `@intrinsic` host `${mangled}` is not wired into intrinsic_manifest — add it to `intrinsic_id_for` (+ its `vm/host.vader::dispatch_import` and `c_emit/host.vader::import_shim` arms), or give it a dedicated op in `intrinsic_op_for_mangled`")
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }

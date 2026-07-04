@@ -14,7 +14,7 @@ import "std/math" { min }
 // (see `src/lower/passes/fold-byte-len.ts` / `vader/lower/fold_byte_len.vader`).
 // Kept as a bodyless host decl so the fold has a target; DCE roots it
 // unconditionally as a bodyless host fn.
-byte_len :: fn(s: string) -> usize
+@intrinsic byte_len :: fn(s: string) -> usize
 
 /// True for the empty string. Equivalent to `s.byte_len() == 0` but
 /// reads cleanly at call sites — emptiness is the same in byte and
@@ -591,7 +591,7 @@ export parse_int :: fn(s: string) -> i32 | ParseError {
 /// @param s   the float input.
 /// @return    the parsed float.
 /// @error     `Error` on malformed input.
-export parse_float :: fn(s: string) -> f64 | Error
+@intrinsic export parse_float :: fn(s: string) -> f64 | Error
 
 /// Pad `s` on the LEFT with copies of `fill` until its byte length
 /// reaches `width`. Returns `s` unchanged when it's already at least
