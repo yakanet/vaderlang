@@ -1,22 +1,22 @@
-// vader/bytecode/intrinsic_manifest — single authority on the primitive
-// `@intrinsic` host-mangle grammar.
+// vader/bytecode/intrinsic_manifest — single authority on the `@intrinsic`
+// host-mangle grammar and host-intrinsic identity.
 //
-// The lowerer is the sole PRODUCER of impl-member mangles
-// (`<module>$<Type>$<Trait>$<method>`, built in `lower_impl_member.vader`).
-// This module is the single CONSUMER-SIDE authority for the VM's runtime
-// re-derivations of that grammar: `vm/host` and `vm/exec` route through it
-// instead of re-encoding the `std_core$` prefix / `$` separator inline (two of
-// those sites parsed or rebuilt the mangle and so corrupted silently on any
-// spelling change). The static literal tables in `intrinsics.vader` and
-// `c_emit/host.vader` still inline the same shape — folding those through here
-// is the next step. The colocated tests pin the grammar against the real module
-// mangler so a consumer can't drift from the producer.
+// Two related jobs, both so the host-mangle grammar lives in ONE place:
 //
-// Scope: `std/core` primitive members only (`Equals`, `Display`, and the widths
-// that carry them). `std_core` is not a guess — the orphan rule makes every
-// primitive core-trait impl live in `std/core`. Free-function host imports
-// (`std_io$write`, `std_math$sqrt`, …) use a different `<module>$<fn>` shape and
-// are matched directly in `dispatch_import`, not through here.
+//   1. Primitive-member grammar. The lowerer PRODUCES impl-member mangles
+//      (`<module>$<Type>$<Trait>$<method>`, `lower_impl_member.vader`); this is
+//      the consumer-side authority the VM re-derivations (`vm/host`, `vm/exec`)
+//      route through instead of re-encoding the `std_core$` prefix / `$`
+//      separator inline. `primitive_member_mangle` + the strip helpers, pinned
+//      to the real mangler by the colocated tests.
+//
+//   2. Host-intrinsic identity. `intrinsic_id_for` classifies a host import's
+//      mangled name into an `IntrinsicId` — THE single classification both
+//      backends (`vm/host::dispatch_import`, `c_emit/host::import_shim`) dispatch
+//      on, so the two can't drift and a new host trips T3013 at both sites.
+//
+// Still inlined elsewhere (folding through here is a follow-up): the arith /
+// buffer bytecode-op table in `intrinsics.vader` (already verify-pinned).
 
 module "vader/bytecode"
 
@@ -93,9 +93,116 @@ strip_core_member :: fn(mangled: string, suffix: string) -> string | null {
     return b[CORE_PREFIX.bytes().len()..<b.len() - suffix.bytes().len()].bytes_to_string()
 }
 
+// ---- host intrinsic identity ----------------------------------------------
+
+/// Identity of a recognised host `@intrinsic` import, keyed on the mangled name
+/// by `intrinsic_id_for`. THE single classification the two backends
+/// (`vm/host::dispatch_import`, `c_emit/host::import_shim`) dispatch on, so the
+/// host-mangle grammar lives in one place and the two can't drift. The union of
+/// what either backend serves — a backend that doesn't serve a variant handles
+/// it in a grouped fallthrough arm, but the exhaustive `match` forces that to be
+/// a conscious decision (a new variant here trips T3013 at both sites).
+export IntrinsicId :: enum(u8) {
+    NotIntrinsic,
+    // std/io
+    IoWrite, IoExists, IoIsDir, IoTempDir, IoReadDir, IoReadFileBytes, IoWriteFileBytes,
+    IoReadLine, IoReadStdin, IoPollStdin, IoSetStdinUnbuffered, IoCurrentExecutableLocation,
+    // std/string
+    StringByteLen, StringIndexOf, StringLastIndexOf, StringParseFloat,
+    // std/core string + bytes
+    CoreBytes, CoreBytesToString, CoreStringIndexAt, CoreStringHash,
+    CoreStringEquals, CoreStringNotEquals,
+    // primitive members (recognised via the grammar helpers, any width)
+    PrimIntEquals, PrimIntNotEquals, PrimDisplayToString,
+    // std/runtime
+    RuntimeCollect, RuntimeCollections, RuntimeBytesUsed, RuntimeBytesCopied,
+    // std/time
+    TimeNowUnixMs, TimeMonotonicNs,
+    // std/math
+    MathSqrt, MathSin, MathCos, MathTan, MathFloor, MathCeil, MathRound, MathAbs, MathPow,
+    MathMin, MathMax, MathMinI, MathMaxI, MathAbsI, MathClamp, MathClampI,
+    // std/process
+    ProcessSpawnRun, ProcessSpawnLastStdout, ProcessSpawnLastStderr,
+    // std/tty + std/env + std/abort
+    TtyIsTty, EnvGetEnv, AbortPanic,
+}
+
+/// Classify a host import's mangled name into its `IntrinsicId`, or
+/// `NotIntrinsic` when it isn't a recognised host (e.g. an `@extern` symbol or
+/// a since-removed one). The primitive-member checks come first: the erased
+/// map-key `key.equals` path is the hot one, and each helper bails on the first
+/// `starts_with(std_core$)` for the free-function mangles below.
+///
+/// @param mangled  the import's mangled name (`BcImport.mangled_name`).
+export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
+    eq :: int_equals_method(mangled)
+    if eq == "equals"     { return .PrimIntEquals }
+    if eq == "not_equals" { return .PrimIntNotEquals }
+    if is_display_to_string(mangled) { return .PrimDisplayToString }
+
+    if mangled == r"std_io$write"                        { return .IoWrite }
+    if mangled == r"std_io$exists"                       { return .IoExists }
+    if mangled == r"std_io$is_dir"                       { return .IoIsDir }
+    if mangled == r"std_io$temp_dir"                     { return .IoTempDir }
+    if mangled == r"std_io$read_dir"                     { return .IoReadDir }
+    if mangled == r"std_io$read_file_bytes"              { return .IoReadFileBytes }
+    if mangled == r"std_io$write_file_bytes"             { return .IoWriteFileBytes }
+    if mangled == r"std_io$read_line"                    { return .IoReadLine }
+    if mangled == r"std_io$read_stdin"                   { return .IoReadStdin }
+    if mangled == r"std_io$poll_stdin"                   { return .IoPollStdin }
+    if mangled == r"std_io$set_stdin_unbuffered"         { return .IoSetStdinUnbuffered }
+    if mangled == r"std_io$current_executable_location"  { return .IoCurrentExecutableLocation }
+
+    if mangled == r"std_string$byte_len"                 { return .StringByteLen }
+    if mangled == r"std_string$index_of"                 { return .StringIndexOf }
+    if mangled == r"std_string$last_index_of"            { return .StringLastIndexOf }
+    if mangled == r"std_string$parse_float"              { return .StringParseFloat }
+
+    if mangled == r"std_core$bytes"                      { return .CoreBytes }
+    if mangled == r"std_core$bytes_to_string"            { return .CoreBytesToString }
+    if mangled == primitive_member_mangle("string", "Index", "at")  { return .CoreStringIndexAt }
+    if mangled == primitive_member_mangle("string", "Hash", "hash") { return .CoreStringHash }
+    if mangled == r"std_core$string$Equals$equals"       { return .CoreStringEquals }
+    if mangled == r"std_core$string$Equals$not_equals"   { return .CoreStringNotEquals }
+
+    if mangled == r"std_runtime$collect"                 { return .RuntimeCollect }
+    if mangled == r"std_runtime$collections"             { return .RuntimeCollections }
+    if mangled == r"std_runtime$bytes_used"              { return .RuntimeBytesUsed }
+    if mangled == r"std_runtime$bytes_copied"            { return .RuntimeBytesCopied }
+
+    if mangled == r"std_time$now_unix_ms"                { return .TimeNowUnixMs }
+    if mangled == r"std_time$monotonic_ns"               { return .TimeMonotonicNs }
+
+    if mangled == r"std_math$sqrt"                       { return .MathSqrt }
+    if mangled == r"std_math$sin"                        { return .MathSin }
+    if mangled == r"std_math$cos"                        { return .MathCos }
+    if mangled == r"std_math$tan"                        { return .MathTan }
+    if mangled == r"std_math$floor"                      { return .MathFloor }
+    if mangled == r"std_math$ceil"                       { return .MathCeil }
+    if mangled == r"std_math$round"                      { return .MathRound }
+    if mangled == r"std_math$abs"                        { return .MathAbs }
+    if mangled == r"std_math$pow"                        { return .MathPow }
+    if mangled == r"std_math$min"                        { return .MathMin }
+    if mangled == r"std_math$max"                        { return .MathMax }
+    if mangled == r"std_math$min_"                       { return .MathMinI }
+    if mangled == r"std_math$max_"                       { return .MathMaxI }
+    if mangled == r"std_math$abs_"                       { return .MathAbsI }
+    if mangled == r"std_math$clamp"                      { return .MathClamp }
+    if mangled == r"std_math$clamp_"                     { return .MathClampI }
+
+    if mangled == r"std_process$spawn_run"               { return .ProcessSpawnRun }
+    if mangled == r"std_process$spawn_last_stdout"       { return .ProcessSpawnLastStdout }
+    if mangled == r"std_process$spawn_last_stderr"       { return .ProcessSpawnLastStderr }
+
+    if mangled == r"std_tty$is_tty"                      { return .TtyIsTty }
+    if mangled == r"std_env$get_env"                     { return .EnvGetEnv }
+    if mangled == r"std_abort$panic"                     { return .AbortPanic }
+    return .NotIntrinsic
+}
+
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing" { assert, assert_eq }
 import "vader/lower" { mangle_module_id }
 
 @test test_core_module_matches_mangler :: fn() -> void {
@@ -130,4 +237,13 @@ import "vader/lower" { mangle_module_id }
     assert_eq(is_display_to_string(r"std_core$char$Equals$equals"), false)
     assert_eq(is_unsigned_display(r"std_core$u64$Display$to_string"), true)
     assert_eq(is_unsigned_display(r"std_core$i64$Display$to_string"), false)
+}
+
+@test test_intrinsic_id_for :: fn() -> void {
+    assert(intrinsic_id_for(r"std_io$write") == .IoWrite, "io write")
+    assert(intrinsic_id_for(r"std_math$sqrt") == .MathSqrt, "math sqrt")
+    assert(intrinsic_id_for(r"std_core$i32$Equals$equals") == .PrimIntEquals, "int equals")
+    assert(intrinsic_id_for(r"std_core$u8$Display$to_string") == .PrimDisplayToString, "display")
+    assert(intrinsic_id_for(r"std_core$string$Equals$equals") == .CoreStringEquals, "string equals not int")
+    assert(intrinsic_id_for(r"user_mod$foo") == .NotIntrinsic, "unknown → NotIntrinsic")
 }
