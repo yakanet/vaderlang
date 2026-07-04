@@ -1,4 +1,30 @@
 # Comptime
 
+## tests/snippets/coerce_into_identity_rejected
+
+## generic instances
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<T>
+  Iterator<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Range<i32>
+  Range<usize>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+
 # Diagnostics
 [9:1] error[T3039] `Into<T>` cannot use `T` as its target (identity coercion is forbidden): `Foo implements Into<Foo>` — source and target must differ

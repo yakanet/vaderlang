@@ -3,6 +3,7 @@
 ## tests/snippets/_diag_stdlib_struct_instance
 
 ## generic instances
+  Into<Target>
   Entry<i32, i32>
   Entry<K, V>
   Entry<K, V>
@@ -36,6 +37,8 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>
@@ -45,9 +48,6 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  Into<Target>
-  Add<Rhs, Out>
-  Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>

@@ -3,6 +3,9 @@
 ## tests/snippets/map_primitive_values
 
 ## generic instances
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
   Entry<i32, i32>
   Entry<K, V>
   Entry<K, V>
@@ -44,7 +47,8 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
-  Into<Target>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>
@@ -54,10 +58,6 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  Add<Rhs, Out>
-  Sub<Rhs, Out>
-  Mul<Rhs, Out>
-  Div<Rhs, Out>
   Rem<Rhs, Out>
   Index<I, T>
   IndexSet<I, T>

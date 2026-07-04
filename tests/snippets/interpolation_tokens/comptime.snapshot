@@ -1,5 +1,31 @@
 # Comptime
 
+## tests/snippets/interpolation_tokens
+
+## generic instances
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<T>
+  Iterator<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Range<i32>
+  Range<usize>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+
 # Diagnostics
 [3:26] error[R2006] unresolved identifier: `name`
 [4:27] error[R2006] unresolved identifier: `x`

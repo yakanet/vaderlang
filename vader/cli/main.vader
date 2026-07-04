@@ -23,7 +23,7 @@ import "vader/typecheck" { CheckResult }
 import "vader/typecheck" { TypedProject, new_typed_project }
 import "vader/resolver" { load_project, resolve_sidecar }
 import "vader/typecheck" { dump_program as dump_typed, dump_program_with_others }
-import "vader/comptime" { evaluate_project, new_evaluated_project }
+import "vader/comptime" { evaluate_project }
 import "vader/comptime" { dump_evaluated }
 import "vader/comptime_vm" { resolve_vm_required_decls }
 import "vader/lower" { lower_project }
@@ -1355,25 +1355,29 @@ prepare_evaluated_project_with :: fn(file: string, include_path_flags: string[])
     Prof.prof_end(Prof.PHASE_TYPECHECK)
     comptime_diags: Diagnostic[] = []
     Prof.prof_begin(Prof.PHASE_COMPTIME)
-    // Skip comptime evaluation when the front end already errored. `@comptime`
-    // baking (esp. the VM-backed `resolve_vm_required_decls`) emits the project
-    // to bytecode and runs it ; on unresolved / malformed IR that ICEs at
-    // emit. A program with front-end errors never reaches codegen anyway, so
-    // there is nothing to bake — and a single prelude `@comptime` const (e.g.
-    // `std/core`'s parse-float table) would otherwise ICE every errored user
-    // compile. Mirrors the `any_error_diag(pre_diags)` gate on `lower_to_entry`.
+    // The tree-walk `evaluate_project` always runs : it does the `@comptime`
+    // dependency ordering (source of the C4009 cycle diagnostic), folds
+    // tree-walkable `@comptime` decls, harvests the generic instances the
+    // lowerer needs (e.g. `concat_N`), and force-loads std/core. Only the
+    // VM-backed baking is gated on front-end errors — it emits the WHOLE project
+    // to bytecode and runs it, which ICEs on the unresolved / malformed IR of a
+    // front-end-errored program (a single prelude `@comptime` like std/core's
+    // parse-float table would otherwise ICE every errored user compile). A
+    // program with front-end errors never reaches codegen, so nothing to bake.
+    evaluated :: evaluate_project(loaded, typed, comptime_diags)
+    // Only bake when the project is error-free — front end AND comptime. The
+    // VM-backed baking stages the WHOLE project to bytecode ; on a front-end-
+    // errored program that ICEs on malformed IR, and on a program with a
+    // comptime error (e.g. a C4009 `@comptime` dependency cycle) the staging
+    // lower recurses on the un-baked cyclic consts and stack-overflows (SIGSEGV).
+    // A broken program never reaches codegen, so there is nothing to bake.
     front_end_ok :: !any_error_diag(loaded.diags)
         && !any_error_diag(resolver_diags)
         && !any_error_diag(typecheck_diags)
-    evaluated :: if front_end_ok {
-        ev :: evaluate_project(loaded, typed, comptime_diags)
-        // VM-backed comptime : bake any loop-bearing `@comptime` decls the
-        // tree-walk deferred (S2 two-pass — see vader/comptime_vm). No-op when
-        // none deferred.
-        resolve_vm_required_decls(loaded, typed, ev, comptime_diags)
-        ev
-    } else {
-        new_evaluated_project(typed)
+    if front_end_ok && !any_error_diag(comptime_diags) {
+        // Bake any loop-bearing `@comptime` decls the tree-walk deferred (S2
+        // two-pass — see vader/comptime_vm). No-op when none deferred.
+        resolve_vm_required_decls(loaded, typed, evaluated, comptime_diags)
     }
     Prof.prof_end(Prof.PHASE_COMPTIME)
     return EvaluatedPipeline {

@@ -3,6 +3,8 @@
 ## tests/snippets/map_set_iter
 
 ## generic instances
+  Into<Target>
+  Add<Rhs, Out>
   Entry<i32, i32>
   Entry<string, i32>
   Entry<K, V>
@@ -37,6 +39,8 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>
@@ -46,10 +50,6 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  Into<Target>
-  Add<Rhs, Out>
-  Sub<Rhs, Out>
-  Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>
   Index<I, T>

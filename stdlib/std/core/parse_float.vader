@@ -1,0 +1,456 @@
+// stdlib/std/core/parse_float — correctly-rounded decimal string -> f64.
+//
+// Eisel-Lemire fast path (Daniel Lemire, "Number Parsing at a Gigabyte per
+// Second", 2021 ; the Mushtak-Lemire "no fallback" variant is exact for <= 19
+// significant digits, which the scanner caps `w` at). Reuses the 128-bit
+// power-of-5 table (`parse_float_tables.vader`), `umul128` (`dtoa.vader`) and
+// `from_bits` (`core.vader`) — all `module "std/core"`, so no imports.
+//
+// Scope : decimal only — sign, mantissa, exponent (`[+-]? d* ('.' d*)? ([eE]
+// [+-]? d+)?`). `inf` / `nan` / hex floats and the > 19-significant-digit slow
+// path are follow-ups (a truncated `w` still fast-paths, correct for all but
+// the rare halfway case). Returns `f64 | null` ; the public `std/string`
+// `parse_float` wrapper maps `null` to its `Error` value.
+
+module "std/core"
+
+// f64 binary_format constants (fast_float `binary_format<double>`).
+PF_MANTISSA_BITS  :: 52
+PF_MIN_EXPONENT   :: -1023
+PF_INFINITE_POWER :: 0x7FF
+PF_SMALLEST_POW5  :: -342
+PF_LARGEST_POW5   :: 308
+PF_MIN_RTE        :: -4        // min_exponent_round_to_even
+PF_MAX_RTE        :: 23        // max_exponent_round_to_even
+
+// ---- scanner --------------------------------------------------------------
+
+/// The scanned parts of a decimal float : significand `w` (first <= 19
+/// significant digits), power-of-ten exponent `q`, sign, and whether more than
+/// 19 significant digits were seen (needs the slow path — not yet built).
+export DecimalParts :: struct {
+    w:               u64
+    q:               i32
+    negative:        bool
+    too_many_digits: bool
+}
+
+pf_is_digit :: fn(b: u8) = b >= '0' && b <= '9'
+
+/// Scan a decimal float string into `DecimalParts`, or `null` on malformed
+/// input (empty, no digits, a bare exponent, trailing junk). `w` holds the
+/// first 19 significant digits ; leading zeros are skipped and `q` tracks the
+/// decimal point + exponent.
+///
+/// @param s  the decimal float text.
+/// @return   the scanned parts, or `null` when `s` is not a decimal float.
+export scan_decimal :: fn(s: string) -> DecimalParts | null {
+    b :: s.bytes()
+    n :: b.len()
+    if n == 0 { return null }
+    i: usize = 0
+    negative := false
+    if b[0] == '-' { negative = true  i = 1 }
+    else if b[0] == '+' { i = 1 }
+
+    w: u64 = 0
+    sig: i32 = 0          // significant digits accumulated into `w` (cap 19)
+    q: i32 = 0           // power-of-ten exponent
+    too_many := false
+    saw_digit := false
+
+    // integer part
+    for i < n && pf_is_digit(b[i]) {
+        saw_digit = true
+        d :: u64(b[i] - '0')
+        if sig < 19 {
+            if w != 0 || d != 0 { w = w * 10 + d  sig += 1 }   // skip leading zeros
+        } else {
+            q += 1                                             // digit past 19 -> scale up
+            too_many = true
+        }
+        i += 1
+    }
+    // fraction
+    if i < n && b[i] == '.' {
+        i += 1
+        for i < n && pf_is_digit(b[i]) {
+            saw_digit = true
+            d :: u64(b[i] - '0')
+            if sig < 19 {
+                if w != 0 || d != 0 { w = w * 10 + d  sig += 1 }
+                q -= 1                                         // every fraction digit lowers q
+            } else {
+                too_many = true                                // below precision -> ignore
+            }
+            i += 1
+        }
+    }
+    if !saw_digit { return null }
+    // exponent
+    if i < n && (b[i] == 'e' || b[i] == 'E') {
+        i += 1
+        exp_neg := false
+        if i < n && b[i] == '-' { exp_neg = true  i = i + 1 }
+        else if i < n && b[i] == '+' { i = i + 1 }
+        if i >= n || !pf_is_digit(b[i]) { return null }
+        e: i32 = 0
+        for i < n && pf_is_digit(b[i]) {
+            if e < 100000 { e = e * 10 + i32(b[i] - '0') }     // clamp absurd exponents
+            i += 1
+        }
+        if exp_neg { q -= e } else { q += e }
+    }
+    if i != n { return null }                                  // trailing junk
+    return DecimalParts { .w = w, .q = q, .negative = negative, .too_many_digits = too_many }
+}
+
+// ---- Eisel-Lemire fast path -----------------------------------------------
+
+// Leading zeros of a NON-zero u64.
+pf_clz64 :: fn(x: u64) -> i32 {
+    n: i32 = 0
+    v: u64 = x
+    for (v & 0x8000000000000000) == 0 { v = v << 1  n += 1 }
+    return n
+}
+
+// compute_product_approximation(q, w), bit_precision 55 : `w * 5^q` as a 128-bit
+// [hi, lo], refined by a second multiply when the top 9 bits of `hi` are all 1.
+pf_product :: fn(q: i32, w: u64) -> [u64, u64] {
+    idx :: usize(2 * (q - PF_SMALLEST_POW5))
+    [hi0, lo0] :: umul128(w, POW5_128[idx])
+    hi: u64 = hi0
+    lo: u64 = lo0
+    if (hi & 0x1FF) == 0x1FF {
+        [sp_hi, _sp_lo] :: umul128(w, POW5_128[idx + 1])
+        lo = lo + sp_hi
+        if sp_hi > lo { hi = hi + 1 }
+    }
+    return [hi, lo]
+}
+
+/// Eisel-Lemire : the packed IEEE-754 MAGNITUDE bits of `w * 10^q` (sign not
+/// applied), correctly rounded for `w` with <= 19 significant digits. `w == 0`
+/// yields `+0` ; `q` below `-342` yields `0`, above `308` yields `inf`.
+///
+/// @param w0  the significand (<= 19 significant digits).
+/// @param q   the power-of-ten exponent.
+/// @return    `(power2 << 52) | mantissa` — OR the caller's sign bit onto it.
+export eisel_lemire :: fn(w0: u64, q: i32) -> u64 {
+    if w0 == 0 || q < PF_SMALLEST_POW5 { return u64(0) }
+    if q > PF_LARGEST_POW5 { return u64(PF_INFINITE_POWER) << u64(PF_MANTISSA_BITS) }
+    lz :: pf_clz64(w0)
+    w :: w0 << u64(lz)
+    [prod_hi, prod_lo] :: pf_product(q, w)
+    upperbit :: i32(prod_hi >> 63)
+    shift :: upperbit + 64 - PF_MANTISSA_BITS - 3          // upperbit + 9
+    mantissa: u64 = prod_hi >> u64(shift)
+    // power(q) = floor(q * log2(10)) via ((152170 + 65536) * q) >> 16, + 63.
+    power_q :: ((217706 * q) >> 16) + 63
+    power2: i32 = power_q + upperbit - lz - PF_MIN_EXPONENT
+    if power2 <= 0 {
+        // subnormal (or underflow to zero).
+        if (-power2 + 1) >= 64 { return u64(0) }
+        mantissa = mantissa >> u64(-power2 + 1)
+        mantissa = mantissa + (mantissa & 1)               // round up
+        mantissa = mantissa >> 1
+        sub_power2 :: if mantissa < (u64(1) << u64(PF_MANTISSA_BITS)) { 0 } else { 1 }
+        return (u64(sub_power2) << u64(PF_MANTISSA_BITS)) | mantissa
+    }
+    // round-to-even : only when 5^q fits a single 64-bit word and we landed
+    // exactly on a halfway point.
+    if prod_lo <= 1 && q >= PF_MIN_RTE && q <= PF_MAX_RTE && (mantissa & 3) == 1 {
+        if (mantissa << u64(shift)) == prod_hi { mantissa = mantissa & ~u64(1) }
+    }
+    mantissa = mantissa + (mantissa & 1)                   // round up
+    mantissa = mantissa >> 1
+    if mantissa >= (u64(2) << u64(PF_MANTISSA_BITS)) {
+        mantissa = u64(1) << u64(PF_MANTISSA_BITS)
+        power2 = power2 + 1
+    }
+    mantissa = mantissa & ~(u64(1) << u64(PF_MANTISSA_BITS))    // drop the implicit bit
+    if power2 >= PF_INFINITE_POWER { return u64(PF_INFINITE_POWER) << u64(PF_MANTISSA_BITS) }
+    return (u64(power2) << u64(PF_MANTISSA_BITS)) | mantissa
+}
+
+/// Parse a decimal float string to `f64`, or `null` on malformed input.
+/// Correctly rounded : the Eisel-Lemire fast path for <= 19 significant digits,
+/// an exact big-int slow path for more.
+///
+/// @param s  the decimal float text.
+/// @return   the parsed `f64`, or `null` when `s` is not a decimal float.
+export parse_f64 :: fn(s: string) -> f64 | null {
+    parts :: scan_decimal(s)
+    if parts == null { return null }
+    // > 19 significant digits : the truncated `w` fast-paths correctly unless
+    // `w` and `w + 1` straddle a rounding boundary — then the dropped digits
+    // decide, and only the exact slow path can round correctly.
+    if parts.too_many_digits {
+        lo :: eisel_lemire(parts.w, parts.q)
+        hi :: eisel_lemire(parts.w + 1, parts.q)
+        if lo != hi { return parse_f64_slow(s, parts.negative) }
+    }
+    bits: u64 = eisel_lemire(parts.w, parts.q)
+    if parts.negative { bits = bits | (u64(1) << 63) }
+    return bits.from_bits()
+}
+
+// ---- slow path : exact decimal -> f64 for the straddling > 19-digit cases --
+//
+// Reuses the fixed big-int (`bi_*`, `parse_float_tables.vader`). Builds the full
+// significand `D` and power-of-ten `e`, then forms `M * 2^b_exp` with `M` an
+// exact (e >= 0) or floor-with-sticky (e < 0, via the ÷5 identity) big integer,
+// and rounds the top 53 bits to nearest-even.
+
+sd_neg_sign :: 0x8000000000000000
+
+// Big-int (LE u32) * small `m` + `add`.
+sd_mul_add :: fn(a: u32[], m: u32, add: u32) -> u32[] {
+    out: u32[] = []
+    carry: u64 = u64(add)
+    for i in 0..<a.len() {
+        v :: u64(a[i]) * u64(m) + carry
+        out.push(u32(v & 0xFFFFFFFF))
+        carry = v >> 32
+    }
+    for carry > 0 { out.push(u32(carry & 0xFFFFFFFF))  carry = carry >> 32 }
+    return out
+}
+
+// Shift a big-int left by `bits` (>= 0).
+sd_shl :: fn(a: u32[], bits: i32) -> u32[] {
+    out: u32[] = []
+    for _z in 0..<usize(bits / 32) { out.push(0) }
+    bit_shift :: bits % 32
+    if bit_shift == 0 {
+        for i in 0..<a.len() { out.push(a[i]) }
+    } else {
+        carry: u32 = 0
+        for i in 0..<a.len() {
+            v :: (u64(a[i]) << u64(bit_shift)) | u64(carry)
+            out.push(u32(v & 0xFFFFFFFF))
+            carry = u32(v >> 32)
+        }
+        if carry != 0 { out.push(carry) }
+    }
+    return out
+}
+
+// Floor-divide by 5, reporting whether the division had a remainder (sticky).
+SdDiv5 :: struct { q: u32[]  rem: bool }
+sd_div5 :: fn(a: u32[]) -> SdDiv5 {
+    msb: u32[] = []
+    r: u64 = 0
+    i: i32 = i32(a.len()) - 1
+    for i >= 0 {
+        cur :: (r << 32) | u64(a[usize(i)])
+        msb.push(u32(cur / 5))
+        r = cur % 5
+        i -= 1
+    }
+    out: u32[] = []
+    j: i32 = i32(msb.len()) - 1
+    for j >= 0 { out.push(msb[usize(j)])  j -= 1 }
+    return SdDiv5 { .q = out, .rem = r != 0 }
+}
+
+sd_is_zero :: fn(a: u32[]) -> bool {
+    for i in 0..<a.len() { if a[i] != 0 { return false } }
+    return true
+}
+
+// True when any set bit lies strictly below position `pos` in `a`.
+sd_any_below :: fn(a: u32[], pos: i32) -> bool {
+    limb :: pos / 32
+    bit :: pos % 32
+    for i in 0..<usize(limb) { if a[i] != 0 { return true } }
+    if bit > 0 && usize(limb) < a.len() {
+        mask :: (u32(1) << u32(bit)) - 1
+        if (a[usize(limb)] & mask) != 0 { return true }
+    }
+    return false
+}
+
+// Re-scan `s`, accumulating ALL significant digits into a big-int + exponent.
+SlowParts :: struct { d: u32[]  e: i32 }
+sd_scan :: fn(s: string) -> SlowParts {
+    b :: s.bytes()
+    n :: b.len()
+    i: usize = 0
+    if b[0] == '-' || b[0] == '+' { i = 1 }
+    d: u32[] = [0]
+    e: i32 = 0
+    started := false
+    for i < n && pf_is_digit(b[i]) {
+        digit :: b[i] - '0'
+        if started || digit != 0 { d = sd_mul_add(d, 10, u32(digit))  started = true }
+        i += 1
+    }
+    if i < n && b[i] == '.' {
+        i += 1
+        for i < n && pf_is_digit(b[i]) {
+            digit :: b[i] - '0'
+            if started || digit != 0 { d = sd_mul_add(d, 10, u32(digit))  started = true }
+            e -= 1
+            i += 1
+        }
+    }
+    if i < n && (b[i] == 'e' || b[i] == 'E') {
+        i += 1
+        eneg := false
+        if i < n && b[i] == '-' { eneg = true  i = i + 1 }
+        else if i < n && b[i] == '+' { i = i + 1 }
+        ev: i32 = 0
+        for i < n && pf_is_digit(b[i]) { if ev < 100000 { ev = ev * 10 + i32(b[i] - '0') }  i += 1 }
+        if eneg { e -= ev } else { e += ev }
+    }
+    return SlowParts { .d = d, .e = e }
+}
+
+// Exact decimal -> correctly-rounded f64 (used only for the rare straddling
+// > 19-digit case). `negative` carries the sign.
+parse_f64_slow :: fn(s: string, negative: bool) -> f64 {
+    p :: sd_scan(s)
+    sign :: if negative { u64(sd_neg_sign) } else { u64(0) }
+    if sd_is_zero(p.d) { return sign.from_bits() }
+
+    // Form M * 2^b_exp with M a big integer, plus a scaling sticky flag.
+    m: u32[] = p.d
+    b_exp: i32 = 0
+    sticky := false
+    if p.e >= 0 {
+        for _k in 0..<p.e { m = bi_mul5(m) }
+        b_exp = p.e
+    } else {
+        neg_e :: -p.e
+        g :: neg_e * 4 + 64                        // guard bits
+        m = sd_shl(p.d, g)
+        for _k in 0..<neg_e {
+            r :: sd_div5(m)
+            m = r.q
+            if r.rem { sticky = true }
+        }
+        b_exp = p.e - g
+    }
+
+    // Round to nearest-even. Classify normal vs subnormal from the leading bit
+    // BEFORE rounding, then round ONCE at the right precision — a normal
+    // pre-round followed by a subnormal re-round double-rounds, off by 1 ulp at
+    // the boundary (e.g. `2.2250738585072011e-308`).
+    nb :: bi_bitlen(m)
+    lead :: nb - 1 + b_exp                          // unbiased exponent of value's MSB
+    if lead >= 1024 { return (sign | (u64(2047) << 52)).from_bits() }   // overflow -> inf
+    if lead >= -1022 {
+        // normal : 53-bit significand, biased exponent from the leading bit.
+        biased: i32 = lead + 1023
+        mant: u64 = sd_round_at(m, nb - 53, sticky)
+        if mant >= (u64(1) << 53) { mant = mant >> 1  biased = biased + 1 }   // carried past 53 bits
+        if biased >= 2047 { return (sign | (u64(2047) << 52)).from_bits() }
+        return (sign | (u64(biased) << 52) | (mant & ((u64(1) << 52) - 1))).from_bits()
+    }
+    // subnormal : round the significand onto the 2^-1074 grid. `sub == 2^52`
+    // rounds up to the smallest normal (its implicit bit coincides with the
+    // exponent-1 field), so the plain `sign | sub` pack is correct either way.
+    sub :: sd_round_at(m, -1074 - b_exp, sticky)
+    return (sign | sub).from_bits()
+}
+
+// Round `M >> p` to nearest-even (value = M's integer bits), folding `sticky_in`
+// (bits already lost below M) into the sticky. `p <= 0` shifts M up (exact).
+sd_round_at :: fn(m: u32[], p: i32, sticky_in: bool) -> u64 {
+    if p <= 0 { return bi_bits64(m, 0) << u64(-p) }
+    kept :: bi_bits64(m, p)
+    round_bit :: (bi_bits64(m, p - 1) & 1) == 1
+    sticky :: sticky_in || sd_any_below(m, p - 1)
+    if round_bit && (sticky || (kept & 1) == 1) { return kept + 1 }
+    return kept
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+
+// Expected bits computed offline via CPython `struct.pack('<d', float(s))`.
+pf_expect :: fn(s: string, expected: u64) -> void {
+    r :: parse_f64(s)
+    if r is f64 as v {
+        assert_eq(v.to_bits(), expected)
+    } else {
+        assert(false, "parse_f64 returned null for `${s}`")
+    }
+}
+
+@test test_parse_f64_corpus :: fn() -> void {
+    pf_expect("0", 0)
+    pf_expect("1", 4607182418800017408)
+    pf_expect("1.5", 4609434218613702656)
+    pf_expect("0.5", 4602678819172646912)
+    pf_expect("0.1", 4591870180066957722)
+    pf_expect("0.2", 4596373779694328218)
+    pf_expect("0.3", 4599075939470750515)
+    pf_expect("10", 4621819117588971520)
+    pf_expect("100", 4636737291354636288)
+    pf_expect("-1.5", 13832806255468478464)
+    pf_expect("-0.0", 9223372036854775808)
+    pf_expect("0.0", 0)
+    pf_expect("3.141592653589793", 4614256656552045848)
+    pf_expect("2.718281828459045", 4613303445314885481)
+    pf_expect("1.7976931348623157e308", 9218868437227405311)
+    pf_expect("1e10", 4756540486875873280)
+    pf_expect("1e-10", 4457293557087583675)
+    pf_expect("1e100", 6103021453049119613)
+    pf_expect("1e-100", 3110860544497550640)
+    pf_expect("1e308", 9214871658872686752)
+    pf_expect("1e-308", 2024022533073106)
+    pf_expect("1e-320", 2024)
+    pf_expect("5e-324", 1)
+    pf_expect("4.9e-324", 1)
+    pf_expect("2.2250738585072014e-308", 4503599627370496)
+    pf_expect("2.2250738585072009e-308", 4503599627370495)
+    pf_expect("9007199254740992", 4845873199050653696)
+    pf_expect("9007199254740993", 4845873199050653696)
+    pf_expect("9007199254740994", 4845873199050653697)
+    pf_expect("1.0000000000000002", 4607182418800017409)
+    pf_expect("1.0000000000000001", 4607182418800017408)
+    pf_expect("0.0001234", 4548684680454221981)
+    pf_expect("123456789.123456789", 4728057454355442549)
+    pf_expect("9.999999999999999e22", 4950912855330343670)
+    pf_expect("1234567890123456789", 4877717327635671425)
+    pf_expect("4503599627370497", 4841369599423283201)
+}
+
+// Force the exact slow path (bypassing the fast-path routing) on hard > 19-digit
+// cases : exact f64 decimals, round-to-even halfways, famous subnormals.
+sd_expect :: fn(s: string, expected: u64) -> void {
+    v :: parse_f64_slow(s, false)
+    assert_eq(v.to_bits(), expected)
+}
+
+@test test_parse_f64_slow_corpus :: fn() -> void {
+    sd_expect("0.1000000000000000055511151231257827021181583404541015625", 4591870180066957722)
+    sd_expect("0.3000000000000000444089209850062616169452667236328125", 4599075939470750516)
+    sd_expect("1.00000000000000011102230246251565404236316680908203125", 4607182418800017408)
+    sd_expect("1.000000000000000111022302462515654042363166809082031250001", 4607182418800017409)
+    sd_expect("9007199254740992.5", 4845873199050653696)
+    sd_expect("9007199254740993.5", 4845873199050653697)
+    sd_expect("2.2250738585072011e-308", 4503599627370495)
+    sd_expect("2.2250738585072013e-308", 4503599627370496)
+    sd_expect("1.23456789012345678901234567890123456789e5", 4683220299151009997)
+    sd_expect("9.999999999999999999999999999999999e-1", 4607182418800017408)
+    sd_expect("123456789012345678901234567890", 5042042089369253694)
+    sd_expect("0.99999999999999999999999999999999999999", 4607182418800017408)
+    sd_expect("5.0000000000000000000000000001e-324", 1)
+}
+
+@test test_parse_f64_rejects_malformed :: fn() -> void {
+    assert(parse_f64("") is null, "empty")
+    assert(parse_f64("abc") is null, "letters")
+    assert(parse_f64("1.2.3") is null, "two dots")
+    assert(parse_f64("1e") is null, "bare exponent")
+    assert(parse_f64("1e+") is null, "exponent sign only")
+    assert(parse_f64("+") is null, "sign only")
+    assert(parse_f64(".") is null, "dot only")
+    assert(parse_f64("1 ") is null, "trailing space")
+    assert(parse_f64("0x1") is null, "hex not accepted")
+}
