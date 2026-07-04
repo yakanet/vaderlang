@@ -15,8 +15,8 @@
   IndexSet<I, T>
   Contains<T>
   Iterator<T>
-  Iterator<U>
   Iterator<T>
+  Iterator<U>
   Iterator<T>
   Iterator<T>
   Yield<T>

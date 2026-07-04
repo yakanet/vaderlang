@@ -13,6 +13,7 @@
 module "vader/bytecode"
 
 import "vader/resolver/symbol" { Symbol }
+import "vader/types" { is_int_name, is_numeric_name, is_primitive_name }
 
 /// True when the call's mangled name resolves to a dedicated
 /// bytecode op (e.g. `std_core$i32$Add$add` → `i32.add`). Returns
@@ -22,27 +23,24 @@ import "vader/resolver/symbol" { Symbol }
 /// @return         the matching bytecode op, or `null` when no
 ///                 intrinsic applies — caller emits a regular `Call`.
 export intrinsic_op_for_mangled :: fn(mangled: string) -> Op | null {
-    // Numeric ops : Add / Sub / Mul / Div / Equals per width.
-    // Widths ≤ 32 bits alias onto `I32*` ; 64-bit-wide onto `I64*`.
-    // Floats land on `F64*` (f32 aliases onto f64-shaped ops).
-    if mangled == r"std_core$i32$Add$add"        { return I32Add {} }
-    if mangled == r"std_core$i32$Sub$sub"        { return I32Sub {} }
-    if mangled == r"std_core$i32$Mul$mul"        { return I32Mul {} }
-    if mangled == r"std_core$i32$Div$div"        { return I32Div {} }
-    if mangled == r"std_core$i32$Equals$equals"  { return I32Eq {} }
-    if mangled == r"std_core$i64$Add$add"        { return I64Add {} }
-    if mangled == r"std_core$i64$Sub$sub"        { return I64Sub {} }
-    if mangled == r"std_core$i64$Mul$mul"        { return I64Mul {} }
-    if mangled == r"std_core$i64$Div$div"        { return I64Div {} }
-    if mangled == r"std_core$i64$Equals$equals"  { return I64Eq {} }
-    if mangled == r"std_core$f64$Add$add"        { return F64Add {} }
-    if mangled == r"std_core$f64$Sub$sub"        { return F64Sub {} }
-    if mangled == r"std_core$f64$Mul$mul"        { return F64Mul {} }
-    if mangled == r"std_core$f64$Div$div"        { return F64Div {} }
-    if mangled == r"std_core$f64$Equals$equals"  { return F64Eq {} }
-    if mangled == r"std_core$bool$Equals$equals"   { return BoolEq {} }
-    if mangled == r"std_core$char$Equals$equals"   { return CharEq {} }
-    if mangled == r"std_core$string$Equals$equals" { return StringEq {} }
+    // Numeric arithmetic (Add / Sub / Mul / Div) for every primitive width,
+    // routed through op_select's `arith_op` / `div_op` so a method call
+    // (`a.add(b)`) emits the SAME op as the operator (`a + b`) : narrow ints
+    // alias onto I32*, 64-bit onto I64*, floats onto F64*, and Div is
+    // unsigned-aware (U32Div / U64Div). See `primitive_arith_op`.
+    arith :: primitive_arith_op(mangled)
+    if arith != null { return arith }
+    // Equality. `@intrinsic <T> implements Equals` synthesises bodyless `equals`
+    // AND `not_equals` members. i32/i64 `equals` inline their op here ; every
+    // int `equals`/`not_equals` ALSO routes through `int_equals_method` →
+    // PrimIntEquals (erased map-key dispatch). The op-backed NON-int primitives
+    // (f32/f64/bool/char/string) go through op_select's `cmp_eq` / `cmp_ne` —
+    // the same authority the operator uses — so `.equals()` can't drift from
+    // `==` (see `primitive_cmp_op`).
+    if mangled == r"std_core$i32$Equals$equals" { return I32Eq {} }
+    if mangled == r"std_core$i64$Equals$equals" { return I64Eq {} }
+    cmp :: primitive_cmp_op(mangled)
+    if cmp != null { return cmp }
     // Target ABI memory opcodes — the abstract `Buffer`'s `@intrinsic` methods
     // (`stdlib/std/core/buffer.vader`). `object_new`'s `type_id` immediate is a
     // placeholder : c-emit always tags the box with the BUFFER sentinel and the
@@ -62,6 +60,41 @@ export intrinsic_op_for_mangled :: fn(mangled: string) -> Op | null {
     if mangled == r"std_core$u32$Bits32Float$from_bits" { return BitsToF32 {} }
     return null
 }
+
+// Add / Sub / Mul / Div for any numeric primitive, resolved through op_select's
+// `arith_op` / `div_op` — the SAME authority the operator path uses, so the
+// method mangle can never drift from `a + b`'s op. Covers every width (the
+// narrow ints i8/i16/u8/u16/u32 + isize/usize and f32, which the explicit arms
+// above never listed) ; `div_op` keeps u32/u64 division unsigned.
+primitive_arith_op :: fn(mangled: string) -> Op | null {
+    add :: strip_core_member(mangled, r"$Add$add")
+    if add != null && is_numeric_name(add) { return arith_op(val_type_of_primitive_name(add), "add") }
+    sub :: strip_core_member(mangled, r"$Sub$sub")
+    if sub != null && is_numeric_name(sub) { return arith_op(val_type_of_primitive_name(sub), "sub") }
+    mul :: strip_core_member(mangled, r"$Mul$mul")
+    if mul != null && is_numeric_name(mul) { return arith_op(val_type_of_primitive_name(mul), "mul") }
+    div :: strip_core_member(mangled, r"$Div$div")
+    if div != null && is_numeric_name(div) { return div_op(val_type_of_primitive_name(div)) }
+    return null
+}
+
+// Equals / NotEquals op for the op-backed NON-int primitives (f32/f64/bool/
+// char/string), via op_select's `cmp_eq` / `cmp_ne` — same authority as the
+// operator, so `.equals()` / `.not_equals()` can't drift from `==` / `!=`. Int
+// widths return null : their Equals stays on the `int_equals_method` →
+// PrimIntEquals path (erased map-key dispatch), and i32/i64 `equals` inline
+// their op at the call site above.
+primitive_cmp_op :: fn(mangled: string) -> Op | null {
+    eq :: strip_core_member(mangled, r"$Equals$equals")
+    if eq != null && is_op_eq_prim(eq) { return cmp_eq(val_type_of_primitive_name(eq)) }
+    ne :: strip_core_member(mangled, r"$Equals$not_equals")
+    if ne != null && is_op_eq_prim(ne) { return cmp_ne(val_type_of_primitive_name(ne)) }
+    return null
+}
+
+// A non-int primitive whose equality lands on a dedicated op rather than the
+// PrimIntEquals host dispatch : the floats, bool, char, string.
+is_op_eq_prim :: fn(name: string) -> bool = is_primitive_name(name) && !is_int_name(name)
 
 /// `intrinsic_op_for_mangled` keyed on a `Symbol` (the bytecode
 /// emit's natural input). Symbol's `name` carries the mangled form
@@ -85,14 +118,22 @@ import "std/testing" { assert, assert_eq }
     // silently de-opting the op back to a plain Call at emit time. Keeps the
     // fast literal cascade above, but pins all 28 arms to the one authority.
     cases :: [
-        ["i32", "Add", "add"], ["i32", "Sub", "sub"], ["i32", "Mul", "mul"],
-        ["i32", "Div", "div"], ["i32", "Equals", "equals"],
-        ["i64", "Add", "add"], ["i64", "Sub", "sub"], ["i64", "Mul", "mul"],
-        ["i64", "Div", "div"], ["i64", "Equals", "equals"],
+        // arithmetic — every numeric width (routed through op_select)
+        ["i8", "Add", "add"], ["i16", "Sub", "sub"], ["i32", "Mul", "mul"],
+        ["i64", "Div", "div"], ["isize", "Add", "add"],
+        ["u8", "Div", "div"], ["u16", "Mul", "mul"], ["u32", "Div", "div"],
+        ["u64", "Sub", "sub"], ["usize", "Add", "add"],
+        ["f32", "Add", "add"], ["f32", "Div", "div"],
         ["f64", "Add", "add"], ["f64", "Sub", "sub"], ["f64", "Mul", "mul"],
-        ["f64", "Div", "div"], ["f64", "Equals", "equals"],
+        ["f64", "Div", "div"],
+        // equality (op-backed) — equals + not_equals for the non-int primitives
+        ["i32", "Equals", "equals"], ["i64", "Equals", "equals"],
+        ["f32", "Equals", "equals"], ["f64", "Equals", "equals"],
         ["bool", "Equals", "equals"], ["char", "Equals", "equals"],
         ["string", "Equals", "equals"],
+        ["f32", "Equals", "not_equals"], ["f64", "Equals", "not_equals"],
+        ["bool", "Equals", "not_equals"], ["char", "Equals", "not_equals"],
+        ["string", "Equals", "not_equals"],
         ["usize", "BufferAlloc", "new_buffer"],
         ["Buffer", "ByteAccess", "load_u8"], ["Buffer", "ByteAccess", "store_u8"],
         ["Buffer", "ByteAccess", "memory_copy"], ["Buffer", "ByteAccess", "intern_string"],
@@ -112,6 +153,16 @@ import "std/testing" { assert, assert_eq }
         is I32Add -> {}
         _         -> assert_eq("expected I32Add", "")
     }
+}
+
+@test test_narrow_and_unsigned_arith_map_correctly :: fn() -> void {
+    // Widening + unsigned-aware Div must match the operator path (op_select).
+    assert(intrinsic_op_for_mangled(r"std_core$u8$Div$div") is U32Div, "u8 div → U32Div")
+    assert(intrinsic_op_for_mangled(r"std_core$u64$Div$div") is U64Div, "u64 div → U64Div")
+    assert(intrinsic_op_for_mangled(r"std_core$i8$Add$add") is I32Add, "i8 add → I32Add")
+    assert(intrinsic_op_for_mangled(r"std_core$usize$Add$add") is I64Add, "usize add → I64Add")
+    assert(intrinsic_op_for_mangled(r"std_core$f32$Mul$mul") is F64Mul, "f32 mul → F64Mul")
+    assert(intrinsic_op_for_mangled(r"std_core$f32$Equals$equals") is F64Eq, "f32 equals → F64Eq")
 }
 
 @test test_intrinsic_op_for_mangled_unknown_returns_null :: fn() -> void {

@@ -1,30 +1,4 @@
 # Comptime
 
-## tests/snippets/void_ident_rejected
-
-## generic instances
-  Into<Target>
-  Add<Rhs, Out>
-  Sub<Rhs, Out>
-  Mul<Rhs, Out>
-  Div<Rhs, Out>
-  Rem<Rhs, Out>
-  Index<I, T>
-  IndexSet<I, T>
-  Contains<T>
-  Iterator<T>
-  Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
-  Range<i32>
-  Range<usize>
-  Range<T>
-  Range<T>
-  Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-
 # Diagnostics
 [7:5] error[R2019] `void` is reserved and cannot be used as an identifier: `void`
