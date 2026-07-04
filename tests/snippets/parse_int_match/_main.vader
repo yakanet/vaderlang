@@ -18,11 +18,11 @@ main :: fn() -> i32 {
     }
     match parse_float("3.14") {
         is f64 -> println("float ok")
-        is Error -> println("float err")
+        is ParseError -> println("float err")
     }
     match parse_float("nope") {
         is f64 -> println("float ok")
-        is Error -> println("float err")
+        is ParseError -> println("float err")
     }
     return 0
 }

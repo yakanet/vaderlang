@@ -245,15 +245,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     .MathCeil  -> { return host_f64_unary(stack, arg_base, at_pc, "ceil",  (a) -> ceil(a)) }
     .MathRound -> { return host_f64_unary(stack, arg_base, at_pc, "round", (a) -> round(a)) }
     .MathPow   -> { return host_f64_binary(stack, arg_base, at_pc, "pow", (a, b) -> pow(a, b)) }
-    .StringParseFloat -> {
-        s :: read_string(stack[arg_base], at_pc, "parse_float")
-        if s is Trap { return s }
-        trimmed :: s.value.trim()
-        if trimmed.bytes().len() == 0 { return HostOk { .value = ErrorVal { .message = "parse_float: empty string" } } }
-        parsed :: parse_decimal_f64(trimmed)
-        if parsed is null { return HostOk { .value = ErrorVal { .message = "parse_float: invalid float '${trimmed}'" } } }
-        return HostOk { .value = F64Val { .value = parsed } }
-    }
     // ---- std/io fallible file ops ---------------------------------------
     // `read_file` / `write_file` are gone — `read_file_string` /
     // `write_file_string` are now pure-Vader wrappers over the byte

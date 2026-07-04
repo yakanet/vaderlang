@@ -10,7 +10,7 @@
 
 module "std/json"
 
-import "std/string" { decode_char_at, codepoint_byte_len, parse_float, pad_start, chars }
+import "std/string" { decode_char_at, codepoint_byte_len, parse_float, ParseError, pad_start, chars }
 import "std/char" { is_digit, is_white_char }
 import "std/iter" { zip }
 import "std/string_builder" { StringBuilder, append, append_char, append_repeated }
@@ -220,7 +220,7 @@ parse_number :: fn(p: Parser) -> JsonNumber | JsonError {
             n: f64 = parsed
             return JsonNumber { .value = n }
         }
-        is Error -> { return fail(p, "invalid number") }
+        is ParseError -> { return fail(p, "invalid number") }
     }
 }
 

@@ -583,15 +583,22 @@ export parse_int :: fn(s: string) -> i32 | ParseError {
     return i32(acc)
 }
 
-/// Parse `s` as an `f64`. Accepts mantissa + optional exponent.
+/// Parse `s` as an `f64` — sign, mantissa, optional exponent. Correctly rounded
+/// : delegates to `std/core::parse_f64` (Eisel-Lemire fast path + an exact
+/// big-int slow path), so the VM and native backends agree bit-for-bit — unlike
+/// the old `strtod` host, whose VM twin diverged on subnormals / long fractions.
 ///
-/// Host intrinsic : the failure is the generic host `Error` (a runtime
-/// error value), so the return is `f64 | Error` rather than a concrete
-/// parse-error type. Callers match `is Error`.
+/// Returns the explicit union `f64 | ParseError` (concrete, like `parse_int`) :
+/// the existential `Error`-trait dispatch mis-executes on the self-host VM, so
+/// callers match `is ParseError`.
 /// @param s   the float input.
 /// @return    the parsed float.
-/// @error     `Error` on malformed input.
-@intrinsic export parse_float :: fn(s: string) -> f64 | Error
+/// @error     `ParseError` on malformed input.
+export parse_float :: fn(s: string) -> f64 | ParseError {
+    r :: parse_f64(s)
+    if r == null { return ParseError { .msg = "parse_float: invalid float `${s}`" } }
+    return r
+}
 
 /// Pad `s` on the LEFT with copies of `fill` until its byte length
 /// reaches `width`. Returns `s` unchanged when it's already at least
@@ -949,7 +956,7 @@ import "std/testing" { assert, assert_eq, assert_close }
 @test test_parse_float :: fn() -> void {
     match parse_float("3.14") {
         is f64 as v -> assert_close(v, 3.14, 0.000001)
-        is Error -> assert(false, "expected ok f64")
+        is ParseError -> assert(false, "expected ok f64")
     }
 }
 
