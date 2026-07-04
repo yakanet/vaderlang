@@ -625,40 +625,10 @@ merge_external_impl_methods :: fn(
                             }
                         }
                     }
-                    base_key :: type_base_name(for_ty)
-                    // `X implements Iterator(T)` — index the element
-                    // type so `for x in X { … }` binds `x` to T.
-                    if id_decl.trait_name == TRAIT_ITERATOR && id_decl.trait_args.len() == 1 {
-                        elem :: type_from_expr(id_decl.trait_args[0], other.resolved, diag_sink())
-                        entry_typed.iter_element_types[base_key] = elem
-                    }
-                    // `X implements Into(Iterator(T))` — for-in
-                    // coercion : `for x in X` desugars to `Into(Iterator(T))::into()`
-                    // then iterates the result, yielding T.
-                    if id_decl.trait_name == TRAIT_INTO && id_decl.trait_args.len() == 1 {
-                        elem :: into_iterator_element(id_decl.trait_args[0], other.resolved)
-                        match elem {
-                            is null -> {}
-                            _ -> { entry_typed.iter_element_types[base_key] = elem }
-                        }
-                    }
-                    // `X implements Index[K, T]` — index the result
-                    // type so `m[k]` returns T, and the key type K so a
-                    // free-literal index pins to K instead of i32.
-                    if id_decl.trait_name == TRAIT_INDEX && id_decl.trait_args.len() == 2 {
-                        key_ty :: type_from_expr(id_decl.trait_args[0], other.resolved, diag_sink())
-                        result_ty :: type_from_expr(id_decl.trait_args[1], other.resolved, diag_sink())
-                        entry_typed.index_key_types[base_key] = key_ty
-                        entry_typed.index_target_types[base_key] = result_ty
-                    }
-                    // `X implements IndexSet[K, V]` — index the key and
-                    // write-value types so `m[k] = v` pins both literals.
-                    if id_decl.trait_name == TRAIT_INDEX_SET && id_decl.trait_args.len() == 2 {
-                        key_ty :: type_from_expr(id_decl.trait_args[0], other.resolved, diag_sink())
-                        value_ty :: type_from_expr(id_decl.trait_args[1], other.resolved, diag_sink())
-                        entry_typed.index_key_types[base_key] = key_ty
-                        entry_typed.index_set_value_types[base_key] = value_ty
-                    }
+                    // Index Iterator/Into/Index/IndexSet element/key/target
+                    // types — shared with the local pre-pass (diags discarded
+                    // here; cross-module impls re-check in their own module).
+                    index_impl_metadata(entry_typed, id_decl, for_ty, other.resolved, diag_sink())
                 }
                 _ -> {}
             }
@@ -680,6 +650,40 @@ into_iterator_element :: fn(
     if arg.callee.name != TRAIT_ITERATOR { return null }
     if arg.type_args.len() != 1 { return null }
     return type_from_expr(arg.type_args[0], resolved, diag_sink())
+}
+
+// Index an impl's `Iterator` / `Into` / `Index` / `IndexSet` trait args into the
+// typed program's element / key / target side-tables, so `for x in X`, `m[k]`
+// and `m[k] = v` pin their types. Shared by the external-impl import loop and
+// the local `register_impl_metadata` pre-pass — one source so the two passes
+// can't index the same impl differently. `resolved` scopes the trait-arg
+// resolution ; `diags` sinks any resolution error (throwaway for the external
+// path, real for the local one).
+index_impl_metadata :: fn(
+    typed: TypedProgram, id: AST.ImplDecl, for_ty: Type,
+    resolved: ResolvedModule, diags: Diagnostic[],
+) -> void {
+    base_key :: type_base_name(for_ty)
+    if id.trait_name == TRAIT_ITERATOR && id.trait_args.len() == 1 {
+        elem :: type_from_expr(id.trait_args[0], resolved, diags)
+        typed.iter_element_types[base_key] = elem
+    }
+    if id.trait_name == TRAIT_INTO && id.trait_args.len() == 1 {
+        elem :: into_iterator_element(id.trait_args[0], resolved)
+        if elem != null { typed.iter_element_types[base_key] = elem }
+    }
+    if id.trait_name == TRAIT_INDEX && id.trait_args.len() == 2 {
+        key_ty :: type_from_expr(id.trait_args[0], resolved, diags)
+        result_ty :: type_from_expr(id.trait_args[1], resolved, diags)
+        typed.index_key_types[base_key] = key_ty
+        typed.index_target_types[base_key] = result_ty
+    }
+    if id.trait_name == TRAIT_INDEX_SET && id.trait_args.len() == 2 {
+        key_ty :: type_from_expr(id.trait_args[0], resolved, diags)
+        value_ty :: type_from_expr(id.trait_args[1], resolved, diags)
+        typed.index_key_types[base_key] = key_ty
+        typed.index_set_value_types[base_key] = value_ty
+    }
 }
 
 // Append `trait_name` to the impl-method-trait bucket for `base_key`.
@@ -1580,29 +1584,9 @@ register_impl_metadata :: fn(
             }
         }
     }
-    // Index `X implements Iterator(T)` so `for x in X` binds `x` to T
-    // (matches the external-impl path).
-    local_base_key :: type_base_name(for_ty)
-    if id.trait_name == TRAIT_ITERATOR && id.trait_args.len() == 1 {
-        elem :: type_from_expr(id.trait_args[0], typed.resolved, diags)
-        typed.iter_element_types[local_base_key] = elem
-    }
-    if id.trait_name == TRAIT_INTO && id.trait_args.len() == 1 {
-        elem :: into_iterator_element(id.trait_args[0], typed.resolved)
-        if elem != null { typed.iter_element_types[local_base_key] = elem }
-    }
-    if id.trait_name == TRAIT_INDEX && id.trait_args.len() == 2 {
-        key_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
-        result_ty :: type_from_expr(id.trait_args[1], typed.resolved, diags)
-        typed.index_key_types[local_base_key] = key_ty
-        typed.index_target_types[local_base_key] = result_ty
-    }
-    if id.trait_name == TRAIT_INDEX_SET && id.trait_args.len() == 2 {
-        key_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
-        value_ty :: type_from_expr(id.trait_args[1], typed.resolved, diags)
-        typed.index_key_types[local_base_key] = key_ty
-        typed.index_set_value_types[local_base_key] = value_ty
-    }
+    // Index Iterator/Into/Index/IndexSet element/key/target types — shared with
+    // the external-impl import loop so the two passes can't diverge.
+    index_impl_metadata(typed, id, for_ty, typed.resolved, diags)
     check_impl_missing_methods(id, typed, diags)
     local_impl_trait_args: Type[] = []
     for ta in id.trait_args {
