@@ -2838,17 +2838,6 @@ vader_char_t vader_string_codepoint_at(vader_string_t s, size_t cp_index) {
     return vader_string_char_at(s, byte_off);
 }
 
-vader_box_t vader_string_parse_float(vader_string_t s, uint32_t ok_tag, uint32_t err_tag) {
-    const char* p = vader_atom_to_cstr(s);
-    char* end;
-    double v = strtod(p, &end);
-    int ok = (end != p && *end == '\0');
-    vader_atom_cstr_free(p);
-    if (!ok) {
-        return vader_box_string(err_tag, vader_string_new("invalid float", 13));
-    }
-    return vader_box_f64(ok_tag, v);
-}
 
 vader_char_t vader_string_char_at(vader_string_t s, size_t i) {
     /* Trap on OOB to match the array-access bounds contract — silently returning

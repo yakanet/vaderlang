@@ -967,8 +967,6 @@ vader_string_t vader_spawn_last_stderr(void);
  * Backs `string implements Hash` → `MutableMap` bucketing. */
 uint64_t       vader_string_hash(vader_string_t s);
 size_t         vader_string_byte_len(vader_string_t s);
-/* parse_float returns a box: ok_tag on success, err_tag on failure. */
-vader_box_t    vader_string_parse_float(vader_string_t s, uint32_t ok_tag, uint32_t err_tag);
 vader_char_t   vader_string_char_at(vader_string_t s, size_t i);
 /* Zero-copy `const u8[]` view over `s`'s interned bytes — backs
  * `std/string::bytes`. Allocates only a small `vader_array_t` header
