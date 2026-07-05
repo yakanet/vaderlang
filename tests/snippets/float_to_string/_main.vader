@@ -4,8 +4,8 @@
 // which is the only float-formatting path with no caveats (the bytecode VM's
 // host `parse_float` mishandles subnormals, and std/core can't host @tests).
 // The run-output snapshot guards `stdlib/std/core/dtoa.vader` against
-// regressions ; exhaustive round-trip correctness lives in
-// `tools/dtoa_roundtrip_check.py`. Covers: integer-valued (.0), plain decimal,
+// regressions ; the Ryu tables it uses are pinned by reference-row `@test`s in
+// `dtoa_tables.vader`. Covers: integer-valued (.0), plain decimal,
 // the ECMAScript decimal/scientific boundary (n = 21 vs 22, n = -6), ties,
 // the 17-significant-digit cases, and the inf / -inf / nan / -0.0 specials.
 
