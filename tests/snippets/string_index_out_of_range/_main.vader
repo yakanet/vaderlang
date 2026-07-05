@@ -1,0 +1,18 @@
+// Codepoint indexing past the end of a string traps on BOTH backends :
+// the VM's `.CoreStringIndexAt` host arm (vader/vm/host.vader) and the
+// native `vader_string_codepoint_at` (runtime/c/vader_runtime.c) both raise
+// `string codepoint index out of bounds`. Regression guard for audit item B4 :
+// the VM previously baked U+0000 on an out-of-range index, silently diverging
+// from native (grave at comptime, where the NUL was baked into the program).
+
+module "snippet"
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    word :: "abc"
+    idx := 10
+    ch :: word[idx]
+    println("${i32(ch)}")
+    return 0
+}

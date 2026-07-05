@@ -1,0 +1,16 @@
+// Integer division by a runtime-zero divisor traps on BOTH backends with
+// aligned messages : the VM raises `i32.div by zero`
+// (`apply_div_mod_binop`, vader/vm/exec.vader) and the native backend routes
+// the op through the `vader_div_i32` runtime guard (runtime/c/vader.h), which
+// traps identically instead of arm64's silent zero / x86 SIGFPE. Regression
+// guard for audit item B2. The divisor is a mutable local so the comptime
+// folder leaves the divide for runtime (no C4005) ; `bad_div_zero` covers the
+// comptime-folded form.
+
+module "snippet"
+
+main :: fn() -> i32 {
+    numerator :: 100
+    divisor := 0
+    return numerator / divisor
+}

@@ -1077,7 +1077,7 @@ static size_t std_core_write_int(vader_box_t l0, size_t l1, int64_t l2) {
                 l7 = (size_t) (int64_t) INT64_C(1);
                 t2 = (l4 + l7);
                 l4 = (size_t) (int64_t) t2;
-                t3 = l6 / INT64_C(10);
+                t3 = vader_div_i64(l6, INT64_C(10));
                 l6 = t3;
                 goto loop_35;
             } else {
@@ -1101,13 +1101,13 @@ static size_t std_core_write_int(vader_box_t l0, size_t l1, int64_t l2) {
                 t6 = (l7 - l8);
                 l7 = (size_t) (int64_t) t6;
                 l3 = (uint8_t) (int32_t) INT32_C(48);
-                t7 = l2 % INT64_C(10);
+                t7 = vader_mod_i64(l2, INT64_C(10));
                 t8 = ((int32_t) (int64_t) -(t7));
                 l9 = (uint8_t) (int32_t) t8;
                 t9 = (l3 + l9);
                 l10 = (uint8_t) (int32_t) t9;
                 std_core_Buffer_ByteAccess_store_u8_vt(l0, l7, l10);
-                t10 = l2 / INT64_C(10);
+                t10 = vader_div_i64(l2, INT64_C(10));
                 l2 = t10;
                 goto loop_74;
             } else {
@@ -1146,7 +1146,7 @@ static size_t std_core_write_unsigned(vader_box_t l0, size_t l1, uint64_t l2) {
                 t0 = (l5 + l7);
                 l5 = (size_t) (int64_t) t0;
                 l8 = (uint64_t) (int64_t) INT64_C(10);
-                t1 = l3 / l8;
+                t1 = vader_div_u64(l3, l8);
                 l3 = t1;
                 goto loop_24;
             } else {
@@ -1164,14 +1164,14 @@ static size_t std_core_write_unsigned(vader_box_t l0, size_t l1, uint64_t l2) {
                 l7 = (size_t) (int64_t) t3;
                 l4 = (uint8_t) (int32_t) INT32_C(48);
                 l6 = (uint64_t) (int64_t) INT64_C(10);
-                t4 = l2 % l6;
+                t4 = vader_mod_u64(l2, l6);
                 t5 = ((int32_t) (uint64_t) t4);
                 l10 = (uint8_t) (int32_t) t5;
                 t6 = (l4 + l10);
                 l11 = (uint8_t) (int32_t) t6;
                 std_core_Buffer_ByteAccess_store_u8_vt(l0, l7, l11);
                 l8 = (uint64_t) (int64_t) INT64_C(10);
-                t7 = l2 / l8;
+                t7 = vader_div_u64(l2, l8);
                 l2 = t7;
                 goto loop_53;
             } else {
@@ -1400,7 +1400,7 @@ static vader_string_t std_core_format_signed(int64_t l0) {
                 l4 = (size_t) (int64_t) INT64_C(1);
                 t2 = (l2 + l4);
                 l2 = (size_t) (int64_t) t2;
-                t3 = l3 / INT64_C(10);
+                t3 = vader_div_i64(l3, INT64_C(10));
                 l3 = t3;
                 goto loop_24;
             } else {
@@ -1425,13 +1425,13 @@ static vader_string_t std_core_format_signed(int64_t l0) {
                 t6 = (l4 - l5);
                 l4 = (size_t) (int64_t) t6;
                 l7 = (uint8_t) (int32_t) INT32_C(48);
-                t7 = l0 % INT64_C(10);
+                t7 = vader_mod_i64(l0, INT64_C(10));
                 t8 = ((int32_t) (int64_t) -(t7));
                 l8 = (uint8_t) (int32_t) t8;
                 t9 = (l7 + l8);
                 l9 = (uint8_t) (int32_t) t9;
                 std_core_Buffer_ByteAccess_store_u8_vt(l6, l4, l9);
-                t10 = l0 / INT64_C(10);
+                t10 = vader_div_i64(l0, INT64_C(10));
                 l0 = t10;
                 goto loop_63;
             } else {
@@ -1476,7 +1476,7 @@ static vader_string_t std_core_format_unsigned(uint64_t l0) {
                 t0 = (l2 + l4);
                 l2 = (size_t) (int64_t) t0;
                 l5 = (uint64_t) (int64_t) INT64_C(10);
-                t1 = l1 / l5;
+                t1 = vader_div_u64(l1, l5);
                 l1 = t1;
                 goto loop_13;
             } else {
@@ -1495,14 +1495,14 @@ static vader_string_t std_core_format_unsigned(uint64_t l0) {
                 l4 = (size_t) (int64_t) t3;
                 l8 = (uint8_t) (int32_t) INT32_C(48);
                 l3 = (uint64_t) (int64_t) INT64_C(10);
-                t4 = l0 % l3;
+                t4 = vader_mod_u64(l0, l3);
                 t5 = ((int32_t) (uint64_t) t4);
                 l9 = (uint8_t) (int32_t) t5;
                 t6 = (l8 + l9);
                 l10 = (uint8_t) (int32_t) t6;
                 std_core_Buffer_ByteAccess_store_u8_vt(l6, l4, l10);
                 l5 = (uint64_t) (int64_t) INT64_C(10);
-                t7 = l0 / l5;
+                t7 = vader_div_u64(l0, l5);
                 l0 = t7;
                 goto loop_43;
             } else {
@@ -1856,10 +1856,10 @@ static vader_box_t std_core_f2d(uint32_t l0, uint32_t l1) {
             t24 = (l11 - l18);
             l18 = (uint32_t) (int32_t) t24;
             l19 = (uint32_t) (int32_t) INT32_C(10);
-            t25 = l18 / l19;
+            t25 = vader_div_u32(l18, l19);
             l18 = t25;
             l19 = (uint32_t) (int32_t) INT32_C(10);
-            t26 = l12 / l19;
+            t26 = vader_div_u32(l12, l19);
             l19 = t26;
             t27 = (l18 <= l19);
             l17 = t27;
@@ -1882,13 +1882,13 @@ static vader_box_t std_core_f2d(uint32_t l0, uint32_t l1) {
             t34 = std_core_mul_pow5_inv_div_pow2(l5, l20, l16);
             l18 = t34;
             l19 = (uint32_t) (int32_t) INT32_C(10);
-            t35 = l18 % l19;
+            t35 = vader_mod_u32(l18, l19);
             l14 = t35;
         } else {
         }
         if ((l15 <= INT32_C(9))) {
             l18 = (uint32_t) (int32_t) INT32_C(5);
-            t36 = l5 % l18;
+            t36 = vader_mod_u32(l5, l18);
             l18 = t36;
             l19 = (uint32_t) (int32_t) INT32_C(0);
             if (l18 == l19) {
@@ -1932,10 +1932,10 @@ static vader_box_t std_core_f2d(uint32_t l0, uint32_t l1) {
             t51 = (l11 - l3);
             l3 = (uint32_t) (int32_t) t51;
             l6 = (uint32_t) (int32_t) INT32_C(10);
-            t52 = l3 / l6;
+            t52 = vader_div_u32(l3, l6);
             l3 = t52;
             l6 = (uint32_t) (int32_t) INT32_C(10);
-            t53 = l12 / l6;
+            t53 = vader_div_u32(l12, l6);
             l6 = t53;
             t54 = (l3 <= l6);
             l17 = t54;
@@ -1956,7 +1956,7 @@ static vader_box_t std_core_f2d(uint32_t l0, uint32_t l1) {
             t60 = std_core_mul_pow5_div_pow2(l5, l2, l16);
             l3 = t60;
             l6 = (uint32_t) (int32_t) INT32_C(10);
-            t61 = l3 % l6;
+            t61 = vader_mod_u32(l3, l6);
             l14 = t61;
         } else {
         }
@@ -1991,15 +1991,15 @@ static vader_box_t std_core_f2d(uint32_t l0, uint32_t l1) {
         {
             loop_425: {
                 l5 = (uint32_t) (int32_t) INT32_C(10);
-                t66 = l11 / l5;
+                t66 = vader_div_u32(l11, l5);
                 l6 = t66;
                 l8 = (uint32_t) (int32_t) INT32_C(10);
-                t67 = l12 / l8;
+                t67 = vader_div_u32(l12, l8);
                 l18 = t67;
                 if ((l6 > l18)) {
                     if (l9) {
                         l19 = (uint32_t) (int32_t) INT32_C(10);
-                        t68 = l12 % l19;
+                        t68 = vader_mod_u32(l12, l19);
                         l22 = t68;
                         l23 = (uint32_t) (int32_t) INT32_C(0);
                         t69 = l22 == l23;
@@ -2017,16 +2017,16 @@ static vader_box_t std_core_f2d(uint32_t l0, uint32_t l1) {
                     }
                     l13 = l24;
                     l26 = (uint32_t) (int32_t) INT32_C(10);
-                    t71 = l10 % l26;
+                    t71 = vader_mod_u32(l10, l26);
                     l14 = t71;
                     l27 = (uint32_t) (int32_t) INT32_C(10);
-                    t72 = l10 / l27;
+                    t72 = vader_div_u32(l10, l27);
                     l10 = t72;
                     l28 = (uint32_t) (int32_t) INT32_C(10);
-                    t73 = l11 / l28;
+                    t73 = vader_div_u32(l11, l28);
                     l11 = t73;
                     l29 = (uint32_t) (int32_t) INT32_C(10);
-                    t74 = l12 / l29;
+                    t74 = vader_div_u32(l12, l29);
                     l12 = t74;
                     t75 = (l2 + INT32_C(1));
                     l2 = t75;
@@ -2039,7 +2039,7 @@ static vader_box_t std_core_f2d(uint32_t l0, uint32_t l1) {
             {
                 loop_512: {
                     l5 = (uint32_t) (int32_t) INT32_C(10);
-                    t76 = l12 % l5;
+                    t76 = vader_mod_u32(l12, l5);
                     l6 = t76;
                     l8 = (uint32_t) (int32_t) INT32_C(0);
                     if (l6 == l8) {
@@ -2052,16 +2052,16 @@ static vader_box_t std_core_f2d(uint32_t l0, uint32_t l1) {
                         }
                         l13 = l17;
                         l19 = (uint32_t) (int32_t) INT32_C(10);
-                        t78 = l10 % l19;
+                        t78 = vader_mod_u32(l10, l19);
                         l14 = t78;
                         l22 = (uint32_t) (int32_t) INT32_C(10);
-                        t79 = l10 / l22;
+                        t79 = vader_div_u32(l10, l22);
                         l10 = t79;
                         l23 = (uint32_t) (int32_t) INT32_C(10);
-                        t80 = l11 / l23;
+                        t80 = vader_div_u32(l11, l23);
                         l11 = t80;
                         l25 = (uint32_t) (int32_t) INT32_C(10);
-                        t81 = l12 / l25;
+                        t81 = vader_div_u32(l12, l25);
                         l12 = t81;
                         t82 = (l2 + INT32_C(1));
                         l2 = t82;
@@ -2081,7 +2081,7 @@ static vader_box_t std_core_f2d(uint32_t l0, uint32_t l1) {
         }
         if (l13) {
             l5 = (uint32_t) (int32_t) INT32_C(2);
-            t84 = l10 % l5;
+            t84 = vader_mod_u32(l10, l5);
             l5 = t84;
             l6 = (uint32_t) (int32_t) INT32_C(0);
             t85 = l5 == l6;
@@ -2119,23 +2119,23 @@ static vader_box_t std_core_f2d(uint32_t l0, uint32_t l1) {
         {
             loop_651: {
                 l5 = (uint32_t) (int32_t) INT32_C(10);
-                t90 = l11 / l5;
+                t90 = vader_div_u32(l11, l5);
                 l6 = t90;
                 l8 = (uint32_t) (int32_t) INT32_C(10);
-                t91 = l12 / l8;
+                t91 = vader_div_u32(l12, l8);
                 l18 = t91;
                 if ((l6 > l18)) {
                     l19 = (uint32_t) (int32_t) INT32_C(10);
-                    t92 = l10 % l19;
+                    t92 = vader_mod_u32(l10, l19);
                     l14 = t92;
                     l22 = (uint32_t) (int32_t) INT32_C(10);
-                    t93 = l10 / l22;
+                    t93 = vader_div_u32(l10, l22);
                     l10 = t93;
                     l23 = (uint32_t) (int32_t) INT32_C(10);
-                    t94 = l11 / l23;
+                    t94 = vader_div_u32(l11, l23);
                     l11 = t94;
                     l25 = (uint32_t) (int32_t) INT32_C(10);
-                    t95 = l12 / l25;
+                    t95 = vader_div_u32(l12, l25);
                     l12 = t95;
                     t96 = (l2 + INT32_C(1));
                     l2 = t96;
@@ -2185,12 +2185,12 @@ static vader_string_t std_core_render(uint64_t l0, int32_t l1, bool l2) {
     {
         loop_5: {
             l5 = (uint64_t) (int64_t) INT64_C(10);
-            t0 = l3 % l5;
+            t0 = vader_mod_u64(l3, l5);
             l6 = t0;
             l7 = (uint64_t) (int64_t) INT64_C(0);
             if (l6 == l7) {
                 l8 = (uint64_t) (int64_t) INT64_C(10);
-                t1 = l3 / l8;
+                t1 = vader_div_u64(l3, l8);
                 l3 = t1;
                 t2 = (l4 + INT32_C(1));
                 l4 = t2;
@@ -3689,7 +3689,7 @@ static vader_box_t std_core_d2d(uint64_t l0, uint64_t l1) {
         l11 = t28;
         if ((l13 <= INT32_C(21))) {
             l15 = (uint64_t) (int64_t) INT64_C(5);
-            t29 = l5 / l15;
+            t29 = vader_div_u64(l5, l15);
             l15 = t29;
             l16 = (uint64_t) (int64_t) INT64_C(5);
             t30 = (l15 * l16);
@@ -5097,10 +5097,10 @@ static vader_box_t std_core_d2d(uint64_t l0, uint64_t l1) {
         {
             loop_4343: {
                 l5 = (uint64_t) (int64_t) INT64_C(10);
-                t59 = l10 / l5;
+                t59 = vader_div_u64(l10, l5);
                 l6 = t59;
                 l15 = (uint64_t) (int64_t) INT64_C(10);
-                t60 = l11 / l15;
+                t60 = vader_div_u64(l11, l15);
                 l16 = t60;
                 if ((l6 <= l16)) {
                 } else {
@@ -5110,7 +5110,7 @@ static vader_box_t std_core_d2d(uint64_t l0, uint64_t l1) {
                     t62 = (l11 - l18);
                     l19 = (uint64_t) (int64_t) t62;
                     l20 = (uint64_t) (int64_t) INT64_C(10);
-                    t63 = l9 / l20;
+                    t63 = vader_div_u64(l9, l20);
                     l21 = t63;
                     l22 = (uint64_t) (int64_t) INT64_C(10);
                     t64 = (l21 * l22);
@@ -5147,7 +5147,7 @@ static vader_box_t std_core_d2d(uint64_t l0, uint64_t l1) {
             {
                 loop_4434: {
                     l5 = (uint64_t) (int64_t) INT64_C(10);
-                    t69 = l11 / l5;
+                    t69 = vader_div_u64(l11, l5);
                     l6 = t69;
                     l15 = (uint64_t) (int64_t) INT64_C(10);
                     t70 = (l6 * l15);
@@ -5158,10 +5158,10 @@ static vader_box_t std_core_d2d(uint64_t l0, uint64_t l1) {
                     if (l17 != l18) {
                     } else {
                         l19 = (uint64_t) (int64_t) INT64_C(10);
-                        t72 = l10 / l19;
+                        t72 = vader_div_u64(l10, l19);
                         l20 = t72;
                         l21 = (uint64_t) (int64_t) INT64_C(10);
-                        t73 = l9 / l21;
+                        t73 = vader_div_u64(l9, l21);
                         l22 = t73;
                         l23 = (uint64_t) (int64_t) INT64_C(10);
                         t74 = (l22 * l23);
@@ -5197,7 +5197,7 @@ static vader_box_t std_core_d2d(uint64_t l0, uint64_t l1) {
         }
         if (l12) {
             l5 = (uint64_t) (int64_t) INT64_C(2);
-            t79 = l9 % l5;
+            t79 = vader_mod_u64(l9, l5);
             l5 = t79;
             l6 = (uint64_t) (int64_t) INT64_C(0);
             t80 = l5 == l6;
@@ -5234,14 +5234,14 @@ static vader_box_t std_core_d2d(uint64_t l0, uint64_t l1) {
     } else {
         l7 = false;
         l5 = (uint64_t) (int64_t) INT64_C(100);
-        t85 = l10 / l5;
+        t85 = vader_div_u64(l10, l5);
         l5 = t85;
         l6 = (uint64_t) (int64_t) INT64_C(100);
-        t86 = l11 / l6;
+        t86 = vader_div_u64(l11, l6);
         l6 = t86;
         if ((l5 > l6)) {
             l15 = (uint64_t) (int64_t) INT64_C(100);
-            t87 = l9 / l15;
+            t87 = vader_div_u64(l9, l15);
             l15 = t87;
             l16 = (uint64_t) (int64_t) INT64_C(100);
             t88 = (l15 * l16);
@@ -5261,15 +5261,15 @@ static vader_box_t std_core_d2d(uint64_t l0, uint64_t l1) {
         {
             loop_4641: {
                 l5 = (uint64_t) (int64_t) INT64_C(10);
-                t92 = l10 / l5;
+                t92 = vader_div_u64(l10, l5);
                 l6 = t92;
                 l15 = (uint64_t) (int64_t) INT64_C(10);
-                t93 = l11 / l15;
+                t93 = vader_div_u64(l11, l15);
                 l16 = t93;
                 if ((l6 <= l16)) {
                 } else {
                     l17 = (uint64_t) (int64_t) INT64_C(10);
-                    t94 = l9 / l17;
+                    t94 = vader_div_u64(l9, l17);
                     l18 = t94;
                     l19 = (uint64_t) (int64_t) INT64_C(10);
                     t95 = (l18 * l19);
@@ -5668,7 +5668,7 @@ static vader_box_t std_core_digits_of(uint64_t l0) {
                 t2 = vader_box_obj(30u, (void*) &vader_data_0);
                 l4 = t2;
                 l5 = (uint64_t) (int64_t) INT64_C(10);
-                t3 = l1 % l5;
+                t3 = vader_mod_u64(l1, l5);
                 t4 = ((int64_t) (uint64_t) t3);
                 l6 = (size_t) (int64_t) t4;
                 vader_array_t* _a2_slotarr = ((vader_array_t*) l4.payload.obj);
@@ -5679,7 +5679,7 @@ static vader_box_t std_core_digits_of(uint64_t l0) {
                 l7 = t6;
                 vader_array_push((vader_array_t*) l2.payload.obj, vader_box_string(4u, l7));
                 l8 = (uint64_t) (int64_t) INT64_C(10);
-                t7 = l1 / l8;
+                t7 = vader_div_u64(l1, l8);
                 l1 = t7;
                 goto loop_15;
             } else {
@@ -5993,12 +5993,12 @@ static int32_t std_core_pow5_factor_32(uint32_t l0) {
     {
         loop_5: {
             l3 = (uint32_t) (int32_t) INT32_C(5);
-            t0 = l1 % l3;
+            t0 = vader_mod_u32(l1, l3);
             l4 = t0;
             l5 = (uint32_t) (int32_t) INT32_C(0);
             if (l4 == l5) {
                 l6 = (uint32_t) (int32_t) INT32_C(5);
-                t1 = l1 / l6;
+                t1 = vader_div_u32(l1, l6);
                 l1 = t1;
                 t2 = (l2 + INT32_C(1));
                 l2 = t2;

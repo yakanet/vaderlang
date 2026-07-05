@@ -504,6 +504,55 @@ typedef struct {
 void* vader_gc_alloc(size_t bytes);
 void  vader_trap(const char* msg);
 
+/* Guarded integer division / remainder. The C-emit backend routes every
+ * integer `div` / `mod` through these instead of a bare `a / b` so native
+ * aligns on the VM, which raises a labelled trap on a zero divisor
+ * (`apply_div_mod_binop`, `vader/vm/exec.vader`) rather than the arm64
+ * silent-zero / x86 SIGFPE that a raw divide gives. The trap messages match
+ * the VM's op labels verbatim so both backends print the same diagnostic.
+ *
+ * The signed helpers also special-case `INT_MIN / -1` (and its remainder),
+ * the other divide UB : the divide would fault or wrap unpredictably, so we
+ * fold it to the two's-complement result via modular unsigned negation —
+ * matching what the VM's own compiled `apply` lambda yields on arm64. Float
+ * divide keeps IEEE `inf` / `nan` semantics and is NOT routed here. */
+static inline int32_t vader_div_i32(int32_t a, int32_t b) {
+    if (b == 0) vader_trap("i32.div by zero");
+    if (b == -1) return (int32_t)(-(uint32_t)a);
+    return a / b;
+}
+static inline int32_t vader_mod_i32(int32_t a, int32_t b) {
+    if (b == 0) vader_trap("i32.mod by zero");
+    if (b == -1) return 0;
+    return a % b;
+}
+static inline int64_t vader_div_i64(int64_t a, int64_t b) {
+    if (b == 0) vader_trap("i64.div by zero");
+    if (b == -1) return (int64_t)(-(uint64_t)a);
+    return a / b;
+}
+static inline int64_t vader_mod_i64(int64_t a, int64_t b) {
+    if (b == 0) vader_trap("i64.rem by zero");
+    if (b == -1) return 0;
+    return a % b;
+}
+static inline uint32_t vader_div_u32(uint32_t a, uint32_t b) {
+    if (b == 0u) vader_trap("u32.div by zero");
+    return a / b;
+}
+static inline uint32_t vader_mod_u32(uint32_t a, uint32_t b) {
+    if (b == 0u) vader_trap("u32.rem by zero");
+    return a % b;
+}
+static inline uint64_t vader_div_u64(uint64_t a, uint64_t b) {
+    if (b == 0u) vader_trap("u64.div by zero");
+    return a / b;
+}
+static inline uint64_t vader_mod_u64(uint64_t a, uint64_t b) {
+    if (b == 0u) vader_trap("u64.rem by zero");
+    return a % b;
+}
+
 /* `object_new(size)` : allocate a zeroed `size`-byte buffer. The size is a
  * runtime stack value, so the GC reads it back off `byte_count` rather than
  * the (static) type-info table. No in-flight GC reference to root — the size

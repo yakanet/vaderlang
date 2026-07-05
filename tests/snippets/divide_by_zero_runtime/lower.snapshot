@@ -1,0 +1,12 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    let numerator: i32 = int(100) :i32
+    let divisor: i32 = int(0) :i32
+    return
+      div :i32
+        l:
+          numerator :i32
+        r:
+          divisor :i32

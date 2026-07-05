@@ -1,0 +1,14 @@
+# Typecheck
+
+## tests/snippets/string_index_out_of_range
+  FnDecl         main                 :: fn() -> i32
+  expr 13:13    StringLitExpr  :: string
+  expr 15:11    IdentExpr      :: string
+  expr 15:11    IndexExpr      :: char
+  expr 15:16    IdentExpr      :: i32
+  expr 16:13    StringLitExpr  :: string
+  expr 16:16    CallExpr       :: i32
+  expr 16:16    IdentExpr      :: type
+  expr 16:20    IdentExpr      :: char
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
