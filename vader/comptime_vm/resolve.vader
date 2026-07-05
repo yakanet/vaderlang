@@ -63,7 +63,14 @@ export resolve_vm_required_decls :: fn(
 
         outcome :: Vm.exec_fn_value(state, mangle)
         if outcome is Vm.Trap as trap {
-            diags.push(comptime_error(.EvaluationPanic, vr.span, trap.message))
+            // An impure host reached at comptime (clock / env / fs / stdin /
+            // subprocess) is refused by `vm/host.vader`'s gate and tagged so it
+            // surfaces as C4016 rather than the generic C4002 panic.
+            if Vm.is_impure_comptime_trap_message(trap.message) {
+                diags.push(comptime_error(.ImpureHostAtComptime, vr.span, trap.message))
+            } else {
+                diags.push(comptime_error(.EvaluationPanic, vr.span, trap.message))
+            }
             continue
         }
         if outcome is Vm.ValueOk as ok {

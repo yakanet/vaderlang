@@ -1,0 +1,42 @@
+# Typecheck
+
+## tests/snippets/comptime_int_overflow
+  ConstDecl      BIG                  :: i64
+  ConstDecl      GT0                  :: bool
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      SHL                  :: i32
+  ConstDecl      SUM                  :: i32
+  expr 10:8     BinaryExpr     :: {integer}
+  expr 11:9     BinaryExpr     :: bool
+  expr 11:9     BinaryExpr     :: {integer}
+  expr 12:8     BinaryExpr     :: {integer}
+  expr 13:11    BinaryExpr     :: i64
+  expr 20:13    StringLitExpr  :: string
+  expr 20:29    IdentExpr      :: i32
+  expr 20:44    BinaryExpr     :: i32
+  expr 20:44    IdentExpr      :: i32
+  expr 20:48    IdentExpr      :: i32
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void
+  expr 21:13    StringLitExpr  :: string
+  expr 21:29    IdentExpr      :: bool
+  expr 21:45    BinaryExpr     :: bool
+  expr 21:45    BinaryExpr     :: i32
+  expr 21:45    IdentExpr      :: i32
+  expr 21:49    IdentExpr      :: i32
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(T) -> void
+  expr 22:13    StringLitExpr  :: string
+  expr 22:29    IdentExpr      :: i32
+  expr 22:44    BinaryExpr     :: i32
+  expr 22:44    IdentExpr      :: i32
+  expr 22:49    IdentExpr      :: i32
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void
+  expr 23:13    StringLitExpr  :: string
+  expr 23:29    IdentExpr      :: i64
+  expr 23:44    BinaryExpr     :: i64
+  expr 23:44    IdentExpr      :: i64
+  expr 23:48    IdentExpr      :: i64
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void

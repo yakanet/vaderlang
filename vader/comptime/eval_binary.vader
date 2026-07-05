@@ -9,6 +9,7 @@ module "vader/comptime"
 
 import "vader/diagnostics" { Diagnostic, comptime_error }
 import "vader/diagnostics" { ComptimeCode }
+import "vader/types" { PrimitiveType, FreeIntType }
 AST :: import "vader/parser"
 
 /// Evaluate a `BinaryExpr`. Recurses into both operands ; combines
@@ -29,7 +30,21 @@ export evaluate_binary_expr :: fn(
     if left_result.value is null { return left_result }
     right_result :: recurse(expr.right, context)
     if right_result.value is null { return right_result }
-    return combine_binary(expr, left_result.value, right_result.value)
+    // Width of the node's resolved type — drives the fixed-width wrap so a
+    // comptime fold matches the runtime's i32 / i64 wrapping instead of the
+    // unbounded-i64 tree-walk (audit CT1). Empty string ⇒ unknown / non-integer:
+    // never truncate (wide dtoa / crypto tables must keep full 64-bit precision).
+    rname :: resolved_int_name(context, expr.id)
+    // The shift amount is masked to the width first : native `<<` on `int32_t`
+    // masks to 5 bits (int64_t to 6), so `1 << 33` runs as `1 << 1`. Without
+    // this the i64 tree-walk shift would compute `1 << 33` then wrap to 0.
+    right_value :: if expr.op == .Shl || expr.op == .Shr {
+        mask_shift_amount(right_result.value, rname)
+    } else {
+        right_result.value
+    }
+    combined :: combine_binary(expr, left_result.value, right_value)
+    return normalize_int_result(combined, rname)
 }
 
 combine_binary :: fn(expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue) -> EvalResult = match expr.op {
@@ -67,11 +82,64 @@ export evaluate_unary_expr :: fn(
 ) -> EvalResult {
     inner :: recurse(expr.operand, context)
     if inner.value is null { return inner }
-    return match expr.op {
+    rname :: resolved_int_name(context, expr.id)
+    combined :: match expr.op {
         .Neg    -> unary_neg(expr, inner.value)
         .Not    -> unary_not(expr, inner.value)
         .BitNot -> unary_bit_not(expr, inner.value)
     }
+    return normalize_int_result(combined, rname)
+}
+
+// ---- integer-width normalisation (audit CT1) ------------------------------
+
+// Re-wrap an integer result to the node's resolved width so a comptime fold
+// matches the runtime's fixed-width arithmetic. Non-integer results (bool from
+// comparisons, string from concat) pass through, as do unknown / 64-bit widths
+// — a missing or `i64`/`u64`/`isize`/`usize` width is NEVER truncated.
+normalize_int_result :: fn(r: EvalResult, rname: string) -> EvalResult {
+    if r.value is IntValue as iv { return ok(int_val_typed(wrap_to_width(iv.value, rname), iv.type_name)) }
+    return r
+}
+
+// Wrap an i64 to the given primitive width. Every sub-64 width is stored (like
+// the runtime) in a 32-bit slot, so `i8`..`u32` all wrap at 32 bits with sign
+// extension ; the 64-bit widths and any unrecognised name stay full-width.
+wrap_to_width :: fn(v: i64, type_name: string) -> i64 = match type_name {
+    "i8" | "u8" | "i16" | "u16" | "i32" | "u32" -> sign_extend_32(v)
+    _                                           -> v
+}
+
+// Truncate to the low 32 bits, then sign-extend bit 31 into the upper half so
+// the stored i64 carries the same value the runtime's signed 32-bit slot would.
+sign_extend_32 :: fn(v: i64) -> i64 {
+    low :: v & 0xFFFF_FFFF
+    if (low & 0x8000_0000) != 0 { return low - 0x1_0000_0000 }
+    return low
+}
+
+// Mask a shift's right operand to the result width (5 bits for a 32-bit type,
+// 6 for a 64-bit / unknown one) — mirrors the hardware shift the backends emit.
+mask_shift_amount :: fn(rhs: ComptimeValue, rname: string) -> ComptimeValue {
+    if rhs is IntValue as iv { return int_val_typed(iv.value & shift_amount_mask(rname), iv.type_name) }
+    return rhs
+}
+
+shift_amount_mask :: fn(rname: string) -> i64 = match rname {
+    "i8" | "u8" | "i16" | "u16" | "i32" | "u32" -> 31
+    _                                           -> 63
+}
+
+// Primitive name of the node's resolved type, or "" when the typechecker left
+// no entry / the type isn't a bare primitive (both ⇒ don't wrap).
+resolved_int_name :: fn(context: ComptimeContext, expr_id: usize) -> string {
+    t :: context.typed.expr_types[expr_id]
+    if t is PrimitiveType as p { return p.name }
+    // A free int the typechecker never pinned to a concrete width (nested inside
+    // a comparison / shift, so no slot narrowed it) defaults to `i32` — SPEC
+    // "Default integer", exactly what the runtime does, so it wraps at 32 bits.
+    if t is FreeIntType { return "i32" }
+    return ""
 }
 
 // ---- arithmetic helpers ---------------------------------------------------
@@ -192,19 +260,30 @@ compare :: fn(
         }
         is BoolValue as lb -> {
             match right {
-                is BoolValue as rb -> { return ok(bool_value(bool_compare(lb.value, rb.value, op))) }
+                is BoolValue as rb -> { return equality_only(expr, lb.value == rb.value, op, "bool") }
                 _ -> {}
             }
         }
         is StringValue as ls -> {
             match right {
-                is StringValue as rs -> { return ok(bool_value(string_compare(ls.value, rs.value, op))) }
+                is StringValue as rs -> { return equality_only(expr, ls.value == rs.value, op, "string") }
                 _ -> {}
             }
         }
         _ -> {}
     }
     return type_mismatch(expr, "comparison operand kinds disagree")
+}
+
+// `string` / `bool` support only equality at comptime : neither implements
+// `Comparable`, so `<` / `<=` / `>` / `>=` are unordered. At runtime the very
+// same expression lowers to `i32.lt` and traps ("expected i32, got string") —
+// baking any bool here would diverge from that trapping behaviour, so refuse
+// loudly rather than silently return `false` (the old degraded fallback).
+equality_only :: fn(expr: AST.BinaryExpr, eq: bool, op: CompareOp, kind: string) -> EvalResult {
+    if op == .Eq  { return ok(bool_value(eq)) }
+    if op == .Neq { return ok(bool_value(!eq)) }
+    return type_mismatch(expr, "`${kind}` values are not ordered (no Comparable impl); only == and != are valid at comptime")
 }
 
 int_compare :: fn(left: i64, right: i64, op: CompareOp) -> bool = match op {
@@ -223,24 +302,6 @@ float_compare :: fn(left: f64, right: f64, op: CompareOp) -> bool = match op {
     .Lte -> left <= right
     .Gt  -> left > right
     .Gte -> left >= right
-}
-
-bool_compare :: fn(left: bool, right: bool, op: CompareOp) -> bool = match op {
-    .Eq  -> left == right
-    .Neq -> left != right
-    .Lt  -> false
-    .Lte -> false
-    .Gt  -> false
-    .Gte -> false
-}
-
-string_compare :: fn(left: string, right: string, op: CompareOp) -> bool = match op {
-    .Eq  -> left == right
-    .Neq -> left != right
-    .Lt  -> false
-    .Lte -> false
-    .Gt  -> false
-    .Gte -> false
 }
 
 bool_value :: fn(b: bool) -> ComptimeValue {

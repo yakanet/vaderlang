@@ -104,16 +104,35 @@ mk_io_error :: fn(msg: string, io_error_type_id: i32) -> Value {
 ///                  `find_io_error_type_id`), stamped onto fabricated io
 ///                  error values by `mk_io_error` ; `-1` when io was never
 ///                  imported.
+/// @param is_comptime  true when this dispatch runs inside a `@comptime`
+///                  evaluation (`exec_fn_value` path). Gates the impure hosts
+///                  (see `is_impure_host`) so a compile-time constant can never
+///                  bake a non-reproducible value.
 /// @return          `HostOk { value }` on success ; `Trap` on a missing
-///                  import, malformed arg, or host-level failure.
-export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32) -> HostCallResult {
-    match bc.intrinsic_id_for(info.mangled_name) {
+///                  import, malformed arg, host-level failure, or an impure host
+///                  reached at comptime.
+/// @error           traps with an `is_impure_comptime_trap_message` marker when
+///                  `is_comptime` and the host is impure — `comptime_vm` routes
+///                  it to `C4016` rather than the generic `C4002`.
+export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, is_comptime: bool) -> HostCallResult {
+    id :: bc.intrinsic_id_for(info.mangled_name)
+    // Comptime gate : impure hosts (clock / env / filesystem / stdin / subprocess
+    // / terminal) read or mutate state outside the program. Running one during a
+    // `@comptime` evaluation would bake a non-reproducible result and silently
+    // break the byte-identical bootstrap (stage1 == stage2 — see the CT2 audit
+    // item). Refuse with a Trap the `comptime_vm` pass routes to C4016 ; the pure
+    // hosts (string / math / core / primitive / GC counter, plus stdout `write`
+    // for debug) keep running.
+    if is_comptime && is_impure_host(id) {
+        return impure_comptime_trap(info.mangled_name)
+    }
+    match id {
     .IoWrite -> {
         // arg_base + 0 : Stream tag ; arg_base + 1 : the string payload.
         STDOUT :: i32(0)
         STDERR :: i32(1)
         tag :: read_i32(stack[arg_base], at_pc, "write stream")
-        if tag is Trap { 
+        if tag is Trap {
             return tag
         }
         msg :: read_string(stack[arg_base + 1], at_pc, "write msg")
@@ -376,5 +395,50 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     .IoReadLine | .IoReadStdin | .IoPollStdin | .IoSetStdinUnbuffered | .NotIntrinsic -> {}
     }
     return Trap { .message = "unbound host import '${info.mangled_name}' at pc=${at_pc}" }
+}
+
+// ---- comptime impurity gate -----------------------------------------------
+
+// Stable marker embedded in the Trap message the comptime impurity gate
+// produces. `comptime_vm/resolve.vader` matches it (via
+// `is_impure_comptime_trap_message`) to route the error to C4016 instead of the
+// generic C4002 panic — the two modules share this one string so they can't
+// drift.
+IMPURE_COMPTIME_MARKER :: "is impure and cannot run at comptime"
+
+// Build the Trap for an impure host reached during `@comptime` evaluation.
+impure_comptime_trap :: fn(mangled: string) -> HostCallResult =
+    Trap { .message = "host `${mangled}` ${IMPURE_COMPTIME_MARKER} — @comptime evaluation must be reproducible" }
+
+/// Report whether a Trap message came from the comptime impurity gate.
+/// Used by `comptime_vm/resolve.vader` to pick C4016 over C4002.
+/// @param message  the `Trap.message` surfaced by a comptime VM run.
+/// @return         true when the trap is an impure-host-at-comptime refusal.
+export is_impure_comptime_trap_message :: fn(message: string) -> bool =
+    IMPURE_COMPTIME_MARKER in message
+
+// Classify a host by comptime purity. Impure hosts read or mutate the outside
+// world (clock, environment, filesystem, stdin, subprocess, terminal) and so
+// bake non-reproducibly. `IoWrite` is deliberately PURE : writing debug output
+// to stdout doesn't change the baked value, so `println` in a `@comptime` block
+// stays legal. Exhaustive over `IntrinsicId` so a newly added host must be
+// classified here (T3013) rather than silently defaulting to servable.
+is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
+    .IoExists | .IoIsDir | .IoTempDir | .IoReadDir | .IoReadFileBytes
+        | .IoWriteFileBytes | .IoReadLine | .IoReadStdin | .IoPollStdin
+        | .IoSetStdinUnbuffered | .IoCurrentExecutableLocation -> true
+    .TimeNowUnixMs | .TimeMonotonicNs -> true
+    .ProcessSpawnRun | .ProcessSpawnLastStdout | .ProcessSpawnLastStderr -> true
+    .TtyIsTty | .EnvGetEnv -> true
+    // Pure : the baked value depends only on the args, never external state.
+    .IoWrite -> false
+    .StringByteLen -> false
+    .CoreBytes | .CoreBytesToString | .CoreStringIndexAt | .CoreStringHash
+        | .CoreStringEquals | .CoreStringNotEquals -> false
+    .PrimIntEquals | .PrimIntNotEquals | .PrimDisplayToString -> false
+    .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> false
+    .MathSqrt | .MathSin | .MathCos | .MathTan | .MathFloor | .MathCeil | .MathRound | .MathPow -> false
+    .AbortPanic -> false
+    .NotIntrinsic -> false
 }
 

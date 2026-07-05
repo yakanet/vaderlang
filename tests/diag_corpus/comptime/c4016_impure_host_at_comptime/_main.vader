@@ -1,0 +1,21 @@
+// A `@comptime` const that reaches an impure host (here `get_env`, via the
+// VM-backed comptime pass) is refused with C4016 : running it at build time
+// would bake a non-reproducible value and break the byte-identical bootstrap.
+module "snippet"
+
+import "std/env" { get_env }
+
+@comptime
+export HOME_AT_BUILD :: read_home()
+
+read_home :: fn() -> string {
+    v :: get_env("HOME")
+    if v == null { return "unset" }
+    return v
+}
+
+main :: fn() -> i32 {
+    // Reference the const so its RHS is inlined and the VM-backed comptime pass
+    // actually evaluates `read_home` (an unused const is skipped silently).
+    return i32(HOME_AT_BUILD.byte_len())
+}
