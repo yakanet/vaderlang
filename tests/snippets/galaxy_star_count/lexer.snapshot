@@ -1,0 +1,33 @@
+# Tokens
+[5:1-5:7    ] ident          "module"
+[5:8-5:9    ] string_begin   "\""
+[5:9-5:16   ] string_part    "snippet" ="snippet"
+[5:16-5:17  ] string_end     "\""
+[6:1-6:1    ] newline        "\n"
+[7:1-7:5    ] ident          "main"
+[7:6-7:8    ] decl_const     "::"
+[7:9-7:11   ] kw_fn          "fn"
+[7:11-7:12  ] lparen         "("
+[7:12-7:13  ] rparen         ")"
+[7:14-7:16  ] arrow          "->"
+[7:17-7:20  ] ident          "i32"
+[7:21-7:22  ] lbrace         "{"
+[8:1-8:1    ] newline        "\n"
+[9:5-9:15   ] ident          "star_count"
+[9:16-9:18  ] decl_const     "::"
+[9:19-9:44  ] int_literal    "1000000000000000000000000" =0n
+[10:1-10:1  ] newline        "\n"
+[10:5-10:11 ] kw_return      "return"
+[10:12-10:15] ident          "i32"
+[10:15-10:16] lparen         "("
+[10:16-10:26] ident          "star_count"
+[10:27-10:28] percent        "%"
+[10:29-10:33] int_literal    "1000" =1000n
+[10:33-10:34] rparen         ")"
+[11:1-11:1  ] newline        "\n"
+[11:1-11:2  ] rbrace         "}"
+[12:1-12:1  ] newline        "\n"
+[12:1-12:1  ] eof            ""
+
+# Diagnostics
+[9:19] error[L0011] integer literal exceeds the u64 range: `1000000000000000000000000` does not fit in u64

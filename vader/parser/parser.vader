@@ -69,6 +69,13 @@ export parse_module_header :: fn(source: string, file: string) -> ModuleHeader |
     sb :: source.bytes()
     n :: sb.len()
     i: usize = 0
+    // UTF-8 BOM (EF BB BF) — skip it exactly like the main lexer's `tokenize`
+    // does. Without this the byte-scan reads `0xEF` as the first non-trivial
+    // byte, fails to match `module`, and the caller reports a misleading
+    // R2020 (missing module decl) on a file that has one.
+    if n >= 3 && sb[0] == 0xEF && sb[1] == 0xBB && sb[2] == 0xBF {
+        i = 3
+    }
     // Optional shebang on first line.
     if i + 1 < n && sb[i] == '#' && sb[i + 1] == '!' {
         i = skip_to_eol(sb, i, n)
@@ -165,6 +172,13 @@ skip_block_comment :: fn(sb: const u8[], from: usize, n: usize) -> usize {
 // Parser state
 // ============================================================================
 
+// Hard cap on `parse_expr` recursion depth. Deeper nesting than this is
+// almost always machine-generated (or hostile) input and would otherwise
+// overflow the native stack with a bare SIGSEGV and no diagnostic. 256 clears
+// every realistic hand-written expression by a wide margin ; at the limit the
+// parser emits a single P1029 and stops descending.
+MAX_EXPR_DEPTH :: 256
+
 export Parser :: struct {
     tokens: Token[]
     file:   string
@@ -189,6 +203,14 @@ export Parser :: struct {
     // dedicated `ComptimeExpr` AST node (which would ripple a T3013 arm across
     // every exhaustive `match expr` in the compiler).
     pending_decls: Decl[] = []
+    // Current `parse_expr` recursion depth ; guards against a native stack
+    // overflow on pathologically nested input. Bounded by `MAX_EXPR_DEPTH`.
+    expr_depth: i32 = 0
+    // Latched once `MAX_EXPR_DEPTH` is exceeded : the single P1029 has been
+    // reported and every subsequent diagnostic is suppressed (see `error`) so
+    // the unwinding `expect` calls don't cascade one error per nesting level.
+    // Never cleared — past this depth the token stream is unrecoverable.
+    depth_exceeded: bool = false
 }
 
 new_parser :: fn(tokens: Token[], file: string) = Parser {
@@ -333,7 +355,26 @@ sync_to_top_level :: fn(p: Parser) -> void {
 // -------------------------------------------------------- error reporting
 
 error :: fn(p: Parser, code: ParserCode, span: Span, detail: string) -> void {
+    // Once the expression-depth guard trips, mute every further diagnostic :
+    // the unwinding `expect` calls would otherwise emit one error per nesting
+    // level. The single P1029 is pushed by `report_nesting_too_deep`, which
+    // bypasses this gate.
+    if p.depth_exceeded { return }
     p.errors.push(parser_error(code, span, detail))
+}
+
+// Report the one P1029 for a nesting-depth breach and latch `depth_exceeded`
+// so the unwinding diagnostics stay muted. Idempotent — only the first breach
+// reports. Also drops the rest of the line : the unparsed tail (thousands more
+// `(` / `!` tokens) would otherwise spawn a fresh statement — and downstream
+// type errors — for every `MAX_EXPR_DEPTH`-token chunk. `what` names the
+// grammar ("expression" / "type") for the detail line.
+report_nesting_too_deep :: fn(p: Parser, what: string) -> void {
+    if p.depth_exceeded { return }
+    p.errors.push(parser_error(.ExpressionNestingTooDeep, p.peek().span,
+        "${what} nested more than ${MAX_EXPR_DEPTH} levels deep"))
+    p.depth_exceeded = true
+    for !p.check(.Newline) && !p.check(.Eof) { p.advance() }
 }
 
 span_of :: fn(p: Parser, start: Token, end: Token) -> Span {
@@ -1485,6 +1526,19 @@ ident_expr :: fn(span: Span, name: string) -> IdentExpr {
 }
 
 parse_type :: fn(p: Parser) -> TypeExpr {
+    // Depth guard, sharing `parse_expr`'s budget : the type grammar recurses
+    // through `parse_type_primary`'s `(T)` grouping and `[T, …]` tuples, so
+    // pathologically nested type syntax (`((((…))))` in type position) could
+    // overflow the native stack the same way a nested value expression can.
+    // The postfix `T[][]…` chain is a loop, not recursion, so it doesn't trip
+    // this — a downstream AST walker is what a 10 000-deep `T[]` overruns.
+    p.expr_depth = p.expr_depth + 1
+    if p.expr_depth > MAX_EXPR_DEPTH {
+        p.expr_depth = p.expr_depth - 1
+        here :: p.peek().span
+        p.report_nesting_too_deep("type")
+        return ident_expr(here, "?")
+    }
     // Precedence : `const` prefix (qualifies the array type), postfix
     // `[]` (tightest), then `&` intersection, then `|` union
     // (loosest). Mirrors the value-side Pratt table.
@@ -1521,6 +1575,7 @@ parse_type :: fn(p: Parser) -> TypeExpr {
             }
         }
     }
+    p.expr_depth = p.expr_depth - 1
     return head
 }
 
@@ -2448,6 +2503,15 @@ postfix_bp :: fn(k: TokenKind) = match k {
 }
 
 parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
+    // Depth guard : bail before recursing past `MAX_EXPR_DEPTH` so deeply
+    // nested input (`((((…))))`, `!!!!…`) can't overflow the native stack.
+    p.expr_depth = p.expr_depth + 1
+    if p.expr_depth > MAX_EXPR_DEPTH {
+        p.expr_depth = p.expr_depth - 1
+        here :: p.peek().span
+        p.report_nesting_too_deep("expression")
+        return NullLitExpr { .span = here }
+    }
     left := p.parse_prefix()
 
     // Single-param lambda sugar: `x -> expr`. Only fires when prefix
@@ -2579,6 +2643,7 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
         break
     }
 
+    p.expr_depth = p.expr_depth - 1
     return left
 }
 

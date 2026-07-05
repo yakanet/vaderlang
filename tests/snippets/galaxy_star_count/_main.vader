@@ -1,0 +1,11 @@
+// Regression: an integer literal beyond the u64 range must be rejected at lex
+// time with L0011, not silently wrapped modulo 2^64. This 25-digit count used
+// to fold into a meaningless small value with no diagnostic at all.
+
+module "snippet"
+
+main :: fn() -> i32 {
+    // Rough number of stars in the observable universe — far past u64.MAX.
+    star_count :: 1000000000000000000000000
+    return i32(star_count % 1000)
+}
