@@ -3,6 +3,12 @@
 ## tests/snippets/generic_angle_decl
 
 ## generic instances
+  Box<i32>
+  Box<Box<i32>>
+  Box<Box<T>>
+  Box<T>
+  Box<T>
+  Box<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
@@ -11,12 +17,6 @@
   Rem<Rhs, Out>
   Index<I, T>
   IndexSet<I, T>
-  Box<i32>
-  Box<Box<i32>>
-  Box<Box<T>>
-  Box<T>
-  Box<T>
-  Box<T>
   Contains<T>
   Iterator<T>
   Iterator<T>

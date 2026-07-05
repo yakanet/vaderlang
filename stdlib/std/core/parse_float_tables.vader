@@ -7,7 +7,8 @@
 // `power_of_five_128` (Lemire 2021). `test_pow5_128_reference` guards the baked
 // values against sampled reference rows.
 //
-// Built with a fixed big-int (little-endian u32 limbs). The floor identity
+// Built with the `BigInt` kernel (little-endian u32 limbs) in `bigint.vader`
+// (same `module "std/core"`). The floor identity
 // `floor(floor(2^K / 5^j) / 5) = floor(2^K / 5^(j+1))` builds the negative
 // (reciprocal) powers by repeated /5 — an exact single-limb division, no
 // general big-int division and no error accumulation. Positive powers are
@@ -19,107 +20,6 @@ module "std/core"
 // the top 128 bits of `floor(2^K / 5^j)` equal the normalized mantissa of 5^-j.
 POW5_BIG_K :: 1100
 
-// ---- fixed big-int over little-endian u32 limbs ---------------------------
-
-// Limb `i` of `a`, or 0 past the end.
-bi_limb :: fn(a: u32[], i: usize) -> u64 = if i < a.len() { u64(a[i]) } else { u64(0) }
-
-// Count leading zeros of a non-zero u32.
-bi_clz32 :: fn(x: u32) -> i32 {
-    n: i32 = 0
-    v: u32 = x
-    for (v & 0x80000000) == 0 {
-        v = v << 1
-        n += 1
-    }
-    return n
-}
-
-// Bit length : position of the highest set bit + 1 (0 for a zero big-int).
-bi_bitlen :: fn(a: u32[]) -> i32 {
-    i: i32 = i32(a.len()) - 1
-    for i >= 0 {
-        if a[usize(i)] != 0 { return i * 32 + (32 - bi_clz32(a[usize(i)])) }
-        i -= 1
-    }
-    return 0
-}
-
-// Multiply a big-int by 5.
-bi_mul5 :: fn(a: u32[]) -> u32[] {
-    out: u32[] = []
-    carry: u64 = 0
-    for i in 0..<a.len() {
-        v :: u64(a[i]) * 5 + carry
-        out.push(u32(v & 0xFFFFFFFF))
-        carry = v >> 32
-    }
-    for carry > 0 {
-        out.push(u32(carry & 0xFFFFFFFF))
-        carry = carry >> 32
-    }
-    return out
-}
-
-// Floor-divide a big-int by 5. Schoolbook long division from the most-
-// significant limb ; exact, so the floor identity chains these for 5^-j.
-bi_div5 :: fn(a: u32[]) -> u32[] {
-    msb: u32[] = []           // quotient limbs, most-significant first
-    rem: u64 = 0
-    i: i32 = i32(a.len()) - 1
-    for i >= 0 {
-        cur :: (rem << 32) | u64(a[usize(i)])
-        msb.push(u32(cur / 5))
-        rem = cur % 5
-        i -= 1
-    }
-    out: u32[] = []           // reverse to little-endian
-    j: i32 = i32(msb.len()) - 1
-    for j >= 0 {
-        out.push(msb[usize(j)])
-        j -= 1
-    }
-    return out
-}
-
-// The 64 bits of `a` starting at bit offset `off` (off >= 0), little-endian.
-bi_bits64 :: fn(a: u32[], off: i32) -> u64 {
-    limb :: usize(off / 32)
-    sh :: off % 32
-    w0 :: bi_limb(a, limb)
-    w1 :: bi_limb(a, limb + 1)
-    if sh == 0 { return w0 | (w1 << 32) }
-    w2 :: bi_limb(a, limb + 2)
-    return (w0 >> u64(sh)) | (w1 << u64(32 - sh)) | (w2 << u64(64 - sh))
-}
-
-// Left-shift a 128-bit value (hi:lo) by s in [0, 127].
-bi_shl128 :: fn(hi: u64, lo: u64, s: i32) -> [u64, u64] {
-    if s == 0 { return [hi, lo] }
-    if s >= 64 { return [lo << u64(s - 64), u64(0)] }
-    return [(hi << u64(s)) | (lo >> u64(64 - s)), lo << u64(s)]
-}
-
-// Top 128 bits of a big-int (floor), normalized so bit 127 is set. Returns
-// [hi, lo]. `a` must be non-zero.
-bi_top128 :: fn(a: u32[]) -> [u64, u64] {
-    b :: bi_bitlen(a)
-    if b <= 128 {
-        lo :: bi_limb(a, 0) | (bi_limb(a, 1) << 32)
-        hi :: bi_limb(a, 2) | (bi_limb(a, 3) << 32)
-        return bi_shl128(hi, lo, 128 - b)
-    }
-    return [bi_bits64(a, b - 64), bi_bits64(a, b - 128)]
-}
-
-// 2^POW5_BIG_K as a big-int.
-bi_two_pow_k :: fn() -> u32[] {
-    out: u32[] = []
-    for _z in 0..<(POW5_BIG_K / 32) { out.push(0) }
-    out.push(u32(1) << u32(POW5_BIG_K % 32))
-    return out
-}
-
 // ---- the table : 5^q for q in [-342, 308], interleaved [hi, lo] -----------
 
 /// 128-bit powers of five, `POW5_128[2*(q+342)]` = high word, `+1` = low word.
@@ -128,10 +28,10 @@ export POW5_128 :: @comptime {
     // Negative powers 5^-j = floor(2^K / 5^j), j = 1..342, by repeated /5.
     neg_hi: u64[] = []
     neg_lo: u64[] = []
-    r: u32[] = bi_two_pow_k()
+    r: BigInt = two_pow(POW5_BIG_K)
     for j in 1..<343 {
-        r = bi_div5(r)
-        [h0, l0] :: bi_top128(r)
+        r = r.div_small(5)
+        [h0, l0] :: r.top128()
         h: u64 = h0
         l: u64 = l0
         if j <= 27 {                          // fast_float "rounded toward one"
@@ -154,12 +54,12 @@ export POW5_128 :: @comptime {
         k -= 1
     }
     // q = 0 .. 308  (positive powers 5^q by repeated *5)
-    p: u32[] = [1]
+    p: BigInt = [1]
     for _q in 0..<309 {
-        [h, l] :: bi_top128(p)
+        [h, l] :: p.top128()
         out.push(h)
         out.push(l)
-        p = bi_mul5(p)
+        p = p.mul_small(5)
     }
     return out
 }

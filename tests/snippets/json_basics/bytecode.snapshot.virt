@@ -20,7 +20,7 @@ type 17 struct __Tuple_27 { _0:16,_1:16 }
 type 18 struct std_core$SlowParts { d:19,e:3 }
 type 19 array 20
 type 20 primitive u32
-type 21 struct std_core$SdDiv5 { q:19,rem:5 }
+type 21 struct __Tuple_31 { _0:19,_1:20 }
 type 22 struct std_core$Dec64 { mantissa:16,exp:3 }
 type 23 struct __Tuple_33 { _0:16,_1:16,_2:16 }
 type 24 array 1
@@ -1669,12 +1669,15 @@ fn 12 std_core$parse_f64_slow (string,bool) -> f64
   local sticky bool
   local _k i32
   local $field_24 i32
+  local $k_26 u32
   local _k i32
-  local r ref
-  local $cast_61 u64
-  local $k_62 u64
-  local $k_78 u64
-  local $k_99 u64
+  local __tup_2 ref
+  local rem u32
+  local $k_51 u32
+  local $cast_67 u64
+  local $k_68 u64
+  local $k_84 u64
+  local $k_105 u64
   local.get 0
   call 16
   local.set 2
@@ -1718,7 +1721,10 @@ fn 12 std_core$parse_f64_slow (string,bool) -> f64
         local.get 8
         i32.lt
         if $L5 void
+          i32.const 5
+          local.set 9
           local.get 4
+          local.get 9
           call 18
           local.set 4
           local.get 7
@@ -1751,29 +1757,38 @@ fn 12 std_core$parse_f64_slow (string,bool) -> f64
     call 19
     local.set 4
     i32.const 0
-    local.set 9
+    local.set 10
     block $L6 void
       loop $L7 void
-        local.get 9
+        local.get 10
         local.get 7
         i32.lt
         if $L8 void
+          i32.const 5
+          local.set 9
           local.get 4
+          local.get 9
           call 20
-          local.set 10
-          local.field 10 21 0
+          local.set 11
+          local.field 11 21 0
           local.set 4
-          local.field 10 21 1
-          ref.cast 5
+          local.field 11 21 1
+          ref.cast 20
+          local.set 12
+          i32.const 0
+          local.set 13
+          local.get 12
+          local.get 13
+          i32.ne
           if $L9 void
             bool.const true
             local.set 6
           else
           end $L9
-          local.get 9
+          local.get 10
           i32.const 1
           i32.add
-          local.set 9
+          local.set 10
           br $L7
         else
         end $L8
@@ -1799,24 +1814,24 @@ fn 12 std_core$parse_f64_slow (string,bool) -> f64
   i32.ge
   if $L10 void
     i64.const 2047
-    local.set 11
+    local.set 14
     i64.const 52
-    local.set 12
-    local.get 11
-    local.get 12
+    local.set 15
+    local.get 14
+    local.get 15
     i64.shl
-    local.set 11
+    local.set 14
     local.get 3
-    local.get 11
+    local.get 14
     i64.bitor
     call 102
     return
   end $L10
   i32.const 1022
   i32.neg
-  local.set 9
+  local.set 10
   local.get 8
-  local.get 9
+  local.get 10
   i32.ge
   if $L11 void
     local.get 8
@@ -1831,25 +1846,25 @@ fn 12 std_core$parse_f64_slow (string,bool) -> f64
     local.get 7
     local.get 6
     call 22
-    local.set 11
+    local.set 14
     i64.const 1
-    local.set 12
+    local.set 15
     i64.const 53
-    local.set 13
-    local.get 12
-    local.get 13
+    local.set 16
+    local.get 15
+    local.get 16
     i64.shl
-    local.set 12
-    local.get 11
-    local.get 12
+    local.set 15
+    local.get 14
+    local.get 15
     u64.ge
     if $L12 void
       i64.const 1
-      local.set 12
-      local.get 11
-      local.get 12
+      local.set 15
+      local.get 14
+      local.get 15
       u64.shr
-      local.set 11
+      local.set 14
       local.get 8
       i32.const 1
       i32.add
@@ -1861,52 +1876,52 @@ fn 12 std_core$parse_f64_slow (string,bool) -> f64
     i32.ge
     if $L13 void
       i64.const 2047
-      local.set 12
+      local.set 15
       i64.const 52
-      local.set 13
-      local.get 12
-      local.get 13
+      local.set 16
+      local.get 15
+      local.get 16
       i64.shl
-      local.set 12
+      local.set 15
       local.get 3
-      local.get 12
+      local.get 15
       i64.bitor
       call 102
       return
     end $L13
     local.get 8
     i32.to_i64
-    local.set 12
+    local.set 15
     i64.const 52
-    local.set 13
-    local.get 12
-    local.get 13
+    local.set 16
+    local.get 15
+    local.get 16
     i64.shl
-    local.set 12
+    local.set 15
     local.get 3
-    local.get 12
+    local.get 15
     i64.bitor
-    local.set 12
+    local.set 15
     i64.const 1
-    local.set 13
+    local.set 16
     i64.const 52
-    local.set 14
-    local.get 13
-    local.get 14
+    local.set 17
+    local.get 16
+    local.get 17
     i64.shl
-    local.set 13
+    local.set 16
     i64.const 1
-    local.set 14
-    local.get 13
-    local.get 14
+    local.set 17
+    local.get 16
+    local.get 17
     i64.sub
-    local.set 13
-    local.get 11
-    local.get 13
+    local.set 16
+    local.get 14
+    local.get 16
     i64.bitand
-    local.set 11
-    local.get 12
-    local.get 11
+    local.set 14
+    local.get 15
+    local.get 14
     i64.bitor
     call 102
     return
@@ -1920,9 +1935,9 @@ fn 12 std_core$parse_f64_slow (string,bool) -> f64
   local.get 5
   local.get 6
   call 22
-  local.set 11
+  local.set 14
   local.get 3
-  local.get 11
+  local.get 14
   i64.bitor
   call 102
   return
@@ -2498,7 +2513,7 @@ fn 16 std_core$sd_scan (string) -> ref
   return
 end
 
-fn 17 std_core$sd_is_zero (ref) -> bool
+fn 17 std_core$is_zero (ref) -> bool
   local __for_hi_0 usize
   local i usize
   local $idx_6 u32
@@ -2541,107 +2556,18 @@ fn 17 std_core$sd_is_zero (ref) -> bool
   return.lit bool.const true
 end
 
-fn 18 std_core$bi_mul5 (ref) -> ref
-  local out ref
-  local carry u64
-  local __for_hi_0 usize
-  local i usize
-  local $cast_11 u64
-  local $k_12 u64
-  local v u64
-  local $k_16 u64
-  local $cast_18 u32
-  local $k_19 u64
-  local $k_21 usize
-  array.new 19 0
-  local.set 1
-  i64.const 0
+fn 18 std_core$mul_small (ref,u32) -> ref
+  local $k_2 u32
+  i32.const 0
   local.set 2
   local.get 0
-  array.len
-  local.set 3
-  i64.const 0
-  local.set 4
-  block $L0 void
-    loop $L1 void
-      local.get 4
-      local.get 3
-      u64.lt
-      if $L2 void
-        local.get 0
-        local.get 4
-        load_slot_i32
-        u32.to_i64
-        local.set 5
-        i64.const 5
-        local.set 6
-        local.get 5
-        local.get 6
-        i64.mul
-        local.get 2
-        i64.add
-        local.set 7
-        i64.const 4294967295
-        local.set 8
-        local.get 7
-        local.get 8
-        i64.bitand
-        u64.to_i32
-        local.set 9
-        local.get 1
-        local.get 9
-        array.push 20
-        i64.const 32
-        local.set 10
-        local.get 7
-        local.get 10
-        u64.shr
-        local.set 2
-        i64.const 1
-        local.set 11
-        local.get 4
-        local.get 11
-        i64.add
-        local.set 4
-        br $L1
-      else
-      end $L2
-    end $L1
-  end $L0
-  block $L3 void
-    loop $L4 void
-      i64.const 0
-      local.set 5
-      local.get 2
-      local.get 5
-      u64.gt
-      if $L5 void
-        i64.const 4294967295
-        local.set 6
-        local.get 2
-        local.get 6
-        i64.bitand
-        u64.to_i32
-        local.set 9
-        local.get 1
-        local.get 9
-        array.push 20
-        i64.const 32
-        local.set 7
-        local.get 2
-        local.get 7
-        u64.shr
-        local.set 2
-        br $L4
-      else
-      end $L5
-    end $L4
-  end $L3
   local.get 1
+  local.get 2
+  call 24
   return
 end
 
-fn 19 std_core$sd_shl (ref,i32) -> ref
+fn 19 std_core$shl (ref,i32) -> ref
   local out ref
   local __for_hi_1 usize
   local _z usize
@@ -2724,206 +2650,205 @@ fn 19 std_core$sd_shl (ref,i32) -> ref
         end $L6
       end $L5
     end $L4
-  else
-    i32.const 0
-    local.set 5
-    local.get 0
-    array.len
-    local.set 3
-    i64.const 0
-    local.set 4
-    block $L7 void
-      loop $L8 void
-        local.get 4
-        local.get 3
-        u64.lt
-        if $L9 void
-          local.get 0
-          local.get 4
-          load_slot_i32
-          u32.to_i64
-          local.set 8
-          local.get 7
-          i32.to_i64
-          local.set 9
-          local.get 8
-          local.get 9
-          i64.shl
-          local.set 10
-          local.get 5
-          u32.to_i64
-          local.set 11
-          local.get 10
-          local.get 11
-          i64.bitor
-          local.set 12
-          i64.const 4294967295
-          local.set 13
-          local.get 12
-          local.get 13
-          i64.bitand
-          u64.to_i32
-          local.set 14
-          local.get 2
-          local.get 14
-          array.push 20
-          i64.const 32
-          local.set 15
-          local.get 12
-          local.get 15
-          u64.shr
-          u64.to_i32
-          local.set 5
-          i64.const 1
-          local.set 6
-          local.get 4
-          local.get 6
-          i64.add
-          local.set 4
-          br $L8
-        else
-        end $L9
-      end $L8
-    end $L7
-    i32.const 0
-    local.set 14
-    local.get 5
-    local.get 14
-    i32.ne
-    if $L10 void
-      local.get 2
-      local.get 5
-      array.push 20
-    else
-    end $L10
+    local.get 2
+    return
   end $L3
+  i32.const 0
+  local.set 5
+  local.get 0
+  array.len
+  local.set 3
+  i64.const 0
+  local.set 4
+  block $L7 void
+    loop $L8 void
+      local.get 4
+      local.get 3
+      u64.lt
+      if $L9 void
+        local.get 0
+        local.get 4
+        load_slot_i32
+        u32.to_i64
+        local.set 8
+        local.get 7
+        i32.to_i64
+        local.set 9
+        local.get 8
+        local.get 9
+        i64.shl
+        local.set 10
+        local.get 5
+        u32.to_i64
+        local.set 11
+        local.get 10
+        local.get 11
+        i64.bitor
+        local.set 12
+        i64.const 4294967295
+        local.set 13
+        local.get 12
+        local.get 13
+        i64.bitand
+        u64.to_i32
+        local.set 14
+        local.get 2
+        local.get 14
+        array.push 20
+        i64.const 32
+        local.set 15
+        local.get 12
+        local.get 15
+        u64.shr
+        u64.to_i32
+        local.set 5
+        i64.const 1
+        local.set 6
+        local.get 4
+        local.get 6
+        i64.add
+        local.set 4
+        br $L8
+      else
+      end $L9
+    end $L8
+  end $L7
+  i32.const 0
+  local.set 14
+  local.get 5
+  local.get 14
+  i32.ne
+  if $L10 void
+    local.get 2
+    local.get 5
+    array.push 20
+  else
+  end $L10
   local.get 2
   return
 end
 
-fn 20 std_core$sd_div5 (ref) -> ref
+fn 20 std_core$divmod_small (ref,u32) -> ref
   local msb ref
-  local r u64
-  local $cast_6 i32
-  local $k_12 u64
-  local $shl_13 u64
-  local $cast_14 usize
-  local $cast_16 u64
+  local rem u64
+  local $cast_7 i32
+  local $k_13 u64
+  local $shl_14 u64
+  local $cast_15 usize
+  local $cast_17 u64
   local cur u64
-  local $k_19 u64
-  local $cast_21 u32
-  local $k_22 u64
+  local $cast_20 u64
+  local $cast_22 u32
+  local $cast_23 u64
   local out ref
-  local $neq_40 bool
   array.new 19 0
-  local.set 1
-  i64.const 0
   local.set 2
+  i64.const 0
+  local.set 3
   local.get 0
   array.len
   usize.to_i32
-  local.set 3
-  local.get 3
+  local.set 4
+  local.get 4
   i32.const 1
   i32.sub
-  local.set 3
+  local.set 4
   block $L0 void
     loop $L1 void
-      local.get 3
+      local.get 4
       i32.const 0
       i32.ge
       if $L2 void
         i64.const 32
-        local.set 4
-        local.get 2
-        local.get 4
-        i64.shl
         local.set 5
         local.get 3
-        i32.to_i64
+        local.get 5
+        i64.shl
         local.set 6
+        local.get 4
+        i32.to_i64
+        local.set 7
         local.get 0
-        local.get 6
+        local.get 7
         load_slot_i32
         u32.to_i64
-        local.set 7
-        local.get 5
-        local.get 7
-        i64.bitor
         local.set 8
-        i64.const 5
-        local.set 9
+        local.get 6
         local.get 8
+        i64.bitor
+        local.set 9
+        local.get 1
+        u32.to_i64
+        local.set 10
         local.get 9
+        local.get 10
         u64.div
         u64.to_i32
-        local.set 10
-        local.get 1
-        local.get 10
-        array.push 20
-        i64.const 5
         local.set 11
-        local.get 8
+        local.get 2
         local.get 11
+        array.push 20
+        local.get 1
+        u32.to_i64
+        local.set 12
+        local.get 9
+        local.get 12
         u64.rem
-        local.set 2
-        local.get 3
+        local.set 3
+        local.get 4
         i32.const 1
         i32.sub
-        local.set 3
+        local.set 4
         br $L1
       else
       end $L2
     end $L1
   end $L0
   array.new 19 0
-  local.set 12
-  local.get 1
+  local.set 13
+  local.get 2
   array.len
   usize.to_i32
-  local.set 3
-  local.get 3
+  local.set 4
+  local.get 4
   i32.const 1
   i32.sub
-  local.set 3
+  local.set 4
   block $L3 void
     loop $L4 void
-      local.get 3
+      local.get 4
       i32.const 0
       i32.ge
       if $L5 void
-        local.get 3
+        local.get 4
         i32.to_i64
-        local.set 6
-        local.get 1
-        local.get 6
+        local.set 7
+        local.get 2
+        local.get 7
         load_slot_i32
-        local.set 10
-        local.get 12
-        local.get 10
+        local.set 11
+        local.get 13
+        local.get 11
         array.push 20
-        local.get 3
+        local.get 4
         i32.const 1
         i32.sub
-        local.set 3
+        local.set 4
         br $L4
       else
       end $L5
     end $L4
   end $L3
-  i64.const 0
-  local.set 4
-  local.get 2
-  local.get 4
-  i64.ne
-  local.set 13
-  local.get 12
+  local.get 3
+  u64.to_i32
+  local.set 11
   local.get 13
+  local.get 11
   struct.new 21
   return
 end
 
-fn 21 std_core$bi_bitlen (ref) -> i32
+fn 21 std_core$bit_len (ref) -> i32
   local $cast_2 i32
   local $cast_8 usize
   local $idx_9 u32
@@ -3209,7 +3134,7 @@ fn 23 std_core$umul128 (u64,u64) -> ref
   return
 end
 
-fn 24 std_core$sd_mul_add (ref,u32,u32) -> ref
+fn 24 std_core$mul_add_small (ref,u32,u32) -> ref
   local out ref
   local carry u64
   local __for_hi_0 usize
@@ -3311,7 +3236,7 @@ fn 24 std_core$sd_mul_add (ref,u32,u32) -> ref
   return
 end
 
-fn 25 std_core$bi_clz32 (u32) -> i32
+fn 25 std_core$clz32 (u32) -> i32
   local n i32
   local v u32
   local $k_4 u32
@@ -3355,8 +3280,8 @@ fn 25 std_core$bi_clz32 (u32) -> i32
   return
 end
 
-fn 26 std_core$bi_bits64 (ref,i32) -> u64
-  local limb usize
+fn 26 std_core$bits64 (ref,i32) -> u64
+  local base usize
   local sh i32
   local w0 u64
   local $k_11 usize
@@ -3446,8 +3371,8 @@ fn 26 std_core$bi_bits64 (ref,i32) -> u64
   return
 end
 
-fn 27 std_core$sd_any_below (ref,i32) -> bool
-  local limb i32
+fn 27 std_core$any_below (ref,i32) -> bool
+  local whole i32
   local bit i32
   local __for_hi_0 usize
   local i usize
@@ -3554,7 +3479,7 @@ fn 27 std_core$sd_any_below (ref,i32) -> bool
   return.lit bool.const false
 end
 
-fn 28 std_core$bi_limb (ref,usize) -> u64
+fn 28 std_core$limb (ref,usize) -> u64
   local $len_2 usize
   local if_res u64
   local.get 0

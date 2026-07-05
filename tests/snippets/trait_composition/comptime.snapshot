@@ -4,13 +4,14 @@
 
 ## generic instances
   Numeric<T>
+  Hashable<T>
+  Aliased<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>
-  Hashable<T>
   Index<I, T>
   IndexSet<I, T>
   Contains<T>
@@ -19,7 +20,6 @@
   Yield<T>
   Yield<T>
   Yield<T>
-  Aliased<T>
   Range<i32>
   Range<usize>
   Range<T>

@@ -3,6 +3,8 @@
 ## tests/snippets/generic_brackets
 
 ## generic instances
+  Pair<i32, i32>
+  Pair<A, B>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
@@ -17,8 +19,6 @@
   Yield<T>
   Yield<T>
   Yield<T>
-  Pair<i32, i32>
-  Pair<A, B>
   Range<i32>
   Range<usize>
   Range<T>
