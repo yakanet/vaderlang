@@ -14,7 +14,7 @@ fn 0 snippet$main () -> i32
   struct.new 6
   struct.new 2
   make_closure 1 4
-  struct.new_stack 3
+  struct.new 3
   struct.get 3 0
   local.set 0
   i32.const 3

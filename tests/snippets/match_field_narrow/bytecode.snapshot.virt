@@ -35,7 +35,7 @@ fn 1 snippet$main () -> i32
   i32.const 2
   i32.const 3
   array.new 1 3
-  struct.new_stack 3
+  struct.new 3
   local.set 0
   local.field 0 3 0
   type_check 0
@@ -68,7 +68,7 @@ fn 1 snippet$main () -> i32
     call 6
   end $L0
   null.const
-  struct.new_stack 3
+  struct.new 3
   local.set 0
   local.field 0 3 0
   type_check 0

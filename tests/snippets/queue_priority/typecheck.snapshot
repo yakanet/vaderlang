@@ -1,0 +1,17 @@
+# Typecheck
+
+## tests/snippets/queue_priority
+  FnDecl         describe             :: fn(i32 | string) -> string
+  FnDecl         main                 :: fn() -> i32
+  expr 10:27    IdentExpr      :: string
+  expr 15:14    UnaryExpr      :: {integer}
+  expr 15:5     CallExpr       :: string
+  expr 15:5     IdentExpr      :: fn(i32 | string) -> string
+  expr 8:12     MatchExpr      :: string
+  expr 8:18     IdentExpr      :: i32 | string
+  expr 9:24     BinaryExpr     :: bool
+  expr 9:24     IdentExpr      :: i32
+  expr 9:33     StringLitExpr  :: string
+
+# Diagnostics
+[8:12] error[T3013] non-exhaustive match: variant i32 of i32 | string is not covered

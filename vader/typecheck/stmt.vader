@@ -464,7 +464,10 @@ check_assign :: fn(
     target_ty :: check_expr_fn(s.target, null, typed, diags)
     value_hint: Type | null = null
     if !(target_ty is UnresolvedType) { value_hint = target_ty }
-    check_expr_fn(s.value, value_hint, typed, diags)
+    value_ty :: check_expr_fn(s.value, value_hint, typed, diags)
+    // A write to a narrowed binding / field chain retires its stale
+    // narrowings — see `narrow.vader::invalidate_narrow_on_assign`.
+    invalidate_narrow_on_assign(s.target, value_ty, typed)
     return
 }
 
@@ -634,7 +637,7 @@ bump_loop_depth :: fn(ctx: FnContext | null) -> FnContext | null {
 // guards on `b.items` restore the right side-table on scope exit.
 DivergentNarrow :: struct {
     sym_id:    i32
-    prev:      Type | null
+    prev:      NarrowSlot | null
     static_ty: Type
     field_key: string = ""
 }

@@ -8,15 +8,17 @@
 // `a[i] = a[i] + 1` loops (the `arr_rw` bench weak spot, 3 resolves per iter).
 //
 // Conservative, intra-block only (mirrors `const_fold` in scope) :
-//   - the tracked `value` is a LocalId (an already-loaded SSA value), so a GC
-//     that relocates the array buffer does NOT invalidate it ; only a write to
-//     the slot does.
+//   - the tracked `value` is a LocalId (an already-loaded value), so a GC
+//     that relocates the array buffer does NOT invalidate it ; a write to the
+//     slot, or a redefinition of the value local itself, does.
 //   - an `ArraySet` may alias any tracked load (two array locals can name one
 //     array, two index locals one slot), so it clears all tracked slots, then
 //     records the slot it just wrote.
 //   - any side-effecting instruction (call / intrinsic / push / field-set, via
 //     `instruction_has_side_effect`) may write an aliased array, so it clears.
-//   - redefining the array or index local of a tracked slot invalidates it.
+//   - redefining the array, index, or value local of a tracked slot
+//     invalidates it (locals are mutable pre-SSA — the value local can be
+//     reassigned between the store and a later load).
 
 module "vader/midir"
 
@@ -58,8 +60,9 @@ forward_block :: fn(instrs: Instruction[]) -> Instruction[] {
     slots: SlotVal[] = []
     out: Instruction[] = [] * instrs.len()
     for ins in instrs {
-        // A redefinition of any tracked slot's array or index local invalidates
-        // that slot — the name now points elsewhere. Skip the filter (and its
+        // A redefinition of any tracked slot's array, index, or value local
+        // invalidates that slot — the name now points elsewhere, or the value
+        // no longer matches what the slot holds. Skip the filter (and its
         // allocation) on the common path where nothing is tracked.
         d :: dst_of(ins)
         if d != null && slots.len() > 0 { slots = drop_slots_using(slots, d) }
@@ -94,11 +97,14 @@ lookup_slot :: fn(slots: SlotVal[], target: LocalId, index: LocalId) -> LocalId 
     return null
 }
 
-// Drop tracked slots whose array or index local was just redefined.
+// Drop tracked slots whose array, index, or value local was just redefined.
+// Locals are mutable pre-SSA : a tracked `value` local can be reassigned in
+// place (`a[i] = x ; x = x + 5`), after which forwarding it would read the new
+// value, not the one stored in the slot.
 drop_slots_using :: fn(slots: SlotVal[], d: LocalId) -> SlotVal[] {
     out: SlotVal[] = []
     for s in slots {
-        if s.target != d && s.index != d { out.push(s) }
+        if s.target != d && s.index != d && s.value != d { out.push(s) }
     }
     return out
 }

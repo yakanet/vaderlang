@@ -119,21 +119,33 @@ export TypedProgram :: struct {
     /// with a member named `method`.
     impl_methods: MutableMap<string, Type>
 
-    /// Per-binding narrowed type stack (`Symbol.id → narrowed Type`).
+    /// Per-binding narrowed type stack (`Symbol.id → NarrowSlot`).
     /// `narrow.vader`'s `push_narrow` / `pop_narrow` write when a
     /// flow-sensitive narrowing is active (e.g. inside the then-branch of
     /// `if x is T as a`, or a match arm) ; readers go through
     /// `narrow_for_binding` so they fall back to the static type when no
-    /// narrowing is in effect. Producers live in `expr_if.vader`,
+    /// narrowing is in effect (or the entry's kill generation is stale —
+    /// see `narrow_kill_gens`). Producers live in `expr_if.vader`,
     /// `match_expr.vader`, and `stmt.vader`.
-    narrowed_bindings: MutableMap<i32, Type>
+    narrowed_bindings: MutableMap<i32, NarrowSlot>
 
-    /// Per-field narrowed type stack, keyed by `"${receiver_sym_id}.${field_name}"`.
+    /// Per-field narrowed type stack, keyed by `"${receiver_sym_id}#${field_name}"`.
     /// Mirrors `narrowed_bindings` but for `expr.field` chains : when
     /// `if b.items != null { ... }` activates a flow narrowing in the
     /// then-branch, `field.vader::infer_field` reads this side-table
     /// to return `i32[]` instead of `i32[] | null`.
-    narrowed_fields: MutableMap<string, Type>
+    narrowed_fields: MutableMap<string, NarrowSlot>
+
+    /// Kill generation per binding slot — bumped by
+    /// `invalidate_narrow_on_assign` when a reassignment invalidates the
+    /// binding's active narrowing. Entries pushed at an older generation
+    /// are ignored by `narrow_for_binding`, including the stacked `prev`
+    /// values a later `pop_narrow` restores.
+    narrow_kill_gens: MutableMap<i32, i32>
+
+    /// Kill generation per field-chain slot ; mirrors `narrow_kill_gens`
+    /// for `narrowed_fields` keys.
+    narrow_field_kill_gens: MutableMap<string, i32>
 
     /// AST kind label for each entry in `expr_types`, keyed by the
     /// same `Expr.id`. Populated alongside `expr_types` from
@@ -352,8 +364,10 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .fn_decls        = MutableMap<i32, FnDecl> {},
         .trait_decl_owners = MutableMap<i32, ResolvedModule> {},
         .impl_methods    = MutableMap<string, Type> {},
-        .narrowed_bindings = MutableMap<i32, Type> {},
-        .narrowed_fields = MutableMap<string, Type> {},
+        .narrowed_bindings = MutableMap<i32, NarrowSlot> {},
+        .narrowed_fields = MutableMap<string, NarrowSlot> {},
+        .narrow_kill_gens = MutableMap<i32, i32> {},
+        .narrow_field_kill_gens = MutableMap<string, i32> {},
         .expr_kinds      = MutableMap<usize, string> {},
         .import_targets  = null,
         .external_types  = MutableMap<i32, Type> {},

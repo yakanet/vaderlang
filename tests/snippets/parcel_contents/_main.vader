@@ -1,0 +1,32 @@
+// Regression: returning a member read out of a non-escaping container must
+// drag the member allocation to the heap (midir escape analysis models
+// FieldGet / ArrayGet as aliases of the container) — a stack-promoted
+// member would be a dangling pointer once the fn returns.
+// Expected: 42 and 77 survive the scratch allocation in main.
+
+module "snippet"
+
+import "std/io" { println }
+
+Gift :: struct { value: i32 }
+Parcel :: struct { contents: Gift }
+
+unwrap :: fn() -> Gift {
+    gift :: Gift { .value = 42 }
+    parcel :: Parcel { .contents = gift }
+    return parcel.contents
+}
+
+first_of_batch :: fn() -> Gift {
+    gift :: Gift { .value = 77 }
+    batch :: [gift]
+    return batch[0]
+}
+
+main :: fn() -> i32 {
+    a :: unwrap()
+    scratch :: Gift { .value = 2 }
+    b :: first_of_batch()
+    println("unwrapped: ${a.value} scratch: ${scratch.value} batch: ${b.value}")
+    return 0
+}

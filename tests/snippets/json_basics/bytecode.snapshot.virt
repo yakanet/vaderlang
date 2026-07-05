@@ -10997,7 +10997,7 @@ fn 63 std_json$write_object (ref,ref,i32,i32) -> void
         local.set 10
         local.get 9
         local.get 10
-        struct.new_stack 55
+        struct.new 55
         local.set 11
         local.field 11 56 0
         ref.cast 1

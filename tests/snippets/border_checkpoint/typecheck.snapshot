@@ -1,0 +1,59 @@
+# Typecheck
+
+## tests/snippets/border_checkpoint
+  FnDecl         inspect              :: fn(i32 | string) -> string
+  EnumDecl       Lane                 :: Lane
+  FnDecl         lane_call            :: fn(Lane, bool) -> string
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         wave_through         :: fn(i32 | string, bool) -> string
+  expr 14:12    MatchExpr      :: string
+  expr 14:18    IdentExpr      :: i32 | string
+  expr 15:25    BinaryExpr     :: bool
+  expr 15:25    IdentExpr      :: i32
+  expr 15:37    StringLitExpr  :: string
+  expr 16:19    StringLitExpr  :: string
+  expr 17:29    IdentExpr      :: string
+  expr 22:12    MatchExpr      :: string
+  expr 22:18    IdentExpr      :: i32 | string
+  expr 23:19    IdentExpr      :: bool
+  expr 23:30    StringLitExpr  :: string
+  expr 24:19    StringLitExpr  :: string
+  expr 25:22    StringLitExpr  :: string
+  expr 30:12    MatchExpr      :: string
+  expr 30:18    IdentExpr      :: Lane
+  expr 31:20    IdentExpr      :: bool
+  expr 31:28    StringLitExpr  :: string
+  expr 32:20    StringLitExpr  :: string
+  expr 33:18    StringLitExpr  :: string
+  expr 38:13    StringLitExpr  :: string
+  expr 38:16    CallExpr       :: string
+  expr 38:16    IdentExpr      :: fn(i32 | string) -> string
+  expr 38:32    CallExpr       :: string
+  expr 38:32    IdentExpr      :: fn(i32 | string) -> string
+  expr 38:47    CallExpr       :: string
+  expr 38:47    IdentExpr      :: fn(i32 | string) -> string
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 38:55    StringLitExpr  :: string
+  expr 39:13    StringLitExpr  :: string
+  expr 39:16    CallExpr       :: string
+  expr 39:16    IdentExpr      :: fn(i32 | string, bool) -> string
+  expr 39:42    CallExpr       :: string
+  expr 39:42    IdentExpr      :: fn(i32 | string, bool) -> string
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(T) -> void
+  expr 40:13    StringLitExpr  :: string
+  expr 40:16    CallExpr       :: string
+  expr 40:16    IdentExpr      :: fn(Lane, bool) -> string
+  expr 40:26    FieldExpr      :: Lane
+  expr 40:26    IdentExpr      :: Lane
+  expr 40:48    CallExpr       :: string
+  expr 40:48    IdentExpr      :: fn(Lane, bool) -> string
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(T) -> void
+  expr 40:58    FieldExpr      :: Lane
+  expr 40:58    IdentExpr      :: Lane
+  expr 40:81    CallExpr       :: string
+  expr 40:81    IdentExpr      :: fn(Lane, bool) -> string
+  expr 40:91    FieldExpr      :: Lane
+  expr 40:91    IdentExpr      :: Lane

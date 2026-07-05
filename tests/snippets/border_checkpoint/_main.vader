@@ -1,0 +1,42 @@
+// Regression: match-arm guards run end-to-end — the guard may read the
+// pattern's bindings (lowered inside the predicate block, under the
+// short-circuit `&&`), a bare-ident guard must not swallow the arm's
+// `->` as a lambda, and a guarded arm falls through to later arms when
+// the guard is false.
+
+module "snippet"
+
+import "std/io" { println }
+
+Lane :: enum(u8) { Cars, Trucks }
+
+inspect :: fn(load: i32 | string) -> string {
+    return match load {
+        is i32 as kg if kg > 100 -> "heavy"
+        is i32 -> "light"
+        is string as tag -> tag
+    }
+}
+
+wave_through :: fn(load: i32 | string, trusted: bool) -> string {
+    return match load {
+        is i32 if trusted -> "waved"
+        is i32 -> "checked"
+        is string -> "papers"
+    }
+}
+
+lane_call :: fn(l: Lane, rush: bool) -> string {
+    return match l {
+        .Trucks if rush -> "hold trucks"
+        .Trucks -> "trucks go"
+        .Cars -> "cars go"
+    }
+}
+
+main :: fn() -> i32 {
+    println("${inspect(250)} ${inspect(40)} ${inspect("sealed")}")
+    println("${wave_through(40, true)} ${wave_through(40, false)}")
+    println("${lane_call(Lane.Trucks, true)} ${lane_call(Lane.Trucks, false)} ${lane_call(Lane.Cars, false)}")
+    return 0
+}

@@ -1,0 +1,57 @@
+# Lower
+
+## snippet
+  fn snippet$describe(item: i32 | string) -> string
+    return
+      block :string
+        let __scrut_0: i32 | string = item :i32 | string
+        ~>
+          if :string
+            cond:
+              and :bool
+                l:
+                  is i32 :bool
+                    __scrut_0 :i32 | string
+                r:
+                  block :bool
+                    let n: i32 =
+                      cast → i32
+                        __scrut_0 :i32 | string
+                    ~>
+                      gt :bool
+                        l:
+                          n :i32
+                        r:
+                          int(0) :i32
+            then:
+              let n: i32 =
+                cast → i32
+                  __scrut_0 :i32 | string
+              ~>
+                "rush order" :string
+            else:
+              ~>
+                if :string
+                  cond:
+                    is string :bool
+                      __scrut_0 :i32 | string
+                  then:
+                    let s: string =
+                      cast → string
+                        __scrut_0 :i32 | string
+                    ~>
+                      s :string
+                  else:
+                    ~>
+                      unreachable("non-exhaustive match (T3013 should have caught this)") :string
+  fn snippet$main() -> i32
+    call :string
+      callee:
+        describe :fn(i32 | string) -> string
+      arg0:
+        neg :{integer}
+          int(3) :i32
+    return int(0) :i32
+
+# Diagnostics
+[8:12] error[T3013] non-exhaustive match: variant i32 of i32 | string is not covered

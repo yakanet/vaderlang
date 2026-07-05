@@ -1,0 +1,49 @@
+# Typecheck
+
+## tests/snippets/ticket_relabel
+  FnDecl         after_guard          :: fn() -> i32
+  StructDecl     Desk                 :: Desk
+  FnDecl         inside_branch        :: fn() -> i32
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         on_field             :: fn() -> i32
+  expr 11:18    IdentExpr      :: string
+  expr 11:5     IfExpr         :: void
+  expr 11:8     BinaryExpr     :: bool
+  expr 11:8     IdentExpr      :: i32 | string
+  expr 12:14    StringLitExpr  :: string
+  expr 12:5     IdentExpr      :: i32
+  expr 13:12    BinaryExpr     :: ?
+  expr 13:12    IdentExpr      :: i32 | string
+  expr 18:18    IdentExpr      :: i32
+  expr 18:5     IfExpr         :: void
+  expr 18:8     BinaryExpr     :: bool
+  expr 18:8     IdentExpr      :: i32 | string
+  expr 19:18    StringLitExpr  :: string
+  expr 19:9     IdentExpr      :: i32
+  expr 20:16    BinaryExpr     :: ?
+  expr 20:16    IdentExpr      :: i32 | string
+  expr 28:13    StructLitExpr  :: Desk
+  expr 29:24    IdentExpr      :: string
+  expr 29:5     IfExpr         :: void
+  expr 29:8     BinaryExpr     :: bool
+  expr 29:8     FieldExpr      :: i32 | string
+  expr 29:8     IdentExpr      :: Desk
+  expr 30:20    StringLitExpr  :: string
+  expr 30:5     FieldExpr      :: i32
+  expr 30:5     IdentExpr      :: Desk
+  expr 31:12    BinaryExpr     :: ?
+  expr 31:12    FieldExpr      :: i32 | string
+  expr 31:12    IdentExpr      :: Desk
+  expr 35:12    BinaryExpr     :: i32
+  expr 35:12    BinaryExpr     :: i32
+  expr 35:12    CallExpr       :: i32
+  expr 35:12    IdentExpr      :: fn() -> i32
+  expr 35:28    CallExpr       :: i32
+  expr 35:28    IdentExpr      :: fn() -> i32
+  expr 35:46    CallExpr       :: i32
+  expr 35:46    IdentExpr      :: fn() -> i32
+
+# Diagnostics
+[13:12] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and {integer}
+[20:16] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and {integer}
+[31:12] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and {integer}

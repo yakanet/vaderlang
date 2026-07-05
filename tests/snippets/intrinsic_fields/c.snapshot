@@ -111,34 +111,31 @@ static int32_t snippet_main(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 14u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
     l0 = vader_box_obj(0u, (void*)(uintptr_t)1u);
-    vader_struct_std_core_Field_t _a0_storage;
-    vader_struct_std_core_Field_t* _a1_obj = &_a0_storage;
-    vader_obj_header_init(_a1_obj, 10u);
-    _a1_obj->f_name = 1u;
-    _a1_obj->f_type = l0;
-    t0 = vader_box_obj(10u, _a1_obj);
+    vader_struct_std_core_Field_t* _a0_obj = (vader_struct_std_core_Field_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Field_t));
+    vader_obj_header_init(_a0_obj, 10u);
+    _a0_obj->f_name = 1u;
+    _a0_obj->f_type = l0;
+    t0 = vader_box_obj(10u, _a0_obj);
     l0 = t0;
     l1 = vader_box_obj(0u, (void*)(uintptr_t)1u);
-    vader_struct_std_core_Field_t _a2_storage;
-    vader_struct_std_core_Field_t* _a3_obj = &_a2_storage;
-    vader_obj_header_init(_a3_obj, 10u);
-    _a3_obj->f_name = 2u;
-    _a3_obj->f_type = l1;
-    t1 = vader_box_obj(10u, _a3_obj);
+    vader_struct_std_core_Field_t* _a1_obj = (vader_struct_std_core_Field_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Field_t));
+    vader_obj_header_init(_a1_obj, 10u);
+    _a1_obj->f_name = 2u;
+    _a1_obj->f_type = l1;
+    t1 = vader_box_obj(10u, _a1_obj);
     l1 = t1;
     l2 = vader_box_obj(0u, (void*)(uintptr_t)2u);
-    vader_struct_std_core_Field_t _a4_storage;
-    vader_struct_std_core_Field_t* _a5_obj = &_a4_storage;
-    vader_obj_header_init(_a5_obj, 10u);
-    _a5_obj->f_name = 3u;
-    _a5_obj->f_type = l2;
-    t2 = vader_box_obj(10u, _a5_obj);
+    vader_struct_std_core_Field_t* _a2_obj = (vader_struct_std_core_Field_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Field_t));
+    vader_obj_header_init(_a2_obj, 10u);
+    _a2_obj->f_name = 3u;
+    _a2_obj->f_type = l2;
+    t2 = vader_box_obj(10u, _a2_obj);
     l2 = t2;
-    vader_array_t* _a6_arr = vader_array_new(12u, 3u, 0u, 10u);
-    vader_array_box_slots(_a6_arr->buf)[_a6_arr->offset + 2u] = l2;
-    vader_array_box_slots(_a6_arr->buf)[_a6_arr->offset + 1u] = l1;
-    vader_array_box_slots(_a6_arr->buf)[_a6_arr->offset + 0u] = l0;
-    t3 = vader_box_obj(12u, _a6_arr);
+    vader_array_t* _a3_arr = vader_array_new(12u, 3u, 0u, 10u);
+    vader_array_box_slots(_a3_arr->buf)[_a3_arr->offset + 2u] = l2;
+    vader_array_box_slots(_a3_arr->buf)[_a3_arr->offset + 1u] = l1;
+    vader_array_box_slots(_a3_arr->buf)[_a3_arr->offset + 0u] = l0;
+    t3 = vader_box_obj(12u, _a3_arr);
     l0 = t3;
     t4 = ((vader_array_t*) l0.payload.obj)->length;
     l3 = t4;
@@ -146,10 +143,10 @@ static int32_t snippet_main(void) {
     {
         loop_28: {
             if ((l4 < l3)) {
-                vader_array_t* _a7_slotarr = ((vader_array_t*) l0.payload.obj);
-                while (_a7_slotarr->buf != NULL && _a7_slotarr->buf->header.forward != NULL) { _a7_slotarr->buf = (vader_array_buf_t*) _a7_slotarr->buf->header.forward; }
-                if ((size_t) l4 >= _a7_slotarr->length) { vader_trap("array index out of bounds"); }
-                t5 = vader_array_box_slots(_a7_slotarr->buf)[_a7_slotarr->offset + (size_t) l4];
+                vader_array_t* _a4_slotarr = ((vader_array_t*) l0.payload.obj);
+                while (_a4_slotarr->buf != NULL && _a4_slotarr->buf->header.forward != NULL) { _a4_slotarr->buf = (vader_array_buf_t*) _a4_slotarr->buf->header.forward; }
+                if ((size_t) l4 >= _a4_slotarr->length) { vader_trap("array index out of bounds"); }
+                t5 = vader_array_box_slots(_a4_slotarr->buf)[_a4_slotarr->offset + (size_t) l4];
                 l1 = t5;
                 t6 = (vader_string_t) ((vader_struct_std_core_Field_t*) l1.payload.obj)->f_name;
                 l5 = t6;
@@ -179,25 +176,23 @@ static int32_t snippet_main(void) {
         }
     }
     l0 = vader_box_obj(0u, (void*)(uintptr_t)2u);
-    vader_struct_std_core_Field_t _a8_storage;
-    vader_struct_std_core_Field_t* _a9_obj = &_a8_storage;
-    vader_obj_header_init(_a9_obj, 10u);
-    _a9_obj->f_name = 5u;
-    _a9_obj->f_type = l0;
-    t16 = vader_box_obj(10u, _a9_obj);
+    vader_struct_std_core_Field_t* _a5_obj = (vader_struct_std_core_Field_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Field_t));
+    vader_obj_header_init(_a5_obj, 10u);
+    _a5_obj->f_name = 5u;
+    _a5_obj->f_type = l0;
+    t16 = vader_box_obj(10u, _a5_obj);
     l0 = t16;
     l1 = vader_box_obj(0u, (void*)(uintptr_t)3u);
-    vader_struct_std_core_Field_t _a10_storage;
-    vader_struct_std_core_Field_t* _a11_obj = &_a10_storage;
-    vader_obj_header_init(_a11_obj, 10u);
-    _a11_obj->f_name = 6u;
-    _a11_obj->f_type = l1;
-    t17 = vader_box_obj(10u, _a11_obj);
+    vader_struct_std_core_Field_t* _a6_obj = (vader_struct_std_core_Field_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Field_t));
+    vader_obj_header_init(_a6_obj, 10u);
+    _a6_obj->f_name = 6u;
+    _a6_obj->f_type = l1;
+    t17 = vader_box_obj(10u, _a6_obj);
     l1 = t17;
-    vader_array_t* _a12_arr = vader_array_new(12u, 2u, 0u, 10u);
-    vader_array_box_slots(_a12_arr->buf)[_a12_arr->offset + 1u] = l1;
-    vader_array_box_slots(_a12_arr->buf)[_a12_arr->offset + 0u] = l0;
-    t18 = vader_box_obj(12u, _a12_arr);
+    vader_array_t* _a7_arr = vader_array_new(12u, 2u, 0u, 10u);
+    vader_array_box_slots(_a7_arr->buf)[_a7_arr->offset + 1u] = l1;
+    vader_array_box_slots(_a7_arr->buf)[_a7_arr->offset + 0u] = l0;
+    t18 = vader_box_obj(12u, _a7_arr);
     l0 = t18;
     t19 = ((vader_array_t*) l0.payload.obj)->length;
     l3 = t19;
@@ -205,10 +200,10 @@ static int32_t snippet_main(void) {
     {
         loop_107: {
             if ((l4 < l3)) {
-                vader_array_t* _a13_slotarr = ((vader_array_t*) l0.payload.obj);
-                while (_a13_slotarr->buf != NULL && _a13_slotarr->buf->header.forward != NULL) { _a13_slotarr->buf = (vader_array_buf_t*) _a13_slotarr->buf->header.forward; }
-                if ((size_t) l4 >= _a13_slotarr->length) { vader_trap("array index out of bounds"); }
-                t20 = vader_array_box_slots(_a13_slotarr->buf)[_a13_slotarr->offset + (size_t) l4];
+                vader_array_t* _a8_slotarr = ((vader_array_t*) l0.payload.obj);
+                while (_a8_slotarr->buf != NULL && _a8_slotarr->buf->header.forward != NULL) { _a8_slotarr->buf = (vader_array_buf_t*) _a8_slotarr->buf->header.forward; }
+                if ((size_t) l4 >= _a8_slotarr->length) { vader_trap("array index out of bounds"); }
+                t20 = vader_array_box_slots(_a8_slotarr->buf)[_a8_slotarr->offset + (size_t) l4];
                 l1 = t20;
                 t21 = (vader_string_t) ((vader_struct_std_core_Field_t*) l1.payload.obj)->f_name;
                 l5 = t21;

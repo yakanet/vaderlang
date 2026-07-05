@@ -132,7 +132,23 @@ arm_predicate :: fn(
     scrut_ident :: LoweredIdent { .span = span, .type = scrut_type, .symbol = scrut_symbol }
     core :: pattern_predicate(ctx, arm.pattern, scrut_ident, scrut_type, span, recurse)
     if arm.guard == null { return core }
-    guard :: recurse(ctx, arm.guard)
+    // The guard may read the pattern's bindings (`is i32 as n if n > 0`),
+    // which `lower_arm` only introduces inside the arm body — evaluated
+    // AFTER the predicate. Materialise the bindings in a block wrapping
+    // the guard so it reads defined slots. The block sits on the right of
+    // a short-circuit `&&`, so its unbox/cast of the scrutinee only runs
+    // once the pattern predicate has confirmed the type. (`lower_arm`
+    // re-introduces the same bindings in the arm body ; the second write
+    // to the same slots is idempotent.)
+    binding_stmts: LoweredStmt[] = []
+    introduce_pattern_bindings(ctx, arm.pattern, scrut_symbol, scrut_type, binding_stmts, arm.span)
+    guard := recurse(ctx, arm.guard)
+    if binding_stmts.len() > 0 {
+        guard = LoweredBlock {
+            .span = arm.guard.span, .type = TY_BOOL,
+            .stmts = binding_stmts, .trailing = guard,
+        }
+    }
     if core == null { return guard }
     return LoweredBinary {
         .span = arm.span, .type = TY_BOOL, .op = LoweredBinaryOp.And,

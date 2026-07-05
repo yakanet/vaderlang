@@ -9,13 +9,17 @@
 //   - Wrapped in CellNew / written into CellSet (closures capture by
 //     reference)
 //
-// Pure read-only uses (FieldGet, ArrayGet, ArrayLen, TypeCheck, Cast,
-// Move, CondBranch, …) keep the value local. Allocs with no escaping
-// reachable use are marked `stack: true` for downstream codegen.
+// Pure read-only uses (ArrayLen, TypeCheck, Cast, Move, CondBranch, …)
+// keep the value local. FieldGet / ArrayGet record the result as an
+// alias of the container, so a member read out and escaping drags the
+// container (and its stored allocs) to the heap with it. Allocs with no
+// escaping reachable use are marked `stack: true` for downstream codegen.
 
 module "vader/midir"
 
 import "std/collections" { MutableMap, MutableSet, add }
+import "vader/bytecode" { val_type_of_type, ValType }
+import "vader/types" { Type }
 
 export EscapeStats :: struct {
     total_allocs: i32
@@ -269,6 +273,21 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
                 is InstrMakeClosure as c -> { escaping.add(c.env) }
                 is InstrStructNew as s -> { for f in s.fields { append_alias(alias_of, s.dst, f) } }
                 is InstrArrayNew as a -> { for e in a.elements { append_alias(alias_of, a.dst, e) } }
+                // Reading a sub-object out of a container makes the result an
+                // alias of the container : if the read value escapes, the
+                // container (and, transitively, the alloc stored into it via
+                // the StructNew/ArrayNew edges above) must escape too —
+                // otherwise a stack-promoted member leaks a dangling pointer.
+                // Scalar reads (`p.x : i32`) carry no reference into the
+                // container and add no edge — most reads, so stack promotion
+                // survives. alias_of only (backward escape propagation) : the
+                // result of a read from a stack container is NOT itself
+                // stack-origin (the field may hold a heap ref), so no
+                // alias_from edge — that would let the barrierless
+                // forward-prop skip a needed write barrier.
+                is InstrFieldGet | InstrArrayGet as g -> {
+                    if read_may_carry_ref(g.type) { append_alias(alias_of, g.dst, g.target) }
+                }
                 _ -> {}
             }
         }
@@ -297,6 +316,17 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
         if escaping.contains(a) { alloc_escaping.add(a) }
     }
     return EscapeResult { .escaping = alloc_escaping, .alias_of = alias_of, .alias_from = alias_from }
+}
+
+// A field / element read only aliases its container when the read value can
+// carry a reference into it. Classify through the canonical stack-class
+// (`val_type_of_type` — exhaustive over `Type`, and it recurses into
+// distinct backings, so a newtype over a composite still counts as
+// ref-carrying) : only `Ref` / `Any` slots can point into the container ;
+// scalar reads (ints, floats, bool, char, string atoms, enums) are by value.
+read_may_carry_ref :: fn(t: Type) -> bool {
+    v :: val_type_of_type(t)
+    return v == ValType.Ref || v == ValType.Any
 }
 
 append_alias :: fn(map: MutableMap<LocalId, LocalId[]>, dst: LocalId, src: LocalId) -> void {

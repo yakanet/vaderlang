@@ -1,0 +1,5 @@
+
+# Diagnostics
+[13:12] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and {integer}
+[20:16] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and {integer}
+[31:12] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and {integer}
