@@ -455,19 +455,26 @@ fits :: fn(x: Mixed) -> bool {
 opt: Maybe<i32> = 42
 ```
 
-#### Distinct types (newtypes over a primitive or array)
+#### Distinct types (newtypes over a primitive, array, struct or tuple)
 
 A `Name :: <type-expr>` whose RHS resolves to a **primitive** (`i32`, `u8`,
-`f64`, `bool`, `char`, `string`, … — anything but `void` / `null`) **or an
-array** (`u32[]`) is **not** a transparent alias: it is a **distinct type** (a
-nominal newtype, à la Nim `distinct` / Go defined-types). A `union` / `&` / `fn`
-RHS — and, for now, `struct` / tuple — stays a transparent alias as above. There
-is no decorator — the primitive-or-array RHS *is* the trigger.
+`f64`, `bool`, `char`, `string`, … — anything but `void` / `null`), an **array**
+(`u32[]`), a **struct** (`Rgb`), or a **tuple** (`[i32, i32]`) is **not** a
+transparent alias: it is a **distinct type** (a nominal newtype, à la Nim
+`distinct` / Go defined-types). A `union` / `&` / `fn` RHS stays a transparent
+alias as above. There is no decorator — the RHS shape *is* the trigger.
+
+The bracketed tuple form `Name :: [T1, T2, …]` (≥ 2 all-type elements) is the
+**tuple type alias** syntax : a `::` const whose value is a bracketed list of
+types is promoted to a `TupleType` newtype. A bracket list with any *value*
+element (`["a", "b"]`) stays an ordinary array const.
 
 ```vader
 Celsius :: f64        // distinct — NOT interchangeable with f64
 Handle  :: i32        // distinct
 BigInt  :: u32[]      // distinct — array-backed newtype
+Color   :: Rgb        // distinct — struct-backed newtype
+Coord   :: [i32, i32] // distinct — tuple-backed newtype
 Mixed   :: i32 | string   // transparent alias (union RHS)
 ```
 
@@ -480,12 +487,21 @@ lowering boundary).
 - **Conversions are explicit and symmetric**, both runtime no-ops:
   `Celsius(x)` wraps an `f64`, `f64(c)` unwraps. An *implicit* coercion either
   way is rejected (`T3001`) — that is the whole point of the newtype.
-- **Array-backed distincts forward structural ops.** For a `Name :: T[]`, the
-  structural array operations — index `n[i]`, the `.len()` / `.push()` / …
-  builtins, `for x in n`, and `[…]` literal coercion — forward to the backing
-  array, while trait impls stay **nominal**. This lets an array newtype declare
-  its own operators (`BigInt implements Mul<u32>`) without colliding with the
-  array blanket impls (e.g. the `T[] implements Mul<usize>` repeat).
+- **Composite-backed distincts forward structural ops.** The structural
+  operations of the backing forward through the newtype, while trait impls stay
+  **nominal** :
+  - **array** (`Name :: T[]`) — index `n[i]`, the `.len()` / `.push()` / …
+    builtins, `for x in n`, and `[…]` literal coercion. This lets an array
+    newtype declare its own operators (`BigInt implements Mul<u32>`) without
+    colliding with the array blanket impls (`T[] implements Mul<usize>` repeat).
+  - **struct** (`Name :: Rgb`) — field access `c.r` and `Name { … }`
+    construction forward to the backing struct's fields, while the newtype owns
+    its own trait impls (`Color implements Add<Color, Color>`).
+  - **tuple** (`Name :: [A, B]`) — positional access `p.0` / `p.1`, `[a, b]`
+    literal construction, and `[a, b] :: p` destructure forward to the backing
+    tuple.
+  Nominal distinctness is a typechecker-only concept — the backend strips a
+  distinct to its backing at the lowering boundary, so there is no runtime cost.
 - **Arithmetic operators : concrete-first, then aliased-fallback.** A distinct's
   OWN arithmetic impl wins (`Instant implements Add<Duration>` drives `i + d`).
   With no own impl, `+` / `-` / `*` / `/` / `%` fall back to the backing type's —

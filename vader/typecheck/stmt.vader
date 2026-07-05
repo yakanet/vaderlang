@@ -13,7 +13,7 @@ import "vader/diagnostics" { Diagnostic, Span, TypecheckCode, typecheck_error, w
 AST :: import "vader/parser"
 import "vader/types" {
     Type, ArrayType, FnType, StructType, TupleType, TypeParamType, UnresolvedType, display_type,
-    NeverType, TraitType, TRAIT_ITERATOR, TRAIT_INTO, array_backing,
+    NeverType, TraitType, TRAIT_ITERATOR, TRAIT_INTO, array_backing, tuple_backing,
     TY_BOOL, TY_FREE_INT, TY_NEVER, TY_STRING, TY_NULL, TY_VOID, TY_UNRESOLVED,
 }
 
@@ -927,53 +927,56 @@ export assign_binding_types :: fn(
 assign_tuple :: fn(
     tb: AST.TupleBinding, declared: Type, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    match declared {
-        is TupleType as tup -> {
-            if tup.elements.len() != tb.elements.len() {
-                // Best-effort : Unresolved on each leaf, the resolver-
-                // emitted shape error already surfaces upstream.
-                for leaf in tb.elements { assign_binding_types(leaf, TY_UNRESOLVED, typed, diags) }
-                return
-            }
-            for i in 0..<tb.elements.len() {
-                assign_binding_types(tb.elements[i], tup.elements[i], typed, diags)
-            }
-        }
-        // Array destructuring : `[first, …rest] := arr` binds every
-        // simple/wildcard slot to the element type and the
-        // `RestBinding` to the array as a whole.
-        is ArrayType as arr -> {
-            for leaf in tb.elements {
-                match leaf {
-                    is AST.RestBinding -> { assign_binding_types(leaf, declared, typed, diags) }
-                    _ -> { assign_binding_types(leaf, arr.element, typed, diags) }
-                }
-            }
-        }
-        _ -> {
-            // A `[...]` pattern against a value that is neither a tuple nor
-            // an array (e.g. `for [k, v] in m` — a map yields `Entry<K, V>`,
-            // a 3-field struct, not a 2-tuple). The value still destructures
-            // when its type implements `Into<[...]>` of the same arity : bind
-            // each leaf to the coerced tuple's element type. `Entry<K, V>
-            // implements Into<[K, V]>` is what powers `for [k, v] in m`.
-            coerced :: into_tuple_target(declared, tb.elements.len(), typed)
-            if coerced is TupleType as tup {
-                for i in 0..<tb.elements.len() {
-                    assign_binding_types(tb.elements[i], tup.elements[i], typed, diags)
-                }
-                return
-            }
-            // Skip the diagnostic when the value type is unresolved (upstream
-            // error already fired) or a bare type-param (generic body —
-            // checked per instance, not at the definition).
-            if !(declared is UnresolvedType) && !(declared is TypeParamType) {
-                diags.push(typecheck_error(.TypeMismatch, tb.span,
-                    "cannot destructure a value of type ${display_type(declared)} ; a `[...]` pattern requires a tuple or array"))
-            }
+    // A tuple- or array-backed distinct newtype (`Coord :: [i32, i32]`,
+    // `BigInt :: u32[]`) destructures through its backing composite — the
+    // shape checks are identical, only the nominal wrapper is stripped.
+    tup :: tuple_backing(declared)
+    if tup != null {
+        if tup.elements.len() != tb.elements.len() {
+            // Best-effort : Unresolved on each leaf, the resolver-
+            // emitted shape error already surfaces upstream.
             for leaf in tb.elements { assign_binding_types(leaf, TY_UNRESOLVED, typed, diags) }
+            return
         }
+        for i in 0..<tb.elements.len() {
+            assign_binding_types(tb.elements[i], tup.elements[i], typed, diags)
+        }
+        return
     }
+    // Array destructuring : `[first, …rest] := arr` binds every simple/wildcard
+    // slot to the element type and the `RestBinding` to a fresh backing array
+    // (the raw slice, not the nominal newtype).
+    arr :: array_backing(declared)
+    if arr != null {
+        for leaf in tb.elements {
+            match leaf {
+                is AST.RestBinding -> { assign_binding_types(leaf, arr, typed, diags) }
+                _ -> { assign_binding_types(leaf, arr.element, typed, diags) }
+            }
+        }
+        return
+    }
+    // A `[...]` pattern against a value that is neither a tuple nor
+    // an array (e.g. `for [k, v] in m` — a map yields `Entry<K, V>`,
+    // a 3-field struct, not a 2-tuple). The value still destructures
+    // when its type implements `Into<[...]>` of the same arity : bind
+    // each leaf to the coerced tuple's element type. `Entry<K, V>
+    // implements Into<[K, V]>` is what powers `for [k, v] in m`.
+    coerced :: into_tuple_target(declared, tb.elements.len(), typed)
+    if coerced is TupleType as ctup {
+        for i in 0..<tb.elements.len() {
+            assign_binding_types(tb.elements[i], ctup.elements[i], typed, diags)
+        }
+        return
+    }
+    // Skip the diagnostic when the value type is unresolved (upstream
+    // error already fired) or a bare type-param (generic body —
+    // checked per instance, not at the definition).
+    if !(declared is UnresolvedType) && !(declared is TypeParamType) {
+        diags.push(typecheck_error(.TypeMismatch, tb.span,
+            "cannot destructure a value of type ${display_type(declared)} ; a `[...]` pattern requires a tuple or array"))
+    }
+    for leaf in tb.elements { assign_binding_types(leaf, TY_UNRESOLVED, typed, diags) }
 }
 
 // Resolve the `[...]` destructure coercion for a non-tuple / non-array

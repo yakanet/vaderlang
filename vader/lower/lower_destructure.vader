@@ -9,7 +9,7 @@ import "vader/parser" {
 }
 import "vader/diagnostics" { Span }
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, ArrayType, TupleType, TY_BOOL, TY_VOID, TY_UNRESOLVED, mk_primitive, UnresolvedType, display_type, TRAIT_INTO, METHOD_INTO }
+import "vader/types" { Type, ArrayType, TupleType, TY_BOOL, TY_VOID, TY_UNRESOLVED, mk_primitive, UnresolvedType, display_type, TRAIT_INTO, METHOD_INTO, array_backing, tuple_backing }
 
 // Walk a `LetBinding` tree, emitting one `LoweredLet` per leaf with
 // the target ident's `_<i>` field (tuples) or `[i]` index (arrays).
@@ -17,11 +17,20 @@ emit_let_binding_leaves :: fn(
     ctx: FnLowerCtx, binding: TupleBinding, target: LoweredExpr,
     target_type: Type, span: Span, out: LoweredStmt[],
 ) -> void {
+    // A tuple- or array-backed distinct newtype (`Coord :: [i32, i32]`,
+    // `BigInt :: u32[]`) destructures through its backing composite — unwrap the
+    // outer distinct so every tuple/array shape check below sees through it. The
+    // read `target` keeps its distinct type (the emit boundary strips it).
+    tup_backing :: tuple_backing(target_type)
+    arr_backing :: array_backing(target_type)
+    resolved :: if tup_backing != null { tup_backing }
+        else if arr_backing != null { arr_backing }
+        else { target_type }
     // `[a, b, ...rest] := arr` over an array : N index reads for the
     // fixed leaves, then a fresh-array + loop-push for the rest leaf.
     rest_index :: rest_leaf_index(binding)
     if rest_index >= 0 {
-        if target_type is ArrayType as arr {
+        if resolved is ArrayType as arr {
             emit_array_destructure(ctx, binding, usize(rest_index), target, arr, span, out)
             return
         }
@@ -32,11 +41,11 @@ emit_let_binding_leaves :: fn(
     // literal of plain `self.<field>` reads, bind each leaf DIRECTLY to
     // `target.<field>` — no `into()` call, no per-iteration tuple allocation.
     // `build_leaf_access` reads these names instead of the `_<i>` tuple field.
-    if !(target_type is TupleType) && !(target_type is ArrayType) {
-        candidate :: into_tuple_fields(ctx, target_type)
+    if !(resolved is TupleType) && !(resolved is ArrayType) {
+        candidate :: into_tuple_fields(ctx, resolved)
         if candidate != null && candidate.len() == binding.elements.len() {
             for i in 0..<binding.elements.len() {
-                emit_let_leaf(ctx, binding.elements[i], target, target_type, i, span, out, candidate)
+                emit_let_leaf(ctx, binding.elements[i], target, resolved, i, span, out, candidate)
             }
             return
         }
@@ -57,7 +66,7 @@ emit_let_binding_leaves :: fn(
     }
     for i in 0..<binding.elements.len() {
         leaf :: binding.elements[i]
-        emit_let_leaf(ctx, leaf, target, target_type, i, span, out, null)
+        emit_let_leaf(ctx, leaf, target, resolved, i, span, out, null)
     }
 }
 

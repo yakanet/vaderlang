@@ -17,7 +17,7 @@ import "std/math" { min }
 import "vader/diagnostics" { Diagnostic, typecheck_error }
 import "vader/types" {
     Type, ArrayType, TupleType, TypeParamType, UnionType, UnresolvedType,
-    DistinctType, array_backing,
+    DistinctType, array_backing, tuple_backing,
     display_type, mk_array, mk_tuple, TY_FREE_INT, TY_STRING, TY_UNRESOLVED,
 }
 AST :: import "vader/parser"
@@ -45,14 +45,22 @@ export infer_seq_lit :: fn(
     @partial match expected {
         is TupleType as tup -> { return infer_against_tuple(e, tup, typed, diags, check_expr_fn) }
         is ArrayType as arr -> { return infer_against_array(e, arr, typed, diags, check_expr_fn) }
-        // Array-backed distinct newtype (`f: BigInt = [1]`) : check the elements
-        // against the backing array's element type, but the literal's type is the
-        // nominal distinct itself, not the raw array.
+        // Composite-backed distinct newtype (`f: BigInt = [1]`,
+        // `p: Coord = [3, 4]`) : check the elements against the backing array /
+        // tuple, but the literal's type is the nominal distinct itself, not the
+        // raw composite.
         is DistinctType as d -> {
             ab :: array_backing(d)
-            if ab == null { return infer_no_expected(e, typed, diags, check_expr_fn) }
-            _checked :: infer_against_array(e, ab, typed, diags, check_expr_fn)
-            return d
+            if ab != null {
+                _checked :: infer_against_array(e, ab, typed, diags, check_expr_fn)
+                return d
+            }
+            tb :: tuple_backing(d)
+            if tb != null {
+                _checked :: infer_against_tuple(e, tb, typed, diags, check_expr_fn)
+                return d
+            }
+            return infer_no_expected(e, typed, diags, check_expr_fn)
         }
         _ -> { return infer_no_expected(e, typed, diags, check_expr_fn) }
     }

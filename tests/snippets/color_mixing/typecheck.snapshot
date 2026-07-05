@@ -1,0 +1,55 @@
+# Typecheck
+
+## tests/snippets/color_mixing
+  ConstDecl      Color                :: type
+  ConstDecl      Coord                :: type
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Rgb                  :: Rgb
+  expr 30:46    StructLitExpr  :: Color
+  expr 31:15    BinaryExpr     :: i32
+  expr 31:15    BinaryExpr     :: i32
+  expr 31:15    FieldExpr      :: i32
+  expr 31:15    IdentExpr      :: Color
+  expr 31:24    FieldExpr      :: i32
+  expr 31:24    IdentExpr      :: Color
+  expr 32:15    BinaryExpr     :: i32
+  expr 32:15    BinaryExpr     :: i32
+  expr 32:15    FieldExpr      :: i32
+  expr 32:15    IdentExpr      :: Color
+  expr 32:24    FieldExpr      :: i32
+  expr 32:24    IdentExpr      :: Color
+  expr 33:15    BinaryExpr     :: i32
+  expr 33:15    BinaryExpr     :: i32
+  expr 33:15    FieldExpr      :: i32
+  expr 33:15    IdentExpr      :: Color
+  expr 33:24    FieldExpr      :: i32
+  expr 33:24    IdentExpr      :: Color
+  expr 44:13    StructLitExpr  :: Color
+  expr 45:13    StructLitExpr  :: Color
+  expr 46:14    BinaryExpr     :: Color
+  expr 46:14    IdentExpr      :: Color
+  expr 46:20    IdentExpr      :: Color
+  expr 47:13    StringLitExpr  :: string
+  expr 47:16    FieldExpr      :: i32
+  expr 47:16    IdentExpr      :: Color
+  expr 47:27    FieldExpr      :: i32
+  expr 47:27    IdentExpr      :: Color
+  expr 47:38    FieldExpr      :: i32
+  expr 47:38    IdentExpr      :: Color
+  expr 47:5     CallExpr       :: void
+  expr 47:5     IdentExpr      :: fn(T) -> void
+  expr 49:16    SeqLitExpr     :: Coord
+  expr 50:13    StringLitExpr  :: string
+  expr 50:16    FieldExpr      :: i32
+  expr 50:16    IdentExpr      :: Coord
+  expr 50:23    FieldExpr      :: i32
+  expr 50:23    IdentExpr      :: Coord
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(T) -> void
+  expr 51:15    IdentExpr      :: Coord
+  expr 52:13    StringLitExpr  :: string
+  expr 52:16    BinaryExpr     :: i32
+  expr 52:16    IdentExpr      :: i32
+  expr 52:20    IdentExpr      :: i32
+  expr 52:5     CallExpr       :: void
+  expr 52:5     IdentExpr      :: fn(T) -> void
