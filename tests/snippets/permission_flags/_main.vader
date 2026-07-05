@@ -1,0 +1,35 @@
+// tests/snippets/permission_flags — the aliased operator fallback across ALL
+// operator classes.
+//
+// A distinct-over-primitive newtype with NO own impls inherits its backing's
+// operators (concrete-first, aliased-fallback) — arithmetic, comparison,
+// equality AND bitwise. An array-backed distinct's `in` falls back to the
+// backing array's `Contains`.
+//
+// Expected: prints "2", "6", "4", "true", "false", "8", "true", "false".
+
+module "snippet"
+
+import "std/io" { println }
+
+// No impls → inherits u32's operators (arith / compare / equality / bitwise).
+Permissions :: u32
+
+// Array-backed → `in` falls back to the array `Contains` blanket.
+Palette :: u8[]
+
+main :: fn() -> i32 {
+    r :: Permissions(0b110)         // read + write
+    w :: Permissions(0b010)         // write
+    println("${r & w}")             // bitwise AND → 2
+    println("${r | w}")             // bitwise OR  → 6
+    println("${r ^ w}")             // bitwise XOR → 4
+    println("${r > w}")             // comparison  → true
+    println("${r == w}")            // equality    → false
+    println("${r + w}")             // arithmetic  → 8
+
+    pal: Palette = [10, 20, 30]     // array-literal coercion to the distinct
+    println("${20 in pal}")         // membership  → true (array Contains fallback)
+    println("${99 in pal}")         // false
+    return 0
+}

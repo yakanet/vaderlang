@@ -86,7 +86,7 @@ export infer_binary :: fn(
         .Arith    -> { return check_arith(e, left, right, typed, diags) }
         .Compare  -> { return check_compare(e, left, right, typed, diags) }
         .Logical  -> { return check_logical(e, left, right, diags) }
-        .Bitwise  -> { return check_bitwise(e, left, right, diags) }
+        .Bitwise  -> { return check_bitwise(e, left, right, typed, diags) }
         // Is is a type test, not a trait dispatch.
         .Equality -> { return check_equality(e, left, right, typed, diags) }
         .Is       -> { return TY_BOOL }
@@ -133,19 +133,8 @@ check_arith :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgra
         }
         return substitute_self_in(ft.return_type, left)
     }
-    // Aliased fallback (concrete-first, aliased-fallback) : a distinct operand
-    // with no own impl for this operator behaves as its backing type — so
-    // `Meters :: i64` inherits `i64`'s arithmetic without redeclaring it, and
-    // `BigInt :: u32[]` without a `Mul` falls to the array blanket. A distinct
-    // that DOES define the operator (even for a different Rhs) already returned
-    // above, so `instant + 5` still errors on the Rhs check rather than silently
-    // computing on the backing int. Strip BOTH operands (else the recursed
-    // backing impl's Rhs check would reject a still-distinct other operand).
-    if left is DistinctType || right is DistinctType {
-        lb :: if left is DistinctType as ld { ld.backing } else { left }
-        rb :: if right is DistinctType as rd { rd.backing } else { right }
-        return check_arith(e, lb, rb, typed, diags)
-    }
+    fb :: distinct_op_fallback(e, left, right, typed, diags, check_arith)
+    if fb != null { return fb }
     return numeric_result(e, left, right, diags)
 }
 
@@ -173,6 +162,25 @@ substitute_self_in :: fn(t: Type, self_ty: Type) -> Type {
 
 import "vader/types" { SelfType }
 
+/// Aliased fallback for operator resolution (concrete-first, aliased-fallback) : a
+/// distinct operand with no own impl for THIS operator class behaves as its
+/// backing type. Strips ONE distinct layer off EACH operand (else the recursed
+/// backing check rejects a still-distinct other operand) and re-runs the op-class
+/// `recheck`. Returns `null` when neither operand is distinct — the caller then
+/// emits its normal "not defined" / "trait missing" diagnostic. Shared by
+/// check_arith / check_compare / check_bitwise / check_in. A distinct that DOES
+/// define the operator returned before reaching the fallback, so `instant + 5` /
+/// `instant < 5` still error on the impl's Rhs check rather than falling through.
+distinct_op_fallback :: fn(
+    e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, diags: Diagnostic[],
+    recheck: fn(AST.BinaryExpr, Type, Type, TypedProgram, Diagnostic[]) -> Type,
+) -> Type | null {
+    if !(left is DistinctType) && !(right is DistinctType) { return null }
+    lb :: if left is DistinctType as ld { ld.backing } else { left }
+    rb :: if right is DistinctType as rd { rd.backing } else { right }
+    return recheck(e, lb, rb, typed, diags)
+}
+
 check_compare :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     if is_numeric(left) && is_numeric(right) { return TY_BOOL }
     if is_string(left) && is_string(right) { return TY_BOOL }
@@ -180,6 +188,8 @@ check_compare :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProg
     // rewrites `a < b` into `a.compare(b) < 0` ; we only need to
     // confirm the impl exists here.
     if has_impl_method(left, METHOD_COMPARE, typed) { return TY_BOOL }
+    fb :: distinct_op_fallback(e, left, right, typed, diags, check_compare)
+    if fb != null { return fb }
     push_trait_missing(e, left, TRAIT_COMPARABLE, diags)
     return TY_BOOL
 }
@@ -213,6 +223,8 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, 
     // needed (it used to be required because the element-specific `[string]` key
     // never matched the generic blanket).
     if has_impl_method(right, METHOD_CONTAINS, typed) { return TY_BOOL }
+    fb :: distinct_op_fallback(e, left, right, typed, diags, check_in)
+    if fb != null { return fb }
     push_trait_missing(e, right, TRAIT_CONTAINS, diags)
     return TY_BOOL
 }
@@ -288,7 +300,7 @@ check_logical :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnosti
     return TY_BOOL
 }
 
-check_bitwise :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
+check_bitwise :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     // `T | U` (`|`) on two metatype values is the Layer 5b implicit
     // union — return the metatype so callers can lift the binary
     // expr into an in-place type alias.
@@ -296,6 +308,8 @@ check_bitwise :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnosti
         return left
     }
     if !is_integer(left) || !is_integer(right) {
+        fb :: distinct_op_fallback(e, left, right, typed, diags, check_bitwise)
+        if fb != null { return fb }
         push_op_undefined(e, left, right, diags)
         return TY_UNRESOLVED
     }

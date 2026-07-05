@@ -7,7 +7,7 @@ import "std/collections" { MutableMap }
 
 import "vader/parser" { Expr, NullLitExpr, FieldExpr, BinaryExpr, BinaryOp, RangeExpr, IdentExpr }
 import "vader/types" {
-    Type, PrimitiveType, UnionType, TypeParamType, AnyType, ArrayType, TY_BOOL, mk_primitive, TY_NULL,
+    Type, PrimitiveType, UnionType, TypeParamType, AnyType, ArrayType, TY_BOOL, mk_primitive, TY_NULL, array_backing,
     TRAIT_ADD, TRAIT_SUB, TRAIT_MUL, TRAIT_DIV, TRAIT_REM, TRAIT_EQUALS, TRAIT_COMPARABLE,
     METHOD_ADD, METHOD_SUB, METHOD_MUL, METHOD_DIV, METHOD_REM, METHOD_EQUALS, METHOD_COMPARE, METHOD_CONTAINS,
 }
@@ -91,7 +91,15 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         // primitive ones (`Range<T> implements Contains<T>` via the
         // intrinsic decl in std/core).
         coll_type :: ctx.types.expr_type(binary.right)
-        member :: find_impl_member_for(ctx, coll_type, METHOD_CONTAINS)
+        direct :: find_impl_member_for(ctx, coll_type, METHOD_CONTAINS)
+        // Array-backed distinct : retry `Contains` on the backing array (the
+        // `T[] implements Contains` blanket) — mirrors check_in's aliased fallback.
+        member :: if direct is UfcsMember {
+            direct
+        } else {
+            back :: array_backing(coll_type)
+            if back != null { find_impl_member_for(ctx, back, METHOD_CONTAINS) } else { direct }
+        }
         if member is UfcsMember as found {
             args: LoweredExpr[] = []
             args.push(lower_expr(ctx, binary.right))
