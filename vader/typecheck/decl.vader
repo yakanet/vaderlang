@@ -10,7 +10,7 @@
 //   - `@extern` ABI validation (T3050 / T3051) via `validate_extern`.
 //   - Layer 4-sugar const-as-type-alias detection : an un-annotated const
 //     whose value is in type position registers an alias / distinct type
-//     (`is_type_position_value` → `alias_for`) ; an annotated const gets
+//     (`is_type_expr` → `alias_for`) ; an annotated const gets
 //     its annotated type ; an un-annotated value const stays un-typed at
 //     decl level (its literal type lands in `expr_types` at body time).
 //
@@ -543,7 +543,7 @@ declare_const :: fn(
     annotation :: decl.ty
     match annotation {
         is null -> {
-            if is_type_position_value(decl.value, resolved) {
+            if is_type_expr(decl.value, resolved) {
                 alias_ty :: type_from_expr(decl.value, resolved, diags)
                 resolved.alias_types[sym.id] = alias_for(sym, alias_ty, decl.decorators)
                 typed.decl_types[sym.id] = TY_TYPE
@@ -586,43 +586,6 @@ distinct_backing :: fn(alias_ty: Type, decorators: AST.Decorator[]) -> bool {
 lookup_sym_by_name :: fn(resolved: ResolvedModule, name: string) -> Symbol | null {
     for s in resolved.symbols { if s.name == name { return s } }
     return null
-}
-
-is_type_position_value :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
-    if e is AST.IdentExpr {
-        if !(primitive_from_name(e.name) is null) { return true }
-        sym :: resolved.idents[e.span.hash()]
-        if sym is null { return false }
-        // @partial: only type-introducing kinds name a type-position value; every
-        // other SymbolKind (Fn, Local, Param, …) is a value, not a type.
-        @partial match sym.kind {
-            .Struct -> { return true }
-            .Trait  -> { return true }
-            .Enum   -> { return true }
-            .TypeAlias   -> { return true }
-            .TypeParam   -> { return true }
-            .BuiltinType -> { return true }
-            _ -> { return false }
-        }
-    }
-    if e is AST.BinaryExpr {
-        if e.op == AST.BinaryOp.BitOr {
-            return is_type_position_value(e.left, resolved) && is_type_position_value(e.right, resolved)
-        }
-    }
-    if e is AST.GenericInstExpr { return true }
-    if e is AST.FnTypeExpr { return true }
-    if e is AST.ArrayTypeExpr { return true }
-    // `Coord :: [i32, i32]` — a bracketed list of ≥ 2 elements whose every
-    // element is itself a type denotes a TUPLE type alias (`type_from_expr`
-    // lowers it to a `TupleType` ; 1-tuples are forbidden, so require ≥ 2). Any
-    // value element (`["a", "b"]`) keeps it a value const.
-    if e is AST.SeqLitExpr as seq {
-        if seq.elements.len() < 2 { return false }
-        for el in seq.elements { if !is_type_position_value(el, resolved) { return false } }
-        return true
-    }
-    return false
 }
 
 import "vader/types" { TY_TYPE }

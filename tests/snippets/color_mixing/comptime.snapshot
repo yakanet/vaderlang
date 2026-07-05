@@ -3,6 +3,7 @@
 ## tests/snippets/color_mixing
   @comptime  Color                = Rgb
   @comptime  Coord                = [i32, i32]
+  @comptime  Swatch               = [Rgb, i32]
 
 ## generic instances
   Into<Target>
