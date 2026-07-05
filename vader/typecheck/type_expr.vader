@@ -23,7 +23,7 @@ import "vader/resolver" { ResolvedModule }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 AST :: import "vader/parser"
 import "vader/types" {
-    Type, mk_primitive, mk_array, mk_fn, mk_struct, mk_trait, mk_tuple,
+    Type, UnresolvedType, mk_primitive, mk_array, mk_fn, mk_struct, mk_trait, mk_tuple,
     mk_type_param, is_primitive_name, resolve_primitive_alias,
     TY_TYPE, TY_SELF, TY_NULL, TY_UNRESOLVED, TY_VOID,
 }
@@ -37,7 +37,24 @@ export type_from_expr :: fn(
     // @partial: only the type-shaped expr kinds below denote a type; every other
     // (value-position) Expr is illegal in a type slot → T3002, handled by `_`.
     @partial match expr {
-        is AST.IdentExpr as e -> { return lower_ident(e, resolved) }
+        is AST.IdentExpr as e -> {
+            ty :: lower_ident(e, resolved)
+            // A bound ident that degrades to unresolved is a VALUE symbol (const /
+            // fn / local) used in a type slot — e.g. `b: SomeValueConst`, or a
+            // `Name :: [value, i32]` bracket that stayed a value const. Surface
+            // T3002 rather than letting the `?` reach emit (`no field _N on ?`).
+            // An unbound ident is already the resolver's R2006, and a primitive
+            // never degrades — so gate on "resolved to a symbol, not a primitive".
+            if ty is UnresolvedType {
+                if primitive_from_name(e.name) is null {
+                    if resolved.idents[e.span.hash()] !is null {
+                        diags.push(typecheck_error(.ExpectedKnownType, e.span,
+                            "`${e.name}` is not a type"))
+                    }
+                }
+            }
+            return ty
+        }
         is AST.GenericInstExpr as e -> { return lower_generic_inst(e, resolved, diags) }
         // `Iterator(i32)` / `Pair(K, V)` parsed as CallExpr in type
         // position : lower the callee to a Type and apply its args.
@@ -396,4 +413,23 @@ test_value_position_expr_emits_T3002 :: fn() -> void {
     type_from_expr(int_lit, rm, diags)
     assert_eq(diags.len(), 1)
     assert_eq(diags[0].code.id, "T3002")
+}
+
+@test
+test_value_const_in_type_position_emits_T3002 :: fn() -> void {
+    // A value const (`PI`) named in a type slot resolves to a non-type symbol —
+    // it must surface T3002, not degrade to `?` and reach emit.
+    src :: "PI :: 3\nuse :: fn(x: PI) -> void {}"
+    rm :: resolve_test_module(src)
+    parsed :: parse_source(src, "t.vader")
+    diags: Diagnostic[] = []
+    for decl in parsed.program.decls {
+        if decl is AST.FnDecl as f {
+            pty :: f.params[0].ty
+            if pty !is null { type_from_expr(pty, rm, diags) }
+        }
+    }
+    found := false
+    for d in diags { if d.code.id == "T3002" { found = true } }
+    assert(found, "expected T3002 for a value const used as a type")
 }
