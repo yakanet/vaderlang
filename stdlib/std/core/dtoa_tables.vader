@@ -68,7 +68,7 @@ build_pow5_split :: fn(rows: i32) -> u64[] {
         [lo, hi] :: split_row(p, i)
         out.push(lo)
         out.push(hi)
-        p = p.mul_small(5)
+        p = p * u32(5)
     }
     return out
 }

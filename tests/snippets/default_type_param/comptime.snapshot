@@ -8,9 +8,9 @@
   Add<Rhs, Out>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
-  Counter<Step>
   Div<Rhs, Out>
   Rem<Rhs, Out>
+  Counter<Step>
   Index<I, T>
   IndexSet<I, T>
   Contains<T>

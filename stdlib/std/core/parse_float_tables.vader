@@ -59,7 +59,7 @@ export POW5_128 :: @comptime {
         [h, l] :: p.top128()
         out.push(h)
         out.push(l)
-        p = p.mul_small(5)
+        p = p * u32(5)
     }
     return out
 }

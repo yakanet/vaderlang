@@ -14,13 +14,13 @@
   Contains<T>
   Iterator<T>
   Iterator<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
   Wrap<Cat>
   Wrap<Dog>
   Wrap<T>
   Wrap<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
   Range<i32>
   Range<usize>
   Range<T>

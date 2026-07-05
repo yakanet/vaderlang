@@ -6,10 +6,10 @@
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
-  Wrapper<i32>
-  Wrapper<T>
   Mul<Rhs, Out>
   Div<Rhs, Out>
+  Wrapper<i32>
+  Wrapper<T>
   Rem<Rhs, Out>
   Index<I, T>
   IndexSet<I, T>
