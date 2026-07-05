@@ -6,6 +6,8 @@
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
+  Wrapper<i32>
+  Wrapper<T>
   Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>
@@ -25,8 +27,6 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
-  Wrapper<i32>
-  Wrapper<T>
 
 # Diagnostics
 [34:5] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `Cat | Dog` — enumerate its variants or mark the match `@partial`

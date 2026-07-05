@@ -3,12 +3,6 @@
 ## tests/snippets/_diag_str_hash_map
 
 ## generic instances
-  Into<Target>
-  Add<Rhs, Out>
-  Sub<Rhs, Out>
-  Mul<Rhs, Out>
-  Div<Rhs, Out>
-  Rem<Rhs, Out>
   Entry<i32, i32>
   Entry<K, V>
   Entry<K, V>
@@ -51,6 +45,12 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
   Index<I, T>
   IndexSet<I, T>
   Contains<T>

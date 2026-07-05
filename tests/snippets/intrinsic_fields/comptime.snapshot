@@ -3,6 +3,8 @@
 ## tests/snippets/intrinsic_fields
 
 ## generic instances
+  Pair<string, i64>
+  Pair<K, V>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
@@ -17,8 +19,6 @@
   Yield<T>
   Yield<T>
   Yield<T>
-  Pair<string, i64>
-  Pair<K, V>
   Range<i32>
   Range<usize>
   Range<T>

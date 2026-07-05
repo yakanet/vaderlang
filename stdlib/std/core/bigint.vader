@@ -1,0 +1,261 @@
+// stdlib/std/core/bigint.vader — fixed-width big-integer kernel.
+//
+// `BigInt` is a natural (unsigned) arbitrary-precision integer stored as
+// little-endian base-2^32 limbs. It is the shared foundation for the
+// compile-time power-of-5 table generation (`parse_float_tables.vader`,
+// `dtoa_tables.vader`) and the runtime slow-path float parser
+// (`parse_float.vader`).
+//
+// The limb width is u32 on purpose : every division stays native `64/32` (no
+// u128 needed), and the table algorithms use the floor identity
+// `floor(floor(2^K/5^j)/5) = floor(2^K/5^(j+1))` to avoid a general big-int
+// division entirely. Only the operations those callers need are provided
+// (multiply / divide by 5, bit length, shifts, 64 / 128-bit window extraction).
+//
+// A signed integer or general arithmetic (add / sub / mul / divmod / pow) would
+// build on this kernel — e.g. `SignedBigInt :: struct { negative, mag: BigInt }`
+// — but is deliberately out of scope until a caller needs it.
+
+module "std/core"
+
+/// A fixed-width natural (unsigned) big integer : little-endian base-2^32
+/// limbs, no trailing zero limb. Zero is the empty limb sequence.
+///
+/// NOTE : this is a *transparent* alias, not a distinct nominal type — Vader
+/// only promotes `Name :: T` to a distinct newtype when `T` is a primitive
+/// (`decl.vader::distinct_backing`), so an array backing stays identical to
+/// `u32[]`. Consequence : arithmetic operators can't be overloaded here (a
+/// `BigInt implements Mul` would register under the `"[]"` key and collide with
+/// the array-repeat blanket `T[] implements Mul<usize>`), so the operations
+/// below are named methods (`mul_small`, `div_small`, …). Making array-backed
+/// newtypes first-class distinct types is a separate language chantier ; once it
+/// lands these become `*` / `/`.
+export BigInt :: u32[]
+
+/// Multiply by a small scalar and add a small scalar : `self * mul + add`.
+///
+/// One limb pass, O(n). The single primitive behind the ×5 power-of-five step
+/// and the ×10 + digit decimal accumulation.
+///
+/// @param self  the operand.
+/// @param mul   the u32 multiplier.
+/// @param add   a u32 addend folded into the low limb (carrying up).
+/// @return      `self * mul + add`, one limb wider when it overflows.
+export mul_add_small :: fn(self: BigInt, mul: u32, add: u32) -> BigInt {
+    out: BigInt = []
+    carry: u64 = u64(add)
+    for i in 0..<self.len() {
+        v :: u64(self[i]) * u64(mul) + carry
+        out.push(u32(v & 0xFFFFFFFF))
+        carry = v >> 32
+    }
+    for carry > 0 {
+        out.push(u32(carry & 0xFFFFFFFF))
+        carry = carry >> 32
+    }
+    return out
+}
+
+/// Multiply by a small (u32) scalar.
+export mul_small :: fn(self: BigInt, mul: u32) -> BigInt = self.mul_add_small(mul, 0)
+
+/// Floor-divide by a small (u32) scalar, keeping the remainder.
+///
+/// Schoolbook long division from the most-significant limb — O(n) exact, NOT the
+/// general O(n^2) BigInt / BigInt division. Chaining `div_small(5)` realizes the
+/// floor identity that builds the reciprocal powers `5^-j` ; the remainder feeds
+/// sticky-bit rounding in the slow-path float parser.
+///
+/// @param self  the operand.
+/// @param d     the u32 divisor (must be non-zero).
+/// @return      `[floor(self / d), self mod d]`.
+export divmod_small :: fn(self: BigInt, d: u32) -> [BigInt, u32] {
+    msb: BigInt = []          // quotient limbs, most-significant first
+    rem: u64 = 0
+    i: i32 = i32(self.len()) - 1
+    for i >= 0 {
+        cur :: (rem << 32) | u64(self[usize(i)])
+        msb.push(u32(cur / u64(d)))
+        rem = cur % u64(d)
+        i -= 1
+    }
+    out: BigInt = []          // reverse to little-endian
+    j: i32 = i32(msb.len()) - 1
+    for j >= 0 {
+        out.push(msb[usize(j)])
+        j -= 1
+    }
+    return [out, u32(rem)]
+}
+
+/// `floor(self / d)`, discarding the remainder.
+export div_small :: fn(self: BigInt, d: u32) -> BigInt {
+    [q, _rem] :: self.divmod_small(d)
+    return q
+}
+
+/// Left-shift the whole big-int by `bits` (>= 0).
+///
+/// @param self  the operand.
+/// @param bits  the shift amount in bits.
+/// @return      `self << bits`.
+export shl :: fn(self: BigInt, bits: i32) -> BigInt {
+    out: BigInt = []
+    for _z in 0..<usize(bits / 32) { out.push(0) }
+    bit_shift :: bits % 32
+    if bit_shift == 0 {
+        for i in 0..<self.len() { out.push(self[i]) }
+        return out
+    }
+    carry: u32 = 0
+    for i in 0..<self.len() {
+        v :: (u64(self[i]) << u64(bit_shift)) | u64(carry)
+        out.push(u32(v & 0xFFFFFFFF))
+        carry = u32(v >> 32)
+    }
+    if carry != 0 { out.push(carry) }
+    return out
+}
+
+/// True when every limb is zero.
+export is_zero :: fn(self: BigInt) -> bool {
+    for i in 0..<self.len() { if self[i] != 0 { return false } }
+    return true
+}
+
+/// True when any set bit lies strictly below bit position `pos`.
+export any_below :: fn(self: BigInt, pos: i32) -> bool {
+    whole :: pos / 32
+    bit :: pos % 32
+    for i in 0..<usize(whole) { if self[i] != 0 { return true } }
+    if bit > 0 && usize(whole) < self.len() {
+        mask :: (u32(1) << u32(bit)) - 1
+        if (self[usize(whole)] & mask) != 0 { return true }
+    }
+    return false
+}
+
+/// Bit length : position of the highest set bit + 1 (0 for zero).
+///
+/// @param self  the operand.
+/// @return      the number of significant bits.
+export bit_len :: fn(self: BigInt) -> i32 {
+    i: i32 = i32(self.len()) - 1
+    for i >= 0 {
+        if self[usize(i)] != 0 { return i * 32 + (32 - clz32(self[usize(i)])) }
+        i -= 1
+    }
+    return 0
+}
+
+/// The 64 bits starting at bit offset `off`, little-endian.
+///
+/// @param self  the operand.
+/// @param off   bit offset (>= 0) ; bits past the top read as 0.
+/// @return      the 64-bit window `(self >> off) & (2^64 - 1)`.
+export bits64 :: fn(self: BigInt, off: i32) -> u64 {
+    base :: usize(off / 32)
+    sh :: off % 32
+    w0 :: self.limb(base)
+    w1 :: self.limb(base + 1)
+    if sh == 0 { return w0 | (w1 << 32) }
+    w2 :: self.limb(base + 2)
+    return (w0 >> u64(sh)) | (w1 << u64(32 - sh)) | (w2 << u64(64 - sh))
+}
+
+/// Top 128 bits (floor), normalized so bit 127 is set.
+///
+/// @param self  a NON-zero operand.
+/// @return      `[hi, lo]` — the leading 128 bits, left-shifted so the most
+///              significant bit lands in bit 127 of `hi`.
+export top128 :: fn(self: BigInt) -> [u64, u64] {
+    b :: self.bit_len()
+    if b <= 128 {
+        lo :: self.limb(0) | (self.limb(1) << 32)
+        hi :: self.limb(2) | (self.limb(3) << 32)
+        return shl128(hi, lo, 128 - b)
+    }
+    return [self.bits64(b - 64), self.bits64(b - 128)]
+}
+
+/// `2^k` as a BigInt.
+///
+/// @param k  a non-negative exponent.
+/// @return   the power of two with bit `k` set and all others clear.
+export two_pow :: fn(k: i32) -> BigInt {
+    out: BigInt = []
+    for _z in 0..<(k / 32) { out.push(0) }
+    out.push(u32(1) << u32(k % 32))
+    return out
+}
+
+/// Left-shift a raw 128-bit value `(hi:lo)` by `s` in [0, 127].
+///
+/// Operates on a two-word value rather than a BigInt — a shared helper for
+/// `top128` and the dtoa split rows.
+///
+/// @return  the shifted `[hi, lo]` ; bits above 128 are dropped.
+export shl128 :: fn(hi: u64, lo: u64, s: i32) -> [u64, u64] {
+    if s == 0 { return [hi, lo] }
+    if s >= 64 { return [lo << u64(s - 64), u64(0)] }
+    return [(hi << u64(s)) | (lo >> u64(64 - s)), lo << u64(s)]
+}
+
+// ---- internal helpers -----------------------------------------------------
+
+// Limb `i` of `self`, or 0 past the end.
+limb :: fn(self: BigInt, i: usize) -> u64 = if i < self.len() { u64(self[i]) } else { u64(0) }
+
+// Count leading zeros of a non-zero u32.
+clz32 :: fn(x: u32) -> i32 {
+    n: i32 = 0
+    v: u32 = x
+    for (v & 0x80000000) == 0 {
+        v = v << 1
+        n += 1
+    }
+    return n
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+@test test_mul_div_small_roundtrip :: fn() -> void {
+    one: BigInt = [1]
+    p125 :: one.mul_small(5).mul_small(5).mul_small(5)   // 5^3
+    assert_eq(p125.bits64(0), u64(125))
+    assert_eq(p125.div_small(5).bits64(0), u64(25))
+    assert_eq(p125.div_small(5).div_small(5).div_small(5).bits64(0), u64(1))
+    // divmod keeps the remainder ; mul_add folds a scalar addend
+    [q, rem] :: p125.divmod_small(7)                     // 125 = 7*17 + 6
+    assert_eq(q.bits64(0), u64(17))
+    assert_eq(rem, u32(6))
+    assert_eq(one.mul_add_small(10, 3).bits64(0), u64(13))   // 1*10 + 3
+}
+
+@test test_shl_zero_below :: fn() -> void {
+    one: BigInt = [1]
+    shifted :: one.shl(70)                    // 2^70
+    assert_eq(shifted.bits64(70), u64(1))
+    assert_eq(shifted.is_zero(), false)
+    zero: BigInt = [0]
+    assert_eq(zero.is_zero(), true)
+    assert_eq(shifted.any_below(71), true)    // the set bit at 70 is below 71
+    assert_eq(shifted.any_below(70), false)   // nothing strictly below 70
+}
+
+@test test_two_pow_bit_len :: fn() -> void {
+    assert_eq(two_pow(10).bits64(0), u64(1024))
+    assert_eq(two_pow(100).bit_len(), 101)
+    // 2^64 : low 64 bits zero, next window carries bit 0.
+    assert_eq(two_pow(64).bits64(0), u64(0))
+    assert_eq(two_pow(64).bits64(64), u64(1))
+}
+
+@test test_top128_normalizes :: fn() -> void {
+    // 2^300 : top128 normalizes bit 127 → hi = 2^63, lo = 0.
+    [hi, lo] :: two_pow(300).top128()
+    assert_eq(hi, u64(0x8000000000000000))
+    assert_eq(lo, u64(0))
+}

@@ -3,15 +3,15 @@
 ## tests/snippets/custom_iter_generic
 
 ## generic instances
+  Repeat<i32>
+  Repeat<T>
+  Repeat<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>
-  Repeat<i32>
-  Repeat<T>
-  Repeat<T>
   Index<I, T>
   IndexSet<I, T>
   Contains<T>

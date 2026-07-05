@@ -3,15 +3,16 @@
 ## tests/snippets/generic_struct
 
 ## generic instances
+  Stack<i32>
+  Stack<T>
+  Stack<T>
+  Stackable<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>
-  Stack<i32>
-  Stack<T>
-  Stack<T>
   Index<I, T>
   IndexSet<I, T>
   Contains<T>
@@ -20,7 +21,6 @@
   Yield<T>
   Yield<T>
   Yield<T>
-  Stackable<T>
   Range<i32>
   Range<usize>
   Range<T>

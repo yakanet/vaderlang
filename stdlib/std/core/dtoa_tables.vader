@@ -17,8 +17,8 @@
 //   FLOAT_POW5_SPLIT[i]       = DOUBLE_POW5_SPLIT[i]     >> 64
 //   FLOAT_POW5_INV_SPLIT[q]   = (DOUBLE_POW5_INV_SPLIT[q] >> 66) + 1
 //
-// Built with the fixed big-int (little-endian u32 limbs) + `pow5bits` shared
-// within `module "std/core"` : `bi_*` live in parse_float_tables.vader,
+// Built with the `BigInt` kernel + `pow5bits`, shared within `module "std/core"`
+// : `BigInt` in bigint.vader, `POW5_BIG_K` in parse_float_tables.vader,
 // `pow5bits` in dtoa.vader. The reciprocals avoid general big-int division via
 // the floor identity `floor(floor(2^K / 5^q) / 5) = floor(2^K / 5^(q+1))` — the
 // same repeated /5 that parse_float_tables uses. A fixed `POW5_BIG_K = 1100`
@@ -39,23 +39,23 @@ module "std/core"
 inv_shift :: fn(q: i32) -> i32 = POW5_BIG_K - (pow5bits(q) - 1 + DOUBLE_POW5_INV_BITCOUNT)
 
 // 5^i split row (Ryu DOUBLE_POW5_SPLIT[i]) as [lo, hi] ; `p` is 5^i.
-split_row :: fn(p: u32[], i: i32) -> [u64, u64] {
+split_row :: fn(p: BigInt, i: i32) -> [u64, u64] {
     shift :: pow5bits(i) - DOUBLE_POW5_BITCOUNT
     if shift <= 0 {
-        plo :: bi_bits64(p, 0)
-        phi :: bi_bits64(p, 64)
-        [hi, lo] :: bi_shl128(phi, plo, -shift)   // 5^i << (-shift), exact
+        plo :: p.bits64(0)
+        phi :: p.bits64(64)
+        [hi, lo] :: shl128(phi, plo, -shift)   // 5^i << (-shift), exact
         return [lo, hi]
     }
-    return [bi_bits64(p, shift), bi_bits64(p, shift + 64)]   // floor(5^i / 2^shift)
+    return [p.bits64(shift), p.bits64(shift + 64)]   // floor(5^i / 2^shift)
 }
 
 // 1/5^q reciprocal row (Ryu DOUBLE_POW5_INV_SPLIT[q]) as [lo, hi] ; `r` is
 // floor(2^1100 / 5^q). value = (r >> inv_shift(q)) + 1.
-inv_row :: fn(r: u32[], q: i32) -> [u64, u64] {
+inv_row :: fn(r: BigInt, q: i32) -> [u64, u64] {
     s :: inv_shift(q)
-    lo :: bi_bits64(r, s)
-    hi :: bi_bits64(r, s + 64)
+    lo :: r.bits64(s)
+    hi :: r.bits64(s + 64)
     if lo == 0xFFFFFFFFFFFFFFFF { return [u64(0), hi + 1] }   // + 1 carries into hi
     return [lo + 1, hi]
 }
@@ -63,12 +63,12 @@ inv_row :: fn(r: u32[], q: i32) -> [u64, u64] {
 // The first `rows` entries of DOUBLE_POW5_SPLIT, packed [lo, hi, lo, hi, ...].
 build_pow5_split :: fn(rows: i32) -> u64[] {
     out: u64[] = []
-    p: u32[] = [1]                       // 5^0
+    p: BigInt = [1]                      // 5^0
     for i in 0..<rows {
         [lo, hi] :: split_row(p, i)
         out.push(lo)
         out.push(hi)
-        p = bi_mul5(p)
+        p = p.mul_small(5)
     }
     return out
 }
@@ -76,12 +76,12 @@ build_pow5_split :: fn(rows: i32) -> u64[] {
 // The first `rows` entries of DOUBLE_POW5_INV_SPLIT, packed [lo, hi, ...].
 build_pow5_inv :: fn(rows: i32) -> u64[] {
     out: u64[] = []
-    r: u32[] = bi_two_pow_k()            // 2^1100
+    r: BigInt = two_pow(POW5_BIG_K)      // 2^1100
     for q in 0..<rows {
         [lo, hi] :: inv_row(r, q)
         out.push(lo)
         out.push(hi)
-        r = bi_div5(r)
+        r = r.div_small(5)
     }
     return out
 }

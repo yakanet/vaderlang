@@ -3,12 +3,6 @@
 ## tests/snippets/map_kv_destructure
 
 ## generic instances
-  Into<Target>
-  Add<Rhs, Out>
-  Sub<Rhs, Out>
-  Mul<Rhs, Out>
-  Div<Rhs, Out>
-  Rem<Rhs, Out>
   Entry<i32, i32>
   Entry<string, i32>
   Entry<K, V>
@@ -52,6 +46,12 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
   Index<I, T>
   IndexSet<I, T>
   Contains<T>

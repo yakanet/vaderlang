@@ -3,10 +3,6 @@
 ## tests/snippets/generic_helper_chain
 
 ## generic instances
-  Into<Target>
-  Add<Rhs, Out>
-  Sub<Rhs, Out>
-  Mul<Rhs, Out>
   Box<i32>
   Box<string>
   Box<Box<i32>>
@@ -15,6 +11,10 @@
   Box<T>
   Box<T>
   Box<T>
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>
   Index<I, T>

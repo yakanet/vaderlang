@@ -3,11 +3,14 @@
 ## tests/snippets/trait_box_range_iter
 
 ## generic instances
+  Greeter<T>
+  Greeter<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
-  Greeter<T>
-  Greeter<T>
+  Doubler<i32>
+  Doubler<T>
+  Doubler<T>
   Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>
@@ -29,6 +32,3 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
-  Doubler<i32>
-  Doubler<T>
-  Doubler<T>

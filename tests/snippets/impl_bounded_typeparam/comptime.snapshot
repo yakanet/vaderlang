@@ -14,6 +14,10 @@
   Contains<T>
   Iterator<T>
   Iterator<T>
+  Wrap<Cat>
+  Wrap<Dog>
+  Wrap<T>
+  Wrap<T>
   Yield<T>
   Yield<T>
   Yield<T>
@@ -25,7 +29,3 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
-  Wrap<Cat>
-  Wrap<Dog>
-  Wrap<T>
-  Wrap<T>
