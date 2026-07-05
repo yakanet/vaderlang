@@ -555,6 +555,31 @@ export array_backing :: fn(t: Type) -> ArrayType | null {
     return null
 }
 
+/// The backing struct of `t` — `t` itself when it's a struct, or the struct a
+/// distinct newtype wraps (`Color :: Rgb` → `Rgb`). `null` for anything else.
+/// Lets the STRUCTURAL struct ops (field access, struct-literal construction)
+/// forward through a struct-backed distinct newtype while its trait impls
+/// (operator overloads) stay nominal on the distinct's own key.
+///
+/// Unwraps only the OUTER distinct — the struct's type args are preserved
+/// verbatim (mirror of `array_backing`).
+export struct_backing :: fn(t: Type) -> StructType | null {
+    if t is StructType as s { return s }
+    if t is DistinctType as d { return struct_backing(d.backing) }
+    return null
+}
+
+/// The backing tuple of `t` — `t` itself when it's a tuple, or the tuple a
+/// distinct newtype wraps (`Coord :: [i32, i32]` → `[i32, i32]`). `null` for
+/// anything else. Lets the STRUCTURAL tuple ops (positional `.0` access,
+/// literal construction, `[a, b]` destructure) forward through a tuple-backed
+/// distinct newtype while its trait impls stay nominal on the distinct's key.
+export tuple_backing :: fn(t: Type) -> TupleType | null {
+    if t is TupleType as p { return p }
+    if t is DistinctType as d { return tuple_backing(d.backing) }
+    return null
+}
+
 /// Map `strip_distinct` over a type-arg list. Always returns a fresh array
 /// with each element passed through `strip_distinct`.
 /// @param args  the concrete type arguments.

@@ -572,11 +572,14 @@ alias_for :: fn(sym: Symbol, alias_ty: Type, decorators: AST.Decorator[]) -> Typ
 distinct_backing :: fn(alias_ty: Type, decorators: AST.Decorator[]) -> bool {
     for d in decorators { if d.name == "comptime" { return false } }
     if alias_ty is PrimitiveType as p { return p.name != "void" && p.name != "null" }
-    // Array-backed newtypes (`BigInt :: u32[]`) are nominal too, so they can carry
-    // their own trait impls (operator overloads) instead of colliding with the
-    // array blankets on the `"[]"` key. Structural ops (index / len / push / for-in
-    // / literal coercion) forward to the backing array via `array_backing`.
-    if alias_ty is ArrayType { return true }
+    // Composite-backed newtypes (`BigInt :: u32[]`, `Color :: Rgb`,
+    // `Coord :: [i32, i32]`) are nominal too, so they can carry their own trait
+    // impls (operator overloads) on the distinct's own key instead of colliding
+    // with the array blankets (`"[]"`) or aliasing the backing struct/tuple.
+    // Structural ops (index / field / `.N` / len / push / for-in / literal
+    // coercion / destructure) forward to the backing via `array_backing` /
+    // `struct_backing` / `tuple_backing`.
+    if alias_ty is ArrayType | StructType | TupleType { return true }
     return false
 }
 
@@ -610,6 +613,15 @@ is_type_position_value :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
     if e is AST.GenericInstExpr { return true }
     if e is AST.FnTypeExpr { return true }
     if e is AST.ArrayTypeExpr { return true }
+    // `Coord :: [i32, i32]` — a bracketed list of ≥ 2 elements whose every
+    // element is itself a type denotes a TUPLE type alias (`type_from_expr`
+    // lowers it to a `TupleType` ; 1-tuples are forbidden, so require ≥ 2). Any
+    // value element (`["a", "b"]`) keeps it a value const.
+    if e is AST.SeqLitExpr as seq {
+        if seq.elements.len() < 2 { return false }
+        for el in seq.elements { if !is_type_position_value(el, resolved) { return false } }
+        return true
+    }
     return false
 }
 

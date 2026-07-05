@@ -8,7 +8,7 @@ module "vader/typecheck"
 
 import "std/string" { join }
 import "vader/diagnostics" { Diagnostic, typecheck_error }
-import "vader/types" { Type, StructType, display_type, TY_FREE_INT, TY_STRING, TY_UNRESOLVED }
+import "vader/types" { Type, StructType, struct_backing, display_type, TY_FREE_INT, TY_STRING, TY_UNRESOLVED }
 AST :: import "vader/parser"
 
 /// Type-check a `StructLitExpr`. Always returns the struct type even
@@ -18,7 +18,14 @@ export infer_struct_lit :: fn(
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     ty :: type_from_expr(e.type_name, typed.resolved, diags)
-    if ty is StructType as st { return check_struct_body(e, st, typed, diags, check_expr_fn) }
+    // A struct-backed distinct newtype (`Color :: Rgb`) constructs through the
+    // backing struct's fields but keeps its nominal identity — check the body
+    // against the backing, return the distinct `Color` (not the raw `Rgb`).
+    st_backing :: struct_backing(ty)
+    if st_backing != null {
+        check_struct_body(e, st_backing, typed, diags, check_expr_fn)
+        return ty
+    }
     diags.push(typecheck_error(.TypeMismatch, e.type_name.span,
         "${display_type(ty)} is not a struct"))
     // Still type every item so nested diagnostics surface.

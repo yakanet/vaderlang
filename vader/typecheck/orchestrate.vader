@@ -1009,6 +1009,13 @@ export is_alias_value_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool 
     if e is AST.GenericInstExpr { return true }
     if e is AST.FnTypeExpr { return true }
     if e is AST.ArrayTypeExpr { return true }
+    // `Coord :: [i32, i32]` — a ≥ 2-element all-type bracketed list is a tuple
+    // type alias (1-tuples are forbidden).
+    if e is AST.SeqLitExpr as seq {
+        if seq.elements.len() < 2 { return false }
+        for el in seq.elements { if !is_alias_value_expr(el, resolved) { return false } }
+        return true
+    }
     return false
 }
 
@@ -1844,6 +1851,13 @@ is_type_value_expr :: fn(e: AST.Expr, typed: TypedProgram) -> bool {
     if e is AST.GenericInstExpr { return true }
     if e is AST.FnTypeExpr { return true }
     if e is AST.ArrayTypeExpr { return true }
+    // `Coord :: [i32, i32]` — a ≥ 2-element all-type bracketed list is a tuple
+    // type alias (1-tuples are forbidden).
+    if e is AST.SeqLitExpr as seq {
+        if seq.elements.len() < 2 { return false }
+        for el in seq.elements { if !is_type_value_expr(el, typed) { return false } }
+        return true
+    }
     return false
 }
 

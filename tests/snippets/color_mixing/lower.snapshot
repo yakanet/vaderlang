@@ -1,0 +1,301 @@
+# Lower
+
+## snippet
+  struct snippet$Rgb { r: i32, g: i32, b: i32 }
+  fn snippet$Color$Add$add(self: Color, other: Color) -> Color
+    ~>
+      Color {
+        r:
+          div :i32
+            l:
+              add :i32
+                l:
+                  .r :i32
+                    self :Color
+                r:
+                  .r :i32
+                    other :Color
+            r:
+              int(2) :i32
+        g:
+          div :i32
+            l:
+              add :i32
+                l:
+                  .g :i32
+                    self :Color
+                r:
+                  .g :i32
+                    other :Color
+            r:
+              int(2) :i32
+        b:
+          div :i32
+            l:
+              add :i32
+                l:
+                  .b :i32
+                    self :Color
+                r:
+                  .b :i32
+                    other :Color
+            r:
+              int(2) :i32
+      }
+  fn snippet$main() -> i32
+    let red: Color =
+      Color {
+        r: int(200) :i32
+        g: int(0) :i32
+        b: int(0) :i32
+      }
+    let blue: Color =
+      Color {
+        r: int(0) :i32
+        g: int(0) :i32
+        b: int(200) :i32
+      }
+    let mixed: Color =
+      Color {
+        r:
+          div :i32
+            l:
+              add :i32
+                l:
+                  .r :i32
+                    red :Color
+                r:
+                  .r :i32
+                    blue :Color
+            r:
+              int(2) :i32
+        g:
+          div :i32
+            l:
+              add :i32
+                l:
+                  .g :i32
+                    red :Color
+                r:
+                  .g :i32
+                    blue :Color
+            r:
+              int(2) :i32
+        b:
+          div :i32
+            l:
+              add :i32
+                l:
+                  .b :i32
+                    red :Color
+                r:
+                  .b :i32
+                    blue :Color
+            r:
+              int(2) :i32
+      }
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(62) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    .r :i32
+                      mixed :Color
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    .g :i32
+                      mixed :Color
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    .b :i32
+                      mixed :Color
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+    let p: Coord =
+      Coord {
+        _0: int(3) :i32
+        _1: int(4) :i32
+      }
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(41) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  cast → i64
+                    ._0 :i32
+                      p :Coord
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  cast → i64
+                    ._1 :i32
+                      p :Coord
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
+    let __tup_4: Coord = p :Coord
+    let x: i32 =
+      ._0 :i32
+        __tup_4 :Coord
+    let y: i32 =
+      ._1 :i32
+        __tup_4 :Coord
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_5: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(20) :usize
+          let __off_6: usize = int(0) :usize
+          assign
+            target:
+              __off_6 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_5 :Buffer
+                arg1:
+                  __off_6 :usize
+                arg2:
+                  cast → i64
+                    add :i32
+                      l:
+                        x :i32
+                      r:
+                        y :i32
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_5 :Buffer
+              arg1:
+                __off_6 :usize
+    return int(0) :i32

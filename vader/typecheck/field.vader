@@ -21,7 +21,7 @@ AST :: import "vader/parser"
 import "vader/resolver" { ResolvedModule }
 import "vader/types" {
     Type, ArrayType, EnumType, PrimitiveType, StructType, TraitType, TupleType, UnionType, UnresolvedType,
-    FreeIntType, FreeFloatType, FreeCharType,
+    FreeIntType, FreeFloatType, FreeCharType, struct_backing, tuple_backing,
     display_type, type_base_name, TY_FREE_INT, TY_STRING, TY_NULL, TY_UNRESOLVED,
 }
 
@@ -221,14 +221,18 @@ try_default_trait_method_dispatch :: fn(
 try_tuple_index_dispatch :: fn(
     target_ty: Type, e: AST.FieldExpr, diags: Diagnostic[],
 ) -> Type | null {
-    if !(target_ty is TupleType) { return null }
+    // `tuple_backing` accepts a tuple-backed distinct newtype too, so `coord.0`
+    // forwards to the backing tuple's positional slots while the distinct keeps
+    // its nominal identity.
+    tup :: tuple_backing(target_ty)
+    if tup == null { return null }
     idx :: parse_tuple_index(e.field)
-    if idx < 0 || idx >= target_ty.elements.len() {
+    if idx < 0 || idx >= tup.elements.len() {
         diags.push(typecheck_error(.FieldDoesNotExist, e.field_span,
             "`${e.field}` on ${display_type(target_ty)}"))
         return TY_UNRESOLVED
     }
-    return target_ty.elements[idx]
+    return tup.elements[idx]
 }
 
 try_union_common_field_dispatch :: fn(
@@ -258,12 +262,16 @@ try_enum_variant_dispatch :: fn(
 resolve_struct_field :: fn(
     target_ty: Type, e: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    if !(target_ty is StructType) {
+    // `struct_backing` accepts a struct-backed distinct newtype (`Color :: Rgb`)
+    // too : `color.r` forwards to the backing struct's fields while the distinct
+    // keeps its nominal identity for trait-impl dispatch.
+    st :: struct_backing(target_ty)
+    if st == null {
         diags.push(typecheck_error(.NotIndexable, e.span,
             "`.${e.field}` on non-struct type ${display_type(target_ty)}"))
         return TY_UNRESOLVED
     }
-    decl :: typed.struct_decls[target_ty.symbol.id]
+    decl :: typed.struct_decls[st.symbol.id]
     if decl is null {
         // declare_module didn't index the struct decl (cross-module
         // reference before wire.vader lands, typically).
@@ -271,14 +279,14 @@ resolve_struct_field :: fn(
     }
     // T3054 : reject reads (and assignment LHS, which types through here too)
     // of an `@internal` field from outside its declaring module.
-    check_internal_field(target_ty, decl, e.field, e.field_span, typed, diags)
-    found :: resolved_field_type(target_ty.symbol.id, decl, e.field, typed, diags)
+    check_internal_field(st, decl, e.field, e.field_span, typed, diags)
+    found :: resolved_field_type(st.symbol.id, decl, e.field, typed, diags)
     if found == null {
         diags.push(typecheck_error(.FieldDoesNotExist, e.field_span,
             "`${e.field}` on ${display_type(target_ty)}"))
         return TY_UNRESOLVED
     }
-    substituted :: substitute_struct_field(found, decl, target_ty)
+    substituted :: substitute_struct_field(found, decl, st)
     return narrow_field_if_active(e, substituted, typed)
 }
 

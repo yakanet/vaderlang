@@ -8,7 +8,7 @@ import "std/collections" { MutableMap, values }
 import "vader/parser" { Expr, IdentExpr, FieldExpr, StructLitExpr, StructLitField, StructLitSpread, SeqLitExpr, DotVariantExpr, StructDecl }
 import "vader/diagnostics" { Span }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, TupleType, mk_primitive, StructType, EnumType }
+import "vader/types" { Type, TupleType, mk_primitive, StructType, EnumType, struct_backing, tuple_backing }
 
 lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> LoweredExpr {
     // Index the literal's provided values by name so we can walk the
@@ -48,13 +48,16 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
     // (self = this erased struct type), giving the vtable its missing row.
     // Deduped by `seen_generic_impl_recv` ; concrete instances are already
     // covered by the harvest (re-queueing them here is a harmless no-op).
-    if type is StructType as st {
-        if args_all_any_leaves(st.args) { queue_generic_impl_receiver(ctx, st) }
+    // `struct_backing` unwraps a struct-backed distinct newtype (`Color :: Rgb`)
+    // so the construction still registers against the backing struct symbol.
+    st_backing :: struct_backing(type)
+    if st_backing != null {
+        if args_all_any_leaves(st_backing.args) { queue_generic_impl_receiver(ctx, st_backing) }
         // Record the construction so `surface_stdlib_impl_externs` can surface a
         // NON-generic stdlib struct's vtable members only when the struct is
         // actually built (`StringChars` via `chars()`), not for every snippet
         // that merely virtually dispatches its trait.
-        ctx.project.constructed_struct_symbols.add(st.symbol.id)
+        ctx.project.constructed_struct_symbols.add(st_backing.symbol.id)
     }
     struct_lit :: LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
     if spread_stmts.len() == 0 { return struct_lit }
@@ -187,60 +190,59 @@ build_struct_lit_fields :: fn(
     spread_sym: Symbol | null,
 ) -> LoweredStructLitField[] {
     out: LoweredStructLitField[] = []
-    // @partial: only a StructType drives declared-order field building; every
-    // other Type degrades to source order (defensive fallback).
-    @partial match type {
-        is StructType as st -> {
-            decl :: ctx.typed.struct_decls[st.symbol.id]
-            if decl is null { return fallback_provided_order(ctx, lit) }
-            // A field DEFAULT (`id: usize = UNASSIGNED_NODE_ID`) is an AST expr
-            // from the struct's OWNING module. Lowering it with the construction
-            // site's `ctx` resolves its idents against the wrong `resolved.idents`
-            // (the spans belong to another module's parse), so a const default
-            // like `UNASSIGNED_NODE_ID` (vader/parser) is unresolved when the
-            // struct is built in vader/lower → the whole struct lit degrades to a
-            // drop. Lower defaults with the owning module's typed view.
-            default_ctx :: ctx_in_owning_module(ctx, st.symbol.module, decl, st.args)
-            for field_decl in decl.fields {
-                // Resolve the field's declared type so a union-typed
-                // field widens literal initializers (e.g.
-                // `flag: int(42)` against `flag: i32 | null`).
-                field_type :: resolve_pattern_type(ctx, field_decl.ty)
-                user_value :: provided[field_decl.name]
-                if user_value is null {
-                    // Omitted field : inherit from the last `...spread`
-                    // source via a field access, else fall back to the
-                    // declared default.
-                    if spread_sym is Symbol as sym {
-                        out.push(LoweredStructLitField {
-                            .name = field_decl.name,
-                            .value = LoweredFieldAccess {
-                                .span = lit.span, .type = field_type,
-                                .target = LoweredIdent {
-                                    .span = lit.span, .type = type, .symbol = sym,
-                                },
-                                .field = field_decl.name,
-                            },
-                        })
-                        continue
-                    }
-                    if field_decl.default != null {
-                        out.push(LoweredStructLitField {
-                            .name = field_decl.name,
-                            .value = lower_field_value(default_ctx, field_decl.default, field_type, field_decl.span),
-                        })
-                    }
-                } else {
-                    out.push(LoweredStructLitField {
-                        .name = field_decl.name,
-                        .value = lower_field_value(ctx, user_value, field_type, user_value.span),
-                    })
-                }
+    // `struct_backing` unwraps a struct-backed distinct newtype so declared-order
+    // field building walks the backing struct decl. A non-struct type (or a
+    // struct whose decl isn't indexed) degrades to source order (defensive
+    // fallback).
+    st :: struct_backing(type)
+    if st == null { return fallback_provided_order(ctx, lit) }
+    decl :: ctx.typed.struct_decls[st.symbol.id]
+    if decl is null { return fallback_provided_order(ctx, lit) }
+    // A field DEFAULT (`id: usize = UNASSIGNED_NODE_ID`) is an AST expr
+    // from the struct's OWNING module. Lowering it with the construction
+    // site's `ctx` resolves its idents against the wrong `resolved.idents`
+    // (the spans belong to another module's parse), so a const default
+    // like `UNASSIGNED_NODE_ID` (vader/parser) is unresolved when the
+    // struct is built in vader/lower → the whole struct lit degrades to a
+    // drop. Lower defaults with the owning module's typed view.
+    default_ctx :: ctx_in_owning_module(ctx, st.symbol.module, decl, st.args)
+    for field_decl in decl.fields {
+        // Resolve the field's declared type so a union-typed
+        // field widens literal initializers (e.g.
+        // `flag: int(42)` against `flag: i32 | null`).
+        field_type :: resolve_pattern_type(ctx, field_decl.ty)
+        user_value :: provided[field_decl.name]
+        if user_value is null {
+            // Omitted field : inherit from the last `...spread`
+            // source via a field access, else fall back to the
+            // declared default.
+            if spread_sym is Symbol as sym {
+                out.push(LoweredStructLitField {
+                    .name = field_decl.name,
+                    .value = LoweredFieldAccess {
+                        .span = lit.span, .type = field_type,
+                        .target = LoweredIdent {
+                            .span = lit.span, .type = type, .symbol = sym,
+                        },
+                        .field = field_decl.name,
+                    },
+                })
+                continue
             }
-            return out
+            if field_decl.default != null {
+                out.push(LoweredStructLitField {
+                    .name = field_decl.name,
+                    .value = lower_field_value(default_ctx, field_decl.default, field_type, field_decl.span),
+                })
+            }
+        } else {
+            out.push(LoweredStructLitField {
+                .name = field_decl.name,
+                .value = lower_field_value(ctx, user_value, field_type, user_value.span),
+            })
         }
-        _ -> { return fallback_provided_order(ctx, lit) }
     }
+    return out
 }
 
 // Lower a struct-lit field value (provided or defaulted) against its
@@ -275,10 +277,11 @@ fallback_provided_order :: fn(ctx: FnLowerCtx, lit: StructLitExpr) -> LoweredStr
 
 lower_seq_lit :: fn(ctx: FnLowerCtx, lit: SeqLitExpr, type: Type) -> LoweredExpr {
     // Tuples share the parser shape `[a, b, c]` with arrays — disambiguate
-    // by the resolved type. Tuple-typed literals become struct lits with
-    // synthetic `_0` / `_1` / ... fields ; the bytecode emit reads them
-    // off the same struct layout the typer pins.
-    if type is TupleType {
+    // by the resolved type. Tuple-typed literals (and tuple-backed distinct
+    // newtypes, via `tuple_backing`) become struct lits with synthetic
+    // `_0` / `_1` / ... fields ; the bytecode emit reads them off the same
+    // struct layout the typer pins (distinct wrappers strip at the emit boundary).
+    if tuple_backing(type) != null {
         fields: LoweredStructLitField[] = []
         for i in 0..<lit.elements.len() {
             fields.push(LoweredStructLitField {
