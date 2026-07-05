@@ -30,21 +30,21 @@ export infer_seq_lit :: fn(
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     // Union → pick the most appropriate variant, then recurse.
-    match expected {
-        is UnionType as u -> {
-            picked :: pick_seq_variant(u, e.elements.len())
-            match picked {
-                is null -> {}
-                _ -> { return infer_seq_lit(e, picked, typed, diags, check_expr_fn) }
-            }
+    if expected is UnionType as u {
+        picked :: pick_seq_variant(u, e.elements.len())
+        if picked !is null {
+            return infer_seq_lit(e, picked, typed, diags, check_expr_fn)
         }
-        _ -> {}
     }
     // @partial: only a tuple- or array-shaped expectation drives contextual
     // disambiguation; for every other (or absent) slot type we infer freely.
     @partial match expected {
-        is TupleType as tup -> { return infer_against_tuple(e, tup, typed, diags, check_expr_fn) }
-        is ArrayType as arr -> { return infer_against_array(e, arr, typed, diags, check_expr_fn) }
+        is TupleType as tup -> {
+            return infer_against_tuple(e, tup, typed, diags, check_expr_fn)
+        }
+        is ArrayType as arr -> {
+            return infer_against_array(e, arr, typed, diags, check_expr_fn)
+        }
         // Composite-backed distinct newtype (`f: BigInt = [1]`,
         // `p: Coord = [3, 4]`) : check the elements against the backing array /
         // tuple, but the literal's type is the nominal distinct itself, not the
@@ -52,17 +52,19 @@ export infer_seq_lit :: fn(
         is DistinctType as d -> {
             ab :: array_backing(d)
             if ab != null {
-                _checked :: infer_against_array(e, ab, typed, diags, check_expr_fn)
+                infer_against_array(e, ab, typed, diags, check_expr_fn)
                 return d
             }
             tb :: tuple_backing(d)
             if tb != null {
-                _checked :: infer_against_tuple(e, tb, typed, diags, check_expr_fn)
+                infer_against_tuple(e, tb, typed, diags, check_expr_fn)
                 return d
             }
             return infer_no_expected(e, typed, diags, check_expr_fn)
         }
-        _ -> { return infer_no_expected(e, typed, diags, check_expr_fn) }
+        _ -> {
+            return infer_no_expected(e, typed, diags, check_expr_fn)
+        }
     }
 }
 
@@ -95,8 +97,12 @@ infer_against_tuple :: fn(
         // When the expected slot is a generic type-param the element
         // can't narrow against it ; default Free* so the unifier binds
         // a concrete type instead of `{integer}` / `{float}`.
-        if slot is TypeParamType { elem_types.push(default_if_free(got)) }
-        else { elem_types.push(got) }
+        if slot is TypeParamType {
+            elem_types.push(default_if_free(got))
+        }
+        else {
+            elem_types.push(got)
+        }
     }
     return mk_tuple(elem_types)
 }
@@ -107,7 +113,9 @@ infer_against_array :: fn(
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     elem_types :: walk_elements(e, arr.element, typed, diags, check_expr_fn)
-    if elem_types.len() == 0 { return arr }
+    if elem_types.len() == 0 {
+        return arr
+    }
     return mk_array(union_of(default_each(elem_types)), arr.immutable)
 }
 
@@ -117,11 +125,15 @@ infer_no_expected :: fn(
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     elem_types :: walk_elements(e, null, typed, diags, check_expr_fn)
-    if elem_types.len() == 0 { return mk_array(TY_UNRESOLVED, false) }
+    if elem_types.len() == 0 {
+        return mk_array(TY_UNRESOLVED, false)
+    }
     widened :: default_each(elem_types)
     merged :: union_of(widened)
     // Heterogeneous elements stay UnionType → treat as a tuple.
-    if merged is UnionType { return mk_tuple(widened) }
+    if merged is UnionType {
+        return mk_tuple(widened)
+    }
     return mk_array(merged, false)
 }
 
@@ -131,24 +143,22 @@ walk_elements :: fn(
     e: AST.SeqLitExpr, hint: Type | null,
     typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
-) -> Type[] {
-    out: Type[] = []
-    for el in e.elements { out.push(check_expr_fn(el, hint, typed, diags)) }
-    return out
-}
+) -> Type[] = e.elements.map(el -> check_expr_fn(el, hint, typed, diags)).collect()
 
-default_each :: fn(types: Type[]) -> Type[] {
-    out: Type[] = []
-    for t in types { out.push(default_if_free(t)) }
-    return out
-}
+default_each :: fn(types: Type[]) -> Type[] = types.map(t -> default_if_free(t)).collect()
 
 pick_seq_variant :: fn(u: UnionType, arity: usize) -> Type | null {
     for v in u.variants {
-        if v is TupleType { if v.elements.len() == arity { return v } }
+        if v is TupleType {
+            if v.elements.len() == arity {
+                return v
+            }
+        }
     }
     for v in u.variants {
-        if v is ArrayType { return v }
+        if v is ArrayType {
+            return v
+        }
     }
     return null
 }
