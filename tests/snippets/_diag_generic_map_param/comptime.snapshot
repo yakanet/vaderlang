@@ -4,6 +4,8 @@
 
 ## generic instances
   Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
   Entry<i32, i32>
   Entry<K, V>
   Entry<K, V>
@@ -38,8 +40,7 @@
   MutableMap<T, bool>
   MutableMap<K, V>
   MutableMap<K, V>
-  Add<Rhs, Out>
-  Sub<Rhs, Out>
+  Mul<Rhs, Out>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>
@@ -49,7 +50,6 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>
   Index<I, T>
