@@ -104,6 +104,9 @@ vader_string_t vader_string_new(const char* p, size_t n);
  * owner pointers and frees the dup otherwise. */
 const char*    vader_string_to_cstr(vader_string_t s);
 void           vader_cstr_free(const char* p);
+/* O(1) free for callers that still hold the atom id (the extern shims) ;
+ * `vader_cstr_free` without the id must scan the atom table. */
+void           vader_cstr_free_for(vader_string_t s, const char* p);
 
 /* ------------------------------------------------------------------ atom */
 
