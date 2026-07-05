@@ -1,0 +1,30 @@
+// Regression: host-fabricated io errors carry a real `IOError` identity —
+// `is IOError` narrows, `.msg` reads, `.message()` dispatches through the
+// vtable, and the trait test `is Error` matches a struct implementer even
+// when no trait method is ever called (the lowering materialises the
+// trait's impl rows at every `is <Trait>` check site).
+
+module "snippet"
+
+import "std/io" { println, read_file_string, IOError }
+
+describe :: fn(path: string) -> string {
+    r :: read_file_string(path)
+    if r is IOError { return "unreadable (${r.message()} / ${r.msg})" }
+    return "ok"
+}
+
+catch_all :: fn(path: string) -> string {
+    r :: read_file_string(path)
+    if r is IOError {
+        e: Error = r
+        return "caught by trait: ${e.message()}"
+    }
+    return r
+}
+
+main :: fn() -> i32 {
+    println(describe("/no/such/manifest.toml"))
+    println(catch_all("/no/such/manifest.toml"))
+    return 0
+}

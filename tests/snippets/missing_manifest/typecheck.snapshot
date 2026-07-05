@@ -1,0 +1,43 @@
+# Typecheck
+
+## tests/snippets/missing_manifest
+  FnDecl         catch_all            :: fn(string) -> string
+  FnDecl         describe             :: fn(string) -> string
+  FnDecl         main                 :: fn() -> i32
+  expr 12:10    CallExpr       :: IOError | string
+  expr 12:10    IdentExpr      :: fn(string) -> IOError | string
+  expr 12:27    IdentExpr      :: string
+  expr 13:13    IdentExpr      :: IOError
+  expr 13:30    StringLitExpr  :: string
+  expr 13:45    CallExpr       :: string
+  expr 13:45    FieldExpr      :: fn() -> string
+  expr 13:45    IdentExpr      :: IOError
+  expr 13:5     IfExpr         :: void
+  expr 13:62    FieldExpr      :: string
+  expr 13:62    IdentExpr      :: IOError
+  expr 13:8     BinaryExpr     :: bool
+  expr 13:8     IdentExpr      :: IOError | string
+  expr 14:12    StringLitExpr  :: string
+  expr 18:10    CallExpr       :: IOError | string
+  expr 18:10    IdentExpr      :: fn(string) -> IOError | string
+  expr 18:27    IdentExpr      :: string
+  expr 19:13    IdentExpr      :: IOError
+  expr 19:5     IfExpr         :: void
+  expr 19:8     BinaryExpr     :: bool
+  expr 19:8     IdentExpr      :: IOError | string
+  expr 20:20    IdentExpr      :: IOError
+  expr 21:16    StringLitExpr  :: string
+  expr 21:36    CallExpr       :: string
+  expr 21:36    FieldExpr      :: fn() -> string
+  expr 21:36    IdentExpr      :: Error
+  expr 23:12    IdentExpr      :: string
+  expr 27:13    CallExpr       :: string
+  expr 27:13    IdentExpr      :: fn(string) -> string
+  expr 27:22    StringLitExpr  :: string
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void
+  expr 28:13    CallExpr       :: string
+  expr 28:13    IdentExpr      :: fn(string) -> string
+  expr 28:23    StringLitExpr  :: string
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void

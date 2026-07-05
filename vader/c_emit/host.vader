@@ -18,8 +18,8 @@ import "std/string_builder" { StringBuilder, append }
 import "vader/bytecode" {
     BcImport, BcType, BcPrimitive, BcArray, BcRef, BcStruct, ValType,
     intrinsic_id_for,
+    struct_type_index, MANGLED_IO_ERROR,
 }
-import "vader/types" { TRAIT_ERROR }
 
 // ---- driver ---------------------------------------------------------------
 
@@ -90,18 +90,18 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     .IoReadDir -> {
         if ctx.string_tag < 0 { return "${head} { vader_trap(\"read_dir: no string type\"); }" }
         if ctx.string_array_tag < 0 { return "${head} { vader_trap(\"read_dir: no [string] type\"); }" }
-        return "${head} { return vader_read_dir(a0, ${ctx.string_array_tag}u, ${ctx.string_tag}u, ${tag_u(error_ref_tag(types), "error")}); }"
+        return io_err_shim(head, "vader_read_dir(a0, ${ctx.string_array_tag}u, ${ctx.string_tag}u", types)
     }
     .IoReadFileBytes -> {
         u8 :: prim_tag(types, .U8)
         if u8 < 0 { return "${head} { vader_trap(\"read_file_bytes: no u8 type\"); }" }
         u8arr :: array_tag(types, u8)
         if u8arr < 0 { return "${head} { vader_trap(\"read_file_bytes: no u8[] type\"); }" }
-        return "${head} { return vader_read_file_bytes(a0, ${u8arr}u, ${u8}u, ${tag_u(error_ref_tag(types), "error")}); }"
+        return io_err_shim(head, "vader_read_file_bytes(a0, ${u8arr}u, ${u8}u", types)
     }
-    .IoWriteFileBytes -> { return "${head} { return vader_write_file_bytes(a0, (vader_array_t*) a1.payload.obj, ${tag_u(error_ref_tag(types), "error")}); }" }
-    .IoReadLine -> { return "${head} { return vader_read_line(${tag_u(ctx.string_tag, "string")}, ${tag_u(error_ref_tag(types), "error")}); }" }
-    .IoReadStdin -> { return "${head} { return vader_read_stdin(a0, ${tag_u(ctx.string_tag, "string")}, ${tag_u(error_ref_tag(types), "error")}); }" }
+    .IoWriteFileBytes -> { return io_err_shim(head, "vader_write_file_bytes(a0, (vader_array_t*) a1.payload.obj", types) }
+    .IoReadLine -> { return io_err_shim(head, "vader_read_line(${tag_u(ctx.string_tag, "string")}", types) }
+    .IoReadStdin -> { return io_err_shim(head, "vader_read_stdin(a0, ${tag_u(ctx.string_tag, "string")}", types) }
     .IoPollStdin -> { return "${head} { return vader_poll_stdin(a0); }" }
     .IoSetStdinUnbuffered -> { return "${head} { vader_set_stdin_unbuffered(); }" }
 
@@ -245,14 +245,31 @@ array_tag :: fn(types: BcType[], elem: i32) -> i32 {
     return -1
 }
 
-/// BcType index of the `Error` existential (`BcRef` with `trait_name ==
-/// "Error"`), or `-1` when absent.
-error_ref_tag :: fn(types: BcType[]) -> i32 {
-    for i in 0..<types.len() {
-        t :: types[i]
-        if t is BcRef as r {
-            if r.trait_name == TRAIT_ERROR { return i32(i) }
-        }
-    }
-    return -1
+/// Emit the shim for a fallible io intrinsic. `call_open` is the runtime
+/// call with every arg EXCEPT the trailing error-marker tag and the
+/// closing paren — the helper closes it with the `IOError` struct tag
+/// itself : the runtime (which knows no struct layouts) boxes the error
+/// MESSAGE atom under that marker, and the shim — which does know the
+/// layout — re-boxes it as a real `std/io$IOError` instance, so
+/// `is IOError` narrows and `.message()` dispatches. Using the struct
+/// tag as the marker keeps `null` (tag 0, `write_file_bytes` success
+/// value) unambiguous, and the marker-tagged box never escapes the shim.
+/// No GC rooting is needed in the error branch : the only live value
+/// across the alloc is the message ATOM (a u32 id, kept alive by the
+/// atom table), never a movable heap ref.
+io_err_shim :: fn(head: string, call_open: string, types: BcType[]) -> string {
+    io_t :: struct_type_index(types, MANGLED_IO_ERROR)
+    if io_t < 0 { return "${head} { vader_trap(\"io intrinsic: IOError struct absent from type table\"); }" }
+    c_ty :: struct_c_name(MANGLED_IO_ERROR)
+    lines: string[] = [
+        "vader_box_t r = ${call_open}, ${io_t}u);",
+        "if (r.tag == ${io_t}u) {",
+        "${c_ty}* e = (${c_ty}*) vader_gc_alloc(sizeof(${c_ty}));",
+        "vader_obj_header_init(e, ${io_t}u);",
+        "e->f_msg = r.payload.s;",
+        "return vader_box_obj(${io_t}u, e);",
+        "}",
+        "return r;",
+    ]
+    return "${head} { ${lines.join(" ")} }"
 }

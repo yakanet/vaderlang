@@ -52,6 +52,10 @@ export lower_try :: fn(
     ident_ref :: LoweredIdent { .span = span, .type = inner_type, .symbol = inner_symbol }
 
     error_variants :: error_variants_of(inner_type, ctx.project)
+    // Trait variants (`string | Error`) need their implementers'
+    // impl-table rows — see `materialize_trait_check_impls` (recurses
+    // into unions, ignores non-trait variants).
+    materialize_trait_check_impls(ctx, inner_type)
     error_predicate :: build_error_predicate(span, ident_ref, error_variants)
 
     then_block :: LoweredBlock {

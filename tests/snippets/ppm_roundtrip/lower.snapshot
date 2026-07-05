@@ -50,10 +50,10 @@
           arg0:
             "encode failed" :string
         return int(1) :i32
-    let wr: Error | null =
-      call :Error | null
+    let wr: IOError | null =
+      call :IOError | null
         callee:
-          write_file_bytes :fn(string, const u8[]) -> Error | null
+          write_file_bytes :fn(string, const u8[]) -> IOError | null
         arg0:
           path :string
         arg1:
@@ -62,7 +62,7 @@
     if :void
       cond:
         is Error :bool
-          wr :Error | null
+          wr :IOError | null
       then:
         call :void
           callee:
@@ -70,16 +70,16 @@
           arg0:
             "write failed" :string
         return int(1) :i32
-    let raw: Error | u8[] =
-      call :Error | u8[]
+    let raw: IOError | u8[] =
+      call :IOError | u8[]
         callee:
-          read_file_bytes :fn(string) -> Error | u8[]
+          read_file_bytes :fn(string) -> IOError | u8[]
         arg0:
           path :string
     if :void
       cond:
         is Error :bool
-          raw :Error | u8[]
+          raw :IOError | u8[]
       then:
         call :void
           callee:
@@ -92,8 +92,7 @@
         callee:
           decode :fn(const u8[]) -> Ppm | PpmError
         arg0:
-          cast → u8[]
-            raw :Error | u8[]
+          raw :IOError | u8[]
     if :void
       cond:
         is PpmError :bool
@@ -259,3 +258,6 @@
           buf :Buffer
         arg1:
           c1 :usize
+
+# Diagnostics
+[29:19] error[T3001] type mismatch: expected const u8[], got IOError | u8[]

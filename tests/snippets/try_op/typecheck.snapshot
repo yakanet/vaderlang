@@ -22,7 +22,7 @@
   expr 20:26    StringLitExpr  :: string
   expr 20:5     CallExpr       :: void
   expr 20:5     IdentExpr      :: fn(Error | string) -> void
-  expr 8:12     CallExpr       :: Error | string
-  expr 8:12     IdentExpr      :: fn(string) -> Error | string
+  expr 8:12     CallExpr       :: IOError | string
+  expr 8:12     IdentExpr      :: fn(string) -> IOError | string
   expr 8:12     TryExpr        :: string
   expr 8:29     IdentExpr      :: string

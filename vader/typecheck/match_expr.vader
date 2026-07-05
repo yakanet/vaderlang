@@ -99,7 +99,7 @@ export infer_match :: fn(
                             "`${display_type(matched)}` is never a value of `${display_type(scrut_ty)}`"))
                     }
                 }
-                if !guarded { remaining = subtract_type(remaining, matched) }
+                if !guarded { remaining = subtract_type_with_impls(remaining, matched, typed) }
             }
             is AST.EnumVariantPattern as ev -> {
                 if !guarded { covered_enum_variants.push(ev.variant) }
@@ -136,7 +136,7 @@ export infer_match :: fn(
                     for sub in op.patterns {
                         if sub is AST.EnumVariantPattern as ev { covered_enum_variants.push(ev.variant) }
                         if sub is AST.IsPattern as ip {
-                            remaining = subtract_type(remaining, type_from_expr(ip.ty, typed.resolved, scratch_diags()))
+                            remaining = subtract_type_with_impls(remaining, type_from_expr(ip.ty, typed.resolved, scratch_diags()), typed)
                         }
                     }
                 }

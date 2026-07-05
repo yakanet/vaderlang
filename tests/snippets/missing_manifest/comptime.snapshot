@@ -1,6 +1,6 @@
 # Comptime
 
-## tests/snippets/ppm_roundtrip
+## tests/snippets/missing_manifest
 
 ## generic instances
   Into<Target>
@@ -25,6 +25,3 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
-
-# Diagnostics
-[29:19] error[T3001] type mismatch: expected const u8[], got IOError | u8[]

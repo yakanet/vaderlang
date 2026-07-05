@@ -9,7 +9,7 @@ import "vader/parser" { Expr, IdentExpr, CallExpr, GenericInstExpr, ArrayTypeExp
 import "vader/diagnostics" { Span }
 import "vader/typecheck" { ImplEntry }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, FnType, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, UnionType, TraitType, TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType, SelfType, NeverType, mk_primitive, STRUCT_ARRAY_ITERATOR, StructType, EnumType, UnresolvedType, DistinctType, strip_distinct_each, TRAIT_ITERATOR, TRAIT_INTO, METHOD_INTO }
+import "vader/types" { Type, FnType, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, UnionType, TraitType, TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType, SelfType, NeverType, mk_primitive, mk_struct, STRUCT_ARRAY_ITERATOR, StructType, EnumType, UnresolvedType, DistinctType, strip_distinct_each, TRAIT_ITERATOR, TRAIT_INTO, METHOD_INTO }
 import "vader/comptime" { GenericInstance }
 
 UfcsMember :: struct {
@@ -94,6 +94,40 @@ is_any_leaf :: fn(t: Type) -> bool {
     if t is AnyType { return true }
     if t is PrimitiveType as p { return p.name == "any" }
     return false
+}
+
+/// Force-materialise one member of every NON-generic struct impl of the
+/// trait(s) named by `check_type`, so the impl table carries the
+/// (struct, trait) rows a runtime trait check enumerates. `is Trait`
+/// compiles to a disjunction over the trait's implementing struct tags
+/// (`c_emit/walker.vader::trait_check_expr`, VM `ref_type_matches` /
+/// `trait_implemented_by`) — and those rows only exist for impls the
+/// lowering materialised. Without this, a struct whose trait methods are
+/// never CALLED does not match `is Trait` on either backend (e.g. the
+/// host-fabricated `IOError`, or any value that is only ever tested).
+/// Called from every `is`-check lowering site with a trait (or union
+/// containing one) on its right-hand side. Idempotent — materialisation
+/// dedups on `referenced_impl_mangles`.
+export materialize_trait_check_impls :: fn(ctx: FnLowerCtx, check_type: Type) -> void {
+    if check_type is TraitType {
+        for entry in ctx.project.impls.all {
+            if entry.trait_symbol.name != check_type.symbol.name { continue }
+            // Generic impls need a concrete instance to materialise
+            // against ; their rows come from the instance-driven path.
+            if entry.is_generic { continue }
+            sym :: entry.for_symbol
+            if sym == null { continue }
+            // Only boxed struct receivers land in the impl table — enums
+            // and primitives ride their own tags through other paths.
+            if sym.kind != SymbolKind.Struct { continue }
+            if entry.decl.members.len() == 0 { continue }
+            find_impl_member_for(ctx, mk_struct(sym, []), entry.decl.members[0].name)
+        }
+        return
+    }
+    if check_type is UnionType {
+        for v in check_type.variants { materialize_trait_check_impls(ctx, v) }
+    }
 }
 
 find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: string) -> UfcsMember | null {

@@ -13,7 +13,7 @@
 
 module "vader/lsp/protocol"
 
-import "std/io" { read_stdin, print, eprintln, poll_stdin, set_stdin_unbuffered }
+import "std/io" { read_stdin, print, eprintln, poll_stdin, set_stdin_unbuffered, IOError }
 import "std/string" { byte_decode_at, starts_with, parse_int, ParseError }
 import "std/string_builder" { StringBuilder, append }
 
@@ -44,12 +44,12 @@ export read_frame :: fn() -> string | TransportError {
     for !finished {
         b :: read_stdin(1)
         match b {
-            is Error -> { return TransportError { .msg = "EOF in header" } }
+            is IOError -> { return TransportError { .msg = "EOF in header" } }
             is string as s -> {
                 if s == "\r" {
                     nl :: read_stdin(1)
                     match nl {
-                        is Error -> { return TransportError { .msg = "EOF after CR" } }
+                        is IOError -> { return TransportError { .msg = "EOF after CR" } }
                         is string as t -> {
                             if t != "\n" {
                                 return TransportError { .msg = "expected LF after CR in header" }
@@ -87,7 +87,7 @@ export read_frame :: fn() -> string | TransportError {
     }
     body :: read_stdin(usize(content_length))
     match body {
-        is Error -> { return TransportError { .msg = "EOF in body" } }
+        is IOError -> { return TransportError { .msg = "EOF in body" } }
         is string as s -> { return s }
     }
 }

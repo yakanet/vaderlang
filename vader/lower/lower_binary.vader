@@ -33,6 +33,10 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     // alias — that path lives in the typechecker's narrowing logic
     // and lowers to a regular `LoweredCast` reaching the alias slot.
     if binary.op == BinaryOp.Is {
+        check_type :: ctx.types.expr_type(binary.right)
+        // A trait RHS needs its implementers' impl-table rows — see
+        // `materialize_trait_check_impls`.
+        materialize_trait_check_impls(ctx, check_type)
         return LoweredTypeCheck {
             .span = binary.span,
             .type = TY_BOOL,
@@ -45,7 +49,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
             // check runs on the union value (the operand stays at the union
             // type here).
             .value = strip_narrowing_cast(lower_expr(ctx, binary.left)),
-            .check_type = ctx.types.expr_type(binary.right),
+            .check_type = check_type,
         }
     }
     if binary.op == BinaryOp.In || binary.op == BinaryOp.NotIn {
