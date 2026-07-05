@@ -278,10 +278,23 @@ check_closing_angle :: fn(p: Parser) -> bool {
 ///                               so `peek_at(-1)` gives the right span anchor.
 /// If the current token isn't a closer, the caller is responsible for the
 /// diagnostic.
+///
+/// Span invariant : a split `>>` yields TWO single-`>` tokens whose spans are
+/// disjoint halves of the source `>>` (first `>` = `[start, start+1)`, second
+/// `>` = `[start+1, end)`). Callers anchor a generic's end span on
+/// `peek_at(-1)` — the array slot at `pos-1` — so on each split the consumed
+/// half is written into that slot. Without this, a nested `Iter<i32>` inside
+/// `Into<Iter<i32>>` would inherit the whole-`>>` span and `fmt`'s verbatim
+/// source-slice would emit the extra `>` (audit F3).
 consume_closing_angle :: fn(p: Parser) -> Token {
     pending :: p.shr_pending_half
     if pending != null {
+        // Second half of an already-split `>>`. The first half was consumed by
+        // the inner generic and left in `tokens[pos-1]` ; overwrite that slot
+        // with the second half so THIS generic's `peek_at(-1)` anchor reports
+        // the second `>`'s span (the first half is no longer needed).
         p.shr_pending_half = null
+        if p.pos > 0 { p.tokens[usize(p.pos - 1)] = pending }
         return pending
     }
     cur :: p.peek()
@@ -290,15 +303,30 @@ consume_closing_angle :: fn(p: Parser) -> Token {
         return cur
     }
     if cur.kind == .Shr {
-        synth :: Token {
-            .kind = .Gt,
-            .text = ">",
-            .span = cur.span,
+        mid :: Position {
+            .file   = cur.span.start.file,
+            .offset = cur.span.start.offset + 1,
+            .line   = cur.span.start.line,
+            .column = cur.span.start.column + 1,
+        }
+        first_half :: Token {
+            .kind  = .Gt,
+            .text  = ">",
+            .span  = Span { .start = cur.span.start, .end = mid },
             .value = null,
         }
-        p.shr_pending_half = synth
+        second_half :: Token {
+            .kind  = .Gt,
+            .text  = ">",
+            .span  = Span { .start = mid, .end = cur.span.end },
+            .value = null,
+        }
+        // Overwrite the `Shr` slot with the first half so `peek_at(-1)` anchors
+        // on the FIRST `>`, and stash the second half for the enclosing close.
+        p.tokens[usize(p.pos)] = first_half
+        p.shr_pending_half = second_half
         if p.pos < i32(p.tokens.len()) - 1 { p.pos = p.pos + 1 }
-        return synth
+        return first_half
     }
     return cur
 }
@@ -1443,6 +1471,7 @@ desugar_comptime_const :: fn(p: Parser, decorators: Decorator[], visibility: Vis
         .sam_synthetic        = false,
         .is_expression_bodied = true,
         .materialized         = false,
+        .comptime_synthetic   = true,
     }
     p.pending_decls.push(synth_fn)
     call :: CallExpr {
@@ -1454,13 +1483,17 @@ desugar_comptime_const :: fn(p: Parser, decorators: Decorator[], visibility: Vis
     for d in decorators { decos.push(d) }
     decos.push(Decorator { .span = name_tok.span, .name = "comptime", .args = [] })
     return ConstDecl {
-        .span       = p.span_of(name_tok, end_tok),
-        .name       = name_tok.text,
-        .name_span  = name_tok.span,
-        .visibility = visibility,
-        .ty         = ty,
-        .value      = call,
-        .decorators = decos,
+        .span          = p.span_of(name_tok, end_tok),
+        .name          = name_tok.text,
+        .name_span     = name_tok.span,
+        .visibility    = visibility,
+        .ty            = ty,
+        .value         = call,
+        .decorators    = decos,
+        // Keep the raw `@comptime` operand (block/expr, pre-`return`-lift) so
+        // the formatter re-emits the surface sugar instead of the desugared
+        // `__comptime_NAME()` call.
+        .comptime_body = raw,
     }
 }
 

@@ -137,8 +137,27 @@ flush_remaining_comments :: fn(self: Printer) -> void {
 // Program
 // ============================================================================
 
+// Source-visible decls only : drops the synthetic `__comptime_NAME` helper
+// fns produced by the `@comptime` const-sugar desugar. Every other decl passes
+// through in order.
+emittable_decls :: fn(decls: p.Decl[]) -> p.Decl[] {
+    out: p.Decl[] = []
+    for d in decls {
+        if d is p.FnDecl as f {
+            if f.comptime_synthetic { continue }
+        }
+        out.push(d)
+    }
+    return out
+}
+
 export emit_program :: fn(self: Printer, prog: p.Program) -> string {
-    decls :: prog.decls
+    // Drop the `__comptime_NAME` helper fns the parser synthesises for the
+    // `NAME :: @comptime <expr>` const sugar : they are never source-visible,
+    // and the surface sugar is re-emitted from the paired `ConstDecl`
+    // (see `emit_const_decl`). Filtering here keeps the alignment pre-pass and
+    // the blank-line layout below indexed over the source-visible decls only.
+    decls :: emittable_decls(prog.decls)
     // Group-alignment pre-pass. Resolved here once so `emit_fn_decl` /
     // `emit_const_decl` can look up their group's max-name width without
     // re-scanning siblings each time.
@@ -814,11 +833,21 @@ emit_type_alias :: fn(self: Printer, d: p.TypeAliasDecl) -> void {
 }
 
 emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
+    // `NAME :: @comptime <expr>` / `NAME: T: @comptime <expr>` sugar : the
+    // parser desugared it to a `__comptime_NAME` helper (skipped at emit time)
+    // plus this const rewritten to call it. Re-emit the surface sugar from the
+    // preserved operand instead of the desugared `__comptime_NAME()` call.
+    cb :: d.comptime_body
+    if cb != null {
+        self.emit_comptime_const(d, cb)
+        return
+    }
     self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
-    // Typed const-decls (`NAME: T :: value`) skip name-column alignment :
-    // the `: T` segment breaks the per-name column anyway, so a uniform
-    // single-space `::` reads cleaner.
+    // Typed const-decls use the Odin-style `NAME: T: value` form (two single
+    // colons — `parse_typed_const_decl`), not `NAME: T :: value`. They skip
+    // name-column alignment : the `: T` segment breaks the per-name column
+    // anyway.
     name_width: usize = 0
     match d.ty {
         is null -> {
@@ -832,7 +861,7 @@ emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
             self.write(d.name)
             self.write(": ")
             self.emit_type_expr(d.ty)
-            self.write(" :: ")
+            self.write(": ")
             name_width = 0  // typed form skips multi-line union layout
         }
     }
@@ -853,6 +882,31 @@ emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
         }
     }
     self.emit_expr(d.value)
+}
+
+// Re-emit the `NAME :: @comptime <expr>` (untyped) or `NAME: T: @comptime
+// <expr>` (typed) const sugar from a desugared `ConstDecl`. `body` is the raw
+// operand the parser kept in `comptime_body`. The desugar appended a synthetic
+// `@comptime` decorator to `d.decorators` for the compile path — strip that
+// trailing entry, since the inline `@comptime` keyword below carries it.
+emit_comptime_const :: fn(self: Printer, d: p.ConstDecl, body: p.Expr) -> void {
+    n :: d.decorators.len()
+    leading :: if n > 0 && d.decorators[n - 1].name == "comptime" {
+        d.decorators[0..<(n - 1)]
+    } else {
+        d.decorators
+    }
+    self.emit_decorators(leading, d.name_span.start.line)
+    self.emit_visibility(d.visibility)
+    self.write(d.name)
+    if d.ty == null {
+        self.write(" :: @comptime ")
+    } else {
+        self.write(": ")
+        self.emit_type_expr(d.ty)
+        self.write(": @comptime ")
+    }
+    self.emit_expr(body)
 }
 
 // True iff `e` is a `BinaryExpr` with `BitOr` op — i.e. a union RHS
@@ -1144,6 +1198,10 @@ emit_expr :: fn(self: Printer, e: p.Expr | null) -> void {
         }
         is p.FnTypeExpr        as x -> self.emit_fn_type(x)
         is p.ArrayTypeExpr     as x -> {
+            // `const T[]` is an immutable array view — a DISTINCT type from
+            // `T[]`. Re-emit the `const` qualifier or the formatter silently
+            // widens the view to a mutable array (round-trip corruption).
+            if x.immutable { self.write("const ") }
             // Postfix `[]` binds tighter than `|` / `&` — `A | B[]` parses
             // as `A | (B[])`. If the element is a union/intersection
             // BinaryExpr, wrap it so the round-trip stays semantically
@@ -1777,7 +1835,10 @@ emit_struct_pattern :: fn(self: Printer, x: p.StructPattern) -> void {
                 }
             }
             is p.PatternLiteral as pl -> {
-                self.write(" = ")
+                // Source spells a literal field match `field: <expr>` (see
+                // `parse_struct_pattern`) — emit `:`, not `=`, or the result
+                // no longer reparses (audit F5).
+                self.write(": ")
                 self.emit_expr(pl.value)
             }
         }

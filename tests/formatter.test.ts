@@ -90,6 +90,102 @@ async function astDump(path: string): Promise<string> {
   return stdout;
 }
 
+// ---------------------------------------------------------------------------
+// Regression fixtures — inline sources for the round-trip bugs fixed 2026-07-06
+// (audit F3/F4/F5, plus a typed-const `::` slip surfaced by the tree-wide
+// sweep). Each asserts BOTH that the formatted output reparses to the same AST
+// (a corrupt re-emit either fails to parse or drifts structurally) AND that
+// formatting is idempotent. Kept inline rather than as `tests/snippets/` dirs
+// so they carry no snapshot sidecars.
+// ---------------------------------------------------------------------------
+const REGRESSIONS: { name: string; source: string }[] = [
+  {
+    // F3 : nested generic in impl position. `Into<Iterator<T>>` used to gain an
+    // extra `>` — the split `>>` handed both closers the whole-`>>` span.
+    name: "nested_generic_impl",
+    source: `module "reg/nested_generic_impl"
+
+Iterator :: trait<T> {
+    next :: fn(self) -> T | null
+}
+
+Into :: trait<Target> {
+    into :: fn(self) -> Target
+}
+
+Wrap :: struct<T> {
+    inner: T
+}
+
+Wrap<T> implements<T> Into<Iterator<T>> {
+    into :: fn(self) -> Iterator<T> {
+        return self.inner
+    }
+}
+`,
+  },
+  {
+    // F4 : `@comptime` const sugar (typed + untyped). Used to leak the synthetic
+    // `__comptime_*` helper fn and rewrite the const to call it.
+    name: "comptime_const_sugar",
+    source: `module "reg/comptime_const_sugar"
+
+build_table :: fn() -> i32[] = [1, 2, 3]
+
+TABLE_TYPED: i32[]: @comptime { return build_table() }
+TABLE_UNTYPED :: @comptime build_table()
+`,
+  },
+  {
+    // F5 : struct-pattern literal field. `field: <expr>` was re-emitted with `=`
+    // and no longer reparsed.
+    name: "struct_pattern_literal",
+    source: `module "reg/struct_pattern_literal"
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+classify :: fn(pt: Point) -> i32 = match pt {
+    is Point { x: 0 } -> 1
+    _ -> 2
+}
+`,
+  },
+  {
+    // Typed const `NAME: T: value` (Odin-style, two single colons). Used to be
+    // re-emitted as `NAME: T :: value`, which no longer reparsed.
+    name: "typed_const",
+    source: `module "reg/typed_const"
+
+MASK: u64: 0xFFFFFFFF
+NAMES: string[]: ["a", "b"]
+`,
+  },
+];
+
+for (const { name, source } of REGRESSIONS) {
+  test(`fmt regression round-trip : ${name}`, async () => {
+    if (!ENABLED) return;
+    const orig = join(process.cwd(), `.tmp-fmt-reg-src-${name}.vader`);
+    const fmtd = join(process.cwd(), `.tmp-fmt-reg-out-${name}.vader`);
+    await Bun.write(orig, source);
+    try {
+      const formatted = fmtStdout(orig);
+      await Bun.write(fmtd, formatted);
+      // Structural round-trip : formatted output reparses to the source AST.
+      expect(await astDump(fmtd)).toBe(await astDump(orig));
+      // Idempotency.
+      expect(fmtString(formatted)).toBe(formatted);
+    } finally {
+      for (const p of [orig, fmtd]) {
+        try { Bun.file(p).delete?.(); } catch { /* ignore */ }
+      }
+    }
+  }, { timeout: MEDIUM_BUILD });
+}
+
 for (const name of SNIPPETS) {
   test(`fmt idempotency : ${name}`, async () => {
     if (!ENABLED) return;
