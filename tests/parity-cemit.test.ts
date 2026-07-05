@@ -157,6 +157,12 @@ const C_PARITY = new Set<string>([
   // Couche 4: a generator COMBINATOR (first param = source iterator) fuses as a
   // chain layer — single UFCS combinator + nested direct-call chain.
   "fuse_generator_chain",
+  // `@extern` forwarding shim — string args marshalled atom → `const char*`
+  // (`c_emit/host.vader::user_extern_shim`). The shim only exists in native
+  // C output (the VM has no user-extern registry), so this run is the ONLY
+  // guard on the marshalling ABI: the 2026-05 atom migration broke it for
+  // ~6 weeks without a test noticing. Links the snippet's `helper.c`.
+  "extern_native_basic",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));
@@ -190,6 +196,9 @@ for (const s of scenarios) {
     const build = Bun.spawn([
       "cc", "-std=c11", "-O0", "-I", RUNTIME_ROOT,
       cFile, join(RUNTIME_ROOT, "vader_runtime.c"),
+      // `@extern` snippets carry their foreign symbols in helper `.c`
+      // files next to `_main.vader` — compile them into the binary.
+      ...s.helperCFiles,
       "-o", binFile, "-lm",
     ], { stderr: "pipe", stdout: "pipe" });
     const buildErr = await new Response(build.stderr).text();

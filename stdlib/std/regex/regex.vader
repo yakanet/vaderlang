@@ -14,10 +14,13 @@
 //
 // Algorithm : Thompson VM (Cox, "Regular Expression Matching: the
 // Virtual Machine Approach"). Each compiled `Pattern` is an array of
-// `Inst` ops ; matching runs a BFS over a `Thread` set so the worst
-// case is O(n × m) (input length × program length), no catastrophic
-// backtracking. Captures use the `Save N` op writing the current input
-// offset into the thread's `groups` array.
+// `Inst` ops ; matching runs a BFS over a `Thread` set, and `add_thread`
+// deduplicates by pc within each step (the `seen` generation array), so a
+// step holds at most one thread per instruction. That per-pc dedup is what
+// makes the worst case O(n × m) (input length × program length) — no
+// catastrophic backtracking — and what bounds the epsilon-closure recursion
+// on cyclic programs like `(a*)*`. Captures use the `Save N` op writing the
+// current input offset into the thread's `groups` array.
 //
 // Pure Vader, zero host imports — WASM-ready as-is.
 
@@ -190,7 +193,7 @@ parse_alternation :: fn(p: Parser) -> RegexError | null {
         split_pos :: p.insts.len()
         p.insts.push(InstSplit { .a = 0, .b = 0 })
         body_pos :: p.insts.len()
-        copy_slice(p.insts, branches_buf, branch_offsets[i], branch_offsets[i + 1])
+        push_fragment_rebased(p.insts, branches_buf, branch_offsets[i], branch_offsets[i + 1], branch_start)
         jump_pos :: p.insts.len()
         p.insts.push(InstJump { .target = 0 })
         end_jumps.push(jump_pos)
@@ -198,7 +201,7 @@ parse_alternation :: fn(p: Parser) -> RegexError | null {
         p.insts[split_pos] = InstSplit { .a = body_pos, .b = next_split_pos }
     }
     last :: n - 1
-    copy_slice(p.insts, branches_buf, branch_offsets[last], branch_offsets[last + 1])
+    push_fragment_rebased(p.insts, branches_buf, branch_offsets[last], branch_offsets[last + 1], branch_start)
     end_pos :: p.insts.len()
     for k in 0..<end_jumps.len() {
         p.insts[end_jumps[k]] = InstJump { .target = end_pos }
@@ -206,9 +209,26 @@ parse_alternation :: fn(p: Parser) -> RegexError | null {
     return null
 }
 
-copy_slice :: fn(dst: Inst[], src: Inst[], lo: usize, hi: usize) -> void {
+// Re-emit `src[lo..<hi]` — a self-contained fragment whose first
+// instruction originally sat at absolute index `old_start` — at the end
+// of `dst`, shifting every `Split` / `Jump` target by the displacement.
+// Targets are absolute instruction indices, and the quantifier wrappers
+// and the alternation both MOVE compiled fragments (a split gets
+// inserted before them, or copies land further down) : re-emitting a
+// composite fragment un-rebased (`(a|b)*`, `(a*)*`, `(a|b){2,3}`)
+// self-loops or jumps into the wrong instruction.
+// Whole-fragment form — the common case for the quantifier wrappers.
+push_atom_rebased :: fn(dst: Inst[], atom: Inst[], old_start: usize) = push_fragment_rebased(dst, atom, 0, atom.len(), old_start)
+
+push_fragment_rebased :: fn(dst: Inst[], src: Inst[], lo: usize, hi: usize, old_start: usize) -> void {
+    shift :: dst.len() - old_start
     for i in lo..<hi {
-        dst.push(src[i])
+        inst :: src[i]
+        match inst {
+            is InstSplit -> { dst.push(InstSplit { .a = inst.a + shift, .b = inst.b + shift }) }
+            is InstJump  -> { dst.push(InstJump { .target = inst.target + shift }) }
+            _ -> { dst.push(inst) }
+        }
     }
 }
 
@@ -258,7 +278,7 @@ apply_star :: fn(p: Parser, atom_start: usize) -> void {
     split_pos :: p.insts.len()
     p.insts.push(InstSplit { .a = 0, .b = 0 })
     body_start :: p.insts.len()
-    p.insts.push_all(atom)
+    push_atom_rebased(p.insts, atom, atom_start)
     p.insts.push(InstJump { .target = split_pos })
     after :: p.insts.len()
     p.insts[split_pos] = InstSplit { .a = body_start, .b = after }
@@ -283,12 +303,24 @@ apply_optional :: fn(p: Parser, atom_start: usize) -> void {
     atom :: extract_range(p.insts, atom_start, p.insts.len())
     p.insts = truncate_to(p.insts, atom_start)
     p.insts.push(InstSplit { .a = atom_start + 1, .b = 0 })
-    p.insts.push_all(atom)
+    push_atom_rebased(p.insts, atom, atom_start)
     after :: p.insts.len()
     // Patch the split's second target now that we know `after`.
     sp :: atom_start
     p.insts[sp] = InstSplit { .a = atom_start + 1, .b = after }
 }
+
+/// Largest count accepted in `{n}` / `{n,}` / `{n,m}`. Counted repeats
+/// expand to physical instruction copies, so the ceiling bounds both
+/// compile time and program size (RE2, the architectural sibling, uses
+/// the same limit).
+REPEAT_MAX: usize: 1000
+
+/// Ceiling on the compiled program size. Nested counted repeats multiply
+/// (`((a{1000}){1000}){1000}` passes the per-count check three times but
+/// would materialise ~1e9 instructions) — checked after each counted
+/// expansion.
+PROGRAM_MAX: usize: 100_000
 
 apply_counted :: fn(p: Parser, atom_start: usize) -> RegexError | null {
     if p.bytes[p.cursor] != '{' { return null }
@@ -314,6 +346,14 @@ apply_counted :: fn(p: Parser, atom_start: usize) -> RegexError | null {
         return RegexError { .msg = "unterminated {n,m}", .position = save_cursor }
     }
     p.cursor = p.cursor + 1
+    if has_upper && m < n {
+        return RegexError { .msg = "invalid {n,m}: max is smaller than min", .position = save_cursor }
+    }
+    // Each count expands to physical copies of the atom, so an unchecked
+    // count is a compile-time memory bomb (`a{999999999}`).
+    if n > REPEAT_MAX || m > REPEAT_MAX {
+        return RegexError { .msg = "repetition count exceeds ${REPEAT_MAX}", .position = save_cursor }
+    }
 
     // Snapshot the atom we just emitted.
     atom :: extract_range(p.insts, atom_start, p.insts.len())
@@ -321,7 +361,7 @@ apply_counted :: fn(p: Parser, atom_start: usize) -> RegexError | null {
 
     // Mandatory N copies.
     for _ in 0..<n {
-        p.insts.push_all(atom)
+        push_atom_rebased(p.insts, atom, atom_start)
     }
 
     if has_upper {
@@ -332,7 +372,7 @@ apply_counted :: fn(p: Parser, atom_start: usize) -> RegexError | null {
             split_pos :: p.insts.len()
             splits.push(split_pos)
             p.insts.push(InstSplit { .a = 0, .b = 0 })
-            p.insts.push_all(atom)
+            push_atom_rebased(p.insts, atom, atom_start)
         }
         after :: p.insts.len()
         for k in 0..<splits.len() {
@@ -345,12 +385,15 @@ apply_counted :: fn(p: Parser, atom_start: usize) -> RegexError | null {
             sp :: p.insts.len()
             p.insts.push(InstSplit { .a = 0, .b = 0 })
             body_start :: p.insts.len()
-            p.insts.push_all(atom)
+            push_atom_rebased(p.insts, atom, atom_start)
             p.insts.push(InstJump { .target = sp })
             after :: p.insts.len()
             p.insts[sp] = InstSplit { .a = body_start, .b = after }
         }
         // {n} : exactly n — nothing more to emit.
+    }
+    if p.insts.len() > PROGRAM_MAX {
+        return RegexError { .msg = "compiled pattern exceeds ${PROGRAM_MAX} instructions", .position = save_cursor }
     }
     return null
 }
@@ -561,14 +604,7 @@ truncate_to :: fn(arr: Inst[], n: usize) = extract_range(arr, 0, n)
 
 /// True iff `input` is matched by `pattern` from offset 0 to its end
 /// (anchored on both sides).
-export matches :: fn(self: Pattern, input: string) -> bool {
-    ib :: input.bytes()
-    out :: run_at(self, ib, 0)
-    if out is Match {
-        return out.end == ib.len()
-    }
-    return false
-}
+export matches :: fn(self: Pattern, input: string) = run_vm(self, input.bytes(), 0, true) is Match
 
 /// Find the first match anywhere in `input` (leftmost). Returns `null`
 /// when there's no match.
@@ -661,34 +697,31 @@ Thread :: struct {
     groups: usize[]
 }
 
-new_thread :: fn(pc: usize, slots: usize) -> Thread {
-    g: usize[] = []
-    for _ in 0..<slots {
-        g.push(SLOT_UNSET)
-    }
-    return Thread { .pc = pc, .groups = g }
-}
-
-clone_thread :: fn(t: Thread) -> Thread {
-    g: usize[] = []
-    for i in 0..<t.groups.len() {
-        g.push(t.groups[i])
-    }
-    return Thread { .pc = t.pc, .groups = g }
-}
-
 // Sentinel for "this slot was never written". `_u64` is mandatory :
 // without it the literal defaults to a signed type and rounds through
 // f64, so the sentinel collides with valid offsets on native.
 SLOT_UNSET :: usize(0xFFFF_FFFF_FFFF_FFFF)
 
-run_at :: fn(p: Pattern, input: const u8[], start: usize) -> Match | null {
+run_at :: fn(p: Pattern, input: const u8[], start: usize) = run_vm(p, input, start, false)
+
+/// One Thompson-VM run from `start`. `full` selects full-match semantics :
+/// an `InstMatch` only counts when the whole input is consumed, and a
+/// shorter match does NOT cut lower-priority threads — `a|ab` must still
+/// try `ab` after `a` matched a prefix (leftmost-first would otherwise
+/// make `matches` depend on alternative order).
+run_vm :: fn(p: Pattern, input: const u8[], start: usize, full: bool) -> Match | null {
     slots :: 2 * (p.group_count + 1)
     current: Thread[] = []
     next: Thread[] = []
+    // Per-step pc dedup : `seen[pc] == gen` means pc already holds a
+    // (higher-priority) thread this step. Kills the exponential thread
+    // blowup on `(a+)+` AND bounds `add_thread`'s epsilon recursion on
+    // cyclic programs (`(a*)*`).
+    seen: usize[] = [0] * p.insts.len()
+    gen: usize = 1
 
-    seed :: new_thread(0, slots)
-    add_thread(current, seed, p, input, start)
+    seed_groups: usize[] = [SLOT_UNSET] * slots
+    add_thread(current, 0, seed_groups, p, input, start, seen, gen)
 
     matched: Match | null = null
     pos := start
@@ -707,37 +740,37 @@ run_at :: fn(p: Pattern, input: const u8[], start: usize) -> Match | null {
             match inst {
                 is InstChar -> {
                     if pos < input.len() && c_at_pos == inst.c {
-                        nt :: clone_thread(t)
-                        nt.pc = t.pc + 1
-                        add_thread(next, nt, p, input, pos + bytes_consumed)
+                        add_thread(next, t.pc + 1, t.groups, p, input, pos + bytes_consumed, seen, gen + 1)
                     }
                 }
                 is InstAny -> {
                     if pos < input.len() && c_at_pos != '\n' {
-                        nt :: clone_thread(t)
-                        nt.pc = t.pc + 1
-                        add_thread(next, nt, p, input, pos + bytes_consumed)
+                        add_thread(next, t.pc + 1, t.groups, p, input, pos + bytes_consumed, seen, gen + 1)
                     }
                 }
                 is InstClass -> {
                     if pos < input.len() && class_matches(inst, c_at_pos) {
-                        nt :: clone_thread(t)
-                        nt.pc = t.pc + 1
-                        add_thread(next, nt, p, input, pos + bytes_consumed)
+                        add_thread(next, t.pc + 1, t.groups, p, input, pos + bytes_consumed, seen, gen + 1)
                     }
                 }
                 is InstMatch -> {
-                    matched = Match {
-                        .start  = if t.groups.len() > 0 { resolve_slot(t.groups[0], start) } else { start },
-                        .end    = if t.groups.len() > 1 { resolve_slot(t.groups[1], pos) } else { pos },
-                        .groups = captured_groups(t, input),
+                    // Full-match mode ignores a prefix match : it neither
+                    // records nor cuts lower-priority threads — an
+                    // alternative ordered later may still consume the
+                    // whole input.
+                    if !full || pos == input.len() {
+                        matched = Match {
+                            .start  = if t.groups.len() > 0 { resolve_slot(t.groups[0], start) } else { start },
+                            .end    = if t.groups.len() > 1 { resolve_slot(t.groups[1], pos) } else { pos },
+                            .groups = captured_groups(t, input),
+                        }
+                        // Higher-priority threads run first ; once one matches
+                        // we discard lower-priority threads to mirror leftmost-
+                        // first semantics.
+                        current = truncate_threads(current, t_idx)
+                        t_idx = current.len()
+                        continue
                     }
-                    // Higher-priority threads run first ; once one matches
-                    // we discard lower-priority threads to mirror leftmost-
-                    // first semantics.
-                    current = truncate_threads(current, t_idx)
-                    t_idx = current.len()
-                    continue
                 }
                 is InstJump   -> {}    // Handled by add_thread's epsilon closure.
                 is InstSplit  -> {}
@@ -750,6 +783,11 @@ run_at :: fn(p: Pattern, input: const u8[], start: usize) -> Match | null {
         if pos == input.len() { break }
         current = next
         next = []
+        gen = gen + 1
+        // No live thread can ever spawn another — without this exit a
+        // failed run walks the rest of the input doing nothing, and
+        // `find` (one run per start) turns O(n^2)-with-empty-loops.
+        if current.len() == 0 { break }
         pos = pos + bytes_consumed
     }
     return matched
@@ -767,48 +805,42 @@ class_matches :: fn(inst: InstClass, c: char) -> bool {
     return inst.negated
 }
 
-// Compute epsilon-closure starting at `t`, appending all reachable
-// non-epsilon states into `out`.
-add_thread :: fn(out: Thread[], t: Thread, p: Pattern, input: const u8[], pos: usize) -> void {
-    inst :: p.insts[t.pc]
+// Compute epsilon-closure starting at `pc`, appending all reachable
+// non-epsilon states into `out`. `seen[pc] == gen` marks pcs already
+// claimed this step : threads run in priority order, so the first
+// arrival wins and later (lower-priority) arrivals at the same pc are
+// dropped. This is the Thompson-VM invariant that bounds the step to
+// one thread per instruction and the recursion to one visit per pc.
+//
+// `groups` is shared copy-on-write : only `InstSave` writes to it, so
+// only `InstSave` copies — every other epsilon edge passes the array
+// through, and leaf threads may alias one another's `groups` (read-only
+// once constructed).
+add_thread :: fn(out: Thread[], pc: usize, groups: usize[], p: Pattern, input: const u8[], pos: usize, seen: usize[], gen: usize) -> void {
+    if seen[pc] == gen { return }
+    seen[pc] = gen
+    inst :: p.insts[pc]
     match inst {
-        is InstJump -> {
-            nt :: clone_thread(t)
-            nt.pc = inst.target
-            add_thread(out, nt, p, input, pos)
-        }
+        is InstJump -> { add_thread(out, inst.target, groups, p, input, pos, seen, gen) }
         is InstSplit -> {
-            ta :: clone_thread(t)
-            ta.pc = inst.a
-            add_thread(out, ta, p, input, pos)
-            tb :: clone_thread(t)
-            tb.pc = inst.b
-            add_thread(out, tb, p, input, pos)
+            add_thread(out, inst.a, groups, p, input, pos, seen, gen)
+            add_thread(out, inst.b, groups, p, input, pos, seen, gen)
         }
         is InstSave -> {
-            nt :: clone_thread(t)
-            nt.groups[inst.slot] = pos
-            nt.pc = t.pc + 1
-            add_thread(out, nt, p, input, pos)
+            g: usize[] = []
+            g.push_all(groups)
+            g[inst.slot] = pos
+            add_thread(out, pc + 1, g, p, input, pos, seen, gen)
         }
         is InstAnchorStart -> {
-            if pos == 0 {
-                nt :: clone_thread(t)
-                nt.pc = t.pc + 1
-                add_thread(out, nt, p, input, pos)
-            }
+            if pos == 0 { add_thread(out, pc + 1, groups, p, input, pos, seen, gen) }
         }
         is InstAnchorEnd -> {
-            if pos == input.len() {
-                nt :: clone_thread(t)
-                nt.pc = t.pc + 1
-                add_thread(out, nt, p, input, pos)
-            }
+            if pos == input.len() { add_thread(out, pc + 1, groups, p, input, pos, seen, gen) }
         }
-        is InstChar   -> { out.push(t) }
-        is InstAny    -> { out.push(t) }
-        is InstClass  -> { out.push(t) }
-        is InstMatch  -> { out.push(t) }
+        is InstChar | InstAny | InstClass | InstMatch -> {
+            out.push(Thread { .pc = pc, .groups = groups })
+        }
     }
 }
 
@@ -1024,5 +1056,80 @@ import "std/testing" { assert_eq, assert }
             assert_eq(p.replace_all("a1b22c333", "X"), "aXbXcX")
         }
         is RegexError -> assert(false, "compile \\d+ failed")
+    }
+}
+
+@test test_composite_atom_quantifiers :: fn() -> void {
+    // Regression: quantifier wrappers and the alternation re-emit compiled
+    // fragments at shifted positions ; their internal Split / Jump targets
+    // must be rebased (`push_fragment_rebased`). Un-rebased, `(a|b)*`
+    // self-looped into a wrong instruction and never consumed input.
+    alt_star :: compile("(a|b)*")
+    match alt_star {
+        is Pattern -> {
+            assert(alt_star.matches("abab"), "(a|b)* matches abab")
+            assert(alt_star.matches(""),     "(a|b)* matches empty")
+            assert(!alt_star.matches("abc"), "(a|b)* rejects abc")
+        }
+        is RegexError -> assert(false, "compile (a|b)* failed")
+    }
+    star_star :: compile("(a*)*")
+    match star_star {
+        is Pattern -> {
+            assert(star_star.matches("aaa"), "(a*)* matches aaa")
+            assert(star_star.matches(""),    "(a*)* matches empty (no epsilon blowup)")
+        }
+        is RegexError -> assert(false, "compile (a*)* failed")
+    }
+    alt_counted :: compile("(a|b){2,3}")
+    match alt_counted {
+        is Pattern -> {
+            assert(alt_counted.matches("ab"),   "(a|b){2,3} matches ab")
+            assert(alt_counted.matches("aba"),  "(a|b){2,3} matches aba")
+            assert(!alt_counted.matches("a"),   "(a|b){2,3} rejects a")
+        }
+        is RegexError -> assert(false, "compile (a|b){2,3} failed")
+    }
+}
+
+@test test_counted_bounds_rejected :: fn() -> void {
+    // Regression: `{2,1}` underflowed `m - n` (usize) and expanded ~1.8e19
+    // copies ; `{999999999}` was a compile-time memory bomb. Both must be
+    // clean RegexErrors.
+    inverted :: compile("a{2,1}")
+    assert(inverted is RegexError, "a{2,1} is rejected")
+    huge :: compile("a{999999999}")
+    assert(huge is RegexError, "a{999999999} exceeds REPEAT_MAX")
+    at_max :: compile("a{1000}")
+    assert(at_max is Pattern, "a{1000} is exactly at the ceiling")
+}
+
+@test test_fullmatch_alternative_order :: fn() -> void {
+    // Regression: `matches` used find semantics — the leftmost-first match
+    // `a` cut the `ab` alternative and made the result depend on
+    // alternative order. Full-match mode only accepts whole-input matches.
+    first_short :: compile("a|ab")
+    first_long  :: compile("ab|a")
+    match first_short {
+        is Pattern -> assert(first_short.matches("ab"), "a|ab full-matches ab")
+        is RegexError -> assert(false, "compile a|ab failed")
+    }
+    match first_long {
+        is Pattern -> assert(first_long.matches("ab"), "ab|a full-matches ab")
+        is RegexError -> assert(false, "compile ab|a failed")
+    }
+}
+
+@test test_pathological_patterns_terminate :: fn() -> void {
+    // Regression: without per-pc thread dedup in `add_thread`, `(a+)+c`
+    // was exponential (ReDoS) — this input took >20s at N=22. With the
+    // dedup the whole run is O(n × m).
+    redos :: compile("(a+)+c")
+    match redos {
+        is Pattern -> {
+            assert(!redos.matches("aaaaaaaaaaaaaaaaaaaaaaaaaaaab"), "(a+)+c rejects a…b fast")
+            assert(redos.matches("aaaaaaaaaaaaaaaaaaaaaaaaaaaac"),  "(a+)+c matches a…c")
+        }
+        is RegexError -> assert(false, "compile (a+)+c failed")
     }
 }

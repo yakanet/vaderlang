@@ -160,59 +160,44 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
 
     // User `@extern` — forward to the real C symbol ; everything else is a
     // host fn the c-emit doesn't recognise (version skew) → trap loudly.
-    if imp.is_extern { return user_extern_shim(imp, head, c_type_for_val_bare(sig.result)) }
+    if imp.is_extern { return user_extern_shim(imp, head) }
     return "${head} { vader_trap(\"unbound import: ${m}\"); }"
 }
 
 // ---- @extern forwarding ---------------------------------------------------
 
-/// Threshold below which a `string` extern arg is marshalled on the shim's
-/// own stack (a VLA NUL-copy) instead of `malloc` via the runtime. 4 KiB
-/// stays well under any reasonable `ulimit -s` and covers the common case
-/// (paths, identifiers, log lines) ; larger strings fall back to the heap.
-EXTERN_STACK_CSTR_THRESHOLD :: 4096
-
 /// Forward an `@extern` import to its foreign symbol, marshalling each
-/// `string` arg (`vader_string_t`) to a `const char*` : small strings via a
-/// stack VLA NUL-copy, large ones via `vader_string_to_cstr` (freed after
-/// the call). Non-string args pass through ; the result is captured before
-/// freeing so heap copies outlive the call expression.
-user_extern_shim :: fn(imp: BcImport, head: string, ret: string) -> string {
+/// `string` arg (a `vader_string_t` atom id) to a NUL-terminated
+/// `const char*` via `vader_string_to_cstr` : owner atoms hand out their
+/// bytes with no copy, slice atoms get a heap dup. Every marshalled arg
+/// is paired with `vader_cstr_free_for(atom, cstr)` — the O(1) form that
+/// discriminates owner vs dup from the atom id (the id-less
+/// `vader_cstr_free` has to scan the atom table, hot at one call per
+/// string arg per FFI call). The result is captured before freeing so a
+/// returned pointer into a dup can't be used after free.
+user_extern_shim :: fn(imp: BcImport, head: string) -> string {
     sig :: imp.signature
-    string_indices: i32[] = []
     call_args: string[] = []
+    lines: string[] = []
+    free_lines: string[] = []
     for j in 0..<sig.params.len() {
         if sig.params[j] == ValType.String {
-            string_indices.push(i32(j))
+            lines.push("const char* c${j} = vader_string_to_cstr(a${j});")
+            free_lines.push("vader_cstr_free_for(a${j}, c${j});")
             call_args.push("c${j}")
         } else {
             call_args.push("a${j}")
         }
     }
-    t :: EXTERN_STACK_CSTR_THRESHOLD
-    lines: string[] = []
-    for i in 0..<string_indices.len() {
-        j :: string_indices[i]
-        lines.push("char _b${j}[a${j}.len < ${t} ? a${j}.len + 1 : 1];")
-        lines.push("const char* c${j};")
-        lines.push("if (a${j}.len < ${t}) { if (a${j}.len > 0) memcpy(_b${j}, a${j}.ptr, a${j}.len); _b${j}[a${j}.len] = 0; c${j} = _b${j}; } else { c${j} = vader_string_to_cstr(a${j}); }")
-    }
     call_expr :: "${imp.extern_name}(${call_args.join(", ")})"
-    free_lines: string[] = []
-    fi: i32 = i32(string_indices.len()) - 1
-    for fi >= 0 {
-        j :: string_indices[usize(fi)]
-        free_lines.push("if (a${j}.len >= ${t}) vader_cstr_free(c${j});")
-        fi -= 1
-    }
     if sig.result == ValType.Void {
         lines.push("${call_expr};")
         for fl in free_lines { lines.push(fl) }
         lines.push("return;")
-    } else if string_indices.len() == 0 {
+    } else if free_lines.len() == 0 {
         lines.push("return ${call_expr};")
     } else {
-        lines.push("${ret} r = ${call_expr};")
+        lines.push("${c_type_for_val_bare(sig.result)} r = ${call_expr};")
         for fl in free_lines { lines.push(fl) }
         lines.push("return r;")
     }

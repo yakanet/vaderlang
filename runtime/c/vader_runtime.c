@@ -1034,6 +1034,17 @@ const char* vader_atom_to_cstr(vader_atom_t a) {
     return dup;
 }
 
+/* O(1) variant of `vader_atom_cstr_free` for callers that still hold the
+ * atom id : owner atoms hand out their table-owned bytes (nothing to
+ * free), slice atoms were dup'd by `_to_cstr`. The id-less form below
+ * has to SCAN the table to discriminate — the extern-call shims free one
+ * cstr per string arg per FFI call, which makes that scan hot. */
+void vader_cstr_free_for(vader_string_t s, const char* p) {
+    if (p == NULL) return;
+    if (g_atoms.entries[s].parent == 0) return;  /* owner : table-owned */
+    free((void*) p);
+}
+
 void vader_atom_cstr_free(const char* p) {
     if (p == NULL) return;
     /* Distinguish owner-data (stable pointer into the table) from slice
