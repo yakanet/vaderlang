@@ -1,0 +1,25 @@
+// Comptime integer arithmetic must wrap at the type's runtime width (audit CT1):
+// a folded i32 sum overflows to the same negative value the runtime produces,
+// a shift amount is masked to the width, and a genuine i64 keeps full precision.
+// Each line prints the comptime-baked const beside the runtime computation —
+// they must be identical.
+module "snippet"
+
+import "std/io" { println }
+
+SUM :: 2000000000 + 2000000000
+GT0 :: (2000000000 + 2000000000) > 0
+SHL :: 1 << 33
+BIG: i64: 3000000000 + 3000000000
+
+main :: fn() -> i32 {
+    a: i32 = 2000000000
+    s: i32 = 1
+    sh: i32 = 33
+    b: i64 = 3000000000
+    println("sum comptime=${SUM} runtime=${a + a}")
+    println("gt0 comptime=${GT0} runtime=${(a + a) > 0}")
+    println("shl comptime=${SHL} runtime=${s << sh}")
+    println("big comptime=${BIG} runtime=${b + b}")
+    return 0
+}

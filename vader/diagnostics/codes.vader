@@ -180,6 +180,7 @@ export ComptimeCode :: enum(u8) {
     DecoratorArgsStringLit,                 // C4013
     InstanceDiscoveryDidNotConverge,        // C4014
     AssertFailed,                           // C4015
+    ImpureHostAtComptime,                   // C4016
 }
 
 // M-codes belong to the MIR-lowering pass (AST -> Lowered IR) ; once
@@ -318,6 +319,7 @@ export comptime_info :: fn(c: ComptimeCode) = match c {
     .DecoratorArgsStringLit             -> CodeInfo { .id = "C4013", .message = "decorator arguments must be string literals at comptime" }
     .InstanceDiscoveryDidNotConverge    -> CodeInfo { .id = "C4014", .message = "generic instance discovery did not converge" }
     .AssertFailed                       -> CodeInfo { .id = "C4015", .message = "compile-time assertion failed" }
+    .ImpureHostAtComptime               -> CodeInfo { .id = "C4016", .message = "impure host call at comptime" }
 }
 
 export lower_info :: fn(c: LowerCode) = match c {

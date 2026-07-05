@@ -1,0 +1,7 @@
+# stdout
+sum comptime=-294967296 runtime=-294967296
+gt0 comptime=false runtime=false
+shl comptime=2 runtime=2
+big comptime=6000000000 runtime=6000000000
+# exit
+0

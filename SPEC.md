@@ -139,7 +139,12 @@ Code in `@comptime` context can:
 - ✅ compute (pure functions)
 - ✅ allocate memory and manipulate structures
 - ✅ read project files (via `@file(path)` — see §14)
-- ❌ read `ENV` / `args`, network syscalls, exec, stdout: **forbidden**, to preserve build reproducibility
+- ✅ write debug output to `stdout` (`println`) — a side effect that never enters
+  the baked value, so it cannot affect reproducibility
+- ❌ read `ENV` / `args`, the clock, the filesystem (beyond `@file`), stdin, or
+  spawn a subprocess — any host that observes state outside the program is
+  **forbidden** (`C4016`), to preserve build reproducibility. The comptime VM
+  refuses such a call rather than baking a non-reproducible value.
 
 ---
 
