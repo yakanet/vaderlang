@@ -23,12 +23,10 @@ module "std/core"
 ///
 /// `BigInt :: u32[]` is a distinct newtype (array-backed) : the structural array
 /// ops (index, `len`/`push`, for-in, `[…]` literals) forward to the backing
-/// array, while trait impls stay nominal — so `bigint * u32` / `bigint / u32`
-/// could be overloaded here. They are NOT yet : the operations below are named
-/// methods (`mul_small`, `div_small`, …) because the CURRENT bootstrap seed
-/// predates array-backed distinct newtypes and would mis-compile a comptime
-/// `p * u32(5)` as an array-repeat. Once this feature is in the seed, the
-/// `*` / `/` operator migration is a mechanical follow-up.
+/// array, while the scalar arithmetic is overloaded on the nominal type —
+/// `bigint * u32` (`Mul<u32>`) and `bigint / u32` → `[quotient, remainder]`
+/// (`Div<u32, [BigInt, u32]>`). `mul_add_small` (×+add) has no operator form and
+/// stays a method.
 export BigInt :: u32[]
 
 /// Multiply by a small scalar and add a small scalar : `self * mul + add`.
@@ -55,41 +53,42 @@ export mul_add_small :: fn(self: BigInt, mul: u32, add: u32) -> BigInt {
     return out
 }
 
-/// Multiply by a small (u32) scalar.
-export mul_small :: fn(self: BigInt, mul: u32) -> BigInt = self.mul_add_small(mul, 0)
+/// Multiply by a small (u32) scalar — the `*` operator (`bigint * u32`).
+BigInt implements Mul<u32, BigInt> {
+    mul :: fn(self, other: u32) -> BigInt = self.mul_add_small(other, 0)
+}
 
-/// Floor-divide by a small (u32) scalar, keeping the remainder.
+/// Floor-divide by a small (u32) scalar → `[quotient, remainder]` — the `/`
+/// operator (`bigint / u32`).
 ///
 /// Schoolbook long division from the most-significant limb — O(n) exact, NOT the
-/// general O(n^2) BigInt / BigInt division. Chaining `div_small(5)` realizes the
-/// floor identity that builds the reciprocal powers `5^-j` ; the remainder feeds
+/// general O(n^2) BigInt / BigInt division. Chaining `/ 5` realizes the floor
+/// identity that builds the reciprocal powers `5^-j` ; the remainder feeds
 /// sticky-bit rounding in the slow-path float parser.
-///
-/// @param self  the operand.
-/// @param d     the u32 divisor (must be non-zero).
-/// @return      `[floor(self / d), self mod d]`.
-export divmod_small :: fn(self: BigInt, d: u32) -> [BigInt, u32] {
-    msb: BigInt = []          // quotient limbs, most-significant first
-    rem: u64 = 0
-    i: i32 = i32(self.len()) - 1
-    for i >= 0 {
-        cur :: (rem << 32) | u64(self[usize(i)])
-        msb.push(u32(cur / u64(d)))
-        rem = cur % u64(d)
-        i -= 1
+BigInt implements Div<u32, [BigInt, u32]> {
+    div :: fn(self, d: u32) -> [BigInt, u32] {
+        msb: BigInt = []          // quotient limbs, most-significant first
+        rem: u64 = 0
+        i: i32 = i32(self.len()) - 1
+        for i >= 0 {
+            cur :: (rem << 32) | u64(self[usize(i)])
+            msb.push(u32(cur / u64(d)))
+            rem = cur % u64(d)
+            i -= 1
+        }
+        out: BigInt = []          // reverse to little-endian
+        j: i32 = i32(msb.len()) - 1
+        for j >= 0 {
+            out.push(msb[usize(j)])
+            j -= 1
+        }
+        return [out, u32(rem)]
     }
-    out: BigInt = []          // reverse to little-endian
-    j: i32 = i32(msb.len()) - 1
-    for j >= 0 {
-        out.push(msb[usize(j)])
-        j -= 1
-    }
-    return [out, u32(rem)]
 }
 
 /// `floor(self / d)`, discarding the remainder.
 export div_small :: fn(self: BigInt, d: u32) -> BigInt {
-    [q, _rem] :: self.divmod_small(d)
+    [q, _rem] :: self / d
     return q
 }
 
@@ -222,12 +221,12 @@ import "std/testing" { assert_eq }
 
 @test test_mul_div_small_roundtrip :: fn() -> void {
     one: BigInt = [1]
-    p125 :: one.mul_small(5).mul_small(5).mul_small(5)   // 5^3
+    p125 :: one * u32(5) * u32(5) * u32(5)   // 5^3
     assert_eq(p125.bits64(0), u64(125))
     assert_eq(p125.div_small(5).bits64(0), u64(25))
     assert_eq(p125.div_small(5).div_small(5).div_small(5).bits64(0), u64(1))
     // divmod keeps the remainder ; mul_add folds a scalar addend
-    [q, rem] :: p125.divmod_small(7)                     // 125 = 7*17 + 6
+    [q, rem] :: p125 / u32(7)                     // 125 = 7*17 + 6
     assert_eq(q.bits64(0), u64(17))
     assert_eq(rem, u32(6))
     assert_eq(one.mul_add_small(10, 3).bits64(0), u64(13))   // 1*10 + 3

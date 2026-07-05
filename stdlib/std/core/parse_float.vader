@@ -254,14 +254,14 @@ parse_f64_slow :: fn(s: string, negative: bool) -> f64 {
     b_exp: i32 = 0
     sticky := false
     if p.e >= 0 {
-        for _k in 0..<p.e { m = m.mul_small(5) }
+        for _k in 0..<p.e { m = m * u32(5) }
         b_exp = p.e
     } else {
         neg_e :: -p.e
         g :: neg_e * 4 + 64                        // guard bits
         m = p.d.shl(g)
         for _k in 0..<neg_e {
-            [q, rem] :: m.divmod_small(5)
+            [q, rem] :: m / u32(5)
             m = q
             if rem != 0 { sticky = true }
         }
