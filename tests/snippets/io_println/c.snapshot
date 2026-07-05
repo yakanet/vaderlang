@@ -105,7 +105,7 @@ static vader_string_t std_core_format_signed(int64_t l0) {
                 l4 = (size_t) (int64_t) INT64_C(1);
                 t2 = (l2 + l4);
                 l2 = (size_t) (int64_t) t2;
-                t3 = l3 / INT64_C(10);
+                t3 = vader_div_i64(l3, INT64_C(10));
                 l3 = t3;
                 goto loop_24;
             } else {
@@ -130,13 +130,13 @@ static vader_string_t std_core_format_signed(int64_t l0) {
                 t6 = (l4 - l5);
                 l4 = (size_t) (int64_t) t6;
                 l7 = (uint8_t) (int32_t) INT32_C(48);
-                t7 = l0 % INT64_C(10);
+                t7 = vader_mod_i64(l0, INT64_C(10));
                 t8 = ((int32_t) (int64_t) -(t7));
                 l8 = (uint8_t) (int32_t) t8;
                 t9 = (l7 + l8);
                 l9 = (uint8_t) (int32_t) t9;
                 std_core_Buffer_ByteAccess_store_u8_vt(l6, l4, l9);
-                t10 = l0 / INT64_C(10);
+                t10 = vader_div_i64(l0, INT64_C(10));
                 l0 = t10;
                 goto loop_63;
             } else {

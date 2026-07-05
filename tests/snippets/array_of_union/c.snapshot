@@ -197,7 +197,7 @@ static size_t std_core_write_unsigned(vader_box_t l0, size_t l1, uint64_t l2) {
                 t0 = (l5 + l7);
                 l5 = (size_t) (int64_t) t0;
                 l8 = (uint64_t) (int64_t) INT64_C(10);
-                t1 = l3 / l8;
+                t1 = vader_div_u64(l3, l8);
                 l3 = t1;
                 goto loop_24;
             } else {
@@ -215,14 +215,14 @@ static size_t std_core_write_unsigned(vader_box_t l0, size_t l1, uint64_t l2) {
                 l7 = (size_t) (int64_t) t3;
                 l4 = (uint8_t) (int32_t) INT32_C(48);
                 l6 = (uint64_t) (int64_t) INT64_C(10);
-                t4 = l2 % l6;
+                t4 = vader_mod_u64(l2, l6);
                 t5 = ((int32_t) (uint64_t) t4);
                 l10 = (uint8_t) (int32_t) t5;
                 t6 = (l4 + l10);
                 l11 = (uint8_t) (int32_t) t6;
                 std_core_Buffer_ByteAccess_store_u8_vt(l0, l7, l11);
                 l8 = (uint64_t) (int64_t) INT64_C(10);
-                t7 = l2 / l8;
+                t7 = vader_div_u64(l2, l8);
                 l2 = t7;
                 goto loop_53;
             } else {

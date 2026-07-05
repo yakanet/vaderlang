@@ -1,0 +1,4 @@
+# stderr
+vader vm: i32.div by zero at pc=2
+# exit
+1

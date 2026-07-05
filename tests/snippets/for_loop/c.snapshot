@@ -108,7 +108,7 @@ static int32_t snippet_mixed_loops(int32_t l0) {
             if ((l2 < INT32_C(10))) {
                 t0 = (l2 + INT32_C(1));
                 l2 = t0;
-                t1 = l2 % INT32_C(2);
+                t1 = vader_mod_i32(l2, INT32_C(2));
                 l3 = t1;
                 if (l3 != INT32_C(0)) {
                     goto loop_5;

@@ -194,8 +194,11 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         i :: read_i32   (stack[arg_base + 1], at_pc, "string[] index")
         if s is Trap { return s }
         if i is Trap { return i }
-        // Walk UTF-8 until the `i`-th codepoint, then decode it. OOB
-        // returns U+0000 in the VM ; the native runtime traps instead.
+        // Walk UTF-8 until the `i`-th codepoint, then decode it. An out-of-range
+        // (or negative, wrapping huge) index traps — aligning the VM on the
+        // native runtime (`vader_string_codepoint_at`, runtime/c/vader_runtime.c),
+        // which raises the same message. Previously the VM baked U+0000, so an
+        // OOB `s[i]` at comptime silently produced a NUL codepoint.
         sb :: s.value.bytes()
         target :: usize(i.value)
         cursor: usize = 0
@@ -207,7 +210,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
             cursor = cursor + width
             seen   = seen + 1
         }
-        return HostOk { .value = CharVal { .value = char(0) } }
+        return Trap { .message = "string codepoint index out of bounds" }
     }
     // ---- std/core Display + Equals intrinsics ----------------------------
     // `string implements Hash` is now pure Vader (FNV-1a-64 over `bytes()`,

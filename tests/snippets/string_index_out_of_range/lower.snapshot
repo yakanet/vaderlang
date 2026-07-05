@@ -1,0 +1,50 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    let word: string = "abc" :string
+    let idx: i32 = int(10) :i32
+    let ch: char =
+      call :char
+        callee:
+          std_core$string$Index$at :char
+        arg0:
+          word :string
+        arg1:
+          idx :i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(20) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    cast → i32
+                      ch :char
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+    return int(0) :i32

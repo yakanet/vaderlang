@@ -1,0 +1,7 @@
+# Typecheck
+
+## tests/snippets/divide_by_zero_runtime
+  FnDecl         main                 :: fn() -> i32
+  expr 15:12    BinaryExpr     :: i32
+  expr 15:12    IdentExpr      :: i32
+  expr 15:24    IdentExpr      :: i32

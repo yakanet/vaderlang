@@ -97,7 +97,7 @@ static int32_t snippet_main(void) {
                 if ((size_t) l2 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 t2 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l2];
                 l3 = t2;
-                t3 = l3 % INT32_C(2);
+                t3 = vader_mod_i32(l3, INT32_C(2));
                 l4 = t3;
                 if (l4 == INT32_C(0)) {
                     l5 = l3;
@@ -173,7 +173,7 @@ static size_t std_core_write_int(vader_box_t l0, size_t l1, int64_t l2) {
                 l7 = (size_t) (int64_t) INT64_C(1);
                 t2 = (l4 + l7);
                 l4 = (size_t) (int64_t) t2;
-                t3 = l6 / INT64_C(10);
+                t3 = vader_div_i64(l6, INT64_C(10));
                 l6 = t3;
                 goto loop_35;
             } else {
@@ -197,13 +197,13 @@ static size_t std_core_write_int(vader_box_t l0, size_t l1, int64_t l2) {
                 t6 = (l7 - l8);
                 l7 = (size_t) (int64_t) t6;
                 l3 = (uint8_t) (int32_t) INT32_C(48);
-                t7 = l2 % INT64_C(10);
+                t7 = vader_mod_i64(l2, INT64_C(10));
                 t8 = ((int32_t) (int64_t) -(t7));
                 l9 = (uint8_t) (int32_t) t8;
                 t9 = (l3 + l9);
                 l10 = (uint8_t) (int32_t) t9;
                 std_core_Buffer_ByteAccess_store_u8_vt(l0, l7, l10);
-                t10 = l2 / INT64_C(10);
+                t10 = vader_div_i64(l2, INT64_C(10));
                 l2 = t10;
                 goto loop_74;
             } else {

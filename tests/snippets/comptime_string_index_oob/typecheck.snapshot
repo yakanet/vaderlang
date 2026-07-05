@@ -1,0 +1,13 @@
+# Typecheck
+
+## tests/snippets/comptime_string_index_oob
+  ConstDecl      BAD                  :: char
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         oob                  :: fn() -> char
+  expr 11:23    IndexExpr      :: char
+  expr 11:23    StringLitExpr  :: string
+  expr 14:15    CallExpr       :: char
+  expr 14:15    IdentExpr      :: fn() -> char
+  expr 17:12    CallExpr       :: i32
+  expr 17:12    IdentExpr      :: type
+  expr 17:16    IdentExpr      :: char

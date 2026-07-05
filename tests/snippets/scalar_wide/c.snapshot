@@ -132,13 +132,13 @@ static int64_t snippet_l_add(int64_t l0, int64_t l1) {
 
 static int64_t snippet_l_div(int64_t l0, int64_t l1) {
     int64_t t0;
-    t0 = l0 / l1;
+    t0 = vader_div_i64(l0, l1);
     return t0;
 }
 
 static int64_t snippet_l_rem(int64_t l0, int64_t l1) {
     int64_t t0;
-    t0 = l0 % l1;
+    t0 = vader_mod_i64(l0, l1);
     return t0;
 }
 
@@ -164,19 +164,19 @@ static int64_t snippet_l_bnot(int64_t l0) {
 
 static int32_t snippet_i_div(int32_t l0, int32_t l1) {
     int32_t t0;
-    t0 = l0 / l1;
+    t0 = vader_div_i32(l0, l1);
     return t0;
 }
 
 static int32_t snippet_i_rem(int32_t l0, int32_t l1) {
     int32_t t0;
-    t0 = l0 % l1;
+    t0 = vader_mod_i32(l0, l1);
     return t0;
 }
 
 static uint32_t snippet_u_div(uint32_t l0, uint32_t l1) {
     uint32_t t0;
-    t0 = l0 / l1;
+    t0 = vader_div_u32(l0, l1);
     return t0;
 }
 
@@ -186,7 +186,7 @@ static bool snippet_u_lt(uint32_t l0, uint32_t l1) {
 
 static uint64_t snippet_ul_div(uint64_t l0, uint64_t l1) {
     uint64_t t0;
-    t0 = l0 / l1;
+    t0 = vader_div_u64(l0, l1);
     return t0;
 }
 

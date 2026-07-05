@@ -626,16 +626,40 @@ emit_bits_to_f32 :: fn(s: FnState) -> void {
 }
 
 /// Emit an eager binary op into a fresh temp : `tN = l <op> r;`. Used for
-/// `div` / `rem` (every width, incl. f64) — materialised unconditionally
-/// so an integer divide-by-zero trap fires whether or not the result is
-/// consumed. Operands are coerced to `val` (unbox an erased `any`). Note :
-/// no parens around `l <op> r`.
+/// `div` / `rem` (every width, incl. f64) — materialised unconditionally so a
+/// divide-by-zero guard runs whether or not the result is consumed. An integer
+/// `div` / `mod` is routed through a `vader_{div,mod}_<width>` runtime helper
+/// that traps on a zero divisor (and folds `INT_MIN / -1`), aligning native on
+/// the VM ; a bare `a / b` gives a silent zero on arm64 and SIGFPE on x86,
+/// neither of which matches the VM's labelled trap. Float divide keeps IEEE
+/// `inf` / `nan` and stays a bare `l / r`. Operands are coerced to `val`
+/// (unbox an erased `any`).
 push_eager :: fn(s: FnState, op: string, val: ValType) -> void {
     r :: pop(s)
     l :: pop(s)
     lc :: coerce_operand(s.ctx.module.types, name_of(l), val_of(l), val)
     rc :: coerce_operand(s.ctx.module.types, name_of(r), val_of(r), val)
-    push_into_tmp(s, "${lc} ${op} ${rc}", val)
+    helper :: div_mod_helper(op, val)
+    if helper == null {
+        push_into_tmp(s, "${lc} ${op} ${rc}", val)
+    } else {
+        push_into_tmp(s, "${helper}(${lc}, ${rc})", val)
+    }
+}
+
+/// Runtime guard-helper name for an integer `div` / `mod`, or `null` for a
+/// width the backend leaves as a bare operator (floats — IEEE `inf` / `nan`,
+/// no guard). `push_eager` only ever passes `"/"` or `"%"` here. The name is
+/// `vader_<div|mod>_<width>` ; the helpers live in `runtime/c/vader.h` and
+/// carry trap messages matching the VM's op labels.
+// @partial: only the four integer widths that reach push_eager are guarded ;
+// every other ValType (floats, refs) stays a bare operator.
+div_mod_helper :: fn(op: string, val: ValType) -> string | null = @partial match val {
+    .I32 | .I64 | .U32 | .U64 -> {
+        verb :: if op == "/" { "div" } else { "mod" }
+        "vader_${verb}_${vm.val_type_name(val)}"
+    }
+    _ -> null
 }
 
 /// Reinterpret the top value into `target_val` (`Convert` / `IntToChar` /
