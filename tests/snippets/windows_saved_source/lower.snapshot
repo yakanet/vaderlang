@@ -1,0 +1,10 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        "saved on windows, runs anywhere" :string
+    return int(0) :i32

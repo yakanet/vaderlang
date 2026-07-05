@@ -1,0 +1,7 @@
+# Typecheck
+
+## tests/snippets/windows_saved_source
+  FnDecl         main                 :: fn() -> i32
+  expr 12:13    StringLitExpr  :: string
+  expr 12:5     CallExpr       :: void
+  expr 12:5     IdentExpr      :: fn(T) -> void

@@ -31,6 +31,7 @@ export LexerCode :: enum(u8) {
     ShebangNotOnFirstLine,                  // L0008
     InvalidUnicodeCodepointEscape,          // L0009
     InterpolationExpressionExpected,        // L0010
+    IntegerLiteralOverflow,                 // L0011
 }
 
 // Typecheck-pass codes. New codes are appended ; once shipped, a code
@@ -122,6 +123,7 @@ export ParserCode :: enum(u8) {
     LetDestructureRequiresTwoElements,      // P1023
     InvalidConstQualifierPlacement,         // P1027
     InvalidModuleName,                      // P1028
+    ExpressionNestingTooDeep,               // P1029
 }
 
 // R-codes belong to the resolver pass (name-binding) ; once shipped,
@@ -227,6 +229,7 @@ export lexer_info :: fn(c: LexerCode) = match c {
     .ShebangNotOnFirstLine           -> CodeInfo { .id = "L0008", .message = "shebang only allowed on first line" }
     .InvalidUnicodeCodepointEscape   -> CodeInfo { .id = "L0009", .message = "invalid Unicode codepoint escape" }
     .InterpolationExpressionExpected -> CodeInfo { .id = "L0010", .message = "interpolation expression must follow `\${`" }
+    .IntegerLiteralOverflow          -> CodeInfo { .id = "L0011", .message = "integer literal exceeds the u64 range" }
 }
 
 export parser_info :: fn(c: ParserCode) = match c {
@@ -255,6 +258,7 @@ export parser_info :: fn(c: ParserCode) = match c {
     .LetDestructureRequiresTwoElements  -> CodeInfo { .id = "P1023", .message = "let destructure requires at least 2 elements" }
     .InvalidConstQualifierPlacement     -> CodeInfo { .id = "P1027", .message = "invalid `const` qualifier placement" }
     .InvalidModuleName                  -> CodeInfo { .id = "P1028", .message = "invalid module name (does not match `[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*)*` grammar)" }
+    .ExpressionNestingTooDeep           -> CodeInfo { .id = "P1029", .message = "expression nesting too deep" }
 }
 
 export resolver_info :: fn(c: ResolverCode) = match c {

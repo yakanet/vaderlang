@@ -67,17 +67,25 @@ export parse_int_in_base :: fn(s: string, base: i32) -> i64 | ParseError {
 /// @param s     the digits-only input.
 /// @param base  one of 2 / 8 / 10 / 16.
 /// @return      the parsed `u64`.
-/// @error       `ParseError` on empty input or any out-of-base digit.
+/// @error       `ParseError` on empty input, any out-of-base digit, or a
+///              magnitude exceeding `u64.MAX` (carries `.msg = "overflow"`).
 export parse_uint_in_base :: fn(s: string, base: i32) -> u64 | ParseError {
     if s.is_empty() {
         return ParseError { .msg = "empty input" }
     }
     acc: u64 = 0
     b: u64 = u64(base)
+    u64_max: u64 = 0xFFFF_FFFF_FFFF_FFFF
     for c in s.chars() {
         d := hex_digit_value(c)
         if d < 0 || d >= base {
             return ParseError { .msg = "invalid digit" }
+        }
+        // Overflow guard : reject any literal whose value would wrap past
+        // `u64.MAX`. Checked before the multiply-add so `acc` never wraps ;
+        // `u64.MAX` itself still round-trips (equality is not an overflow).
+        if acc > (u64_max - u64(d)) / b {
+            return ParseError { .msg = "overflow" }
         }
         acc = acc * b + u64(d)
     }

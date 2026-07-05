@@ -377,9 +377,16 @@ lex_number :: fn(l: Lexer) -> void {
         }
     } else {
         parsed :: parse_uint_in_base(digits, base)
-        t.value = match parsed {
-            is u64 -> parsed
-            is ParseError -> u64(0)
+        match parsed {
+            is u64 -> { t.value = parsed }
+            is ParseError -> {
+                // The digit shape was already validated by the scan above, so the
+                // only remaining failure is an out-of-range magnitude — surface it
+                // as L0011 instead of silently wrapping the value to 0.
+                l.push_error(.IntegerLiteralOverflow, l.error_span(start),
+                    "`${text}` does not fit in u64")
+                t.value = u64(0)
+            }
         }
     }
     l.emit(t)

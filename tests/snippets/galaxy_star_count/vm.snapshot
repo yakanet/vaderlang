@@ -1,0 +1,2 @@
+# compile errors
+[L0011] integer literal exceeds the u64 range: `1000000000000000000000000` does not fit in u64

@@ -1,0 +1,14 @@
+﻿// Regression: this file opens with a UTF-8 BOM (EF BB BF), the way some
+// Windows editors save text. `parse_module_header`'s byte-scanner must skip
+// the BOM before matching `module`, otherwise a file that DOES declare its
+// module is misreported as missing one (R2020). The main lexer already skips
+// it; this keeps the header pre-scan in step.
+
+module "snippet"
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    println("saved on windows, runs anywhere")
+    return 0
+}
