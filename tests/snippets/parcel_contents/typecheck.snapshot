@@ -1,0 +1,32 @@
+# Typecheck
+
+## tests/snippets/parcel_contents
+  FnDecl         first_of_batch       :: fn() -> Gift
+  StructDecl     Gift                 :: Gift
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Parcel               :: Parcel
+  FnDecl         unwrap               :: fn() -> Gift
+  expr 15:13    StructLitExpr  :: Gift
+  expr 16:15    StructLitExpr  :: Parcel
+  expr 16:36    IdentExpr      :: Gift
+  expr 17:12    FieldExpr      :: Gift
+  expr 17:12    IdentExpr      :: Parcel
+  expr 21:13    StructLitExpr  :: Gift
+  expr 22:14    SeqLitExpr     :: Gift[]
+  expr 22:15    IdentExpr      :: Gift
+  expr 23:12    IdentExpr      :: Gift[]
+  expr 23:12    IndexExpr      :: Gift
+  expr 27:10    CallExpr       :: Gift
+  expr 27:10    IdentExpr      :: fn() -> Gift
+  expr 28:16    StructLitExpr  :: Gift
+  expr 29:10    CallExpr       :: Gift
+  expr 29:10    IdentExpr      :: fn() -> Gift
+  expr 30:13    StringLitExpr  :: string
+  expr 30:27    FieldExpr      :: i32
+  expr 30:27    IdentExpr      :: Gift
+  expr 30:47    FieldExpr      :: i32
+  expr 30:47    IdentExpr      :: Gift
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(T) -> void
+  expr 30:71    FieldExpr      :: i32
+  expr 30:71    IdentExpr      :: Gift

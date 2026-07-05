@@ -41,19 +41,19 @@ fn 0 snippet$main () -> i32
   local.set 0
   string.const 0
   local.get 0
-  struct.new_stack 10
+  struct.new 10
   local.set 0
   type.const 1
   local.set 1
   string.const 1
   local.get 1
-  struct.new_stack 10
+  struct.new 10
   local.set 1
   type.const 2
   local.set 2
   string.const 2
   local.get 2
-  struct.new_stack 10
+  struct.new 10
   local.set 2
   local.get 0
   local.get 1
@@ -127,13 +127,13 @@ fn 0 snippet$main () -> i32
   local.set 0
   string.const 4
   local.get 0
-  struct.new_stack 10
+  struct.new 10
   local.set 0
   type.const 3
   local.set 1
   string.const 5
   local.get 1
-  struct.new_stack 10
+  struct.new 10
   local.set 1
   local.get 0
   local.get 1

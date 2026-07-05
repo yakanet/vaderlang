@@ -172,6 +172,11 @@ export Parser :: struct {
     errors: Diagnostic[]
     // True except inside the immediate condition expression of if/for/match.
     allow_struct_lit: bool
+    // True except inside a match-arm guard : `is T as n if n > 0 -> body`
+    // must not parse `0 -> body` (or `flag -> body`) as a bare lambda —
+    // the arrow belongs to the arm. Parenthesised sub-expressions restore
+    // it, so an intentional lambda in a guard stays writable as `(x -> …)`.
+    allow_bare_lambda: bool
     // When non-null, the lexer's `>>` token has been split : its first `>`
     // was already consumed (and `pos` advanced past it), and this field
     // holds a synthetic `Gt` exposing the second `>`. The next
@@ -192,6 +197,7 @@ new_parser :: fn(tokens: Token[], file: string) = Parser {
     .pos              = 0,
     .errors           = [],
     .allow_struct_lit = true,
+    .allow_bare_lambda = true,
     .shr_pending_half = null,
 }
 
@@ -2450,7 +2456,7 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
     // go through the `(params) -> body` path in parse_prefix.
     match left {
         is IdentExpr as id -> {
-            if p.check(.Arrow) {
+            if p.allow_bare_lambda && p.check(.Arrow) {
                 left = p.parse_single_param_lambda_tail(id)
             }
         }
@@ -2614,7 +2620,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
     if t.kind == .StringBegin { return p.parse_string_lit() }
     if t.kind == .Ident       { return p.parse_ident_or_struct_lit() }
     if t.kind == .LParen {
-        if p.peek_lambda_without_fn() { return p.parse_lambda_without_fn() }
+        if p.allow_bare_lambda && p.peek_lambda_without_fn() { return p.parse_lambda_without_fn() }
         return p.parse_paren()
     }
     if t.kind == .LBracket    { return p.parse_seq_lit() }
@@ -3006,9 +3012,12 @@ parse_paren :: fn(p: Parser) -> Expr {
     p.advance()  // `(`
     p.skip_newlines()
     saved_allow :: p.allow_struct_lit
+    saved_lambda :: p.allow_bare_lambda
     p.allow_struct_lit = true
+    p.allow_bare_lambda = true
     expr :: p.parse_expr(0)
     p.allow_struct_lit = saved_allow
+    p.allow_bare_lambda = saved_lambda
     p.skip_newlines()
     p.expect(.RParen, "`)` to close parenthesised expression")
     return expr
@@ -3225,9 +3234,12 @@ parse_match_arm :: fn(p: Parser) -> MatchArm {
     guard: Expr | null = null
     if p.match_kind(.KwIf) != null {
         saved_allow :: p.allow_struct_lit
+        saved_lambda :: p.allow_bare_lambda
         p.allow_struct_lit = false
+        p.allow_bare_lambda = false
         guard = p.parse_expr(0)
         p.allow_struct_lit = saved_allow
+        p.allow_bare_lambda = saved_lambda
     }
     p.expect(.Arrow, "`->` between pattern and arm body")
     body :: p.parse_expr(0)

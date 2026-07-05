@@ -1,0 +1,149 @@
+# Lower
+
+## snippet
+  struct snippet$Gift { value: i32 }
+  struct snippet$Parcel { contents: Gift }
+  fn snippet$unwrap() -> Gift
+    let gift: Gift =
+      Gift {
+        value: int(42) :i32
+      }
+    let parcel: Parcel =
+      Parcel {
+        contents: gift :Gift
+      }
+    return
+      .contents :Gift
+        parcel :Parcel
+  fn snippet$first_of_batch() -> Gift
+    let gift: Gift =
+      Gift {
+        value: int(77) :i32
+      }
+    let batch: Gift[] =
+      array :Gift[]
+        gift :Gift
+    return
+      index :Gift
+        on:
+          batch :Gift[]
+        ix:
+          int(0) :i32
+  fn snippet$main() -> i32
+    let a: Gift =
+      call :Gift
+        callee:
+          unwrap :fn() -> Gift
+    let scratch: Gift =
+      Gift {
+        value: int(2) :i32
+      }
+    let b: Gift =
+      call :Gift
+        callee:
+          first_of_batch :fn() -> Gift
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(89) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "unwrapped: " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    .value :i32
+                      a :Gift
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " scratch: " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    .value :i32
+                      scratch :Gift
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " batch: " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    .value :i32
+                      b :Gift
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+    return int(0) :i32

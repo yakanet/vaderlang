@@ -1,0 +1,19 @@
+// Regression: a slot re-read must not forward a value local reassigned
+// between the store and the read (midir `array_load_forward` — the tracked
+// `value` local is mutable pre-SSA and must invalidate on redefinition).
+// Expected: the shelf keeps the quantity that was stored, 10 — not 15.
+
+module "snippet"
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    shelf: i32[] = [0, 0, 0]
+    aisle :: 1
+    stock := 10
+    shelf[aisle] = stock
+    stock = stock + 5
+    on_shelf :: shelf[aisle]
+    println("on shelf: ${on_shelf}, in hand: ${stock}")
+    return 0
+}

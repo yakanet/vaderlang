@@ -1,0 +1,17 @@
+// Regression: a GUARDED match arm contributes nothing to exhaustiveness
+// (typecheck T3013) — `is i32 as n if n > 0` only matches positive ints,
+// so the i32 variant stays uncovered and the match must be rejected.
+
+module "snippet"
+
+describe :: fn(item: i32 | string) -> string {
+    return match item {
+        is i32 as n if n > 0 -> "rush order"
+        is string as s -> s
+    }
+}
+
+main :: fn() -> i32 {
+    describe(-3)
+    return 0
+}

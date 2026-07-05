@@ -1,0 +1,4 @@
+# compile errors
+[T3017] operator not defined for these operand types: operator not defined for i32 | string and {integer}
+[T3017] operator not defined for these operand types: operator not defined for i32 | string and {integer}
+[T3017] operator not defined for these operand types: operator not defined for i32 | string and {integer}

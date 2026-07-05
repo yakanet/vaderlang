@@ -391,7 +391,7 @@ fn 0 snippet$main () -> i32
         local.set 6
         local.get 2
         local.get 6
-        struct.new_stack 38
+        struct.new 38
         local.set 1
         local.field 1 40 0
         ref.cast 9

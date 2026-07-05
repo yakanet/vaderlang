@@ -43,14 +43,14 @@ export infer_match :: fn(
         // binding arms see `remaining` (subset of `scrut_ty` after
         // earlier arms removed their matched variants).
         arm_narrow :: arm_narrow_for(arm.pattern, remaining, typed)
-        prev_arm: Type | null = null
+        prev_arm: NarrowSlot | null = null
         if scrut_sym_id != -1 {
             match arm_narrow {
                 is null -> {}
                 _ -> { prev_arm = push_narrow(typed, scrut_sym_id, arm_narrow) }
             }
         }
-        prev_field: Type | null = null
+        prev_field: NarrowSlot | null = null
         if scrut_field_key != "" {
             match arm_narrow {
                 is null -> {}
@@ -83,6 +83,13 @@ export infer_match :: fn(
         // Subtract the matched type from `remaining` for subsequent
         // arms — `is T`, wildcard/binding, and tuple shapes consume
         // their corresponding union variants.
+        // A guarded arm (`is T if cond ->`, `_ if cond ->`) matches only
+        // when its guard holds at runtime, so it contributes NOTHING to
+        // coverage : no variant subtraction, no covered-variant record, no
+        // wildcard. Counting it would silence T3013 on a match that can
+        // still fall through. (The overlap check on `is T` stays — a guard
+        // cannot make a type-impossible test reachable.)
+        guarded :: arm.guard != null
         match arm.pattern {
             is AST.IsPattern as ip -> {
                 matched :: type_from_expr(ip.ty, typed.resolved, scratch_diags())
@@ -92,37 +99,45 @@ export infer_match :: fn(
                             "`${display_type(matched)}` is never a value of `${display_type(scrut_ty)}`"))
                     }
                 }
-                remaining = subtract_type(remaining, matched)
+                if !guarded { remaining = subtract_type(remaining, matched) }
             }
             is AST.EnumVariantPattern as ev -> {
-                covered_enum_variants.push(ev.variant)
+                if !guarded { covered_enum_variants.push(ev.variant) }
             }
             is AST.TuplePattern as tp -> {
-                // Subtract any TupleType variant whose arity matches.
-                tup_ty :: pick_tuple_variant(remaining, tp.elements.len())
-                if !(tup_ty is null) { remaining = subtract_type(remaining, tup_ty) }
-                // Irrefutable tuple (all bindings / wildcards) matches every
-                // tuple of that arity ; counts as a wildcard for exhaustiveness.
-                if is_irrefutable_tuple_pattern(tp) {
-                    has_wildcard = true
+                if !guarded {
+                    // Subtract any TupleType variant whose arity matches.
+                    tup_ty :: pick_tuple_variant(remaining, tp.elements.len())
+                    if !(tup_ty is null) { remaining = subtract_type(remaining, tup_ty) }
+                    // Irrefutable tuple (all bindings / wildcards) matches every
+                    // tuple of that arity ; counts as a wildcard for exhaustiveness.
+                    if is_irrefutable_tuple_pattern(tp) {
+                        has_wildcard = true
+                    }
                 }
             }
             is AST.WildcardPattern -> {
-                has_wildcard = true
-                remaining = TY_NEVER
+                if !guarded {
+                    has_wildcard = true
+                    remaining = TY_NEVER
+                }
             }
             is AST.BindingPattern -> {
-                has_wildcard = true
-                remaining = TY_NEVER
+                if !guarded {
+                    has_wildcard = true
+                    remaining = TY_NEVER
+                }
             }
             is AST.OrPattern as op -> {
                 // Each alternative consumes its own variant — enum variants add
                 // to the covered set, `is T` alternatives subtract their type.
                 // Literal alternatives exhaust nothing (open domain).
-                for sub in op.patterns {
-                    if sub is AST.EnumVariantPattern as ev { covered_enum_variants.push(ev.variant) }
-                    if sub is AST.IsPattern as ip {
-                        remaining = subtract_type(remaining, type_from_expr(ip.ty, typed.resolved, scratch_diags()))
+                if !guarded {
+                    for sub in op.patterns {
+                        if sub is AST.EnumVariantPattern as ev { covered_enum_variants.push(ev.variant) }
+                        if sub is AST.IsPattern as ip {
+                            remaining = subtract_type(remaining, type_from_expr(ip.ty, typed.resolved, scratch_diags()))
+                        }
                     }
                 }
             }

@@ -1,0 +1,36 @@
+// Regression: a reassignment must retire the flow narrowing of the
+// written binding / field chain (typecheck `invalidate_narrow_on_assign`).
+// Each fn below re-labels a numeric ticket as a string after a guard
+// narrowed it to i32 — the arithmetic on the stale narrow must be
+// rejected (T3017 on the union), not silently compiled against i32.
+
+module "snippet"
+
+after_guard :: fn() -> i32 {
+    ticket: i32 | string = 5
+    if ticket is string { return 0 }
+    ticket = "expedited"
+    return ticket + 1
+}
+
+inside_branch :: fn() -> i32 {
+    ticket: i32 | string = 5
+    if ticket is i32 {
+        ticket = "expedited"
+        return ticket + 1
+    }
+    return 0
+}
+
+Desk :: struct { current: i32 | string }
+
+on_field :: fn() -> i32 {
+    desk :: Desk { .current = 5 }
+    if desk.current is string { return 0 }
+    desk.current = "expedited"
+    return desk.current + 1
+}
+
+main :: fn() -> i32 {
+    return after_guard() + inside_branch() + on_field()
+}

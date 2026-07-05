@@ -41,9 +41,11 @@ export EnumType :: struct {
 /// its backing's `ValType` — not on `StructType` (which is a boxed `Ref`).
 export DistinctType :: struct {
     symbol:  Symbol
-    /// The underlying type the value is represented as. Always a
-    /// `PrimitiveType` in v1 ; the resolver enforces this at the
-    /// const→distinct promotion site.
+    /// The underlying type the value is represented as. A primitive
+    /// (`Meters :: i64`) or a composite — array (`BigInt :: u32[]`),
+    /// struct, or tuple alias. Classifiers must recurse into it
+    /// (`val_type_of_type`, `array_backing`, `struct_backing`, …)
+    /// rather than assume a primitive.
     backing: Type
 }
 

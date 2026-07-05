@@ -53,8 +53,8 @@ fn 0 snippet$main () -> i32
   local.get 3
   local.get 4
   local.get 5
-  struct.new_stack 3
-  struct.new_stack 2
+  struct.new 3
+  struct.new 2
   local.set 0
   local.field 0 2 0
   local.set 1

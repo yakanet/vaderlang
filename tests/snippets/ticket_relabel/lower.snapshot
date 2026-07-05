@@ -1,0 +1,89 @@
+# Lower
+
+## snippet
+  fn snippet$after_guard() -> i32
+    let ticket: i32 | string = int(5) :i32 | string
+    if :void
+      cond:
+        is string :bool
+          ticket :i32 | string
+      then:
+        return int(0) :i32
+    assign
+      target:
+        ticket :i32
+      value:
+        "expedited" :string
+    return
+      add :?
+        l:
+          ticket :i32 | string
+        r:
+          int(1) :i32
+  fn snippet$inside_branch() -> i32
+    let ticket: i32 | string = int(5) :i32 | string
+    if :void
+      cond:
+        is i32 :bool
+          ticket :i32 | string
+      then:
+        assign
+          target:
+            ticket :i32
+          value:
+            "expedited" :string
+        return
+          add :?
+            l:
+              ticket :i32 | string
+            r:
+              int(1) :i32
+    return int(0) :i32
+  struct snippet$Desk { current: i32 | string }
+  fn snippet$on_field() -> i32
+    let desk: Desk =
+      Desk {
+        current: int(5) :i32 | string
+      }
+    if :void
+      cond:
+        is string :bool
+          .current :i32 | string
+            desk :Desk
+      then:
+        return int(0) :i32
+    assign
+      target:
+        .current :i32
+          desk :Desk
+      value:
+        "expedited" :string
+    return
+      add :?
+        l:
+          .current :i32 | string
+            desk :Desk
+        r:
+          int(1) :i32
+  fn snippet$main() -> i32
+    return
+      add :i32
+        l:
+          add :i32
+            l:
+              call :i32
+                callee:
+                  after_guard :fn() -> i32
+            r:
+              call :i32
+                callee:
+                  inside_branch :fn() -> i32
+        r:
+          call :i32
+            callee:
+              on_field :fn() -> i32
+
+# Diagnostics
+[13:12] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and {integer}
+[20:16] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and {integer}
+[31:12] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and {integer}

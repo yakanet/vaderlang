@@ -15,7 +15,7 @@ end
 fn 1 snippet$main () -> i32
   local $field_3 ref
   fn.ref 0 3
-  struct.new_stack 2
+  struct.new 2
   struct.get 2 0
   local.set 0
   i32.const 4

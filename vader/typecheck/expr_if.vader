@@ -113,7 +113,7 @@ check_else_with_narrow :: fn(
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
-    prev: Type | null = null
+    prev: NarrowSlot | null = null
     static_ty: Type = TY_UNRESOLVED
     if narrowing is IsNarrow as n {
         static_ty = n.static_ty
@@ -133,7 +133,7 @@ check_else_branch_expr :: fn(
     expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
-    prev: Type | null = null
+    prev: NarrowSlot | null = null
     static_ty: Type = TY_UNRESOLVED
     if narrowing is IsNarrow as n {
         static_ty = n.static_ty
@@ -168,7 +168,7 @@ IsNarrow :: struct {
 PushedNarrow :: struct {
     sym_id:    i32
     field_key: string
-    prev:      Type | null
+    prev:      NarrowSlot | null
     static_ty: Type
 }
 
