@@ -6,7 +6,7 @@ module "vader/lower"
 import "vader/parser" { Expr, IdentExpr, IndexExpr, RangeExpr, AssignStmt, Visibility }
 import "vader/diagnostics" { Span }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, PrimitiveType, ArrayType, TY_BOOL, TY_VOID, TY_UNRESOLVED, mk_primitive, StructType, STRUCT_RANGE, METHOD_AT }
+import "vader/types" { Type, PrimitiveType, ArrayType, TY_BOOL, TY_VOID, TY_UNRESOLVED, mk_primitive, StructType, STRUCT_RANGE, METHOD_AT, array_backing }
 
 lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt {
     // `m[k] = v` over an IndexSet-impl receiver lowers to a static
@@ -96,7 +96,7 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
     if is_range {
         // `arr[r]` → zero-copy `LoweredArraySlice` ; `s[r]` (string) →
         // codepoint-range `LoweredStringSlice`.
-        if target_type is ArrayType {
+        if array_backing(target_type) != null {
             sliced :: try_lower_range_slice(ctx, expr, type, false)
             if sliced != null { return sliced }
         }
@@ -111,7 +111,7 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
     // `Index<I, T>` impl rewrites to a direct `at(s, i)` call. Skip for
     // ArrayType (built-in path above) and for Range-typed indices
     // (slicing handled above).
-    if !(target_type is ArrayType) && !is_range {
+    if !is_range && array_backing(target_type) == null {
         member :: find_impl_member_for(ctx, target_type, METHOD_AT)
         if member is UfcsMember as found {
             args: LoweredExpr[] = []

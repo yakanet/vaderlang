@@ -28,7 +28,7 @@ import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck" { is_gen_state_struct }
 import "vader/types" {
     Type, ArrayType, StructType, TraitType, EnumType, PrimitiveType,
-    UnresolvedType,
+    UnresolvedType, array_backing,
     mk_struct, mk_array, mk_primitive, mk_trait, display_type,
     TY_BOOL, TY_VOID, TY_NEVER, TY_NULL, TY_UNRESOLVED,
     STRUCT_ARRAY_ITERATOR, STRUCT_YIELD, TRAIT_ITERATOR, is_int_name, METHOD_NEXT,
@@ -510,8 +510,11 @@ try_lower_for_in_raw_array :: fn(
     block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt | null {
     array_elem_type: Type = TY_UNRESOLVED
-    if iter_type is ArrayType as arr {
-        array_elem_type = arr.element
+    // Arrays — and array-backed distinct newtypes via `array_backing` — iterate
+    // by index over the value (which is the backing array at runtime).
+    ab :: array_backing(iter_type)
+    if ab != null {
+        array_elem_type = ab.element
     } else {
         return null
     }

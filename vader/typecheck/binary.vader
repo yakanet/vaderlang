@@ -133,6 +133,19 @@ check_arith :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgra
         }
         return substitute_self_in(ft.return_type, left)
     }
+    // Aliased fallback (concrete-first, aliased-fallback) : a distinct operand
+    // with no own impl for this operator behaves as its backing type — so
+    // `Meters :: i64` inherits `i64`'s arithmetic without redeclaring it, and
+    // `BigInt :: u32[]` without a `Mul` falls to the array blanket. A distinct
+    // that DOES define the operator (even for a different Rhs) already returned
+    // above, so `instant + 5` still errors on the Rhs check rather than silently
+    // computing on the backing int. Strip BOTH operands (else the recursed
+    // backing impl's Rhs check would reject a still-distinct other operand).
+    if left is DistinctType || right is DistinctType {
+        lb :: if left is DistinctType as ld { ld.backing } else { left }
+        rb :: if right is DistinctType as rd { rd.backing } else { right }
+        return check_arith(e, lb, rb, typed, diags)
+    }
     return numeric_result(e, left, right, diags)
 }
 

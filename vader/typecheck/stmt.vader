@@ -13,7 +13,7 @@ import "vader/diagnostics" { Diagnostic, Span, TypecheckCode, typecheck_error, w
 AST :: import "vader/parser"
 import "vader/types" {
     Type, ArrayType, FnType, StructType, TupleType, TypeParamType, UnresolvedType, display_type,
-    NeverType, TraitType, TRAIT_ITERATOR, TRAIT_INTO,
+    NeverType, TraitType, TRAIT_ITERATOR, TRAIT_INTO, array_backing,
     TY_BOOL, TY_FREE_INT, TY_NEVER, TY_STRING, TY_NULL, TY_VOID, TY_UNRESOLVED,
 }
 
@@ -846,10 +846,13 @@ diag_sink_stmt :: fn() -> Diagnostic[] { return [] }
 // Iterator(T) wrappers). Otherwise probes `typed.iter_element_types`
 // for the indexed `X implements Iterator(T)` impl.
 for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
-    // @partial: only arrays and structs (T[], Range, Iterator(T) wrappers) are
-    // iterable here; every other type yields an unresolved element.
+    // Arrays — and array-backed distinct newtypes — yield their element type.
+    ab :: array_backing(iter_ty)
+    if ab != null { return ab.element }
+    // @partial: only structs (Range, Iterator(T) wrappers) remain iterable here
+    // — `array_backing` already returned for every array ; other types yield an
+    // unresolved element.
     @partial match iter_ty {
-        is ArrayType as a -> { return a.element }
         is StructType as st -> {
             // A `@generator`'s `<fn>$State<E>` carries the concrete element as its
             // sole type arg (`<fn>$State<E> implements Iterator<E>`) — the synthetic

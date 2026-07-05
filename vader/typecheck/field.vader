@@ -83,8 +83,11 @@ export infer_field :: fn(
 // body bounded instead of the original 40 k-line monster.
 
 try_array_method_dispatch :: fn(target_ty: Type, e: AST.FieldExpr) -> Type | null {
-    if !(target_ty is ArrayType) { return null }
-    return array_method_type(e.field, target_ty)
+    // `array_backing` accepts an array-backed distinct newtype too, so
+    // `bigint.len()` / `.push()` forward to the backing array's builtins.
+    arr :: array_backing(target_ty)
+    if arr == null { return null }
+    return array_method_type(e.field, arr)
 }
 
 // `x.method()` where `<x-type> implements <Trait> { method :: ... }`.

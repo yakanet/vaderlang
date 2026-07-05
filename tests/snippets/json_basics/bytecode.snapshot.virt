@@ -2532,7 +2532,8 @@ fn 17 std_core$is_zero (ref) -> bool
       if $L2 void
         local.get 0
         local.get 2
-        load_slot_i32
+        array.get 19
+        ref.cast 20
         local.set 3
         i32.const 0
         local.set 4
@@ -2634,7 +2635,8 @@ fn 19 std_core$shl (ref,i32) -> ref
         if $L6 void
           local.get 0
           local.get 4
-          load_slot_i32
+          array.get 19
+          ref.cast 20
           local.set 5
           local.get 2
           local.get 5
@@ -2668,7 +2670,8 @@ fn 19 std_core$shl (ref,i32) -> ref
       if $L9 void
         local.get 0
         local.get 4
-        load_slot_i32
+        array.get 19
+        ref.cast 20
         u32.to_i64
         local.set 8
         local.get 7
@@ -2770,7 +2773,8 @@ fn 20 std_core$divmod_small (ref,u32) -> ref
         local.set 7
         local.get 0
         local.get 7
-        load_slot_i32
+        array.get 19
+        ref.cast 20
         u32.to_i64
         local.set 8
         local.get 6
@@ -2825,7 +2829,8 @@ fn 20 std_core$divmod_small (ref,u32) -> ref
         local.set 7
         local.get 2
         local.get 7
-        load_slot_i32
+        array.get 19
+        ref.cast 20
         local.set 11
         local.get 13
         local.get 11
@@ -2876,7 +2881,8 @@ fn 21 std_core$bit_len (ref) -> i32
         local.set 2
         local.get 0
         local.get 2
-        load_slot_i32
+        array.get 19
+        ref.cast 20
         local.set 3
         i32.const 0
         local.set 4
@@ -2893,7 +2899,8 @@ fn 21 std_core$bit_len (ref) -> i32
           local.set 6
           local.get 0
           local.get 6
-          load_slot_i32
+          array.get 19
+          ref.cast 20
           call 25
           local.set 7
           i32.const 32
@@ -3164,7 +3171,8 @@ fn 24 std_core$mul_add_small (ref,u32,u32) -> ref
       if $L2 void
         local.get 0
         local.get 6
-        load_slot_i32
+        array.get 19
+        ref.cast 20
         u32.to_i64
         local.set 7
         local.get 1
@@ -3401,7 +3409,8 @@ fn 27 std_core$any_below (ref,i32) -> bool
       if $L2 void
         local.get 0
         local.get 5
-        load_slot_i32
+        array.get 19
+        ref.cast 20
         local.set 6
         i32.const 0
         local.set 7
@@ -3462,7 +3471,8 @@ fn 27 std_core$any_below (ref,i32) -> bool
     local.set 4
     local.get 0
     local.get 4
-    load_slot_i32
+    array.get 19
+    ref.cast 20
     local.get 6
     i32.bitand
     local.set 6
@@ -3491,7 +3501,8 @@ fn 28 std_core$limb (ref,usize) -> u64
   if $L0 void
     local.get 0
     local.get 1
-    load_slot_i32
+    array.get 19
+    ref.cast 20
     u32.to_i64
     local.set 3
   else

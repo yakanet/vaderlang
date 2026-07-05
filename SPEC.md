@@ -455,19 +455,20 @@ fits :: fn(x: Mixed) -> bool {
 opt: Maybe<i32> = 42
 ```
 
-#### Distinct types (newtypes over a primitive)
+#### Distinct types (newtypes over a primitive or array)
 
 A `Name :: <type-expr>` whose RHS resolves to a **primitive** (`i32`, `u8`,
-`f64`, `bool`, `char`, `string`, … — anything but `void` / `null`) is **not** a
-transparent alias: it is a **distinct type** (a nominal newtype, à la Nim
-`distinct` / Go defined-types). A composite RHS (`union` / `&` / `[]` / `fn`)
-stays a transparent alias as above. There is no decorator — the primitive RHS
-*is* the trigger.
+`f64`, `bool`, `char`, `string`, … — anything but `void` / `null`) **or an
+array** (`u32[]`) is **not** a transparent alias: it is a **distinct type** (a
+nominal newtype, à la Nim `distinct` / Go defined-types). A `union` / `&` / `fn`
+RHS — and, for now, `struct` / tuple — stays a transparent alias as above. There
+is no decorator — the primitive-or-array RHS *is* the trigger.
 
 ```vader
 Celsius :: f64        // distinct — NOT interchangeable with f64
 Handle  :: i32        // distinct
-Mixed   :: i32 | string   // transparent alias (composite RHS)
+BigInt  :: u32[]      // distinct — array-backed newtype
+Mixed   :: i32 | string   // transparent alias (union RHS)
 ```
 
 A distinct type is **nominal** at typecheck and **zero-cost** at runtime — it
@@ -479,19 +480,32 @@ lowering boundary).
 - **Conversions are explicit and symmetric**, both runtime no-ops:
   `Celsius(x)` wraps an `f64`, `f64(c)` unwraps. An *implicit* coercion either
   way is rejected (`T3001`) — that is the whole point of the newtype.
-- **Operators are opaque by default.** A distinct does **not** inherit its
-  backing's `Add` / `Comparable` / `Equals` / `Hash` impls (Vader has no
-  auto-derive). Arithmetic, comparison, equality, hashing and map-key use each
-  require an explicit `Celsius implements Add { … }` / `Comparable` / `Equals` /
-  `Hash` on the distinct — typically delegating to the backing
-  (`-> i32(self) == i32(other)`). Using an operator with no matching impl is
-  the usual `T3043` / `T3017`. This is what enables dimensional types
-  (`Instant - Instant -> Duration`).
+- **Array-backed distincts forward structural ops.** For a `Name :: T[]`, the
+  structural array operations — index `n[i]`, the `.len()` / `.push()` / …
+  builtins, `for x in n`, and `[…]` literal coercion — forward to the backing
+  array, while trait impls stay **nominal**. This lets an array newtype declare
+  its own operators (`BigInt implements Mul<u32>`) without colliding with the
+  array blanket impls (e.g. the `T[] implements Mul<usize>` repeat).
+- **Arithmetic operators : concrete-first, then aliased-fallback.** A distinct's
+  OWN arithmetic impl wins (`Instant implements Add<Duration>` drives `i + d`).
+  With no own impl, `+` / `-` / `*` / `/` / `%` fall back to the backing type's —
+  so `Meters :: i64` gets `i64`'s arithmetic for free, and an array-backed
+  distinct without a `Mul` falls to the array blanket. A distinct that DOES
+  define the operator but for a different Rhs errors on the Rhs mismatch rather
+  than silently computing on the backing (so `instant + 5` is still rejected).
+  This is what enables dimensional types (`Instant - Instant -> Duration`).
+- **Comparison / equality / hashing stay opaque.** A distinct does **not**
+  inherit its backing's `Comparable` / `Equals` / `Hash` (Vader has no
+  auto-derive) — `<`, `==`, hashing and map-key use each require an explicit
+  `Celsius implements Comparable { … }` / `Equals` / `Hash`, typically delegating
+  to the backing (`-> i32(self) == i32(other)`). No impl is the usual `T3043` /
+  `T3017`.
 - **`@comptime Name :: <type>` is the exception** — it stays a transparent
   compile-time type alias (it resolves through the comptime type-alias channel,
   e.g. `@size_of(Name)`), never a newtype.
 - **Reflection follows the backing**: `@size_of`, `@align_of` and `@type_kind`
-  of a distinct report its backing primitive's size / alignment / `"primitive"`.
+  of a distinct report its backing's size / alignment / kind (a primitive's
+  scalar, or an array's `ref`).
 
 ### Default integer
 

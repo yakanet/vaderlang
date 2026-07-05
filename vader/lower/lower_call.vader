@@ -9,7 +9,7 @@ import "vader/parser" { Expr, IdentExpr, CallExpr, FieldExpr, Visibility, Decl, 
 import "vader/diagnostics" { Span }
 import "vader/typecheck" { type_list_equals, TypedProgram }
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, FnType, PrimitiveType, TraitType, ArrayType, AnyType, mk_primitive, mk_fn, TY_STRING, TRAIT_EQUALS, METHOD_EQUALS, METHOD_NOT_EQUALS }
+import "vader/types" { Type, FnType, PrimitiveType, TraitType, ArrayType, AnyType, mk_primitive, mk_fn, TY_STRING, TRAIT_EQUALS, METHOD_EQUALS, METHOD_NOT_EQUALS, array_backing }
 import "vader/comptime" { EvaluatedProgram }
 import "vader/resolver" { ImportTargetTable }
 
@@ -431,9 +431,10 @@ try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowered
     @partial match callee {
         is FieldExpr as field_expr -> {
             target_type :: ctx.types.expr_type(field_expr.target)
-            // @partial: only an ArrayType receiver carries the array intrinsics;
-            // every other Type → null.
-            @partial match target_type {
+            // An array receiver — or an array-backed distinct newtype, via
+            // `array_backing` — carries the array intrinsics (the lowered target
+            // is the value itself, which is the backing array at runtime).
+            @partial match array_backing(target_type) {
                 is ArrayType -> {
                     if field_expr.field == "len" && call.args.len() == 0 {
                         len_target :: lower_expr(ctx, field_expr.target)

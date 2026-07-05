@@ -572,6 +572,11 @@ alias_for :: fn(sym: Symbol, alias_ty: Type, decorators: AST.Decorator[]) -> Typ
 distinct_backing :: fn(alias_ty: Type, decorators: AST.Decorator[]) -> bool {
     for d in decorators { if d.name == "comptime" { return false } }
     if alias_ty is PrimitiveType as p { return p.name != "void" && p.name != "null" }
+    // Array-backed newtypes (`BigInt :: u32[]`) are nominal too, so they can carry
+    // their own trait impls (operator overloads) instead of colliding with the
+    // array blankets on the `"[]"` key. Structural ops (index / len / push / for-in
+    // / literal coercion) forward to the backing array via `array_backing`.
+    if alias_ty is ArrayType { return true }
     return false
 }
 

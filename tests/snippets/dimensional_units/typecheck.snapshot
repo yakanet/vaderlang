@@ -1,0 +1,121 @@
+# Typecheck
+
+## tests/snippets/dimensional_units
+  ConstDecl      Duration             :: type
+  ConstDecl      Instant              :: type
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      Meters               :: type
+  ConstDecl      Money                :: type
+  expr 19:46    CallExpr       :: Money
+  expr 19:46    IdentExpr      :: type
+  expr 19:52    BinaryExpr     :: i64
+  expr 19:52    CallExpr       :: i64
+  expr 19:52    IdentExpr      :: type
+  expr 19:56    IdentExpr      :: Money
+  expr 19:64    CallExpr       :: i64
+  expr 19:64    IdentExpr      :: type
+  expr 19:68    IdentExpr      :: Money
+  expr 21522:13 BinaryExpr     :: bool
+  expr 21522:14 CallExpr       :: i32
+  expr 21522:15 FieldExpr      :: fn(Money) -> i32
+  expr 21522:16 IdentExpr      :: Money
+  expr 21522:18 IdentExpr      :: Money
+  expr 21522:2  BinaryExpr     :: bool
+  expr 21522:24 BinaryExpr     :: bool
+  expr 21522:25 CallExpr       :: i32
+  expr 21522:26 FieldExpr      :: fn(Money) -> i32
+  expr 21522:27 IdentExpr      :: Money
+  expr 21522:29 IdentExpr      :: Money
+  expr 21522:3  CallExpr       :: i32
+  expr 21522:35 BinaryExpr     :: bool
+  expr 21522:36 CallExpr       :: i32
+  expr 21522:37 FieldExpr      :: fn(Money) -> i32
+  expr 21522:38 IdentExpr      :: Money
+  expr 21522:4  FieldExpr      :: fn(Money) -> i32
+  expr 21522:40 IdentExpr      :: Money
+  expr 21522:5  IdentExpr      :: Money
+  expr 21522:7  IdentExpr      :: Money
+  expr 23:12    BinaryExpr     :: bool
+  expr 23:12    CallExpr       :: i64
+  expr 23:12    IdentExpr      :: type
+  expr 23:16    IdentExpr      :: Money
+  expr 23:24    CallExpr       :: i64
+  expr 23:24    IdentExpr      :: type
+  expr 23:28    IdentExpr      :: Money
+  expr 23:44    UnaryExpr      :: i32
+  expr 23:9     IfExpr         :: void
+  expr 24:12    BinaryExpr     :: bool
+  expr 24:12    CallExpr       :: i64
+  expr 24:12    IdentExpr      :: type
+  expr 24:16    IdentExpr      :: Money
+  expr 24:24    CallExpr       :: i64
+  expr 24:24    IdentExpr      :: type
+  expr 24:28    IdentExpr      :: Money
+  expr 24:9     IfExpr         :: void
+  expr 34:51    CallExpr       :: Duration
+  expr 34:51    IdentExpr      :: type
+  expr 34:60    BinaryExpr     :: i64
+  expr 34:60    CallExpr       :: i64
+  expr 34:60    IdentExpr      :: type
+  expr 34:64    IdentExpr      :: Instant
+  expr 34:72    CallExpr       :: i64
+  expr 34:72    IdentExpr      :: type
+  expr 34:76    IdentExpr      :: Instant
+  expr 37:47    CallExpr       :: Instant
+  expr 37:47    IdentExpr      :: type
+  expr 37:55    BinaryExpr     :: i64
+  expr 37:55    CallExpr       :: i64
+  expr 37:55    IdentExpr      :: type
+  expr 37:59    IdentExpr      :: Instant
+  expr 37:67    CallExpr       :: i64
+  expr 37:67    IdentExpr      :: type
+  expr 37:71    IdentExpr      :: Duration
+  expr 44:10    CallExpr       :: Money
+  expr 44:10    IdentExpr      :: type
+  expr 45:10    CallExpr       :: Money
+  expr 45:10    IdentExpr      :: type
+  expr 46:13    StringLitExpr  :: string
+  expr 46:16    CallExpr       :: i64
+  expr 46:16    IdentExpr      :: type
+  expr 46:20    BinaryExpr     :: Money
+  expr 46:20    IdentExpr      :: Money
+  expr 46:24    IdentExpr      :: Money
+  expr 46:5     CallExpr       :: void
+  expr 46:5     IdentExpr      :: fn(T) -> void
+  expr 47:13    StringLitExpr  :: string
+  expr 47:16    BinaryExpr     :: bool
+  expr 47:16    IdentExpr      :: Money
+  expr 47:20    IdentExpr      :: Money
+  expr 47:5     CallExpr       :: void
+  expr 47:5     IdentExpr      :: fn(T) -> void
+  expr 49:11    CallExpr       :: Instant
+  expr 49:11    IdentExpr      :: type
+  expr 50:11    CallExpr       :: Instant
+  expr 50:11    IdentExpr      :: type
+  expr 51:16    BinaryExpr     :: Duration
+  expr 51:16    IdentExpr      :: Instant
+  expr 51:21    IdentExpr      :: Instant
+  expr 52:13    StringLitExpr  :: string
+  expr 52:16    CallExpr       :: i64
+  expr 52:16    IdentExpr      :: type
+  expr 52:20    IdentExpr      :: Duration
+  expr 52:5     CallExpr       :: void
+  expr 52:5     IdentExpr      :: fn(T) -> void
+  expr 53:14    BinaryExpr     :: Instant
+  expr 53:14    IdentExpr      :: Instant
+  expr 53:19    IdentExpr      :: Duration
+  expr 54:13    StringLitExpr  :: string
+  expr 54:16    CallExpr       :: i64
+  expr 54:16    IdentExpr      :: type
+  expr 54:20    IdentExpr      :: Instant
+  expr 54:5     CallExpr       :: void
+  expr 54:5     IdentExpr      :: fn(T) -> void
+  expr 56:10    BinaryExpr     :: i64
+  expr 56:10    CallExpr       :: Meters
+  expr 56:10    IdentExpr      :: type
+  expr 56:22    CallExpr       :: Meters
+  expr 56:22    IdentExpr      :: type
+  expr 57:13    StringLitExpr  :: string
+  expr 57:16    IdentExpr      :: i64
+  expr 57:5     CallExpr       :: void
+  expr 57:5     IdentExpr      :: fn(T) -> void
