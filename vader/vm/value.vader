@@ -112,6 +112,12 @@ export find_string_array_type_id :: fn(types: bc.BcType[]) -> i32 {
     return 0
 }
 
+/// Type-table index of the `std/io$IOError` struct, or `-1` when absent.
+/// Host io arms stamp their error values with it so `is IOError` narrows
+/// and `Error.message` dispatches ; `-1` (io never imported) falls back
+/// to the legacy tag-only `ErrorVal`.
+export find_io_error_type_id :: fn(types: bc.BcType[]) = bc.struct_type_index(types, bc.MANGLED_IO_ERROR)
+
 /// Locate the module's `u8[]` `ArrayType` index — the tag a host-produced
 /// `bytes()` array must carry so `is u8[]` narrows. Sibling of
 /// `find_string_array_type_id`. Returns 0 when no `u8` primitive or no

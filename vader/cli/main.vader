@@ -5,7 +5,7 @@
 
 module "vader/cli"
 
-import "std/io" { println, eprintln, read_file_string, write_file_string, print }
+import "std/io" { println, eprintln, read_file_string, write_file_string, print, IOError }
 import "std/collections" { MutableMap }
 import "std/string" { starts_with, ends_with, trim_suffix, split, trim }
 import "std/path" { to_posix, to_path, filename }
@@ -485,7 +485,7 @@ discover_vader_files :: fn(target: string) -> string[] {
 
 walk_test_dir :: fn(dir: string, out: string[]) -> void {
     entries :: read_dir(dir)
-    if entries is Error { return }
+    if entries is IOError { return }
     for name in entries {
         if name.starts_with(".") { continue }
         if name in SKIP_TEST_DIRS { continue }
@@ -542,7 +542,7 @@ collect_sibling_imports :: fn(group: string[]) -> string[] {
     out: string[] = []
     for f in group {
         src :: read_file_string(f)
-        if src is Error { continue }
+        if src is IOError { continue }
         for line in src.split("\n") {
             seg :: import_last_segment(line)
             if seg == "" { continue }
@@ -708,7 +708,7 @@ emit_c_for_input :: fn(file: string, release: bool, include_path_flags: string[]
 // the dump's `export main N` directive).
 emit_c_source_from_virt :: fn(file: string, release: bool) -> string | null {
     src :: read_file_string(file)
-    if src is Error {
+    if src is IOError {
         eprintln("vader build: cannot read ${file}")
         return null
     }
@@ -793,7 +793,7 @@ cc_argv :: fn(cc: string, c_file: string, out: string, release: bool, ldflags: s
 // Write `content` to `path`, surfacing a write failure as exit 1.
 write_out :: fn(path: string, content: string) -> i32 {
     wr :: write_file_string(path, content)
-    if wr is Error {
+    if wr is IOError {
         eprintln("vader build: cannot write `${path}`: ${wr.message()}")
         return 1
     }
@@ -885,7 +885,7 @@ read_source :: fn(file: string) -> string | null {
     src_or_err :: file.read_file_string()
     match src_or_err {
         is string -> { return src_or_err }
-        is Error  -> {
+        is IOError  -> {
             eprintln("vader: cannot read `${file}`: ${src_or_err.message()}")
             return null
         }

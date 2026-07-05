@@ -30,7 +30,7 @@ module "vader/vm"
 
 bc :: import "vader/bytecode"
 
-import "std/io" { read_file_string, eprintln }
+import "std/io" { read_file_string, eprintln, IOError }
 import "std/string" { index_of, decode_codepoint_at, join }
 
 // IEEE 754 bit reinterpret for the F64ToBits / BitsToF64 arms. The VM's own
@@ -697,6 +697,9 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     // The `u8[]` ArrayType index — stamped onto the array `bytes` materialises
     // (the VM's copy fallback for the native zero-copy view). Same rationale.
     u8_array_type_id :: find_u8_array_type_id(state.bc.types)
+    // The `std/io$IOError` struct index — stamped onto host io error values
+    // so they carry a real type identity (narrowing + vtable dispatch).
+    io_error_type_id :: find_io_error_type_id(state.bc.types)
 
     main_function :: state.bc.functions[usize(entry_index)]
     // If `main` is declared `fn(argv: string[]) -> i32`, supply its argv.
@@ -818,7 +821,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     return Trap { .message = "call.import '${info.mangled_name}' needs ${arg_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc}" }
                 }
                 arg_base :: frame.sp - arg_count
-                dispatch_outcome :: dispatch_import(info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id)
+                dispatch_outcome :: dispatch_import(info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id)
                 if dispatch_outcome is Trap {
                     return dispatch_outcome
                 }
@@ -914,7 +917,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                             },
                             .is_extern    = false,
                         }
-                        host_outcome :: dispatch_import(synth_info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id)
+                        host_outcome :: dispatch_import(synth_info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id)
                         if host_outcome is Trap { return host_outcome }
                         if host_outcome is HostOk as hok {
                             frame.stack[arg_base] = hok.value
@@ -2266,7 +2269,7 @@ do_memory_copy :: fn(frame: Frame) -> Trap | null {
 /// @error       missing file ; any VM trap surfaced by `exec`.
 export run_virt :: fn(path: string, host_argv: string[]) -> i32 {
     source :: read_file_string(path)
-    if source is Error {
+    if source is IOError {
         eprintln("vader run: cannot read ${path}")
         return 1
     }

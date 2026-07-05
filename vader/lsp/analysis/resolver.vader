@@ -13,7 +13,7 @@
 
 module "vader/lsp/analysis"
 
-import "std/io" { read_file_string, read_dir, is_dir }
+import "std/io" { read_file_string, read_dir, is_dir, IOError }
 import "std/string" { starts_with }
 import "vader/resolver" { default_stdlib_root, find_manifest_root }
 import "vader/lsp/protocol" { uri_to_path, path_to_uri }
@@ -54,7 +54,7 @@ resolve_sibling :: fn(from_uri: string, name: string) -> ExternalHit | null {
     dir :: dirname_path(from_path)
     files_or :: read_dir(dir)
     match files_or {
-        is Error -> { return null }
+        is IOError -> { return null }
         is string[] as files -> {
             for fname in files {
                 if !fname.ends_with_vader() { continue }
@@ -80,7 +80,7 @@ resolve_imported :: fn(state: ServerState, idx: DocIndex, imp: ImportEntry) -> E
     if is_dir(abs) {
         files_or :: read_dir(abs)
         match files_or {
-            is Error -> { return null }
+            is IOError -> { return null }
             is string[] as files -> {
                 for fname in files {
                     if !fname.ends_with_vader() { continue }
@@ -108,7 +108,7 @@ resolve_imported :: fn(state: ServerState, idx: DocIndex, imp: ImportEntry) -> E
 lookup_in_file :: fn(path: string, name: string) -> ExternalHit | null {
     src_or :: read_file_string(path)
     match src_or {
-        is Error -> { return null }
+        is IOError -> { return null }
         is string as src -> {
             uri :: path_to_uri(path)
             sub :: build_index(uri, src)

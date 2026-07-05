@@ -302,6 +302,31 @@ export subtract_type :: fn(from: Type, removed: Type) -> Type {
     return from
 }
 
+/// `subtract_type` extended for a trait `removed` : a runtime trait test
+/// matches every union variant whose nominal carrier implements the trait
+/// (mirroring `c_emit/walker.vader::trait_check_expr` and the VM's
+/// `ref_type_matches`), so those variants leave the remainder too —
+/// `match x: IOError | string { is string …, is Error … }` is exhaustive.
+/// A non-trait `removed` delegates to plain `subtract_type`.
+export subtract_type_with_impls :: fn(from: Type, removed: Type, typed: TypedProgram) -> Type {
+    if !(removed is TraitType) { return subtract_type(from, removed) }
+    trait_name :: removed.symbol.name
+    if from is UnionType {
+        kept: Type[] = []
+        for v in from.variants {
+            if removed_covers(removed, v) { continue }
+            if struct_implements_trait(v, trait_name, typed) { continue }
+            kept.push(v)
+        }
+        if kept.len() == 0 { return TY_NEVER }
+        if kept.len() == 1 { return kept[0] }
+        return mk_union(kept)
+    }
+    if removed_covers(removed, from) { return TY_NEVER }
+    if struct_implements_trait(from, trait_name, typed) { return TY_NEVER }
+    return from
+}
+
 // True when `removed` covers `t` — either `removed` IS `t`, or `removed`
 // is a union that lists `t` among its variants. Without the union case,
 // subtracting a union (e.g. the `!(x is T)` divergent-guard's inner

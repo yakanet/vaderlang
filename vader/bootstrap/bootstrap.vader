@@ -18,7 +18,7 @@
 
 module "vader/bootstrap"
 
-import "std/io" { write_file_string, eprintln }
+import "std/io" { write_file_string, eprintln, IOError }
 import "std/collections" { keys }
 import "std/string" { trim_suffix }
 import "std/path" { to_posix, to_path, filename }
@@ -87,7 +87,7 @@ flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
 // Write `content` to `path`, surfacing a write failure as exit 1.
 write_out :: fn(path: string, content: string) -> i32 {
     wr :: write_file_string(path, content)
-    if wr is Error {
+    if wr is IOError {
         eprintln("bootstrap: cannot write `${path}`: ${wr.message()}")
         return 1
     }

@@ -4,23 +4,23 @@
   fn snippet$read_or_default(path: string) -> Error | string
     return
       block :string
-        let __try_0: Error | string =
-          call :Error | string
+        let __try_0: IOError | string =
+          call :IOError | string
             callee:
-              read_file_string :fn(string) -> Error | string
+              read_file_string :fn(string) -> IOError | string
             arg0:
               path :string
         ~>
           if :string
             cond:
-              is Error :bool
-                __try_0 :Error | string
+              is IOError :bool
+                __try_0 :IOError | string
             then:
-              return __try_0 :Error | string
+              return __try_0 :IOError | string
             else:
               ~>
                 cast → string
-                  __try_0 :Error | string
+                  __try_0 :IOError | string
   fn snippet$show(res: Error | string) -> void
     ~>
       block :void

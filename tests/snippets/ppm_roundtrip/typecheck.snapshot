@@ -18,30 +18,30 @@
   expr 16:17    StringLitExpr  :: string
   expr 16:9     CallExpr       :: void
   expr 16:9     IdentExpr      :: fn(T) -> void
-  expr 19:11    CallExpr       :: Error | null
-  expr 19:11    IdentExpr      :: fn(string, const u8[]) -> Error | null
+  expr 19:11    CallExpr       :: IOError | null
+  expr 19:11    IdentExpr      :: fn(string, const u8[]) -> IOError | null
   expr 19:28    IdentExpr      :: string
   expr 19:34    IdentExpr      :: u8[]
   expr 20:14    IdentExpr      :: Error
   expr 20:5     IfExpr         :: void
   expr 20:8     BinaryExpr     :: bool
-  expr 20:8     IdentExpr      :: Error | null
+  expr 20:8     IdentExpr      :: IOError | null
   expr 21:17    StringLitExpr  :: string
   expr 21:9     CallExpr       :: void
   expr 21:9     IdentExpr      :: fn(T) -> void
-  expr 24:12    CallExpr       :: Error | u8[]
-  expr 24:12    IdentExpr      :: fn(string) -> Error | u8[]
+  expr 24:12    CallExpr       :: IOError | u8[]
+  expr 24:12    IdentExpr      :: fn(string) -> IOError | u8[]
   expr 24:28    IdentExpr      :: string
   expr 25:15    IdentExpr      :: Error
   expr 25:5     IfExpr         :: void
   expr 25:8     BinaryExpr     :: bool
-  expr 25:8     IdentExpr      :: Error | u8[]
+  expr 25:8     IdentExpr      :: IOError | u8[]
   expr 26:17    StringLitExpr  :: string
   expr 26:9     CallExpr       :: void
   expr 26:9     IdentExpr      :: fn(T) -> void
   expr 29:12    CallExpr       :: Ppm | PpmError
   expr 29:12    IdentExpr      :: fn(const u8[]) -> Ppm | PpmError
-  expr 29:19    IdentExpr      :: u8[]
+  expr 29:19    IdentExpr      :: IOError | u8[]
   expr 30:15    IdentExpr      :: PpmError
   expr 30:5     IfExpr         :: void
   expr 30:8     BinaryExpr     :: bool
@@ -101,3 +101,6 @@
   expr 41:44    StringLitExpr  :: string
   expr 41:5     IfExpr         :: void
   expr 41:8     IdentExpr      :: bool
+
+# Diagnostics
+[29:19] error[T3001] type mismatch: expected const u8[], got IOError | u8[]

@@ -8,10 +8,10 @@
   expr 11:31    IdentExpr      :: string
   expr 11:5     CallExpr       :: void
   expr 11:5     IdentExpr      :: fn(T) -> void
-  expr 13:17    CallExpr       :: Error | string
-  expr 13:17    IdentExpr      :: fn(string) -> Error | string
+  expr 13:17    CallExpr       :: IOError | string
+  expr 13:17    IdentExpr      :: fn(string) -> IOError | string
   expr 13:34    IdentExpr      :: string
-  expr 14:11    IdentExpr      :: Error | string
+  expr 14:11    IdentExpr      :: IOError | string
   expr 14:5     MatchExpr      :: void
   expr 15:22    CallExpr       :: void
   expr 15:22    IdentExpr      :: fn(T) -> void
@@ -25,5 +25,5 @@
   expr 6:16     IdentExpr      :: fn() -> string
   expr 9:23     IdentExpr      :: string
   expr 9:29     StringLitExpr  :: string
-  expr 9:5      CallExpr       :: Error | null
-  expr 9:5      IdentExpr      :: fn(string, string) -> Error | null
+  expr 9:5      CallExpr       :: IOError | null
+  expr 9:5      IdentExpr      :: fn(string, string) -> IOError | null

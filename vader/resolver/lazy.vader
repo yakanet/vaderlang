@@ -19,7 +19,7 @@
 module "vader/resolver"
 
 import "std/collections" { MutableMap }
-import "std/io" { is_dir, read_dir, read_file_string }
+import "std/io" { is_dir, read_dir, read_file_string, IOError }
 import "std/sort" { sort }
 import "std/string" { compare_ascending, ends_with, starts_with, trim_prefix }
 import "vader/diagnostics" { Diagnostic, resolver_error, empty_span }
@@ -174,7 +174,7 @@ scan_folder :: fn(dir: string, diags: Diagnostic[]) -> FolderBucket | null {
     entries_opt :: read_dir(dir)
     raw: string[] = match entries_opt {
         is string[] as ss -> ss
-        is Error -> []
+        is IOError -> []
     }
     if raw.len() == 0 { return null }
     sorted :: sort(raw, (a: string, b: string) -> compare_ascending(a, b))
@@ -187,7 +187,7 @@ scan_folder :: fn(dir: string, diags: Diagnostic[]) -> FolderBucket | null {
     bucket :: FolderBucket { .name = "", .first_decl_span = empty_span(), .files = [] }
     for path in files_here {
         content_opt :: read_file_string(path)
-        content :: match content_opt { is string as s -> s, is Error -> "" }
+        content :: match content_opt { is string as s -> s, is IOError -> "" }
         if content == "" { continue }
         bucket.files.push(path)
         header :: parse_module_header(content, path)

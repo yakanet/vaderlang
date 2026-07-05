@@ -1,0 +1,237 @@
+# Lower
+
+## snippet
+  fn snippet$describe(path: string) -> string
+    let r: IOError | string =
+      call :IOError | string
+        callee:
+          read_file_string :fn(string) -> IOError | string
+        arg0:
+          path :string
+    if :void
+      cond:
+        is IOError :bool
+          r :IOError | string
+      then:
+        return
+          call :string
+            callee:
+              concat_5 :string
+            arg0:
+              "unreadable (" :string
+            arg1:
+              .msg :string
+                cast → IOError
+                  r :IOError | string
+            arg2:
+              " / " :string
+            arg3:
+              .msg :string
+                cast → IOError
+                  r :IOError | string
+            arg4:
+              ")" :string
+    return "ok" :string
+  fn snippet$catch_all(path: string) -> string
+    let r: IOError | string =
+      call :IOError | string
+        callee:
+          read_file_string :fn(string) -> IOError | string
+        arg0:
+          path :string
+    if :void
+      cond:
+        is IOError :bool
+          r :IOError | string
+      then:
+        let e: Error =
+          cast → IOError
+            r :IOError | string
+        return
+          call :string
+            callee:
+              concat_2 :string
+            arg0:
+              "caught by trait: " :string
+            arg1:
+              vcall Error.message :string
+                recv:
+                  e :Error
+    return
+      cast → string
+        r :IOError | string
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            describe :fn(string) -> string
+          arg0:
+            "/no/such/manifest.toml" :string
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            catch_all :fn(string) -> string
+          arg0:
+            "/no/such/manifest.toml" :string
+    return int(0) :i32
+  fn concat_5(p0: string, p1: string, p2: string, p3: string, p4: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let c2: usize =
+      add :usize
+        l:
+          c1 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p2 :string
+    let c3: usize =
+      add :usize
+        l:
+          c2 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p3 :string
+    let c4: usize =
+      add :usize
+        l:
+          c3 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p4 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          c4 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c1 :usize
+      arg2:
+        p2 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c2 :usize
+      arg2:
+        p3 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c3 :usize
+      arg2:
+        p4 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c4 :usize
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

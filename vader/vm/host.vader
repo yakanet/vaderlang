@@ -12,7 +12,7 @@ module "vader/vm"
 
 bc :: import "vader/bytecode"
 
-import "std/io" { read_file_bytes, write_file_bytes, exists, is_dir, read_dir, print, eprint, temp_dir, current_executable_location, Stream }
+import "std/io" { read_file_bytes, write_file_bytes, exists, is_dir, read_dir, print, eprint, temp_dir, current_executable_location, Stream, IOError }
 import "std/env" { get_env }
 import "std/tty" { is_tty }
 import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
@@ -65,6 +65,19 @@ host_int_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: 
     return HostOk { .value = BoolVal { .value = apply(a.value, b.value) } }
 }
 
+/// Build the host-side value for a failed io intrinsic : a real
+/// `std/io$IOError` instance when its struct is in the type table (so
+/// `is IOError` narrows and `Error.message` dispatches), the legacy
+/// tag-only `ErrorVal` otherwise (io never imported — unreachable from
+/// the io arms in practice, kept as a defensive fallback).
+mk_io_error :: fn(msg: string, io_error_type_id: i32) -> Value {
+    if io_error_type_id < 0 { return ErrorVal { .message = msg } }
+    return StructVal {
+        .type_id = io_error_type_id,
+        .fields = [StringVal { .value = msg }],
+    }
+}
+
 /// Dispatch a host import. Matches on `intrinsic_id_for(info.mangled_name)`
 /// (the single manifest classification) — every arm pops the args from
 /// `stack[arg_base ..]`, executes the host action, and returns either
@@ -87,18 +100,26 @@ host_int_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: 
 /// @param u8_array_type_id  the module's `u8[]` ArrayType index (see
 ///                  `find_u8_array_type_id`), stamped onto the array `bytes`
 ///                  materialises so it narrows to `is u8[]`.
+/// @param io_error_type_id  the `std/io$IOError` struct's type index (see
+///                  `find_io_error_type_id`), stamped onto fabricated io
+///                  error values by `mk_io_error` ; `-1` when io was never
+///                  imported.
 /// @return          `HostOk { value }` on success ; `Trap` on a missing
 ///                  import, malformed arg, or host-level failure.
-export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32) -> HostCallResult {
+export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32) -> HostCallResult {
     match bc.intrinsic_id_for(info.mangled_name) {
     .IoWrite -> {
         // arg_base + 0 : Stream tag ; arg_base + 1 : the string payload.
         STDOUT :: i32(0)
         STDERR :: i32(1)
         tag :: read_i32(stack[arg_base], at_pc, "write stream")
-        if tag is Trap { return tag }
+        if tag is Trap { 
+            return tag
+        }
         msg :: read_string(stack[arg_base + 1], at_pc, "write msg")
-        if msg is Trap { return msg }
+        if msg is Trap {
+            return msg
+        }
         if tag.value == STDOUT {
             print(msg.value)
         } else if tag.value == STDERR {
@@ -258,8 +279,8 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         // Early-return narrows `result` to `u8[]` on the success path. The
         // bytes are boxed as `u8` slots (riding in `I32Val`) tagged so they
         // narrow under `is u8[]` — mirrors the `bytes` arm above.
-        if result is Error {
-            return HostOk { .value = ErrorVal { .message = "read_file_bytes failed: ${path.value}" } }
+        if result is IOError {
+            return HostOk { .value = mk_io_error(result.msg, io_error_type_id) }
         }
         return HostOk { .value = u8_array_to_value(result, u8_array_type_id) }
     }
@@ -275,7 +296,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
             content.push(u8(b.value))
         }
         result :: write_file_bytes(path.value, content)
-        if result is Error { return HostOk { .value = ErrorVal { .message = "write_file_bytes failed: ${path.value}" } } }
+        if result is IOError { return HostOk { .value = mk_io_error(result.msg, io_error_type_id) } }
         return HostOk { .value = NullVal {} }
     }
     .IoExists -> {
@@ -306,8 +327,8 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         // the resolver's module discovery (vader/resolver/discover.vader) when
         // the compiler runs itself through the VM.
         result :: read_dir(path.value)
-        if result is Error {
-            return HostOk { .value = ErrorVal { .message = "read_dir failed: ${path.value}" } }
+        if result is IOError {
+            return HostOk { .value = mk_io_error(result.msg, io_error_type_id) }
         }
         return HostOk { .value = string_array_to_value(result, string_array_type_id) }
     }

@@ -8,7 +8,7 @@
 
 module "vader/fmt"
 
-import "std/io" { read_file_string, write_file_string, exists, is_dir, read_dir, print, eprintln }
+import "std/io" { read_file_string, write_file_string, exists, is_dir, read_dir, print, eprintln, IOError }
 import "std/string" { ends_with, starts_with }
 import "std/path" { Path, join, to_path, as_string }
 import "vader/diagnostics" { Diagnostic, render }
@@ -68,7 +68,7 @@ collect_files :: fn(root: string, out: string[]) -> void {
     }
     r :: read_dir(root)
     match r {
-        is Error -> eprintln("vader fmt: cannot read directory: ${root}")
+        is IOError -> eprintln("vader fmt: cannot read directory: ${root}")
         is string[] as entries -> {
             for name in entries {
                 if name.starts_with(".") { continue }
@@ -139,7 +139,7 @@ run_one :: fn(path: string, mode: Mode) -> FileResult {
     src := ""
     r :: read_file_string(path)
     match r {
-        is Error -> {
+        is IOError -> {
             eprintln("vader fmt: cannot read ${path}")
             return FileResult.IoError
         }
@@ -166,7 +166,7 @@ run_one :: fn(path: string, mode: Mode) -> FileResult {
             // In-place. (Stdout case routes to run_one_stdout above.)
             w :: write_file_string(path, f.output)
             match w {
-                is Error -> {
+                is IOError -> {
                     eprintln("vader fmt: cannot write ${path}")
                     return FileResult.IoError
                 }
@@ -180,7 +180,7 @@ run_one_stdout :: fn(path: string) -> FileResult {
     src := ""
     r :: read_file_string(path)
     match r {
-        is Error -> {
+        is IOError -> {
             eprintln("vader fmt: cannot read ${path}")
             return FileResult.IoError
         }

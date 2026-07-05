@@ -3,11 +3,15 @@
 // MVP scope: stdin/stdout/stderr, file read/write, existence check.
 // No async, no networking, no streaming primitives.
 
-/// Raised by every fallible operation in this module — `read_file`,
-/// `write_file`, `read_line`, `read_dir`. Carries a short diagnostic.
 module "std/io"
 
+/// Raised by every fallible operation in this module — the concrete
+/// error member of each `T | IOError` return (`read_file_bytes`,
+/// `write_file_bytes`, `read_line`, `read_stdin`, `read_dir` and the
+/// string wrappers). Narrow with `is IOError` ; widen to `Error` for a
+/// trait-typed slot.
 export IOError :: struct {
+    /// Short human-readable diagnostic ("file not found", "EOF", …).
     msg: string
 }
 
@@ -72,7 +76,7 @@ export eprintln :: fn<T: Display>(msg: T) -> void {
 /// returned string does NOT include the trailing `\n`.
 /// @return      the line text.
 /// @error       `IOError` on EOF or stdin read failure.
-@intrinsic export read_line :: fn() -> string | Error
+@intrinsic export read_line :: fn() -> string | IOError
 
 /// Read EXACTLY `n` bytes from stdin into a fresh UTF-8 string. Loops
 /// until `n` bytes are accumulated ; EOF before `n` is an error. Forces
@@ -81,7 +85,7 @@ export eprintln :: fn<T: Display>(msg: T) -> void {
 /// @param n     number of bytes to consume.
 /// @return      a string of exactly `n` bytes (interpreted as UTF-8).
 /// @error       `IOError` on EOF, partial read, or stream error.
-@intrinsic export read_stdin :: fn(n: usize) -> string | Error
+@intrinsic export read_stdin :: fn(n: usize) -> string | IOError
 
 /// Switch stdin to unbuffered mode. Call once at startup, **before any stdin
 /// read**, so a later `poll_stdin` reflects the real pending bytes instead of
@@ -107,23 +111,23 @@ export eprintln :: fn<T: Display>(msg: T) -> void {
 /// @param path  filesystem path (absolute or cwd-relative).
 /// @return      the file's raw bytes.
 /// @error       `IOError` if the file can't be opened or read.
-@intrinsic export read_file_bytes :: fn(path: string) -> u8[] | Error
+@intrinsic export read_file_bytes :: fn(path: string) -> u8[] | IOError
 
 /// Write raw bytes to `path`, replacing any existing file. Lossless for
 /// arbitrary binary. The canonical file-write primitive.
 /// @param path     filesystem path.
 /// @param content  the raw bytes to write.
 /// @error          `IOError` if the file can't be opened or written.
-@intrinsic export write_file_bytes :: fn(path: string, content: const u8[]) -> null | Error
+@intrinsic export write_file_bytes :: fn(path: string, content: const u8[]) -> null | IOError
 
 /// Read a file fully into a UTF-8 string — a thin text decode over
 /// `read_file_bytes`. Use `read_file_bytes` directly for binary data.
 /// @param path  filesystem path (absolute or cwd-relative).
 /// @return      file contents as a UTF-8 string.
 /// @error       `IOError` if the file can't be opened or read.
-export read_file_string :: fn(path: string) -> string | Error {
+export read_file_string :: fn(path: string) -> string | IOError {
     r :: read_file_bytes(path)
-    if r is Error { return r }
+    if r is IOError { return r }
     return r.bytes_to_string()
 }
 
@@ -132,7 +136,7 @@ export read_file_string :: fn(path: string) -> string | Error {
 /// @param path     filesystem path.
 /// @param content  the UTF-8 string to write.
 /// @error          `IOError` if the file can't be opened or written.
-export write_file_string :: fn(path: string, content: string) -> null | Error =
+export write_file_string :: fn(path: string, content: string) -> null | IOError =
     write_file_bytes(path, content.bytes())
 
 /// True iff `path` resolves to an existing filesystem entry (file or
@@ -153,7 +157,7 @@ export write_file_string :: fn(path: string, content: string) -> null | Error =
 /// @param path  the directory to list.
 /// @return      entry names (no path prefix).
 /// @error       `IOError` if `path` isn't a directory or can't be opened.
-@intrinsic export read_dir :: fn(path: string) -> string[] | Error
+@intrinsic export read_dir :: fn(path: string) -> string[] | IOError
 
 /// Full path of the running executable, `/`-separated. Use `std/path`'s
 /// `parent` to get its directory — e.g. to resolve sidecar resources (stdlib,

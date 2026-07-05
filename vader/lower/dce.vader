@@ -21,6 +21,7 @@ module "vader/lower"
 import "std/collections" { MutableMap }
 import "vader/parser" { FnDecl }
 import "vader/resolver/symbol" { Symbol }
+import "vader/types" { TRAIT_ERROR, StructType }
 
 /// Drop functions unreachable from the program roots, returning a new
 /// `LoweredProject`. Structs and consts survive verbatim.
@@ -140,6 +141,23 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
         if pending_seen[key] == null {
             pending_seen[key] = true
             pending_virtual.push(key)
+        }
+    }
+
+    // The fallible io intrinsics FABRICATE `IOError` values at the host
+    // boundary (`vm/host.vader::mk_io_error`, `c_emit/host.vader::
+    // io_err_shim`) — no bytecode ever constructs one, so the call graph
+    // alone would prune its `Error` impl and the trait membership with
+    // it, breaking `is Error` narrowing and `.message()` dispatch on
+    // host-produced errors. Seed the impl as a root whenever std/io's
+    // vtable entry exists (the intrinsics themselves are bodyless and
+    // always roots, so reachability adds no further gate).
+    for e in lp.vtable_entries {
+        if e.trait_name == TRAIT_ERROR && e.struct_type is StructType {
+            sym :: e.struct_type.symbol
+            if sym.name == "IOError" && sym.module == "std/io" {
+                visit_fn(e.fn_symbol.id, e.fn_symbol.name)
+            }
         }
     }
 
