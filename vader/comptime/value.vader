@@ -153,8 +153,9 @@ export display_value :: fn(value: ComptimeValue) -> string = match value {
 // payload of a large data table (e.g. std/core's Ryu power-of-5 tables, the
 // crypto round-constant tables) — inlining all ~1300 entries into the 276
 // prelude-bearing snapshots would bloat them by megabytes. The head elements +
-// the total length stay visible; the exact values are checked by the table
-// generators and `tools/dtoa_roundtrip_check.py`.
+// the total length stay visible; the exact values are checked by their
+// colocated reference-row `@test`s (e.g. `dtoa_tables.vader`,
+// `parse_float_tables.vader`).
 ARRAY_DISPLAY_CAP  :: 16   // truncate arrays longer than this ...
 ARRAY_DISPLAY_HEAD :: 8    // ... showing this many leading elements + the count
 

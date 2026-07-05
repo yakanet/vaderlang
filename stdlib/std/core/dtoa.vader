@@ -374,8 +374,8 @@ format_f64 :: fn(x: f64) -> string {
 // primitive `@intrinsic` trait member like `f64.to_bits`, reached through
 // `format_f64`, doesn't resolve when std/core itself is the entry module).
 // The formatter is validated end-to-end instead by:
-//   - `tools/dtoa_roundtrip_check.py` — builds + runs natively, asserting
-//     `parse_float(to_string(x)) == x` and shortest-digit equality with
-//     CPython's dtoa over ~18k full-bit-space + edge-case doubles ;
 //   - `tests/snippets/float_to_string` — a run-output snapshot guarding
-//     against regressions through the normal build/run path.
+//     against regressions through the normal build/run path ;
+//   - `dtoa_tables.vader`'s reference-row `@test`s, pinning the Ryu power-of-5
+//     tables against ulfjack/ryu ground truth (historically also cross-checked
+//     against CPython's dtoa over ~18k full-bit-space + edge-case doubles).
