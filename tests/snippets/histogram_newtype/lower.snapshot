@@ -1,0 +1,478 @@
+# Lower
+
+## snippet
+  fn snippet$Histogram$Mul$mul(self: Histogram, k: u32) -> Histogram
+    let out: Histogram =
+      array :Histogram
+    block :void
+      let __for_hi_0: usize =
+        LoweredArrayLen
+      let i: usize = int(0) :usize
+      loop while (<…>)
+        LoweredArrayPush
+        assign
+          target:
+            i :usize
+          value:
+            add :usize
+              l:
+                i :usize
+              r:
+                int(1) :usize
+    return out :Histogram
+  fn snippet$Histogram$Div$div(self: Histogram, k: u32) -> [Histogram, u32]
+    let out: Histogram =
+      array :Histogram
+    block :void
+      let __for_hi_0: usize =
+        LoweredArrayLen
+      let i: usize = int(0) :usize
+      loop while (<…>)
+        LoweredArrayPush
+        assign
+          target:
+            i :usize
+          value:
+            add :usize
+              l:
+                i :usize
+              r:
+                int(1) :usize
+    return
+      [Histogram, u32] {
+        _0: out :Histogram
+        _1:
+          mod :u32
+            l:
+              index :u32
+                on:
+                  self :Histogram
+                ix:
+                  int(0) :i32
+            r:
+              k :u32
+      }
+  fn snippet$main() -> i32
+    let h: Histogram =
+      array :Histogram
+        int(4) :u32
+        int(8) :u32
+        int(15) :u32
+    LoweredArrayPush
+    let scaled: Histogram =
+      call :Histogram
+        callee:
+          snippet$Histogram$Mul$mul :Histogram
+        arg0:
+          h :Histogram
+        arg1:
+          cast → u32
+            int(2) :u32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(83) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → u64
+                    index :u32
+                      on:
+                        scaled :Histogram
+                      ix:
+                        int(0) :i32
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "," :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → u64
+                    index :u32
+                      on:
+                        scaled :Histogram
+                      ix:
+                        int(1) :i32
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "," :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → u64
+                    index :u32
+                      on:
+                        scaled :Histogram
+                      ix:
+                        int(2) :i32
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "," :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → u64
+                    index :u32
+                      on:
+                        scaled :Histogram
+                      ix:
+                        int(3) :i32
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+    let __tup_2: [Histogram, u32] =
+      call :[Histogram, u32]
+        callee:
+          snippet$Histogram$Div$div :[Histogram, u32]
+        arg0:
+          h :Histogram
+        arg1:
+          cast → u32
+            int(3) :u32
+    let half: Histogram =
+      ._0 :Histogram
+        __tup_2 :[Histogram, u32]
+    let rem: u32 =
+      ._1 :u32
+        __tup_2 :[Histogram, u32]
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_3: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(91) :usize
+          let __off_4: usize = int(0) :usize
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  cast → u64
+                    index :u32
+                      on:
+                        half :Histogram
+                      ix:
+                        int(0) :i32
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  "," :string
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  cast → u64
+                    index :u32
+                      on:
+                        half :Histogram
+                      ix:
+                        int(1) :i32
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  " rem=" :string
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  cast → u64
+                    rem :u32
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  " len=" :string
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  cast → u64
+                    LoweredArrayLen
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_3 :Buffer
+              arg1:
+                __off_4 :usize
+    let total: u32 = int(0) :u32
+    block :void
+      let __for_arr_5: Histogram = h :Histogram
+      let __for_len_6: usize =
+        LoweredArrayLen
+      let __for_i_7: usize = int(0) :usize
+      loop while (<…>)
+        let bin: u32 =
+          index :u32
+            on:
+              __for_arr_5 :Histogram
+            ix:
+              __for_i_7 :usize
+        assign
+          target:
+            total :u32
+          value:
+            add :u32
+              l:
+                total :u32
+              r:
+                bin :u32
+        assign
+          target:
+            __for_i_7 :usize
+          value:
+            add :usize
+              l:
+                __for_i_7 :usize
+              r:
+                int(1) :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_8: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(20) :usize
+          let __off_9: usize = int(0) :usize
+          assign
+            target:
+              __off_9 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_8 :Buffer
+                arg1:
+                  __off_9 :usize
+                arg2:
+                  cast → u64
+                    total :u32
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_8 :Buffer
+              arg1:
+                __off_9 :usize
+    let a: Celsius =
+      cast → Celsius
+        int(20) :i32
+    let b: Celsius =
+      cast → Celsius
+        int(5) :i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_10: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(41) :usize
+          let __off_11: usize = int(0) :usize
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_10 :Buffer
+                arg1:
+                  __off_11 :usize
+                arg2:
+                  add :i64
+                    l:
+                      a :Celsius
+                    r:
+                      b :Celsius
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_10 :Buffer
+                arg1:
+                  __off_11 :usize
+                arg2:
+                  "," :string
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_10 :Buffer
+                arg1:
+                  __off_11 :usize
+                arg2:
+                  sub :i64
+                    l:
+                      a :Celsius
+                    r:
+                      b :Celsius
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_10 :Buffer
+              arg1:
+                __off_11 :usize
+    return int(0) :i32

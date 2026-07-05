@@ -1,0 +1,59 @@
+// tests/snippets/dimensional_units — operator overloading on distinct newtypes.
+//
+// A distinct type (`Name :: <primitive>`) is nominal but can overload operators
+// via trait impls. Covers: homogeneous arithmetic (`Money + Money`), HETEROGENEOUS
+// / dimensional operators (`Instant - Instant -> Duration`, `Instant + Duration
+// -> Instant`), comparison (`Comparable`), and the aliased fallback (a distinct
+// with no impl inherits its backing's arithmetic).
+//
+// Expected: prints "650", "true", "250", "1250", "7".
+
+module "snippet"
+
+import "std/io" { println }
+
+// Homogeneous : Money + Money -> Money, plus ordering.
+Money :: i64
+
+Money implements Add<Money, Money> {
+    add :: fn(self, other: Money) -> Money = Money(i64(self) + i64(other))
+}
+Money implements Comparable {
+    compare :: fn(self, other: Money) -> i32 {
+        if i64(self) < i64(other) { return -1 }
+        if i64(self) > i64(other) { return 1 }
+        return 0
+    }
+}
+
+// Dimensional : the two operators return DIFFERENT types than the receiver.
+Instant  :: i64
+Duration :: i64
+
+Instant implements Sub<Instant, Duration> {
+    sub :: fn(self, other: Instant) -> Duration = Duration(i64(self) - i64(other))
+}
+Instant implements Add<Duration, Instant> {
+    add :: fn(self, d: Duration) -> Instant = Instant(i64(self) + i64(d))
+}
+
+// No impl : `+` falls back to the backing i64's arithmetic.
+Meters :: i64
+
+main :: fn() -> i32 {
+    a :: Money(500)
+    b :: Money(150)
+    println("${i64(a + b)}")        // 650 — Money::add
+    println("${a > b}")             // true — Comparable
+
+    t0 :: Instant(1000)
+    t1 :: Instant(1250)
+    elapsed :: t1 - t0              // Duration — heterogeneous Sub
+    println("${i64(elapsed)}")     // 250
+    later :: t0 + elapsed          // Instant — heterogeneous Add
+    println("${i64(later)}")       // 1250
+
+    m :: Meters(3) + Meters(4)     // no Meters impl → i64 fallback
+    println("${m}")                // 7
+    return 0
+}

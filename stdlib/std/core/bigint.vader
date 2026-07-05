@@ -21,15 +21,14 @@ module "std/core"
 /// A fixed-width natural (unsigned) big integer : little-endian base-2^32
 /// limbs, no trailing zero limb. Zero is the empty limb sequence.
 ///
-/// NOTE : this is a *transparent* alias, not a distinct nominal type — Vader
-/// only promotes `Name :: T` to a distinct newtype when `T` is a primitive
-/// (`decl.vader::distinct_backing`), so an array backing stays identical to
-/// `u32[]`. Consequence : arithmetic operators can't be overloaded here (a
-/// `BigInt implements Mul` would register under the `"[]"` key and collide with
-/// the array-repeat blanket `T[] implements Mul<usize>`), so the operations
-/// below are named methods (`mul_small`, `div_small`, …). Making array-backed
-/// newtypes first-class distinct types is a separate language chantier ; once it
-/// lands these become `*` / `/`.
+/// `BigInt :: u32[]` is a distinct newtype (array-backed) : the structural array
+/// ops (index, `len`/`push`, for-in, `[…]` literals) forward to the backing
+/// array, while trait impls stay nominal — so `bigint * u32` / `bigint / u32`
+/// could be overloaded here. They are NOT yet : the operations below are named
+/// methods (`mul_small`, `div_small`, …) because the CURRENT bootstrap seed
+/// predates array-backed distinct newtypes and would mis-compile a comptime
+/// `p * u32(5)` as an array-repeat. Once this feature is in the seed, the
+/// `*` / `/` operator migration is a mechanical follow-up.
 export BigInt :: u32[]
 
 /// Multiply by a small scalar and add a small scalar : `self * mul + add`.

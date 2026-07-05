@@ -540,6 +540,21 @@ export strip_distinct :: fn(t: Type) -> Type {
     return t
 }
 
+/// The backing array of `t` — `t` itself when it's an array, or the array a
+/// distinct newtype wraps (`BigInt :: u32[]` → `u32[]`). `null` for anything
+/// else. Lets the STRUCTURAL array ops (index, `len`/`push`, literal coercion,
+/// for-in) forward through an array-backed distinct newtype while its trait
+/// impls (operator overloads) stay nominal on the distinct's own key.
+///
+/// Unwraps only the OUTER distinct — the element type is preserved verbatim, so
+/// `LocalId[]` stays `LocalId[]` (NOT `strip_distinct`, which would deep-strip
+/// the element to `i32[]` and corrupt `arr[i]`'s type).
+export array_backing :: fn(t: Type) -> ArrayType | null {
+    if t is ArrayType as a { return a }
+    if t is DistinctType as d { return array_backing(d.backing) }
+    return null
+}
+
 /// Map `strip_distinct` over a type-arg list. Always returns a fresh array
 /// with each element passed through `strip_distinct`.
 /// @param args  the concrete type arguments.

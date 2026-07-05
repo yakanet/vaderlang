@@ -1,0 +1,97 @@
+# Typecheck
+
+## tests/snippets/histogram_newtype
+  ConstDecl      Celsius              :: type
+  ConstDecl      Histogram            :: type
+  FnDecl         main                 :: fn() -> i32
+  expr 22:26    SeqLitExpr     :: Histogram
+  expr 23:18    RangeExpr      :: Range<usize>
+  expr 23:22    CallExpr       :: usize
+  expr 23:22    FieldExpr      :: fn() -> usize
+  expr 23:22    IdentExpr      :: Histogram
+  expr 23:35    CallExpr       :: void
+  expr 23:35    FieldExpr      :: fn(u32) -> void
+  expr 23:35    IdentExpr      :: Histogram
+  expr 23:44    BinaryExpr     :: u32
+  expr 23:44    IdentExpr      :: Histogram
+  expr 23:44    IndexExpr      :: u32
+  expr 23:49    IdentExpr      :: usize
+  expr 23:54    IdentExpr      :: u32
+  expr 24:16    IdentExpr      :: Histogram
+  expr 30:26    SeqLitExpr     :: Histogram
+  expr 31:18    RangeExpr      :: Range<usize>
+  expr 31:22    CallExpr       :: usize
+  expr 31:22    FieldExpr      :: fn() -> usize
+  expr 31:22    IdentExpr      :: Histogram
+  expr 31:35    CallExpr       :: void
+  expr 31:35    FieldExpr      :: fn(u32) -> void
+  expr 31:35    IdentExpr      :: Histogram
+  expr 31:44    BinaryExpr     :: u32
+  expr 31:44    IdentExpr      :: Histogram
+  expr 31:44    IndexExpr      :: u32
+  expr 31:49    IdentExpr      :: usize
+  expr 31:54    IdentExpr      :: u32
+  expr 32:16    SeqLitExpr     :: [Histogram, u32]
+  expr 32:17    IdentExpr      :: Histogram
+  expr 32:22    BinaryExpr     :: u32
+  expr 32:22    IdentExpr      :: Histogram
+  expr 32:22    IndexExpr      :: u32
+  expr 32:32    IdentExpr      :: u32
+  expr 40:20    SeqLitExpr     :: Histogram
+  expr 41:12    CallExpr       :: u32
+  expr 41:12    IdentExpr      :: type
+  expr 41:5     CallExpr       :: void
+  expr 41:5     FieldExpr      :: fn(u32) -> void
+  expr 41:5     IdentExpr      :: Histogram
+  expr 42:15    BinaryExpr     :: Histogram
+  expr 42:15    IdentExpr      :: Histogram
+  expr 42:19    CallExpr       :: u32
+  expr 42:19    IdentExpr      :: type
+  expr 43:13    StringLitExpr  :: string
+  expr 43:16    IdentExpr      :: Histogram
+  expr 43:16    IndexExpr      :: u32
+  expr 43:29    IdentExpr      :: Histogram
+  expr 43:29    IndexExpr      :: u32
+  expr 43:42    IdentExpr      :: Histogram
+  expr 43:42    IndexExpr      :: u32
+  expr 43:5     CallExpr       :: void
+  expr 43:5     IdentExpr      :: fn(T) -> void
+  expr 43:55    IdentExpr      :: Histogram
+  expr 43:55    IndexExpr      :: u32
+  expr 44:20    BinaryExpr     :: [Histogram, u32]
+  expr 44:20    IdentExpr      :: Histogram
+  expr 44:24    CallExpr       :: u32
+  expr 44:24    IdentExpr      :: type
+  expr 45:13    StringLitExpr  :: string
+  expr 45:16    IdentExpr      :: Histogram
+  expr 45:16    IndexExpr      :: u32
+  expr 45:27    IdentExpr      :: Histogram
+  expr 45:27    IndexExpr      :: u32
+  expr 45:42    IdentExpr      :: u32
+  expr 45:5     CallExpr       :: void
+  expr 45:5     IdentExpr      :: fn(T) -> void
+  expr 45:53    CallExpr       :: usize
+  expr 45:53    FieldExpr      :: fn() -> usize
+  expr 45:53    IdentExpr      :: Histogram
+  expr 47:16    IdentExpr      :: Histogram
+  expr 47:20    IdentExpr      :: u32
+  expr 47:28    BinaryExpr     :: u32
+  expr 47:28    IdentExpr      :: u32
+  expr 47:36    IdentExpr      :: u32
+  expr 48:13    StringLitExpr  :: string
+  expr 48:16    IdentExpr      :: u32
+  expr 48:5     CallExpr       :: void
+  expr 48:5     IdentExpr      :: fn(T) -> void
+  expr 49:10    CallExpr       :: Celsius
+  expr 49:10    IdentExpr      :: type
+  expr 50:10    CallExpr       :: Celsius
+  expr 50:10    IdentExpr      :: type
+  expr 51:13    StringLitExpr  :: string
+  expr 51:16    BinaryExpr     :: i64
+  expr 51:16    IdentExpr      :: Celsius
+  expr 51:20    IdentExpr      :: Celsius
+  expr 51:25    BinaryExpr     :: i64
+  expr 51:25    IdentExpr      :: Celsius
+  expr 51:29    IdentExpr      :: Celsius
+  expr 51:5     CallExpr       :: void
+  expr 51:5     IdentExpr      :: fn(T) -> void

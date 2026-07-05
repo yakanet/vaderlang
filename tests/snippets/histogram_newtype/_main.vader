@@ -1,0 +1,53 @@
+// tests/snippets/histogram_newtype — array-backed distinct newtypes.
+//
+// Regression guard for "distinct newtypes over arrays" : a `Name :: T[]` decl is
+// a distinct nominal type, so its structural array ops (index, `len`/`push`,
+// for-in, `[…]` literals) forward to the backing array while its arithmetic is
+// overloaded on the nominal type — `histogram * u32` (`Mul<u32>`) and
+// `histogram / u32` → `[quotient, remainder]` (`Div<u32, […]>`). Also covers the
+// operator fallback : a distinct-over-primitive with no impl inherits the
+// backing type's arithmetic.
+//
+// Expected: prints "8,16,30,32", "1,2 rem=1 len=4", "43", "25,15".
+
+module "snippet"
+
+import "std/io" { println }
+
+// A bin histogram : scale every bin via `*`, split via `/`.
+Histogram :: u32[]
+
+Histogram implements Mul<u32, Histogram> {
+    mul :: fn(self, k: u32) -> Histogram {
+        out: Histogram = []
+        for i in 0..<self.len() { out.push(self[i] * k) }
+        return out
+    }
+}
+
+Histogram implements Div<u32, [Histogram, u32]> {
+    div :: fn(self, k: u32) -> [Histogram, u32] {
+        out: Histogram = []
+        for i in 0..<self.len() { out.push(self[i] / k) }
+        return [out, self[0] % k]
+    }
+}
+
+// A distinct-over-primitive with no operator impl : inherits i64 arithmetic.
+Celsius :: i64
+
+main :: fn() -> i32 {
+    h: Histogram = [4, 8, 15]              // array-literal coercion
+    h.push(u32(16))                        // .push forwards to the backing array
+    scaled :: h * u32(2)                   // Mul<u32> overload
+    println("${scaled[0]},${scaled[1]},${scaled[2]},${scaled[3]}")
+    [half, rem] :: h / u32(3)              // Div<u32> → [quotient, remainder]
+    println("${half[0]},${half[1]} rem=${rem} len=${half.len()}")
+    total: u32 = 0
+    for bin in h { total = total + bin }   // for-in forwards
+    println("${total}")
+    a :: Celsius(20)
+    b :: Celsius(5)
+    println("${a + b},${a - b}")           // fallback to i64 arithmetic
+    return 0
+}

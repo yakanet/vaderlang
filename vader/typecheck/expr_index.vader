@@ -11,6 +11,7 @@ import "vader/diagnostics" { Diagnostic, typecheck_error }
 import "vader/types" {
     Type, ArrayType, PrimitiveType, FreeIntType, StructType, UnresolvedType,
     display_type, mk_array, mk_primitive, TY_STRING, TY_UNRESOLVED, STRUCT_RANGE,
+    array_backing,
 }
 AST :: import "vader/parser"
 
@@ -39,18 +40,20 @@ export infer_index :: fn(
             return mk_primitive("char")
         }
     }
-    // @partial: arrays index by element and structs by their Index impl; the
-    // string case is handled above, and every other type kind is not indexable.
-    @partial match target {
-        is ArrayType as arr -> {
-            // `arr[r]` where `r: Range(T)` slices and returns `T[]`.
-            if is_range_type(index) { return mk_array(arr.element, false) }
-            if !is_integer_index(index) {
-                diags.push(typecheck_error(.TypeMismatch, e.index.span,
-                    "array index must be an integer, got ${display_type(index)}"))
-            }
-            return arr.element
+    // Arrays — and array-backed distinct newtypes (`BigInt :: u32[]`) via
+    // `array_backing` — index by element. `arr[r]` with `r: Range(T)` slices.
+    arr_view :: array_backing(target)
+    if arr_view != null {
+        if is_range_type(index) { return mk_array(arr_view.element, false) }
+        if !is_integer_index(index) {
+            diags.push(typecheck_error(.TypeMismatch, e.index.span,
+                "array index must be an integer, got ${display_type(index)}"))
         }
+        return arr_view.element
+    }
+    // @partial: structs index by their Index impl; the string case is handled
+    // above, and every other type kind is not indexable.
+    @partial match target {
         is StructType as st -> {
             result_ty :: resolve_index_param(st, typed.index_target_types[st.symbol.name], typed)
             if result_ty == null {
