@@ -971,7 +971,7 @@ broadcast_enum_types :: fn(per_module: MutableMap<string, TypedProgram>, project
 }
 
 register_alias_const :: fn(cd: AST.ConstDecl, typed: TypedProgram) -> bool {
-    if !is_alias_value_expr(cd.value, typed.resolved) { return false }
+    if !is_type_expr(cd.value, typed.resolved) { return false }
     aliased :: type_from_expr(cd.value, typed.resolved, diag_sink())
     // `alias_for` (decl.vader, same module) is the shared primitive-RHS distinct
     // promotion rule ; this cross-project pass is the authoritative writer of
@@ -984,26 +984,34 @@ register_alias_const :: fn(cd: AST.ConstDecl, typed: TypedProgram) -> bool {
     return true
 }
 
-export is_alias_value_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
+/// True when `e` is a TYPE expression — the trigger to promote a `Name :: <...>`
+/// const to a type alias / distinct newtype instead of a value binding. The one
+/// predicate behind every alias-registration site: `register_alias_const` +
+/// `declare_const` + `check_const_value` (const RHS) and the in-fn `let`-alias
+/// detection (`stmt.vader`).
+///
+/// An IdentExpr names a type when it is a primitive (incl. `type` / `Self` and
+/// the friendly aliases `int` / `long` / …), a real type declaration
+/// (`is_type_kind` — struct / trait / enum / type-alias / type-param / builtin),
+/// OR a `Name :: <type>` const/distinct already registered in `alias_types`.
+/// That last case is what lets a newtype be used as an alias RHS
+/// (`Distance :: Meters`) or a tuple-alias element (`Pair :: [Meters, i32]`) —
+/// such a decl is a plain `ConstDecl` (SymbolKind.Const), so it is invisible to
+/// the kind check but resolves to a type through `alias_types`. The three
+/// registration passes populate `alias_types` in sequence, so a one- or two-hop
+/// alias chain converges across them.
+export is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
     if e is AST.IdentExpr {
-        if is_primitive_name(e.name) { return true }
+        if primitive_from_name(e.name) !is null { return true }
         sym :: resolved.idents[e.span.hash()]
         if sym is null { return false }
-        // @partial: only type-introducing kinds name an alias RHS; every
-        // other SymbolKind (Fn, Local, Param, …) is a value, not a type.
-        @partial match sym.kind {
-            .Struct -> { return true }
-            .Trait  -> { return true }
-            .Enum   -> { return true }
-            .TypeAlias -> { return true }
-            .TypeParam -> { return true }
-            .BuiltinType -> { return true }
-            _ -> { return false }
-        }
+        if is_type_kind(sym.kind) { return true }
+        return resolved.alias_types[sym.id] !is null
     }
     if e is AST.BinaryExpr {
+        // Treat `T | U` chains as types.
         if e.op == AST.BinaryOp.BitOr {
-            return is_alias_value_expr(e.left, resolved) && is_alias_value_expr(e.right, resolved)
+            return is_type_expr(e.left, resolved) && is_type_expr(e.right, resolved)
         }
     }
     if e is AST.GenericInstExpr { return true }
@@ -1013,13 +1021,11 @@ export is_alias_value_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool 
     // type alias (1-tuples are forbidden).
     if e is AST.SeqLitExpr as seq {
         if seq.elements.len() < 2 { return false }
-        for el in seq.elements { if !is_alias_value_expr(el, resolved) { return false } }
+        for el in seq.elements { if !is_type_expr(el, resolved) { return false } }
         return true
     }
     return false
 }
-
-import "vader/types" { is_primitive_name }
 
 // Mirror every non-entry module's `alias_types` / `alias_decls` into
 // the entry's resolver tables so cross-module aliases (e.g. `Pet`
@@ -1788,7 +1794,7 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnosti
         is null -> {}
         _ -> { expected = annot }
     }
-    if is_type_value_expr(cd.value, typed) {
+    if is_type_expr(cd.value, typed.resolved) {
         if annot is null {
             typed.decl_types[sym.id] = TY_TYPE
         }
@@ -1830,35 +1836,6 @@ decl_is_comptime :: fn(decorators: AST.Decorator[]) -> bool {
 lookup_sym_by_name_orch :: fn(resolved: ResolvedModule, name: string) -> Symbol | null {
     for s in resolved.symbols { if s.name == name { return s } }
     return null
-}
-
-// True when `e` is an expression that names a type (builtin, struct,
-// trait, type alias, …). These get folded by `type_from_expr` rather
-// than walked as value-position expressions.
-is_type_value_expr :: fn(e: AST.Expr, typed: TypedProgram) -> bool {
-    if e is AST.IdentExpr {
-        if !(primitive_from_name(e.name) is null) { return true }
-        sym :: typed.resolved.idents[e.span.hash()]
-        if sym is null { return false }
-        return is_type_kind(sym.kind)
-    }
-    if e is AST.BinaryExpr {
-        // Treat `T | U` chains as types.
-        if e.op == AST.BinaryOp.BitOr {
-            return is_type_value_expr(e.left, typed) && is_type_value_expr(e.right, typed)
-        }
-    }
-    if e is AST.GenericInstExpr { return true }
-    if e is AST.FnTypeExpr { return true }
-    if e is AST.ArrayTypeExpr { return true }
-    // `Coord :: [i32, i32]` — a ≥ 2-element all-type bracketed list is a tuple
-    // type alias (1-tuples are forbidden).
-    if e is AST.SeqLitExpr as seq {
-        if seq.elements.len() < 2 { return false }
-        for el in seq.elements { if !is_type_value_expr(el, typed) { return false } }
-        return true
-    }
-    return false
 }
 
 // @partial: only type-introducing kinds are type kinds; every other SymbolKind → false.

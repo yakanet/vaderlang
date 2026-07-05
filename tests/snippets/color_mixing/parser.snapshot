@@ -248,6 +248,26 @@
       "decorators": []
     },
     {
+      "kind": "ConstDecl",
+      "name": "Swatch",
+      "visibility": "private",
+      "type": null,
+      "value": {
+        "kind": "SeqLitExpr",
+        "elements": [
+          {
+            "kind": "IdentExpr",
+            "name": "Color"
+          },
+          {
+            "kind": "IdentExpr",
+            "name": "i32"
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
       "kind": "FnDecl",
       "name": "main",
       "visibility": "private",
@@ -550,6 +570,84 @@
                             "kind": "IdentExpr",
                             "name": "y"
                           }
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "s"
+            },
+            "type": {
+              "kind": "IdentExpr",
+              "name": "Swatch"
+            },
+            "value": {
+              "kind": "SeqLitExpr",
+              "elements": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "red"
+                },
+                {
+                  "kind": "IntLitExpr",
+                  "value": "5n"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "FieldExpr",
+                          "target": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "s"
+                            },
+                            "field": "0",
+                            "isNumeric": true
+                          },
+                          "field": "r"
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " x"
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "FieldExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "s"
+                          },
+                          "field": "1",
+                          "isNumeric": true
                         }
                       }
                     ]

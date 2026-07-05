@@ -395,7 +395,7 @@ check_let :: fn(
     is_let_type_alias := false
     if !s.mutable && declared is TypeMetaType {
         if s.binding is AST.SimpleBinding as sb {
-            if is_alias_value_expr(s.value, typed.resolved) {
+            if is_type_expr(s.value, typed.resolved) {
                 sym_or_null :: typed.resolved.idents[sb.name_span.hash()]
                 if sym_or_null is Symbol as sym {
                     resolved_type :: type_from_expr(s.value, typed.resolved, diag_sink_stmt())
