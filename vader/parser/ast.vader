@@ -156,6 +156,13 @@ export FnDecl :: struct {
     /// emits duplicate diagnostics at unhelpful spans. Walkers skip such
     /// methods (the trait itself already type-checked the body once).
     materialized:          bool
+    /// `true` when this FnDecl is the `__comptime_NAME` helper the parser
+    /// synthesises for the `NAME :: @comptime <expr>` const sugar (see
+    /// `desugar_comptime_const`). The formatter skips it — the surface sugar
+    /// is re-emitted from the paired `ConstDecl.comptime_body` instead.
+    /// Defaults `false` : only the desugar sets it, every other constructor
+    /// leaves it off.
+    comptime_synthetic:    bool = false
 }
 
 export FnParam :: struct {
@@ -274,6 +281,13 @@ export ConstDecl :: struct {
     ty:         TypeExpr | null
     value:      Expr
     decorators: Decorator[]
+    /// Original `@comptime` operand for the `NAME :: @comptime <expr>` sugar,
+    /// kept so the formatter re-emits the surface form rather than the
+    /// desugared `__comptime_NAME()` call. Non-null marks this const as a
+    /// desugared comptime const ; null for every other const. Holds the raw
+    /// block/expression the sugar wrapped (pre-`return`-lift), so the exact
+    /// source spelling round-trips. See `desugar_comptime_const`.
+    comptime_body: Expr | null = null
 }
 
 // `@assert(cond)` — top-level compile-time assertion. The condition

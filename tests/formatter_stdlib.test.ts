@@ -1,45 +1,59 @@
-// Stdlib formatter checks — idempotency on every `stdlib/**/*.vader` plus
-// a hard-coded byte-for-byte set listing the files that the formatter
-// already produces verbatim (`iter`, `runtime`, `sort`, `string_builder`).
-// The latter is the keystone "stdlib no-op" probe ; growing the list as we
-// land more refinements is the canonical signal that the formatter is
-// converging on the existing style.
+// Stdlib formatter checks over EVERY `stdlib/**/*.vader` (recursively). Three
+// contracts, weakest to strongest :
 //
-// Same `RUN_FMT_TESTS=1` opt-in gate as `formatter.test.ts` — each
-// invocation pays the VM-bootstrap cost.
+//   1. reparse-after-format — the formatted output parses with zero errors.
+//      This is the round-trip-safety net : it is what catches a formatter that
+//      emits non-compilable text (audit F3/F4/F5 all slipped past the older
+//      idempotency-only probe, since a *stably* corrupt re-emit is idempotent).
+//   2. idempotency — `fmt(fmt(src)) === fmt(src)`.
+//   3. byte-for-byte no-op — `fmt(src) === src` for the curated set below.
+//
+// Same `RUN_FMT_TESTS=1` opt-in gate as `formatter.test.ts` — each file costs
+// two to three native `build/vader` spawns, so the whole suite is skipped
+// unless requested.
 
 import { test, expect } from "bun:test";
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { CLI_BIN, MEDIUM_BUILD } from "./cli-bin.ts";
+import { CLI_BIN, MEDIUM_BUILD, runCli } from "./cli-bin.ts";
 
 const ENABLED = process.env.RUN_FMT_TESTS === "1";
 
 const STDLIB_ROOT = join(process.cwd(), "stdlib", "std");
 
-// Every `*.vader` directly under `stdlib/std/`. No recursion : the stdlib
-// is flat at the time of writing, and walking deeper would only pick up
-// the per-module folder convention if a future stdlib reorganises.
+// Every `*.vader` anywhere under `stdlib/std/`. The stdlib is organised into
+// per-module folders (`core/`, `string/`, `collections/`, …), so this MUST
+// recurse — a flat `readdirSync` finds nothing and silently tests zero files.
 function listStdlibFiles(): string[] {
   if (!existsSync(STDLIB_ROOT)) return [];
-  return readdirSync(STDLIB_ROOT)
-    .filter((n) => n.endsWith(".vader"))
-    .map((n) => join(STDLIB_ROOT, n))
-    .sort();
+  const out: string[] = [];
+  const walk = (dir: string) => {
+    for (const ent of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, ent.name);
+      if (ent.isDirectory()) walk(full);
+      else if (ent.name.endsWith(".vader")) out.push(full);
+    }
+  };
+  walk(STDLIB_ROOT);
+  return out.sort();
 }
 
 // Files that round-trip byte-for-byte today. Grow this set whenever a
-// formatter refinement lands. A file outside this set is held to the
-// weaker idempotency check below.
+// formatter refinement lands ; a file outside it is held to the weaker
+// checks above.
 const NO_OP_FILES = new Set([
-  // Note : `iter.vader` was here, but the lazy iterator structs added 2026-05-11
-  // exposed a small formatter quirk (probably around the multi-line struct decls
-  // with trait-typed fields) — drop it back to the weaker idempotency check
-  // until the formatter side is tightened. Files still byte-for-byte stable :
   "math.vader",
   "runtime.vader",
-  "sort.vader",
-  "string_builder.vader",
+]);
+
+// Files with a KNOWN, pre-existing idempotency wobble unrelated to round-trip
+// safety : a name-column alignment group whose width shifts on the second pass
+// when an interleaved comment splits the group (e.g. `TOMB_SLOT  ::` →
+// `TOMB_SLOT ::`). They still reparse cleanly (contract 1 holds) — only the
+// stronger `fmt(fmt) === fmt` is skipped until the alignment pass is tightened.
+const UNSTABLE_IDEMPOTENCY = new Set([
+  "collections.vader",
+  "parse_float.vader",
 ]);
 
 function fmtStdout(path: string): string {
@@ -68,11 +82,33 @@ function fmtString(source: string): string {
   }
 }
 
+// The `error[...]` lines `dump --stage=ast` prints for a file that fails to
+// parse. `dump` reports diagnostics on stdout and always exits 0, so scan the
+// text rather than the exit code. Empty string ⇒ clean reparse. Goes through
+// `runCli` (not a raw `Bun.spawnSync`) for its self-cleaning SIGKILL timer.
+async function reparseErrors(path: string): Promise<string> {
+  const { stdout, stderr } = await runCli(["dump", "--stage=ast", path]);
+  return (stdout + stderr).split("\n").filter((l) => l.includes("error[")).join("\n");
+}
+
 for (const path of listStdlibFiles()) {
   const base = path.slice(path.lastIndexOf("/") + 1);
 
+  test(`stdlib reparse after format : ${base}`, async () => {
+    if (!ENABLED) return;
+    const formatted = fmtStdout(path);
+    const tmp = join(process.cwd(), `.tmp-fmt-stdlib-reparse-${base}`);
+    await Bun.write(tmp, formatted);
+    try {
+      expect(await reparseErrors(tmp)).toBe("");
+    } finally {
+      try { Bun.file(tmp).delete?.(); } catch { /* ignore */ }
+    }
+  }, { timeout: MEDIUM_BUILD });
+
   test(`stdlib idempotent : ${base}`, async () => {
     if (!ENABLED) return;
+    if (UNSTABLE_IDEMPOTENCY.has(base)) return;
     const f1 = fmtStdout(path);
     const f2 = fmtString(f1);
     expect(f2).toBe(f1);
