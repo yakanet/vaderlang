@@ -47,5 +47,13 @@
         <fileNamePatternMapping patterns="*.vader"
                                 serverId="dev.vaderlang.vader-lsp"
                                 languageId="vader"/>
+
+        <!-- Debug Adapter : `vader dap` (see vader/dap/). LSP4IJ drives the DAP
+             client (breakpoints, stepping, variables) ; we only spawn the
+             adapter. Users debug via a "Debug Adapter Protocol" run
+             configuration selecting this server + a `.vader` file. -->
+        <debugAdapterServer id="dev.vaderlang.vader-dap"
+                            name="Vader Debug Adapter"
+                            factoryClass="dev.vaderlang.intellij.VaderDebugAdapterServerFactory"/>
     </extensions>
 </idea-plugin>
