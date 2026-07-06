@@ -411,7 +411,8 @@ cmd_test :: fn(args: string[]) -> i32 {
         for t in fresh { mangles.push(t.mangled) }
         module :: cfg_to_bytecode(
             pruned, module_name_from_file(rep),
-            EmitOptions { .optimize = true, .keep_mangles = mangles },
+            // `vader test` runs bytecode in the VM, which never reads `debug`.
+            EmitOptions { .optimize = true, .keep_mangles = mangles, .want_debug = false },
         )
         state :: prepare(module)
         for t in fresh {
@@ -659,7 +660,9 @@ cmd_build :: fn(args: string[]) -> i32 {
 // diagnostics go to stderr ; returns null when an error-severity diagnostic
 // blocks the build, so the caller emits nothing and exits non-zero.
 emit_c_source :: fn(file: string, release: bool, include_path_flags: string[]) -> string | null {
-    b :: prepare_cfg_bytecode_with(file, include_path_flags)
+    // Debug build → populate the per-op `debug` table so the c-emit keeps
+    // `#line` ; release drops both (the seed + shipped compiler stay lean).
+    b :: prepare_cfg_bytecode_with(file, !release, include_path_flags)
     if !flush_build_diags(b.pre_diags, b.lower_diags) { return null }
     // Designate the program entry by mangled name (same source as the bytecode
     // stage's `export main N`) so the `main()` shim resolves the entry module's
@@ -1134,15 +1137,19 @@ CfgBytecode :: struct {
 /// elides them and diverges on ~150 snippets, so both `dump --stage`
 /// consumers route through here. Const-fold is deliberately NOT run, since
 /// arith collapse would over-shrink vs the parity snapshot.
-prepare_cfg_bytecode :: fn(file: string) -> CfgBytecode = prepare_cfg_bytecode_with(file, [])
+prepare_cfg_bytecode :: fn(file: string, want_debug: bool) -> CfgBytecode = prepare_cfg_bytecode_with(file, want_debug, [])
 
-prepare_cfg_bytecode_with :: fn(file: string, include_path_flags: string[]) -> CfgBytecode {
+prepare_cfg_bytecode_with :: fn(file: string, want_debug: bool, include_path_flags: string[]) -> CfgBytecode {
     le :: lower_to_entry_with(file, include_path_flags)
     // profiling brackets — inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
     Prof.prof_begin(Prof.PHASE_PRUNE)
     pruned :: prune_unreachable_fns(le.lowered, false)
     Prof.prof_end(Prof.PHASE_PRUNE)
-    module :: cfg_to_bytecode(pruned, module_name_from_file(file), default_emit_options())
+    // `want_debug` populates the per-op `debug` table only when the emitted C
+    // will keep `#line` (non-release c-emit / `dump --stage=c`) ; the VM /
+    // bytecode-dump callers pass false to skip the per-op DebugPos alloc.
+    opts :: EmitOptions { .optimize = true, .keep_mangles = [], .want_debug = want_debug }
+    module :: cfg_to_bytecode(pruned, module_name_from_file(file), opts)
     return CfgBytecode {
         .entry       = le.entry,
         .pre_diags   = le.pre_diags,
@@ -1153,7 +1160,8 @@ prepare_cfg_bytecode_with :: fn(file: string, include_path_flags: string[]) -> C
 }
 
 run_bytecode_stage :: fn(file: string, annotate: bool) -> i32 {
-    b :: prepare_cfg_bytecode(file)
+    // The bytecode dump never renders `debug`, so skip populating it.
+    b :: prepare_cfg_bytecode(file, false)
     // A front-end-rejected program emits no bytecode (`lower_to_entry_with`
     // skips lowering on a front-end error) — print only the diagnostics, never
     // a bare `module` shell for code that was never compiled. Gate on
@@ -1176,7 +1184,9 @@ run_bytecode_stage :: fn(file: string, annotate: bool) -> i32 {
 }
 
 run_c_stage :: fn(file: string) -> i32 {
-    b :: prepare_cfg_bytecode(file)
+    // `dump --stage=c` is a non-release C view : populate `debug` so the
+    // emitted C carries `#line` (matches a debug `build --target=c`).
+    b :: prepare_cfg_bytecode(file, true)
     // No C for a front-end-rejected program — print only the diagnostics,
     // mirroring `run_bytecode_stage` (front-end errors only ; see its note).
     if any_error_diag(b.pre_diags) {

@@ -149,18 +149,25 @@ static int32_t snippet_main(void) {
     vader_box_t* gc_roots[11] = { &l0, &l1, &l2, &t0, &t1, &t2, &t3, &t4, &t5, &t6, &t7 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 11u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
+#line 67 "stdlib/std/collections/collections.vader"
     vader_array_t* _a0_arr = vader_array_new(14u, 0u, 7u, 1u);
     t0 = vader_box_obj(14u, _a0_arr);
     l0 = t0;
+#line 70 "stdlib/std/collections/collections.vader"
     vader_array_t* _a1_arr = vader_array_new(15u, 0u, 0u, 9u);
     t1 = vader_box_obj(15u, _a1_arr);
     l1 = t1;
+#line 75 "stdlib/std/collections/collections.vader"
     vader_array_t* _a2_arr = vader_array_new(14u, 0u, 7u, 1u);
     t2 = vader_box_obj(14u, _a2_arr);
     l2 = t2;
+#line 78 "stdlib/std/collections/collections.vader"
     l3 = (size_t) (int64_t) INT64_C(0);
+#line 81 "stdlib/std/collections/collections.vader"
     l4 = (size_t) (int64_t) INT64_C(0);
+#line 86 "stdlib/std/collections/collections.vader"
     l5 = (size_t) (int64_t) INT64_C(0);
+#line 17 "tests/snippets/narrow_imported_map/_main.vader"
     vader_struct_std_collections_MutableMap__i32__i32___Wrap_t* _a3_obj = (vader_struct_std_collections_MutableMap__i32__i32___Wrap_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__i32__i32___Wrap_t));
     vader_obj_header_init(_a3_obj, 13u);
     _a3_obj->f_ekeys = l0;
@@ -171,6 +178,7 @@ static int32_t snippet_main(void) {
     _a3_obj->f_tombs = l5;
     t3 = vader_box_obj(13u, _a3_obj);
     l0 = t3;
+#line 18 "tests/snippets/narrow_imported_map/_main.vader"
     vader_array_t* _a4_arr = vader_array_new(14u, 2u, 7u, 1u);
     ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 1u] = (int32_t) INT32_C(7);
     ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 0u] = (int32_t) INT32_C(42);
@@ -181,12 +189,18 @@ static int32_t snippet_main(void) {
     t5 = vader_box_obj(18u, _a5_obj);
     l1 = t5;
     std_collections_MutableMap_IndexSet_set_at__i32__Any(l0, INT32_C(1), l1);
+#line 19 "tests/snippets/narrow_imported_map/_main.vader"
     t6 = snippet_lib_pick(l0, INT32_C(1));
     l0 = t6;
+#line 20 "tests/snippets/narrow_imported_map/_main.vader"
     if (l0.tag == 0u) {
+#line 21 "tests/snippets/narrow_imported_map/_main.vader"
         std_io_println__string(1u);
+#line 22 "tests/snippets/narrow_imported_map/_main.vader"
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
+#line 20 "tests/snippets/narrow_imported_map/_main.vader"
     }
+#line 24 "tests/snippets/narrow_imported_map/_main.vader"
     t7 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(20));
     l1 = t7;
     l3 = (size_t) (int64_t) INT64_C(0);
@@ -197,6 +211,7 @@ static int32_t snippet_main(void) {
     l3 = t10;
     t11 = std_core_finish_buffer(l1, l3);
     std_io_println__string(t11);
+#line 25 "tests/snippets/narrow_imported_map/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     vader_gc_top = gc_frame.prev;
 }
@@ -206,6 +221,7 @@ static vader_box_t std_core_new_byte_buffer(size_t l0) {
     vader_box_t* gc_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
+#line 112 "stdlib/std/core/primitives.vader"
     t0 = std_core_usize_BufferAlloc_new_buffer_vt(l0);
     { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -216,6 +232,7 @@ static vader_string_t std_core_finish_buffer(vader_box_t l0, size_t l1) {
     vader_box_t* gc_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
+#line 115 "stdlib/std/core/primitives.vader"
     t0 = std_core_Buffer_ByteAccess_intern_string_vt(l0, l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -229,34 +246,47 @@ static size_t std_core_write_int(vader_box_t l0, size_t l1, int64_t l2) {
     bool t0;
     int64_t t1, t2, t3, t4, t5, t6, t7, t10;
     int32_t t8, t9;
+#line 128 "stdlib/std/core/primitives.vader"
     if (l2 == INT64_C(0)) {
+#line 129 "stdlib/std/core/primitives.vader"
         l3 = (uint8_t) (int32_t) INT32_C(48);
         std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, l3);
+#line 130 "stdlib/std/core/primitives.vader"
         l4 = (size_t) (int64_t) INT64_C(1);
         return (size_t) (int64_t) (l1 + l4);
+#line 128 "stdlib/std/core/primitives.vader"
     }
+#line 132 "stdlib/std/core/primitives.vader"
     t0 = (l2 < INT64_C(0));
     l5 = t0;
+#line 133 "stdlib/std/core/primitives.vader"
     if ((l2 > INT64_C(0))) {
         t1 = -(l2);
         l2 = t1;
     } else {
     }
+#line 134 "stdlib/std/core/primitives.vader"
     l4 = (size_t) (int64_t) INT64_C(0);
+#line 135 "stdlib/std/core/primitives.vader"
     l6 = l2;
+#line 136 "stdlib/std/core/primitives.vader"
     {
         loop_35: {
             if (l6 != INT64_C(0)) {
+#line 137 "stdlib/std/core/primitives.vader"
                 l7 = (size_t) (int64_t) INT64_C(1);
                 t2 = (l4 + l7);
                 l4 = (size_t) (int64_t) t2;
+#line 138 "stdlib/std/core/primitives.vader"
                 t3 = vader_div_i64(l6, INT64_C(10));
                 l6 = t3;
+#line 136 "stdlib/std/core/primitives.vader"
                 goto loop_35;
             } else {
             }
         }
     }
+#line 140 "stdlib/std/core/primitives.vader"
     if (l5) {
         l8 = (size_t) (int64_t) INT64_C(1);
         t4 = (l4 + l8);
@@ -265,14 +295,18 @@ static size_t std_core_write_int(vader_box_t l0, size_t l1, int64_t l2) {
         l7 = l4;
     }
     l4 = l7;
+#line 141 "stdlib/std/core/primitives.vader"
     t5 = (l1 + l4);
     l7 = (size_t) (int64_t) t5;
+#line 142 "stdlib/std/core/primitives.vader"
     {
         loop_74: {
             if (l2 != INT64_C(0)) {
+#line 143 "stdlib/std/core/primitives.vader"
                 l8 = (size_t) (int64_t) INT64_C(1);
                 t6 = (l7 - l8);
                 l7 = (size_t) (int64_t) t6;
+#line 144 "stdlib/std/core/primitives.vader"
                 l3 = (uint8_t) (int32_t) INT32_C(48);
                 t7 = vader_mod_i64(l2, INT64_C(10));
                 t8 = ((int32_t) (int64_t) -(t7));
@@ -280,32 +314,40 @@ static size_t std_core_write_int(vader_box_t l0, size_t l1, int64_t l2) {
                 t9 = (l3 + l9);
                 l10 = (uint8_t) (int32_t) t9;
                 std_core_Buffer_ByteAccess_store_u8_vt(l0, l7, l10);
+#line 145 "stdlib/std/core/primitives.vader"
                 t10 = vader_div_i64(l2, INT64_C(10));
                 l2 = t10;
+#line 142 "stdlib/std/core/primitives.vader"
                 goto loop_74;
             } else {
             }
         }
     }
+#line 147 "stdlib/std/core/primitives.vader"
     if (l5) {
         l3 = (uint8_t) (int32_t) INT32_C(45);
         std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, l3);
     } else {
     }
+#line 148 "stdlib/std/core/primitives.vader"
     return (size_t) (int64_t) (l1 + l4);
 }
 
 static void std_io_println__string(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL };
     vader_gc_top = &gc_frame;
+#line 60 "stdlib/std/io/io.vader"
     vader_import_0(INT32_C(0), l0);
+#line 61 "stdlib/std/io/io.vader"
     vader_import_0(INT32_C(0), 2u);
+#line 59 "stdlib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
 
 static vader_box_t std_collections_MutableMap_Index_at__i32__Any(vader_box_t l0, int32_t l1) {
     vader_box_t t0;
+#line 269 "stdlib/std/collections/collections.vader"
     t0 = std_collections_std_collections_get__i32__Any(l0, l1);
     return t0;
 }
@@ -314,12 +356,14 @@ static void std_collections_MutableMap_IndexSet_set_at__i32__Any(vader_box_t l0,
     vader_box_t* gc_roots[2] = { &l0, &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
+#line 273 "stdlib/std/collections/collections.vader"
     std_collections_std_collections_put__i32__Any(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
 
 static size_t std_collections_slot_for(uint64_t l0, size_t l1) {
+#line 93 "stdlib/std/collections/collections.vader"
     return (size_t) (int64_t) (((int64_t) (uint64_t) l0) & l1);
 }
 
@@ -332,13 +376,16 @@ static void std_collections_std_collections_ensure_index__i32__Any(vader_box_t l
     vader_box_t* gc_roots[3] = { &l0, &l3, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
+#line 98 "stdlib/std/collections/collections.vader"
     t0 = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_index.payload.obj)->length;
     l1 = t0;
     l2 = (size_t) (int64_t) INT64_C(0);
     if (l1 == l2) {
+#line 99 "stdlib/std/collections/collections.vader"
         vader_array_t* _a0_arr = vader_array_new(14u, 0u, 7u, 1u);
         t1 = vader_box_obj(14u, _a0_arr);
         l3 = t1;
+#line 100 "stdlib/std/collections/collections.vader"
         l1 = (size_t) (int64_t) INT64_C(0);
         {
             loop_14: {
@@ -353,16 +400,20 @@ static void std_collections_std_collections_ensure_index__i32__Any(vader_box_t l
                 }
             }
         }
+#line 101 "stdlib/std/collections/collections.vader"
         ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_index = l3;
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj);
+#line 102 "stdlib/std/collections/collections.vader"
         l1 = (size_t) (int64_t) INT64_C(16);
         l2 = (size_t) (int64_t) INT64_C(1);
         t3 = (l1 - l2);
         l1 = (size_t) (int64_t) t3;
         ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_mask = l1;
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj);
+#line 98 "stdlib/std/collections/collections.vader"
     } else {
     }
+#line 97 "stdlib/std/collections/collections.vader"
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -378,9 +429,11 @@ static void std_collections_std_collections_rehash__i32__Any(vader_box_t l0, siz
     vader_box_t* gc_roots[3] = { &l0, &l2, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
+#line 110 "stdlib/std/collections/collections.vader"
     vader_array_t* _a0_arr = vader_array_new(14u, 0u, 7u, 1u);
     t0 = vader_box_obj(14u, _a0_arr);
     l2 = t0;
+#line 111 "stdlib/std/collections/collections.vader"
     l3 = (size_t) (int64_t) INT64_C(0);
     {
         loop_5: {
@@ -394,21 +447,27 @@ static void std_collections_std_collections_rehash__i32__Any(vader_box_t l0, siz
             }
         }
     }
+#line 112 "stdlib/std/collections/collections.vader"
     l3 = (size_t) (int64_t) INT64_C(1);
     t2 = (l1 - l3);
     l3 = (size_t) (int64_t) t2;
+#line 113 "stdlib/std/collections/collections.vader"
     l4 = (size_t) (int64_t) INT64_C(0);
     {
         loop_33: {
             t3 = (size_t) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_size;
             l5 = t3;
             if ((l4 < l5)) {
+#line 114 "stdlib/std/collections/collections.vader"
                 vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_ekeys.payload.obj);
                 while (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = (vader_array_buf_t*) _a1_slotarr->buf->header.forward; }
                 if ((size_t) l4 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 t4 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l4];
+#line 286 "stdlib/std/core/primitives.vader"
+#line 114 "stdlib/std/collections/collections.vader"
                 t5 = std_collections_slot_for((uint64_t) (int64_t) ((int64_t) (int32_t) t4), l3);
                 l6 = t5;
+#line 115 "stdlib/std/collections/collections.vader"
                 {
                     loop_49: {
                         vader_array_t* _a2_slotarr = ((vader_array_t*) l2.payload.obj);
@@ -425,6 +484,7 @@ static void std_collections_std_collections_rehash__i32__Any(vader_box_t l0, siz
                         }
                     }
                 }
+#line 116 "stdlib/std/collections/collections.vader"
                 l9 = (size_t) (int64_t) INT64_C(1);
                 t8 = ((int32_t) (int64_t) (l4 + l9));
                 l10 = t8;
@@ -432,6 +492,7 @@ static void std_collections_std_collections_rehash__i32__Any(vader_box_t l0, siz
                 while (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = (vader_array_buf_t*) _a3_slotarr->buf->header.forward; }
                 if ((size_t) l6 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
                 ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l6] = (int32_t) l10;
+#line 113 "stdlib/std/collections/collections.vader"
                 l11 = (size_t) (int64_t) INT64_C(1);
                 t9 = (l4 + l11);
                 l4 = (size_t) (int64_t) t9;
@@ -440,13 +501,17 @@ static void std_collections_std_collections_rehash__i32__Any(vader_box_t l0, siz
             }
         }
     }
+#line 118 "stdlib/std/collections/collections.vader"
     ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_index = l2;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj);
+#line 119 "stdlib/std/collections/collections.vader"
     ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_mask = l3;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj);
+#line 120 "stdlib/std/collections/collections.vader"
     l3 = (size_t) (int64_t) INT64_C(0);
     ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_tombs = l3;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj);
+#line 109 "stdlib/std/collections/collections.vader"
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -459,11 +524,13 @@ static void std_collections_std_collections_write_entry__i32__Any(vader_box_t l0
     vader_box_t* gc_roots[5] = { &l0, &l2, &l5, &t2, &t4 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 5u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
+#line 126 "stdlib/std/collections/collections.vader"
     t0 = (size_t) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_size;
     l3 = t0;
     t1 = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_ekeys.payload.obj)->length;
     l4 = t1;
     if ((l3 < l4)) {
+#line 127 "stdlib/std/collections/collections.vader"
         t2 = ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_ekeys;
         l5 = t2;
         t3 = (size_t) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_size;
@@ -472,6 +539,7 @@ static void std_collections_std_collections_write_entry__i32__Any(vader_box_t l0
         while (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = (vader_array_buf_t*) _a0_slotarr->buf->header.forward; }
         if ((size_t) l3 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
         ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l3] = (int32_t) l1;
+#line 128 "stdlib/std/collections/collections.vader"
         t4 = ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_evals;
         l5 = t4;
         t5 = (size_t) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_size;
@@ -481,10 +549,15 @@ static void std_collections_std_collections_write_entry__i32__Any(vader_box_t l0
         if ((size_t) l3 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
         vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l3] = l2;
         VADER_WRITE_BARRIER(_a1_slotarr->buf);
+#line 126 "stdlib/std/collections/collections.vader"
     } else {
+#line 130 "stdlib/std/collections/collections.vader"
         vader_array_push((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_ekeys.payload.obj, vader_box_i32(1u, l1));
+#line 131 "stdlib/std/collections/collections.vader"
         vader_array_push((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_evals.payload.obj, l2);
+#line 126 "stdlib/std/collections/collections.vader"
     }
+#line 125 "stdlib/std/collections/collections.vader"
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -502,7 +575,9 @@ static void std_collections_std_collections_put__i32__Any(vader_box_t l0, int32_
     vader_box_t* gc_roots[4] = { &l0, &l2, &l16, &t33 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
+#line 142 "stdlib/std/collections/collections.vader"
     std_collections_std_collections_ensure_index__i32__Any(l0);
+#line 146 "stdlib/std/collections/collections.vader"
     t0 = (size_t) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_size;
     l3 = t0;
     t1 = (size_t) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_tombs;
@@ -524,7 +599,9 @@ static void std_collections_std_collections_put__i32__Any(vader_box_t l0, int32_
     t7 = (l4 * l5);
     l4 = (size_t) (int64_t) t7;
     if ((l3 > l4)) {
+#line 147 "stdlib/std/collections/collections.vader"
         l3 = (size_t) (int64_t) INT64_C(16);
+#line 148 "stdlib/std/collections/collections.vader"
         {
             loop_46: {
                 t8 = (size_t) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_size;
@@ -547,17 +624,23 @@ static void std_collections_std_collections_put__i32__Any(vader_box_t l0, int32_
                 }
             }
         }
+#line 149 "stdlib/std/collections/collections.vader"
         std_collections_std_collections_rehash__i32__Any(l0, l3);
+#line 146 "stdlib/std/collections/collections.vader"
     } else {
     }
+#line 286 "stdlib/std/core/primitives.vader"
     t13 = ((int64_t) (int32_t) l1);
     l12 = (uint64_t) (int64_t) t13;
+#line 151 "stdlib/std/collections/collections.vader"
     t14 = (size_t) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_mask;
     l3 = t14;
     t15 = std_collections_slot_for(l12, l3);
     l3 = t15;
+#line 152 "stdlib/std/collections/collections.vader"
     t16 = -(INT64_C(1));
     l13 = t16;
+#line 153 "stdlib/std/collections/collections.vader"
     {
         loop_102: {
             vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_index.payload.obj);
@@ -566,17 +649,20 @@ static void std_collections_std_collections_put__i32__Any(vader_box_t l0, int32_
             t17 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l3];
             l14 = t17;
             if (l14 != INT32_C(0)) {
+#line 154 "stdlib/std/collections/collections.vader"
                 vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_index.payload.obj);
                 while (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = (vader_array_buf_t*) _a1_slotarr->buf->header.forward; }
                 if ((size_t) l3 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 t18 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l3];
                 l15 = t18;
                 if (l15 == INT32_C(-1)) {
+#line 155 "stdlib/std/collections/collections.vader"
                     if ((l13 < INT64_C(0))) {
                         t19 = ((int64_t) (size_t) l3);
                         l13 = t19;
                     } else {
                     }
+#line 160 "stdlib/std/collections/collections.vader"
                     l7 = (size_t) (int64_t) INT64_C(1);
                     t20 = (l3 + l7);
                     l8 = (size_t) (int64_t) t20;
@@ -584,8 +670,11 @@ static void std_collections_std_collections_put__i32__Any(vader_box_t l0, int32_
                     l9 = t21;
                     t22 = (l8 & l9);
                     l3 = (size_t) (int64_t) t22;
+#line 153 "stdlib/std/collections/collections.vader"
                     goto loop_102;
+#line 154 "stdlib/std/collections/collections.vader"
                 }
+#line 157 "stdlib/std/collections/collections.vader"
                 vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_index.payload.obj);
                 while (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = (vader_array_buf_t*) _a2_slotarr->buf->header.forward; }
                 if ((size_t) l3 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
@@ -595,6 +684,7 @@ static void std_collections_std_collections_put__i32__Any(vader_box_t l0, int32_
                 l5 = (size_t) (int64_t) INT64_C(1);
                 t25 = (l4 - l5);
                 l6 = (size_t) (int64_t) t25;
+#line 158 "stdlib/std/collections/collections.vader"
                 vader_array_t* _a3_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_ekeys.payload.obj);
                 while (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = (vader_array_buf_t*) _a3_slotarr->buf->header.forward; }
                 if ((size_t) l6 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
@@ -607,6 +697,7 @@ static void std_collections_std_collections_put__i32__Any(vader_box_t l0, int32_
                     VADER_WRITE_BARRIER(_a4_slotarr->buf);
                     { vader_gc_top = gc_frame.prev; return; }
                 }
+#line 160 "stdlib/std/collections/collections.vader"
                 l7 = (size_t) (int64_t) INT64_C(1);
                 t27 = (l3 + l7);
                 l8 = (size_t) (int64_t) t27;
@@ -614,11 +705,13 @@ static void std_collections_std_collections_put__i32__Any(vader_box_t l0, int32_
                 l9 = t28;
                 t29 = (l8 & l9);
                 l3 = (size_t) (int64_t) t29;
+#line 153 "stdlib/std/collections/collections.vader"
                 goto loop_102;
             } else {
             }
         }
     }
+#line 162 "stdlib/std/collections/collections.vader"
     if ((l13 >= INT64_C(0))) {
         t30 = l13;
         l4 = (size_t) (int64_t) t30;
@@ -626,6 +719,7 @@ static void std_collections_std_collections_put__i32__Any(vader_box_t l0, int32_
         l4 = l3;
     }
     l3 = l4;
+#line 163 "stdlib/std/collections/collections.vader"
     if ((l13 >= INT64_C(0))) {
         t31 = (size_t) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_tombs;
         l4 = t31;
@@ -636,7 +730,9 @@ static void std_collections_std_collections_put__i32__Any(vader_box_t l0, int32_
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj);
     } else {
     }
+#line 164 "stdlib/std/collections/collections.vader"
     std_collections_std_collections_write_entry__i32__Any(l0, l1, l2);
+#line 165 "stdlib/std/collections/collections.vader"
     t33 = ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_index;
     l16 = t33;
     t34 = (size_t) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_size;
@@ -648,6 +744,7 @@ static void std_collections_std_collections_put__i32__Any(vader_box_t l0, int32_
     while (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = (vader_array_buf_t*) _a5_slotarr->buf->header.forward; }
     if ((size_t) l3 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
     ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l3] = (int32_t) l14;
+#line 166 "stdlib/std/collections/collections.vader"
     t36 = (size_t) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_size;
     l3 = t36;
     l4 = (size_t) (int64_t) INT64_C(1);
@@ -655,6 +752,7 @@ static void std_collections_std_collections_put__i32__Any(vader_box_t l0, int32_
     l3 = (size_t) (int64_t) t37;
     ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_size = l3;
     VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj);
+#line 141 "stdlib/std/collections/collections.vader"
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -668,6 +766,7 @@ static vader_box_t std_collections_std_collections_get__i32__Any(vader_box_t l0,
     int64_t t2, t8, t9, t12, t14, t15, t17;
     int32_t t5, t6, t7, t10;
     vader_box_t t11;
+#line 187 "stdlib/std/collections/collections.vader"
     t0 = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_index.payload.obj)->length;
     l2 = t0;
     l3 = (size_t) (int64_t) INT64_C(0);
@@ -675,12 +774,15 @@ static vader_box_t std_collections_std_collections_get__i32__Any(vader_box_t l0,
         t1 = vader_box_obj(0u, NULL);
         return t1;
     }
+#line 286 "stdlib/std/core/primitives.vader"
     t2 = ((int64_t) (int32_t) l1);
     l4 = (uint64_t) (int64_t) t2;
+#line 188 "stdlib/std/collections/collections.vader"
     t3 = (size_t) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_mask;
     l2 = t3;
     t4 = std_collections_slot_for(l4, l2);
     l2 = t4;
+#line 189 "stdlib/std/collections/collections.vader"
     {
         loop_24: {
             vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_index.payload.obj);
@@ -689,12 +791,14 @@ static vader_box_t std_collections_std_collections_get__i32__Any(vader_box_t l0,
             t5 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l2];
             l5 = t5;
             if (l5 != INT32_C(0)) {
+#line 190 "stdlib/std/collections/collections.vader"
                 vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_index.payload.obj);
                 while (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = (vader_array_buf_t*) _a1_slotarr->buf->header.forward; }
                 if ((size_t) l2 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 t6 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l2];
                 l6 = t6;
                 if (l6 != INT32_C(-1)) {
+#line 191 "stdlib/std/collections/collections.vader"
                     vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_index.payload.obj);
                     while (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = (vader_array_buf_t*) _a2_slotarr->buf->header.forward; }
                     if ((size_t) l2 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
@@ -704,6 +808,7 @@ static vader_box_t std_collections_std_collections_get__i32__Any(vader_box_t l0,
                     l7 = (size_t) (int64_t) INT64_C(1);
                     t9 = (l3 - l7);
                     l8 = (size_t) (int64_t) t9;
+#line 192 "stdlib/std/collections/collections.vader"
                     vader_array_t* _a3_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_ekeys.payload.obj);
                     while (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = (vader_array_buf_t*) _a3_slotarr->buf->header.forward; }
                     if ((size_t) l8 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
@@ -715,6 +820,7 @@ static vader_box_t std_collections_std_collections_get__i32__Any(vader_box_t l0,
                         t11 = vader_array_box_slots(_a4_slotarr->buf)[_a4_slotarr->offset + (size_t) l8];
                         return t11;
                     }
+#line 194 "stdlib/std/collections/collections.vader"
                     l9 = (size_t) (int64_t) INT64_C(1);
                     t12 = (l2 + l9);
                     l10 = (size_t) (int64_t) t12;
@@ -722,8 +828,11 @@ static vader_box_t std_collections_std_collections_get__i32__Any(vader_box_t l0,
                     l11 = t13;
                     t14 = (l10 & l11);
                     l2 = (size_t) (int64_t) t14;
+#line 189 "stdlib/std/collections/collections.vader"
                     goto loop_24;
+#line 190 "stdlib/std/collections/collections.vader"
                 }
+#line 194 "stdlib/std/collections/collections.vader"
                 l9 = (size_t) (int64_t) INT64_C(1);
                 t15 = (l2 + l9);
                 l10 = (size_t) (int64_t) t15;
@@ -731,11 +840,13 @@ static vader_box_t std_collections_std_collections_get__i32__Any(vader_box_t l0,
                 l11 = t16;
                 t17 = (l10 & l11);
                 l2 = (size_t) (int64_t) t17;
+#line 189 "stdlib/std/collections/collections.vader"
                 goto loop_24;
             } else {
             }
         }
     }
+#line 196 "stdlib/std/collections/collections.vader"
     t18 = vader_box_obj(0u, NULL);
     return t18;
 }
@@ -747,16 +858,20 @@ static vader_box_t snippet_lib_pick(vader_box_t l0, int32_t l1) {
     vader_box_t* gc_roots[7] = { &l0, &l2, &t0, &t1, &t2, &t3, &t5 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 7u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
+#line 14 "tests/snippets/narrow_imported_map/lib/lib.vader"
     t0 = std_collections_MutableMap_Index_at__i32__Any(l0, l1);
     l2 = t0;
+#line 15 "tests/snippets/narrow_imported_map/lib/lib.vader"
     if (l2.tag == 0u) {
         t1 = vader_box_obj(0u, NULL);
         { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
+#line 16 "tests/snippets/narrow_imported_map/lib/lib.vader"
     if (!(l2.tag == 18u)) {
         t2 = vader_box_obj(0u, NULL);
         { vader_box_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
     }
+#line 17 "tests/snippets/narrow_imported_map/lib/lib.vader"
     t3 = ((vader_struct_snippet_lib_Wrap_t*) l2.payload.obj)->f_items;
     l2 = t3;
     vader_array_t* _a0_slotarr = ((vader_array_t*) l2.payload.obj);

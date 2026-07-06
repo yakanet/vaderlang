@@ -38,25 +38,36 @@ const size_t                vader_vtable_count    = 0;
 static int32_t snippet_main(void) {
     int32_t l0, l1;
     int32_t t0, t1, t2;
+#line 13 "tests/snippets/scalar_control/_main.vader"
     l0 = INT32_C(0);
+#line 14 "tests/snippets/scalar_control/_main.vader"
     l1 = INT32_C(0);
+#line 15 "tests/snippets/scalar_control/_main.vader"
     {
         loop_5: {
             if ((l1 < INT32_C(10))) {
+#line 16 "tests/snippets/scalar_control/_main.vader"
                 if (l1 == INT32_C(3)) {
+#line 17 "tests/snippets/scalar_control/_main.vader"
                     t0 = (l0 + INT32_C(100));
                     l0 = t0;
+#line 16 "tests/snippets/scalar_control/_main.vader"
                 } else {
+#line 19 "tests/snippets/scalar_control/_main.vader"
                     t1 = (l0 + l1);
                     l0 = t1;
+#line 16 "tests/snippets/scalar_control/_main.vader"
                 }
+#line 21 "tests/snippets/scalar_control/_main.vader"
                 t2 = (l1 + INT32_C(1));
                 l1 = t2;
+#line 15 "tests/snippets/scalar_control/_main.vader"
                 goto loop_5;
             } else {
             }
         }
     }
+#line 23 "tests/snippets/scalar_control/_main.vader"
     return l0;
 }
 

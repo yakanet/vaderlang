@@ -127,7 +127,7 @@ once the self-hosted compiler is the source of truth.
 │ vader/bootstrap/bootstrap.vader  (build-only entrypoint, seed source)
 └────────────┬─────────────────┘
              │
-             ▼  vader build --target=c --out=- | gzip -9   (cmd_build wired)
+             ▼  vader build --release --target=c --out=- | gzip -9   (cmd_build wired)
 ┌──────────────────────────────┐
 │ bootstrap/bootstrap.c.gz  (committed seed, ~790 KB)
 └────────────┬─────────────────┘
@@ -399,8 +399,12 @@ VADER="${VADER:-$(command -v vader || echo ./build/vader)}"
 
 # Emit the seed source (build-only entrypoint) to C, then gzip it.
 # `cmd_build --target=c` must be wired — see the Blocking prerequisite.
+# --release keeps `#line` out of the seed (c-emit gates them on !release) — the
+# seed is a bootstrap artifact and a populated debug table would otherwise bloat
+# it with tens of thousands of `#line` lines. For --target=c, --release only
+# drops `#line`.
 mkdir -p build
-"$VADER" build vader/bootstrap/bootstrap.vader --target=c --out=build/bootstrap.c
+"$VADER" build vader/bootstrap/bootstrap.vader --release --target=c --out=build/bootstrap.c
 gzip -9 -c build/bootstrap.c > bootstrap/bootstrap.c.gz
 
 cat > bootstrap/VERSION <<EOF

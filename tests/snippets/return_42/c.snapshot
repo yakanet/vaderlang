@@ -36,6 +36,7 @@ const vader_vtable_t* const vader_vtable_table[1] = { NULL };
 const size_t                vader_vtable_count    = 0;
 
 static int32_t snippet_main(void) {
+#line 8 "tests/snippets/return_42/_main.vader"
     return INT32_C(42);
 }
 

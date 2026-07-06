@@ -68,6 +68,7 @@ static int32_t snippet_apply(vader_box_t l0, int32_t l1) {
     vader_box_t* gc_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
+#line 4 "tests/snippets/closure_callback/_main.vader"
     vader_fn_t* _a0_fnobj = (vader_fn_t*) l0.payload.obj;
     t0 = ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(2u, l1));
     t1 = ((int32_t) t0.payload.i);
@@ -82,10 +83,12 @@ static int32_t snippet_main(void) {
     vader_box_t* gc_roots[4] = { &l0, &t0, &t1, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
+#line 8 "tests/snippets/closure_callback/_main.vader"
     vader_struct__Cell_i32_t* _a0_obj = (vader_struct__Cell_i32_t*) vader_gc_alloc(sizeof(vader_struct__Cell_i32_t));
     vader_obj_header_init(_a0_obj, 5u);
     _a0_obj->f_value = INT32_C(100);
     t0 = vader_box_obj(5u, _a0_obj);
+#line 9 "tests/snippets/closure_callback/_main.vader"
     vader_struct___lambda_env_2_t* _a1_obj = (vader_struct___lambda_env_2_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_2_t));
     vader_obj_header_init(_a1_obj, 3u);
     _a1_obj->f_cap_0 = t0;
@@ -96,6 +99,7 @@ static int32_t snippet_main(void) {
     _a2_closure->env = t1.payload.obj;
     t2 = vader_box_obj(1u, _a2_closure);
     l0 = t2;
+#line 12 "tests/snippets/closure_callback/_main.vader"
     t3 = snippet_apply(l0, INT32_C(23));
     { int32_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -104,6 +108,7 @@ static int32_t snippet_main(void) {
 static int32_t __lambda_1(vader_box_t l0, int32_t l1) {
     int32_t l2;
     int32_t t0;
+#line 10 "tests/snippets/closure_callback/_main.vader"
     t0 = ((vader_struct__Cell_i32_t*) ((vader_struct___lambda_env_2_t*) l0.payload.obj)->f_cap_0.payload.obj)->f_value;
     l2 = t0;
     return (l1 + l2);

@@ -21,7 +21,14 @@ fi
 VADER="${VADER:-$(command -v vader || echo ./build/vader)}"
 
 mkdir -p build
-"$VADER" build vader/bootstrap/bootstrap.vader --target=c --out=build/bootstrap.c
+# --release keeps `#line` directives OUT of the seed (c-emit gates them on
+# !release). The seed is a bootstrap artifact — stage0 is a throwaway -O0
+# binary, so source line info in it is useless, while a populated debug table
+# (Phase 0 of the DAP debugger) would otherwise bloat the committed seed with
+# tens of thousands of `#line` lines and churn its diff on every source edit.
+# For --target=c, --release ONLY drops `#line` (the bytecode optimiser is always
+# on), so the seed content is otherwise identical to a debug build.
+"$VADER" build vader/bootstrap/bootstrap.vader --release --target=c --out=build/bootstrap.c
 gzip -9 -c build/bootstrap.c > bootstrap/bootstrap.c.gz
 
 cat > bootstrap/VERSION <<META

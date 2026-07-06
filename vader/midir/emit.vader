@@ -23,7 +23,7 @@ module "vader/midir"
 
 import "std/collections" { MutableMap, MutableSet, remove }
 import "std/abort" { panic }
-import "vader/diagnostics" { Span }
+import "vader/diagnostics" { Span, has_source_position }
 import "vader/types" { Type, PrimitiveType, ArrayType, mk_struct, display_type }
 import "vader/lower" { VtableEntry as LoweredVtableEntry }
 import "vader/bytecode" {
@@ -334,7 +334,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
                 if idx_opt is i32 as i { fn_idx = i }
             }
             if fn_idx >= 0 {
-                emit_cfg_function_body(cfg_fn, fn_idx, ctx, string_index_map)
+                emit_cfg_function_body(cfg_fn, fn_idx, ctx, string_index_map, opts.want_debug)
             }
         }
     }
@@ -362,7 +362,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // post-propagate and over-folds.
             phr :: run_bc_peephole(ctx.functions[i])
             f :: ctx.functions[i]
-            ctx.functions[i] = BcFunction { .name = f.name, .is_main = f.is_main, .signature = f.signature, .locals = f.locals, .body = phr.body, .debug = f.debug, .jump_table = phr.jump_table }
+            ctx.functions[i] = BcFunction { .name = f.name, .is_main = f.is_main, .signature = f.signature, .locals = f.locals, .body = phr.body, .debug = phr.debug, .jump_table = phr.jump_table }
             // Iterate propagate to fixpoint : inlining slot N's const may
             // expose slot M (whose set was preceded by `LocalGet N`, now
             // an inlined const) as the next propagateable slot.
@@ -378,7 +378,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // `const ; const ; mul`) collapse.
             cfa :: run_bc_const_fold_arith(ctx.functions[i])
             cf :: ctx.functions[i]
-            ctx.functions[i] = BcFunction { .name = cf.name, .is_main = cf.is_main, .signature = cf.signature, .locals = cf.locals, .body = cfa.body, .debug = cf.debug, .jump_table = cfa.jump_table }
+            ctx.functions[i] = BcFunction { .name = cf.name, .is_main = cf.is_main, .signature = cf.signature, .locals = cf.locals, .body = cfa.body, .debug = cfa.debug, .jump_table = cfa.jump_table }
             ctx.functions[i] = drop_dead_stores(ctx.functions[i])
             // Second-pass : ONLY the Rule 5 (`<Const> ; Return` → ReturnLit)
             // fold. drop_dead_stores opens new const-before-return windows
@@ -387,7 +387,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // slot-renumbering made adjacent, over-folding.
             rlf :: run_bc_return_lit_fold(ctx.functions[i])
             g :: ctx.functions[i]
-            ctx.functions[i] = BcFunction { .name = g.name, .is_main = g.is_main, .signature = g.signature, .locals = g.locals, .body = rlf.body, .debug = g.debug, .jump_table = rlf.jump_table }
+            ctx.functions[i] = BcFunction { .name = g.name, .is_main = g.is_main, .signature = g.signature, .locals = g.locals, .body = rlf.body, .debug = rlf.debug, .jump_table = rlf.jump_table }
             // Final pass — same-ValType non-overlapping live ranges
             // coalesce onto shared physical slots. Runs LAST so the
             // peephole / propagate / DCE passes see the original slot
@@ -558,6 +558,11 @@ FnEmitCfg :: struct {
     pending: PendingBranch[]
     wrapped_loop_headers: MutableSet<i32>
     hints: ScheduleHints
+    /// When false, the two push helpers store `null` in `slot.debug` instead
+    /// of building a `DebugPos` per op — see `EmitOptions.want_debug`. Only
+    /// the non-release c-emit consumes the table, so the VM / comptime /
+    /// self-compile-release path leaves it off and skips the per-op alloc.
+    want_debug: bool
 }
 /// Arg/result type pins for this function's calls — the SAME array that's
 /// stored under this fn's index in `project.pinned_types_by_fn`, cached
@@ -581,7 +586,7 @@ intern_data_value_strings :: fn(v: BcDataValue, ctx: EmitterCtx) -> void {
 /// pair when an instruction's single-use result flows directly to the
 /// next consumer.
 
-emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx, string_index_map: i32[]) -> void {
+emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx, string_index_map: i32[], want_debug: bool) -> void {
     slot :: ctx.functions[usize(fn_idx)]
     // Open this function's per-call type-pin bucket (see `pinned_types_by_fn`) ;
     // the same array is cached on `fn_ctx.pinned_types_bucket` below so the
@@ -609,7 +614,7 @@ emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx, 
     ipostdom :: compute_post_dominators(cfg_fn)
     loop_exit :: find_loop_exits(cfg_fn, preds, idom)
     hints :: schedule_stack(cfg_fn)
-    fn_ctx :: FnEmitCfg { .fn_ = cfg_fn, .pinned_types_bucket = pins_bucket, .slot = slot, .project = ctx, .string_index_map = string_index_map, .local_to_slot = local_to_slot, .preds = preds, .idom = idom, .ipostdom = ipostdom, .loop_exit = loop_exit, .scopes = [], .pending = [], .wrapped_loop_headers = MutableSet<i32> {}, .hints = hints }
+    fn_ctx :: FnEmitCfg { .fn_ = cfg_fn, .pinned_types_bucket = pins_bucket, .slot = slot, .project = ctx, .string_index_map = string_index_map, .local_to_slot = local_to_slot, .preds = preds, .idom = idom, .ipostdom = ipostdom, .loop_exit = loop_exit, .scopes = [], .pending = [], .wrapped_loop_headers = MutableSet<i32> {}, .hints = hints, .want_debug = want_debug }
     emit_range(fn_ctx, cfg_fn.entry, BlockId(-1))
 }
 
@@ -718,10 +723,25 @@ drain_pending :: fn(ctx: FnEmitCfg, target_blk: BlockId, is_loop: bool, opener_p
     ctx.pending = kept
 }
 
+/// Build a per-op source position from a lowered node's span. Returns
+/// `null` for any compiler-minted span with no real source origin
+/// (`has_source_position` : `<synthetic>` / `<materialized>` / blank file /
+/// non-positive line) — defer thunks, closure env, generator state machines,
+/// materialised trait bodies. The c-emit then skips a bogus `#line` and the
+/// VM debug hook treats them as non-stop points (the enclosing real line
+/// stays in effect via the previous op's position).
+///
+/// @param span  the lowered node's source span.
+/// @return      a 1-based `DebugPos`, or `null` for non-source spans.
+debug_pos_of_span :: fn(span: Span) -> DebugPos | null {
+    if !has_source_position(span) { return null }
+    return DebugPos { .file = span.start.file, .line = span.start.line, .column = span.start.column }
+}
+
 push_op_with_span :: fn(ctx: FnEmitCfg, op: Op, span: Span) -> i32 {
     pc :: i32(ctx.slot.body.len())
     ctx.slot.body.push(op)
-    ctx.slot.debug.push(null)
+    ctx.slot.debug.push(if ctx.want_debug { debug_pos_of_span(span) } else { null })
     ctx.slot.jump_table.push(-1)
     return pc
 }
@@ -1455,7 +1475,7 @@ emit_set :: fn(ctx: FnEmitCfg, local_id: LocalId, span: Span) -> void {
 
 push_emit :: fn(ctx: FnEmitCfg, op: Op, span: Span) -> void {
     ctx.slot.body.push(op)
-    ctx.slot.debug.push(null)
+    ctx.slot.debug.push(if ctx.want_debug { debug_pos_of_span(span) } else { null })
     // jump_table[pc] = -1 for non-branch ops (consumed only by the
     // br/br_if/block/loop/if/else/end paths via cf_*). Keep the array
     // parallel to body so per-pc lookups stay bounds-safe.

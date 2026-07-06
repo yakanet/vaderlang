@@ -67,7 +67,8 @@ export run_bc_return_lit_fold :: fn(function: BcFunction) -> BcPeepholeOut {
     }
     new_body :: out[0..<out_len]
     new_jt :: remap_jump_table(function.jump_table, old_to_new, out_len)
-    return BcPeepholeOut { .body = new_body, .jump_table = new_jt }
+    new_debug :: remap_debug(function.debug, old_to_new, out_len)
+    return BcPeepholeOut { .body = new_body, .jump_table = new_jt, .debug = new_debug }
 }
 
 /// Remap a jump_table from old PC space to new PC space using a
@@ -102,11 +103,44 @@ remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) -> i32[
     return new_jt
 }
 
-/// Result of a body-rewriting peephole : new body + new jump_table
-/// remapped from the old one through the pass's `old_to_new` map.
+/// Result of a body-rewriting peephole : new body + new jump_table +
+/// new debug table, all remapped from the old ones through the pass's
+/// `old_to_new` map. `debug` stays lock-step parallel to `body` so the
+/// c-emit's per-op `#line` walk and the VM debug hook read the right
+/// source position after the rewrite.
 export BcPeepholeOut :: struct {
     body:       Op[]
     jump_table: i32[]
+    debug:      (DebugPos | null)[]
+}
+
+/// Remap a debug table from old PC space to new PC space, parallel to
+/// `remap_jump_table` but simpler : each surviving op copies its own
+/// source position. `old_to_new[old_pc]` is the new PC (or `< 0` when
+/// the op was dropped / folded away). When several old PCs fold onto one
+/// new PC, the first NON-NULL source among them wins — the folded op
+/// keeps its head's real position rather than a synthetic `null`. New
+/// slots with no surviving source stay `null`.
+///
+/// @param old_debug   the pre-rewrite debug table (parallel to old body).
+/// @param old_to_new  per-old-PC new PC, `< 0` for removed ops.
+/// @param new_len     length of the rewritten body.
+/// @return            a fresh debug table of length `new_len`.
+remap_debug :: fn(old_debug: (DebugPos | null)[], old_to_new: i32[], new_len: usize) -> (DebugPos | null)[] {
+    // `old_debug` and `old_to_new` are always parallel to the old body (both
+    // grown one entry per op), so a plain walk over `old_debug` is safe.
+    new_debug: (DebugPos | null)[] = [null] * new_len
+    for i in 0..<old_debug.len() {
+        np :: old_to_new[i]
+        if np < 0 { continue }
+        dst :: usize(np)
+        // First non-null wins : only fill while the slot is still empty, so a
+        // real position isn't clobbered by a later fold onto the same new pc.
+        if dst < new_len && new_debug[dst] == null {
+            new_debug[dst] = old_debug[i]
+        }
+    }
+    return new_debug
 }
 
 /// Const-fold the `<const> ; <const> ; <op>` peephole. Folds
@@ -142,7 +176,8 @@ export run_bc_const_fold_arith :: fn(function: BcFunction) -> BcPeepholeOut {
     }
     new_body :: out[0..<out_len]
     new_jt :: remap_jump_table(function.jump_table, old_to_new, out_len)
-    return BcPeepholeOut { .body = new_body, .jump_table = new_jt }
+    new_debug :: remap_debug(function.debug, old_to_new, out_len)
+    return BcPeepholeOut { .body = new_body, .jump_table = new_jt, .debug = new_debug }
 }
 
 try_fold_arith :: fn(op: Op, out: Op[], out_len: usize) -> Op | null {
@@ -309,7 +344,8 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
     }
     new_body :: out[0..<out_len]
     new_jt :: remap_jump_table(function.jump_table, old_to_new, out_len)
-    return BcPeepholeOut { .body = new_body, .jump_table = new_jt }
+    new_debug :: remap_debug(function.debug, old_to_new, out_len)
+    return BcPeepholeOut { .body = new_body, .jump_table = new_jt, .debug = new_debug }
 }
 
 /// Append `value` when the cursor is at the end ; overwrite in place
@@ -564,6 +600,7 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
         pc = pc + 1
     }
     new_jt :: remap_jump_table(function.jump_table, old_to_new_pc, out.len())
+    new_debug :: remap_debug(function.debug, old_to_new_pc, out.len())
     // Compact the locals list. Param slots aren't in `function.locals`
     // (they live in `signature.params`), so we only filter the per-fn
     // locals tail.
@@ -574,7 +611,7 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
     return BcFunction {
         .name = function.name, .is_main = function.is_main,
         .signature = function.signature, .locals = new_locals,
-        .body = out, .debug = function.debug, .jump_table = new_jt,
+        .body = out, .debug = new_debug, .jump_table = new_jt,
     }
 }
 
@@ -655,5 +692,57 @@ import "std/testing" { assert_eq }
 @test test_convert_target_of_bool_returns_null :: fn() -> void {
     target :: convert_target_of(ValType.Bool)
     assert_eq(target is null, true)
+}
+
+@test test_remap_debug_identity_preserves_positions :: fn() -> void {
+    old_debug: (DebugPos | null)[] = []
+    old_debug.push(DebugPos { .file = "f", .line = 1, .column = 1 })
+    old_debug.push(DebugPos { .file = "f", .line = 2, .column = 1 })
+    old_to_new: i32[] = []
+    old_to_new.push(0)
+    old_to_new.push(1)
+    out :: remap_debug(old_debug, old_to_new, 2)
+    assert_eq(out.len(), 2)
+    if out[0] is DebugPos as d0 { assert_eq(d0.line, 1) } else { assert_eq("out[0] unexpectedly null", "") }
+    if out[1] is DebugPos as d1 { assert_eq(d1.line, 2) } else { assert_eq("out[1] unexpectedly null", "") }
+}
+
+@test test_remap_debug_fold_keeps_first_nonnull :: fn() -> void {
+    // Two old ops fold onto the same new pc ; the head's real position wins.
+    old_debug: (DebugPos | null)[] = []
+    old_debug.push(DebugPos { .file = "f", .line = 10, .column = 1 })
+    old_debug.push(DebugPos { .file = "f", .line = 20, .column = 1 })
+    old_to_new: i32[] = []
+    old_to_new.push(0)
+    old_to_new.push(0)
+    out :: remap_debug(old_debug, old_to_new, 1)
+    assert_eq(out.len(), 1)
+    if out[0] is DebugPos as d { assert_eq(d.line, 10) } else { assert_eq("out[0] unexpectedly null", "") }
+}
+
+@test test_remap_debug_null_head_yields_to_real :: fn() -> void {
+    // A synthetic (null) head must not shadow a later real position on the
+    // same folded slot — first NON-NULL wins.
+    synthetic: DebugPos | null = null
+    old_debug: (DebugPos | null)[] = []
+    old_debug.push(synthetic)
+    old_debug.push(DebugPos { .file = "f", .line = 42, .column = 1 })
+    old_to_new: i32[] = []
+    old_to_new.push(0)
+    old_to_new.push(0)
+    out :: remap_debug(old_debug, old_to_new, 1)
+    if out[0] is DebugPos as d { assert_eq(d.line, 42) } else { assert_eq("out[0] unexpectedly null", "") }
+}
+
+@test test_remap_debug_drops_removed_ops :: fn() -> void {
+    old_debug: (DebugPos | null)[] = []
+    old_debug.push(DebugPos { .file = "f", .line = 5, .column = 1 })
+    old_debug.push(DebugPos { .file = "f", .line = 6, .column = 1 })
+    old_to_new: i32[] = []
+    old_to_new.push(-1)   // dropped
+    old_to_new.push(0)
+    out :: remap_debug(old_debug, old_to_new, 1)
+    assert_eq(out.len(), 1)
+    if out[0] is DebugPos as d { assert_eq(d.line, 6) } else { assert_eq("out[0] unexpectedly null", "") }
 }
 
