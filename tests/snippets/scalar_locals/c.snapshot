@@ -110,13 +110,9 @@ static int32_t snippet_tee_reuse(int32_t l0) {
 }
 
 static int32_t snippet_fold_chain(int32_t l0, int32_t l1) {
-    int32_t l2;
-    int32_t t0;
 #line 17 "tests/snippets/scalar_locals/_main.vader"
-    t0 = (l0 + l1);
-    l2 = t0;
 #line 18 "tests/snippets/scalar_locals/_main.vader"
-    return ((l2 * INT32_C(2)) - l0);
+    return (((l0 + l1) * INT32_C(2)) - l0);
 }
 
 static bool std_core_Range_Contains_contains__i32(vader_box_t l0, int32_t l1) {
@@ -128,9 +124,8 @@ static bool std_core_Range_Contains_contains__i32(vader_box_t l0, int32_t l1) {
     l2 = t0;
 #line 324626 "<clone>:stdlib/std/core/primitives.vader"
     t1 = std_core_i32_Comparable_compare(l1, l2);
-    l2 = t1;
 #line 270 "stdlib/std/core/core.vader"
-    if ((l2 < INT32_C(0))) {
+    if ((t1 < INT32_C(0))) {
         return false;
     }
 #line 271 "stdlib/std/core/core.vader"
@@ -140,18 +135,16 @@ static bool std_core_Range_Contains_contains__i32(vader_box_t l0, int32_t l1) {
         l2 = t3;
 #line 324626 "<clone>:stdlib/std/core/primitives.vader"
         t4 = std_core_i32_Comparable_compare(l1, l2);
-        l2 = t4;
 #line 271 "stdlib/std/core/core.vader"
-        return (l2 <= INT32_C(0));
+        return (t4 <= INT32_C(0));
     }
 #line 272 "stdlib/std/core/core.vader"
     t5 = (int32_t) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_end;
     l2 = t5;
 #line 324626 "<clone>:stdlib/std/core/primitives.vader"
     t6 = std_core_i32_Comparable_compare(l1, l2);
-    l2 = t6;
 #line 272 "stdlib/std/core/core.vader"
-    return (l2 < INT32_C(0));
+    return (t6 < INT32_C(0));
 }
 
 static vader_box_t std_core_Range_Iterator_next__i32(vader_box_t l0) {
@@ -172,8 +165,7 @@ static vader_box_t std_core_Range_Iterator_next__i32(vader_box_t l0) {
         l3 = t2;
 #line 324626 "<clone>:stdlib/std/core/primitives.vader"
         t3 = std_core_i32_Comparable_compare(l2, l3);
-        l2 = t3;
-        t4 = (l2 > INT32_C(0));
+        t4 = (t3 > INT32_C(0));
         l1 = t4;
 #line 278 "stdlib/std/core/core.vader"
     } else {
@@ -184,8 +176,7 @@ static vader_box_t std_core_Range_Iterator_next__i32(vader_box_t l0) {
         l3 = t6;
 #line 324626 "<clone>:stdlib/std/core/primitives.vader"
         t7 = std_core_i32_Comparable_compare(l2, l3);
-        l2 = t7;
-        t8 = (l2 >= INT32_C(0));
+        t8 = (t7 >= INT32_C(0));
         l1 = t8;
 #line 278 "stdlib/std/core/core.vader"
     }
@@ -199,9 +190,8 @@ static vader_box_t std_core_Range_Iterator_next__i32(vader_box_t l0) {
     l2 = t10;
 #line 282 "stdlib/std/core/core.vader"
     t11 = (int32_t) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_cursor;
-    l3 = t11;
 #line 335 "stdlib/std/core/primitives.vader"
-    t12 = (l3 + INT32_C(1));
+    t12 = (t11 + INT32_C(1));
     l3 = t12;
 #line 282 "stdlib/std/core/core.vader"
     ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_cursor = l3;
@@ -312,7 +302,6 @@ static vader_box_t std_core_Range_Iterator_last__i32(vader_box_t l0) {
 
 static bool std_core_Range_Contains_contains__usize(vader_box_t l0, size_t l1) {
     size_t l2;
-    int32_t l3;
     size_t t0, t3, t5;
     int32_t t1, t4, t6;
     bool t2;
@@ -321,9 +310,8 @@ static bool std_core_Range_Contains_contains__usize(vader_box_t l0, size_t l1) {
     l2 = t0;
 #line 331794 "<clone>:stdlib/std/core/primitives.vader"
     t1 = std_core_usize_Comparable_compare(l1, l2);
-    l3 = t1;
 #line 270 "stdlib/std/core/core.vader"
-    if ((l3 < INT32_C(0))) {
+    if ((t1 < INT32_C(0))) {
         return false;
     }
 #line 271 "stdlib/std/core/core.vader"
@@ -333,24 +321,21 @@ static bool std_core_Range_Contains_contains__usize(vader_box_t l0, size_t l1) {
         l2 = t3;
 #line 331794 "<clone>:stdlib/std/core/primitives.vader"
         t4 = std_core_usize_Comparable_compare(l1, l2);
-        l3 = t4;
 #line 271 "stdlib/std/core/core.vader"
-        return (l3 <= INT32_C(0));
+        return (t4 <= INT32_C(0));
     }
 #line 272 "stdlib/std/core/core.vader"
     t5 = (size_t) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_end;
     l2 = t5;
 #line 331794 "<clone>:stdlib/std/core/primitives.vader"
     t6 = std_core_usize_Comparable_compare(l1, l2);
-    l3 = t6;
 #line 272 "stdlib/std/core/core.vader"
-    return (l3 < INT32_C(0));
+    return (t6 < INT32_C(0));
 }
 
 static vader_box_t std_core_Range_Iterator_next__usize(vader_box_t l0) {
     bool l1;
     size_t l2, l3;
-    int32_t l4;
     bool t0, t4, t8;
     size_t t1, t2, t5, t6, t10, t11;
     int32_t t3, t7;
@@ -368,8 +353,7 @@ static vader_box_t std_core_Range_Iterator_next__usize(vader_box_t l0) {
         l3 = t2;
 #line 331794 "<clone>:stdlib/std/core/primitives.vader"
         t3 = std_core_usize_Comparable_compare(l2, l3);
-        l4 = t3;
-        t4 = (l4 > INT32_C(0));
+        t4 = (t3 > INT32_C(0));
         l1 = t4;
 #line 278 "stdlib/std/core/core.vader"
     } else {
@@ -380,8 +364,7 @@ static vader_box_t std_core_Range_Iterator_next__usize(vader_box_t l0) {
         l3 = t6;
 #line 331794 "<clone>:stdlib/std/core/primitives.vader"
         t7 = std_core_usize_Comparable_compare(l2, l3);
-        l4 = t7;
-        t8 = (l4 >= INT32_C(0));
+        t8 = (t7 >= INT32_C(0));
         l1 = t8;
 #line 278 "stdlib/std/core/core.vader"
     }
@@ -395,9 +378,8 @@ static vader_box_t std_core_Range_Iterator_next__usize(vader_box_t l0) {
     l2 = t10;
 #line 282 "stdlib/std/core/core.vader"
     t11 = (size_t) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_cursor;
-    l3 = t11;
 #line 342 "stdlib/std/core/primitives.vader"
-    t12 = (l3 + INT64_C(1));
+    t12 = (t11 + INT64_C(1));
     l3 = (size_t) (int64_t) t12;
 #line 282 "stdlib/std/core/core.vader"
     ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_cursor = l3;
@@ -545,7 +527,6 @@ static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1) {
 
 static bool std_core_i32_Comparable_lt(int32_t l0, int32_t l1) {
     bool l2, l3;
-    int32_t l4;
     bool t0, t1, t3, t4;
     int32_t t2, t5;
 #line 317 "stdlib/std/core/primitives.vader"
@@ -554,23 +535,20 @@ static bool std_core_i32_Comparable_lt(int32_t l0, int32_t l1) {
     t1 = (l0 > l1);
     l3 = t1;
     t2 = std_core_three_way(l2, l3);
-    l4 = t2;
 #line 324626 "<clone>:stdlib/std/core/primitives.vader"
-    return (l4 < INT32_C(0));
+    return (t2 < INT32_C(0));
 #line 317 "stdlib/std/core/primitives.vader"
     t3 = (l0 < l1);
     l2 = t3;
     t4 = (l0 > l1);
     l3 = t4;
     t5 = std_core_three_way(l2, l3);
-    l4 = t5;
 #line 324626 "<clone>:stdlib/std/core/primitives.vader"
-    return (l4 < INT32_C(0));
+    return (t5 < INT32_C(0));
 }
 
 static bool std_core_i32_Comparable_lte(int32_t l0, int32_t l1) {
     bool l2, l3;
-    int32_t l4;
     bool t0, t1, t3, t4;
     int32_t t2, t5;
 #line 317 "stdlib/std/core/primitives.vader"
@@ -579,23 +557,20 @@ static bool std_core_i32_Comparable_lte(int32_t l0, int32_t l1) {
     t1 = (l0 > l1);
     l3 = t1;
     t2 = std_core_three_way(l2, l3);
-    l4 = t2;
 #line 324626 "<clone>:stdlib/std/core/primitives.vader"
-    return (l4 <= INT32_C(0));
+    return (t2 <= INT32_C(0));
 #line 317 "stdlib/std/core/primitives.vader"
     t3 = (l0 < l1);
     l2 = t3;
     t4 = (l0 > l1);
     l3 = t4;
     t5 = std_core_three_way(l2, l3);
-    l4 = t5;
 #line 324626 "<clone>:stdlib/std/core/primitives.vader"
-    return (l4 <= INT32_C(0));
+    return (t5 <= INT32_C(0));
 }
 
 static bool std_core_i32_Comparable_gt(int32_t l0, int32_t l1) {
     bool l2, l3;
-    int32_t l4;
     bool t0, t1, t3, t4;
     int32_t t2, t5;
 #line 317 "stdlib/std/core/primitives.vader"
@@ -604,23 +579,20 @@ static bool std_core_i32_Comparable_gt(int32_t l0, int32_t l1) {
     t1 = (l0 > l1);
     l3 = t1;
     t2 = std_core_three_way(l2, l3);
-    l4 = t2;
 #line 324626 "<clone>:stdlib/std/core/primitives.vader"
-    return (l4 > INT32_C(0));
+    return (t2 > INT32_C(0));
 #line 317 "stdlib/std/core/primitives.vader"
     t3 = (l0 < l1);
     l2 = t3;
     t4 = (l0 > l1);
     l3 = t4;
     t5 = std_core_three_way(l2, l3);
-    l4 = t5;
 #line 324626 "<clone>:stdlib/std/core/primitives.vader"
-    return (l4 > INT32_C(0));
+    return (t5 > INT32_C(0));
 }
 
 static bool std_core_i32_Comparable_gte(int32_t l0, int32_t l1) {
     bool l2, l3;
-    int32_t l4;
     bool t0, t1, t3, t4;
     int32_t t2, t5;
 #line 317 "stdlib/std/core/primitives.vader"
@@ -629,18 +601,16 @@ static bool std_core_i32_Comparable_gte(int32_t l0, int32_t l1) {
     t1 = (l0 > l1);
     l3 = t1;
     t2 = std_core_three_way(l2, l3);
-    l4 = t2;
 #line 324626 "<clone>:stdlib/std/core/primitives.vader"
-    return (l4 >= INT32_C(0));
+    return (t2 >= INT32_C(0));
 #line 317 "stdlib/std/core/primitives.vader"
     t3 = (l0 < l1);
     l2 = t3;
     t4 = (l0 > l1);
     l3 = t4;
     t5 = std_core_three_way(l2, l3);
-    l4 = t5;
 #line 324626 "<clone>:stdlib/std/core/primitives.vader"
-    return (l4 >= INT32_C(0));
+    return (t5 >= INT32_C(0));
 }
 
 static int32_t std_core_usize_Comparable_compare(size_t l0, size_t l1) {
@@ -664,7 +634,6 @@ static int32_t std_core_usize_Comparable_compare(size_t l0, size_t l1) {
 
 static bool std_core_usize_Comparable_lt(size_t l0, size_t l1) {
     bool l2, l3;
-    int32_t l4;
     bool t0, t1, t3, t4;
     int32_t t2, t5;
 #line 324 "stdlib/std/core/primitives.vader"
@@ -673,23 +642,20 @@ static bool std_core_usize_Comparable_lt(size_t l0, size_t l1) {
     t1 = (l0 > l1);
     l3 = t1;
     t2 = std_core_three_way(l2, l3);
-    l4 = t2;
 #line 331794 "<clone>:stdlib/std/core/primitives.vader"
-    return (l4 < INT32_C(0));
+    return (t2 < INT32_C(0));
 #line 324 "stdlib/std/core/primitives.vader"
     t3 = (l0 < l1);
     l2 = t3;
     t4 = (l0 > l1);
     l3 = t4;
     t5 = std_core_three_way(l2, l3);
-    l4 = t5;
 #line 331794 "<clone>:stdlib/std/core/primitives.vader"
-    return (l4 < INT32_C(0));
+    return (t5 < INT32_C(0));
 }
 
 static bool std_core_usize_Comparable_lte(size_t l0, size_t l1) {
     bool l2, l3;
-    int32_t l4;
     bool t0, t1, t3, t4;
     int32_t t2, t5;
 #line 324 "stdlib/std/core/primitives.vader"
@@ -698,23 +664,20 @@ static bool std_core_usize_Comparable_lte(size_t l0, size_t l1) {
     t1 = (l0 > l1);
     l3 = t1;
     t2 = std_core_three_way(l2, l3);
-    l4 = t2;
 #line 331794 "<clone>:stdlib/std/core/primitives.vader"
-    return (l4 <= INT32_C(0));
+    return (t2 <= INT32_C(0));
 #line 324 "stdlib/std/core/primitives.vader"
     t3 = (l0 < l1);
     l2 = t3;
     t4 = (l0 > l1);
     l3 = t4;
     t5 = std_core_three_way(l2, l3);
-    l4 = t5;
 #line 331794 "<clone>:stdlib/std/core/primitives.vader"
-    return (l4 <= INT32_C(0));
+    return (t5 <= INT32_C(0));
 }
 
 static bool std_core_usize_Comparable_gt(size_t l0, size_t l1) {
     bool l2, l3;
-    int32_t l4;
     bool t0, t1, t3, t4;
     int32_t t2, t5;
 #line 324 "stdlib/std/core/primitives.vader"
@@ -723,23 +686,20 @@ static bool std_core_usize_Comparable_gt(size_t l0, size_t l1) {
     t1 = (l0 > l1);
     l3 = t1;
     t2 = std_core_three_way(l2, l3);
-    l4 = t2;
 #line 331794 "<clone>:stdlib/std/core/primitives.vader"
-    return (l4 > INT32_C(0));
+    return (t2 > INT32_C(0));
 #line 324 "stdlib/std/core/primitives.vader"
     t3 = (l0 < l1);
     l2 = t3;
     t4 = (l0 > l1);
     l3 = t4;
     t5 = std_core_three_way(l2, l3);
-    l4 = t5;
 #line 331794 "<clone>:stdlib/std/core/primitives.vader"
-    return (l4 > INT32_C(0));
+    return (t5 > INT32_C(0));
 }
 
 static bool std_core_usize_Comparable_gte(size_t l0, size_t l1) {
     bool l2, l3;
-    int32_t l4;
     bool t0, t1, t3, t4;
     int32_t t2, t5;
 #line 324 "stdlib/std/core/primitives.vader"
@@ -748,18 +708,16 @@ static bool std_core_usize_Comparable_gte(size_t l0, size_t l1) {
     t1 = (l0 > l1);
     l3 = t1;
     t2 = std_core_three_way(l2, l3);
-    l4 = t2;
 #line 331794 "<clone>:stdlib/std/core/primitives.vader"
-    return (l4 >= INT32_C(0));
+    return (t2 >= INT32_C(0));
 #line 324 "stdlib/std/core/primitives.vader"
     t3 = (l0 < l1);
     l2 = t3;
     t4 = (l0 > l1);
     l3 = t4;
     t5 = std_core_three_way(l2, l3);
-    l4 = t5;
 #line 331794 "<clone>:stdlib/std/core/primitives.vader"
-    return (l4 >= INT32_C(0));
+    return (t5 >= INT32_C(0));
 }
 
 static int32_t std_core_i32_Step_step(int32_t l0) {

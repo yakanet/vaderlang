@@ -34,8 +34,7 @@ fn 0 snippet$describe_char (char) -> string
   local if_res string
   local if_res string
   local.get 0
-  local.set 1
-  local.get 1
+  local.tee 1
   char.const 62
   char.eq
   if $L0 void
@@ -75,8 +74,7 @@ fn 1 snippet$describe_int (i32) -> string
   local if_res string
   local if_res string
   local.get 0
-  local.set 1
-  local.get 1
+  local.tee 1
   i32.const 0
   i32.eq
   if $L0 void
@@ -115,8 +113,7 @@ fn 2 snippet$flag_label (bool) -> string
   local if_res string
   local if_res string
   local.get 0
-  local.set 1
-  local.get 1
+  local.tee 1
   bool.const true
   bool.eq
   if $L0 void
@@ -145,8 +142,7 @@ fn 3 snippet$mode_name (string) -> string
   local if_res string
   local if_res string
   local.get 0
-  local.set 1
-  local.get 1
+  local.tee 1
   string.const 11
   string.eq
   if $L0 void

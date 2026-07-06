@@ -36,8 +36,7 @@ fn 0 snippet$derive_print (ref) -> void
   call 2
   call 8
   string.const 2
-  local.set 1
-  local.get 1
+  local.tee 1
   call 4
   local.set 2
   i64.const 22
@@ -85,8 +84,7 @@ fn 1 snippet$main () -> i32
   local.set 0
   local.field 0 1 0
   ref.cast 4
-  local.set 1
-  local.get 1
+  local.tee 1
   call 4
   local.set 2
   i64.const 31
@@ -157,8 +155,7 @@ fn 2 concat_3 (string,string,string) -> string
   i64.add
   local.tee 5
   call 3
-  local.set 6
-  local.get 6
+  local.tee 6
   i64.const 0
   local.get 0
   call 12

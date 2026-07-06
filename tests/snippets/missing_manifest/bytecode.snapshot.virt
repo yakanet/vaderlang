@@ -56,7 +56,6 @@ end
 
 fn 1 snippet$catch_all (string) -> string
   local r ref
-  local e ref
   local $vcall_7 string
   local.get 0
   call 8
@@ -64,12 +63,10 @@ fn 1 snippet$catch_all (string) -> string
   type_check 9
   if $L0 void
     local.get 1
-    local.set 2
-    local.get 2
     virtual.call 1 Error.message
-    local.set 3
+    local.set 2
     string.const 4
-    local.get 3
+    local.get 2
     call 4
     return
   end $L0
@@ -127,8 +124,7 @@ fn 3 concat_5 (string,string,string,string,string) -> string
   i64.add
   local.tee 9
   call 5
-  local.set 10
-  local.get 10
+  local.tee 10
   i64.const 0
   local.get 0
   call 13
@@ -169,8 +165,7 @@ fn 4 concat_2 (string,string) -> string
   i64.add
   local.tee 3
   call 5
-  local.set 4
-  local.get 4
+  local.tee 4
   i64.const 0
   local.get 0
   call 13

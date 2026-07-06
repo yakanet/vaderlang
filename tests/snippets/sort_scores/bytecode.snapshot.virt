@@ -287,8 +287,7 @@ fn 7 std_sort$merge_sort_range__i32 (ref,ref,usize,usize,ref) -> void
   local.get 3
   local.get 2
   i64.sub
-  local.set 5
-  local.get 5
+  local.tee 5
   i64.const 2
   u64.lt
   if $L0 void

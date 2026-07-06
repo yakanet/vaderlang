@@ -52,7 +52,6 @@ fn 1 snippet$main () -> i32
   local __off_1 usize
   local $cast_11 i64
   local $cast_12 i64
-  local $call_23 i32
   local $gt_25 bool
   i32.const 500
   i32.to_i64
@@ -90,14 +89,12 @@ fn 1 snippet$main () -> i32
   local.get 0
   local.get 1
   call 0
-  local.set 6
-  local.get 6
   i32.const 0
   i32.gt
-  local.set 7
+  local.set 6
   local.get 2
   local.get 3
-  local.get 7
+  local.get 6
   call 6
   local.set 3
   local.get 2

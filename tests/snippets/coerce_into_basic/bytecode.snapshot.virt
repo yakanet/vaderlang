@@ -150,8 +150,7 @@ fn 2 snippet$main () -> i32
   local.set 0
   local.field 0 4 0
   ref.cast 3
-  local.set 5
-  local.get 5
+  local.tee 5
   call 5
   local.set 2
   i64.const 33

@@ -18,11 +18,9 @@ impl 6 ByteAccess
 export main 1
 
 fn 0 snippet$bump (ref) -> void
-  local $field_1 i32
+  local $add_3 i32
   local.field 0 1 1
   ref.cast 3
-  local.set 1
-  local.get 1
   i32.const 1
   i32.add
   local.set 1
@@ -49,8 +47,7 @@ fn 1 snippet$main () -> i32
   call 0
   local.field 0 1 0
   ref.cast 4
-  local.set 1
-  local.get 1
+  local.tee 1
   call 4
   local.set 2
   i64.const 22

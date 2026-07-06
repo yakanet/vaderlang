@@ -71,12 +71,10 @@ fn 0 snippet$main () -> i32
 end
 
 fn 1 snippet$Repeat$Iterator$next__i32 (ref) -> ref
-  local $field_1 i32
-  local $field_7 i32
+  local v i32
+  local $sub_9 i32
   local.field 0 2 1
   ref.cast 1
-  local.set 1
-  local.get 1
   i32.const 0
   i32.le
   if $L0 void
@@ -89,8 +87,6 @@ fn 1 snippet$Repeat$Iterator$next__i32 (ref) -> ref
   local.set 1
   local.field 0 2 1
   ref.cast 1
-  local.set 2
-  local.get 2
   i32.const 1
   i32.sub
   local.set 2

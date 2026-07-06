@@ -15,11 +15,8 @@ impl 5 ByteAccess
 export main 1
 
 fn 0 snippet$inc (ref) -> i32
-  local $field_1 i32
   local.field 0 1 0
   ref.cast 2
-  local.set 1
-  local.get 1
   i32.const 1
   i32.add
   return
@@ -77,18 +74,13 @@ fn 1 snippet$main () -> i32
 end
 
 fn 2 snippet$inc_1 (ref) -> i32
-  local $field_1 i32
   local.field 0 3 0
   ref.cast 2
-  local.set 1
-  local.get 1
   i32.const 100
   i32.add
   return
   local.field 0 3 0
   ref.cast 2
-  local.set 1
-  local.get 1
   i32.const 100
   i32.add
   return

@@ -29,8 +29,7 @@ fn 0 snippet$main () -> i32
   string.const 0
   i32.const 3
   struct.new_stack 3
-  local.set 0
-  local.get 0
+  local.tee 0
   struct.get 3 0
   ref.cast 2
   local.set 1
@@ -65,8 +64,7 @@ fn 0 snippet$main () -> i32
   string.const 3
   i32.const 7
   struct.new_stack 4
-  local.set 0
-  local.get 0
+  local.tee 0
   struct.get 3 0
   ref.cast 2
   local.set 1
@@ -116,8 +114,7 @@ fn 1 concat_2 (string,string) -> string
   i64.add
   local.tee 3
   call 2
-  local.set 4
-  local.get 4
+  local.tee 4
   i64.const 0
   local.get 0
   call 11

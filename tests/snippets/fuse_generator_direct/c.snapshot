@@ -80,17 +80,17 @@ static vader_box_t vader_import_0(vader_string_t a0) { return vader_box_obj(8u, 
 static void vader_import_1(int32_t a0, vader_string_t a1) { vader_write(a0, a1); }
 
 static int32_t snippet_main(void) {
-    vader_box_t l0 = vader_box_null(), l5 = vader_box_null(), l9 = vader_box_null();
-    size_t l1, l2, l6, l10, l11;
-    int32_t l3, l4, l8;
-    int64_t l7;
+    vader_box_t l0 = vader_box_null(), l4 = vader_box_null(), l8 = vader_box_null();
+    size_t l1, l2, l5, l9, l10;
+    int32_t l3, l7;
+    int64_t l6;
     vader_box_t t0 = vader_box_null(), t4 = vader_box_null(), t10 = vader_box_null(), t14 = vader_box_null(), t20 = vader_box_null(), t21 = vader_box_null(), t22 = vader_box_null(), t23 = vader_box_null(), t28 = vader_box_null();
     size_t t1, t5, t7, t11, t15, t17, t24, t26, t29, t31;
     int32_t t2, t3, t12, t13, t27;
     int64_t t6, t9, t16, t19, t30, t33, t34;
     vader_string_t t8, t18, t32;
     vader_box_t t25 = vader_box_null();
-    vader_box_t* gc_roots[13] = { &l0, &l5, &l9, &t0, &t4, &t10, &t14, &t20, &t21, &t22, &t23, &t28, &t25 };
+    vader_box_t* gc_roots[13] = { &l0, &l4, &l8, &t0, &t4, &t10, &t14, &t20, &t21, &t22, &t23, &t28, &t25 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 13u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
 #line 32 "tests/snippets/fuse_generator_direct/_main.vader"
@@ -110,21 +110,20 @@ static int32_t snippet_main(void) {
                 while (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = (vader_array_buf_t*) _a1_slotarr->buf->header.forward; }
                 if ((size_t) l2 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 t2 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l2];
-                l3 = t2;
 #line 14 "tests/snippets/fuse_generator_direct/_main.vader"
-                t3 = (l3 * INT32_C(2));
-                l4 = t3;
+                t3 = (t2 * INT32_C(2));
+                l3 = t3;
 #line 32 "tests/snippets/fuse_generator_direct/_main.vader"
                 t4 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(22));
-                l5 = t4;
-                l6 = (size_t) (int64_t) INT64_C(0);
-                t5 = std_core_write_string_at(l5, l6, 1u);
-                l6 = t5;
-                t6 = ((int64_t) (int32_t) l4);
-                l7 = t6;
-                t7 = std_core_write_int(l5, l6, l7);
-                l6 = t7;
-                t8 = std_core_finish_buffer(l5, l6);
+                l4 = t4;
+                l5 = (size_t) (int64_t) INT64_C(0);
+                t5 = std_core_write_string_at(l4, l5, 1u);
+                l5 = t5;
+                t6 = ((int64_t) (int32_t) l3);
+                l6 = t6;
+                t7 = std_core_write_int(l4, l5, l6);
+                l5 = t7;
+                t8 = std_core_finish_buffer(l4, l5);
                 std_io_println__string(t8);
                 t9 = (l2 + INT64_C(1));
                 l2 = (size_t) (int64_t) t9;
@@ -147,7 +146,7 @@ static int32_t snippet_main(void) {
     l1 = t11;
     l2 = (size_t) (int64_t) INT64_C(0);
     {
-        loop_67: {
+        loop_65: {
             if ((l2 < l1)) {
                 vader_array_t* _a3_slotarr = ((vader_array_t*) l0.payload.obj);
                 while (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = (vader_array_buf_t*) _a3_slotarr->buf->header.forward; }
@@ -156,20 +155,19 @@ static int32_t snippet_main(void) {
                 l3 = t12;
 #line 20 "tests/snippets/fuse_generator_direct/_main.vader"
                 t13 = vader_mod_i32(l3, INT32_C(2));
-                l4 = t13;
-                if (l4 == INT32_C(0)) {
-                    l8 = l3;
+                if (t13 == INT32_C(0)) {
+                    l7 = l3;
 #line 33 "tests/snippets/fuse_generator_direct/_main.vader"
                     t14 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(22));
-                    l5 = t14;
-                    l6 = (size_t) (int64_t) INT64_C(0);
-                    t15 = std_core_write_string_at(l5, l6, 2u);
-                    l6 = t15;
-                    t16 = ((int64_t) (int32_t) l8);
-                    l7 = t16;
-                    t17 = std_core_write_int(l5, l6, l7);
-                    l6 = t17;
-                    t18 = std_core_finish_buffer(l5, l6);
+                    l4 = t14;
+                    l5 = (size_t) (int64_t) INT64_C(0);
+                    t15 = std_core_write_string_at(l4, l5, 2u);
+                    l5 = t15;
+                    t16 = ((int64_t) (int32_t) l7);
+                    l6 = t16;
+                    t17 = std_core_write_int(l4, l5, l6);
+                    l5 = t17;
+                    t18 = std_core_finish_buffer(l4, l5);
                     std_io_println__string(t18);
 #line 20 "tests/snippets/fuse_generator_direct/_main.vader"
                 } else {
@@ -177,7 +175,7 @@ static int32_t snippet_main(void) {
 #line 33 "tests/snippets/fuse_generator_direct/_main.vader"
                 t19 = (l2 + INT64_C(1));
                 l2 = (size_t) (int64_t) t19;
-                goto loop_67;
+                goto loop_65;
             } else {
             }
         }
@@ -191,15 +189,15 @@ static int32_t snippet_main(void) {
     vader_array_t* _a5_arr = vader_array_new(2u, 1u, 7u, 1u);
     ((int32_t*) _a5_arr->buf->slots)[_a5_arr->offset + 0u] = (int32_t) INT32_C(3);
     t21 = vader_box_obj(2u, _a5_arr);
-    l5 = t21;
+    l4 = t21;
     vader_array_t* _a6_arr = vader_array_new(2u, 2u, 7u, 1u);
     ((int32_t*) _a6_arr->buf->slots)[_a6_arr->offset + 1u] = (int32_t) INT32_C(5);
     ((int32_t*) _a6_arr->buf->slots)[_a6_arr->offset + 0u] = (int32_t) INT32_C(4);
     t22 = vader_box_obj(2u, _a6_arr);
-    l9 = t22;
+    l8 = t22;
     vader_array_t* _a7_arr = vader_array_new(4u, 3u, 0u, 2u);
-    vader_array_box_slots(_a7_arr->buf)[_a7_arr->offset + 2u] = l9;
-    vader_array_box_slots(_a7_arr->buf)[_a7_arr->offset + 1u] = l5;
+    vader_array_box_slots(_a7_arr->buf)[_a7_arr->offset + 2u] = l8;
+    vader_array_box_slots(_a7_arr->buf)[_a7_arr->offset + 1u] = l4;
     vader_array_box_slots(_a7_arr->buf)[_a7_arr->offset + 0u] = l0;
     t23 = vader_box_obj(4u, _a7_arr);
     l0 = t23;
@@ -207,41 +205,41 @@ static int32_t snippet_main(void) {
     l1 = t24;
     l2 = (size_t) (int64_t) INT64_C(0);
     {
-        loop_140: {
+        loop_135: {
             if ((l2 < l1)) {
                 vader_array_t* _a8_slotarr = ((vader_array_t*) l0.payload.obj);
                 while (_a8_slotarr->buf != NULL && _a8_slotarr->buf->header.forward != NULL) { _a8_slotarr->buf = (vader_array_buf_t*) _a8_slotarr->buf->header.forward; }
                 if ((size_t) l2 >= _a8_slotarr->length) { vader_trap("array index out of bounds"); }
                 t25 = vader_array_box_slots(_a8_slotarr->buf)[_a8_slotarr->offset + (size_t) l2];
-                l5 = t25;
+                l4 = t25;
 #line 27 "tests/snippets/fuse_generator_direct/_main.vader"
-                t26 = ((vader_array_t*) l5.payload.obj)->length;
-                l6 = t26;
-                l10 = (size_t) (int64_t) INT64_C(0);
+                t26 = ((vader_array_t*) l4.payload.obj)->length;
+                l5 = t26;
+                l9 = (size_t) (int64_t) INT64_C(0);
                 {
-                    loop_154: {
-                        if ((l10 < l6)) {
-                            vader_array_t* _a9_slotarr = ((vader_array_t*) l5.payload.obj);
+                    loop_149: {
+                        if ((l9 < l5)) {
+                            vader_array_t* _a9_slotarr = ((vader_array_t*) l4.payload.obj);
                             while (_a9_slotarr->buf != NULL && _a9_slotarr->buf->header.forward != NULL) { _a9_slotarr->buf = (vader_array_buf_t*) _a9_slotarr->buf->header.forward; }
-                            if ((size_t) l10 >= _a9_slotarr->length) { vader_trap("array index out of bounds"); }
-                            t27 = ((int32_t*) _a9_slotarr->buf->slots)[_a9_slotarr->offset + (size_t) l10];
+                            if ((size_t) l9 >= _a9_slotarr->length) { vader_trap("array index out of bounds"); }
+                            t27 = ((int32_t*) _a9_slotarr->buf->slots)[_a9_slotarr->offset + (size_t) l9];
                             l3 = t27;
 #line 34 "tests/snippets/fuse_generator_direct/_main.vader"
                             t28 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(22));
-                            l9 = t28;
-                            l11 = (size_t) (int64_t) INT64_C(0);
-                            t29 = std_core_write_string_at(l9, l11, 3u);
-                            l11 = t29;
+                            l8 = t28;
+                            l10 = (size_t) (int64_t) INT64_C(0);
+                            t29 = std_core_write_string_at(l8, l10, 3u);
+                            l10 = t29;
                             t30 = ((int64_t) (int32_t) l3);
-                            l7 = t30;
-                            t31 = std_core_write_int(l9, l11, l7);
-                            l11 = t31;
-                            t32 = std_core_finish_buffer(l9, l11);
+                            l6 = t30;
+                            t31 = std_core_write_int(l8, l10, l6);
+                            l10 = t31;
+                            t32 = std_core_finish_buffer(l8, l10);
                             std_io_println__string(t32);
 #line 27 "tests/snippets/fuse_generator_direct/_main.vader"
-                            t33 = (l10 + INT64_C(1));
-                            l10 = (size_t) (int64_t) t33;
-                            goto loop_154;
+                            t33 = (l9 + INT64_C(1));
+                            l9 = (size_t) (int64_t) t33;
+                            goto loop_149;
                         } else {
                         }
                     }
@@ -249,7 +247,7 @@ static int32_t snippet_main(void) {
 #line 34 "tests/snippets/fuse_generator_direct/_main.vader"
                 t34 = (l2 + INT64_C(1));
                 l2 = (size_t) (int64_t) t34;
-                goto loop_140;
+                goto loop_135;
             } else {
             }
         }

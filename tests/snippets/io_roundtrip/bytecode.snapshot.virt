@@ -33,18 +33,15 @@ impl 10 Error
 export main 0
 
 fn 0 snippet$main () -> i32
-  local $call_0 string
+  local path string
   local __buf_0 ref
   local __off_1 usize
   local $call_13 bool
   local __scrut_2 ref
   call.import 6
-  local.set 0
-  local.get 0
   string.const 0
   call 1
-  local.set 0
-  local.get 0
+  local.tee 0
   string.const 1
   call 7
   drop
@@ -110,8 +107,7 @@ fn 1 concat_2 (string,string) -> string
   i64.add
   local.tee 3
   call 2
-  local.set 4
-  local.get 4
+  local.tee 4
   i64.const 0
   local.get 0
   call 12

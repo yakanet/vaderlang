@@ -14,48 +14,45 @@ impl 4 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  local $unop_1 i32
   local __fuse_arr_2 ref
   local __fuse_len_3 usize
   local __fuse_i_4 usize
+  local x i32
   local v i32
   local __buf_0 ref
   local __off_1 usize
   local $cast_24 i64
   i32.const 1
   i32.neg
-  local.set 0
-  local.get 0
   i32.const 7
   i32.const 200
   i32.const 9
   array.new 2 4
-  local.tee 1
+  local.tee 0
   array.len
-  local.set 2
+  local.set 1
   i64.const 0
-  local.set 3
+  local.set 2
   block $L0 void
     loop $L1 void
-      local.get 3
       local.get 2
+      local.get 1
       u64.lt
       if $L2 void
-        local.get 1
-        local.get 3
-        load_slot_i32
-        local.set 0
         local.get 0
+        local.get 2
+        load_slot_i32
+        local.tee 3
         i32.const 0
         i32.lt
         if $L3 void
-          local.get 3
+          local.get 2
           i64.const 1
           i64.add
-          local.set 3
+          local.set 2
           br $L1
         end $L3
-        local.get 0
+        local.get 3
         local.set 4
         i64.const 20
         call 1
@@ -74,15 +71,15 @@ fn 0 snippet$main () -> i32
         local.get 6
         call 2
         call 4
-        local.get 0
+        local.get 3
         i32.const 100
         i32.gt
         if $L4 void
         else
-          local.get 3
+          local.get 2
           i64.const 1
           i64.add
-          local.set 3
+          local.set 2
           br $L1
         end $L4
       else

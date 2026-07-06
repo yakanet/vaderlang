@@ -20,17 +20,14 @@ impl 6 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  local $arr_0 ref
+  local s ref
   local __buf_0 ref
   local __off_1 usize
   local $cast_15 i64
   array.new 4 0
-  local.set 0
-  local.get 0
   i32.const 0
   struct.new 2
-  local.set 0
-  local.get 0
+  local.tee 0
   i32.const 10
   call 1
   local.get 0
@@ -112,14 +109,12 @@ fn 0 snippet$main () -> i32
 end
 
 fn 1 snippet$Stack$Stackable$push__i32 (ref,i32) -> void
-  local $field_3 i32
+  local $add_5 i32
   local.field 0 2 0
   local.get 1
   array.push 1
   local.field 0 2 1
   ref.cast 1
-  local.set 2
-  local.get 2
   i32.const 1
   i32.add
   local.set 2
@@ -130,12 +125,10 @@ fn 1 snippet$Stack$Stackable$push__i32 (ref,i32) -> void
 end
 
 fn 2 snippet$Stack$Stackable$pop__i32 (ref) -> i32
-  local $field_1 i32
+  local $sub_3 i32
   local $field_4 ref
   local.field 0 2 1
   ref.cast 1
-  local.set 1
-  local.get 1
   i32.const 1
   i32.sub
   local.set 1

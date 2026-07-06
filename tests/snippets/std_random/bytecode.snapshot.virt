@@ -115,8 +115,6 @@ fn 0 snippet$main () -> i32
       if $L6 void
         local.get 0
         call 9
-        local.set 4
-        local.get 4
         i64.const 0
         i64.ne
         if $L7 void
@@ -169,8 +167,7 @@ fn 0 snippet$main () -> i32
         i32.const 10
         i32.const 20
         call 10
-        local.set 7
-        local.get 7
+        local.tee 7
         i32.const 10
         i32.lt
         if $L11 void
@@ -229,8 +226,7 @@ fn 0 snippet$main () -> i32
       if $L15 void
         local.get 0
         call 11
-        local.set 8
-        local.get 8
+        local.tee 8
         f64.const 0.0 0
         f64.lt
         if $L16 void
@@ -721,8 +717,6 @@ fn 9 std_random$next_u64 (ref) -> u64
   local.get 2
   i64.add
   call 15
-  local.set 1
-  local.get 1
   i64.const 17
   call 16
   local.set 1
@@ -746,8 +740,6 @@ fn 9 std_random$next_u64 (ref) -> u64
   local.set 2
   local.field 0 10 0
   ref.cast 7
-  local.set 3
-  local.get 3
   i64.const 49
   call 16
   local.get 2
@@ -830,36 +822,28 @@ fn 10 std_random$range_i32 (ref,i32,i32) -> i32
 end
 
 fn 11 std_random$unit_f64 (ref) -> f64
-  local $call_1 u64
   local $cast_4 f64
   local $cast_7 f64
   local.get 0
   call 9
-  local.set 1
-  local.get 1
   i64.const 12
   u64.shr
   u64.to_f64
-  local.set 2
+  local.set 1
   i64.const 4503599627370496
   u64.to_f64
-  local.set 3
+  local.set 2
+  local.get 1
   local.get 2
-  local.get 3
   f64.div
   return
 end
 
 fn 12 std_random$next_bool (ref) -> bool
-  local $call_1 u64
   local.get 0
   call 9
-  local.set 1
-  local.get 1
   i64.const 63
   u64.shr
-  local.set 1
-  local.get 1
   i64.const 1
   i64.eq
   return
@@ -922,34 +906,27 @@ fn 14 std_random$splitmix64 (u64) -> u64
   i64.const -7046029254386353131
   i64.add
   call 15
-  local.set 1
-  local.get 1
+  local.tee 1
   i64.const 30
   u64.shr
   local.set 2
   local.get 1
   local.get 2
   i64.bitxor
-  local.set 2
-  local.get 2
   i64.const -4658895280553007687
   i64.mul
   call 15
-  local.set 1
-  local.get 1
+  local.tee 1
   i64.const 27
   u64.shr
   local.set 2
   local.get 1
   local.get 2
   i64.bitxor
-  local.set 2
-  local.get 2
   i64.const -7723592293110705685
   i64.mul
   call 15
-  local.set 1
-  local.get 1
+  local.tee 1
   i64.const 31
   u64.shr
   local.set 2
@@ -989,11 +966,8 @@ fn 16 std_random$rotl (u64,u64) -> u64
 end
 
 fn 17 std_random$next_u32 (ref) -> u32
-  local $call_1 u64
   local.get 0
   call 9
-  local.set 1
-  local.get 1
   i64.const 32
   u64.shr
   u64.to_i32
@@ -1008,8 +982,7 @@ fn 18 std_random$std_random$shuffle__i32 (ref,ref) -> void
   local $idx_20 i32
   local.get 1
   array.len
-  local.set 2
-  local.get 2
+  local.tee 2
   i64.const 1
   u64.le
   if $L0 void

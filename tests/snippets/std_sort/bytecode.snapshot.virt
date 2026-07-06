@@ -83,8 +83,7 @@ fn 2 snippet$print_ints (ref) -> void
         else
         end $L3
         local.get 1
-        local.set 7
-        local.get 7
+        local.tee 7
         call 7
         local.set 8
         i64.const 20
@@ -342,8 +341,7 @@ fn 5 concat_2 (string,string) -> string
   i64.add
   local.tee 3
   call 6
-  local.set 4
-  local.get 4
+  local.tee 4
   i64.const 0
   local.get 0
   call 25
@@ -594,8 +592,7 @@ fn 14 std_sort$merge_sort_range__i32 (ref,ref,usize,usize,ref) -> void
   local.get 3
   local.get 2
   i64.sub
-  local.set 5
-  local.get 5
+  local.tee 5
   i64.const 2
   u64.lt
   if $L0 void
@@ -770,8 +767,7 @@ fn 15 std_sort$merge_sort_range__string (ref,ref,usize,usize,ref) -> void
   local.get 3
   local.get 2
   i64.sub
-  local.set 5
-  local.get 5
+  local.tee 5
   i64.const 2
   u64.lt
   if $L0 void

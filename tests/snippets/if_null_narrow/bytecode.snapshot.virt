@@ -196,8 +196,7 @@ fn 6 concat_2 (string,string) -> string
   i64.add
   local.tee 3
   call 8
-  local.set 4
-  local.get 4
+  local.tee 4
   i64.const 0
   local.get 0
   call 14
@@ -234,8 +233,7 @@ fn 7 concat_3 (string,string,string) -> string
   i64.add
   local.tee 5
   call 8
-  local.set 6
-  local.get 6
+  local.tee 6
   i64.const 0
   local.get 0
   call 14

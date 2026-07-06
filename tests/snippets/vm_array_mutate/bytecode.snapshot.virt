@@ -12,8 +12,7 @@ fn 0 snippet$main () -> i32
   i32.const 20
   i32.const 30
   array.new 2 3
-  local.set 0
-  local.get 0
+  local.tee 0
   i32.const 1
   i32.const 99
   store_slot_i32

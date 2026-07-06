@@ -1,7 +1,7 @@
 // vader/bytecode/slot_coalesce — coalesce non-overlapping live ranges
 // onto shared physical slots.
 //
-// Runs AFTER peephole + propagate + drop_dead_stores so the per-slot
+// Runs AFTER propagate + peephole + drop_dead_stores so the per-slot
 // (set, get) gates that pass needs still fire on the original slot
 // identities. Two slots whose linear live ranges don't overlap AND
 // share a ValType collapse into the same physical slot — same-ValType

@@ -108,8 +108,6 @@ fn 0 snippet$main () -> i32
     end $L1
   end $L0
   local.get 1
-  local.set 1
-  local.get 1
   i64.const 0
   struct.new 13
   call 15
@@ -155,8 +153,6 @@ fn 0 snippet$main () -> i32
     end $L4
   end $L3
   local.get 1
-  local.set 1
-  local.get 1
   i64.const 0
   struct.new 13
   call 15
@@ -167,8 +163,6 @@ fn 0 snippet$main () -> i32
   i32.const 4
   i32.const 5
   array.new 17 5
-  local.set 1
-  local.get 1
   i64.const 0
   struct.new 13
   local.set 1
@@ -190,8 +184,6 @@ fn 0 snippet$main () -> i32
   local.get 4
   local.get 5
   array.slice 17
-  local.set 1
-  local.get 1
   i64.const 0
   struct.new 13
   call 15
@@ -203,8 +195,6 @@ fn 0 snippet$main () -> i32
   i64.const 7
   local.get 4
   array.slice 17
-  local.set 1
-  local.get 1
   i64.const 0
   struct.new 13
   call 15
@@ -325,12 +315,9 @@ fn 1 __lambda_3 (ref,i32) -> i32
 end
 
 fn 2 __lambda_11 (ref,i32) -> bool
-  local $mod_3 i32
   local.get 1
   i32.const 2
   i32.rem
-  local.set 2
-  local.get 2
   i32.const 0
   i32.eq
   return
@@ -359,8 +346,6 @@ fn 4 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.get 2
     local.get 3
     call 12
-    local.set 2
-    local.get 2
     i32.const 0
     i32.gt
     local.set 1
@@ -374,8 +359,6 @@ fn 4 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.get 2
     local.get 3
     call 12
-    local.set 2
-    local.get 2
     i32.const 0
     i32.ge
     local.set 1
@@ -391,8 +374,6 @@ fn 4 std_core$Range$Iterator$next__i32 (ref) -> ref
   local.set 2
   local.field 0 6 3
   ref.cast 1
-  local.set 3
-  local.get 3
   i32.const 1
   i32.add
   local.set 3
@@ -408,7 +389,6 @@ fn 5 std_core$Range$Iterator$next__usize (ref) -> ref
   local if_res bool
   local $field_3 usize
   local $field_4 usize
-  local $call_5 i32
   local.field 0 10 2
   ref.cast 4
   if $L0 void
@@ -421,8 +401,6 @@ fn 5 std_core$Range$Iterator$next__usize (ref) -> ref
     local.get 2
     local.get 3
     call 13
-    local.set 4
-    local.get 4
     i32.const 0
     i32.gt
     local.set 1
@@ -436,8 +414,6 @@ fn 5 std_core$Range$Iterator$next__usize (ref) -> ref
     local.get 2
     local.get 3
     call 13
-    local.set 4
-    local.get 4
     i32.const 0
     i32.ge
     local.set 1
@@ -453,8 +429,6 @@ fn 5 std_core$Range$Iterator$next__usize (ref) -> ref
   local.set 2
   local.field 0 10 3
   ref.cast 9
-  local.set 3
-  local.get 3
   i64.const 1
   i64.add
   local.set 3
@@ -496,8 +470,6 @@ fn 6 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
   local.set 4
   local.field 0 13 1
   ref.cast 9
-  local.set 1
-  local.get 1
   i64.const 1
   i64.add
   local.set 1

@@ -22,20 +22,16 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local bs ref
-  local $idx_4 u8
   local and_res bool
-  local top u32
+  local delta u8
   local __off_1 usize
   local $cast_38 u64
   string.const 0
   call.import 0
-  local.set 0
-  local.get 0
+  local.tee 0
   i32.const 1
   array.get 6
   ref.cast 7
-  local.set 1
-  local.get 1
   i32.const 47
   i32.eq
   if $L0 void
@@ -47,8 +43,6 @@ fn 0 snippet$main () -> i32
   i32.const 2
   array.get 6
   ref.cast 7
-  local.set 1
-  local.get 1
   i32.const 48
   u32.ge
   if $L1 void
@@ -56,16 +50,14 @@ fn 0 snippet$main () -> i32
     i32.const 2
     array.get 6
     ref.cast 7
-    local.set 1
-    local.get 1
     i32.const 57
     u32.le
-    local.set 2
+    local.set 1
   else
     bool.const false
-    local.set 2
+    local.set 1
   end $L1
-  local.get 2
+  local.get 1
   if $L2 void
     string.const 2
     call 5
@@ -74,8 +66,6 @@ fn 0 snippet$main () -> i32
   i32.const 1
   i32.const 31
   i32.shl
-  local.set 3
-  local.get 3
   i32.const -2147483648
   i32.eq
   if $L3 void
@@ -87,37 +77,33 @@ fn 0 snippet$main () -> i32
   i32.const 2
   array.get 6
   ref.cast 7
-  local.set 1
-  local.get 1
   i32.const 48
   i32.sub
-  local.set 1
+  local.set 2
   i64.const 28
   call 1
   local.set 0
   i64.const 0
-  local.set 4
+  local.set 3
   local.get 0
-  local.get 4
+  local.get 3
   string.const 4
   call 3
-  local.set 4
-  local.get 1
+  local.set 3
+  local.get 2
   u8.to_i64
-  local.set 5
-  local.get 0
-  local.get 4
-  local.get 5
-  call 4
   local.set 4
   local.get 0
+  local.get 3
   local.get 4
+  call 4
+  local.set 3
+  local.get 0
+  local.get 3
   call 2
   call 5
   char.const 65
   char.to_i32
-  local.set 1
-  local.get 1
   i32.const 65
   i32.eq
   if $L4 void

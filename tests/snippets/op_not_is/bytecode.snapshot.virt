@@ -125,7 +125,7 @@ fn 3 snippet$is_not_dog (ref) -> bool
 end
 
 fn 4 snippet$main () -> i32
-  local $struct_11 ref
+  local cat ref
   local dog ref
   string.const 4
   struct.new 2
@@ -143,8 +143,6 @@ fn 4 snippet$main () -> i32
   call 11
   string.const 7
   struct.new 2
-  local.set 0
-  local.get 0
   string.const 8
   call 2
   call 11
@@ -190,8 +188,7 @@ fn 5 concat_2 (string,string) -> string
   i64.add
   local.tee 3
   call 6
-  local.set 4
-  local.get 4
+  local.tee 4
   i64.const 0
   local.get 0
   call 15

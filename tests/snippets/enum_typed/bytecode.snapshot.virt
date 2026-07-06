@@ -19,8 +19,7 @@ export main 1
 fn 0 snippet$describe (u8) -> string
   local __scrut_0 u8
   local.get 0
-  local.set 1
-  local.get 1
+  local.tee 1
   i32.const 1
   i32.eq
   if $L0 void
@@ -56,8 +55,7 @@ fn 1 snippet$main () -> i32
   call 0
   call 2
   i32.const 101
-  local.set 0
-  local.get 0
+  local.tee 0
   i32.const 0
   i32.eq
   if $L0 void

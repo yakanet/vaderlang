@@ -49,8 +49,7 @@ fn 0 snippet$main () -> i32
   local.set 2
   local.field 0 2 0
   ref.cast 3
-  local.set 3
-  local.get 3
+  local.tee 3
   call 3
   local.set 4
   i64.const 42
@@ -98,8 +97,7 @@ fn 0 snippet$main () -> i32
   call 7
   local.field 1 2 0
   ref.cast 3
-  local.set 3
-  local.get 3
+  local.tee 3
   call 3
   local.set 4
   i64.const 42
@@ -147,8 +145,7 @@ fn 0 snippet$main () -> i32
   call 7
   local.field 2 2 0
   ref.cast 3
-  local.set 3
-  local.get 3
+  local.tee 3
   call 3
   local.set 4
   i64.const 42

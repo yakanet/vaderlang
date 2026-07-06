@@ -142,8 +142,7 @@ fn 4 concat_2 (string,string) -> string
   i64.add
   local.tee 3
   call 5
-  local.set 4
-  local.get 4
+  local.tee 4
   i64.const 0
   local.get 0
   call 14

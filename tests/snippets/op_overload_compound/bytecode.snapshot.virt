@@ -88,24 +88,19 @@ fn 2 snippet$main () -> i32
   local __off_1 usize
   local $cast_31 i64
   i32.const 5
-  local.set 0
-  local.get 0
+  local.tee 0
   i32.const 3
   i32.add
-  local.set 0
-  local.get 0
+  local.tee 0
   i32.const 1
   i32.sub
-  local.set 0
-  local.get 0
+  local.tee 0
   i32.const 2
   i32.mul
-  local.set 0
-  local.get 0
+  local.tee 0
   i32.const 2
   i32.div
-  local.set 0
-  local.get 0
+  local.tee 0
   i32.const 5
   i32.rem
   local.set 0

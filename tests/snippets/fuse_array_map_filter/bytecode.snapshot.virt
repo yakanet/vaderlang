@@ -24,12 +24,9 @@ fn 0 snippet$double (i32) -> i32
 end
 
 fn 1 snippet$is_twenty_multiple (i32) -> bool
-  local $mod_2 i32
   local.get 0
   i32.const 20
   i32.rem
-  local.set 1
-  local.get 1
   i32.const 0
   i32.eq
   return

@@ -25,8 +25,7 @@ export main 1
 fn 0 snippet$show_day (i32) -> string
   local __scrut_0 i32
   local.get 0
-  local.set 1
-  local.get 1
+  local.tee 1
   i32.const 0
   i32.eq
   if $L0 void

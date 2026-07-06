@@ -51,8 +51,6 @@ fn 0 snippet$main () -> i32
   i32.const 20
   i32.const 30
   array.new 2 3
-  local.set 1
-  local.get 1
   i32.const 0
   call 2
   local.set 0
@@ -87,11 +85,8 @@ fn 1 snippet$snippet$identity__i32 (i32) -> i32
 end
 
 fn 2 snippet$snippet$first__i32 (ref,i32) -> i32
-  local $len_2 usize
   local.get 0
   array.len
-  local.set 2
-  local.get 2
   i64.const 0
   u64.gt
   if $L0 void

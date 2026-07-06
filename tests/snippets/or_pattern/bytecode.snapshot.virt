@@ -13,8 +13,7 @@ fn 0 snippet$can_go (u8) -> bool
   local __scrut_0 u8
   local or_res bool
   local.get 0
-  local.set 1
-  local.get 1
+  local.tee 1
   i32.const 2
   i32.eq
   if $L0 void
@@ -54,8 +53,7 @@ fn 1 snippet$points (i32) -> i32
   local or_res bool
   local if_res i32
   local.get 0
-  local.set 1
-  local.get 1
+  local.tee 1
   i32.const 1
   i32.eq
   if $L0 void

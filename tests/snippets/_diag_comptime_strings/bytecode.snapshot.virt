@@ -21,19 +21,15 @@ impl 3 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  local $data_const_0 ref
+  local __buf_0 ref
   local __off_1 usize
   local $cast_13 u64
   data.const 0 8
-  local.set 0
-  local.get 0
   i32.const 1
   array.get 8
   ref.cast 4
   call 4
   data.const 1 8
-  local.set 0
-  local.get 0
   i32.const 0
   array.get 8
   ref.cast 4

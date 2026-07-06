@@ -24,8 +24,7 @@ fn 0 snippet$main () -> i32
   local $k_50 i32
   local $k_54 i32
   i32.const 0
-  local.set 0
-  local.get 0
+  local.tee 0
   i32.const 0
   i32.eq
   if $L0 void

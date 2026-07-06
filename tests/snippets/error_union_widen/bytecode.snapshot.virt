@@ -113,7 +113,6 @@ end
 
 fn 5 snippet$main () -> i32
   local __scrut_0 ref
-  local e ref
   local $vcall_7 string
   string.const 3
   call 2
@@ -121,12 +120,10 @@ fn 5 snippet$main () -> i32
   type_check 6
   if $L0 void
     local.get 0
-    local.set 1
-    local.get 1
     virtual.call 1 Error.message
-    local.set 2
+    local.set 1
     string.const 4
-    local.get 2
+    local.get 1
     call 6
     call 12
     string.const 6
@@ -139,9 +136,9 @@ fn 5 snippet$main () -> i32
   if $L1 void
     local.get 0
     ref.cast 2
-    local.set 2
+    local.set 1
     string.const 5
-    local.get 2
+    local.get 1
     call 6
     call 12
     string.const 6
@@ -167,8 +164,7 @@ fn 6 concat_2 (string,string) -> string
   i64.add
   local.tee 3
   call 7
-  local.set 4
-  local.get 4
+  local.tee 4
   i64.const 0
   local.get 0
   call 16

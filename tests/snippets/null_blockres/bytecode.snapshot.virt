@@ -23,8 +23,6 @@ fn 0 snippet$pick (bool) -> ref
     local.set 1
   end $L0
   local.get 1
-  local.set 1
-  local.get 1
   null.const
   i32.eq
   if $L1 void
