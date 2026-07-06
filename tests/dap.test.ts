@@ -270,6 +270,29 @@ test("dap: step over advances the line, and Variables shows source locals with v
   expect(evals.some((e) => e.success === false)).toBe(true);
 }, { timeout: MEDIUM_BUILD });
 
+test("dap: a runtime trap stops on the exception with its message", async () => {
+  // defer_on_panic's main runs, then divides by zero — a runtime trap. Under
+  // the debugger it must surface a `stopped {reason:"exception"}` carrying the
+  // trap message (so VSCode shows "Paused on exception"), then exit 1 on resume.
+  const program = join(process.cwd(), "tests/snippets/defer_on_panic/_main.vader");
+  const frames = await sendDap(program, [
+    { seq: 1, type: "request", command: "initialize", arguments: { adapterID: "vader" } },
+    { seq: 2, type: "request", command: "launch", arguments: { program } },
+    { seq: 3, type: "request", command: "configurationDone" },
+    // Consumed by the exception pause loop once the trap fires.
+    { seq: 4, type: "request", command: "stackTrace", arguments: { threadId: 1 } },
+    { seq: 5, type: "request", command: "continue", arguments: { threadId: 1 } },
+    { seq: 6, type: "request", command: "disconnect" },
+  ]);
+
+  const stopped = frames.find((f) => f.event === "stopped");
+  expect(stopped?.body?.reason).toBe("exception");
+  expect(stopped?.body?.text).toContain("zero");
+  const exited = frames.find((f) => f.event === "exited");
+  expect(exited?.body?.exitCode).toBe(1);
+  expect(frames.some((f) => f.event === "terminated")).toBe(true);
+}, { timeout: MEDIUM_BUILD });
+
 test("dap: threads request returns the single VM thread", async () => {
   const program = join(process.cwd(), "tests/snippets/io_println/_main.vader");
   const frames = await driveDap(program);
