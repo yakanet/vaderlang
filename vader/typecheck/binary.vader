@@ -183,7 +183,11 @@ distinct_op_fallback :: fn(
 
 check_compare :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     if is_numeric(left) && is_numeric(right) { return TY_BOOL }
-    if is_string(left) && is_string(right) { return TY_BOOL }
+    // NB: no `string < string` case — string ordering isn't lowered (the VM
+    // and native both trap: `i32.lt` on a string operand), so accepting it
+    // here would be an unsound compile-time pass over a runtime crash. String
+    // ordering can return as a real `Comparable` impl if the language wants
+    // lexicographic comparison later ; until then it's T3043 like `bool`.
     // User-struct overload via `Comparable::compare` — the lowerer
     // rewrites `a < b` into `a.compare(b) < 0` ; we only need to
     // confirm the impl exists here.
