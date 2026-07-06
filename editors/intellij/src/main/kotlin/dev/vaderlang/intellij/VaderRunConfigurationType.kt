@@ -1,39 +1,30 @@
 package dev.vaderlang.intellij
 
-import com.intellij.execution.Executor
-import com.intellij.execution.configurations.CommandLineState
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.execution.configurations.ConfigurationTypeBase
-import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.execution.configurations.RunConfigurationBase
 import com.intellij.execution.configurations.RunConfigurationOptions
-import com.intellij.execution.configurations.RunProfileState
-import com.intellij.execution.process.ProcessHandler
-import com.intellij.execution.process.ProcessHandlerFactory
-import com.intellij.execution.process.ProcessTerminatedListener
-import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
-import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NotNullLazyValue
-import com.intellij.openapi.ui.TextFieldWithBrowseButton
-import com.intellij.util.ui.FormBuilder
-import javax.swing.JComponent
+import com.redhat.devtools.lsp4ij.dap.DebugMode
+import com.redhat.devtools.lsp4ij.dap.configurations.DAPRunConfiguration
+import com.redhat.devtools.lsp4ij.dap.configurations.DAPRunConfigurationOptions
+import com.redhat.devtools.lsp4ij.launching.ServerMappingSettings
 
-// A native "Vader" run configuration : pick a `.vader` file and Run it via
-// `vader run` (the same VM path as the CLI). Appears under Add New
-// Configuration → Vader. Step-debugging with breakpoints is the separate
-// "Debug Adapter Protocol" configuration (LSP4IJ) driving `vader dap`.
+// A native "Vader" run/debug configuration : pick a `.vader` file, then Run OR
+// Debug it (breakpoints, stepping) — one config, both buttons. It's a thin
+// preset over LSP4IJ's DAP run configuration: we extend DAPRunConfiguration and
+// pin it to our registered "Vader Debug Adapter" (spawns `vader dap`), so we
+// reuse LSP4IJ's whole tested Run+Debug machinery instead of reimplementing it.
 //
-// Compiles + packages against the 2024.2 platform (compileKotlin/buildPlugin
-// green here); the Run button behaviour is a manual in-IDE check.
+// Compiles + packages against LSP4IJ 0.13.0 here; the Run/Debug behaviour is a
+// manual in-IDE check (runIde).
 internal class VaderRunConfigurationType : ConfigurationTypeBase(
     "VaderRunConfiguration",
     "Vader",
-    "Run a Vader program with `vader run`",
+    "Run or debug a Vader program",
     NotNullLazyValue.createValue { AllIcons.Actions.Execute },
 ) {
     init { addFactory(VaderConfigurationFactory(this)) }
@@ -42,69 +33,32 @@ internal class VaderRunConfigurationType : ConfigurationTypeBase(
 internal class VaderConfigurationFactory(type: ConfigurationType) : ConfigurationFactory(type) {
     override fun getId(): String = "Vader"
 
-    override fun createTemplateConfiguration(project: Project): RunConfiguration =
-        VaderRunConfiguration(project, this, "Vader")
+    override fun createTemplateConfiguration(project: Project): RunConfiguration {
+        val config = VaderRunConfiguration(project, this, "Vader")
+        // Pin to our registered debugAdapterServer (see VaderDebugAdapterServerFactory)
+        // + map *.vader for breakpoints. The user only picks the file to run.
+        config.serverId = SERVER_ID
+        config.serverName = SERVER_NAME
+        config.debugMode = DebugMode.LAUNCH
+        config.serverMappings = listOf(
+            ServerMappingSettings.createFileNamePatternsMappingSettings(listOf("*.vader"), "vader"),
+        )
+        return config
+    }
 
+    // Options are DAP's — VaderRunConfiguration is just a preset DAP config.
     override fun getOptionsClass(): Class<out RunConfigurationOptions> =
-        VaderRunConfigurationOptions::class.java
+        DAPRunConfigurationOptions::class.java
 }
 
-// Persisted state — the target `.vader` file (serialized to the `.run/*.xml`).
-internal class VaderRunConfigurationOptions : RunConfigurationOptions() {
-    private val programPathProp = string("").provideDelegate(this, "programPath")
-    fun getProgramPath(): String = programPathProp.getValue(this) ?: ""
-    fun setProgramPath(value: String) = programPathProp.setValue(this, value)
-}
-
+// A DAP run configuration pinned to the Vader debug adapter. Everything (the
+// Run/Debug launch, the DAP client, breakpoints, variables) comes from
+// DAPRunConfiguration; we only supply the type identity + presets.
 internal class VaderRunConfiguration(
     project: Project,
     factory: ConfigurationFactory,
     name: String,
-) : RunConfigurationBase<VaderRunConfigurationOptions>(project, factory, name) {
+) : DAPRunConfiguration(project, factory, name)
 
-    public override fun getOptions(): VaderRunConfigurationOptions =
-        super.getOptions() as VaderRunConfigurationOptions
-
-    fun getProgramPath(): String = options.getProgramPath()
-    fun setProgramPath(value: String) = options.setProgramPath(value)
-
-    override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> =
-        VaderSettingsEditor()
-
-    override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState =
-        object : CommandLineState(environment) {
-            override fun startProcess(): ProcessHandler {
-                // Binary path from the shared plugin settings (Settings → Tools →
-                // Vader), falling back to `vader` on $PATH — same as the LSP/DAP
-                // factories. Run from the project root so `std/*` imports resolve.
-                val configured = VaderSettings.getInstance().lspPath.trim()
-                val binary = if (configured.isNotEmpty()) configured else "vader"
-                val commandLine = GeneralCommandLine(binary, "run", getProgramPath())
-                environment.project.basePath?.let { commandLine.withWorkDirectory(it) }
-                val handler = ProcessHandlerFactory.getInstance().createColoredProcessHandler(commandLine)
-                ProcessTerminatedListener.attach(handler)
-                return handler
-            }
-        }
-}
-
-internal class VaderSettingsEditor : SettingsEditor<VaderRunConfiguration>() {
-    private val fileField = TextFieldWithBrowseButton()
-
-    init {
-        fileField.addBrowseFolderListener(
-            "Select Vader File",
-            "Pick the .vader file to run",
-            null,
-            FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor(),
-        )
-    }
-
-    private val panel: JComponent = FormBuilder.createFormBuilder()
-        .addLabeledComponent("Vader file:", fileField)
-        .panel
-
-    override fun createEditor(): JComponent = panel
-    override fun resetEditorFrom(s: VaderRunConfiguration) { fileField.text = s.getProgramPath() }
-    override fun applyEditorTo(s: VaderRunConfiguration) { s.setProgramPath(fileField.text) }
-}
+internal const val SERVER_ID = "dev.vaderlang.vader-dap"
+internal const val SERVER_NAME = "Vader Debug Adapter"

@@ -66,7 +66,7 @@ internal class VaderRunConfigurationProducer : LazyRunConfigurationProducer<Vade
     ): Boolean {
         val vf = context.location?.virtualFile ?: return false
         if (!vf.name.endsWith(".vader")) return false
-        configuration.setProgramPath(vf.path)
+        configuration.file = vf.path
         configuration.name = vf.name
         return true
     }
@@ -76,6 +76,6 @@ internal class VaderRunConfigurationProducer : LazyRunConfigurationProducer<Vade
         context: ConfigurationContext,
     ): Boolean {
         val vf = context.location?.virtualFile ?: return false
-        return configuration.getProgramPath() == vf.path
+        return configuration.file == vf.path
     }
 }
