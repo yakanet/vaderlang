@@ -27,11 +27,16 @@ export StepMode :: enum(u8) {
     StepOut,
 }
 
-/// One local (or param) of a paused frame, rendered to a display string by the
-/// VM (`display_value`) so the DAP layer needn't touch runtime `Value`s.
-export PauseLocal :: struct {
-    name:  string
-    value: string
+/// One variable of a paused frame — a local, a param, or (recursively) a field
+/// / element of an aggregate. Rendered to a display string by the VM
+/// (`display_value`) so the DAP layer needn't touch runtime `Value`s ;
+/// `children` holds the projected fields (struct) / elements (array) for the
+/// expandable Variables view, empty for a leaf. The VM bounds the projection by
+/// depth (also the cycle guard) and per-array element count.
+export PauseVar :: struct {
+    name:     string
+    value:    string
+    children: PauseVar[]
 }
 
 /// One frame of the paused call stack, projected to plain data by the VM
@@ -46,9 +51,10 @@ export PauseFrame :: struct {
     /// 1-based source line ; `0` when the op has no source position.
     line:          i32
     /// Params then declared locals, in slot order, rendered for the Variables
-    /// view. Accurate only when the target is compiled `optimize = false`
-    /// (no slot coalescing) — which the DAP compile does.
-    locals:        PauseLocal[]
+    /// view (each possibly expandable via `PauseVar.children`). Accurate only
+    /// when the target is compiled `optimize = false` (no slot coalescing) —
+    /// which the DAP compile does.
+    locals:        PauseVar[]
 }
 
 /// Everything the `on_pause` callback needs to answer a `stackTrace` /
