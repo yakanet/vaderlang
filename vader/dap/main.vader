@@ -20,9 +20,10 @@
 module "vader/dap"
 
 import "std/json" { JsonValue, JsonObject, JsonNumber, JsonArray, JsonString, JsonBool, parse }
-import "std/collections" { MutableMap }
+import "std/collections" { MutableMap, MutableSet }
+import "std/string" { split, last_index_of }
 import "vader/lsp/protocol" { read_frame, write_frame, unbuffer_stdin, get_string, get_number, get_field, TransportError }
-import "vader/vm" { VmState, exec_entry, DebugController, Ok, Trap }
+import "vader/vm" { VmState, exec_entry, DebugController, Ok, Trap, PauseCtx }
 
 // ---- compile injection -----------------------------------------------------
 
@@ -49,9 +50,15 @@ export DapProgram :: struct {
 /// @return         `0` on a clean shutdown, `1` on a transport error.
 export run_dap_server :: fn(compile: fn(string) -> DapProgram) -> i32 {
     unbuffer_stdin()
-    // Monotonic DAP `seq`, shared (by cell) with the output-sink closure so
-    // response / event / program-output frames all draw from one counter.
+    // Monotonic DAP `seq`, shared (by cell) with the output-sink + pause-loop
+    // closures so response / event / program-output frames all draw from one
+    // counter.
     seq_cell: i32[] = [0]
+    // Breakpoints : absolute file → set of 1-based lines. Populated by
+    // `setBreakpoints` BEFORE `configurationDone`, then handed to the VM inside
+    // the `DebugController` (shared by reference, so mid-pause `setBreakpoints`
+    // reaches the VM too).
+    bps :: MutableMap<string, MutableSet<i32>> {}
     // Set by `launch`, consumed by `configurationDone`.
     prog: DapProgram | null = null
     running := true
@@ -74,14 +81,15 @@ export run_dap_server :: fn(compile: fn(string) -> DapProgram) -> i32 {
             respond(seq_cell, request_seq, command, true, empty_body())
         } else if command == "configurationDone" {
             respond(seq_cell, request_seq, command, true, empty_body())
-            run_program(prog, seq_cell)
+            run_program(prog, seq_cell, bps)
         } else if command == "setBreakpoints" {
-            // Phase 1 has no breakpoint support, but VSCode gates
-            // `configurationDone` (our run trigger) on a well-formed
-            // `setBreakpoints` response : it must echo one breakpoint object per
-            // requested line. Report them all `verified: false` so the client
-            // proceeds to run instead of stalling. Phase 2 verifies + honours them.
-            respond(seq_cell, request_seq, command, true, breakpoints_body(get_field(msg, "arguments")))
+            // Record the breakpoints for the VM, then echo them back. VSCode
+            // gates `configurationDone` (the run trigger) on a well-formed
+            // response — one breakpoint object per requested line. They're
+            // reported `verified: true` since the line table backs them.
+            args :: get_field(msg, "arguments")
+            store_breakpoints(bps, args)
+            respond(seq_cell, request_seq, command, true, breakpoints_body(args))
         } else if command == "threads" {
             respond(seq_cell, request_seq, command, true, single_thread())
         } else if command == "disconnect" {
@@ -89,19 +97,34 @@ export run_dap_server :: fn(compile: fn(string) -> DapProgram) -> i32 {
             running = false
         } else {
             // Unknown / not-yet-supported command : ack so the client isn't
-            // left waiting. Phase 2+ adds breakpoints / stack / stepping.
+            // left waiting. Phase 4 adds stepping.
             respond(seq_cell, request_seq, command, true, empty_body())
         }
     }
     return 0
 }
 
+// Replace the breakpoints for one source file with the requested lines. VSCode
+// sends the FULL set per file on each `setBreakpoints`, so the file's old set
+// is dropped. Keyed by the source's absolute path, matching the `DebugPos.file`
+// the VM checks (VSCode sends the same `${file}` path for launch + breakpoints).
+store_breakpoints :: fn(bps: MutableMap<string, MutableSet<i32>>, args: JsonValue) -> void {
+    path :: get_string(get_field(args, "source"), "path")
+    lines :: MutableSet<i32> {}
+    requested :: get_field(args, "breakpoints")
+    if requested is JsonArray as arr {
+        for item in arr.items { lines.add(get_number(item, "line")) }
+    }
+    bps[path] = lines
+}
+
 // ---- run --------------------------------------------------------------------
 
-// Execute the compiled program, routing its output to DAP `output` events, and
-// emit `exited` + `terminated` when it finishes. A `null` / failed program
-// reports the compile error and terminates without running.
-run_program :: fn(prog: DapProgram | null, seq_cell: i32[]) -> void {
+// Execute the compiled program, routing its output to DAP `output` events and
+// its breakpoint stops to a nested DAP conversation, then emit `exited` +
+// `terminated` when it finishes. A `null` / failed program reports the compile
+// error and terminates without running.
+run_program :: fn(prog: DapProgram | null, seq_cell: i32[], bps: MutableMap<string, MutableSet<i32>>) -> void {
     if prog == null {
         emit_event(seq_cell, "terminated", empty_body())
         return
@@ -119,7 +142,13 @@ run_program :: fn(prog: DapProgram | null, seq_cell: i32[]) -> void {
         category :: if stream == 0 { "stdout" } else { "stderr" }
         emit_output(seq_cell, category, text)
     }
-    controller :: DebugController { .output_sink = sink }
+    // On a breakpoint stop the VM calls this : emit `stopped`, then drive the
+    // (blocking) paused conversation until the client resumes. Captures
+    // `seq_cell` + `bps` by cell so mid-pause `setBreakpoints` reaches the VM.
+    pause :: fn(ctx: PauseCtx) -> void {
+        run_pause_loop(ctx, seq_cell, bps)
+    }
+    controller :: DebugController { .output_sink = sink, .breakpoints = bps, .on_pause = pause }
     no_args: string[] = []
     result :: exec_entry(state, prog.entry_index, no_args, null, false, controller)
     exit_code := 0
@@ -131,6 +160,64 @@ run_program :: fn(prog: DapProgram | null, seq_cell: i32[]) -> void {
     }
     emit_exited(seq_cell, exit_code)
     emit_event(seq_cell, "terminated", empty_body())
+}
+
+// ---- pause loop -------------------------------------------------------------
+
+// Driven from inside the VM (`DebugController.on_pause`) when execution stops at
+// a breakpoint. Emits `stopped`, then blocks handling DAP requests
+// (stackTrace / scopes / variables / threads / setBreakpoints) until the client
+// resumes (`continue` / `next` / `stepIn` / `stepOut` — all resume in Phase 2)
+// or disconnects, then returns so the VM continues.
+run_pause_loop :: fn(ctx: PauseCtx, seq_cell: i32[], bps: MutableMap<string, MutableSet<i32>>) -> void {
+    emit_stopped(seq_cell, ctx.reason)
+    paused := true
+    for paused {
+        frame :: read_frame()
+        if frame is TransportError { return }
+        msg :: parse(frame)
+        if !(msg is JsonObject) { continue }
+        command :: get_string(msg, "command")
+        request_seq :: get_number(msg, "seq")
+
+        if command == "stackTrace" {
+            respond(seq_cell, request_seq, command, true, stacktrace_body(ctx))
+        } else if command == "scopes" {
+            respond(seq_cell, request_seq, command, true, scopes_body())
+        } else if command == "variables" {
+            // Phase 2 exposes no locals yet (Phase 3) — an empty set keeps
+            // VSCode from hanging on the request.
+            respond(seq_cell, request_seq, command, true, variables_body())
+        } else if command == "threads" {
+            respond(seq_cell, request_seq, command, true, single_thread())
+        } else if command == "setBreakpoints" {
+            args :: get_field(msg, "arguments")
+            store_breakpoints(bps, args)
+            respond(seq_cell, request_seq, command, true, breakpoints_body(args))
+        } else if command == "continue" {
+            respond(seq_cell, request_seq, command, true, empty_body())
+            paused = false
+        } else if command == "next" || command == "stepIn" || command == "stepOut" {
+            // Stepping arrives in Phase 4 ; for now resume like `continue` so the
+            // buttons don't wedge the session.
+            respond(seq_cell, request_seq, command, true, empty_body())
+            paused = false
+        } else if command == "disconnect" {
+            respond(seq_cell, request_seq, command, true, empty_body())
+            paused = false
+        } else {
+            respond(seq_cell, request_seq, command, true, empty_body())
+        }
+    }
+}
+
+// Emit a `stopped` event : the client then requests the stack + scopes.
+emit_stopped :: fn(seq_cell: i32[], reason: string) -> void {
+    body :: MutableMap<string, JsonValue> {}
+    body["reason"]             = JsonString { .value = reason }
+    body["threadId"]           = JsonNumber { .value = f64(1) }
+    body["allThreadsStopped"]  = JsonBool { .value = true }
+    emit_event(seq_cell, "stopped", JsonObject { .entries = body })
 }
 
 // ---- frame helpers ----------------------------------------------------------
@@ -173,15 +260,17 @@ capabilities :: fn() -> JsonValue {
 }
 
 // The `setBreakpoints` response body : one `{ verified, line }` per requested
-// breakpoint. All `verified: false` — Phase 1 doesn't honour breakpoints, but a
-// well-formed response is what lets VSCode proceed to `configurationDone`.
+// breakpoint. `verified: true` — the per-op line table backs them ; the VM
+// stops at the first op of the line. (A breakpoint on a line with no op — a
+// blank / comment — simply never fires ; refining `verified` to reflect that
+// is a later nicety.)
 breakpoints_body :: fn(args: JsonValue) -> JsonValue {
     result: JsonValue[] = []
-    bps :: get_field(args, "breakpoints")
-    if bps is JsonArray as arr {
+    requested :: get_field(args, "breakpoints")
+    if requested is JsonArray as arr {
         for item in arr.items {
             bp :: MutableMap<string, JsonValue> {}
-            bp["verified"] = JsonBool { .value = false }
+            bp["verified"] = JsonBool { .value = true }
             bp["line"]     = JsonNumber { .value = f64(get_number(item, "line")) }
             result.push(JsonObject { .entries = bp })
         }
@@ -200,4 +289,65 @@ single_thread :: fn() -> JsonValue {
     body :: MutableMap<string, JsonValue> {}
     body["threads"] = JsonArray { .items = threads }
     return JsonObject { .entries = body }
+}
+
+// The `stackTrace` body from the paused call stack — one frame per `PauseFrame`,
+// innermost first, with `id` = its index (the frame reference `scopes` keys on).
+stacktrace_body :: fn(ctx: PauseCtx) -> JsonValue {
+    frames_json: JsonValue[] = []
+    for i in 0..<ctx.frames.len() {
+        f :: ctx.frames[i]
+        src :: MutableMap<string, JsonValue> {}
+        src["name"] = JsonString { .value = basename(f.file) }
+        src["path"] = JsonString { .value = f.file }
+        fr :: MutableMap<string, JsonValue> {}
+        fr["id"]     = JsonNumber { .value = f64(i) }
+        fr["name"]   = JsonString { .value = display_fn_name(f.function_name) }
+        fr["line"]   = JsonNumber { .value = f64(f.line) }
+        fr["column"] = JsonNumber { .value = f64(1) }
+        fr["source"] = JsonObject { .entries = src }
+        frames_json.push(JsonObject { .entries = fr })
+    }
+    body :: MutableMap<string, JsonValue> {}
+    body["stackFrames"] = JsonArray { .items = frames_json }
+    body["totalFrames"] = JsonNumber { .value = f64(ctx.frames.len()) }
+    return JsonObject { .entries = body }
+}
+
+// The `scopes` body : a single "Locals" scope. Its `variablesReference` is a
+// non-zero handle VSCode calls `variables` with — Phase 2 answers empty.
+scopes_body :: fn() -> JsonValue {
+    scope :: MutableMap<string, JsonValue> {}
+    scope["name"]               = JsonString { .value = "Locals" }
+    scope["variablesReference"] = JsonNumber { .value = f64(1) }
+    scope["expensive"]          = JsonBool { .value = false }
+    scopes: JsonValue[] = [JsonObject { .entries = scope }]
+    body :: MutableMap<string, JsonValue> {}
+    body["scopes"] = JsonArray { .items = scopes }
+    return JsonObject { .entries = body }
+}
+
+// The `variables` body : empty for Phase 2 (locals come in Phase 3).
+variables_body :: fn() -> JsonValue {
+    none: JsonValue[] = []
+    body :: MutableMap<string, JsonValue> {}
+    body["variables"] = JsonArray { .items = none }
+    return JsonObject { .entries = body }
+}
+
+// Display name for a stack frame : the tail after the last `$` of the mangled
+// name (`snippet$main` → `main`), or the whole name when it carries no `$`.
+// Uses a char literal (not a `"$"` string — a bare `$` opens interpolation).
+display_fn_name :: fn(mangled: string) -> string {
+    idx :: last_index_of(mangled, '$', 0)
+    if idx < 0 { return mangled }
+    b :: mangled.bytes()
+    return b[usize(idx) + 1..<b.len()].bytes_to_string()
+}
+
+// Final path segment (`/a/b/c.vader` → `c.vader`) for the `source.name`.
+basename :: fn(path: string) -> string {
+    parts :: path.split("/")
+    if parts.len() == 0 { return path }
+    return parts[parts.len() - 1]
 }

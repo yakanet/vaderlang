@@ -126,6 +126,38 @@ pop_frame :: fn(cursor: usize[]) -> void {
     cursor[0] -= 1
 }
 
+/// Project the live frame stack into plain `PauseFrame` data for the debugger's
+/// `on_pause` callback — so the DAP layer answers `stackTrace` without touching
+/// the VM's internal `Frame` / value stack. Innermost frame first. A caller
+/// frame's `pc` is its return address (the op after the call), so its line is
+/// the call site's — a one-line approximation that's fine for a call stack.
+///
+/// @param reason  DAP stop reason (`"breakpoint"`).
+/// @param frames  the live frame stack.
+/// @param count   number of live frames (`frame_count[0]`).
+/// @param bc_mod  the running module — for fn names + the per-op `debug` table.
+/// @return        a `PauseCtx` snapshot safe to hand across the module boundary.
+build_pause_ctx :: fn(reason: string, frames: Frame[], count: usize, bc_mod: bc.BytecodeModule) -> PauseCtx {
+    projected: PauseFrame[] = []
+    i: i64 = i64(count) - 1
+    for i >= 0 {
+        f :: frames[usize(i)]
+        fn_body :: bc_mod.functions[usize(f.function_index)]
+        file := ""
+        line := 0
+        if usize(f.pc) < fn_body.debug.len() {
+            dbg :: fn_body.debug[usize(f.pc)]
+            if dbg != null {
+                file = dbg.file
+                line = dbg.line
+            }
+        }
+        projected.push(PauseFrame { .function_name = fn_body.name, .file = file, .line = line })
+        i = i - 1
+    }
+    return PauseCtx { .reason = reason, .frames = projected }
+}
+
 /// Bounds-check a `function_index` against `functions`. Used by
 /// `Call`, `FnRef`, `MakeClosure`, and `CallIndirect` to surface the
 /// same Trap shape on a malformed reference rather than indexing into
@@ -743,6 +775,11 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     // pay only one predictable branch per op.
     steps: i64 = 0
 
+    // Last source line the debugger observed — the "fire once per line" gate for
+    // breakpoints (stop at the FIRST op of a breakpointed line, not every op).
+    // `-1` = no line seen yet. Only touched when `debug != null`.
+    last_line: i32 = -1
+
     for frame_count[0] > 0 {
         top :: frame_count[0] - 1
         if is_comptime {
@@ -765,6 +802,26 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             pop_frame(frame_count)
             if frame_count[0] == 0 { return Ok { .value = 0 } }
             continue
+        }
+
+        // Debugger breakpoint check — gated on `debug != null` so normal runs
+        // pay one pointer compare per op (like `is_comptime`). Stop at the FIRST
+        // op of a breakpointed line (`last_line` gate), hand the paused call
+        // stack to `on_pause`, which drives the DAP conversation and returns
+        // once the client resumes.
+        if debug != null {
+            dbg :: body.debug[usize(frame.pc)]
+            if dbg != null {
+                cur_file :: dbg.file
+                cur_line :: dbg.line
+                if cur_line != last_line {
+                    last_line = cur_line
+                    if line_has_breakpoint(debug, cur_file, cur_line) {
+                        pause_ctx :: build_pause_ctx("breakpoint", frames, frame_count[0], state.bc)
+                        debug.on_pause(pause_ctx)
+                    }
+                }
+            }
         }
 
         instr :: body.body[frame.pc]

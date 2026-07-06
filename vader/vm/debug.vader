@@ -3,7 +3,8 @@
 // A `DebugController` is threaded into `exec_entry` (and down to the host-op
 // dispatcher) when a program runs under the step-debugger. It is `null` for
 // every normal run / comptime evaluation / test, so those paths keep the VM's
-// default behaviour and pay nothing.
+// default behaviour and pay nothing (one pointer compare per op, like the
+// `is_comptime` budget check).
 //
 // The record is deliberately data + callbacks (no `vader/dap` import) so the
 // VM never depends on the DAP layer — the closures that mutate DAP state live
@@ -12,18 +13,85 @@
 
 module "vader/vm"
 
-/// Runtime debug/session context, passed to `exec_entry` when the program
-/// runs under the DAP debugger ; `null` otherwise.
+import "std/collections" { MutableMap, MutableSet }
+
+/// One frame of the paused call stack, projected to plain data by the VM
+/// before it hands control to the (DAP-side) `on_pause` callback — so the VM
+/// never exposes its internal `Frame` / value-stack representation across the
+/// module boundary. Top frame (innermost call) first.
+export PauseFrame :: struct {
+    /// Mangled fn name (`<module>$<name>`) ; the DAP layer displays the tail.
+    function_name: string
+    /// Absolute source path from the op's `DebugPos` ; `""` for synthetic ops.
+    file:          string
+    /// 1-based source line ; `0` when the op has no source position.
+    line:          i32
+}
+
+/// Everything the `on_pause` callback needs to answer a `stackTrace` request
+/// without reaching into VM internals. Built by `build_pause_ctx` at the stop.
+export PauseCtx :: struct {
+    /// DAP `stopped` reason — `"breakpoint"` (Phase 4 adds `"step"`).
+    reason: string
+    /// Paused call stack, innermost frame first.
+    frames: PauseFrame[]
+}
+
+/// Runtime debug/session context, passed to `exec_entry` when the program runs
+/// under the DAP debugger ; `null` otherwise.
 ///
-/// Phase 1 (proof of life) carries only `output_sink`. The DAP transport is
-/// stdio, so program output must NOT reach fd 1 directly — it would corrupt
-/// the protocol stream — so every `.IoWrite` host-op routes through the sink,
-/// which the DAP server turns into `output` events. Phase 2 will extend this
-/// record with breakpoints / step mode / an `on_pause` callback (plan §4),
-/// which is why it is a struct rather than a bare sink function.
+/// `breakpoints` maps an absolute source file to its set of 1-based breakpoint
+/// lines. `output_sink` routes program writes to DAP `output` events (stdio
+/// transport can't let program output hit fd 1). `on_pause` is invoked when the
+/// VM stops at a breakpoint — it runs the (blocking) DAP request loop until the
+/// client resumes, then returns so the VM continues. Phase 4 will extend this
+/// with a step mode.
 export DebugController :: struct {
-    /// Program write hook. `stream` is `0` = stdout, `1` = stderr (matching the
-    /// VM's `.IoWrite` Stream tag) ; `text` is the raw payload. Invoked in
-    /// place of the direct `print` / `eprint` for every program write.
+    /// Program write hook. `stream` is `0` = stdout, `1` = stderr (the VM's
+    /// `.IoWrite` Stream tag) ; `text` is the raw payload.
     output_sink: fn(i32, string) -> void
+    /// Absolute file → set of 1-based breakpoint lines. Shared (by shallow
+    /// copy) with the DAP layer, so `setBreakpoints` updates reach the VM.
+    breakpoints: MutableMap<string, MutableSet<i32>>
+    /// Invoked at a breakpoint stop with the paused call stack ; blocks driving
+    /// the DAP conversation until the client resumes.
+    on_pause: fn(PauseCtx) -> void
+}
+
+/// True when `line` in `file` carries a breakpoint. Pure — the "fire once per
+/// line" gate lives in the exec loop (a `last_line` local), so this only asks
+/// "is this line breakpointed".
+///
+/// @param controller  the active debug controller.
+/// @param file        the op's source file (absolute path).
+/// @param line        the op's 1-based source line.
+/// @return            `true` iff a breakpoint is set on `file:line`.
+export line_has_breakpoint :: fn(controller: DebugController, file: string, line: i32) -> bool {
+    lines :: controller.breakpoints[file]
+    if lines == null { return false }
+    return lines.contains(line)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+no_sink :: fn(_s: i32, _t: string) -> void {}
+no_pause :: fn(_c: PauseCtx) -> void {}
+
+mk_controller :: fn(bps: MutableMap<string, MutableSet<i32>>) -> DebugController =
+    DebugController { .output_sink = no_sink, .breakpoints = bps, .on_pause = no_pause }
+
+@test test_line_has_breakpoint_hit_and_miss :: fn() -> void {
+    bps :: MutableMap<string, MutableSet<i32>> {}
+    lines :: MutableSet<i32> {}
+    lines.add(13)
+    lines.add(20)
+    bps["/tmp/a.vader"] = lines
+    c :: mk_controller(bps)
+    assert_eq(line_has_breakpoint(c, "/tmp/a.vader", 13), true)
+    assert_eq(line_has_breakpoint(c, "/tmp/a.vader", 20), true)
+    assert_eq(line_has_breakpoint(c, "/tmp/a.vader", 14), false)
+    // Unknown file → no breakpoint.
+    assert_eq(line_has_breakpoint(c, "/tmp/other.vader", 13), false)
 }
