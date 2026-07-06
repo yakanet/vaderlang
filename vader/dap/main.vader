@@ -189,6 +189,17 @@ run_pause_loop :: fn(ctx: PauseCtx, seq_cell: i32[], bps: MutableMap<string, Mut
         } else if command == "variables" {
             reference :: get_number(get_field(msg, "arguments"), "variablesReference")
             respond(seq_cell, request_seq, command, true, variables_body(ctx, reference))
+        } else if command == "evaluate" {
+            // Hover / Watch / REPL : resolve a bare identifier against the named
+            // frame's locals. Unknown expression → `success: false` so the editor
+            // shows nothing rather than a bogus value.
+            args :: get_field(msg, "arguments")
+            found :: evaluate_find(ctx, get_number(args, "frameId"), get_string(args, "expression"))
+            if found == null {
+                respond(seq_cell, request_seq, command, false, empty_body())
+            } else {
+                respond(seq_cell, request_seq, command, true, evaluate_result(found))
+            }
         } else if command == "threads" {
             respond(seq_cell, request_seq, command, true, single_thread())
         } else if command == "setBreakpoints" {
@@ -261,6 +272,9 @@ emit_exited :: fn(seq_cell: i32[], code: i32) -> void {
 capabilities :: fn() -> JsonValue {
     m :: MutableMap<string, JsonValue> {}
     m["supportsConfigurationDoneRequest"] = JsonBool { .value = true }
+    // Enables hover-over-a-variable (the editor sends `evaluate` with
+    // context "hover" ; we resolve bare identifiers against the frame's locals).
+    m["supportsEvaluateForHovers"]        = JsonBool { .value = true }
     return JsonObject { .entries = m }
 }
 
@@ -351,6 +365,25 @@ variables_body :: fn(ctx: PauseCtx, reference: i32) -> JsonValue {
     }
     body :: MutableMap<string, JsonValue> {}
     body["variables"] = JsonArray { .items = vars }
+    return JsonObject { .entries = body }
+}
+
+// Resolve a bare identifier against a frame's locals for `evaluate`. Returns the
+// rendered value, or `null` when no such local is in scope (the frame index is
+// the `id` from `stackTrace`).
+evaluate_find :: fn(ctx: PauseCtx, frame_id: i32, expression: string) -> string | null {
+    if frame_id < 0 || frame_id >= i32(ctx.frames.len()) { return null }
+    for local in ctx.frames[usize(frame_id)].locals {
+        if local.name == expression { return local.value }
+    }
+    return null
+}
+
+// The `evaluate` response body : the rendered value as a leaf (no children).
+evaluate_result :: fn(value: string) -> JsonValue {
+    body :: MutableMap<string, JsonValue> {}
+    body["result"]             = JsonString { .value = value }
+    body["variablesReference"] = JsonNumber { .value = f64(0) }
     return JsonObject { .entries = body }
 }
 
