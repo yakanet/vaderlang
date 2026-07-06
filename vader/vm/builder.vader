@@ -121,6 +121,7 @@ synth_signature :: fn(parameter_count: usize, has_return: bool) -> bc.BcSignatur
         .result      = if has_return { bc.ValType.Any } else { bc.ValType.Void },
         .param_types = [],
         .result_type = 0,
+        .param_names = [],
     }
 }
 

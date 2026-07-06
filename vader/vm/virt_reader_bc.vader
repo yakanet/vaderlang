@@ -51,7 +51,7 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule {
     main_index := -1
 
     current_name := ""
-    current_sig := bc.BcSignature { .params = [], .result = bc.ValType.Void, .param_types = [], .result_type = 0 }
+    current_sig := bc.BcSignature { .params = [], .result = bc.ValType.Void, .param_types = [], .result_type = 0, .param_names = [] }
     current_locals: bc.BcLocal[] = []
     in_function := false
 
@@ -270,7 +270,7 @@ parse_import_decl_bc :: fn(cleaned: string, imports: bc.BcImport[], types: bc.Bc
     extern_name :: parts[name_i]
     mangled :: parts[name_i + 1]
     sig: bc.BcSignature = if open < 0 {
-        bc.BcSignature { .params = [], .result = bc.ValType.Void, .param_types = [], .result_type = 0 }
+        bc.BcSignature { .params = [], .result = bc.ValType.Void, .param_types = [], .result_type = 0, .param_names = [] }
     } else {
         parse_signature_bc(after.bytes()[usize(open)..<after.bytes().len()].bytes_to_string(), types)
     }
@@ -573,6 +573,7 @@ parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature {
         .result      = result,
         .param_types = param_types,
         .result_type = primitive_index_for(types, result),
+        .param_names = [],
     }
 }
 

@@ -355,6 +355,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
             .result      = fn_.signature.result,
             .param_types = new_param_types,
             .result_type = remap_idx(remap, fn_.signature.result_type),
+            .param_names = fn_.signature.param_names,
         }
         for bj in 0..<fn_.body.len() {
             fn_.body[bj] = remap_type_in_op(fn_.body[bj], remap)
@@ -373,6 +374,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
                 .result      = imp.signature.result,
                 .param_types = new_param_types,
                 .result_type = remap_idx(remap, imp.signature.result_type),
+                .param_names = imp.signature.param_names,
             },
             .is_extern    = imp.is_extern,
         })

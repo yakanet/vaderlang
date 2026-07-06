@@ -173,24 +173,63 @@ DEBUG_MAX_ELEMS: usize: 64
 // …) ; `locals[k]` lives at slot `params + k`. Accurate when the target is
 // compiled `optimize = false` (no slot coalescing) — the DAP compile's mode.
 project_locals :: fn(f: Frame, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule) -> PauseVar[] {
-    out: PauseVar[] = []
     param_count :: fn_body.signature.params.len()
+    total_slots :: param_count + fn_body.locals.len()
+    // Per-slot [first, last] touch pc — a slot's live window. A local shows only
+    // when the current pc is inside it (`optimize = false` gives each source
+    // local its own slot, so the window ≈ its lexical scope). This hides
+    // not-yet-declared locals and the `v` of already-finished sibling loops.
+    first: i32[] = []
+    last: i32[] = []
+    for _ in 0..<total_slots { first.push(-1)  last.push(-1) }
+    for pc in 0..<fn_body.body.len() {
+        s :: slot_touched_by(fn_body.body[pc])
+        if s >= 0 && usize(s) < total_slots {
+            if first[usize(s)] < 0 { first[usize(s)] = i32(pc) }
+            last[usize(s)] = i32(pc)
+        }
+    }
+
+    out: PauseVar[] = []
+    // Params live the whole frame — always shown, named from the signature
+    // (`param_names`, empty on name-less paths → `arg<i>`).
     for p in 0..<param_count {
         if p < f.slots.len() {
-            out.push(project_var("arg${p}", f.slots[p], bc_mod, 0))
+            out.push(project_var(param_display_name(fn_body.signature, p), f.slots[p], bc_mod, 0))
         }
     }
     for k in 0..<fn_body.locals.len() {
         name :: fn_body.locals[k].name
         slot :: param_count + k
-        // Hide compiler-synthesised temps (`$…` / `__…` / `if_res`) — the CFG
-        // emit materialises many even at `optimize = false` ; the user wants
-        // their source locals, not the 3-address scaffolding.
-        if slot < f.slots.len() && is_source_local(name) {
+        // Hide compiler-synthesised temps (`$…` / `__…` / `if_res`) and locals
+        // outside their live window at the current pc.
+        if slot < f.slots.len() && is_source_local(name) && slot_in_scope(first, last, slot, f.pc) {
             out.push(project_var(name, f.slots[slot], bc_mod, 0))
         }
     }
     return out
+}
+
+// The local slot an op reads or writes, or -1 when it touches none.
+slot_touched_by :: fn(op: bc.Op) -> i32 {
+    if op is bc.LocalGet   as g  { return g.slot }
+    if op is bc.LocalSet   as s  { return s.slot }
+    if op is bc.LocalTee   as t  { return t.slot }
+    if op is bc.LocalField as lf { return lf.slot }
+    return -1
+}
+
+// True when `slot`'s live window (`[first, last]` touch pc) contains `pc`.
+slot_in_scope :: fn(first: i32[], last: i32[], slot: usize, pc: i32) -> bool {
+    if first[slot] < 0 { return false }
+    return first[slot] <= pc && pc <= last[slot]
+}
+
+// Source parameter name for slot `p`, or `arg<p>` when the signature carries no
+// names (imports / synth wrappers / `.virt` reload).
+param_display_name :: fn(sig: bc.BcSignature, p: usize) -> string {
+    if p < sig.param_names.len() && sig.param_names[p] != "" { return sig.param_names[p] }
+    return "arg${p}"
 }
 
 // Project a `Value` to a (possibly nested) `PauseVar` : its display string plus,
@@ -1056,6 +1095,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                                 .result      = bc.ValType.Any,
                                 .param_types = [],
                                 .result_type = 0,
+                                .param_names = [],
                             },
                             .is_extern    = false,
                         }

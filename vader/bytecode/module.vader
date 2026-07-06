@@ -54,6 +54,11 @@ export BcSignature :: struct {
     result: ValType                  // Void = leaves nothing on the stack
     param_types: i32[]               // parallel to params, length identical
     result_type: i32                 // BcType index of the return slot
+    /// Source parameter names, parallel to `params` — populated by the CFG
+    /// emitter for the debugger's Variables view. Empty (not per-index) on
+    /// paths that don't carry names (imports, synth wrappers, `.virt` reload) ;
+    /// consumers fall back to `arg<i>`.
+    param_names: string[]
 }
 
 /// One declared local — name + stack-erased `ValType`. The C-emit

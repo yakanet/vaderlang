@@ -265,11 +265,13 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
 build_cfg_signature :: fn(params: CFGParam[], return_type: Type, ctx: EmitterCtx) -> BcSignature {
     params_val: ValType[] = []
     param_types: i32[] = []
+    param_names: string[] = []
     for p in params {
         params_val.push(val_type_of_type(p.type))
         param_types.push(intern_type(p.type, ctx))
+        param_names.push(p.name)
     }
-    return BcSignature { .params = params_val, .result = val_type_of_type(return_type), .param_types = param_types, .result_type = intern_type(return_type, ctx) }
+    return BcSignature { .params = params_val, .result = val_type_of_type(return_type), .param_types = param_types, .result_type = intern_type(return_type, ctx), .param_names = param_names }
 }
 
 // ============================================================================
