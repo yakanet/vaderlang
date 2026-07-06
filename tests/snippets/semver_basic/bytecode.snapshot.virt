@@ -96,6 +96,7 @@ impl 17 Contains
 impl 28 Iterator
 impl 15 Error
 impl 31 Display
+impl 3 Equals
 export main 0
 
 fn 0 snippet$main () -> i32

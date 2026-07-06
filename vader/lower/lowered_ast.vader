@@ -102,6 +102,11 @@ export LoweredProject :: struct {
     /// value at each read site (`inline` bucket). Scalars also land here as
     /// a safety net for any reference `lower_ident` didn't fold.
     const_inline:   MutableMap<i32, LoweredExpr>
+    /// `Symbol.id → trait names` — the frontend's authoritative trait
+    /// membership (from `TypedProgram.struct_traits_by_sym`), threaded to the
+    /// bytecode emitter to seed `is Trait` impl_table rows per interned struct
+    /// tag. Replaces the `materialize_trait_check_impls` hook's membership role.
+    trait_membership: MutableMap<i32, string[]>
 }
 
 /// One module after lowering. `decls` is a flat list ; synthetic decls
@@ -616,6 +621,7 @@ export new_lowered_project :: fn() -> LoweredProject {
         .data_pool      = [],
         .const_fn_wrap  = MutableMap<i32, ConstFnWrap> {},
         .const_inline   = MutableMap<i32, LoweredExpr> {},
+        .trait_membership = MutableMap<i32, string[]> {},
     }
 }
 

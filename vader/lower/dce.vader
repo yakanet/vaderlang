@@ -145,13 +145,14 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
     }
 
     // The fallible io intrinsics FABRICATE `IOError` values at the host
-    // boundary (`vm/host.vader::mk_io_error`, `c_emit/host.vader::
-    // io_err_shim`) — no bytecode ever constructs one, so the call graph
-    // alone would prune its `Error` impl and the trait membership with
-    // it, breaking `is Error` narrowing and `.message()` dispatch on
-    // host-produced errors. Seed the impl as a root whenever std/io's
-    // vtable entry exists (the intrinsics themselves are bodyless and
-    // always roots, so reachability adds no further gate).
+    // boundary (`vm/host.vader::mk_io_error`, `c_emit/host.vader::io_err_shim`)
+    // — no bytecode ever constructs one, so the call graph alone would prune
+    // its `Error.message` impl fn. `is Error` MEMBERSHIP no longer relies on
+    // this — it is seeded from `trait_membership` at emit, independent of DCE.
+    // This seed keeps the `.message()` DISPATCH fn reachable for a host-produced
+    // error whose method the call graph didn't otherwise reach. Still keyed on
+    // the IOError name/module ; a general "root host-produced impl members"
+    // form would dissolve this last hard-coded special-case (follow-up).
     for e in lp.vtable_entries {
         if e.trait_name == TRAIT_ERROR && e.struct_type is StructType {
             sym :: e.struct_type.symbol
@@ -198,14 +199,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
             .decls = kept,
         }
     }
-    return LoweredProject {
-        .modules = out_modules,
-        .entry = lp.entry,
-        .vtable_entries = lp.vtable_entries,
-        .data_pool = lp.data_pool,
-        .const_fn_wrap = lp.const_fn_wrap,
-        .const_inline = lp.const_inline,
-    }
+    return LoweredProject { ...lp, .modules = out_modules }
 }
 
 /// Generic-fn instances share their generic's symbol id, so they're

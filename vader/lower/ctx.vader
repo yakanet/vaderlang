@@ -242,15 +242,16 @@ export LowerProjectCtx :: struct {
     /// with no erased primitive dispatch → no surfacing, no snapshot drift.
     virtually_dispatched_traits: MutableSet<string>
 
-    /// Symbol ids of struct types CONSTRUCTED anywhere in the program (every
-    /// `lower_struct_lit` records its `type`'s symbol). `surface_stdlib_impl_externs`
-    /// gates a NON-generic stdlib struct's vtable surfacing on this : a struct
-    /// implementing a virtually-dispatched trait (`StringChars implements
-    /// Iterator<char>`) needs its impl members in the vtable ONLY when the struct
-    /// is actually constructed (reached via a trait-typed `.next()` vcall), NOT
-    /// for every snippet that merely dispatches the trait — otherwise an
-    /// unconstructed stdlib implementor (`std_io$IOError`) would be pulled into
-    /// unrelated snippets, interning its type + bloating the table.
+    /// Symbol ids of struct types a value of which can be INHABITED at runtime :
+    /// constructed by a `lower_struct_lit`, OR produced by a callee's return type
+    /// (`lower_call.vader::mark_produced_structs` — which also covers host-
+    /// fabricated structs like `std_io$IOError` that no bytecode literal builds).
+    /// `surface_stdlib_impl_externs` gates a NON-generic stdlib struct's vtable
+    /// surfacing on this : an implementor of a virtually-dispatched trait
+    /// (`StringChars implements Iterator<char>`, or host-produced `IOError
+    /// implements Error`) gets its impl members in the vtable ONLY when a value
+    /// of it can exist, NOT for every snippet that merely dispatches the trait —
+    /// otherwise an inhabitable-nowhere struct would bloat the table.
     constructed_struct_symbols: MutableSet<i32>
 
     /// Blanket-array impl-member call sites (`x in arr` → `T[] implements

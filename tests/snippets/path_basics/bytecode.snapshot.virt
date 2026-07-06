@@ -70,6 +70,7 @@ import 3 write std_io$write (i32,string) -> void
 import 4 byte_len std_string$byte_len (string) -> usize
 impl 7 ByteAccess
 impl 14 Display
+impl 2 Div
 export main 1
 
 fn 0 snippet$show_path (string,ref) -> void

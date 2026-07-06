@@ -250,6 +250,16 @@ export TypedProgram :: struct {
     /// trait-widening (`Cat → Animal` when `Cat implements Animal`).
     struct_implemented_traits: MutableMap<string, string[]>
 
+    /// `Symbol.id → trait names` — the id-keyed twin of
+    /// `struct_implemented_traits`, populated in lockstep by
+    /// `record_struct_trait`. Symbol ids are project-global-unique (one
+    /// shared `SymbolFactory`), so this keys runtime `is Trait` membership
+    /// without the base-name collision hazard. Threaded to the bytecode
+    /// emitter (via `LoweredProject.trait_membership`) to seed `impl_table`
+    /// rows per interned struct tag — replacing the lowering force-hook's
+    /// membership role.
+    struct_traits_by_sym: MutableMap<i32, string[]>
+
     /// Per-impl trait args, keyed by `${struct_name}` then `${trait_name}`.
     /// `Hello implements Greeter(i32)` records
     /// `struct_trait_args["Hello"]["Greeter"] = [i32]`. Consumed by
@@ -384,6 +394,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .impl_method_traits = MutableMap<string, string[]> {},
         .struct_field_types = MutableMap<i32, MutableMap<string, Type>> {},
         .struct_implemented_traits = MutableMap<string, string[]> {},
+        .struct_traits_by_sym = MutableMap<i32, string[]> {},
         .struct_trait_args = MutableMap<string, MutableMap<string, Type[]>> {},
         .current_fn_ctx  = null,
         .node_spans      = MutableMap<usize, Span> {},

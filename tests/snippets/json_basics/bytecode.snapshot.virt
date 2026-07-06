@@ -153,6 +153,16 @@ impl 50 Index
 impl 50 IndexSet
 impl 50 Contains
 impl 50 Into
+impl 29 Error
+impl 45 Index
+impl 45 IndexSet
+impl 45 Contains
+impl 45 Into
+impl 47 Error
+impl 51 Index
+impl 51 IndexSet
+impl 51 Contains
+impl 51 Into
 export main 1
 
 fn 0 snippet$show (string,string) -> void

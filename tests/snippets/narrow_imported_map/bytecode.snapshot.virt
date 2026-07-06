@@ -27,6 +27,14 @@ impl 10 Index
 impl 10 IndexSet
 impl 10 Contains
 impl 10 Into
+impl 12 Index
+impl 12 IndexSet
+impl 12 Contains
+impl 12 Into
+impl 13 Index
+impl 13 IndexSet
+impl 13 Contains
+impl 13 Into
 export main 0
 
 fn 0 snippet$main () -> i32

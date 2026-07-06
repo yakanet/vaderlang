@@ -52,9 +52,9 @@ import 2 read_file_bytes std_io$read_file_bytes (string) -> ref
 import 3 write_file_bytes std_io$write_file_bytes (string,ref) -> ref
 import 4 temp_dir std_io$temp_dir () -> string
 impl 5 ByteAccess
+impl 13 Display
 impl 10 Error
 impl 15 Error
-impl 13 Display
 export main 0
 
 fn 0 snippet$main () -> i32

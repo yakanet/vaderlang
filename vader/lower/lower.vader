@@ -56,6 +56,12 @@ export lower_project :: fn(
     populate_impls(loaded, typed, project_ctx)
     project :: new_lowered_project()
     project.entry = loaded.entry
+    // Seed runtime `is Trait` membership from the frontend's id-keyed map
+    // (broadcast-complete on the entry module via `merge_external_impl_methods`).
+    // The emitter turns this into `impl_table` rows per interned struct tag —
+    // see `build_impl_table_from_vtable`.
+    entry_typed :: typed.modules[loaded.entry]
+    if entry_typed != null { project.trait_membership = entry_typed.struct_traits_by_sym }
 
     module_ids :: typed.modules.keys()
     for module_id in module_ids {

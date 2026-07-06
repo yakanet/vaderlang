@@ -14,6 +14,7 @@ string 4 "W"
 string 5 "err"
 string 6 "\n"
 import 0 write std_io$write (i32,string) -> void
+impl 4 Error
 export main 2
 
 fn 0 snippet$parse (char) -> ref

@@ -165,9 +165,6 @@ pattern_predicate :: fn(
         is BindingPattern  -> { return null }
         is IsPattern as is_pattern -> {
             check_type :: resolve_pattern_type(ctx, is_pattern.ty)
-            // A trait pattern needs its implementers' impl-table rows —
-            // see `materialize_trait_check_impls`.
-            materialize_trait_check_impls(ctx, check_type)
             return LoweredTypeCheck {
                 .span = span, .type = TY_BOOL,
                 .value = target,

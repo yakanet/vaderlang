@@ -125,6 +125,7 @@ import 2 write std_io$write (i32,string) -> void
 import 3 byte_len std_string$byte_len (string) -> usize
 impl 8 ByteAccess
 impl 20 Display
+impl 16 Error
 export main 2
 
 fn 0 snippet$run_match (string,ref,string) -> void
