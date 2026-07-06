@@ -55,21 +55,11 @@ function readFrame(chunks: Uint8Array, cursor: number): { body: Json; cursor: nu
   return { body: JSON.parse(bodyText), cursor: bodyEnd };
 }
 
-// Batch-drive one DAP session over `program` and return every frame the server
-// emitted, in order.
-async function driveDap(program: string): Promise<Json[]> {
-  const requests: object[] = [
-    { seq: 1, type: "request", command: "initialize", arguments: { adapterID: "vader" } },
-    { seq: 2, type: "request", command: "launch", arguments: { program } },
-    // VSCode sends setBreakpoints between `initialized` and configurationDone,
-    // and gates configurationDone (the run trigger) on a well-formed response —
-    // it MUST echo one breakpoint object per requested line.
-    { seq: 3, type: "request", command: "setBreakpoints",
-      arguments: { source: { path: program }, breakpoints: [{ line: 13 }], lines: [13] } },
-    { seq: 4, type: "request", command: "configurationDone" },
-    { seq: 5, type: "request", command: "threads" },
-    { seq: 6, type: "request", command: "disconnect" },
-  ];
+// Batch-write `requests` to a fresh `vader dap` over stdio and return every
+// frame it emitted, in order. The DAP flow is deterministic and the server
+// (incl. the paused-state loop) reads frames sequentially off the pipe, so a
+// pre-built request list drives the whole session — no reactive client needed.
+async function sendDap(_program: string, requests: object[]): Promise<Json[]> {
   const total = requests.reduce<number>((n, r) => n + frame(r).byteLength, 0);
   const stdin = new Uint8Array(total);
   let offset = 0;
@@ -104,6 +94,24 @@ async function driveDap(program: string): Promise<Json[]> {
   return frames;
 }
 
+// The proof-of-life flow : run to completion, no breakpoints.
+async function driveDap(program: string): Promise<Json[]> {
+  return sendDap(program, [
+    { seq: 1, type: "request", command: "initialize", arguments: { adapterID: "vader" } },
+    { seq: 2, type: "request", command: "launch", arguments: { program } },
+    // VSCode sends setBreakpoints between `initialized` and configurationDone,
+    // and gates configurationDone (the run trigger) on a well-formed response —
+    // it MUST echo one breakpoint object per requested line. Line 1 is a
+    // comment (no op), so this exercises the response shape without stopping the
+    // run-to-completion flow — the dedicated test below covers an actual stop.
+    { seq: 3, type: "request", command: "setBreakpoints",
+      arguments: { source: { path: program }, breakpoints: [{ line: 1 }], lines: [1] } },
+    { seq: 4, type: "request", command: "configurationDone" },
+    { seq: 5, type: "request", command: "threads" },
+    { seq: 6, type: "request", command: "disconnect" },
+  ]);
+}
+
 test("dap: proof of life — initialize, launch, run, capture output, terminate", async () => {
   // io_println prints "hello\n" then "42\n" — imports std/io, resolved relative
   // to the repo cwd (same as `vader run`).
@@ -126,12 +134,12 @@ test("dap: proof of life — initialize, launch, run, capture output, terminate"
 
   // setBreakpoints MUST return a `breakpoints` array (one per requested line) —
   // VSCode stalls (never sends configurationDone, so the program never runs) on
-  // a malformed response. Phase 1 reports them unverified.
+  // a malformed response.
   const bpResp = respFor("setBreakpoints");
   expect(bpResp?.success).toBe(true);
   expect(Array.isArray(bpResp?.body?.breakpoints)).toBe(true);
   expect(bpResp?.body?.breakpoints.length).toBe(1);
-  expect(bpResp?.body?.breakpoints[0].verified).toBe(false);
+  expect(bpResp?.body?.breakpoints[0].verified).toBe(true);
 
   // The handshake fires an `initialized` event, and the run ends with
   // `exited` + `terminated`.
@@ -151,6 +159,47 @@ test("dap: proof of life — initialize, launch, run, capture output, terminate"
   // Clean exit code (io_println returns 0).
   const exited = events.find((e) => e.event === "exited");
   expect(exited?.body?.exitCode).toBe(0);
+}, { timeout: MEDIUM_BUILD });
+
+test("dap: breakpoint stops the program and continue resumes it", async () => {
+  // io_println: line 13 `main :: fn() -> i32 {`, line 14 `println("hello")`.
+  // Breakpoint on line 14 (the first body statement — a signature line carries
+  // no op) must fire `stopped`, `stackTrace` must place the top frame at line 14,
+  // and `continue` must run it to completion. The pause loop reads the queued
+  // stackTrace/continue frames off the same pipe, so one batched request list
+  // drives the whole flow.
+  const program = join(process.cwd(), "tests/snippets/io_println/_main.vader");
+  const requests = [
+    { seq: 1, type: "request", command: "initialize", arguments: { adapterID: "vader" } },
+    { seq: 2, type: "request", command: "launch", arguments: { program } },
+    { seq: 3, type: "request", command: "setBreakpoints",
+      arguments: { source: { path: program }, breakpoints: [{ line: 14 }] } },
+    { seq: 4, type: "request", command: "configurationDone" },
+    // Consumed by the pause loop once the breakpoint fires.
+    { seq: 5, type: "request", command: "stackTrace", arguments: { threadId: 1 } },
+    { seq: 6, type: "request", command: "continue", arguments: { threadId: 1 } },
+    { seq: 7, type: "request", command: "disconnect" },
+  ];
+  const frames = await sendDap(program, requests);
+
+  // The breakpoint fired.
+  const stopped = frames.find((f) => f.event === "stopped");
+  expect(stopped).toBeDefined();
+  expect(stopped?.body?.reason).toBe("breakpoint");
+
+  // stackTrace placed the top frame at line 14, in `main`.
+  const st = frames.find((f) => f.type === "response" && f.command === "stackTrace");
+  expect(st?.success).toBe(true);
+  const top = st?.body?.stackFrames?.[0];
+  expect(top?.line).toBe(14);
+  expect(top?.name).toBe("main");
+
+  // continue ran it to completion — output surfaced + terminated.
+  expect(frames.some((f) => f.event === "terminated")).toBe(true);
+  const stdout = frames
+    .filter((f) => f.event === "output" && f.body?.category === "stdout")
+    .map((f) => f.body.output).join("");
+  expect(stdout).toContain("hello");
 }, { timeout: MEDIUM_BUILD });
 
 test("dap: threads request returns the single VM thread", async () => {
