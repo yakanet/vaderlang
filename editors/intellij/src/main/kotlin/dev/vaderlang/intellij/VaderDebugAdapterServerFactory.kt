@@ -7,7 +7,6 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.fileTypes.FileType
 import com.redhat.devtools.lsp4ij.dap.DebugMode
 import com.redhat.devtools.lsp4ij.dap.client.LaunchUtils
-import com.redhat.devtools.lsp4ij.dap.configurations.DAPRunConfigurationOptions
 import com.redhat.devtools.lsp4ij.dap.configurations.options.FileOptionConfigurable
 import com.redhat.devtools.lsp4ij.dap.configurations.options.WorkingDirectoryConfigurable
 import com.redhat.devtools.lsp4ij.dap.definitions.DebugAdapterServerDefinition
@@ -25,14 +24,14 @@ import com.redhat.devtools.lsp4ij.dap.descriptors.ServerReadyConfig
 // picks "Vader" as the server, and points it at a `.vader` file — there's no
 // automatic F5 gutter action like the VSCode extension.
 //
-// Compiles + packages against LSP4IJ 0.13.0 (compileKotlin + buildPlugin green
+// Compiles + packages against LSP4IJ 0.20.1 (compileKotlin + buildPlugin green
 // here). A live debug session hasn't been driven inside a running IDE — do a
 // `./gradlew runIde` smoke test (set a breakpoint in a `.vader` file, run a
 // "Debug Adapter Protocol" config selecting "Vader Debug Adapter") to confirm
 // end to end.
 internal class VaderDebugAdapterServerFactory : DebugAdapterDescriptorFactory() {
     override fun createDebugAdapterDescriptor(
-        options: DAPRunConfigurationOptions,
+        options: RunConfigurationOptions,
         environment: ExecutionEnvironment,
     ): DebugAdapterDescriptor = VaderDebugAdapterDescriptor(options, environment, serverDefinition)
 }

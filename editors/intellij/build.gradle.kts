@@ -17,7 +17,7 @@ dependencies {
         // top of it.
         intellijIdeaCommunity("2024.2")
         bundledPlugin("org.jetbrains.plugins.textmate")
-        plugin("com.redhat.devtools.lsp4ij:0.13.0")
+        plugin("com.redhat.devtools.lsp4ij:0.20.1")
     }
 }
 
