@@ -1000,15 +1000,15 @@ emit_let_binding :: fn(self: Printer, b: p.LetBinding) -> void {
 }
 
 emit_let_stmt :: fn(self: Printer, s: p.LetStmt) -> void {
-    // Surface forms (mirrors the parser) :
-    //   immutable                 name :: value
-    //   immutable typed           name: T = value      (parsed-as immutable)
-    //   mutable    untyped        name := value
-    //   mutable    typed          name: T = value      ← same shape, but the
-    //                                                    `:=` would also parse
-    // The AST `mutable` flag is true for both `:=` and `: T =` forms (the
-    // typed variant is always mutable per the parser).  We pick `::` for
-    // untyped immutable, `: T = v` for typed, `:=` for untyped mutable.
+    // Surface forms (mirrors the parser) — the `mutable` flag picks between
+    // the two forms in each column :
+    //   untyped immutable   name :: value
+    //   untyped mutable     name := value
+    //   typed   immutable   name: T: value      (two single colons)
+    //   typed   mutable     name: T = value
+    // Emitting ` = ` for a typed immutable local silently widens it to mutable
+    // (`mutable: false` → `true` on reparse), so the typed branch also keys on
+    // `mutable` — mirrors the top-level typed-const form in `emit_const_decl`.
     self.emit_let_binding(s.binding)
     match s.ty {
         is null -> {
@@ -1021,7 +1021,11 @@ emit_let_stmt :: fn(self: Printer, s: p.LetStmt) -> void {
         _ -> {
             self.write(": ")
             self.emit_type_expr(s.ty)
-            self.write(" = ")
+            if s.mutable {
+                self.write(" = ")
+            } else {
+                self.write(": ")
+            }
         }
     }
     self.emit_expr(s.value)
@@ -1297,7 +1301,7 @@ emit_ident :: fn(self: Printer, x: p.IdentExpr) -> void {
 }
 
 emit_call :: fn(self: Printer, x: p.CallExpr) -> void {
-    self.emit_expr(x.callee)
+    self.emit_postfix_target(x.callee)
     self.write("(")
     for i in 0..<x.args.len() {
         if i > 0 { self.write(", ") }
@@ -1316,16 +1320,47 @@ emit_call :: fn(self: Printer, x: p.CallExpr) -> void {
 }
 
 emit_field :: fn(self: Printer, x: p.FieldExpr) -> void {
-    self.emit_expr(x.target)
+    self.emit_postfix_target(x.target)
     self.write(".")
     self.write(x.field)
 }
 
 emit_index :: fn(self: Printer, x: p.IndexExpr) -> void {
-    self.emit_expr(x.target)
+    self.emit_postfix_target(x.target)
     self.write("[")
     self.emit_expr(x.index)
     self.write("]")
+}
+
+// Emit the target / callee of a postfix operator (`.field`, `[index]`, call
+// `(...)`), parenthesising it when it binds looser than the postfix.
+emit_postfix_target :: fn(self: Printer, target: p.Expr) -> void {
+    if postfix_target_needs_parens(target) {
+        self.write("(")
+        self.emit_expr(target)
+        self.write(")")
+    } else {
+        self.emit_expr(target)
+    }
+}
+
+// Postfix operators (`.field`, `[index]`, call `(...)`) bind tightest in the
+// grammar, so a looser-binding target only ends up here if the source
+// parenthesised it. Re-wrap it or the parens are dropped and the postfix
+// re-targets a sub-expression : `(0..<3).count()` → `0..<3.count()` rebinds
+// `.count()` to `3`, `(x + y).abs()` → `x + y.abs()` rebinds to `y`, and
+// `(-x).abs()` → `-x.abs()` rebinds to `x`. Covers every non-primary,
+// non-postfix operand ; primaries / postfix chains / self-delimiting forms
+// (`T(x)`, `T<U>`) fall through and stay bare.
+postfix_target_needs_parens :: fn(e: p.Expr) -> bool {
+    if e is p.BinaryExpr { return true }
+    if e is p.RangeExpr  { return true }
+    if e is p.UnaryExpr  { return true }
+    if e is p.IfExpr     { return true }
+    if e is p.MatchExpr  { return true }
+    if e is p.BlockExpr  { return true }
+    if e is p.LambdaExpr { return true }
+    return false
 }
 
 // ---- operators ----
@@ -1384,6 +1419,20 @@ emit_binary :: fn(self: Printer, x: p.BinaryExpr) -> void {
 // (comparisons, `is`, `in`) reject chaining entirely, so a same-rank child on
 // either side is parenthesised.
 emit_binary_operand :: fn(self: Printer, operand: p.Expr, parent_op: p.BinaryOp, is_left: bool) -> void {
+    // A fn type as a union / intersection operand must be parenthesised : its
+    // `-> ReturnType` greedily absorbs a following `| T`, so bare `(fn() -> A) | B`
+    // re-emits as `fn() -> A | B` and reparses as `fn() -> (A | B)`. Always wrap
+    // (redundant only on the chain's rightmost leaf, but structurally correct and
+    // idempotent). A fn type never operands any other binary op, so the guard on
+    // `.BitOr` / `.BitAnd` keeps arithmetic / comparison emission untouched.
+    if operand is p.FnTypeExpr {
+        if parent_op == .BitOr || parent_op == .BitAnd {
+            self.write("(")
+            self.emit_expr(operand)
+            self.write(")")
+            return
+        }
+    }
     match operand {
         is p.BinaryExpr as inner -> {
             parent_rank :: binary_precedence(parent_op)

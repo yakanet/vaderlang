@@ -163,6 +163,46 @@ MASK: u64: 0xFFFFFFFF
 NAMES: string[]: ["a", "b"]
 `,
   },
+  {
+    // Postfix target paren-drop. A range / binary / unary receiver of `.method`,
+    // `[index]` or a call binds looser than the postfix, so its parens are
+    // required — dropping them re-targets the postfix at a sub-expression
+    // (`(0..<3).count()` → `0..<3.count()` binds `.count()` to `3`).
+    name: "postfix_target_parens",
+    source: `module "reg/postfix_target_parens"
+
+r :: fn() -> i64 = (0..<3).count()
+b :: fn(x: i32, y: i32) -> i32 = (x + y).abs()
+u :: fn(x: i32) -> i32 = (-x).abs()
+i :: fn(x: i32, y: i32) -> i32[] = (x + y)[0..<2]
+`,
+  },
+  {
+    // Local typed-const `name: T: value` (two single colons) is immutable ;
+    // re-emitting it as `name: T = value` silently widened it to a mutable local.
+    name: "local_typed_const",
+    source: `module "reg/local_typed_const"
+
+f :: fn() -> u64 {
+    a: u64: 14757395258967641293
+    b: i32 = 2
+    return a + u64(b)
+}
+`,
+  },
+  {
+    // Fn type as a union operand needs parens : \`-> ReturnType\` greedily
+    // absorbs a following \`| T\`, so \`(fn() -> void) | null\` re-emitted bare
+    // becomes \`fn() -> void | null\` = \`fn() -> (void | null)\`.
+    name: "fn_type_union",
+    source: `module "reg/fn_type_union"
+
+S :: struct {
+    a: (fn(string, string) -> void) | null
+    c: i32 | (fn() -> void) | string
+}
+`,
+  },
 ];
 
 for (const { name, source } of REGRESSIONS) {
