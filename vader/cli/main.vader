@@ -248,7 +248,9 @@ cmd_run :: fn(args: string[]) -> i32 {
 // either way:  vader run prog.virt -- dump --stage=bytecode main.vader
 forwarded_argv :: fn(path: string, args: string[]) -> string[] {
     out: string[] = [path]
-    for i in 1..<args.len() { out.push(args[i]) }
+    for i in 1..<args.len() {
+        out.push(args[i])
+    }
     return out
 }
 
@@ -292,7 +294,9 @@ run_source :: fn(file: string, host_argv: string[]) -> i32 {
     // function" trap that buries the real diagnostic. Gate on `pre_diags` only
     // ([] for the lower bag) — a lower-stage diagnostic leaves runnable
     // bytecode, so the program still executes, as it did before.
-    if !flush_build_diags(le.pre_diags, []) { return 1 }
+    if !flush_build_diags(le.pre_diags, []) {
+        return 1
+    }
     pruned :: prune_unreachable_fns(le.lowered, false)
     module :: cfg_to_bytecode(pruned, module_name_from_file(file), default_emit_options())
     // Feed the in-hand `BytecodeModule` straight to the VM — no `.virt` text
@@ -327,9 +331,13 @@ entry_index_for_file :: fn(
     module: BytecodeModule, lowered: LoweredProject, file: string, default_index: i32,
 ) -> i32 {
     mangled :: named_file_main_mangled(lowered, file)
-    if mangled == "" { return default_index }
+    if mangled == "" {
+        return default_index
+    }
     for i in 0..<module.functions.len() {
-        if module.functions[i].name == mangled { return i32(i) }
+        if module.functions[i].name == mangled {
+            return i32(i)
+        }
     }
     return default_index
 }
@@ -340,23 +348,27 @@ entry_index_for_file :: fn(
 // `LoweredFnDecl` / `origin.decl is FnDecl` shape `find_tests` walks.
 named_file_main_mangled :: fn(lowered: LoweredProject, file: string) -> string {
     md :: lowered.modules[lowered.entry]
-    if md == null { return "" }
+    if md == null {
+        return ""
+    }
     named_base :: file.to_posix().to_path().filename()
     for d in md.decls {
         if d is LoweredFnDecl as fd {
-            if !fd.origin.is_main { continue }
+            if !fd.origin.is_main {
+                continue
+            }
             if fd.origin.decl is FnDecl as ast {
                 decl_base :: ast.span.start.file.to_posix().to_path().filename()
-                if decl_base == named_base { return fd.mangled }
+                if decl_base == named_base {
+                    return fd.mangled
+                }
             }
         }
     }
     return ""
 }
 
-cmd_fmt :: fn(args: string[]) -> i32 {
-    return run_fmt(args)
-}
+cmd_fmt :: fn(args: string[]) -> i32 = run_fmt(args)
 
 cmd_lsp :: fn(args: string[]) -> i32 = run_server(args)
 
@@ -433,7 +445,9 @@ cmd_test :: fn(args: string[]) -> i32 {
         for t in all_tests {
             if !(t.mangled in ran) { fresh.push(t) }
         }
-        if fresh.len() == 0 { continue }
+        if fresh.len() == 0 {
+            continue
+        }
         files_with_tests += 1
         println(rep)
         mangles: string[] = []
@@ -469,7 +483,9 @@ cmd_test :: fn(args: string[]) -> i32 {
     fail_text :: "${total_fail} fail"
     fail_part :: if total_fail > 0 { TTY.red(fail_text) } else { fail_text }
     println("${total} tests | ${pass_part} | ${fail_part}")
-    if total_fail == 0 { return 0 }
+    if total_fail == 0 {
+        return 0
+    }
     return 1
 }
 
@@ -481,10 +497,15 @@ find_tests :: fn(lp: LoweredProject) -> DiscoveredTest[] {
     for [_, m] in lp.modules {
         for d in m.decls {
             if d is LoweredFnDecl as fd {
-                if fd.body == null { continue }
+                if fd.body == null {
+                    continue
+                }
                 if fd.origin.decl is FnDecl as ast {
                     if has_test_decorator(ast) {
-                        out.push(DiscoveredTest { .mangled = fd.mangled, .display = ast.name })
+                        out.push(DiscoveredTest {
+                            .mangled = fd.mangled,
+                            .display = ast.name,
+                        })
                     }
                 }
             }
@@ -495,7 +516,9 @@ find_tests :: fn(lp: LoweredProject) -> DiscoveredTest[] {
 
 has_test_decorator :: fn(ast: FnDecl) -> bool {
     for dec in ast.decorators {
-        if dec.name == "test" { return true }
+        if dec.name == "test" {
+            return true
+        }
     }
     return false
 }
@@ -515,10 +538,16 @@ discover_vader_files :: fn(target: string) -> string[] {
 
 walk_test_dir :: fn(dir: string, out: string[]) -> void {
     entries :: read_dir(dir)
-    if entries is IOError { return }
+    if entries is IOError {
+        return
+    }
     for name in entries {
-        if name.starts_with(".") { continue }
-        if name in SKIP_TEST_DIRS { continue }
+        if name.starts_with(".") {
+            continue
+        }
+        if name in SKIP_TEST_DIRS {
+            continue
+        }
         full :: "${dir}/${name}"
         if is_dir(full) {
             walk_test_dir(full, out)
@@ -568,16 +597,24 @@ is_folder_module :: fn(group: string[]) -> bool = collect_sibling_imports(group)
 /// scope, no by-name imports).
 collect_sibling_imports :: fn(group: string[]) -> string[] {
     names: string[] = []
-    for f in group { names.push(basename_no_ext(f)) }
+    for f in group {
+        names.push(basename_no_ext(f))
+    }
     out: string[] = []
     for f in group {
         src :: read_file_string(f)
-        if src is IOError { continue }
+        if src is IOError {
+            continue
+        }
         for line in src.split("\n") {
             seg :: import_last_segment(line)
-            if seg == "" { continue }
+            if seg == "" {
+                continue
+            }
             if seg in names {
-                if !(seg in out) { out.push(seg) }
+                if !(seg in out) {
+                    out.push(seg)
+                }
             }
         }
     }
@@ -588,21 +625,31 @@ collect_sibling_imports :: fn(group: string[]) -> string[] {
 /// is not an import.
 import_last_segment :: fn(line: string) -> string {
     t :: line.trim()
-    if !t.starts_with("import ") { return "" }
+    if !t.starts_with("import ") {
+        return ""
+    }
     tb :: t.bytes()
     q1 :: t.index_of('"', 0)
-    if q1 < 0 { return "" }
+    if q1 < 0 {
+        return ""
+    }
     q2 :: t.index_of('"', usize(q1) + 1)
-    if q2 < 0 { return "" }
+    if q2 < 0 {
+        return ""
+    }
     path :: tb[usize(q1) + 1..<usize(q2)].bytes_to_string()
     slash :: last_index_of_slash(path)
-    if slash < 0 { return path }
+    if slash < 0 {
+        return path
+    }
     return path.bytes()[usize(slash) + 1..<path.bytes().len()].bytes_to_string()
 }
 
 dir_of :: fn(path: string) -> string {
     slash :: last_index_of_slash(path)
-    if slash < 0 { return "." }
+    if slash < 0 {
+        return "."
+    }
     return path.bytes()[0..<usize(slash)].bytes_to_string()
 }
 
@@ -641,7 +688,9 @@ cmd_build :: fn(args: string[]) -> i32 {
     ]
     parsed :: parse_known(args, specs)
     if parsed.errors.len() > 0 {
-        for e in parsed.errors { eprintln("vader build: ${e}") }
+        for e in parsed.errors {
+            eprintln("vader build: ${e}")
+        }
         return 1
     }
 
@@ -671,8 +720,12 @@ cmd_build :: fn(args: string[]) -> i32 {
         return 2
     }
 
-    if target == "c"      { return build_c(file, out_flag, release, include_path_flags) }
-    if target == "native" { return build_native(file, out_flag, release, cc, ldflags, include_path_flags) }
+    if target == "c" {
+        return build_c(file, out_flag, release, include_path_flags)
+    }
+    if target == "native" {
+        return build_native(file, out_flag, release, cc, ldflags, include_path_flags)
+    }
 
     // TODO: --target=ir / --target=ir-text — write the binary (.vir) / text
     // (.virt) bytecode module. The bytecode already exists post
@@ -692,7 +745,9 @@ emit_c_source :: fn(file: string, release: bool, include_path_flags: string[]) -
     // Debug build → populate the per-op `debug` table so the c-emit keeps
     // `#line` ; release drops both (the seed + shipped compiler stay lean).
     b :: prepare_cfg_bytecode_with(file, !release, include_path_flags)
-    if !flush_build_diags(b.pre_diags, b.lower_diags) { return null }
+    if !flush_build_diags(b.pre_diags, b.lower_diags) {
+        return null
+    }
     // Designate the program entry by mangled name (same source as the bytecode
     // stage's `export main N`) so the `main()` shim resolves the entry module's
     // `main` even when a multi-module input (the compiler imports `vader/lsp`,
@@ -711,7 +766,9 @@ emit_c_source :: fn(file: string, release: bool, include_path_flags: string[]) -
 // (return false) ; warnings / info still print.
 flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
     all :: merge_diagnostics(pre, lower)
-    if all.len() > 0 { eprintln(all.dump_diagnostics_with_file()) }
+    if all.len() > 0 {
+        eprintln(all.dump_diagnostics_with_file())
+    }
     return !any_error_diag(all)
 }
 
@@ -719,12 +776,18 @@ flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
 // `--out=-` streams it to stdout — the bootstrap seed pipes that into gzip.
 build_c :: fn(file: string, out_flag: string, release: bool, include_path_flags: string[]) -> i32 {
     c_src :: emit_c_for_input(file, release, include_path_flags)
-    if c_src is null { return 1 }
+    if c_src is null {
+        return 1
+    }
     if out_flag == "-" {
         print(c_src)
         return 0
     }
-    out :: if out_flag != "" { out_flag } else { "${strip_input_suffix(file)}.c" }
+    out :: if out_flag != "" {
+        out_flag
+    } else {
+        "${strip_input_suffix(file)}.c"
+    }
     return write_out(out, c_src)
 }
 
@@ -732,8 +795,11 @@ build_c :: fn(file: string, out_flag: string, release: bool, include_path_flags:
 // bytecode dump (`parse_virt_bc` → `emit_c`). A `.virt` input skips the
 // lexer/parser/typer/lower/emit pipeline — the bytecode already exists.
 emit_c_for_input :: fn(file: string, release: bool, include_path_flags: string[]) -> string | null =
-    if file.ends_with(".virt") { emit_c_source_from_virt(file, release) }
-    else { emit_c_source(file, release, include_path_flags) }
+    if file.ends_with(".virt") {
+        emit_c_source_from_virt(file, release)
+    } else {
+        emit_c_source(file, release, include_path_flags)
+    }
 
 // Read a `.virt` text dump, reconstruct its `BytecodeModule`, and hand it to
 // the C-emit. The entry fn is the module's `is_main` function (recovered from
@@ -745,30 +811,47 @@ emit_c_source_from_virt :: fn(file: string, release: bool) -> string | null {
         return null
     }
     module :: parse_virt_bc(src)
-    return emit_c(module, CEmitOptions { .release = release, .entry_mangled = virt_entry_mangled(module) })
+    return emit_c(module, CEmitOptions {
+        .release = release,
+        .entry_mangled = virt_entry_mangled(module)
+    })
 }
 
 // Mangled name of the entry fn (the `is_main` function), or `""` when none.
 virt_entry_mangled :: fn(module: BytecodeModule) -> string {
     for f in module.functions {
-        if f.is_main { return f.name }
+        if f.is_main {
+            return f.name
+        }
     }
     return ""
 }
 
 // Default output base name : strip the recognised source / IR suffix.
 strip_input_suffix :: fn(file: string) -> string =
-    if file.ends_with(".virt") { file.trim_suffix(".virt") } else { file.trim_suffix(".vader") }
+    if file.ends_with(".virt") {
+        file.trim_suffix(".virt")
+    } else {
+        file.trim_suffix(".vader")
+    }
 
 // `--target=native` : emit the C next to the binary, then invoke the C
 // compiler to link it against the external runtime (`runtime/c/`). The `.c`
 // is kept on a `cc` failure so the user can inspect the generated source.
 build_native :: fn(file: string, out_flag: string, release: bool, cc: string, ldflags: string, include_path_flags: string[]) -> i32 {
     c_src :: emit_c_for_input(file, release, include_path_flags)
-    if c_src is null { return 1 }
-    out :: if out_flag != "" { out_flag } else { strip_input_suffix(file) }
+    if c_src is null {
+        return 1
+    }
+    out :: if out_flag != "" {
+        out_flag
+    } else {
+        strip_input_suffix(file)
+    }
     c_file :: "${out}.c"
-    if write_out(c_file, c_src) != 0 { return 1 }
+    if write_out(c_file, c_src) != 0 {
+        return 1
+    }
 
     res :: spawn(cc_argv(cc, c_file, out, release, ldflags))
     if res is ProcessError {
@@ -814,7 +897,9 @@ cc_argv :: fn(cc: string, c_file: string, out: string, release: bool, ldflags: s
     // quoting : a path with spaces is a user bug. Appended before `-o` so they
     // can refer back to the emitted unit (e.g. `@extern` helper symbols).
     for tok in ldflags.trim().split(" ") {
-        if tok != "" { argv.push(tok) }
+        if tok != "" {
+            argv.push(tok)
+        }
     }
     argv.push("-o")
     argv.push(out)
@@ -856,7 +941,9 @@ cmd_dump :: fn(args: string[]) -> i32 {
     // stdlib-vs-user split.
     module_arg :: parsed.string_flag("module", "")
     module_filter: string[] = []
-    if module_arg != "" { module_filter = module_arg.split(",") }
+    if module_arg != "" {
+        module_filter = module_arg.split(",")
+    }
 
     if stage == "" || file == "" {
         eprintln("vader dump: expected --stage=<stage> <file>")
