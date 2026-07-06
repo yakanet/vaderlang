@@ -29,8 +29,11 @@ if grep -q "W0005" build/fp2.diags; then
   exit 1
 fi
 
-# (c) seed freshness : vader re-emits bootstrap.vader, must match the committed seed.
-./build/vader build vader/bootstrap/bootstrap.vader --target=c --out=build/bootstrap.new.c
+# (c) seed freshness : vader re-emits bootstrap.vader, must match the committed
+# seed. --release mirrors regenerate.sh : it keeps `#line` out of the seed (the
+# c-emit gates them on !release), so a populated debug table doesn't bloat the
+# committed artifact. For --target=c, --release only drops `#line`.
+./build/vader build vader/bootstrap/bootstrap.vader --release --target=c --out=build/bootstrap.new.c
 if ! cmp -s build/bootstrap.new.c <(gunzip -c bootstrap/bootstrap.c.gz); then
   echo "STALE SEED — bootstrap.c.gz no longer matches bootstrap.vader; run bootstrap/regenerate.sh" >&2
   exit 1

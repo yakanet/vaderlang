@@ -112,6 +112,7 @@ static vader_string_t snippet_ParseErr_Error_message(vader_box_t l0) {
     vader_box_t* gc_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
+#line 12 "tests/snippets/trait_virtual_dispatch/_main.vader"
     t0 = (vader_string_t) ((vader_struct_snippet_ParseErr_t*) l0.payload.obj)->f_msg;
     l1 = t0;
     t1 = concat_2(1u, l1);
@@ -125,6 +126,7 @@ static vader_string_t snippet_NetErr_Error_message(vader_box_t l0) {
     vader_box_t* gc_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
+#line 13 "tests/snippets/trait_virtual_dispatch/_main.vader"
     t0 = (vader_string_t) ((vader_struct_snippet_NetErr_t*) l0.payload.obj)->f_reason;
     l1 = t0;
     t1 = concat_2(2u, l1);
@@ -137,6 +139,7 @@ static vader_string_t snippet_report(vader_box_t l0) {
     vader_box_t* gc_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
+#line 16 "tests/snippets/trait_virtual_dispatch/_main.vader"
     t0 = vader_vt_Error__message(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -148,18 +151,21 @@ static int32_t snippet_main(void) {
     vader_box_t* gc_roots[2] = { &t0, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
+#line 20 "tests/snippets/trait_virtual_dispatch/_main.vader"
     vader_struct_snippet_ParseErr_t* _a0_obj = (vader_struct_snippet_ParseErr_t*) vader_gc_alloc(sizeof(vader_struct_snippet_ParseErr_t));
     vader_obj_header_init(_a0_obj, 1u);
     _a0_obj->f_msg = 3u;
     t0 = vader_box_obj(1u, _a0_obj);
     t1 = snippet_report(t0);
     std_io_println__string(t1);
+#line 21 "tests/snippets/trait_virtual_dispatch/_main.vader"
     vader_struct_snippet_NetErr_t* _a1_obj = (vader_struct_snippet_NetErr_t*) vader_gc_alloc(sizeof(vader_struct_snippet_NetErr_t));
     vader_obj_header_init(_a1_obj, 3u);
     _a1_obj->f_reason = 4u;
     t2 = vader_box_obj(3u, _a1_obj);
     t3 = snippet_report(t2);
     std_io_println__string(t3);
+#line 22 "tests/snippets/trait_virtual_dispatch/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     vader_gc_top = gc_frame.prev;
 }
@@ -195,6 +201,7 @@ static vader_box_t std_core_new_byte_buffer(size_t l0) {
     vader_box_t* gc_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
+#line 112 "stdlib/std/core/primitives.vader"
     t0 = std_core_usize_BufferAlloc_new_buffer_vt(l0);
     { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -206,6 +213,7 @@ static size_t std_core_byte_len(vader_string_t l0) {
     vader_box_t* gc_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
+#line 118 "stdlib/std/core/primitives.vader"
     t0 = vader_import_0(l0);
     t1 = ((vader_array_t*) t0.payload.obj)->length;
     { size_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -217,6 +225,7 @@ static vader_string_t std_core_finish_buffer(vader_box_t l0, size_t l1) {
     vader_box_t* gc_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
+#line 115 "stdlib/std/core/primitives.vader"
     t0 = std_core_Buffer_ByteAccess_intern_string_vt(l0, l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -225,8 +234,11 @@ static vader_string_t std_core_finish_buffer(vader_box_t l0, size_t l1) {
 static void std_io_println__string(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL };
     vader_gc_top = &gc_frame;
+#line 60 "stdlib/std/io/io.vader"
     vader_import_1(INT32_C(0), l0);
+#line 61 "stdlib/std/io/io.vader"
     vader_import_1(INT32_C(0), 5u);
+#line 59 "stdlib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }

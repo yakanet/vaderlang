@@ -39,17 +39,21 @@ const size_t                vader_vtable_count    = 0;
 
 static int32_t snippet_main(void) {
     uint64_t t0;
+#line 11 "tests/snippets/trait_dispatch_param/_main.vader"
     t0 = snippet_hash_twice__i32(INT32_C(7));
+#line 12 "tests/snippets/trait_dispatch_param/_main.vader"
     return ((int32_t) (uint64_t) t0);
 }
 
 static uint64_t snippet_hash_twice__i32(int32_t l0) {
     uint64_t l1, l2;
     int64_t t0, t1;
+#line 286 "stdlib/std/core/primitives.vader"
     t0 = ((int64_t) (int32_t) l0);
     l1 = (uint64_t) (int64_t) t0;
     t1 = ((int64_t) (int32_t) l0);
     l2 = (uint64_t) (int64_t) t1;
+#line 7 "tests/snippets/trait_dispatch_param/_main.vader"
     return (uint64_t) (int64_t) (l1 + l2);
 }
 

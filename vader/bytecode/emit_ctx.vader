@@ -10,8 +10,8 @@ module "vader/bytecode"
 import "std/collections" { MutableMap }
 import "vader/types" { Type }
 
-/// Knobs threaded through the emit. Today only `optimize` matters —
-/// when true, the future peephole pass runs over each fn body.
+/// Knobs threaded through the emit. `optimize` gates the peephole / DCE
+/// passes ; `want_debug` gates whether each op carries its source position.
 export EmitOptions :: struct {
     optimize: bool
     /// Extra fn mangles to KEEP as roots through the dead-function prune (on
@@ -19,11 +19,20 @@ export EmitOptions :: struct {
     /// `@test` fn mangles here so they survive to the bytecode and can be run
     /// by name ; empty for normal builds.
     keep_mangles: string[]
+    /// Populate the per-op `debug: (DebugPos | null)[]` table with source
+    /// positions. Only the non-release c-emit reads it (for `#line`), so this
+    /// is `!release` on the C-build / `dump --stage=c` path and `false`
+    /// everywhere else — the VM never reads `debug`, so populating it on the
+    /// run / comptime / self-compile-release path would allocate one `DebugPos`
+    /// box per op for nothing.
+    want_debug: bool
 }
 
-/// Default options : peephole ON, no extra roots.
-/// @return  a fresh `EmitOptions` with `optimize = true`.
-export default_emit_options :: fn() -> EmitOptions = EmitOptions { .optimize = true, .keep_mangles = [] }
+/// Default options : peephole ON, no extra roots, debug table OFF (the VM /
+/// comptime / bytecode-dump callers never read it). The C-build path opts in
+/// via `want_debug = !release`.
+/// @return  a fresh `EmitOptions` with `optimize = true`, `want_debug = false`.
+export default_emit_options :: fn() -> EmitOptions = EmitOptions { .optimize = true, .keep_mangles = [], .want_debug = false }
 
 /// Per-project emit context. Built once at the top of `emit_project`,
 /// threaded through every reservation + body-emit call. Carries the
