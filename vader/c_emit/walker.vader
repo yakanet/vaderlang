@@ -1328,7 +1328,7 @@ one_variant_check :: fn(s: FnState, v_name: string, type_id: i32) -> string {
 /// source, by `prefix_before_double_underscore`). Mirrors the VM's
 /// `struct_siblings_match` : an erased generic flows a runtime sibling shape
 /// (`Entry(i32,i32)`, a distinct tag) into a `type_check` typed against the
-/// erased one (`Entry(Any,Any)`) — exact-tag equality would miss it (and trip
+/// erased one (`Entry<Any,Any>`) — exact-tag equality would miss it (and trip
 /// the dead-return guard on the match fall-through). A non-generic struct
 /// (empty prefix) has no siblings → a bare tag compare.
 struct_check_expr :: fn(types: BcType[], v_name: string, target_id: i32, target_name: string) -> string {

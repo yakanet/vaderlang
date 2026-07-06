@@ -56,7 +56,7 @@ export type_from_expr :: fn(
             return ty
         }
         is AST.GenericInstExpr as e -> { return lower_generic_inst(e, resolved, diags) }
-        // `Iterator(i32)` / `Pair(K, V)` parsed as CallExpr in type
+        // `Iterator(i32)` / `Pair<K, V>` parsed as CallExpr in type
         // position : lower the callee to a Type and apply its args.
         is AST.CallExpr as e -> { return lower_call_in_type_position(e, resolved, diags) }
         is AST.BinaryExpr as e -> { return lower_binary(e, resolved, diags) }
@@ -127,8 +127,8 @@ resolve_named_type :: fn(sym: Symbol, resolved: ResolvedModule) -> Type {
 }
 
 // Substitute an alias's type-params with the call-site's args.
-// `Maybe[T] :: T | null` instantiated as `Maybe(i32)` walks the
-// alias body and replaces every `TypeParam(T)` with `i32`.
+// `Maybe<T> :: T | null` instantiated as `Maybe(i32)` walks the
+// alias body and replaces every `TypeParam<T>` with `i32`.
 substitute_alias_args :: fn(t: Type, params: AST.TypeParam[], args: Type[]) -> Type {
     if params.len() == 0 || args.len() == 0 { return t }
     return walk_substitute(t, params, args)

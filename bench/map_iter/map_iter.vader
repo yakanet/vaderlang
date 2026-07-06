@@ -1,8 +1,8 @@
 /// Map iteration micro-bench — exercises the `for entry in m` desugar
-/// path on a small map iterated repeatedly. Stresses the `Into(Iterator
-/// (Entry(K, V)))` impl on `MutableMap`, the iterator-chain fusion's
+/// path on a small map iterated repeatedly. Stresses the `Into<Iterator
+/// <Entry<K, V>>>` impl on `MutableMap`, the iterator-chain fusion's
 /// devirtualisation of the `MappedIterator.next()` call, and the GC under
-/// 1 M `Yielded(Entry(K, V))` allocs.
+/// 1 M `Yielded<Entry<K, V>>` allocs.
 
 module "main"
 

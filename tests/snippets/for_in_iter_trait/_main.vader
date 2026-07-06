@@ -1,14 +1,14 @@
-// `for x in iter` where `iter` has trait type `Iterator(T)` dispatches
+// `for x in iter` where `iter` has trait type `Iterator<T>` dispatches
 // `next()` through `LoweredVirtualCall` instead of looking up a static
 // impl on a concrete struct. Same surface, but the receiver may be a
-// `Range`, `ArrayIterator`, or any user struct implementing `Iterator(T)`
+// `Range`, `ArrayIterator`, or any user struct implementing `Iterator<T>`
 // — the runtime dispatches by tag.
 //
 // Before this fix, `for x in it` on a trait-typed `it` errored with
-// B5001 ("requires Iterator impl on Iterator(T)") because the lowerer
+// B5001 ("requires Iterator impl on Iterator<T>") because the lowerer
 // only knew the static-impl path. Companion entry point : the UFCS
 // dispatch `iter.fn(...)` on a trait-typed-first-param overload (e.g.
-// `std/iter.filter(it: Iterator(T), pred)`) is now also routable.
+// `std/iter.filter(it: Iterator<T>, pred)`) is now also routable.
 
 module "snippet"
 
@@ -26,8 +26,8 @@ sum_iter :: fn(it: Iterator<i32>) -> i32 {
     return total
 }
 
-// Count items via a chained `Iterator(T)`-receiver call. UFCS picks the
-// lazy `filter :: fn[T](self: Iterator(T), …) -> FilterIterator(T)`
+// Count items via a chained `Iterator<T>`-receiver call. UFCS picks the
+// lazy `filter :: fn<T>(self: Iterator<T>, …) -> FilterIterator<T>`
 // overload, then `.count()` (default method on the `Iterator` trait)
 // consumes the chain without allocating an intermediate array.
 is_l :: fn(c: char) -> bool { return c == 'l' }
@@ -37,7 +37,7 @@ count_ls :: fn(s: string) -> usize {
 
 main :: fn() -> i32 {
     a :: sum_iter(0..<5)               // 0+1+2+3+4 = 10
-    b :: sum_iter([10, 20, 30])        // T[] → Iterator(T) coercion
+    b :: sum_iter([10, 20, 30])        // T[] → Iterator<T> coercion
     println("range sum  = ${a}")
     println("array sum  = ${b}")
 

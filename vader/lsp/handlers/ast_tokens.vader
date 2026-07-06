@@ -540,7 +540,7 @@ walk_type_expr :: fn(e: AST.Expr, out: RawToken[]) -> void {
             for a in x.type_args { walk_type_expr(a, out) }
         }
         is AST.CallExpr         as x -> {
-            // `Map(K, V)` in type position parses as a call ; the callee is
+            // `Map<K, V>` in type position parses as a call ; the callee is
             // a type, the args are types.
             walk_type_expr(x.callee, out)
             for a in x.args { walk_type_expr(a.value, out) }

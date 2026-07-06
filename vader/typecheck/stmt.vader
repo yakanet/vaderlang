@@ -922,13 +922,13 @@ diag_sink_stmt :: fn() -> Diagnostic[] { return [] }
 
 // Pull the iterator's element type. `T[]` yields `T` directly ;
 // generic `StructType` falls back to first type arg (covers Range and
-// Iterator(T) wrappers). Otherwise probes `typed.iter_element_types`
-// for the indexed `X implements Iterator(T)` impl.
+// Iterator<T> wrappers). Otherwise probes `typed.iter_element_types`
+// for the indexed `X implements Iterator<T>` impl.
 for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
     // Arrays — and array-backed distinct newtypes — yield their element type.
     ab :: array_backing(iter_ty)
     if ab != null { return ab.element }
-    // @partial: only structs (Range, Iterator(T) wrappers) remain iterable here
+    // @partial: only structs (Range, Iterator<T> wrappers) remain iterable here
     // — `array_backing` already returned for every array ; other types yield an
     // unresolved element.
     @partial match iter_ty {
@@ -949,7 +949,7 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
             }
             // Substitute the impl's TypeParam against the
             // struct's declared type_params + concrete args
-            // (`Range[T] implements Iterator[T]` records the
+            // (`Range<T> implements Iterator<T>` records the
             // impl-side `T` — substitute_by_name swaps it
             // for the call-site's concrete arg by name).
             decl :: typed.struct_decls[st.symbol.id]

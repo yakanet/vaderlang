@@ -397,7 +397,7 @@ gen_combo_subst :: fn(
         order: i32[] = []
         // Bind the SOURCE element type-param from the post-fusion concrete
         // `source_elem`, NOT from the receiver's (possibly erased) type. `self` is
-        // `Iterator(T)` for every combinator, so its element `T` is `params[0]`'s
+        // `Iterator<T>` for every combinator, so its element `T` is `params[0]`'s
         // trait arg. This retires the old "unify arg before receiver" ordering
         // hack (which only existed to stop an erased head binding `T = Any` first).
         // For a concrete head `source_elem` equals the receiver's element, so the
@@ -410,7 +410,7 @@ gen_combo_subst :: fn(
                 source_bound = true
             }
         }
-        // Non-`Iterator(T)` self shouldn't occur for these combinators ; keep the
+        // Non-`Iterator<T>` self shouldn't occur for these combinators ; keep the
         // receiver-unify fallback so an unexpected shape behaves as before.
         if !source_bound {
             unify_params(f.params[0], default_if_free(ctx.types.expr_type(receiver)), bindings, order, ctx)

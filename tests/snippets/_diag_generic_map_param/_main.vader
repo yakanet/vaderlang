@@ -1,6 +1,6 @@
 // _diag_generic_map_param — a generic fn whose parameter is typed with a
-// stdlib generic struct (`MutableMap(K, V)`) must erase that type-reference
-// to the all-Any representative (`MutableMap(Any, Any)`) so it dedupes onto
+// stdlib generic struct (`MutableMap<K, V>`) must erase that type-reference
+// to the all-Any representative (`MutableMap<Any, Any>`) so it dedupes onto
 // the representative slot. Vader instead keeps the unsubstituted type-params
 // in the instantiated fn's signature, so the bytecode interner mints an
 // orphan `ref MutableMap` slot per reference instead of pointing at the

@@ -276,7 +276,7 @@ build_impl_subst :: fn(
 ) -> Substitution {
     subst :: new_substitution()
     // Bounded form (impl-own typeParams) : substitute against impl's
-    // typeParams. The legacy `Foo[T] implements ...` form is handled
+    // typeParams. The legacy `Foo<T> implements ...` form is handled
     // by walking through the impl-side resolved symbols (the resolver
     // hoists struct typeParam names into the impl's scope).
     if impl_decl.type_params.len() > 0 {
@@ -317,7 +317,7 @@ build_impl_subst :: fn(
 /// distinct concrete monos share a single C-emit body.
 ///
 /// Maps by name across every TypeParam symbol the impl module
-/// exposes. The legacy `Stack[T] implements ...` form hoists the
+/// exposes. The legacy `Stack<T> implements ...` form hoists the
 /// struct's `T` into the impl's scope without giving it a fresh
 /// symbol id ; matching by `(name, kind=TypeParam)` catches it
 /// regardless of whose `defined_at` the use sites carry.

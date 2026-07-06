@@ -4,7 +4,7 @@ import "std/io" { println }
 import "std/collections" { MutableMap, MutableSet, add }
 
 main :: fn() -> i32 {
-    // MutableMap — `for entry in m` desugars via the Into(Iterator(...))
+    // MutableMap — `for entry in m` desugars via the Into<Iterator<...>>
     // impl on MutableMap. Sum every value, expect 6.
     m := MutableMap<string, i32> {}
     m["a"] = 1

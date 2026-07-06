@@ -282,7 +282,7 @@ type_surface_name :: fn(t: Type) -> string = match t {
 
 
 impl_targets_name :: fn(for_type: Expr, name: string) -> bool {
-    // @partial: only Ident / GenericInst(Ident) / ArrayTypeExpr name an impl
+    // @partial: only Ident / GenericInst<Ident> / ArrayTypeExpr name an impl
     // target; every other Expr → false.
     @partial match for_type {
         is IdentExpr        as e -> { return e.name == name }
@@ -328,7 +328,7 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
     arg :: lower_expr(ctx, call.args[0].value)
     arg_type :: type_of(arg)
     // `Target(value)` probes for `value : Source` where
-    // `Source implements Into[Target]`. When the Into impl exists, the
+    // `Source implements Into<Target>`. When the Into impl exists, the
     // typer's `tryInto` lifts `value` to `into(value)` ; we recreate
     // that lift at lower time. The numeric-primitive cast then wraps
     // the lifted call for byte-parity (`cast → i32 / call into(u)`).
@@ -414,7 +414,7 @@ try_array_iter_coercion :: fn(
     return null
 }
 
-/// `Target(value)` where `value : Source` and `Source implements Into[Target]`
+/// `Target(value)` where `value : Source` and `Source implements Into<Target>`
 /// emits `LoweredCall { callee: into, args: [value] }`.
 try_emit_into_coercion :: fn(
     ctx: FnLowerCtx, arg: LoweredExpr, arg_type: Type, target_type: Type, span: Span,
@@ -425,7 +425,7 @@ try_emit_into_coercion :: fn(
     if array_iter != null { return array_iter }
     src_name :: type_surface_name(arg_type)
     if src_name == "" { return null }
-    // Find `Source implements Into[Target] { into }`. The decl carries
+    // Find `Source implements Into<Target> { into }`. The decl carries
     // `trait_name = "Into"` and a single trait_arg the surface name of
     // which must equal target_type's surface name.
     target_name :: type_surface_name(target_type)

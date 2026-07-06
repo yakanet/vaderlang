@@ -1,7 +1,7 @@
-// Generic type aliases via the LHS-bracketed `Name[T] :: <body>` form.
-// `Name[T]` between the ident and `::` is the unambiguous head ; the body
+// Generic type aliases via the LHS-angle head `Name<T> :: <body>` form.
+// `Name<T>` between the ident and `::` is the unambiguous head ; the body
 // is parsed as a regular expression and resolved as a type at use sites
-// like `Maybe[i32]`. Mirrors the non-generic implicit alias `Foo :: i32 | u32`
+// like `Maybe<i32>`. Mirrors the non-generic implicit alias `Foo :: i32 | u32`
 // — `type` is no longer a keyword in Vader.
 
 module "snippet"

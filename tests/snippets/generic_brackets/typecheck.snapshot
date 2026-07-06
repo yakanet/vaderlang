@@ -5,16 +5,16 @@
   FnDecl         main                 :: fn() -> i32
   StructDecl     Pair                 :: Pair<A, B>
   FnDecl         swap                 :: fn(A, B) -> B
-  expr 11:37    IdentExpr      :: B
+  expr 10:37    IdentExpr      :: B
+  expr 19:10    CallExpr       :: i32
+  expr 19:10    IdentExpr      :: fn(T) -> T
   expr 20:10    CallExpr       :: i32
-  expr 20:10    IdentExpr      :: fn(T) -> T
-  expr 21:10    CallExpr       :: i32
-  expr 21:10    IdentExpr      :: fn(A, B) -> B
-  expr 22:10    StructLitExpr  :: Pair<i32, i32>
-  expr 23:12    BinaryExpr     :: i32
-  expr 23:12    BinaryExpr     :: i32
-  expr 23:12    IdentExpr      :: i32
-  expr 23:16    IdentExpr      :: i32
-  expr 23:20    FieldExpr      :: i32
-  expr 23:20    IdentExpr      :: Pair<i32, i32>
-  expr 8:32     IdentExpr      :: T
+  expr 20:10    IdentExpr      :: fn(A, B) -> B
+  expr 21:10    StructLitExpr  :: Pair<i32, i32>
+  expr 22:12    BinaryExpr     :: i32
+  expr 22:12    BinaryExpr     :: i32
+  expr 22:12    IdentExpr      :: i32
+  expr 22:16    IdentExpr      :: i32
+  expr 22:20    FieldExpr      :: i32
+  expr 22:20    IdentExpr      :: Pair<i32, i32>
+  expr 7:32     IdentExpr      :: T

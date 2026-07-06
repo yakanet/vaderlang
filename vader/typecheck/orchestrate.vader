@@ -639,9 +639,9 @@ merge_external_impl_methods :: fn(
 diag_sink :: fn() -> Diagnostic[] { return [] }
 
 
-// `Into(Iterator(T))` is the for-in coercion entry point — pull T
-// out of the `Iterator(T)` arg so `for x in X` binds x to T.
-// Returns null when the arg isn't shaped like `Iterator(T)`.
+// `Into<Iterator<T>>` is the for-in coercion entry point — pull T
+// out of the `Iterator<T>` arg so `for x in X` binds x to T.
+// Returns null when the arg isn't shaped like `Iterator<T>`.
 into_iterator_element :: fn(
     arg: AST.TypeExpr, resolved: ResolvedModule,
 ) -> Type | null {
@@ -1271,8 +1271,8 @@ populate_imported_fn_overloads :: fn(
     // where `to_string` wasn't explicitly imported) still finds the
     // matching free fn from `std/string_builder`. We iterate
     // `fn_overloads` (not `symbols`) so every overload of the same
-    // name (`len :: fn[T](self: MutableSet(T))` AND `len :: fn[K, V]
-    // (self: MutableMap(K, V))`) lands in the bucket.
+    // name (`len :: fn<T>(self: MutableSet<T>)` AND `len :: fn<K, V>
+    // (self: MutableMap<K, V>)`) lands in the bucket.
     entry_path :: entry_typed.resolved.path
     for [_, other] in per_module {
         if other.resolved.path == entry_path { continue }
@@ -1622,7 +1622,7 @@ register_impl_metadata :: fn(
             typed.impl_methods[base_key] = ufcs_ty
             record_impl_trait(typed, base_key, id.trait_name)
         }
-        // `Into(T)` impls are indexed under a target-qualified key so
+        // `Into<T>` impls are indexed under a target-qualified key so
         // multiple `Into` impls for the same source (e.g. `Into(i32)` +
         // `Into(string)`) don't collide.
         if id.trait_name == TRAIT_INTO && id.trait_args.len() == 1 && m.name == METHOD_INTO && ufcs_ty != null {

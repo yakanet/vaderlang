@@ -36,7 +36,7 @@ export Capture :: struct {
 }
 
 /// Free-variable analysis output. `captured_symbols` lists every symbol
-/// ID that needs heap-promotion via `Cell(T)` ; `lambda_captures` keys
+/// ID that needs heap-promotion via `Cell<T>` ; `lambda_captures` keys
 /// the per-lambda capture list (field order in the generated env struct
 /// mirrors this order). `defer_captures` plays the same role for
 /// `defer body` thunks — the body lifts to a synthetic fn carrying its

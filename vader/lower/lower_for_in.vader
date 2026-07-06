@@ -7,11 +7,11 @@
 //   loop {
 //     let __step_m :: <iter>.Iterator.next()
 //     if __step_m is null { break }
-//     let x :: (__step_m as Yield(T)).value
+//     let x :: (__step_m as Yield<T>).value
 //     <body>
 //   }
 //
-// and auto-wraps `T[]` iterators into `ArrayIterator(T)` so the loop
+// and auto-wraps `T[]` iterators into `ArrayIterator<T>` so the loop
 // dispatches through the standard Iterator impl. Before falling back to
 // it, `lower_for_in` tries a series of fast paths that bypass the
 // Iterator dispatch entirely : `try_lower_chain_fusion` (std/iter
@@ -35,7 +35,7 @@ import "vader/types" {
 }
 
 /// Lower a `for x in iter { body }` statement to a step-loop driven
-/// by the `Iterator(T).next()` dispatch.
+/// by the `Iterator<T>.next()` dispatch.
 /// @param ctx          the fn-body context.
 /// @param for_stmt     the source for-stmt (carries label + body).
 /// @param in_form      the iter binding + iter expression.
@@ -79,14 +79,14 @@ export lower_for_in :: fn(
     raw_array :: try_lower_for_in_raw_array(ctx, for_stmt, in_form, iter_lowered_raw, iter_type_raw, recurse, block_lowerer)
     if raw_array != null { return raw_array }
 
-    // Fast path : `for entry in m` over `MutableMap(K, V)` (or
-    // `for v in s` over `MutableSet(T)`) inlines the bucket-walk +
+    // Fast path : `for entry in m` over `MutableMap<K, V>` (or
+    // `for v in s` over `MutableSet<T>`) inlines the bucket-walk +
     // chain-traversal, skipping the MappedIterator allocation and the
     // per-iter `next()` + `Yield` allocations.
     map_set :: try_lower_for_in_map_set(ctx, for_stmt, in_form, iter_lowered_raw, iter_type_raw, span, block_lowerer)
     if map_set != null { return map_set }
 
-    // Auto-wrap `T[]` → ArrayIterator(T) so the step-loop can dispatch
+    // Auto-wrap `T[]` → ArrayIterator<T> so the step-loop can dispatch
     // through the standard Iterator impl. Falls through to the raw
     // value when the array iterator type isn't reachable.
     wrap_result :: try_wrap_array_iter(ctx, iter_lowered_raw, iter_type_raw, span)
@@ -247,8 +247,8 @@ WrapResult :: struct {
 
 // Wrap a non-iterator receiver into a concrete struct iterator so the
 // step-loop has something to dispatch `next()` on :
-//   - `T[]`     → `ArrayIterator(T)` (struct-wrapped in place ; avoids the
-//                 erased-`Iterator(T)` virtual-call hazard).
+//   - `T[]`     → `ArrayIterator<T>` (struct-wrapped in place ; avoids the
+//                 erased-`Iterator<T>` virtual-call hazard).
 //   - `string`  → `StringChars` via a synthesised `chars(s)` call. `string`
 //                 implements `Into(Iterator(char))`, but routing through
 //                 `into()` yields the erased `Iterator(char)` trait (the same
@@ -314,13 +314,13 @@ try_wrap_array_iter :: fn(
 // Determine the element type yielded by the iterator. Tries :
 // 0. The type the typer already bound to the loop variable, stored under
 //    its span in `local_types`. This is authoritative : the typer resolves
-//    the `Iterator(T)` impl and substitutes the iterator's concrete type
+//    the `Iterator<T>` impl and substitutes the iterator's concrete type
 //    args, so it correctly handles combinators whose element type is NOT
 //    the first type arg — `MappedIterator(i32, i64)` yields `i64` (the impl's
-//    `Iterator(U)`), not the source `i32` ; a `MutableMap` iterator yields
-//    `Entry(K, V)`. The structural heuristics below cannot, so they must
+//    `Iterator<U>`), not the source `i32` ; a `MutableMap` iterator yields
+//    `Entry<K, V>`. The structural heuristics below cannot, so they must
 //    only run when the typer left no usable entry.
-// 1. The raw iter type's first type-arg (Range(T), ArrayIterator(T)).
+// 1. The raw iter type's first type-arg (Range<T>, ArrayIterator<T>).
 // 2. `typed.iter_element_types[display_type(raw_iter_type)]` — written
 //    by the typecheck when checking the Iterator impl.
 // 3. Falls back to TY_UNRESOLVED so the lowered loop still emits a
@@ -882,8 +882,8 @@ rewrite_continue_expr :: fn(e: LoweredExpr, inside_nested_loop: bool, inc: Lower
     return e
 }
 
-// `for entry in m` over `MutableMap(K, V)` / `for v in s` over
-// `MutableSet(T)` — inline the bucket-walk + chain-traversal so the loop
+// `for entry in m` over `MutableMap<K, V>` / `for v in s` over
+// `MutableSet<T>` — inline the bucket-walk + chain-traversal so the loop
 // skips the MappedIterator struct, the per-iter `next()` call, and the
 // per-iter `Yield` allocation. Returns null when the iter type isn't a
 // recognised map/set or std/collections isn't loaded.
@@ -898,7 +898,7 @@ try_lower_for_in_map_set :: fn(
         is_map :: struct_sym_matches(module_export(ctx.project, "std/collections", "MutableMap"), source.symbol.id)
         is_set :: struct_sym_matches(module_export(ctx.project, "std/collections", "MutableSet"), source.symbol.id)
         if !is_map && !is_set { return null }
-        // Entry(K, V) args : Map(K, V) → [K, V] ; Set(T) → [T, bool].
+        // Entry<K, V> args : Map<K, V> → [K, V] ; Set<T> → [T, bool].
         entry_args: Type[] = []
         if is_map {
             for a in source.args { entry_args.push(a) }

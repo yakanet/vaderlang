@@ -14,7 +14,7 @@ import "vader/types" { Type, FnType, TraitType, TypeParamType, ArrayType, TupleT
 import "vader/comptime" { mangle_type_arg, uniq }
 import "vader/resolver" { ImportTargetTable, SymbolTarget }
 
-/// `fn[T, U](a, b)` call to a top-level generic fn lowers to a direct
+/// `fn<T, U>(a, b)` call to a top-level generic fn lowers to a direct
 /// call against the monomorphized instance. Detection : callee is an
 /// IdentExpr resolving to a Fn symbol whose source FnDecl has
 /// `type_params.len() > 0`. Type args come from the args' inferred
@@ -160,8 +160,8 @@ emit_generic_fn_call :: fn(
     // disambiguates the mangle and preserves insertion order.
     inst_key :: "${fn_sym.id}::${suffix}"
     mangled :: register_fn_instance_mangle(ctx, fn_sym, concrete_args, module_id, base_mangled, inst_key)
-    // Build args ; a raw array flowing into an `Iterator(T)` param coerces
-    // through `into` (→ `ArrayIterator(T)`), mirroring the non-generic arg path.
+    // Build args ; a raw array flowing into an `Iterator<T>` param coerces
+    // through `into` (→ `ArrayIterator<T>`), mirroring the non-generic arg path.
     lowered_args: LoweredExpr[] = []
     for i in 0..<call.args.len() {
         arg_lowered :: lower_expr(ctx, call.args[i].value)
@@ -316,7 +316,7 @@ unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type
     }
     // Trait param vs concrete arg : recover the trait's generic args by
     // walking the impl table, then unify them with the pattern's args.
-    // Drives monomorphisation of `fn[T](it: Iterator(T))` etc. from any
+    // Drives monomorphisation of `fn<T>(it: Iterator<T>)` etc. from any
     // arg that implements the trait (struct, primitive, raw array, or a
     // value already boxed into the trait type).
     if pattern is TraitType as ptr {
@@ -388,10 +388,10 @@ unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type
 //   1. `concrete` is already the same trait (a boxed value) → its args.
 //   2. A concrete `implements` recorded in `struct_trait_args`
 //      (`Hello implements Greeter(i32)`, `i32 implements Doubler(i32)`).
-//   3. The builtin `Iterator(T)` element : the first type-arg of a struct
+//   3. The builtin `Iterator<T>` element : the first type-arg of a struct
 //      iterator (`Range(i32)`, `ArrayIterator(i32)`) or a raw array's
 //      element — covers generic impls whose recorded args are still
-//      type-params, plus the `T[] → Iterator(T)` coercion that has no
+//      type-params, plus the `T[] → Iterator<T>` coercion that has no
 //      impl decl. Returns `null` when no source resolves.
 trait_concrete_args :: fn(tt: TraitType, concrete: Type, ctx: FnLowerCtx) -> Type[] | null {
     if concrete is TraitType as ct {

@@ -31,7 +31,7 @@ export is_assignable :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> 
     if equals_type(from, to) { return true }
 
     // TypeParam wildcard — accepts any concrete type. Lets a generic
-    // `fn[K, V](self: MutableMap(K, V))` fn accept a concrete
+    // `fn<K, V>(self: MutableMap<K, V>)` fn accept a concrete
     // `MutableMap(string, i32)` receiver via UFCS dispatch.
     if from is TypeParamType { return true }
     if to is TypeParamType { return true }

@@ -52,7 +52,7 @@ export TypedProgram :: struct {
     /// Target type of every implicit `.into()` coercion, keyed by the
     /// coerced value expression's `Expr.id`. Written by `coerce.vader::
     /// try_into` on the two `.into()`-flavoured branches (a real `Into`
-    /// impl and the `T[] → Iterator(T)` blanket) — trait widening
+    /// impl and the `T[] → Iterator<T>` blanket) — trait widening
     /// (`Cat → Animal`) is a subtype widen with no synthesised call, so
     /// it records nothing. Consumed only by the LSP inlay-hint handler,
     /// which surfaces a ghost `.into()` at the value's end. Invisible to
@@ -107,7 +107,7 @@ export TypedProgram :: struct {
     fn_decls: MutableMap<i32, FnDecl>
 
     /// Owner module of each trait — used when resolving trait method
-    /// signatures so cross-module `Iterator(T).next` types `T` against
+    /// signatures so cross-module `Iterator<T>.next` types `T` against
     /// std/core's resolved.idents, not the entry's. Keyed by the
     /// trait's Symbol id, populated alongside `trait_decls`.
     trait_decl_owners: MutableMap<i32, ResolvedModule>
@@ -200,24 +200,24 @@ export TypedProgram :: struct {
     imported_fn_overloads: MutableMap<string, FnType[]>
 
     /// `display_type(for_ty) → element` for every `X implements
-    /// Iterator(T)` impl reached during type-checking. Consumed by
+    /// Iterator<T>` impl reached during type-checking. Consumed by
     /// `stmt.vader::for_in_element` so `for c in some_iter` binds
     /// `c` to T.
     iter_element_types: MutableMap<string, Type>
 
-    /// `display_type(for_ty) → T` for every `X implements Index[I, T]`
+    /// `display_type(for_ty) → T` for every `X implements Index<I, T>`
     /// impl. Consumed by `expr_index.vader` so `m[k]` returns T when
     /// `m` is a user struct with an Index impl.
     index_target_types: MutableMap<string, Type>
 
-    /// `display_type(for_ty) → K` for every `X implements Index[K, _]`
-    /// or `X implements IndexSet[K, _]` impl. Consumed by
+    /// `display_type(for_ty) → K` for every `X implements Index<K, _>`
+    /// or `X implements IndexSet<K, _>` impl. Consumed by
     /// `expr_index.vader` / `stmt.vader` to pin a free-literal index key
     /// (`m[9000000000]`) to the resolved key type instead of letting it
     /// default to i32 and silently truncate.
     index_key_types: MutableMap<string, Type>
 
-    /// `display_type(for_ty) → V` for every `X implements IndexSet[K, V]`
+    /// `display_type(for_ty) → V` for every `X implements IndexSet<K, V>`
     /// impl. Consumed by `stmt.vader::check_assign` to pin a free-literal
     /// index-set value (`m[k] = 9000000000`) to the declared value type.
     /// Distinct from `index_target_types` (which records the nullable
@@ -254,7 +254,7 @@ export TypedProgram :: struct {
     /// `Hello implements Greeter(i32)` records
     /// `struct_trait_args["Hello"]["Greeter"] = [i32]`. Consumed by
     /// `unify.vader::unify_type_param` so a generic fn parametrised by
-    /// `fn[T](g: Greeter(T))` called as `f(Hello {})` can bind T → i32.
+    /// `fn<T>(g: Greeter<T>)` called as `f(Hello {})` can bind T → i32.
     struct_trait_args: MutableMap<string, MutableMap<string, Type[]>>
 
     /// Enclosing fn-body context, pushed by `check_fn_body` and

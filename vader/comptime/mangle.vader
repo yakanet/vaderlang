@@ -135,8 +135,8 @@ export for_type_name :: fn(t: TypeExpr) -> string = @partial match t {
 }
 
 /// Pull the bare name out of a `GenericInstExpr` whose callee is an
-/// IdentExpr (`Foo[T]` form). Falls back to `"?"` for unusual shapes
-/// (`Mod.Foo[T]`, `(fn() -> i32)[T]`, …).
+/// IdentExpr (`Foo<T>` form). Falls back to `"?"` for unusual shapes
+/// (`Mod.Foo<T>`, `(fn() -> i32)[T]`, …).
 // @partial: only an IdentExpr callee yields a bare name; other callee shapes
 // fall to the "?" sentinel.
 generic_callee_name :: fn(gi: GenericInstExpr) -> string = @partial match gi.callee {

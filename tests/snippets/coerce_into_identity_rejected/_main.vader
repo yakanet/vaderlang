@@ -1,4 +1,4 @@
-// `T implements Into(T)` is forbidden by SPEC §X *Type coercion* — identity
+// `T implements Into<T>` is forbidden by SPEC §X *Type coercion* — identity
 // coercion would shadow simple assignment. T3039 fires at the impl site.
 // # compile errors
 

@@ -1,6 +1,6 @@
 // vader/typecheck/expr_range — RangeExpr inference (`a..b`, `a..<b`).
 //
-// MVP: type the bounds, then return `Range(T)` where T is the lower
+// MVP: type the bounds, then return `Range<T>` where T is the lower
 // bound's concrete primitive (i32 if both bounds are FreeInt). The
 // full Range struct from `std/core` requires resolver-side core
 // lookup ; until that ships here we return `Range` as an
@@ -15,7 +15,7 @@ import "vader/types" {
 }
 AST :: import "vader/parser"
 
-/// Type-check a range. Resolves to `Range(T)` when `std/core::Range`
+/// Type-check a range. Resolves to `Range<T>` when `std/core::Range`
 /// is loaded (auto-loaded by `loader.vader`), otherwise Unresolved.
 /// `T` is picked from the lower bound's concrete type ; when both
 /// bounds are FreeInt the upper bound is probed.

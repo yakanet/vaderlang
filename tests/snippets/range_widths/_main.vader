@@ -1,4 +1,4 @@
-// Range[T] supports every integer width that std/core ships an Iterator
+// Range<T> supports every integer width that std/core ships an Iterator
 // impl for : i8 / i16 / i32 / i64 / isize / u8 / u16 / u32 / u64 / usize.
 // The bound type is picked from the first concrete operand, so a FreeInt
 // literal on the left adopts the upper bound's width.

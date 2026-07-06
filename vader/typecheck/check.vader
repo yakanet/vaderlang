@@ -28,7 +28,7 @@ export CheckResult :: struct {
     /// when the orchestrator runs the full multi-module pipeline ;
     /// downstream passes that need impl-by-trait queries (lower,
     /// bytecode emit) read this so std-defined impls
-    /// (`MutableMap[K,V] implements IndexSet[K, V]`, etc.) are
+    /// (`MutableMap<K,V> implements IndexSet<K, V>`, etc.) are
     /// reachable. `others` keeps the legacy filter that skips std/.
     all_modules: MutableMap<string, TypedProgram>
 }

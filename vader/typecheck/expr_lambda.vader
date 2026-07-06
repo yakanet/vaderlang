@@ -94,7 +94,7 @@ pick_ctx_return :: fn(expected: Type | null) -> Type {
 pick_final_return :: fn(expected: Type | null, body: Type) -> Type {
     if expected == null { return default_if_free(body) }
     // Expected might still carry unbound TypeParams (`U`,
-    // `U[]`, `Yield(U)`, …) or a Free* leftover from a
+    // `U[]`, `Yield<U>`, …) or a Free* leftover from a
     // tentative unify. Fall back to the body's defaulted type
     // in those cases so the lambda's signature reports the
     // concrete shape its body actually produces.

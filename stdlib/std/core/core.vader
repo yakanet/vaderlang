@@ -59,9 +59,9 @@ export Hash :: trait {
 
 /// Advance one position along a discrete sequence. Sole obligation : `step()`
 /// returns the *next* value after `self`. Used by `Range[T : Step & Comparable]
-/// implements Iterator[T]` so a single generic impl covers every integer
+/// implements Iterator<T>` so a single generic impl covers every integer
 /// width plus `char` — concrete `+ 1` / codepoint-bump logic lives in each
-/// primitive's `Step` impl instead of being repeated per `Range[T]` impl.
+/// primitive's `Step` impl instead of being repeated per `Range<T>` impl.
 export Step :: trait {
     step :: fn(self) -> Self
 }
@@ -75,7 +75,7 @@ export Clone :: trait {
 
 /// Type-to-type conversion. Two surfaces :
 ///   - **Implicit** : when a value of type `S` flows into a slot
-///     expecting `Target` and `S implements Into(Target)`, the compiler
+///     expecting `Target` and `S implements Into<Target>`, the compiler
 ///     inserts `value.into()` at the boundary. Sites : call args with a
 ///     typed parameter, `return` values, `let x: T = …`, and struct-
 ///     literal fields.
@@ -86,7 +86,7 @@ export Clone :: trait {
 ///
 /// Coercion is **not** transitive (`A → B → C` never auto-chains), the
 /// target must be a concrete type (not a union, type-param or unresolved
-/// type), and `T implements Into(T)` is forbidden (would shadow identity
+/// type), and `T implements Into<T>` is forbidden (would shadow identity
 /// assignments). See SPEC §11 *Type coercion* for the full rules.
 export Into :: trait<Target> {
     into :: fn(self) -> Target
@@ -164,7 +164,7 @@ export Contains :: trait<T> {
 /// `is_empty` are default methods derived from `next` (Layer 8d) ; every
 /// `Iterator` impl picks them up without re-implementing.
 ///
-/// `next()` returns `null` when the iteration is exhausted, or `Yield(T)`
+/// `next()` returns `null` when the iteration is exhausted, or `Yield<T>`
 /// carrying the next value. Mirrors Rust's `Option<T>::Some` shape — the
 /// `Yield` wrapper distinguishes "an iterator yielded a value" from "this
 /// type is a nullable T at the type level" (relevant when T itself can be
@@ -231,7 +231,7 @@ export Error :: trait {
 /// with the end-of-iteration sentinel.
 ///
 /// At the runtime level the wrapper is transparent : for T = ref,
-/// `Yield(T) | null` lowers to a single `void*` slot (T's obj_ptr or
+/// `Yield<T> | null` lowers to a single `void*` slot (T's obj_ptr or
 /// NULL) ; for T = primitive, the value rides in `vader_box_t.payload`
 /// with no wrapper allocation.
 @specialize
@@ -262,7 +262,7 @@ export Range :: struct<T> {
 // concrete `+ 1` / codepoint-bump logic lives in those per-primitive impls
 // in this same file (search for `implements Step` and `implements
 // Comparable`). The mono pass materialises one specialisation per concrete
-// `Range[T]` instance the program uses ; the lowerer routes each method
+// `Range<T>` instance the program uses ; the lowerer routes each method
 // call to the right primitive impl statically.
 
 Range<T> implements<T: Comparable & Step> Contains<T> {

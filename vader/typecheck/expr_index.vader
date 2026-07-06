@@ -29,7 +29,7 @@ export infer_index :: fn(
     index :: check_expr_fn(e.index, expected_index, typed, diags)
     if target is UnresolvedType { return TY_UNRESOLVED }
     // `"hello"[1]` — codepoint indexing on string returns char.
-    // `"hello"[r]` where `r: Range(T)` — codepoint slice returning string.
+    // `"hello"[r]` where `r: Range<T>` — codepoint slice returning string.
     if target is PrimitiveType {
         if target.name == "string" {
             if is_range_type(index) { return TY_STRING }
@@ -41,7 +41,7 @@ export infer_index :: fn(
         }
     }
     // Arrays — and array-backed distinct newtypes (`BigInt :: u32[]`) via
-    // `array_backing` — index by element. `arr[r]` with `r: Range(T)` slices.
+    // `array_backing` — index by element. `arr[r]` with `r: Range<T>` slices.
     arr_view :: array_backing(target)
     if arr_view != null {
         if is_range_type(index) { return mk_array(arr_view.element, false) }

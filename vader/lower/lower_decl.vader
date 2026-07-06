@@ -171,7 +171,7 @@ impl_member_overload_suffix :: fn(
 }
 
 for_type_name_of :: fn(for_type: TypeExpr) -> string {
-    // @partial: only Ident / GenericInst(Ident) shapes name a nominal target;
+    // @partial: only Ident / GenericInst<Ident> shapes name a nominal target;
     // every other TypeExpr → "" (no nominal name).
     @partial match for_type {
         is IdentExpr as e -> { return e.name }
@@ -184,11 +184,11 @@ for_type_name_of :: fn(for_type: TypeExpr) -> string {
 }
 
 // Recover the target struct / enum / alias name from the impl's
-// `for_type`. Only `IdentExpr` and `GenericInstExpr(IdentExpr)` shapes
+// `for_type`. Only `IdentExpr` and `GenericInstExpr<IdentExpr>` shapes
 // surface as nominal impls today ; anything else falls back to the
 // raw display string (defensive — never expected to fire).
 for_type_name :: fn(for_type: TypeExpr, typed: TypedProgram) -> string {
-    // @partial: only Ident / GenericInst(Ident) shapes surface as nominal impls;
+    // @partial: only Ident / GenericInst<Ident> shapes surface as nominal impls;
     // every other TypeExpr falls back to "<unknown>" (defensive — never expected).
     @partial match for_type {
         is IdentExpr as e -> { return e.name }

@@ -1,7 +1,7 @@
 // vader/typecheck/inherit_bounds — typeParam-bound inheritance from
 // struct head into impl blocks.
 //
-// `Foo :: struct[T: Display] { … }` + `Foo[T] implements Bar` should
+// `Foo :: struct[T: Display] { … }` + `Foo<T> implements Bar` should
 // inherit `T: Display` into the impl block's typeParam scope so
 // `Bar`'s methods see the bound. The intended algorithm walks each
 // ImplDecl, finds the struct's typeParams (when ImplDecl.forType is a

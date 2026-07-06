@@ -196,7 +196,7 @@ test_substitute_recurses_into_fn_type :: fn() -> void {
 
 @test
 test_substitute_recurses_into_generic_inst :: fn() -> void {
-    // `Foo(T)` with T → i32 should yield `Foo(i32)`.
+    // `Foo<T>` with T → i32 should yield `Foo(i32)`.
     // Two-step typing: Vader's typechecker infers `[make_ident("T")]` as
     // `IdentExpr[]` and refuses to widen to `TypeExpr[]` — annotating
     // the element first ropes it into the wider type.

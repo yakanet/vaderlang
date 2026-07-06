@@ -3,7 +3,7 @@ module "snippet"
 import "std/io" { println }
 
 // `v in arr` / `v !in arr` over an array literal and over a borrowed `bytes()`
-// view, both routed through the std/core blanket `T[] implements[T] Contains(T)`.
+// view, both routed through the std/core blanket `T[] implements<T> Contains<T>`.
 main :: fn() -> i32 {
     primes :: [2, 3, 5, 7, 11]
     if 7 in primes  { println("7 is prime") }

@@ -2,7 +2,7 @@ module "snippet"
 
 import "std/io" { println }
 
-// Explicit form of the `Into(Target)` coercion : `Target(value)`. For
+// Explicit form of the `Into<Target>` coercion : `Target(value)`. For
 // non-numeric targets the call routes through the matching `into` impl
 // instead of emitting a primitive cast (those still go through the
 // dedicated `i32(x)` / `f64(x)` paths). Pairs with the implicit-form

@@ -344,7 +344,7 @@ collect_pattern :: fn(p: AST.Pattern, out: Span[]) -> void {
     }
 }
 
-// Type-position identifiers (`x: Foo`, `Map(K, V)`, `A | B`). The topmost ident
+// Type-position identifiers (`x: Foo`, `Map<K, V>`, `A | B`). The topmost ident
 // names a type that the body walker resolves into `idents`, so it's a reference.
 collect_type :: fn(e: AST.Expr, out: Span[]) -> void {
     match e {
