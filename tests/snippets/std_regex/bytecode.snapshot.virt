@@ -130,30 +130,27 @@ export main 2
 
 fn 0 snippet$run_match (string,ref,string) -> void
   local __p_0 string
-  local $k_4 usize
   local $call_5 usize
   local __buf_1 ref
   local $call_14 bool
   local.get 0
   local.set 3
-  i64.const 6
-  local.set 4
   local.get 3
   call 7
-  local.set 5
+  local.set 4
+  i64.const 6
   local.get 4
-  local.get 5
   i64.add
   call 5
-  local.set 6
+  local.set 5
   i64.const 0
   local.set 4
-  local.get 6
+  local.get 5
   local.get 4
   local.get 3
   call 8
   local.set 4
-  local.get 6
+  local.get 5
   local.get 4
   string.const 0
   call 8
@@ -161,13 +158,13 @@ fn 0 snippet$run_match (string,ref,string) -> void
   local.get 1
   local.get 2
   call 13
-  local.set 7
-  local.get 6
+  local.set 6
+  local.get 5
   local.get 4
-  local.get 7
+  local.get 6
   call 10
   local.set 4
-  local.get 6
+  local.get 5
   local.get 4
   call 6
   call 12
@@ -179,7 +176,6 @@ fn 1 snippet$run_find (string,ref,string) -> void
   local __p_0 string
   local $field_8 ref
   local __p_1 string
-  local $k_12 usize
   local $call_13 usize
   local $call_14 usize
   local $cast_26 u64
@@ -199,20 +195,18 @@ fn 1 snippet$run_find (string,ref,string) -> void
     array.get 12
     ref.cast 1
     local.set 6
-    i64.const 44
-    local.set 7
     local.get 4
     call 7
-    local.set 8
+    local.set 7
     local.get 6
     call 7
-    local.set 9
-    local.get 8
-    local.get 9
-    i64.add
     local.set 8
     local.get 7
     local.get 8
+    i64.add
+    local.set 7
+    i64.const 44
+    local.get 7
     i64.add
     call 5
     local.set 5
@@ -232,10 +226,10 @@ fn 1 snippet$run_find (string,ref,string) -> void
     struct.get 14 0
     ref.cast 7
     usize.to_i64
-    local.set 10
+    local.set 9
     local.get 5
     local.get 7
-    local.get 10
+    local.get 9
     call 9
     local.set 7
     local.get 5
@@ -247,10 +241,10 @@ fn 1 snippet$run_find (string,ref,string) -> void
     struct.get 14 1
     ref.cast 7
     usize.to_i64
-    local.set 10
+    local.set 9
     local.get 5
     local.get 7
-    local.get 10
+    local.get 9
     call 9
     local.set 7
     local.get 5
@@ -283,11 +277,9 @@ fn 2 snippet$main () -> i32
   local $cast_39 u64
   local $len_44 usize
   local __p_2 string
-  local $k_51 usize
   local $call_52 usize
   local __buf_3 ref
   local __off_4 usize
-  local $cast_67 usize
   string.const 4
   call 15
   local.tee 0
@@ -387,49 +379,45 @@ fn 2 snippet$main () -> i32
           array.get 12
           ref.cast 1
           local.set 5
-          i64.const 27
-          local.set 6
           local.get 5
           call 7
-          local.set 7
+          local.set 6
+          i64.const 27
           local.get 6
-          local.get 7
           i64.add
           call 5
-          local.set 8
+          local.set 7
           i64.const 0
-          local.set 9
+          local.set 8
+          local.get 7
           local.get 8
-          local.get 9
           string.const 17
           call 8
-          local.set 9
+          local.set 8
           local.get 2
           usize.to_i64
           local.set 3
+          local.get 7
           local.get 8
-          local.get 9
           local.get 3
           call 9
-          local.set 9
+          local.set 8
+          local.get 7
           local.get 8
-          local.get 9
           string.const 18
           call 8
-          local.set 9
+          local.set 8
+          local.get 7
           local.get 8
-          local.get 9
           local.get 5
           call 8
-          local.set 9
+          local.set 8
+          local.get 7
           local.get 8
-          local.get 9
           call 6
           call 12
-          i64.const 1
-          local.set 10
           local.get 2
-          local.get 10
+          i64.const 1
           i64.add
           local.set 2
           br $L4
@@ -649,7 +637,6 @@ fn 3 concat_2 (string,string) -> string
   local c0 usize
   local $call_4 usize
   local buf ref
-  local $k_9 usize
   local.get 0
   call 7
   local.set 2
@@ -662,10 +649,8 @@ fn 3 concat_2 (string,string) -> string
   local.tee 3
   call 5
   local.set 4
-  i64.const 0
-  local.set 5
   local.get 4
-  local.get 5
+  i64.const 0
   local.get 0
   call 54
   local.get 4
@@ -683,7 +668,6 @@ fn 4 concat_3 (string,string,string) -> string
   local $call_5 usize
   local $call_8 usize
   local buf ref
-  local $k_13 usize
   local.get 0
   call 7
   local.set 3
@@ -703,10 +687,8 @@ fn 4 concat_3 (string,string,string) -> string
   local.tee 5
   call 5
   local.set 6
-  i64.const 0
-  local.set 7
   local.get 6
-  local.get 7
+  i64.const 0
   local.get 0
   call 54
   local.get 6
@@ -758,102 +740,76 @@ fn 8 std_core$write_string_at (ref,usize,string) -> usize
 end
 
 fn 9 std_core$write_unsigned (ref,usize,u64) -> usize
-  local $k_3 u64
-  local $k_5 u8
-  local $k_6 usize
-  local $k_11 u64
-  local $k_13 usize
-  local $k_15 u64
-  local $k_21 usize
+  local ndigits usize
+  local m u64
+  local i usize
   local $cast_26 u8
   local $add_27 u8
-  i64.const 0
-  local.set 3
   local.get 2
-  local.get 3
+  i64.const 0
   i64.eq
   if $L0 void
-    i32.const 48
-    local.set 4
     local.get 0
     local.get 1
-    local.get 4
+    i32.const 48
     call 52
-    i64.const 1
-    local.set 5
     local.get 1
-    local.get 5
+    i64.const 1
     i64.add
     return
   end $L0
   i64.const 0
-  local.set 5
-  local.get 2
   local.set 3
+  local.get 2
+  local.set 4
   block $L1 void
     loop $L2 void
+      local.get 4
       i64.const 0
-      local.set 6
-      local.get 3
-      local.get 6
       i64.ne
       if $L3 void
-        i64.const 1
-        local.set 7
-        local.get 5
-        local.get 7
-        i64.add
-        local.set 5
-        i64.const 10
-        local.set 8
         local.get 3
-        local.get 8
-        u64.div
+        i64.const 1
+        i64.add
         local.set 3
+        local.get 4
+        i64.const 10
+        u64.div
+        local.set 4
         br $L2
       else
       end $L3
     end $L2
   end $L1
   local.get 1
-  local.get 5
+  local.get 3
   i64.add
-  local.set 7
+  local.set 5
   block $L4 void
     loop $L5 void
-      i64.const 0
-      local.set 3
       local.get 2
-      local.get 3
+      i64.const 0
       i64.ne
       if $L6 void
+        local.get 5
         i64.const 1
-        local.set 9
-        local.get 7
-        local.get 9
         i64.sub
-        local.set 7
-        i32.const 48
-        local.set 4
-        i64.const 10
-        local.set 6
+        local.set 5
         local.get 2
-        local.get 6
+        i64.const 10
         u64.rem
         u64.to_i32
-        local.set 10
-        local.get 4
-        local.get 10
+        local.set 6
+        i32.const 48
+        local.get 6
         i32.add
-        local.set 11
+        local.set 7
         local.get 0
+        local.get 5
         local.get 7
-        local.get 11
         call 52
-        i64.const 10
-        local.set 8
         local.get 2
-        local.get 8
+        i64.const 10
         u64.div
         local.set 2
         br $L5
@@ -862,7 +818,7 @@ fn 9 std_core$write_unsigned (ref,usize,u64) -> usize
     end $L5
   end $L4
   local.get 1
-  local.get 5
+  local.get 3
   i64.add
   return
 end
@@ -886,203 +842,153 @@ end
 fn 11 std_core$utf8_encode (char) -> ref
   local cp u32
   local out ref
-  local $k_5 u32
   local $cast_7 u8
-  local $k_11 u32
-  local $k_30 u32
+  local $shr_12 u32
   local.get 0
   char.to_i32
   local.set 1
   array.new 10 0
   local.set 2
-  i32.const 128
-  local.set 3
   local.get 1
-  local.get 3
+  i32.const 128
   u32.lt
   if $L0 void
     local.get 1
     u32.to_i32
-    local.set 4
+    local.set 3
     local.get 2
-    local.get 4
+    local.get 3
     array.push 11
   else
-    i32.const 2048
-    local.set 3
     local.get 1
-    local.get 3
+    i32.const 2048
     u32.lt
     if $L1 void
-      i32.const 192
-      local.set 3
+      local.get 1
       i32.const 6
-      local.set 5
-      local.get 1
-      local.get 5
       u32.shr
-      local.set 5
-      local.get 3
-      local.get 5
+      local.set 4
+      i32.const 192
+      local.get 4
       i32.bitor
       u32.to_i32
-      local.set 4
-      local.get 2
-      local.get 4
-      array.push 11
-      i32.const 128
       local.set 3
-      i32.const 63
-      local.set 5
-      local.get 1
-      local.get 5
-      i32.bitand
-      local.set 5
+      local.get 2
       local.get 3
-      local.get 5
+      array.push 11
+      local.get 1
+      i32.const 63
+      i32.bitand
+      local.set 4
+      i32.const 128
+      local.get 4
       i32.bitor
       u32.to_i32
-      local.set 4
+      local.set 3
       local.get 2
-      local.get 4
+      local.get 3
       array.push 11
     else
-      i32.const 65536
-      local.set 3
       local.get 1
-      local.get 3
+      i32.const 65536
       u32.lt
       if $L2 void
-        i32.const 224
-        local.set 3
+        local.get 1
         i32.const 12
-        local.set 5
-        local.get 1
-        local.get 5
         u32.shr
-        local.set 5
-        local.get 3
-        local.get 5
+        local.set 4
+        i32.const 224
+        local.get 4
         i32.bitor
         u32.to_i32
-        local.set 4
-        local.get 2
-        local.get 4
-        array.push 11
-        i32.const 128
         local.set 3
+        local.get 2
+        local.get 3
+        array.push 11
+        local.get 1
         i32.const 6
-        local.set 5
-        local.get 1
-        local.get 5
         u32.shr
-        local.set 5
-        i32.const 63
-        local.set 6
-        local.get 5
-        local.get 6
-        i32.bitand
-        local.set 5
-        local.get 3
-        local.get 5
-        i32.bitor
-        u32.to_i32
         local.set 4
-        local.get 2
         local.get 4
-        array.push 11
+        i32.const 63
+        i32.bitand
+        local.set 4
         i32.const 128
-        local.set 3
-        i32.const 63
-        local.set 5
-        local.get 1
-        local.get 5
-        i32.bitand
-        local.set 5
-        local.get 3
-        local.get 5
+        local.get 4
         i32.bitor
         u32.to_i32
-        local.set 4
+        local.set 3
         local.get 2
+        local.get 3
+        array.push 11
+        local.get 1
+        i32.const 63
+        i32.bitand
+        local.set 4
+        i32.const 128
         local.get 4
+        i32.bitor
+        u32.to_i32
+        local.set 3
+        local.get 2
+        local.get 3
         array.push 11
       else
-        i32.const 240
-        local.set 3
+        local.get 1
         i32.const 18
-        local.set 5
-        local.get 1
-        local.get 5
         u32.shr
-        local.set 5
-        local.get 3
-        local.get 5
+        local.set 4
+        i32.const 240
+        local.get 4
         i32.bitor
         u32.to_i32
-        local.set 4
-        local.get 2
-        local.get 4
-        array.push 11
-        i32.const 128
         local.set 3
+        local.get 2
+        local.get 3
+        array.push 11
+        local.get 1
         i32.const 12
-        local.set 5
-        local.get 1
-        local.get 5
         u32.shr
-        local.set 5
+        local.set 4
+        local.get 4
         i32.const 63
-        local.set 6
-        local.get 5
-        local.get 6
         i32.bitand
-        local.set 5
-        local.get 3
-        local.get 5
+        local.set 4
+        i32.const 128
+        local.get 4
         i32.bitor
         u32.to_i32
-        local.set 4
-        local.get 2
-        local.get 4
-        array.push 11
-        i32.const 128
         local.set 3
+        local.get 2
+        local.get 3
+        array.push 11
+        local.get 1
         i32.const 6
-        local.set 5
-        local.get 1
-        local.get 5
         u32.shr
-        local.set 5
+        local.set 4
+        local.get 4
         i32.const 63
-        local.set 6
-        local.get 5
-        local.get 6
         i32.bitand
-        local.set 5
-        local.get 3
-        local.get 5
+        local.set 4
+        i32.const 128
+        local.get 4
         i32.bitor
         u32.to_i32
-        local.set 4
-        local.get 2
-        local.get 4
-        array.push 11
-        i32.const 128
         local.set 3
-        i32.const 63
-        local.set 5
+        local.get 2
+        local.get 3
+        array.push 11
         local.get 1
-        local.get 5
+        i32.const 63
         i32.bitand
         local.set 1
-        local.get 3
+        i32.const 128
         local.get 1
         i32.bitor
         u32.to_i32
-        local.set 4
+        local.set 3
         local.get 2
-        local.get 4
+        local.get 3
         array.push 11
       end $L2
     end $L1
@@ -1103,15 +1009,12 @@ end
 
 fn 13 std_regex$matches (ref,string) -> bool
   local $call_2 ref
-  local $k_3 usize
   local.get 1
   call.import 1
   local.set 2
-  i64.const 0
-  local.set 3
   local.get 0
   local.get 2
-  local.get 3
+  i64.const 0
   bool.const true
   call 18
   type_check 14
@@ -1180,59 +1083,55 @@ end
 
 fn 15 std_regex$compile (string) -> ref
   local $call_1 ref
-  local $k_2 usize
   local $arr_3 ref
-  local $k_4 usize
   local $struct_9 ref
+  local $field_14 usize
+  local $len_16 usize
   local $call_23 string
   local.get 0
   call.import 1
   local.set 1
-  i64.const 0
-  local.set 2
   array.new 25 0
-  local.set 3
-  i64.const 1
-  local.set 4
+  local.set 2
   local.get 1
+  i64.const 0
   local.get 2
-  local.get 3
-  local.get 4
+  i64.const 1
   struct.new 18
   local.set 1
   local.field 1 18 2
-  local.set 3
+  local.set 2
   i64.const 0
   struct.new 33
-  local.set 5
+  local.set 3
+  local.get 2
   local.get 3
-  local.get 5
   array.push 33
   local.get 1
   call 21
-  local.tee 3
+  local.tee 2
   type_check 16
   if $L0 void
-    local.get 3
+    local.get 2
     return
   end $L0
   local.field 1 18 1
   ref.cast 7
-  local.set 2
+  local.set 4
   local.field 1 18 0
   array.len
-  local.set 4
-  local.get 2
+  local.set 5
   local.get 4
+  local.get 5
   u64.lt
   if $L1 void
     local.field 1 18 0
-    local.set 3
+    local.set 2
     local.field 1 18 1
     ref.cast 7
-    local.set 2
-    local.get 3
+    local.set 4
     local.get 2
+    local.get 4
     call 45
     call 11
     call.import 0
@@ -1244,40 +1143,38 @@ fn 15 std_regex$compile (string) -> ref
     local.set 6
     local.field 1 18 1
     ref.cast 7
-    local.set 2
+    local.set 4
     local.get 6
-    local.get 2
+    local.get 4
     struct.new 16
     return
   end $L1
   local.field 1 18 2
-  local.set 3
-  i64.const 1
-  struct.new 33
-  local.set 5
-  local.get 3
-  local.get 5
-  array.push 33
-  local.field 1 18 2
-  local.set 3
-  struct.new 32
-  local.set 5
-  local.get 3
-  local.get 5
-  array.push 32
-  local.field 1 18 2
-  local.set 3
-  local.field 1 18 3
-  ref.cast 7
   local.set 2
   i64.const 1
+  struct.new 33
+  local.set 3
+  local.get 2
+  local.get 3
+  array.push 33
+  local.field 1 18 2
+  local.set 2
+  struct.new 32
+  local.set 3
+  local.get 2
+  local.get 3
+  array.push 32
+  local.field 1 18 2
+  local.set 2
+  local.field 1 18 3
+  ref.cast 7
+  local.set 4
+  local.get 4
+  i64.const 1
+  i64.sub
   local.set 4
   local.get 2
   local.get 4
-  i64.sub
-  local.set 2
-  local.get 3
-  local.get 2
   struct.new 2
   return
 end
@@ -1391,7 +1288,6 @@ fn 17 std_regex$replace_all (ref,string,string) -> string
   local m ref
   local $field_21 usize
   local $call_23 string
-  local $k_25 usize
   local.get 1
   call.import 1
   local.set 3
@@ -1440,10 +1336,8 @@ fn 17 std_regex$replace_all (ref,string,string) -> string
         local.field 10 14 1
         ref.cast 7
         local.set 6
-        i64.const 1
-        local.set 13
         local.get 9
-        local.get 13
+        i64.const 1
         i64.add
         local.set 9
         br $L1
@@ -1478,13 +1372,13 @@ fn 17 std_regex$replace_all (ref,string,string) -> string
 end
 
 fn 18 std_regex$run_vm (ref,ref,usize,bool) -> ref
-  local $k_4 usize
   local $field_5 usize
-  local $k_6 usize
   local current ref
   local next ref
   local $arr_15 ref
+  local $len_17 usize
   local seed_groups ref
+  local $len_30 usize
   local c_at_pos char
   local bytes_consumed usize
   local $len_36 usize
@@ -1500,104 +1394,88 @@ fn 18 std_regex$run_vm (ref,ref,usize,bool) -> ref
   local and_res bool
   local $field_60 char
   local $field_63 usize
-  local $k_64 usize
   local $add_65 usize
   local $field_66 ref
   local $add_67 usize
-  local $k_68 usize
   local $add_69 usize
   local $len_71 usize
   local and_res bool
   local $field_77 usize
-  local $k_78 usize
   local $add_79 usize
   local $field_80 ref
   local $add_81 usize
-  local $k_82 usize
   local $add_83 usize
   local $len_85 usize
   local and_res bool
   local $field_91 usize
-  local $k_92 usize
   local $add_93 usize
   local $field_94 ref
   local $add_95 usize
-  local $k_96 usize
   local $add_97 usize
   local or_res bool
   local $len_102 usize
   local $len_105 usize
-  local $k_106 usize
   local if_res usize
   local $field_109 ref
   local $len_114 usize
-  local $k_115 usize
   local if_res usize
   local $field_118 ref
   local $call_122 ref
   local $k_131 usize
   local $len_133 usize
-  local $k_136 usize
   local $len_138 usize
-  local $k_139 usize
-  i64.const 2
-  local.set 4
   local.field 0 2 1
   ref.cast 7
-  local.set 5
-  i64.const 1
-  local.set 6
-  local.get 5
-  local.get 6
-  i64.add
-  local.set 5
+  local.set 4
   local.get 4
-  local.get 5
+  i64.const 1
+  i64.add
+  local.set 4
+  i64.const 2
+  local.get 4
   i64.mul
   local.set 4
   array.new 21 0
-  local.set 7
+  local.set 5
   array.new 21 0
-  local.set 8
+  local.set 6
   i64.const 0
   array.new 23 1
-  local.set 9
+  local.set 7
   local.field 0 2 0
   array.len
-  local.set 5
-  local.get 9
-  local.get 5
+  local.set 8
+  local.get 7
+  local.get 8
   array.repeat
-  local.set 9
+  local.set 7
   i64.const 1
-  local.set 5
+  local.set 8
   i64.const -1
   array.new 23 1
   local.get 4
   array.repeat
-  local.set 10
+  local.set 9
+  local.get 5
   i64.const 0
-  local.set 4
-  local.get 7
-  local.get 4
-  local.get 10
+  local.get 9
   local.get 0
   local.get 1
   local.get 2
-  local.get 9
-  local.get 5
+  local.get 7
+  local.get 8
   call 23
   null.const
-  local.set 10
+  local.set 9
   local.get 2
   local.set 4
   block $L0 void
     loop $L1 void
       local.get 1
       array.len
-      local.set 6
+      local.set 10
       local.get 4
-      local.get 6
+      local.get 10
       u64.le
       if $L2 void
         char.const 32
@@ -1627,14 +1505,14 @@ fn 18 std_regex$run_vm (ref,ref,usize,bool) -> ref
         local.set 15
         block $L4 void
           loop $L5 void
-            local.get 7
+            local.get 5
             array.len
             local.set 16
             local.get 15
             local.get 16
             u64.lt
             if $L6 void
-              local.get 7
+              local.get 5
               local.get 15
               array.get 21
               local.set 17
@@ -1674,39 +1552,35 @@ fn 18 std_regex$run_vm (ref,ref,usize,bool) -> ref
                   local.field 17 22 0
                   ref.cast 7
                   local.set 25
-                  i64.const 1
-                  local.set 26
                   local.get 25
-                  local.get 26
+                  i64.const 1
                   i64.add
-                  local.set 27
+                  local.set 26
                   local.field 17 22 1
-                  local.set 28
+                  local.set 27
                   local.get 4
                   local.get 12
                   i64.add
-                  local.set 29
-                  i64.const 1
-                  local.set 30
-                  local.get 5
-                  local.get 30
-                  i64.add
-                  local.set 31
+                  local.set 28
                   local.get 8
+                  i64.const 1
+                  i64.add
+                  local.set 29
+                  local.get 6
+                  local.get 26
                   local.get 27
-                  local.get 28
                   local.get 0
                   local.get 1
+                  local.get 28
+                  local.get 7
                   local.get 29
-                  local.get 9
-                  local.get 31
                   call 23
                 else
                 end $L9
                 i64.const 1
-                local.set 61
+                local.set 53
                 local.get 15
-                local.get 61
+                local.get 53
                 i64.add
                 local.set 15
                 br $L5
@@ -1716,57 +1590,53 @@ fn 18 std_regex$run_vm (ref,ref,usize,bool) -> ref
               if $L10 void
                 local.get 1
                 array.len
-                local.set 32
+                local.set 30
                 local.get 4
-                local.get 32
+                local.get 30
                 u64.lt
                 if $L11 void
                   local.get 11
                   char.const 10
                   char.ne
-                  local.set 33
+                  local.set 31
                 else
                   bool.const false
-                  local.set 33
+                  local.set 31
                 end $L11
-                local.get 33
+                local.get 31
                 if $L12 void
                   local.field 17 22 0
                   ref.cast 7
-                  local.set 34
+                  local.set 32
+                  local.get 32
                   i64.const 1
-                  local.set 35
-                  local.get 34
-                  local.get 35
                   i64.add
-                  local.set 36
+                  local.set 33
                   local.field 17 22 1
-                  local.set 37
+                  local.set 34
                   local.get 4
                   local.get 12
                   i64.add
-                  local.set 38
-                  i64.const 1
-                  local.set 39
-                  local.get 5
-                  local.get 39
-                  i64.add
-                  local.set 40
+                  local.set 35
                   local.get 8
-                  local.get 36
-                  local.get 37
+                  i64.const 1
+                  i64.add
+                  local.set 36
+                  local.get 6
+                  local.get 33
+                  local.get 34
                   local.get 0
                   local.get 1
-                  local.get 38
-                  local.get 9
-                  local.get 40
+                  local.get 35
+                  local.get 7
+                  local.get 36
                   call 23
                 else
                 end $L12
                 i64.const 1
-                local.set 61
+                local.set 53
                 local.get 15
-                local.get 61
+                local.get 53
                 i64.add
                 local.set 15
                 br $L5
@@ -1776,57 +1646,53 @@ fn 18 std_regex$run_vm (ref,ref,usize,bool) -> ref
               if $L13 void
                 local.get 1
                 array.len
-                local.set 41
+                local.set 37
                 local.get 4
-                local.get 41
+                local.get 37
                 u64.lt
                 if $L14 void
                   local.get 20
                   local.get 11
                   call 27
-                  local.set 42
+                  local.set 38
                 else
                   bool.const false
-                  local.set 42
+                  local.set 38
                 end $L14
-                local.get 42
+                local.get 38
                 if $L15 void
                   local.field 17 22 0
                   ref.cast 7
-                  local.set 43
+                  local.set 39
+                  local.get 39
                   i64.const 1
-                  local.set 44
-                  local.get 43
-                  local.get 44
                   i64.add
-                  local.set 45
+                  local.set 40
                   local.field 17 22 1
-                  local.set 46
+                  local.set 41
                   local.get 4
                   local.get 12
                   i64.add
-                  local.set 47
-                  i64.const 1
-                  local.set 48
-                  local.get 5
-                  local.get 48
-                  i64.add
-                  local.set 49
+                  local.set 42
                   local.get 8
-                  local.get 45
-                  local.get 46
+                  i64.const 1
+                  i64.add
+                  local.set 43
+                  local.get 6
+                  local.get 40
+                  local.get 41
                   local.get 0
                   local.get 1
-                  local.get 47
-                  local.get 9
-                  local.get 49
+                  local.get 42
+                  local.get 7
+                  local.get 43
                   call 23
                 else
                 end $L15
                 i64.const 1
-                local.set 61
+                local.set 53
                 local.get 15
-                local.get 61
+                local.get 53
                 i64.add
                 local.set 15
                 br $L5
@@ -1838,81 +1704,77 @@ fn 18 std_regex$run_vm (ref,ref,usize,bool) -> ref
                 bool.not
                 if $L17 void
                   bool.const true
-                  local.set 50
+                  local.set 44
                 else
                   local.get 1
                   array.len
-                  local.set 51
+                  local.set 45
                   local.get 4
-                  local.get 51
+                  local.get 45
                   i64.eq
-                  local.set 50
+                  local.set 44
                 end $L17
-                local.get 50
+                local.get 44
                 if $L18 void
                   local.field 17 22 1
                   array.len
-                  local.set 52
+                  local.set 46
+                  local.get 46
                   i64.const 0
-                  local.set 53
-                  local.get 52
-                  local.get 53
                   u64.gt
                   if $L19 void
                     local.field 17 22 1
-                    local.set 55
-                    local.get 55
+                    local.set 48
+                    local.get 48
                     i32.const 0
                     load_slot_i64
                     local.get 2
                     call 24
-                    local.set 54
+                    local.set 47
                   else
                     local.get 2
-                    local.set 54
+                    local.set 47
                   end $L19
                   local.field 17 22 1
                   array.len
-                  local.set 56
+                  local.set 49
+                  local.get 49
                   i64.const 1
-                  local.set 57
-                  local.get 56
-                  local.get 57
                   u64.gt
                   if $L20 void
                     local.field 17 22 1
-                    local.set 59
-                    local.get 59
+                    local.set 51
+                    local.get 51
                     i32.const 1
                     load_slot_i64
                     local.get 4
                     call 24
-                    local.set 58
+                    local.set 50
                   else
                     local.get 4
-                    local.set 58
+                    local.set 50
                   end $L20
                   local.get 17
                   local.get 1
                   call 25
-                  local.set 60
-                  local.get 54
-                  local.get 58
-                  local.get 60
+                  local.set 52
+                  local.get 47
+                  local.get 50
+                  local.get 52
                   struct.new 14
-                  local.set 10
-                  local.get 7
+                  local.set 9
+                  local.get 5
                   local.get 15
                   call 26
-                  local.tee 7
+                  local.tee 5
                   array.len
                   local.set 15
                   br $L5
                 end $L18
                 i64.const 1
-                local.set 61
+                local.set 53
                 local.get 15
-                local.get 61
+                local.get 53
                 i64.add
                 local.set 15
                 br $L5
@@ -1921,9 +1783,9 @@ fn 18 std_regex$run_vm (ref,ref,usize,bool) -> ref
               type_check 31
               if $L21 void
                 i64.const 1
-                local.set 61
+                local.set 53
                 local.get 15
-                local.get 61
+                local.get 53
                 i64.add
                 local.set 15
                 br $L5
@@ -1932,9 +1794,9 @@ fn 18 std_regex$run_vm (ref,ref,usize,bool) -> ref
               type_check 34
               if $L22 void
                 i64.const 1
-                local.set 61
+                local.set 53
                 local.get 15
-                local.get 61
+                local.get 53
                 i64.add
                 local.set 15
                 br $L5
@@ -1943,9 +1805,9 @@ fn 18 std_regex$run_vm (ref,ref,usize,bool) -> ref
               type_check 33
               if $L23 void
                 i64.const 1
-                local.set 61
+                local.set 53
                 local.get 15
-                local.get 61
+                local.get 53
                 i64.add
                 local.set 15
                 br $L5
@@ -1954,9 +1816,9 @@ fn 18 std_regex$run_vm (ref,ref,usize,bool) -> ref
               type_check 28
               if $L24 void
                 i64.const 1
-                local.set 61
+                local.set 53
                 local.get 15
-                local.get 61
+                local.get 53
                 i64.add
                 local.set 15
                 br $L5
@@ -1965,9 +1827,9 @@ fn 18 std_regex$run_vm (ref,ref,usize,bool) -> ref
               type_check 27
               if $L25 void
                 i64.const 1
-                local.set 61
+                local.set 53
                 local.get 15
-                local.get 61
+                local.get 53
                 i64.add
                 local.set 15
                 br $L5
@@ -1979,29 +1841,25 @@ fn 18 std_regex$run_vm (ref,ref,usize,bool) -> ref
         end $L4
         local.get 1
         array.len
-        local.set 62
+        local.set 54
         local.get 4
-        local.get 62
+        local.get 54
         i64.eq
         if $L26 void
         else
-          local.get 8
-          local.set 7
-          array.new 21 0
-          local.set 8
-          i64.const 1
-          local.set 63
-          local.get 5
-          local.get 63
-          i64.add
+          local.get 6
           local.set 5
-          local.get 7
+          array.new 21 0
+          local.set 6
+          local.get 8
+          i64.const 1
+          i64.add
+          local.set 8
+          local.get 5
           array.len
-          local.set 64
+          local.set 55
+          local.get 55
           i64.const 0
-          local.set 65
-          local.get 64
-          local.get 65
           i64.eq
           if $L27 void
           else
@@ -2016,7 +1874,7 @@ fn 18 std_regex$run_vm (ref,ref,usize,bool) -> ref
       end $L2
     end $L1
   end $L0
-  local.get 10
+  local.get 9
   return
 end
 
@@ -2045,12 +1903,10 @@ fn 21 std_regex$parse_alternation (ref) -> ref
   local $len_10 usize
   local or_res bool
   local $idx_16 u8
-  local $k_17 u8
   local branch_offsets ref
   local $field_25 ref
   local $field_38 usize
   local $field_43 usize
-  local $k_44 usize
   local $add_45 usize
   local next_start usize
   local err ref
@@ -2060,21 +1916,16 @@ fn 21 std_regex$parse_alternation (ref) -> ref
   local $len_57 usize
   local $call_59 ref
   local $len_60 usize
-  local $k_61 usize
   local n usize
   local end_jumps ref
-  local $k_66 usize
   local __for_hi_0 usize
   local i usize
   local split_pos usize
   local $field_75 ref
-  local $k_76 usize
-  local $k_77 usize
   local $struct_78 ref
   local body_pos usize
   local $field_82 ref
   local $idx_83 usize
-  local $k_84 usize
   local $add_85 usize
   local $idx_86 usize
   local jump_pos usize
@@ -2083,12 +1934,9 @@ fn 21 std_regex$parse_alternation (ref) -> ref
   local next_split_pos usize
   local $field_96 ref
   local $struct_97 ref
-  local $k_98 usize
-  local $k_100 usize
   local last usize
   local $field_103 ref
   local $idx_104 usize
-  local $k_105 usize
   local $add_106 usize
   local $idx_107 usize
   local end_pos usize
@@ -2097,7 +1945,6 @@ fn 21 std_regex$parse_alternation (ref) -> ref
   local $field_116 ref
   local $idx_117 usize
   local $struct_118 ref
-  local $k_119 usize
   local.field 0 18 2
   array.len
   local.set 1
@@ -2132,10 +1979,8 @@ fn 21 std_regex$parse_alternation (ref) -> ref
     array.get 10
     ref.cast 11
     local.set 6
-    i32.const 124
-    local.set 7
     local.get 6
-    local.get 7
+    i32.const 124
     i32.ne
     local.set 5
   end $L1
@@ -2149,32 +1994,32 @@ fn 21 std_regex$parse_alternation (ref) -> ref
   local.set 2
   i64.const 0
   array.new 23 1
-  local.set 8
+  local.set 7
   local.field 0 18 2
-  local.set 9
+  local.set 8
   local.field 0 18 2
   array.len
   local.set 3
-  local.get 9
+  local.get 8
   local.get 1
   local.get 3
   call 29
-  local.set 9
+  local.set 8
   local.get 2
-  local.get 9
+  local.get 8
   array.push_all
   local.get 2
   array.len
   local.set 3
-  local.get 8
+  local.get 7
   local.get 3
   array.push 7
   local.field 0 18 2
   local.get 1
   call 30
-  local.set 9
+  local.set 8
   local.get 0
-  local.get 9
+  local.get 8
   struct.set 18 2
   block $L3 void
     loop $L4 void
@@ -2189,19 +2034,17 @@ fn 21 std_regex$parse_alternation (ref) -> ref
       u64.lt
       if $L5 void
         local.field 0 18 0
-        local.set 9
+        local.set 8
         local.field 0 18 1
         ref.cast 7
-        local.set 10
+        local.set 9
+        local.get 8
         local.get 9
-        local.get 10
         array.get 10
         ref.cast 11
         local.set 6
-        i32.const 124
-        local.set 7
         local.get 6
-        local.get 7
+        i32.const 124
         i32.eq
         local.set 5
       else
@@ -2212,219 +2055,199 @@ fn 21 std_regex$parse_alternation (ref) -> ref
       if $L6 void
         local.field 0 18 1
         ref.cast 7
-        local.set 11
+        local.set 10
+        local.get 10
         i64.const 1
-        local.set 12
-        local.get 11
-        local.get 12
         i64.add
-        local.set 13
+        local.set 11
         local.get 0
-        local.get 13
+        local.get 11
         struct.set 18 1
         local.field 0 18 2
         array.len
-        local.set 14
+        local.set 12
         local.get 0
         call 28
-        local.tee 15
+        local.tee 13
         type_check 16
         if $L7 void
         else
           local.field 0 18 2
-          local.set 16
+          local.set 14
           local.field 0 18 2
           array.len
-          local.set 17
-          local.get 16
+          local.set 15
           local.get 14
-          local.get 17
+          local.get 12
+          local.get 15
           call 29
-          local.set 18
+          local.set 16
           local.get 2
-          local.get 18
+          local.get 16
           array.push_all
           local.get 2
           array.len
-          local.set 19
-          local.get 8
-          local.get 19
+          local.set 17
+          local.get 7
+          local.get 17
           array.push 7
           local.field 0 18 2
-          local.get 14
+          local.get 12
           call 30
-          local.set 20
+          local.set 18
           local.get 0
-          local.get 20
+          local.get 18
           struct.set 18 2
           br $L4
         end $L7
       else
-        local.get 8
+        local.get 7
         array.len
-        local.set 21
+        local.set 19
+        local.get 19
         i64.const 1
-        local.set 22
-        local.get 21
-        local.get 22
         i64.sub
-        local.set 23
+        local.set 20
         array.new 23 0
-        local.set 24
+        local.set 21
+        local.get 20
         i64.const 1
-        local.set 25
-        local.get 23
-        local.get 25
         i64.sub
-        local.set 26
+        local.set 22
         i64.const 0
-        local.set 27
+        local.set 23
         block $L8 void
           loop $L9 void
-            local.get 27
-            local.get 26
+            local.get 23
+            local.get 22
             u64.lt
             if $L10 void
               local.field 0 18 2
               array.len
-              local.set 28
+              local.set 24
               local.field 0 18 2
-              local.set 29
+              local.set 25
               i64.const 0
-              local.set 30
               i64.const 0
-              local.set 31
-              local.get 30
-              local.get 31
               struct.new 34
-              local.set 32
-              local.get 29
-              local.get 32
+              local.set 26
+              local.get 25
+              local.get 26
               array.push 34
               local.field 0 18 2
               array.len
-              local.set 33
+              local.set 27
               local.field 0 18 2
-              local.set 34
-              local.get 8
-              local.get 27
+              local.set 28
+              local.get 7
+              local.get 23
               load_slot_i64
-              local.set 35
+              local.set 29
+              local.get 23
               i64.const 1
-              local.set 36
-              local.get 27
-              local.get 36
               i64.add
-              local.set 37
-              local.get 8
-              local.get 37
+              local.set 30
+              local.get 7
+              local.get 30
               load_slot_i64
-              local.set 38
-              local.get 34
+              local.set 31
+              local.get 28
               local.get 2
-              local.get 35
-              local.get 38
+              local.get 29
+              local.get 31
               local.get 1
               call 31
               local.field 0 18 2
               array.len
-              local.set 39
+              local.set 32
               local.field 0 18 2
-              local.set 40
+              local.set 33
               i64.const 0
               struct.new 31
-              local.set 41
-              local.get 40
-              local.get 41
+              local.set 34
+              local.get 33
+              local.get 34
               array.push 31
-              local.get 24
-              local.get 39
+              local.get 21
+              local.get 32
               array.push 7
               local.field 0 18 2
               array.len
-              local.set 42
+              local.set 35
               local.field 0 18 2
-              local.set 43
-              local.get 33
-              local.get 42
-              struct.new 34
-              local.set 44
-              local.get 43
-              local.get 28
-              local.get 44
-              array.set 25
-              i64.const 1
-              local.set 45
+              local.set 36
               local.get 27
-              local.get 45
+              local.get 35
+              struct.new 34
+              local.set 37
+              local.get 36
+              local.get 24
+              local.get 37
+              array.set 25
+              local.get 23
+              i64.const 1
               i64.add
-              local.set 27
+              local.set 23
               br $L9
             else
             end $L10
           end $L9
         end $L8
+        local.get 20
         i64.const 1
-        local.set 46
-        local.get 23
-        local.get 46
         i64.sub
-        local.set 47
+        local.set 38
         local.field 0 18 2
-        local.set 48
-        local.get 8
-        local.get 47
+        local.set 39
+        local.get 7
+        local.get 38
         load_slot_i64
-        local.set 49
+        local.set 40
+        local.get 38
         i64.const 1
-        local.set 50
-        local.get 47
-        local.get 50
         i64.add
-        local.set 51
-        local.get 8
-        local.get 51
+        local.set 41
+        local.get 7
+        local.get 41
         load_slot_i64
-        local.set 52
-        local.get 48
+        local.set 42
+        local.get 39
         local.get 2
-        local.get 49
-        local.get 52
+        local.get 40
+        local.get 42
         local.get 1
         call 31
         local.field 0 18 2
         array.len
-        local.set 53
-        local.get 24
+        local.set 43
+        local.get 21
         array.len
-        local.set 54
+        local.set 44
         i64.const 0
-        local.set 55
+        local.set 45
         block $L11 void
           loop $L12 void
-            local.get 55
-            local.get 54
+            local.get 45
+            local.get 44
             u64.lt
             if $L13 void
               local.field 0 18 2
-              local.set 56
-              local.get 24
-              local.get 55
+              local.set 46
+              local.get 21
+              local.get 45
               load_slot_i64
-              local.set 57
-              local.get 53
+              local.set 47
+              local.get 43
               struct.new 31
-              local.set 58
-              local.get 56
-              local.get 57
-              local.get 58
+              local.set 48
+              local.get 46
+              local.get 47
+              local.get 48
               array.set 25
+              local.get 45
               i64.const 1
-              local.set 59
-              local.get 55
-              local.get 59
               i64.add
-              local.set 55
+              local.set 45
               br $L12
             else
             end $L13
@@ -2436,7 +2259,7 @@ fn 21 std_regex$parse_alternation (ref) -> ref
       end $L6
     end $L4
   end $L3
-  local.get 15
+  local.get 13
   return
 end
 
@@ -2444,20 +2267,13 @@ fn 22 std_regex$expand_replacement (ref,ref,ref) -> void
   local n usize
   local i usize
   local b u8
-  local $k_10 u8
   local and_res bool
-  local $k_13 usize
-  local $k_17 usize
   local $add_18 usize
   local d u8
-  local $k_21 u8
   local and_res bool
-  local $k_24 u8
-  local $k_27 u8
   local gi usize
   local $len_32 usize
   local $idx_35 string
-  local $k_36 usize
   local __tup_0 ref
   local c char
   local w usize
@@ -2477,83 +2293,69 @@ fn 22 std_regex$expand_replacement (ref,ref,ref) -> void
         array.get 10
         ref.cast 11
         local.set 5
-        i32.const 36
-        local.set 6
         local.get 5
-        local.get 6
+        i32.const 36
         i32.eq
         if $L3 void
-          i64.const 1
-          local.set 8
           local.get 4
-          local.get 8
+          i64.const 1
           i64.add
           local.get 3
           u64.lt
-          local.set 7
+          local.set 6
         else
           bool.const false
-          local.set 7
+          local.set 6
         end $L3
-        local.get 7
+        local.get 6
         if $L4 void
-          i64.const 1
-          local.set 9
           local.get 4
-          local.get 9
+          i64.const 1
           i64.add
-          local.set 10
+          local.set 7
           local.get 1
-          local.get 10
+          local.get 7
           array.get 10
           ref.cast 11
-          local.set 11
+          local.set 8
+          local.get 8
           i32.const 48
-          local.set 12
-          local.get 11
-          local.get 12
           u32.ge
           if $L5 void
+            local.get 8
             i32.const 57
-            local.set 14
-            local.get 11
-            local.get 14
             u32.le
-            local.set 13
+            local.set 9
           else
             bool.const false
-            local.set 13
+            local.set 9
           end $L5
-          local.get 13
+          local.get 9
           if $L6 void
+            local.get 8
             i32.const 48
-            local.set 15
-            local.get 11
-            local.get 15
             i32.sub
             u8.to_i64
-            local.set 16
+            local.set 10
             local.field 2 14 2
             array.len
-            local.set 17
-            local.get 16
-            local.get 17
+            local.set 11
+            local.get 10
+            local.get 11
             u64.lt
             if $L7 void
               local.field 2 14 2
-              local.get 16
+              local.get 10
               array.get 12
               ref.cast 1
-              local.set 18
+              local.set 12
               local.get 0
-              local.get 18
+              local.get 12
               call 48
             else
             end $L7
-            i64.const 2
-            local.set 19
             local.get 4
-            local.get 19
+            i64.const 2
             i64.add
             local.set 4
             br $L1
@@ -2561,18 +2363,18 @@ fn 22 std_regex$expand_replacement (ref,ref,ref) -> void
           local.get 1
           local.get 4
           call 46
-          local.set 20
-          local.field 20 39 0
+          local.set 13
+          local.field 13 39 0
           ref.cast 5
-          local.set 21
-          local.field 20 39 1
+          local.set 14
+          local.field 13 39 1
           ref.cast 7
-          local.set 22
+          local.set 15
           local.get 0
-          local.get 21
+          local.get 14
           call 49
           local.get 4
-          local.get 22
+          local.get 15
           i64.add
           local.set 4
           br $L1
@@ -2580,18 +2382,18 @@ fn 22 std_regex$expand_replacement (ref,ref,ref) -> void
         local.get 1
         local.get 4
         call 46
-        local.set 20
-        local.field 20 39 0
+        local.set 13
+        local.field 13 39 0
         ref.cast 5
-        local.set 21
-        local.field 20 39 1
+        local.set 14
+        local.field 13 39 1
         ref.cast 7
-        local.set 22
+        local.set 15
         local.get 0
-        local.get 21
+        local.get 14
         call 49
         local.get 4
-        local.get 22
+        local.get 15
         i64.add
         local.set 4
         br $L1
@@ -2687,10 +2489,8 @@ fn 23 std_regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
     local.get 10
     local.get 5
     store_slot_i64
-    i64.const 1
-    local.set 10
     local.get 1
-    local.get 10
+    i64.const 1
     i64.add
     local.set 10
     local.get 0
@@ -2707,16 +2507,12 @@ fn 23 std_regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
   local.get 9
   type_check 28
   if $L4 void
-    i64.const 0
-    local.set 10
     local.get 5
-    local.get 10
+    i64.const 0
     i64.eq
     if $L5 void
-      i64.const 1
-      local.set 10
       local.get 1
-      local.get 10
+      i64.const 1
       i64.add
       local.set 10
       local.get 0
@@ -2742,10 +2538,8 @@ fn 23 std_regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
     local.get 10
     i64.eq
     if $L7 void
-      i64.const 1
-      local.set 10
       local.get 1
-      local.get 10
+      i64.const 1
       i64.add
       local.set 10
       local.get 0
@@ -2777,11 +2571,8 @@ fn 23 std_regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
 end
 
 fn 24 std_regex$resolve_slot (usize,usize) -> usize
-  local $k_2 usize
-  i64.const -1
-  local.set 2
   local.get 0
-  local.get 2
+  i64.const -1
   i64.eq
   if $L0 void
     local.get 1
@@ -2793,44 +2584,38 @@ end
 
 fn 25 std_regex$captured_groups (ref,ref) -> ref
   local $len_3 usize
-  local $k_4 usize
   local out ref
+  local i usize
   local $field_12 ref
   local $mul_14 usize
   local lo_slot usize
   local $field_17 ref
   local $mul_19 usize
-  local $k_20 usize
   local $add_21 usize
   local hi_slot usize
-  local $k_24 usize
   local or_res bool
-  local $k_28 usize
   local $call_32 string
-  local $k_33 usize
   local.field 0 22 1
   array.len
   local.set 2
-  i64.const 2
-  local.set 3
   local.get 2
-  local.get 3
+  i64.const 2
   u64.div
   local.set 2
   array.new 12 0
-  local.set 4
-  i64.const 0
   local.set 3
+  i64.const 0
+  local.set 4
   block $L0 void
     loop $L1 void
-      local.get 3
+      local.get 4
       local.get 2
       u64.lt
       if $L2 void
         local.field 0 22 1
         local.set 5
         i64.const 2
-        local.get 3
+        local.get 4
         i64.mul
         local.set 6
         local.get 5
@@ -2840,63 +2625,55 @@ fn 25 std_regex$captured_groups (ref,ref) -> ref
         local.field 0 22 1
         local.set 8
         i64.const 2
-        local.get 3
+        local.get 4
         i64.mul
         local.set 9
-        i64.const 1
-        local.set 10
         local.get 9
-        local.get 10
+        i64.const 1
         i64.add
-        local.set 11
+        local.set 10
         local.get 8
-        local.get 11
+        local.get 10
         load_slot_i64
-        local.set 12
-        i64.const -1
-        local.set 13
+        local.set 11
         local.get 7
-        local.get 13
+        i64.const -1
         i64.eq
         if $L3 void
           bool.const true
-          local.set 14
+          local.set 12
         else
+          local.get 11
           i64.const -1
-          local.set 15
-          local.get 12
-          local.get 15
           i64.eq
-          local.set 14
+          local.set 12
         end $L3
-        local.get 14
+        local.get 12
         if $L4 void
-          local.get 4
+          local.get 3
           string.const 65
           array.push 1
         else
           local.get 1
           local.get 7
-          local.get 12
+          local.get 11
           array.slice 10
           call.import 0
-          local.set 16
-          local.get 4
-          local.get 16
+          local.set 13
+          local.get 3
+          local.get 13
           array.push 1
         end $L4
+        local.get 4
         i64.const 1
-        local.set 17
-        local.get 3
-        local.get 17
         i64.add
-        local.set 3
+        local.set 4
         br $L1
       else
       end $L2
     end $L1
   end $L0
-  local.get 4
+  local.get 3
   return
 end
 
@@ -2904,7 +2681,6 @@ fn 26 std_regex$truncate_threads (ref,usize) -> ref
   local out ref
   local i usize
   local $idx_7 ref
-  local $k_8 usize
   array.new 21 0
   local.set 2
   i64.const 0
@@ -2922,10 +2698,8 @@ fn 26 std_regex$truncate_threads (ref,usize) -> ref
         local.get 2
         local.get 4
         array.push 22
-        i64.const 1
-        local.set 5
         local.get 3
-        local.get 5
+        i64.const 1
         i64.add
         local.set 3
         br $L1
@@ -2943,7 +2717,6 @@ fn 27 std_regex$class_matches (ref,char) -> bool
   local r ref
   local and_res bool
   local $field_14 char
-  local $k_20 usize
   local.field 0 24 0
   array.len
   local.set 2
@@ -2984,10 +2757,8 @@ fn 27 std_regex$class_matches (ref,char) -> bool
           end $L5
           return.lit bool.const true
         end $L4
-        i64.const 1
-        local.set 7
         local.get 3
-        local.get 7
+        i64.const 1
         i64.add
         local.set 3
         br $L1
@@ -3006,9 +2777,7 @@ fn 28 std_regex$parse_concat (ref) -> ref
   local $field_5 ref
   local $field_6 usize
   local b u8
-  local $k_9 u8
   local or_res bool
-  local $k_13 u8
   local err ref
   block $L0 void
     loop $L1 void
@@ -3032,31 +2801,27 @@ fn 28 std_regex$parse_concat (ref) -> ref
         array.get 10
         ref.cast 11
         local.set 5
-        i32.const 41
-        local.set 6
         local.get 5
-        local.get 6
+        i32.const 41
         i32.eq
         if $L3 void
           bool.const true
-          local.set 7
+          local.set 6
         else
-          i32.const 124
-          local.set 8
           local.get 5
-          local.get 8
+          i32.const 124
           i32.eq
-          local.set 7
+          local.set 6
         end $L3
-        local.get 7
+        local.get 6
         if $L4 void
         else
           local.get 0
           call 32
-          local.tee 9
+          local.tee 7
           type_check 16
           if $L5 void
-            local.get 9
+            local.get 7
             return
           end $L5
           br $L1
@@ -3095,11 +2860,8 @@ fn 29 std_regex$extract_range (ref,usize,usize) -> ref
 end
 
 fn 30 std_regex$truncate_to (ref,usize) -> ref
-  local $k_2 usize
-  i64.const 0
-  local.set 2
   local.get 0
-  local.get 2
+  i64.const 0
   local.get 1
   call 29
   return
@@ -3115,7 +2877,6 @@ fn 31 std_regex$push_fragment_rebased (ref,ref,usize,usize,usize) -> void
   local $struct_20 ref
   local $struct_25 ref
   local $cast_26 ref
-  local $k_27 usize
   local.get 0
   array.len
   local.get 4
@@ -3177,10 +2938,8 @@ fn 31 std_regex$push_fragment_rebased (ref,ref,usize,usize,usize) -> void
             array.push 41
           end $L4
         end $L3
-        i64.const 1
-        local.set 14
         local.get 6
-        local.get 14
+        i64.const 1
         i64.add
         local.set 6
         br $L1
@@ -3197,7 +2956,6 @@ fn 32 std_regex$parse_atom_with_quantifier (ref) -> ref
   local $field_8 usize
   local $len_10 usize
   local q u8
-  local $k_17 u8
   local.field 0 18 2
   array.len
   local.set 1
@@ -3233,19 +2991,15 @@ fn 32 std_regex$parse_atom_with_quantifier (ref) -> ref
   array.get 10
   ref.cast 11
   local.set 5
-  i32.const 42
-  local.set 6
   local.get 5
-  local.get 6
+  i32.const 42
   i32.eq
   if $L2 void
     local.field 0 18 1
     ref.cast 7
     local.set 3
-    i64.const 1
-    local.set 4
     local.get 3
-    local.get 4
+    i64.const 1
     i64.add
     local.set 3
     local.get 0
@@ -3258,19 +3012,15 @@ fn 32 std_regex$parse_atom_with_quantifier (ref) -> ref
     box 0
     return
   end $L2
-  i32.const 43
-  local.set 6
   local.get 5
-  local.get 6
+  i32.const 43
   i32.eq
   if $L3 void
     local.field 0 18 1
     ref.cast 7
     local.set 3
-    i64.const 1
-    local.set 4
     local.get 3
-    local.get 4
+    i64.const 1
     i64.add
     local.set 3
     local.get 0
@@ -3283,19 +3033,15 @@ fn 32 std_regex$parse_atom_with_quantifier (ref) -> ref
     box 0
     return
   end $L3
-  i32.const 63
-  local.set 6
   local.get 5
-  local.get 6
+  i32.const 63
   i32.eq
   if $L4 void
     local.field 0 18 1
     ref.cast 7
     local.set 3
-    i64.const 1
-    local.set 4
     local.get 3
-    local.get 4
+    i64.const 1
     i64.add
     local.set 3
     local.get 0
@@ -3308,10 +3054,8 @@ fn 32 std_regex$parse_atom_with_quantifier (ref) -> ref
     box 0
     return
   end $L4
-  i32.const 123
-  local.set 6
   local.get 5
-  local.get 6
+  i32.const 123
   i32.eq
   if $L5 void
     local.get 0
@@ -3329,11 +3073,10 @@ fn 33 std_regex$parse_atom (ref) -> ref
   local $len_3 usize
   local $field_8 ref
   local b u8
-  local $k_12 u8
-  local $k_20 usize
   local $struct_25 ref
+  local $len_32 usize
   local or_res bool
-  local $k_39 u8
+  local $idx_38 u8
   local c char
   local.field 0 18 1
   ref.cast 7
@@ -3363,19 +3106,15 @@ fn 33 std_regex$parse_atom (ref) -> ref
   array.get 10
   ref.cast 11
   local.set 4
-  i32.const 40
-  local.set 5
   local.get 4
-  local.get 5
+  i32.const 40
   i32.eq
   if $L1 void
     local.field 0 18 1
     ref.cast 7
     local.set 1
-    i64.const 1
-    local.set 2
     local.get 1
-    local.get 2
+    i64.const 1
     i64.add
     local.set 1
     local.get 0
@@ -3387,10 +3126,8 @@ fn 33 std_regex$parse_atom (ref) -> ref
     local.field 0 18 3
     ref.cast 7
     local.set 2
-    i64.const 1
-    local.set 6
     local.get 2
-    local.get 6
+    i64.const 1
     i64.add
     local.set 2
     local.get 0
@@ -3402,9 +3139,9 @@ fn 33 std_regex$parse_atom (ref) -> ref
     local.get 1
     i64.mul
     struct.new 33
-    local.set 7
+    local.set 5
     local.get 3
-    local.get 7
+    local.get 5
     array.push 33
     local.get 0
     call 21
@@ -3425,7 +3162,7 @@ fn 33 std_regex$parse_atom (ref) -> ref
     u64.ge
     if $L3 void
       bool.const true
-      local.set 8
+      local.set 7
     else
       local.field 0 18 0
       local.set 3
@@ -3436,15 +3173,13 @@ fn 33 std_regex$parse_atom (ref) -> ref
       local.get 2
       array.get 10
       ref.cast 11
-      local.set 5
-      i32.const 41
-      local.set 9
-      local.get 5
-      local.get 9
-      i32.ne
       local.set 8
+      local.get 8
+      i32.const 41
+      i32.ne
+      local.set 7
     end $L3
-    local.get 8
+    local.get 7
     if $L4 void
       local.field 0 18 1
       ref.cast 7
@@ -3457,10 +3192,8 @@ fn 33 std_regex$parse_atom (ref) -> ref
     local.field 0 18 1
     ref.cast 7
     local.set 2
-    i64.const 1
-    local.set 6
     local.get 2
-    local.get 6
+    i64.const 1
     i64.add
     local.set 2
     local.get 0
@@ -3472,33 +3205,27 @@ fn 33 std_regex$parse_atom (ref) -> ref
     local.get 1
     i64.mul
     local.set 1
-    i64.const 1
-    local.set 2
     local.get 1
-    local.get 2
+    i64.const 1
     i64.add
     struct.new 33
-    local.set 7
+    local.set 5
     local.get 3
-    local.get 7
+    local.get 5
     array.push 33
     null.const
     box 0
     return
   end $L1
-  i32.const 46
-  local.set 5
   local.get 4
-  local.get 5
+  i32.const 46
   i32.eq
   if $L5 void
     local.field 0 18 1
     ref.cast 7
     local.set 1
-    i64.const 1
-    local.set 2
     local.get 1
-    local.get 2
+    i64.const 1
     i64.add
     local.set 1
     local.get 0
@@ -3507,27 +3234,23 @@ fn 33 std_regex$parse_atom (ref) -> ref
     local.field 0 18 2
     local.set 3
     struct.new 29
-    local.set 7
+    local.set 5
     local.get 3
-    local.get 7
+    local.get 5
     array.push 29
     null.const
     box 0
     return
   end $L5
-  i32.const 94
-  local.set 5
   local.get 4
-  local.get 5
+  i32.const 94
   i32.eq
   if $L6 void
     local.field 0 18 1
     ref.cast 7
     local.set 1
-    i64.const 1
-    local.set 2
     local.get 1
-    local.get 2
+    i64.const 1
     i64.add
     local.set 1
     local.get 0
@@ -3536,27 +3259,23 @@ fn 33 std_regex$parse_atom (ref) -> ref
     local.field 0 18 2
     local.set 3
     struct.new 28
-    local.set 7
+    local.set 5
     local.get 3
-    local.get 7
+    local.get 5
     array.push 28
     null.const
     box 0
     return
   end $L6
-  i32.const 36
-  local.set 5
   local.get 4
-  local.get 5
+  i32.const 36
   i32.eq
   if $L7 void
     local.field 0 18 1
     ref.cast 7
     local.set 1
-    i64.const 1
-    local.set 2
     local.get 1
-    local.get 2
+    i64.const 1
     i64.add
     local.set 1
     local.get 0
@@ -3565,28 +3284,24 @@ fn 33 std_regex$parse_atom (ref) -> ref
     local.field 0 18 2
     local.set 3
     struct.new 27
-    local.set 7
+    local.set 5
     local.get 3
-    local.get 7
+    local.get 5
     array.push 27
     null.const
     box 0
     return
   end $L7
-  i32.const 91
-  local.set 5
   local.get 4
-  local.get 5
+  i32.const 91
   i32.eq
   if $L8 void
     local.get 0
     call 38
     return
   end $L8
-  i32.const 92
-  local.set 5
   local.get 4
-  local.get 5
+  i32.const 92
   i32.eq
   if $L9 void
     local.get 0
@@ -3604,7 +3319,7 @@ fn 33 std_regex$parse_atom (ref) -> ref
   local.set 3
   local.field 3 39 0
   ref.cast 5
-  local.set 10
+  local.set 9
   local.field 3 39 1
   ref.cast 7
   local.set 1
@@ -3618,11 +3333,11 @@ fn 33 std_regex$parse_atom (ref) -> ref
   struct.set 18 1
   local.field 0 18 2
   local.set 3
-  local.get 10
+  local.get 9
   struct.new 30
-  local.set 7
+  local.set 5
   local.get 3
-  local.get 7
+  local.get 5
   array.push 30
   null.const
   box 0
@@ -3633,9 +3348,9 @@ fn 34 std_regex$apply_star (ref,usize) -> void
   local $field_2 ref
   local $len_4 usize
   local $call_8 ref
-  local $k_13 usize
-  local $k_14 usize
   local $struct_15 ref
+  local body_start usize
+  local after usize
   local.field 0 18 2
   local.set 2
   local.field 0 18 2
@@ -3659,19 +3374,15 @@ fn 34 std_regex$apply_star (ref,usize) -> void
   local.field 0 18 2
   local.set 4
   i64.const 0
-  local.set 5
   i64.const 0
-  local.set 6
-  local.get 5
-  local.get 6
   struct.new 34
-  local.set 7
+  local.set 5
   local.get 4
-  local.get 7
+  local.get 5
   array.push 34
   local.field 0 18 2
   array.len
-  local.set 5
+  local.set 6
   local.field 0 18 2
   local.get 2
   local.get 1
@@ -3686,11 +3397,11 @@ fn 34 std_regex$apply_star (ref,usize) -> void
   array.push 31
   local.field 0 18 2
   array.len
-  local.set 6
+  local.set 7
   local.field 0 18 2
   local.set 2
-  local.get 5
   local.get 6
+  local.get 7
   struct.new 34
   local.set 4
   local.get 2
@@ -3703,37 +3414,32 @@ end
 fn 35 std_regex$apply_plus (ref,usize) -> void
   local split_pos usize
   local $field_5 ref
-  local $k_6 usize
-  local $k_7 usize
   local $struct_8 ref
+  local after usize
   local.field 0 18 2
   array.len
   local.set 2
   local.field 0 18 2
   local.set 3
   i64.const 0
-  local.set 4
   i64.const 0
-  local.set 5
-  local.get 4
-  local.get 5
   struct.new 34
-  local.set 6
+  local.set 4
   local.get 3
-  local.get 6
+  local.get 4
   array.push 34
   local.field 0 18 2
   array.len
-  local.set 4
+  local.set 5
   local.field 0 18 2
   local.set 3
   local.get 1
-  local.get 4
+  local.get 5
   struct.new 34
-  local.set 6
+  local.set 4
   local.get 3
   local.get 2
-  local.get 6
+  local.get 4
   array.set 25
   return
 end
@@ -3742,9 +3448,8 @@ fn 36 std_regex$apply_optional (ref,usize) -> void
   local $field_2 ref
   local $len_4 usize
   local $call_8 ref
-  local $k_12 usize
   local $struct_13 ref
-  local $k_20 usize
+  local sp usize
   local.field 0 18 2
   local.set 2
   local.field 0 18 2
@@ -3764,20 +3469,16 @@ fn 36 std_regex$apply_optional (ref,usize) -> void
   struct.set 18 2
   local.field 0 18 2
   local.set 4
-  i64.const 1
-  local.set 3
   local.get 1
-  local.get 3
+  i64.const 1
   i64.add
   local.set 3
-  i64.const 0
-  local.set 5
   local.get 3
-  local.get 5
+  i64.const 0
   struct.new 34
-  local.set 6
+  local.set 5
   local.get 4
-  local.get 6
+  local.get 5
   array.push 34
   local.field 0 18 2
   local.get 2
@@ -3787,19 +3488,17 @@ fn 36 std_regex$apply_optional (ref,usize) -> void
   array.len
   local.set 3
   local.get 1
-  local.set 5
+  local.set 6
   local.field 0 18 2
   local.set 2
-  i64.const 1
-  local.set 7
   local.get 1
-  local.get 7
+  i64.const 1
   i64.add
   local.get 3
   struct.new 34
   local.set 4
   local.get 2
-  local.get 5
+  local.get 6
   local.get 4
   array.set 25
   return
@@ -3809,15 +3508,15 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
   local $field_2 ref
   local $field_3 usize
   local $idx_4 u8
-  local $k_5 u8
   local $field_10 usize
-  local $k_11 usize
+  local m usize
   local has_comma bool
   local has_upper bool
   local $field_24 usize
   local $len_26 usize
   local and_res bool
   local $field_63 usize
+  local $k_65 u8
   local $field_69 usize
   local $k_70 usize
   local $add_71 usize
@@ -3880,10 +3579,8 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
   array.get 10
   ref.cast 11
   local.set 4
-  i32.const 123
-  local.set 5
   local.get 4
-  local.get 5
+  i32.const 123
   i32.ne
   if $L0 void
     null.const
@@ -3895,15 +3592,13 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
   local.set 3
   local.field 0 18 1
   ref.cast 7
-  local.set 6
+  local.set 5
+  local.get 5
   i64.const 1
-  local.set 7
-  local.get 6
-  local.get 7
   i64.add
-  local.set 6
+  local.set 5
   local.get 0
-  local.get 6
+  local.get 5
   struct.set 18 1
   local.get 0
   call 41
@@ -3915,89 +3610,83 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
   end $L1
   local.get 2
   ref.cast 7
-  local.tee 6
+  local.tee 5
+  local.set 6
+  bool.const false
   local.set 7
   bool.const false
   local.set 8
-  bool.const false
-  local.set 9
   local.field 0 18 1
   ref.cast 7
-  local.set 10
+  local.set 9
   local.field 0 18 0
   array.len
-  local.set 11
+  local.set 10
+  local.get 9
   local.get 10
-  local.get 11
   u64.lt
   if $L2 void
     local.field 0 18 0
     local.set 2
     local.field 0 18 1
     ref.cast 7
-    local.set 10
+    local.set 9
     local.get 2
-    local.get 10
+    local.get 9
     array.get 10
     ref.cast 11
     local.set 4
-    i32.const 44
-    local.set 5
     local.get 4
-    local.get 5
+    i32.const 44
     i32.eq
-    local.set 12
+    local.set 11
   else
     bool.const false
-    local.set 12
+    local.set 11
   end $L2
-  local.get 12
+  local.get 11
   if $L3 void
     local.field 0 18 1
     ref.cast 7
-    local.set 10
+    local.set 9
+    local.get 9
     i64.const 1
-    local.set 11
-    local.get 10
-    local.get 11
     i64.add
-    local.set 10
+    local.set 9
     local.get 0
-    local.get 10
+    local.get 9
     struct.set 18 1
     bool.const true
-    local.set 8
+    local.set 7
     local.field 0 18 1
     ref.cast 7
-    local.set 10
+    local.set 9
     local.field 0 18 0
     array.len
-    local.set 11
+    local.set 10
+    local.get 9
     local.get 10
-    local.get 11
     u64.lt
     if $L4 void
       local.field 0 18 0
       local.set 2
       local.field 0 18 1
       ref.cast 7
-      local.set 10
+      local.set 9
       local.get 2
-      local.get 10
+      local.get 9
       array.get 10
       ref.cast 11
       local.set 4
-      i32.const 125
-      local.set 5
       local.get 4
-      local.get 5
+      i32.const 125
       i32.ne
-      local.set 12
+      local.set 11
     else
       bool.const false
-      local.set 12
+      local.set 11
     end $L4
-    local.get 12
+    local.get 11
     if $L5 void
       local.get 0
       call 41
@@ -4009,40 +3698,40 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
       end $L6
       local.get 2
       ref.cast 7
-      local.set 7
+      local.set 6
       bool.const true
-      local.set 9
+      local.set 8
       local.field 0 18 1
       ref.cast 7
-      local.set 10
+      local.set 9
       local.field 0 18 0
       array.len
-      local.set 11
+      local.set 10
+      local.get 9
       local.get 10
-      local.get 11
       u64.ge
       if $L7 void
         bool.const true
-        local.set 12
+        local.set 11
       else
         local.field 0 18 0
         local.set 2
         local.field 0 18 1
         ref.cast 7
-        local.set 13
+        local.set 12
         local.get 2
-        local.get 13
+        local.get 12
         array.get 10
         ref.cast 11
         local.set 4
         i32.const 125
-        local.set 5
+        local.set 13
         local.get 4
-        local.get 5
+        local.get 13
         i32.ne
-        local.set 12
+        local.set 11
       end $L7
-      local.get 12
+      local.get 11
       if $L8 void
         string.const 68
         local.get 3
@@ -4061,10 +3750,10 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
       local.get 0
       local.get 16
       struct.set 18 1
-      local.get 9
+      local.get 8
       if $L9 void
-        local.get 7
         local.get 6
+        local.get 5
         u64.lt
         local.set 17
       else
@@ -4080,7 +3769,7 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
       end $L10
       i64.const 1000
       local.set 18
-      local.get 6
+      local.get 5
       local.get 18
       u64.gt
       if $L11 void
@@ -4089,7 +3778,7 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
       else
         i64.const 1000
         local.set 20
-        local.get 7
+        local.get 6
         local.get 20
         u64.gt
         local.set 19
@@ -4145,7 +3834,7 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
       block $L13 void
         loop $L14 void
           local.get 29
-          local.get 6
+          local.get 5
           u64.lt
           if $L15 void
             local.field 0 18 2
@@ -4163,10 +3852,10 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
           end $L15
         end $L14
       end $L13
-      local.get 9
+      local.get 8
       if $L16 void
-        local.get 7
         local.get 6
+        local.get 5
         i64.sub
         local.set 31
         array.new 23 0
@@ -4257,7 +3946,7 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
           end $L21
         end $L20
       else
-        local.get 8
+        local.get 7
         if $L23 void
           local.field 0 18 2
           array.len
@@ -4355,35 +4044,35 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
     end $L5
     local.field 0 18 1
     ref.cast 7
-    local.set 10
+    local.set 9
     local.field 0 18 0
     array.len
-    local.set 11
+    local.set 10
+    local.get 9
     local.get 10
-    local.get 11
     u64.ge
     if $L25 void
       bool.const true
-      local.set 12
+      local.set 11
     else
       local.field 0 18 0
       local.set 2
       local.field 0 18 1
       ref.cast 7
-      local.set 13
+      local.set 12
       local.get 2
-      local.get 13
+      local.get 12
       array.get 10
       ref.cast 11
       local.set 4
       i32.const 125
-      local.set 5
+      local.set 13
       local.get 4
-      local.get 5
+      local.get 13
       i32.ne
-      local.set 12
+      local.set 11
     end $L25
-    local.get 12
+    local.get 11
     if $L26 void
       string.const 68
       local.get 3
@@ -4402,10 +4091,10 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
     local.get 0
     local.get 16
     struct.set 18 1
-    local.get 9
+    local.get 8
     if $L27 void
-      local.get 7
       local.get 6
+      local.get 5
       u64.lt
       local.set 17
     else
@@ -4421,7 +4110,7 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
     end $L28
     i64.const 1000
     local.set 18
-    local.get 6
+    local.get 5
     local.get 18
     u64.gt
     if $L29 void
@@ -4430,7 +4119,7 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
     else
       i64.const 1000
       local.set 20
-      local.get 7
+      local.get 6
       local.get 20
       u64.gt
       local.set 19
@@ -4486,7 +4175,7 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
     block $L31 void
       loop $L32 void
         local.get 29
-        local.get 6
+        local.get 5
         u64.lt
         if $L33 void
           local.field 0 18 2
@@ -4504,10 +4193,10 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
         end $L33
       end $L32
     end $L31
-    local.get 9
+    local.get 8
     if $L34 void
-      local.get 7
       local.get 6
+      local.get 5
       i64.sub
       local.set 31
       array.new 23 0
@@ -4598,7 +4287,7 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
         end $L39
       end $L38
     else
-      local.get 8
+      local.get 7
       if $L41 void
         local.field 0 18 2
         array.len
@@ -4696,35 +4385,35 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
   end $L3
   local.field 0 18 1
   ref.cast 7
-  local.set 10
+  local.set 9
   local.field 0 18 0
   array.len
-  local.set 11
+  local.set 10
+  local.get 9
   local.get 10
-  local.get 11
   u64.ge
   if $L43 void
     bool.const true
-    local.set 12
+    local.set 11
   else
     local.field 0 18 0
     local.set 2
     local.field 0 18 1
     ref.cast 7
-    local.set 13
+    local.set 12
     local.get 2
-    local.get 13
+    local.get 12
     array.get 10
     ref.cast 11
     local.set 4
     i32.const 125
-    local.set 5
+    local.set 13
     local.get 4
-    local.get 5
+    local.get 13
     i32.ne
-    local.set 12
+    local.set 11
   end $L43
-  local.get 12
+  local.get 11
   if $L44 void
     string.const 68
     local.get 3
@@ -4743,10 +4432,10 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
   local.get 0
   local.get 16
   struct.set 18 1
-  local.get 9
+  local.get 8
   if $L45 void
-    local.get 7
     local.get 6
+    local.get 5
     u64.lt
     local.set 17
   else
@@ -4762,7 +4451,7 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
   end $L46
   i64.const 1000
   local.set 18
-  local.get 6
+  local.get 5
   local.get 18
   u64.gt
   if $L47 void
@@ -4771,7 +4460,7 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
   else
     i64.const 1000
     local.set 20
-    local.get 7
+    local.get 6
     local.get 20
     u64.gt
     local.set 19
@@ -4827,7 +4516,7 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
   block $L49 void
     loop $L50 void
       local.get 29
-      local.get 6
+      local.get 5
       u64.lt
       if $L51 void
         local.field 0 18 2
@@ -4845,10 +4534,10 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
       end $L51
     end $L50
   end $L49
-  local.get 9
+  local.get 8
   if $L52 void
-    local.get 7
     local.get 6
+    local.get 5
     i64.sub
     local.set 31
     array.new 23 0
@@ -4939,7 +4628,7 @@ fn 37 std_regex$apply_counted (ref,usize) -> ref
       end $L57
     end $L56
   else
-    local.get 8
+    local.get 7
     if $L59 void
       local.field 0 18 2
       array.len
@@ -5039,12 +4728,11 @@ end
 fn 38 std_regex$parse_char_class (ref) -> ref
   local start_pos usize
   local $field_3 usize
-  local $k_4 usize
   local negated bool
+  local $len_10 usize
   local and_res bool
   local $field_13 ref
   local $idx_15 u8
-  local $k_16 u8
   local $field_30 ref
   local $field_31 usize
   local lo_c ref
@@ -5054,21 +4742,16 @@ fn 38 std_regex$parse_char_class (ref) -> ref
   local $field_45 ref
   local $field_46 usize
   local $idx_47 u8
-  local $k_48 u8
   local and_res bool
   local $field_52 usize
-  local $k_53 usize
   local $add_54 usize
   local $len_56 usize
   local and_res bool
   local $field_60 ref
   local $field_61 usize
-  local $k_62 usize
   local $add_63 usize
   local $idx_64 u8
-  local $k_65 u8
   local $field_69 usize
-  local $k_70 usize
   local $add_71 usize
   local hi_c ref
   local $cast_76 char
@@ -5080,7 +4763,6 @@ fn 38 std_regex$parse_char_class (ref) -> ref
   local $field_82 usize
   local $len_84 usize
   local $field_88 usize
-  local $k_89 usize
   local $add_90 usize
   local $field_91 ref
   local $struct_92 ref
@@ -5090,25 +4772,23 @@ fn 38 std_regex$parse_char_class (ref) -> ref
   local.field 0 18 1
   ref.cast 7
   local.set 2
-  i64.const 1
-  local.set 3
   local.get 2
-  local.get 3
+  i64.const 1
   i64.add
   local.set 2
   local.get 0
   local.get 2
   struct.set 18 1
   bool.const false
-  local.set 4
+  local.set 3
   local.field 0 18 1
   ref.cast 7
   local.set 2
   local.field 0 18 0
   array.len
-  local.set 3
+  local.set 4
   local.get 2
-  local.get 3
+  local.get 4
   u64.lt
   if $L0 void
     local.field 0 18 0
@@ -5121,10 +4801,8 @@ fn 38 std_regex$parse_char_class (ref) -> ref
     array.get 10
     ref.cast 11
     local.set 7
-    i32.const 94
-    local.set 8
     local.get 7
-    local.get 8
+    i32.const 94
     i32.eq
     local.set 5
   else
@@ -5134,14 +4812,12 @@ fn 38 std_regex$parse_char_class (ref) -> ref
   local.get 5
   if $L1 void
     bool.const true
-    local.set 4
+    local.set 3
     local.field 0 18 1
     ref.cast 7
     local.set 2
-    i64.const 1
-    local.set 3
     local.get 2
-    local.get 3
+    i64.const 1
     i64.add
     local.set 2
     local.get 0
@@ -5158,25 +4834,23 @@ fn 38 std_regex$parse_char_class (ref) -> ref
       local.set 2
       local.field 0 18 0
       array.len
-      local.set 3
+      local.set 4
       local.get 2
-      local.get 3
+      local.get 4
       u64.lt
       if $L4 void
         local.field 0 18 0
-        local.set 9
+        local.set 8
         local.field 0 18 1
         ref.cast 7
-        local.set 10
+        local.set 9
+        local.get 8
         local.get 9
-        local.get 10
         array.get 10
         ref.cast 11
         local.set 7
-        i32.const 93
-        local.set 8
         local.get 7
-        local.get 8
+        i32.const 93
         i32.ne
         local.set 5
       else
@@ -5187,151 +4861,141 @@ fn 38 std_regex$parse_char_class (ref) -> ref
       if $L5 void
         local.get 0
         call 42
-        local.tee 11
+        local.tee 10
         type_check 16
         if $L6 void
         else
           local.field 0 18 1
           ref.cast 7
-          local.set 12
+          local.set 11
           local.field 0 18 0
           array.len
-          local.set 13
+          local.set 12
+          local.get 11
           local.get 12
-          local.get 13
           u64.lt
           if $L7 void
             local.field 0 18 0
-            local.set 15
+            local.set 14
             local.field 0 18 1
             ref.cast 7
-            local.set 16
+            local.set 15
+            local.get 14
             local.get 15
-            local.get 16
             array.get 10
             ref.cast 11
-            local.set 17
+            local.set 16
+            local.get 16
             i32.const 45
-            local.set 18
-            local.get 17
-            local.get 18
             i32.eq
-            local.set 14
+            local.set 13
           else
             bool.const false
-            local.set 14
+            local.set 13
           end $L7
-          local.get 14
+          local.get 13
           if $L8 void
             local.field 0 18 1
             ref.cast 7
-            local.set 20
+            local.set 18
+            local.get 18
             i64.const 1
-            local.set 21
-            local.get 20
-            local.get 21
             i64.add
-            local.set 22
+            local.set 19
             local.field 0 18 0
             array.len
-            local.set 23
-            local.get 22
-            local.get 23
+            local.set 20
+            local.get 19
+            local.get 20
             u64.lt
-            local.set 19
+            local.set 17
           else
             bool.const false
-            local.set 19
+            local.set 17
           end $L8
-          local.get 19
+          local.get 17
           if $L9 void
             local.field 0 18 0
-            local.set 25
+            local.set 22
             local.field 0 18 1
             ref.cast 7
-            local.set 26
+            local.set 23
+            local.get 23
             i64.const 1
-            local.set 27
-            local.get 26
-            local.get 27
             i64.add
-            local.set 28
-            local.get 25
-            local.get 28
+            local.set 24
+            local.get 22
+            local.get 24
             array.get 10
             ref.cast 11
-            local.set 29
+            local.set 25
+            local.get 25
             i32.const 93
-            local.set 30
-            local.get 29
-            local.get 30
             i32.ne
-            local.set 24
+            local.set 21
           else
             bool.const false
-            local.set 24
+            local.set 21
           end $L9
-          local.get 24
+          local.get 21
           if $L10 void
             local.field 0 18 1
             ref.cast 7
-            local.set 31
+            local.set 26
+            local.get 26
             i64.const 1
-            local.set 32
-            local.get 31
-            local.get 32
             i64.add
-            local.set 33
+            local.set 27
             local.get 0
-            local.get 33
+            local.get 27
             struct.set 18 1
             local.get 0
             call 42
-            local.tee 34
+            local.tee 28
             type_check 16
             if $L11 void
-              local.get 34
+              local.get 28
               return
             end $L11
-            local.get 11
+            local.get 10
             ref.cast 5
-            local.set 35
-            local.get 34
+            local.set 29
+            local.get 28
             ref.cast 5
-            local.set 36
-            local.get 35
-            local.get 36
+            local.set 30
+            local.get 29
+            local.get 30
             struct.new 38
-            local.set 37
+            local.set 31
             local.get 6
-            local.get 37
+            local.get 31
             array.push 38
             br $L3
           end $L10
-          local.get 11
+          local.get 10
           ref.cast 5
-          local.set 38
-          local.get 11
+          local.set 32
+          local.get 10
           ref.cast 5
-          local.set 39
-          local.get 38
-          local.get 39
+          local.set 33
+          local.get 32
+          local.get 33
           struct.new 38
-          local.set 40
+          local.set 34
           local.get 6
-          local.get 40
+          local.get 34
           array.push 38
           br $L3
         end $L6
       else
         local.field 0 18 1
         ref.cast 7
-        local.set 41
+        local.set 35
         local.field 0 18 0
         array.len
-        local.set 42
-        local.get 41
-        local.get 42
+        local.set 36
+        local.get 35
+        local.get 36
         u64.ge
         if $L12 void
           string.const 73
@@ -5341,24 +5005,22 @@ fn 38 std_regex$parse_char_class (ref) -> ref
         end $L12
         local.field 0 18 1
         ref.cast 7
-        local.set 43
+        local.set 37
+        local.get 37
         i64.const 1
-        local.set 44
-        local.get 43
-        local.get 44
         i64.add
-        local.set 45
+        local.set 38
         local.get 0
-        local.get 45
+        local.get 38
         struct.set 18 1
         local.field 0 18 2
-        local.set 46
+        local.set 39
         local.get 6
-        local.get 4
+        local.get 3
         struct.new 24
-        local.set 47
-        local.get 46
-        local.get 47
+        local.set 40
+        local.get 39
+        local.get 40
         array.push 24
         null.const
         box 0
@@ -5366,24 +5028,21 @@ fn 38 std_regex$parse_char_class (ref) -> ref
       end $L5
     end $L3
   end $L2
-  local.get 11
+  local.get 10
   return
 end
 
 fn 39 std_regex$parse_escape (ref) -> ref
   local $field_1 usize
-  local $k_2 usize
+  local $len_6 usize
   local $field_11 ref
   local e u8
-  local $k_18 u8
   local $struct_22 ref
   local.field 0 18 1
   ref.cast 7
   local.set 1
-  i64.const 1
-  local.set 2
   local.get 1
-  local.get 2
+  i64.const 1
   i64.add
   local.set 1
   local.get 0
@@ -5420,73 +5079,63 @@ fn 39 std_regex$parse_escape (ref) -> ref
   local.field 0 18 1
   ref.cast 7
   local.set 1
-  i64.const 1
-  local.set 2
   local.get 1
-  local.get 2
+  i64.const 1
   i64.add
   local.set 1
   local.get 0
   local.get 1
   struct.set 18 1
-  i32.const 110
-  local.set 5
   local.get 4
-  local.get 5
+  i32.const 110
   i32.eq
   if $L1 void
     local.field 0 18 2
     local.set 3
     char.const 10
     struct.new 30
-    local.set 6
+    local.set 5
     local.get 3
-    local.get 6
+    local.get 5
     array.push 30
     null.const
     box 0
     return
   end $L1
-  i32.const 116
-  local.set 5
   local.get 4
-  local.get 5
+  i32.const 116
   i32.eq
   if $L2 void
     local.field 0 18 2
     local.set 3
     char.const 9
     struct.new 30
-    local.set 6
+    local.set 5
     local.get 3
-    local.get 6
+    local.get 5
     array.push 30
     null.const
     box 0
     return
   end $L2
-  i32.const 114
-  local.set 5
   local.get 4
-  local.get 5
+  i32.const 114
   i32.eq
   if $L3 void
     local.field 0 18 2
     local.set 3
     char.const 13
     struct.new 30
-    local.set 6
+    local.set 5
     local.get 3
-    local.get 6
+    local.get 5
     array.push 30
     null.const
     box 0
     return
   end $L3
-  i32.const 100
-  local.set 5
   local.get 4
-  local.get 5
+  i32.const 100
   i32.eq
   if $L4 void
     local.field 0 18 2
@@ -5495,22 +5144,20 @@ fn 39 std_regex$parse_escape (ref) -> ref
     char.const 57
     struct.new 38
     array.new 37 1
-    local.set 6
-    local.get 6
+    local.set 5
+    local.get 5
     bool.const false
     struct.new 24
-    local.set 6
+    local.set 5
     local.get 3
-    local.get 6
+    local.get 5
     array.push 24
     null.const
     box 0
     return
   end $L4
-  i32.const 68
-  local.set 5
   local.get 4
-  local.get 5
+  i32.const 68
   i32.eq
   if $L5 void
     local.field 0 18 2
@@ -5519,97 +5166,89 @@ fn 39 std_regex$parse_escape (ref) -> ref
     char.const 57
     struct.new 38
     array.new 37 1
-    local.set 6
-    local.get 6
+    local.set 5
+    local.get 5
     bool.const true
     struct.new 24
-    local.set 6
+    local.set 5
     local.get 3
-    local.get 6
+    local.get 5
     array.push 24
     null.const
     box 0
     return
   end $L5
-  i32.const 119
-  local.set 5
   local.get 4
-  local.get 5
+  i32.const 119
   i32.eq
   if $L6 void
     local.field 0 18 2
     local.set 3
     call 43
-    local.set 6
-    local.get 6
+    local.set 5
+    local.get 5
     bool.const false
     struct.new 24
-    local.set 6
+    local.set 5
     local.get 3
-    local.get 6
+    local.get 5
     array.push 24
     null.const
     box 0
     return
   end $L6
-  i32.const 87
-  local.set 5
   local.get 4
-  local.get 5
+  i32.const 87
   i32.eq
   if $L7 void
     local.field 0 18 2
     local.set 3
     call 43
-    local.set 6
-    local.get 6
+    local.set 5
+    local.get 5
     bool.const true
     struct.new 24
-    local.set 6
+    local.set 5
     local.get 3
-    local.get 6
+    local.get 5
     array.push 24
     null.const
     box 0
     return
   end $L7
-  i32.const 115
-  local.set 5
   local.get 4
-  local.get 5
+  i32.const 115
   i32.eq
   if $L8 void
     local.field 0 18 2
     local.set 3
     call 44
-    local.set 6
-    local.get 6
+    local.set 5
+    local.get 5
     bool.const false
     struct.new 24
-    local.set 6
+    local.set 5
     local.get 3
-    local.get 6
+    local.get 5
     array.push 24
     null.const
     box 0
     return
   end $L8
-  i32.const 83
-  local.set 5
   local.get 4
-  local.get 5
+  i32.const 83
   i32.eq
   if $L9 void
     local.field 0 18 2
     local.set 3
     call 44
-    local.set 6
-    local.get 6
+    local.set 5
+    local.get 5
     bool.const true
     struct.new 24
-    local.set 6
+    local.set 5
     local.get 3
-    local.get 6
+    local.get 5
     array.push 24
     null.const
     box 0
@@ -5621,9 +5260,9 @@ fn 39 std_regex$parse_escape (ref) -> ref
   u8.to_i32
   u32.to_char
   struct.new 30
-  local.set 6
+  local.set 5
   local.get 3
-  local.get 6
+  local.get 5
   array.push 30
   null.const
   box 0
@@ -5631,17 +5270,14 @@ fn 39 std_regex$parse_escape (ref) -> ref
 end
 
 fn 40 std_regex$push_atom_rebased (ref,ref,usize) -> void
-  local $k_3 usize
   local $len_4 usize
-  i64.const 0
-  local.set 3
   local.get 1
   array.len
-  local.set 4
+  local.set 3
   local.get 0
   local.get 1
+  i64.const 0
   local.get 3
-  local.get 4
   local.get 2
   call 31
   return
@@ -5653,23 +5289,18 @@ fn 41 std_regex$parse_decimal_usize (ref) -> ref
   local or_res bool
   local $field_7 ref
   local $idx_9 u8
-  local $k_10 u8
   local $len_26 usize
   local $field_30 usize
   local and_res bool
   local $field_36 ref
   local $field_37 usize
   local $idx_38 u8
-  local $k_39 u8
-  local $k_42 usize
   local $mul_43 usize
   local $field_44 ref
   local $field_45 usize
   local $idx_46 u8
-  local $k_47 u8
   local $cast_49 usize
   local $field_51 usize
-  local $k_52 usize
   local $add_53 usize
   local.field 0 18 1
   ref.cast 7
@@ -5694,10 +5325,8 @@ fn 41 std_regex$parse_decimal_usize (ref) -> ref
     array.get 10
     ref.cast 11
     local.set 5
-    i32.const 48
-    local.set 6
     local.get 5
-    local.get 6
+    i32.const 48
     u32.lt
     local.set 3
   end $L0
@@ -5716,10 +5345,8 @@ fn 41 std_regex$parse_decimal_usize (ref) -> ref
     array.get 10
     ref.cast 11
     local.set 5
-    i32.const 57
-    local.set 6
     local.get 5
-    local.get 6
+    i32.const 57
     u32.gt
     local.set 3
   end $L1
@@ -5742,25 +5369,23 @@ fn 41 std_regex$parse_decimal_usize (ref) -> ref
       local.set 2
       local.field 0 18 0
       array.len
-      local.set 7
+      local.set 6
       local.get 2
-      local.get 7
+      local.get 6
       u64.lt
       if $L5 void
         local.field 0 18 0
         local.set 4
         local.field 0 18 1
         ref.cast 7
-        local.set 8
+        local.set 7
         local.get 4
-        local.get 8
+        local.get 7
         array.get 10
         ref.cast 11
         local.set 5
-        i32.const 48
-        local.set 6
         local.get 5
-        local.get 6
+        i32.const 48
         u32.ge
         local.set 3
       else
@@ -5770,65 +5395,57 @@ fn 41 std_regex$parse_decimal_usize (ref) -> ref
       local.get 3
       if $L6 void
         local.field 0 18 0
-        local.set 10
+        local.set 9
         local.field 0 18 1
         ref.cast 7
-        local.set 11
+        local.set 10
+        local.get 9
         local.get 10
-        local.get 11
         array.get 10
         ref.cast 11
-        local.set 12
+        local.set 11
+        local.get 11
         i32.const 57
-        local.set 13
-        local.get 12
-        local.get 13
         u32.le
-        local.set 9
+        local.set 8
       else
         bool.const false
-        local.set 9
+        local.set 8
       end $L6
-      local.get 9
+      local.get 8
       if $L7 void
-        i64.const 10
-        local.set 14
         local.get 1
-        local.get 14
+        i64.const 10
         i64.mul
-        local.set 15
+        local.set 12
         local.field 0 18 0
-        local.set 16
+        local.set 13
         local.field 0 18 1
         ref.cast 7
-        local.set 17
-        local.get 16
-        local.get 17
+        local.set 14
+        local.get 13
+        local.get 14
         array.get 10
         ref.cast 11
-        local.set 18
+        local.set 15
+        local.get 15
         i32.const 48
-        local.set 19
-        local.get 18
-        local.get 19
         i32.sub
         u8.to_i64
-        local.set 20
-        local.get 15
-        local.get 20
+        local.set 16
+        local.get 12
+        local.get 16
         i64.add
         local.set 1
         local.field 0 18 1
         ref.cast 7
-        local.set 21
+        local.set 17
+        local.get 17
         i64.const 1
-        local.set 22
-        local.get 21
-        local.get 22
         i64.add
-        local.set 23
+        local.set 18
         local.get 0
-        local.get 23
+        local.get 18
         struct.set 18 1
         br $L4
       else
@@ -5845,7 +5462,6 @@ fn 42 std_regex$read_class_char (ref) -> ref
   local $len_3 usize
   local $field_8 ref
   local b u8
-  local $k_12 u8
   local c char
   local.field 0 18 1
   ref.cast 7
@@ -5875,19 +5491,15 @@ fn 42 std_regex$read_class_char (ref) -> ref
   array.get 10
   ref.cast 11
   local.set 4
-  i32.const 92
-  local.set 5
   local.get 4
-  local.get 5
+  i32.const 92
   i32.eq
   if $L1 void
     local.field 0 18 1
     ref.cast 7
     local.set 1
-    i64.const 1
-    local.set 2
     local.get 1
-    local.get 2
+    i64.const 1
     i64.add
     local.set 1
     local.get 0
@@ -5924,35 +5536,27 @@ fn 42 std_regex$read_class_char (ref) -> ref
     local.field 0 18 1
     ref.cast 7
     local.set 1
-    i64.const 1
-    local.set 2
     local.get 1
-    local.get 2
+    i64.const 1
     i64.add
     local.set 1
     local.get 0
     local.get 1
     struct.set 18 1
-    i32.const 110
-    local.set 5
     local.get 4
-    local.get 5
+    i32.const 110
     i32.eq
     if $L3 void
       return.lit char.const 10
     end $L3
-    i32.const 116
-    local.set 5
     local.get 4
-    local.get 5
+    i32.const 116
     i32.eq
     if $L4 void
       return.lit char.const 9
     end $L4
-    i32.const 114
-    local.set 5
     local.get 4
-    local.get 5
+    i32.const 114
     i32.eq
     if $L5 void
       return.lit char.const 13
@@ -5974,7 +5578,7 @@ fn 42 std_regex$read_class_char (ref) -> ref
   local.set 3
   local.field 3 39 0
   ref.cast 5
-  local.set 6
+  local.set 5
   local.field 3 39 1
   ref.cast 7
   local.set 1
@@ -5986,7 +5590,7 @@ fn 42 std_regex$read_class_char (ref) -> ref
   local.get 0
   local.get 1
   struct.set 18 1
-  local.get 6
+  local.get 5
   box 5
   return
 end
@@ -6052,11 +5656,10 @@ end
 fn 45 std_string$decode_char_at (ref,usize) -> char
   local n usize
   local b u8
-  local $k_6 u8
-  local $k_17 usize
+  local $add_22 usize
+  local b1 u8
   local $cast_25 u32
-  local $k_26 u32
-  local $k_31 u32
+  local $cast_30 u32
   local b2 u8
   local b3 u8
   local.get 0
@@ -6067,20 +5670,16 @@ fn 45 std_string$decode_char_at (ref,usize) -> char
   array.get 10
   ref.cast 11
   local.set 3
-  i32.const 128
-  local.set 4
   local.get 3
-  local.get 4
+  i32.const 128
   u32.lt
   if $L0 void
     local.get 3
     u8.to_char
     return
   end $L0
-  i32.const 192
-  local.set 4
   local.get 3
-  local.get 4
+  i32.const 192
   u32.lt
   if $L1 void
     i32.const 65533
@@ -6091,55 +5690,43 @@ fn 45 std_string$decode_char_at (ref,usize) -> char
   local.get 1
   i64.sub
   local.set 2
-  i32.const 224
-  local.set 4
   local.get 3
-  local.get 4
+  i32.const 224
   u32.lt
   if $L2 void
-    i64.const 2
-    local.set 5
     local.get 2
-    local.get 5
+    i64.const 2
     u64.lt
     if $L3 void
       i32.const 0
       i32.to_char
       return
     end $L3
-    i64.const 1
-    local.set 5
     local.get 1
-    local.get 5
+    i64.const 1
     i64.add
-    local.set 5
+    local.set 4
     local.get 0
-    local.get 5
+    local.get 4
     array.get 10
     ref.cast 11
-    local.set 4
+    local.set 5
     local.get 3
     u8.to_i32
     local.set 6
-    i32.const 31
-    local.set 7
     local.get 6
-    local.get 7
+    i32.const 31
     i32.bitand
     local.set 6
-    i32.const 6
-    local.set 7
     local.get 6
-    local.get 7
+    i32.const 6
     i32.shl
     local.set 6
-    local.get 4
+    local.get 5
     u8.to_i32
     local.set 7
-    i32.const 63
-    local.set 8
     local.get 7
-    local.get 8
+    i32.const 63
     i32.bitand
     local.set 7
     local.get 6
@@ -6148,85 +5735,67 @@ fn 45 std_string$decode_char_at (ref,usize) -> char
     u32.to_char
     return
   end $L2
-  i32.const 240
-  local.set 4
   local.get 3
-  local.get 4
+  i32.const 240
   u32.lt
   if $L4 void
-    i64.const 3
-    local.set 5
     local.get 2
-    local.get 5
+    i64.const 3
     u64.lt
     if $L5 void
       i32.const 0
       i32.to_char
       return
     end $L5
+    local.get 1
     i64.const 1
-    local.set 5
-    local.get 1
-    local.get 5
     i64.add
-    local.set 5
-    local.get 0
-    local.get 5
-    array.get 10
-    ref.cast 11
     local.set 4
-    i64.const 2
-    local.set 5
-    local.get 1
-    local.get 5
-    i64.add
-    local.set 5
     local.get 0
-    local.get 5
+    local.get 4
     array.get 10
     ref.cast 11
-    local.set 9
+    local.set 5
+    local.get 1
+    i64.const 2
+    i64.add
+    local.set 4
+    local.get 0
+    local.get 4
+    array.get 10
+    ref.cast 11
+    local.set 8
     local.get 3
     u8.to_i32
     local.set 6
-    i32.const 15
-    local.set 7
     local.get 6
-    local.get 7
+    i32.const 15
     i32.bitand
     local.set 6
-    i32.const 12
-    local.set 7
     local.get 6
-    local.get 7
+    i32.const 12
     i32.shl
     local.set 6
-    local.get 4
+    local.get 5
     u8.to_i32
     local.set 7
-    i32.const 63
-    local.set 8
     local.get 7
-    local.get 8
+    i32.const 63
     i32.bitand
     local.set 7
-    i32.const 6
-    local.set 8
     local.get 7
-    local.get 8
+    i32.const 6
     i32.shl
     local.set 7
     local.get 6
     local.get 7
     i32.add
     local.set 6
-    local.get 9
+    local.get 8
     u8.to_i32
     local.set 7
-    i32.const 63
-    local.set 8
     local.get 7
-    local.get 8
+    i32.const 63
     i32.bitand
     local.set 7
     local.get 6
@@ -6235,31 +5804,34 @@ fn 45 std_string$decode_char_at (ref,usize) -> char
     u32.to_char
     return
   end $L4
-  i64.const 4
-  local.set 5
   local.get 2
-  local.get 5
+  i64.const 4
   u64.lt
   if $L6 void
     i32.const 0
     i32.to_char
     return
   end $L6
-  i64.const 1
-  local.set 2
   local.get 1
-  local.get 2
+  i64.const 1
   i64.add
   local.set 2
   local.get 0
   local.get 2
   array.get 10
   ref.cast 11
-  local.set 4
-  i64.const 2
-  local.set 2
+  local.set 5
   local.get 1
+  i64.const 2
+  i64.add
+  local.set 2
+  local.get 0
   local.get 2
+  array.get 10
+  ref.cast 11
+  local.set 8
+  local.get 1
+  i64.const 3
   i64.add
   local.set 2
   local.get 0
@@ -6267,45 +5839,41 @@ fn 45 std_string$decode_char_at (ref,usize) -> char
   array.get 10
   ref.cast 11
   local.set 9
-  i64.const 3
-  local.set 2
-  local.get 1
-  local.get 2
-  i64.add
-  local.set 2
-  local.get 0
-  local.get 2
-  array.get 10
-  ref.cast 11
-  local.set 10
   local.get 3
   u8.to_i32
   local.set 6
-  i32.const 7
-  local.set 7
   local.get 6
-  local.get 7
+  i32.const 7
   i32.bitand
   local.set 6
-  i32.const 18
-  local.set 7
   local.get 6
-  local.get 7
+  i32.const 18
   i32.shl
   local.set 6
-  local.get 4
+  local.get 5
   u8.to_i32
   local.set 7
-  i32.const 63
-  local.set 8
   local.get 7
-  local.get 8
+  i32.const 63
   i32.bitand
   local.set 7
-  i32.const 12
-  local.set 8
   local.get 7
+  i32.const 12
+  i32.shl
+  local.set 7
+  local.get 6
+  local.get 7
+  i32.add
+  local.set 6
   local.get 8
+  u8.to_i32
+  local.set 7
+  local.get 7
+  i32.const 63
+  i32.bitand
+  local.set 7
+  local.get 7
+  i32.const 6
   i32.shl
   local.set 7
   local.get 6
@@ -6315,29 +5883,8 @@ fn 45 std_string$decode_char_at (ref,usize) -> char
   local.get 9
   u8.to_i32
   local.set 7
+  local.get 7
   i32.const 63
-  local.set 8
-  local.get 7
-  local.get 8
-  i32.bitand
-  local.set 7
-  i32.const 6
-  local.set 8
-  local.get 7
-  local.get 8
-  i32.shl
-  local.set 7
-  local.get 6
-  local.get 7
-  i32.add
-  local.set 6
-  local.get 10
-  u8.to_i32
-  local.set 7
-  i32.const 63
-  local.set 8
-  local.get 7
-  local.get 8
   i32.bitand
   local.set 7
   local.get 6
@@ -6364,30 +5911,23 @@ end
 
 fn 47 std_string$codepoint_byte_len (char) -> usize
   local cp u32
-  local $k_3 u32
   local.get 0
   char.to_i32
   local.set 1
-  i32.const 128
-  local.set 2
   local.get 1
-  local.get 2
+  i32.const 128
   u32.lt
   if $L0 void
     return.lit i64.const 1
   end $L0
-  i32.const 2048
-  local.set 2
   local.get 1
-  local.get 2
+  i32.const 2048
   u32.lt
   if $L1 void
     return.lit i64.const 2
   end $L1
-  i32.const 65536
-  local.set 2
   local.get 1
-  local.get 2
+  i32.const 65536
   u32.lt
   if $L2 void
     return.lit i64.const 3
@@ -6419,34 +5959,29 @@ end
 
 fn 50 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local n usize
-  local $k_4 usize
   local $field_9 ref
+  local __for_len_1 usize
   local __for_i_2 usize
   local $call_23 usize
-  local $k_25 usize
   local __for_arr_3 ref
   local p string
-  local $k_42 usize
+  local $call_40 usize
   local.field 0 20 0
   array.len
   local.set 1
-  i64.const 0
-  local.set 2
   local.get 1
-  local.get 2
+  i64.const 0
   i64.eq
   if $L0 void
     return.lit string.const 65
   end $L0
-  i64.const 1
-  local.set 2
   local.get 1
-  local.get 2
+  i64.const 1
   i64.eq
   if $L1 void
     local.field 0 20 0
-    local.set 3
-    local.get 3
+    local.set 2
+    local.get 2
     i32.const 0
     array.get 12
     ref.cast 1
@@ -6455,18 +5990,18 @@ fn 50 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   i64.const 0
   local.set 1
   local.field 0 20 0
-  local.tee 3
+  local.tee 2
   array.len
-  local.set 2
+  local.set 3
   i64.const 0
   local.set 4
   block $L2 void
     loop $L3 void
       local.get 4
-      local.get 2
+      local.get 3
       u64.lt
       if $L4 void
-        local.get 3
+        local.get 2
         local.get 4
         array.get 12
         ref.cast 1
@@ -6476,10 +6011,8 @@ fn 50 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 5
         i64.add
         local.set 1
-        i64.const 1
-        local.set 6
         local.get 4
-        local.get 6
+        i64.const 1
         i64.add
         local.set 4
         br $L3
@@ -6489,11 +6022,11 @@ fn 50 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L2
   local.get 1
   call 51
-  local.set 3
-  i64.const 0
   local.set 2
+  i64.const 0
+  local.set 3
   local.field 0 20 0
-  local.tee 7
+  local.tee 6
   array.len
   local.set 4
   i64.const 0
@@ -6504,26 +6037,24 @@ fn 50 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       local.get 4
       u64.lt
       if $L7 void
-        local.get 7
+        local.get 6
         local.get 5
         array.get 12
         ref.cast 1
+        local.set 7
+        local.get 2
+        local.get 3
+        local.get 7
+        call 54
+        local.get 7
+        call.import 3
         local.set 8
         local.get 3
-        local.get 2
         local.get 8
-        call 54
-        local.get 8
-        call.import 3
-        local.set 6
-        local.get 2
-        local.get 6
         i64.add
-        local.set 2
-        i64.const 1
-        local.set 9
+        local.set 3
         local.get 5
-        local.get 9
+        i64.const 1
         i64.add
         local.set 5
         br $L6
@@ -6531,7 +6062,7 @@ fn 50 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       end $L7
     end $L6
   end $L5
-  local.get 3
+  local.get 2
   local.get 1
   call 53
   return

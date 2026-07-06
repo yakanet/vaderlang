@@ -95,7 +95,6 @@ fn 3 concat_5 (string,string,string,string,string) -> string
   local $call_13 usize
   local $call_16 usize
   local buf ref
-  local $k_21 usize
   local.get 0
   call 6
   local.set 5
@@ -129,10 +128,8 @@ fn 3 concat_5 (string,string,string,string,string) -> string
   local.tee 9
   call 5
   local.set 10
-  i64.const 0
-  local.set 11
   local.get 10
-  local.get 11
+  i64.const 0
   local.get 0
   call 13
   local.get 10
@@ -161,7 +158,6 @@ fn 4 concat_2 (string,string) -> string
   local c0 usize
   local $call_4 usize
   local buf ref
-  local $k_9 usize
   local.get 0
   call 6
   local.set 2
@@ -174,10 +170,8 @@ fn 4 concat_2 (string,string) -> string
   local.tee 3
   call 5
   local.set 4
-  i64.const 0
-  local.set 5
   local.get 4
-  local.get 5
+  i64.const 0
   local.get 0
   call 13
   local.get 4

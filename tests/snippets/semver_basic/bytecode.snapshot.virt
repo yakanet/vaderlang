@@ -211,7 +211,6 @@ fn 2 concat_2 (string,string) -> string
   local c0 usize
   local $call_4 usize
   local buf ref
-  local $k_9 usize
   local.get 0
   call 4
   local.set 2
@@ -224,10 +223,8 @@ fn 2 concat_2 (string,string) -> string
   local.tee 3
   call 3
   local.set 4
-  i64.const 0
-  local.set 5
   local.get 4
-  local.get 5
+  i64.const 0
   local.get 0
   call 61
   local.get 4
@@ -275,35 +272,29 @@ fn 6 std_core$write_string_at (ref,usize,string) -> usize
 end
 
 fn 7 std_core$write_int (ref,usize,i64) -> usize
-  local $k_5 u8
-  local $k_6 usize
   local neg bool
+  local ndigits usize
   local m i64
-  local $k_19 usize
-  local $k_24 usize
+  local if_res usize
   local $cast_37 u8
   local $add_38 u8
   local.get 2
   i64.const 0
   i64.eq
   if $L0 void
-    i32.const 48
-    local.set 3
     local.get 0
     local.get 1
-    local.get 3
+    i32.const 48
     call 62
-    i64.const 1
-    local.set 4
     local.get 1
-    local.get 4
+    i64.const 1
     i64.add
     return
   end $L0
   local.get 2
   i64.const 0
   i64.lt
-  local.set 5
+  local.set 3
   local.get 2
   i64.const 0
   i64.gt
@@ -316,73 +307,65 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
   i64.const 0
   local.set 4
   local.get 2
-  local.set 6
+  local.set 5
   block $L2 void
     loop $L3 void
-      local.get 6
+      local.get 5
       i64.const 0
       i64.ne
       if $L4 void
-        i64.const 1
-        local.set 7
         local.get 4
-        local.get 7
+        i64.const 1
         i64.add
         local.set 4
-        local.get 6
+        local.get 5
         i64.const 10
         i64.div
-        local.set 6
+        local.set 5
         br $L3
       else
       end $L4
     end $L3
   end $L2
-  local.get 5
+  local.get 3
   if $L5 void
-    i64.const 1
-    local.set 8
     local.get 4
-    local.get 8
+    i64.const 1
     i64.add
-    local.set 7
+    local.set 6
   else
     local.get 4
-    local.set 7
+    local.set 6
   end $L5
-  local.get 7
+  local.get 6
   local.set 4
   local.get 1
   local.get 4
   i64.add
-  local.set 7
+  local.set 6
   block $L6 void
     loop $L7 void
       local.get 2
       i64.const 0
       i64.ne
       if $L8 void
+        local.get 6
         i64.const 1
-        local.set 8
-        local.get 7
-        local.get 8
         i64.sub
-        local.set 7
-        i32.const 48
-        local.set 3
+        local.set 6
         local.get 2
         i64.const 10
         i64.rem
         i64.neg
         i64.to_i32
-        local.set 9
-        local.get 3
-        local.get 9
-        i32.add
-        local.set 10
-        local.get 0
+        local.set 7
+        i32.const 48
         local.get 7
-        local.get 10
+        i32.add
+        local.set 8
+        local.get 0
+        local.get 6
+        local.get 8
         call 62
         local.get 2
         i64.const 10
@@ -393,13 +376,11 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
       end $L8
     end $L7
   end $L6
-  local.get 5
+  local.get 3
   if $L9 void
-    i32.const 45
-    local.set 3
     local.get 0
     local.get 1
-    local.get 3
+    i32.const 45
     call 62
   else
   end $L9
@@ -415,10 +396,8 @@ fn 8 std_semver$parse (string) -> ref
   local plus_pos usize
   local i usize
   local $idx_12 u8
-  local $k_13 u8
-  local $k_15 usize
   local dots_seen i32
-  local $k_29 u8
+  local j usize
   local and_res bool
   local $k_35 usize
   local core string
@@ -427,11 +406,8 @@ fn 8 std_semver$parse (string) -> ref
   local cb ref
   local cn usize
   local k usize
-  local $k_79 usize
   local __scrut_0 ref
   local e ref
-  local $k_99 usize
-  local $k_101 usize
   local $k_103 usize
   local e1 string
   local $idx_153 i32
@@ -465,20 +441,16 @@ fn 8 std_semver$parse (string) -> ref
         array.get 11
         ref.cast 12
         local.set 5
-        i32.const 43
-        local.set 6
         local.get 5
-        local.get 6
+        i32.const 43
         i32.eq
         if $L4 void
           local.get 4
           local.set 3
         else
         end $L4
-        i64.const 1
-        local.set 7
         local.get 4
-        local.get 7
+        i64.const 1
         i64.add
         local.set 4
         br $L2
@@ -489,7 +461,7 @@ fn 8 std_semver$parse (string) -> ref
   local.get 3
   local.set 4
   i32.const 0
-  local.set 8
+  local.set 6
   i64.const 0
   local.set 7
   block $L5 void
@@ -503,47 +475,43 @@ fn 8 std_semver$parse (string) -> ref
         array.get 11
         ref.cast 12
         local.set 5
-        i32.const 46
-        local.set 6
         local.get 5
-        local.get 6
+        i32.const 46
         i32.eq
         if $L8 void
-          local.get 8
+          local.get 6
           i32.const 1
           i32.add
-          local.set 8
+          local.set 6
           i64.const 1
-          local.set 11
+          local.set 9
           local.get 7
-          local.get 11
+          local.get 9
           i64.add
           local.set 7
           br $L6
         end $L8
-        i32.const 45
-        local.set 9
         local.get 5
-        local.get 9
+        i32.const 45
         i32.eq
         if $L9 void
-          local.get 8
+          local.get 6
           i32.const 2
           i32.ge
-          local.set 10
+          local.set 8
         else
           bool.const false
-          local.set 10
+          local.set 8
         end $L9
-        local.get 10
+        local.get 8
         if $L10 void
           local.get 7
           local.set 4
         else
           i64.const 1
-          local.set 11
+          local.set 9
           local.get 7
-          local.get 11
+          local.get 9
           i64.add
           local.set 7
           br $L6
@@ -564,22 +532,18 @@ fn 8 std_semver$parse (string) -> ref
   end $L11
   local.get 7
   local.set 7
-  i64.const 0
-  local.set 11
   local.get 1
-  local.get 11
+  i64.const 0
   local.get 7
   array.slice 11
   call.import 0
-  local.set 12
+  local.set 10
   local.get 4
   local.get 3
   u64.lt
   if $L12 void
-    i64.const 1
-    local.set 7
     local.get 4
-    local.get 7
+    i64.const 1
     i64.add
     local.set 7
     local.get 1
@@ -587,21 +551,19 @@ fn 8 std_semver$parse (string) -> ref
     local.get 3
     array.slice 11
     call.import 0
-    local.set 13
+    local.set 11
   else
     string.const 8
-    local.set 13
+    local.set 11
   end $L12
-  local.get 13
-  local.set 13
+  local.get 11
+  local.set 11
   local.get 3
   local.get 2
   u64.lt
   if $L13 void
-    i64.const 1
-    local.set 7
     local.get 3
-    local.get 7
+    i64.const 1
     i64.add
     local.set 7
     local.get 1
@@ -609,13 +571,13 @@ fn 8 std_semver$parse (string) -> ref
     local.get 2
     array.slice 11
     call.import 0
-    local.set 14
+    local.set 12
   else
     string.const 8
-    local.set 14
+    local.set 12
   end $L13
-  local.get 14
-  local.set 14
+  local.get 12
+  local.set 12
   i32.const 0
   i32.const 0
   i32.const 0
@@ -624,87 +586,79 @@ fn 8 std_semver$parse (string) -> ref
   i64.const 0
   local.set 7
   i64.const 0
-  local.set 11
-  local.get 12
+  local.set 9
+  local.get 10
   call.import 1
-  local.tee 15
+  local.tee 13
   array.len
-  local.set 16
+  local.set 14
   i64.const 0
-  local.set 17
+  local.set 15
   block $L14 void
     loop $L15 void
-      local.get 17
-      local.get 16
+      local.get 15
+      local.get 14
       u64.lt
       if $L16 void
+        local.get 13
         local.get 15
-        local.get 17
         array.get 11
         ref.cast 12
         local.set 5
-        i32.const 46
-        local.set 6
         local.get 5
-        local.get 6
+        i32.const 46
         i32.eq
         if $L17 void
-          i64.const 3
-          local.set 18
           local.get 7
-          local.get 18
+          i64.const 3
           u64.ge
           if $L18 void
             string.const 10
             struct.new 15
             return
           end $L18
+          local.get 13
+          local.get 9
           local.get 15
-          local.get 11
-          local.get 17
           array.slice 11
           call.import 0
           call 10
-          local.tee 19
+          local.tee 16
           type_check 1
           if $L19 void
-            local.get 19
+            local.get 16
             ref.cast 1
-            local.set 8
+            local.set 6
             local.get 1
             local.get 7
-            local.get 8
+            local.get 6
             store_slot_i32
-            i64.const 1
-            local.set 21
             local.get 7
-            local.get 21
+            i64.const 1
             i64.add
             local.set 7
+            local.get 15
             i64.const 1
-            local.set 22
-            local.get 17
-            local.get 22
             i64.add
-            local.set 11
+            local.set 9
             i64.const 1
-            local.set 23
-            local.get 17
-            local.get 23
+            local.set 18
+            local.get 15
+            local.get 18
             i64.add
-            local.set 17
+            local.set 15
             br $L15
           end $L19
-          local.get 19
+          local.get 16
           type_check 15
           if $L20 void
-            local.get 19
-            local.set 20
-            local.field 20 15 0
+            local.get 16
+            local.set 17
+            local.field 17 15 0
             ref.cast 2
-            local.set 12
+            local.set 10
             string.const 11
-            local.get 12
+            local.get 10
             call 2
             struct.new 15
             return
@@ -712,54 +666,52 @@ fn 8 std_semver$parse (string) -> ref
           return
         end $L17
         i64.const 1
-        local.set 23
-        local.get 17
-        local.get 23
+        local.set 18
+        local.get 15
+        local.get 18
         i64.add
-        local.set 17
+        local.set 15
         br $L15
       else
       end $L16
     end $L15
   end $L14
-  i64.const 2
-  local.set 17
   local.get 7
-  local.get 17
+  i64.const 2
   i64.ne
   if $L21 void
     string.const 12
     struct.new 15
     return
   end $L21
-  local.get 15
-  local.get 11
-  local.get 16
+  local.get 13
+  local.get 9
+  local.get 14
   array.slice 11
   call.import 0
   call 10
-  local.tee 15
+  local.tee 13
   type_check 1
   if $L22 void
-    local.get 15
+    local.get 13
     ref.cast 1
-    local.set 8
+    local.set 6
     local.get 1
     i32.const 2
-    local.get 8
+    local.get 6
     store_slot_i32
     local.get 4
     local.get 3
     u64.lt
     if $L23 void
-      local.get 13
+      local.get 11
       call 39
-      local.set 10
+      local.set 8
     else
       bool.const false
-      local.set 10
+      local.set 8
     end $L23
-    local.get 10
+    local.get 8
     if $L24 void
       string.const 13
       struct.new 15
@@ -769,175 +721,175 @@ fn 8 std_semver$parse (string) -> ref
     local.get 2
     u64.lt
     if $L25 void
-      local.get 14
+      local.get 12
       call 39
-      local.set 10
+      local.set 8
     else
       bool.const false
-      local.set 10
+      local.set 8
     end $L25
-    local.get 10
+    local.get 8
     if $L26 void
       string.const 14
       struct.new 15
       return
     end $L26
-    local.get 13
+    local.get 11
     call 39
     bool.not
     if $L27 void
-      local.get 13
+      local.get 11
       call 11
-      local.tee 24
+      local.tee 19
       call 39
       bool.not
       if $L28 void
-        local.get 24
+        local.get 19
         struct.new 15
         return
       end $L28
-      local.get 14
+      local.get 12
       call 39
       bool.not
       if $L29 void
-        local.get 14
+        local.get 12
         call 12
-        local.tee 24
+        local.tee 19
         call 39
         bool.not
         if $L30 void
-          local.get 24
+          local.get 19
           struct.new 15
           return
         end $L30
         i32.const 0
-        local.set 8
+        local.set 6
         local.get 1
-        local.get 8
+        local.get 6
         load_slot_i32
-        local.set 25
+        local.set 20
         i32.const 1
-        local.set 26
+        local.set 21
         local.get 1
-        local.get 26
+        local.get 21
         load_slot_i32
-        local.set 27
+        local.set 22
         i32.const 2
-        local.set 28
+        local.set 23
         local.get 1
-        local.get 28
+        local.get 23
         load_slot_i32
-        local.set 29
-        local.get 25
-        local.get 27
-        local.get 29
-        local.get 13
-        local.get 14
+        local.set 24
+        local.get 20
+        local.get 22
+        local.get 24
+        local.get 11
+        local.get 12
         struct.new 3
         return
       end $L29
       i32.const 0
-      local.set 8
+      local.set 6
       local.get 1
-      local.get 8
+      local.get 6
       load_slot_i32
-      local.set 25
+      local.set 20
       i32.const 1
-      local.set 26
+      local.set 21
       local.get 1
-      local.get 26
+      local.get 21
       load_slot_i32
-      local.set 27
+      local.set 22
       i32.const 2
-      local.set 28
+      local.set 23
       local.get 1
-      local.get 28
+      local.get 23
       load_slot_i32
-      local.set 29
-      local.get 25
-      local.get 27
-      local.get 29
-      local.get 13
-      local.get 14
+      local.set 24
+      local.get 20
+      local.get 22
+      local.get 24
+      local.get 11
+      local.get 12
       struct.new 3
       return
     end $L27
-    local.get 14
+    local.get 12
     call 39
     bool.not
     if $L31 void
-      local.get 14
+      local.get 12
       call 12
-      local.tee 24
+      local.tee 19
       call 39
       bool.not
       if $L32 void
-        local.get 24
+        local.get 19
         struct.new 15
         return
       end $L32
       i32.const 0
-      local.set 8
+      local.set 6
       local.get 1
-      local.get 8
+      local.get 6
       load_slot_i32
-      local.set 25
+      local.set 20
       i32.const 1
-      local.set 26
+      local.set 21
       local.get 1
-      local.get 26
+      local.get 21
       load_slot_i32
-      local.set 27
+      local.set 22
       i32.const 2
-      local.set 28
+      local.set 23
       local.get 1
-      local.get 28
+      local.get 23
       load_slot_i32
-      local.set 29
-      local.get 25
-      local.get 27
-      local.get 29
-      local.get 13
-      local.get 14
+      local.set 24
+      local.get 20
+      local.get 22
+      local.get 24
+      local.get 11
+      local.get 12
       struct.new 3
       return
     end $L31
     i32.const 0
-    local.set 8
+    local.set 6
     local.get 1
-    local.get 8
+    local.get 6
     load_slot_i32
-    local.set 25
+    local.set 20
     i32.const 1
-    local.set 26
+    local.set 21
     local.get 1
-    local.get 26
+    local.get 21
     load_slot_i32
-    local.set 27
+    local.set 22
     i32.const 2
-    local.set 28
+    local.set 23
     local.get 1
-    local.get 28
+    local.get 23
     load_slot_i32
-    local.set 29
-    local.get 25
-    local.get 27
-    local.get 29
-    local.get 13
-    local.get 14
+    local.set 24
+    local.get 20
+    local.get 22
+    local.get 24
+    local.get 11
+    local.get 12
     struct.new 3
     return
   end $L22
-  local.get 15
+  local.get 13
   type_check 15
   if $L33 void
-    local.get 15
+    local.get 13
     local.set 1
     local.field 1 15 0
     ref.cast 2
-    local.set 12
+    local.set 10
     string.const 11
-    local.get 12
+    local.get 10
     call 2
     struct.new 15
     return
@@ -953,7 +905,6 @@ fn 9 std_semver$parse_range (string) -> ref
   local __for_i_2 usize
   local __scrut_3 ref
   local c ref
-  local $k_28 usize
   local.get 0
   call 40
   local.tee 1
@@ -991,10 +942,8 @@ fn 9 std_semver$parse_range (string) -> ref
           local.get 2
           local.get 7
           array.push 21
-          i64.const 1
-          local.set 8
           local.get 5
-          local.get 8
+          i64.const 1
           i64.add
           local.set 5
           br $L2
@@ -1016,10 +965,8 @@ fn 9 std_semver$parse_range (string) -> ref
   local.get 2
   array.len
   local.set 4
-  i64.const 0
-  local.set 5
   local.get 4
-  local.get 5
+  i64.const 0
   i64.eq
   if $L6 void
     string.const 15
@@ -1034,10 +981,8 @@ end
 fn 10 std_semver$parse_numeric_id (string) -> ref
   local sb ref
   local $len_10 usize
-  local $k_11 usize
   local and_res bool
   local $idx_15 u8
-  local $k_16 u8
   local.get 0
   call 39
   if $L0 void
@@ -1058,28 +1003,24 @@ fn 10 std_semver$parse_numeric_id (string) -> ref
   local.tee 1
   array.len
   local.set 2
-  i64.const 1
-  local.set 3
   local.get 2
-  local.get 3
+  i64.const 1
   u64.gt
   if $L2 void
     local.get 1
     i32.const 0
     array.get 11
     ref.cast 12
-    local.set 5
-    i32.const 48
-    local.set 6
-    local.get 5
-    local.get 6
-    i32.eq
     local.set 4
+    local.get 4
+    i32.const 48
+    i32.eq
+    local.set 3
   else
     bool.const false
-    local.set 4
+    local.set 3
   end $L2
-  local.get 4
+  local.get 3
   if $L3 void
     string.const 18
     struct.new 15
@@ -1111,9 +1052,7 @@ fn 11 std_semver$validate_prerelease (string) -> string
   local start usize
   local i usize
   local $idx_10 u8
-  local $k_11 u8
   local err string
-  local $k_20 usize
   local $k_22 usize
   local.get 0
   call.import 1
@@ -1135,10 +1074,8 @@ fn 11 std_semver$validate_prerelease (string) -> string
         array.get 11
         ref.cast 12
         local.set 5
-        i32.const 46
-        local.set 6
         local.get 5
-        local.get 6
+        i32.const 46
         i32.eq
         if $L3 void
           local.get 1
@@ -1147,31 +1084,29 @@ fn 11 std_semver$validate_prerelease (string) -> string
           array.slice 11
           call.import 0
           call 17
-          local.tee 7
+          local.tee 6
           call 39
           bool.not
           if $L4 void
-            local.get 7
+            local.get 6
             return
           end $L4
-          i64.const 1
-          local.set 8
           local.get 4
-          local.get 8
+          i64.const 1
           i64.add
           local.set 3
           i64.const 1
-          local.set 9
+          local.set 7
           local.get 4
-          local.get 9
+          local.get 7
           i64.add
           local.set 4
           br $L1
         end $L3
         i64.const 1
-        local.set 9
+        local.set 7
         local.get 4
-        local.get 9
+        local.get 7
         i64.add
         local.set 4
         br $L1
@@ -1194,9 +1129,7 @@ fn 12 std_semver$validate_build (string) -> string
   local start usize
   local i usize
   local $idx_10 u8
-  local $k_11 u8
   local err string
-  local $k_20 usize
   local $k_22 usize
   local.get 0
   call.import 1
@@ -1218,10 +1151,8 @@ fn 12 std_semver$validate_build (string) -> string
         array.get 11
         ref.cast 12
         local.set 5
-        i32.const 46
-        local.set 6
         local.get 5
-        local.get 6
+        i32.const 46
         i32.eq
         if $L3 void
           local.get 1
@@ -1230,31 +1161,29 @@ fn 12 std_semver$validate_build (string) -> string
           array.slice 11
           call.import 0
           call 18
-          local.tee 7
+          local.tee 6
           call 39
           bool.not
           if $L4 void
-            local.get 7
+            local.get 6
             return
           end $L4
-          i64.const 1
-          local.set 8
           local.get 4
-          local.get 8
+          i64.const 1
           i64.add
           local.set 3
           i64.const 1
-          local.set 9
+          local.set 7
           local.get 4
-          local.get 9
+          local.get 7
           i64.add
           local.set 4
           br $L1
         end $L3
         i64.const 1
-        local.set 9
+        local.set 7
         local.get 4
-        local.get 9
+        local.get 7
         i64.add
         local.set 4
         br $L1
@@ -1294,19 +1223,14 @@ fn 14 std_semver$split_or (string) -> ref
   local out ref
   local sb ref
   local n usize
-  local $k_7 usize
-  local $k_11 usize
+  local start usize
+  local __for_hi_0 usize
   local i usize
   local $idx_17 u8
-  local $k_18 u8
   local and_res bool
-  local $k_21 usize
   local $add_22 usize
   local $idx_23 u8
-  local $k_24 u8
   local $call_28 string
-  local $k_29 usize
-  local $k_31 usize
   array.new 19 0
   local.set 1
   local.get 0
@@ -1314,10 +1238,8 @@ fn 14 std_semver$split_or (string) -> ref
   local.tee 2
   array.len
   local.set 3
-  i64.const 2
-  local.set 4
   local.get 3
-  local.get 4
+  i64.const 2
   u64.lt
   if $L0 void
     local.get 1
@@ -1328,10 +1250,8 @@ fn 14 std_semver$split_or (string) -> ref
   end $L0
   i64.const 0
   local.set 4
-  i64.const 1
-  local.set 5
   local.get 3
-  local.get 5
+  i64.const 1
   i64.sub
   local.set 5
   i64.const 0
@@ -1347,56 +1267,46 @@ fn 14 std_semver$split_or (string) -> ref
         array.get 11
         ref.cast 12
         local.set 7
-        i32.const 124
-        local.set 8
         local.get 7
-        local.get 8
+        i32.const 124
         i32.eq
         if $L4 void
-          i64.const 1
-          local.set 10
           local.get 6
-          local.get 10
+          i64.const 1
           i64.add
-          local.set 11
+          local.set 9
           local.get 2
-          local.get 11
+          local.get 9
           array.get 11
           ref.cast 12
-          local.set 12
+          local.set 10
+          local.get 10
           i32.const 124
-          local.set 13
-          local.get 12
-          local.get 13
           i32.eq
-          local.set 9
+          local.set 8
         else
           bool.const false
-          local.set 9
+          local.set 8
         end $L4
-        local.get 9
+        local.get 8
         if $L5 void
           local.get 2
           local.get 4
           local.get 6
           array.slice 11
           call.import 0
-          local.set 14
+          local.set 11
           local.get 1
-          local.get 14
+          local.get 11
           array.push 2
-          i64.const 2
-          local.set 15
           local.get 6
-          local.get 15
+          i64.const 2
           i64.add
           local.set 4
         else
         end $L5
-        i64.const 1
-        local.set 16
         local.get 6
-        local.get 16
+        i64.const 1
         i64.add
         local.set 6
         br $L2
@@ -1409,9 +1319,9 @@ fn 14 std_semver$split_or (string) -> ref
   local.get 3
   array.slice 11
   call.import 0
-  local.set 14
+  local.set 11
   local.get 1
-  local.get 14
+  local.get 11
   array.push 2
   local.get 1
   return
@@ -1420,14 +1330,11 @@ end
 fn 15 std_semver$parse_clause (string) -> ref
   local tokens ref
   local $len_3 usize
-  local $k_4 usize
   local terms ref
-  local $k_15 usize
+  local i usize
   local and_res bool
-  local $k_19 usize
   local $add_20 usize
   local $idx_21 string
-  local $k_28 usize
   local $add_29 usize
   local hi_part ref
   local __scrut_0 ref
@@ -1438,8 +1345,6 @@ fn 15 std_semver$parse_clause (string) -> ref
   local __for_len_3 usize
   local __for_i_4 usize
   local t ref
-  local $k_52 usize
-  local $k_54 usize
   local e ref
   local $field_61 string
   local e ref
@@ -1449,17 +1354,13 @@ fn 15 std_semver$parse_clause (string) -> ref
   local __for_len_7 usize
   local __for_i_8 usize
   local t ref
-  local $k_88 usize
-  local $k_95 usize
   local.get 0
   call 19
   local.tee 1
   array.len
   local.set 2
-  i64.const 0
-  local.set 3
   local.get 2
-  local.get 3
+  i64.const 0
   i64.eq
   if $L0 void
     string.const 20
@@ -1467,142 +1368,132 @@ fn 15 std_semver$parse_clause (string) -> ref
     return
   end $L0
   array.new 24 0
-  local.set 4
+  local.set 3
   local.get 1
   array.len
   local.set 2
   i64.const 0
-  local.set 3
+  local.set 4
   block $L1 void
     loop $L2 void
-      local.get 3
+      local.get 4
       local.get 2
       u64.lt
       if $L3 void
+        local.get 4
         i64.const 2
-        local.set 5
-        local.get 3
-        local.get 5
         i64.add
         local.get 2
         u64.lt
         if $L4 void
+          local.get 4
           i64.const 1
+          i64.add
+          local.set 6
+          local.get 1
+          local.get 6
+          array.get 19
+          ref.cast 2
           local.set 7
-          local.get 3
           local.get 7
+          string.const 21
+          string.eq
+          local.set 5
+        else
+          bool.const false
+          local.set 5
+        end $L4
+        local.get 5
+        if $L5 void
+          local.get 1
+          local.get 4
+          array.get 19
+          ref.cast 2
+          call 20
+          local.set 10
+          local.get 4
+          i64.const 2
           i64.add
           local.set 8
           local.get 1
           local.get 8
           array.get 19
           ref.cast 2
+          call 20
           local.set 9
-          local.get 9
-          string.const 21
-          string.eq
-          local.set 6
-        else
-          bool.const false
-          local.set 6
-        end $L4
-        local.get 6
-        if $L5 void
-          local.get 1
-          local.get 3
-          array.get 19
-          ref.cast 2
-          call 20
-          local.set 13
-          i64.const 2
-          local.set 10
-          local.get 3
           local.get 10
-          i64.add
-          local.set 11
-          local.get 1
-          local.get 11
-          array.get 19
-          ref.cast 2
-          call 20
-          local.set 12
-          local.get 13
           type_check 23
           if $L6 void
-            local.get 13
-            local.set 14
-            local.get 12
-            local.tee 15
+            local.get 10
+            local.set 11
+            local.get 9
+            local.tee 12
             type_check 23
             if $L7 void
-              local.get 15
-              local.set 16
-              local.get 14
-              local.get 16
+              local.get 12
+              local.set 13
+              local.get 11
+              local.get 13
               call 21
-              local.tee 17
+              local.tee 14
               array.len
-              local.set 18
+              local.set 15
               i64.const 0
-              local.set 19
+              local.set 16
               block $L8 void
                 loop $L9 void
-                  local.get 19
-                  local.get 18
+                  local.get 16
+                  local.get 15
                   u64.lt
                   if $L10 void
-                    local.get 17
-                    local.get 19
+                    local.get 14
+                    local.get 16
                     array.get 24
-                    local.set 20
-                    local.get 4
-                    local.get 20
+                    local.set 17
+                    local.get 3
+                    local.get 17
                     array.push 25
+                    local.get 16
                     i64.const 1
-                    local.set 21
-                    local.get 19
-                    local.get 21
                     i64.add
-                    local.set 19
+                    local.set 16
                     br $L9
                   else
                   end $L10
                 end $L9
               end $L8
+              local.get 4
               i64.const 3
-              local.set 22
-              local.get 3
-              local.get 22
               i64.add
-              local.set 3
+              local.set 4
               br $L2
             end $L7
-            local.get 15
+            local.get 12
             type_check 15
             if $L11 void
-              local.get 15
-              local.set 23
-              local.field 23 15 0
+              local.get 12
+              local.set 18
+              local.field 18 15 0
               ref.cast 2
-              local.set 24
+              local.set 19
               string.const 22
-              local.get 24
+              local.get 19
               call 2
               struct.new 15
               return
             end $L11
             return
           end $L6
-          local.get 13
+          local.get 10
           type_check 15
           if $L12 void
-            local.get 13
-            local.set 25
-            local.field 25 15 0
+            local.get 10
+            local.set 20
+            local.field 20 15 0
             ref.cast 2
-            local.set 26
+            local.set 21
             string.const 23
-            local.get 26
+            local.get 21
             call 2
             struct.new 15
             return
@@ -1610,55 +1501,51 @@ fn 15 std_semver$parse_clause (string) -> ref
           return
         end $L5
         local.get 1
-        local.get 3
+        local.get 4
         array.get 19
         ref.cast 2
         call 22
-        local.tee 27
+        local.tee 22
         type_check 24
         if $L13 void
-          local.get 27
-          local.tee 28
+          local.get 22
+          local.tee 23
           array.len
-          local.set 29
+          local.set 24
           i64.const 0
-          local.set 30
+          local.set 25
           block $L14 void
             loop $L15 void
-              local.get 30
-              local.get 29
+              local.get 25
+              local.get 24
               u64.lt
               if $L16 void
-                local.get 28
-                local.get 30
+                local.get 23
+                local.get 25
                 array.get 24
-                local.set 31
-                local.get 4
-                local.get 31
+                local.set 26
+                local.get 3
+                local.get 26
                 array.push 25
+                local.get 25
                 i64.const 1
-                local.set 32
-                local.get 30
-                local.get 32
                 i64.add
-                local.set 30
+                local.set 25
                 br $L15
               else
               end $L16
             end $L15
           end $L14
+          local.get 4
           i64.const 1
-          local.set 33
-          local.get 3
-          local.get 33
           i64.add
-          local.set 3
+          local.set 4
           br $L2
         end $L13
-        local.get 27
+        local.get 22
         type_check 15
         if $L17 void
-          local.get 27
+          local.get 22
           struct.get 15 0
           ref.cast 2
           struct.new 15
@@ -1669,20 +1556,18 @@ fn 15 std_semver$parse_clause (string) -> ref
       end $L3
     end $L2
   end $L1
-  local.get 4
+  local.get 3
   array.len
   local.set 2
-  i64.const 0
-  local.set 3
   local.get 2
-  local.get 3
+  i64.const 0
   i64.eq
   if $L18 void
     string.const 24
     struct.new 15
     return
   end $L18
-  local.get 4
+  local.get 3
   struct.new 21
   return
 end
@@ -1728,9 +1613,7 @@ fn 17 std_semver$validate_prerelease_id (string) -> string
   local c char
   local and_res bool
   local $len_26 usize
-  local $k_27 usize
   local $idx_32 u8
-  local $k_33 u8
   local.get 0
   call 39
   if $L0 void
@@ -1788,10 +1671,8 @@ fn 17 std_semver$validate_prerelease_id (string) -> string
     local.get 2
     array.len
     local.set 6
-    i64.const 1
-    local.set 7
     local.get 6
-    local.get 7
+    i64.const 1
     u64.gt
     local.set 1
   else
@@ -1804,11 +1685,9 @@ fn 17 std_semver$validate_prerelease_id (string) -> string
     i32.const 0
     array.get 11
     ref.cast 12
-    local.set 8
+    local.set 7
+    local.get 7
     i32.const 48
-    local.set 9
-    local.get 8
-    local.get 9
     i32.eq
     local.set 1
   else
@@ -1877,7 +1756,6 @@ fn 19 std_semver$split_ws (string) -> ref
   local in_word bool
   local i usize
   local $call_20 string
-  local $k_24 usize
   array.new 19 0
   local.set 1
   local.get 0
@@ -1931,10 +1809,8 @@ fn 19 std_semver$split_ws (string) -> ref
           else
           end $L5
         end $L3
-        i64.const 1
-        local.set 8
         local.get 6
-        local.get 8
+        i64.const 1
         i64.add
         local.set 6
         br $L1
@@ -1968,9 +1844,7 @@ fn 20 std_semver$parse_partial (string) -> ref
   local plus_pos usize
   local i usize
   local $idx_22 u8
-  local $k_23 u8
-  local $k_25 usize
-  local $k_39 u8
+  local j usize
   local and_res bool
   local $k_45 usize
   local core string
@@ -2037,20 +1911,16 @@ fn 20 std_semver$parse_partial (string) -> ref
         array.get 11
         ref.cast 12
         local.set 8
-        i32.const 43
-        local.set 9
         local.get 8
-        local.get 9
+        i32.const 43
         i32.eq
         if $L5 void
           local.get 7
           local.set 6
         else
         end $L5
-        i64.const 1
-        local.set 10
         local.get 7
-        local.get 10
+        i64.const 1
         i64.add
         local.set 7
         br $L3
@@ -2063,22 +1933,20 @@ fn 20 std_semver$parse_partial (string) -> ref
   i32.const 0
   local.set 1
   i64.const 0
-  local.set 10
+  local.set 9
   block $L6 void
     loop $L7 void
-      local.get 10
+      local.get 9
       local.get 6
       u64.lt
       if $L8 void
         local.get 4
-        local.get 10
+        local.get 9
         array.get 11
         ref.cast 12
         local.set 8
-        i32.const 46
-        local.set 9
         local.get 8
-        local.get 9
+        i32.const 46
         i32.eq
         if $L9 void
           local.get 1
@@ -2086,38 +1954,36 @@ fn 20 std_semver$parse_partial (string) -> ref
           i32.add
           local.set 1
           i64.const 1
-          local.set 13
-          local.get 10
-          local.get 13
+          local.set 11
+          local.get 9
+          local.get 11
           i64.add
-          local.set 10
+          local.set 9
           br $L7
         end $L9
-        i32.const 45
-        local.set 11
         local.get 8
-        local.get 11
+        i32.const 45
         i32.eq
         if $L10 void
           local.get 1
           i32.const 2
           i32.ge
-          local.set 12
+          local.set 10
         else
           bool.const false
-          local.set 12
+          local.set 10
         end $L10
-        local.get 12
+        local.get 10
         if $L11 void
-          local.get 10
+          local.get 9
           local.set 7
         else
           i64.const 1
-          local.set 13
-          local.get 10
-          local.get 13
+          local.set 11
+          local.get 9
+          local.get 11
           i64.add
-          local.set 10
+          local.set 9
           br $L7
         end $L11
       else
@@ -2129,29 +1995,25 @@ fn 20 std_semver$parse_partial (string) -> ref
   u64.lt
   if $L12 void
     local.get 7
-    local.set 10
+    local.set 9
   else
     local.get 6
-    local.set 10
+    local.set 9
   end $L12
-  local.get 10
-  local.set 10
-  i64.const 0
-  local.set 13
+  local.get 9
+  local.set 9
   local.get 4
-  local.get 13
-  local.get 10
+  i64.const 0
+  local.get 9
   array.slice 11
   call.import 0
-  local.set 14
+  local.set 12
   local.get 7
   local.get 6
   u64.lt
   if $L13 void
-    i64.const 1
-    local.set 10
     local.get 7
-    local.get 10
+    i64.const 1
     i64.add
     local.set 7
     local.get 4
@@ -2159,21 +2021,19 @@ fn 20 std_semver$parse_partial (string) -> ref
     local.get 6
     array.slice 11
     call.import 0
-    local.set 15
+    local.set 13
   else
     string.const 8
-    local.set 15
+    local.set 13
   end $L13
-  local.get 15
-  local.set 15
+  local.get 13
+  local.set 13
   local.get 6
   local.get 5
   u64.lt
   if $L14 void
-    i64.const 1
-    local.set 7
     local.get 6
-    local.get 7
+    i64.const 1
     i64.add
     local.set 6
     local.get 4
@@ -2181,39 +2041,35 @@ fn 20 std_semver$parse_partial (string) -> ref
     local.get 5
     array.slice 11
     call.import 0
-    local.set 16
+    local.set 14
   else
     string.const 8
-    local.set 16
+    local.set 14
   end $L14
-  local.get 16
-  local.set 16
   local.get 14
+  local.set 14
+  local.get 12
   string.const 31
   call 44
   local.tee 4
   array.len
   local.set 5
-  i64.const 0
-  local.set 6
   local.get 5
-  local.get 6
+  i64.const 0
   i64.eq
   if $L15 void
     bool.const true
-    local.set 12
+    local.set 10
   else
     local.get 4
     array.len
     local.set 5
-    i64.const 3
-    local.set 6
     local.get 5
-    local.get 6
+    i64.const 3
     u64.gt
-    local.set 12
+    local.set 10
   end $L15
-  local.get 12
+  local.get 10
   if $L16 void
     string.const 32
     struct.new 15
@@ -2234,14 +2090,12 @@ fn 20 std_semver$parse_partial (string) -> ref
   string.const 8
   string.const 8
   struct.new 23
-  local.set 17
+  local.set 15
   local.get 4
   array.len
   local.set 5
-  i64.const 1
-  local.set 6
   local.get 5
-  local.get 6
+  i64.const 1
   u64.ge
   if $L17 void
     local.get 4
@@ -2256,13 +2110,13 @@ fn 20 std_semver$parse_partial (string) -> ref
       array.get 19
       ref.cast 2
       call 10
-      local.tee 18
+      local.tee 16
       type_check 1
       if $L19 void
-        local.get 18
+        local.get 16
         ref.cast 1
         local.set 1
-        local.get 17
+        local.get 15
         local.get 1
         struct.set 23 0
         local.get 4
@@ -2290,268 +2144,268 @@ fn 20 std_semver$parse_partial (string) -> ref
             array.get 19
             ref.cast 2
             call 10
-            local.tee 19
+            local.tee 17
             type_check 1
             if $L22 void
-              local.get 19
+              local.get 17
               ref.cast 1
               local.set 3
-              local.get 17
+              local.get 15
               local.get 3
               struct.set 23 1
               local.get 4
               array.len
               local.set 7
               i64.const 3
-              local.set 10
+              local.set 9
               local.get 7
-              local.get 10
+              local.get 9
               u64.ge
               if $L23 void
                 i32.const 2
-                local.set 23
+                local.set 21
                 local.get 4
-                local.get 23
+                local.get 21
                 array.get 19
                 ref.cast 2
                 call 23
                 bool.not
                 if $L24 void
                   i32.const 2
-                  local.set 24
+                  local.set 22
                   local.get 4
-                  local.get 24
+                  local.get 22
                   array.get 19
                   ref.cast 2
                   call 10
-                  local.tee 25
+                  local.tee 23
                   type_check 1
                   if $L25 void
-                    local.get 25
+                    local.get 23
                     ref.cast 1
-                    local.set 26
-                    local.get 17
-                    local.get 26
-                    struct.set 23 2
+                    local.set 24
                     local.get 15
+                    local.get 24
+                    struct.set 23 2
+                    local.get 13
                     call 39
                     bool.not
                     if $L26 void
-                      local.get 15
+                      local.get 13
                       call 11
-                      local.tee 30
+                      local.tee 28
                       call 39
                       bool.not
                       if $L27 void
-                        local.get 30
+                        local.get 28
                         struct.new 15
                         return
                       end $L27
-                      local.get 17
                       local.get 15
+                      local.get 13
                       struct.set 23 3
-                      local.get 16
+                      local.get 14
                       call 39
                       bool.not
                       if $L28 void
-                        local.get 16
+                        local.get 14
                         call 12
-                        local.tee 31
+                        local.tee 29
                         call 39
                         bool.not
                         if $L29 void
-                          local.get 31
+                          local.get 29
                           struct.new 15
                           return
                         end $L29
-                        local.get 17
-                        local.get 16
+                        local.get 15
+                        local.get 14
                         struct.set 23 4
-                        local.get 17
+                        local.get 15
                         return
                       end $L28
-                      local.get 17
+                      local.get 15
                       return
                     end $L26
-                    local.get 16
+                    local.get 14
                     call 39
                     bool.not
                     if $L30 void
-                      local.get 16
+                      local.get 14
                       call 12
-                      local.tee 31
+                      local.tee 29
                       call 39
                       bool.not
                       if $L31 void
-                        local.get 31
+                        local.get 29
                         struct.new 15
                         return
                       end $L31
-                      local.get 17
-                      local.get 16
+                      local.get 15
+                      local.get 14
                       struct.set 23 4
-                      local.get 17
+                      local.get 15
                       return
                     end $L30
-                    local.get 17
+                    local.get 15
                     return
                   end $L25
-                  local.get 25
+                  local.get 23
                   type_check 15
                   if $L32 void
-                    local.get 25
-                    local.set 27
+                    local.get 23
+                    local.set 25
                     string.const 35
-                    local.set 28
-                    local.field 27 15 0
+                    local.set 26
+                    local.field 25 15 0
                     ref.cast 2
-                    local.set 29
-                    local.get 28
-                    local.get 29
+                    local.set 27
+                    local.get 26
+                    local.get 27
                     call 2
                     struct.new 15
                     return
                   end $L32
                   return
                 end $L24
-                local.get 15
+                local.get 13
                 call 39
                 bool.not
                 if $L33 void
-                  local.get 15
+                  local.get 13
                   call 11
-                  local.tee 30
+                  local.tee 28
                   call 39
                   bool.not
                   if $L34 void
-                    local.get 30
+                    local.get 28
                     struct.new 15
                     return
                   end $L34
-                  local.get 17
                   local.get 15
+                  local.get 13
                   struct.set 23 3
-                  local.get 16
+                  local.get 14
                   call 39
                   bool.not
                   if $L35 void
-                    local.get 16
+                    local.get 14
                     call 12
-                    local.tee 31
+                    local.tee 29
                     call 39
                     bool.not
                     if $L36 void
-                      local.get 31
+                      local.get 29
                       struct.new 15
                       return
                     end $L36
-                    local.get 17
-                    local.get 16
+                    local.get 15
+                    local.get 14
                     struct.set 23 4
-                    local.get 17
+                    local.get 15
                     return
                   end $L35
-                  local.get 17
+                  local.get 15
                   return
                 end $L33
-                local.get 16
+                local.get 14
                 call 39
                 bool.not
                 if $L37 void
-                  local.get 16
+                  local.get 14
                   call 12
-                  local.tee 31
+                  local.tee 29
                   call 39
                   bool.not
                   if $L38 void
-                    local.get 31
+                    local.get 29
                     struct.new 15
                     return
                   end $L38
-                  local.get 17
-                  local.get 16
+                  local.get 15
+                  local.get 14
                   struct.set 23 4
-                  local.get 17
+                  local.get 15
                   return
                 end $L37
-                local.get 17
+                local.get 15
                 return
               end $L23
-              local.get 15
+              local.get 13
               call 39
               bool.not
               if $L39 void
-                local.get 15
+                local.get 13
                 call 11
-                local.tee 30
+                local.tee 28
                 call 39
                 bool.not
                 if $L40 void
-                  local.get 30
+                  local.get 28
                   struct.new 15
                   return
                 end $L40
-                local.get 17
                 local.get 15
+                local.get 13
                 struct.set 23 3
-                local.get 16
+                local.get 14
                 call 39
                 bool.not
                 if $L41 void
-                  local.get 16
+                  local.get 14
                   call 12
-                  local.tee 31
+                  local.tee 29
                   call 39
                   bool.not
                   if $L42 void
-                    local.get 31
+                    local.get 29
                     struct.new 15
                     return
                   end $L42
-                  local.get 17
-                  local.get 16
+                  local.get 15
+                  local.get 14
                   struct.set 23 4
-                  local.get 17
+                  local.get 15
                   return
                 end $L41
-                local.get 17
+                local.get 15
                 return
               end $L39
-              local.get 16
+              local.get 14
               call 39
               bool.not
               if $L43 void
-                local.get 16
+                local.get 14
                 call 12
-                local.tee 31
+                local.tee 29
                 call 39
                 bool.not
                 if $L44 void
-                  local.get 31
+                  local.get 29
                   struct.new 15
                   return
                 end $L44
-                local.get 17
-                local.get 16
+                local.get 15
+                local.get 14
                 struct.set 23 4
-                local.get 17
+                local.get 15
                 return
               end $L43
-              local.get 17
+              local.get 15
               return
             end $L22
-            local.get 19
+            local.get 17
             type_check 15
             if $L45 void
-              local.get 19
-              local.set 20
+              local.get 17
+              local.set 18
               string.const 34
-              local.set 21
-              local.field 20 15 0
+              local.set 19
+              local.field 18 15 0
               ref.cast 2
-              local.set 22
-              local.get 21
-              local.get 22
+              local.set 20
+              local.get 19
+              local.get 20
               call 2
               struct.new 15
               return
@@ -2562,494 +2416,494 @@ fn 20 std_semver$parse_partial (string) -> ref
           array.len
           local.set 7
           i64.const 3
-          local.set 10
+          local.set 9
           local.get 7
-          local.get 10
+          local.get 9
           u64.ge
           if $L46 void
             i32.const 2
-            local.set 23
+            local.set 21
             local.get 4
-            local.get 23
+            local.get 21
             array.get 19
             ref.cast 2
             call 23
             bool.not
             if $L47 void
               i32.const 2
-              local.set 24
+              local.set 22
               local.get 4
-              local.get 24
+              local.get 22
               array.get 19
               ref.cast 2
               call 10
-              local.tee 25
+              local.tee 23
               type_check 1
               if $L48 void
-                local.get 25
+                local.get 23
                 ref.cast 1
-                local.set 26
-                local.get 17
-                local.get 26
-                struct.set 23 2
+                local.set 24
                 local.get 15
+                local.get 24
+                struct.set 23 2
+                local.get 13
                 call 39
                 bool.not
                 if $L49 void
-                  local.get 15
+                  local.get 13
                   call 11
-                  local.tee 30
+                  local.tee 28
                   call 39
                   bool.not
                   if $L50 void
-                    local.get 30
+                    local.get 28
                     struct.new 15
                     return
                   end $L50
-                  local.get 17
                   local.get 15
+                  local.get 13
                   struct.set 23 3
-                  local.get 16
+                  local.get 14
                   call 39
                   bool.not
                   if $L51 void
-                    local.get 16
+                    local.get 14
                     call 12
-                    local.tee 31
+                    local.tee 29
                     call 39
                     bool.not
                     if $L52 void
-                      local.get 31
+                      local.get 29
                       struct.new 15
                       return
                     end $L52
-                    local.get 17
-                    local.get 16
+                    local.get 15
+                    local.get 14
                     struct.set 23 4
-                    local.get 17
+                    local.get 15
                     return
                   end $L51
-                  local.get 17
+                  local.get 15
                   return
                 end $L49
-                local.get 16
+                local.get 14
                 call 39
                 bool.not
                 if $L53 void
-                  local.get 16
+                  local.get 14
                   call 12
-                  local.tee 31
+                  local.tee 29
                   call 39
                   bool.not
                   if $L54 void
-                    local.get 31
+                    local.get 29
                     struct.new 15
                     return
                   end $L54
-                  local.get 17
-                  local.get 16
+                  local.get 15
+                  local.get 14
                   struct.set 23 4
-                  local.get 17
+                  local.get 15
                   return
                 end $L53
-                local.get 17
+                local.get 15
                 return
               end $L48
-              local.get 25
+              local.get 23
               type_check 15
               if $L55 void
-                local.get 25
-                local.set 27
+                local.get 23
+                local.set 25
                 string.const 35
-                local.set 28
-                local.field 27 15 0
+                local.set 26
+                local.field 25 15 0
                 ref.cast 2
-                local.set 29
-                local.get 28
-                local.get 29
+                local.set 27
+                local.get 26
+                local.get 27
                 call 2
                 struct.new 15
                 return
               end $L55
               return
             end $L47
-            local.get 15
+            local.get 13
             call 39
             bool.not
             if $L56 void
-              local.get 15
+              local.get 13
               call 11
-              local.tee 30
+              local.tee 28
               call 39
               bool.not
               if $L57 void
-                local.get 30
+                local.get 28
                 struct.new 15
                 return
               end $L57
-              local.get 17
               local.get 15
+              local.get 13
               struct.set 23 3
-              local.get 16
+              local.get 14
               call 39
               bool.not
               if $L58 void
-                local.get 16
+                local.get 14
                 call 12
-                local.tee 31
+                local.tee 29
                 call 39
                 bool.not
                 if $L59 void
-                  local.get 31
+                  local.get 29
                   struct.new 15
                   return
                 end $L59
-                local.get 17
-                local.get 16
+                local.get 15
+                local.get 14
                 struct.set 23 4
-                local.get 17
+                local.get 15
                 return
               end $L58
-              local.get 17
+              local.get 15
               return
             end $L56
-            local.get 16
+            local.get 14
             call 39
             bool.not
             if $L60 void
-              local.get 16
+              local.get 14
               call 12
-              local.tee 31
+              local.tee 29
               call 39
               bool.not
               if $L61 void
-                local.get 31
+                local.get 29
                 struct.new 15
                 return
               end $L61
-              local.get 17
-              local.get 16
+              local.get 15
+              local.get 14
               struct.set 23 4
-              local.get 17
+              local.get 15
               return
             end $L60
-            local.get 17
+            local.get 15
             return
           end $L46
-          local.get 15
+          local.get 13
           call 39
           bool.not
           if $L62 void
-            local.get 15
+            local.get 13
             call 11
-            local.tee 30
+            local.tee 28
             call 39
             bool.not
             if $L63 void
-              local.get 30
+              local.get 28
               struct.new 15
               return
             end $L63
-            local.get 17
             local.get 15
+            local.get 13
             struct.set 23 3
-            local.get 16
+            local.get 14
             call 39
             bool.not
             if $L64 void
-              local.get 16
+              local.get 14
               call 12
-              local.tee 31
+              local.tee 29
               call 39
               bool.not
               if $L65 void
-                local.get 31
+                local.get 29
                 struct.new 15
                 return
               end $L65
-              local.get 17
-              local.get 16
+              local.get 15
+              local.get 14
               struct.set 23 4
-              local.get 17
+              local.get 15
               return
             end $L64
-            local.get 17
+            local.get 15
             return
           end $L62
-          local.get 16
+          local.get 14
           call 39
           bool.not
           if $L66 void
-            local.get 16
+            local.get 14
             call 12
-            local.tee 31
+            local.tee 29
             call 39
             bool.not
             if $L67 void
-              local.get 31
+              local.get 29
               struct.new 15
               return
             end $L67
-            local.get 17
-            local.get 16
+            local.get 15
+            local.get 14
             struct.set 23 4
-            local.get 17
+            local.get 15
             return
           end $L66
-          local.get 17
+          local.get 15
           return
         end $L20
         local.get 4
         array.len
         local.set 7
         i64.const 3
-        local.set 10
+        local.set 9
         local.get 7
-        local.get 10
+        local.get 9
         u64.ge
         if $L68 void
           i32.const 2
-          local.set 23
+          local.set 21
           local.get 4
-          local.get 23
+          local.get 21
           array.get 19
           ref.cast 2
           call 23
           bool.not
           if $L69 void
             i32.const 2
-            local.set 24
+            local.set 22
             local.get 4
-            local.get 24
+            local.get 22
             array.get 19
             ref.cast 2
             call 10
-            local.tee 25
+            local.tee 23
             type_check 1
             if $L70 void
-              local.get 25
+              local.get 23
               ref.cast 1
-              local.set 26
-              local.get 17
-              local.get 26
-              struct.set 23 2
+              local.set 24
               local.get 15
+              local.get 24
+              struct.set 23 2
+              local.get 13
               call 39
               bool.not
               if $L71 void
-                local.get 15
+                local.get 13
                 call 11
-                local.tee 30
+                local.tee 28
                 call 39
                 bool.not
                 if $L72 void
-                  local.get 30
+                  local.get 28
                   struct.new 15
                   return
                 end $L72
-                local.get 17
                 local.get 15
+                local.get 13
                 struct.set 23 3
-                local.get 16
+                local.get 14
                 call 39
                 bool.not
                 if $L73 void
-                  local.get 16
+                  local.get 14
                   call 12
-                  local.tee 31
+                  local.tee 29
                   call 39
                   bool.not
                   if $L74 void
-                    local.get 31
+                    local.get 29
                     struct.new 15
                     return
                   end $L74
-                  local.get 17
-                  local.get 16
+                  local.get 15
+                  local.get 14
                   struct.set 23 4
-                  local.get 17
+                  local.get 15
                   return
                 end $L73
-                local.get 17
+                local.get 15
                 return
               end $L71
-              local.get 16
+              local.get 14
               call 39
               bool.not
               if $L75 void
-                local.get 16
+                local.get 14
                 call 12
-                local.tee 31
+                local.tee 29
                 call 39
                 bool.not
                 if $L76 void
-                  local.get 31
+                  local.get 29
                   struct.new 15
                   return
                 end $L76
-                local.get 17
-                local.get 16
+                local.get 15
+                local.get 14
                 struct.set 23 4
-                local.get 17
+                local.get 15
                 return
               end $L75
-              local.get 17
+              local.get 15
               return
             end $L70
-            local.get 25
+            local.get 23
             type_check 15
             if $L77 void
-              local.get 25
-              local.set 27
+              local.get 23
+              local.set 25
               string.const 35
-              local.set 28
-              local.field 27 15 0
+              local.set 26
+              local.field 25 15 0
               ref.cast 2
-              local.set 29
-              local.get 28
-              local.get 29
+              local.set 27
+              local.get 26
+              local.get 27
               call 2
               struct.new 15
               return
             end $L77
             return
           end $L69
-          local.get 15
+          local.get 13
           call 39
           bool.not
           if $L78 void
-            local.get 15
+            local.get 13
             call 11
-            local.tee 30
+            local.tee 28
             call 39
             bool.not
             if $L79 void
-              local.get 30
+              local.get 28
               struct.new 15
               return
             end $L79
-            local.get 17
             local.get 15
+            local.get 13
             struct.set 23 3
-            local.get 16
+            local.get 14
             call 39
             bool.not
             if $L80 void
-              local.get 16
+              local.get 14
               call 12
-              local.tee 31
+              local.tee 29
               call 39
               bool.not
               if $L81 void
-                local.get 31
+                local.get 29
                 struct.new 15
                 return
               end $L81
-              local.get 17
-              local.get 16
+              local.get 15
+              local.get 14
               struct.set 23 4
-              local.get 17
+              local.get 15
               return
             end $L80
-            local.get 17
+            local.get 15
             return
           end $L78
-          local.get 16
+          local.get 14
           call 39
           bool.not
           if $L82 void
-            local.get 16
+            local.get 14
             call 12
-            local.tee 31
+            local.tee 29
             call 39
             bool.not
             if $L83 void
-              local.get 31
+              local.get 29
               struct.new 15
               return
             end $L83
-            local.get 17
-            local.get 16
+            local.get 15
+            local.get 14
             struct.set 23 4
-            local.get 17
+            local.get 15
             return
           end $L82
-          local.get 17
+          local.get 15
           return
         end $L68
-        local.get 15
+        local.get 13
         call 39
         bool.not
         if $L84 void
-          local.get 15
+          local.get 13
           call 11
-          local.tee 30
+          local.tee 28
           call 39
           bool.not
           if $L85 void
-            local.get 30
+            local.get 28
             struct.new 15
             return
           end $L85
-          local.get 17
           local.get 15
+          local.get 13
           struct.set 23 3
-          local.get 16
+          local.get 14
           call 39
           bool.not
           if $L86 void
-            local.get 16
+            local.get 14
             call 12
-            local.tee 31
+            local.tee 29
             call 39
             bool.not
             if $L87 void
-              local.get 31
+              local.get 29
               struct.new 15
               return
             end $L87
-            local.get 17
-            local.get 16
+            local.get 15
+            local.get 14
             struct.set 23 4
-            local.get 17
+            local.get 15
             return
           end $L86
-          local.get 17
+          local.get 15
           return
         end $L84
-        local.get 16
+        local.get 14
         call 39
         bool.not
         if $L88 void
-          local.get 16
+          local.get 14
           call 12
-          local.tee 31
+          local.tee 29
           call 39
           bool.not
           if $L89 void
-            local.get 31
+            local.get 29
             struct.new 15
             return
           end $L89
-          local.get 17
-          local.get 16
+          local.get 15
+          local.get 14
           struct.set 23 4
-          local.get 17
+          local.get 15
           return
         end $L88
-        local.get 17
+        local.get 15
         return
       end $L19
-      local.get 18
+      local.get 16
       type_check 15
       if $L90 void
-        local.get 18
-        local.set 18
-        local.field 18 15 0
+        local.get 16
+        local.set 16
+        local.field 16 15 0
         ref.cast 2
-        local.set 14
+        local.set 12
         string.const 33
-        local.get 14
+        local.get 12
         call 2
         struct.new 15
         return
@@ -3081,268 +2935,268 @@ fn 20 std_semver$parse_partial (string) -> ref
         array.get 19
         ref.cast 2
         call 10
-        local.tee 19
+        local.tee 17
         type_check 1
         if $L93 void
-          local.get 19
+          local.get 17
           ref.cast 1
           local.set 3
-          local.get 17
+          local.get 15
           local.get 3
           struct.set 23 1
           local.get 4
           array.len
           local.set 7
           i64.const 3
-          local.set 10
+          local.set 9
           local.get 7
-          local.get 10
+          local.get 9
           u64.ge
           if $L94 void
             i32.const 2
-            local.set 23
+            local.set 21
             local.get 4
-            local.get 23
+            local.get 21
             array.get 19
             ref.cast 2
             call 23
             bool.not
             if $L95 void
               i32.const 2
-              local.set 24
+              local.set 22
               local.get 4
-              local.get 24
+              local.get 22
               array.get 19
               ref.cast 2
               call 10
-              local.tee 25
+              local.tee 23
               type_check 1
               if $L96 void
-                local.get 25
+                local.get 23
                 ref.cast 1
-                local.set 26
-                local.get 17
-                local.get 26
-                struct.set 23 2
+                local.set 24
                 local.get 15
+                local.get 24
+                struct.set 23 2
+                local.get 13
                 call 39
                 bool.not
                 if $L97 void
-                  local.get 15
+                  local.get 13
                   call 11
-                  local.tee 30
+                  local.tee 28
                   call 39
                   bool.not
                   if $L98 void
-                    local.get 30
+                    local.get 28
                     struct.new 15
                     return
                   end $L98
-                  local.get 17
                   local.get 15
+                  local.get 13
                   struct.set 23 3
-                  local.get 16
+                  local.get 14
                   call 39
                   bool.not
                   if $L99 void
-                    local.get 16
+                    local.get 14
                     call 12
-                    local.tee 31
+                    local.tee 29
                     call 39
                     bool.not
                     if $L100 void
-                      local.get 31
+                      local.get 29
                       struct.new 15
                       return
                     end $L100
-                    local.get 17
-                    local.get 16
+                    local.get 15
+                    local.get 14
                     struct.set 23 4
-                    local.get 17
+                    local.get 15
                     return
                   end $L99
-                  local.get 17
+                  local.get 15
                   return
                 end $L97
-                local.get 16
+                local.get 14
                 call 39
                 bool.not
                 if $L101 void
-                  local.get 16
+                  local.get 14
                   call 12
-                  local.tee 31
+                  local.tee 29
                   call 39
                   bool.not
                   if $L102 void
-                    local.get 31
+                    local.get 29
                     struct.new 15
                     return
                   end $L102
-                  local.get 17
-                  local.get 16
+                  local.get 15
+                  local.get 14
                   struct.set 23 4
-                  local.get 17
+                  local.get 15
                   return
                 end $L101
-                local.get 17
+                local.get 15
                 return
               end $L96
-              local.get 25
+              local.get 23
               type_check 15
               if $L103 void
-                local.get 25
-                local.set 27
+                local.get 23
+                local.set 25
                 string.const 35
-                local.set 28
-                local.field 27 15 0
+                local.set 26
+                local.field 25 15 0
                 ref.cast 2
-                local.set 29
-                local.get 28
-                local.get 29
+                local.set 27
+                local.get 26
+                local.get 27
                 call 2
                 struct.new 15
                 return
               end $L103
               return
             end $L95
-            local.get 15
+            local.get 13
             call 39
             bool.not
             if $L104 void
-              local.get 15
+              local.get 13
               call 11
-              local.tee 30
+              local.tee 28
               call 39
               bool.not
               if $L105 void
-                local.get 30
+                local.get 28
                 struct.new 15
                 return
               end $L105
-              local.get 17
               local.get 15
+              local.get 13
               struct.set 23 3
-              local.get 16
+              local.get 14
               call 39
               bool.not
               if $L106 void
-                local.get 16
+                local.get 14
                 call 12
-                local.tee 31
+                local.tee 29
                 call 39
                 bool.not
                 if $L107 void
-                  local.get 31
+                  local.get 29
                   struct.new 15
                   return
                 end $L107
-                local.get 17
-                local.get 16
+                local.get 15
+                local.get 14
                 struct.set 23 4
-                local.get 17
+                local.get 15
                 return
               end $L106
-              local.get 17
+              local.get 15
               return
             end $L104
-            local.get 16
+            local.get 14
             call 39
             bool.not
             if $L108 void
-              local.get 16
+              local.get 14
               call 12
-              local.tee 31
+              local.tee 29
               call 39
               bool.not
               if $L109 void
-                local.get 31
+                local.get 29
                 struct.new 15
                 return
               end $L109
-              local.get 17
-              local.get 16
+              local.get 15
+              local.get 14
               struct.set 23 4
-              local.get 17
+              local.get 15
               return
             end $L108
-            local.get 17
+            local.get 15
             return
           end $L94
-          local.get 15
+          local.get 13
           call 39
           bool.not
           if $L110 void
-            local.get 15
+            local.get 13
             call 11
-            local.tee 30
+            local.tee 28
             call 39
             bool.not
             if $L111 void
-              local.get 30
+              local.get 28
               struct.new 15
               return
             end $L111
-            local.get 17
             local.get 15
+            local.get 13
             struct.set 23 3
-            local.get 16
+            local.get 14
             call 39
             bool.not
             if $L112 void
-              local.get 16
+              local.get 14
               call 12
-              local.tee 31
+              local.tee 29
               call 39
               bool.not
               if $L113 void
-                local.get 31
+                local.get 29
                 struct.new 15
                 return
               end $L113
-              local.get 17
-              local.get 16
+              local.get 15
+              local.get 14
               struct.set 23 4
-              local.get 17
+              local.get 15
               return
             end $L112
-            local.get 17
+            local.get 15
             return
           end $L110
-          local.get 16
+          local.get 14
           call 39
           bool.not
           if $L114 void
-            local.get 16
+            local.get 14
             call 12
-            local.tee 31
+            local.tee 29
             call 39
             bool.not
             if $L115 void
-              local.get 31
+              local.get 29
               struct.new 15
               return
             end $L115
-            local.get 17
-            local.get 16
+            local.get 15
+            local.get 14
             struct.set 23 4
-            local.get 17
+            local.get 15
             return
           end $L114
-          local.get 17
+          local.get 15
           return
         end $L93
-        local.get 19
+        local.get 17
         type_check 15
         if $L116 void
-          local.get 19
-          local.set 20
+          local.get 17
+          local.set 18
           string.const 34
-          local.set 21
-          local.field 20 15 0
+          local.set 19
+          local.field 18 15 0
           ref.cast 2
-          local.set 22
-          local.get 21
-          local.get 22
+          local.set 20
+          local.get 19
+          local.get 20
           call 2
           struct.new 15
           return
@@ -3353,482 +3207,482 @@ fn 20 std_semver$parse_partial (string) -> ref
       array.len
       local.set 7
       i64.const 3
-      local.set 10
+      local.set 9
       local.get 7
-      local.get 10
+      local.get 9
       u64.ge
       if $L117 void
         i32.const 2
-        local.set 23
+        local.set 21
         local.get 4
-        local.get 23
+        local.get 21
         array.get 19
         ref.cast 2
         call 23
         bool.not
         if $L118 void
           i32.const 2
-          local.set 24
+          local.set 22
           local.get 4
-          local.get 24
+          local.get 22
           array.get 19
           ref.cast 2
           call 10
-          local.tee 25
+          local.tee 23
           type_check 1
           if $L119 void
-            local.get 25
+            local.get 23
             ref.cast 1
-            local.set 26
-            local.get 17
-            local.get 26
-            struct.set 23 2
+            local.set 24
             local.get 15
+            local.get 24
+            struct.set 23 2
+            local.get 13
             call 39
             bool.not
             if $L120 void
-              local.get 15
+              local.get 13
               call 11
-              local.tee 30
+              local.tee 28
               call 39
               bool.not
               if $L121 void
-                local.get 30
+                local.get 28
                 struct.new 15
                 return
               end $L121
-              local.get 17
               local.get 15
+              local.get 13
               struct.set 23 3
-              local.get 16
+              local.get 14
               call 39
               bool.not
               if $L122 void
-                local.get 16
+                local.get 14
                 call 12
-                local.tee 31
+                local.tee 29
                 call 39
                 bool.not
                 if $L123 void
-                  local.get 31
+                  local.get 29
                   struct.new 15
                   return
                 end $L123
-                local.get 17
-                local.get 16
+                local.get 15
+                local.get 14
                 struct.set 23 4
-                local.get 17
+                local.get 15
                 return
               end $L122
-              local.get 17
+              local.get 15
               return
             end $L120
-            local.get 16
+            local.get 14
             call 39
             bool.not
             if $L124 void
-              local.get 16
+              local.get 14
               call 12
-              local.tee 31
+              local.tee 29
               call 39
               bool.not
               if $L125 void
-                local.get 31
+                local.get 29
                 struct.new 15
                 return
               end $L125
-              local.get 17
-              local.get 16
+              local.get 15
+              local.get 14
               struct.set 23 4
-              local.get 17
+              local.get 15
               return
             end $L124
-            local.get 17
+            local.get 15
             return
           end $L119
-          local.get 25
+          local.get 23
           type_check 15
           if $L126 void
-            local.get 25
-            local.set 27
+            local.get 23
+            local.set 25
             string.const 35
-            local.set 28
-            local.field 27 15 0
+            local.set 26
+            local.field 25 15 0
             ref.cast 2
-            local.set 29
-            local.get 28
-            local.get 29
+            local.set 27
+            local.get 26
+            local.get 27
             call 2
             struct.new 15
             return
           end $L126
           return
         end $L118
-        local.get 15
+        local.get 13
         call 39
         bool.not
         if $L127 void
-          local.get 15
+          local.get 13
           call 11
-          local.tee 30
+          local.tee 28
           call 39
           bool.not
           if $L128 void
-            local.get 30
+            local.get 28
             struct.new 15
             return
           end $L128
-          local.get 17
           local.get 15
+          local.get 13
           struct.set 23 3
-          local.get 16
+          local.get 14
           call 39
           bool.not
           if $L129 void
-            local.get 16
+            local.get 14
             call 12
-            local.tee 31
+            local.tee 29
             call 39
             bool.not
             if $L130 void
-              local.get 31
+              local.get 29
               struct.new 15
               return
             end $L130
-            local.get 17
-            local.get 16
+            local.get 15
+            local.get 14
             struct.set 23 4
-            local.get 17
+            local.get 15
             return
           end $L129
-          local.get 17
+          local.get 15
           return
         end $L127
-        local.get 16
+        local.get 14
         call 39
         bool.not
         if $L131 void
-          local.get 16
+          local.get 14
           call 12
-          local.tee 31
+          local.tee 29
           call 39
           bool.not
           if $L132 void
-            local.get 31
+            local.get 29
             struct.new 15
             return
           end $L132
-          local.get 17
-          local.get 16
+          local.get 15
+          local.get 14
           struct.set 23 4
-          local.get 17
+          local.get 15
           return
         end $L131
-        local.get 17
+        local.get 15
         return
       end $L117
-      local.get 15
+      local.get 13
       call 39
       bool.not
       if $L133 void
-        local.get 15
+        local.get 13
         call 11
-        local.tee 30
+        local.tee 28
         call 39
         bool.not
         if $L134 void
-          local.get 30
+          local.get 28
           struct.new 15
           return
         end $L134
-        local.get 17
         local.get 15
+        local.get 13
         struct.set 23 3
-        local.get 16
+        local.get 14
         call 39
         bool.not
         if $L135 void
-          local.get 16
+          local.get 14
           call 12
-          local.tee 31
+          local.tee 29
           call 39
           bool.not
           if $L136 void
-            local.get 31
+            local.get 29
             struct.new 15
             return
           end $L136
-          local.get 17
-          local.get 16
+          local.get 15
+          local.get 14
           struct.set 23 4
-          local.get 17
+          local.get 15
           return
         end $L135
-        local.get 17
+        local.get 15
         return
       end $L133
-      local.get 16
+      local.get 14
       call 39
       bool.not
       if $L137 void
-        local.get 16
+        local.get 14
         call 12
-        local.tee 31
+        local.tee 29
         call 39
         bool.not
         if $L138 void
-          local.get 31
+          local.get 29
           struct.new 15
           return
         end $L138
-        local.get 17
-        local.get 16
+        local.get 15
+        local.get 14
         struct.set 23 4
-        local.get 17
+        local.get 15
         return
       end $L137
-      local.get 17
+      local.get 15
       return
     end $L91
     local.get 4
     array.len
     local.set 7
     i64.const 3
-    local.set 10
+    local.set 9
     local.get 7
-    local.get 10
+    local.get 9
     u64.ge
     if $L139 void
       i32.const 2
-      local.set 23
+      local.set 21
       local.get 4
-      local.get 23
+      local.get 21
       array.get 19
       ref.cast 2
       call 23
       bool.not
       if $L140 void
         i32.const 2
-        local.set 24
+        local.set 22
         local.get 4
-        local.get 24
+        local.get 22
         array.get 19
         ref.cast 2
         call 10
-        local.tee 25
+        local.tee 23
         type_check 1
         if $L141 void
-          local.get 25
+          local.get 23
           ref.cast 1
-          local.set 26
-          local.get 17
-          local.get 26
-          struct.set 23 2
+          local.set 24
           local.get 15
+          local.get 24
+          struct.set 23 2
+          local.get 13
           call 39
           bool.not
           if $L142 void
-            local.get 15
+            local.get 13
             call 11
-            local.tee 30
+            local.tee 28
             call 39
             bool.not
             if $L143 void
-              local.get 30
+              local.get 28
               struct.new 15
               return
             end $L143
-            local.get 17
             local.get 15
+            local.get 13
             struct.set 23 3
-            local.get 16
+            local.get 14
             call 39
             bool.not
             if $L144 void
-              local.get 16
+              local.get 14
               call 12
-              local.tee 31
+              local.tee 29
               call 39
               bool.not
               if $L145 void
-                local.get 31
+                local.get 29
                 struct.new 15
                 return
               end $L145
-              local.get 17
-              local.get 16
+              local.get 15
+              local.get 14
               struct.set 23 4
-              local.get 17
+              local.get 15
               return
             end $L144
-            local.get 17
+            local.get 15
             return
           end $L142
-          local.get 16
+          local.get 14
           call 39
           bool.not
           if $L146 void
-            local.get 16
+            local.get 14
             call 12
-            local.tee 31
+            local.tee 29
             call 39
             bool.not
             if $L147 void
-              local.get 31
+              local.get 29
               struct.new 15
               return
             end $L147
-            local.get 17
-            local.get 16
+            local.get 15
+            local.get 14
             struct.set 23 4
-            local.get 17
+            local.get 15
             return
           end $L146
-          local.get 17
+          local.get 15
           return
         end $L141
-        local.get 25
+        local.get 23
         type_check 15
         if $L148 void
-          local.get 25
-          local.set 27
+          local.get 23
+          local.set 25
           string.const 35
-          local.set 28
-          local.field 27 15 0
+          local.set 26
+          local.field 25 15 0
           ref.cast 2
-          local.set 29
-          local.get 28
-          local.get 29
+          local.set 27
+          local.get 26
+          local.get 27
           call 2
           struct.new 15
           return
         end $L148
         return
       end $L140
-      local.get 15
+      local.get 13
       call 39
       bool.not
       if $L149 void
-        local.get 15
+        local.get 13
         call 11
-        local.tee 30
+        local.tee 28
         call 39
         bool.not
         if $L150 void
-          local.get 30
+          local.get 28
           struct.new 15
           return
         end $L150
-        local.get 17
         local.get 15
+        local.get 13
         struct.set 23 3
-        local.get 16
+        local.get 14
         call 39
         bool.not
         if $L151 void
-          local.get 16
+          local.get 14
           call 12
-          local.tee 31
+          local.tee 29
           call 39
           bool.not
           if $L152 void
-            local.get 31
+            local.get 29
             struct.new 15
             return
           end $L152
-          local.get 17
-          local.get 16
+          local.get 15
+          local.get 14
           struct.set 23 4
-          local.get 17
+          local.get 15
           return
         end $L151
-        local.get 17
+        local.get 15
         return
       end $L149
-      local.get 16
+      local.get 14
       call 39
       bool.not
       if $L153 void
-        local.get 16
+        local.get 14
         call 12
-        local.tee 31
+        local.tee 29
         call 39
         bool.not
         if $L154 void
-          local.get 31
+          local.get 29
           struct.new 15
           return
         end $L154
-        local.get 17
-        local.get 16
+        local.get 15
+        local.get 14
         struct.set 23 4
-        local.get 17
+        local.get 15
         return
       end $L153
-      local.get 17
+      local.get 15
       return
     end $L139
-    local.get 15
+    local.get 13
     call 39
     bool.not
     if $L155 void
-      local.get 15
+      local.get 13
       call 11
-      local.tee 30
+      local.tee 28
       call 39
       bool.not
       if $L156 void
-        local.get 30
+        local.get 28
         struct.new 15
         return
       end $L156
-      local.get 17
       local.get 15
+      local.get 13
       struct.set 23 3
-      local.get 16
+      local.get 14
       call 39
       bool.not
       if $L157 void
-        local.get 16
+        local.get 14
         call 12
-        local.tee 31
+        local.tee 29
         call 39
         bool.not
         if $L158 void
-          local.get 31
+          local.get 29
           struct.new 15
           return
         end $L158
-        local.get 17
-        local.get 16
+        local.get 15
+        local.get 14
         struct.set 23 4
-        local.get 17
+        local.get 15
         return
       end $L157
-      local.get 17
+      local.get 15
       return
     end $L155
-    local.get 16
+    local.get 14
     call 39
     bool.not
     if $L159 void
-      local.get 16
+      local.get 14
       call 12
-      local.tee 31
+      local.tee 29
       call 39
       bool.not
       if $L160 void
-        local.get 31
+        local.get 29
         struct.new 15
         return
       end $L160
-      local.get 17
-      local.get 16
+      local.get 15
+      local.get 14
       struct.set 23 4
-      local.get 17
+      local.get 15
       return
     end $L159
-    local.get 17
+    local.get 15
     return
   end $L17
   local.get 4
@@ -3856,268 +3710,268 @@ fn 20 std_semver$parse_partial (string) -> ref
       array.get 19
       ref.cast 2
       call 10
-      local.tee 19
+      local.tee 17
       type_check 1
       if $L163 void
-        local.get 19
+        local.get 17
         ref.cast 1
         local.set 3
-        local.get 17
+        local.get 15
         local.get 3
         struct.set 23 1
         local.get 4
         array.len
         local.set 7
         i64.const 3
-        local.set 10
+        local.set 9
         local.get 7
-        local.get 10
+        local.get 9
         u64.ge
         if $L164 void
           i32.const 2
-          local.set 23
+          local.set 21
           local.get 4
-          local.get 23
+          local.get 21
           array.get 19
           ref.cast 2
           call 23
           bool.not
           if $L165 void
             i32.const 2
-            local.set 24
+            local.set 22
             local.get 4
-            local.get 24
+            local.get 22
             array.get 19
             ref.cast 2
             call 10
-            local.tee 25
+            local.tee 23
             type_check 1
             if $L166 void
-              local.get 25
+              local.get 23
               ref.cast 1
-              local.set 26
-              local.get 17
-              local.get 26
-              struct.set 23 2
+              local.set 24
               local.get 15
+              local.get 24
+              struct.set 23 2
+              local.get 13
               call 39
               bool.not
               if $L167 void
-                local.get 15
+                local.get 13
                 call 11
-                local.tee 30
+                local.tee 28
                 call 39
                 bool.not
                 if $L168 void
-                  local.get 30
+                  local.get 28
                   struct.new 15
                   return
                 end $L168
-                local.get 17
                 local.get 15
+                local.get 13
                 struct.set 23 3
-                local.get 16
+                local.get 14
                 call 39
                 bool.not
                 if $L169 void
-                  local.get 16
+                  local.get 14
                   call 12
-                  local.tee 31
+                  local.tee 29
                   call 39
                   bool.not
                   if $L170 void
-                    local.get 31
+                    local.get 29
                     struct.new 15
                     return
                   end $L170
-                  local.get 17
-                  local.get 16
+                  local.get 15
+                  local.get 14
                   struct.set 23 4
-                  local.get 17
+                  local.get 15
                   return
                 end $L169
-                local.get 17
+                local.get 15
                 return
               end $L167
-              local.get 16
+              local.get 14
               call 39
               bool.not
               if $L171 void
-                local.get 16
+                local.get 14
                 call 12
-                local.tee 31
+                local.tee 29
                 call 39
                 bool.not
                 if $L172 void
-                  local.get 31
+                  local.get 29
                   struct.new 15
                   return
                 end $L172
-                local.get 17
-                local.get 16
+                local.get 15
+                local.get 14
                 struct.set 23 4
-                local.get 17
+                local.get 15
                 return
               end $L171
-              local.get 17
+              local.get 15
               return
             end $L166
-            local.get 25
+            local.get 23
             type_check 15
             if $L173 void
-              local.get 25
-              local.set 27
+              local.get 23
+              local.set 25
               string.const 35
-              local.set 28
-              local.field 27 15 0
+              local.set 26
+              local.field 25 15 0
               ref.cast 2
-              local.set 29
-              local.get 28
-              local.get 29
+              local.set 27
+              local.get 26
+              local.get 27
               call 2
               struct.new 15
               return
             end $L173
             return
           end $L165
-          local.get 15
+          local.get 13
           call 39
           bool.not
           if $L174 void
-            local.get 15
+            local.get 13
             call 11
-            local.tee 30
+            local.tee 28
             call 39
             bool.not
             if $L175 void
-              local.get 30
+              local.get 28
               struct.new 15
               return
             end $L175
-            local.get 17
             local.get 15
+            local.get 13
             struct.set 23 3
-            local.get 16
+            local.get 14
             call 39
             bool.not
             if $L176 void
-              local.get 16
+              local.get 14
               call 12
-              local.tee 31
+              local.tee 29
               call 39
               bool.not
               if $L177 void
-                local.get 31
+                local.get 29
                 struct.new 15
                 return
               end $L177
-              local.get 17
-              local.get 16
+              local.get 15
+              local.get 14
               struct.set 23 4
-              local.get 17
+              local.get 15
               return
             end $L176
-            local.get 17
+            local.get 15
             return
           end $L174
-          local.get 16
+          local.get 14
           call 39
           bool.not
           if $L178 void
-            local.get 16
+            local.get 14
             call 12
-            local.tee 31
+            local.tee 29
             call 39
             bool.not
             if $L179 void
-              local.get 31
+              local.get 29
               struct.new 15
               return
             end $L179
-            local.get 17
-            local.get 16
+            local.get 15
+            local.get 14
             struct.set 23 4
-            local.get 17
+            local.get 15
             return
           end $L178
-          local.get 17
+          local.get 15
           return
         end $L164
-        local.get 15
+        local.get 13
         call 39
         bool.not
         if $L180 void
-          local.get 15
+          local.get 13
           call 11
-          local.tee 30
+          local.tee 28
           call 39
           bool.not
           if $L181 void
-            local.get 30
+            local.get 28
             struct.new 15
             return
           end $L181
-          local.get 17
           local.get 15
+          local.get 13
           struct.set 23 3
-          local.get 16
+          local.get 14
           call 39
           bool.not
           if $L182 void
-            local.get 16
+            local.get 14
             call 12
-            local.tee 31
+            local.tee 29
             call 39
             bool.not
             if $L183 void
-              local.get 31
+              local.get 29
               struct.new 15
               return
             end $L183
-            local.get 17
-            local.get 16
+            local.get 15
+            local.get 14
             struct.set 23 4
-            local.get 17
+            local.get 15
             return
           end $L182
-          local.get 17
+          local.get 15
           return
         end $L180
-        local.get 16
+        local.get 14
         call 39
         bool.not
         if $L184 void
-          local.get 16
+          local.get 14
           call 12
-          local.tee 31
+          local.tee 29
           call 39
           bool.not
           if $L185 void
-            local.get 31
+            local.get 29
             struct.new 15
             return
           end $L185
-          local.get 17
-          local.get 16
+          local.get 15
+          local.get 14
           struct.set 23 4
-          local.get 17
+          local.get 15
           return
         end $L184
-        local.get 17
+        local.get 15
         return
       end $L163
-      local.get 19
+      local.get 17
       type_check 15
       if $L186 void
-        local.get 19
-        local.set 20
+        local.get 17
+        local.set 18
         string.const 34
-        local.set 21
-        local.field 20 15 0
+        local.set 19
+        local.field 18 15 0
         ref.cast 2
-        local.set 22
-        local.get 21
-        local.get 22
+        local.set 20
+        local.get 19
+        local.get 20
         call 2
         struct.new 15
         return
@@ -4128,482 +3982,482 @@ fn 20 std_semver$parse_partial (string) -> ref
     array.len
     local.set 7
     i64.const 3
-    local.set 10
+    local.set 9
     local.get 7
-    local.get 10
+    local.get 9
     u64.ge
     if $L187 void
       i32.const 2
-      local.set 23
+      local.set 21
       local.get 4
-      local.get 23
+      local.get 21
       array.get 19
       ref.cast 2
       call 23
       bool.not
       if $L188 void
         i32.const 2
-        local.set 24
+        local.set 22
         local.get 4
-        local.get 24
+        local.get 22
         array.get 19
         ref.cast 2
         call 10
-        local.tee 25
+        local.tee 23
         type_check 1
         if $L189 void
-          local.get 25
+          local.get 23
           ref.cast 1
-          local.set 26
-          local.get 17
-          local.get 26
-          struct.set 23 2
+          local.set 24
           local.get 15
+          local.get 24
+          struct.set 23 2
+          local.get 13
           call 39
           bool.not
           if $L190 void
-            local.get 15
+            local.get 13
             call 11
-            local.tee 30
+            local.tee 28
             call 39
             bool.not
             if $L191 void
-              local.get 30
+              local.get 28
               struct.new 15
               return
             end $L191
-            local.get 17
             local.get 15
+            local.get 13
             struct.set 23 3
-            local.get 16
+            local.get 14
             call 39
             bool.not
             if $L192 void
-              local.get 16
+              local.get 14
               call 12
-              local.tee 31
+              local.tee 29
               call 39
               bool.not
               if $L193 void
-                local.get 31
+                local.get 29
                 struct.new 15
                 return
               end $L193
-              local.get 17
-              local.get 16
+              local.get 15
+              local.get 14
               struct.set 23 4
-              local.get 17
+              local.get 15
               return
             end $L192
-            local.get 17
+            local.get 15
             return
           end $L190
-          local.get 16
+          local.get 14
           call 39
           bool.not
           if $L194 void
-            local.get 16
+            local.get 14
             call 12
-            local.tee 31
+            local.tee 29
             call 39
             bool.not
             if $L195 void
-              local.get 31
+              local.get 29
               struct.new 15
               return
             end $L195
-            local.get 17
-            local.get 16
+            local.get 15
+            local.get 14
             struct.set 23 4
-            local.get 17
+            local.get 15
             return
           end $L194
-          local.get 17
+          local.get 15
           return
         end $L189
-        local.get 25
+        local.get 23
         type_check 15
         if $L196 void
-          local.get 25
-          local.set 27
+          local.get 23
+          local.set 25
           string.const 35
-          local.set 28
-          local.field 27 15 0
+          local.set 26
+          local.field 25 15 0
           ref.cast 2
-          local.set 29
-          local.get 28
-          local.get 29
+          local.set 27
+          local.get 26
+          local.get 27
           call 2
           struct.new 15
           return
         end $L196
         return
       end $L188
-      local.get 15
+      local.get 13
       call 39
       bool.not
       if $L197 void
-        local.get 15
+        local.get 13
         call 11
-        local.tee 30
+        local.tee 28
         call 39
         bool.not
         if $L198 void
-          local.get 30
+          local.get 28
           struct.new 15
           return
         end $L198
-        local.get 17
         local.get 15
+        local.get 13
         struct.set 23 3
-        local.get 16
+        local.get 14
         call 39
         bool.not
         if $L199 void
-          local.get 16
+          local.get 14
           call 12
-          local.tee 31
+          local.tee 29
           call 39
           bool.not
           if $L200 void
-            local.get 31
+            local.get 29
             struct.new 15
             return
           end $L200
-          local.get 17
-          local.get 16
+          local.get 15
+          local.get 14
           struct.set 23 4
-          local.get 17
+          local.get 15
           return
         end $L199
-        local.get 17
+        local.get 15
         return
       end $L197
-      local.get 16
+      local.get 14
       call 39
       bool.not
       if $L201 void
-        local.get 16
+        local.get 14
         call 12
-        local.tee 31
+        local.tee 29
         call 39
         bool.not
         if $L202 void
-          local.get 31
+          local.get 29
           struct.new 15
           return
         end $L202
-        local.get 17
-        local.get 16
+        local.get 15
+        local.get 14
         struct.set 23 4
-        local.get 17
+        local.get 15
         return
       end $L201
-      local.get 17
+      local.get 15
       return
     end $L187
-    local.get 15
+    local.get 13
     call 39
     bool.not
     if $L203 void
-      local.get 15
+      local.get 13
       call 11
-      local.tee 30
+      local.tee 28
       call 39
       bool.not
       if $L204 void
-        local.get 30
+        local.get 28
         struct.new 15
         return
       end $L204
-      local.get 17
       local.get 15
+      local.get 13
       struct.set 23 3
-      local.get 16
+      local.get 14
       call 39
       bool.not
       if $L205 void
-        local.get 16
+        local.get 14
         call 12
-        local.tee 31
+        local.tee 29
         call 39
         bool.not
         if $L206 void
-          local.get 31
+          local.get 29
           struct.new 15
           return
         end $L206
-        local.get 17
-        local.get 16
+        local.get 15
+        local.get 14
         struct.set 23 4
-        local.get 17
+        local.get 15
         return
       end $L205
-      local.get 17
+      local.get 15
       return
     end $L203
-    local.get 16
+    local.get 14
     call 39
     bool.not
     if $L207 void
-      local.get 16
+      local.get 14
       call 12
-      local.tee 31
+      local.tee 29
       call 39
       bool.not
       if $L208 void
-        local.get 31
+        local.get 29
         struct.new 15
         return
       end $L208
-      local.get 17
-      local.get 16
+      local.get 15
+      local.get 14
       struct.set 23 4
-      local.get 17
+      local.get 15
       return
     end $L207
-    local.get 17
+    local.get 15
     return
   end $L161
   local.get 4
   array.len
   local.set 7
   i64.const 3
-  local.set 10
+  local.set 9
   local.get 7
-  local.get 10
+  local.get 9
   u64.ge
   if $L209 void
     i32.const 2
-    local.set 23
+    local.set 21
     local.get 4
-    local.get 23
+    local.get 21
     array.get 19
     ref.cast 2
     call 23
     bool.not
     if $L210 void
       i32.const 2
-      local.set 24
+      local.set 22
       local.get 4
-      local.get 24
+      local.get 22
       array.get 19
       ref.cast 2
       call 10
-      local.tee 25
+      local.tee 23
       type_check 1
       if $L211 void
-        local.get 25
+        local.get 23
         ref.cast 1
-        local.set 26
-        local.get 17
-        local.get 26
-        struct.set 23 2
+        local.set 24
         local.get 15
+        local.get 24
+        struct.set 23 2
+        local.get 13
         call 39
         bool.not
         if $L212 void
-          local.get 15
+          local.get 13
           call 11
-          local.tee 30
+          local.tee 28
           call 39
           bool.not
           if $L213 void
-            local.get 30
+            local.get 28
             struct.new 15
             return
           end $L213
-          local.get 17
           local.get 15
+          local.get 13
           struct.set 23 3
-          local.get 16
+          local.get 14
           call 39
           bool.not
           if $L214 void
-            local.get 16
+            local.get 14
             call 12
-            local.tee 31
+            local.tee 29
             call 39
             bool.not
             if $L215 void
-              local.get 31
+              local.get 29
               struct.new 15
               return
             end $L215
-            local.get 17
-            local.get 16
+            local.get 15
+            local.get 14
             struct.set 23 4
-            local.get 17
+            local.get 15
             return
           end $L214
-          local.get 17
+          local.get 15
           return
         end $L212
-        local.get 16
+        local.get 14
         call 39
         bool.not
         if $L216 void
-          local.get 16
+          local.get 14
           call 12
-          local.tee 31
+          local.tee 29
           call 39
           bool.not
           if $L217 void
-            local.get 31
+            local.get 29
             struct.new 15
             return
           end $L217
-          local.get 17
-          local.get 16
+          local.get 15
+          local.get 14
           struct.set 23 4
-          local.get 17
+          local.get 15
           return
         end $L216
-        local.get 17
+        local.get 15
         return
       end $L211
-      local.get 25
+      local.get 23
       type_check 15
       if $L218 void
-        local.get 25
-        local.set 27
+        local.get 23
+        local.set 25
         string.const 35
-        local.set 28
-        local.field 27 15 0
+        local.set 26
+        local.field 25 15 0
         ref.cast 2
-        local.set 29
-        local.get 28
-        local.get 29
+        local.set 27
+        local.get 26
+        local.get 27
         call 2
         struct.new 15
         return
       end $L218
       return
     end $L210
-    local.get 15
+    local.get 13
     call 39
     bool.not
     if $L219 void
-      local.get 15
+      local.get 13
       call 11
-      local.tee 30
+      local.tee 28
       call 39
       bool.not
       if $L220 void
-        local.get 30
+        local.get 28
         struct.new 15
         return
       end $L220
-      local.get 17
       local.get 15
+      local.get 13
       struct.set 23 3
-      local.get 16
+      local.get 14
       call 39
       bool.not
       if $L221 void
-        local.get 16
+        local.get 14
         call 12
-        local.tee 31
+        local.tee 29
         call 39
         bool.not
         if $L222 void
-          local.get 31
+          local.get 29
           struct.new 15
           return
         end $L222
-        local.get 17
-        local.get 16
+        local.get 15
+        local.get 14
         struct.set 23 4
-        local.get 17
+        local.get 15
         return
       end $L221
-      local.get 17
+      local.get 15
       return
     end $L219
-    local.get 16
+    local.get 14
     call 39
     bool.not
     if $L223 void
-      local.get 16
+      local.get 14
       call 12
-      local.tee 31
+      local.tee 29
       call 39
       bool.not
       if $L224 void
-        local.get 31
+        local.get 29
         struct.new 15
         return
       end $L224
-      local.get 17
-      local.get 16
+      local.get 15
+      local.get 14
       struct.set 23 4
-      local.get 17
+      local.get 15
       return
     end $L223
-    local.get 17
+    local.get 15
     return
   end $L209
-  local.get 15
+  local.get 13
   call 39
   bool.not
   if $L225 void
-    local.get 15
+    local.get 13
     call 11
-    local.tee 30
+    local.tee 28
     call 39
     bool.not
     if $L226 void
-      local.get 30
+      local.get 28
       struct.new 15
       return
     end $L226
-    local.get 17
     local.get 15
+    local.get 13
     struct.set 23 3
-    local.get 16
+    local.get 14
     call 39
     bool.not
     if $L227 void
-      local.get 16
+      local.get 14
       call 12
-      local.tee 31
+      local.tee 29
       call 39
       bool.not
       if $L228 void
-        local.get 31
+        local.get 29
         struct.new 15
         return
       end $L228
-      local.get 17
-      local.get 16
+      local.get 15
+      local.get 14
       struct.set 23 4
-      local.get 17
+      local.get 15
       return
     end $L227
-    local.get 17
+    local.get 15
     return
   end $L225
-  local.get 16
+  local.get 14
   call 39
   bool.not
   if $L229 void
-    local.get 16
+    local.get 14
     call 12
-    local.tee 31
+    local.tee 29
     call 39
     bool.not
     if $L230 void
-      local.get 31
+      local.get 29
       struct.new 15
       return
     end $L230
-    local.get 17
-    local.get 16
+    local.get 15
+    local.get 14
     struct.set 23 4
-    local.get 17
+    local.get 15
     return
   end $L229
-  local.get 17
+  local.get 15
   return
 end
 
@@ -4746,10 +4600,8 @@ fn 22 std_semver$parse_token (string) -> ref
   local $unop_10 i32
   local tb ref
   local n usize
-  local $k_19 usize
   local and_res bool
   local $idx_23 u8
-  local $k_24 u8
   local $call_36 string
   local $field_90 string
   local p ref
@@ -4787,109 +4639,93 @@ fn 22 std_semver$parse_token (string) -> ref
   local.tee 4
   array.len
   local.set 5
-  i64.const 2
-  local.set 6
   local.get 5
-  local.get 6
+  i64.const 2
   u64.ge
   if $L2 void
     local.get 4
     i32.const 0
     array.get 11
     ref.cast 12
-    local.set 8
-    i32.const 62
-    local.set 9
-    local.get 8
-    local.get 9
-    i32.eq
     local.set 7
+    local.get 7
+    i32.const 62
+    i32.eq
+    local.set 6
   else
     bool.const false
-    local.set 7
+    local.set 6
   end $L2
-  local.get 7
+  local.get 6
   if $L3 void
     local.get 4
     i32.const 1
     array.get 11
     ref.cast 12
-    local.set 8
-    i32.const 61
-    local.set 9
-    local.get 8
-    local.get 9
-    i32.eq
     local.set 7
+    local.get 7
+    i32.const 61
+    i32.eq
+    local.set 6
   else
     bool.const false
-    local.set 7
-  end $L3
-  local.get 7
-  if $L4 void
-    i64.const 2
     local.set 6
+  end $L3
+  local.get 6
+  if $L4 void
     local.get 4
-    local.get 6
+    i64.const 2
     local.get 5
     array.slice 11
     call.import 0
-    local.set 10
+    local.set 8
     i32.const 4
-    local.get 10
+    local.get 8
     call 27
     return
   end $L4
-  i64.const 2
-  local.set 6
   local.get 5
-  local.get 6
+  i64.const 2
   u64.ge
   if $L5 void
     local.get 4
     i32.const 0
     array.get 11
     ref.cast 12
-    local.set 8
-    i32.const 60
-    local.set 9
-    local.get 8
-    local.get 9
-    i32.eq
     local.set 7
+    local.get 7
+    i32.const 60
+    i32.eq
+    local.set 6
   else
     bool.const false
-    local.set 7
+    local.set 6
   end $L5
-  local.get 7
+  local.get 6
   if $L6 void
     local.get 4
     i32.const 1
     array.get 11
     ref.cast 12
-    local.set 8
-    i32.const 61
-    local.set 9
-    local.get 8
-    local.get 9
-    i32.eq
     local.set 7
+    local.get 7
+    i32.const 61
+    i32.eq
+    local.set 6
   else
     bool.const false
-    local.set 7
-  end $L6
-  local.get 7
-  if $L7 void
-    i64.const 2
     local.set 6
+  end $L6
+  local.get 6
+  if $L7 void
     local.get 4
-    local.get 6
+    i64.const 2
     local.get 5
     array.slice 11
     call.import 0
-    local.set 10
+    local.set 8
     i32.const 2
-    local.get 10
+    local.get 8
     call 27
     return
   end $L7
@@ -4897,55 +4733,45 @@ fn 22 std_semver$parse_token (string) -> ref
   i32.const 0
   array.get 11
   ref.cast 12
-  local.set 8
-  i64.const 1
-  local.set 6
+  local.set 7
   local.get 4
-  local.get 6
+  i64.const 1
   local.get 5
   array.slice 11
   call.import 0
-  local.set 10
+  local.set 8
+  local.get 7
   i32.const 62
-  local.set 9
-  local.get 8
-  local.get 9
   i32.eq
   if $L8 void
     i32.const 3
-    local.get 10
+    local.get 8
     call 27
     return
   end $L8
+  local.get 7
   i32.const 60
-  local.set 9
-  local.get 8
-  local.get 9
   i32.eq
   if $L9 void
     i32.const 1
-    local.get 10
+    local.get 8
     call 27
     return
   end $L9
+  local.get 7
   i32.const 61
-  local.set 9
-  local.get 8
-  local.get 9
   i32.eq
   if $L10 void
     i32.const 0
-    local.get 10
+    local.get 8
     call 27
     return
   end $L10
+  local.get 7
   i32.const 94
-  local.set 9
-  local.get 8
-  local.get 9
   i32.eq
   if $L11 void
-    local.get 10
+    local.get 8
     call 20
     local.tee 4
     type_check 23
@@ -4961,22 +4787,20 @@ fn 22 std_semver$parse_token (string) -> ref
       local.set 4
       local.field 4 15 0
       ref.cast 2
-      local.set 11
+      local.set 9
       string.const 37
-      local.get 11
+      local.get 9
       call 2
       struct.new 15
       return
     end $L13
     return
   end $L11
+  local.get 7
   i32.const 126
-  local.set 9
-  local.get 8
-  local.get 9
   i32.eq
   if $L14 void
-    local.get 10
+    local.get 8
     call 20
     local.tee 4
     type_check 23
@@ -4992,9 +4816,9 @@ fn 22 std_semver$parse_token (string) -> ref
       local.set 4
       local.field 4 15 0
       ref.cast 2
-      local.set 10
+      local.set 8
       string.const 38
-      local.get 10
+      local.get 8
       call 2
       struct.new 15
       return
@@ -5007,69 +4831,69 @@ fn 22 std_semver$parse_token (string) -> ref
   type_check 23
   if $L17 void
     local.get 4
-    local.set 12
-    local.field 12 23 0
+    local.set 10
+    local.field 10 23 0
     ref.cast 1
     local.set 1
     local.get 1
     i32.const 0
     i32.ge
     if $L18 void
-      local.field 12 23 1
+      local.field 10 23 1
       ref.cast 1
       local.set 1
       local.get 1
       i32.const 0
       i32.ge
-      local.set 7
+      local.set 6
     else
       bool.const false
-      local.set 7
+      local.set 6
     end $L18
-    local.get 7
+    local.get 6
     if $L19 void
-      local.field 12 23 2
+      local.field 10 23 2
       ref.cast 1
       local.set 1
       local.get 1
       i32.const 0
       i32.ge
-      local.set 7
+      local.set 6
     else
       bool.const false
-      local.set 7
+      local.set 6
     end $L19
-    local.get 7
+    local.get 6
     if $L20 void
-      local.field 12 23 0
+      local.field 10 23 0
       ref.cast 1
       local.set 1
-      local.field 12 23 1
+      local.field 10 23 1
       ref.cast 1
       local.set 2
-      local.field 12 23 2
+      local.field 10 23 2
       ref.cast 1
       local.set 3
-      local.field 12 23 3
+      local.field 10 23 3
       ref.cast 2
-      local.set 10
-      local.field 12 23 4
+      local.set 8
+      local.field 10 23 4
       ref.cast 2
-      local.set 11
+      local.set 9
       local.get 1
       local.get 2
       local.get 3
-      local.get 10
-      local.get 11
+      local.get 8
+      local.get 9
       struct.new 3
-      local.set 13
+      local.set 11
       i32.const 0
-      local.get 13
+      local.get 11
       struct.new 25
       array.new 24 1
       return
     end $L20
-    local.get 12
+    local.get 10
     call 26
     return
   end $L17
@@ -5080,9 +4904,9 @@ fn 22 std_semver$parse_token (string) -> ref
     local.set 4
     local.field 4 15 0
     ref.cast 2
-    local.set 10
+    local.set 8
     string.const 39
-    local.get 10
+    local.get 8
     call 2
     struct.new 15
     return
@@ -5588,7 +5412,6 @@ fn 32 std_semver$VersionRange$Contains$contains (ref,ref) -> bool
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local $k_13 usize
   local.field 0 17 0
   local.tee 2
   array.len
@@ -5609,10 +5432,8 @@ fn 32 std_semver$VersionRange$Contains$contains (ref,ref) -> bool
         if $L3 void
           return.lit bool.const true
         end $L3
-        i64.const 1
-        local.set 5
         local.get 4
-        local.get 5
+        i64.const 1
         i64.add
         local.set 4
         br $L1
@@ -5766,7 +5587,7 @@ fn 34 std_semver$clause_contains (ref,ref) -> bool
   local $field_27 i32
   local $field_28 i32
   local and_res bool
-  local $k_37 usize
+  local $k_53 usize
   local.field 1 3 3
   ref.cast 2
   call 39
@@ -5847,10 +5668,8 @@ fn 34 std_semver$clause_contains (ref,ref) -> bool
             bool.const true
             local.set 2
           else
-            i64.const 1
-            local.set 16
             local.get 5
-            local.get 16
+            i64.const 1
             i64.add
             local.set 5
             br $L2
@@ -5943,7 +5762,6 @@ fn 35 std_semver$compare_prerelease (string,string) -> i32
   local $idx_18 string
   local $idx_19 string
   local cmp i32
-  local $k_24 usize
   local.get 0
   string.const 31
   call 44
@@ -5999,10 +5817,8 @@ fn 35 std_semver$compare_prerelease (string,string) -> i32
           local.get 10
           return
         end $L4
-        i64.const 1
-        local.set 11
         local.get 7
-        local.get 11
+        i64.const 1
         i64.add
         local.set 7
         br $L2
@@ -6248,7 +6064,6 @@ fn 38 std_semver$compare_lex (string,string) -> i32
   local i usize
   local ba u8
   local bb u8
-  local $k_25 usize
   local.get 0
   call.import 1
   local.set 2
@@ -6305,10 +6120,8 @@ fn 38 std_semver$compare_lex (string,string) -> i32
         if $L5 void
           return.lit i32.const 1
         end $L5
-        i64.const 1
-        local.set 10
         local.get 7
-        local.get 10
+        i64.const 1
         i64.add
         local.set 7
         br $L2
@@ -6335,14 +6148,11 @@ end
 
 fn 39 std_string$is_empty (string) -> bool
   local $call_1 usize
-  local $k_2 usize
   local.get 0
   call.import 2
   local.set 1
-  i64.const 0
-  local.set 2
   local.get 1
-  local.get 2
+  i64.const 0
   i64.eq
   return
 end
@@ -6352,9 +6162,7 @@ fn 40 std_string$trim (string) -> string
   local n usize
   local lo usize
   local and_res bool
-  local $k_12 usize
   local $sub_18 usize
-  local $k_22 usize
   local.get 0
   call.import 1
   local.tee 1
@@ -6380,10 +6188,8 @@ fn 40 std_string$trim (string) -> string
       end $L2
       local.get 4
       if $L3 void
-        i64.const 1
-        local.set 5
         local.get 3
-        local.get 5
+        i64.const 1
         i64.add
         local.set 3
         br $L1
@@ -6399,14 +6205,12 @@ fn 40 std_string$trim (string) -> string
       local.get 3
       u64.gt
       if $L6 void
-        i64.const 1
-        local.set 5
         local.get 2
-        local.get 5
+        i64.const 1
         i64.sub
-        local.set 6
+        local.set 5
         local.get 1
-        local.get 6
+        local.get 5
         array.get 11
         ref.cast 12
         call 42
@@ -6417,10 +6221,8 @@ fn 40 std_string$trim (string) -> string
       end $L6
       local.get 4
       if $L7 void
-        i64.const 1
-        local.set 7
         local.get 2
-        local.get 7
+        i64.const 1
         i64.sub
         local.set 2
         br $L5
@@ -6439,15 +6241,12 @@ end
 fn 41 std_string$parse_int (string) -> ref
   local bs ref
   local n usize
-  local $k_5 usize
+  local i usize
   local neg bool
   local $idx_14 u8
-  local $k_15 u8
   local acc i64
   local or_res bool
-  local $k_31 u8
   local $mul_36 i64
-  local $k_37 u8
   local $cast_39 i64
   local $add_43 i64
   local $k_51 usize
@@ -6456,10 +6255,8 @@ fn 41 std_string$parse_int (string) -> ref
   local.tee 1
   array.len
   local.set 2
-  i64.const 0
-  local.set 3
   local.get 2
-  local.get 3
+  i64.const 0
   i64.eq
   if $L0 void
     string.const 47
@@ -6475,10 +6272,8 @@ fn 41 std_string$parse_int (string) -> ref
   array.get 11
   ref.cast 12
   local.set 5
-  i32.const 45
-  local.set 6
   local.get 5
-  local.get 6
+  i32.const 45
   i32.eq
   if $L1 void
     bool.const true
@@ -6496,7 +6291,7 @@ fn 41 std_string$parse_int (string) -> ref
     return
   end $L2
   i64.const 0
-  local.set 7
+  local.set 6
   block $L3 void
     loop $L4 void
       local.get 3
@@ -6508,49 +6303,43 @@ fn 41 std_string$parse_int (string) -> ref
         array.get 11
         ref.cast 12
         local.set 5
-        i32.const 48
-        local.set 6
         local.get 5
-        local.get 6
+        i32.const 48
         u32.lt
         if $L6 void
           bool.const true
-          local.set 8
+          local.set 7
         else
-          i32.const 57
-          local.set 9
           local.get 5
-          local.get 9
+          i32.const 57
           u32.gt
-          local.set 8
+          local.set 7
         end $L6
-        local.get 8
+        local.get 7
         if $L7 void
           string.const 49
           struct.new 15
           return
         end $L7
-        local.get 7
+        local.get 6
         i64.const 10
         i64.mul
-        local.set 10
-        i32.const 48
-        local.set 11
+        local.set 8
         local.get 5
-        local.get 11
+        i32.const 48
         i32.sub
         u8.to_i64
-        local.set 12
-        local.get 10
-        local.get 12
+        local.set 9
+        local.get 8
+        local.get 9
         i64.add
-        local.set 7
+        local.set 6
         local.get 4
         if $L8 void
           i64.const 2147483648
-          local.set 13
-          local.get 7
-          local.get 13
+          local.set 10
+          local.get 6
+          local.get 10
           i64.gt
           if $L9 void
             string.const 50
@@ -6558,14 +6347,14 @@ fn 41 std_string$parse_int (string) -> ref
             return
           end $L9
           i64.const 1
-          local.set 14
+          local.set 11
           local.get 3
-          local.get 14
+          local.get 11
           i64.add
           local.set 3
           br $L4
         end $L8
-        local.get 7
+        local.get 6
         i64.const 2147483647
         i64.gt
         if $L10 void
@@ -6574,9 +6363,9 @@ fn 41 std_string$parse_int (string) -> ref
           return
         end $L10
         i64.const 1
-        local.set 14
+        local.set 11
         local.get 3
-        local.get 14
+        local.get 11
         i64.add
         local.set 3
         br $L4
@@ -6586,80 +6375,68 @@ fn 41 std_string$parse_int (string) -> ref
   end $L3
   local.get 4
   if $L11 void
-    local.get 7
+    local.get 6
     i64.neg
     i64.to_i32
     box 1
     return
   end $L11
-  local.get 7
+  local.get 6
   i64.to_i32
   box 1
   return
 end
 
 fn 42 std_string$is_white_byte (u8) -> bool
-  local $k_1 u8
   local or_res bool
-  i32.const 32
-  local.set 1
   local.get 0
-  local.get 1
+  i32.const 32
   i32.eq
   if $L0 void
     bool.const true
-    local.set 2
-  else
-    i32.const 9
     local.set 1
+  else
     local.get 0
-    local.get 1
+    i32.const 9
     i32.eq
-    local.set 2
+    local.set 1
   end $L0
-  local.get 2
+  local.get 1
   if $L1 void
     bool.const true
-    local.set 2
-  else
-    i32.const 10
     local.set 1
+  else
     local.get 0
-    local.get 1
+    i32.const 10
     i32.eq
-    local.set 2
+    local.set 1
   end $L1
-  local.get 2
+  local.get 1
   if $L2 void
     bool.const true
-    local.set 2
-  else
-    i32.const 13
     local.set 1
+  else
     local.get 0
-    local.get 1
+    i32.const 13
     i32.eq
-    local.set 2
+    local.set 1
   end $L2
-  local.get 2
+  local.get 1
   return
 end
 
 fn 43 std_string$chars (string) -> ref
   local bs ref
-  local $k_3 usize
   local $len_4 usize
   local.get 0
   call.import 1
   local.set 1
-  i64.const 0
-  local.set 2
   local.get 1
   array.len
-  local.set 3
+  local.set 2
   local.get 1
+  i64.const 0
   local.get 2
-  local.get 3
   struct.new 28
   return
 end
@@ -6669,13 +6446,10 @@ fn 44 std_string$split (string,string) -> ref
   local sb ref
   local n usize
   local m usize
-  local $k_10 usize
-  local $k_15 usize
+  local i usize
   local $add_16 usize
   local $call_18 string
-  local $k_19 usize
   local found isize
-  local $k_25 isize
   array.new 19 0
   local.set 2
   local.get 0
@@ -6686,10 +6460,8 @@ fn 44 std_string$split (string,string) -> ref
   local.get 1
   call.import 2
   local.set 5
-  i64.const 0
-  local.set 6
   local.get 5
-  local.get 6
+  i64.const 0
   i64.eq
   if $L0 void
     i64.const 0
@@ -6700,25 +6472,21 @@ fn 44 std_string$split (string,string) -> ref
         local.get 4
         u64.lt
         if $L3 void
-          i64.const 1
-          local.set 7
           local.get 6
-          local.get 7
+          i64.const 1
           i64.add
-          local.set 8
+          local.set 7
           local.get 3
           local.get 6
-          local.get 8
+          local.get 7
           array.slice 11
           call.import 0
-          local.set 9
+          local.set 8
           local.get 2
-          local.get 9
+          local.get 8
           array.push 2
-          i64.const 1
-          local.set 10
           local.get 6
-          local.get 10
+          i64.const 1
           i64.add
           local.set 6
           br $L2
@@ -6735,16 +6503,14 @@ fn 44 std_string$split (string,string) -> ref
   local.get 1
   local.get 6
   call 45
-  local.set 11
+  local.set 9
   block $L4 void
     loop $L5 void
+      local.get 9
       i64.const 0
-      local.set 12
-      local.get 11
-      local.get 12
       i64.ge
       if $L6 void
-        local.get 11
+        local.get 9
         isize.to_i64
         local.set 7
         local.get 3
@@ -6752,9 +6518,9 @@ fn 44 std_string$split (string,string) -> ref
         local.get 7
         array.slice 11
         call.import 0
-        local.set 9
+        local.set 8
         local.get 2
-        local.get 9
+        local.get 8
         array.push 2
         local.get 7
         local.get 5
@@ -6764,7 +6530,7 @@ fn 44 std_string$split (string,string) -> ref
         local.get 1
         local.get 6
         call 45
-        local.set 11
+        local.set 9
         br $L5
       else
       end $L6
@@ -6775,9 +6541,9 @@ fn 44 std_string$split (string,string) -> ref
   local.get 4
   array.slice 11
   call.import 0
-  local.set 9
+  local.set 8
   local.get 2
-  local.get 9
+  local.get 8
   array.push 2
   local.get 2
   return
@@ -6788,8 +6554,7 @@ fn 45 std_string$byte_find (string,string,usize) -> isize
   local subb ref
   local n usize
   local m usize
-  local $k_11 usize
-  local $k_23 usize
+  local i usize
   local.get 0
   call.import 1
   local.set 3
@@ -6802,10 +6567,8 @@ fn 45 std_string$byte_find (string,string,usize) -> isize
   local.get 4
   array.len
   local.set 6
-  i64.const 0
-  local.set 7
   local.get 6
-  local.get 7
+  i64.const 0
   i64.eq
   if $L0 void
     local.get 2
@@ -6842,10 +6605,8 @@ fn 45 std_string$byte_find (string,string,usize) -> isize
           usize.to_i64
           return
         end $L5
-        i64.const 1
-        local.set 8
         local.get 7
-        local.get 8
+        i64.const 1
         i64.add
         local.set 7
         br $L3
@@ -6863,7 +6624,6 @@ fn 46 std_string$bytes_match_at (ref,usize,ref,usize) -> bool
   local $add_7 usize
   local $idx_8 u8
   local $idx_9 u8
-  local $k_12 usize
   i64.const 0
   local.set 4
   block $L0 void
@@ -6892,10 +6652,8 @@ fn 46 std_string$bytes_match_at (ref,usize,ref,usize) -> bool
         if $L3 void
           return.lit bool.const false
         end $L3
-        i64.const 1
-        local.set 8
         local.get 4
-        local.get 8
+        i64.const 1
         i64.add
         local.set 4
         br $L1
@@ -6971,11 +6729,10 @@ end
 fn 49 std_string$decode_char_at (ref,usize) -> char
   local n usize
   local b u8
-  local $k_6 u8
-  local $k_17 usize
+  local $add_22 usize
+  local b1 u8
   local $cast_25 u32
-  local $k_26 u32
-  local $k_31 u32
+  local $cast_30 u32
   local b2 u8
   local b3 u8
   local.get 0
@@ -6986,20 +6743,16 @@ fn 49 std_string$decode_char_at (ref,usize) -> char
   array.get 11
   ref.cast 12
   local.set 3
-  i32.const 128
-  local.set 4
   local.get 3
-  local.get 4
+  i32.const 128
   u32.lt
   if $L0 void
     local.get 3
     u8.to_char
     return
   end $L0
-  i32.const 192
-  local.set 4
   local.get 3
-  local.get 4
+  i32.const 192
   u32.lt
   if $L1 void
     i32.const 65533
@@ -7010,55 +6763,43 @@ fn 49 std_string$decode_char_at (ref,usize) -> char
   local.get 1
   i64.sub
   local.set 2
-  i32.const 224
-  local.set 4
   local.get 3
-  local.get 4
+  i32.const 224
   u32.lt
   if $L2 void
-    i64.const 2
-    local.set 5
     local.get 2
-    local.get 5
+    i64.const 2
     u64.lt
     if $L3 void
       i32.const 0
       i32.to_char
       return
     end $L3
-    i64.const 1
-    local.set 5
     local.get 1
-    local.get 5
+    i64.const 1
     i64.add
-    local.set 5
+    local.set 4
     local.get 0
-    local.get 5
+    local.get 4
     array.get 11
     ref.cast 12
-    local.set 4
+    local.set 5
     local.get 3
     u8.to_i32
     local.set 6
-    i32.const 31
-    local.set 7
     local.get 6
-    local.get 7
+    i32.const 31
     i32.bitand
     local.set 6
-    i32.const 6
-    local.set 7
     local.get 6
-    local.get 7
+    i32.const 6
     i32.shl
     local.set 6
-    local.get 4
+    local.get 5
     u8.to_i32
     local.set 7
-    i32.const 63
-    local.set 8
     local.get 7
-    local.get 8
+    i32.const 63
     i32.bitand
     local.set 7
     local.get 6
@@ -7067,85 +6808,67 @@ fn 49 std_string$decode_char_at (ref,usize) -> char
     u32.to_char
     return
   end $L2
-  i32.const 240
-  local.set 4
   local.get 3
-  local.get 4
+  i32.const 240
   u32.lt
   if $L4 void
-    i64.const 3
-    local.set 5
     local.get 2
-    local.get 5
+    i64.const 3
     u64.lt
     if $L5 void
       i32.const 0
       i32.to_char
       return
     end $L5
+    local.get 1
     i64.const 1
-    local.set 5
-    local.get 1
-    local.get 5
     i64.add
-    local.set 5
-    local.get 0
-    local.get 5
-    array.get 11
-    ref.cast 12
     local.set 4
-    i64.const 2
-    local.set 5
-    local.get 1
-    local.get 5
-    i64.add
-    local.set 5
     local.get 0
-    local.get 5
+    local.get 4
     array.get 11
     ref.cast 12
-    local.set 9
+    local.set 5
+    local.get 1
+    i64.const 2
+    i64.add
+    local.set 4
+    local.get 0
+    local.get 4
+    array.get 11
+    ref.cast 12
+    local.set 8
     local.get 3
     u8.to_i32
     local.set 6
-    i32.const 15
-    local.set 7
     local.get 6
-    local.get 7
+    i32.const 15
     i32.bitand
     local.set 6
-    i32.const 12
-    local.set 7
     local.get 6
-    local.get 7
+    i32.const 12
     i32.shl
     local.set 6
-    local.get 4
+    local.get 5
     u8.to_i32
     local.set 7
-    i32.const 63
-    local.set 8
     local.get 7
-    local.get 8
+    i32.const 63
     i32.bitand
     local.set 7
-    i32.const 6
-    local.set 8
     local.get 7
-    local.get 8
+    i32.const 6
     i32.shl
     local.set 7
     local.get 6
     local.get 7
     i32.add
     local.set 6
-    local.get 9
+    local.get 8
     u8.to_i32
     local.set 7
-    i32.const 63
-    local.set 8
     local.get 7
-    local.get 8
+    i32.const 63
     i32.bitand
     local.set 7
     local.get 6
@@ -7154,31 +6877,34 @@ fn 49 std_string$decode_char_at (ref,usize) -> char
     u32.to_char
     return
   end $L4
-  i64.const 4
-  local.set 5
   local.get 2
-  local.get 5
+  i64.const 4
   u64.lt
   if $L6 void
     i32.const 0
     i32.to_char
     return
   end $L6
-  i64.const 1
-  local.set 2
   local.get 1
-  local.get 2
+  i64.const 1
   i64.add
   local.set 2
   local.get 0
   local.get 2
   array.get 11
   ref.cast 12
-  local.set 4
-  i64.const 2
-  local.set 2
+  local.set 5
   local.get 1
+  i64.const 2
+  i64.add
+  local.set 2
+  local.get 0
   local.get 2
+  array.get 11
+  ref.cast 12
+  local.set 8
+  local.get 1
+  i64.const 3
   i64.add
   local.set 2
   local.get 0
@@ -7186,45 +6912,41 @@ fn 49 std_string$decode_char_at (ref,usize) -> char
   array.get 11
   ref.cast 12
   local.set 9
-  i64.const 3
-  local.set 2
-  local.get 1
-  local.get 2
-  i64.add
-  local.set 2
-  local.get 0
-  local.get 2
-  array.get 11
-  ref.cast 12
-  local.set 10
   local.get 3
   u8.to_i32
   local.set 6
-  i32.const 7
-  local.set 7
   local.get 6
-  local.get 7
+  i32.const 7
   i32.bitand
   local.set 6
-  i32.const 18
-  local.set 7
   local.get 6
-  local.get 7
+  i32.const 18
   i32.shl
   local.set 6
-  local.get 4
+  local.get 5
   u8.to_i32
   local.set 7
-  i32.const 63
-  local.set 8
   local.get 7
-  local.get 8
+  i32.const 63
   i32.bitand
   local.set 7
-  i32.const 12
-  local.set 8
   local.get 7
+  i32.const 12
+  i32.shl
+  local.set 7
+  local.get 6
+  local.get 7
+  i32.add
+  local.set 6
   local.get 8
+  u8.to_i32
+  local.set 7
+  local.get 7
+  i32.const 63
+  i32.bitand
+  local.set 7
+  local.get 7
+  i32.const 6
   i32.shl
   local.set 7
   local.get 6
@@ -7234,29 +6956,8 @@ fn 49 std_string$decode_char_at (ref,usize) -> char
   local.get 9
   u8.to_i32
   local.set 7
+  local.get 7
   i32.const 63
-  local.set 8
-  local.get 7
-  local.get 8
-  i32.bitand
-  local.set 7
-  i32.const 6
-  local.set 8
-  local.get 7
-  local.get 8
-  i32.shl
-  local.set 7
-  local.get 6
-  local.get 7
-  i32.add
-  local.set 6
-  local.get 10
-  u8.to_i32
-  local.set 7
-  i32.const 63
-  local.set 8
-  local.get 7
-  local.get 8
   i32.bitand
   local.set 7
   local.get 6
@@ -7268,30 +6969,23 @@ end
 
 fn 50 std_string$codepoint_byte_len (char) -> usize
   local cp u32
-  local $k_3 u32
   local.get 0
   char.to_i32
   local.set 1
-  i32.const 128
-  local.set 2
   local.get 1
-  local.get 2
+  i32.const 128
   u32.lt
   if $L0 void
     return.lit i64.const 1
   end $L0
-  i32.const 2048
-  local.set 2
   local.get 1
-  local.get 2
+  i32.const 2048
   u32.lt
   if $L1 void
     return.lit i64.const 2
   end $L1
-  i32.const 65536
-  local.set 2
   local.get 1
-  local.get 2
+  i32.const 65536
   u32.lt
   if $L2 void
     return.lit i64.const 3
@@ -7432,34 +7126,29 @@ end
 
 fn 57 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local n usize
-  local $k_4 usize
   local $field_9 ref
+  local __for_len_1 usize
   local __for_i_2 usize
   local $call_23 usize
-  local $k_25 usize
   local __for_arr_3 ref
   local p string
-  local $k_42 usize
+  local $call_40 usize
   local.field 0 31 0
   array.len
   local.set 1
-  i64.const 0
-  local.set 2
   local.get 1
-  local.get 2
+  i64.const 0
   i64.eq
   if $L0 void
     return.lit string.const 8
   end $L0
-  i64.const 1
-  local.set 2
   local.get 1
-  local.get 2
+  i64.const 1
   i64.eq
   if $L1 void
     local.field 0 31 0
-    local.set 3
-    local.get 3
+    local.set 2
+    local.get 2
     i32.const 0
     array.get 19
     ref.cast 2
@@ -7468,18 +7157,18 @@ fn 57 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   i64.const 0
   local.set 1
   local.field 0 31 0
-  local.tee 3
+  local.tee 2
   array.len
-  local.set 2
+  local.set 3
   i64.const 0
   local.set 4
   block $L2 void
     loop $L3 void
       local.get 4
-      local.get 2
+      local.get 3
       u64.lt
       if $L4 void
-        local.get 3
+        local.get 2
         local.get 4
         array.get 19
         ref.cast 2
@@ -7489,10 +7178,8 @@ fn 57 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 5
         i64.add
         local.set 1
-        i64.const 1
-        local.set 6
         local.get 4
-        local.get 6
+        i64.const 1
         i64.add
         local.set 4
         br $L3
@@ -7502,11 +7189,11 @@ fn 57 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L2
   local.get 1
   call 59
-  local.set 3
-  i64.const 0
   local.set 2
+  i64.const 0
+  local.set 3
   local.field 0 31 0
-  local.tee 7
+  local.tee 6
   array.len
   local.set 4
   i64.const 0
@@ -7517,26 +7204,24 @@ fn 57 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       local.get 4
       u64.lt
       if $L7 void
-        local.get 7
+        local.get 6
         local.get 5
         array.get 19
         ref.cast 2
+        local.set 7
+        local.get 2
+        local.get 3
+        local.get 7
+        call 61
+        local.get 7
+        call.import 2
         local.set 8
         local.get 3
-        local.get 2
         local.get 8
-        call 61
-        local.get 8
-        call.import 2
-        local.set 6
-        local.get 2
-        local.get 6
         i64.add
-        local.set 2
-        i64.const 1
-        local.set 9
+        local.set 3
         local.get 5
-        local.get 9
+        i64.const 1
         i64.add
         local.set 5
         br $L6
@@ -7544,7 +7229,7 @@ fn 57 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       end $L7
     end $L6
   end $L5
-  local.get 3
+  local.get 2
   local.get 1
   call 60
   return

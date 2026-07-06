@@ -439,7 +439,7 @@ export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction {
                 valid = false
             } else {
                 slot_val :: function.locals[k - param_count].val
-                if const_val_type(cv) != slot_val {
+                if !const_fills_slot(cv, slot_val) {
                     valid = false
                 } else {
                     to_delete_set[si - 1] = true
@@ -484,8 +484,9 @@ export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction {
     }
 }
 
-/// ValType for a `ConstOp` carrier — used by `propagate_const_single_use`
-/// to gate the slot-type match before substituting.
+/// ValType for a `ConstOp` carrier — used by `const_fills_slot` for the
+/// non-integer const kinds, where the const op and the slot share an exact
+/// ValType.
 const_val_type :: fn(c: ConstOp) -> ValType = match c {
     is I32Const    -> ValType.I32
     is I64Const    -> ValType.I64
@@ -494,6 +495,24 @@ const_val_type :: fn(c: ConstOp) -> ValType = match c {
     is CharConst   -> ValType.Char
     is StringConst -> ValType.String
     is NullConst   -> ValType.Null
+}
+
+/// True when constant `cv` can be inlined into a slot of ValType `slot`
+/// with no representation change — i.e. both share the VM value class.
+///
+/// Const ops are width-aliased : only `I32Const` / `I64Const` / `F64Const`
+/// / `BoolConst` / `CharConst` / `StringConst` / `NullConst` exist, so an
+/// exact `const_val_type == slot` compare wrongly rejects a `I64Const`
+/// bound for a `usize` / `u64` / `isize` slot (and a `I32Const` for a
+/// `u8` / `u16` / `u32` slot) even though the bits are identical and the
+/// VM stores both as the same `I64Val` / `I32Val`. Comparing by class lets
+/// those propagate : the emitter only ever emits a const whose class
+/// matches the slot's class, so no `to_<width>` convert is ever needed.
+/// The non-integer kinds keep the exact-ValType rule.
+const_fills_slot :: fn(cv: ConstOp, slot: ValType) -> bool {
+    if cv is I64Const { return is_64_bit_int_val(slot) }
+    if cv is I32Const { return is_integer_val(slot) && !is_64_bit_int_val(slot) }
+    return const_val_type(cv) == slot
 }
 
 /// Rule 5 — eliminate locals whose only references are writes. After

@@ -279,7 +279,7 @@ static int32_t snippet_main(void) {
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
-    size_t l2, l3, l5;
+    size_t l2, l3;
     vader_box_t l4 = vader_box_null();
     size_t t0, t1;
     int64_t t2;
@@ -296,8 +296,7 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     l3 = (size_t) (int64_t) t2;
     t3 = std_core_new_byte_buffer(l3);
     l4 = t3;
-    l5 = (size_t) (int64_t) INT64_C(0);
-    std_core_Buffer_ByteAccess_write_string_vt(l4, l5, l0);
+    std_core_Buffer_ByteAccess_write_string_vt(l4, (size_t) (int64_t) INT64_C(0), l0);
     std_core_Buffer_ByteAccess_write_string_vt(l4, l2, l1);
     t4 = std_core_finish_buffer(l4, l3);
     { vader_string_t __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
@@ -305,7 +304,7 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
 }
 
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2) {
-    size_t l3, l4, l5, l7;
+    size_t l3, l4, l5;
     vader_box_t l6 = vader_box_null();
     size_t t0, t1, t3;
     int64_t t2, t4;
@@ -326,8 +325,7 @@ static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_strin
     l5 = (size_t) (int64_t) t4;
     t5 = std_core_new_byte_buffer(l5);
     l6 = t5;
-    l7 = (size_t) (int64_t) INT64_C(0);
-    std_core_Buffer_ByteAccess_write_string_vt(l6, l7, l0);
+    std_core_Buffer_ByteAccess_write_string_vt(l6, (size_t) (int64_t) INT64_C(0), l0);
     std_core_Buffer_ByteAccess_write_string_vt(l6, l3, l1);
     std_core_Buffer_ByteAccess_write_string_vt(l6, l4, l2);
     t6 = std_core_finish_buffer(l6, l5);

@@ -69,7 +69,6 @@ fn 1 std_core$[]$Contains$contains__i32 (ref,i32) -> bool
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local $k_12 usize
   local.get 0
   local.tee 2
   array.len
@@ -90,10 +89,8 @@ fn 1 std_core$[]$Contains$contains__i32 (ref,i32) -> bool
         if $L3 void
           return.lit bool.const true
         end $L3
-        i64.const 1
-        local.set 5
         local.get 4
-        local.get 5
+        i64.const 1
         i64.add
         local.set 4
         br $L1

@@ -67,7 +67,6 @@ fn 2 snippet$main () -> i32
   local $struct_3 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local $k_15 usize
   array.new 1 0
   local.set 0
   string.const 2
@@ -99,10 +98,8 @@ fn 2 snippet$main () -> i32
         array.get 1
         call 1
         call 7
-        i64.const 1
-        local.set 4
         local.get 3
-        local.get 4
+        i64.const 1
         i64.add
         local.set 3
         br $L1
@@ -117,7 +114,6 @@ fn 3 concat_2 (string,string) -> string
   local c0 usize
   local $call_4 usize
   local buf ref
-  local $k_9 usize
   local.get 0
   call 5
   local.set 2
@@ -130,10 +126,8 @@ fn 3 concat_2 (string,string) -> string
   local.tee 3
   call 4
   local.set 4
-  i64.const 0
-  local.set 5
   local.get 4
-  local.get 5
+  i64.const 0
   local.get 0
   call 10
   local.get 4
