@@ -5,6 +5,8 @@ import com.intellij.execution.configurations.RunConfigurationOptions
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import com.redhat.devtools.lsp4ij.dap.DebugMode
 import com.redhat.devtools.lsp4ij.dap.client.LaunchUtils
 import com.redhat.devtools.lsp4ij.dap.configurations.options.FileOptionConfigurable
@@ -34,6 +36,16 @@ internal class VaderDebugAdapterServerFactory : DebugAdapterDescriptorFactory() 
         options: RunConfigurationOptions,
         environment: ExecutionEnvironment,
     ): DebugAdapterDescriptor = VaderDebugAdapterDescriptor(options, environment, serverDefinition)
+
+    // Which files can carry a DAP breakpoint for this server — the equivalent of
+    // the VSCode extension's `contributes.breakpoints: [{ language: "vader" }]`.
+    // LSP4IJ's `DAPBreakpointTypeBase.canPutAt` calls this when placing a gutter
+    // breakpoint. The inherited default delegates to the server definition's
+    // `serverMappings`, but an EP-registered `debugAdapterServer` has NO mapping
+    // attributes (see plugin.xml) so those are empty → every `.vader` file reads
+    // as non-debuggable and breakpoints are silently never sent. Answer directly.
+    override fun isDebuggableFile(file: VirtualFile, project: Project): Boolean =
+        isVaderFile(file)
 }
 
 private class VaderDebugAdapterDescriptor(
@@ -84,4 +96,14 @@ private class VaderDebugAdapterDescriptor(
         ServerReadyConfig(0)
 
     override fun getFileType(): FileType? = null
+
+    // Session-side counterpart of the factory override above: LSP4IJ's
+    // `DAPBreakpointHandlerBase` calls this per breakpoint to decide whether to
+    // send it to the running adapter. Without it the default delegates to the
+    // (empty) server-definition mappings and no breakpoint reaches `vader dap`.
+    override fun isDebuggableFile(file: VirtualFile, project: Project): Boolean =
+        isVaderFile(file)
 }
+
+// A `.vader` source file — the only thing the Vader debug adapter can debug.
+private fun isVaderFile(file: VirtualFile): Boolean = file.name.endsWith(".vader")
