@@ -1,0 +1,13 @@
+// String ordering (`<` `<=` `>` `>=`) has no lowering — `string` is not
+// `Comparable`, so a comparison must be rejected here rather than trapping
+// at runtime (`i32.lt` on a string operand). T3043.
+module "snippet"
+
+main :: fn() -> i32 {
+    a :: "apple"
+    b :: "banana"
+    if a < b {
+        return 1
+    }
+    return 0
+}
