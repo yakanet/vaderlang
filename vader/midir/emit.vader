@@ -437,7 +437,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         // validated. `@extern` imports are link-resolved and exempt.
         for imp in ctx.imports { assert_host_import_wired(imp.mangled_name, imp.is_extern) }
     }
-    return BytecodeModule { .name = module_name, .types = ctx.types, .strings = ctx.strings, .data_pool = cfg.data_pool, .functions = ctx.functions, .imports = ctx.imports, .exports = ctx.exports, .impl_table = build_impl_table_from_vtable(cfg.vtable_entries, ctx), .vtables = build_vtables_from_entries(cfg.vtable_entries, ctx) }
+    return BytecodeModule { .name = module_name, .types = ctx.types, .strings = ctx.strings, .data_pool = cfg.data_pool, .functions = ctx.functions, .imports = ctx.imports, .exports = ctx.exports, .impl_table = build_impl_table_from_vtable(cfg.vtable_entries, cfg.trait_membership, ctx), .vtables = build_vtables_from_entries(cfg.vtable_entries, ctx) }
 }
 
 /// Resolve a vtable entry's target fn symbol to its (post-prune) function
@@ -496,7 +496,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
 // duplicated here so the CFG emit path doesn't need to reach the
 // legacy assemble_module. Yields one ImplEntry per (struct_type_index,
 // trait_name) seen in the vtable entries.
-build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx) -> ImplEntry[] {
+build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: MutableMap<i32, string[]>, ctx: EmitterCtx) -> ImplEntry[] {
     out: ImplEntry[] = []
     seen :: MutableMap<string, bool> {}
     for entry in entries {
@@ -516,6 +516,24 @@ build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], ctx: EmitterCt
         if seen[key] is bool { continue }
         seen[key] = true
         out.push(ImplEntry { .struct_type_index = type_index, .trait_name = entry.trait_name })
+    }
+    // Frontend-sourced membership : every interned struct tag gets a row for
+    // each trait its source symbol implements — independent of whether any
+    // impl method was materialised. Covers is-only structs AND generic
+    // instances (all instances share `symbol_id`), which the vtable-sourced
+    // rows above miss. Struct-only by construction — enums/primitives never
+    // carry `impl_table` rows (their `is Trait` resolves at compile time).
+    for i in 0..<ctx.types.len() {
+        if ctx.types[i] is BcStruct as st {
+            traits :: membership[st.symbol_id]
+            if traits is null { continue }
+            for tr in traits {
+                key :: "${i}|${tr}"
+                if seen[key] is bool { continue }
+                seen[key] = true
+                out.push(ImplEntry { .struct_type_index = i32(i), .trait_name = tr })
+            }
+        }
     }
     return out
 }

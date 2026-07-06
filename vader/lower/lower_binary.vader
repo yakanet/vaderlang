@@ -34,9 +34,6 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     // and lowers to a regular `LoweredCast` reaching the alias slot.
     if binary.op == BinaryOp.Is {
         check_type :: ctx.types.expr_type(binary.right)
-        // A trait RHS needs its implementers' impl-table rows — see
-        // `materialize_trait_check_impls`.
-        materialize_trait_check_impls(ctx, check_type)
         return LoweredTypeCheck {
             .span = binary.span,
             .type = TY_BOOL,

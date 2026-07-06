@@ -33,12 +33,7 @@ export eliminate_dead_cfg :: fn(p: CFGProject) -> CFGProject {
             .struct_decls = m.struct_decls,
         }
     }
-    return CFGProject {
-        .modules         = new_modules,
-        .vtable_entries  = p.vtable_entries,
-        .strings         = p.strings,
-        .data_pool       = p.data_pool,
-    }
+    return CFGProject { ...p, .modules = new_modules }
 }
 
 optimise_function :: fn(f: CFGFunction) -> CFGFunction {

@@ -499,6 +499,11 @@ export CFGProject :: struct {
     /// `BytecodeModule.dataPool`. InstrDataConst references entries by
     /// index.
     data_pool: BcDataEntry[]
+    /// `Symbol.id → trait names` — frontend trait membership carried verbatim
+    /// from `LoweredProject`, consumed by `build_impl_table_from_vtable` to
+    /// emit `is Trait` rows for every interned struct tag (incl. generic
+    /// instances + never-called impls the vtable-sourced path misses).
+    trait_membership: MutableMap<i32, string[]>
 }
 
 export CFGModule :: struct {

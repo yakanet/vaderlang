@@ -9,7 +9,7 @@ import "vader/parser" { Expr, IdentExpr, CallExpr, FieldExpr, Visibility, Decl, 
 import "vader/diagnostics" { Span }
 import "vader/typecheck" { type_list_equals, TypedProgram }
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, FnType, PrimitiveType, TraitType, ArrayType, AnyType, mk_primitive, mk_fn, TY_STRING, TRAIT_EQUALS, METHOD_EQUALS, METHOD_NOT_EQUALS, array_backing }
+import "vader/types" { Type, FnType, PrimitiveType, UnionType, TraitType, ArrayType, AnyType, mk_primitive, mk_fn, TY_STRING, TRAIT_EQUALS, METHOD_EQUALS, METHOD_NOT_EQUALS, array_backing, struct_backing }
 import "vader/comptime" { EvaluatedProgram }
 import "vader/resolver" { ImportTargetTable }
 
@@ -22,7 +22,28 @@ import "vader/resolver" { ImportTargetTable }
 // - `<namespace>.foo(args)` where `<namespace>` is an `ImportBinding`
 //   ident collapses to a direct `foo(args)` call ; the surrounding
 //   namespace prefix is purely a source-level concept.
+// Mark every struct in `t` (and its union variants) as "a value of this type
+// exists" — the same signal a struct literal records at
+// `lower_struct_lit.vader::constructed_struct_symbols.add`. Used at `lower_call`
+// entry so a host / `@intrinsic` callee's return struct (`read_file_bytes ->
+// u8[] | IOError`) is treated as constructed, making it vtable-eligible for
+// `is Trait` + trait-method dispatch without hard-coding the type. Redundant
+// (idempotent set add) for a Vader-bodied callee whose producer already marked it.
+mark_produced_structs :: fn(t: Type, ctx: FnLowerCtx) -> void {
+    // `struct_backing` unwraps a struct-backed distinct newtype too, mirroring
+    // the struct-literal path (`lower_struct_lit.vader`).
+    st :: struct_backing(t)
+    if st != null {
+        ctx.project.constructed_struct_symbols.add(st.symbol.id)
+        return
+    }
+    if t is UnionType as u {
+        for v in u.variants { mark_produced_structs(v, ctx) }
+    }
+}
+
 lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
+    mark_produced_structs(type, ctx)
     // Terminal fusion (B-terminals): `<chain>.count()` / `.collect()` over a
     // fusible iterator chain fuses to a flat accumulator loop, before the trait
     // default-method / free-fn call is formed. Declines (null) for a terminal

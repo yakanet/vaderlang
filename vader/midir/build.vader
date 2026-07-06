@@ -152,6 +152,7 @@ export build_cfg_project :: fn(lp: LoweredProject) -> CFGProject {
         .vtable_entries  = lp.vtable_entries,
         .strings         = ctx.strings,
         .data_pool       = convert_data_pool(lp.data_pool),
+        .trait_membership = lp.trait_membership,
     }
 }
 

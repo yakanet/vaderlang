@@ -17,6 +17,8 @@ import 0 write std_io$write (i32,string) -> void
 impl 1 Tag
 impl 3 Tag
 impl 5 Display
+impl 6 Display
+impl 8 Display
 export main 0
 
 fn 0 snippet$main () -> i32

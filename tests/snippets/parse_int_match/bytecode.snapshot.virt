@@ -41,6 +41,7 @@ import 0 bytes std_core$bytes (string) -> ref
 import 1 write std_io$write (i32,string) -> void
 import 2 byte_len std_string$byte_len (string) -> usize
 impl 7 ByteAccess
+impl 20 Error
 export main 0
 
 fn 0 snippet$main () -> i32

@@ -686,33 +686,38 @@ index_impl_metadata :: fn(
     }
 }
 
+// Append `trait_name` to `m[key]`'s bucket unless already present. Shared by
+// the three trait-membership recorders (`record_impl_trait` + both maps of
+// `record_struct_trait`), generic over the key type so the id-keyed and
+// name-keyed maps use one form.
+add_trait_unique :: fn<K>(m: MutableMap<K, string[]>, key: K, trait_name: string) -> void {
+    bucket :: m[key]
+    if bucket == null {
+        m[key] = [trait_name]
+        return
+    }
+    for n in bucket { if n == trait_name { return } }
+    bucket.push(trait_name)
+    m[key] = bucket
+}
+
 // Append `trait_name` to the impl-method-trait bucket for `base_key`.
 // Two distinct traits providing the same method on the same receiver
 // make `x.method()` ambiguous (T3032).
 record_impl_trait :: fn(typed: TypedProgram, base_key: string, trait_name: string) -> void {
-    bucket :: typed.impl_method_traits[base_key]
-    match bucket {
-        is null -> { typed.impl_method_traits[base_key] = [trait_name] }
-        _ -> {
-            for n in bucket { if n == trait_name { return } }
-            bucket.push(trait_name)
-            typed.impl_method_traits[base_key] = bucket
-        }
-    }
+    add_trait_unique(typed.impl_method_traits, base_key, trait_name)
 }
 
 record_struct_trait :: fn(typed: TypedProgram, for_ty: Type, trait_name: string) -> void {
+    // Two membership maps populated in lockstep: the id-keyed twin (project-
+    // global-unique symbol ids → collision-free, drives the runtime `is Trait`
+    // impl_table rows via the emitter) and the name-keyed map (base-name
+    // lookups by the typecheck consumers). Structs / enums / distincts carry a
+    // symbol id ; the name form additionally covers primitives.
+    target :: type_to_target_symbol(for_ty)
+    if target is Symbol { add_trait_unique(typed.struct_traits_by_sym, target.id, trait_name) }
     name :: type_base_name(for_ty)
-    if name == "" { return }
-    bucket :: typed.struct_implemented_traits[name]
-    match bucket {
-        is null -> { typed.struct_implemented_traits[name] = [trait_name] }
-        _ -> {
-            for n in bucket { if n == trait_name { return } }
-            bucket.push(trait_name)
-            typed.struct_implemented_traits[name] = bucket
-        }
-    }
+    if name != "" { add_trait_unique(typed.struct_implemented_traits, name, trait_name) }
 }
 
 record_struct_trait_args :: fn(

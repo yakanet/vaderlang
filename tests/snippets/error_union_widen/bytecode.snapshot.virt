@@ -14,7 +14,6 @@ type 11 primitive i64
 type 12 array 13
 type 13 primitive u8
 type 14 primitive void
-type 15 struct std_io$IOError { msg:2 }
 string 0 "a:"
 string 1 "b:"
 string 2 "was-error"
@@ -28,10 +27,8 @@ import 1 write std_io$write (i32,string) -> void
 impl 1 Error
 impl 3 Error
 impl 10 ByteAccess
-impl 15 Error
 vtable Error.message 1 0
 vtable Error.message 3 1
-vtable Error.message 15 12
 export main 5
 
 fn 0 snippet$A$Error$message (ref) -> string
@@ -131,10 +128,10 @@ fn 5 snippet$main () -> i32
     string.const 4
     local.get 2
     call 6
-    call 13
+    call 12
     string.const 6
     call 4
-    call 13
+    call 12
     return.lit i32.const 0
   end $L0
   local.get 0
@@ -146,10 +143,10 @@ fn 5 snippet$main () -> i32
     string.const 5
     local.get 2
     call 6
-    call 13
+    call 12
     string.const 6
     call 4
-    call 13
+    call 12
     return.lit i32.const 0
   end $L1
   return
@@ -177,11 +174,11 @@ fn 6 concat_2 (string,string) -> string
   local.get 4
   local.get 5
   local.get 0
-  call 17
+  call 16
   local.get 4
   local.get 2
   local.get 1
-  call 17
+  call 16
   local.get 4
   local.get 3
   call 8
@@ -190,14 +187,14 @@ end
 
 fn 7 std_core$new_byte_buffer (usize) -> ref
   local.get 0
-  call 14
+  call 13
   return
 end
 
 fn 8 std_core$finish_buffer (ref,usize) -> string
   local.get 0
   local.get 1
-  call 16
+  call 15
   return
 end
 
@@ -213,7 +210,7 @@ fn 10 std_core$write_string_at (ref,usize,string) -> usize
   local.get 0
   local.get 1
   local.get 2
-  call 17
+  call 16
   local.get 2
   call.import 0
   array.len
@@ -242,7 +239,7 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     local.get 3
-    call 15
+    call 14
     i64.const 1
     local.set 4
     local.get 1
@@ -333,7 +330,7 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
         local.get 0
         local.get 7
         local.get 10
-        call 15
+        call 14
         local.get 2
         i64.const 10
         i64.div
@@ -350,7 +347,7 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     local.get 3
-    call 15
+    call 14
   else
   end $L9
   local.get 1
@@ -359,13 +356,7 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
   return
 end
 
-fn 12 std_io$IOError$Error$message (ref) -> string
-  local.field 0 15 0
-  ref.cast 2
-  return
-end
-
-fn 13 std_io$println__string (string) -> void
+fn 12 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 1
@@ -375,13 +366,13 @@ fn 13 std_io$println__string (string) -> void
   return
 end
 
-fn 14 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 13 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 15 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 14 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -389,14 +380,14 @@ fn 15 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 16 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 15 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 17 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 16 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2

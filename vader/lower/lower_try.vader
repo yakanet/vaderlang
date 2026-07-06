@@ -52,10 +52,10 @@ export lower_try :: fn(
     ident_ref :: LoweredIdent { .span = span, .type = inner_type, .symbol = inner_symbol }
 
     error_variants :: error_variants_of(inner_type, ctx.project)
-    // Trait variants (`string | Error`) need their implementers'
-    // impl-table rows — see `materialize_trait_check_impls` (recurses
-    // into unions, ignores non-trait variants).
-    materialize_trait_check_impls(ctx, inner_type)
+    // Trait-variant membership rows (`string | Error`) are seeded from the
+    // frontend at emit (`build_impl_table_from_vtable`) ; host-produced error
+    // types (IOError) are made vtable-eligible by `mark_produced_structs` at
+    // their producing call. No per-site force-materialisation needed.
     error_predicate :: build_error_predicate(span, ident_ref, error_variants)
 
     then_block :: LoweredBlock {
