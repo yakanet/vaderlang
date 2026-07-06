@@ -1,0 +1,35 @@
+// Two soundness follow-ups exercised end-to-end:
+//   (1) union -> union widening : `A | string` flows into `Error | string`
+//       (A widens to Error via its impl ; string == string). No runtime
+//       coercion — pure subtyping through the trait-impl index.
+//   (2) `if x is Error` else-narrowing : after the divergent guard the
+//       scrutinee is exactly `string` (A, B drop as Error-implementers,
+//       matching `match`'s subtract-with-impls precision).
+module "snippet"
+
+import "std/io" { println }
+
+A :: struct { a: i32 }
+A implements Error { message :: fn(self) -> string = "a:${self.a}" }
+B :: struct { b: i32 }
+B implements Error { message :: fn(self) -> string = "b:${self.b}" }
+
+// (1) source union `A | string` assignable to target union `Error | string`.
+widen :: fn(v: A | string) -> Error | string = v
+
+// (2) else-branch narrows to exactly `string` : passing `x` to `fn(string)`
+// only type-checks when A and B have been subtracted as Error-implementers.
+only_string :: fn(s: string) -> string = s
+tail_string :: fn(x: A | B | string) -> string {
+    if x is Error { return "was-error" }
+    return only_string(x)
+}
+
+main :: fn() -> i32 {
+    match widen("hello") {
+        is Error  as e -> println("err ${e.message()}")
+        is string as s -> println("str ${s}")
+    }
+    println(tail_string("plain"))
+    return 0
+}

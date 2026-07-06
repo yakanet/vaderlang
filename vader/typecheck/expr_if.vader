@@ -319,7 +319,7 @@ detect_is_narrow :: fn(
             .sym_id    = sym.id,
             .static_ty = base,
             .then_ty   = narrowed,
-            .else_ty   = subtract_type(base, narrowed),
+            .else_ty   = subtract_type_with_impls(base, narrowed, typed),
         }
     }
     // Scrutinee FIELD-CHAIN narrowing : `x.y is T` narrows the `x.y` slot,
@@ -338,7 +338,7 @@ detect_is_narrow :: fn(
             .sym_id    = 0,
             .static_ty = base,
             .then_ty   = narrowed,
-            .else_ty   = subtract_type(base, narrowed),
+            .else_ty   = subtract_type_with_impls(base, narrowed, typed),
             .field_key = field_info.field_key,
         }
     }

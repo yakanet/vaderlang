@@ -1,4 +1,5 @@
-# stderr
-vader vm: no entry function (index=0)
+# stdout
+Ppm 2x2 maxval=255 (12 bytes, 8-bit)
+OK
 # exit
-1
+0

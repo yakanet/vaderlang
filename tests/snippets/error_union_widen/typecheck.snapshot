@@ -1,0 +1,44 @@
+# Typecheck
+
+## tests/snippets/error_union_widen
+  StructDecl     A                    :: A
+  StructDecl     B                    :: B
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         only_string          :: fn(string) -> string
+  FnDecl         tail_string          :: fn(A | B | string) -> string
+  FnDecl         widen                :: fn(A | string) -> Error | string
+  expr 13:54    StringLitExpr  :: string
+  expr 13:59    FieldExpr      :: i32
+  expr 13:59    IdentExpr      :: A
+  expr 15:54    StringLitExpr  :: string
+  expr 15:59    FieldExpr      :: i32
+  expr 15:59    IdentExpr      :: B
+  expr 18:48    IdentExpr      :: A | string
+  expr 22:42    IdentExpr      :: string
+  expr 24:13    IdentExpr      :: Error
+  expr 24:28    StringLitExpr  :: string
+  expr 24:5     IfExpr         :: void
+  expr 24:8     BinaryExpr     :: bool
+  expr 24:8     IdentExpr      :: A | B | string
+  expr 25:12    CallExpr       :: string
+  expr 25:12    IdentExpr      :: fn(string) -> string
+  expr 25:24    IdentExpr      :: string
+  expr 29:11    CallExpr       :: Error | string
+  expr 29:11    IdentExpr      :: fn(A | string) -> Error | string
+  expr 29:17    StringLitExpr  :: string
+  expr 29:5     MatchExpr      :: void
+  expr 30:27    CallExpr       :: void
+  expr 30:27    IdentExpr      :: fn(T) -> void
+  expr 30:35    StringLitExpr  :: string
+  expr 30:42    CallExpr       :: string
+  expr 30:42    FieldExpr      :: fn() -> string
+  expr 30:42    IdentExpr      :: Error
+  expr 31:27    CallExpr       :: void
+  expr 31:27    IdentExpr      :: fn(T) -> void
+  expr 31:35    StringLitExpr  :: string
+  expr 31:42    IdentExpr      :: string
+  expr 33:13    CallExpr       :: string
+  expr 33:13    IdentExpr      :: fn(A | B | string) -> string
+  expr 33:25    StringLitExpr  :: string
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(T) -> void

@@ -41,7 +41,7 @@
   expr 26:9     IdentExpr      :: fn(T) -> void
   expr 29:12    CallExpr       :: Ppm | PpmError
   expr 29:12    IdentExpr      :: fn(const u8[]) -> Ppm | PpmError
-  expr 29:19    IdentExpr      :: IOError | u8[]
+  expr 29:19    IdentExpr      :: u8[]
   expr 30:15    IdentExpr      :: PpmError
   expr 30:5     IfExpr         :: void
   expr 30:8     BinaryExpr     :: bool
@@ -101,6 +101,3 @@
   expr 41:44    StringLitExpr  :: string
   expr 41:5     IfExpr         :: void
   expr 41:8     IdentExpr      :: bool
-
-# Diagnostics
-[29:19] error[T3001] type mismatch: expected const u8[], got IOError | u8[]
