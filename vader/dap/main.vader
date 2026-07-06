@@ -23,7 +23,7 @@ import "std/json" { JsonValue, JsonObject, JsonNumber, JsonArray, JsonString, Js
 import "std/collections" { MutableMap, MutableSet }
 import "std/string" { split, last_index_of }
 import "vader/lsp/protocol" { read_frame, write_frame, unbuffer_stdin, get_string, get_number, get_field, TransportError }
-import "vader/vm" { VmState, exec_entry, DebugController, Ok, Trap, PauseCtx }
+import "vader/vm" { VmState, exec_entry, DebugController, Ok, Trap, PauseCtx, PauseFrame, PauseLocal, StepMode }
 
 // ---- compile injection -----------------------------------------------------
 
@@ -142,11 +142,12 @@ run_program :: fn(prog: DapProgram | null, seq_cell: i32[], bps: MutableMap<stri
         category :: if stream == 0 { "stdout" } else { "stderr" }
         emit_output(seq_cell, category, text)
     }
-    // On a breakpoint stop the VM calls this : emit `stopped`, then drive the
-    // (blocking) paused conversation until the client resumes. Captures
-    // `seq_cell` + `bps` by cell so mid-pause `setBreakpoints` reaches the VM.
-    pause :: fn(ctx: PauseCtx) -> void {
-        run_pause_loop(ctx, seq_cell, bps)
+    // On a stop the VM calls this : emit `stopped`, then drive the (blocking)
+    // paused conversation until the client resumes, returning how (`StepMode`).
+    // Captures `seq_cell` + `bps` by cell so mid-pause `setBreakpoints` reaches
+    // the VM.
+    pause :: fn(ctx: PauseCtx) -> StepMode {
+        return run_pause_loop(ctx, seq_cell, bps)
     }
     controller :: DebugController { .output_sink = sink, .breakpoints = bps, .on_pause = pause }
     no_args: string[] = []
@@ -164,17 +165,17 @@ run_program :: fn(prog: DapProgram | null, seq_cell: i32[], bps: MutableMap<stri
 
 // ---- pause loop -------------------------------------------------------------
 
-// Driven from inside the VM (`DebugController.on_pause`) when execution stops at
-// a breakpoint. Emits `stopped`, then blocks handling DAP requests
-// (stackTrace / scopes / variables / threads / setBreakpoints) until the client
-// resumes (`continue` / `next` / `stepIn` / `stepOut` — all resume in Phase 2)
-// or disconnects, then returns so the VM continues.
-run_pause_loop :: fn(ctx: PauseCtx, seq_cell: i32[], bps: MutableMap<string, MutableSet<i32>>) -> void {
+// Driven from inside the VM (`DebugController.on_pause`) when execution stops.
+// Emits `stopped`, then blocks handling DAP requests (stackTrace / scopes /
+// variables / threads / setBreakpoints) until the client resumes, and returns
+// the `StepMode` the resume command maps to (`continue` → Continue, `next` →
+// StepOver, `stepIn` → StepInto, `stepOut` → StepOut ; `disconnect` / EOF →
+// Continue so the program runs to its end).
+run_pause_loop :: fn(ctx: PauseCtx, seq_cell: i32[], bps: MutableMap<string, MutableSet<i32>>) -> StepMode {
     emit_stopped(seq_cell, ctx.reason)
-    paused := true
-    for paused {
+    for {
         frame :: read_frame()
-        if frame is TransportError { return }
+        if frame is TransportError { return StepMode.Continue }
         msg :: parse(frame)
         if !(msg is JsonObject) { continue }
         command :: get_string(msg, "command")
@@ -183,11 +184,11 @@ run_pause_loop :: fn(ctx: PauseCtx, seq_cell: i32[], bps: MutableMap<string, Mut
         if command == "stackTrace" {
             respond(seq_cell, request_seq, command, true, stacktrace_body(ctx))
         } else if command == "scopes" {
-            respond(seq_cell, request_seq, command, true, scopes_body())
+            frame_id :: get_number(get_field(msg, "arguments"), "frameId")
+            respond(seq_cell, request_seq, command, true, scopes_body(frame_id))
         } else if command == "variables" {
-            // Phase 2 exposes no locals yet (Phase 3) — an empty set keeps
-            // VSCode from hanging on the request.
-            respond(seq_cell, request_seq, command, true, variables_body())
+            reference :: get_number(get_field(msg, "arguments"), "variablesReference")
+            respond(seq_cell, request_seq, command, true, variables_body(ctx, reference))
         } else if command == "threads" {
             respond(seq_cell, request_seq, command, true, single_thread())
         } else if command == "setBreakpoints" {
@@ -196,15 +197,19 @@ run_pause_loop :: fn(ctx: PauseCtx, seq_cell: i32[], bps: MutableMap<string, Mut
             respond(seq_cell, request_seq, command, true, breakpoints_body(args))
         } else if command == "continue" {
             respond(seq_cell, request_seq, command, true, empty_body())
-            paused = false
-        } else if command == "next" || command == "stepIn" || command == "stepOut" {
-            // Stepping arrives in Phase 4 ; for now resume like `continue` so the
-            // buttons don't wedge the session.
+            return StepMode.Continue
+        } else if command == "next" {
             respond(seq_cell, request_seq, command, true, empty_body())
-            paused = false
+            return StepMode.StepOver
+        } else if command == "stepIn" {
+            respond(seq_cell, request_seq, command, true, empty_body())
+            return StepMode.StepInto
+        } else if command == "stepOut" {
+            respond(seq_cell, request_seq, command, true, empty_body())
+            return StepMode.StepOut
         } else if command == "disconnect" {
             respond(seq_cell, request_seq, command, true, empty_body())
-            paused = false
+            return StepMode.Continue
         } else {
             respond(seq_cell, request_seq, command, true, empty_body())
         }
@@ -314,12 +319,13 @@ stacktrace_body :: fn(ctx: PauseCtx) -> JsonValue {
     return JsonObject { .entries = body }
 }
 
-// The `scopes` body : a single "Locals" scope. Its `variablesReference` is a
-// non-zero handle VSCode calls `variables` with — Phase 2 answers empty.
-scopes_body :: fn() -> JsonValue {
+// The `scopes` body for a frame : a single "Locals" scope whose
+// `variablesReference` encodes the frame index as `frame_id + 1` (0 means "no
+// children", so refs are 1-based). `variables` decodes it back.
+scopes_body :: fn(frame_id: i32) -> JsonValue {
     scope :: MutableMap<string, JsonValue> {}
     scope["name"]               = JsonString { .value = "Locals" }
-    scope["variablesReference"] = JsonNumber { .value = f64(1) }
+    scope["variablesReference"] = JsonNumber { .value = f64(frame_id + 1) }
     scope["expensive"]          = JsonBool { .value = false }
     scopes: JsonValue[] = [JsonObject { .entries = scope }]
     body :: MutableMap<string, JsonValue> {}
@@ -327,11 +333,24 @@ scopes_body :: fn() -> JsonValue {
     return JsonObject { .entries = body }
 }
 
-// The `variables` body : empty for Phase 2 (locals come in Phase 3).
-variables_body :: fn() -> JsonValue {
-    none: JsonValue[] = []
+// The `variables` body : the params + locals of the frame the `reference`
+// encodes (`frame index + 1`). Each is a leaf (`variablesReference: 0`) whose
+// value is the VM-rendered display string ; structured expansion is a later
+// nicety.
+variables_body :: fn(ctx: PauseCtx, reference: i32) -> JsonValue {
+    vars: JsonValue[] = []
+    frame_index :: reference - 1
+    if frame_index >= 0 && frame_index < i32(ctx.frames.len()) {
+        for local in ctx.frames[usize(frame_index)].locals {
+            v :: MutableMap<string, JsonValue> {}
+            v["name"]               = JsonString { .value = local.name }
+            v["value"]              = JsonString { .value = local.value }
+            v["variablesReference"] = JsonNumber { .value = f64(0) }
+            vars.push(JsonObject { .entries = v })
+        }
+    }
     body :: MutableMap<string, JsonValue> {}
-    body["variables"] = JsonArray { .items = none }
+    body["variables"] = JsonArray { .items = vars }
     return JsonObject { .entries = body }
 }
 

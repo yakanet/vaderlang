@@ -366,9 +366,14 @@ cmd_lsp :: fn(args: string[]) -> i32 = run_server(args)
 // pipeline (lower → cfg → bytecode → prepare) lives here.
 cmd_dap :: fn(args: string[]) -> i32 = run_dap_server(compile_for_dap)
 
-// Compile a launch-target `.vader` to a `DapProgram`. `want_debug = true` : the
-// DAP path is the debug path (Phase 2 breakpoints read the per-op `debug`
-// table), and a one-off debuggee's per-op DebugPos cost is negligible.
+// Compile a launch-target `.vader` to a `DapProgram`.
+//   want_debug = true  : the DAP path is the debug path — the per-op `debug`
+//                        table backs breakpoints, stepping, and the stack view.
+//   optimize   = false : the "-O0 of the debugger" (plan §3 Decision B). Skips
+//                        slot coalescing + the single-expr inliner, so slots map
+//                        1:1 to source locals (accurate Variables view) and
+//                        lines stay monotone (clean stepping). A one-off
+//                        debuggee doesn't need the optimiser.
 compile_for_dap :: fn(program: string) -> DapProgram {
     le :: lower_to_entry(program)
     if any_error_diag(le.pre_diags) {
@@ -376,7 +381,7 @@ compile_for_dap :: fn(program: string) -> DapProgram {
         return DapProgram { .state = null, .entry_index = -1, .error = rendered }
     }
     pruned :: prune_unreachable_fns(le.lowered, false)
-    module :: cfg_to_bytecode(pruned, module_name_from_file(program), EmitOptions { .optimize = true, .keep_mangles = [], .want_debug = true })
+    module :: cfg_to_bytecode(pruned, module_name_from_file(program), EmitOptions { .optimize = false, .keep_mangles = [], .want_debug = true })
     state :: prepare(module)
     entry :: entry_index_for_file(module, le.lowered, program, state.main_index)
     return DapProgram { .state = state, .entry_index = entry, .error = "" }
