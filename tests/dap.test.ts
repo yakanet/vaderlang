@@ -222,8 +222,11 @@ test("dap: step over advances the line, and Variables shows source locals with v
     // Stop #2 (step, past line 13) — `arr` is now materialised.
     { seq: 9, type: "request", command: "stackTrace", arguments: { threadId: 1 } },
     { seq: 10, type: "request", command: "variables", arguments: { variablesReference: 1 } },
-    { seq: 11, type: "request", command: "continue", arguments: { threadId: 1 } },
-    { seq: 12, type: "request", command: "disconnect" },
+    // Hover / Watch : a known local resolves, an unknown one fails cleanly.
+    { seq: 11, type: "request", command: "evaluate", arguments: { expression: "arr", frameId: 0, context: "hover" } },
+    { seq: 12, type: "request", command: "evaluate", arguments: { expression: "no_such_var", frameId: 0, context: "hover" } },
+    { seq: 13, type: "request", command: "continue", arguments: { threadId: 1 } },
+    { seq: 14, type: "request", command: "disconnect" },
   ];
   const frames = await sendDap(program, requests);
 
@@ -248,6 +251,13 @@ test("dap: step over advances the line, and Variables shows source locals with v
   expect(allNames.some((n: string) => n.startsWith("$") || n.startsWith("__"))).toBe(false);
   const arrAfterStep = (varsResponses[1]?.body?.variables ?? []).find((v: any) => v.name === "arr");
   expect(arrAfterStep?.value).toContain("10");
+
+  // evaluate (hover/watch): a known local resolves to its value, an unknown
+  // identifier fails cleanly (so the editor shows nothing).
+  const evals = frames.filter((f) => f.type === "response" && f.command === "evaluate");
+  const arrEval = evals.find((e) => e.success === true);
+  expect(arrEval?.body?.result).toContain("10");
+  expect(evals.some((e) => e.success === false)).toBe(true);
 }, { timeout: MEDIUM_BUILD });
 
 test("dap: threads request returns the single VM thread", async () => {
