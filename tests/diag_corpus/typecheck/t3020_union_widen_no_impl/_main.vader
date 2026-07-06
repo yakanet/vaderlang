@@ -1,0 +1,11 @@
+// A source-union variant that does NOT implement the target trait must still
+// be rejected : `NonErr | string` does not flow into `Error | string` because
+// `NonErr` implements no `Error`. Guards the union->union widening against
+// over-acceptance. T3020.
+module "snippet"
+
+NonErr :: struct { x: i32 }
+mk :: fn() -> NonErr | string = NonErr { .x = 1 }
+bad :: fn() -> Error | string { return mk() }
+
+main :: fn() -> i32 { return 0 }

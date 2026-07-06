@@ -65,6 +65,18 @@ import "vader/types" { ArrayType, TypeParamType }
 /// — `i32 implements Doubler(i32)` is a valid impl whose receiver name
 /// is "i32" in `struct_implemented_traits`. Free* gets defaulted first.
 export try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool {
+    // Union SOURCE : `A | B` widens into `expected` iff *every* variant does —
+    // each via plain assignability or its own trait widen. This is subtyping
+    // (no runtime coercion), mirroring `is_assignable_union` but through the
+    // impl-index widening path that `is_assignable`'s null oracle can't reach.
+    // Lets `MyErr | string` flow into `Error | string` (MyErr <: Error via its
+    // `implements Error`, string == string) instead of failing per-variant.
+    if got is UnionType {
+        for v in got.variants {
+            if !(is_assignable(v, expected, null) || try_trait_widen(v, expected, typed)) { return false }
+        }
+        return true
+    }
     if expected is UnionType {
         for v in expected.variants {
             if try_trait_widen(got, v, typed) { return true }

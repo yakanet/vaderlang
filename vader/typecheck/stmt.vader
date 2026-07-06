@@ -893,7 +893,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
         return BlockNarrow {
             .sym_id    = sym.id,
             .static_ty = base,
-            .else_ty   = subtract_type(current, narrowed),
+            .else_ty   = subtract_type_with_impls(current, narrowed, typed),
         }
     }
     // Field-chain scrutinee : `x.y is T` complement-narrows the `x.y` slot,
@@ -908,7 +908,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
         return BlockNarrow {
             .sym_id    = 0,
             .static_ty = field_info.static_ty,
-            .else_ty   = subtract_type(current, narrowed),
+            .else_ty   = subtract_type_with_impls(current, narrowed, typed),
             .field_key = field_info.field_key,
         }
     }

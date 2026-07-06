@@ -92,7 +92,8 @@
         callee:
           decode :fn(const u8[]) -> Ppm | PpmError
         arg0:
-          raw :IOError | u8[]
+          cast → u8[]
+            raw :IOError | u8[]
     if :void
       cond:
         is PpmError :bool
@@ -258,6 +259,3 @@
           buf :Buffer
         arg1:
           c1 :usize
-
-# Diagnostics
-[29:19] error[T3001] type mismatch: expected const u8[], got IOError | u8[]

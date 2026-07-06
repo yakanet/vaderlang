@@ -1,6 +1,6 @@
 # Comptime
 
-## tests/snippets/ppm_roundtrip
+## tests/snippets/error_union_widen
 
 ## generic instances
   Into<Target>
