@@ -138,8 +138,6 @@ fn 1 snippet$main () -> i32
   local.get 0
   local.get 2
   call 0
-  local.set 5
-  local.get 5
   i32.const 0
   i32.lt
   local.set 7
@@ -156,8 +154,6 @@ fn 1 snippet$main () -> i32
   local.get 2
   local.get 0
   call 0
-  local.set 5
-  local.get 5
   i32.const 0
   i32.gt
   local.set 7
@@ -174,8 +170,6 @@ fn 1 snippet$main () -> i32
   local.get 0
   local.get 1
   call 0
-  local.set 5
-  local.get 5
   i32.const 0
   i32.ge
   local.set 7
@@ -192,8 +186,6 @@ fn 1 snippet$main () -> i32
   local.get 2
   local.get 2
   call 0
-  local.set 5
-  local.get 5
   i32.const 0
   i32.le
   local.set 7

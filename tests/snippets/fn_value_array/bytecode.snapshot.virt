@@ -31,8 +31,7 @@ fn 2 snippet$main () -> i32
   local.get 0
   local.get 1
   array.new 3 2
-  local.set 0
-  local.get 0
+  local.tee 0
   i32.const 0
   array.get 3
   local.set 1

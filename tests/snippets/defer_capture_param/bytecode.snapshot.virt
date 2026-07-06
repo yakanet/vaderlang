@@ -121,8 +121,7 @@ fn 3 snippet$main () -> i32
   call 0
   i64.const 0
   struct.new 4
-  local.set 0
-  local.get 0
+  local.tee 0
   i64.const 3
   call 1
   local.get 0
@@ -162,8 +161,7 @@ fn 4 __defer_1 (ref) -> void
   local $cell_get_17 i64
   local.field 0 6 0
   struct.get 14 0
-  local.set 1
-  local.get 1
+  local.tee 1
   call 10
   local.set 2
   i64.const 36
@@ -255,8 +253,7 @@ fn 7 concat_2 (string,string) -> string
   i64.add
   local.tee 3
   call 8
-  local.set 4
-  local.get 4
+  local.tee 4
   i64.const 0
   local.get 0
   call 17

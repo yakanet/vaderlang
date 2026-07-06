@@ -124,6 +124,7 @@ import "vader/bytecode" {
     run_bc_peephole,
     run_bc_return_lit_fold,
     run_bc_const_fold_arith,
+    BcPeepholeOut,
     propagate_const_single_use,
     drop_dead_stores,
     coalesce_slots,
@@ -278,6 +279,15 @@ build_cfg_signature :: fn(params: CFGParam[], return_type: Type, ctx: EmitterCtx
 // Project-level entry point
 // ============================================================================
 
+/// Thread a peephole pass's `BcPeepholeOut` back onto `f`, replacing only the
+/// rewritten `body` / `debug` / `jump_table` — a pass can't mutate `f` in place
+/// (Vader structs are by-value). Collapses the identical field-by-field rebuild
+/// each `BcPeepholeOut`-returning pass in Pass 3 would otherwise repeat inline.
+with_peephole_out :: fn(f: BcFunction, out: BcPeepholeOut) -> BcFunction = BcFunction {
+    .name = f.name, .is_main = f.is_main, .signature = f.signature, .locals = f.locals,
+    .body = out.body, .debug = out.debug, .jump_table = out.jump_table,
+}
+
 /// Top-level entry — translate a `CFGProject` into a `BytecodeModule`.
 /// Wires every CFGFunction body through the structurer + per-instr
 /// emit. Does NOT run DCE/peephole — those are invoked by the caller
@@ -340,61 +350,59 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             }
         }
     }
-    // Pass 3 — bytecode peephole + DCE. Mirrors the post-emit pass
-    // `vader/bytecode/emit.vader::emit_project` runs on the legacy
-    // Lowered→bytecode path. Gated by `opts.optimize`.
+    // Pass 3 — bytecode peephole + DCE, gated by `opts.optimize`.
     if opts.optimize {
         for i in 0..<ctx.functions.len() {
-            // First-pass peephole : LocalSet+LocalGet → LocalTee, const+Return
-            // → ReturnLit, BoolNot folds. Returns the rewritten body — Vader
-            // structs pass by value so `function.body = X` inside the helper
-            // doesn't propagate back.
-            // Peephole passes work in-place on `function.body` but Vader
-            // structs are by-value, so the in-helper `function.body = X`
-            // assignments don't propagate ; each helper now returns the
-            // rewritten body / fn and the caller threads it back into
-            // `ctx.functions[i]`.
+            // The `BcPeepholeOut`-returning passes can't mutate the function in
+            // place (Vader structs are by-value), so each returns its rewrite
+            // and `with_peephole_out` threads it back onto `ctx.functions[i]`.
             //
-            // Order : run_bc_peephole (Rule 1) → propagate_const_single_use
-            // → drop_dead_stores.
-            // Running propagate AFTER Rule 1 leaves slots Rule 1 didn't
-            // fold (non-adjacent set+get because the CFG interleaves
-            // sibling operand-sets) for propagate to inline. Reversing
-            // the order causes Rule 1 to fold the now-adjacent set+get
-            // post-propagate and over-folds.
-            phr :: run_bc_peephole(ctx.functions[i])
-            f :: ctx.functions[i]
-            ctx.functions[i] = BcFunction { .name = f.name, .is_main = f.is_main, .signature = f.signature, .locals = f.locals, .body = phr.body, .debug = phr.debug, .jump_table = phr.jump_table }
-            // Iterate propagate to fixpoint : inlining slot N's const may
-            // expose slot M (whose set was preceded by `LocalGet N`, now
-            // an inlined const) as the next propagateable slot.
-            // Peephole + propagate together converge on a single sweep
-            // when adjacency already holds, but Vader's emit pattern
-            // produces chained moves (`%2 = move %1 = move %0 = const`)
-            // that need at least two iterations to unwind.
-            ctx.functions[i] = propagate_const_single_use(ctx.functions[i])
-            ctx.functions[i] = propagate_const_single_use(ctx.functions[i])
-            ctx.functions[i] = propagate_const_single_use(ctx.functions[i])
-            // Const-fold-arith runs AFTER propagate so chains like
+            // Order : propagate_const_single_use → run_bc_peephole (Rule 1)
+            // → run_bc_const_fold_arith → drop_dead_stores → coalesce_slots.
+            //
+            // Propagate runs FIRST to inline single-use consts, removing the
+            // `const ; set` the CFG interleaves between a value's producer and
+            // its first read. That un-interleaving is what lets Rule 1's
+            // `LocalSet N ; LocalGet N → LocalTee N` fold fire on pairs it would
+            // otherwise miss — notably the buffer / interpolation
+            // `set buf ; get buf`, where the first write's constant offset sat
+            // between the two. Running propagate before Rule 1 (rather than
+            // after) is safe *because* propagate is fixpointed here : every
+            // propagate-eligible `const ; set N ; get N` is inlined before Rule
+            // 1 runs, so no single-use slot survives for Rule 1 to over-fold.
+            //
+            // Iterate propagate to fixpoint : inlining slot N's const may expose
+            // slot M (whose set was preceded by `LocalGet N`, now an inlined
+            // const) as the next propagateable slot. Vader's emit pattern
+            // produces chained moves (`%2 = move %1 = move %0 = const`) that
+            // unwind one level per pass. Each firing only ever deletes ops
+            // (`const` + `set` gone, `get` → `const`), so the body length
+            // strictly decreases until nothing more inlines — loop on that
+            // instead of a fixed unroll count.
+            prev_len: usize = ctx.functions[i].body.len() + 1
+            for ctx.functions[i].body.len() < prev_len {
+                prev_len = ctx.functions[i].body.len()
+                ctx.functions[i] = propagate_const_single_use(ctx.functions[i])
+            }
+            // Peephole AFTER propagate : LocalSet+LocalGet → LocalTee, const+
+            // Return → ReturnLit, BoolNot folds. Before drop_dead_stores so a
+            // value-`match`'s per-arm `if_res` set+get pairs still fold to tees
+            // that drop_dead_stores can then reclaim (avoids the O(N²) cascade).
+            ctx.functions[i] = with_peephole_out(ctx.functions[i], run_bc_peephole(ctx.functions[i]))
+            // Const-fold-arith runs after propagate so chains like
             // `const ; set N ; get N ; const ; mul` (post-propagate :
             // `const ; const ; mul`) collapse.
-            cfa :: run_bc_const_fold_arith(ctx.functions[i])
-            cf :: ctx.functions[i]
-            ctx.functions[i] = BcFunction { .name = cf.name, .is_main = cf.is_main, .signature = cf.signature, .locals = cf.locals, .body = cfa.body, .debug = cfa.debug, .jump_table = cfa.jump_table }
+            ctx.functions[i] = with_peephole_out(ctx.functions[i], run_bc_const_fold_arith(ctx.functions[i]))
             ctx.functions[i] = drop_dead_stores(ctx.functions[i])
-            // Second-pass : ONLY the Rule 5 (`<Const> ; Return` → ReturnLit)
-            // fold. drop_dead_stores opens new const-before-return windows
-            // by removing dead tees / sets ; re-running the full
-            // `run_bc_peephole` here would also re-fold set+get pairs that
-            // slot-renumbering made adjacent, over-folding.
-            rlf :: run_bc_return_lit_fold(ctx.functions[i])
-            g :: ctx.functions[i]
-            ctx.functions[i] = BcFunction { .name = g.name, .is_main = g.is_main, .signature = g.signature, .locals = g.locals, .body = rlf.body, .debug = rlf.debug, .jump_table = rlf.jump_table }
-            // Final pass — same-ValType non-overlapping live ranges
-            // coalesce onto shared physical slots. Runs LAST so the
-            // peephole / propagate / DCE passes see the original slot
-            // identities ; their gates depend on per-slot set/get
-            // counts which coalescing would corrupt.
+            // Second pass : ONLY Rule 5 (`<Const> ; Return` → ReturnLit).
+            // drop_dead_stores opens new const-before-return windows by removing
+            // dead tees / sets ; re-running the full peephole here would re-fold
+            // set+get pairs that slot-renumbering made adjacent, over-folding.
+            ctx.functions[i] = with_peephole_out(ctx.functions[i], run_bc_return_lit_fold(ctx.functions[i]))
+            // Final pass — same-ValType non-overlapping live ranges coalesce
+            // onto shared physical slots. Runs LAST so the peephole / propagate
+            // / DCE passes see the original slot identities ; their gates depend
+            // on per-slot set/get counts which coalescing would corrupt.
             ctx.functions[i] = coalesce_slots(ctx.functions[i])
         }
         // Pass 4 — whole-program prunes on the EmitterCtx.

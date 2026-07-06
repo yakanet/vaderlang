@@ -18,16 +18,13 @@ impl 4 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  local greeting string
+  local full string
   string.const 1
   string.const 0
   call 1
-  local.set 0
-  local.get 0
   string.const 2
   call 1
-  local.set 0
-  local.get 0
+  local.tee 0
   string.const 3
   string.eq
   if $L0 void
@@ -53,8 +50,7 @@ fn 1 concat_2 (string,string) -> string
   i64.add
   local.tee 3
   call 2
-  local.set 4
-  local.get 4
+  local.tee 4
   i64.const 0
   local.get 0
   call 8

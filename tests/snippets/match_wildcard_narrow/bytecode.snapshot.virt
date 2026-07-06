@@ -57,8 +57,6 @@ fn 1 snippet$greet_binding (ref) -> string
     local.set 2
   else
     local.get 1
-    local.set 1
-    local.get 1
     struct.get 2 0
     ref.cast 4
     local.set 3
@@ -112,8 +110,7 @@ fn 3 concat_2 (string,string) -> string
   i64.add
   local.tee 3
   call 4
-  local.set 4
-  local.get 4
+  local.tee 4
   i64.const 0
   local.get 0
   call 10

@@ -22,7 +22,6 @@ impl 7 ByteAccess
 export main 2
 
 fn 0 snippet$scale (u64) -> ref
-  local $mul_8 u64
   local.get 0
   i64.const 0
   i64.eq
@@ -34,8 +33,6 @@ fn 0 snippet$scale (u64) -> ref
   local.get 0
   i64.const 10
   i64.mul
-  local.set 1
-  local.get 1
   i64.const 2
   i64.add
   box 1

@@ -7,35 +7,29 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local a i32
-  local $lt_4 bool
   local if_res i32
   local if_res i32
   i32.const 1
-  local.set 0
-  local.get 0
+  local.tee 0
   i32.const 2
   i32.lt
-  local.set 1
-  local.get 1
   bool.const true
   bool.eq
   if $L0 void
     i32.const 1
-    local.set 2
+    local.set 1
   else
     i32.const 0
-    local.set 2
+    local.set 1
   end $L0
-  local.get 2
-  local.set 2
+  local.get 1
+  local.set 1
   i32.const 1
   i32.const 2
   i32.const 3
   array.new 3 3
   local.get 0
   call 1
-  local.set 1
-  local.get 1
   bool.const true
   bool.eq
   if $L1 void
@@ -50,17 +44,17 @@ fn 0 snippet$main () -> i32
   bool.const true
   if $L2 void
     i32.const 4
-    local.set 3
+    local.set 2
   else
     i32.const 0
-    local.set 3
+    local.set 2
   end $L2
-  local.get 3
-  local.set 3
   local.get 2
+  local.set 2
+  local.get 1
   local.get 0
   i32.add
-  local.get 3
+  local.get 2
   i32.add
   return
 end

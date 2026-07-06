@@ -239,12 +239,10 @@ static int32_t __lambda_3(vader_box_t l0, int32_t l1) {
 }
 
 static bool __lambda_11(vader_box_t l0, int32_t l1) {
-    int32_t l2;
     int32_t t0;
 #line 24 "tests/snippets/fuse_generator_generic/_main.vader"
     t0 = vader_mod_i32(l1, INT32_C(2));
-    l2 = t0;
-    return l2 == INT32_C(1);
+    return t0 == INT32_C(1);
 }
 
 static vader_box_t std_core_new_byte_buffer(size_t l0) {

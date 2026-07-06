@@ -22,15 +22,12 @@ impl 6 ByteAccess
 export main 2
 
 fn 0 snippet$direct (ref) -> i32
-  local $field_4 i32
   local.get 0
   type_check 2
   if $L0 void
     local.get 0
     struct.get 2 0
     ref.cast 4
-    local.set 1
-    local.get 1
     i32.const 1
     i32.add
     return
@@ -41,8 +38,6 @@ fn 0 snippet$direct (ref) -> i32
     local.get 0
     struct.get 3 0
     ref.cast 4
-    local.set 1
-    local.get 1
     i32.const 100
     i32.add
     return
@@ -53,15 +48,12 @@ fn 0 snippet$direct (ref) -> i32
 end
 
 fn 1 snippet$post_narrow (ref) -> i32
-  local $field_4 i32
   local.get 0
   type_check 2
   if $L0 void
     local.get 0
     struct.get 2 0
     ref.cast 4
-    local.set 1
-    local.get 1
     i32.const 7
     i32.add
     return

@@ -27,12 +27,10 @@ impl 13 ByteAccess
 export main 2
 
 fn 0 snippet$Countdown$Iterator$next (ref) -> ref
-  local $field_1 i32
-  local $field_7 i32
+  local v i32
+  local $sub_9 i32
   local.field 0 1 0
   ref.cast 7
-  local.set 1
-  local.get 1
   i32.const 0
   i32.le
   if $L0 void
@@ -45,8 +43,6 @@ fn 0 snippet$Countdown$Iterator$next (ref) -> ref
   local.set 1
   local.field 0 1 0
   ref.cast 7
-  local.set 2
-  local.get 2
   i32.const 1
   i32.sub
   local.set 2
@@ -242,8 +238,6 @@ fn 3 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.get 2
     local.get 3
     call 7
-    local.set 2
-    local.get 2
     i32.const 0
     i32.gt
     local.set 1
@@ -257,8 +251,6 @@ fn 3 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.get 2
     local.get 3
     call 7
-    local.set 2
-    local.get 2
     i32.const 0
     i32.ge
     local.set 1
@@ -274,8 +266,6 @@ fn 3 std_core$Range$Iterator$next__i32 (ref) -> ref
   local.set 2
   local.field 0 8 3
   ref.cast 7
-  local.set 3
-  local.get 3
   i32.const 1
   i32.add
   local.set 3

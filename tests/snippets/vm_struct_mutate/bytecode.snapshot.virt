@@ -8,8 +8,7 @@ fn 0 snippet$main () -> i32
   local c ref
   i32.const 0
   struct.new_stack 2
-  local.set 0
-  local.get 0
+  local.tee 0
   i32.const 100
   struct.set_stack 2 0
   local.field 0 2 0

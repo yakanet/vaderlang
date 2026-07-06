@@ -247,8 +247,6 @@ fn 0 snippet$main () -> i32
   local.set 2
   string.const 12
   call.import 0
-  local.set 1
-  local.get 1
   i32.const 0
   array.get 6
   ref.cast 7
@@ -392,8 +390,6 @@ fn 0 snippet$main () -> i32
   call 5
   string.const 24
   call.import 0
-  local.set 1
-  local.get 1
   i64.const 1
   i64.const 4
   array.slice 6

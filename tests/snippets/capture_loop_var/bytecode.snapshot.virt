@@ -48,12 +48,9 @@ fn 0 snippet$tenfold (i32) -> i32
 end
 
 fn 1 snippet$is_even (i32) -> bool
-  local $mod_2 i32
   local.get 0
   i32.const 2
   i32.rem
-  local.set 1
-  local.get 1
   i32.const 0
   i32.eq
   return
@@ -431,8 +428,7 @@ fn 9 concat_2 (string,string) -> string
   i64.add
   local.tee 3
   call 10
-  local.set 4
-  local.get 4
+  local.tee 4
   i64.const 0
   local.get 0
   call 19

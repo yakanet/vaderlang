@@ -22,8 +22,7 @@ fn 0 snippet$i64$Describe$describe (i64) -> string
   local $call_5 usize
   local __buf_1 ref
   string.const 1
-  local.set 1
-  local.get 1
+  local.tee 1
   call 4
   local.set 2
   i64.const 20

@@ -19,7 +19,6 @@ export main 0
 fn 0 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 usize
-  local $data_const_5 ref
   local $cast_8 u64
   local $cast_17 i64
   i64.const 20
@@ -28,15 +27,13 @@ fn 0 snippet$main () -> i32
   i64.const 0
   local.set 1
   data.const 0 9
-  local.set 2
-  local.get 2
   i32.const 3
   load_slot_i32
   u32.to_i64
-  local.set 3
+  local.set 2
   local.get 0
   local.get 1
-  local.get 3
+  local.get 2
   call 4
   local.set 1
   local.get 0
@@ -50,10 +47,10 @@ fn 0 snippet$main () -> i32
   local.set 1
   i32.const 42
   i32.to_i64
-  local.set 4
+  local.set 3
   local.get 0
   local.get 1
-  local.get 4
+  local.get 3
   call 3
   local.set 1
   local.get 0
@@ -67,10 +64,10 @@ fn 0 snippet$main () -> i32
   local.set 1
   i32.const 7
   i32.to_i64
-  local.set 4
+  local.set 3
   local.get 0
   local.get 1
-  local.get 4
+  local.get 3
   call 3
   local.set 1
   local.get 0

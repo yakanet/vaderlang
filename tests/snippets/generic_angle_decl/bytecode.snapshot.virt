@@ -27,12 +27,9 @@ impl 8 ByteAccess
 export main 2
 
 fn 0 snippet$demo_comparison_in_args () -> bool
-  local $lt_3 bool
   i32.const 10
   i32.const 20
   i32.lt
-  local.set 0
-  local.get 0
   string.const 0
   call 1
   return

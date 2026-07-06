@@ -7,8 +7,7 @@ export main 0
 fn 0 snippet$main () -> i32
   local arr ref
   array.new 2 0
-  local.set 0
-  local.get 0
+  local.tee 0
   i32.const 7
   array.push 1
   local.get 0

@@ -160,11 +160,8 @@ fn 0 snippet$run (ref,bool,bool) -> i32
 end
 
 fn 1 snippet$main () -> i32
-  local $struct_1 ref
   i32.const 5
   struct.new 2
-  local.set 0
-  local.get 0
   bool.const true
   bool.const true
   call 0

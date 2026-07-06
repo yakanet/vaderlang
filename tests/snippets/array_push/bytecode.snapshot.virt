@@ -22,8 +22,7 @@ fn 0 snippet$main () -> i32
   local $cast_11 u64
   local $cast_21 i64
   array.new 9 0
-  local.set 0
-  local.get 0
+  local.tee 0
   i32.const 1
   array.push 1
   local.get 0

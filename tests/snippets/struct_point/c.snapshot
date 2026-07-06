@@ -58,8 +58,7 @@ static int32_t snippet_main(void) {
     l0 = t0;
 #line 15 "tests/snippets/struct_point/_main.vader"
     t1 = (int32_t) ((vader_struct_snippet_Point_t*) l0.payload.obj)->f_x;
-    l1 = t1;
-    t2 = (l1 + INT32_C(10));
+    t2 = (t1 + INT32_C(10));
     l1 = t2;
     ((vader_struct_snippet_Point_t*) l0.payload.obj)->f_x = l1;
 #line 16 "tests/snippets/struct_point/_main.vader"

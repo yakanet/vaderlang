@@ -18,11 +18,8 @@ impl 4 ByteAccess
 export main 1
 
 fn 0 snippet$run (ref) -> i32
-  local $field_1 i32
   local.field 0 1 0
   ref.cast 2
-  local.set 1
-  local.get 1
   i32.const 1
   i32.add
   return

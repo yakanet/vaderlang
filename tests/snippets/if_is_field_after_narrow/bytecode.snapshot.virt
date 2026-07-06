@@ -46,14 +46,11 @@ fn 0 snippet$type_id_of (ref) -> i32
 end
 
 fn 1 snippet$first_item (ref) -> i32
-  local $field_3 ref
   local.get 0
   type_check 2
   if $L0 void
     local.get 0
     struct.get 2 1
-    local.set 1
-    local.get 1
     i32.const 0
     load_slot_i32
     return

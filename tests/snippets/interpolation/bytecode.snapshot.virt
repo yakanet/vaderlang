@@ -24,8 +24,7 @@ fn 0 snippet$main () -> i32
   local __buf_1 ref
   local $cast_17 i64
   string.const 0
-  local.set 0
-  local.get 0
+  local.tee 0
   call 3
   local.set 1
   i64.const 50

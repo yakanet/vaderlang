@@ -24,7 +24,7 @@ impl 4 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  local $struct_2 ref
+  local __scrut_0 ref
   local id i32
   local active bool
   local __p_1 string
@@ -33,8 +33,6 @@ fn 0 snippet$main () -> i32
   i32.const 42
   string.const 0
   struct.new_stack 10
-  local.set 0
-  local.get 0
   bool.const true
   struct.new_stack 11
   local.set 0

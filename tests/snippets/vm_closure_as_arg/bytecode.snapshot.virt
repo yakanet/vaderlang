@@ -15,13 +15,10 @@ fn 0 snippet$apply (ref,i32) -> i32
 end
 
 fn 1 snippet$main () -> i32
-  local add_bias ref
   i32.const 5
   struct.new 5
   struct.new 3
   make_closure 2 1
-  local.set 0
-  local.get 0
   i32.const 7
   call 0
   return

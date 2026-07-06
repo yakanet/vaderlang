@@ -19,9 +19,9 @@ export main 0
 fn 0 snippet$main (ref) -> i32
   local __buf_0 ref
   local __off_1 usize
-  local $len_8 usize
   local $cast_11 u64
   local first bool
+  local __for_i_4 usize
   local s string
   i64.const 25
   call 1
@@ -35,15 +35,13 @@ fn 0 snippet$main (ref) -> i32
   local.set 2
   local.get 0
   array.len
-  local.set 3
-  local.get 3
   i64.const 1
   i64.sub
   usize.to_i64
-  local.set 4
+  local.set 3
   local.get 1
   local.get 2
-  local.get 4
+  local.get 3
   call 4
   local.set 2
   local.get 1
@@ -51,36 +49,36 @@ fn 0 snippet$main (ref) -> i32
   call 2
   call 5
   bool.const true
-  local.set 5
+  local.set 4
   local.get 0
   local.tee 1
   array.len
   local.set 2
   i64.const 0
-  local.set 3
+  local.set 5
   block $L0 void
     loop $L1 void
-      local.get 3
+      local.get 5
       local.get 2
       u64.lt
       if $L2 void
         local.get 1
-        local.get 3
+        local.get 5
         array.get 1
         ref.cast 2
         local.set 6
-        local.get 5
+        local.get 4
         if $L3 void
           bool.const false
-          local.set 5
+          local.set 4
         else
           local.get 6
           call 5
         end $L3
-        local.get 3
+        local.get 5
         i64.const 1
         i64.add
-        local.set 3
+        local.set 5
         br $L1
       else
       end $L2

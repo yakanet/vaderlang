@@ -39,13 +39,11 @@ end
 
 fn 1 __lambda_1 (ref) -> void
   local $field_1 any
-  local $cell_get_3 i32
+  local $add_5 i32
   local.field 0 2 0
   local.set 1
   local.field 0 2 0
   struct.get 6 0
-  local.set 2
-  local.get 2
   i32.const 1
   i32.add
   local.set 2

@@ -231,12 +231,10 @@ static int32_t snippet_tenfold(int32_t l0) {
 }
 
 static bool snippet_is_even(int32_t l0) {
-    int32_t l1;
     int32_t t0;
 #line 16 "tests/snippets/capture_loop_var/_main.vader"
     t0 = vader_mod_i32(l0, INT32_C(2));
-    l1 = t0;
-    return l1 == INT32_C(0);
+    return t0 == INT32_C(0);
 }
 
 static int32_t snippet_main(void) {

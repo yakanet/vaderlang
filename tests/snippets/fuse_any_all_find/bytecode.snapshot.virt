@@ -444,12 +444,9 @@ fn 4 __lambda_17 (ref,i32) -> bool
 end
 
 fn 5 __lambda_25 (ref,i32) -> bool
-  local $mod_3 i32
   local.get 1
   i32.const 2
   i32.rem
-  local.set 2
-  local.get 2
   i32.const 0
   i32.eq
   return

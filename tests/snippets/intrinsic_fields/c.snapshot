@@ -200,7 +200,7 @@ static int32_t snippet_main(void) {
     l3 = t19;
     l4 = (size_t) (int64_t) INT64_C(0);
     {
-        loop_103: {
+        loop_102: {
             if ((l4 < l3)) {
                 vader_array_t* _a8_slotarr = ((vader_array_t*) l0.payload.obj);
                 while (_a8_slotarr->buf != NULL && _a8_slotarr->buf->header.forward != NULL) { _a8_slotarr->buf = (vader_array_buf_t*) _a8_slotarr->buf->header.forward; }
@@ -231,7 +231,7 @@ static int32_t snippet_main(void) {
 #line 25 "tests/snippets/intrinsic_fields/_main.vader"
                 t31 = (l4 + INT64_C(1));
                 l4 = (size_t) (int64_t) t31;
-                goto loop_103;
+                goto loop_102;
             } else {
             }
         }

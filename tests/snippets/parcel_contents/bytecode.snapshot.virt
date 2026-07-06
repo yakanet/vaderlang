@@ -29,12 +29,9 @@ fn 0 snippet$unwrap () -> ref
 end
 
 fn 1 snippet$first_of_batch () -> ref
-  local batch ref
   i32.const 77
   struct.new 1
   array.new 11 1
-  local.set 0
-  local.get 0
   i32.const 0
   array.get 11
   return

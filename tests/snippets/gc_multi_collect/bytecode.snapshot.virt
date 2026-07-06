@@ -61,8 +61,7 @@ fn 0 snippet$main () -> i32
   call.import 3
   local.get 1
   i32.sub
-  local.set 1
-  local.get 1
+  local.tee 1
   i32.const 3
   i32.ne
   if $L3 void
@@ -131,8 +130,6 @@ fn 0 snippet$main () -> i32
     end $L5
   end $L4
   i32.const 2450
-  local.set 6
-  local.get 6
   i32.const 2
   i32.div
   local.set 6

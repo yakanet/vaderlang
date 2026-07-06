@@ -19,10 +19,7 @@ fn 1 snippet$apply (ref,i32) -> i32
 end
 
 fn 2 snippet$main () -> i32
-  local $fn_ref_0 ref
   fn.ref 0 2
-  local.set 0
-  local.get 0
   i32.const 7
   call 1
   return

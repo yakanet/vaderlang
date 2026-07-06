@@ -80,9 +80,8 @@ static int32_t snippet_main(void) {
     vader_gc_top = &gc_frame;
 #line 14 "tests/snippets/string_ops/_main.vader"
     t0 = concat_2(2u, 1u);
-    l0 = t0;
 #line 15 "tests/snippets/string_ops/_main.vader"
-    t1 = concat_2(l0, 3u);
+    t1 = concat_2(t0, 3u);
     l0 = t1;
 #line 16 "tests/snippets/string_ops/_main.vader"
     if (l0 == 4u) {

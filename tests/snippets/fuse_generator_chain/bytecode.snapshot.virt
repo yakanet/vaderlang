@@ -234,24 +234,18 @@ fn 1 __lambda_3 (ref,i32) -> i32
 end
 
 fn 2 __lambda_11 (ref,i32) -> bool
-  local $mod_3 i32
   local.get 1
   i32.const 2
   i32.rem
-  local.set 2
-  local.get 2
   i32.const 1
   i32.eq
   return
 end
 
 fn 3 __lambda_19 (ref,i32) -> bool
-  local $mod_3 i32
   local.get 1
   i32.const 2
   i32.rem
-  local.set 2
-  local.get 2
   i32.const 0
   i32.eq
   return

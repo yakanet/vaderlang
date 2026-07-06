@@ -21,7 +21,6 @@ impl 4 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  local $call_7 ref
   local e string
   string.const 0
   call.import 1
@@ -33,8 +32,6 @@ fn 0 snippet$main () -> i32
   call 5
   string.const 2
   call.import 1
-  local.set 0
-  local.get 0
   i64.const 1
   i64.const 4
   array.slice 5
@@ -43,9 +40,9 @@ fn 0 snippet$main () -> i32
   string.const 3
   call.import 1
   call.import 0
-  local.set 1
+  local.set 0
   string.const 4
-  local.get 1
+  local.get 0
   string.const 5
   call 1
   call 5
@@ -75,8 +72,7 @@ fn 1 concat_3 (string,string,string) -> string
   i64.add
   local.tee 5
   call 2
-  local.set 6
-  local.get 6
+  local.tee 6
   i64.const 0
   local.get 0
   call 8

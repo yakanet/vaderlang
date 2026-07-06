@@ -65,16 +65,16 @@ const size_t                vader_vtable_count    = 0;
 static void vader_import_0(int32_t a0, vader_string_t a1) { vader_write(a0, a1); }
 
 static int32_t snippet_main(void) {
-    vader_box_t l0 = vader_box_null(), l6 = vader_box_null();
-    size_t l1, l2, l7;
-    int32_t l3, l4, l5;
-    int64_t l8;
+    vader_box_t l0 = vader_box_null(), l5 = vader_box_null();
+    size_t l1, l2, l6;
+    int32_t l3, l4;
+    int64_t l7;
     vader_box_t t0 = vader_box_null(), t4 = vader_box_null();
     size_t t1, t6;
     int32_t t2, t3;
     int64_t t5, t8;
     vader_string_t t7;
-    vader_box_t* gc_roots[4] = { &l0, &l6, &t0, &t4 };
+    vader_box_t* gc_roots[4] = { &l0, &l5, &t0, &t4 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
 #line 14 "tests/snippets/generator_filter/_main.vader"
@@ -100,18 +100,17 @@ static int32_t snippet_main(void) {
                 l3 = t2;
 #line 9 "tests/snippets/generator_filter/_main.vader"
                 t3 = vader_mod_i32(l3, INT32_C(2));
-                l4 = t3;
-                if (l4 == INT32_C(0)) {
-                    l5 = l3;
+                if (t3 == INT32_C(0)) {
+                    l4 = l3;
 #line 14 "tests/snippets/generator_filter/_main.vader"
                     t4 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(20));
-                    l6 = t4;
-                    l7 = (size_t) (int64_t) INT64_C(0);
-                    t5 = ((int64_t) (int32_t) l5);
-                    l8 = t5;
-                    t6 = std_core_write_int(l6, l7, l8);
-                    l7 = t6;
-                    t7 = std_core_finish_buffer(l6, l7);
+                    l5 = t4;
+                    l6 = (size_t) (int64_t) INT64_C(0);
+                    t5 = ((int64_t) (int32_t) l4);
+                    l7 = t5;
+                    t6 = std_core_write_int(l5, l6, l7);
+                    l6 = t6;
+                    t7 = std_core_finish_buffer(l5, l6);
                     std_io_println__string(t7);
 #line 9 "tests/snippets/generator_filter/_main.vader"
                 } else {

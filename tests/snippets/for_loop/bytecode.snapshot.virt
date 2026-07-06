@@ -19,7 +19,6 @@ impl 8 Iterator
 fn 0 snippet$mixed_loops (i32) -> i32
   local n i32
   local i i32
-  local $mod_9 i32
   i32.const 0
   local.set 1
   local.get 0
@@ -33,12 +32,9 @@ fn 0 snippet$mixed_loops (i32) -> i32
         local.get 2
         i32.const 1
         i32.add
-        local.set 2
-        local.get 2
+        local.tee 2
         i32.const 2
         i32.rem
-        local.set 3
-        local.get 3
         i32.const 0
         i32.ne
         if $L3 void
@@ -86,8 +82,6 @@ fn 1 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
   local.get 1
   local.get 2
   call 12
-  local.set 2
-  local.get 2
   i32.const 0
   i32.lt
   if $L0 void
@@ -102,8 +96,6 @@ fn 1 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
     local.get 1
     local.get 2
     call 12
-    local.set 2
-    local.get 2
     i32.const 0
     i32.le
     return
@@ -114,8 +106,6 @@ fn 1 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
   local.get 1
   local.get 2
   call 12
-  local.set 2
-  local.get 2
   i32.const 0
   i32.lt
   return
@@ -137,8 +127,6 @@ fn 2 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.get 2
     local.get 3
     call 12
-    local.set 2
-    local.get 2
     i32.const 0
     i32.gt
     local.set 1
@@ -152,8 +140,6 @@ fn 2 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.get 2
     local.get 3
     call 12
-    local.set 2
-    local.get 2
     i32.const 0
     i32.ge
     local.set 1
@@ -169,8 +155,6 @@ fn 2 std_core$Range$Iterator$next__i32 (ref) -> ref
   local.set 2
   local.field 0 2 3
   ref.cast 1
-  local.set 3
-  local.get 3
   i32.const 1
   i32.add
   local.set 3
@@ -281,15 +265,12 @@ end
 
 fn 6 std_core$Range$Contains$contains__usize (ref,usize) -> bool
   local $field_2 usize
-  local $call_3 i32
   local.field 0 8 0
   ref.cast 6
   local.set 2
   local.get 1
   local.get 2
   call 17
-  local.set 3
-  local.get 3
   i32.const 0
   i32.lt
   if $L0 void
@@ -304,8 +285,6 @@ fn 6 std_core$Range$Contains$contains__usize (ref,usize) -> bool
     local.get 1
     local.get 2
     call 17
-    local.set 3
-    local.get 3
     i32.const 0
     i32.le
     return
@@ -316,8 +295,6 @@ fn 6 std_core$Range$Contains$contains__usize (ref,usize) -> bool
   local.get 1
   local.get 2
   call 17
-  local.set 3
-  local.get 3
   i32.const 0
   i32.lt
   return
@@ -327,7 +304,6 @@ fn 7 std_core$Range$Iterator$next__usize (ref) -> ref
   local if_res bool
   local $field_3 usize
   local $field_4 usize
-  local $call_5 i32
   local.field 0 8 2
   ref.cast 3
   if $L0 void
@@ -340,8 +316,6 @@ fn 7 std_core$Range$Iterator$next__usize (ref) -> ref
     local.get 2
     local.get 3
     call 17
-    local.set 4
-    local.get 4
     i32.const 0
     i32.gt
     local.set 1
@@ -355,8 +329,6 @@ fn 7 std_core$Range$Iterator$next__usize (ref) -> ref
     local.get 2
     local.get 3
     call 17
-    local.set 4
-    local.get 4
     i32.const 0
     i32.ge
     local.set 1
@@ -372,8 +344,6 @@ fn 7 std_core$Range$Iterator$next__usize (ref) -> ref
   local.set 2
   local.field 0 8 3
   ref.cast 6
-  local.set 3
-  local.get 3
   i64.const 1
   i64.add
   local.set 3
@@ -538,7 +508,6 @@ end
 fn 13 std_core$i32$Comparable$lt (i32,i32) -> bool
   local $lt_2 bool
   local $gt_3 bool
-  local $call_4 i32
   local.get 0
   local.get 1
   i32.lt
@@ -550,8 +519,6 @@ fn 13 std_core$i32$Comparable$lt (i32,i32) -> bool
   local.get 2
   local.get 3
   call 11
-  local.set 4
-  local.get 4
   i32.const 0
   i32.lt
   return
@@ -566,8 +533,6 @@ fn 13 std_core$i32$Comparable$lt (i32,i32) -> bool
   local.get 2
   local.get 3
   call 11
-  local.set 4
-  local.get 4
   i32.const 0
   i32.lt
   return
@@ -576,7 +541,6 @@ end
 fn 14 std_core$i32$Comparable$lte (i32,i32) -> bool
   local $lt_2 bool
   local $gt_3 bool
-  local $call_4 i32
   local.get 0
   local.get 1
   i32.lt
@@ -588,8 +552,6 @@ fn 14 std_core$i32$Comparable$lte (i32,i32) -> bool
   local.get 2
   local.get 3
   call 11
-  local.set 4
-  local.get 4
   i32.const 0
   i32.le
   return
@@ -604,8 +566,6 @@ fn 14 std_core$i32$Comparable$lte (i32,i32) -> bool
   local.get 2
   local.get 3
   call 11
-  local.set 4
-  local.get 4
   i32.const 0
   i32.le
   return
@@ -614,7 +574,6 @@ end
 fn 15 std_core$i32$Comparable$gt (i32,i32) -> bool
   local $lt_2 bool
   local $gt_3 bool
-  local $call_4 i32
   local.get 0
   local.get 1
   i32.lt
@@ -626,8 +585,6 @@ fn 15 std_core$i32$Comparable$gt (i32,i32) -> bool
   local.get 2
   local.get 3
   call 11
-  local.set 4
-  local.get 4
   i32.const 0
   i32.gt
   return
@@ -642,8 +599,6 @@ fn 15 std_core$i32$Comparable$gt (i32,i32) -> bool
   local.get 2
   local.get 3
   call 11
-  local.set 4
-  local.get 4
   i32.const 0
   i32.gt
   return
@@ -652,7 +607,6 @@ end
 fn 16 std_core$i32$Comparable$gte (i32,i32) -> bool
   local $lt_2 bool
   local $gt_3 bool
-  local $call_4 i32
   local.get 0
   local.get 1
   i32.lt
@@ -664,8 +618,6 @@ fn 16 std_core$i32$Comparable$gte (i32,i32) -> bool
   local.get 2
   local.get 3
   call 11
-  local.set 4
-  local.get 4
   i32.const 0
   i32.ge
   return
@@ -680,8 +632,6 @@ fn 16 std_core$i32$Comparable$gte (i32,i32) -> bool
   local.get 2
   local.get 3
   call 11
-  local.set 4
-  local.get 4
   i32.const 0
   i32.ge
   return
@@ -719,7 +669,6 @@ end
 fn 18 std_core$usize$Comparable$lt (usize,usize) -> bool
   local $lt_2 bool
   local $gt_3 bool
-  local $call_4 i32
   local.get 0
   local.get 1
   u64.lt
@@ -731,8 +680,6 @@ fn 18 std_core$usize$Comparable$lt (usize,usize) -> bool
   local.get 2
   local.get 3
   call 11
-  local.set 4
-  local.get 4
   i32.const 0
   i32.lt
   return
@@ -747,8 +694,6 @@ fn 18 std_core$usize$Comparable$lt (usize,usize) -> bool
   local.get 2
   local.get 3
   call 11
-  local.set 4
-  local.get 4
   i32.const 0
   i32.lt
   return
@@ -757,7 +702,6 @@ end
 fn 19 std_core$usize$Comparable$lte (usize,usize) -> bool
   local $lt_2 bool
   local $gt_3 bool
-  local $call_4 i32
   local.get 0
   local.get 1
   u64.lt
@@ -769,8 +713,6 @@ fn 19 std_core$usize$Comparable$lte (usize,usize) -> bool
   local.get 2
   local.get 3
   call 11
-  local.set 4
-  local.get 4
   i32.const 0
   i32.le
   return
@@ -785,8 +727,6 @@ fn 19 std_core$usize$Comparable$lte (usize,usize) -> bool
   local.get 2
   local.get 3
   call 11
-  local.set 4
-  local.get 4
   i32.const 0
   i32.le
   return
@@ -795,7 +735,6 @@ end
 fn 20 std_core$usize$Comparable$gt (usize,usize) -> bool
   local $lt_2 bool
   local $gt_3 bool
-  local $call_4 i32
   local.get 0
   local.get 1
   u64.lt
@@ -807,8 +746,6 @@ fn 20 std_core$usize$Comparable$gt (usize,usize) -> bool
   local.get 2
   local.get 3
   call 11
-  local.set 4
-  local.get 4
   i32.const 0
   i32.gt
   return
@@ -823,8 +760,6 @@ fn 20 std_core$usize$Comparable$gt (usize,usize) -> bool
   local.get 2
   local.get 3
   call 11
-  local.set 4
-  local.get 4
   i32.const 0
   i32.gt
   return
@@ -833,7 +768,6 @@ end
 fn 21 std_core$usize$Comparable$gte (usize,usize) -> bool
   local $lt_2 bool
   local $gt_3 bool
-  local $call_4 i32
   local.get 0
   local.get 1
   u64.lt
@@ -845,8 +779,6 @@ fn 21 std_core$usize$Comparable$gte (usize,usize) -> bool
   local.get 2
   local.get 3
   call 11
-  local.set 4
-  local.get 4
   i32.const 0
   i32.ge
   return
@@ -861,8 +793,6 @@ fn 21 std_core$usize$Comparable$gte (usize,usize) -> bool
   local.get 2
   local.get 3
   call 11
-  local.set 4
-  local.get 4
   i32.const 0
   i32.ge
   return

@@ -208,12 +208,9 @@ fn 2 __lambda_6 (ref,i32) -> i32
 end
 
 fn 3 __lambda_16 (ref,i32) -> bool
-  local $mod_3 i32
   local.get 1
   i32.const 2
   i32.rem
-  local.set 2
-  local.get 2
   i32.const 0
   i32.eq
   return
