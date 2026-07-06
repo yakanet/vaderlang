@@ -1,0 +1,69 @@
+// vader/dap/protocol — DAP (Debug Adapter Protocol) message encoding.
+//
+// DAP rides the SAME `Content-Length\r\n\r\n<json>` framing as LSP, so the
+// transport (`read_frame` / `write_frame` / `unbuffer_stdin` / `poll_pending`)
+// and the JSON field accessors are reused verbatim from `vader/lsp/protocol`.
+// Only the message SHAPE differs — DAP uses `seq` / `type: request|response|
+// event` / `command` where LSP uses the JSON-RPC 2.0 envelope — so this module
+// supplies the DAP-shaped encoders the LSP `rpc.vader` can't provide.
+//
+// (v1 imports `vader/lsp/protocol` directly ; a future refactor may hoist the
+// generic framing into a neutral `vader/jsonrpc` module to decouple dap↔lsp.)
+
+module "vader/dap"
+
+import "std/collections" { MutableMap }
+import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, stringify }
+
+// ---- DAP response / event encoders ----------------------------------------
+
+/// Encode a DAP response frame body : `{ seq, type: "response", request_seq,
+/// success, command, body }`.
+///
+/// @param seq          this message's monotonic sequence number.
+/// @param request_seq  the `seq` of the request being answered.
+/// @param command      the request's `command` (echoed back).
+/// @param success      whether the request succeeded.
+/// @param body         command-specific result payload (use `empty_body()`
+///                     when the command carries none).
+/// @return             the serialized JSON, ready for `write_frame`.
+export encode_response :: fn(seq: i32, request_seq: i32, command: string, success: bool, body: JsonValue) -> string {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["seq"]         = JsonNumber { .value = f64(seq) }
+    obj["type"]        = JsonString { .value = "response" }
+    obj["request_seq"] = JsonNumber { .value = f64(request_seq) }
+    obj["success"]     = JsonBool { .value = success }
+    obj["command"]     = JsonString { .value = command }
+    obj["body"]        = body
+    return stringify(JsonObject { .entries = obj })
+}
+
+/// Encode a DAP event frame body : `{ seq, type: "event", event, body }`.
+///
+/// @param seq    this message's monotonic sequence number.
+/// @param event  the event name (`initialized`, `output`, `terminated`, …).
+/// @param body   event-specific payload (`empty_body()` when none).
+/// @return       the serialized JSON, ready for `write_frame`.
+export encode_event :: fn(seq: i32, event: string, body: JsonValue) -> string {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["seq"]   = JsonNumber { .value = f64(seq) }
+    obj["type"]  = JsonString { .value = "event" }
+    obj["event"] = JsonString { .value = event }
+    obj["body"]  = body
+    return stringify(JsonObject { .entries = obj })
+}
+
+/// An empty JSON object — the `body` for commands / events that carry none.
+export empty_body :: fn() -> JsonValue = JsonObject { .entries = MutableMap<string, JsonValue> {} }
+
+/// A JSON object wrapping a single string field — the common one-key body
+/// shape (`{ output: "…" }`, `{ reason: "…" }`).
+///
+/// @param key    the field name.
+/// @param value  the field value.
+/// @return       a `JsonObject` with the one entry.
+export string_body :: fn(key: string, value: string) -> JsonValue {
+    m :: MutableMap<string, JsonValue> {}
+    m[key] = JsonString { .value = value }
+    return JsonObject { .entries = m }
+}

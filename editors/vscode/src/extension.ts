@@ -126,7 +126,25 @@ async function startClient(attempt = 0): Promise<void> {
   }
 }
 
-export function activate(_context: vscode.ExtensionContext): void {
+// Registers the debug adapter for the `vader` debug type. VS Code spawns the
+// descriptor's executable and speaks DAP over its stdio — the adapter is the
+// Vader CLI's `dap` subcommand (implemented in `vader/dap/`), reusing the same
+// binary path as the LSP client (`vader.lsp.path`).
+function registerDebugAdapter(context: vscode.ExtensionContext): void {
+  const factory: vscode.DebugAdapterDescriptorFactory = {
+    createDebugAdapterDescriptor(): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
+      const config = vscode.workspace.getConfiguration("vader");
+      const command = interpolate(config.get<string>("lsp.path", "vader"));
+      return new vscode.DebugAdapterExecutable(command, ["dap"]);
+    },
+  };
+  context.subscriptions.push(
+    vscode.debug.registerDebugAdapterDescriptorFactory("vader", factory),
+  );
+}
+
+export function activate(context: vscode.ExtensionContext): void {
+  registerDebugAdapter(context);
   startClient().catch((err) => {
     vscode.window.showErrorMessage(
       `Vader Language Server activation failed: ${

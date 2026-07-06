@@ -1,0 +1,177 @@
+// vader/dap/main — the `vader dap` server : a Debug Adapter Protocol adapter
+// that drives the bytecode VM.
+//
+// v1 (proof of life) : F5 in VSCode runs the target `.vader`, its output shows
+// in the Debug Console, the session ends cleanly. No breakpoints yet (Phase 2).
+//
+// The server is cocompiled into the main `vader` binary (not a slim separate
+// one like `vader-lsp`) because it must drive `vader/vm`. It reuses the LSP
+// transport (`read_frame` / `write_frame`) — DAP shares LSP's `Content-Length`
+// framing — and supplies its own DAP-shaped encoders (see protocol.vader).
+//
+// Program-under-debug I/O is redirected to DAP `output` events through the
+// VM's `DebugController.output_sink` (vader/vm/debug.vader) : in stdio
+// transport a stray write to fd 1 would corrupt the protocol stream.
+//
+// Compilation of the launch target is injected as a callback (`DapCompile`) so
+// this module needs no dependency on `vader/cli` (which imports it) — the
+// compile impl lives in `cli/main.vader::cmd_dap`.
+
+module "vader/dap"
+
+import "std/json" { JsonValue, JsonObject, JsonNumber, JsonArray, JsonString, JsonBool, parse }
+import "std/collections" { MutableMap }
+import "vader/lsp/protocol" { read_frame, write_frame, unbuffer_stdin, get_string, get_number, get_field, TransportError }
+import "vader/vm" { VmState, exec_entry, DebugController, Ok, Trap }
+
+// ---- compile injection -----------------------------------------------------
+
+/// A compiled launch target. `state == null` marks a front-end failure — the
+/// server then reports `error` as stderr output and terminates without running.
+export DapProgram :: struct {
+    /// Prepared VM state, or `null` when the target failed to compile.
+    state:       VmState | null
+    /// Entry fn index for `exec_entry` (the named file's `main`).
+    entry_index: i32
+    /// Human-readable diagnostics rendered on a compile failure ; `""` on success.
+    error:       string
+}
+
+// ---- server ----------------------------------------------------------------
+
+/// Run the DAP server loop on stdio until `disconnect` (or EOF).
+///
+/// `compile` is injected by `cli::cmd_dap` so `vader/dap` doesn't import
+/// `vader/cli` (which would close an import cycle) — it maps a launch-target
+/// path to its compiled `DapProgram`.
+///
+/// @param compile  compiles a launch-target path to a `DapProgram`.
+/// @return         `0` on a clean shutdown, `1` on a transport error.
+export run_dap_server :: fn(compile: fn(string) -> DapProgram) -> i32 {
+    unbuffer_stdin()
+    // Monotonic DAP `seq`, shared (by cell) with the output-sink closure so
+    // response / event / program-output frames all draw from one counter.
+    seq_cell: i32[] = [0]
+    // Set by `launch`, consumed by `configurationDone`.
+    prog: DapProgram | null = null
+    running := true
+    for running {
+        frame :: read_frame()
+        if frame is TransportError { return 1 }
+        body :: frame
+        msg :: parse(body)
+        if !(msg is JsonObject) { continue }
+        command :: get_string(msg, "command")
+        request_seq :: get_number(msg, "seq")
+
+        if command == "initialize" {
+            respond(seq_cell, request_seq, command, true, capabilities())
+            // Tell the client we're ready for breakpoints / configurationDone.
+            emit_event(seq_cell, "initialized", empty_body())
+        } else if command == "launch" {
+            program :: get_string(get_field(msg, "arguments"), "program")
+            prog = compile(program)
+            respond(seq_cell, request_seq, command, true, empty_body())
+        } else if command == "configurationDone" {
+            respond(seq_cell, request_seq, command, true, empty_body())
+            run_program(prog, seq_cell)
+        } else if command == "threads" {
+            respond(seq_cell, request_seq, command, true, single_thread())
+        } else if command == "disconnect" {
+            respond(seq_cell, request_seq, command, true, empty_body())
+            running = false
+        } else {
+            // Unknown / not-yet-supported command : ack so the client isn't
+            // left waiting. Phase 2+ adds breakpoints / stack / stepping.
+            respond(seq_cell, request_seq, command, true, empty_body())
+        }
+    }
+    return 0
+}
+
+// ---- run --------------------------------------------------------------------
+
+// Execute the compiled program, routing its output to DAP `output` events, and
+// emit `exited` + `terminated` when it finishes. A `null` / failed program
+// reports the compile error and terminates without running.
+run_program :: fn(prog: DapProgram | null, seq_cell: i32[]) -> void {
+    if prog == null {
+        emit_event(seq_cell, "terminated", empty_body())
+        return
+    }
+    state :: prog.state
+    if state == null {
+        emit_output(seq_cell, "stderr", prog.error)
+        emit_exited(seq_cell, 1)
+        emit_event(seq_cell, "terminated", empty_body())
+        return
+    }
+    // Route every program write to an `output` event — stdout → category
+    // "stdout", stderr → "stderr". Captures `seq_cell` by cell.
+    sink :: fn(stream: i32, text: string) -> void {
+        category :: if stream == 0 { "stdout" } else { "stderr" }
+        emit_output(seq_cell, category, text)
+    }
+    controller :: DebugController { .output_sink = sink }
+    no_args: string[] = []
+    result :: exec_entry(state, prog.entry_index, no_args, null, false, controller)
+    exit_code := 0
+    if result is Trap as t {
+        emit_output(seq_cell, "stderr", "vader: trap — ${t.message}\n")
+        exit_code = 1
+    } else if result is Ok as o {
+        exit_code = o.value
+    }
+    emit_exited(seq_cell, exit_code)
+    emit_event(seq_cell, "terminated", empty_body())
+}
+
+// ---- frame helpers ----------------------------------------------------------
+
+// Bump the shared seq and write a response frame.
+respond :: fn(seq_cell: i32[], request_seq: i32, command: string, success: bool, body: JsonValue) -> void {
+    seq_cell[0] = seq_cell[0] + 1
+    write_frame(encode_response(seq_cell[0], request_seq, command, success, body))
+}
+
+// Bump the shared seq and write an event frame.
+emit_event :: fn(seq_cell: i32[], event: string, body: JsonValue) -> void {
+    seq_cell[0] = seq_cell[0] + 1
+    write_frame(encode_event(seq_cell[0], event, body))
+}
+
+// Emit an `output` event (`category` = "stdout" / "stderr", `text` = payload).
+emit_output :: fn(seq_cell: i32[], category: string, text: string) -> void {
+    body :: MutableMap<string, JsonValue> {}
+    body["category"] = JsonString { .value = category }
+    body["output"]   = JsonString { .value = text }
+    emit_event(seq_cell, "output", JsonObject { .entries = body })
+}
+
+// Emit an `exited` event carrying the program's exit code.
+emit_exited :: fn(seq_cell: i32[], code: i32) -> void {
+    body :: MutableMap<string, JsonValue> {}
+    body["exitCode"] = JsonNumber { .value = f64(code) }
+    emit_event(seq_cell, "exited", JsonObject { .entries = body })
+}
+
+// ---- body builders ----------------------------------------------------------
+
+// The `initialize` capabilities body : the client gates `configurationDone` on
+// `supportsConfigurationDoneRequest`, our run trigger.
+capabilities :: fn() -> JsonValue {
+    m :: MutableMap<string, JsonValue> {}
+    m["supportsConfigurationDoneRequest"] = JsonBool { .value = true }
+    return JsonObject { .entries = m }
+}
+
+// The single-thread body for `threads` : the VM is one cooperative thread.
+single_thread :: fn() -> JsonValue {
+    t :: MutableMap<string, JsonValue> {}
+    t["id"]   = JsonNumber { .value = f64(1) }
+    t["name"] = JsonString { .value = "main" }
+    threads: JsonValue[] = [JsonObject { .entries = t }]
+    body :: MutableMap<string, JsonValue> {}
+    body["threads"] = JsonArray { .items = threads }
+    return JsonObject { .entries = body }
+}

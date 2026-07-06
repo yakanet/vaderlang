@@ -106,6 +106,48 @@
           "description": "Verbosity of the LSP communication trace, shown in the `Vader Language Server` output channel."
         }
       }
-    }
+    },
+    "breakpoints": [
+      { "language": "vader" }
+    ],
+    "debuggers": [
+      {
+        "type": "vader",
+        "label": "Vader",
+        "languages": ["vader"],
+        "configurationAttributes": {
+          "launch": {
+            "required": ["program"],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Absolute path to the .vader file to run.",
+                "default": "${file}"
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "vader",
+            "request": "launch",
+            "name": "Vader: Run current file",
+            "program": "${file}"
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "Vader: Run current file",
+            "description": "Run the active .vader file in the Vader VM debugger",
+            "body": {
+              "type": "vader",
+              "request": "launch",
+              "name": "Vader: Run current file",
+              "program": "^\"\\${file}\""
+            }
+          }
+        ]
+      }
+    ]
   }
 }
