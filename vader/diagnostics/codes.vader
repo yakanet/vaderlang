@@ -93,6 +93,7 @@ export TypecheckCode :: enum(u8) {
     DeferInGenerator,                   // T3060
     GeneratorYieldIncompatible,         // T3061
     BodylessFnMustBeIntrinsic,          // T3062
+    AssignTypeMismatch,                 // T3063
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -388,6 +389,7 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .DeferInGenerator                   -> CodeInfo { .id = "T3060", .message = "`defer` is not yet supported inside a generator" }
     .GeneratorYieldIncompatible         -> CodeInfo { .id = "T3061", .message = "yielded value type does not match the generator's element type" }
     .BodylessFnMustBeIntrinsic          -> CodeInfo { .id = "T3062", .message = "a bodyless function must be `@intrinsic` (host-provided) or `@extern` (foreign symbol)" }
+    .AssignTypeMismatch                 -> CodeInfo { .id = "T3063", .message = "assigned value's type is not assignable to the target's declared type" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

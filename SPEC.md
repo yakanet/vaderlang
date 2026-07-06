@@ -319,6 +319,8 @@ Index access : [expr]
 
 `in` and `!in` desugar to a method call on the `Contains<T>` trait (see §11). Char comparisons (`<`, `<=`, `>`, `>=`) work on codepoint order (`char` is wire-compatible with `u32`).
 
+A variable's type is fixed at its declaration. A reassignment (`x = v`, `arr[i] = v`, `m[k] = v`, `obj.f = v`, and every compound form) must supply a value assignable to that declared slot type — the same rule the initializer applies, `Into` coercions included — otherwise it raises **T3063**. The check targets the *declared* type, not any active flow-narrowing: inside `if x is A { … }` a write `x = b` of another union member is allowed (it retires the narrowing) as long as `b` fits `x`'s declaration.
+
 ### Operator precedence
 
 From tightest to loosest. Higher levels bind more tightly. Non-assoc operators forbid chaining (`a == b == c` is a parse error — write `(a == b) == c`).

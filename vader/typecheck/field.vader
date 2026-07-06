@@ -290,6 +290,34 @@ resolve_struct_field :: fn(
     return narrow_field_if_active(e, substituted, typed)
 }
 
+/// Declared (pre-narrow, type-arg-substituted) type of a struct-field
+/// lvalue `recv.field`, given `recv`'s already-checked type. This is the
+/// slot type an assignment `recv.field = v` must be assignable to :
+/// `resolve_struct_field` layers `narrow_field_if_active` on top for
+/// *reads*, but a write targets the *declared* field, not its narrowing
+/// (mirrors `invalidate_narrow_on_assign`, which retires — not rejects —
+/// a write outside the current narrowing).
+///
+/// @param recv_ty  the receiver's checked type (struct or struct-backed newtype).
+/// @param field    the field name being written.
+/// @return         the substituted field type, or `null` when `recv_ty`
+///                 isn't a struct, its decl isn't indexed, or the field
+///                 doesn't resolve — the caller then skips the write check
+///                 (the read-side typing already surfaced any field error).
+export declared_struct_field_type :: fn(
+    recv_ty: Type, field: string, typed: TypedProgram,
+) -> Type | null {
+    st :: struct_backing(recv_ty)
+    if st == null { return null }
+    decl :: typed.struct_decls[st.symbol.id]
+    if decl == null { return null }
+    // Discard sink : the read-side check already emitted any field error.
+    discard: Diagnostic[] = []
+    found :: resolved_field_type(st.symbol.id, decl, field, typed, discard)
+    if found == null { return null }
+    return substitute_struct_field(found, decl, st)
+}
+
 /// Enforce `@internal` field visibility (T3054). A field parsed as
 /// `Visibility.Private` (the `@internal` decorator) is readable, writable,
 /// constructible, and pattern-bindable only from its declaring module. Fields
