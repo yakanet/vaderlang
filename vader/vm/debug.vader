@@ -15,6 +15,25 @@ module "vader/vm"
 
 import "std/collections" { MutableMap, MutableSet }
 
+/// How execution should resume after a pause — the value the DAP layer returns
+/// from `on_pause`, which the VM applies against the frame depth to decide the
+/// next stop. `Continue` only stops at breakpoints ; the `Step*` variants also
+/// stop at the next source line (`Into` = any depth, `Over` = same-or-shallower
+/// frame depth, `Out` = shallower than the current frame).
+export StepMode :: enum(u8) {
+    Continue,
+    StepOver,
+    StepInto,
+    StepOut,
+}
+
+/// One local (or param) of a paused frame, rendered to a display string by the
+/// VM (`display_value`) so the DAP layer needn't touch runtime `Value`s.
+export PauseLocal :: struct {
+    name:  string
+    value: string
+}
+
 /// One frame of the paused call stack, projected to plain data by the VM
 /// before it hands control to the (DAP-side) `on_pause` callback — so the VM
 /// never exposes its internal `Frame` / value-stack representation across the
@@ -26,12 +45,17 @@ export PauseFrame :: struct {
     file:          string
     /// 1-based source line ; `0` when the op has no source position.
     line:          i32
+    /// Params then declared locals, in slot order, rendered for the Variables
+    /// view. Accurate only when the target is compiled `optimize = false`
+    /// (no slot coalescing) — which the DAP compile does.
+    locals:        PauseLocal[]
 }
 
-/// Everything the `on_pause` callback needs to answer a `stackTrace` request
-/// without reaching into VM internals. Built by `build_pause_ctx` at the stop.
+/// Everything the `on_pause` callback needs to answer a `stackTrace` /
+/// `variables` request without reaching into VM internals. Built by
+/// `build_pause_ctx` at the stop.
 export PauseCtx :: struct {
-    /// DAP `stopped` reason — `"breakpoint"` (Phase 4 adds `"step"`).
+    /// DAP `stopped` reason — `"breakpoint"` or `"step"`.
     reason: string
     /// Paused call stack, innermost frame first.
     frames: PauseFrame[]
@@ -43,9 +67,8 @@ export PauseCtx :: struct {
 /// `breakpoints` maps an absolute source file to its set of 1-based breakpoint
 /// lines. `output_sink` routes program writes to DAP `output` events (stdio
 /// transport can't let program output hit fd 1). `on_pause` is invoked when the
-/// VM stops at a breakpoint — it runs the (blocking) DAP request loop until the
-/// client resumes, then returns so the VM continues. Phase 4 will extend this
-/// with a step mode.
+/// VM stops (breakpoint or step) — it runs the (blocking) DAP request loop until
+/// the client resumes, then returns the `StepMode` governing the next stop.
 export DebugController :: struct {
     /// Program write hook. `stream` is `0` = stdout, `1` = stderr (the VM's
     /// `.IoWrite` Stream tag) ; `text` is the raw payload.
@@ -53,9 +76,9 @@ export DebugController :: struct {
     /// Absolute file → set of 1-based breakpoint lines. Shared (by shallow
     /// copy) with the DAP layer, so `setBreakpoints` updates reach the VM.
     breakpoints: MutableMap<string, MutableSet<i32>>
-    /// Invoked at a breakpoint stop with the paused call stack ; blocks driving
-    /// the DAP conversation until the client resumes.
-    on_pause: fn(PauseCtx) -> void
+    /// Invoked at a stop with the paused call stack ; blocks driving the DAP
+    /// conversation, then returns how to resume (`StepMode`).
+    on_pause: fn(PauseCtx) -> StepMode
 }
 
 /// True when `line` in `file` carries a breakpoint. Pure — the "fire once per
@@ -72,12 +95,44 @@ export line_has_breakpoint :: fn(controller: DebugController, file: string, line
     return lines.contains(line)
 }
 
+/// Whether a bytecode local is a user-visible source variable (worth showing in
+/// the Variables view) rather than a compiler-synthesised temporary. Filters
+/// midir temps (`$…` : `$k_0`, `$call_14`, `$cast_8`) and lowering synthetics
+/// (`__…` : `__buf_0`, `__for_i_4`) plus the `if_res` match/if result slot.
+/// Uses byte comparison — a `"$"` string literal would open interpolation.
+///
+/// @param name  the `BcLocal.name`.
+/// @return      `true` iff `name` is a real source identifier.
+export is_source_local :: fn(name: string) -> bool {
+    b :: name.bytes()
+    if b.len() == 0 { return false }
+    if b[0] == '$' { return false }
+    if b.len() >= 2 && b[0] == '_' && b[1] == '_' { return false }
+    if name == "if_res" { return false }
+    return true
+}
+
+/// Whether a step should stop at a new source line, given the active mode and
+/// the frame depth relative to where the step began (`base_depth`). Pure ; the
+/// breakpoint check + "new line" gate are applied by the caller.
+///
+/// @param mode        the active step mode.
+/// @param base_depth  frame depth when the step began.
+/// @param depth       current frame depth.
+/// @return            `true` iff the step's stop condition is met.
+export step_should_stop :: fn(mode: StepMode, base_depth: i32, depth: i32) -> bool = match mode {
+    .Continue  -> false
+    .StepInto  -> true
+    .StepOver  -> depth <= base_depth
+    .StepOut   -> depth <  base_depth
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert_eq }
 
 no_sink :: fn(_s: i32, _t: string) -> void {}
-no_pause :: fn(_c: PauseCtx) -> void {}
+no_pause :: fn(_c: PauseCtx) -> StepMode = StepMode.Continue
 
 mk_controller :: fn(bps: MutableMap<string, MutableSet<i32>>) -> DebugController =
     DebugController { .output_sink = no_sink, .breakpoints = bps, .on_pause = no_pause }
@@ -94,4 +149,19 @@ mk_controller :: fn(bps: MutableMap<string, MutableSet<i32>>) -> DebugController
     assert_eq(line_has_breakpoint(c, "/tmp/a.vader", 14), false)
     // Unknown file → no breakpoint.
     assert_eq(line_has_breakpoint(c, "/tmp/other.vader", 13), false)
+}
+
+@test test_step_should_stop_modes :: fn() -> void {
+    // Continue never step-stops (only breakpoints, handled elsewhere).
+    assert_eq(step_should_stop(StepMode.Continue, 2, 2), false)
+    // Into stops at any depth.
+    assert_eq(step_should_stop(StepMode.StepInto, 2, 3), true)
+    assert_eq(step_should_stop(StepMode.StepInto, 2, 1), true)
+    // Over stops at same-or-shallower depth (skips deeper = called-into frames).
+    assert_eq(step_should_stop(StepMode.StepOver, 2, 2), true)
+    assert_eq(step_should_stop(StepMode.StepOver, 2, 3), false)
+    assert_eq(step_should_stop(StepMode.StepOver, 2, 1), true)
+    // Out stops only once shallower than the frame the step began in.
+    assert_eq(step_should_stop(StepMode.StepOut, 2, 2), false)
+    assert_eq(step_should_stop(StepMode.StepOut, 2, 1), true)
 }

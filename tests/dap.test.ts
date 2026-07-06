@@ -202,6 +202,54 @@ test("dap: breakpoint stops the program and continue resumes it", async () => {
   expect(stdout).toContain("hello");
 }, { timeout: MEDIUM_BUILD });
 
+test("dap: step over advances the line, and Variables shows source locals with values", async () => {
+  // array_slice: line 13 `arr: i32[] = [10, 20, 30, 40, 50]` (breakpoint),
+  // line 16 the next statement. Stopping BEFORE line 13 runs, `arr` is 0 ;
+  // after a step over it holds the array. The Variables view must show source
+  // locals (arr, s1, …) — NOT the compiler's `$…` / `__…` temporaries.
+  const program = join(process.cwd(), "tests/snippets/array_slice/_main.vader");
+  const requests = [
+    { seq: 1, type: "request", command: "initialize", arguments: { adapterID: "vader" } },
+    { seq: 2, type: "request", command: "launch", arguments: { program } },
+    { seq: 3, type: "request", command: "setBreakpoints",
+      arguments: { source: { path: program }, breakpoints: [{ line: 13 }] } },
+    { seq: 4, type: "request", command: "configurationDone" },
+    // Stop #1 (breakpoint, line 13) — inspect, then step over.
+    { seq: 5, type: "request", command: "stackTrace", arguments: { threadId: 1 } },
+    { seq: 6, type: "request", command: "scopes", arguments: { frameId: 0 } },
+    { seq: 7, type: "request", command: "variables", arguments: { variablesReference: 1 } },
+    { seq: 8, type: "request", command: "next", arguments: { threadId: 1 } },
+    // Stop #2 (step, past line 13) — `arr` is now materialised.
+    { seq: 9, type: "request", command: "stackTrace", arguments: { threadId: 1 } },
+    { seq: 10, type: "request", command: "variables", arguments: { variablesReference: 1 } },
+    { seq: 11, type: "request", command: "continue", arguments: { threadId: 1 } },
+    { seq: 12, type: "request", command: "disconnect" },
+  ];
+  const frames = await sendDap(program, requests);
+
+  // Two stops : the breakpoint, then the step.
+  const stops = frames.filter((f) => f.event === "stopped");
+  expect(stops.length).toBeGreaterThanOrEqual(2);
+  expect(stops[0]?.body?.reason).toBe("breakpoint");
+  expect(stops[1]?.body?.reason).toBe("step");
+
+  // The step advanced the line past the breakpoint.
+  const stackTraces = frames.filter((f) => f.type === "response" && f.command === "stackTrace");
+  const line1 = stackTraces[0]?.body?.stackFrames?.[0]?.line;
+  const line2 = stackTraces[1]?.body?.stackFrames?.[0]?.line;
+  expect(line1).toBe(13);
+  expect(line2).toBeGreaterThan(13);
+
+  // Variables: `arr` is present, holds the array after the step, and NO
+  // compiler temp (`$…` / `__…`) leaks into the view.
+  const varsResponses = frames.filter((f) => f.type === "response" && f.command === "variables");
+  const allNames = varsResponses.flatMap((r) => (r.body?.variables ?? []).map((v: any) => v.name));
+  expect(allNames).toContain("arr");
+  expect(allNames.some((n: string) => n.startsWith("$") || n.startsWith("__"))).toBe(false);
+  const arrAfterStep = (varsResponses[1]?.body?.variables ?? []).find((v: any) => v.name === "arr");
+  expect(arrAfterStep?.value).toContain("10");
+}, { timeout: MEDIUM_BUILD });
+
 test("dap: threads request returns the single VM thread", async () => {
   const program = join(process.cwd(), "tests/snippets/io_println/_main.vader");
   const frames = await driveDap(program);

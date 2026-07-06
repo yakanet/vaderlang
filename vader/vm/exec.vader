@@ -152,10 +152,40 @@ build_pause_ctx :: fn(reason: string, frames: Frame[], count: usize, bc_mod: bc.
                 line = dbg.line
             }
         }
-        projected.push(PauseFrame { .function_name = fn_body.name, .file = file, .line = line })
+        projected.push(PauseFrame {
+            .function_name = fn_body.name,
+            .file          = file,
+            .line          = line,
+            .locals        = project_locals(f, fn_body),
+        })
         i = i - 1
     }
     return PauseCtx { .reason = reason, .frames = projected }
+}
+
+// Render a frame's params + declared locals for the Variables view. Slots
+// `[0..params)` are params (no source names in `BcSignature` → `arg0`, `arg1`,
+// …) ; `locals[k]` lives at slot `params + k`. Accurate when the target is
+// compiled `optimize = false` (no slot coalescing) — the DAP compile's mode.
+project_locals :: fn(f: Frame, fn_body: bc.BcFunction) -> PauseLocal[] {
+    out: PauseLocal[] = []
+    param_count :: fn_body.signature.params.len()
+    for p in 0..<param_count {
+        if p < f.slots.len() {
+            out.push(PauseLocal { .name = "arg${p}", .value = display_value(f.slots[p]) })
+        }
+    }
+    for k in 0..<fn_body.locals.len() {
+        name :: fn_body.locals[k].name
+        slot :: param_count + k
+        // Hide compiler-synthesised temps (`$…` / `__…` / `if_res`) — the CFG
+        // emit materialises many even at `optimize = false` ; the user wants
+        // their source locals, not the 3-address scaffolding.
+        if slot < f.slots.len() && is_source_local(name) {
+            out.push(PauseLocal { .name = name, .value = display_value(f.slots[slot]) })
+        }
+    }
+    return out
 }
 
 /// Bounds-check a `function_index` against `functions`. Used by
@@ -775,10 +805,16 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     // pay only one predictable branch per op.
     steps: i64 = 0
 
-    // Last source line the debugger observed — the "fire once per line" gate for
-    // breakpoints (stop at the FIRST op of a breakpointed line, not every op).
-    // `-1` = no line seen yet. Only touched when `debug != null`.
+    // Debugger stepping state — only touched when `debug != null`.
+    //   last_line       : the "fire once per line" gate (stop at the FIRST op of
+    //                     a line, not every op) ; `-1` = no line seen yet.
+    //   step_mode       : how to resume after the last stop (Continue = only
+    //                     breakpoints ; Step* also stop at the next line).
+    //   step_base_depth : frame depth when the current step began — Over/Out
+    //                     compare against it.
     last_line: i32 = -1
+    step_mode: StepMode = StepMode.Continue
+    step_base_depth: i32 = 0
 
     for frame_count[0] > 0 {
         top :: frame_count[0] - 1
@@ -804,11 +840,12 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             continue
         }
 
-        // Debugger breakpoint check — gated on `debug != null` so normal runs
-        // pay one pointer compare per op (like `is_comptime`). Stop at the FIRST
-        // op of a breakpointed line (`last_line` gate), hand the paused call
-        // stack to `on_pause`, which drives the DAP conversation and returns
-        // once the client resumes.
+        // Debugger stop check — gated on `debug != null` so normal runs pay one
+        // pointer compare per op (like `is_comptime`). On the FIRST op of a new
+        // source line (`last_line` gate), stop if a breakpoint sits there OR the
+        // active step's condition is met ; hand the paused call stack to
+        // `on_pause` (which drives the DAP conversation) and apply the returned
+        // `StepMode` for the next stop.
         if debug != null {
             dbg :: body.debug[usize(frame.pc)]
             if dbg != null {
@@ -816,9 +853,14 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 cur_line :: dbg.line
                 if cur_line != last_line {
                     last_line = cur_line
-                    if line_has_breakpoint(debug, cur_file, cur_line) {
-                        pause_ctx :: build_pause_ctx("breakpoint", frames, frame_count[0], state.bc)
-                        debug.on_pause(pause_ctx)
+                    depth :: i32(frame_count[0])
+                    hit_bp :: line_has_breakpoint(debug, cur_file, cur_line)
+                    hit_step :: step_should_stop(step_mode, step_base_depth, depth)
+                    if hit_bp || hit_step {
+                        reason :: if hit_bp { "breakpoint" } else { "step" }
+                        pause_ctx :: build_pause_ctx(reason, frames, frame_count[0], state.bc)
+                        step_mode = debug.on_pause(pause_ctx)
+                        step_base_depth = depth
                     }
                 }
             }
