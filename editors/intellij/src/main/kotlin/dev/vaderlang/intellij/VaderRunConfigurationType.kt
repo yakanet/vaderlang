@@ -11,7 +11,7 @@ import com.intellij.openapi.util.NotNullLazyValue
 import com.redhat.devtools.lsp4ij.dap.DebugMode
 import com.redhat.devtools.lsp4ij.dap.configurations.DAPRunConfiguration
 import com.redhat.devtools.lsp4ij.dap.configurations.DAPRunConfigurationOptions
-import com.redhat.devtools.lsp4ij.launching.ServerMappingSettings
+import com.redhat.devtools.lsp4ij.templates.ServerMappingSettings
 
 // A native "Vader" run/debug configuration : pick a `.vader` file, then Run OR
 // Debug it (breakpoints, stepping) — one config, both buttons. It's a thin
@@ -19,7 +19,7 @@ import com.redhat.devtools.lsp4ij.launching.ServerMappingSettings
 // pin it to our registered "Vader Debug Adapter" (spawns `vader dap`), so we
 // reuse LSP4IJ's whole tested Run+Debug machinery instead of reimplementing it.
 //
-// Compiles + packages against LSP4IJ 0.13.0 here; the Run/Debug behaviour is a
+// Compiles + packages against LSP4IJ 0.20.1 here; the Run/Debug behaviour is a
 // manual in-IDE check (runIde).
 internal class VaderRunConfigurationType : ConfigurationTypeBase(
     "VaderRunConfiguration",
@@ -37,6 +37,12 @@ internal class VaderConfigurationFactory(type: ConfigurationType) : Configuratio
         val config = VaderRunConfiguration(project, this, "Vader")
         // Pin to our registered debugAdapterServer (see VaderDebugAdapterServerFactory)
         // + map *.vader for breakpoints. The user only picks the file to run.
+        //
+        // NOTE: LSP4IJ's DAP API is version-sensitive (ServerMappingSettings /
+        // DAPRunConfiguration signatures drift across releases), so the plugin
+        // MUST be built against the LSP4IJ version actually installed — a mismatch
+        // throws NoSuchMethodError here at RunManager init. See build.gradle.kts
+        // (pinned to LSP4IJ 0.20.1).
         config.serverId = SERVER_ID
         config.serverName = SERVER_NAME
         config.debugMode = DebugMode.LAUNCH
