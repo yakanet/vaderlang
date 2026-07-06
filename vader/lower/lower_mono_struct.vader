@@ -266,7 +266,7 @@ materialize_struct_instance :: fn(
 /// are erased to `Any` for the instance's own type-params, but a field
 /// whose type names another generic struct keeps that struct's concrete
 /// (or partially-erased) args — e.g. `MutableSet(i32)`'s erased field
-/// `inner: MutableMap(Any, bool)`. Such a shape is neither a directly
+/// `inner: MutableMap<Any, bool>`. Such a shape is neither a directly
 /// instantiated generic nor an all-Any representative, so nothing else
 /// materialises it and the bytecode interner mints an orphan `ref
 /// MutableMap`. This pass walks every emitted struct decl's fields,
@@ -408,7 +408,7 @@ materialize_impl_for_instance :: fn(
     impl_typed: TypedProgram, owner_typed: TypedProgram,
     project_ctx: LowerProjectCtx, project: LoweredProject,
 ) -> void {
-    // Erasure : self type uses any-leaves args (Stack(Any) instead of
+    // Erasure : self type uses any-leaves args (Stack<Any> instead of
     // Stack(i32)) and the substitution carried into params / body maps
     // T → Any. Concrete monos that share the same impl shape post-
     // erasure can then collapse to a single C-emit body. Mangled name

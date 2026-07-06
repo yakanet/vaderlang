@@ -72,7 +72,7 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     is AnyType        -> b is AnyType
     is PrimitiveType as ax  -> if b is PrimitiveType as bx { ax.name == bx.name } else { false }
     is TypeParamType as ax  -> if b is TypeParamType as bx { ax.symbol.id == bx.symbol.id } else { false }
-    // `StructType(EnumSym)` is the placeholder `type_from_expr` returns
+    // `StructType<EnumSym>` is the placeholder `type_from_expr` returns
     // for enum names ; treat it as equivalent to the real `EnumType` so
     // body-time assignability (annotation vs inferred) doesn't fight the
     // placeholder/proper distinction.

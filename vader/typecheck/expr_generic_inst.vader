@@ -1,4 +1,4 @@
-// vader/typecheck/expr_generic_inst — `fn[T]()` explicit generic
+// vader/typecheck/expr_generic_inst — `fn<T>()` explicit generic
 // instantiation in value position.
 //
 // MVP : type the callee, lower each type-arg for side-effects, return

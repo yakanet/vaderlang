@@ -153,7 +153,7 @@ export or_all :: fn(span: Span, parts: LoweredExpr[]) -> LoweredExpr {
 }
 
 /// Initialisation result for a let-binding whose owning slot may need
-/// heap-promotion to a `Cell(T)`. The lowerer threads `slot_type` into
+/// heap-promotion to a `Cell<T>`. The lowerer threads `slot_type` into
 /// the binding's static type and `value` into its initialiser.
 export CellInit :: struct {
     value:     LoweredExpr

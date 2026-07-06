@@ -1,7 +1,7 @@
 // vader/typecheck/struct_bounds — struct-level bound enforcement at
 // instantiation sites.
 //
-// When the user writes `Foo[Bar]`, the typechecker must verify that
+// When the user writes `Foo<Bar>`, the typechecker must verify that
 // `Bar` satisfies every bound on `Foo`'s typeParams (e.g.
 // `Foo[T: Display]` rejects `Foo[i32]` if `i32` doesn't impl
 // `Display`). The check belongs at struct-instantiation time, inside

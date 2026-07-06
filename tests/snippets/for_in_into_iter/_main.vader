@@ -1,4 +1,4 @@
-// `for x in target` desugars via `Into(Iterator(T))`. Four shapes
+// `for x in target` desugars via `Into<Iterator<T>>`. Four shapes
 // covered : array (existing fast path, no Into coerce needed), map and
 // set (impls in std/collections), string (impl in std/string —
 // codepoint default, so UTF-8 multi-byte sequences count as one).
@@ -7,7 +7,7 @@ module "snippet"
 
 import "std/io" { println }
 import "std/collections" { MutableMap, MutableSet, add }
-// `chars` anchors std/string's blanket `string implements Into(Iterator(char))`
+// `chars` anchors std/string's blanket `string implements Into<Iterator<char>>`
 // impl into scope ; the `for _c in <string>` leg routes through it at lowering.
 import "std/string" { chars }
 
@@ -40,7 +40,7 @@ main :: fn() -> i32 {
     }
     println("set=${set_total}")
 
-    // string — codepoint iter via the default Into(Iterator(char)) impl.
+    // string — codepoint iter via the default Into<Iterator<char>> impl.
     // "héllo 世界" is 8 codepoints across 13 UTF-8 bytes (`é` is 2 bytes,
     // each CJK glyph is 3). chars=8 proves codepoint-level iteration ;
     // byte-level would print 13.

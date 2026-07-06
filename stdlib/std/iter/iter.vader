@@ -11,7 +11,7 @@
 //     source-driven combinators). Their tuple elements destructure in `for [x, y]
 //     in`. The generator's state machine only materialises when the value escapes.
 //   - **Terminals** `collect` / `fold` / `sum` / `any` / `all` / `find` /
-//     `find_map` take an `Iterator(T)` and consume it (a raw array auto-coerces
+//     `find_map` take an `Iterator<T>` and consume it (a raw array auto-coerces
 //     at the call site). `count` / `is_empty` / `last` are the `Iterator` trait's
 //     own default methods (`std/core`).
 //   - **Array helpers** `clone` / `is_empty` take a `T[]`. For a plain array
@@ -118,7 +118,7 @@ export zip :: fn<T, U>(self: T[], other: U[]) -> Iterator<[T, U]> {
 /// array) when consumed by a `for` loop or a terminal.
 /// @param self   first source iterator (a raw array auto-coerces at the call site).
 /// @param other  second source, streamed after `self` is exhausted.
-/// @return       a lazy `Iterator(T)` over `self` followed by `other`.
+/// @return       a lazy `Iterator<T>` over `self` followed by `other`.
 @generator
 export chain :: fn<T>(self: Iterator<T>, other: Iterator<T>) -> Iterator<T> {
     for x in self { yield x }
@@ -157,8 +157,8 @@ export flat_map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U[]) -> Iterator<U> {
 
 // ---------------------------------------------------------------- short-circuit
 //
-// Each combinator takes an `Iterator(T)`. Raw arrays are accepted at the
-// call site via the blanket `T[] implements[T] Into(Iterator(T))` impl in
+// Each combinator takes an `Iterator<T>`. Raw arrays are accepted at the
+// call site via the blanket `T[] implements<T> Into<Iterator<T>>` impl in
 // `std/core` — both direct (`any(arr, p)`) and UFCS (`arr.any(p)`) forms
 // auto-coerce.
 
@@ -221,7 +221,7 @@ export find_map :: fn<T, U>(it: Iterator<T>, f: fn(T) -> U | null) -> U | null {
 // Lazy iterator chains
 // ============================================================================
 //
-// Each combinator below is a `@generator` over a source `Iterator(T)` : it
+// Each combinator below is a `@generator` over a source `Iterator<T>` : it
 // `yield`s transformed elements one at a time, so a chain stays lazy — an
 // element only flows through when the downstream consumer pulls it (`next()`,
 // or `for x in chain {…}`). The fluent shape (`it.map(f).filter(p)`) reads
@@ -231,7 +231,7 @@ export find_map :: fn<T, U>(it: Iterator<T>, f: fn(T) -> U | null) -> U | null {
 // single counter loop when it bottoms at an inline range or `arr.iter()`.
 
 /// Fluent lazy `filter`. Distinct from the eager `T[]`-overload above —
-/// the resolver picks this one when the receiver implements `Iterator(T)`
+/// the resolver picks this one when the receiver implements `Iterator<T>`
 /// (Range, ArrayIterator, MutableMap, …).
 @generator
 export filter :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> Iterator<T> {

@@ -208,8 +208,8 @@ walk_impl_decl :: fn(self: ResolveState, d: AST.ImplDecl) -> void {
         }
     }
     // Auto-bind type params from `for_type` when the impl head
-    // omits the explicit `[T]` block (e.g. `Stack[T] implements
-    // Trait[T]` without `implements[T] Trait[T]`). The args of a
+    // omits the explicit `[T]` block (e.g. `Stack<T> implements
+    // Trait<T>` without `implements<T> Trait<T>`). The args of a
     // generic for_type that look like fresh idents become TypeParams.
     self.auto_bind_for_type_params(d.for_type)
     self.walk_expr(d.for_type)

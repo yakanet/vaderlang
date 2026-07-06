@@ -58,8 +58,8 @@ export find_core_trait :: fn(ctx: LowerProjectCtx, name: string) -> Symbol | nul
     }
 }
 
-/// Build the `Yield(T) | null` union the for-in step loop uses as the
-/// `Iterator(T).next()` return type.
+/// Build the `Yield<T> | null` union the for-in step loop uses as the
+/// `Iterator<T>.next()` return type.
 /// @param yielded  the element type yielded by the iterator.
 /// @return         the resolved union type.
 export union_of_yield_null :: fn(yielded: Type) -> Type {

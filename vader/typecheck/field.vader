@@ -163,7 +163,7 @@ try_free_fn_ufcs_dispatch :: fn(
     free_ufcs :: try_free_fn_ufcs_with_first(e.field, target_ty, typed)
     if free_ufcs == null { return null }
     typed.ufcs_receiver_types[e.id] = free_ufcs.first_param
-    // A `T[]` receiver fitting an `Iterator(T)` first param coerces through the
+    // A `T[]` receiver fitting an `Iterator<T>` first param coerces through the
     // very `.into()` the lowerer synthesizes at `lower_ufcs`. Record it on the
     // receiver expr so the LSP surfaces the `.into()` hint here too — the
     // receiver decision goes through `receiver_fits_first_param`, not `try_into`,
@@ -578,7 +578,7 @@ check_trait_ambiguity :: fn(
 }
 
 // Substitute the impl method's TypeParams against the receiver's
-// concrete type args. Lets `MutableSet[T] implements ... { contains
+// concrete type args. Lets `MutableSet<T> implements ... { contains
 // :: fn(self, value: T) -> bool }` produce `fn(i32) -> bool` when
 // called on `MutableSet(i32)`.
 substitute_impl_method :: fn(impl_ty: Type, target_ty: Type, typed: TypedProgram) -> Type {
@@ -716,7 +716,7 @@ substitute_trait_typeparams :: fn(
     impl_args :: per_struct[trait_name]
     if impl_args is null { return t }
     // The impl args might themselves reference TypeParams from the
-    // implementing struct (`Range[T] implements Iterator[T]` records
+    // implementing struct (`Range<T> implements Iterator<T>` records
     // `[T]` where T is Range's). Resolve those against the receiver's
     // concrete args first so `(10..=15).last()` ends up `i32 | null`.
     resolved_args: Type[] = []
@@ -761,7 +761,7 @@ try_trait_method :: fn(t: TraitType, name: string, typed: TypedProgram) -> Type 
     decl :: typed.trait_decls[t.symbol.id]
     if decl is null { return null }
     // Resolve the trait method's param + return types against the
-    // OWNER module's resolved.idents — std/core's `Iterator(T).next`
+    // OWNER module's resolved.idents — std/core's `Iterator<T>.next`
     // signature references `T` (a Symbol minted during std/core's
     // resolve pass), so typing it against the entry's idents would
     // hand back Unresolved.
@@ -902,7 +902,7 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
 // (b) the param is a wildcard TypeParam, or (c) the param is a trait the
 // receiver implements.
 // Trait widening here covers user `T implements Trait` impls AND
-// `Array(T) implements Iterator(T)` (which is hardcoded via `try_array_to_iter`
+// `Array<T> implements Iterator<T>` (which is hardcoded via `try_array_to_iter`
 // because adding it to `is_assignable` bloats c-emit).
 receiver_fits_first_param :: fn(target_ty: Type, first: Type, typed: TypedProgram) -> bool {
     if is_assignable(target_ty, first, null) { return true }

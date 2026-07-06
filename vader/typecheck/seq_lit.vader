@@ -4,7 +4,7 @@
 // decides via contextual disambiguation against `expected` :
 //
 //   - Tuple(T0..Tn-1)  → tuple, element-wise (arity must match)
-//   - Array(T)         → array, every element checked against T
+//   - Array<T>         → array, every element checked against T
 //   - Union(...)       → pick a Tuple variant whose arity matches,
 //                        otherwise the first Array variant ; recurse
 //   - no expected      → default-if-free each element, then array

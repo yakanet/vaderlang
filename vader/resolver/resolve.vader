@@ -53,7 +53,7 @@ export ResolvedModule :: struct {
     imports_to: MutableMap<i32, Symbol>
     /// `alias_types[sym.id]` carries the resolved Type for any
     /// `TypeAlias` symbol (local or imported). Lets `type_from_expr`
-    /// expand `Maybe(T)` to `T | null` instead of leaving it as a
+    /// expand `Maybe<T>` to `T | null` instead of leaving it as a
     /// placeholder StructType. Populated by the typecheck orchestrator.
     alias_types: MutableMap<i32, Type>
     /// `alias_decls[sym.id]` carries the `TypeAliasDecl` AST node so

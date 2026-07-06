@@ -52,7 +52,7 @@ export infer_dot_variant :: fn(
     return TY_UNRESOLVED
 }
 
-// `type_from_expr` returns a `StructType(EnumSym)` placeholder for enum
+// `type_from_expr` returns a `StructType<EnumSym>` placeholder for enum
 // names — the proper `EnumType` (with `indices`) only lands in
 // `decl_types[name_span]` via `declare_enum`. This helper swaps the
 // placeholder back to the real EnumType when one is available, falling

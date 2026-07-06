@@ -5,7 +5,7 @@
 // insertion-sort cutoff for sub-ranges of length ≤ 16 (avoids the merge
 // overhead — same cutoff Java's TimSort uses by default).
 //
-// Why not trait-driven (`Comparable(T)`) ? Direct trait-method dispatch on a
+// Why not trait-driven (`Comparable<T>`) ? Direct trait-method dispatch on a
 // bounded type parameter (`$T : Comparable`) isn't yet wired in the lowerer
 // (TODO §1.18b). Once it lands we'll add `sort_by_compare(arr)` that calls
 // `Comparable::compare` internally.

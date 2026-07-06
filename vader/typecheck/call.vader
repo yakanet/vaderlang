@@ -149,7 +149,7 @@ no_diags :: fn() -> Diagnostic[] { return [] }
 // Re-unify a UFCS-curried fn's original first param (the receiver
 // type, stashed in `ufcs_receiver_types` at FieldExpr time) against
 // the receiver itself so type-params from the dispatched fn (e.g.
-// `fn[T](x: T) -> T` called as `42.identity()`) get their bindings
+// `fn<T>(x: T) -> T` called as `42.identity()`) get their bindings
 // before arg unification.
 seed_ufcs_bindings :: fn(
     callee: AST.Expr, typed: TypedProgram, bindings: MutableMap<i32, Type>,
@@ -448,7 +448,7 @@ export infer_call :: fn(
         seed_explicit_type_args(c.callee, typed, bindings, diags)
         // UFCS dispatch : seed bindings from the receiver's type so
         // type-params bound by the (curried-away) first param
-        // (`fn[T](x: T) -> T` called as `42.identity()`) still
+        // (`fn<T>(x: T) -> T` called as `42.identity()`) still
         // substitute through the return type.
         seed_ufcs_bindings(c.callee, typed, bindings)
         arg_types: Type[] = []
@@ -456,7 +456,7 @@ export infer_call :: fn(
             param_ty :: substitute_map(callee_ty.params[i], bindings)
             arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
             unify_type_param(callee_ty.params[i], arg_ty, bindings)
-            // `fn[T](g: Greeter(T))` called with `Hello{}` (where
+            // `fn<T>(g: Greeter<T>)` called with `Hello{}` (where
             // `Hello implements Greeter(i32)`) : unify can't recover T
             // from a struct→trait dispatch — read it from the
             // recorded impl args.
@@ -480,7 +480,7 @@ export infer_call :: fn(
             bindings[k] = default_if_free(v)
         }
         // Box a Free* numeric arg into a trait-typed param : when `7`
-        // flows into `Doubler(T)` and `i32 implements Doubler(i32)`,
+        // flows into `Doubler<T>` and `i32 implements Doubler(i32)`,
         // record the substituted trait type on the arg expr so the
         // lowerer emits `int(7) :Doubler(i32)` (the boxed trait-object)
         // rather than a bare `i32`. Scoped to trait targets since the

@@ -82,7 +82,7 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
                 args.push(recv_arg)
                 for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
                 // UFCS-on-generic-fn instance harvest : when the target
-                // is `fn[T](x: T) -> T`, register a `GenericFnInstance` so
+                // is `fn<T>(x: T) -> T`, register a `GenericFnInstance` so
                 // `drain_generic_fn_instances` emits the body, and point
                 // the callee at the resulting monomorphic mangle (mirror of
                 // `register_and_emit_generic_call`'s ident path). A non-generic
@@ -143,7 +143,7 @@ find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsM
         }
     }
     // Cross-module free fn — `s.len()` against `MutableSet`'s
-    // `len :: fn[T](self: MutableSet(T)) -> usize` defined in
+    // `len :: fn<T>(self: MutableSet<T>) -> usize` defined in
     // `stdlib/std/collections.vader` even though the user file never
     // `import`s `len`.
     for [_, ep] in ctx.project.evaluated.modules {

@@ -27,7 +27,7 @@
 // past a 0.75 load factor. `MutableSet` wraps it (each member a `T → true`).
 
 // ===========================================================================
-// MutableMap(K, V) — compact open-addressed hash map. Live entries live in two
+// MutableMap<K, V> — compact open-addressed hash map. Live entries live in two
 // dense parallel arrays (`ekeys[i]` ↔ `evals[i]`) in insertion order; a sparse
 // `index` of `i32` maps a hash slot to an entry position (1-based; 0 = empty,
 // -1 = tombstone). Lookup hashes the key, probes the index (linear) skipping
@@ -88,7 +88,7 @@ export MutableMap :: struct<K: Hash & Equals, V> {
 
 // Method signatures below declare just `[K, V]` (no bound repetition) — the
 // `Hash & Equals` constraint is auto-inherited from the struct decl above by
-// the typecheck `inherit-bounds` pass when the first param is `MutableMap(K, V)`.
+// the typecheck `inherit-bounds` pass when the first param is `MutableMap<K, V>`.
 
 slot_for :: fn(h: u64, mask: usize) -> usize = usize(h) & mask
 
@@ -312,16 +312,16 @@ MutableMap<K, V> implements<K, V> Into<Iterator<Entry<K, V>>> {
 }
 
 // ===========================================================================
-// MutableSet(T) — hash-backed via a wrapping MutableMap. Each member is stored
+// MutableSet<T> — hash-backed via a wrapping MutableMap. Each member is stored
 // as a (T → true) entry, so lookups inherit the compact-map O(1) behaviour.
 // `where T: Hash + Equals` mirrors MutableMap's own bound.
 // ===========================================================================
 
 /// Hash set keyed by any `T` that implements `Hash & Equals`. Backed by a
-/// `MutableMap(T, bool)` — every member is stored as a `(T → true)` entry,
+/// `MutableMap<T, bool>` — every member is stored as a `(T → true)` entry,
 /// so lookups inherit the compact-map O(1)-average behaviour.
 export MutableSet :: struct<T: Hash & Equals> {
-    /// Backing map. Defaults empty so `MutableSet(T) {}` is a valid literal.
+    /// Backing map. Defaults empty so `MutableSet<T> {}` is a valid literal.
     @internal
     inner: MutableMap<T, bool> = MutableMap<T, bool> {}
 }

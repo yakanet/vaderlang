@@ -157,7 +157,7 @@ declare_decl :: fn(
 /// Shared minter for Struct / Trait decls — they only differ in the
 /// `Type` constructor (`mk_struct` vs `mk_trait`). Mints one fresh
 /// TypeParam Symbol per declared `[T]` so the resulting Type renders
-/// as `Foo(T)` rather than `Foo(?)`. The resolver mints type-params in
+/// as `Foo<T>` rather than `Foo(?)`. The resolver mints type-params in
 /// the body-walker scope ; we re-mint here because they're not exposed
 /// at the top-level symbol table.
 declare_named_with_args :: fn(

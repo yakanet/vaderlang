@@ -2,7 +2,7 @@
 //
 // Runs after `wire_imports` (so the redirect table is available) and
 // before the typechecker walks bodies. Today the pass owns the R2018
-// orphan-rule check : `Type implements Trait[Args]` is legal only when
+// orphan-rule check : `Type implements Trait<Args>` is legal only when
 // the current module owns `Type` *or* `Trait` (primitives exempt).
 //
 // Lives in its own file so future project-level checks (e.g.

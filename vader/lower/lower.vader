@@ -189,7 +189,7 @@ export lower_project :: fn(
     materialize_representatives(loaded, typed, project_ctx, project, rep_seen)
     // Transitively materialise generic-struct shapes referenced by the
     // fields of the structs emitted above (concrete + representative),
-    // e.g. `MutableSet(i32)`'s erased `inner: MutableMap(Any, bool)` —
+    // e.g. `MutableSet(i32)`'s erased `inner: MutableMap<Any, bool>` —
     // otherwise the bytecode interner mints an orphan `ref` for them.
     close_over_field_shapes(loaded, typed, project_ctx, project)
     // Place the synthesised `concat_N` decls into the entry module — ONCE,

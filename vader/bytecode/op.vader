@@ -337,7 +337,7 @@ export RefCast :: struct { type_id: i32 }
 /// Box a concrete primitive value on the stack into an erased `vader_box_t`
 /// tagged with `type_id` (the value's SEMANTIC BcType). Inserted at an erasure
 /// boundary where a concrete primitive flows into an erased `ref`/union slot —
-/// e.g. a `MutableMap(K, V)::get` returning `evals[i] : usize` as `V | null`.
+/// e.g. a `MutableMap<K, V>::get` returning `evals[i] : usize` as `V | null`.
 /// Needed because the C-emit's implicit return-coercion only has the coarse
 /// `ValType` (`I64`) and would box with the wrong primitive tag (`i64` not
 /// `usize`), breaking a downstream `is usize`. The VM carries coarse value tags

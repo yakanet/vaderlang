@@ -1,16 +1,15 @@
-// Layer 4-sugar : bracketed type-param syntax `fn[T]` and `struct[T]`.
-// The new form coexists with the legacy `fn(arg: $T)` and `struct($T)`
-// during the migration window — both produce the same AST shape.
+// Angle-bracket generic declarations : type-param heads `fn<T>` / `struct<T>`,
+// the only accepted form (SPEC §"Type parameters" — no bracket or paren form).
 
-// Generic fn, new bracketed form
+// Generic fn
 module "snippet"
 
 identity :: fn<T>(x: T) -> T = x
 
-// Generic fn, multiple type-params, multiple bracketed
+// Generic fn, multiple type-params
 swap :: fn<A, B>(a: A, b: B) -> B = b
 
-// Generic struct, bracketed form
+// Generic struct
 Pair :: struct<A, B> {
     first: A
     second: B

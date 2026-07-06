@@ -139,7 +139,7 @@ intrinsic_type_kind :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext)
 
 // ---- helpers --------------------------------------------------------------
 
-// Resolve `expr` (a type-position expression like `i32` or `MutableMap(K, V)`)
+// Resolve `expr` (a type-position expression like `i32` or `MutableMap<K, V>`)
 // to a `Type`. Returns null when resolution fails — the caller surfaces
 // C4011 with a friendly message.
 resolve_type_arg :: fn(expr: AST.Expr, context: ComptimeContext) -> Type | null {

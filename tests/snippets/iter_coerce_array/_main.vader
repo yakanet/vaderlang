@@ -1,10 +1,10 @@
-// Implicit `[T]` → `Iterator(T)` coercion at three slot kinds: call arg,
+// Implicit `[T]` → `Iterator<T>` coercion at three slot kinds: call arg,
 // `let` with explicit type annotation, and `return` from a fn typed
-// `Iterator(T)`. Without the coercion the typecheck would emit T3001 and
-// the lowerer would never wrap the array into `ArrayIterator(T)`. The
+// `Iterator<T>`. Without the coercion the typecheck would emit T3001 and
+// the lowerer would never wrap the array into `ArrayIterator<T>`. The
 // `arrayIterCoercions` side-table populated by the typechecker (`call.ts`,
 // `stmt.ts`) is consumed by `lowerExpr` (`expr.ts`) to materialise the
-// wrap; the comptime engine pre-registers the matching `ArrayIterator(T)`
+// wrap; the comptime engine pre-registers the matching `ArrayIterator<T>`
 // instance so mono materialises the specialised step impl.
 
 module "snippet"

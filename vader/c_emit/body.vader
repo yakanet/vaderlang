@@ -272,7 +272,7 @@ export box_expr_unknown :: fn(types: BcType[], name: string, val: ValType) -> st
 /// family". Mirrors `prefix_before_double_underscore` in
 /// `vader/vm/value.vader` — the VM's erasure-aware `type_check` uses the same
 /// grouping so a runtime sibling shape (`Entry(i32,i32)`) matches a static
-/// erased one (`Entry(Any,Any)`).
+/// erased one (`Entry<Any,Any>`).
 export prefix_before_double_underscore :: fn(s: string) -> string {
     sb :: s.bytes()
     n :: sb.len()

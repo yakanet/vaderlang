@@ -11,7 +11,7 @@ module "vader/typecheck"
 import "vader/types" { Type, FnType, display_type, TRAIT_ITERATOR }
 
 /// Look up `${got}::into::${expected}` in the impl-method index. The
-/// per-target keying lets a source type carry multiple `Into(T)`
+/// per-target keying lets a source type carry multiple `Into<T>`
 /// impls (e.g. `Into(i32)` AND `Into(string)`) without collision.
 /// Union targets never coerce — the typer can't pick a variant —
 /// so they fall through to the standard T3001 mismatch.
@@ -36,7 +36,7 @@ export try_into :: fn(got: Type, expected: Type, typed: TypedProgram, node_id: u
     // Trait widening : `Cat → Animal` when `Cat implements Animal`. This
     // is a subtype widen, not an `.into()` call — record nothing.
     if try_trait_widen(got, expected, typed) { return true }
-    // `T[] → Iterator(T)` : lowerer materialises `ArrayIterator(T)`
+    // `T[] → Iterator<T>` : lowerer materialises `ArrayIterator<T>`
     // at the call site. Lives in `try_into` (not `is_assignable`) to
     // keep the recursive assignability check small enough that
     // c-emit doesn't monomorphise a 3× larger main.c.
@@ -101,7 +101,7 @@ iter_trait_for_test :: fn(elem: Type) -> Type {
     return mk_trait(sym, [elem])
 }
 
-// `T[] → Iterator(T)` is a real `.into()` coercion : `try_into` records the
+// `T[] → Iterator<T>` is a real `.into()` coercion : `try_into` records the
 // target type under the value's node id so the LSP can surface a `.into()`
 // hint (the array-into-Iterator param case from the feature request).
 @test
