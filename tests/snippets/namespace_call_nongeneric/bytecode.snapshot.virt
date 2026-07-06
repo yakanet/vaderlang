@@ -25,9 +25,7 @@ fn 1 std_string$trim (string) -> string
   local n usize
   local lo usize
   local and_res bool
-  local $k_12 usize
   local $sub_18 usize
-  local $k_22 usize
   local.get 0
   call.import 1
   local.tee 1
@@ -53,10 +51,8 @@ fn 1 std_string$trim (string) -> string
       end $L2
       local.get 4
       if $L3 void
-        i64.const 1
-        local.set 5
         local.get 3
-        local.get 5
+        i64.const 1
         i64.add
         local.set 3
         br $L1
@@ -72,14 +68,12 @@ fn 1 std_string$trim (string) -> string
       local.get 3
       u64.gt
       if $L6 void
-        i64.const 1
-        local.set 5
         local.get 2
-        local.get 5
+        i64.const 1
         i64.sub
-        local.set 6
+        local.set 5
         local.get 1
-        local.get 6
+        local.get 5
         array.get 4
         ref.cast 5
         call 2
@@ -90,10 +84,8 @@ fn 1 std_string$trim (string) -> string
       end $L6
       local.get 4
       if $L7 void
-        i64.const 1
-        local.set 7
         local.get 2
-        local.get 7
+        i64.const 1
         i64.sub
         local.set 2
         br $L5
@@ -110,49 +102,40 @@ fn 1 std_string$trim (string) -> string
 end
 
 fn 2 std_string$is_white_byte (u8) -> bool
-  local $k_1 u8
   local or_res bool
-  i32.const 32
-  local.set 1
   local.get 0
-  local.get 1
+  i32.const 32
   i32.eq
   if $L0 void
     bool.const true
-    local.set 2
-  else
-    i32.const 9
     local.set 1
+  else
     local.get 0
-    local.get 1
+    i32.const 9
     i32.eq
-    local.set 2
+    local.set 1
   end $L0
-  local.get 2
+  local.get 1
   if $L1 void
     bool.const true
-    local.set 2
-  else
-    i32.const 10
     local.set 1
+  else
     local.get 0
-    local.get 1
+    i32.const 10
     i32.eq
-    local.set 2
+    local.set 1
   end $L1
-  local.get 2
+  local.get 1
   if $L2 void
     bool.const true
-    local.set 2
-  else
-    i32.const 13
     local.set 1
+  else
     local.get 0
-    local.get 1
+    i32.const 13
     i32.eq
-    local.set 2
+    local.set 1
   end $L2
-  local.get 2
+  local.get 1
   return
 end
 

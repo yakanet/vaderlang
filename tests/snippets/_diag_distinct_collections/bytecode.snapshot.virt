@@ -12,7 +12,6 @@ fn 0 snippet$sum_ids (ref) -> i32
   local __for_len_1 usize
   local __for_i_2 usize
   local $cast_12 i32
-  local $k_14 usize
   i32.const 0
   local.set 1
   local.get 0
@@ -36,10 +35,8 @@ fn 0 snippet$sum_ids (ref) -> i32
         local.get 5
         i32.add
         local.set 1
-        i64.const 1
-        local.set 6
         local.get 4
-        local.get 6
+        i64.const 1
         i64.add
         local.set 4
         br $L1

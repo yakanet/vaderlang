@@ -11,47 +11,38 @@ export main 3
 
 fn 0 snippet$can_go (u8) -> bool
   local __scrut_0 u8
-  local $k_2 u8
   local or_res bool
   local.get 0
   local.set 1
-  i32.const 2
-  local.set 2
   local.get 1
-  local.get 2
+  i32.const 2
   i32.eq
   if $L0 void
     return.lit bool.const true
   end $L0
-  i32.const 0
-  local.set 2
   local.get 1
-  local.get 2
+  i32.const 0
   i32.eq
   if $L1 void
     bool.const true
-    local.set 3
-  else
-    i32.const 1
     local.set 2
+  else
     local.get 1
-    local.get 2
+    i32.const 1
     i32.eq
-    local.set 3
+    local.set 2
   end $L1
-  local.get 3
+  local.get 2
   if $L2 void
     bool.const true
-    local.set 3
-  else
-    i32.const 3
     local.set 2
+  else
     local.get 1
-    local.get 2
+    i32.const 3
     i32.eq
-    local.set 3
+    local.set 2
   end $L2
-  local.get 3
+  local.get 2
   if $L3 void
     return.lit bool.const false
   end $L3

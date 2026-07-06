@@ -28,12 +28,10 @@ fn 0 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 usize
   local $cast_22 i64
-  local $k_25 usize
   local v i32
   local $arr_66 ref
+  local __for_i_2 usize
   local __off_11 usize
-  local $k_95 usize
-  local $k_97 usize
   i32.const 1
   i32.const 2
   i32.const 3
@@ -79,10 +77,8 @@ fn 0 snippet$main () -> i32
         local.get 6
         call 2
         call 5
-        i64.const 1
-        local.set 8
         local.get 2
-        local.get 8
+        i64.const 1
         i64.add
         local.set 2
         br $L1
@@ -121,7 +117,7 @@ fn 0 snippet$main () -> i32
         i32.eq
         if $L6 void
           local.get 3
-          local.set 9
+          local.set 8
           i64.const 22
           call 1
           local.set 5
@@ -132,7 +128,7 @@ fn 0 snippet$main () -> i32
           string.const 1
           call 3
           local.set 6
-          local.get 9
+          local.get 8
           i32.to_i64
           local.set 7
           local.get 5
@@ -146,10 +142,8 @@ fn 0 snippet$main () -> i32
           call 5
         else
         end $L6
-        i64.const 1
-        local.set 8
         local.get 2
-        local.get 8
+        i64.const 1
         i64.add
         local.set 2
         br $L4
@@ -167,10 +161,10 @@ fn 0 snippet$main () -> i32
   i32.const 4
   i32.const 5
   array.new 2 2
-  local.set 10
+  local.set 9
   local.get 0
   local.get 5
-  local.get 10
+  local.get 9
   array.new 4 3
   local.tee 0
   array.len
@@ -190,23 +184,23 @@ fn 0 snippet$main () -> i32
         array.len
         local.set 6
         i64.const 0
-        local.set 8
+        local.set 10
         block $L10 void
           loop $L11 void
-            local.get 8
+            local.get 10
             local.get 6
             u64.lt
             if $L12 void
               local.get 5
-              local.get 8
+              local.get 10
               load_slot_i32
               local.set 3
               i64.const 22
               call 1
-              local.set 10
+              local.set 9
               i64.const 0
               local.set 11
-              local.get 10
+              local.get 9
               local.get 11
               string.const 2
               call 3
@@ -214,30 +208,26 @@ fn 0 snippet$main () -> i32
               local.get 3
               i32.to_i64
               local.set 7
-              local.get 10
+              local.get 9
               local.get 11
               local.get 7
               call 4
               local.set 11
-              local.get 10
+              local.get 9
               local.get 11
               call 2
               call 5
+              local.get 10
               i64.const 1
-              local.set 12
-              local.get 8
-              local.get 12
               i64.add
-              local.set 8
+              local.set 10
               br $L11
             else
             end $L12
           end $L11
         end $L10
-        i64.const 1
-        local.set 13
         local.get 2
-        local.get 13
+        i64.const 1
         i64.add
         local.set 2
         br $L8
@@ -278,35 +268,29 @@ fn 3 std_core$write_string_at (ref,usize,string) -> usize
 end
 
 fn 4 std_core$write_int (ref,usize,i64) -> usize
-  local $k_5 u8
-  local $k_6 usize
   local neg bool
+  local ndigits usize
   local m i64
-  local $k_19 usize
-  local $k_24 usize
+  local if_res usize
   local $cast_37 u8
   local $add_38 u8
   local.get 2
   i64.const 0
   i64.eq
   if $L0 void
-    i32.const 48
-    local.set 3
     local.get 0
     local.get 1
-    local.get 3
+    i32.const 48
     call 7
-    i64.const 1
-    local.set 4
     local.get 1
-    local.get 4
+    i64.const 1
     i64.add
     return
   end $L0
   local.get 2
   i64.const 0
   i64.lt
-  local.set 5
+  local.set 3
   local.get 2
   i64.const 0
   i64.gt
@@ -319,73 +303,65 @@ fn 4 std_core$write_int (ref,usize,i64) -> usize
   i64.const 0
   local.set 4
   local.get 2
-  local.set 6
+  local.set 5
   block $L2 void
     loop $L3 void
-      local.get 6
+      local.get 5
       i64.const 0
       i64.ne
       if $L4 void
-        i64.const 1
-        local.set 7
         local.get 4
-        local.get 7
+        i64.const 1
         i64.add
         local.set 4
-        local.get 6
+        local.get 5
         i64.const 10
         i64.div
-        local.set 6
+        local.set 5
         br $L3
       else
       end $L4
     end $L3
   end $L2
-  local.get 5
+  local.get 3
   if $L5 void
-    i64.const 1
-    local.set 8
     local.get 4
-    local.get 8
+    i64.const 1
     i64.add
-    local.set 7
+    local.set 6
   else
     local.get 4
-    local.set 7
+    local.set 6
   end $L5
-  local.get 7
+  local.get 6
   local.set 4
   local.get 1
   local.get 4
   i64.add
-  local.set 7
+  local.set 6
   block $L6 void
     loop $L7 void
       local.get 2
       i64.const 0
       i64.ne
       if $L8 void
+        local.get 6
         i64.const 1
-        local.set 8
-        local.get 7
-        local.get 8
         i64.sub
-        local.set 7
-        i32.const 48
-        local.set 3
+        local.set 6
         local.get 2
         i64.const 10
         i64.rem
         i64.neg
         i64.to_i32
-        local.set 9
-        local.get 3
-        local.get 9
-        i32.add
-        local.set 10
-        local.get 0
+        local.set 7
+        i32.const 48
         local.get 7
-        local.get 10
+        i32.add
+        local.set 8
+        local.get 0
+        local.get 6
+        local.get 8
         call 7
         local.get 2
         i64.const 10
@@ -396,13 +372,11 @@ fn 4 std_core$write_int (ref,usize,i64) -> usize
       end $L8
     end $L7
   end $L6
-  local.get 5
+  local.get 3
   if $L9 void
-    i32.const 45
-    local.set 3
     local.get 0
     local.get 1
-    local.get 3
+    i32.const 45
     call 7
   else
   end $L9

@@ -95,38 +95,31 @@ end
 
 fn 2 snippet$lane_call (u8,bool) -> string
   local __scrut_0 u8
-  local $k_3 u8
   local and_res bool
   local.get 0
   local.set 2
-  i32.const 1
-  local.set 3
   local.get 2
-  local.get 3
+  i32.const 1
   i32.eq
   if $L0 void
     local.get 1
-    local.set 4
+    local.set 3
   else
     bool.const false
-    local.set 4
+    local.set 3
   end $L0
-  local.get 4
+  local.get 3
   if $L1 void
     return.lit string.const 5
   end $L1
-  i32.const 1
-  local.set 3
   local.get 2
-  local.get 3
+  i32.const 1
   i32.eq
   if $L2 void
     return.lit string.const 6
   end $L2
-  i32.const 0
-  local.set 3
   local.get 2
-  local.get 3
+  i32.const 0
   i32.eq
   if $L3 void
     return.lit string.const 7
@@ -139,7 +132,6 @@ fn 3 snippet$main () -> i32
   local $call_4 string
   local $call_7 string
   local $k_9 ref
-  local $k_17 u8
   i32.const 250
   call 0
   local.set 0
@@ -174,20 +166,14 @@ fn 3 snippet$main () -> i32
   call 5
   call 9
   i32.const 1
-  local.set 4
-  local.get 4
   bool.const true
   call 2
   local.set 0
   i32.const 1
-  local.set 4
-  local.get 4
   bool.const false
   call 2
   local.set 1
   i32.const 0
-  local.set 4
-  local.get 4
   bool.const false
   call 2
   local.set 2
@@ -208,7 +194,6 @@ fn 4 concat_5 (string,string,string,string,string) -> string
   local $call_13 usize
   local $call_16 usize
   local buf ref
-  local $k_21 usize
   local.get 0
   call 7
   local.set 5
@@ -242,10 +227,8 @@ fn 4 concat_5 (string,string,string,string,string) -> string
   local.tee 9
   call 6
   local.set 10
-  i64.const 0
-  local.set 11
   local.get 10
-  local.get 11
+  i64.const 0
   local.get 0
   call 12
   local.get 10
@@ -275,7 +258,6 @@ fn 5 concat_3 (string,string,string) -> string
   local $call_5 usize
   local $call_8 usize
   local buf ref
-  local $k_13 usize
   local.get 0
   call 7
   local.set 3
@@ -295,10 +277,8 @@ fn 5 concat_3 (string,string,string) -> string
   local.tee 5
   call 6
   local.set 6
-  i64.const 0
-  local.set 7
   local.get 6
-  local.get 7
+  i64.const 0
   local.get 0
   call 12
   local.get 6
