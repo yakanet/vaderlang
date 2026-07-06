@@ -1,0 +1,8 @@
+// Reassigning a mutable local with an incompatible type — T3063.
+module "snippet"
+
+main :: fn() -> i32 {
+    y := 5
+    y = "nope"
+    return 0
+}

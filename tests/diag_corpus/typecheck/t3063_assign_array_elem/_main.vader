@@ -1,0 +1,8 @@
+// Writing an incompatible type into an array element — T3063.
+module "snippet"
+
+main :: fn() -> i32 {
+    arr: i32[] = [1, 2, 3]
+    arr[0] = "nope"
+    return 0
+}

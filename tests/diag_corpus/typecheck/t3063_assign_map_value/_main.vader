@@ -1,0 +1,10 @@
+// Writing an incompatible value into a map's value slot — T3063.
+module "snippet"
+
+import "std/collections" { MutableMap }
+
+main :: fn() -> i32 {
+    m :: MutableMap<string, i32> {}
+    m["k"] = "nope"
+    return 0
+}

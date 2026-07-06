@@ -791,7 +791,7 @@ emit_range :: fn(ctx: FnEmitCfg, start: BlockId, until: BlockId) -> void {
             if exit_opt is BlockId as e {
                 cur = e
             } else {
-                cur = -1
+                cur = BlockId(-1)
             }
             continue
         }

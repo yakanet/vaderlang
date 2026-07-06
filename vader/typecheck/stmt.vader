@@ -341,6 +341,23 @@ emit_return_mismatch_if :: fn(
     typed: TypedProgram, diags: Diagnostic[],
 ) -> void = emit_mismatch_if(got, expected, span, node_id, .BodyReturnIncompatible, typed, diags)
 
+// The one coercion gate shared by let / return / yield / assign : `got` flows
+// into `expected` when it is assignable, or `Into`-coercible. `is_assignable`
+// runs first so `try_into`'s LSP into-hint side effect stays off the already-
+// assignable path. `node_id` is the value expr's `Expr.id` for that hint.
+//
+// Kept brace-bodied on purpose: the equivalent single-expr form
+// (`= is_assignable(...) || try_into(...)`) is inlined by the single-expr
+// inliner, and the committed bootstrap seed mis-interns a type through that
+// inline (an unrelated `DivergentNarrow[]` element collapses to `?` in
+// `check_block`, tripping the emit-time field-access panic). The current
+// compiler handles the single-expr form fine; the seed does not. Leave it
+// brace-bodied until the seed is advanced past that inliner/interning bug.
+flows_into :: fn(got: Type, expected: Type, node_id: usize, typed: TypedProgram) -> bool {
+    if is_assignable(got, expected, null) { return true }
+    return try_into(got, expected, typed, node_id)
+}
+
 // Push `code` when `got` doesn't flow into `expected` — neither assignable nor
 // `Into`-coercible. Shared by the return / yield mismatch checks so wording
 // stays in sync ; only the diagnostic code differs. `node_id` is the coerced
@@ -349,8 +366,7 @@ emit_mismatch_if :: fn(
     got: Type, expected: Type, span: Span, node_id: usize, code: TypecheckCode,
     typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    if is_assignable(got, expected, null) { return }
-    if try_into(got, expected, typed, node_id) { return }
+    if flows_into(got, expected, node_id, typed) { return }
     diags.push(typecheck_error(code, span,
         "expected ${display_type(expected)}, got ${display_type(got)}"))
 }
@@ -380,7 +396,7 @@ check_let :: fn(
         is null -> { declared = default_if_free(got) }
         _ -> {
             declared = ann
-            if !is_assignable(got, ann, null) && !try_into(got, ann, typed, s.value.id) {
+            if !flows_into(got, ann, s.value.id, typed) {
                 diags.push(typecheck_error(.TypeMismatch, s.span,
                     "expected ${display_type(ann)}, got ${display_type(got)}"))
             }
@@ -452,23 +468,83 @@ check_assign :: fn(
                     "cannot mutate `${display_type(target_arr_ty)}` — declared with `const`"))
                 return
             }
-            full_target_ty :: check_expr_fn(s.target, null, typed, diags)
-            check_expr_fn(s.value, full_target_ty, typed, diags)
+            // `arr[i]` types to the element type ; array elements are never
+            // flow-narrowed, so it is the declared slot type the write must fit.
+            elem_ty :: check_expr_fn(s.target, null, typed, diags)
+            value_ty :: check_expr_fn(s.value, elem_ty, typed, diags)
+            emit_assign_mismatch_if(value_ty, elem_ty, s.span, s.value.id, typed, diags)
             return
         }
         // Pin a free-literal write value to the IndexSet value type V
-        // (`m[k] = 9000000000`).
-        check_expr_fn(s.value, index_set_value_expected(target_arr_ty, typed), typed, diags)
+        // (`m[k] = 9000000000`) and check the write fits V. A `null` V means
+        // the receiver records no `IndexSet` impl — the read-side dispatch
+        // already surfaced that, so `emit_assign_mismatch_if` no-ops on it.
+        v_expected :: index_set_value_expected(target_arr_ty, typed)
+        value_ty :: check_expr_fn(s.value, v_expected, typed, diags)
+        emit_assign_mismatch_if(value_ty, v_expected, s.span, s.value.id, typed, diags)
         return
     }
     target_ty :: check_expr_fn(s.target, null, typed, diags)
     value_hint: Type | null = null
     if !(target_ty is UnresolvedType) { value_hint = target_ty }
     value_ty :: check_expr_fn(s.value, value_hint, typed, diags)
+    // Enforce the slot's *declared* type — not `target_ty`, which may be a
+    // flow-narrowing. `x: A|B = a ; if x is A { x = b_value }` is legal (the
+    // write retires the narrowing, per `invalidate_narrow_on_assign`), so the
+    // assignability check must target the declaration, not the narrowed view.
+    declared :: declared_lvalue_type(s.target, target_ty, typed)
+    emit_assign_mismatch_if(value_ty, declared, s.span, s.value.id, typed, diags)
     // A write to a narrowed binding / field chain retires its stale
     // narrowings — see `narrow.vader::invalidate_narrow_on_assign`.
     invalidate_narrow_on_assign(s.target, value_ty, typed)
     return
+}
+
+// Declared (pre-narrow) type of an assignment LHS — the slot type a write
+// must be assignable to. `type_of_symbol` skips the narrowing that
+// `infer_ident` layers on ; `declared_struct_field_type` skips
+// `narrow_field_if_active`. Any other lvalue shape (or an unresolved
+// lookup) falls back to `fallback` — the checked target type — which
+// already equals the declared type whenever no narrowing is active.
+//
+// Narrowing attaches to *only* `IdentExpr` and `FieldExpr` — the exact two
+// shapes handled explicitly — so `fallback` diverges from the declaration
+// only for those, and only while a narrowing is live. When the relevant
+// table is empty the fast path returns `fallback` and dodges the re-resolve
+// (and, for fields, the `declared_struct_field_type` sink allocation)
+// entirely. This must stay in lockstep with `invalidate_narrow_on_assign`
+// (`narrow.vader`) — a new narrowable lvalue shape has to be added to both.
+declared_lvalue_type :: fn(target: AST.Expr, fallback: Type, typed: TypedProgram) -> Type {
+    if target is AST.IdentExpr {
+        if typed.narrowed_bindings.is_empty() { return fallback }
+        sym :: typed.resolved.idents[target.span.hash()]
+        if sym == null { return fallback }
+        return type_of_symbol(sym, typed)
+    }
+    if target is AST.FieldExpr {
+        if typed.narrowed_fields.is_empty() { return fallback }
+        recv :: typed.expr_types[target.target.id]
+        if recv == null { return fallback }
+        d :: declared_struct_field_type(recv, target.field, typed)
+        if d == null { return fallback }
+        return d
+    }
+    return fallback
+}
+
+// Push T3063 when `got` doesn't flow into the declared slot type `expected`.
+// Same gate as `emit_mismatch_if` (via `flows_into`), only the wording and the
+// dedicated code differ. A `null` `expected` — e.g. a receiver with no recorded
+// `IndexSet` impl — has no declared slot to enforce (the read side already
+// surfaced any error), so it no-ops.
+emit_assign_mismatch_if :: fn(
+    got: Type, expected: Type | null, span: Span, node_id: usize,
+    typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    if expected == null { return }
+    if flows_into(got, expected, node_id, typed) { return }
+    diags.push(typecheck_error(.AssignTypeMismatch, span,
+        "cannot assign a value of type ${display_type(got)} to a slot of type ${display_type(expected)}"))
 }
 
 is_const_reassign :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
@@ -1088,6 +1164,18 @@ test_let_with_annotation_narrows_free_int :: fn() -> void {
 test_let_annotation_mismatch_emits_T3001 :: fn() -> void {
     out :: stub_check_module("f :: fn() -> void { x: i32 = \"hello\" }")
     assert(has_code(out.diags, "T3001"), "expected T3001 on annotation mismatch")
+}
+
+@test
+test_assign_incompatible_emits_T3063 :: fn() -> void {
+    out :: stub_check_module("f :: fn() -> void { y := 5\n    y = \"nope\" }")
+    assert(has_code(out.diags, "T3063"), "expected T3063 on incompatible reassignment")
+}
+
+@test
+test_assign_compatible_no_T3063 :: fn() -> void {
+    out :: stub_check_module("f :: fn() -> void { y := 5\n    y = 6 }")
+    assert(!has_code(out.diags, "T3063"), "compatible reassignment must not emit T3063")
 }
 
 @test

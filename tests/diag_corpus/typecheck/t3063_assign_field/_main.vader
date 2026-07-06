@@ -1,0 +1,12 @@
+// Writing an incompatible type to a struct field — T3063.
+module "snippet"
+
+Box :: struct {
+    value: i32
+}
+
+main :: fn() -> i32 {
+    b := Box { .value = 1 }
+    b.value = "nope"
+    return 0
+}

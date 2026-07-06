@@ -342,7 +342,7 @@ convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | n
     for p in d.params {
         slot :: i32(locals.len())
         locals.push(CFGLocal { .name = p.name, .type = p.type, .symbol = p.symbol })
-        local_by_sym_id[p.symbol.id] = slot
+        local_by_sym_id[p.symbol.id] = LocalId(slot)
         params.push(CFGParam {
             .name = p.name, .symbol = p.symbol, .type = p.type, .local = LocalId(slot),
         })

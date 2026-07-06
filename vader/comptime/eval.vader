@@ -25,7 +25,7 @@ AST :: import "vader/parser"
 /// Well above any legitimate comptime expression, well below the native stack
 /// capacity (which overflows a few thousand evaluator frames in), so the bound
 /// trips on cycles before the C stack does.
-COMPTIME_MAX_EVAL_DEPTH :: 2000
+COMPTIME_MAX_EVAL_DEPTH: i64: 2000
 
 export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult {
     // Depth guard — `context` is shared across operand recursion
