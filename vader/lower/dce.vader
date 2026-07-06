@@ -21,7 +21,6 @@ module "vader/lower"
 import "std/collections" { MutableMap }
 import "vader/parser" { FnDecl }
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { TRAIT_ERROR, StructType }
 
 /// Drop functions unreachable from the program roots, returning a new
 /// `LoweredProject`. Structs and consts survive verbatim.
@@ -141,24 +140,6 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
         if pending_seen[key] == null {
             pending_seen[key] = true
             pending_virtual.push(key)
-        }
-    }
-
-    // The fallible io intrinsics FABRICATE `IOError` values at the host
-    // boundary (`vm/host.vader::mk_io_error`, `c_emit/host.vader::io_err_shim`)
-    // — no bytecode ever constructs one, so the call graph alone would prune
-    // its `Error.message` impl fn. `is Error` MEMBERSHIP no longer relies on
-    // this — it is seeded from `trait_membership` at emit, independent of DCE.
-    // This seed keeps the `.message()` DISPATCH fn reachable for a host-produced
-    // error whose method the call graph didn't otherwise reach. Still keyed on
-    // the IOError name/module ; a general "root host-produced impl members"
-    // form would dissolve this last hard-coded special-case (follow-up).
-    for e in lp.vtable_entries {
-        if e.trait_name == TRAIT_ERROR && e.struct_type is StructType {
-            sym :: e.struct_type.symbol
-            if sym.name == "IOError" && sym.module == "std/io" {
-                visit_fn(e.fn_symbol.id, e.fn_symbol.name)
-            }
         }
     }
 
