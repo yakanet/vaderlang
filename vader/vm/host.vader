@@ -114,7 +114,7 @@ mk_io_error :: fn(msg: string, io_error_type_id: i32) -> Value {
 /// @error           traps with an `is_impure_comptime_trap_message` marker when
 ///                  `is_comptime` and the host is impure — `comptime_vm` routes
 ///                  it to `C4016` rather than the generic `C4002`.
-export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, is_comptime: bool) -> HostCallResult {
+export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, is_comptime: bool, debug: DebugController | null) -> HostCallResult {
     id :: bc.intrinsic_id_for(info.mangled_name)
     // Comptime gate : impure hosts (clock / env / filesystem / stdin / subprocess
     // / terminal) read or mutate state outside the program. Running one during a
@@ -139,12 +139,20 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if msg is Trap {
             return msg
         }
-        if tag.value == STDOUT {
-            print(msg.value)
-        } else if tag.value == STDERR {
-            eprint(msg.value)
+        stream :: tag.value
+        text :: msg.value
+        if stream != STDOUT && stream != STDERR {
+            return Trap { .message = "write at pc=${at_pc}: invalid Stream tag ${stream}" }
+        }
+        // Under the DAP debugger, program output must NOT reach fd 1/2 directly
+        // — in stdio transport that would corrupt the protocol stream. Route
+        // every write through the debug sink, which emits DAP `output` events.
+        if debug != null {
+            debug.output_sink(stream, text)
+        } else if stream == STDOUT {
+            print(text)
         } else {
-            return Trap { .message = "write at pc=${at_pc}: invalid Stream tag ${tag.value}" }
+            eprint(text)
         }
         return HostOk { .value = zero_value() }
     }

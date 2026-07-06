@@ -43,6 +43,7 @@ import "vader/diagnostics" { Diagnostic }
 import "vader/fmt" { run_fmt }
 import "vader/vm" { run_virt, parse_virt_bc, prepare, exec_entry, Ok, Trap }
 import "vader/lsp" { run_server }
+import "vader/dap" { run_dap_server, DapProgram }
 // `vader test` (cmd_test) — native @test discovery + per-test isolated run.
 import "std/io" { read_dir, is_dir, exists }
 import "std/string" { index_of }
@@ -206,6 +207,7 @@ main :: fn(argv: string[]) -> i32 {
     if cmd == "test"  { return cmd_test(cmd_args) }
     if cmd == "dump"  { return cmd_dump(cmd_args) }
     if cmd == "lsp"   { return cmd_lsp(cmd_args) }
+    if cmd == "dap"   { return cmd_dap(cmd_args) }
 
     eprintln("vader: unknown command \"${cmd}\"")
     eprintln("run \"vader --help\" for usage")
@@ -303,7 +305,7 @@ run_source :: fn(file: string, host_argv: string[]) -> i32 {
     // folder can hold several `main` fns and `prepare`'s `main_index` would pick
     // the first-declared one regardless of which file was named on the CLI.
     entry_index :: entry_index_for_file(module, le.lowered, file, state.main_index)
-    return match exec_entry(state, entry_index, host_argv, null, false) {
+    return match exec_entry(state, entry_index, host_argv, null, false, null) {
         is Ok   as o -> o.value
         is Trap as t -> {
             eprintln("vader vm: ${t.message}")
@@ -357,6 +359,28 @@ cmd_fmt :: fn(args: string[]) -> i32 {
 }
 
 cmd_lsp :: fn(args: string[]) -> i32 = run_server(args)
+
+// `vader dap` : Debug Adapter Protocol server on stdio (VSCode F5). Drives the
+// bytecode VM. The compile step is injected as a callback so `vader/dap` stays
+// free of a `vader/cli` dependency (which would close an import cycle) — the
+// pipeline (lower → cfg → bytecode → prepare) lives here.
+cmd_dap :: fn(args: string[]) -> i32 = run_dap_server(compile_for_dap)
+
+// Compile a launch-target `.vader` to a `DapProgram`. `want_debug = true` : the
+// DAP path is the debug path (Phase 2 breakpoints read the per-op `debug`
+// table), and a one-off debuggee's per-op DebugPos cost is negligible.
+compile_for_dap :: fn(program: string) -> DapProgram {
+    le :: lower_to_entry(program)
+    if any_error_diag(le.pre_diags) {
+        rendered :: merge_diagnostics(le.pre_diags, le.lower_diags).dump_diagnostics_with_file()
+        return DapProgram { .state = null, .entry_index = -1, .error = rendered }
+    }
+    pruned :: prune_unreachable_fns(le.lowered, false)
+    module :: cfg_to_bytecode(pruned, module_name_from_file(program), EmitOptions { .optimize = true, .keep_mangles = [], .want_debug = true })
+    state :: prepare(module)
+    entry :: entry_index_for_file(module, le.lowered, program, state.main_index)
+    return DapProgram { .state = state, .entry_index = entry, .error = "" }
+}
 
 // Directories never descended into during `@test` discovery.
 SKIP_TEST_DIRS: const string[]: ["node_modules", "dist", "build", ".git", "target"]

@@ -625,7 +625,7 @@ build_main_args :: fn(parameter_count: usize, host_argv: string[], string_array_
 ///                call to a non-existent function index ; call stack
 ///                deeper than `MAX_FRAME_DEPTH`.
 /// Run `main`. Thin wrapper over `exec_entry`.
-export exec :: fn(state: VmState, host_argv: string[]) -> VmResult = exec_entry(state, state.main_index, host_argv, null, false)
+export exec :: fn(state: VmState, host_argv: string[]) -> VmResult = exec_entry(state, state.main_index, host_argv, null, false, null)
 
 /// Run the fn named `mangled` as the entry — used by `vader test` to run each
 /// `@test` fn in isolation. A `Trap` (e.g. a failed `assert`) is the test
@@ -638,7 +638,7 @@ export exec_fn :: fn(state: VmState, mangled: string) -> VmResult {
     for i in 0..<state.bc.functions.len() {
         if state.bc.functions[i].name == mangled {
             no_args: string[] = []
-            return exec_entry(state, i32(i), no_args, null, false)
+            return exec_entry(state, i32(i), no_args, null, false, null)
         }
     }
     return Trap { .message = "exec_fn: no function named '${mangled}'" }
@@ -662,7 +662,7 @@ export exec_fn_value :: fn(state: VmState, mangled: string) -> ValueResult {
         if state.bc.functions[i].name == mangled {
             no_args: string[] = []
             capture: Value[] = [zero_value()]
-            outcome :: exec_entry(state, i32(i), no_args, capture, true)
+            outcome :: exec_entry(state, i32(i), no_args, capture, true, null)
             if outcome is Trap { return outcome }
             return ValueOk { .value = capture[0] }
         }
@@ -672,7 +672,7 @@ export exec_fn_value :: fn(state: VmState, mangled: string) -> ValueResult {
 
 /// Core interpreter loop, entered at `entry_index`. `exec` / `exec_fn` pick the
 /// entry (main vs a named `@test`).
-export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], capture: Value[] | null, is_comptime: bool) -> VmResult {
+export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], capture: Value[] | null, is_comptime: bool, debug: DebugController | null) -> VmResult {
     if entry_index < 0 || usize(entry_index) >= state.bc.functions.len() {
         return Trap { .message = "no entry function (index=${entry_index})" }
     }
@@ -821,7 +821,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     return Trap { .message = "call.import '${info.mangled_name}' needs ${arg_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc}" }
                 }
                 arg_base :: frame.sp - arg_count
-                dispatch_outcome :: dispatch_import(info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, is_comptime)
+                dispatch_outcome :: dispatch_import(info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, is_comptime, debug)
                 if dispatch_outcome is Trap {
                     return dispatch_outcome
                 }
@@ -917,7 +917,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                             },
                             .is_extern    = false,
                         }
-                        host_outcome :: dispatch_import(synth_info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, is_comptime)
+                        host_outcome :: dispatch_import(synth_info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, is_comptime, debug)
                         if host_outcome is Trap { return host_outcome }
                         if host_outcome is HostOk as hok {
                             frame.stack[arg_base] = hok.value
