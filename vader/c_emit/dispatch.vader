@@ -123,6 +123,7 @@ vtable_sig_for_row :: fn(ctx: EmitCtx, row: VtableRow) -> BcSignature {
         .result = .Any,
         .param_types = first_sig.param_types,
         .result_type = first_sig.result_type,
+        .param_names = first_sig.param_names,
     }
 }
 

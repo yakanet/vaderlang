@@ -12,6 +12,8 @@
 
 import { test, expect } from "bun:test";
 import { join } from "node:path";
+import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 
 import { CLI_BIN, MEDIUM_BUILD, ensureCliBuilt } from "./cli-bin.ts";
 
@@ -255,6 +257,11 @@ test("dap: step over advances the line, and Variables shows source locals with v
   expect(allNames.some((n: string) => n.startsWith("$") || n.startsWith("__"))).toBe(false);
   const arrAfterStep = (varsResponses[1]?.body?.variables ?? []).find((v: any) => v.name === "arr");
   expect(arrAfterStep?.value).toContain("10");
+  // Scope filter : at line 16 only `arr` is live — the later locals (s1…s5, n)
+  // and the loops' `v` aren't in scope yet, so they don't clutter the view.
+  const line16Names = (varsResponses[1]?.body?.variables ?? []).map((v: any) => v.name);
+  expect(line16Names).not.toContain("s5");
+  expect(line16Names.filter((n: string) => n === "v").length).toBe(0);
   // `arr` is an array → expandable (non-zero variablesReference), and expanding
   // it (varsResponses[2]) yields its elements as indexed children.
   expect(arrAfterStep?.variablesReference).toBeGreaterThan(0);
@@ -291,6 +298,55 @@ test("dap: a runtime trap stops on the exception with its message", async () => 
   const exited = frames.find((f) => f.event === "exited");
   expect(exited?.body?.exitCode).toBe(1);
   expect(frames.some((f) => f.event === "terminated")).toBe(true);
+}, { timeout: MEDIUM_BUILD });
+
+test("dap: the Variables view names function parameters from source", async () => {
+  // A breakpoint inside `add(x, y)` must show the params by their source names
+  // (x, y) — not `arg0`/`arg1` — and hide `sum`, not yet assigned on its line.
+  // Written to a fresh dir so it's a standalone single-`main` module.
+  const dir = mkdtempSync(join(tmpdir(), "vdap-"));
+  const program = join(dir, "_main.vader");
+  writeFileSync(program, [
+    `module "snippet"`,
+    ``,
+    `import "std/io" { println }`,
+    ``,
+    `add :: fn(x: i32, y: i32) -> i32 {`,
+    `    sum :: x + y`,
+    `    return sum`,
+    `}`,
+    ``,
+    `main :: fn() -> i32 {`,
+    `    r :: add(3, 4)`,
+    `    println("\${r}")`,
+    `    return 0`,
+    `}`,
+    ``,
+  ].join("\n"));
+  try {
+    const frames = await sendDap(program, [
+      { seq: 1, type: "request", command: "initialize", arguments: { adapterID: "vader" } },
+      { seq: 2, type: "request", command: "launch", arguments: { program } },
+      // Line 6 = `    sum :: x + y`, the first statement inside `add`.
+      { seq: 3, type: "request", command: "setBreakpoints",
+        arguments: { source: { path: program }, breakpoints: [{ line: 6 }] } },
+      { seq: 4, type: "request", command: "configurationDone" },
+      { seq: 5, type: "request", command: "variables", arguments: { variablesReference: 1 } },
+      { seq: 6, type: "request", command: "continue", arguments: { threadId: 1 } },
+      { seq: 7, type: "request", command: "disconnect" },
+    ]);
+    const vars = frames.find((f) => f.type === "response" && f.command === "variables")?.body?.variables ?? [];
+    const names = vars.map((v: any) => v.name);
+    expect(names).toContain("x");
+    expect(names).toContain("y");
+    expect(names).not.toContain("arg0");
+    expect(vars.find((v: any) => v.name === "x")?.value).toBe("3");
+    expect(vars.find((v: any) => v.name === "y")?.value).toBe("4");
+    // `sum` isn't assigned yet at line 6 → not in scope.
+    expect(names).not.toContain("sum");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 }, { timeout: MEDIUM_BUILD });
 
 test("dap: threads request returns the single VM thread", async () => {
