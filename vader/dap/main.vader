@@ -75,6 +75,13 @@ export run_dap_server :: fn(compile: fn(string) -> DapProgram) -> i32 {
         } else if command == "configurationDone" {
             respond(seq_cell, request_seq, command, true, empty_body())
             run_program(prog, seq_cell)
+        } else if command == "setBreakpoints" {
+            // Phase 1 has no breakpoint support, but VSCode gates
+            // `configurationDone` (our run trigger) on a well-formed
+            // `setBreakpoints` response : it must echo one breakpoint object per
+            // requested line. Report them all `verified: false` so the client
+            // proceeds to run instead of stalling. Phase 2 verifies + honours them.
+            respond(seq_cell, request_seq, command, true, breakpoints_body(get_field(msg, "arguments")))
         } else if command == "threads" {
             respond(seq_cell, request_seq, command, true, single_thread())
         } else if command == "disconnect" {
@@ -163,6 +170,25 @@ capabilities :: fn() -> JsonValue {
     m :: MutableMap<string, JsonValue> {}
     m["supportsConfigurationDoneRequest"] = JsonBool { .value = true }
     return JsonObject { .entries = m }
+}
+
+// The `setBreakpoints` response body : one `{ verified, line }` per requested
+// breakpoint. All `verified: false` — Phase 1 doesn't honour breakpoints, but a
+// well-formed response is what lets VSCode proceed to `configurationDone`.
+breakpoints_body :: fn(args: JsonValue) -> JsonValue {
+    result: JsonValue[] = []
+    bps :: get_field(args, "breakpoints")
+    if bps is JsonArray as arr {
+        for item in arr.items {
+            bp :: MutableMap<string, JsonValue> {}
+            bp["verified"] = JsonBool { .value = false }
+            bp["line"]     = JsonNumber { .value = f64(get_number(item, "line")) }
+            result.push(JsonObject { .entries = bp })
+        }
+    }
+    body :: MutableMap<string, JsonValue> {}
+    body["breakpoints"] = JsonArray { .items = result }
+    return JsonObject { .entries = body }
 }
 
 // The single-thread body for `threads` : the VM is one cooperative thread.

@@ -61,9 +61,14 @@ async function driveDap(program: string): Promise<Json[]> {
   const requests: object[] = [
     { seq: 1, type: "request", command: "initialize", arguments: { adapterID: "vader" } },
     { seq: 2, type: "request", command: "launch", arguments: { program } },
-    { seq: 3, type: "request", command: "configurationDone" },
-    { seq: 4, type: "request", command: "threads" },
-    { seq: 5, type: "request", command: "disconnect" },
+    // VSCode sends setBreakpoints between `initialized` and configurationDone,
+    // and gates configurationDone (the run trigger) on a well-formed response —
+    // it MUST echo one breakpoint object per requested line.
+    { seq: 3, type: "request", command: "setBreakpoints",
+      arguments: { source: { path: program }, breakpoints: [{ line: 13 }], lines: [13] } },
+    { seq: 4, type: "request", command: "configurationDone" },
+    { seq: 5, type: "request", command: "threads" },
+    { seq: 6, type: "request", command: "disconnect" },
   ];
   const total = requests.reduce<number>((n, r) => n + frame(r).byteLength, 0);
   const stdin = new Uint8Array(total);
@@ -118,6 +123,15 @@ test("dap: proof of life — initialize, launch, run, capture output, terminate"
   expect(respFor("launch")?.success).toBe(true);
   expect(respFor("configurationDone")?.success).toBe(true);
   expect(respFor("disconnect")?.success).toBe(true);
+
+  // setBreakpoints MUST return a `breakpoints` array (one per requested line) —
+  // VSCode stalls (never sends configurationDone, so the program never runs) on
+  // a malformed response. Phase 1 reports them unverified.
+  const bpResp = respFor("setBreakpoints");
+  expect(bpResp?.success).toBe(true);
+  expect(Array.isArray(bpResp?.body?.breakpoints)).toBe(true);
+  expect(bpResp?.body?.breakpoints.length).toBe(1);
+  expect(bpResp?.body?.breakpoints[0].verified).toBe(false);
 
   // The handshake fires an `initialized` event, and the run ends with
   // `exited` + `terminated`.
