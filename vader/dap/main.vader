@@ -23,7 +23,7 @@ import "std/json" { JsonValue, JsonObject, JsonNumber, JsonArray, JsonString, Js
 import "std/collections" { MutableMap, MutableSet }
 import "std/string" { split, last_index_of }
 import "vader/lsp/protocol" { read_frame, write_frame, unbuffer_stdin, get_string, get_number, get_field, TransportError }
-import "vader/vm" { VmState, exec_entry, DebugController, Ok, Trap, PauseCtx, PauseFrame, PauseLocal, StepMode }
+import "vader/vm" { VmState, exec_entry, DebugController, Ok, Trap, PauseCtx, PauseFrame, PauseVar, StepMode }
 
 // ---- compile injection -----------------------------------------------------
 
@@ -173,6 +173,12 @@ run_program :: fn(prog: DapProgram | null, seq_cell: i32[], bps: MutableMap<stri
 // Continue so the program runs to its end).
 run_pause_loop :: fn(ctx: PauseCtx, seq_cell: i32[], bps: MutableMap<string, MutableSet<i32>>) -> StepMode {
     emit_stopped(seq_cell, ctx.reason)
+    // Variables-view expansion registry : `variablesReference` → the vars to
+    // return. Scope refs are `frame_id + 1` (see `scopes_body`) ; child refs are
+    // minted above the frame range as aggregates are expanded.
+    var_refs :: MutableMap<i32, PauseVar[]> {}
+    for fi in 0..<ctx.frames.len() { var_refs[i32(fi) + 1] = ctx.frames[fi].locals }
+    next_ref :: [i32(ctx.frames.len()) + 1]
     for {
         frame :: read_frame()
         if frame is TransportError { return StepMode.Continue }
@@ -188,7 +194,7 @@ run_pause_loop :: fn(ctx: PauseCtx, seq_cell: i32[], bps: MutableMap<string, Mut
             respond(seq_cell, request_seq, command, true, scopes_body(frame_id))
         } else if command == "variables" {
             reference :: get_number(get_field(msg, "arguments"), "variablesReference")
-            respond(seq_cell, request_seq, command, true, variables_body(ctx, reference))
+            respond(seq_cell, request_seq, command, true, variables_body(var_refs, next_ref, reference))
         } else if command == "evaluate" {
             // Hover / Watch / REPL : resolve a bare identifier against the named
             // frame's locals. Unknown expression → `success: false` so the editor
@@ -347,19 +353,26 @@ scopes_body :: fn(frame_id: i32) -> JsonValue {
     return JsonObject { .entries = body }
 }
 
-// The `variables` body : the params + locals of the frame the `reference`
-// encodes (`frame index + 1`). Each is a leaf (`variablesReference: 0`) whose
-// value is the VM-rendered display string ; structured expansion is a later
-// nicety.
-variables_body :: fn(ctx: PauseCtx, reference: i32) -> JsonValue {
+// The `variables` body : the vars registered under `reference` (a scope's
+// frame locals, or a previously-expanded aggregate's children). A var that has
+// children is itself expandable — mint a fresh reference, register its
+// children, and hand VSCode that reference so a later `variables` call descends.
+// Leaves get `variablesReference: 0`.
+variables_body :: fn(var_refs: MutableMap<i32, PauseVar[]>, next_ref: i32[], reference: i32) -> JsonValue {
     vars: JsonValue[] = []
-    frame_index :: reference - 1
-    if frame_index >= 0 && frame_index < i32(ctx.frames.len()) {
-        for local in ctx.frames[usize(frame_index)].locals {
+    entries :: var_refs[reference]
+    if entries != null {
+        for pv in entries {
+            child_ref := 0
+            if pv.children.len() > 0 {
+                child_ref = next_ref[0]
+                next_ref[0] = next_ref[0] + 1
+                var_refs[child_ref] = pv.children
+            }
             v :: MutableMap<string, JsonValue> {}
-            v["name"]               = JsonString { .value = local.name }
-            v["value"]              = JsonString { .value = local.value }
-            v["variablesReference"] = JsonNumber { .value = f64(0) }
+            v["name"]               = JsonString { .value = pv.name }
+            v["value"]              = JsonString { .value = pv.value }
+            v["variablesReference"] = JsonNumber { .value = f64(child_ref) }
             vars.push(JsonObject { .entries = v })
         }
     }

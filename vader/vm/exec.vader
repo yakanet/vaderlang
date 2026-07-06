@@ -156,23 +156,28 @@ build_pause_ctx :: fn(reason: string, frames: Frame[], count: usize, bc_mod: bc.
             .function_name = fn_body.name,
             .file          = file,
             .line          = line,
-            .locals        = project_locals(f, fn_body),
+            .locals        = project_locals(f, fn_body, bc_mod),
         })
         i = i - 1
     }
     return PauseCtx { .reason = reason, .frames = projected }
 }
 
+// Max nesting the Variables projection descends (also the cycle guard) and max
+// array elements projected per level — bounds the eager snapshot.
+DEBUG_MAX_DEPTH: i32: 5
+DEBUG_MAX_ELEMS: usize: 64
+
 // Render a frame's params + declared locals for the Variables view. Slots
 // `[0..params)` are params (no source names in `BcSignature` → `arg0`, `arg1`,
 // …) ; `locals[k]` lives at slot `params + k`. Accurate when the target is
 // compiled `optimize = false` (no slot coalescing) — the DAP compile's mode.
-project_locals :: fn(f: Frame, fn_body: bc.BcFunction) -> PauseLocal[] {
-    out: PauseLocal[] = []
+project_locals :: fn(f: Frame, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule) -> PauseVar[] {
+    out: PauseVar[] = []
     param_count :: fn_body.signature.params.len()
     for p in 0..<param_count {
         if p < f.slots.len() {
-            out.push(PauseLocal { .name = "arg${p}", .value = display_value(f.slots[p]) })
+            out.push(project_var("arg${p}", f.slots[p], bc_mod, 0))
         }
     }
     for k in 0..<fn_body.locals.len() {
@@ -182,8 +187,46 @@ project_locals :: fn(f: Frame, fn_body: bc.BcFunction) -> PauseLocal[] {
         // emit materialises many even at `optimize = false` ; the user wants
         // their source locals, not the 3-address scaffolding.
         if slot < f.slots.len() && is_source_local(name) {
-            out.push(PauseLocal { .name = name, .value = display_value(f.slots[slot]) })
+            out.push(project_var(name, f.slots[slot], bc_mod, 0))
         }
+    }
+    return out
+}
+
+// Project a `Value` to a (possibly nested) `PauseVar` : its display string plus,
+// for an array / struct within the depth budget, its elements / fields as
+// children. Depth-bounded (which also breaks cycles) ; arrays cap at
+// `DEBUG_MAX_ELEMS`.
+project_var :: fn(name: string, v: Value, bc_mod: bc.BytecodeModule, depth: i32) -> PauseVar {
+    children: PauseVar[] = []
+    if depth < DEBUG_MAX_DEPTH {
+        if v is ArrayVal as a {
+            shown :: if a.length > DEBUG_MAX_ELEMS { DEBUG_MAX_ELEMS } else { a.length }
+            for i in 0..<shown {
+                children.push(project_var("[${i}]", a.elements[a.offset + i], bc_mod, depth + 1))
+            }
+        } else if v is StructVal as s {
+            children = project_struct_fields(s, bc_mod, depth)
+        }
+    }
+    return PauseVar { .name = name, .value = display_value(v), .children = children }
+}
+
+// Project a struct's fields, naming each from the module type table's
+// `BcStruct.fields` (falling back to `field<i>` if the entry isn't a struct or
+// is shorter than the value's field list).
+project_struct_fields :: fn(s: StructVal, bc_mod: bc.BytecodeModule, depth: i32) -> PauseVar[] {
+    out: PauseVar[] = []
+    names: string[] = []
+    if usize(s.type_id) < bc_mod.types.len() {
+        entry :: bc_mod.types[usize(s.type_id)]
+        if entry is bc.BcStruct as bs {
+            for fld in bs.fields { names.push(fld.name) }
+        }
+    }
+    for i in 0..<s.fields.len() {
+        fname :: if i < names.len() { names[i] } else { "field${i}" }
+        out.push(project_var(fname, s.fields[i], bc_mod, depth + 1))
     }
     return out
 }

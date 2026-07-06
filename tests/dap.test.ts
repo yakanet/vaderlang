@@ -222,11 +222,15 @@ test("dap: step over advances the line, and Variables shows source locals with v
     // Stop #2 (step, past line 13) — `arr` is now materialised.
     { seq: 9, type: "request", command: "stackTrace", arguments: { threadId: 1 } },
     { seq: 10, type: "request", command: "variables", arguments: { variablesReference: 1 } },
+    // Expand `arr` (an array → expandable). With one frame, the scope ref is 1
+    // and `arr` (the first expandable local) is minted ref 2 — deterministic for
+    // this fixed program.
+    { seq: 11, type: "request", command: "variables", arguments: { variablesReference: 2 } },
     // Hover / Watch : a known local resolves, an unknown one fails cleanly.
-    { seq: 11, type: "request", command: "evaluate", arguments: { expression: "arr", frameId: 0, context: "hover" } },
-    { seq: 12, type: "request", command: "evaluate", arguments: { expression: "no_such_var", frameId: 0, context: "hover" } },
-    { seq: 13, type: "request", command: "continue", arguments: { threadId: 1 } },
-    { seq: 14, type: "request", command: "disconnect" },
+    { seq: 12, type: "request", command: "evaluate", arguments: { expression: "arr", frameId: 0, context: "hover" } },
+    { seq: 13, type: "request", command: "evaluate", arguments: { expression: "no_such_var", frameId: 0, context: "hover" } },
+    { seq: 14, type: "request", command: "continue", arguments: { threadId: 1 } },
+    { seq: 15, type: "request", command: "disconnect" },
   ];
   const frames = await sendDap(program, requests);
 
@@ -251,6 +255,12 @@ test("dap: step over advances the line, and Variables shows source locals with v
   expect(allNames.some((n: string) => n.startsWith("$") || n.startsWith("__"))).toBe(false);
   const arrAfterStep = (varsResponses[1]?.body?.variables ?? []).find((v: any) => v.name === "arr");
   expect(arrAfterStep?.value).toContain("10");
+  // `arr` is an array → expandable (non-zero variablesReference), and expanding
+  // it (varsResponses[2]) yields its elements as indexed children.
+  expect(arrAfterStep?.variablesReference).toBeGreaterThan(0);
+  const arrElements = varsResponses[2]?.body?.variables ?? [];
+  const elem0 = arrElements.find((v: any) => v.name === "[0]");
+  expect(elem0?.value).toBe("10");
 
   // evaluate (hover/watch): a known local resolves to its value, an unknown
   // identifier fails cleanly (so the editor shows nothing).
