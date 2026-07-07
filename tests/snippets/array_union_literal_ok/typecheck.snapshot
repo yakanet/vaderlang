@@ -1,0 +1,37 @@
+# Typecheck
+
+## tests/snippets/array_union_literal_ok
+  FnDecl         main                 :: fn() -> i32
+  expr 11:28    SeqLitExpr     :: (i32 | string)[]
+  expr 12:13    StringLitExpr  :: string
+  expr 12:5     CallExpr       :: void
+  expr 12:5     FieldExpr      :: fn(i32 | string) -> void
+  expr 12:5     IdentExpr      :: (i32 | string)[]
+  expr 13:14    IdentExpr      :: (i32 | string)[]
+  expr 14:12    BinaryExpr     :: bool
+  expr 14:12    IdentExpr      :: i32 | string
+  expr 14:17    IdentExpr      :: string
+  expr 14:31    CallExpr       :: void
+  expr 14:31    IdentExpr      :: fn(T) -> void
+  expr 14:39    StringLitExpr  :: string
+  expr 14:46    IdentExpr      :: string
+  expr 14:9     IfExpr         :: void
+  expr 15:14    IfExpr         :: void
+  expr 15:17    BinaryExpr     :: bool
+  expr 15:17    IdentExpr      :: i32
+  expr 15:22    IdentExpr      :: i32
+  expr 15:33    CallExpr       :: void
+  expr 15:33    IdentExpr      :: fn(T) -> void
+  expr 15:41    StringLitExpr  :: string
+  expr 15:48    IdentExpr      :: i32
+  expr 18:16    SeqLitExpr     :: i32[]
+  expr 19:36    IdentExpr      :: i32[]
+  expr 20:19    IdentExpr      :: i32
+  expr 20:30    CallExpr       :: void
+  expr 20:30    IdentExpr      :: fn(T) -> void
+  expr 20:38    StringLitExpr  :: string
+  expr 20:47    IdentExpr      :: i32
+  expr 20:5     IfExpr         :: void
+  expr 20:8     BinaryExpr     :: bool
+  expr 20:8     IdentExpr      :: const (i32 | string)[]
+  expr 20:8     IndexExpr      :: i32 | string

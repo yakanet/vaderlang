@@ -649,6 +649,15 @@ read(mut_arr)             // OK: T[] passes for const T[]
 read([4, 5, 6])           // OK: fresh array passes
 ```
 
+**Element variance**: the element type is **covariant** into a `const T[]` target but **invariant** into a mutable one. Because arrays are reference-aliased (`b := a` shares the buffer), a mutable `(i32 | string)[]` does **not** accept an `i32[]` — a write `b[0] = "x"` through the wider alias would store a string into the shared i32 buffer (T3001 on the binding / T3063 on a reassignment). A fresh **literal** is exempt: it is materialised directly at the target element type, so `xs: (i32 | string)[] = [1, 2, 3]` builds a union array (not a covariant widening of an existing reference) and compiles.
+
+```vader
+a: i32[] = [1, 2, 3]
+b: (i32 | string)[] = a              // T3001 — mutable element is invariant
+view: const (i32 | string)[] = a     // OK — const element is covariant (read-only)
+xs: (i32 | string)[] = [1, 2, 3]     // OK — fresh literal built at the target type
+```
+
 **Inference**: a module-level array-literal const-decl is automatically pinned as `const T[]`. Locals stay mutable by default.
 
 ```vader

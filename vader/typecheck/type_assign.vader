@@ -120,15 +120,32 @@ export is_assignable_tuple :: fn(from: Type, self: TupleType, to: Type, oracle: 
 }
 
 /// `from is ArrayType`. `T[] <: const T[]` (mutable into const ; reverse
-/// forbidden). Element compatibility uses `fn_param_compatible` so
-/// TypeParam elements act as wildcards.
+/// forbidden). The element is **covariant** into a `const` (read-only) target
+/// but **invariant** into a mutable one : covariance on a mutable array is
+/// unsound (arrays are reference-aliased — SPEC §Arrays — so a write through a
+/// widened alias would violate the source element type). TypeParam / Unresolved
+/// elements stay wildcards (accepted both ways by `is_assignable`).
 export is_assignable_array :: fn(from: Type, self: ArrayType, to: Type, oracle: TraitOracle | null) -> bool {
-    match to {
-        is ArrayType as ta -> {
-            if self.immutable && !ta.immutable { return false }
+    if to is ArrayType as ta {
+        if self.immutable && !ta.immutable { return false }
+        // `const T[]` (read-only) target : element is covariant — reading a
+        // narrower array through a wider read-only view is sound (no write can
+        // violate the source element type).
+        if ta.immutable {
             return fn_param_compatible(self.element, ta.element, oracle)
         }
-        _ -> {}
+        // Mutable target : element must be INVARIANT. Bidirectional
+        // assignability = invariance for concrete types, while the
+        // TypeParam / Unresolved wildcard (true both ways in `is_assignable`)
+        // survives. A covariant `i32[]` → `(i32 | string)[]` is rejected here —
+        // a write `b[0] = "hi"` through the alias would corrupt the shared i32
+        // buffer. Fresh literals sidestep this : they adopt the target element
+        // type in `infer_against_array`, so the init is reflexive.
+        // Fast-path the dominant equal-element case (`equals_type` ⟹ assignable
+        // both ways) so `T[] → T[]` skips the two `is_assignable` passes.
+        if equals_type(self.element, ta.element) { return true }
+        return fn_param_compatible(self.element, ta.element, oracle)
+            && fn_param_compatible(ta.element, self.element, oracle)
     }
     return check_common(from, to, oracle)
 }
@@ -203,6 +220,13 @@ export fn_param_compatible :: fn(a: Type, b: Type, oracle: TraitOracle | null) -
 
 /// Element-wise compatibility for the args list carried by StructType /
 /// TraitType. Length must match ; then per-element via `fn_param_compatible`.
+///
+/// NOTE: type args are uniformly **covariant** here — knowingly unsound for a
+/// *mutable* generic container (`MutableMap(i32, i32)` → `MutableMap(i32, i32 |
+/// string)` is accepted, the same reference-aliasing hole `is_assignable_array`
+/// closes for arrays). Fixing it needs declaration-site variance annotations
+/// that don't exist yet ; deferred. This is where a general variance model
+/// plugs in.
 export struct_args_compatible :: fn(a: Type[], b: Type[], oracle: TraitOracle | null) -> bool {
     if a.len() != b.len() { return false }
     for i in 0..<a.len() {
@@ -214,7 +238,7 @@ export struct_args_compatible :: fn(a: Type[], b: Type[], oracle: TraitOracle | 
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert }
-import "vader/types" { mk_array, mk_primitive, mk_union, TY_FREE_INT, TY_NEVER }
+import "vader/types" { mk_array, mk_primitive, mk_union, TY_FREE_INT, TY_NEVER, TY_UNRESOLVED }
 
 @test
 test_assignable_identity :: fn() -> void {
@@ -248,4 +272,34 @@ test_assignable_array_mut_into_const :: fn() -> void {
     const_arr: Type = mk_array(mk_primitive("i32"), true)
     assert(is_assignable(mut_arr, const_arr, null), "T[] → const T[]")
     assert(!is_assignable(const_arr, mut_arr, null), "const T[] ↛ T[]")
+}
+
+@test
+test_array_mutable_element_invariant :: fn() -> void {
+    // Covariance into a MUTABLE array is unsound (reference aliasing) — reject
+    // both directions ; only an exact element type flows.
+    i32_arr:        Type = mk_array(mk_primitive("i32"), false)
+    union_arr_mut:  Type = mk_array(mk_union([mk_primitive("i32"), mk_primitive("string")]), false)
+    union_arr_mut2: Type = mk_array(mk_union([mk_primitive("i32"), mk_primitive("string")]), false)
+    assert(!is_assignable(i32_arr, union_arr_mut, null), "i32[] ↛ (i32 | string)[] (mutable — invariant)")
+    assert(!is_assignable(union_arr_mut, i32_arr, null), "(i32 | string)[] ↛ i32[] (mutable)")
+    assert(is_assignable(union_arr_mut, union_arr_mut2, null), "(i32 | string)[] → (i32 | string)[] (equal element)")
+}
+
+@test
+test_array_const_element_covariant :: fn() -> void {
+    // Covariance into a CONST (read-only) array is sound — accept.
+    i32_arr:         Type = mk_array(mk_primitive("i32"), false)
+    union_arr_const: Type = mk_array(mk_union([mk_primitive("i32"), mk_primitive("string")]), true)
+    assert(is_assignable(i32_arr, union_arr_const, null), "i32[] → const (i32 | string)[] (covariant read-only)")
+}
+
+@test
+test_array_unresolved_element_wildcard :: fn() -> void {
+    // An Unresolved element (what an empty `[]` literal carries) stays a
+    // wildcard both ways, so invariance never rejects it.
+    unresolved_arr: Type = mk_array(TY_UNRESOLVED, false)
+    i32_arr:        Type = mk_array(mk_primitive("i32"), false)
+    assert(is_assignable(unresolved_arr, i32_arr, null), "?[] → i32[] (mutable — wildcard)")
+    assert(is_assignable(i32_arr, unresolved_arr, null), "i32[] → ?[] (mutable — wildcard)")
 }
