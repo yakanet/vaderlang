@@ -15,7 +15,7 @@
 [8:1-8:1    ] newline        "\n"
 [9:5-9:15   ] ident          "star_count"
 [9:16-9:18  ] decl_const     "::"
-[9:19-9:44  ] int_literal    "1000000000000000000000000" =0n
+[9:19-9:44  ] int_literal    "1000000000000000000000000" =?n
 [10:1-10:1  ] newline        "\n"
 [10:5-10:11 ] kw_return      "return"
 [10:12-10:15] ident          "i32"
