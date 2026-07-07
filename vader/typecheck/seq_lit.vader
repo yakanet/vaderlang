@@ -116,7 +116,23 @@ infer_against_array :: fn(
     if elem_types.len() == 0 {
         return arr
     }
-    return mk_array(union_of(default_each(elem_types)), arr.immutable)
+    actual :: union_of(default_each(elem_types))
+    // A fresh literal is materialised directly into the target's element
+    // representation, so when its elements FIT a concrete hint element it adopts
+    // that hint rather than the narrower union of its actual elements : `[1, 2,
+    // 3]` against a `(i32 | string)[]` slot types as `(i32 | string)[]`. This
+    // keeps the literal's type equal to the slot's, so the invariant mutable-
+    // array rule (`is_assignable_array`) accepts the init without a covariant
+    // widening — covariance is reserved for the sound `const T[]` case. The
+    // `is_assignable` guard (same null-oracle predicate as the binding's
+    // `flows_into`) preserves the mismatch diagnostic when an element does NOT
+    // fit — `xs: i32[] = ["a"]` keeps `string[]` and is rejected downstream. A
+    // type-param-bearing hint is skipped so generic inference still pins `T`
+    // from the actual elements (`call.vader` doesn't thread such a hint here).
+    if !type_contains_type_param(arr.element) && is_assignable(actual, arr.element, null) {
+        return mk_array(arr.element, arr.immutable)
+    }
+    return mk_array(actual, arr.immutable)
 }
 
 infer_no_expected :: fn(

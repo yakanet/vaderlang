@@ -1,0 +1,12 @@
+// Same unsound aliasing via reassignment rather than init: `b = a` copies the
+// i32[] reference into a mutable (i32 | string)[] slot. Element-invariance
+// rejects it here too. T3063.
+module "snippet"
+
+main :: fn() -> i32 {
+    a: i32[] = [1, 2, 3]
+    b: (i32 | string)[] = ["x"]
+    b = a
+    b[0] = "hello"
+    return 0
+}

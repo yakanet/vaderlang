@@ -1,0 +1,13 @@
+// A mutable `(i32 | string)[]` must NOT accept an `i32[]` reference: arrays
+// are reference-aliased (SPEC §Arrays), so a write through the wider alias
+// (`b[0] = "hello"`) would store a string into the shared i32 buffer —
+// corruption on native, a VM trap. Mutable arrays are element-invariant;
+// covariance is reserved for the `const T[]` (read-only) case. T3001.
+module "snippet"
+
+main :: fn() -> i32 {
+    a: i32[] = [1, 2, 3]
+    b: (i32 | string)[] = a
+    b[0] = "hello"
+    return 0
+}
