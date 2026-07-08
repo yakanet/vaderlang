@@ -651,6 +651,8 @@ read([4, 5, 6])           // OK: fresh array passes
 
 **Element variance**: the element type is **covariant** into a `const T[]` target but **invariant** into a mutable one. Because arrays are reference-aliased (`b := a` shares the buffer), a mutable `(i32 | string)[]` does **not** accept an `i32[]` — a write `b[0] = "x"` through the wider alias would store a string into the shared i32 buffer (T3001 on the binding / T3063 on a reassignment). A fresh **literal** is exempt: it is materialised directly at the target element type, so `xs: (i32 | string)[] = [1, 2, 3]` builds a union array (not a covariant widening of an existing reference) and compiles.
 
+**In a union**: `const T[]` is a valid member anywhere in a type union, not only as the first — `string | const u8[]` and `A | const T[] | B` both parse. (A `const` array member accepts a mutable `u8[]` argument too, via the covariance above.)
+
 ```vader
 a: i32[] = [1, 2, 3]
 b: (i32 | string)[] = a              // T3001 — mutable element is invariant

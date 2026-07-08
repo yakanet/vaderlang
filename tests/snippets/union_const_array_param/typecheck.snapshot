@@ -1,0 +1,32 @@
+# Typecheck
+
+## tests/snippets/union_const_array_param
+  FnDecl         byte_count           :: fn(const u8[] | string) -> usize
+  FnDecl         main                 :: fn() -> i32
+  expr 10:13    IdentExpr      :: string
+  expr 10:29    CallExpr       :: const u8[]
+  expr 10:29    CallExpr       :: usize
+  expr 10:29    FieldExpr      :: fn() -> const u8[]
+  expr 10:29    FieldExpr      :: fn() -> usize
+  expr 10:29    IdentExpr      :: string
+  expr 10:5     IfExpr         :: void
+  expr 10:8     BinaryExpr     :: bool
+  expr 10:8     IdentExpr      :: const u8[] | string
+  expr 11:12    CallExpr       :: usize
+  expr 11:12    FieldExpr      :: fn() -> usize
+  expr 11:12    IdentExpr      :: const u8[]
+  expr 15:15    SeqLitExpr     :: u8[]
+  expr 16:13    StringLitExpr  :: string
+  expr 16:16    CallExpr       :: usize
+  expr 16:16    IdentExpr      :: fn(const u8[] | string) -> usize
+  expr 16:27    StringLitExpr  :: string
+  expr 16:36    CallExpr       :: usize
+  expr 16:36    IdentExpr      :: fn(const u8[] | string) -> usize
+  expr 16:47    CallExpr       :: const u8[]
+  expr 16:47    FieldExpr      :: fn() -> const u8[]
+  expr 16:47    StringLitExpr  :: string
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+  expr 16:64    CallExpr       :: usize
+  expr 16:64    IdentExpr      :: fn(const u8[] | string) -> usize
+  expr 16:75    IdentExpr      :: u8[]

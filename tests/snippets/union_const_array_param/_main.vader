@@ -1,0 +1,18 @@
+// A `const T[]` element is valid ANYWHERE in a type union, not only as the
+// first member — the parser applies the `const` array qualifier per union
+// member. Regression: `string | const u8[]` used to fail to parse (`const`
+// after `|` was rejected). The `is`-narrowing on the union works too.
+module "snippet"
+
+import "std/io" { println }
+
+byte_count :: fn(x: string | const u8[]) -> usize {
+    if x is string { return x.bytes().len() }
+    return x.len()
+}
+
+main :: fn() -> i32 {
+    a: u8[] = [1, 2, 3, 4]
+    println("${byte_count("hi")} ${byte_count("hi".bytes())} ${byte_count(a)}")
+    return 0
+}
