@@ -1,0 +1,21 @@
+# Typecheck
+
+## tests/snippets/generator_label_break
+  FnDecl         gen                  :: fn() -> Iterator<i32>
+  FnDecl         main                 :: fn() -> i32
+  expr 12:21    RangeExpr      :: Range<i32>
+  expr 13:18    RangeExpr      :: Range<i32>
+  expr 14:19    BinaryExpr     :: i32
+  expr 14:19    BinaryExpr     :: i32
+  expr 14:19    IdentExpr      :: i32
+  expr 14:28    IdentExpr      :: i32
+  expr 15:13    IfExpr         :: void
+  expr 15:16    BinaryExpr     :: bool
+  expr 15:16    IdentExpr      :: i32
+  expr 21:11    CallExpr       :: __genstate_gen<i32>
+  expr 21:11    IdentExpr      :: fn() -> Iterator<i32>
+  expr 22:14    IdentExpr      :: __genstate_gen<i32>
+  expr 22:19    CallExpr       :: void
+  expr 22:19    IdentExpr      :: fn(T) -> void
+  expr 22:27    StringLitExpr  :: string
+  expr 22:30    IdentExpr      :: i32

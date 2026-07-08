@@ -27,7 +27,7 @@ import "vader/types" {
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck" { gen_state_symbol }
 import "std/collections" { MutableMap }
-import "vader/diagnostics" { Span }
+import "vader/diagnostics" { Span, lower_error }
 import "std/abort" { panic }
 
 // ---- sentinel -------------------------------------------------------------
@@ -92,10 +92,36 @@ GenBuild :: struct {
 }
 
 /// A dissolved loop's state targets: `continue` / back-edge → `header`,
-/// `break` → `exit`.
+/// `break` → `exit`. `label` carries the source loop label (or `null`) so a
+/// labeled `break`/`continue` resolves to the right enclosing frame.
 LoopFrame :: struct {
+    label:  string | null
     header: i64
     exit:   i64
+}
+
+/// Resolve the target loop frame for a `break` / `continue`. A null label = the
+/// innermost loop ; a label = the nearest enclosing frame carrying it. Mirrors
+/// `midir/build.vader::resolve_loop_frame` — without label resolution a
+/// `break outer` would target the innermost loop (miscompile / infinite loop).
+gb_resolve_loop_frame :: fn(gb: GenBuild, label: string | null) -> LoopFrame {
+    if label is null {
+        return gb.loop_stack[gb.loop_stack.len() - 1]
+    }
+    // Extract the non-null label once — comparing two `string` locals dodges the
+    // c-emit `string | null` field-vs-param mis-box (see `resolve_loop_frame`).
+    needle :: label
+    i := i64(gb.loop_stack.len()) - 1
+    for i >= 0 {
+        frame :: gb.loop_stack[usize(i)]
+        if frame.label !is null {
+            if frame.label == needle { return frame }
+        }
+        i -= 1
+    }
+    // Typecheck (label resolution / T3015) guarantees a match ; a miss here is a
+    // block-split invariant break.
+    panic("generator block-split: unresolved loop label in break/continue")
 }
 
 // `self` read: `LoweredIdent` over the single minted self symbol.
@@ -237,7 +263,7 @@ gb_compile_ctrl :: fn(gb: GenBuild, s: LoweredStmt, cont: i64) -> i64 {
     }
     if s is LoweredLoop as lp {
         header :: gb_reserve(gb)
-        gb.loop_stack.push(LoopFrame { .header = header, .exit = cont })
+        gb.loop_stack.push(LoopFrame { .label = lp.label, .header = header, .exit = cont })
         body_entry :: gb_compile_block(gb, lp.body, header)   // fall-off = back-edge → header
         gb.loop_stack.remove_last()
         if lp.cond == null {
@@ -254,12 +280,12 @@ gb_compile_ctrl :: fn(gb: GenBuild, s: LoweredStmt, cont: i64) -> i64 {
         }
         return header
     }
-    if s is LoweredBreak {
-        frame :: gb.loop_stack[gb.loop_stack.len() - 1]
+    if s is LoweredBreak as br {
+        frame :: gb_resolve_loop_frame(gb, br.label)
         return gb_new_state(gb, [gb_set_state(gb, frame.exit)])
     }
-    if s is LoweredContinue {
-        frame :: gb.loop_stack[gb.loop_stack.len() - 1]
+    if s is LoweredContinue as cont {
+        frame :: gb_resolve_loop_frame(gb, cont.label)
         return gb_new_state(gb, [gb_set_state(gb, frame.header)])
     }
     // Unreachable: `gb_compile_ctrl` is only called on non-leaf stmts, and the
@@ -302,6 +328,85 @@ gb_next_body :: fn(gb: GenBuild) -> LoweredBlock {
     dispatch :: gb_dispatch(gb, 0)
     loop :: LoweredLoop { .span = gb.span, .label = null, .cond = null, .body = gb_wrap(gb, dispatch) }
     return gb_block(gb, [loop])
+}
+
+// ---- unsupported-shape guard (M5007) --------------------------------------
+
+// True when a spilled param / local of the generator is captured by a closure.
+// Such a symbol is materialised as a heap **cell** (`lower_cell_init` cells
+// exactly the captured symbols), and the state machine can't carry a live cell
+// — nor the closure that shares it — across suspension : the spilled `g$State`
+// would hold a cell / closure field the backend can't construct (invalid C on
+// native, wrong / VM-only behaviour). `gb.field_map` already holds every
+// spilled symbol, so this is an exact O(fields) membership test — no body walk.
+gen_has_captured_spill :: fn(gb: GenBuild, fn_ctx: FnLowerCtx) -> bool {
+    for [sym_id, _] in gb.field_map {
+        if sym_id in fn_ctx.project.closures.captured_symbols { return true }
+    }
+    return false
+}
+
+// Synthesize + register the `g$State` struct and its `$Iterator$next` fn. The
+// `$${TRAIT_ITERATOR}$${METHOD_NEXT}` mangle suffix + `self: g$State` param[0]
+// are what `collect_vtable_entries` keys on to wire the vtable — single-sourced
+// here, shared by the normal path and the degenerate M5007 reject path.
+push_generator_decls :: fn(
+    fn_ctx: FnLowerCtx, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
+    yield_ty: Type, next_body: LoweredBlock, state_fields: LoweredStructField[],
+) -> void {
+    module_seg :: mangle_module_id(fn_ctx.typed.resolved.display_path)
+    next_mangled :: "${module_seg}$${state_sym.name}$${TRAIT_ITERATOR}$${METHOD_NEXT}"
+    next_sym :: Symbol {
+        .id = next_synthetic_id(fn_ctx), .kind = SymbolKind.Fn, .name = next_mangled,
+        .module = fn_ctx.typed.resolved.path, .visibility = Visibility.Private, .defined_at = null,
+    }
+    next_decl :: LoweredFnDecl {
+        .mangled = next_mangled,
+        .params = [LoweredParam { .name = "self", .symbol = self_sym, .type = state_ty }],
+        .return_type = union_of_yield_null(yield_ty), .body = next_body,
+        .origin = synth_mono_entry(fn_ctx, next_sym),
+    }
+    state_decl :: LoweredStructDecl {
+        .mangled = state_sym.name, .fields = state_fields,
+        .origin = synth_mono_entry(fn_ctx, state_sym),
+    }
+    fn_ctx.project.synth_decls.push(state_decl)
+    fn_ctx.project.synth_decls.push(next_decl)
+}
+
+// Emit a degenerate generator whose `next()` traps immediately (fail-loud, like
+// M5001's `unreachable`) so an M5007-rejected program neither miscompiles nor
+// silently yields an empty stream. The state struct carries only its `state`
+// discriminant — no spilled cell / closure fields — so its construction stays
+// valid. The M5007 error has already aborted any real build ; the trap fires
+// only if a lenient `vader run` iterates the rejected generator anyway.
+build_degenerate_generator :: fn(
+    fn_ctx: FnLowerCtx, span: Span, state_sym: Symbol, state_ty: Type,
+    self_sym: Symbol, yield_ty: Type, i32_ty: Type,
+) -> LoweredBlock {
+    next_body :: LoweredBlock {
+        .span = span, .type = TY_VOID,
+        .stmts = [LoweredExprStmt {
+            .span = span,
+            .expr = LoweredUnreachable { .span = span, .type = TY_VOID, .reason = "generator rejected (M5007)", .trap = true },
+        }],
+        .trailing = null,
+    }
+    push_generator_decls(fn_ctx, state_sym, self_sym, state_ty, yield_ty, next_body,
+        [LoweredStructField { .name = "state", .type = i32_ty }])
+    return LoweredBlock {
+        .span = span, .type = TY_VOID,
+        .stmts = [LoweredReturn {
+            .span = span,
+            .value = LoweredStructLit {
+                .span = span, .type = state_ty,
+                .fields = [LoweredStructLitField {
+                    .name = "state", .value = LoweredIntLit { .span = span, .type = i32_ty, .value = i64(DONE_STATE) },
+                }],
+            },
+        }],
+        .trailing = null,
+    }
 }
 
 // ---- entry ----------------------------------------------------------------
@@ -360,42 +465,26 @@ export lower_generator_fn :: fn(
     // Spill: params first, then every local (v1: spill-all) → `g$State` fields.
     for p in params { gb_add_field(gb, p.symbol, p.type) }
     gb_collect_block(gb, lowered_body)
+
+    // A spilled param / local captured by a closure becomes a heap cell the
+    // state machine can't carry across suspension (M5007). Reject with a clean
+    // diagnostic + a degenerate generator rather than emitting a `g$State` whose
+    // cell / closure fields the backend can't construct.
+    if gen_has_captured_spill(gb, fn_ctx) {
+        fn_ctx.project.diags.push(lower_error(.GeneratorClosureCapture, span, ""))
+        return build_degenerate_generator(fn_ctx, span, state_sym, state_ty, self_sym, yield_ty, i32_ty)
+    }
+
     // Route local/param refs to `self.<field>`, then split at yields into states.
     routed :: gb_route_block(gb, lowered_body)
     entry_state :: gb_build(gb, routed)
-    next_body :: gb_next_body(gb)
 
-    // Synthesize `<module>$<State>$Iterator$next` — the `$Iterator$next` suffix
-    // + `self: g$State` param[0] make `collect_vtable_entries` wire the vtable.
-    // Interpolate every segment so each `$` separator is a literal `$` followed
-    // by `${…}` (the `impl_member_mangled` idiom).
-    module_seg :: mangle_module_id(fn_ctx.typed.resolved.display_path)
-    iter_seg :: TRAIT_ITERATOR
-    next_seg :: METHOD_NEXT
-    next_mangled :: "${module_seg}$${state_sym.name}$${iter_seg}$${next_seg}"
-    next_sym :: Symbol {
-        .id = next_synthetic_id(fn_ctx), .kind = SymbolKind.Fn, .name = next_mangled,
-        .module = fn_ctx.typed.resolved.path, .visibility = Visibility.Private, .defined_at = null,
-    }
-    next_params :: [LoweredParam { .name = "self", .symbol = self_sym, .type = state_ty }]
-    next_decl :: LoweredFnDecl {
-        .mangled = next_mangled, .params = next_params,
-        .return_type = union_of_yield_null(yield_ty), .body = next_body,
-        .origin = synth_mono_entry(fn_ctx, next_sym),
-    }
-
-    // Synthesize the `g$State` struct: spilled fields (params + locals) + the
-    // `state: i32` resume discriminant.
+    // Synthesize the `g$State` struct (spilled fields + `state: i32` resume
+    // discriminant) and its `$Iterator$next` fn.
     state_fields: LoweredStructField[] = []
     for f in gb.fields { state_fields.push(f) }
     state_fields.push(LoweredStructField { .name = "state", .type = i32_ty })
-    state_decl :: LoweredStructDecl {
-        .mangled = state_sym.name, .fields = state_fields,
-        .origin = synth_mono_entry(fn_ctx, state_sym),
-    }
-
-    fn_ctx.project.synth_decls.push(state_decl)
-    fn_ctx.project.synth_decls.push(next_decl)
+    push_generator_decls(fn_ctx, state_sym, self_sym, state_ty, yield_ty, gb_next_body(gb), state_fields)
 
     // Rewrite `g`'s body: `return g$State { <all fields>, .state = entry }`.
     // Param fields carry the incoming args ; local fields get a zero value
@@ -446,6 +535,11 @@ gb_collect_stmt :: fn(gb: GenBuild, s: LoweredStmt) -> void {
         is LoweredExprStmt as e -> { gb_collect_expr(gb, e.expr) }
         is LoweredReturn as r -> { if r.value != null { gb_collect_expr(gb, r.value) } }
         is LoweredYield as y -> { gb_collect_expr(gb, y.value) }
+        is LoweredCellSet as cs -> {
+            gb_collect_expr(gb, cs.target)
+            gb_collect_expr(gb, cs.value)
+        }
+        is LoweredDeferPush as dp -> { gb_collect_expr(gb, dp.thunk) }
         _ -> {}
     }
 }
@@ -505,7 +599,11 @@ gb_route_stmt :: fn(gb: GenBuild, s: LoweredStmt, out: LoweredStmt[]) -> void {
         }
         is LoweredBreak    -> { out.push(s) }
         is LoweredContinue -> { out.push(s) }
-        _ -> { out.push(s) }
+        is LoweredCellSet as cs -> {
+            out.push(LoweredCellSet { .span = cs.span, .target = gb_route_expr(gb, cs.target), .value = gb_route_expr(gb, cs.value), .value_type = cs.value_type })
+        }
+        is LoweredDeferPush as dp -> { out.push(LoweredDeferPush { .span = dp.span, .thunk = gb_route_expr(gb, dp.thunk) }) }
+        is LoweredDeferPopExec -> { out.push(s) }
     }
 }
 

@@ -1,0 +1,20 @@
+// A generator local captured by a closure becomes a heap cell, which the state
+// machine can't carry across suspension — so it is rejected at lowering with
+// M5007 rather than emitting a `g$State` whose cell / closure fields the
+// backend can't construct (invalid C on native). Here `base` is captured by
+// the nested `addbase`; a read-only capture is enough to trip it.
+module "snippet"
+
+@generator
+gen :: fn(seed: i32) -> Iterator<i32> {
+    base :: seed * 10
+    addbase :: fn(x: i32) -> i32 { return x + base }
+    for i in 0..<3 { yield addbase(i) }
+}
+
+main :: fn() -> i32 {
+    it :: gen(1)
+    total := 0
+    for v in it { total = total + v }
+    return total
+}

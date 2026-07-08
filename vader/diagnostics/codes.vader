@@ -194,6 +194,7 @@ export LowerCode :: enum(u8) {
     IntoCoercionFailed,                     // M5004
     IntrinsicUnsupported,                   // M5005
     SelfReceiverMissing,                    // M5006
+    GeneratorClosureCapture,                // M5007
 }
 
 // `WARNING` — non-fatal diagnostics. New entries appended ; never reused.
@@ -330,6 +331,7 @@ export lower_info :: fn(c: LowerCode) = match c {
     .IntoCoercionFailed                 -> CodeInfo { .id = "M5004", .message = "`Into` coercion cannot be lowered" }
     .IntrinsicUnsupported               -> CodeInfo { .id = "M5005", .message = "intrinsic not implemented by the lowerer" }
     .SelfReceiverMissing                -> CodeInfo { .id = "M5006", .message = "method call lacks a resolvable `self` receiver" }
+    .GeneratorClosureCapture            -> CodeInfo { .id = "M5007", .message = "a local captured by a closure is not yet supported inside a generator" }
 }
 
 export typecheck_info :: fn(c: TypecheckCode) = match c {

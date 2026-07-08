@@ -1,0 +1,24 @@
+// A labeled `break outer` across a `yield` in an ESCAPING generator (stored in
+// a local, so the state-machine path — not fusion — runs). It must terminate
+// the whole loop nest, not just the inner loop. Regression: the block-split
+// resolved `break`/`continue` to the innermost loop, ignoring the label — so
+// `break outer` acted like `continue outer` (wrong values / infinite loop).
+module "snippet"
+
+import "std/io" { println }
+
+@generator
+gen :: fn() -> Iterator<i32> {
+    outer: for i in 0..<3 {
+        for j in 0..<3 {
+            yield i * 10 + j
+            if j == 1 { break outer }
+        }
+    }
+}
+
+main :: fn() -> i32 {
+    it :: gen()
+    for v in it { println("${v}") }
+    return 0
+}
