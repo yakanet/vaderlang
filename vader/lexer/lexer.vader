@@ -125,6 +125,15 @@ advance :: fn(l: Lexer, n: usize) -> void {
         if b == '\n' {
             l.line = l.line + 1
             l.col = 1
+        } else if b == '\r' {
+            // A lone CR (classic-Mac line ending) terminates the line. In a
+            // CRLF pair the trailing LF does the bump, so skip here to avoid
+            // double-counting.
+            next :: l.pos + 1
+            if next >= l.bytes.len() || l.bytes[next] != '\n' {
+                l.line = l.line + 1
+                l.col = 1
+            }
         } else if b < 128 || b >= 192 {    // ASCII or UTF-8 leading byte
             l.col = l.col + 1
         }
@@ -981,6 +990,41 @@ import "std/testing" { assert, assert_eq }
 @test test_tokenize_no_errors_on_valid_source :: fn() -> void {
     l :: tokenize("fn foo() { return 42 }", "test.vader")
     assert_eq(l.errors.len(), 0)
+}
+
+// ---- line-terminator counting --------------------------------------------
+
+// Report the start line of the first token whose text matches `text`, or 0.
+line_of :: fn(l: Lexer, text: string) -> i32 {
+    for t in l.tokens {
+        if t.text == text { return t.span.start.line }
+    }
+    return 0
+}
+
+@test test_lone_cr_bumps_line :: fn() -> void {
+    // Classic-Mac line ending : a bare CR terminates the line.
+    l :: tokenize("a\rb", "test.vader")
+    assert_eq(l.line_of("b"), 2)
+}
+
+@test test_crlf_counts_once :: fn() -> void {
+    // A CRLF pair is one line break, not two.
+    l :: tokenize("a\r\nb", "test.vader")
+    assert_eq(l.line_of("b"), 2)
+}
+
+@test test_lf_still_bumps_line :: fn() -> void {
+    l :: tokenize("a\nb", "test.vader")
+    assert_eq(l.line_of("b"), 2)
+}
+
+@test test_mixed_terminators_line_count :: fn() -> void {
+    // CR, LF, CRLF in sequence : four physical lines total.
+    l :: tokenize("a\rb\nc\r\nd", "test.vader")
+    assert_eq(l.line_of("b"), 2)
+    assert_eq(l.line_of("c"), 3)
+    assert_eq(l.line_of("d"), 4)
 }
 
 // ---- newline continuation (leading operators) ----------------------------
