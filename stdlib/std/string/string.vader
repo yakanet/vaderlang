@@ -89,6 +89,10 @@ export byte_decode_at :: fn(s: string, i: usize) -> char = decode_char_at(s.byte
 // the buffer-backed builder's dependency a cycle. It is ambient now ; callers
 // drop it from their `import "std/string" { … }` lists.
 
+/// Unicode replacement character (U+FFFD) — the standard stand-in for an
+/// undecodable byte / an unpaired UTF-16 surrogate.
+export REPLACEMENT_CHAR :: char(0xFFFD)
+
 /// Decode the UTF-8 codepoint at byte offset `i` of a byte view. The byte
 /// counterpart to `byte_decode_at` — operates on a `const u8[]` (typically
 /// `s.bytes()`) instead of a string, so byte-cursor consumers can hold the
@@ -102,7 +106,7 @@ export decode_char_at :: fn(bs: const u8[], i: usize) -> char {
     b :: bs[i]
     if b < 0x80 { return char(b) }
     // Continuation byte as leader : invalid UTF-8.
-    if b < 0xC0 { return char(0xFFFD) }
+    if b < 0xC0 { return REPLACEMENT_CHAR }
     rem :: n - i
     if b < 0xE0 {
         if rem < 2 { return char(0) }
@@ -904,7 +908,7 @@ import "std/testing" { assert, assert_eq, assert_close }
     assert_eq(byte_decode_at("héllo", 0), 'h')
     assert_eq(byte_decode_at("héllo", 1), 'é')
     // Offset 2 lands on a continuation byte → U+FFFD.
-    assert_eq(byte_decode_at("héllo", 2), char(0xFFFD))
+    assert_eq(byte_decode_at("héllo", 2), REPLACEMENT_CHAR)
 }
 
 @test test_split_edge :: fn() -> void {

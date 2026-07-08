@@ -10,7 +10,7 @@
 
 module "std/json"
 
-import "std/string" { decode_char_at, codepoint_byte_len, parse_float, ParseError, pad_start, chars }
+import "std/string" { decode_char_at, codepoint_byte_len, parse_float, ParseError, pad_start, chars, REPLACEMENT_CHAR }
 import "std/char" { is_digit, is_white_char }
 import "std/iter" { zip }
 import "std/string_builder" { StringBuilder, append, append_char, append_repeated }
@@ -130,7 +130,17 @@ match_keyword :: fn(p: Parser, kw: string) -> bool {
 
 // ---- parse value dispatch -------------------------------------------------
 
-parse_value :: fn(p: Parser) -> JsonValue | JsonError {
+/// Maximum container-nesting depth. A guard against unbounded recursion on
+/// adversarial input (`[[[[…` / `{"a":{"a":…`) : without it a deep document
+/// overflows the call stack (VM trap / native segfault) instead of returning a
+/// `JsonError`. Kept well under the VM's 1024-frame limit — each nesting level
+/// costs ~2 frames — and comfortably above any realistic document.
+MAX_DEPTH :: 200
+
+parse_value :: fn(p: Parser, depth: i32) -> JsonValue | JsonError {
+    if depth > MAX_DEPTH {
+        return fail(p, "maximum nesting depth exceeded")
+    }
     skip_ws(p)
     if at_end(p) {
         return fail(p, "unexpected end of input")
@@ -141,10 +151,10 @@ parse_value :: fn(p: Parser) -> JsonValue | JsonError {
         return JsonString { .value = s }
     }
     if c == '{' {
-        return parse_object(p)?
+        return parse_object(p, depth)?
     }
     if c == '[' {
-        return parse_array(p)?
+        return parse_array(p, depth)?
     }
     if c == 't' || c == 'f' {
         return parse_bool(p)?
@@ -296,19 +306,9 @@ parse_string_with_escapes :: fn(p: Parser, sb: StringBuilder) -> string | JsonEr
             } else if esc == 'f' {
                 sb.append_char(char(u32(12)))
             } else if esc == 'u' {
-                if p.pos + 4 > p.eof {
-                    return fail(p, "incomplete \\u escape")
+                if !decode_unicode_escape(p, sb) {
+                    return fail(p, "invalid \\u escape")
                 }
-                cp := 0
-                for k in usize(0)..<4 {
-                    d := hex_digit_value(p.bytes.decode_char_at(p.pos + k))
-                    if d < 0 {
-                        return fail(p, "invalid hex digit in \\u escape")
-                    }
-                    cp = cp * 16 + d
-                }
-                p.pos = p.pos + 4
-                sb.append_char(char(cp))
             } else {
                 return fail(p, "unknown escape")
             }
@@ -325,9 +325,64 @@ parse_string_with_escapes :: fn(p: Parser, sb: StringBuilder) -> string | JsonEr
     return fail(p, "unterminated string")
 }
 
+// Read exactly 4 hex digits at `p.pos` (a `\uXXXX` payload — the `\u` is
+// already consumed), advancing `p.pos` by 4 on success. Returns the 0..0xFFFF
+// value, or -1 (without advancing) on incomplete input / a non-hex digit.
+read_hex4 :: fn(p: Parser) -> i32 {
+    if p.pos + 4 > p.eof {
+        return -1
+    }
+    v := 0
+    for k in usize(0)..<4 {
+        d := hex_digit_value(p.bytes.decode_char_at(p.pos + k))
+        if d < 0 {
+            return -1
+        }
+        v = v * 16 + d
+    }
+    p.pos = p.pos + 4
+    return v
+}
+
+// Decode a `\uXXXX` escape (the `\u` is already consumed) and append the result
+// to `sb`. A high surrogate is recombined with an immediately-following
+// `\uYYYY` low surrogate into one non-BMP code point (JSON's only way to escape
+// U+10000..U+10FFFF). An unpaired / mismatched surrogate becomes U+FFFD — any
+// trailing escape that wasn't a low surrogate is left unconsumed for the main
+// loop to re-decode, so it keeps its own meaning. Returns false on incomplete /
+// non-hex input.
+decode_unicode_escape :: fn(p: Parser, sb: StringBuilder) -> bool {
+    hi :: read_hex4(p)
+    if hi < 0 {
+        return false
+    }
+    if hi < 0xD800 || hi > 0xDFFF {
+        sb.append_char(char(hi))            // ordinary BMP scalar
+        return true
+    }
+    if hi >= 0xDC00 {
+        sb.append_char(REPLACEMENT_CHAR)    // lone low surrogate
+        return true
+    }
+    // High surrogate — pair it with a following `\uYYYY` low surrogate, else
+    // fall back to U+FFFD and leave the second escape for the main loop.
+    if p.pos + 2 <= p.eof && p.bytes[p.pos] == '\\' && p.bytes[p.pos + 1] == 'u' {
+        saved :: p.pos
+        p.pos = p.pos + 2
+        lo :: read_hex4(p)
+        if lo >= 0xDC00 && lo <= 0xDFFF {
+            sb.append_char(char(0x10000 + (hi - 0xD800) * 0x400 + (lo - 0xDC00)))
+            return true
+        }
+        p.pos = saved
+    }
+    sb.append_char(REPLACEMENT_CHAR)
+    return true
+}
+
 // ---- array parser ---------------------------------------------------------
 
-parse_array :: fn(p: Parser) -> JsonArray | JsonError {
+parse_array :: fn(p: Parser, depth: i32) -> JsonArray | JsonError {
     expect_byte(p, '[')?
     items: JsonValue[] = []
     skip_ws(p)
@@ -336,7 +391,7 @@ parse_array :: fn(p: Parser) -> JsonArray | JsonError {
         return JsonArray { .items = items }
     }
     for !at_end(p) {
-        v := parse_value(p)?
+        v := parse_value(p, depth + 1)?
         items.push(v)
         skip_ws(p)
         if at_end(p) {
@@ -359,7 +414,7 @@ parse_array :: fn(p: Parser) -> JsonArray | JsonError {
 
 // ---- object parser --------------------------------------------------------
 
-parse_object :: fn(p: Parser) -> JsonObject | JsonError {
+parse_object :: fn(p: Parser, depth: i32) -> JsonObject | JsonError {
     expect_byte(p, '{')?
     entries := MutableMap<string, JsonValue> {}
     skip_ws(p)
@@ -372,7 +427,7 @@ parse_object :: fn(p: Parser) -> JsonObject | JsonError {
         key := parse_string(p)?
         skip_ws(p)
         expect_byte(p, ':')?
-        value := parse_value(p)?
+        value := parse_value(p, depth + 1)?
         entries[key] = value
         skip_ws(p)
         if at_end(p) {
@@ -397,13 +452,19 @@ parse_object :: fn(p: Parser) -> JsonObject | JsonError {
 /// Parse a complete JSON document. The input must contain exactly one
 /// JSON value optionally surrounded by whitespace ; trailing non-whitespace
 /// is an error.
+///
+/// Policy: malformed *syntax* (a bad escape, an unterminated string / container,
+/// an invalid number, nesting past `MAX_DEPTH`) returns a `JsonError`. A
+/// syntactically valid but unpaired `\u` surrogate is handled leniently — it
+/// decodes to U+FFFD (matching Go's `encoding/json`), since a lone surrogate
+/// has no UTF-8 representation.
 /// @param input  the JSON text.
 /// @return       the parsed `JsonValue` on success.
 /// @error        `JsonError` carrying a short message and the byte offset
 ///               of the offending character.
 export parse :: fn(input: string) -> JsonValue | JsonError {
     p := new_parser(input)
-    v := parse_value(p)?
+    v := parse_value(p, 0)?
     skip_ws(p)
     if !at_end(p) {
         return fail(p, "trailing characters after JSON value")
@@ -643,9 +704,36 @@ expect_error :: fn(src: string) -> void {
 @test test_array_of_strings :: fn() -> void {
     parsed :: parse("[\"a\", \"b\\nc\", \"\"]")
     if parsed is JsonArray {
-        assert_eq(parsed.items.len(), 3) 
+        assert_eq(parsed.items.len(), 3)
     } else {
-        test_fail("expected JsonArray") 
+        test_fail("expected JsonArray")
     }
-    
+
+}
+
+@test test_string_escape_surrogate_pair :: fn() -> void {
+    // A `\uXXXX\uYYYY` surrogate pair recombines into one non-BMP code point
+    // (U+1D11E), encoded as 4-byte UTF-8 — not two 3-byte WTF-8 halves.
+    expect_string("\"\\uD834\\uDD1E\"",   "\u{1D11E}")
+    expect_string("\"a\\uD834\\uDD1Eb\"", "a\u{1D11E}b")
+}
+
+@test test_string_escape_lone_surrogate :: fn() -> void {
+    // A lone or mismatched surrogate decodes to U+FFFD rather than an invalid
+    // WTF-8 sequence.
+    expect_string("\"\\uD834\"",        "\u{FFFD}")       // lone high
+    expect_string("\"\\uDD1E\"",        "\u{FFFD}")       // lone low
+    expect_string("\"\\uD834\\u0041\"", "\u{FFFD}A")      // high + BMP char
+}
+
+@test test_parse_rejects_deep_nesting :: fn() -> void {
+    // Unbounded-recursion guard : a document nested past MAX_DEPTH is a
+    // JsonError, not a stack overflow (VM trap / native segfault).
+    sb :: StringBuilder {}
+    for i in 0..<(MAX_DEPTH + 5) { sb.append_char('[') }
+    for i in 0..<(MAX_DEPTH + 5) { sb.append_char(']') }
+    expect_error(sb.to_string())
+    // A modestly-nested document still parses.
+    ok :: parse("[[[[[1]]]]]")
+    if ok !is JsonArray { test_fail("expected JsonArray for shallow nesting") }
 }
