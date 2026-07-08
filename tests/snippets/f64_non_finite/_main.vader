@@ -1,0 +1,17 @@
+// Comptime-folded IEEE non-finite f64 constants — `inf` / `-inf` / `nan` — must
+// emit valid C. The float literal emitter renders them via compiler builtins
+// (`__builtin_inf()` / `__builtin_nan("")`), not the bare words `inf` / `nan`
+// that a C compiler reads as undeclared identifiers. Regression for audit B3.
+module "snippet"
+
+import "std/io" { println }
+
+POS_INF: f64: 1.0e308 * 100.0
+NEG_INF: f64: -1.0e308 * 100.0
+NOT_A_NUM: f64: 0.0 / 0.0
+
+main :: fn() -> i32 {
+    arr :: [POS_INF, NEG_INF]
+    println("${POS_INF} ${NEG_INF} ${NOT_A_NUM} ${arr[0]} ${arr[1]}")
+    return 0
+}

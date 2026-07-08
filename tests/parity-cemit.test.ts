@@ -163,6 +163,10 @@ const C_PARITY = new Set<string>([
   // guard on the marshalling ABI: the 2026-05 atom migration broke it for
   // ~6 weeks without a test noticing. Links the snippet's `helper.c`.
   "extern_native_basic",
+  // Comptime-folded non-finite f64 constants (`inf` / `-inf` / `nan`). The
+  // native run is the guard: the literal emitter must render them as compiler
+  // builtins, not the bare words `inf` / `nan` (invalid C). Regression B3.
+  "f64_non_finite",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

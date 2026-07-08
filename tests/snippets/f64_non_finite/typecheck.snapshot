@@ -1,0 +1,24 @@
+# Typecheck
+
+## tests/snippets/f64_non_finite
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      NEG_INF              :: f64
+  ConstDecl      NOT_A_NUM            :: f64
+  ConstDecl      POS_INF              :: f64
+  expr 10:15    BinaryExpr     :: f64
+  expr 10:15    UnaryExpr      :: f64
+  expr 11:17    BinaryExpr     :: f64
+  expr 14:12    SeqLitExpr     :: f64[]
+  expr 14:13    IdentExpr      :: f64
+  expr 14:22    IdentExpr      :: f64
+  expr 15:13    StringLitExpr  :: string
+  expr 15:16    IdentExpr      :: f64
+  expr 15:27    IdentExpr      :: f64
+  expr 15:38    IdentExpr      :: f64
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void
+  expr 15:51    IdentExpr      :: f64[]
+  expr 15:51    IndexExpr      :: f64
+  expr 15:61    IdentExpr      :: f64[]
+  expr 15:61    IndexExpr      :: f64
+  expr 9:15     BinaryExpr     :: f64
