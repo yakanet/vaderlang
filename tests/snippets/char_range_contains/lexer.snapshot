@@ -50,7 +50,7 @@
 [17:14-17:16] kw_in          "in"
 [17:17-17:20] char_literal   "'a'" =U+0061
 [17:20-17:23] range_incl     "..="
-[17:23-17:26] char_literal   "'z'" =U+007A
+[17:23-17:26] char_literal   "'z'" =U+007a
 [18:1-18:1  ] newline        "\n"
 [18:1-18:2  ] rbrace         "}"
 [19:1-19:1  ] newline        "\n"
@@ -71,13 +71,13 @@
 [21:14-21:16] kw_in          "in"
 [21:17-21:20] char_literal   "'a'" =U+0061
 [21:20-21:23] range_incl     "..="
-[21:23-21:26] char_literal   "'z'" =U+007A
+[21:23-21:26] char_literal   "'z'" =U+007a
 [21:27-21:29] or_or          "||"
 [21:30-21:31] ident          "c"
 [21:32-21:34] kw_in          "in"
 [21:35-21:38] char_literal   "'A'" =U+0041
 [21:38-21:41] range_incl     "..="
-[21:41-21:44] char_literal   "'Z'" =U+005A
+[21:41-21:44] char_literal   "'Z'" =U+005a
 [22:1-22:1  ] newline        "\n"
 [22:1-22:2  ] rbrace         "}"
 [23:1-23:1  ] newline        "\n"
@@ -151,7 +151,7 @@
 [29:8-29:9  ] bang           "!"
 [29:9-29:17 ] ident          "is_digit"
 [29:17-29:18] lparen         "("
-[29:18-29:21] char_literal   "':'" =U+003A
+[29:18-29:21] char_literal   "':'" =U+003a
 [29:21-29:22] rparen         ")"
 [29:24-29:25] lbrace         "{"
 [29:26-29:33] ident          "println"
@@ -165,7 +165,7 @@
 [31:5-31:7  ] kw_if          "if"
 [31:8-31:16 ] ident          "is_lower"
 [31:16-31:17] lparen         "("
-[31:17-31:20] char_literal   "'m'" =U+006D
+[31:17-31:20] char_literal   "'m'" =U+006d
 [31:20-31:21] rparen         ")"
 [31:24-31:25] lbrace         "{"
 [31:26-31:33] ident          "println"
@@ -180,7 +180,7 @@
 [32:8-32:9  ] bang           "!"
 [32:9-32:17 ] ident          "is_lower"
 [32:17-32:18] lparen         "("
-[32:18-32:21] char_literal   "'M'" =U+004D
+[32:18-32:21] char_literal   "'M'" =U+004d
 [32:21-32:22] rparen         ")"
 [32:24-32:25] lbrace         "{"
 [32:26-32:33] ident          "println"
@@ -194,7 +194,7 @@
 [34:5-34:7  ] kw_if          "if"
 [34:8-34:16 ] ident          "is_alpha"
 [34:16-34:17] lparen         "("
-[34:17-34:20] char_literal   "'z'" =U+007A
+[34:17-34:20] char_literal   "'z'" =U+007a
 [34:20-34:21] rparen         ")"
 [34:24-34:25] lbrace         "{"
 [34:26-34:33] ident          "println"
@@ -208,7 +208,7 @@
 [35:5-35:7  ] kw_if          "if"
 [35:8-35:16 ] ident          "is_alpha"
 [35:16-35:17] lparen         "("
-[35:17-35:20] char_literal   "'Z'" =U+005A
+[35:17-35:20] char_literal   "'Z'" =U+005a
 [35:20-35:21] rparen         ")"
 [35:24-35:25] lbrace         "{"
 [35:26-35:33] ident          "println"

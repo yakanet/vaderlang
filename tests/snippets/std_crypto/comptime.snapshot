@@ -16,6 +16,7 @@
   Index<I, T>
   IndexSet<I, T>
   Contains<T>
+  Iterator<char>
   Iterator<i32>
   Iterator<[usize, T]>
   Iterator<[T, U]>
@@ -36,9 +37,11 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
+  Yield<char>
   Yield<T>
   Yield<T>
   Yield<T>
+  Range<char>
   Range<i32>
   Range<usize>
   Range<T>

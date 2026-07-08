@@ -86,7 +86,7 @@
 [13:47-13:48] rbrace         "}"
 [14:1-14:1  ] newline        "\n"
 [14:5-14:7  ] kw_if          "if"
-[14:8-14:11 ] char_literal   "'z'" =U+007A
+[14:8-14:11 ] char_literal   "'z'" =U+007a
 [14:12-14:13] bang           "!"
 [14:13-14:15] kw_in          "in"
 [14:16-14:22] ident          "vowels"

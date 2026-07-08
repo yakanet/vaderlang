@@ -24,6 +24,7 @@ module "std/crypto"
 import "std/iter" { clone }
 import "std/string_builder" { StringBuilder, append_char }
 import "std/math" { sin, abs, floor }
+import "std/numbers" { hex_digit }
 
 // =========================================================================
 // Shared helpers
@@ -37,16 +38,11 @@ mask32 :: fn(x: u32) -> u32 = x & MASK_U32
 
 rotr32 :: fn(x: u32, n: u32) -> u32 = (x >> n) | mask32(x << (32 - n))
 
-hex_digit :: fn(n: u32) -> char {
-    if n < 10 { return char('0' + n) }
-    return char('a' + n - 10)
-}
-
 append_hex_u8 :: fn(sb: StringBuilder, x: u8) -> void {
     hi :: u32(x) >> 4
     lo :: u32(x) & 0xF
-    sb.append_char(hex_digit(hi))
-    sb.append_char(hex_digit(lo))
+    sb.append_char(hex_digit(u64(hi)))
+    sb.append_char(hex_digit(u64(lo)))
 }
 
 // =========================================================================

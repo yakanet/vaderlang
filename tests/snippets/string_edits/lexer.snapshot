@@ -139,7 +139,7 @@
 [16:23-16:24] dot            "."
 [16:24-16:28] ident          "find"
 [16:28-16:29] lparen         "("
-[16:29-16:32] char_literal   "'z'" =U+007A
+[16:29-16:32] char_literal   "'z'" =U+007a
 [16:32-16:33] rparen         ")"
 [16:33-16:34] interp_close   "}"
 [16:34-16:35] string_end     "\""

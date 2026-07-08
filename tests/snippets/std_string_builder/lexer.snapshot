@@ -155,7 +155,7 @@
 [28:8-28:9  ] dot            "."
 [28:9-28:20 ] ident          "append_char"
 [28:20-28:21] lparen         "("
-[28:21-28:24] char_literal   "'€'" =U+20AC
+[28:21-28:24] char_literal   "'€'" =U+20ac
 [28:24-28:25] rparen         ")"
 [29:1-29:1  ] newline        "\n"
 [29:5-29:8  ] ident          "sb4"

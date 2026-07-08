@@ -29,19 +29,19 @@
 [15:18-15:19] ident          "c"
 [15:20-15:21] lbrace         "{"
 [16:1-16:1  ] newline        "\n"
-[16:9-16:12 ] char_literal   "'>'" =U+003E
+[16:9-16:12 ] char_literal   "'>'" =U+003e
 [16:13-16:15] arrow          "->"
 [16:16-16:17] string_begin   "\""
 [16:17-16:22] string_part    "right" ="right"
 [16:22-16:23] string_end     "\""
 [17:1-17:1  ] newline        "\n"
-[17:9-17:12 ] char_literal   "'<'" =U+003C
+[17:9-17:12 ] char_literal   "'<'" =U+003c
 [17:13-17:15] arrow          "->"
 [17:16-17:17] string_begin   "\""
 [17:17-17:21] string_part    "left" ="left"
 [17:21-17:22] string_end     "\""
 [18:1-18:1  ] newline        "\n"
-[18:9-18:12 ] char_literal   "'+'" =U+002B
+[18:9-18:12 ] char_literal   "'+'" =U+002b
 [18:13-18:15] arrow          "->"
 [18:16-18:17] string_begin   "\""
 [18:17-18:21] string_part    "plus" ="plus"
@@ -205,7 +205,7 @@
 [57:12-57:13] lparen         "("
 [57:13-57:26] ident          "describe_char"
 [57:26-57:27] lparen         "("
-[57:27-57:30] char_literal   "'>'" =U+003E
+[57:27-57:30] char_literal   "'>'" =U+003e
 [57:30-57:31] rparen         ")"
 [57:31-57:32] rparen         ")"
 [58:1-58:1  ] newline        "\n"
@@ -213,7 +213,7 @@
 [58:12-58:13] lparen         "("
 [58:13-58:26] ident          "describe_char"
 [58:26-58:27] lparen         "("
-[58:27-58:30] char_literal   "'+'" =U+002B
+[58:27-58:30] char_literal   "'+'" =U+002b
 [58:30-58:31] rparen         ")"
 [58:31-58:32] rparen         ")"
 [59:1-59:1  ] newline        "\n"

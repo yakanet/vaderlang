@@ -364,14 +364,14 @@
 [50:1-50:1  ] newline        "\n"
 [50:5-50:7  ] ident          "mc"
 [50:7-50:8  ] lbracket       "["
-[50:8-50:11 ] char_literal   "'Z'" =U+005A
+[50:8-50:11 ] char_literal   "'Z'" =U+005a
 [50:11-50:12] rbracket       "]"
 [50:13-50:14] assign         "="
 [50:15-50:17] int_literal    "26" =26n
 [51:1-51:1  ] newline        "\n"
 [51:5-51:7  ] ident          "mc"
 [51:7-51:8  ] lbracket       "["
-[51:8-51:11 ] char_literal   "'é'" =U+00E9
+[51:8-51:11 ] char_literal   "'é'" =U+00e9
 [51:11-51:12] rbracket       "]"
 [51:13-51:14] assign         "="
 [51:15-51:17] int_literal    "99" =99n
@@ -397,7 +397,7 @@
 [52:54-52:55] lparen         "("
 [52:55-52:57] ident          "mc"
 [52:57-52:58] comma          ","
-[52:59-52:62] char_literal   "'Z'" =U+005A
+[52:59-52:62] char_literal   "'Z'" =U+005a
 [52:62-52:63] comma          ","
 [52:64-52:65] minus          "-"
 [52:65-52:66] int_literal    "1" =1n
@@ -409,7 +409,7 @@
 [52:81-52:82] lparen         "("
 [52:82-52:84] ident          "mc"
 [52:84-52:85] comma          ","
-[52:86-52:89] char_literal   "'é'" =U+00E9
+[52:86-52:89] char_literal   "'é'" =U+00e9
 [52:89-52:90] comma          ","
 [52:91-52:92] minus          "-"
 [52:92-52:93] int_literal    "1" =1n
