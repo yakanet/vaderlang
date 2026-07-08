@@ -1,0 +1,227 @@
+# AST
+{
+  "kind": "Program",
+  "module": {
+    "kind": "ModuleDecl",
+    "name": "snippet"
+  },
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "std/io",
+      "binding": {
+        "kind": "destructure",
+        "names": [
+          {
+            "name": "println",
+            "alias": null
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "ConstDecl",
+      "name": "POS_INF",
+      "visibility": "private",
+      "type": {
+        "kind": "IdentExpr",
+        "name": "f64"
+      },
+      "value": {
+        "kind": "BinaryExpr",
+        "op": "mul",
+        "left": {
+          "kind": "FloatLitExpr",
+          "value": 1e+308
+        },
+        "right": {
+          "kind": "FloatLitExpr",
+          "value": 100
+        }
+      },
+      "decorators": []
+    },
+    {
+      "kind": "ConstDecl",
+      "name": "NEG_INF",
+      "visibility": "private",
+      "type": {
+        "kind": "IdentExpr",
+        "name": "f64"
+      },
+      "value": {
+        "kind": "BinaryExpr",
+        "op": "mul",
+        "left": {
+          "kind": "UnaryExpr",
+          "op": "neg",
+          "operand": {
+            "kind": "FloatLitExpr",
+            "value": 1e+308
+          }
+        },
+        "right": {
+          "kind": "FloatLitExpr",
+          "value": 100
+        }
+      },
+      "decorators": []
+    },
+    {
+      "kind": "ConstDecl",
+      "name": "NOT_A_NUM",
+      "visibility": "private",
+      "type": {
+        "kind": "IdentExpr",
+        "name": "f64"
+      },
+      "value": {
+        "kind": "BinaryExpr",
+        "op": "div",
+        "left": {
+          "kind": "FloatLitExpr",
+          "value": 0
+        },
+        "right": {
+          "kind": "FloatLitExpr",
+          "value": 0
+        }
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "arr"
+            },
+            "type": null,
+            "value": {
+              "kind": "SeqLitExpr",
+              "elements": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "POS_INF"
+                },
+                {
+                  "kind": "IdentExpr",
+                  "name": "NEG_INF"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IdentExpr",
+                          "name": "POS_INF"
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IdentExpr",
+                          "name": "NEG_INF"
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IdentExpr",
+                          "name": "NOT_A_NUM"
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "arr"
+                          },
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "0n"
+                          }
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "arr"
+                          },
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "1n"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n"
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

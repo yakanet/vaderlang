@@ -1,0 +1,4 @@
+# stdout
+inf -inf nan inf -inf
+# exit
+0

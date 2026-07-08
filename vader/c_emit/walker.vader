@@ -501,12 +501,20 @@ i64_lit_c :: fn(value: i64) -> string {
     return "INT64_C(${value})"
 }
 
-/// C literal for an f64 value. T1 will add inf / nan handling
-/// (`(1.0/0.0)` etc.) and the f32 `f` suffix ; T0 only needs the finite
-/// f64 path. A `.0` suffix is appended when the rendered value has no
-/// `.`/`e`, so the C literal stays a `double`.
+/// C literal for an f64 value. A `.0` suffix is appended when the rendered
+/// value has no `.`/`e`, so the C literal stays a `double`.
+///
+/// IEEE non-finite values (`inf` / `-inf` / `nan`, e.g. a comptime-folded
+/// `1.0e308 * 100.0`) have no plain C literal — `"${value}"` renders them as
+/// the bare words `inf` / `nan`, which the C compiler reads as undeclared
+/// identifiers. Emit the equivalent compiler builtins instead : they need no
+/// `<math.h>` and, unlike `(1.0/0.0)`, don't trip a div-by-zero constant-fold
+/// warning under `-Werror`.
 float_lit :: fn(value: f64) -> string {
     s :: "${value}"
+    if s == "inf"  { return "__builtin_inf()" }
+    if s == "-inf" { return "(-__builtin_inf())" }
+    if s == "nan"  { return "__builtin_nan(\"\")" }
     if "." in s || "e" in s { return s }
     return "${s}.0"
 }
