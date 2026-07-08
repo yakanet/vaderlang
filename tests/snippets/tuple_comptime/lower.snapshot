@@ -8,8 +8,8 @@
     }
   const snippet$ORIGIN: [f64, f64, string] =
     [f64, f64, string] {
-      _0: float(0) :?
-      _1: float(0) :?
+      _0: float(0.0) :?
+      _1: float(0.0) :?
       _2: "origin" :string
     }
   fn snippet$main() -> i32
@@ -111,8 +111,8 @@
               arg0:
                 ._0 :f64
                   [f64, f64, string] {
-                    _0: float(0) :?
-                    _1: float(0) :?
+                    _0: float(0.0) :?
+                    _1: float(0.0) :?
                     _2: "origin" :string
                   }
           arg2:
@@ -124,8 +124,8 @@
               arg0:
                 ._1 :f64
                   [f64, f64, string] {
-                    _0: float(0) :?
-                    _1: float(0) :?
+                    _0: float(0.0) :?
+                    _1: float(0.0) :?
                     _2: "origin" :string
                   }
           arg4:
@@ -133,8 +133,8 @@
           arg5:
             ._2 :string
               [f64, f64, string] {
-                _0: float(0) :?
-                _1: float(0) :?
+                _0: float(0.0) :?
+                _1: float(0.0) :?
                 _2: "origin" :string
               }
     return

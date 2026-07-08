@@ -177,7 +177,7 @@
                   arg0:
                     float(3.5) :f64
                   arg1:
-                    float(5) :f64
+                    float(5.0) :f64
     call :void
       callee:
         std_io$println__string :void
@@ -379,9 +379,9 @@
                   arg0:
                     float(1.5) :f64
                   arg1:
-                    float(0) :f64
+                    float(0.0) :f64
                   arg2:
-                    float(1) :f64
+                    float(1.0) :f64
     return int(0) :i32
   fn snippet$describe_1(b: Bag) -> string
     return
