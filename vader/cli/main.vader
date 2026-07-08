@@ -10,7 +10,7 @@ import "std/collections" { MutableMap }
 import "std/string" { starts_with, ends_with, trim_suffix, split, trim }
 import "std/path" { to_posix, to_path, filename }
 import "std/process" { spawn, ProcessError }
-import "std/cli" { FlagSpec, parse_known, bool_flag, string_flag }
+import "std/cli" { FlagSpec, parse, parse_known, bool_flag, string_flag }
 import "vader/version" { CLI_VERSION }
 import "vader/lexer" { tokenize, dump_tokens, dump_diagnostics, dump_diagnostics_with_file }
 import "vader/parser" { parse_source, dump_program }
@@ -686,7 +686,11 @@ cmd_build :: fn(args: string[]) -> i32 {
         FlagSpec { .name = "ldflags",  .kind = .Str  },
         FlagSpec { .name = "include-paths", .kind = .Str },
     ]
-    parsed :: parse_known(args, specs)
+    // Strict parse : an unknown `--flag` is an error, not a silently-ignored
+    // token (a `--releaze` typo must not fall through to a default debug build).
+    // Global options were already stripped before dispatch, so nothing valid
+    // leaks here.
+    parsed :: parse(args, specs)
     if parsed.errors.len() > 0 {
         for e in parsed.errors {
             eprintln("vader build: ${e}")
@@ -925,7 +929,9 @@ cmd_dump :: fn(args: string[]) -> i32 {
         FlagSpec { .name = "annotate", .kind = .Bool },
         FlagSpec { .name = "module", .kind = .Str },
     ]
-    parsed :: parse_known(args, specs)
+    // Strict : an unknown `--flag` errors rather than being silently ignored
+    // (globals are already stripped before dispatch — nothing valid leaks here).
+    parsed :: parse(args, specs)
     if parsed.errors.len() > 0 {
         for e in parsed.errors { eprintln("vader dump: ${e}") }
         return 1
