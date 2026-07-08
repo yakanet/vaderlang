@@ -224,6 +224,16 @@ is_all_digits :: fn(s: string) -> bool {
     return true
 }
 
+// True when `s` is composed solely of range-operator characters (`<>=~^`) — a
+// bare operator whose version sits in the next whitespace-separated token.
+is_bare_operator :: fn(s: string) -> bool {
+    if s.is_empty() { return false }
+    for c in s.chars() {
+        if c != '<' && c != '>' && c != '=' && c != '~' && c != '^' { return false }
+    }
+    return true
+}
+
 // Parse a strict numeric identifier (digits only, no leading zero
 // unless the value is the single digit "0"). Used by the core (major
 // /minor/patch) parser.
@@ -546,44 +556,55 @@ zero_pre :: fn(major: i32, minor: i32, patch: i32) -> Version {
     }
 }
 
-// `^X.Y.Z` desugars to `>=X.Y.Z <U-0` where U bumps the left-most
-// non-zero component. Partial input is treated like x-range :
-// `^1.2.x` == `^1.2.0`, `^0.0.x` == `>=0.0.0 <0.1.0-0`.
-expand_caret :: fn(p: PartialVersion) -> RangeTerm[] | ParseError {
-    lo :: partial_to_lower(p)
-    upper :: caret_upper(p)
+// Largest i32 — a version component that already sits here can't be bumped for
+// an exclusive upper bound without wrapping negative.
+I32_MAX :: 2147483647
+
+// Exclusive upper-bound version (bump one component by 1, zero the rest, carry
+// the `-0` pre-release marker), or `null` when the component is already i32.MAX
+// — then the range has NO upper bound (matches everything ≥ its lower bound)
+// rather than wrapping to a negative version that nothing satisfies.
+bump_major :: fn(major: i32) -> Version | null = if major == I32_MAX { null } else { zero_pre(major + 1, 0, 0) }
+bump_minor :: fn(major: i32, minor: i32) -> Version | null = if minor == I32_MAX { null } else { zero_pre(major, minor + 1, 0) }
+bump_patch :: fn(patch: i32) -> Version | null = if patch == I32_MAX { null } else { zero_pre(0, 0, patch + 1) }
+
+// `>=lo` plus an optional exclusive `<upper` term ; a null upper (bump overflow)
+// leaves the range unbounded above.
+bounded :: fn(lo: Version, upper: Version | null) -> RangeTerm[] {
+    if upper == null {
+        return [RangeTerm { .op = .Gte, .version = lo }]
+    }
     return [
         RangeTerm { .op = .Gte, .version = lo },
         RangeTerm { .op = .Lt,  .version = upper },
     ]
 }
 
-caret_upper :: fn(p: PartialVersion) -> Version {
+// `^X.Y.Z` desugars to `>=X.Y.Z <U-0` where U bumps the left-most
+// non-zero component. Partial input is treated like x-range :
+// `^1.2.x` == `^1.2.0`, `^0.0.x` == `>=0.0.0 <0.1.0-0`.
+expand_caret :: fn(p: PartialVersion) -> RangeTerm[] | ParseError {
+    return bounded(partial_to_lower(p), caret_upper(p))
+}
+
+caret_upper :: fn(p: PartialVersion) -> Version | null {
     // Pretend missing / wildcard slots are 0 for the upper-bound
     // calculation ; the partial's "absent" components don't carry
     // a constraint and the lower bound already pinned them to 0.
     maj :: if p.major >= 0 { p.major } else { 0 }
     min :: if p.minor >= 0 { p.minor } else { 0 }
     pat :: if p.patch >= 0 { p.patch } else { 0 }
-    if maj != 0 { return zero_pre(maj + 1, 0, 0) }
-    if min != 0 { return zero_pre(0, min + 1, 0) }
-    return zero_pre(0, 0, pat + 1)
+    if maj != 0 { return bump_major(maj) }
+    if min != 0 { return bump_minor(0, min) }
+    return bump_patch(pat)
 }
 
 // `~X.Y.Z` desugars to `>=X.Y.Z <X.(Y+1).0-0` ; `~X.Y` and `~X` are
 // identical to their x-range expansions.
 expand_tilde :: fn(p: PartialVersion) -> RangeTerm[] | ParseError {
-    lo :: partial_to_lower(p)
     maj :: if p.major >= 0 { p.major } else { 0 }
-    upper :: if p.minor >= 0 {
-        zero_pre(maj, p.minor + 1, 0)
-    } else {
-        zero_pre(maj + 1, 0, 0)
-    }
-    return [
-        RangeTerm { .op = .Gte, .version = lo },
-        RangeTerm { .op = .Lt,  .version = upper },
-    ]
+    upper :: if p.minor >= 0 { bump_minor(maj, p.minor) } else { bump_major(maj) }
+    return bounded(partial_to_lower(p), upper)
 }
 
 // `1.2.x` / `1.x` / `*` desugar without operator prefix.
@@ -594,15 +615,8 @@ expand_xrange :: fn(p: PartialVersion) -> RangeTerm[] {
         // filter then excludes pre-releases at match time.
         return [RangeTerm { .op = .Gte, .version = lo }]
     }
-    upper :: if p.minor < 0 {
-        zero_pre(p.major + 1, 0, 0)
-    } else {
-        zero_pre(p.major, p.minor + 1, 0)
-    }
-    return [
-        RangeTerm { .op = .Gte, .version = lo },
-        RangeTerm { .op = .Lt,  .version = upper },
-    ]
+    upper :: if p.minor < 0 { bump_major(p.major) } else { bump_minor(p.major, p.minor) }
+    return bounded(lo, upper)
 }
 
 // Hyphen range `A - B`. Lower bound : `>=A.B.C` (zeros filled in).
@@ -610,29 +624,25 @@ expand_xrange :: fn(p: PartialVersion) -> RangeTerm[] {
 // missing slot and use `<X-0`.
 expand_hyphen :: fn(lo: PartialVersion, hi: PartialVersion) -> RangeTerm[] {
     lo_v :: partial_to_lower(lo)
-    upper_term :: if hi.major < 0 {
-        // `A - *` ; treat as `>=A` with no upper.
-        RangeTerm { .op = .Gte, .version = lo_v }
-    } else if hi.minor < 0 {
-        RangeTerm { .op = .Lt,  .version = zero_pre(hi.major + 1, 0, 0) }
-    } else if hi.patch < 0 {
-        RangeTerm { .op = .Lt,  .version = zero_pre(hi.major, hi.minor + 1, 0) }
-    } else {
+    if hi.major < 0 {
+        return [RangeTerm { .op = .Gte, .version = lo_v }]   // `A - *` : no upper
+    }
+    if hi.minor < 0 {
+        return bounded(lo_v, bump_major(hi.major))
+    }
+    if hi.patch < 0 {
+        return bounded(lo_v, bump_minor(hi.major, hi.minor))
+    }
+    // Complete upper bound — inclusive, no bump (so no overflow).
+    return [
+        RangeTerm { .op = .Gte, .version = lo_v },
         RangeTerm {
             .op = .Lte,
             .version = Version {
                 .major = hi.major, .minor = hi.minor, .patch = hi.patch,
                 .prerelease = hi.prerelease, .build = hi.build,
             },
-        }
-    }
-    if hi.major < 0 {
-        // Just the lower bound.
-        return [RangeTerm { .op = .Gte, .version = lo_v }]
-    }
-    return [
-        RangeTerm { .op = .Gte, .version = lo_v },
-        upper_term,
+        },
     ]
 }
 
@@ -713,6 +723,18 @@ parse_clause :: fn(s: string) -> RangeClause | ParseError {
     n :: tokens.len()
     i: usize = 0
     for i < n {
+        // Operator with a space before its version (`>= 1.2.3`, `^ 1.2.3`) :
+        // node-semver allows whitespace between a comparator and its version, so
+        // a bare-operator token glues to the next token. (`>=1.2.3` with no space
+        // is a single token and skips this.)
+        if is_bare_operator(tokens[i]) && i + 1 < n && tokens[i + 1] != "-" {
+            match parse_token(tokens[i] + tokens[i + 1]) {
+                is RangeTerm[] as arr -> { for t in arr { terms.push(t) } }
+                is ParseError  as e   -> { return ParseError { .msg = e.message() } }
+            }
+            i += 2
+            continue
+        }
         // Hyphen range detection : `X - Y` where the literal `"-"`
         // separator stands alone.
         if i + 2 < n && tokens[i + 1] == "-" {
@@ -1278,4 +1300,27 @@ parse_range_ok :: fn(s: string) -> VersionRange {
     r :: parse_range_ok("^1.2.3-beta.2")
     assert(parse_ok("1.2.3-beta.4") in r,    "1.2.3-beta.4 in ^1.2.3-beta.2")
     assert(!(parse_ok("1.2.4-beta.2") in r), "1.2.4-beta.2 NOT in ^1.2.3-beta.2")
+}
+
+@test test_parse_range_operator_space :: fn() -> void {
+    // node-semver tolerates whitespace between a comparator and its version.
+    r :: parse_range_ok(">= 1.2.3")
+    assert_eq(r.clauses.len(), 1)
+    assert(parse_ok("1.2.3") in r,     "1.2.3 in `>= 1.2.3`")
+    assert(parse_ok("9.9.9") in r,     "9.9.9 in `>= 1.2.3`")
+    assert(!(parse_ok("1.2.2") in r),  "1.2.2 NOT in `>= 1.2.3`")
+    // A spaced `^` operator too.
+    c :: parse_range_ok("^ 1.2.3")
+    assert(parse_ok("1.9.0") in c,     "1.9.0 in `^ 1.2.3`")
+    assert(!(parse_ok("2.0.0") in c),  "2.0.0 NOT in `^ 1.2.3`")
+}
+
+@test test_caret_at_i32_max_no_upper :: fn() -> void {
+    // `^2147483647.0.0` : the exclusive upper bound would be `major + 1`, an
+    // i32 overflow. The range must stay unbounded above (a lone `>=` term)
+    // rather than wrapping to a negative bound that nothing satisfies.
+    r :: parse_range_ok("^2147483647.0.0")
+    assert_eq(r.clauses.len(), 1)
+    assert_eq(r.clauses[0].terms.len(), 1)
+    assert(parse_ok("2147483647.5.9") in r, "a higher version is in ^i32.MAX.0.0")
 }
