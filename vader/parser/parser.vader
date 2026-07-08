@@ -1580,25 +1580,14 @@ parse_type :: fn(p: Parser) -> TypeExpr {
     // drops the newline before each leading `|` so the tokens
     // look identical to `T :: | A | B | C`.
     p.match_kind(.Pipe)
-    const_tok :: p.match_kind(.KwConst)
-    head := p.parse_type_intersection()
-    if const_tok != null {
-        if head is ArrayTypeExpr {
-            head_span :: head.span
-            head = ArrayTypeExpr {
-                .span      = Span { .start = const_tok.span.start, .end = head_span.end },
-                .element   = head.element,
-                .immutable = true,
-            }
-        } else {
-            p.error(.InvalidConstQualifierPlacement, const_tok.span, "`const` qualifier only applies to array types (`const T[]`)")
-        }
-    }
-    // `T | U | V` — left-associative `bitor` chain.
+    head := p.parse_const_qualified()
+    // `T | U | V` — left-associative `bitor` chain. Each member is parsed with
+    // `parse_const_qualified` so a `const T[]` element is valid anywhere in the
+    // union (`string | const u8[]`), not only as the first member.
     if p.check(.Pipe) {
         head_span :: head.span
         for p.match_kind(.Pipe) != null {
-            next :: p.parse_type_intersection()
+            next :: p.parse_const_qualified()
             next_span :: next.span
             head = BinaryExpr {
                 .span  = Span { .start = head_span.start, .end = next_span.end },
@@ -1609,6 +1598,26 @@ parse_type :: fn(p: Parser) -> TypeExpr {
         }
     }
     p.expr_depth = p.expr_depth - 1
+    return head
+}
+
+// A `&`-intersection type, optionally carrying a leading `const` qualifier that
+// (as for a standalone type) applies to an array element (`const T[]`). Factored
+// out of `parse_type` so every union member — not just the first — accepts it.
+parse_const_qualified :: fn(p: Parser) -> TypeExpr {
+    const_tok :: p.match_kind(.KwConst)
+    head := p.parse_type_intersection()
+    if const_tok != null {
+        if head is ArrayTypeExpr {
+            head_span :: head.span
+            return ArrayTypeExpr {
+                .span      = Span { .start = const_tok.span.start, .end = head_span.end },
+                .element   = head.element,
+                .immutable = true,
+            }
+        }
+        p.error(.InvalidConstQualifierPlacement, const_tok.span, "`const` qualifier only applies to array types (`const T[]`)")
+    }
     return head
 }
 
