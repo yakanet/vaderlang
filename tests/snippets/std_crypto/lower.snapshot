@@ -14,7 +14,7 @@
           arg1:
             call :string
               callee:
-                sha256 :fn(string) -> string
+                sha256 :fn(const u8[] | string) -> string
               arg0:
                 "" :string
     call :void
@@ -29,7 +29,7 @@
           arg1:
             call :string
               callee:
-                sha256 :fn(string) -> string
+                sha256 :fn(const u8[] | string) -> string
               arg0:
                 "abc" :string
     call :void
@@ -44,7 +44,7 @@
           arg1:
             call :string
               callee:
-                sha256 :fn(string) -> string
+                sha256 :fn(const u8[] | string) -> string
               arg0:
                 "The quick brown fox jumps over the lazy dog" :string
     call :void
@@ -59,7 +59,7 @@
           arg1:
             call :string
               callee:
-                sha256 :fn(string) -> string
+                sha256 :fn(const u8[] | string) -> string
               arg0:
                 "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" :string
     call :void

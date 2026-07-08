@@ -4,25 +4,25 @@
   FnDecl         main                 :: fn() -> i32
   expr 10:13    StringLitExpr  :: string
   expr 10:29    CallExpr       :: string
-  expr 10:29    IdentExpr      :: fn(string) -> string
+  expr 10:29    IdentExpr      :: fn(const u8[] | string) -> string
   expr 10:36    StringLitExpr  :: string
   expr 10:5     CallExpr       :: void
   expr 10:5     IdentExpr      :: fn(T) -> void
   expr 11:13    StringLitExpr  :: string
   expr 11:27    CallExpr       :: string
-  expr 11:27    IdentExpr      :: fn(string) -> string
+  expr 11:27    IdentExpr      :: fn(const u8[] | string) -> string
   expr 11:34    StringLitExpr  :: string
   expr 11:5     CallExpr       :: void
   expr 11:5     IdentExpr      :: fn(T) -> void
   expr 12:13    StringLitExpr  :: string
   expr 12:29    CallExpr       :: string
-  expr 12:29    IdentExpr      :: fn(string) -> string
+  expr 12:29    IdentExpr      :: fn(const u8[] | string) -> string
   expr 12:36    StringLitExpr  :: string
   expr 12:5     CallExpr       :: void
   expr 12:5     IdentExpr      :: fn(T) -> void
   expr 15:13    StringLitExpr  :: string
   expr 15:28    CallExpr       :: string
-  expr 15:28    IdentExpr      :: fn(string) -> string
+  expr 15:28    IdentExpr      :: fn(const u8[] | string) -> string
   expr 15:35    StringLitExpr  :: string
   expr 15:5     CallExpr       :: void
   expr 15:5     IdentExpr      :: fn(T) -> void
