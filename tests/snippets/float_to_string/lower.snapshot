@@ -4,11 +4,11 @@
   fn snippet$main() -> i32
     let xs: f64[] =
       array :f64[]
-        float(0) :f64
-        float(1) :f64
-        float(3) :f64
-        float(100) :f64
-        float(1234567) :f64
+        float(0.0) :f64
+        float(1.0) :f64
+        float(3.0) :f64
+        float(100.0) :f64
+        float(1234567.0) :f64
         float(0.1) :f64
         float(0.5) :f64
         float(1.5) :f64
@@ -17,14 +17,14 @@
         float(3.141592653589793) :f64
         float(123456789.12345679) :f64
         float(9.999999999999998) :f64
-        float(100000000000000000000) :f64
+        float(100000000000000000000.0) :f64
         float(1e+21) :f64
         float(1e-7) :f64
         float(6.022e+23) :f64
         float(5e-324) :f64
         float(1.7976931348623157e+308) :f64
         neg :f64
-          float(0) :f64
+          float(0.0) :f64
         neg :f64
           float(2.5) :f64
     block :void
@@ -84,13 +84,13 @@
                   l:
                     float(2.5e-8) :f64
                   r:
-                    float(1) :f64
+                    float(1.0) :f64
     let inf: f64 =
       div :{float}
         l:
-          float(1) :f64
+          float(1.0) :f64
         r:
-          float(0) :f64
+          float(0.0) :f64
     call :void
       callee:
         std_io$println__string :void
@@ -122,9 +122,9 @@
               arg0:
                 div :{float}
                   l:
-                    float(0) :f64
+                    float(0.0) :f64
                   r:
-                    float(0) :f64
+                    float(0.0) :f64
     return int(0) :i32
   fn concat_4(p0: string, p1: string, p2: string, p3: string) -> string
     let c0: usize =

@@ -14,7 +14,7 @@
               callee:
                 sqrt :fn(f64) -> f64
               arg0:
-                float(4) :f64
+                float(4.0) :f64
     call :void
       callee:
         std_io$println__string :void
@@ -27,9 +27,9 @@
               callee:
                 pow :fn(f64, f64) -> f64
               arg0:
-                float(2) :f64
+                float(2.0) :f64
               arg1:
-                float(10) :f64
+                float(10.0) :f64
     call :void
       callee:
         std_io$println__string :void

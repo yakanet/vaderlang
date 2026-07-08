@@ -23,7 +23,7 @@
               l:
                 pi :f64
               r:
-                float(2) :f64
+                float(2.0) :f64
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

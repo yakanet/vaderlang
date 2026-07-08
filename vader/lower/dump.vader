@@ -20,7 +20,7 @@ module "vader/lower"
 
 import "std/collections" { keys }
 import "std/sort" { sort }
-import "std/string" { compare_ascending, ends_with, join }
+import "std/string" { compare_ascending, join }
 import "std/string_builder" { StringBuilder, append, append_char }
 import "vader/diagnostics" { Span }
 import "vader/resolver" { module_in_scope }
@@ -325,7 +325,7 @@ expr_inline :: fn(expr: LoweredExpr) -> string | null {
     // every other LoweredExpr needs vertical expansion → null.
     @partial match expr {
         is LoweredIntLit as lit    -> { return "int(${format_int_value(lit.value, lit.type)}) :${display_type(lit.type)}" }
-        is LoweredFloatLit as lit  -> { return "float(${format_float(lit.value)}) :${display_type(lit.type)}" }
+        is LoweredFloatLit as lit  -> { return "float(${lit.value}) :${display_type(lit.type)}" }
         is LoweredBoolLit as lit   -> { return "${lit.value}" }
         is LoweredNullLit          -> { return "null" }
         is LoweredCharLit as lit   -> { return "char(0x${hex_string(lit.value)})" }
@@ -354,17 +354,6 @@ format_int_value :: fn(value: i64, t: Type) -> string {
 }
 
 hex_string :: fn(value: u32) -> string = to_hex(u64(value))
-
-/// Drop the `.0` suffix when the float happens to be integer-valued
-/// (`4.0` → `"4"`, `3.14` → `"3.14"`).
-format_float :: fn(value: f64) -> string {
-    raw :: "${value}"
-    if raw.ends_with(".0") {
-        rb :: raw.bytes()
-        return rb[0..<rb.len() - 2].bytes_to_string()
-    }
-    return raw
-}
 
 unary_op_name :: fn(op: LoweredUnaryOp) -> string = match op {
     .Neg    -> "neg"

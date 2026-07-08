@@ -301,7 +301,7 @@
             l:
               v :f64
             r:
-              float(0) :f64
+              float(0.0) :f64
         then:
           assign
             target:
@@ -314,7 +314,7 @@
             l:
               v :f64
             r:
-              float(1) :f64
+              float(1.0) :f64
         then:
           assign
             target:
