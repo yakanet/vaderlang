@@ -315,8 +315,19 @@ export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
                 minutes * 60_000 +
                 seconds_part * 1000 +
                 ms_part
+    // An `Instant` is i64 nanoseconds since the epoch, so the representable
+    // window is ~±292 years (≈ 1677..2262). Reject a date beyond it rather than
+    // letting the ms→ns multiply overflow into a silently-wrapped instant.
+    if total_ms > MAX_INSTANT_MS || total_ms < -MAX_INSTANT_MS {
+        return TimeError { .msg = "iso8601: instant out of representable range" }
+    }
     return Instant(total_ms * 1_000_000)
 }
+
+// Largest millisecond magnitude whose nanosecond value (`× 1_000_000`) still
+// fits an i64 — i.e. `i64.MAX / 1_000_000`. Bounds `parse_iso8601`. Typed i64 :
+// the value overflows the default i32 for a bare literal.
+MAX_INSTANT_MS: i64: 9_223_372_036_854
 
 // ---------------------------------------------------------------------- tests
 
@@ -386,6 +397,14 @@ import "std/testing" { assert_eq, assert }
             is TimeError -> assert(false, "unreachable")
         }
     }
+}
+
+@test test_iso8601_out_of_range :: fn() -> void {
+    // Beyond the i64-ns window (~year 2262) : a TimeError, not a silently
+    // wrapped negative instant. (`9999-…` used to reformat as a 1816 date.)
+    assert(parse_iso8601("9999-12-31T23:59:59Z") is TimeError, "far-future rejected")
+    // A representable far-future instant (just inside ~2262) still parses.
+    assert(parse_iso8601("2200-01-01T00:00:00Z") is Instant, "year 2200 parses")
 }
 
 @test test_iso8601_parse_rejects_bad_input :: fn() -> void {
