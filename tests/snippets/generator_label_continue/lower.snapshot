@@ -1,0 +1,420 @@
+# Lower
+
+## snippet
+  fn snippet$gen() -> Iterator<i32>
+    return
+      __genstate_gen {
+        s0: int(0) :i32
+        s1: int(0) :i32
+        state: int(14) :i32
+      }
+  fn snippet$main() -> i32
+    let it: __genstate_gen<i32> =
+      call :__genstate_gen<i32>
+        callee:
+          gen :fn() -> Iterator<i32>
+    block :void
+      let __iter_0: Iterator<i32> = it :__genstate_gen<i32>
+      loop
+        let __step_1: Yield<i32> | null =
+          vcall Iterator.next :Yield<i32> | null
+            recv:
+              __iter_0 :Iterator<i32>
+        if :void
+          cond:
+            is null :bool
+              __step_1 :Yield<i32> | null
+          then:
+            break
+          else:
+            let v: i32 =
+              .value :i32
+                cast → Yield<i32>
+                  __step_1 :Yield<i32> | null
+            call :void
+              callee:
+                std_io$println__string :void
+              arg0:
+                block :string
+                  let __buf_2: Buffer =
+                    call :Buffer
+                      callee:
+                        new_byte_buffer :Buffer
+                      arg0:
+                        int(20) :usize
+                  let __off_3: usize = int(0) :usize
+                  assign
+                    target:
+                      __off_3 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_int :usize
+                        arg0:
+                          __buf_2 :Buffer
+                        arg1:
+                          __off_3 :usize
+                        arg2:
+                          cast → i64
+                            v :i32
+                  ~>
+                    call :string
+                      callee:
+                        finish_buffer :string
+                      arg0:
+                        __buf_2 :Buffer
+                      arg1:
+                        __off_3 :usize
+    return int(0) :i32
+  struct __genstate_gen { s0: i32, s1: i32, state: i32 }
+  fn snippet$__genstate_gen$Iterator$next(self: __genstate_gen) -> Yield<i32> | null
+    loop
+      if :void
+        cond:
+          eq :bool
+            l:
+              .state :i32
+                __self_0 :__genstate_gen
+            r:
+              int(0) :i32
+        then:
+          assign
+            target:
+              .state :i32
+                __self_0 :__genstate_gen
+            value:
+              int(-1) :i32
+        else:
+          if :void
+            cond:
+              eq :bool
+                l:
+                  .state :i32
+                    __self_0 :__genstate_gen
+                r:
+                  int(1) :i32
+            then:
+              assign
+                target:
+                  .state :i32
+                    __self_0 :__genstate_gen
+                value:
+                  int(0) :i32
+            else:
+              if :void
+                cond:
+                  eq :bool
+                    l:
+                      .state :i32
+                        __self_0 :__genstate_gen
+                    r:
+                      int(2) :i32
+                then:
+                  if :void
+                    cond:
+                      lt :bool
+                        l:
+                          .s0 :i32
+                            __self_0 :__genstate_gen
+                        r:
+                          int(3) :i32
+                    then:
+                      assign
+                        target:
+                          .state :i32
+                            __self_0 :__genstate_gen
+                        value:
+                          int(13) :i32
+                    else:
+                      assign
+                        target:
+                          .state :i32
+                            __self_0 :__genstate_gen
+                        value:
+                          int(1) :i32
+                else:
+                  if :void
+                    cond:
+                      eq :bool
+                        l:
+                          .state :i32
+                            __self_0 :__genstate_gen
+                        r:
+                          int(3) :i32
+                    then:
+                      assign
+                        target:
+                          .s0 :i32
+                            __self_0 :__genstate_gen
+                        value:
+                          add :i32
+                            l:
+                              .s0 :i32
+                                __self_0 :__genstate_gen
+                            r:
+                              int(1) :i32
+                      assign
+                        target:
+                          .state :i32
+                            __self_0 :__genstate_gen
+                        value:
+                          int(2) :i32
+                    else:
+                      if :void
+                        cond:
+                          eq :bool
+                            l:
+                              .state :i32
+                                __self_0 :__genstate_gen
+                            r:
+                              int(4) :i32
+                        then:
+                          assign
+                            target:
+                              .state :i32
+                                __self_0 :__genstate_gen
+                            value:
+                              int(3) :i32
+                        else:
+                          if :void
+                            cond:
+                              eq :bool
+                                l:
+                                  .state :i32
+                                    __self_0 :__genstate_gen
+                                r:
+                                  int(5) :i32
+                            then:
+                              if :void
+                                cond:
+                                  lt :bool
+                                    l:
+                                      .s1 :i32
+                                        __self_0 :__genstate_gen
+                                    r:
+                                      int(3) :i32
+                                then:
+                                  assign
+                                    target:
+                                      .state :i32
+                                        __self_0 :__genstate_gen
+                                    value:
+                                      int(12) :i32
+                                else:
+                                  assign
+                                    target:
+                                      .state :i32
+                                        __self_0 :__genstate_gen
+                                    value:
+                                      int(4) :i32
+                            else:
+                              if :void
+                                cond:
+                                  eq :bool
+                                    l:
+                                      .state :i32
+                                        __self_0 :__genstate_gen
+                                    r:
+                                      int(6) :i32
+                                then:
+                                  assign
+                                    target:
+                                      .s1 :i32
+                                        __self_0 :__genstate_gen
+                                    value:
+                                      add :i32
+                                        l:
+                                          .s1 :i32
+                                            __self_0 :__genstate_gen
+                                        r:
+                                          int(1) :i32
+                                  assign
+                                    target:
+                                      .state :i32
+                                        __self_0 :__genstate_gen
+                                    value:
+                                      int(5) :i32
+                                else:
+                                  if :void
+                                    cond:
+                                      eq :bool
+                                        l:
+                                          .state :i32
+                                            __self_0 :__genstate_gen
+                                        r:
+                                          int(7) :i32
+                                    then:
+                                      assign
+                                        target:
+                                          .state :i32
+                                            __self_0 :__genstate_gen
+                                        value:
+                                          int(6) :i32
+                                      return
+                                        Yield<i32> {
+                                          value:
+                                            add :i32
+                                              l:
+                                                mul :i32
+                                                  l:
+                                                    .s0 :i32
+                                                      __self_0 :__genstate_gen
+                                                  r:
+                                                    int(10) :i32
+                                              r:
+                                                .s1 :i32
+                                                  __self_0 :__genstate_gen
+                                        }
+                                    else:
+                                      if :void
+                                        cond:
+                                          eq :bool
+                                            l:
+                                              .state :i32
+                                                __self_0 :__genstate_gen
+                                            r:
+                                              int(8) :i32
+                                        then:
+                                          assign
+                                            target:
+                                              .state :i32
+                                                __self_0 :__genstate_gen
+                                            value:
+                                              int(7) :i32
+                                        else:
+                                          if :void
+                                            cond:
+                                              eq :bool
+                                                l:
+                                                  .state :i32
+                                                    __self_0 :__genstate_gen
+                                                r:
+                                                  int(9) :i32
+                                            then:
+                                              assign
+                                                target:
+                                                  .state :i32
+                                                    __self_0 :__genstate_gen
+                                                value:
+                                                  int(8) :i32
+                                            else:
+                                              if :void
+                                                cond:
+                                                  eq :bool
+                                                    l:
+                                                      .state :i32
+                                                        __self_0 :__genstate_gen
+                                                    r:
+                                                      int(10) :i32
+                                                then:
+                                                  assign
+                                                    target:
+                                                      .state :i32
+                                                        __self_0 :__genstate_gen
+                                                    value:
+                                                      int(2) :i32
+                                                else:
+                                                  if :void
+                                                    cond:
+                                                      eq :bool
+                                                        l:
+                                                          .state :i32
+                                                            __self_0 :__genstate_gen
+                                                        r:
+                                                          int(11) :i32
+                                                    then:
+                                                      assign
+                                                        target:
+                                                          .s0 :i32
+                                                            __self_0 :__genstate_gen
+                                                        value:
+                                                          add :i32
+                                                            l:
+                                                              .s0 :i32
+                                                                __self_0 :__genstate_gen
+                                                            r:
+                                                              int(1) :i32
+                                                      assign
+                                                        target:
+                                                          .state :i32
+                                                            __self_0 :__genstate_gen
+                                                        value:
+                                                          int(10) :i32
+                                                    else:
+                                                      if :void
+                                                        cond:
+                                                          eq :bool
+                                                            l:
+                                                              .state :i32
+                                                                __self_0 :__genstate_gen
+                                                            r:
+                                                              int(12) :i32
+                                                        then:
+                                                          if :void
+                                                            cond:
+                                                              eq :bool
+                                                                l:
+                                                                  .s1 :i32
+                                                                    __self_0 :__genstate_gen
+                                                                r:
+                                                                  int(1) :i32
+                                                            then:
+                                                              assign
+                                                                target:
+                                                                  .state :i32
+                                                                    __self_0 :__genstate_gen
+                                                                value:
+                                                                  int(11) :i32
+                                                            else:
+                                                              assign
+                                                                target:
+                                                                  .state :i32
+                                                                    __self_0 :__genstate_gen
+                                                                value:
+                                                                  int(7) :i32
+                                                        else:
+                                                          if :void
+                                                            cond:
+                                                              eq :bool
+                                                                l:
+                                                                  .state :i32
+                                                                    __self_0 :__genstate_gen
+                                                                r:
+                                                                  int(13) :i32
+                                                            then:
+                                                              assign
+                                                                target:
+                                                                  .s1 :i32
+                                                                    __self_0 :__genstate_gen
+                                                                value:
+                                                                  int(0) :i32
+                                                              assign
+                                                                target:
+                                                                  .state :i32
+                                                                    __self_0 :__genstate_gen
+                                                                value:
+                                                                  int(5) :i32
+                                                            else:
+                                                              if :void
+                                                                cond:
+                                                                  eq :bool
+                                                                    l:
+                                                                      .state :i32
+                                                                        __self_0 :__genstate_gen
+                                                                    r:
+                                                                      int(14) :i32
+                                                                then:
+                                                                  assign
+                                                                    target:
+                                                                      .s0 :i32
+                                                                        __self_0 :__genstate_gen
+                                                                    value:
+                                                                      int(0) :i32
+                                                                  assign
+                                                                    target:
+                                                                      .state :i32
+                                                                        __self_0 :__genstate_gen
+                                                                    value:
+                                                                      int(2) :i32
+                                                                else:
+                                                                  return null

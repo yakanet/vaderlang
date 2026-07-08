@@ -1,0 +1,246 @@
+# AST
+{
+  "kind": "Program",
+  "module": {
+    "kind": "ModuleDecl",
+    "name": "snippet"
+  },
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "std/io",
+      "binding": {
+        "kind": "destructure",
+        "names": [
+          {
+            "name": "println",
+            "alias": null
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "gen",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "GenericInstExpr",
+        "callee": {
+          "kind": "IdentExpr",
+          "name": "Iterator"
+        },
+        "typeArgs": [
+          {
+            "kind": "IdentExpr",
+            "name": "i32"
+          }
+        ]
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ForStmt",
+            "label": "outer",
+            "form": {
+              "kind": "in",
+              "binding": "i",
+              "iter": {
+                "kind": "RangeExpr",
+                "inclusive": false,
+                "lower": {
+                  "kind": "IntLitExpr",
+                  "value": "0n"
+                },
+                "upper": {
+                  "kind": "IntLitExpr",
+                  "value": "3n"
+                }
+              }
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [
+                {
+                  "kind": "ForStmt",
+                  "label": null,
+                  "form": {
+                    "kind": "in",
+                    "binding": "j",
+                    "iter": {
+                      "kind": "RangeExpr",
+                      "inclusive": false,
+                      "lower": {
+                        "kind": "IntLitExpr",
+                        "value": "0n"
+                      },
+                      "upper": {
+                        "kind": "IntLitExpr",
+                        "value": "3n"
+                      }
+                    }
+                  },
+                  "body": {
+                    "kind": "BlockExpr",
+                    "stmts": [
+                      {
+                        "kind": "ExprStmt",
+                        "expr": {
+                          "kind": "IfExpr",
+                          "cond": {
+                            "kind": "BinaryExpr",
+                            "op": "eq",
+                            "left": {
+                              "kind": "IdentExpr",
+                              "name": "j"
+                            },
+                            "right": {
+                              "kind": "IntLitExpr",
+                              "value": "1n"
+                            }
+                          },
+                          "then": {
+                            "kind": "BlockExpr",
+                            "stmts": [
+                              {
+                                "kind": "ContinueStmt",
+                                "label": "outer"
+                              }
+                            ],
+                            "trailing": null
+                          },
+                          "else": null
+                        }
+                      },
+                      {
+                        "kind": "YieldStmt",
+                        "value": {
+                          "kind": "BinaryExpr",
+                          "op": "add",
+                          "left": {
+                            "kind": "BinaryExpr",
+                            "op": "mul",
+                            "left": {
+                              "kind": "IdentExpr",
+                              "name": "i"
+                            },
+                            "right": {
+                              "kind": "IntLitExpr",
+                              "value": "10n"
+                            }
+                          },
+                          "right": {
+                            "kind": "IdentExpr",
+                            "name": "j"
+                          }
+                        }
+                      }
+                    ],
+                    "trailing": null
+                  },
+                  "isComptime": false
+                }
+              ],
+              "trailing": null
+            },
+            "isComptime": false
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": [
+        {
+          "name": "generator",
+          "args": []
+        }
+      ]
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "it"
+            },
+            "type": null,
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "gen"
+              },
+              "args": []
+            }
+          },
+          {
+            "kind": "ForStmt",
+            "label": null,
+            "form": {
+              "kind": "in",
+              "binding": "v",
+              "iter": {
+                "kind": "IdentExpr",
+                "name": "it"
+              }
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "IdentExpr",
+                            "name": "v"
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            "isComptime": false
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n"
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

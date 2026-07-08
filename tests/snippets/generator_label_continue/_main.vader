@@ -1,0 +1,22 @@
+// A labeled `continue outer` across a `yield` in an ESCAPING generator. It must
+// advance the outer loop; before the label fix it targeted the innermost loop
+// and spun forever. Companion to generator_label_break.
+module "snippet"
+
+import "std/io" { println }
+
+@generator
+gen :: fn() -> Iterator<i32> {
+    outer: for i in 0..<3 {
+        for j in 0..<3 {
+            if j == 1 { continue outer }
+            yield i * 10 + j
+        }
+    }
+}
+
+main :: fn() -> i32 {
+    it :: gen()
+    for v in it { println("${v}") }
+    return 0
+}
