@@ -33,26 +33,13 @@ import "std/math" { sin, abs, floor }
 // and won't wrap on overflow.
 MASK_U32: u32: 0xFFFF_FFFF
 
-mask32 :: fn(x: u32) -> u32 {
-    return x & MASK_U32
-}
+mask32 :: fn(x: u32) -> u32 = x & MASK_U32
 
-rotr32 :: fn(x: u32, n: u32) -> u32 {
-    return (x >> n) | mask32(x << (32 - n))
-}
+rotr32 :: fn(x: u32, n: u32) -> u32 = (x >> n) | mask32(x << (32 - n))
 
 hex_digit :: fn(n: u32) -> char {
     if n < 10 { return char('0' + n) }
     return char('a' + n - 10)
-}
-
-append_hex_u32 :: fn(sb: StringBuilder, x: u32) -> void {
-    i: i32 = 7
-    for i >= 0 {
-        nibble :: (x >> u32(4 * i)) & 0xF
-        sb.append_char(hex_digit(nibble))
-        i = i - 1
-    }
 }
 
 append_hex_u8 :: fn(sb: StringBuilder, x: u8) -> void {
@@ -70,17 +57,26 @@ append_hex_u8 :: fn(sb: StringBuilder, x: u8) -> void {
 /// Operates on the UTF-8 bytes of the source string ; non-ASCII content
 /// hashes consistently with `shasum -a 256` provided the caller hasn't
 /// re-encoded the input upstream.
-export sha256 :: fn(input: string) -> string {
-    h0: u32 = 0x6a09e667
-    h1: u32 = 0xbb67ae85
-    h2: u32 = 0x3c6ef372
-    h3: u32 = 0xa54ff53a
-    h4: u32 = 0x510e527f
-    h5: u32 = 0x9b05688c
-    h6: u32 = 0x1f83d9ab
-    h7: u32 = 0x5be0cd19
+export sha256 :: fn(input: string | const u8[]) -> string = hex_of_bytes(sha256_bytes(input))
 
-    msg :: pad_sha256(input)
+/// SHA-256 digest as the raw 32-byte hash — the byte-level core that `sha256`
+/// hex-encodes and `hmac_sha256` chains. Use this when a downstream primitive
+/// (HMAC, a key-derivation step, a binary protocol field) needs the bytes
+/// rather than the hex rendering. Accepts a `string` (hashed as its UTF-8
+/// bytes) or raw bytes (`u8[]` / `const u8[]` / `s.bytes()`).
+///
+/// @param input  the message : a `string` or a `const u8[]` (e.g. `s.bytes()`).
+/// @return       the 32-byte big-endian digest.
+export sha256_bytes :: fn(input: string | const u8[]) -> u8[] {
+    data :: to_bytes(input)
+    // The eight working hash values (SHA-256 initial constants : the first 32
+    // bits of the fractional parts of the square roots of the first 8 primes).
+    h: u32[] = [
+        0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+        0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
+    ]
+
+    msg :: pad_sha256_bytes(data)
 
     blocks :: msg.len() / 64
     for block_idx in 0..<blocks {
@@ -102,53 +98,104 @@ export sha256 :: fn(input: string) -> string {
             w.push(mask32(w[j - 16] + s0 + w[j - 7] + s1))
         }
 
-        a := h0
-        b := h1
-        c := h2
-        d := h3
-        e := h4
-        f := h5
-        g := h6
-        h := h7
-
+        // Working copy of the eight state words for the 64 rounds ; indices map
+        // to the SHA-256 round names `v[0..7] = a, b, c, d, e, f, g, h`.
+        v :: h.clone()
         for t in usize(0)..<64 {
-            sig1 :: rotr32(e, 6) ^ rotr32(e, 11) ^ rotr32(e, 25)
-            ch_efg :: (e & f) ^ (mask32(~e) & g)
-            t1 :: mask32(h + sig1 + ch_efg + SHA256_K[t] + w[t])
-            sig0 :: rotr32(a, 2) ^ rotr32(a, 13) ^ rotr32(a, 22)
-            maj_abc :: (a & b) ^ (a & c) ^ (b & c)
+            sig1 :: rotr32(v[4], 6) ^ rotr32(v[4], 11) ^ rotr32(v[4], 25)
+            ch_efg :: (v[4] & v[5]) ^ (mask32(~v[4]) & v[6])
+            t1 :: mask32(v[7] + sig1 + ch_efg + SHA256_K[t] + w[t])
+            sig0 :: rotr32(v[0], 2) ^ rotr32(v[0], 13) ^ rotr32(v[0], 22)
+            maj_abc :: (v[0] & v[1]) ^ (v[0] & v[2]) ^ (v[1] & v[2])
             t2 :: mask32(sig0 + maj_abc)
 
-            h = g
-            g = f
-            f = e
-            e = mask32(d + t1)
-            d = c
-            c = b
-            b = a
-            a = mask32(t1 + t2)
+            v[7] = v[6]
+            v[6] = v[5]
+            v[5] = v[4]
+            v[4] = mask32(v[3] + t1)
+            v[3] = v[2]
+            v[2] = v[1]
+            v[1] = v[0]
+            v[0] = mask32(t1 + t2)
         }
 
-        h0 = mask32(h0 + a)
-        h1 = mask32(h1 + b)
-        h2 = mask32(h2 + c)
-        h3 = mask32(h3 + d)
-        h4 = mask32(h4 + e)
-        h5 = mask32(h5 + f)
-        h6 = mask32(h6 + g)
-        h7 = mask32(h7 + h)
+        for i in usize(0)..<8 { h[i] = mask32(h[i] + v[i]) }
     }
 
+    out: u8[] = []
+    for i in usize(0)..<8 { append_u32_be(out, h[i]) }
+    return out
+}
+
+// Push `x` as four big-endian bytes onto `out`.
+append_u32_be :: fn(out: u8[], x: u32) -> void {
+    out.push(u8((x >> 24) & 0xFF))
+    out.push(u8((x >> 16) & 0xFF))
+    out.push(u8((x >> 8)  & 0xFF))
+    out.push(u8(x & 0xFF))
+}
+
+/// Lowercase hex rendering of a byte sequence — two hex digits per byte.
+/// The inverse-free companion to the raw-digest APIs (`sha256_bytes`,
+/// `hmac_sha256`).
+///
+/// @param bytes  the bytes to render.
+/// @return       a `2 * bytes.len()`-char lowercase hex string.
+export hex_of_bytes :: fn(bytes: const u8[]) -> string {
     sb := StringBuilder {}
-    append_hex_u32(sb, h0)
-    append_hex_u32(sb, h1)
-    append_hex_u32(sb, h2)
-    append_hex_u32(sb, h3)
-    append_hex_u32(sb, h4)
-    append_hex_u32(sb, h5)
-    append_hex_u32(sb, h6)
-    append_hex_u32(sb, h7)
+    for b in bytes { append_hex_u8(sb, b) }
     return sb.to_string()
+}
+
+/// HMAC-SHA256 (RFC 2104) of `msg` under `key`, as the raw 32-byte MAC.
+/// A key longer than the 64-byte block is first hashed down; a shorter key is
+/// zero-padded to the block. Key and message each accept a `string` or raw
+/// bytes ; hex-render the result with `hex_of_bytes` when a string is wanted.
+///
+/// @param key  the secret key : a `string` or raw bytes (`const u8[]`).
+/// @param msg  the message : a `string` or raw bytes.
+/// @return     the 32-byte HMAC.
+export hmac_sha256 :: fn(key: string | const u8[], msg: string | const u8[]) -> u8[] {
+    BLOCK : usize : 64
+    kb :: to_bytes(key)
+    mb :: to_bytes(msg)
+    // Normalise the key to exactly one block : hash it down if oversized, then
+    // zero-pad. RFC 2104 §2.
+    k0: u8[] = []
+    if kb.len() > BLOCK {
+        for b in sha256_bytes(kb) {
+            k0.push(b)
+        }
+    } else {
+        for b in kb {
+            k0.push(b)
+        }
+    }
+    for k0.len() < BLOCK {
+        k0.push(0)
+    }
+    // inner = H((k0 ^ ipad) || msg) ; outer = H((k0 ^ opad) || inner).
+    inner_in: u8[] = []
+    outer_in: u8[] = []
+    for i in 0..<BLOCK {
+        inner_in.push(k0[i] ^ 0x36)
+        outer_in.push(k0[i] ^ 0x5c)
+    }
+    for b in mb {
+        inner_in.push(b)
+    }
+    for b in sha256_bytes(inner_in) {
+        outer_in.push(b)
+    }
+    return sha256_bytes(outer_in)
+}
+
+// Coerce a `string | const u8[]` hash/HMAC input to bytes — a string
+// contributes its UTF-8 bytes; raw bytes pass through. Shared by sha256_bytes
+// and hmac_sha256 so both accept either form.
+to_bytes :: fn(x: string | const u8[]) -> const u8[] {
+    if x is string { return x.bytes() }
+    return x
 }
 
 // SHA-256 round constants — first 32 bits of the fractional parts of
@@ -177,8 +224,7 @@ SHA256_K: const u32[]: [
 
 // SHA-256 padding : append `0x80`, then zeros until length ≡ 56 mod 64,
 // then the message-length-in-bits as a big-endian 64-bit suffix.
-pad_sha256 :: fn(input: string) -> u8[] {
-    ib :: input.bytes()
+pad_sha256_bytes :: fn(ib: const u8[]) -> u8[] {
     n :: ib.len()
     bit_len :: u64(n) * 8
     out :: ib.clone()
@@ -366,4 +412,41 @@ import "std/testing" { assert_eq }
         md5("The quick brown fox jumps over the lazy dog"),
         "9e107d9d372bb6826bd81d3542a419d6",
     )
+}
+
+@test test_sha256_bytes_matches_hex :: fn() -> void {
+    d :: sha256_bytes("abc")
+    assert_eq(d.len(), 32)                            // raw 32-byte digest
+    assert_eq(hex_of_bytes(d), sha256("abc"))         // hex view agrees with sha256
+    // The `string` and `const u8[]` input forms produce the same digest.
+    assert_eq(hex_of_bytes(sha256_bytes("abc".bytes())), sha256("abc"))
+}
+
+@test test_hmac_sha256_rfc4231 :: fn() -> void {
+    // Vectors verified against `openssl dgst -sha256 -hmac`. String-input form.
+    assert_eq(
+        hex_of_bytes(hmac_sha256("key", "The quick brown fox jumps over the lazy dog")),
+        "f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8",
+    )
+    // RFC 4231 Test Case 2.
+    assert_eq(
+        hex_of_bytes(hmac_sha256("Jefe", "what do ya want for nothing?")),
+        "5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843",
+    )
+    // The byte-input form agrees with the string form.
+    assert_eq(
+        hex_of_bytes(hmac_sha256("key".bytes(), "abc".bytes())),
+        hex_of_bytes(hmac_sha256("key", "abc")),
+    )
+}
+
+@test test_hmac_sha256_long_key_hashed_down :: fn() -> void {
+    // A key longer than the 64-byte block is hashed down to 32 bytes first, so
+    // HMAC(longKey, m) == HMAC(sha256(longKey), m).
+    long_key: u8[] = []
+    for i in usize(0)..<70 { long_key.push('a') }
+    hashed :: sha256_bytes(long_key)
+    from_long   :: hmac_sha256(long_key, "message")
+    from_hashed :: hmac_sha256(hashed, "message")
+    assert_eq(hex_of_bytes(from_long), hex_of_bytes(from_hashed))
 }
