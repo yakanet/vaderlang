@@ -37,7 +37,7 @@
 [12:11-12:12] int_literal    "1" =1n
 [12:12-12:13] rbracket       "]"
 [12:14-12:16] eq             "=="
-[12:17-12:20] char_literal   "'/'" =U+002F
+[12:17-12:20] char_literal   "'/'" =U+002f
 [12:21-12:22] lbrace         "{"
 [12:23-12:30] ident          "println"
 [12:30-12:31] lparen         "("

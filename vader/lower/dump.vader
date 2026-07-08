@@ -20,7 +20,7 @@ module "vader/lower"
 
 import "std/collections" { keys }
 import "std/sort" { sort }
-import "std/string" { compare_ascending, to_lower, ends_with, join }
+import "std/string" { compare_ascending, ends_with, join }
 import "std/string_builder" { StringBuilder, append, append_char }
 import "vader/diagnostics" { Span }
 import "vader/resolver" { module_in_scope }
@@ -353,10 +353,7 @@ format_int_value :: fn(value: i64, t: Type) -> string {
     return "${value}"
 }
 
-hex_string :: fn(value: u32) -> string {
-    // Lowercase hex digits.
-    return to_lower(to_hex(u64(value)))
-}
+hex_string :: fn(value: u32) -> string = to_hex(u64(value))
 
 /// Drop the `.0` suffix when the float happens to be integer-valued
 /// (`4.0` → `"4"`, `3.14` → `"3.14"`).

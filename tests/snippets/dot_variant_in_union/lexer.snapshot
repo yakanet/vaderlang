@@ -50,7 +50,7 @@
 [14:5-14:7  ] kw_if          "if"
 [14:8-14:9  ] ident          "c"
 [14:10-14:12] eq             "=="
-[14:13-14:16] char_literal   "'N'" =U+004E
+[14:13-14:16] char_literal   "'N'" =U+004e
 [14:17-14:18] lbrace         "{"
 [14:19-14:25] kw_return      "return"
 [14:26-14:27] dot            "."
@@ -160,7 +160,7 @@
 [31:5-31:10 ] kw_match       "match"
 [31:11-31:16] ident          "parse"
 [31:16-31:17] lparen         "("
-[31:17-31:20] char_literal   "'N'" =U+004E
+[31:17-31:20] char_literal   "'N'" =U+004e
 [31:20-31:21] rparen         ")"
 [31:22-31:23] lbrace         "{"
 [32:1-32:1  ] newline        "\n"
@@ -192,7 +192,7 @@
 [35:5-35:10 ] kw_match       "match"
 [35:11-35:16] ident          "parse"
 [35:16-35:17] lparen         "("
-[35:17-35:20] char_literal   "'?'" =U+003F
+[35:17-35:20] char_literal   "'?'" =U+003f
 [35:20-35:21] rparen         ")"
 [35:22-35:23] lbrace         "{"
 [36:1-36:1  ] newline        "\n"

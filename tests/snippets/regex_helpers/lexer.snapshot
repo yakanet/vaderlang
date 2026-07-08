@@ -69,7 +69,7 @@
 [11:17-11:19] and_and        "&&"
 [11:20-11:21] ident          "c"
 [11:22-11:24] lte            "<="
-[11:25-11:28] char_literal   "'z'" =U+007A
+[11:25-11:28] char_literal   "'z'" =U+007a
 [11:29-11:30] lbrace         "{"
 [11:31-11:37] kw_return      "return"
 [11:38-11:43] kw_false       "false"
@@ -82,7 +82,7 @@
 [12:17-12:19] and_and        "&&"
 [12:20-12:21] ident          "c"
 [12:22-12:24] lte            "<="
-[12:25-12:28] char_literal   "'Z'" =U+005A
+[12:25-12:28] char_literal   "'Z'" =U+005a
 [12:29-12:30] lbrace         "{"
 [12:31-12:37] kw_return      "return"
 [12:38-12:43] kw_false       "false"
@@ -91,7 +91,7 @@
 [13:5-13:7  ] kw_if          "if"
 [13:8-13:9  ] ident          "c"
 [13:10-13:12] eq             "=="
-[13:13-13:16] char_literal   "'_'" =U+005F
+[13:13-13:16] char_literal   "'_'" =U+005f
 [13:17-13:18] lbrace         "{"
 [13:19-13:25] kw_return      "return"
 [13:26-13:31] kw_false       "false"

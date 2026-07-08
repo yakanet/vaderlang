@@ -92,20 +92,22 @@ export parse_uint_in_base :: fn(s: string, base: i32) -> u64 | ParseError {
     return acc
 }
 
-hex_digit :: fn(n: u64) -> char {
+/// One lowercase hex digit for a nibble `0..15`. Shared with `std/crypto`, which
+/// needs the lowercase form (`shasum` / `openssl` convention).
+export hex_digit :: fn(n: u64) -> char {
     if n <= 9 {
         return char('0' + u32(n))
     }
-    return char('A' + u32(n) - 10)
+    return char('a' + u32(n) - 10)
 }
 
-/// Hexadecimal stringification of a `u64` — uppercase, no `0x` prefix, no
+/// Hexadecimal stringification of a `u64` — lowercase, no `0x` prefix, no
 /// leading zeros (special-cases `0` to `"0"`). Pair with
 /// `std/string.pad_start` for a fixed-width hex column.
 ///
 /// UFCS-callable as `n.to_hex()`.
 /// @param self  the integer to render.
-/// @return      e.g. `255_u64.to_hex()` → `"FF"`.
+/// @return      e.g. `255_u64.to_hex()` → `"ff"`.
 export to_hex :: fn(self: u64) -> string {
     if self == 0 {
         return "0"

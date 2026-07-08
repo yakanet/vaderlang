@@ -23,15 +23,15 @@
 [11:1-11:1  ] newline        "\n"
 [11:5-11:6  ] ident          "a"
 [11:7-11:9  ] decl_const     "::"
-[11:10-11:13] char_literal   "'{'" =U+007B
+[11:10-11:13] char_literal   "'{'" =U+007b
 [12:1-12:1  ] newline        "\n"
 [12:5-12:7  ] ident          "nl"
 [12:8-12:10 ] decl_const     "::"
-[12:11-12:15] char_literal   "'\\n'" =U+000A
+[12:11-12:15] char_literal   "'\\n'" =U+000a
 [13:1-13:1  ] newline        "\n"
 [13:5-13:7  ] ident          "bs"
 [13:8-13:10 ] decl_const     "::"
-[13:11-13:15] char_literal   "'\\\\'" =U+005C
+[13:11-13:15] char_literal   "'\\\\'" =U+005c
 [14:1-14:1  ] newline        "\n"
 [14:5-14:7  ] ident          "sq"
 [14:8-14:10 ] decl_const     "::"
@@ -91,7 +91,7 @@
 [19:1-19:1  ] newline        "\n"
 [19:5-19:6  ] ident          "b"
 [19:7-19:9  ] decl_var       ":="
-[19:10-19:13] char_literal   "'='" =U+003D
+[19:10-19:13] char_literal   "'='" =U+003d
 [20:1-20:1  ] newline        "\n"
 [20:5-20:12 ] ident          "println"
 [20:12-20:13] lparen         "("
@@ -100,7 +100,7 @@
 [20:17-20:19] interp_open    "${"
 [20:19-20:20] ident          "b"
 [20:21-20:23] eq             "=="
-[20:24-20:27] char_literal   "'='" =U+003D
+[20:24-20:27] char_literal   "'='" =U+003d
 [20:27-20:28] interp_close   "}"
 [20:28-20:29] string_end     "\""
 [20:29-20:30] rparen         ")"

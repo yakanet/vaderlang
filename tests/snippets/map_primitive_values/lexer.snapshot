@@ -210,7 +210,7 @@
 [34:18-34:19] string_end     "\""
 [34:19-34:20] rbracket       "]"
 [34:21-34:22] assign         "="
-[34:23-34:26] char_literal   "'é'" =U+00E9
+[34:23-34:26] char_literal   "'é'" =U+00e9
 [35:1-35:1  ] newline        "\n"
 [35:5-35:7  ] ident          "vc"
 [35:8-35:10 ] decl_const     "::"

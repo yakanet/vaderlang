@@ -772,7 +772,7 @@ fn 15 std_numbers$hex_digit (u64) -> char
   local.get 0
   u64.to_i32
   local.set 1
-  i32.const 65
+  i32.const 97
   local.get 1
   i32.add
   i32.const 10

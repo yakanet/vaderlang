@@ -264,7 +264,7 @@
 [27:24-27:26] interp_open    "${"
 [27:26-27:44] ident          "codepoint_byte_len"
 [27:44-27:45] lparen         "("
-[27:45-27:48] char_literal   "'é'" =U+00E9
+[27:45-27:48] char_literal   "'é'" =U+00e9
 [27:48-27:49] rparen         ")"
 [27:49-27:50] interp_close   "}"
 [27:50-27:51] string_end     "\""
@@ -277,7 +277,7 @@
 [28:24-28:26] interp_open    "${"
 [28:26-28:44] ident          "codepoint_byte_len"
 [28:44-28:45] lparen         "("
-[28:45-28:48] char_literal   "'你'" =U+4F60
+[28:45-28:48] char_literal   "'你'" =U+4f60
 [28:48-28:49] rparen         ")"
 [28:49-28:50] interp_close   "}"
 [28:50-28:51] string_end     "\""
@@ -290,7 +290,7 @@
 [29:26-29:28] interp_open    "${"
 [29:28-29:46] ident          "codepoint_byte_len"
 [29:46-29:47] lparen         "("
-[29:47-29:58] char_literal   "'\\u{1F600}'" =U+1F600
+[29:47-29:58] char_literal   "'\\u{1F600}'" =U+1f600
 [29:58-29:59] rparen         ")"
 [29:59-29:60] interp_close   "}"
 [29:60-29:61] string_end     "\""

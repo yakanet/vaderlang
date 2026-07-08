@@ -80,7 +80,7 @@
 [33:31-33:37] kw_return      "return"
 [33:38-33:39] ident          "c"
 [33:40-33:42] eq             "=="
-[33:43-33:46] char_literal   "'l'" =U+006C
+[33:43-33:46] char_literal   "'l'" =U+006c
 [33:47-33:48] rbrace         "}"
 [34:1-34:1  ] newline        "\n"
 [34:1-34:9  ] ident          "count_ls"

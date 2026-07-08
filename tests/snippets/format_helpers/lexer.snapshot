@@ -82,7 +82,7 @@
 [10:29-10:30] lparen         "("
 [10:30-10:31] int_literal    "5" =5n
 [10:31-10:32] comma          ","
-[10:33-10:36] char_literal   "'.'" =U+002E
+[10:33-10:36] char_literal   "'.'" =U+002e
 [10:36-10:37] rparen         ")"
 [10:37-10:38] interp_close   "}"
 [10:38-10:39] string_part    "]" ="]"

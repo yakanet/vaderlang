@@ -2,9 +2,9 @@ module _main
 type 0 primitive null
 type 1 primitive i32
 type 2 primitive string
-type 3 primitive usize
-type 4 struct std_core$Buffer {  }
-type 5 primitive char
+type 3 primitive char
+type 4 primitive usize
+type 5 struct std_core$Buffer {  }
 type 6 array 7
 type 7 primitive u8
 type 8 primitive void
@@ -13,6 +13,7 @@ type 10 union 6,2
 type 11 primitive u32
 type 12 struct std_string_builder$StringBuilder { parts:9 }
 type 13 array 11
+type 14 primitive u64
 string 0 "sha256-empty="
 string 1 ""
 string 2 "sha256-abc="
@@ -25,13 +26,14 @@ string 8 "md5-empty="
 string 9 "md5-abc="
 string 10 "md5-quick="
 string 11 "\n"
-data 0 u32 hex"78A46AD756B7C7E8DB702024EECEBDC1AF0F7CF52AC68747134630A8019546FDD8988069AFF7448BB15BFFFFBED75C892211906B937198FD8E4379A62108B44962251EF640B340C0515A5E26AAC7B6E95D102FD65314440281E6A1D8C8FBD3E7E6CDE121D60737C3870DD5F4ED145A4505E9E3A9F8A3EFFCD9026F678A4C2A8D4239FAFF81F6718722619D6D0C38E5FD44EABEA4A9CFDE4B604BBBF670BCBFBEC67E9B28FA27A1EA8530EFD4051D880439D0D4D9E599DBE6F87CA21F6556ACC4442229F497FF2A43A72394AB39A093FCC3595B6592CC0C8F7DF4EFFFD15D84854F7EA86FE0E62CFE144301A3A111084E827E53F735F23ABDBBD2D72A91D386EB"
-data 1 u32 hex"070000000C0000001100000016000000070000000C0000001100000016000000070000000C0000001100000016000000070000000C000000110000001600000005000000090000000E0000001400000005000000090000000E0000001400000005000000090000000E0000001400000005000000090000000E00000014000000040000000B0000001000000017000000040000000B0000001000000017000000040000000B0000001000000017000000040000000B0000001000000017000000060000000A0000000F00000015000000060000000A0000000F00000015000000060000000A0000000F00000015000000060000000A0000000F00000015000000"
-data 2 u32 hex"982F8A4291443771CFFBC0B5A5DBB5E95BC25639F111F159A4823F92D55E1CAB98AA07D8015B8312BE853124C37D0C55745DBE72FEB1DE80A706DC9B74F19BC1C1699BE48647BEEFC69DC10FCCA10C246F2CE92DAA84744ADCA9B05CDA88F97652513E986DC631A8C82703B0C77F59BFF30BE0C64791A7D55163CA0667292914850AB72738211B2EFC6D2C4D130D385354730A65BB0A6A762EC9C281852C7292A1E8BFA24B661AA8708B4BC2A3516CC719E892D1240699D685350EF470A06A1016C1A419086C371E4C774827B5BCB034B30C1C394AAAD84E4FCA9C5BF36F2E68EE828F746F63A5781478C8840802C78CFAFFBE90EB6C50A4F7A3F9BEF27871C6"
+data 0 u32 hex"78a46ad756b7c7e8db702024eecebdc1af0f7cf52ac68747134630a8019546fdd8988069aff7448bb15bffffbed75c892211906b937198fd8e4379a62108b44962251ef640b340c0515a5e26aac7b6e95d102fd65314440281e6a1d8c8fbd3e7e6cde121d60737c3870dd5f4ed145a4505e9e3a9f8a3effcd9026f678a4c2a8d4239faff81f6718722619d6d0c38e5fd44eabea4a9cfde4b604bbbf670bcbfbec67e9b28fa27a1ea8530efd4051d880439d0d4d9e599dbe6f87ca21f6556acc4442229f497ff2a43a72394ab39a093fcc3595b6592cc0c8f7df4efffd15d84854f7ea86fe0e62cfe144301a3a111084e827e53f735f23abdbbd2d72a91d386eb"
+data 1 u32 hex"070000000c0000001100000016000000070000000c0000001100000016000000070000000c0000001100000016000000070000000c000000110000001600000005000000090000000e0000001400000005000000090000000e0000001400000005000000090000000e0000001400000005000000090000000e00000014000000040000000b0000001000000017000000040000000b0000001000000017000000040000000b0000001000000017000000040000000b0000001000000017000000060000000a0000000f00000015000000060000000a0000000f00000015000000060000000a0000000f00000015000000060000000a0000000f00000015000000"
+data 2 u32 hex"982f8a4291443771cffbc0b5a5dbb5e95bc25639f111f159a4823f92d55e1cab98aa07d8015b8312be853124c37d0c55745dbe72feb1de80a706dc9b74f19bc1c1699be48647beefc69dc10fcca10c246f2ce92daa84744adca9b05cda88f97652513e986dc631a8c82703b0c77f59bff30be0c64791a7d55163ca0667292914850ab72738211b2efc6d2c4d130d385354730a65bb0a6a762ec9c281852c7292a1e8bfa24b661aa8708b4bc2a3516cc719e892d1240699d685350ef470a06a1016c1a419086c371e4c774827b5bcb034b30c1c394aaad84e4fca9c5bf36f2e68ee828f746f63a5781478c8840802c78cfaffbe90eb6c50a4f7a3f9bef27871c6"
 import 0 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 1 bytes std_core$bytes (string) -> ref
 import 2 write std_io$write (i32,string) -> void
-impl 4 ByteAccess
+import 3 byte_len std_string$byte_len (string) -> usize
+impl 5 ByteAccess
 impl 12 Display
 export main 0
 
@@ -126,8 +128,7 @@ end
 
 fn 3 std_core$byte_len (string) -> usize
   local.get 0
-  call.import 1
-  array.len
+  call.import 3
   return
 end
 
@@ -691,7 +692,7 @@ fn 8 std_crypto$md5 (string) -> string
   local.get 4
   call 14
   local.get 5
-  call 24
+  call 23
   return
 end
 
@@ -734,7 +735,7 @@ fn 9 std_crypto$hex_of_bytes (ref) -> string
     end $L1
   end $L0
   local.get 1
-  call 24
+  call 23
   return
 end
 
@@ -1074,7 +1075,7 @@ fn 10 std_crypto$sha256_bytes (ref) -> ref
           end $L7
         end $L6
         local.get 2
-        call 21
+        call 20
         local.set 45
         i64.const 0
         local.set 46
@@ -1405,7 +1406,7 @@ fn 11 std_crypto$pad_md5 (string) -> ref
   i64.mul
   local.set 2
   local.get 1
-  call 22
+  call 21
   local.tee 1
   i32.const 128
   array.push 7
@@ -1533,7 +1534,7 @@ end
 fn 15 std_crypto$append_hex_u8 (ref,u8) -> void
   local hi u32
   local lo u32
-  local $call_10 char
+  local $call_11 char
   local.get 1
   u8.to_i32
   i32.const 4
@@ -1545,17 +1546,19 @@ fn 15 std_crypto$append_hex_u8 (ref,u8) -> void
   i32.bitand
   local.set 3
   local.get 2
-  call 20
+  u32.to_i64
+  call 24
   local.set 4
   local.get 0
   local.get 4
-  call 23
+  call 22
   local.get 3
-  call 20
+  u32.to_i64
+  call 24
   local.set 4
   local.get 0
   local.get 4
-  call 23
+  call 22
   return
 end
 
@@ -1585,7 +1588,7 @@ fn 17 std_crypto$pad_sha256_bytes (ref) -> ref
   i64.mul
   local.set 1
   local.get 0
-  call 22
+  call 21
   local.tee 2
   i32.const 128
   array.push 7
@@ -1707,27 +1710,7 @@ fn 19 std_crypto$append_u32_be (ref,u32) -> void
   return
 end
 
-fn 20 std_crypto$hex_digit (u32) -> char
-  local.get 0
-  i32.const 10
-  u32.lt
-  if $L0 void
-    i32.const 48
-    local.get 0
-    i32.add
-    u32.to_char
-    return
-  end $L0
-  i32.const 97
-  local.get 0
-  i32.add
-  i32.const 10
-  i32.sub
-  u32.to_char
-  return
-end
-
-fn 21 std_iter$std_iter$clone__u32 (ref) -> ref
+fn 20 std_iter$std_iter$clone__u32 (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
   array.new 13 0
@@ -1745,7 +1728,7 @@ fn 21 std_iter$std_iter$clone__u32 (ref) -> ref
   return
 end
 
-fn 22 std_iter$std_iter$clone__u8 (ref) -> ref
+fn 21 std_iter$std_iter$clone__u8 (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
   array.new 6 0
@@ -1763,7 +1746,7 @@ fn 22 std_iter$std_iter$clone__u8 (ref) -> ref
   return
 end
 
-fn 23 std_string_builder$append_char (ref,char) -> void
+fn 22 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
   local.field 0 12 0
@@ -1778,15 +1761,15 @@ fn 23 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 24 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 23 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local n usize
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local $len_24 usize
+  local $call_23 usize
   local __for_arr_3 ref
   local p string
-  local $len_42 usize
+  local $call_40 usize
   local.field 0 12 0
   array.len
   local.tee 1
@@ -1823,8 +1806,7 @@ fn 24 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 4
         array.get 9
         ref.cast 2
-        call.import 1
-        array.len
+        call.import 3
         local.set 5
         local.get 1
         local.get 5
@@ -1866,8 +1848,7 @@ fn 24 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 7
         call 27
         local.get 7
-        call.import 1
-        array.len
+        call.import 3
         local.set 8
         local.get 3
         local.get 8
@@ -1885,6 +1866,33 @@ fn 24 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.get 2
   local.get 1
   call 26
+  return
+end
+
+fn 24 std_numbers$hex_digit (u64) -> char
+  local $cast_4 u32
+  local.get 0
+  i64.const 9
+  u64.le
+  if $L0 void
+    local.get 0
+    u64.to_i32
+    local.set 1
+    i32.const 48
+    local.get 1
+    i32.add
+    u32.to_char
+    return
+  end $L0
+  local.get 0
+  u64.to_i32
+  local.set 1
+  i32.const 97
+  local.get 1
+  i32.add
+  i32.const 10
+  i32.sub
+  u32.to_char
   return
 end
 
