@@ -167221,7 +167221,7 @@ static uint32_t std_numbers_hex_digit(uint64_t l0) {
     }
     t1 = ((int32_t) (uint64_t) l0);
     l1 = (uint32_t) (int32_t) t1;
-    return ((uint32_t) (int32_t) ((INT32_C(65) + l1) - INT32_C(10)));
+    return ((uint32_t) (int32_t) ((INT32_C(97) + l1) - INT32_C(10)));
 }
 
 static int32_t std_numbers_hex_digit_value(uint32_t l0) {
