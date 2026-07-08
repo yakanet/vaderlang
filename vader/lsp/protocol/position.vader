@@ -37,13 +37,18 @@ export span_to_range_json :: fn(s: Span) -> SpanRange {
     }
 }
 
-/// Map an LSP (line, character) position to a byte offset in `source`. MVP
-/// treats `character` as a UTF-8 byte offset within the line — ASCII
-/// round-trips cleanly, non-ASCII may misalign by a few bytes.
+/// Map an LSP (line, character) position to a byte offset in `source`.
+/// `character` is a **codepoint** offset within the line — the position model
+/// this server uses everywhere else (the lexer counts codepoint columns and the
+/// outgoing ranges emit them), so incoming and outgoing now agree. For BMP text
+/// (accents, CJK — e.g. `café`) a codepoint equals one UTF-16 unit, so this
+/// matches a default UTF-16 client ; only astral characters (a single codepoint
+/// spanning two UTF-16 units) would differ, pending `positionEncoding`
+/// negotiation (`LSP_COMPLETENESS.md` §3.18).
 ///
 /// @param source     the full document text.
 /// @param line       0-based line.
-/// @param character  0-based character (byte) offset within the line.
+/// @param character  0-based codepoint offset within the line.
 /// @return           the absolute byte offset, clamped to the line start when
 ///                   `character <= 0`.
 export lsp_to_offset :: fn(source: string, line: i32, character: i32) -> usize {
@@ -58,7 +63,18 @@ export lsp_to_offset :: fn(source: string, line: i32, character: i32) -> usize {
         if b == '\n' { cur_line = cur_line + 1 }
     }
     if character <= 0 { return cursor }
-    return cursor + usize(character)
+    // Advance `character` codepoints from the line start (not raw bytes) to the
+    // byte offset — stepping over each codepoint's UTF-8 continuation bytes.
+    remaining: i32 = character
+    for cursor < n && remaining > 0 {
+        if sb[cursor] == '\n' { break }   // never run past the line's end
+        cursor = cursor + 1
+        for cursor < n && sb[cursor] >= 0x80 && sb[cursor] < 0xC0 {
+            cursor = cursor + 1
+        }
+        remaining = remaining - 1
+    }
+    return cursor
 }
 
 /// True when the 1-based `(line, col)` falls inside the closed span
@@ -152,4 +168,28 @@ export position_character :: fn(params: JsonValue) -> i32 {
 export cursor_field :: fn(params: JsonValue, key: string) -> i32 {
     pos :: get_field(params, "position")
     return get_number(pos, key)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+@test
+test_lsp_to_offset_ascii :: fn() -> void {
+    // "abc\ndef" : line 1, char 2 → byte 6 ('f') ; char 0 → the line start.
+    assert_eq(lsp_to_offset("abc\ndef", 1, 2), 6)
+    assert_eq(lsp_to_offset("abc\ndef", 1, 0), 4)
+    assert_eq(lsp_to_offset("abc\ndef", 0, 0), 0)
+}
+
+@test
+test_lsp_to_offset_codepoint :: fn() -> void {
+    // "café x" : `é` is TWO UTF-8 bytes but ONE codepoint. `character` is a
+    // codepoint offset, so char 5 is 'x' at byte 6 — not byte 5 (the space) as
+    // the old byte-offset model returned, which mis-placed the cursor on every
+    // non-ASCII line (the audit's goto-def-on-`café` regression).
+    src :: "café x"
+    assert_eq(lsp_to_offset(src, 0, 3), 3)   // `é` starts at byte 3
+    assert_eq(lsp_to_offset(src, 0, 4), 5)   // space at byte 5 (past é's 2 bytes)
+    assert_eq(lsp_to_offset(src, 0, 5), 6)   // 'x' at byte 6
 }

@@ -261,6 +261,38 @@ test("lsp: goto-def + hover end-to-end", async () => {
   expect(results[5]!.result).toBeNull();
 }, { timeout: MEDIUM_BUILD });
 
+// Regression (audit LC1): the server maps an incoming `character` as a CODEPOINT
+// offset, matching the lexer's codepoint columns. Before the fix `lsp_to_offset`
+// added `character` as raw UTF-8 bytes, so on a line with a multi-byte char
+// (`café`) every cursor past it landed one byte early — goto-def missed. Here the
+// SECOND `greet` sits after `café` on the same line: at codepoint column 33 but
+// byte column 34 (the `é` is two bytes). Clicking its start must still resolve to
+// the `greet` decl on line 0; the old byte model landed on the preceding space.
+const NON_ASCII_SOURCE = `greet :: fn(s: string) -> string = s
+
+main :: fn() -> i32 {
+    return greet("café").len() + greet("z").len()
+}
+`;
+
+test("lsp: goto-def resolves past a multi-byte char on the line (LC1)", async () => {
+  const results = await driveLsp(NON_ASCII_SOURCE, [
+    // 0: first greet (before café — codepoint == byte, always worked) → control.
+    { method: "textDocument/definition", position: { line: 3, character: 11 } },
+    // 1: second greet (after café — codepoint 33, byte 34) → the regression.
+    { method: "textDocument/definition", position: { line: 3, character: 33 } },
+  ]);
+  expect(results).toHaveLength(2);
+
+  const first = results[0]!.result as Location;
+  expect(first.uri).toMatch(/lsp-test\.vader$/);
+  expect(first.range.start).toEqual({ line: 0, character: 0 });
+
+  const second = results[1]!.result as Location;
+  expect(second.range.start).toEqual({ line: 0, character: 0 });
+  expect(second.range.end).toEqual({ line: 0, character: 5 });
+}, { timeout: MEDIUM_BUILD });
+
 test("lsp: completion lists in-scope identifiers + keywords", async () => {
 
   // Cursor inside main's body (line 16 = `    return y`).
