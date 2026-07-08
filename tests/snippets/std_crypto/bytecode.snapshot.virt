@@ -1532,28 +1532,26 @@ fn 14 std_crypto$append_hex_u32_le (ref,u32) -> void
 end
 
 fn 15 std_crypto$append_hex_u8 (ref,u8) -> void
-  local hi u32
-  local lo u32
-  local $call_11 char
+  local hi u64
+  local lo u64
+  local $call_10 char
   local.get 1
-  u8.to_i32
-  i32.const 4
-  u32.shr
+  u8.to_i64
+  i64.const 4
+  u64.shr
   local.set 2
   local.get 1
-  u8.to_i32
-  i32.const 15
-  i32.bitand
+  u8.to_i64
+  i64.const 15
+  i64.bitand
   local.set 3
   local.get 2
-  u32.to_i64
   call 24
   local.set 4
   local.get 0
   local.get 4
   call 22
   local.get 3
-  u32.to_i64
   call 24
   local.set 4
   local.get 0

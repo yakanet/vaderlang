@@ -39,10 +39,10 @@ mask32 :: fn(x: u32) -> u32 = x & MASK_U32
 rotr32 :: fn(x: u32, n: u32) -> u32 = (x >> n) | mask32(x << (32 - n))
 
 append_hex_u8 :: fn(sb: StringBuilder, x: u8) -> void {
-    hi :: u32(x) >> 4
-    lo :: u32(x) & 0xF
-    sb.append_char(hex_digit(u64(hi)))
-    sb.append_char(hex_digit(u64(lo)))
+    hi :: u64(x) >> 4
+    lo :: u64(x) & 0xF
+    sb.append_char(hex_digit(hi))
+    sb.append_char(hex_digit(lo))
 }
 
 // =========================================================================

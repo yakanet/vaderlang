@@ -14,6 +14,7 @@ module "vader/lexer"
 import "std/string" { pad_start, pad_end, compare_ascending as string_less }
 import "std/numbers" { to_hex }
 import "std/sort" { sort }
+import "std/math" { min }
 import "std/collections" { MutableSet }
 import "vader/text" { quote_simple }
 TTY :: import "std/tty"
@@ -31,39 +32,41 @@ export dump_tokens :: fn(l: Lexer) -> string {
 
 /// Render `diags` as a `# Diagnostics` block, ordered by (offset, code). The
 /// sole producer of the `lexer.snapshot` fixtures — keep its signature frozen.
-export dump_diagnostics :: fn(diags: Diagnostic[]) -> string = render_diagnostics(diags, false)
+/// This is the machine channel : output is complete and byte-diffable, so it is
+/// never capped (dedup is lossless and still applies).
+export dump_diagnostics :: fn(diags: Diagnostic[]) -> string = render_diagnostics(diags, false, false)
 
 /// Like `dump_diagnostics`, but prefixes every line with the source file and
 /// orders by (file, offset, code). For the build renderers (each
 /// `flush_build_diags`), whose diagnostics span every compiled module — without
 /// the file a `[line:col]` can't be traced back to a module. The dump stages run
 /// one file at a time and omit it so their snapshots stay machine-independent.
-export dump_diagnostics_with_file :: fn(diags: Diagnostic[]) -> string = render_diagnostics(diags, true)
+/// This is the user-facing channel, so the block is capped.
+export dump_diagnostics_with_file :: fn(diags: Diagnostic[]) -> string = render_diagnostics(diags, true, true)
 
 // Upper bound on diagnostics rendered in one block. A single root error can
 // cascade into hundreds of derived diagnostics ; past this many the real cause
-// scrolls off, so the tail is collapsed into a "… and N more" line. The corpus
-// fixtures never approach this, so the cap only ever fires on real builds.
+// scrolls off, so the tail is collapsed into a "… and N more" line.
 MAX_SHOWN_DIAGNOSTICS: usize: 100
 
 // Shared body for both public renderers. `show_file` switches the per-line file
-// prefix AND the sort (file-grouped vs offset-only) in lockstep. Duplicates are
-// dropped and the list is capped before rendering.
-render_diagnostics :: fn(diags: Diagnostic[], show_file: bool) -> string {
+// prefix AND the sort (file-grouped vs offset-only) in lockstep. `cap` collapses
+// the tail past `MAX_SHOWN_DIAGNOSTICS` — on for the user-facing build channel,
+// off for the machine/snapshot channel whose contract is complete output.
+// Duplicates are always dropped (lossless on any channel).
+render_diagnostics :: fn(diags: Diagnostic[], show_file: bool, cap: bool) -> string {
     sorted :: if show_file { sort(diags, diag_less_with_file) } else { sort(diags, diag_less) }
     unique :: dedup_diagnostics(sorted)
+    limit :: if cap { min(unique.len(), MAX_SHOWN_DIAGNOSTICS) } else { unique.len() }
     sb := StringBuilder {}
     sb.append("\n# Diagnostics")
-    shown: usize = 0
-    for d in unique {
-        if shown >= MAX_SHOWN_DIAGNOSTICS { break }
+    for d in unique[0..<limit] {
         sb.append_char('\n')
         sb.format_diagnostic(d, show_file)
-        shown += 1
     }
-    if unique.len() > MAX_SHOWN_DIAGNOSTICS {
+    if unique.len() > limit {
         sb.append_char('\n')
-        sb.append("… and ${unique.len() - MAX_SHOWN_DIAGNOSTICS} more diagnostic(s)")
+        sb.append("… and ${unique.len() - limit} more diagnostic(s)")
     }
     return sb.to_string()
 }
@@ -305,11 +308,12 @@ mk_diag_span :: fn(start: i32, end: i32) -> Span = Span {
 }
 
 @test test_cap_collapses_tail :: fn() -> void {
+    // The user-facing channel (with_file) caps at MAX_SHOWN_DIAGNOSTICS.
     diags: Diagnostic[] = []
     for i in 0..<150 {
         diags.push(lexer_error(.UnexpectedCharacter, mk_diag_span(i, i + 1), "e"))
     }
-    out :: dump_diagnostics(diags)
+    out :: dump_diagnostics_with_file(diags)
     assert("… and 50 more diagnostic(s)" in out, "expected the cap tail for 150 diagnostics")
 }
 
@@ -318,5 +322,14 @@ mk_diag_span :: fn(start: i32, end: i32) -> Span = Span {
     for i in 0..<10 {
         diags.push(lexer_error(.UnexpectedCharacter, mk_diag_span(i, i + 1), "e"))
     }
-    assert("more diagnostic(s)" !in dump_diagnostics(diags), "no tail expected under the cap")
+    assert("more diagnostic(s)" !in dump_diagnostics_with_file(diags), "no tail expected under the cap")
+}
+
+@test test_machine_channel_uncapped :: fn() -> void {
+    // The snapshot/machine channel must stay complete — no cap, no collapse line.
+    diags: Diagnostic[] = []
+    for i in 0..<150 {
+        diags.push(lexer_error(.UnexpectedCharacter, mk_diag_span(i, i + 1), "e"))
+    }
+    assert("more diagnostic(s)" !in dump_diagnostics(diags), "machine channel must not cap")
 }
