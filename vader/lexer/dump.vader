@@ -14,6 +14,7 @@ module "vader/lexer"
 import "std/string" { pad_start, pad_end, compare_ascending as string_less }
 import "std/numbers" { to_hex }
 import "std/sort" { sort }
+import "std/collections" { MutableSet }
 import "vader/text" { quote_simple }
 TTY :: import "std/tty"
 // Diagnostic info is now resolved at construction time — see vader/diagnostics.
@@ -39,18 +40,49 @@ export dump_diagnostics :: fn(diags: Diagnostic[]) -> string = render_diagnostic
 /// one file at a time and omit it so their snapshots stay machine-independent.
 export dump_diagnostics_with_file :: fn(diags: Diagnostic[]) -> string = render_diagnostics(diags, true)
 
+// Upper bound on diagnostics rendered in one block. A single root error can
+// cascade into hundreds of derived diagnostics ; past this many the real cause
+// scrolls off, so the tail is collapsed into a "… and N more" line. The corpus
+// fixtures never approach this, so the cap only ever fires on real builds.
+MAX_SHOWN_DIAGNOSTICS: usize: 100
+
 // Shared body for both public renderers. `show_file` switches the per-line file
-// prefix AND the sort (file-grouped vs offset-only) in lockstep.
+// prefix AND the sort (file-grouped vs offset-only) in lockstep. Duplicates are
+// dropped and the list is capped before rendering.
 render_diagnostics :: fn(diags: Diagnostic[], show_file: bool) -> string {
     sorted :: if show_file { sort(diags, diag_less_with_file) } else { sort(diags, diag_less) }
+    unique :: dedup_diagnostics(sorted)
     sb := StringBuilder {}
     sb.append("\n# Diagnostics")
-    for d in sorted {
+    shown: usize = 0
+    for d in unique {
+        if shown >= MAX_SHOWN_DIAGNOSTICS { break }
         sb.append_char('\n')
         sb.format_diagnostic(d, show_file)
+        shown += 1
+    }
+    if unique.len() > MAX_SHOWN_DIAGNOSTICS {
+        sb.append_char('\n')
+        sb.append("… and ${unique.len() - MAX_SHOWN_DIAGNOSTICS} more diagnostic(s)")
     }
     return sb.to_string()
 }
+
+// Drop exact-duplicate diagnostics, preserving first-seen order. The same error
+// can surface through more than one path (e.g. a cross-module symbol reported
+// once per importer) ; the user should see it a single time.
+dedup_diagnostics :: fn(diags: Diagnostic[]) -> Diagnostic[] {
+    seen :: MutableSet<string> {}
+    out: Diagnostic[] = []
+    for d in diags {
+        if seen.add(diag_key(d)) { out.push(d) }
+    }
+    return out
+}
+
+// Identity of a diagnostic for dedup : severity, code, full span and message.
+diag_key :: fn(d: Diagnostic) -> string =
+    "${i32(d.severity)}|${d.code.id}|${d.primary.start.file}|${d.primary.start.offset}|${d.primary.end.offset}|${d.detail}"
 
 diag_less :: fn(a: Diagnostic, b: Diagnostic) -> bool {
     // A single dump-stage run comes from one file, so order by (offset, code)
@@ -245,4 +277,46 @@ format_diagnostic :: fn(sb: StringBuilder, d: Diagnostic, show_file: bool) -> vo
     // single-file dump stages omit it to keep their snapshots machine-independent.
     loc :: if show_file { "${p.file}:${p.line}:${p.column}" } else { "${p.line}:${p.column}" }
     sb.append("[${loc}] ${sev}[${d.code.id}] ${d.code.message}${detail}")
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+
+mk_diag_span :: fn(start: i32, end: i32) -> Span = Span {
+    .start = Position { .file = "t.vader", .offset = usize(start), .line = 1, .column = start + 1 },
+    .end   = Position { .file = "t.vader", .offset = usize(end),   .line = 1, .column = end + 1 },
+}
+
+@test test_dedup_drops_exact_duplicates :: fn() -> void {
+    sp :: mk_diag_span(0, 1)
+    d1 :: lexer_error(.UnexpectedCharacter, sp, "x")
+    d2 :: lexer_error(.UnexpectedCharacter, sp, "x")   // identical content
+    d3 :: lexer_error(.StrayBackslash,      sp, "y")   // distinct code + detail
+    diags: Diagnostic[] = [d1, d2, d3]
+    assert_eq(dedup_diagnostics(diags).len(), 2)
+}
+
+@test test_dedup_keeps_distinct_spans :: fn() -> void {
+    a :: lexer_error(.UnexpectedCharacter, mk_diag_span(0, 1), "x")
+    b :: lexer_error(.UnexpectedCharacter, mk_diag_span(5, 6), "x")   // same code/detail, different span
+    diags: Diagnostic[] = [a, b]
+    assert_eq(dedup_diagnostics(diags).len(), 2)
+}
+
+@test test_cap_collapses_tail :: fn() -> void {
+    diags: Diagnostic[] = []
+    for i in 0..<150 {
+        diags.push(lexer_error(.UnexpectedCharacter, mk_diag_span(i, i + 1), "e"))
+    }
+    out :: dump_diagnostics(diags)
+    assert("… and 50 more diagnostic(s)" in out, "expected the cap tail for 150 diagnostics")
+}
+
+@test test_no_cap_tail_under_limit :: fn() -> void {
+    diags: Diagnostic[] = []
+    for i in 0..<10 {
+        diags.push(lexer_error(.UnexpectedCharacter, mk_diag_span(i, i + 1), "e"))
+    }
+    assert("more diagnostic(s)" !in dump_diagnostics(diags), "no tail expected under the cap")
 }
