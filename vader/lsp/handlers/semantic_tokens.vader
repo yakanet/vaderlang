@@ -86,17 +86,9 @@ produce_tokens :: fn(source: string, uri: string, li: LineIndex) -> JsonValue {
 // sole place the position encoding is applied — producers stay encoding-agnostic.
 reencode_columns :: fn(out: RawToken[], li: LineIndex) -> void {
     for i in 0..<out.len() {
-        rt :: out[i]
-        col :: li_character(li, rt.line, rt.start_offset)
-        out[i] = RawToken {
-            .line         = rt.line,
-            .col          = col,
-            .length       = li_character(li, rt.line, rt.end_offset) - col,
-            .tok_type     = rt.tok_type,
-            .modifiers    = rt.modifiers,
-            .start_offset = rt.start_offset,
-            .end_offset   = rt.end_offset,
-        }
+        col :: li_character(li, out[i].line, out[i].start_offset)
+        out[i].col    = col
+        out[i].length = li_character(li, out[i].line, out[i].end_offset) - col
     }
 }
 
@@ -432,4 +424,20 @@ test_yield_const_classified_as_keyword :: fn() -> void {
     sp :: empty_span("t.vader")
     assert_eq(classify_token(make_token(.KwYield, "yield", sp)), i32(TokenType.Keyword))
     assert_eq(classify_token(make_token(.KwConst, "const", sp)), i32(TokenType.Keyword))
+}
+
+@test
+test_resolver_refines_param_use :: fn() -> void {
+    // The `x` in `return x` is a parameter USE ; only the resolver-refinement
+    // pass can paint it Parameter (Phase-1 can't tell a param-use from a local).
+    // Guards the refine↔reencode ordering: `refine_via_resolver` probes the
+    // resolver map by a codepoint column derived from the token's byte offset,
+    // NOT the RawToken.col (which is 0 until the later reencode pass). Both `x`
+    // occurrences — the param decl and its use — must end up Parameter.
+    toks :: build_sorted_for_test("add :: fn(x: i32) -> i32 {\n    return x + 1\n}\n", "file:///r.vader")
+    params := 0
+    for t in toks {
+        if t.tok_type == i32(TokenType.Parameter) { params += 1 }
+    }
+    assert_eq(params, 2)
 }
