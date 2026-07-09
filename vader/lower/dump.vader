@@ -320,20 +320,16 @@ emit_expr_compound :: fn(lines: string[], expr: LoweredExpr, indent: string) -> 
 // Compact-line renderer. Returns `null` when the expr needs a vertical
 // expansion (`emit_expr_compound` handles those). Renders literals,
 // ident, unreachable → single line ; everything else returns null.
-expr_inline :: fn(expr: LoweredExpr) -> string | null {
-    // @partial: only literals / ident / unreachable render on a single line;
-    // every other LoweredExpr needs vertical expansion → null.
-    @partial match expr {
-        is LoweredIntLit as lit    -> { return "int(${format_int_value(lit.value, lit.type)}) :${display_type(lit.type)}" }
-        is LoweredFloatLit as lit  -> { return "float(${lit.value}) :${display_type(lit.type)}" }
-        is LoweredBoolLit as lit   -> { return "${lit.value}" }
-        is LoweredNullLit          -> { return "null" }
-        is LoweredCharLit as lit   -> { return "char(0x${hex_string(lit.value)})" }
-        is LoweredStringLit as lit -> { return "${quote_simple(lit.value)} :string" }
-        is LoweredIdent as ident   -> { return "${ident.symbol.name} :${display_type(ident.type)}" }
-        is LoweredUnreachable as u -> { return "unreachable(\"${u.reason}\") :${display_type(u.type)}" }
-        _ -> { return null }
-    }
+expr_inline :: fn(expr: LoweredExpr) -> string | null = @partial match expr {
+    is LoweredIntLit as lit    -> { "int(${format_int_value(lit.value, lit.type)}) :${display_type(lit.type)}" }
+    is LoweredFloatLit as lit  -> { "float(${lit.value}) :${display_type(lit.type)}" }
+    is LoweredBoolLit as lit   -> { "${lit.value}" }
+    is LoweredNullLit          -> { "null" }
+    is LoweredCharLit as lit   -> { "char(0x${hex_string(lit.value)})" }
+    is LoweredStringLit as lit -> { "${quote_simple(lit.value)} :string" }
+    is LoweredIdent as ident   -> { "${ident.symbol.name} :${display_type(ident.type)}" }
+    is LoweredUnreachable as u -> { "unreachable(\"${u.reason}\") :${display_type(u.type)}" }
+    _ -> { null }
 }
 
 import "std/numbers" { to_hex }
