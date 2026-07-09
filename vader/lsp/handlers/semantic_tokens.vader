@@ -9,10 +9,10 @@
 // `deltaLine == 0`, absolute (0-based) when starting a new line. We
 // produce tokens in document order so this encoding is straightforward.
 //
-// Positions are 0-based ; we expose UTF-16 code units (LSP spec). For
-// ASCII content (the practical majority of compiler-stdlib code) this
-// equals the codepoint count, which Vader's `Position.column` already
-// gives us — adjusted from 1-based to 0-based.
+// Positions are 0-based. Producers fill each `RawToken`'s byte offsets and stay
+// encoding-agnostic ; `reencode_columns` then derives every `col` + `length` in
+// the negotiated position encoding (utf-8 / utf-16 / utf-32) through the
+// document's `LineIndex`, so multi-byte and astral content lands correctly.
 
 module "vader/lsp/handlers"
 
@@ -23,7 +23,10 @@ import "std/json" {
 import "std/collections" { MutableMap }
 import "vader/lexer" { tokenize, Token, make_token, empty_span }
 import "vader/fmt" { scan_comments, Comment }
-import "vader/lsp/protocol" { TokenType, RawToken, span_token_length, modifier_bit, position_uri, line_start_offset }
+import "vader/lsp/protocol" {
+    TokenType, RawToken, modifier_bit, position_uri,
+    LineIndex, new_line_index, li_character,
+}
 import "vader/lsp/analysis" { ServerState }
 
 // ASCII-aware predicates used by the inner scanners. They operate on
@@ -58,7 +61,7 @@ export handle_semantic_tokens_full :: fn(state: ServerState, params: JsonValue) 
         is null -> { return JsonNull {} }
         is string as src -> {
             if src.bytes().len() == 0 { return JsonNull {} }
-            data :: produce_tokens(src, uri)
+            data :: produce_tokens(src, uri, new_line_index(src, state.position_encoding))
             result :: MutableMap<string, JsonValue> {}
             result["data"] = data
             return JsonObject { .entries = result }
@@ -68,13 +71,33 @@ export handle_semantic_tokens_full :: fn(state: ServerState, params: JsonValue) 
 
 // ---- producer -------------------------------------------------------------
 
-produce_tokens :: fn(source: string, uri: string) -> JsonValue {
+produce_tokens :: fn(source: string, uri: string, li: LineIndex) -> JsonValue {
     raws: RawToken[] = []
     collect_token_kinds(source, uri, raws)
     collect_comment_kinds(source, raws)
     collect_ast_idents(source, uri, raws)
+    reencode_columns(raws, li)
     sort_raws(raws)
     return encode_delta(raws)
+}
+
+// Derive every token's `col` + `length` from its byte offsets in the negotiated
+// encoding. Run once, after all producers have filled the offsets. This is the
+// sole place the position encoding is applied — producers stay encoding-agnostic.
+reencode_columns :: fn(out: RawToken[], li: LineIndex) -> void {
+    for i in 0..<out.len() {
+        rt :: out[i]
+        col :: li_character(li, rt.line, rt.start_offset)
+        out[i] = RawToken {
+            .line         = rt.line,
+            .col          = col,
+            .length       = li_character(li, rt.line, rt.end_offset) - col,
+            .tok_type     = rt.tok_type,
+            .modifiers    = rt.modifiers,
+            .start_offset = rt.start_offset,
+            .end_offset   = rt.end_offset,
+        }
+    }
 }
 
 // ---- lexer tokens → semantic tokens --------------------------------------
@@ -95,11 +118,13 @@ token_to_raw :: fn(t: Token) -> RawToken | null {
     if tt < 0 { return null }
     sp :: t.span
     return RawToken {
-        .line      = sp.start.line - 1,
-        .col       = sp.start.column - 1,
-        .length    = span_token_length(sp),
-        .tok_type  = tt,
-        .modifiers = 0,
+        .line         = sp.start.line - 1,
+        .col          = 0,
+        .length       = 0,
+        .tok_type     = tt,
+        .modifiers    = 0,
+        .start_offset = sp.start.offset,
+        .end_offset   = sp.end.offset,
     }
 }
 
@@ -142,7 +167,7 @@ classify_token :: fn(t: Token) -> i32 = match t.kind {
 collect_comment_kinds :: fn(source: string, out: RawToken[]) -> void {
     cm :: scan_comments(source)
     for c in cm.comments {
-        rt :: comment_to_raw(c, source)
+        rt :: comment_to_raw(c)
         for r in rt { out.push(r) }
     }
 }
@@ -153,39 +178,38 @@ collect_comment_kinds :: fn(source: string, out: RawToken[]) -> void {
 //     comment (documentation modifier), `@param`/`@return`/etc. as
 //     decorator (documentation modifier), `@param`'s name as parameter
 //     (documentation modifier).
-comment_to_raw :: fn(c: Comment, source: string) -> RawToken[] {
+comment_to_raw :: fn(c: Comment) -> RawToken[] {
     out: RawToken[] = []
     // Base case : non-doc comments emit a single comment-typed token.
     match c.kind {
         .Line -> {
-            out.push(make_comment_token(c, source, 0))
+            out.push(make_comment_token(c, 0))
             return out
         }
         .Block -> {
-            // Multi-line block comments need one token per line so the
-            // delta-encoding works cleanly ; emit the whole span as a
-            // single token and let the client re-wrap.
-            out.push(make_comment_token(c, source, 0))
+            // Multi-line block comments emit the whole span as one token and
+            // let the client re-wrap.
+            out.push(make_comment_token(c, 0))
             return out
         }
         .DocLine -> {
-            collect_doc_line_tokens(c, source, out)
+            collect_doc_line_tokens(c, out)
             return out
         }
     }
 }
 
-make_comment_token :: fn(c: Comment, source: string, modifiers: i32) -> RawToken {
-    line_start :: line_start_offset(source, c.offset)
+make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken {
+    // `Comment` carries no end column, so derive the end from the text's byte
+    // length ; `reencode_columns` turns the offsets into col + length.
     return RawToken {
-        .line      = c.line - 1,
-        .col       = i32(c.offset - line_start),
-        // Codepoint length, not bytes — a French `// café` is 7 codepoints
-        // but 8 bytes ; the byte count would overshoot (cf. `span_token_length`).
-        // `Comment` carries no end column, so count off the text via core `len`.
-        .length    = i32(c.text.len()),
-        .tok_type  = i32(TokenType.Comment),
-        .modifiers = modifiers,
+        .line         = c.line - 1,
+        .col          = 0,
+        .length       = 0,
+        .tok_type     = i32(TokenType.Comment),
+        .modifiers    = modifiers,
+        .start_offset = c.offset,
+        .end_offset   = c.offset + c.text.bytes().len(),
     }
 }
 
@@ -199,22 +223,19 @@ make_comment_token :: fn(c: Comment, source: string, modifiers: i32) -> RawToken
 // `///` prefix and narrative therefore keep their TextMate coloring
 // from `comment.line.documentation.vader` ; only the tag fragments
 // receive semantic-token treatment.
-collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> void {
+collect_doc_line_tokens :: fn(c: Comment, out: RawToken[]) -> void {
     text :: c.text
     text_bytes :: text.bytes()
     n :: text_bytes.len()
     i: usize = 0
     line := c.line - 1   // 0-based
-    // A tag's source column = the comment's own start column (its
-    // indentation — ASCII, so byte offset = codepoint column) plus the
-    // codepoint distance into the comment text. Both matter : an indented
-    // doc line (a trait-method `/// @param …`) needs the base, and a
-    // multi-byte narrative before the tag (`/// café @param x`) needs the
-    // distance counted in codepoints, not bytes.
-    base_col :: i32(c.offset - line_start_offset(source, c.offset))
+    // Each fragment's absolute byte offset is `c.offset + <index into text>` ;
+    // `reencode_columns` later turns the offsets into columns in the negotiated
+    // encoding, so an indented doc line and a multi-byte narrative before the tag
+    // (`/// café @param x`) both land correctly with no manual bookkeeping.
     for i < n {
-        c :: text.byte_decode_at(i)
-        if c != '@' {
+        ch :: text.byte_decode_at(i)
+        if ch != '@' {
             i = i + 1
             continue
         }
@@ -230,14 +251,14 @@ collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> vo
             i = tag_end
             continue
         }
-        // Tag itself (including `@`). `@` + the tag word are ASCII, so the
-        // byte width is the codepoint length.
         out.push(RawToken {
-            .line      = line,
-            .col       = base_col + doc_col_offset(text_bytes, i),
-            .length    = i32(tag_end - i),
-            .tok_type  = i32(TokenType.Decorator),
-            .modifiers = modifier_bit(.Documentation),
+            .line         = line,
+            .col          = 0,
+            .length       = 0,
+            .tok_type     = i32(TokenType.Decorator),
+            .modifiers    = modifier_bit(.Documentation),
+            .start_offset = c.offset + i,
+            .end_offset   = c.offset + tag_end,
         })
         i = tag_end
         if tag_name == "param" {
@@ -249,13 +270,14 @@ collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> vo
             }
             name_end :: scan_ident_end(text, j)
             if name_end > j {
-                // The name is an ASCII identifier, so byte width = codepoints.
                 out.push(RawToken {
-                    .line      = line,
-                    .col       = base_col + doc_col_offset(text_bytes, j),
-                    .length    = i32(name_end - j),
-                    .tok_type  = i32(TokenType.Parameter),
-                    .modifiers = modifier_bit(.Documentation),
+                    .line         = line,
+                    .col          = 0,
+                    .length       = 0,
+                    .tok_type     = i32(TokenType.Parameter),
+                    .modifiers    = modifier_bit(.Documentation),
+                    .start_offset = c.offset + j,
+                    .end_offset   = c.offset + name_end,
                 })
                 i = name_end
             }
@@ -271,17 +293,6 @@ scan_ident_end :: fn(s: string, start: usize) -> usize {
         j = j + 1
     }
     return j
-}
-
-// Codepoint distance from the start of `text_bytes` to byte offset `byte_off`
-// — i.e. how many columns into the comment that byte sits. Counts UTF-8
-// leading bytes (those not in the `0x80..0xBF` continuation range).
-doc_col_offset :: fn(text_bytes: const u8[], byte_off: usize) -> i32 {
-    count := 0
-    for k in 0..<byte_off {
-        if (text_bytes[k] & 0xC0) != 0x80 { count = count + 1 }
-    }
-    return count
 }
 
 // ---- sorting + delta encoding ---------------------------------------------
@@ -331,10 +342,13 @@ import "std/testing" { assert, assert_eq }
 // Build the full sorted RawToken list the way `produce_tokens` does, exposing
 // the pre-encoding tokens so tests can inspect classifications + overlaps.
 build_sorted_for_test :: fn(source: string, uri: string) -> RawToken[] {
+    // The colocated tests assert codepoint-equivalent columns, so index in
+    // utf-16 (BMP codepoint == 1 utf-16 unit).
     raws: RawToken[] = []
     collect_token_kinds(source, uri, raws)
     collect_comment_kinds(source, raws)
     collect_ast_idents(source, uri, raws)
+    reencode_columns(raws, new_line_index(source, .Utf16))
     sort_raws(raws)
     return raws
 }

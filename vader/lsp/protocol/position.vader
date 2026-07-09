@@ -1,13 +1,15 @@
 // vader/lsp/protocol/position — LSP position geometry + params extraction.
 //
-// The byte ↔ (line, character) bridge and the JSON encoders for the LSP
-// `Position` / `Range` / `Location` shapes, plus the params-object readers
-// every position-bearing request shares. Centralised here so the offset model
-// lives in one place — the future UTF-8 position-encoding negotiation
-// (`LSP_COMPLETENESS.md` §3.18) changes only this module.
+// The JSON encoders for the LSP `Position` / `Range` / `Location` shapes, plus
+// the params-object readers every position-bearing request shares. The byte ↔
+// (line, character) conversion itself lives in `line_index.vader` : a `LineIndex`
+// counts `character` offsets in the encoding negotiated at `initialize`
+// (`general.positionEncodings`, LSP 3.17+ — see `lifecycle.vader`). `Span`→range
+// encoding therefore takes the span's own `LineIndex` so cross-file results
+// (goto-def / references) count in the right file's text.
 //
-// LSP positions are 0-based ; Vader `Span`s are 1-based, so the converters
-// subtract one on the way out and the byte-offset path adds the raw column.
+// LSP positions are 0-based ; Vader `Span`s are 1-based, so `span_to_range_json`
+// subtracts one on the line and defers the column to the LineIndex.
 
 module "vader/lsp/protocol"
 
@@ -15,7 +17,7 @@ import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonNull
 }
 import "std/collections" { MutableMap }
-import "vader/diagnostics" { Span }
+import "vader/diagnostics" { Span, Position }
 
 // ---- range geometry -------------------------------------------------------
 
@@ -27,54 +29,16 @@ export SpanRange :: struct {
     end_character:   i32
 }
 
-/// Convert a 1-based compiler `Span` to a 0-based LSP range.
-export span_to_range_json :: fn(s: Span) -> SpanRange {
+/// Convert a 1-based compiler `Span` to a 0-based LSP range, counting `character`
+/// in `li`'s negotiated encoding. `li` must index the span's own file (the span
+/// carries a byte offset ; the encoding conversion needs that file's text).
+export span_to_range_json :: fn(s: Span, li: LineIndex) -> SpanRange {
     return SpanRange {
         .start_line      = s.start.line - 1,
-        .start_character = s.start.column - 1,
+        .start_character = li_character(li, s.start.line - 1, s.start.offset),
         .end_line        = s.end.line - 1,
-        .end_character   = s.end.column - 1,
+        .end_character   = li_character(li, s.end.line - 1, s.end.offset),
     }
-}
-
-/// Map an LSP (line, character) position to a byte offset in `source`.
-/// `character` is a **codepoint** offset within the line — the position model
-/// this server uses everywhere else (the lexer counts codepoint columns and the
-/// outgoing ranges emit them), so incoming and outgoing now agree. For BMP text
-/// (accents, CJK — e.g. `café`) a codepoint equals one UTF-16 unit, so this
-/// matches a default UTF-16 client ; only astral characters (a single codepoint
-/// spanning two UTF-16 units) would differ, pending `positionEncoding`
-/// negotiation (`LSP_COMPLETENESS.md` §3.18).
-///
-/// @param source     the full document text.
-/// @param line       0-based line.
-/// @param character  0-based codepoint offset within the line.
-/// @return           the absolute byte offset, clamped to the line start when
-///                   `character <= 0`.
-export lsp_to_offset :: fn(source: string, line: i32, character: i32) -> usize {
-    sb :: source.bytes()
-    n :: sb.len()
-    cur_line: i32 = 0
-    cursor: usize = 0
-    for cursor < n {
-        if cur_line == line { break }
-        b :: sb[cursor]
-        cursor = cursor + 1
-        if b == '\n' { cur_line = cur_line + 1 }
-    }
-    if character <= 0 { return cursor }
-    // Advance `character` codepoints from the line start (not raw bytes) to the
-    // byte offset — stepping over each codepoint's UTF-8 continuation bytes.
-    remaining: i32 = character
-    for cursor < n && remaining > 0 {
-        if sb[cursor] == '\n' { break }   // never run past the line's end
-        cursor = cursor + 1
-        for cursor < n && sb[cursor] >= 0x80 && sb[cursor] < 0xC0 {
-            cursor = cursor + 1
-        }
-        remaining = remaining - 1
-    }
-    return cursor
 }
 
 /// True when the 1-based `(line, col)` falls inside the closed span
@@ -175,21 +139,25 @@ export cursor_field :: fn(params: JsonValue, key: string) -> i32 {
 import "std/testing" { assert_eq }
 
 @test
-test_lsp_to_offset_ascii :: fn() -> void {
-    // "abc\ndef" : line 1, char 2 → byte 6 ('f') ; char 0 → the line start.
-    assert_eq(lsp_to_offset("abc\ndef", 1, 2), 6)
-    assert_eq(lsp_to_offset("abc\ndef", 1, 0), 4)
-    assert_eq(lsp_to_offset("abc\ndef", 0, 0), 0)
+test_span_to_range_utf8 :: fn() -> void {
+    // "café x" : span [0, 6) → end char 6 (bytes) under utf-8.
+    li :: new_line_index("café x", .Utf8)
+    sp :: Span {
+        .start = Position { .file = "t", .offset = 0, .line = 1, .column = 1 },
+        .end   = Position { .file = "t", .offset = 6, .line = 1, .column = 6 },
+    }
+    r :: span_to_range_json(sp, li)
+    assert_eq(r.start_character, 0)
+    assert_eq(r.end_character, 6)
 }
 
 @test
-test_lsp_to_offset_codepoint :: fn() -> void {
-    // "café x" : `é` is TWO UTF-8 bytes but ONE codepoint. `character` is a
-    // codepoint offset, so char 5 is 'x' at byte 6 — not byte 5 (the space) as
-    // the old byte-offset model returned, which mis-placed the cursor on every
-    // non-ASCII line (the audit's goto-def-on-`café` regression).
-    src :: "café x"
-    assert_eq(lsp_to_offset(src, 0, 3), 3)   // `é` starts at byte 3
-    assert_eq(lsp_to_offset(src, 0, 4), 5)   // space at byte 5 (past é's 2 bytes)
-    assert_eq(lsp_to_offset(src, 0, 5), 6)   // 'x' at byte 6
+test_span_to_range_utf16_astral :: fn() -> void {
+    // "a😀b" : 'b' at byte 5 → utf-16 character 3 (😀 counts 2).
+    li :: new_line_index("a😀b", .Utf16)
+    sp :: Span {
+        .start = Position { .file = "t", .offset = 5, .line = 1, .column = 3 },
+        .end   = Position { .file = "t", .offset = 6, .line = 1, .column = 4 },
+    }
+    assert_eq(span_to_range_json(sp, li).start_character, 3)
 }

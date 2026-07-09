@@ -298,12 +298,13 @@ New in 3.18 (`@since 3.18.0`) on top of everything above :
 
 **High value (Vader-aligned)**
 
-- **UTF-8 position encoding** (`general.positionEncodings` negotiation). 3.17
-  forced UTF-16 offsets ; 3.18 lets the server negotiate `utf-8`. Vader works in
-  **bytes** internally, so advertising `utf-8` removes the byte ↔ UTF-16
-  conversion the LSP does on every span — and kills a class of off-by-N bugs on
-  multi-byte (accented / emoji) lines. Negotiated at `initialize` ; foundational
-  and cheap, so do it early — it changes the offset model every handler uses.
+- **UTF-8 position encoding** (`general.positionEncodings` negotiation). ✅
+  **Done (2026-07-09).** 3.17 forced UTF-16 offsets ; 3.18 lets the server
+  negotiate `utf-8`. Vader works in **bytes** internally, so advertising `utf-8`
+  removes the byte ↔ UTF-16 conversion — and kills a class of off-by-N bugs on
+  multi-byte (accented / emoji) lines. Negotiated at `initialize` ; a per-document
+  `LineIndex` (`protocol/line_index.vader`) does the byte ↔ (line, character)
+  conversion in whichever encoding was agreed (utf-8 / utf-16 / utf-32).
 - **`workspace/textDocumentContent`** — server-provided **virtual read-only
   documents**. Expose the compiler's own IR as openable views under a `vader:`
   URI : `dump --stage=typed-ast / lowered / cfg / bytecode / c` for the file
@@ -424,10 +425,15 @@ each action (`(source, cursor) → TextEdit[]`), round-trip `match→if` then
 
 ## Suggested sequencing
 
-0. **Foundational — negotiate UTF-8 position encoding** (3.18) at `initialize`,
-   before adding more position-sensitive handlers : it changes the offset model
-   every handler uses, and Vader is byte-native, so doing it first lets all the
-   features below skip the byte ↔ UTF-16 dance.
+0. **Foundational — negotiate UTF-8 position encoding** (3.18) at `initialize`.
+   ✅ **Done (2026-07-09).** `initialize` reads `general.positionEncodings` and
+   negotiates utf-8 (preferred, Vader is byte-native) / utf-32 / utf-16 (default),
+   echoing the choice in `capabilities.positionEncoding`. All byte ↔ (line,
+   character) conversion routes through a per-document `LineIndex`
+   (`protocol/line_index.vader`) in the negotiated encoding, with an ASCII
+   fast-path ; astral codepoints (emoji) now place correctly in every direction.
+   This is the rust-analyzer / clangd / gopls model (negotiate utf-8, keep utf-16
+   fallback).
 1. **`documentSymbol` + `formatting`** — near-free (existing index / existing
    formatter), immediately visible. Ship first.
 2. **Infra A (reference index)**, then **`references` + `documentHighlight` +

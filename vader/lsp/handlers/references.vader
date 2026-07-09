@@ -8,8 +8,10 @@
 module "vader/lsp/handlers"
 
 import "std/json" { JsonValue, JsonArray, JsonBool }
+import "std/collections" { MutableMap }
 import "vader/lsp/protocol" {
-    uri_to_path, position_uri, cursor_field, location_json, span_to_range_json, get_field, path_to_uri
+    uri_to_path, position_uri, cursor_field, location_json, span_to_range_json, get_field, path_to_uri,
+    LineIndex,
 }
 import "vader/lsp/analysis" {
     ServerState, typed_project_for, build_reference_index, ReferenceIndex, cursor_in_span
@@ -33,12 +35,26 @@ export handle_references :: fn(state: ServerState, params: JsonValue) -> JsonVal
 
     include_decl :: include_declaration(params)
     items: JsonValue[] = []
+    // Memoise one LineIndex per referenced file — a symbol can have many sites in
+    // the same file, and `line_index_for_path` reads from disk for non-open ones.
+    li_cache :: MutableMap<string, LineIndex> {}
     for s in index.sites {
         if s.symbol_id != target { continue }
         if s.is_decl && !include_decl { continue }
-        items.push(location_json(path_to_uri(s.span.start.file), s.span.span_to_range_json()))
+        path :: s.span.start.file
+        li :: line_index_cached(state, li_cache, path)
+        items.push(location_json(path_to_uri(path), s.span.span_to_range_json(li)))
     }
     return JsonArray { .items = items }
+}
+
+// Fetch (and memoise) the LineIndex for `path` within one request.
+line_index_cached :: fn(state: ServerState, cache: MutableMap<string, LineIndex>, path: string) -> LineIndex {
+    hit :: cache[path]
+    if hit is LineIndex as li { return li }
+    built :: state.line_index_for_path(path)
+    cache[path] = built
+    return built
 }
 
 // The (import-resolved) symbol id of the reference whose span contains the

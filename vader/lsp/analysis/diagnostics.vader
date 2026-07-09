@@ -17,7 +17,7 @@ module "vader/lsp/analysis"
 import "std/collections" { MutableMap }
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonArray }
 import "vader/diagnostics" { Diagnostic, Span, Severity }
-import "vader/lsp/protocol" { write_frame, encode_notification, uri_to_path, span_to_range_json, range_json }
+import "vader/lsp/protocol" { write_frame, encode_notification, uri_to_path, span_to_range_json, range_json, LineIndex }
 
 /// Type-check the file at `uri` and push the resulting diagnostics to
 /// the client. Non-file URIs and empty docs short-circuit to an empty
@@ -25,17 +25,17 @@ import "vader/lsp/protocol" { write_frame, encode_notification, uri_to_path, spa
 export publish_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void {
     file_path :: uri_to_path(uri)
     if file_path == "" {
-        publish(uri, [])
+        publish(self, uri, [])
         return
     }
     cached :: typed_project_for(self, file_path)
-    publish(uri, cached.diags)
+    publish(self, uri, cached.diags)
 }
 
 /// Push an empty diagnostics array — clears any existing squiggles in
 /// the client. Called from `didClose`.
-export clear_diagnostics_for_uri :: fn(uri: string) -> void {
-    publish(uri, [])
+export clear_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void {
+    publish(self, uri, [])
 }
 
 /// Push a `publishDiagnostics` notification carrying `diags` filtered to
@@ -45,12 +45,15 @@ export clear_diagnostics_for_uri :: fn(uri: string) -> void {
 /// so the editor reports exactly what the compiler detects, cascade noise
 /// included : the diagnostics come straight from the shared `check_file`, the
 /// same path `vader dump --stage=typed-ast` uses.
-publish :: fn(uri: string, diags: Diagnostic[]) -> void {
+publish :: fn(self: ServerState, uri: string, diags: Diagnostic[]) -> void {
     file_path :: uri_to_path(uri)
+    // Every published diagnostic is filtered to `file_path` below, so one index
+    // for the open document encodes them all.
+    li :: self.line_index_for_path(file_path)
     items: JsonValue[] = []
     for d in diags {
         if file_path != "" && d.primary.start.file != file_path { continue }
-        items.push(encode_diagnostic(d))
+        items.push(encode_diagnostic(d, li))
     }
     params :: MutableMap<string, JsonValue> {}
     params["uri"]         = JsonString { .value = uri }
@@ -60,9 +63,9 @@ publish :: fn(uri: string, diags: Diagnostic[]) -> void {
 
 // ---- encoding ------------------------------------------------------------
 
-encode_diagnostic :: fn(d: Diagnostic) -> JsonValue {
+encode_diagnostic :: fn(d: Diagnostic, li: LineIndex) -> JsonValue {
     obj :: MutableMap<string, JsonValue> {}
-    obj["range"]    = range_json(span_to_range_json(d.primary))
+    obj["range"]    = range_json(span_to_range_json(d.primary, li))
     obj["severity"] = JsonNumber { .value = f64(lsp_severity(d.severity)) }
     obj["code"]     = JsonString { .value = d.code.id }
     obj["source"]   = JsonString { .value = "vader" }

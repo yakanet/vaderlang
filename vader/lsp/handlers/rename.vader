@@ -19,7 +19,7 @@ import "std/json" { JsonValue, JsonObject, JsonString, JsonArray, JsonNull }
 import "std/collections" { MutableMap }
 import "vader/diagnostics" { Span, Position }
 import "vader/resolver" { LoadedProject }
-import "vader/lsp/protocol" { position_uri, uri_to_path, cursor_field, range_json, span_to_range_json, path_to_uri }
+import "vader/lsp/protocol" { position_uri, uri_to_path, cursor_field, range_json, span_to_range_json, path_to_uri, LineIndex }
 import "vader/lsp/analysis" {
     ServerState, typed_project_for, build_reference_index, ReferenceIndex, RefSite, cursor_in_span,
 }
@@ -36,7 +36,8 @@ export handle_prepare_rename :: fn(state: ServerState, params: JsonValue) -> Jso
     index :: build_reference_index(cached.project, cached.result)
     site :: site_at(index, cursor_field(params, "line") + 1, cursor_field(params, "character") + 1)
     if site == null { return JsonNull {} }
-    return range_json(site.span.span_to_range_json())
+    li :: state.line_index_for_path(file_path)
+    return range_json(site.span.span_to_range_json(li))
 }
 
 /// Compute the project-wide `WorkspaceEdit` renaming the symbol under the cursor
@@ -60,7 +61,8 @@ export handle_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     if old_name == "" { return JsonNull {} }
 
     edits :: sites_to_rename(index, site.symbol_id, old_name, sources)
-    return workspace_edit_json(edits, new_name)
+    li_cache :: MutableMap<string, LineIndex> {}
+    return workspace_edit_json(edits, new_name, state, li_cache)
 }
 
 // The reference site whose span contains the 1-based cursor, or null.
@@ -88,11 +90,11 @@ sites_to_rename :: fn(index: ReferenceIndex, symbol_id: i32, old_name: string, s
 // ---- WorkspaceEdit encoding ----------------------------------------------
 
 // `{ changes: { <uri>: TextEdit[] } }` grouping the edits by file.
-workspace_edit_json :: fn(edits: RefSite[], new_name: string) -> JsonValue {
+workspace_edit_json :: fn(edits: RefSite[], new_name: string, state: ServerState, li_cache: MutableMap<string, LineIndex>) -> JsonValue {
     by_uri :: MutableMap<string, JsonValue[]> {}
     for e in edits {
         key :: path_to_uri(e.span.start.file)
-        te :: text_edit_json(e.span, new_name)
+        te :: text_edit_json(e.span, new_name, state, li_cache)
         cur :: by_uri[key]
         if cur == null {
             first: JsonValue[] = [te]
@@ -110,9 +112,10 @@ workspace_edit_json :: fn(edits: RefSite[], new_name: string) -> JsonValue {
     return JsonObject { .entries = edit }
 }
 
-text_edit_json :: fn(sp: Span, new_name: string) -> JsonValue {
+text_edit_json :: fn(sp: Span, new_name: string, state: ServerState, li_cache: MutableMap<string, LineIndex>) -> JsonValue {
     obj :: MutableMap<string, JsonValue> {}
-    obj["range"]   = range_json(sp.span_to_range_json())
+    li :: line_index_cached(state, li_cache, sp.start.file)
+    obj["range"]   = range_json(sp.span_to_range_json(li))
     obj["newText"] = JsonString { .value = new_name }
     return JsonObject { .entries = obj }
 }

@@ -14,7 +14,7 @@ module "vader/lsp/handlers"
 
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonArray }
 import "std/collections" { MutableMap }
-import "vader/lsp/protocol" { position_uri, range_json, span_to_range_json, span_encloses }
+import "vader/lsp/protocol" { position_uri, range_json, span_to_range_json, span_encloses, LineIndex }
 import "vader/lsp/analysis" { ServerState, DocIndex, DeclEntry, DeclKind, build_index }
 
 /// Build the `DocumentSymbol[]` response for the document named in `params`
@@ -28,7 +28,7 @@ export handle_document_symbol :: fn(state: ServerState, params: JsonValue) -> Js
     idx :: state.index_for(uri)
     match idx {
         is null              -> { return JsonArray { .items = [] } }
-        is DocIndex as index -> { return document_symbol_json(toplevel_symbols(index)) }
+        is DocIndex as index -> { return document_symbol_json(toplevel_symbols(index), index.line_index) }
     }
 }
 
@@ -58,26 +58,26 @@ lsp_symbol_kind :: fn(k: DeclKind) -> i32 = match k {
     .ForIn     -> 13   // Variable
 }
 
-document_symbol_json :: fn(entries: DeclEntry[]) -> JsonValue {
+document_symbol_json :: fn(entries: DeclEntry[], li: LineIndex) -> JsonValue {
     items: JsonValue[] = []
-    for e in entries { items.push(symbol_json(e)) }
+    for e in entries { items.push(symbol_json(e, li)) }
     return JsonArray { .items = items }
 }
 
 // `range` spans the whole declaration ; `selectionRange` is just the name (what
 // the editor reveals + selects on pick).
-symbol_json :: fn(e: DeclEntry) -> JsonValue {
+symbol_json :: fn(e: DeclEntry, li: LineIndex) -> JsonValue {
     obj :: MutableMap<string, JsonValue> {}
     obj["name"]           = JsonString { .value = e.name }
     obj["kind"]           = JsonNumber { .value = f64(lsp_symbol_kind(e.kind)) }
-    obj["range"]          = range_json(e.full_span.span_to_range_json())
+    obj["range"]          = range_json(e.full_span.span_to_range_json(li))
     // The LSP requires `selectionRange ⊆ range`. A malformed `name_span` (a
     // synthetic decl whose name span sits outside its full span) would otherwise
     // make the client reject the ENTIRE `documentSymbol` response — fall back to
     // the full span when the name span isn't contained. Belt-and-suspenders: the
     // indexer already drops the known offender (`__comptime_*` synthetic fns).
     sel :: if span_encloses(e.full_span, e.name_span) { e.name_span } else { e.full_span }
-    obj["selectionRange"] = range_json(sel.span_to_range_json())
+    obj["selectionRange"] = range_json(sel.span_to_range_json(li))
     return JsonObject { .entries = obj }
 }
 
@@ -106,7 +106,7 @@ add :: fn(a: i32, b: i32) -> i32 {
 
 MAX :: 10
 """
-    idx :: build_index("t.vader", src)
+    idx :: build_index("t.vader", src, .Utf16)
     syms :: toplevel_symbols(idx)
     // The intra-fn binding `sum` (Local) must NOT appear — only the 4 decls.
     assert_eq(syms.len(), 4)
@@ -138,7 +138,7 @@ Box :: struct { v: i32 }
 
 Box implements Contains<i32> -> value == self.v
 """
-    idx :: build_index("t.vader", src)
+    idx :: build_index("t.vader", src, .Utf16)
     syms :: toplevel_symbols(idx)
     // Only `Box` — the SAM member contributes no (empty-named) symbol.
     assert_eq(syms.len(), 1)
@@ -157,7 +157,7 @@ K :: @comptime {
     1 + 2
 }
 """
-    idx :: build_index("t.vader", src)
+    idx :: build_index("t.vader", src, .Utf16)
     syms :: toplevel_symbols(idx)
     // Only the const `K` — the synthetic `__comptime_K` fn is excluded.
     assert_eq(syms.len(), 1)
@@ -176,7 +176,7 @@ helper :: fn(arg: i32) -> i32 {
     return tmp
 }
 """
-    idx :: build_index("t.vader", src)
+    idx :: build_index("t.vader", src, .Utf16)
     syms :: toplevel_symbols(idx)
     // Only `helper` — `arg` (Param) and `tmp` (Local) are scoped, not file-wide.
     assert_eq(syms.len(), 1)

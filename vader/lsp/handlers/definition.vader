@@ -23,7 +23,7 @@ import "std/collections" { MutableMap }
 import "vader/diagnostics" { Span }
 import "vader/lsp/protocol" {
     position_uri, position_line, position_character,
-    location_json, range_json, span_to_range_json,
+    location_json, range_json, span_to_range_json, uri_to_path, LineIndex,
 }
 import "vader/lsp/analysis" { ServerState, DocIndex, DeclEntry, resolve }
 
@@ -44,7 +44,7 @@ export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonVal
             match entry {
                 is DeclEntry as found  -> {
                     origin :: index.span_at(line, character)
-                    return def_response(state, origin, uri, found.name_span, found.full_span)
+                    return def_response(state, origin, uri, found.name_span, found.full_span, index.line_index)
                 }
                 is null -> {
                     // Local miss : the name might be imported from
@@ -54,7 +54,7 @@ export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonVal
                     ext :: resolve(state, index, nm)
                     if ext == null { return JsonNull {} }
                     origin :: index.span_at(line, character)
-                    return def_response(state, origin, ext.uri, ext.target.name_span, ext.target.full_span)
+                    return def_response(state, origin, ext.uri, ext.target.name_span, ext.target.full_span, index.line_index)
                 }
             }
         }
@@ -68,12 +68,15 @@ export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonVal
 // (`targetRange`, the whole decl).
 def_response :: fn(
     state: ServerState, origin: Span | null, uri: string,
-    name_span: Span, full_span: Span,
+    name_span: Span, full_span: Span, origin_li: LineIndex,
 ) -> JsonValue {
+    // The target spans (`name_span` / `full_span`) live in `uri`'s file, which
+    // may differ from the origin's — encode each with its own file's index.
+    target_li :: state.line_index_for_path(uri_to_path(uri))
     if state.definition_link_support {
-        return JsonArray { .items = [location_link_json(origin, uri, name_span, full_span)] }
+        return JsonArray { .items = [location_link_json(origin, uri, name_span, full_span, origin_li, target_li)] }
     }
-    return location_json(uri, name_span.span_to_range_json())
+    return location_json(uri, name_span.span_to_range_json(target_li))
 }
 
 // `LocationLink` carries the optional origin selection range (the clicked
@@ -81,16 +84,17 @@ def_response :: fn(
 location_link_json :: fn(
     origin: Span | null, uri: string,
     name_span: Span, full_span: Span,
+    origin_li: LineIndex, target_li: LineIndex,
 ) -> JsonValue {
     obj :: MutableMap<string, JsonValue> {}
     match origin {
         is null -> {}
         is Span as sp -> {
-            obj["originSelectionRange"] = range_json(sp.span_to_range_json())
+            obj["originSelectionRange"] = range_json(sp.span_to_range_json(origin_li))
         }
     }
     obj["targetUri"]            = JsonString { .value = uri }
-    obj["targetRange"]          = range_json(full_span.span_to_range_json())
-    obj["targetSelectionRange"] = range_json(name_span.span_to_range_json())
+    obj["targetRange"]          = range_json(full_span.span_to_range_json(target_li))
+    obj["targetSelectionRange"] = range_json(name_span.span_to_range_json(target_li))
     return JsonObject { .entries = obj }
 }

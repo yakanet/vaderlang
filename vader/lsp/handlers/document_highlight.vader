@@ -19,7 +19,7 @@ import "std/json" { JsonValue, JsonObject, JsonArray, JsonNull }
 import "std/collections" { MutableMap }
 import "vader/lexer" { TokenKind }
 import "vader/diagnostics" { Span }
-import "vader/lsp/protocol" { position_uri, position_line, position_character, range_json, span_to_range_json }
+import "vader/lsp/protocol" { position_uri, position_line, position_character, range_json, span_to_range_json, LineIndex }
 import "vader/lsp/analysis" { ServerState, DocIndex, build_index }
 
 /// Build the `DocumentHighlight[]` response for the identifier at the position
@@ -36,7 +36,7 @@ export handle_document_highlight :: fn(state: ServerState, params: JsonValue) ->
         is DocIndex as index -> {
             name :: index.name_at(position_line(params), position_character(params))
             if name == "" { return JsonNull {} }
-            return highlight_json(ident_occurrences(index, name))
+            return highlight_json(ident_occurrences(index, name), index.line_index)
         }
     }
 }
@@ -52,15 +52,15 @@ ident_occurrences :: fn(idx: DocIndex, name: string) -> Span[] {
     return out
 }
 
-highlight_json :: fn(spans: Span[]) -> JsonValue {
+highlight_json :: fn(spans: Span[], li: LineIndex) -> JsonValue {
     items: JsonValue[] = []
-    for sp in spans { items.push(highlight_item_json(sp)) }
+    for sp in spans { items.push(highlight_item_json(sp, li)) }
     return JsonArray { .items = items }
 }
 
-highlight_item_json :: fn(sp: Span) -> JsonValue {
+highlight_item_json :: fn(sp: Span, li: LineIndex) -> JsonValue {
     obj :: MutableMap<string, JsonValue> {}
-    obj["range"] = range_json(sp.span_to_range_json())
+    obj["range"] = range_json(sp.span_to_range_json(li))
     return JsonObject { .entries = obj }
 }
 
@@ -78,13 +78,13 @@ main :: fn() -> i32 {
     return add(add(1, 2), 3)
 }
 """
-    idx :: build_index("t.vader", src)
+    idx :: build_index("t.vader", src, .Utf16)
     // `add` : the decl name + two call sites = 3 identifier tokens.
     assert_eq(ident_occurrences(idx, "add").len(), 3)
 }
 
 @test
 test_ident_occurrences_none_for_unknown :: fn() -> void {
-    idx :: build_index("t.vader", "x :: 1\n")
+    idx :: build_index("t.vader", "x :: 1\n", .Utf16)
     assert_eq(ident_occurrences(idx, "nonexistent").len(), 0)
 }

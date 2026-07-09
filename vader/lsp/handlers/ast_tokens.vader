@@ -23,7 +23,7 @@ import "vader/diagnostics" { Position, Span }
 import "vader/resolver" { resolve_program }
 import "vader/resolver/symbol" { Symbol, SymbolKind, new_factory }
 import "vader/types" { is_primitive_name }
-import "vader/lsp/protocol" { TokenType, RawToken, span_token_length }
+import "vader/lsp/protocol" { TokenType, RawToken }
 
 /// Primitive type names recognised by the lexer / typechecker but not as
 /// individual keywords. When an `IdentExpr` carries one of these names in
@@ -62,11 +62,13 @@ push_module_keyword_span :: fn(md: AST.ModuleDecl, out: RawToken[]) -> void {
     // The `module` keyword occupies the first 6 chars of the decl ;
     // md.span.start lines up with the `m` of `module`.
     out.push(RawToken {
-        .line      = md.span.start.line - 1,
-        .col       = md.span.start.column - 1,
-        .length    = 6,
-        .tok_type  = i32(TokenType.Keyword),
-        .modifiers = 0,
+        .line         = md.span.start.line - 1,
+        .col          = 0,
+        .length       = 0,
+        .tok_type     = i32(TokenType.Keyword),
+        .modifiers    = 0,
+        .start_offset = md.span.start.offset,
+        .end_offset   = md.span.start.offset + 6,
     })
 }
 
@@ -90,6 +92,7 @@ refine_via_resolver :: fn(program: AST.Program, uri: string, out: RawToken[]) ->
                 out[i] = RawToken {
                     .line = rt.line, .col = rt.col, .length = rt.length,
                     .tok_type = i32(kind), .modifiers = rt.modifiers,
+                    .start_offset = rt.start_offset, .end_offset = rt.end_offset,
                 }
             }
             is null -> {}
@@ -121,11 +124,13 @@ token_type_of_symbol :: fn(k: SymbolKind) -> TokenType {
 push_span :: fn(out: RawToken[], sp: Span, kind: TokenType) -> void {
     if sp.end.offset <= sp.start.offset { return }
     out.push(RawToken {
-        .line      = sp.start.line - 1,
-        .col       = sp.start.column - 1,
-        .length    = span_token_length(sp),
-        .tok_type  = i32(kind),
-        .modifiers = 0,
+        .line         = sp.start.line - 1,
+        .col          = 0,
+        .length       = 0,
+        .tok_type     = i32(kind),
+        .modifiers    = 0,
+        .start_offset = sp.start.offset,
+        .end_offset   = sp.end.offset,
     })
 }
 
@@ -143,14 +148,18 @@ push_span :: fn(out: RawToken[], sp: Span, kind: TokenType) -> void {
 /// already equals its codepoint length — no UTF-16 adjustment needed here,
 /// unlike the span-based `span_token_length`.
 push_name_token :: fn(out: RawToken[], start: Position, prefix: i32, name: string, kind: TokenType) -> void {
-    length :: prefix + i32(name.bytes().len())
-    if length <= 0 { return }
+    // `prefix` (`@`) and `name` are ASCII, so the byte width equals the char
+    // width ; `reencode_columns` derives col + length from the offsets.
+    end_off :: start.offset + usize(prefix) + name.bytes().len()
+    if end_off <= start.offset { return }
     out.push(RawToken {
-        .line      = start.line - 1,
-        .col       = start.column - 1,
-        .length    = length,
-        .tok_type  = i32(kind),
-        .modifiers = 0,
+        .line         = start.line - 1,
+        .col          = 0,
+        .length       = 0,
+        .tok_type     = i32(kind),
+        .modifiers    = 0,
+        .start_offset = start.offset,
+        .end_offset   = end_off,
     })
 }
 

@@ -13,7 +13,11 @@ import "std/collections" { MutableMap }
 import "vader/resolver" { LoadedProject, SourceFile }
 import "vader/typecheck" { check_file, CheckResult }
 import "vader/diagnostics" { Diagnostic }
-import "vader/lsp/protocol" { get_field, get_string, uri_to_path }
+import "vader/lsp/protocol" {
+    get_field, get_string, uri_to_path, path_to_uri,
+    PositionEncoding, LineIndex, new_line_index,
+}
+import "std/io" { read_file_string, IOError }
 
 /// Cached load+typecheck of one project, keyed by the entry file path it was
 /// built for. Reused across typed requests (hover, diagnostics, inlay,
@@ -65,6 +69,11 @@ export ServerState :: struct {
     /// when supported (lets the editor underline the exact origin
     /// range on Ctrl/Cmd-hover), `Location` otherwise.
     definition_link_support:    bool
+    /// The `character` counting unit negotiated at `initialize`
+    /// (`general.positionEncodings`). Every byte ↔ (line, character)
+    /// conversion routes through a `LineIndex` built with this. Defaults to
+    /// `Utf16` — the LSP protocol default when the client offers nothing.
+    position_encoding:          PositionEncoding
 }
 
 export new_state :: fn(stdlib_root: string, vader_root: string) -> ServerState {
@@ -76,6 +85,7 @@ export new_state :: fn(stdlib_root: string, vader_root: string) -> ServerState {
         .stdlib_root             = stdlib_root,
         .vader_root              = vader_root,
         .definition_link_support = false,
+        .position_encoding       = .Utf16,
     }
 }
 
@@ -84,6 +94,25 @@ export new_state :: fn(stdlib_root: string, vader_root: string) -> ServerState {
 export source_for :: fn(self: ServerState, uri: string) -> string | null {
     return self.docs[uri]
 }
+
+/// Text of the file at `path`, preferring the open-document overlay (so unsaved
+/// edits win) and falling back to reading it from disk. Empty string when the
+/// file is neither open nor readable — the LineIndex then clamps every offset to
+/// 0, degrading gracefully rather than crashing. Used to encode ranges for
+/// cross-file results (goto-def / references targets in other modules).
+export source_for_path :: fn(self: ServerState, path: string) -> string {
+    open :: self.docs[path_to_uri(path)]
+    if open is string as s { return s }
+    disk :: read_file_string(path)
+    if disk is string as s { return s }
+    return ""
+}
+
+/// A `LineIndex` for the file at `path` in the negotiated encoding, built from
+/// the overlay-or-disk source. The single resolution point for encoding a
+/// cross-file span's `character` offsets.
+export line_index_for_path :: fn(self: ServerState, path: string) -> LineIndex =
+    new_line_index(self.source_for_path(path), self.position_encoding)
 
 /// Look up the per-document index for `uri`. Returns `null` when the
 /// document was never opened, or after didClose. The two callers
@@ -157,7 +186,7 @@ export handle_did_open :: fn(self: ServerState, params: JsonValue) -> void {
     if uri.bytes().len() == 0 { return }
     text :: get_string(td, "text")
     self.docs[uri] = text
-    self.indices[uri] = build_index(uri, text)
+    self.indices[uri] = build_index(uri, text, self.position_encoding)
     self.cache = null
     publish_diagnostics_for_uri(self, uri)
 }
@@ -177,7 +206,7 @@ export handle_did_change :: fn(self: ServerState, params: JsonValue) -> void {
                 first :: a.items[0]
                 text :: get_string(first, "text")
                 self.docs[uri] = text
-                self.indices[uri] = build_index(uri, text)
+                self.indices[uri] = build_index(uri, text, self.position_encoding)
                 // Debounced (see vader/lsp/main.vader). Keep the now-stale typed
                 // cache so requests during the edit burst don't each re-typecheck ;
                 // just mark diagnostics dirty. The single rebuild + publish fires
@@ -207,8 +236,8 @@ export handle_did_close :: fn(self: ServerState, params: JsonValue) -> void {
     // a stale index never serves a closed-doc request. MutableMap has
     // no remove ; rebuilding an empty index would still pin memory, so
     // we substitute a tiny placeholder built from "".
-    self.indices[uri] = build_index(uri, "")
-    clear_diagnostics_for_uri(uri)
+    self.indices[uri] = build_index(uri, "", self.position_encoding)
+    clear_diagnostics_for_uri(self, uri)
 }
 
 /// Recompute + publish diagnostics for every document a didChange marked dirty
