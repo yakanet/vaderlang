@@ -25,6 +25,7 @@ export lookup_keyword :: fn(text: string) -> TokenKind {
     if text == "in"         { return .KwIn }
     if text == "return"     { return .KwReturn }
     if text == "yield"      { return .KwYield }
+    if text == "await"      { return .KwAwait }
     if text == "defer"      { return .KwDefer }
     if text == "break"      { return .KwBreak }
     if text == "continue"   { return .KwContinue }
@@ -45,7 +46,7 @@ export lookup_keyword :: fn(text: string) -> TokenKind {
 /// `lookup_keyword` deliberately does not recognise (it is contextual).
 export KEYWORDS :: [
     "fn", "struct", "trait", "implements", "enum", "if", "else", "match", "is",
-    "for", "in", "return", "yield", "defer", "break", "continue", "import",
+    "for", "in", "return", "yield", "await", "defer", "break", "continue", "import",
     "as", "export", "true", "false", "null", "self", "const",
 ]
 

@@ -297,6 +297,7 @@ collect_expr :: fn(e: AST.Expr, out: Span[]) -> void {
             collect_expr(x.upper, out)
         }
         is AST.TryExpr           as x -> { collect_expr(x.inner, out) }
+        is AST.AwaitExpr         as x -> { collect_expr(x.inner, out) }
         is AST.CastExpr          as x -> {
             collect_expr(x.value, out)
             collect_type(x.target, out)

@@ -259,6 +259,7 @@ collect_expr_deps :: fn(
         is AST.SeqLitExpr as x    -> { for el in x.elements { collect_expr_deps(el, typed, nodes, seen, record) } }
         is AST.RangeExpr as x     -> { collect_expr_deps(x.lower, typed, nodes, seen, record) collect_expr_deps(x.upper, typed, nodes, seen, record) }
         is AST.TryExpr as x       -> { collect_expr_deps(x.inner, typed, nodes, seen, record) }
+        is AST.AwaitExpr as x     -> { collect_expr_deps(x.inner, typed, nodes, seen, record) }
         is AST.CastExpr as x      -> { collect_expr_deps(x.value, typed, nodes, seen, record) }
         is AST.LambdaExpr as x    -> { collect_block_deps(x.body, typed, nodes, seen, record) }
         is AST.IntrinsicCallExpr as x -> { for a in x.args { collect_expr_deps(a, typed, nodes, seen, record) } }

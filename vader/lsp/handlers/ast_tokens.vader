@@ -421,6 +421,7 @@ walk_expr :: fn(e: AST.Expr, out: RawToken[]) -> void {
             walk_expr(x.upper, out)
         }
         is AST.TryExpr          as x -> { walk_expr(x.inner, out) }
+        is AST.AwaitExpr        as x -> { walk_expr(x.inner, out) }
         is AST.CastExpr         as x -> {
             walk_expr(x.value, out)
             walk_type_expr(x.target, out)

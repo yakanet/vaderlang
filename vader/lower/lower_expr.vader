@@ -14,10 +14,11 @@
 module "vader/lower"
 
 import "std/collections" { MutableMap, values, keys }
+import "std/abort" { panic }
 import "std/sort" { sort }
 import "std/string" { compare_ascending }
 
-import "vader/parser" { Expr, IntLitExpr, FloatLitExpr, BoolLitExpr, NullLitExpr, CharLitExpr, StringLitExpr, IdentExpr, CallExpr, FieldExpr, IndexExpr, UnaryExpr, UnaryOp, BinaryExpr, BinaryOp, IfExpr, BlockExpr, MatchExpr, LambdaExpr, StructLitExpr, SeqLitExpr, RangeExpr, TryExpr, CastExpr, GenericInstExpr, IntrinsicCallExpr, DotVariantExpr, IfElse, IfElseIf, IfElseBlock, FnTypeExpr, ArrayTypeExpr, ExprStmt, Decl, ConstDecl }
+import "vader/parser" { Expr, IntLitExpr, FloatLitExpr, BoolLitExpr, NullLitExpr, CharLitExpr, StringLitExpr, IdentExpr, CallExpr, FieldExpr, IndexExpr, UnaryExpr, UnaryOp, BinaryExpr, BinaryOp, IfExpr, BlockExpr, MatchExpr, LambdaExpr, StructLitExpr, SeqLitExpr, RangeExpr, TryExpr, AwaitExpr, CastExpr, GenericInstExpr, IntrinsicCallExpr, DotVariantExpr, IfElse, IfElseIf, IfElseBlock, FnTypeExpr, ArrayTypeExpr, ExprStmt, Decl, ConstDecl }
 import "vader/diagnostics" { Span }
 import "vader/typecheck" { primitive_from_name, default_if_free, equals_type, substitute, new_substitution }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
@@ -125,6 +126,7 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
         // consistent and downstream phases can spot the gap.
         is MatchExpr     as e -> { return lower_match(ctx, e, type, lower_expr) }
         is TryExpr       as e -> { return lower_try(ctx, e, type, lower_expr) }
+        is AwaitExpr -> { panic("await lowering not implemented yet (P1.3)") }
         is LambdaExpr    as e -> { return lower_lambda(ctx, e, lower_block) }
         is RangeExpr     as e -> { return lower_range_expr(ctx, e, type, lower_expr) }
         is GenericInstExpr  as e -> { return stub(e.span, type, "generic-inst expression not lowered") }

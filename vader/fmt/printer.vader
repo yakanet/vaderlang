@@ -1193,6 +1193,7 @@ emit_expr :: fn(self: Printer, e: p.Expr | null) -> void {
         is p.SeqLitExpr        as x -> self.emit_seq_lit(x)
         is p.RangeExpr         as x -> self.emit_range(x)
         is p.TryExpr           as x -> self.emit_try(x)
+        is p.AwaitExpr         as x -> self.emit_await(x)
         is p.CastExpr          as x -> self.emit_cast(x)
         is p.GenericInstExpr   as x -> self.emit_generic_inst(x)
         is p.IntrinsicCallExpr as x -> self.emit_intrinsic_call(x)
@@ -1769,6 +1770,11 @@ range_operand_needs_parens :: fn(operand: p.Expr) -> bool {
 emit_try :: fn(self: Printer, x: p.TryExpr) -> void {
     self.emit_expr(x.inner)
     self.write("?")
+}
+
+emit_await :: fn(self: Printer, x: p.AwaitExpr) -> void {
+    self.write("await ")
+    self.emit_expr(x.inner)
 }
 
 emit_cast :: fn(self: Printer, x: p.CastExpr) -> void {

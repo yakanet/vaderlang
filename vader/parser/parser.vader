@@ -2447,6 +2447,7 @@ infix_for :: fn(k: TokenKind) = match k {
     .KwFor        -> no_infix()
     .KwReturn     -> no_infix()
     .KwYield      -> no_infix()
+    .KwAwait      -> no_infix()
     .KwDefer      -> no_infix()
     .KwBreak      -> no_infix()
     .KwContinue   -> no_infix()
@@ -2531,6 +2532,7 @@ postfix_bp :: fn(k: TokenKind) = match k {
     .KwIn         -> -1
     .KwReturn     -> -1
     .KwYield      -> -1
+    .KwAwait      -> -1
     .KwDefer      -> -1
     .KwBreak      -> -1
     .KwContinue   -> -1
@@ -2743,6 +2745,13 @@ parse_prefix :: fn(p: Parser) -> Expr {
             .op      = op,
             .operand = operand,
         }
+    }
+    if t.kind == .KwAwait {
+        p.advance()  // `await`
+        // bp 95 = same as the unary prefix ops, so `await a() + b` parses as
+        // `(await a()) + b` (binds tighter than binary operators).
+        inner :: p.parse_expr(95)
+        return AwaitExpr { .span = Span { .start = t.span.start, .end = inner.span.end }, .inner = inner }
     }
     if t.kind == .KwIf    { return p.parse_if_expr() }
     if t.kind == .KwMatch { return p.parse_match_expr(false, false) }
@@ -3064,7 +3073,7 @@ is_angle_scan_bailout :: fn(k: TokenKind) -> bool {
     if k == .Gte || k == .Lte || k == .Eq || k == .Neq { return true }
     if k == .KwIf || k == .KwElse || k == .KwMatch || k == .KwIs { return true }
     if k == .KwFor || k == .KwIn { return true }
-    if k == .KwReturn || k == .KwYield || k == .KwDefer || k == .KwBreak || k == .KwContinue { return true }
+    if k == .KwReturn || k == .KwYield || k == .KwAwait || k == .KwDefer || k == .KwBreak || k == .KwContinue { return true }
     if k == .KwStruct || k == .KwTrait || k == .KwImplements || k == .KwEnum { return true }
     if k == .KwImport || k == .KwExport || k == .KwSelf { return true }
     return false

@@ -267,6 +267,7 @@ is_known_decorator :: fn(name: string) -> bool {
         || name == "no_return"
         || name == "allow_unused"
         || name == "generator"
+        || name == "async"
 }
 
 walk_opt_expr :: fn(self: ResolveState, e: AST.Expr | null) -> void {
@@ -421,6 +422,7 @@ walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
             self.walk_expr(x.upper)
         }
         is AST.TryExpr as x -> { self.walk_expr(x.inner) }
+        is AST.AwaitExpr as x -> { self.walk_expr(x.inner) }
         is AST.CastExpr as x -> {
             self.walk_expr(x.value)
             self.walk_expr(x.target)

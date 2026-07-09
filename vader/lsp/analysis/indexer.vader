@@ -42,7 +42,7 @@ import "vader/parser" {
     IfExpr, IfElseIf, IfElseBlock,
     MatchExpr,
     BlockExpr, LambdaExpr, StructLitExpr, SeqLitExpr,
-    RangeExpr, TryExpr, CastExpr, GenericInstExpr,
+    RangeExpr, TryExpr, AwaitExpr, CastExpr, GenericInstExpr,
     IntrinsicCallExpr, DotVariantExpr, FnTypeExpr, ArrayTypeExpr,
     StringLitText, StringLitInterp,
     StructLitField, StructLitSpread,
@@ -458,6 +458,7 @@ type_expr_slice :: fn(t: Expr, source: string) -> string {
         is SeqLitExpr as x       -> x.span
         is RangeExpr as x        -> x.span
         is TryExpr as x          -> x.span
+        is AwaitExpr as x        -> x.span
         is CastExpr as x         -> x.span
         is GenericInstExpr as x  -> x.span
         is IntrinsicCallExpr as x -> x.span
@@ -550,6 +551,7 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
             ix_walk_expr(r.upper, source, entries)
         }
         is TryExpr as t -> { ix_walk_expr(t.inner, source, entries) }
+        is AwaitExpr as t -> { ix_walk_expr(t.inner, source, entries) }
         is CastExpr as cs -> { ix_walk_expr(cs.value, source, entries) }
         is GenericInstExpr as gi -> { ix_walk_expr(gi.callee, source, entries) }
         is IntrinsicCallExpr as ic -> {

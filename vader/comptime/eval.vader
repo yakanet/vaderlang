@@ -87,6 +87,7 @@ export span_of :: fn(expr: AST.Expr) -> Span = match expr {
     is AST.SeqLitExpr        as x -> x.span
     is AST.RangeExpr         as x -> x.span
     is AST.TryExpr           as x -> x.span
+    is AST.AwaitExpr         as x -> x.span
     is AST.CastExpr          as x -> x.span
     is AST.GenericInstExpr   as x -> x.span
     is AST.IntrinsicCallExpr as x -> x.span
