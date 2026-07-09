@@ -1,0 +1,457 @@
+// vader/lower/lower_coroutine — the reusable coroutine state-machine engine.
+//
+// Extracted from `lower_generator.vader` (P1.0 of the async/await plan) so both
+// `@generator` and (future) `@async` lowering can share the block-split: the
+// structured-lowered-CFG → numbered-states transform, spill collection,
+// self-field routing, and dispatch synthesis. Currently coupled to the generator
+// suspension marker (`LoweredYield`) and the pull-only `next()` protocol;
+// parameterising it for the async `resume(injected)` protocol is a later step.
+// See `.claude/plans/async-await-structured-concurrency.md` §4.
+
+module "vader/lower"
+
+import "vader/resolver/symbol" { Symbol }
+import "vader/types" { Type, TY_NULL, TY_BOOL, TY_VOID }
+import "vader/diagnostics" { Span }
+import "std/collections" { MutableMap }
+import "std/abort" { panic }
+
+// ---- sentinel -------------------------------------------------------------
+
+/// Reserved resume value: once `self.state == DONE_STATE`, `next()` returns
+/// `null` forever (the if-chain's trailing `else` catches it).
+DONE_STATE :: -1
+
+// ---- builder --------------------------------------------------------------
+
+// Mutable state-machine builder threaded through the block-split.
+GenBuild :: struct {
+    self_sym: Symbol
+    state_ty: Type            // the `g$State` StructType (self's type)
+    i32_ty:   Type
+    yield_ty: Type            // `Yield<T>` StructType
+    span:     Span
+    /// Finalized states — `states[k]` is the if-arm body for `self.state == k`.
+    states:   LoweredStmt[][]
+    /// Spilled symbol id → its `g$State` field name (params + all locals).
+    field_map: MutableMap<i32, string>
+    /// `g$State` fields for the spilled symbols (in declaration order),
+    /// excluding the trailing `state: i32`.
+    fields:    LoweredStructField[]
+    /// Enclosing-loop targets for `break` / `continue` resolution.
+    loop_stack: LoopFrame[]
+}
+
+/// A dissolved loop's state targets: `continue` / back-edge → `header`,
+/// `break` → `exit`. `label` carries the source loop label (or `null`) so a
+/// labeled `break`/`continue` resolves to the right enclosing frame.
+LoopFrame :: struct {
+    label:  string | null
+    header: i64
+    exit:   i64
+}
+
+/// Resolve the target loop frame for a `break` / `continue`. A null label = the
+/// innermost loop ; a label = the nearest enclosing frame carrying it. Mirrors
+/// `midir/build.vader::resolve_loop_frame` — without label resolution a
+/// `break outer` would target the innermost loop (miscompile / infinite loop).
+gb_resolve_loop_frame :: fn(gb: GenBuild, label: string | null) -> LoopFrame {
+    if label is null {
+        return gb.loop_stack[gb.loop_stack.len() - 1]
+    }
+    // Extract the non-null label once — comparing two `string` locals dodges the
+    // c-emit `string | null` field-vs-param mis-box (see `resolve_loop_frame`).
+    needle :: label
+    i := i64(gb.loop_stack.len()) - 1
+    for i >= 0 {
+        frame :: gb.loop_stack[usize(i)]
+        if frame.label !is null {
+            if frame.label == needle {
+                return frame
+            }
+        }
+        i -= 1
+    }
+    // Typecheck (label resolution / T3015) guarantees a match ; a miss here is a
+    // block-split invariant break.
+    panic("generator block-split: unresolved loop label in break/continue")
+}
+
+// `self` read: `LoweredIdent` over the single minted self symbol.
+gb_self_read :: fn(gb: GenBuild) -> LoweredExpr =
+    LoweredIdent { .span = gb.span, .type = gb.state_ty, .symbol = gb.self_sym }
+
+// `self.<field>` access.
+gb_field :: fn(gb: GenBuild, name: string, ty: Type) -> LoweredExpr =
+    LoweredFieldAccess { .span = gb.span, .type = ty, .target = gb_self_read(gb), .field = name }
+
+// `self.state = n`.
+gb_set_state :: fn(gb: GenBuild, n: i64) -> LoweredStmt =
+    LoweredAssign {
+        .span = gb.span,
+        .target = gb_field(gb, "state", gb.i32_ty),
+        .value = LoweredIntLit { .span = gb.span, .type = gb.i32_ty, .value = n },
+    }
+
+// `self.state == n` (bool).
+gb_state_eq :: fn(gb: GenBuild, n: i64) -> LoweredExpr =
+    LoweredBinary {
+        .span = gb.span, .type = TY_BOOL, .op = LoweredBinaryOp.Eq,
+        .left = gb_field(gb, "state", gb.i32_ty),
+        .right = LoweredIntLit { .span = gb.span, .type = gb.i32_ty, .value = n },
+    }
+
+// `return Yield<T> { .value = e }`.
+gb_yield_return :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredStmt =
+    LoweredReturn {
+        .span = gb.span,
+        .value = LoweredStructLit {
+            .span = gb.span, .type = gb.yield_ty,
+            .fields = [LoweredStructLitField { .name = "value", .value = e }],
+        },
+    }
+
+// `return null`.
+gb_null_return :: fn(gb: GenBuild) -> LoweredStmt =
+    LoweredReturn { .span = gb.span, .value = LoweredNullLit { .span = gb.span, .type = TY_NULL } }
+
+// ---- block-split (structured-lowered-CFG → numbered states) ---------------
+
+// Append a filled state, returning its index.
+gb_new_state :: fn(gb: GenBuild, stmts: LoweredStmt[]) -> i64 {
+    idx :: i64(gb.states.len())
+    gb.states.push(stmts)
+    return idx
+}
+
+// Reserve an empty state slot (filled later via `gb_fill`) — needed for a
+// loop header, whose index must be known before its body is compiled.
+gb_reserve :: fn(gb: GenBuild) -> i64 {
+    idx :: i64(gb.states.len())
+    gb.states.push([])
+    return idx
+}
+
+gb_fill :: fn(gb: GenBuild, idx: i64, stmts: LoweredStmt[]) -> void {
+    gb.states[usize(idx)] = stmts
+}
+
+// A leaf stmt runs inside the current state (no control-flow split). `if` and
+// nested blocks reach the lowered stmt list as `LoweredExprStmt` wrapping a
+// `LoweredIf` / `LoweredBlock` — treat those as control so nested yields split.
+gb_is_leaf :: fn(s: LoweredStmt) -> bool {
+    if s is LoweredYield    { return false }
+    if s is LoweredLoop     { return false }
+    if s is LoweredBreak    { return false }
+    if s is LoweredContinue { return false }
+    if s is LoweredReturn   { return false }
+    if s is LoweredExprStmt as e {
+        if e.expr is LoweredIf    { return false }
+        if e.expr is LoweredBlock { return false }
+    }
+    return true
+}
+
+// Compile a stmt list so that, when it finishes, control goes to state `cont`.
+// Returns the ENTRY state index. Leading leaves batch into one state.
+gb_compile_seq :: fn(gb: GenBuild, stmts: LoweredStmt[], cont: i64) -> i64 {
+    // Split off the leading run of leaves.
+    leaves: LoweredStmt[] = []
+    i := 0
+    for i < stmts.len() && gb_is_leaf(stmts[i]) {
+        leaves.push(stmts[i])
+        i = i + 1
+    }
+    if i >= stmts.len() {
+        // All leaves — one state running them then falling through to `cont`.
+        leaves.push(gb_set_state(gb, cont))
+        return gb_new_state(gb, leaves)
+    }
+    // Compile the rest after the control stmt, then the control stmt itself.
+    rest: LoweredStmt[] = []
+    for j in (i + 1)..<stmts.len() { rest.push(stmts[j]) }
+    rest_entry :: gb_compile_seq(gb, rest, cont)
+    ctrl_entry :: gb_compile_ctrl(gb, stmts[i], rest_entry)
+    if leaves.len() == 0 { return ctrl_entry }
+    // A state running the leading leaves, then falling through to the control.
+    leaves.push(gb_set_state(gb, ctrl_entry))
+    return gb_new_state(gb, leaves)
+}
+
+// Compile a block (stmts + trailing) with continuation `cont`.
+gb_compile_block :: fn(gb: GenBuild, block: LoweredBlock, cont: i64) -> i64 {
+    stmts: LoweredStmt[] = []
+    for s in block.stmts { stmts.push(s) }
+    if block.trailing != null {
+        stmts.push(LoweredExprStmt { .span = gb.span, .expr = block.trailing })
+    }
+    return gb_compile_seq(gb, stmts, cont)
+}
+
+// Compile a control-flow stmt with continuation `cont`. Returns entry state.
+gb_compile_ctrl :: fn(gb: GenBuild, s: LoweredStmt, cont: i64) -> i64 {
+    if s is LoweredYield as y {
+        // Reaching the yield: record the resume state (`cont`), emit the value.
+        return gb_new_state(gb, [gb_set_state(gb, cont), gb_yield_return(gb, y.value)])
+    }
+    if s is LoweredReturn {
+        // A generator's bare `return` = stop the stream (exhausted forever).
+        return gb_new_state(gb, [gb_set_state(gb, i64(DONE_STATE)), gb_null_return(gb)])
+    }
+    if s is LoweredExprStmt as es {
+        if es.expr is LoweredIf as ie {
+            then_entry :: gb_compile_block(gb, ie.then_block, cont)
+            else_entry :: if ie.else_block == null { cont } else { gb_compile_block(gb, ie.else_block, cont) }
+            // A dispatch state: `if cond { state = then } else { state = else }`.
+            branch :: LoweredIf {
+                .span = gb.span, .type = TY_VOID, .cond = ie.cond,
+                .then_block = gb_block(gb, [gb_set_state(gb, then_entry)]),
+                .else_block = gb_block(gb, [gb_set_state(gb, else_entry)]),
+            }
+            return gb_new_state(gb, [LoweredExprStmt { .span = gb.span, .expr = branch }])
+        }
+        if es.expr is LoweredBlock as bl {
+            return gb_compile_block(gb, bl, cont)
+        }
+    }
+    if s is LoweredLoop as lp {
+        header :: gb_reserve(gb)
+        gb.loop_stack.push(LoopFrame { .label = lp.label, .header = header, .exit = cont })
+        body_entry :: gb_compile_block(gb, lp.body, header)   // fall-off = back-edge → header
+        gb.loop_stack.remove_last()
+        if lp.cond == null {
+            // Infinite loop (for-in shape): header just enters the body.
+            gb_fill(gb, header, [gb_set_state(gb, body_entry)])
+        } else {
+            // `while cond`: header tests the condition.
+            hdr_if :: LoweredIf {
+                .span = gb.span, .type = TY_VOID, .cond = lp.cond,
+                .then_block = gb_block(gb, [gb_set_state(gb, body_entry)]),
+                .else_block = gb_block(gb, [gb_set_state(gb, cont)]),
+            }
+            gb_fill(gb, header, [LoweredExprStmt { .span = gb.span, .expr = hdr_if }])
+        }
+        return header
+    }
+    if s is LoweredBreak as br {
+        frame :: gb_resolve_loop_frame(gb, br.label)
+        return gb_new_state(gb, [gb_set_state(gb, frame.exit)])
+    }
+    if s is LoweredContinue as cont {
+        frame :: gb_resolve_loop_frame(gb, cont.label)
+        return gb_new_state(gb, [gb_set_state(gb, frame.header)])
+    }
+    // Unreachable: `gb_compile_ctrl` is only called on non-leaf stmts, and the
+    // arms above cover exactly the `gb_is_leaf` false-set. A stray leaf here is
+    // a block-split invariant break.
+    panic("generator block-split: gb_compile_ctrl on a leaf stmt")
+}
+
+// Compile the routed body into the state list. Returns the ENTRY state index
+// (the `g$State` constructor seeds `self.state` with it).
+gb_build :: fn(gb: GenBuild, body: LoweredBlock) -> i64 =
+    gb_compile_block(gb, body, i64(DONE_STATE))
+
+// ---- dispatch synthesis ---------------------------------------------------
+
+// Wrap an expr as a single-stmt block.
+gb_wrap :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredBlock =
+    LoweredBlock { .span = gb.span, .type = TY_VOID, .stmts = [LoweredExprStmt { .span = gb.span, .expr = e }], .trailing = null }
+
+gb_block :: fn(gb: GenBuild, stmts: LoweredStmt[]) -> LoweredBlock =
+    LoweredBlock { .span = gb.span, .type = TY_VOID, .stmts = stmts, .trailing = null }
+
+// Build `if state==i { states[i] } else if state==i+1 { … } else { return null }`.
+gb_dispatch :: fn(gb: GenBuild, i: i64) -> LoweredExpr {
+    then_block :: gb_block(gb, gb.states[usize(i)])
+    else_block: LoweredBlock = if i + 1 < i64(gb.states.len()) {
+        gb_wrap(gb, gb_dispatch(gb, i + 1))
+    } else {
+        gb_block(gb, [gb_null_return(gb)])
+    }
+    return LoweredIf {
+        .span = gb.span, .type = TY_VOID,
+        .cond = gb_state_eq(gb, i),
+        .then_block = then_block, .else_block = else_block,
+    }
+}
+
+// The `next()` body: `loop { <dispatch> }`.
+gb_next_body :: fn(gb: GenBuild) -> LoweredBlock {
+    dispatch :: gb_dispatch(gb, 0)
+    loop :: LoweredLoop { .span = gb.span, .label = null, .cond = null, .body = gb_wrap(gb, dispatch) }
+    return gb_block(gb, [loop])
+}
+
+// ---- unsupported-shape guard (M5007) --------------------------------------
+
+// True when a spilled param / local of the generator is captured by a closure.
+// Such a symbol is materialised as a heap **cell** (`lower_cell_init` cells
+// exactly the captured symbols), and the state machine can't carry a live cell
+// — nor the closure that shares it — across suspension : the spilled `g$State`
+// would hold a cell / closure field the backend can't construct (invalid C on
+// native, wrong / VM-only behaviour). `gb.field_map` already holds every
+// spilled symbol, so this is an exact O(fields) membership test — no body walk.
+gen_has_captured_spill :: fn(gb: GenBuild, fn_ctx: FnLowerCtx) -> bool {
+    for [sym_id, _] in gb.field_map {
+        if sym_id in fn_ctx.project.closures.captured_symbols { return true }
+    }
+    return false
+}
+
+// ---- spill collection -----------------------------------------------------
+
+// Collect every `LoweredLet` symbol in a block (recursively through loops /
+// ifs) into `gb.field_map` (symbol id → field name) + `gb.fields`. v1 spills
+// every local ; params are pre-seeded by the caller.
+gb_collect_block :: fn(gb: GenBuild, block: LoweredBlock) -> void {
+    for s in block.stmts { gb_collect_stmt(gb, s) }
+}
+
+gb_collect_stmt :: fn(gb: GenBuild, s: LoweredStmt) -> void {
+    match s {
+        is LoweredLet as lt -> {
+            gb_add_field(gb, lt.symbol, lt.type)
+            gb_collect_expr(gb, lt.value)
+        }
+        is LoweredLoop as lp -> { gb_collect_block(gb, lp.body) }
+        is LoweredAssign as a -> {
+            gb_collect_expr(gb, a.target)
+            gb_collect_expr(gb, a.value)
+        }
+        is LoweredExprStmt as e -> { gb_collect_expr(gb, e.expr) }
+        is LoweredReturn as r -> { if r.value != null { gb_collect_expr(gb, r.value) } }
+        is LoweredYield as y -> { gb_collect_expr(gb, y.value) }
+        is LoweredCellSet as cs -> {
+            gb_collect_expr(gb, cs.target)
+            gb_collect_expr(gb, cs.value)
+        }
+        is LoweredDeferPush as dp -> { gb_collect_expr(gb, dp.thunk) }
+        _ -> {}
+    }
+}
+
+// Only expression forms that carry nested blocks (whose lets must be spilled)
+// need descending ; the rest carry no lets.
+gb_collect_expr :: fn(gb: GenBuild, e: LoweredExpr) -> void {
+    match e {
+        is LoweredBlock as b -> { gb_collect_block(gb, b) }
+        is LoweredIf as i -> {
+            gb_collect_block(gb, i.then_block)
+            if i.else_block != null { gb_collect_block(gb, i.else_block) }
+        }
+        _ -> {}
+    }
+}
+
+// Register a spilled symbol as a `g$State` field (idempotent).
+gb_add_field :: fn(gb: GenBuild, sym: Symbol, ty: Type) -> void {
+    if gb.field_map[sym.id] != null { return }
+    name :: "s${gb.fields.len()}"
+    gb.field_map[sym.id] = name
+    gb.fields.push(LoweredStructField { .name = name, .type = ty })
+}
+
+// ---- routing (spilled local/param refs → self.<field>) --------------------
+
+gb_route_block :: fn(gb: GenBuild, block: LoweredBlock) -> LoweredBlock {
+    out: LoweredStmt[] = []
+    for s in block.stmts { gb_route_stmt(gb, s, out) }
+    new_trailing :: if block.trailing == null { null } else { gb_route_expr(gb, block.trailing) }
+    return LoweredBlock { .span = block.span, .type = block.type, .stmts = out, .trailing = new_trailing }
+}
+
+gb_route_stmt :: fn(gb: GenBuild, s: LoweredStmt, out: LoweredStmt[]) -> void {
+    match s {
+        is LoweredLet as lt -> {
+            // Every local is spilled → `self.<field> = value`.
+            name :: gb.field_map[lt.symbol.id]
+            value :: gb_route_expr(gb, lt.value)
+            if name == null {
+                out.push(LoweredLet { .span = lt.span, .name = lt.name, .symbol = lt.symbol, .type = lt.type, .value = value })
+            } else {
+                out.push(LoweredAssign { .span = lt.span, .target = gb_field(gb, name, lt.type), .value = value })
+            }
+        }
+        is LoweredAssign as a -> { out.push(LoweredAssign { .span = a.span, .target = gb_route_expr(gb, a.target), .value = gb_route_expr(gb, a.value) }) }
+        is LoweredExprStmt as e -> { out.push(LoweredExprStmt { .span = e.span, .expr = gb_route_expr(gb, e.expr) }) }
+        is LoweredReturn as r -> {
+            new_val :: if r.value == null { null } else { gb_route_expr(gb, r.value) }
+            out.push(LoweredReturn { .span = r.span, .value = new_val })
+        }
+        is LoweredYield as y -> { out.push(LoweredYield { .span = y.span, .value = gb_route_expr(gb, y.value) }) }
+        is LoweredLoop as lp -> {
+            new_cond :: if lp.cond == null { null } else { gb_route_expr(gb, lp.cond) }
+            out.push(LoweredLoop { .span = lp.span, .label = lp.label, .cond = new_cond, .body = gb_route_block(gb, lp.body) })
+        }
+        is LoweredBreak    -> { out.push(s) }
+        is LoweredContinue -> { out.push(s) }
+        is LoweredCellSet as cs -> {
+            out.push(LoweredCellSet { .span = cs.span, .target = gb_route_expr(gb, cs.target), .value = gb_route_expr(gb, cs.value), .value_type = cs.value_type })
+        }
+        is LoweredDeferPush as dp -> { out.push(LoweredDeferPush { .span = dp.span, .thunk = gb_route_expr(gb, dp.thunk) }) }
+        is LoweredDeferPopExec -> { out.push(s) }
+    }
+}
+
+gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr {
+    match e {
+        is LoweredIdent as id -> {
+            name :: gb.field_map[id.symbol.id]
+            if name == null { return id }
+            return gb_field(gb, name, id.type)
+        }
+        is LoweredCall as c -> {
+            new_args: LoweredExpr[] = []
+            for a in c.args { new_args.push(gb_route_expr(gb, a)) }
+            return LoweredCall { .span = c.span, .type = c.type, .callee = gb_route_expr(gb, c.callee), .args = new_args }
+        }
+        is LoweredVirtualCall as v -> {
+            new_args: LoweredExpr[] = []
+            for a in v.args { new_args.push(gb_route_expr(gb, a)) }
+            return LoweredVirtualCall { .span = v.span, .type = v.type, .trait_name = v.trait_name, .method = v.method, .receiver = gb_route_expr(gb, v.receiver), .args = new_args }
+        }
+        is LoweredFieldAccess as fa -> LoweredFieldAccess { .span = fa.span, .type = fa.type, .target = gb_route_expr(gb, fa.target), .field = fa.field }
+        is LoweredIndex as ix -> LoweredIndex { .span = ix.span, .type = ix.type, .target = gb_route_expr(gb, ix.target), .index = gb_route_expr(gb, ix.index) }
+        is LoweredUnary as u -> LoweredUnary { .span = u.span, .type = u.type, .op = u.op, .operand = gb_route_expr(gb, u.operand) }
+        is LoweredBinary as b -> LoweredBinary { .span = b.span, .type = b.type, .op = b.op, .left = gb_route_expr(gb, b.left), .right = gb_route_expr(gb, b.right) }
+        is LoweredIf as ie -> {
+            new_else :: if ie.else_block == null { null } else { gb_route_block(gb, ie.else_block) }
+            return LoweredIf { .span = ie.span, .type = ie.type, .cond = gb_route_expr(gb, ie.cond), .then_block = gb_route_block(gb, ie.then_block), .else_block = new_else }
+        }
+        is LoweredBlock as bl -> gb_route_block(gb, bl)
+        is LoweredStructLit as sl -> {
+            new_fields: LoweredStructLitField[] = []
+            for f in sl.fields { new_fields.push(LoweredStructLitField { .name = f.name, .value = gb_route_expr(gb, f.value) }) }
+            return LoweredStructLit { .span = sl.span, .type = sl.type, .fields = new_fields }
+        }
+        is LoweredArrayLit as al -> {
+            new_elements: LoweredExpr[] = []
+            for el in al.elements { new_elements.push(gb_route_expr(gb, el)) }
+            return LoweredArrayLit { .span = al.span, .type = al.type, .elements = new_elements }
+        }
+        is LoweredArrayLen as al -> LoweredArrayLen { .span = al.span, .type = al.type, .target = gb_route_expr(gb, al.target) }
+        is LoweredArrayPush as ap -> LoweredArrayPush { .span = ap.span, .type = ap.type, .target = gb_route_expr(gb, ap.target), .value = gb_route_expr(gb, ap.value) }
+        is LoweredArraySlice as asl -> LoweredArraySlice { .span = asl.span, .type = asl.type, .target = gb_route_expr(gb, asl.target), .lo = gb_route_expr(gb, asl.lo), .hi = gb_route_expr(gb, asl.hi) }
+        is LoweredStringSlice as ssl -> LoweredStringSlice { .span = ssl.span, .type = ssl.type, .target = gb_route_expr(gb, ssl.target), .lo = gb_route_expr(gb, ssl.lo), .hi = gb_route_expr(gb, ssl.hi) }
+        is LoweredCast as cs -> LoweredCast { .span = cs.span, .type = cs.type, .value = gb_route_expr(gb, cs.value) }
+        is LoweredTypeCheck as tc -> LoweredTypeCheck { .span = tc.span, .type = tc.type, .value = gb_route_expr(gb, tc.value), .check_type = tc.check_type }
+        is LoweredIntrinsicCall as ic -> {
+            new_args: LoweredExpr[] = []
+            for a in ic.args { new_args.push(gb_route_expr(gb, a)) }
+            return LoweredIntrinsicCall { .span = ic.span, .type = ic.type, .name = ic.name, .args = new_args }
+        }
+        is LoweredCellNew as cn -> LoweredCellNew { .span = cn.span, .type = cn.type, .value = gb_route_expr(gb, cn.value), .value_type = cn.value_type }
+        is LoweredCellGet as cg -> LoweredCellGet { .span = cg.span, .type = cg.type, .target = gb_route_expr(gb, cg.target), .value_type = cg.value_type }
+        is LoweredMakeClosure as mc -> LoweredMakeClosure { .span = mc.span, .type = mc.type, .fn_symbol = mc.fn_symbol, .env = gb_route_expr(gb, mc.env) }
+        is LoweredIntLit as l -> l
+        is LoweredFloatLit as l -> l
+        is LoweredBoolLit as l -> l
+        is LoweredNullLit as l -> l
+        is LoweredCharLit as l -> l
+        is LoweredStringLit as l -> l
+        is LoweredDataConst as l -> l
+        is LoweredTypeConst as l -> l
+        is LoweredUnreachable as l -> l
+    }
+}
