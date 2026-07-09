@@ -23,7 +23,7 @@ import "vader/diagnostics" { Position, Span }
 import "vader/resolver" { resolve_program }
 import "vader/resolver/symbol" { Symbol, SymbolKind, new_factory }
 import "vader/types" { is_primitive_name }
-import "vader/lsp/protocol" { TokenType, RawToken }
+import "vader/lsp/protocol" { TokenType, RawToken, new_line_index, li_character }
 
 /// Primitive type names recognised by the lexer / typechecker but not as
 /// individual keywords. When an `IdentExpr` carries one of these names in
@@ -55,7 +55,7 @@ collect_ast_idents :: fn(source: string, uri: string, out: RawToken[]) -> void {
     for d in program.decls {
         walk_decl(d, out)
     }
-    refine_via_resolver(program, uri, out)
+    refine_via_resolver(program, uri, out, source)
 }
 
 push_module_keyword_span :: fn(md: AST.ModuleDecl, out: RawToken[]) -> void {
@@ -74,26 +74,29 @@ push_module_keyword_span :: fn(md: AST.ModuleDecl, out: RawToken[]) -> void {
 
 /// Walk every ident through the body-resolver and override matching
 /// Phase-1 tokens with the symbol-kind-derived TokenType.
-refine_via_resolver :: fn(program: AST.Program, uri: string, out: RawToken[]) -> void {
+refine_via_resolver :: fn(program: AST.Program, uri: string, out: RawToken[], source: string) -> void {
     factory :: new_factory()
     seed :: MutableMap<string, Symbol> {}
     resolved :: resolve_program(program, seed, uri, factory)
+    // `idents` is keyed by `Span.hash()` = (file, line, **codepoint column**),
+    // matching the resolver/parser columns. RawTokens now carry only byte
+    // offsets (`col` is 0 until the later `reencode_columns` pass), so derive
+    // the 1-based codepoint column from `start_offset` via a utf-32 index —
+    // the only encoding whose `character` unit is the codepoint (astral = 1).
+    cp_index :: new_line_index(source, .Utf32)
     for i in 0..<out.len() {
         rt :: out[i]
-        // `idents` is keyed by `Span.hash()` (file-aware, start-only).
-        // Construct a zero-width span at this token's 1-based position
+        // Construct a zero-width span at this token's 1-based codepoint position
         // in the resolved file's URI so the hash matches the stored key.
-        probe_pos :: Position { .file = uri, .offset = 0, .line = rt.line + 1, .column = rt.col + 1 }
+        col :: li_character(cp_index, rt.line, rt.start_offset) + 1
+        probe_pos :: Position { .file = uri, .offset = 0, .line = rt.line + 1, .column = col }
         probe :: Span { .start = probe_pos, .end = probe_pos }
         hit :: resolved.idents[probe.hash()]
         match hit {
             is Symbol as s -> {
-                kind :: token_type_of_symbol(s.kind)
-                out[i] = RawToken {
-                    .line = rt.line, .col = rt.col, .length = rt.length,
-                    .tok_type = i32(kind), .modifiers = rt.modifiers,
-                    .start_offset = rt.start_offset, .end_offset = rt.end_offset,
-                }
+                // Only the token type is refined ; offsets stay canonical and
+                // col/length are still derived later by `reencode_columns`.
+                out[i].tok_type = i32(token_type_of_symbol(s.kind))
             }
             is null -> {}
         }

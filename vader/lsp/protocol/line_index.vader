@@ -75,6 +75,16 @@ export new_line_index :: fn(source: string, encoding: PositionEncoding) -> LineI
 
 // ---- conversions ----------------------------------------------------------
 
+/// The number of `character` units a codepoint of UTF-8 byte-width `w` occupies
+/// under `encoding` : bytes for utf-8, two for an astral (4-byte) codepoint under
+/// utf-16, one otherwise (BMP under utf-16, any codepoint under utf-32). The
+/// single source of truth shared by the outgoing count and the incoming walk.
+units_for :: fn(encoding: PositionEncoding, w: usize) -> i32 {
+    if encoding == .Utf8 { return i32(w) }
+    if encoding == .Utf16 && w == 4 { return 2 }
+    return 1
+}
+
 /// Count `character` units between byte offsets `from` and `to` under `encoding`.
 /// `from`/`to` should sit on codepoint boundaries (span offsets always do).
 count_units :: fn(source: string, from: usize, to: usize, encoding: PositionEncoding) -> i32 {
@@ -88,13 +98,7 @@ count_units :: fn(source: string, from: usize, to: usize, encoding: PositionEnco
     i: usize = from
     for i < hi {
         w :: b[i].utf8_lead_len()
-        // Astral (4-byte) codepoints are two UTF-16 units ; one unit everywhere
-        // else. ASCII / BMP take this single-increment path.
-        if encoding == .Utf16 && w == 4 {
-            count += 2
-        } else {
-            count += 1
-        }
+        count += units_for(encoding, w)
         i += w
     }
     return count
@@ -146,13 +150,7 @@ export li_offset :: fn(li: LineIndex, line: i32, character: i32) -> usize {
         }
         w :: utf8_lead_len(c)
         cursor += w
-        if li.encoding == .Utf8 {
-            remaining -= i32(w)
-        } else if li.encoding == .Utf16 && w == 4 {
-            remaining -= 2
-        } else {
-            remaining -= 1
-        }
+        remaining -= units_for(li.encoding, w)
     }
     return cursor
 }
