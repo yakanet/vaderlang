@@ -337,14 +337,14 @@ end
 
 fn 1 std_core$new_byte_buffer (usize) -> ref
   local.get 0
-  call 25
+  call 26
   return
 end
 
 fn 2 std_core$finish_buffer (ref,usize) -> string
   local.get 0
   local.get 1
-  call 27
+  call 28
   return
 end
 
@@ -353,7 +353,7 @@ fn 3 std_core$write_string_at (ref,usize,string) -> usize
   local.get 0
   local.get 1
   local.get 2
-  call 28
+  call 29
   local.get 2
   call.import 3
   local.set 3
@@ -377,7 +377,7 @@ fn 4 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     i32.const 48
-    call 26
+    call 27
     local.get 1
     i64.const 1
     i64.add
@@ -458,7 +458,7 @@ fn 4 std_core$write_int (ref,usize,i64) -> usize
         local.get 0
         local.get 6
         local.get 8
-        call 26
+        call 27
         local.get 2
         i64.const 10
         i64.div
@@ -473,7 +473,7 @@ fn 4 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     i32.const 45
-    call 26
+    call 27
   else
   end $L9
   local.get 1
@@ -757,7 +757,7 @@ fn 13 std_collections$std_collections$rehash__string__i32 (ref,usize) -> void
         local.get 4
         array.get 13
         ref.cast 5
-        call 29
+        call 30
         local.get 3
         call 9
         local.set 6
@@ -1179,7 +1179,7 @@ fn 17 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   else
   end $L0
   local.get 1
-  call 29
+  call 30
   local.set 6
   local.field 0 16 3
   ref.cast 3
@@ -1486,7 +1486,7 @@ fn 21 std_string$StringChars$Iterator$next (ref) -> ref
   return
 end
 
-fn 22 std_string$decode_codepoint_at (ref,usize) -> ref
+fn 22 std_string$utf8_decode_len (ref,usize) -> ref
   local c char
   local $call_4 usize
   local.get 0
@@ -1501,13 +1501,13 @@ fn 22 std_string$decode_codepoint_at (ref,usize) -> ref
   return
 end
 
-fn 23 std_string$decode_char_at (ref,usize) -> char
+fn 23 std_string$utf8_decode (ref,usize) -> char
   local n usize
   local b u8
-  local $add_22 usize
+  local $add_21 usize
   local b1 u8
-  local $shl_29 u32
-  local $bitand_32 u32
+  local $shl_28 u32
+  local $bitand_31 u32
   local b2 u8
   local b3 u8
   local.get 0
@@ -1526,8 +1526,7 @@ fn 23 std_string$decode_char_at (ref,usize) -> char
     return
   end $L0
   local.get 3
-  i32.const 192
-  u32.lt
+  call 25
   if $L1 void
     i32.const 65533
     i32.to_char
@@ -1736,13 +1735,31 @@ fn 24 std_string$codepoint_byte_len (char) -> usize
   return.lit i64.const 4
 end
 
-fn 25 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 25 std_string$is_utf8_continuation (u8) -> bool
+  local and_res bool
+  local.get 0
+  i32.const 128
+  u32.ge
+  if $L0 void
+    local.get 0
+    i32.const 192
+    u32.lt
+    local.set 1
+  else
+    bool.const false
+    local.set 1
+  end $L0
+  local.get 1
+  return
+end
+
+fn 26 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 26 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 27 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -1750,14 +1767,14 @@ fn 26 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 27 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 28 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 28 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 29 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -1765,7 +1782,7 @@ fn 28 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   return
 end
 
-fn 29 std_core$string$Hash$hash_vt (string) -> u64
+fn 30 std_core$string$Hash$hash_vt (string) -> u64
   local.get 0
   call.import 1
   return

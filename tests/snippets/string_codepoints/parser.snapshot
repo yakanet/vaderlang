@@ -27,7 +27,7 @@
         "kind": "destructure",
         "names": [
           {
-            "name": "decode_codepoint",
+            "name": "codepoint_at_byte",
             "alias": null
           },
           {
@@ -556,7 +556,7 @@
                     "kind": "CallExpr",
                     "callee": {
                       "kind": "IdentExpr",
-                      "name": "decode_codepoint"
+                      "name": "codepoint_at_byte"
                     },
                     "args": [
                       {

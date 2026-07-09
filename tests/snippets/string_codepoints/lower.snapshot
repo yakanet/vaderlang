@@ -424,7 +424,7 @@
       let __tup_10: [char, usize] =
         call :[char, usize]
           callee:
-            decode_codepoint :fn(string, usize) -> [char, usize]
+            codepoint_at_byte :fn(string, usize) -> [char, usize]
           arg0:
             s :string
           arg1:

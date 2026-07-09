@@ -31,7 +31,7 @@ module "vader/vm"
 bc :: import "vader/bytecode"
 
 import "std/io" { read_file_string, eprintln, IOError }
-import "std/string" { index_of, decode_codepoint_at, join }
+import "std/string" { index_of, utf8_decode_len, join }
 
 // IEEE 754 bit reinterpret for the F64ToBits / BitsToF64 arms. The VM's own
 // code can't use the `f64.to_bits()` / `u64.from_bits()` intrinsics : they
@@ -1836,7 +1836,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 for cursor < n_bytes {
                     if seen == lo_cp { byte_lo = cursor }
                     if seen == hi_cp { byte_hi = cursor }
-                    [_c, width] :: sb.decode_codepoint_at(cursor)
+                    [_c, width] :: sb.utf8_decode_len(cursor)
                     cursor = cursor + width
                     seen   = seen + 1
                 }

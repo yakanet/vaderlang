@@ -213,7 +213,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         seen:   usize = 0
         n :: sb.len()
         for cursor < n {
-            [cp, width] :: sb.decode_codepoint_at(cursor)
+            [cp, width] :: sb.utf8_decode_len(cursor)
             if seen == target { return HostOk { .value = CharVal { .value = cp } } }
             cursor = cursor + width
             seen   = seen + 1

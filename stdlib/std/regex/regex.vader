@@ -26,7 +26,7 @@
 
 module "std/regex"
 
-import "std/string" { decode_char_at, decode_codepoint_at, is_empty }
+import "std/string" { utf8_decode, utf8_decode_len, is_empty }
 import "std/string_builder" { StringBuilder, append, append_char }
 
 // =========================================================================
@@ -144,7 +144,7 @@ export compile :: fn(pattern: string) -> Pattern | RegexError {
     parse_outcome :: parse_alternation(p)
     if parse_outcome is RegexError { return parse_outcome }
     if p.cursor < p.bytes.len() {
-        return RegexError { .msg = "unexpected character '${p.bytes.decode_char_at(p.cursor)}'", .position = p.cursor }
+        return RegexError { .msg = "unexpected character '${p.bytes.utf8_decode(p.cursor)}'", .position = p.cursor }
     }
     p.insts.push(InstSave { .slot = 1 })
     p.insts.push(InstMatch {})
@@ -440,7 +440,7 @@ parse_atom :: fn(p: Parser) -> RegexError | null {
     }
     // Otherwise : a literal byte. Decode the codepoint at this offset to
     // emit `InstChar` so the matcher and the pattern stay codepoint-aligned.
-    [c, advance] :: p.bytes.decode_codepoint_at(p.cursor)
+    [c, advance] :: p.bytes.utf8_decode_len(p.cursor)
     p.cursor = p.cursor + advance
     p.insts.push(InstChar { .c = c })
     return null
@@ -541,7 +541,7 @@ read_class_char :: fn(p: Parser) -> char | RegexError {
         if e == 'r' { return '\r' }
         return char(u32(e))
     }
-    [c, advance] :: p.bytes.decode_codepoint_at(p.cursor)
+    [c, advance] :: p.bytes.utf8_decode_len(p.cursor)
     p.cursor = p.cursor + advance
     return c
 }
@@ -577,9 +577,9 @@ space_class_ranges :: fn() -> CharRange[] {
 }
 
 // Number of UTF-8 bytes occupied by the codepoint starting at `offset`.
-// Width-only wrapper over the shared `decode_codepoint_at` (std/string).
+// Width-only wrapper over the shared `utf8_decode_len` (std/string).
 codepoint_byte_advance :: fn(bs: const u8[], offset: usize) -> usize {
-    [c, width] :: bs.decode_codepoint_at(offset)
+    [c, width] :: bs.utf8_decode_len(offset)
     return width
 }
 
@@ -682,7 +682,7 @@ expand_replacement :: fn(sb: StringBuilder, rb: const u8[], m: Match) -> void {
                 continue
             }
         }
-        [c, w] :: rb.decode_codepoint_at(i)
+        [c, w] :: rb.utf8_decode_len(i)
         sb.append_char(c)
         i = i + w
     }
@@ -729,7 +729,7 @@ run_vm :: fn(p: Pattern, input: const u8[], start: usize, full: bool) -> Match |
         c_at_pos: char = ' '
         bytes_consumed: usize = 0
         if pos < input.len() {
-            [c, w] :: input.decode_codepoint_at(pos)
+            [c, w] :: input.utf8_decode_len(pos)
             c_at_pos = c
             bytes_consumed = w
         }

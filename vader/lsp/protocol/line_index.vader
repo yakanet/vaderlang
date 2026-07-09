@@ -19,6 +19,7 @@
 module "vader/lsp/protocol"
 
 import "std/math" { min }
+import "std/string" { utf8_lead_len }
 
 // ---- encoding -------------------------------------------------------------
 
@@ -65,35 +66,35 @@ export new_line_index :: fn(source: string, encoding: PositionEncoding) -> LineI
         }
         i += 1
     }
-    return LineIndex { .source = source, .encoding = encoding, .line_starts = starts }
+    return LineIndex {
+        .source = source,
+        .encoding = encoding,
+        .line_starts = starts
+    }
 }
 
 // ---- conversions ----------------------------------------------------------
-
-/// Byte length of the UTF-8 codepoint led by `b`. Continuation / invalid leading
-/// bytes fall back to 1 so a malformed document never stalls the walk.
-utf8_len :: fn(b: u8) -> usize {
-    if b < 0x80 { return 1 }   // ASCII
-    if b < 0xC0 { return 1 }   // stray continuation byte — advance one, defensively
-    if b < 0xE0 { return 2 }
-    if b < 0xF0 { return 3 }
-    return 4
-}
 
 /// Count `character` units between byte offsets `from` and `to` under `encoding`.
 /// `from`/`to` should sit on codepoint boundaries (span offsets always do).
 count_units :: fn(source: string, from: usize, to: usize, encoding: PositionEncoding) -> i32 {
     // utf-8 : the character IS the byte offset — no scan.
-    if encoding == .Utf8 { return i32(to - from) }
+    if encoding == .Utf8 {
+        return i32(to - from)
+    }
     b :: source.bytes()
     hi :: min(to, b.len())
     count: i32 = 0
     i: usize = from
     for i < hi {
-        w :: utf8_len(b[i])
+        w :: b[i].utf8_lead_len()
         // Astral (4-byte) codepoints are two UTF-16 units ; one unit everywhere
         // else. ASCII / BMP take this single-increment path.
-        if encoding == .Utf16 && w == 4 { count += 2 } else { count += 1 }
+        if encoding == .Utf16 && w == 4 {
+            count += 2
+        } else {
+            count += 1
+        }
         i += w
     }
     return count
@@ -107,9 +108,13 @@ count_units :: fn(source: string, from: usize, to: usize, encoding: PositionEnco
 /// @param byte_offset  absolute UTF-8 byte offset of the position.
 /// @return             the 0-based character in the negotiated encoding.
 export li_character :: fn(li: LineIndex, line: i32, byte_offset: usize) -> i32 {
-    if line < 0 || usize(line) >= li.line_starts.len() { return 0 }
+    if line < 0 || usize(line) >= li.line_starts.len() {
+        return 0
+    }
     line_start :: li.line_starts[usize(line)]
-    if byte_offset <= line_start { return 0 }
+    if byte_offset <= line_start {
+        return 0
+    }
     return count_units(li.source, line_start, byte_offset, li.encoding)
 }
 
@@ -123,15 +128,23 @@ export li_character :: fn(li: LineIndex, line: i32, byte_offset: usize) -> i32 {
 export li_offset :: fn(li: LineIndex, line: i32, character: i32) -> usize {
     b :: li.source.bytes()
     n :: b.len()
-    if line < 0 { return 0 }
-    if usize(line) >= li.line_starts.len() { return n }
+    if line < 0 {
+        return 0
+    }
+    if usize(line) >= li.line_starts.len() {
+        return n
+    }
     cursor: usize = li.line_starts[usize(line)]
-    if character <= 0 { return cursor }
+    if character <= 0 {
+        return cursor
+    }
     remaining: i32 = character
     for cursor < n && remaining > 0 {
         c :: b[cursor]
-        if c == '\n' || c == '\r' { break }   // never cross into the next line
-        w :: utf8_len(c)
+        if c == '\n' || c == '\r' {
+            break // never cross into the next line
+        }
+        w :: utf8_lead_len(c)
         cursor += w
         if li.encoding == .Utf8 {
             remaining -= i32(w)

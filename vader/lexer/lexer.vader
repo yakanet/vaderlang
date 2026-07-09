@@ -13,7 +13,7 @@
 
 module "vader/lexer"
 
-import "std/string" { decode_char_at, codepoint_byte_len, is_empty, parse_float, ParseError }
+import "std/string" { utf8_decode, utf8_lead_len, codepoint_byte_len, is_empty, parse_float, ParseError, MAX_CODEPOINT }
 import "std/char" { is_alpha, is_alnum, is_digit }
 
 import "std/string_builder" { StringBuilder, append, append_char }
@@ -99,7 +99,7 @@ peek :: fn(l: Lexer) -> char {
     if l.pos >= l.bytes.len() {
         return '\0'
     }
-    return l.bytes.decode_char_at(l.pos)
+    return l.bytes.utf8_decode(l.pos)
 }
 
 peek_at :: fn(l: Lexer, n: usize) -> char {
@@ -107,7 +107,7 @@ peek_at :: fn(l: Lexer, n: usize) -> char {
     if p >= l.bytes.len() {
         return '\0'
     }
-    return l.bytes.decode_char_at(p)
+    return l.bytes.utf8_decode(p)
 }
 
 position_here :: fn(l: Lexer) =
@@ -478,10 +478,10 @@ lex_unicode_escape :: fn(l: Lexer, esc_start: Position) -> u32 {
     }
     cp: u32 = 0
     for i in 0..<hex_len {
-        d :: hex_digit_value(l.bytes.decode_char_at(hex_start + i))
+        d :: hex_digit_value(l.bytes.utf8_decode(hex_start + i))
         cp = cp * 16 + u32(d)
     }
-    if cp > 0x10FFFF {
+    if cp > u32(MAX_CODEPOINT) {
         l.push_error(.InvalidUnicodeCodepointEscape, l.error_span(esc_start),
             "codepoint exceeds U+10FFFF")
         return 0
@@ -903,18 +903,8 @@ lex_one :: fn(l: Lexer) -> void {
     }
     // Consume the full codepoint (1..4 bytes) so a multi-byte char
     // like `§` (UTF-8 0xC2 0xA7) fires L0001 once, not once per byte.
-    l.advance(utf8_lead_byte_len(l.bytes[l.pos]))
+    l.advance(utf8_lead_len(l.bytes[l.pos]))
     l.push_error(.UnexpectedCharacter, l.error_span(start), "")
-}
-
-// UTF-8 leading-byte → encoded length in bytes (1, 2, 3, or 4).
-// Continuation / invalid bytes fall back to 1 (best-effort recovery).
-utf8_lead_byte_len :: fn(b: u8) -> usize {
-    if b < 0x80    { return 1 }    // 0xxxxxxx
-    if b < 0xC0    { return 1 }    // continuation — invalid lead
-    if b < 0xE0    { return 2 }    // 110xxxxx
-    if b < 0xF0    { return 3 }    // 1110xxxx
-    return 4                       // 11110xxx
 }
 
 // ---- public entry ---------------------------------------------------------

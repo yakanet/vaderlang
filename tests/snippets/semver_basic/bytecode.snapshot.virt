@@ -114,7 +114,7 @@ fn 0 snippet$main () -> i32
     local.get 0
     local.tee 1
     call 36
-    call 56
+    call 57
     string.const 1
     call 1
     local.set 2
@@ -125,7 +125,7 @@ fn 0 snippet$main () -> i32
     i32.gt
     if $L1 void
       string.const 2
-      call 56
+      call 57
     else
     end $L1
     string.const 3
@@ -143,7 +143,7 @@ fn 0 snippet$main () -> i32
       call 37
       if $L3 void
         string.const 5
-        call 56
+        call 57
       else
       end $L3
       return.lit i32.const 0
@@ -159,7 +159,7 @@ fn 0 snippet$main () -> i32
       string.const 6
       local.get 4
       call 2
-      call 57
+      call 58
       return.lit i32.const 1
     end $L4
     return
@@ -175,7 +175,7 @@ fn 0 snippet$main () -> i32
     string.const 7
     local.get 4
     call 2
-    call 57
+    call 58
     return.lit i32.const 1
   end $L5
   return
@@ -223,11 +223,11 @@ fn 2 concat_2 (string,string) -> string
   local.tee 4
   i64.const 0
   local.get 0
-  call 66
+  call 67
   local.get 4
   local.get 2
   local.get 1
-  call 66
+  call 67
   local.get 4
   local.get 3
   call 5
@@ -236,7 +236,7 @@ end
 
 fn 3 std_core$new_byte_buffer (usize) -> ref
   local.get 0
-  call 64
+  call 65
   return
 end
 
@@ -249,7 +249,7 @@ end
 fn 5 std_core$finish_buffer (ref,usize) -> string
   local.get 0
   local.get 1
-  call 65
+  call 66
   return
 end
 
@@ -258,7 +258,7 @@ fn 6 std_core$write_string_at (ref,usize,string) -> usize
   local.get 0
   local.get 1
   local.get 2
-  call 66
+  call 67
   local.get 2
   call.import 2
   local.set 3
@@ -282,7 +282,7 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     i32.const 48
-    call 67
+    call 68
     local.get 1
     i64.const 1
     i64.add
@@ -363,7 +363,7 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
         local.get 0
         local.get 6
         local.get 8
-        call 67
+        call 68
         local.get 2
         i64.const 10
         i64.div
@@ -378,7 +378,7 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     i32.const 45
-    call 67
+    call 68
   else
   end $L9
   local.get 1
@@ -1670,7 +1670,7 @@ fn 16 std_semver$is_all_digits (string) -> bool
         local.get 2
         struct.get 7 0
         ref.cast 4
-        call 58
+        call 59
         bool.not
         if $L4 void
           return.lit bool.const false
@@ -1710,7 +1710,7 @@ fn 17 std_semver$validate_prerelease_id (string) -> string
         struct.get 7 0
         ref.cast 4
         local.tee 4
-        call 59
+        call 60
         bool.not
         if $L4 void
           local.get 4
@@ -1726,7 +1726,7 @@ fn 17 std_semver$validate_prerelease_id (string) -> string
           return.lit string.const 26
         end $L5
         local.get 4
-        call 58
+        call 59
         bool.not
         if $L6 void
           bool.const false
@@ -1796,7 +1796,7 @@ fn 18 std_semver$validate_build_id (string) -> string
         struct.get 7 0
         ref.cast 4
         local.tee 3
-        call 59
+        call 60
         bool.not
         if $L4 void
           local.get 3
@@ -1851,7 +1851,7 @@ fn 19 std_semver$split_ws (string) -> ref
         ref.cast 12
         u8.to_i32
         u32.to_char
-        call 60
+        call 61
         if $L3 void
           local.get 5
           if $L4 void
@@ -5464,7 +5464,7 @@ fn 36 std_semver$Version$Display$to_string (ref) -> string
   local.set 5
   local.get 1
   local.get 5
-  call 63
+  call 64
   local.field 0 3 3
   ref.cast 2
   call 44
@@ -5472,13 +5472,13 @@ fn 36 std_semver$Version$Display$to_string (ref) -> string
   if $L0 void
     local.get 1
     string.const 21
-    call 63
+    call 64
     local.field 0 3 3
     ref.cast 2
     local.set 5
     local.get 1
     local.get 5
-    call 63
+    call 64
   else
   end $L0
   local.field 0 3 4
@@ -5488,17 +5488,17 @@ fn 36 std_semver$Version$Display$to_string (ref) -> string
   if $L1 void
     local.get 1
     string.const 46
-    call 63
+    call 64
     local.field 0 3 4
     ref.cast 2
     local.set 5
     local.get 1
     local.get 5
-    call 63
+    call 64
   else
   end $L1
   local.get 1
-  call 62
+  call 63
   return
 end
 
@@ -6793,7 +6793,7 @@ fn 52 std_string$StringChars$Iterator$next (ref) -> ref
   return
 end
 
-fn 53 std_string$decode_codepoint_at (ref,usize) -> ref
+fn 53 std_string$utf8_decode_len (ref,usize) -> ref
   local c char
   local $call_4 usize
   local.get 0
@@ -6808,13 +6808,13 @@ fn 53 std_string$decode_codepoint_at (ref,usize) -> ref
   return
 end
 
-fn 54 std_string$decode_char_at (ref,usize) -> char
+fn 54 std_string$utf8_decode (ref,usize) -> char
   local n usize
   local b u8
-  local $add_22 usize
+  local $add_21 usize
   local b1 u8
-  local $shl_29 u32
-  local $bitand_32 u32
+  local $shl_28 u32
+  local $bitand_31 u32
   local b2 u8
   local b3 u8
   local.get 0
@@ -6833,8 +6833,7 @@ fn 54 std_string$decode_char_at (ref,usize) -> char
     return
   end $L0
   local.get 3
-  i32.const 192
-  u32.lt
+  call 56
   if $L1 void
     i32.const 65533
     i32.to_char
@@ -7043,7 +7042,25 @@ fn 55 std_string$codepoint_byte_len (char) -> usize
   return.lit i64.const 4
 end
 
-fn 56 std_io$println__string (string) -> void
+fn 56 std_string$is_utf8_continuation (u8) -> bool
+  local and_res bool
+  local.get 0
+  i32.const 128
+  u32.ge
+  if $L0 void
+    local.get 0
+    i32.const 192
+    u32.lt
+    local.set 1
+  else
+    bool.const false
+    local.set 1
+  end $L0
+  local.get 1
+  return
+end
+
+fn 57 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 3
@@ -7053,7 +7070,7 @@ fn 56 std_io$println__string (string) -> void
   return
 end
 
-fn 57 std_io$eprintln__string (string) -> void
+fn 58 std_io$eprintln__string (string) -> void
   i32.const 1
   local.get 0
   call.import 3
@@ -7063,7 +7080,7 @@ fn 57 std_io$eprintln__string (string) -> void
   return
 end
 
-fn 58 std_char$is_digit (char) -> bool
+fn 59 std_char$is_digit (char) -> bool
   local and_res bool
   char.const 48
   local.get 0
@@ -7081,23 +7098,23 @@ fn 58 std_char$is_digit (char) -> bool
   return
 end
 
-fn 59 std_char$is_alnum (char) -> bool
+fn 60 std_char$is_alnum (char) -> bool
   local or_res bool
   local.get 0
-  call 61
+  call 62
   if $L0 void
     bool.const true
     local.set 1
   else
     local.get 0
-    call 58
+    call 59
     local.set 1
   end $L0
   local.get 1
   return
 end
 
-fn 60 std_char$is_white_char (char) -> bool
+fn 61 std_char$is_white_char (char) -> bool
   local or_res bool
   local.get 0
   char.const 32
@@ -7135,7 +7152,7 @@ fn 60 std_char$is_white_char (char) -> bool
   return
 end
 
-fn 61 std_char$is_alpha (char) -> bool
+fn 62 std_char$is_alpha (char) -> bool
   local and_res bool
   local and_res bool
   char.const 97
@@ -7174,7 +7191,7 @@ fn 61 std_char$is_alpha (char) -> bool
   return
 end
 
-fn 62 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 63 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local n usize
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -7235,7 +7252,7 @@ fn 62 std_string_builder$StringBuilder$Display$to_string (ref) -> string
     end $L3
   end $L2
   local.get 1
-  call 64
+  call 65
   local.set 2
   i64.const 0
   local.set 3
@@ -7259,7 +7276,7 @@ fn 62 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 2
         local.get 3
         local.get 7
-        call 66
+        call 67
         local.get 7
         call.import 2
         local.set 8
@@ -7278,31 +7295,31 @@ fn 62 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L5
   local.get 2
   local.get 1
-  call 65
+  call 66
   return
 end
 
-fn 63 std_string_builder$append (ref,string) -> void
+fn 64 std_string_builder$append (ref,string) -> void
   local.field 0 32 0
   local.get 1
   array.push 2
   return
 end
 
-fn 64 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 65 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 65 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 66 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 66 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 67 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -7310,7 +7327,7 @@ fn 66 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   return
 end
 
-fn 67 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 68 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2

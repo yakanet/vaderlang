@@ -10,7 +10,10 @@
 
 module "std/json"
 
-import "std/string" { decode_char_at, codepoint_byte_len, parse_float, ParseError, pad_start, chars, REPLACEMENT_CHAR }
+import "std/string" {
+    utf8_decode, codepoint_byte_len, parse_float, ParseError, pad_start, chars,
+    REPLACEMENT_CHAR, is_surrogate, is_high_surrogate, is_low_surrogate, combine_surrogates,
+}
 import "std/char" { is_digit, is_white_char }
 import "std/iter" { zip }
 import "std/string_builder" { StringBuilder, append, append_char, append_repeated }
@@ -80,7 +83,7 @@ peek_byte :: fn(p: Parser) -> char {
     if p.pos >= p.eof {
         return '\0'
     }
-    return p.bytes.decode_char_at(p.pos)
+    return p.bytes.utf8_decode(p.pos)
 }
 
 advance :: fn(p: Parser) -> void {
@@ -334,7 +337,7 @@ read_hex4 :: fn(p: Parser) -> i32 {
     }
     v := 0
     for k in usize(0)..<4 {
-        d := hex_digit_value(p.bytes.decode_char_at(p.pos + k))
+        d := hex_digit_value(p.bytes.utf8_decode(p.pos + k))
         if d < 0 {
             return -1
         }
@@ -352,29 +355,29 @@ read_hex4 :: fn(p: Parser) -> i32 {
 // loop to re-decode, so it keeps its own meaning. Returns false on incomplete /
 // non-hex input.
 decode_unicode_escape :: fn(p: Parser, sb: StringBuilder) -> bool {
-    hi :: read_hex4(p)
-    if hi < 0 {
+    hi_val :: read_hex4(p)
+    if hi_val < 0 {
         return false
     }
-    if hi < 0xD800 || hi > 0xDFFF {
-        sb.append_char(char(hi))            // ordinary BMP scalar
+    hi :: char(hi_val)
+    if !hi.is_surrogate() {
+        sb.append_char(hi)                  // ordinary BMP scalar
         return true
     }
-    if hi >= 0xDC00 {
-        sb.append_char(REPLACEMENT_CHAR)    // lone low surrogate
-        return true
-    }
-    // High surrogate — pair it with a following `\uYYYY` low surrogate, else
-    // fall back to U+FFFD and leave the second escape for the main loop.
-    if p.pos + 2 <= p.eof && p.bytes[p.pos] == '\\' && p.bytes[p.pos + 1] == 'u' {
-        saved :: p.pos
-        p.pos = p.pos + 2
-        lo :: read_hex4(p)
-        if lo >= 0xDC00 && lo <= 0xDFFF {
-            sb.append_char(char(0x10000 + (hi - 0xD800) * 0x400 + (lo - 0xDC00)))
-            return true
+    if hi.is_high_surrogate() {
+        if p.pos + 2 <= p.eof && p.bytes[p.pos] == '\\' && p.bytes[p.pos + 1] == 'u' {
+            saved :: p.pos
+            p.pos = p.pos + 2
+            lo_val :: read_hex4(p)
+            if lo_val >= 0 {
+                lo :: char(lo_val)
+                if lo.is_low_surrogate() {
+                    sb.append_char(combine_surrogates(hi, lo))
+                    return true
+                }
+            }
+            p.pos = saved
         }
-        p.pos = saved
     }
     sb.append_char(REPLACEMENT_CHAR)
     return true
