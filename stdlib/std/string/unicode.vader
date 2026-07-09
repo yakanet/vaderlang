@@ -1,0 +1,216 @@
+// std/string/unicode — the UTF-8 byte ↔ codepoint codec.
+//
+// The low-level Unicode primitives every byte-cursor consumer shares: decode a
+// codepoint at a byte offset, measure a sequence's width, classify a byte. Split
+// out of `string.vader` (same `module "std/string"`) so the codec has one home
+// instead of being reinvented in the lexer, the LSP, the JSON parser and regex.
+//
+// Layering (frozen 2026-06-16, `.claude/plans/core-string-utf8-reorg.md` §3.2):
+// the *encoder* `utf8_encode` and the codepoint counter `len` stay in `std/core`
+// (the prelude — char's Display needs the encoder, and core imports nothing);
+// the *decoder* + width/classification helpers live here in `std/string`. The
+// richer codepoint-string API (`chars`, `StringChars`) stays in `string.vader`.
+
+module "std/string"
+
+// ---- constants ------------------------------------------------------------
+
+/// Unicode replacement character (U+FFFD) — the standard stand-in for an
+/// undecodable byte or an unpaired UTF-16 surrogate.
+export REPLACEMENT_CHAR :: char(0xFFFD)
+
+/// The highest valid Unicode scalar value (U+10FFFF). Codepoints above this are
+/// invalid ; `\u{…}` escapes past it are rejected, and encoders clamp to 4 bytes.
+export MAX_CODEPOINT :: char(0x10FFFF)
+
+// ---- byte classification --------------------------------------------------
+
+/// True when `b` is a UTF-8 continuation byte (`0x80..0xBF`) — the trailing bytes
+/// of a multi-byte sequence, never a leading byte. Its complement identifies the
+/// bytes that start a codepoint, which is how codepoint columns are counted.
+export is_utf8_continuation :: fn(b: u8) -> bool = b >= 0x80 && b < 0xC0
+
+/// Byte length (1–4) of the UTF-8 codepoint led by `b`. A continuation or
+/// otherwise-invalid leading byte returns 1 so a malformed stream still advances
+/// one byte at a time rather than stalling. See `codepoint_byte_len` for the
+/// width from a `char` (the encode direction).
+export utf8_lead_len :: fn(b: u8) -> usize {
+    if b < 0x80 { return 1 }   // ASCII
+    if b < 0xC0 { return 1 }   // stray continuation byte — advance one, defensively
+    if b < 0xE0 { return 2 }
+    if b < 0xF0 { return 3 }
+    return 4
+}
+
+/// UTF-8 encoded byte length (1–4) of codepoint `c`:
+///   - `U+0000..U+007F`     → 1 byte
+///   - `U+0080..U+07FF`     → 2 bytes
+///   - `U+0800..U+FFFF`     → 3 bytes
+///   - `U+10000..U+10FFFF`  → 4 bytes
+///
+/// The `char` counterpart to `utf8_lead_len` (which measures from a leading
+/// byte). Codepoints above `U+10FFFF` clamp to 4 — invalid Unicode anyway.
+/// @param c  the codepoint to measure.
+/// @return   its UTF-8 encoded length in bytes (1, 2, 3, or 4).
+export codepoint_byte_len :: fn(c: char) -> usize {
+    cp :: u32(c)
+    if cp < 0x80    { return 1 }
+    if cp < 0x800   { return 2 }
+    if cp < 0x10000 { return 3 }
+    return 4
+}
+
+// ---- decode ---------------------------------------------------------------
+
+/// Decode the UTF-8 codepoint at byte offset `i` of a byte view. Byte-cursor
+/// consumers (lexer, JSON parser, LSP transport) hold the view once and decode
+/// off it. A continuation byte at `i` decodes as `U+FFFD` ; a truncated
+/// multi-byte sequence decodes as `U+0000`. The counterpart to `s[i]` (which
+/// indexes by codepoint) — use this when you maintain a byte cursor.
+///
+/// @param bs  the byte view (e.g. `s.bytes()`).
+/// @param i   byte offset of a UTF-8 leading byte. Traps if `i >= bs.len()`.
+export utf8_decode :: fn(bs: const u8[], i: usize) -> char {
+    n :: bs.len()
+    b :: bs[i]
+    if b < 0x80 { return char(b) }
+    // Continuation byte as leader : invalid UTF-8.
+    if b.is_utf8_continuation() { return REPLACEMENT_CHAR }
+    rem :: n - i
+    if b < 0xE0 {
+        if rem < 2 { return char(0) }
+        b1 :: bs[i + 1]
+        return char(((u32(b) & 0x1F) << 6) + (u32(b1) & 0x3F))
+    }
+    if b < 0xF0 {
+        if rem < 3 { return char(0) }
+        b1 :: bs[i + 1]
+        b2 :: bs[i + 2]
+        return char(((u32(b) & 0x0F) << 12) + ((u32(b1) & 0x3F) << 6) + (u32(b2) & 0x3F))
+    }
+    if rem < 4 { return char(0) }
+    b1 :: bs[i + 1]
+    b2 :: bs[i + 2]
+    b3 :: bs[i + 3]
+    return char(((u32(b) & 0x07) << 18) + ((u32(b1) & 0x3F) << 12) + ((u32(b2) & 0x3F) << 6) + (u32(b3) & 0x3F))
+}
+
+/// Decode the UTF-8 sequence at byte offset `i` of a byte view into a codepoint
+/// and its encoded byte length. Advance the caller's cursor by the returned `n`
+/// to land on the next leading byte. Powers `StringChars` (the `for c in s`
+/// iterator) and the VM's codepoint-indexed string ops.
+///
+/// @param bs  the byte view (e.g. `s.bytes()`).
+/// @param i   byte offset of a UTF-8 leading byte.
+/// @return    `[codepoint, byte_length]`.
+export utf8_decode_len :: fn(bs: const u8[], i: usize) -> [char, usize] {
+    c :: bs.utf8_decode(i)
+    return [c, c.codepoint_byte_len()]
+}
+
+/// Decode the UTF-8 codepoint at byte offset `i` of a string — the string-receiver
+/// wrapper over `utf8_decode`. Use when you have a `string` and a byte cursor and
+/// want to compare the decoded scalar against ASCII literals.
+/// @param s  the source string.
+/// @param i  byte offset. Traps if `i >= s.byte_len()`.
+export char_at_byte :: fn(s: string, i: usize) -> char = s.bytes().utf8_decode(i)
+
+/// Decode the UTF-8 sequence at byte offset `i` of a string into a codepoint and
+/// its encoded byte length — the string-receiver wrapper over `utf8_decode_len`.
+/// Advance the caller's cursor by the returned `n` to land on the next leading
+/// byte.
+/// @param s  the source string.
+/// @param i  byte offset of a UTF-8 leading byte.
+/// @return   `[codepoint, byte_length]`.
+export codepoint_at_byte :: fn(s: string, i: usize) -> [char, usize] = s.bytes().utf8_decode_len(i)
+
+// ---- UTF-16 surrogates ----------------------------------------------------
+//
+// Surrogates encode astral codepoints (U+10000..U+10FFFF) as a pair of 16-bit
+// code units. They exist only in UTF-16 — never as a well-formed UTF-8 sequence
+// or a valid decoded scalar — but Vader has to speak UTF-16 at two boundaries:
+// JSON `\uXXXX` escapes and the LSP `positionEncoding = utf-16`.
+
+/// True for a high (leading) surrogate code unit, `U+D800..U+DBFF`.
+export is_high_surrogate :: fn(c: char) -> bool {
+    cp :: u32(c)
+    return cp >= 0xD800 && cp <= 0xDBFF
+}
+
+/// True for a low (trailing) surrogate code unit, `U+DC00..U+DFFF`.
+export is_low_surrogate :: fn(c: char) -> bool {
+    cp :: u32(c)
+    return cp >= 0xDC00 && cp <= 0xDFFF
+}
+
+/// True for either half of a surrogate pair, `U+D800..U+DFFF`. Such values are
+/// not valid Unicode scalars — a decoder that sees one in isolation should
+/// substitute `REPLACEMENT_CHAR`.
+export is_surrogate :: fn(c: char) -> bool {
+    cp :: u32(c)
+    return cp >= 0xD800 && cp <= 0xDFFF
+}
+
+/// Recombine a UTF-16 surrogate pair into the astral scalar it encodes.
+/// The caller must have verified `is_high_surrogate(hi)` and
+/// `is_low_surrogate(lo)` ; a malformed pair yields a garbage codepoint.
+/// @param hi  the high surrogate (`U+D800..U+DBFF`).
+/// @param lo  the low surrogate (`U+DC00..U+DFFF`).
+/// @return    the recombined scalar in `U+10000..U+10FFFF`.
+export combine_surrogates :: fn(hi: char, lo: char) -> char =
+    char(0x10000 + ((u32(hi) - 0xD800) << 10) + (u32(lo) - 0xDC00))
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+
+@test test_utf8_lead_len :: fn() -> void {
+    assert_eq(utf8_lead_len(0x41), 1)   // 'A'
+    assert_eq(utf8_lead_len(0xC3), 2)   // 'é' lead byte
+    assert_eq(utf8_lead_len(0xE2), 3)   // 3-byte lead
+    assert_eq(utf8_lead_len(0xF0), 4)   // 4-byte (astral) lead
+    assert_eq(utf8_lead_len(0x80), 1)   // stray continuation byte → 1
+}
+
+@test test_is_utf8_continuation :: fn() -> void {
+    assert(!is_utf8_continuation(0x41), "ASCII is not a continuation byte")
+    assert(!is_utf8_continuation(0xC3), "a leading byte is not a continuation byte")
+    assert(is_utf8_continuation(0xA9), "0xA9 is a continuation byte")
+}
+
+@test test_codepoint_byte_len :: fn() -> void {
+    assert_eq(codepoint_byte_len('A'), 1)
+    assert_eq(codepoint_byte_len('é'), 2)
+    assert_eq(codepoint_byte_len('😀'), 4)
+}
+
+@test test_char_at_byte :: fn() -> void {
+    // "héllo" = h C3 A9 l l o : offset 1 is the lead byte of 'é'.
+    assert_eq(char_at_byte("héllo", 0), 'h')
+    assert_eq(char_at_byte("héllo", 1), 'é')
+    // Offset 2 lands on a continuation byte → U+FFFD.
+    assert_eq(char_at_byte("héllo", 2), REPLACEMENT_CHAR)
+}
+
+@test test_utf8_decode_len :: fn() -> void {
+    bs :: "a😀".bytes()
+    [c0, w0] :: utf8_decode_len(bs, 0)
+    assert_eq(c0, 'a')
+    assert_eq(w0, 1)
+    [c1, w1] :: utf8_decode_len(bs, 1)
+    assert_eq(c1, '😀')
+    assert_eq(w1, 4)
+}
+
+@test test_surrogate_classification :: fn() -> void {
+    assert(is_high_surrogate(char(0xD83D)), "0xD83D is a high surrogate")
+    assert(is_low_surrogate(char(0xDE00)), "0xDE00 is a low surrogate")
+    assert(is_surrogate(char(0xD83D)), "a high surrogate is a surrogate")
+    assert(!is_surrogate('A'), "ASCII is not a surrogate")
+    assert(!is_high_surrogate(char(0xDE00)), "a low surrogate is not a high surrogate")
+}
+
+@test test_combine_surrogates :: fn() -> void {
+    // 😀 (U+1F600) is encoded as the surrogate pair [D83D, DE00].
+    assert_eq(combine_surrogates(char(0xD83D), char(0xDE00)), '😀')
+}

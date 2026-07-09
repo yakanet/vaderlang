@@ -14,7 +14,7 @@
 module "vader/lsp/protocol"
 
 import "std/io" { read_stdin, print, eprintln, poll_stdin, set_stdin_unbuffered, IOError }
-import "std/string" { byte_decode_at, starts_with, parse_int, ParseError }
+import "std/string" { char_at_byte, starts_with, parse_int, ParseError }
 import "std/string_builder" { StringBuilder, append }
 
 export TransportError :: struct {
@@ -102,10 +102,10 @@ trim_ascii :: fn(s: string) -> string {
     start: usize = 0
     end := n
     for start < end {
-        if is_ascii_space(s.byte_decode_at(start)) { start = start + 1 } else { break }
+        if is_ascii_space(s.char_at_byte(start)) { start = start + 1 } else { break }
     }
     for end > start {
-        if is_ascii_space(s.byte_decode_at(end - 1)) { end = end - 1 } else { break }
+        if is_ascii_space(s.char_at_byte(end - 1)) { end = end - 1 } else { break }
     }
     return sb[start..<end].bytes_to_string()
 }

@@ -46,8 +46,8 @@
   expr 19:9     IdentExpr      :: usize
   expr 20:19    CallExpr       :: [char, usize]
   expr 20:19    IdentExpr      :: fn(string, usize) -> [char, usize]
-  expr 20:36    IdentExpr      :: string
-  expr 20:39    IdentExpr      :: usize
+  expr 20:37    IdentExpr      :: string
+  expr 20:40    IdentExpr      :: usize
   expr 21:17    StringLitExpr  :: string
   expr 21:23    IdentExpr      :: usize
   expr 21:30    IdentExpr      :: char

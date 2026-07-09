@@ -41,6 +41,8 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
+  Into<Target>
+  Add<Rhs, Out>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>
@@ -50,8 +52,6 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  Into<Target>
-  Add<Rhs, Out>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>

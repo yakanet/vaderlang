@@ -53,90 +53,11 @@ export ends_with :: fn(s: string, suffix: string) -> bool {
     return true
 }
 
-/// UTF-8 byte length of a Unicode codepoint — 1 to 4 bytes.
-///
-/// Encoding bands :
-///   - `U+0000..U+007F`     → 1 byte (ASCII)
-///   - `U+0080..U+07FF`     → 2 bytes
-///   - `U+0800..U+FFFF`     → 3 bytes
-///   - `U+10000..U+10FFFF`  → 4 bytes
-///
-/// Used by `chars()` to step a byte cursor over a UTF-8 sequence after decoding
-/// the codepoint at the current position. Codepoints above `U+10FFFF` clamp to
-/// 4 — invalid Unicode anyway.
-/// @param c  the codepoint to measure.
-/// @return   its UTF-8 encoded length in bytes (1, 2, 3, or 4).
-export codepoint_byte_len :: fn(c: char) -> usize {
-    cp :: u32(c)
-    if cp < 0x80    { return 1 }
-    if cp < 0x800   { return 2 }
-    if cp < 0x10000 { return 3 }
-    return 4
-}
-
-/// Decode the UTF-8 codepoint at byte offset `i`. The byte boundary
-/// matters : a continuation byte at `i` decodes as `U+FFFD` ; a
-/// truncated multi-byte sequence decodes as `U+0000`. The counterpart
-/// to `s[i]` (which indexes by codepoint) ; use this when you maintain
-/// a byte cursor (lexers, JSON parsers, LSP transport) and need the
-/// decoded character to compare against ASCII literals.
-/// @param i  byte offset. Traps if `i >= s.byte_len()`.
-export byte_decode_at :: fn(s: string, i: usize) -> char = decode_char_at(s.bytes(), i)
-
 // `bytes` (string→`const u8[]` view) moved to `std/core` (the prelude) in
 // Target ABI S3 — it sits below `std/string_builder`, which now needs it, and
 // `std/string` imports `std/string_builder`, so keeping `bytes` here would make
 // the buffer-backed builder's dependency a cycle. It is ambient now ; callers
 // drop it from their `import "std/string" { … }` lists.
-
-/// Unicode replacement character (U+FFFD) — the standard stand-in for an
-/// undecodable byte / an unpaired UTF-16 surrogate.
-export REPLACEMENT_CHAR :: char(0xFFFD)
-
-/// Decode the UTF-8 codepoint at byte offset `i` of a byte view. The byte
-/// counterpart to `byte_decode_at` — operates on a `const u8[]` (typically
-/// `s.bytes()`) instead of a string, so byte-cursor consumers can hold the
-/// view once and decode off it. A continuation byte at `i` decodes as
-/// `U+FFFD` ; a truncated multi-byte sequence decodes as `U+0000`.
-///
-/// @param bs  the byte view (e.g. `s.bytes()`).
-/// @param i   byte offset of a UTF-8 leading byte. Traps if `i >= bs.len()`.
-export decode_char_at :: fn(bs: const u8[], i: usize) -> char {
-    n :: bs.len()
-    b :: bs[i]
-    if b < 0x80 { return char(b) }
-    // Continuation byte as leader : invalid UTF-8.
-    if b < 0xC0 { return REPLACEMENT_CHAR }
-    rem :: n - i
-    if b < 0xE0 {
-        if rem < 2 { return char(0) }
-        b1 :: bs[i + 1]
-        return char(((u32(b) & 0x1F) << 6) + (u32(b1) & 0x3F))
-    }
-    if b < 0xF0 {
-        if rem < 3 { return char(0) }
-        b1 :: bs[i + 1]
-        b2 :: bs[i + 2]
-        return char(((u32(b) & 0x0F) << 12) + ((u32(b1) & 0x3F) << 6) + (u32(b2) & 0x3F))
-    }
-    if rem < 4 { return char(0) }
-    b1 :: bs[i + 1]
-    b2 :: bs[i + 2]
-    b3 :: bs[i + 3]
-    return char(((u32(b) & 0x07) << 18) + ((u32(b1) & 0x3F) << 12) + ((u32(b2) & 0x3F) << 6) + (u32(b3) & 0x3F))
-}
-
-/// Decode the UTF-8 sequence at byte offset `i` of a byte view into a
-/// codepoint and its encoded byte length. Byte counterpart to
-/// `decode_codepoint` — advance the caller's cursor by the returned `n`.
-///
-/// @param bs  the byte view (e.g. `s.bytes()`).
-/// @param i   byte offset of a UTF-8 leading byte.
-/// @return    `[codepoint, byte_length]`.
-export decode_codepoint_at :: fn(bs: const u8[], i: usize) -> [char, usize] {
-    c :: decode_char_at(bs, i)
-    return [c, codepoint_byte_len(c)]
-}
 
 /// Iterator yielding Unicode codepoints — one per UTF-8 sequence,
 /// regardless of whether the codepoint is encoded in 1, 2, 3, or 4
@@ -158,7 +79,7 @@ StringChars implements Iterator<char> {
         if (self.cursor >= self.length) {
             return null
         }
-        [c, width] :: self.bytes.decode_codepoint_at(self.cursor)
+        [c, width] :: self.bytes.utf8_decode_len(self.cursor)
         self.cursor = self.cursor + width
         return Yield<char> { .value = c }
     }
@@ -198,26 +119,6 @@ string implements Into<Iterator<char>> {
 string implements Contains<string> {
     contains :: fn(self, sub: string) -> bool { return byte_contains(self, sub) }
 }
-
-/// Decode the UTF-8 sequence at byte offset `i` into a codepoint and its
-/// encoded byte length. Returns `[c, n]` where `c` is the codepoint and
-/// `n` is the number of bytes consumed (1 to 4) — advance the caller's
-/// cursor by `n` to land on the next leading byte.
-///
-/// Caller must ensure `i` points at a leading byte (cursor invariant
-/// preserved by always advancing in `n`-byte steps from 0). For an offset
-/// landing on a continuation byte, `s[i]` returns `U+FFFD` and `n = 3` —
-/// incorrect for resync, so callers must not feed arbitrary offsets.
-///
-/// Bounds aren't checked : `i` must satisfy `0 <= i < s.byte_len()`.
-///
-/// Example :
-///   `[c, n] := decode_codepoint("héllo", 1)   // c = 'é', n = 2`
-///
-/// @param s  source string.
-/// @param i  byte offset of a UTF-8 leading byte.
-/// @return   `[codepoint, byte_length]`.
-export decode_codepoint :: fn(s: string, i: usize) -> [char, usize] = decode_codepoint_at(s.bytes(), i)
 
 // `len` (codepoint count) moved to `std/core` (the prelude) so `s.len()`
 // resolves without importing `std/string`. It was the one string method the
@@ -328,7 +229,7 @@ export last_index_of :: fn(s: string, c: char, min_index: isize) -> isize {
     last: isize = -1
     i: usize = 0
     for i < n {
-        [cp, width] :: sb.decode_codepoint_at(i)
+        [cp, width] :: sb.utf8_decode_len(i)
         if isize(i) >= min_index && cp == c { last = isize(i) }
         i += width
     }
@@ -349,7 +250,7 @@ export index_of :: fn(s: string, c: char, from: usize) -> isize {
     n :: sb.len()
     i := from
     for i < n {
-        [cp, width] :: sb.decode_codepoint_at(i)
+        [cp, width] :: sb.utf8_decode_len(i)
         if cp == c { return isize(i) }
         i += width
     }
@@ -509,7 +410,7 @@ export to_upper :: fn(s: string) -> string {
     n  :: bs.len()
     i: usize = 0
     for i < n {
-        [c, w] :: bs.decode_codepoint_at(i)
+        [c, w] :: bs.utf8_decode_len(i)
         // Re-emitting an unchanged codepoint via `append_char` reproduces its
         // canonical UTF-8 bytes — identical to slicing them back out.
         sb.append_char(char(to_upper_cp(u32(c))))
@@ -529,7 +430,7 @@ export to_lower :: fn(s: string) -> string {
     n  :: bs.len()
     i: usize = 0
     for i < n {
-        [c, w] :: bs.decode_codepoint_at(i)
+        [c, w] :: bs.utf8_decode_len(i)
         // See `to_upper` — `append_char` re-emits the canonical bytes.
         sb.append_char(char(to_lower_cp(u32(c))))
         i = i + w
@@ -690,7 +591,7 @@ export decode_escapes :: fn(body: string) -> string {
         if b != '\\' {
             // Not a backslash — copy the whole codepoint (it may be multibyte ;
             // a per-byte slice would split a UTF-8 sequence).
-            [c, w] :: bs.decode_codepoint_at(i)
+            [c, w] :: bs.utf8_decode_len(i)
             out.append_char(c)
             i += w
             continue
@@ -709,7 +610,7 @@ export decode_escapes :: fn(body: string) -> string {
         else if next == '0'  { out.append("\0") }
         else {
             // Unknown escape — drop the backslash, copy the following codepoint.
-            [c, w] :: bs.decode_codepoint_at(i + 1)
+            [c, w] :: bs.utf8_decode_len(i + 1)
             out.append_char(c)
             i += 1 + w
             continue
@@ -901,14 +802,6 @@ import "std/testing" { assert, assert_eq, assert_close }
     assert_eq(right_trim("x"), "x")
     assert_eq(left_trim("   "), "")
     assert_eq(right_trim("\t\nhi"), "\t\nhi")
-}
-
-@test test_byte_decode_at :: fn() -> void {
-    // "héllo" = h C3 A9 l l o : offset 1 is the lead byte of 'é'.
-    assert_eq(byte_decode_at("héllo", 0), 'h')
-    assert_eq(byte_decode_at("héllo", 1), 'é')
-    // Offset 2 lands on a continuation byte → U+FFFD.
-    assert_eq(byte_decode_at("héllo", 2), REPLACEMENT_CHAR)
 }
 
 @test test_split_edge :: fn() -> void {
