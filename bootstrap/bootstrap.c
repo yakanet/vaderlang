@@ -103,8 +103,8 @@ typedef struct vader_struct_std_collections_MutableMap__i32__FnDecl_t vader_stru
 typedef struct vader_struct_std_collections_MutableMap__i32__StructDecl_t vader_struct_std_collections_MutableMap__i32__StructDecl_t;
 typedef struct vader_struct_std_collections_MutableMap__i32__TraitDecl_t vader_struct_std_collections_MutableMap__i32__TraitDecl_t;
 typedef struct vader_struct_std_collections_MutableMap__i32__TypeAliasDecl_t vader_struct_std_collections_MutableMap__i32__TypeAliasDecl_t;
-typedef struct vader_struct_std_collections_MutableMap__i32__Symbol_t vader_struct_std_collections_MutableMap__i32__Symbol_t;
 typedef struct vader_struct_std_collections_MutableMap__i32__ImportInfo_t vader_struct_std_collections_MutableMap__i32__ImportInfo_t;
+typedef struct vader_struct_std_collections_MutableMap__i32__Symbol_t vader_struct_std_collections_MutableMap__i32__Symbol_t;
 typedef struct vader_struct_std_collections_MutableMap__i32__ResolvedModule_t vader_struct_std_collections_MutableMap__i32__ResolvedModule_t;
 typedef struct vader_struct_std_collections_MutableMap__i32__SymbolTarget_t vader_struct_std_collections_MutableMap__i32__SymbolTarget_t;
 typedef struct vader_struct_std_collections_MutableMap__string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType____t vader_struct_std_collections_MutableMap__string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType____t;
@@ -1512,7 +1512,7 @@ struct vader_struct_std_collections_MutableMap__i32__TypeAliasDecl_t {
     size_t f_size;
     size_t f_tombs;
 };
-struct vader_struct_std_collections_MutableMap__i32__Symbol_t {
+struct vader_struct_std_collections_MutableMap__i32__ImportInfo_t {
     vader_obj_header_t header;
     vader_box_t f_ekeys;
     vader_box_t f_evals;
@@ -1521,7 +1521,7 @@ struct vader_struct_std_collections_MutableMap__i32__Symbol_t {
     size_t f_size;
     size_t f_tombs;
 };
-struct vader_struct_std_collections_MutableMap__i32__ImportInfo_t {
+struct vader_struct_std_collections_MutableMap__i32__Symbol_t {
     vader_obj_header_t header;
     vader_box_t f_ekeys;
     vader_box_t f_evals;
@@ -12699,8 +12699,8 @@ static const uint16_t vader_type_131_ptrs[] = { offsetof(vader_struct_std_collec
 static const uint16_t vader_type_132_ptrs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__StructDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__StructDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__StructDecl_t, f_index) };
 static const uint16_t vader_type_133_ptrs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__TraitDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__TraitDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__TraitDecl_t, f_index) };
 static const uint16_t vader_type_134_ptrs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__TypeAliasDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__TypeAliasDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__TypeAliasDecl_t, f_index) };
-static const uint16_t vader_type_135_ptrs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__Symbol_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__Symbol_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__Symbol_t, f_index) };
-static const uint16_t vader_type_136_ptrs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__ImportInfo_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__ImportInfo_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__ImportInfo_t, f_index) };
+static const uint16_t vader_type_135_ptrs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__ImportInfo_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__ImportInfo_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__ImportInfo_t, f_index) };
+static const uint16_t vader_type_136_ptrs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__Symbol_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__Symbol_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__Symbol_t, f_index) };
 static const uint16_t vader_type_137_ptrs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__ResolvedModule_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__ResolvedModule_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__ResolvedModule_t, f_index) };
 static const uint16_t vader_type_138_ptrs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__SymbolTarget_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__SymbolTarget_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__SymbolTarget_t, f_index) };
 static const uint16_t vader_type_139_ptrs[] = { offsetof(vader_struct_std_collections_MutableMap__string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType____t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType____t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType____t, f_index) };
@@ -13477,8 +13477,8 @@ const vader_type_info_t vader_type_info_table[1257] = {
     [132] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__StructDecl_t), vader_type_132_ptrs, 3, 0, NULL, 0, NULL },
     [133] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__TraitDecl_t), vader_type_133_ptrs, 3, 0, NULL, 0, NULL },
     [134] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__TypeAliasDecl_t), vader_type_134_ptrs, 3, 0, NULL, 0, NULL },
-    [135] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__Symbol_t), vader_type_135_ptrs, 3, 0, NULL, 0, NULL },
-    [136] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__ImportInfo_t), vader_type_136_ptrs, 3, 0, NULL, 0, NULL },
+    [135] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__ImportInfo_t), vader_type_135_ptrs, 3, 0, NULL, 0, NULL },
+    [136] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__Symbol_t), vader_type_136_ptrs, 3, 0, NULL, 0, NULL },
     [137] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__ResolvedModule_t), vader_type_137_ptrs, 3, 0, NULL, 0, NULL },
     [138] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__SymbolTarget_t), vader_type_138_ptrs, 3, 0, NULL, 0, NULL },
     [139] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType____t), vader_type_139_ptrs, 3, 0, NULL, 0, NULL },
@@ -36122,14 +36122,14 @@ static vader_box_t vader_resolver_resolve_module_with_collected_dp_seeded(vader_
     t24 = vader_box_obj(38u, _a6_arr);
     l17 = t24;
     vader_struct_std_collections_MutableMap__i32__Symbol_t* _a7_obj = (vader_struct_std_collections_MutableMap__i32__Symbol_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__i32__Symbol_t));
-    vader_obj_header_init(_a7_obj, 135u);
+    vader_obj_header_init(_a7_obj, 136u);
     _a7_obj->f_ekeys = l14;
     _a7_obj->f_evals = l16;
     _a7_obj->f_index = l17;
     _a7_obj->f_mask = (size_t) (int64_t) INT64_C(0);
     _a7_obj->f_size = (size_t) (int64_t) INT64_C(0);
     _a7_obj->f_tombs = (size_t) (int64_t) INT64_C(0);
-    t25 = vader_box_obj(135u, _a7_obj);
+    t25 = vader_box_obj(136u, _a7_obj);
     l14 = t25;
     vader_array_t* _a8_arr = vader_array_new(38u, 0u, 7u, 3u);
     t26 = vader_box_obj(38u, _a8_arr);
@@ -41567,14 +41567,14 @@ static vader_box_t vader_resolver_new_import_table(void) {
     t2 = vader_box_obj(38u, _a2_arr);
     l2 = t2;
     vader_struct_std_collections_MutableMap__i32__ImportInfo_t* _a3_obj = (vader_struct_std_collections_MutableMap__i32__ImportInfo_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__i32__ImportInfo_t));
-    vader_obj_header_init(_a3_obj, 136u);
+    vader_obj_header_init(_a3_obj, 135u);
     _a3_obj->f_ekeys = l0;
     _a3_obj->f_evals = l1;
     _a3_obj->f_index = l2;
     _a3_obj->f_mask = (size_t) (int64_t) INT64_C(0);
     _a3_obj->f_size = (size_t) (int64_t) INT64_C(0);
     _a3_obj->f_tombs = (size_t) (int64_t) INT64_C(0);
-    t3 = vader_box_obj(136u, _a3_obj);
+    t3 = vader_box_obj(135u, _a3_obj);
     { vader_box_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
@@ -49916,14 +49916,14 @@ static vader_box_t vader_typecheck_synth_resolved(void) {
     t15 = vader_box_obj(38u, _a15_arr);
     l6 = t15;
     vader_struct_std_collections_MutableMap__i32__Symbol_t* _a16_obj = (vader_struct_std_collections_MutableMap__i32__Symbol_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__i32__Symbol_t));
-    vader_obj_header_init(_a16_obj, 135u);
+    vader_obj_header_init(_a16_obj, 136u);
     _a16_obj->f_ekeys = l4;
     _a16_obj->f_evals = l5;
     _a16_obj->f_index = l6;
     _a16_obj->f_mask = (size_t) (int64_t) INT64_C(0);
     _a16_obj->f_size = (size_t) (int64_t) INT64_C(0);
     _a16_obj->f_tombs = (size_t) (int64_t) INT64_C(0);
-    t16 = vader_box_obj(135u, _a16_obj);
+    t16 = vader_box_obj(136u, _a16_obj);
     l4 = t16;
     vader_array_t* _a17_arr = vader_array_new(38u, 0u, 7u, 3u);
     t17 = vader_box_obj(38u, _a17_arr);
@@ -83721,14 +83721,14 @@ static vader_box_t vader_lower_new_lower_project_ctx(vader_box_t l0, vader_box_t
     t25 = vader_box_obj(38u, _a23_arr);
     l13 = t25;
     vader_struct_std_collections_MutableMap__i32__Symbol_t* _a24_obj = (vader_struct_std_collections_MutableMap__i32__Symbol_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__i32__Symbol_t));
-    vader_obj_header_init(_a24_obj, 135u);
+    vader_obj_header_init(_a24_obj, 136u);
     _a24_obj->f_ekeys = l11;
     _a24_obj->f_evals = l12;
     _a24_obj->f_index = l13;
     _a24_obj->f_mask = (size_t) (int64_t) INT64_C(0);
     _a24_obj->f_size = (size_t) (int64_t) INT64_C(0);
     _a24_obj->f_tombs = (size_t) (int64_t) INT64_C(0);
-    t26 = vader_box_obj(135u, _a24_obj);
+    t26 = vader_box_obj(136u, _a24_obj);
     l11 = t26;
     vader_array_t* _a25_arr = vader_array_new(556u, 0u, 0u, 429u);
     t27 = vader_box_obj(556u, _a25_arr);
