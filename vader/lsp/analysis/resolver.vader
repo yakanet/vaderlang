@@ -16,7 +16,7 @@ module "vader/lsp/analysis"
 import "std/io" { read_file_string, read_dir, is_dir, IOError }
 import "std/string" { starts_with }
 import "vader/resolver" { default_stdlib_root, find_manifest_root }
-import "vader/lsp/protocol" { uri_to_path, path_to_uri }
+import "vader/lsp/protocol" { uri_to_path, path_to_uri, PositionEncoding }
 
 /// Where a cross-file goto-def landed : a file URI + the target's
 /// `name_span` so the handler can encode an LSP `Location`. Returns
@@ -42,13 +42,13 @@ export resolve :: fn(state: ServerState, idx: DocIndex, name: string) -> Externa
     // per-document index only sees the open file, so search the rest of the
     // module's directory. This is the dominant cross-file case in the compiler
     // tree, and it isn't an `import` so the table lookup above never finds it.
-    return resolve_sibling(idx.uri, name)
+    return resolve_sibling(idx.uri, name, state.position_encoding)
 }
 
 // Search the `*.vader` siblings of `from_uri`'s directory for a top-level
 // decl named `name`. Returns the first hit, or null. Skips the open file
 // itself (its own decls are handled by the in-document index).
-resolve_sibling :: fn(from_uri: string, name: string) -> ExternalHit | null {
+resolve_sibling :: fn(from_uri: string, name: string, encoding: PositionEncoding) -> ExternalHit | null {
     from_path :: uri_to_path(from_uri)
     if from_path.bytes().len() == 0 { return null }
     dir :: dirname_path(from_path)
@@ -60,7 +60,7 @@ resolve_sibling :: fn(from_uri: string, name: string) -> ExternalHit | null {
                 if !fname.ends_with_vader() { continue }
                 full :: path_join(dir, fname)
                 if full == from_path { continue }
-                hit :: lookup_in_file(full, name)
+                hit :: lookup_in_file(full, name, encoding)
                 match hit {
                     is ExternalHit as h -> { return h }
                     is null -> {}
@@ -85,7 +85,7 @@ resolve_imported :: fn(state: ServerState, idx: DocIndex, imp: ImportEntry) -> E
                 for fname in files {
                     if !fname.ends_with_vader() { continue }
                     full :: path_join(abs, fname)
-                    hit :: lookup_in_file(full, imp.original_name)
+                    hit :: lookup_in_file(full, imp.original_name, state.position_encoding)
                     match hit {
                         is ExternalHit as h -> { return h }
                         is null -> {}
@@ -98,20 +98,20 @@ resolve_imported :: fn(state: ServerState, idx: DocIndex, imp: ImportEntry) -> E
 
     // File-form module : single `<abs>.vader`.
     with_ext :: ensure_vader_ext(abs)
-    return lookup_in_file(with_ext, imp.original_name)
+    return lookup_in_file(with_ext, imp.original_name, state.position_encoding)
 }
 
 // Read `path` from disk, parse + index it, hunt for `name` among the
 // top-level decls. Returns `null` when the file doesn't exist, fails
 // to read, or doesn't export `name`. The returned URI is `file://`
 // + the absolute path so editors jump correctly.
-lookup_in_file :: fn(path: string, name: string) -> ExternalHit | null {
+lookup_in_file :: fn(path: string, name: string, encoding: PositionEncoding) -> ExternalHit | null {
     src_or :: read_file_string(path)
     match src_or {
         is IOError -> { return null }
         is string as src -> {
             uri :: path_to_uri(path)
-            sub :: build_index(uri, src)
+            sub :: build_index(uri, src, encoding)
             d :: sub.find_toplevel(name)
             if d == null { return null }
             return ExternalHit { .uri = uri, .target = d }

@@ -1,0 +1,213 @@
+// vader/lsp/protocol/line_index — byte ↔ LSP (line, character) conversion.
+//
+// LSP positions are `(line, character)` where `character` is counted in the
+// encoding negotiated at `initialize` (`general.positionEncodings`, LSP 3.17+).
+// Vader is byte-native — the lexer's `Span.offset` is a UTF-8 byte offset — so we
+// prefer `utf-8` (character == byte, no scan), and fall back to `utf-16` (the
+// protocol default) or `utf-32` (codepoints) for clients that don't offer utf-8.
+//
+// A `LineIndex` precomputes the byte offset of every line start once per document
+// so each span converts in O(characters-on-its-line). The per-byte ASCII branch
+// is the fast path: an ASCII byte counts as one unit in every encoding, so a
+// pure-ASCII line (the overwhelming common case) needs no real work, and utf-8
+// skips the scan entirely. Line breaks match the lexer (`vader/lexer/lexer.vader`
+// `advance`): LF, a lone CR, and CRLF each start exactly one new line.
+//
+// See `position.vader` for the JSON encoders that consume the results, and
+// `docs/LSP_COMPLETENESS.md` §3.18 for the negotiation this implements.
+
+module "vader/lsp/protocol"
+
+import "std/math" { min }
+
+// ---- encoding -------------------------------------------------------------
+
+/// The `character` counting unit negotiated at `initialize`. `Utf16` is the LSP
+/// default ; `Utf8` is preferred (Vader is byte-native) ; `Utf32` counts
+/// codepoints. An astral codepoint (U+10000+) is 4 UTF-8 bytes = 2 UTF-16 units
+/// = 1 UTF-32 unit — the only place the three diverge.
+export PositionEncoding :: enum(u8) {
+    Utf8,
+    Utf16,
+    Utf32,
+}
+
+// ---- line index -----------------------------------------------------------
+
+/// Per-document line map. `line_starts[k]` is the byte offset of line `k`'s
+/// first byte (`line_starts[0] == 0`), so `(line, character)` conversions do an
+/// O(1) line lookup then walk only that line's bytes.
+export LineIndex :: struct {
+    /// The document text. Bytes are read through `source.bytes()` (zero-copy).
+    source:      string
+    /// Negotiated character-counting unit.
+    encoding:    PositionEncoding
+    /// Byte offset of each line's first byte.
+    line_starts: usize[]
+}
+
+/// Build a `LineIndex` over `source` in one O(n) pass. Line breaks match the
+/// lexer: LF, a lone CR, and CRLF each begin one new line (the CR of a CRLF pair
+/// does not start a line on its own).
+/// @param source    the full document text.
+/// @param encoding  the negotiated `character` unit.
+/// @return          an index ready for `li_character` / `li_offset`.
+export new_line_index :: fn(source: string, encoding: PositionEncoding) -> LineIndex {
+    b :: source.bytes()
+    n :: b.len()
+    starts: usize[] = [0]
+    i: usize = 0
+    for i < n {
+        if b[i] == '\n' {
+            starts.push(i + 1)
+        } else if b[i] == '\r' && (i + 1 >= n || b[i + 1] != '\n') {
+            starts.push(i + 1)
+        }
+        i += 1
+    }
+    return LineIndex { .source = source, .encoding = encoding, .line_starts = starts }
+}
+
+// ---- conversions ----------------------------------------------------------
+
+/// Byte length of the UTF-8 codepoint led by `b`. Continuation / invalid leading
+/// bytes fall back to 1 so a malformed document never stalls the walk.
+utf8_len :: fn(b: u8) -> usize {
+    if b < 0x80 { return 1 }   // ASCII
+    if b < 0xC0 { return 1 }   // stray continuation byte — advance one, defensively
+    if b < 0xE0 { return 2 }
+    if b < 0xF0 { return 3 }
+    return 4
+}
+
+/// Count `character` units between byte offsets `from` and `to` under `encoding`.
+/// `from`/`to` should sit on codepoint boundaries (span offsets always do).
+count_units :: fn(source: string, from: usize, to: usize, encoding: PositionEncoding) -> i32 {
+    // utf-8 : the character IS the byte offset — no scan.
+    if encoding == .Utf8 { return i32(to - from) }
+    b :: source.bytes()
+    hi :: min(to, b.len())
+    count: i32 = 0
+    i: usize = from
+    for i < hi {
+        w :: utf8_len(b[i])
+        // Astral (4-byte) codepoints are two UTF-16 units ; one unit everywhere
+        // else. ASCII / BMP take this single-increment path.
+        if encoding == .Utf16 && w == 4 { count += 2 } else { count += 1 }
+        i += w
+    }
+    return count
+}
+
+/// Outgoing : the 0-based LSP `character` for a compiler byte offset on a known
+/// line. `line` is 0-based (pass `span.line - 1`) ; `byte_offset` is the span's
+/// UTF-8 offset. Returns 0 for an out-of-range line (defensive).
+/// @param li           the document index.
+/// @param line         0-based line the offset sits on.
+/// @param byte_offset  absolute UTF-8 byte offset of the position.
+/// @return             the 0-based character in the negotiated encoding.
+export li_character :: fn(li: LineIndex, line: i32, byte_offset: usize) -> i32 {
+    if line < 0 || usize(line) >= li.line_starts.len() { return 0 }
+    line_start :: li.line_starts[usize(line)]
+    if byte_offset <= line_start { return 0 }
+    return count_units(li.source, line_start, byte_offset, li.encoding)
+}
+
+/// Incoming : the absolute UTF-8 byte offset for an LSP `(line, character)`.
+/// Clamps to the line start when `character <= 0`, and never runs past the line's
+/// terminator. Replaces the old codepoint-only `lsp_to_offset`.
+/// @param li         the document index.
+/// @param line       0-based LSP line.
+/// @param character  0-based LSP character in the negotiated encoding.
+/// @return           the absolute byte offset.
+export li_offset :: fn(li: LineIndex, line: i32, character: i32) -> usize {
+    b :: li.source.bytes()
+    n :: b.len()
+    if line < 0 { return 0 }
+    if usize(line) >= li.line_starts.len() { return n }
+    cursor: usize = li.line_starts[usize(line)]
+    if character <= 0 { return cursor }
+    remaining: i32 = character
+    for cursor < n && remaining > 0 {
+        c :: b[cursor]
+        if c == '\n' || c == '\r' { break }   // never cross into the next line
+        w :: utf8_len(c)
+        cursor += w
+        if li.encoding == .Utf8 {
+            remaining -= i32(w)
+        } else if li.encoding == .Utf16 && w == 4 {
+            remaining -= 2
+        } else {
+            remaining -= 1
+        }
+    }
+    return cursor
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+@test test_line_starts_lf :: fn() -> void {
+    li :: new_line_index("ab\ncd\n", .Utf8)
+    assert_eq(li.line_starts.len(), 3)   // "ab", "cd", "" after the trailing LF
+    assert_eq(li.line_starts[0], 0)
+    assert_eq(li.line_starts[1], 3)
+    assert_eq(li.line_starts[2], 6)
+}
+
+@test test_line_starts_crlf_and_lone_cr :: fn() -> void {
+    // CRLF is one break ; lone CR is one break — matches the lexer.
+    li :: new_line_index("a\r\nb\rc", .Utf8)   // "a" CRLF "b" CR "c"
+    assert_eq(li.line_starts.len(), 3)
+    assert_eq(li.line_starts[0], 0)
+    assert_eq(li.line_starts[1], 3)   // after "a\r\n"
+    assert_eq(li.line_starts[2], 5)   // after "b\r"
+}
+
+@test test_character_ascii_all_encodings :: fn() -> void {
+    // Pure ASCII : character == byte offset in every encoding.
+    for enc in [PositionEncoding.Utf8, PositionEncoding.Utf16, PositionEncoding.Utf32] {
+        li :: new_line_index("abc def", enc)
+        assert_eq(li_character(li, 0, 4), 4)   // 'd'
+    }
+}
+
+@test test_character_bmp_accent :: fn() -> void {
+    // "café x" : é (U+00E9) is 2 UTF-8 bytes, 1 unit in utf-16/utf-32.
+    // bytes: c@0 a@1 f@2 é@3(2B) space@5 x@6.
+    assert_eq(li_character(new_line_index("café x", .Utf8),  0, 6), 6)   // byte offset
+    assert_eq(li_character(new_line_index("café x", .Utf16), 0, 6), 5)   // é counts 1
+    assert_eq(li_character(new_line_index("café x", .Utf32), 0, 6), 5)   // é counts 1
+}
+
+@test test_character_astral_emoji :: fn() -> void {
+    // "a😀b" : 😀 (U+1F600) is 4 UTF-8 bytes = 2 UTF-16 units = 1 codepoint.
+    // bytes: a@0 😀@1(4B) b@5.
+    assert_eq(li_character(new_line_index("a😀b", .Utf8),  0, 5), 5)   // byte offset
+    assert_eq(li_character(new_line_index("a😀b", .Utf16), 0, 5), 3)   // a + 2 for 😀
+    assert_eq(li_character(new_line_index("a😀b", .Utf32), 0, 5), 2)   // a + 1 for 😀
+}
+
+@test test_offset_roundtrip_astral :: fn() -> void {
+    // li_offset is the inverse of li_character for each encoding.
+    utf8  :: new_line_index("a😀b", .Utf8)
+    utf16 :: new_line_index("a😀b", .Utf16)
+    utf32 :: new_line_index("a😀b", .Utf32)
+    assert_eq(li_offset(utf8,  0, 5), 5)   // 'b'
+    assert_eq(li_offset(utf16, 0, 3), 5)   // 'b' at utf-16 char 3
+    assert_eq(li_offset(utf32, 0, 2), 5)   // 'b' at codepoint 2
+}
+
+@test test_offset_second_line :: fn() -> void {
+    li :: new_line_index("abc\ndéf", .Utf16)   // é on line 1
+    // line 1: d@4 é@5(2B) f@7. utf-16 char 2 on line 1 → 'f' at byte 7.
+    assert_eq(li_offset(li, 1, 2), 7)
+    assert_eq(li_offset(li, 1, 0), 4)   // line start
+}
+
+@test test_offset_clamps_at_line_end :: fn() -> void {
+    li :: new_line_index("ab\ncd", .Utf8)
+    // Asking past the end of line 0 stops at the LF, not into line 1.
+    assert_eq(li_offset(li, 0, 99), 2)
+}

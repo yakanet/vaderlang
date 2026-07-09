@@ -53,7 +53,8 @@ export handle_type_definition :: fn(state: ServerState, params: JsonValue) -> Js
     if sym == null { return JsonNull {} }
     da :: sym.defined_at
     if da == null { return JsonNull {} }
-    return location_json(path_to_uri(da.start.file), da.span_to_range_json())
+    li :: state.line_index_for_path(da.start.file)
+    return location_json(path_to_uri(da.start.file), da.span_to_range_json(li))
 }
 
 // The declaring `Symbol` carried by a named type, or null for types with no

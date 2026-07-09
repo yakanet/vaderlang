@@ -24,7 +24,7 @@ import "vader/typecheck" {
 }
 import "vader/lsp/protocol" {
     position_uri, position_line, position_character, span_contains,
-    uri_to_path, lsp_to_offset, line_start_offset,
+    uri_to_path, li_offset, line_start_offset, LineIndex, new_line_index,
 }
 import "vader/lsp/analysis" {
     ServerState, DocIndex, DeclEntry, DeclKind, build_index,
@@ -52,10 +52,10 @@ export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonVal
 
             // Member access (`receiver.<cursor>`) → Tier 2 : the receiver's
             // struct fields + impl methods, resolved through the typed cache.
-            dot :: member_context(index.source, line0, char0)
+            dot :: member_context(index.line_index, line0, char0)
             if dot != null {
-                lead :: is_leading_dot(index.source, line0, dot)
-                skey :: dot_after_brace_or_comma(index.source, line0, dot)
+                lead :: is_leading_dot(index.line_index, line0, dot)
+                skey :: dot_after_brace_or_comma(index.line_index, line0, dot)
                 return member_completion(state, uri, line0, dot, lead, skey)
             }
 
@@ -158,9 +158,9 @@ strip_binding_prefix :: fn(sig: string) -> string {
 /// member identifier already typed ; if a `.` precedes it, returns that dot's
 /// 1-based column (the receiver ends just before it). Returns `null` when the
 /// cursor isn't completing a member. `line0` / `char0` are 0-based (LSP).
-member_context :: fn(source: string, line0: i32, char0: i32) -> i32 | null {
-    sb :: source.bytes()
-    i := lsp_to_offset(source, line0, char0)
+member_context :: fn(li: LineIndex, line0: i32, char0: i32) -> i32 | null {
+    sb :: li.source.bytes()
+    i := li_offset(li, line0, char0)
     if i > sb.len() { i = sb.len() }
     for i > 0 {
         if is_ident_byte(sb[i - 1]) { i = i - 1 } else { break }
@@ -168,7 +168,7 @@ member_context :: fn(source: string, line0: i32, char0: i32) -> i32 | null {
     if i == 0 { return null }
     if sb[i - 1] != '.' { return null }
     dot_off :: i - 1
-    ls :: line_start_offset(source, dot_off)
+    ls :: line_start_offset(li.source, dot_off)
     return i32(dot_off - ls) + 1
 }
 
@@ -308,13 +308,13 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
 // byte before the dot (skipping whitespace): a value end (`ident` / `)` / `]`)
 // means member access ; anything else (`(`, `,`, `=`, `{`, `>` from `->`, start
 // of input) means the dot opens an enum literal whose type comes from context.
-is_leading_dot :: fn(source: string, line0: i32, dot_col: i32) -> bool {
+is_leading_dot :: fn(li: LineIndex, line0: i32, dot_col: i32) -> bool {
     // The byte IMMEDIATELY before the dot (no whitespace skip): a member access
     // is `recv.field` with the value glued to the dot, so a value end (ident /
     // `)` / `]`) right before it means member access. A space / `(` / `=` / `{`
     // / keyword-gap (`return .`) / start-of-input means a leading dot.
-    sb :: source.bytes()
-    dot_off :: lsp_to_offset(source, line0, dot_col - 1)
+    sb :: li.source.bytes()
+    dot_off :: li_offset(li, line0, dot_col - 1)
     if dot_off == 0 { return true }
     b :: sb[dot_off - 1]
     if is_ident_byte(b) { return false }
@@ -324,9 +324,9 @@ is_leading_dot :: fn(source: string, line0: i32, dot_col: i32) -> bool {
 
 // The source byte before the dot at 1-based `dot_col` on `line0`, skipping
 // whitespace ; 0 at the start of input. Shared by the leading-dot classifiers.
-byte_before_dot :: fn(source: string, line0: i32, dot_col: i32) -> u8 {
-    sb :: source.bytes()
-    dot_off :: lsp_to_offset(source, line0, dot_col - 1)
+byte_before_dot :: fn(li: LineIndex, line0: i32, dot_col: i32) -> u8 {
+    sb :: li.source.bytes()
+    dot_off :: li_offset(li, line0, dot_col - 1)
     if dot_off == 0 { return 0 }
     i := dot_off - 1
     for i > 0 {
@@ -337,8 +337,8 @@ byte_before_dot :: fn(source: string, line0: i32, dot_col: i32) -> u8 {
 
 // True when the dot opens a struct-literal field key — the byte before it (after
 // whitespace) is `{` or `,` (`S { .field` / `, .field`). A subset of is_leading_dot.
-dot_after_brace_or_comma :: fn(source: string, line0: i32, dot_col: i32) -> bool {
-    b :: byte_before_dot(source, line0, dot_col)
+dot_after_brace_or_comma :: fn(li: LineIndex, line0: i32, dot_col: i32) -> bool {
+    b :: byte_before_dot(li, line0, dot_col)
     return b == '{' || b == ','
 }
 
@@ -706,7 +706,7 @@ add :: fn(a: i32, b: i32) -> i32 {
 
 MAX :: 10
 """
-    idx :: build_index("t.vader", src)
+    idx :: build_index("t.vader", src, .Utf16)
     // Cursor on the `return sum` line — inside add's body, so `sum` (Local) is
     // visible alongside the top-level decls.
     vis :: visible_decls(idx, 3, 5)
@@ -725,7 +725,7 @@ add :: fn(a: i32, b: i32) -> i32 {
 
 MAX :: 10
 """
-    idx :: build_index("t.vader", src)
+    idx :: build_index("t.vader", src, .Utf16)
     // Cursor on the `MAX` line — outside add's body, so `sum` is not visible,
     // but the top-level decls still are.
     vis :: visible_decls(idx, 6, 1)
@@ -751,7 +751,7 @@ test_import_ci_kind_casing :: fn() -> void {
 @test
 test_member_context_detects_dot :: fn() -> void {
     // "p.x" — cursor after `x` (0-based char 3) ; the `.` sits at 1-based col 2.
-    dc :: member_context("p.x", 0, 3)
+    dc :: member_context(new_line_index("p.x", .Utf8), 0, 3)
     if dc == null { assert(false, "expected member context after a dot") }
     else { assert_eq(dc, 2) }
 }
@@ -759,12 +759,12 @@ test_member_context_detects_dot :: fn() -> void {
 @test
 test_member_context_detects_dot_no_partial :: fn() -> void {
     // "p." — cursor right after the dot (char 2). Dot at 1-based col 2.
-    dc :: member_context("p.", 0, 2)
+    dc :: member_context(new_line_index("p.", .Utf8), 0, 2)
     if dc == null { assert(false, "trailing dot is a member context") }
     else { assert_eq(dc, 2) }
 }
 
 @test
 test_member_context_none_without_dot :: fn() -> void {
-    assert(member_context("foo", 0, 3) == null, "plain ident is not a member context")
+    assert(member_context(new_line_index("foo", .Utf8), 0, 3) == null, "plain ident is not a member context")
 }

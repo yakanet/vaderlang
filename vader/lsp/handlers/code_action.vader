@@ -17,6 +17,7 @@ import "std/json" { JsonValue, JsonObject, JsonString, JsonArray }
 import "std/collections" { MutableMap }
 import "vader/lsp/protocol" {
     position_uri, uri_to_path, get_field, get_number, span_to_range_json, range_json,
+    LineIndex, new_line_index,
 }
 import "vader/lsp/analysis" {
     ServerState, typed_project_for, source_file_for_path, enclosing_exprs,
@@ -45,6 +46,7 @@ export handle_code_action :: fn(state: ServerState, params: JsonValue) -> JsonVa
     line :: range_start_field(params, "line") + 1
     col  :: range_start_field(params, "character") + 1
     ctx :: ActionCtx { .source = sf.content }
+    li :: new_line_index(sf.content, state.position_encoding)
 
     items: JsonValue[] = []
     // Node-driven rewrites (match→if, if→match, UFCS) on the cursor's enclosing
@@ -53,20 +55,20 @@ export handle_code_action :: fn(state: ServerState, params: JsonValue) -> JsonVa
     chain :: enclosing_exprs(sf.program.decls, line, col)
     node_results :: run_actions(chain, ctx)
     for r in node_results {
-        items.push(code_action_json(r, uri))
+        items.push(code_action_json(r, uri, li))
     }
     source_results :: run_source_actions(sf.program.decls, ctx)
     for r in source_results {
-        items.push(code_action_json(r, uri))
+        items.push(code_action_json(r, uri, li))
     }
     return JsonArray { .items = items }
 }
 
 // Encode one `CodeAction` carrying a single-file `WorkspaceEdit` that replaces
 // the action's target span with its rewritten text.
-code_action_json :: fn(r: ActionResult, uri: string) -> JsonValue {
+code_action_json :: fn(r: ActionResult, uri: string, li: LineIndex) -> JsonValue {
     text_edit :: MutableMap<string, JsonValue> {}
-    text_edit["range"]   = range_json(span_to_range_json(r.target_span))
+    text_edit["range"]   = range_json(span_to_range_json(r.target_span, li))
     text_edit["newText"] = JsonString { .value = r.new_text }
 
     edits: JsonValue[] = [JsonObject { .entries = text_edit }]

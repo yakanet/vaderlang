@@ -20,7 +20,7 @@ import "std/io" { exists }
 import "vader/diagnostics" { Span, Position }
 import "vader/parser" { parse_source, ImportDecl }
 import "vader/resolver" { list_vader_files }
-import "vader/lsp/protocol" { position_uri, range_json, span_to_range_json, SpanRange, path_to_uri }
+import "vader/lsp/protocol" { position_uri, range_json, span_to_range_json, SpanRange, path_to_uri, LineIndex, new_line_index }
 import "vader/lsp/analysis" { ServerState, module_path_to_absolute, ensure_vader_ext }
 
 /// Build the `DocumentLink[]` response for the document named in `params`
@@ -39,7 +39,7 @@ export handle_document_link :: fn(state: ServerState, params: JsonValue) -> Json
     links: JsonValue[] = []
     for d in parsed.program.decls {
         if d is ImportDecl as imp {
-            link :: import_link(imp, idx.source, state, uri)
+            link :: import_link(imp, idx.source, state, uri, idx.line_index)
             if link != null { links.push(link) }
         }
     }
@@ -50,12 +50,12 @@ export handle_document_link :: fn(state: ServerState, params: JsonValue) -> Json
 
 // One `DocumentLink` for an import, or null when the path can't be resolved to
 // an on-disk file (unknown root prefix, missing module, empty directory).
-import_link :: fn(imp: ImportDecl, source: string, state: ServerState, from_uri: string) -> JsonValue | null {
+import_link :: fn(imp: ImportDecl, source: string, state: ServerState, from_uri: string, li: LineIndex) -> JsonValue | null {
     abs :: module_path_to_absolute(imp.path, state, from_uri)
     if abs == "" { return null }
     target :: representative_file(abs)
     if target == "" { return null }
-    range :: path_string_range(imp, source)
+    range :: path_string_range(imp, source, li)
     if range == null { return null }
     obj :: MutableMap<string, JsonValue> {}
     obj["range"]  = range_json(range)
@@ -82,7 +82,7 @@ representative_file :: fn(abs: string) -> string {
 // Module paths are ASCII, so the byte distance from the decl start equals the
 // column distance (no multi-byte codepoints before the path). Returns null when
 // no quote is found before the line ends (malformed import — parser recovery).
-path_string_range :: fn(imp: ImportDecl, source: string) -> SpanRange | null {
+path_string_range :: fn(imp: ImportDecl, source: string, li: LineIndex) -> SpanRange | null {
     sb :: source.bytes()
     n :: sb.len()
     start_off :: imp.span.start.offset
@@ -112,7 +112,7 @@ path_string_range :: fn(imp: ImportDecl, source: string) -> SpanRange | null {
             .line = imp.span.start.line, .column = start_col + i32(plen),
         },
     }
-    return sp.span_to_range_json()
+    return sp.span_to_range_json(li)
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -128,7 +128,7 @@ test_path_range_covers_quoted_path :: fn() -> void {
     saw := false
     for d in parsed.program.decls {
         if d is ImportDecl as imp {
-            r :: path_string_range(imp, src)
+            r :: path_string_range(imp, src, new_line_index(src, .Utf8))
             if r == null { assert(false, "expected a path range") }
             else {
                 assert_eq(r.start_line, 1)
@@ -150,7 +150,7 @@ test_path_range_handles_namespace_import :: fn() -> void {
     saw := false
     for d in parsed.program.decls {
         if d is ImportDecl as imp {
-            r :: path_string_range(imp, src)
+            r :: path_string_range(imp, src, new_line_index(src, .Utf8))
             if r == null { assert(false, "expected a path range") }
             else {
                 // `Lo :: import "` is 14 chars, so the path starts at 0-based 14.

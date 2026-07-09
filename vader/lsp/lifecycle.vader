@@ -12,7 +12,10 @@ import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonArray
 }
 import "std/collections" { MutableMap }
-import "vader/lsp/protocol" { get_field, get_bool, log_info, TOKEN_TYPES, TOKEN_MODIFIERS }
+import "vader/lsp/protocol" {
+    get_field, get_bool, log_info, TOKEN_TYPES, TOKEN_MODIFIERS,
+    PositionEncoding,
+}
 import "vader/lsp/analysis" { ServerState }
 
 /// Build the response payload for `initialize` and remember the
@@ -30,9 +33,10 @@ import "vader/lsp/analysis" { ServerState }
 /// @return        the JSON value to ship back as the `result` field.
 export handle_initialize :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     state.definition_link_support = read_definition_link_support(params)
-    log_info("vader-lsp: client.linkSupport=${state.definition_link_support}")
+    state.position_encoding = negotiate_position_encoding(params)
+    log_info("vader-lsp: client.linkSupport=${state.definition_link_support} positionEncoding=${position_encoding_kind(state.position_encoding)}")
 
-    capabilities :: server_capabilities()
+    capabilities :: server_capabilities(state.position_encoding)
 
     server_info :: MutableMap<string, JsonValue> {}
     server_info["name"]    = JsonString { .value = "vader-lsp" }
@@ -55,9 +59,43 @@ read_definition_link_support :: fn(params: JsonValue) -> bool {
     return get_bool(def, "linkSupport")
 }
 
+// Pick the position encoding from the client's `general.positionEncodings`.
+// Vader is byte-native, so `utf-8` is preferred ; `utf-32` (codepoints) is the
+// next-cheapest ; otherwise fall back to `utf-16`, which the LSP spec also
+// mandates as the default when the client offers nothing.
+negotiate_position_encoding :: fn(params: JsonValue) -> PositionEncoding {
+    caps :: get_field(params, "capabilities")
+    general :: get_field(caps, "general")
+    offered :: get_field(general, "positionEncodings")
+    if json_array_has_string(offered, "utf-8")  { return .Utf8 }
+    if json_array_has_string(offered, "utf-32") { return .Utf32 }
+    return .Utf16
+}
+
+// The LSP `PositionEncodingKind` wire string for an encoding.
+position_encoding_kind :: fn(enc: PositionEncoding) -> string = match enc {
+    .Utf8  -> "utf-8"
+    .Utf16 -> "utf-16"
+    .Utf32 -> "utf-32"
+}
+
+// True when the JSON value is an array containing the string `needle`.
+json_array_has_string :: fn(v: JsonValue, needle: string) -> bool {
+    if v is JsonArray as arr {
+        for it in arr.items {
+            if it is JsonString as s {
+                if s.value == needle { return true }
+            }
+        }
+    }
+    return false
+}
+
 /// Server-capabilities JSON. Public so the editor wiring docs can refer
 /// to it ; in-process the function is called once per `initialize`.
-export server_capabilities :: fn() -> JsonValue {
+/// @param encoding  the negotiated position encoding, echoed back so the client
+///                  counts `character` offsets in the same unit the server does.
+export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
     // textDocumentSync = 1 (full). The numeric form is wire-cheaper than
     // the equivalent object form `{ openClose: true, change: 1 }`.
     text_document_sync :: JsonNumber { .value = 1.0 }
@@ -73,6 +111,7 @@ export server_capabilities :: fn() -> JsonValue {
     semantic_provider["full"]   = JsonBool   { .value = true }
 
     caps :: MutableMap<string, JsonValue> {}
+    caps["positionEncoding"]        = JsonString { .value = position_encoding_kind(encoding) }
     caps["textDocumentSync"]        = text_document_sync
     caps["semanticTokensProvider"]  = JsonObject { .entries = semantic_provider }
     caps["definitionProvider"]      = JsonBool { .value = true }
@@ -137,4 +176,33 @@ string_array :: fn(items: string[]) -> JsonValue {
         out.push(JsonString { .value = s })
     }
     return JsonArray { .items = out }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+import "std/json" { parse, JsonError }
+
+// Parse `text` and negotiate ; fails the test if `text` isn't valid JSON.
+negotiate_from :: fn(text: string) -> PositionEncoding {
+    r :: parse(text)
+    if r is JsonError { return .Utf16 }   // unreachable in these tests
+    return negotiate_position_encoding(r)
+}
+
+@test test_negotiate_prefers_utf8 :: fn() -> void {
+    e :: negotiate_from("{\"capabilities\":{\"general\":{\"positionEncodings\":[\"utf-16\",\"utf-8\"]}}}")
+    assert_eq(position_encoding_kind(e), "utf-8")
+}
+
+@test test_negotiate_utf32_when_no_utf8 :: fn() -> void {
+    e :: negotiate_from("{\"capabilities\":{\"general\":{\"positionEncodings\":[\"utf-16\",\"utf-32\"]}}}")
+    assert_eq(position_encoding_kind(e), "utf-32")
+}
+
+@test test_negotiate_defaults_to_utf16 :: fn() -> void {
+    // No positionEncodings advertised → the LSP default.
+    assert_eq(position_encoding_kind(negotiate_from("{\"capabilities\":{}}")), "utf-16")
+    // utf-16 explicitly offered, no utf-8/utf-32.
+    assert_eq(position_encoding_kind(negotiate_from("{\"capabilities\":{\"general\":{\"positionEncodings\":[\"utf-16\"]}}}")), "utf-16")
 }

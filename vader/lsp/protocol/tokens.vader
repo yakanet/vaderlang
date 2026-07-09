@@ -10,8 +10,6 @@
 
 module "vader/lsp/protocol"
 
-import "vader/diagnostics" { Span }
-
 export TokenType :: enum(u8) {
     Namespace,    // import path
     Type,         // UpperCase ident (struct / trait / enum)
@@ -27,23 +25,19 @@ export TokenType :: enum(u8) {
     EnumMember,   // `.Variant` dot-shorthand
 }
 
-/// One raw token before delta-encoding. Lines + columns are 0-based.
+/// One raw token before delta-encoding. `line` is 0-based. `start_offset` /
+/// `end_offset` are the token's absolute UTF-8 byte offsets — every producer
+/// fills them, and a single `reencode_columns` pass derives `col` + `length` in
+/// the negotiated position encoding (see `handlers/semantic_tokens`). Producers
+/// leave `col` / `length` at 0 ; they are meaningless until that pass runs.
 export RawToken :: struct {
-    line:      i32
-    col:       i32
-    length:    i32
-    tok_type:  i32
-    modifiers: i32
-}
-
-/// Codepoint length of a single-line span, for a semantic token's `length`.
-/// LSP lengths are in the position encoding (UTF-16 / codepoints for the
-/// BMP), matching the codepoint columns the lexer emits — the raw byte span
-/// overshoots on multi-byte UTF-8 (`'é'` is one codepoint, two bytes). A span
-/// crossing lines falls back to the byte span ; the client re-wraps anyway.
-export span_token_length :: fn(sp: Span) -> i32 {
-    if sp.start.line == sp.end.line { return sp.end.column - sp.start.column }
-    return i32(sp.end.offset - sp.start.offset)
+    line:         i32
+    col:          i32
+    length:       i32
+    tok_type:     i32
+    modifiers:    i32
+    start_offset: usize
+    end_offset:   usize
 }
 
 // ---- legend ---------------------------------------------------------------

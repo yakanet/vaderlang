@@ -50,7 +50,9 @@ import "vader/parser" {
 import "vader/lexer" { Token }
 import "vader/diagnostics" { Span, Position }
 import "vader/fmt" { CommentMap, scan_comments }
-import "vader/lsp/protocol" { lsp_to_offset, line_start_offset }
+import "vader/lsp/protocol" {
+    li_offset, line_start_offset, PositionEncoding, LineIndex, new_line_index,
+}
 
 /// What kind of declaration a DeclEntry points at. Drives the hover
 /// signature template + helps clients decide on icon / styling.
@@ -96,10 +98,15 @@ export DocIndex :: struct {
     tokens:  Token[]
     decls:   DeclEntry[]
     imports: ImportEntry[]
+    /// Byte ↔ (line, character) map for this document, in the negotiated
+    /// encoding. Powers the incoming position resolvers below and the outgoing
+    /// range encoders for same-document spans.
+    line_index: LineIndex
 }
 
 /// Build the index for a freshly-opened or modified document.
-export build_index :: fn(uri: string, source: string) -> DocIndex {
+/// @param encoding  the negotiated LSP position encoding (from `ServerState`).
+export build_index :: fn(uri: string, source: string, encoding: PositionEncoding) -> DocIndex {
     parsed :: parse_source(source, uri)
     cmap :: scan_comments(source)
     entries: DeclEntry[] = []
@@ -108,11 +115,12 @@ export build_index :: fn(uri: string, source: string) -> DocIndex {
         collect_decl(d, source, cmap, entries, imports)
     }
     return DocIndex {
-        .uri     = uri,
-        .source  = source,
-        .tokens  = parsed.tokens,
-        .decls   = entries,
-        .imports = imports,
+        .uri        = uri,
+        .source     = source,
+        .tokens     = parsed.tokens,
+        .decls      = entries,
+        .imports    = imports,
+        .line_index = new_line_index(source, encoding),
     }
 }
 
@@ -120,7 +128,7 @@ export build_index :: fn(uri: string, source: string) -> DocIndex {
 /// Both are 0-based per LSP. Returns null when no Ident token covers
 /// the position. Innermost scope wins.
 export find_at :: fn(idx: DocIndex, line: i32, character: i32) -> DeclEntry | null {
-    offset :: lsp_to_offset(idx.source, line, character)
+    offset :: li_offset(idx.line_index, line, character)
     name :: token_name_at(idx.tokens, offset)
     if name.bytes().len() == 0 { return null }
     return lookup_innermost(idx.decls, name, offset)
@@ -131,7 +139,7 @@ export find_at :: fn(idx: DocIndex, line: i32, character: i32) -> DeclEntry | nu
 /// needs the bare name after `find_at` returned `null` so it can
 /// match against the import table.
 export name_at :: fn(idx: DocIndex, line: i32, character: i32) -> string {
-    offset :: lsp_to_offset(idx.source, line, character)
+    offset :: li_offset(idx.line_index, line, character)
     return token_name_at(idx.tokens, offset)
 }
 
@@ -139,9 +147,9 @@ export name_at :: fn(idx: DocIndex, line: i32, character: i32) -> string {
 /// position, or `null` when no Ident covers it. The handler uses
 /// this as the `originSelectionRange` of an LSP `LocationLink` so
 /// the editor underlines exactly the clicked identifier on Ctrl/Cmd-
-/// hover. ASCII / column-precise — same caveat as `lsp_to_offset`.
+/// hover. Column-precise in the negotiated encoding (via `li_offset`).
 export span_at :: fn(idx: DocIndex, line: i32, character: i32) -> Span | null {
-    offset :: lsp_to_offset(idx.source, line, character)
+    offset :: li_offset(idx.line_index, line, character)
     return token_span_at(idx.tokens, offset)
 }
 
