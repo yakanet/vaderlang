@@ -126,7 +126,7 @@ token_to_raw :: fn(t: Token) -> RawToken | null {
 classify_token :: fn(t: Token) -> i32 = match t.kind {
     // Keywords — mirrors `lexer/keywords.vader::lookup_keyword`.
     .KwFn | .KwStruct | .KwTrait | .KwImplements | .KwEnum | .KwIf | .KwElse
-        | .KwMatch | .KwIs | .KwFor | .KwIn | .KwReturn | .KwYield | .KwDefer
+        | .KwMatch | .KwIs | .KwFor | .KwIn | .KwReturn | .KwYield | .KwAwait | .KwDefer
         | .KwBreak | .KwContinue | .KwImport | .KwAs | .KwExport | .KwTrue
         | .KwFalse | .KwNull | .KwSelf | .KwConst -> i32(TokenType.Keyword)
 

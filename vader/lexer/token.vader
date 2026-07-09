@@ -31,7 +31,7 @@ export TokenKind :: enum(u8) {
     // Keywords
     KwFn, KwStruct, KwTrait, KwImplements, KwEnum,
     KwIf, KwElse, KwMatch, KwIs, KwFor, KwIn,
-    KwReturn, KwYield, KwDefer, KwBreak, KwContinue,
+    KwReturn, KwYield, KwAwait, KwDefer, KwBreak, KwContinue,
     KwImport, KwAs, KwExport,
     KwTrue, KwFalse, KwNull,
     KwSelf,

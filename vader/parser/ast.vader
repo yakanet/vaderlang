@@ -26,7 +26,7 @@ export ImportBinding :: NamedNamespaceImport | DestructureImport
 
 export ForForm :: InfiniteFor | WhileFor | InFor
 
-export Expr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
+export Expr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | AwaitExpr
 
 export StringLitPart :: StringLitText | StringLitInterp
 
@@ -42,7 +42,7 @@ export PatternFieldValue :: PatternBinding | PatternLiteral
 // as a « type expression » is determined by *position* (the slot demanding
 // a type) rather than by AST shape. The alias documents intent at slot
 // declarations (e.g. `StructField.ty: TypeExpr`) ; variants mirror `Expr`.
-export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
+export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | AwaitExpr
 
 // ============================================================================
 // Visibility / shared shapes
@@ -656,6 +656,15 @@ export RangeExpr :: struct {
 // ---- error / cast / generic / variant -----------------------------------
 
 export TryExpr :: struct {
+    span:  Span
+    id:    usize = UNASSIGNED_NODE_ID
+    inner: Expr
+}
+
+/// `await e` — suspend the enclosing `@async` fn until `e`'s async result is
+/// ready, then produce it. A single-operand prefix wrapper (structurally like
+/// `TryExpr`); carries no error semantics of its own.
+export AwaitExpr :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
     inner: Expr

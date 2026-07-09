@@ -288,6 +288,10 @@ walk_expr :: fn(e: Expr, f: NodeIdFactory) -> void {
             x.id = f.mint()
             walk_expr(x.inner, f)
         }
+        is AwaitExpr as x -> {
+            x.id = f.mint()
+            walk_expr(x.inner, f)
+        }
         is CastExpr as x -> {
             x.id = f.mint()
             walk_expr(x.target, f)

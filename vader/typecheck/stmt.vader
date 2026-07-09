@@ -186,7 +186,7 @@ expr_has_yield :: fn(e: AST.Expr) -> bool {
          | AST.LambdaExpr   | AST.StructLitExpr | AST.SeqLitExpr  | AST.RangeExpr
          | AST.TryExpr      | AST.CastExpr      | AST.GenericInstExpr
          | AST.IntrinsicCallExpr | AST.DotVariantExpr | AST.FnTypeExpr
-         | AST.ArrayTypeExpr -> { return false }
+         | AST.ArrayTypeExpr | AST.AwaitExpr -> { return false }
     }
 }
 
