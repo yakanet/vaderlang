@@ -322,6 +322,12 @@ gb_collect_stmt :: fn(gb: GenBuild, s: LoweredStmt) -> void {
         is LoweredExprStmt as e -> { gb_collect_expr(gb, e.expr) }
         is LoweredReturn as r -> { if r.value != null { gb_collect_expr(gb, r.value) } }
         is LoweredYield as y -> { gb_collect_expr(gb, y.value) }
+        is LoweredAwait as a -> {
+            // The awaited value's resolved result binds to `target` — spill it
+            // like a local, and descend the awaited expr for nested lets.
+            gb_add_field(gb, a.target, a.target_type)
+            gb_collect_expr(gb, a.awaited)
+        }
         is LoweredCellSet as cs -> {
             gb_collect_expr(gb, cs.target)
             gb_collect_expr(gb, cs.value)
@@ -380,6 +386,7 @@ gb_route_stmt :: fn(gb: GenBuild, s: LoweredStmt, out: LoweredStmt[]) -> void {
             out.push(LoweredReturn { .span = r.span, .value = new_val })
         }
         is LoweredYield as y -> { out.push(LoweredYield { .span = y.span, .value = gb_route_expr(gb, y.value) }) }
+        is LoweredAwait as a -> { out.push(LoweredAwait { .span = a.span, .target = a.target, .target_type = a.target_type, .awaited = gb_route_expr(gb, a.awaited) }) }
         is LoweredLoop as lp -> {
             new_cond :: if lp.cond == null { null } else { gb_route_expr(gb, lp.cond) }
             out.push(LoweredLoop { .span = lp.span, .label = lp.label, .cond = new_cond, .body = gb_route_block(gb, lp.body) })

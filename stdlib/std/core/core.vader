@@ -237,11 +237,23 @@ export Error :: trait {
 @specialize
 export Yield :: struct<T> { value: T }
 
+/// Sentinel returned by `Async.resume` when the coroutine suspended (it awaited
+/// something not yet ready) rather than completing — the async analogue of the
+/// `null` end-of-iteration sentinel for generators. `T | Suspended` stays
+/// unambiguous because `Suspended` is a distinct nominal type.
+export Suspended :: struct {}
+
 /// The awaitable produced by calling an `@async fn` — `await e` unwraps
-/// `Async<T>` to `T`. An erased marker trait : each `@async fn`'s synthesised
-/// state struct implements it (wired in lowering). Carries no error semantics
-/// of its own ; a fallible async fn returns `Async<T | SomeError>`.
+/// `Async<T>` to `T`. Each `@async fn`'s synthesised state struct implements
+/// it (wired in lowering). Carries no error semantics of its own ; a fallible
+/// async fn returns `Async<T | SomeError>`.
 export Async :: trait<T> {
+    /// Drive the coroutine one step : returns the final value `T` on
+    /// completion, or the `Suspended` sentinel when it awaited something not
+    /// yet ready. Synthesised per `@async fn` by lowering. The resumed value
+    /// is delivered out-of-band (a synthesised erased frame slot the scheduler
+    /// sets before each call), so this signature stays source-clean.
+    resume :: fn(self) -> T | Suspended
 }
 
 /// One field of a struct type as exposed by the `@fields(T)` reflection
