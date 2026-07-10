@@ -167,6 +167,7 @@ export LoweredStmt ::
     | LoweredExprStmt
     | LoweredReturn
     | LoweredYield
+    | LoweredAwait
     | LoweredLoop
     | LoweredBreak
     | LoweredContinue
@@ -233,6 +234,18 @@ export LoweredReturn :: struct {
 export LoweredYield :: struct {
     span:  Span
     value: LoweredExpr
+}
+
+/// TRANSIENT async marker — one `await e` inside an `@async` body, produced by
+/// the ANF pass when `FnLowerCtx.in_async` is set, and wholly consumed by the
+/// coroutine state-machine transform (`lower_coroutine.vader`). Like
+/// `LoweredYield` it never reaches the backend (armed `unreachable`). Binds the
+/// resolved value of `awaited` (an `Async<target_type>`) to the local `target`.
+export LoweredAwait :: struct {
+    span:        Span
+    target:      Symbol
+    target_type: Type
+    awaited:     LoweredExpr
 }
 
 /// Every `for` form collapses to a Loop after lowering. `cond == null`

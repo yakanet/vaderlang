@@ -20,7 +20,7 @@ import "vader/types" { Type, StructType, TraitType, canonical_args_key, for_each
 import "vader/lower" {
     LoweredBlock, LoweredDecl, LoweredExpr, LoweredStmt,
     LoweredFnDecl, LoweredStructDecl, LoweredConstDecl,
-    LoweredLet, LoweredAssign, LoweredExprStmt, LoweredReturn, LoweredYield,
+    LoweredLet, LoweredAssign, LoweredExprStmt, LoweredReturn, LoweredYield, LoweredAwait,
     LoweredLoop, LoweredBreak, LoweredContinue, LoweredCellSet,
     LoweredDeferPush, LoweredDeferPopExec,
     LoweredIdent, LoweredCall, LoweredVirtualCall, LoweredFieldAccess,
@@ -99,6 +99,7 @@ walk_stmt :: fn(s: LoweredStmt, ctx: WalkCtx) -> void {
             if value != null { walk_expr(value, ctx) }
         }
         is LoweredYield as st -> { walk_expr(st.value, ctx) }
+        is LoweredAwait as st -> { walk_expr(st.awaited, ctx) }
         is LoweredLoop as st -> {
             cond :: st.cond
             if cond != null { walk_expr(cond, ctx) }

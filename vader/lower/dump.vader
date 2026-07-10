@@ -157,6 +157,16 @@ emit_stmt :: fn(lines: string[], stmt: LoweredStmt, indent: string) -> void {
                 }
             }
         }
+        is LoweredAwait as a -> {
+            inline_awaited :: expr_inline(a.awaited)
+            match inline_awaited {
+                is string as single -> { lines.push("${indent}await ${single} -> ${a.target.name}") }
+                is null -> {
+                    lines.push("${indent}await -> ${a.target.name}")
+                    emit_expr(lines, a.awaited, "${indent}  ")
+                }
+            }
+        }
         is LoweredLoop as loop_stmt -> {
             cond_suffix :: render_loop_cond(loop_stmt.cond)
             label_suffix :: render_label(loop_stmt.label)

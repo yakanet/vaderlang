@@ -49,6 +49,7 @@ for_each_lowered_stmt :: fn(s: LoweredStmt, visit: fn(Type) -> void) -> void {
             if value != null { for_each_lowered_expr(value, visit) }
         }
         is LoweredYield as st -> { for_each_lowered_expr(st.value, visit) }
+        is LoweredAwait as st -> { for_each_lowered_expr(st.awaited, visit) }
         is LoweredLoop as st -> {
             cond :: st.cond
             if cond != null { for_each_lowered_expr(cond, visit) }
@@ -194,6 +195,7 @@ ref_stmt :: fn(s: LoweredStmt, visit_fn: fn(i32, string) -> void, visit_virtual:
             if value != null { ref_expr(value, visit_fn, visit_virtual) }
         }
         is LoweredYield as st -> ref_expr(st.value, visit_fn, visit_virtual)
+        is LoweredAwait as st -> ref_expr(st.awaited, visit_fn, visit_virtual)
         is LoweredLoop as st -> {
             cond :: st.cond
             if cond != null { ref_expr(cond, visit_fn, visit_virtual) }

@@ -250,6 +250,7 @@ export TRAIT_INDEX_SET  :: "IndexSet"
 export STRUCT_RANGE          :: "Range"
 export STRUCT_ARRAY_ITERATOR :: "ArrayIterator"
 export STRUCT_YIELD          :: "Yield"
+export STRUCT_SUSPENDED      :: "Suspended"
 export STRUCT_FIELD          :: "Field"
 
 /// Method names the compiler dispatches by, paired with the `TRAIT_*` above

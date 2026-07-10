@@ -856,6 +856,10 @@ rewrite_continue_stmt :: fn(s: LoweredStmt, inside_nested_loop: bool, inc: Lower
     is LoweredYield as y -> LoweredYield {
         .span = y.span, .value = rewrite_continue_expr(y.value, inside_nested_loop, inc, loop_label),
     }
+    is LoweredAwait as a -> LoweredAwait {
+        .span = a.span, .target = a.target, .target_type = a.target_type,
+        .awaited = rewrite_continue_expr(a.awaited, inside_nested_loop, inc, loop_label),
+    }
     is LoweredDeferPush as d -> LoweredDeferPush {
         .span = d.span, .thunk = rewrite_continue_expr(d.thunk, inside_nested_loop, inc, loop_label),
     }
