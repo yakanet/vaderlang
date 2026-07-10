@@ -7,7 +7,7 @@ import "std/collections" { MutableMap }
 
 import "vader/diagnostics" { Diagnostic, Span }
 import "vader/parser" { Decl, FnDecl, FnParam, StructDecl, ConstDecl, ImportDecl, EnumDecl, TraitDecl, TypeAliasDecl, AssertDecl, ImplDecl, Visibility, IdentExpr, GenericInstExpr, TypeExpr, StructField }
-import "vader/typecheck" { TypedProgram, Substitution, new_substitution, substitute, default_if_free, type_from_expr, lookup_const_symbol, fn_is_async, async_result_arg }
+import "vader/typecheck" { TypedProgram, Substitution, new_substitution, substitute, default_if_free, type_from_expr, lookup_const_symbol, fn_is_async, async_result_arg, async_inner_type }
 import "vader/types" { Type, FnType, TypeMetaType, TY_VOID, TY_UNRESOLVED, PrimitiveType, mk_trait, TRAIT_ASYNC }
 import "vader/comptime" { ComptimeValue, MonoEntry, symbol_for_decl }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
@@ -277,16 +277,21 @@ lower_fn_decl :: fn(
         // a suspended root traps). Any other `@async fn` erases to `Async<T>`.
         is_main :: is_main_decl(fn_decl)
         async_sym :: find_core_trait(project_ctx, TRAIT_ASYNC)
-        // `@async main` keeps its `i32` return (the inlined driver hands back the
-        // exit code) ; every other async fn erases to `Async<T>`. The staged
+        // The raw value type the body produces : `T` from a `-> Async<T>` return
+        // (target form) or the whole `-> T` (transitional `@async`). The frame /
+        // resume machinery works on this raw `T` (its void→null normalization is
+        // internal to `lower_async_fn`).
+        inner_t :: async_inner_type(return_type)
+        // `@async main` keeps the raw inner return (its inlined driver hands back
+        // the exit code) ; every other async fn erases to `Async<T>`. The staged
         // `else if` is load-bearing : it narrows `async_sym` to non-null in the
         // final arm (a collapsed `is_main || async_sym == null` would not).
-        async_ret :: if is_main { return_type } else if async_sym == null { return_type } else { mk_trait(async_sym, [async_result_arg(return_type)]) }
+        async_ret :: if is_main { inner_t } else if async_sym == null { inner_t } else { mk_trait(async_sym, [async_result_arg(inner_t)]) }
         return LoweredFnDecl {
             .mangled     = entry.mangled,
             .params      = params,
             .return_type = async_ret,
-            .body        = lower_async_body(project_ctx, entry, typed, subst, fn_decl, gen_body, params, return_type, is_main),
+            .body        = lower_async_body(project_ctx, entry, typed, subst, fn_decl, gen_body, params, inner_t, is_main),
             .origin      = entry,
         }
     }

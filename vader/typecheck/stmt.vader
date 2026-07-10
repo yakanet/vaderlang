@@ -114,9 +114,99 @@ fn_is_generator :: fn(fn_decl: AST.FnDecl) -> bool {
 }
 
 /// True when `fn_decl` carries the `@async` decorator.
+/// True when `fn_decl` is an async coroutine — i.e. it lexically `await`s, or
+/// still carries the transitional `@async` decorator. Async-ness is INFERRED
+/// from `await`: a fn that awaits IS a coroutine, no annotation required. The
+/// decorator is accepted during the migration to the `-> Async<T>` return-type
+/// form and will be removed once nothing relies on it. Local + syntactic, so it
+/// resolves the same at a definition and at a cross-module call site.
 export fn_is_async :: fn(fn_decl: AST.FnDecl) -> bool {
     for d in fn_decl.decorators { if d.name == "async" { return true } }
-    return false
+    b :: fn_decl.body
+    if b == null { return false }
+    return block_has_await(b)
+}
+
+// Whether a block lexically contains an `await` (recursively, but NOT descending
+// into nested lambdas — a lambda's own `await` doesn't color the enclosing fn).
+block_has_await :: fn(b: AST.BlockExpr) -> bool {
+    for s in b.stmts { if stmt_has_await(s) { return true } }
+    trailing :: b.trailing
+    if trailing == null { return false }
+    return expr_has_await(trailing)
+}
+
+stmt_has_await :: fn(s: AST.Stmt) -> bool {
+    // @partial: only expr-carrying statements can hold an `await`; break /
+    // continue / defer / yield can't reach one in a coroutine body.
+    @partial match s {
+        is AST.LetStmt    as x -> { return expr_has_await(x.value) }
+        is AST.AssignStmt as x -> { return expr_has_await(x.target) || expr_has_await(x.value) }
+        is AST.ExprStmt   as x -> { return expr_has_await(x.expr) }
+        is AST.ReturnStmt as x -> { rv :: x.value  if rv == null { return false }  return expr_has_await(rv) }
+        is AST.ForStmt    as x -> { return for_form_has_await(x.form) || block_has_await(x.body) }
+        _ -> { return false }
+    }
+}
+
+// Whether a for-form's iterable / condition expr carries an `await` (the
+// infinite form has neither).
+for_form_has_await :: fn(form: AST.ForForm) -> bool {
+    match form {
+        is AST.InFor    as f -> { return expr_has_await(f.iter) }
+        is AST.WhileFor as f -> { return expr_has_await(f.cond) }
+        _ -> { return false }
+    }
+}
+
+expr_has_await :: fn(e: AST.Expr) -> bool {
+    // @partial: leaf/type-position exprs can't carry a top-level `await`, and
+    // LambdaExpr is deliberately NOT descended (a lambda can't be async in v1,
+    // and an await inside it doesn't color the enclosing fn).
+    @partial match e {
+        is AST.AwaitExpr  -> { return true }
+        is AST.BinaryExpr as x -> { return expr_has_await(x.left) || expr_has_await(x.right) }
+        is AST.UnaryExpr  as x -> { return expr_has_await(x.operand) }
+        is AST.CastExpr   as x -> { return expr_has_await(x.value) }
+        is AST.IndexExpr  as x -> { return expr_has_await(x.target) || expr_has_await(x.index) }
+        is AST.FieldExpr  as x -> { return expr_has_await(x.target) }
+        is AST.TryExpr    as x -> { return expr_has_await(x.inner) }
+        is AST.RangeExpr  as x -> { return expr_has_await(x.lower) || expr_has_await(x.upper) }
+        is AST.BlockExpr  as x -> { return block_has_await(x) }
+        is AST.CallExpr   as x -> {
+            if expr_has_await(x.callee) { return true }
+            for a in x.args { if expr_has_await(a.value) { return true } }
+            return false
+        }
+        is AST.IfExpr as x -> {
+            if expr_has_await(x.cond) { return true }
+            if block_has_await(x.then_block) { return true }
+            match x.else_branch {
+                is AST.IfElseIf    as ei -> { return expr_has_await(ei.branch) }
+                is AST.IfElseBlock as eb -> { return block_has_await(eb.block) }
+                _ -> { return false }
+            }
+        }
+        is AST.MatchExpr as x -> {
+            if expr_has_await(x.scrutinee) { return true }
+            for a in x.arms { if expr_has_await(a.body) { return true } }
+            return false
+        }
+        is AST.StructLitExpr as x -> {
+            for item in x.items {
+                match item {
+                    is AST.StructLitField  as fld -> { if expr_has_await(fld.value) { return true } }
+                    is AST.StructLitSpread as sp  -> { if expr_has_await(sp.expr) { return true } }
+                }
+            }
+            return false
+        }
+        is AST.SeqLitExpr as x -> {
+            for el in x.elements { if expr_has_await(el) { return true } }
+            return false
+        }
+        _ -> { return false }
+    }
 }
 
 /// Element type `T` of a generator's `-> Iterator<T>` return, or `null`
@@ -235,10 +325,15 @@ export check_fn_body :: fn(
     // TY_UNRESOLVED ; we resolve it here and patch `decl_types` so
     // call sites see the inferred type.
     inferred_return :: fn_decl.is_expression_bodied && (return_type is UnresolvedType)
-    expected: Type | null = return_type
+    // An async coroutine's body produces the inner `T` of `Async<T>` (the frame
+    // wraps it), so check its returns / trailing against `T`, not the erased
+    // return. Transitional `@async fn -> T` has inner == T (no-op) ; generators
+    // keep the raw return (they yield, never return the stream).
+    effective_return :: if is_async && !is_generator { async_inner_type(return_type) } else { return_type }
+    expected: Type | null = effective_return
     if inferred_return { expected = null }
     ctx :: FnContext {
-        .return_type = return_type, .self_type = null, .loop_depth = 0,
+        .return_type = effective_return, .self_type = null, .loop_depth = 0,
         .fn_id = fn_decl.id, .is_generator = is_generator, .yield_type = yield_type,
         .is_async = is_async,
     }
@@ -265,7 +360,7 @@ export check_fn_body :: fn(
         // explicit `return`. Surface T3020 against the trailing's span.
         match body.trailing {
             is null -> {}
-            _ -> { emit_return_mismatch_if(got, return_type, body.trailing.span, body.trailing.id, typed, diags) }
+            _ -> { emit_return_mismatch_if(got, effective_return, body.trailing.span, body.trailing.id, typed, diags) }
         }
     }
     typed.current_fn_ctx = prev
