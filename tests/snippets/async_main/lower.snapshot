@@ -22,7 +22,7 @@
         is Suspended :bool
           __root_3 :i32 | Suspended
       then:
-        unreachable("`@async main` suspended, but this build has no scheduler (Phase 2b) to resume it") :void
+        unreachable("async `main` suspended, but this build has no scheduler (Phase 2b) to resume it") :void
     return
       cast → i32
         __root_3 :i32 | Suspended

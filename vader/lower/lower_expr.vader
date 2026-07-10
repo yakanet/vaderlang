@@ -146,7 +146,7 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             // T3064 typecheck error already reported ; trap if one still reaches.
             if !ctx.in_async {
                 return LoweredUnreachable {
-                    .span = e.span, .type = type, .reason = "await outside an `@async` fn", .trap = true,
+                    .span = e.span, .type = type, .reason = "await outside an async coroutine", .trap = true,
                 }
             }
             awaited :: lower_expr(ctx, e.inner)

@@ -280,7 +280,7 @@ async_main_driver :: fn(
                 .span = span,
                 .expr = LoweredUnreachable {
                     .span = span, .type = TY_VOID, .trap = true,
-                    .reason = "`@async main` suspended, but this build has no scheduler (Phase 2b) to resume it",
+                    .reason = "async `main` suspended, but this build has no scheduler (Phase 2b) to resume it",
                 },
             }],
             .trailing = null,
