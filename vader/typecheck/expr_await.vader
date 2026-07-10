@@ -1,0 +1,35 @@
+// vader/typecheck/expr_await — AwaitExpr inference (`await e`).
+//
+// `await` is legal only directly inside an `@async` fn body — a nested lambda's
+// context is not async, so an `await` there trips T3064 (AwaitOutsideAsync) too.
+// The result unwraps `Async<T>` to `T` ; a non-`Async` inner passes through
+// unchanged (downstream still gets a useful type).
+
+module "vader/typecheck"
+
+import "vader/diagnostics" { Diagnostic, typecheck_error }
+import "vader/types" { Type, TraitType, TRAIT_ASYNC }
+AST :: import "vader/parser"
+
+/// Type-check `await e` : diagnose it outside an `@async` body, type the inner,
+/// and return the awaited element type.
+export infer_await :: fn(
+    e: AST.AwaitExpr, typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    ctx :: resolve_ctx(null, typed)
+    is_async :: if ctx == null { false } else { ctx.is_async }
+    if !is_async {
+        diags.push(typecheck_error(.AwaitOutsideAsync, e.span, ""))
+    }
+    inner :: check_expr_fn(e.inner, null, typed, diags)
+    return awaitable_element_of(inner)
+}
+
+// The `T` of an `Async<T>`, else `t` unchanged.
+awaitable_element_of :: fn(t: Type) -> Type {
+    if t is TraitType as tt {
+        if tt.symbol.name == TRAIT_ASYNC && tt.args.len() > 0 { return tt.args[0] }
+    }
+    return t
+}

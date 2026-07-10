@@ -18,7 +18,6 @@
 module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, warning, typecheck_error }
-import "std/abort" { panic }
 AST :: import "vader/parser"
 import "vader/types" { Type, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, TY_FREE_INT, TY_FREE_FLOAT, TY_FREE_CHAR, TY_BOOL, TY_STRING, TY_NULL, TY_UNRESOLVED }
 
@@ -139,7 +138,7 @@ infer_expr :: fn(
         is AST.DotVariantExpr as e -> { return infer_dot_variant(e, expected, typed, diags) }
         is AST.LambdaExpr    as e -> { return infer_lambda(e, expected, typed, diags, check_expr) }
         is AST.TryExpr       as e -> { return infer_try(e, typed, diags, check_expr) }
-        is AST.AwaitExpr -> { panic("await typechecking not implemented yet (P1.2)") }
+        is AST.AwaitExpr     as e -> { return infer_await(e, typed, diags, check_expr) }
         is AST.IntrinsicCallExpr as e -> { return infer_intrinsic(e, typed, diags, check_expr) }
         is AST.GenericInstExpr as e -> { return infer_generic_inst(e, typed, diags, check_expr) }
         is AST.ArrayTypeExpr as e -> { return infer_array_type_value(e, typed, diags) }

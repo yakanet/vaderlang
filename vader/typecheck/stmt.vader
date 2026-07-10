@@ -113,6 +113,12 @@ fn_is_generator :: fn(fn_decl: AST.FnDecl) -> bool {
     return false
 }
 
+/// True when `fn_decl` carries the `@async` decorator.
+export fn_is_async :: fn(fn_decl: AST.FnDecl) -> bool {
+    for d in fn_decl.decorators { if d.name == "async" { return true } }
+    return false
+}
+
 /// Element type `T` of a generator's `-> Iterator<T>` return, or `null`
 /// (plus a T3056 diagnostic) when the return type isn't a valid
 /// `Iterator<T>`. `@generator` mandates the honest `Iterator<T>` return.
@@ -210,6 +216,7 @@ export check_fn_body :: fn(
 ) -> void {
     return_type :: lookup_return_type(fn_decl, typed)
     is_generator :: fn_is_generator(fn_decl)
+    is_async :: fn_is_async(fn_decl)
     // Generators are classified up front: extract the `Iterator<T>`
     // element type (T3056 if the return isn't `Iterator<T>`) and require
     // at least one `yield` (T3057). The body yields rather than returning
@@ -233,6 +240,7 @@ export check_fn_body :: fn(
     ctx :: FnContext {
         .return_type = return_type, .self_type = null, .loop_depth = 0,
         .fn_id = fn_decl.id, .is_generator = is_generator, .yield_type = yield_type,
+        .is_async = is_async,
     }
     prev :: typed.current_fn_ctx
     typed.current_fn_ctx = ctx
@@ -681,6 +689,9 @@ check_defer :: fn(
     if effective != null && effective.is_generator {
         diags.push(typecheck_error(.DeferInGenerator, s.span, ""))
     }
+    if effective != null && effective.is_async {
+        diags.push(typecheck_error(.DeferInAsync, s.span, ""))
+    }
     match s.body {
         is AST.DeferStmtBody  as b -> { check_stmt(b.stmt, typed, diags, ctx, check_expr_fn) }
         is AST.DeferBlockBody as b -> { check_block(b.block, null, typed, diags, ctx, check_expr_fn) }
@@ -701,6 +712,7 @@ bump_loop_depth :: fn(ctx: FnContext | null) -> FnContext | null {
         // (the common case) still sees `is_generator` / `yield_type`.
         .is_generator = ctx.is_generator,
         .yield_type   = ctx.yield_type,
+        .is_async     = ctx.is_async,
     }
 }
 

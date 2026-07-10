@@ -237,6 +237,13 @@ export Error :: trait {
 @specialize
 export Yield :: struct<T> { value: T }
 
+/// The awaitable produced by calling an `@async fn` — `await e` unwraps
+/// `Async<T>` to `T`. An erased marker trait : each `@async fn`'s synthesised
+/// state struct implements it (wired in lowering). Carries no error semantics
+/// of its own ; a fallible async fn returns `Async<T | SomeError>`.
+export Async :: trait<T> {
+}
+
 /// One field of a struct type as exposed by the `@fields(T)` reflection
 /// intrinsic. `name` is the source-level identifier ; `type` carries the
 /// field's declared type as a runtime `type` value (Layer 4).

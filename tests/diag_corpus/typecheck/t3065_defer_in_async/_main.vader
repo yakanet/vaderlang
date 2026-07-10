@@ -1,0 +1,7 @@
+module "snippet"
+
+@async
+export work :: fn() -> i64 {
+    defer { }
+    return 1
+}
