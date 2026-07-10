@@ -28,7 +28,7 @@ module "vader/lower"
 
 import "vader/parser" { FnDecl, Visibility }
 import "vader/types" {
-    Type, mk_struct, mk_primitive, mk_trait, TY_VOID, TY_ANY, TRAIT_ASYNC, METHOD_RESUME,
+    Type, mk_struct, mk_primitive, mk_trait, TY_VOID, TY_BOOL, TY_ANY, TRAIT_ASYNC, METHOD_RESUME,
     STRUCT_SUSPENDED,
 }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
@@ -143,10 +143,13 @@ async_fold_trailing :: fn(body: LoweredBlock, result_is_void: bool) -> LoweredBl
 /// @param lowered_body  the body lowered in async mode (awaits → `LoweredAwait`).
 /// @param result_type   the declared result type `T` (the value `return`
 ///                      completes with ; the `T` in `T | Suspended`).
+/// @param is_main       true for the `@async main` entry — inline the run-driver
+///                      and return `T` (the exit code) instead of the `Async<T>`
+///                      frame ; every other async fn returns the frame.
 /// @return              the rewritten `f` body.
 export lower_async_fn :: fn(
     fn_ctx: FnLowerCtx, fn_decl: FnDecl, params: LoweredParam[],
-    lowered_body: LoweredBlock, result_type: Type,
+    lowered_body: LoweredBlock, result_type: Type, is_main: bool,
 ) -> LoweredBlock {
     span :: fn_decl.span
     i32_ty :: mk_primitive("i32")
@@ -234,9 +237,61 @@ export lower_async_fn :: fn(
         .name = "state", .value = LoweredIntLit { .span = span, .type = i32_ty, .value = entry_state },
     })
     construct :: LoweredStructLit { .span = span, .type = state_ty, .fields = construct_fields }
+    // `@async main` : inline the run-driver over the freshly built frame and
+    // return the completed `i32`. Every other async fn just returns the frame
+    // (the caller's `await` / a driver drives it).
+    if is_main {
+        return async_main_driver(fn_ctx, construct, async_sym, suspended_ty, resume_ty, result_type, span)
+    }
     return LoweredBlock {
         .span = span, .type = TY_VOID,
         .stmts = [LoweredReturn { .span = span, .value = construct }],
+        .trailing = null,
+    }
+}
+
+// The inline run-driver for `@async main` (Phase 2a — no scheduler yet). Upcasts
+// the freshly built frame to the erased `Async<T>`, drives it once through the
+// vtable `resume` (the P1.3-validated construct-then-resume path), traps on a
+// `Suspended` root (nothing can wake it without the Phase 2b scheduler), else
+// returns the completed value cast back to `T` (the process exit code).
+async_main_driver :: fn(
+    fn_ctx: FnLowerCtx, construct: LoweredExpr, async_sym: Symbol,
+    suspended_ty: Type, resume_ty: Type, result_type: Type, span: Span,
+) -> LoweredBlock {
+    async_ty :: mk_trait(async_sym, [result_type])
+    r_sym :: fresh_synthetic_symbol(fn_ctx, "root")
+    r_ref :: LoweredIdent { .span = span, .type = resume_ty, .symbol = r_sym }
+    // r :: (frame as Async<T>).resume()   (virtual — T | Suspended)
+    let_r :: LoweredLet {
+        .span = span, .name = r_sym.name, .symbol = r_sym, .type = resume_ty,
+        .value = LoweredVirtualCall {
+            .span = span, .type = resume_ty, .trait_name = TRAIT_ASYNC, .method = METHOD_RESUME,
+            .receiver = LoweredCast { .span = span, .type = async_ty, .value = construct }, .args = [],
+        },
+    }
+    // if r is Suspended { trap }   — a parked root can't progress in Phase 2a.
+    guard :: LoweredIf {
+        .span = span, .type = TY_VOID,
+        .cond = LoweredTypeCheck { .span = span, .type = TY_BOOL, .value = r_ref, .check_type = suspended_ty },
+        .then_block = LoweredBlock {
+            .span = span, .type = TY_VOID,
+            .stmts = [LoweredExprStmt {
+                .span = span,
+                .expr = LoweredUnreachable {
+                    .span = span, .type = TY_VOID, .trap = true,
+                    .reason = "`@async main` suspended, but this build has no scheduler (Phase 2b) to resume it",
+                },
+            }],
+            .trailing = null,
+        },
+        .else_block = null,
+    }
+    // return cast(r, T)   — r is the completed value once past the guard.
+    ret :: LoweredReturn { .span = span, .value = LoweredCast { .span = span, .type = result_type, .value = r_ref } }
+    return LoweredBlock {
+        .span = span, .type = TY_VOID,
+        .stmts = [let_r, LoweredExprStmt { .span = span, .expr = guard }, ret],
         .trailing = null,
     }
 }

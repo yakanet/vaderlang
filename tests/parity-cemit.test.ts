@@ -179,6 +179,7 @@ const C_PARITY = new Set<string>([
   "async_fallible",    // fallible result `T | Error`, narrowed at match
   "async_trailing",    // trailing (implicit-return) await + two awaits per expr
   "async_void",        // void async: `null` done-marker, nested void await
+  "async_main",        // implicit @async main: inlined run-driver, exit code
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

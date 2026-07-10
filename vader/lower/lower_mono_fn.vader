@@ -199,12 +199,12 @@ lower_generator_body :: fn(
 lower_async_body :: fn(
     project_ctx: LowerProjectCtx, entry: MonoEntry, typed: TypedProgram,
     subst: Substitution, fn_decl: FnDecl, async_body: BlockExpr,
-    params: LoweredParam[], result_type: Type,
+    params: LoweredParam[], result_type: Type, is_main: bool,
 ) -> LoweredBlock {
     async_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, result_type, null)
     async_ctx.in_async = true
     lowered :: lower_block(async_ctx, async_body, true, false)
-    return lower_async_fn(async_ctx, fn_decl, params, lowered, result_type)
+    return lower_async_fn(async_ctx, fn_decl, params, lowered, result_type, is_main)
 }
 
 // Build (but don't push) the monomorphized `LoweredFnDecl` for `inst`.
