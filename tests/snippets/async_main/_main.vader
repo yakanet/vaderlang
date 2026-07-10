@@ -1,0 +1,20 @@
+// Implicit `@async main`: the program entry is itself an `@async fn`. The
+// compiler keeps main's `i32` return and inlines the run-driver (build the
+// frame, resume to completion, hand back the exit code) — no manual
+// `.resume()`. Phase 2a has no scheduler, so every await must complete without
+// a real suspension (a parked root would trap).
+module "snippet"
+
+import "std/io" { println }
+
+@async
+greeting :: fn() -> string {
+    return "world"
+}
+
+@async
+main :: fn() -> i32 {
+    who :: await greeting()
+    println("hello, ${who}")
+    return 0
+}
