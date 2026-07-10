@@ -1,0 +1,21 @@
+// Visible cooperative interleaving: each task prints on entry, sleeps, prints
+// on exit. Joined by `all`, all three print "start" BEFORE any prints "end"
+// (they run concurrently), then they end in sleep-duration order (B=1, C=2,
+// A=3) — B ends first despite being listed second. The println order is the
+// proof that the scheduler interleaves execution and advances by deadline.
+module "snippet"
+
+import "std/io" { println }
+import "std/async" { sleep, all }
+
+task :: fn(name: string, delay: i64) -> Async<i32> {
+    println("${name}: start")
+    await sleep(delay)
+    println("${name}: end (slept ${delay})")
+    return i32(delay)
+}
+
+main :: fn() -> i32 {
+    await all([task("A", 3), task("B", 1), task("C", 2)])
+    return 0
+}
