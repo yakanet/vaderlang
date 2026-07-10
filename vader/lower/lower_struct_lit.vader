@@ -46,13 +46,18 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
     // dispatch `next` on it → `vtable miss / no impl for type N`. Queue the
     // erased instance so the joint fixpoint materialises its impl members
     // (self = this erased struct type), giving the vtable its missing row.
-    // Deduped by `seen_generic_impl_recv` ; concrete instances are already
-    // covered by the harvest (re-queueing them here is a harmless no-op).
+    // Queue EVERY generic-struct instance (any non-empty type args), not just
+    // fully-erased (all-`Any`) ones : a CONCRETE instance built only inside a
+    // generic-fn-instance body (`Box<i32>` from `fn viagen<T>() = Box<T>{…}`)
+    // is NOT covered by the comptime harvest — the harvest only ever saw the
+    // source-level `Box<T>` (a type-param arg, which the materialiser rejects).
+    // Deduped by `seen_generic_impl_recv` here + `materialized_impl_keys` in the
+    // materialiser, so re-queuing a harvest-covered instance is a harmless no-op.
     // `struct_backing` unwraps a struct-backed distinct newtype (`Color :: Rgb`)
     // so the construction still registers against the backing struct symbol.
     st_backing :: struct_backing(type)
     if st_backing != null {
-        if args_all_any_leaves(st_backing.args) { queue_generic_impl_receiver(ctx, st_backing) }
+        if !st_backing.args.is_empty() { queue_generic_impl_receiver(ctx, st_backing) }
         // Record the construction so `surface_stdlib_impl_externs` can surface a
         // NON-generic stdlib struct's vtable members only when the struct is
         // actually built (`StringChars` via `chars()`), not for every snippet

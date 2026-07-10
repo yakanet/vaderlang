@@ -1,0 +1,28 @@
+# Typecheck
+
+## tests/snippets/async_all
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         mk                   :: fn(i32) -> Async<i32>
+  expr 10:11    CallExpr       :: Async<null>
+  expr 10:11    IdentExpr      :: fn(i64) -> Async<null>
+  expr 10:17    CallExpr       :: i64
+  expr 10:17    IdentExpr      :: type
+  expr 10:21    IdentExpr      :: i32
+  expr 10:5     AwaitExpr      :: null
+  expr 11:12    BinaryExpr     :: i32
+  expr 11:12    IdentExpr      :: i32
+  expr 15:11    AwaitExpr      :: i32[]
+  expr 15:17    CallExpr       :: Async<i32[]>
+  expr 15:17    IdentExpr      :: fn(Async<T>[]) -> Async<T[]>
+  expr 15:21    SeqLitExpr     :: Async<i32>[]
+  expr 15:22    CallExpr       :: Async<i32>
+  expr 15:22    IdentExpr      :: fn(i32) -> Async<i32>
+  expr 15:29    CallExpr       :: Async<i32>
+  expr 15:29    IdentExpr      :: fn(i32) -> Async<i32>
+  expr 15:36    CallExpr       :: Async<i32>
+  expr 15:36    IdentExpr      :: fn(i32) -> Async<i32>
+  expr 16:14    IdentExpr      :: i32[]
+  expr 16:19    CallExpr       :: void
+  expr 16:19    IdentExpr      :: fn(T) -> void
+  expr 16:27    StringLitExpr  :: string
+  expr 16:30    IdentExpr      :: i32

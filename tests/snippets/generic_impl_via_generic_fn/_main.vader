@@ -1,0 +1,22 @@
+// Regression guard: a generic struct's trait impl must be materialised even
+// when the struct is constructed ONLY inside a generic fn's body. Such an
+// instance (`Box<i32>` from `viagen<i32>`) isn't seen by the comptime harvest
+// (which only saw the source-level `Box<T>`), so `lower_struct_lit` must queue
+// it for impl-member materialisation — else `Async.resume` misses its vtable
+// row at runtime. (Not async-specific ; async's `all` was the first to hit it.)
+module "snippet"
+
+import "std/io" { println }
+
+Box :: struct<T> { v: T }
+Box<T> implements Async<T> {
+    resume :: fn(self) -> T | Suspended { return self.v }
+}
+
+viagen :: fn<T>(x: T) -> Async<T> = Box<T> { .v = x }
+
+main :: fn() -> i32 {
+    v :: await viagen(5)
+    println("${v}")
+    return v
+}

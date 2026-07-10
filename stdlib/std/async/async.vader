@@ -15,6 +15,7 @@ module "std/async"
 
 import "std/runtime" { sched_now, sched_arm, sched_park }
 import "std/abort" { panic }
+import "std/collections" { MutableMap }
 
 // ---- sleep ----------------------------------------------------------------
 
@@ -71,3 +72,43 @@ export run_async_main :: fn(root: Async<i32>) -> i32 {
         }
     }
 }
+
+// ---- all ------------------------------------------------------------------
+
+/// Concurrent join of a group of awaitables (Model A : one awaitable that drives
+/// every child on each `resume`). Children make progress together — their timers
+/// all sit on the one scheduler heap and fire in deadline order — and their
+/// results are returned in INPUT order once every one completes. No cancellation
+/// in v1, so `all` waits for every child (failure latency = the slowest child).
+All :: struct<T> {
+    children: Async<T>[]
+    /// Completed results keyed by input index ; an index is present iff its
+    /// child is done. `results.len() == children.len()` ⇒ all joined.
+    results:  MutableMap<usize, T>
+}
+
+All<T> implements Async<T[]> {
+    resume :: fn(self) -> T[] | Suspended {
+        n :: self.children.len()
+        for i in 0..<n {
+            if i in self.results { continue }
+            r :: self.children[i].resume()
+            if r is Suspended { continue }
+            self.results[i] = r
+        }
+        if self.results.len() != n { return Suspended {} }
+        out: T[] = []
+        for i in 0..<n {
+            v :: self.results[i]
+            if v != null { out.push(v) }
+        }
+        return out
+    }
+}
+
+/// Await a group of awaitables concurrently, yielding their results in input
+/// order. `await all(xs)` completes when every element of `xs` has completed.
+///
+/// @param xs  the awaitables to join.
+/// @return    an awaitable of the results, index-aligned with `xs`.
+export all :: fn<T>(xs: Async<T>[]) -> Async<T[]> = All<T> { .children = xs, .results = MutableMap<usize, T> {} }

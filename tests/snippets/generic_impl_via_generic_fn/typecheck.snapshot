@@ -1,0 +1,18 @@
+# Typecheck
+
+## tests/snippets/generic_impl_via_generic_fn
+  StructDecl     Box                  :: Box<T>
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         viagen               :: fn(T) -> Async<T>
+  expr 13:50    FieldExpr      :: T
+  expr 13:50    IdentExpr      :: Box<T>
+  expr 16:37    StructLitExpr  :: Box<T>
+  expr 16:51    IdentExpr      :: T
+  expr 19:10    AwaitExpr      :: i32
+  expr 19:16    CallExpr       :: Async<i32>
+  expr 19:16    IdentExpr      :: fn(T) -> Async<T>
+  expr 20:13    StringLitExpr  :: string
+  expr 20:16    IdentExpr      :: i32
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void
+  expr 21:12    IdentExpr      :: i32
