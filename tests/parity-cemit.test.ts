@@ -181,6 +181,7 @@ const C_PARITY = new Set<string>([
   "async_void",        // void async: `null` done-marker, nested void await
   "async_main",        // implicit async main: inlined run-driver, exit code
   "async_sleep",       // real suspension via sleep: park scheduler + timer heap
+  "async_sleep_main",  // implicit async main routed through run_async_main
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

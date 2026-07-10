@@ -42,3 +42,16 @@ export find_core_module_id :: fn(project: LoadedProject) -> string | null {
     }
     return null
 }
+
+/// The loaded `std/async` module's id, or null when the program never imports
+/// it. Used to resolve `run_async_main` for the implicit async-`main` driver —
+/// present exactly when the program pulls in `std/async` (which it must to
+/// `sleep`), so a `main` that suspends always finds it.
+export find_async_module_id :: fn(project: LoadedProject) -> string | null {
+    for [id, _] in project.modules {
+        if id.ends_with("std/async.vader") || id.ends_with("std/async") {
+            return id
+        }
+    }
+    return null
+}

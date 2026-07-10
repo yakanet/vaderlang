@@ -195,6 +195,12 @@ export TypedProgram :: struct {
     /// result type of an `async fn` call. Populated once from core by the
     /// orchestrator (mirror of `range_symbol`).
     async_symbol: Symbol | null
+    /// `std/async`'s `run_async_main` fn symbol, or null when the program never
+    /// imports `std/async`. When present, the lowerer routes a `main` that
+    /// awaits through it (the park-based scheduler driver) instead of the
+    /// inline single-resume driver ; a suspending `main` must import `std/async`
+    /// (for `sleep`), so it is always present when needed.
+    run_async_main_symbol: Symbol | null = null
 
     /// Imported fn overloads indexed by simple name. Populated by
     /// the orchestrator after wiring imports. Consumed by

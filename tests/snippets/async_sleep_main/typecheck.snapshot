@@ -1,0 +1,19 @@
+# Typecheck
+
+## tests/snippets/async_sleep_main
+  FnDecl         main                 :: fn() -> i32
+  expr 12:13    StringLitExpr  :: string
+  expr 12:5     CallExpr       :: void
+  expr 12:5     IdentExpr      :: fn(T) -> void
+  expr 13:11    CallExpr       :: Async<null>
+  expr 13:11    IdentExpr      :: fn(i64) -> Async<null>
+  expr 13:5     AwaitExpr      :: null
+  expr 14:13    StringLitExpr  :: string
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(T) -> void
+  expr 15:11    CallExpr       :: Async<null>
+  expr 15:11    IdentExpr      :: fn(i64) -> Async<null>
+  expr 15:5     AwaitExpr      :: null
+  expr 16:13    StringLitExpr  :: string
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void

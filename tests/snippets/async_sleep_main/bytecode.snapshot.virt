@@ -1,0 +1,289 @@
+module _main
+type 0 primitive null
+type 1 primitive i32
+type 2 struct __asyncstate_3 { s0:0,s1:0,awaited:5,state:1 }
+type 3 union 1,4
+type 4 struct std_core$Suspended {  }
+type 5 ref Async
+type 6 primitive bool
+type 7 primitive string
+type 8 primitive void
+type 9 primitive i64
+type 10 ref Async
+type 11 ref Async
+type 12 struct std_async$Sleep { ms:9,deadline:9,armed:6 }
+type 13 union 0,4
+type 14 ref _
+string 0 "woke at 5"
+string 1 "woke at 2"
+string 2 "start"
+string 3 "\n"
+string 4 "async deadlock: a task is suspended with nothing left to wake it"
+import 0 write std_io$write (i32,string) -> void
+import 1 sched_now std_runtime$sched_now () -> i64
+import 2 sched_arm std_runtime$sched_arm (i64) -> void
+import 3 sched_park std_runtime$sched_park () -> i32
+import 4 panic std_abort$panic (string) -> void
+impl 2 Async
+impl 12 Async
+vtable Async.resume 2 1
+vtable Async.resume 12 5
+export main 0
+
+fn 0 snippet$main () -> i32
+  local $k_2 ref
+  null.const
+  local.set 0
+  null.const
+  null.const
+  local.get 0
+  i32.const 8
+  struct.new 2
+  call 4
+  return
+end
+
+fn 1 snippet$__asyncstate_3$Async$resume (ref) -> ref
+  local __resumed_3 ref
+  local $cast_24 null
+  local $cast_31 ref
+  local __resumed_4 ref
+  local $cast_47 null
+  local $cast_54 ref
+  block $L0 void
+    loop $L1 void
+      local.field 0 2 3
+      ref.cast 1
+      i32.const 0
+      i32.eq
+      if $L2 void
+        local.get 0
+        i32.const -1
+        struct.set 2 3
+        br $L1
+      else
+      end $L2
+      local.field 0 2 3
+      ref.cast 1
+      i32.const 1
+      i32.eq
+      if $L3 void
+      else
+        local.field 0 2 3
+        ref.cast 1
+        i32.const 2
+        i32.eq
+        if $L4 void
+          string.const 0
+          call 2
+          local.get 0
+          i32.const 1
+          struct.set 2 3
+          br $L1
+        end $L4
+        local.field 0 2 3
+        ref.cast 1
+        i32.const 3
+        i32.eq
+        if $L5 void
+          local.field 0 2 2
+          virtual.call 1 Async.resume
+          local.tee 1
+          type_check 4
+          if $L6 void
+            struct.new 4
+            return
+          end $L6
+          local.get 1
+          ref.cast 0
+          local.set 2
+          local.get 0
+          local.get 2
+          struct.set 2 1
+          local.get 0
+          i32.const 2
+          struct.set 2 3
+          br $L1
+        end $L5
+        local.field 0 2 3
+        ref.cast 1
+        i32.const 4
+        i32.eq
+        if $L7 void
+          i64.const 3
+          call 3
+          local.set 3
+          local.get 0
+          local.get 3
+          struct.set 2 2
+          local.get 0
+          i32.const 3
+          struct.set 2 3
+          br $L1
+        end $L7
+        local.field 0 2 3
+        ref.cast 1
+        i32.const 5
+        i32.eq
+        if $L8 void
+          string.const 1
+          call 2
+          local.get 0
+          i32.const 4
+          struct.set 2 3
+          br $L1
+        end $L8
+        local.field 0 2 3
+        ref.cast 1
+        i32.const 6
+        i32.eq
+        if $L9 void
+          local.field 0 2 2
+          virtual.call 1 Async.resume
+          local.tee 4
+          type_check 4
+          if $L10 void
+            struct.new 4
+            return
+          end $L10
+          local.get 4
+          ref.cast 0
+          local.set 5
+          local.get 0
+          local.get 5
+          struct.set 2 0
+          local.get 0
+          i32.const 5
+          struct.set 2 3
+          br $L1
+        end $L9
+        local.field 0 2 3
+        ref.cast 1
+        i32.const 7
+        i32.eq
+        if $L11 void
+          i64.const 2
+          call 3
+          local.set 6
+          local.get 0
+          local.get 6
+          struct.set 2 2
+          local.get 0
+          i32.const 6
+          struct.set 2 3
+          br $L1
+        end $L11
+        local.field 0 2 3
+        ref.cast 1
+        i32.const 8
+        i32.eq
+        if $L12 void
+          string.const 2
+          call 2
+          local.get 0
+          i32.const 7
+          struct.set 2 3
+          br $L1
+        end $L12
+        struct.new 4
+        return
+      end $L3
+    end $L1
+  end $L0
+  local.get 0
+  i32.const -1
+  struct.set 2 3
+  i32.const 0
+  box 1
+  return
+end
+
+fn 2 std_io$println__string (string) -> void
+  i32.const 0
+  local.get 0
+  call.import 0
+  i32.const 0
+  string.const 3
+  call.import 0
+  return
+end
+
+fn 3 std_async$sleep (i64) -> ref
+  local.get 0
+  i64.const 0
+  bool.const false
+  struct.new 12
+  return
+end
+
+fn 4 std_async$run_async_main (ref) -> i32
+  local r ref
+  block $L0 void
+    loop $L1 void
+      local.get 0
+      virtual.call 1 Async.resume
+      local.tee 1
+      type_check 4
+      if $L2 void
+        call.import 3
+        i32.const 1
+        i32.eq
+        if $L3 void
+          string.const 4
+          call.import 4
+          drop
+        else
+        end $L3
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
+  local.get 1
+  ref.cast 1
+  return
+end
+
+fn 5 std_async$Sleep$Async$resume (ref) -> ref
+  local $call_4 i64
+  local $field_5 i64
+  local.field 0 12 2
+  ref.cast 6
+  bool.not
+  if $L0 void
+    local.get 0
+    bool.const true
+    struct.set 12 2
+    call.import 1
+    local.set 1
+    local.field 0 12 0
+    ref.cast 9
+    local.set 2
+    local.get 1
+    local.get 2
+    i64.add
+    local.set 1
+    local.get 0
+    local.get 1
+    struct.set 12 1
+    local.field 0 12 1
+    ref.cast 9
+    call.import 2
+  else
+  end $L0
+  call.import 1
+  local.set 1
+  local.field 0 12 1
+  ref.cast 9
+  local.set 2
+  local.get 1
+  local.get 2
+  i64.ge
+  if $L1 void
+    null.const
+    box 0
+    return
+  end $L1
+  struct.new 4
+  return
+end
