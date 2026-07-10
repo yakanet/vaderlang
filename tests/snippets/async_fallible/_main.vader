@@ -1,0 +1,34 @@
+// A fallible async result `i32 | LoadError`: errors are plain values, narrowed
+// at `if`/`match`. The resume union flattens to `i32 | LoadError | Suspended`.
+module "snippet"
+
+import "std/io" { println }
+
+LoadError :: struct { reason: string }
+
+@async
+fetch :: fn() -> i32 {
+    return 5
+}
+
+@async
+load :: fn(fail: bool) -> i32 | LoadError {
+    if fail {
+        return LoadError { .reason = "denied" }
+    }
+    v :: await fetch()
+    return v * 10
+}
+
+report :: fn(f: Async<i32 | LoadError>) -> void {
+    r :: f.resume()
+    if r is Suspended { println("parked?!") return }
+    if r is LoadError as e { println("err: ${e.reason}") return }
+    println("ok: ${r}")
+}
+
+main :: fn() -> i32 {
+    report(load(true))
+    report(load(false))
+    return 0
+}

@@ -9,11 +9,18 @@
 
 module "vader/typecheck"
 
-import "vader/types" { Type, mk_trait }
+import "vader/types" { Type, mk_trait, TY_NULL }
 AST :: import "vader/parser"
 
 /// The `Async<concrete_ret>` result type when `c`'s callee is an `@async fn`,
 /// else null.
+///
+/// A `void` result normalizes to `null` (`Async<null>`) : void isn't a
+/// first-class stack value, so `void | Suspended` (the trait's `resume` return)
+/// couldn't represent a completed-but-void coroutine. Treating a void `@async`
+/// as "async returning null" — reusing the generator done-sentinel convention —
+/// keeps `resume() -> null | Suspended` well-formed and `await`-of-void yields a
+/// discardable `null`. Mirror this normalization in `lower_decl` (`async_ret`).
 export async_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concrete_ret: Type) -> Type | null {
     async_sym :: typed.async_symbol
     if async_sym == null { return null }
@@ -22,8 +29,14 @@ export async_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concre
         if sym == null { return null }
         fd :: typed.fn_decls[sym.id]
         if fd is AST.FnDecl as f {
-            if fn_is_async(f) { return mk_trait(async_sym, [concrete_ret]) }
+            if fn_is_async(f) { return mk_trait(async_sym, [async_result_arg(concrete_ret)]) }
         }
     }
     return null
 }
+
+/// The `Async` type argument for an `@async fn`'s declared result : `void`
+/// normalizes to `null` (see `async_call_result_type`), everything else passes
+/// through. Shared with `lower_decl` so the call-site type and the lowered decl
+/// type agree.
+export async_result_arg :: fn(result: Type) -> Type = if is_void(result) { TY_NULL } else { result }

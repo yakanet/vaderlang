@@ -1,0 +1,30 @@
+// Void async: a `@async fn -> void` normalizes to "async returning null", so
+// `resume` returns `null | Suspended` — completion is a `null` done-marker, not
+// a valueless pop. Covers fall-off completion and a nested void await.
+module "snippet"
+
+import "std/io" { println }
+
+@async
+fetch :: fn() -> i32 {
+    return 7
+}
+
+@async
+log_it :: fn() -> void {
+    x :: await fetch()
+    println("logged ${x}")
+}
+
+@async
+wrap :: fn() -> void {
+    await log_it()
+    println("wrapped")
+}
+
+main :: fn() -> i32 {
+    r :: wrap().resume()
+    if r is Suspended { println("parked?!") return 1 }
+    println("complete")
+    return 0
+}

@@ -1,0 +1,32 @@
+// Two awaits of DIFFERENT types (i32 then string) in one coroutine, plus the
+// resume-after-done contract: driving a retired coroutine reports `Suspended`.
+module "snippet"
+
+import "std/io" { println }
+
+@async
+make_num :: fn() -> i32 {
+    return 7
+}
+
+@async
+make_str :: fn() -> string {
+    return "hi"
+}
+
+@async
+mix :: fn() -> string {
+    n :: await make_num()
+    s :: await make_str()
+    return "${s}:${n}"
+}
+
+main :: fn() -> i32 {
+    frame :: mix()
+    r :: frame.resume()
+    if r is Suspended { println("parked?!") return 1 }
+    println("mix = ${r}")
+    again :: frame.resume()
+    if again is Suspended { println("after-done = Suspended") } else { println("after-done = ${again}") }
+    return 0
+}

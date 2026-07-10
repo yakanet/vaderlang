@@ -60,6 +60,10 @@ zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
         if p.name == "bool" { return LoweredBoolLit { .span = span, .type = ty, .value = false } }
         if is_float_name(p.name) { return LoweredFloatLit { .span = span, .type = ty, .value = 0.0 } }
         if p.name == "string" { return LoweredStringLit { .span = span, .type = ty, .value = "" } }
+        // `null` is a boxed slot, not an integer width — its zero value is `null`
+        // (a void `@async` await binds a `null`-typed target). Falling through to
+        // the integer arm would emit `(vader_box_t)(int32_t)0`, invalid C.
+        if p.name == "null" { return LoweredNullLit { .span = span, .type = ty } }
         // every integer / char width
         return LoweredIntLit { .span = span, .type = ty, .value = 0 }
     }
@@ -183,6 +187,7 @@ export lower_generator_fn :: fn(
         .self_sym = self_sym, .state_ty = state_ty,
         .i32_ty = i32_ty, .yield_ty = yield_ty, .span = span,
         .states = [], .field_map = MutableMap<i32, string> {}, .fields = [], .loop_stack = [],
+        .fn_ctx = fn_ctx,
     }
     // Spill: params first, then every local (v1: spill-all) → `g$State` fields.
     for p in params { gb_add_field(gb, p.symbol, p.type) }

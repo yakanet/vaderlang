@@ -1,0 +1,34 @@
+# Typecheck
+
+## tests/snippets/async_void
+  FnDecl         fetch                :: fn() -> i32
+  FnDecl         log_it               :: fn() -> void
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         wrap                 :: fn() -> void
+  expr 15:10    AwaitExpr      :: i32
+  expr 15:16    CallExpr       :: Async<i32>
+  expr 15:16    IdentExpr      :: fn() -> i32
+  expr 16:13    StringLitExpr  :: string
+  expr 16:23    IdentExpr      :: i32
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+  expr 21:11    CallExpr       :: Async<null>
+  expr 21:11    IdentExpr      :: fn() -> void
+  expr 21:5     AwaitExpr      :: null
+  expr 22:13    StringLitExpr  :: string
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void
+  expr 26:10    CallExpr       :: Async<null>
+  expr 26:10    CallExpr       :: null | Suspended
+  expr 26:10    FieldExpr      :: fn() -> null | Suspended
+  expr 26:10    IdentExpr      :: fn() -> void
+  expr 27:13    IdentExpr      :: Suspended
+  expr 27:25    CallExpr       :: void
+  expr 27:25    IdentExpr      :: fn(T) -> void
+  expr 27:33    StringLitExpr  :: string
+  expr 27:5     IfExpr         :: void
+  expr 27:8     BinaryExpr     :: bool
+  expr 27:8     IdentExpr      :: null | Suspended
+  expr 28:13    StringLitExpr  :: string
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void

@@ -1,0 +1,40 @@
+// Two ANF edge cases: an `await` that is the trailing (implicit-return)
+// expression of the body — must fold into the completion return, not be dropped
+// — and two awaits inside one expression, hoisted left-to-right before use.
+module "snippet"
+
+import "std/io" { println }
+
+@async
+a :: fn() -> i32 {
+    return 3
+}
+
+@async
+b :: fn() -> i32 {
+    return 4
+}
+
+// `await a()` is the trailing expression — no `return` keyword.
+@async
+trailing :: fn() -> i32 {
+    await a()
+}
+
+// Two awaits in one expression: (3) + (4) * 10 = 43.
+@async
+combine :: fn() -> i32 {
+    return (await a()) + (await b()) * 10
+}
+
+drive :: fn(f: Async<i32>) -> i32 {
+    r :: f.resume()
+    if r is Suspended { return -1 }
+    return r
+}
+
+main :: fn() -> i32 {
+    println("trailing = ${drive(trailing())}")
+    println("combine = ${drive(combine())}")
+    return 0
+}

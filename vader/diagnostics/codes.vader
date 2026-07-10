@@ -197,6 +197,8 @@ export LowerCode :: enum(u8) {
     IntrinsicUnsupported,                   // M5005
     SelfReceiverMissing,                    // M5006
     GeneratorClosureCapture,                // M5007
+    AsyncClosureCapture,                    // M5008
+    AwaitInShortCircuit,                    // M5009
 }
 
 // `WARNING` — non-fatal diagnostics. New entries appended ; never reused.
@@ -334,6 +336,8 @@ export lower_info :: fn(c: LowerCode) = match c {
     .IntrinsicUnsupported               -> CodeInfo { .id = "M5005", .message = "intrinsic not implemented by the lowerer" }
     .SelfReceiverMissing                -> CodeInfo { .id = "M5006", .message = "method call lacks a resolvable `self` receiver" }
     .GeneratorClosureCapture            -> CodeInfo { .id = "M5007", .message = "a local captured by a closure is not yet supported inside a generator" }
+    .AsyncClosureCapture                -> CodeInfo { .id = "M5008", .message = "a local captured by a closure is not yet supported inside an `@async` fn" }
+    .AwaitInShortCircuit                -> CodeInfo { .id = "M5009", .message = "`await` in a short-circuit operand or loop condition is not yet supported" }
 }
 
 export typecheck_info :: fn(c: TypecheckCode) = match c {

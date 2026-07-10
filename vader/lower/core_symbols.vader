@@ -66,7 +66,18 @@ export union_of_yield_null :: fn(yielded: Type) -> Type {
     return mk_union([yielded, TY_NULL])
 }
 
-import "vader/typecheck" { ImplEntry, find_user, type_to_target_symbol }
+/// Build the `T | Suspended` union an `@async fn`'s synthesised `resume`
+/// returns. Flattening (via `union_of`) keeps a fallible `T = U | Error` from
+/// nesting : `(U | Error) | Suspended` collapses to `U | Error | Suspended`,
+/// so the `is Suspended` tag check and the completion arm both see a flat
+/// union.
+/// @param result     the async fn's declared result type `T`.
+/// @param suspended  the `Suspended` sentinel struct type.
+/// @return           the flattened resume-return union.
+export union_of_result_suspended :: fn(result: Type, suspended: Type) -> Type =
+    union_of([result, suspended])
+
+import "vader/typecheck" { ImplEntry, find_user, type_to_target_symbol, union_of }
 
 /// Find the user-impl entry for `(for_type, trait_name)` in the
 /// project-wide registry. The lowerer's

@@ -1,0 +1,33 @@
+// `await` in a conditional branch — the flow-sensitive ANF must hoist it INTO
+// the taken branch, never unconditionally. The false branch takes no await.
+module "snippet"
+
+import "std/io" { println }
+
+@async
+fetch :: fn() -> i32 {
+    return 7
+}
+
+@async
+pick :: fn(flag: bool) -> i32 {
+    r: i32 = 0
+    if flag {
+        r = await fetch()
+    } else {
+        r = 100
+    }
+    return r + 1
+}
+
+drive :: fn(f: Async<i32>) -> i32 {
+    r :: f.resume()
+    if r is Suspended { return -1 }
+    return r
+}
+
+main :: fn() -> i32 {
+    println("true -> ${drive(pick(true))}")
+    println("false -> ${drive(pick(false))}")
+    return 0
+}

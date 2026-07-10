@@ -167,6 +167,18 @@ const C_PARITY = new Set<string>([
   // native run is the guard: the literal emitter must render them as compiler
   // builtins, not the bare words `inf` / `nan` (invalid C). Regression B3.
   "f64_non_finite",
+  // `@async` + `await` — the coroutine state-machine lowering (`lower_async`,
+  // Model A self-drive) synthesizes an `__asyncstate` frame + an `Async::resume`
+  // machine. The native run is the seed-critical guard on the erased→concrete
+  // cast at each drive site (`cast(child.resume(), T')`) — it must round-trip a
+  // boxed value back to its concrete type in emitted C, not just on the VM.
+  "async_basic",       // one await, value return
+  "async_sequential",  // two awaits of different types + resume-after-done
+  "async_conditional", // await hoisted into a conditional branch
+  "async_countdown",   // genuine suspension: re-entrant drive of a parking child
+  "async_fallible",    // fallible result `T | Error`, narrowed at match
+  "async_trailing",    // trailing (implicit-return) await + two awaits per expr
+  "async_void",        // void async: `null` done-marker, nested void await
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

@@ -160,6 +160,19 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         collect_concat_operands(ctx, binary.right, operands)
         return lower_concat_chain(ctx, operands, binary.span)
     }
+    if ctx.in_async && (binary.op == BinaryOp.And || binary.op == BinaryOp.Or) {
+        // Short-circuit : the RHS runs only when the LHS permits. An `await` in
+        // it can't hoist before the statement (would run unconditionally). v1
+        // diagnoses (M5009) via `guard_no_pending_await` after lowering the RHS.
+        left :: lower_expr(ctx, binary.left)
+        rhs_base :: ctx.pending_awaits.len()
+        right :: lower_expr(ctx, binary.right)
+        guard_no_pending_await(ctx, rhs_base, binary.right.span)
+        return LoweredBinary {
+            .span = binary.span, .type = type, .op = lower_binary_op(binary.op),
+            .left = left, .right = right,
+        }
+    }
     return LoweredBinary {
         .span = binary.span, .type = type,
         .op    = lower_binary_op(binary.op),
