@@ -127,6 +127,11 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     .RuntimeBytesUsed    -> { return "${head} { return (int32_t) vader_gc_get_stats().bytes_used; }" }
     .RuntimeBytesCopied  -> { return "${head} { return (int32_t) vader_gc_get_stats().total_copied; }" }
 
+    // std/runtime — cooperative async scheduler.
+    .SchedNow  -> { return "${head} { return vader_sched_now(); }" }
+    .SchedArm  -> { return "${head} { vader_sched_arm(a0); }" }
+    .SchedPark -> { return "${head} { return vader_sched_park(); }" }
+
     // std/time.
     .TimeNowUnixMs   -> { return "${head} { return vader_clock_realtime_ms(); }" }
     .TimeMonotonicNs -> { return "${head} { return vader_clock_monotonic_ns(); }" }

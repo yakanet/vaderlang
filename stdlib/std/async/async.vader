@@ -1,0 +1,73 @@
+// std/async — the cooperative async runtime : `sleep` + the entry run-driver.
+//
+// Single-threaded, timer-driven. The scheduler state (a virtual clock + a
+// min-heap of wake deadlines) lives in the runtime (native C / VM host), reached
+// through the `std/runtime` `sched_*` intrinsics — Vader has no mutable global.
+//
+// `sleep(ms)` is the v1 suspension source : a hand-written awaitable that arms a
+// timer and parks until it fires. `run_async_main` is the program entry the
+// compiler routes an `@async main` through : it drives the root coroutine, and
+// whenever every task is parked it `sched_park`s (blocks until the nearest
+// timer) rather than spinning — then re-drives. A park with nothing armed is a
+// deadlock. See `.claude/plans/async-await-structured-concurrency.md` §5.
+
+module "std/async"
+
+import "std/runtime" { sched_now, sched_arm, sched_park }
+import "std/abort" { panic }
+
+// ---- sleep ----------------------------------------------------------------
+
+/// The awaitable backing `sleep` : arms a wake timer on its first `resume`, then
+/// parks (returns `Suspended`) until the scheduler's clock reaches its deadline.
+/// Completes with `null` (an async that yields no value — `await sleep(...)`
+/// discards it).
+Sleep :: struct {
+    ms:       i64
+    deadline: i64 = 0
+    armed:    bool = false
+}
+
+Sleep implements Async<null> {
+    resume :: fn(self) -> null | Suspended {
+        if !self.armed {
+            self.armed = true
+            self.deadline = sched_now() + self.ms
+            sched_arm(self.deadline)
+        }
+        if sched_now() >= self.deadline { return null }
+        return Suspended {}
+    }
+}
+
+/// Suspend the current coroutine for at least `ms` virtual milliseconds. A
+/// factory (it constructs the awaitable, it does not itself await), so it is an
+/// ordinary function returning an `Async`, not a coroutine.
+///
+/// @param ms  the minimum delay, in milliseconds.
+/// @return    an awaitable that completes once the delay elapses.
+export sleep :: fn(ms: i64) -> Async<null> = Sleep { .ms = ms }
+
+// ---- entry driver ---------------------------------------------------------
+
+/// Drive an `@async main`'s root frame to completion and return its exit code.
+/// Compiler-invoked : when `main` awaits, the program entry calls this with
+/// `main()`'s `Async<i32>` frame. Resumes the root ; whenever it parks, blocks
+/// on the nearest armed timer (`sched_park`) and re-drives — never spins.
+///
+/// @param root  the `Async<i32>` frame produced by calling the async `main`.
+/// @return      main's completed `i32` exit code.
+/// @error       panics on a park with no timer armed — every task is suspended
+///              with nothing left to wake it (a deadlock).
+export run_async_main :: fn(root: Async<i32>) -> i32 {
+    for {
+        r :: root.resume()
+        if r is Suspended {
+            if sched_park() == 1 {
+                panic("async deadlock: a task is suspended with nothing left to wake it")
+            }
+        } else {
+            return r
+        }
+    }
+}

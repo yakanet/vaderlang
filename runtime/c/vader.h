@@ -787,6 +787,18 @@ typedef struct {
 } vader_gc_stats_t;
 vader_gc_stats_t vader_gc_get_stats(void);
 
+/* ---- cooperative async scheduler ------------------------------------------
+ * A single-threaded timer scheduler backing `std/async`. `now` is a virtual
+ * millisecond timeline starting at 0 ; `arm` registers a wake deadline on a
+ * min-heap ; `park` pops the nearest deadline, waits for it (real time, unless
+ * VADER_ASYNC_VIRTUAL_CLOCK is set — then it jumps), advances `now`, and
+ * returns 0 — or returns 1 when no timer is pending (a deadlock: every task is
+ * suspended with nothing left to wake it). Program output depends only on the
+ * heap ordering, not on wall-clock, so virtual and real modes agree. */
+vader_i64_t vader_sched_now(void);
+void        vader_sched_arm(vader_i64_t deadline);
+vader_i32_t vader_sched_park(void);
+
 /* ---- self-compile profiler (VADER_PROFILE) --------------------------------
  * Per-phase wall / peak-RSS / GC accounting for the compiler's own passes.
  * The compiler (vader/profile) brackets each pass via vader_prof_begin/end
