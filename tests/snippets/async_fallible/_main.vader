@@ -4,15 +4,16 @@ module "snippet"
 
 import "std/io" { println }
 
-LoadError :: struct { reason: string }
-
-@async
-fetch :: fn() -> i32 {
-    return 5
+Ready :: struct<T> { v: T }
+Ready<T> implements Async<T> {
+    resume :: fn(self) -> T | Suspended { return self.v }
 }
 
-@async
-load :: fn(fail: bool) -> i32 | LoadError {
+LoadError :: struct { reason: string }
+
+fetch :: fn() -> Async<i32> = Ready<i32> { .v = 5 }
+
+load :: fn(fail: bool) -> Async<i32 | LoadError> {
     if fail {
         return LoadError { .reason = "denied" }
     }

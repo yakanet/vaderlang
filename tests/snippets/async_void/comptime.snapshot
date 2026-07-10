@@ -3,6 +3,9 @@
 ## tests/snippets/async_void
 
 ## generic instances
+  Ready<i32>
+  Ready<T>
+  Ready<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
@@ -19,6 +22,7 @@
   Yield<T>
   Async<i32>
   Async<null>
+  Async<void>
   Async<T>
   Range<i32>
   Range<usize>

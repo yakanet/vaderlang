@@ -1,13 +1,17 @@
 # Typecheck
 
 ## tests/snippets/async_main
-  FnDecl         greeting             :: fn() -> string
+  FnDecl         greeting             :: fn() -> Async<string>
   FnDecl         main                 :: fn() -> i32
-  expr 12:12    StringLitExpr  :: string
-  expr 17:12    AwaitExpr      :: string
-  expr 17:18    CallExpr       :: Async<string>
-  expr 17:18    IdentExpr      :: fn() -> string
-  expr 18:13    StringLitExpr  :: string
-  expr 18:23    IdentExpr      :: string
-  expr 18:5     CallExpr       :: void
-  expr 18:5     IdentExpr      :: fn(T) -> void
+  StructDecl     Ready                :: Ready<T>
+  expr 12:37    StructLitExpr  :: Ready<string>
+  expr 12:58    StringLitExpr  :: string
+  expr 15:12    AwaitExpr      :: string
+  expr 15:18    CallExpr       :: Async<string>
+  expr 15:18    IdentExpr      :: fn() -> Async<string>
+  expr 16:13    StringLitExpr  :: string
+  expr 16:23    IdentExpr      :: string
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+  expr 9:50     FieldExpr      :: T
+  expr 9:50     IdentExpr      :: Ready<T>

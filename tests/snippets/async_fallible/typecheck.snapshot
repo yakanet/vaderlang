@@ -1,48 +1,52 @@
 # Typecheck
 
 ## tests/snippets/async_fallible
-  FnDecl         fetch                :: fn() -> i32
-  FnDecl         load                 :: fn(bool) -> i32 | LoadError
+  FnDecl         fetch                :: fn() -> Async<i32>
+  FnDecl         load                 :: fn(bool) -> Async<i32 | LoadError>
   StructDecl     LoadError            :: LoadError
   FnDecl         main                 :: fn() -> i32
+  StructDecl     Ready                :: Ready<T>
   FnDecl         report               :: fn(Async<i32 | LoadError>) -> void
-  expr 16:5     IfExpr         :: void
-  expr 16:8     IdentExpr      :: bool
-  expr 17:16    StructLitExpr  :: LoadError
-  expr 17:38    StringLitExpr  :: string
-  expr 19:10    AwaitExpr      :: i32
-  expr 19:16    CallExpr       :: Async<i32>
-  expr 19:16    IdentExpr      :: fn() -> i32
-  expr 20:12    BinaryExpr     :: i32
-  expr 20:12    IdentExpr      :: i32
-  expr 24:10    CallExpr       :: i32 | LoadError | Suspended
-  expr 24:10    FieldExpr      :: fn() -> i32 | LoadError | Suspended
-  expr 24:10    IdentExpr      :: Async<i32 | LoadError>
-  expr 25:13    IdentExpr      :: Suspended
-  expr 25:25    CallExpr       :: void
-  expr 25:25    IdentExpr      :: fn(T) -> void
-  expr 25:33    StringLitExpr  :: string
-  expr 25:5     IfExpr         :: void
-  expr 25:8     BinaryExpr     :: bool
-  expr 25:8     IdentExpr      :: i32 | LoadError | Suspended
-  expr 26:13    IdentExpr      :: LoadError
-  expr 26:30    CallExpr       :: void
-  expr 26:30    IdentExpr      :: fn(T) -> void
-  expr 26:38    StringLitExpr  :: string
-  expr 26:46    FieldExpr      :: string
-  expr 26:46    IdentExpr      :: LoadError
+  expr 14:31    StructLitExpr  :: Ready<i32>
+  expr 17:5     IfExpr         :: void
+  expr 17:8     IdentExpr      :: bool
+  expr 18:16    StructLitExpr  :: LoadError
+  expr 18:38    StringLitExpr  :: string
+  expr 20:10    AwaitExpr      :: i32
+  expr 20:16    CallExpr       :: Async<i32>
+  expr 20:16    IdentExpr      :: fn() -> Async<i32>
+  expr 21:12    BinaryExpr     :: i32
+  expr 21:12    IdentExpr      :: i32
+  expr 25:10    CallExpr       :: i32 | LoadError | Suspended
+  expr 25:10    FieldExpr      :: fn() -> i32 | LoadError | Suspended
+  expr 25:10    IdentExpr      :: Async<i32 | LoadError>
+  expr 26:13    IdentExpr      :: Suspended
+  expr 26:25    CallExpr       :: void
+  expr 26:25    IdentExpr      :: fn(T) -> void
+  expr 26:33    StringLitExpr  :: string
   expr 26:5     IfExpr         :: void
   expr 26:8     BinaryExpr     :: bool
-  expr 26:8     IdentExpr      :: i32 | LoadError
-  expr 27:13    StringLitExpr  :: string
-  expr 27:20    IdentExpr      :: i32
-  expr 27:5     CallExpr       :: void
-  expr 27:5     IdentExpr      :: fn(T) -> void
-  expr 31:12    CallExpr       :: Async<i32 | LoadError>
-  expr 31:12    IdentExpr      :: fn(bool) -> i32 | LoadError
-  expr 31:5     CallExpr       :: void
-  expr 31:5     IdentExpr      :: fn(Async<i32 | LoadError>) -> void
+  expr 26:8     IdentExpr      :: i32 | LoadError | Suspended
+  expr 27:13    IdentExpr      :: LoadError
+  expr 27:30    CallExpr       :: void
+  expr 27:30    IdentExpr      :: fn(T) -> void
+  expr 27:38    StringLitExpr  :: string
+  expr 27:46    FieldExpr      :: string
+  expr 27:46    IdentExpr      :: LoadError
+  expr 27:5     IfExpr         :: void
+  expr 27:8     BinaryExpr     :: bool
+  expr 27:8     IdentExpr      :: i32 | LoadError
+  expr 28:13    StringLitExpr  :: string
+  expr 28:20    IdentExpr      :: i32
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void
   expr 32:12    CallExpr       :: Async<i32 | LoadError>
-  expr 32:12    IdentExpr      :: fn(bool) -> i32 | LoadError
+  expr 32:12    IdentExpr      :: fn(bool) -> Async<i32 | LoadError>
   expr 32:5     CallExpr       :: void
   expr 32:5     IdentExpr      :: fn(Async<i32 | LoadError>) -> void
+  expr 33:12    CallExpr       :: Async<i32 | LoadError>
+  expr 33:12    IdentExpr      :: fn(bool) -> Async<i32 | LoadError>
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(Async<i32 | LoadError>) -> void
+  expr 9:50     FieldExpr      :: T
+  expr 9:50     IdentExpr      :: Ready<T>

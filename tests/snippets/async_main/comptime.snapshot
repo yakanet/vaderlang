@@ -3,6 +3,9 @@
 ## tests/snippets/async_main
 
 ## generic instances
+  Ready<string>
+  Ready<T>
+  Ready<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

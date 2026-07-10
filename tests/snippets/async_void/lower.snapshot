@@ -2,14 +2,13 @@
 
 ## snippet
   fn snippet$fetch() -> Async<i32>
-    return
-      __asyncstate_1 {
-        awaited: null
-        state: int(1) :i32
+    ~>
+      Ready<i32> {
+        v: int(7) :i32
       }
   fn snippet$log_it() -> Async<null>
     return
-      __asyncstate_7 {
+      __asyncstate_4 {
         s0: int(0) :i32
         s1: int(0) :i32
         awaited: null
@@ -17,7 +16,7 @@
       }
   fn snippet$wrap() -> Async<null>
     return
-      __asyncstate_12 {
+      __asyncstate_9 {
         s0: null
         awaited: null
         state: int(3) :i32
@@ -28,7 +27,7 @@
         recv:
           call :Async<null>
             callee:
-              wrap :fn() -> void
+              wrap :fn() -> Async<void>
     if :void
       cond:
         is Suspended :bool
@@ -46,61 +45,22 @@
       arg0:
         "complete" :string
     return int(0) :i32
-  struct __asyncstate_1 { awaited: Async<Any>, state: i32 }
-  fn snippet$__asyncstate_1$Async$resume(self: __asyncstate_1) -> i32 | Suspended
+  struct __asyncstate_4 { s0: i32, s1: i32, awaited: Async<Any>, state: i32 }
+  fn snippet$__asyncstate_4$Async$resume(self: __asyncstate_4) -> null | Suspended
     loop
       if :void
         cond:
           eq :bool
             l:
               .state :i32
-                __self_0 :__asyncstate_1
+                __self_3 :__asyncstate_4
             r:
               int(0) :i32
         then:
           assign
             target:
               .state :i32
-                __self_0 :__asyncstate_1
-            value:
-              int(-1) :i32
-        else:
-          if :void
-            cond:
-              eq :bool
-                l:
-                  .state :i32
-                    __self_0 :__asyncstate_1
-                r:
-                  int(1) :i32
-            then:
-              assign
-                target:
-                  .state :i32
-                    __self_0 :__asyncstate_1
-                value:
-                  int(-1) :i32
-              return int(7) :i32
-            else:
-              return
-                Suspended {
-                }
-  struct __asyncstate_7 { s0: i32, s1: i32, awaited: Async<Any>, state: i32 }
-  fn snippet$__asyncstate_7$Async$resume(self: __asyncstate_7) -> null | Suspended
-    loop
-      if :void
-        cond:
-          eq :bool
-            l:
-              .state :i32
-                __self_3 :__asyncstate_7
-            r:
-              int(0) :i32
-        then:
-          assign
-            target:
-              .state :i32
-                __self_3 :__asyncstate_7
+                __self_3 :__asyncstate_4
             value:
               int(-1) :i32
           return null
@@ -110,17 +70,17 @@
               eq :bool
                 l:
                   .state :i32
-                    __self_3 :__asyncstate_7
+                    __self_3 :__asyncstate_4
                 r:
                   int(1) :i32
             then:
               assign
                 target:
                   .s1 :i32
-                    __self_3 :__asyncstate_7
+                    __self_3 :__asyncstate_4
                 value:
                   .s0 :i32
-                    __self_3 :__asyncstate_7
+                    __self_3 :__asyncstate_4
               call :void
                 callee:
                   std_io$println__string :void
@@ -160,7 +120,7 @@
                           arg2:
                             cast → i64
                               .s1 :i32
-                                __self_3 :__asyncstate_7
+                                __self_3 :__asyncstate_4
                     ~>
                       call :string
                         callee:
@@ -172,7 +132,7 @@
               assign
                 target:
                   .state :i32
-                    __self_3 :__asyncstate_7
+                    __self_3 :__asyncstate_4
                 value:
                   int(0) :i32
             else:
@@ -181,7 +141,7 @@
                   eq :bool
                     l:
                       .state :i32
-                        __self_3 :__asyncstate_7
+                        __self_3 :__asyncstate_4
                     r:
                       int(2) :i32
                 then:
@@ -189,7 +149,7 @@
                     vcall Async.resume :Any | Suspended
                       recv:
                         .awaited :Async<Any>
-                          __self_3 :__asyncstate_7
+                          __self_3 :__asyncstate_4
                   if :void
                     cond:
                       is Suspended :bool
@@ -202,14 +162,14 @@
                       assign
                         target:
                           .s0 :i32
-                            __self_3 :__asyncstate_7
+                            __self_3 :__asyncstate_4
                         value:
                           cast → i32
                             __resumed_4 :Any | Suspended
                       assign
                         target:
                           .state :i32
-                            __self_3 :__asyncstate_7
+                            __self_3 :__asyncstate_4
                         value:
                           int(1) :i32
                 else:
@@ -218,45 +178,45 @@
                       eq :bool
                         l:
                           .state :i32
-                            __self_3 :__asyncstate_7
+                            __self_3 :__asyncstate_4
                         r:
                           int(3) :i32
                     then:
                       assign
                         target:
                           .awaited :Async<Any>
-                            __self_3 :__asyncstate_7
+                            __self_3 :__asyncstate_4
                         value:
                           cast → Async<Any>
                             call :Async<i32>
                               callee:
-                                fetch :fn() -> i32
+                                fetch :fn() -> Async<i32>
                       assign
                         target:
                           .state :i32
-                            __self_3 :__asyncstate_7
+                            __self_3 :__asyncstate_4
                         value:
                           int(2) :i32
                     else:
                       return
                         Suspended {
                         }
-  struct __asyncstate_12 { s0: null, awaited: Async<Any>, state: i32 }
-  fn snippet$__asyncstate_12$Async$resume(self: __asyncstate_12) -> null | Suspended
+  struct __asyncstate_9 { s0: null, awaited: Async<Any>, state: i32 }
+  fn snippet$__asyncstate_9$Async$resume(self: __asyncstate_9) -> null | Suspended
     loop
       if :void
         cond:
           eq :bool
             l:
               .state :i32
-                __self_1 :__asyncstate_12
+                __self_1 :__asyncstate_9
             r:
               int(0) :i32
         then:
           assign
             target:
               .state :i32
-                __self_1 :__asyncstate_12
+                __self_1 :__asyncstate_9
             value:
               int(-1) :i32
           return null
@@ -266,12 +226,12 @@
               eq :bool
                 l:
                   .state :i32
-                    __self_1 :__asyncstate_12
+                    __self_1 :__asyncstate_9
                 r:
                   int(1) :i32
             then:
               .s0 :null
-                __self_1 :__asyncstate_12
+                __self_1 :__asyncstate_9
               call :void
                 callee:
                   std_io$println__string :void
@@ -280,7 +240,7 @@
               assign
                 target:
                   .state :i32
-                    __self_1 :__asyncstate_12
+                    __self_1 :__asyncstate_9
                 value:
                   int(0) :i32
             else:
@@ -289,7 +249,7 @@
                   eq :bool
                     l:
                       .state :i32
-                        __self_1 :__asyncstate_12
+                        __self_1 :__asyncstate_9
                     r:
                       int(2) :i32
                 then:
@@ -297,7 +257,7 @@
                     vcall Async.resume :Any | Suspended
                       recv:
                         .awaited :Async<Any>
-                          __self_1 :__asyncstate_12
+                          __self_1 :__asyncstate_9
                   if :void
                     cond:
                       is Suspended :bool
@@ -310,14 +270,14 @@
                       assign
                         target:
                           .s0 :null
-                            __self_1 :__asyncstate_12
+                            __self_1 :__asyncstate_9
                         value:
                           cast → null
                             __resumed_2 :Any | Suspended
                       assign
                         target:
                           .state :i32
-                            __self_1 :__asyncstate_12
+                            __self_1 :__asyncstate_9
                         value:
                           int(1) :i32
                 else:
@@ -326,26 +286,32 @@
                       eq :bool
                         l:
                           .state :i32
-                            __self_1 :__asyncstate_12
+                            __self_1 :__asyncstate_9
                         r:
                           int(3) :i32
                     then:
                       assign
                         target:
                           .awaited :Async<Any>
-                            __self_1 :__asyncstate_12
+                            __self_1 :__asyncstate_9
                         value:
                           cast → Async<Any>
                             call :Async<null>
                               callee:
-                                log_it :fn() -> void
+                                log_it :fn() -> Async<void>
                       assign
                         target:
                           .state :i32
-                            __self_1 :__asyncstate_12
+                            __self_1 :__asyncstate_9
                         value:
                           int(2) :i32
                     else:
                       return
                         Suspended {
                         }
+  struct snippet$Ready__i32 { v: i32 }
+  fn snippet$Ready$Async$resume__i32(self: Ready<i32>) -> i32 | Suspended
+    return
+      .v :i32
+        self :Ready<i32>
+  struct snippet$Ready__Any { v: Any }
