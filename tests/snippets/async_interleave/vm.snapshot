@@ -1,0 +1,9 @@
+# stdout
+A: start
+B: start
+C: start
+B: end (slept 1)
+C: end (slept 2)
+A: end (slept 3)
+# exit
+0

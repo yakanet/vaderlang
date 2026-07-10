@@ -1,0 +1,34 @@
+# Typecheck
+
+## tests/snippets/async_interleave
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         task                 :: fn(string, i64) -> Async<i32>
+  expr 12:13    StringLitExpr  :: string
+  expr 12:16    IdentExpr      :: string
+  expr 12:5     CallExpr       :: void
+  expr 12:5     IdentExpr      :: fn(T) -> void
+  expr 13:11    CallExpr       :: Async<null>
+  expr 13:11    IdentExpr      :: fn(i64) -> Async<null>
+  expr 13:17    IdentExpr      :: i64
+  expr 13:5     AwaitExpr      :: null
+  expr 14:13    StringLitExpr  :: string
+  expr 14:16    IdentExpr      :: string
+  expr 14:36    IdentExpr      :: i64
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(T) -> void
+  expr 15:12    CallExpr       :: i32
+  expr 15:12    IdentExpr      :: type
+  expr 15:16    IdentExpr      :: i64
+  expr 19:11    CallExpr       :: Async<i32[]>
+  expr 19:11    IdentExpr      :: fn(Async<T>[]) -> Async<T[]>
+  expr 19:15    SeqLitExpr     :: Async<i32>[]
+  expr 19:16    CallExpr       :: Async<i32>
+  expr 19:16    IdentExpr      :: fn(string, i64) -> Async<i32>
+  expr 19:21    StringLitExpr  :: string
+  expr 19:30    CallExpr       :: Async<i32>
+  expr 19:30    IdentExpr      :: fn(string, i64) -> Async<i32>
+  expr 19:35    StringLitExpr  :: string
+  expr 19:44    CallExpr       :: Async<i32>
+  expr 19:44    IdentExpr      :: fn(string, i64) -> Async<i32>
+  expr 19:49    StringLitExpr  :: string
+  expr 19:5     AwaitExpr      :: i32[]

@@ -183,6 +183,7 @@ const C_PARITY = new Set<string>([
   "async_sleep",       // real suspension via sleep: park scheduler + timer heap
   "async_sleep_main",  // implicit async main routed through run_async_main
   "async_all",         // all(xs): concurrent join, input-order results
+  "async_interleave",  // visible cooperative interleaving via println order
   // Not async-specific : a generic struct's trait impl materialised when the
   // struct is built only inside a generic fn's body (the harvest never saw the
   // concrete instance). Regression guard for lower_struct_lit's queue gate.
