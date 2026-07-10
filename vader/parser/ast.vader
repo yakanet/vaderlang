@@ -661,7 +661,7 @@ export TryExpr :: struct {
     inner: Expr
 }
 
-/// `await e` — suspend the enclosing `@async` fn until `e`'s async result is
+/// `await e` — suspend the enclosing `async` fn until `e`'s async result is
 /// ready, then produce it. A single-operand prefix wrapper (structurally like
 /// `TryExpr`); carries no error semantics of its own.
 export AwaitExpr :: struct {

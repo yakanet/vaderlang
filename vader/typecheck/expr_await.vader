@@ -1,6 +1,6 @@
 // vader/typecheck/expr_await — AwaitExpr inference (`await e`).
 //
-// `await` is legal only directly inside an `@async` fn body — a nested lambda's
+// `await` is legal only directly inside an `async` fn body — a nested lambda's
 // context is not async, so an `await` there trips T3064 (AwaitOutsideAsync) too.
 // The result unwraps `Async<T>` to `T` ; a non-`Async` inner passes through
 // unchanged (downstream still gets a useful type).
@@ -11,7 +11,7 @@ import "vader/diagnostics" { Diagnostic, typecheck_error }
 import "vader/types" { Type, TraitType, TRAIT_ASYNC }
 AST :: import "vader/parser"
 
-/// Type-check `await e` : diagnose it outside an `@async` body, type the inner,
+/// Type-check `await e` : diagnose it outside an `async` body, type the inner,
 /// and return the awaited element type.
 export infer_await :: fn(
     e: AST.AwaitExpr, typed: TypedProgram, diags: Diagnostic[],

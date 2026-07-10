@@ -1,6 +1,6 @@
-// vader/lower/lower_async — the `@async` state-machine desugar (Phase 1).
+// vader/lower/lower_async — the `async` state-machine desugar (Phase 1).
 //
-// Called from `lower_fn_decl` for a non-generic `@async` fn. Takes the body
+// Called from `lower_fn_decl` for a non-generic `async` fn. Takes the body
 // lowered in async mode (so every `await e` has been hoisted to a transient
 // `LoweredAwait` statement by the ANF sink in `lower_expr` / `lower_block`) and
 // produces, per async fn `f`:
@@ -126,7 +126,7 @@ async_fold_trailing :: fn(body: LoweredBlock, result_is_void: bool) -> LoweredBl
 
 // ---- entry ----------------------------------------------------------------
 
-/// Lower an `@async` fn to the state-machine form. Synthesizes `__asyncstate`
+/// Lower an `async` fn to the state-machine form. Synthesizes `__asyncstate`
 /// and `<module>$<State>$Async$resume` into `project.synth_decls`, and returns
 /// the rewritten `f` body (`return __asyncstate { <args>, .awaited = null,
 /// .state = entry }`).
@@ -143,7 +143,7 @@ async_fold_trailing :: fn(body: LoweredBlock, result_is_void: bool) -> LoweredBl
 /// @param lowered_body  the body lowered in async mode (awaits → `LoweredAwait`).
 /// @param result_type   the declared result type `T` (the value `return`
 ///                      completes with ; the `T` in `T | Suspended`).
-/// @param is_main       true for the `@async main` entry — inline the run-driver
+/// @param is_main       true for the `async main` entry — inline the run-driver
 ///                      and return `T` (the exit code) instead of the `Async<T>`
 ///                      frame ; every other async fn returns the frame.
 /// @return              the rewritten `f` body.
@@ -237,7 +237,7 @@ export lower_async_fn :: fn(
         .name = "state", .value = LoweredIntLit { .span = span, .type = i32_ty, .value = entry_state },
     })
     construct :: LoweredStructLit { .span = span, .type = state_ty, .fields = construct_fields }
-    // `@async main` : inline the run-driver over the freshly built frame and
+    // `async main` : inline the run-driver over the freshly built frame and
     // return the completed `i32`. Every other async fn just returns the frame
     // (the caller's `await` / a driver drives it).
     if is_main {
@@ -250,7 +250,7 @@ export lower_async_fn :: fn(
     }
 }
 
-// The inline run-driver for `@async main` (Phase 2a — no scheduler yet). Upcasts
+// The inline run-driver for `async main` (Phase 2a — no scheduler yet). Upcasts
 // the freshly built frame to the erased `Async<T>`, drives it once through the
 // vtable `resume` (the P1.3-validated construct-then-resume path), traps on a
 // `Suspended` root (nothing can wake it without the Phase 2b scheduler), else

@@ -66,9 +66,9 @@ export FnContext :: struct {
     /// `yield e` must coerce to it. Null when not a generator (or the
     /// return type wasn't a valid `Iterator<T>`).
     yield_type: Type | null = null
-    /// True when the enclosing fn carries `@async`. Drives `await` legality
-    /// and forbids `defer` (v1). False for lambdas and synthetic contexts, so
-    /// an `await` in a nested lambda trips the "await outside async" check.
+    /// True when the enclosing fn is an async coroutine (it `await`s). Drives
+    /// `await` legality and forbids `defer` (v1). False for lambdas and
+    /// synthetic contexts, so an `await` in a nested lambda trips T3064.
     is_async: bool = false
 }
 

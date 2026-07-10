@@ -236,7 +236,7 @@ export LoweredYield :: struct {
     value: LoweredExpr
 }
 
-/// TRANSIENT async marker — one `await e` inside an `@async` body, produced by
+/// TRANSIENT async marker — one `await e` inside an `async` body, produced by
 /// the ANF pass when `FnLowerCtx.in_async` is set, and wholly consumed by the
 /// coroutine state-machine transform (`lower_coroutine.vader`). Like
 /// `LoweredYield` it never reaches the backend (armed `unreachable`). Binds the

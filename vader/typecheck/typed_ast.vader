@@ -192,7 +192,7 @@ export TypedProgram :: struct {
     range_symbol: Symbol | null
     field_symbol: Symbol | null
     /// `std/core`'s `Async` trait symbol — used to synthesise the `Async<T>`
-    /// result type of an `@async fn` call. Populated once from core by the
+    /// result type of an `async fn` call. Populated once from core by the
     /// orchestrator (mirror of `range_symbol`).
     async_symbol: Symbol | null
 

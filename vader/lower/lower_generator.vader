@@ -61,7 +61,7 @@ zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
         if is_float_name(p.name) { return LoweredFloatLit { .span = span, .type = ty, .value = 0.0 } }
         if p.name == "string" { return LoweredStringLit { .span = span, .type = ty, .value = "" } }
         // `null` is a boxed slot, not an integer width — its zero value is `null`
-        // (a void `@async` await binds a `null`-typed target). Falling through to
+        // (a void `async` await binds a `null`-typed target). Falling through to
         // the integer arm would emit `(vader_box_t)(int32_t)0`, invalid C.
         if p.name == "null" { return LoweredNullLit { .span = span, .type = ty } }
         // every integer / char width

@@ -114,10 +114,9 @@ fn_is_generator :: fn(fn_decl: AST.FnDecl) -> bool {
 }
 
 /// True when `fn_decl` is an async coroutine — i.e. it lexically `await`s.
-/// Async-ness is INFERRED from `await`: a fn that awaits IS a coroutine, no
-/// annotation (there is no `@async` decorator). Its async-ness is expressed in
-/// the signature by an `Async<T>` return type. Local + syntactic, so it resolves
-/// the same at a definition and at a cross-module call site.
+/// Async-ness is INFERRED from `await` (no annotation needed) ; a coroutine
+/// expresses it in the signature by returning `Async<T>`. Local + syntactic, so
+/// it resolves the same at a definition and at a cross-module call site.
 export fn_is_async :: fn(fn_decl: AST.FnDecl) -> bool {
     b :: fn_decl.body
     if b == null { return false }
@@ -324,7 +323,7 @@ export check_fn_body :: fn(
     inferred_return :: fn_decl.is_expression_bodied && (return_type is UnresolvedType)
     // An async coroutine's body produces the inner `T` of `Async<T>` (the frame
     // wraps it), so check its returns / trailing against `T`, not the erased
-    // return. Transitional `@async fn -> T` has inner == T (no-op) ; generators
+    // return. Transitional `async fn -> T` has inner == T (no-op) ; generators
     // keep the raw return (they yield, never return the stream).
     effective_return :: if is_async && !is_generator { async_inner_type(return_type) } else { return_type }
     expected: Type | null = effective_return
