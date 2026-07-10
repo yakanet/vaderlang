@@ -16,7 +16,7 @@ import "vader/diagnostics" { Diagnostic, Span }
 AST :: import "vader/parser"
 import "vader/parser" { Program }
 import "vader/resolver" { LoadedProject, LoadedModule, SourceFile, concat_file_decls, load_project_with_overlay }
-import "vader/resolver" { ResolvedModule, resolve_module, resolve_module_with_collected, resolve_module_with_collected_dp, resolve_module_with_collected_dp_seeded, build_core_seed, find_core_module_id }
+import "vader/resolver" { ResolvedModule, resolve_module, resolve_module_with_collected, resolve_module_with_collected_dp, resolve_module_with_collected_dp_seeded, build_core_seed, find_core_module_id, find_async_module_id }
 import "vader/resolver/symbol" { Symbol, SymbolFactory }
 import "vader/resolver" { wire_imports, ImportTargetTable, run_orphan_rule_check_for_module }
 import "vader/types" { display_type, type_base_name, canonical_key, canonical_args_key }
@@ -1366,6 +1366,16 @@ populate_core_symbols :: fn(
     entry_typed: TypedProgram, project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
 ) -> void {
+    // Resolve `std/async`'s `run_async_main` for the entry (the implicit
+    // async-`main` driver) when the program imports `std/async` — independent of
+    // core, so it survives the core early-returns below.
+    async_id :: find_async_module_id(project)
+    if async_id != null {
+        async_loaded :: project.modules[async_id]
+        if async_loaded != null {
+            entry_typed.run_async_main_symbol = async_loaded.collected.symbols["run_async_main"]
+        }
+    }
     core_id :: find_core_module_id(project)
     if core_id is null { return }
     core_loaded :: project.modules[core_id]

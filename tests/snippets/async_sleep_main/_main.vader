@@ -1,0 +1,18 @@
+// Implicit async `main` that suspends: `main` awaits `sleep`, so it is inferred
+// async and — because the program imports `std/async` (for `sleep`) — the
+// compiler routes it through the park-based `run_async_main` driver. No
+// explicit driver call, no decorator. The scheduler advances the virtual clock
+// across the two sleeps.
+module "snippet"
+
+import "std/io" { println }
+import "std/async" { sleep }
+
+main :: fn() -> i32 {
+    println("start")
+    await sleep(2)
+    println("woke at 2")
+    await sleep(3)
+    println("woke at 5")
+    return 0
+}

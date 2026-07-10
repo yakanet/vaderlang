@@ -250,16 +250,34 @@ export lower_async_fn :: fn(
     }
 }
 
-// The inline run-driver for `async main` (Phase 2a — no scheduler yet). Upcasts
-// the freshly built frame to the erased `Async<T>`, drives it once through the
-// vtable `resume` (the P1.3-validated construct-then-resume path), traps on a
-// `Suspended` root (nothing can wake it without the Phase 2b scheduler), else
-// returns the completed value cast back to `T` (the process exit code).
+// The run-driver for an async `main`. When `std/async` is loaded (the program
+// imports it — which it must to `sleep`), route the frame through its
+// park-based `run_async_main` : construct the frame, upcast to `Async<T>`, and
+// `return run_async_main(frame)`. That driver blocks on the scheduler between
+// re-drives, so a `main` that suspends works. Without `std/async` (a `main` that
+// awaits only immediately-ready things), fall back to the inline single-resume
+// driver — no scheduler dependency, and a stray suspension traps loudly.
 async_main_driver :: fn(
     fn_ctx: FnLowerCtx, construct: LoweredExpr, async_sym: Symbol,
     suspended_ty: Type, resume_ty: Type, result_type: Type, span: Span,
 ) -> LoweredBlock {
     async_ty :: mk_trait(async_sym, [result_type])
+    run_sym :: fn_ctx.typed.run_async_main_symbol
+    if run_sym != null {
+        // Seed `run_async_main`'s materialisation (a synthesised call isn't
+        // auto-harvested) and route through it : `return run_async_main(frame)`.
+        register_nongeneric_imported_fn(fn_ctx, run_sym)
+        call :: LoweredCall {
+            .span = span, .type = result_type,
+            .callee = LoweredIdent { .span = span, .type = result_type, .symbol = run_sym },
+            .args = [LoweredCast { .span = span, .type = async_ty, .value = construct }],
+        }
+        return LoweredBlock {
+            .span = span, .type = TY_VOID,
+            .stmts = [LoweredReturn { .span = span, .value = call }],
+            .trailing = null,
+        }
+    }
     r_sym :: fresh_synthetic_symbol(fn_ctx, "root")
     r_ref :: LoweredIdent { .span = span, .type = resume_ty, .symbol = r_sym }
     // r :: (frame as Async<T>).resume()   (virtual — T | Suspended)
