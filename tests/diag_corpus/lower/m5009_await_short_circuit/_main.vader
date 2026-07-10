@@ -1,0 +1,14 @@
+module "snippet"
+
+@async
+flag_of :: fn() -> bool {
+    return true
+}
+
+// `await` in a `&&` RHS runs conditionally — hoisting it to a statement would
+// run it unconditionally. v1 diagnoses M5009 (flow-sensitive lift is later).
+@async
+combine :: fn(a: bool) -> bool {
+    r :: a && await flag_of()
+    return r
+}

@@ -1,0 +1,30 @@
+# Typecheck
+
+## tests/snippets/async_basic
+  FnDecl         add_one              :: fn(i32) -> i32
+  FnDecl         double               :: fn(i32) -> i32
+  FnDecl         main                 :: fn() -> i32
+  expr 10:12    BinaryExpr     :: i32
+  expr 10:12    IdentExpr      :: i32
+  expr 10:16    IdentExpr      :: i32
+  expr 15:10    AwaitExpr      :: i32
+  expr 15:16    CallExpr       :: Async<i32>
+  expr 15:16    IdentExpr      :: fn(i32) -> i32
+  expr 15:23    IdentExpr      :: i32
+  expr 16:12    BinaryExpr     :: i32
+  expr 16:12    IdentExpr      :: i32
+  expr 20:10    CallExpr       :: Async<i32>
+  expr 20:10    CallExpr       :: i32 | Suspended
+  expr 20:10    FieldExpr      :: fn() -> i32 | Suspended
+  expr 20:10    IdentExpr      :: fn(i32) -> i32
+  expr 21:13    IdentExpr      :: Suspended
+  expr 21:25    CallExpr       :: void
+  expr 21:25    IdentExpr      :: fn(T) -> void
+  expr 21:33    StringLitExpr  :: string
+  expr 21:5     IfExpr         :: void
+  expr 21:8     BinaryExpr     :: bool
+  expr 21:8     IdentExpr      :: i32 | Suspended
+  expr 22:13    StringLitExpr  :: string
+  expr 22:16    IdentExpr      :: i32
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void

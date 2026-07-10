@@ -6,7 +6,7 @@ module "vader/lower"
 import "std/collections" { MutableMap }
 
 import "vader/parser" { Expr, BlockExpr, Stmt, LetStmt, AssignStmt, ExprStmt, ReturnStmt, YieldStmt, ForStmt, BreakStmt, ContinueStmt, DeferStmt, InfiniteFor, WhileFor, InFor, SimpleBinding, TupleBinding, WildcardBinding, RestBinding, Visibility }
-import "vader/diagnostics" { Span }
+import "vader/diagnostics" { Span, lower_error }
 import "vader/typecheck" { equals_type }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" { Type, UnionType, ArrayType, TypeMetaType, TY_VOID }
@@ -29,9 +29,24 @@ export lower_block :: fn(
     ctx.blocks.push(new_block_ctx(is_fn_root, is_loop_body))
     stmts: LoweredStmt[] = []
     for stmt in block.stmts {
-        lower_stmt_into(ctx, stmt, stmts)
+        if ctx.in_async {
+            // ANF (async) : lower the stmt into a scratch buffer, then splice the
+            // `await`s it hoisted (index >= watermark) into statement position
+            // BEFORE it. The watermark protects an enclosing `if`-condition's
+            // await from being stolen by this block (an arm body) — it belongs to
+            // the enclosing statement's drain, not ours.
+            base :: ctx.pending_awaits.len()
+            stmt_out: LoweredStmt[] = []
+            lower_stmt_into(ctx, stmt, stmt_out)
+            drain_pending_from(ctx, stmts, base)
+            for s in stmt_out { stmts.push(s) }
+        } else {
+            lower_stmt_into(ctx, stmt, stmts)
+        }
     }
+    trailing_base :: if ctx.in_async { ctx.pending_awaits.len() } else { usize(0) }
     raw_trailing :: lower_trailing(ctx, block.trailing)
+    if ctx.in_async { drain_pending_from(ctx, stmts, trailing_base) }
     defer_count :: ctx.blocks[entry_depth].defers.len()
     // Skip the block-fall-through pop_exec when control flow has
     // already exited (return / break / continue). The `drain_*`
@@ -83,6 +98,33 @@ export lower_block :: fn(
 lower_trailing :: fn(ctx: FnLowerCtx, trailing: Expr | null) -> LoweredExpr | null {
     if trailing == null { return null }
     return lower_expr(ctx, trailing)
+}
+
+// Move the `await`s hoisted at or after `base` from the ANF sink into `out`
+// (statement position), truncating the sink back to `base`. Awaits below `base`
+// belong to an enclosing statement's drain and are left untouched (the block
+// watermark — see `lower_block`).
+drain_pending_from :: fn(ctx: FnLowerCtx, out: LoweredStmt[], base: usize) -> void {
+    n :: ctx.pending_awaits.len()
+    // Fast path : the statement hoisted nothing (the common case) — no drain, no
+    // realloc. Otherwise move the tail `[base, n)` into `out` and truncate the
+    // sink back to `base` in place, leaving the kept prefix untouched.
+    if n == base { return }
+    for i in base..<n { out.push(ctx.pending_awaits[i]) }
+    for _ in base..<n { ctx.pending_awaits.remove_last() }
+}
+
+// Reject an `await` in a conditionally-evaluated operand (a `&&` / `||` RHS, a
+// loop condition). Hoisting such an await to statement position would run it
+// unconditionally / only once — unsound. v1 diagnoses (M5009) and drops the
+// leaked awaits ; the full flow-sensitive ANF that lifts them correctly is a
+// later phase. No-op outside async or when nothing was hoisted.
+export guard_no_pending_await :: fn(ctx: FnLowerCtx, base: usize, span: Span) -> void {
+    if !ctx.in_async { return }
+    if ctx.pending_awaits.len() <= base { return }
+    ctx.project.diags.push(lower_error(.AwaitInShortCircuit, span, ""))
+    scratch: LoweredStmt[] = []
+    drain_pending_from(ctx, scratch, base)
 }
 
 trailing_type :: fn(trailing: LoweredExpr | null) -> Type {
@@ -448,7 +490,11 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
                 }
                 return lower_for_in(ctx, for_stmt, synth_in, lower_expr, lower_block)
             }
+            cond_base :: ctx.pending_awaits.len()
             cond :: lower_expr(ctx, while_for.cond)
+            // A loop condition re-evaluates each iteration ; an `await` there
+            // can't be hoisted before the loop (would run once). v1: diagnose.
+            guard_no_pending_await(ctx, cond_base, while_for.cond.span)
             body :: lower_block(ctx, for_stmt.body, false, true)
             return LoweredLoop {
                 .span = for_stmt.span, .label = for_stmt.label,

@@ -438,6 +438,20 @@ export FnLowerCtx :: struct {
     /// generator transform) instead of the not-implemented trap.
     in_generator:       bool = false
 
+    /// True while lowering an `@async` body: `lower_expr` hoists each `await e`
+    /// to a transient `LoweredAwait` statement (via `pending_awaits`) instead of
+    /// the not-implemented trap. Consumed by the async state-machine transform
+    /// (`lower_async.vader`). A nested lambda's fresh ctx sees `false`, so
+    /// `await`-in-lambda never reaches lowering (typecheck rejects it first).
+    in_async:           bool = false
+
+    /// ANF sink (async only) — `await` subexpressions lowered during a statement
+    /// accumulate here as `LoweredAwait` statements ; `lower_block` drains them
+    /// (respecting a per-block watermark, so an enclosing `if`-condition's await
+    /// isn't stolen by an arm body) into statement position just before the
+    /// statement that used their value. See `.claude/plans/async-await-...` §12.
+    pending_awaits:     LoweredStmt[] = []
+
     /// Non-null while INLINING a generator body at a for-in consumption site
     /// (Couche 4): `lower_stmt` redirects each `yield e` to bind the consumer's
     /// loop var + run its body. Transient (save/restore, like `comptime_bindings`).

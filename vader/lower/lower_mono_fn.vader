@@ -190,6 +190,23 @@ lower_generator_body :: fn(
     return lower_generator_fn(gen_ctx, fn_decl, params, lowered, return_type)
 }
 
+// Lower an `@async` fn / impl member to its state-machine body — the async
+// analogue of `lower_generator_body`. Lowers the body in async mode (`await`s →
+// `LoweredAwait` markers via the ANF sink) then synthesizes `__asyncstate` +
+// `Async::resume` (`lower_async_fn`). `result_type` is the fn's declared return
+// `T` (NOT the erased `Async<T>` the caller sees — that wraps this at the
+// `LoweredFnDecl` boundary in `lower_decl`).
+lower_async_body :: fn(
+    project_ctx: LowerProjectCtx, entry: MonoEntry, typed: TypedProgram,
+    subst: Substitution, fn_decl: FnDecl, async_body: BlockExpr,
+    params: LoweredParam[], result_type: Type,
+) -> LoweredBlock {
+    async_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, result_type, null)
+    async_ctx.in_async = true
+    lowered :: lower_block(async_ctx, async_body, true, false)
+    return lower_async_fn(async_ctx, fn_decl, params, lowered, result_type)
+}
+
 // Build (but don't push) the monomorphized `LoweredFnDecl` for `inst`.
 // Lowering the body here can register transitive fn instances into
 // `project_ctx.fn_instances_order` — the caller's fixpoint loop picks

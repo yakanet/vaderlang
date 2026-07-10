@@ -11,7 +11,8 @@
 module "vader/lower"
 
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, TY_NULL, TY_BOOL, TY_VOID }
+import "vader/types" { Type, TY_NULL, TY_BOOL, TY_VOID, TRAIT_ASYNC, METHOD_RESUME, STRUCT_SUSPENDED }
+import "vader/typecheck" { is_void }
 import "vader/diagnostics" { Span }
 import "std/collections" { MutableMap }
 import "std/abort" { panic }
@@ -40,6 +41,25 @@ GenBuild :: struct {
     fields:    LoweredStructField[]
     /// Enclosing-loop targets for `break` / `continue` resolution.
     loop_stack: LoopFrame[]
+    /// The fn-lowering context — used to mint per-drive-state temporaries
+    /// (async) ; the generator path sets it too but never reads it.
+    fn_ctx:    FnLowerCtx
+    /// True when driving an `@async fn` (vs a `@generator`). Selects the async
+    /// seams in the shared block-split : `await` suspension, value-carrying
+    /// completion, and the `Suspended` (vs `null`) done sentinel.
+    is_async:  bool = false
+    /// Async only — the fn's declared result type `T` : the value a `return`
+    /// completes with, and the `T` in the `T | Suspended` resume return.
+    result_ty: Type = TY_VOID
+    /// Async only — the `Suspended` sentinel struct type (the done marker
+    /// `resume` returns while a child isn't ready).
+    suspended_ty: Type = TY_VOID
+    /// Async only — the erased `Async<Any>` type of the single reused `awaited`
+    /// frame field that holds the child currently being driven.
+    async_any_ty: Type = TY_VOID
+    /// Async only — the erased `Any | Suspended` a driven child's `resume`
+    /// returns through the vtable (its concrete `T' | Suspended` reinterpreted).
+    resume_erased_ty: Type = TY_VOID
 }
 
 /// A dissolved loop's state targets: `continue` / back-edge → `header`,
@@ -115,6 +135,73 @@ gb_yield_return :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredStmt =
 gb_null_return :: fn(gb: GenBuild) -> LoweredStmt =
     LoweredReturn { .span = gb.span, .value = LoweredNullLit { .span = gb.span, .type = TY_NULL } }
 
+// A bare `null` value expression — the done-marker a void `@async fn` completes
+// with (its result normalizes to `null`, so `resume` returns `null | Suspended`).
+gb_null_lit :: fn(gb: GenBuild) -> LoweredExpr =
+    LoweredNullLit { .span = gb.span, .type = TY_NULL }
+
+// ---- async seams (Model A — recursive self-drive) -------------------------
+
+// The single reused frame field holding the child `Async` currently being
+// driven. Only one `await` is live at a time (the coroutine is sequential), so
+// one erased `Async<Any>` slot suffices — set once when an `await` is reached,
+// re-driven on every resume until it completes.
+ASYNC_AWAITED_FIELD :: "awaited"
+
+// `self.awaited` (erased `Async<Any>`).
+gb_awaited_field :: fn(gb: GenBuild) -> LoweredExpr =
+    gb_field(gb, ASYNC_AWAITED_FIELD, gb.async_any_ty)
+
+// `self.awaited = <child>` — store the awaited `Async<T'>` into the erased slot
+// (a name-based trait-arg erasure ; the cast is a fat-pointer no-op).
+gb_store_awaited :: fn(gb: GenBuild, awaited: LoweredExpr) -> LoweredStmt =
+    LoweredAssign {
+        .span = gb.span, .target = gb_awaited_field(gb),
+        .value = LoweredCast { .span = gb.span, .type = gb.async_any_ty, .value = awaited },
+    }
+
+// `return Suspended {}` — the coroutine parked itself (a child wasn't ready).
+gb_suspend_return :: fn(gb: GenBuild) -> LoweredStmt =
+    LoweredReturn {
+        .span = gb.span,
+        .value = LoweredStructLit { .span = gb.span, .type = gb.suspended_ty, .fields = [] },
+    }
+
+// The re-entrant drive state for one `await`. On every resume it drives the
+// stored child once ; a `Suspended` result re-parks this coroutine (the child
+// advances on the NEXT resume), a completed result binds into `target_field`
+// and falls through to `cont`. The child's value is read back through its own
+// `resume`'s return channel — no external injection (Model A).
+gb_drive_state :: fn(gb: GenBuild, target_field: string, target_type: Type, cont: i64) -> LoweredStmt[] {
+    r_sym :: fresh_synthetic_symbol(gb.fn_ctx, "resumed")
+    r_ref :: LoweredIdent { .span = gb.span, .type = gb.resume_erased_ty, .symbol = r_sym }
+    // r :: self.awaited.resume()   (virtual — Any | Suspended)
+    let_r :: LoweredLet {
+        .span = gb.span, .name = r_sym.name, .symbol = r_sym, .type = gb.resume_erased_ty,
+        .value = LoweredVirtualCall {
+            .span = gb.span, .type = gb.resume_erased_ty,
+            .trait_name = TRAIT_ASYNC, .method = METHOD_RESUME,
+            .receiver = gb_awaited_field(gb), .args = [],
+        },
+    }
+    // if r is Suspended { return Suspended } else { self.<field> = cast(r); state = cont }
+    branch :: LoweredIf {
+        .span = gb.span, .type = TY_VOID,
+        .cond = LoweredTypeCheck {
+            .span = gb.span, .type = TY_BOOL, .value = r_ref, .check_type = gb.suspended_ty,
+        },
+        .then_block = gb_block(gb, [gb_suspend_return(gb)]),
+        .else_block = gb_block(gb, [
+            LoweredAssign {
+                .span = gb.span, .target = gb_field(gb, target_field, target_type),
+                .value = LoweredCast { .span = gb.span, .type = target_type, .value = r_ref },
+            },
+            gb_set_state(gb, cont),
+        ]),
+    }
+    return [let_r, LoweredExprStmt { .span = gb.span, .expr = branch }]
+}
+
 // ---- block-split (structured-lowered-CFG → numbered states) ---------------
 
 // Append a filled state, returning its index.
@@ -141,6 +228,7 @@ gb_fill :: fn(gb: GenBuild, idx: i64, stmts: LoweredStmt[]) -> void {
 // `LoweredIf` / `LoweredBlock` — treat those as control so nested yields split.
 gb_is_leaf :: fn(s: LoweredStmt) -> bool {
     if s is LoweredYield    { return false }
+    if s is LoweredAwait    { return false }
     if s is LoweredLoop     { return false }
     if s is LoweredBreak    { return false }
     if s is LoweredContinue { return false }
@@ -194,7 +282,28 @@ gb_compile_ctrl :: fn(gb: GenBuild, s: LoweredStmt, cont: i64) -> i64 {
         // Reaching the yield: record the resume state (`cont`), emit the value.
         return gb_new_state(gb, [gb_set_state(gb, cont), gb_yield_return(gb, y.value)])
     }
-    if s is LoweredReturn {
+    if s is LoweredAwait as aw {
+        // Model A : store the child once, then hand off to a re-entrant drive
+        // state that resumes it on every `resume` until it completes.
+        field :: gb.field_map[aw.target.id]
+        if field == null { panic("async block-split: await target not spilled") }
+        drive :: gb_reserve(gb)
+        entry :: gb_new_state(gb, [gb_store_awaited(gb, aw.awaited), gb_set_state(gb, drive)])
+        gb_fill(gb, drive, gb_drive_state(gb, field, aw.target_type, cont))
+        return entry
+    }
+    if s is LoweredReturn as r {
+        if gb.is_async {
+            // Async completion : mark done, then return the value `T`. The routed
+            // `r.value` refs already point at `self.<field>`. A bare `return;`
+            // (void body) has no value — complete with the `null` done-marker so
+            // the resume return stays `null | Suspended`, never a valueless pop.
+            value :: if r.value == null { gb_null_lit(gb) } else { r.value }
+            return gb_new_state(gb, [
+                gb_set_state(gb, i64(DONE_STATE)),
+                LoweredReturn { .span = gb.span, .value = value },
+            ])
+        }
         // A generator's bare `return` = stop the stream (exhausted forever).
         return gb_new_state(gb, [gb_set_state(gb, i64(DONE_STATE)), gb_null_return(gb)])
     }
@@ -249,8 +358,26 @@ gb_compile_ctrl :: fn(gb: GenBuild, s: LoweredStmt, cont: i64) -> i64 {
 
 // Compile the routed body into the state list. Returns the ENTRY state index
 // (the `g$State` constructor seeds `self.state` with it).
-gb_build :: fn(gb: GenBuild, body: LoweredBlock) -> i64 =
-    gb_compile_block(gb, body, i64(DONE_STATE))
+gb_build :: fn(gb: GenBuild, body: LoweredBlock) -> i64 {
+    if gb.is_async && gb_result_is_void(gb) {
+        // A `void @async fn` with no explicit `return` completes on fall-off :
+        // route it to a completion state (`state = done ; return`). Non-void
+        // async fns always `return` explicitly, so their fall-off is dead — they
+        // use the generator-shared `DONE_STATE` sentinel (dispatch's trailing
+        // arm returns `Suspended`, valid for resume-after-done).
+        completion :: gb_reserve(gb)
+        entry :: gb_compile_block(gb, body, completion)
+        gb_fill(gb, completion, [
+            gb_set_state(gb, i64(DONE_STATE)),
+            LoweredReturn { .span = gb.span, .value = gb_null_lit(gb) },
+        ])
+        return entry
+    }
+    return gb_compile_block(gb, body, i64(DONE_STATE))
+}
+
+// True when the async result type is `void` (fall-off completion path).
+gb_result_is_void :: fn(gb: GenBuild) = is_void(gb.result_ty)
 
 // ---- dispatch synthesis ---------------------------------------------------
 
@@ -266,6 +393,10 @@ gb_dispatch :: fn(gb: GenBuild, i: i64) -> LoweredExpr {
     then_block :: gb_block(gb, gb.states[usize(i)])
     else_block: LoweredBlock = if i + 1 < i64(gb.states.len()) {
         gb_wrap(gb, gb_dispatch(gb, i + 1))
+    } else if gb.is_async {
+        // Done / resume-after-done : the coroutine already returned its value ;
+        // report `Suspended` (a correct scheduler retires it and never re-drives).
+        gb_block(gb, [gb_suspend_return(gb)])
     } else {
         gb_block(gb, [gb_null_return(gb)])
     }

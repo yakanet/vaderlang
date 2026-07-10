@@ -1,0 +1,55 @@
+# Typecheck
+
+## tests/snippets/async_countdown
+  StructDecl     CountDown            :: CountDown
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         tag                  :: fn(i32 | Suspended) -> string
+  FnDecl         waiter               :: fn() -> i32
+  expr 13:12    BinaryExpr     :: bool
+  expr 13:12    FieldExpr      :: i32
+  expr 13:12    IdentExpr      :: CountDown
+  expr 13:9     IfExpr         :: void
+  expr 14:13    FieldExpr      :: i32
+  expr 14:13    IdentExpr      :: CountDown
+  expr 14:22    BinaryExpr     :: i32
+  expr 14:22    FieldExpr      :: i32
+  expr 14:22    IdentExpr      :: CountDown
+  expr 15:20    StructLitExpr  :: Suspended
+  expr 23:22    StructLitExpr  :: CountDown
+  expr 24:10    AwaitExpr      :: i32
+  expr 24:16    IdentExpr      :: Async<i32>
+  expr 25:12    BinaryExpr     :: i32
+  expr 25:12    IdentExpr      :: i32
+  expr 29:13    IdentExpr      :: Suspended
+  expr 29:32    StringLitExpr  :: string
+  expr 29:5     IfExpr         :: void
+  expr 29:8     BinaryExpr     :: bool
+  expr 29:8     IdentExpr      :: i32 | Suspended
+  expr 30:12    StringLitExpr  :: string
+  expr 30:20    IdentExpr      :: i32
+  expr 34:10    CallExpr       :: Async<i32>
+  expr 34:10    IdentExpr      :: fn() -> i32
+  expr 35:13    StringLitExpr  :: string
+  expr 35:19    CallExpr       :: string
+  expr 35:19    IdentExpr      :: fn(i32 | Suspended) -> string
+  expr 35:23    CallExpr       :: i32 | Suspended
+  expr 35:23    FieldExpr      :: fn() -> i32 | Suspended
+  expr 35:23    IdentExpr      :: Async<i32>
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void
+  expr 36:13    StringLitExpr  :: string
+  expr 36:19    CallExpr       :: string
+  expr 36:19    IdentExpr      :: fn(i32 | Suspended) -> string
+  expr 36:23    CallExpr       :: i32 | Suspended
+  expr 36:23    FieldExpr      :: fn() -> i32 | Suspended
+  expr 36:23    IdentExpr      :: Async<i32>
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn(T) -> void
+  expr 37:13    StringLitExpr  :: string
+  expr 37:19    CallExpr       :: string
+  expr 37:19    IdentExpr      :: fn(i32 | Suspended) -> string
+  expr 37:23    CallExpr       :: i32 | Suspended
+  expr 37:23    FieldExpr      :: fn() -> i32 | Suspended
+  expr 37:23    IdentExpr      :: Async<i32>
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void

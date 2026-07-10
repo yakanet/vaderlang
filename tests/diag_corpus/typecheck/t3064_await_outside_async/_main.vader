@@ -1,0 +1,12 @@
+module "snippet"
+
+@async
+child :: fn() -> i32 {
+    return 1
+}
+
+// `await` in a plain (non-`@async`) fn — T3064.
+not_async :: fn() -> i32 {
+    x :: await child()
+    return x
+}

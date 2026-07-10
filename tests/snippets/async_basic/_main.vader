@@ -1,0 +1,24 @@
+// A basic async coroutine: await a child fn, use its resolved value. Hand-driven
+// via the `Async` trait method `resume` — the P1.3 milestone. The P2 scheduler
+// will eventually drive an `@async main`; until then a sync `main` drives.
+module "snippet"
+
+import "std/io" { println }
+
+@async
+double :: fn(x: i32) -> i32 {
+    return x + x
+}
+
+@async
+add_one :: fn(x: i32) -> i32 {
+    d :: await double(x)
+    return d + 1
+}
+
+main :: fn() -> i32 {
+    r :: add_one(20).resume()
+    if r is Suspended { println("parked?!") return 1 }
+    println("${r}")
+    return 0
+}

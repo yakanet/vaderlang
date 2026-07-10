@@ -1,0 +1,39 @@
+// Genuine suspension: a hand-written awaitable that parks twice before it
+// completes — the leaf a real scheduler drives. Proves the drive-state is
+// re-entrant: each `resume` re-drives the stored child (Model A self-drive)
+// until it stops returning `Suspended`.
+module "snippet"
+
+import "std/io" { println }
+
+CountDown :: struct { n: i32 }
+
+CountDown implements Async<i32> {
+    resume :: fn(self) -> i32 | Suspended {
+        if self.n > 0 {
+            self.n = self.n - 1
+            return Suspended {}
+        }
+        return 42
+    }
+}
+
+@async
+waiter :: fn() -> i32 {
+    cd: Async<i32> = CountDown { .n = 2 }
+    x :: await cd
+    return x + 1
+}
+
+tag :: fn(r: i32 | Suspended) -> string {
+    if r is Suspended { return "parked" }
+    return "done(${r})"
+}
+
+main :: fn() -> i32 {
+    w :: waiter()
+    println("1: ${tag(w.resume())}")
+    println("2: ${tag(w.resume())}")
+    println("3: ${tag(w.resume())}")
+    return 0
+}

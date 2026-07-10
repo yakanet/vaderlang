@@ -7,8 +7,8 @@ import "std/collections" { MutableMap }
 
 import "vader/diagnostics" { Diagnostic, Span }
 import "vader/parser" { Decl, FnDecl, FnParam, StructDecl, ConstDecl, ImportDecl, EnumDecl, TraitDecl, TypeAliasDecl, AssertDecl, ImplDecl, Visibility, IdentExpr, GenericInstExpr, TypeExpr, StructField }
-import "vader/typecheck" { TypedProgram, Substitution, new_substitution, substitute, default_if_free, type_from_expr, lookup_const_symbol }
-import "vader/types" { Type, FnType, TypeMetaType, TY_VOID, TY_UNRESOLVED, PrimitiveType }
+import "vader/typecheck" { TypedProgram, Substitution, new_substitution, substitute, default_if_free, type_from_expr, lookup_const_symbol, fn_is_async, async_result_arg }
+import "vader/types" { Type, FnType, TypeMetaType, TY_VOID, TY_UNRESOLVED, PrimitiveType, mk_trait, TRAIT_ASYNC }
 import "vader/comptime" { ComptimeValue, MonoEntry, symbol_for_decl }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 
@@ -261,6 +261,21 @@ lower_fn_decl :: fn(
             .params      = params,
             .return_type = return_type,
             .body        = lower_generator_body(project_ctx, entry, typed, subst, fn_decl, gen_body, params, return_type),
+            .origin      = entry,
+        }
+    }
+    // `@async` fns desugar to a coroutine state machine (async analogue of the
+    // generator branch). The declared return `T` becomes the erased `Async<T>`
+    // at the `LoweredFnDecl` boundary — the body constructs + returns a boxed
+    // `__asyncstate` frame, and callers type the call as `Async<T>`.
+    if fn_is_async(fn_decl) && gen_body != null {
+        async_sym :: find_core_trait(project_ctx, TRAIT_ASYNC)
+        async_ret :: if async_sym == null { return_type } else { mk_trait(async_sym, [async_result_arg(return_type)]) }
+        return LoweredFnDecl {
+            .mangled     = entry.mangled,
+            .params      = params,
+            .return_type = async_ret,
+            .body        = lower_async_body(project_ctx, entry, typed, subst, fn_decl, gen_body, params, return_type),
             .origin      = entry,
         }
     }

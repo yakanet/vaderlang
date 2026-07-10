@@ -1,0 +1,242 @@
+// vader/lower/lower_async — the `@async` state-machine desugar (Phase 1).
+//
+// Called from `lower_fn_decl` for a non-generic `@async` fn. Takes the body
+// lowered in async mode (so every `await e` has been hoisted to a transient
+// `LoweredAwait` statement by the ANF sink in `lower_expr` / `lower_block`) and
+// produces, per async fn `f`:
+//
+//   1. a synthesized `__asyncstate_<n>` struct — every param + every spilled
+//      local (v1: spill-all) + a single erased `awaited: Async<Any>` slot (the
+//      child currently being driven) + a `state: i32` resume discriminant;
+//   2. a synthesized `<module>$<State>$Async$resume` fn whose body is the
+//      resumable state machine `loop { if self.state == 0 { … } else if … }`,
+//      returning `T | Suspended`;
+//   3. the rewritten `f` body: `return __asyncstate_<n> { <params>, .awaited =
+//      null, .state = entry }`.
+//
+// The state struct + resume fn are pushed to `project.synth_decls`, drained by
+// `lower_module`, and auto-wired into the `Async::resume` vtable by
+// `collect_vtable_entries` (which decodes the `$Async$resume` mangle — no async-
+// specific wiring). The block-split engine (`GenBuild`, states, spill, routing)
+// is shared with `@generator` via `lower_coroutine.vader` — the async seams
+// there implement Model A (recursive self-drive): each suspension point stores
+// its child once and re-drives it on every `resume`, reading the completed value
+// back through the child's own `resume` return channel (no external injection).
+// See `.claude/plans/async-await-structured-concurrency.md` §4 / §12.
+
+module "vader/lower"
+
+import "vader/parser" { FnDecl, Visibility }
+import "vader/types" {
+    Type, mk_struct, mk_primitive, mk_trait, TY_VOID, TY_ANY, TRAIT_ASYNC, METHOD_RESUME,
+    STRUCT_SUSPENDED,
+}
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/typecheck" { fn_is_async, async_result_arg }
+import "std/collections" { MutableMap }
+import "vader/diagnostics" { Span, lower_error }
+import "std/abort" { panic }
+
+// ---- state-struct synthesis + entry ---------------------------------------
+
+// Synthesize + register the `__asyncstate` struct and its `$Async$resume` fn.
+// The `$${TRAIT_ASYNC}$${METHOD_RESUME}` mangle suffix + `self: __asyncstate`
+// param[0] are what `collect_vtable_entries` keys on to wire the vtable —
+// single-sourced here, shared by the normal path and the M5008 reject path.
+push_async_decls :: fn(
+    fn_ctx: FnLowerCtx, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
+    resume_ty: Type, resume_body: LoweredBlock, state_fields: LoweredStructField[],
+) -> void {
+    module_seg :: mangle_module_id(fn_ctx.typed.resolved.display_path)
+    resume_mangled :: "${module_seg}$${state_sym.name}$${TRAIT_ASYNC}$${METHOD_RESUME}"
+    resume_sym :: Symbol {
+        .id = next_synthetic_id(fn_ctx), .kind = SymbolKind.Fn, .name = resume_mangled,
+        .module = fn_ctx.typed.resolved.path, .visibility = Visibility.Private, .defined_at = null,
+    }
+    resume_decl :: LoweredFnDecl {
+        .mangled = resume_mangled,
+        .params = [LoweredParam { .name = "self", .symbol = self_sym, .type = state_ty }],
+        .return_type = resume_ty, .body = resume_body,
+        .origin = synth_mono_entry(fn_ctx, resume_sym),
+    }
+    state_decl :: LoweredStructDecl {
+        .mangled = state_sym.name, .fields = state_fields,
+        .origin = synth_mono_entry(fn_ctx, state_sym),
+    }
+    fn_ctx.project.synth_decls.push(state_decl)
+    fn_ctx.project.synth_decls.push(resume_decl)
+}
+
+// Emit a degenerate async fn whose `resume()` traps immediately (fail-loud, like
+// the generator's M5007 path) so an M5008-rejected program neither miscompiles
+// nor silently completes. The frame carries only its `awaited` + `state` fields
+// — no spilled cell / closure — so its construction stays valid.
+build_degenerate_async :: fn(
+    fn_ctx: FnLowerCtx, span: Span, state_sym: Symbol, state_ty: Type,
+    self_sym: Symbol, resume_ty: Type, i32_ty: Type, async_any_ty: Type,
+) -> LoweredBlock {
+    resume_body :: LoweredBlock {
+        .span = span, .type = TY_VOID,
+        .stmts = [LoweredExprStmt {
+            .span = span,
+            .expr = LoweredUnreachable { .span = span, .type = TY_VOID, .reason = "async fn rejected (M5008)", .trap = true },
+        }],
+        .trailing = null,
+    }
+    trap_fields :: [
+        LoweredStructField { .name = "awaited", .type = async_any_ty },
+        LoweredStructField { .name = "state", .type = i32_ty },
+    ]
+    push_async_decls(fn_ctx, state_sym, self_sym, state_ty, resume_ty, resume_body, trap_fields)
+    return LoweredBlock {
+        .span = span, .type = TY_VOID,
+        .stmts = [LoweredReturn {
+            .span = span,
+            .value = LoweredStructLit {
+                .span = span, .type = state_ty,
+                .fields = [
+                    LoweredStructLitField { .name = "awaited", .value = zero_value_lit(span, async_any_ty) },
+                    LoweredStructLitField {
+                        .name = "state", .value = LoweredIntLit { .span = span, .type = i32_ty, .value = i64(DONE_STATE) },
+                    },
+                ],
+            },
+        }],
+        .trailing = null,
+    }
+}
+
+// Fold a fn-root block's trailing expression into a terminating statement, so
+// the coroutine block-split (which walks `stmts` only) doesn't drop the implicit
+// return. A value result returns the trailing ; a void result runs it for its
+// side effect and lets the fall-off completion emit the `null` done-marker.
+// A `null` trailing (body ends in an explicit `return`) is left untouched.
+async_fold_trailing :: fn(body: LoweredBlock, result_is_void: bool) -> LoweredBlock {
+    t :: body.trailing
+    if t == null { return body }
+    stmts: LoweredStmt[] = []
+    for s in body.stmts { stmts.push(s) }
+    if result_is_void {
+        stmts.push(LoweredExprStmt { .span = body.span, .expr = t })
+    } else {
+        stmts.push(LoweredReturn { .span = body.span, .value = t })
+    }
+    return LoweredBlock { .span = body.span, .type = TY_VOID, .stmts = stmts, .trailing = null }
+}
+
+// ---- entry ----------------------------------------------------------------
+
+/// Lower an `@async` fn to the state-machine form. Synthesizes `__asyncstate`
+/// and `<module>$<State>$Async$resume` into `project.synth_decls`, and returns
+/// the rewritten `f` body (`return __asyncstate { <args>, .awaited = null,
+/// .state = entry }`).
+///
+/// Handles straight-line awaits, awaits in conditional branches, single + nested
+/// loops, `if` / `break` / `continue`, and fallible (`T | Error`) results. v1
+/// spills every param + local (no liveness pass) ; generic async fns are out of
+/// scope. `await` in a short-circuit operand / loop condition is diagnosed
+/// (M5009) by the ANF, not reached here.
+///
+/// @param fn_ctx        the async fn's fn-lowering context (with `in_async` set).
+/// @param fn_decl       the async FnDecl (for its span).
+/// @param params        the async fn's lowered params (become frame fields).
+/// @param lowered_body  the body lowered in async mode (awaits → `LoweredAwait`).
+/// @param result_type   the declared result type `T` (the value `return`
+///                      completes with ; the `T` in `T | Suspended`).
+/// @return              the rewritten `f` body.
+export lower_async_fn :: fn(
+    fn_ctx: FnLowerCtx, fn_decl: FnDecl, params: LoweredParam[],
+    lowered_body: LoweredBlock, result_type: Type,
+) -> LoweredBlock {
+    span :: fn_decl.span
+    i32_ty :: mk_primitive("i32")
+
+    // Frame struct symbol — async calls type as the erased `Async<T>`, so no
+    // consumer needs a deterministic name (unlike generators, which type the
+    // call as the concrete state struct for chaining) ; a fresh lifted symbol
+    // suffices. Both the synth `resume` fn's receiver and the body's
+    // `return __asyncstate {…}` box use THIS symbol, so the vtable row matches.
+    state_sym :: fresh_lifted_symbol_with_prefix(fn_ctx, true, "__async_", "__asyncstate_")
+    state_ty :: mk_struct(state_sym, [])
+    self_sym :: fresh_synthetic_symbol(fn_ctx, "self")
+
+    suspended_opt :: find_core_type(fn_ctx, STRUCT_SUSPENDED, [])
+    if suspended_opt == null { panic("async lowering: `Suspended` core type not found") }
+    suspended_ty :: suspended_opt
+    async_sym :: find_core_trait(fn_ctx.project, TRAIT_ASYNC)
+    if async_sym == null { panic("async lowering: `Async` core trait not found") }
+    // The single erased `awaited` slot + the erased result a child `resume`
+    // returns through the vtable (its concrete `T' | Suspended` reinterpreted).
+    async_any_ty :: mk_trait(async_sym, [TY_ANY])
+    resume_erased_ty :: union_of_result_suspended(TY_ANY, suspended_ty)
+    // The synth `resume` fn's own return type : `T | Suspended` (flattened). A
+    // void result normalizes to `null` (see `async_result_arg`) so a void
+    // coroutine completes with the `null` done-marker, never a valueless pop.
+    resume_ty :: union_of_result_suspended(async_result_arg(result_type), suspended_ty)
+
+    gb :: GenBuild {
+        .self_sym = self_sym, .state_ty = state_ty, .i32_ty = i32_ty,
+        .yield_ty = TY_VOID, .span = span,
+        .states = [], .field_map = MutableMap<i32, string> {}, .fields = [], .loop_stack = [],
+        .fn_ctx = fn_ctx, .is_async = true, .result_ty = result_type,
+        .suspended_ty = suspended_ty, .async_any_ty = async_any_ty,
+        .resume_erased_ty = resume_erased_ty,
+    }
+    // A trailing-expression body (implicit return, no `return` keyword) carries
+    // its completion value in `body.trailing` ; the block-split only walks
+    // `stmts`, so fold the trailing into a terminating statement first — else the
+    // value is dropped and the machine parks forever. (Generators never hit this:
+    // they `yield`, so their trailing is void.)
+    body :: async_fold_trailing(lowered_body, gb_result_is_void(gb))
+
+    // Spill: params first, then every local (v1: spill-all) → frame fields.
+    for p in params { gb_add_field(gb, p.symbol, p.type) }
+    gb_collect_block(gb, body)
+
+    // A spilled param / local captured by a closure becomes a heap cell the
+    // state machine can't carry across suspension (M5008, mirror of M5007).
+    if gen_has_captured_spill(gb, fn_ctx) {
+        fn_ctx.project.diags.push(lower_error(.AsyncClosureCapture, span, ""))
+        return build_degenerate_async(fn_ctx, span, state_sym, state_ty, self_sym, resume_ty, i32_ty, async_any_ty)
+    }
+
+    // Route local/param refs to `self.<field>`, then split at awaits into states.
+    routed :: gb_route_block(gb, body)
+    entry_state :: gb_build(gb, routed)
+
+    // Synthesize the frame struct (spilled fields + `awaited` + `state`) and its
+    // `$Async$resume` fn.
+    state_fields: LoweredStructField[] = []
+    for f in gb.fields { state_fields.push(f) }
+    state_fields.push(LoweredStructField { .name = "awaited", .type = async_any_ty })
+    state_fields.push(LoweredStructField { .name = "state", .type = i32_ty })
+    push_async_decls(fn_ctx, state_sym, self_sym, state_ty, resume_ty, gb_next_body(gb), state_fields)
+
+    // Rewrite `f`'s body: `return __asyncstate { <all fields>, .awaited = null,
+    // .state = entry }`. Param fields carry the incoming args ; local fields get
+    // a zero value (assigned in `resume()` before first read, but `struct.new`
+    // needs every field). Field order matches the struct decl.
+    nparams :: params.len()
+    construct_fields: LoweredStructLitField[] = []
+    for idx in 0..<gb.fields.len() {
+        f :: gb.fields[idx]
+        value :: if idx < nparams {
+            LoweredIdent { .span = span, .type = params[idx].type, .symbol = params[idx].symbol }
+        } else {
+            zero_value_lit(span, f.type)
+        }
+        construct_fields.push(LoweredStructLitField { .name = f.name, .value = value })
+    }
+    construct_fields.push(LoweredStructLitField {
+        .name = "awaited", .value = zero_value_lit(span, async_any_ty),
+    })
+    construct_fields.push(LoweredStructLitField {
+        .name = "state", .value = LoweredIntLit { .span = span, .type = i32_ty, .value = entry_state },
+    })
+    construct :: LoweredStructLit { .span = span, .type = state_ty, .fields = construct_fields }
+    return LoweredBlock {
+        .span = span, .type = TY_VOID,
+        .stmts = [LoweredReturn { .span = span, .value = construct }],
+        .trailing = null,
+    }
+}
