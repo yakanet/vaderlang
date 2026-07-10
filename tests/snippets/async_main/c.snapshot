@@ -149,7 +149,7 @@ static int32_t snippet_main(void) {
     t1 = vader_vt_Async__resume(t0);
     l0 = t1;
     if (l0.tag == 5u) {
-        vader_unreachable("`@async main` suspended, but this build has no scheduler (Phase 2b) to resume it");
+        vader_unreachable("async `main` suspended, but this build has no scheduler (Phase 2b) to resume it");
     } else {
         t2 = ((int32_t) l0.payload.i);
         { int32_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
