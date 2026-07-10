@@ -9,18 +9,17 @@
 
 module "vader/typecheck"
 
-import "vader/types" { Type, mk_trait, TY_NULL }
+import "vader/types" { Type, TraitType, mk_trait, TY_NULL, TRAIT_ASYNC }
 AST :: import "vader/parser"
 
-/// The `Async<concrete_ret>` result type when `c`'s callee is an `@async fn`,
-/// else null.
+/// The `Async<T>` result type when `c`'s callee is an async coroutine, else null.
 ///
-/// A `void` result normalizes to `null` (`Async<null>`) : void isn't a
-/// first-class stack value, so `void | Suspended` (the trait's `resume` return)
-/// couldn't represent a completed-but-void coroutine. Treating a void `@async`
-/// as "async returning null" — reusing the generator done-sentinel convention —
-/// keeps `resume() -> null | Suspended` well-formed and `await`-of-void yields a
-/// discardable `null`. Mirror this normalization in `lower_decl` (`async_ret`).
+/// Two source shapes converge here : the transitional `@async fn -> T` (wrap the
+/// return to `Async<T>`) and the target `fn -> Async<T>` where the coroutine
+/// already declares its erased type (return it verbatim — wrapping it again
+/// would nest to `Async<Async<T>>`). A `void` result normalizes to `null`
+/// (`Async<null>`) : void isn't a first-class stack value, so `void | Suspended`
+/// couldn't represent a completed-but-void coroutine. Mirror in `lower_decl`.
 export async_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concrete_ret: Type) -> Type | null {
     async_sym :: typed.async_symbol
     if async_sym == null { return null }
@@ -29,10 +28,24 @@ export async_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concre
         if sym == null { return null }
         fd :: typed.fn_decls[sym.id]
         if fd is AST.FnDecl as f {
-            if fn_is_async(f) { return mk_trait(async_sym, [async_result_arg(concrete_ret)]) }
+            // Unwrap-then-wrap-once handles both shapes uniformly : `-> T`
+            // (inner = T) and `-> Async<T>` (inner = T) both yield `Async<T>`,
+            // never a nested `Async<Async<T>>`.
+            if fn_is_async(f) { return mk_trait(async_sym, [async_result_arg(async_inner_type(concrete_ret))]) }
         }
     }
     return null
+}
+
+/// The raw value type a coroutine body produces : the `T` of a declared
+/// `Async<T>` return (target form), or the declared return itself (transitional
+/// `-> T`). NOT normalized — `void` stays `void` (the body is void-bodied) ; the
+/// void→null step happens only where the erased `Async<...>` type is built.
+export async_inner_type :: fn(t: Type) -> Type {
+    if t is TraitType as tt {
+        if tt.symbol.name == TRAIT_ASYNC && tt.args.len() > 0 { return tt.args[0] }
+    }
+    return t
 }
 
 /// The `Async` type argument for an `@async fn`'s declared result : `void`

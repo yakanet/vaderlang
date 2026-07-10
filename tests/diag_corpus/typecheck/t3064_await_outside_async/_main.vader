@@ -1,12 +1,18 @@
 module "snippet"
 
-@async
-child :: fn() -> i32 {
-    return 1
+Ready :: struct { v: i32 }
+Ready implements Async<i32> {
+    resume :: fn(self) -> i32 | Suspended { return self.v }
 }
 
-// `await` in a plain (non-`@async`) fn — T3064.
-not_async :: fn() -> i32 {
-    x :: await child()
-    return x
+// Async-ness is inferred from `await`, so `await` in a plain fn is fine (it just
+// makes the fn async). The one case that stays illegal is `await` inside a
+// nested lambda — a lambda can't be async in v1 — which still trips T3064.
+// `probe` itself does NOT await (the await is in the lambda), so it stays sync.
+export probe :: fn() -> i32 {
+    step :: fn() -> i32 {
+        r: Async<i32> = Ready { .v = 5 }
+        return await r
+    }
+    return step()
 }
