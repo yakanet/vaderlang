@@ -213,7 +213,7 @@
       "patterns": [
         {
           "name": "keyword.control.vader",
-          "match": "\\b(if|else|match|for|in|return|yield|defer|break|continue|as)\\b"
+          "match": "\\b(if|else|match|for|in|return|yield|await|defer|break|continue|as)\\b"
         },
         {
           "name": "keyword.operator.expression.is.vader",
