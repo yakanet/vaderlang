@@ -3,56 +3,48 @@ type 0 primitive null
 type 1 ref Async
 type 2 ref Async
 type 3 primitive i32
-type 4 struct __asyncstate_1 { awaited:11,state:3 }
-type 5 union 3,6
-type 6 struct std_core$Suspended {  }
-type 7 struct __asyncstate_4 { awaited:11,state:3 }
-type 8 union 9,6
-type 9 primitive string
-type 10 struct __asyncstate_12 { s0:3,s1:3,s2:9,s3:9,s4:9,s5:12,s6:13,awaited:11,state:3 }
-type 11 ref Async
-type 12 struct std_core$Buffer {  }
-type 13 primitive usize
+type 4 struct __asyncstate_6 { s0:3,s1:3,s2:6,s3:6,s4:6,s5:11,s6:12,awaited:13,state:3 }
+type 5 union 6,7
+type 6 primitive string
+type 7 struct std_core$Suspended {  }
+type 8 struct snippet$Ready__i32 { v:3 }
+type 9 union 3,7
+type 10 struct snippet$Ready__string { v:6 }
+type 11 struct std_core$Buffer {  }
+type 12 primitive usize
+type 13 ref Async
 type 14 primitive i64
 type 15 array 16
 type 16 primitive u8
 type 17 primitive void
-string 0 ""
-string 1 "parked?!"
-string 2 "mix = "
-string 3 "after-done = Suspended"
-string 4 "after-done = "
-string 5 "hi"
+string 0 "hi"
+string 1 ""
+string 2 "parked?!"
+string 3 "mix = "
+string 4 "after-done = Suspended"
+string 5 "after-done = "
 string 6 ":"
 string 7 "\n"
 import 0 bytes std_core$bytes (string) -> ref
 import 1 write std_io$write (i32,string) -> void
 impl 4 Async
-impl 7 Async
+impl 8 Async
 impl 10 Async
-impl 12 ByteAccess
+impl 11 ByteAccess
 vtable Async.resume 4 4
-vtable Async.resume 7 5
+vtable Async.resume 8 5
 vtable Async.resume 10 6
 export main 3
 
 fn 0 snippet$make_num () -> ref
-  local $k_0 ref
-  null.const
-  local.set 0
-  local.get 0
-  i32.const 1
-  struct.new 4
+  i32.const 7
+  struct.new 8
   return
 end
 
 fn 1 snippet$make_str () -> ref
-  local $k_0 ref
-  null.const
-  local.set 0
-  local.get 0
-  i32.const 1
-  struct.new 7
+  string.const 0
+  struct.new 10
   return
 end
 
@@ -65,14 +57,14 @@ fn 2 snippet$mix () -> ref
   local.set 1
   i32.const 0
   i32.const 0
-  string.const 0
-  string.const 0
-  string.const 0
+  string.const 1
+  string.const 1
+  string.const 1
   local.get 0
   i64.const 0
   local.get 1
   i32.const 7
-  struct.new 10
+  struct.new 4
   return
 end
 
@@ -84,31 +76,31 @@ fn 3 snippet$main () -> i32
   local.tee 0
   virtual.call 1 Async.resume
   local.tee 1
-  type_check 6
+  type_check 7
   if $L0 void
-    string.const 1
+    string.const 2
     call 13
     return.lit i32.const 1
   end $L0
   local.get 1
-  ref.cast 9
+  ref.cast 6
   local.set 2
-  string.const 2
+  string.const 3
   local.get 2
   call 7
   call 13
   local.get 0
   virtual.call 1 Async.resume
   local.tee 0
-  type_check 6
+  type_check 7
   if $L1 void
-    string.const 3
+    string.const 4
     call 13
   else
     local.get 0
-    ref.cast 9
+    ref.cast 6
     local.set 2
-    string.const 4
+    string.const 5
     local.get 2
     call 7
     call 13
@@ -116,71 +108,7 @@ fn 3 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 4 snippet$__asyncstate_1$Async$resume (ref) -> ref
-  block $L0 void
-    loop $L1 void
-      local.field 0 4 1
-      ref.cast 3
-      i32.const 0
-      i32.eq
-      if $L2 void
-        local.get 0
-        i32.const -1
-        struct.set 4 1
-        br $L1
-      else
-      end $L2
-    end $L1
-  end $L0
-  local.field 0 4 1
-  ref.cast 3
-  i32.const 1
-  i32.eq
-  if $L3 void
-    local.get 0
-    i32.const -1
-    struct.set 4 1
-    i32.const 7
-    box 3
-    return
-  end $L3
-  struct.new 6
-  return
-end
-
-fn 5 snippet$__asyncstate_4$Async$resume (ref) -> ref
-  block $L0 void
-    loop $L1 void
-      local.field 0 7 1
-      ref.cast 3
-      i32.const 0
-      i32.eq
-      if $L2 void
-        local.get 0
-        i32.const -1
-        struct.set 7 1
-        br $L1
-      else
-      end $L2
-    end $L1
-  end $L0
-  local.field 0 7 1
-  ref.cast 3
-  i32.const 1
-  i32.eq
-  if $L3 void
-    local.get 0
-    i32.const -1
-    struct.set 7 1
-    string.const 5
-    box 9
-    return
-  end $L3
-  struct.new 6
-  return
-end
-
-fn 6 snippet$__asyncstate_12$Async$resume (ref) -> ref
+fn 4 snippet$__asyncstate_6$Async$resume (ref) -> ref
   local $field_9 string
   local $call_12 usize
   local $call_14 ref
@@ -193,64 +121,64 @@ fn 6 snippet$__asyncstate_12$Async$resume (ref) -> ref
   local $cast_72 ref
   block $L0 void
     loop $L1 void
-      local.field 0 10 8
+      local.field 0 4 8
       ref.cast 3
       i32.const 0
       i32.eq
       if $L2 void
         local.get 0
         i32.const -1
-        struct.set 10 8
+        struct.set 4 8
         br $L1
       else
       end $L2
-      local.field 0 10 8
+      local.field 0 4 8
       ref.cast 3
       i32.const 1
       i32.eq
       if $L3 void
       else
-        local.field 0 10 8
+        local.field 0 4 8
         ref.cast 3
         i32.const 2
         i32.eq
         if $L4 void
-          local.field 0 10 2
-          ref.cast 9
+          local.field 0 4 2
+          ref.cast 6
           local.set 1
           local.get 0
           local.get 1
-          struct.set 10 3
+          struct.set 4 3
           local.get 0
           i32.const 1
-          struct.set 10 8
+          struct.set 4 8
           br $L1
         end $L4
-        local.field 0 10 8
+        local.field 0 4 8
         ref.cast 3
         i32.const 3
         i32.eq
         if $L5 void
-          local.field 0 10 7
+          local.field 0 4 7
           virtual.call 1 Async.resume
           local.tee 3
-          type_check 6
+          type_check 7
           if $L6 void
-            struct.new 6
+            struct.new 7
             return
           end $L6
           local.get 3
-          ref.cast 9
+          ref.cast 6
           local.set 5
           local.get 0
           local.get 5
-          struct.set 10 2
+          struct.set 4 2
           local.get 0
           i32.const 2
-          struct.set 10 8
+          struct.set 4 8
           br $L1
         end $L5
-        local.field 0 10 8
+        local.field 0 4 8
         ref.cast 3
         i32.const 4
         i32.eq
@@ -259,39 +187,39 @@ fn 6 snippet$__asyncstate_12$Async$resume (ref) -> ref
           local.set 6
           local.get 0
           local.get 6
-          struct.set 10 7
+          struct.set 4 7
           local.get 0
           i32.const 3
-          struct.set 10 8
+          struct.set 4 8
           br $L1
         end $L7
-        local.field 0 10 8
+        local.field 0 4 8
         ref.cast 3
         i32.const 5
         i32.eq
         if $L8 void
-          local.field 0 10 0
+          local.field 0 4 0
           ref.cast 3
           local.set 7
           local.get 0
           local.get 7
-          struct.set 10 1
+          struct.set 4 1
           local.get 0
           i32.const 4
-          struct.set 10 8
+          struct.set 4 8
           br $L1
         end $L8
-        local.field 0 10 8
+        local.field 0 4 8
         ref.cast 3
         i32.const 6
         i32.eq
         if $L9 void
-          local.field 0 10 7
+          local.field 0 4 7
           virtual.call 1 Async.resume
           local.tee 8
-          type_check 6
+          type_check 7
           if $L10 void
-            struct.new 6
+            struct.new 7
             return
           end $L10
           local.get 8
@@ -299,13 +227,13 @@ fn 6 snippet$__asyncstate_12$Async$resume (ref) -> ref
           local.set 9
           local.get 0
           local.get 9
-          struct.set 10 0
+          struct.set 4 0
           local.get 0
           i32.const 5
-          struct.set 10 8
+          struct.set 4 8
           br $L1
         end $L9
-        local.field 0 10 8
+        local.field 0 4 8
         ref.cast 3
         i32.const 7
         i32.eq
@@ -314,28 +242,28 @@ fn 6 snippet$__asyncstate_12$Async$resume (ref) -> ref
           local.set 10
           local.get 0
           local.get 10
-          struct.set 10 7
+          struct.set 4 7
           local.get 0
           i32.const 6
-          struct.set 10 8
+          struct.set 4 8
           br $L1
         end $L11
-        struct.new 6
+        struct.new 7
         return
       end $L3
     end $L1
   end $L0
   local.get 0
   i32.const -1
-  struct.set 10 8
-  local.field 0 10 3
-  ref.cast 9
+  struct.set 4 8
+  local.field 0 4 3
+  ref.cast 6
   local.set 1
   local.get 0
   local.get 1
-  struct.set 10 4
-  local.field 0 10 4
-  ref.cast 9
+  struct.set 4 4
+  local.field 0 4 4
+  ref.cast 6
   call 10
   local.set 2
   i64.const 21
@@ -345,17 +273,17 @@ fn 6 snippet$__asyncstate_12$Async$resume (ref) -> ref
   local.set 3
   local.get 0
   local.get 3
-  struct.set 10 5
+  struct.set 4 5
   local.get 0
   i64.const 0
-  struct.set 10 6
-  local.field 0 10 5
+  struct.set 4 6
+  local.field 0 4 5
   local.set 3
-  local.field 0 10 6
-  ref.cast 13
+  local.field 0 4 6
+  ref.cast 12
   local.set 2
-  local.field 0 10 4
-  ref.cast 9
+  local.field 0 4 4
+  ref.cast 6
   local.set 1
   local.get 3
   local.get 2
@@ -364,11 +292,11 @@ fn 6 snippet$__asyncstate_12$Async$resume (ref) -> ref
   local.set 2
   local.get 0
   local.get 2
-  struct.set 10 6
-  local.field 0 10 5
+  struct.set 4 6
+  local.field 0 4 5
   local.set 3
-  local.field 0 10 6
-  ref.cast 13
+  local.field 0 4 6
+  ref.cast 12
   local.set 2
   local.get 3
   local.get 2
@@ -377,13 +305,13 @@ fn 6 snippet$__asyncstate_12$Async$resume (ref) -> ref
   local.set 2
   local.get 0
   local.get 2
-  struct.set 10 6
-  local.field 0 10 5
+  struct.set 4 6
+  local.field 0 4 5
   local.set 3
-  local.field 0 10 6
-  ref.cast 13
+  local.field 0 4 6
+  ref.cast 12
   local.set 2
-  local.field 0 10 1
+  local.field 0 4 1
   ref.cast 3
   i32.to_i64
   local.set 4
@@ -394,16 +322,30 @@ fn 6 snippet$__asyncstate_12$Async$resume (ref) -> ref
   local.set 2
   local.get 0
   local.get 2
-  struct.set 10 6
-  local.field 0 10 5
+  struct.set 4 6
+  local.field 0 4 5
   local.set 3
-  local.field 0 10 6
-  ref.cast 13
+  local.field 0 4 6
+  ref.cast 12
   local.set 2
   local.get 3
   local.get 2
   call 9
-  box 9
+  box 6
+  return
+end
+
+fn 5 snippet$Ready$Async$resume__i32 (ref) -> ref
+  local.field 0 8 0
+  ref.cast 3
+  box 3
+  return
+end
+
+fn 6 snippet$Ready$Async$resume__string (ref) -> ref
+  local.field 0 10 0
+  ref.cast 6
+  box 6
   return
 end
 

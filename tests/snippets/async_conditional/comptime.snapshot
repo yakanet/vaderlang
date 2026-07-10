@@ -3,6 +3,9 @@
 ## tests/snippets/async_conditional
 
 ## generic instances
+  Ready<i32>
+  Ready<T>
+  Ready<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

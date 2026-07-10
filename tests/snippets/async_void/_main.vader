@@ -1,23 +1,22 @@
-// Void async: a `@async fn -> void` normalizes to "async returning null", so
-// `resume` returns `null | Suspended` — completion is a `null` done-marker, not
-// a valueless pop. Covers fall-off completion and a nested void await.
+// Void async: a coroutine returning `Async<void>` (normalized to `null`
+// internally). Covers fall-off completion and a nested void await.
 module "snippet"
 
 import "std/io" { println }
 
-@async
-fetch :: fn() -> i32 {
-    return 7
+Ready :: struct<T> { v: T }
+Ready<T> implements Async<T> {
+    resume :: fn(self) -> T | Suspended { return self.v }
 }
 
-@async
-log_it :: fn() -> void {
+fetch :: fn() -> Async<i32> = Ready<i32> { .v = 7 }
+
+log_it :: fn() -> Async<void> {
     x :: await fetch()
     println("logged ${x}")
 }
 
-@async
-wrap :: fn() -> void {
+wrap :: fn() -> Async<void> {
     await log_it()
     println("wrapped")
 }

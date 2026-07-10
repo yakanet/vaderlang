@@ -1,14 +1,16 @@
 module "snippet"
 
-@async
-flag_of :: fn() -> bool {
-    return true
+Ready :: struct<T> { v: T }
+Ready<T> implements Async<T> {
+    resume :: fn(self) -> T | Suspended { return self.v }
 }
 
+flag_of :: fn() -> Async<bool> = Ready<bool> { .v = true }
+
 // `await` in a `&&` RHS runs conditionally — hoisting it to a statement would
-// run it unconditionally. v1 diagnoses M5009 (flow-sensitive lift is later).
-@async
-combine :: fn(a: bool) -> bool {
+// run it unconditionally. v1 diagnoses M5009. `combine` awaits, so it is
+// inferred async and returns `Async<bool>`.
+combine :: fn(a: bool) -> Async<bool> {
     r :: a && await flag_of()
     return r
 }

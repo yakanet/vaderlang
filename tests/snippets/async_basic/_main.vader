@@ -1,24 +1,27 @@
-// A basic async coroutine: await a child fn, use its resolved value. Hand-driven
-// via the `Async` trait method `resume` — the P1.3 milestone. The P2 scheduler
-// will eventually drive an `@async main`; until then a sync `main` drives.
+// A basic async coroutine. Async-ness is inferred from `await` and expressed by
+// the `Async<T>` return type — no `@async` decorator. `main` awaits directly;
+// the compiler drives it via the inline run-driver (implicit @async main).
 module "snippet"
 
 import "std/io" { println }
 
-@async
-double :: fn(x: i32) -> i32 {
-    return x + x
+// The v1 primitive awaitable: an immediately-ready future (a leaf).
+Ready :: struct<T> { v: T }
+Ready<T> implements Async<T> {
+    resume :: fn(self) -> T | Suspended { return self.v }
 }
 
-@async
-add_one :: fn(x: i32) -> i32 {
+// A factory: no `await`, returns an awaitable directly (not a coroutine).
+double :: fn(x: i32) -> Async<i32> = Ready<i32> { .v = x + x }
+
+// A coroutine: it awaits, so it is async and must return `Async<T>`.
+add_one :: fn(x: i32) -> Async<i32> {
     d :: await double(x)
     return d + 1
 }
 
 main :: fn() -> i32 {
-    r :: add_one(20).resume()
-    if r is Suspended { println("parked?!") return 1 }
-    println("${r}")
+    v :: await add_one(20)
+    println("${v}")
     return 0
 }

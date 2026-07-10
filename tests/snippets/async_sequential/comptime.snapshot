@@ -3,6 +3,10 @@
 ## tests/snippets/async_sequential
 
 ## generic instances
+  Ready<i32>
+  Ready<string>
+  Ready<T>
+  Ready<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

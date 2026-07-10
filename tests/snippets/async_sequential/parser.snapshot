@@ -21,34 +21,151 @@
       "decorators": []
     },
     {
+      "kind": "StructDecl",
+      "name": "Ready",
+      "visibility": "private",
+      "typeParams": [
+        {
+          "name": "T",
+          "bound": null,
+          "isComptimeValue": false
+        }
+      ],
+      "fields": [
+        {
+          "name": "v",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "T"
+          },
+          "visibility": "public",
+          "default": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "ImplDecl",
+      "typeParams": [],
+      "forType": {
+        "kind": "GenericInstExpr",
+        "callee": {
+          "kind": "IdentExpr",
+          "name": "Ready"
+        },
+        "typeArgs": [
+          {
+            "kind": "IdentExpr",
+            "name": "T"
+          }
+        ]
+      },
+      "traitName": "Async",
+      "traitArgs": [
+        {
+          "kind": "IdentExpr",
+          "name": "T"
+        }
+      ],
+      "members": [
+        {
+          "kind": "FnDecl",
+          "name": "resume",
+          "visibility": "private",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": {
+            "kind": "BinaryExpr",
+            "op": "bitor",
+            "left": {
+              "kind": "IdentExpr",
+              "name": "T"
+            },
+            "right": {
+              "kind": "IdentExpr",
+              "name": "Suspended"
+            }
+          },
+          "body": {
+            "kind": "BlockExpr",
+            "stmts": [
+              {
+                "kind": "ReturnStmt",
+                "value": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "self"
+                  },
+                  "field": "v"
+                }
+              }
+            ],
+            "trailing": null
+          },
+          "decorators": []
+        }
+      ],
+      "decorators": []
+    },
+    {
       "kind": "FnDecl",
       "name": "make_num",
       "visibility": "private",
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "IdentExpr",
-        "name": "i32"
+        "kind": "GenericInstExpr",
+        "callee": {
+          "kind": "IdentExpr",
+          "name": "Async"
+        },
+        "typeArgs": [
+          {
+            "kind": "IdentExpr",
+            "name": "i32"
+          }
+        ]
       },
       "body": {
         "kind": "BlockExpr",
-        "stmts": [
-          {
-            "kind": "ReturnStmt",
-            "value": {
-              "kind": "IntLitExpr",
-              "value": "7n"
+        "stmts": [],
+        "trailing": {
+          "kind": "StructLitExpr",
+          "typeName": {
+            "kind": "GenericInstExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "Ready"
+            },
+            "typeArgs": [
+              {
+                "kind": "IdentExpr",
+                "name": "i32"
+              }
+            ]
+          },
+          "items": [
+            {
+              "kind": "field",
+              "name": "v",
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "7n"
+              }
             }
-          }
-        ],
-        "trailing": null
-      },
-      "decorators": [
-        {
-          "name": "async",
-          "args": []
+          ]
         }
-      ]
+      },
+      "decorators": [],
+      "isExpressionBodied": true
     },
     {
       "kind": "FnDecl",
@@ -57,33 +174,55 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "IdentExpr",
-        "name": "string"
+        "kind": "GenericInstExpr",
+        "callee": {
+          "kind": "IdentExpr",
+          "name": "Async"
+        },
+        "typeArgs": [
+          {
+            "kind": "IdentExpr",
+            "name": "string"
+          }
+        ]
       },
       "body": {
         "kind": "BlockExpr",
-        "stmts": [
-          {
-            "kind": "ReturnStmt",
-            "value": {
-              "kind": "StringLitExpr",
-              "parts": [
-                {
-                  "kind": "text",
-                  "value": "hi"
-                }
-              ]
+        "stmts": [],
+        "trailing": {
+          "kind": "StructLitExpr",
+          "typeName": {
+            "kind": "GenericInstExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "Ready"
+            },
+            "typeArgs": [
+              {
+                "kind": "IdentExpr",
+                "name": "string"
+              }
+            ]
+          },
+          "items": [
+            {
+              "kind": "field",
+              "name": "v",
+              "value": {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "hi"
+                  }
+                ]
+              }
             }
-          }
-        ],
-        "trailing": null
-      },
-      "decorators": [
-        {
-          "name": "async",
-          "args": []
+          ]
         }
-      ]
+      },
+      "decorators": [],
+      "isExpressionBodied": true
     },
     {
       "kind": "FnDecl",
@@ -92,8 +231,17 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "IdentExpr",
-        "name": "string"
+        "kind": "GenericInstExpr",
+        "callee": {
+          "kind": "IdentExpr",
+          "name": "Async"
+        },
+        "typeArgs": [
+          {
+            "kind": "IdentExpr",
+            "name": "string"
+          }
+        ]
       },
       "body": {
         "kind": "BlockExpr",
@@ -167,12 +315,7 @@
         ],
         "trailing": null
       },
-      "decorators": [
-        {
-          "name": "async",
-          "args": []
-        }
-      ]
+      "decorators": []
     },
     {
       "kind": "FnDecl",

@@ -170,8 +170,17 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "IdentExpr",
-        "name": "i32"
+        "kind": "GenericInstExpr",
+        "callee": {
+          "kind": "IdentExpr",
+          "name": "Async"
+        },
+        "typeArgs": [
+          {
+            "kind": "IdentExpr",
+            "name": "i32"
+          }
+        ]
       },
       "body": {
         "kind": "BlockExpr",
@@ -248,12 +257,7 @@
         ],
         "trailing": null
       },
-      "decorators": [
-        {
-          "name": "async",
-          "args": []
-        }
-      ]
+      "decorators": []
     },
     {
       "kind": "FnDecl",

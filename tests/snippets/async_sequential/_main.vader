@@ -1,21 +1,19 @@
 // Two awaits of DIFFERENT types (i32 then string) in one coroutine, plus the
-// resume-after-done contract: driving a retired coroutine reports `Suspended`.
+// resume-after-done contract. No `@async`: async-ness is inferred from `await`,
+// typed via the `Async<T>` return.
 module "snippet"
 
 import "std/io" { println }
 
-@async
-make_num :: fn() -> i32 {
-    return 7
+Ready :: struct<T> { v: T }
+Ready<T> implements Async<T> {
+    resume :: fn(self) -> T | Suspended { return self.v }
 }
 
-@async
-make_str :: fn() -> string {
-    return "hi"
-}
+make_num :: fn() -> Async<i32> = Ready<i32> { .v = 7 }
+make_str :: fn() -> Async<string> = Ready<string> { .v = "hi" }
 
-@async
-mix :: fn() -> string {
+mix :: fn() -> Async<string> {
     n :: await make_num()
     s :: await make_str()
     return "${s}:${n}"

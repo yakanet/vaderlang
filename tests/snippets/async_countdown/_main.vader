@@ -1,7 +1,6 @@
 // Genuine suspension: a hand-written awaitable that parks twice before it
-// completes — the leaf a real scheduler drives. Proves the drive-state is
-// re-entrant: each `resume` re-drives the stored child (Model A self-drive)
-// until it stops returning `Suspended`.
+// completes. Proves the drive-state is re-entrant (Model A self-drive). No
+// `@async` — `waiter` awaits, so it is inferred async and returns `Async<i32>`.
 module "snippet"
 
 import "std/io" { println }
@@ -18,8 +17,7 @@ CountDown implements Async<i32> {
     }
 }
 
-@async
-waiter :: fn() -> i32 {
+waiter :: fn() -> Async<i32> {
     cd: Async<i32> = CountDown { .n = 2 }
     x :: await cd
     return x + 1

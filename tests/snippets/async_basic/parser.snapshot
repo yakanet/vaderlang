@@ -21,6 +21,101 @@
       "decorators": []
     },
     {
+      "kind": "StructDecl",
+      "name": "Ready",
+      "visibility": "private",
+      "typeParams": [
+        {
+          "name": "T",
+          "bound": null,
+          "isComptimeValue": false
+        }
+      ],
+      "fields": [
+        {
+          "name": "v",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "T"
+          },
+          "visibility": "public",
+          "default": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "ImplDecl",
+      "typeParams": [],
+      "forType": {
+        "kind": "GenericInstExpr",
+        "callee": {
+          "kind": "IdentExpr",
+          "name": "Ready"
+        },
+        "typeArgs": [
+          {
+            "kind": "IdentExpr",
+            "name": "T"
+          }
+        ]
+      },
+      "traitName": "Async",
+      "traitArgs": [
+        {
+          "kind": "IdentExpr",
+          "name": "T"
+        }
+      ],
+      "members": [
+        {
+          "kind": "FnDecl",
+          "name": "resume",
+          "visibility": "private",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": {
+            "kind": "BinaryExpr",
+            "op": "bitor",
+            "left": {
+              "kind": "IdentExpr",
+              "name": "T"
+            },
+            "right": {
+              "kind": "IdentExpr",
+              "name": "Suspended"
+            }
+          },
+          "body": {
+            "kind": "BlockExpr",
+            "stmts": [
+              {
+                "kind": "ReturnStmt",
+                "value": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "self"
+                  },
+                  "field": "v"
+                }
+              }
+            ],
+            "trailing": null
+          },
+          "decorators": []
+        }
+      ],
+      "decorators": []
+    },
+    {
       "kind": "FnDecl",
       "name": "double",
       "visibility": "private",
@@ -37,36 +132,58 @@
         }
       ],
       "returnType": {
-        "kind": "IdentExpr",
-        "name": "i32"
+        "kind": "GenericInstExpr",
+        "callee": {
+          "kind": "IdentExpr",
+          "name": "Async"
+        },
+        "typeArgs": [
+          {
+            "kind": "IdentExpr",
+            "name": "i32"
+          }
+        ]
       },
       "body": {
         "kind": "BlockExpr",
-        "stmts": [
-          {
-            "kind": "ReturnStmt",
-            "value": {
-              "kind": "BinaryExpr",
-              "op": "add",
-              "left": {
+        "stmts": [],
+        "trailing": {
+          "kind": "StructLitExpr",
+          "typeName": {
+            "kind": "GenericInstExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "Ready"
+            },
+            "typeArgs": [
+              {
                 "kind": "IdentExpr",
-                "name": "x"
-              },
-              "right": {
-                "kind": "IdentExpr",
-                "name": "x"
+                "name": "i32"
+              }
+            ]
+          },
+          "items": [
+            {
+              "kind": "field",
+              "name": "v",
+              "value": {
+                "kind": "BinaryExpr",
+                "op": "add",
+                "left": {
+                  "kind": "IdentExpr",
+                  "name": "x"
+                },
+                "right": {
+                  "kind": "IdentExpr",
+                  "name": "x"
+                }
               }
             }
-          }
-        ],
-        "trailing": null
-      },
-      "decorators": [
-        {
-          "name": "async",
-          "args": []
+          ]
         }
-      ]
+      },
+      "decorators": [],
+      "isExpressionBodied": true
     },
     {
       "kind": "FnDecl",
@@ -85,8 +202,17 @@
         }
       ],
       "returnType": {
-        "kind": "IdentExpr",
-        "name": "i32"
+        "kind": "GenericInstExpr",
+        "callee": {
+          "kind": "IdentExpr",
+          "name": "Async"
+        },
+        "typeArgs": [
+          {
+            "kind": "IdentExpr",
+            "name": "i32"
+          }
+        ]
       },
       "body": {
         "kind": "BlockExpr",
@@ -138,12 +264,7 @@
         ],
         "trailing": null
       },
-      "decorators": [
-        {
-          "name": "async",
-          "args": []
-        }
-      ]
+      "decorators": []
     },
     {
       "kind": "FnDecl",
@@ -163,90 +284,28 @@
             "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
-              "name": "r"
+              "name": "v"
             },
             "type": null,
             "value": {
-              "kind": "CallExpr",
-              "callee": {
-                "kind": "FieldExpr",
-                "target": {
-                  "kind": "CallExpr",
-                  "callee": {
-                    "kind": "IdentExpr",
-                    "name": "add_one"
-                  },
-                  "args": [
-                    {
-                      "name": null,
-                      "value": {
-                        "kind": "IntLitExpr",
-                        "value": "20n"
-                      },
-                      "spread": false
-                    }
-                  ]
-                },
-                "field": "resume"
-              },
-              "args": []
-            }
-          },
-          {
-            "kind": "ExprStmt",
-            "expr": {
-              "kind": "IfExpr",
-              "cond": {
-                "kind": "BinaryExpr",
-                "op": "is",
-                "left": {
+              "kind": "AwaitExpr",
+              "inner": {
+                "kind": "CallExpr",
+                "callee": {
                   "kind": "IdentExpr",
-                  "name": "r"
+                  "name": "add_one"
                 },
-                "right": {
-                  "kind": "IdentExpr",
-                  "name": "Suspended"
-                }
-              },
-              "then": {
-                "kind": "BlockExpr",
-                "stmts": [
+                "args": [
                   {
-                    "kind": "ExprStmt",
-                    "expr": {
-                      "kind": "CallExpr",
-                      "callee": {
-                        "kind": "IdentExpr",
-                        "name": "println"
-                      },
-                      "args": [
-                        {
-                          "name": null,
-                          "value": {
-                            "kind": "StringLitExpr",
-                            "parts": [
-                              {
-                                "kind": "text",
-                                "value": "parked?!"
-                              }
-                            ]
-                          },
-                          "spread": false
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "kind": "ReturnStmt",
+                    "name": null,
                     "value": {
                       "kind": "IntLitExpr",
-                      "value": "1n"
-                    }
+                      "value": "20n"
+                    },
+                    "spread": false
                   }
-                ],
-                "trailing": null
-              },
-              "else": null
+                ]
+              }
             }
           },
           {
@@ -267,7 +326,7 @@
                         "kind": "interp",
                         "expr": {
                           "kind": "IdentExpr",
-                          "name": "r"
+                          "name": "v"
                         }
                       }
                     ]
