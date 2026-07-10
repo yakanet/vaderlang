@@ -1,0 +1,25 @@
+// Real suspension via `sleep` (Phase 2b): the cooperative scheduler + timer
+// heap. A coroutine parks on `sleep`, the driver blocks on the nearest timer
+// (never spins) and re-drives as the virtual clock advances. Driven explicitly
+// through `run_async_main` (the compiler-internal entry driver) — wiring an
+// implicit `@async main` to it is the next step. Small sleeps keep the test
+// fast; output is fixed by deadline ordering, not wall-clock.
+module "snippet"
+
+import "std/io" { println }
+import "std/async" { sleep, run_async_main }
+
+steps :: fn() -> Async<i32> {
+    println("start")
+    await sleep(2)
+    println("woke at 2")
+    await sleep(3)
+    println("woke at 5")
+    return 7
+}
+
+main :: fn() -> i32 {
+    code :: run_async_main(steps())
+    println("exit code = ${code}")
+    return 0
+}

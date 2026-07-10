@@ -114,7 +114,7 @@ mk_io_error :: fn(msg: string, io_error_type_id: i32) -> Value {
 /// @error           traps with an `is_impure_comptime_trap_message` marker when
 ///                  `is_comptime` and the host is impure — `comptime_vm` routes
 ///                  it to `C4016` rather than the generic `C4002`.
-export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, is_comptime: bool, debug: DebugController | null) -> HostCallResult {
+export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[], sched_state: usize[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, is_comptime: bool, debug: DebugController | null) -> HostCallResult {
     id :: bc.intrinsic_id_for(info.mangled_name)
     // Comptime gate : impure hosts (clock / env / filesystem / stdin / subprocess
     // / terminal) read or mutate state outside the program. Running one during a
@@ -281,6 +281,28 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     .RuntimeCollections -> { return HostOk { .value = I32Val { .value = i32(gc_state[0]) } } }
     .RuntimeBytesUsed   -> { return HostOk { .value = I32Val { .value = 0 } } }
     .RuntimeBytesCopied -> { return HostOk { .value = I32Val { .value = 0 } } }
+    // ---- std/runtime — cooperative async scheduler ----------------------
+    // VM-side mirror of the C scheduler : `sched_state[0]` = now, `[1..]` =
+    // pending deadlines. The VM always jumps the virtual clock (an interpreter
+    // never real-sleeps) ; output depends only on deadline ordering, so it
+    // matches native.
+    .SchedNow -> { return HostOk { .value = I64Val { .value = i64(sched_state[0]) } } }
+    .SchedArm -> {
+        d :: read_i64(stack[arg_base], at_pc, "sched_arm deadline")
+        if d is Trap { return d }
+        sched_state.push(usize(d.value))
+        return HostOk { .value = NullVal {} }
+    }
+    .SchedPark -> {
+        if sched_state.len() <= 1 { return HostOk { .value = I32Val { .value = 1 } } }  // deadlock
+        min_i: usize = 1
+        for i in 2..<sched_state.len() { if sched_state[i] < sched_state[min_i] { min_i = i } }
+        deadline :: sched_state[min_i]
+        sched_state[min_i] = sched_state[sched_state.len() - 1]   // swap-remove
+        sched_state.remove_last()
+        if deadline > sched_state[0] { sched_state[0] = deadline }
+        return HostOk { .value = I32Val { .value = 0 } }
+    }
     // ---- std/time --------------------------------------------------------
     // `now_unix_ms` / `monotonic_ns` are module-private in std/time now ; reach
     // the native clock through the public `now()` / `monotonic()` (this host is
@@ -441,6 +463,9 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     .TimeNowUnixMs | .TimeMonotonicNs -> true
     .ProcessSpawnRun | .ProcessSpawnLastStdout | .ProcessSpawnLastStderr -> true
     .TtyIsTty | .EnvGetEnv -> true
+    // Scheduler : reads/advances the async clock — not reproducible at comptime
+    // (you cannot `sleep` while baking a constant).
+    .SchedNow | .SchedArm | .SchedPark -> true
     // Pure : the baked value depends only on the args, never external state.
     .IoWrite -> false
     .StringByteLen -> false

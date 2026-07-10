@@ -32,3 +32,25 @@ export bytes_used :: fn() -> i32
 /// @return  total bytes copied since process start.
 @intrinsic
 export bytes_copied :: fn() -> i32
+
+// ---- cooperative async scheduler (std/async backend) ----------------------
+
+/// The scheduler's virtual clock, in milliseconds from 0. Advanced by
+/// `sched_park` as timers fire. Backs `std/async`'s `sleep`.
+/// @return  the current virtual time in ms.
+@intrinsic
+export sched_now :: fn() -> i64
+
+/// Register a wake at `deadline` (absolute virtual ms) on the timer heap — the
+/// scheduler will resume the parked program no earlier than then.
+/// @param deadline  absolute virtual time (ms) at which to wake.
+@intrinsic
+export sched_arm :: fn(deadline: i64) -> void
+
+/// Park until the nearest armed deadline : pop it, wait for it (real time,
+/// unless `VADER_ASYNC_VIRTUAL_CLOCK` is set), and advance the clock. Returns 0
+/// once advanced, or 1 when no timer is pending — a deadlock (every task is
+/// suspended with nothing left to wake it).
+/// @return  0 = advanced to the next deadline ; 1 = deadlock (nothing armed).
+@intrinsic
+export sched_park :: fn() -> i32
