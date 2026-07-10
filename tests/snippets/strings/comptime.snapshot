@@ -24,6 +24,7 @@ line two
   Yield<T>
   Yield<T>
   Yield<T>
+  Async<T>
   Range<i32>
   Range<usize>
   Range<T>

@@ -1,0 +1,29 @@
+// vader/typecheck/async_call — call-site typing for `@async fn` calls.
+//
+// A call to an `@async fn -> T` is typed as the erased `Async<T>`. Unlike a
+// generator (which types the call as a concrete `<fn>$State<E>` so method chains
+// keep the element concrete), async doesn't chain — and `all` wants a
+// homogeneous erased awaitable — so the erased trait is both sufficient and
+// required. Direct-call (`IdentExpr`) only in v1 ; a UFCS async call falls
+// through to null.
+
+module "vader/typecheck"
+
+import "vader/types" { Type, mk_trait }
+AST :: import "vader/parser"
+
+/// The `Async<concrete_ret>` result type when `c`'s callee is an `@async fn`,
+/// else null.
+export async_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concrete_ret: Type) -> Type | null {
+    async_sym :: typed.async_symbol
+    if async_sym == null { return null }
+    if c.callee is AST.IdentExpr as id {
+        sym :: typed.resolved.idents[id.span.hash()]
+        if sym == null { return null }
+        fd :: typed.fn_decls[sym.id]
+        if fd is AST.FnDecl as f {
+            if fn_is_async(f) { return mk_trait(async_sym, [concrete_ret]) }
+        }
+    }
+    return null
+}

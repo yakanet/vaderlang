@@ -507,6 +507,8 @@ export infer_call :: fn(
         concrete_ret :: substitute_map(callee_ty.return_type, bindings)
         gen_res :: generator_call_result_type(c, typed, concrete_ret)
         if gen_res != null { return gen_res }
+        async_res :: async_call_result_type(c, typed, concrete_ret)
+        if async_res != null { return async_res }
         return concrete_ret
     }
     for i in 0..<n {
@@ -521,6 +523,8 @@ export infer_call :: fn(
     if diverges { return TY_NEVER }
     gen_res :: generator_call_result_type(c, typed, callee_ty.return_type)
     if gen_res != null { return gen_res }
+    async_res :: async_call_result_type(c, typed, callee_ty.return_type)
+    if async_res != null { return async_res }
     return callee_ty.return_type
 }
 

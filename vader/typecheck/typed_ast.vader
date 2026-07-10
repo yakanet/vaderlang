@@ -191,6 +191,10 @@ export TypedProgram :: struct {
     /// the orchestrator ; replaces the name-keyed core-symbol lookups for these.
     range_symbol: Symbol | null
     field_symbol: Symbol | null
+    /// `std/core`'s `Async` trait symbol — used to synthesise the `Async<T>`
+    /// result type of an `@async fn` call. Populated once from core by the
+    /// orchestrator (mirror of `range_symbol`).
+    async_symbol: Symbol | null
 
     /// Imported fn overloads indexed by simple name. Populated by
     /// the orchestrator after wiring imports. Consumed by
@@ -385,6 +389,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .namespace_export_params = MutableMap<string, MutableMap<string, AST.FnParam[]>> {},
         .range_symbol    = null,
         .field_symbol    = null,
+        .async_symbol    = null,
         .imported_fn_overloads = MutableMap<string, FnType[]> {},
         .iter_element_types = MutableMap<string, Type> {},
         .index_target_types = MutableMap<string, Type> {},

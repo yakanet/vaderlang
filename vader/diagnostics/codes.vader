@@ -94,6 +94,8 @@ export TypecheckCode :: enum(u8) {
     GeneratorYieldIncompatible,         // T3061
     BodylessFnMustBeIntrinsic,          // T3062
     AssignTypeMismatch,                 // T3063
+    AwaitOutsideAsync,                  // T3064
+    DeferInAsync,                       // T3065
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -392,6 +394,8 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .GeneratorYieldIncompatible         -> CodeInfo { .id = "T3061", .message = "yielded value type does not match the generator's element type" }
     .BodylessFnMustBeIntrinsic          -> CodeInfo { .id = "T3062", .message = "a bodyless function must be `@intrinsic` (host-provided) or `@extern` (foreign symbol)" }
     .AssignTypeMismatch                 -> CodeInfo { .id = "T3063", .message = "assigned value's type is not assignable to the target's declared type" }
+    .AwaitOutsideAsync                  -> CodeInfo { .id = "T3064", .message = "`await` is only allowed directly inside an `@async` function body (not in a nested lambda or a non-async function)" }
+    .DeferInAsync                       -> CodeInfo { .id = "T3065", .message = "`defer` is not yet supported inside an `@async` function" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

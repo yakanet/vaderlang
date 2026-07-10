@@ -87,6 +87,7 @@
   Yield<T>
   Yield<T>
   Yield<T>
+  Async<T>
   Range<char>
   Range<i32>
   Range<usize>

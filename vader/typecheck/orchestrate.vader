@@ -26,7 +26,7 @@ import "vader/types" {
     TupleType, UnionType, PrimitiveType,
     mk_array, mk_fn, mk_struct, mk_tuple, mk_union, mk_enum,
     TY_UNRESOLVED, TY_TYPE, TY_VOID,
-    TRAIT_ITERATOR, TRAIT_INTO, TRAIT_INDEX, TRAIT_INDEX_SET, STRUCT_RANGE, STRUCT_FIELD, METHOD_INTO,
+    TRAIT_ITERATOR, TRAIT_ASYNC, TRAIT_INTO, TRAIT_INDEX, TRAIT_INDEX_SET, STRUCT_RANGE, STRUCT_FIELD, METHOD_INTO,
 }
 
 // Concatenate every file of a (possibly multi-file) module into one
@@ -1402,6 +1402,7 @@ populate_core_symbols_into :: fn(
     // without a source span so they can't come through span-keyed `idents`.
     typed.range_symbol = core_loaded.collected.symbols[STRUCT_RANGE]
     typed.field_symbol = core_loaded.collected.symbols[STRUCT_FIELD]
+    typed.async_symbol = core_loaded.collected.symbols[TRAIT_ASYNC]
 }
 
 
