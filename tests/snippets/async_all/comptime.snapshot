@@ -1,6 +1,6 @@
 # Comptime
 
-## tests/snippets/async_sleep
+## tests/snippets/async_all
 
 ## generic instances
   All<T>
@@ -66,6 +66,7 @@
   Yield<T>
   Yield<T>
   Yield<T>
+  Async<i32[]>
   Async<T[]>
   Async<i32>
   Async<null>

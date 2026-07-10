@@ -1,0 +1,18 @@
+// `all(xs)`: concurrent join. Three coroutines sleep different amounts; they
+// interleave on the one scheduler (total time = the max, not the sum), and
+// results come back in INPUT order (30, 10, 20), not completion order.
+module "snippet"
+
+import "std/io" { println }
+import "std/async" { sleep, all }
+
+mk :: fn(n: i32) -> Async<i32> {
+    await sleep(i64(n))
+    return n * 10
+}
+
+main :: fn() -> i32 {
+    rs :: await all([mk(3), mk(1), mk(2)])
+    for r in rs { println("${r}") }
+    return 0
+}
