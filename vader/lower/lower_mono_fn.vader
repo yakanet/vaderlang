@@ -190,7 +190,7 @@ lower_generator_body :: fn(
     return lower_generator_fn(gen_ctx, fn_decl, params, lowered, return_type)
 }
 
-// Lower an `@async` fn / impl member to its state-machine body — the async
+// Lower an `async` fn / impl member to its state-machine body — the async
 // analogue of `lower_generator_body`. Lowers the body in async mode (`await`s →
 // `LoweredAwait` markers via the ANF sink) then synthesizes `__asyncstate` +
 // `Async::resume` (`lower_async_fn`). `result_type` is the fn's declared return

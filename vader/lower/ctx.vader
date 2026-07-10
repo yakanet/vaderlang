@@ -438,7 +438,7 @@ export FnLowerCtx :: struct {
     /// generator transform) instead of the not-implemented trap.
     in_generator:       bool = false
 
-    /// True while lowering an `@async` body: `lower_expr` hoists each `await e`
+    /// True while lowering an `async` body: `lower_expr` hoists each `await e`
     /// to a transient `LoweredAwait` statement (via `pending_awaits`) instead of
     /// the not-implemented trap. Consumed by the async state-machine transform
     /// (`lower_async.vader`). A nested lambda's fresh ctx sees `false`, so

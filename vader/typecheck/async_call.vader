@@ -1,6 +1,6 @@
-// vader/typecheck/async_call — call-site typing for `@async fn` calls.
+// vader/typecheck/async_call — call-site typing for `async fn` calls.
 //
-// A call to an `@async fn -> T` is typed as the erased `Async<T>`. Unlike a
+// A call to an `async fn -> T` is typed as the erased `Async<T>`. Unlike a
 // generator (which types the call as a concrete `<fn>$State<E>` so method chains
 // keep the element concrete), async doesn't chain — and `all` wants a
 // homogeneous erased awaitable — so the erased trait is both sufficient and
@@ -14,7 +14,7 @@ AST :: import "vader/parser"
 
 /// The `Async<T>` result type when `c`'s callee is an async coroutine, else null.
 ///
-/// Two source shapes converge here : the transitional `@async fn -> T` (wrap the
+/// Two source shapes converge here : the transitional `async fn -> T` (wrap the
 /// return to `Async<T>`) and the target `fn -> Async<T>` where the coroutine
 /// already declares its erased type (return it verbatim — wrapping it again
 /// would nest to `Async<Async<T>>`). A `void` result normalizes to `null`
@@ -48,7 +48,7 @@ export async_inner_type :: fn(t: Type) -> Type {
     return t
 }
 
-/// The `Async` type argument for an `@async fn`'s declared result : `void`
+/// The `Async` type argument for an `async fn`'s declared result : `void`
 /// normalizes to `null` (see `async_call_result_type`), everything else passes
 /// through. Shared with `lower_decl` so the call-site type and the lowered decl
 /// type agree.

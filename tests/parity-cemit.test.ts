@@ -167,7 +167,7 @@ const C_PARITY = new Set<string>([
   // native run is the guard: the literal emitter must render them as compiler
   // builtins, not the bare words `inf` / `nan` (invalid C). Regression B3.
   "f64_non_finite",
-  // `@async` + `await` — the coroutine state-machine lowering (`lower_async`,
+  // `async` + `await` — the coroutine state-machine lowering (`lower_async`,
   // Model A self-drive) synthesizes an `__asyncstate` frame + an `Async::resume`
   // machine. The native run is the seed-critical guard on the erased→concrete
   // cast at each drive site (`cast(child.resume(), T')`) — it must round-trip a
@@ -179,7 +179,7 @@ const C_PARITY = new Set<string>([
   "async_fallible",    // fallible result `T | Error`, narrowed at match
   "async_trailing",    // trailing (implicit-return) await + two awaits per expr
   "async_void",        // void async: `null` done-marker, nested void await
-  "async_main",        // implicit @async main: inlined run-driver, exit code
+  "async_main",        // implicit async main: inlined run-driver, exit code
   "async_sleep",       // real suspension via sleep: park scheduler + timer heap
 ]);
 

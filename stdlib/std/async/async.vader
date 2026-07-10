@@ -6,7 +6,7 @@
 //
 // `sleep(ms)` is the v1 suspension source : a hand-written awaitable that arms a
 // timer and parks until it fires. `run_async_main` is the program entry the
-// compiler routes an `@async main` through : it drives the root coroutine, and
+// compiler routes an `async main` through : it drives the root coroutine, and
 // whenever every task is parked it `sched_park`s (blocks until the nearest
 // timer) rather than spinning — then re-drives. A park with nothing armed is a
 // deadlock. See `.claude/plans/async-await-structured-concurrency.md` §5.
@@ -50,7 +50,7 @@ export sleep :: fn(ms: i64) -> Async<null> = Sleep { .ms = ms }
 
 // ---- entry driver ---------------------------------------------------------
 
-/// Drive an `@async main`'s root frame to completion and return its exit code.
+/// Drive an `async main`'s root frame to completion and return its exit code.
 /// Compiler-invoked : when `main` awaits, the program entry calls this with
 /// `main()`'s `Async<i32>` frame. Resumes the root ; whenever it parks, blocks
 /// on the nearest armed timer (`sched_park`) and re-drives — never spins.

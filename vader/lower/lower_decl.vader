@@ -264,25 +264,25 @@ lower_fn_decl :: fn(
             .origin      = entry,
         }
     }
-    // `@async` fns desugar to a coroutine state machine (async analogue of the
+    // `async` fns desugar to a coroutine state machine (async analogue of the
     // generator branch). The declared return `T` becomes the erased `Async<T>`
     // at the `LoweredFnDecl` boundary — the body constructs + returns a boxed
     // `__asyncstate` frame, and callers type the call as `Async<T>`.
     if fn_is_async(fn_decl) && gen_body != null {
-        // `@async main` is the program entry : the entry point can't return an
+        // `async main` is the program entry : the entry point can't return an
         // `Async<i32>` frame as an exit code. Keep its return `i32` and inline
         // the run-driver into its body (build frame → resume → return the
         // completed code). `main` keeps its name, so the name-based entry
         // selection + both backends stay unchanged (Phase 2a — no scheduler yet:
-        // a suspended root traps). Any other `@async fn` erases to `Async<T>`.
+        // a suspended root traps). Any other `async fn` erases to `Async<T>`.
         is_main :: is_main_decl(fn_decl)
         async_sym :: find_core_trait(project_ctx, TRAIT_ASYNC)
         // The raw value type the body produces : `T` from a `-> Async<T>` return
-        // (target form) or the whole `-> T` (transitional `@async`). The frame /
+        // (target form) or the whole `-> T` (transitional `async`). The frame /
         // resume machinery works on this raw `T` (its void→null normalization is
         // internal to `lower_async_fn`).
         inner_t :: async_inner_type(return_type)
-        // `@async main` keeps the raw inner return (its inlined driver hands back
+        // `async main` keeps the raw inner return (its inlined driver hands back
         // the exit code) ; every other async fn erases to `Async<T>`. The staged
         // `else if` is load-bearing : it narrows `async_sym` to non-null in the
         // final arm (a collapsed `is_main || async_sym == null` would not).
