@@ -1,0 +1,22 @@
+// `defer` inside an async coroutine runs at completion, LIFO. One defer is
+// registered BEFORE the `await` — its thunk (and the param `tag` it captures by
+// reference, a heap cell) must survive the suspension — and one AFTER. The
+// deferred cleanups fire after the body, most-recent first. This is 4a on top of
+// Option C (captured cells survive suspension); the retired T3065 forbade it.
+module "snippet"
+
+import "std/io" { println }
+import "std/async" { sleep }
+
+step :: fn(tag: string) -> Async<i32> {
+    defer { println("defer 1 ${tag}") }     // registered before the await
+    await sleep(1)
+    defer { println("defer 2 ${tag}") }     // registered after the await
+    println("body ${tag}")
+    return 0
+}
+
+main :: fn() -> i32 {
+    _ :: await step("x")
+    return 0
+}

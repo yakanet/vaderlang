@@ -95,7 +95,8 @@ export TypecheckCode :: enum(u8) {
     BodylessFnMustBeIntrinsic,          // T3062
     AssignTypeMismatch,                 // T3063
     AwaitOutsideAsync,                  // T3064
-    DeferInAsync,                       // T3065
+    // T3065 (defer in async coroutine) retired : defer now runs at coroutine
+    // completion via the per-frame `__defers` stack (see `lower_coroutine`).
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -397,7 +398,6 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .BodylessFnMustBeIntrinsic          -> CodeInfo { .id = "T3062", .message = "a bodyless function must be `@intrinsic` (host-provided) or `@extern` (foreign symbol)" }
     .AssignTypeMismatch                 -> CodeInfo { .id = "T3063", .message = "assigned value's type is not assignable to the target's declared type" }
     .AwaitOutsideAsync                  -> CodeInfo { .id = "T3064", .message = "`await` is not allowed inside a nested lambda (a lambda cannot be an async coroutine)" }
-    .DeferInAsync                       -> CodeInfo { .id = "T3065", .message = "`defer` is not yet supported inside an async coroutine (a fn that `await`s)" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

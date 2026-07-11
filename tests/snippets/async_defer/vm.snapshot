@@ -1,0 +1,6 @@
+# stdout
+body x
+defer 2 x
+defer 1 x
+# exit
+0

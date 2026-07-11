@@ -1,0 +1,24 @@
+# Typecheck
+
+## tests/snippets/async_defer
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         step                 :: fn(string) -> Async<i32>
+  expr 12:13    CallExpr       :: void
+  expr 12:13    IdentExpr      :: fn(T) -> void
+  expr 12:21    StringLitExpr  :: string
+  expr 12:32    IdentExpr      :: string
+  expr 13:11    CallExpr       :: Async<null>
+  expr 13:11    IdentExpr      :: fn(i64) -> Async<null>
+  expr 13:5     AwaitExpr      :: null
+  expr 14:13    CallExpr       :: void
+  expr 14:13    IdentExpr      :: fn(T) -> void
+  expr 14:21    StringLitExpr  :: string
+  expr 14:32    IdentExpr      :: string
+  expr 15:13    StringLitExpr  :: string
+  expr 15:21    IdentExpr      :: string
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void
+  expr 20:10    AwaitExpr      :: i32
+  expr 20:16    CallExpr       :: Async<i32>
+  expr 20:16    IdentExpr      :: fn(string) -> Async<i32>
+  expr 20:21    StringLitExpr  :: string

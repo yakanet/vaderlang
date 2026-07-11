@@ -161,10 +161,13 @@ export lower_async_fn :: fn(
     routed :: gb_route_block(gb, body)
     entry_state :: gb_build(gb, routed)
 
-    // Synthesize the frame struct (spilled fields + `awaited` + `state`) and its
-    // `$Async$resume` fn.
+    // Synthesize the frame struct (spilled fields + optional `__defers` +
+    // `awaited` + `state`) and its `$Async$resume` fn.
     state_fields: LoweredStructField[] = []
     for f in gb.fields { state_fields.push(f) }
+    if gb.has_defers {
+        state_fields.push(LoweredStructField { .name = GB_DEFERS_FIELD, .type = gb_defers_ty() })
+    }
     state_fields.push(LoweredStructField { .name = "awaited", .type = async_any_ty })
     state_fields.push(LoweredStructField { .name = "state", .type = i32_ty })
     push_async_decls(fn_ctx, state_sym, self_sym, state_ty, resume_ty, gb_next_body(gb), state_fields)
@@ -184,6 +187,12 @@ export lower_async_fn :: fn(
             zero_value_lit(span, f.type)
         }
         construct_fields.push(LoweredStructLitField { .name = f.name, .value = value })
+    }
+    if gb.has_defers {
+        construct_fields.push(LoweredStructLitField {
+            .name = GB_DEFERS_FIELD,
+            .value = LoweredArrayLit { .span = span, .type = gb_defers_ty(), .elements = [] },
+        })
     }
     construct_fields.push(LoweredStructLitField {
         .name = "awaited", .value = zero_value_lit(span, async_any_ty),

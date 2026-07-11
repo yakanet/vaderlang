@@ -2840,7 +2840,8 @@ Single-threaded cooperative async, lowered to a coroutine state machine at compi
 - A function is an **async coroutine** when it uses `await`; it declares its return type as `Async<T>`. `await e` unwraps an `Async<T>` to `T`, and a call to a coroutine is typed as `Async<T>`.
 - The coroutine's body returns the inner `T` (the frame wraps it), mirroring how a `@generator`'s `-> Iterator<E>` body yields `E`. A coroutine that completes with no value returns `Async<void>`.
 - A function may also *return* an `Async<T>` value it constructs — a factory such as a future `sleep(ms) -> Async<void>` — without awaiting; that is an ordinary function.
-- `await` must appear directly in a coroutine body, not inside a nested lambda (T3064). `defer` inside a coroutine is not yet supported (T3065).
+- `await` must appear directly in a coroutine body, not inside a nested lambda (T3064).
+- `defer` is allowed inside an async coroutine: pending defers live in the frame and run LIFO when the coroutine completes (including defers registered before an `await` — the thunk, and any local it captures, survive the suspension). `defer` inside a `@generator` is still rejected (T3060), pending the cancellation/teardown hook for abandoned generators.
 - Errors are values: `await` on a fallible `fn -> Async<T | E>` yields `T | E`, narrowed at `if`/`match`. An async `main` runs via a compiler-inlined run-driver; the cooperative scheduler + `sleep` are the next phase.
 
 ### Later — coroutines
