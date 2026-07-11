@@ -94,7 +94,7 @@ The lowerer consumes the monomorphised typed AST and produces a **separate, smal
 - **Pattern match → if/else chains.** Naive linear lowering: each arm becomes a guarded `if` whose predicate is the pattern's discriminator (type tag, struct shape, literal equality) ∧ its optional `if`-guard. Bindings introduced by `is T as x` and struct destructuring become local lets at the head of the arm body. No decision-tree compilation in MVP — naive code is fine for the bytecode emitter to optimise later.
 - **`expr?` → `match`.** Lowered to `match expr { is Error as e -> return e is T as t -> t }` over the typed scrutinee. Every `Error`-implementing variant routes to a `return` of that same value; the happy variant becomes the expression's result.
 - **String interpolation → builder intrinsics.** Each `"…${x}…"` lowers to a sequence of `builder.new`, `builder.append_str`, `builder.append_display(x)`, `builder.finish` intrinsic calls. The runtime (which `std/string_builder` wraps) provides the actual implementation; the lowerer only emits the call chain. `builder.append_display` is dispatched statically per the post-mono `Display` impl table.
-- **`defer` → exit-point duplication.** The lowerer keeps a per-block stack of pending defers (LIFO) and inlines them physically at every textual exit of the block: implicit fallthrough, `return`, `break`, `continue`. Panics are **not** unwound through defers in MVP (panics abort the program). Defers do not propagate across function boundaries.
+- **`defer` → exit-point duplication.** The lowerer keeps a per-block stack of pending defers (LIFO) and inlines them physically at every textual exit of the block: implicit fallthrough, `return`, `break`, `continue`. A `panic` (or trap) **runs the pending defers** of every frame it unwinds through — LIFO, innermost frame first — before the process aborts; the panic stays fatal (no recovery). Each frame runs its own defers as the stack tears down; defers do not otherwise propagate across function boundaries.
 - **Trait calls → static dispatch.** Because monomorphization has stripped abstract generics, every trait-method call site has a concrete receiver type. The lowerer rewrites `recv.to_string()` to a direct call of the specific impl's function. No vtable / dynamic dispatch in MVP.
 - **No inserted runtime checks.** The lowerer does not synthesize bounds checks, null checks, division-by-zero guards, or overflow checks. Type narrowing already covers nullability; the remaining safety checks are the runtime's responsibility (when emitted) or are explicitly out of scope for MVP. One exception is enforced by the **backends, not the lowerer**: an integer `div` / `mod` by zero traps identically on both — the VM raises a labelled trap and the C backend routes the op through a `vader_{div,mod}_<width>` runtime helper that does the same (it also folds `INT_MIN / -1`). Float divide keeps IEEE `inf` / `nan`.
 
@@ -1798,6 +1798,8 @@ process :: fn(path: string) -> string | Error {
     return read_all(file)?
 }
 ```
+
+A `panic` runs the pending defers too: as the panic unwinds the call stack, each frame's own defers execute (LIFO, innermost frame first) before the process aborts. Cleanup — releasing a lock, closing a handle — therefore still happens on the abnormal path. The panic remains fatal; there is no `recover`.
 
 ### `?` operator (try)
 

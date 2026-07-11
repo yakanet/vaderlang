@@ -1,0 +1,9 @@
+# stdout
+reserve inventory
+charging 500
+refund 500
+release hold
+# stderr
+vader vm: vader: panic — card declined
+# exit
+1

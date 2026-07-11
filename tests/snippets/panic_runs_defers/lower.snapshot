@@ -1,0 +1,142 @@
+# Lower
+
+## snippet
+  fn snippet$charge(amount: i32) -> void
+    let amount: ? =
+      LoweredCellNew
+    defer.push
+      LoweredMakeClosure
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_1: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(29) :usize
+          let __off_2: usize = int(0) :usize
+          assign
+            target:
+              __off_2 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
+                  __off_2 :usize
+                arg2:
+                  "charging " :string
+          assign
+            target:
+              __off_2 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
+                  __off_2 :usize
+                arg2:
+                  cast → i64
+                    LoweredCellGet
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_1 :Buffer
+              arg1:
+                __off_2 :usize
+    let __block_3: never =
+      call :never
+        callee:
+          panic :fn(string) -> void
+        arg0:
+          "card declined" :string
+    defer.pop_exec 1
+    ~>
+      __block_3 :never
+  fn snippet$reserve() -> void
+    defer.push
+      LoweredMakeClosure
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        "reserve inventory" :string
+    let __block_1: void =
+      call :void
+        callee:
+          charge :fn(i32) -> void
+        arg0:
+          int(500) :i32
+    defer.pop_exec 1
+    ~>
+      __block_1 :void
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        reserve :fn() -> void
+    return int(0) :i32
+  struct __defer_env_2 { cap_0: ? }
+  fn __defer_1(__env_0: __defer_env_2) -> void
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(27) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "refund " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    LoweredCellGet
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+  struct __defer_env_10 {  }
+  fn __defer_9(__env_0: __defer_env_10) -> void
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        "release hold" :string
