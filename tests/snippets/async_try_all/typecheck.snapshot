@@ -1,0 +1,79 @@
+# Typecheck
+
+## tests/snippets/async_try_all
+  FnDecl         fetch                :: fn(string, i64, bool) -> Async<i32 | Outage>
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Outage               :: Outage
+  expr 12:59    StringLitExpr  :: string
+  expr 12:68    FieldExpr      :: string
+  expr 12:68    IdentExpr      :: Outage
+  expr 15:11    CallExpr       :: Async<null>
+  expr 15:11    IdentExpr      :: fn(i64) -> Async<null>
+  expr 15:17    IdentExpr      :: i64
+  expr 15:5     AwaitExpr      :: null
+  expr 16:21    StructLitExpr  :: Outage
+  expr 16:41    IdentExpr      :: string
+  expr 16:5     IfExpr         :: void
+  expr 16:8     UnaryExpr      :: bool
+  expr 16:9     IdentExpr      :: bool
+  expr 17:12    BinaryExpr     :: i32
+  expr 17:12    CallExpr       :: i32
+  expr 17:12    IdentExpr      :: type
+  expr 17:16    IdentExpr      :: i64
+  expr 22:12    AwaitExpr      :: (i32 | Outage)[] | Error
+  expr 22:18    CallExpr       :: Async<(i32 | Outage)[] | Error>
+  expr 22:18    GenericInstExpr :: fn(Async<E | U>[]) -> Async<(E | U)[] | Error>
+  expr 22:18    IdentExpr      :: fn(Async<E | U>[]) -> Async<(E | U)[] | Error>
+  expr 22:39    SeqLitExpr     :: Async<i32 | Outage>[]
+  expr 23:15    StringLitExpr  :: string
+  expr 23:9     CallExpr       :: Async<i32 | Outage>
+  expr 23:9     IdentExpr      :: fn(string, i64, bool) -> Async<i32 | Outage>
+  expr 24:15    StringLitExpr  :: string
+  expr 24:9     CallExpr       :: Async<i32 | Outage>
+  expr 24:9     IdentExpr      :: fn(string, i64, bool) -> Async<i32 | Outage>
+  expr 25:15    StringLitExpr  :: string
+  expr 25:9     CallExpr       :: Async<i32 | Outage>
+  expr 25:9     IdentExpr      :: fn(string, i64, bool) -> Async<i32 | Outage>
+  expr 27:15    IdentExpr      :: Error
+  expr 27:28    CallExpr       :: void
+  expr 27:28    IdentExpr      :: fn(T) -> void
+  expr 27:36    StringLitExpr  :: string
+  expr 27:47    CallExpr       :: string
+  expr 27:47    FieldExpr      :: fn() -> string
+  expr 27:47    IdentExpr      :: Error
+  expr 27:5     IfExpr         :: void
+  expr 27:8     BinaryExpr     :: bool
+  expr 27:8     IdentExpr      :: (i32 | Outage)[] | Error
+  expr 30:13    AwaitExpr      :: (i32 | Outage)[] | Error
+  expr 30:19    CallExpr       :: Async<(i32 | Outage)[] | Error>
+  expr 30:19    GenericInstExpr :: fn(Async<E | U>[]) -> Async<(E | U)[] | Error>
+  expr 30:19    IdentExpr      :: fn(Async<E | U>[]) -> Async<(E | U)[] | Error>
+  expr 30:40    SeqLitExpr     :: Async<i32 | Outage>[]
+  expr 30:41    CallExpr       :: Async<i32 | Outage>
+  expr 30:41    IdentExpr      :: fn(string, i64, bool) -> Async<i32 | Outage>
+  expr 30:47    StringLitExpr  :: string
+  expr 30:66    CallExpr       :: Async<i32 | Outage>
+  expr 30:66    IdentExpr      :: fn(string, i64, bool) -> Async<i32 | Outage>
+  expr 30:72    StringLitExpr  :: string
+  expr 31:16    IdentExpr      :: Error
+  expr 31:5     IfExpr         :: void
+  expr 31:8     BinaryExpr     :: bool
+  expr 31:8     IdentExpr      :: (i32 | Outage)[] | Error
+  expr 32:17    StringLitExpr  :: string
+  expr 32:32    CallExpr       :: string
+  expr 32:32    FieldExpr      :: fn() -> string
+  expr 32:32    IdentExpr      :: Error
+  expr 32:9     CallExpr       :: void
+  expr 32:9     IdentExpr      :: fn(T) -> void
+  expr 34:18    IdentExpr      :: (i32 | Outage)[]
+  expr 35:13    IfExpr         :: void
+  expr 35:16    BinaryExpr     :: bool
+  expr 35:16    IdentExpr      :: i32 | Outage
+  expr 35:21    IdentExpr      :: Outage
+  expr 35:30    CallExpr       :: void
+  expr 35:30    IdentExpr      :: fn(T) -> void
+  expr 35:38    StringLitExpr  :: string
+  expr 35:52    CallExpr       :: void
+  expr 35:52    IdentExpr      :: fn(T) -> void
+  expr 35:60    StringLitExpr  :: string
+  expr 35:66    IdentExpr      :: i32
