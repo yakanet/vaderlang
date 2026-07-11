@@ -1,0 +1,16 @@
+# Typecheck
+
+## tests/snippets/u32_to_f64
+  FnDecl         main                 :: fn() -> i32
+  expr 12:10    CallExpr       :: f64
+  expr 12:10    IdentExpr      :: type
+  expr 12:14    IdentExpr      :: u32
+  expr 13:5     IfExpr         :: void
+  expr 13:8     BinaryExpr     :: bool
+  expr 13:8     IdentExpr      :: f64
+  expr 14:17    StringLitExpr  :: string
+  expr 14:9     CallExpr       :: void
+  expr 14:9     IdentExpr      :: fn(T) -> void
+  expr 16:17    StringLitExpr  :: string
+  expr 16:9     CallExpr       :: void
+  expr 16:9     IdentExpr      :: fn(T) -> void

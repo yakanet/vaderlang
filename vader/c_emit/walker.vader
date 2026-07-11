@@ -681,8 +681,12 @@ div_mod_helper :: fn(op: string, val: ValType) -> string | null = @partial match
 /// through `uint32_t` so the bits zero-extend — a `u32` carries a magnitude,
 /// not a signed value.
 ///
-/// Kept deliberately narrow to exactly the `i32`-class → `i64` widen. A
-/// broader rule (reinterpret *every* unsigned source through its stack-width
+/// Kept deliberately narrow to the `i32`-class unsigned source widening to
+/// `i64` OR `f64` — the two cases where an `I32`-class `u32` gets extended past
+/// its 32 bits. `f64` matters too : `f64(x)` on a `u32` ≥ 2^31 otherwise emits
+/// `((double)(int32_t) x)`, reinterpreting the magnitude as a negative int and
+/// landing a negative double (the VM zero-extends, so native diverged — CR-a).
+/// A BROADER rule (reinterpret *every* unsigned source through its stack-width
 /// unsigned type, incl. the `.I64` class → `uint64_t`) regresses the
 /// bootstrap : it changes how the compiler's own 64-bit literal rendering
 /// compiles and miscompiles large `i64`/`u64` constants (fixed point breaks,
@@ -695,7 +699,7 @@ div_mod_helper :: fn(op: string, val: ValType) -> string | null = @partial match
 emit_convert :: fn(s: FnState, target_val: ValType, from_name: string) -> void {
     v :: pop(s)
     stack_val :: val_of(v)
-    from_val :: if target_val == .I64 && stack_val == .I32 && from_name.starts_with("u") {
+    from_val :: if (target_val == .I64 || target_val == .F64) && stack_val == .I32 && from_name.starts_with("u") {
         ValType.U32
     } else {
         stack_val

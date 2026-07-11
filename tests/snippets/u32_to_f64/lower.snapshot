@@ -1,0 +1,30 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    let x: u32 = int(3000000000) :u32
+    let y: f64 =
+      cast → f64
+        x :u32
+    if :void
+      cond:
+        gt :bool
+          l:
+            y :f64
+          r:
+            float(0.0) :f64
+      then:
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              "positive" :string
+      else:
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              "negative" :string
+    return int(0) :i32
