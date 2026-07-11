@@ -1,0 +1,51 @@
+// Regression for CR-f : a default trait-method body is CLONED into each impl
+// with `Self` / type-params substituted. The clone walker (substitute_expr_full)
+// used to pass StructLit / Cast / StringLit-interp / SeqLit / … through
+// unchanged — leaving them referencing the trait's own (aliased) AST, which
+// `assign_block_ids` then re-id'd IN PLACE, corrupting every other impl's copy
+// (and skipping Self/T substitution). Exercises one default per value-variant
+// across two impls ; exit 0 iff every clone was independent and correct.
+
+module "snippet"
+
+import "std/io" { println }
+
+Box :: struct { v: i32 }
+
+Widget :: trait {
+    base :: fn(self) -> i32
+    boxed :: fn(self) -> Box    = Box { .v = self.base() + 100 }   // StructLitExpr
+    wide  :: fn(self) -> i64    = i64(self.base()) * 2             // CastExpr
+    label :: fn(self) -> string = "w:${self.base()}"              // StringLitExpr (interp)
+    pair  :: fn(self) -> i32[]  = [self.base(), self.base() + 1]   // SeqLitExpr
+}
+
+A :: struct { a: i32 }
+B :: struct { b: i32 }
+
+A implements Widget { base :: fn(self) -> i32 = self.a }
+B implements Widget { base :: fn(self) -> i32 = self.b }
+
+main :: fn() -> i32 {
+    a :: A { .a = 1 }
+    b :: B { .b = 2 }
+    ok := true
+    if a.boxed().v != 101 { ok = false }
+    if b.boxed().v != 102 { ok = false }
+    if a.wide() != 2 { ok = false }
+    if b.wide() != 4 { ok = false }
+    if a.label() != "w:1" { ok = false }
+    if b.label() != "w:2" { ok = false }
+    pa :: a.pair()
+    if pa[0] != 1 { ok = false }
+    if pa[1] != 2 { ok = false }
+    pb :: b.pair()
+    if pb[0] != 2 { ok = false }
+    if pb[1] != 3 { ok = false }
+    if ok {
+        println("all ok")
+        return 0
+    }
+    println("FAIL")
+    return 1
+}
