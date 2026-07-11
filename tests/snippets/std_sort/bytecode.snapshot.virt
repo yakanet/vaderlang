@@ -9,8 +9,8 @@ type 6 primitive string
 type 7 primitive usize
 type 8 struct std_core$Buffer {  }
 type 9 primitive i64
-type 10 primitive u8
-type 11 primitive char
+type 10 array 11
+type 11 primitive u8
 type 12 fn (1,1) -> 2
 type 13 fn (6,6) -> 2
 string 0 ""
@@ -20,7 +20,7 @@ string 3 "apple"
 string 4 "cherry"
 string 5 "date"
 string 6 "\n"
-import 0 at std_core$string$Index$at (string,usize) -> char
+import 0 bytes std_core$bytes (string) -> ref
 import 1 write std_io$write (i32,string) -> void
 import 2 byte_len std_string$byte_len (string) -> usize
 impl 8 ByteAccess
@@ -1113,61 +1113,71 @@ fn 17 std_sort$insertion_sort_range__string (ref,usize,usize,ref) -> void
 end
 
 fn 18 std_string$compare_ascending (string,string) -> bool
+  local ab ref
+  local bb ref
   local la usize
   local lb usize
   local n usize
   local i usize
-  local ca char
-  local cb char
+  local ca u8
+  local cb u8
   local.get 0
-  call.import 2
+  call.import 0
   local.set 2
   local.get 1
-  call.import 2
+  call.import 0
   local.set 3
   local.get 2
-  local.get 3
-  call 21
+  array.len
   local.set 4
-  i64.const 0
+  local.get 3
+  array.len
   local.set 5
+  local.get 4
+  local.get 5
+  call 21
+  local.set 6
+  i64.const 0
+  local.set 7
   block $L0 void
     loop $L1 void
-      local.get 5
-      local.get 4
+      local.get 7
+      local.get 6
       u64.lt
       if $L2 void
-        local.get 0
-        local.get 5
-        call 26
-        local.set 6
-        local.get 1
-        local.get 5
-        call 26
-        local.set 7
-        local.get 6
+        local.get 2
         local.get 7
-        i32.lt
+        array.get 10
+        ref.cast 11
+        local.set 8
+        local.get 3
+        local.get 7
+        array.get 10
+        ref.cast 11
+        local.set 9
+        local.get 8
+        local.get 9
+        u32.lt
         if $L3 void
           return.lit bool.const true
         end $L3
-        local.get 6
-        local.get 7
-        i32.gt
+        local.get 8
+        local.get 9
+        u32.gt
         if $L4 void
           return.lit bool.const false
         end $L4
-        local.get 5
+        local.get 7
         i64.const 1
         i64.add
-        local.set 5
+        local.set 7
         br $L1
       else
       end $L2
     end $L1
   end $L0
-  local.get 2
-  local.get 3
+  local.get 4
+  local.get 5
   u64.lt
   return
 end
@@ -1250,12 +1260,5 @@ fn 25 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 1
   local.get 2
   buffer_write_string
-  return
-end
-
-fn 26 std_core$string$Index$at_vt (string,usize) -> char
-  local.get 0
-  local.get 1
-  call.import 0
   return
 end
