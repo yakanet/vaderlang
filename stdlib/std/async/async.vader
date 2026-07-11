@@ -112,3 +112,38 @@ All<T> implements Async<T[]> {
 /// @param xs  the awaitables to join.
 /// @return    an awaitable of the results, index-aligned with `xs`.
 export all :: fn<T>(xs: Async<T>[]) -> Async<T[]> = All<T> { .children = xs, .results = MutableMap<usize, T> {} }
+
+// ---- try_all (fallible join, first-error) ---------------------------------
+
+/// The awaitable backing `try_all` — a hand-written driver (NOT a coroutine :
+/// generic async coroutines are out of v1 scope). Wraps an `All<U | E>` to do
+/// the concurrent join, then scans the joined array in input order for the first
+/// error. Returns that array verbatim on success, so each element keeps its
+/// original boxed form (no `U[]` rebuild).
+TryAll :: struct<U, E> {
+    inner: All<U | E>
+}
+
+TryAll<U, E> implements Async<(U | E)[] | Error> {
+    resume :: fn(self) -> (U | E)[] | Error | Suspended {
+        r :: self.inner.resume()
+        if r is Suspended { return Suspended {} }
+        for v in r {
+            if v is Error as e { return e }   // first error, by input order
+        }
+        return r
+    }
+}
+
+/// Concurrent join of FALLIBLE awaitables (children of type `U | E`). Runs every
+/// child (like `all` — no cancellation in v1, so failure latency is the slowest
+/// child), then — scanning in input order — completes with the FIRST error, or
+/// the full results if none failed.
+///
+/// The successes come back as `(U | E)[]`, each element typed as the child union
+/// — narrow per element at the use site if you need the raw `U`.
+///
+/// @param xs  the fallible awaitables to join.
+/// @return    the results in input order, or the first `Error`.
+export try_all :: fn<U, E>(xs: Async<U | E>[]) -> Async<(U | E)[] | Error> =
+    TryAll<U, E> { .inner = All<U | E> { .children = xs, .results = MutableMap<usize, U | E> {} } }

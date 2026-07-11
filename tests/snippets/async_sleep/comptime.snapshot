@@ -3,9 +3,14 @@
 ## tests/snippets/async_sleep
 
 ## generic instances
+  All<E | U>
+  All<E | U>
   All<T>
   All<T>
   All<T>
+  TryAll<U, E>
+  TryAll<U, E>
+  TryAll<U, E>
   Entry<i32, i32>
   Entry<K, V>
   Entry<K, V>
@@ -13,6 +18,7 @@
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, i32>
+  MutableMap<usize, E | U>
   MutableMap<usize, T>
   MutableMap<usize, T>
   MutableMap<K, V>
@@ -67,6 +73,8 @@
   Yield<T>
   Yield<T>
   Async<T[]>
+  Async<(E | U)[] | Error>
+  Async<E | U>
   Async<i32>
   Async<null>
   Async<T>

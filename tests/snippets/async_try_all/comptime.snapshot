@@ -1,6 +1,6 @@
 # Comptime
 
-## tests/snippets/async_all
+## tests/snippets/async_try_all
 
 ## generic instances
   All<E | U>
@@ -72,9 +72,10 @@
   Yield<T>
   Yield<T>
   Yield<T>
-  Async<i32[]>
   Async<T[]>
+  Async<(i32 | Outage)[] | Error>
   Async<(E | U)[] | Error>
+  Async<i32 | Outage>
   Async<E | U>
   Async<i32>
   Async<null>
