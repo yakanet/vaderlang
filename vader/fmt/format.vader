@@ -50,3 +50,26 @@ export format_source :: fn(source: string, path: string) -> FormatResult {
     output :: pp.emit_program(pr.program)
     return Formatted { .output = output }
 }
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert }
+
+@test
+test_roundtrip_preserves_postfix_and_await_parens :: fn() -> void {
+    // `?` is postfix and `await` binds looser than postfix, so these parens must
+    // survive the round-trip or the operator re-binds onto a sub-expression
+    // (`(await x).f` → `await x.f`, `(a + b)?` → `a + (b?)`).
+    fmt_keeps("f :: fn(x: i32) -> i32 = (await g(x))?", "(await g(x))?")
+    fmt_keeps("h :: fn() -> i32 = (await m()).value", "(await m()).value")
+    fmt_keeps("j :: fn(a: i32, b: i32) -> i32 = (a + b)?", "(a + b)?")
+    fmt_keeps("k :: fn(a: i32, b: i32) -> i32 = await (a + b)", "await (a + b)")
+}
+
+fmt_keeps :: fn(decl: string, needle: string) -> void {
+    r :: format_source("module \"t\"\n${decl}\n", "t.vader")
+    match r {
+        is Formatted    as f -> { assert(needle in f.output, "fmt must keep `${needle}`") }
+        is ParseFailure     -> { assert(false, "must parse: ${decl}") }
+    }
+}

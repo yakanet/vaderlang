@@ -1361,6 +1361,11 @@ postfix_target_needs_parens :: fn(e: p.Expr) -> bool {
     if e is p.MatchExpr  { return true }
     if e is p.BlockExpr  { return true }
     if e is p.LambdaExpr { return true }
+    // `await` binds looser than postfix (bp 95 < 100), so `(await x).f` /
+    // `(await x)?` / `(await x)[i]` only reach a postfix target because the
+    // source parenthesised the await — keep the parens or the postfix rebinds
+    // inside the await (`await x.f` = `await (x.f)`).
+    if e is p.AwaitExpr  { return true }
     return false
 }
 
@@ -1768,13 +1773,25 @@ range_operand_needs_parens :: fn(operand: p.Expr) -> bool {
 // ---- error / cast / generic / variant ----
 
 emit_try :: fn(self: Printer, x: p.TryExpr) -> void {
-    self.emit_expr(x.inner)
+    // `?` is postfix (binds tighter than every binary / prefix op), so a
+    // looser-binding inner only exists because the source parenthesised it —
+    // `(a + b)?` / `(await x)?`. Route through the postfix-target guard or the
+    // parens drop and `?` re-binds onto a sub-expression.
+    self.emit_postfix_target(x.inner)
     self.write("?")
 }
 
 emit_await :: fn(self: Printer, x: p.AwaitExpr) -> void {
     self.write("await ")
-    self.emit_expr(x.inner)
+    // A binary / range inner binds looser than `await` (bp 95), so it must be
+    // parenthesised — `await (a + b)` otherwise reparses as `(await a) + b`.
+    if x.inner is p.BinaryExpr || x.inner is p.RangeExpr {
+        self.write("(")
+        self.emit_expr(x.inner)
+        self.write(")")
+    } else {
+        self.emit_expr(x.inner)
+    }
 }
 
 emit_cast :: fn(self: Printer, x: p.CastExpr) -> void {
