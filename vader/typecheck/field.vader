@@ -227,7 +227,7 @@ try_tuple_index_dispatch :: fn(
     tup :: tuple_backing(target_ty)
     if tup == null { return null }
     idx :: parse_tuple_index(e.field)
-    if idx < 0 || idx >= tup.elements.len() {
+    if idx < 0 || idx >= i32(tup.elements.len()) {
         diags.push(typecheck_error(.FieldDoesNotExist, e.field_span,
             "`${e.field}` on ${display_type(target_ty)}"))
         return TY_UNRESOLVED

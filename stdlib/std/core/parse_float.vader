@@ -204,7 +204,7 @@ export parse_f64 :: fn(s: string) -> f64 | null {
 // exact (e >= 0) or floor-with-sticky (e < 0, via the ÷5 identity) big integer,
 // and rounds the top 53 bits to nearest-even.
 
-sd_neg_sign :: 0x8000000000000000
+sd_neg_sign: u64: 0x8000000000000000
 
 // Re-scan `s`, accumulating ALL significant digits into a big-int + exponent.
 SlowParts :: struct { d: BigInt  e: i32 }

@@ -16,7 +16,7 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic, typecheck_error }
+import "vader/diagnostics" { Diagnostic, typecheck_error, Span }
 AST :: import "vader/parser"
 import "vader/resolver/symbol" { SymbolKind }
 import "vader/types" {
@@ -118,21 +118,11 @@ check_arith :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgra
     // its result type (Self → left).
     method_name :: arith_trait_method(e.op)
     if method_name == "" { return numeric_result(e, left, right, diags) }
-    base :: type_base_name(left)
-    method :: typed.impl_methods["${base}::${method_name}"]
-    if method is FnType as ft {
-        // Check the right operand against the impl's `other` (Rhs) param —
-        // `ufcs_method_type` drops `self`, so the Rhs is `params[0]`. Without
-        // this, a wrong-typed RHS passes the typer and panics at lowering.
-        if ft.params.len() > 0 {
-            rhs :: substitute_self_in(ft.params[0], left)
-            if !is_assignable(right, rhs, null) {
-                diags.push(typecheck_error(.OperatorNotDefined, e.right.span,
-                    "operator ${method_name} on ${display_type(left)} expects ${display_type(rhs)} on the right, found ${display_type(right)}"))
-            }
-        }
-        return substitute_self_in(ft.return_type, left)
-    }
+    // Dispatch through the impl method on the left operand ; its result type is
+    // the operator's type (Self → left). The RHS is validated against the impl's
+    // `other` param by the shared helper.
+    ft :: check_operator_rhs(left, right, method_name, "operator ${method_name}", e.right.span, typed, diags)
+    if ft != null { return substitute_self_in(ft.return_type, left) }
     fb :: distinct_op_fallback(e, left, right, typed, diags, check_arith)
     if fb != null { return fb }
     return numeric_result(e, left, right, diags)
@@ -162,6 +152,33 @@ substitute_self_in :: fn(t: Type, self_ty: Type) -> Type {
 
 import "vader/types" { SelfType }
 
+/// Validate the RHS `operand` of an operator against `recv`'s impl method
+/// (`Add::add` / `Comparable::compare` / `Equals::equals` / …). Looks up
+/// `impl_methods["${base}::${method_name}"]` and, when found, checks `operand` is
+/// assignable to the method's `other: Self` param — pushing T3017 otherwise.
+/// Returns the impl `FnType` (so an arith caller can take its return type) or
+/// `null` when no impl is registered. Without this a wrong-typed RHS passes the
+/// typer and panics at lowering. Shared by `check_arith` / `check_compare` /
+/// `check_equality` — the single home for the FnType/param-assignability dance.
+check_operator_rhs :: fn(
+    recv: Type, operand: Type, method_name: string, op_label: string,
+    span: Span, typed: TypedProgram, diags: Diagnostic[],
+) -> FnType | null {
+    base :: type_base_name(recv)
+    method :: typed.impl_methods["${base}::${method_name}"]
+    if method is FnType as ft {
+        if ft.params.len() > 0 {
+            rhs :: substitute_self_in(ft.params[0], recv)
+            if !is_assignable(operand, rhs, null) {
+                diags.push(typecheck_error(.OperatorNotDefined, span,
+                    "${op_label} on ${display_type(recv)} expects ${display_type(rhs)}, found ${display_type(operand)}"))
+            }
+        }
+        return ft
+    }
+    return null
+}
+
 /// Aliased fallback for operator resolution (concrete-first, aliased-fallback) : a
 /// distinct operand with no own impl for THIS operator class behaves as its
 /// backing type. Strips ONE distinct layer off EACH operand (else the recursed
@@ -182,16 +199,27 @@ distinct_op_fallback :: fn(
 }
 
 check_compare :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
-    if is_numeric(left) && is_numeric(right) { return TY_BOOL }
+    // Numeric ordering : both operands must be the SAME numeric family / width.
+    // `numeric_result` is the shared compatibility gate (Free* fold to their own
+    // family, two concretes must match by name) — it pushes T3017 on a mismatched
+    // pair like `f64 < i32` / `i32 < i64`. The ordering result is always `bool`
+    // regardless of the operand type it returns.
+    if is_numeric(left) && is_numeric(right) {
+        numeric_result(e, left, right, diags)
+        return TY_BOOL
+    }
     // NB: no `string < string` case — string ordering isn't lowered (the VM
     // and native both trap: `i32.lt` on a string operand), so accepting it
     // here would be an unsound compile-time pass over a runtime crash. String
     // ordering can return as a real `Comparable` impl if the language wants
     // lexicographic comparison later ; until then it's T3043 like `bool`.
-    // User-struct overload via `Comparable::compare` — the lowerer
-    // rewrites `a < b` into `a.compare(b) < 0` ; we only need to
-    // confirm the impl exists here.
-    if has_impl_method(left, METHOD_COMPARE, typed) { return TY_BOOL }
+    // User-struct overload via `Comparable::compare` — the lowerer rewrites
+    // `a < b` into `a.compare(b) < 0`. The shared helper confirms the impl exists
+    // AND validates the right operand against its `other: Self` param (without it
+    // a wrong-typed RHS — `Money < 5`, `Foo < Bar` — panics at lowering).
+    if check_operator_rhs(left, right, METHOD_COMPARE, "comparison operator", e.right.span, typed, diags) != null {
+        return TY_BOOL
+    }
     fb :: distinct_op_fallback(e, left, right, typed, diags, check_compare)
     if fb != null { return fb }
     push_trait_missing(e, left, TRAIT_COMPARABLE, diags)
@@ -233,24 +261,57 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, 
     return TY_BOOL
 }
 
-/// `a == b` / `a != b` dispatch through `Equals` for user structs. Primitives,
-/// enums, free numerics, strings, `null`, unions, arrays and unresolved /
-/// generic types all have built-in or undecidable equality — only when BOTH
-/// operands are concrete user structs do we require an `Equals` impl, so that a
-/// struct without one is a clean T3043 rather than a silent reference compare
-/// (which is almost never what the author means). `s == null` stays valid : the
-/// `null` side is not a `StructType`.
+/// `a == b` / `a != b`. Compatibility of the two operands is enforced so a
+/// mismatched pair is a clean diagnostic rather than a lowering-time
+/// dereference of the wrong operand :
+///   - `x == null` / `null == x` : always valid ; runs the T3040 overlap check.
+///   - two numerics : must be the same family / width (`numeric_result`, T3017) ;
+///     free literals fold, so `x == 0` still type-checks.
+///   - a struct operand : requires an `Equals` impl on the (left-preferred)
+///     struct AND the other operand assignable to its `other: Self` param —
+///     `struct == prim` / `Foo == Bar` / a struct without `Equals` is rejected
+///     (T3043 / T3017), never a silent reference compare.
+///   - everything else (enums, strings, bool, char, unions, distinct, arrays,
+///     unresolved / generic) keeps built-in or undecidable equality.
 check_equality :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     // `==` / `!=` against `null` gets the same unreachable check as `is null`
     // (SPEC §1002 ; T3040) — an operand that can never be null makes the
     // comparison statically false. Scoped to the null operand so a free-literal
     // compare like `x == 0` (FreeInt vs i32, which don't structurally overlap)
     // is not flagged.
-    if is_null_type(right) { check_is_overlap(e, left, right, diags) }
-    else if is_null_type(left) { check_is_overlap(e, right, left, diags) }
-    if left is StructType && right is StructType {
-        if has_impl_method(left, METHOD_EQUALS, typed) { return TY_BOOL }
-        push_trait_missing(e, left, TRAIT_EQUALS, diags)
+    if is_null_type(right) {
+        check_is_overlap(e, left, right, diags)
+        return TY_BOOL
+    }
+    if is_null_type(left) {
+        check_is_overlap(e, right, left, diags)
+        return TY_BOOL
+    }
+    // Both operands concrete (non-null). Numeric equality must be same family /
+    // width — reuse the shared `numeric_result` gate (T3017 on `u32 == i32`,
+    // `f64 == i32`, …). Free literals fold, so `x == 0` still type-checks.
+    if is_numeric(left) && is_numeric(right) {
+        numeric_result(e, left, right, diags)
+        return TY_BOOL
+    }
+    // A struct operand requires an `Equals` impl on the (left-preferred) struct
+    // AND the other operand assignable to its `other: Self` param. The lowerer
+    // rewrites `a == b` into `a.equals(b)`, so `struct == prim` / `Foo == Bar`
+    // (no impl / wrong RHS) would otherwise pass the typer and dereference the
+    // wrong operand at lowering. Reference identity is never the default.
+    if left is StructType || right is StructType {
+        st    :: if left is StructType { left } else { right }
+        other :: if left is StructType { right } else { left }
+        // The (left-preferred) struct must carry `Equals` and the other operand
+        // must fit its `other: Self` param (`Foo == Bar` / `point == 5` rejected).
+        ft :: check_operator_rhs(st, other, METHOD_EQUALS, "operator ==", e.span, typed, diags)
+        // No impl : only a struct-vs-struct or struct-vs-scalar comparison is a
+        // real defect. Comparing to a union / enum / distinct / array is left
+        // alone — the compiler itself compares `Type`-union values against
+        // singleton struct constants (`t == TY_VOID`) by reference identity.
+        if ft == null && (other is StructType || other is PrimitiveType) {
+            push_trait_missing(e, st, TRAIT_EQUALS, diags)
+        }
     }
     return TY_BOOL
 }
@@ -647,4 +708,42 @@ test_arith_width_mismatch_emits_T3017 :: fn() -> void {
     found := false
     for d in diags { if d.code.id == "T3017" { found = true } }
     assert(found, "expected T3017 for `i32 + i64` (no implicit widening)")
+}
+
+@test
+test_compare_width_mismatch_emits_T3017 :: fn() -> void {
+    eb :: expect_binary("f :: fn(a: i32, b: i64) -> bool { return a < b }")
+    diags: Diagnostic[] = []
+    infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
+    found := false
+    for d in diags { if d.code.id == "T3017" { found = true } }
+    assert(found, "expected T3017 for `i32 < i64` (mixed width comparison)")
+}
+
+@test
+test_compare_cross_family_emits_T3017 :: fn() -> void {
+    eb :: expect_binary("f :: fn(a: f64, b: i32) -> bool { return a < b }")
+    diags: Diagnostic[] = []
+    infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
+    found := false
+    for d in diags { if d.code.id == "T3017" { found = true } }
+    assert(found, "expected T3017 for `f64 < i32` (cross-family comparison)")
+}
+
+@test
+test_equality_width_mismatch_emits_T3017 :: fn() -> void {
+    eb :: expect_binary("f :: fn(a: u32, b: i32) -> bool { return a == b }")
+    diags: Diagnostic[] = []
+    infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
+    found := false
+    for d in diags { if d.code.id == "T3017" { found = true } }
+    assert(found, "expected T3017 for `u32 == i32` (mixed width equality)")
+}
+
+@test
+test_equality_same_width_ok :: fn() -> void {
+    eb :: expect_binary("f :: fn(a: i32, b: i32) -> bool { return a == b }")
+    diags: Diagnostic[] = []
+    assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)), "bool")
+    assert_eq(diags.len(), 0)
 }

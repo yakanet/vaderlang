@@ -534,6 +534,8 @@ lowering boundary).
 
 A literal integer with no concrete context **infers to `i32`** (`x := 42` ⇒ `x: i32`).
 
+When a literal **does** land in a concrete integer context, it is **bounds-checked against that type** at compile time — exactly like a char literal (§Char). An out-of-range magnitude (`x: i32 = 9000000000`, `x: u8 = 300`) and a negative literal in an unsigned slot (`z: u32 = -1`) are rejected with **T3066**; there is no silent truncation or wraparound. Widen the target or the literal explicitly (`x: i64 = 9000000000`).
+
 ### Default float
 
 A literal float with no concrete context **infers to `f64`** (`x := 3.14` ⇒ `x: f64`).

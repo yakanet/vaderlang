@@ -251,7 +251,7 @@ gb_is_leaf :: fn(s: LoweredStmt) -> bool {
 gb_compile_seq :: fn(gb: GenBuild, stmts: LoweredStmt[], cont: i64) -> i64 {
     // Split off the leading run of leaves.
     leaves: LoweredStmt[] = []
-    i := 0
+    i: usize = 0
     for i < stmts.len() && gb_is_leaf(stmts[i]) {
         leaves.push(stmts[i])
         i = i + 1

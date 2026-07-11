@@ -1234,8 +1234,7 @@ fn 8 std_core$parse_f64_slow (string,bool) -> f64
   local.set 2
   local.get 1
   if $L0 void
-    i32.const 0
-    i32.to_i64
+    i64.const -9223372036854775808
     local.set 3
   else
     i64.const 0

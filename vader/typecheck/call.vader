@@ -556,9 +556,13 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
     typed.local_types[binding_key] = mk_array(default_if_free(arg_type), false)
 }
 
-/// `T(x)` where `T` is a type-name. Type-checks the value, returns
-/// the lowered target type. Compatibility / numeric narrowing
-/// validation is deferred (matches `expr_cast.vader`).
+/// `T(x)` where `T` is a type-name — the call-syntax cast (the parser emits a
+/// `CallExpr` here, not a `CastExpr`). Type-checks the value and returns the
+/// target type, emitting T3010 for an illegal conversion via the shared
+/// `cast_allowed` gate (same as `expr_cast.vader::infer_cast`).
+///
+/// @error T3010 when a `(value → target)` pair is not a legal conversion
+///        (`i32("hello")`, `bool(someStruct)`).
 cast_call_target :: fn(
     c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
@@ -567,7 +571,13 @@ cast_call_target :: fn(
     // Pass the cast target as expected for each arg so a Free* literal
     // (or `-Free*` unary) narrows into the target's primitive shape —
     // `i64(-250)` types the `-250` as `i64`, not `{integer}`.
-    for arg in c.args { check_expr_fn(arg.value, target, typed, diags) }
+    for arg in c.args {
+        src :: check_expr_fn(arg.value, target, typed, diags)
+        if !cast_allowed(src, target, typed) {
+            diags.push(typecheck_error(.InvalidCast, arg.value.span,
+                "cannot cast ${display_type(src)} to ${display_type(target)}"))
+        }
+    }
     return target
 }
 
@@ -795,6 +805,42 @@ main :: fn() -> i32 { return add(1, 2, 3) }
             infer_call(c, fx.typed, diags, call_check_stub)
             assert(diags.len() >= 1, "expected at least one diagnostic")
             assert_eq(diags[0].code.id, "T3003")
+        }
+    }
+}
+
+@test
+test_cast_string_to_int_emits_T3010 :: fn() -> void {
+    src :: """
+f :: fn() -> i32 { return i32("hello") }
+"""
+    fx :: first_call_in_last_fn(src)
+    match fx.call {
+        is null -> { assert(false, "expected to find the cast call") }
+        is AST.CallExpr as c -> {
+            diags: Diagnostic[] = []
+            infer_call(c, fx.typed, diags, call_check_stub)
+            found := false
+            for d in diags { if d.code.id == "T3010" { found = true } }
+            assert(found, "expected T3010 for `i32(string)` (illegal cast)")
+        }
+    }
+}
+
+@test
+test_cast_numeric_widen_ok :: fn() -> void {
+    src :: """
+f :: fn(a: i32) -> i64 { return i64(a) }
+"""
+    fx :: first_call_in_last_fn(src)
+    match fx.call {
+        is null -> { assert(false, "expected to find the cast call") }
+        is AST.CallExpr as c -> {
+            diags: Diagnostic[] = []
+            assert_eq(display_type(infer_call(c, fx.typed, diags, call_check_stub)), "i64")
+            found := false
+            for d in diags { if d.code.id == "T3010" { found = true } }
+            assert(!found, "no T3010 for numeric cast `i64(i32)`")
         }
     }
 }
