@@ -41,14 +41,16 @@ export substitute_block :: fn(b: AST.BlockExpr, subst: Subst) -> AST.BlockExpr {
     }
 }
 
-/// Clone an Expr, dispatching to `substitute_type_expr` for variants
-/// already handled there (type-position shapes), recursing into
-/// value-position children for the rest.
-// @partial: sketch coverage — the TODO'd value variants (LambdaExpr, StructLitExpr,
-// SeqLitExpr, RangeExpr, TryExpr, CastExpr, IntrinsicCallExpr, DotVariantExpr,
-// StringLitExpr) pass through unchanged until the walker is completed.
+/// Clone an Expr, dispatching to `substitute_type_expr` for type-position
+/// shapes and recursing into value-position children for the rest. EXHAUSTIVE
+/// over the closed `Expr` union : every node is rebuilt with a fresh
+/// `UNASSIGNED_NODE_ID`, so the shared trait AST is never aliased (a
+/// passed-through node would later be mutated in place by `assign_block_ids`,
+/// corrupting the trait's own ids across every impl — the CR-f defect) and
+/// every nested `Self` / type-param is substituted. A new `Expr` variant trips
+/// T3013 here until it is handled — no silent pass-through.
 export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
-    @partial match e {
+    match e {
         // Leaves : reuse the original. No TypeParam refs possible.
         is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr -> { return e }
 
@@ -162,11 +164,130 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
         }
         is AST.BlockExpr as b -> { return substitute_block(b, subst) }
 
-        // TODO : LambdaExpr, StructLitExpr, SeqLitExpr, RangeExpr,
-        // TryExpr, CastExpr, IntrinsicCallExpr, DotVariantExpr,
-        // StringLitExpr (with interp). Falling through unchanged for
-        // the sketch.
-        _ -> { return e }
+        is AST.StructLitExpr as sl -> {
+            new_items: (AST.StructLitField | AST.StructLitSpread)[] = []
+            for it in sl.items {
+                match it {
+                    is AST.StructLitField as fld -> {
+                        new_items.push(AST.StructLitField {
+                            .span = fld.span, .id = AST.UNASSIGNED_NODE_ID,
+                            .name = fld.name, .name_span = fld.name_span,
+                            .value = substitute_expr_full(fld.value, subst),
+                        })
+                    }
+                    is AST.StructLitSpread as sp -> {
+                        new_items.push(AST.StructLitSpread {
+                            .span = sp.span, .id = AST.UNASSIGNED_NODE_ID,
+                            .expr = substitute_expr_full(sp.expr, subst),
+                        })
+                    }
+                }
+            }
+            return AST.StructLitExpr {
+                .span = sl.span, .id = AST.UNASSIGNED_NODE_ID,
+                .type_name = substitute_type_expr(sl.type_name, subst),
+                .items = new_items,
+            }
+        }
+        is AST.SeqLitExpr as sq -> {
+            new_elems: AST.Expr[] = []
+            for el in sq.elements { new_elems.push(substitute_expr_full(el, subst)) }
+            return AST.SeqLitExpr {
+                .span = sq.span, .id = AST.UNASSIGNED_NODE_ID, .elements = new_elems,
+            }
+        }
+        is AST.RangeExpr as rg -> {
+            return AST.RangeExpr {
+                .span = rg.span, .id = AST.UNASSIGNED_NODE_ID, .inclusive = rg.inclusive,
+                .lower = substitute_expr_full(rg.lower, subst),
+                .upper = substitute_expr_full(rg.upper, subst),
+            }
+        }
+        is AST.TryExpr as tr -> {
+            return AST.TryExpr {
+                .span = tr.span, .id = AST.UNASSIGNED_NODE_ID,
+                .inner = substitute_expr_full(tr.inner, subst),
+            }
+        }
+        is AST.AwaitExpr as aw -> {
+            return AST.AwaitExpr {
+                .span = aw.span, .id = AST.UNASSIGNED_NODE_ID,
+                .inner = substitute_expr_full(aw.inner, subst),
+            }
+        }
+        is AST.CastExpr as ct -> {
+            return AST.CastExpr {
+                .span = ct.span, .id = AST.UNASSIGNED_NODE_ID,
+                .target = substitute_type_expr(ct.target, subst),
+                .value = substitute_expr_full(ct.value, subst),
+            }
+        }
+        is AST.IntrinsicCallExpr as icx -> {
+            new_args: AST.Expr[] = []
+            for a in icx.args { new_args.push(substitute_expr_full(a, subst)) }
+            return AST.IntrinsicCallExpr {
+                .span = icx.span, .id = AST.UNASSIGNED_NODE_ID,
+                .name = icx.name, .name_span = icx.name_span, .args = new_args,
+            }
+        }
+        is AST.DotVariantExpr as dv -> {
+            // Leaf (no child exprs / type refs) — still cloned so the trait
+            // node is never re-id'd in place.
+            return AST.DotVariantExpr {
+                .span = dv.span, .id = AST.UNASSIGNED_NODE_ID,
+                .variant = dv.variant, .variant_span = dv.variant_span,
+            }
+        }
+        is AST.StringLitExpr as st -> {
+            new_parts: AST.StringLitPart[] = []
+            for pt in st.parts {
+                match pt {
+                    is AST.StringLitText as tx -> {
+                        new_parts.push(AST.StringLitText {
+                            .value = tx.value, .span = tx.span, .id = AST.UNASSIGNED_NODE_ID,
+                        })
+                    }
+                    is AST.StringLitInterp as ipx -> {
+                        new_parts.push(AST.StringLitInterp {
+                            .expr = substitute_expr_full(ipx.expr, subst),
+                            .span = ipx.span, .id = AST.UNASSIGNED_NODE_ID,
+                        })
+                    }
+                }
+            }
+            return AST.StringLitExpr {
+                .span = st.span, .id = AST.UNASSIGNED_NODE_ID, .parts = new_parts,
+            }
+        }
+        is AST.LambdaExpr as lm -> {
+            new_params: AST.FnParam[] = []
+            for pm in lm.params {
+                new_pty: AST.TypeExpr | null = null
+                match pm.ty {
+                    is null -> {}
+                    _ -> { new_pty = substitute_type_expr(pm.ty, subst) }
+                }
+                new_default: AST.Expr | null = null
+                match pm.default_value {
+                    is null -> {}
+                    _ -> { new_default = substitute_expr_full(pm.default_value, subst) }
+                }
+                new_params.push(AST.FnParam {
+                    .span = pm.span, .id = AST.UNASSIGNED_NODE_ID, .name = pm.name,
+                    .ty = new_pty, .default_value = new_default, .variadic = pm.variadic,
+                })
+            }
+            new_ret: AST.TypeExpr | null = null
+            match lm.return_type {
+                is null -> {}
+                _ -> { new_ret = substitute_type_expr(lm.return_type, subst) }
+            }
+            return AST.LambdaExpr {
+                .span = lm.span, .id = AST.UNASSIGNED_NODE_ID,
+                .params = new_params, .return_type = new_ret,
+                .body = substitute_block(lm.body, subst),
+            }
+        }
     }
 }
 
@@ -468,6 +589,85 @@ stamp_expr_spans :: fn(e: AST.Expr, stamp: StampCtx) -> void {
             }
         }
         is AST.BlockExpr as b -> { stamp_block_spans(b, stamp) }
+        is AST.StructLitExpr as sl -> {
+            sl.span = next_clone_span(stamp)
+            stamp_expr_spans(sl.type_name, stamp)
+            for it in sl.items {
+                match it {
+                    is AST.StructLitField as fld -> {
+                        fld.span = next_clone_span(stamp)
+                        fld.name_span = next_clone_span(stamp)
+                        stamp_expr_spans(fld.value, stamp)
+                    }
+                    is AST.StructLitSpread as sp -> {
+                        sp.span = next_clone_span(stamp)
+                        stamp_expr_spans(sp.expr, stamp)
+                    }
+                }
+            }
+        }
+        is AST.SeqLitExpr as sq -> {
+            sq.span = next_clone_span(stamp)
+            for el in sq.elements { stamp_expr_spans(el, stamp) }
+        }
+        is AST.RangeExpr as rg -> {
+            rg.span = next_clone_span(stamp)
+            stamp_expr_spans(rg.lower, stamp)
+            stamp_expr_spans(rg.upper, stamp)
+        }
+        is AST.TryExpr as tr -> {
+            tr.span = next_clone_span(stamp)
+            stamp_expr_spans(tr.inner, stamp)
+        }
+        is AST.AwaitExpr as aw -> {
+            aw.span = next_clone_span(stamp)
+            stamp_expr_spans(aw.inner, stamp)
+        }
+        is AST.CastExpr as ct -> {
+            ct.span = next_clone_span(stamp)
+            stamp_expr_spans(ct.target, stamp)
+            stamp_expr_spans(ct.value, stamp)
+        }
+        is AST.IntrinsicCallExpr as icx -> {
+            icx.span = next_clone_span(stamp)
+            icx.name_span = next_clone_span(stamp)
+            for a in icx.args { stamp_expr_spans(a, stamp) }
+        }
+        is AST.DotVariantExpr as dv -> {
+            dv.span = next_clone_span(stamp)
+            dv.variant_span = next_clone_span(stamp)
+        }
+        is AST.StringLitExpr as st -> {
+            st.span = next_clone_span(stamp)
+            for pt in st.parts {
+                match pt {
+                    is AST.StringLitText as tx -> { tx.span = next_clone_span(stamp) }
+                    is AST.StringLitInterp as ipx -> {
+                        ipx.span = next_clone_span(stamp)
+                        stamp_expr_spans(ipx.expr, stamp)
+                    }
+                }
+            }
+        }
+        is AST.LambdaExpr as lm -> {
+            lm.span = next_clone_span(stamp)
+            for pm in lm.params {
+                pm.span = next_clone_span(stamp)
+                match pm.ty {
+                    is null -> {}
+                    _ -> { stamp_expr_spans(pm.ty, stamp) }
+                }
+                match pm.default_value {
+                    is null -> {}
+                    _ -> { stamp_expr_spans(pm.default_value, stamp) }
+                }
+            }
+            match lm.return_type {
+                is null -> {}
+                _ -> { stamp_expr_spans(lm.return_type, stamp) }
+            }
+            stamp_block_spans(lm.body, stamp)
+        }
         _ -> {}
     }
 }
