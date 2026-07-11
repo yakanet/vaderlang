@@ -197,6 +197,10 @@ const C_PARITY = new Set<string>([
   // The same, but two coroutines under `all` with interleaved drives: their
   // cells must stay distinct (the concurrent-capture VM corruption M5008 masked).
   "async_capture_concurrent",
+  // `defer` inside a coroutine (4a): pending defers live in a per-frame stack and
+  // drain LIFO at completion. A defer registered before the await — and the local
+  // it captures by-ref — must survive the suspension. Native run is the guard.
+  "async_defer",
   // Not async-specific : a generic struct's trait impl materialised when the
   // struct is built only inside a generic fn's body (the harvest never saw the
   // concrete instance). Regression guard for lower_struct_lit's queue gate.

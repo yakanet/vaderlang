@@ -162,10 +162,17 @@ export lower_generator_fn :: fn(
     routed :: gb_route_block(gb, lowered_body)
     entry_state :: gb_build(gb, routed)
 
-    // Synthesize the `g$State` struct (spilled fields + `state: i32` resume
-    // discriminant) and its `$Iterator$next` fn.
+    // Synthesize the `g$State` struct (spilled fields + optional `__defers` +
+    // `state: i32` resume discriminant) and its `$Iterator$next` fn. `__defers`
+    // is materialized only if the body has a `defer` — which T3060 currently
+    // rejects, so it never fires today ; mirroring the async driver keeps the
+    // shared engine's defer rewrite (`gb_route_stmt`) self-consistent instead of
+    // emitting `self.__defers` against a field only async provides (4c lifts T3060).
     state_fields: LoweredStructField[] = []
     for f in gb.fields { state_fields.push(f) }
+    if gb.has_defers {
+        state_fields.push(LoweredStructField { .name = GB_DEFERS_FIELD, .type = gb_defers_ty() })
+    }
     state_fields.push(LoweredStructField { .name = "state", .type = i32_ty })
     push_generator_decls(fn_ctx, state_sym, self_sym, state_ty, yield_ty, gb_next_body(gb), state_fields)
 
@@ -184,6 +191,12 @@ export lower_generator_fn :: fn(
             zero_value_lit(span, f.type)
         }
         construct_fields.push(LoweredStructLitField { .name = f.name, .value = value })
+    }
+    if gb.has_defers {
+        construct_fields.push(LoweredStructLitField {
+            .name = GB_DEFERS_FIELD,
+            .value = LoweredArrayLit { .span = span, .type = gb_defers_ty(), .elements = [] },
+        })
     }
     construct_fields.push(LoweredStructLitField {
         .name = "state", .value = LoweredIntLit { .span = span, .type = i32_ty, .value = entry_state },

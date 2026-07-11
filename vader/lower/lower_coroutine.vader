@@ -11,7 +11,7 @@
 module "vader/lower"
 
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, TY_NULL, TY_BOOL, TY_VOID, TY_UNRESOLVED, TRAIT_ASYNC, METHOD_RESUME, STRUCT_SUSPENDED }
+import "vader/types" { Type, TY_NULL, TY_BOOL, TY_VOID, TY_UNRESOLVED, TRAIT_ASYNC, METHOD_RESUME, STRUCT_SUSPENDED, mk_primitive, mk_fn, mk_array }
 import "vader/typecheck" { is_void }
 import "vader/diagnostics" { Span }
 import "std/collections" { MutableMap }
@@ -44,6 +44,12 @@ GenBuild :: struct {
     /// The fn-lowering context — used to mint per-drive-state temporaries
     /// (async) ; the generator path sets it too but never reads it.
     fn_ctx:    FnLowerCtx
+    /// True when the body has any `defer` — set during spill collection. Gates
+    /// the per-frame `__defers` field : defer thunks are pushed onto it (not the
+    /// global stack, which corrupts across concurrent suspended coroutines) and
+    /// drained LIFO at each structured exit. Only async allows defer ; a generator
+    /// still rejects it (T3060), so this is never set for a generator.
+    has_defers: bool = false
     /// True when driving an `async fn` (vs a `@generator`). Selects the async
     /// seams in the shared block-split : `await` suspension, value-carrying
     /// completion, and the `Suspended` (vs `null`) done sentinel.
@@ -435,6 +441,59 @@ gb_param_construct_value :: fn(gb: GenBuild, param: LoweredParam) -> LoweredExpr
     return lower_cell_init(gb.fn_ctx, param.symbol, read, param.type, gb.span).value
 }
 
+// ---- defer (per-frame drain) ----------------------------------------------
+
+// The per-frame field holding the coroutine's live `defer` thunks (a stack).
+// Sync fns use a process-global defer stack (`g_defer_stack`), but that is keyed
+// to the synchronous call chain — a defer pushed before an `await` would sit at
+// a nondeterministic position when the frame later completes (and two suspended
+// coroutines would corrupt each other's LIFO). So each frame owns its stack.
+GB_DEFERS_FIELD :: "__defers"
+
+// A defer thunk's type : a nullary `fn() -> void` closure. The lifted `__defer_N`
+// is reached through the closure ABI (its env is threaded by the closure), so
+// from the call site it is a nullary thunk.
+gb_defer_thunk_ty :: fn() -> Type = mk_fn([], TY_VOID)
+
+// The `__defers` field type : `(fn() -> void)[]`.
+gb_defers_ty :: fn() -> Type = mk_array(gb_defer_thunk_ty(), false)
+
+// `self.__defers`.
+gb_defers_field :: fn(gb: GenBuild) -> LoweredExpr = gb_field(gb, GB_DEFERS_FIELD, gb_defers_ty())
+
+// Drain the top `count` defer thunks LIFO, then truncate. `count` is static (the
+// defers of the exiting scope[s]) — emit all calls before truncating so
+// `len - 1 - k` walks the live tail top-down, then slice off the drained run.
+gb_defer_drain :: fn(gb: GenBuild, dpe: LoweredDeferPopExec, out: LoweredStmt[]) -> void {
+    count :: i64(dpe.count)
+    if count == 0 { return }
+    usize_ty :: mk_primitive("usize")
+    for k in 0..<count {
+        // idx = self.__defers.len() - 1 - k  (len is loop-invariant : we defer the
+        // single truncate until after all calls, so no call shrinks the array).
+        idx :: LoweredBinary {
+            .span = dpe.span, .type = usize_ty, .op = LoweredBinaryOp.Sub,
+            .left = LoweredArrayLen { .span = dpe.span, .type = usize_ty, .target = gb_defers_field(gb) },
+            .right = LoweredIntLit { .span = dpe.span, .type = usize_ty, .value = 1 + k },
+        }
+        thunk :: LoweredIndex { .span = dpe.span, .type = gb_defer_thunk_ty(), .target = gb_defers_field(gb), .index = idx }
+        call :: LoweredCall { .span = dpe.span, .type = TY_VOID, .callee = thunk, .args = [] }
+        out.push(LoweredExprStmt { .span = dpe.span, .expr = call })
+    }
+    // self.__defers = self.__defers[0 ..< len - count]
+    new_len :: LoweredBinary {
+        .span = dpe.span, .type = usize_ty, .op = LoweredBinaryOp.Sub,
+        .left = LoweredArrayLen { .span = dpe.span, .type = usize_ty, .target = gb_defers_field(gb) },
+        .right = LoweredIntLit { .span = dpe.span, .type = usize_ty, .value = count },
+    }
+    truncated :: LoweredArraySlice {
+        .span = dpe.span, .type = gb_defers_ty(), .target = gb_defers_field(gb),
+        .lo = LoweredIntLit { .span = dpe.span, .type = usize_ty, .value = 0 },
+        .hi = new_len,
+    }
+    out.push(LoweredAssign { .span = dpe.span, .target = gb_defers_field(gb), .value = truncated })
+}
+
 // ---- spill collection -----------------------------------------------------
 
 // Collect every `LoweredLet` symbol in a block (recursively through loops /
@@ -468,7 +527,10 @@ gb_collect_stmt :: fn(gb: GenBuild, s: LoweredStmt) -> void {
             gb_collect_expr(gb, cs.target)
             gb_collect_expr(gb, cs.value)
         }
-        is LoweredDeferPush as dp -> { gb_collect_expr(gb, dp.thunk) }
+        is LoweredDeferPush as dp -> {
+            gb.has_defers = true
+            gb_collect_expr(gb, dp.thunk)
+        }
         _ -> {}
     }
 }
@@ -539,8 +601,15 @@ gb_route_stmt :: fn(gb: GenBuild, s: LoweredStmt, out: LoweredStmt[]) -> void {
         is LoweredCellSet as cs -> {
             out.push(LoweredCellSet { .span = cs.span, .target = gb_route_expr(gb, cs.target), .value = gb_route_expr(gb, cs.value), .value_type = cs.value_type })
         }
-        is LoweredDeferPush as dp -> { out.push(LoweredDeferPush { .span = dp.span, .thunk = gb_route_expr(gb, dp.thunk) }) }
-        is LoweredDeferPopExec -> { out.push(s) }
+        is LoweredDeferPush as dp -> {
+            // Push the thunk onto the per-frame stack instead of the global one.
+            // Cast the (opaque-ref) closure to the `fn() -> void` element type so
+            // the stored value and the array element agree.
+            thunk :: LoweredCast { .span = dp.span, .type = gb_defer_thunk_ty(), .value = gb_route_expr(gb, dp.thunk) }
+            push :: LoweredArrayPush { .span = dp.span, .type = TY_VOID, .target = gb_defers_field(gb), .value = thunk }
+            out.push(LoweredExprStmt { .span = dp.span, .expr = push })
+        }
+        is LoweredDeferPopExec as dpe -> { gb_defer_drain(gb, dpe, out) }
     }
 }
 

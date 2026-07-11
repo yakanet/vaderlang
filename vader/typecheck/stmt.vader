@@ -774,14 +774,15 @@ check_defer :: fn(
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
-    // `defer` inside a generator is forbidden in v1 — its interaction with
-    // suspension is unresolved and the runtime has no drop hook (T3060).
+    // `defer` inside a generator is still forbidden in v1 — a generator can be
+    // abandoned mid-iteration, and the runtime has no drop hook to fire pending
+    // defers on teardown (T3060 ; lifted with async cancellation, 4c). `defer`
+    // inside an async coroutine IS supported : the coroutine always runs to
+    // completion in v1, and its pending defers live in the per-frame `__defers`
+    // stack, drained LIFO at each structured exit (`lower_coroutine`).
     effective :: resolve_ctx(ctx, typed)
     if effective != null && effective.is_generator {
         diags.push(typecheck_error(.DeferInGenerator, s.span, ""))
-    }
-    if effective != null && effective.is_async {
-        diags.push(typecheck_error(.DeferInAsync, s.span, ""))
     }
     match s.body {
         is AST.DeferStmtBody  as b -> { check_stmt(b.stmt, typed, diags, ctx, check_expr_fn) }
