@@ -2858,7 +2858,16 @@ vader_box_t vader_array_remove_last(vader_array_t* a) {
         case VADER_ARRAY_KIND_BOOL: out.tag = tag; out.payload.b = ((uint8_t*)  base)[idx] != 0; break;
         default: vader_trap("vader_array_remove_last: unknown element kind");
     }
+    /* If this array OWNS its buffer (offset 0, tail flush with the buffer end),
+     * shrink the buffer length alongside the array length. Otherwise the owner
+     * keeps `offset + length < buf->length` and the next `vader_array_push`
+     * mistakes it for a slice view, detaching into a fresh capacity-DOUBLED
+     * buffer — so a `remove_last` + `push` worklist loop grows the backing store
+     * exponentially (correct on the VM, OOM on native). Genuine views (offset
+     * != 0, or a shorter prefix) don't match, so slice isolation is unchanged. */
+    bool owns_tail = (a->offset == 0 && a->offset + a->length == buf->length);
     a->length -= 1;
+    if (owns_tail) { buf->length -= 1; }
     return out;
 }
 
