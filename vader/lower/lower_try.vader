@@ -60,7 +60,7 @@ export lower_try :: fn(
 
     then_block :: LoweredBlock {
         .span = span, .type = TY_NEVER,
-        .stmts = build_return_stmts(span, ident_ref),
+        .stmts = build_return_stmts(ctx, span, ident_ref),
         .trailing = null,
     }
     else_block :: LoweredBlock {
@@ -82,8 +82,14 @@ export lower_try :: fn(
     }
 }
 
-build_return_stmts :: fn(span: Span, ident: LoweredExpr) -> LoweredStmt[] {
+// The error-propagation exit must run the enclosing scopes' `defer`s first —
+// exactly like a source-level `return` (`lower_stmt::lower_return` +
+// `drain_all_defers`). Without the drain, `x :: might_fail()?` bypassed every
+// open `defer` on the error path (CR-e), and in an async coroutine it also
+// dropped the per-frame `__defers` replay the DeferPopExec drives.
+build_return_stmts :: fn(ctx: FnLowerCtx, span: Span, ident: LoweredExpr) -> LoweredStmt[] {
     out: LoweredStmt[] = []
+    drain_all_defers(ctx, span, out)
     out.push(LoweredReturn { .span = span, .value = ident })
     return out
 }
