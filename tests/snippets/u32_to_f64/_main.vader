@@ -1,0 +1,19 @@
+// Regression for CR-a : a `u32` >= 2^31 converted to `f64` must ZERO-extend
+// (the magnitude is positive), not sign-extend. Native emitted
+// `((double)(int32_t) x)` and produced a negative double, diverging from the VM
+// (which zero-extends). Both backends must now print `positive`.
+
+module "snippet"
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    x: u32 = 3000000000
+    y :: f64(x)
+    if y > 0.0 {
+        println("positive")
+    } else {
+        println("negative")
+    }
+    return 0
+}
