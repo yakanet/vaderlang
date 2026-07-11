@@ -1,0 +1,34 @@
+// Regression for CR-b : a leaf fn whose only allocating op is `array.slice`
+// (ArraySlice) must still get a GC shadow-stack frame so its ref params are
+// rooted. Missing ArraySlice from op_allocates left `leaf` classified no_frame
+// → a GC triggered by the slice moved `x` / `arr` and later reads went stale
+// (native diverged from the VM, which does not move). The slice loop is long
+// enough to force minor collections.
+
+module "snippet"
+
+import "std/io" { println }
+
+Foo :: struct { v: i32 }
+
+leaf :: fn(x: Foo, arr: i32[]) -> i32 {
+    acc := 0
+    for _ in 0..<5000 {
+        s :: arr[0..<3]
+        acc = acc + x.v + i32(s.len())
+    }
+    return acc
+}
+
+main :: fn() -> i32 {
+    arr: i32[] = [10, 20, 30, 40, 50]
+    x :: Foo { .v = 7 }
+    r :: leaf(x, arr)
+    expected :: 5000 * (7 + 3)
+    if r == expected {
+        println("OK")
+        return 0
+    }
+    println("BAD ${r}")
+    return 1
+}

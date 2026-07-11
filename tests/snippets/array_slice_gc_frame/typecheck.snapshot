@@ -1,0 +1,41 @@
+# Typecheck
+
+## tests/snippets/array_slice_gc_frame
+  StructDecl     Foo                  :: Foo
+  FnDecl         leaf                 :: fn(Foo, i32[]) -> i32
+  FnDecl         main                 :: fn() -> i32
+  expr 16:14    RangeExpr      :: Range<i32>
+  expr 17:14    IdentExpr      :: i32[]
+  expr 17:14    IndexExpr      :: i32[]
+  expr 17:18    RangeExpr      :: Range<i32>
+  expr 18:15    BinaryExpr     :: i32
+  expr 18:15    BinaryExpr     :: i32
+  expr 18:15    IdentExpr      :: i32
+  expr 18:21    FieldExpr      :: i32
+  expr 18:21    IdentExpr      :: Foo
+  expr 18:27    CallExpr       :: i32
+  expr 18:27    IdentExpr      :: type
+  expr 18:31    CallExpr       :: usize
+  expr 18:31    FieldExpr      :: fn() -> usize
+  expr 18:31    IdentExpr      :: i32[]
+  expr 18:9     IdentExpr      :: i32
+  expr 20:12    IdentExpr      :: i32
+  expr 24:18    SeqLitExpr     :: i32[]
+  expr 25:10    StructLitExpr  :: Foo
+  expr 26:10    CallExpr       :: i32
+  expr 26:10    IdentExpr      :: fn(Foo, i32[]) -> i32
+  expr 26:15    IdentExpr      :: Foo
+  expr 26:18    IdentExpr      :: i32[]
+  expr 27:17    BinaryExpr     :: {integer}
+  expr 27:25    BinaryExpr     :: {integer}
+  expr 28:13    IdentExpr      :: i32
+  expr 28:5     IfExpr         :: void
+  expr 28:8     BinaryExpr     :: bool
+  expr 28:8     IdentExpr      :: i32
+  expr 29:17    StringLitExpr  :: string
+  expr 29:9     CallExpr       :: void
+  expr 29:9     IdentExpr      :: fn(T) -> void
+  expr 32:13    StringLitExpr  :: string
+  expr 32:20    IdentExpr      :: i32
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void

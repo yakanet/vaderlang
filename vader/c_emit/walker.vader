@@ -146,20 +146,48 @@ drop_resolved_for_local :: fn(s: FnState, slot: i32) -> void {
     s.resolved_arrays = kept
 }
 
-op_allocates :: fn(op: vm.Op) -> bool {
-    if op is vm.StructNew as sn { return !sn.stack }
-    if op is vm.ObjectNew { return true }
-    if op is vm.ArrayNew { return true }
-    if op is vm.ArrayPush { return true }
-    if op is vm.ArrayRepeat { return true }
-    if op is vm.ArrayPushAll { return true }
-    if op is vm.StringSliceCodepoints { return true }
-    if op is vm.BufferToString { return true }
-    if op is vm.MakeClosure { return true }
-    if op is vm.CallImport { return true }
-    if op is vm.CallIndirect { return true }
-    if op is vm.VirtualCall { return true }
-    return false
+// Whether an op can allocate on the GC heap (may trigger a collection). Drives
+// `may_alloc` → whether the fn gets a shadow-stack frame and its ref params /
+// locals are rooted. A missing allocating op means a GC inside it moves live
+// refs the fn never re-roots → stale pointer (the `array.slice` CR-b bug). This
+// is an EXHAUSTIVE `match` over the closed `vm.Op` union precisely so a new op
+// can't be silently omitted : T3013 forces every future variant to be classified
+// here. Keep the two arms in sync with the runtime — an op belongs in the `true`
+// arm iff its emitted C reaches `vader_gc_alloc` (directly or transitively).
+op_allocates :: fn(op: vm.Op) -> bool = match op {
+    is vm.StructNew as sn -> !sn.stack
+    is vm.ObjectNew | vm.ArrayNew | vm.ArrayPush | vm.ArrayRepeat | vm.ArrayPushAll
+     | vm.ArraySlice | vm.StringSliceCodepoints | vm.BufferToString | vm.MakeClosure
+     | vm.CallImport | vm.CallIndirect | vm.VirtualCall -> true
+    is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee
+     | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const
+     | vm.I64Const | vm.Call | vm.FnRef | vm.StructGet | vm.StructSet
+     | vm.LocalField | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst
+     | vm.RefCast | vm.Box | vm.Convert | vm.TypeCheck | vm.TypeConst
+     | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub
+     | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne
+     | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg
+     | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl
+     | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt
+     | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub
+     | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq
+     | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge
+     | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt
+     | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd
+     | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub
+     | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne
+     | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq
+     | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.CharEq
+     | vm.CharNe | vm.CharLt | vm.CharLe | vm.CharGt | vm.CharGe
+     | vm.StringEq | vm.StringNe | vm.IntToChar | vm.CharToInt | vm.RefEq
+     | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If
+     | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return
+     | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64
+     | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlot
+     | vm.LoadSlotU8 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlot
+     | vm.StoreSlotU8 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy
+     | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32
+     | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear -> false
 }
 
 /// One C function definition : `static <sig> { <body> }`. Walks the
