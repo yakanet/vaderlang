@@ -1,0 +1,24 @@
+// Two coroutines run concurrently under `all`, each capturing its own param
+// (`base`) and local (`acc`) across suspension. Their cells must stay distinct
+// under interleaved drives — this is the concurrent-capture corruption the
+// retired M5008 guard used to mask (two suspended frames alive at once).
+module "snippet"
+
+import "std/io" { println }
+import "std/async" { sleep, all }
+
+worker :: fn(base: i32, naps: i32) -> Async<i32> {
+    acc := 0
+    bump :: fn() -> void { acc = acc + base }
+    for i in 0..<naps {
+        bump()
+        await sleep(1)
+    }
+    return acc
+}
+
+main :: fn() -> i32 {
+    rs :: await all([worker(10, 3), worker(100, 2)])
+    for r in rs { println("${r}") }     // input order: 30, then 200
+    return 0
+}

@@ -1,0 +1,32 @@
+# Typecheck
+
+## tests/snippets/async_closure_capture
+  FnDecl         compute              :: fn(i32) -> Async<i32>
+  FnDecl         main                 :: fn() -> i32
+  expr 13:13    LambdaExpr     :: fn(i32) -> void
+  expr 13:34    IdentExpr      :: i32
+  expr 13:40    BinaryExpr     :: i32
+  expr 13:40    BinaryExpr     :: i32
+  expr 13:40    IdentExpr      :: i32
+  expr 13:46    IdentExpr      :: i32
+  expr 13:53    IdentExpr      :: i32
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(i32) -> void
+  expr 15:11    CallExpr       :: Async<null>
+  expr 15:11    IdentExpr      :: fn(i64) -> Async<null>
+  expr 15:5     AwaitExpr      :: null
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(i32) -> void
+  expr 17:11    CallExpr       :: Async<null>
+  expr 17:11    IdentExpr      :: fn(i64) -> Async<null>
+  expr 17:5     AwaitExpr      :: null
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(i32) -> void
+  expr 19:12    IdentExpr      :: i32
+  expr 23:10    AwaitExpr      :: i32
+  expr 23:16    CallExpr       :: Async<i32>
+  expr 23:16    IdentExpr      :: fn(i32) -> Async<i32>
+  expr 24:13    StringLitExpr  :: string
+  expr 24:16    IdentExpr      :: i32
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void

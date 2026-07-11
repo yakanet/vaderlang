@@ -1,0 +1,23 @@
+// A generator local captured by a closure is promoted to a heap cell that must
+// survive across each `yield`: `base` is captured by the nested `addbase`, read
+// at every yield point. The frame carries the cell (and the closure that shares
+// it by-reference), so both persist across suspension. This used to be rejected
+// with M5007 — now lifted; see `vader/lower/lower_coroutine.vader::gb_add_field`.
+module "snippet"
+
+import "std/io" { println }
+
+@generator
+gen :: fn(seed: i32) -> Iterator<i32> {
+    base :: seed * 10
+    addbase :: fn(x: i32) -> i32 { return x + base }
+    for i in 0..<3 { yield addbase(i) }
+}
+
+main :: fn() -> i32 {
+    it :: gen(1)
+    total := 0
+    for v in it { total = total + v }
+    println("${total}")     // (0+10) + (1+10) + (2+10) = 33
+    return 0
+}
