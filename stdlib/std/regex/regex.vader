@@ -830,30 +830,53 @@ class_matches :: fn(inst: InstClass, c: char) -> bool {
 // only `InstSave` copies — every other epsilon edge passes the array
 // through, and leaf threads may alias one another's `groups` (read-only
 // once constructed).
-add_thread :: fn(out: Thread[], pc: usize, groups: usize[], p: Pattern, input: const u8[], pos: usize, seen: usize[], gen: usize) -> void {
-    if seen[pc] == gen { return }
-    seen[pc] = gen
-    inst :: p.insts[pc]
-    match inst {
-        is InstJump -> { add_thread(out, inst.target, groups, p, input, pos, seen, gen) }
-        is InstSplit -> {
-            add_thread(out, inst.a, groups, p, input, pos, seen, gen)
-            add_thread(out, inst.b, groups, p, input, pos, seen, gen)
-        }
-        is InstSave -> {
-            g: usize[] = []
-            g.push_all(groups)
-            g[inst.slot] = pos
-            add_thread(out, pc + 1, g, p, input, pos, seen, gen)
-        }
-        is InstAnchorStart -> {
-            if pos == 0 { add_thread(out, pc + 1, groups, p, input, pos, seen, gen) }
-        }
-        is InstAnchorEnd -> {
-            if pos == input.len() { add_thread(out, pc + 1, groups, p, input, pos, seen, gen) }
-        }
-        is InstChar | InstAny | InstClass | InstMatch -> {
-            out.push(Thread { .pc = pc, .groups = groups })
+// One entry of `add_thread`'s explicit DFS stack : the pc to visit and the
+// (copy-on-write) capture array reaching it.
+WorkItem :: struct {
+    pc:     usize
+    groups: usize[]
+}
+
+add_thread :: fn(out: Thread[], start_pc: usize, start_groups: usize[], p: Pattern, input: const u8[], pos: usize, seen: usize[], gen: usize) -> void {
+    // Iterative epsilon-closure (was recursive). A long ACYCLIC epsilon chain —
+    // e.g. the N chained `InstSplit` a `a?`×N pattern compiles to — recursed one
+    // frame per link and blew the stack (VM trap at 1024 frames) even though
+    // `seen[]` bounds the total visit count. An explicit LIFO stack removes the
+    // depth limit. Children are pushed in REVERSE of the recursive visit order so
+    // they pop in order, preserving thread priority (first arrival at a pc wins ;
+    // later arrivals are dropped by `seen`).
+    stack: WorkItem[] = [WorkItem { .pc = start_pc, .groups = start_groups }]
+    for stack.len() > 0 {
+        item :: stack[stack.len() - 1]
+        stack.remove_last()
+        pc :: item.pc
+        groups :: item.groups
+        if seen[pc] == gen { continue }
+        seen[pc] = gen
+        inst :: p.insts[pc]
+        match inst {
+            is InstJump -> { stack.push(WorkItem { .pc = inst.target, .groups = groups }) }
+            is InstSplit -> {
+                // Recursion visited `a` before `b` (a = higher priority) ; on a
+                // LIFO stack push `b` first so `a` pops — and fully drains — first.
+                stack.push(WorkItem { .pc = inst.b, .groups = groups })
+                stack.push(WorkItem { .pc = inst.a, .groups = groups })
+            }
+            is InstSave -> {
+                g: usize[] = []
+                g.push_all(groups)
+                g[inst.slot] = pos
+                stack.push(WorkItem { .pc = pc + 1, .groups = g })
+            }
+            is InstAnchorStart -> {
+                if pos == 0 { stack.push(WorkItem { .pc = pc + 1, .groups = groups }) }
+            }
+            is InstAnchorEnd -> {
+                if pos == input.len() { stack.push(WorkItem { .pc = pc + 1, .groups = groups }) }
+            }
+            is InstChar | InstAny | InstClass | InstMatch -> {
+                out.push(Thread { .pc = pc, .groups = groups })
+            }
         }
     }
 }
@@ -1157,4 +1180,20 @@ import "std/testing" { assert_eq, assert }
     for _ in 0..<300 { sb.append_char(')') }
     r :: compile(sb.to_string())
     assert(r is RegexError, "deeply-nested groups must return RegexError, not crash")
+}
+
+@test test_long_optional_chain_matches :: fn() -> void {
+    // Regression for CR-i : a long acyclic epsilon chain (`a?`×N) overflowed
+    // add_thread's recursion (VM trapped at 1024 frames). The iterative closure
+    // handles it, and the push/remove_last worklist stays bounded (owner
+    // buf->length shrink in the runtime — no capacity-doubling detach).
+    sb := StringBuilder {}
+    for _ in 0..<1500 { sb.append("a?") }
+    match compile(sb.to_string()) {
+        is Pattern as p -> {
+            assert(p.matches(""), "a?x1500 matches the empty string")
+            assert(p.matches("aaa"), "a?x1500 matches `aaa`")
+        }
+        is RegexError -> assert(false, "a?x1500 must compile")
+    }
 }
