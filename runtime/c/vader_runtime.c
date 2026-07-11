@@ -71,14 +71,17 @@ __attribute__((weak)) const size_t                vader_vtable_count    = 0;
  * also walks the defer stack so captures stay live between push and
  * exec.
  *
- * Panic-unwind status : the VM targets (TS + Vader self-host) drain the
- * defer stack when an op traps, before propagating the panic. The C
- * target does NOT — `vader_trap` exits the process directly without
- * draining. Closing that gap needs setjmp at fn entry + longjmp from
- * `vader_trap`, tracked in TODO §3.8. */
+ * Panic-unwind : a trap runs the pending defers before aborting. No
+ * setjmp/longjmp is needed — `g_defer_stack` already holds exactly the
+ * pending defers of the live call chain (pushed on scope entry, popped on
+ * structured exit), so `vader_trap` / `vader_panic` drain the whole stack
+ * LIFO, which is precisely unwind order. `g_unwinding` guards against a
+ * defer that itself traps (double-panic) : the second trap aborts at once
+ * without re-draining. */
 static vader_box_t* g_defer_stack = NULL;
 static size_t       g_defer_len   = 0;
 static size_t       g_defer_cap   = 0;
+static int          g_unwinding   = 0;
 
 void vader_defer_push(vader_box_t closure) {
     if (g_defer_len == g_defer_cap) {
@@ -91,17 +94,21 @@ void vader_defer_push(vader_box_t closure) {
     g_defer_stack[g_defer_len++] = closure;
 }
 
+/* Pop and run the top defer thunk. The lifted fn signature is `fn(env) ->
+ * void` ; we cast through a function pointer with the matching ABI
+ * (`vader_fn_erased_sig_0_t` from the per-module emit lines up — it returns
+ * a `vader_box_t`, but the thunk's wrapper returns a `null`-tagged box we
+ * discard). Caller guarantees `g_defer_len > 0`. */
+static void vader_run_one_defer(void) {
+    vader_box_t c = g_defer_stack[--g_defer_len];
+    vader_fn_t* fn = (vader_fn_t*) c.payload.obj;
+    ((vader_box_t (*)(void*)) fn->code)(fn->env);
+}
+
 void vader_defer_pop_exec(uint32_t count) {
     for (uint32_t i = 0; i < count; i++) {
         if (g_defer_len == 0u) vader_trap("vader_defer_pop_exec: stack underflow");
-        vader_box_t c = g_defer_stack[--g_defer_len];
-        vader_fn_t* fn = (vader_fn_t*) c.payload.obj;
-        /* The defer thunk's lifted fn signature is `fn(env) -> void`. We
-         * cast through a function pointer with the matching ABI ;
-         * `vader_fn_erased_sig_0_t` from the per-module emit lines up
-         * here (it returns vader_box_t, but the thunk's wrapper returns
-         * a `null`-tagged box that we discard). */
-        ((vader_box_t (*)(void*)) fn->code)(fn->env);
+        vader_run_one_defer();
     }
 }
 
@@ -4030,12 +4037,21 @@ void vader_asite_dump(void) {
 }
 #endif /* VADER_PROFILE_ALLOC_SITES */
 
+/* Drain every pending defer LIFO as a panic unwinds the live call chain.
+ * The generated code balances push/pop on every structured exit, so the
+ * stack only ever holds the frames between main and the trap site. */
+static void vader_run_pending_defers(void) {
+    while (g_defer_len > 0u) vader_run_one_defer();
+}
+
 void vader_trap(const char* msg) {
     fprintf(stderr, "vader: trap — %s\n", msg);
+    if (!g_unwinding) { g_unwinding = 1; vader_run_pending_defers(); }
     abort();
 }
 
 void vader_panic(vader_string_t msg) {
     fprintf(stderr, "vader: panic — %.*s\n", (int) vader_atom_len(msg), vader_atom_data(msg));
+    if (!g_unwinding) { g_unwinding = 1; vader_run_pending_defers(); }
     abort();
 }

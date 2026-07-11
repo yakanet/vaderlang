@@ -82,10 +82,11 @@ Frame :: struct {
     stack:          Value[]
     sp:             usize
     pc:             i32
-    /// Defer-stack — closures pushed via `DeferPush` op, drained LIFO
-    /// by `DeferPopExec` on normal exits or by the panic-unwind walker
-    /// around `dispatch_op` when an op traps. Grow-only ; semantically
-    /// the live region is `defers[0..defer_count]`.
+    /// Defer-stack — closures pushed via `DeferPush` op, drained LIFO by
+    /// `DeferPopExec` on structured exits, or by the panic-unwind handler at
+    /// the top of `exec_entry`'s loop when a user-reachable op traps (which
+    /// runs each thunk as a normal frame above the one being torn down).
+    /// Grow-only ; the live region is `defers[0..defer_count]`.
     defers:         Value[]
     defer_count:    usize
 }
@@ -904,6 +905,22 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     step_mode: StepMode = StepMode.Continue
     step_base_depth: i32 = 0
 
+    // Panic-unwind (mirror of the C runtime's defer-on-trap) — on a trap, the
+    // op captures it in `pending` (non-null ⇒ unwinding) + points
+    // `unwind_target` at the frame where it fired, then `continue`s. The
+    // loop-top handler drains that frame's defers (as thunks that run normally
+    // above it), pops it, walks down to the caller, and surfaces `pending` once
+    // the stack empties. A trap during a thunk (double-panic) short-circuits
+    // back out with the original `pending`.
+    //
+    // Only traps that surface INLINE in this loop drain here: `panic()`
+    // (call.import), `unreachable`, and array get/set bounds. A trap returned
+    // from a helper (e.g. div/mod-by-zero) aborts without draining on the VM —
+    // the native C backend drains those too (it walks its global defer stack),
+    // so that gap is a VM-only residual.
+    pending: Trap | null = null
+    unwind_target: usize = 0
+
     for frame_count[0] > 0 {
         top :: frame_count[0] - 1
         if is_comptime {
@@ -917,6 +934,32 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             body = state.bc.functions[usize(frame.function_index)]
             op_count = body.body.len()
             cur_top = top
+        }
+
+        // Panic unwind : while the top frame is the one being torn down, run
+        // its remaining defers (each pushed as a thunk frame that executes
+        // normally above it — `top > unwind_target` falls through to dispatch),
+        // then pop it and drop the watermark to the caller. When the stack
+        // empties, the captured trap escapes.
+        if pending != null && top == unwind_target {
+            if frame.defer_count > 0 {
+                idx :: frame.defer_count - 1
+                closure_val :: frame.defers[idx]
+                frame.defer_count = idx
+                thunk :: read_fn(closure_val, frame.pc, "panic unwind defer")
+                if thunk is Trap { return pending }
+                thunk_check :: validate_fn_index(thunk.function_index, state.bc.functions, frame.pc, "panic unwind defer")
+                if thunk_check is Trap { return pending }
+                thunk_fn :: state.bc.functions[usize(thunk.function_index)]
+                if thunk_fn.signature.params.len() != 1 { return pending }
+                push_frame(frames, frame_count, build_callee_frame(thunk.function_index, thunk_fn, frame.stack, frame.sp, thunk.env))
+                if frame_count[0] > usize(MAX_FRAME_DEPTH) { return pending }
+            } else {
+                pop_frame(frame_count)
+                if frame_count[0] == 0 { return pending }
+                unwind_target = frame_count[0] - 1
+            }
+            continue
         }
 
         // Fell off the end of the body without an explicit `return`.
@@ -1010,7 +1053,11 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 arg_base :: frame.sp - arg_count
                 dispatch_outcome :: dispatch_import(info, frame.stack, arg_base, gc_state, sched_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, is_comptime, debug)
                 if dispatch_outcome is Trap {
-                    return dispatch_outcome
+                    // User-reachable (e.g. `panic()`) — run pending defers first.
+                    if pending != null { return pending }
+                    pending = dispatch_outcome
+                    unwind_target = frame_count[0] - 1
+                    continue
                 }
                 new_sp := arg_base
                 if info.signature.result != bc.ValType.Void {
@@ -1237,7 +1284,10 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 array_unwrap :: read_array(frame.stack[frame.sp - 2], frame.pc, "array.get receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 if index_unwrap.value < 0 || usize(index_unwrap.value) >= array_unwrap.length {
-                    return Trap { .message = "array.get index ${index_unwrap.value} out of bounds (len=${array_unwrap.length}) at pc=${frame.pc}" }
+                    if pending != null { return pending }
+                    pending = Trap { .message = "array.get index ${index_unwrap.value} out of bounds (len=${array_unwrap.length}) at pc=${frame.pc}" }
+                    unwind_target = frame_count[0] - 1
+                    continue
                 }
                 frame.stack[frame.sp - 2] = array_unwrap.elements[array_unwrap.offset + usize(index_unwrap.value)]
                 frame.sp = frame.sp - 1
@@ -1252,7 +1302,10 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 array_unwrap :: read_array(frame.stack[frame.sp - 3], frame.pc, "array.set receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 if index_unwrap.value < 0 || usize(index_unwrap.value) >= array_unwrap.length {
-                    return Trap { .message = "array.set index ${index_unwrap.value} out of bounds (len=${array_unwrap.length}) at pc=${frame.pc}" }
+                    if pending != null { return pending }
+                    pending = Trap { .message = "array.set index ${index_unwrap.value} out of bounds (len=${array_unwrap.length}) at pc=${frame.pc}" }
+                    unwind_target = frame_count[0] - 1
+                    continue
                 }
                 // A7 deliberate aliasing : writes through a view alias the
                 // parent's backing buffer (Go-style). Users opt out by
@@ -1437,7 +1490,10 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.Unreachable as u -> {
-                return Trap { .message = "reached unreachable: ${u.reason}" }
+                if pending != null { return pending }
+                pending = Trap { .message = "reached unreachable: ${u.reason}" }
+                unwind_target = frame_count[0] - 1
+                continue
             }
             is bc.Convert -> {
                 if frame.sp == 0 {

@@ -1,0 +1,25 @@
+// A panic runs the pending `defer`s of every frame it unwinds through — LIFO,
+// innermost frame first — before the process aborts, so cleanup still happens
+// on the abnormal path. Here `charge` panics; its own `defer` (refund) runs
+// first, then `reserve`'s (release the hold) as the unwind walks back to main.
+module "snippet"
+
+import "std/io" { println }
+import "std/abort" { panic }
+
+charge :: fn(amount: i32) -> void {
+    defer println("refund ${amount}")
+    println("charging ${amount}")
+    panic("card declined")
+}
+
+reserve :: fn() -> void {
+    defer println("release hold")
+    println("reserve inventory")
+    charge(500)
+}
+
+main :: fn() -> i32 {
+    reserve()
+    return 0
+}
