@@ -124,7 +124,15 @@ Parser :: struct {
     cursor:         usize
     insts:          Inst[]
     next_group_id:  usize
+    // Current group-nesting depth. Bumped on each `(` descent and capped at
+    // MAX_GROUP_DEPTH so a pathological `(((…` can't overflow the parser's
+    // mutual recursion (would crash `compile` instead of returning RegexError).
+    depth:          usize
 }
+
+// Maximum `(...)` nesting the parser accepts. Well under the VM's 1024-frame
+// limit, so a hostile pattern gets a clean RegexError, not a stack overflow.
+MAX_GROUP_DEPTH: usize: 200
 
 /// Compile a regex source string into a `Pattern`. Anchors `^`/`$`
 /// inside the pattern bind to the input boundaries. The pattern is
@@ -136,6 +144,7 @@ export compile :: fn(pattern: string) -> Pattern | RegexError {
         .cursor = 0,
         .insts = [],
         .next_group_id = 1,
+        .depth = 0,
     }
 
     // Wrap the entire pattern in implicit group 0 so `groups[0]` is
@@ -404,6 +413,10 @@ parse_atom :: fn(p: Parser) -> RegexError | null {
     }
     b :: p.bytes[p.cursor]
     if b == '(' {
+        p.depth = p.depth + 1
+        if p.depth > MAX_GROUP_DEPTH {
+            return RegexError { .msg = "maximum group nesting depth (${MAX_GROUP_DEPTH}) exceeded", .position = p.cursor }
+        }
         p.cursor = p.cursor + 1
         group_id :: p.next_group_id
         p.next_group_id = p.next_group_id + 1
@@ -414,6 +427,7 @@ parse_atom :: fn(p: Parser) -> RegexError | null {
             return RegexError { .msg = "unterminated group", .position = p.cursor }
         }
         p.cursor = p.cursor + 1
+        p.depth = p.depth - 1
         p.insts.push(InstSave { .slot = 2 * group_id + 1 })
         return null
     }
@@ -1132,4 +1146,15 @@ import "std/testing" { assert_eq, assert }
         }
         is RegexError -> assert(false, "compile (a+)+c failed")
     }
+}
+
+@test test_deep_group_nesting_rejected :: fn() -> void {
+    // A pathological `(((…` must return RegexError, not overflow the parser's
+    // mutual recursion (CR-h). 300 exceeds MAX_GROUP_DEPTH (200).
+    sb := StringBuilder {}
+    for _ in 0..<300 { sb.append_char('(') }
+    sb.append_char('a')
+    for _ in 0..<300 { sb.append_char(')') }
+    r :: compile(sb.to_string())
+    assert(r is RegexError, "deeply-nested groups must return RegexError, not crash")
 }
