@@ -1,0 +1,26 @@
+# Typecheck
+
+## tests/snippets/generator_closure_capture
+  FnDecl         gen                  :: fn(i32) -> Iterator<i32>
+  FnDecl         main                 :: fn() -> i32
+  expr 12:13    BinaryExpr     :: i32
+  expr 12:13    IdentExpr      :: i32
+  expr 13:16    LambdaExpr     :: fn(i32) -> i32
+  expr 13:43    BinaryExpr     :: i32
+  expr 13:43    IdentExpr      :: i32
+  expr 13:47    IdentExpr      :: i32
+  expr 14:14    RangeExpr      :: Range<i32>
+  expr 14:28    CallExpr       :: i32
+  expr 14:28    IdentExpr      :: fn(i32) -> i32
+  expr 14:36    IdentExpr      :: i32
+  expr 18:11    CallExpr       :: __genstate_gen<i32>
+  expr 18:11    IdentExpr      :: fn(i32) -> Iterator<i32>
+  expr 20:14    IdentExpr      :: __genstate_gen<i32>
+  expr 20:19    IdentExpr      :: i32
+  expr 20:27    BinaryExpr     :: i32
+  expr 20:27    IdentExpr      :: i32
+  expr 20:35    IdentExpr      :: i32
+  expr 21:13    StringLitExpr  :: string
+  expr 21:16    IdentExpr      :: i32
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(T) -> void

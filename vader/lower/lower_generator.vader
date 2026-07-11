@@ -28,7 +28,7 @@ import "vader/types" {
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck" { gen_state_symbol }
 import "std/collections" { MutableMap }
-import "vader/diagnostics" { Span, lower_error }
+import "vader/diagnostics" { Span }
 import "std/abort" { panic }
 
 // ---- classification -------------------------------------------------------
@@ -75,7 +75,7 @@ zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
 // Synthesize + register the `g$State` struct and its `$Iterator$next` fn. The
 // `$${TRAIT_ITERATOR}$${METHOD_NEXT}` mangle suffix + `self: g$State` param[0]
 // are what `collect_vtable_entries` keys on to wire the vtable — single-sourced
-// here, shared by the normal path and the degenerate M5007 reject path.
+// here for the next fn + state struct.
 push_generator_decls :: fn(
     fn_ctx: FnLowerCtx, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
     yield_ty: Type, next_body: LoweredBlock, state_fields: LoweredStructField[],
@@ -98,41 +98,6 @@ push_generator_decls :: fn(
     }
     fn_ctx.project.synth_decls.push(state_decl)
     fn_ctx.project.synth_decls.push(next_decl)
-}
-
-// Emit a degenerate generator whose `next()` traps immediately (fail-loud, like
-// M5001's `unreachable`) so an M5007-rejected program neither miscompiles nor
-// silently yields an empty stream. The state struct carries only its `state`
-// discriminant — no spilled cell / closure fields — so its construction stays
-// valid. The M5007 error has already aborted any real build ; the trap fires
-// only if a lenient `vader run` iterates the rejected generator anyway.
-build_degenerate_generator :: fn(
-    fn_ctx: FnLowerCtx, span: Span, state_sym: Symbol, state_ty: Type,
-    self_sym: Symbol, yield_ty: Type, i32_ty: Type,
-) -> LoweredBlock {
-    next_body :: LoweredBlock {
-        .span = span, .type = TY_VOID,
-        .stmts = [LoweredExprStmt {
-            .span = span,
-            .expr = LoweredUnreachable { .span = span, .type = TY_VOID, .reason = "generator rejected (M5007)", .trap = true },
-        }],
-        .trailing = null,
-    }
-    push_generator_decls(fn_ctx, state_sym, self_sym, state_ty, yield_ty, next_body,
-        [LoweredStructField { .name = "state", .type = i32_ty }])
-    return LoweredBlock {
-        .span = span, .type = TY_VOID,
-        .stmts = [LoweredReturn {
-            .span = span,
-            .value = LoweredStructLit {
-                .span = span, .type = state_ty,
-                .fields = [LoweredStructLitField {
-                    .name = "state", .value = LoweredIntLit { .span = span, .type = i32_ty, .value = i64(DONE_STATE) },
-                }],
-            },
-        }],
-        .trailing = null,
-    }
 }
 
 // ---- entry ----------------------------------------------------------------
@@ -193,15 +158,6 @@ export lower_generator_fn :: fn(
     for p in params { gb_add_field(gb, p.symbol, p.type) }
     gb_collect_block(gb, lowered_body)
 
-    // A spilled param / local captured by a closure becomes a heap cell the
-    // state machine can't carry across suspension (M5007). Reject with a clean
-    // diagnostic + a degenerate generator rather than emitting a `g$State` whose
-    // cell / closure fields the backend can't construct.
-    if gen_has_captured_spill(gb, fn_ctx) {
-        fn_ctx.project.diags.push(lower_error(.GeneratorClosureCapture, span, ""))
-        return build_degenerate_generator(fn_ctx, span, state_sym, state_ty, self_sym, yield_ty, i32_ty)
-    }
-
     // Route local/param refs to `self.<field>`, then split at yields into states.
     routed :: gb_route_block(gb, lowered_body)
     entry_state :: gb_build(gb, routed)
@@ -214,15 +170,16 @@ export lower_generator_fn :: fn(
     push_generator_decls(fn_ctx, state_sym, self_sym, state_ty, yield_ty, gb_next_body(gb), state_fields)
 
     // Rewrite `g`'s body: `return g$State { <all fields>, .state = entry }`.
-    // Param fields carry the incoming args ; local fields get a zero value
-    // (they're assigned in `next()` before first read, but `struct.new` needs
-    // every field). Field order matches the struct decl (params, locals, state).
+    // Param fields carry the incoming args (a captured param is cell-wrapped here
+    // — `gb_param_construct_value`) ; local fields get a zero value (assigned in
+    // `next()` before first read, but `struct.new` needs every field). Field
+    // order matches the struct decl (params, locals, state).
     nparams :: params.len()
     construct_fields: LoweredStructLitField[] = []
     for idx in 0..<gb.fields.len() {
         f :: gb.fields[idx]
         value :: if idx < nparams {
-            LoweredIdent { .span = span, .type = params[idx].type, .symbol = params[idx].symbol }
+            gb_param_construct_value(gb, params[idx])
         } else {
             zero_value_lit(span, f.type)
         }

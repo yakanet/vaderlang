@@ -196,8 +196,8 @@ export LowerCode :: enum(u8) {
     IntoCoercionFailed,                     // M5004
     IntrinsicUnsupported,                   // M5005
     SelfReceiverMissing,                    // M5006
-    GeneratorClosureCapture,                // M5007
-    AsyncClosureCapture,                    // M5008
+    // M5007 / M5008 (generator / async closure-capture) retired : captured
+    // locals now survive suspension as heap cells (see `lower_coroutine`).
     AwaitInShortCircuit,                    // M5009
 }
 
@@ -335,8 +335,6 @@ export lower_info :: fn(c: LowerCode) = match c {
     .IntoCoercionFailed                 -> CodeInfo { .id = "M5004", .message = "`Into` coercion cannot be lowered" }
     .IntrinsicUnsupported               -> CodeInfo { .id = "M5005", .message = "intrinsic not implemented by the lowerer" }
     .SelfReceiverMissing                -> CodeInfo { .id = "M5006", .message = "method call lacks a resolvable `self` receiver" }
-    .GeneratorClosureCapture            -> CodeInfo { .id = "M5007", .message = "a local captured by a closure is not yet supported inside a generator" }
-    .AsyncClosureCapture                -> CodeInfo { .id = "M5008", .message = "a local captured by a closure is not yet supported inside an async coroutine (a fn that `await`s)" }
     .AwaitInShortCircuit                -> CodeInfo { .id = "M5009", .message = "`await` in a short-circuit operand or loop condition is not yet supported" }
 }
 

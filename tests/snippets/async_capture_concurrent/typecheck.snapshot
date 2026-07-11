@@ -1,0 +1,31 @@
+# Typecheck
+
+## tests/snippets/async_capture_concurrent
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         worker               :: fn(i32, i32) -> Async<i32>
+  expr 12:13    LambdaExpr     :: fn() -> void
+  expr 12:28    IdentExpr      :: i32
+  expr 12:34    BinaryExpr     :: i32
+  expr 12:34    IdentExpr      :: i32
+  expr 12:40    IdentExpr      :: i32
+  expr 13:14    RangeExpr      :: Range<i32>
+  expr 13:18    IdentExpr      :: i32
+  expr 14:9     CallExpr       :: void
+  expr 14:9     IdentExpr      :: fn() -> void
+  expr 15:15    CallExpr       :: Async<null>
+  expr 15:15    IdentExpr      :: fn(i64) -> Async<null>
+  expr 15:9     AwaitExpr      :: null
+  expr 17:12    IdentExpr      :: i32
+  expr 21:11    AwaitExpr      :: i32[]
+  expr 21:17    CallExpr       :: Async<i32[]>
+  expr 21:17    IdentExpr      :: fn(Async<T>[]) -> Async<T[]>
+  expr 21:21    SeqLitExpr     :: Async<i32>[]
+  expr 21:22    CallExpr       :: Async<i32>
+  expr 21:22    IdentExpr      :: fn(i32, i32) -> Async<i32>
+  expr 21:37    CallExpr       :: Async<i32>
+  expr 21:37    IdentExpr      :: fn(i32, i32) -> Async<i32>
+  expr 22:14    IdentExpr      :: i32[]
+  expr 22:19    CallExpr       :: void
+  expr 22:19    IdentExpr      :: fn(T) -> void
+  expr 22:27    StringLitExpr  :: string
+  expr 22:30    IdentExpr      :: i32

@@ -1,0 +1,26 @@
+// `base` (param) and `acc` (local) are both captured by the closure `step`, so
+// both are promoted to heap cells. They must survive each `await` suspension:
+// the coroutine frame carries the cells and `step` shares them by-reference.
+// This cross-suspension cell survival is exactly what the retired M5008 guard
+// used to forbid — see `vader/lower/lower_coroutine.vader::gb_add_field`.
+module "snippet"
+
+import "std/io" { println }
+import "std/async" { sleep }
+
+compute :: fn(base: i32) -> Async<i32> {
+    acc := 0
+    step :: fn(n: i32) -> void { acc = acc + base + n }
+    step(1)             // acc = base + 1
+    await sleep(1)
+    step(2)             // acc = 2*base + 3
+    await sleep(1)
+    step(3)             // acc = 3*base + 6
+    return acc
+}
+
+main :: fn() -> i32 {
+    r :: await compute(10)
+    println("${r}")     // 3*10 + 6 = 36
+    return 0
+}

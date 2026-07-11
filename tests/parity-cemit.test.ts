@@ -142,6 +142,11 @@ const C_PARITY = new Set<string>([
   "generator_break",       // break + continue across a yield
   "generator_struct_elem", // struct element type, flattened
   "generator_escapes",     // stored-then-consumed → boxed state machine (not inlined)
+  // A generator local captured by a closure promotes to a heap cell that must
+  // survive across each yield. The native run is the guard on the fix: the
+  // spilled `g$State` field must carry the cell (box), not the value type — a
+  // value-typed field emitted `int32_t f_sN` and the cell get derefed a scalar.
+  "generator_closure_capture",
   // Stream fusion (Couche 1): `arr.iter().map(f).filter(p)` under a `for`
   // fuses to a flat index loop — no iterator structs. Native run validates the
   // fused loop produces the same output as the boxed tower would.
@@ -185,6 +190,13 @@ const C_PARITY = new Set<string>([
   "async_all",         // all(xs): concurrent join, input-order results
   "async_try_all",     // try_all(xs): fallible join, first-error by input order
   "async_interleave",  // visible cooperative interleaving via println order
+  // Captured param + local surviving `await`: both promote to heap cells the
+  // frame must carry across suspension (the retired M5008 case). Native run is
+  // the seed-critical guard — the C-emit bug was a value-typed spilled field.
+  "async_closure_capture",
+  // The same, but two coroutines under `all` with interleaved drives: their
+  // cells must stay distinct (the concurrent-capture VM corruption M5008 masked).
+  "async_capture_concurrent",
   // Not async-specific : a generic struct's trait impl materialised when the
   // struct is built only inside a generic fn's body (the harvest never saw the
   // concrete instance). Regression guard for lower_struct_lit's queue gate.

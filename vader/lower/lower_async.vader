@@ -34,7 +34,7 @@ import "vader/types" {
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck" { fn_is_async, async_result_arg }
 import "std/collections" { MutableMap }
-import "vader/diagnostics" { Span, lower_error }
+import "vader/diagnostics" { Span }
 import "std/abort" { panic }
 
 // ---- state-struct synthesis + entry ---------------------------------------
@@ -42,7 +42,7 @@ import "std/abort" { panic }
 // Synthesize + register the `__asyncstate` struct and its `$Async$resume` fn.
 // The `$${TRAIT_ASYNC}$${METHOD_RESUME}` mangle suffix + `self: __asyncstate`
 // param[0] are what `collect_vtable_entries` keys on to wire the vtable —
-// single-sourced here, shared by the normal path and the M5008 reject path.
+// single-sourced here for the resume fn + state struct.
 push_async_decls :: fn(
     fn_ctx: FnLowerCtx, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
     resume_ty: Type, resume_body: LoweredBlock, state_fields: LoweredStructField[],
@@ -65,45 +65,6 @@ push_async_decls :: fn(
     }
     fn_ctx.project.synth_decls.push(state_decl)
     fn_ctx.project.synth_decls.push(resume_decl)
-}
-
-// Emit a degenerate async fn whose `resume()` traps immediately (fail-loud, like
-// the generator's M5007 path) so an M5008-rejected program neither miscompiles
-// nor silently completes. The frame carries only its `awaited` + `state` fields
-// — no spilled cell / closure — so its construction stays valid.
-build_degenerate_async :: fn(
-    fn_ctx: FnLowerCtx, span: Span, state_sym: Symbol, state_ty: Type,
-    self_sym: Symbol, resume_ty: Type, i32_ty: Type, async_any_ty: Type,
-) -> LoweredBlock {
-    resume_body :: LoweredBlock {
-        .span = span, .type = TY_VOID,
-        .stmts = [LoweredExprStmt {
-            .span = span,
-            .expr = LoweredUnreachable { .span = span, .type = TY_VOID, .reason = "async fn rejected (M5008)", .trap = true },
-        }],
-        .trailing = null,
-    }
-    trap_fields :: [
-        LoweredStructField { .name = "awaited", .type = async_any_ty },
-        LoweredStructField { .name = "state", .type = i32_ty },
-    ]
-    push_async_decls(fn_ctx, state_sym, self_sym, state_ty, resume_ty, resume_body, trap_fields)
-    return LoweredBlock {
-        .span = span, .type = TY_VOID,
-        .stmts = [LoweredReturn {
-            .span = span,
-            .value = LoweredStructLit {
-                .span = span, .type = state_ty,
-                .fields = [
-                    LoweredStructLitField { .name = "awaited", .value = zero_value_lit(span, async_any_ty) },
-                    LoweredStructLitField {
-                        .name = "state", .value = LoweredIntLit { .span = span, .type = i32_ty, .value = i64(DONE_STATE) },
-                    },
-                ],
-            },
-        }],
-        .trailing = null,
-    }
 }
 
 // Fold a fn-root block's trailing expression into a terminating statement, so
@@ -196,13 +157,6 @@ export lower_async_fn :: fn(
     for p in params { gb_add_field(gb, p.symbol, p.type) }
     gb_collect_block(gb, body)
 
-    // A spilled param / local captured by a closure becomes a heap cell the
-    // state machine can't carry across suspension (M5008, mirror of M5007).
-    if gen_has_captured_spill(gb, fn_ctx) {
-        fn_ctx.project.diags.push(lower_error(.AsyncClosureCapture, span, ""))
-        return build_degenerate_async(fn_ctx, span, state_sym, state_ty, self_sym, resume_ty, i32_ty, async_any_ty)
-    }
-
     // Route local/param refs to `self.<field>`, then split at awaits into states.
     routed :: gb_route_block(gb, body)
     entry_state :: gb_build(gb, routed)
@@ -216,15 +170,16 @@ export lower_async_fn :: fn(
     push_async_decls(fn_ctx, state_sym, self_sym, state_ty, resume_ty, gb_next_body(gb), state_fields)
 
     // Rewrite `f`'s body: `return __asyncstate { <all fields>, .awaited = null,
-    // .state = entry }`. Param fields carry the incoming args ; local fields get
-    // a zero value (assigned in `resume()` before first read, but `struct.new`
-    // needs every field). Field order matches the struct decl.
+    // .state = entry }`. Param fields carry the incoming args (a captured param is
+    // cell-wrapped here — `gb_param_construct_value`) ; local fields get a zero
+    // value (assigned in `resume()` before first read, but `struct.new` needs
+    // every field). Field order matches the struct decl.
     nparams :: params.len()
     construct_fields: LoweredStructLitField[] = []
     for idx in 0..<gb.fields.len() {
         f :: gb.fields[idx]
         value :: if idx < nparams {
-            LoweredIdent { .span = span, .type = params[idx].type, .symbol = params[idx].symbol }
+            gb_param_construct_value(gb, params[idx])
         } else {
             zero_value_lit(span, f.type)
         }
