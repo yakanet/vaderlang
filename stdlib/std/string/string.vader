@@ -137,12 +137,18 @@ string implements Contains<string> {
 /// @param b  right string.
 /// @return   `true` iff `a` strictly precedes `b` ; equal strings → `false`.
 export compare_ascending :: fn(a: string, b: string) -> bool {
-    la :: a.bytes().len()
-    lb :: b.bytes().len()
+    // Compare raw BYTES (not `a[i]`, which is codepoint-indexed and would trap
+    // OOB once `i` passes the codepoint count of a multibyte operand — the loop
+    // bound is a byte length). UTF-8 byte order equals codepoint order, so the
+    // result is unchanged. Mirrors `compare_ascending_ci`.
+    ab :: a.bytes()
+    bb :: b.bytes()
+    la :: ab.len()
+    lb :: bb.len()
     n :: min(la, lb)
     for i in 0..<n {
-        ca :: a[i]
-        cb :: b[i]
+        ca :: ab[i]
+        cb :: bb[i]
         if ca < cb { return true }
         if ca > cb { return false }
     }
@@ -892,4 +898,16 @@ import "std/testing" { assert, assert_eq, assert_close }
     assert_eq(decode_escapes("\\\"q\\\""),   "\"q\"")
     assert_eq(decode_escapes("a\\qb"),       "aqb")            // unknown escape : drop the backslash
     assert_eq(decode_escapes("trailing\\"),  "trailing\\")     // dangling backslash preserved
+}
+
+@test test_compare_ascending :: fn() -> void {
+    assert(compare_ascending("abc", "abd"), "abc < abd")
+    assert(!compare_ascending("abd", "abc"), "abd not < abc")
+    assert(!compare_ascending("abc", "abc"), "equal -> false")
+    assert(compare_ascending("ab", "abc"), "prefix < longer")
+    // Multibyte must NOT trap : `s[i]` is codepoint-indexed, so the old
+    // byte-length loop over `a[i]` walked off the end of any accented / CJK
+    // string and crashed `sort`. Byte-wise comparison is order-preserving.
+    assert(!compare_ascending("été", "été"), "equal multibyte -> false")
+    assert(compare_ascending("abc", "été"), "ascii byte < high-byte utf8")
 }
