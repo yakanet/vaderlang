@@ -907,7 +907,7 @@ emit_block_contents :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> 
             emit_get(ctx, cb.cond, cb.span)
         }
         cf_if(ctx, cb.span, merge)
-        if merge < 0 || cb.then_block != merge { emit_range(ctx, cb.then_block, merge) }
+        if i32(merge) < 0 || cb.then_block != merge { emit_range(ctx, cb.then_block, merge) }
         // Early-return flattening : when the then-branch's last op is a
         // genuine exit (Return / ReturnLit / Branch / unreachable-equivalent),
         // the else-body becomes the post-`end` continuation instead of
@@ -928,7 +928,7 @@ emit_block_contents :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> 
             return cb.else_block
         }
         cf_else(ctx, cb.span)
-        if merge < 0 || cb.else_block != merge { emit_range(ctx, cb.else_block, merge) }
+        if i32(merge) < 0 || cb.else_block != merge { emit_range(ctx, cb.else_block, merge) }
         cf_end(ctx, cb.span)
         return merge
     }

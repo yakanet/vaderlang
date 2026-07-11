@@ -219,18 +219,23 @@ export fn_param_compatible :: fn(a: Type, b: Type, oracle: TraitOracle | null) -
 }
 
 /// Element-wise compatibility for the args list carried by StructType /
-/// TraitType. Length must match ; then per-element via `fn_param_compatible`.
+/// TraitType. Length must match ; then each type arg must be **invariant**.
 ///
-/// NOTE: type args are uniformly **covariant** here — knowingly unsound for a
-/// *mutable* generic container (`MutableMap(i32, i32)` → `MutableMap(i32, i32 |
-/// string)` is accepted, the same reference-aliasing hole `is_assignable_array`
-/// closes for arrays). Fixing it needs declaration-site variance annotations
-/// that don't exist yet ; deferred. This is where a general variance model
-/// plugs in.
+/// Invariance (bidirectional `fn_param_compatible`) is the sound default until a
+/// declaration-site variance model exists : covariance is unsound for a *mutable*
+/// generic container — `MutableMap(i32, i32)` → `MutableMap(i32, i32 | string)`
+/// would let a write through the widened alias corrupt the shared `i32` backing,
+/// the exact reference-aliasing hole `is_assignable_array` closes for a mutable
+/// array element. TypeParam / Unresolved args stay wildcards (true both ways in
+/// `is_assignable`), so generic code is unaffected ; only a concrete widen/narrow
+/// between differing args is rejected. The equal-arg fast path keeps the dominant
+/// `Foo<T>` → `Foo<T>` case single-pass.
 export struct_args_compatible :: fn(a: Type[], b: Type[], oracle: TraitOracle | null) -> bool {
     if a.len() != b.len() { return false }
     for i in 0..<a.len() {
+        if equals_type(a[i], b[i]) { continue }
         if !fn_param_compatible(a[i], b[i], oracle) { return false }
+        if !fn_param_compatible(b[i], a[i], oracle) { return false }
     }
     return true
 }
@@ -284,6 +289,18 @@ test_array_mutable_element_invariant :: fn() -> void {
     assert(!is_assignable(i32_arr, union_arr_mut, null), "i32[] ↛ (i32 | string)[] (mutable — invariant)")
     assert(!is_assignable(union_arr_mut, i32_arr, null), "(i32 | string)[] ↛ i32[] (mutable)")
     assert(is_assignable(union_arr_mut, union_arr_mut2, null), "(i32 | string)[] → (i32 | string)[] (equal element)")
+}
+
+@test
+test_struct_args_invariant :: fn() -> void {
+    // Generic container type-args are invariant : the covariant widen of a
+    // mutable container (`MutableMap<i32, i32>` → `MutableMap<i32, i32 | string>`)
+    // is the reference-aliasing hole rejected here — same as the mutable array.
+    i32_t: Type = mk_primitive("i32")
+    wide:  Type = mk_union([mk_primitive("i32"), mk_primitive("string")])
+    assert(struct_args_compatible([i32_t], [i32_t], null), "[i32] → [i32] (equal args)")
+    assert(!struct_args_compatible([i32_t], [wide], null), "[i32] ↛ [i32 | string] (invariant)")
+    assert(!struct_args_compatible([wide], [i32_t], null), "[i32 | string] ↛ [i32] (invariant)")
 }
 
 @test

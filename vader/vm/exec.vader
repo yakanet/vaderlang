@@ -69,7 +69,7 @@ MAX_FRAME_DEPTH :: 1024
 // non-terminating `@comptime` loop must error, not hang the build. Generous
 // enough for real computed tables (MD5_K is ~640 ops) ; a true infinite loop
 // trips it in ~1s. Normal main / test runs are unbounded.
-COMPTIME_STEP_BUDGET :: 100_000_000
+COMPTIME_STEP_BUDGET: i64: 100_000_000
 
 /// A single call frame on the VM's frame stack. `slots[0..parameter_count]`
 /// hold the params bound at `Call` time, followed by `local_count` zero-

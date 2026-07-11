@@ -1,17 +1,27 @@
 // vader/typecheck/expr_cast — CastExpr inference (`T(x)`).
 //
-// MVP : the target type is whatever `type_from_expr(target, …)` produces.
-// We always return it ; the cast's value side is type-checked for
-// side-effects but no compatibility validation runs (Phase 5.6 is
-// where T3010 / numeric-narrowing rules land).
+// A cast `T(x)` resolves to the target type `T`, but the (value → target) pair
+// must be a conversion the backends actually implement, else the cast lowers to
+// a `Convert` op that traps (VM) or reinterprets garbage (native). `infer_cast`
+// validates the pair and emits T3010 for an illegal cast (`i32("hello")`,
+// `bool(someStruct)`), rather than accepting it and miscompiling.
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic }
-import "vader/types" { Type }
+import "vader/diagnostics" { Diagnostic, typecheck_error }
+import "vader/types" {
+    Type, PrimitiveType, DistinctType, EnumType, FnType,
+    UnresolvedType, TypeParamType, TypeMetaType,
+}
+// `display_type` and `is_numeric` live in sibling files of this module and are
+// referenced directly (a re-import would trip R2026 duplicate-declaration).
 AST :: import "vader/parser"
 
 /// Type-check a `CastExpr`. Returns the cast's target type.
+///
+/// @error T3010 when the (value → target) pair is not a legal conversion —
+///        scalar↔scalar (numeric / char / enum), a distinct newtype
+///        construct / unwrap, an assignable/subtype pair, or an `Into<T>` impl.
 export infer_cast :: fn(
     e: AST.CastExpr, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
@@ -19,6 +29,42 @@ export infer_cast :: fn(
     target :: type_from_expr(e.target, typed.resolved, diags)
     // Cast target flows as expected to the value so `i64(-250)`'s
     // operand narrows to i64 instead of staying FreeInt.
-    check_expr_fn(e.value, target, typed, diags)
+    src :: check_expr_fn(e.value, target, typed, diags)
+    if !cast_allowed(src, target, typed) {
+        diags.push(typecheck_error(.InvalidCast, e.span,
+            "cannot cast ${display_type(src)} to ${display_type(target)}"))
+    }
     return target
+}
+
+/// True when `T(x)` is a conversion the lowerer / backends implement.
+cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
+    // Undecidable operands (an earlier error, an unbound type param, a metatype)
+    // opt out — never pile a T3010 on top of a cascade.
+    if not_decidable(src) || not_decidable(target) { return true }
+    // The `Convert` op domain — numeric / char / enum conversions (`usize(i32)`,
+    // `f64(u64)`, `u8(char)`, `i32(enum)`) and distinct newtype construct / unwrap
+    // (`BlockId(-1)`, `i32(blockId)`). These are cheap tag-test gates and cover
+    // the dominant cast case, so they run before the heavier `is_assignable` walk
+    // (which, for a genuine conversion, fails both directions anyway).
+    if scalar_castable(src) && scalar_castable(target) { return true }
+    if src is DistinctType || target is DistinctType { return true }
+    // Identity / compatible either direction : `i32(x: i32)`, a free literal
+    // narrowed to the target, a subtype widen (`Animal(cat)`).
+    if is_assignable(src, target, null) || is_assignable(target, src, null) { return true }
+    // Explicit `Into<Target>` conversion (string-keyed lookup — last resort).
+    if typed.impl_methods["${display_type(src)}::into::${display_type(target)}"] is FnType { return true }
+    return false
+}
+
+not_decidable :: fn(t: Type) = t is UnresolvedType | TypeParamType | TypeMetaType
+
+// Numeric (int / float, free or concrete), `char`, or an enum — everything the
+// `Convert` op can move between. `is_numeric` already covers the free / numeric
+// cases ; `char` is NOT numeric so it is added explicitly, as is `enum` (↔ its
+// repr int). `bool` and `string` are deliberately absent (no scalar cast).
+scalar_castable :: fn(t: Type) -> bool {
+    if is_numeric(t) || t is EnumType { return true }
+    if t is PrimitiveType as p { return p.name == "char" }
+    return false
 }

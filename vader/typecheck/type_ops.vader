@@ -51,6 +51,31 @@ export char_fits :: fn(codepoint: u32, type_name: string) -> bool {
     return contains(repr_range(type_name), i64(codepoint))
 }
 
+/// Whether the (non-negative) magnitude of an integer literal fits the integer
+/// primitive `type_name`. `value` is the `u64` the AST carries — the sign of a
+/// negated literal is handled separately by the caller. Mirrors `char_fits` :
+/// a free integer literal pinned to a concrete width must be representable, so
+/// `x: i32 = 9000000000` / `x: u8 = 300` are rejected (T3066). `u64` / `usize`
+/// carry any magnitude the AST can hold ; `i64` / `isize` cap at `i64.MAX` (the
+/// AST can't carry a larger positive) ; narrower widths defer to `repr_range`.
+export int_fits :: fn(value: u64, type_name: string) -> bool {
+    if !is_int_name(type_name) { return false }
+    if type_name == "u64" || type_name == "usize" { return true }
+    // Signed 64-bit : allow up to 2^63 so the negated minimum
+    // (`-9223372036854775808`, i64.MIN) type-checks. The bare positive 2^63 is
+    // one past i64.MAX, but its only reachable use is as the negated MIN.
+    if type_name == "i64" || type_name == "isize" { return value <= 9223372036854775808 }
+    // Narrower widths : any value above `i64.MAX` overflows the range table's
+    // `i64` domain, so reject up front ; otherwise consult the [min, max] table.
+    if value > 9223372036854775807 { return false }
+    r :: repr_range(type_name)
+    if !r.has_bounds { return true }
+    // `value` is a non-negative magnitude. For a signed width permit `max + 1`
+    // (= 2^(n-1)) so the negated minimum `-2^(n-1)` fits ; unsigned caps at max.
+    if is_signed_int_name(type_name) { return i64(value) <= r.max + 1 }
+    return i64(value) <= r.max
+}
+
 // True when `target` is one of `names`. A small shared membership helper.
 contains_name :: fn(names: const string[], target: string) -> bool {
     for n in names { if n == target { return true } }
@@ -416,4 +441,23 @@ test_default_if_free :: fn() -> void {
         is PrimitiveType as p -> { assert_eq(p.name, "i32") }
         _ -> { assert(false, "i32 should pass through") }
     }
+}
+
+@test
+test_int_fits_bounds :: fn() -> void {
+    // Positive magnitude out of range → rejected (T3066 at the pin site).
+    assert(!int_fits(9000000000, "i32"), "9e9 does not fit i32")
+    assert(!int_fits(300, "u8"), "300 does not fit u8")
+    assert(!int_fits(18446744073709551615, "i64"), "u64.MAX does not fit i64")
+    // In-range values and maxima → accepted.
+    assert(int_fits(2147483647, "i32"), "i32.MAX fits i32")
+    assert(int_fits(255, "u8"), "u8.MAX fits u8")
+    assert(int_fits(18446744073709551615, "u64"), "u64.MAX fits u64")
+    assert(int_fits(18446744073709551615, "usize"), "u64.MAX fits usize")
+    // Signed minimum magnitude (`2^(n-1)`) passes so the negated `-2^(n-1)` fits.
+    assert(int_fits(9223372036854775808, "i64"), "i64.MIN magnitude fits i64")
+    assert(int_fits(2147483648, "i32"), "i32.MIN magnitude fits i32")
+    // A non-integer target never accepts an integer literal via this path.
+    assert(!int_fits(0, "f64"), "int literal never fits f64")
+    assert(!int_fits(0, "bool"), "int literal never fits bool")
 }
