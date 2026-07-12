@@ -148,21 +148,3 @@ export lower_error :: fn(code: LowerCode, primary: Span, detail: string) =
 
 export warning :: fn(code: WarningCode, primary: Span, detail: string) =
     new_diagnostic(.Warning, warning_info(code), primary, detail)
-
-// Render a diagnostic as a single-line `error[CODE]: message at file:line:col`.
-// Used for terminal output today; the LSP will go via the JSON shape directly
-// without this helper.
-export render :: fn(d: Diagnostic) -> string {
-    severity :: match d.severity {
-        .Error   -> "error"
-        .Warning -> "warning"
-        .Info    -> "info"
-        .Hint    -> "hint"
-    }
-    p :: d.primary.start
-    detail: string = ""
-    if !d.detail.is_empty() {
-        detail = ": ${d.detail}"
-    }
-    return "${severity}[${d.code.id}]: ${d.code.message}${detail} at ${p.file}:${p.line}:${p.column}"
-}

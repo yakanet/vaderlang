@@ -23,7 +23,7 @@ import "std/collections" { keys }
 import "std/string" { trim_suffix }
 import "std/path" { to_posix, to_path, filename }
 
-import "vader/lexer" { dump_diagnostics_with_file }
+import "vader/diagnostics" { dump_diagnostics_with_file }
 import "vader/resolver" { load_project, LoadedProject }
 import "vader/typecheck" { check_project_with_bodies, CheckResult, TypedProject, new_typed_project }
 import "vader/comptime" { evaluate_project, EvaluatedProject }
