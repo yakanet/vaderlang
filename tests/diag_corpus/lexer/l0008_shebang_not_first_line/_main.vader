@@ -1,0 +1,5 @@
+// lexer-4 : a `#!` shebang is valid only on line 1 (consumed by `tokenize`).
+// Anywhere else it emits L0008, not a misleading per-`#` L0001.
+module "snippet"
+#!/usr/bin/env vader
+main :: fn() -> i32 = 0
