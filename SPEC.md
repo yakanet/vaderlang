@@ -214,7 +214,7 @@ Every public method in the standard library carries a VaderDoc block following t
 
 ```
 fn struct trait implements enum
-if else match is for in return defer break continue
+if else match is for in return yield await defer break continue
 import as
 export
 true false null

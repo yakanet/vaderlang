@@ -69,8 +69,7 @@ export TokenKind :: enum(u8) {
 
 // `value` carries the parsed payload: the integer for `IntLit`, the float for
 // `FloatLit`, the codepoint for `CharLit`, the decoded text for `StringPart`,
-// and `null` for everything else (keywords, ops, punctuation). `numeric_suffix`
-// is independent — it coexists with `value` on numeric literals.
+// and `null` for everything else (keywords, ops, punctuation).
 export Token :: struct {
     kind: TokenKind
     text: string
