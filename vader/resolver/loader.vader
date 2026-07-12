@@ -412,12 +412,8 @@ merge_collected :: fn(dst: CollectedModule, src: CollectedModule, diags: Diagnos
                 // the module-system invariant that one module owns one
                 // declaration of a given name ; fire R2026 per
                 // decision #28 of the module redesign.
-                fn_kind :: i32(SymbolKind.Fn)
-                import_kind :: i32(SymbolKind.ImportBinding)
-                e_kind :: i32(e.kind)
-                s_kind :: i32(sym.kind)
-                fn_pair     :: e_kind == fn_kind && s_kind == fn_kind
-                import_pair :: e_kind == import_kind && s_kind == import_kind
+                fn_pair     :: e.kind == SymbolKind.Fn && sym.kind == SymbolKind.Fn
+                import_pair :: e.kind == SymbolKind.ImportBinding && sym.kind == SymbolKind.ImportBinding
                 if !fn_pair && !import_pair {
                     span :: match sym.defined_at {
                         is Span as s -> s
