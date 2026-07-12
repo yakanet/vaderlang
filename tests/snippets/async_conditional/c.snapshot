@@ -62,14 +62,14 @@ static void std_core_Buffer_ByteAccess_write_string_vt(vader_box_t l0, size_t l1
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_type_4_ptrs[] = { offsetof(vader_struct___asyncstate_2_t, f_awaited) };
-static const uint16_t vader_type_13_ptrs[] = { offsetof(vader_array_t, buf) };
+static const uint16_t vader_type_14_ptrs[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[16] = {
     [4] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___asyncstate_2_t), vader_type_4_ptrs, 1, 0, NULL, 0, NULL },
     [6] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Suspended_t), NULL, 0, 0, NULL, 0, NULL },
     [7] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_Ready__i32_t), NULL, 0, 0, NULL, 0, NULL },
-    [10] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
-    [13] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_13_ptrs, 1, 0, NULL, 0, NULL },
+    [11] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
+    [14] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_14_ptrs, 1, 0, NULL, 0, NULL },
 };
 const size_t vader_type_info_count = 16;
 
@@ -82,14 +82,14 @@ const size_t vader_type_size[16] = {
     [5] = 16u,
     [6] = 16u,
     [7] = 16u,
-    [8] = 16u,
-    [9] = 8u,
-    [10] = 16u,
+    [8] = 0u,
+    [9] = 16u,
+    [10] = 8u,
     [11] = 16u,
-    [12] = 8u,
-    [13] = 16u,
-    [14] = 1u,
-    [15] = 0u,
+    [12] = 16u,
+    [13] = 8u,
+    [14] = 16u,
+    [15] = 1u,
 };
 
 
@@ -112,7 +112,7 @@ const vader_vtable_t* const vader_vtable_table[8] = {
     [7] = &vt_7,
 };
 const size_t vader_vtable_count = 8;
-static vader_box_t vader_import_0(vader_string_t a0) { return vader_box_obj(13u, vader_string_bytes_view(a0, 13u, 14u)); }
+static vader_box_t vader_import_0(vader_string_t a0) { return vader_box_obj(14u, vader_string_bytes_view(a0, 14u, 15u)); }
 static void vader_import_1(int32_t a0, vader_string_t a1) { vader_write(a0, a1); }
 
 

@@ -1,0 +1,40 @@
+// Cancelling a suspended coroutine runs its pending `defer`s (LIFO) WITHOUT
+// finishing the body, and recursively tears down the child it is parked on.
+// `frame.cancel()` (4c-1) drains the frame's per-frame `__defers` and calls
+// `child.cancel()` on the awaited child first, so a nested-await subtree unwinds
+// depth-first : innermost child, then each frame's own defers on the way out.
+// Hand-driven (no scheduler) via a child that parks forever until cancelled.
+module "snippet"
+
+import "std/io" { println }
+
+// Parks forever — keeps its parent suspended on it, so cancelling the parent
+// exercises the recursive `awaited.cancel()`.
+Never :: struct {}
+Never implements Async<i32> {
+    resume :: fn(self) -> i32 | Suspended = Suspended {}
+    cancel :: fn(self) -> void { println("never cancelled") }
+}
+
+inner :: fn() -> Async<i32> {
+    defer { println("inner cleanup") }
+    n: Async<i32> = Never {}
+    x :: await n
+    println("inner body (unreached)")
+    return x
+}
+
+outer :: fn() -> Async<i32> {
+    defer { println("outer cleanup") }
+    y :: await inner()
+    println("outer body (unreached)")
+    return y
+}
+
+main :: fn() -> i32 {
+    o :: outer()
+    _ :: o.resume()      // outer parks on inner, inner parks on Never
+    o.cancel()           // teardown : Never.cancel, then inner defer, then outer defer
+    println("done")
+    return 0
+}

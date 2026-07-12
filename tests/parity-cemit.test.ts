@@ -201,6 +201,19 @@ const C_PARITY = new Set<string>([
   // drain LIFO at completion. A defer registered before the await — and the local
   // it captures by-ref — must survive the suspension. Native run is the guard.
   "async_defer",
+  // Cancelling a suspended coroutine (4c-1): `frame.cancel()` runs pending defers
+  // LIFO and recursively tears down the awaited child, without finishing the body.
+  // Native run guards the synthesised `$Async$cancel` method + drain loop.
+  "async_cancel_defer",
+  // race (4c-2): first awaitable to settle wins, losers cancelled — the loser's
+  // defer runs on teardown, the winner's at its own completion.
+  "async_race",
+  // timeout (4c-2): the awaited value is cancelled when the deadline elapses
+  // first; a TimeoutError (an `Error` value) surfaces, the work's defer runs.
+  "async_timeout",
+  // any (4c-2): first SUCCESS wins (a settled error is not a win); explicit
+  // `<U, E>` type args, same as try_all.
+  "async_any",
   // Not async-specific : a generic struct's trait impl materialised when the
   // struct is built only inside a generic fn's body (the harvest never saw the
   // concrete instance). Regression guard for lower_struct_lit's queue gate.

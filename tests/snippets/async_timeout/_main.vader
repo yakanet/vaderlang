@@ -1,0 +1,24 @@
+// `timeout` bounds an awaitable : if it is not ready within the deadline, the
+// awaitable is cancelled and a `TimeoutError` surfaces (an `Error` value, handled
+// with plain `if`/`match`). Here the work sleeps longer than the deadline, so it
+// times out — its `defer` cleanup runs when `timeout` cancels it.
+module "snippet"
+
+import "std/io" { println }
+import "std/async" { sleep, timeout }
+
+work :: fn() -> Async<string> {
+    defer { println("work cleanup") }
+    await sleep(100)
+    return "done"
+}
+
+main :: fn() -> i32 {
+    r :: await timeout(10, work())
+    if r is Error as e {
+        println("timed out: ${e.message()}")
+    } else {
+        println("got: ${r}")
+    }
+    return 0
+}

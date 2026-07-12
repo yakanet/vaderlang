@@ -58,7 +58,7 @@ const vader_type_info_t vader_type_info_table[14] = {
     [2] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___asyncstate_4_t), vader_type_2_ptrs, 1, 0, NULL, 0, NULL },
     [4] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Suspended_t), NULL, 0, 0, NULL, 0, NULL },
     [5] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_Box__i32_t), NULL, 0, 0, NULL, 0, NULL },
-    [9] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
+    [10] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
 };
 const size_t vader_type_info_count = 14;
 
@@ -69,14 +69,14 @@ const size_t vader_type_size[14] = {
     [3] = 16u,
     [4] = 16u,
     [5] = 16u,
-    [6] = 16u,
+    [6] = 0u,
     [7] = 16u,
-    [8] = 8u,
-    [9] = 16u,
+    [8] = 16u,
+    [9] = 8u,
     [10] = 16u,
-    [11] = 8u,
-    [12] = 1u,
-    [13] = 0u,
+    [11] = 16u,
+    [12] = 8u,
+    [13] = 1u,
 };
 
 

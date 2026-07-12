@@ -162,11 +162,30 @@
                           return
                             Suspended {
                             }
+  fn snippet$__asyncstate_8$Async$cancel(self: __asyncstate_8) -> void
+    if :void
+      cond:
+        is null :bool
+          .awaited :Async<Any>
+            __self_1 :__asyncstate_8
+      then:
+      else:
+        vcall Async.cancel :void
+          recv:
+            .awaited :Async<Any>
+              __self_1 :__asyncstate_8
+    assign
+      target:
+        .state :i32
+          __self_1 :__asyncstate_8
+      value:
+        int(-1) :i32
   struct snippet$Ready__string { v: string }
   fn snippet$Ready$Async$resume__string(self: Ready<string>) -> string | Suspended
     return
       .v :string
         self :Ready<string>
+  fn snippet$Ready$Async$cancel__string(self: Ready<string>) -> void
   struct snippet$Ready__Any { v: Any }
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

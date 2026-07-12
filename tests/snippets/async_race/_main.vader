@@ -1,0 +1,20 @@
+// `race` completes with the first awaitable to settle and cancels the losers.
+// Two sleepers of different durations race ; the shorter wins. The loser's
+// `defer` cleanup runs when `race` cancels it (4c teardown), while the winner's
+// runs at its own completion. Drives the real cooperative scheduler.
+module "snippet"
+
+import "std/io" { println }
+import "std/async" { sleep, race }
+
+leg :: fn(label: string, ms: i64) -> Async<string> {
+    defer { println("cleanup ${label}") }
+    await sleep(ms)
+    return label
+}
+
+main :: fn() -> i32 {
+    winner :: await race([leg("fast", 10), leg("slow", 100)])
+    println("winner: ${winner}")
+    return 0
+}

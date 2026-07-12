@@ -3,20 +3,20 @@ type 0 primitive null
 type 1 ref Async
 type 2 ref Async
 type 3 primitive i32
-type 4 struct __asyncstate_6 { s0:3,s1:3,s2:6,s3:6,s4:6,s5:11,s6:12,awaited:13,state:3 }
+type 4 struct __asyncstate_6 { s0:3,s1:3,s2:6,s3:6,s4:6,s5:12,s6:13,awaited:14,state:3 }
 type 5 union 6,7
 type 6 primitive string
 type 7 struct std_core$Suspended {  }
 type 8 struct snippet$Ready__i32 { v:3 }
 type 9 union 3,7
-type 10 struct snippet$Ready__string { v:6 }
-type 11 struct std_core$Buffer {  }
-type 12 primitive usize
-type 13 ref Async
-type 14 primitive i64
-type 15 array 16
-type 16 primitive u8
-type 17 primitive void
+type 10 primitive void
+type 11 struct snippet$Ready__string { v:6 }
+type 12 struct std_core$Buffer {  }
+type 13 primitive usize
+type 14 ref Async
+type 15 primitive i64
+type 16 array 17
+type 17 primitive u8
 string 0 "hi"
 string 1 ""
 string 2 "parked?!"
@@ -29,11 +29,11 @@ import 0 bytes std_core$bytes (string) -> ref
 import 1 write std_io$write (i32,string) -> void
 impl 4 Async
 impl 8 Async
-impl 10 Async
-impl 11 ByteAccess
+impl 11 Async
+impl 12 ByteAccess
 vtable Async.resume 4 4
 vtable Async.resume 8 5
-vtable Async.resume 10 6
+vtable Async.resume 11 6
 export main 3
 
 fn 0 snippet$make_num () -> ref
@@ -44,7 +44,7 @@ end
 
 fn 1 snippet$make_str () -> ref
   string.const 0
-  struct.new 10
+  struct.new 11
   return
 end
 
@@ -280,7 +280,7 @@ fn 4 snippet$__asyncstate_6$Async$resume (ref) -> ref
   local.field 0 4 5
   local.set 3
   local.field 0 4 6
-  ref.cast 12
+  ref.cast 13
   local.set 2
   local.field 0 4 4
   ref.cast 6
@@ -296,7 +296,7 @@ fn 4 snippet$__asyncstate_6$Async$resume (ref) -> ref
   local.field 0 4 5
   local.set 3
   local.field 0 4 6
-  ref.cast 12
+  ref.cast 13
   local.set 2
   local.get 3
   local.get 2
@@ -309,7 +309,7 @@ fn 4 snippet$__asyncstate_6$Async$resume (ref) -> ref
   local.field 0 4 5
   local.set 3
   local.field 0 4 6
-  ref.cast 12
+  ref.cast 13
   local.set 2
   local.field 0 4 1
   ref.cast 3
@@ -326,7 +326,7 @@ fn 4 snippet$__asyncstate_6$Async$resume (ref) -> ref
   local.field 0 4 5
   local.set 3
   local.field 0 4 6
-  ref.cast 12
+  ref.cast 13
   local.set 2
   local.get 3
   local.get 2
@@ -343,7 +343,7 @@ fn 5 snippet$Ready$Async$resume__i32 (ref) -> ref
 end
 
 fn 6 snippet$Ready$Async$resume__string (ref) -> ref
-  local.field 0 10 0
+  local.field 0 11 0
   ref.cast 6
   box 6
   return

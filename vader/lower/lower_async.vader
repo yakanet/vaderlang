@@ -29,7 +29,7 @@ module "vader/lower"
 import "vader/parser" { FnDecl, Visibility }
 import "vader/types" {
     Type, mk_struct, mk_primitive, mk_trait, TY_VOID, TY_BOOL, TY_ANY, TRAIT_ASYNC, METHOD_RESUME,
-    STRUCT_SUSPENDED,
+    METHOD_CANCEL, STRUCT_SUSPENDED,
 }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck" { fn_is_async, async_result_arg }
@@ -39,32 +39,46 @@ import "std/abort" { panic }
 
 // ---- state-struct synthesis + entry ---------------------------------------
 
-// Synthesize + register the `__asyncstate` struct and its `$Async$resume` fn.
-// The `$${TRAIT_ASYNC}$${METHOD_RESUME}` mangle suffix + `self: __asyncstate`
-// param[0] are what `collect_vtable_entries` keys on to wire the vtable —
-// single-sourced here for the resume fn + state struct.
-push_async_decls :: fn(
-    fn_ctx: FnLowerCtx, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
-    resume_ty: Type, resume_body: LoweredBlock, state_fields: LoweredStructField[],
-) -> void {
-    module_seg :: mangle_module_id(fn_ctx.typed.resolved.display_path)
-    resume_mangled :: "${module_seg}$${state_sym.name}$${TRAIT_ASYNC}$${METHOD_RESUME}"
-    resume_sym :: Symbol {
-        .id = next_synthetic_id(fn_ctx), .kind = SymbolKind.Fn, .name = resume_mangled,
+// Build one `$Async$<method>` vtable member of the state struct : the mangle +
+// synthetic `Symbol` + `LoweredFnDecl` with `self: state_ty` as param[0] — the
+// shape `collect_vtable_entries` keys on. Shared by `resume` and `cancel`, which
+// differ only in method name, return type, and body (both take the same
+// `self_sym` — each references it only inside its own body, so the shared symbol
+// resolves to each fn's own param slot).
+mk_async_method_decl :: fn(
+    fn_ctx: FnLowerCtx, module_seg: string, state_sym: Symbol, self_sym: Symbol,
+    state_ty: Type, method: string, return_ty: Type, body: LoweredBlock,
+) -> LoweredFnDecl {
+    mangled :: "${module_seg}$${state_sym.name}$${TRAIT_ASYNC}$${method}"
+    sym :: Symbol {
+        .id = next_synthetic_id(fn_ctx), .kind = SymbolKind.Fn, .name = mangled,
         .module = fn_ctx.typed.resolved.path, .visibility = Visibility.Private, .defined_at = null,
     }
-    resume_decl :: LoweredFnDecl {
-        .mangled = resume_mangled,
+    return LoweredFnDecl {
+        .mangled = mangled,
         .params = [LoweredParam { .name = "self", .symbol = self_sym, .type = state_ty }],
-        .return_type = resume_ty, .body = resume_body,
-        .origin = synth_mono_entry(fn_ctx, resume_sym),
+        .return_type = return_ty, .body = body,
+        .origin = synth_mono_entry(fn_ctx, sym),
     }
+}
+
+// Synthesize + register the `__asyncstate` struct and its `$Async$resume` +
+// `$Async$cancel` fns into `project.synth_decls`.
+push_async_decls :: fn(
+    fn_ctx: FnLowerCtx, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
+    resume_ty: Type, resume_body: LoweredBlock, cancel_body: LoweredBlock,
+    state_fields: LoweredStructField[],
+) -> void {
+    module_seg :: mangle_module_id(fn_ctx.typed.resolved.display_path)
+    resume_decl :: mk_async_method_decl(fn_ctx, module_seg, state_sym, self_sym, state_ty, METHOD_RESUME, resume_ty, resume_body)
+    cancel_decl :: mk_async_method_decl(fn_ctx, module_seg, state_sym, self_sym, state_ty, METHOD_CANCEL, TY_VOID, cancel_body)
     state_decl :: LoweredStructDecl {
         .mangled = state_sym.name, .fields = state_fields,
         .origin = synth_mono_entry(fn_ctx, state_sym),
     }
     fn_ctx.project.synth_decls.push(state_decl)
     fn_ctx.project.synth_decls.push(resume_decl)
+    fn_ctx.project.synth_decls.push(cancel_decl)
 }
 
 // Fold a fn-root block's trailing expression into a terminating statement, so
@@ -170,7 +184,7 @@ export lower_async_fn :: fn(
     }
     state_fields.push(LoweredStructField { .name = "awaited", .type = async_any_ty })
     state_fields.push(LoweredStructField { .name = "state", .type = i32_ty })
-    push_async_decls(fn_ctx, state_sym, self_sym, state_ty, resume_ty, gb_next_body(gb), state_fields)
+    push_async_decls(fn_ctx, state_sym, self_sym, state_ty, resume_ty, gb_next_body(gb), gb_cancel_body(gb), state_fields)
 
     // Rewrite `f`'s body: `return __asyncstate { <all fields>, .awaited = null,
     // .state = entry }`. Param fields carry the incoming args (a captured param is
