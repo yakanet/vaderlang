@@ -1,0 +1,31 @@
+# Typecheck
+
+## tests/snippets/async_timeout
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         work                 :: fn() -> Async<string>
+  expr 11:13    CallExpr       :: void
+  expr 11:13    IdentExpr      :: fn(T) -> void
+  expr 11:21    StringLitExpr  :: string
+  expr 12:11    CallExpr       :: Async<null>
+  expr 12:11    IdentExpr      :: fn(i64) -> Async<null>
+  expr 12:5     AwaitExpr      :: null
+  expr 13:12    StringLitExpr  :: string
+  expr 17:10    AwaitExpr      :: string | TimeoutError
+  expr 17:16    CallExpr       :: Async<string | TimeoutError>
+  expr 17:16    IdentExpr      :: fn(i64, Async<T>) -> Async<T | TimeoutError>
+  expr 17:28    CallExpr       :: Async<string>
+  expr 17:28    IdentExpr      :: fn() -> Async<string>
+  expr 18:13    IdentExpr      :: Error
+  expr 18:5     IfExpr         :: void
+  expr 18:8     BinaryExpr     :: bool
+  expr 18:8     IdentExpr      :: string | TimeoutError
+  expr 19:17    StringLitExpr  :: string
+  expr 19:31    CallExpr       :: string
+  expr 19:31    FieldExpr      :: fn() -> string
+  expr 19:31    IdentExpr      :: Error
+  expr 19:9     CallExpr       :: void
+  expr 19:9     IdentExpr      :: fn(T) -> void
+  expr 21:17    StringLitExpr  :: string
+  expr 21:25    IdentExpr      :: string
+  expr 21:9     CallExpr       :: void
+  expr 21:9     IdentExpr      :: fn(T) -> void

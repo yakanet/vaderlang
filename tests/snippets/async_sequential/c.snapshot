@@ -83,16 +83,16 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_type_4_ptrs[] = { offsetof(vader_struct___asyncstate_6_t, f_s5), offsetof(vader_struct___asyncstate_6_t, f_awaited) };
 static const uint16_t vader_type_4_strs[] = { offsetof(vader_struct___asyncstate_6_t, f_s2), offsetof(vader_struct___asyncstate_6_t, f_s3), offsetof(vader_struct___asyncstate_6_t, f_s4) };
-static const uint16_t vader_type_10_strs[] = { offsetof(vader_struct_snippet_Ready__string_t, f_v) };
-static const uint16_t vader_type_15_ptrs[] = { offsetof(vader_array_t, buf) };
+static const uint16_t vader_type_11_strs[] = { offsetof(vader_struct_snippet_Ready__string_t, f_v) };
+static const uint16_t vader_type_16_ptrs[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[18] = {
     [4] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___asyncstate_6_t), vader_type_4_ptrs, 2, 3, vader_type_4_strs, 0, NULL },
     [7] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Suspended_t), NULL, 0, 0, NULL, 0, NULL },
     [8] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_Ready__i32_t), NULL, 0, 0, NULL, 0, NULL },
-    [10] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_Ready__string_t), NULL, 0, 1, vader_type_10_strs, 0, NULL },
-    [11] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
-    [15] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_15_ptrs, 1, 0, NULL, 0, NULL },
+    [11] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_Ready__string_t), NULL, 0, 1, vader_type_11_strs, 0, NULL },
+    [12] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
+    [16] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_16_ptrs, 1, 0, NULL, 0, NULL },
 };
 const size_t vader_type_info_count = 18;
 
@@ -107,14 +107,14 @@ const size_t vader_type_size[18] = {
     [7] = 16u,
     [8] = 16u,
     [9] = 16u,
-    [10] = 16u,
+    [10] = 0u,
     [11] = 16u,
-    [12] = 8u,
-    [13] = 16u,
-    [14] = 8u,
-    [15] = 16u,
-    [16] = 1u,
-    [17] = 0u,
+    [12] = 16u,
+    [13] = 8u,
+    [14] = 16u,
+    [15] = 8u,
+    [16] = 16u,
+    [17] = 1u,
 };
 
 
@@ -131,17 +131,17 @@ static const vader_vtable_t vt_4 = { .slots = {
 static const vader_vtable_t vt_8 = { .slots = {
     [8] = (void*)snippet_Ready_Async_resume__i32, /* Async.resume */
 }};
-static const vader_vtable_t vt_10 = { .slots = {
+static const vader_vtable_t vt_11 = { .slots = {
     [8] = (void*)snippet_Ready_Async_resume__string, /* Async.resume */
 }};
 
-const vader_vtable_t* const vader_vtable_table[11] = {
+const vader_vtable_t* const vader_vtable_table[12] = {
     [4] = &vt_4,
     [8] = &vt_8,
-    [10] = &vt_10,
+    [11] = &vt_11,
 };
-const size_t vader_vtable_count = 11;
-static vader_box_t vader_import_0(vader_string_t a0) { return vader_box_obj(15u, vader_string_bytes_view(a0, 15u, 16u)); }
+const size_t vader_vtable_count = 12;
+static vader_box_t vader_import_0(vader_string_t a0) { return vader_box_obj(16u, vader_string_bytes_view(a0, 16u, 17u)); }
 static void vader_import_1(int32_t a0, vader_string_t a1) { vader_write(a0, a1); }
 
 
@@ -168,9 +168,9 @@ static vader_box_t snippet_make_str(void) {
     vader_gc_top = &gc_frame;
 #line 14 "tests/snippets/async_sequential/_main.vader"
     vader_struct_snippet_Ready__string_t* _a0_obj = (vader_struct_snippet_Ready__string_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Ready__string_t));
-    vader_obj_header_init(_a0_obj, 10u);
+    vader_obj_header_init(_a0_obj, 11u);
     _a0_obj->f_v = 1u;
-    t0 = vader_box_obj(10u, _a0_obj);
+    t0 = vader_box_obj(11u, _a0_obj);
     { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
@@ -658,7 +658,7 @@ static vader_box_t vader_vt_Async__resume(vader_box_t recv) {
     switch (recv.tag) {
         case 4u: return snippet___asyncstate_6_Async_resume(recv);
         case 8u: return snippet_Ready_Async_resume__i32(recv);
-        case 10u: return snippet_Ready_Async_resume__string(recv);
+        case 11u: return snippet_Ready_Async_resume__string(recv);
         default: vader_unreachable("vtable miss in Async.resume");
     }
     vader_unreachable("vtable miss in Async.resume");

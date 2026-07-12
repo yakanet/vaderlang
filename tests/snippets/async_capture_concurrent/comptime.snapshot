@@ -11,6 +11,15 @@
   TryAll<U, E>
   TryAll<U, E>
   TryAll<U, E>
+  Race<T>
+  Race<T>
+  Race<T>
+  Any<U, E>
+  Any<U, E>
+  Any<U, E>
+  Timeout<T>
+  Timeout<T>
+  Timeout<T>
   Entry<i32, i32>
   Entry<K, V>
   Entry<K, V>
@@ -48,6 +57,7 @@
   MutableMap<T, bool>
   MutableMap<K, V>
   MutableSet<i32>
+  MutableSet<usize>
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
@@ -76,8 +86,15 @@
   Async<T[]>
   Async<(E | U)[] | Error>
   Async<E | U>
+  Async<E | U>
+  Async<E | U>
+  Async<T | TimeoutError>
   Async<i32>
   Async<null>
+  Async<T>
+  Async<T>
+  Async<T>
+  Async<T>
   Async<T>
   Async<T>
   Async<T>

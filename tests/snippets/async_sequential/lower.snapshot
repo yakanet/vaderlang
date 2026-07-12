@@ -389,16 +389,36 @@
                                       return
                                         Suspended {
                                         }
+  fn snippet$__asyncstate_6$Async$cancel(self: __asyncstate_6) -> void
+    if :void
+      cond:
+        is null :bool
+          .awaited :Async<Any>
+            __self_5 :__asyncstate_6
+      then:
+      else:
+        vcall Async.cancel :void
+          recv:
+            .awaited :Async<Any>
+              __self_5 :__asyncstate_6
+    assign
+      target:
+        .state :i32
+          __self_5 :__asyncstate_6
+      value:
+        int(-1) :i32
   struct snippet$Ready__i32 { v: i32 }
   fn snippet$Ready$Async$resume__i32(self: Ready<i32>) -> i32 | Suspended
     return
       .v :i32
         self :Ready<i32>
+  fn snippet$Ready$Async$cancel__i32(self: Ready<i32>) -> void
   struct snippet$Ready__string { v: string }
   fn snippet$Ready$Async$resume__string(self: Ready<string>) -> string | Suspended
     return
       .v :string
         self :Ready<string>
+  fn snippet$Ready$Async$cancel__string(self: Ready<string>) -> void
   struct snippet$Ready__Any { v: Any }
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

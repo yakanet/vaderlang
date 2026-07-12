@@ -3,18 +3,18 @@ type 0 primitive null
 type 1 ref Async
 type 2 primitive bool
 type 3 primitive i32
-type 4 struct __asyncstate_2 { s0:2,s1:3,s2:3,awaited:8,state:3 }
+type 4 struct __asyncstate_2 { s0:2,s1:3,s2:3,awaited:9,state:3 }
 type 5 union 3,6
 type 6 struct std_core$Suspended {  }
 type 7 struct snippet$Ready__i32 { v:3 }
-type 8 ref Async
-type 9 primitive usize
-type 10 struct std_core$Buffer {  }
-type 11 primitive string
-type 12 primitive i64
-type 13 array 14
-type 14 primitive u8
-type 15 primitive void
+type 8 primitive void
+type 9 ref Async
+type 10 primitive usize
+type 11 struct std_core$Buffer {  }
+type 12 primitive string
+type 13 primitive i64
+type 14 array 15
+type 15 primitive u8
 string 0 "true -> "
 string 1 "false -> "
 string 2 "\n"
@@ -22,7 +22,7 @@ import 0 bytes std_core$bytes (string) -> ref
 import 1 write std_io$write (i32,string) -> void
 impl 4 Async
 impl 7 Async
-impl 10 ByteAccess
+impl 11 ByteAccess
 vtable Async.resume 4 4
 vtable Async.resume 7 5
 export main 3

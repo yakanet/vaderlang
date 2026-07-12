@@ -1,0 +1,36 @@
+// `any` completes with the first SUCCESS, cancelling the losers — a settled error
+// is NOT a win. Here the first child fails fast and the second succeeds slower,
+// so `any` waits past the failure for the success. (If every child failed, it
+// would complete with the last error instead.)
+module "snippet"
+
+import "std/io" { println }
+import "std/async" { sleep, any }
+
+Boom :: struct {}
+Boom implements Error {
+    message :: fn(self) -> string = "boom"
+}
+
+fail_fast :: fn() -> Async<string | Boom> {
+    await sleep(10)
+    return Boom {}
+}
+
+win_slow :: fn() -> Async<string | Boom> {
+    defer { println("winner cleanup") }
+    await sleep(50)
+    return "ok"
+}
+
+main :: fn() -> i32 {
+    // Explicit type args : `U | E` can't be inferred from the union (which side
+    // is which is ambiguous), same as `try_all`.
+    r :: await any<string, Boom>([fail_fast(), win_slow()])
+    if r is Error as e {
+        println("all failed: ${e.message()}")
+    } else {
+        println("first success: ${r}")
+    }
+    return 0
+}

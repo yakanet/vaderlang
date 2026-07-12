@@ -70,15 +70,15 @@ static void std_core_Buffer_ByteAccess_write_string_vt(vader_box_t l0, size_t l1
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
-static const uint16_t vader_type_7_ptrs[] = { offsetof(vader_struct___asyncstate_2_t, f_s0), offsetof(vader_struct___asyncstate_2_t, f_awaited) };
-static const uint16_t vader_type_12_ptrs[] = { offsetof(vader_array_t, buf) };
+static const uint16_t vader_type_8_ptrs[] = { offsetof(vader_struct___asyncstate_2_t, f_s0), offsetof(vader_struct___asyncstate_2_t, f_awaited) };
+static const uint16_t vader_type_13_ptrs[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[15] = {
     [1] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_CountDown_t), NULL, 0, 0, NULL, 0, NULL },
     [4] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Suspended_t), NULL, 0, 0, NULL, 0, NULL },
-    [7] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___asyncstate_2_t), vader_type_7_ptrs, 2, 0, NULL, 0, NULL },
-    [10] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
-    [12] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_12_ptrs, 1, 0, NULL, 0, NULL },
+    [8] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___asyncstate_2_t), vader_type_8_ptrs, 2, 0, NULL, 0, NULL },
+    [11] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
+    [13] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_13_ptrs, 1, 0, NULL, 0, NULL },
 };
 const size_t vader_type_info_count = 15;
 
@@ -88,16 +88,16 @@ const size_t vader_type_size[15] = {
     [2] = 16u,
     [3] = 4u,
     [4] = 16u,
-    [5] = 16u,
+    [5] = 0u,
     [6] = 16u,
     [7] = 16u,
     [8] = 16u,
-    [9] = 8u,
-    [10] = 16u,
-    [11] = 8u,
-    [12] = 16u,
-    [13] = 1u,
-    [14] = 0u,
+    [9] = 16u,
+    [10] = 8u,
+    [11] = 16u,
+    [12] = 8u,
+    [13] = 16u,
+    [14] = 1u,
 };
 
 
@@ -111,16 +111,16 @@ const size_t vader_type_size[15] = {
 static const vader_vtable_t vt_1 = { .slots = {
     [8] = (void*)snippet_CountDown_Async_resume, /* Async.resume */
 }};
-static const vader_vtable_t vt_7 = { .slots = {
+static const vader_vtable_t vt_8 = { .slots = {
     [8] = (void*)snippet___asyncstate_2_Async_resume, /* Async.resume */
 }};
 
-const vader_vtable_t* const vader_vtable_table[8] = {
+const vader_vtable_t* const vader_vtable_table[9] = {
     [1] = &vt_1,
-    [7] = &vt_7,
+    [8] = &vt_8,
 };
-const size_t vader_vtable_count = 8;
-static vader_box_t vader_import_0(vader_string_t a0) { return vader_box_obj(12u, vader_string_bytes_view(a0, 12u, 13u)); }
+const size_t vader_vtable_count = 9;
+static vader_box_t vader_import_0(vader_string_t a0) { return vader_box_obj(13u, vader_string_bytes_view(a0, 13u, 14u)); }
 static void vader_import_1(int32_t a0, vader_string_t a1) { vader_write(a0, a1); }
 
 
@@ -164,13 +164,13 @@ static vader_box_t snippet_waiter(void) {
     l0 = vader_box_obj(0u, NULL);
     l1 = vader_box_obj(0u, NULL);
     vader_struct___asyncstate_2_t* _a0_obj = (vader_struct___asyncstate_2_t*) vader_gc_alloc(sizeof(vader_struct___asyncstate_2_t));
-    vader_obj_header_init(_a0_obj, 7u);
+    vader_obj_header_init(_a0_obj, 8u);
     _a0_obj->f_s0 = l0;
     _a0_obj->f_s1 = INT32_C(0);
     _a0_obj->f_s2 = INT32_C(0);
     _a0_obj->f_awaited = l1;
     _a0_obj->f_state = INT32_C(5);
-    t0 = vader_box_obj(7u, _a0_obj);
+    t0 = vader_box_obj(8u, _a0_obj);
     { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
@@ -548,7 +548,7 @@ static void std_core_Buffer_ByteAccess_write_string_vt(vader_box_t l0, size_t l1
 static vader_box_t vader_vt_Async__resume(vader_box_t recv) {
     switch (recv.tag) {
         case 1u: return snippet_CountDown_Async_resume(recv);
-        case 7u: return snippet___asyncstate_2_Async_resume(recv);
+        case 8u: return snippet___asyncstate_2_Async_resume(recv);
         default: vader_unreachable("vtable miss in Async.resume");
     }
     vader_unreachable("vtable miss in Async.resume");

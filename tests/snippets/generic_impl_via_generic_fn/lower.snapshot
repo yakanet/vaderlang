@@ -184,10 +184,29 @@
                           return
                             Suspended {
                             }
+  fn snippet$__asyncstate_4$Async$cancel(self: __asyncstate_4) -> void
+    if :void
+      cond:
+        is null :bool
+          .awaited :Async<Any>
+            __self_3 :__asyncstate_4
+      then:
+      else:
+        vcall Async.cancel :void
+          recv:
+            .awaited :Async<Any>
+              __self_3 :__asyncstate_4
+    assign
+      target:
+        .state :i32
+          __self_3 :__asyncstate_4
+      value:
+        int(-1) :i32
   fn snippet$Box$Async$resume__i32(self: Box<i32>) -> i32 | Suspended
     return
       .v :i32
         self :Box<i32>
+  fn snippet$Box$Async$cancel__i32(self: Box<i32>) -> void
   fn snippet$viagen__i32(x: i32) -> Async<i32>
     ~>
       Box<i32> {

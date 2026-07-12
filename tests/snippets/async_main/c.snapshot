@@ -60,14 +60,14 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_type_3_ptrs[] = { offsetof(vader_struct___asyncstate_8_t, f_awaited) };
 static const uint16_t vader_type_3_strs[] = { offsetof(vader_struct___asyncstate_8_t, f_s0), offsetof(vader_struct___asyncstate_8_t, f_s1) };
 static const uint16_t vader_type_6_strs[] = { offsetof(vader_struct_snippet_Ready__string_t, f_v) };
-static const uint16_t vader_type_12_ptrs[] = { offsetof(vader_array_t, buf) };
+static const uint16_t vader_type_13_ptrs[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[15] = {
     [3] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___asyncstate_8_t), vader_type_3_ptrs, 1, 2, vader_type_3_strs, 0, NULL },
     [5] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Suspended_t), NULL, 0, 0, NULL, 0, NULL },
     [6] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_Ready__string_t), NULL, 0, 1, vader_type_6_strs, 0, NULL },
-    [11] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
-    [12] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_12_ptrs, 1, 0, NULL, 0, NULL },
+    [12] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
+    [13] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_13_ptrs, 1, 0, NULL, 0, NULL },
 };
 const size_t vader_type_info_count = 15;
 
@@ -81,12 +81,12 @@ const size_t vader_type_size[15] = {
     [6] = 16u,
     [7] = 16u,
     [8] = 16u,
-    [9] = 16u,
-    [10] = 8u,
-    [11] = 16u,
+    [9] = 0u,
+    [10] = 16u,
+    [11] = 8u,
     [12] = 16u,
-    [13] = 1u,
-    [14] = 0u,
+    [13] = 16u,
+    [14] = 1u,
 };
 
 
@@ -109,7 +109,7 @@ const vader_vtable_t* const vader_vtable_table[7] = {
     [6] = &vt_6,
 };
 const size_t vader_vtable_count = 7;
-static vader_box_t vader_import_0(vader_string_t a0) { return vader_box_obj(12u, vader_string_bytes_view(a0, 12u, 13u)); }
+static vader_box_t vader_import_0(vader_string_t a0) { return vader_box_obj(13u, vader_string_bytes_view(a0, 13u, 14u)); }
 static void vader_import_1(int32_t a0, vader_string_t a1) { vader_write(a0, a1); }
 
 

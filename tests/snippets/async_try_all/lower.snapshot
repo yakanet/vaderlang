@@ -29,7 +29,7 @@
           run_async_main :i32
         arg0:
           cast → Async<i32>
-            __asyncstate_19 {
+            __asyncstate_20 {
               s0: null
               s1: null
               s2: null
@@ -239,22 +239,40 @@
                                       return
                                         Suspended {
                                         }
-  struct __asyncstate_19 { s0: (i32 | Outage)[] | Error, s1: (i32 | Outage)[] | Error, s2: Error, s3: (i32 | Outage)[] | Error, s4: (i32 | Outage)[] | Error, s5: Error, s6: (i32 | Outage)[], s7: usize, s8: usize, s9: i32 | Outage, awaited: Async<Any>, state: i32 }
-  fn snippet$__asyncstate_19$Async$resume(self: __asyncstate_19) -> i32 | Suspended
+  fn snippet$__asyncstate_8$Async$cancel(self: __asyncstate_8) -> void
+    if :void
+      cond:
+        is null :bool
+          .awaited :Async<Any>
+            __self_1 :__asyncstate_8
+      then:
+      else:
+        vcall Async.cancel :void
+          recv:
+            .awaited :Async<Any>
+              __self_1 :__asyncstate_8
+    assign
+      target:
+        .state :i32
+          __self_1 :__asyncstate_8
+      value:
+        int(-1) :i32
+  struct __asyncstate_20 { s0: (i32 | Outage)[] | Error, s1: (i32 | Outage)[] | Error, s2: Error, s3: (i32 | Outage)[] | Error, s4: (i32 | Outage)[] | Error, s5: Error, s6: (i32 | Outage)[], s7: usize, s8: usize, s9: i32 | Outage, awaited: Async<Any>, state: i32 }
+  fn snippet$__asyncstate_20$Async$resume(self: __asyncstate_20) -> i32 | Suspended
     loop
       if :void
         cond:
           eq :bool
             l:
               .state :i32
-                __self_7 :__asyncstate_19
+                __self_7 :__asyncstate_20
             r:
               int(0) :i32
         then:
           assign
             target:
               .state :i32
-                __self_7 :__asyncstate_19
+                __self_7 :__asyncstate_20
             value:
               int(-1) :i32
         else:
@@ -263,14 +281,14 @@
               eq :bool
                 l:
                   .state :i32
-                    __self_7 :__asyncstate_19
+                    __self_7 :__asyncstate_20
                 r:
                   int(1) :i32
             then:
               assign
                 target:
                   .state :i32
-                    __self_7 :__asyncstate_19
+                    __self_7 :__asyncstate_20
                 value:
                   int(-1) :i32
               return int(0) :i32
@@ -280,18 +298,18 @@
                   eq :bool
                     l:
                       .state :i32
-                        __self_7 :__asyncstate_19
+                        __self_7 :__asyncstate_20
                     r:
                       int(2) :i32
                 then:
                   assign
                     target:
                       .s5 :Error
-                        __self_7 :__asyncstate_19
+                        __self_7 :__asyncstate_20
                     value:
                       cast → Error
                         .s4 :(i32 | Outage)[] | Error
-                          __self_7 :__asyncstate_19
+                          __self_7 :__asyncstate_20
                   call :void
                     callee:
                       std_io$println__string :void
@@ -305,11 +323,11 @@
                           vcall Error.message :string
                             recv:
                               .s5 :Error
-                                __self_7 :__asyncstate_19
+                                __self_7 :__asyncstate_20
                   assign
                     target:
                       .state :i32
-                        __self_7 :__asyncstate_19
+                        __self_7 :__asyncstate_20
                     value:
                       int(1) :i32
                 else:
@@ -318,14 +336,14 @@
                       eq :bool
                         l:
                           .state :i32
-                            __self_7 :__asyncstate_19
+                            __self_7 :__asyncstate_20
                         r:
                           int(3) :i32
                     then:
                       assign
                         target:
                           .state :i32
-                            __self_7 :__asyncstate_19
+                            __self_7 :__asyncstate_20
                         value:
                           int(1) :i32
                     else:
@@ -334,14 +352,14 @@
                           eq :bool
                             l:
                               .state :i32
-                                __self_7 :__asyncstate_19
+                                __self_7 :__asyncstate_20
                             r:
                               int(4) :i32
                         then:
                           assign
                             target:
                               .state :i32
-                                __self_7 :__asyncstate_19
+                                __self_7 :__asyncstate_20
                             value:
                               int(3) :i32
                         else:
@@ -350,7 +368,7 @@
                               eq :bool
                                 l:
                                   .state :i32
-                                    __self_7 :__asyncstate_19
+                                    __self_7 :__asyncstate_20
                                 r:
                                   int(5) :i32
                             then:
@@ -359,22 +377,22 @@
                                   lt :bool
                                     l:
                                       .s8 :usize
-                                        __self_7 :__asyncstate_19
+                                        __self_7 :__asyncstate_20
                                     r:
                                       .s7 :usize
-                                        __self_7 :__asyncstate_19
+                                        __self_7 :__asyncstate_20
                                 then:
                                   assign
                                     target:
                                       .state :i32
-                                        __self_7 :__asyncstate_19
+                                        __self_7 :__asyncstate_20
                                     value:
                                       int(10) :i32
                                 else:
                                   assign
                                     target:
                                       .state :i32
-                                        __self_7 :__asyncstate_19
+                                        __self_7 :__asyncstate_20
                                     value:
                                       int(4) :i32
                             else:
@@ -383,25 +401,25 @@
                                   eq :bool
                                     l:
                                       .state :i32
-                                        __self_7 :__asyncstate_19
+                                        __self_7 :__asyncstate_20
                                     r:
                                       int(6) :i32
                                 then:
                                   assign
                                     target:
                                       .s8 :usize
-                                        __self_7 :__asyncstate_19
+                                        __self_7 :__asyncstate_20
                                     value:
                                       add :usize
                                         l:
                                           .s8 :usize
-                                            __self_7 :__asyncstate_19
+                                            __self_7 :__asyncstate_20
                                         r:
                                           int(1) :usize
                                   assign
                                     target:
                                       .state :i32
-                                        __self_7 :__asyncstate_19
+                                        __self_7 :__asyncstate_20
                                     value:
                                       int(5) :i32
                                 else:
@@ -410,7 +428,7 @@
                                       eq :bool
                                         l:
                                           .state :i32
-                                            __self_7 :__asyncstate_19
+                                            __self_7 :__asyncstate_20
                                         r:
                                           int(7) :i32
                                     then:
@@ -422,7 +440,7 @@
                                       assign
                                         target:
                                           .state :i32
-                                            __self_7 :__asyncstate_19
+                                            __self_7 :__asyncstate_20
                                         value:
                                           int(6) :i32
                                     else:
@@ -431,7 +449,7 @@
                                           eq :bool
                                             l:
                                               .state :i32
-                                                __self_7 :__asyncstate_19
+                                                __self_7 :__asyncstate_20
                                             r:
                                               int(8) :i32
                                         then:
@@ -475,7 +493,7 @@
                                                         cast → i64
                                                           cast → i32
                                                             .s9 :i32 | Outage
-                                                              __self_7 :__asyncstate_19
+                                                              __self_7 :__asyncstate_20
                                                 ~>
                                                   call :string
                                                     callee:
@@ -487,7 +505,7 @@
                                           assign
                                             target:
                                               .state :i32
-                                                __self_7 :__asyncstate_19
+                                                __self_7 :__asyncstate_20
                                             value:
                                               int(6) :i32
                                         else:
@@ -496,7 +514,7 @@
                                               eq :bool
                                                 l:
                                                   .state :i32
-                                                    __self_7 :__asyncstate_19
+                                                    __self_7 :__asyncstate_20
                                                 r:
                                                   int(9) :i32
                                             then:
@@ -504,19 +522,19 @@
                                                 cond:
                                                   is Outage :bool
                                                     .s9 :i32 | Outage
-                                                      __self_7 :__asyncstate_19
+                                                      __self_7 :__asyncstate_20
                                                 then:
                                                   assign
                                                     target:
                                                       .state :i32
-                                                        __self_7 :__asyncstate_19
+                                                        __self_7 :__asyncstate_20
                                                     value:
                                                       int(7) :i32
                                                 else:
                                                   assign
                                                     target:
                                                       .state :i32
-                                                        __self_7 :__asyncstate_19
+                                                        __self_7 :__asyncstate_20
                                                     value:
                                                       int(8) :i32
                                             else:
@@ -525,26 +543,26 @@
                                                   eq :bool
                                                     l:
                                                       .state :i32
-                                                        __self_7 :__asyncstate_19
+                                                        __self_7 :__asyncstate_20
                                                     r:
                                                       int(10) :i32
                                                 then:
                                                   assign
                                                     target:
                                                       .s9 :i32 | Outage
-                                                        __self_7 :__asyncstate_19
+                                                        __self_7 :__asyncstate_20
                                                     value:
                                                       index :i32 | Outage
                                                         on:
                                                           .s6 :(i32 | Outage)[]
-                                                            __self_7 :__asyncstate_19
+                                                            __self_7 :__asyncstate_20
                                                         ix:
                                                           .s8 :usize
-                                                            __self_7 :__asyncstate_19
+                                                            __self_7 :__asyncstate_20
                                                   assign
                                                     target:
                                                       .state :i32
-                                                        __self_7 :__asyncstate_19
+                                                        __self_7 :__asyncstate_20
                                                     value:
                                                       int(9) :i32
                                                 else:
@@ -553,34 +571,34 @@
                                                       eq :bool
                                                         l:
                                                           .state :i32
-                                                            __self_7 :__asyncstate_19
+                                                            __self_7 :__asyncstate_20
                                                         r:
                                                           int(11) :i32
                                                     then:
                                                       assign
                                                         target:
                                                           .s6 :(i32 | Outage)[]
-                                                            __self_7 :__asyncstate_19
+                                                            __self_7 :__asyncstate_20
                                                         value:
                                                           cast → (i32 | Outage)[]
                                                             .s4 :(i32 | Outage)[] | Error
-                                                              __self_7 :__asyncstate_19
+                                                              __self_7 :__asyncstate_20
                                                       assign
                                                         target:
                                                           .s7 :usize
-                                                            __self_7 :__asyncstate_19
+                                                            __self_7 :__asyncstate_20
                                                         value:
                                                           LoweredArrayLen
                                                       assign
                                                         target:
                                                           .s8 :usize
-                                                            __self_7 :__asyncstate_19
+                                                            __self_7 :__asyncstate_20
                                                         value:
                                                           int(0) :usize
                                                       assign
                                                         target:
                                                           .state :i32
-                                                            __self_7 :__asyncstate_19
+                                                            __self_7 :__asyncstate_20
                                                         value:
                                                           int(5) :i32
                                                     else:
@@ -589,7 +607,7 @@
                                                           eq :bool
                                                             l:
                                                               .state :i32
-                                                                __self_7 :__asyncstate_19
+                                                                __self_7 :__asyncstate_20
                                                             r:
                                                               int(12) :i32
                                                         then:
@@ -597,19 +615,19 @@
                                                             cond:
                                                               is Error :bool
                                                                 .s4 :(i32 | Outage)[] | Error
-                                                                  __self_7 :__asyncstate_19
+                                                                  __self_7 :__asyncstate_20
                                                             then:
                                                               assign
                                                                 target:
                                                                   .state :i32
-                                                                    __self_7 :__asyncstate_19
+                                                                    __self_7 :__asyncstate_20
                                                                 value:
                                                                   int(2) :i32
                                                             else:
                                                               assign
                                                                 target:
                                                                   .state :i32
-                                                                    __self_7 :__asyncstate_19
+                                                                    __self_7 :__asyncstate_20
                                                                 value:
                                                                   int(11) :i32
                                                         else:
@@ -618,21 +636,21 @@
                                                               eq :bool
                                                                 l:
                                                                   .state :i32
-                                                                    __self_7 :__asyncstate_19
+                                                                    __self_7 :__asyncstate_20
                                                                 r:
                                                                   int(13) :i32
                                                             then:
                                                               assign
                                                                 target:
                                                                   .s4 :(i32 | Outage)[] | Error
-                                                                    __self_7 :__asyncstate_19
+                                                                    __self_7 :__asyncstate_20
                                                                 value:
                                                                   .s3 :(i32 | Outage)[] | Error
-                                                                    __self_7 :__asyncstate_19
+                                                                    __self_7 :__asyncstate_20
                                                               assign
                                                                 target:
                                                                   .state :i32
-                                                                    __self_7 :__asyncstate_19
+                                                                    __self_7 :__asyncstate_20
                                                                 value:
                                                                   int(12) :i32
                                                             else:
@@ -641,7 +659,7 @@
                                                                   eq :bool
                                                                     l:
                                                                       .state :i32
-                                                                        __self_7 :__asyncstate_19
+                                                                        __self_7 :__asyncstate_20
                                                                     r:
                                                                       int(14) :i32
                                                                 then:
@@ -649,7 +667,7 @@
                                                                     vcall Async.resume :Any | Suspended
                                                                       recv:
                                                                         .awaited :Async<Any>
-                                                                          __self_7 :__asyncstate_19
+                                                                          __self_7 :__asyncstate_20
                                                                   if :void
                                                                     cond:
                                                                       is Suspended :bool
@@ -662,14 +680,14 @@
                                                                       assign
                                                                         target:
                                                                           .s3 :(i32 | Outage)[] | Error
-                                                                            __self_7 :__asyncstate_19
+                                                                            __self_7 :__asyncstate_20
                                                                         value:
                                                                           cast → (i32 | Outage)[] | Error
                                                                             __resumed_8 :Any | Suspended
                                                                       assign
                                                                         target:
                                                                           .state :i32
-                                                                            __self_7 :__asyncstate_19
+                                                                            __self_7 :__asyncstate_20
                                                                         value:
                                                                           int(13) :i32
                                                                 else:
@@ -678,14 +696,14 @@
                                                                       eq :bool
                                                                         l:
                                                                           .state :i32
-                                                                            __self_7 :__asyncstate_19
+                                                                            __self_7 :__asyncstate_20
                                                                         r:
                                                                           int(15) :i32
                                                                     then:
                                                                       assign
                                                                         target:
                                                                           .awaited :Async<Any>
-                                                                            __self_7 :__asyncstate_19
+                                                                            __self_7 :__asyncstate_20
                                                                         value:
                                                                           cast → Async<Any>
                                                                             call :Async<(i32 | Outage)[] | Error>
@@ -714,7 +732,7 @@
                                                                       assign
                                                                         target:
                                                                           .state :i32
-                                                                            __self_7 :__asyncstate_19
+                                                                            __self_7 :__asyncstate_20
                                                                         value:
                                                                           int(14) :i32
                                                                     else:
@@ -723,18 +741,18 @@
                                                                           eq :bool
                                                                             l:
                                                                               .state :i32
-                                                                                __self_7 :__asyncstate_19
+                                                                                __self_7 :__asyncstate_20
                                                                             r:
                                                                               int(16) :i32
                                                                         then:
                                                                           assign
                                                                             target:
                                                                               .s2 :Error
-                                                                                __self_7 :__asyncstate_19
+                                                                                __self_7 :__asyncstate_20
                                                                             value:
                                                                               cast → Error
                                                                                 .s1 :(i32 | Outage)[] | Error
-                                                                                  __self_7 :__asyncstate_19
+                                                                                  __self_7 :__asyncstate_20
                                                                           call :void
                                                                             callee:
                                                                               std_io$println__string :void
@@ -748,11 +766,11 @@
                                                                                   vcall Error.message :string
                                                                                     recv:
                                                                                       .s2 :Error
-                                                                                        __self_7 :__asyncstate_19
+                                                                                        __self_7 :__asyncstate_20
                                                                           assign
                                                                             target:
                                                                               .state :i32
-                                                                                __self_7 :__asyncstate_19
+                                                                                __self_7 :__asyncstate_20
                                                                             value:
                                                                               int(15) :i32
                                                                         else:
@@ -761,7 +779,7 @@
                                                                               eq :bool
                                                                                 l:
                                                                                   .state :i32
-                                                                                    __self_7 :__asyncstate_19
+                                                                                    __self_7 :__asyncstate_20
                                                                                 r:
                                                                                   int(17) :i32
                                                                             then:
@@ -769,19 +787,19 @@
                                                                                 cond:
                                                                                   is Error :bool
                                                                                     .s1 :(i32 | Outage)[] | Error
-                                                                                      __self_7 :__asyncstate_19
+                                                                                      __self_7 :__asyncstate_20
                                                                                 then:
                                                                                   assign
                                                                                     target:
                                                                                       .state :i32
-                                                                                        __self_7 :__asyncstate_19
+                                                                                        __self_7 :__asyncstate_20
                                                                                     value:
                                                                                       int(16) :i32
                                                                                 else:
                                                                                   assign
                                                                                     target:
                                                                                       .state :i32
-                                                                                        __self_7 :__asyncstate_19
+                                                                                        __self_7 :__asyncstate_20
                                                                                     value:
                                                                                       int(15) :i32
                                                                             else:
@@ -790,21 +808,21 @@
                                                                                   eq :bool
                                                                                     l:
                                                                                       .state :i32
-                                                                                        __self_7 :__asyncstate_19
+                                                                                        __self_7 :__asyncstate_20
                                                                                     r:
                                                                                       int(18) :i32
                                                                                 then:
                                                                                   assign
                                                                                     target:
                                                                                       .s1 :(i32 | Outage)[] | Error
-                                                                                        __self_7 :__asyncstate_19
+                                                                                        __self_7 :__asyncstate_20
                                                                                     value:
                                                                                       .s0 :(i32 | Outage)[] | Error
-                                                                                        __self_7 :__asyncstate_19
+                                                                                        __self_7 :__asyncstate_20
                                                                                   assign
                                                                                     target:
                                                                                       .state :i32
-                                                                                        __self_7 :__asyncstate_19
+                                                                                        __self_7 :__asyncstate_20
                                                                                     value:
                                                                                       int(17) :i32
                                                                                 else:
@@ -813,7 +831,7 @@
                                                                                       eq :bool
                                                                                         l:
                                                                                           .state :i32
-                                                                                            __self_7 :__asyncstate_19
+                                                                                            __self_7 :__asyncstate_20
                                                                                         r:
                                                                                           int(19) :i32
                                                                                     then:
@@ -821,7 +839,7 @@
                                                                                         vcall Async.resume :Any | Suspended
                                                                                           recv:
                                                                                             .awaited :Async<Any>
-                                                                                              __self_7 :__asyncstate_19
+                                                                                              __self_7 :__asyncstate_20
                                                                                       if :void
                                                                                         cond:
                                                                                           is Suspended :bool
@@ -834,14 +852,14 @@
                                                                                           assign
                                                                                             target:
                                                                                               .s0 :(i32 | Outage)[] | Error
-                                                                                                __self_7 :__asyncstate_19
+                                                                                                __self_7 :__asyncstate_20
                                                                                             value:
                                                                                               cast → (i32 | Outage)[] | Error
                                                                                                 __resumed_9 :Any | Suspended
                                                                                           assign
                                                                                             target:
                                                                                               .state :i32
-                                                                                                __self_7 :__asyncstate_19
+                                                                                                __self_7 :__asyncstate_20
                                                                                             value:
                                                                                               int(18) :i32
                                                                                     else:
@@ -850,14 +868,14 @@
                                                                                           eq :bool
                                                                                             l:
                                                                                               .state :i32
-                                                                                                __self_7 :__asyncstate_19
+                                                                                                __self_7 :__asyncstate_20
                                                                                             r:
                                                                                               int(20) :i32
                                                                                         then:
                                                                                           assign
                                                                                             target:
                                                                                               .awaited :Async<Any>
-                                                                                                __self_7 :__asyncstate_19
+                                                                                                __self_7 :__asyncstate_20
                                                                                             value:
                                                                                               cast → Async<Any>
                                                                                                 call :Async<(i32 | Outage)[] | Error>
@@ -895,13 +913,31 @@
                                                                                           assign
                                                                                             target:
                                                                                               .state :i32
-                                                                                                __self_7 :__asyncstate_19
+                                                                                                __self_7 :__asyncstate_20
                                                                                             value:
                                                                                               int(19) :i32
                                                                                         else:
                                                                                           return
                                                                                             Suspended {
                                                                                             }
+  fn snippet$__asyncstate_20$Async$cancel(self: __asyncstate_20) -> void
+    if :void
+      cond:
+        is null :bool
+          .awaited :Async<Any>
+            __self_7 :__asyncstate_20
+      then:
+      else:
+        vcall Async.cancel :void
+          recv:
+            .awaited :Async<Any>
+              __self_7 :__asyncstate_20
+    assign
+      target:
+        .state :i32
+          __self_7 :__asyncstate_20
+      value:
+        int(-1) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

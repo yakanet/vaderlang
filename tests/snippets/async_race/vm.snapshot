@@ -1,0 +1,6 @@
+# stdout
+cleanup fast
+cleanup slow
+winner: fast
+# exit
+0

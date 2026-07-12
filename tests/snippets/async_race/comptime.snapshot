@@ -1,0 +1,108 @@
+# Comptime
+
+## tests/snippets/async_race
+
+## generic instances
+  All<E | U>
+  All<E | U>
+  All<T>
+  All<T>
+  All<T>
+  TryAll<U, E>
+  TryAll<U, E>
+  TryAll<U, E>
+  Race<T>
+  Race<T>
+  Race<T>
+  Any<U, E>
+  Any<U, E>
+  Any<U, E>
+  Timeout<T>
+  Timeout<T>
+  Timeout<T>
+  Entry<i32, i32>
+  Entry<K, V>
+  Entry<K, V>
+  Entry<K, V>
+  MutableMap<i32, bool>
+  MutableMap<i32, i32>
+  MutableMap<string, i32>
+  MutableMap<usize, E | U>
+  MutableMap<usize, T>
+  MutableMap<usize, T>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<K, V>
+  MutableSet<i32>
+  MutableSet<usize>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<Entry<K, V>>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Async<T[]>
+  Async<(E | U)[] | Error>
+  Async<E | U>
+  Async<E | U>
+  Async<E | U>
+  Async<T | TimeoutError>
+  Async<i32>
+  Async<null>
+  Async<string>
+  Async<T>
+  Async<T>
+  Async<T>
+  Async<T>
+  Async<T>
+  Async<T>
+  Async<T>
+  Range<i32>
+  Range<usize>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>

@@ -7,7 +7,7 @@ type 4 primitive void
 type 5 struct __asyncstate_6 { s0:9,s1:9,s2:10,s3:0,s4:0,awaited:11,state:1 }
 type 6 union 1,7
 type 7 struct std_core$Suspended {  }
-type 8 struct __asyncstate_14 { s0:1,s1:1,awaited:11,state:1 }
+type 8 struct __asyncstate_15 { s0:1,s1:1,awaited:11,state:1 }
 type 9 ref _
 type 10 fn (1) -> 4
 type 11 ref Async
@@ -290,7 +290,7 @@ fn 3 snippet$__asyncstate_6$Async$resume (ref) -> ref
   return
 end
 
-fn 4 snippet$__asyncstate_14$Async$resume (ref) -> ref
+fn 4 snippet$__asyncstate_15$Async$resume (ref) -> ref
   local $field_13 i32
   local __buf_1 ref
   local __off_2 usize

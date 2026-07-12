@@ -254,6 +254,18 @@ export Async :: trait<T> {
     /// is delivered out-of-band (a synthesised erased frame slot the scheduler
     /// sets before each call), so this signature stays source-clean.
     resume :: fn(self) -> T | Suspended
+
+    /// Tear the awaitable down without completing it : run any pending `defer`s
+    /// (LIFO), recursively cancel the child it is parked on, and retire it.
+    /// Called only on a not-yet-completed awaitable (a loser of `race` / `any` /
+    /// `timeout`, or a subtree whose parent was cancelled) — internal to the
+    /// runtime, never invoked by user code in v1.
+    ///
+    /// The default is a no-op : a hand-written awaitable holding no resources
+    /// needs no teardown. The compiler synthesises an override per `async fn`
+    /// (drain its `defer`s + recurse into its current child) ; the concurrency
+    /// combinators override it to cancel every child they own.
+    cancel :: fn(self) -> void {}
 }
 
 /// One field of a struct type as exposed by the `@fields(T)` reflection

@@ -300,3 +300,21 @@
                                           return
                                             Suspended {
                                             }
+  fn snippet$__asyncstate_3$Async$cancel(self: __asyncstate_3) -> void
+    if :void
+      cond:
+        is null :bool
+          .awaited :Async<Any>
+            __self_2 :__asyncstate_3
+      then:
+      else:
+        vcall Async.cancel :void
+          recv:
+            .awaited :Async<Any>
+              __self_2 :__asyncstate_3
+    assign
+      target:
+        .state :i32
+          __self_2 :__asyncstate_3
+      value:
+        int(-1) :i32

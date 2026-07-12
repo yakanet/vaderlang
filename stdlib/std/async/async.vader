@@ -15,7 +15,7 @@ module "std/async"
 
 import "std/runtime" { sched_now, sched_arm, sched_park }
 import "std/abort" { panic }
-import "std/collections" { MutableMap }
+import "std/collections" { MutableMap, MutableSet }
 
 // ---- sleep ----------------------------------------------------------------
 
@@ -23,6 +23,11 @@ import "std/collections" { MutableMap }
 /// parks (returns `Suspended`) until the scheduler's clock reaches its deadline.
 /// Completes with `null` (an async that yields no value — `await sleep(...)`
 /// discards it).
+///
+/// Cancellation uses `Async`'s default no-op : v1 has no `sched_disarm`, so a
+/// cancelled `Sleep` leaves its timer armed. The deadline still fires harmlessly
+/// (nobody re-drives it), and a lingering timer can only DELAY deadlock
+/// detection, never mask it — accepted v1 debt.
 Sleep :: struct {
     ms:       i64
     deadline: i64 = 0
@@ -104,6 +109,11 @@ All<T> implements Async<T[]> {
         }
         return out
     }
+    // Tear down every child (a completed one is a no-op teardown). `all` owns its
+    // children, so cancelling the join cancels the whole fan-out.
+    cancel :: fn(self) -> void {
+        for c in self.children { c.cancel() }
+    }
 }
 
 /// Await a group of awaitables concurrently, yielding their results in input
@@ -133,6 +143,8 @@ TryAll<U, E> implements Async<(U | E)[] | Error> {
         }
         return r
     }
+    // Delegate to the wrapped `All` — it owns the children.
+    cancel :: fn(self) -> void = self.inner.cancel()
 }
 
 /// Concurrent join of FALLIBLE awaitables (children of type `U | E`). Runs every
@@ -147,3 +159,144 @@ TryAll<U, E> implements Async<(U | E)[] | Error> {
 /// @return    the results in input order, or the first `Error`.
 export try_all :: fn<U, E>(xs: Async<U | E>[]) -> Async<(U | E)[] | Error> =
     TryAll<U, E> { .inner = All<U | E> { .children = xs, .results = MutableMap<usize, U | E> {} } }
+
+// ---- race -----------------------------------------------------------------
+
+/// The awaitable backing `race` : drives every child on each `resume` and, the
+/// moment one settles (value OR error — `race` does not distinguish), cancels
+/// all the others and completes with its result. Deterministic tie-break : the
+/// lowest input index wins within a tick.
+Race :: struct<T> {
+    children: Async<T>[]
+}
+
+Race<T> implements Async<T> {
+    resume :: fn(self) -> T | Suspended {
+        n :: self.children.len()
+        for i in 0..<n {
+            r :: self.children[i].resume()
+            if r is Suspended { continue }
+            for j in 0..<n {
+                if j != i { self.children[j].cancel() }
+            }
+            return r
+        }
+        return Suspended {}
+    }
+    cancel :: fn(self) -> void {
+        for c in self.children { c.cancel() }
+    }
+}
+
+/// Race a group of awaitables : complete with the FIRST to settle (value or
+/// error), cancelling the losers so they leave no orphaned work. Unlike `all`,
+/// the return type is a single `T` — the winner's result.
+///
+/// @param xs  the awaitables to race.
+/// @return    an awaitable of the first to settle.
+export race :: fn<T>(xs: Async<T>[]) -> Async<T> = Race<T> { .children = xs }
+
+// ---- any ------------------------------------------------------------------
+
+/// The awaitable backing `any` : like `race`, but a settled ERROR is not a win —
+/// the child is retired and the others keep running. Completes with the FIRST
+/// SUCCESS (cancelling the losers), or — if every child fails — the last error.
+Any :: struct<U, E> {
+    children: Async<U | E>[]
+    /// Indices whose child has already settled as an error (skipped on re-drive).
+    /// A pure set — the error value itself is kept in `last`.
+    errors:   MutableSet<usize>
+    /// The most recent error — returned if every child ends up failing.
+    last:     (U | E) | null
+}
+
+Any<U, E> implements Async<U | E> {
+    resume :: fn(self) -> (U | E) | Suspended {
+        n :: self.children.len()
+        for i in 0..<n {
+            if i in self.errors { continue }
+            r :: self.children[i].resume()
+            if r is Suspended { continue }
+            if r is Error {
+                self.errors.add(i)
+                self.last = r
+                continue
+            }
+            for j in 0..<n {
+                if j != i { self.children[j].cancel() }
+            }
+            return r
+        }
+        if self.errors.len() == n {
+            l :: self.last
+            if l != null { return l }
+        }
+        return Suspended {}
+    }
+    cancel :: fn(self) -> void {
+        for c in self.children { c.cancel() }
+    }
+}
+
+/// Await a group of FALLIBLE awaitables (children of type `U | E`), completing
+/// with the FIRST success and cancelling the rest. If every child fails,
+/// completes with the last error. The dual of `try_all` (first success vs first
+/// error).
+///
+/// @param xs  the fallible awaitables to race for a success.
+/// @return    the first successful result, or the last error if all fail.
+export any :: fn<U, E>(xs: Async<U | E>[]) -> Async<U | E> =
+    Any<U, E> { .children = xs, .errors = MutableSet<usize> {}, .last = null }
+
+// ---- timeout --------------------------------------------------------------
+
+/// Error completing a `timeout` when its deadline elapses before the awaited
+/// value is ready.
+export TimeoutError :: struct {
+    /// The deadline that elapsed, in milliseconds.
+    ms: i64
+}
+
+TimeoutError implements Error {
+    message :: fn(self) -> string = "operation timed out after ${self.ms}ms"
+}
+
+/// The awaitable backing `timeout` : each `resume` drives the child first, then
+/// (only if the child is not ready) the timer. Whoever settles first wins — the
+/// child's value, or a `TimeoutError` once the timer fires — and the loser is
+/// cancelled.
+Timeout :: struct<T> {
+    child: Async<T>
+    timer: Async<null>
+    ms:    i64
+}
+
+Timeout<T> implements Async<T | TimeoutError> {
+    resume :: fn(self) -> T | TimeoutError | Suspended {
+        rc :: self.child.resume()
+        if rc is Suspended {
+            rt :: self.timer.resume()
+            if rt is Suspended { return Suspended {} }
+            // Timer fired first — cancel the pending child, report the timeout.
+            self.child.cancel()
+            return TimeoutError { .ms = self.ms }
+        }
+        // Child completed first — cancel the timer (a no-op in v1), return it.
+        self.timer.cancel()
+        return rc
+    }
+    cancel :: fn(self) -> void {
+        self.child.cancel()
+        self.timer.cancel()
+    }
+}
+
+/// Await `x`, but fail with a `TimeoutError` if it is not ready within `ms`
+/// virtual milliseconds. The losing side (the child on timeout, the timer on
+/// success) is cancelled.
+///
+/// @param ms  the deadline, in milliseconds.
+/// @param x   the awaitable to bound.
+/// @return    `x`'s result, or a `TimeoutError` if the deadline elapses first.
+export timeout :: fn<T>(ms: i64, x: Async<T>) -> Async<T | TimeoutError> =
+    Timeout<T> { .child = x, .timer = sleep(ms), .ms = ms }

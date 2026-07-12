@@ -11,7 +11,7 @@
 module "vader/lower"
 
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, TY_NULL, TY_BOOL, TY_VOID, TY_UNRESOLVED, TRAIT_ASYNC, METHOD_RESUME, STRUCT_SUSPENDED, mk_primitive, mk_fn, mk_array }
+import "vader/types" { Type, TY_NULL, TY_BOOL, TY_VOID, TY_UNRESOLVED, TRAIT_ASYNC, METHOD_RESUME, METHOD_CANCEL, STRUCT_SUSPENDED, mk_primitive, mk_fn, mk_array }
 import "vader/typecheck" { is_void }
 import "vader/diagnostics" { Span }
 import "std/collections" { MutableMap }
@@ -461,6 +461,11 @@ gb_defers_ty :: fn() -> Type = mk_array(gb_defer_thunk_ty(), false)
 // `self.__defers`.
 gb_defers_field :: fn(gb: GenBuild) -> LoweredExpr = gb_field(gb, GB_DEFERS_FIELD, gb_defers_ty())
 
+// `self.__defers.len()` (usize). `span` attributes it — `dpe.span` at a
+// structured exit, `gb.span` for the teardown drain.
+gb_defers_len :: fn(gb: GenBuild, span: Span) -> LoweredExpr =
+    LoweredArrayLen { .span = span, .type = mk_primitive("usize"), .target = gb_defers_field(gb) }
+
 // Drain the top `count` defer thunks LIFO, then truncate. `count` is static (the
 // defers of the exiting scope[s]) — emit all calls before truncating so
 // `len - 1 - k` walks the live tail top-down, then slice off the drained run.
@@ -473,7 +478,7 @@ gb_defer_drain :: fn(gb: GenBuild, dpe: LoweredDeferPopExec, out: LoweredStmt[])
         // single truncate until after all calls, so no call shrinks the array).
         idx :: LoweredBinary {
             .span = dpe.span, .type = usize_ty, .op = LoweredBinaryOp.Sub,
-            .left = LoweredArrayLen { .span = dpe.span, .type = usize_ty, .target = gb_defers_field(gb) },
+            .left = gb_defers_len(gb, dpe.span),
             .right = LoweredIntLit { .span = dpe.span, .type = usize_ty, .value = 1 + k },
         }
         thunk :: LoweredIndex { .span = dpe.span, .type = gb_defer_thunk_ty(), .target = gb_defers_field(gb), .index = idx }
@@ -483,7 +488,7 @@ gb_defer_drain :: fn(gb: GenBuild, dpe: LoweredDeferPopExec, out: LoweredStmt[])
     // self.__defers = self.__defers[0 ..< len - count]
     new_len :: LoweredBinary {
         .span = dpe.span, .type = usize_ty, .op = LoweredBinaryOp.Sub,
-        .left = LoweredArrayLen { .span = dpe.span, .type = usize_ty, .target = gb_defers_field(gb) },
+        .left = gb_defers_len(gb, dpe.span),
         .right = LoweredIntLit { .span = dpe.span, .type = usize_ty, .value = count },
     }
     truncated :: LoweredArraySlice {
@@ -492,6 +497,74 @@ gb_defer_drain :: fn(gb: GenBuild, dpe: LoweredDeferPopExec, out: LoweredStmt[])
         .hi = new_len,
     }
     out.push(LoweredAssign { .span = dpe.span, .target = gb_defers_field(gb), .value = truncated })
+}
+
+// Drain EVERY pending defer thunk LIFO — the teardown counterpart of
+// `gb_defer_drain` (which drains a statically-known scope count on a structured
+// exit). At cancel time the pending count is dynamic (how far the coroutine ran
+// before it was abandoned), so loop `while len != 0 { call last ; truncate }`.
+gb_defer_drain_all :: fn(gb: GenBuild, out: LoweredStmt[]) -> void {
+    usize_ty :: mk_primitive("usize")
+    // idx = self.__defers.len() - 1 (recomputed each iteration — the truncate
+    // below shrinks the array, so the last live thunk moves down every step).
+    idx :: LoweredBinary {
+        .span = gb.span, .type = usize_ty, .op = LoweredBinaryOp.Sub,
+        .left = gb_defers_len(gb, gb.span),
+        .right = LoweredIntLit { .span = gb.span, .type = usize_ty, .value = 1 },
+    }
+    thunk :: LoweredIndex { .span = gb.span, .type = gb_defer_thunk_ty(), .target = gb_defers_field(gb), .index = idx }
+    call :: LoweredCall { .span = gb.span, .type = TY_VOID, .callee = thunk, .args = [] }
+    // self.__defers = self.__defers[0 ..< len - 1]
+    truncated :: LoweredArraySlice {
+        .span = gb.span, .type = gb_defers_ty(), .target = gb_defers_field(gb),
+        .lo = LoweredIntLit { .span = gb.span, .type = usize_ty, .value = 0 },
+        .hi = LoweredBinary {
+            .span = gb.span, .type = usize_ty, .op = LoweredBinaryOp.Sub,
+            .left = gb_defers_len(gb, gb.span),
+            .right = LoweredIntLit { .span = gb.span, .type = usize_ty, .value = 1 },
+        },
+    }
+    body :: gb_block(gb, [LoweredExprStmt { .span = gb.span, .expr = call }, LoweredAssign { .span = gb.span, .target = gb_defers_field(gb), .value = truncated }])
+    // while self.__defers.len() != 0 { ... }
+    cond :: LoweredBinary {
+        .span = gb.span, .type = TY_BOOL, .op = LoweredBinaryOp.Neq,
+        .left = gb_defers_len(gb, gb.span),
+        .right = LoweredIntLit { .span = gb.span, .type = usize_ty, .value = 0 },
+    }
+    out.push(LoweredLoop { .span = gb.span, .label = null, .cond = cond, .body = body })
+}
+
+// ---- cancel (coroutine teardown) ------------------------------------------
+
+// The `cancel()` method body : tear this coroutine down without resuming it.
+// (1) Recursively cancel the child it is parked on — Model A stores exactly one
+// live child in `self.awaited`, so a nested-await subtree is released depth-first
+// (each level drains its own defers). Guarded on `awaited is null` : a coroutine
+// cancelled before it ever reached its first `await` has no child (and no
+// defers), so cancel is a no-op there. (2) Drain every pending `defer` LIFO. (3)
+// Retire the frame (`state = DONE_STATE`) so a stray later resume falls to
+// dispatch's trailing `Suspended` and a repeat cancel finds nothing to do.
+gb_cancel_body :: fn(gb: GenBuild) -> LoweredBlock {
+    stmts: LoweredStmt[] = []
+    // if self.awaited is null { } else { self.awaited.cancel() }
+    // The field is declared `Async<Any>` (non-null) but seeded null, so this
+    // runtime null-check leans on the erased trait's fat-pointer representation
+    // admitting null — sound because the drive path never observes it null.
+    child_cancel :: LoweredVirtualCall {
+        .span = gb.span, .type = TY_VOID,
+        .trait_name = TRAIT_ASYNC, .method = METHOD_CANCEL,
+        .receiver = gb_awaited_field(gb), .args = [],
+    }
+    guard :: LoweredIf {
+        .span = gb.span, .type = TY_VOID,
+        .cond = LoweredTypeCheck { .span = gb.span, .type = TY_BOOL, .value = gb_awaited_field(gb), .check_type = TY_NULL },
+        .then_block = gb_block(gb, []),
+        .else_block = gb_block(gb, [LoweredExprStmt { .span = gb.span, .expr = child_cancel }]),
+    }
+    stmts.push(LoweredExprStmt { .span = gb.span, .expr = guard })
+    if gb.has_defers { gb_defer_drain_all(gb, stmts) }
+    stmts.push(gb_set_state(gb, i64(DONE_STATE)))
+    return gb_block(gb, stmts)
 }
 
 // ---- spill collection -----------------------------------------------------

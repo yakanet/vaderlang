@@ -345,9 +345,28 @@
                                       return
                                         Suspended {
                                         }
+  fn snippet$__asyncstate_2$Async$cancel(self: __asyncstate_2) -> void
+    if :void
+      cond:
+        is null :bool
+          .awaited :Async<Any>
+            __self_1 :__asyncstate_2
+      then:
+      else:
+        vcall Async.cancel :void
+          recv:
+            .awaited :Async<Any>
+              __self_1 :__asyncstate_2
+    assign
+      target:
+        .state :i32
+          __self_1 :__asyncstate_2
+      value:
+        int(-1) :i32
   struct snippet$Ready__i32 { v: i32 }
   fn snippet$Ready$Async$resume__i32(self: Ready<i32>) -> i32 | Suspended
     return
       .v :i32
         self :Ready<i32>
+  fn snippet$Ready$Async$cancel__i32(self: Ready<i32>) -> void
   struct snippet$Ready__Any { v: Any }
