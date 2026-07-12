@@ -1,0 +1,12 @@
+module "snippet"
+
+// A `?` at module scope (a const initializer) has no enclosing function to
+// propagate the error out of — so it is rejected (T3067) rather than silently
+// returning the error into the const's slot (which miscompiled at runtime).
+
+Boom :: struct {}
+Boom implements Error { message :: fn(self) -> string = "boom" }
+
+fallible :: fn() -> i32 | Boom { return Boom {} }
+
+export X :: fallible()?
