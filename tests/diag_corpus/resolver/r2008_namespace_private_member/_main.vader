@@ -1,0 +1,12 @@
+// resolver-modules-2 : a `P :: import` namespace alias must not reach a PRIVATE
+// (non-`export`) member of the target module. `L.secret()` here fires R2008,
+// mirroring the destructured-import visibility check in `wire.vader` — before
+// the fix it silently resolved (the lowerer re-resolved from collected.symbols)
+// and printed 42.
+module "snippet"
+
+L :: import "snippet/lib"
+
+main :: fn() -> i32 {
+    return L.secret()
+}
