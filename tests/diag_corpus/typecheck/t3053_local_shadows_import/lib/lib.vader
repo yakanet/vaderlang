@@ -1,0 +1,2 @@
+module "snippet/lib"
+export helper :: fn(x: i32) -> i32 = x + 100
