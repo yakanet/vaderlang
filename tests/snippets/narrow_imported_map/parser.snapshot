@@ -185,7 +185,8 @@
                   "name": "r"
                 },
                 "right": {
-                  "kind": "NullLitExpr"
+                  "kind": "IdentExpr",
+                  "name": "null"
                 }
               },
               "then": {

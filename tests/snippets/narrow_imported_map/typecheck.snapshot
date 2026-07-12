@@ -9,6 +9,7 @@
   expr 19:10    CallExpr       :: null | Out
   expr 19:10    IdentExpr      :: fn(MutableMap<i32, i32 | Wrap>, i32) -> null | Out
   expr 19:15    IdentExpr      :: MutableMap<i32, i32 | Wrap>
+  expr 20:13    IdentExpr      :: null
   expr 20:5     IfExpr         :: void
   expr 20:8     BinaryExpr     :: bool
   expr 20:8     IdentExpr      :: null | Out
@@ -29,6 +30,7 @@
   expr 14:10    IdentExpr      :: MutableMap<i32, i32 | Wrap>
   expr 14:10    IndexExpr      :: i32 | null | Wrap
   expr 14:12    IdentExpr      :: i32
+  expr 15:13    IdentExpr      :: null
   expr 15:5     IfExpr         :: void
   expr 15:8     BinaryExpr     :: bool
   expr 15:8     IdentExpr      :: i32 | null | Wrap

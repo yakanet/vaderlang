@@ -155,7 +155,8 @@
                   "name": "pair"
                 },
                 "right": {
-                  "kind": "NullLitExpr"
+                  "kind": "IdentExpr",
+                  "name": "null"
                 }
               },
               "then": {

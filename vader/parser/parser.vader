@@ -2622,7 +2622,9 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
             }
             bang_tok :: p.advance()
             p.advance()  // KwIs
-            right :: p.parse_expr(21)
+            // `!is` takes a TYPE on the right — route through `parse_type` (see
+            // the `is` arm below) so `!(x is Foo<T>)` and friends parse.
+            right :: p.parse_type()
             if p.peek().kind == .KwAs {
                 as_tok :: p.advance()
                 if p.peek().kind == .Ident { p.advance() }
@@ -2652,7 +2654,13 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
             }
             p.advance()
             right_bp :: if infix.non_assoc { infix.right_bp + 1 } else { infix.right_bp }
-            right :: p.parse_expr(right_bp)
+            // `is` takes a TYPE on the right, not a value expression : route it
+            // through `parse_type` so `x is Foo<T>` / `x is const T[]` /
+            // `x is fn(...)` parse as the type they denote. As a value expr the
+            // generic path expects a `(` and chokes on the `{` of an `if` body
+            // (parser-1/2). `TypeExpr` aliases `Expr`, so it stores straight
+            // into `.right`, and `type_from_expr` already handles every shape.
+            right :: if infix.op == .Is { p.parse_type() } else { p.parse_expr(right_bp) }
             if t.kind == .RangeExcl || t.kind == .RangeIncl {
                 left = RangeExpr {
                     .span      = Span { .start = left.span.start, .end = right.span.end },
@@ -3516,4 +3524,53 @@ parse_struct_pattern :: fn(p: Parser) -> StructPattern {
 
 is_literal_start :: fn(t: Token) -> bool {
     return (t.kind == .IntLit) || (t.kind == .FloatLit) || (t.kind == .CharLit) || (t.kind == .StringBegin) || (t.kind == .KwTrue) || (t.kind == .KwFalse) || (t.kind == .KwNull) || (t.kind == .Minus)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+// Parse+lex diagnostic count for a source — a syntax-only regression probe
+// (no resolver / typecheck), so unresolved names in the fixture don't count.
+parse_error_count :: fn(src: string) -> i32 = i32(parse_source(src, "test.vader").errors.len())
+
+@test test_is_generic_type_in_condition :: fn() -> void {
+    // parser-1 : `is Foo<T>` in a condition (allow_struct_lit=false) must parse
+    // as the type it denotes, not a generic call that expects `(` and then
+    // chokes on the `{` of the `if` body (was P1002).
+    src :: "module \"t\"\n" +
+        "Box :: struct<T> { v: T }\n" +
+        "f :: fn(x: Box<i32> | i32) -> i32 {\n" +
+        "    if x is Box<i32> { return 1 }\n" +
+        "    return 0\n" +
+        "}\n"
+    assert_eq(parse_error_count(src), 0)
+}
+
+@test test_is_const_array_and_fn_type :: fn() -> void {
+    // parser-2 : `is const T[]` and `is fn(...)` route through `parse_type` too.
+    src :: "module \"t\"\n" +
+        "g :: fn(x: const u8[] | i32) -> i32 {\n" +
+        "    if x is const u8[] { return 1 }\n" +
+        "    return 0\n" +
+        "}\n" +
+        "h :: fn(x: fn(i32) -> i32 | i32) -> i32 {\n" +
+        "    if x is fn(i32) -> i32 { return 1 }\n" +
+        "    return 0\n" +
+        "}\n"
+    assert_eq(parse_error_count(src), 0)
+}
+
+@test test_is_common_forms_still_parse :: fn() -> void {
+    // Guard the shapes the fix must not regress : `is null`, `is <primitive>`,
+    // `is T as <bind>`, and `!is`.
+    src :: "module \"t\"\n" +
+        "d :: fn(x: i32 | string | null) -> i32 {\n" +
+        "    if x is null { return 0 }\n" +
+        "    if x is i32 { return 1 }\n" +
+        "    if x is string as s { return s.byte_len() }\n" +
+        "    return 3\n" +
+        "}\n" +
+        "n :: fn(x: i32 | string) -> bool = x !is i32\n"
+    assert_eq(parse_error_count(src), 0)
 }

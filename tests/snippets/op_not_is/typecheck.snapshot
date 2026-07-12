@@ -30,6 +30,7 @@
   expr 31:12    StringLitExpr  :: string
   expr 31:19    IdentExpr      :: string
   expr 36:14    UnaryExpr      :: bool
+  expr 36:18    IdentExpr      :: null
   expr 36:5     IfExpr         :: void
   expr 36:8     BinaryExpr     :: bool
   expr 36:8     IdentExpr      :: Cat | null

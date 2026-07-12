@@ -16,6 +16,7 @@
   expr 33:18    IdentExpr      :: Cat | Dog
   expr 41:12    MatchExpr      :: bool
   expr 41:18    IdentExpr      :: i32
+  expr 49:13    IdentExpr      :: null
   expr 49:5     IfExpr         :: void
   expr 49:8     BinaryExpr     :: bool
   expr 49:8     IdentExpr      :: Cat | Dog
