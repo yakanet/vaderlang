@@ -89,7 +89,7 @@
                 arg2:
                   call :bool
                     callee:
-                      find :bool
+                      contains_char :bool
                     arg0:
                       "hello" :string
                     arg1:
@@ -128,7 +128,7 @@
                 arg2:
                   call :bool
                     callee:
-                      find :bool
+                      contains_char :bool
                     arg0:
                       "hello" :string
                     arg1:

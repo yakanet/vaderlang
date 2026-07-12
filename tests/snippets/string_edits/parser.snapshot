@@ -39,7 +39,7 @@
             "alias": null
           },
           {
-            "name": "find",
+            "name": "contains_char",
             "alias": null
           }
         ]
@@ -352,7 +352,7 @@
                                 }
                               ]
                             },
-                            "field": "find"
+                            "field": "contains_char"
                           },
                           "args": [
                             {
@@ -402,7 +402,7 @@
                                 }
                               ]
                             },
-                            "field": "find"
+                            "field": "contains_char"
                           },
                           "args": [
                             {
