@@ -899,6 +899,16 @@ lex_one :: fn(l: Lexer) -> void {
     // Backslash outside a string / char literal — Vader has no line
     // continuation. Emit L0007 instead of the generic L0001.
     start := l.position_here()
+    // A `#!` shebang is only consumed on line 1 (see `tokenize`). Reaching one
+    // here means it's not on the first line — emit L0008 and skip the rest of
+    // the line, rather than a misleading per-`#` L0001 (UnexpectedCharacter).
+    if c == '#' && l.peek_at(1) == '!' {
+        for !l.at_end() && l.peek() != '\n' && l.peek() != '\r' {
+            l.advance(1)
+        }
+        l.push_error(.ShebangNotOnFirstLine, l.error_span(start), "")
+        return
+    }
     if c == '\\' {
         l.advance(1)
         l.push_error(.StrayBackslash, l.error_span(start), "")
