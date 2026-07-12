@@ -294,23 +294,25 @@ check_equality :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedPro
         numeric_result(e, left, right, diags)
         return TY_BOOL
     }
-    // A struct operand requires an `Equals` impl on the (left-preferred) struct
-    // AND the other operand assignable to its `other: Self` param. The lowerer
-    // rewrites `a == b` into `a.equals(b)`, so `struct == prim` / `Foo == Bar`
-    // (no impl / wrong RHS) would otherwise pass the typer and dereference the
-    // wrong operand at lowering. Reference identity is never the default.
-    if left is StructType || right is StructType {
-        st    :: if left is StructType { left } else { right }
-        other :: if left is StructType { right } else { left }
-        // The (left-preferred) struct must carry `Equals` and the other operand
-        // must fit its `other: Self` param (`Foo == Bar` / `point == 5` rejected).
-        ft :: check_operator_rhs(st, other, METHOD_EQUALS, "operator ==", e.span, typed, diags)
-        // No impl : only a struct-vs-struct or struct-vs-scalar comparison is a
-        // real defect. Comparing to a union / enum / distinct / array is left
-        // alone — the compiler itself compares `Type`-union values against
-        // singleton struct constants (`t == TY_VOID`) by reference identity.
-        if ft == null && (other is StructType || other is PrimitiveType) {
-            push_trait_missing(e, st, TRAIT_EQUALS, diags)
+    // `struct` and `array` are the only kinds with NO built-in `==` — a bare
+    // `a == b` on them lowers to a scalar eq on a reference and traps at runtime.
+    // Both require an `Equals` impl (the lowerer rewrites `a == b` into
+    // `a.equals(b)`). Every other kind has a working built-in `==` : numeric /
+    // char / bool / string / enum→`i32.eq` / distinct→backing / union by
+    // reference — the compiler itself leans on the last (`t == TY_VOID`), so a
+    // blanket "no `Equals` → reject" is NOT what we want here.
+    //
+    // Flag only a struct/array/scalar counterpart with no impl (a real defect :
+    // `Foo == Bar`, `arr == arr`, `point == 5`) ; comparing to a union / enum /
+    // distinct is left alone — that IS the reference-compare the compiler relies
+    // on. `check_operator_rhs` returns null for an array (no impl ever matches),
+    // so arrays always take the reject path against a struct/array/scalar other.
+    if left is StructType || left is ArrayType || right is StructType || right is ArrayType {
+        needs :: if (left is StructType) || (left is ArrayType) { left } else { right }
+        other :: if (left is StructType) || (left is ArrayType) { right } else { left }
+        ft :: check_operator_rhs(needs, other, METHOD_EQUALS, "operator ==", e.span, typed, diags)
+        if ft == null && (other is StructType || other is ArrayType || other is PrimitiveType) {
+            push_trait_missing(e, needs, TRAIT_EQUALS, diags)
         }
     }
     return TY_BOOL

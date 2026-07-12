@@ -1,0 +1,12 @@
+// syntax-spec-dx-5 follow-up : arrays have no built-in `==` (no blanket
+// `T[] implements Equals`), so `arr == arr` must be a compile error (T3043),
+// not a clean compile that lowers to a scalar `i32.eq` on the array refs and
+// traps at runtime. Symmetric with a struct that lacks an `Equals` impl.
+module "snippet"
+
+main :: fn() -> i32 {
+    a :: [1, 2, 3]
+    b :: [1, 2, 3]
+    if a == b { return 1 }
+    return 0
+}
