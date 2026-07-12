@@ -1877,6 +1877,24 @@ collect_type_params :: fn(t: TypeExpr | null, out: TypeParam[]) -> void {
 
 parse_block :: fn(p: Parser) -> BlockExpr {
     lb :: p.expect(.LBrace, "`{` to open block")
+    // Depth guard, sharing `parse_expr`/`parse_type`'s budget. Block nesting
+    // recurses parse_block ↔ parse_stmt, so a pathologically deep `for {…}` /
+    // `defer {…}` chain overflows the native stack (SIGSEGV) with no diagnostic
+    // — `MAX_EXPR_DEPTH` only guarded the expression / type grammars (parser-3).
+    p.expr_depth = p.expr_depth + 1
+    if p.expr_depth > MAX_EXPR_DEPTH {
+        p.expr_depth = p.expr_depth - 1
+        p.report_nesting_too_deep("block")
+        // Resync to the matching `}` (brace-balanced, no recursion) so parsing
+        // continues past the offending block instead of re-descending.
+        depth := 1
+        for depth > 0 && !p.check(.Eof) {
+            t :: p.advance()
+            if t.kind == .LBrace { depth = depth + 1 }
+            if t.kind == .RBrace { depth = depth - 1 }
+        }
+        return BlockExpr { .span = p.span_of(lb, p.peek_at(-1)), .stmts = [], .trailing = null }
+    }
     p.skip_newlines()
     raw: Stmt[] = []
     trailing: Expr | null = null
@@ -1930,6 +1948,7 @@ parse_block :: fn(p: Parser) -> BlockExpr {
         }
     }
     rb :: p.expect(.RBrace, "`}` to close block")
+    p.expr_depth = p.expr_depth - 1
     return BlockExpr {
         .span     = p.span_of(lb, rb),
         .stmts    = stmts,
@@ -3528,11 +3547,25 @@ is_literal_start :: fn(t: Token) -> bool {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing" { assert, assert_eq }
 
 // Parse+lex diagnostic count for a source — a syntax-only regression probe
 // (no resolver / typecheck), so unresolved names in the fixture don't count.
 parse_error_count :: fn(src: string) -> i32 = i32(parse_source(src, "test.vader").errors.len())
+
+@test test_deep_block_nesting_is_guarded :: fn() -> void {
+    // parser-3 : pathologically deep block nesting must trip the P1029 depth
+    // guard (a clean diagnostic) instead of overflowing the native stack
+    // (SIGSEGV). Built here rather than as a fixture — the source is 300+ lines.
+    opens := ""
+    closes := ""
+    for _ in 0..<300 {
+        opens = opens + "for {\n"
+        closes = closes + "}\n"
+    }
+    src :: "module \"t\"\nmain :: fn() -> i32 {\n" + opens + "break\n" + closes + "return 0\n}\n"
+    assert(parse_error_count(src) > 0, "deep block nesting should report P1029, not crash")
+}
 
 @test test_is_generic_type_in_condition :: fn() -> void {
     // parser-1 : `is Foo<T>` in a condition (allow_struct_lit=false) must parse
