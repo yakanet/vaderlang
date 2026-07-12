@@ -378,7 +378,13 @@ lex_number :: fn(l: Lexer) -> void {
     // Token carries a placeholder value instead of bubbling a Trap up
     // through every caller that just wants the textual span.
     digits :: strip_numeric_text(text, base)
-    if is_float {
+    if digits.is_empty() {
+        // A malformed base prefix (`0x` / `0b` / `0o` with no digits) already
+        // reported L0006 above. Don't ALSO run the value parse — on empty digits
+        // it fails and would fire a bogus L0011 "does not fit in u64" on top of
+        // the real error (lexer-3). Placeholder value ; the diagnostic stands.
+        t.value = u64(0)
+    } else if is_float {
         parsed :: digits.parse_float()
         t.value = match parsed {
             is f64 -> parsed
@@ -1086,6 +1092,14 @@ count_newlines :: fn(l: Lexer) -> usize {
 @test test_hex_trailing_underscore_rejected :: fn() -> void {
     l :: tokenize("0xFF_", "test.vader")
     assert(l.errors.len() >= 1, "trailing underscore in hex should error")
+}
+
+@test test_empty_base_prefix_single_error :: fn() -> void {
+    // lexer-3 : `0x` with no digits reports exactly ONE error (L0006, malformed
+    // numeric), not also a bogus L0011 overflow on the empty magnitude.
+    l :: tokenize("0x", "test.vader")
+    assert_eq(l.errors.len(), 1)
+    assert_eq(l.errors[0].code.id, "L0006")
 }
 
 @test test_digit_group_underscore_ok :: fn() -> void {
