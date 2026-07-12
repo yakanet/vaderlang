@@ -446,6 +446,7 @@ export empty_typed_program :: fn() -> TypedProgram {
         .diags = [],
         .deprecated_messages = MutableMap<i32, string> {},
         .namespace_member_types = MutableMap<i32, MutableMap<string, Type>> {},
+        .namespace_private_members = MutableMap<i32, MutableMap<string, bool>> {},
     }
     return new_typed_program(rm)
 }
@@ -470,6 +471,7 @@ fresh_module :: fn() -> ResolvedModule {
         .diags = [],
         .deprecated_messages = MutableMap<i32, string> {},
         .namespace_member_types = MutableMap<i32, MutableMap<string, Type>> {},
+        .namespace_private_members = MutableMap<i32, MutableMap<string, bool>> {},
     }
 }
 

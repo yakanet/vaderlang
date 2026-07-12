@@ -35,7 +35,7 @@ export infer_field :: fn(
 ) -> Type {
     // Namespace-import field access — `mod.foo` where `mod` is an
     // import binding. Runs before the recursive target check.
-    ns_lookup :: try_namespace_field(e, typed)
+    ns_lookup :: try_namespace_field(e, typed, diags)
     match ns_lookup {
         is null -> {}
         _ -> { return ns_lookup }
@@ -930,12 +930,26 @@ parse_tuple_index :: fn(s: string) -> i32 {
     return n
 }
 
-try_namespace_field :: fn(e: AST.FieldExpr, typed: TypedProgram) -> Type | null {
+try_namespace_field :: fn(e: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type | null {
     mod_id :: namespace_call_mod_id(e, typed)
     if mod_id is null { return null }
     exports :: typed.namespace_exports[mod_id]
     if exports is null { return null }
-    return exports[e.field]
+    result :: exports[e.field]
+    if result != null { return result }
+    // Exported miss : if the base binding names a PRIVATE member, fire R2008 and
+    // return TY_UNRESOLVED (suppresses the cascade). Otherwise fall through with
+    // null to the ordinary "no such field" handling. The base is a namespace
+    // ImportBinding here (namespace_call_mod_id succeeded), so re-resolve its sym.
+    if e.target is AST.IdentExpr {
+        binding :: typed.resolved.idents[e.target.span.hash()]
+        if binding != null {
+            if namespace_private_member_reported(binding.id, e.field, e.field_span, typed.resolved, diags) {
+                return TY_UNRESOLVED
+            }
+        }
+    }
+    return null
 }
 
 // Resolve a `mod.field` FieldExpr's base to the imported module id, or null

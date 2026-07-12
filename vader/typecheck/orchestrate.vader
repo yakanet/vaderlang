@@ -415,6 +415,7 @@ synth_resolved :: fn() -> ResolvedModule {
         .diags = [],
         .deprecated_messages = MutableMap<i32, string> {},
         .namespace_member_types = MutableMap<i32, MutableMap<string, Type>> {},
+        .namespace_private_members = MutableMap<i32, MutableMap<string, bool>> {},
     }
 }
 
@@ -1426,6 +1427,11 @@ build_namespace_exports :: fn(
     typed :: per_module[mod_id]
     if typed is null { return out }
     for [name, sym] in loaded.collected.symbols {
+        // Exported members only — reached through a `P :: import "m"` alias.
+        // Mirrors the destructured-import check that fires R2008 (`wire.vader`);
+        // a private member's absence here routes `P.private` to the private-set
+        // check in `field.vader::try_namespace_field`.
+        if sym.visibility == AST.Visibility.Private { continue }
         t :: typed.decl_types[sym.id]
         if !(t is null) {
             out[name] = t
@@ -1458,6 +1464,8 @@ build_namespace_export_params :: fn(
     typed :: per_module[mod_id]
     if typed is null { return out }
     for [name, sym] in loaded.collected.symbols {
+        // Exported members only — see `build_namespace_exports`.
+        if sym.visibility == AST.Visibility.Private { continue }
         decl :: typed.fn_decls[sym.id]
         if decl is AST.FnDecl as fd { out[name] = fd.params }
     }
@@ -1484,7 +1492,24 @@ prepopulate_namespace_member_types :: fn(
     for [sym_id, mod_id] in targets.namespace_targets {
         members :: build_namespace_type_members(mod_id, project, per_module)
         entry_typed.resolved.namespace_member_types[sym_id] = members
+        // Companion set of the target's PRIVATE member names, so a `P.private`
+        // access can be told apart from a genuinely-absent member and fire R2008.
+        entry_typed.resolved.namespace_private_members[sym_id] = build_namespace_private_names(mod_id, project)
     }
+}
+
+// PRIVATE (non-`export`) member names of `mod_id`, as a name→true set. Read at
+// namespace-member access sites (`field.vader`, `type_expr.vader`) to fire R2008
+// on `P.private` instead of degrading to unresolved. Visibility lives on the
+// collected Symbol (`add_fn`/`add_named` carry the decl's `visibility`).
+build_namespace_private_names :: fn(mod_id: string, project: LoadedProject) -> MutableMap<string, bool> {
+    out :: MutableMap<string, bool> {}
+    loaded :: project.modules[mod_id]
+    if loaded is null { return out }
+    for [name, sym] in loaded.collected.symbols {
+        if sym.visibility == AST.Visibility.Private { out[name] = true }
+    }
+    return out
 }
 
 build_namespace_type_members :: fn(
@@ -1496,6 +1521,9 @@ build_namespace_type_members :: fn(
     if loaded is null { return out }
     target_typed :: per_module[mod_id]
     for [name, sym] in loaded.collected.symbols {
+        // Exported types only — see `build_namespace_exports`. A private type
+        // is not reachable as `P.PrivateType`.
+        if sym.visibility == AST.Visibility.Private { continue }
         // TypeAlias resolves to the alias's expanded union (already
         // registered on the owning module's `resolved.alias_types`
         // by `register_aliases`). Other type-kind symbols resolve via

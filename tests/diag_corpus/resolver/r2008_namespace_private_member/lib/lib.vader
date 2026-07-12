@@ -1,0 +1,7 @@
+module "snippet/lib"
+
+// NOT exported — private to the module. Reaching it as `L.secret()` from the
+// entry must be rejected with R2008. `@allow_unused` keeps the fixture focused
+// on R2008 (the rejected access leaves `secret` with no in-module use).
+@allow_unused
+secret :: fn() -> i32 = 42

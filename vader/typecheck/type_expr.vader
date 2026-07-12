@@ -18,7 +18,7 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic, typecheck_error }
+import "vader/diagnostics" { Diagnostic, Span, typecheck_error, resolver_error }
 import "vader/resolver" { ResolvedModule }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 AST :: import "vader/parser"
@@ -79,7 +79,7 @@ export type_from_expr :: fn(
         // FieldExpr's span would collide with the inner IdentExpr's
         // key and return the wrong symbol ; the namespace-member
         // table sidesteps that collision.
-        is AST.FieldExpr as e -> { return namespace_member_type(e, resolved) }
+        is AST.FieldExpr as e -> { return namespace_member_type(e, resolved, diags) }
         _ -> {
             diags.push(typecheck_error(.ExpectedKnownType, expr.span,
                 "value-position expression not allowed in a type slot"))
@@ -91,15 +91,39 @@ export type_from_expr :: fn(
 /// Resolve `P.Decl` in type position via the per-namespace exports
 /// side-table on `ResolvedModule`. Returns `TY_UNRESOLVED` when the
 /// target isn't a namespace ImportBinding or the field isn't exported.
-namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule) -> Type {
+/// @error R2008 when `P.Decl` names a PRIVATE (non-`export`) type of the
+///        target module — visibility enforcement, mirroring the
+///        destructured-import check in `wire.vader`.
+namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule, diags: Diagnostic[]) -> Type {
     if !(e.target is AST.IdentExpr) { return TY_UNRESOLVED }
     target_sym :: resolved.idents[e.target.span.hash()]
     if target_sym is null { return TY_UNRESOLVED }
     members :: resolved.namespace_member_types[target_sym.id]
     if members is null { return TY_UNRESOLVED }
     ty :: members[e.field]
-    if ty is null { return TY_UNRESOLVED }
+    if ty is null {
+        // Exported miss : fire R2008 if it's a PRIVATE member ; otherwise it's a
+        // genuinely-absent member and stays a silent unresolved (as before).
+        namespace_private_member_reported(target_sym.id, e.field, e.field_span, resolved, diags)
+        return TY_UNRESOLVED
+    }
     return ty
+}
+
+/// Fire R2008 when `field` names a PRIVATE member of the namespace binding
+/// `binding_id` points at — so `P.private` is rejected (matching the
+/// destructured-import check in `wire.vader`) instead of silently degrading to
+/// unresolved. Returns true when it fired. Shared by the value path
+/// (`field.vader::try_namespace_field`) and the type path above.
+namespace_private_member_reported :: fn(
+    binding_id: i32, field: string, span: Span,
+    resolved: ResolvedModule, diags: Diagnostic[],
+) -> bool {
+    priv :: resolved.namespace_private_members[binding_id]
+    if priv is null { return false }
+    if priv[field] is null { return false }
+    diags.push(resolver_error(.SymbolNotExported, span, "`${field}`"))
+    return true
 }
 
 lower_ident :: fn(e: AST.IdentExpr, resolved: ResolvedModule) -> Type {

@@ -76,8 +76,15 @@ export ResolvedModule :: struct {
     /// "..."` namespace binding. Lets `type_from_expr`'s FieldExpr
     /// arm resolve `P.Decl` in type position without needing
     /// TypedProgram. Populated by the typecheck orchestrator after
-    /// `namespace_exports` builds.
+    /// `namespace_exports` builds. Holds EXPORTED members only.
     namespace_member_types: MutableMap<i32, MutableMap<string, Type>>
+    /// `namespace_sym.id → private-member-name → true` for every
+    /// `P :: import "..."` binding : the PRIVATE (non-`export`) members
+    /// of the target module. Lets a `P.private` access fire R2008 —
+    /// matching the destructured-import check in `wire.vader` — instead
+    /// of silently degrading to unresolved. Populated alongside
+    /// `namespace_member_types`.
+    namespace_private_members: MutableMap<i32, MutableMap<string, bool>>
 }
 
 export ResolvedProject :: struct {
@@ -167,6 +174,7 @@ export resolve_module_with_collected_dp_seeded :: fn(
         .diags            = file.diags,
         .deprecated_messages = MutableMap<i32, string> {},
         .namespace_member_types = MutableMap<i32, MutableMap<string, Type>> {},
+        .namespace_private_members = MutableMap<i32, MutableMap<string, bool>> {},
     }
 }
 
