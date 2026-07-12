@@ -371,6 +371,33 @@ export ConvertTarget :: enum(u8) {
     Char
 }
 
+/// Map a `ValType` to the matching `ConvertTarget`. Returns `null` for
+/// non-numeric / non-char targets — callers skip the `Convert` emit since the
+/// runtime tag is unchanged. Used by the midir bytecode emitter and the `.virt`
+/// reader. (Both `ValType` and `ConvertTarget` live in `vader/bytecode`, so this
+/// needs no imports.)
+export convert_target_of :: fn(v: ValType) -> ConvertTarget | null = match v {
+    .I8    -> ConvertTarget.I32
+    .I16   -> ConvertTarget.I32
+    .I32   -> ConvertTarget.I32
+    .U8    -> ConvertTarget.I32
+    .U16   -> ConvertTarget.I32
+    .U32   -> ConvertTarget.I32
+    .I64   -> ConvertTarget.I64
+    .U64   -> ConvertTarget.I64
+    .Isize -> ConvertTarget.I64
+    .Usize -> ConvertTarget.I64
+    .F32   -> ConvertTarget.F64
+    .F64   -> ConvertTarget.F64
+    .Char  -> ConvertTarget.Char
+    .Bool  -> null
+    .String -> null
+    .Null  -> null
+    .Void  -> null
+    .Ref   -> null
+    .Any   -> null
+}
+
 /// Pop one value and push a `BoolVal` indicating whether its runtime
 /// type matches `module.types[type_id]`. Recurses through `UnionType`
 /// variants. Drives `match` arm dispatch and `if x is T` narrowing.

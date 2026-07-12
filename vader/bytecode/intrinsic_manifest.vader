@@ -20,6 +20,7 @@
 
 module "vader/bytecode"
 
+import "std/abort" { panic }
 import "std/string" { starts_with, ends_with }
 import "vader/types" { is_int_name, is_primitive_name }
 
