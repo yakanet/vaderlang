@@ -308,7 +308,7 @@ fn 10 std_string$repeat (string,usize) -> string
   return
 end
 
-fn 11 std_string$find (string,char) -> bool
+fn 11 std_string$contains_char (string,char) -> bool
   local.get 0
   local.get 1
   i64.const 0

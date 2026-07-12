@@ -347,7 +347,7 @@ export repeat :: fn(s: string, n: usize) -> string {
 /// @param s  string to search.
 /// @param c  codepoint to look for.
 /// @return   whether `c` appears in `s`.
-export find :: fn(s: string, c: char) = s.index_of(c, 0) >= 0
+export contains_char :: fn(s: string, c: char) = s.index_of(c, 0) >= 0
 
 /// Strip leading and trailing ASCII whitespace (`' '`, `'\t'`, `'\n'`,
 /// `'\r'`). Unicode whitespace is not recognised in MVP.
