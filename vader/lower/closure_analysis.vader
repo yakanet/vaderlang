@@ -41,7 +41,9 @@ export analyze_closures :: fn(loaded: LoadedProject, typed: TypedProject) -> Clo
 }
 
 // Per-module walker. Walks every top-level AST.FnDecl + AST.ImplDecl member
-// body. Const decl bodies don't host lambdas in MVP scope.
+// body, plus ConstDecl values — a const can be initialised by a block that
+// declares locals and returns a capturing lambda, which hosts a closure just
+// like a fn body.
 analyze_module :: fn(loaded: LoadedModule, typed: TypedProgram, analysis: ClosureAnalysis) -> void {
     // Build the defined-span → Symbol index once per module ; the body
     // walker hits this dozens of times per lambda, so the previous
@@ -60,6 +62,7 @@ analyze_module :: fn(loaded: LoadedModule, typed: TypedProgram, analysis: Closur
                         if member.body is AST.BlockExpr as body { analyze_fn_body(member, body, typed, symbol_index, analysis) }
                     }
                 }
+                is AST.ConstDecl as const_decl -> { analyze_const_body(const_decl, typed, symbol_index, analysis) }
                 _ -> {}
             }
         }
@@ -107,6 +110,26 @@ analyze_fn_body :: fn(
         .empty_captures = [],
     }
     walk_body(body, scope, null, null, ctx)
+}
+
+// Walk a top-level const's value for capturing lambdas. A const initialised by
+// a block that declares locals and returns a lambda — `make_adder :: { base ::
+// 10 (n) -> base + n }` — hosts a closure just like a fn body ; without this its
+// `lambda_captures` entry is missing, the captured cell is never promoted, and
+// the lambda miscompiles (VM `convert on empty stack` / native `unreachable`).
+// Walked with an EMPTY owned scope (a const has no params) at top level
+// (out_captures = null) — nested lambdas record their own captures.
+analyze_const_body :: fn(
+    const_decl: AST.ConstDecl, typed: TypedProgram,
+    symbol_index: MutableMap<u64, Symbol>, analysis: ClosureAnalysis,
+) -> void {
+    ctx :: WalkCtx {
+        .typed = typed,
+        .symbol_index = symbol_index,
+        .analysis = analysis,
+        .empty_captures = [],
+    }
+    walk_expr(const_decl.value, empty_scope(), null, null, ctx)
 }
 
 WalkCtx :: struct {

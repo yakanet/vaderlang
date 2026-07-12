@@ -1,0 +1,20 @@
+# Typecheck
+
+## tests/snippets/const_block_closure
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      make_adder           :: fn(i32) -> i32
+  expr 12:17    BinaryExpr     :: i32
+  expr 12:17    IdentExpr      :: i32
+  expr 12:24    IdentExpr      :: i32
+  expr 12:5     LambdaExpr     :: fn(i32) -> i32
+  expr 16:12    IdentExpr      :: fn(i32) -> i32
+  expr 17:13    StringLitExpr  :: string
+  expr 17:16    CallExpr       :: i32
+  expr 17:16    IdentExpr      :: fn(i32) -> i32
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(T) -> void
+  expr 18:13    StringLitExpr  :: string
+  expr 18:16    CallExpr       :: i32
+  expr 18:16    IdentExpr      :: fn(i32) -> i32
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void
