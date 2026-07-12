@@ -70,19 +70,42 @@ export evaluate_string_lit :: fn(
 }
 
 // Render a comptime value as the user-facing `Display` form would —
-// strings stay quote-less, integers drop the `_i32` suffix. Used by
-// string-interpolation segments so `"x=${42}"` resolves to `"x=42"`
-// rather than `"x=42_i32"`.
+// strings stay quote-less, integers drop the `_i32` suffix, and a char
+// renders as its glyph (not the codepoint number). Used by
+// string-interpolation segments so `"x=${42}"` resolves to `"x=42"` and
+// `"c=${'A'}"` to `"c=A"`, matching the runtime `Display` of the same code.
 interp_value :: fn(v: ComptimeValue) -> string = match v {
     is IntValue    as x -> "${x.value}"
     is FloatValue  as x -> "${x.value}"
     is BoolValue   as x -> "${x.value}"
     is StringValue as x -> x.value
-    is CharValue   as x -> "${x.value}"
+    // `char`'s Display is `utf8_encode(self).bytes_to_string()` — cast the
+    // stored codepoint back to `char` to borrow it (glyph, not `65`).
+    is CharValue   as x -> "${char(x.value)}"
     is NullValue        -> "null"
     is VoidValue        -> ""
     is ArrayValue       -> display_value(v)
     is StructValue      -> display_value(v)
     is TypeValue        -> display_value(v)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+@test test_interp_value_char_renders_glyph :: fn() -> void {
+    // comptime-1 : a char in an interpolation renders its glyph, not the
+    // codepoint number (65 → "A"), matching runtime `Display`.
+    assert_eq(interp_value(CharValue { .value = 65 }), "A")
+}
+
+@test test_interp_value_char_multibyte :: fn() -> void {
+    // Non-ASCII codepoint round-trips through UTF-8 (U+00E9 → "é"), proving
+    // the fix encodes rather than printing `233`.
+    assert_eq(interp_value(CharValue { .value = 233 }), "é")
+}
+
+@test test_interp_value_int_no_suffix :: fn() -> void {
+    assert_eq(interp_value(int_val(42)), "42")
 }
 
