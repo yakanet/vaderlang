@@ -424,73 +424,72 @@ build_block_body :: fn(fn_ctx: FnCtx, b: LoweredBlock) -> LocalId | null {
     return build_expr(fn_ctx, b.trailing)
 }
 
+// Exhaustive over `LoweredStmt` (a closed compiler union) so a new variant trips
+// T3013 here rather than being silently dropped — the coroutine markers below
+// were exactly such a silent drop (midir-1).
 build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
-    if s is LoweredLet as let_stmt {
-        value_local :: build_expr(fn_ctx, let_stmt.value)
-        dst :: declare_local(fn_ctx, let_stmt.name, let_stmt.type, let_stmt.symbol)
-        fn_ctx.local_by_sym_id[let_stmt.symbol.id] = dst
-        if value_local !is null {
-            if fn_ctx.current !is null {
-                emit(fn_ctx, InstrMove { .dst = dst, .src = value_local, .span = let_stmt.span })
+    match s {
+        is LoweredLet as let_stmt -> {
+            value_local :: build_expr(fn_ctx, let_stmt.value)
+            dst :: declare_local(fn_ctx, let_stmt.name, let_stmt.type, let_stmt.symbol)
+            fn_ctx.local_by_sym_id[let_stmt.symbol.id] = dst
+            if value_local !is null {
+                if fn_ctx.current !is null {
+                    emit(fn_ctx, InstrMove { .dst = dst, .src = value_local, .span = let_stmt.span })
+                }
             }
         }
-        return
-    }
-    if s is LoweredAssign as a {
-        build_assign(fn_ctx, a)
-        return
-    }
-    if s is LoweredCellSet as cs {
-        cell :: build_expr(fn_ctx, cs.target)
-        value :: build_expr(fn_ctx, cs.value)
-        if cell !is null {
+        is LoweredAssign as a -> { build_assign(fn_ctx, a) }
+        is LoweredCellSet as cs -> {
+            cell :: build_expr(fn_ctx, cs.target)
+            value :: build_expr(fn_ctx, cs.value)
+            if cell !is null {
+                if value !is null {
+                    emit(fn_ctx, InstrCellSet {
+                        .cell = cell, .value = value, .value_type = cs.value_type, .span = cs.span,
+                    })
+                }
+            }
+        }
+        is LoweredDeferPush as dp -> {
+            // `thunk` builds to a closure (make-closure) in `value` ; push it onto
+            // the frame's defer-stack. Drained by `InstrDeferPopExec` at each exit.
+            value :: build_expr(fn_ctx, dp.thunk)
             if value !is null {
-                emit(fn_ctx, InstrCellSet {
-                    .cell = cell, .value = value, .value_type = cs.value_type, .span = cs.span,
-                })
+                emit(fn_ctx, InstrDeferPush { .value = value, .span = dp.span })
             }
         }
-        return
-    }
-    if s is LoweredDeferPush as dp {
-        // `thunk` builds to a closure (make-closure) in `value` ; push it onto
-        // the frame's defer-stack. Drained by `InstrDeferPopExec` at each exit.
-        value :: build_expr(fn_ctx, dp.thunk)
-        if value !is null {
-            emit(fn_ctx, InstrDeferPush { .value = value, .span = dp.span })
+        is LoweredDeferPopExec as dpe -> {
+            emit(fn_ctx, InstrDeferPopExec { .count = dpe.count, .span = dpe.span })
         }
-        return
-    }
-    if s is LoweredDeferPopExec as dpe {
-        emit(fn_ctx, InstrDeferPopExec { .count = dpe.count, .span = dpe.span })
-        return
-    }
-    if s is LoweredExprStmt as e {
-        // Side-effect only ; the resulting local is discarded.
-        build_expr(fn_ctx, e.expr)
-        return
-    }
-    if s is LoweredReturn as r {
-        value: LocalId | null = null
-        if r.value !is null { value = build_expr(fn_ctx, r.value) }
-        terminate(fn_ctx, TermReturn { .value = value, .span = r.span })
-        return
-    }
-    if s is LoweredLoop as l {
-        build_loop(fn_ctx, l)
-        return
-    }
-    if s is LoweredBreak as br {
-        frame :: resolve_loop_frame(fn_ctx, br.label)
-        if frame is null { return }
-        terminate(fn_ctx, TermBranch { .target = frame.exit_id, .span = br.span })
-        return
-    }
-    if s is LoweredContinue as cont {
-        frame :: resolve_loop_frame(fn_ctx, cont.label)
-        if frame is null { return }
-        terminate(fn_ctx, TermBranch { .target = frame.header_id, .span = cont.span })
-        return
+        is LoweredExprStmt as e -> {
+            // Side-effect only ; discard the resulting local (keeps the arm void
+            // so the match stays a statement, not a value).
+            _ :: build_expr(fn_ctx, e.expr)
+        }
+        is LoweredReturn as r -> {
+            value: LocalId | null = null
+            if r.value !is null { value = build_expr(fn_ctx, r.value) }
+            terminate(fn_ctx, TermReturn { .value = value, .span = r.span })
+        }
+        is LoweredLoop as l -> { build_loop(fn_ctx, l) }
+        is LoweredBreak as br -> {
+            frame :: resolve_loop_frame(fn_ctx, br.label)
+            if frame is null { return }
+            terminate(fn_ctx, TermBranch { .target = frame.exit_id, .span = br.span })
+        }
+        is LoweredContinue as cont -> {
+            frame :: resolve_loop_frame(fn_ctx, cont.label)
+            if frame is null { return }
+            terminate(fn_ctx, TermBranch { .target = frame.header_id, .span = cont.span })
+        }
+        is LoweredYield | LoweredAwait -> {
+            // Transient coroutine-suspension markers. `lower_coroutine` rewrites
+            // them into the resumable state machine BEFORE midir ; reaching one
+            // here means that pass missed it. Panic loudly rather than silently
+            // drop it (which miscompiled the async / generator path — midir-1).
+            panic("midir: coroutine marker (LoweredYield/LoweredAwait) reached build_stmt — lower_coroutine should have consumed it")
+        }
     }
 }
 
