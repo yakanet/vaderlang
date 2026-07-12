@@ -153,6 +153,18 @@ export format :: fn(self: Duration) -> string {
 //   - civil_from_days  : serial day number -> (y, m, d)
 //   Handles the full proleptic Gregorian range without lookup tables.
 
+// Number of days in month `m` (1-12) of year `y`, honouring the Gregorian
+// leap-year rule for February. Used to reject impossible dates (`2026-02-31`,
+// `2026-04-31`) in `parse_iso8601`. Caller ensures `m` is in 1..12.
+days_in_month :: fn(y: i64, m: i64) -> i64 {
+    if m == 2 {
+        leap :: (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0)
+        return if leap { 29 } else { 28 }
+    }
+    if m == 4 || m == 6 || m == 9 || m == 11 { return 30 }
+    return 31
+}
+
 days_from_civil :: fn(y: i64, m: i64, d: i64) -> i64 {
     yy :: if m <= 2 { y - 1 } else { y }
     era :: if yy >= 0 { yy / 400 } else { (yy - 399) / 400 }
@@ -298,12 +310,17 @@ export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
         }
     }
     expect_byte(s, cursor, 'Z')?
+    // `Z` must be the final byte — reject trailing garbage (`…Z…`), which the
+    // per-field parse would otherwise silently ignore.
+    if cursor + 1 != sb.len() {
+        return TimeError { .msg = "iso8601: trailing characters after `Z`" }
+    }
 
     if month < 1 || month > 12 {
         return TimeError { .msg = "iso8601: month out of range" }
     }
-    if day < 1 || day > 31 {
-        return TimeError { .msg = "iso8601: day out of range" }
+    if day < 1 || day > days_in_month(year, month) {
+        return TimeError { .msg = "iso8601: day out of range for month" }
     }
     if hours > 23 || minutes > 59 || seconds_part > 60 {
         return TimeError { .msg = "iso8601: time field out of range" }
@@ -383,6 +400,18 @@ import "std/testing" { assert_eq, assert }
                 789
     inst :: Instant(total_ms * 1_000_000)
     assert_eq(format_iso8601(inst), "2026-05-15T12:34:56.789Z")
+}
+
+@test test_iso8601_date_validation :: fn() -> void {
+    // stdlib-domain-5 : reject an impossible day-of-month (leap-aware) and any
+    // trailing characters after the required `Z`.
+    assert(parse_iso8601("2026-02-31T00:00:00Z")  is TimeError, "Feb 31 rejected")
+    assert(parse_iso8601("2026-04-31T00:00:00Z")  is TimeError, "Apr 31 rejected")
+    assert(parse_iso8601("2026-02-29T00:00:00Z")  is TimeError, "Feb 29 in a non-leap year rejected")
+    assert(parse_iso8601("2024-02-29T00:00:00Z")  is Instant,   "Feb 29 in a leap year accepted")
+    assert(parse_iso8601("2000-02-29T00:00:00Z")  is Instant,   "Feb 29 in a 400-divisible year accepted")
+    assert(parse_iso8601("2026-01-31T00:00:00Z")  is Instant,   "Jan 31 accepted")
+    assert(parse_iso8601("2026-01-01T00:00:00Zx") is TimeError, "trailing chars after Z rejected")
 }
 
 @test test_iso8601_roundtrip :: fn() -> void {
