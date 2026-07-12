@@ -11,13 +11,9 @@
 // and the StringBuilder surface ; we only need the extras here.
 module "vader/lexer"
 
-import "std/string" { pad_start, pad_end, compare_ascending as string_less }
+import "std/string" { pad_start, pad_end }
 import "std/numbers" { to_hex }
-import "std/sort" { sort }
-import "std/math" { min }
-import "std/collections" { MutableSet }
 import "vader/text" { quote_simple }
-TTY :: import "std/tty"
 // Diagnostic info is now resolved at construction time — see vader/diagnostics.
 
 export dump_tokens :: fn(l: Lexer) -> string {
@@ -30,79 +26,10 @@ export dump_tokens :: fn(l: Lexer) -> string {
     return sb.to_string()
 }
 
-/// Render `diags` as a `# Diagnostics` block, ordered by (offset, code). The
-/// sole producer of the `lexer.snapshot` fixtures — keep its signature frozen.
-/// This is the machine channel : output is complete and byte-diffable, so it is
-/// never capped (dedup is lossless and still applies).
-export dump_diagnostics :: fn(diags: Diagnostic[]) -> string = render_diagnostics(diags, false, false)
-
-/// Like `dump_diagnostics`, but prefixes every line with the source file and
-/// orders by (file, offset, code). For the build renderers (each
-/// `flush_build_diags`), whose diagnostics span every compiled module — without
-/// the file a `[line:col]` can't be traced back to a module. The dump stages run
-/// one file at a time and omit it so their snapshots stay machine-independent.
-/// This is the user-facing channel, so the block is capped.
-export dump_diagnostics_with_file :: fn(diags: Diagnostic[]) -> string = render_diagnostics(diags, true, true)
-
-// Upper bound on diagnostics rendered in one block. A single root error can
-// cascade into hundreds of derived diagnostics ; past this many the real cause
-// scrolls off, so the tail is collapsed into a "… and N more" line.
-MAX_SHOWN_DIAGNOSTICS: usize: 100
-
-// Shared body for both public renderers. `show_file` switches the per-line file
-// prefix AND the sort (file-grouped vs offset-only) in lockstep. `cap` collapses
-// the tail past `MAX_SHOWN_DIAGNOSTICS` — on for the user-facing build channel,
-// off for the machine/snapshot channel whose contract is complete output.
-// Duplicates are always dropped (lossless on any channel).
-render_diagnostics :: fn(diags: Diagnostic[], show_file: bool, cap: bool) -> string {
-    sorted :: if show_file { sort(diags, diag_less_with_file) } else { sort(diags, diag_less) }
-    unique :: dedup_diagnostics(sorted)
-    limit :: if cap { min(unique.len(), MAX_SHOWN_DIAGNOSTICS) } else { unique.len() }
-    sb := StringBuilder {}
-    sb.append("\n# Diagnostics")
-    for d in unique[0..<limit] {
-        sb.append_char('\n')
-        sb.format_diagnostic(d, show_file)
-    }
-    if unique.len() > limit {
-        sb.append_char('\n')
-        sb.append("… and ${unique.len() - limit} more diagnostic(s)")
-    }
-    return sb.to_string()
-}
-
-// Drop exact-duplicate diagnostics, preserving first-seen order. The same error
-// can surface through more than one path (e.g. a cross-module symbol reported
-// once per importer) ; the user should see it a single time.
-dedup_diagnostics :: fn(diags: Diagnostic[]) -> Diagnostic[] {
-    seen :: MutableSet<string> {}
-    out: Diagnostic[] = []
-    for d in diags {
-        if seen.add(diag_key(d)) { out.push(d) }
-    }
-    return out
-}
-
-// Identity of a diagnostic for dedup : severity, code, full span and message.
-diag_key :: fn(d: Diagnostic) -> string =
-    "${i32(d.severity)}|${d.code.id}|${d.primary.start.file}|${d.primary.start.offset}|${d.primary.end.offset}|${d.detail}"
-
-diag_less :: fn(a: Diagnostic, b: Diagnostic) -> bool {
-    // A single dump-stage run comes from one file, so order by (offset, code)
-    // only — `diag_less_with_file` adds the file tie-break for the build path.
-    if a.primary.start.offset < b.primary.start.offset { return true }
-    if a.primary.start.offset > b.primary.start.offset { return false }
-    return string_less(a.code.id, b.code.id)
-}
-
-// Build-renderer ordering : group by file first (build diagnostics span every
-// compiled module), then defer to `diag_less` for the (offset, code) tie-break.
-diag_less_with_file :: fn(a: Diagnostic, b: Diagnostic) -> bool {
-    af :: a.primary.start.file
-    bf :: b.primary.start.file
-    if af != bf { return string_less(af, bf) }
-    return diag_less(a, b)
-}
+// The diagnostic renderer (`dump_diagnostics` / `dump_diagnostics_with_file` /
+// `render_diagnostics` / `format_diagnostic` + dedup/sort helpers) moved to
+// `vader/diagnostics/render` — rendering a `Diagnostic[]` is a diagnostics
+// concern, not a lexer one. This module keeps only the token dump below.
 
 format_token :: fn(sb: StringBuilder, t: Token) -> void {
     span :: "${t.span.start.line}:${t.span.start.column}-${t.span.end.line}:${t.span.end.column}"
@@ -252,85 +179,4 @@ export kind_name :: fn(k: TokenKind) = match k {
 
     .Newline -> "newline"
     .Eof     -> "eof"
-}
-
-format_diagnostic :: fn(sb: StringBuilder, d: Diagnostic, show_file: bool) -> void {
-    sev_word :: match d.severity {
-        .Error   -> "error"
-        .Warning -> "warning"
-        .Info    -> "info"
-        .Hint    -> "hint"
-    }
-    // Colorize the severity only on the build path (show_file true). The no-file
-    // dump stages feed the byte-stable lexer.snapshot fixtures, so they stay
-    // plain ; and TTY.red / TTY.yellow degrade to plain text anyway when neither
-    // stream is a terminal (so a piped build, including snapshot capture, is plain).
-    sev :: if show_file {
-        match d.severity {
-            .Error        -> TTY.red(sev_word)
-            .Warning      -> TTY.yellow(sev_word)
-            .Info | .Hint -> sev_word
-        }
-    } else { sev_word }
-    p :: d.primary.start
-    detail: string = ""
-    if !d.detail.is_empty() {
-        detail = ": ${d.detail}"
-    }
-    // The build renderers span every compiled module, so they prefix the file ;
-    // single-file dump stages omit it to keep their snapshots machine-independent.
-    loc :: if show_file { "${p.file}:${p.line}:${p.column}" } else { "${p.line}:${p.column}" }
-    sb.append("[${loc}] ${sev}[${d.code.id}] ${d.code.message}${detail}")
-}
-
-// ---- tests ----------------------------------------------------------------
-
-import "std/testing" { assert, assert_eq }
-
-mk_diag_span :: fn(start: i32, end: i32) -> Span = Span {
-    .start = Position { .file = "t.vader", .offset = usize(start), .line = 1, .column = start + 1 },
-    .end   = Position { .file = "t.vader", .offset = usize(end),   .line = 1, .column = end + 1 },
-}
-
-@test test_dedup_drops_exact_duplicates :: fn() -> void {
-    sp :: mk_diag_span(0, 1)
-    d1 :: lexer_error(.UnexpectedCharacter, sp, "x")
-    d2 :: lexer_error(.UnexpectedCharacter, sp, "x")   // identical content
-    d3 :: lexer_error(.StrayBackslash,      sp, "y")   // distinct code + detail
-    diags: Diagnostic[] = [d1, d2, d3]
-    assert_eq(dedup_diagnostics(diags).len(), 2)
-}
-
-@test test_dedup_keeps_distinct_spans :: fn() -> void {
-    a :: lexer_error(.UnexpectedCharacter, mk_diag_span(0, 1), "x")
-    b :: lexer_error(.UnexpectedCharacter, mk_diag_span(5, 6), "x")   // same code/detail, different span
-    diags: Diagnostic[] = [a, b]
-    assert_eq(dedup_diagnostics(diags).len(), 2)
-}
-
-@test test_cap_collapses_tail :: fn() -> void {
-    // The user-facing channel (with_file) caps at MAX_SHOWN_DIAGNOSTICS.
-    diags: Diagnostic[] = []
-    for i in 0..<150 {
-        diags.push(lexer_error(.UnexpectedCharacter, mk_diag_span(i, i + 1), "e"))
-    }
-    out :: dump_diagnostics_with_file(diags)
-    assert("… and 50 more diagnostic(s)" in out, "expected the cap tail for 150 diagnostics")
-}
-
-@test test_no_cap_tail_under_limit :: fn() -> void {
-    diags: Diagnostic[] = []
-    for i in 0..<10 {
-        diags.push(lexer_error(.UnexpectedCharacter, mk_diag_span(i, i + 1), "e"))
-    }
-    assert("more diagnostic(s)" !in dump_diagnostics_with_file(diags), "no tail expected under the cap")
-}
-
-@test test_machine_channel_uncapped :: fn() -> void {
-    // The snapshot/machine channel must stay complete — no cap, no collapse line.
-    diags: Diagnostic[] = []
-    for i in 0..<150 {
-        diags.push(lexer_error(.UnexpectedCharacter, mk_diag_span(i, i + 1), "e"))
-    }
-    assert("more diagnostic(s)" !in dump_diagnostics(diags), "machine channel must not cap")
 }

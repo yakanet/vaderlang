@@ -12,7 +12,7 @@ import "std/path" { to_posix, to_path, filename }
 import "std/process" { spawn, ProcessError }
 import "std/cli" { FlagSpec, parse, parse_known, bool_flag, string_flag }
 import "vader/version" { CLI_VERSION }
-import "vader/lexer" { tokenize, dump_tokens, dump_diagnostics, dump_diagnostics_with_file }
+import "vader/lexer" { tokenize, dump_tokens }
 import "vader/parser" { parse_source, dump_program }
 import "vader/resolver/symbol" { new_factory }
 import "vader/resolver" { ResolvedProject, ResolvedModule, resolve_module }
@@ -39,7 +39,7 @@ import "vader/midir" { build_cfg_project, dump_cfg_project, DumpCfgOptions, emit
 import "vader/c_emit" { emit_c, EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
 Prof :: import "vader/profile"
 TTY :: import "std/tty"
-import "vader/diagnostics" { Diagnostic }
+import "vader/diagnostics" { Diagnostic, dump_diagnostics, dump_diagnostics_with_file }
 import "vader/fmt" { run_fmt }
 import "vader/vm" { run_virt, parse_virt_bc, prepare, exec_entry, Ok, Trap }
 import "vader/lsp" { run_server }
