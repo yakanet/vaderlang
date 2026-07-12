@@ -19,6 +19,7 @@ import "std/string" { starts_with }
 import "std/string_builder" { StringBuilder, append }
 import "vader/bytecode" { ConvertTarget }
 import "vader/types" { TRAIT_ERROR }
+import "vader/text" { prefix_before_double_underscore }
 bc :: import "vader/bytecode"
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
@@ -440,32 +441,6 @@ struct_name_at :: fn(state: VmState, type_id: i32) -> string = match state.bc.ty
     is bc.BcUnion     -> ""
 }
 
-/// Slice `s` up to the first `__` byte pair occurring *after* the last
-/// `$`. That's the type-arg separator the lowerer emits for
-/// monomorphised generics (`std_core$Yield__Any`,
-/// `std_iter$MappedIterator__i32__i32`). For non-generic structs there is
-/// no such `__`, and we return the empty string to signal "no sibling
-/// family" — using the full mangled name would false-match other
-/// non-generic structs declared in a path whose folder name contains
-/// `__` (e.g. `tests_snippets_if_is_narrow__main_vader$Cat` vs `$Dog`).
-prefix_before_double_underscore :: fn(s: string) -> string {
-    sb :: s.bytes()
-    n :: sb.len()
-    if n < 2 { return "" }
-    last_dollar: i32 = -1
-    for i in 0..<n {
-        if sb[i] == '$' { last_dollar = i32(i) }
-    }
-    start: usize = if last_dollar < 0 { 0 } else { usize(last_dollar) + 1 }
-    j: usize = start
-    for j + 1 < n {
-        if sb[j] == '_' && sb[j + 1] == '_' {
-            return sb[0..<j].bytes_to_string()
-        }
-        j += 1
-    }
-    return ""
-}
 
 /// Match a value against a `ref Trait` type. `is Error` routes to
 /// `ErrorVal` + impl-table check, `ref _` (empty trait name) accepts any

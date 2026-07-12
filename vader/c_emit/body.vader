@@ -32,7 +32,7 @@ import "vader/bytecode" {
     BcType, BcPrimitive, BcStruct, BcArray, BcUnion, BcRef, BcFn,
     ValType,
 }
-import "vader/text" { is_ident_byte }
+import "vader/text" { is_ident_byte, prefix_before_double_underscore }
 
 // =========================================================================
 // C identifier sanitation
@@ -256,32 +256,6 @@ export primitive_tag_of :: fn(types: BcType[], val: ValType) -> i32 {
 export box_expr_unknown :: fn(types: BcType[], name: string, val: ValType) -> string =
     box_expr(name, val, primitive_tag_of(types, val))
 
-/// Mangled-name prefix up to the first `__` byte pair occurring *after* the
-/// last `$` — the type-arg separator the lowerer emits for monomorphised
-/// generics (`std_collections$Entry__i32__i32` → `std_collections$Entry`).
-/// A non-generic struct (no such `__`) returns `""` to signal "no sibling
-/// family". Mirrors `prefix_before_double_underscore` in
-/// `vader/vm/value.vader` — the VM's erasure-aware `type_check` uses the same
-/// grouping so a runtime sibling shape (`Entry(i32,i32)`) matches a static
-/// erased one (`Entry<Any,Any>`).
-export prefix_before_double_underscore :: fn(s: string) -> string {
-    sb :: s.bytes()
-    n :: sb.len()
-    if n < 2 { return "" }
-    last_dollar: i32 = -1
-    for i in 0..<n {
-        if sb[i] == '$' { last_dollar = i32(i) }
-    }
-    start: usize = if last_dollar < 0 { 0 } else { usize(last_dollar) + 1 }
-    j: usize = start
-    for j + 1 < n {
-        if sb[j] == '_' && sb[j + 1] == '_' {
-            return sb[0..<j].bytes_to_string()
-        }
-        j += 1
-    }
-    return ""
-}
 
 /// True when the type at `type_index` is exactly the primitive of class
 /// `slot_val` — the compile-time answer for `type_check` on a primitively-
