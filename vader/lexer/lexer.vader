@@ -857,8 +857,11 @@ lex_one :: fn(l: Lexer) -> void {
         return
     }
     if c == '/' && l.peek_at(1) == '/' {
-        // Line comment: skip to (but not past) the newline.
-        for !l.at_end() && l.peek() != '\n' {
+        // Line comment: skip to (but not past) the newline. Stop on a bare
+        // `\r` too — `handle_newline` (and the `\n || \r` test above) treats a
+        // lone CR as a line break, so a classic-Mac file must end the comment
+        // there or the scan swallows the following line.
+        for !l.at_end() && l.peek() != '\n' && l.peek() != '\r' {
             l.advance(1)
         }
         return
@@ -975,6 +978,14 @@ import "std/testing" { assert, assert_eq }
     l :: tokenize("// comment\n42", "test.vader")
     // Line comment is consumed ; only the int + eof remain.
     assert_eq(l.tokens[0].text, "42")
+}
+
+@test test_line_comment_ends_on_bare_cr :: fn() -> void {
+    // Classic-Mac line ending : a lone CR terminates the comment, so the
+    // following line's code survives instead of being swallowed.
+    l :: tokenize("// comment\r42", "test.vader")
+    assert_eq(l.tokens[0].text, "42")
+    assert_eq(l.line_of("42"), 2)
 }
 
 @test test_tokenize_no_errors_on_valid_source :: fn() -> void {
