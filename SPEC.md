@@ -1405,10 +1405,14 @@ match u {
 |------|----------------------|
 | Primitives (numeric, bool, char) | Bit-for-bit |
 | `string` | Structural (compares contents) |
-| Struct, array | **Reference identity** |
+| `enum` | Discriminant equality (`i32.eq`) |
+| Distinct type | Backing type's `==` |
+| **Struct, array** | **Compile error (T3043) — no built-in `==`; implement `Equals`** |
 | Type with `impl Equals` | Delegated to `Equals.equals` |
 
-To compare two structs structurally, implement `Equals` or call `equals(a, b)`.
+To compare two structs or arrays, implement `Equals` (or call `equals(a, b)`).
+Structs and arrays have no implicit identity `==`: a bare `a == b` on them is
+rejected at compile time, never a silent reference compare.
 
 ---
 
