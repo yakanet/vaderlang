@@ -178,5 +178,11 @@
       "minMs": 55.7,
       "checksum": "interp 5722221"
     }
+  },
+  "selfcompile_c": {
+    "vader-native": {
+      "minMs": 8689.7,
+      "checksum": ""
+    }
   }
 }

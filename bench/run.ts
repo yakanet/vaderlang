@@ -58,6 +58,16 @@ const WORKLOADS: readonly Workload[] = [
   { name: "arr_push",       description: "20 M i32 pushes (200 × 100k), grow + GC churn",    outputMatch: "arr_push" },
   { name: "str_concat",     description: "300k × build a 13-byte string by repeated +",      outputMatch: "str_concat" },
   { name: "interp",         description: "200k × format 3 ints via ${} interpolation",       outputMatch: "interp" },
+  // Vader-only : compiler THROUGHPUT, not generated-code runtime. Times a full C
+  // emission of the self-hosted compiler (~30 kLoC) — the largest realistic input,
+  // and the one thing the runtime-only workloads above can't catch (an O(n²) crept
+  // into a typecheck / lower / emit pass). `--target=c --release` stops after the
+  // compiler's own passes (no cc / linker time, no `#line` bloat). stdout is empty
+  // (the "wrote" line is on stderr) so `checksum` is "" ; the exit-0 guard in
+  // `timedRun` already asserts the compile succeeded. NB: this time GROWS as the
+  // compiler grows — re-baseline (`--update`) after a large feature lands, the way
+  // the bootstrap seed is refreshed.
+  { name: "selfcompile_c",  description: "emit C for the whole self-hosted compiler (~30 kLoC)", outputMatch: "" },
 ];
 
 interface Impl {
@@ -116,9 +126,17 @@ const IMPLS: readonly Impl[] = [
   // },
   {
     name: "vader-native",
-    source: (w) => `bench/${w}/${w}.vader`,
-    build: (w) => runBuild("./build/vader", ["build", "--target=native", "--release", `bench/${w}/${w}.vader`], `vader build for ${w}`),
-    run: (w) => ({ cmd: `./bench/${w}/${w}`, args: [] }),
+    // `selfcompile_c` is special : its source IS the compiler entry, and the
+    // TIMED run is the emit itself (no separate build step, no per-workload
+    // binary). Every other impl lacks a `bench/selfcompile_c/*` source, so they
+    // are silently skipped and the row shows only this column.
+    source: (w) => w === "selfcompile_c" ? "vader/cli/main.vader" : `bench/${w}/${w}.vader`,
+    build: (w) => w === "selfcompile_c"
+      ? Promise.resolve()
+      : runBuild("./build/vader", ["build", "--target=native", "--release", `bench/${w}/${w}.vader`], `vader build for ${w}`),
+    run: (w) => w === "selfcompile_c"
+      ? { cmd: "./build/vader", args: ["build", "vader/cli/main.vader", "--target=c", "--release", "--out=build/_bench_selfcompile.c"] }
+      : { cmd: `./bench/${w}/${w}`, args: [] },
   },
   {
     name: "bun-ts",
