@@ -67,6 +67,25 @@ export lookup :: fn(self: Scope, name: string) -> Symbol | null {
     return null
 }
 
+/// Number of live frames — frame 0 is the root (module top-level seed),
+/// `frame_count() - 1` is the innermost.
+export frame_count :: fn(self: Scope) -> i32 = i32(self.frames.len())
+
+/// Index of the innermost frame that binds `name`, or -1 when unbound.
+/// Lets a binding site tell apart a same-frame redeclaration (index ==
+/// innermost), a shadow of an outer local/param (0 < index < innermost),
+/// and a top-level name (index 0, the root seed).
+export lookup_frame_index :: fn(self: Scope, name: string) -> i32 {
+    n :: self.frames.len()
+    i := usize(n)
+    for i > 0 {
+        i = i - 1
+        frame :: self.frames[i]
+        if !(frame[name] is null) { return i32(i) }
+    }
+    return -1
+}
+
 
 
 // ---- tests ----------------------------------------------------------------

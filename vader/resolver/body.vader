@@ -17,7 +17,7 @@
 module "vader/resolver"
 
 import "std/collections" { MutableMap }
-import "vader/diagnostics" { Diagnostic, Span, Position, resolver_error }
+import "vader/diagnostics" { Diagnostic, Span, Position, resolver_error, warning }
 AST :: import "vader/parser"
 import "vader/parser" { parse_source }
 import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, new_factory, make }
@@ -96,6 +96,31 @@ mint_local :: fn(self: ResolveState, kind: SymbolKind, name: string, span: Span)
     return self.factory.make(kind, name, self.module_path, .Private, span)
 }
 
+// Mint a value binding (`.Local` / `.Param`), warn if it collides with a name
+// already in scope, then bind it. Two collisions are flagged (warnings for now,
+// per the phased rollout — a later pass may promote them to errors):
+//   W0009 — the name is already bound in the CURRENT block (redeclaration).
+//   W0008 — it shadows an outer LOCAL or PARAMETER (an enclosing non-root frame).
+// A top-level name (root frame, index 0) is intentionally NOT flagged — a local
+// may legitimately share a name with a module-level fn/type/const. Narrowing
+// binds (`is T as x`, patterns) don't route here : reusing the scrutinee's name
+// there is idiomatic, not problematic shadowing.
+bind_local_checked :: fn(self: ResolveState, kind: SymbolKind, name: string, span: Span) -> Symbol {
+    // `_` is the discard wildcard — many `_` bindings coexist by design
+    // (`for _ in …`, `_ :: expr`), so never flag it as a shadow / redeclaration.
+    idx :: if name == "_" { -1 } else { self.scope.lookup_frame_index(name) }
+    if idx > 0 {
+        if idx == self.scope.frame_count() - 1 {
+            self.diags.push(warning(.LocalRedeclaration, span, "`${name}`"))
+        } else {
+            self.diags.push(warning(.LocalShadowsOuter, span, "`${name}`"))
+        }
+    }
+    sym :: self.mint_local(kind, name, span)
+    self.scope.bind(name, sym)
+    return sym
+}
+
 // ---- decl walkers ---------------------------------------------------------
 
 walk_decl :: fn(self: ResolveState, d: AST.Decl) -> void {
@@ -143,8 +168,7 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
     for p in d.params {
         self.walk_opt_expr(p.ty)
         self.walk_opt_expr(p.default_value)
-        sym :: self.mint_local(.Param, p.name, p.span)
-        self.scope.bind(p.name, sym)
+        sym :: self.bind_local_checked(.Param, p.name, p.span)
         // Persist the param's minted Symbol in `idents` keyed by the
         // param's own span so downstream passes (e.g. comptime fn-body
         // interpreter) can recover the Symbol.id without re-walking
@@ -339,8 +363,7 @@ mark_binding_immutable :: fn(self: ResolveState, b: AST.LetBinding) -> void {
 bind_let_binding :: fn(self: ResolveState, b: AST.LetBinding) -> void {
     match b {
         is AST.SimpleBinding as x -> {
-            sym :: self.mint_local(.Local, x.name, x.name_span)
-            self.scope.bind(x.name, sym)
+            sym :: self.bind_local_checked(.Local, x.name, x.name_span)
             // Park the Symbol against the binding's name_span so
             // downstream passes (typecheck → let_type_aliases stash,
             // lower → ident-to-binding lookup) can recover the
@@ -354,8 +377,7 @@ bind_let_binding :: fn(self: ResolveState, b: AST.LetBinding) -> void {
         }
         is AST.WildcardBinding -> {}
         is AST.RestBinding as x -> {
-            sym :: self.mint_local(.Local, x.name, x.span)
-            self.scope.bind(x.name, sym)
+            sym :: self.bind_local_checked(.Local, x.name, x.span)
             self.idents[x.span.hash()] = sym
         }
     }
@@ -370,8 +392,7 @@ walk_for :: fn(self: ResolveState, s: AST.ForStmt) -> void {
     self.scope.push()
     match s.form {
         is AST.InFor as f -> {
-            sym :: self.mint_local(.Local, f.binding, f.binding_span)
-            self.scope.bind(f.binding, sym)
+            _ :: self.bind_local_checked(.Local, f.binding, f.binding_span)
         }
         _ -> {}
     }
@@ -553,8 +574,7 @@ walk_lambda :: fn(self: ResolveState, l: AST.LambdaExpr) -> void {
     self.scope.push()
     for p in l.params {
         self.walk_opt_expr(p.ty)
-        sym :: self.mint_local(.Param, p.name, p.span)
-        self.scope.bind(p.name, sym)
+        _ :: self.bind_local_checked(.Param, p.name, p.span)
     }
     self.walk_opt_expr(l.return_type)
     self.walk_block(l.body)
