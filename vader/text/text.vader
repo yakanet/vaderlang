@@ -36,3 +36,31 @@ export quote_simple :: fn(s: string) -> string {
     sb.append_char('"')
     return sb.to_string()
 }
+
+/// Mangled-name prefix up to the first `__` byte pair occurring *after* the last
+/// `$` — the type-arg separator the lowerer emits for monomorphised generics
+/// (`std_collections$Entry__i32__i32` → `std_collections$Entry`). A non-generic
+/// struct (no such `__`) returns `""` to signal "no sibling family".
+///
+/// Single source shared by `vader/c_emit` and the VM's erasure-aware
+/// `type_check`, so a runtime sibling shape (`Entry(i32, i32)`) and a static
+/// erased one (`Entry<Any, Any>`) group identically. The `is`-check parity this
+/// guarantees was previously carried by two hand-synced copies (vm-4).
+export prefix_before_double_underscore :: fn(s: string) -> string {
+    sb :: s.bytes()
+    n :: sb.len()
+    if n < 2 { return "" }
+    last_dollar: i32 = -1
+    for i in 0..<n {
+        if sb[i] == '$' { last_dollar = i32(i) }
+    }
+    start: usize = if last_dollar < 0 { 0 } else { usize(last_dollar) + 1 }
+    j: usize = start
+    for j + 1 < n {
+        if sb[j] == '_' && sb[j + 1] == '_' {
+            return sb[0..<j].bytes_to_string()
+        }
+        j += 1
+    }
+    return ""
+}
