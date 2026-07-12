@@ -200,6 +200,14 @@ parse_number :: fn(p: Parser) -> JsonNumber | JsonError {
     if at_end(p) || !is_digit(peek_byte(p)) {
         return fail(p, "expected digit")
     }
+    // RFC 8259 `int = zero / (digit1-9 *DIGIT)` — the integer part is a lone `0`
+    // or a nonzero digit followed by more ; a leading zero (`01`, `-0123`) is
+    // invalid.
+    first_digit :: peek_byte(p)
+    advance(p)
+    if first_digit == '0' && !at_end(p) && is_digit(peek_byte(p)) {
+        return fail(p, "leading zeros are not allowed")
+    }
     for !at_end(p) && is_digit(peek_byte(p)) {
         advance(p)
     }
@@ -624,6 +632,31 @@ expect_error :: fn(src: string) -> void {
     if parsed !is JsonError {
         test_fail("expected JsonError")
     }
+}
+
+/// Parse `src` and assert it produced a `JsonNumber` equal to `expected`.
+///
+/// @param src       the JSON document to parse.
+/// @param expected  the expected decoded numeric value.
+expect_number :: fn(src: string, expected: f64) -> void {
+    parsed :: parse(src)
+    if parsed is JsonNumber {
+        assert_eq(parsed.value, expected)
+    } else {
+        test_fail("expected JsonNumber")
+    }
+}
+
+@test test_number_leading_zeros :: fn() -> void {
+    // RFC 8259 forbids a leading zero in the integer part.
+    expect_error("01")
+    expect_error("-0123")
+    expect_error("00")
+    // A lone zero, and normal integers / decimals, are valid.
+    expect_number("0",   0.0)
+    expect_number("0.5", 0.5)
+    expect_number("10",  10.0)
+    expect_number("100", 100.0)
 }
 
 @test test_string_empty :: fn() -> void {

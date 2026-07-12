@@ -7,6 +7,7 @@
   __genstate_enumerate<[usize, T]>
   __genstate_filter<i32>
   __genstate_map<i32>
+  Into<Target>
   Entry<i32, i32>
   Entry<K, V>
   Entry<K, V>
@@ -41,7 +42,6 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
-  Into<Target>
   Add<Rhs, Out>
   MutableSet<i32>
   MutableSet<T>
