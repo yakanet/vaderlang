@@ -1,0 +1,14 @@
+// comptime-3 regression : an `@assert` that references a `@comptime const`
+// must resolve the const from the module's baked bindings and fire C4015 when
+// the condition is statically false. Before the fix, `evaluate_assert_decls`
+// ran with an empty binding map, so the `LIMIT` ident never resolved, the
+// result wasn't a Bool, and C4015 was silently skipped.
+module "snippet"
+
+@comptime LIMIT :: 10
+
+@assert(LIMIT == 999)
+
+main :: fn() -> i32 {
+    return 0
+}
