@@ -83,7 +83,7 @@ collect_decl :: fn(
 ) -> void {
     match d {
         is ImportDecl    as x -> { self.collect_import(x, module_path, module_name, factory, index, paths, diags) }
-        is FnDecl        as x -> { self.add_fn(x, module_path, factory) }
+        is FnDecl        as x -> { self.add_fn(x, module_path, factory, diags) }
         is StructDecl    as x -> { self.add_named(.Struct,    x.name, x.name_span, x.visibility, module_path, factory, diags) }
         is EnumDecl      as x -> { self.add_named(.Enum,      x.name, x.name_span, x.visibility, module_path, factory, diags) }
         is TraitDecl     as x -> { self.add_named(.Trait,     x.name, x.name_span, x.visibility, module_path, factory, diags) }
@@ -96,15 +96,32 @@ collect_decl :: fn(
 
 /// Allow multiple `fn` decls under the same module name (overloading).
 /// The first declaration wins as the primary entry in `symbols` ; later
-/// ones append to the `fn_overloads` bucket. Truly-conflicting overloads
-/// (same first-param type) are caught at typecheck time.
-add_fn :: fn(self: CollectedModule, d: FnDecl, module_path: string, factory: SymbolFactory) -> void {
+/// ones append to the `fn_overloads` bucket. Same-signature overloads —
+/// including a local fn matching a same-named IMPORTED free fn — are caught
+/// at typecheck as T3053 (`check_module_fn_redefinitions`), by FULL signature.
+/// @error R2004 when the fn's name collides with a same-named TYPE or CONST
+///        (a fn can't overload a non-fn declaration). Order-independent with
+///        `add_named`, which flags the reverse decl order.
+add_fn :: fn(self: CollectedModule, d: FnDecl, module_path: string, factory: SymbolFactory, diags: Diagnostic[]) -> void {
     // `main` is the program entry point and is always public. Letting it
     // default to private locks the entry-point fn behind module visibility.
     visibility := d.visibility
     if d.name == "main" { visibility = .Public }
-    sym :: factory.make(.Fn, d.name, module_path, visibility, d.name_span)
 
+    existing :: self.symbols[d.name]
+    // A fn overloads another fn, and coexists with a same-named import (a
+    // potential free-fn overload — a same-signature clash is caught by T3053).
+    // Colliding with a TYPE or CONST is a genuine duplicate → R2004. Return
+    // before bucketing so the conflicting fn isn't orphaned in fn_overloads.
+    if existing is Symbol as e {
+        if e.kind != SymbolKind.Fn && e.kind != SymbolKind.ImportBinding {
+            diags.push(resolver_error(.DuplicateTopLevelSymbol, d.name_span,
+                "`${d.name}` already declared in this module"))
+            return
+        }
+    }
+
+    sym :: factory.make(.Fn, d.name, module_path, visibility, d.name_span)
     bucket :: self.fn_overloads[d.name]
     match bucket {
         is null -> { self.fn_overloads[d.name] = [sym] }
@@ -114,7 +131,6 @@ add_fn :: fn(self: CollectedModule, d: FnDecl, module_path: string, factory: Sym
         }
     }
 
-    existing :: self.symbols[d.name]
     match existing {
         is null -> { self.symbols[d.name] = sym }
         is Symbol as e -> {
@@ -198,11 +214,23 @@ bind_import :: fn(
     existing :: self.symbols[local]
     match existing {
         is Symbol as e -> {
-            // Import↔import collision is silent first-wins (same §1.5
-            // deviation as `add_fn`'s non-fn branches). R2011 fires only
-            // when the import shadows a *non-import* binding ; that's a
-            // genuine duplicate.
-            if e.kind != SymbolKind.ImportBinding {
+            if e.kind == SymbolKind.ImportBinding {
+                // Import↔import : silent first-wins (dedup).
+            } else if e.kind == SymbolKind.Fn {
+                // fn↔import : coexist (order-independent with `add_fn`). The
+                // import may be a free-fn overload of the local fn — a different
+                // signature dispatched by receiver type via UFCS ; a genuine
+                // same-signature clash is caught at typecheck (T3053). Record the
+                // ImportInfo so wire + imported overloads see it, but leave the fn
+                // in the primary name slot.
+                sym :: factory.make(.ImportBinding, local, module_path, .Private, span)
+                self.imports[sym.id] = ImportInfo {
+                    .path = import_path,
+                    .imported_name = imported_name,
+                    .binding_span = span,
+                }
+            } else {
+                // type / const ↔ import : genuine duplicate.
                 diags.push(resolver_error(.DuplicateImportBinding, span,
                     "`${local}`"))
             }

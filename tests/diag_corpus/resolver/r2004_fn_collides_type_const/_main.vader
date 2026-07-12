@@ -1,0 +1,13 @@
+// F2a : a fn colliding with a same-named TYPE or CONST is R2004, regardless of
+// decl order. `add_fn` now flags an existing type/const (matching `add_named`
+// for the reverse order); before, `type→fn` and `const→fn` were silently
+// swallowed (the fn joined the overload bucket with no diagnostic).
+module "snippet"
+
+Shape :: struct { n: i32 }
+Shape :: fn() -> i32 = 1     // R2004 — fn collides with the struct declared above
+
+LIMIT :: 99
+LIMIT :: fn() -> i32 = 2     // R2004 — fn collides with the const declared above
+
+main :: fn() -> i32 = 0
