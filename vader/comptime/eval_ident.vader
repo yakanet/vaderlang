@@ -42,15 +42,12 @@ export evaluate_ident :: fn(expr: AST.IdentExpr, context: ComptimeContext) -> Ev
     return vm_required(expr.span, "IdentExpr (${kind_name(symbol.kind)})")
 }
 
-is_type_symbol_kind :: fn(kind: SymbolKind) -> bool {
-    k :: i32(kind)
-    if k == i32(SymbolKind.Struct)      { return true }
-    if k == i32(SymbolKind.Enum)        { return true }
-    if k == i32(SymbolKind.Trait)       { return true }
-    if k == i32(SymbolKind.TypeAlias)   { return true }
-    if k == i32(SymbolKind.BuiltinType) { return true }
-    if k == i32(SymbolKind.TypeParam)   { return true }
-    return false
+// @partial: the type-denoting kinds are true ; every other SymbolKind is a
+// value / binding kind (Fn, Const, ImportBinding, Local, …) and is not a type.
+// why: a type-vs-not predicate, not a per-variant dispatch that must be exhaustive.
+is_type_symbol_kind :: fn(kind: SymbolKind) -> bool = @partial match kind {
+    .Struct | .Enum | .Trait | .TypeAlias | .BuiltinType | .TypeParam -> true
+    _ -> false
 }
 
 // `type_from_expr` writes diagnostics if the resolution fails ; we
