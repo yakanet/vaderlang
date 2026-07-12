@@ -19,15 +19,21 @@ AST :: import "vader/parser"
 /// and emit `C4015` when the condition is statically `false`. Used by
 /// `evaluate_project` after every module's `@comptime const`s have
 /// been baked so assert conditions can reference them.
-/// @param decls    the module's top-level decls.
-/// @param typed    the module's typed program (for the evaluator ctx).
-/// @param diags    diagnostics emitted by the walker.
+/// @param decls     the module's top-level decls.
+/// @param typed     the module's typed program (for the evaluator ctx).
+/// @param bindings  the module's already-baked `@comptime const` values,
+///                  keyed by Symbol id — without them an `@assert` that
+///                  references a comptime const can't resolve the ident,
+///                  falls back to C4001, and is silently skipped (so a
+///                  false assertion never fires C4015).
+/// @param diags     diagnostics emitted by the walker.
 export evaluate_assert_decls :: fn(
-    decls: AST.Decl[], typed: TypedProgram, diags: Diagnostic[],
+    decls: AST.Decl[], typed: TypedProgram,
+    bindings: MutableMap<i32, ComptimeValue>, diags: Diagnostic[],
 ) -> void {
     context :: ComptimeContext {
         .typed    = typed,
-        .bindings = MutableMap<i32, ComptimeValue> {},
+        .bindings = bindings,
     }
     for decl in decls {
         if decl is AST.AssertDecl as assert_decl {

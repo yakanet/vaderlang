@@ -37,7 +37,9 @@ export evaluate_project :: fn(
             is null -> {}
             _       -> {
                 evaluate_module_decls(decls, module_typed, program, project, module_id, diags)
-                evaluate_assert_decls(decls, module_typed, diags)
+                // Pass the just-baked const values so an `@assert` can resolve
+                // the comptime consts it references (else C4015 never fires).
+                evaluate_assert_decls(decls, module_typed, program.comptime_decls, diags)
                 bake_file_exprs(decls, module_typed, project, program, diags)
             }
         }
