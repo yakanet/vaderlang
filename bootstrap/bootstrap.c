@@ -211877,14 +211877,14 @@ static void vader_lexer_lex_number(vader_box_t l0) {
     vader_string_t l9, l10;
     uint8_t l11;
     uint64_t l14;
-    vader_box_t t0 = vader_box_null(), t8 = vader_box_null(), t20 = vader_box_null(), t21 = vader_box_null(), t24 = vader_box_null(), t36 = vader_box_null(), t38 = vader_box_null(), t40 = vader_box_null(), t42 = vader_box_null(), t43 = vader_box_null(), t44 = vader_box_null(), t46 = vader_box_null(), t48 = vader_box_null(), t50 = vader_box_null();
+    vader_box_t t0 = vader_box_null(), t8 = vader_box_null(), t20 = vader_box_null(), t21 = vader_box_null(), t24 = vader_box_null(), t36 = vader_box_null(), t38 = vader_box_null(), t40 = vader_box_null(), t42 = vader_box_null(), t43 = vader_box_null(), t44 = vader_box_null(), t47 = vader_box_null(), t49 = vader_box_null(), t51 = vader_box_null();
     uint32_t t1, t2, t9, t10, t12, t13, t15, t16, t18, t26, t27, t29, t31, t34;
-    bool t3, t4, t5, t11, t14, t17, t19, t28, t30, t33, t35;
+    bool t3, t4, t5, t11, t14, t17, t19, t28, t30, t33, t35, t46;
     size_t t6, t7, t22, t23, t32, t37;
-    vader_string_t t25, t39, t41, t45, t51;
-    double t47;
-    uint64_t t49;
-    vader_box_t* gc_roots[19] = { &l0, &l1, &l7, &l12, &l13, &t0, &t8, &t20, &t21, &t24, &t36, &t38, &t40, &t42, &t43, &t44, &t46, &t48, &t50 };
+    vader_string_t t25, t39, t41, t45, t52;
+    double t48;
+    uint64_t t50;
+    vader_box_t* gc_roots[19] = { &l0, &l1, &l7, &l12, &l13, &t0, &t8, &t20, &t21, &t24, &t36, &t38, &t40, &t42, &t43, &t44, &t47, &t49, &t51 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 19u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
     t0 = vader_lexer_position_here(l0);
@@ -212072,13 +212072,20 @@ static void vader_lexer_lex_number(vader_box_t l0) {
     l7 = t44;
     t45 = std_numbers_strip_numeric_text(l9, l3);
     l10 = t45;
+    t46 = std_string_is_empty(l10);
+    if (t46) {
+        ((vader_struct_vader_lexer_Token_t*) l7.payload.obj)->f_value = vader_box_i64(22u, INT64_C(0));
+        VADER_WRITE_BARRIER((vader_struct_vader_lexer_Token_t*) l7.payload.obj);
+        vader_lexer_emit(l0, l7);
+        { vader_gc_top = gc_frame.prev; return; }
+    }
     if (l2) {
-        t46 = std_string_parse_float(l10);
-        l12 = t46;
+        t47 = std_string_parse_float(l10);
+        l12 = t47;
         l13 = l12;
         if (l13.tag == 30u) {
-            t47 = ((double) l12.payload.f);
-            l12 = vader_box_f64(30u, t47);
+            t48 = ((double) l12.payload.f);
+            l12 = vader_box_f64(30u, t48);
             ((vader_struct_vader_lexer_Token_t*) l7.payload.obj)->f_value = l12;
             VADER_WRITE_BARRIER((vader_struct_vader_lexer_Token_t*) l7.payload.obj);
             vader_lexer_emit(l0, l7);
@@ -212094,22 +212101,22 @@ static void vader_lexer_lex_number(vader_box_t l0) {
         }
         { vader_gc_top = gc_frame.prev; return; }
     }
-    t48 = std_numbers_parse_uint_in_base(l10, l3);
-    l12 = t48;
+    t49 = std_numbers_parse_uint_in_base(l10, l3);
+    l12 = t49;
     l13 = l12;
     if (l13.tag == 26u) {
-        t49 = ((uint64_t) l12.payload.i);
-        l14 = t49;
+        t50 = ((uint64_t) l12.payload.i);
+        l14 = t50;
         ((vader_struct_vader_lexer_Token_t*) l7.payload.obj)->f_value = vader_box_i64(26u, (int64_t)(uint64_t) l14);
         VADER_WRITE_BARRIER((vader_struct_vader_lexer_Token_t*) l7.payload.obj);
         vader_lexer_emit(l0, l7);
         { vader_gc_top = gc_frame.prev; return; }
     }
     if (l13.tag == 180u) {
-        t50 = vader_lexer_error_span(l0, l1);
-        l1 = t50;
-        t51 = concat_3(22u, l9, 1969u);
-        l9 = t51;
+        t51 = vader_lexer_error_span(l0, l1);
+        l1 = t51;
+        t52 = concat_3(22u, l9, 1969u);
+        l9 = t52;
         vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(10), l1, l9);
         ((vader_struct_vader_lexer_Token_t*) l7.payload.obj)->f_value = vader_box_i64(22u, INT64_C(0));
         VADER_WRITE_BARRIER((vader_struct_vader_lexer_Token_t*) l7.payload.obj);
