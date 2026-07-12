@@ -8,6 +8,7 @@
   expr 26:10    BinaryExpr     :: bool
   expr 26:10    FieldExpr      :: Inner | null
   expr 26:10    IdentExpr      :: Box
+  expr 26:19    IdentExpr      :: null
   expr 26:5     IfExpr         :: void
   expr 26:8     UnaryExpr      :: bool
   expr 27:16    FieldExpr      :: Inner
