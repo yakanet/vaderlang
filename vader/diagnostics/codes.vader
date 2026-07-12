@@ -215,6 +215,8 @@ export WarningCode :: enum(u8) {
     WildcardOnClosedUnion,                  // W0005
     // W0006 (unused-import) never shipped — see typecheck/dead_code.vader ; permanent gap.
     DeadCode,                               // W0007
+    LocalShadowsOuter,                      // W0008
+    LocalRedeclaration,                     // W0009
 }
 
 // `(id, message)` for a code, in one shot. The wire ID is the stable
@@ -309,6 +311,8 @@ export warning_info :: fn(c: WarningCode) = match c {
     .AmbiguousLoopJump                  -> CodeInfo { .id = "W0004", .message = "unlabeled `break` / `continue` inside nested loops targets the innermost loop ; add a label to make the target explicit" }
     .WildcardOnClosedUnion              -> CodeInfo { .id = "W0005", .message = "wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`" }
     .DeadCode                           -> CodeInfo { .id = "W0007", .message = "declaration is never used in its module" }
+    .LocalShadowsOuter                  -> CodeInfo { .id = "W0008", .message = "local binding shadows an outer local or parameter of the same name" }
+    .LocalRedeclaration                 -> CodeInfo { .id = "W0009", .message = "redeclaration of a name already bound in this block" }
 }
 
 export comptime_info :: fn(c: ComptimeCode) = match c {

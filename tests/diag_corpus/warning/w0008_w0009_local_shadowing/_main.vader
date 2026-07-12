@@ -1,0 +1,34 @@
+// F1 regression : local/param shadowing (W0008) and same-block redeclaration
+// (W0009) are flagged. A local sharing a TOP-LEVEL name is intentionally NOT
+// flagged, and `_` never is.
+module "snippet"
+
+top :: fn() -> i32 = 1
+
+shadow_param :: fn(p: i32) -> i32 {
+    p :: p + 1        // W0008 — shadows the parameter
+    return p
+}
+
+shadow_outer :: fn() -> i32 {
+    x :: 1
+    {
+        x :: 2        // W0008 — shadows the outer local
+        return x
+    }
+}
+
+redeclare :: fn() -> i32 {
+    y :: 1
+    y :: 2            // W0009 — redeclared in the same block
+    return y
+}
+
+top_ok :: fn() -> i32 {
+    top :: 42         // no warning — shadowing a top-level name is allowed
+    return top
+}
+
+// Reference every helper so the fixture isn't buried under W0007 dead-code
+// noise — the point is the W0008/W0009 set above.
+main :: fn() -> i32 = top() + shadow_param(1) + shadow_outer() + redeclare() + top_ok()
