@@ -666,7 +666,7 @@ emit_trait_decl :: fn(self: Printer, d: p.TraitDecl) -> void {
         } else {
             self.newline()
         }
-        self.flush_leading_comments_inline(first.offset, first.line)
+        self.flush_leading_comments(first.offset, first.line)
         self.indent()
         self.align_name_width = member_widths[i]
         self.emit_fn_decl(m)
@@ -674,7 +674,7 @@ emit_trait_decl :: fn(self: Printer, d: p.TraitDecl) -> void {
     }
     // Trailing comments before the closing brace.
     inner_trailing :: self.comments.has_before(d.span.end.offset)
-    self.flush_leading_comments_inline(d.span.end.offset, d.span.end.line)
+    self.flush_leading_comments(d.span.end.offset, d.span.end.line)
     self.depth = self.depth - 1
     if inner_trailing { self.indent() } else { self.nl_indent() }
     self.write("}")
@@ -806,14 +806,14 @@ emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
         } else {
             self.newline()
         }
-        self.flush_leading_comments_inline(first.offset, first.line)
+        self.flush_leading_comments(first.offset, first.line)
         self.indent()
         self.align_name_width = impl_widths[i]
         self.emit_fn_decl(m)
         self.align_name_width = 0
     }
     inner_trailing :: self.comments.has_before(d.span.end.offset)
-    self.flush_leading_comments_inline(d.span.end.offset, d.span.end.line)
+    self.flush_leading_comments(d.span.end.offset, d.span.end.line)
     self.depth = self.depth - 1
     if inner_trailing { self.indent() } else { self.nl_indent() }
     self.write("}")
@@ -1585,14 +1585,14 @@ emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
         if b.trailing == null {
             // If the source carried an inner comment (e.g. `{ // skip
             // }`), render it as a multi-line block so the comment
-            // survives. `flush_leading_comments_inline` ends each
+            // survives. `flush_leading_comments` ends each
             // comment with `\n`, so the closing `}` only needs indent
             // (no leading newline).
             if self.comments.has_before(b.span.end.offset) && b.span.start.line != b.span.end.line {
                 self.write("{")
                 self.depth = self.depth + 1
                 self.newline()
-                self.flush_leading_comments_inline(b.span.end.offset, b.span.end.line)
+                self.flush_leading_comments(b.span.end.offset, b.span.end.line)
                 self.depth = self.depth - 1
                 self.indent()
                 self.write("}")
@@ -1636,7 +1636,7 @@ emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
     for s in b.stmts {
         sp :: s.span
         self.newline()
-        self.flush_leading_comments_inline(sp.start.offset, sp.start.line)
+        self.flush_leading_comments(sp.start.offset, sp.start.line)
         self.indent()
         self.emit_stmt(s)
     }
@@ -1644,42 +1644,23 @@ emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
     if trailing != null {
         sp :: trailing.span
         self.newline()
-        self.flush_leading_comments_inline(sp.start.offset, sp.start.line)
+        self.flush_leading_comments(sp.start.offset, sp.start.line)
         self.indent()
         self.emit_expr(trailing)
     }
     // Trailing inner comments (after every stmt / trailing) belong to the
     // closing brace's interior. `b.span.end.line` is the line of `}`.
     inner_trailing :: self.comments.has_before(b.span.end.offset)
-    self.flush_leading_comments_inline(b.span.end.offset, b.span.end.line)
+    self.flush_leading_comments(b.span.end.offset, b.span.end.line)
     self.depth = self.depth - 1
     if inner_trailing {
-        // `flush_leading_comments_inline` already terminated every comment
+        // `flush_leading_comments` already terminated every comment
         // with `\n`, so we're at line start ; just indent.
         self.indent()
     } else {
         self.nl_indent()
     }
     self.write("}")
-}
-
-// Same shape as `flush_leading_comments` but for in-block use. `node_line`
-// is the line of the stmt / trailing expr the comments precede.
-flush_leading_comments_inline :: fn(self: Printer, before: usize, node_line: i32) -> void {
-    cs :: self.comments.take_before(before)
-    prev_end_line: i32 = 0
-    has_prev := false
-    for c in cs {
-        if has_prev && c.line > prev_end_line + 1 { self.newline() }
-        self.indent()
-        self.write(c.text)
-        self.newline()
-        prev_end_line = c.end_line
-        has_prev = true
-    }
-    if has_prev && node_line > prev_end_line + 1 {
-        self.newline()
-    }
 }
 
 emit_lambda :: fn(self: Printer, x: p.LambdaExpr) -> void {
