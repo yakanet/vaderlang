@@ -47,4 +47,4 @@
 }
 
 # Diagnostics
-[9:271] error[P1029] expression nesting too deep: expression nested more than 256 levels deep
+[9:270] error[P1029] expression nesting too deep: expression nested more than 256 levels deep
