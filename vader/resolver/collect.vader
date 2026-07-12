@@ -227,6 +227,7 @@ bind_import :: fn(
                 self.imports[sym.id] = ImportInfo {
                     .path = import_path,
                     .imported_name = imported_name,
+                    .local = local,
                     .binding_span = span,
                 }
             } else {
@@ -241,6 +242,7 @@ bind_import :: fn(
             self.imports[sym.id] = ImportInfo {
                 .path = import_path,
                 .imported_name = imported_name,
+                .local = local,
                 .binding_span = span,
             }
         }

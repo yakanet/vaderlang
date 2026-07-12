@@ -553,21 +553,74 @@ check_module_fn_redefinitions :: fn(
         group :: by_name[decl.name]
         if group == null { by_name[decl.name] = [decl] } else { group.push(decl) }
     }
+    // Signature keys of the module's EXPLICITLY-imported free fns, by imported
+    // name — a local fn with the SAME name AND signature as one it imports would
+    // otherwise silently shadow it (resolver-modules-3, CASE C).
+    imported_keys :: imported_fn_sig_keys(loaded, tp, per_module)
     for [name, group] in by_name {
-        if group.len() < 2 { continue }
-        // A matching canonical signature key is a redefinition, not an overload.
+        imp :: imported_keys[name]
+        // Resolve signatures only when there's something to check : ≥2 local
+        // decls (a possible in-module redefinition) or a same-named import.
+        if group.len() < 2 && imp == null { continue }
         seen :: MutableMap<string, bool> {}
         for fd in group {
             key :: fn_signature_key(fd, tp.resolved)
             if key == null { continue }
+            // A matching canonical signature key is a redefinition, not an overload.
             if seen[key] != null {
                 diags.push(typecheck_error(.DuplicateFnDefinition, fd.span,
                     "`${name}` is already defined with the same signature in this module"))
             } else {
                 seen[key] = true
             }
+            // Same name + signature as an explicitly-imported free fn.
+            if imp != null && imp[key] != null {
+                diags.push(typecheck_error(.DuplicateFnDefinition, fd.span,
+                    "`${name}` has the same signature as an imported function of the same name"))
+            }
         }
     }
+}
+
+// Signature keys of `loaded`'s explicitly-imported free fns, keyed by the LOCAL
+// binding name each introduces. Reads each import binding's target FnType from
+// the owning module's `decl_types` — import-scoped, NOT the broad
+// `imported_fn_overloads` branch-b scan (which surfaces every co-loaded module's
+// fns and would false-positive on ones this module never imported). Iterates
+// `collected.imports` (keyed by Symbol id) rather than `resolved.symbols`,
+// because a coexisting local fn OVERWRITES the import's `symbols` slot (F2a) —
+// the CASE C scenario — while the ImportInfo survives here. Keys by
+// `info.local` (the alias for a renamed `foo as bar`), NOT the source name : a
+// wrapper like `is_int :: fn(..) = ty_is_int(..)` over `import { is_int as
+// ty_is_int }` must NOT be flagged — its local binding is `ty_is_int`, which no
+// local fn shares.
+imported_fn_sig_keys :: fn(
+    loaded: LoadedModule, tp: TypedProgram, per_module: MutableMap<string, TypedProgram>,
+) -> MutableMap<string, MutableMap<string, bool>> {
+    out :: MutableMap<string, MutableMap<string, bool>> {}
+    targets :: tp.import_targets
+    if !(targets is ImportTargetTable) { return out }
+    for [sym_id, info] in loaded.collected.imports {
+        if info.imported_name is null { continue }   // namespace import — not a free-fn binding
+        st :: targets.symbol_targets[sym_id]
+        if st == null { continue }
+        owner :: per_module[st.module_id]
+        if owner == null { continue }
+        ty :: owner.decl_types[st.symbol.id]
+        if ty is FnType as ft {
+            key :: canonical_args_key(ft.params)
+            bucket :: out[info.local]
+            if bucket == null {
+                fresh :: MutableMap<string, bool> {}
+                fresh[key] = true
+                out[info.local] = fresh
+            } else {
+                bucket[key] = true
+                out[info.local] = bucket
+            }
+        }
+    }
+    return out
 }
 
 // Canonical key for a fn decl's resolved parameter signature, or null when a
