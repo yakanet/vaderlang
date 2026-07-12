@@ -1347,6 +1347,12 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         push_emit(ctx, DeferPopExec { .count = dpe.count }, dpe.span)
         return
     }
+    // Every handled Instruction `return`s above. Reaching here means a variant
+    // has no emitter — panic loudly rather than silently emit nothing, which
+    // would drop the op (midir-1). (A full `match` would give T3013 coverage,
+    // but this ~400-line chain isn't worth the churn ; the panic gives the same
+    // no-silent-drop guarantee.)
+    panic("midir/emit: unhandled Instruction reached emit_instr — a variant has no emitter")
 }
 
 /// True when `v` is a numeric / char ValType that can flow through
