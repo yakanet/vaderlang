@@ -10,7 +10,7 @@ module "vader/comptime"
 import "std/collections" { MutableMap }
 import "vader/diagnostics" { Diagnostic }
 import "vader/types" { Type }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/resolver/symbol" { Symbol }
 import "vader/resolver" { LoadedProject, concat_file_decls }
 import "vader/typecheck" { TypedProject, TypedProgram }
 AST :: import "vader/parser"
@@ -118,7 +118,7 @@ evaluate_module_decls :: fn(
         // the C4001 — unless the RHS isn't a stageable nullary call, in which
         // case the diagnostic stands.
         if result.vm_required {
-            symbol :: lookup_decl_symbol(decl, typed)
+            symbol :: lookup_const_symbol(decl, typed)
             if symbol is Symbol as s {
                 record :: build_vm_required(decl, s, typed, module_id)
                 if record is VmRequiredDecl as vr {
@@ -132,7 +132,7 @@ evaluate_module_decls :: fn(
         match result.value {
             is null -> {}
             _       -> {
-                symbol :: lookup_decl_symbol(decl, typed)
+                symbol :: lookup_const_symbol(decl, typed)
                 if !(symbol is null) {
                     program.comptime_decls[symbol.id] = result.value
                 }
@@ -151,7 +151,7 @@ evaluate_module_decls :: fn(
         match decl {
             is AST.ConstDecl as cd -> {
                 if has_comptime_decorator(cd) { continue }
-                symbol :: lookup_decl_symbol(cd, typed)
+                symbol :: lookup_const_symbol(cd, typed)
                 if symbol is null { continue }
                 if symbol is Symbol as s {
                     if !(program.comptime_decls[s.id] is null) { continue }
@@ -207,7 +207,7 @@ bake_file_exprs :: fn(
                     if ic.name == "file" {
                         baked :: project.file_exprs[ic.id]
                         if baked is string as content {
-                            symbol :: lookup_decl_symbol(cd, typed)
+                            symbol :: lookup_const_symbol(cd, typed)
                             if symbol is Symbol as s {
                                 project.file_baked_consts[s.id] = string_val(content)
                             }
@@ -386,16 +386,6 @@ build_vm_required :: fn(decl: AST.ConstDecl, symbol: Symbol, typed: TypedProgram
                 }
             }
         }
-    }
-    return null
-}
-
-// Same lookup as `deps.vader::lookup_const_symbol` — resolver doesn't
-// write decl name_spans into `idents`, so walk `resolved.symbols`.
-lookup_decl_symbol :: fn(decl: AST.ConstDecl, typed: TypedProgram) -> Symbol | null {
-    for symbol in typed.resolved.symbols {
-        if symbol.kind != SymbolKind.Const { continue }
-        if symbol.name == decl.name { return symbol }
     }
     return null
 }
