@@ -165,10 +165,10 @@ const C_PARITY = new Set<string>([
   "fuse_array_map_filter",
   // Couche 2: take/skip fuse via a pre-loop counter + break/continue guard.
   "fuse_take_skip",
-  // Couche 4: a directly-consumed @generator inlines its yield-loop as the
+  // Couche 4: a directly-consumed generator inlines its yield-loop as the
   // fused body — native run validates it matches the boxed state machine.
   "fuse_generator_direct",
-  // Couche 4: a GENERIC @generator inlines too — instance subst reconstructed
+  // Couche 4: a GENERIC generator inlines too — instance subst reconstructed
   // at the fusion site (gen_map / gen_filter, T -> U).
   "fuse_generator_generic",
   // Couche 4: a generator COMBINATOR (first param = source iterator) fuses as a

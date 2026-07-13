@@ -3,19 +3,19 @@
 ## tests/snippets/generator_label_continue
   FnDecl         gen                  :: fn() -> Iterator<i32>
   FnDecl         main                 :: fn() -> i32
-  expr 10:21    RangeExpr      :: Range<i32>
-  expr 11:18    RangeExpr      :: Range<i32>
-  expr 12:13    IfExpr         :: void
-  expr 12:16    BinaryExpr     :: bool
-  expr 12:16    IdentExpr      :: i32
-  expr 13:19    BinaryExpr     :: i32
-  expr 13:19    BinaryExpr     :: i32
-  expr 13:19    IdentExpr      :: i32
-  expr 13:28    IdentExpr      :: i32
-  expr 19:11    CallExpr       :: __genstate_gen<i32>
-  expr 19:11    IdentExpr      :: fn() -> Iterator<i32>
-  expr 20:14    IdentExpr      :: __genstate_gen<i32>
-  expr 20:19    CallExpr       :: void
-  expr 20:19    IdentExpr      :: fn(T) -> void
-  expr 20:27    StringLitExpr  :: string
-  expr 20:30    IdentExpr      :: i32
+  expr 10:18    RangeExpr      :: Range<i32>
+  expr 11:13    IfExpr         :: void
+  expr 11:16    BinaryExpr     :: bool
+  expr 11:16    IdentExpr      :: i32
+  expr 12:19    BinaryExpr     :: i32
+  expr 12:19    BinaryExpr     :: i32
+  expr 12:19    IdentExpr      :: i32
+  expr 12:28    IdentExpr      :: i32
+  expr 18:11    CallExpr       :: __genstate_gen<i32>
+  expr 18:11    IdentExpr      :: fn() -> Iterator<i32>
+  expr 19:14    IdentExpr      :: __genstate_gen<i32>
+  expr 19:19    CallExpr       :: void
+  expr 19:19    IdentExpr      :: fn(T) -> void
+  expr 19:27    StringLitExpr  :: string
+  expr 19:30    IdentExpr      :: i32
+  expr 9:21     RangeExpr      :: Range<i32>

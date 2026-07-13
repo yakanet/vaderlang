@@ -1,7 +1,7 @@
-// vader/lower/lower_generator_fusion — inline a consumed `@generator` body into
+// vader/lower/lower_generator_fusion — inline a consumed `generator` body into
 // its for-in (Couche 4, stream-fusion-generalization.md).
 //
-// `for v in gen(args) { body }` where `gen` carries `@generator` is lowered by
+// `for v in gen(args) { body }` where `gen` carries `generator` is lowered by
 // inlining gen's body with (a) each param bound to the matching call arg and
 // (b) each `yield e` redirected to the consumer's loop-var binding + body — no
 // state-machine struct, no boxed `Iterator`, no virtual `next()`. The generator's
@@ -25,7 +25,7 @@ import "vader/types" { Type, FnType, TraitType, TY_VOID, strip_distinct_each }
 import "vader/typecheck" { TypedProgram, Substitution, substitute, new_substitution, default_if_free, gen_state_name, fn_is_generator }
 
 // Recognise `for v in <gen-call>` where the callee is a directly-called
-// `@generator` fn (generic or not), and inline its yield-loop in place of the
+// `generator` fn (generic or not), and inline its yield-loop in place of the
 // boxed `next()` dispatch. Returns null for any non-matching shape (the caller
 // falls through to the generic step-loop).
 export try_lower_generator_inline :: fn(
@@ -43,7 +43,7 @@ export try_lower_generator_inline :: fn(
     return null
 }
 
-// The yielded element type for a `@generator` fn, from the typecheck-side
+// The yielded element type for a `generator` fn, from the typecheck-side
 // registry (`register_generator_iter_impls`) substituted by the call's instance
 // subst. Null when the fn isn't registered (declines fusion). Shared by the
 // direct-call and combinator fusion sites.
@@ -53,7 +53,7 @@ genstate_element :: fn(typed: TypedProgram, fn_name: string, subst: Substitution
     return substitute(raw, subst)
 }
 
-// The direct-call worker. Resolves the callee to its `@generator` FnDecl, binds
+// The direct-call worker. Resolves the callee to its `generator` FnDecl, binds
 // each param to its arg, and lowers the generator body with the consumer's body
 // installed as the `yield` sink (`ctx.gen_inline_sink`).
 inline_gen_ident_call :: fn(
@@ -176,7 +176,7 @@ subst_from_concrete :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, args: 
 // ---- chained generator combinators (Increment 3) --------------------------
 //
 // A generator whose FIRST param is the source iterator — `map`/`filter`
-// (`@generator fn<T, U>(self: Iterator<T>, f) -> Iterator<U> { for x in self { … } }`)
+// (`generator fn<T, U>(self: Iterator<T>, f) -> Iterator<U> { for x in self { … } }`)
 // — consumed in a chain (`xs.iter().map(f)`). Unlike a direct call, `self` is
 // itself an iterator we want to FUSE into, not materialise: binding `let self =
 // xs.iter()` would leave a boxed `ArrayIterator`. So a generator combinator is a
@@ -215,7 +215,7 @@ GenComboLayer :: struct {
 }
 
 // Recognise `<recv>.gen_combinator(arg)` (UFCS) or `gen_combinator(<recv>, arg)`
-// where the callee is an `@generator` fn whose body is one or more `for <lv> in
+// where the callee is a `generator` fn whose body is one or more `for <lv> in
 // <param> { <inner> }` source loops (map/filter/take/skip/enumerate: one loop over
 // `self` ; `chain`: two, over `self` and `other`). Returns a `Generator` chain
 // layer whose primary source is `descend_chain(<recv>)` and whose extra source

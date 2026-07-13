@@ -6,12 +6,10 @@ module "snippet"
 
 import "std/io" { println }
 
-@generator
 count_up :: fn(n: i32) -> Iterator<i32> {
     for i in 0..<n { yield i }
 }
 
-@generator
 pairs :: fn(xs: i32[], ys: i32[]) -> Iterator<i32> {
     for x in xs {
         for y in ys { yield x + y }

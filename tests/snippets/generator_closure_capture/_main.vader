@@ -7,7 +7,6 @@ module "snippet"
 
 import "std/io" { println }
 
-@generator
 gen :: fn(seed: i32) -> Iterator<i32> {
     base :: seed * 10
     addbase :: fn(x: i32) -> i32 { return x + base }

@@ -1,7 +1,7 @@
-// std/iter — lazy `@generator` iterator combinators + terminals.
+// std/iter — lazy `generator` iterator combinators + terminals.
 //
 //   - **Combinators** `map` / `filter` / `take` / `skip` / `enumerate` /
-//     `flat_map` / `chain` / `zip` are `@generator`s (bottom of this file).
+//     `flat_map` / `chain` / `zip` are `generator`s (bottom of this file).
 //     `arr.map(f)` / `it.enumerate()` read like a pipeline and dispatch via UFCS ;
 //     consumed by a `for` loop or a terminal (`collect` / `count` / `any` / …),
 //     the chain fuses to a single flat loop — no intermediate arrays, no iterator
@@ -45,7 +45,7 @@ export collect :: fn<T>(it: Iterator<T>) -> T[] {
 }
 
 // Eager `map` / `filter` array overloads removed — `map` / `filter` are ONLY the
-// lazy `@generator` combinators now (bottom of this file). `arr.map(f)` resolves
+// lazy `generator` combinators now (bottom of this file). `arr.map(f)` resolves
 // unambiguously to the lazy `Iterator<U>` and fuses over the raw array (the
 // implicit `.iter()` head) ; drain to an array with `.collect()` when needed.
 
@@ -105,7 +105,6 @@ export clone :: fn<T>(arr: const T[]) -> T[] {
 /// @param other  right source array.
 /// @return       a lazy `Iterator([T, U])` — `(self[0], other[0])`, … capped at
 ///               `min(self.len(), other.len())`.
-@generator
 export zip :: fn<T, U>(self: T[], other: U[]) -> Iterator<[T, U]> {
     n :: if self.len() < other.len() { self.len() } else { other.len() }
     for i in 0..<n {
@@ -119,7 +118,6 @@ export zip :: fn<T, U>(self: T[], other: U[]) -> Iterator<[T, U]> {
 /// @param self   first source iterator (a raw array auto-coerces at the call site).
 /// @param other  second source, streamed after `self` is exhausted.
 /// @return       a lazy `Iterator<T>` over `self` followed by `other`.
-@generator
 export chain :: fn<T>(self: Iterator<T>, other: Iterator<T>) -> Iterator<T> {
     for x in self { yield x }
     for y in other { yield y }
@@ -131,7 +129,6 @@ export chain :: fn<T>(self: Iterator<T>, other: Iterator<T>) -> Iterator<T> {
 /// intermediate array.
 /// @param self  source iterator (a raw array auto-coerces at the call site).
 /// @return      a lazy `Iterator([usize, T])` — `(0, self[0])`, `(1, self[1])`, …
-@generator
 export enumerate :: fn<T>(self: Iterator<T>) -> Iterator<[usize, T]> {
     i: usize = 0
     for x in self {
@@ -146,7 +143,6 @@ export enumerate :: fn<T>(self: Iterator<T>) -> Iterator<[usize, T]> {
 /// @param arr  source array.
 /// @param f    mapper from one element to an array of outputs.
 /// @return     concatenation of `f(arr[0]) ++ f(arr[1]) ++ …`.
-@generator
 export flat_map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U[]) -> Iterator<U> {
     for x in self {
         for y in f(x) {
@@ -221,7 +217,7 @@ export find_map :: fn<T, U>(it: Iterator<T>, f: fn(T) -> U | null) -> U | null {
 // Lazy iterator chains
 // ============================================================================
 //
-// Each combinator below is a `@generator` over a source `Iterator<T>` : it
+// Each combinator below is a `generator` over a source `Iterator<T>` : it
 // `yield`s transformed elements one at a time, so a chain stays lazy — an
 // element only flows through when the downstream consumer pulls it (`next()`,
 // or `for x in chain {…}`). The fluent shape (`it.map(f).filter(p)`) reads
@@ -233,20 +229,17 @@ export find_map :: fn<T, U>(it: Iterator<T>, f: fn(T) -> U | null) -> U | null {
 /// Fluent lazy `filter`. Distinct from the eager `T[]`-overload above —
 /// the resolver picks this one when the receiver implements `Iterator<T>`
 /// (Range, ArrayIterator, MutableMap, …).
-@generator
 export filter :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> Iterator<T> {
     for x in self { if pred(x) { yield x } }
 }
 
 /// Fluent lazy `map`. Mirror of `filter` for transforms ; element type
 /// can change (`T` → `U`).
-@generator
 export map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U) -> Iterator<U> {
     for x in self { yield f(x) }
 }
 
 /// Fluent lazy `take`. Yields the first `n` items from `self`, then ends.
-@generator
 export take :: fn<T>(self: Iterator<T>, n: usize) -> Iterator<T> {
     i: usize = 0
     for x in self {
@@ -258,7 +251,6 @@ export take :: fn<T>(self: Iterator<T>, n: usize) -> Iterator<T> {
 
 /// Fluent lazy `skip`. Drops the first `n` items from `self`, then forwards
 /// every subsequent item.
-@generator
 export skip :: fn<T>(self: Iterator<T>, n: usize) -> Iterator<T> {
     i: usize = 0
     for x in self {
@@ -267,7 +259,7 @@ export skip :: fn<T>(self: Iterator<T>, n: usize) -> Iterator<T> {
     }
 }
 
-// The lazy combinators map/filter/take/skip are now `@generator`s (above) — the
+// The lazy combinators map/filter/take/skip are now `generator`s (above) — the
 // hand-written MappedIterator/FilterIterator/TakeIterator/SkipIterator state-machine
 // structs they used to return have been removed (stream-fusion-generalization.md,
 // B-terminals Increment 4). Consumed directly (`for` / a terminal), a chain fuses to

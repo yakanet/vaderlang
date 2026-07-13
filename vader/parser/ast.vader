@@ -364,7 +364,7 @@ export ReturnStmt :: struct {
     value: Expr | null
 }
 
-/// `yield expr` inside an `@generator` fn body — emit one element and suspend.
+/// `yield expr` inside a `generator` fn body — emit one element and suspend.
 /// Always carries a value (unlike `return`, which may be bare); the empty /
 /// exhausted case is a bare `return` or falling off the end. `value` must
 /// coerce to the `T` of the generator's `-> Iterator<T>` return.

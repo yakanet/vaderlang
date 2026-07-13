@@ -532,7 +532,7 @@ export infer_call :: fn(
         // type-params against the bindings we ended up with.
         check_typeparam_bounds(c, bindings, typed, diags)
         if diverges { return TY_NEVER }
-        // Direction A : a `@generator` call is typed as its concrete `<fn>$State`
+        // Direction A : a `generator` call is typed as its concrete `<fn>$State`
         // iterator (chains resolve on a concrete receiver), not the erased return.
         // The substituted return (`Iterator<i32>`) carries the concrete element so
         // `<fn>$State<i32>` implements `Iterator<i32>` (collect/find concretise).

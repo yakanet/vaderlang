@@ -151,12 +151,7 @@
         ],
         "trailing": null
       },
-      "decorators": [
-        {
-          "name": "generator",
-          "args": []
-        }
-      ]
+      "decorators": []
     },
     {
       "kind": "FnDecl",

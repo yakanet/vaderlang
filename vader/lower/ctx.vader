@@ -433,7 +433,7 @@ export FnLowerCtx :: struct {
     /// entry, popped at exit ; shape mirrors `narrowed` in typecheck.
     comptime_bindings:  MutableMap<i32, LoweredExpr>
 
-    /// True while lowering an `@generator` body: `lower_stmt` emits a
+    /// True while lowering a `generator` body: `lower_stmt` emits a
     /// transient `LoweredYield` marker for `yield e` (consumed by the
     /// generator transform) instead of the not-implemented trap.
     in_generator:       bool = false

@@ -9,19 +9,16 @@ module "snippet"
 import "std/io" { println }
 
 // map shape.
-@generator
 doubled :: fn(xs: i32[]) -> Iterator<i32> {
     for x in xs { yield x * 2 }
 }
 
 // filter shape (yield inside an if).
-@generator
 evens :: fn(xs: i32[]) -> Iterator<i32> {
     for x in xs { if x % 2 == 0 { yield x } }
 }
 
 // flatten shape (nested loops, resume mid-inner-loop when boxed — here fully inlined).
-@generator
 flatten :: fn(xss: i32[][]) -> Iterator<i32> {
     for row in xss {
         for x in row { yield x }

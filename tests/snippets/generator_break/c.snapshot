@@ -74,7 +74,7 @@ static int32_t snippet_main(void) {
     vader_box_t* gc_roots[2] = { &l0, &l5 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
-#line 16 "tests/snippets/generator_break/_main.vader"
+#line 15 "tests/snippets/generator_break/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 4u, 7u, 1u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 3u] = (int32_t) INT32_C(9);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 2u] = (int32_t) INT32_C(200);
@@ -90,38 +90,38 @@ static int32_t snippet_main(void) {
                 while (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = (vader_array_buf_t*) _a1_slotarr->buf->header.forward; }
                 if ((size_t) l2 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l3 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l2];
-#line 9 "tests/snippets/generator_break/_main.vader"
+#line 8 "tests/snippets/generator_break/_main.vader"
                 if ((l3 < INT32_C(0))) {
-#line 16 "tests/snippets/generator_break/_main.vader"
+#line 15 "tests/snippets/generator_break/_main.vader"
                     t0 = (l2 + INT64_C(1));
                     l2 = (size_t) (int64_t) t0;
-#line 9 "tests/snippets/generator_break/_main.vader"
+#line 8 "tests/snippets/generator_break/_main.vader"
                     goto loop_12;
                 }
-#line 10 "tests/snippets/generator_break/_main.vader"
+#line 9 "tests/snippets/generator_break/_main.vader"
                 l4 = l3;
-#line 16 "tests/snippets/generator_break/_main.vader"
+#line 15 "tests/snippets/generator_break/_main.vader"
                 l5 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(20));
                 l6 = (size_t) (int64_t) INT64_C(0);
                 l7 = ((int64_t) (int32_t) l4);
                 l6 = std_core_write_int(l5, l6, l7);
                 t1 = std_core_finish_buffer(l5, l6);
                 std_io_println__string(t1);
-#line 11 "tests/snippets/generator_break/_main.vader"
+#line 10 "tests/snippets/generator_break/_main.vader"
                 if ((l3 > INT32_C(100))) {
                 } else {
-#line 16 "tests/snippets/generator_break/_main.vader"
+#line 15 "tests/snippets/generator_break/_main.vader"
                     t0 = (l2 + INT64_C(1));
                     l2 = (size_t) (int64_t) t0;
                     goto loop_12;
-#line 11 "tests/snippets/generator_break/_main.vader"
+#line 10 "tests/snippets/generator_break/_main.vader"
                 }
-#line 16 "tests/snippets/generator_break/_main.vader"
+#line 15 "tests/snippets/generator_break/_main.vader"
             } else {
             }
         }
     }
-#line 17 "tests/snippets/generator_break/_main.vader"
+#line 16 "tests/snippets/generator_break/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     vader_gc_top = gc_frame.prev;
 }

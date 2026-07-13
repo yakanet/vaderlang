@@ -6,7 +6,6 @@ import "std/io" { println }
 Decl :: struct { name: string, id: i32 }
 FileMod :: struct { decls: Decl[] }
 
-@generator
 concat_decls :: fn(files: FileMod[]) -> Iterator<Decl> {
     for f in files {
         for d in f.decls { yield d }

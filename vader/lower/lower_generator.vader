@@ -1,6 +1,6 @@
-// vader/lower/lower_generator — the `@generator` state-machine desugar (Phase 3).
+// vader/lower/lower_generator — the `generator` state-machine desugar (Phase 3).
 //
-// Called from `lower_fn_decl` for a non-generic `@generator` fn. Takes the
+// Called from `lower_fn_decl` for a non-generic `generator` fn. Takes the
 // generator body lowered in generator mode (so every `yield e` is a transient
 // `LoweredYield` marker) and produces, per generator `g`:
 //
@@ -33,7 +33,7 @@ import "std/abort" { panic }
 
 // ---- element type ---------------------------------------------------------
 
-/// Extract `T` from an `@generator`'s `-> Iterator<T>` return type. The
+/// Extract `T` from a `generator`'s `-> Iterator<T>` return type. The
 /// typechecker (T3056) already guaranteed the shape ; fall back to `TY_VOID`
 /// defensively if something slipped through.
 generator_element_of :: fn(return_type: Type) -> Type {
@@ -93,7 +93,7 @@ push_generator_decls :: fn(
 
 // ---- entry ----------------------------------------------------------------
 
-/// Lower an `@generator` fn to the state-machine form. Synthesizes `g$State`
+/// Lower a `generator` fn to the state-machine form. Synthesizes `g$State`
 /// and `<module>$<State>$Iterator$next` into `project.synth_decls`, and returns
 /// the rewritten `g` body (`return g$State { <args>, .state = entry }`).
 ///

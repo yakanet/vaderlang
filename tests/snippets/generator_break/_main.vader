@@ -3,7 +3,6 @@ module "snippet"
 
 import "std/io" { println }
 
-@generator
 positives_until_big :: fn(xs: i32[]) -> Iterator<i32> {
     for x in xs {
         if x < 0 { continue }

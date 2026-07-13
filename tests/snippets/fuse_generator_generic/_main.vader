@@ -8,13 +8,11 @@ module "snippet"
 import "std/io" { println }
 
 // map shape: T -> U (element type changes).
-@generator
 gen_map :: fn<T, U>(xs: T[], f: fn(T) -> U) -> Iterator<U> {
     for x in xs { yield f(x) }
 }
 
 // filter shape: T -> T, yield guarded by a predicate.
-@generator
 gen_filter :: fn<T>(xs: T[], pred: fn(T) -> bool) -> Iterator<T> {
     for x in xs { if pred(x) { yield x } }
 }

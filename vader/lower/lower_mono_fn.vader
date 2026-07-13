@@ -172,7 +172,7 @@ fn_instance_key :: fn(inst: GenericFnInstance) -> string {
     return sb.to_string()
 }
 
-// Lower a `@generator` fn / impl member to its state-machine body — the shared
+// Lower a `generator` fn / impl member to its state-machine body — the shared
 // core of the three generator materialisation sites (`lower_decl` for top-level
 // fns, `build_fn_instance_decl` for free-fn instances, `materialize_impl_for_instance`
 // for impl-member instances). Lowers the body in generator mode (yields →
@@ -281,7 +281,7 @@ build_fn_instance_decl :: fn(
         .module         = owner_typed,
     }
     gen_body :: fn_decl.body
-    // A generic `@generator` instance that ESCAPES (boxed as `Iterator<T>`, not
+    // A generic `generator` instance that ESCAPES (boxed as `Iterator<T>`, not
     // fused) needs the state-machine desugar — else the plain body lowering drops
     // every `yield` and it returns no value (§11.1).
     body :: if fn_is_generator(fn_decl) && gen_body != null {

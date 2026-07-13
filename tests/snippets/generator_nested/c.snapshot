@@ -74,7 +74,7 @@ static int32_t snippet_main(void) {
     vader_box_t* gc_roots[4] = { &l0, &l1, &l5, &l10 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
-#line 14 "tests/snippets/generator_nested/_main.vader"
+#line 13 "tests/snippets/generator_nested/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 2u, 7u, 1u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(20);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(10);
@@ -93,7 +93,7 @@ static int32_t snippet_main(void) {
                 while (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = (vader_array_buf_t*) _a2_slotarr->buf->header.forward; }
                 if ((size_t) l3 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
                 l4 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l3];
-#line 9 "tests/snippets/generator_nested/_main.vader"
+#line 8 "tests/snippets/generator_nested/_main.vader"
                 l5 = l0;
                 l6 = ((vader_array_t*) l5.payload.obj)->length;
                 l7 = (size_t) (int64_t) INT64_C(0);
@@ -105,14 +105,14 @@ static int32_t snippet_main(void) {
                             if ((size_t) l7 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
                             l8 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l7];
                             l9 = (l4 + l8);
-#line 14 "tests/snippets/generator_nested/_main.vader"
+#line 13 "tests/snippets/generator_nested/_main.vader"
                             l10 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(20));
                             l11 = (size_t) (int64_t) INT64_C(0);
                             l12 = ((int64_t) (int32_t) l9);
                             l11 = std_core_write_int(l10, l11, l12);
                             t0 = std_core_finish_buffer(l10, l11);
                             std_io_println__string(t0);
-#line 9 "tests/snippets/generator_nested/_main.vader"
+#line 8 "tests/snippets/generator_nested/_main.vader"
                             t1 = (l7 + INT64_C(1));
                             l7 = (size_t) (int64_t) t1;
                             goto loop_30;
@@ -120,7 +120,7 @@ static int32_t snippet_main(void) {
                         }
                     }
                 }
-#line 14 "tests/snippets/generator_nested/_main.vader"
+#line 13 "tests/snippets/generator_nested/_main.vader"
                 t1 = (l3 + INT64_C(1));
                 l3 = (size_t) (int64_t) t1;
                 goto loop_14;
@@ -128,7 +128,7 @@ static int32_t snippet_main(void) {
             }
         }
     }
-#line 15 "tests/snippets/generator_nested/_main.vader"
+#line 14 "tests/snippets/generator_nested/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     vader_gc_top = gc_frame.prev;
 }

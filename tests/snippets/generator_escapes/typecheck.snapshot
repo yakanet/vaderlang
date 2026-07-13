@@ -4,27 +4,27 @@
   FnDecl         count_up             :: fn(i32) -> Iterator<i32>
   FnDecl         main                 :: fn() -> i32
   FnDecl         pairs                :: fn(i32[], i32[]) -> Iterator<i32>
-  expr 11:14    RangeExpr      :: Range<i32>
-  expr 11:18    IdentExpr      :: i32
-  expr 11:28    IdentExpr      :: i32
-  expr 16:14    IdentExpr      :: i32[]
-  expr 17:18    IdentExpr      :: i32[]
-  expr 17:29    BinaryExpr     :: i32
-  expr 17:29    IdentExpr      :: i32
-  expr 17:33    IdentExpr      :: i32
-  expr 22:11    CallExpr       :: __genstate_count_up<i32>
-  expr 22:11    IdentExpr      :: fn(i32) -> Iterator<i32>
-  expr 23:14    IdentExpr      :: __genstate_count_up<i32>
-  expr 23:19    CallExpr       :: void
-  expr 23:19    IdentExpr      :: fn(T) -> void
-  expr 23:27    StringLitExpr  :: string
-  expr 23:32    IdentExpr      :: i32
-  expr 24:10    CallExpr       :: __genstate_pairs<i32>
-  expr 24:10    IdentExpr      :: fn(i32[], i32[]) -> Iterator<i32>
-  expr 24:16    SeqLitExpr     :: i32[]
-  expr 24:24    SeqLitExpr     :: i32[]
-  expr 25:14    IdentExpr      :: __genstate_pairs<i32>
-  expr 25:18    CallExpr       :: void
-  expr 25:18    IdentExpr      :: fn(T) -> void
-  expr 25:26    StringLitExpr  :: string
-  expr 25:31    IdentExpr      :: i32
+  expr 10:14    RangeExpr      :: Range<i32>
+  expr 10:18    IdentExpr      :: i32
+  expr 10:28    IdentExpr      :: i32
+  expr 14:14    IdentExpr      :: i32[]
+  expr 15:18    IdentExpr      :: i32[]
+  expr 15:29    BinaryExpr     :: i32
+  expr 15:29    IdentExpr      :: i32
+  expr 15:33    IdentExpr      :: i32
+  expr 20:11    CallExpr       :: __genstate_count_up<i32>
+  expr 20:11    IdentExpr      :: fn(i32) -> Iterator<i32>
+  expr 21:14    IdentExpr      :: __genstate_count_up<i32>
+  expr 21:19    CallExpr       :: void
+  expr 21:19    IdentExpr      :: fn(T) -> void
+  expr 21:27    StringLitExpr  :: string
+  expr 21:32    IdentExpr      :: i32
+  expr 22:10    CallExpr       :: __genstate_pairs<i32>
+  expr 22:10    IdentExpr      :: fn(i32[], i32[]) -> Iterator<i32>
+  expr 22:16    SeqLitExpr     :: i32[]
+  expr 22:24    SeqLitExpr     :: i32[]
+  expr 23:14    IdentExpr      :: __genstate_pairs<i32>
+  expr 23:18    CallExpr       :: void
+  expr 23:18    IdentExpr      :: fn(T) -> void
+  expr 23:26    StringLitExpr  :: string
+  expr 23:31    IdentExpr      :: i32
