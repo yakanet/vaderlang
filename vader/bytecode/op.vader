@@ -448,8 +448,11 @@ export I32Le :: struct {}
 export I32Gt :: struct {}
 /// Pop two i32 (left, right) ; push `1` if left >= right, `0` otherwise.
 export I32Ge :: struct {}
-/// Push a constant f64 onto the value stack. The .virt format encodes
-/// the literal in decimal with optional fraction (`f64.const 3.5`).
+/// Push a constant f64 onto the value stack. In the .virt format a finite
+/// value is `f64.const <decimal> <u64 bits>` (the bit column round-trips it
+/// losslessly) ; a non-finite value is the bare abstract word `f64.const inf`
+/// / `-inf` / `nan` (no bits — a NaN's raw pattern isn't arch-stable). See
+/// `dump::f64_const_operands` and `vm::parse_f64_const`.
 export F64Const :: struct { value: f64 }
 /// Push a constant i64 onto the value stack.
 export I64Const :: struct { value: i64 }

@@ -698,12 +698,25 @@ parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> bc.Op | null
 /// rendering (informational, for diffs). Reconstructing via `from_bits` makes
 /// subnormals / scientific / near-max values round-trip exactly — the decimal
 /// parser alone cannot (it overflows past ~1e308 and can't reach subnormals).
-/// Legacy single-token `f64.const N.M` lines fall back to that decimal parser.
+///
+/// Non-finite values dump with NO bit column — a bare abstract word `inf` /
+/// `-inf` / `nan` (see `dump::f64_const_operands`) — because ±inf are unique,
+/// every NaN is one value, and a NaN's raw bits aren't architecturally stable.
+/// Each word maps straight back to its canonical bit pattern here. Legacy
+/// single-token `f64.const N.M` finite lines fall back to the decimal parser.
 ///
 /// @param line  the comment-stripped op line.
 /// @return      `F64Const { value }` on success, `null` on malformed input.
 parse_f64_const :: fn(line: string) -> bc.Op | null {
     rest :: line.bytes()["f64.const ".bytes().len()..<line.bytes().len()].bytes_to_string().trim()
+    // Abstract non-finite words carry no bit column — map each to its canonical
+    // IEEE-754 pattern (typed so the >i64 hex constants pin to `u64`).
+    pos_inf: u64 = 0x7FF0000000000000
+    neg_inf: u64 = 0xFFF0000000000000
+    quiet_nan: u64 = 0x7FF8000000000000
+    if rest == "inf"  { return bc.F64Const { .value = pos_inf.from_bits() } }
+    if rest == "-inf" { return bc.F64Const { .value = neg_inf.from_bits() } }
+    if rest == "nan"  { return bc.F64Const { .value = quiet_nan.from_bits() } }
     sp :: last_index_of_space(rest)
     if sp >= 0 {
         bits :: parse_uint_in_base(rest.bytes()[usize(sp) + 1..<rest.bytes().len()].bytes_to_string(), 10)
@@ -1017,4 +1030,21 @@ roundtrip_op_text :: fn(op: bc.Op) -> string {
     assert_eq(roundtrip_op_text(bc.BitsToF64 {}),  "bits_to_f64")
     assert_eq(roundtrip_op_text(bc.F32ToBits {}),  "f32_to_bits")
     assert_eq(roundtrip_op_text(bc.BitsToF32 {}),  "bits_to_f32")
+}
+
+@test test_f64_const_non_finite_roundtrip :: fn() -> void {
+    // Non-finite f64 consts dump as a bare abstract word (no bit column) and
+    // parse straight back — arch-stable by construction. A sign-set NaN (what
+    // x86-64 folds `0.0 / 0.0` to) must round-trip to `nan`, never its raw
+    // arch-specific bits.
+    pos_inf: u64 = 0x7FF0000000000000
+    neg_inf: u64 = 0xFFF0000000000000
+    neg_nan: u64 = 0xFFF8000000000000
+    assert_eq(roundtrip_op_text(bc.F64Const { .value = pos_inf.from_bits() }), "f64.const inf")
+    assert_eq(roundtrip_op_text(bc.F64Const { .value = neg_inf.from_bits() }), "f64.const -inf")
+    assert_eq(roundtrip_op_text(bc.F64Const { .value = neg_nan.from_bits() }), "f64.const nan")
+
+    // A finite value keeps its exact bit column and round-trips unchanged.
+    finite: f64 = 3.5
+    assert_eq(roundtrip_op_text(bc.F64Const { .value = finite }), "f64.const ${finite} ${finite.to_bits()}")
 }
