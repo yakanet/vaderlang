@@ -63,7 +63,7 @@ static int32_t snippet_main(void) {
     vader_box_t l0 = vader_box_null();
     int32_t l1, l2;
     vader_box_t t0 = vader_box_null();
-    int32_t t1, t2;
+    int32_t t1;
     vader_box_t* gc_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
@@ -73,8 +73,8 @@ static int32_t snippet_main(void) {
 #line 18 "tests/snippets/struct_heap/_main.vader"
     t1 = (int32_t) ((vader_struct_snippet_Point_t*) l0.payload.obj)->f_x;
     l1 = t1;
-    t2 = (int32_t) ((vader_struct_snippet_Point_t*) l0.payload.obj)->f_y;
-    l2 = t2;
+    t1 = (int32_t) ((vader_struct_snippet_Point_t*) l0.payload.obj)->f_y;
+    l2 = t1;
     { int32_t __vret = (l1 + l2); vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
