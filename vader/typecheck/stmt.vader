@@ -136,30 +136,28 @@ block_has_await :: fn(b: AST.BlockExpr) -> bool {
     return expr_has_await(trailing)
 }
 
-stmt_has_await :: fn(s: AST.Stmt) -> bool {
+stmt_has_await :: fn(s: AST.Stmt) -> bool =
     // @partial: only expr-carrying statements can hold an `await`; break /
     // continue / defer / yield can't reach one in a coroutine body.
     @partial match s {
-        is AST.LetStmt    as x -> { return expr_has_await(x.value) }
-        is AST.AssignStmt as x -> { return expr_has_await(x.target) || expr_has_await(x.value) }
-        is AST.ExprStmt   as x -> { return expr_has_await(x.expr) }
-        is AST.ReturnStmt as x -> { rv :: x.value  if rv == null { return false }  return expr_has_await(rv) }
-        is AST.ForStmt    as x -> { return for_form_has_await(x.form) || block_has_await(x.body) }
+        is AST.LetStmt      -> { return expr_has_await(s.value) }
+        is AST.AssignStmt   -> { return expr_has_await(s.target) || expr_has_await(s.value) }
+        is AST.ExprStmt     -> { return expr_has_await(s.expr) }
+        is AST.ReturnStmt   -> { rv :: s.value  if rv == null { return false }  return expr_has_await(rv) }
+        is AST.ForStmt      -> { return for_form_has_await(s.form) || block_has_await(s.body) }
         _ -> { return false }
     }
-}
 
 // Whether a for-form's iterable / condition expr carries an `await` (the
 // infinite form has neither).
-for_form_has_await :: fn(form: AST.ForForm) -> bool {
+for_form_has_await :: fn(form: AST.ForForm) -> bool =
     match form {
-        is AST.InFor    as f -> { return expr_has_await(f.iter) }
-        is AST.WhileFor as f -> { return expr_has_await(f.cond) }
-        _ -> { return false }
+        is AST.InFor       -> { return expr_has_await(form.iter) }
+        is AST.WhileFor    -> { return expr_has_await(form.cond) }
+        is AST.InfiniteFor -> { return false }
     }
-}
 
-expr_has_await :: fn(e: AST.Expr) -> bool {
+expr_has_await :: fn(e: AST.Expr) -> bool =
     // @partial: leaf/type-position exprs can't carry a top-level `await`, and
     // LambdaExpr is deliberately NOT descended (a lambda can't be async in v1,
     // and an await inside it doesn't color the enclosing fn).
@@ -183,7 +181,7 @@ expr_has_await :: fn(e: AST.Expr) -> bool {
             match x.else_branch {
                 is AST.IfElseIf    as ei -> { return expr_has_await(ei.branch) }
                 is AST.IfElseBlock as eb -> { return block_has_await(eb.block) }
-                _ -> { return false }
+                is null                  -> { return false }
             }
         }
         is AST.MatchExpr as x -> {
@@ -206,7 +204,6 @@ expr_has_await :: fn(e: AST.Expr) -> bool {
         }
         _ -> { return false }
     }
-}
 
 /// Element type `T` of a generator's `-> Iterator<T>` return, or `null`
 /// (plus a T3056 diagnostic) when the return type isn't a valid
@@ -238,7 +235,7 @@ block_has_yield :: fn(block: AST.BlockExpr) -> bool {
     return false
 }
 
-stmt_has_yield :: fn(s: AST.Stmt) -> bool {
+stmt_has_yield :: fn(s: AST.Stmt) -> bool =
     match s {
         is AST.YieldStmt    -> { return true }
         is AST.ForStmt   as f -> { return block_has_yield(f.body) }
@@ -258,12 +255,11 @@ stmt_has_yield :: fn(s: AST.Stmt) -> bool {
         is AST.BreakStmt    -> { return false }
         is AST.ContinueStmt -> { return false }
     }
-}
 
 /// A `yield` can hide inside a block/if/match used in statement position
 /// (`yield` is a statement, so it only appears in a block's stmt list) —
 /// descend the expression forms that carry blocks, skipping lambdas.
-expr_has_yield :: fn(e: AST.Expr) -> bool {
+expr_has_yield :: fn(e: AST.Expr) -> bool =
     match e {
         is AST.BlockExpr as b -> { return block_has_yield(b) }
         is AST.IfExpr    as i -> { return if_has_yield(i) }
@@ -284,7 +280,6 @@ expr_has_yield :: fn(e: AST.Expr) -> bool {
          | AST.IntrinsicCallExpr | AST.DotVariantExpr | AST.FnTypeExpr
          | AST.ArrayTypeExpr | AST.AwaitExpr -> { return false }
     }
-}
 
 if_has_yield :: fn(i: AST.IfExpr) -> bool {
     if block_has_yield(i.then_block) { return true }
@@ -404,7 +399,7 @@ lookup_decl_symbol_stmt :: fn(resolved: ResolvedModule, fd: AST.FnDecl) -> Symbo
     return null
 }
 
-contains_unresolved :: fn(t: Type) -> bool {
+contains_unresolved :: fn(t: Type) -> bool =
     // @partial: only the composite type variants can carry an Unresolved leaf;
     // every scalar / primitive variant is unresolved-free, so `false` is right.
     @partial match t {
@@ -428,7 +423,7 @@ contains_unresolved :: fn(t: Type) -> bool {
         }
         _ -> { return false }
     }
-}
+
 
 import "vader/types" { mk_fn, UnionType }
 
@@ -728,6 +723,7 @@ check_for :: fn(
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
+    binding: string | null = null
     match s.form {
         is AST.InfiniteFor -> {}
         is AST.WhileFor as w -> {
@@ -745,40 +741,74 @@ check_for :: fn(
             iter_ty :: check_expr_fn(f.iter, null, typed, diags)
             elem :: for_in_element(iter_ty, typed)
             typed.local_types[f.binding_span.hash()] = elem
+            // A real user name is var-targetable ; the `_` wildcard and the
+            // synthetic `__for_*` binding a destructuring `for [k, v]` desugars to
+            // are not (there's no single user variable to name), so they behave
+            // like a varless loop — targetable only by a label.
+            if f.binding != "_" && !f.binding.starts_with("__") { binding = f.binding }
         }
     }
+    // W0010 — a label on a for-in loop is redundant : it already has an iteration
+    // variable to target it by (`break <var>`). A label is only needed for a
+    // `while` / infinite loop, which has no variable.
+    if s.label != null && binding != null {
+        diags.push(warning(.PreferLoopVariableOverLabel, s.span,
+            "target this loop by its variable `${binding}` instead of a label"))
+    }
+    // Push this loop onto the walk-global stack (survives `if`/`match` nesting)
+    // so a `break <name>` / `continue <name>` in the body resolves against its
+    // iteration variable (or label). Balanced push / remove_last.
+    typed.loop_stack.push(EnclosingLoop { .for_id = s.id, .binding = binding, .label = s.label })
     inner_ctx :: bump_loop_depth(ctx)
-    // Walk-global loop-nesting counter — survives the `if`/`match` blocks the
-    // expression checker doesn't thread `ctx` through, so a `continue` buried
-    // in a nested if still sees the right depth for W0004. Balanced inc/dec.
-    typed.loop_depth = typed.loop_depth + 1
     check_block(s.body, null, typed, diags, inner_ctx, check_expr_fn)
-    typed.loop_depth = typed.loop_depth - 1
+    typed.loop_stack.remove_last()
     return
 }
 
 check_loop_jump :: fn(span: Span, label: string | null, typed: TypedProgram, ctx: FnContext | null, diags: Diagnostic[]) -> void {
-    // W0004 — an unlabeled jump inside 2+ nested loops silently targets the
-    // innermost ; which loop it means is non-obvious to the reader. Read the
-    // walk-global `typed.loop_depth` (not `ctx.loop_depth`) so the warning
-    // survives `if`/`match`-block nesting — `for { for { if c { continue } } }`
-    // is flagged. A single enclosing loop is unambiguous, hence `>= 2`.
-    // Naturally scoped to the code under compilation : `check_project_with_bodies`
-    // only walks the entry module's fn bodies (imported modules contribute
-    // signatures + cross-published decls, not body diagnostics), so this is
-    // never reached for a jump in stdlib / the `vader/` tree.
-    if label is null && typed.loop_depth >= 2 {
-        diags.push(warning(.AmbiguousLoopJump, span,
-            "add a label and use `break <label>` / `continue <label>`"))
+    // A bare `break`/`continue` targets the innermost loop (no diagnostic — reader
+    // clarity is served by the LSP go-to-loop). A `break <name>` must resolve to an
+    // enclosing loop by its iteration variable (preferred) or its label ; the walk-
+    // global `loop_stack` survives `if`/`match` nesting, mirroring `loop_depth`.
+    if label != null {
+        name :: label
+        target :: resolve_loop_target(typed.loop_stack, name)
+        if target == null {
+            // A local, an unknown name, or a jump outside any loop — never a valid
+            // target. `break`ing a non-loop makes no sense → hard error (T3067).
+            diags.push(typecheck_error(.LoopTargetNotLoopVariable, span,
+                "`${name}` is not an enclosing loop's iteration variable or label"))
+        } else {
+            // A VARIABLE match records the resolution for the lowerer (it stamps
+            // that loop's `LoweredLoop.label`) ; a label match already carries its
+            // own label, so nothing to record.
+            tb :: target.binding
+            if tb != null && tb == name { typed.loop_target_labels[target.for_id] = name }
+        }
     }
-    // T3015 — `break`/`continue` outside any loop. Kept on `ctx.loop_depth`
-    // (unchanged behaviour) ; null ctx means we're inside an expression-nested
-    // block where ctx isn't threaded — the loop-membership check defers.
+    // T3015 — `break`/`continue` outside any loop. Kept on `ctx.loop_depth` ; null
+    // ctx means an expression-nested block where ctx isn't threaded — defer.
     if ctx is null { return }
     if ctx.loop_depth == 0 {
         diags.push(typecheck_error(.BreakContinueOutsideLoop, span,
             "`break` / `continue` only allowed inside a loop"))
     }
+}
+
+// The nearest enclosing loop whose iteration variable OR label is `name`
+// (innermost-first), or null. Mirrors the backward loop-stack scan of
+// `resolve_loop_frame` (midir) / `gb_resolve_loop_frame` (lower_coroutine).
+resolve_loop_target :: fn(stack: EnclosingLoop[], name: string) -> EnclosingLoop | null {
+    i := stack.len()
+    for i > 0 {
+        i = i - 1
+        frame :: stack[i]
+        fb :: frame.binding
+        if fb != null && fb == name { return frame }
+        fl :: frame.label
+        if fl != null && fl == name { return frame }
+    }
+    return null
 }
 
 check_defer :: fn(

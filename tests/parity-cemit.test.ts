@@ -230,6 +230,11 @@ const C_PARITY = new Set<string>([
   // struct is built only inside a generic fn's body (the harvest never saw the
   // concrete instance). Regression guard for lower_struct_lit's queue gate.
   "generic_impl_via_generic_fn",
+  // `break <var>` / `continue <var>` targeting an outer loop by its iteration
+  // variable, over both the int-range and raw-array fast paths. The counter/index
+  // increment must run on a var-targeted `continue` (else it spins) — native run
+  // is the guard on that reconciliation. See loop-jump-by-variable.md.
+  "loop_break_by_var",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

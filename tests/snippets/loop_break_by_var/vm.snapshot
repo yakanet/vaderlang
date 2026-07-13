@@ -1,0 +1,9 @@
+# stdout
+scan 0,0
+scan 0,1
+scan 1,0
+scan 1,1
+sift 1
+sift 4
+# exit
+0

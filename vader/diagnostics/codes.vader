@@ -98,6 +98,7 @@ export TypecheckCode :: enum(u8) {
     AwaitOutsideAsync,                  // T3064
     // T3065 (defer in async coroutine) retired : defer now runs at coroutine
     // completion via the per-frame `__defers` stack (see `lower_coroutine`).
+    LoopTargetNotLoopVariable,          // T3067
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -211,12 +212,16 @@ export WarningCode :: enum(u8) {
     // test once or-patterns made `emit_type_check` union-aware ; the genuine
     // disjoint-type case is still caught by T3040 (`check_is_overlap`). Per the
     // "never reused" rule above, W0003 stays a permanent gap.
-    AmbiguousLoopJump,                      // W0004
+    // W0004 (AmbiguousLoopJump) retired : a bare `break`/`continue` targets the
+    // innermost loop (blessed) ; reader clarity is served by the LSP go-to-loop, not
+    // a lint. Non-innermost jumps name their target (`break <var>` / `<label>`).
+    // Permanent gap, never reused.
     WildcardOnClosedUnion,                  // W0005
     // W0006 (unused-import) never shipped — see typecheck/dead_code.vader ; permanent gap.
     DeadCode,                               // W0007
     LocalShadowsOuter,                      // W0008
     LocalRedeclaration,                     // W0009
+    PreferLoopVariableOverLabel,            // W0010
 }
 
 // `(id, message)` for a code, in one shot. The wire ID is the stable
@@ -308,11 +313,11 @@ export resolver_info :: fn(c: ResolverCode) = match c {
 export warning_info :: fn(c: WarningCode) = match c {
     .UseOfDeprecated                    -> CodeInfo { .id = "W0001", .message = "use of deprecated declaration" }
     .UnreachableCode                    -> CodeInfo { .id = "W0002", .message = "unreachable code" }
-    .AmbiguousLoopJump                  -> CodeInfo { .id = "W0004", .message = "unlabeled `break` / `continue` inside nested loops targets the innermost loop ; add a label to make the target explicit" }
     .WildcardOnClosedUnion              -> CodeInfo { .id = "W0005", .message = "wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`" }
     .DeadCode                           -> CodeInfo { .id = "W0007", .message = "declaration is never used in its module" }
     .LocalShadowsOuter                  -> CodeInfo { .id = "W0008", .message = "local binding shadows an outer local or parameter of the same name" }
     .LocalRedeclaration                 -> CodeInfo { .id = "W0009", .message = "redeclaration of a name already bound in this block" }
+    .PreferLoopVariableOverLabel        -> CodeInfo { .id = "W0010", .message = "prefer targeting this loop by its iteration variable over a label ; a label is only needed for a `while` / infinite loop that has no variable" }
 }
 
 export comptime_info :: fn(c: ComptimeCode) = match c {
@@ -401,6 +406,7 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .BodylessFnMustBeIntrinsic          -> CodeInfo { .id = "T3062", .message = "a bodyless function must be `@intrinsic` (host-provided) or `@extern` (foreign symbol)" }
     .AssignTypeMismatch                 -> CodeInfo { .id = "T3063", .message = "assigned value's type is not assignable to the target's declared type" }
     .AwaitOutsideAsync                  -> CodeInfo { .id = "T3064", .message = "`await` is not allowed inside a nested lambda (a lambda cannot be an async coroutine)" }
+    .LoopTargetNotLoopVariable          -> CodeInfo { .id = "T3067", .message = "`break` / `continue` target must be an enclosing loop's iteration variable or label" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

@@ -83,7 +83,7 @@ try_lower_chain_fusion :: fn(
         .element_type   = chain_element_type(chain),
         .user_body      = user_body,
     }
-    stmts :: emit_fused_chain(ctx, chain, for_stmt.label, for_stmt.span, body_template, recurse)
+    stmts :: emit_fused_chain(ctx, chain, resolve_loop_label(ctx, for_stmt), for_stmt.span, body_template, recurse)
     return LoweredExprStmt {
         .span = for_stmt.span,
         .expr = LoweredBlock {

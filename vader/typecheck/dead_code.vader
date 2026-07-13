@@ -244,7 +244,7 @@ is_root_decl :: fn(v: AST.Visibility, decorators: AST.Decorator[], name: string)
 /// Flag every private top-level declaration of `decls` that is never reached
 /// from the module's public surface — W0007. Runs on the entry module after its
 /// bodies are typed (`orchestrate.vader`), so the lint applies to the module
-/// currently being compiled (like W0004 / `@internal`).
+/// currently being compiled (like `@internal`).
 ///
 /// @param decls  the module's merged top-level declarations (all files).
 /// @param diags  sink for the W0007 warnings.

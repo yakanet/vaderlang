@@ -1,0 +1,36 @@
+// `break <var>` / `continue <var>` target an enclosing loop by its iteration
+// variable (no labels). `break row` / `continue row` reach the outer loop from
+// inside the inner one ; a bare `break` / `continue` still means the innermost.
+// Covers both the int-range fast path (`0..<n`) and the raw-array fast path.
+module "snippet"
+
+import "std/io" { println }
+
+// int-range nest : `break i` exits the whole nest ; `continue i` skips to next i.
+scan :: fn() -> void {
+    for i in 0..<3 {
+        for j in 0..<3 {
+            if j == 2 { continue i }        // next i after j reaches 2
+            if i == 2 { break i }            // stop once i hits 2
+            println("scan ${i},${j}")
+        }
+    }
+}
+
+// raw-array nest : `break row` / `continue row` over the outer array loop.
+sift :: fn() -> void {
+    grid :: [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+    for row in grid {
+        for cell in row {
+            if cell == 5 { break row }       // stop the whole walk at 5
+            if cell == 2 { continue row }    // skip the rest of this row
+            println("sift ${cell}")
+        }
+    }
+}
+
+main :: fn() -> i32 {
+    scan()
+    sift()
+    return 0
+}

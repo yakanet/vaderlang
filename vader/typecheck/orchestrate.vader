@@ -292,7 +292,7 @@ export check_project_with_bodies :: fn(
     walk_bodies(merge_module_program(entry_loaded.module.files).decls, entry_typed, diags, .Full)
 
     // W0007 dead-code lint : private top-level decls never reached from the
-    // module's public surface. Entry-module-only (like W0004), so it lints the
+    // module's public surface. Entry-module-only, so it lints the
     // module being compiled. Name-based reachability — see dead_code.vader.
     check_dead_code(merge_module_program(entry_loaded.module.files).decls, diags)
 
@@ -333,7 +333,7 @@ export check_project_with_bodies :: fn(
         }
         walk_bodies(other_decls, other_typed, other_typed.resolved.diags, .Full)
         // Imported-module body-check diagnostics are forwarded (not dropped) :
-        // library W0004/W0005 etc. are real lines to fix, worth surfacing
+        // library W0005 etc. are real lines to fix, worth surfacing
         // project-wide rather than only in the entry module. Likewise W0007
         // (dead private code) below. Spans point at each module's own file, so
         // the LSP still filters to the open document.
