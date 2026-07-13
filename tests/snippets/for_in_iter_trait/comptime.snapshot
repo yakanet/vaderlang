@@ -1,2 +1,53 @@
-# vader CLI failed (exit 134)
-vader: panic — midir/emit: no field `count` on `__genstate_filter<char>` in 'snippet$count_ls' — a method reference on a primitive isn't a first-class value ; call it directly or wrap it in a lambda
+# Comptime
+
+## tests/snippets/for_in_iter_trait
+
+## generic instances
+  __genstate_chain<T>
+  __genstate_enumerate<[usize, T]>
+  __genstate_filter<char>
+  __genstate_filter<i32>
+  __genstate_map<i32>
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<char>
+  Iterator<i32>
+  Iterator<[usize, T]>
+  Iterator<[T, U]>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<U>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<U>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Yield<char>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Async<T>
+  Range<i32>
+  Range<usize>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>

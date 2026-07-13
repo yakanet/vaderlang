@@ -15,7 +15,7 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap, keys }
+import "std/collections" { MutableMap, MutableSet, keys }
 import "std/sort" { sort }
 import "std/string_builder" { append }
 
@@ -34,7 +34,32 @@ import "vader/resolver/symbol" { Symbol }
 /// @return           the lowered project ready for downstream phases.
 export lower_project :: fn(
     loaded: LoadedProject, typed: TypedProject, evaluated: EvaluatedProject, diags: Diagnostic[],
+) -> LoweredProject = lower_project_impl(loaded, typed, evaluated, [], diags)
+
+/// VM-backed-comptime staging variant : lower ONLY the closure reachable from
+/// `eager_modules` (the modules owning `vm_required` @comptime consts) instead
+/// of the whole entry-rooted project, and skip the whole-project generic-struct
+/// materialization. The eager modules' un-baked consts inline their RHS call at
+/// each use site (the standard staging trick), so the nullary callee thunks land
+/// in the harvest and are lowered. The result is a throwaway bytecode module used
+/// only to VM-execute those callees — see `comptime_vm/resolve.vader`.
+///
+/// @param eager_modules  module ids to lower eagerly (with bodies) ; every other
+///                       module surfaces bodyless signatures only. Must be
+///                       non-empty (use `lower_project` for the whole project).
+export lower_project_staged :: fn(
+    loaded: LoadedProject, typed: TypedProject, evaluated: EvaluatedProject,
+    eager_modules: string[], diags: Diagnostic[],
+) -> LoweredProject = lower_project_impl(loaded, typed, evaluated, eager_modules, diags)
+
+lower_project_impl :: fn(
+    loaded: LoadedProject, typed: TypedProject, evaluated: EvaluatedProject,
+    eager_modules: string[], diags: Diagnostic[],
 ) -> LoweredProject {
+    // Staging mode narrows the eager (with-body) set from the single entry to
+    // `eager_modules`; the whole-project generic-struct materialization is
+    // skipped since the comptime callee closure (bigint kernels) needs none.
+    is_staging :: eager_modules.len() > 0
     project_ctx :: new_lower_project_ctx(evaluated, loaded, typed)
     // Closure analysis runs once at entry — every lambda's capture set
     // is precomputed so per-decl lowering can read it without re-
@@ -78,8 +103,11 @@ export lower_project :: fn(
         // Only the ENTRY module is lowered eagerly (with bodies) — it is the
         // code under test / built, so its `main` / `@test` / exported surface
         // must survive whether or not it is reached. This is uniform across
-        // stdlib and user modules : the same lazy path serves both.
-        if module_id != loaded.entry {
+        // stdlib and user modules : the same lazy path serves both. In staging
+        // mode the eager set is the vm_required-owning modules rather than the
+        // single entry — every other module stays bodyless.
+        should_eager :: if is_staging { module_id in eager_modules } else { module_id == loaded.entry }
+        if !should_eager {
             imported_loaded :: loaded.modules[module_id]
             imported_typed_opt :: typed.modules[module_id]
             imported_decls: LoweredDecl[] = []
@@ -150,7 +178,11 @@ export lower_project :: fn(
     // After per-module lowering, materialise generic-struct instances +
     // their matching generic-impl members. Each `evaluated.instances`
     // entry yields a `StructDecl<Concrete>` + per-impl `__T` member fns.
-    rep_seen :: materialize_concrete_struct_instances(loaded, typed, project_ctx, project, diags)
+    rep_seen :: if is_staging {
+        MutableSet<string> {}
+    } else {
+        materialize_concrete_struct_instances(loaded, typed, project_ctx, project, diags)
+    }
     // Generic-fn instances + non-generic stdlib free fns are MUTUALLY
     // recursive : a generic instance body calls stdlib fns (harvested into
     // `nongeneric_imported_order`), and a harvested stdlib body calls generic
