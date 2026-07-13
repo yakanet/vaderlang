@@ -250,7 +250,7 @@ lower_fn_decl :: fn(
     }
     return_type :: return_type_of(fn_decl, types)
     entry :: stub_entry(fn_decl, typed)
-    // Generators (`@generator`) desugar to a state-machine iterator: lower the
+    // Generators (`generator`) desugar to a state-machine iterator: lower the
     // body in generator mode (yields → `LoweredYield` markers), then rewrite it
     // + synthesize `g$State` / `Iterator::next` (generator-functions-yield.md §6).
     // Shared with the mono-instance paths via `lower_generator_body`.

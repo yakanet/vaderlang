@@ -297,12 +297,12 @@ export TypedProgram :: struct {
     /// walk (the typecheck pass is the self-compile's biggest GC churner).
     dump_types: bool
 
-    /// True once `register_generator_iter_impls` finds any `@generator` fn.
+    /// True once `register_generator_iter_impls` finds any `generator` fn.
     /// Lets `generator_call_result_type` bail in O(1) on a generator-free program
     /// (the compiler's own self-compile today) instead of probing every call.
     has_generators: bool
 
-    /// `@generator` fn name → its OWNER symbol (id + module), from
+    /// `generator` fn name → its OWNER symbol (id + module), from
     /// `register_generator_iter_impls`. The authoritative map for a UFCS call's
     /// generator recognition — a plain import binding resolves an OVERLOADED name
     /// (`map` = eager `T[]` + lazy `Iterator<T>`) to only ONE overload, possibly

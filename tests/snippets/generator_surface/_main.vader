@@ -8,21 +8,18 @@
 
 module "snippet"
 
-@generator
 concat_file_decls :: fn(files: SourceFile[]) -> Iterator<Decl> {
     for f in files {
         for d in f.program.decls { yield d }
     }
 }
 
-@generator
 evens :: fn(xs: i32[]) -> Iterator<i32> {
     for x in xs {
         if x % 2 == 0 { yield x }
     }
 }
 
-@generator
 each_twice :: fn(xs: i32[]) -> Iterator<i32> {
     for x in xs {
         yield x

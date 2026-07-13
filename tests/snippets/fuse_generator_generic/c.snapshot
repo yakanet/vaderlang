@@ -119,7 +119,7 @@ static int32_t snippet_main(void) {
     vader_box_t* gc_roots[5] = { &l0, &l1, &l5, &t0, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 5u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
-#line 23 "tests/snippets/fuse_generator_generic/_main.vader"
+#line 21 "tests/snippets/fuse_generator_generic/_main.vader"
     vader_struct___lambda_env_4_t* _a0_obj = (vader_struct___lambda_env_4_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_4_t));
     vader_obj_header_init(_a0_obj, 2u);
     t0 = vader_box_obj(2u, _a0_obj);
@@ -142,11 +142,11 @@ static int32_t snippet_main(void) {
                 while (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = (vader_array_buf_t*) _a3_slotarr->buf->header.forward; }
                 if ((size_t) l3 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
                 t1 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l3];
-#line 13 "tests/snippets/fuse_generator_generic/_main.vader"
+#line 12 "tests/snippets/fuse_generator_generic/_main.vader"
                 vader_fn_t* _a4_fnobj = (vader_fn_t*) l0.payload.obj;
                 t2 = ((vader_fn_erased_sig_1_t) _a4_fnobj->code)(_a4_fnobj->env, vader_box_i32(1u, t1));
                 l4 = ((int32_t) t2.payload.i);
-#line 23 "tests/snippets/fuse_generator_generic/_main.vader"
+#line 21 "tests/snippets/fuse_generator_generic/_main.vader"
                 l5 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(22));
                 l6 = (size_t) (int64_t) INT64_C(0);
                 l6 = std_core_write_string_at(l5, l6, 1u);
@@ -161,7 +161,7 @@ static int32_t snippet_main(void) {
             }
         }
     }
-#line 24 "tests/snippets/fuse_generator_generic/_main.vader"
+#line 22 "tests/snippets/fuse_generator_generic/_main.vader"
     vader_struct___lambda_env_12_t* _a5_obj = (vader_struct___lambda_env_12_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_12_t));
     vader_obj_header_init(_a5_obj, 3u);
     t0 = vader_box_obj(3u, _a5_obj);
@@ -186,13 +186,13 @@ static int32_t snippet_main(void) {
                 while (_a8_slotarr->buf != NULL && _a8_slotarr->buf->header.forward != NULL) { _a8_slotarr->buf = (vader_array_buf_t*) _a8_slotarr->buf->header.forward; }
                 if ((size_t) l3 >= _a8_slotarr->length) { vader_trap("array index out of bounds"); }
                 l4 = ((int32_t*) _a8_slotarr->buf->slots)[_a8_slotarr->offset + (size_t) l3];
-#line 19 "tests/snippets/fuse_generator_generic/_main.vader"
+#line 17 "tests/snippets/fuse_generator_generic/_main.vader"
                 vader_fn_t* _a9_fnobj = (vader_fn_t*) l0.payload.obj;
                 t2 = ((vader_fn_erased_sig_1_t) _a9_fnobj->code)(_a9_fnobj->env, vader_box_i32(1u, l4));
                 t5 = t2.payload.b;
                 if (t5) {
                     l8 = l4;
-#line 24 "tests/snippets/fuse_generator_generic/_main.vader"
+#line 22 "tests/snippets/fuse_generator_generic/_main.vader"
                     l5 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(22));
                     l6 = (size_t) (int64_t) INT64_C(0);
                     l6 = std_core_write_string_at(l5, l6, 2u);
@@ -200,10 +200,10 @@ static int32_t snippet_main(void) {
                     l6 = std_core_write_int(l5, l6, l7);
                     t3 = std_core_finish_buffer(l5, l6);
                     std_io_println__string(t3);
-#line 19 "tests/snippets/fuse_generator_generic/_main.vader"
+#line 17 "tests/snippets/fuse_generator_generic/_main.vader"
                 } else {
                 }
-#line 24 "tests/snippets/fuse_generator_generic/_main.vader"
+#line 22 "tests/snippets/fuse_generator_generic/_main.vader"
                 t4 = (l3 + INT64_C(1));
                 l3 = (size_t) (int64_t) t4;
                 goto loop_70;
@@ -211,19 +211,19 @@ static int32_t snippet_main(void) {
             }
         }
     }
-#line 25 "tests/snippets/fuse_generator_generic/_main.vader"
+#line 23 "tests/snippets/fuse_generator_generic/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     vader_gc_top = gc_frame.prev;
 }
 
 static int32_t __lambda_3(vader_box_t l0, int32_t l1) {
-#line 23 "tests/snippets/fuse_generator_generic/_main.vader"
+#line 21 "tests/snippets/fuse_generator_generic/_main.vader"
     return (l1 * INT32_C(10));
 }
 
 static bool __lambda_11(vader_box_t l0, int32_t l1) {
     int32_t t0;
-#line 24 "tests/snippets/fuse_generator_generic/_main.vader"
+#line 22 "tests/snippets/fuse_generator_generic/_main.vader"
     t0 = vader_mod_i32(l1, INT32_C(2));
     return t0 == INT32_C(1);
 }

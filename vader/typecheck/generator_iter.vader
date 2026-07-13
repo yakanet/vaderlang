@@ -1,7 +1,7 @@
-// vader/typecheck/generator_iter — Direction A: a `@generator`'s call result is a
+// vader/typecheck/generator_iter — Direction A: a `generator`'s call result is a
 // CONCRETE nominal type implementing `Iterator<U>`, not the erased trait.
 //
-// A `@generator fn -> Iterator<U>` returns the honest erased `Iterator<U>` in
+// A `generator fn -> Iterator<U>` returns the honest erased `Iterator<U>` in
 // source, but a call to it is typed as the concrete synthesized state struct
 // `<fn>$State` (which `implements Iterator<U>`), erased to `Iterator<U>` only at
 // boundaries. This makes a combinator chain `arr.iter().map(f).filter(p)` resolve
@@ -25,7 +25,7 @@ import "std/collections" { MutableMap }
 // (`is_gen_state_struct`).
 GEN_STATE_PREFIX :: "__genstate_"
 
-/// The deterministic state-struct name for a `@generator` fn named `fn_name`.
+/// The deterministic state-struct name for a `generator` fn named `fn_name`.
 export gen_state_name :: fn(fn_name: string) -> string = "${GEN_STATE_PREFIX}${fn_name}"
 
 // Reserved synthetic-id range for generator state structs — a large negative
@@ -35,7 +35,7 @@ export gen_state_name :: fn(fn_name: string) -> string = "${GEN_STATE_PREFIX}${f
 // (see the plan's CLEANUP entry).
 GEN_STATE_ID_BASE :: -1000000
 
-/// The nominal state-struct symbol for a `@generator` from its `(id, name,
+/// The nominal state-struct symbol for a `generator` from its `(id, name,
 /// module)` — deterministic (no counter, no side-table) so typecheck and lowering
 /// agree on it. Threaded via raw `(id, name, module)` so a caller holding those
 /// (the registry) needn't fabricate a throwaway `Symbol` just to be re-read.
@@ -48,22 +48,22 @@ export gen_state_symbol_of :: fn(fn_id: i32, fn_name: string, module: string) ->
     .defined_at = null,
 }
 
-/// The state-struct symbol for a `@generator` fn symbol.
+/// The state-struct symbol for a `generator` fn symbol.
 export gen_state_symbol :: fn(fn_sym: Symbol) -> Symbol =
     gen_state_symbol_of(fn_sym.id, fn_sym.name, fn_sym.module)
 
-/// True when `t` is a `@generator`'s synthetic `<fn>$State` iterator struct.
+/// True when `t` is a `generator`'s synthetic `<fn>$State` iterator struct.
 /// Recognises by the deterministic `gen_state_symbol` name (not user-derived).
 export is_gen_state_struct :: fn(t: Type) -> bool {
     if t is StructType as st { return starts_with(st.symbol.name, GEN_STATE_PREFIX) }
     return false
 }
 
-// One `@generator`'s state-struct registration facts, collected from the module
+// One `generator`'s state-struct registration facts, collected from the module
 // that OWNS the fn (its `decl_types` / resolved symbol resolve the element).
 GenStateEntry :: struct { name: string, module: string, id: i32, element: Type }
 
-/// Register every `@generator` fn's synthetic state struct as `implements
+/// Register every `generator` fn's synthetic state struct as `implements
 /// Iterator<U>` — into EVERY module's registry — so a call to it types as a
 /// concrete iterator (chains resolve) regardless of which module consumes it.
 /// Runs before any body walk so `try_trait_widen` sees `<fn>$State → Iterator`
@@ -101,7 +101,7 @@ export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedP
     }
 }
 
-/// The concrete result type for a call whose callee is a `@generator`, or null.
+/// The concrete result type for a call whose callee is a `generator`, or null.
 /// `mk_struct(<fn>$State, [element])` — a nominal type that `implements
 /// Iterator<element>`. The concrete element (from the call's substituted return
 /// `Iterator<i32>`) is carried as the sole type arg so a terminal returning the
@@ -120,7 +120,7 @@ export generator_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, co
 }
 
 /// The element `E` of an `Iterator<E>`, or null when `t` isn't a single-arg
-/// `Iterator`. The `@generator`'s declared return is `Iterator<E>`, so the call's
+/// `Iterator`. The `generator`'s declared return is `Iterator<E>`, so the call's
 /// substituted return yields the concrete element.
 iterator_element_of :: fn(t: Type) -> Type | null {
     if t is TraitType as tt {
@@ -129,7 +129,7 @@ iterator_element_of :: fn(t: Type) -> Type | null {
     return null
 }
 
-// The callee's fn symbol IF it is a `@generator`, else null. Handles the direct
+// The callee's fn symbol IF it is a `generator`, else null. Handles the direct
 // ident callee and the UFCS field callee (free fn whose first param fits the
 // receiver).
 callee_generator_symbol :: fn(c: AST.CallExpr, typed: TypedProgram) -> Symbol | null {
@@ -158,10 +158,10 @@ is_generator_symbol :: fn(sym: Symbol, typed: TypedProgram) -> bool {
     return false
 }
 
-// The `@generator` combinator named `name` for a UFCS `.name()` on an iterator
+// The `generator` combinator named `name` for a UFCS `.name()` on an iterator
 // (or array) receiver, or null. Consults the `generator_symbols` registry —
 // authoritative for `map` / `filter` / `take` / `skip`, which are now ONLY the
-// lazy `@generator`s (the eager `T[]` overloads were dropped). A bare array
+// lazy `generator`s (the eager `T[]` overloads were dropped). A bare array
 // receiver selects the lazy combinator too : `arr.map(f)` is lazy and fuses over
 // the raw array (`T[] implements Into<Iterator<T>>` — the implicit `.iter()` head).
 ufcs_generator_symbol :: fn(name: string, recv_ty: Type, typed: TypedProgram) -> Symbol | null {

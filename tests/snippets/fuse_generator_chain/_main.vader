@@ -13,12 +13,10 @@ module "snippet"
 
 import "std/io" { println }
 
-@generator
 my_map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U) -> Iterator<U> {
     for x in self { yield f(x) }
 }
 
-@generator
 my_filter :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> Iterator<T> {
     for x in self { if pred(x) { yield x } }
 }

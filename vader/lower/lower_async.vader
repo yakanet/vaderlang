@@ -18,7 +18,7 @@
 // `lower_module`, and auto-wired into the `Async::resume` vtable by
 // `collect_vtable_entries` (which decodes the `$Async$resume` mangle — no async-
 // specific wiring). The block-split engine (`GenBuild`, states, spill, routing)
-// is shared with `@generator` via `lower_coroutine.vader` — the async seams
+// is shared with `generator` via `lower_coroutine.vader` — the async seams
 // there implement Model A (recursive self-drive): each suspension point stores
 // its child once and re-drives it on every `resume`, reading the completed value
 // back through the child's own `resume` return channel (no external injection).

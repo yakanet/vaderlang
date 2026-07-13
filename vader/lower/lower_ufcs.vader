@@ -251,7 +251,7 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
                 if rt.symbol.name == tt.symbol.name { return true }
             }
             if find_impl_for(ctx.project, recv_type, tt.symbol.name) != null { return true }
-            // Direction A : a `@generator`'s synthetic `<fn>$State` result impls
+            // Direction A : a `generator`'s synthetic `<fn>$State` result impls
             // `Iterator<U>` via the typecheck-side registry (`register_generator_
             // iter_impls`), not the AST-derived `ImplRegistry`. Consult it so the
             // lowerer agrees with what typecheck resolved (chained generator

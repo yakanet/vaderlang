@@ -473,7 +473,7 @@ materialize_impl_for_instance :: fn(
             .module         = impl_typed,
         }
         synth_start :: project_ctx.synth_decls.len()
-        // A `@generator` impl member (e.g. `Into::into` yielding its elements)
+        // A `generator` impl member (e.g. `Into::into` yielding its elements)
         // desugars to the state-machine form, same as a free-fn generator — else
         // the plain body lowering drops every `yield` and the member returns no
         // value. Shared with the free-fn paths via `lower_generator_body`.

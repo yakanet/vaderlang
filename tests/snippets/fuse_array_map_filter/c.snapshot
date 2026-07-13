@@ -130,11 +130,11 @@ static int32_t snippet_main(void) {
                 while (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = (vader_array_buf_t*) _a1_slotarr->buf->header.forward; }
                 if ((size_t) l4 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 t0 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l4];
-#line 245 "stdlib/std/iter/iter.vader"
+#line 239 "stdlib/std/iter/iter.vader"
                 vader_fn_t* _a2_fnobj = (vader_fn_t*) l1.payload.obj;
                 t1 = ((vader_fn_erased_sig_1_t) _a2_fnobj->code)(_a2_fnobj->env, vader_box_i32(1u, t0));
                 l5 = ((int32_t) t1.payload.i);
-#line 238 "stdlib/std/iter/iter.vader"
+#line 233 "stdlib/std/iter/iter.vader"
                 vader_fn_t* _a3_fnobj = (vader_fn_t*) l0.payload.obj;
                 t1 = ((vader_fn_erased_sig_1_t) _a3_fnobj->code)(_a3_fnobj->env, vader_box_i32(1u, l5));
                 t2 = t1.payload.b;
@@ -147,7 +147,7 @@ static int32_t snippet_main(void) {
                     l8 = std_core_write_int(l7, l8, l9);
                     t3 = std_core_finish_buffer(l7, l8);
                     std_io_println__string(t3);
-#line 238 "stdlib/std/iter/iter.vader"
+#line 233 "stdlib/std/iter/iter.vader"
                 } else {
                 }
 #line 14 "tests/snippets/fuse_array_map_filter/_main.vader"

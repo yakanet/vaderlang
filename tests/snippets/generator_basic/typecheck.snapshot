@@ -3,12 +3,12 @@
 ## tests/snippets/generator_basic
   FnDecl         count_up             :: fn(i32) -> Iterator<i32>
   FnDecl         main                 :: fn() -> i32
-  expr 12:14    CallExpr       :: __genstate_count_up<i32>
-  expr 12:14    IdentExpr      :: fn(i32) -> Iterator<i32>
-  expr 12:28    CallExpr       :: void
-  expr 12:28    IdentExpr      :: fn(T) -> void
-  expr 12:36    StringLitExpr  :: string
-  expr 12:39    IdentExpr      :: i32
-  expr 8:14     RangeExpr      :: Range<i32>
-  expr 8:18     IdentExpr      :: i32
-  expr 8:28     IdentExpr      :: i32
+  expr 11:14    CallExpr       :: __genstate_count_up<i32>
+  expr 11:14    IdentExpr      :: fn(i32) -> Iterator<i32>
+  expr 11:28    CallExpr       :: void
+  expr 11:28    IdentExpr      :: fn(T) -> void
+  expr 11:36    StringLitExpr  :: string
+  expr 11:39    IdentExpr      :: i32
+  expr 7:14     RangeExpr      :: Range<i32>
+  expr 7:18     IdentExpr      :: i32
+  expr 7:28     IdentExpr      :: i32

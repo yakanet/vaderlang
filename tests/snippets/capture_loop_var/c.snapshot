@@ -360,7 +360,7 @@ static int32_t snippet_main(void) {
     {
         loop_116: {
             if ((l5 < INT32_C(3))) {
-#line 245 "stdlib/std/iter/iter.vader"
+#line 239 "stdlib/std/iter/iter.vader"
                 vader_fn_t* _a12_fnobj = (vader_fn_t*) l1.payload.obj;
                 t0 = ((vader_fn_erased_sig_1_t) _a12_fnobj->code)(_a12_fnobj->env, vader_box_i32(1u, l5));
                 t4 = ((int32_t) t0.payload.i);
@@ -412,7 +412,7 @@ static int32_t snippet_main(void) {
     {
         loop_170: {
             if ((l5 < INT32_C(5))) {
-#line 238 "stdlib/std/iter/iter.vader"
+#line 233 "stdlib/std/iter/iter.vader"
                 vader_fn_t* _a18_fnobj = (vader_fn_t*) l0.payload.obj;
                 t0 = ((vader_fn_erased_sig_1_t) _a18_fnobj->code)(_a18_fnobj->env, vader_box_i32(1u, l5));
                 t5 = t0.payload.b;
@@ -434,7 +434,7 @@ static int32_t snippet_main(void) {
                     vader_defer_push(t2);
 #line 41 "tests/snippets/capture_loop_var/_main.vader"
                     vader_defer_pop_exec(1u);
-#line 238 "stdlib/std/iter/iter.vader"
+#line 233 "stdlib/std/iter/iter.vader"
                 } else {
                 }
 #line 41 "tests/snippets/capture_loop_var/_main.vader"

@@ -58,7 +58,7 @@ export lower_for_in :: fn(
     chain_form :: try_lower_chain_fusion(ctx, for_stmt, in_form, recurse, block_lowerer)
     if chain_form != null { return chain_form }
     // Fast path : `for v in gen(args)` where `gen` is a directly-called
-    // `@generator` — inline its yield-loop with the consumer body as the
+    // `generator` — inline its yield-loop with the consumer body as the
     // `yield` sink (Couche 4), skipping the state-machine struct + virtual
     // `next()`. Falls through when the callee isn't a recognised generator.
     gen_inline :: try_lower_generator_inline(ctx, for_stmt, in_form, recurse, block_lowerer)
@@ -93,7 +93,7 @@ export lower_for_in :: fn(
     iter_lowered :: wrap_result.iter
     iter_type_wrapped :: wrap_result.iter_type
     element_type :: resolve_element_type(ctx, iter_type_raw, iter_type_wrapped, in_form.binding_span.hash())
-    // Direction A : an escaping `@generator` result is typed as its concrete
+    // Direction A : an escaping `generator` result is typed as its concrete
     // `__genstate_<fn>` struct so combinator chains resolve at typecheck. When the
     // for-in DIDN'T fuse (the fusion fast paths above declined), erase it back to
     // `Iterator<element>` for the step loop so dispatch goes through the proven
@@ -352,7 +352,7 @@ resolve_element_type :: fn(ctx: FnLowerCtx, raw_iter_type: Type, iter_type: Type
     return TY_UNRESOLVED
 }
 
-// Erase a concrete `__genstate_<fn>` iterator (a `@generator`'s Direction-A call
+// Erase a concrete `__genstate_<fn>` iterator (a `generator`'s Direction-A call
 // result) back to the trait `Iterator<element>`, so an un-fused for-in dispatches
 // `next()` virtually through the vtable instead of a devirtualized direct call.
 // Non-`__genstate` types (and `__genstate` with an unresolvable Iterator trait

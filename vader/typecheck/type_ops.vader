@@ -248,7 +248,7 @@ export lookup_struct_trait_args :: fn(t: Type, trait_name: string, typed: TypedP
 /// `field.vader::substitute_trait_typeparams`; the source of truth for binding a
 /// combinator/terminal's `Iterator<T>` param `T` from a concrete receiver.
 export resolve_struct_trait_args :: fn(t: Type, trait_name: string, typed: TypedProgram) -> Type[] | null {
-    // A `@generator`'s `<fn>$State<E>` implements `Iterator<E>` — its trait args ARE
+    // A `generator`'s `<fn>$State<E>` implements `Iterator<E>` — its trait args ARE
     // its own type args (the concrete element carried per instance). The synthetic
     // struct has no `struct_decl`, so the generic-substitution path below can't apply.
     if trait_name == TRAIT_ITERATOR {

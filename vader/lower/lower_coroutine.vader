@@ -1,7 +1,7 @@
 // vader/lower/lower_coroutine — the reusable coroutine state-machine engine.
 //
 // Extracted from `lower_generator.vader` (P1.0 of the async/await plan) so both
-// `@generator` and (future) `async` lowering can share the block-split: the
+// `generator` and (future) `async` lowering can share the block-split: the
 // structured-lowered-CFG → numbered-states transform, spill collection,
 // self-field routing, and dispatch synthesis. Currently coupled to the generator
 // suspension marker (`LoweredYield`) and the pull-only `next()` protocol;
@@ -50,7 +50,7 @@ GenBuild :: struct {
     /// drained LIFO at each structured exit. Only async allows defer ; a generator
     /// still rejects it (T3060), so this is never set for a generator.
     has_defers: bool = false
-    /// True when driving an `async fn` (vs a `@generator`). Selects the async
+    /// True when driving an `async fn` (vs a `generator`). Selects the async
     /// seams in the shared block-split : `await` suspension, value-carrying
     /// completion, and the `Suspended` (vs `null`) done sentinel.
     is_async:  bool = false

@@ -225,7 +225,7 @@ export LoweredReturn :: struct {
     value: LoweredExpr | null
 }
 
-/// TRANSIENT generator marker — one `yield e` inside an `@generator` body.
+/// TRANSIENT generator marker — one `yield e` inside a `generator` body.
 /// Emitted by `lower_stmt` ONLY when `FnLowerCtx.in_generator` is set, and
 /// wholly consumed by the generator state-machine transform
 /// (`lower_generator.vader`) — it never reaches the backend. Backend / midir

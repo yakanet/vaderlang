@@ -21,7 +21,7 @@ import "vader/typecheck" { default_if_free }
 
 // One layer of a fusible iterator chain. The two bottoms are `Range`
 // (an integer-typed `RangeExpr`) and `Array` (an `arr.iter()` cursor) ;
-// a `Generator` layer wraps a `source` layer with an inlined `@generator`
+// a `Generator` layer wraps a `source` layer with an inlined `generator`
 // combinator body (map / filter / take / skip). Non-int ranges,
 // runtime-bound chains, etc fall back to the generic slow path.
 IterChainKind :: enum(u8) {
@@ -47,13 +47,13 @@ IterChain :: struct {
     implicit_head: bool = false
     // Combinator layer — the source chain this layer sits on top of.
     source:       IterChain | null
-    // Generator combinator layer — the inlined `@generator` body (map / filter /
-    // take / skip, all `@generator`). Defaulted ; see `lower_generator_fusion.vader`.
+    // Generator combinator layer — the inlined `generator` body (map / filter /
+    // take / skip, all `generator`). Defaulted ; see `lower_generator_fusion.vader`.
     gen_layer:    GenComboLayer | null = null
     span:         Span
 }
 
-// Build a `Generator` chain layer over `source` — the inlined `@generator`
+// Build a `Generator` chain layer over `source` — the inlined `generator`
 // combinator body carried in `gen_layer` (see `lower_generator_fusion.vader`).
 mk_generator_chain :: fn(source: IterChain, gen_layer: GenComboLayer, span: Span) -> IterChain = IterChain {
     .kind = IterChainKind.Generator,
@@ -64,7 +64,7 @@ mk_generator_chain :: fn(source: IterChain, gen_layer: GenComboLayer, span: Span
 
 // Top-level entry — recognise `for x in <chain>` and emit the fused
 // counter loop. Returns null whenever the chain doesn't match a fusible
-// shape (`@generator` combinators over an int-range or `arr.iter()` bottom).
+// shape (`generator` combinators over an int-range or `arr.iter()` bottom).
 try_lower_chain_fusion :: fn(
     ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
     recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
@@ -351,7 +351,7 @@ emit_collect_fusion :: fn(ctx: FnLowerCtx, chain: IterChain, span: Span) -> Lowe
 
 
 // Walk the iter expression top-down. Each layer either matches a
-// `@generator` combinator call (via `try_descend_gen_combinator`) or
+// `generator` combinator call (via `try_descend_gen_combinator`) or
 // bottoms at an integer-typed `RangeExpr` / an `arr.iter()` cursor.
 // Anything else returns null.
 // `descend_chain` for a TOP-LEVEL consumer (a `for x in <expr>` or a terminal like
@@ -369,7 +369,7 @@ top_level_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
 
 descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
     // @partial: only a Range bottom, an `arr.iter()` array cursor, or a
-    // `@generator` combinator call forms a fusible chain; every other Expr → null.
+    // `generator` combinator call forms a fusible chain; every other Expr → null.
     @partial match expr {
         is AST.RangeExpr as range -> {
             bound :: ctx.types.expr_type(range.lower)
@@ -389,7 +389,7 @@ descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
             // `ArrayIterator<T>` heading the chain; fuse over `arr` directly.
             arr_bottom :: descend_array_call(ctx, call)
             if arr_bottom != null { return arr_bottom }
-            // Generator combinator (`@generator` whose first param is the source
+            // Generator combinator (`generator` whose first param is the source
             // iterator) — recognised by callee. map / filter / take / skip all
             // lower through here now the hand-written *Iterator structs are gone.
             return try_descend_gen_combinator(ctx, call)
@@ -528,7 +528,7 @@ chain_element_type :: fn(chain: IterChain) -> Type = match chain.kind {
 }
 
 // Emit the fused chain recursively. The Range / Array bottoms expand into a
-// counter loop ; a Generator layer inlines its `@generator` body over its
+// counter loop ; a Generator layer inlines its `generator` body over its
 // source (map / filter / take / skip all lower through here).
 emit_fused_chain :: fn(
     ctx: FnLowerCtx, chain: IterChain, loop_label: string | null, outer_span: Span,

@@ -305,7 +305,7 @@ static int32_t snippet_main(void) {
     vader_box_t* gc_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
-#line 251 "stdlib/std/iter/iter.vader"
+#line 244 "stdlib/std/iter/iter.vader"
     l0 = (size_t) (int64_t) INT64_C(0);
 #line 10 "tests/snippets/fuse_take_skip/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(24u, 5u, 7u, 1u);
@@ -324,29 +324,29 @@ static int32_t snippet_main(void) {
                 while (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = (vader_array_buf_t*) _a1_slotarr->buf->header.forward; }
                 if ((size_t) l3 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l4 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l3];
-#line 253 "stdlib/std/iter/iter.vader"
+#line 246 "stdlib/std/iter/iter.vader"
                 if ((l0 >= INT64_C(3))) {
                 } else {
-#line 254 "stdlib/std/iter/iter.vader"
+#line 247 "stdlib/std/iter/iter.vader"
 #line 10 "tests/snippets/fuse_take_skip/_main.vader"
                     l5 = vader_vt_Display__to_string(vader_box_i32(1u, l4));
                     t0 = concat_2(1u, l5);
                     std_io_println__string(t0);
-#line 255 "stdlib/std/iter/iter.vader"
+#line 248 "stdlib/std/iter/iter.vader"
                     t1 = (l0 + INT64_C(1));
                     l0 = (size_t) (int64_t) t1;
 #line 10 "tests/snippets/fuse_take_skip/_main.vader"
                     t1 = (l3 + INT64_C(1));
                     l3 = (size_t) (int64_t) t1;
                     goto loop_14;
-#line 253 "stdlib/std/iter/iter.vader"
+#line 246 "stdlib/std/iter/iter.vader"
                 }
 #line 10 "tests/snippets/fuse_take_skip/_main.vader"
             } else {
             }
         }
     }
-#line 263 "stdlib/std/iter/iter.vader"
+#line 255 "stdlib/std/iter/iter.vader"
     l0 = (size_t) (int64_t) INT64_C(0);
 #line 11 "tests/snippets/fuse_take_skip/_main.vader"
     vader_array_t* _a2_arr = vader_array_new(24u, 5u, 7u, 1u);
@@ -365,16 +365,16 @@ static int32_t snippet_main(void) {
                 while (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = (vader_array_buf_t*) _a3_slotarr->buf->header.forward; }
                 if ((size_t) l3 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
                 l4 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l3];
-#line 265 "stdlib/std/iter/iter.vader"
+#line 257 "stdlib/std/iter/iter.vader"
                 if ((l0 >= INT64_C(2))) {
 #line 11 "tests/snippets/fuse_take_skip/_main.vader"
                     l5 = vader_vt_Display__to_string(vader_box_i32(1u, l4));
                     t0 = concat_2(2u, l5);
                     std_io_println__string(t0);
-#line 265 "stdlib/std/iter/iter.vader"
+#line 257 "stdlib/std/iter/iter.vader"
                 } else {
                 }
-#line 266 "stdlib/std/iter/iter.vader"
+#line 258 "stdlib/std/iter/iter.vader"
                 t1 = (l0 + INT64_C(1));
                 l0 = (size_t) (int64_t) t1;
 #line 11 "tests/snippets/fuse_take_skip/_main.vader"
@@ -385,9 +385,9 @@ static int32_t snippet_main(void) {
             }
         }
     }
-#line 251 "stdlib/std/iter/iter.vader"
+#line 244 "stdlib/std/iter/iter.vader"
     l0 = (size_t) (int64_t) INT64_C(0);
-#line 263 "stdlib/std/iter/iter.vader"
+#line 255 "stdlib/std/iter/iter.vader"
     l2 = (size_t) (int64_t) INT64_C(0);
 #line 12 "tests/snippets/fuse_take_skip/_main.vader"
     vader_array_t* _a4_arr = vader_array_new(24u, 5u, 7u, 1u);
@@ -406,21 +406,21 @@ static int32_t snippet_main(void) {
                 while (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = (vader_array_buf_t*) _a5_slotarr->buf->header.forward; }
                 if ((size_t) l6 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
                 l4 = ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l6];
-#line 265 "stdlib/std/iter/iter.vader"
+#line 257 "stdlib/std/iter/iter.vader"
                 if ((l2 >= INT64_C(1))) {
                     l7 = l4;
-#line 253 "stdlib/std/iter/iter.vader"
+#line 246 "stdlib/std/iter/iter.vader"
                     if ((l0 >= INT64_C(2))) {
                     } else {
-#line 254 "stdlib/std/iter/iter.vader"
+#line 247 "stdlib/std/iter/iter.vader"
 #line 12 "tests/snippets/fuse_take_skip/_main.vader"
                         l5 = vader_vt_Display__to_string(vader_box_i32(1u, l7));
                         t0 = concat_2(3u, l5);
                         std_io_println__string(t0);
-#line 255 "stdlib/std/iter/iter.vader"
+#line 248 "stdlib/std/iter/iter.vader"
                         t1 = (l0 + INT64_C(1));
                         l0 = (size_t) (int64_t) t1;
-#line 266 "stdlib/std/iter/iter.vader"
+#line 258 "stdlib/std/iter/iter.vader"
                         l8 = (size_t) (int64_t) INT64_C(1);
                         t1 = (l2 + l8);
                         l2 = (size_t) (int64_t) t1;
@@ -429,11 +429,11 @@ static int32_t snippet_main(void) {
                         t1 = (l6 + l9);
                         l6 = (size_t) (int64_t) t1;
                         goto loop_114;
-#line 253 "stdlib/std/iter/iter.vader"
+#line 246 "stdlib/std/iter/iter.vader"
                     }
-#line 265 "stdlib/std/iter/iter.vader"
+#line 257 "stdlib/std/iter/iter.vader"
                 } else {
-#line 266 "stdlib/std/iter/iter.vader"
+#line 258 "stdlib/std/iter/iter.vader"
                     l8 = (size_t) (int64_t) INT64_C(1);
                     t1 = (l2 + l8);
                     l2 = (size_t) (int64_t) t1;
@@ -442,7 +442,7 @@ static int32_t snippet_main(void) {
                     t1 = (l6 + l9);
                     l6 = (size_t) (int64_t) t1;
                     goto loop_114;
-#line 265 "stdlib/std/iter/iter.vader"
+#line 257 "stdlib/std/iter/iter.vader"
                 }
 #line 12 "tests/snippets/fuse_take_skip/_main.vader"
             } else {

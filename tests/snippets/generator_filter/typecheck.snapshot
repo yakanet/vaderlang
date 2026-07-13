@@ -3,16 +3,16 @@
 ## tests/snippets/generator_filter
   FnDecl         evens                :: fn(i32[]) -> Iterator<i32>
   FnDecl         main                 :: fn() -> i32
-  expr 14:14    CallExpr       :: __genstate_evens<i32>
-  expr 14:14    IdentExpr      :: fn(i32[]) -> Iterator<i32>
-  expr 14:20    SeqLitExpr     :: i32[]
-  expr 14:42    CallExpr       :: void
-  expr 14:42    IdentExpr      :: fn(T) -> void
-  expr 14:50    StringLitExpr  :: string
-  expr 14:53    IdentExpr      :: i32
-  expr 8:14     IdentExpr      :: i32[]
-  expr 9:12     BinaryExpr     :: bool
-  expr 9:12     BinaryExpr     :: i32
-  expr 9:12     IdentExpr      :: i32
-  expr 9:31     IdentExpr      :: i32
-  expr 9:9      IfExpr         :: void
+  expr 13:14    CallExpr       :: __genstate_evens<i32>
+  expr 13:14    IdentExpr      :: fn(i32[]) -> Iterator<i32>
+  expr 13:20    SeqLitExpr     :: i32[]
+  expr 13:42    CallExpr       :: void
+  expr 13:42    IdentExpr      :: fn(T) -> void
+  expr 13:50    StringLitExpr  :: string
+  expr 13:53    IdentExpr      :: i32
+  expr 7:14     IdentExpr      :: i32[]
+  expr 8:12     BinaryExpr     :: bool
+  expr 8:12     BinaryExpr     :: i32
+  expr 8:12     IdentExpr      :: i32
+  expr 8:31     IdentExpr      :: i32
+  expr 8:9      IfExpr         :: void

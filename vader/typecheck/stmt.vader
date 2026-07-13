@@ -107,13 +107,11 @@ export check_stmt :: fn(
     return
 }
 
-/// True when `fn_decl` is a generator — it carries `@generator` OR lexically
-/// `yield`s. Generator-ness is migrating from the decorator to pure
-/// `yield`-inference (mirror of `fn_is_async`) ; during the transition both
-/// signal it. Local + syntactic, so it resolves the same at a definition and at
-/// a call site.
+/// True when `fn_decl` is a generator — i.e. it lexically `yield`s. Generator-ness
+/// is INFERRED from `yield` (no annotation needed, mirror of `fn_is_async`) ; a
+/// generator expresses it in the signature by returning `Iterator<T>` (T3056).
+/// Local + syntactic, so it resolves the same at a definition and at a call site.
 export fn_is_generator :: fn(fn_decl: AST.FnDecl) -> bool {
-    for d in fn_decl.decorators { if d.name == "generator" { return true } }
     b :: fn_decl.body
     if b == null { return false }
     return block_has_yield(b)
@@ -212,7 +210,8 @@ expr_has_await :: fn(e: AST.Expr) -> bool {
 
 /// Element type `T` of a generator's `-> Iterator<T>` return, or `null`
 /// (plus a T3056 diagnostic) when the return type isn't a valid
-/// `Iterator<T>`. `@generator` mandates the honest `Iterator<T>` return.
+/// `Iterator<T>`. A function that `yield`s must honour it with an
+/// `Iterator<T>` return.
 generator_element_type :: fn(fn_decl: AST.FnDecl, return_type: Type, diags: Diagnostic[]) -> Type | null {
     if return_type is TraitType as tt {
         if tt.symbol.name == TRAIT_ITERATOR && tt.args.len() > 0 {
@@ -220,7 +219,7 @@ generator_element_type :: fn(fn_decl: AST.FnDecl, return_type: Type, diags: Diag
         }
     }
     diags.push(typecheck_error(.GeneratorReturnMustBeIterator, fn_decl.name_span,
-        "`${fn_decl.name}` is `@generator` but returns ${display_type(return_type)}"))
+        "`${fn_decl.name}` yields but returns ${display_type(return_type)}"))
     return null
 }
 
@@ -308,18 +307,14 @@ export check_fn_body :: fn(
     return_type :: lookup_return_type(fn_decl, typed)
     is_generator :: fn_is_generator(fn_decl)
     is_async :: fn_is_async(fn_decl)
-    // Generators are classified up front: extract the `Iterator<T>`
-    // element type (T3056 if the return isn't `Iterator<T>`) and require
-    // at least one `yield` (T3057). The body yields rather than returning
-    // the iterator, so the missing-return / trailing-return check below is
-    // suppressed. See generator-functions-yield.md §3.
+    // Generators are inferred from a body `yield` (`is_generator`), so the
+    // signature must honour it with an `Iterator<T>` return : extract that
+    // element type (T3056 if the return isn't `Iterator<T>`). The body yields
+    // rather than returning the iterator, so the missing-return / trailing-return
+    // check below is suppressed. See generator-functions-yield.md §3.
     yield_type: Type | null = null
     if is_generator {
         yield_type = generator_element_type(fn_decl, return_type, diags)
-        if !block_has_yield(body) {
-            diags.push(typecheck_error(.GeneratorMissingYield, fn_decl.name_span,
-                "`${fn_decl.name}` is `@generator` but never yields"))
-        }
     }
     // Expression-bodied without explicit return type : infer from
     // the trailing expression. `declare_fn_return` leaves this as
@@ -719,9 +714,11 @@ check_yield :: fn(
         if yt != null { emit_mismatch_if(got, yt, s.value.span, s.value.id, .GeneratorYieldIncompatible, typed, diags) }
         return
     }
-    // Legal only directly inside a generator body — a plain fn or a nested
-    // lambda (whose own ctx isn't a generator) trips T3059. Still type the
-    // value so downstream passes see its type.
+    // A `yield` in the body makes a fn a generator by inference, so the only
+    // illegal position left is a nested lambda (its own ctx is never a generator
+    // — `new_fn_context` defaults `is_generator = false`, and `block_has_yield`
+    // doesn't descend lambdas), which trips T3059. Still type the value so
+    // downstream passes see its type.
     check_expr_fn(s.value, null, typed, diags)
     diags.push(typecheck_error(.YieldOutsideGenerator, s.span, ""))
 }
@@ -1052,7 +1049,7 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
     // unresolved element.
     @partial match iter_ty {
         is StructType as st -> {
-            // A `@generator`'s `<fn>$State<E>` carries the concrete element as its
+            // A `generator`'s `<fn>$State<E>` carries the concrete element as its
             // sole type arg (`<fn>$State<E> implements Iterator<E>`) — the synthetic
             // struct has no `struct_decl` for the generic-substitution path below, so
             // read the arg directly (else a captured loop var over a generator chain

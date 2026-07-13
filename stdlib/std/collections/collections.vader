@@ -297,14 +297,14 @@ export values :: fn<K, V>(self: MutableMap<K, V>) -> V[] {
 }
 
 // `for entry in m` works directly thanks to the `Into(Iterator(...))` impl
-// below — no explicit `.iter()` call needed. `into` is a `@generator` : consumed
+// below — no explicit `.iter()` call needed. `into` is a `generator` : consumed
 // by a `for` loop or a terminal it fuses (and `for entry in m` hits the map
 // fast-path in `lower_for_in`, never materialising it) ; an escaping `m.into()`
 // value materialises the generator's state machine. Walks the dense entry arrays
 // by index — no snapshot. Mutating `self` while an iterator is live is UB.
 
 MutableMap<K, V> implements<K, V> Into<Iterator<Entry<K, V>>> {
-    @generator into :: fn(self) -> Iterator<Entry<K, V>> {
+    into :: fn(self) -> Iterator<Entry<K, V>> {
         for i in 0..<self.size {
             yield Entry<K, V> { .key = self.ekeys[i], .value = self.evals[i] }
         }
@@ -361,12 +361,12 @@ export clear :: fn<T>(self: MutableSet<T>) -> void = self.inner.clear()
 MutableSet<T> implements Contains<T> -> value in self.inner
 
 // `for v in s` works directly via the `Into(Iterator(...))` impl below — same
-// `@generator` pattern as `MutableMap` (fast-path for `for v in s`, state machine
+// `generator` pattern as `MutableMap` (fast-path for `for v in s`, state machine
 // only when the iterator escapes). Walks the backing map's dense key array by
 // index. Same undefined-behaviour caveat on concurrent mutation.
 
 MutableSet<T> implements<T> Into<Iterator<T>> {
-    @generator into :: fn(self) -> Iterator<T> {
+    into :: fn(self) -> Iterator<T> {
         for i in 0..<self.inner.size {
             yield self.inner.ekeys[i]
         }
