@@ -1,0 +1,148 @@
+// std/option — value-level combinators over `T | null` and `T | Error`.
+//
+// Vader has no nominal `Option` / `Result` types : nullability is the structural
+// union `T | null` and fallibility is `T | Error` (an error is any value whose
+// type implements the `Error` trait). These free functions are the conveniences
+// on top of `if x == null` / `if x is Error` narrowing — called via UFCS
+// (`x.or(d)`, `r.unwrap_or(d)`, `r.map(f)`) for default / transform / chain, the
+// cases where a full narrowing block would be noise. Control flow — early
+// return, branching, propagation — stays with `if` / `match`. They replace the
+// removed `?` operator. See `docs/ERROR_HANDLING.md`.
+
+module "std/option"
+
+import "std/abort" { panic }
+
+// ---- nullable (`T | null`) ------------------------------------------------
+
+/// The value, or `d` when it is null.
+///
+/// @param x  a nullable value.
+/// @param d  the fallback returned when `x` is null.
+/// @return   `x` narrowed to `T`, otherwise `d`.
+/// @example
+///   name :: lookup(id).or("anonymous")
+export or :: fn<T>(x: T | null, d: T) -> T {
+    if x == null { return d }
+    return x
+}
+
+/// The value, or `f()` when it is null — the lazy form of `or`, for a fallback
+/// that is expensive or has a side effect (evaluated only on the null path).
+///
+/// @param x  a nullable value.
+/// @param f  computes the fallback ; called only when `x` is null.
+/// @return   `x` narrowed to `T`, otherwise `f()`.
+export or_else :: fn<T>(x: T | null, f: fn() -> T) -> T {
+    if x == null { return f() }
+    return x
+}
+
+// ---- fallible (`T | Error`) -----------------------------------------------
+
+/// The value, or `d` when it is an error.
+///
+/// @param x  a fallible value.
+/// @param d  the fallback returned when `x` is an error.
+/// @return   `x` narrowed to `T`, otherwise `d`.
+/// @example
+///   port :: parse_int(s).unwrap_or(8080)
+export unwrap_or :: fn<T>(x: T | Error, d: T) -> T {
+    if x is Error { return d }
+    return x
+}
+
+/// The value, or `f(err)` when it is an error — the lazy form, with access to
+/// the error (to log it, or derive the fallback from it).
+///
+/// @param x  a fallible value.
+/// @param f  computes the fallback from the error ; called only on the error path.
+/// @return   `x` narrowed to `T`, otherwise `f(err)`.
+export unwrap_or_else :: fn<T>(x: T | Error, f: fn(Error) -> T) -> T {
+    if x is Error as e { return f(e) }
+    return x
+}
+
+/// Transform the ok value with `f` ; an error passes through unchanged.
+///
+/// @param x  a fallible value.
+/// @param f  applied to the ok value.
+/// @return   `f(x)` on success, otherwise the original error.
+export map :: fn<T, U>(x: T | Error, f: fn(T) -> U) -> U | Error {
+    if x is Error as e { return e }
+    return f(x)
+}
+
+// NOTE: `and_then` (chain, `f: fn(T) -> U | Error`) is deferred — inferring `U`
+// from the closure's *union* return position hits a generic-materialisation gap
+// (GATE B1). It returns once that inference path is fixed. Chain with `if`/`match`
+// on the interim.
+
+/// The value, or `panic` with the error's own message. Use only when an error is
+/// genuinely unrecoverable — it aborts the process.
+///
+/// @param x  a fallible value.
+/// @return   `x` narrowed to `T` ; never returns on the error path.
+export unwrap :: fn<T>(x: T | Error) -> T {
+    if x is Error as e { panic(e.message()) }
+    return x
+}
+
+/// The value, or `panic(msg)` — like `unwrap`, with a caller-supplied message.
+///
+/// @param x    a fallible value.
+/// @param msg  the panic message on the error path.
+/// @return     `x` narrowed to `T` ; never returns on the error path.
+export expect :: fn<T>(x: T | Error, msg: string) -> T {
+    if x is Error { panic(msg) }
+    return x
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+Boom :: struct { code: i32 }
+Boom implements Error {
+    message :: fn(self) -> string = "boom ${self.code}"
+}
+
+ok  :: fn() -> i32 | Error { return 42 }
+bad :: fn() -> i32 | Error { return Boom { .code = 7 } }
+
+@test
+test_or :: fn() -> void {
+    present: i32 | null = 7
+    absent:  i32 | null = null
+    assert_eq(present.or(0), 7)
+    assert_eq(absent.or(0), 0)
+}
+
+@test
+test_or_else :: fn() -> void {
+    present: i32 | null = 5
+    absent:  i32 | null = null
+    assert_eq(present.or_else(fn() { return 99 }), 5)
+    assert_eq(absent.or_else(fn() { return 99 }), 99)
+}
+
+@test
+test_unwrap_or :: fn() -> void {
+    assert_eq(ok().unwrap_or(-1), 42)
+    assert_eq(bad().unwrap_or(-1), -1)
+}
+
+@test
+test_unwrap_or_else :: fn() -> void {
+    assert_eq(ok().unwrap_or_else(fn(e: Error) { return 0 }), 42)
+    assert_eq(bad().unwrap_or_else(fn(e: Error) { return 100 }), 100)
+}
+
+@test
+test_map :: fn() -> void {
+    doubled_ok :: ok().map(fn(v: i32) { return v * 2 })    // 84
+    doubled_bad :: bad().map(fn(v: i32) { return v * 2 })  // Boom passes through
+    assert_eq(doubled_ok.unwrap_or(-1), 84)
+    assert_eq(doubled_bad.unwrap_or(-1), -1)
+}
+
