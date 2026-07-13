@@ -86,6 +86,10 @@ const C_PARITY = new Set<string>([
   // arity mismatches the closure calling convention at call.indirect. Guards the
   // resolver def-site recording fix (unused lambda params).
   "unused_lambda_param",
+  // `and_then` infers `U` from a `U | Error` union in a fn-param's return, fed a
+  // block-body lambda. Guards the lambda-return inference fix (never → real type)
+  // that keeps the union-position type param bindable.
+  "and_then_infer",
   // T7 : misc ops. type_check (`x is T` → tag-compare / trait disjunction) is
   // the validatable one — a chain of divergent `is`-guards. type.const /
   // size_of.type / defer.push / defer.pop_exec handlers are also ported but

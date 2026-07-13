@@ -1,0 +1,48 @@
+# Typecheck
+
+## tests/snippets/and_then_infer
+  StructDecl     Boom                 :: Boom
+  FnDecl         fetch                :: fn(bool) -> Error | i32
+  FnDecl         halve                :: fn(i32) -> Error | i32
+  FnDecl         main                 :: fn() -> i32
+  expr 14:57    StringLitExpr  :: string
+  expr 16:40    IfExpr         :: void
+  expr 16:43    IdentExpr      :: bool
+  expr 16:67    StructLitExpr  :: Boom
+  expr 17:38    IfExpr         :: void
+  expr 17:41    BinaryExpr     :: bool
+  expr 17:41    BinaryExpr     :: i32
+  expr 17:41    IdentExpr      :: i32
+  expr 17:61    StructLitExpr  :: Boom
+  expr 17:78    BinaryExpr     :: i32
+  expr 17:78    IdentExpr      :: i32
+  expr 21:11    CallExpr       :: Error | i32
+  expr 21:11    CallExpr       :: Error | i32
+  expr 21:11    FieldExpr      :: fn(fn(i32) -> Error | U) -> Error | U
+  expr 21:11    IdentExpr      :: fn(bool) -> Error | i32
+  expr 21:32    LambdaExpr     :: fn(i32) -> Error | i32
+  expr 21:52    CallExpr       :: Error | i32
+  expr 21:52    IdentExpr      :: fn(i32) -> Error | i32
+  expr 21:58    IdentExpr      :: i32
+  expr 22:13    StringLitExpr  :: string
+  expr 22:16    CallExpr       :: i32
+  expr 22:16    FieldExpr      :: fn(i32) -> i32
+  expr 22:16    IdentExpr      :: Error | i32
+  expr 22:29    UnaryExpr      :: i32
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void
+  expr 24:11    CallExpr       :: Error | i32
+  expr 24:11    CallExpr       :: Error | i32
+  expr 24:11    FieldExpr      :: fn(fn(i32) -> Error | U) -> Error | U
+  expr 24:11    IdentExpr      :: fn(bool) -> Error | i32
+  expr 24:33    LambdaExpr     :: fn(i32) -> Error | i32
+  expr 24:53    CallExpr       :: Error | i32
+  expr 24:53    IdentExpr      :: fn(i32) -> Error | i32
+  expr 24:59    IdentExpr      :: i32
+  expr 25:13    StringLitExpr  :: string
+  expr 25:16    CallExpr       :: i32
+  expr 25:16    FieldExpr      :: fn(i32) -> i32
+  expr 25:16    IdentExpr      :: Error | i32
+  expr 25:29    UnaryExpr      :: i32
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T) -> void

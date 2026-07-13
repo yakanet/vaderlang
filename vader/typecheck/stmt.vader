@@ -686,7 +686,17 @@ check_return :: fn(
     got :: check_expr_fn(v, expected, typed, diags)
     match effective {
         is null -> {}
-        _ -> { emit_return_mismatch_if(got, effective.return_type, s.span, v.id, typed, diags) }
+        _ -> {
+            // Accumulate the returned value's type so a divergent block-body
+            // lambda can recover its real return type (see `pick_final_return`).
+            prev :: effective.inferred_return
+            if prev == null {
+                effective.inferred_return = got
+            } else {
+                effective.inferred_return = union_of([prev, got])
+            }
+            emit_return_mismatch_if(got, effective.return_type, s.span, v.id, typed, diags)
+        }
     }
 }
 

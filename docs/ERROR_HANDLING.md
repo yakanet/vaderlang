@@ -156,12 +156,21 @@ each is a deletion or an exhaustive-match arm drop:
 
 ## 5. Phasing
 
-> **Status (2026-07-13): Phases 1–3 DONE.** Combinators shipped (`std/option`,
-> minus `and_then` — deferred on the union-materialisation gap); all `?` usage
-> migrated to narrowing (std/json, std/time, mowitnow); the `?` operator + its
-> `TryExpr` cascade + T3011/T3012/T3067 removed. `?` is gone from the language.
-> Remaining: `and_then` + the union-position generic-materialisation fix (§2),
-> and the optional overload-by-receiver follow-up (Phase 4).
+> **Status (2026-07-13): Phases 1–3 DONE + `and_then` unblocked.** Combinators
+> shipped in full (`std/option`, incl. `and_then`); all `?` usage migrated to
+> narrowing (std/json, std/time, mowitnow); the `?` operator + its `TryExpr`
+> cascade + T3011/T3012/T3067 removed. `?` is gone from the language.
+>
+> The union-position inference gap that had deferred `and_then` is FIXED (root
+> cause: a block-body lambda ending in `return` typed its block as `never`, so a
+> type param inside a `U | Error` return position never bound — the mangle lost
+> it → GATE B1. Fix: `FnContext.inferred_return` accumulates the lambda's `return`
+> value types; `pick_final_return` uses it when the block diverges). This also
+> improves inference for any block-body lambda passed to a generic HOF.
+>
+> Remaining (optional): the multi-param `U | E` union split still needs explicit
+> type args (`try_all<U, E>` / `any<U, E>`) — genuinely ambiguous, left as-is; and
+> the overload-by-receiver follow-up (Phase 4) for same-name combinators.
 
 
 Each phase ends green (`verify.sh` fixed point, fresh seed, full suite), reviewed
