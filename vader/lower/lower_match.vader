@@ -487,17 +487,14 @@ struct_field_type :: fn(ctx: FnLowerCtx, target_type: Type, field_name: string) 
 // owned symbols). Scan once for one whose `defined_at` matches the
 // pattern's name_span. Synthesise a fresh symbol when the resolver
 // didn't write one — defensive against cascading diagnostics.
+// Resolve a pattern binding's Symbol via the shared per-module
+// `defined_span -> Symbol` index (`lookup_local_symbol`); mint a fresh
+// synthetic only when the binding is genuinely absent. Was a naive
+// O(idents) scan per binding until routed through the constant-time index.
 resolve_pattern_symbol :: fn(ctx: FnLowerCtx, name_span: Span, name: string) -> Symbol {
-    target_key :: name_span.hash()
-    for [_, symbol] in ctx.typed.resolved.idents {
-        match symbol.defined_at {
-            is null -> {}
-            is Span as defined -> {
-                if defined.hash() == target_key { return symbol }
-            }
-        }
-    }
-    return fresh_synthetic_symbol(ctx, name)
+    found :: lookup_local_symbol(ctx.project, ctx.typed.resolved, name_span)
+    if found == null { return fresh_synthetic_symbol(ctx, name) }
+    return found
 }
 
 wrap_block :: fn(span: Span, expr: LoweredExpr) -> LoweredBlock {

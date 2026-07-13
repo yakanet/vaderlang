@@ -462,21 +462,12 @@ synth_next_symbol :: fn(ctx: FnLowerCtx, name: string) -> Symbol {
     }
 }
 
-// Look up the for-in binding's resolver-minted Symbol — scan
-// `idents.values()` by `defined_at == binding_span`. Mirrors the
-// `lookup_local_symbol` shape used elsewhere.
-export lookup_for_binding :: fn(ctx: FnLowerCtx, binding_span: Span) -> Symbol | null {
-    target_key :: binding_span.hash()
-    for [_, symbol] in ctx.typed.resolved.idents {
-        match symbol.defined_at {
-            is null -> {}
-            is Span as defined -> {
-                if defined.hash() == target_key { return symbol }
-            }
-        }
-    }
-    return null
-}
+// Look up the for-in binding's resolver-minted Symbol via the shared
+// per-module `defined_span -> Symbol` index (`lookup_local_symbol`).
+// Was a naive O(idents) scan per binding until it was routed through
+// the constant-time index every other lowering site already uses.
+export lookup_for_binding :: fn(ctx: FnLowerCtx, binding_span: Span) -> Symbol | null =
+    lookup_local_symbol(ctx.project, ctx.typed.resolved, binding_span)
 
 // For-in bindings that the body never references don't appear in
 // `resolved.idents` (the use-site map). Synthesize a placeholder
