@@ -8,7 +8,7 @@ import "std/collections" { MutableMap, values }
 import "vader/parser" { Expr, IdentExpr, FieldExpr, StructLitExpr, StructLitField, StructLitSpread, SeqLitExpr, DotVariantExpr, StructDecl }
 import "vader/diagnostics" { Span }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, TupleType, mk_primitive, StructType, EnumType, struct_backing, tuple_backing }
+import "vader/types" { Type, TupleType, mk_primitive, mk_struct, StructType, EnumType, struct_backing, tuple_backing }
 
 lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> LoweredExpr {
     // Index the literal's provided values by name so we can walk the
@@ -64,12 +64,47 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
         // that merely virtually dispatches its trait.
         ctx.project.constructed_struct_symbols.add(st_backing.symbol.id)
     }
-    struct_lit :: LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
+    // Reconcile the box's runtime type-index with the trait-impl vtable's receiver
+    // key. `materialize_impl_for_instance` registers a generic impl's vtable row
+    // under the REF-ERASED self (`Ready<Boom>` → `Ready<Any>`, via
+    // `keep_primitive_or_erase`) so every ref-arg instance shares one row ; a
+    // NON-generic construction site would otherwise mint the CONCRETE tag
+    // (`Ready<Boom>`) — identical layout, divergent tag → `vtable miss`. Inside a
+    // generic fn body the carried subst already erases the lit's type to
+    // `Ready<Any>` ; this generalises that same erasure to the non-generic site.
+    // Primitive args stay concrete (`Ready<i32>` unchanged) so their devirtualised
+    // dispatch is preserved.
+    box_type :: erase_generic_struct_tag(type)
+    struct_lit :: LoweredStructLit { .span = lit.span, .type = box_type, .fields = fields }
     if spread_stmts.len() == 0 { return struct_lit }
     return LoweredBlock {
-        .span = lit.span, .type = type,
+        .span = lit.span, .type = box_type,
         .stmts = spread_stmts, .trailing = struct_lit,
     }
+}
+
+// Erase a generic struct instance's runtime TAG exactly as
+// `materialize_impl_for_instance` erases the impl self : keep every primitive arg
+// concrete, collapse every ref arg to `Any` (`build_mixed_args_list`, the shared
+// kernel). So `Ready<Boom>` and `Ready<User>` intern to the single `Ready<Any>`
+// tag the erased vtable row is keyed on, while `Ready<i32>` stays concrete
+// (devirtualised dispatch preserved). A non-generic struct (no args) — and any
+// non-struct type — is returned verbatim ; the empty-args guard also skips the
+// allocation on the common non-generic literal. The box LAYOUT is already
+// ref-erased upstream, so this only touches the identity tag.
+//
+// The tag/vtable-key agreement funnels through `type_intern_key` (context-free,
+// keys faithfully on args) : erasure can't live there because the decision is
+// context-dependent (a concrete-instantiation impl keeps its args concrete — the
+// `is_empty_substitution` gate materialize applies), so the lowering layer owns it.
+// This site erases UNCONDITIONALLY : a concrete-instantiation impl over a ref arg
+// is unsupported (it exists nowhere), consistent with the generic-fn-body path.
+erase_generic_struct_tag :: fn(t: Type) -> Type {
+    if t is StructType as s {
+        if s.args.is_empty() { return t }
+        return mk_struct(s.symbol, build_mixed_args_list(s.args))
+    }
+    return t
 }
 
 

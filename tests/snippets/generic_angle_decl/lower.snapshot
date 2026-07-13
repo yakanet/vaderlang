@@ -294,7 +294,7 @@
         value: v :i32
       }
     return
-      Box<Box<i32>> {
+      Box<Box<Any>> {
         value: inner :Box<i32>
       }
   fn snippet$snippet$make_box__i32(v: i32) -> Box<i32>
@@ -304,3 +304,4 @@
       }
   struct snippet$Box__Any { value: Any }
   struct snippet$Box__Box_Any { value: Any }
+  struct snippet$Box__Box_Any_ { value: Any }

@@ -6382,7 +6382,7 @@ fn 57 std_json$parse_object (ref,i32) -> ref
   i64.const 0
   i64.const 0
   i64.const 0
-  struct.new 45
+  struct.new 50
   local.set 2
   local.get 0
   call 51

@@ -157,15 +157,15 @@ static int32_t snippet_main(void) {
     vader_array_t* _a2_arr = vader_array_new(14u, 0u, 7u, 1u);
     l2 = vader_box_obj(14u, _a2_arr);
 #line 17 "tests/snippets/narrow_imported_map/_main.vader"
-    vader_struct_std_collections_MutableMap__i32__i32___Wrap_t* _a3_obj = (vader_struct_std_collections_MutableMap__i32__i32___Wrap_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__i32__i32___Wrap_t));
-    vader_obj_header_init(_a3_obj, 13u);
+    vader_struct_std_collections_MutableMap__i32__Any___Any_t* _a3_obj = (vader_struct_std_collections_MutableMap__i32__Any___Any_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__i32__Any___Any_t));
+    vader_obj_header_init(_a3_obj, 10u);
     _a3_obj->f_ekeys = l0;
     _a3_obj->f_evals = l1;
     _a3_obj->f_index = l2;
     _a3_obj->f_mask = (size_t) (int64_t) INT64_C(0);
     _a3_obj->f_size = (size_t) (int64_t) INT64_C(0);
     _a3_obj->f_tombs = (size_t) (int64_t) INT64_C(0);
-    l0 = vader_box_obj(13u, _a3_obj);
+    l0 = vader_box_obj(10u, _a3_obj);
 #line 18 "tests/snippets/narrow_imported_map/_main.vader"
     vader_array_t* _a4_arr = vader_array_new(14u, 2u, 7u, 1u);
     ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 1u] = (int32_t) INT32_C(7);

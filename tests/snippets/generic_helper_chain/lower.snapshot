@@ -88,7 +88,7 @@
       }
   fn snippet$outer__i32(x: i32) -> Box<Box<i32>>
     return
-      Box<Box<i32>> {
+      Box<Box<Any>> {
         value:
           call :Box<i32>
             callee:
@@ -98,7 +98,7 @@
       }
   fn snippet$outer__string(x: string) -> Box<Box<string>>
     return
-      Box<Box<string>> {
+      Box<Box<Any>> {
         value:
           call :Box<string>
             callee:
@@ -108,3 +108,4 @@
       }
   struct snippet$Box__Any { value: Any }
   struct snippet$Box__Box_Any { value: Any }
+  struct snippet$Box__Box_Any_ { value: Any }

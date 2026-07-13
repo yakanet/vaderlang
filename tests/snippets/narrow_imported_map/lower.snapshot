@@ -3,7 +3,7 @@
 ## snippet
   fn snippet$main() -> i32
     let m: MutableMap<i32, i32 | Wrap> =
-      MutableMap<i32, i32 | Wrap> {
+      MutableMap<i32, Any | Any> {
         ekeys:
           array :i32[]
         evals:

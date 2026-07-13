@@ -143,6 +143,18 @@ build_any_args_list :: fn(args: Type[]) -> Type[] {
     return out
 }
 
+// MIXED counterpart of `build_any_args_list` : keep every primitive arg concrete,
+// collapse every ref arg to `Any` (via `keep_primitive_or_erase`). This is the
+// single per-arg erasure kernel shared by the vtable-receiver self
+// (`materialize_impl_for_instance`) and the box runtime tag (`erase_generic_struct_tag`)
+// — the two MUST agree arg-for-arg or a generic-struct box `vtable miss`es, so the
+// formula lives here once, not copied at each site.
+build_mixed_args_list :: fn(args: Type[]) -> Type[] {
+    out: Type[] = []
+    for a in args { out.push(keep_primitive_or_erase(a)) }
+    return out
+}
+
 join_any_displays :: fn(args: Type[]) -> string {
     sb :: StringBuilder {}
     first := true
