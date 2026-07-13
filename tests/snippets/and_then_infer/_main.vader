@@ -1,0 +1,27 @@
+// `and_then` (chain, `f: fn(T) -> U | Error`) exercises generic type-arg
+// inference where `U` sits inside a UNION in a fn-param's return position, fed a
+// block-body lambda. A block-body lambda that ends in `return` types its block as
+// `never` ; before the fix, `pick_final_return` propagated that `never`, so `U`
+// (needing `U | Error ≡ i32 | Error`) never bound → the mangle lost `U` → a
+// materialisation gap (GATE B1). The fix recovers the lambda's real return type
+// from its `return` values (`FnContext.inferred_return`).
+module "snippet"
+
+import "std/io" { println }
+import "std/option" { and_then, unwrap_or }
+
+Boom :: struct {}
+Boom implements Error { message :: fn(self) -> string = "boom" }
+
+fetch :: fn(ok: bool) -> i32 | Error { if ok { return 20 } return Boom {} }
+halve :: fn(v: i32) -> i32 | Error { if v % 2 != 0 { return Boom {} } return v / 2 }
+
+main :: fn() -> i32 {
+    // ok → 20 → halved → 10
+    r1 :: fetch(true).and_then(fn(v: i32) { return halve(v) })
+    println("${r1.unwrap_or(-1)}")   // 10
+    // error short-circuits — `and_then`'s lambda never runs
+    r2 :: fetch(false).and_then(fn(v: i32) { return halve(v) })
+    println("${r2.unwrap_or(-1)}")   // -1
+    return 0
+}

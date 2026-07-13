@@ -70,6 +70,13 @@ export FnContext :: struct {
     /// `await` legality and forbids `defer` (v1). False for lambdas and
     /// synthetic contexts, so an `await` in a nested lambda trips T3064.
     is_async: bool = false
+    /// Union of every value `return`'s type seen in this body — accumulated by
+    /// `check_return`. A block-body lambda that ends in `return` types its block
+    /// as `never` (it diverges) ; this recovers the lambda's real return type
+    /// from its returns, so a type param sitting inside a `U | Error` return
+    /// position stays inferable (else it drops → GATE B1). Null until the first
+    /// value `return`.
+    inferred_return: Type | null = null
 }
 
 export new_fn_context :: fn(return_type: Type, self_type: Type | null) -> FnContext {

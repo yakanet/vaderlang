@@ -73,10 +73,16 @@ export map :: fn<T, U>(x: T | Error, f: fn(T) -> U) -> U | Error {
     return f(x)
 }
 
-// NOTE: `and_then` (chain, `f: fn(T) -> U | Error`) is deferred — inferring `U`
-// from the closure's *union* return position hits a generic-materialisation gap
-// (GATE B1). It returns once that inference path is fixed. Chain with `if`/`match`
-// on the interim.
+/// Chain a fallible step onto the ok value ; an error short-circuits (`f` is not
+/// called). The monadic bind for `T | Error`.
+///
+/// @param x  a fallible value.
+/// @param f  the next fallible step, applied to the ok value.
+/// @return   `f(x)` on success, otherwise the original error.
+export and_then :: fn<T, U>(x: T | Error, f: fn(T) -> U | Error) -> U | Error {
+    if x is Error as e { return e }
+    return f(x)
+}
 
 /// The value, or `panic` with the error's own message. Use only when an error is
 /// genuinely unrecoverable — it aborts the process.
@@ -109,6 +115,11 @@ Boom implements Error {
 
 ok  :: fn() -> i32 | Error { return 42 }
 bad :: fn() -> i32 | Error { return Boom { .code = 7 } }
+
+halve :: fn(v: i32) -> i32 | Error {
+    if v % 2 != 0 { return Boom { .code = 1 } }
+    return v / 2
+}
 
 @test
 test_or :: fn() -> void {
@@ -144,5 +155,13 @@ test_map :: fn() -> void {
     doubled_bad :: bad().map(fn(v: i32) { return v * 2 })  // Boom passes through
     assert_eq(doubled_ok.unwrap_or(-1), 84)
     assert_eq(doubled_bad.unwrap_or(-1), -1)
+}
+
+@test
+test_and_then :: fn() -> void {
+    chained :: ok().and_then(fn(v: i32) { return halve(v) })
+    assert_eq(chained.unwrap_or(-1), 21)
+    short :: bad().and_then(fn(v: i32) { return halve(v) })
+    assert_eq(short.unwrap_or(-1), -1)
 }
 

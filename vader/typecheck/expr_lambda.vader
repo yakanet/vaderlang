@@ -12,7 +12,7 @@
 module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, typecheck_error }
-import "vader/types" { Type, FnType, mk_fn, TY_UNRESOLVED }
+import "vader/types" { Type, FnType, mk_fn, TY_UNRESOLVED, NeverType }
 AST :: import "vader/parser"
 
 /// Type-check a `LambdaExpr`. Returns `fn(params...) -> body`.
@@ -41,7 +41,7 @@ export infer_lambda :: fn(
     typed.current_fn_ctx = ctx
     body :: check_block(e.body, expected_ret, typed, diags, ctx, check_expr_fn)
     typed.current_fn_ctx = prev_ctx
-    ret :: pick_final_return(expected_ret, body)
+    ret :: pick_final_return(expected_ret, body, ctx)
     return mk_fn(param_types, ret)
 }
 
@@ -91,16 +91,25 @@ pick_ctx_return :: fn(expected: Type | null) -> Type {
     return expected
 }
 
-pick_final_return :: fn(expected: Type | null, body: Type) -> Type {
-    if expected == null { return default_if_free(body) }
+pick_final_return :: fn(expected: Type | null, body: Type, ctx: FnContext) -> Type {
+    // A block-body lambda that ends in `return` types its block as `never` (it
+    // diverges), which would erase a `U | Error`-in-return type param. Recover
+    // the real return type from the union of the lambda's `return` values
+    // (`ctx.inferred_return`) when the block itself produced no fall-through type.
+    effective_body :: if body is NeverType && ctx.inferred_return != null {
+        ctx.inferred_return
+    } else {
+        body
+    }
+    if expected == null { return default_if_free(effective_body) }
     // Expected might still carry unbound TypeParams (`U`,
     // `U[]`, `Yield<U>`, …) or a Free* leftover from a
     // tentative unify. Fall back to the body's defaulted type
     // in those cases so the lambda's signature reports the
     // concrete shape its body actually produces.
-    if type_contains_type_param(expected) { return default_if_free(body) }
-    if expected is FreeIntType   { return default_if_free(body) }
-    if expected is FreeFloatType { return default_if_free(body) }
+    if type_contains_type_param(expected) { return default_if_free(effective_body) }
+    if expected is FreeIntType   { return default_if_free(effective_body) }
+    if expected is FreeFloatType { return default_if_free(effective_body) }
     return expected
 }
 
