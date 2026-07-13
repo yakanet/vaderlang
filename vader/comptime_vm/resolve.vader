@@ -25,7 +25,7 @@ import "std/string" { ends_with }
 import "vader/diagnostics" { Diagnostic, comptime_error }
 import "vader/resolver" { LoadedProject }
 import "vader/typecheck" { TypedProject }
-import "vader/lower" { lower_project, prune_unreachable_fns }
+import "vader/lower" { lower_project_staged, prune_unreachable_fns }
 import "vader/midir" { build_cfg_project, emit_bytecode_from_cfg, annotate_escape, eliminate_dead_cfg }
 import "vader/bytecode" { BytecodeModule, default_emit_options }
 Ct :: import "vader/comptime"
@@ -89,7 +89,15 @@ export resolve_vm_required_decls :: fn(
 stage_to_bytecode :: fn(
     loaded: LoadedProject, typed: TypedProject, evaluated: Ct.EvaluatedProject, diags: Diagnostic[],
 ) -> BytecodeModule {
-    lowered :: lower_project(loaded, typed, evaluated, diags)
+    // Stage only the modules owning vm_required consts (+ their harvested
+    // closure), not the whole entry-rooted project : each such module's un-baked
+    // const inlines its RHS call, pulling the nullary callee thunk into the
+    // harvest so `find_callee_mangle` locates it.
+    eager_modules: string[] = []
+    for vr in evaluated.vm_required {
+        if !(vr.module_id in eager_modules) { eager_modules.push(vr.module_id) }
+    }
+    lowered :: lower_project_staged(loaded, typed, evaluated, eager_modules, diags)
     pruned :: prune_unreachable_fns(lowered, false)
     cfg :: build_cfg_project(pruned)
     dced :: eliminate_dead_cfg(cfg)
