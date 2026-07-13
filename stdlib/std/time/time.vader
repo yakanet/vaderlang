@@ -274,17 +274,23 @@ export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
     if sb.len() < 20 {
         return TimeError { .msg = "iso8601: too short" }
     }
-    year   :: parse_digits(s, 0,  4)?
-    expect_byte(s, 4,  '-')?
-    month  :: parse_digits(s, 5,  2)?
-    expect_byte(s, 7,  '-')?
-    day    :: parse_digits(s, 8,  2)?
-    expect_byte(s, 10, 'T')?
-    hours  :: parse_digits(s, 11, 2)?
-    expect_byte(s, 13, ':')?
-    minutes :: parse_digits(s, 14, 2)?
-    expect_byte(s, 16, ':')?
-    seconds_part :: parse_digits(s, 17, 2)?
+    year   :: parse_digits(s, 0,  4)
+    if year is TimeError as e { return e }
+    if expect_byte(s, 4,  '-') is TimeError as e { return e }
+    month  :: parse_digits(s, 5,  2)
+    if month is TimeError as e { return e }
+    if expect_byte(s, 7,  '-') is TimeError as e { return e }
+    day    :: parse_digits(s, 8,  2)
+    if day is TimeError as e { return e }
+    if expect_byte(s, 10, 'T') is TimeError as e { return e }
+    hours  :: parse_digits(s, 11, 2)
+    if hours is TimeError as e { return e }
+    if expect_byte(s, 13, ':') is TimeError as e { return e }
+    minutes :: parse_digits(s, 14, 2)
+    if minutes is TimeError as e { return e }
+    if expect_byte(s, 16, ':') is TimeError as e { return e }
+    seconds_part :: parse_digits(s, 17, 2)
+    if seconds_part is TimeError as e { return e }
 
     // Fractional seconds : optional `.fff` block, then required `Z`.
     cursor: usize = 19
@@ -309,7 +315,7 @@ export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
             cursor = cursor + 1
         }
     }
-    expect_byte(s, cursor, 'Z')?
+    if expect_byte(s, cursor, 'Z') is TimeError as e { return e }
     // `Z` must be the final byte — reject trailing garbage (`…Z…`), which the
     // per-field parse would otherwise silently ignore.
     if cursor + 1 != sb.len() {

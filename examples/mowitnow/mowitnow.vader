@@ -137,8 +137,10 @@ parse_lawn :: fn(line: string) -> Lawn | ParseError {
     if parts.len() != 2 {
         return ParseError { .msg = "expected '<w> <h>', got '${line}'" }
     }
-    w :: parse_int(parts[0])?
-    h :: parse_int(parts[1])?
+    w :: parse_int(parts[0])
+    if w is ParseError as e { return e }
+    h :: parse_int(parts[1])
+    if h is ParseError as e { return e }
     if w < 0 || h < 0 {
         return ParseError { .msg = "lawn dimensions must be non-negative, got '${line}'" }
     }
@@ -150,12 +152,15 @@ parse_position :: fn(line: string, lawn: Lawn) -> Mower | ParseError {
     if parts.len() != 3 {
         return ParseError { .msg = "expected '<x> <y> <dir>', got '${line}'" }
     }
-    x :: parse_int(parts[0])?
-    y :: parse_int(parts[1])?
+    x :: parse_int(parts[0])
+    if x is ParseError as e { return e }
+    y :: parse_int(parts[1])
+    if y is ParseError as e { return e }
     if parts[2].len() != 1 {
         return ParseError { .msg = "expected single direction char, got '${parts[2]}'" }
     }
-    d :: parse_direction(parts[2][0])?
+    d :: parse_direction(parts[2][0])
+    if d is ParseError as e { return e }
     if !lawn.contains(x, y) {
         return ParseError { .msg = "starting position '${line}' is outside the lawn" }
     }
@@ -165,7 +170,9 @@ parse_position :: fn(line: string, lawn: Lawn) -> Mower | ParseError {
 parse_commands :: fn(line: string) -> Command[] | ParseError {
     out: Command[] = []
     for c in line.trim().chars() {
-        out.push(parse_command(c)?)
+        cmd :: parse_command(c)
+        if cmd is ParseError as e { return e }
+        out.push(cmd)
     }
     return out
 }
@@ -179,7 +186,8 @@ run :: fn(input: string) -> string | ParseError {
     if lines.len() == 0 {
         return ParseError { .msg = "input is empty" }
     }
-    lawn :: parse_lawn(lines[0])?
+    lawn :: parse_lawn(lines[0])
+    if lawn is ParseError as e { return e }
 
     out :: StringBuilder {}
     i: usize = 1
@@ -188,8 +196,10 @@ run :: fn(input: string) -> string | ParseError {
         if i + 1 >= lines.len() {
             return ParseError { .msg = "missing command line for mower at '${lines[i]}'" }
         }
-        mower    :: parse_position(lines[i], lawn)?
-        command  :: parse_commands(lines[i + 1])?
+        mower    :: parse_position(lines[i], lawn)
+        if mower is ParseError as e { return e }
+        command  :: parse_commands(lines[i + 1])
+        if command is ParseError as e { return e }
         final    :: run_mower(mower, lawn, command)
         if !first {
             out.append("\n")
@@ -205,7 +215,9 @@ run :: fn(input: string) -> string | ParseError {
 
 load_input :: fn(argv: string[]) -> string | Error {
     if argv.len() > 1 {
-        return read_file_string(argv[1])?
+        r :: read_file_string(argv[1])
+        if r is Error as e { return e }
+        return r
     }
     return DEFAULT_INPUT
 }
