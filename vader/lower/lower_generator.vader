@@ -31,15 +31,6 @@ import "std/collections" { MutableMap }
 import "vader/diagnostics" { Span }
 import "std/abort" { panic }
 
-// ---- classification -------------------------------------------------------
-
-/// True when `fn_decl` carries `@generator`. Re-detected at lowering (no typed
-/// side-table persists generator-ness). Mirrors the typechecker's detector.
-export fn_is_generator :: fn(fn_decl: FnDecl) -> bool {
-    for d in fn_decl.decorators { if d.name == "generator" { return true } }
-    return false
-}
-
 // ---- element type ---------------------------------------------------------
 
 /// Extract `T` from an `@generator`'s `-> Iterator<T>` return type. The
