@@ -55,7 +55,7 @@ fn 0 snippet$main () -> i32
   i64.const 0
   i64.const 0
   i64.const 0
-  struct.new 13
+  struct.new 10
   local.set 0
   i32.const 42
   i32.const 7

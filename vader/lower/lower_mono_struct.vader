@@ -420,12 +420,11 @@ materialize_impl_for_instance :: fn(
     // instance args (self stays `Wrapper<i32>`). Only a genuinely
     // generic impl (`Repeat<T> implements …`) erases its args to `Any`
     // for the shared post-erasure C-emit body.
-    erased_args: Type[] = []
-    if is_empty_substitution(subst) {
-        for a in inst.args { erased_args.push(a) }
-    } else {
-        for a in inst.args { erased_args.push(keep_primitive_or_erase(a)) }
-    }
+    // Concrete-instantiation impl → keep args concrete ; generic impl → erase ref
+    // args to `Any` via the shared `build_mixed_args_list` kernel. The box runtime
+    // tag (`erase_generic_struct_tag`) MUST route through the same kernel so a
+    // generic-struct box interns to this exact receiver key (else `vtable miss`).
+    erased_args :: if is_empty_substitution(subst) { inst.args } else { build_mixed_args_list(inst.args) }
     self_struct :: StructType { .symbol = inst.symbol, .args = erased_args }
     self_type: Type = self_struct
     // Suffix from the ERASED args : a generic impl mangles `count__Any`

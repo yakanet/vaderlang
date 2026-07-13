@@ -13,14 +13,14 @@
         self :Dog
   fn snippet$main() -> i32
     let a: Wrap<Cat> =
-      Wrap<Cat> {
+      Wrap<Any> {
         value:
           Cat {
             name: "Mira" :string
           }
       }
     let b: Wrap<Dog> =
-      Wrap<Dog> {
+      Wrap<Any> {
         value:
           Dog {
             name: "Rex" :string

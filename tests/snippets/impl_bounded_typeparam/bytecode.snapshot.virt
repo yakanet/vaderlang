@@ -26,11 +26,11 @@ fn 0 snippet$main () -> i32
   local b ref
   string.const 0
   struct.new 1
-  struct.new 6
+  struct.new 5
   local.set 0
   string.const 1
   struct.new 3
-  struct.new 8
+  struct.new 5
   local.set 1
   local.get 0
   call 1

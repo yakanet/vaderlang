@@ -6,12 +6,13 @@ type 3 primitive i32
 type 4 struct snippet$Box__Box_i32_ { value:6 }
 type 5 struct snippet$Box__i32 { value:3 }
 type 6 ref _
-type 7 primitive usize
-type 8 struct std_core$Buffer {  }
-type 9 primitive i64
-type 10 array 11
-type 11 primitive u8
-type 12 primitive void
+type 7 struct snippet$Box__Box_Any { value:6 }
+type 8 primitive usize
+type 9 struct std_core$Buffer {  }
+type 10 primitive i64
+type 11 array 12
+type 12 primitive u8
+type 13 primitive void
 string 0 "ok"
 string 1 "n = "
 string 2 "e = "
@@ -23,7 +24,7 @@ string 7 "false"
 string 8 "\n"
 import 0 bytes std_core$bytes (string) -> ref
 import 1 write std_io$write (i32,string) -> void
-impl 8 ByteAccess
+impl 9 ByteAccess
 export main 2
 
 fn 0 snippet$demo_comparison_in_args () -> bool
@@ -182,7 +183,7 @@ end
 fn 4 snippet$snippet$make_nested__i32 (i32) -> ref
   local.get 0
   struct.new 5
-  struct.new 4
+  struct.new 7
   return
 end
 

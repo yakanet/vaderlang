@@ -44,11 +44,10 @@ type 41 struct std_collections$MutableMap__usize__Any___Any { ekeys:44,evals:26,
 type 42 union 23,0
 type 43 array 6
 type 44 array 18
-type 45 struct std_collections$MutableMap__usize__Any___i32 { ekeys:44,evals:26,index:43,mask:18,size:18,tombs:18 }
-type 46 array 5
-type 47 ref Async
-type 48 union 29,9
-type 49 ref _
+type 45 array 5
+type 46 ref Async
+type 47 union 29,9
+type 48 ref _
 string 0 "down: "
 string 1 "unexpected: "
 string 2 "?"
@@ -81,10 +80,6 @@ impl 39 IndexSet
 impl 39 Contains
 impl 39 Into
 impl 40 Async
-impl 45 Index
-impl 45 IndexSet
-impl 45 Contains
-impl 45 Into
 vtable Error.message 1 0
 vtable Async.resume 7 3
 vtable Async.resume 11 5
@@ -630,7 +625,7 @@ fn 5 snippet$__asyncstate_20$Async$resume (ref) -> ref
           local.set 18
           local.get 17
           local.get 18
-          array.new 46 2
+          array.new 45 2
           call 22
           local.set 19
           local.get 0
@@ -742,7 +737,7 @@ fn 5 snippet$__asyncstate_20$Async$resume (ref) -> ref
           local.get 25
           local.get 26
           local.get 27
-          array.new 46 3
+          array.new 45 3
           call 22
           local.set 28
           local.get 0
@@ -1262,11 +1257,11 @@ fn 22 std_async$try_all__i32__Any (ref) -> ref
   i64.const 0
   i64.const 0
   i64.const 0
-  struct.new 45
+  struct.new 41
   local.set 1
   local.get 0
   local.get 1
-  struct.new 40
+  struct.new 24
   struct.new 27
   return
 end
