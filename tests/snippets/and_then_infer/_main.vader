@@ -8,7 +8,7 @@
 module "snippet"
 
 import "std/io" { println }
-import "std/option" { and_then, unwrap_or }
+import "std/option" { and_then, or }
 
 Boom :: struct {}
 Boom implements Error { message :: fn(self) -> string = "boom" }
@@ -19,9 +19,9 @@ halve :: fn(v: i32) -> i32 | Error { if v % 2 != 0 { return Boom {} } return v /
 main :: fn() -> i32 {
     // ok → 20 → halved → 10
     r1 :: fetch(true).and_then(fn(v: i32) { return halve(v) })
-    println("${r1.unwrap_or(-1)}")   // 10
+    println("${r1.or(-1)}")   // 10
     // error short-circuits — `and_then`'s lambda never runs
     r2 :: fetch(false).and_then(fn(v: i32) { return halve(v) })
-    println("${r2.unwrap_or(-1)}")   // -1
+    println("${r2.or(-1)}")   // -1
     return 0
 }

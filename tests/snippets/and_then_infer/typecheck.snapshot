@@ -28,7 +28,7 @@
   expr 22:16    CallExpr       :: i32
   expr 22:16    FieldExpr      :: fn(i32) -> i32
   expr 22:16    IdentExpr      :: Error | i32
-  expr 22:29    UnaryExpr      :: i32
+  expr 22:22    UnaryExpr      :: i32
   expr 22:5     CallExpr       :: void
   expr 22:5     IdentExpr      :: fn(T) -> void
   expr 24:11    CallExpr       :: Error | i32
@@ -43,6 +43,6 @@
   expr 25:16    CallExpr       :: i32
   expr 25:16    FieldExpr      :: fn(i32) -> i32
   expr 25:16    IdentExpr      :: Error | i32
-  expr 25:29    UnaryExpr      :: i32
+  expr 25:22    UnaryExpr      :: i32
   expr 25:5     CallExpr       :: void
   expr 25:5     IdentExpr      :: fn(T) -> void

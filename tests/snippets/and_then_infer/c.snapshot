@@ -44,7 +44,7 @@ static vader_box_t std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(vader_box_t l0, size_t l1);
 static size_t std_core_write_int(vader_box_t l0, size_t l1, int64_t l2);
 static void std_io_println__string(vader_string_t l0);
-static int32_t std_option_std_option_unwrap_or__i32(vader_box_t l0, int32_t l1);
+static int32_t std_option_std_option_or__i32(vader_box_t l0, int32_t l1);
 static vader_box_t std_option_std_option_and_then__i32__i32(vader_box_t l0, vader_box_t l1);
 static vader_box_t std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
 static void std_core_Buffer_ByteAccess_store_u8_vt(vader_box_t l0, size_t l1, uint8_t l2);
@@ -172,7 +172,7 @@ static int32_t snippet_main(void) {
     l2 = (size_t) (int64_t) INT64_C(0);
     t5 = -(INT32_C(1));
     l3 = t5;
-    t6 = std_option_std_option_unwrap_or__i32(l0, l3);
+    t6 = std_option_std_option_or__i32(l0, l3);
     t7 = ((int64_t) (int32_t) t6);
     l4 = t7;
     t8 = std_core_write_int(l1, l2, l4);
@@ -199,7 +199,7 @@ static int32_t snippet_main(void) {
     l2 = (size_t) (int64_t) INT64_C(0);
     t15 = -(INT32_C(1));
     l3 = t15;
-    t16 = std_option_std_option_unwrap_or__i32(l0, l3);
+    t16 = std_option_std_option_or__i32(l0, l3);
     t17 = ((int64_t) (int32_t) t16);
     l4 = t17;
     t18 = std_core_write_int(l1, l2, l4);
@@ -355,13 +355,13 @@ static void std_io_println__string(vader_string_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-static int32_t std_option_std_option_unwrap_or__i32(vader_box_t l0, int32_t l1) {
+static int32_t std_option_std_option_or__i32(vader_box_t l0, int32_t l1) {
     int32_t t0;
-#line 51 "stdlib/std/option/option.vader"
+#line 53 "stdlib/std/option/option.vader"
     if ((l0.tag == 5u) || (l0.tag == 1u)) {
         return l1;
     }
-#line 52 "stdlib/std/option/option.vader"
+#line 54 "stdlib/std/option/option.vader"
     t0 = ((int32_t) l0.payload.i);
     return t0;
 }
@@ -372,11 +372,11 @@ static vader_box_t std_option_std_option_and_then__i32__i32(vader_box_t l0, vade
     vader_box_t* gc_roots[3] = { &l0, &l1, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
-#line 83 "stdlib/std/option/option.vader"
+#line 85 "stdlib/std/option/option.vader"
     if ((l0.tag == 5u) || (l0.tag == 1u)) {
         { vader_box_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 84 "stdlib/std/option/option.vader"
+#line 86 "stdlib/std/option/option.vader"
     t0 = ((int32_t) l0.payload.i);
     vader_fn_t* _a0_fnobj = (vader_fn_t*) l1.payload.obj;
     t1 = ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(6u, t0));
