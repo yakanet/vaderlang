@@ -1,0 +1,234 @@
+// vader/c_emit/coalesce — post-walk operand-temp slot coalescing.
+//
+// The body walker (`walker.vader` / `stack.vader`) mints a fresh `tN` for every
+// materialised operand and never recycles it, so a function's frame — and its
+// GC-root set — grows with the TOTAL number of materialisations, not the number
+// live at once. The bytecode is a stack machine, so a temp is dead the moment
+// its value is consumed ; most `tN` have short, disjoint live ranges (measured:
+// `parse_expr` materialises 78 rooted temps but only ~7 are ever live at once).
+//
+// This pass runs after the walk, on the emitted body text. It computes each
+// temp's live range as `[first, last]` line of textual occurrence — a temp is
+// written exactly once and can't be read before it is written, so the first
+// occurrence is its definition and the last is its final read (this also
+// captures reads deferred inside a `StackExpr`'s text). It then greedily packs
+// temps whose ranges are disjoint, and share a `ValType`, into the same slot,
+// rewrites the body `tN -> t<slot>`, and returns the compacted `tmp_types` for
+// the decl emitter.
+//
+// GC-safety : two temps share a slot only when their ranges are STRICTLY
+// disjoint (`A.last < B.first`), so the slot only ever holds the currently-live
+// value and its single `gc_roots[]` entry always points at a live object (or an
+// already-dead one still reachable from the frame — harmless, never a dangling
+// pointer). Textual `[first, last]` is an EXACT live range only because no
+// operand temp ever crosses a scope boundary : midir materialises every
+// control-flow result into a named LOCAL (`if_res` / `and_res` / `or_res`, and
+// loops are void — `vader/midir/build.vader`), so the operand stack is empty at
+// every block / loop / if / br boundary and each `tN` is confined to one
+// straight-line region where textual order IS execution order. This is why —
+// unlike the sibling local-slot pass — no loop-range extension is needed. If a
+// future change ever left an operand live across a scope, that invariant would
+// break ; the walker's scope handlers are the place to guard it.
+//
+// Locals (`lN`) are left untouched : they are named, potentially reassigned, and
+// can stay live across arbitrary control flow — they are coalesced upstream,
+// loop-aware, by the bytecode pass instead.
+//
+// Sibling `vader/bytecode/slot_coalesce.vader` runs the same greedy
+// interval-partition on the *other* IR — bytecode local slots (`lN`) over op
+// PC-ranges — which this pass cannot reach : operand temps exist only in the
+// c_emit walk, not in the bytecode.
+
+module "vader/c_emit"
+
+import "std/string_builder" { StringBuilder }
+import "std/sort" { sort }
+import "vader/text" { is_ident_byte }
+import "vader/bytecode" { ValType }
+
+/// Compacted temp type list (index = new slot) plus the rewritten body text.
+export CoalesceResult :: struct {
+    types: ValType[]
+    body:  string
+}
+
+/// Coalesce operand temps `tN` with disjoint live ranges into shared slots.
+///
+/// @param body   the emitted C function body (temps named `t0`, `t1`, …).
+/// @param types  `types[i]` is the ValType of `ti` ; length = temp count.
+/// @return       the compacted type list (index = surviving slot) and the body
+///               rewritten so every `tN` reference names its assigned slot. A
+///               no-op (inputs returned verbatim) when there are no temps.
+export coalesce_temps :: fn(body: string, types: ValType[]) -> CoalesceResult {
+    n :: types.len()
+    if n == 0 { return CoalesceResult { .types = types, .body = body } }
+
+    // 1. Live ranges : first / last line index each `tN` occurs on (-1 = unseen).
+    //    A single byte walk tracks the line counter — no `split` (which would
+    //    intern one throwaway atom per line). A `t<digits>` token never spans a
+    //    newline, so line granularity is exact.
+    first: i32[] = []
+    last:  i32[] = []
+    for i in 0..<n { first.push(-1)  last.push(-1) }
+    b :: body.bytes()
+    blen :: b.len()
+    line: i32 = 0
+    i: usize = 0
+    for i < blen {
+        // Skip whole `#line`/preprocessor directives : a `t<digits>` inside a
+        // source path there is not a temp (non-release builds interleave them).
+        if (i == 0 || b[i - 1] == '\n') && b[i] == '#' {
+            for i < blen && b[i] != '\n' { i += 1 }
+            continue
+        }
+        if b[i] == '\n' { line += 1  i += 1  continue }
+        // Guard on `t` before the token probe : the vast majority of bytes are
+        // not temp starts, and `temp_token_at` allocates its result struct.
+        if b[i] != 't' { i += 1  continue }
+        tok :: temp_token_at(b, i, blen)
+        if tok.ok && tok.id < n {
+            if first[tok.id] < 0 { first[tok.id] = line }
+            last[tok.id] = line
+        }
+        i = tok.end
+    }
+
+    // 2. Greedy interval packing, per ValType. Process temps in
+    //    first-occurrence order ; reuse a slot whose current occupant ended
+    //    strictly before this temp begins (equal endpoints share a line, so
+    //    they overlap and must not merge).
+    order :: order_by_first(first, n)
+    remap: i32[] = []
+    for i in 0..<n { remap.push(-1) }
+    new_types: ValType[] = []
+    slot_end:  i32[] = []
+    for k in 0..<order.len() {
+        oi :: order[k]
+        d :: first[oi]
+        e :: last[oi]
+        chosen: i32 = -1
+        for s in 0..<new_types.len() {
+            if new_types[s] == types[oi] && slot_end[s] < d {
+                chosen = i32(s)
+                break
+            }
+        }
+        if chosen < 0 {
+            chosen = i32(new_types.len())
+            new_types.push(types[oi])
+            slot_end.push(e)
+        } else {
+            slot_end[usize(chosen)] = e
+        }
+        remap[oi] = chosen
+    }
+
+    // 3. Rewrite the body : `tN` -> `t<remap[N]>`.
+    return CoalesceResult { .types = new_types, .body = rewrite_temps(body, remap) }
+}
+
+is_digit_byte :: fn(b: u8) = b >= '0' && b <= '9'
+
+// A `t<digits>` token recognised at some position : its numeric id and the byte
+// index just past it. `ok = false` when the position is not a temp token start.
+TempToken :: struct { ok: bool  id: usize  end: usize }
+
+// Not a token, ending at `end` — the four rejection returns of `temp_token_at`.
+no_temp :: fn(end: usize) = TempToken { .ok = false, .id = 0, .end = end }
+
+// Recognise a `t<digits>` token starting at `i`, respecting identifier word
+// boundaries on both sides (so `gc_top`, `int32_t`, `t50` are not mis-split).
+// Callers guard on `b[i] == 't'` first ; the check is repeated defensively.
+temp_token_at :: fn(b: const u8[], i: usize, len: usize) -> TempToken {
+    if b[i] != 't' { return no_temp(i + 1) }
+    if i > 0 && is_ident_byte(b[i - 1]) { return no_temp(i + 1) }
+    if i + 1 >= len || !is_digit_byte(b[i + 1]) { return no_temp(i + 1) }
+    id: usize = 0
+    k := i + 1
+    for k < len && is_digit_byte(b[k]) {
+        id = id * 10 + usize(b[k] - '0')
+        k += 1
+    }
+    // The digit run must end the token — not run into a longer identifier.
+    if k < len && is_ident_byte(b[k]) { return no_temp(k) }
+    return TempToken { .ok = true, .id = id, .end = k }
+}
+
+// Temp indices `0..<n` with a real occurrence, ordered by first-occurrence line
+// (ties by index, via the stable sort). Temps that never appear (first < 0) are
+// dropped — they hold no slot and are never referenced.
+order_by_first :: fn(first: i32[], n: usize) -> usize[] {
+    idx: usize[] = []
+    for i in 0..<n {
+        if first[i] >= 0 { idx.push(i) }
+    }
+    return sort(idx, (a: usize, b: usize) -> first[a] < first[b])
+}
+
+// Rewrite every `tN` token in `body` to `t<remap[N]>`, appending verbatim runs
+// in chunks (a per-byte append would be O(n) allocations on huge functions). A
+// temp with `remap[N] < 0` (never occurred) is copied unchanged.
+rewrite_temps :: fn(body: string, remap: i32[]) -> string {
+    b :: body.bytes()
+    len :: b.len()
+    n :: remap.len()
+    out :: StringBuilder {}
+    run_start: usize = 0
+    i: usize = 0
+    for i < len {
+        // `#line`/preprocessor directives stay verbatim — never rewrite a
+        // `t<digits>` inside a source path (mirrors the scan-side skip).
+        if (i == 0 || b[i - 1] == '\n') && b[i] == '#' {
+            for i < len && b[i] != '\n' { i += 1 }
+            continue
+        }
+        // Non-`t` bytes stay in the current verbatim run (no token probe).
+        if b[i] != 't' { i += 1  continue }
+        tok :: temp_token_at(b, i, len)
+        if tok.ok && tok.id < n && remap[tok.id] >= 0 {
+            if i > run_start { out.append(b[run_start..<i].bytes_to_string()) }
+            out.append("t${remap[tok.id]}")
+            run_start = tok.end
+        }
+        i = tok.end
+    }
+    if len > run_start { out.append(b[run_start..<len].bytes_to_string()) }
+    return "${out}"
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+@test test_coalesce_disjoint_merge :: fn() -> void {
+    // t0 (lines 0-1) and t1 (lines 3-4) are strictly disjoint Refs -> one slot,
+    // and every `t1` is rewritten to the shared `t0`.
+    body :: "t0 = a;\nuse(t0);\nsep();\nt1 = b;\nuse(t1);\n"
+    r :: coalesce_temps(body, [ValType.Ref, ValType.Ref])
+    assert_eq(r.types.len(), 1)
+    assert_eq(r.body, "t0 = a;\nuse(t0);\nsep();\nt0 = b;\nuse(t0);\n")
+}
+
+@test test_coalesce_adjacent_no_merge :: fn() -> void {
+    // t0's last read is the line t1 is defined on -> ranges touch -> two slots.
+    body :: "t0 = a;\nt1 = f(t0);\nuse(t1);\n"
+    r :: coalesce_temps(body, [ValType.Ref, ValType.Ref])
+    assert_eq(r.types.len(), 2)
+}
+
+@test test_coalesce_per_type_bucketing :: fn() -> void {
+    // Disjoint ranges but different ValTypes never share a slot.
+    body :: "t0 = a;\nuse(t0);\nt1 = b;\nuse(t1);\n"
+    r :: coalesce_temps(body, [ValType.Ref, ValType.I32])
+    assert_eq(r.types.len(), 2)
+}
+
+@test test_coalesce_skips_line_directive :: fn() -> void {
+    // A `t<digits>` inside a `#line` path must NOT feed the range scan nor be
+    // rewritten. Without the skip, the path's `t1` would extend t1's range
+    // (blocking the merge) AND get corrupted to `t0` on rewrite.
+    body :: "#line 3 \"t1.vader\"\nt0 = a;\nuse(t0);\nt1 = b;\nuse(t1);\n"
+    r :: coalesce_temps(body, [ValType.Ref, ValType.Ref])
+    assert_eq(r.types.len(), 1)
+    assert_eq(r.body, "#line 3 \"t1.vader\"\nt0 = a;\nuse(t0);\nt0 = b;\nuse(t0);\n")
+}

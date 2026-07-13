@@ -99,25 +99,25 @@ static int32_t snippet_main(void) {
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     size_t l2, l3;
     vader_box_t l4 = vader_box_null();
-    size_t t0, t1;
-    int64_t t2;
-    vader_box_t t3 = vader_box_null();
-    vader_string_t t4;
-    vader_box_t* gc_roots[2] = { &l4, &t3 };
+    size_t t0;
+    int64_t t1;
+    vader_box_t t2 = vader_box_null();
+    vader_string_t t3;
+    vader_box_t* gc_roots[2] = { &l4, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
     t0 = std_core_byte_len(l0);
     l2 = t0;
-    t1 = std_core_byte_len(l1);
-    l3 = t1;
-    t2 = (l2 + l3);
-    l3 = (size_t) (int64_t) t2;
-    t3 = std_core_new_byte_buffer(l3);
-    l4 = t3;
+    t0 = std_core_byte_len(l1);
+    l3 = t0;
+    t1 = (l2 + l3);
+    l3 = (size_t) (int64_t) t1;
+    t2 = std_core_new_byte_buffer(l3);
+    l4 = t2;
     std_core_Buffer_ByteAccess_write_string_vt(l4, (size_t) (int64_t) INT64_C(0), l0);
     std_core_Buffer_ByteAccess_write_string_vt(l4, l2, l1);
-    t4 = std_core_finish_buffer(l4, l3);
-    { vader_string_t __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
+    t3 = std_core_finish_buffer(l4, l3);
+    { vader_string_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 

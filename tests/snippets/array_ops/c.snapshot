@@ -42,8 +42,8 @@ static int32_t snippet_main(void) {
     vader_box_t l0 = vader_box_null();
     int32_t l1, l2;
     vader_box_t t0 = vader_box_null();
-    int32_t t1, t2, t3, t4, t5, t7;
-    size_t t6;
+    int32_t t1;
+    size_t t2;
     vader_box_t* gc_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
@@ -68,18 +68,18 @@ static int32_t snippet_main(void) {
     t1 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) INT32_C(0)];
     l1 = t1;
     if ((size_t) INT32_C(1) >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
-    t2 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) INT32_C(1)];
-    l2 = t2;
-    t3 = (l1 + l2);
-    l1 = t3;
+    t1 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) INT32_C(1)];
+    l2 = t1;
+    t1 = (l1 + l2);
+    l1 = t1;
     if ((size_t) INT32_C(3) >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
-    t4 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) INT32_C(3)];
-    l2 = t4;
-    t5 = (l1 + l2);
-    l1 = t5;
-    t6 = ((vader_array_t*) l0.payload.obj)->length;
-    t7 = ((int32_t) (size_t) t6);
-    l2 = t7;
+    t1 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) INT32_C(3)];
+    l2 = t1;
+    t1 = (l1 + l2);
+    l1 = t1;
+    t2 = ((vader_array_t*) l0.payload.obj)->length;
+    t1 = ((int32_t) (size_t) t2);
+    l2 = t1;
     { int32_t __vret = (l1 + l2); vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }

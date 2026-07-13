@@ -230,6 +230,14 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
         emit_op(s, i32(i), function.body[i])
     }
 
+    // Coalesce operand temps with disjoint live ranges into shared slots — the
+    // walk mints one `tN` per materialisation and never recycles, inflating the
+    // frame and GC-root set. This compacts `s.tmp_types` and rewrites the body
+    // text so `tN` names its assigned slot ; the decl emitters below then see
+    // the reduced set. See `coalesce.vader`.
+    coalesced :: coalesce_temps("${body}", s.tmp_types)
+    s.tmp_types = coalesced.types
+
     // GC roots : ref-typed params, then locals + temps (collected by the
     // decl emitters). Order is irrelevant to the GC scan. `no_frame` fns
     // skip the whole shadow-stack apparatus.
@@ -251,7 +259,7 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
         out.append("    vader_gc_top = &gc_frame;\n")
     }
 
-    out.append("${body}")
+    out.append(coalesced.body)
 
     // Defensive fall-through restore (void / implicit-end fns) ; explicit
     // returns pop the frame themselves.

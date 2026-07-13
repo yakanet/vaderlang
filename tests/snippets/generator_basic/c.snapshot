@@ -131,8 +131,8 @@ static size_t std_core_write_int(vader_box_t l0, size_t l1, int64_t l2) {
     int64_t l5;
     uint8_t l7, l8;
     bool t0;
-    int64_t t1, t2, t3, t4, t5, t6, t7, t10;
-    int32_t t8, t9;
+    int64_t t1;
+    int32_t t2;
 #line 128 "stdlib/std/core/primitives.vader"
     if (l2 == INT64_C(0)) {
 #line 129 "stdlib/std/core/primitives.vader"
@@ -159,11 +159,11 @@ static size_t std_core_write_int(vader_box_t l0, size_t l1, int64_t l2) {
         loop_31: {
             if (l5 != INT64_C(0)) {
 #line 137 "stdlib/std/core/primitives.vader"
-                t2 = (l4 + INT64_C(1));
-                l4 = (size_t) (int64_t) t2;
+                t1 = (l4 + INT64_C(1));
+                l4 = (size_t) (int64_t) t1;
 #line 138 "stdlib/std/core/primitives.vader"
-                t3 = vader_div_i64(l5, INT64_C(10));
-                l5 = t3;
+                t1 = vader_div_i64(l5, INT64_C(10));
+                l5 = t1;
 #line 136 "stdlib/std/core/primitives.vader"
                 goto loop_31;
             } else {
@@ -172,32 +172,32 @@ static size_t std_core_write_int(vader_box_t l0, size_t l1, int64_t l2) {
     }
 #line 140 "stdlib/std/core/primitives.vader"
     if (l3) {
-        t4 = (l4 + INT64_C(1));
-        l6 = (size_t) (int64_t) t4;
+        t1 = (l4 + INT64_C(1));
+        l6 = (size_t) (int64_t) t1;
     } else {
         l6 = l4;
     }
     l4 = l6;
 #line 141 "stdlib/std/core/primitives.vader"
-    t5 = (l1 + l4);
-    l6 = (size_t) (int64_t) t5;
+    t1 = (l1 + l4);
+    l6 = (size_t) (int64_t) t1;
 #line 142 "stdlib/std/core/primitives.vader"
     {
         loop_66: {
             if (l2 != INT64_C(0)) {
 #line 143 "stdlib/std/core/primitives.vader"
-                t6 = (l6 - INT64_C(1));
-                l6 = (size_t) (int64_t) t6;
+                t1 = (l6 - INT64_C(1));
+                l6 = (size_t) (int64_t) t1;
 #line 144 "stdlib/std/core/primitives.vader"
-                t7 = vader_mod_i64(l2, INT64_C(10));
-                t8 = ((int32_t) (int64_t) -(t7));
-                l7 = (uint8_t) (int32_t) t8;
-                t9 = (INT32_C(48) + l7);
-                l8 = (uint8_t) (int32_t) t9;
+                t1 = vader_mod_i64(l2, INT64_C(10));
+                t2 = ((int32_t) (int64_t) -(t1));
+                l7 = (uint8_t) (int32_t) t2;
+                t2 = (INT32_C(48) + l7);
+                l8 = (uint8_t) (int32_t) t2;
                 std_core_Buffer_ByteAccess_store_u8_vt(l0, l6, l8);
 #line 145 "stdlib/std/core/primitives.vader"
-                t10 = vader_div_i64(l2, INT64_C(10));
-                l2 = t10;
+                t1 = vader_div_i64(l2, INT64_C(10));
+                l2 = t1;
 #line 142 "stdlib/std/core/primitives.vader"
                 goto loop_66;
             } else {

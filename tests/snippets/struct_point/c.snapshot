@@ -47,7 +47,7 @@ static int32_t snippet_main(void) {
     vader_box_t l0;
     int32_t l1, l2;
     vader_box_t t0;
-    int32_t t1, t2, t3, t4;
+    int32_t t1, t2;
 #line 14 "tests/snippets/struct_point/_main.vader"
     vader_struct_snippet_Point_t _a0_storage;
     vader_struct_snippet_Point_t* _a1_obj = &_a0_storage;
@@ -62,10 +62,10 @@ static int32_t snippet_main(void) {
     l1 = t2;
     ((vader_struct_snippet_Point_t*) l0.payload.obj)->f_x = l1;
 #line 16 "tests/snippets/struct_point/_main.vader"
-    t3 = (int32_t) ((vader_struct_snippet_Point_t*) l0.payload.obj)->f_x;
-    l1 = t3;
-    t4 = (int32_t) ((vader_struct_snippet_Point_t*) l0.payload.obj)->f_y;
-    l2 = t4;
+    t1 = (int32_t) ((vader_struct_snippet_Point_t*) l0.payload.obj)->f_x;
+    l1 = t1;
+    t1 = (int32_t) ((vader_struct_snippet_Point_t*) l0.payload.obj)->f_y;
+    l2 = t1;
     return (l1 + l2);
 }
 

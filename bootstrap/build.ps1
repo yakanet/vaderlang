@@ -28,14 +28,6 @@ $ccAbs = $ccCmd.Source
 $stage0cflags = if ($env:STAGE0_CFLAGS) { $env:STAGE0_CFLAGS } else { '-O0' }
 $runtime = "runtime\c\vader_runtime.c"
 
-# Windows PE binaries default to a 2 MB stack reserve; POSIX gives 8 MB. The
-# recursive-descent parser's MAX_EXPR_DEPTH=256 guard (vader/parser/parser.vader)
-# is sized to emit P1029 before an 8 MB stack overflows -- on a 2 MB stack it
-# overflows FIRST (bare crash, no diagnostic; the overparenthesized_formula
-# snapshot). Give every stage Unix-parity headroom so deep input parses the same
-# on all platforms. GNU ld syntax; mingw-only, which is the only supported CC.
-$stackFlag = '-Wl,--stack,8388608'
-
 # Arena sizing is RAM-proportional (runtime\c\vader_runtime.c::vader_gc_init --
 # old init + cap derived from physical RAM, single VADER_GC_RAM_PERCENT knob), so
 # the bootstrap self-compiles at a saner initial size on any machine with no manual
@@ -51,17 +43,17 @@ $in  = [IO.File]::OpenRead("bootstrap\bootstrap.c.gz")
 $gz  = [IO.Compression.GZipStream]::new($in, [IO.Compression.CompressionMode]::Decompress)
 $out = [IO.File]::Create("build\bootstrap.c")
 try { $gz.CopyTo($out) } finally { $out.Close(); $gz.Close(); $in.Close() }
-& $ccAbs $stage0cflags $stackFlag -o build\stage0.exe build\bootstrap.c $runtime -Iruntime\c -lm
+& $ccAbs $stage0cflags -o build\stage0.exe build\bootstrap.c $runtime -Iruntime\c -lm
 if ($LASTEXITCODE -ne 0) { throw "stage0 compilation failed (exit $LASTEXITCODE)" }
 
 Step "[2/3] Building stage1 (full compiler, via stage0)  -- self-compiles ~30 kLoC, ~30s"
 & .\build\stage0.exe vader\cli\main.vader build\stage1.c
 if ($LASTEXITCODE -ne 0) { throw "stage0 failed to emit stage1.c (exit $LASTEXITCODE)" }
-& $ccAbs $stage0cflags $stackFlag -o build\stage1.exe build\stage1.c $runtime -Iruntime\c -lm
+& $ccAbs $stage0cflags -o build\stage1.exe build\stage1.c $runtime -Iruntime\c -lm
 if ($LASTEXITCODE -ne 0) { throw "stage1 compilation failed (exit $LASTEXITCODE)" }
 
 Step "[3/3] Building vader = stage2 (via stage1, --release)  -- ~30s"
-& .\build\stage1.exe build vader\cli\main.vader --release --target=native --out=build\vader --cc=$ccAbs --ldflags=$stackFlag
+& .\build\stage1.exe build vader\cli\main.vader --release --target=native --out=build\vader --cc=$ccAbs
 if ($LASTEXITCODE -ne 0) { throw "stage1 failed to build vader (exit $LASTEXITCODE)" }
 
 Write-Host "==> done  vader built at build\vader.exe" -ForegroundColor Green
