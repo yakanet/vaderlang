@@ -211,6 +211,15 @@ main :: fn() -> i32 {
     y :: double(21)
     return y
 }
+
+scan :: fn() -> i32 {
+    for i in 0..<3 {
+        for j in 0..<3 {
+            if j == 1 { break i }
+        }
+    }
+    return 0
+}
 `;
 
 test("lsp: goto-def + hover end-to-end", async () => {
@@ -228,6 +237,9 @@ test("lsp: goto-def + hover end-to-end", async () => {
     { method: "textDocument/definition", position: { line: 16, character: 4 } },
     // 5: hover on whitespace → null
     { method: "textDocument/hover", position: { line: 0, character: 0 } },
+    // 6: goto-loop — click on `break i` (line 22) jumps to the `for i` loop it
+    //    targets by its iteration variable (line 20). Replaces the W0004 nudge.
+    { method: "textDocument/definition", position: { line: 22, character: 26 } },
   ];
 
   const results = await driveLsp(SOURCE, queries);
@@ -259,6 +271,11 @@ test("lsp: goto-def + hover end-to-end", async () => {
   // 4 + 5: unknown / whitespace → null
   expect(results[4]!.result).toBeNull();
   expect(results[5]!.result).toBeNull();
+
+  // 6: goto-loop — `break i` jumps to the `for i` loop it targets (line 20).
+  const def_loop = results[6]!.result as Location;
+  expect(def_loop.uri).toMatch(/lsp-test\.vader$/);
+  expect(def_loop.range.start).toEqual({ line: 20, character: 4 });
 }, { timeout: MEDIUM_BUILD });
 
 // Regression (audit LC1): the server maps an incoming `character` as a CODEPOINT
