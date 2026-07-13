@@ -107,10 +107,16 @@ export check_stmt :: fn(
     return
 }
 
-/// True when `fn_decl` carries the `@generator` decorator.
-fn_is_generator :: fn(fn_decl: AST.FnDecl) -> bool {
+/// True when `fn_decl` is a generator — it carries `@generator` OR lexically
+/// `yield`s. Generator-ness is migrating from the decorator to pure
+/// `yield`-inference (mirror of `fn_is_async`) ; during the transition both
+/// signal it. Local + syntactic, so it resolves the same at a definition and at
+/// a call site.
+export fn_is_generator :: fn(fn_decl: AST.FnDecl) -> bool {
     for d in fn_decl.decorators { if d.name == "generator" { return true } }
-    return false
+    b :: fn_decl.body
+    if b == null { return false }
+    return block_has_yield(b)
 }
 
 /// True when `fn_decl` is an async coroutine — i.e. it lexically `await`s.

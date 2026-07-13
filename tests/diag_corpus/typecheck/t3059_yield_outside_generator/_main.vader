@@ -1,6 +1,0 @@
-module "snippet"
-
-export gen :: fn() -> i32 {
-    yield 5
-    return 0
-}

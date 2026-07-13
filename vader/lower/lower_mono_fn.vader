@@ -11,7 +11,7 @@ import "std/string_builder" { StringBuilder, append }
 import "vader/diagnostics" { Diagnostic, Span }
 import "vader/parser" { Decl, FnDecl, ConstDecl, ArrayTypeExpr, IdentExpr, BlockExpr }
 import "vader/resolver" { LoadedProject, LoadedModule }
-import "vader/typecheck" { TypedProject, TypedProgram, Substitution, substitute }
+import "vader/typecheck" { TypedProject, TypedProgram, Substitution, substitute, fn_is_generator }
 import "vader/types" { Type, display_type }
 import "vader/comptime" { MonoEntry }
 import "vader/resolver/symbol" { Symbol }
