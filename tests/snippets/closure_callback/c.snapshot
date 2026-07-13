@@ -105,10 +105,8 @@ static int32_t snippet_main(void) {
 
 static int32_t __lambda_1(vader_box_t l0, int32_t l1) {
     int32_t l2;
-    int32_t t0;
 #line 10 "tests/snippets/closure_callback/_main.vader"
-    t0 = ((vader_struct__Cell_i32_t*) ((vader_struct___lambda_env_2_t*) l0.payload.obj)->f_cap_0.payload.obj)->f_value;
-    l2 = t0;
+    l2 = ((vader_struct__Cell_i32_t*) ((vader_struct___lambda_env_2_t*) l0.payload.obj)->f_cap_0.payload.obj)->f_value;
     return (l1 + l2);
 }
 
