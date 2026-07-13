@@ -798,6 +798,14 @@ UfcsResult :: struct {
 try_free_fn_ufcs_with_first :: fn(
     name: string, target_ty: Type, typed: TypedProgram,
 ) -> UfcsResult | null {
+    // Gather every overload whose first param accepts the receiver (curry
+    // succeeds), then keep the one with the HIGHEST receiver specificity — a
+    // concrete union member beats a bare `T` wildcard (see
+    // `overload_specificity` in call.vader, same module). Local and imported
+    // overloads rank together ; a strict `>` keeps the first among equals, so a
+    // local overload wins a tie over an imported one (locals scanned first).
+    best: UfcsResult | null = null
+    best_spec: i32 = -1
     bucket :: typed.resolved.fn_overloads[name]
     match bucket {
         is null -> {}
@@ -806,9 +814,13 @@ try_free_fn_ufcs_with_first :: fn(
                 ft :: typed.decl_types[sym.id]
                 if ft is null { continue }
                 if !(ft is FnType) { continue }
+                if ft.params.len() == 0 { continue }
                 curried :: try_curry_receiver(ft, target_ty, typed)
-                if !(curried is null) {
-                    return UfcsResult { .curried = curried, .first_param = ft.params[0] }
+                if curried is null { continue }
+                spec :: overload_specificity(target_ty, ft.params[0])
+                if spec > best_spec {
+                    best = UfcsResult { .curried = curried, .first_param = ft.params[0] }
+                    best_spec = spec
                 }
             }
         }
@@ -818,14 +830,18 @@ try_free_fn_ufcs_with_first :: fn(
         is null -> {}
         _ -> {
             for ft in imported {
+                if ft.params.len() == 0 { continue }
                 curried :: try_curry_receiver(ft, target_ty, typed)
-                if !(curried is null) {
-                    return UfcsResult { .curried = curried, .first_param = ft.params[0] }
+                if curried is null { continue }
+                spec :: overload_specificity(target_ty, ft.params[0])
+                if spec > best_spec {
+                    best = UfcsResult { .curried = curried, .first_param = ft.params[0] }
+                    best_spec = spec
                 }
             }
         }
     }
-    return null
+    return best
 }
 
 /// A free function callable on a receiver type via UFCS — its name plus the

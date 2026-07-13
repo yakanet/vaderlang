@@ -90,6 +90,10 @@ const C_PARITY = new Set<string>([
   // block-body lambda. Guards the lambda-return inference fix (never → real type)
   // that keeps the union-position type param bindable.
   "and_then_infer",
+  // Two same-name free fns distinguished only by a concrete union member
+  // (`T | null` vs `T | Boom`) dispatch by receiver specificity, not first-match.
+  // Guards the overload-by-receiver ranking across typer + lowerer UFCS.
+  "overload_by_receiver",
   // T7 : misc ops. type_check (`x is T` → tag-compare / trait disjunction) is
   // the validatable one — a chain of divergent `is`-guards. type.const /
   // size_of.type / defer.push / defer.pop_exec handlers are also ported but

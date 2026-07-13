@@ -1,0 +1,28 @@
+// Two same-named free fns distinguished only by a CONCRETE member of their
+// first-param union dispatch by the receiver's shape (UFCS). Before the fix,
+// overload/UFCS resolution took the FIRST candidate whose first param accepts
+// the receiver via `is_assignable` — but a generic wildcard `T` in `T | null`
+// accepts anything, so an `i32 | Boom` receiver wrongly matched `T | null`
+// (Boom → the wildcard) → the wrong body ran → a runtime `convert: got struct`.
+// The fix ranks candidates by specificity: prefer the one whose union pins the
+// most concrete (non-type-param) receiver variants.
+module "snippet"
+
+import "std/io" { println }
+
+Boom :: struct {}
+Boom implements Error { message :: fn(self) -> string = "boom" }
+
+pick :: fn<T>(x: T | null, d: T) -> T { if x == null { return d }  return x }
+pick :: fn<T>(x: T | Boom, d: T) -> T { if x is Boom  { return d }  return x }
+
+maybe :: fn(h: bool) -> i32 | null { if h { return 7 }  return null }
+risky :: fn(h: bool) -> i32 | Boom { if h { return 42 } return Boom {} }
+
+main :: fn() -> i32 {
+    println("${maybe(true).pick(0)}")    // 7  — null overload, present
+    println("${maybe(false).pick(0)}")   // 0  — null overload, absent
+    println("${risky(true).pick(-1)}")   // 42 — Boom overload, ok
+    println("${risky(false).pick(-1)}")  // -1 — Boom overload, error
+    return 0
+}
