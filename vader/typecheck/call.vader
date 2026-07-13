@@ -28,7 +28,7 @@ import "vader/diagnostics" { Diagnostic, typecheck_error }
 AST :: import "vader/parser"
 import "vader/types" {
     ArrayType, Type, FnType, StructType, TraitType, TypeMetaType, UnresolvedType,
-    FreeIntType, FreeFloatType,
+    FreeIntType, FreeFloatType, UnionType, TypeParamType,
     display_type, mk_array, TY_FREE_INT, TY_STRING, TY_UNRESOLVED, TY_NEVER,
 }
 import "vader/resolver/symbol" { SymbolKind }
@@ -68,20 +68,52 @@ pick_overload :: fn(
     // The resolver bound `c.callee` to a primary overload ; its
     // signature is what a non-overloaded display would show.
     primary_ft :: primary_overload_ft(c.callee, typed)
-    // Pick the first candidate whose first param accepts arg0. Among those,
-    // an exact-arity match wins immediately — this lets a named-arg /
-    // arity-disambiguated overload resolve (`size(a = 1, b = 2)` vs
-    // `size(a = 1)`) — otherwise fall back to the first match (the original
-    // arg0-type heuristic, which handles default-filled / variadic arities).
-    preferred: FnType | null = null
+    // Among candidates whose first param accepts arg0, pick the one with the
+    // HIGHEST receiver specificity (a concrete union member beats a bare `T`
+    // wildcard — see `overload_specificity`). Ties break by exact arity — this
+    // lets a named-arg / arity-disambiguated overload resolve (`size(a = 1, b =
+    // 2)` vs `size(a = 1)`) — then by declaration order (keep the first among
+    // equals). Eligibility is unchanged : only the `is_assignable` gate below.
+    best: FnType | null = null
+    best_spec: i32 = -1
+    best_exact := false
     for ft in candidates {
         if ft.params.len() == 0 { continue }
         if !is_assignable(arg0_ty, ft.params[0], null) { continue }
-        if ft.params.len() == c.args.len() { return commit_overload_pick(ft, c, typed, primary_ft) }
-        if preferred == null { preferred = ft }
+        spec :: overload_specificity(arg0_ty, ft.params[0])
+        exact :: ft.params.len() == c.args.len()
+        if best == null || spec > best_spec || (spec == best_spec && exact && !best_exact) {
+            best = ft
+            best_spec = spec
+            best_exact = exact
+        }
     }
-    if preferred is FnType as p { return commit_overload_pick(p, c, typed, primary_ft) }
+    if best is FnType as p { return commit_overload_pick(p, c, typed, primary_ft) }
     return initial
+}
+
+// Specificity of `param0` for a receiver `arg0`: the count of arg0's (union)
+// variants that match a CONCRETE (non-type-param) variant of param0. A pure
+// wildcard `T` scores 0; each union member pinned to a concrete receiver variant
+// scores 1. Ranks `T | Boom` above `T | null` for an `i32 | Boom` receiver.
+overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
+    if param0 is TypeParamType { return 0 }
+    if param0 is UnionType as pu {
+        arg_vars: Type[] = if arg0 is UnionType as au { au.variants } else { [arg0] }
+        score: i32 = 0
+        for av in arg_vars {
+            for pv in pu.variants {
+                if pv is TypeParamType { continue }
+                if is_assignable(av, pv, null) {
+                    score = score + 1
+                    break
+                }
+            }
+        }
+        return score
+    }
+    if is_assignable(arg0, param0, null) { return 1 }
+    return 0
 }
 
 // Record a chosen overload : patch the callee IdentExpr's type so the dump

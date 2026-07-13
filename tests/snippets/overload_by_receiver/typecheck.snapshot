@@ -1,0 +1,56 @@
+# Typecheck
+
+## tests/snippets/overload_by_receiver
+  StructDecl     Boom                 :: Boom
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         maybe                :: fn(bool) -> i32 | null
+  FnDecl         pick                 :: fn(null | T, T) -> T
+  FnDecl         pick                 :: fn(Boom | T, T) -> T
+  FnDecl         risky                :: fn(bool) -> Boom | i32
+  expr 14:57    StringLitExpr  :: string
+  expr 16:41    IfExpr         :: void
+  expr 16:44    BinaryExpr     :: bool
+  expr 16:44    IdentExpr      :: null | T
+  expr 16:63    IdentExpr      :: T
+  expr 16:75    IdentExpr      :: T
+  expr 17:41    IfExpr         :: void
+  expr 17:44    BinaryExpr     :: bool
+  expr 17:44    IdentExpr      :: Boom | T
+  expr 17:49    IdentExpr      :: Boom
+  expr 17:64    IdentExpr      :: T
+  expr 17:76    IdentExpr      :: T
+  expr 19:38    IfExpr         :: void
+  expr 19:41    IdentExpr      :: bool
+  expr 20:38    IfExpr         :: void
+  expr 20:41    IdentExpr      :: bool
+  expr 20:64    StructLitExpr  :: Boom
+  expr 23:13    StringLitExpr  :: string
+  expr 23:16    CallExpr       :: i32
+  expr 23:16    CallExpr       :: i32 | null
+  expr 23:16    FieldExpr      :: fn(i32) -> i32
+  expr 23:16    IdentExpr      :: fn(bool) -> i32 | null
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void
+  expr 24:13    StringLitExpr  :: string
+  expr 24:16    CallExpr       :: i32
+  expr 24:16    CallExpr       :: i32 | null
+  expr 24:16    FieldExpr      :: fn(i32) -> i32
+  expr 24:16    IdentExpr      :: fn(bool) -> i32 | null
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void
+  expr 25:13    StringLitExpr  :: string
+  expr 25:16    CallExpr       :: Boom | i32
+  expr 25:16    CallExpr       :: i32
+  expr 25:16    FieldExpr      :: fn(i32) -> i32
+  expr 25:16    IdentExpr      :: fn(bool) -> Boom | i32
+  expr 25:33    UnaryExpr      :: i32
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T) -> void
+  expr 26:13    StringLitExpr  :: string
+  expr 26:16    CallExpr       :: Boom | i32
+  expr 26:16    CallExpr       :: i32
+  expr 26:16    FieldExpr      :: fn(i32) -> i32
+  expr 26:16    IdentExpr      :: fn(bool) -> Boom | i32
+  expr 26:34    UnaryExpr      :: i32
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void

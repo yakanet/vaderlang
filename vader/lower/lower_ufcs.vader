@@ -121,11 +121,22 @@ find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsM
     // the receiver is neither nominal, a union, nor a trait.
     recv_name :: type_surface_name(recv_type)
     if recv_name == "" && !(recv_type is UnionType) && !(recv_type is TraitType) { return null }
+    // Keep the `first_param_matches` gate for eligibility, but among the eligible
+    // candidates pick the one with the HIGHEST receiver specificity — a concrete
+    // union member beats a bare `T` wildcard (see `overload_specificity`). This
+    // mirrors the typer's UFCS pick (field.vader) so the two passes agree. A
+    // strict `>` keeps the first among equals : local wins over imported, which
+    // wins over cross-module (the buckets are scanned in that order).
+    best: Symbol | null = null
+    best_spec: i32 = -1
     overloads :: ctx.typed.resolved.fn_overloads[name]
     if overloads is Symbol[] as symbols {
         for sym in symbols {
-            if first_param_matches(ctx, sym, recv_type) {
-                return UfcsMember { .symbol = sym }
+            if !first_param_matches(ctx, sym, recv_type) { continue }
+            spec :: ufcs_specificity(ctx, recv_type, sym)
+            if spec > best_spec {
+                best = sym
+                best_spec = spec
             }
         }
     }
@@ -137,8 +148,11 @@ find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsM
         if candidate.kind != SymbolKind.ImportBinding { continue }
         target :: follow_import_binding(ctx, candidate)
         if target.kind == SymbolKind.Fn {
-            if first_param_matches(ctx, target, recv_type) {
-                return UfcsMember { .symbol = target }
+            if !first_param_matches(ctx, target, recv_type) { continue }
+            spec :: ufcs_specificity(ctx, recv_type, target)
+            if spec > best_spec {
+                best = target
+                best_spec = spec
             }
         }
     }
@@ -150,13 +164,52 @@ find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsM
         bucket :: ep.typed.resolved.fn_overloads[name]
         if bucket is Symbol[] as bucket_syms {
             for sym in bucket_syms {
-                if first_param_matches(ctx, sym, recv_type) {
-                    return UfcsMember { .symbol = sym }
+                if !first_param_matches(ctx, sym, recv_type) { continue }
+                spec :: ufcs_specificity(ctx, recv_type, sym)
+                if spec > best_spec {
+                    best = sym
+                    best_spec = spec
                 }
             }
         }
     }
+    if best is Symbol as b { return UfcsMember { .symbol = b } }
     return null
+}
+
+// Receiver specificity of `sym`'s first param for `recv_type`. Reads the
+// first-param type via `ufcs_first_param_type` (null when the fn has no params —
+// then 0) and scores it with `overload_specificity`.
+ufcs_specificity :: fn(ctx: FnLowerCtx, recv_type: Type, sym: Symbol) -> i32 {
+    first :: ufcs_first_param_type(ctx, sym)
+    if first is null { return 0 }
+    return overload_specificity(recv_type, first)
+}
+
+// Specificity of `param0` for a receiver `arg0`: the count of arg0's (union)
+// variants that match a CONCRETE (non-type-param) variant of param0. A pure
+// wildcard `T` scores 0; each union member pinned to a concrete receiver variant
+// scores 1. Ranks `T | Boom` above `T | null` for an `i32 | Boom` receiver. A
+// copy of the typecheck-side helper (call.vader) — the lower module can't import
+// it, so the two must stay in sync.
+overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
+    if param0 is TypeParamType { return 0 }
+    if param0 is UnionType as pu {
+        arg_vars: Type[] = if arg0 is UnionType as au { au.variants } else { [arg0] }
+        score: i32 = 0
+        for av in arg_vars {
+            for pv in pu.variants {
+                if pv is TypeParamType { continue }
+                if is_assignable(av, pv, null) {
+                    score = score + 1
+                    break
+                }
+            }
+        }
+        return score
+    }
+    if is_assignable(arg0, param0, null) { return 1 }
+    return 0
 }
 
 // First-param type of a UFCS-resolved free fn, or null when the symbol
