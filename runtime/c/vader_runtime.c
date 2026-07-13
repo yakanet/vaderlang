@@ -3120,13 +3120,16 @@ vader_box_t vader_read_line(uint32_t ok_tag, uint32_t err_tag) {
     return vader_box_string(ok_tag, vader_string_new(buf, n));
 }
 
-/* Switch stdin/stdout to binary mode on Windows. The CRT default is
+/* Switch stdin/stdout/stderr to binary mode on Windows. The CRT default is
  * text mode, which silently translates `\r\n` ↔ `\n` and breaks any
  * length-prefixed binary transport (LSP, MCP, custom RPC) AND every `dump` /
- * `build` / `fmt` stdout (LF on disk, CRLF on the wire). Called at program
- * startup (`vader_atom_init_with_comptime`) and at the first
- * `vader_read_stdin` ; idempotent via the static flag. POSIX has no such
- * concept — the helper is a no-op there. */
+ * `build` / `fmt` stdout (LF on disk, CRLF on the wire). stderr matters too:
+ * the VM's runtime-error / panic messages are diffed byte-for-byte by the
+ * snapshot suite, and text-mode `\n`→`\r\n` on stderr makes every such line
+ * mismatch by an invisible trailing `\r` on Windows. Called at program startup
+ * (`vader_atom_init_with_comptime`) and at the first `vader_read_stdin` ;
+ * idempotent via the static flag. POSIX has no such concept — the helper is a
+ * no-op there. */
 static int g_stdio_binary_ready = 0;
 
 static void vader_ensure_stdio_binary(void) {
@@ -3135,6 +3138,7 @@ static void vader_ensure_stdio_binary(void) {
 #if defined(_WIN32)
     _setmode(_fileno(stdin),  _O_BINARY);
     _setmode(_fileno(stdout), _O_BINARY);
+    _setmode(_fileno(stderr), _O_BINARY);
 #endif
 }
 

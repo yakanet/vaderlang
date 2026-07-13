@@ -22,6 +22,7 @@ module "vader/dap"
 import "std/json" { JsonValue, JsonObject, JsonNumber, JsonArray, JsonString, JsonBool, parse }
 import "std/collections" { MutableMap, MutableSet }
 import "std/string" { split, last_index_of }
+import "std/path" { to_posix }
 import "vader/lsp/protocol" { read_frame, write_frame, unbuffer_stdin, get_string, get_number, get_field, TransportError }
 import "vader/vm" { VmState, exec_entry, DebugController, Ok, Trap, PauseCtx, PauseFrame, PauseVar, StepMode }
 
@@ -106,10 +107,13 @@ export run_dap_server :: fn(compile: fn(string) -> DapProgram) -> i32 {
 
 // Replace the breakpoints for one source file with the requested lines. VSCode
 // sends the FULL set per file on each `setBreakpoints`, so the file's old set
-// is dropped. Keyed by the source's absolute path, matching the `DebugPos.file`
-// the VM checks (VSCode sends the same `${file}` path for launch + breakpoints).
+// is dropped. Keyed by the source path normalised to forward slashes via
+// `to_posix` — the module loader records `DebugPos.file` that way, so a Windows
+// client that sends a backslash path (`C:\dir\f.vader`) still matches the VM's
+// lookup key (`C:/dir/f.vader`). Without this the breakpoint never binds on
+// Windows and the program runs straight past it.
 store_breakpoints :: fn(bps: MutableMap<string, MutableSet<i32>>, args: JsonValue) -> void {
-    path :: get_string(get_field(args, "source"), "path")
+    path :: to_posix(get_string(get_field(args, "source"), "path"))
     lines :: MutableSet<i32> {}
     requested :: get_field(args, "breakpoints")
     if requested is JsonArray as arr {

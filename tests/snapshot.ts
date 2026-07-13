@@ -176,6 +176,16 @@ async function runVaderDump(stage: string, entryPath: string, modules?: readonly
   const args = ["dump", `--stage=${stage}`, entryPath];
   if (modules && modules.length > 0) args.push(`--module=${modules.join(",")}`);
   const { stdout, stderr, exit } = await runCli(args, envForSnippet(entryPath));
-  if (exit !== 0) return `# vader CLI failed (exit ${exit})\n${stderr}${stdout}`;
+  if (exit !== 0) return `# vader CLI failed (exit ${canonicalExit(exit)})\n${stderr}${stdout}`;
   return stdout;
+}
+
+// A vader panic calls abort(). POSIX surfaces that to Bun as exit 134
+// (128 + SIGABRT) — what the crash snapshots bake — while Windows/MSVCRT
+// surfaces the same abort() as exit 3. Canonicalize the Windows code so a
+// snippet that aborts the compiler (e.g. for_in_iter_trait's midir ICE) yields
+// one portable `# vader CLI failed (exit 134)` line on every OS.
+const WINDOWS_ABORT_EXIT = 3;
+function canonicalExit(exit: number): number {
+  return process.platform === "win32" && exit === WINDOWS_ABORT_EXIT ? 134 : exit;
 }
