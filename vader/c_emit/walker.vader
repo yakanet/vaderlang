@@ -13,7 +13,7 @@ module "vader/c_emit"
 
 import "std/string" { join }
 import "std/string_builder" { StringBuilder, append }
-import "std/abort" { todo }
+import "std/abort" { todo, panic }
 import "vader/bytecode" { BcFunction, BcSignature, BcStruct, BcArray, BcFn, BcRef, BcUnion, BcType, ValType }
 import "vader/bytecode" { array_kind_of, array_kind_index, ArrayKind }
 // The opcode union pulls in ~120 names ; the namespace form keeps the
@@ -957,11 +957,26 @@ scope_ending_at :: fn(scopes: ScopeInfo[], pc: i32) -> ScopeInfo | null {
     return null
 }
 
+// The operand stack MUST be empty at every scope boundary : the lowerer
+// materialises all control-flow results into locals (`vader/midir/build.vader`
+// — `if_res` / `and_res` / `or_res`, loops are void), so no operand ever
+// survives a block / loop / if / br. `c_emit/coalesce.vader`'s GC-safety rests
+// on exactly this — a temp live across a scope would break its textual
+// live-range assumption and could free a still-live GC slot. Guard it here so a
+// future change that leaks an operand trips a loud ICE instead of a silent
+// mis-compile.
+assert_stack_empty :: fn(s: FnState, where: string) -> void {
+    if s.stack.len() != 0 {
+        panic("c_emit: operand stack not empty at ${where} (depth ${s.stack.len()}) — a value escaped a scope boundary ; coalesce.vader's live-range invariant is violated")
+    }
+}
+
 /// `block` / `loop` — open a C compound statement. A `loop` that some
 /// `br` continues to gets a `loop_<pc>:` label before the brace (the
 /// backward-jump target) ; everything else is a bare `{`. `block` close
 /// labels are emitted by `emit_end`.
 emit_open_scope :: fn(s: FnState, pc: i32, kind: ScopeKind) -> void {
+    assert_stack_empty(s, "scope open (pc ${pc})")
     if kind == .Loop && (pc in s.continue_targets) {
         line(s, "loop_${pc}: {")
     } else {
@@ -973,6 +988,7 @@ emit_open_scope :: fn(s: FnState, pc: i32, kind: ScopeKind) -> void {
 /// `if` — pop the condition and open `if (<cond>) {`.
 emit_if_open :: fn(s: FnState) -> void {
     cond :: pop(s)
+    assert_stack_empty(s, "if open")
     line(s, "if (${name_of(cond)}) {")
     indent_push(s)
 }
@@ -981,6 +997,7 @@ emit_if_open :: fn(s: FnState) -> void {
 /// already materialised into locals by the lowerer (every scope is
 /// `void`), so there is nothing to hoist across the boundary.
 emit_else :: fn(s: FnState) -> void {
+    assert_stack_empty(s, "else")
     indent_pop(s)
     line(s, "} else {")
     indent_push(s)
@@ -990,6 +1007,7 @@ emit_else :: fn(s: FnState) -> void {
 /// that a `br` exits past gets its `end_<opener>: ;` label after the brace ;
 /// untargeted scopes close with a bare `}`.
 emit_end :: fn(s: FnState, pc: i32) -> void {
+    assert_stack_empty(s, "scope end (pc ${pc})")
     sc :: scope_ending_at(s.scopes, pc)
     if sc is ScopeInfo as scope {
         indent_pop(s)
@@ -1015,8 +1033,10 @@ emit_branch :: fn(s: FnState, pc: i32, conditional: bool) -> void {
         dest :: if is_continue_branch(sc, target) { "loop_${sc.opener_pc}" } else { "end_${sc.opener_pc}" }
         if conditional {
             cond :: pop(s)
+            assert_stack_empty(s, "br_if (pc ${pc})")
             line(s, "if (${name_of(cond)}) goto ${dest};")
         } else {
+            assert_stack_empty(s, "br (pc ${pc})")
             line(s, "goto ${dest};")
         }
     } else {
