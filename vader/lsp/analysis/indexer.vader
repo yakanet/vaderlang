@@ -98,10 +98,24 @@ export DocIndex :: struct {
     tokens:  Token[]
     decls:   DeclEntry[]
     imports: ImportEntry[]
+    /// `break` / `continue` → the loop it targets, for goto-definition on a
+    /// loop jump (the reader-clarity tool that replaced the W0004 nudge).
+    loop_jumps: LoopJump[]
     /// Byte ↔ (line, character) map for this document, in the negotiated
     /// encoding. Powers the incoming position resolvers below and the outgoing
     /// range encoders for same-document spans.
     line_index: LineIndex
+}
+
+/// One `break` / `continue` and the loop it targets. Mirrors the compiler's
+/// resolution (typecheck `resolve_loop_target`) : a bare jump targets the
+/// innermost loop ; `break <name>` / `continue <name>` the nearest enclosing
+/// loop whose iteration variable or label is `<name>`.
+export LoopJump :: struct {
+    /// The whole `break` / `continue <name>` statement span (the click target).
+    jump_span:   Span
+    /// The targeted `for` loop's span (goto lands at its start).
+    target_span: Span
 }
 
 /// Build the index for a freshly-opened or modified document.
@@ -120,8 +134,136 @@ export build_index :: fn(uri: string, source: string, encoding: PositionEncoding
         .tokens     = parsed.tokens,
         .decls      = entries,
         .imports    = imports,
+        .loop_jumps = collect_loop_jumps(parsed.program.decls),
         .line_index = new_line_index(source, encoding),
     }
+}
+
+// ---- loop-jump index (goto-definition on `break` / `continue`) ------------
+
+// One enclosing loop as the jump resolver sees it.
+LjFrame :: struct { span: Span, binding: string | null, label: string | null }
+
+/// Collect every `break` / `continue` → target-loop mapping. Lambdas are not
+/// descended (a jump there can't target an enclosing loop) ; unresolved jumps
+/// (outside any loop, or a name matching nothing) are simply not recorded.
+collect_loop_jumps :: fn(decls: Decl[]) -> LoopJump[] {
+    out: LoopJump[] = []
+    for d in decls { lj_decl(d, out) }
+    return out
+}
+
+lj_decl :: fn(d: Decl, out: LoopJump[]) -> void {
+    match d {
+        is FnDecl   as f  -> { lj_fn_body(f.body, out) }
+        is ImplDecl as ib -> { for m in ib.members { lj_fn_body(m.body, out) } }
+        is TraitDecl as t -> { for m in t.members  { lj_fn_body(m.body, out) } }
+        _ -> {}
+    }
+}
+
+lj_fn_body :: fn(body: BlockExpr | null, out: LoopJump[]) -> void {
+    if body is BlockExpr as b {
+        stack: LjFrame[] = []
+        lj_block(b, stack, out)
+    }
+}
+
+lj_block :: fn(b: BlockExpr, stack: LjFrame[], out: LoopJump[]) -> void {
+    for s in b.stmts { lj_stmt(s, stack, out) }
+    t :: b.trailing
+    if t != null { lj_expr(t, stack, out) }
+}
+
+lj_stmt :: fn(s: Stmt, stack: LjFrame[], out: LoopJump[]) -> void {
+    match s {
+        is ForStmt as f -> {
+            stack.push(LjFrame { .span = f.span, .binding = lj_for_binding(f), .label = f.label })
+            lj_block(f.body, stack, out)
+            _ :: stack.remove_last()   // discard the popped frame — arm stays void
+        }
+        is BreakStmt    -> { lj_record(s.span, s.label, stack, out) }
+        is ContinueStmt -> { lj_record(s.span, s.label, stack, out) }
+        is ExprStmt     -> { lj_expr(s.expr, stack, out) }
+        is LetStmt      -> { lj_expr(s.value, stack, out) }
+        is AssignStmt   -> { lj_expr(s.value, stack, out) }
+        is ReturnStmt   -> {
+            rv :: s.value
+            if rv != null { lj_expr(rv, stack, out) }
+        }
+        is YieldStmt    -> { lj_expr(s.value, stack, out) }
+        is DeferStmt    -> {
+            match s.body {
+                is DeferStmtBody  as ds -> { lj_stmt(ds.stmt, stack, out) }
+                is DeferBlockBody as db -> { lj_block(db.block, stack, out) }
+            }
+        }
+    }
+}
+
+// Only container expressions can host a nested `break` / `continue` in a
+// statement position ; leaves and lambdas (a jump there is illegal) are skipped.
+lj_expr :: fn(e: Expr, stack: LjFrame[], out: LoopJump[]) -> void {
+    @partial match e {
+        is BlockExpr -> { lj_block(e, stack, out) }
+        is IfExpr    -> {
+            lj_expr(e.cond, stack, out)
+            lj_block(e.then_block, stack, out)
+            match e.else_branch {
+                is IfElseIf    as ei -> { lj_expr(ei.branch, stack, out) }
+                is IfElseBlock as eb -> { lj_block(eb.block, stack, out) }
+                is null              -> {}
+            }
+        }
+        is MatchExpr -> { for arm in e.arms { lj_expr(arm.body, stack, out) } }
+        _ -> {}
+    }
+}
+
+// The for-in iteration variable, or null for a variable-less / synthetic loop
+// (`while`-style, infinite, `_`, or a `__for_*` destructuring binding) — those
+// are targeted by a label, not a variable.
+lj_for_binding :: fn(f: ForStmt) -> string | null {
+    if f.form is InFor as i {
+        if i.binding != "_" && !i.binding.starts_with("__") { return i.binding }
+    }
+    return null
+}
+
+lj_record :: fn(jump_span: Span, label: string | null, stack: LjFrame[], out: LoopJump[]) -> void {
+    target :: lj_resolve(stack, label)
+    if target != null { out.push(LoopJump { .jump_span = jump_span, .target_span = target.span }) }
+}
+
+// Bare jump → innermost loop ; labeled jump → nearest enclosing loop matching
+// by iteration variable or label (innermost-first). Null when unresolved.
+lj_resolve :: fn(stack: LjFrame[], label: string | null) -> LjFrame | null {
+    n :: stack.len()
+    if n == 0 { return null }
+    if label == null { return stack[n - 1] }
+    name :: label
+    i := n
+    for i > 0 {
+        i = i - 1
+        frame :: stack[i]
+        fb :: frame.binding
+        if fb != null && fb == name { return frame }
+        fl :: frame.label
+        if fl != null && fl == name { return frame }
+    }
+    return null
+}
+
+/// The loop a `break` / `continue` under (line, character) targets, or null.
+/// The whole jump statement is the click target (keyword + optional name).
+export loop_jump_at :: fn(idx: DocIndex, line: i32, character: i32) -> Span | null {
+    offset :: li_offset(idx.line_index, line, character)
+    for lj in idx.loop_jumps {
+        if offset >= lj.jump_span.start.offset && offset < lj.jump_span.end.offset {
+            return lj.target_span
+        }
+    }
+    return null
 }
 
 /// Find the decl whose name matches the identifier under (line, character).
@@ -158,11 +300,8 @@ export span_at :: fn(idx: DocIndex, line: i32, character: i32) -> Span | null {
 /// module's freshly-built index.
 export find_toplevel :: fn(idx: DocIndex, name: string) -> DeclEntry | null {
     for d in idx.decls {
-        match d.scope_span {
-            is null -> {
-                if d.name == name { return d }
-            }
-            is Span -> {}  // skip intra-file bindings — only top-level decls are exportable
+        if d.scope_span is null {
+            if d.name == name { return d }
         }
     }
     return null

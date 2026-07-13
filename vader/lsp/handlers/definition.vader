@@ -25,7 +25,7 @@ import "vader/lsp/protocol" {
     position_uri, position_line, position_character,
     location_json, range_json, span_to_range_json, uri_to_path, LineIndex,
 }
-import "vader/lsp/analysis" { ServerState, DocIndex, DeclEntry, resolve }
+import "vader/lsp/analysis" { ServerState, DocIndex, DeclEntry, resolve, loop_jump_at }
 
 /// Resolve goto-def for the position carried in `params`. Returns
 /// `LocationLink[]` (when `linkSupport`) or a bare `Location`, or
@@ -40,6 +40,14 @@ export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonVal
     match idx {
         is null              -> { return JsonNull {} }
         is DocIndex as index -> {
+            // A `break` / `continue` jumps to the loop it targets (bare →
+            // innermost, `break <var>` / `<label>` → the named enclosing loop) —
+            // the reader-clarity tool that replaced the retired W0004 nudge.
+            loop_target :: loop_jump_at(index, line, character)
+            if loop_target != null {
+                origin :: index.span_at(line, character)
+                return def_response(state, origin, uri, loop_target, loop_target, index.line_index)
+            }
             entry :: index.find_at(line, character)
             match entry {
                 is DeclEntry as found  -> {
