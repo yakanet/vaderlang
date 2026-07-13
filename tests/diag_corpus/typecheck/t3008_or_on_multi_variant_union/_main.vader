@@ -1,0 +1,20 @@
+module "snippet"
+
+// A value combinator (`or`) handles ONE unhappy variant. A union carrying BOTH
+// `null` AND an `Error` (`i32 | Error | null`) fits neither the `T | null` nor
+// the `T | Error` overload, so `.or(d)` is a compile error (T3008) that points
+// at narrowing — not a silent leak. See docs/ERROR_HANDLING.md (Strategy A).
+import "std/option" { or }
+
+Boom :: struct {}
+Boom implements Error { message :: fn(self) -> string = "boom" }
+
+tri :: fn(k: i32) -> i32 | Error | null {
+    if k == 0 { return 42 }
+    if k == 1 { return Boom {} }
+    return null
+}
+
+export probe :: fn() -> void {
+    _ :: tri(0).or(-1)
+}

@@ -4,7 +4,7 @@
 // union `T | null` and fallibility is `T | Error` (an error is any value whose
 // type implements the `Error` trait). These free functions are the conveniences
 // on top of `if x == null` / `if x is Error` narrowing — called via UFCS
-// (`x.or(d)`, `r.unwrap_or(d)`, `r.map(f)`) for default / transform / chain, the
+// (`x.or(d)` on either, `r.map(f)`) for default / transform / chain, the
 // cases where a full narrowing block would be noise. Control flow — early
 // return, branching, propagation — stays with `if` / `match`. They replace the
 // removed `?` operator. See `docs/ERROR_HANDLING.md`.
@@ -40,25 +40,27 @@ export or_else :: fn<T>(x: T | null, f: fn() -> T) -> T {
 
 // ---- fallible (`T | Error`) -----------------------------------------------
 
-/// The value, or `d` when it is an error.
+/// The value, or `d` when it is an error — the `T | Error` overload of `or`
+/// (dispatched by receiver, so `x.or(d)` reads the same for nullable and
+/// fallible values).
 ///
 /// @param x  a fallible value.
 /// @param d  the fallback returned when `x` is an error.
 /// @return   `x` narrowed to `T`, otherwise `d`.
 /// @example
-///   port :: parse_int(s).unwrap_or(8080)
-export unwrap_or :: fn<T>(x: T | Error, d: T) -> T {
+///   port :: parse_int(s).or(8080)
+export or :: fn<T>(x: T | Error, d: T) -> T {
     if x is Error { return d }
     return x
 }
 
-/// The value, or `f(err)` when it is an error — the lazy form, with access to
-/// the error (to log it, or derive the fallback from it).
+/// The value, or `f(err)` when it is an error — the lazy `T | Error` overload of
+/// `or_else`, with access to the error (to log it, or derive the fallback).
 ///
 /// @param x  a fallible value.
 /// @param f  computes the fallback from the error ; called only on the error path.
 /// @return   `x` narrowed to `T`, otherwise `f(err)`.
-export unwrap_or_else :: fn<T>(x: T | Error, f: fn(Error) -> T) -> T {
+export or_else :: fn<T>(x: T | Error, f: fn(Error) -> T) -> T {
     if x is Error as e { return f(e) }
     return x
 }
@@ -138,30 +140,30 @@ test_or_else :: fn() -> void {
 }
 
 @test
-test_unwrap_or :: fn() -> void {
-    assert_eq(ok().unwrap_or(-1), 42)
-    assert_eq(bad().unwrap_or(-1), -1)
+test_or_error :: fn() -> void {
+    assert_eq(ok().or(-1), 42)
+    assert_eq(bad().or(-1), -1)
 }
 
 @test
-test_unwrap_or_else :: fn() -> void {
-    assert_eq(ok().unwrap_or_else(fn(e: Error) { return 0 }), 42)
-    assert_eq(bad().unwrap_or_else(fn(e: Error) { return 100 }), 100)
+test_or_else_error :: fn() -> void {
+    assert_eq(ok().or_else(fn(e: Error) { return 0 }), 42)
+    assert_eq(bad().or_else(fn(e: Error) { return 100 }), 100)
 }
 
 @test
 test_map :: fn() -> void {
     doubled_ok :: ok().map(fn(v: i32) { return v * 2 })    // 84
     doubled_bad :: bad().map(fn(v: i32) { return v * 2 })  // Boom passes through
-    assert_eq(doubled_ok.unwrap_or(-1), 84)
-    assert_eq(doubled_bad.unwrap_or(-1), -1)
+    assert_eq(doubled_ok.or(-1), 84)
+    assert_eq(doubled_bad.or(-1), -1)
 }
 
 @test
 test_and_then :: fn() -> void {
     chained :: ok().and_then(fn(v: i32) { return halve(v) })
-    assert_eq(chained.unwrap_or(-1), 21)
+    assert_eq(chained.or(-1), 21)
     short :: bad().and_then(fn(v: i32) { return halve(v) })
-    assert_eq(short.unwrap_or(-1), -1)
+    assert_eq(short.or(-1), -1)
 }
 

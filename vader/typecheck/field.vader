@@ -256,6 +256,15 @@ try_enum_variant_dispatch :: fn(
     return target_ty
 }
 
+// True when `name` has UFCS free-fn candidates (local or imported) — i.e. a
+// method by that name exists, so a failed dispatch is "no overload fit the
+// receiver", not "unknown method". Drives the tailored union-receiver hint.
+ufcs_name_has_candidates :: fn(name: string, typed: TypedProgram) -> bool {
+    if typed.resolved.fn_overloads[name] != null { return true }
+    if typed.imported_fn_overloads[name] != null { return true }
+    return false
+}
+
 // Terminal struct-field lookup + the catch-all diagnostics for any
 // other unsupported shape. Returns a real Type (not Type | null)
 // since this is the last fallthrough.
@@ -267,6 +276,16 @@ resolve_struct_field :: fn(
     // keeps its nominal identity for trait-impl dispatch.
     st :: struct_backing(target_ty)
     if st == null {
+        // A UFCS method by this name exists, but no overload's first param
+        // accepts this union receiver — the common case being a value combinator
+        // (`or` / `map` / …) fed a union with more than one "unhappy" variant
+        // (e.g. `T | Error | null` fits neither the `T | null` nor the `T | Error`
+        // overload). Point at narrowing rather than the bare "not indexable".
+        if target_ty is UnionType && ufcs_name_has_candidates(e.field, typed) {
+            diags.push(typecheck_error(.NotIndexable, e.span,
+                "no `${e.field}` overload accepts a receiver of type `${display_type(target_ty)}` — narrow the union with `if`/`match` first (a value combinator handles a single unhappy variant, `T | null` or `T | Error`, not both)"))
+            return TY_UNRESOLVED
+        }
         diags.push(typecheck_error(.NotIndexable, e.span,
             "`.${e.field}` on non-struct type ${display_type(target_ty)}"))
         return TY_UNRESOLVED

@@ -31,7 +31,7 @@
             "alias": null
           },
           {
-            "name": "unwrap_or",
+            "name": "or",
             "alias": null
           }
         ]
@@ -375,7 +375,7 @@
                               "kind": "IdentExpr",
                               "name": "r1"
                             },
-                            "field": "unwrap_or"
+                            "field": "or"
                           },
                           "args": [
                             {
@@ -504,7 +504,7 @@
                               "kind": "IdentExpr",
                               "name": "r2"
                             },
-                            "field": "unwrap_or"
+                            "field": "or"
                           },
                           "args": [
                             {
