@@ -1,14 +1,15 @@
-// A labeled `continue outer` across a `yield` in an ESCAPING generator. It must
-// advance the outer loop; before the label fix it targeted the innermost loop
-// and spun forever. Companion to generator_label_break.
+// A `continue i` (targeting the OUTER loop by its iteration variable) across a
+// `yield` in an ESCAPING generator. It must advance the outer loop; a regression
+// once targeted the innermost loop and spun forever. Companion to
+// generator_label_break. See loop-jump-by-variable.md.
 module "snippet"
 
 import "std/io" { println }
 
 gen :: fn() -> Iterator<i32> {
-    outer: for i in 0..<3 {
+    for i in 0..<3 {
         for j in 0..<3 {
-            if j == 1 { continue outer }
+            if j == 1 { continue i }
             yield i * 10 + j
         }
     }

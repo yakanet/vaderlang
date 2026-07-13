@@ -349,12 +349,31 @@ export TypedProgram :: struct {
     /// (or non-overloaded names) keep the fn-type display.
     overload_result_callees: MutableMap<usize, bool>
 
-    /// Walk-global loop-nesting counter, bumped around each loop body by
+    /// Walk-global stack of enclosing loops, pushed around each loop body by
     /// `check_for`. Unlike `FnContext.loop_depth` (not threaded through the
     /// expression checker, so lost inside `if`/`match` branch blocks), this
-    /// survives arbitrary expression nesting — `check_loop_jump` reads it for
-    /// W0004 so `for { for { if c { continue } } }` is flagged.
-    loop_depth: i32 = 0
+    /// survives arbitrary expression nesting. `check_loop_jump` scans it to
+    /// resolve a `break <name>` / `continue <name>` to the loop whose iteration
+    /// variable (or label) is `<name>` — innermost-first. Its `.len()` is also
+    /// the loop-nesting depth, if ever needed.
+    loop_stack: EnclosingLoop[] = []
+
+    /// Resolution result for var-targeted loop jumps : `ForStmt.id` → the
+    /// iteration-variable name a `break <var>` / `continue <var>` targeted it by.
+    /// The lowerer reads it to stamp `LoweredLoop.label` (only for targeted loops
+    /// — untargeted loops keep their pristine `ForStmt.label`). Written
+    /// idempotently, so it survives the two-pass / multi-module walks.
+    loop_target_labels: MutableMap<usize, string>
+}
+
+/// One enclosing loop as seen by the loop-jump resolver. `binding` is the
+/// for-in iteration variable (null for `while` / infinite loops) ; `label` is
+/// the user's `name:` prefix (null if none). A `break <name>` matches when
+/// `name` equals either.
+export EnclosingLoop :: struct {
+    for_id:  usize
+    binding: string | null
+    label:   string | null
 }
 
 import "vader/diagnostics" { Span }
@@ -373,6 +392,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
     return TypedProgram {
         .resolved        = resolved,
         .expr_types      = MutableMap<usize, Type> {},
+        .loop_target_labels = MutableMap<usize, string> {},
         .into_coercions  = MutableMap<usize, Type> {},
         .local_types     = MutableMap<u64, Type> {},
         .decl_types      = MutableMap<i32, Type> {},

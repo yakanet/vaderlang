@@ -1770,19 +1770,41 @@ Iterable :: trait<T> {
 }
 ```
 
-### Labeled `break` / `continue`
+### Targeting an outer loop — `break <var>` / `continue <var>`
+
+A bare `break` / `continue` acts on the **innermost** loop. To target an enclosing
+loop, name it — **by its iteration variable** (the preferred form, no declaration
+needed) :
 
 ```vader
-outer: for i in 0..<10 {
-    for j in 0..<10 {
-        if (i + j > 12) {
-            break outer
-        }
+for row in grid {
+    for cell in row {
+        if cell == 0    { continue }      // innermost — bare
+        if cell == goal { break row }     // the row-loop, by its variable
     }
 }
 ```
 
-Without a label, `break`/`continue` act on the innermost loop.
+`break <name>` / `continue <name>` resolves to the nearest enclosing loop whose
+iteration variable (or label, below) is `<name>`. The target must be a loop —
+naming a local or an unknown name is a compile error (`T3067`).
+
+**Labels — only for a loop with no variable.** A `while`-style (`for <cond>`) or
+infinite (`for {}`) loop has no iteration variable, so it is targeted by a label
+declared with a `name:` prefix :
+
+```vader
+scan: for !done {
+    for cell in row {
+        if cell == goal { break scan }
+    }
+}
+```
+
+A label on a `for`-in loop (which already has a variable) is redundant and warns
+(`W0010`) — use the variable instead. There is no reader-ambiguity concern: an
+editor / LSP resolves a `break` / `continue` to its target loop on demand
+(go-to-definition), so no annotation is forced on the common innermost case.
 
 ### `defer`
 

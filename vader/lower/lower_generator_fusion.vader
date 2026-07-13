@@ -33,6 +33,12 @@ export try_lower_generator_inline :: fn(
     recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
     block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt | null {
+    // Decline when a `break <var>` / `continue <var>` targets THIS for-in by its
+    // iteration variable (typecheck recorded it): the inlined form builds no
+    // `LoweredLoop` for the consumer loop, so there is nothing to stamp with the
+    // target label — the jump would silently no-op at the backend. Fall back to
+    // the boxed state-machine path, which builds a stampable `LoweredLoop`.
+    if ctx.typed.loop_target_labels[for_stmt.id] != null { return null }
     // Direct-ident callee only (Increment 1): `gen(args)`, not `recv.gen(args)`.
     // Both `is` bindings stay live in the inner block, so the worker takes them.
     if in_form.iter is AST.CallExpr as call {

@@ -1,17 +1,18 @@
-// A labeled `break outer` across a `yield` in an ESCAPING generator (stored in
-// a local, so the state-machine path — not fusion — runs). It must terminate
-// the whole loop nest, not just the inner loop. Regression: the block-split
-// resolved `break`/`continue` to the innermost loop, ignoring the label — so
-// `break outer` acted like `continue outer` (wrong values / infinite loop).
+// A `break i` (targeting the OUTER loop by its iteration variable) across a
+// `yield` in an ESCAPING generator (stored in a local, so the state-machine path
+// — not fusion — runs). It must terminate the whole loop nest, not just the inner
+// loop. Regression: the block-split resolved `break`/`continue` to the innermost
+// loop, ignoring the target — so `break i` acted like `continue i` (wrong values
+// / infinite loop). See loop-jump-by-variable.md.
 module "snippet"
 
 import "std/io" { println }
 
 gen :: fn() -> Iterator<i32> {
-    outer: for i in 0..<3 {
+    for i in 0..<3 {
         for j in 0..<3 {
             yield i * 10 + j
-            if j == 1 { break outer }
+            if j == 1 { break i }
         }
     }
 }

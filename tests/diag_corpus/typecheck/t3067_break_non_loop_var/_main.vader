@@ -1,0 +1,10 @@
+module "snippet"
+main :: fn() -> i32 {
+    x :: 5
+    for i in 0..<3 {
+        for j in 0..<3 {
+            break x
+        }
+    }
+    return x
+}

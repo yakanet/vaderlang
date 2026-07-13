@@ -184,7 +184,7 @@ export lower_for_in :: fn(
     loop_stmts.push(branch_if)
 
     loop_stmt :: LoweredLoop {
-        .span = span, .label = for_stmt.label, .cond = null,
+        .span = span, .label = resolve_loop_label(ctx, for_stmt), .cond = null,
         .body = LoweredBlock {
             .span = span, .type = TY_VOID, .stmts = loop_stmts, .trailing = null,
         },
@@ -208,6 +208,17 @@ build_one :: fn(t: Type) -> Type[] {
     out: Type[] = []
     out.push(t)
     return out
+}
+
+// The label to stamp on a for-in `LoweredLoop`. A `break <var>` resolved to this
+// loop by its iteration variable recorded that variable in `loop_target_labels`
+// (typecheck) ; the break carries the same name, so stamping it here makes the
+// backend / block-split resolve the jump. Otherwise the loop keeps its pristine
+// user label (`name:` prefix, usually null for a for-in — see W0010).
+resolve_loop_label :: fn(ctx: FnLowerCtx, for_stmt: AST.ForStmt) -> string | null {
+    injected :: ctx.typed.loop_target_labels[for_stmt.id]
+    if injected != null { return injected }
+    return for_stmt.label
 }
 
 build_break_stmts :: fn(span: Span) -> LoweredStmt[] {
@@ -561,7 +572,11 @@ try_lower_for_in_raw_array :: fn(
     }
 
     user_body :: block_lowerer(ctx, for_stmt.body, false, true)
-    advanced :: prepend_inc_before_matching_continue(user_body, inc_stmt, for_stmt.label)
+    // One resolved label, shared by the continue-reconciliation and the loop
+    // itself : `continue_targets_loop` matches by this same string, so they MUST
+    // agree or a var-targeted `continue` stops advancing the index.
+    loop_label :: resolve_loop_label(ctx, for_stmt)
+    advanced :: prepend_inc_before_matching_continue(user_body, inc_stmt, loop_label)
     body_stmts: LoweredStmt[] = []
     body_stmts.push(bind_stmt)
     for stmt in advanced.stmts { body_stmts.push(stmt) }
@@ -571,7 +586,7 @@ try_lower_for_in_raw_array :: fn(
     body_stmts.push(inc_stmt)
 
     loop_stmt :: LoweredLoop {
-        .span = span, .label = for_stmt.label, .cond = cond,
+        .span = span, .label = loop_label, .cond = cond,
         .body = LoweredBlock {
             .span = span, .type = TY_VOID, .stmts = body_stmts, .trailing = null,
         },
@@ -686,9 +701,12 @@ try_lower_for_in_int_range :: fn(
         bind_let :: bind_loop_var(ctx, binding_symbol, in_form.binding, counter_ref, bound_type, span)
         prepend_stmts_to_block([bind_let], raw_user_body)
     }
-    loop_stmts :: build_int_range_body(user_body, inc_stmt, for_stmt.label)
+    // One resolved label, shared by the continue-reconciliation and the loop (see
+    // the raw-array path) — they must agree or a var-targeted `continue` spins.
+    loop_label :: resolve_loop_label(ctx, for_stmt)
+    loop_stmts :: build_int_range_body(user_body, inc_stmt, loop_label)
     loop_stmt :: LoweredLoop {
-        .span = span, .label = for_stmt.label, .cond = cond,
+        .span = span, .label = loop_label, .cond = cond,
         .body = LoweredBlock {
             .span = span, .type = TY_VOID, .stmts = loop_stmts, .trailing = null,
         },
@@ -1018,7 +1036,7 @@ lower_map_set_compact :: fn(
     loop_body_stmts.push(pos_inc)
     for s in block_stmts_with_trailing(user_body) { loop_body_stmts.push(s) }
     loop_stmt :: LoweredLoop {
-        .span = span, .label = for_stmt.label, .cond = null,
+        .span = span, .label = resolve_loop_label(ctx, for_stmt), .cond = null,
         .body = LoweredBlock { .span = span, .type = TY_VOID, .stmts = loop_body_stmts, .trailing = null },
     }
     all_stmts: LoweredStmt[] = []

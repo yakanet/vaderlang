@@ -44,7 +44,7 @@
         "stmts": [
           {
             "kind": "ForStmt",
-            "label": "outer",
+            "label": null,
             "form": {
               "kind": "in",
               "binding": "i",
@@ -129,7 +129,7 @@
                         "stmts": [
                           {
                             "kind": "BreakStmt",
-                            "label": "outer"
+                            "label": "i"
                           }
                         ],
                         "trailing": null

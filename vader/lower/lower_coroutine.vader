@@ -69,8 +69,10 @@ GenBuild :: struct {
 }
 
 /// A dissolved loop's state targets: `continue` / back-edge → `header`,
-/// `break` → `exit`. `label` carries the source loop label (or `null`) so a
-/// labeled `break`/`continue` resolves to the right enclosing frame.
+/// `break` → `exit`. `label` carries the loop's resolved label (a user `name:`
+/// prefix, or an iteration-variable name injected by the loop-jump resolver — see
+/// `lower_for_in::resolve_loop_label`), or `null`, so a `break <var>` / `<label>`
+/// resolves to the right enclosing frame.
 LoopFrame :: struct {
     label:  string | null
     header: i64

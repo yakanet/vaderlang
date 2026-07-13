@@ -1,0 +1,9 @@
+module "snippet"
+main :: fn() -> i32 {
+    rows: for i in 0..<3 {
+        for j in 0..<3 {
+            if j == 1 { break rows }
+        }
+    }
+    return 0
+}

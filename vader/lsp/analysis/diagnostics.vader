@@ -112,5 +112,5 @@ import "std/testing" { assert_eq }
     assert_eq(lsp_diag_tag("W0007"), 1)   // dead code → Unnecessary (faded)
     assert_eq(lsp_diag_tag("W0001"), 2)   // deprecated → Deprecated (struck)
     assert_eq(lsp_diag_tag("T3054"), 0)   // ordinary error → no tag
-    assert_eq(lsp_diag_tag("W0004"), 0)   // ordinary warning → no tag
+    assert_eq(lsp_diag_tag("W0005"), 0)   // ordinary warning → no tag
 }
