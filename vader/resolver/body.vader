@@ -574,7 +574,14 @@ walk_lambda :: fn(self: ResolveState, l: AST.LambdaExpr) -> void {
     self.scope.push()
     for p in l.params {
         self.walk_opt_expr(p.ty)
-        _ :: self.bind_local_checked(.Param, p.name, p.span)
+        sym :: self.bind_local_checked(.Param, p.name, p.span)
+        // Persist the param's Symbol in `idents` at its def-site (mirror
+        // `walk_fn_decl`) so the lambda-lifter (`build_lifted_params`) recovers
+        // it even when the body never references the param. Without this, an
+        // unused lambda param is dropped from the lifted fn, whose arity then
+        // mismatches the closure's `env + params` calling convention at
+        // `call.indirect` (VM trap ; native miscompile).
+        self.idents[p.span.hash()] = sym
     }
     self.walk_opt_expr(l.return_type)
     self.walk_block(l.body)

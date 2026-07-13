@@ -82,6 +82,10 @@ const C_PARITY = new Set<string>([
   "fn_value_local",
   "closure_callback",
   "trait_virtual_dispatch",
+  // A lambda that ignores a param must still be lifted WITH that param, or its
+  // arity mismatches the closure calling convention at call.indirect. Guards the
+  // resolver def-site recording fix (unused lambda params).
+  "unused_lambda_param",
   // T7 : misc ops. type_check (`x is T` → tag-compare / trait disjunction) is
   // the validatable one — a chain of divergent `is`-guards. type.const /
   // size_of.type / defer.push / defer.pop_exec handlers are also ported but
