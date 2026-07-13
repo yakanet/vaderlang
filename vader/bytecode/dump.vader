@@ -547,6 +547,23 @@ convert_target_name :: fn(t: ConvertTarget) -> string = match t {
     .Char -> "char"
 }
 
+// Operands for an `f64.const` dump line. A *finite* double keeps a trailing bit
+// column so `virt_reader` round-trips it losslessly — the decimal rendering
+// alone can lose precision. A *non-finite* value carries no meaningful payload
+// (±inf are unique, every NaN is one value) and a NaN's raw bits aren't even
+// architecturally stable — `0.0 / 0.0` folds to a sign-set NaN on x86-64 but the
+// canonical +NaN on arm64. So dump non-finite values as their bare abstract word
+// (`inf` / `-inf` / `nan`, exactly what `${v}` renders — `dtoa` prints every NaN
+// as `nan` regardless of sign) with no bit column ; `virt_reader` reconstructs
+// the value from that word. The `.virt` output is then byte-identical on every
+// build arch.
+f64_const_operands :: fn(v: f64) -> string {
+    bits :: v.to_bits()
+    // Non-finite iff the exponent field is all-ones.
+    if ((bits >> 52) & 0x7FF) == 0x7FF { return "${v}" }
+    return "${v} ${bits}"
+}
+
 // Append an op's `.virt` mnemonic to `out` (no scope labels — control-flow
 // ops render bare here ; callers that need labels handle those themselves
 // and delegate the rest). A STATEMENT match, not a value-returning one : a
@@ -560,7 +577,7 @@ export write_op :: fn(out: StringBuilder, op: Op) -> void {
     match op {
         is I32Const as c            -> out.append("i32.const ${c.value}")
         is I64Const as c            -> out.append("i64.const ${c.value}")
-        is F64Const as c            -> out.append("f64.const ${c.value} ${c.value.to_bits()}")
+        is F64Const as c            -> out.append("f64.const ${f64_const_operands(c.value)}")
         is BoolConst as c           -> out.append("bool.const ${c.value}")
         is CharConst as c           -> out.append("char.const ${u32(c.value)}")
         is NullConst                -> out.append("null.const")
@@ -722,7 +739,7 @@ export write_op :: fn(out: StringBuilder, op: Op) -> void {
 format_const_op :: fn(c: ConstOp) -> string = match c {
     is I32Const    as v -> "i32.const ${v.value}"
     is I64Const    as v -> "i64.const ${v.value}"
-    is F64Const    as v -> "f64.const ${v.value} ${v.value.to_bits()}"
+    is F64Const    as v -> "f64.const ${f64_const_operands(v.value)}"
     is BoolConst   as v -> "bool.const ${v.value}"
     is CharConst   as v -> "char.const ${u32(v.value)}"
     is StringConst as v -> "string.const ${v.index}"
@@ -863,6 +880,22 @@ import "std/testing" { assert_eq }
     }
     out :: dump_bytecode(module, "")
     assert_eq(out, "module test\n")
+}
+
+// Non-finite `f64.const`s dump as a bare abstract word (no bit column) so the
+// `.virt` is arch-stable — a NaN's raw bits differ by arch (`0.0/0.0` is +NaN on
+// arm64, sign-set on x86-64), yet both must dump identically. Finite values keep
+// their exact bit column for lossless round-trip.
+@test test_f64_const_operands_abstracts_non_finite :: fn() -> void {
+    pos_inf: u64 = 0x7FF0000000000000
+    neg_inf: u64 = 0xFFF0000000000000
+    neg_nan: u64 = 0xFFF8000000000000   // what x86-64 folds `0.0 / 0.0` to
+    assert_eq(f64_const_operands(pos_inf.from_bits()), "inf")
+    assert_eq(f64_const_operands(neg_inf.from_bits()), "-inf")
+    assert_eq(f64_const_operands(neg_nan.from_bits()), "nan")
+
+    finite: f64 = 1.5
+    assert_eq(f64_const_operands(finite), "${finite} ${finite.to_bits()}")
 }
 
 /// JSON-style quoting — wraps in `"..."`, escaping `\\`, `\"`, `\n`, `\r`,
