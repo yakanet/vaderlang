@@ -176,16 +176,19 @@ async function runVaderDump(stage: string, entryPath: string, modules?: readonly
   const args = ["dump", `--stage=${stage}`, entryPath];
   if (modules && modules.length > 0) args.push(`--module=${modules.join(",")}`);
   const { stdout, stderr, exit } = await runCli(args, envForSnippet(entryPath));
-  if (exit !== 0) return `# vader CLI failed (exit ${canonicalExit(exit)})\n${stderr}${stdout}`;
+  if (exit !== 0) return `# vader CLI failed (exit ${canonicalExit(exit, stderr)})\n${stderr}${stdout}`;
   return stdout;
 }
 
-// A vader panic calls abort(). POSIX surfaces that to Bun as exit 134
-// (128 + SIGABRT) — what the crash snapshots bake — while Windows/MSVCRT
-// surfaces the same abort() as exit 3. Canonicalize the Windows code so a
-// snippet that aborts the compiler (e.g. for_in_iter_trait's midir ICE) yields
-// one portable `# vader CLI failed (exit 134)` line on every OS.
-const WINDOWS_ABORT_EXIT = 3;
-function canonicalExit(exit: number): number {
-  return process.platform === "win32" && exit === WINDOWS_ABORT_EXIT ? 134 : exit;
+// A vader panic prints "vader: panic — …" to stderr, then abort()s. The abort's
+// OS exit code is NOT portable — POSIX reports 134 (128 + SIGABRT), wine 3, the
+// Windows CI 9 — so a snapshot can't bake a single number. Identify the abort by
+// its stderr signature (printed before abort() on every platform), or by a
+// POSIX signal-range code, and canonicalise to 134 (what the crash snapshots
+// bake) so a snippet that aborts the compiler (e.g. for_in_iter_trait's midir
+// ICE) matches on every OS. A clean non-zero exit (a diagnostic failure) keeps
+// its real code.
+function canonicalExit(exit: number, stderr: string): number {
+  if (exit !== 0 && (exit >= 128 || stderr.includes("vader: panic"))) return 134;
+  return exit;
 }
