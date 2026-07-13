@@ -38,4 +38,4 @@ test("panic runs pending defers on native before aborting", async () => {
   const exit = await proc.exited;
   expect(stdout).toBe(EXPECTED_STDOUT);
   expect(exit).not.toBe(0); // SIGABRT (134) — the panic still aborts
-});
+}, LONG_BUILD); // native path shells out to `cc` — slow CI runners blow the 5s default
