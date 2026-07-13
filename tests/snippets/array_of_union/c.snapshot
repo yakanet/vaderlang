@@ -90,18 +90,15 @@ static int32_t snippet_main(void) {
     vader_box_t l0 = vader_box_null(), l1 = vader_box_null();
     size_t l2;
     uint64_t l3;
-    vader_box_t t0 = vader_box_null();
-    size_t t1;
-    int64_t t2;
-    vader_string_t t3;
-    vader_box_t t4 = vader_box_null();
-    vader_box_t* gc_roots[4] = { &l0, &l1, &t0, &t4 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 0u, gc_roots };
+    size_t t0;
+    int64_t t1;
+    vader_string_t t2;
+    vader_box_t* gc_roots[2] = { &l0, &l1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
 #line 11 "tests/snippets/array_of_union/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(11u, 0u, 0u, 3u);
-    t0 = vader_box_obj(11u, _a0_arr);
-    l0 = t0;
+    l0 = vader_box_obj(11u, _a0_arr);
 #line 12 "tests/snippets/array_of_union/_main.vader"
     vader_array_push((vader_array_t*) l0.payload.obj, vader_box_obj(0u, NULL));
 #line 13 "tests/snippets/array_of_union/_main.vader"
@@ -109,28 +106,23 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a1_obj, 2u);
     _a1_obj->f_value = INT32_C(42);
     _a1_obj->f_next = vader_box_obj(0u, NULL);
-    t0 = vader_box_obj(2u, _a1_obj);
-    l1 = t0;
+    l1 = vader_box_obj(2u, _a1_obj);
     vader_array_push((vader_array_t*) l0.payload.obj, l1);
 #line 14 "tests/snippets/array_of_union/_main.vader"
-    t0 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(26));
-    l1 = t0;
+    l1 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(26));
     l2 = (size_t) (int64_t) INT64_C(0);
-    t1 = std_core_write_string_at(l1, l2, 1u);
-    l2 = t1;
-    t1 = ((vader_array_t*) l0.payload.obj)->length;
-    t2 = ((int64_t) (size_t) t1);
-    l3 = (uint64_t) (int64_t) t2;
-    t1 = std_core_write_unsigned(l1, l2, l3);
-    l2 = t1;
-    t3 = std_core_finish_buffer(l1, l2);
-    std_io_println__string(t3);
+    l2 = std_core_write_string_at(l1, l2, 1u);
+    t0 = ((vader_array_t*) l0.payload.obj)->length;
+    t1 = ((int64_t) (size_t) t0);
+    l3 = (uint64_t) (int64_t) t1;
+    l2 = std_core_write_unsigned(l1, l2, l3);
+    t2 = std_core_finish_buffer(l1, l2);
+    std_io_println__string(t2);
 #line 15 "tests/snippets/array_of_union/_main.vader"
     vader_array_t* _a2_slotarr = ((vader_array_t*) l0.payload.obj);
     while (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = (vader_array_buf_t*) _a2_slotarr->buf->header.forward; }
     if ((size_t) INT32_C(1) >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
-    t4 = vader_array_box_slots(_a2_slotarr->buf)[_a2_slotarr->offset + (size_t) INT32_C(1)];
-    l0 = t4;
+    l0 = vader_array_box_slots(_a2_slotarr->buf)[_a2_slotarr->offset + (size_t) INT32_C(1)];
 #line 17 "tests/snippets/array_of_union/_main.vader"
     if (l0.tag == 0u) {
         std_io_println__string(2u);
@@ -175,7 +167,6 @@ static vader_string_t std_core_finish_buffer(vader_box_t l0, size_t l1) {
 static size_t std_core_write_string_at(vader_box_t l0, size_t l1, vader_string_t l2) {
     size_t l3;
     vader_box_t t0 = vader_box_null();
-    size_t t1;
     vader_box_t* gc_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
@@ -183,8 +174,7 @@ static size_t std_core_write_string_at(vader_box_t l0, size_t l1, vader_string_t
     std_core_Buffer_ByteAccess_write_string_vt(l0, l1, l2);
 #line 123 "stdlib/std/core/primitives.vader"
     t0 = vader_import_0(l2);
-    t1 = ((vader_array_t*) t0.payload.obj)->length;
-    l3 = t1;
+    l3 = ((vader_array_t*) t0.payload.obj)->length;
     { size_t __vret = (size_t) (int64_t) (l1 + l3); vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
@@ -216,8 +206,7 @@ static size_t std_core_write_unsigned(vader_box_t l0, size_t l1, uint64_t l2) {
                 t0 = (l3 + INT64_C(1));
                 l3 = (size_t) (int64_t) t0;
 #line 161 "stdlib/std/core/primitives.vader"
-                t1 = vader_div_u64(l4, INT64_C(10));
-                l4 = t1;
+                l4 = vader_div_u64(l4, INT64_C(10));
 #line 159 "stdlib/std/core/primitives.vader"
                 goto loop_18;
             } else {
@@ -242,8 +231,7 @@ static size_t std_core_write_unsigned(vader_box_t l0, size_t l1, uint64_t l2) {
                 l7 = (uint8_t) (int32_t) t2;
                 std_core_Buffer_ByteAccess_store_u8_vt(l0, l5, l7);
 #line 167 "stdlib/std/core/primitives.vader"
-                t1 = vader_div_u64(l2, INT64_C(10));
-                l2 = t1;
+                l2 = vader_div_u64(l2, INT64_C(10));
 #line 164 "stdlib/std/core/primitives.vader"
                 goto loop_41;
             } else {

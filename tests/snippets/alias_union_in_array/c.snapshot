@@ -110,17 +110,15 @@ static vader_string_t snippet_describe(vader_box_t l0) {
     vader_box_t l1 = vader_box_null(), l2 = vader_box_null();
     vader_string_t l3;
     vader_string_t t0;
-    vader_box_t t1 = vader_box_null();
-    vader_box_t* gc_roots[4] = { &l0, &l1, &l2, &t1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 0u, gc_roots };
+    vader_box_t* gc_roots[3] = { &l0, &l1, &l2 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
 #line 22 "tests/snippets/alias_union_in_array/_main.vader"
     l1 = l0;
 #line 23 "tests/snippets/alias_union_in_array/_main.vader"
     if (l1.tag == 3u) {
         l2 = l1;
-        t0 = (vader_string_t) ((vader_struct_snippet_types_Cat_t*) l2.payload.obj)->f_name;
-        l3 = t0;
+        l3 = (vader_string_t) ((vader_struct_snippet_types_Cat_t*) l2.payload.obj)->f_name;
         t0 = concat_2(1u, l3);
 #line 22 "tests/snippets/alias_union_in_array/_main.vader"
         { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -128,10 +126,8 @@ static vader_string_t snippet_describe(vader_box_t l0) {
     }
 #line 24 "tests/snippets/alias_union_in_array/_main.vader"
     if (l1.tag == 4u) {
-        t1 = l1;
-        l1 = t1;
-        t0 = (vader_string_t) ((vader_struct_snippet_types_Dog_t*) l1.payload.obj)->f_name;
-        l3 = t0;
+        l1 = l1;
+        l3 = (vader_string_t) ((vader_struct_snippet_types_Dog_t*) l1.payload.obj)->f_name;
         t0 = concat_2(2u, l3);
 #line 22 "tests/snippets/alias_union_in_array/_main.vader"
         { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -146,36 +142,29 @@ static int32_t snippet_main(void) {
     vader_box_t l0 = vader_box_null(), l1 = vader_box_null();
     size_t l2, l3;
     vader_box_t t0 = vader_box_null();
-    size_t t1;
-    vader_box_t t2 = vader_box_null();
-    vader_string_t t3;
-    int64_t t4;
-    vader_box_t* gc_roots[4] = { &l0, &l1, &t0, &t2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 0u, gc_roots };
+    vader_string_t t1;
+    int64_t t2;
+    vader_box_t* gc_roots[3] = { &l0, &l1, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
 #line 29 "tests/snippets/alias_union_in_array/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(1u, 0u, 0u, 2u);
-    t0 = vader_box_obj(1u, _a0_arr);
-    l0 = t0;
+    l0 = vader_box_obj(1u, _a0_arr);
 #line 30 "tests/snippets/alias_union_in_array/_main.vader"
     vader_struct_snippet_types_Cat_t* _a1_obj = (vader_struct_snippet_types_Cat_t*) vader_gc_alloc(sizeof(vader_struct_snippet_types_Cat_t));
     vader_obj_header_init(_a1_obj, 3u);
     _a1_obj->f_name = 3u;
-    t0 = vader_box_obj(3u, _a1_obj);
-    l1 = t0;
+    l1 = vader_box_obj(3u, _a1_obj);
     snippet_push_pet(l0, l1);
 #line 31 "tests/snippets/alias_union_in_array/_main.vader"
     vader_struct_snippet_types_Dog_t* _a2_obj = (vader_struct_snippet_types_Dog_t*) vader_gc_alloc(sizeof(vader_struct_snippet_types_Dog_t));
     vader_obj_header_init(_a2_obj, 4u);
     _a2_obj->f_name = 4u;
-    t0 = vader_box_obj(4u, _a2_obj);
-    l1 = t0;
+    l1 = vader_box_obj(4u, _a2_obj);
     snippet_push_pet(l0, l1);
 #line 32 "tests/snippets/alias_union_in_array/_main.vader"
-    t0 = l0;
-    l0 = t0;
-    t1 = ((vader_array_t*) l0.payload.obj)->length;
-    l2 = t1;
+    l0 = l0;
+    l2 = ((vader_array_t*) l0.payload.obj)->length;
     l3 = (size_t) (int64_t) INT64_C(0);
     {
         loop_21: {
@@ -183,13 +172,13 @@ static int32_t snippet_main(void) {
                 vader_array_t* _a3_slotarr = ((vader_array_t*) l0.payload.obj);
                 while (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = (vader_array_buf_t*) _a3_slotarr->buf->header.forward; }
                 if ((size_t) l3 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
-                t2 = vader_array_box_slots(_a3_slotarr->buf)[_a3_slotarr->offset + (size_t) l3];
+                t0 = vader_array_box_slots(_a3_slotarr->buf)[_a3_slotarr->offset + (size_t) l3];
 #line 33 "tests/snippets/alias_union_in_array/_main.vader"
-                t3 = snippet_describe(t2);
-                std_io_println__string(t3);
+                t1 = snippet_describe(t0);
+                std_io_println__string(t1);
 #line 32 "tests/snippets/alias_union_in_array/_main.vader"
-                t4 = (l3 + INT64_C(1));
-                l3 = (size_t) (int64_t) t4;
+                t2 = (l3 + INT64_C(1));
+                l3 = (size_t) (int64_t) t2;
                 goto loop_21;
             } else {
             }
@@ -203,25 +192,20 @@ static int32_t snippet_main(void) {
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     size_t l2, l3;
     vader_box_t l4 = vader_box_null();
-    size_t t0;
-    int64_t t1;
-    vader_box_t t2 = vader_box_null();
-    vader_string_t t3;
-    vader_box_t* gc_roots[2] = { &l4, &t2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots };
+    int64_t t0;
+    vader_string_t t1;
+    vader_box_t* gc_roots[1] = { &l4 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
-    t0 = std_core_byte_len(l0);
-    l2 = t0;
-    t0 = std_core_byte_len(l1);
-    l3 = t0;
-    t1 = (l2 + l3);
-    l3 = (size_t) (int64_t) t1;
-    t2 = std_core_new_byte_buffer(l3);
-    l4 = t2;
+    l2 = std_core_byte_len(l0);
+    l3 = std_core_byte_len(l1);
+    t0 = (l2 + l3);
+    l3 = (size_t) (int64_t) t0;
+    l4 = std_core_new_byte_buffer(l3);
     std_core_Buffer_ByteAccess_write_string_vt(l4, (size_t) (int64_t) INT64_C(0), l0);
     std_core_Buffer_ByteAccess_write_string_vt(l4, l2, l1);
-    t3 = std_core_finish_buffer(l4, l3);
-    { vader_string_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
+    t1 = std_core_finish_buffer(l4, l3);
+    { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 

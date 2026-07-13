@@ -1,4 +1,5 @@
-// vader/c_emit/coalesce — post-walk operand-temp slot coalescing.
+// vader/c_emit/coalesce — post-walk operand-temp cleanup: copy elision + slot
+// coalescing.
 //
 // The body walker (`walker.vader` / `stack.vader`) mints a fresh `tN` for every
 // materialised operand and never recycles it, so a function's frame — and its
@@ -6,6 +7,14 @@
 // live at once. The bytecode is a stack machine, so a temp is dead the moment
 // its value is consumed ; most `tN` have short, disjoint live ranges (measured:
 // `parse_expr` materialises 78 rooted temps but only ~7 are ever live at once).
+//
+// `coalesce_temps` runs two peepholes on the emitted body text:
+//   0. COPY ELISION (`fuse_temp_local_copies`) — an adjacent `tN = EXPR;` /
+//      `lM = tN;` pair whose `tN` is used nowhere else collapses to `lM = EXPR;`.
+//      The temp disappears entirely (no slot, no GC root, no box copy). ~56% of
+//      such copies are between two GC-rooted boxes, which the C compiler cannot
+//      elide (both addresses escape into `gc_roots[]`), so this is a real win.
+//   1. SLOT COALESCING — the surviving temps are packed by live range (below).
 //
 // This pass runs after the walk, on the emitted body text. It computes each
 // temp's live range as `[first, last]` line of textual occurrence — a temp is
@@ -41,6 +50,7 @@
 
 module "vader/c_emit"
 
+import "std/string" { split, join }
 import "std/string_builder" { StringBuilder }
 import "std/sort" { sort }
 import "vader/text" { is_ident_byte }
@@ -63,6 +73,12 @@ export coalesce_temps :: fn(body: string, types: ValType[]) -> CoalesceResult {
     n :: types.len()
     if n == 0 { return CoalesceResult { .types = types, .body = body } }
 
+    // 0. Elide temp->local copies (`tN = EXPR; lM = tN;` -> `lM = EXPR;`) so a
+    //    temp whose sole consumer is an immediate `local.set` disappears
+    //    entirely — no slot, no GC root, no box copy. Runs first : the fused
+    //    temps then have zero occurrences and drop out of the scan below.
+    fused :: fuse_temp_local_copies(body, n)
+
     // 1. Live ranges : first / last line index each `tN` occurs on (-1 = unseen).
     //    A single byte walk tracks the line counter — no `split` (which would
     //    intern one throwaway atom per line). A `t<digits>` token never spans a
@@ -70,7 +86,7 @@ export coalesce_temps :: fn(body: string, types: ValType[]) -> CoalesceResult {
     first: i32[] = []
     last:  i32[] = []
     for i in 0..<n { first.push(-1)  last.push(-1) }
-    b :: body.bytes()
+    b :: fused.bytes()
     blen :: b.len()
     line: i32 = 0
     i: usize = 0
@@ -124,25 +140,25 @@ export coalesce_temps :: fn(body: string, types: ValType[]) -> CoalesceResult {
     }
 
     // 3. Rewrite the body : `tN` -> `t<remap[N]>`.
-    return CoalesceResult { .types = new_types, .body = rewrite_temps(body, remap) }
+    return CoalesceResult { .types = new_types, .body = rewrite_temps(fused, remap) }
 }
 
 is_digit_byte :: fn(b: u8) = b >= '0' && b <= '9'
 
-// A `t<digits>` token recognised at some position : its numeric id and the byte
-// index just past it. `ok = false` when the position is not a temp token start.
-TempToken :: struct { ok: bool  id: usize  end: usize }
+// A `<kind><digits>` slot token (`kind` is `t` for a temp, `l` for a local) :
+// its numeric id and the byte index just past it. `ok = false` at a non-token.
+SlotToken :: struct { ok: bool  id: usize  end: usize }
 
-// Not a token, ending at `end` — the four rejection returns of `temp_token_at`.
-no_temp :: fn(end: usize) = TempToken { .ok = false, .id = 0, .end = end }
+// Not a token, ending at `end`.
+no_slot :: fn(end: usize) = SlotToken { .ok = false, .id = 0, .end = end }
 
-// Recognise a `t<digits>` token starting at `i`, respecting identifier word
-// boundaries on both sides (so `gc_top`, `int32_t`, `t50` are not mis-split).
-// Callers guard on `b[i] == 't'` first ; the check is repeated defensively.
-temp_token_at :: fn(b: const u8[], i: usize, len: usize) -> TempToken {
-    if b[i] != 't' { return no_temp(i + 1) }
-    if i > 0 && is_ident_byte(b[i - 1]) { return no_temp(i + 1) }
-    if i + 1 >= len || !is_digit_byte(b[i + 1]) { return no_temp(i + 1) }
+// Recognise a `<kind><digits>` token starting at `i`, respecting identifier word
+// boundaries on both sides (so `gc_top`, `int32_t`, `t50`, `l1x` are not
+// mis-split). Callers guard on the kind byte first ; the check is defensive.
+slot_token_at :: fn(b: const u8[], i: usize, len: usize, kind: u8) -> SlotToken {
+    if b[i] != kind { return no_slot(i + 1) }
+    if i > 0 && is_ident_byte(b[i - 1]) { return no_slot(i + 1) }
+    if i + 1 >= len || !is_digit_byte(b[i + 1]) { return no_slot(i + 1) }
     id: usize = 0
     k := i + 1
     for k < len && is_digit_byte(b[k]) {
@@ -150,9 +166,12 @@ temp_token_at :: fn(b: const u8[], i: usize, len: usize) -> TempToken {
         k += 1
     }
     // The digit run must end the token — not run into a longer identifier.
-    if k < len && is_ident_byte(b[k]) { return no_temp(k) }
-    return TempToken { .ok = true, .id = id, .end = k }
+    if k < len && is_ident_byte(b[k]) { return no_slot(k) }
+    return SlotToken { .ok = true, .id = id, .end = k }
 }
+
+// The coalescer's operand-temp recogniser (`t<digits>`).
+temp_token_at :: fn(b: const u8[], i: usize, len: usize) = slot_token_at(b, i, len, 't')
 
 // Temp indices `0..<n` with a real occurrence, ordered by first-occurrence line
 // (ties by index, via the stable sort). Temps that never appear (first < 0) are
@@ -196,6 +215,110 @@ rewrite_temps :: fn(body: string, remap: i32[]) -> string {
     return "${out}"
 }
 
+// ---- temp -> local copy elision -------------------------------------------
+
+// Occurrence count of each temp id `0..<n` across the whole body.
+count_temp_occurrences :: fn(body: string, n: usize) -> i32[] {
+    count: i32[] = []
+    for i in 0..<n { count.push(0) }
+    b :: body.bytes()
+    blen :: b.len()
+    i: usize = 0
+    for i < blen {
+        if b[i] != 't' { i += 1  continue }
+        tok :: temp_token_at(b, i, blen)
+        if tok.ok && tok.id < n { count[tok.id] += 1 }
+        i = tok.end
+    }
+    return count
+}
+
+// A parsed `<indent>tN = EXPR;` single-statement temp definition.
+DefLine :: struct { ok: bool  id: usize  indent: string  expr: string }
+// A parsed `<indent>lM = tN;` local-from-temp copy.
+CopyLine :: struct { ok: bool  id: usize  local: string }
+
+leading_spaces :: fn(b: const u8[], len: usize) -> usize {
+    i: usize = 0
+    for i < len && b[i] == ' ' { i += 1 }
+    return i
+}
+
+count_byte :: fn(b: const u8[], len: usize, c: u8) -> i32 {
+    n: i32 = 0
+    for i in 0..<len { if b[i] == c { n += 1 } }
+    return n
+}
+
+// Match `<indent>tN = EXPR;`. Requires exactly one `;` (the terminator) so a
+// multi-statement line is never mis-parsed — a bare expression has no `;`
+// (strings emit as atom ids, not inline C literals).
+parse_def_line :: fn(line: string) -> DefLine {
+    b :: line.bytes()
+    len :: b.len()
+    if len == 0 || b[len - 1] != ';' || count_byte(b, len, ';') != 1 {
+        return DefLine { .ok = false, .id = 0, .indent = "", .expr = "" }
+    }
+    ws :: leading_spaces(b, len)
+    tok :: slot_token_at(b, ws, len, 't')
+    e :: tok.end
+    if !tok.ok || e + 3 > len || b[e] != ' ' || b[e + 1] != '=' || b[e + 2] != ' ' {
+        return DefLine { .ok = false, .id = 0, .indent = "", .expr = "" }
+    }
+    return DefLine {
+        .ok     = true,
+        .id     = tok.id,
+        .indent = b[0..<ws].bytes_to_string(),
+        .expr   = b[e + 3..<len - 1].bytes_to_string(),
+    }
+}
+
+// Match `<indent>lM = tN;` — a local assigned the bare value of temp `tN`.
+parse_copy_line :: fn(line: string) -> CopyLine {
+    b :: line.bytes()
+    len :: b.len()
+    if len == 0 || b[len - 1] != ';' { return CopyLine { .ok = false, .id = 0, .local = "" } }
+    ws :: leading_spaces(b, len)
+    loc :: slot_token_at(b, ws, len, 'l')
+    e :: loc.end
+    if !loc.ok || e + 3 > len || b[e] != ' ' || b[e + 1] != '=' || b[e + 2] != ' ' {
+        return CopyLine { .ok = false, .id = 0, .local = "" }
+    }
+    rhs :: slot_token_at(b, e + 3, len, 't')
+    // The temp must be the whole RHS : immediately followed by the closing `;`.
+    if !rhs.ok || rhs.end != len - 1 { return CopyLine { .ok = false, .id = 0, .local = "" } }
+    return CopyLine { .ok = true, .id = rhs.id, .local = b[ws..<loc.end].bytes_to_string() }
+}
+
+// Fuse an adjacent `tN = EXPR;` / `lM = tN;` pair into `lM = EXPR;` when `tN`
+// occurs nowhere else (exactly the def + the copy). The temp then vanishes —
+// the downstream coalescer sees zero occurrences and drops its slot + GC root,
+// and the redundant box copy is gone. Only strictly-adjacent lines fuse, so no
+// side-effecting expression is reordered.
+fuse_temp_local_copies :: fn(body: string, n: usize) -> string {
+    count :: count_temp_occurrences(body, n)
+    lines :: body.split("\n")
+    nlines :: lines.len()
+    out: string[] = []
+    li: usize = 0
+    for li < nlines {
+        if li + 1 < nlines {
+            d :: parse_def_line(lines[li])
+            if d.ok && d.id < n && count[d.id] == 2 {
+                c :: parse_copy_line(lines[li + 1])
+                if c.ok && c.id == d.id {
+                    out.push("${d.indent}${c.local} = ${d.expr};")
+                    li += 2
+                    continue
+                }
+            }
+        }
+        out.push(lines[li])
+        li += 1
+    }
+    return out.join("\n")
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert_eq }
@@ -231,4 +354,28 @@ import "std/testing" { assert_eq }
     r :: coalesce_temps(body, [ValType.Ref, ValType.Ref])
     assert_eq(r.types.len(), 1)
     assert_eq(r.body, "#line 3 \"t1.vader\"\nt0 = a;\nuse(t0);\nt0 = b;\nuse(t0);\n")
+}
+
+@test test_fuse_temp_local_copy :: fn() -> void {
+    // tN defined then immediately copied to a local, used nowhere else -> the
+    // temp is elided and the expression lands directly in the local.
+    assert_eq(fuse_temp_local_copies("t0 = f(x);\nl3 = t0;\n", 1), "l3 = f(x);\n")
+}
+
+@test test_fuse_skips_when_temp_reused :: fn() -> void {
+    // t0 has a third use -> the copy is load-bearing, keep both lines.
+    body :: "t0 = f(x);\nl3 = t0;\ng(t0);\n"
+    assert_eq(fuse_temp_local_copies(body, 1), body)
+}
+
+@test test_fuse_skips_non_adjacent :: fn() -> void {
+    // A statement sits between def and copy -> not fused (no reordering).
+    body :: "t0 = f(x);\nsep();\nl3 = t0;\n"
+    assert_eq(fuse_temp_local_copies(body, 1), body)
+}
+
+@test test_fuse_skips_multi_statement_line :: fn() -> void {
+    // A line carrying two statements must not be parsed as a single temp def.
+    body :: "t0 = f(); g();\nl3 = t0;\n"
+    assert_eq(fuse_temp_local_copies(body, 1), body)
 }
