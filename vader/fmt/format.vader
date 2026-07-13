@@ -56,13 +56,11 @@ export format_source :: fn(source: string, path: string) -> FormatResult {
 import "std/testing" { assert }
 
 @test
-test_roundtrip_preserves_postfix_and_await_parens :: fn() -> void {
-    // `?` is postfix and `await` binds looser than postfix, so these parens must
-    // survive the round-trip or the operator re-binds onto a sub-expression
-    // (`(await x).f` → `await x.f`, `(a + b)?` → `a + (b?)`).
-    fmt_keeps("f :: fn(x: i32) -> i32 = (await g(x))?", "(await g(x))?")
+test_roundtrip_preserves_await_parens :: fn() -> void {
+    // `await` binds looser than postfix `.`, so these parens must survive the
+    // round-trip or the operator re-binds onto a sub-expression
+    // (`(await x).f` → `await x.f`).
     fmt_keeps("h :: fn() -> i32 = (await m()).value", "(await m()).value")
-    fmt_keeps("j :: fn(a: i32, b: i32) -> i32 = (a + b)?", "(a + b)?")
     fmt_keeps("k :: fn(a: i32, b: i32) -> i32 = await (a + b)", "await (a + b)")
 }
 

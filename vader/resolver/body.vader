@@ -441,7 +441,6 @@ walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
             self.walk_expr(x.lower)
             self.walk_expr(x.upper)
         }
-        is AST.TryExpr as x -> { self.walk_expr(x.inner) }
         is AST.AwaitExpr as x -> { self.walk_expr(x.inner) }
         is AST.CastExpr as x -> {
             self.walk_expr(x.value)

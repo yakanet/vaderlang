@@ -86,7 +86,6 @@ export span_of :: fn(expr: AST.Expr) -> Span = match expr {
     is AST.StructLitExpr     as x -> x.span
     is AST.SeqLitExpr        as x -> x.span
     is AST.RangeExpr         as x -> x.span
-    is AST.TryExpr           as x -> x.span
     is AST.AwaitExpr         as x -> x.span
     is AST.CastExpr          as x -> x.span
     is AST.GenericInstExpr   as x -> x.span
@@ -112,7 +111,6 @@ expr_kind_label :: fn(expr: AST.Expr) -> string = @partial match expr {
     is AST.StructLitExpr     -> "StructLitExpr"
     is AST.SeqLitExpr        -> "SeqLitExpr"
     is AST.RangeExpr         -> "RangeExpr"
-    is AST.TryExpr           -> "TryExpr"
     is AST.CastExpr          -> "CastExpr"
     is AST.GenericInstExpr   -> "GenericInstExpr"
     is AST.IntrinsicCallExpr -> "IntrinsicCallExpr"

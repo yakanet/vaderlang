@@ -367,7 +367,6 @@ walk_expr :: fn(
             walk_expr(range_expr.lower, scope, out_captures, out_seen, ctx)
             walk_expr(range_expr.upper, scope, out_captures, out_seen, ctx)
         }
-        is AST.TryExpr as try_expr -> { walk_expr(try_expr.inner, scope, out_captures, out_seen, ctx) }
         is AST.AwaitExpr as await_expr -> { walk_expr(await_expr.inner, scope, out_captures, out_seen, ctx) }
         is AST.CastExpr as cast -> { walk_expr(cast.value, scope, out_captures, out_seen, ctx) }
         is AST.GenericInstExpr as gi -> { walk_expr(gi.callee, scope, out_captures, out_seen, ctx) }

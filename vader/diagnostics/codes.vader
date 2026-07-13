@@ -47,8 +47,7 @@ export TypecheckCode :: enum(u8) {
     NotIndexable,                       // T3008
     FieldDoesNotExist,                  // T3009
     InvalidCast,                        // T3010
-    TryRequiresErrorUnion,              // T3011
-    TryCannotPropagate,                 // T3012
+    // T3011 / T3012 (try-operator diagnostics) retired with the `?` operator.
     NonExhaustiveMatch,                 // T3013
     UnreachableMatchArm,                // T3014
     BreakContinueOutsideLoop,           // T3015
@@ -98,7 +97,6 @@ export TypecheckCode :: enum(u8) {
     AwaitOutsideAsync,                  // T3064
     // T3065 (defer in async coroutine) retired : defer now runs at coroutine
     // completion via the per-frame `__defers` stack (see `lower_coroutine`).
-    TryErrorNotPropagatable,            // T3067
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -356,8 +354,6 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .NotIndexable                       -> CodeInfo { .id = "T3008", .message = "expression is not indexable" }
     .FieldDoesNotExist                  -> CodeInfo { .id = "T3009", .message = "field does not exist on this type" }
     .InvalidCast                        -> CodeInfo { .id = "T3010", .message = "invalid cast" }
-    .TryRequiresErrorUnion              -> CodeInfo { .id = "T3011", .message = "`?` requires a union with an `Error` variant" }
-    .TryCannotPropagate                 -> CodeInfo { .id = "T3012", .message = "`?` cannot propagate this error from the enclosing function" }
     .NonExhaustiveMatch                 -> CodeInfo { .id = "T3013", .message = "non-exhaustive match" }
     .UnreachableMatchArm                -> CodeInfo { .id = "T3014", .message = "unreachable match arm" }
     .BreakContinueOutsideLoop           -> CodeInfo { .id = "T3015", .message = "`break` / `continue` only allowed inside a loop" }
@@ -405,7 +401,6 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .BodylessFnMustBeIntrinsic          -> CodeInfo { .id = "T3062", .message = "a bodyless function must be `@intrinsic` (host-provided) or `@extern` (foreign symbol)" }
     .AssignTypeMismatch                 -> CodeInfo { .id = "T3063", .message = "assigned value's type is not assignable to the target's declared type" }
     .AwaitOutsideAsync                  -> CodeInfo { .id = "T3064", .message = "`await` is not allowed inside a nested lambda (a lambda cannot be an async coroutine)" }
-    .TryErrorNotPropagatable            -> CodeInfo { .id = "T3067", .message = "`?` propagates an error, but the enclosing function's return type cannot carry it — declare the return type to include the error (e.g. `-> T | Error`)" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

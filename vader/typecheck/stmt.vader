@@ -166,7 +166,6 @@ expr_has_await :: fn(e: AST.Expr) -> bool {
         is AST.CastExpr   as x -> { return expr_has_await(x.value) }
         is AST.IndexExpr  as x -> { return expr_has_await(x.target) || expr_has_await(x.index) }
         is AST.FieldExpr  as x -> { return expr_has_await(x.target) }
-        is AST.TryExpr    as x -> { return expr_has_await(x.inner) }
         is AST.RangeExpr  as x -> { return expr_has_await(x.lower) || expr_has_await(x.upper) }
         is AST.BlockExpr  as x -> { return block_has_await(x) }
         is AST.CallExpr   as x -> {
@@ -276,7 +275,7 @@ expr_has_yield :: fn(e: AST.Expr) -> bool {
          | AST.CharLitExpr  | AST.StringLitExpr | AST.IdentExpr   | AST.CallExpr
          | AST.FieldExpr    | AST.IndexExpr     | AST.UnaryExpr   | AST.BinaryExpr
          | AST.LambdaExpr   | AST.StructLitExpr | AST.SeqLitExpr  | AST.RangeExpr
-         | AST.TryExpr      | AST.CastExpr      | AST.GenericInstExpr
+         | AST.CastExpr      | AST.GenericInstExpr
          | AST.IntrinsicCallExpr | AST.DotVariantExpr | AST.FnTypeExpr
          | AST.ArrayTypeExpr | AST.AwaitExpr -> { return false }
     }

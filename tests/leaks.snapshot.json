@@ -519,10 +519,6 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
-  "try_op": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
   "tuple_comptime": {
     "leakedNodes": 0,
     "leakedBytes": 0

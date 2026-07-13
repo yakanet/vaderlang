@@ -104,7 +104,6 @@ export expr_kind_name :: fn(e: AST.Expr) -> string = match e {
     is AST.RangeExpr         -> "RangeExpr"
     is AST.DotVariantExpr    -> "DotVariantExpr"
     is AST.LambdaExpr        -> "LambdaExpr"
-    is AST.TryExpr           -> "TryExpr"
     is AST.AwaitExpr         -> "AwaitExpr"
     is AST.CastExpr          -> "CastExpr"
     is AST.GenericInstExpr   -> "GenericInstExpr"
@@ -161,7 +160,6 @@ infer_expr :: fn(
         is AST.RangeExpr     as e -> { return infer_range(e, typed, diags, check_expr) }
         is AST.DotVariantExpr as e -> { return infer_dot_variant(e, expected, typed, diags) }
         is AST.LambdaExpr    as e -> { return infer_lambda(e, expected, typed, diags, check_expr) }
-        is AST.TryExpr       as e -> { return infer_try(e, typed, diags, check_expr) }
         is AST.AwaitExpr     as e -> { return infer_await(e, typed, diags, check_expr) }
         is AST.IntrinsicCallExpr as e -> { return infer_intrinsic(e, typed, diags, check_expr) }
         is AST.GenericInstExpr as e -> { return infer_generic_inst(e, typed, diags, check_expr) }
