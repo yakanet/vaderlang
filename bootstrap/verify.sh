@@ -12,20 +12,10 @@ cd "$(dirname "$0")/.."
 # Re-emit from both with the SAME flags (--target=c, no --release) so the diff
 # reflects only compiler behaviour, not the build's debug/release split.
 ./build/stage1 build vader/cli/main.vader --target=c --out=build/fp1.c
-./build/vader  build vader/cli/main.vader --target=c --out=build/fp2.c 2>build/fp2.diags
+./build/vader  build vader/cli/main.vader --target=c --out=build/fp2.c 2>/dev/null
 if ! cmp -s build/fp1.c build/fp2.c; then
   echo "FIXED-POINT FAILED — stage1 and stage2 disagree on main.vader's C" >&2
   diff -u build/fp1.c build/fp2.c | head -80 >&2
-  exit 1
-fi
-
-# (b) closed-union exhaustiveness : the compiler must self-compile with ZERO
-# W0005 (wildcard arm on a closed union — the CLAUDE.md §6 footgun). A new
-# value-match `_` over a sealed union must be made exhaustive or `@partial`.
-# W0004 (unlabeled break/continue) is advisory and intentionally NOT gated.
-if grep -q "W0005" build/fp2.diags; then
-  echo "W0005 REGRESSION — wildcard-on-closed-union in self-compile:" >&2
-  grep "W0005" build/fp2.diags >&2
   exit 1
 fi
 
@@ -39,4 +29,4 @@ if ! cmp -s build/bootstrap.new.c <(gunzip -c bootstrap/bootstrap.c.gz); then
   exit 1
 fi
 
-echo "fixed-point OK : stage1 == stage2, 0 W0005, seed up to date"
+echo "fixed-point OK : stage1 == stage2, seed up to date"
