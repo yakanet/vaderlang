@@ -1,7 +1,8 @@
 // std/json — recursive-descent JSON parse + stringify.
 //
 // `JsonValue` is the tagged union of every JSON shape. `parse` returns
-// `JsonValue | JsonError` so failures propagate via `?`.
+// `JsonValue | JsonError` ; parse failures surface as the `JsonError` variant,
+// propagated by an explicit `is JsonError as e { return e }` narrowing guard.
 // `stringify` and `stringify_pretty` build a string via std/string_builder.
 //
 // Numbers are stored as `f64` for MVP — fine for the compiler's use cases
@@ -150,23 +151,34 @@ parse_value :: fn(p: Parser, depth: i32) -> JsonValue | JsonError {
     }
     c := peek_byte(p)
     if c == '"' {
-        s := parse_string(p)?
+        s := parse_string(p)
+        if s is JsonError as e { return e }
         return JsonString { .value = s }
     }
     if c == '{' {
-        return parse_object(p, depth)?
+        obj :: parse_object(p, depth)
+        if obj is JsonError as e { return e }
+        return obj
     }
     if c == '[' {
-        return parse_array(p, depth)?
+        arr :: parse_array(p, depth)
+        if arr is JsonError as e { return e }
+        return arr
     }
     if c == 't' || c == 'f' {
-        return parse_bool(p)?
+        bv :: parse_bool(p)
+        if bv is JsonError as e { return e }
+        return bv
     }
     if c == 'n' {
-        return parse_null(p)?
+        nv :: parse_null(p)
+        if nv is JsonError as e { return e }
+        return nv
     }
     if c == '-' || is_digit(c) {
-        return parse_number(p)?
+        num :: parse_number(p)
+        if num is JsonError as e { return e }
+        return num
     }
     return fail(p, "unexpected character")
 }
@@ -256,7 +268,7 @@ parse_number :: fn(p: Parser) -> JsonNumber | JsonError {
 /// @return   the decoded string body.
 /// @error    `JsonError` on unterminated input or a bad escape.
 parse_string :: fn(p: Parser) -> string | JsonError {
-    expect_byte(p, '"')?
+    if expect_byte(p, '"') is JsonError as e { return e }
     start :: p.pos
     for scan in p.pos..<p.eof {
         b :: p.bytes[scan]
@@ -394,7 +406,7 @@ decode_unicode_escape :: fn(p: Parser, sb: StringBuilder) -> bool {
 // ---- array parser ---------------------------------------------------------
 
 parse_array :: fn(p: Parser, depth: i32) -> JsonArray | JsonError {
-    expect_byte(p, '[')?
+    if expect_byte(p, '[') is JsonError as e { return e }
     items: JsonValue[] = []
     skip_ws(p)
     if !at_end(p) && peek_byte(p) == ']' {
@@ -402,7 +414,8 @@ parse_array :: fn(p: Parser, depth: i32) -> JsonArray | JsonError {
         return JsonArray { .items = items }
     }
     for !at_end(p) {
-        v := parse_value(p, depth + 1)?
+        v := parse_value(p, depth + 1)
+        if v is JsonError as e { return e }
         items.push(v)
         skip_ws(p)
         if at_end(p) {
@@ -426,7 +439,7 @@ parse_array :: fn(p: Parser, depth: i32) -> JsonArray | JsonError {
 // ---- object parser --------------------------------------------------------
 
 parse_object :: fn(p: Parser, depth: i32) -> JsonObject | JsonError {
-    expect_byte(p, '{')?
+    if expect_byte(p, '{') is JsonError as e { return e }
     entries := MutableMap<string, JsonValue> {}
     skip_ws(p)
     if !at_end(p) && peek_byte(p) == '}' {
@@ -435,10 +448,12 @@ parse_object :: fn(p: Parser, depth: i32) -> JsonObject | JsonError {
     }
     for !at_end(p) {
         skip_ws(p)
-        key := parse_string(p)?
+        key := parse_string(p)
+        if key is JsonError as e { return e }
         skip_ws(p)
-        expect_byte(p, ':')?
-        value := parse_value(p, depth + 1)?
+        if expect_byte(p, ':') is JsonError as e { return e }
+        value := parse_value(p, depth + 1)
+        if value is JsonError as e { return e }
         entries[key] = value
         skip_ws(p)
         if at_end(p) {
@@ -475,7 +490,8 @@ parse_object :: fn(p: Parser, depth: i32) -> JsonObject | JsonError {
 ///               of the offending character.
 export parse :: fn(input: string) -> JsonValue | JsonError {
     p := new_parser(input)
-    v := parse_value(p, 0)?
+    v := parse_value(p, 0)
+    if v is JsonError as e { return e }
     skip_ws(p)
     if !at_end(p) {
         return fail(p, "trailing characters after JSON value")
