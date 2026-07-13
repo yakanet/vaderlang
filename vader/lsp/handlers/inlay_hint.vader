@@ -183,7 +183,6 @@ collect_from_expr :: fn(e: AST.Expr, typed: TypedProgram, out: JsonValue[]) -> v
             collect_from_expr(r.lower, typed, out)
             collect_from_expr(r.upper, typed, out)
         }
-        is AST.TryExpr as t -> { collect_from_expr(t.inner, typed, out) }
         is AST.AwaitExpr as t -> { collect_from_expr(t.inner, typed, out) }
         is AST.CastExpr as cast -> { collect_from_expr(cast.value, typed, out) }
         is AST.GenericInstExpr as g -> { collect_from_expr(g.callee, typed, out) }

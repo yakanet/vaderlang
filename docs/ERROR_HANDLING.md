@@ -156,6 +156,14 @@ each is a deletion or an exhaustive-match arm drop:
 
 ## 5. Phasing
 
+> **Status (2026-07-13): Phases 1–3 DONE.** Combinators shipped (`std/option`,
+> minus `and_then` — deferred on the union-materialisation gap); all `?` usage
+> migrated to narrowing (std/json, std/time, mowitnow); the `?` operator + its
+> `TryExpr` cascade + T3011/T3012/T3067 removed. `?` is gone from the language.
+> Remaining: `and_then` + the union-position generic-materialisation fix (§2),
+> and the optional overload-by-receiver follow-up (Phase 4).
+
+
 Each phase ends green (`verify.sh` fixed point, fresh seed, full suite), reviewed
 before landing.
 

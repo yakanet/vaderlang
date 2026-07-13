@@ -203,12 +203,6 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
                 .upper = substitute_expr_full(rg.upper, subst),
             }
         }
-        is AST.TryExpr as tr -> {
-            return AST.TryExpr {
-                .span = tr.span, .id = AST.UNASSIGNED_NODE_ID,
-                .inner = substitute_expr_full(tr.inner, subst),
-            }
-        }
         is AST.AwaitExpr as aw -> {
             return AST.AwaitExpr {
                 .span = aw.span, .id = AST.UNASSIGNED_NODE_ID,
@@ -614,10 +608,6 @@ stamp_expr_spans :: fn(e: AST.Expr, stamp: StampCtx) -> void {
             rg.span = next_clone_span(stamp)
             stamp_expr_spans(rg.lower, stamp)
             stamp_expr_spans(rg.upper, stamp)
-        }
-        is AST.TryExpr as tr -> {
-            tr.span = next_clone_span(stamp)
-            stamp_expr_spans(tr.inner, stamp)
         }
         is AST.AwaitExpr as aw -> {
             aw.span = next_clone_span(stamp)

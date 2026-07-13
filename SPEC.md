@@ -52,7 +52,7 @@ Source (.vader)
   ↓ Type-checker     → Typed AST (with narrowing, traits, bidirectional inference)
   ↓ Comptime engine  → Typed AST (@comptime values evaluated; engine also drives monomorphization)
   ↓ Monomorphizer    → AST with no abstract generics
-  ↓ Lowerer          → Desugaring (pattern match → if/else chains, traits → static dispatch, try → match)
+  ↓ Lowerer          → Desugaring (pattern match → if/else chains, traits → static dispatch)
   ↓ DCE              → Lowered AST with stdlib decls unreachable from user code pruned
   ↓ Mid-IR (CFG)     → Reducible CFG with basic blocks + terminators; substrate for escape / liveness analyses
   ↓ Bytecode emitter → Bytecode IR (stack-based)
@@ -311,7 +311,6 @@ Declaration  : x :: value           (immutable, type inferred)
                x: T : value         (immutable, typed)
                x: T = value         (mutable,   typed)
 Range        : 0..<10 (exclusive)  0..=10 (inclusive)
-Postfix      : ? (try, propagates the error)
 Cast         : Type(expr) (numeric ↔ numeric, char ↔ integer)
 Field access : .name
 Index access : [expr]
@@ -327,7 +326,7 @@ From tightest to loosest. Higher levels bind more tightly. Non-assoc operators f
 
 | Level | Operators                              | Associativity |
 |-------|----------------------------------------|----------------|
-| 1     | postfix `?`, `.`, `[]`, `()`           | left           |
+| 1     | postfix `.`, `[]`, `()`                | left           |
 | 2     | prefix `-`, `!`, `~`                   | right          |
 | 3     | `*`, `/`, `%`                          | left           |
 | 4     | `+`, `-`                               | left           |
@@ -362,7 +361,7 @@ Trailing commas are allowed in every comma-separated list: function arguments, f
 A newline terminates a statement. No `;` is required. The lexer emits a `NEWLINE` token at every line break **except** in the five cases below, where the newline is silently absorbed:
 
 1. **Inside an unclosed bracket** `(` or `[` — newlines inside parens / array construction are insignificant. (Newlines inside `{ }` blocks stay significant — they separate statements; only a newline *immediately after* an opening `{` is absorbed, per *Statement separators* above.)
-2. **After a binary or unary operator** that is still pending an operand: `+`, `-`, `*`, `/`, `%`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `&&`, `||`, `&`, `|`, `^`, `<<`, `>>`, `..<`, `..=`, and the spread `...`. (A newline after `?` or `!` is **not** absorbed.)
+2. **After a binary or unary operator** that is still pending an operand: `+`, `-`, `*`, `/`, `%`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `&&`, `||`, `&`, `|`, `^`, `<<`, `>>`, `..<`, `..=`, and the spread `...`. (A newline after `!` is **not** absorbed.)
 3. **After a comma** `,`.
 4. **After a token that expects a right-hand side**: `=`, `:`, `->`, `=>`, the binding operators `::` / `:=`, and the compound-assignments `+=` `-=` `*=` `/=` `%=`.
 5. **Before a leading operator that has no prefix form** — when the next line *opens* with `&&`, `||`, `&`, or `|`, the newline before it is absorbed so the operator continues the previous expression. These four operators are infix-only (no prefix / unary meaning), so a line starting with one is unambiguously a continuation: a leading `&&` / `||` continues a boolean condition, a leading `&` / `|` continues a type intersection / union. (The compound-assign forms `&=` / `|=` are **not** treated as continuations.) Operators that *do* have a prefix form — `-`, `~`, `!` — are excluded, so they never silently join the previous line.
@@ -1791,7 +1790,8 @@ Block-scoped, executed when leaving the block where it was written:
 
 ```vader
 process :: fn(path: string) -> string | Error {
-    file := open(path)?
+    file := open(path)
+    if file is Error as e { return e }
     defer close(file)
 
     {
@@ -1801,27 +1801,13 @@ process :: fn(path: string) -> string | Error {
     }
 
     // file closed at the end of the function
-    return read_all(file)?
+    result := read_all(file)
+    if result is Error as e { return e }
+    return result
 }
 ```
 
 A `panic` runs the pending defers too: as the panic unwinds the call stack, each frame's own defers execute (LIFO, innermost frame first) before the process aborts. Cleanup — releasing a lock, closing a handle — therefore still happens on the abnormal path. The panic remains fatal; there is no `recover`.
-
-### `?` operator (try)
-
-Postfix, propagates the error:
-
-```vader
-content :: read_file("a.txt")?
-// if read_file returns string | Error:
-//   - if Error: the current function returns that Error
-//   - else: content receives the string
-
-// Chainable
-first_line :: read_file("a.txt")?.lines()?.first()?
-```
-
-`expr?` is meant to be used only inside a function whose return type is itself a union including an `Error`. This contract is **not yet enforced** by the typechecker — there is no diagnostic today for a `?` in a non-`Error`-returning function.
 
 ---
 
@@ -1863,7 +1849,7 @@ API for perf-critical zones. Allows allocating into an arena, a buffer, etc., wi
 **None**. Non-memory resources (files, sockets, handles) must be released explicitly via `defer`.
 
 ```vader
-file := open("a.txt")?
+file := open("a.txt")
 defer close(file)
 ```
 
@@ -1929,8 +1915,8 @@ read_file :: fn(path: string) -> string | IOError {
 A fallible function returns an explicit union of its success type and one or
 more error types — e.g. `fn parse_int(s: string) -> i32 | ParseError` or, when
 the error is the generic stdlib `Error`, `fn read_file(p: string) -> string |
-Error`. There is no postfix-`!` shorthand: write the union out. The `?`
-operator (below) propagates any member implementing the `Error` trait.
+Error`. There is no postfix-`!` shorthand: write the union out. Propagate an
+error by narrowing on it and returning explicitly (below).
 
 ### `Error` trait
 
@@ -1942,14 +1928,17 @@ Error :: trait {
 
 Any type implementing `Error` may be returned in an error union (e.g. `T | Error`). The stdlib provides concrete errors: `IOError`, `ParseError`, etc.
 
-### `?` operator
+### Error propagation
 
-Postfix, propagates the error if present:
+Propagate an error by narrowing on it and returning explicitly. After the guard,
+the compiler narrows the value to its success type:
 
 ```vader
 process :: fn(path: string) -> string | Error {
-    raw    := read_file(path)?     // if Error: return the Error
-    parsed := parse(raw)?
+    raw := read_file(path)
+    if raw is Error as e { return e }    // raw is `string` below
+    parsed := parse(raw)
+    if parsed is Error as e { return e }
     return parsed
 }
 ```
@@ -2120,7 +2109,7 @@ main :: fn() -> i32 {
 }
 ```
 
-`main` must return `i32` (see §6) — the typechecker rejects any other signature with **T3033**. Relaxing this to allow `void` (implicit `0`) or `i32 | Error` (propagating errors via `?`) is a possible future change, not currently accepted.
+`main` must return `i32` (see §6) — the typechecker rejects any other signature with **T3033**. Relaxing this to allow `void` (implicit `0`) or `i32 | Error` (propagating errors from `main`) is a possible future change, not currently accepted.
 
 ### What appears at the top level of a `.vader` file
 
@@ -2929,7 +2918,7 @@ A single C native backend + a single WASM backend + IR text + IR binary emission
 | `resolved-ast` | Per-module symbol table + import wiring (text — byte-aligned with `vader/resolver/dump.vader`) |
 | `typed-ast` | Per-decl + per-expression types |
 | `evaluated-ast` | `@comptime` / `@file` values + generic instances |
-| `lowered-ast` | Desugared tree (match / `?` / interp / defer expanded) |
+| `lowered-ast` | Desugared tree (match / interp / defer expanded) |
 | `dced-ast` | Lowered tree post-stdlib reachability prune |
 | `cfg` | Mid-IR CFG (post-DCE + escape-annotated) |
 | `bytecode` | Stack-machine ops + type/string/import tables |
@@ -3178,8 +3167,10 @@ import "std/io" { read_file, println }
 import "std/string" { parse_int, trim }
 
 read_count :: fn(path: string) -> i32 | Error {
-    raw := read_file(path)?            // read_file → string | Error
-    n   := parse_int(trim(raw))?       // parse_int → i32 | ParseError; ParseError widens to Error
+    raw := read_file(path)             // read_file → string | Error
+    if raw is Error as e { return e }
+    n := parse_int(trim(raw))          // parse_int → i32 | ParseError; ParseError widens to Error
+    if n is Error as e { return e }
     return n
 }
 
@@ -3264,7 +3255,7 @@ WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance })
 3. **Resolver**: modules, imports, scoping
 4. **Type-checker**: bidirectional inference, narrowing, traits, match exhaustiveness
 5. **Comptime engine + monomorphizer**: bytecode VM, `@comptime` execution, generic instantiation
-6. **Lowerer**: pattern match → if/else chains, traits → static dispatch chain (`is StructA -> StructA_method(...)`), `?` → match
+6. **Lowerer**: pattern match → if/else chains, traits → static dispatch chain (`is StructA -> StructA_method(...)`)
 7. **Mid-IR (CFG)**: LoweredAST → CFG converter; substrate for escape analysis, loop-carried-dependency check, dead-store elimination
 8. **Bytecode emitter**: from CFG (not directly from lowered AST)
 9. **VM**: bytecode interpretation (mode `vader run` + comptime)

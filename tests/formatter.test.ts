@@ -31,7 +31,6 @@ const SNIPPETS = [
   "loop",
   "match_union",
   "defer_block",
-  "try_op",
   "enum_basic",
   "enum_match",
   "generic_fn",

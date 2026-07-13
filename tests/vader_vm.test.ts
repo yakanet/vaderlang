@@ -232,7 +232,7 @@ const VADER_SELF_EMIT = new Set<string>([
   "match_struct_pattern_in_union", "multiline_string", "op_overload_eq_ord",
   "parse_int_match", "std_math", "std_string_builder", "struct_lit_field_order",
   "struct_name_collision", "trait_virtual_dispatch", "transitive_mono",
-  "try_op", "ufcs_overload", "ufcs_union_receiver", "union_common_field",
+  "ufcs_overload", "ufcs_union_receiver", "union_common_field",
   // narrow_imported_map : imported-body divergent-guard narrowing (the
   // B0-in-VM bootstrap frontier that made B0 == B1). Self-emit ONLY — only the
   // Vader emitter, not the committed TS `.virt`, exercises the stmt.vader fix.

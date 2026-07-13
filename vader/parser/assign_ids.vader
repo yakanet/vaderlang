@@ -284,10 +284,6 @@ walk_expr :: fn(e: Expr, f: NodeIdFactory) -> void {
             walk_expr(x.lower, f)
             walk_expr(x.upper, f)
         }
-        is TryExpr as x -> {
-            x.id = f.mint()
-            walk_expr(x.inner, f)
-        }
         is AwaitExpr as x -> {
             x.id = f.mint()
             walk_expr(x.inner, f)

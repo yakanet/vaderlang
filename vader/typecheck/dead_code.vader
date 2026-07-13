@@ -94,7 +94,6 @@ collect_expr_names :: fn(e: AST.Expr, out: string[]) -> void {
             collect_expr_names(x.lower, out)
             collect_expr_names(x.upper, out)
         }
-        is AST.TryExpr           as x -> { collect_expr_names(x.inner, out) }
         is AST.AwaitExpr         as x -> { collect_expr_names(x.inner, out) }
         is AST.CastExpr          as x -> {
             collect_expr_names(x.value, out)

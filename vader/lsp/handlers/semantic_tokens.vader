@@ -142,7 +142,7 @@ classify_token :: fn(t: Token) -> i32 = match t.kind {
         | .AndAnd | .OrOr | .Bang
         | .Assign | .PlusAssign | .MinusAssign | .StarAssign | .SlashAssign | .PercentAssign
         | .DeclConst | .DeclVar | .RangeExcl | .RangeIncl
-        | .Arrow | .FatArrow | .Question -> i32(TokenType.Operator)
+        | .Arrow | .FatArrow -> i32(TokenType.Operator)
 
     // No token in THIS lexer-driven pass. Identifiers are deliberately skipped —
     // with only the lexer we can't tell function / parameter / variable apart,

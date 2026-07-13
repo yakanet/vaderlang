@@ -204,7 +204,6 @@ hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
             for el in sq.elements { hv_walk_expr(el, typed, st) }
         }
         is AST.CastExpr as cx -> { hv_walk_expr(cx.value, typed, st) }
-        is AST.TryExpr as tx -> { hv_walk_expr(tx.inner, typed, st) }
         is AST.AwaitExpr as tx -> { hv_walk_expr(tx.inner, typed, st) }
         is AST.GenericInstExpr as gi -> {
             hv_walk_expr(gi.callee, typed, st)
@@ -516,7 +515,6 @@ ee_walk_expr :: fn(e: AST.Expr, st: EncloseState) -> void {
             for el in sq.elements { ee_walk_expr(el, st) }
         }
         is AST.CastExpr as cx -> { ee_walk_expr(cx.value, st) }
-        is AST.TryExpr as tx -> { ee_walk_expr(tx.inner, st) }
         is AST.AwaitExpr as tx -> { ee_walk_expr(tx.inner, st) }
         is AST.IntrinsicCallExpr as ic -> {
             for a in ic.args { ee_walk_expr(a, st) }

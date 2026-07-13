@@ -1192,7 +1192,6 @@ emit_expr :: fn(self: Printer, e: p.Expr | null) -> void {
         is p.StructLitExpr     as x -> self.emit_struct_lit(x)
         is p.SeqLitExpr        as x -> self.emit_seq_lit(x)
         is p.RangeExpr         as x -> self.emit_range(x)
-        is p.TryExpr           as x -> self.emit_try(x)
         is p.AwaitExpr         as x -> self.emit_await(x)
         is p.CastExpr          as x -> self.emit_cast(x)
         is p.GenericInstExpr   as x -> self.emit_generic_inst(x)
@@ -1362,9 +1361,9 @@ postfix_target_needs_parens :: fn(e: p.Expr) -> bool {
     if e is p.BlockExpr  { return true }
     if e is p.LambdaExpr { return true }
     // `await` binds looser than postfix (bp 95 < 100), so `(await x).f` /
-    // `(await x)?` / `(await x)[i]` only reach a postfix target because the
-    // source parenthesised the await — keep the parens or the postfix rebinds
-    // inside the await (`await x.f` = `await (x.f)`).
+    // `(await x)[i]` only reach a postfix target because the source
+    // parenthesised the await — keep the parens or the postfix rebinds inside
+    // the await (`await x.f` = `await (x.f)`).
     if e is p.AwaitExpr  { return true }
     return false
 }
@@ -1523,7 +1522,6 @@ expr_head_is_struct_lit :: fn(e: p.Expr) -> bool {
     if e is p.CallExpr   as c    { return expr_head_is_struct_lit(c.callee) }
     if e is p.BinaryExpr as b   { return expr_head_is_struct_lit(b.left) }
     if e is p.RangeExpr  as r   { return expr_head_is_struct_lit(r.lower) }
-    if e is p.TryExpr    as t    { return expr_head_is_struct_lit(t.inner) }
     return false
 }
 
@@ -1752,15 +1750,6 @@ range_operand_needs_parens :: fn(operand: p.Expr) -> bool {
 }
 
 // ---- error / cast / generic / variant ----
-
-emit_try :: fn(self: Printer, x: p.TryExpr) -> void {
-    // `?` is postfix (binds tighter than every binary / prefix op), so a
-    // looser-binding inner only exists because the source parenthesised it —
-    // `(a + b)?` / `(await x)?`. Route through the postfix-target guard or the
-    // parens drop and `?` re-binds onto a sub-expression.
-    self.emit_postfix_target(x.inner)
-    self.write("?")
-}
 
 emit_await :: fn(self: Printer, x: p.AwaitExpr) -> void {
     self.write("await ")

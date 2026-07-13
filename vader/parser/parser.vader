@@ -2441,7 +2441,6 @@ infix_for :: fn(k: TokenKind) = match k {
     .PercentAssign -> no_infix()
     .DeclConst    -> no_infix()
     .DeclVar      -> no_infix()
-    .Question     -> no_infix()
     .Arrow        -> no_infix()
     .FatArrow     -> no_infix()
     .At           -> no_infix()
@@ -2480,9 +2479,8 @@ infix_for :: fn(k: TokenKind) = match k {
     .KwConst      -> no_infix()
 }
 
-// Postfix BP : `?` / `(` / `[` / `.` all bind at 100.
+// Postfix BP : `(` / `[` / `.` all bind at 100.
 postfix_bp :: fn(k: TokenKind) = match k {
-    .Question -> 100
     .LParen   -> 100
     .LBracket -> 100
     .Dot      -> 100
@@ -2873,13 +2871,6 @@ parse_prefix :: fn(p: Parser) -> Expr {
 }
 
 parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
-    if t.kind == .Question {
-        p.advance()
-        return TryExpr {
-            .span  = Span { .start = left.span.start, .end = t.span.end },
-            .inner = left,
-        }
-    }
     if t.kind == .Dot {
         p.advance()
         // Numeric tuple-index access `t.0`, `t.1`, ... — the lowerer rewrites
