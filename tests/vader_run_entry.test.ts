@@ -13,7 +13,7 @@ import { test, expect } from "bun:test";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { runCli, MEDIUM_BUILD } from "./cli-bin.ts";
+import { runCli, MEDIUM_BUILD, LONG_BUILD } from "./cli-bin.ts";
 
 // Two programs in one folder-module, each with its own `main`. `alpha.vader`'s
 // no-arg `main` sorts first (the entry the old default would always pick);
@@ -39,4 +39,4 @@ test("run picks the main of the named file, not the folder's first", async () =>
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
-});
+}, LONG_BUILD);
