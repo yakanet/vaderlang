@@ -45,10 +45,10 @@ impl 20 Error
 export main 0
 
 fn 0 snippet$main () -> i32
-  local __scrut_0 ref
-  local __scrut_1 ref
-  local __scrut_2 ref
-  local __scrut_3 ref
+  local __scrut_0 any
+  local __scrut_1 any
+  local __scrut_2 any
+  local __scrut_3 any
   string.const 0
   call 25
   local.tee 0
@@ -333,8 +333,8 @@ fn 1 concat_3 (string,string,string) -> string
   return
 end
 
-fn 2 std_core$parse_f64 (string) -> ref
-  local parts ref
+fn 2 std_core$parse_f64 (string) -> any
+  local parts any
   local $field_8 u64
   local $field_10 i32
   local $add_16 u64
@@ -352,14 +352,17 @@ fn 2 std_core$parse_f64 (string) -> ref
     return
   end $L0
   local.get 1
+  ref.cast 9
   struct.get 9 3
   ref.cast 3
   if $L1 void
     local.get 1
+    ref.cast 9
     struct.get 9 0
     ref.cast 10
     local.set 2
     local.get 1
+    ref.cast 9
     struct.get 9 1
     ref.cast 1
     local.set 3
@@ -368,12 +371,14 @@ fn 2 std_core$parse_f64 (string) -> ref
     call 7
     local.set 2
     local.get 1
+    ref.cast 9
     struct.get 9 0
     ref.cast 10
     i64.const 1
     i64.add
     local.set 4
     local.get 1
+    ref.cast 9
     struct.get 9 1
     ref.cast 1
     local.set 3
@@ -386,6 +391,7 @@ fn 2 std_core$parse_f64 (string) -> ref
     i64.ne
     if $L2 void
       local.get 1
+      ref.cast 9
       struct.get 9 2
       ref.cast 3
       local.set 5
@@ -396,10 +402,12 @@ fn 2 std_core$parse_f64 (string) -> ref
       return
     end $L2
     local.get 1
+    ref.cast 9
     struct.get 9 0
     ref.cast 10
     local.set 2
     local.get 1
+    ref.cast 9
     struct.get 9 1
     ref.cast 1
     local.set 3
@@ -408,6 +416,7 @@ fn 2 std_core$parse_f64 (string) -> ref
     call 7
     local.set 4
     local.get 1
+    ref.cast 9
     struct.get 9 2
     ref.cast 3
     if $L3 void
@@ -431,10 +440,12 @@ fn 2 std_core$parse_f64 (string) -> ref
     return
   end $L1
   local.get 1
+  ref.cast 9
   struct.get 9 0
   ref.cast 10
   local.set 2
   local.get 1
+  ref.cast 9
   struct.get 9 1
   ref.cast 1
   local.set 3
@@ -443,6 +454,7 @@ fn 2 std_core$parse_f64 (string) -> ref
   call 7
   local.set 4
   local.get 1
+  ref.cast 9
   struct.get 9 2
   ref.cast 3
   if $L4 void
@@ -485,7 +497,7 @@ fn 5 std_core$finish_buffer (ref,usize) -> string
   return
 end
 
-fn 6 std_core$scan_decimal (string) -> ref
+fn 6 std_core$scan_decimal (string) -> any
   local b ref
   local n usize
   local i usize
@@ -2789,7 +2801,7 @@ fn 24 std_io$println__string (string) -> void
   return
 end
 
-fn 25 std_string$parse_int (string) -> ref
+fn 25 std_string$parse_int (string) -> any
   local bs ref
   local n usize
   local i usize
@@ -2934,8 +2946,8 @@ fn 25 std_string$parse_int (string) -> ref
   return
 end
 
-fn 26 std_string$parse_float (string) -> ref
-  local r ref
+fn 26 std_string$parse_float (string) -> any
+  local r any
   local.get 0
   call 2
   local.tee 1

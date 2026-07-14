@@ -21,7 +21,7 @@ import 1 write std_io$write (i32,string) -> void
 impl 7 ByteAccess
 export main 2
 
-fn 0 snippet$scale (u64) -> ref
+fn 0 snippet$scale (u64) -> any
   local.get 0
   i64.const 0
   i64.eq
@@ -40,7 +40,7 @@ fn 0 snippet$scale (u64) -> ref
 end
 
 fn 1 snippet$show (u64) -> i32
-  local __scrut_0 ref
+  local __scrut_0 any
   local.get 0
   call 0
   local.tee 1

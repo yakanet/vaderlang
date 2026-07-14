@@ -520,7 +520,7 @@ end
 fn 10 std_string$replace_chars_where (string,ref,string) -> string
   local sb ref
   local __iter_0 ref
-  local __step_1 ref
+  local __step_1 any
   local c char
   array.new 13 0
   struct.new 17
@@ -537,6 +537,7 @@ fn 10 std_string$replace_chars_where (string,ref,string) -> string
       if $L2 void
       else
         local.get 5
+        ref.cast 5
         struct.get 5 0
         ref.cast 1
         local.tee 6
@@ -565,7 +566,7 @@ fn 11 std_string$split_where (string,ref) -> ref
   local sb ref
   local has_pending bool
   local __iter_0 ref
-  local __step_1 ref
+  local __step_1 any
   local c char
   local $call_18 string
   array.new 13 0
@@ -587,6 +588,7 @@ fn 11 std_string$split_where (string,ref) -> ref
       if $L2 void
       else
         local.get 6
+        ref.cast 5
         struct.get 5 0
         ref.cast 1
         local.tee 7
@@ -778,7 +780,7 @@ fn 14 std_string$chars (string) -> ref
   return
 end
 
-fn 15 std_string$StringChars$Iterator$next (ref) -> ref
+fn 15 std_string$StringChars$Iterator$next (ref) -> any
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref

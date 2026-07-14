@@ -27,14 +27,14 @@ vtable Async.resume 4 4
 vtable Async.resume 7 5
 export main 3
 
-fn 0 snippet$fetch () -> ref
+fn 0 snippet$fetch () -> any
   i32.const 7
   struct.new 7
   return
 end
 
-fn 1 snippet$pick (bool) -> ref
-  local $k_3 ref
+fn 1 snippet$pick (bool) -> any
+  local $k_3 any
   null.const
   local.set 1
   local.get 0
@@ -46,8 +46,8 @@ fn 1 snippet$pick (bool) -> ref
   return
 end
 
-fn 2 snippet$drive (ref) -> i32
-  local r ref
+fn 2 snippet$drive (any) -> i32
+  local r any
   local.get 0
   virtual.call 1 Async.resume
   local.tee 1
@@ -117,11 +117,11 @@ fn 3 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 4 snippet$__asyncstate_2$Async$resume (ref) -> ref
+fn 4 snippet$__asyncstate_2$Async$resume (ref) -> any
   local $field_15 i32
-  local __resumed_2 ref
+  local __resumed_2 any
   local $cast_25 i32
-  local $cast_31 ref
+  local $cast_31 any
   block $L0 void
     loop $L1 void
       local.field 0 4 4
@@ -256,7 +256,7 @@ fn 4 snippet$__asyncstate_2$Async$resume (ref) -> ref
   return
 end
 
-fn 5 snippet$Ready$Async$resume__i32 (ref) -> ref
+fn 5 snippet$Ready$Async$resume__i32 (ref) -> any
   local.field 0 7 0
   ref.cast 3
   box 3

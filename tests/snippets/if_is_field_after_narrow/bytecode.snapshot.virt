@@ -23,11 +23,12 @@ import 1 write std_io$write (i32,string) -> void
 impl 8 ByteAccess
 export main 2
 
-fn 0 snippet$type_id_of (ref) -> i32
+fn 0 snippet$type_id_of (any) -> i32
   local.get 0
   type_check 4
   if $L0 void
     local.get 0
+    ref.cast 4
     struct.get 4 0
     ref.cast 5
     return
@@ -36,6 +37,7 @@ fn 0 snippet$type_id_of (ref) -> i32
   type_check 2
   if $L1 void
     local.get 0
+    ref.cast 2
     struct.get 2 0
     ref.cast 5
     return
@@ -45,11 +47,12 @@ fn 0 snippet$type_id_of (ref) -> i32
   return
 end
 
-fn 1 snippet$first_item (ref) -> i32
+fn 1 snippet$first_item (any) -> i32
   local.get 0
   type_check 2
   if $L0 void
     local.get 0
+    ref.cast 2
     struct.get 2 1
     i32.const 0
     load_slot_i32
@@ -62,9 +65,9 @@ end
 
 fn 2 snippet$main () -> i32
   local $arr_3 ref
-  local $arr_9 ref
-  local i ref
-  local __buf_0 ref
+  local s any
+  local a any
+  local i any
   local __off_1 usize
   local $cast_23 i64
   i32.const 1
@@ -74,38 +77,38 @@ fn 2 snippet$main () -> i32
   i32.const 100
   local.get 0
   struct.new 4
-  local.set 0
+  local.set 1
   i32.const 42
   i32.const 43
   array.new 6 2
-  local.set 1
+  local.set 0
   i32.const 200
-  local.get 1
+  local.get 0
   struct.new 2
-  local.set 1
+  local.set 2
   i32.const 7
   struct.new 3
-  local.set 2
+  local.set 3
   i64.const 31
   call 3
-  local.set 3
+  local.set 0
   i64.const 0
   local.set 4
-  local.get 3
+  local.get 0
   local.get 4
   string.const 0
   call 5
   local.set 4
-  local.get 0
+  local.get 1
   call 0
   i32.to_i64
   local.set 5
-  local.get 3
+  local.get 0
   local.get 4
   local.get 5
   call 6
   local.set 4
-  local.get 3
+  local.get 0
   local.get 4
   call 4
   call 7
@@ -119,7 +122,7 @@ fn 2 snippet$main () -> i32
   string.const 1
   call 5
   local.set 4
-  local.get 1
+  local.get 2
   call 0
   i32.to_i64
   local.set 5
@@ -142,7 +145,7 @@ fn 2 snippet$main () -> i32
   string.const 2
   call 5
   local.set 4
-  local.get 2
+  local.get 3
   call 0
   i32.to_i64
   local.set 5
@@ -165,7 +168,7 @@ fn 2 snippet$main () -> i32
   string.const 3
   call 5
   local.set 4
-  local.get 1
+  local.get 2
   call 1
   i32.to_i64
   local.set 5

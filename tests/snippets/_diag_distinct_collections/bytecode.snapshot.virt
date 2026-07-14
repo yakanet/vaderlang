@@ -48,7 +48,7 @@ fn 0 snippet$sum_ids (ref) -> i32
   return
 end
 
-fn 1 snippet$unwrap_or (ref,i32) -> i32
+fn 1 snippet$unwrap_or (any,i32) -> i32
   local.get 0
   type_check 0
   if $L0 void

@@ -33,7 +33,7 @@ impl 13 Contains
 impl 13 Into
 export main 2
 
-fn 0 snippet$unwrap (ref) -> i32
+fn 0 snippet$unwrap (any) -> i32
   local.get 0
   type_check 0
   if $L0 void
@@ -46,7 +46,7 @@ fn 0 snippet$unwrap (ref) -> i32
   return
 end
 
-fn 1 snippet$unwrap_i64 (ref) -> i64
+fn 1 snippet$unwrap_i64 (any) -> i64
   local.get 0
   type_check 0
   if $L0 void
@@ -378,7 +378,7 @@ fn 8 std_io$println__string (string) -> void
   return
 end
 
-fn 9 std_collections$MutableMap$Index$at__i32__i64 (ref,i32) -> ref
+fn 9 std_collections$MutableMap$Index$at__i32__i64 (ref,i32) -> any
   local.get 0
   local.get 1
   call 22
@@ -393,7 +393,7 @@ fn 10 std_collections$MutableMap$IndexSet$set_at__i32__i64 (ref,i32,i64) -> void
   return
 end
 
-fn 11 std_collections$MutableMap$Index$at__i64__i32 (ref,i64) -> ref
+fn 11 std_collections$MutableMap$Index$at__i64__i32 (ref,i64) -> any
   local.get 0
   local.get 1
   call 23
@@ -1212,7 +1212,7 @@ fn 21 std_collections$std_collections$put__i64__i32 (ref,i64,i32) -> void
   return
 end
 
-fn 22 std_collections$std_collections$get__i32__i64 (ref,i32) -> ref
+fn 22 std_collections$std_collections$get__i32__i64 (ref,i32) -> any
   local $cast_7 u64
   local $field_8 usize
   local ei usize
@@ -1309,7 +1309,7 @@ fn 22 std_collections$std_collections$get__i32__i64 (ref,i32) -> ref
   return
 end
 
-fn 23 std_collections$std_collections$get__i64__i32 (ref,i64) -> ref
+fn 23 std_collections$std_collections$get__i64__i32 (ref,i64) -> any
   local $cast_7 u64
   local $field_8 usize
   local ei usize

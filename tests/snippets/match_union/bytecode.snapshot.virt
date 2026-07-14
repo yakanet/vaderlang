@@ -12,8 +12,8 @@ string 4 "\n"
 import 0 write std_io$write (i32,string) -> void
 export main 1
 
-fn 0 snippet$describe (ref) -> string
-  local __scrut_0 ref
+fn 0 snippet$describe (any) -> string
+  local __scrut_0 any
   local.get 0
   local.tee 1
   type_check 2

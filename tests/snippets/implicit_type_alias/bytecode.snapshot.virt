@@ -5,8 +5,8 @@ type 2 primitive i32
 type 3 primitive string
 export main 1
 
-fn 0 snippet$classify (ref) -> i32
-  local __scrut_0 ref
+fn 0 snippet$classify (any) -> i32
+  local __scrut_0 any
   local.get 0
   local.tee 1
   type_check 2

@@ -21,7 +21,7 @@ impl 1 Error
 impl 10 ByteAccess
 export main 2
 
-fn 0 snippet$fetch (bool) -> ref
+fn 0 snippet$fetch (bool) -> any
   local.get 0
   if $L0 void
     return.lit i32.const 20
@@ -30,7 +30,7 @@ fn 0 snippet$fetch (bool) -> ref
   return
 end
 
-fn 1 snippet$halve (i32) -> ref
+fn 1 snippet$halve (i32) -> any
   local.get 0
   i32.const 2
   i32.rem
@@ -48,7 +48,7 @@ fn 1 snippet$halve (i32) -> ref
 end
 
 fn 2 snippet$main () -> i32
-  local $call_1 ref
+  local $call_1 any
   local $closure_3 ref
   local __off_2 usize
   local $unop_12 i32
@@ -120,13 +120,13 @@ fn 2 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 3 __lambda_1 (ref,i32) -> ref
+fn 3 __lambda_1 (ref,i32) -> any
   local.get 1
   call 1
   return
 end
 
-fn 4 __lambda_6 (ref,i32) -> ref
+fn 4 __lambda_6 (ref,i32) -> any
   local.get 1
   call 1
   return
@@ -274,7 +274,7 @@ fn 8 std_io$println__string (string) -> void
   return
 end
 
-fn 9 std_option$std_option$or__i32 (ref,i32) -> i32
+fn 9 std_option$std_option$or__i32 (any,i32) -> i32
   local.get 0
   type_check 5
   if $L0 void
@@ -286,7 +286,7 @@ fn 9 std_option$std_option$or__i32 (ref,i32) -> i32
   return
 end
 
-fn 10 std_option$std_option$and_then__i32__i32 (ref,ref) -> ref
+fn 10 std_option$std_option$and_then__i32__i32 (any,ref) -> any
   local.get 0
   type_check 5
   if $L0 void

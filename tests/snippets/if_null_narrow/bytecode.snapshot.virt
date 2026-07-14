@@ -29,13 +29,14 @@ import 1 write std_io$write (i32,string) -> void
 impl 7 ByteAccess
 export main 5
 
-fn 0 snippet$greet (ref) -> string
+fn 0 snippet$greet (any) -> string
   local $field_6 string
   local.get 0
   type_check 0
   bool.not
   if $L0 void
     local.get 0
+    ref.cast 2
     struct.get 2 0
     ref.cast 4
     local.set 1
@@ -47,7 +48,7 @@ fn 0 snippet$greet (ref) -> string
   return.lit string.const 1
 end
 
-fn 1 snippet$greet_v2 (ref) -> string
+fn 1 snippet$greet_v2 (any) -> string
   local $field_6 string
   local.get 0
   type_check 0
@@ -55,6 +56,7 @@ fn 1 snippet$greet_v2 (ref) -> string
     return.lit string.const 1
   end $L0
   local.get 0
+  ref.cast 2
   struct.get 2 0
   ref.cast 4
   local.set 1
@@ -64,13 +66,14 @@ fn 1 snippet$greet_v2 (ref) -> string
   return
 end
 
-fn 2 snippet$greet_v3 (ref) -> string
+fn 2 snippet$greet_v3 (any) -> string
   local $field_6 string
   local.get 0
   type_check 0
   bool.not
   if $L0 void
     local.get 0
+    ref.cast 2
     struct.get 2 0
     ref.cast 4
     local.set 1
@@ -82,13 +85,14 @@ fn 2 snippet$greet_v3 (ref) -> string
   return.lit string.const 4
 end
 
-fn 3 snippet$greet_v4 (ref) -> string
+fn 3 snippet$greet_v4 (any) -> string
   local $field_9 string
   local.get 0
   type_check 0
   bool.not
   if $L0 void
     local.get 0
+    ref.cast 2
     struct.get 2 0
     ref.cast 4
     local.set 1
@@ -100,7 +104,7 @@ fn 3 snippet$greet_v4 (ref) -> string
   return.lit string.const 7
 end
 
-fn 4 snippet$combine (ref,ref) -> string
+fn 4 snippet$combine (any,any) -> string
   local $field_8 string
   local $field_12 string
   local.get 0
@@ -114,10 +118,12 @@ fn 4 snippet$combine (ref,ref) -> string
     return.lit string.const 9
   end $L1
   local.get 0
+  ref.cast 2
   struct.get 2 0
   ref.cast 4
   local.set 2
   local.get 1
+  ref.cast 2
   struct.get 2 0
   ref.cast 4
   local.set 3
@@ -129,9 +135,9 @@ fn 4 snippet$combine (ref,ref) -> string
 end
 
 fn 5 snippet$main () -> i32
-  local cat ref
-  local dog ref
-  local nothing ref
+  local cat any
+  local dog any
+  local nothing any
   string.const 11
   i32.const 3
   struct.new 2

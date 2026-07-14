@@ -711,7 +711,7 @@ fn 0 snippet$main () -> i32
 end
 
 fn 1 snippet$get_or__char (ref,char,i32) -> i32
-  local v ref
+  local v any
   local.get 0
   local.get 1
   call 13
@@ -727,7 +727,7 @@ fn 1 snippet$get_or__char (ref,char,i32) -> i32
 end
 
 fn 2 snippet$get_or__i16 (ref,i16,i32) -> i32
-  local v ref
+  local v any
   local.get 0
   local.get 1
   call 15
@@ -743,7 +743,7 @@ fn 2 snippet$get_or__i16 (ref,i16,i32) -> i32
 end
 
 fn 3 snippet$get_or__i64 (ref,i64,i32) -> i32
-  local v ref
+  local v any
   local.get 0
   local.get 1
   call 17
@@ -759,7 +759,7 @@ fn 3 snippet$get_or__i64 (ref,i64,i32) -> i32
 end
 
 fn 4 snippet$get_or__u16 (ref,u16,i32) -> i32
-  local v ref
+  local v any
   local.get 0
   local.get 1
   call 19
@@ -775,7 +775,7 @@ fn 4 snippet$get_or__u16 (ref,u16,i32) -> i32
 end
 
 fn 5 snippet$get_or__u8 (ref,u8,i32) -> i32
-  local v ref
+  local v any
   local.get 0
   local.get 1
   call 21
@@ -791,7 +791,7 @@ fn 5 snippet$get_or__u8 (ref,u8,i32) -> i32
 end
 
 fn 6 snippet$get_or__usize (ref,usize,i32) -> i32
-  local v ref
+  local v any
   local.get 0
   local.get 1
   call 23
@@ -1048,7 +1048,7 @@ fn 12 std_io$println__string (string) -> void
   return
 end
 
-fn 13 std_collections$MutableMap$Index$at__char__i32 (ref,char) -> ref
+fn 13 std_collections$MutableMap$Index$at__char__i32 (ref,char) -> any
   local.get 0
   local.get 1
   call 50
@@ -1063,7 +1063,7 @@ fn 14 std_collections$MutableMap$IndexSet$set_at__char__i32 (ref,char,i32) -> vo
   return
 end
 
-fn 15 std_collections$MutableMap$Index$at__i16__i32 (ref,i16) -> ref
+fn 15 std_collections$MutableMap$Index$at__i16__i32 (ref,i16) -> any
   local.get 0
   local.get 1
   call 51
@@ -1078,7 +1078,7 @@ fn 16 std_collections$MutableMap$IndexSet$set_at__i16__i32 (ref,i16,i32) -> void
   return
 end
 
-fn 17 std_collections$MutableMap$Index$at__i64__i32 (ref,i64) -> ref
+fn 17 std_collections$MutableMap$Index$at__i64__i32 (ref,i64) -> any
   local.get 0
   local.get 1
   call 52
@@ -1093,7 +1093,7 @@ fn 18 std_collections$MutableMap$IndexSet$set_at__i64__i32 (ref,i64,i32) -> void
   return
 end
 
-fn 19 std_collections$MutableMap$Index$at__u16__i32 (ref,u16) -> ref
+fn 19 std_collections$MutableMap$Index$at__u16__i32 (ref,u16) -> any
   local.get 0
   local.get 1
   call 53
@@ -1108,7 +1108,7 @@ fn 20 std_collections$MutableMap$IndexSet$set_at__u16__i32 (ref,u16,i32) -> void
   return
 end
 
-fn 21 std_collections$MutableMap$Index$at__u8__i32 (ref,u8) -> ref
+fn 21 std_collections$MutableMap$Index$at__u8__i32 (ref,u8) -> any
   local.get 0
   local.get 1
   call 54
@@ -1123,7 +1123,7 @@ fn 22 std_collections$MutableMap$IndexSet$set_at__u8__i32 (ref,u8,i32) -> void
   return
 end
 
-fn 23 std_collections$MutableMap$Index$at__usize__i32 (ref,usize) -> ref
+fn 23 std_collections$MutableMap$Index$at__usize__i32 (ref,usize) -> any
   local.get 0
   local.get 1
   call 55
@@ -3540,7 +3540,7 @@ fn 49 std_collections$std_collections$put__usize__i32 (ref,usize,i32) -> void
   return
 end
 
-fn 50 std_collections$std_collections$get__char__i32 (ref,char) -> ref
+fn 50 std_collections$std_collections$get__char__i32 (ref,char) -> any
   local $cast_7 u64
   local $field_8 usize
   local ei usize
@@ -3637,7 +3637,7 @@ fn 50 std_collections$std_collections$get__char__i32 (ref,char) -> ref
   return
 end
 
-fn 51 std_collections$std_collections$get__i16__i32 (ref,i16) -> ref
+fn 51 std_collections$std_collections$get__i16__i32 (ref,i16) -> any
   local $cast_7 u64
   local $field_8 usize
   local ei usize
@@ -3735,7 +3735,7 @@ fn 51 std_collections$std_collections$get__i16__i32 (ref,i16) -> ref
   return
 end
 
-fn 52 std_collections$std_collections$get__i64__i32 (ref,i64) -> ref
+fn 52 std_collections$std_collections$get__i64__i32 (ref,i64) -> any
   local $cast_7 u64
   local $field_8 usize
   local ei usize
@@ -3832,7 +3832,7 @@ fn 52 std_collections$std_collections$get__i64__i32 (ref,i64) -> ref
   return
 end
 
-fn 53 std_collections$std_collections$get__u16__i32 (ref,u16) -> ref
+fn 53 std_collections$std_collections$get__u16__i32 (ref,u16) -> any
   local $cast_7 u64
   local $field_8 usize
   local ei usize
@@ -3930,7 +3930,7 @@ fn 53 std_collections$std_collections$get__u16__i32 (ref,u16) -> ref
   return
 end
 
-fn 54 std_collections$std_collections$get__u8__i32 (ref,u8) -> ref
+fn 54 std_collections$std_collections$get__u8__i32 (ref,u8) -> any
   local $cast_7 u64
   local $field_8 usize
   local ei usize
@@ -4028,7 +4028,7 @@ fn 54 std_collections$std_collections$get__u8__i32 (ref,u8) -> ref
   return
 end
 
-fn 55 std_collections$std_collections$get__usize__i32 (ref,usize) -> ref
+fn 55 std_collections$std_collections$get__usize__i32 (ref,usize) -> any
   local $cast_7 u64
   local $field_8 usize
   local ei usize

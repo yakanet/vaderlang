@@ -163,7 +163,7 @@ fn 16 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
   return
 end
 
-fn 17 std_core$Range$Iterator$next__i32 (ref) -> ref
+fn 17 std_core$Range$Iterator$next__i32 (ref) -> any
   local if_res bool
   local $field_3 i32
   local $field_4 i32
@@ -219,7 +219,7 @@ fn 17 std_core$Range$Iterator$next__i32 (ref) -> ref
 end
 
 fn 18 std_core$Range$Iterator$is_empty__i32 (ref) -> bool
-  local __scrut_0 ref
+  local __scrut_0 any
   local.get 0
   call 17
   local.tee 1
@@ -238,7 +238,7 @@ end
 fn 19 std_core$Range$Iterator$count__i32 (ref) -> usize
   local total any
   local finished any
-  local __scrut_0 ref
+  local __scrut_0 any
   i64.const 0
   local.set 1
   bool.const false
@@ -275,10 +275,10 @@ fn 19 std_core$Range$Iterator$count__i32 (ref) -> usize
   return
 end
 
-fn 20 std_core$Range$Iterator$last__i32 (ref) -> ref
+fn 20 std_core$Range$Iterator$last__i32 (ref) -> any
   local result any
   local finished any
-  local __scrut_0 ref
+  local __scrut_0 any
   null.const
   local.set 1
   bool.const false
@@ -301,6 +301,7 @@ fn 20 std_core$Range$Iterator$last__i32 (ref) -> ref
         type_check 5
         if $L4 void
           local.get 3
+          ref.cast 5
           struct.get 5 0
           ref.cast 1
           local.set 1
@@ -352,7 +353,7 @@ fn 21 std_core$Range$Contains$contains__usize (ref,usize) -> bool
   return
 end
 
-fn 22 std_core$Range$Iterator$next__usize (ref) -> ref
+fn 22 std_core$Range$Iterator$next__usize (ref) -> any
   local if_res bool
   local $field_3 usize
   local $field_4 usize
@@ -408,7 +409,7 @@ fn 22 std_core$Range$Iterator$next__usize (ref) -> ref
 end
 
 fn 23 std_core$Range$Iterator$is_empty__usize (ref) -> bool
-  local __scrut_0 ref
+  local __scrut_0 any
   local.get 0
   call 22
   local.tee 1
@@ -427,7 +428,7 @@ end
 fn 24 std_core$Range$Iterator$count__usize (ref) -> usize
   local total any
   local finished any
-  local __scrut_0 ref
+  local __scrut_0 any
   i64.const 0
   local.set 1
   bool.const false
@@ -464,10 +465,10 @@ fn 24 std_core$Range$Iterator$count__usize (ref) -> usize
   return
 end
 
-fn 25 std_core$Range$Iterator$last__usize (ref) -> ref
+fn 25 std_core$Range$Iterator$last__usize (ref) -> any
   local result any
   local finished any
-  local __scrut_0 ref
+  local __scrut_0 any
   null.const
   local.set 1
   bool.const false
@@ -490,6 +491,7 @@ fn 25 std_core$Range$Iterator$last__usize (ref) -> ref
         type_check 10
         if $L4 void
           local.get 3
+          ref.cast 10
           struct.get 10 0
           ref.cast 6
           local.set 1

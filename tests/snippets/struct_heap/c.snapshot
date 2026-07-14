@@ -16,7 +16,7 @@ struct vader_struct_snippet_Point_t {
 static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, "" } };
 #define VADER_COMPTIME_ATOM_COUNT 0u
 
-static vader_box_t snippet_make(int32_t l0, int32_t l1);
+static void* snippet_make(int32_t l0, int32_t l1);
 static int32_t snippet_main(void);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
@@ -44,32 +44,32 @@ const size_t vader_type_size[3] = {
 const vader_vtable_t* const vader_vtable_table[1] = { NULL };
 const size_t                vader_vtable_count    = 0;
 
-static vader_box_t snippet_make(int32_t l0, int32_t l1) {
-    vader_box_t t0 = vader_box_null();
-    vader_box_t* gc_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots };
+static void* snippet_make(int32_t l0, int32_t l1) {
+    void* t0 = NULL;
+    void** gc_raw_roots[1] = { &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
     vader_gc_top = &gc_frame;
 #line 14 "tests/snippets/struct_heap/_main.vader"
     vader_struct_snippet_Point_t* _a0_obj = (vader_struct_snippet_Point_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Point_t));
     vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f_x = l0;
     _a0_obj->f_y = l1;
-    t0 = vader_box_obj(2u, _a0_obj);
-    { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    t0 = (void*) _a0_obj;
+    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
 static int32_t snippet_main(void) {
-    vader_box_t l0 = vader_box_null();
+    void* l0 = NULL;
     int32_t l1, l2;
-    vader_box_t* gc_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots };
+    void** gc_raw_roots[1] = { &l0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
     vader_gc_top = &gc_frame;
 #line 17 "tests/snippets/struct_heap/_main.vader"
     l0 = snippet_make(INT32_C(3), INT32_C(4));
 #line 18 "tests/snippets/struct_heap/_main.vader"
-    l1 = (int32_t) ((vader_struct_snippet_Point_t*) l0.payload.obj)->f_x;
-    l2 = (int32_t) ((vader_struct_snippet_Point_t*) l0.payload.obj)->f_y;
+    l1 = ((vader_struct_snippet_Point_t*) l0)->f_x;
+    l2 = ((vader_struct_snippet_Point_t*) l0)->f_y;
     { int32_t __vret = (l1 + l2); vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }

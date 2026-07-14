@@ -21,8 +21,8 @@ import 1 write std_io$write (i32,string) -> void
 impl 7 ByteAccess
 export main 1
 
-fn 0 snippet$show (ref) -> string
-  local __scrut_0 ref
+fn 0 snippet$show (any) -> string
+  local __scrut_0 any
   local p ref
   local __buf_1 ref
   local __off_2 usize
@@ -38,6 +38,7 @@ fn 0 snippet$show (ref) -> string
   type_check 2
   if $L1 void
     local.get 1
+    ref.cast 2
     local.set 2
     i64.const 26
     call 3
@@ -67,8 +68,9 @@ fn 0 snippet$show (ref) -> string
   type_check 3
   if $L2 void
     local.get 1
-    local.set 1
-    local.field 1 3 0
+    ref.cast 3
+    local.set 2
+    local.field 2 3 0
     ref.cast 4
     local.set 6
     string.const 2

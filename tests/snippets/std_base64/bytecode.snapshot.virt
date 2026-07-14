@@ -70,7 +70,7 @@ impl 14 Display
 export main 1
 
 fn 0 snippet$show_decode (string,string) -> void
-  local out ref
+  local out any
   local $field_7 string
   local.get 1
   call 12
@@ -78,6 +78,7 @@ fn 0 snippet$show_decode (string,string) -> void
   type_check 13
   if $L0 void
     local.get 2
+    ref.cast 13
     struct.get 13 0
     ref.cast 1
     local.set 3
@@ -88,6 +89,7 @@ fn 0 snippet$show_decode (string,string) -> void
     call 11
   else
     local.get 2
+    ref.cast 9
     call.import 0
     local.set 3
     local.get 0
@@ -104,7 +106,7 @@ fn 1 snippet$main () -> i32
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local decoded ref
+  local decoded any
   local __p_3 string
   local $call_67 usize
   local __buf_4 ref
@@ -237,6 +239,7 @@ fn 1 snippet$main () -> i32
           call 7
           local.set 8
           local.get 4
+          ref.cast 9
           call.import 0
           local.get 0
           string.eq
@@ -637,7 +640,7 @@ fn 11 std_io$println__string (string) -> void
   return
 end
 
-fn 12 std_base64$decode (string) -> ref
+fn 12 std_base64$decode (string) -> any
   local bs ref
   local n usize
   local pad_count usize

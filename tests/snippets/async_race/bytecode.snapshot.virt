@@ -56,10 +56,10 @@ vtable Async.cancel 21 13
 vtable Async.cancel 24 17
 export main 1
 
-fn 0 snippet$leg (string,i64) -> ref
+fn 0 snippet$leg (string,i64) -> any
   local $cell_2 any
   local $arr_4 ref
-  local $k_5 ref
+  local $k_5 any
   local.get 0
   struct.new 27
   local.set 2
@@ -78,7 +78,7 @@ fn 0 snippet$leg (string,i64) -> ref
 end
 
 fn 1 snippet$main () -> i32
-  local $k_2 ref
+  local $k_2 any
   null.const
   local.set 0
   string.const 0
@@ -86,6 +86,7 @@ fn 1 snippet$main () -> i32
   local.get 0
   i32.const 4
   struct.new 10
+  ref.cast 23
   call 15
   return
 end
@@ -102,15 +103,15 @@ fn 2 __defer_1 (ref) -> void
   return
 end
 
-fn 3 snippet$__asyncstate_11$Async$resume (ref) -> ref
+fn 3 snippet$__asyncstate_11$Async$resume (ref) -> any
   local $field_18 ref
   local $sub_22 usize
   local $field_24 ref
   local $sub_29 usize
   local $slice_30 ref
-  local __resumed_3 ref
+  local __resumed_3 any
   local $cast_45 null
-  local $cast_52 ref
+  local $cast_52 any
   local $field_57 ref
   local $cast_61 ref
   block $L0 void
@@ -321,14 +322,14 @@ fn 4 snippet$__asyncstate_11$Async$cancel (ref) -> void
   return
 end
 
-fn 5 snippet$__asyncstate_17$Async$resume (ref) -> ref
+fn 5 snippet$__asyncstate_17$Async$resume (ref) -> any
   local $field_13 string
   local $field_15 string
-  local __resumed_2 ref
+  local __resumed_2 any
   local $cast_26 string
-  local $call_33 ref
-  local $call_36 ref
-  local $cast_39 ref
+  local $call_33 any
+  local $call_36 any
+  local $cast_39 any
   block $L0 void
     loop $L1 void
       local.field 0 10 3
@@ -507,10 +508,10 @@ fn 11 std_io$println__string (string) -> void
   return
 end
 
-fn 12 std_async$Race$Async$resume__string (ref) -> ref
+fn 12 std_async$Race$Async$resume__string (ref) -> any
   local n usize
   local i usize
-  local r ref
+  local r any
   local j usize
   local.field 0 21 0
   array.len
@@ -607,7 +608,7 @@ fn 13 std_async$Race$Async$cancel__string (ref) -> void
   return
 end
 
-fn 14 std_async$sleep (i64) -> ref
+fn 14 std_async$sleep (i64) -> any
   local.get 0
   i64.const 0
   bool.const false
@@ -615,13 +616,13 @@ fn 14 std_async$sleep (i64) -> ref
   return
 end
 
-fn 15 std_async$run_async_main (ref) -> i32
+fn 15 std_async$run_async_main (any) -> i32
   local.get 0
   call 18
   return
 end
 
-fn 16 std_async$Sleep$Async$resume (ref) -> ref
+fn 16 std_async$Sleep$Async$resume (ref) -> any
   local $call_4 i64
   local $field_5 i64
   local.field 0 24 2
@@ -669,8 +670,8 @@ fn 17 std_async$Sleep$Async$cancel (ref) -> void
   return
 end
 
-fn 18 std_async$block_on__i32 (ref) -> i32
-  local r ref
+fn 18 std_async$block_on__i32 (any) -> i32
+  local r any
   block $L0 void
     loop $L1 void
       local.get 0
@@ -697,7 +698,7 @@ fn 18 std_async$block_on__i32 (ref) -> i32
   return
 end
 
-fn 19 std_async$race__string (ref) -> ref
+fn 19 std_async$race__string (ref) -> any
   local.get 0
   struct.new 21
   return

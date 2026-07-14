@@ -44,7 +44,7 @@ const vader_vtable_t* const vader_vtable_table[1] = { NULL };
 const size_t                vader_vtable_count    = 0;
 
 static int32_t snippet_main(void) {
-    vader_box_t l0;
+    void* l0;
     int32_t l1, l2;
     int32_t t0;
 #line 14 "tests/snippets/struct_point/_main.vader"
@@ -53,14 +53,14 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a1_obj, 2u);
     _a1_obj->f_x = INT32_C(3);
     _a1_obj->f_y = INT32_C(4);
-    l0 = vader_box_obj(2u, _a1_obj);
+    l0 = (void*) _a1_obj;
 #line 15 "tests/snippets/struct_point/_main.vader"
-    t0 = (int32_t) ((vader_struct_snippet_Point_t*) l0.payload.obj)->f_x;
+    t0 = ((vader_struct_snippet_Point_t*) l0)->f_x;
     l1 = (t0 + INT32_C(10));
-    ((vader_struct_snippet_Point_t*) l0.payload.obj)->f_x = l1;
+    ((vader_struct_snippet_Point_t*) l0)->f_x = l1;
 #line 16 "tests/snippets/struct_point/_main.vader"
-    l1 = (int32_t) ((vader_struct_snippet_Point_t*) l0.payload.obj)->f_x;
-    l2 = (int32_t) ((vader_struct_snippet_Point_t*) l0.payload.obj)->f_y;
+    l1 = ((vader_struct_snippet_Point_t*) l0)->f_x;
+    l2 = ((vader_struct_snippet_Point_t*) l0)->f_y;
     return (l1 + l2);
 }
 

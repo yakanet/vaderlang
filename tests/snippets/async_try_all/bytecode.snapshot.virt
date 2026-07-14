@@ -104,8 +104,8 @@ fn 0 snippet$Outage$Error$message (ref) -> string
   return
 end
 
-fn 1 snippet$fetch (string,i64,bool) -> ref
-  local $k_4 ref
+fn 1 snippet$fetch (string,i64,bool) -> any
+  local $k_4 any
   null.const
   local.set 3
   local.get 0
@@ -119,15 +119,15 @@ fn 1 snippet$fetch (string,i64,bool) -> ref
 end
 
 fn 2 snippet$main () -> i32
-  local $k_0 ref
-  local $k_1 ref
-  local $k_2 ref
-  local $k_3 ref
-  local $k_4 ref
-  local $k_5 ref
+  local $k_0 any
+  local $k_1 any
+  local $k_2 any
+  local $k_3 any
+  local $k_4 any
+  local $k_5 any
   local $k_6 ref
-  local $k_9 ref
-  local $k_10 ref
+  local $k_9 any
+  local $k_10 any
   null.const
   local.set 0
   null.const
@@ -159,14 +159,15 @@ fn 2 snippet$main () -> i32
   local.get 8
   i32.const 20
   struct.new 11
+  ref.cast 32
   call 19
   return
 end
 
-fn 3 snippet$__asyncstate_8$Async$resume (ref) -> ref
-  local __resumed_2 ref
+fn 3 snippet$__asyncstate_8$Async$resume (ref) -> any
+  local __resumed_2 any
   local $cast_43 null
-  local $cast_50 ref
+  local $cast_50 any
   block $L0 void
     loop $L1 void
       local.field 0 7 5
@@ -310,8 +311,8 @@ fn 4 snippet$__asyncstate_8$Async$cancel (ref) -> void
   return
 end
 
-fn 5 snippet$__asyncstate_20$Async$resume (ref) -> ref
-  local $cast_14 ref
+fn 5 snippet$__asyncstate_20$Async$resume (ref) -> any
+  local $cast_14 any
   local $vcall_17 string
   local $field_31 usize
   local $field_32 usize
@@ -321,24 +322,24 @@ fn 5 snippet$__asyncstate_20$Async$resume (ref) -> ref
   local $cast_60 i64
   local $field_74 ref
   local $field_75 usize
-  local $idx_76 ref
+  local $idx_76 any
   local $cast_82 ref
   local $len_84 usize
-  local $field_97 ref
-  local __resumed_8 ref
-  local $cast_107 ref
-  local $call_115 ref
-  local $call_119 ref
-  local $cast_122 ref
-  local $cast_128 ref
+  local $field_97 any
+  local __resumed_8 any
+  local $cast_107 any
+  local $call_115 any
+  local $call_119 any
+  local $cast_122 any
+  local $cast_128 any
   local $vcall_131 string
-  local $field_144 ref
-  local __resumed_9 ref
-  local $cast_154 ref
-  local $call_162 ref
-  local $call_166 ref
-  local $call_170 ref
-  local $cast_173 ref
+  local $field_144 any
+  local __resumed_9 any
+  local $cast_154 any
+  local $call_162 any
+  local $call_166 any
+  local $call_170 any
+  local $cast_173 any
   block $L0 void
     loop $L1 void
       local.field 0 11 11
@@ -534,6 +535,7 @@ fn 5 snippet$__asyncstate_20$Async$resume (ref) -> ref
         i32.eq
         if $L15 void
           local.field 0 11 4
+          ref.cast 15
           local.set 12
           local.get 0
           local.get 12
@@ -969,12 +971,12 @@ fn 13 std_io$println__string (string) -> void
   return
 end
 
-fn 14 std_async$All$Async$resume__Any (ref) -> ref
+fn 14 std_async$All$Async$resume__Any (ref) -> any
   local n usize
   local i usize
-  local r ref
+  local r any
   local $field_18 ref
-  local $cast_19 ref
+  local $cast_19 any
   local.field 0 24 0
   array.len
   local.set 1
@@ -1035,7 +1037,7 @@ fn 14 std_async$All$Async$resume__Any (ref) -> ref
     return
   end $L5
   array.new 26 0
-  local.set 3
+  local.set 4
   i64.const 0
   local.set 2
   block $L6 void
@@ -1047,13 +1049,13 @@ fn 14 std_async$All$Async$resume__Any (ref) -> ref
         local.field 0 24 1
         local.get 2
         call 24
-        local.tee 4
+        local.tee 3
         type_check 0
         bool.not
         if $L9 void
-          local.get 4
-          local.set 5
           local.get 3
+          local.set 5
+          local.get 4
           local.get 5
           array.push 23
         else
@@ -1067,7 +1069,7 @@ fn 14 std_async$All$Async$resume__Any (ref) -> ref
       end $L8
     end $L7
   end $L6
-  local.get 3
+  local.get 4
   return
 end
 
@@ -1103,12 +1105,12 @@ fn 15 std_async$All$Async$cancel__Any (ref) -> void
   return
 end
 
-fn 16 std_async$TryAll$Async$resume__i32__Any (ref) -> ref
-  local r ref
+fn 16 std_async$TryAll$Async$resume__i32__Any (ref) -> any
+  local r any
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local v ref
+  local v any
   local.field 0 27 0
   call 14
   local.tee 1
@@ -1118,6 +1120,7 @@ fn 16 std_async$TryAll$Async$resume__i32__Any (ref) -> ref
     return
   end $L0
   local.get 1
+  ref.cast 29
   local.tee 2
   array.len
   local.set 3
@@ -1148,6 +1151,7 @@ fn 16 std_async$TryAll$Async$resume__i32__Any (ref) -> ref
     end $L2
   end $L1
   local.get 1
+  ref.cast 29
   return
 end
 
@@ -1157,7 +1161,7 @@ fn 17 std_async$TryAll$Async$cancel__i32__Any (ref) -> void
   return
 end
 
-fn 18 std_async$sleep (i64) -> ref
+fn 18 std_async$sleep (i64) -> any
   local.get 0
   i64.const 0
   bool.const false
@@ -1165,13 +1169,13 @@ fn 18 std_async$sleep (i64) -> ref
   return
 end
 
-fn 19 std_async$run_async_main (ref) -> i32
+fn 19 std_async$run_async_main (any) -> i32
   local.get 0
   call 22
   return
 end
 
-fn 20 std_async$Sleep$Async$resume (ref) -> ref
+fn 20 std_async$Sleep$Async$resume (ref) -> any
   local $call_4 i64
   local $field_5 i64
   local.field 0 33 2
@@ -1219,8 +1223,8 @@ fn 21 std_async$Sleep$Async$cancel (ref) -> void
   return
 end
 
-fn 22 std_async$block_on__i32 (ref) -> i32
-  local r ref
+fn 22 std_async$block_on__i32 (any) -> i32
+  local r any
   block $L0 void
     loop $L1 void
       local.get 0
@@ -1247,7 +1251,7 @@ fn 22 std_async$block_on__i32 (ref) -> i32
   return
 end
 
-fn 23 std_async$try_all__i32__Any (ref) -> ref
+fn 23 std_async$try_all__i32__Any (ref) -> any
   local $arr_1 ref
   local $arr_2 ref
   local $arr_3 ref
@@ -1272,14 +1276,14 @@ fn 23 std_async$try_all__i32__Any (ref) -> ref
   return
 end
 
-fn 24 std_collections$MutableMap$Index$at__usize__Any (ref,usize) -> ref
+fn 24 std_collections$MutableMap$Index$at__usize__Any (ref,usize) -> any
   local.get 0
   local.get 1
   call 32
   return
 end
 
-fn 25 std_collections$MutableMap$IndexSet$set_at__usize__Any (ref,usize,ref) -> void
+fn 25 std_collections$MutableMap$IndexSet$set_at__usize__Any (ref,usize,any) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -1445,7 +1449,7 @@ fn 29 std_collections$std_collections$rehash__usize__Any (ref,usize) -> void
   return
 end
 
-fn 30 std_collections$std_collections$write_entry__usize__Any (ref,usize,ref) -> void
+fn 30 std_collections$std_collections$write_entry__usize__Any (ref,usize,any) -> void
   local $field_3 usize
   local $len_5 usize
   local $field_7 ref
@@ -1488,7 +1492,7 @@ fn 30 std_collections$std_collections$write_entry__usize__Any (ref,usize,ref) ->
   return
 end
 
-fn 31 std_collections$std_collections$put__usize__Any (ref,usize,ref) -> void
+fn 31 std_collections$std_collections$put__usize__Any (ref,usize,any) -> void
   local $field_3 usize
   local $field_4 usize
   local $mul_24 usize
@@ -1700,7 +1704,7 @@ fn 31 std_collections$std_collections$put__usize__Any (ref,usize,ref) -> void
   return
 end
 
-fn 32 std_collections$std_collections$get__usize__Any (ref,usize) -> ref
+fn 32 std_collections$std_collections$get__usize__Any (ref,usize) -> any
   local $cast_7 u64
   local $field_8 usize
   local ei usize

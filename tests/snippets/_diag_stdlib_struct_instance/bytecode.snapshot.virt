@@ -31,6 +31,7 @@ fn 0 snippet$main () -> i32
   local $arr_0 ref
   local $arr_1 ref
   local $arr_2 ref
+  local v any
   local __off_1 usize
   local $cast_26 i64
   array.new 14 0
@@ -55,35 +56,35 @@ fn 0 snippet$main () -> i32
   local.field 0 2 0
   string.const 0
   call 5
-  local.tee 0
+  local.tee 3
   type_check 0
   if $L0 void
     return.lit i32.const 1
   end $L0
   i64.const 22
   call 1
-  local.set 1
+  local.set 0
   i64.const 0
-  local.set 3
-  local.get 1
-  local.get 3
+  local.set 4
+  local.get 0
+  local.get 4
   string.const 1
   call 3
-  local.set 3
-  local.get 0
+  local.set 4
+  local.get 3
   ref.cast 1
   i32.to_i64
-  local.set 4
-  local.get 1
-  local.get 3
+  local.set 5
+  local.get 0
   local.get 4
+  local.get 5
   call 4
-  local.set 3
-  local.get 1
-  local.get 3
+  local.set 4
+  local.get 0
+  local.get 4
   call 2
   call 13
-  local.get 0
+  local.get 3
   ref.cast 1
   return
 end
@@ -236,7 +237,7 @@ fn 4 std_core$write_int (ref,usize,i64) -> usize
   return
 end
 
-fn 5 std_collections$MutableMap$Index$at__string__i32 (ref,string) -> ref
+fn 5 std_collections$MutableMap$Index$at__string__i32 (ref,string) -> any
   local.get 0
   local.get 1
   call 12
@@ -659,7 +660,7 @@ fn 11 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   return
 end
 
-fn 12 std_collections$std_collections$get__string__i32 (ref,string) -> ref
+fn 12 std_collections$std_collections$get__string__i32 (ref,string) -> any
   local $call_7 u64
   local $field_8 usize
   local ei usize

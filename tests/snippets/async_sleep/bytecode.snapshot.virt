@@ -37,8 +37,8 @@ vtable Async.resume 3 2
 vtable Async.resume 16 10
 export main 1
 
-fn 0 snippet$steps () -> ref
-  local $k_2 ref
+fn 0 snippet$steps () -> any
+  local $k_2 any
   null.const
   local.set 0
   null.const
@@ -82,13 +82,13 @@ fn 1 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 2 snippet$__asyncstate_3$Async$resume (ref) -> ref
-  local __resumed_3 ref
+fn 2 snippet$__asyncstate_3$Async$resume (ref) -> any
+  local __resumed_3 any
   local $cast_24 null
-  local $cast_31 ref
-  local __resumed_4 ref
+  local $cast_31 any
+  local __resumed_4 any
   local $cast_47 null
-  local $cast_54 ref
+  local $cast_54 any
   block $L0 void
     loop $L1 void
       local.field 0 3 3
@@ -395,7 +395,7 @@ fn 7 std_io$println__string (string) -> void
   return
 end
 
-fn 8 std_async$sleep (i64) -> ref
+fn 8 std_async$sleep (i64) -> any
   local.get 0
   i64.const 0
   bool.const false
@@ -403,13 +403,13 @@ fn 8 std_async$sleep (i64) -> ref
   return
 end
 
-fn 9 std_async$run_async_main (ref) -> i32
+fn 9 std_async$run_async_main (any) -> i32
   local.get 0
   call 11
   return
 end
 
-fn 10 std_async$Sleep$Async$resume (ref) -> ref
+fn 10 std_async$Sleep$Async$resume (ref) -> any
   local $call_4 i64
   local $field_5 i64
   local.field 0 16 2
@@ -453,8 +453,8 @@ fn 10 std_async$Sleep$Async$resume (ref) -> ref
   return
 end
 
-fn 11 std_async$block_on__i32 (ref) -> i32
-  local r ref
+fn 11 std_async$block_on__i32 (any) -> i32
+  local r any
   block $L0 void
     loop $L1 void
       local.get 0

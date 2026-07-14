@@ -21,7 +21,7 @@ import 1 write std_io$write (i32,string) -> void
 impl 8 ByteAccess
 export main 1
 
-fn 0 snippet$params_of (ref) -> i32
+fn 0 snippet$params_of (any) -> i32
   local.get 0
   type_check 3
   if $L0 void
@@ -45,6 +45,7 @@ fn 0 snippet$params_of (ref) -> i32
     return
   end $L2
   local.get 0
+  ref.cast 2
   struct.get 2 0
   ref.cast 6
   return

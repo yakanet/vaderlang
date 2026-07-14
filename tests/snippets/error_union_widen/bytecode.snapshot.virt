@@ -89,7 +89,7 @@ fn 1 snippet$B$Error$message (ref) -> string
   return
 end
 
-fn 2 snippet$widen (ref) -> ref
+fn 2 snippet$widen (any) -> any
   local.get 0
   return
 end
@@ -99,7 +99,7 @@ fn 3 snippet$only_string (string) -> string
   return
 end
 
-fn 4 snippet$tail_string (ref) -> string
+fn 4 snippet$tail_string (any) -> string
   local.get 0
   type_check 6
   if $L0 void
@@ -112,7 +112,7 @@ fn 4 snippet$tail_string (ref) -> string
 end
 
 fn 5 snippet$main () -> i32
-  local __scrut_0 ref
+  local __scrut_0 any
   local $vcall_7 string
   string.const 3
   call 2

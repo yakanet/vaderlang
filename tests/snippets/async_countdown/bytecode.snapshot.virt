@@ -30,7 +30,7 @@ vtable Async.resume 1 0
 vtable Async.resume 8 4
 export main 3
 
-fn 0 snippet$CountDown$Async$resume (ref) -> ref
+fn 0 snippet$CountDown$Async$resume (ref) -> any
   local $sub_6 i32
   local.field 0 1 0
   ref.cast 3
@@ -51,9 +51,9 @@ fn 0 snippet$CountDown$Async$resume (ref) -> ref
   return.lit i32.const 42
 end
 
-fn 1 snippet$waiter () -> ref
-  local $k_0 ref
-  local $k_3 ref
+fn 1 snippet$waiter () -> any
+  local $k_0 any
+  local $k_3 any
   null.const
   local.set 0
   null.const
@@ -67,7 +67,7 @@ fn 1 snippet$waiter () -> ref
   return
 end
 
-fn 2 snippet$tag (ref) -> string
+fn 2 snippet$tag (any) -> string
   local __buf_0 ref
   local __off_1 usize
   local $cast_11 i64
@@ -107,7 +107,7 @@ fn 2 snippet$tag (ref) -> string
 end
 
 fn 3 snippet$main () -> i32
-  local w ref
+  local w any
   local $call_4 string
   call 1
   local.tee 0
@@ -137,11 +137,11 @@ fn 3 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 4 snippet$__asyncstate_2$Async$resume (ref) -> ref
+fn 4 snippet$__asyncstate_2$Async$resume (ref) -> any
   local $field_15 i32
-  local __resumed_2 ref
+  local __resumed_2 any
   local $cast_25 i32
-  local $cast_31 ref
+  local $cast_31 any
   local $struct_37 ref
   block $L0 void
     loop $L1 void

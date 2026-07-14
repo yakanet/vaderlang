@@ -10,6 +10,7 @@ fn 0 snippet$main () -> i32
   local and_res bool
   local i i32
   local extra ref
+  local last any
   i32.const 0
   local.set 0
   i32.const 0
@@ -485,11 +486,11 @@ fn 0 snippet$main () -> i32
   array.new 2 2
   local.tee 1
   array.remove_last
-  local.tee 4
+  local.tee 5
   type_check 0
   bool.not
   if $L36 void
-    local.get 4
+    local.get 5
     ref.cast 1
     i32.const 200
     i32.eq

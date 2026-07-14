@@ -38,11 +38,12 @@ fn 0 snippet$convert (ref) -> i32
   return
 end
 
-fn 1 snippet$kind_span (ref,ref) -> i32
+fn 1 snippet$kind_span (ref,any) -> i32
   local.get 1
   type_check 4
   if $L0 void
     local.get 1
+    ref.cast 4
     struct.get 4 0
     ref.cast 2
     return

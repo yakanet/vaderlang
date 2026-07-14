@@ -31,7 +31,7 @@ vtable Iterator.next 6 3
 vtable Iterator.next 10 4
 export main 1
 
-fn 0 snippet$gen () -> ref
+fn 0 snippet$gen () -> any
   i32.const 0
   i32.const 0
   i32.const 12
@@ -40,8 +40,8 @@ fn 0 snippet$gen () -> ref
 end
 
 fn 1 snippet$main () -> i32
-  local __iter_0 ref
-  local __step_1 ref
+  local __iter_0 any
+  local __step_1 any
   local v i32
   local __buf_2 ref
   local __off_3 usize
@@ -57,6 +57,7 @@ fn 1 snippet$main () -> i32
       if $L2 void
       else
         local.get 1
+        ref.cast 5
         struct.get 5 0
         ref.cast 2
         local.set 2
@@ -84,7 +85,7 @@ fn 1 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 2 snippet$__genstate_gen$Iterator$next (ref) -> ref
+fn 2 snippet$__genstate_gen$Iterator$next (ref) -> any
   local $add_22 i32
   local $add_41 i32
   block $L0 void
@@ -301,7 +302,7 @@ fn 2 snippet$__genstate_gen$Iterator$next (ref) -> ref
   return
 end
 
-fn 3 std_core$Range$Iterator$next__i32 (ref) -> ref
+fn 3 std_core$Range$Iterator$next__i32 (ref) -> any
   local if_res bool
   local $field_3 i32
   local $field_4 i32
@@ -356,7 +357,7 @@ fn 3 std_core$Range$Iterator$next__i32 (ref) -> ref
   return
 end
 
-fn 4 std_core$Range$Iterator$next__usize (ref) -> ref
+fn 4 std_core$Range$Iterator$next__usize (ref) -> any
   local if_res bool
   local $field_3 usize
   local $field_4 usize

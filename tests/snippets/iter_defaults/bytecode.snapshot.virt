@@ -26,7 +26,7 @@ impl 8 Iterator
 impl 13 ByteAccess
 export main 2
 
-fn 0 snippet$Countdown$Iterator$next (ref) -> ref
+fn 0 snippet$Countdown$Iterator$next (ref) -> any
   local v i32
   local $sub_9 i32
   local.field 0 1 0
@@ -57,7 +57,7 @@ end
 fn 1 snippet$Countdown$Iterator$count (ref) -> usize
   local total any
   local finished any
-  local __scrut_0 ref
+  local __scrut_0 any
   i64.const 0
   local.set 1
   bool.const false
@@ -97,7 +97,7 @@ end
 fn 2 snippet$main () -> i32
   local __count_0 usize
   local __elem_1 i32
-  local __scrut_2 ref
+  local __scrut_2 any
   local $k_23 i32
   local $k_24 bool
   local $k_25 i32
@@ -222,7 +222,7 @@ fn 2 snippet$main () -> i32
   return
 end
 
-fn 3 std_core$Range$Iterator$next__i32 (ref) -> ref
+fn 3 std_core$Range$Iterator$next__i32 (ref) -> any
   local if_res bool
   local $field_3 i32
   local $field_4 i32
@@ -278,7 +278,7 @@ fn 3 std_core$Range$Iterator$next__i32 (ref) -> ref
 end
 
 fn 4 std_core$Range$Iterator$is_empty__i32 (ref) -> bool
-  local __scrut_0 ref
+  local __scrut_0 any
   local.get 0
   call 3
   local.tee 1
@@ -294,10 +294,10 @@ fn 4 std_core$Range$Iterator$is_empty__i32 (ref) -> bool
   return
 end
 
-fn 5 std_core$Range$Iterator$last__i32 (ref) -> ref
+fn 5 std_core$Range$Iterator$last__i32 (ref) -> any
   local result any
   local finished any
-  local __scrut_0 ref
+  local __scrut_0 any
   null.const
   local.set 1
   bool.const false
@@ -320,6 +320,7 @@ fn 5 std_core$Range$Iterator$last__i32 (ref) -> ref
         type_check 3
         if $L4 void
           local.get 3
+          ref.cast 3
           struct.get 3 0
           ref.cast 7
           local.set 1

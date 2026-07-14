@@ -21,7 +21,7 @@ impl 6 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  local a ref
+  local a any
   local $field_6 string
   local __buf_0 ref
   local __off_1 usize
@@ -30,6 +30,7 @@ fn 0 snippet$main () -> i32
   i32.const 3
   struct.new_stack 3
   local.tee 0
+  ref.cast 3
   struct.get 3 0
   ref.cast 2
   local.set 1
@@ -48,6 +49,7 @@ fn 0 snippet$main () -> i32
   call 5
   local.set 3
   local.get 0
+  ref.cast 3
   struct.get 3 1
   ref.cast 1
   i32.to_i64
@@ -65,6 +67,7 @@ fn 0 snippet$main () -> i32
   i32.const 7
   struct.new_stack 4
   local.tee 0
+  ref.cast 3
   struct.get 3 0
   ref.cast 2
   local.set 1
@@ -83,6 +86,7 @@ fn 0 snippet$main () -> i32
   call 5
   local.set 3
   local.get 0
+  ref.cast 3
   struct.get 3 1
   ref.cast 1
   i32.to_i64

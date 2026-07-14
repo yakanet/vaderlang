@@ -53,16 +53,17 @@ static int32_t snippet_add(int32_t l0, int32_t l1) {
 }
 
 static int32_t snippet_main(void) {
-    vader_box_t l0 = vader_box_null();
+    void* l0 = NULL;
     vader_box_t t0 = vader_box_null();
     int32_t t1;
-    vader_box_t* gc_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots };
+    vader_box_t* gc_roots[1] = { &t0 };
+    void** gc_raw_roots[1] = { &l0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots };
     vader_gc_top = &gc_frame;
 #line 8 "tests/snippets/fn_value_local/_main.vader"
-    l0 = vader_box_obj(2u, &vader_fn_static_0);
+    l0 = (void*) &vader_fn_static_0;
 #line 9 "tests/snippets/fn_value_local/_main.vader"
-    vader_fn_t* _a0_fnobj = (vader_fn_t*) l0.payload.obj;
+    vader_fn_t* _a0_fnobj = (vader_fn_t*) l0;
     t0 = ((vader_fn_erased_sig_2_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(1u, INT32_C(2)), vader_box_i32(1u, INT32_C(3)));
     t1 = ((int32_t) t0.payload.i);
     { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }

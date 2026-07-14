@@ -43,9 +43,9 @@ fn 0 snippet$main () -> i32
   local __for_len_1 usize
   local __for_i_2 usize
   local k string
+  local v any
   local __p_6 string
   local $call_47 usize
-  local __buf_7 ref
   local __off_8 usize
   local $cast_56 i64
   local $cast_71 u64
@@ -129,29 +129,29 @@ fn 0 snippet$main () -> i32
         local.get 0
         local.get 6
         call 9
-        local.tee 2
+        local.tee 7
         type_check 1
         if $L6 void
-          local.get 2
+          local.get 7
           ref.cast 1
           local.set 3
           local.get 6
-          local.tee 7
+          local.tee 8
           call 4
-          local.set 8
+          local.set 9
           i64.const 21
-          local.get 8
+          local.get 9
           i64.add
           call 2
-          local.set 9
+          local.set 2
           i64.const 0
           local.set 10
-          local.get 9
+          local.get 2
           local.get 10
-          local.get 7
+          local.get 8
           call 5
           local.set 10
-          local.get 9
+          local.get 2
           local.get 10
           string.const 8
           call 5
@@ -159,12 +159,12 @@ fn 0 snippet$main () -> i32
           local.get 3
           i32.to_i64
           local.set 11
-          local.get 9
+          local.get 2
           local.get 10
           local.get 11
           call 6
           local.set 10
-          local.get 9
+          local.get 2
           local.get 10
           call 3
           call 8
@@ -487,7 +487,7 @@ fn 8 std_io$println__string (string) -> void
   return
 end
 
-fn 9 std_collections$MutableMap$Index$at__string__i32 (ref,string) -> ref
+fn 9 std_collections$MutableMap$Index$at__string__i32 (ref,string) -> any
   local.get 0
   local.get 1
   call 16
@@ -910,7 +910,7 @@ fn 15 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   return
 end
 
-fn 16 std_collections$std_collections$get__string__i32 (ref,string) -> ref
+fn 16 std_collections$std_collections$get__string__i32 (ref,string) -> any
   local $call_7 u64
   local $field_8 usize
   local ei usize

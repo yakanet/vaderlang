@@ -330,7 +330,7 @@ fn 3 __lambda_17 (ref,i32,i32) -> i32
   return
 end
 
-fn 4 std_core$Range$Iterator$next__i32 (ref) -> ref
+fn 4 std_core$Range$Iterator$next__i32 (ref) -> any
   local if_res bool
   local $field_3 i32
   local $field_4 i32
@@ -385,7 +385,7 @@ fn 4 std_core$Range$Iterator$next__i32 (ref) -> ref
   return
 end
 
-fn 5 std_core$Range$Iterator$next__usize (ref) -> ref
+fn 5 std_core$Range$Iterator$next__usize (ref) -> any
   local if_res bool
   local $field_3 usize
   local $field_4 usize
@@ -440,7 +440,7 @@ fn 5 std_core$Range$Iterator$next__usize (ref) -> ref
   return
 end
 
-fn 6 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
+fn 6 std_core$ArrayIterator$Iterator$next__i32 (ref) -> any
   local $field_1 usize
   local $len_3 usize
   local $field_6 ref
@@ -686,10 +686,10 @@ fn 14 std_io$println__string (string) -> void
   return
 end
 
-fn 15 std_iter$sum (ref) -> i32
+fn 15 std_iter$sum (any) -> i32
   local s i32
-  local __iter_0 ref
-  local __step_1 ref
+  local __iter_0 any
+  local __step_1 any
   local x i32
   i32.const 0
   local.set 1
@@ -704,6 +704,7 @@ fn 15 std_iter$sum (ref) -> i32
       if $L2 void
       else
         local.get 3
+        ref.cast 8
         struct.get 8 0
         ref.cast 1
         local.set 4
@@ -719,10 +720,10 @@ fn 15 std_iter$sum (ref) -> i32
   return
 end
 
-fn 16 std_iter$fold__i32__i32 (ref,i32,ref) -> i32
+fn 16 std_iter$fold__i32__i32 (any,i32,ref) -> i32
   local acc i32
-  local __iter_0 ref
-  local __step_1 ref
+  local __iter_0 any
+  local __step_1 any
   local x i32
   local.get 1
   local.set 3
@@ -737,6 +738,7 @@ fn 16 std_iter$fold__i32__i32 (ref,i32,ref) -> i32
       if $L2 void
       else
         local.get 5
+        ref.cast 8
         struct.get 8 0
         ref.cast 1
         local.set 6

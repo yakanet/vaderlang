@@ -38,11 +38,11 @@ vtable Async.resume 8 4
 vtable Async.resume 19 11
 export main 1
 
-fn 0 snippet$compute (i32) -> ref
+fn 0 snippet$compute (i32) -> any
   local $cell_1 any
   local $k_2 any
   local $k_3 ref
-  local $k_6 ref
+  local $k_6 any
   local.get 0
   struct.new 21
   local.set 1
@@ -64,7 +64,7 @@ fn 0 snippet$compute (i32) -> ref
 end
 
 fn 1 snippet$main () -> i32
-  local $k_2 ref
+  local $k_2 any
   null.const
   local.set 0
   i32.const 0
@@ -72,6 +72,7 @@ fn 1 snippet$main () -> i32
   local.get 0
   i32.const 4
   struct.new 8
+  ref.cast 2
   call 10
   return
 end
@@ -100,15 +101,15 @@ fn 2 __lambda_1 (ref,i32) -> void
   return
 end
 
-fn 3 snippet$__asyncstate_6$Async$resume (ref) -> ref
+fn 3 snippet$__asyncstate_6$Async$resume (ref) -> any
   local $field_15 ref
-  local __resumed_4 ref
+  local __resumed_4 any
   local $cast_26 null
-  local $cast_33 ref
+  local $cast_33 any
   local $field_39 ref
-  local __resumed_5 ref
+  local __resumed_5 any
   local $cast_50 null
-  local $cast_57 ref
+  local $cast_57 any
   local $cell_63 any
   local $field_64 any
   local $field_65 any
@@ -290,14 +291,14 @@ fn 3 snippet$__asyncstate_6$Async$resume (ref) -> ref
   return
 end
 
-fn 4 snippet$__asyncstate_15$Async$resume (ref) -> ref
+fn 4 snippet$__asyncstate_15$Async$resume (ref) -> any
   local $field_13 i32
   local __buf_1 ref
   local __off_2 usize
   local $cast_20 i64
-  local __resumed_4 ref
+  local __resumed_4 any
   local $cast_32 i32
-  local $cast_39 ref
+  local $cast_39 any
   block $L0 void
     loop $L1 void
       local.field 0 8 3
@@ -546,7 +547,7 @@ fn 8 std_io$println__string (string) -> void
   return
 end
 
-fn 9 std_async$sleep (i64) -> ref
+fn 9 std_async$sleep (i64) -> any
   local.get 0
   i64.const 0
   bool.const false
@@ -554,13 +555,13 @@ fn 9 std_async$sleep (i64) -> ref
   return
 end
 
-fn 10 std_async$run_async_main (ref) -> i32
+fn 10 std_async$run_async_main (any) -> i32
   local.get 0
   call 12
   return
 end
 
-fn 11 std_async$Sleep$Async$resume (ref) -> ref
+fn 11 std_async$Sleep$Async$resume (ref) -> any
   local $call_4 i64
   local $field_5 i64
   local.field 0 19 2
@@ -604,8 +605,8 @@ fn 11 std_async$Sleep$Async$resume (ref) -> ref
   return
 end
 
-fn 12 std_async$block_on__i32 (ref) -> i32
-  local r ref
+fn 12 std_async$block_on__i32 (any) -> i32
+  local r any
   block $L0 void
     loop $L1 void
       local.get 0

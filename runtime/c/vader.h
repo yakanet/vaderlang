@@ -332,6 +332,15 @@ static inline void vader_obj_header_init(void* obj, uint32_t type_index) {
     h->forward    = NULL;
 }
 
+/* T12 raw-ref array read : materialise a `vader_box_t` from a raw `void*` slot,
+ * recovering the tag from the referent's object header (NULL → null variant).
+ * The write side is the existing `vader_box_to_b1` (box → `void*`/NULL). Together
+ * they bridge a `VADER_ARRAY_KIND_REF` slot to the still-boxed expression stack. */
+static inline vader_box_t vader_ref_box(void* p) {
+    return p == NULL ? vader_box_null()
+                     : vader_box_obj(((vader_obj_header_t*) p)->type_index, p);
+}
+
 /* ----------------------------------------------------------------- array */
 
 /* Element-storage discriminator. Primitive arrays store raw values (1-8 byte
@@ -352,6 +361,12 @@ typedef enum {
     VADER_ARRAY_KIND_F64   = 10,
     VADER_ARRAY_KIND_CHAR  = 11,
     VADER_ARRAY_KIND_BOOL  = 12,
+    /* Raw-ref slots (T12): 8-byte `void*` per element instead of a 24-byte
+     * `vader_box_t`, for arrays whose element is ref-only (every value is a
+     * header-bearing heap object — incl a union-of-refs like `Expr[]`). The
+     * tag is recovered from each referent's `vader_obj_header_t.type_index` on
+     * read (`vader_ref_box`); the GC traces the slots via `vader_gc_scan_raw`. */
+    VADER_ARRAY_KIND_REF   = 13,
 } vader_array_kind_t;
 
 static inline size_t vader_array_element_size(uint8_t kind) {
@@ -369,6 +384,7 @@ static inline size_t vader_array_element_size(uint8_t kind) {
         case VADER_ARRAY_KIND_U64:   /* fallthrough */
         case VADER_ARRAY_KIND_I64:   /* fallthrough */
         case VADER_ARRAY_KIND_F64:   return 8;
+        case VADER_ARRAY_KIND_REF:   return sizeof(void*);  /* T12 raw-ref slot */
         default: return sizeof(vader_box_t);   /* unreachable, defensive */
     }
 }
@@ -904,8 +920,17 @@ static inline void* vader_virtual_dispatch(uint32_t tag, uint32_t slot) {
 typedef struct vader_gc_frame {
     struct vader_gc_frame* prev;
     uint32_t               nrefs;
-    uint32_t               _pad;
+    /* Count of raw-ref roots (T12) — `void*` locals carrying a concrete ref
+     * unboxed. Reuses the former `_pad` slot, so existing positional frame
+     * initializers `{ prev, nrefs, 0u, ptrs }` still read `nraw = 0` and (via C
+     * partial-init) `raw = NULL`. */
+    uint32_t               nraw;
     vader_box_t**          ptrs;
+    /* Raw-ref roots : `raw[i]` is a `void**` addressing a `void*` local that
+     * holds a concrete ref. Scanned via `vader_gc_scan_raw` (forwards the
+     * referent, handles NULL, fires the write barrier). NULL until T12 codegen
+     * populates it. */
+    void***                raw;
 } vader_gc_frame_t;
 
 extern vader_gc_frame_t* vader_gc_top;

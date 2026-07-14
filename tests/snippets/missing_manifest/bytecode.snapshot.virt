@@ -20,14 +20,14 @@ string 6 "\n"
 import 0 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 1 bytes std_core$bytes (string) -> ref
 import 2 write std_io$write (i32,string) -> void
-import 3 read_file_bytes std_io$read_file_bytes (string) -> ref
+import 3 read_file_bytes std_io$read_file_bytes (string) -> any
 impl 4 ByteAccess
 impl 9 Error
 vtable Error.message 9 9
 export main 2
 
 fn 0 snippet$describe (string) -> string
-  local r ref
+  local r any
   local $field_6 string
   local $field_9 string
   local.get 0
@@ -36,10 +36,12 @@ fn 0 snippet$describe (string) -> string
   type_check 9
   if $L0 void
     local.get 1
+    ref.cast 9
     struct.get 9 0
     ref.cast 1
     local.set 2
     local.get 1
+    ref.cast 9
     struct.get 9 0
     ref.cast 1
     local.set 3
@@ -55,7 +57,7 @@ fn 0 snippet$describe (string) -> string
 end
 
 fn 1 snippet$catch_all (string) -> string
-  local r ref
+  local r any
   local $vcall_7 string
   local.get 0
   call 8
@@ -63,6 +65,7 @@ fn 1 snippet$catch_all (string) -> string
   type_check 9
   if $L0 void
     local.get 1
+    ref.cast 9
     virtual.call 1 Error.message
     local.set 2
     string.const 4
@@ -199,17 +202,19 @@ fn 7 std_core$finish_buffer (ref,usize) -> string
   return
 end
 
-fn 8 std_io$read_file_string (string) -> ref
-  local r ref
+fn 8 std_io$read_file_string (string) -> any
+  local r any
   local.get 0
   call.import 3
   local.tee 1
   type_check 9
   if $L0 void
     local.get 1
+    ref.cast 9
     return
   end $L0
   local.get 1
+  ref.cast 5
   call.import 0
   box 1
   return
