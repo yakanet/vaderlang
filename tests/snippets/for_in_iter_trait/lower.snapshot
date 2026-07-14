@@ -40,20 +40,53 @@
           char(0x6c)
   fn snippet$count_ls(s: string) -> usize
     return
-      call :usize
-        callee:
-          .count :fn() -> usize
-            call :__genstate_filter<char>
+      block :usize
+        let __count_0: usize = int(0) :usize
+        let pred: fn(char) -> bool = is_l :fn(char) -> bool
+        let __fuse_iter_2: StringChars =
+          call :StringChars
+            callee:
+              chars :StringChars
+            arg0:
+              s :string
+        loop
+          let __fuse_step_3: Yield<char> | null =
+            call :Yield<char> | null
               callee:
-                std_iter$std_iter$filter__char :__genstate_filter<char>
+                std_string$StringChars$Iterator$next :?
               arg0:
-                call :StringChars
-                  callee:
-                    chars :StringChars
-                  arg0:
-                    s :string
-              arg1:
-                is_l :fn(char) -> bool
+                __fuse_iter_2 :StringChars
+          if :void
+            cond:
+              is null :bool
+                __fuse_step_3 :Yield<char> | null
+            then:
+              break
+            else:
+              let x: char =
+                .value :char
+                  cast → Yield<char>
+                    __fuse_step_3 :Yield<char> | null
+              if :void
+                cond:
+                  call :bool
+                    callee:
+                      pred :fn(char) -> bool
+                    arg0:
+                      x :?
+                then:
+                  let __elem_1: char = x :?
+                  assign
+                    target:
+                      __count_0 :usize
+                    value:
+                      add :usize
+                        l:
+                          __count_0 :usize
+                        r:
+                          int(1) :usize
+        ~>
+          __count_0 :usize
   fn snippet$main() -> i32
     let a: i32 =
       call :i32
