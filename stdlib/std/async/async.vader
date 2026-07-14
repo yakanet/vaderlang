@@ -65,7 +65,18 @@ export sleep :: fn(ms: i64) -> Async<null> = Sleep { .ms = ms }
 /// @return      main's completed `i32` exit code.
 /// @error       panics on a park with no timer armed — every task is suspended
 ///              with nothing left to wake it (a deadlock).
-export run_async_main :: fn(root: Async<i32>) -> i32 {
+export run_async_main :: fn(root: Async<i32>) -> i32 = block_on(root)
+
+/// Drive any awaitable to completion from synchronous code, returning its
+/// result. Resumes `root` and, whenever it parks, blocks on the nearest armed
+/// timer (`sched_park`) then re-drives — never spins. Needs no `async main`: it
+/// works over the global scheduler state, so a plain sync caller (e.g. the CLI
+/// spawning subprocesses) can fan out awaitables and join them here.
+///
+/// @param root  the awaitable to run to completion.
+/// @return      its completed value.
+/// @error       panics on a park with nothing armed to wake it (a deadlock).
+export block_on :: fn<T>(root: Async<T>) -> T {
     for {
         r :: root.resume()
         if r is Suspended {

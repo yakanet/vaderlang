@@ -15,7 +15,7 @@ bc :: import "vader/bytecode"
 import "std/io" { read_file_bytes, write_file_bytes, exists, is_dir, read_dir, print, eprint, temp_dir, current_executable_location, Stream, IOError }
 import "std/env" { get_env }
 import "std/tty" { is_tty }
-import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
+import "std/process" { spawn_start, spawn_poll, spawn_take_stdout, spawn_take_stderr }
 import "std/math" { sqrt, pow, floor, ceil, round, sin, cos, tan }
 import "std/time" { now, monotonic }
 import "std/string" { trim }
@@ -384,24 +384,32 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         }
         return HostOk { .value = string_array_to_value(result, string_array_type_id) }
     }
-    // ---- std/process spawn ----------------------------------------------
-    .ProcessSpawnRun -> {
-        argv :: read_array(stack[arg_base], at_pc, "spawn_run argv")
+    // ---- std/process spawn (non-blocking) -------------------------------
+    .ProcessSpawnStart -> {
+        argv :: read_array(stack[arg_base], at_pc, "spawn_start argv")
         if argv is Trap { return argv }
         argv_strings: string[] = []
         for i in 0..<argv.length {
-            element :: read_string(argv.elements[argv.offset + i], at_pc, "spawn_run argv element")
+            element :: read_string(argv.elements[argv.offset + i], at_pc, "spawn_start argv element")
             if element is Trap { return element }
             argv_strings.push(element.value)
         }
-        code :: spawn_run(argv_strings)
-        return HostOk { .value = I32Val { .value = code } }
+        return HostOk { .value = I64Val { .value = spawn_start(argv_strings) } }
     }
-    .ProcessSpawnLastStdout -> {
-        return HostOk { .value = StringVal { .value = spawn_last_stdout() } }
+    .ProcessSpawnPoll -> {
+        h :: read_i64(stack[arg_base], at_pc, "spawn_poll handle")
+        if h is Trap { return h }
+        return HostOk { .value = I32Val { .value = spawn_poll(h.value) } }
     }
-    .ProcessSpawnLastStderr -> {
-        return HostOk { .value = StringVal { .value = spawn_last_stderr() } }
+    .ProcessSpawnTakeStdout -> {
+        h :: read_i64(stack[arg_base], at_pc, "spawn_take_stdout handle")
+        if h is Trap { return h }
+        return HostOk { .value = StringVal { .value = spawn_take_stdout(h.value) } }
+    }
+    .ProcessSpawnTakeStderr -> {
+        h :: read_i64(stack[arg_base], at_pc, "spawn_take_stderr handle")
+        if h is Trap { return h }
+        return HostOk { .value = StringVal { .value = spawn_take_stderr(h.value) } }
     }
     // ---- std/tty + std/env ----------------------------------------------
     .TtyIsTty -> {
@@ -461,7 +469,7 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
         | .IoWriteFileBytes | .IoReadLine | .IoReadStdin | .IoPollStdin
         | .IoSetStdinUnbuffered | .IoCurrentExecutableLocation -> true
     .TimeNowUnixMs | .TimeMonotonicNs -> true
-    .ProcessSpawnRun | .ProcessSpawnLastStdout | .ProcessSpawnLastStderr -> true
+    .ProcessSpawnStart | .ProcessSpawnPoll | .ProcessSpawnTakeStdout | .ProcessSpawnTakeStderr -> true
     .TtyIsTty | .EnvGetEnv -> true
     // Scheduler : reads/advances the async clock — not reproducible at comptime
     // (you cannot `sleep` while baking a constant).

@@ -1010,18 +1010,22 @@ vader_bool_t   vader_is_tty(int32_t stream);
 vader_box_t    vader_get_env(vader_string_t name, uint32_t str_tag);
 
 /* ----------------------------------------------------------------- process
- * `spawn_run` blocks on the child, stashes captured stdout/stderr into
- * runtime-owned buffers, and returns the exit status (>= 0) or one of the
- * negative sentinels below. `spawn_last_stdout/_stderr` surface those
- * buffers as `vader_string_t`. Non-reentrant — last call wins. The Vader
- * wrapper in `std/process` glues all three into a `ProcessResult`. */
+ * Non-blocking subprocess primitives backing `std/process::spawn_async`.
+ * `spawn_start` launches a child and returns a handle (>= 0) into the runtime
+ * child table, or -1 on failure. `spawn_poll` drains its pipes + reaps without
+ * blocking, returning VADER_SPAWN_RUNNING while alive, else the exit status
+ * (>= 0) or a negative sentinel. `spawn_take_stdout/_stderr` intern the
+ * captured output once done (stderr take frees the slot). The blocking
+ * `std/process::spawn` is `block_on(spawn_async(...))` over these. */
 
 #define VADER_SPAWN_LAUNCH_FAIL (-1)
 #define VADER_SPAWN_SIGNALED    (-2)
+#define VADER_SPAWN_RUNNING     (-1)  /* poll: still alive (context distinguishes from LAUNCH_FAIL) */
 
-vader_i32_t    vader_spawn_run(vader_array_t* argv);
-vader_string_t vader_spawn_last_stdout(void);
-vader_string_t vader_spawn_last_stderr(void);
+vader_i64_t    vader_spawn_start(vader_array_t* argv);
+vader_i32_t    vader_spawn_poll(vader_i64_t handle);
+vader_string_t vader_spawn_take_stdout(vader_i64_t handle);
+vader_string_t vader_spawn_take_stderr(vader_i64_t handle);
 
 /* ----------------------------------------------------------------- string */
 

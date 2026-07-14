@@ -201,7 +201,7 @@ op_allocates :: fn(op: vm.Op) -> bool = match op {
 /// signature → local decls → temp decls → frame → body.
 emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out: StringBuilder) -> void {
     no_frame :: !(fn_index in ctx.may_alloc)
-    out.append("static ${signature_for(function)} {\n")
+    out.append("${linkage_prefix(ctx.split)}${signature_for(function)} {\n")
 
     // Walk the body into a separate buffer first : temps are discovered
     // during the walk (materialisation), and their declarations belong in
@@ -1222,10 +1222,38 @@ emit_virtual_call :: fn(s: FnState, op: vm.VirtualCall) -> void {
 /// `call.indirect` site. Gated on the ops actually appearing — a fn-typed
 /// field can exist with no fn-value op.
 emit_fn_trampolines :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
-    fns :: ctx.module.functions
+    usage :: scan_fn_value_usage(ctx.module.functions)
+    if !usage.any { return }
+
+    n :: ctx.module.functions.len()
+    for i in 0..<n {
+        if usage.fn_ref_type[i] >= 0 { emit_fn_ref_tramp(ctx, out, i32(i), usage.fn_ref_type[i]) }
+    }
+    for i in 0..<n {
+        if usage.is_closure[i] { emit_closure_lift(ctx, out, i32(i)) }
+    }
+    out.append("\n")
+}
+
+/// Which fns are taken as fn-values — the shared scan behind both the
+/// trampoline definitions (`emit_fn_trampolines`) and their split-build
+/// forward decls (`emit_closure_forward_decls`).
+FnValueUsage :: struct {
+    /// `BcFn` type tag per `fn.ref` target index, `-1` when never ref'd.
+    fn_ref_type: i32[]
+    /// true at index `i` when a `make_closure` lifts fn `i`.
+    is_closure: bool[]
+    /// true when the module has ANY fn-value op (else no wrappers exist).
+    any: bool
+}
+
+/// Walk every fn body once, recording which fns are taken by `fn.ref`
+/// (need a static `vader_fn_t` + trampoline) and which are lifted by
+/// `make_closure` (need a lift wrapper). Indices are parallel to `fns`.
+scan_fn_value_usage :: fn(fns: BcFunction[]) -> FnValueUsage {
     n :: fns.len()
-    fn_ref_type: i32[] = []     // BcFn type tag per fn.ref target, -1 = none
-    is_closure: bool[] = []     // true when a make_closure lifts this fn
+    fn_ref_type: i32[] = []
+    is_closure: bool[] = []
     for _ in 0..<n {
         fn_ref_type.push(-1)
         is_closure.push(false)
@@ -1242,13 +1270,39 @@ emit_fn_trampolines :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
             }
         }
     }
-    if !any { return }
+    return FnValueUsage { .fn_ref_type = fn_ref_type, .is_closure = is_closure, .any = any }
+}
 
-    for i in 0..<n {
-        if fn_ref_type[i] >= 0 { emit_fn_ref_tramp(ctx, out, i32(i), fn_ref_type[i]) }
+/// Forward decls for the address-taken fn-value closures — split builds only.
+///
+/// The trampolines (`vader_fn_tramp_N` / `vader_fn_lift_N`) and their static
+/// value (`vader_fn_static_N`) are synthesised OUTSIDE `module.functions`, so
+/// `emit_forward_decls` never covers them. In a monolithic build the
+/// definitions precede every use within the one TU, so no decl is needed ; a
+/// split build scatters callers and definitions across TUs → each needs a
+/// prototype (fns) / `extern` (the static value) in the shared header. The
+/// heads mirror `emit_fn_ref_tramp` / `emit_closure_lift` exactly.
+emit_closure_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+    if !ctx.split { return }
+    usage :: scan_fn_value_usage(ctx.module.functions)
+    if !usage.any { return }
+    fns :: ctx.module.functions
+    for i in 0..<fns.len() {
+        if usage.fn_ref_type[i] >= 0 {
+            sig :: fns[i].signature
+            head :: tramp_head(sig.params.len())
+            out.append("vader_box_t vader_fn_tramp_${i}(${head});\n")
+            out.append("extern vader_fn_t vader_fn_static_${i};\n")
+        }
     }
-    for i in 0..<n {
-        if is_closure[i] { emit_closure_lift(ctx, out, i32(i)) }
+    for i in 0..<fns.len() {
+        // Mirror `emit_closure_lift`'s guard : a 0-param fn emits no lift.
+        if usage.is_closure[i] && fns[i].signature.params.len() > 0 {
+            sig :: fns[i].signature
+            tail :: i32(sig.params.len()) - 1
+            head :: tramp_head(usize(tail))
+            out.append("vader_box_t vader_fn_lift_${i}(${head});\n")
+        }
     }
     out.append("\n")
 }
@@ -1259,8 +1313,9 @@ emit_fn_ref_tramp :: fn(ctx: EmitCtx, out: StringBuilder, fn_index: i32, type_id
     fn_decl :: ctx.module.functions[usize(fn_index)]
     cname :: sanitise(fn_decl.name)
     sig :: fn_decl.signature
-    head :: if sig.params.len() == 0 { "void* env" } else { "void* env, ${tramp_box_params(sig.params.len())}" }
-    out.append("static vader_box_t vader_fn_tramp_${fn_index}(${head}) {\n")
+    link :: linkage_prefix(ctx.split)
+    head :: tramp_head(sig.params.len())
+    out.append("${link}vader_box_t vader_fn_tramp_${fn_index}(${head}) {\n")
     out.append("    (void) env;\n")
     unboxed :: tramp_unbox_args(sig.params)
     if sig.result == ValType.Void {
@@ -1270,7 +1325,7 @@ emit_fn_ref_tramp :: fn(ctx: EmitCtx, out: StringBuilder, fn_index: i32, type_id
         out.append("    return ${tramp_box_result(cname, unboxed, sig)};\n")
     }
     out.append("}\n")
-    out.append("static vader_fn_t vader_fn_static_${fn_index} = { { ${type_id}u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_${fn_index}, NULL };\n")
+    out.append("${link}vader_fn_t vader_fn_static_${fn_index} = { { ${type_id}u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_${fn_index}, NULL };\n")
 }
 
 /// Emit the `make_closure` lift wrapper : takes `void* env` + the tail args
@@ -1282,8 +1337,8 @@ emit_closure_lift :: fn(ctx: EmitCtx, out: StringBuilder, fn_index: i32) -> void
     sig :: fn_decl.signature
     if sig.params.len() == 0 { return }
     tail :: i32(sig.params.len()) - 1
-    head :: if tail == 0 { "void* env" } else { "void* env, ${tramp_box_params(usize(tail))}" }
-    out.append("static vader_box_t vader_fn_lift_${fn_index}(${head}) {\n")
+    head :: tramp_head(usize(tail))
+    out.append("${linkage_prefix(ctx.split)}vader_box_t vader_fn_lift_${fn_index}(${head}) {\n")
     out.append("    vader_box_t env_box; env_box.tag = 0u; env_box._pad = 0u; env_box.payload.obj = env;\n")
     unboxed_tail :: lift_unbox_tail(sig.params)
     call_args :: if unboxed_tail == "" { "env_box" } else { "env_box, ${unboxed_tail}" }
@@ -1295,6 +1350,12 @@ emit_closure_lift :: fn(ctx: EmitCtx, out: StringBuilder, fn_index: i32) -> void
     }
     out.append("}\n")
 }
+
+/// The erased-ABI head `void* env[, vader_box_t a0…]` for a wrapper with `count`
+/// boxed tail slots — `env` alone when `count == 0`. Shared by the trampoline /
+/// lift definitions AND their split-build forward decls so the two can't drift
+/// (a prototype must byte-match its definition).
+tramp_head :: fn(count: usize) = if count == 0 { "void* env" } else { "void* env, ${tramp_box_params(count)}" }
 
 /// `vader_box_t a0, vader_box_t a1, …` — `count` erased-ABI tail params.
 tramp_box_params :: fn(count: usize) -> string {

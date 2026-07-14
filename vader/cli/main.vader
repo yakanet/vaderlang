@@ -7,9 +7,10 @@ module "vader/cli"
 
 import "std/io" { println, eprintln, read_file_string, write_file_string, print, IOError }
 import "std/collections" { MutableMap }
-import "std/string" { starts_with, ends_with, trim_suffix, split, trim }
+import "std/string" { starts_with, ends_with, trim_suffix, split, trim, parse_int, ParseError }
 import "std/path" { to_posix, to_path, filename }
-import "std/process" { spawn, ProcessError }
+import "std/process" { spawn, spawn_async, ProcessError, ProcessResult }
+import "std/async" { all, block_on }
 import "std/cli" { FlagSpec, parse, parse_known, bool_flag, string_flag }
 import "vader/version" { CLI_VERSION }
 import "vader/lexer" { tokenize, dump_tokens }
@@ -36,7 +37,7 @@ import "vader/bytecode" { BytecodeModule }
 import "vader/bytecode" { default_emit_options }
 import "vader/bytecode" { dump_bytecode, dump_bytecode_annotated }
 import "vader/midir" { build_cfg_project, dump_cfg_project, DumpCfgOptions, emit_bytecode_from_cfg, const_fold_project, annotate_escape, eliminate_dead_cfg, array_load_forward_project }
-import "vader/c_emit" { emit_c, EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
+import "vader/c_emit" { emit_c, emit_c_split, CProgram, EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
 Prof :: import "vader/profile"
 TTY :: import "std/tty"
 import "vader/diagnostics" { Diagnostic, dump_diagnostics, dump_diagnostics_with_file }
@@ -77,6 +78,7 @@ COMMANDS:
                                      --cc=<path>        Native only: C compiler to invoke (default: cc)
                                      --ldflags="..."    Native only: raw linker flags appended to the cc invocation
                                      --include-paths=a,b  Extra module search roots (GCC -I style), highest precedence
+                                     --split            Emit with external linkage for a multi-file parallel build (local dev)
   fmt [path] [options]             Format Vader sources (single file or recursive directory walk)
                                      --check          Read-only ; exit 1 if any file would change
                                      --stdout         Write formatted output to stdout (single file)
@@ -676,6 +678,22 @@ last_index_of_slash :: fn(s: string) -> i32 {
 // `vader.h`), so a bundled `vader` finds `runtime/c/` next to itself.
 runtime_c_root :: fn() = resolve_sidecar("runtime/c", "vader.h")
 
+// Default translation-unit count for `--split` when `--split-units=N` is
+// unset. A modest value ; the parallel-compile driver caps it to the core
+// count. Inc 3 will derive the default from the machine's core count.
+SPLIT_DEFAULT_UNITS :: 8
+
+// Parse `--split-units=N` : a positive integer, else the default. A malformed
+// or non-positive value silently falls back (the flag is a dev-build tuning
+// knob, not worth failing the build over).
+parse_split_units :: fn(s: string) -> i32 {
+    if s == "" { return SPLIT_DEFAULT_UNITS }
+    n :: parse_int(s)
+    if n is ParseError { return SPLIT_DEFAULT_UNITS }
+    if n < 1 { return SPLIT_DEFAULT_UNITS }
+    return n
+}
+
 cmd_build :: fn(args: string[]) -> i32 {
     specs: FlagSpec[] = [
         FlagSpec { .name = "target",   .kind = .Str  },
@@ -685,6 +703,8 @@ cmd_build :: fn(args: string[]) -> i32 {
         FlagSpec { .name = "cc",       .kind = .Str  },
         FlagSpec { .name = "ldflags",  .kind = .Str  },
         FlagSpec { .name = "include-paths", .kind = .Str },
+        FlagSpec { .name = "split",    .kind = .Bool },
+        FlagSpec { .name = "split-units", .kind = .Str },
     ]
     // Strict parse : an unknown `--flag` is an error, not a silently-ignored
     // token (a `--releaze` typo must not fall through to a default debug build).
@@ -704,6 +724,8 @@ cmd_build :: fn(args: string[]) -> i32 {
     release      :: parsed.bool_flag("release")
     cc           :: parsed.string_flag("cc", "cc")
     ldflags      :: parsed.string_flag("ldflags", "")
+    split        :: parsed.bool_flag("split")
+    split_units  :: parse_split_units(parsed.string_flag("split-units", ""))
     include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
 
     if target != "native" && target != "wasm" && target != "ir" && target != "ir-text" && target != "c" {
@@ -725,10 +747,10 @@ cmd_build :: fn(args: string[]) -> i32 {
     }
 
     if target == "c" {
-        return build_c(file, out_flag, release, include_path_flags)
+        return build_c(file, out_flag, release, include_path_flags, split, split_units)
     }
     if target == "native" {
-        return build_native(file, out_flag, release, cc, ldflags, include_path_flags)
+        return build_native(file, out_flag, release, cc, ldflags, include_path_flags, split, split_units)
     }
 
     // TODO: --target=ir / --target=ir-text — write the binary (.vir) / text
@@ -746,10 +768,8 @@ cmd_build :: fn(args: string[]) -> i32 {
 // diagnostics go to stderr ; returns null when an error-severity diagnostic
 // blocks the build, so the caller emits nothing and exits non-zero.
 emit_c_source :: fn(file: string, release: bool, include_path_flags: string[]) -> string | null {
-    // Debug build → populate the per-op `debug` table so the c-emit keeps
-    // `#line` ; release drops both (the seed + shipped compiler stay lean).
-    b :: prepare_cfg_bytecode_with(file, !release, include_path_flags)
-    if !flush_build_diags(b.pre_diags, b.lower_diags) {
+    b :: prepared_module(file, release, include_path_flags)
+    if b is null {
         return null
     }
     // Designate the program entry by mangled name (same source as the bytecode
@@ -765,6 +785,19 @@ emit_c_source :: fn(file: string, release: bool, include_path_flags: string[]) -
     return c
 }
 
+// Front-end + lowering + bytecode for `file`, with build diagnostics flushed to
+// stderr. Shared by the mono (`emit_c_source`) and split (`build_native_split`)
+// paths. Debug build → populate the per-op `debug` table so the c-emit keeps
+// `#line` ; release drops it (the seed + shipped compiler stay lean). Returns
+// null when an error-severity diagnostic blocks the build.
+prepared_module :: fn(file: string, release: bool, include_path_flags: string[]) -> CfgBytecode | null {
+    b :: prepare_cfg_bytecode_with(file, !release, include_path_flags)
+    if !flush_build_diags(b.pre_diags, b.lower_diags) {
+        return null
+    }
+    return b
+}
+
 // Render the merged pipeline diagnostics to stderr and report whether the
 // build may proceed : any error-severity diagnostic aborts the build
 // (return false) ; warnings / info still print.
@@ -778,7 +811,13 @@ flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
 
 // `--target=c` : write the generated C to `--out` (default `<file>.c`).
 // `--out=-` streams it to stdout — the bootstrap seed pipes that into gzip.
-build_c :: fn(file: string, out_flag: string, release: bool, include_path_flags: string[]) -> i32 {
+build_c :: fn(file: string, out_flag: string, release: bool, include_path_flags: string[], split: bool, split_units: i32) -> i32 {
+    if split {
+        out :: if out_flag != "" { out_flag } else { strip_input_suffix(file) }
+        prog :: emit_c_program_for(file, release, include_path_flags, split_units, out)
+        if prog is null { return 1 }
+        return write_split_files(out, prog)
+    }
     c_src :: emit_c_for_input(file, release, include_path_flags)
     if c_src is null {
         return 1
@@ -817,7 +856,7 @@ emit_c_source_from_virt :: fn(file: string, release: bool) -> string | null {
     module :: parse_virt_bc(src)
     return emit_c(module, CEmitOptions {
         .release = release,
-        .entry_mangled = virt_entry_mangled(module)
+        .entry_mangled = virt_entry_mangled(module),
     })
 }
 
@@ -842,15 +881,14 @@ strip_input_suffix :: fn(file: string) -> string =
 // `--target=native` : emit the C next to the binary, then invoke the C
 // compiler to link it against the external runtime (`runtime/c/`). The `.c`
 // is kept on a `cc` failure so the user can inspect the generated source.
-build_native :: fn(file: string, out_flag: string, release: bool, cc: string, ldflags: string, include_path_flags: string[]) -> i32 {
+build_native :: fn(file: string, out_flag: string, release: bool, cc: string, ldflags: string, include_path_flags: string[], split: bool, split_units: i32) -> i32 {
+    out :: if out_flag != "" { out_flag } else { strip_input_suffix(file) }
+    if split {
+        return build_native_split(file, out, release, cc, ldflags, include_path_flags, split_units)
+    }
     c_src :: emit_c_for_input(file, release, include_path_flags)
     if c_src is null {
         return 1
-    }
-    out :: if out_flag != "" {
-        out_flag
-    } else {
-        strip_input_suffix(file)
     }
     c_file :: "${out}.c"
     if write_out(c_file, c_src) != 0 {
@@ -873,38 +911,170 @@ build_native :: fn(file: string, out_flag: string, release: bool, cc: string, ld
     return 0
 }
 
-// Assemble the `cc` command line : runtime include + the emitted C unit + the
-// external runtime unit, debug (`-O0 -g`) or release (`-O3 -DNDEBUG`) flags,
-// any user `--ldflags`, then `-o <out> -lm`. `-lm` satisfies the runtime's
-// `floor` / `fmod` references on glibc ; it is a no-op on macOS / MinGW.
-cc_argv :: fn(cc: string, c_file: string, out: string, release: bool, ldflags: string) -> string[] {
-    argv: string[] = [cc, "-std=c11"]
-    if release {
-        argv.push("-O3")
-        argv.push("-DNDEBUG")
-        // Cache-line-align every function so a hot loop's alignment is stable
-        // against unrelated code growth elsewhere in the unit. Without it, adding
-        // a few lines to one runtime fn can shift a hot fn (e.g. `vader_array_push`)
-        // onto a bad %64 offset and slow its byte-identical loop ~1.6× (the
-        // arr_push layout regression). +1.3 % binary, neutral on self-compile.
-        argv.push("-falign-functions=64")
-    } else {
-        argv.push("-O0")
-        argv.push("-g")
+// ----------------------------------------------------------- split build
+
+// `--split --target=native` : emit the program as a header + globals TU + N
+// function TUs (external linkage), then compile + link. Inc 2 compiles them in
+// a single `cc` invocation (still one process, but exercises the cross-TU
+// linkage) ; Inc 3 will replace this with a parallel `cc -c` pool. The `.c` set
+// is kept on failure for inspection.
+build_native_split :: fn(file: string, out: string, release: bool, cc: string, ldflags: string, include_path_flags: string[], split_units: i32) -> i32 {
+    prog :: emit_c_program_for(file, release, include_path_flags, split_units, out)
+    if prog is null {
+        return 1
     }
+    if write_split_files(out, prog) != 0 {
+        return 1
+    }
+    c_files :: split_c_files(out, prog.units.len())
     rt :: runtime_c_root()
+
+    // Fan out one `cc -c` per TU (+ the runtime) as concurrent async spawns, so
+    // the OS compiles them across cores. `all` joins them ; `block_on` drives
+    // the cooperative scheduler from this synchronous entry.
+    tasks: Async<ProcessResult | ProcessError>[] = []
+    obj_files: string[] = []
+    for cf in c_files {
+        obj :: "${cf}.o"
+        obj_files.push(obj)
+        tasks.push(spawn_async(cc_compile_argv(cc, cf, obj, rt, release)))
+    }
+    rt_obj :: "${out}.split.runtime.o"
+    obj_files.push(rt_obj)
+    tasks.push(spawn_async(cc_compile_argv(cc, "${rt}/vader_runtime.c", rt_obj, rt, release)))
+
+    results :: block_on(all(tasks))
+    for r in results {
+        if r is ProcessError as e {
+            eprintln("vader build: ${e.message()}")
+            eprintln("(generated C kept at ${out}.split.*.c)")
+            return 1
+        } else if r is ProcessResult as pr {
+            if pr.exit != 0 {
+                eprintln("vader build: ${cc} -c failed (exit ${pr.exit})")
+                eprintln(pr.stderr)
+                eprintln("(generated C kept at ${out}.split.*.c)")
+                return 1
+            }
+        }
+    }
+
+    // Link the objects into the final binary (link is inherently serial).
+    lres :: spawn(cc_link_argv(cc, obj_files, out, ldflags))
+    if lres is ProcessError {
+        eprintln("vader build: ${lres.message()}")
+        return 1
+    }
+    if lres.exit != 0 {
+        eprintln("vader build: ${cc} link failed (exit ${lres.exit})")
+        eprintln(lres.stderr)
+        return 1
+    }
+    eprintln("vader build: wrote ${out} (split: ${obj_files.len()} objects compiled in parallel)")
+    return 0
+}
+
+// Prepare the module and emit it as a `CProgram`. The header basename embeds a
+// `.split.` infix so it never collides with the runtime's `vader.h` when
+// `--out` basename is `vader`. Null on a front-end error or `.virt` input.
+emit_c_program_for :: fn(file: string, release: bool, include_path_flags: string[], split_units: i32, out: string) -> CProgram | null {
+    if file.ends_with(".virt") {
+        eprintln("vader build: --split is not supported for .virt input")
+        return null
+    }
+    b :: prepared_module(file, release, include_path_flags)
+    if b is null {
+        return null
+    }
+    // The `#include` name is the header's basename (split TUs sit next to it) —
+    // `filename` via `to_posix` also handles `\` on Windows.
+    header_name :: "${out.to_posix().to_path().filename()}.split.h"
+    return emit_c_split(b.module, CEmitOptions { .release = release, .entry_mangled = b.entry }, split_units, header_name)
+}
+
+// Write the split program : `<out>.split.h`, `<out>.split.g.c`, and
+// `<out>.split.<k>.c` for each function unit. All co-located so each TU's
+// `#include "<base>.split.h"` resolves relative to its own directory.
+write_split_files :: fn(out: string, prog: CProgram) -> i32 {
+    if write_out("${out}.split.h", prog.header) != 0 { return 1 }
+    if write_out("${out}.split.g.c", prog.globals) != 0 { return 1 }
+    for k in 0..<prog.units.len() {
+        if write_out("${out}.split.${k}.c", prog.units[k]) != 0 { return 1 }
+    }
+    return 0
+}
+
+// The `.c` files to compile : the globals TU + each function TU (the header is
+// included, not compiled).
+split_c_files :: fn(out: string, unit_count: usize) -> string[] {
+    files: string[] = ["${out}.split.g.c"]
+    for k in 0..<unit_count {
+        files.push("${out}.split.${k}.c")
+    }
+    return files
+}
+
+// `cc -c <src> -o <obj>` for one split TU (or the runtime). Same optimisation
+// flags as the monolithic `cc_argv`, plus `-I <runtime>` so `#include "vader.h"`
+// and the co-located split header resolve. One of these runs per object, in
+// parallel.
+cc_compile_argv :: fn(cc: string, src: string, obj: string, rt: string, release: bool) -> string[] {
+    argv: string[] = [cc]
+    argv.push_all(cc_opt_flags(release))
     argv.push("-I")
     argv.push(rt)
-    argv.push(c_file)
-    argv.push("${rt}/vader_runtime.c")
-    // Whitespace-split user --ldflags into argv tokens — boring, no shell
-    // quoting : a path with spaces is a user bug. Appended before `-o` so they
-    // can refer back to the emitted unit (e.g. `@extern` helper symbols).
+    argv.push("-c")
+    argv.push(src)
+    argv.push("-o")
+    argv.push(obj)
+    return argv
+}
+
+// `cc <objs...> [ldflags] -o <out> -lm` — the serial link step after the
+// parallel compiles. `-lm` satisfies the runtime's `floor` / `fmod` on glibc
+// (a no-op on macOS / MinGW).
+cc_link_argv :: fn(cc: string, objs: string[], out: string, ldflags: string) -> string[] {
+    argv: string[] = [cc]
+    argv.push_all(objs)
+    push_ldflags(argv, ldflags)
+    argv.push("-o")
+    argv.push(out)
+    argv.push("-lm")
+    return argv
+}
+
+// Compiler + `-std=c11` + optimisation flags — the single source of truth for
+// codegen policy across the mono (`cc_argv`) and split (`cc_compile_argv`)
+// builds, so they can't silently drift. `-falign-functions=64` keeps a hot
+// loop's alignment stable against unrelated code growth (without it, adding a
+// few lines to one runtime fn can shift e.g. `vader_array_push` onto a bad %64
+// offset and slow its byte-identical loop ~1.6× — the arr_push regression ;
+// +1.3 % binary, neutral on self-compile).
+cc_opt_flags :: fn(release: bool) -> string[] =
+    if release { ["-std=c11", "-O3", "-DNDEBUG", "-falign-functions=64"] } else { ["-std=c11", "-O0", "-g"] }
+
+// Append whitespace-split user `--ldflags` tokens to `argv` — no shell quoting
+// (a path with spaces is a user bug).
+push_ldflags :: fn(argv: string[], ldflags: string) -> void {
     for tok in ldflags.trim().split(" ") {
         if tok != "" {
             argv.push(tok)
         }
     }
+}
+
+// Assemble the `cc` command line : runtime include + the emitted C unit + the
+// external runtime unit, opt flags, any user `--ldflags`, then `-o <out> -lm`.
+// `-lm` satisfies the runtime's `floor` / `fmod` on glibc ; no-op on macOS / MinGW.
+cc_argv :: fn(cc: string, c_file: string, out: string, release: bool, ldflags: string) -> string[] {
+    argv: string[] = [cc]
+    argv.push_all(cc_opt_flags(release))
+    rt :: runtime_c_root()
+    argv.push("-I")
+    argv.push(rt)
+    argv.push(c_file)
+    argv.push("${rt}/vader_runtime.c")
+    push_ldflags(argv, ldflags)
     argv.push("-o")
     argv.push(out)
     argv.push("-lm")

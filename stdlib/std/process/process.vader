@@ -1,20 +1,39 @@
-// std/process — synchronous external-process invocation.
+// std/process — external-process invocation, async-first.
 //
-// Native-only in MVP : the runtime wires `posix_spawnp` + pipes for stdout
-// and stderr. WASM has no spawn equivalent (browser sandboxing makes it
-// meaningless ; WASI preview2's process API is post-MVP), so the imports
-// below are unbound on `--target=wasm` and fail at link time.
+// `spawn_async` is the primitive: a non-blocking awaitable over a child
+// process. The runtime launches the child (`spawn_start`), the awaitable polls
+// it to completion on the cooperative scheduler (`spawn_poll`, re-arming a
+// short timer between polls — the same timer-driven suspension `std/async`'s
+// `sleep` uses), then interns the captured pipes (`spawn_take_stdout/_stderr`).
+// Launching N children and joining them with `std/async::all` runs them
+// concurrently — the OS schedules the child processes across cores.
+//
+// Blocking `spawn` is `block_on(spawn_async(...))`: one mechanism, cross-
+// platform (the runtime primitives carry both POSIX and Win32 branches).
+//
+// Native-only in MVP: the runtime wires the child primitives to
+// `posix_spawn` + pipes (POSIX) / `CreateProcessA` + pipes (Windows). WASM has
+// no spawn equivalent, so the imports below are unbound on `--target=wasm`.
 
-// Sentinels mirror the negative codes returned by `vader_spawn_run` — kept
-// in sync with `runtime/c/vader.h`'s VADER_SPAWN_* macros.
 module "std/process"
 
-LAUNCH_FAIL :: -1
-SIGNALED    :: -2
+import "std/runtime" { sched_now, sched_arm }
+import "std/async" { block_on }
 
-/// Error returned by `spawn` when the child can't be launched or terminates
-/// abnormally (signal / non-zero exit codes are NOT errors — they're reported
-/// through `ProcessResult.exit`).
+// Poll interval, ms. A child `cc` runs for 100s of ms, so a 2 ms detection
+// latency is negligible ; the scheduler `nanosleep`s between polls (no spin).
+POLL_MS: i64: 2
+
+// Sentinels mirror `runtime/c/vader.h`'s VADER_SPAWN_* macros. `spawn_poll`
+// returns RUNNING while the child is alive, SIGNALED on abnormal termination,
+// else the exit code (>= 0). `spawn_start` returns a handle (>= 0) or a
+// negative value on launch failure.
+RUNNING  :: -1
+SIGNALED :: -2
+
+/// Error from `spawn` / `spawn_async` when the child can't be launched or
+/// terminates abnormally (a non-zero exit is NOT an error — it rides in
+/// `ProcessResult.exit`).
 export ProcessError :: struct {
     msg: string
 }
@@ -23,45 +42,99 @@ ProcessError implements Error {
     message :: fn(self) -> string { return self.msg }
 }
 
-/// Outcome of a successful spawn — the child ran to completion (signal or
-/// not) and the runtime captured both pipes. `exit` carries the OS exit
-/// status ; `stdout` / `stderr` hold the full drained pipe contents.
+/// Outcome of a child that ran to completion. `exit` is the OS exit status ;
+/// `stdout` / `stderr` hold the full captured pipe contents.
 export ProcessResult :: struct {
     exit:   i32
     stdout: string
     stderr: string
 }
 
-@intrinsic export spawn_run         :: fn(argv: string[]) -> i32
-@intrinsic export spawn_last_stdout :: fn() -> string
-@intrinsic export spawn_last_stderr :: fn() -> string
+/// Launch `argv` without waiting ; returns a handle into the runtime child
+/// table, or a negative value on launch failure. Pipes for stdout/stderr are
+/// captured and drained by `spawn_poll`.
+@intrinsic export spawn_start :: fn(argv: string[]) -> i64
 
-/// Run `argv[0]` with `argv[1..]` as arguments, block until exit, and
-/// return the exit code plus captured stdout/stderr. Native-only — on
-/// `--target=wasm` the underlying `vader_spawn_run` import is unbound
-/// and the linker will refuse the build.
-///
-/// @param argv   the command line. `argv[0]` is the program ; the rest is
-///               passed unmodified to the child. Empty `argv` is an error.
-/// @return       a `ProcessResult` containing the exit code plus drained
-///               stdout/stderr buffers. The child is fully waited-on before
-///               this returns ; no daemon process leaks.
-/// @error        `ProcessError` when the child couldn't be launched
-///               (`spawn: failed to launch …`), terminated by a signal
-///               (`… terminated by signal`), or `argv` was empty
-///               (`spawn: empty argv`).
-export spawn :: fn(argv: string[]) -> ProcessResult | ProcessError {
-    if argv.len() == 0 {
-        return ProcessError { .msg = "spawn: empty argv" }
-    }
-    code :: spawn_run(argv)
-    out  :: spawn_last_stdout()
-    err  :: spawn_last_stderr()
-    if code == LAUNCH_FAIL {
-        return ProcessError { .msg = "spawn: failed to launch \"${argv[0]}\"" }
-    }
-    if code == SIGNALED {
-        return ProcessError { .msg = "spawn: \"${argv[0]}\" terminated by signal" }
-    }
-    return ProcessResult { .exit = code, .stdout = out, .stderr = err }
+/// Advance a launched child WITHOUT blocking: drain its pipes and reap if it
+/// exited. Returns `RUNNING` while alive, `SIGNALED` on abnormal termination,
+/// else the exit code (>= 0).
+@intrinsic export spawn_poll :: fn(handle: i64) -> i32
+
+/// Intern the child's captured stdout (call after `spawn_poll` reports done).
+@intrinsic export spawn_take_stdout :: fn(handle: i64) -> string
+
+/// Intern the child's captured stderr AND release the child slot — the last
+/// call for a handle. Take order is stdout then stderr.
+@intrinsic export spawn_take_stderr :: fn(handle: i64) -> string
+
+// ---- async primitive -------------------------------------------------------
+
+/// The awaitable backing `spawn_async`. On first `resume` it launches the child
+/// and arms a poll timer ; each later `resume` polls and, while the child is
+/// alive, re-arms the timer and parks (`Suspended`). Completes with a
+/// `ProcessResult` (or `ProcessError` on launch failure / signal).
+SpawnAsync :: struct {
+    argv:     string[]
+    started:  bool = false
+    handle:   i64  = -1
+    deadline: i64  = 0
 }
+
+SpawnAsync implements Async<ProcessResult | ProcessError> {
+    resume :: fn(self) -> ProcessResult | ProcessError | Suspended {
+        if !self.started {
+            self.started = true
+            if self.argv.len() == 0 {
+                return ProcessError { .msg = "spawn: empty argv" }
+            }
+            self.handle = spawn_start(self.argv)
+            if self.handle < 0 {
+                return ProcessError { .msg = "spawn: failed to launch \"${self.argv[0]}\"" }
+            }
+            self.deadline = sched_now() + POLL_MS
+            sched_arm(self.deadline)
+            return Suspended {}
+        }
+        // Poll at most once per POLL_MS. Without this gate, a driver that
+        // re-resumes every child each tick (`all([...])`) would arm a fresh
+        // timer per drive — piling up duplicates the single-pop `sched_park`
+        // never drains. Mirrors `Sleep`: stay parked until our timer fires.
+        if sched_now() < self.deadline { return Suspended {} }
+        code :: spawn_poll(self.handle)
+        if code == RUNNING {
+            self.deadline = sched_now() + POLL_MS
+            sched_arm(self.deadline)
+            return Suspended {}
+        }
+        // Done — take both pipes (stdout first, then stderr, which frees the
+        // slot) before deciding success vs signal.
+        out :: spawn_take_stdout(self.handle)
+        err :: spawn_take_stderr(self.handle)
+        if code == SIGNALED {
+            return ProcessError { .msg = "spawn: \"${self.argv[0]}\" terminated by signal" }
+        }
+        return ProcessResult { .exit = code, .stdout = out, .stderr = err }
+    }
+}
+
+/// Run `argv[0]` with `argv[1..]` as an awaitable — launches immediately, then
+/// completes once the child exits, WITHOUT blocking the scheduler. Fan several
+/// out and `await all([...])` to run them concurrently (the OS parallelises the
+/// child processes). `--target=wasm` has no subprocess support (unbound).
+///
+/// @param argv   the command line ; `argv[0]` is the program. Empty is an error.
+/// @return       an awaitable completing with the `ProcessResult`.
+/// @error        `ProcessError` on launch failure, a killing signal, or empty
+///               `argv`.
+export spawn_async :: fn(argv: string[]) -> Async<ProcessResult | ProcessError> =
+    SpawnAsync { .argv = argv }
+
+/// Run `argv[0]` with `argv[1..]`, BLOCK until exit, and return the exit code
+/// plus captured stdout/stderr. A `block_on` over `spawn_async` — prefer
+/// `spawn_async` when you need concurrency.
+///
+/// @param argv   the command line ; `argv[0]` is the program. Empty is an error.
+/// @return       a `ProcessResult` with the exit code + drained pipes.
+/// @error        `ProcessError` on launch failure, a killing signal, or empty
+///               `argv`.
+export spawn :: fn(argv: string[]) -> ProcessResult | ProcessError = block_on(spawn_async(argv))

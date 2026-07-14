@@ -160,7 +160,7 @@ emit_vtable_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     for row in rows {
         if row.entries.len() == 0 { continue }
         sig :: vtable_sig_for_row(ctx, row)
-        out.append("static ${c_type_for_val_bare(sig.result)} ${vtable_helper_name(row.key)}(${dispatcher_formal(sig)});\n")
+        out.append("${linkage_prefix(ctx.split)}${c_type_for_val_bare(sig.result)} ${vtable_helper_name(row.key)}(${dispatcher_formal(sig)});\n")
     }
 }
 
@@ -179,7 +179,7 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
         if row.entries.len() == 0 { continue }
         sig :: vtable_sig_for_row(ctx, row)
         helper :: vtable_helper_name(row.key)
-        out.append("static ${c_type_for_val_bare(sig.result)} ${helper}(${dispatcher_formal(sig)}) {\n")
+        out.append("${linkage_prefix(ctx.split)}${c_type_for_val_bare(sig.result)} ${helper}(${dispatcher_formal(sig)}) {\n")
         out.append("    switch (recv.tag) {\n")
         // A distinct (newtype) over a primitive shares its backing's runtime
         // tag, so several entries can map to one tag (e.g. i32 + a distinct
@@ -279,7 +279,7 @@ emit_vtables :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
         slots :: groups[usize(tag)]
         if slots.len() == 0 { continue }
         sorted :: sort(slots, (a: VtSlot, b: VtSlot) -> a.slot < b.slot)
-        out.append("static const vader_vtable_t vt_${tag} = { .slots = {\n")
+        out.append("${linkage_prefix(ctx.split)}const vader_vtable_t vt_${tag} = { .slots = {\n")
         for ent in sorted {
             out.append("    [${ent.slot}] = (void*)${sanitise(ctx.module.functions[usize(ent.fn_index)].name)}, /* ${ent.key} */\n")
         }

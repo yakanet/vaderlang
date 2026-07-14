@@ -217,30 +217,8 @@ fn 3 std_async$sleep (i64) -> ref
 end
 
 fn 4 std_async$run_async_main (ref) -> i32
-  local r ref
-  block $L0 void
-    loop $L1 void
-      local.get 0
-      virtual.call 1 Async.resume
-      local.tee 1
-      type_check 4
-      if $L2 void
-        call.import 3
-        i32.const 1
-        i32.eq
-        if $L3 void
-          string.const 4
-          call.import 4
-          drop
-        else
-        end $L3
-        br $L1
-      else
-      end $L2
-    end $L1
-  end $L0
-  local.get 1
-  ref.cast 1
+  local.get 0
+  call 6
   return
 end
 
@@ -285,5 +263,33 @@ fn 5 std_async$Sleep$Async$resume (ref) -> ref
     return
   end $L1
   struct.new 4
+  return
+end
+
+fn 6 std_async$block_on__i32 (ref) -> i32
+  local r ref
+  block $L0 void
+    loop $L1 void
+      local.get 0
+      virtual.call 1 Async.resume
+      local.tee 1
+      type_check 4
+      if $L2 void
+        call.import 3
+        i32.const 1
+        i32.eq
+        if $L3 void
+          string.const 4
+          call.import 4
+          drop
+        else
+        end $L3
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
+  local.get 1
+  ref.cast 1
   return
 end
