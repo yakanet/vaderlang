@@ -1,4 +1,6 @@
-# stderr
-vader vm: no entry function (index=0)
+# stdout
+range sum  = 10
+array sum  = 60
+l count    = 3
 # exit
-1
+0
