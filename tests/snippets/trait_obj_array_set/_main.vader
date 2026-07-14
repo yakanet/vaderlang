@@ -1,0 +1,32 @@
+// Regression guard: subscript-assigning into a trait-object array must box the
+// value with its CONCRETE type tag (for virtual dispatch), not the array's
+// erased element (trait) tag. `emit_array_set` routes the value through the
+// same `coerce_expr(.. .Any)` a plain `.Any`-slot assignment uses, so a struct
+// impl boxes via its object header and a DISTINCT-PRIMITIVE impl via its own
+// type index — earlier the set stamped the trait tag → runtime vtable miss.
+
+module "snippet"
+
+import "std/io" { println }
+
+Shape :: trait { area :: fn(self) -> i32 }
+
+// distinct-primitive impl (the tricky case — a box, not a header-bearing ref)
+Square :: i32
+Square implements Shape { area :: fn(self) -> i32 = i32(self) * i32(self) }
+
+// struct impl
+Circle :: struct { r: i32 }
+Circle implements Shape { area :: fn(self) -> i32 = 3 * self.r * self.r }
+
+main :: fn() -> i32 {
+    shapes: Shape[] = []
+    shapes.push(Square(2))
+    shapes.push(Circle { .r = 10 })
+    shapes[0] = Square(5)              // subscript-set, distinct-primitive value
+    shapes[1] = Circle { .r = 4 }      // subscript-set, struct value
+    for s in shapes {
+        println("${s.area()}")
+    }
+    return 0
+}
