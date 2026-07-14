@@ -128,6 +128,7 @@ import "vader/bytecode" {
     propagate_const_single_use,
     drop_dead_stores,
     coalesce_slots,
+    strip_self_copies,
     prune_unused_functions,
     prune_unused_imports,
     prune_unused_types,
@@ -300,8 +301,7 @@ with_peephole_out :: fn(f: BcFunction, out: BcPeepholeOut) -> BcFunction = BcFun
 export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: EmitOptions) -> BytecodeModule {
     ctx :: new_emitter_ctx()
     // Pass 1 — reserve CFG fns / externs / structs.
-    for __for_236_5 in cfg.modules {
-        [_, m] :: __for_236_5
+    for [_, m] in cfg.modules {
         for f in m.functions { reserve_cfg_function(f, ctx) }
         for ext in m.externs { reserve_cfg_extern(ext, ctx) }
         for s in m.struct_decls { reserve_cfg_struct(s, ctx) }
@@ -329,8 +329,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         }
     }
     // Pass 2 — emit fn bodies from the CFG.
-    for __for_256_5 in cfg.modules {
-        [_, m] :: __for_256_5
+    for [_, m] in cfg.modules {
         for cfg_fn in m.functions {
             if cfg_fn.is_extern { continue }
             // Resolve the reserved fn-table slot. Prefer the symbol-id
@@ -404,6 +403,10 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // / DCE passes see the original slot identities ; their gates depend
             // on per-slot set/get counts which coalescing would corrupt.
             ctx.functions[i] = coalesce_slots(ctx.functions[i])
+            // Post-coalesce cleanup : coalescing a move's source + dest onto one
+            // slot leaves adjacent same-slot `get N ; tee/set N` no-ops. Strip
+            // them so neither backend emits a self-copy (`lN = lN`).
+            ctx.functions[i] = with_peephole_out(ctx.functions[i], strip_self_copies(ctx.functions[i]))
         }
         // Pass 4 — whole-program prunes on the EmitterCtx.
         // Order matters : functions → imports → types so each pass's root
@@ -830,8 +833,7 @@ emit_range :: fn(ctx: FnEmitCfg, start: BlockId, until: BlockId) -> void {
 /// without `contains_key` (which the Vader stdlib MutableMap doesn't
 /// surface via direct field access). Walk the keys instead to know.
 loop_exit_present :: fn(ctx: FnEmitCfg, b: BlockId) -> bool {
-    for __for_764_5 in ctx.loop_exit {
-        [k, _] :: __for_764_5
+    for [k, _] in ctx.loop_exit {
         if k == b { return true }
     }
     return false

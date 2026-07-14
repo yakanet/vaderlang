@@ -92,8 +92,6 @@ fn 0 snippet$main () -> i32
   end $L3
   i32.const 0
   local.set 1
-  local.get 0
-  local.set 0
   bool.const false
   local.set 5
   block $L4 void

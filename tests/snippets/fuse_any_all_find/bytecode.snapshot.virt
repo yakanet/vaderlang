@@ -103,8 +103,6 @@ fn 0 snippet$main () -> i32
       end $L2
     end $L1
   end $L0
-  local.get 1
-  local.set 1
   bool.const true
   local.set 8
   struct.new 6
@@ -163,8 +161,6 @@ fn 0 snippet$main () -> i32
       end $L6
     end $L5
   end $L4
-  local.get 8
-  local.set 8
   bool.const true
   local.set 11
   struct.new 8
@@ -209,8 +205,6 @@ fn 0 snippet$main () -> i32
       end $L11
     end $L10
   end $L9
-  local.get 11
-  local.set 11
   i64.const 30
   call 11
   local.set 2
@@ -294,7 +288,6 @@ fn 0 snippet$main () -> i32
     end $L14
   end $L13
   local.get 12
-  local.tee 12
   type_check 0
   if $L17 void
     string.const 3
@@ -330,7 +323,6 @@ fn 0 snippet$main () -> i32
   make_closure 10 22
   local.set 2
   local.get 0
-  local.tee 0
   array.len
   local.set 4
   i64.const 0
@@ -382,7 +374,6 @@ fn 0 snippet$main () -> i32
     end $L19
   end $L18
   local.get 12
-  local.tee 12
   type_check 0
   if $L23 void
     string.const 5

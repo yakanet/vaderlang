@@ -173,8 +173,6 @@ fn 0 snippet$main () -> i32
     bool.const false
     local.set 4
   end $L6
-  local.get 4
-  local.set 4
   local.get 2
   ref.cast 13
   struct.get 13 3
@@ -1131,7 +1129,6 @@ fn 15 std_images_ppm$Ppm$Display$to_string (ref) -> string
     local.set 1
   end $L0
   local.get 1
-  local.tee 1
   call 3
   local.set 2
   i64.const 104

@@ -3061,8 +3061,6 @@ fn 27 std_core$format_decimal (ref,i32,i32) -> string
     string.const 11
     local.set 5
   end $L7
-  local.get 5
-  local.set 5
   local.get 6
   i32.const 0
   i32.lt

@@ -970,7 +970,6 @@ fn 22 std_path$normalize (ref) -> ref
     local.set 6
   end $L1
   local.get 6
-  local.tee 6
   local.set 7
   block $L2 void
     loop $L3 void

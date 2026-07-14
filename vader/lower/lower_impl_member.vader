@@ -67,35 +67,6 @@ queue_generic_impl_receiver :: fn(ctx: FnLowerCtx, recv: StructType) -> void {
     })
 }
 
-// True when EVERY top-level arg is the erased `Any` leaf (and there is at least
-// one) — the signature of a FULLY-erased generic instance produced by an erased
-// fn body (all type params substituted T→Any). This is the only shape the
-// comptime instance harvest never observes : the harvest sees the CONCRETE
-// call-site instance (`FilterIterator<char>`), while the erased fn body always
-// constructs the fully-erased tag (`FilterIterator<Any>`).
-//
-// MIXED instances (`MutableMap<string, Any>`, one arg concrete) are
-// deliberately excluded : the harvest already covers them, and queuing one here
-// forces a default-method body (`is_empty__string__Any`) whose sibling
-// (`next__string__Any`) the mixed-suffix materialiser never produces — the
-// GATE-B1 unresolved-callee emit panic.
-args_all_any_leaves :: fn(args: Type[]) -> bool {
-    if args.is_empty() { return false }
-    for a in args {
-        if !is_any_leaf(a) { return false }
-    }
-    return true
-}
-
-// One arg is the erased `Any` leaf. Both representations count : `AnyType`
-// (from `any_leaves_of`) and the `PrimitiveType "any"` the comptime erasure
-// subst mints (`mk_primitive("any")`).
-is_any_leaf :: fn(t: Type) -> bool {
-    if t is AnyType { return true }
-    if t is PrimitiveType as p { return p.name == "any" }
-    return false
-}
-
 // `is Trait` membership rows are now seeded from the frontend's
 // `struct_traits_by_sym` at emit (`build_impl_table_from_vtable`), covering
 // every interned struct tag incl. generic instances. Host-produced structs

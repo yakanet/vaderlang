@@ -351,7 +351,6 @@ fn 0 snippet$main () -> i32
     end $L13
   end $L12
   local.get 0
-  local.tee 0
   i64.const 0
   load_slot_i32
   local.set 2

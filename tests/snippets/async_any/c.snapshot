@@ -892,7 +892,7 @@ static vader_box_t std_async_Any_Async_resume__string__Any(void* l0) {
 #line 231 "stdlib/std/async/async.vader"
                 if ((l3.tag == 17u) || (l3.tag == 1u)) {
 #line 232 "stdlib/std/async/async.vader"
-                    t0 = std_collections_std_collections_add__usize(((vader_struct_std_async_Any__string__Any_t*) l0)->f_errors, l2);
+                    std_collections_std_collections_add__usize(((vader_struct_std_async_Any__string__Any_t*) l0)->f_errors, l2);
 #line 233 "stdlib/std/async/async.vader"
                     l4 = l3;
                     ((vader_struct_std_async_Any__string__Any_t*) l0)->f_last = l4;

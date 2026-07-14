@@ -80,8 +80,6 @@ fn 0 snippet$main () -> i32
     array.len
     local.set 4
   end $L0
-  local.get 4
-  local.set 4
   i64.const 0
   local.set 5
   block $L1 void

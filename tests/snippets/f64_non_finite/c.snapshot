@@ -2552,7 +2552,6 @@ static vader_string_t std_core_format_decimal(void* l0, int32_t l1, int32_t l2) 
     } else {
         l5 = 12u;
     }
-    l5 = l5;
 #line 334 "stdlib/std/core/dtoa.vader"
     if ((l6 < INT32_C(0))) {
         l7 = -(l6);

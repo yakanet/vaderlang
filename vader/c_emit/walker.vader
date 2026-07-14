@@ -249,6 +249,15 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
     last_line: i32 = -1
     last_file: string = ""
     for i in 0..<function.body.len() {
+        op :: function.body[i]
+        // A `call` / `call.import` whose non-void result is dropped immediately
+        // was emitted as a bare statement (see `emit_call_result`) — the result
+        // was never pushed, so skip the paired `drop` rather than pop a live
+        // value. The preceding call already invalidated the resolve cache.
+        if s.drop_call_result && op is vm.Drop {
+            s.drop_call_result = false
+            continue
+        }
         if !ctx.release {
             dbg :: function.debug[i]
             if dbg != null {
@@ -259,7 +268,14 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
                 }
             }
         }
-        emit_op(s, i32(i), function.body[i])
+        // Look ahead : a value-returning direct call consumed by the next op's
+        // `drop` needs no result temp — flag `emit_call_result` to emit it bare.
+        if op is vm.Call || op is vm.CallImport {
+            if i + 1 < function.body.len() && function.body[i + 1] is vm.Drop {
+                s.drop_call_result = true
+            }
+        }
+        emit_op(s, i32(i), op)
     }
 
     // Coalesce operand temps with disjoint live ranges into shared slots — the
@@ -1144,7 +1160,10 @@ emit_call_to :: fn(s: FnState, callee_name: string, sig: BcSignature) -> void {
 /// effects, so the result is forced even when unused) and push it. B1 /
 /// erasure return reshaping is T12.
 emit_call_result :: fn(s: FnState, call_expr: string, result: ValType) -> void {
-    if result == ValType.Void {
+    // A `void` call — or a call whose result the next op drops (`drop_call_result`,
+    // set by the walk driver) — is a bare statement : the side effect runs, no
+    // unread `tN` is minted. The driver skips the paired `drop`.
+    if result == ValType.Void || s.drop_call_result {
         line(s, "${call_expr};")
         return
     }
@@ -2344,7 +2363,10 @@ push_binop_any :: fn(s: FnState, op: string, result_val: ValType) -> void {
     // compare subsumes the old `vader_box_eq` tag+payload check for identity.
     lp :: obj_ptr_of(l)
     rp :: obj_ptr_of(r)
-    push_expr(s, result_val, "(${lp} ${op} ${rp})")
+    // Paren-free : `ref.eq` / `ref.ne` are equality, so `if (${expr})` would
+    // otherwise wrap a bare `==` in a second pair and trip `-Wparentheses-equality`
+    // (mirrors `binop_text`'s equality rule).
+    push_expr(s, result_val, "${lp} ${op} ${rp}")
 }
 
 /// `string.slice_codepoints` — pop string + lo + hi, push the codepoint

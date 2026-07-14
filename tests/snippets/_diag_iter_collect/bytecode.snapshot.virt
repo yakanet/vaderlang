@@ -64,8 +64,6 @@ fn 1 snippet$main () -> i32
       end $L2
     end $L1
   end $L0
-  local.get 0
-  local.set 0
   i64.const 24
   call 2
   local.set 1

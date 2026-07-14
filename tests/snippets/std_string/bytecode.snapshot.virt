@@ -519,8 +519,6 @@ fn 8 std_string$trim (string) -> string
       end $L3
     end $L1
   end $L0
-  local.get 2
-  local.set 2
   block $L4 void
     loop $L5 void
       local.get 2
