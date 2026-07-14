@@ -1,7 +1,9 @@
 # Error & null handling — values, narrowing, and combinators
 
-**Status:** DESIGN (2026-07-13), pre-implementation. Decided direction, open
-sub-decisions flagged below. Supersedes the `?` (try) operator.
+**Status:** COMPLETE (2026-07-13). All phases (1–4) shipped: combinators,
+`?`-user migration, `?` removal, and overload-by-receiver name unification.
+Supersedes the `?` (try) operator, now removed from the language. Two items
+are deliberately parked (not open work) — see §5 and §6.
 
 **Origin:** the error/null strategy was left explicitly *undecided* during the
 async design (memory `project_async_concurrency_design`: "PAS de trait `Try`,
@@ -151,10 +153,13 @@ each is a deletion or an exhaustive-match arm drop:
 
 ## 5. Phasing
 
-> **Status (2026-07-13): Phases 1–3 DONE + `and_then` unblocked.** Combinators
+> **Status (2026-07-13): Phases 1–4 DONE + `and_then` unblocked.** Combinators
 > shipped in full (`std/option`, incl. `and_then`); all `?` usage migrated to
 > narrowing (std/json, std/time, mowitnow); the `?` operator + its `TryExpr`
-> cascade + T3011/T3012/T3067 removed. `?` is gone from the language.
+> cascade + T3011/T3012/T3067 removed (`?` is gone from the language); and the
+> overload-by-receiver name unification (Phase 4) shipped — `or` / `or_else`
+> carry one name across `T | null` and `T | Error` (commits `70c153b6`,
+> `869bfd48`).
 >
 > The union-position inference gap that had deferred `and_then` is FIXED (root
 > cause: a block-body lambda ending in `return` typed its block as `never`, so a
@@ -163,9 +168,10 @@ each is a deletion or an exhaustive-match arm drop:
 > value types; `pick_final_return` uses it when the block diverges). This also
 > improves inference for any block-body lambda passed to a generic HOF.
 >
-> Remaining (optional): the multi-param `U | E` union split still needs explicit
-> type args (`try_all<U, E>` / `any<U, E>`) — genuinely ambiguous, left as-is; and
-> the overload-by-receiver follow-up (Phase 4) for same-name combinators.
+> Deliberately parked (not open work): the multi-param `U | E` union split still
+> needs explicit type args (`try_all<U, E>` / `any<U, E>`) — genuinely ambiguous,
+> left as-is; and the `else`/`guard` guarded binding (§3) — deferred, revisit
+> only if narrowing proves too verbose in real code.
 
 
 Each phase ends green (`verify.sh` fixed point, fresh seed, full suite), reviewed
@@ -179,8 +185,11 @@ before landing.
 3. **Remove `?`.** Delete the operator + its cascade (§4), incl. T3067. SPEC
    updated. This is the one big-diff phase (exhaustive-match churn), but purely
    mechanical once nothing uses `?`.
-4. **(Optional, later) Overload-by-receiver (option B).** If the null/error name
-   asymmetry bites, add UFCS receiver-overload resolution and unify the names.
+4. **Overload-by-receiver (option B) — SHIPPED.** The null/error name asymmetry
+   did bite, so UFCS receiver-overload resolution landed and the names are
+   unified (`or` / `or_else` across `T | null` and `T | Error`). Commits
+   `70c153b6` (typecheck: resolve overloads by receiver specificity),
+   `869bfd48` (stdlib: unify `or`/`or_else`).
 
 ---
 
