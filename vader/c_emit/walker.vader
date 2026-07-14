@@ -2065,8 +2065,21 @@ typed_array_fill_for :: fn(k: ArrayKind) -> SlotFill | null = match k {
     .U16   -> SlotFill { .cty = "uint16_t", .val = .I32 }
     .I16   -> SlotFill { .cty = "int16_t",  .val = .I32 }
     .F32   -> SlotFill { .cty = "float",    .val = .F32 }
+    // Ref slots aren't a typed-primitive fill (they hold raw `void*`, not a
+    // widened scalar) and aren't a plain box either — the ref/boxed-carrying
+    // paths handle them, so `fill == null` covers both `.Ref` and `.Boxed`.
+    .Ref   -> null
     .Boxed -> null
 }
+
+// T12/P3: array access must runtime-dispatch on `buf->element_kind` (raw-ref vs
+// boxed slot) for any element whose backing buf could be EITHER kind across the
+// erasure boundary — a concrete-ref element (`Ref` buf when built concretely,
+// `Boxed` when built in erased generic code) OR an erased `BcRef` (`Any[]`/trait
+// object, which a concrete-ref buf flows into). A genuine `string[]` / union[]
+// buf is always boxed, so those keep the plain box path (no dispatch, no churn).
+ref_carrying_element :: fn(element: BcType) -> bool =
+    element is BcStruct | BcArray | BcFn | BcRef
 
 // `data.const N` — push a zero-copy box over the immortal `.rodata` array
 // `vader_data_N` (emitted by `emit_data_pool`). Re-stamps the call-site type_id
@@ -2098,6 +2111,11 @@ emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {
         if fill != null {
             vc :: coerce_expr(types, name_of(v), val_of(v), fill.val)
             line(s, "((${fill.cty}*) ${arr_buf}->buf->slots)[${arr_buf}->offset + ${slot}u] = (${fill.cty}) ${vc};")
+        } else if kind == ArrayKind.Ref {
+            // Fresh buf is statically `.Ref` here (we chose the kind), so store the
+            // raw object pointer — no runtime dispatch, no box.
+            vc :: coerce_expr(types, name_of(v), val_of(v), ValType.Ref)
+            line(s, "((void**) ${arr_buf}->buf->slots)[${arr_buf}->offset + ${slot}u] = ${vc};")
         } else {
             line(s, "vader_array_box_slots(${arr_buf}->buf)[${arr_buf}->offset + ${slot}u] = ${box_expr(name_of(v), val_of(v), elem_tag)};")
         }
@@ -2127,9 +2145,24 @@ emit_array_get :: fn(s: FnState, op: vm.ArrayGet) -> void {
     arr :: pop(s)
     types :: s.ctx.module.types
     elem_tag :: array_element_tag(types, op.type_id)
-    kind :: array_kind_of(types[usize(elem_tag)])
+    elem :: types[usize(elem_tag)]
+    kind :: array_kind_of(elem)
     fill :: typed_array_fill_for(kind)
     a :: emit_slot_array_local(s, arr, idx)
+    if fill == null && ref_carrying_element(elem) {
+        // Erasure boundary (T12/P3): the buf may be `Ref` (built concretely) or
+        // `Boxed` (built in erased generic code), so the reader dispatches on
+        // `buf->element_kind` — via a `static inline` runtime helper (inlined at
+        // -O3, but keeps the emitted C a clean call). The pushed class follows the
+        // STATIC element : a concrete ref → `.Ref` (raw obj ptr, `_load_obj`), an
+        // erased `BcRef` → `.Any` (tagged box, `_load_box`).
+        result_val :: if kind == ArrayKind.Ref { ValType.Ref } else { ValType.Any }
+        getter :: if result_val == ValType.Ref { "vader_array_ref_load_obj" } else { "vader_array_ref_load_box" }
+        name :: fresh_tmp(s, result_val)
+        line(s, "${name} = ${getter}(${a}->buf, ${slot_index(a, idx)});")
+        push_tmp(s, name, result_val)
+        return
+    }
     name :: fresh_tmp(s, .Any)
     if fill == null {
         line(s, "${name} = vader_array_box_slots(${a}->buf)[${slot_index(a, idx)}];")
@@ -2153,9 +2186,19 @@ emit_array_set :: fn(s: FnState, op: vm.ArraySet) -> void {
     arr :: pop(s)
     types :: s.ctx.module.types
     elem_tag :: array_element_tag(types, op.type_id)
-    kind :: array_kind_of(types[usize(elem_tag)])
+    elem :: types[usize(elem_tag)]
+    kind :: array_kind_of(elem)
     fill :: typed_array_fill_for(kind)
     a :: emit_slot_array_local(s, arr, idx)
+    if fill == null && ref_carrying_element(elem) {
+        // Erasure boundary (T12/P3): store the raw object pointer into the raw
+        // `void*` slot or (for a Boxed buf) re-box it, dispatching on the buf's
+        // actual kind inside the `static inline` helper. Barrier fires on the buf
+        // (the container) for both kinds.
+        line(s, "vader_array_ref_store(${a}->buf, ${slot_index(a, idx)}, ${obj_ptr_of(value)});")
+        line(s, "VADER_WRITE_BARRIER(${a}->buf);")
+        return
+    }
     if fill == null {
         line(s, "vader_array_box_slots(${a}->buf)[${slot_index(a, idx)}] = ${box_expr(name_of(value), val_of(value), elem_tag)};")
         line(s, "VADER_WRITE_BARRIER(${a}->buf);")

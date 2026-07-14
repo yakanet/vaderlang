@@ -610,6 +610,7 @@ c_type_for_array_kind :: fn(k: ArrayKind) -> string = match k {
     .F64   -> "double"
     .Char  -> "uint32_t"
     .Bool  -> "uint8_t"
+    .Ref   -> "void*"
     .Boxed -> "vader_box_t"
 }
 

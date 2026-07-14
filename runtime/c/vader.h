@@ -487,6 +487,32 @@ static inline vader_box_t vader_array_read_u8(vader_array_t* a, size_t slot, uin
     return out;
 }
 
+/* Ref-array element access (T12/P3). A concrete-ref array is a REF buf when built
+ * concretely but a BOXED buf when built in erased generic code (and an erased
+ * `Any[]` access can meet a REF buf), so the reader must dispatch on the buf's
+ * actual `element_kind`, not the static element type. `slot` is the caller-
+ * resolved absolute index (`a->offset + i`) ; the G1 forward-resolve + D7 bounds
+ * check run at the c-emit site before the call. Named inlines (no linkage symbol,
+ * inline at -O3) so the emitted C is a clean call, not an open-coded ternary. The
+ * store's generational write barrier fires at the call site (the macro is defined
+ * below). `_load_obj` yields the raw object pointer (a concrete `.Ref`) ;
+ * `_load_box` yields a tagged box (an erased `.Any`) — the REF slot's tag is
+ * recovered from the referent's header via `vader_ref_box`. */
+static inline void* vader_array_ref_load_obj(vader_array_buf_t* buf, size_t slot) {
+    return buf->element_kind == VADER_ARRAY_KIND_REF
+        ? ((void**) buf->slots)[slot]
+        : vader_array_box_slots(buf)[slot].payload.obj;
+}
+static inline vader_box_t vader_array_ref_load_box(vader_array_buf_t* buf, size_t slot) {
+    return buf->element_kind == VADER_ARRAY_KIND_REF
+        ? vader_ref_box(((void**) buf->slots)[slot])
+        : vader_array_box_slots(buf)[slot];
+}
+static inline void vader_array_ref_store(vader_array_buf_t* buf, size_t slot, void* obj) {
+    if (buf->element_kind == VADER_ARRAY_KIND_REF) { ((void**) buf->slots)[slot] = obj; }
+    else { vader_array_box_slots(buf)[slot] = vader_ref_box(obj); }
+}
+
 /* Sentinel index for buffers — distinct from any user BcType. The scan loop
  * dispatches on it because the type info table doesn't carry a static layout
  * for variable-length objects. */

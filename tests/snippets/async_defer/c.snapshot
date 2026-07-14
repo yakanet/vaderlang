@@ -206,7 +206,7 @@ static vader_box_t snippet_step(vader_string_t l0) {
     _a0_obj->f_value = l0;
     t0 = (void*) _a0_obj;
     l1 = vader_ref_box(t0);
-    vader_array_t* _a1_arr = vader_array_new(12u, 0u, 0u, 13u);
+    vader_array_t* _a1_arr = vader_array_new(12u, 0u, 13u, 13u);
     l2 = (void*) _a1_arr;
     l3 = vader_box_obj(0u, NULL);
     vader_struct___asyncstate_14_t* _a2_obj = (vader_struct___asyncstate_14_t*) vader_gc_alloc(sizeof(vader_struct___asyncstate_14_t));
@@ -289,11 +289,11 @@ static vader_box_t snippet___asyncstate_14_Async_resume(void* l0) {
     int32_t t0;
     size_t t1;
     int64_t t2;
-    vader_box_t t3 = vader_box_null();
-    void* t4 = NULL;
-    vader_string_t t5;
-    vader_box_t* gc_roots[3] = { &l11, &l13, &t3 };
-    void** gc_raw_roots[10] = { &l0, &l1, &l3, &l5, &l7, &l8, &l9, &l14, &l15, &t4 };
+    void* t3 = NULL;
+    vader_string_t t4;
+    vader_box_t t5 = vader_box_null();
+    vader_box_t* gc_roots[3] = { &l11, &l13, &t5 };
+    void** gc_raw_roots[10] = { &l0, &l1, &l3, &l5, &l7, &l8, &l9, &l14, &l15, &t3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 10u, gc_roots, gc_raw_roots };
     vader_gc_top = &gc_frame;
 #line 11 "tests/snippets/async_defer/_main.vader"
@@ -326,8 +326,8 @@ static vader_box_t snippet___asyncstate_14_Async_resume(void* l0) {
                     vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
                     while (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = (vader_array_buf_t*) _a0_slotarr->buf->header.forward; }
                     if ((size_t) l2 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
-                    t3 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) l2];
-                    vader_fn_t* _a1_fnobj = (vader_fn_t*) t3.payload.obj;
+                    t3 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l2);
+                    vader_fn_t* _a1_fnobj = (vader_fn_t*) t3;
                     ((vader_fn_erased_sig_0_t) _a1_fnobj->code)(_a1_fnobj->env);
 #line 11 "tests/snippets/async_defer/_main.vader"
                     l3 = ((vader_struct___asyncstate_14_t*) l0)->f___defers;
@@ -338,8 +338,8 @@ static vader_box_t snippet___asyncstate_14_Async_resume(void* l0) {
                     vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
                     while (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = (vader_array_buf_t*) _a2_slotarr->buf->header.forward; }
                     if ((size_t) l4 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
-                    t3 = vader_array_box_slots(_a2_slotarr->buf)[_a2_slotarr->offset + (size_t) l4];
-                    vader_fn_t* _a3_fnobj = (vader_fn_t*) t3.payload.obj;
+                    t3 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l4);
+                    vader_fn_t* _a3_fnobj = (vader_fn_t*) t3;
                     ((vader_fn_erased_sig_0_t) _a3_fnobj->code)(_a3_fnobj->env);
 #line 11 "tests/snippets/async_defer/_main.vader"
                     l5 = ((vader_struct___asyncstate_14_t*) l0)->f___defers;
@@ -363,19 +363,19 @@ static vader_box_t snippet___asyncstate_14_Async_resume(void* l0) {
                     vader_struct___defer_env_12_t* _a5_obj = (vader_struct___defer_env_12_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_12_t));
                     vader_obj_header_init(_a5_obj, 6u);
                     _a5_obj->f_cap_0 = ((vader_struct___asyncstate_14_t*) l0)->f_s0;
-                    t4 = (void*) _a5_obj;
+                    t3 = (void*) _a5_obj;
                     vader_fn_t* _a6_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
                     vader_obj_header_init(_a6_closure, 11u);
                     _a6_closure->code = (void*) &vader_fn_lift_3;
-                    _a6_closure->env = t4;
-                    t4 = (void*) _a6_closure;
-                    l9 = t4;
+                    _a6_closure->env = t3;
+                    t3 = (void*) _a6_closure;
+                    l9 = t3;
                     vader_array_push((vader_array_t*) l8, vader_ref_box(l9));
 #line 11 "tests/snippets/async_defer/_main.vader"
 #line 15 "tests/snippets/async_defer/_main.vader"
                     l10 = ((vader_struct__Cell_string_t*) ((vader_struct___asyncstate_14_t*) l0)->f_s0.payload.obj)->f_value;
-                    t5 = concat_2(3u, l10);
-                    std_io_println__string(t5);
+                    t4 = concat_2(3u, l10);
+                    std_io_println__string(t4);
 #line 11 "tests/snippets/async_defer/_main.vader"
                     ((vader_struct___asyncstate_14_t*) l0)->f_state = INT32_C(3);
                     VADER_WRITE_BARRIER((vader_struct___asyncstate_14_t*) l0);
@@ -387,8 +387,8 @@ static vader_box_t snippet___asyncstate_14_Async_resume(void* l0) {
                     if (l11.tag == 9u) {
                         vader_struct_std_core_Suspended_t* _a7_obj = (vader_struct_std_core_Suspended_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Suspended_t));
                         vader_obj_header_init(_a7_obj, 9u);
-                        t4 = (void*) _a7_obj;
-                        { vader_box_t __vret = vader_ref_box(t4); vader_gc_top = gc_frame.prev; return __vret; }
+                        t3 = (void*) _a7_obj;
+                        { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
                     }
                     l12 = l11;
                     ((vader_struct___asyncstate_14_t*) l0)->f_s1 = l12;
@@ -400,9 +400,9 @@ static vader_box_t snippet___asyncstate_14_Async_resume(void* l0) {
                 t0 = ((vader_struct___asyncstate_14_t*) l0)->f_state;
                 if (t0 == INT32_C(6)) {
 #line 13 "tests/snippets/async_defer/_main.vader"
-                    t3 = std_async_sleep(INT64_C(1));
+                    t5 = std_async_sleep(INT64_C(1));
 #line 11 "tests/snippets/async_defer/_main.vader"
-                    l13 = t3;
+                    l13 = t5;
                     ((vader_struct___asyncstate_14_t*) l0)->f_awaited = l13;
                     VADER_WRITE_BARRIER((vader_struct___asyncstate_14_t*) l0);
                     ((vader_struct___asyncstate_14_t*) l0)->f_state = INT32_C(5);
@@ -416,13 +416,13 @@ static vader_box_t snippet___asyncstate_14_Async_resume(void* l0) {
                     vader_struct___defer_env_2_t* _a8_obj = (vader_struct___defer_env_2_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_2_t));
                     vader_obj_header_init(_a8_obj, 4u);
                     _a8_obj->f_cap_0 = ((vader_struct___asyncstate_14_t*) l0)->f_s0;
-                    t4 = (void*) _a8_obj;
+                    t3 = (void*) _a8_obj;
                     vader_fn_t* _a9_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
                     vader_obj_header_init(_a9_closure, 11u);
                     _a9_closure->code = (void*) &vader_fn_lift_2;
-                    _a9_closure->env = t4;
-                    t4 = (void*) _a9_closure;
-                    l15 = t4;
+                    _a9_closure->env = t3;
+                    t3 = (void*) _a9_closure;
+                    l15 = t3;
                     vader_array_push((vader_array_t*) l14, vader_ref_box(l15));
 #line 11 "tests/snippets/async_defer/_main.vader"
                     ((vader_struct___asyncstate_14_t*) l0)->f_state = INT32_C(6);
@@ -431,8 +431,8 @@ static vader_box_t snippet___asyncstate_14_Async_resume(void* l0) {
                 }
                 vader_struct_std_core_Suspended_t* _a10_obj = (vader_struct_std_core_Suspended_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Suspended_t));
                 vader_obj_header_init(_a10_obj, 9u);
-                t4 = (void*) _a10_obj;
-                { vader_box_t __vret = vader_ref_box(t4); vader_gc_top = gc_frame.prev; return __vret; }
+                t3 = (void*) _a10_obj;
+                { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
             }
         }
     }
@@ -440,8 +440,8 @@ static vader_box_t snippet___asyncstate_14_Async_resume(void* l0) {
     VADER_WRITE_BARRIER((vader_struct___asyncstate_14_t*) l0);
 #line 16 "tests/snippets/async_defer/_main.vader"
 #line 11 "tests/snippets/async_defer/_main.vader"
-    t3 = vader_box_i32(3u, INT32_C(0));
-    { vader_box_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
+    t5 = vader_box_i32(3u, INT32_C(0));
+    { vader_box_t __vret = t5; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 

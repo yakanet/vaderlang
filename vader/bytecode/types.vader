@@ -293,6 +293,11 @@ export ArrayKind :: enum(u8) {
     I8, I16, I32, I64,
     F32, F64,
     Char, Bool,
+    // T12/P3: raw 8-byte `void*` slots for arrays whose element is a concrete
+    // heap ref (struct/array/fn) — the tag is recovered from each referent's
+    // object header on read (`vader_ref_box`), the GC traces the slots via
+    // `vader_gc_scan_raw`. Index 13, matching `vader_array_kind_t` in vader.h.
+    Ref,
 }
 
 /// Numeric index of an `ArrayKind`, matching the runtime enum ordering.
@@ -313,6 +318,7 @@ export array_kind_index :: fn(k: ArrayKind) -> i32 = match k {
     .F64 -> 10
     .Char -> 11
     .Bool -> 12
+    .Ref -> 13
 }
 
 /// Inverse of `array_kind_index`. Returns `null` for unrecognised
@@ -335,6 +341,7 @@ export array_kind_from_index :: fn(idx: i32) -> ArrayKind | null {
     if idx == 10 { return ArrayKind.F64 }
     if idx == 11 { return ArrayKind.Char }
     if idx == 12 { return ArrayKind.Bool }
+    if idx == 13 { return ArrayKind.Ref }
     return null
 }
 
@@ -356,6 +363,7 @@ export array_kind_element_size :: fn(k: ArrayKind) -> i32 = match k {
     .U64 -> 8
     .I64 -> 8
     .F64 -> 8
+    .Ref -> 8
     .Boxed -> 0
 }
 
@@ -377,6 +385,7 @@ export array_kind_name :: fn(k: ArrayKind) -> string = match k {
     .U64  -> "u64"
     .I64  -> "i64"
     .F64  -> "f64"
+    .Ref  -> "ref"
     .Boxed -> "boxed"
 }
 
@@ -402,6 +411,7 @@ export array_kind_from_name :: fn(name: string) -> ArrayKind = match name {
     "f64"   -> .F64
     "char"  -> .Char
     "bool"  -> .Bool
+    "ref"   -> .Ref
     _       -> .Boxed
 }
 
@@ -618,13 +628,20 @@ export size_of_bc_type :: fn(t: BcType) -> i32 = match t {
 /// `vader_box_t` slot.
 /// @param element  the array element's bytecode type.
 /// @return         the storage discriminator the runtime uses.
+// T12/P3: a concrete heap ref (struct/array/fn) stores as a raw `void*` slot
+// (`.Ref`, 8 B) — matching its `.Ref` stack rep, so access reads/writes the raw
+// pointer with no box round-trip. Erased shapes (`BcRef`, incl `Any`) and unions
+// stay `Boxed` (24 B) : a `BcRef` may carry a boxed primitive, and a union-of-refs
+// (`Expr[]`) would need a box↔raw conversion at access (deferred). Access sites
+// still runtime-dispatch on `buf->element_kind` because the SAME concrete array
+// type is constructed `Ref` at a concrete site but `Boxed` in erased generic code.
 export array_kind_of :: fn(element: BcType) -> ArrayKind = match element {
     is BcPrimitive as p -> array_kind_of_val(p.val)
-    is BcStruct -> ArrayKind.Boxed
-    is BcArray -> ArrayKind.Boxed
+    is BcStruct -> ArrayKind.Ref
+    is BcArray -> ArrayKind.Ref
+    is BcFn -> ArrayKind.Ref
     is BcUnion -> ArrayKind.Boxed
     is BcRef -> ArrayKind.Boxed
-    is BcFn -> ArrayKind.Boxed
 }
 
 /// `array_kind_of` specialisation when the caller already narrowed to
@@ -650,6 +667,6 @@ export array_kind_of_val :: fn(v: ValType) -> ArrayKind = match v {
     .String -> ArrayKind.Boxed
     .Null -> ArrayKind.Boxed
     .Void -> ArrayKind.Boxed
-    .Ref -> ArrayKind.Boxed
+    .Ref -> ArrayKind.Ref
     .Any -> ArrayKind.Boxed
 }

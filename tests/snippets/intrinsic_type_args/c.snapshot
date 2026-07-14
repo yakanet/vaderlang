@@ -104,7 +104,7 @@ static int32_t snippet_main(void) {
                 vader_array_t* _a1_slotarr = ((vader_array_t*) l2);
                 while (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = (vader_array_buf_t*) _a1_slotarr->buf->header.forward; }
                 if ((size_t) l4 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
-                l0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
+                l0 = vader_array_ref_load_box(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l4);
 #line 18 "tests/snippets/intrinsic_type_args/_main.vader"
                 l5 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(34));
                 l6 = (size_t) (int64_t) INT64_C(0);
