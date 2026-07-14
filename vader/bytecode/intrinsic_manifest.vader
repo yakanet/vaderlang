@@ -124,8 +124,8 @@ export IntrinsicId :: enum(u8) {
     // std/math — libm transcendentals + rounding. min/max/abs/clamp are pure
     // Vader (bodied → real fns, never host imports), so they are NOT here.
     MathSqrt, MathSin, MathCos, MathTan, MathFloor, MathCeil, MathRound, MathPow,
-    // std/process
-    ProcessSpawnRun, ProcessSpawnLastStdout, ProcessSpawnLastStderr,
+    // std/process — non-blocking subprocess (backs spawn_async ; spawn = block_on)
+    ProcessSpawnStart, ProcessSpawnPoll, ProcessSpawnTakeStdout, ProcessSpawnTakeStderr,
     // std/tty + std/env + std/abort
     TtyIsTty, EnvGetEnv, AbortPanic,
 }
@@ -186,9 +186,10 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_math$round"                      { return .MathRound }
     if mangled == r"std_math$pow"                        { return .MathPow }
 
-    if mangled == r"std_process$spawn_run"               { return .ProcessSpawnRun }
-    if mangled == r"std_process$spawn_last_stdout"       { return .ProcessSpawnLastStdout }
-    if mangled == r"std_process$spawn_last_stderr"       { return .ProcessSpawnLastStderr }
+    if mangled == r"std_process$spawn_start"             { return .ProcessSpawnStart }
+    if mangled == r"std_process$spawn_poll"              { return .ProcessSpawnPoll }
+    if mangled == r"std_process$spawn_take_stdout"       { return .ProcessSpawnTakeStdout }
+    if mangled == r"std_process$spawn_take_stderr"       { return .ProcessSpawnTakeStderr }
 
     if mangled == r"std_tty$is_tty"                      { return .TtyIsTty }
     if mangled == r"std_env$get_env"                     { return .EnvGetEnv }

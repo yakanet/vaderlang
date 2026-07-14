@@ -36,6 +36,7 @@
 #  include <spawn.h>
 #  include <sys/wait.h>
 #  include <unistd.h>
+#  include <fcntl.h>    /* fcntl F_SETFL O_NONBLOCK — non-blocking spawn poll */
 #  include <poll.h>     /* poll — stdin readiness for the LSP debounce */
 #  include <sys/resource.h> /* getrusage — peak RSS for the profiler */
 #  include <sys/mman.h> /* mmap / munmap / madvise — non-moving old-gen reservation */
@@ -3470,68 +3471,78 @@ vader_box_t vader_get_env(vader_string_t name, uint32_t str_tag) {
 
 /* ----------------------------------------------------------------- process
  *
- * `vader_spawn_run` posix_spawn-s a child with stdout/stderr redirected to
- * pipes, drains both, waitpid()s, and stashes the captured output into
- * runtime-owned static buffers. Single-threaded by design — last-call wins,
- * follow-up `spawn_last_stdout` / `_stderr` calls fetch the buffers.
+ * Non-blocking subprocess primitives backing `std/process::spawn_async` (and,
+ * through `block_on`, the blocking `spawn`). A child is launched by
+ * `vader_spawn_start` (records a handle into the child table, never waits),
+ * advanced by `vader_spawn_poll` (drains its pipes + reaps WITHOUT blocking —
+ * returns VADER_SPAWN_RUNNING while alive), and its captured output fetched by
+ * `vader_spawn_take_stdout` / `_stderr` once done. Launching N children then
+ * polling them concurrently is what the split build uses to compile in
+ * parallel — the OS schedules the child processes across cores ; the caller's
+ * single thread just orchestrates.
  *
- * Pipes are read fully into heap buffers before waitpid completes ; on a
- * deadlock-prone large output the buffer pumps grow with realloc. We use
- * `vader_string_alloc` for the final buffers so the strings live outside the
- * GC arena and persist for the lifetime of the program (matches the existing
- * convention for I/O-produced strings — see `read_file`).
- */
+ * Both branches capture stdout/stderr into per-child heap buffers. POSIX sets
+ * the read ends non-blocking and drains on each poll ; Windows lets a
+ * `win_drain_pipe` thread per pipe fill the buffers (the thread also solves the
+ * saturated-pipe deadlock). On take, the buffer is interned via
+ * `vader_string_new` (which copies) and the transit buffer freed. */
 
-/* Captured pipes from the most recent `vader_spawn_run`. Buffers are
- * `vader_string_alloc`-ed and ownership is transferred to the caller when
- * it consumes `vader_spawn_last_stdout` / `_stderr` — the getter clears the
- * globals so the Vader-side `vader_string_t` becomes the sole reference.
- *
- * If a `spawn_run` fires before the previous capture was consumed (a caller
- * that drops the result on the floor), `capture_spawn_output` reclaims the
- * abandoned buffer via `vader_string_free`. This avoids the O(N) growth a
- * long-running process — LSP, watch-mode — would otherwise hit. The
- * transferred buffer in the consumed case stays alive in the tracked
- * string arena until it becomes unreachable, at which point the next sweep
- * collects it. */
-static char*  g_spawn_stdout_buf = NULL;
-static size_t g_spawn_stdout_len = 0;
-static char*  g_spawn_stderr_buf = NULL;
-static size_t g_spawn_stderr_len = 0;
-
-static void capture_spawn_output(char** dst_buf, size_t* dst_len, char* src, size_t src_len) {
-    /* Reclaim the previous capture if the caller never consumed it.
-     * Safe because a consumer (`vader_spawn_last_stdout` / `_stderr`)
-     * clears the slot to NULL on extraction — a non-NULL `*dst_buf` here
-     * is guaranteed to be the unique reference. The captured buffer is
-     * a plain malloc heap owned by this module (not an atom — atoms are
-     * the canonical view ; this is the transit buffer). */
-    if (*dst_buf != NULL) {
-        free(*dst_buf);
-        *dst_buf = NULL;
-        *dst_len = 0;
-    }
-    if (src == NULL || src_len == 0) {
-        if (src != NULL) free(src);
-        return;
-    }
-    *dst_buf = src;
-    *dst_len = src_len;
-}
+/* VADER_SPAWN_RUNNING / _LAUNCH_FAIL / _SIGNALED are defined in vader.h. */
+#define VADER_MAX_CHILDREN  256
 
 #if defined(_WIN32)
-
-/* Win32 spawn : pipes via CreatePipe, child via CreateProcessA. Pipes are
- * drained concurrently by two worker threads — serial reads would deadlock if
- * the child saturates one pipe buffer (~4 KB by default) while we're blocked
- * waiting on the other. */
-
+/* Drained by a worker thread — serial reads would deadlock if the child
+ * saturates one pipe buffer (~4 KB) while we block on the other. */
 typedef struct {
     HANDLE read_end;
-    char*  buf;     /* malloc'd; caller frees */
+    char*  buf;     /* malloc'd; moved into the child slot on reap */
     size_t len;
     int    failed;
 } win_drain_ctx_t;
+#endif
+
+/* One tracked child. Shared fields hold the captured output ; the platform
+ * fields hold the OS handles the poll needs. */
+typedef struct {
+    int      in_use;
+    int      done;         /* poll has reaped it — exit_code is final */
+    int32_t  exit_code;
+    char*    out_buf; size_t out_len; size_t out_cap;
+    char*    err_buf; size_t err_len; size_t err_cap;
+#if defined(_WIN32)
+    HANDLE   hProcess;
+    HANDLE   out_th, err_th;
+    win_drain_ctx_t out_ctx, err_ctx;
+#else
+    pid_t    pid;
+    int      out_fd, err_fd;
+    int      out_eof, err_eof;
+#endif
+} vader_child_t;
+
+static vader_child_t g_children[VADER_MAX_CHILDREN];
+
+/* Grab a free, zeroed child slot, or -1 when the table is full. */
+static vader_i64_t vader_child_alloc(void) {
+    for (int i = 0; i < VADER_MAX_CHILDREN; i++) {
+        if (!g_children[i].in_use) {
+            memset(&g_children[i], 0, sizeof(vader_child_t));
+            g_children[i].in_use = 1;
+            g_children[i].exit_code = VADER_SPAWN_RUNNING;
+            return (vader_i64_t) i;
+        }
+    }
+    return -1;
+}
+
+/* Resolve a caller handle to its slot, or NULL if out of range / freed. */
+static vader_child_t* vader_child_at(vader_i64_t h) {
+    if (h < 0 || h >= VADER_MAX_CHILDREN) return NULL;
+    if (!g_children[(size_t) h].in_use) return NULL;
+    return &g_children[(size_t) h];
+}
+
+#if defined(_WIN32)
 
 static DWORD WINAPI win_drain_pipe(LPVOID arg) {
     win_drain_ctx_t* ctx = (win_drain_ctx_t*) arg;
@@ -3597,12 +3608,12 @@ static size_t win_argv_quote(char* dst, const char* arg) {
     return out;
 }
 
-vader_i32_t vader_spawn_run(vader_array_t* argv) {
-    if (argv == NULL) return VADER_SPAWN_LAUNCH_FAIL;
+vader_i64_t vader_spawn_start(vader_array_t* argv) {
+    if (argv == NULL) return -1;
     argv = vader_array_resolve(argv);
     vader_array_resolve_buf(argv);
     size_t n = vader_array_len(argv);
-    if (n == 0) return VADER_SPAWN_LAUNCH_FAIL;
+    if (n == 0) return -1;
 
     /* argv is a `[string]` (KIND_BOXED) ; read its slots directly (no Vader
      * alloc in the loops, so the resolved buf stays valid). Build the command-
@@ -3614,14 +3625,14 @@ vader_i32_t vader_spawn_run(vader_array_t* argv) {
         cap += vader_atom_len((vader_string_t) b.payload.s) * 2 + 3;
     }
     char* cmdline = (char*) malloc(cap);
-    if (cmdline == NULL) return VADER_SPAWN_LAUNCH_FAIL;
+    if (cmdline == NULL) return -1;
     size_t pos = 0;
     for (size_t i = 0; i < n; i++) {
         vader_box_t b = slots[argv->offset + i];
         vader_string_t s = (vader_string_t) b.payload.s;
         size_t slen = vader_atom_len(s);
         char* z = (char*) malloc(slen + 1);
-        if (z == NULL) { free(cmdline); return VADER_SPAWN_LAUNCH_FAIL; }
+        if (z == NULL) { free(cmdline); return -1; }
         memcpy(z, vader_atom_data(s), slen); z[slen] = '\0';
         if (i > 0) cmdline[pos++] = ' ';
         pos += win_argv_quote(cmdline + pos, z);
@@ -3636,14 +3647,9 @@ vader_i32_t vader_spawn_run(vader_array_t* argv) {
 
     HANDLE out_read = NULL, out_write = NULL;
     HANDLE err_read = NULL, err_write = NULL;
-    if (!CreatePipe(&out_read, &out_write, &sa, 0)) {
-        free(cmdline);
-        return VADER_SPAWN_LAUNCH_FAIL;
-    }
+    if (!CreatePipe(&out_read, &out_write, &sa, 0)) { free(cmdline); return -1; }
     if (!CreatePipe(&err_read, &err_write, &sa, 0)) {
-        CloseHandle(out_read); CloseHandle(out_write);
-        free(cmdline);
-        return VADER_SPAWN_LAUNCH_FAIL;
+        CloseHandle(out_read); CloseHandle(out_write); free(cmdline); return -1;
     }
     /* Parent's read ends must NOT be inherited by the child. */
     SetHandleInformation(out_read, HANDLE_FLAG_INHERIT, 0);
@@ -3660,96 +3666,101 @@ vader_i32_t vader_spawn_run(vader_array_t* argv) {
     si.hStdInput  = GetStdHandle(STD_INPUT_HANDLE);
 
     BOOL ok = CreateProcessA(
-        NULL,        /* application : NULL → parse first token of cmdline, search %PATH% */
-        cmdline,
-        NULL,        /* process security */
-        NULL,        /* thread security */
-        TRUE,        /* inherit handles (the three std redirections) */
-        0,           /* creation flags */
-        NULL,        /* env : inherit parent's */
-        NULL,        /* cwd : inherit parent's */
-        &si, &pi
+        NULL, cmdline, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi
     );
     free(cmdline);
-
     /* Parent closes the write ends — only the child holds them now. */
     CloseHandle(out_write);
     CloseHandle(err_write);
+    if (!ok) { CloseHandle(out_read); CloseHandle(err_read); return -1; }
 
-    if (!ok) {
-        CloseHandle(out_read);
-        CloseHandle(err_read);
-        capture_spawn_output(&g_spawn_stdout_buf, &g_spawn_stdout_len, NULL, 0);
-        capture_spawn_output(&g_spawn_stderr_buf, &g_spawn_stderr_len, NULL, 0);
-        return VADER_SPAWN_LAUNCH_FAIL;
+    vader_i64_t h = vader_child_alloc();
+    if (h < 0) {
+        /* Table full — can't track it ; kill + reap to avoid an orphan. */
+        TerminateProcess(pi.hProcess, 1);
+        WaitForSingleObject(pi.hProcess, INFINITE);
+        CloseHandle(out_read); CloseHandle(err_read);
+        CloseHandle(pi.hProcess); CloseHandle(pi.hThread);
+        return -1;
     }
-
-    /* Drain both pipes concurrently to avoid the saturated-pipe deadlock. */
-    win_drain_ctx_t out_ctx = { out_read, NULL, 0, 0 };
-    win_drain_ctx_t err_ctx = { err_read, NULL, 0, 0 };
-    HANDLE out_th = CreateThread(NULL, 0, win_drain_pipe, &out_ctx, 0, NULL);
-    HANDLE err_th = CreateThread(NULL, 0, win_drain_pipe, &err_ctx, 0, NULL);
-
-    WaitForSingleObject(pi.hProcess, INFINITE);
-    DWORD exit_code = 0;
-    GetExitCodeProcess(pi.hProcess, &exit_code);
-
-    if (out_th != NULL) { WaitForSingleObject(out_th, INFINITE); CloseHandle(out_th); }
-    if (err_th != NULL) { WaitForSingleObject(err_th, INFINITE); CloseHandle(err_th); }
-
-    CloseHandle(out_read);
-    CloseHandle(err_read);
-    CloseHandle(pi.hProcess);
+    vader_child_t* c = &g_children[(size_t) h];
+    c->hProcess = pi.hProcess;
     CloseHandle(pi.hThread);
+    /* Drain both pipes concurrently (a thread each) so a saturated pipe can't
+     * stall a child between polls. The ctxs live in the stable table slot. */
+    c->out_ctx.read_end = out_read;
+    c->err_ctx.read_end = err_read;
+    c->out_th = CreateThread(NULL, 0, win_drain_pipe, &c->out_ctx, 0, NULL);
+    c->err_th = CreateThread(NULL, 0, win_drain_pipe, &c->err_ctx, 0, NULL);
+    return h;
+}
 
-    capture_spawn_output(&g_spawn_stdout_buf, &g_spawn_stdout_len, out_ctx.buf, out_ctx.len);
-    capture_spawn_output(&g_spawn_stderr_buf, &g_spawn_stderr_len, err_ctx.buf, err_ctx.len);
+vader_i32_t vader_spawn_poll(vader_i64_t handle) {
+    vader_child_t* c = vader_child_at(handle);
+    if (c == NULL) return VADER_SPAWN_LAUNCH_FAIL;
+    if (c->done) return c->exit_code;
+    if (WaitForSingleObject(c->hProcess, 0) == WAIT_TIMEOUT) return VADER_SPAWN_RUNNING;
 
+    /* Exited — join the drain threads (they finish when the child's pipe ends
+     * close), collect the buffers, and read the exit code. */
+    if (c->out_th != NULL) { WaitForSingleObject(c->out_th, INFINITE); CloseHandle(c->out_th); c->out_th = NULL; }
+    if (c->err_th != NULL) { WaitForSingleObject(c->err_th, INFINITE); CloseHandle(c->err_th); c->err_th = NULL; }
+    CloseHandle(c->out_ctx.read_end);
+    CloseHandle(c->err_ctx.read_end);
+    c->out_buf = c->out_ctx.buf; c->out_len = c->out_ctx.len; c->out_ctx.buf = NULL;
+    c->err_buf = c->err_ctx.buf; c->err_len = c->err_ctx.len; c->err_ctx.buf = NULL;
+
+    DWORD exit_code = 0;
+    GetExitCodeProcess(c->hProcess, &exit_code);
+    CloseHandle(c->hProcess); c->hProcess = NULL;
+    c->done = 1;
     /* NTSTATUS abnormal-termination codes (0xC0000000+) flag a crash ; the
-     * normal exit-code range is 0..0x7FFFFFFF. Map crashes onto the SIGNALED
-     * sentinel so callers can distinguish them from a normal exit. */
-    if ((exit_code & 0xC0000000u) == 0xC0000000u) return VADER_SPAWN_SIGNALED;
-    return (vader_i32_t) (int32_t) exit_code;
+     * normal exit-code range is 0..0x7FFFFFFF. Map crashes onto SIGNALED. */
+    c->exit_code = ((exit_code & 0xC0000000u) == 0xC0000000u)
+        ? VADER_SPAWN_SIGNALED : (int32_t) exit_code;
+    return c->exit_code;
 }
 
 #else  /* POSIX */
 
-/* Drain a fd into a freshly-malloc'd buffer. Caller frees. NULL on read error. */
-static char* drain_fd(int fd, size_t* out_len) {
-    size_t cap = 4096, len = 0;
-    char* buf = (char*) malloc(cap);
-    if (buf == NULL) { *out_len = 0; return NULL; }
+/* Append everything readable right now from a non-blocking fd into *buf,
+ * growing it as needed. Stops at EAGAIN (no data yet, writer still alive) or
+ * EOF (sets *eof). A read error is treated as EOF (best-effort capture). */
+static void drain_nonblock(int fd, char** buf, size_t* len, size_t* cap, int* eof) {
+    if (*eof) return;
     for (;;) {
-        if (len + 4096 > cap) {
-            cap *= 2;
-            char* grown = (char*) realloc(buf, cap);
-            if (grown == NULL) { free(buf); *out_len = 0; return NULL; }
-            buf = grown;
+        if (*cap == 0) {
+            *cap = 4096;
+            *buf = (char*) malloc(*cap);
+            if (*buf == NULL) { *eof = 1; *cap = 0; return; }
         }
-        ssize_t n = read(fd, buf + len, cap - len);
-        if (n < 0) {
-            if (errno == EINTR) continue;
-            free(buf); *out_len = 0; return NULL;
+        if (*len + 4096 > *cap) {
+            size_t ncap = *cap * 2;
+            char* grown = (char*) realloc(*buf, ncap);
+            if (grown == NULL) { *eof = 1; return; }
+            *buf = grown; *cap = ncap;
         }
-        if (n == 0) break;
-        len += (size_t) n;
+        ssize_t n = read(fd, *buf + *len, *cap - *len);
+        if (n > 0) { *len += (size_t) n; continue; }
+        if (n == 0) { *eof = 1; return; }
+        if (errno == EINTR) continue;
+        if (errno == EAGAIN || errno == EWOULDBLOCK) return;
+        *eof = 1; return;
     }
-    *out_len = len;
-    return buf;
 }
 
-vader_i32_t vader_spawn_run(vader_array_t* argv) {
-    if (argv == NULL) return VADER_SPAWN_LAUNCH_FAIL;
+vader_i64_t vader_spawn_start(vader_array_t* argv) {
+    if (argv == NULL) return -1;
     argv = vader_array_resolve(argv);
     vader_array_resolve_buf(argv);
     size_t n = vader_array_len(argv);
-    if (n == 0) return VADER_SPAWN_LAUNCH_FAIL;
+    if (n == 0) return -1;
 
     /* Build a NULL-terminated argv from the Vader [string] array — each slot
      * needs to be a 0-terminated C string. argv is KIND_BOXED ; read its slots
      * directly (no Vader alloc in the loop, so the resolved buf stays valid). */
     char** cargv = (char**) calloc(n + 1, sizeof(char*));
-    if (cargv == NULL) return VADER_SPAWN_LAUNCH_FAIL;
+    if (cargv == NULL) return -1;
     const vader_box_t* slots = vader_array_box_slots(argv->buf);
     for (size_t i = 0; i < n; i++) {
         vader_box_t b = slots[argv->offset + i];
@@ -3759,7 +3770,7 @@ vader_i32_t vader_spawn_run(vader_array_t* argv) {
         if (z == NULL) {
             for (size_t j = 0; j < i; j++) free(cargv[j]);
             free(cargv);
-            return VADER_SPAWN_LAUNCH_FAIL;
+            return -1;
         }
         memcpy(z, vader_atom_data(s), slen); z[slen] = '\0';
         cargv[i] = z;
@@ -3794,31 +3805,25 @@ vader_i32_t vader_spawn_run(vader_array_t* argv) {
     for (size_t j = 0; j < n; j++) free(cargv[j]);
     free(cargv);
 
-    if (rc != 0) {
-        close(out_pipe[0]);
-        close(err_pipe[0]);
-        capture_spawn_output(&g_spawn_stdout_buf, &g_spawn_stdout_len, NULL, 0);
-        capture_spawn_output(&g_spawn_stderr_buf, &g_spawn_stderr_len, NULL, 0);
-        return VADER_SPAWN_LAUNCH_FAIL;
+    if (rc != 0) { close(out_pipe[0]); close(err_pipe[0]); return -1; }
+
+    /* Read ends non-blocking so `vader_spawn_poll` never stalls. */
+    fcntl(out_pipe[0], F_SETFL, O_NONBLOCK);
+    fcntl(err_pipe[0], F_SETFL, O_NONBLOCK);
+
+    vader_i64_t h = vader_child_alloc();
+    if (h < 0) {
+        /* Table full — reap synchronously (the child gets SIGPIPE once it
+         * writes to the closed pipe, or runs to completion) to avoid a zombie. */
+        close(out_pipe[0]); close(err_pipe[0]);
+        int st; while (waitpid(pid, &st, 0) < 0 && errno == EINTR) {}
+        return -1;
     }
-
-    size_t out_len = 0, err_len = 0;
-    char* out_buf = drain_fd(out_pipe[0], &out_len);
-    char* err_buf = drain_fd(err_pipe[0], &err_len);
-    close(out_pipe[0]);
-    close(err_pipe[0]);
-
-    int status = 0;
-    while (waitpid(pid, &status, 0) < 0) {
-        if (errno != EINTR) { status = -1; break; }
-    }
-
-    capture_spawn_output(&g_spawn_stdout_buf, &g_spawn_stdout_len, out_buf, out_len);
-    capture_spawn_output(&g_spawn_stderr_buf, &g_spawn_stderr_len, err_buf, err_len);
-
-    if (WIFEXITED(status))   return (vader_i32_t) WEXITSTATUS(status);
-    if (WIFSIGNALED(status)) return VADER_SPAWN_SIGNALED;
-    return VADER_SPAWN_LAUNCH_FAIL;
+    vader_child_t* c = &g_children[(size_t) h];
+    c->pid    = pid;
+    c->out_fd = out_pipe[0];
+    c->err_fd = err_pipe[0];
+    return h;
 
 fail_close_both:
     close(err_pipe[0]); close(err_pipe[1]);
@@ -3827,36 +3832,68 @@ fail_close_out:
 fail_free_cargv:
     for (size_t j = 0; j < n; j++) free(cargv[j]);
     free(cargv);
-    return VADER_SPAWN_LAUNCH_FAIL;
+    return -1;
+}
+
+vader_i32_t vader_spawn_poll(vader_i64_t handle) {
+    vader_child_t* c = vader_child_at(handle);
+    if (c == NULL) return VADER_SPAWN_LAUNCH_FAIL;
+    if (c->done) return c->exit_code;
+
+    drain_nonblock(c->out_fd, &c->out_buf, &c->out_len, &c->out_cap, &c->out_eof);
+    drain_nonblock(c->err_fd, &c->err_buf, &c->err_len, &c->err_cap, &c->err_eof);
+
+    int status = 0;
+    pid_t r = waitpid(c->pid, &status, WNOHANG);
+    if (r == 0) return VADER_SPAWN_RUNNING;
+    if (r < 0 && errno == EINTR) return VADER_SPAWN_RUNNING;
+
+    /* Reaped (or waitpid error). The child is dead → its write ends are closed,
+     * so a final drain reads the tail to EOF without blocking. */
+    if (r > 0) {
+        drain_nonblock(c->out_fd, &c->out_buf, &c->out_len, &c->out_cap, &c->out_eof);
+        drain_nonblock(c->err_fd, &c->err_buf, &c->err_len, &c->err_cap, &c->err_eof);
+    }
+    close(c->out_fd); c->out_fd = -1;
+    close(c->err_fd); c->err_fd = -1;
+    c->done = 1;
+    if (r > 0 && WIFEXITED(status))        c->exit_code = (int32_t) WEXITSTATUS(status);
+    else if (r > 0 && WIFSIGNALED(status)) c->exit_code = VADER_SPAWN_SIGNALED;
+    else                                   c->exit_code = VADER_SPAWN_LAUNCH_FAIL;
+    return c->exit_code;
 }
 
 #endif  /* _WIN32 / POSIX */
 
-/* Transfer ownership of the captured buffer to the caller. The Vader-side
- * `vader_string_t` becomes the unique reference ; the next `spawn_run`
- * therefore won't touch this memory and the caller is free to keep it
- * around (it'll live under the same leak budget as every other
- * `vader_string_alloc` result — see the file-top comment on string memory).
- *
- * Before any spawn ran, both buf and len are 0 — hand back the empty
- * sentinel so callers can safely `memcpy` / `fwrite` zero bytes from
- * `.ptr` without dereferencing NULL. Calling the getter twice without an
- * intervening `spawn_run` yields the empty sentinel on the second call,
- * which matches the documented non-reentrant "last call wins" contract. */
-vader_string_t vader_spawn_last_stdout(void) {
-    char*  buf = g_spawn_stdout_buf;
-    size_t len = g_spawn_stdout_len;
-    g_spawn_stdout_buf = NULL;
-    g_spawn_stdout_len = 0;
-    return vader_string_new(buf != NULL ? buf : "", len);
+/* Intern a captured pipe buffer into a Vader string (`vader_string_new` copies
+ * into the atom table), then free the transit buffer and clear the slot fields. */
+static vader_string_t take_buf(char** buf, size_t* len, size_t* cap) {
+    char*  b = *buf;
+    size_t n = *len;
+    *buf = NULL; *len = 0; *cap = 0;
+    vader_string_t s = vader_string_new(b != NULL ? b : "", n);
+    if (b != NULL) free(b);
+    return s;
 }
 
-vader_string_t vader_spawn_last_stderr(void) {
-    char*  buf = g_spawn_stderr_buf;
-    size_t len = g_spawn_stderr_len;
-    g_spawn_stderr_buf = NULL;
-    g_spawn_stderr_len = 0;
-    return vader_string_new(buf != NULL ? buf : "", len);
+/* Intern the child's captured stdout. Must be called after `vader_spawn_poll`
+ * reports done ; an invalid / freed handle yields the empty string. Documented
+ * take order: stdout THEN stderr. */
+vader_string_t vader_spawn_take_stdout(vader_i64_t handle) {
+    vader_child_t* c = vader_child_at(handle);
+    if (c == NULL) return vader_string_new("", 0);
+    return take_buf(&c->out_buf, &c->out_len, &c->out_cap);
+}
+
+/* Intern the child's captured stderr, release its buffer, and — as the LAST
+ * take — free the child slot for reuse (dropping any un-taken stdout). */
+vader_string_t vader_spawn_take_stderr(vader_i64_t handle) {
+    vader_child_t* c = vader_child_at(handle);
+    if (c == NULL) return vader_string_new("", 0);
+    vader_string_t s = take_buf(&c->err_buf, &c->err_len, &c->err_cap);
+    if (c->out_buf != NULL) { free(c->out_buf); c->out_buf = NULL; }
+    c->in_use = 0;
+    return s;
 }
 
 /* ----------------------------------------------------------------- traps */

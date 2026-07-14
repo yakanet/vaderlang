@@ -406,14 +406,14 @@ end
 
 fn 5 std_core$new_byte_buffer (usize) -> ref
   local.get 0
-  call 12
+  call 13
   return
 end
 
 fn 6 std_core$finish_buffer (ref,usize) -> string
   local.get 0
   local.get 1
-  call 14
+  call 15
   return
 end
 
@@ -431,7 +431,7 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     i32.const 48
-    call 13
+    call 14
     local.get 1
     i64.const 1
     i64.add
@@ -512,7 +512,7 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
         local.get 0
         local.get 6
         local.get 8
-        call 13
+        call 14
         local.get 2
         i64.const 10
         i64.div
@@ -527,7 +527,7 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     i32.const 45
-    call 13
+    call 14
   else
   end $L9
   local.get 1
@@ -555,30 +555,8 @@ fn 9 std_async$sleep (i64) -> ref
 end
 
 fn 10 std_async$run_async_main (ref) -> i32
-  local r ref
-  block $L0 void
-    loop $L1 void
-      local.get 0
-      virtual.call 1 Async.resume
-      local.tee 1
-      type_check 7
-      if $L2 void
-        call.import 3
-        i32.const 1
-        i32.eq
-        if $L3 void
-          string.const 1
-          call.import 4
-          drop
-        else
-        end $L3
-        br $L1
-      else
-      end $L2
-    end $L1
-  end $L0
-  local.get 1
-  ref.cast 1
+  local.get 0
+  call 12
   return
 end
 
@@ -626,13 +604,41 @@ fn 11 std_async$Sleep$Async$resume (ref) -> ref
   return
 end
 
-fn 12 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 12 std_async$block_on__i32 (ref) -> i32
+  local r ref
+  block $L0 void
+    loop $L1 void
+      local.get 0
+      virtual.call 1 Async.resume
+      local.tee 1
+      type_check 7
+      if $L2 void
+        call.import 3
+        i32.const 1
+        i32.eq
+        if $L3 void
+          string.const 1
+          call.import 4
+          drop
+        else
+        end $L3
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
+  local.get 1
+  ref.cast 1
+  return
+end
+
+fn 13 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 13 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 14 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -640,7 +646,7 @@ fn 13 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 14 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 15 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
