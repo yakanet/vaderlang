@@ -628,19 +628,40 @@ export size_of_bc_type :: fn(t: BcType) -> i32 = match t {
 /// `vader_box_t` slot.
 /// @param element  the array element's bytecode type.
 /// @return         the storage discriminator the runtime uses.
-// T12/P3: a concrete heap ref (struct/array/fn) stores as a raw `void*` slot
-// (`.Ref`, 8 B) — matching its `.Ref` stack rep, so access reads/writes the raw
-// pointer with no box round-trip. Erased shapes (`BcRef`, incl `Any`) and unions
-// stay `Boxed` (24 B) : a `BcRef` may carry a boxed primitive, and a union-of-refs
-// (`Expr[]`) would need a box↔raw conversion at access (deferred). Access sites
-// still runtime-dispatch on `buf->element_kind` because the SAME concrete array
-// type is constructed `Ref` at a concrete site but `Boxed` in erased generic code.
-export array_kind_of :: fn(element: BcType) -> ArrayKind = match element {
+/// True when `t` can be stored as a raw `void*` array slot (T12/P3): a
+/// header-bearing heap object, or `null` (a `NULL` slot). Drives `array_kind_of`'s
+/// `Ref` decision. A non-null primitive / `string` (no object header) and an
+/// erased `BcRef` (may box a distinct-primitive impl) are NOT ref-only — any
+/// doubt stays boxed. A `BcUnion` is ref-only iff EVERY variant is (so
+/// `Expr[]` / `Stmt[]` / `T | null` qualify) — recurse via the `types` table.
+/// @param t      the element bytecode type.
+/// @param types  the module type table (to resolve union variant indices).
+export is_ref_only_element :: fn(t: BcType, types: BcType[]) -> bool = match t {
+    is BcStruct -> true
+    is BcArray -> true
+    is BcFn -> true
+    is BcPrimitive as p -> p.val == ValType.Null
+    is BcRef -> false
+    is BcUnion as u -> {
+        for v in u.variants {
+            if !is_ref_only_element(types[usize(v)], types) { return false }
+        }
+        return true
+    }
+}
+
+// T12/P3: a concrete heap ref (struct/array/fn) — and a union of only such refs
+// or `null` (`Expr[]`, `T | null`) — stores as a raw `void*` slot (`.Ref`, 8 B),
+// the tag recovered from each referent's header on read. A `BcRef` (erased trait,
+// may box a primitive) and a mixed / primitive-bearing union stay `Boxed` (24 B).
+// Access sites runtime-dispatch on `buf->element_kind` because the SAME array type
+// is constructed `Ref` at a concrete site but `Boxed` in erased generic code.
+export array_kind_of :: fn(element: BcType, types: BcType[]) -> ArrayKind = match element {
     is BcPrimitive as p -> array_kind_of_val(p.val)
     is BcStruct -> ArrayKind.Ref
     is BcArray -> ArrayKind.Ref
     is BcFn -> ArrayKind.Ref
-    is BcUnion -> ArrayKind.Boxed
+    is BcUnion -> if is_ref_only_element(element, types) { ArrayKind.Ref } else { ArrayKind.Boxed }
     is BcRef -> ArrayKind.Boxed
 }
 

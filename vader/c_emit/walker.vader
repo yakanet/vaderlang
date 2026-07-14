@@ -15,7 +15,7 @@ import "std/string" { join }
 import "std/string_builder" { StringBuilder, append }
 import "std/abort" { todo, panic }
 import "vader/bytecode" { BcFunction, BcSignature, BcStruct, BcArray, BcFn, BcRef, BcUnion, BcType, ValType }
-import "vader/bytecode" { array_kind_of, array_kind_index, ArrayKind }
+import "vader/bytecode" { array_kind_of, array_kind_index, ArrayKind, is_ref_only_element }
 // The opcode union pulls in ~120 names ; the namespace form keeps the
 // import to one line and tags every op site as `vm.<Op>` at the match.
 vm :: import "vader/bytecode"
@@ -2078,8 +2078,13 @@ typed_array_fill_for :: fn(k: ArrayKind) -> SlotFill | null = match k {
 // `Boxed` when built in erased generic code) OR an erased `BcRef` (`Any[]`/trait
 // object, which a concrete-ref buf flows into). A genuine `string[]` / union[]
 // buf is always boxed, so those keep the plain box path (no dispatch, no churn).
-ref_carrying_element :: fn(element: BcType) -> bool =
-    element is BcStruct | BcArray | BcFn | BcRef
+ref_carrying_element :: fn(element: BcType, types: BcType[]) -> bool {
+    if element is BcStruct | BcArray | BcFn | BcRef { return true }
+    // A union-of-only-refs (`Expr[]`, `T | null`) is a raw-`void*` buf too, so its
+    // access must dispatch ; a mixed / primitive-bearing union stays pure-boxed.
+    if element is BcUnion { return is_ref_only_element(element, types) }
+    return false
+}
 
 // `data.const N` — push a zero-copy box over the immortal `.rodata` array
 // `vader_data_N` (emitted by `emit_data_pool`). Re-stamps the call-site type_id
@@ -2093,7 +2098,7 @@ emit_data_const_op :: fn(s: FnState, op: vm.DataConst) -> void {
 emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {
     types :: s.ctx.module.types
     elem_tag :: array_element_tag(types, op.type_id)
-    kind :: array_kind_of(types[usize(elem_tag)])
+    kind :: array_kind_of(types[usize(elem_tag)], types)
     kind_idx :: array_kind_index(kind)
     n :: op.length
     arr_buf :: aux(s, "arr")
@@ -2146,17 +2151,18 @@ emit_array_get :: fn(s: FnState, op: vm.ArrayGet) -> void {
     types :: s.ctx.module.types
     elem_tag :: array_element_tag(types, op.type_id)
     elem :: types[usize(elem_tag)]
-    kind :: array_kind_of(elem)
+    kind :: array_kind_of(elem, types)
     fill :: typed_array_fill_for(kind)
     a :: emit_slot_array_local(s, arr, idx)
-    if fill == null && ref_carrying_element(elem) {
+    if fill == null && ref_carrying_element(elem, types) {
         // Erasure boundary (T12/P3): the buf may be `Ref` (built concretely) or
         // `Boxed` (built in erased generic code), so the reader dispatches on
         // `buf->element_kind` — via a `static inline` runtime helper (inlined at
-        // -O3, but keeps the emitted C a clean call). The pushed class follows the
-        // STATIC element : a concrete ref → `.Ref` (raw obj ptr, `_load_obj`), an
-        // erased `BcRef` → `.Any` (tagged box, `_load_box`).
-        result_val :: if kind == ArrayKind.Ref { ValType.Ref } else { ValType.Any }
+        // -O3, but keeps the emitted C a clean call). The pushed class is the
+        // element's STACK class : a concrete ref → `.Ref` (raw obj ptr,
+        // `_load_obj`), an erased `BcRef` / a union → `.Any` (tagged box,
+        // `_load_box`, which recovers the concrete tag from the referent header).
+        result_val :: val_type_of_bc_type(elem)
         getter :: if result_val == ValType.Ref { "vader_array_ref_load_obj" } else { "vader_array_ref_load_box" }
         name :: fresh_tmp(s, result_val)
         line(s, "${name} = ${getter}(${a}->buf, ${slot_index(a, idx)});")
@@ -2187,10 +2193,10 @@ emit_array_set :: fn(s: FnState, op: vm.ArraySet) -> void {
     types :: s.ctx.module.types
     elem_tag :: array_element_tag(types, op.type_id)
     elem :: types[usize(elem_tag)]
-    kind :: array_kind_of(elem)
+    kind :: array_kind_of(elem, types)
     fill :: typed_array_fill_for(kind)
     a :: emit_slot_array_local(s, arr, idx)
-    if fill == null && ref_carrying_element(elem) {
+    if fill == null && ref_carrying_element(elem, types) {
         // Erasure boundary (T12/P3): store the raw object pointer into the raw
         // `void*` slot or (for a Boxed buf) re-box it, dispatching on the buf's
         // actual kind inside the `static inline` helper. Barrier fires on the buf
