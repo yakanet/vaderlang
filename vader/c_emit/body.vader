@@ -45,18 +45,17 @@ import "vader/text" { is_ident_byte, prefix_before_double_underscore }
 /// @param raw  the mangled name from the bytecode (`std_core_i32_Add_add` etc.).
 /// @return     a safe C identifier.
 export sanitise :: fn(raw: string) -> string {
-    sb :: StringBuilder {}
+    // Build the sanitised bytes then intern ONCE. The byte-by-byte
+    // `StringBuilder.append_char` this replaced UTF-8-encoded + interned a fresh
+    // 1-char string per byte — the hottest `append_char` caller in c-emit.
     rawb :: raw.bytes()
     n :: rawb.len()
+    buf: u8[] = []
     for i in 0..<n {
         b :: rawb[i]
-        if is_ident_byte(b) {
-            sb.append_char(char(u32(b)))
-        } else {
-            sb.append_char('_')
-        }
+        buf.push(if is_ident_byte(b) { b } else { u8('_') })
     }
-    out :: "${sb}"
+    out :: buf.bytes_to_string()
     if is_c_reserved(out) {
         return "${out}_v"
     }
@@ -96,42 +95,51 @@ is_c_reserved :: fn(name: string) -> bool = name in C_RESERVED_WORDS
 /// @return   a C source-text string literal, including the surrounding
 ///           double quotes.
 export c_string_lit :: fn(s: string) -> string {
-    sb :: StringBuilder {}
-    sb.append_char('"')
+    // Build the escaped bytes then intern ONCE. The per-byte
+    // `StringBuilder.append_char` this replaced UTF-8-encoded + interned a fresh
+    // 1-char string per char — the 2nd-hottest `append_char` caller in c-emit.
     sbytes :: s.bytes()
     n :: sbytes.len()
+    buf: u8[] = []
+    buf.push('"')
     for i in 0..<n {
         b :: sbytes[i]
         if b == '\\' {
-            sb.append("\\\\")
+            buf.push('\\')
+            buf.push('\\')
         } else if b == '"' {
-            sb.append("\\\"")
+            buf.push('\\')
+            buf.push('"')
         } else if b == '\n' {
-            sb.append("\\n")
+            buf.push('\\')
+            buf.push('n')
         } else if b == '\r' {
-            sb.append("\\r")
+            buf.push('\\')
+            buf.push('r')
         } else if b == '\t' {
-            sb.append("\\t")
+            buf.push('\\')
+            buf.push('t')
         } else if b < 0x20 || b >= 0x7F {
-            // `\x<hh>` escape — two-digit lowercase hex appended directly to
-            // the outer builder (avoids a per-byte StringBuilder allocation).
-            sb.append("\\x")
-            sb.append_char(hex_digit(u64(b) >> 4))
-            sb.append_char(hex_digit(u64(b) & 0xF))
+            // `\x<hh>` escape — two-digit lowercase hex.
+            buf.push('\\')
+            buf.push('x')
+            buf.push(u8(hex_digit(u64(b) >> 4)))
+            buf.push(u8(hex_digit(u64(b) & 0xF)))
             // Close the escape so a following hex digit doesn't extend it.
             next_idx :: i + 1
             if next_idx < n {
                 next_b :: sbytes[next_idx]
                 if is_hex_digit(char(u32(next_b))) {
-                    sb.append("\"\"")
+                    buf.push('"')
+                    buf.push('"')
                 }
             }
         } else {
-            sb.append_char(char(u32(b)))
+            buf.push(b)
         }
     }
-    sb.append_char('"')
-    return "${sb}"
+    buf.push('"')
+    return buf.bytes_to_string()
 }
 
 // =========================================================================
