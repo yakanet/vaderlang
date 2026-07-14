@@ -1,0 +1,44 @@
+# Typecheck
+
+## tests/snippets/trait_obj_array_set
+  StructDecl     Circle               :: Circle
+  FnDecl         main                 :: fn() -> i32
+  TraitDecl      Shape                :: Shape
+  ConstDecl      Square               :: type
+  expr 16:53    BinaryExpr     :: i32
+  expr 16:53    CallExpr       :: i32
+  expr 16:53    IdentExpr      :: type
+  expr 16:57    IdentExpr      :: Square
+  expr 16:65    CallExpr       :: i32
+  expr 16:65    IdentExpr      :: type
+  expr 16:69    IdentExpr      :: Square
+  expr 20:53    BinaryExpr     :: i32
+  expr 20:53    BinaryExpr     :: i32
+  expr 20:57    FieldExpr      :: i32
+  expr 20:57    IdentExpr      :: Circle
+  expr 20:66    FieldExpr      :: i32
+  expr 20:66    IdentExpr      :: Circle
+  expr 23:23    SeqLitExpr     :: Shape[]
+  expr 24:17    CallExpr       :: Square
+  expr 24:17    IdentExpr      :: type
+  expr 24:5     CallExpr       :: void
+  expr 24:5     FieldExpr      :: fn(Shape) -> void
+  expr 24:5     IdentExpr      :: Shape[]
+  expr 25:17    StructLitExpr  :: Circle
+  expr 25:5     CallExpr       :: void
+  expr 25:5     FieldExpr      :: fn(Shape) -> void
+  expr 25:5     IdentExpr      :: Shape[]
+  expr 26:17    CallExpr       :: Square
+  expr 26:17    IdentExpr      :: type
+  expr 26:5     IdentExpr      :: Shape[]
+  expr 26:5     IndexExpr      :: Shape
+  expr 27:17    StructLitExpr  :: Circle
+  expr 27:5     IdentExpr      :: Shape[]
+  expr 27:5     IndexExpr      :: Shape
+  expr 28:14    IdentExpr      :: Shape[]
+  expr 29:17    StringLitExpr  :: string
+  expr 29:20    CallExpr       :: i32
+  expr 29:20    FieldExpr      :: fn() -> i32
+  expr 29:20    IdentExpr      :: Shape
+  expr 29:9     CallExpr       :: void
+  expr 29:9     IdentExpr      :: fn(T) -> void

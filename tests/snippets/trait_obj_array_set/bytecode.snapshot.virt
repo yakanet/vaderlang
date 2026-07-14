@@ -1,0 +1,289 @@
+module _main
+type 0 primitive null
+type 1 primitive i32
+type 2 struct snippet$Circle { r:1 }
+type 3 primitive usize
+type 4 struct std_core$Buffer {  }
+type 5 primitive string
+type 6 primitive i64
+type 7 primitive u8
+type 8 primitive void
+type 9 array 10
+type 10 ref Shape
+string 0 "\n"
+import 0 write std_io$write (i32,string) -> void
+impl 2 Shape
+impl 4 ByteAccess
+vtable Shape.area 1 0
+vtable Shape.area 2 1
+export main 2
+
+fn 0 snippet$Square$Shape$area (i32) -> i32
+  local $cast_1 i32
+  local $cast_2 i32
+  local.get 0
+  local.set 1
+  local.get 0
+  local.set 2
+  local.get 1
+  local.get 2
+  i32.mul
+  return
+end
+
+fn 1 snippet$Circle$Shape$area (ref) -> i32
+  local $field_2 i32
+  local $field_4 i32
+  local.field 0 2 0
+  ref.cast 1
+  local.set 1
+  i32.const 3
+  local.get 1
+  i32.mul
+  local.set 1
+  local.field 0 2 0
+  ref.cast 1
+  local.set 2
+  local.get 1
+  local.get 2
+  i32.mul
+  return
+end
+
+fn 2 snippet$main () -> i32
+  local shapes ref
+  local $struct_5 ref
+  local __for_len_1 usize
+  local __for_i_2 usize
+  local s any
+  local __off_4 usize
+  local $cast_26 i64
+  array.new 9 0
+  local.tee 0
+  i32.const 2
+  array.push 1
+  i32.const 10
+  struct.new 2
+  local.set 1
+  local.get 0
+  local.get 1
+  array.push 2
+  local.get 0
+  i32.const 0
+  i32.const 5
+  array.set 9
+  i32.const 4
+  struct.new 2
+  local.set 1
+  local.get 0
+  i32.const 1
+  local.get 1
+  array.set 9
+  local.get 0
+  local.tee 0
+  array.len
+  local.set 2
+  i64.const 0
+  local.set 3
+  block $L0 void
+    loop $L1 void
+      local.get 3
+      local.get 2
+      u64.lt
+      if $L2 void
+        local.get 0
+        local.get 3
+        array.get 9
+        local.set 4
+        i64.const 20
+        call 3
+        local.set 1
+        i64.const 0
+        local.set 5
+        local.get 4
+        virtual.call 1 Shape.area
+        i32.to_i64
+        local.set 6
+        local.get 1
+        local.get 5
+        local.get 6
+        call 5
+        local.set 5
+        local.get 1
+        local.get 5
+        call 4
+        call 6
+        local.get 3
+        i64.const 1
+        i64.add
+        local.set 3
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
+  return.lit i32.const 0
+end
+
+fn 3 std_core$new_byte_buffer (usize) -> ref
+  local.get 0
+  call 7
+  return
+end
+
+fn 4 std_core$finish_buffer (ref,usize) -> string
+  local.get 0
+  local.get 1
+  call 9
+  return
+end
+
+fn 5 std_core$write_int (ref,usize,i64) -> usize
+  local neg bool
+  local ndigits usize
+  local m i64
+  local if_res usize
+  local $cast_37 u8
+  local $add_38 u8
+  local.get 2
+  i64.const 0
+  i64.eq
+  if $L0 void
+    local.get 0
+    local.get 1
+    i32.const 48
+    call 8
+    local.get 1
+    i64.const 1
+    i64.add
+    return
+  end $L0
+  local.get 2
+  i64.const 0
+  i64.lt
+  local.set 3
+  local.get 2
+  i64.const 0
+  i64.gt
+  if $L1 void
+    local.get 2
+    i64.neg
+    local.set 2
+  else
+  end $L1
+  i64.const 0
+  local.set 4
+  local.get 2
+  local.set 5
+  block $L2 void
+    loop $L3 void
+      local.get 5
+      i64.const 0
+      i64.ne
+      if $L4 void
+        local.get 4
+        i64.const 1
+        i64.add
+        local.set 4
+        local.get 5
+        i64.const 10
+        i64.div
+        local.set 5
+        br $L3
+      else
+      end $L4
+    end $L3
+  end $L2
+  local.get 3
+  if $L5 void
+    local.get 4
+    i64.const 1
+    i64.add
+    local.set 6
+  else
+    local.get 4
+    local.set 6
+  end $L5
+  local.get 6
+  local.set 4
+  local.get 1
+  local.get 4
+  i64.add
+  local.set 6
+  block $L6 void
+    loop $L7 void
+      local.get 2
+      i64.const 0
+      i64.ne
+      if $L8 void
+        local.get 6
+        i64.const 1
+        i64.sub
+        local.set 6
+        local.get 2
+        i64.const 10
+        i64.rem
+        i64.neg
+        i64.to_i32
+        local.set 7
+        i32.const 48
+        local.get 7
+        i32.add
+        local.set 8
+        local.get 0
+        local.get 6
+        local.get 8
+        call 8
+        local.get 2
+        i64.const 10
+        i64.div
+        local.set 2
+        br $L7
+      else
+      end $L8
+    end $L7
+  end $L6
+  local.get 3
+  if $L9 void
+    local.get 0
+    local.get 1
+    i32.const 45
+    call 8
+  else
+  end $L9
+  local.get 1
+  local.get 4
+  i64.add
+  return
+end
+
+fn 6 std_io$println__string (string) -> void
+  i32.const 0
+  local.get 0
+  call.import 0
+  i32.const 0
+  string.const 0
+  call.import 0
+  return
+end
+
+fn 7 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+  local.get 0
+  object_new 0
+  return
+end
+
+fn 8 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+  local.get 0
+  local.get 1
+  local.get 2
+  store_u8
+  return
+end
+
+fn 9 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+  local.get 0
+  local.get 1
+  buffer_to_string
+  return
+end

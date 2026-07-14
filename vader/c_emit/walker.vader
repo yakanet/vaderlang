@@ -2202,9 +2202,15 @@ emit_array_set :: fn(s: FnState, op: vm.ArraySet) -> void {
         if elem is BcRef {
             // Erased trait-object element : the value may be a boxed / raw PRIMITIVE
             // (a distinct-primitive trait impl), not a header-bearing ref, so route
-            // it through `box_expr` (handles ref + primitive) and store box-or-raw
-            // by kind. `obj_ptr_of` would splice `.payload.obj` onto a primitive.
-            line(s, "vader_array_ref_store_box(${a}->buf, ${slot_index(a, idx)}, ${box_expr(name_of(value), val_of(value), elem_tag)});")
+            // it through `coerce_expr(.. .Any)` — the SAME box path a `.Any`-slot
+            // `local.set` / plain assignment uses, so the box carries the value's
+            // concrete tag (a ref → header tag; a primitive → its own type index),
+            // NOT the array's erased `elem_tag` (which would stamp the trait tag and
+            // mis-dispatch). Then store box-or-raw by buf kind. (`obj_ptr_of` /
+            // `box_expr(elem_tag)` were both wrong here — the former splices
+            // `.payload.obj` onto a primitive, the latter loses the concrete tag.)
+            box_c :: coerce_expr(s.ctx.module.types, name_of(value), val_of(value), ValType.Any)
+            line(s, "vader_array_ref_store_box(${a}->buf, ${slot_index(a, idx)}, ${box_c});")
         } else {
             // Concrete-ref / union-of-refs element : the value is a genuine ref (or
             // null), so its raw object pointer is valid — take the fast raw path.
