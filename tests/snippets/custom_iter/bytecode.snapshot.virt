@@ -17,7 +17,7 @@ impl 1 Iterator
 impl 6 ByteAccess
 export main 1
 
-fn 0 snippet$Countdown$Iterator$next (ref) -> ref
+fn 0 snippet$Countdown$Iterator$next (ref) -> any
   local v i32
   local $sub_9 i32
   local.field 0 1 0
@@ -47,7 +47,7 @@ end
 
 fn 1 snippet$main () -> i32
   local __iter_0 ref
-  local __step_1 ref
+  local __step_1 any
   local x i32
   local __buf_2 ref
   local __off_3 usize
@@ -64,6 +64,7 @@ fn 1 snippet$main () -> i32
       if $L2 void
       else
         local.get 1
+        ref.cast 3
         struct.get 3 0
         ref.cast 5
         local.set 2

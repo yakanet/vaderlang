@@ -21,7 +21,7 @@ import 2 panic std_abort$panic (string) -> void
 impl 5 ByteAccess
 export main 2
 
-fn 0 snippet$unwrap (ref) -> i32
+fn 0 snippet$unwrap (any) -> i32
   local.get 0
   type_check 0
   if $L0 void
@@ -31,12 +31,13 @@ fn 0 snippet$unwrap (ref) -> i32
   else
   end $L0
   local.get 0
+  ref.cast 2
   struct.get 2 0
   ref.cast 3
   return
 end
 
-fn 1 snippet$unwrap_logged (ref) -> i32
+fn 1 snippet$unwrap_logged (any) -> i32
   local.get 0
   type_check 0
   if $L0 void
@@ -48,6 +49,7 @@ fn 1 snippet$unwrap_logged (ref) -> i32
   else
   end $L0
   local.get 0
+  ref.cast 2
   struct.get 2 0
   ref.cast 3
   return

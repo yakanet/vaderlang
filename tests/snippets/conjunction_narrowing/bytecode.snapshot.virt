@@ -19,7 +19,7 @@ import 1 write std_io$write (i32,string) -> void
 impl 7 ByteAccess
 export main 1
 
-fn 0 snippet$classify (ref) -> string
+fn 0 snippet$classify (any) -> string
   local and_res bool
   local __buf_0 ref
   local __off_1 usize
@@ -28,6 +28,7 @@ fn 0 snippet$classify (ref) -> string
   type_check 2
   if $L0 void
     local.get 0
+    ref.cast 2
     struct.get 2 0
     ref.cast 5
     i32.const 0
@@ -50,6 +51,7 @@ fn 0 snippet$classify (ref) -> string
     call 4
     local.set 3
     local.get 0
+    ref.cast 2
     struct.get 2 0
     ref.cast 5
     i32.to_i64

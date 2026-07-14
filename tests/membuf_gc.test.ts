@@ -33,11 +33,12 @@ test("membuf .virt -> C emits the buffer ABI helpers (not stubs)", async () => {
   );
   expect(r.exit).toBe(0);
   const c = readFileSync(cpath, "utf8");
-  // object_new tags the box with the BUFFER sentinel (matching the heap
-  // header) so the GC forwards it correctly; the typed ops go through the
-  // inline byte helpers.
-  expect(c).toContain("vader_box_obj(VADER_TYPE_INDEX_BUFFER");
-  expect(c).toContain("vader_buffer_new(");
+  // T12: a buffer is a concrete heap ref, so it rides as a raw `void*` (not a
+  // tagged box) — its object header carries the BUFFER sentinel, so the GC
+  // forwards it via the raw-ref scan (exercised behaviourally by the
+  // "survives a forced moving collection" test below). Construction + the typed
+  // ops still go through the inline byte helpers.
+  expect(c).toContain("(void*) vader_buffer_new(");
   expect(c).toContain("vader_buffer_store_i32(");
   expect(c).toContain("vader_buffer_load_i32(");
 });

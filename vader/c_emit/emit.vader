@@ -436,6 +436,11 @@ struct_field_init :: fn(ctx: EmitCtx, out: StringBuilder, v: BcDataValue, name: 
     if v is BcValPrim as p { return data_slot_c(p.kind, p.bits, c_type_for_array_kind(p.kind)) }
     if v is BcValStr as s { return "${atom_for(atom_of, s.value)}u" }
     expr :: emit_data_value(ctx, out, v, name, atom_of)
+    // T12: a concrete-ref field (struct/array/fn) is a raw `void*` ; an erased
+    // field (union / open ref) stays a tagged `vader_box_t` slot.
+    if val_type_of_bc_type(ctx.module.types[usize(field_tid)]) == ValType.Ref {
+        return "(void*) ${expr}"
+    }
     return "{ ${field_tid}u, 0u, { .obj = (void*) ${expr} } }"
 }
 
@@ -798,19 +803,21 @@ classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize) -> St
         ftype :: ctx.module.types[usize(f.type_index)]
         sanitised :: sanitise(f.name)
         offset :: "offsetof(${cname}, f_${sanitised})"
-        match ftype {
-            is BcPrimitive as p -> {
-                // Only `string` primitives need a tracking offset ;
-                // numerics / bool / char carry no heap reference.
-                if is_string_val(p.val) {
-                    offsets.str_offsets.push(offset)
-                }
-            }
-            is BcStruct -> { offsets.ptr_offsets.push(offset) }
-            is BcArray -> { offsets.ptr_offsets.push(offset) }
-            is BcFn -> { offsets.ptr_offsets.push(offset) }
-            is BcRef -> { offsets.ptr_offsets.push(offset) }
-            is BcUnion -> { offsets.ptr_offsets.push(offset) }
+        // T12: the offset bucket MUST match the field's C type so the GC scans it
+        // with the right reader — a raw `void*` (`.Ref`) via `ref_offsets` →
+        // `vader_gc_scan_raw`, a `vader_box_t` (`.Any`) via `ptr_offsets` →
+        // `vader_gc_scan_box`. Derive the bucket from `val_type_of_bc_type` (the
+        // same predicate `c_type_for` uses) so the two can't drift: misfiling a
+        // raw `void*` under `ptr_offsets` makes the collector read the pointer as
+        // a 24 B box, forwarding garbage / never updating the field → a stale ref
+        // after a move (the `MutableMap` ekeys UAF). Only `string` primitives take
+        // a `str_offsets` tracking slot ; other primitives carry no heap ref.
+        if ftype is BcPrimitive as p {
+            if is_string_val(p.val) { offsets.str_offsets.push(offset) }
+        } else if val_type_of_bc_type(ftype) == ValType.Ref {
+            offsets.ref_offsets.push(offset)
+        } else {
+            offsets.ptr_offsets.push(offset)
         }
     }
     return offsets
@@ -897,7 +904,13 @@ emit_main :: fn(ctx: EmitCtx, out: StringBuilder, entry_mangled: string) -> void
             out.append("}\n")
             return
         }
-        out.append("    vader_box_t __args = vader_box_obj(${arr_idx}u, vader_runtime_argv(argc, argv, ${arr_idx}u, ${str_idx}u));\n")
+        // The entry's `argv: [string]` param is a concrete array → a raw `void*`
+        // (`.Ref`) under T12 ; pass the array pointer directly. (`.Any` would box.)
+        if function.signature.params[0] == ValType.Ref {
+            out.append("    void* __args = (void*) vader_runtime_argv(argc, argv, ${arr_idx}u, ${str_idx}u);\n")
+        } else {
+            out.append("    vader_box_t __args = vader_box_obj(${arr_idx}u, vader_runtime_argv(argc, argv, ${arr_idx}u, ${str_idx}u));\n")
+        }
         call_args = "__args"
     } else {
         out.append("    (void)argc; (void)argv;\n")

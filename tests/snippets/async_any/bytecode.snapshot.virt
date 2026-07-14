@@ -85,8 +85,8 @@ fn 0 snippet$Boom$Error$message (ref) -> string
   return.lit string.const 0
 end
 
-fn 1 snippet$fail_fast () -> ref
-  local $k_1 ref
+fn 1 snippet$fail_fast () -> any
+  local $k_1 any
   null.const
   local.set 0
   null.const
@@ -96,9 +96,9 @@ fn 1 snippet$fail_fast () -> ref
   return
 end
 
-fn 2 snippet$win_slow () -> ref
+fn 2 snippet$win_slow () -> any
   local $arr_1 ref
-  local $k_2 ref
+  local $k_2 any
   array.new 14 0
   local.set 0
   null.const
@@ -112,10 +112,10 @@ fn 2 snippet$win_slow () -> ref
 end
 
 fn 3 snippet$main () -> i32
-  local $k_0 ref
-  local $k_1 ref
-  local $k_2 ref
-  local $k_3 ref
+  local $k_0 any
+  local $k_1 any
+  local $k_2 any
+  local $k_3 any
   null.const
   local.set 0
   null.const
@@ -130,14 +130,15 @@ fn 3 snippet$main () -> i32
   local.get 3
   i32.const 7
   struct.new 11
+  ref.cast 29
   call 19
   return
 end
 
-fn 4 snippet$__asyncstate_2$Async$resume (ref) -> ref
-  local __resumed_2 ref
+fn 4 snippet$__asyncstate_2$Async$resume (ref) -> any
+  local __resumed_2 any
   local $cast_23 null
-  local $cast_30 ref
+  local $cast_30 any
   block $L0 void
     loop $L1 void
       local.field 0 5 2
@@ -239,15 +240,15 @@ fn 6 __defer_7 (ref) -> void
   return
 end
 
-fn 7 snippet$__asyncstate_11$Async$resume (ref) -> ref
+fn 7 snippet$__asyncstate_11$Async$resume (ref) -> any
   local $field_17 ref
   local $sub_21 usize
   local $field_23 ref
   local $sub_28 usize
   local $slice_29 ref
-  local __resumed_3 ref
+  local __resumed_3 any
   local $cast_44 null
-  local $cast_51 ref
+  local $cast_51 any
   local $field_56 ref
   local $cast_59 ref
   block $L0 void
@@ -453,16 +454,16 @@ fn 8 snippet$__asyncstate_11$Async$cancel (ref) -> void
   return
 end
 
-fn 9 snippet$__asyncstate_23$Async$resume (ref) -> ref
-  local $cast_14 ref
+fn 9 snippet$__asyncstate_23$Async$resume (ref) -> any
+  local $cast_14 any
   local $vcall_17 string
   local $cast_25 string
-  local $field_38 ref
-  local __resumed_2 ref
-  local $cast_48 ref
-  local $call_53 ref
-  local $call_54 ref
-  local $cast_57 ref
+  local $field_38 any
+  local __resumed_2 any
+  local $cast_48 any
+  local $call_53 any
+  local $call_54 any
+  local $cast_57 any
   block $L0 void
     loop $L1 void
       local.field 0 11 4
@@ -685,11 +686,11 @@ fn 15 std_io$println__string (string) -> void
   return
 end
 
-fn 16 std_async$Any$Async$resume__string__Any (ref) -> ref
+fn 16 std_async$Any$Async$resume__string__Any (ref) -> any
   local n usize
   local i usize
-  local r ref
-  local $cast_21 ref
+  local r any
+  local $cast_21 any
   local j usize
   local.field 0 25 0
   array.len
@@ -828,7 +829,7 @@ fn 17 std_async$Any$Async$cancel__string__Any (ref) -> void
   return
 end
 
-fn 18 std_async$sleep (i64) -> ref
+fn 18 std_async$sleep (i64) -> any
   local.get 0
   i64.const 0
   bool.const false
@@ -836,13 +837,13 @@ fn 18 std_async$sleep (i64) -> ref
   return
 end
 
-fn 19 std_async$run_async_main (ref) -> i32
+fn 19 std_async$run_async_main (any) -> i32
   local.get 0
   call 22
   return
 end
 
-fn 20 std_async$Sleep$Async$resume (ref) -> ref
+fn 20 std_async$Sleep$Async$resume (ref) -> any
   local $call_4 i64
   local $field_5 i64
   local.field 0 30 2
@@ -890,8 +891,8 @@ fn 21 std_async$Sleep$Async$cancel (ref) -> void
   return
 end
 
-fn 22 std_async$block_on__i32 (ref) -> i32
-  local r ref
+fn 22 std_async$block_on__i32 (any) -> i32
+  local r any
   block $L0 void
     loop $L1 void
       local.get 0
@@ -918,7 +919,7 @@ fn 22 std_async$block_on__i32 (ref) -> i32
   return
 end
 
-fn 23 std_async$any__string__Any (ref) -> ref
+fn 23 std_async$any__string__Any (ref) -> any
   local $arr_1 ref
   local $arr_2 ref
   local $arr_3 ref

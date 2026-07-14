@@ -23,7 +23,7 @@ import 1 write std_io$write (i32,string) -> void
 impl 7 ByteAccess
 export main 2
 
-fn 0 snippet$greet_wildcard (ref) -> string
+fn 0 snippet$greet_wildcard (any) -> string
   local if_res string
   local $field_8 string
   local.get 0
@@ -33,6 +33,7 @@ fn 0 snippet$greet_wildcard (ref) -> string
     local.set 1
   else
     local.get 0
+    ref.cast 2
     struct.get 2 0
     ref.cast 4
     local.set 2
@@ -45,8 +46,8 @@ fn 0 snippet$greet_wildcard (ref) -> string
   return
 end
 
-fn 1 snippet$greet_binding (ref) -> string
-  local __scrut_0 ref
+fn 1 snippet$greet_binding (any) -> string
+  local __scrut_0 any
   local if_res string
   local $field_9 string
   local.get 0
@@ -57,6 +58,7 @@ fn 1 snippet$greet_binding (ref) -> string
     local.set 2
   else
     local.get 1
+    ref.cast 2
     struct.get 2 0
     ref.cast 4
     local.set 3

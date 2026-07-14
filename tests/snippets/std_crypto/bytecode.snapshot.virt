@@ -301,7 +301,7 @@ fn 6 std_io$println__string (string) -> void
   return
 end
 
-fn 7 std_crypto$sha256 (ref) -> string
+fn 7 std_crypto$sha256 (any) -> string
   local.get 0
   call 10
   call 9
@@ -739,7 +739,7 @@ fn 9 std_crypto$hex_of_bytes (ref) -> string
   return
 end
 
-fn 10 std_crypto$sha256_bytes (ref) -> ref
+fn 10 std_crypto$sha256_bytes (any) -> ref
   local data ref
   local h ref
   local blocks usize
@@ -1560,7 +1560,7 @@ fn 15 std_crypto$append_hex_u8 (ref,u8) -> void
   return
 end
 
-fn 16 std_crypto$to_bytes (ref) -> ref
+fn 16 std_crypto$to_bytes (any) -> ref
   local.get 0
   type_check 2
   if $L0 void
@@ -1570,6 +1570,7 @@ fn 16 std_crypto$to_bytes (ref) -> ref
     return
   end $L0
   local.get 0
+  ref.cast 6
   return
 end
 

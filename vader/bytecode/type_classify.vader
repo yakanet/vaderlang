@@ -88,9 +88,16 @@ type_key_join :: fn(args: Type[], sep: string) -> string {
     return out
 }
 
-/// Stack-class of a `Type`. Primitive types map by name ; every
-/// composite shape (struct / array / union / ref / fn) lands in
-/// `Ref` so the operand stack carries a uniform reference width.
+/// Stack-class of a `Type`. Primitive types map by name. The two reference
+/// shapes now carry an HONEST distinction (T12):
+///   - `.Ref` — a CONCRETE heap object of a statically-known shape (struct,
+///     array, fn, tuple). Carried as a raw `void*` under T12 (tag recoverable
+///     from the object header).
+///   - `.Any` — an ERASED / dynamic value (trait object, union, generic
+///     type-param, meta, self, `any`, unresolved). Carried as a tagged
+///     `vader_box_t` — it may hold a boxed primitive or a variable variant.
+/// c_emit still collapses both to `vader_box_t` until the T12 c_emit flip
+/// (B1b), so this reclassification is byte-identical on the native target.
 ///
 /// @param t  the type to classify.
 /// @return   the `ValType` the operand stack carries for this slot.
@@ -104,23 +111,23 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
     // exactly like an enum rides its `repr`. This is what makes `x :: i64`
     // a register scalar, not a boxed `Ref`.
     is DistinctType  as d -> val_type_of_type(d.backing)
-    is TraitType          -> ValType.Ref
     is ArrayType          -> ValType.Ref
-    is UnionType          -> ValType.Ref
     is FnType             -> ValType.Ref
     is TupleType          -> ValType.Ref
-    // TypeParam / TypeMeta / Any land as a boxed `ref` at the stack
-    // boundary. Previously these returned `any`, which the bytecode
-    // parity check rejected.
-    is TypeParamType      -> ValType.Ref
-    is TypeMetaType       -> ValType.Ref
-    is SelfType           -> ValType.Ref
+    // Erased / dynamic → `.Any` (tagged box). A trait object may box a
+    // distinct-primitive impl; a union carries a variable variant; generic
+    // type-params / meta / self / `any` are erased.
+    is TraitType          -> ValType.Any
+    is UnionType          -> ValType.Any
+    is TypeParamType      -> ValType.Any
+    is TypeMetaType       -> ValType.Any
+    is SelfType           -> ValType.Any
+    is AnyType            -> ValType.Any
     is UnresolvedType     -> ValType.Any
     is FreeIntType        -> ValType.I32
     is FreeCharType       -> ValType.Char
     is FreeFloatType      -> ValType.F64
     is NeverType          -> ValType.Void
-    is AnyType            -> ValType.Ref
 }
 
 /// Context-free `Type` → `BcType`. Classifies primitives precisely ;

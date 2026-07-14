@@ -24,6 +24,7 @@ fn 0 snippet$probe (ref) -> i32
   type_check 3
   if $L0 void
     local.field 0 1 0
+    ref.cast 3
     struct.get 3 0
     ref.cast 2
     return

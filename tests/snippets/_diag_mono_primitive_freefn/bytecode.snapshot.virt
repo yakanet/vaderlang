@@ -38,7 +38,7 @@ fn 0 snippet$main () -> i32
   return
 end
 
-fn 1 snippet$second__Point (ref) -> ref
+fn 1 snippet$second__Point (ref) -> any
   local.get 0
   i32.const 1
   array.get 2

@@ -62,9 +62,9 @@ vtable Async.cancel 27 19
 vtable Error.message 15 20
 export main 1
 
-fn 0 snippet$work () -> ref
+fn 0 snippet$work () -> any
   local $arr_1 ref
-  local $k_2 ref
+  local $k_2 any
   array.new 11 0
   local.set 0
   null.const
@@ -78,10 +78,10 @@ fn 0 snippet$work () -> ref
 end
 
 fn 1 snippet$main () -> i32
-  local $k_0 ref
-  local $k_1 ref
-  local $k_2 ref
-  local $k_3 ref
+  local $k_0 any
+  local $k_1 any
+  local $k_2 any
+  local $k_3 any
   null.const
   local.set 0
   null.const
@@ -96,6 +96,7 @@ fn 1 snippet$main () -> i32
   local.get 3
   i32.const 7
   struct.new 9
+  ref.cast 26
   call 17
   return
 end
@@ -106,15 +107,15 @@ fn 2 __defer_1 (ref) -> void
   return
 end
 
-fn 3 snippet$__asyncstate_5$Async$resume (ref) -> ref
+fn 3 snippet$__asyncstate_5$Async$resume (ref) -> any
   local $field_17 ref
   local $sub_21 usize
   local $field_23 ref
   local $sub_28 usize
   local $slice_29 ref
-  local __resumed_3 ref
+  local __resumed_3 any
   local $cast_44 null
-  local $cast_51 ref
+  local $cast_51 any
   local $field_56 ref
   local $cast_59 ref
   block $L0 void
@@ -322,15 +323,15 @@ fn 4 snippet$__asyncstate_5$Async$cancel (ref) -> void
   return
 end
 
-fn 5 snippet$__asyncstate_17$Async$resume (ref) -> ref
-  local $cast_14 ref
+fn 5 snippet$__asyncstate_17$Async$resume (ref) -> any
+  local $cast_14 any
   local $vcall_17 string
   local $cast_25 string
-  local $field_38 ref
-  local __resumed_2 ref
-  local $cast_48 ref
-  local $call_54 ref
-  local $cast_56 ref
+  local $field_38 any
+  local __resumed_2 any
+  local $cast_48 any
+  local $call_54 any
+  local $cast_56 any
   block $L0 void
     loop $L1 void
       local.field 0 9 4
@@ -685,8 +686,8 @@ fn 13 std_io$println__string (string) -> void
   return
 end
 
-fn 14 std_async$Timeout$Async$resume__string (ref) -> ref
-  local rc ref
+fn 14 std_async$Timeout$Async$resume__string (ref) -> any
+  local rc any
   local.field 0 23 0
   virtual.call 1 Async.resume
   local.tee 1
@@ -722,7 +723,7 @@ fn 15 std_async$Timeout$Async$cancel__string (ref) -> void
   return
 end
 
-fn 16 std_async$sleep (i64) -> ref
+fn 16 std_async$sleep (i64) -> any
   local.get 0
   i64.const 0
   bool.const false
@@ -730,13 +731,13 @@ fn 16 std_async$sleep (i64) -> ref
   return
 end
 
-fn 17 std_async$run_async_main (ref) -> i32
+fn 17 std_async$run_async_main (any) -> i32
   local.get 0
   call 21
   return
 end
 
-fn 18 std_async$Sleep$Async$resume (ref) -> ref
+fn 18 std_async$Sleep$Async$resume (ref) -> any
   local $call_4 i64
   local $field_5 i64
   local.field 0 27 2
@@ -817,8 +818,8 @@ fn 20 std_async$TimeoutError$Error$message (ref) -> string
   return
 end
 
-fn 21 std_async$block_on__i32 (ref) -> i32
-  local r ref
+fn 21 std_async$block_on__i32 (any) -> i32
+  local r any
   block $L0 void
     loop $L1 void
       local.get 0
@@ -845,8 +846,8 @@ fn 21 std_async$block_on__i32 (ref) -> i32
   return
 end
 
-fn 22 std_async$timeout__string (i64,ref) -> ref
-  local $call_2 ref
+fn 22 std_async$timeout__string (i64,any) -> any
+  local $call_2 any
   local.get 0
   call 16
   local.set 2

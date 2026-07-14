@@ -17,7 +17,7 @@ import 0 write std_io$write (i32,string) -> void
 impl 4 Error
 export main 2
 
-fn 0 snippet$parse (char) -> ref
+fn 0 snippet$parse (char) -> any
   local.get 0
   char.const 78
   char.eq
@@ -86,8 +86,8 @@ fn 1 snippet$dir_label (i32) -> string
 end
 
 fn 2 snippet$main () -> i32
-  local __scrut_0 ref
-  local __scrut_1 ref
+  local __scrut_0 any
+  local __scrut_1 any
   char.const 78
   call 0
   local.tee 0

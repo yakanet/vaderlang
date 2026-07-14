@@ -15,7 +15,7 @@ impl 1 Printable
 impl 7 Printable
 export main 2
 
-fn 0 snippet$describe (ref) -> i32
+fn 0 snippet$describe (any) -> i32
   local if_res i32
   local.get 0
   type_check 8
@@ -30,7 +30,7 @@ fn 0 snippet$describe (ref) -> i32
   return
 end
 
-fn 1 snippet$describe_wrapper (ref) -> i32
+fn 1 snippet$describe_wrapper (any) -> i32
   local if_res i32
   local.get 0
   type_check 8
@@ -50,7 +50,7 @@ fn 2 snippet$main () -> i32
   local c ref
   local dog_result i32
   local cat_result i32
-  local wc ref
+  local wc any
   local wrap_result i32
   local cat_wrap_result i32
   string.const 0

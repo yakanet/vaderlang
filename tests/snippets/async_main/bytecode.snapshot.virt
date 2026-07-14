@@ -14,6 +14,7 @@ type 11 primitive usize
 type 12 struct std_core$Buffer {  }
 type 13 array 14
 type 14 primitive u8
+type 15 ref Async
 string 0 "world"
 string 1 ""
 string 2 "hello, "
@@ -27,14 +28,14 @@ vtable Async.resume 3 2
 vtable Async.resume 6 3
 export main 1
 
-fn 0 snippet$greeting () -> ref
+fn 0 snippet$greeting () -> any
   string.const 0
   struct.new 6
   return
 end
 
 fn 1 snippet$main () -> i32
-  local $k_2 ref
+  local $k_2 any
   null.const
   local.set 0
   string.const 1
@@ -42,6 +43,7 @@ fn 1 snippet$main () -> i32
   local.get 0
   i32.const 4
   struct.new 3
+  ref.cast 15
   virtual.call 1 Async.resume
   local.tee 0
   type_check 5
@@ -54,12 +56,12 @@ fn 1 snippet$main () -> i32
   end $L0
 end
 
-fn 2 snippet$__asyncstate_8$Async$resume (ref) -> ref
+fn 2 snippet$__asyncstate_8$Async$resume (ref) -> any
   local $field_13 string
   local $field_15 string
-  local __resumed_2 ref
+  local __resumed_2 any
   local $cast_26 string
-  local $cast_32 ref
+  local $cast_32 any
   block $L0 void
     loop $L1 void
       local.field 0 3 3
@@ -154,7 +156,7 @@ fn 2 snippet$__asyncstate_8$Async$resume (ref) -> ref
   return
 end
 
-fn 3 snippet$Ready$Async$resume__string (ref) -> ref
+fn 3 snippet$Ready$Async$resume__string (ref) -> any
   local.field 0 6 0
   ref.cast 8
   box 8

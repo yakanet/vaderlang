@@ -25,7 +25,7 @@ vtable Async.resume 6 4
 vtable Async.resume 7 5
 export main 2
 
-fn 0 snippet$double (i32) -> ref
+fn 0 snippet$double (i32) -> any
   local.get 0
   local.get 0
   i32.add
@@ -33,8 +33,8 @@ fn 0 snippet$double (i32) -> ref
   return
 end
 
-fn 1 snippet$add_one (i32) -> ref
-  local $k_3 ref
+fn 1 snippet$add_one (i32) -> any
+  local $k_3 any
   null.const
   local.set 1
   local.get 0
@@ -47,7 +47,7 @@ fn 1 snippet$add_one (i32) -> ref
 end
 
 fn 2 snippet$main () -> i32
-  local $k_2 ref
+  local $k_2 any
   null.const
   local.set 0
   i32.const 0
@@ -55,6 +55,7 @@ fn 2 snippet$main () -> i32
   local.get 0
   i32.const 4
   struct.new 6
+  ref.cast 2
   virtual.call 1 Async.resume
   local.tee 0
   type_check 5
@@ -67,11 +68,11 @@ fn 2 snippet$main () -> i32
   end $L0
 end
 
-fn 3 snippet$__asyncstate_2$Async$resume (ref) -> ref
+fn 3 snippet$__asyncstate_2$Async$resume (ref) -> any
   local $field_15 i32
-  local __resumed_2 ref
+  local __resumed_2 any
   local $cast_25 i32
-  local $cast_32 ref
+  local $cast_32 any
   block $L0 void
     loop $L1 void
       local.field 0 3 4
@@ -164,14 +165,14 @@ fn 3 snippet$__asyncstate_2$Async$resume (ref) -> ref
   return
 end
 
-fn 4 snippet$__asyncstate_10$Async$resume (ref) -> ref
+fn 4 snippet$__asyncstate_10$Async$resume (ref) -> any
   local $field_13 i32
   local __buf_1 ref
   local __off_2 usize
   local $cast_20 i64
-  local __resumed_4 ref
+  local __resumed_4 any
   local $cast_32 i32
-  local $cast_39 ref
+  local $cast_39 any
   block $L0 void
     loop $L1 void
       local.field 0 6 3
@@ -278,7 +279,7 @@ fn 4 snippet$__asyncstate_10$Async$resume (ref) -> ref
   return
 end
 
-fn 5 snippet$Ready$Async$resume__i32 (ref) -> ref
+fn 5 snippet$Ready$Async$resume__i32 (ref) -> any
   local.field 0 7 0
   ref.cast 1
   box 1

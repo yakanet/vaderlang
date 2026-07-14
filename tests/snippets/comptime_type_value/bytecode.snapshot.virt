@@ -25,7 +25,7 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 snippet$accept_type (ref) -> void
+fn 1 snippet$accept_type (any) -> void
   return
 end
 

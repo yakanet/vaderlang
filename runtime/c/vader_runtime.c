@@ -1877,6 +1877,13 @@ static size_t vader_gc_scan_object(char* scan) {
             for (size_t i = 0; i < buf->length; i++) {
                 vader_gc_scan_box(&slots[i]);
             }
+        } else if (buf->element_kind == VADER_ARRAY_KIND_REF) {
+            /* T12 : 8-byte raw-ref slots — forward each via scan_raw (handles
+             * NULL slots + the old→young write barrier). */
+            void** slots = (void**) buf->slots;
+            for (size_t i = 0; i < buf->length; i++) {
+                vader_gc_scan_raw(&slots[i]);
+            }
         }
         return vader_gc_align(sizeof(vader_array_buf_t) + buf->capacity * elem_size);
     }
@@ -1907,9 +1914,17 @@ static size_t vader_gc_scan_object(char* scan) {
 /* Walk the shadow stack and forward every root cell. Used by both cycles. */
 static void vader_gc_scan_roots(void) {
     for (vader_gc_frame_t* fr = vader_gc_top; fr != NULL; fr = fr->prev) {
-        if (fr->ptrs == NULL) continue;
-        for (uint32_t i = 0; i < fr->nrefs; i++) {
-            vader_gc_scan_box(fr->ptrs[i]);
+        if (fr->ptrs != NULL) {
+            for (uint32_t i = 0; i < fr->nrefs; i++) {
+                vader_gc_scan_box(fr->ptrs[i]);
+            }
+        }
+        // T12 raw-ref roots — `void*` locals carrying a concrete ref unboxed.
+        // NULL / 0 until the T12 codegen populates them (this loop then runs).
+        if (fr->raw != NULL) {
+            for (uint32_t i = 0; i < fr->nraw; i++) {
+                vader_gc_scan_raw(fr->raw[i]);
+            }
         }
     }
     /* Defer-stack — every entry's `payload.obj` is a vader_fn_t* whose env
@@ -2487,6 +2502,7 @@ static void vader_array_store_slot(vader_array_buf_t* buf, size_t i, vader_box_t
         case VADER_ARRAY_KIND_F64:  ((double*)   base)[i] = (double)   v.payload.f; return;
         case VADER_ARRAY_KIND_CHAR: ((uint32_t*) base)[i] = (uint32_t) v.payload.i; return;
         case VADER_ARRAY_KIND_BOOL: ((uint8_t*)  base)[i] = v.payload.b ? 1 : 0; return;
+        case VADER_ARRAY_KIND_REF:  ((void**)    base)[i] = vader_box_to_b1(v); return;  /* T12 raw ref */
         default: vader_trap("vader_array_store_slot: unknown element kind");
     }
 }
@@ -2729,7 +2745,7 @@ vader_array_t* vader_array_repeat(vader_array_t* src, size_t n) {
     for (size_t i = 0; i < n; i++) {
         memcpy(dst_data + i * block, src_data, block);
     }
-    if (kind == VADER_ARRAY_KIND_BOXED) {
+    if (kind == VADER_ARRAY_KIND_BOXED || kind == VADER_ARRAY_KIND_REF) {
         VADER_WRITE_BARRIER(out->buf);   /* coarse card covers the whole buf */
     }
     return out;
@@ -2789,7 +2805,8 @@ void vader_array_push_all(vader_array_t* dst, vader_array_t* src) {
     if (dst->offset + dst->length > dst->buf->length) {
         dst->buf->length = dst->offset + dst->length;
     }
-    if (dst->buf->element_kind == VADER_ARRAY_KIND_BOXED) {
+    if (dst->buf->element_kind == VADER_ARRAY_KIND_BOXED ||
+        dst->buf->element_kind == VADER_ARRAY_KIND_REF) {
         VADER_WRITE_BARRIER(dst->buf);
     }
 }
@@ -2820,7 +2837,7 @@ void vader_array_copy(vader_array_t* src, size_t src_start, vader_array_t* dst, 
     const uint8_t* src_data = vader_array_src_region(src, src_start, &skind, &stag, &sesz);
     uint8_t* dst_data = dst->buf->slots + (dst->offset + dst_start) * esz;
     memmove(dst_data, src_data, len * esz);
-    if (kind == VADER_ARRAY_KIND_BOXED) {
+    if (kind == VADER_ARRAY_KIND_BOXED || kind == VADER_ARRAY_KIND_REF) {
         VADER_WRITE_BARRIER(dst->buf);
     }
 }
@@ -2857,6 +2874,7 @@ vader_box_t vader_array_remove_last(vader_array_t* a) {
         case VADER_ARRAY_KIND_F64:  out.tag = tag; out.payload.f = ((double*)   base)[idx]; break;
         case VADER_ARRAY_KIND_CHAR: out.tag = tag; out.payload.i = ((uint32_t*) base)[idx]; break;
         case VADER_ARRAY_KIND_BOOL: out.tag = tag; out.payload.b = ((uint8_t*)  base)[idx] != 0; break;
+        case VADER_ARRAY_KIND_REF:  out = vader_ref_box(((void**) base)[idx]); break;  /* T12 : tag from header */
         default: vader_trap("vader_array_remove_last: unknown element kind");
     }
     /* If this array OWNS its buffer (offset 0, tail flush with the buffer end),
@@ -3927,6 +3945,15 @@ typedef struct {
     size_t* arr_kind_bytes;
     size_t* arr_kind_count;
     size_t* arr_boxed_slots;
+    /* T12 measure-first (VADER_GC_PROFILE): slots of BOXED bufs whose every live
+     * slot is a ref-or-null (STRUCT/ARRAY/FN/INLINE_REF tag). Such a buf — incl a
+     * union-of-refs like Expr[]/Stmt[] — could become a raw 8-B void*[] (tag
+     * recovered from each object header via scan_raw); only a true Any[] mixing
+     * boxed primitives must stay 24-B boxed. This is the realistic array win. */
+    size_t* arr_ref_slots;
+    /* Sum of ptr_count over live STRUCT objects — their boxed ref fields (24 B).
+     * Upper bound on the struct-field win (includes union fields that stay boxed). */
+    size_t* struct_ptr_slots;
     size_t* total;
 } vader_gc_prof_ctx_t;
 
@@ -3938,7 +3965,28 @@ static void vader_gc_prof_tally(char* scan, uint32_t type_index, void* vctx) {
         vader_array_buf_t* abuf = (vader_array_buf_t*) scan;
         uint8_t ek = abuf->element_kind;
         if (ek < 16u) { c->arr_kind_bytes[ek] += bytes; c->arr_kind_count[ek] += 1u; }
-        if (ek == VADER_ARRAY_KIND_BOXED) *c->arr_boxed_slots += abuf->capacity;
+        if (ek == VADER_ARRAY_KIND_BOXED) {
+            *c->arr_boxed_slots += abuf->capacity;
+            /* Realistic array win : is every live slot a ref-or-null? element_tag
+             * is unused for BOXED, so sample the [0,length) slot tags. */
+            vader_box_t* slots = vader_array_box_slots(abuf);
+            int all_refs = 1, seen = 0;
+            for (size_t i = 0; i < abuf->length; i++) {
+                uint32_t t = slots[i].tag;
+                if (t == VADER_BOX_TAG_NULL) continue;
+                seen = 1;
+                vader_type_kind_t k = (t < vader_type_info_count)
+                    ? vader_type_info_table[t].kind : VADER_TYPE_KIND_NONE;
+                if (k != VADER_TYPE_KIND_STRUCT && k != VADER_TYPE_KIND_ARRAY &&
+                    k != VADER_TYPE_KIND_FN && k != VADER_TYPE_KIND_INLINE_REF) {
+                    all_refs = 0; break;
+                }
+            }
+            if (seen && all_refs) *c->arr_ref_slots += abuf->capacity;
+        }
+    } else if (type_index < vader_type_info_count &&
+               vader_type_info_table[type_index].kind == VADER_TYPE_KIND_STRUCT) {
+        *c->struct_ptr_slots += vader_type_info_table[type_index].ptr_count;
     }
     size_t bucket = (type_index == VADER_TYPE_INDEX_ARRAY_BUF)
         ? c->array_buf_bucket
@@ -3970,13 +4018,15 @@ void vader_gc_profile_dump(void) {
     size_t arr_kind_bytes[16] = { 0 };
     size_t arr_kind_count[16] = { 0 };
     size_t arr_boxed_slots = 0;
+    size_t arr_ref_slots = 0;      /* T12 : BOXED bufs that are all-refs (→ raw void*[]) */
+    size_t struct_ptr_slots = 0;   /* T12 : boxed ref fields across live structs */
 
     /* Young: one contiguous from-space walk. Old: the non-moving slab's live
      * slots, by region. The BUFFER sentinel has no dedicated bucket — it falls
      * into bucket 0 (a cosmetic miscount in this debug-only profile, never a
      * GC-correctness issue ; the size walk handles its bytes correctly). */
     size_t totals[2] = { 0, 0 };
-    vader_gc_prof_ctx_t cy = { tally, array_buf_bucket, arr_kind_bytes, arr_kind_count, &arr_boxed_slots, &totals[0] };
+    vader_gc_prof_ctx_t cy = { tally, array_buf_bucket, arr_kind_bytes, arr_kind_count, &arr_boxed_slots, &arr_ref_slots, &struct_ptr_slots, &totals[0] };
     char* scan = g_young.from.base;
     while (scan < g_young.from.cur) {
         vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
@@ -3985,7 +4035,7 @@ void vader_gc_profile_dump(void) {
         vader_gc_prof_tally(scan, hdr->type_index, &cy);
         scan += vader_gc_align(bytes);
     }
-    vader_gc_prof_ctx_t co = { tally, array_buf_bucket, arr_kind_bytes, arr_kind_count, &arr_boxed_slots, &totals[1] };
+    vader_gc_prof_ctx_t co = { tally, array_buf_bucket, arr_kind_bytes, arr_kind_count, &arr_boxed_slots, &arr_ref_slots, &struct_ptr_slots, &totals[1] };
     vader_old_foreach_live(vader_gc_prof_tally, &co);
     qsort(tally, nbuckets, sizeof(vader_gc_prof_entry_t), vader_gc_prof_cmp);
 
@@ -4049,6 +4099,21 @@ void vader_gc_profile_dump(void) {
         "(upper bound — includes un-shrinkable Any[])\n",
         (unsigned long long) arr_boxed_slots,
         (double) (arr_boxed_slots * 16u) / (1024.0 * 1024.0));
+
+    /* T12 measure-first — realistic reclaimable (24→8 B/slot, saving 16 B each).
+     * Array: only the all-refs bufs (a raw void*[] recovers each tag from the
+     * object header; a true Any[] mixing boxed primitives is excluded). Struct:
+     * boxed ref fields across live structs (upper bound — includes union fields
+     * that must stay boxed). Both target the live-set → GC → compile-time lever
+     * and the arr/str runtime gap vs Go. */
+    double arr_real_mb    = (double) (arr_ref_slots    * 16u) / (1024.0 * 1024.0);
+    double struct_real_mb = (double) (struct_ptr_slots * 16u) / (1024.0 * 1024.0);
+    fprintf(stderr, "T12 reclaimable (realistic, 16 B/slot) :\n");
+    fprintf(stderr, "  array all-ref slots = %llu  →  %.2f MB (Any[] excluded)\n",
+            (unsigned long long) arr_ref_slots, arr_real_mb);
+    fprintf(stderr, "  struct ref-fields   = %llu  →  %.2f MB (upper bound, incl union fields)\n",
+            (unsigned long long) struct_ptr_slots, struct_real_mb);
+    fprintf(stderr, "  combined            →  %.2f MB\n", arr_real_mb + struct_real_mb);
 }
 
 #ifdef VADER_PROFILE_ALLOC_SITES

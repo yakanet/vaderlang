@@ -46,7 +46,7 @@ fn 1 snippet$NetErr$Error$message (ref) -> string
   return
 end
 
-fn 2 snippet$report (ref) -> string
+fn 2 snippet$report (any) -> string
   local.get 0
   virtual.call 1 Error.message
   return

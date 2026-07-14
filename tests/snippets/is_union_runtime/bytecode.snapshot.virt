@@ -23,7 +23,7 @@ import 1 write std_io$write (i32,string) -> void
 impl 9 ByteAccess
 export main 1
 
-fn 0 snippet$is_pet (ref) -> bool
+fn 0 snippet$is_pet (any) -> bool
   local.get 0
   type_check 13
   return

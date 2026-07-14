@@ -23,7 +23,7 @@ vtable Async.resume 5 2
 export main 0
 
 fn 0 snippet$main () -> i32
-  local $k_2 ref
+  local $k_2 any
   null.const
   local.set 0
   i32.const 0
@@ -31,6 +31,7 @@ fn 0 snippet$main () -> i32
   local.get 0
   i32.const 4
   struct.new 2
+  ref.cast 7
   virtual.call 1 Async.resume
   local.tee 0
   type_check 4
@@ -43,14 +44,14 @@ fn 0 snippet$main () -> i32
   end $L0
 end
 
-fn 1 snippet$__asyncstate_4$Async$resume (ref) -> ref
+fn 1 snippet$__asyncstate_4$Async$resume (ref) -> any
   local $field_13 i32
   local __buf_1 ref
   local __off_2 usize
   local $cast_20 i64
-  local __resumed_4 ref
+  local __resumed_4 any
   local $cast_32 i32
-  local $cast_39 ref
+  local $cast_39 any
   block $L0 void
     loop $L1 void
       local.field 0 2 3
@@ -158,14 +159,14 @@ fn 1 snippet$__asyncstate_4$Async$resume (ref) -> ref
   return
 end
 
-fn 2 snippet$Box$Async$resume__i32 (ref) -> ref
+fn 2 snippet$Box$Async$resume__i32 (ref) -> any
   local.field 0 5 0
   ref.cast 1
   box 1
   return
 end
 
-fn 3 snippet$viagen__i32 (i32) -> ref
+fn 3 snippet$viagen__i32 (i32) -> any
   local.get 0
   struct.new 5
   return

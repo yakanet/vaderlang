@@ -107,8 +107,8 @@ fn 1 snippet$points (i32) -> i32
   return
 end
 
-fn 2 snippet$kind (ref) -> i32
-  local __scrut_0 ref
+fn 2 snippet$kind (any) -> i32
+  local __scrut_0 any
   local.get 0
   local.tee 1
   type_check 6

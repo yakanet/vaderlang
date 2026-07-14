@@ -25,6 +25,7 @@ fn 0 snippet$main () -> i32
   local $struct_5 ref
   local __off_1 usize
   local $cast_14 u64
+  local __scrut_2 any
   array.new 11 0
   local.tee 0
   null.const
@@ -62,14 +63,14 @@ fn 0 snippet$main () -> i32
   local.get 0
   i32.const 1
   array.get 11
-  local.tee 0
+  local.tee 4
   type_check 0
   if $L0 void
     string.const 1
     call 5
     return.lit i32.const 0
   end $L0
-  local.get 0
+  local.get 4
   type_check 2
   if $L1 void
     string.const 2

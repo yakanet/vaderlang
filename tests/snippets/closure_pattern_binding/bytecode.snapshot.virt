@@ -27,10 +27,11 @@ import 1 write std_io$write (i32,string) -> void
 impl 10 ByteAccess
 export main 1
 
-fn 0 snippet$greet (ref) -> void
-  local __scrut_0 ref
+fn 0 snippet$greet (any) -> void
+  local __scrut_0 any
   local shout ref
   local $call_ind_11 string
+  local __buf_2 ref
   local __off_3 usize
   local $cast_28 i64
   local.get 0
@@ -38,6 +39,7 @@ fn 0 snippet$greet (ref) -> void
   type_check 3
   if $L0 void
     local.get 1
+    ref.cast 3
     struct.new 14
     struct.new 6
     make_closure 3 15
@@ -61,28 +63,28 @@ fn 0 snippet$greet (ref) -> void
     struct.new 16
     struct.new 5
     make_closure 2 17
-    local.set 1
+    local.set 2
     i64.const 28
     call 5
-    local.set 2
+    local.set 4
     i64.const 0
-    local.set 4
-    local.get 2
-    local.get 4
-    string.const 1
-    call 8
-    local.set 4
-    local.get 1
-    call.indirect 17
-    i32.to_i64
     local.set 5
-    local.get 2
     local.get 4
     local.get 5
-    call 9
-    local.set 4
+    string.const 1
+    call 8
+    local.set 5
     local.get 2
+    call.indirect 17
+    i32.to_i64
+    local.set 6
     local.get 4
+    local.get 5
+    local.get 6
+    call 9
+    local.set 5
+    local.get 4
+    local.get 5
     call 6
     call 10
     return

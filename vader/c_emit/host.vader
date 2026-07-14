@@ -107,7 +107,7 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
         if u8arr < 0 { return "${head} { vader_trap(\"read_file_bytes: no u8[] type\"); }" }
         return io_err_shim(head, "vader_read_file_bytes(a0, ${u8arr}u, ${u8}u", types)
     }
-    .IoWriteFileBytes -> { return io_err_shim(head, "vader_write_file_bytes(a0, (vader_array_t*) a1.payload.obj", types) }
+    .IoWriteFileBytes -> { return io_err_shim(head, "vader_write_file_bytes(a0, (vader_array_t*) a1", types) }
     .IoReadLine -> { return io_err_shim(head, "vader_read_line(${tag_u(ctx.string_tag, "string")}", types) }
     .IoReadStdin -> { return io_err_shim(head, "vader_read_stdin(a0, ${tag_u(ctx.string_tag, "string")}", types) }
     .IoPollStdin -> { return "${head} { return vader_poll_stdin(a0); }" }
@@ -121,11 +121,11 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
         if u8 < 0 { return "${head} { vader_trap(\"bytes: no u8 type\"); }" }
         u8arr :: array_tag(types, u8)
         if u8arr < 0 { return "${head} { vader_trap(\"bytes: no u8[] type\"); }" }
-        return "${head} { return vader_box_obj(${u8arr}u, vader_string_bytes_view(a0, ${u8arr}u, ${u8}u)); }"
+        return "${head} { return (void*) vader_string_bytes_view(a0, ${u8arr}u, ${u8}u); }"
     }
     // `bytes_to_string` (Target ABI S1) — backing runtime symbol still named
     // `vader_string_as_string`.
-    .CoreBytesToString -> { return "${head} { return vader_string_as_string((vader_array_t*) a0.payload.obj); }" }
+    .CoreBytesToString -> { return "${head} { return vader_string_as_string((vader_array_t*) a0); }" }
     // `string implements Hash` reads the FNV-1a-64 cached on the atom (O(1)).
     .CoreStringHash -> { return "${head} { return vader_string_hash(a0); }" }
 
@@ -156,7 +156,7 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
 
     // std/process — non-blocking subprocess. `argv` (a0) is a boxed `[string]` ;
     // the handle (a0) is a bare i64.
-    .ProcessSpawnStart      -> { return "${head} { return vader_spawn_start((vader_array_t*) a0.payload.obj); }" }
+    .ProcessSpawnStart      -> { return "${head} { return vader_spawn_start((vader_array_t*) a0); }" }
     .ProcessSpawnPoll       -> { return "${head} { return vader_spawn_poll(a0); }" }
     .ProcessSpawnTakeStdout -> { return "${head} { return vader_spawn_take_stdout(a0); }" }
     .ProcessSpawnTakeStderr -> { return "${head} { return vader_spawn_take_stderr(a0); }" }

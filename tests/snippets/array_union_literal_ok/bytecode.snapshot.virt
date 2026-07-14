@@ -25,7 +25,7 @@ fn 0 snippet$main () -> i32
   local xs ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local x ref
+  local x any
   local s string
   local n i32
   local __buf_3 ref

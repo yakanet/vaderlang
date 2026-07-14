@@ -61,8 +61,8 @@ vtable Async.cancel 19 14
 vtable Async.cancel 22 18
 export main 1
 
-fn 0 snippet$task (string,i64) -> ref
-  local $k_3 ref
+fn 0 snippet$task (string,i64) -> any
+  local $k_3 any
   null.const
   local.set 2
   local.get 0
@@ -76,7 +76,7 @@ end
 
 fn 1 snippet$main () -> i32
   local $k_0 ref
-  local $k_1 ref
+  local $k_1 any
   null.const
   local.set 0
   null.const
@@ -85,19 +85,20 @@ fn 1 snippet$main () -> i32
   local.get 1
   i32.const 4
   struct.new 9
+  ref.cast 3
   call 16
   return
 end
 
-fn 2 snippet$__asyncstate_11$Async$resume (ref) -> ref
+fn 2 snippet$__asyncstate_11$Async$resume (ref) -> any
   local __p_1 string
   local $call_18 usize
   local __buf_2 ref
   local __off_3 usize
   local $field_27 i64
-  local __resumed_5 ref
+  local __resumed_5 any
   local $cast_41 null
-  local $cast_48 ref
+  local $cast_48 any
   block $L0 void
     loop $L1 void
       local.field 0 5 4
@@ -251,13 +252,13 @@ fn 3 snippet$__asyncstate_11$Async$cancel (ref) -> void
   return
 end
 
-fn 4 snippet$__asyncstate_17$Async$resume (ref) -> ref
-  local __resumed_2 ref
+fn 4 snippet$__asyncstate_17$Async$resume (ref) -> any
+  local __resumed_2 any
   local $cast_23 ref
-  local $call_30 ref
-  local $call_33 ref
-  local $call_36 ref
-  local $cast_39 ref
+  local $call_30 any
+  local $call_33 any
+  local $call_36 any
+  local $cast_39 any
   block $L0 void
     loop $L1 void
       local.field 0 9 2
@@ -301,6 +302,7 @@ fn 4 snippet$__asyncstate_17$Async$resume (ref) -> ref
             return
           end $L6
           local.get 1
+          ref.cast 11
           local.set 2
           local.get 0
           local.get 2
@@ -562,10 +564,10 @@ fn 12 std_io$println__string (string) -> void
   return
 end
 
-fn 13 std_async$All$Async$resume__i32 (ref) -> ref
+fn 13 std_async$All$Async$resume__i32 (ref) -> any
   local n usize
   local i usize
-  local r ref
+  local r any
   local $field_18 ref
   local $cast_19 i32
   local.field 0 19 0
@@ -629,7 +631,7 @@ fn 13 std_async$All$Async$resume__i32 (ref) -> ref
     return
   end $L5
   array.new 11 0
-  local.set 3
+  local.set 4
   i64.const 0
   local.set 2
   block $L6 void
@@ -641,14 +643,14 @@ fn 13 std_async$All$Async$resume__i32 (ref) -> ref
         local.field 0 19 1
         local.get 2
         call 21
-        local.tee 4
+        local.tee 3
         type_check 0
         bool.not
         if $L9 void
-          local.get 4
+          local.get 3
           ref.cast 4
           local.set 5
-          local.get 3
+          local.get 4
           local.get 5
           array.push 4
         else
@@ -662,7 +664,7 @@ fn 13 std_async$All$Async$resume__i32 (ref) -> ref
       end $L8
     end $L7
   end $L6
-  local.get 3
+  local.get 4
   return
 end
 
@@ -698,7 +700,7 @@ fn 14 std_async$All$Async$cancel__i32 (ref) -> void
   return
 end
 
-fn 15 std_async$sleep (i64) -> ref
+fn 15 std_async$sleep (i64) -> any
   local.get 0
   i64.const 0
   bool.const false
@@ -706,13 +708,13 @@ fn 15 std_async$sleep (i64) -> ref
   return
 end
 
-fn 16 std_async$run_async_main (ref) -> i32
+fn 16 std_async$run_async_main (any) -> i32
   local.get 0
   call 19
   return
 end
 
-fn 17 std_async$Sleep$Async$resume (ref) -> ref
+fn 17 std_async$Sleep$Async$resume (ref) -> any
   local $call_4 i64
   local $field_5 i64
   local.field 0 22 2
@@ -760,8 +762,8 @@ fn 18 std_async$Sleep$Async$cancel (ref) -> void
   return
 end
 
-fn 19 std_async$block_on__i32 (ref) -> i32
-  local r ref
+fn 19 std_async$block_on__i32 (any) -> i32
+  local r any
   block $L0 void
     loop $L1 void
       local.get 0
@@ -788,7 +790,7 @@ fn 19 std_async$block_on__i32 (ref) -> i32
   return
 end
 
-fn 20 std_async$all__i32 (ref) -> ref
+fn 20 std_async$all__i32 (ref) -> any
   local $arr_1 ref
   local $arr_2 ref
   local $arr_3 ref
@@ -812,7 +814,7 @@ fn 20 std_async$all__i32 (ref) -> ref
   return
 end
 
-fn 21 std_collections$MutableMap$Index$at__usize__i32 (ref,usize) -> ref
+fn 21 std_collections$MutableMap$Index$at__usize__i32 (ref,usize) -> any
   local.get 0
   local.get 1
   call 29
@@ -1240,7 +1242,7 @@ fn 28 std_collections$std_collections$put__usize__i32 (ref,usize,i32) -> void
   return
 end
 
-fn 29 std_collections$std_collections$get__usize__i32 (ref,usize) -> ref
+fn 29 std_collections$std_collections$get__usize__i32 (ref,usize) -> any
   local $cast_7 u64
   local $field_8 usize
   local ei usize

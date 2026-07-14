@@ -171,7 +171,9 @@ export c_type_for_val_bare :: fn(v: ValType) -> string = match v {
     .String -> "vader_string_t"
     .Null -> "vader_box_t"
     .Void -> "void"
-    .Ref -> "vader_box_t"
+    // T12: a concrete heap ref rides the stack as a raw 8-byte pointer; the tag
+    // is recovered from the object header at the erasure boundary (`vader_ref_box`).
+    .Ref -> "void*"
     .Any -> "vader_box_t"
 }
 
@@ -201,7 +203,8 @@ export unbox_expr :: fn(name: string, target: ValType) -> string = match target 
     .String -> "${name}.payload.s"
     .Null  -> name
     .Void  -> "((void) 0)"
-    .Ref   -> name
+    // T12: narrowing a box to a concrete ref extracts its object pointer.
+    .Ref   -> "${name}.payload.obj"
     .Any   -> name
 }
 
@@ -234,7 +237,9 @@ export box_expr :: fn(name: string, val: ValType, type_index: i32) -> string = m
     .String -> "vader_box_string(${type_index}u, ${name})"
     .Null  -> name
     .Void  -> "vader_box_null()"
-    .Ref   -> name
+    // T12: widening a raw concrete ref (void*) into a box recovers the tag from
+    // the object header (`type_index` here is the static type, less precise).
+    .Ref   -> "vader_ref_box(${name})"
     .Any   -> name
 }
 
@@ -286,6 +291,18 @@ export primitive_matches_type :: fn(types: BcType[], slot_val: ValType, type_ind
 /// @return       a C expression of `to`'s storage type.
 export coerce_expr :: fn(types: BcType[], name: string, from: ValType, to: ValType) -> string {
     if from == to { return name }
+    // T12 erasure boundary — `.Ref` is a raw `void*`, `.Any`/`.Null` are boxes.
+    // Narrow a boxed dynamic value (or `null`) into a raw concrete ref.
+    if to == .Ref {
+        if from == .Any || from == .Null { return "${name}.payload.obj" }
+        return name
+    }
+    // Widen a raw concrete ref into a boxed slot — tag from the object header.
+    if from == .Ref {
+        if is_ref_val(to) { return "vader_ref_box(${name})" }
+        return name
+    }
+    // Neither side is a raw ref : the classic box/primitive reconciliation.
     if is_ref_val(to) && is_ref_val(from) { return name }
     if is_ref_val(to) { return box_expr_unknown(types, name, from) }
     if is_ref_val(from) { return unbox_expr(name, to) }
@@ -309,14 +326,12 @@ export coerce_operand :: fn(types: BcType[], name: string, from: ValType, to: Va
 ///
 /// @param t  the bytecode type-table entry.
 /// @return   the C type spelling for slots of this type.
-export c_type_for :: fn(t: BcType) -> string = match t {
-    is BcPrimitive as p -> c_type_for_val_bare(p.val)
-    is BcStruct -> "vader_box_t"
-    is BcArray -> "vader_box_t"
-    is BcUnion -> "vader_box_t"
-    is BcRef -> "vader_box_t"
-    is BcFn -> "vader_box_t"
-}
+// The C storage type follows directly from the stack class: `val_type_of_bc_type`
+// owns the concrete-heap (`.Ref` → `void*`) vs erased (`.Any` → `vader_box_t`)
+// partition and stays exhaustive over `BcType`, so deriving here keeps a single
+// source of truth (and can't drift from the GC's field bucketing, which reads
+// the same predicate — see `classify_struct_fields`).
+export c_type_for :: fn(t: BcType) -> string = c_type_for_val_bare(val_type_of_bc_type(t))
 
 /// Stack-machine value class for a `BcType`. Every heap shape lands in
 /// `Ref` ; the value stack itself only ever carries `Ref` slots for
@@ -327,11 +342,13 @@ export c_type_for :: fn(t: BcType) -> string = match t {
 ///           `BcPrimitive`, `Ref` for every heap shape.
 export val_type_of_bc_type :: fn(t: BcType) -> ValType = match t {
     is BcPrimitive as p -> p.val
+    // Concrete heap → `.Ref` (void*) ; erased trait/union → `.Any` (box).
+    // Mirrors `type_classify.vader::val_type_of_type` (T12).
     is BcStruct -> ValType.Ref
     is BcArray -> ValType.Ref
-    is BcUnion -> ValType.Ref
-    is BcRef -> ValType.Ref
     is BcFn -> ValType.Ref
+    is BcUnion -> ValType.Any
+    is BcRef -> ValType.Any
 }
 
 /// True for the boxed value classes (`ref` / `any`) — both collapse to

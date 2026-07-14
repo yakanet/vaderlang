@@ -1439,7 +1439,7 @@ fn 20 std_string$chars (string) -> ref
   return
 end
 
-fn 21 std_string$StringChars$Iterator$next (ref) -> ref
+fn 21 std_string$StringChars$Iterator$next (ref) -> any
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref

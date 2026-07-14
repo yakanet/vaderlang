@@ -19,7 +19,7 @@ import 1 write std_io$write (i32,string) -> void
 impl 6 ByteAccess
 export main 1
 
-fn 0 snippet$make_pair (bool) -> ref
+fn 0 snippet$make_pair (bool) -> any
   local.get 0
   if $L0 void
     i32.const 10
@@ -33,7 +33,8 @@ fn 0 snippet$make_pair (bool) -> ref
 end
 
 fn 1 snippet$main () -> i32
-  local pair ref
+  local pair any
+  local __tup_0 ref
   local a i32
   local b i32
   local __off_2 usize
@@ -48,50 +49,51 @@ fn 1 snippet$main () -> i32
     return
   end $L0
   local.get 0
-  local.set 0
-  local.field 0 3 0
-  ref.cast 4
+  ref.cast 3
   local.set 1
-  local.field 0 3 1
+  local.field 1 3 0
   ref.cast 4
   local.set 2
+  local.field 1 3 1
+  ref.cast 4
+  local.set 3
   i64.const 45
   call 2
-  local.set 0
+  local.set 1
   i64.const 0
-  local.set 3
-  local.get 0
-  local.get 3
+  local.set 4
+  local.get 1
+  local.get 4
   string.const 0
   call 4
-  local.set 3
-  local.get 1
-  i32.to_i64
   local.set 4
-  local.get 0
-  local.get 3
+  local.get 2
+  i32.to_i64
+  local.set 5
+  local.get 1
   local.get 4
+  local.get 5
   call 5
-  local.set 3
-  local.get 0
-  local.get 3
+  local.set 4
+  local.get 1
+  local.get 4
   string.const 1
   call 4
-  local.set 3
-  local.get 2
-  i32.to_i64
   local.set 4
-  local.get 0
   local.get 3
+  i32.to_i64
+  local.set 5
+  local.get 1
   local.get 4
+  local.get 5
   call 5
-  local.set 3
-  local.get 0
-  local.get 3
+  local.set 4
+  local.get 1
+  local.get 4
   call 3
   call 6
-  local.get 1
   local.get 2
+  local.get 3
   i32.add
   return
 end

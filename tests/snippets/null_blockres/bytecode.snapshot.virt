@@ -12,7 +12,7 @@ string 3 "\n"
 import 0 write std_io$write (i32,string) -> void
 export main 1
 
-fn 0 snippet$pick (bool) -> ref
+fn 0 snippet$pick (bool) -> any
   local if_res null
   local.get 0
   if $L0 void
@@ -34,7 +34,7 @@ fn 0 snippet$pick (bool) -> ref
 end
 
 fn 1 snippet$main () -> i32
-  local __scrut_0 ref
+  local __scrut_0 any
   bool.const true
   call 0
   local.tee 0

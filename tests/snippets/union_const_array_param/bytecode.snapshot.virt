@@ -17,7 +17,7 @@ import 1 write std_io$write (i32,string) -> void
 impl 7 ByteAccess
 export main 1
 
-fn 0 snippet$byte_count (ref) -> usize
+fn 0 snippet$byte_count (any) -> usize
   local.get 0
   type_check 4
   if $L0 void
@@ -28,6 +28,7 @@ fn 0 snippet$byte_count (ref) -> usize
     return
   end $L0
   local.get 0
+  ref.cast 2
   array.len
   return
 end

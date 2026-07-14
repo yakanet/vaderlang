@@ -18,7 +18,7 @@ impl 1 Error
 impl 8 ByteAccess
 export main 2
 
-fn 0 snippet$maybe (bool) -> ref
+fn 0 snippet$maybe (bool) -> any
   local.get 0
   if $L0 void
     return.lit i32.const 7
@@ -28,7 +28,7 @@ fn 0 snippet$maybe (bool) -> ref
   return
 end
 
-fn 1 snippet$risky (bool) -> ref
+fn 1 snippet$risky (bool) -> any
   local.get 0
   if $L0 void
     return.lit i32.const 42
@@ -41,7 +41,7 @@ fn 2 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 usize
   local $cast_9 i64
-  local $call_30 ref
+  local $call_30 any
   local $unop_32 i32
   i64.const 20
   call 5
@@ -136,7 +136,7 @@ fn 2 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 3 snippet$snippet$pick__i32 (ref,i32) -> i32
+fn 3 snippet$snippet$pick__i32 (any,i32) -> i32
   local.get 0
   type_check 0
   if $L0 void
@@ -148,7 +148,7 @@ fn 3 snippet$snippet$pick__i32 (ref,i32) -> i32
   return
 end
 
-fn 4 snippet$snippet$pick__i32_1 (ref,i32) -> i32
+fn 4 snippet$snippet$pick__i32_1 (any,i32) -> i32
   local.get 0
   type_check 1
   if $L0 void

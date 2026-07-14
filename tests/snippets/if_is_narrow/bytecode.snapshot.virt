@@ -31,12 +31,13 @@ import 1 write std_io$write (i32,string) -> void
 impl 10 ByteAccess
 export main 4
 
-fn 0 snippet$direct (ref) -> string
+fn 0 snippet$direct (any) -> string
   local $field_4 string
   local.get 0
   type_check 2
   if $L0 void
     local.get 0
+    ref.cast 2
     struct.get 2 0
     ref.cast 4
     local.set 1
@@ -46,6 +47,7 @@ fn 0 snippet$direct (ref) -> string
     return
   end $L0
   local.get 0
+  ref.cast 3
   struct.get 3 0
   ref.cast 4
   local.set 1
@@ -55,13 +57,14 @@ fn 0 snippet$direct (ref) -> string
   return
 end
 
-fn 1 snippet$negated (ref) -> string
+fn 1 snippet$negated (any) -> string
   local $field_5 string
   local.get 0
   type_check 2
   bool.not
   if $L0 void
     local.get 0
+    ref.cast 3
     struct.get 3 0
     ref.cast 4
     local.set 1
@@ -71,6 +74,7 @@ fn 1 snippet$negated (ref) -> string
     return
   end $L0
   local.get 0
+  ref.cast 2
   struct.get 2 0
   ref.cast 4
   local.set 1
@@ -80,7 +84,7 @@ fn 1 snippet$negated (ref) -> string
   return
 end
 
-fn 2 snippet$cascade (ref) -> string
+fn 2 snippet$cascade (any) -> string
   local $field_4 string
   local __buf_0 ref
   local __off_1 usize
@@ -89,6 +93,7 @@ fn 2 snippet$cascade (ref) -> string
   type_check 2
   if $L0 void
     local.get 0
+    ref.cast 2
     struct.get 2 0
     ref.cast 4
     local.set 1
@@ -101,6 +106,7 @@ fn 2 snippet$cascade (ref) -> string
   type_check 3
   if $L1 void
     local.get 0
+    ref.cast 3
     struct.get 3 0
     ref.cast 4
     local.set 1
@@ -120,6 +126,7 @@ fn 2 snippet$cascade (ref) -> string
   call 9
   local.set 3
   local.get 0
+  ref.cast 6
   struct.get 6 0
   ref.cast 8
   i32.to_i64
@@ -140,7 +147,7 @@ fn 2 snippet$cascade (ref) -> string
   return
 end
 
-fn 3 snippet$primitive_is (ref) -> string
+fn 3 snippet$primitive_is (any) -> string
   local __buf_0 ref
   local __off_1 usize
   local $cast_10 i64

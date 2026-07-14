@@ -33,14 +33,14 @@ vtable Async.resume 7 5
 vtable Async.resume 8 6
 export main 3
 
-fn 0 snippet$fetch () -> ref
+fn 0 snippet$fetch () -> any
   i32.const 7
   struct.new 8
   return
 end
 
-fn 1 snippet$log_it () -> ref
-  local $k_2 ref
+fn 1 snippet$log_it () -> any
+  local $k_2 any
   null.const
   local.set 0
   i32.const 0
@@ -51,8 +51,8 @@ fn 1 snippet$log_it () -> ref
   return
 end
 
-fn 2 snippet$wrap () -> ref
-  local $k_1 ref
+fn 2 snippet$wrap () -> any
+  local $k_1 any
   null.const
   local.set 0
   null.const
@@ -76,14 +76,14 @@ fn 3 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 4 snippet$__asyncstate_4$Async$resume (ref) -> ref
+fn 4 snippet$__asyncstate_4$Async$resume (ref) -> any
   local $field_9 i32
   local __buf_1 ref
   local __off_2 usize
   local $cast_18 i64
-  local __resumed_4 ref
+  local __resumed_4 any
   local $cast_30 i32
-  local $cast_36 ref
+  local $cast_36 any
   block $L0 void
     loop $L1 void
       local.field 0 4 3
@@ -183,10 +183,10 @@ fn 4 snippet$__asyncstate_4$Async$resume (ref) -> ref
   return
 end
 
-fn 5 snippet$__asyncstate_10$Async$resume (ref) -> ref
-  local __resumed_2 ref
+fn 5 snippet$__asyncstate_10$Async$resume (ref) -> any
+  local __resumed_2 any
   local $cast_20 null
-  local $cast_26 ref
+  local $cast_26 any
   block $L0 void
     loop $L1 void
       local.field 0 7 2
@@ -259,7 +259,7 @@ fn 5 snippet$__asyncstate_10$Async$resume (ref) -> ref
   return
 end
 
-fn 6 snippet$Ready$Async$resume__i32 (ref) -> ref
+fn 6 snippet$Ready$Async$resume__i32 (ref) -> any
   local.field 0 8 0
   ref.cast 3
   box 3

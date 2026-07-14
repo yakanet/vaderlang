@@ -34,7 +34,7 @@ vtable Async.cancel 8 7
 vtable Async.cancel 10 10
 export main 4
 
-fn 0 snippet$Never$Async$resume (ref) -> ref
+fn 0 snippet$Never$Async$resume (ref) -> any
   struct.new 4
   return
 end
@@ -45,10 +45,10 @@ fn 1 snippet$Never$Async$cancel (ref) -> void
   return
 end
 
-fn 2 snippet$inner () -> ref
-  local $k_0 ref
+fn 2 snippet$inner () -> any
+  local $k_0 any
   local $arr_3 ref
-  local $k_4 ref
+  local $k_4 any
   null.const
   local.set 0
   array.new 11 0
@@ -65,9 +65,9 @@ fn 2 snippet$inner () -> ref
   return
 end
 
-fn 3 snippet$outer () -> ref
+fn 3 snippet$outer () -> any
   local $arr_2 ref
-  local $k_3 ref
+  local $k_3 any
   array.new 11 0
   local.set 0
   null.const
@@ -82,7 +82,7 @@ fn 3 snippet$outer () -> ref
 end
 
 fn 4 snippet$main () -> i32
-  local o ref
+  local o any
   call 3
   local.tee 0
   virtual.call 1 Async.resume
@@ -100,16 +100,16 @@ fn 5 __defer_1 (ref) -> void
   return
 end
 
-fn 6 snippet$__asyncstate_5$Async$resume (ref) -> ref
+fn 6 snippet$__asyncstate_5$Async$resume (ref) -> any
   local $field_17 ref
   local $sub_21 usize
   local $field_23 ref
   local $sub_28 usize
   local $slice_29 ref
   local $field_34 i32
-  local __resumed_3 ref
+  local __resumed_3 any
   local $cast_45 i32
-  local $cast_51 ref
+  local $cast_51 any
   local $field_56 ref
   local $cast_59 ref
   local $struct_60 ref
@@ -337,16 +337,16 @@ fn 8 __defer_10 (ref) -> void
   return
 end
 
-fn 9 snippet$__asyncstate_14$Async$resume (ref) -> ref
+fn 9 snippet$__asyncstate_14$Async$resume (ref) -> any
   local $field_17 ref
   local $sub_21 usize
   local $field_23 ref
   local $sub_28 usize
   local $slice_29 ref
   local $field_34 i32
-  local __resumed_3 ref
+  local __resumed_3 any
   local $cast_45 i32
-  local $cast_51 ref
+  local $cast_51 any
   local $field_56 ref
   local $cast_59 ref
   block $L0 void

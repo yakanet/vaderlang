@@ -50,7 +50,7 @@ fn 0 snippet$main () -> i32
   local __elem_8 i32
   local $k_50 usize
   local __acc_14 bool
-  local $closure_107 ref
+  local __find_23 any
   local $cast_122 i64
   i32.const 1
   i32.const 2
@@ -251,12 +251,12 @@ fn 0 snippet$main () -> i32
   call 12
   call 16
   null.const
-  local.set 2
+  local.set 12
   struct.new 10
   make_closure 8 21
-  local.set 3
+  local.set 2
   local.get 0
-  local.tee 7
+  local.tee 3
   array.len
   local.set 4
   i64.const 0
@@ -267,21 +267,21 @@ fn 0 snippet$main () -> i32
       local.get 4
       u64.lt
       if $L15 void
-        local.get 7
+        local.get 3
         local.get 5
         load_slot_i32
-        local.get 3
+        local.get 2
         call.indirect 21
         local.set 6
         struct.new 9
         make_closure 7 22
-        local.set 12
+        local.set 7
         local.get 6
-        local.get 12
+        local.get 7
         call.indirect 22
         if $L16 void
           local.get 6
-          local.set 2
+          local.set 12
         else
           local.get 5
           i64.const 1
@@ -293,8 +293,8 @@ fn 0 snippet$main () -> i32
       end $L15
     end $L14
   end $L13
-  local.get 2
-  local.tee 2
+  local.get 12
+  local.tee 12
   type_check 0
   if $L17 void
     string.const 3
@@ -302,33 +302,33 @@ fn 0 snippet$main () -> i32
   else
     i64.const 22
     call 11
-    local.set 3
+    local.set 2
     i64.const 0
     local.set 4
-    local.get 3
+    local.get 2
     local.get 4
     string.const 4
     call 13
     local.set 4
-    local.get 2
+    local.get 12
     ref.cast 1
     i32.to_i64
     local.set 13
-    local.get 3
+    local.get 2
     local.get 4
     local.get 13
     call 14
     local.set 4
-    local.get 3
+    local.get 2
     local.get 4
     call 12
     call 16
   end $L17
   null.const
-  local.set 2
+  local.set 12
   struct.new 12
   make_closure 10 22
-  local.set 3
+  local.set 2
   local.get 0
   local.tee 0
   array.len
@@ -345,20 +345,20 @@ fn 0 snippet$main () -> i32
         local.get 5
         load_slot_i32
         local.tee 6
-        local.get 3
+        local.get 2
         call.indirect 22
         if $L21 void
           local.get 6
           local.set 9
           struct.new 11
           make_closure 9 22
-          local.set 7
+          local.set 3
           local.get 9
-          local.get 7
+          local.get 3
           call.indirect 22
           if $L22 void
             local.get 9
-            local.set 2
+            local.set 12
           else
             i64.const 1
             local.set 10
@@ -381,8 +381,8 @@ fn 0 snippet$main () -> i32
       end $L20
     end $L19
   end $L18
-  local.get 2
-  local.tee 0
+  local.get 12
+  local.tee 12
   type_check 0
   if $L23 void
     string.const 5
@@ -390,24 +390,24 @@ fn 0 snippet$main () -> i32
   else
     i64.const 22
     call 11
-    local.set 2
+    local.set 0
     i64.const 0
     local.set 4
-    local.get 2
+    local.get 0
     local.get 4
     string.const 6
     call 13
     local.set 4
-    local.get 0
+    local.get 12
     ref.cast 1
     i32.to_i64
     local.set 13
-    local.get 2
+    local.get 0
     local.get 4
     local.get 13
     call 14
     local.set 4
-    local.get 2
+    local.get 0
     local.get 4
     call 12
     call 16
