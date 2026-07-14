@@ -105,13 +105,12 @@ static int32_t snippet_main(void) {
     size_t l4, l5, l7, l8;
     vader_string_t l6;
     uint64_t l9;
-    vader_box_t t0 = vader_box_null();
-    size_t t1;
-    int64_t t2;
-    vader_string_t t3;
-    vader_box_t* gc_roots[2] = { &l0, &t0 };
+    size_t t0;
+    int64_t t1;
+    vader_string_t t2;
+    vader_box_t* gc_roots[1] = { &l0 };
     void** gc_raw_roots[3] = { &l1, &l2, &l3 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots };
     vader_gc_top = &gc_frame;
 #line 22 "tests/snippets/intrinsic_fields/_main.vader"
     l0 = vader_box_obj(0u, (void*)(uintptr_t)1u);
@@ -132,10 +131,10 @@ static int32_t snippet_main(void) {
     _a2_obj->f_name = 3u;
     _a2_obj->f_type = l0;
     l3 = (void*) _a2_obj;
-    vader_array_t* _a3_arr = vader_array_new(12u, 3u, 0u, 10u);
-    vader_array_box_slots(_a3_arr->buf)[_a3_arr->offset + 2u] = vader_ref_box(l3);
-    vader_array_box_slots(_a3_arr->buf)[_a3_arr->offset + 1u] = vader_ref_box(l2);
-    vader_array_box_slots(_a3_arr->buf)[_a3_arr->offset + 0u] = vader_ref_box(l1);
+    vader_array_t* _a3_arr = vader_array_new(12u, 3u, 13u, 10u);
+    ((void**) _a3_arr->buf->slots)[_a3_arr->offset + 2u] = l3;
+    ((void**) _a3_arr->buf->slots)[_a3_arr->offset + 1u] = l2;
+    ((void**) _a3_arr->buf->slots)[_a3_arr->offset + 0u] = l1;
     l1 = (void*) _a3_arr;
     l4 = ((vader_array_t*) l1)->length;
     l5 = (size_t) (int64_t) INT64_C(0);
@@ -145,8 +144,7 @@ static int32_t snippet_main(void) {
                 vader_array_t* _a4_slotarr = ((vader_array_t*) l1);
                 while (_a4_slotarr->buf != NULL && _a4_slotarr->buf->header.forward != NULL) { _a4_slotarr->buf = (vader_array_buf_t*) _a4_slotarr->buf->header.forward; }
                 if ((size_t) l5 >= _a4_slotarr->length) { vader_trap("array index out of bounds"); }
-                t0 = vader_array_box_slots(_a4_slotarr->buf)[_a4_slotarr->offset + (size_t) l5];
-                l2 = t0.payload.obj;
+                l2 = vader_array_ref_load_obj(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) l5);
 #line 23 "tests/snippets/intrinsic_fields/_main.vader"
                 l6 = ((vader_struct_std_core_Field_t*) l2)->f_name;
                 l7 = std_core_byte_len(l6);
@@ -154,15 +152,15 @@ static int32_t snippet_main(void) {
                 l8 = (size_t) (int64_t) INT64_C(0);
                 l8 = std_core_write_string_at(l3, l8, l6);
                 l8 = std_core_write_string_at(l3, l8, 4u);
-                t1 = vader_type_size[(int32_t)(uintptr_t)((vader_struct_std_core_Field_t*) l2)->f_type.payload.obj];
-                t2 = ((int64_t) (size_t) t1);
-                l9 = (uint64_t) (int64_t) t2;
+                t0 = vader_type_size[(int32_t)(uintptr_t)((vader_struct_std_core_Field_t*) l2)->f_type.payload.obj];
+                t1 = ((int64_t) (size_t) t0);
+                l9 = (uint64_t) (int64_t) t1;
                 l8 = std_core_write_unsigned(l3, l8, l9);
-                t3 = std_core_finish_buffer(l3, l8);
-                std_io_println__string(t3);
+                t2 = std_core_finish_buffer(l3, l8);
+                std_io_println__string(t2);
 #line 22 "tests/snippets/intrinsic_fields/_main.vader"
-                t2 = (l5 + INT64_C(1));
-                l5 = (size_t) (int64_t) t2;
+                t1 = (l5 + INT64_C(1));
+                l5 = (size_t) (int64_t) t1;
                 goto loop_28;
             } else {
             }
@@ -181,9 +179,9 @@ static int32_t snippet_main(void) {
     _a6_obj->f_name = 6u;
     _a6_obj->f_type = l0;
     l2 = (void*) _a6_obj;
-    vader_array_t* _a7_arr = vader_array_new(12u, 2u, 0u, 10u);
-    vader_array_box_slots(_a7_arr->buf)[_a7_arr->offset + 1u] = vader_ref_box(l2);
-    vader_array_box_slots(_a7_arr->buf)[_a7_arr->offset + 0u] = vader_ref_box(l1);
+    vader_array_t* _a7_arr = vader_array_new(12u, 2u, 13u, 10u);
+    ((void**) _a7_arr->buf->slots)[_a7_arr->offset + 1u] = l2;
+    ((void**) _a7_arr->buf->slots)[_a7_arr->offset + 0u] = l1;
     l1 = (void*) _a7_arr;
     l4 = ((vader_array_t*) l1)->length;
     l5 = (size_t) (int64_t) INT64_C(0);
@@ -193,8 +191,7 @@ static int32_t snippet_main(void) {
                 vader_array_t* _a8_slotarr = ((vader_array_t*) l1);
                 while (_a8_slotarr->buf != NULL && _a8_slotarr->buf->header.forward != NULL) { _a8_slotarr->buf = (vader_array_buf_t*) _a8_slotarr->buf->header.forward; }
                 if ((size_t) l5 >= _a8_slotarr->length) { vader_trap("array index out of bounds"); }
-                t0 = vader_array_box_slots(_a8_slotarr->buf)[_a8_slotarr->offset + (size_t) l5];
-                l2 = t0.payload.obj;
+                l2 = vader_array_ref_load_obj(_a8_slotarr->buf, _a8_slotarr->offset + (size_t) l5);
 #line 26 "tests/snippets/intrinsic_fields/_main.vader"
                 l6 = ((vader_struct_std_core_Field_t*) l2)->f_name;
                 l7 = std_core_byte_len(l6);
@@ -203,15 +200,15 @@ static int32_t snippet_main(void) {
                 l8 = std_core_write_string_at(l3, l8, 7u);
                 l8 = std_core_write_string_at(l3, l8, l6);
                 l8 = std_core_write_string_at(l3, l8, 4u);
-                t1 = vader_type_size[(int32_t)(uintptr_t)((vader_struct_std_core_Field_t*) l2)->f_type.payload.obj];
-                t2 = ((int64_t) (size_t) t1);
-                l9 = (uint64_t) (int64_t) t2;
+                t0 = vader_type_size[(int32_t)(uintptr_t)((vader_struct_std_core_Field_t*) l2)->f_type.payload.obj];
+                t1 = ((int64_t) (size_t) t0);
+                l9 = (uint64_t) (int64_t) t1;
                 l8 = std_core_write_unsigned(l3, l8, l9);
-                t3 = std_core_finish_buffer(l3, l8);
-                std_io_println__string(t3);
+                t2 = std_core_finish_buffer(l3, l8);
+                std_io_println__string(t2);
 #line 25 "tests/snippets/intrinsic_fields/_main.vader"
-                t2 = (l5 + INT64_C(1));
-                l5 = (size_t) (int64_t) t2;
+                t1 = (l5 + INT64_C(1));
+                l5 = (size_t) (int64_t) t1;
                 goto loop_102;
             } else {
             }
