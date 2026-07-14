@@ -80,7 +80,6 @@ fn 2 snippet$main () -> i32
   local.get 1
   array.set 9
   local.get 0
-  local.tee 0
   array.len
   local.set 2
   i64.const 0

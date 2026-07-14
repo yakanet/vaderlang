@@ -470,8 +470,6 @@ fn 10 std_string$pad_start (string,usize,char) -> string
   array.new 10 0
   struct.new 12
   local.set 4
-  local.get 3
-  local.set 3
   block $L1 void
     loop $L2 void
       local.get 3
@@ -515,8 +513,6 @@ fn 11 std_string$pad_end (string,usize,char) -> string
   local.tee 4
   local.get 0
   call 17
-  local.get 3
-  local.set 3
   block $L1 void
     loop $L2 void
       local.get 3

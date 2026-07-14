@@ -103,6 +103,22 @@ remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) -> i32[
     return new_jt
 }
 
+/// Bitmap over body PCs : `true` at every PC that is a jump TARGET (a
+/// non-negative `jump_table` entry). A peephole must never fold an op that a
+/// branch lands on. Shared by `run_bc_peephole` and `strip_self_copies`.
+///
+/// @param jump_table  the function's PC→target table.
+/// @param n           body length (bitmap size).
+/// @return            length-`n` bool array, `true` at each branch target.
+mark_jump_targets :: fn(jump_table: i32[], n: usize) -> bool[] {
+    is_target: bool[] = [false] * n
+    for k in 0..<jump_table.len() {
+        t :: jump_table[k]
+        if t >= 0 && usize(t) < n { is_target[usize(t)] = true }
+    }
+    return is_target
+}
+
 /// Result of a body-rewriting peephole : new body + new jump_table +
 /// new debug table, all remapped from the old ones through the pass's
 /// `old_to_new` map. `debug` stays lock-step parallel to `body` so the
@@ -244,12 +260,7 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
     // the join `get`). The structured `br`-depth claim above holds for block
     // exits ; the `jump_table` carries the non-structured match/loop edges
     // that this guards.
-    is_jump_target: bool[] = []
-    for 0..<n { is_jump_target.push(false) }
-    for k in 0..<function.jump_table.len() {
-        t :: function.jump_table[k]
-        if t >= 0 && usize(t) < n { is_jump_target[usize(t)] = true }
-    }
+    is_jump_target :: mark_jump_targets(function.jump_table, n)
     out: Op[] = []
     out_len: usize = 0
     // Per-old-PC : new PC in `out` (or -1 when the op was dropped).

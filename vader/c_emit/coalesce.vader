@@ -114,8 +114,7 @@ export coalesce_temps :: fn(body: string, types: ValType[]) -> CoalesceResult {
     //    strictly before this temp begins (equal endpoints share a line, so
     //    they overlap and must not merge).
     order :: order_by_first(first, n)
-    remap: i32[] = []
-    for i in 0..<n { remap.push(-1) }
+    remap: i32[] = [-1] * n
     new_types: ValType[] = []
     slot_end:  i32[] = []
     for k in 0..<order.len() {

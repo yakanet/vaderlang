@@ -1252,8 +1252,6 @@ fn 8 std_core$parse_f64_slow (string,bool) -> f64
     i64.const 0
     local.set 3
   end $L0
-  local.get 3
-  local.set 3
   local.field 2 13 0
   call 13
   if $L1 void
@@ -2234,8 +2232,6 @@ fn 16 std_core$sd_round_at (ref,i32,bool) -> u64
     call 21
     local.set 7
   end $L1
-  local.get 7
-  local.set 7
   local.get 6
   if $L2 void
     local.get 7

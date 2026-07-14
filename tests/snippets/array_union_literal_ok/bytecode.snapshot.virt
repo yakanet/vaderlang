@@ -39,7 +39,6 @@ fn 0 snippet$main () -> i32
   string.const 0
   array.push 2
   local.get 0
-  local.tee 0
   array.len
   local.set 1
   i64.const 0

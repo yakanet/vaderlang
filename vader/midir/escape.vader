@@ -38,8 +38,7 @@ export annotate_escape :: fn(p: CFGProject) -> AnnotatedProject {
     total_allocs := 0
     stack_promoted := 0
     modules :: MutableMap<string, CFGModule> {}
-    for __for_38_5 in p.modules {
-        [_, m] :: __for_38_5
+    for [_, m] in p.modules {
         functions: CFGFunction[] = []
         for fn_ in m.functions {
             annotated :: annotate_function(fn_)
@@ -188,8 +187,7 @@ compute_carried_across_loop_headers :: fn(fn_: CFGFunction, alias_of: MutableMap
     if loops.is_empty() { return carried }
     live :: compute_liveness(fn_)
     // Seed : intersect liveIn[header] with locals defined in the loop body.
-    for __for_236_5 in loops {
-        [header, _] :: __for_236_5
+    for [header, _] in loops {
         body :: loops[header]
         if body is null { continue }
         defs_in_body :: MutableSet<LocalId> {}

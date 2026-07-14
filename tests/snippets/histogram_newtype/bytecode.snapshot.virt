@@ -278,7 +278,6 @@ fn 2 snippet$main () -> i32
   i32.const 0
   local.set 5
   local.get 0
-  local.tee 0
   array.len
   local.set 3
   i64.const 0

@@ -24,7 +24,7 @@ fn 0 snippet$pick (bool) -> any
   end $L0
   local.get 1
   null.const
-  i32.eq
+  ref.eq
   if $L1 void
     return.lit string.const 0
   end $L1

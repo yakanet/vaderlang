@@ -168,11 +168,10 @@ static int32_t snippet_main(void) {
     l1 = (void*) _a2_obj;
     snippet_push_pet(l0, vader_ref_box(l1));
 #line 32 "tests/snippets/alias_union_in_array/_main.vader"
-    l0 = l0;
     l2 = ((vader_array_t*) l0)->length;
     l3 = (size_t) (int64_t) INT64_C(0);
     {
-        loop_21: {
+        loop_20: {
             if ((l3 < l2)) {
                 vader_array_t* _a3_slotarr = ((vader_array_t*) l0);
                 while (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = (vader_array_buf_t*) _a3_slotarr->buf->header.forward; }
@@ -184,7 +183,7 @@ static int32_t snippet_main(void) {
 #line 32 "tests/snippets/alias_union_in_array/_main.vader"
                 t2 = (l3 + INT64_C(1));
                 l3 = (size_t) (int64_t) t2;
-                goto loop_21;
+                goto loop_20;
             } else {
             }
         }

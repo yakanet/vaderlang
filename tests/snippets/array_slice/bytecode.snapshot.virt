@@ -78,7 +78,6 @@ fn 0 snippet$main () -> i32
   call 2
   call 6
   local.get 3
-  local.tee 3
   array.len
   local.set 1
   i64.const 0
@@ -161,7 +160,6 @@ fn 0 snippet$main () -> i32
   call 2
   call 6
   local.get 3
-  local.tee 3
   array.len
   local.set 1
   i64.const 0
@@ -263,7 +261,6 @@ fn 0 snippet$main () -> i32
   call 2
   call 6
   local.get 3
-  local.tee 3
   array.len
   local.set 1
   i64.const 0
@@ -338,7 +335,6 @@ fn 0 snippet$main () -> i32
   call 2
   call 6
   local.get 3
-  local.tee 3
   array.len
   local.set 1
   i64.const 0

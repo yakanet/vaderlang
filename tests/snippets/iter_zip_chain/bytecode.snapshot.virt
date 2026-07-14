@@ -215,8 +215,6 @@ fn 0 snippet$main () -> i32
     array.len
     local.set 2
   end $L0
-  local.get 2
-  local.set 2
   i64.const 0
   local.set 5
   block $L1 void
@@ -324,7 +322,6 @@ fn 0 snippet$main () -> i32
     end $L5
   end $L4
   local.get 0
-  local.tee 0
   array.len
   local.set 2
   i64.const 0
@@ -4786,8 +4783,6 @@ fn 49 std_core$format_decimal (ref,i32,i32) -> string
     string.const 25
     local.set 5
   end $L7
-  local.get 5
-  local.set 5
   local.get 6
   i32.const 0
   i32.lt

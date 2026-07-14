@@ -293,11 +293,10 @@ static int32_t snippet_main(void) {
         }
     }
 #line 25 "tests/snippets/capture_loop_var/_main.vader"
-    l0 = l0;
     l2 = ((vader_array_t*) l0)->length;
     l3 = (size_t) (int64_t) INT64_C(0);
     {
-        loop_45: {
+        loop_44: {
             if ((l3 < l2)) {
                 vader_array_t* _a6_slotarr = ((vader_array_t*) l0);
                 while (_a6_slotarr->buf != NULL && _a6_slotarr->buf->header.forward != NULL) { _a6_slotarr->buf = (vader_array_buf_t*) _a6_slotarr->buf->header.forward; }
@@ -307,7 +306,7 @@ static int32_t snippet_main(void) {
                 ((vader_fn_erased_sig_0_t) _a7_fnobj->code)(_a7_fnobj->env);
                 t3 = (l3 + INT64_C(1));
                 l3 = (size_t) (int64_t) t3;
-                goto loop_45;
+                goto loop_44;
             } else {
             }
         }
@@ -315,7 +314,7 @@ static int32_t snippet_main(void) {
 #line 28 "tests/snippets/capture_loop_var/_main.vader"
     l5 = INT32_C(0);
     {
-        loop_66: {
+        loop_65: {
             if ((l5 < INT32_C(3))) {
                 vader_struct__Cell_i32_t* _a8_obj = (vader_struct__Cell_i32_t*) vader_gc_alloc(sizeof(vader_struct__Cell_i32_t));
                 vader_obj_header_init(_a8_obj, 21u);
@@ -344,7 +343,7 @@ static int32_t snippet_main(void) {
                 vader_defer_pop_exec(1u);
 #line 28 "tests/snippets/capture_loop_var/_main.vader"
                 l5 = (l5 + INT32_C(1));
-                goto loop_66;
+                goto loop_65;
             } else {
             }
         }
@@ -356,7 +355,7 @@ static int32_t snippet_main(void) {
     l1 = (void*) &vader_fn_static_0;
     l5 = INT32_C(0);
     {
-        loop_116: {
+        loop_115: {
             if ((l5 < INT32_C(3))) {
 #line 239 "stdlib/std/iter/iter.vader"
                 vader_fn_t* _a12_fnobj = (vader_fn_t*) l1;
@@ -379,17 +378,16 @@ static int32_t snippet_main(void) {
                 vader_array_push((vader_array_t*) l0, vader_ref_box(l4));
 #line 35 "tests/snippets/capture_loop_var/_main.vader"
                 l5 = (l5 + INT32_C(1));
-                goto loop_116;
+                goto loop_115;
             } else {
             }
         }
     }
 #line 38 "tests/snippets/capture_loop_var/_main.vader"
-    l0 = l0;
     l2 = ((vader_array_t*) l0)->length;
     l3 = (size_t) (int64_t) INT64_C(0);
     {
-        loop_147: {
+        loop_145: {
             if ((l3 < l2)) {
                 vader_array_t* _a16_slotarr = ((vader_array_t*) l0);
                 while (_a16_slotarr->buf != NULL && _a16_slotarr->buf->header.forward != NULL) { _a16_slotarr->buf = (vader_array_buf_t*) _a16_slotarr->buf->header.forward; }
@@ -399,7 +397,7 @@ static int32_t snippet_main(void) {
                 ((vader_fn_erased_sig_0_t) _a17_fnobj->code)(_a17_fnobj->env);
                 t3 = (l3 + INT64_C(1));
                 l3 = (size_t) (int64_t) t3;
-                goto loop_147;
+                goto loop_145;
             } else {
             }
         }
@@ -408,7 +406,7 @@ static int32_t snippet_main(void) {
     l0 = (void*) &vader_fn_static_1;
     l5 = INT32_C(0);
     {
-        loop_170: {
+        loop_168: {
             if ((l5 < INT32_C(5))) {
 #line 233 "stdlib/std/iter/iter.vader"
                 vader_fn_t* _a18_fnobj = (vader_fn_t*) l0;
@@ -437,7 +435,7 @@ static int32_t snippet_main(void) {
                 }
 #line 41 "tests/snippets/capture_loop_var/_main.vader"
                 l5 = (l5 + INT32_C(1));
-                goto loop_170;
+                goto loop_168;
             } else {
             }
         }

@@ -240,3 +240,82 @@ push_scope :: fn(kinds: string[], starts: i32[], sp: usize, kind: string, start_
         starts[sp] = start_pc
     }
 }
+
+// ---- post-coalesce self-copy strip ----------------------------------------
+
+/// Strip the self-copies `coalesce_slots` mints when it maps the source and
+/// destination of a local-to-local move onto one physical slot. Two adjacent,
+/// same-slot patterns are provable no-ops:
+///
+///   local.get N ; local.tee N  →  local.get N   (the tee stores self)
+///   local.get N ; local.set N  →  ε              (get pushes, set pops self)
+///
+/// Without this the C backend emits `lN = lN;` (a `-Wself-assign`) and the VM
+/// runs a pointless get + self-store. Runs LAST, after `coalesce_slots` — the
+/// pairs only exist post-coalesce. A pair is folded only when the SECOND op is
+/// not a branch target : a jump landing on a `tee` / `set` reaches it with a
+/// foreign stack top where the store is real, not a self-copy (same guard as
+/// `run_bc_peephole`'s `is_jump_target`). Reuses the shared `remap_jump_table`
+/// / `remap_debug` PC-space rewrite, so removed ops leave the jump + debug
+/// tables consistent.
+// True when `body[i]`, `body[i+1]` are an adjacent same-slot self-copy
+// (`local.get N ; local.tee/set N`) safe to fold. The store op must NOT be a
+// branch target : a jump landing on it arrives with a foreign stack top, where
+// the store is a real write, not a self-copy. (`is … as` can't sit inside `&&`
+// (R2029), so the get / store tests nest.)
+foldable_self_copy :: fn(body: Op[], i: usize, n: usize, is_jump_target: bool[]) -> bool {
+    if i + 1 >= n { return false }
+    if is_jump_target[i + 1] { return false }
+    if body[i] is LocalGet as g {
+        next :: body[i + 1]
+        if next is LocalTee as tee { return tee.slot == g.slot }
+        if next is LocalSet as st  { return st.slot  == g.slot }
+    }
+    return false
+}
+
+export strip_self_copies :: fn(function: BcFunction) -> BcPeepholeOut {
+    body :: function.body
+    n :: body.len()
+    is_jump_target :: mark_jump_targets(function.jump_table, n)
+
+    // Identity fast-path : self-copies exist only where `coalesce_slots` merged a
+    // move's endpoints, so most functions have none. Scan first ; with nothing to
+    // fold, return the original body / tables by reference — no rebuild, no remap.
+    any_fold := false
+    scan: usize = 0
+    for scan < n {
+        if foldable_self_copy(body, scan, n, is_jump_target) { any_fold = true  break }
+        scan += 1
+    }
+    if !any_fold {
+        return BcPeepholeOut { .body = body, .jump_table = function.jump_table, .debug = function.debug }
+    }
+
+    out: Op[] = []
+    old_to_new: i32[] = [-1] * n
+    i: usize = 0
+    for i < n {
+        op :: body[i]
+        if foldable_self_copy(body, i, n, is_jump_target) {
+            if body[i + 1] is LocalTee {
+                // Keep the get, drop the self-tee (`get N ; tee N` ≡ `get N`).
+                old_to_new[i] = i32(out.len())
+                out.push(op)
+            } else {
+                // `local.set` : drop both — `get N` pushes, `set N` pops-stores self.
+                old_to_new[i] = -1
+            }
+            old_to_new[i + 1] = -1
+            i += 2
+            continue
+        }
+        old_to_new[i] = i32(out.len())
+        out.push(op)
+        i += 1
+    }
+
+    new_jt :: remap_jump_table(function.jump_table, old_to_new, out.len())
+    new_debug :: remap_debug(function.debug, old_to_new, out.len())
+    return BcPeepholeOut { .body = out, .jump_table = new_jt, .debug = new_debug }
+}

@@ -1518,8 +1518,6 @@ fn 12 std_core$parse_f64_slow (string,bool) -> f64
     i64.const 0
     local.set 3
   end $L0
-  local.get 3
-  local.set 3
   local.field 2 18 0
   call 17
   if $L1 void
@@ -2500,8 +2498,6 @@ fn 20 std_core$sd_round_at (ref,i32,bool) -> u64
     call 25
     local.set 7
   end $L1
-  local.get 7
-  local.set 7
   local.get 6
   if $L2 void
     local.get 7
@@ -5679,8 +5675,6 @@ fn 40 std_core$format_decimal (ref,i32,i32) -> string
     string.const 39
     local.set 5
   end $L7
-  local.get 5
-  local.set 5
   local.get 6
   i32.const 0
   i32.lt
@@ -7295,8 +7289,6 @@ fn 63 std_json$write_object (ref,ref,i32,i32) -> void
     array.len
     local.set 7
   end $L1
-  local.get 7
-  local.set 7
   i64.const 0
   local.set 8
   block $L2 void
@@ -8369,8 +8361,6 @@ fn 76 std_string$pad_start (string,usize,char) -> string
   array.new 24 0
   struct.new 36
   local.set 4
-  local.get 3
-  local.set 3
   block $L1 void
     loop $L2 void
       local.get 3

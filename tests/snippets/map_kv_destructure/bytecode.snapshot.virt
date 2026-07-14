@@ -72,8 +72,6 @@ fn 0 snippet$main () -> i32
   call 7
   i32.const 0
   local.set 3
-  local.get 0
-  local.set 0
   local.field 0 12 0
   local.set 1
   local.field 0 12 1

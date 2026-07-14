@@ -132,8 +132,6 @@ fn 2 snippet$main () -> i32
       end $L6
     end $L5
   end $L4
-  local.get 1
-  local.set 1
   i64.const 99
   call 3
   local.set 2

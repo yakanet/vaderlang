@@ -121,6 +121,12 @@ FnState :: struct {
     /// control-flow op and on reassignment of the array's local (see
     /// `invalidate_resolve_cache`) — a stale entry would read a moved buffer.
     resolved_arrays: MutableMap<string, string>
+    /// Set by the walk driver when the current `call` / `call.import` op is
+    /// immediately followed by a `drop` — its non-void result is emitted as a
+    /// bare statement (like a void call) instead of `tN = call(...);` + an
+    /// unread temp. `emit_call_result` reads it ; the driver skips the paired
+    /// `drop`. See `emit_function_body`.
+    drop_call_result: bool
 }
 
 /// Fresh state for `function`, emitting into `out`.
@@ -137,6 +143,7 @@ new_fn_state :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> Fn
     .break_targets = [],
     .no_frame = true,
     .resolved_arrays = MutableMap<string, string> {},
+    .drop_call_result = false,
 }
 
 // ---- indented output ------------------------------------------------------

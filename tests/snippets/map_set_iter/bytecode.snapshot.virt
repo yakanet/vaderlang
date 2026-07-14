@@ -78,8 +78,6 @@ fn 0 snippet$main () -> i32
   call 8
   i32.const 0
   local.set 3
-  local.get 0
-  local.set 0
   local.field 0 14 0
   local.set 1
   local.field 0 14 1
@@ -174,8 +172,6 @@ fn 0 snippet$main () -> i32
   drop
   i32.const 0
   local.set 3
-  local.get 0
-  local.set 0
   local.field 0 15 0
   struct.get 13 0
   local.set 1

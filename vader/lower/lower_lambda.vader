@@ -118,8 +118,7 @@ build_lifted_params :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr, env_param_sym
 
 find_param_symbol :: fn(ctx: FnLowerCtx, fn_param: AST.FnParam) -> Symbol | null {
     target_key :: fn_param.span.hash()
-    for __for_160_5 in ctx.typed.resolved.idents {
-        [_, symbol] :: __for_160_5
+    for [_, symbol] in ctx.typed.resolved.idents {
         match symbol.defined_at {
             is null -> {}
             is Span as defined -> {

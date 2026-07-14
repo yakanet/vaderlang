@@ -104,7 +104,6 @@ fn 2 snippet$main () -> i32
     end $L1
   end $L0
   local.get 0
-  local.tee 0
   array.len
   local.set 2
   i64.const 0
@@ -206,7 +205,6 @@ fn 2 snippet$main () -> i32
     end $L10
   end $L9
   local.get 0
-  local.tee 0
   array.len
   local.set 2
   i64.const 0

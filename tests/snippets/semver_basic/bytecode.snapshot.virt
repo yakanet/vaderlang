@@ -529,8 +529,6 @@ fn 8 std_semver$parse (string) -> any
     local.get 3
     local.set 6
   end $L11
-  local.get 6
-  local.set 6
   local.get 1
   i64.const 0
   local.get 6
@@ -555,8 +553,6 @@ fn 8 std_semver$parse (string) -> any
     string.const 8
     local.set 11
   end $L12
-  local.get 11
-  local.set 11
   local.get 3
   local.get 2
   u64.lt
@@ -575,8 +571,6 @@ fn 8 std_semver$parse (string) -> any
     string.const 8
     local.set 12
   end $L13
-  local.get 12
-  local.set 12
   i32.const 0
   i32.const 0
   i32.const 0
@@ -2481,8 +2475,6 @@ fn 22 std_semver$parse_partial (string) -> any
     local.get 6
     local.set 8
   end $L12
-  local.get 8
-  local.set 8
   local.get 4
   i64.const 0
   local.get 8
@@ -2507,8 +2499,6 @@ fn 22 std_semver$parse_partial (string) -> any
     string.const 8
     local.set 13
   end $L13
-  local.get 13
-  local.set 13
   local.get 6
   local.get 5
   u64.lt
@@ -2527,8 +2517,6 @@ fn 22 std_semver$parse_partial (string) -> any
     string.const 8
     local.set 14
   end $L14
-  local.get 14
-  local.set 14
   local.get 12
   string.const 35
   call 49
@@ -5110,8 +5098,6 @@ fn 25 std_semver$expand_xrange (ref) -> ref
     call 32
     local.set 2
   end $L1
-  local.get 2
-  local.set 2
   local.get 1
   local.get 2
   call 30
@@ -5192,8 +5178,6 @@ fn 28 std_semver$expand_tilde (ref) -> any
     i32.const 0
     local.set 1
   end $L0
-  local.get 1
-  local.set 1
   local.field 0 26 1
   ref.cast 1
   i32.const 0
@@ -5211,8 +5195,6 @@ fn 28 std_semver$expand_tilde (ref) -> any
     call 31
     local.set 2
   end $L1
-  local.get 2
-  local.set 2
   local.get 0
   call 29
   local.get 2
@@ -5367,8 +5349,6 @@ fn 33 std_semver$caret_upper (ref) -> any
     i32.const 0
     local.set 1
   end $L0
-  local.get 1
-  local.set 1
   local.field 0 26 1
   ref.cast 1
   i32.const 0
@@ -5381,8 +5361,6 @@ fn 33 std_semver$caret_upper (ref) -> any
     i32.const 0
     local.set 2
   end $L1
-  local.get 2
-  local.set 2
   local.field 0 26 2
   ref.cast 1
   i32.const 0
@@ -5395,8 +5373,6 @@ fn 33 std_semver$caret_upper (ref) -> any
     i32.const 0
     local.set 3
   end $L2
-  local.get 3
-  local.set 3
   local.get 1
   i32.const 0
   i32.ne
@@ -5926,8 +5902,6 @@ fn 40 std_semver$compare_prerelease (string,string) -> i32
     local.get 5
     local.set 6
   end $L0
-  local.get 6
-  local.set 6
   i64.const 0
   local.set 7
   block $L1 void
@@ -6224,8 +6198,6 @@ fn 43 std_semver$compare_lex (string,string) -> i32
     local.get 5
     local.set 6
   end $L0
-  local.get 6
-  local.set 6
   i64.const 0
   local.set 7
   block $L1 void
@@ -6332,8 +6304,6 @@ fn 45 std_string$trim (string) -> string
       end $L3
     end $L1
   end $L0
-  local.get 2
-  local.set 2
   block $L4 void
     loop $L5 void
       local.get 2

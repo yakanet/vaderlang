@@ -29,10 +29,12 @@ import "vader/lower" {
 }
 
 /// Pick the bytecode op for a `LoweredBinaryOp` over operands of class
-/// `lhs`. `eq` / `neq` over reference shapes (`ref` / `any`) reuse the
-/// i32 compare since both sides hold the boxed pointer tag. (String `+`
-/// never reaches here — the lowerer rewrites it to a StringBuilder
-/// chain, `lower/lower_binary.vader`.)
+/// `lhs`. `eq` / `neq` over reference shapes (`ref` / `any` / `null`) lower
+/// to `RefEq` / `RefNe` — a full object-pointer identity compare (post-T12 a
+/// concrete `.Ref` is a raw `void*`, so the old i32 compare mixed a raw
+/// pointer with a 32-bit-truncated box payload). (String `+` never reaches
+/// here — the lowerer rewrites it to a StringBuilder chain,
+/// `lower/lower_binary.vader`.)
 ///
 /// @param op   the source-level binary operator.
 /// @param lhs  the operand stack class (both operands share it after
@@ -150,8 +152,7 @@ cmp_eq :: fn(lhs: ValType) -> Op {
     if lhs == ValType.String { return StringEq {} }
     if is_float_val(lhs)     { return F64Eq {} }
     if is_64_bit_int_val(lhs) { return I64Eq {} }
-    // ref / any / null all fall through to the i32 compare — the boxed
-    // pointer identity bits fit a 32-bit word and compare correctly.
+    if is_ref_class(lhs)     { return RefEq {} }
     return I32Eq {}
 }
 
@@ -161,8 +162,14 @@ cmp_ne :: fn(lhs: ValType) -> Op {
     if lhs == ValType.String { return StringNe {} }
     if is_float_val(lhs)     { return F64Ne {} }
     if is_64_bit_int_val(lhs) { return I64Ne {} }
+    if is_ref_class(lhs)     { return RefNe {} }
     return I32Ne {}
 }
+
+// A reference-shaped operand class — compared by object identity via `RefEq` /
+// `RefNe`, never the numeric i32 path. `.Ref` is a raw pointer post-T12 ; `.Any`
+// / `.Null` are boxes whose pointer lives in `.payload.obj`.
+is_ref_class :: fn(v: ValType) = v == ValType.Ref || v == ValType.Any || v == ValType.Null
 
 cmp_lt :: fn(lhs: ValType) -> Op {
     if is_float_val(lhs) { return F64Lt {} }
