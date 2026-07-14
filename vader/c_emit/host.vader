@@ -64,12 +64,20 @@ extern_decl :: fn(imp: BcImport) -> string {
 /// mangled name by `bytecode/intrinsic_manifest::intrinsic_id_for`, shared with
 /// the VM's `dispatch_import`) ; `@extern` falls through to `user_extern_shim` ;
 /// anything else traps loudly (compiler/runtime version skew).
-import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
+// C signature of the `vader_import_N` shim (no storage class) : return type,
+// name, erased param list (`void` when empty). Shared by the definition here
+// and the split-build prototype (`split.vader::emit_import_shim_protos`) so the
+// two can't drift on the ABI.
+import_shim_signature :: fn(imp: BcImport, idx: i32) -> string {
     sig :: imp.signature
     parts: string[] = []
     for j in 0..<sig.params.len() { parts.push("${c_type_for_val_bare(sig.params[j])} a${j}") }
     params :: if parts.len() == 0 { "void" } else { parts.join(", ") }
-    head :: "static ${c_type_for_val_bare(sig.result)} vader_import_${idx}(${params})"
+    return "${c_type_for_val_bare(sig.result)} vader_import_${idx}(${params})"
+}
+
+import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
+    head :: "${linkage_prefix(ctx.split)}${import_shim_signature(imp, idx)}"
     m :: imp.mangled_name
     types :: ctx.module.types
 
@@ -146,10 +154,12 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     .MathCos   -> { return "${head} { return vader_math_cos(a0); }" }
     .MathTan   -> { return "${head} { return vader_math_tan(a0); }" }
 
-    // std/process.
-    .ProcessSpawnRun        -> { return "${head} { return vader_spawn_run((vader_array_t*) a0.payload.obj); }" }
-    .ProcessSpawnLastStdout -> { return "${head} { return vader_spawn_last_stdout(); }" }
-    .ProcessSpawnLastStderr -> { return "${head} { return vader_spawn_last_stderr(); }" }
+    // std/process — non-blocking subprocess. `argv` (a0) is a boxed `[string]` ;
+    // the handle (a0) is a bare i64.
+    .ProcessSpawnStart      -> { return "${head} { return vader_spawn_start((vader_array_t*) a0.payload.obj); }" }
+    .ProcessSpawnPoll       -> { return "${head} { return vader_spawn_poll(a0); }" }
+    .ProcessSpawnTakeStdout -> { return "${head} { return vader_spawn_take_stdout(a0); }" }
+    .ProcessSpawnTakeStderr -> { return "${head} { return vader_spawn_take_stderr(a0); }" }
 
     // std/tty + std/env. `get_env` boxes the value as a string (or null box).
     .TtyIsTty  -> { return "${head} { return vader_is_tty(a0); }" }
