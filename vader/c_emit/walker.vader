@@ -1688,9 +1688,6 @@ push_struct_field :: fn(s: FnState, type_index: i32, field_index: i32, recv: str
     }
 }
 
-/// True for the boxed-storage value classes (a `vader_box_t` slot). Drives the
-/// erasure read's copy (both boxed) vs unbox (concrete target) decision.
-is_ref_like_val :: fn(v: ValType) -> bool = v == ValType.Ref || v == ValType.Any || v == ValType.Null
 
 /// True when every field of `st` is an open `ref` — the erased all-`Any` form
 /// an erased-generic body materialises.
@@ -1758,10 +1755,13 @@ erased_sibling_field_read :: fn(s: FnState, sib_idx: i32, field_index: i32, targ
         sf :: sib.fields[usize(field_index)]
         sf_val :: val_type_of_field(types, sf.type_index)
         raw :: "((${sib_cname}*) ${recv})->f_${sanitise(sf.name)}"
-        if target_val == sf_val { return raw }
-        if is_ref_like_val(target_val) { return box_expr(raw, sf_val, sf.type_index) }
-        if is_ref_like_val(sf_val) { return unbox_expr(raw, target_val) }
-        return raw
+        // Reconcile the sibling field's storage class to the concrete field's via
+        // the canonical `coerce_expr` — it handles every direction incl. the
+        // T12 `.Any → .Ref` unbox (`.payload.obj`) that the old hand-rolled
+        // `is_ref_like_val`/`box_expr` ladder missed (it returned the sibling box
+        // verbatim where a raw `void*` was required — a `void*`-vs-box ternary at
+        // the `push_struct_field` splice).
+        return coerce_expr(types, raw, sf_val, target_val)
     }
     return "0"
 }
@@ -2197,11 +2197,19 @@ emit_array_set :: fn(s: FnState, op: vm.ArraySet) -> void {
     fill :: typed_array_fill_for(kind)
     a :: emit_slot_array_local(s, arr, idx)
     if fill == null && ref_carrying_element(elem, types) {
-        // Erasure boundary (T12/P3): store the raw object pointer into the raw
-        // `void*` slot or (for a Boxed buf) re-box it, dispatching on the buf's
-        // actual kind inside the `static inline` helper. Barrier fires on the buf
-        // (the container) for both kinds.
-        line(s, "vader_array_ref_store(${a}->buf, ${slot_index(a, idx)}, ${obj_ptr_of(value)});")
+        // Erasure boundary (T12/P3): dispatch on the buf's actual kind inside the
+        // `static inline` helper. Barrier fires on the buf (container) for both.
+        if elem is BcRef {
+            // Erased trait-object element : the value may be a boxed / raw PRIMITIVE
+            // (a distinct-primitive trait impl), not a header-bearing ref, so route
+            // it through `box_expr` (handles ref + primitive) and store box-or-raw
+            // by kind. `obj_ptr_of` would splice `.payload.obj` onto a primitive.
+            line(s, "vader_array_ref_store_box(${a}->buf, ${slot_index(a, idx)}, ${box_expr(name_of(value), val_of(value), elem_tag)});")
+        } else {
+            // Concrete-ref / union-of-refs element : the value is a genuine ref (or
+            // null), so its raw object pointer is valid — take the fast raw path.
+            line(s, "vader_array_ref_store(${a}->buf, ${slot_index(a, idx)}, ${obj_ptr_of(value)});")
+        }
         line(s, "VADER_WRITE_BARRIER(${a}->buf);")
         return
     }

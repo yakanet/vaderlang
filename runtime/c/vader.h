@@ -512,6 +512,17 @@ static inline void vader_array_ref_store(vader_array_buf_t* buf, size_t slot, vo
     if (buf->element_kind == VADER_ARRAY_KIND_REF) { ((void**) buf->slots)[slot] = obj; }
     else { vader_array_box_slots(buf)[slot] = vader_ref_box(obj); }
 }
+/* Store a value that is ALREADY a box (`box_expr(...)`) — used for erased trait-
+ * object element arrays (`BcRef`), whose value may be a boxed PRIMITIVE (a
+ * distinct-primitive trait impl), not a header-bearing ref. A REF buf only ever
+ * holds genuine refs, so `box.payload.obj` is a valid raw pointer there;
+ * `cc -O3` folds the `vader_ref_box(x).payload.obj` round-trip for the common
+ * concrete-ref case. A BOXED buf keeps the box verbatim (preserving a boxed
+ * primitive — which `vader_ref_box` would corrupt). */
+static inline void vader_array_ref_store_box(vader_array_buf_t* buf, size_t slot, vader_box_t box) {
+    if (buf->element_kind == VADER_ARRAY_KIND_REF) { ((void**) buf->slots)[slot] = box.payload.obj; }
+    else { vader_array_box_slots(buf)[slot] = box; }
+}
 
 /* Sentinel index for buffers — distinct from any user BcType. The scan loop
  * dispatches on it because the type info table doesn't carry a static layout

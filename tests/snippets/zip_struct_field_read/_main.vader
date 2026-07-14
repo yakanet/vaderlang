@@ -1,0 +1,27 @@
+// Regression guard (T12/P5): reading a STRUCT field of an element from an
+// erased-generic combinator (`zip`) over an array of structs. The erased
+// sibling stores that field boxed (`.Any`) while the concrete read wants a raw
+// `void*` (`.Ref`) — `erased_sibling_field_read` must unbox (`.Any -> .Ref`)
+// via `coerce_expr`, not return the sibling box verbatim (which produced a
+// `void*`-vs-box ternary → C compile error). The `iter_zip_chain` snapshot only
+// exercises the safe directions, so this is the dedicated guard.
+
+module "snippet"
+
+import "std/io" { println }
+import "std/iter" { zip }
+
+Point :: struct { x: i32, y: i32 }
+
+main :: fn() -> i32 {
+    labels: string[] = ["a", "b", "c"]
+    pts: Point[] = [
+        Point { .x = 10, .y = 1 },
+        Point { .x = 20, .y = 2 },
+        Point { .x = 30, .y = 3 },
+    ]
+    for [label, p] in zip(labels, pts) {
+        println("${label}:${p.x},${p.y}")
+    }
+    return 0
+}
