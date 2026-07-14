@@ -14,8 +14,8 @@ module "vader/lower"
 import "vader/diagnostics" { Span }
 AST :: import "vader/parser"
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, StructType, ArrayType, mk_primitive, mk_array, mk_union, TY_BOOL, TY_VOID, TY_NULL, TY_UNRESOLVED, STRUCT_ARRAY_ITERATOR, METHOD_INTO, METHOD_ITER }
-import "vader/typecheck" { default_if_free }
+import "vader/types" { Type, StructType, ArrayType, mk_primitive, mk_array, mk_union, TY_BOOL, TY_VOID, TY_NULL, TY_UNRESOLVED, STRUCT_ARRAY_ITERATOR, STRUCT_YIELD, TRAIT_ITERATOR, METHOD_INTO, METHOD_ITER, display_type }
+import "vader/typecheck" { default_if_free, is_gen_state_struct, struct_implements_trait }
 
 // ---- chain fusion ---------------------------------------------------------
 
@@ -28,6 +28,12 @@ IterChainKind :: enum(u8) {
     Range,
     Array,
     Generator,
+    // Concrete-iterator bottom (e.g. `chars()` → `StringChars`) driven by a
+    // `next()` step-loop — the fallback for a COMBINATOR SOURCE that is neither a
+    // Range nor an array cursor. Lets `chars().filter(p).count()` fuse instead of
+    // declining onto the broken genstate default-method dispatch. Set only via
+    // `opaque_iter_bottom` (as a combinator source). See `emit_fused_opaque_iter`.
+    OpaqueIter,
 }
 
 IterChain :: struct {
@@ -50,7 +56,19 @@ IterChain :: struct {
     // Generator combinator layer — the inlined `generator` body (map / filter /
     // take / skip, all `generator`). Defaulted ; see `lower_generator_fusion.vader`.
     gen_layer:    GenComboLayer | null = null
+    // OpaqueIter bottom — the `Iterator`-typed receiver expression iterated via a
+    // virtual `next()` loop. Defaulted ; set only by `mk_opaque_iter_chain`.
+    iter_expr:    AST.Expr | null = null
     span:         Span
+}
+
+// Build an `OpaqueIter` chain bottom over an `Iterator`-typed receiver, iterated
+// through the virtual `next()` vtable path (see `emit_fused_opaque_iter`).
+mk_opaque_iter_chain :: fn(iter_expr: AST.Expr, elem: Type, span: Span) -> IterChain = IterChain {
+    .kind = IterChainKind.OpaqueIter,
+    .range_lower = null, .range_upper = null, .inclusive = false,
+    .element_type = elem, .iter_expr = iter_expr,
+    .source = null, .span = span,
 }
 
 // Build a `Generator` chain layer over `source` — the inlined `generator`
@@ -361,13 +379,55 @@ emit_collect_fusion :: fn(ctx: FnLowerCtx, chain: IterChain, span: Span) -> Lowe
 // reached via `try_descend_gen_combinator` → `descend_chain` directly (which does
 // accept it). So a top-level bare `Array` bottom declines here.
 top_level_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
-    chain :: descend_chain(ctx, expr)
+    chain :: descend_chain(ctx, expr, false)
     if chain is null { return null }
     if chain.kind == IterChainKind.Array && chain.implicit_head { return null }
     return chain
 }
 
-descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
+// A concrete `Iterator` struct used as a COMBINATOR SOURCE that isn't a Range or
+// array bottom — e.g. `chars()` → `StringChars` under `.filter(p)`. Iterate it
+// via its own `next()` (a static call for a concrete struct — see
+// `build_step_call`), so the combinator + terminal fuse over it instead of
+// declining. Excludes `generator` state structs (`__genstate_*`): their `next()`
+// is only virtual-dispatchable and that vtable row isn't wired, so fusing through
+// their concrete source is the point — never treat the genstate itself as a
+// bottom. Returns null for non-iterator structs / non-structs.
+opaque_iter_bottom :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
+    t :: ctx.types.expr_type(expr)
+    if !(t is StructType) { return null }
+    if is_gen_state_struct(t) { return null }
+    if !struct_implements_trait(t, TRAIT_ITERATOR, ctx.typed) { return null }
+    elem :: opaque_iter_element(ctx, t)
+    if elem is null { return null }
+    return mk_opaque_iter_chain(expr, elem, span_of(expr))
+}
+
+// The element type of a concrete iterator struct: the typecheck's authoritative
+// `iter_element_types` side table first (keyed by display name), then the sole
+// type arg (`ArrayIterator<T>` etc.).
+opaque_iter_element :: fn(ctx: FnLowerCtx, t: Type) -> Type | null {
+    side :: ctx.typed.iter_element_types[display_type(t)]
+    if !(side is null) { return side }
+    if t is StructType as st {
+        if st.args.len() > 0 { return st.args[0] }
+    }
+    return null
+}
+
+// Descend a fusible iterator chain. `as_source` is true when `expr` sits UNDER a
+// combinator (its source) : a concrete-iterator bottom that isn't a Range/array
+// (`chars()`) then fuses via `opaque_iter_bottom`. A top-level receiver
+// (`as_source = false`) keeps that fallback OFF so a bare concrete-iterator
+// terminal (`s.chars().count()`) keeps its own dispatch — no output churn.
+descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr, as_source: bool) -> IterChain | null {
+    concrete :: descend_chain_concrete(ctx, expr)
+    if concrete != null { return concrete }
+    if as_source { return opaque_iter_bottom(ctx, expr) }
+    return null
+}
+
+descend_chain_concrete :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
     // @partial: only a Range bottom, an `arr.iter()` array cursor, or a
     // `generator` combinator call forms a fusible chain; every other Expr → null.
     @partial match expr {
@@ -523,7 +583,7 @@ array_from_iter_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> AST.Expr | nu
 }
 
 chain_element_type :: fn(chain: IterChain) -> Type = match chain.kind {
-    .Range | .Array -> chain.element_type
+    .Range | .Array | .OpaqueIter -> chain.element_type
     .Generator -> if chain.gen_layer is GenComboLayer as gl { gl.output_elem } else { TY_UNRESOLVED }
 }
 
@@ -535,9 +595,84 @@ emit_fused_chain :: fn(
     template: BodyTemplate,
     recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
 ) -> LoweredStmt[] = match chain.kind {
-    .Range     -> emit_fused_range(ctx, chain, loop_label, outer_span, template, recurse)
-    .Array     -> emit_fused_array(ctx, chain, loop_label, outer_span, template, recurse)
-    .Generator -> emit_fused_gen_combinator(ctx, chain, loop_label, outer_span, template, recurse)
+    .Range      -> emit_fused_range(ctx, chain, loop_label, outer_span, template, recurse)
+    .Array      -> emit_fused_array(ctx, chain, loop_label, outer_span, template, recurse)
+    .Generator  -> emit_fused_gen_combinator(ctx, chain, loop_label, outer_span, template, recurse)
+    .OpaqueIter -> emit_fused_opaque_iter(ctx, chain, loop_label, outer_span, template, recurse)
+}
+
+// Emit the fused loop at an `OpaqueIter` bottom : a virtual `next()` step-loop
+// over the `Iterator`-typed receiver, structurally the un-fused for-in shape
+// (`lower_for_in`) but driven by the terminal's accumulator template instead of
+// a user body. The genstate is erased to `Iterator<E>` so `next()` dispatches
+// through the vtable. `break` inside the template (any / all / find) exits the
+// loop ; `continue` is naturally step-safe (the next iteration re-pulls `next()`).
+emit_fused_opaque_iter :: fn(
+    ctx: FnLowerCtx, chain: IterChain, loop_label: string | null, outer_span: Span,
+    template: BodyTemplate,
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+) -> LoweredStmt[] {
+    span :: chain.span
+    src :: chain.iter_expr
+    if src is null { return [] }
+    element_type :: chain.element_type
+    iter_lowered :: recurse(ctx, src)
+    raw_iter_type :: type_of(iter_lowered)
+    iter_type :: erase_genstate_for_dispatch(ctx, raw_iter_type, element_type)
+
+    yield_opt :: find_core_type(ctx, STRUCT_YIELD, build_one(element_type))
+    if yield_opt is null { return [] }
+    yield_type :: yield_opt
+    step_union :: union_of_yield_null(yield_type)
+
+    iter_symbol :: fresh_synthetic_symbol(ctx, "fuse_iter")
+    step_symbol :: fresh_synthetic_symbol(ctx, "fuse_step")
+
+    iter_let :: LoweredLet {
+        .span = span, .name = iter_symbol.name, .symbol = iter_symbol,
+        .type = iter_type, .value = iter_lowered,
+    }
+    iter_ref :: LoweredIdent { .span = span, .type = iter_type, .symbol = iter_symbol }
+    step_call :: build_step_call(ctx, iter_ref, iter_type, step_union, span)
+    step_let :: LoweredLet {
+        .span = span, .name = step_symbol.name, .symbol = step_symbol,
+        .type = step_union, .value = step_call,
+    }
+    step_ref :: LoweredIdent { .span = span, .type = step_union, .symbol = step_symbol }
+    is_done :: LoweredTypeCheck { .span = span, .type = TY_BOOL, .value = step_ref, .check_type = TY_NULL }
+    yield_cast :: LoweredCast { .span = span, .type = yield_type, .value = step_ref }
+    value_access :: LoweredFieldAccess {
+        .span = span, .type = element_type, .target = yield_cast, .field = "value",
+    }
+    bind_let :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, value_access, element_type, span)
+
+    body_stmts: LoweredStmt[] = [bind_let]
+    for s in template.user_body.stmts { body_stmts.push(s) }
+    if template.user_body.trailing != null {
+        body_stmts.push(LoweredExprStmt { .span = span, .expr = template.user_body.trailing })
+    }
+
+    branch_if :: LoweredExprStmt {
+        .span = span,
+        .expr = LoweredIf {
+            .span = span, .type = TY_VOID, .cond = is_done,
+            .then_block = LoweredBlock {
+                .span = span, .type = TY_VOID, .stmts = build_break_stmts(span), .trailing = null,
+            },
+            .else_block = LoweredBlock {
+                .span = span, .type = TY_VOID, .stmts = body_stmts, .trailing = null,
+            },
+        },
+    }
+
+    loop_stmt :: LoweredLoop {
+        .span = outer_span, .label = loop_label, .cond = null,
+        .body = LoweredBlock {
+            .span = span, .type = TY_VOID, .stmts = [step_let, branch_if], .trailing = null,
+        },
+    }
+    out: LoweredStmt[] = [iter_let, loop_stmt]
+    return out
 }
 
 // Emit the counter loop at the Range bottom. The user binding is

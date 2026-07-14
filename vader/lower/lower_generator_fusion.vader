@@ -244,7 +244,7 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
     // The primary loop iterates `self` (param 0) ; its source is the receiver.
     primary :: find_source_loop(loops, 0)
     if primary is null { return null }
-    source :: descend_chain(ctx, fluent.receiver)
+    source :: descend_chain(ctx, fluent.receiver, true)
     if source is null { return null }
     primary_loopvar :: lookup_local_symbol(ctx.project, owner.resolved, primary.loopvar_span)
     if primary_loopvar is null { return null }
@@ -260,7 +260,7 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
     if param1_loop is GenSourceLoop as sl {
         other_expr :: fluent.fn_arg
         if other_expr is null { return null }
-        other_src :: descend_chain(ctx, other_expr)
+        other_src :: descend_chain(ctx, other_expr, true)
         if other_src is null { return null }
         other_loopvar :: lookup_local_symbol(ctx.project, owner.resolved, sl.loopvar_span)
         if other_loopvar is null { return null }
