@@ -495,7 +495,7 @@ static void std_collections_std_collections_write_entry__i32__Any(void* l0, int3
         vader_array_t* _a1_slotarr = ((vader_array_t*) l5);
         while (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = (vader_array_buf_t*) _a1_slotarr->buf->header.forward; }
         if ((size_t) l3 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
-        vader_array_ref_store(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l3, l2.payload.obj);
+        vader_array_ref_store_box(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l3, l2);
         VADER_WRITE_BARRIER(_a1_slotarr->buf);
 #line 126 "stdlib/std/collections/collections.vader"
     } else {
@@ -611,7 +611,7 @@ static void std_collections_std_collections_put__i32__Any(void* l0, int32_t l1, 
                     vader_array_t* _a4_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0)->f_evals);
                     while (_a4_slotarr->buf != NULL && _a4_slotarr->buf->header.forward != NULL) { _a4_slotarr->buf = (vader_array_buf_t*) _a4_slotarr->buf->header.forward; }
                     if ((size_t) l4 >= _a4_slotarr->length) { vader_trap("array index out of bounds"); }
-                    vader_array_ref_store(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) l4, l2.payload.obj);
+                    vader_array_ref_store_box(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) l4, l2);
                     VADER_WRITE_BARRIER(_a4_slotarr->buf);
                     { vader_gc_top = gc_frame.prev; return; }
                 }

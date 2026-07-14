@@ -1,0 +1,174 @@
+# Lower
+
+## snippet
+  struct snippet$Point { x: i32, y: i32 }
+  fn snippet$main() -> i32
+    let labels: string[] =
+      array :string[]
+        "a" :string
+        "b" :string
+        "c" :string
+    let pts: Point[] =
+      array :Point[]
+        Point {
+          x: int(10) :i32
+          y: int(1) :i32
+        }
+        Point {
+          x: int(20) :i32
+          y: int(2) :i32
+        }
+        Point {
+          x: int(30) :i32
+          y: int(3) :i32
+        }
+    block :void
+      let self: string[] = labels :string[]
+      let other: Point[] = pts :Point[]
+      let n: usize =
+        if :usize
+          cond:
+            lt :bool
+              l:
+                LoweredArrayLen
+              r:
+                LoweredArrayLen
+          then:
+            ~>
+              LoweredArrayLen
+          else:
+            ~>
+              LoweredArrayLen
+      block :void
+        let i: usize = int(0) :usize
+        loop while (<…>)
+          let __for_23_5: [string, Any] =
+            [string, Any] {
+              _0:
+                index :string
+                  on:
+                    self :string[]
+                  ix:
+                    i :usize
+              _1:
+                index :Any
+                  on:
+                    other :Any[]
+                  ix:
+                    i :usize
+            }
+          let __tup_0: [string, Point] = __for_23_5 :[string, Point]
+          let label: string =
+            ._0 :string
+              __tup_0 :[string, Point]
+          let p: Point =
+            ._1 :Point
+              __tup_0 :[string, Point]
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              block :string
+                let __p_1: string = label :string
+                let __buf_2: Buffer =
+                  call :Buffer
+                    callee:
+                      new_byte_buffer :Buffer
+                    arg0:
+                      add :usize
+                        l:
+                          int(42) :usize
+                        r:
+                          call :usize
+                            callee:
+                              byte_len :usize
+                            arg0:
+                              __p_1 :string
+                let __off_3: usize = int(0) :usize
+                assign
+                  target:
+                    __off_3 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_2 :Buffer
+                      arg1:
+                        __off_3 :usize
+                      arg2:
+                        __p_1 :string
+                assign
+                  target:
+                    __off_3 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_2 :Buffer
+                      arg1:
+                        __off_3 :usize
+                      arg2:
+                        ":" :string
+                assign
+                  target:
+                    __off_3 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_2 :Buffer
+                      arg1:
+                        __off_3 :usize
+                      arg2:
+                        cast → i64
+                          .x :i32
+                            p :Point
+                assign
+                  target:
+                    __off_3 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_2 :Buffer
+                      arg1:
+                        __off_3 :usize
+                      arg2:
+                        "," :string
+                assign
+                  target:
+                    __off_3 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_2 :Buffer
+                      arg1:
+                        __off_3 :usize
+                      arg2:
+                        cast → i64
+                          .y :i32
+                            p :Point
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
+                    arg0:
+                      __buf_2 :Buffer
+                    arg1:
+                      __off_3 :usize
+          assign
+            target:
+              i :usize
+            value:
+              add :usize
+                l:
+                  i :usize
+                r:
+                  int(1) :usize
+    return int(0) :i32

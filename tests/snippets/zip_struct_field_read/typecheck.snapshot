@@ -1,0 +1,26 @@
+# Typecheck
+
+## tests/snippets/zip_struct_field_read
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Point                :: Point
+  expr 17:24    SeqLitExpr     :: string[]
+  expr 17:25    StringLitExpr  :: string
+  expr 17:30    StringLitExpr  :: string
+  expr 17:35    StringLitExpr  :: string
+  expr 18:20    SeqLitExpr     :: Point[]
+  expr 19:9     StructLitExpr  :: Point
+  expr 20:9     StructLitExpr  :: Point
+  expr 21:9     StructLitExpr  :: Point
+  expr 23:23    CallExpr       :: Iterator<[string, Point]>
+  expr 23:23    IdentExpr      :: fn(T[], U[]) -> Iterator<[T, U]>
+  expr 23:27    IdentExpr      :: string[]
+  expr 23:35    IdentExpr      :: Point[]
+  expr 23:9     IdentExpr      :: [string, Point]
+  expr 24:17    StringLitExpr  :: string
+  expr 24:20    IdentExpr      :: string
+  expr 24:29    FieldExpr      :: i32
+  expr 24:29    IdentExpr      :: Point
+  expr 24:36    FieldExpr      :: i32
+  expr 24:36    IdentExpr      :: Point
+  expr 24:9     CallExpr       :: void
+  expr 24:9     IdentExpr      :: fn(T) -> void
