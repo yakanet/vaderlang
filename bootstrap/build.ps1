@@ -46,13 +46,13 @@ try { $gz.CopyTo($out) } finally { $out.Close(); $gz.Close(); $in.Close() }
 & $ccAbs $stage0cflags -o build\stage0.exe build\bootstrap.c $runtime -Iruntime\c -lm
 if ($LASTEXITCODE -ne 0) { throw "stage0 compilation failed (exit $LASTEXITCODE)" }
 
-Step "[2/3] Building stage1 (full compiler, via stage0)  -- self-compiles ~30 kLoC, ~30s"
+Step "[2/3] Building stage1 (full compiler, via stage0)  -- self-compiles"
 & .\build\stage0.exe vader\cli\main.vader build\stage1.c
 if ($LASTEXITCODE -ne 0) { throw "stage0 failed to emit stage1.c (exit $LASTEXITCODE)" }
 & $ccAbs $stage0cflags -o build\stage1.exe build\stage1.c $runtime -Iruntime\c -lm
 if ($LASTEXITCODE -ne 0) { throw "stage1 compilation failed (exit $LASTEXITCODE)" }
 
-Step "[3/3] Building vader = stage2 (via stage1, --release)  -- ~30s"
+Step "[3/3] Building vader = stage2 (via stage1, --release)"
 & .\build\stage1.exe build vader\cli\main.vader --release --target=native --out=build\vader --cc=$ccAbs
 if ($LASTEXITCODE -ne 0) { throw "stage1 failed to build vader (exit $LASTEXITCODE)" }
 
