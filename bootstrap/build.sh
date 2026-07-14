@@ -46,11 +46,11 @@ step "[1/3] Building stage0 (bootstrap compiler, from the seed)  [$CC_ABS $STAGE
 gunzip -c bootstrap/bootstrap.c.gz > build/bootstrap.c
 "$CC_ABS" $STAGE0_CFLAGS -o build/stage0 build/bootstrap.c "$runtime" -Iruntime/c -lm
 
-step "[2/3] Building stage1 (full compiler, via stage0)  — self-compiles ~30 kLoC, ~30s"
+step "[2/3] Building stage1 (full compiler, via stage0)  — self-compiles"
 ./build/stage0 vader/cli/main.vader build/stage1.c
 "$CC_ABS" $STAGE0_CFLAGS -o build/stage1 build/stage1.c "$runtime" -Iruntime/c -lm
 
-step "[3/3] Building vader = stage2 (via stage1, --release)  — ~30s"
+step "[3/3] Building vader = stage2 (via stage1, --release)"
 ./build/stage1 build vader/cli/main.vader --release --target=native --out=build/vader --cc="$CC_ABS"
 
 printf '%b==> done%b  vader built at build/vader\n' "$g" "$r"
