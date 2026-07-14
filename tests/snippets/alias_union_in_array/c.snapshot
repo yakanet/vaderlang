@@ -153,7 +153,7 @@ static int32_t snippet_main(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots };
     vader_gc_top = &gc_frame;
 #line 29 "tests/snippets/alias_union_in_array/_main.vader"
-    vader_array_t* _a0_arr = vader_array_new(1u, 0u, 0u, 2u);
+    vader_array_t* _a0_arr = vader_array_new(1u, 0u, 13u, 2u);
     l0 = (void*) _a0_arr;
 #line 30 "tests/snippets/alias_union_in_array/_main.vader"
     vader_struct_snippet_types_Cat_t* _a1_obj = (vader_struct_snippet_types_Cat_t*) vader_gc_alloc(sizeof(vader_struct_snippet_types_Cat_t));
@@ -177,7 +177,7 @@ static int32_t snippet_main(void) {
                 vader_array_t* _a3_slotarr = ((vader_array_t*) l0);
                 while (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = (vader_array_buf_t*) _a3_slotarr->buf->header.forward; }
                 if ((size_t) l3 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
-                t0 = vader_array_box_slots(_a3_slotarr->buf)[_a3_slotarr->offset + (size_t) l3];
+                t0 = vader_array_ref_load_box(_a3_slotarr->buf, _a3_slotarr->offset + (size_t) l3);
 #line 33 "tests/snippets/alias_union_in_array/_main.vader"
                 t1 = snippet_describe(t0);
                 std_io_println__string(t1);
