@@ -3,7 +3,7 @@
 
 module "vader/lower"
 
-import "std/string" { starts_with }
+import "std/string"
 
 import "vader/parser" { Decl, ImplDecl, ArrayTypeExpr, GenericInstExpr }
 import "vader/resolver" { LoadedProject }

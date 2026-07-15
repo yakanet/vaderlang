@@ -110,7 +110,7 @@ export intrinsic_op_for_symbol_name :: fn(symbol: Symbol) -> Op | null {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 @test test_arms_pinned_to_manifest_grammar :: fn() -> void {
     // Every arm's key must equal what `primitive_member_mangle` builds — a

@@ -23,7 +23,7 @@
 
 module "vader/lsp/analysis"
 
-import "std/string" { trim, starts_with }
+import "std/string"
 import "vader/parser" {
     parse_source,
     Decl,

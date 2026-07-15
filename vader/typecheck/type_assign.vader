@@ -242,7 +242,7 @@ export struct_args_compatible :: fn(a: Type[], b: Type[], oracle: TraitOracle | 
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert }
+import "std/testing"
 import "vader/types" { mk_array, mk_primitive, mk_union, TY_FREE_INT, TY_NEVER, TY_UNRESOLVED }
 
 @test

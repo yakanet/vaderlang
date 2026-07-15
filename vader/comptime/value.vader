@@ -10,8 +10,8 @@ module "vader/comptime"
 
 import "std/collections" { MutableMap, keys }
 import "std/string_builder" { StringBuilder, append, append_char }
-import "std/numbers" { to_hex }
-import "std/string" { pad_start }
+import "std/numbers"
+import "std/string"
 import "vader/types" { Type, display_type }
 
 /// One comptime-evaluated value. Variants closed — every new
@@ -199,12 +199,12 @@ render_struct :: fn(struct_value: StructValue) -> string {
     return sb.to_string()
 }
 
-import "std/sort" { sort }
-import "std/string" { compare_ascending }
+import "std/sort"
+import "std/string"
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 @test test_display_int :: fn() -> void {
     assert_eq(display_value(int_val(42)), "42_i32")

@@ -14,7 +14,7 @@
 module "vader/lower"
 
 import "std/collections" { MutableMap }
-import "std/abort" { unreachable }
+import "std/abort"
 
 import "vader/parser" { StringLitExpr, StringLitText, StringLitInterp }
 import "vader/diagnostics" { Span }

@@ -26,9 +26,9 @@
 
 module "vader/c_emit"
 
-import "std/string" { join }
+import "std/string"
 import "std/string_builder" { StringBuilder, append }
-import "std/abort" { todo, panic }
+import "std/abort"
 import "vader/bytecode" { BytecodeModule, BcFunction }
 import "vader/bytecode" {
     BcType, BcPrimitive, BcStruct, BcArray, BcUnion, BcRef, BcFn,

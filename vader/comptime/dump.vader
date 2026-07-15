@@ -14,8 +14,8 @@
 module "vader/comptime"
 
 import "std/collections" { keys }
-import "std/sort" { sort }
-import "std/string" { compare_ascending, pad_end }
+import "std/sort"
+import "std/string"
 import "std/string_builder" { StringBuilder, append, append_char }
 import "vader/resolver" { module_in_scope }
 import "vader/typecheck" { TypedProgram }
@@ -93,7 +93,7 @@ module_display_path :: fn(module_program: EvaluatedProgram) -> string {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 import "vader/typecheck" { new_typed_project }
 
 @test test_dump_empty_project_header_only :: fn() -> void {

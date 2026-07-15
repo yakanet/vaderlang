@@ -16,7 +16,7 @@
 
 module "vader/lsp/handlers"
 
-import "std/string" { char_at_byte }
+import "std/string"
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
 }
@@ -329,7 +329,7 @@ encode_delta :: fn(arr: RawToken[]) -> JsonValue {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 // Build the full sorted RawToken list the way `produce_tokens` does, exposing
 // the pre-encoding tokens so tests can inspect classifications + overlaps.

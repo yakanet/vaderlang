@@ -405,7 +405,7 @@ collect_opt_pattern :: fn(p: AST.Pattern | null, out: Span[]) -> void {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 // Count the identifier spans the walker collects from a parsed source — guards
 // the walker's coverage (parse-only, no resolution needed).

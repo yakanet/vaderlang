@@ -124,7 +124,7 @@ span_of_value :: fn(v: EnumVariant) -> Span {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/parser" { parse_source }
 import "vader/parser" { Decl }
 

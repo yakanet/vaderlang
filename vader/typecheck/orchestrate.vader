@@ -399,7 +399,7 @@ collect_direct_imports :: fn(
     return out
 }
 
-import "std/string" { starts_with, ends_with }
+import "std/string"
 
 
 empty_impls :: fn() -> ImplRegistry { return new_registry() }

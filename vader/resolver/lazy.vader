@@ -20,8 +20,8 @@ module "vader/resolver"
 
 import "std/collections" { MutableMap }
 import "std/io" { is_dir, read_dir, read_file_string, IOError }
-import "std/sort" { sort }
-import "std/string" { compare_ascending, ends_with, starts_with, trim_prefix }
+import "std/sort"
+import "std/string"
 import "vader/diagnostics" { Diagnostic, resolver_error, empty_span }
 import "vader/parser" { ModuleHeader, parse_module_header }
 AST :: import "vader/parser"

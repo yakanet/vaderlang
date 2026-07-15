@@ -89,7 +89,7 @@ export new_fn_context :: fn(return_type: Type, self_type: Type | null) -> FnCont
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/resolver/symbol" { new_factory }
 import "vader/types" { mk_primitive, PrimitiveType, TY_NEVER }
 

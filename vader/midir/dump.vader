@@ -9,7 +9,7 @@
 module "vader/midir"
 
 import "std/string_builder" { StringBuilder, append }
-import "vader/resolver" { module_in_scope }
+import "vader/resolver"
 import "vader/resolver/symbol" { kind_name }
 import "vader/types" { display_type }
 

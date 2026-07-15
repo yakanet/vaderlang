@@ -136,7 +136,7 @@ export cursor_field :: fn(params: JsonValue, key: string) -> i32 {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 @test
 test_span_to_range_utf8 :: fn() -> void {

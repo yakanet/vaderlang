@@ -16,7 +16,7 @@
 module "vader/lower"
 
 import "std/collections" { MutableMap, MutableSet, keys }
-import "std/sort" { sort }
+import "std/sort"
 import "std/string_builder" { append }
 
 import "vader/diagnostics" { Diagnostic }
@@ -359,7 +359,7 @@ module_decls :: fn(module_loaded: LoadedModule) -> Decl[] {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 import "vader/typecheck" { new_typed_project }
 import "vader/comptime" { new_evaluated_project }

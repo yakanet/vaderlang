@@ -59,7 +59,7 @@ export make_builtin_scope :: fn(factory: SymbolFactory) -> MutableMap<string, Sy
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/resolver/symbol" { new_factory }
 
 @test

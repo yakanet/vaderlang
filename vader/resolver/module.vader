@@ -21,8 +21,8 @@ module "vader/resolver"
 
 import "std/io" { exists, is_dir, read_dir, read_file_string, current_executable_location }
 import "std/path" { Path, to_path, as_string, parent }
-import "std/sort" { sort }
-import "std/string" { trim_prefix, compare_ascending, ends_with, starts_with }
+import "std/sort"
+import "std/string"
 import "vader/parser" { NodeIdFactory, Program, Decl, parse_source }
 
 /// `import "std/..."` and stdlib display paths share this prefix.
@@ -251,7 +251,7 @@ export read_manifest :: fn(project_root: string) -> Manifest {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 @test
 test_read_manifest_reads_repo_include_paths :: fn() -> void {

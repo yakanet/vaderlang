@@ -215,7 +215,7 @@ export intern_cell_type :: fn(slot_type: Type, ctx: EmitterCtx) -> i32 {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 import "vader/types" { mk_primitive }
 
 @test test_new_emitter_ctx_reserves_null_slot :: fn() -> void {

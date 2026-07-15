@@ -358,7 +358,7 @@ register_refs :: fn(m: MutableMap<string, string[]>, name: string, refs: string[
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 // Parse `src` as a single-file module and return the number of W0007 the pass
 // raises — the reachability BFS exercised end to end on a synthetic graph.

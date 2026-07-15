@@ -598,7 +598,7 @@ export strip_distinct_each :: fn(args: Type[]) -> Type[] {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/resolver/symbol" { SymbolKind, new_factory, make }
 import "vader/parser" { Visibility }
 

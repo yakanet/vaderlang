@@ -19,7 +19,7 @@ import "std/string" { starts_with }
 import "std/string_builder" { StringBuilder, append }
 import "vader/bytecode" { ConvertTarget }
 import "vader/types" { TRAIT_ERROR }
-import "vader/text" { prefix_before_double_underscore }
+import "vader/text"
 bc :: import "vader/bytecode"
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32

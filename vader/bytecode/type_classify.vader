@@ -238,7 +238,7 @@ export val_type_of_primitive_name :: fn(name: string) -> ValType {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 import "vader/types" { mk_primitive }
 
 @test test_val_type_of_type_primitive :: fn() -> void {

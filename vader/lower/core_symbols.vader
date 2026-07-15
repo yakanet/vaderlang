@@ -118,7 +118,7 @@ find_via_all :: fn(ctx: LowerProjectCtx, for_symbol: Symbol, trait_name: string)
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/types" { display_type }
 import "vader/typecheck" { new_typed_project }
 import "vader/comptime" { new_evaluated_project }

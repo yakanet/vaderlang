@@ -14,14 +14,10 @@
 module "vader/lexer"
 
 import "std/string" { utf8_decode, utf8_lead_len, codepoint_byte_len, is_empty, parse_float, ParseError, MAX_CODEPOINT }
-import "std/char" { is_alpha, is_alnum, is_digit }
+import "std/char"
 
 import "std/string_builder" { StringBuilder, append, append_char }
-import "std/numbers" {
-    hex_digit_value, is_hex_digit, is_digit_in_base,
-    parse_uint_in_base,
-    strip_numeric_text,
-}
+import "std/numbers"
 import "vader/diagnostics" { Diagnostic, lexer_error }
 import "vader/diagnostics" { LexerCode }
 // Position/Span are re-imported transparently via token.vader (same module);
@@ -953,7 +949,7 @@ export tokenize :: fn(source: string, file: string) -> Lexer {
 
 // ---------------------------------------------------------------------- tests
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 @test test_tokenize_ident :: fn() -> void {
     l :: tokenize("foo", "test.vader")

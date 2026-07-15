@@ -17,7 +17,7 @@
 module "vader/lsp/protocol"
 
 import "std/string" { starts_with }
-import "std/path" { to_posix }
+import "std/path"
 
 /// Recover the filesystem path from a `file://` URI. Returns `""` for any
 /// non-`file://` URI (untitled buffers, `vader:` virtual docs, …), which every
@@ -95,7 +95,7 @@ is_drive_after_slash :: fn(s: string) -> bool {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 @test test_uri_path_roundtrip_posix :: fn() -> void {
     assert_eq(uri_to_path("file:///abs/path.vader"), "/abs/path.vader")

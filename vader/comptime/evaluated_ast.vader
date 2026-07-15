@@ -118,7 +118,7 @@ export new_evaluated_project :: fn(typed: TypedProject) -> EvaluatedProject {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 import "vader/typecheck" { new_typed_project }
 
 @test test_new_evaluated_project_is_empty :: fn() -> void {

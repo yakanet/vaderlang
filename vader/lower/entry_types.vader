@@ -160,7 +160,7 @@ fn_decl_type_by_span :: fn(self: EntryTypes, name: string, name_span: Span) -> T
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 import "vader/typecheck" { empty_typed_program }
 import "vader/typecheck" { new_substitution }
 import "vader/types" {

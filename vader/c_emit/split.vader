@@ -25,9 +25,9 @@
 
 module "vader/c_emit"
 
-import "std/string" { compare_ascending }
+import "std/string"
 import "std/string_builder" { StringBuilder, append }
-import "std/sort" { sort }
+import "std/sort"
 import "vader/bytecode" { BytecodeModule, BcFunction }
 
 /// A program emitted as several C translation units. `header` is the shared

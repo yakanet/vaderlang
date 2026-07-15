@@ -22,8 +22,8 @@
 module "vader/bytecode"
 
 import "std/string_builder" { StringBuilder, append, append_char }
-import "std/numbers" { to_hex }
-import "std/string" { pad_start }
+import "std/numbers"
+import "std/string"
 import "std/collections" { MutableMap }
 
 /// Render a `BytecodeModule` as a `.virt`-style text dump. The resulting
@@ -856,7 +856,7 @@ type_label_at :: fn(module: BytecodeModule, type_id: i32, depth: i32) -> string 
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 @test test_dump_empty_module :: fn() -> void {
     types: BcType[] = []

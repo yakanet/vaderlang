@@ -686,7 +686,7 @@ ends_with_return :: fn(body: Op[]) -> bool {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 @test test_ends_with_return_empty_body :: fn() -> void {
     body: Op[] = []

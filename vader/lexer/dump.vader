@@ -12,8 +12,8 @@
 module "vader/lexer"
 
 import "std/string" { pad_start, pad_end }
-import "std/numbers" { to_hex }
-import "vader/text" { quote_simple }
+import "std/numbers"
+import "vader/text"
 // Diagnostic info is now resolved at construction time — see vader/diagnostics.
 
 export dump_tokens :: fn(l: Lexer) -> string {

@@ -99,7 +99,7 @@ substitute_each :: fn(types: Type[], subst: Substitution) -> Type[] {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/types" { mk_primitive, mk_type_param, display_type }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/parser" { Visibility }

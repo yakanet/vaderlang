@@ -53,7 +53,7 @@ export format_source :: fn(source: string, path: string) -> FormatResult {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert }
+import "std/testing"
 
 @test
 test_roundtrip_preserves_await_parens :: fn() -> void {

@@ -134,7 +134,7 @@ clone_ident :: fn(e: AST.IdentExpr) -> AST.IdentExpr {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 @test
 test_substitute_replaces_ident_when_bound :: fn() -> void {

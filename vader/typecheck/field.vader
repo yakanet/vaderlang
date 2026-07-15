@@ -15,7 +15,7 @@
 
 module "vader/typecheck"
 
-import "std/string" { join }
+import "std/string"
 import "vader/diagnostics" { Diagnostic, Span, typecheck_error }
 AST :: import "vader/parser"
 import "vader/resolver" { ResolvedModule }
@@ -481,7 +481,7 @@ export substitute_by_name :: fn(
 }
 
 import "std/collections" { MutableMap }
-import "std/math" { min }
+import "std/math"
 import "vader/types" {
     FnType, TypeParamType,
     mk_array, mk_fn, mk_struct, mk_trait, mk_tuple, mk_union,
@@ -1054,7 +1054,7 @@ export find_struct_field_type :: fn(
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/parser" { parse_source }
 import "vader/resolver" { resolve_module }
 import "vader/resolver/symbol" { new_factory }

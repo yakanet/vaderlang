@@ -1239,7 +1239,7 @@ into_tuple_target :: fn(declared: Type, arity: usize, typed: TypedProgram) -> Ty
 // load-time cycle through `expr → stmt`). Full end-to-end coverage runs
 // via `check_module_with_bodies` in `orchestrate.vader`.
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/parser" { parse_source }
 import "vader/resolver" { resolve_module }
 import "vader/resolver/symbol" { new_factory }

@@ -27,12 +27,12 @@
 module "vader/c_emit"
 
 import "std/string_builder" { StringBuilder, append, append_char }
-import "std/numbers" { is_hex_digit, hex_digit }
+import "std/numbers"
 import "vader/bytecode" {
     BcType, BcPrimitive, BcStruct, BcArray, BcUnion, BcRef, BcFn,
     ValType,
 }
-import "vader/text" { is_ident_byte, prefix_before_double_underscore }
+import "vader/text"
 
 // =========================================================================
 // C identifier sanitation

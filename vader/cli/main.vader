@@ -8,12 +8,12 @@ module "vader/cli"
 import "std/io" { println, eprintln, read_file_string, write_file_string, print, IOError }
 import "std/collections" { MutableMap }
 import "std/string" { starts_with, ends_with, trim_suffix, split, trim, parse_int, ParseError }
-import "std/path" { to_posix, to_path, filename }
+import "std/path"
 import "std/process" { spawn, spawn_async, ProcessError, ProcessResult }
-import "std/async" { all, block_on }
+import "std/async"
 import "std/cli" { FlagSpec, parse, parse_known, bool_flag, string_flag }
 import "vader/version" { CLI_VERSION }
-import "vader/lexer" { tokenize, dump_tokens }
+import "vader/lexer"
 import "vader/parser" { parse_source, dump_program, ImportDecl, DestructureImport }
 import "vader/resolver/symbol" { new_factory, SymbolKind }
 import "vader/resolver" { ResolvedProject, ResolvedModule, resolve_module }
@@ -26,7 +26,7 @@ import "vader/resolver" { load_project, resolve_sidecar }
 import "vader/typecheck" { dump_program as dump_typed, dump_program_with_others }
 import "vader/comptime" { evaluate_project }
 import "vader/comptime" { dump_evaluated }
-import "vader/comptime_vm" { resolve_vm_required_decls }
+import "vader/comptime_vm"
 import "vader/lower" { lower_project }
 import "vader/lower" { dump_lowered }
 import "vader/lower" { prune_unreachable_fns }
@@ -41,9 +41,9 @@ import "vader/c_emit" { emit_c, emit_c_split, CProgram, EmitOptions as CEmitOpti
 Prof :: import "vader/profile"
 TTY :: import "std/tty"
 import "vader/diagnostics" { Diagnostic, dump_diagnostics, dump_diagnostics_with_file }
-import "vader/fmt" { run_fmt }
+import "vader/fmt"
 import "vader/vm" { run_virt, parse_virt_bc, prepare, exec_entry, Ok, Trap }
-import "vader/lsp" { run_server }
+import "vader/lsp"
 import "vader/dap" { run_dap_server, DapProgram }
 // `vader test` (cmd_test) — native @test discovery + per-test isolated run.
 import "std/io" { read_dir, is_dir, exists }

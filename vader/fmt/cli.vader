@@ -9,7 +9,7 @@
 module "vader/fmt"
 
 import "std/io" { read_file_string, write_file_string, exists, is_dir, read_dir, print, eprintln, IOError }
-import "std/string" { ends_with, starts_with }
+import "std/string"
 import "std/path" { Path, join, to_path, as_string }
 import "vader/diagnostics" { dump_diagnostics_with_file }
 

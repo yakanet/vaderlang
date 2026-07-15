@@ -26,9 +26,9 @@
 module "vader/lsp/actions"
 
 import "std/collections" { MutableMap }
-import "std/string" { starts_with, join, compare_ascending }
-import "std/sort" { sort }
-import "std/iter" { clone }
+import "std/string"
+import "std/sort"
+import "std/iter"
 import "vader/diagnostics" { Span }
 AST :: import "vader/parser"
 
@@ -243,7 +243,7 @@ oi_slice :: fn(source: string, span: Span) -> string {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert }
+import "std/testing"
 
 oi_decls :: fn(src: string) -> AST.Decl[] {
     return AST.parse_source(src, "t.vader").program.decls

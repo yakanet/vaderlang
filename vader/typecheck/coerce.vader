@@ -98,7 +98,7 @@ import "vader/types" { StructType, TraitType, UnionType }
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert }
+import "std/testing"
 import "vader/types" { mk_primitive, mk_array, mk_trait }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/parser" { Visibility }

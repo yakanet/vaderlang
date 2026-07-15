@@ -15,7 +15,7 @@
 module "vader/c_emit"
 
 import "std/string_builder" { StringBuilder, append_repeated }
-import "std/abort" { unreachable }
+import "std/abort"
 import "vader/bytecode" { BcFunction, ValType }
 import "std/collections" { MutableMap }
 

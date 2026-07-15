@@ -50,10 +50,10 @@
 
 module "vader/c_emit"
 
-import "std/string" { split, join }
+import "std/string"
 import "std/string_builder" { StringBuilder }
-import "std/sort" { sort }
-import "vader/text" { is_ident_byte }
+import "std/sort"
+import "vader/text"
 import "vader/bytecode" { ValType }
 
 /// Compacted temp type list (index = new slot) plus the rewritten body text.
@@ -320,7 +320,7 @@ fuse_temp_local_copies :: fn(body: string, n: usize) -> string {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 @test test_coalesce_disjoint_merge :: fn() -> void {
     // t0 (lines 0-1) and t1 (lines 3-4) are strictly disjoint Refs -> one slot,

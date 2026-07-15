@@ -4,8 +4,8 @@
 module "vader/lower"
 
 import "std/collections" { MutableMap }
-import "std/sort" { sort }
-import "std/string" { compare_ascending }
+import "std/sort"
+import "std/string"
 import "std/string_builder" { StringBuilder, append }
 
 import "vader/diagnostics" { Diagnostic, Span }

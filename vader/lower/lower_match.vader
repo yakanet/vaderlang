@@ -525,7 +525,7 @@ export resolve_pattern_type :: fn(ctx: FnLowerCtx, type_expr: TypeExpr) -> Type 
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq, assert }
+import "std/testing"
 import "vader/diagnostics" { empty_span }
 
 @test test_fill_unresolved_emits_unresolved_array :: fn() -> void {

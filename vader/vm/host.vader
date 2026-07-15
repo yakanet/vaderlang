@@ -13,11 +13,11 @@ module "vader/vm"
 bc :: import "vader/bytecode"
 
 import "std/io" { read_file_bytes, write_file_bytes, exists, is_dir, read_dir, print, eprint, temp_dir, current_executable_location, Stream, IOError }
-import "std/env" { get_env }
-import "std/tty" { is_tty }
-import "std/process" { spawn_start, spawn_poll, spawn_take_stdout, spawn_take_stderr }
-import "std/math" { sqrt, pow, floor, ceil, round, sin, cos, tan }
-import "std/time" { now, monotonic }
+import "std/env"
+import "std/tty"
+import "std/process"
+import "std/math"
+import "std/time"
 import "std/string" { trim }
 
 /// Outcome of a successful host call. `value` is unused when the import

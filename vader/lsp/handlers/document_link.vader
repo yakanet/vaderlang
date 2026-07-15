@@ -16,7 +16,7 @@ module "vader/lsp/handlers"
 
 import "std/json" { JsonValue, JsonObject, JsonString, JsonArray }
 import "std/collections" { MutableMap }
-import "std/io" { exists }
+import "std/io"
 import "vader/diagnostics" { Span, Position }
 import "vader/parser" { parse_source, ImportDecl }
 import "vader/resolver" { list_vader_files }
@@ -117,7 +117,7 @@ path_string_range :: fn(imp: ImportDecl, source: string, li: LineIndex) -> SpanR
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 @test
 test_path_range_covers_quoted_path :: fn() -> void {

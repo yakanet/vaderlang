@@ -35,7 +35,7 @@ import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck" { fn_is_async, async_result_arg }
 import "std/collections" { MutableMap }
 import "vader/diagnostics" { Span }
-import "std/abort" { panic }
+import "std/abort"
 
 // ---- state-struct synthesis + entry ---------------------------------------
 

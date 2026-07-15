@@ -20,7 +20,7 @@ import "vader/parser" {
     TypeExpr, IdentExpr, GenericInstExpr,
 }
 import "vader/types" { Type, display_type, strip_distinct }
-import "vader/text" { is_ident_byte }
+import "vader/text"
 
 /// Mangled name for a `(decl_name, module_path, type_arguments)` triple.
 /// Format is fixed so the bytecode emitter, the C
@@ -146,7 +146,7 @@ generic_callee_name :: fn(gi: GenericInstExpr) -> string = @partial match gi.cal
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 import "vader/types" { mk_primitive }
 import "vader/diagnostics" { Position, Span }
 

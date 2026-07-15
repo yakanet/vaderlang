@@ -21,7 +21,7 @@ module "vader/vm"
 bc :: import "vader/bytecode"
 
 import "std/string" { starts_with, ends_with, trim, split, index_of, decode_escapes, ParseError }
-import "std/numbers" { hex_digit_value, parse_int_in_base, parse_uint_in_base }
+import "std/numbers"
 import "vader/types" { is_int_name, is_unsigned_int_name, is_numeric_name }
 
 // `ScopeEntry` and `PendingBranch` live in `vader/vm/builder.vader` —
@@ -980,7 +980,7 @@ parse_data_const :: fn(line: string) -> bc.Op | null {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 import "std/string_builder" { StringBuilder }
 
 /// Round-trip an op through `write_op` (the canonical mnemonic writer,

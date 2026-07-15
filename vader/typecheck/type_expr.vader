@@ -199,7 +199,7 @@ walk_substitute :: fn(t: Type, params: AST.TypeParam[], args: Type[]) -> Type {
     }
 }
 
-import "std/math" { min }
+import "std/math"
 import "vader/types" {
     ArrayType, FnType, StructType, TraitType, TupleType, TypeParamType, UnionType,
     mk_union,
@@ -341,7 +341,7 @@ export primitive_from_name :: fn(name: string) -> Type | null {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/parser" { parse_source }
 import "vader/resolver" { resolve_module }
 import "vader/resolver/symbol" { new_factory }

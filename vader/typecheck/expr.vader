@@ -170,7 +170,7 @@ infer_expr :: fn(
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/diagnostics" { empty_span }
 import "vader/types" { mk_primitive, display_type }
 

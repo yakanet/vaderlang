@@ -4,7 +4,7 @@
 module "vader/lower"
 
 import "std/collections" { MutableMap, keys, values }
-import "std/iter" { is_empty }
+import "std/iter"
 import "std/string_builder" { StringBuilder, append }
 
 import "vader/diagnostics" { Diagnostic, Span }

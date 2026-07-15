@@ -20,8 +20,8 @@
 
 module "vader/bytecode"
 
-import "std/abort" { panic }
-import "std/string" { starts_with, ends_with }
+import "std/abort"
+import "std/string"
 import "vader/types" { is_int_name, is_primitive_name }
 
 // Mangled module fragment for `std/core` (`mangle_module_id("std/core")`).
@@ -219,7 +219,7 @@ export assert_host_import_wired :: fn(mangled: string, is_extern: bool) -> void 
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/lower" { mangle_module_id }
 
 @test test_core_module_matches_mangler :: fn() -> void {

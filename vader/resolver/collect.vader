@@ -13,7 +13,7 @@
 module "vader/resolver"
 
 import "std/collections" { MutableMap }
-import "std/string" { starts_with }
+import "std/string"
 import "vader/diagnostics" { Diagnostic, Span, resolver_error }
 import "vader/parser" {
     Program, Decl, ImportDecl, FnDecl, StructDecl, EnumDecl, TraitDecl,
@@ -306,7 +306,7 @@ diagnose_import_path :: fn(
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/parser" { parse_source }
 import "vader/resolver/symbol" { new_factory }
 
