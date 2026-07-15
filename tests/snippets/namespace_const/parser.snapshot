@@ -25,8 +25,7 @@
       "path": "snippet/config",
       "binding": {
         "kind": "named-namespace",
-        "name": "C",
-        "restricted": null
+        "name": "C"
       },
       "decorators": []
     },

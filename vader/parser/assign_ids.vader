@@ -166,12 +166,7 @@ walk_decorator :: fn(d: Decorator, f: NodeIdFactory) -> void {
 
 walk_import_binding :: fn(b: ImportBinding, f: NodeIdFactory) -> void {
     match b {
-        is NamedNamespaceImport as ns -> {
-            match ns.restricted {
-                is null -> {}
-                _ -> { for n in ns.restricted { n.id = f.mint() } }
-            }
-        }
+        is NamedNamespaceImport -> {}
         is DestructureImport as d -> {
             for n in d.names { n.id = f.mint() }
         }

@@ -91,10 +91,8 @@ MVP — caching is a post-MVP performance topic).
 ### 1.5 Imports
 
 ```vader
-import "std/string"                // pure namespace import
 str :: import "std/string"         // named namespace import (alias `str`)
 import "std/string" { byte_len }   // destructured import
-str :: import "std/string" { byte_len, slice }   // scoped namespace import
 ```
 
 Resolution rules :

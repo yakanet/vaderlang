@@ -25,8 +25,7 @@
       "path": "snippet/greeter",
       "binding": {
         "kind": "named-namespace",
-        "name": "G",
-        "restricted": null
+        "name": "G"
       },
       "decorators": []
     },

@@ -658,22 +658,22 @@ parse_import_decl :: fn(p: Parser, decorators: Decorator[]) -> ImportDecl {
     }
 }
 
-/// Named-decl-position `name :: import "..."` (with optional scoped
-/// `{ a, b, c }`). Routed from `parse_named_decl` when the RHS keyword
-/// after `::` is `import`.
+/// Named-decl-position `name :: import "..."`. Routed from
+/// `parse_named_decl` when the RHS keyword after `::` is `import`.
 parse_named_import_decl :: fn(p: Parser, decorators: Decorator[], name_tok: Token) -> ImportDecl {
     p.advance()  // `import`
     path_info :: p.expect_string_literal("import path")
-    restricted: ImportName[] | null = null
-    if p.match_kind(.LBrace) != null {
-        // `name :: import "..." { a, b }` — scoped namespace. Only the
-        // listed names are reachable via `name.X`.
-        restricted = p.parse_import_name_list_rest()
+    lbrace :: p.match_kind(.LBrace)
+    if lbrace != null {
+        // The scoped `name :: import "..." { a, b }` form was removed.
+        p.error(.ExpectedDeclaration, lbrace.span,
+            "the scoped `name :: import \"...\" { a, b }` form was removed ; use `name :: import \"...\"` for a namespace or `import \"...\" { a, b }` to destructure")
+        _ :: p.parse_import_name_list_rest()  // skip the block for clean recovery
     }
     return ImportDecl {
         .span       = p.span_of(name_tok, p.peek_at(-1)),
         .path       = path_info.text,
-        .binding    = NamedNamespaceImport { .name = name_tok.text, .restricted = restricted },
+        .binding    = NamedNamespaceImport { .name = name_tok.text },
         .decorators = decorators,
     }
 }

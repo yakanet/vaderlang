@@ -11,8 +11,7 @@
       "path": "std/io",
       "binding": {
         "kind": "named-namespace",
-        "name": "fs",
-        "restricted": null
+        "name": "fs"
       },
       "decorators": []
     },
