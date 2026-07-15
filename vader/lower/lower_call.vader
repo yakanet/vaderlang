@@ -9,7 +9,7 @@ import "vader/parser" { Expr, IdentExpr, CallExpr, FieldExpr, Visibility, Decl, 
 import "vader/diagnostics" { Span }
 import "vader/typecheck" { type_list_equals, TypedProgram }
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, FnType, PrimitiveType, UnionType, TraitType, ArrayType, AnyType, mk_primitive, mk_fn, TY_STRING, TRAIT_EQUALS, METHOD_EQUALS, METHOD_NOT_EQUALS, array_backing, struct_backing }
+import "vader/types" { Type, FnType, PrimitiveType, UnionType, TraitType, ArrayType, AnyType, TypeMetaType, mk_primitive, mk_fn, TY_STRING, TRAIT_EQUALS, METHOD_EQUALS, METHOD_NOT_EQUALS, array_backing, struct_backing }
 import "vader/comptime" { EvaluatedProgram }
 import "vader/resolver" { ImportTargetTable }
 
@@ -278,6 +278,18 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
     if callee is FieldExpr as field_expr {
         namespace_symbol :: as_namespace_binding(ctx, field_expr.target)
         if namespace_symbol is null { return null }
+        // `nsM.T(x)` — the typer typed the callee as the metatype and resolved
+        // the call as a cast (infer_call → TypeMetaType, call.vader). Lower it as
+        // a cast to the result `type` (shared with the direct-ident cast path),
+        // not a plain call to the type symbol. Casts carry exactly one arg.
+        // NB the ident path (`try_lower_cast_call`) keys on symbol-kind +
+        // `alias_types`, NOT this `TypeMetaType` signal: a cross-module distinct
+        // const ident does not surface as TypeMetaType there — don't unify them.
+        if call.args.len() == 1 {
+            if ctx.types.expr_type(field_expr) is TypeMetaType {
+                return emit_value_cast(ctx, call, type)
+            }
+        }
         member_symbol :: resolve_namespace_member(ctx, namespace_symbol, field_expr.field)
         // A GENERIC member (`io.println` → `println<T: Display>`) must harvest
         // its monomorphic instance + point the callee at the mangle, exactly

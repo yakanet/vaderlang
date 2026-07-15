@@ -270,6 +270,14 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
     type_sym :: if type_redir is null { callee_symbol } else { type_redir }
     is_type_const :: !(ctx.typed.resolved.alias_types[type_sym.id] is null)
     if !is_type_shaped && !is_type_const { return null }
+    return emit_value_cast(ctx, call, type)
+}
+
+/// Emit the lowered form of a single-arg cast/wrap `T(value)` to `type`. Shared
+/// by the direct-ident path (`try_lower_cast_call`) and the namespace path
+/// (`nsM.T(value)` in `try_lower_namespace_call`). The caller has already
+/// confirmed this is a cast (type-shaped callee / TypeMetaType) with one arg.
+emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     arg :: lower_expr(ctx, call.args[0].value)
     arg_type :: type_of(arg)
     // `Target(value)` probes for `value : Source` where

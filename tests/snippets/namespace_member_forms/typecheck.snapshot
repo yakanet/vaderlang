@@ -1,0 +1,25 @@
+# Typecheck
+
+## tests/snippets/namespace_member_forms
+  FnDecl         main                 :: fn() -> i32
+  expr 10:13    CallExpr       :: i32
+  expr 10:13    IdentExpr      :: type
+  expr 10:17    IdentExpr      :: Meters
+  expr 11:10    FieldExpr      :: fn(i32) -> i32
+  expr 12:10    CallExpr       :: i32
+  expr 12:10    IdentExpr      :: fn(i32) -> i32
+  expr 12:12    IdentExpr      :: i32
+  expr 13:21    BinaryExpr     :: bool
+  expr 13:21    IdentExpr      :: i32
+  expr 13:5     IfExpr         :: void
+  expr 13:8     BinaryExpr     :: bool
+  expr 13:8     BinaryExpr     :: bool
+  expr 13:8     IdentExpr      :: i32
+  expr 9:10     CallExpr       :: Meters
+  expr 9:10     FieldExpr      :: type
+
+## tests/snippets/namespace_member_forms/helper
+  ConstDecl      Meters               :: type
+  FnDecl         triple               :: fn(i32) -> i32
+  expr 8:38     BinaryExpr     :: i32
+  expr 8:38     IdentExpr      :: i32

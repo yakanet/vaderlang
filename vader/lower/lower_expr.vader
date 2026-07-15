@@ -67,6 +67,11 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             // NODE_ID`, …) degrades to a drop.
             ns_const :: try_lower_namespace_const(ctx, e, type)
             if ns_const != null { return ns_const }
+            // `nsM.foo` used as a fn-VALUE (not a call callee) — lower to the
+            // member fn symbol, mirroring the direct-ident fn-value path ; else
+            // it degrades to a bogus field access on the import binding.
+            ns_fn_value :: try_lower_namespace_fn_value(ctx, e, type)
+            if ns_fn_value != null { return ns_fn_value }
             // Tuple `t.0` → `_0` : tuple types are backed by an anonymous
             // struct whose slots are named `_0`, `_1`, … — rewrite the
             // numeric field so the dump shows `._0`.
@@ -265,6 +270,21 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             return LoweredIdent { .span = ident.span, .type = type, .symbol = final_sym }
         }
     }
+}
+
+/// `nsM.foo` used as a fn-VALUE (not a call callee) — lower to the member fn
+/// symbol (a `LoweredIdent`, which emit turns into a FnRef), mirroring the
+/// direct-ident fn-value path in `lower_ident`. Returns null for non-fn members
+/// (a const is handled by `try_lower_namespace_const` ; a type-as-value is exotic).
+try_lower_namespace_fn_value :: fn(ctx: FnLowerCtx, e: FieldExpr, type: Type) -> LoweredExpr | null {
+    ns :: as_namespace_binding(ctx, e.target)
+    if ns is null { return null }
+    member :: resolve_namespace_member(ctx, ns, e.field)
+    if member.kind != SymbolKind.Fn { return null }
+    // Harvest the non-generic imported fn so its body is emitted (self-guards to
+    // a no-op unless it's a non-generic stdlib Fn) — same as the ident path.
+    register_nongeneric_imported_fn(ctx, member)
+    return LoweredIdent { .span = e.span, .type = type, .symbol = member }
 }
 
 // `CellInit` and the cell-init wrapper now live in `vader/lower/helpers.vader`
