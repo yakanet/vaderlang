@@ -1397,13 +1397,14 @@ push_module_exported_fns :: fn(from: TypedProgram, into: TypedProgram) -> void {
         }
     }
     // Same for wildcard-exposed CONSTS : without their type in `external_types`,
-    // a wildcard `println(CLI_VERSION)` types the const as `?`, so the generic
+    // a wildcard `println(CLI_VERSION)` const or `EnumName.Variant` types the const as `?`, so the generic
     // `println<T>` instance can't be pinned and its materialisation drops
-    // (GATE B1). Types (struct/enum/trait) come through `struct_decls` /
-    // `cross_publish`, so only consts need this.
+    // (GATE B1), and a wildcard enum-variant access mis-resolves. Structs/traits
+    // flow through `struct_decls` / `cross_publish` ; consts/enums/aliases need this.
     for sym in from.resolved.symbols {
         if sym.visibility != .Public { continue }
-        if sym.kind != SymbolKind.Const { continue }
+        if sym.kind != SymbolKind.Const && sym.kind != SymbolKind.Enum
+            && sym.kind != SymbolKind.TypeAlias { continue }
         cty :: from.decl_types[sym.id]
         if cty is null { continue }
         into.external_types[sym.id] = cty
