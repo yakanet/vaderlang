@@ -1,0 +1,8 @@
+// helper for the namespace_member_forms snippet — a distinct type + a free fn,
+// both reached from `_main` through a namespace import (`H :: import "..."`).
+
+module "snippet/helper"
+
+export Meters :: i32
+
+export triple :: fn(x: i32) -> i32 = x * 3

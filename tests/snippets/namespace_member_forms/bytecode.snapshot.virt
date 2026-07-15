@@ -1,0 +1,44 @@
+module _main
+type 0 primitive null
+type 1 primitive i32
+type 2 fn (1) -> 1
+export main 0
+
+fn 0 snippet$main () -> i32
+  local back i32
+  local f ref
+  local r i32
+  local and_res bool
+  i32.const 5
+  local.set 0
+  fn.ref 1 2
+  local.set 1
+  local.get 0
+  local.get 1
+  call.indirect 2
+  local.set 2
+  local.get 0
+  i32.const 5
+  i32.eq
+  if $L0 void
+    local.get 2
+    i32.const 15
+    i32.eq
+    local.set 3
+  else
+    bool.const false
+    local.set 3
+  end $L0
+  local.get 3
+  if $L1 void
+    return.lit i32.const 0
+  end $L1
+  return.lit i32.const 1
+end
+
+fn 1 snippet_helper$triple (i32) -> i32
+  local.get 0
+  i32.const 3
+  i32.mul
+  return
+end

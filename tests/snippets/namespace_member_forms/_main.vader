@@ -1,0 +1,15 @@
+module "snippet"
+
+// A3 (decision B): a namespace member used as a CAST callee (`H.Meters(5)`)
+// and as a first-class FN-VALUE (`H.triple` stored, then called). Both used to
+// mis-lower silently; now they lower to a cast and a fn-ref respectively.
+H :: import "snippet/helper"
+
+main :: fn() -> i32 {
+    m :: H.Meters(5)     // cast i32 -> Meters (distinct) through the namespace
+    back :: i32(m)       // unwrap the distinct
+    f :: H.triple        // fn-value through the namespace (not called here)
+    r :: f(back)         // indirect call: triple(5) = 15
+    if back == 5 && r == 15 { return 0 }
+    return 1
+}
