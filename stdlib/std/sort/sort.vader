@@ -12,7 +12,7 @@
 
 module "std/sort"
 
-import "std/iter" { clone }
+import "std/iter"
 
 /// Return a fresh array containing `arr`'s elements in sorted order. The
 /// input is never mutated. Equal elements keep their input order, so the
@@ -92,8 +92,8 @@ insertion_sort_range :: fn<T>(arr: T[], lo: usize, hi: usize, compare: fn(T, T) 
 
 // ---------------------------------------------------------------------- tests
 
-import "std/testing" { assert_eq }
-import "std/string" { compare_ascending }
+import "std/testing"
+import "std/string"
 
 @test test_sort_i32_asc :: fn() -> void {
     out :: sort([3, 1, 4, 1, 5, 9, 2, 6, 5, 3], (a: i32, b: i32) -> a < b)

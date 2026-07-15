@@ -6,7 +6,7 @@
 module "std/numbers"
 
 import "std/string" { chars, ends_with, is_empty, replace_chars_where, ParseError }
-import "std/char" { is_digit }
+import "std/char"
 import "std/string_builder" { StringBuilder, append_char }
 
 /// True for an ASCII hex digit — `0`..`9`, `a`..`f`, `A`..`F`.
@@ -202,7 +202,7 @@ export strip_numeric_text :: fn(text: string, base: i32) -> string {
 
 // ---- tests ---------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 @test test_strip_numeric_text :: fn() -> void {
     assert_eq(strip_numeric_text("0xFF",    16),  "FF")

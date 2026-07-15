@@ -303,7 +303,7 @@ sd_round_at :: fn(m: BigInt, p: i32, sticky_in: bool) -> u64 {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 // Expected bits computed offline via CPython `struct.pack('<d', float(s))`.
 pf_expect :: fn(s: string, expected: u64) -> void {

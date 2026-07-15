@@ -15,11 +15,11 @@ import "std/string" {
     utf8_decode, codepoint_byte_len, parse_float, ParseError, pad_start, chars,
     REPLACEMENT_CHAR, is_surrogate, is_high_surrogate, is_low_surrogate, combine_surrogates,
 }
-import "std/char" { is_digit, is_white_char }
-import "std/iter" { zip }
+import "std/char"
+import "std/iter"
 import "std/string_builder" { StringBuilder, append, append_char, append_repeated }
 import "std/collections" { MutableMap, len, keys, values }
-import "std/numbers" { hex_digit_value, to_hex, to_compact_str }
+import "std/numbers"
 
 // ---- value tree -----------------------------------------------------------
 

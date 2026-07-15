@@ -7,7 +7,7 @@
 module "std/string"
 
 import "std/string_builder" { StringBuilder, append, append_char }
-import "std/math" { min }
+import "std/math"
 
 /// True for the empty string. Equivalent to `s.byte_len() == 0` but
 /// reads cleanly at call sites — emptiness is the same in byte and
@@ -673,7 +673,7 @@ export split_where :: fn(s: string, pred: fn(char) -> bool) -> string[] {
 
 // ---------------------------------------------------------------------- tests
 
-import "std/testing" { assert, assert_eq, assert_close }
+import "std/testing"
 
 @test test_byte_len :: fn() -> void {
     assert_eq(byte_len(""), 0)

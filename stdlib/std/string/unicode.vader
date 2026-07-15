@@ -162,7 +162,7 @@ export combine_surrogates :: fn(hi: char, lo: char) -> char =
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 @test test_utf8_lead_len :: fn() -> void {
     assert_eq(utf8_lead_len(0x41), 1)   // 'A'

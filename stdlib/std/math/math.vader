@@ -86,7 +86,7 @@ export lerp :: fn(a: f64, b: f64, t: f64) = a + (b - a) * clamp(t, 0.0, 1.0)
 
 // ---------------------------------------------------------------------- tests
 
-import "std/testing" { assert_eq, assert_close }
+import "std/testing"
 
 @test test_pi_close :: fn() -> void {
     assert_close(pi, 3.141592653589793, 0.000001)

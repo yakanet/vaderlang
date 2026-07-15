@@ -13,8 +13,8 @@
 
 module "std/async"
 
-import "std/runtime" { sched_now, sched_arm, sched_park }
-import "std/abort" { panic }
+import "std/runtime"
+import "std/abort"
 import "std/collections" { MutableMap, MutableSet }
 
 // ---- sleep ----------------------------------------------------------------

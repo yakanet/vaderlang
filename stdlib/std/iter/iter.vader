@@ -268,7 +268,7 @@ export skip :: fn<T>(self: Iterator<T>, n: usize) -> Iterator<T> {
 
 // ---------------------------------------------------------------------- tests
 
-import "std/testing" { assert, assert_eq, fail }
+import "std/testing"
 
 @test test_count :: fn() -> void {
     // `count` is the `Iterator` trait's default terminal — exercise it over a

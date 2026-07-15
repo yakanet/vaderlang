@@ -17,7 +17,7 @@
 module "std/cli"
 
 import "std/collections" { MutableMap }
-import "std/string" { starts_with, split }
+import "std/string"
 
 /// Kind of a flag — controls how a value (if any) is interpreted.
 /// `Bool` flags don't require a `=value` suffix (presence sets `"true"`).
@@ -170,7 +170,7 @@ export string_flag :: fn(self: ParsedArgs, name: string, default: string) -> str
 
 // ---------------------------------------------------------------------- tests
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 @test test_bool_flag_presence :: fn() -> void {
     specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]

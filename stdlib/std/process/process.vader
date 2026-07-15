@@ -17,8 +17,8 @@
 
 module "std/process"
 
-import "std/runtime" { sched_now, sched_arm }
-import "std/async" { block_on }
+import "std/runtime"
+import "std/async"
 
 // Poll interval, ms. A child `cc` runs for 100s of ms, so a 2 ms detection
 // latency is negligible ; the scheduler `nanosleep`s between polls (no spin).

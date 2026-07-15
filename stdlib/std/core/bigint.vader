@@ -217,7 +217,7 @@ clz32 :: fn(x: u32) -> i32 {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 @test test_mul_div_small_roundtrip :: fn() -> void {
     one: BigInt = [1]

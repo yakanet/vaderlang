@@ -24,7 +24,7 @@
 module "std/tty"
 
 import "std/io" { Stream }
-import "std/env" { get_env }
+import "std/env"
 
 // ---- detection ------------------------------------------------------------
 
@@ -126,7 +126,7 @@ export bright_white :: fn(s: string) = paint("97", s)
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 @test
 test_esc_enabled :: fn() -> void {
