@@ -32757,8 +32757,9 @@ static void* vader_resolver_build_wildcard_seed(void* l0, void* l1, void* l2) {
     void* l12 = NULL;
     void* l16 = NULL;
     size_t l7, l8, l14, l15;
-    vader_string_t l9, l11, l17, l18;
+    vader_string_t l9, l11, l22, l23;
     vader_box_t l13 = vader_box_null();
+    bool l17, l18, l19, l20, l21;
     size_t t0;
     vader_box_t t1 = vader_box_null();
     int64_t t2;
@@ -32865,16 +32866,41 @@ static void* vader_resolver_build_wildcard_seed(void* l0, void* l1, void* l2) {
                             t2 = (l15 + INT64_C(1));
                             l15 = (size_t) (int64_t) t2;
                             if (((vader_struct_vader_resolver_symbol_Symbol_t*) l16)->f_kind != INT32_C(0)) {
+                                l17 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l16)->f_kind != INT32_C(1);
+                            } else {
+                                l17 = false;
+                            }
+                            if (l17) {
+                                l18 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l16)->f_kind != INT32_C(2);
+                            } else {
+                                l18 = false;
+                            }
+                            if (l18) {
+                                l19 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l16)->f_kind != INT32_C(3);
+                            } else {
+                                l19 = false;
+                            }
+                            if (l19) {
+                                l20 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l16)->f_kind != INT32_C(5);
+                            } else {
+                                l20 = false;
+                            }
+                            if (l20) {
+                                l21 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l16)->f_kind != INT32_C(6);
+                            } else {
+                                l21 = false;
+                            }
+                            if (l21) {
                                 goto loop_114;
                             }
                             if (((vader_struct_vader_resolver_symbol_Symbol_t*) l16)->f_visibility != INT32_C(0)) {
                                 goto loop_114;
                             }
-                            l17 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l16)->f_name;
-                            t1 = std_collections_MutableMap_Index_at__string__Any(l3, l17);
+                            l22 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l16)->f_name;
+                            t1 = std_collections_MutableMap_Index_at__string__Any(l3, l22);
                             if (t1.tag == 0u) {
-                                l18 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l16)->f_name;
-                                std_collections_MutableMap_IndexSet_set_at__string__Any(l3, l18, vader_ref_box(l16));
+                                l23 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l16)->f_name;
+                                std_collections_MutableMap_IndexSet_set_at__string__Any(l3, l23, vader_ref_box(l16));
                             } else {
                             }
                             goto loop_114;
