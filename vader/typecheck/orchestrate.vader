@@ -1374,7 +1374,7 @@ push_module_exported_fns :: fn(from: TypedProgram, into: TypedProgram) -> void {
             // (mirrors `build_wildcard_seed`'s Public filter + the destructure
             // R2008 check). Without this, a module's private helpers leaked as
             // cross-module UFCS candidates.
-            if sym.visibility != AST.Visibility.Public { continue }
+            if sym.visibility != .Public { continue }
             ty :: from.decl_types[sym.id]
             if ty is null { continue }
             match ty {
