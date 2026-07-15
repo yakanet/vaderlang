@@ -11,8 +11,7 @@
       "path": "std/string",
       "binding": {
         "kind": "named-namespace",
-        "name": "str",
-        "restricted": null
+        "name": "str"
       },
       "decorators": []
     },

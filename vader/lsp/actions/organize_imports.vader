@@ -204,13 +204,9 @@ oi_render_destructure :: fn(path: string, names: AST.ImportName[]) -> string {
     return body + "\n}"
 }
 
-// `name :: import "path"` (+ a restricted brace block when scoped).
-oi_render_namespace :: fn(path: string, nn: AST.NamedNamespaceImport) -> string {
-    head :: nn.name + " :: import \"" + path + "\""
-    rn :: nn.restricted
-    if rn == null { return head }
-    return head + " { " + oi_sorted_name_texts(rn).join(", ") + " }"
-}
+// `name :: import "path"`.
+oi_render_namespace :: fn(path: string, nn: AST.NamedNamespaceImport) -> string =
+    nn.name + " :: import \"" + path + "\""
 
 // Render each import name to text, de-duplicate, and sort ascending. Rendering
 // first lets a plain string sort order names then aliases (`A` < `A as X` < `B`).

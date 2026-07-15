@@ -2024,13 +2024,11 @@ Module identity is **not** derived from the filesystem. The filesystem is the st
 ### Imports
 
 ```vader
-import "std/string"                              // pure namespace import
 str :: import "std/string"                       // named namespace import
 import "std/string" { trim }                     // destructured import
-str :: import "std/string" { trim, chars }       // scoped namespace import
 ```
 
-A namespace import always names its binding explicitly (`name :: import "..."`) — there is no implicit last-segment binding and no `as` suffix. The destructure form (`import "..." { a, b }`) pulls names into the importing module's top-level scope. The combined form (`name :: import "..." { a, b, c }`) is **scoped**: only the listed names are reachable through `name.X`; the rest of the target module is hidden, and the listed names are NOT also pulled into top-level scope.
+A namespace import always names its binding explicitly (`name :: import "..."`) — there is no implicit last-segment binding, no bare `import "..."`, and no `as` suffix. The destructure form (`import "..." { a, b }`) pulls names into the importing module's top-level scope.
 
 #### Resolution rules
 
