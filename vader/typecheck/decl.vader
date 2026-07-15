@@ -292,7 +292,7 @@ first_unexported_in :: fn(types: Type[]) -> Symbol | null {
 }
 
 is_private_user_type :: fn(sym: Symbol) -> bool {
-    if sym.visibility != Visibility.Private { return false }
+    if sym.visibility != .Private { return false }
     return is_user_type_kind(sym.kind)
 }
 

@@ -84,7 +84,7 @@ export build_wildcard_seed :: fn(
         if target is null { continue }
         for [_, sym] in target.collected.symbols {
             if sym.kind != SymbolKind.Fn { continue }
-            if sym.visibility != Visibility.Public { continue }
+            if sym.visibility != .Public { continue }
             existing :: out[sym.name]
             if existing is null { out[sym.name] = sym }
         }
