@@ -35,6 +35,10 @@ export CollectedModule :: struct {
     /// Raw `import "path"` entries in source order — the loader uses
     /// these to walk the module graph transitively.
     import_paths: string[]
+    /// Paths of bare `import "path"` (wildcard) imports — every public
+    /// function of each becomes callable in this module (prefix + UFCS).
+    /// Consumed by `build_wildcard_seed` before the body walk.
+    wildcard_paths: string[]
 }
 
 /// Mint top-level symbols for `program`. Order of insertion mirrors source
@@ -53,10 +57,11 @@ export collect_module :: fn(
     index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[],
 ) -> CollectedModule {
     out :: CollectedModule {
-        .symbols      = MutableMap<string, Symbol> {},
-        .fn_overloads = MutableMap<string, Symbol[]> {},
-        .imports      = new_import_table(),
-        .import_paths = [],
+        .symbols        = MutableMap<string, Symbol> {},
+        .fn_overloads   = MutableMap<string, Symbol[]> {},
+        .imports        = new_import_table(),
+        .import_paths   = [],
+        .wildcard_paths = [],
     }
     for d in program.decls {
         out.collect_decl(d, module_path, module_name, factory, index, paths, diags)
@@ -192,8 +197,10 @@ collect_import :: fn(
             self.bind_import(ns.name, d.span, d.path, null, module_path, factory, diags)
         }
         is WildcardImport -> {
-            // bare `import "p"` — wildcard : the path is already recorded in
-            // `import_paths` above ; binds no name.
+            // bare `import "p"` — wildcard : record the path so the resolver
+            // seeds every public fn of `p` into this module's scope. No name
+            // binding (the path is also in `import_paths` above).
+            self.wildcard_paths.push(d.path)
         }
         is DestructureImport as de -> {
             for n in de.names {

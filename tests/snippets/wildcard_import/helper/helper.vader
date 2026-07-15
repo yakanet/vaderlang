@@ -1,0 +1,6 @@
+// helper module for the wildcard_import snippet — a public free function
+// reached from `_main` through a bare `import "snippet/helper"`.
+
+module "snippet/helper"
+
+export scale_two :: fn(x: i32) -> i32 = x * 2

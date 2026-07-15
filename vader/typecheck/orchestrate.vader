@@ -16,7 +16,7 @@ import "vader/diagnostics" { Diagnostic, Span }
 AST :: import "vader/parser"
 import "vader/parser" { Program }
 import "vader/resolver" { LoadedProject, LoadedModule, SourceFile, concat_file_decls, load_project_with_overlay }
-import "vader/resolver" { ResolvedModule, resolve_module, resolve_module_with_collected, resolve_module_with_collected_dp, resolve_module_with_collected_dp_seeded, build_core_seed, find_core_module_id, find_async_module_id }
+import "vader/resolver" { ResolvedModule, resolve_module, resolve_module_with_collected, resolve_module_with_collected_dp, resolve_module_with_collected_dp_seeded, build_core_seed, build_wildcard_seed, module_index_by_name, find_core_module_id, find_async_module_id }
 import "vader/resolver/symbol" { Symbol, SymbolFactory }
 import "vader/resolver" { wire_imports, ImportTargetTable, run_orphan_rule_check_for_module }
 import "vader/types" { display_type, type_base_name, canonical_key, canonical_args_key }
@@ -124,11 +124,13 @@ export check_project_with_bodies :: fn(
     // the same map so the body-walker can fire R2006 unconditionally on
     // unresolved idents instead of deferring to typecheck.
     core_seed :: build_core_seed(project)
+    mod_index :: module_index_by_name(project)
 
     entry_rm :: resolve_module_with_collected_dp_seeded(
         merge_module_program(entry_loaded.module.files), project.entry,
         entry_loaded.module.display_path,
-        project.factory, entry_loaded.collected, core_seed,
+        project.factory, entry_loaded.collected,
+        build_wildcard_seed(mod_index, entry_loaded.collected.wildcard_paths, core_seed),
     )
     entry_typed :: new_typed_program(entry_rm)
     entry_typed.dump_types = dump_types
@@ -141,7 +143,8 @@ export check_project_with_bodies :: fn(
         if id == project.entry { continue }
         rm :: resolve_module_with_collected_dp_seeded(
             merge_module_program(other.module.files), id, other.module.display_path,
-            project.factory, other.collected, core_seed,
+            project.factory, other.collected,
+            build_wildcard_seed(mod_index, other.collected.wildcard_paths, core_seed),
         )
         typed :: new_typed_program(rm)
         typed.dump_types = dump_types
