@@ -21,13 +21,14 @@ string 4 "read failed"
 string 5 "true"
 string 6 "false"
 string 7 "\n"
-import 0 bytes_to_string std_core$bytes_to_string (ref) -> string
-import 1 bytes std_core$bytes (string) -> ref
-import 2 write std_io$write (i32,string) -> void
-import 3 read_file_bytes std_io$read_file_bytes (string) -> any
-import 4 write_file_bytes std_io$write_file_bytes (string,ref) -> any
-import 5 exists std_io$exists (string) -> bool
-import 6 temp_dir std_io$temp_dir () -> string
+import 0 byte_len std_core$byte_len (string) -> usize
+import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
+import 2 bytes std_core$bytes (string) -> ref
+import 3 write std_io$write (i32,string) -> void
+import 4 read_file_bytes std_io$read_file_bytes (string) -> any
+import 5 write_file_bytes std_io$write_file_bytes (string,ref) -> any
+import 6 exists std_io$exists (string) -> bool
+import 7 temp_dir std_io$temp_dir () -> string
 impl 5 ByteAccess
 impl 10 Error
 export main 0
@@ -39,12 +40,12 @@ fn 0 snippet$main () -> i32
   local $call_13 bool
   local contents any
   local __scrut_2 any
-  call.import 6
+  call.import 7
   string.const 0
   call 1
   local.tee 0
   string.const 1
-  call 7
+  call 6
   drop
   i64.const 13
   call 2
@@ -54,22 +55,22 @@ fn 0 snippet$main () -> i32
   local.get 1
   local.get 2
   string.const 2
-  call 5
+  call 4
   local.set 2
   local.get 0
-  call.import 5
+  call.import 6
   local.set 3
   local.get 1
   local.get 2
   local.get 3
-  call 6
+  call 5
   local.set 2
   local.get 1
   local.get 2
-  call 4
-  call 9
-  local.get 0
+  call 3
   call 8
+  local.get 0
+  call 7
   local.tee 4
   local.tee 5
   type_check 2
@@ -80,14 +81,14 @@ fn 0 snippet$main () -> i32
     string.const 3
     local.get 0
     call 1
-    call 9
+    call 8
     return.lit i32.const 0
   end $L0
   local.get 5
   type_check 13
   if $L1 void
     string.const 4
-    call 9
+    call 8
     return.lit i32.const 0
   end $L1
   return
@@ -98,10 +99,10 @@ fn 1 concat_2 (string,string) -> string
   local $call_4 usize
   local buf ref
   local.get 0
-  call 3
+  call.import 0
   local.set 2
   local.get 1
-  call 3
+  call.import 0
   local.set 3
   local.get 2
   local.get 3
@@ -111,46 +112,38 @@ fn 1 concat_2 (string,string) -> string
   local.tee 4
   i64.const 0
   local.get 0
-  call 12
+  call 11
   local.get 4
   local.get 2
   local.get 1
-  call 12
+  call 11
   local.get 4
   local.get 3
-  call 4
+  call 3
   return
 end
 
 fn 2 std_core$new_byte_buffer (usize) -> ref
   local.get 0
+  call 9
+  return
+end
+
+fn 3 std_core$finish_buffer (ref,usize) -> string
+  local.get 0
+  local.get 1
   call 10
   return
 end
 
-fn 3 std_core$byte_len (string) -> usize
-  local.get 0
-  call.import 1
-  array.len
-  return
-end
-
-fn 4 std_core$finish_buffer (ref,usize) -> string
+fn 4 std_core$write_string_at (ref,usize,string) -> usize
+  local $call_3 usize
   local.get 0
   local.get 1
+  local.get 2
   call 11
-  return
-end
-
-fn 5 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
-  local.get 0
-  local.get 1
   local.get 2
-  call 12
-  local.get 2
-  call.import 1
-  array.len
+  call.import 0
   local.set 3
   local.get 1
   local.get 3
@@ -158,37 +151,37 @@ fn 5 std_core$write_string_at (ref,usize,string) -> usize
   return
 end
 
-fn 6 std_core$write_bool (ref,usize,bool) -> usize
+fn 5 std_core$write_bool (ref,usize,bool) -> usize
   local.get 2
   if $L0 void
     local.get 0
     local.get 1
     string.const 5
-    call 5
+    call 4
     return
   end $L0
   local.get 0
   local.get 1
   string.const 6
-  call 5
+  call 4
   return
 end
 
-fn 7 std_io$write_file_string (string,string) -> any
+fn 6 std_io$write_file_string (string,string) -> any
   local $call_2 ref
   local.get 1
-  call.import 1
+  call.import 2
   local.set 2
   local.get 0
   local.get 2
-  call.import 4
+  call.import 5
   return
 end
 
-fn 8 std_io$read_file_string (string) -> any
+fn 7 std_io$read_file_string (string) -> any
   local r any
   local.get 0
-  call.import 3
+  call.import 4
   local.tee 1
   type_check 10
   if $L0 void
@@ -198,35 +191,35 @@ fn 8 std_io$read_file_string (string) -> any
   end $L0
   local.get 1
   ref.cast 6
-  call.import 0
+  call.import 1
   box 2
   return
 end
 
-fn 9 std_io$println__string (string) -> void
+fn 8 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
-  call.import 2
+  call.import 3
   i32.const 0
   string.const 7
-  call.import 2
+  call.import 3
   return
 end
 
-fn 10 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 9 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 11 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 10 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 12 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 11 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2

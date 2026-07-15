@@ -7,15 +7,14 @@ type 4 primitive usize
 type 5 struct std_core$Buffer {  }
 type 6 primitive string
 type 7 primitive i64
-type 8 array 9
-type 9 primitive u8
-type 10 primitive void
-type 11 array 1
+type 8 primitive u8
+type 9 primitive void
+type 10 array 1
 string 0 "unwrapped: "
 string 1 " scratch: "
 string 2 " batch: "
 string 3 "\n"
-import 0 bytes std_core$bytes (string) -> ref
+import 0 byte_len std_core$byte_len (string) -> usize
 import 1 write std_io$write (i32,string) -> void
 impl 5 ByteAccess
 export main 2
@@ -31,9 +30,9 @@ end
 fn 1 snippet$first_of_batch () -> ref
   i32.const 77
   struct.new 1
-  array.new 11 1
+  array.new 10 1
   i32.const 0
-  array.get 11
+  array.get 10
   return
 end
 
@@ -119,14 +118,13 @@ fn 4 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 5 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 11
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3

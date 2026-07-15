@@ -15,13 +15,12 @@ type 12 struct std_core$Yield__usize { value:7 }
 type 13 struct std_core$Buffer {  }
 type 14 primitive string
 type 15 primitive i64
-type 16 array 17
-type 17 primitive u8
-type 18 primitive void
+type 16 primitive u8
+type 17 primitive void
 string 0 "repeat="
 string 1 "once="
 string 2 "\n"
-import 0 bytes std_core$bytes (string) -> ref
+import 0 byte_len std_core$byte_len (string) -> usize
 import 1 write std_io$write (i32,string) -> void
 impl 3 Iterator
 impl 8 Iterator
@@ -313,14 +312,13 @@ fn 7 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 8 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 17
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3

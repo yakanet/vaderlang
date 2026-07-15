@@ -66,7 +66,6 @@ static int32_t snippet_main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
 static void* std_core_new_byte_buffer(size_t l0);
-static size_t std_core_byte_len(vader_string_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static void std_io_println__string(vader_string_t l0);
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
@@ -77,17 +76,15 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_type_2_strs[] = { offsetof(vader_struct_snippet_Cat_t, f_name) };
 static const uint16_t vader_type_3_strs[] = { offsetof(vader_struct_snippet_Dog_t, f_name) };
-static const uint16_t vader_type_8_ptrs[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[11] = {
+const vader_type_info_t vader_type_info_table[9] = {
     [2] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_Cat_t), NULL, 0, 1, vader_type_2_strs, 0, NULL },
     [3] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_Dog_t), NULL, 0, 1, vader_type_3_strs, 0, NULL },
     [7] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
-    [8] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_8_ptrs, 1, 0, NULL, 0, NULL },
 };
-const size_t vader_type_info_count = 11;
+const size_t vader_type_info_count = 9;
 
-const size_t vader_type_size[11] = {
+const size_t vader_type_size[9] = {
     [0] = 0u,
     [1] = 16u,
     [2] = 16u,
@@ -96,9 +93,7 @@ const size_t vader_type_size[11] = {
     [5] = 4u,
     [6] = 8u,
     [7] = 16u,
-    [8] = 16u,
-    [9] = 1u,
-    [10] = 0u,
+    [8] = 0u,
 };
 
 
@@ -111,7 +106,7 @@ const size_t vader_type_size[11] = {
  */
 const vader_vtable_t* const vader_vtable_table[1] = { NULL };
 const size_t                vader_vtable_count    = 0;
-static void* vader_import_0(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 8u, 9u); }
+static size_t vader_import_0(vader_string_t a0) { return vader_string_byte_len(a0); }
 static void vader_import_1(int32_t a0, vader_string_t a1) { vader_write(a0, a1); }
 
 static vader_string_t snippet_greet(vader_box_t l0) {
@@ -297,8 +292,8 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     void** gc_raw_roots[1] = { &l4 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
     vader_gc_top = &gc_frame;
-    l2 = std_core_byte_len(l0);
-    l3 = std_core_byte_len(l1);
+    l2 = vader_import_0(l0);
+    l3 = vader_import_0(l1);
     t0 = (l2 + l3);
     l3 = (size_t) (int64_t) t0;
     l4 = std_core_new_byte_buffer(l3);
@@ -317,11 +312,11 @@ static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_strin
     void** gc_raw_roots[1] = { &l6 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
     vader_gc_top = &gc_frame;
-    l3 = std_core_byte_len(l0);
-    l4 = std_core_byte_len(l1);
+    l3 = vader_import_0(l0);
+    l4 = vader_import_0(l1);
     t0 = (l3 + l4);
     l4 = (size_t) (int64_t) t0;
-    l5 = std_core_byte_len(l2);
+    l5 = vader_import_0(l2);
     t0 = (l4 + l5);
     l5 = (size_t) (int64_t) t0;
     l6 = std_core_new_byte_buffer(l5);
@@ -341,19 +336,6 @@ static void* std_core_new_byte_buffer(size_t l0) {
 #line 112 "stdlib/std/core/primitives.vader"
     t0 = std_core_usize_BufferAlloc_new_buffer_vt(l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
-}
-
-static size_t std_core_byte_len(vader_string_t l0) {
-    void* t0 = NULL;
-    size_t t1;
-    void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
-    vader_gc_top = &gc_frame;
-#line 118 "stdlib/std/core/primitives.vader"
-    t0 = vader_import_0(l0);
-    t1 = ((vader_array_t*) t0)->length;
-    { size_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 

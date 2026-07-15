@@ -43,7 +43,7 @@ string 14 "usize size="
 string 15 " k0="
 string 16 " k39="
 string 17 "\n"
-import 0 bytes std_core$bytes (string) -> ref
+import 0 byte_len std_core$byte_len (string) -> usize
 import 1 write std_io$write (i32,string) -> void
 impl 15 ByteAccess
 impl 2 Index
@@ -820,14 +820,13 @@ fn 8 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 9 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 61
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3

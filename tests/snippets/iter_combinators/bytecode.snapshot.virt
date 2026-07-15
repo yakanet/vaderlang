@@ -18,17 +18,16 @@ type 15 primitive string
 type 16 primitive u64
 type 17 array 1
 type 18 ref Iterator
-type 19 array 20
-type 20 primitive u8
-type 21 primitive void
-type 22 fn (1,1) -> 1
-type 23 fn (1) -> 1
-type 24 fn (1) -> 4
+type 19 primitive u8
+type 20 primitive void
+type 21 fn (1,1) -> 1
+type 22 fn (1) -> 1
+type 23 fn (1) -> 4
 string 0 "slice mid len="
 string 1 "slice over len="
 string 2 "slice tail len="
 string 3 "\n"
-import 0 bytes std_core$bytes (string) -> ref
+import 0 byte_len std_core$byte_len (string) -> usize
 import 1 write std_io$write (i32,string) -> void
 impl 6 Contains
 impl 6 Iterator
@@ -70,7 +69,7 @@ fn 0 snippet$main () -> i32
   array.new 17 0
   local.set 1
   struct.new 2
-  make_closure 1 23
+  make_closure 1 22
   local.set 2
   i32.const 1
   i32.const 2
@@ -93,7 +92,7 @@ fn 0 snippet$main () -> i32
         local.get 5
         load_slot_i32
         local.get 2
-        call.indirect 23
+        call.indirect 22
         local.set 6
         local.get 1
         local.get 6
@@ -115,7 +114,7 @@ fn 0 snippet$main () -> i32
   array.new 17 0
   local.set 1
   struct.new 3
-  make_closure 2 24
+  make_closure 2 23
   local.set 2
   local.get 0
   local.tee 3
@@ -134,7 +133,7 @@ fn 0 snippet$main () -> i32
         load_slot_i32
         local.tee 7
         local.get 2
-        call.indirect 24
+        call.indirect 23
         if $L6 void
           local.get 7
           local.set 8
@@ -167,7 +166,7 @@ fn 0 snippet$main () -> i32
   struct.new 13
   local.set 1
   struct.new 5
-  make_closure 3 22
+  make_closure 3 21
   local.set 2
   local.get 1
   i32.const 1
@@ -495,14 +494,13 @@ fn 8 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 9 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 20
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3
@@ -745,7 +743,7 @@ fn 16 std_iter$fold__i32__i32 (any,i32,ref) -> i32
         local.get 3
         local.get 6
         local.get 2
-        call.indirect 22
+        call.indirect 21
         local.set 3
         br $L1
       end $L2

@@ -16,22 +16,21 @@ type 13 struct std_core$Buffer {  }
 type 14 primitive string
 type 15 primitive i64
 type 16 primitive u64
-type 17 array 18
-type 18 primitive u8
-type 19 primitive void
-type 20 fn (1) -> 2
-type 21 struct __gen_state_18 { s0:3,s1:20,s2:3,s3:22,s4:1,state:1 }
-type 22 union 7,0
-type 23 fn (1) -> 1
-type 24 struct __gen_state_13 { s0:3,s1:23,s2:3,s3:22,s4:1,state:1 }
-type 25 ref __genstate_map
-type 26 ref __genstate_filter
+type 17 primitive u8
+type 18 primitive void
+type 19 fn (1) -> 2
+type 20 struct __gen_state_18 { s0:3,s1:19,s2:3,s3:21,s4:1,state:1 }
+type 21 union 7,0
+type 22 fn (1) -> 1
+type 23 struct __gen_state_13 { s0:3,s1:22,s2:3,s3:21,s4:1,state:1 }
+type 24 ref __genstate_map
+type 25 ref __genstate_filter
 string 0 "sum="
 string 1 " drain="
 string 2 " d0="
 string 3 " d1="
 string 4 "\n"
-import 0 bytes std_core$bytes (string) -> ref
+import 0 byte_len std_core$byte_len (string) -> usize
 import 1 write std_io$write (i32,string) -> void
 impl 5 Contains
 impl 5 Iterator
@@ -39,13 +38,13 @@ impl 9 Contains
 impl 9 Iterator
 impl 12 Iterator
 impl 13 ByteAccess
-impl 21 Iterator
-impl 24 Iterator
+impl 20 Iterator
+impl 23 Iterator
 vtable Iterator.next 5 5
 vtable Iterator.next 9 6
 vtable Iterator.next 12 7
-vtable Iterator.next 21 19
-vtable Iterator.next 24 21
+vtable Iterator.next 20 19
+vtable Iterator.next 23 21
 export main 4
 
 fn 0 snippet$triple (i32) -> i32
@@ -71,13 +70,13 @@ fn 2 snippet$sum_tripled_hi (any) -> i32
   local x i32
   i32.const 0
   local.set 1
-  fn.ref 0 23
+  fn.ref 0 22
   local.set 2
   local.get 0
   local.get 2
   call 20
   local.set 2
-  fn.ref 1 20
+  fn.ref 1 19
   local.set 3
   local.get 2
   local.get 3
@@ -110,7 +109,7 @@ end
 
 fn 3 snippet$drain (any) -> ref
   local $fn_ref_1 ref
-  fn.ref 0 23
+  fn.ref 0 22
   local.set 1
   local.get 0
   local.get 1
@@ -376,14 +375,13 @@ fn 9 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 10 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 25
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3
@@ -732,7 +730,7 @@ fn 18 std_iter$std_iter$filter__i32 (any,ref) -> any
   local.get 3
   i32.const 0
   i32.const 13
-  struct.new 21
+  struct.new 20
   return
 end
 
@@ -743,186 +741,186 @@ fn 19 std_iter$__gen_state_18$Iterator$next (ref) -> any
   local $field_70 any
   block $L0 void
     loop $L1 void
-      local.field 0 21 5
+      local.field 0 20 5
       ref.cast 1
       i32.const 0
       i32.eq
       if $L2 void
         local.get 0
         i32.const -1
-        struct.set 21 5
+        struct.set 20 5
         br $L1
       else
       end $L2
-      local.field 0 21 5
+      local.field 0 20 5
       ref.cast 1
       i32.const 1
       i32.eq
       if $L3 void
         local.get 0
         i32.const 0
-        struct.set 21 5
+        struct.set 20 5
         br $L1
       else
       end $L3
-      local.field 0 21 5
+      local.field 0 20 5
       ref.cast 1
       i32.const 2
       i32.eq
       if $L4 void
         local.get 0
         i32.const 12
-        struct.set 21 5
+        struct.set 20 5
         br $L1
       else
       end $L4
-      local.field 0 21 5
+      local.field 0 20 5
       ref.cast 1
       i32.const 3
       i32.eq
       if $L5 void
         local.get 0
         i32.const 2
-        struct.set 21 5
+        struct.set 20 5
         br $L1
       else
       end $L5
-      local.field 0 21 5
+      local.field 0 20 5
       ref.cast 1
       i32.const 4
       i32.eq
       if $L6 void
         local.get 0
         i32.const 3
-        struct.set 21 5
+        struct.set 20 5
         br $L1
       else
       end $L6
-      local.field 0 21 5
+      local.field 0 20 5
       ref.cast 1
       i32.const 5
       i32.eq
       if $L7 void
         local.get 0
         i32.const 1
-        struct.set 21 5
+        struct.set 20 5
         br $L1
       else
       end $L7
-      local.field 0 21 5
+      local.field 0 20 5
       ref.cast 1
       i32.const 6
       i32.eq
       if $L8 void
         local.get 0
         i32.const 3
-        struct.set 21 5
+        struct.set 20 5
         br $L1
       else
       end $L8
-      local.field 0 21 5
+      local.field 0 20 5
       ref.cast 1
       i32.const 7
       i32.eq
       if $L9 void
         local.get 0
         i32.const 6
-        struct.set 21 5
+        struct.set 20 5
         br $L1
       else
       end $L9
-      local.field 0 21 5
+      local.field 0 20 5
       ref.cast 1
       i32.const 8
       i32.eq
       if $L10 void
       else
-        local.field 0 21 5
+        local.field 0 20 5
         ref.cast 1
         i32.const 9
         i32.eq
         if $L11 void
-          local.field 0 21 1
+          local.field 0 20 1
           local.set 1
-          local.field 0 21 4
+          local.field 0 20 4
           local.get 1
-          call.indirect 20
+          call.indirect 19
           if $L12 void
             local.get 0
             i32.const 8
-            struct.set 21 5
+            struct.set 20 5
           else
             local.get 0
             i32.const 6
-            struct.set 21 5
+            struct.set 20 5
           end $L12
           br $L1
         end $L11
-        local.field 0 21 5
+        local.field 0 20 5
         ref.cast 1
         i32.const 10
         i32.eq
         if $L13 void
-          local.field 0 21 3
+          local.field 0 20 3
           ref.cast 7
           struct.get 7 0
           ref.cast 1
           local.set 2
           local.get 0
           local.get 2
-          struct.set 21 4
+          struct.set 20 4
           local.get 0
           i32.const 9
-          struct.set 21 5
+          struct.set 20 5
           br $L1
         end $L13
-        local.field 0 21 5
+        local.field 0 20 5
         ref.cast 1
         i32.const 11
         i32.eq
         if $L14 void
-          local.field 0 21 3
+          local.field 0 20 3
           type_check 0
           if $L15 void
             local.get 0
             i32.const 5
-            struct.set 21 5
+            struct.set 20 5
           else
             local.get 0
             i32.const 10
-            struct.set 21 5
+            struct.set 20 5
           end $L15
           br $L1
         end $L14
-        local.field 0 21 5
+        local.field 0 20 5
         ref.cast 1
         i32.const 12
         i32.eq
         if $L16 void
-          local.field 0 21 2
+          local.field 0 20 2
           virtual.call 1 Iterator.next
           local.set 3
           local.get 0
           local.get 3
-          struct.set 21 3
+          struct.set 20 3
           local.get 0
           i32.const 11
-          struct.set 21 5
+          struct.set 20 5
           br $L1
         end $L16
-        local.field 0 21 5
+        local.field 0 20 5
         ref.cast 1
         i32.const 13
         i32.eq
         if $L17 void
-          local.field 0 21 0
+          local.field 0 20 0
           local.set 4
           local.get 0
           local.get 4
-          struct.set 21 2
+          struct.set 20 2
           local.get 0
           i32.const 2
-          struct.set 21 5
+          struct.set 20 5
           br $L1
         end $L17
         null.const
@@ -933,8 +931,8 @@ fn 19 std_iter$__gen_state_18$Iterator$next (ref) -> any
   end $L0
   local.get 0
   i32.const 7
-  struct.set 21 5
-  local.field 0 21 4
+  struct.set 20 5
+  local.field 0 20 4
   struct.new 7
   return
 end
@@ -952,7 +950,7 @@ fn 20 std_iter$std_iter$map__i32__i32 (any,ref) -> any
   local.get 3
   i32.const 0
   i32.const 11
-  struct.new 24
+  struct.new 23
   return
 end
 
@@ -963,154 +961,154 @@ fn 21 std_iter$__gen_state_13$Iterator$next (ref) -> any
   local $field_60 any
   block $L0 void
     loop $L1 void
-      local.field 0 24 5
+      local.field 0 23 5
       ref.cast 1
       i32.const 0
       i32.eq
       if $L2 void
         local.get 0
         i32.const -1
-        struct.set 24 5
+        struct.set 23 5
         br $L1
       else
       end $L2
-      local.field 0 24 5
+      local.field 0 23 5
       ref.cast 1
       i32.const 1
       i32.eq
       if $L3 void
         local.get 0
         i32.const 0
-        struct.set 24 5
+        struct.set 23 5
         br $L1
       else
       end $L3
-      local.field 0 24 5
+      local.field 0 23 5
       ref.cast 1
       i32.const 2
       i32.eq
       if $L4 void
         local.get 0
         i32.const 10
-        struct.set 24 5
+        struct.set 23 5
         br $L1
       else
       end $L4
-      local.field 0 24 5
+      local.field 0 23 5
       ref.cast 1
       i32.const 3
       i32.eq
       if $L5 void
         local.get 0
         i32.const 2
-        struct.set 24 5
+        struct.set 23 5
         br $L1
       else
       end $L5
-      local.field 0 24 5
+      local.field 0 23 5
       ref.cast 1
       i32.const 4
       i32.eq
       if $L6 void
         local.get 0
         i32.const 3
-        struct.set 24 5
+        struct.set 23 5
         br $L1
       else
       end $L6
-      local.field 0 24 5
+      local.field 0 23 5
       ref.cast 1
       i32.const 5
       i32.eq
       if $L7 void
         local.get 0
         i32.const 1
-        struct.set 24 5
+        struct.set 23 5
         br $L1
       else
       end $L7
-      local.field 0 24 5
+      local.field 0 23 5
       ref.cast 1
       i32.const 6
       i32.eq
       if $L8 void
         local.get 0
         i32.const 3
-        struct.set 24 5
+        struct.set 23 5
         br $L1
       else
       end $L8
-      local.field 0 24 5
+      local.field 0 23 5
       ref.cast 1
       i32.const 7
       i32.eq
       if $L9 void
       else
-        local.field 0 24 5
+        local.field 0 23 5
         ref.cast 1
         i32.const 8
         i32.eq
         if $L10 void
-          local.field 0 24 3
+          local.field 0 23 3
           ref.cast 7
           struct.get 7 0
           ref.cast 1
           local.set 2
           local.get 0
           local.get 2
-          struct.set 24 4
+          struct.set 23 4
           local.get 0
           i32.const 7
-          struct.set 24 5
+          struct.set 23 5
           br $L1
         end $L10
-        local.field 0 24 5
+        local.field 0 23 5
         ref.cast 1
         i32.const 9
         i32.eq
         if $L11 void
-          local.field 0 24 3
+          local.field 0 23 3
           type_check 0
           if $L12 void
             local.get 0
             i32.const 5
-            struct.set 24 5
+            struct.set 23 5
           else
             local.get 0
             i32.const 8
-            struct.set 24 5
+            struct.set 23 5
           end $L12
           br $L1
         end $L11
-        local.field 0 24 5
+        local.field 0 23 5
         ref.cast 1
         i32.const 10
         i32.eq
         if $L13 void
-          local.field 0 24 2
+          local.field 0 23 2
           virtual.call 1 Iterator.next
           local.set 3
           local.get 0
           local.get 3
-          struct.set 24 3
+          struct.set 23 3
           local.get 0
           i32.const 9
-          struct.set 24 5
+          struct.set 23 5
           br $L1
         end $L13
-        local.field 0 24 5
+        local.field 0 23 5
         ref.cast 1
         i32.const 11
         i32.eq
         if $L14 void
-          local.field 0 24 0
+          local.field 0 23 0
           local.set 4
           local.get 0
           local.get 4
-          struct.set 24 2
+          struct.set 23 2
           local.get 0
           i32.const 2
-          struct.set 24 5
+          struct.set 23 5
           br $L1
         end $L14
         null.const
@@ -1121,12 +1119,12 @@ fn 21 std_iter$__gen_state_13$Iterator$next (ref) -> any
   end $L0
   local.get 0
   i32.const 6
-  struct.set 24 5
-  local.field 0 24 1
+  struct.set 23 5
+  local.field 0 23 1
   local.set 1
-  local.field 0 24 4
+  local.field 0 23 4
   local.get 1
-  call.indirect 23
+  call.indirect 22
   struct.new 7
   return
 end

@@ -9,17 +9,16 @@ type 6 primitive usize
 type 7 struct std_core$Buffer {  }
 type 8 primitive string
 type 9 primitive i64
-type 10 array 11
-type 11 primitive u8
-type 12 struct $Cell_i32 { value:1 }
-type 13 ref _
+type 10 primitive u8
+type 11 struct $Cell_i32 { value:1 }
+type 12 ref _
 string 0 "charging "
 string 1 "card declined"
 string 2 "reserve inventory"
 string 3 "refund "
 string 4 "release hold"
 string 5 "\n"
-import 0 bytes std_core$bytes (string) -> ref
+import 0 byte_len std_core$byte_len (string) -> usize
 import 1 write std_io$write (i32,string) -> void
 import 2 panic std_abort$panic (string) -> void
 impl 7 ByteAccess
@@ -32,7 +31,7 @@ fn 0 snippet$charge (i32) -> void
   local $cast_13 i64
   local __block_3 void
   local.get 0
-  struct.new 12
+  struct.new 11
   local.tee 1
   struct.new 3
   make_closure 3 5
@@ -47,7 +46,7 @@ fn 0 snippet$charge (i32) -> void
   string.const 0
   call 7
   local.set 3
-  local.field 1 12 0
+  local.field 1 11 0
   i32.to_i64
   local.set 4
   local.get 2
@@ -101,7 +100,7 @@ fn 3 __defer_1 (ref) -> void
   call 7
   local.set 2
   local.field 0 3 0
-  struct.get 12 0
+  struct.get 11 0
   i32.to_i64
   local.set 3
   local.get 1
@@ -136,14 +135,13 @@ fn 6 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 7 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 13
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3

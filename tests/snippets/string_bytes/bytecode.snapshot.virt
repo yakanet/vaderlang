@@ -38,8 +38,9 @@ string 26 " sl0="
 string 27 " sl1="
 string 28 " sl2="
 string 29 "\n"
-import 0 bytes std_core$bytes (string) -> ref
-import 1 write std_io$write (i32,string) -> void
+import 0 byte_len std_core$byte_len (string) -> usize
+import 1 bytes std_core$bytes (string) -> ref
+import 2 write std_io$write (i32,string) -> void
 impl 3 ByteAccess
 export main 0
 
@@ -58,7 +59,7 @@ fn 0 snippet$main () -> i32
   i32.const 0
   local.set 0
   string.const 1
-  call.import 0
+  call.import 1
   local.tee 1
   array.len
   local.set 2
@@ -114,7 +115,7 @@ fn 0 snippet$main () -> i32
   string.const 3
   call 5
   string.const 4
-  call.import 0
+  call.import 1
   local.tee 1
   array.len
   local.set 2
@@ -158,7 +159,7 @@ fn 0 snippet$main () -> i32
     end $L4
   end $L3
   string.const 5
-  call.import 0
+  call.import 1
   local.set 1
   string.const 6
   call 5
@@ -246,7 +247,7 @@ fn 0 snippet$main () -> i32
   call 3
   local.set 2
   string.const 12
-  call.import 0
+  call.import 1
   i32.const 0
   array.get 6
   ref.cast 7
@@ -264,7 +265,7 @@ fn 0 snippet$main () -> i32
   string.const 13
   call 5
   string.const 14
-  call.import 0
+  call.import 1
   array.len
   local.set 2
   i64.const 0
@@ -298,7 +299,6 @@ fn 0 snippet$main () -> i32
   local.set 2
   string.const 14
   call.import 0
-  array.len
   usize.to_i64
   local.set 5
   local.get 1
@@ -313,7 +313,7 @@ fn 0 snippet$main () -> i32
   string.const 17
   call 5
   string.const 18
-  call.import 0
+  call.import 1
   local.set 1
   i64.const 105
   call 1
@@ -389,7 +389,7 @@ fn 0 snippet$main () -> i32
   string.const 23
   call 5
   string.const 24
-  call.import 0
+  call.import 1
   i64.const 1
   i64.const 4
   array.slice 6
@@ -482,14 +482,13 @@ fn 2 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 3 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 9
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3
@@ -584,10 +583,10 @@ end
 fn 5 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
-  call.import 1
+  call.import 2
   i32.const 0
   string.const 29
-  call.import 1
+  call.import 2
   return
 end
 

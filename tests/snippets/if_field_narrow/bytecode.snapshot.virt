@@ -9,13 +9,12 @@ type 6 primitive usize
 type 7 struct std_core$Buffer {  }
 type 8 primitive string
 type 9 primitive i64
-type 10 array 11
-type 11 primitive u8
+type 10 primitive u8
 string 0 "count="
 string 1 "empty"
 string 2 "total="
 string 3 "\n"
-import 0 bytes std_core$bytes (string) -> ref
+import 0 byte_len std_core$byte_len (string) -> usize
 import 1 write std_io$write (i32,string) -> void
 impl 7 ByteAccess
 export main 3
@@ -160,14 +159,13 @@ fn 5 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 6 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 12
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3

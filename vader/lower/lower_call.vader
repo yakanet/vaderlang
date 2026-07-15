@@ -431,7 +431,7 @@ fold_bytes_len :: fn(ctx: FnLowerCtx, target: LoweredExpr, span: Span) -> Lowere
                 // std/string and silently never fired — every `s.bytes().len()`
                 // allocated a borrowed-view header just to read its length.
                 bytes_sym :: module_export(ctx.project, "std/core", "bytes")
-                byte_len_sym :: module_export(ctx.project, "std/string", "byte_len")
+                byte_len_sym :: module_export(ctx.project, "std/core", "byte_len")
                 if bytes_sym == null { return null }
                 if byte_len_sym == null { return null }
                 // The call site may carry an import-binding symbol ; resolve

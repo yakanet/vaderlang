@@ -30,10 +30,10 @@ string 8 "  hello  world\tfoo\n bar  "
 string 9 "count="
 string 10 "\n"
 string 11 ""
-import 0 bytes_to_string std_core$bytes_to_string (ref) -> string
-import 1 bytes std_core$bytes (string) -> ref
-import 2 write std_io$write (i32,string) -> void
-import 3 byte_len std_string$byte_len (string) -> usize
+import 0 byte_len std_core$byte_len (string) -> usize
+import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
+import 2 bytes std_core$bytes (string) -> ref
+import 3 write std_io$write (i32,string) -> void
 impl 7 ByteAccess
 impl 15 Iterator
 impl 17 Display
@@ -204,7 +204,7 @@ fn 4 std_core$write_string_at (ref,usize,string) -> usize
   local.get 2
   call 27
   local.get 2
-  call.import 3
+  call.import 0
   local.set 3
   local.get 1
   local.get 3
@@ -451,10 +451,10 @@ end
 fn 7 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
-  call.import 2
+  call.import 3
   i32.const 0
   string.const 10
-  call.import 2
+  call.import 3
   return
 end
 
@@ -467,12 +467,12 @@ fn 8 std_string$trim_suffix (string,string) -> string
   call 12
   if $L0 void
     local.get 0
-    call.import 1
+    call.import 2
     local.tee 2
     array.len
     local.set 3
     local.get 1
-    call.import 3
+    call.import 0
     local.set 4
     local.get 3
     local.get 4
@@ -482,7 +482,7 @@ fn 8 std_string$trim_suffix (string,string) -> string
     i64.const 0
     local.get 3
     array.slice 10
-    call.import 0
+    call.import 1
     return
   end $L0
   local.get 0
@@ -498,10 +498,10 @@ fn 9 std_string$trim_prefix (string,string) -> string
   call 13
   if $L0 void
     local.get 0
-    call.import 1
+    call.import 2
     local.set 2
     local.get 1
-    call.import 3
+    call.import 0
     local.set 3
     local.get 2
     array.len
@@ -510,7 +510,7 @@ fn 9 std_string$trim_prefix (string,string) -> string
     local.get 3
     local.get 4
     array.slice 10
-    call.import 0
+    call.import 1
     return
   end $L0
   local.get 0
@@ -645,10 +645,10 @@ fn 12 std_string$ends_with (string,string) -> bool
   local $idx_18 u8
   local $idx_19 u8
   local.get 0
-  call.import 1
+  call.import 2
   local.set 2
   local.get 1
-  call.import 1
+  call.import 2
   local.tee 3
   array.len
   local.set 4
@@ -713,10 +713,10 @@ fn 13 std_string$starts_with (string,string) -> bool
   local $idx_14 u8
   local $idx_15 u8
   local.get 0
-  call.import 1
+  call.import 2
   local.set 2
   local.get 1
-  call.import 1
+  call.import 2
   local.tee 3
   array.len
   local.set 4
@@ -769,7 +769,7 @@ fn 14 std_string$chars (string) -> ref
   local bs ref
   local $len_4 usize
   local.get 0
-  call.import 1
+  call.import 2
   local.tee 1
   array.len
   local.set 2
@@ -1146,7 +1146,7 @@ fn 22 std_string_builder$append_char (ref,char) -> void
   local.set 2
   local.get 1
   call 6
-  call.import 0
+  call.import 1
   local.set 3
   local.get 2
   local.get 3
@@ -1199,7 +1199,7 @@ fn 23 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 4
         array.get 13
         ref.cast 8
-        call.import 3
+        call.import 0
         local.set 5
         local.get 1
         local.get 5
@@ -1241,7 +1241,7 @@ fn 23 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 7
         call 27
         local.get 7
-        call.import 3
+        call.import 0
         local.set 8
         local.get 3
         local.get 8

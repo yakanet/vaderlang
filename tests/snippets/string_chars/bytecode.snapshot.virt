@@ -28,10 +28,10 @@ string 8 ""
 string 9 "never"
 string 10 "done"
 string 11 "\n"
-import 0 bytes_to_string std_core$bytes_to_string (ref) -> string
-import 1 bytes std_core$bytes (string) -> ref
-import 2 write std_io$write (i32,string) -> void
-import 3 byte_len std_string$byte_len (string) -> usize
+import 0 byte_len std_core$byte_len (string) -> usize
+import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
+import 2 bytes std_core$bytes (string) -> ref
+import 3 write std_io$write (i32,string) -> void
 impl 4 ByteAccess
 impl 13 Iterator
 export main 0
@@ -61,7 +61,7 @@ fn 0 snippet$main () -> i32
         struct.get 12 0
         ref.cast 8
         call 6
-        call.import 0
+        call.import 1
         call 7
         br $L1
       end $L2
@@ -85,7 +85,7 @@ fn 0 snippet$main () -> i32
         struct.get 12 0
         ref.cast 8
         call 6
-        call.import 0
+        call.import 1
         call 7
         br $L4
       end $L5
@@ -135,7 +135,7 @@ fn 0 snippet$main () -> i32
   call 3
   local.set 3
   string.const 4
-  call.import 3
+  call.import 0
   usize.to_i64
   local.set 5
   local.get 0
@@ -190,7 +190,7 @@ fn 3 std_core$write_string_at (ref,usize,string) -> usize
   local.get 2
   call 17
   local.get 2
-  call.import 3
+  call.import 0
   local.set 3
   local.get 1
   local.get 3
@@ -556,10 +556,10 @@ end
 fn 7 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
-  call.import 2
+  call.import 3
   i32.const 0
   string.const 11
-  call.import 2
+  call.import 3
   return
 end
 
@@ -567,7 +567,7 @@ fn 8 std_string$chars (string) -> ref
   local bs ref
   local $len_4 usize
   local.get 0
-  call.import 1
+  call.import 2
   local.tee 1
   array.len
   local.set 2

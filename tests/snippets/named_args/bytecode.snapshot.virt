@@ -13,7 +13,8 @@ string 1 "Alice"
 string 2 "Hello"
 string 3 "Eve"
 string 4 "Hey"
-import 0 bytes std_core$bytes (string) -> ref
+import 0 byte_len std_core$byte_len (string) -> usize
+import 1 bytes std_core$bytes (string) -> ref
 impl 5 ByteAccess
 export main 3
 
@@ -86,10 +87,10 @@ fn 3 snippet$main () -> i32
   call 2
   local.set 4
   local.get 0
-  call 9
+  call 8
   local.set 5
   local.get 1
-  call 9
+  call 8
   local.set 6
   local.get 5
   local.get 6
@@ -125,17 +126,17 @@ fn 5 concat_3 (string,string,string) -> string
   local $call_8 usize
   local buf ref
   local.get 0
-  call 7
+  call.import 0
   local.set 3
   local.get 1
-  call 7
+  call.import 0
   local.set 4
   local.get 3
   local.get 4
   i64.add
   local.set 4
   local.get 2
-  call 7
+  call.import 0
   local.set 5
   local.get 4
   local.get 5
@@ -145,42 +146,35 @@ fn 5 concat_3 (string,string,string) -> string
   local.tee 6
   i64.const 0
   local.get 0
-  call 12
+  call 11
   local.get 6
   local.get 3
   local.get 1
-  call 12
+  call 11
   local.get 6
   local.get 4
   local.get 2
-  call 12
+  call 11
   local.get 6
   local.get 5
-  call 8
+  call 7
   return
 end
 
 fn 6 std_core$new_byte_buffer (usize) -> ref
   local.get 0
+  call 9
+  return
+end
+
+fn 7 std_core$finish_buffer (ref,usize) -> string
+  local.get 0
+  local.get 1
   call 10
   return
 end
 
-fn 7 std_core$byte_len (string) -> usize
-  local.get 0
-  call.import 0
-  array.len
-  return
-end
-
-fn 8 std_core$finish_buffer (ref,usize) -> string
-  local.get 0
-  local.get 1
-  call 11
-  return
-end
-
-fn 9 std_core$len (string) -> usize
+fn 8 std_core$len (string) -> usize
   local n usize
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -188,7 +182,7 @@ fn 9 std_core$len (string) -> usize
   i64.const 0
   local.set 1
   local.get 0
-  call.import 0
+  call.import 1
   local.tee 2
   array.len
   local.set 3
@@ -228,20 +222,20 @@ fn 9 std_core$len (string) -> usize
   return
 end
 
-fn 10 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 9 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 11 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 10 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 12 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 11 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2

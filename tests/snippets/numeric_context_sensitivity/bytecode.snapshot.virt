@@ -9,11 +9,10 @@ type 6 struct std_core$Buffer {  }
 type 7 primitive string
 type 8 primitive i64
 type 9 primitive u64
-type 10 array 11
-type 11 primitive u8
-type 12 primitive void
-type 13 array 1
-type 14 fn () -> 3
+type 10 primitive u8
+type 11 primitive void
+type 12 array 1
+type 13 fn () -> 3
 string 0 "widths: "
 string 1 " "
 string 2 "arith: "
@@ -25,7 +24,7 @@ string 7 "isz_neg ok"
 string 8 "slice_array: "
 string 9 "returned: "
 string 10 "\n"
-import 0 bytes std_core$bytes (string) -> ref
+import 0 byte_len std_core$byte_len (string) -> usize
 import 1 write std_io$write (i32,string) -> void
 impl 6 ByteAccess
 export main 0
@@ -362,7 +361,7 @@ fn 0 snippet$main () -> i32
   i32.const 30
   i32.const 40
   i32.const 50
-  array.new 13 5
+  array.new 12 5
   local.tee 4
   array.len
   i64.const 1
@@ -371,7 +370,7 @@ fn 0 snippet$main () -> i32
   local.get 4
   i64.const 0
   local.get 3
-  array.slice 13
+  array.slice 12
   local.set 4
   i64.const 33
   call 2
@@ -397,7 +396,7 @@ fn 0 snippet$main () -> i32
   call 3
   call 7
   struct.new 2
-  make_closure 1 14
+  make_closure 1 13
   local.set 4
   i64.const 30
   call 2
@@ -410,7 +409,7 @@ fn 0 snippet$main () -> i32
   call 4
   local.set 3
   local.get 4
-  call.indirect 14
+  call.indirect 13
   usize.to_i64
   local.set 1
   local.get 11
@@ -443,14 +442,13 @@ fn 3 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 4 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 11
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3

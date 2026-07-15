@@ -14,38 +14,39 @@ string 3 ""
 string 4 "["
 string 5 "]"
 string 6 "\n"
-import 0 bytes_to_string std_core$bytes_to_string (ref) -> string
-import 1 bytes std_core$bytes (string) -> ref
-import 2 write std_io$write (i32,string) -> void
+import 0 byte_len std_core$byte_len (string) -> usize
+import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
+import 2 bytes std_core$bytes (string) -> ref
+import 3 write std_io$write (i32,string) -> void
 impl 4 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
   local e string
   string.const 0
+  call.import 2
   call.import 1
-  call.import 0
-  call 5
+  call 4
   string.const 1
+  call.import 2
   call.import 1
-  call.import 0
-  call 5
+  call 4
   string.const 2
-  call.import 1
+  call.import 2
   i64.const 1
   i64.const 4
   array.slice 5
-  call.import 0
-  call 5
-  string.const 3
   call.import 1
-  call.import 0
+  call 4
+  string.const 3
+  call.import 2
+  call.import 1
   local.set 0
   string.const 4
   local.get 0
   string.const 5
   call 1
-  call 5
+  call 4
   return.lit i32.const 0
 end
 
@@ -55,17 +56,17 @@ fn 1 concat_3 (string,string,string) -> string
   local $call_8 usize
   local buf ref
   local.get 0
-  call 3
+  call.import 0
   local.set 3
   local.get 1
-  call 3
+  call.import 0
   local.set 4
   local.get 3
   local.get 4
   i64.add
   local.set 4
   local.get 2
-  call 3
+  call.import 0
   local.set 5
   local.get 4
   local.get 5
@@ -75,65 +76,58 @@ fn 1 concat_3 (string,string,string) -> string
   local.tee 6
   i64.const 0
   local.get 0
-  call 8
+  call 7
   local.get 6
   local.get 3
   local.get 1
-  call 8
+  call 7
   local.get 6
   local.get 4
   local.get 2
-  call 8
+  call 7
   local.get 6
   local.get 5
-  call 4
+  call 3
   return
 end
 
 fn 2 std_core$new_byte_buffer (usize) -> ref
   local.get 0
+  call 5
+  return
+end
+
+fn 3 std_core$finish_buffer (ref,usize) -> string
+  local.get 0
+  local.get 1
   call 6
   return
 end
 
-fn 3 std_core$byte_len (string) -> usize
-  local.get 0
-  call.import 1
-  array.len
-  return
-end
-
-fn 4 std_core$finish_buffer (ref,usize) -> string
-  local.get 0
-  local.get 1
-  call 7
-  return
-end
-
-fn 5 std_io$println__string (string) -> void
+fn 4 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
-  call.import 2
+  call.import 3
   i32.const 0
   string.const 6
-  call.import 2
+  call.import 3
   return
 end
 
-fn 6 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 5 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 7 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 6 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 8 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 7 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2

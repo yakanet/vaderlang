@@ -12,8 +12,9 @@ type 9 primitive void
 string 0 "hi"
 string 1 " "
 string 2 "\n"
-import 0 bytes std_core$bytes (string) -> ref
-import 1 write std_io$write (i32,string) -> void
+import 0 byte_len std_core$byte_len (string) -> usize
+import 1 bytes std_core$bytes (string) -> ref
+import 2 write std_io$write (i32,string) -> void
 impl 7 ByteAccess
 export main 1
 
@@ -24,7 +25,6 @@ fn 0 snippet$byte_count (any) -> usize
     local.get 0
     ref.cast 4
     call.import 0
-    array.len
     return
   end $L0
   local.get 0
@@ -64,7 +64,7 @@ fn 1 snippet$main () -> i32
   call 4
   local.set 2
   string.const 0
-  call.import 0
+  call.import 1
   call 0
   usize.to_i64
   local.set 3
@@ -108,14 +108,13 @@ fn 3 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 4 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 10
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3
@@ -210,10 +209,10 @@ end
 fn 6 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
-  call.import 1
+  call.import 2
   i32.const 0
   string.const 2
-  call.import 1
+  call.import 2
   return
 end
 
