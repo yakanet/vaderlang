@@ -152,11 +152,6 @@ const IMPLS: readonly Impl[] = [
   {
     name: "java",
     source: (w) => `bench/${w}/${w}.java`,
-    // `javac --release 25 -d bench/<w> bench/<w>/<w>.java` writes
-    // `bench/<w>/<w>.class` (and any nested-class files like `<w>$Node.class`
-    // for records) ; the measured run uses `java -cp bench/<w> <w>` so each
-    // invocation skips the single-source-file launcher's in-memory compile +
-    // class load step. JVM startup + cold JIT still apply, just not the parse.
     build: (w) => runBuild("javac", ["--release", "25", "-d", `bench/${w}`, `bench/${w}/${w}.java`], `javac for ${w}`),
     run: (w) => ({ cmd: "java", args: ["-cp", `bench/${w}`, w] }),
   },
