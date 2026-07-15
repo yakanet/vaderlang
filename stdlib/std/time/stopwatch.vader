@@ -28,7 +28,7 @@ export stop :: fn(self: StopWatch) -> Duration = self.started.since()
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert }
+import "std/testing"
 
 @test test_stopwatch_non_negative_elapsed :: fn() -> void {
     sw :: start()

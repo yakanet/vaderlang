@@ -7,8 +7,8 @@
 
 module "std/time"
 
-import "std/string" { pad_start }
-import "std/math" { abs }
+import "std/string"
+import "std/math"
 
 /// Wall-clock instant — nanoseconds since the Unix epoch (1970-01-01 UTC).
 /// Suitable for formatting, persistence, and absolute-time comparisons.
@@ -354,7 +354,7 @@ MAX_INSTANT_MS: i64: 9_223_372_036_854
 
 // ---------------------------------------------------------------------- tests
 
-import "std/testing" { assert_eq, assert }
+import "std/testing"
 
 @test test_duration_constructors :: fn() -> void {
     assert_eq(i64(nanos(500)), 500)

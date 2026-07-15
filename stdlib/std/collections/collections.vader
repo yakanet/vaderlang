@@ -375,7 +375,7 @@ MutableSet<T> implements<T> Into<Iterator<T>> {
 
 // ---------------------------------------------------------------------- tests
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 @test test_map_put_get :: fn() -> void {
     m := MutableMap<string, i32> {}

@@ -3,6 +3,7 @@
 ## tests/snippets/json_basics
 
 ## generic instances
+  __genstate_zip<[string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString]>
   __genstate_chain<T>
   __genstate_enumerate<[usize, T]>
   __genstate_filter<i32>
@@ -10,7 +11,6 @@
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>
-  Into<Target>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>
@@ -41,7 +41,7 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
-  Add<Rhs, Out>
+  Into<Target>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>
@@ -51,6 +51,7 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
+  Add<Rhs, Out>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>
@@ -61,7 +62,6 @@
   Iterator<char>
   Iterator<i32>
   Iterator<Entry<K, V>>
-  Iterator<[string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString]>
   Iterator<[usize, T]>
   Iterator<[T, U]>
   Iterator<T>

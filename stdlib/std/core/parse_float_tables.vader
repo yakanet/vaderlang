@@ -66,7 +66,7 @@ export POW5_128 :: @comptime {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 // Rows sampled verbatim from fastfloat/fast_float `power_of_five_128` : the
 // endpoints, both sides of the |q| <= 27 rounding boundary, and the exact

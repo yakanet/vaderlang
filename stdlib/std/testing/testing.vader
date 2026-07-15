@@ -11,7 +11,7 @@
 
 module "std/testing"
 
-import "std/abort" { panic }
+import "std/abort"
 
 /// Local f64-abs — kept inline to avoid a `std/math` import, which would
 /// create a cycle the moment any `std/math` test imports back into here.

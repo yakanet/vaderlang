@@ -25,7 +25,7 @@ export is_alnum :: fn(c: char) = c.is_alpha() || c.is_digit()
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert }
+import "std/testing"
 
 @test test_char_predicates :: fn() -> void {
     assert(is_white_char(' '), "space is whitespace")

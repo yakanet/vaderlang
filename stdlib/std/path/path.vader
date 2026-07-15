@@ -276,7 +276,7 @@ export normalize :: fn(self: Path) -> Path {
 
 // ---------------------------------------------------------------------- tests
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 @test test_to_path :: fn() -> void {
     p :: to_path("a/b/c")
