@@ -19,7 +19,7 @@
 
 module "vader/lsp/actions"
 
-import "vader/fmt" { format_expr }
+import "vader/fmt"
 AST :: import "vader/parser"
 
 /// The match→if code action. Registered in `registry.vader::all_actions`.
@@ -116,7 +116,7 @@ arm_block :: fn(body: AST.Expr) -> AST.BlockExpr {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert }
+import "std/testing"
 
 // Find the first source-backed `MatchExpr` in a parsed program — test helper so
 // the asserts run against real (source-backed) AST nodes. Shares the descent

@@ -346,7 +346,7 @@ export typed_slot_store_op_for :: fn(elem: ValType) -> Op | null =
 
 // ---- tests ---------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 @test test_add_i32 :: fn() -> void {
     op :: binary_op_for(LoweredBinaryOp.Add, ValType.I32)

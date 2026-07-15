@@ -180,7 +180,7 @@ string_array :: fn(items: string[]) -> JsonValue {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 import "std/json" { parse, JsonError }
 
 // Parse `text` and negotiate ; fails the test if `text` isn't valid JSON.

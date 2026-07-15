@@ -510,7 +510,7 @@ export new_fn_lower_ctx :: fn(
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/typecheck" { new_typed_project }
 import "vader/comptime" { new_evaluated_project }
 import "vader/resolver" { empty_loaded_project }

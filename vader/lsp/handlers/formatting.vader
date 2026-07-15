@@ -67,7 +67,7 @@ count_lines :: fn(src: string) -> i32 {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 @test
 test_count_lines :: fn() -> void {

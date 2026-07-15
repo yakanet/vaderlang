@@ -22,8 +22,8 @@
 
 module "vader/typecheck"
 
-import "std/sort" { sort }
-import "std/string" { compare_ascending, compare_ascending_ci, pad_end, split }
+import "std/sort"
+import "std/string"
 import "std/string_builder" { StringBuilder, append, append_char }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/resolver" { module_in_scope }
@@ -157,7 +157,7 @@ lookup_decl_type :: fn(typed: TypedProgram, s: Symbol) -> string {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/parser" { parse_source }
 import "vader/resolver/symbol" { new_factory }
 import "vader/resolver" { resolve_module }

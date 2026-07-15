@@ -60,7 +60,7 @@ fold_json :: fn(e: DeclEntry) -> JsonValue {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 @test
 test_foldable_decls_multiline_only :: fn() -> void {

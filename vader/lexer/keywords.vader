@@ -52,7 +52,7 @@ export KEYWORDS :: [
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert }
+import "std/testing"
 
 @test test_keywords_match_lookup :: fn() -> void {
     // Every KEYWORDS entry must be a real keyword — pins the tooling list to

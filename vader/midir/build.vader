@@ -37,8 +37,8 @@ import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" {
     Type, UnionType, StructType, ArrayType, display_type,
 }
-import "vader/typecheck" { equals_type, is_void }
-import "std/abort" { panic }
+import "vader/typecheck"
+import "std/abort"
 
 /// Project-level interning context — accumulates strings into a single
 /// pool shared by every fn's CFG.

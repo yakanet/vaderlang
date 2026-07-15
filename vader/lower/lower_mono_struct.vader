@@ -4,7 +4,7 @@
 module "vader/lower"
 
 import "std/collections" { MutableMap }
-import "std/iter" { is_empty }
+import "std/iter"
 
 import "vader/diagnostics" { Diagnostic, Span }
 import "vader/parser" { Decl, StructDecl, ImplDecl, IdentExpr, GenericInstExpr, TypeExpr, BinaryExpr, BinaryOp }

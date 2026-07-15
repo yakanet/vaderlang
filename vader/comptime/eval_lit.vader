@@ -91,7 +91,7 @@ interp_value :: fn(v: ComptimeValue) -> string = match v {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 @test test_interp_value_char_renders_glyph :: fn() -> void {
     // comptime-1 : a char in an interpolation renders its glyph, not the

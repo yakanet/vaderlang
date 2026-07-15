@@ -14,7 +14,7 @@
 
 module "vader/resolver"
 
-import "std/string" { pad_end }
+import "std/string"
 import "std/string_builder" { StringBuilder, append, append_char }
 import "vader/resolver/symbol" { Symbol, SymbolKind, kind_name }
 import "vader/parser" { Visibility }

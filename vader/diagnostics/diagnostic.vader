@@ -4,7 +4,7 @@
 
 module "vader/diagnostics"
 
-import "std/string" { is_empty }
+import "std/string"
 
 export Severity :: enum {
     Error,

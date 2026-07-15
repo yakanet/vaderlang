@@ -17,10 +17,10 @@
 
 module "vader/c_emit"
 
-import "std/string" { join, split, compare_ascending }
+import "std/string"
 import "std/string_builder" { StringBuilder, append }
 import "std/collections" { MutableMap }
-import "std/sort" { sort }
+import "std/sort"
 import "vader/bytecode" { BcType, BcSignature, ValType, VtableRow }
 
 // ---- slot registry --------------------------------------------------------

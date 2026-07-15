@@ -23,7 +23,7 @@
 module "vader/typecheck"
 
 import "std/collections" { MutableMap, keys }
-import "std/math" { min }
+import "std/math"
 import "vader/diagnostics" { Diagnostic, typecheck_error }
 AST :: import "vader/parser"
 import "vader/types" {
@@ -732,7 +732,7 @@ check_args_no_expected :: fn(
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/parser" { parse_source }
 import "vader/resolver" { resolve_module, ResolvedModule }
 import "vader/resolver/symbol" { Symbol, new_factory }

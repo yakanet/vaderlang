@@ -433,7 +433,7 @@ walk_pattern :: fn(p: Pattern, f: NodeIdFactory) -> void {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 @test
 test_mint_starts_at_one_and_increments :: fn() -> void {

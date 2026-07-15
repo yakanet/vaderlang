@@ -14,8 +14,8 @@
 module "vader/resolver"
 
 import "std/collections" { MutableMap, values }
-import "std/string" { compare_ascending }
-import "std/sort" { sort }
+import "std/string"
+import "std/sort"
 import "vader/parser" { Program }
 import "vader/parser" { Expr, TypeAliasDecl }
 import "vader/resolver/symbol" { Symbol, SymbolFactory }

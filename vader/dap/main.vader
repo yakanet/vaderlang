@@ -21,8 +21,8 @@ module "vader/dap"
 
 import "std/json" { JsonValue, JsonObject, JsonNumber, JsonArray, JsonString, JsonBool, parse }
 import "std/collections" { MutableMap, MutableSet }
-import "std/string" { split, last_index_of }
-import "std/path" { to_posix }
+import "std/string"
+import "std/path"
 import "vader/lsp/protocol" { read_frame, write_frame, unbuffer_stdin, get_string, get_number, get_field, TransportError }
 import "vader/vm" { VmState, exec_entry, DebugController, Ok, Trap, PauseCtx, PauseFrame, PauseVar, StepMode }
 

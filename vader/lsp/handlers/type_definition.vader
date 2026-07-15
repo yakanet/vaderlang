@@ -92,7 +92,7 @@ is_null_primitive :: fn(t: Type) -> bool {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 @test
 test_type_symbol_extracts_named_type :: fn() -> void {

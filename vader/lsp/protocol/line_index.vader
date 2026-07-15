@@ -18,7 +18,7 @@
 
 module "vader/lsp/protocol"
 
-import "std/math" { min }
+import "std/math"
 import "std/string" { utf8_lead_len }
 
 // ---- encoding -------------------------------------------------------------
@@ -157,7 +157,7 @@ export li_offset :: fn(li: LineIndex, line: i32, character: i32) -> usize {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 @test test_line_starts_lf :: fn() -> void {
     li :: new_line_index("ab\ncd\n", .Utf8)

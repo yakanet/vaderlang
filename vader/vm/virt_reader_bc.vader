@@ -24,7 +24,7 @@ module "vader/vm"
 bc :: import "vader/bytecode"
 
 import "std/string" { starts_with, ends_with, trim, split, index_of, decode_escapes, ParseError }
-import "std/numbers" { parse_int_in_base }
+import "std/numbers"
 
 /// Parse a full `.virt` text dump into a `BytecodeModule` ready for `emit_c`.
 ///
@@ -726,7 +726,7 @@ value_from_bits :: fn(kind: bc.ArrayKind, bits: u64) -> Value {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq, assert }
+import "std/testing"
 
 @test test_parse_virt_bc_roundtrips_struct_and_signature :: fn() -> void {
     // A minimal module exercising the metadata the VM reader drops: a struct

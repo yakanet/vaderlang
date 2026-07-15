@@ -5,8 +5,8 @@
 
 module "vader/parser"
 
-import "std/string" { chars }
-import "std/char" { is_digit }
+import "std/string"
+import "std/char"
 import "vader/lexer" {
     tokenize, Token, TokenKind, Lexer, empty_span, make_token, kind_name,
 }
@@ -3520,7 +3520,7 @@ is_literal_start :: fn(t: Token) -> bool {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 // Parse+lex diagnostic count for a source — a syntax-only regression probe
 // (no resolver / typecheck), so unresolved names in the fixture don't count.

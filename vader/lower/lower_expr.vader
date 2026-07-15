@@ -14,8 +14,8 @@
 module "vader/lower"
 
 import "std/collections" { MutableMap, values, keys }
-import "std/sort" { sort }
-import "std/string" { compare_ascending }
+import "std/sort"
+import "std/string"
 
 import "vader/parser" { Expr, IntLitExpr, FloatLitExpr, BoolLitExpr, NullLitExpr, CharLitExpr, StringLitExpr, IdentExpr, CallExpr, FieldExpr, IndexExpr, UnaryExpr, UnaryOp, BinaryExpr, BinaryOp, IfExpr, BlockExpr, MatchExpr, LambdaExpr, StructLitExpr, SeqLitExpr, RangeExpr, AwaitExpr, CastExpr, GenericInstExpr, IntrinsicCallExpr, DotVariantExpr, IfElse, IfElseIf, IfElseBlock, FnTypeExpr, ArrayTypeExpr, ExprStmt, Decl, ConstDecl }
 import "vader/diagnostics" { Span }
@@ -711,7 +711,7 @@ lower_unary_op :: fn(op: UnaryOp) -> LoweredUnaryOp = match op {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 @test test_lower_unary_op_table :: fn() -> void {
     assert_eq(i32(lower_unary_op(UnaryOp.Neg)),    i32(LoweredUnaryOp.Neg))

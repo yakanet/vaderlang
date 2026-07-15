@@ -580,7 +580,7 @@ push_op_undefined :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagn
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/diagnostics" { empty_span }
 import "vader/parser" { parse_source }
 import "vader/resolver" { resolve_module, ResolvedModule }

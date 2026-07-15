@@ -22,7 +22,7 @@
 module "vader/midir"
 
 import "std/collections" { MutableMap, MutableSet, remove }
-import "std/abort" { panic }
+import "std/abort"
 import "vader/diagnostics" { Span, has_source_position }
 import "vader/types" { Type, PrimitiveType, ArrayType, mk_struct, display_type }
 import "vader/lower" { VtableEntry as LoweredVtableEntry }

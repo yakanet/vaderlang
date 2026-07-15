@@ -123,7 +123,7 @@ expr_kind_label :: fn(expr: AST.Expr) -> string = @partial match expr {
 // ---- tests ----------------------------------------------------------------
 
 import "std/collections" { MutableMap }
-import "std/testing" { assert_eq }
+import "std/testing"
 import "vader/typecheck" { empty_typed_program }
 import "vader/diagnostics" { empty_span }
 

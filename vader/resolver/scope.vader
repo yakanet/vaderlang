@@ -90,7 +90,7 @@ export lookup_frame_index :: fn(self: Scope, name: string) -> i32 {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/resolver/symbol" { SymbolFactory, SymbolKind, new_factory, make }
 import "vader/parser" { Visibility }
 import "vader/diagnostics" { Position }

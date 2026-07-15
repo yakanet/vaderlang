@@ -21,12 +21,12 @@
 
 module "vader/comptime_vm"
 
-import "std/string" { ends_with }
+import "std/string"
 import "vader/diagnostics" { Diagnostic, comptime_error }
 import "vader/resolver" { LoadedProject }
 import "vader/typecheck" { TypedProject }
-import "vader/lower" { lower_project_staged, prune_unreachable_fns }
-import "vader/midir" { build_cfg_project, emit_bytecode_from_cfg, annotate_escape, eliminate_dead_cfg }
+import "vader/lower"
+import "vader/midir"
 import "vader/bytecode" { BytecodeModule, default_emit_options }
 Ct :: import "vader/comptime"
 Vm :: import "vader/vm"

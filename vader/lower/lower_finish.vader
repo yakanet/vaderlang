@@ -3,8 +3,8 @@
 
 module "vader/lower"
 
-import "std/sort" { sort }
-import "std/string" { split }
+import "std/sort"
+import "std/string"
 
 import "vader/parser" { FnDecl, Visibility }
 import "vader/resolver" { LoadedProject }

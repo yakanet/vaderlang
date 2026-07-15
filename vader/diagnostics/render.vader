@@ -16,8 +16,8 @@ module "vader/diagnostics"
 
 import "std/string" { compare_ascending as string_less }
 import "std/string_builder" { StringBuilder, append, append_char }
-import "std/sort" { sort }
-import "std/math" { min }
+import "std/sort"
+import "std/math"
 import "std/collections" { MutableSet }
 TTY :: import "std/tty"
 
@@ -123,7 +123,7 @@ format_diagnostic :: fn(sb: StringBuilder, d: Diagnostic, show_file: bool) -> vo
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 mk_diag_span :: fn(start: i32, end: i32) -> Span = Span {
     .start = Position { .file = "t.vader", .offset = usize(start), .line = 1, .column = start + 1 },

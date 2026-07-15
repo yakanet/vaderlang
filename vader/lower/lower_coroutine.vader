@@ -15,7 +15,7 @@ import "vader/types" { Type, TY_NULL, TY_BOOL, TY_VOID, TY_UNRESOLVED, TRAIT_ASY
 import "vader/typecheck" { is_void }
 import "vader/diagnostics" { Span }
 import "std/collections" { MutableMap }
-import "std/abort" { panic }
+import "std/abort"
 
 // ---- sentinel -------------------------------------------------------------
 

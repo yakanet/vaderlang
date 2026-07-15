@@ -16,7 +16,7 @@
 
 module "vader/lsp/actions"
 
-import "std/string" { split, repeat }
+import "std/string"
 import "vader/diagnostics" { Span }
 AST :: import "vader/parser"
 
@@ -157,7 +157,7 @@ export reindent :: fn(text: string, indent: i32) -> string {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert }
+import "std/testing"
 
 // Splice an action result over its target span — byte-for-byte what the editor
 // does with the emitted `WorkspaceEdit` : replace `[start.offset, end.offset)`

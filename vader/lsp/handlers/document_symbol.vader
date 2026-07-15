@@ -83,7 +83,7 @@ symbol_json :: fn(e: DeclEntry, li: LineIndex) -> JsonValue {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 // `name` of the i-th top-level symbol, or "" out of range — keeps the asserts
 // terse without a find helper.

@@ -154,7 +154,7 @@ rename_new_name :: fn(params: JsonValue) -> string {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 // Build a one-file source map for tests.
 test_sources :: fn(path: string, content: string) -> MutableMap<string, string> {

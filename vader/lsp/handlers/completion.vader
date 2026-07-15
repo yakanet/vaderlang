@@ -15,9 +15,9 @@ module "vader/lsp/handlers"
 
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonArray }
 import "std/collections" { MutableMap }
-import "std/string" { split }
+import "std/string"
 import "vader/types" { ArrayType, StructType, EnumType, UnresolvedType, TypeParamType, FreeIntType, FreeFloatType, Type, display_type }
-import "vader/text" { is_ident_byte }
+import "vader/text"
 import "vader/typecheck" {
     TypedProgram, ufcs_methods_for, UfcsMethod, array_builtin_methods, ArrayBuiltinMethod,
     namespace_base_mod_id, typeparam_bound_method_names, lift_enum_placeholder, type_from_expr,
@@ -686,7 +686,7 @@ completion_list :: fn(items: JsonValue[]) -> JsonValue {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 // True when some visible decl is named `name`.
 has_decl :: fn(decls: DeclEntry[], name: string) -> bool {

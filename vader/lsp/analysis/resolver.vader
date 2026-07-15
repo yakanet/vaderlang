@@ -14,7 +14,7 @@
 module "vader/lsp/analysis"
 
 import "std/io" { read_file_string, read_dir, is_dir, IOError }
-import "std/string" { starts_with }
+import "std/string"
 import "vader/resolver" { default_stdlib_root, find_manifest_root }
 import "vader/lsp/protocol" { uri_to_path, path_to_uri, PositionEncoding }
 

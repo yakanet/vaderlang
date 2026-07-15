@@ -209,7 +209,7 @@ arg_error :: fn(expr: AST.IntrinsicCallExpr, detail: string) -> EvalResult {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 @test test_primitive_size_table :: fn() -> void {
     assert_eq(primitive_size("i32"), 4)

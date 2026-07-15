@@ -20,7 +20,7 @@
 
 module "vader/lsp/actions"
 
-import "vader/fmt" { format_expr }
+import "vader/fmt"
 AST :: import "vader/parser"
 
 /// The free-call → method-call action. Registered in `registry::all_actions`.
@@ -75,7 +75,7 @@ ident_name :: fn(e: AST.Expr) -> string {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert }
+import "std/testing"
 
 // Find the first source-backed `CallExpr` in a parsed program — test helper so
 // the asserts run against real (source-backed) AST nodes. Shares the descent

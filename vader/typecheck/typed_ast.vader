@@ -473,7 +473,7 @@ export empty_typed_program :: fn() -> TypedProgram {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/types" { mk_primitive, PrimitiveType }
 
 fresh_module :: fn() -> ResolvedModule {

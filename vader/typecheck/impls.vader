@@ -199,7 +199,7 @@ export type_to_target_symbol :: fn(t: Type) -> Symbol | null {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/parser" { parse_source }
 import "vader/resolver" { resolve_module }
 import "vader/resolver/symbol" { new_factory }

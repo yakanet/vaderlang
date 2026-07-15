@@ -135,7 +135,7 @@ export step_should_stop :: fn(mode: StepMode, base_depth: i32, depth: i32) -> bo
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 no_sink :: fn(_s: i32, _t: string) -> void {}
 no_pause :: fn(_c: PauseCtx) -> StepMode = StepMode.Continue

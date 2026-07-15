@@ -106,7 +106,7 @@ lsp_severity :: fn(s: Severity) -> i32 = match s {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 @test test_lsp_diag_tag :: fn() -> void {
     assert_eq(lsp_diag_tag("W0007"), 1)   // dead code → Unnecessary (faded)

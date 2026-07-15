@@ -284,7 +284,7 @@ export span_of :: fn(expr: LoweredExpr) -> Span = match expr {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 import "vader/types" { display_type }
 
 @test test_or_all_empty_emits_false :: fn() -> void {

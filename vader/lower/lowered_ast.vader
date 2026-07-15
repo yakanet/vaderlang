@@ -640,7 +640,7 @@ export new_lowered_project :: fn() -> LoweredProject {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 @test test_new_lowered_project_is_empty :: fn() -> void {
     project :: new_lowered_project()

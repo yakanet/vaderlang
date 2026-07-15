@@ -6,7 +6,7 @@
 
 module "vader/typecheck"
 
-import "std/string" { join }
+import "std/string"
 import "vader/diagnostics" { Diagnostic, typecheck_error }
 import "vader/types" { Type, StructType, struct_backing, display_type, TY_FREE_INT, TY_STRING, TY_UNRESOLVED }
 AST :: import "vader/parser"
@@ -134,7 +134,7 @@ check_item_no_expected :: fn(
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 import "vader/parser" { parse_source }
 import "vader/resolver" { resolve_module }
 import "vader/resolver/symbol" { new_factory }

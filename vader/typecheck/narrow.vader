@@ -25,7 +25,7 @@
 module "vader/typecheck"
 
 import "std/collections" { remove }
-import "std/string" { starts_with }
+import "std/string"
 import "vader/types" { Type }
 AST :: import "vader/parser"
 
