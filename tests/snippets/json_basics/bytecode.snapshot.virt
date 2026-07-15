@@ -55,9 +55,8 @@ type 52 struct std_collections$MutableMap__string__Any { ekeys:24,evals:54,index
 type 53 array 3
 type 54 array 25
 type 55 array 16
-type 56 struct __Tuple_106 { _0:1,_1:34 }
-type 57 union 7,0
-type 58 array 4
+type 56 union 7,0
+type 57 array 4
 string 0 ": error: "
 string 1 ": "
 string 2 "null"
@@ -7245,11 +7244,11 @@ fn 63 std_json$write_object (ref,ref,i32,i32) -> void
   local $len_21 usize
   local $idx_30 string
   local $idx_31 any
-  local __tup_0 ref
+  local __gen_elem_1 ref
   local k string
   local v any
-  local $add_42 i32
-  local $add_48 i32
+  local $add_41 i32
+  local $add_47 i32
   local.field 1 32 0
   call 98
   i64.const 0
@@ -7310,10 +7309,10 @@ fn 63 std_json$write_object (ref,ref,i32,i32) -> void
         local.get 10
         struct.new 51
         local.set 11
-        local.field 11 56 0
+        local.field 11 51 0
         ref.cast 1
         local.set 12
-        local.field 11 56 1
+        local.field 11 51 1
         local.set 13
         local.get 4
         bool.not
@@ -9395,7 +9394,7 @@ fn 101 std_numbers$to_hex (u64) -> string
   if $L0 void
     return.lit string.const 35
   end $L0
-  array.new 58 0
+  array.new 57 0
   local.set 1
   i64.const 16
   local.set 2

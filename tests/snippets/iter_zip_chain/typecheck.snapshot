@@ -20,7 +20,6 @@
   expr 16:19    IdentExpr      :: fn(T[], U[]) -> Iterator<[T, U]>
   expr 16:23    IdentExpr      :: string[]
   expr 16:29    IdentExpr      :: i32[]
-  expr 16:9     IdentExpr      :: [string, i32]
   expr 17:17    StringLitExpr  :: string
   expr 17:20    IdentExpr      :: string
   expr 17:25    IdentExpr      :: i32
@@ -43,7 +42,6 @@
   expr 29:19    CallExpr       :: __genstate_enumerate<[usize, T]>
   expr 29:19    FieldExpr      :: fn() -> Iterator<[usize, T]>
   expr 29:19    IdentExpr      :: string[]
-  expr 29:9     IdentExpr      :: [usize, T]
   expr 30:17    StringLitExpr  :: string
   expr 30:20    IdentExpr      :: usize
   expr 30:26    IdentExpr      :: T

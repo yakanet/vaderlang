@@ -59,6 +59,36 @@ genstate_element :: fn(typed: TypedProgram, fn_name: string, subst: Substitution
     return substitute(raw, subst)
 }
 
+// Build the yield sink for a generator inlined into a `for` consumer. For a
+// plain `for x in <gen>` the sink binds the single consumer variable. For a
+// `for [k, v] in <gen>` destructure the sink binds a fresh element temp and the
+// `let [k, v] := <temp>` destructure is baked into the FRONT of the consumer
+// body — lowered HERE, in the consumer's `ctx`, where the pattern leaves (k, v)
+// resolve. (Doing it at yield time would splice into the generator's own ctx,
+// where those leaf symbols don't resolve — the destructure would silently drop.)
+build_gen_sink :: fn(
+    ctx: FnLowerCtx, pattern: AST.LetBinding | null,
+    binding_symbol: Symbol, binding_name: string,
+    element_type: Type, body: LoweredBlock, span: Span,
+) -> GenInlineSink {
+    if pattern is AST.TupleBinding as tup {
+        elem_sym :: fresh_synthetic_symbol(ctx, "gen_elem")
+        destructure :: emit_for_pattern_destructure(ctx, tup, elem_sym, element_type, span)
+        return GenInlineSink {
+            .binding_symbol = elem_sym,
+            .binding_name = elem_sym.name,
+            .element_type = element_type,
+            .body = prepend_stmts_to_block(destructure, body),
+        }
+    }
+    return GenInlineSink {
+        .binding_symbol = binding_symbol,
+        .binding_name = binding_name,
+        .element_type = element_type,
+        .body = body,
+    }
+}
+
 // The direct-call worker. Resolves the callee to its `generator` FnDecl, binds
 // each param to its arg, and lowers the generator body with the consumer's body
 // installed as the `yield` sink (`ctx.gen_inline_sink`).
@@ -120,12 +150,7 @@ inline_gen_ident_call :: fn(
     // its own sink on the inner ctx.
     gen_return :: substitute(return_type_of(fn_decl, make_entry_types(owner_typed, subst)), subst)
     gen_ctx :: new_fn_lower_ctx(ctx.project, stub_entry(fn_decl, owner_typed), owner_typed, subst, gen_return, null)
-    gen_ctx.gen_inline_sink = GenInlineSink {
-        .binding_symbol = binding_symbol,
-        .binding_name = in_form.binding,
-        .element_type = element_type,
-        .body = consumer_body,
-    }
+    gen_ctx.gen_inline_sink = build_gen_sink(ctx, in_form.pattern, binding_symbol, in_form.binding, element_type, consumer_body, for_stmt.span)
     lowered_gen :: block_lowerer(gen_ctx, gen_body, false, false)
 
     out: LoweredStmt[] = []
@@ -455,12 +480,7 @@ emit_fused_gen_combinator :: fn(
     // as the yield sink — every source loop routes its yields to the same consumer body.
     gen_return :: substitute(return_type_of(layer.decl, make_entry_types(layer.owner, layer.subst)), layer.subst)
     gen_ctx :: new_fn_lower_ctx(ctx.project, stub_entry(layer.decl, layer.owner), layer.owner, layer.subst, gen_return, null)
-    gen_ctx.gen_inline_sink = GenInlineSink {
-        .binding_symbol = template.binding_symbol,
-        .binding_name = template.binding_name,
-        .element_type = template.element_type,
-        .body = template.user_body,
-    }
+    gen_ctx.gen_inline_sink = build_gen_sink(ctx, template.pattern, template.binding_symbol, template.binding_name, template.element_type, template.user_body, chain.span)
 
     out: LoweredStmt[] = []
     // Bind the combinator's single non-self DATA arg (map's `f`, take's `n`) once,

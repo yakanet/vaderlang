@@ -100,6 +100,7 @@ try_lower_chain_fusion :: fn(
         .binding_symbol = binding_symbol,
         .element_type   = chain_element_type(chain),
         .user_body      = user_body,
+        .pattern        = in_form.pattern,
     }
     stmts :: emit_fused_chain(ctx, chain, resolve_loop_label(ctx, for_stmt), for_stmt.span, body_template, recurse)
     return LoweredExprStmt {
@@ -116,6 +117,10 @@ BodyTemplate :: struct {
     binding_symbol: Symbol
     element_type:   Type
     user_body:      LoweredBlock
+    /// Destructuring loop var (`for [k, v] in <chain>`). Set only on the
+    /// user-facing template built from the `InFor` ; the intermediate combinator
+    /// stages bind a fresh single element, so they leave it null.
+    pattern:        AST.LetBinding | null = null
 }
 
 // ---- terminal fusion (B-terminals) ----------------------------------------
@@ -644,9 +649,10 @@ emit_fused_opaque_iter :: fn(
     value_access :: LoweredFieldAccess {
         .span = span, .type = element_type, .target = yield_cast, .field = "value",
     }
-    bind_let :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, value_access, element_type, span)
+    bind_stmts :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, template.pattern, value_access, element_type, span)
 
-    body_stmts: LoweredStmt[] = [bind_let]
+    body_stmts: LoweredStmt[] = []
+    body_stmts.push_all(bind_stmts)
     for s in template.user_body.stmts { body_stmts.push(s) }
     if template.user_body.trailing != null {
         body_stmts.push(LoweredExprStmt { .span = span, .expr = template.user_body.trailing })
@@ -716,8 +722,8 @@ emit_fused_range :: fn(
     }
 
     range_body :: if !captured { template.user_body } else {
-        bind_let :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, counter_ref, int_type, span)
-        prepend_stmts_to_block([bind_let], template.user_body)
+        bind_stmts :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, template.pattern, counter_ref, int_type, span)
+        prepend_stmts_to_block(bind_stmts, template.user_body)
     }
     body_stmts :: build_int_range_body(range_body, inc_stmt, loop_label)
     loop_stmt :: LoweredLoop {
@@ -777,7 +783,7 @@ emit_fused_array :: fn(
     elem_access :: LoweredIndex {
         .span = span, .type = elem_type, .target = arr_ref, .index = idx_ref,
     }
-    bind_stmt :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, elem_access, elem_type, span)
+    bind_stmts :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, template.pattern, elem_access, elem_type, span)
     inc_stmt :: LoweredAssign {
         .span = span, .target = idx_ref,
         .value = LoweredBinary {
@@ -788,7 +794,7 @@ emit_fused_array :: fn(
 
     // Bind the element, then the shared int-range body builder places the
     // increment continue-safely (mirrors `emit_fused_range`).
-    body :: prepend_stmts_to_block([bind_stmt], template.user_body)
+    body :: prepend_stmts_to_block(bind_stmts, template.user_body)
     body_stmts :: build_int_range_body(body, inc_stmt, loop_label)
 
     loop_stmt :: LoweredLoop {

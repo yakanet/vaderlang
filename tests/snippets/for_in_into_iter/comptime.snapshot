@@ -3,7 +3,6 @@
 ## tests/snippets/for_in_into_iter
 
 ## generic instances
-  Entry<i32, i32>
   Entry<string, i32>
   Entry<K, V>
   Entry<K, V>

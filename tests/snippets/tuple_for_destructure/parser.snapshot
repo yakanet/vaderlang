@@ -121,7 +121,19 @@
             "label": null,
             "form": {
               "kind": "in",
-              "binding": "__for_11_5",
+              "pattern": {
+                "kind": "TupleBinding",
+                "elements": [
+                  {
+                    "kind": "SimpleBinding",
+                    "name": "k"
+                  },
+                  {
+                    "kind": "SimpleBinding",
+                    "name": "v"
+                  }
+                ]
+              },
               "iter": {
                 "kind": "IdentExpr",
                 "name": "pairs"
@@ -129,30 +141,7 @@
             },
             "body": {
               "kind": "BlockExpr",
-              "stmts": [
-                {
-                  "kind": "LetStmt",
-                  "mutable": false,
-                  "binding": {
-                    "kind": "TupleBinding",
-                    "elements": [
-                      {
-                        "kind": "SimpleBinding",
-                        "name": "k"
-                      },
-                      {
-                        "kind": "SimpleBinding",
-                        "name": "v"
-                      }
-                    ]
-                  },
-                  "type": null,
-                  "value": {
-                    "kind": "IdentExpr",
-                    "name": "__for_11_5"
-                  }
-                }
-              ],
+              "stmts": [],
               "trailing": {
                 "kind": "CallExpr",
                 "callee": {

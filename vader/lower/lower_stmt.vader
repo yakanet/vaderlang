@@ -167,7 +167,9 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
                 // place of the boxed `next()` dispatch. Multi-yield generators
                 // duplicate the sink body (v1 targets single-yield combinators).
                 value :: lower_expr(ctx, yield_stmt.value)
-                out.push(bind_loop_var(ctx, sink.binding_symbol, sink.binding_name, value, sink.element_type, yield_stmt.span))
+                // The sink always binds a single element ; a `for [k, v]` destructure
+                // is baked into `sink.body`'s front (in the consumer ctx) at sink build.
+                out.push_all(bind_loop_var(ctx, sink.binding_symbol, sink.binding_name, null, value, sink.element_type, yield_stmt.span))
                 out.push_all(block_stmts_with_trailing(sink.body))
             } else if ctx.in_generator {
                 // Transient marker consumed by the generator state-machine
@@ -513,6 +515,15 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
 /// literal via `comptime_bindings`.
 lower_comptime_for_in :: fn(ctx: FnLowerCtx, for_stmt: ForStmt, in_form: InFor) -> LoweredStmt {
     span :: for_stmt.span
+    if in_form.pattern != null {
+        return LoweredExprStmt {
+            .span = span,
+            .expr = LoweredUnreachable {
+                .span = span, .type = TY_VOID,
+                .reason = "@comptime for does not support `[k, v]` destructure",
+            },
+        }
+    }
     binding_symbol :: lookup_for_binding(ctx, in_form.binding_span)
     if binding_symbol is null {
         return LoweredExprStmt {

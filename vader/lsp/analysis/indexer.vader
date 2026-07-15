@@ -220,12 +220,13 @@ lj_expr :: fn(e: Expr, stack: LjFrame[], out: LoopJump[]) -> void {
     }
 }
 
-// The for-in iteration variable, or null for a variable-less / synthetic loop
-// (`while`-style, infinite, `_`, or a `__for_*` destructuring binding) — those
-// are targeted by a label, not a variable.
+// The for-in iteration variable, or null for a variable-less loop (`while`-
+// style, infinite, `_`, or a `for [k, v]` destructure) — those are targeted by
+// a label, not a single variable.
 lj_for_binding :: fn(f: ForStmt) -> string | null {
     if f.form is InFor as i {
-        if i.binding != "_" && !i.binding.starts_with("__") { return i.binding }
+        if i.pattern != null { return null }
+        if i.binding != "_" { return i.binding }
     }
     return null
 }
@@ -616,8 +617,15 @@ ix_walk_for :: fn(f: ForStmt, source: string, entries: DeclEntry[]) -> void {
         is WhileFor as w -> { ix_walk_expr(w.cond, source, entries) }
         is InFor as i -> {
             // for-in binding scope = the loop's body block.
-            sig :: "for " + i.binding + " in ..."
-            entries.push(binding_entry(i.binding, .ForIn, i.binding_span, f.body.span, sig))
+            pat :: i.pattern
+            if pat != null {
+                // `for [k, v] in …` : index each destructured leaf as a body-scoped
+                // local (reuses the let-binding walker).
+                collect_let_binding(pat, f.body.span, source, "", entries)
+            } else {
+                sig :: "for " + i.binding + " in ..."
+                entries.push(binding_entry(i.binding, .ForIn, i.binding_span, f.body.span, sig))
+            }
             ix_walk_expr(i.iter, source, entries)
         }
     }

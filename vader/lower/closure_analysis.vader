@@ -269,10 +269,18 @@ walk_for :: fn(
         is AST.WhileFor as wf -> { walk_expr(wf.cond, scope, out_captures, out_seen, ctx) }
         is AST.InFor as inf -> {
             walk_expr(inf.iter, scope, out_captures, out_seen, ctx)
-            binding :: lookup_symbol_by_span(ctx.symbol_index, inf.binding_span)
-            match binding {
-                is null -> {}
-                is Symbol as resolved -> { _ :: scope.add(resolved.id) }
+            pat :: inf.pattern
+            if pat != null {
+                // `for [k, v] in …` : each destructured leaf is a loop-scoped local
+                // a body closure may capture, so add every leaf to the scope
+                // (reuses the shared let-binding leaf walker).
+                add_local_to_scope(pat, scope, ctx.symbol_index)
+            } else {
+                binding :: lookup_symbol_by_span(ctx.symbol_index, inf.binding_span)
+                match binding {
+                    is null -> {}
+                    is Symbol as resolved -> { _ :: scope.add(resolved.id) }
+                }
             }
         }
     }
@@ -461,7 +469,9 @@ add_local_to_scope :: fn(binding: AST.LetBinding, scope: MutableSet<i32>, symbol
         }
         is AST.WildcardBinding -> {}
         is AST.RestBinding as rest -> {
-            symbol :: lookup_symbol_by_span(symbol_index, rest.name_span)
+            // The resolver keys a rest binding's Symbol on `.span` (not
+            // `.name_span` like a simple binding — see resolver `bind_let_binding`).
+            symbol :: lookup_symbol_by_span(symbol_index, rest.span)
             match symbol {
                 is null -> {}
                 is Symbol as resolved -> { _ :: scope.add(resolved.id) }

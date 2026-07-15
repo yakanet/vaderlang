@@ -3,7 +3,6 @@
 ## tests/snippets/std_cli_basic
 
 ## generic instances
-  Entry<i32, i32>
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>

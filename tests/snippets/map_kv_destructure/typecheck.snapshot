@@ -10,7 +10,6 @@
   expr 15:5     IdentExpr      :: MutableMap<string, i32>
   expr 15:7     StringLitExpr  :: string
   expr 18:19    IdentExpr      :: MutableMap<string, i32>
-  expr 18:9     IdentExpr      :: Entry<string, i32>
   expr 19:17    StringLitExpr  :: string
   expr 19:20    IdentExpr      :: string
   expr 19:25    IdentExpr      :: i32

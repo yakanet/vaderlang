@@ -3,7 +3,6 @@
 ## tests/snippets/wide_literal_pin
 
 ## generic instances
-  Entry<i32, i32>
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>

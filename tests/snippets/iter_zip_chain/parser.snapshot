@@ -266,7 +266,19 @@
             "label": null,
             "form": {
               "kind": "in",
-              "binding": "__for_16_5",
+              "pattern": {
+                "kind": "TupleBinding",
+                "elements": [
+                  {
+                    "kind": "SimpleBinding",
+                    "name": "k"
+                  },
+                  {
+                    "kind": "SimpleBinding",
+                    "name": "v"
+                  }
+                ]
+              },
               "iter": {
                 "kind": "CallExpr",
                 "callee": {
@@ -295,30 +307,7 @@
             },
             "body": {
               "kind": "BlockExpr",
-              "stmts": [
-                {
-                  "kind": "LetStmt",
-                  "mutable": false,
-                  "binding": {
-                    "kind": "TupleBinding",
-                    "elements": [
-                      {
-                        "kind": "SimpleBinding",
-                        "name": "k"
-                      },
-                      {
-                        "kind": "SimpleBinding",
-                        "name": "v"
-                      }
-                    ]
-                  },
-                  "type": null,
-                  "value": {
-                    "kind": "IdentExpr",
-                    "name": "__for_16_5"
-                  }
-                }
-              ],
+              "stmts": [],
               "trailing": {
                 "kind": "CallExpr",
                 "callee": {
@@ -519,7 +508,19 @@
             "label": null,
             "form": {
               "kind": "in",
-              "binding": "__for_29_5",
+              "pattern": {
+                "kind": "TupleBinding",
+                "elements": [
+                  {
+                    "kind": "SimpleBinding",
+                    "name": "i"
+                  },
+                  {
+                    "kind": "SimpleBinding",
+                    "name": "f"
+                  }
+                ]
+              },
               "iter": {
                 "kind": "CallExpr",
                 "callee": {
@@ -535,30 +536,7 @@
             },
             "body": {
               "kind": "BlockExpr",
-              "stmts": [
-                {
-                  "kind": "LetStmt",
-                  "mutable": false,
-                  "binding": {
-                    "kind": "TupleBinding",
-                    "elements": [
-                      {
-                        "kind": "SimpleBinding",
-                        "name": "i"
-                      },
-                      {
-                        "kind": "SimpleBinding",
-                        "name": "f"
-                      }
-                    ]
-                  },
-                  "type": null,
-                  "value": {
-                    "kind": "IdentExpr",
-                    "name": "__for_29_5"
-                  }
-                }
-              ],
+              "stmts": [],
               "trailing": {
                 "kind": "CallExpr",
                 "callee": {
