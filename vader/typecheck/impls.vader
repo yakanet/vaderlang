@@ -202,11 +202,11 @@ export type_to_target_symbol :: fn(t: Type) -> Symbol | null {
 import "std/testing"
 import "vader/parser" { parse_source }
 import "vader/resolver" { resolve_module }
-import "vader/resolver/symbol" { new_factory }
+import "vader/resolver/symbol" { SymbolFactory }
 
 build_test_registry :: fn(src: string) -> ImplRegistry {
     parsed :: parse_source(src, "t.vader")
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     return build_impl_registry(parsed.program.decls, rm, MutableMap<string, Symbol> {})
 }
@@ -230,7 +230,7 @@ Point   :: struct { x: i32 }
 Point implements Display -> "point"
 """
     parsed :: parse_source(src, "t.vader")
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     reg :: build_impl_registry(parsed.program.decls, rm, MutableMap<string, Symbol> {})
     // Pull the two symbols by name to query the registry.

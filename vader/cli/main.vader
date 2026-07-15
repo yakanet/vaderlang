@@ -15,7 +15,7 @@ import "std/cli" { FlagSpec, parse, parse_known, bool_flag, string_flag }
 import "vader/version" { CLI_VERSION }
 import "vader/lexer"
 import "vader/parser" { parse_source, dump_program, ImportDecl, DestructureImport }
-import "vader/resolver/symbol" { new_factory, SymbolKind }
+import "vader/resolver/symbol" { SymbolKind, SymbolFactory }
 import "vader/resolver" { ResolvedProject, ResolvedModule, resolve_module }
 import "vader/resolver" { LoadedModule, module_in_scope, resolve_module_with_collected, resolve_module_with_collected_dp_seeded, build_core_seed, build_wildcard_seed, module_index_by_name }
 import "vader/resolver" { dump_project }

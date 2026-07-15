@@ -60,15 +60,17 @@ export Symbol :: struct {
 
 // IDs start at 1 so dumps keyed on the id stay stable.
 export SymbolFactory :: struct {
-    next: i32
+    next: i32 = 1
 }
 
-export new_factory :: fn() -> SymbolFactory {
-    return SymbolFactory { .next = 1 }
-}
-
-export make :: fn(self: SymbolFactory, kind: SymbolKind, name: string, module: string,
-                  visibility: Visibility, defined_at: Span | null) -> Symbol {
+export make :: fn(
+        self: SymbolFactory,
+        kind: SymbolKind,
+        name: string,
+        module: string,
+        visibility: Visibility,
+        defined_at: Span | null
+    ) -> Symbol {
     id :: self.next
     self.next = id + 1
     return Symbol {

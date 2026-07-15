@@ -614,14 +614,13 @@ resolve_repr :: fn(
 import "std/testing"
 import "vader/parser" { parse_source }
 import "vader/resolver" { resolve_module }
-import "vader/resolver/symbol" { new_factory }
 
 // Resolve `src`, declare-types, then look up the type of the decl
 // named `name` by rendering its `display_type`. Returns `<missing>` if
 // the decl never landed in `decl_types`.
 declared_type :: fn(src: string, name: string) -> string {
     parsed :: parse_source(src, "t.vader")
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     typed :: new_typed_program(rm)
     diags: Diagnostic[] = []

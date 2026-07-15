@@ -90,12 +90,11 @@ export new_fn_context :: fn(return_type: Type, self_type: Type | null) -> FnCont
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/resolver/symbol" { new_factory }
 import "vader/types" { mk_primitive, PrimitiveType, TY_NEVER }
 
 @test
 test_new_globals_factory_starts_at_one :: fn() -> void {
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     g :: new_globals(factory)
     assert_eq(g.factory.next, 1)
     match g.core_symbols {

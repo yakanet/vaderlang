@@ -58,12 +58,11 @@ export check_module :: fn(
 import "std/testing"
 import "vader/parser" { parse_source }
 import "vader/resolver" { resolve_module }
-import "vader/resolver/symbol" { new_factory }
 import "vader/types" { display_type }
 
 run_check :: fn(src: string) -> CheckResult {
     parsed :: parse_source(src, "t.vader")
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[] = []
     return check_module(parsed.program, rm, factory, diags)

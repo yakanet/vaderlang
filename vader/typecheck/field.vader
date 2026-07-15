@@ -1057,7 +1057,7 @@ export find_struct_field_type :: fn(
 import "std/testing"
 import "vader/parser" { parse_source }
 import "vader/resolver" { resolve_module }
-import "vader/resolver/symbol" { new_factory }
+import "vader/resolver/symbol" { SymbolFactory }
 
 // Stub that handles only the variants the field tests touch — Ident
 // (for `p` in `p.x`), Field (for nested `obj.a.b`), and Int literals.
@@ -1087,7 +1087,7 @@ FieldFixture :: struct {
 
 first_field_in_last_fn :: fn(src: string) -> FieldFixture {
     parsed :: parse_source(src, "t.vader")
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[] = []
     result :: check_module(parsed.program, rm, factory, diags)
