@@ -1378,7 +1378,18 @@ push_module_exported_fns :: fn(from: TypedProgram, into: TypedProgram) -> void {
             ty :: from.decl_types[sym.id]
             if ty is null { continue }
             match ty {
-                is FnType as ft -> { push_overload(into, name, ft) }
+                is FnType as ft -> {
+                    push_overload(into, name, ft)
+                    // Publish the imported fn's type into `external_types` too. A
+                    // WILDCARD import binds no name, so it creates no
+                    // `symbol_target` and `populate_external_types` never
+                    // published it — `type_of_symbol` on a wildcard callee then
+                    // degraded to `?`, which breaks null-guard narrowing (the call
+                    // never types as `never`) AND generic-fn materialisation (the
+                    // lowerer can't resolve the callee → GATE B1). Keyed by the
+                    // source symbol id — the same symbol the wildcard seed binds.
+                    into.external_types[sym.id] = ft
+                }
                 _ -> {}
             }
         }

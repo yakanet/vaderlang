@@ -1,12 +1,11 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 ref _
 export main 0
 
 fn 0 snippet$main () -> i32
   local n i32
-  local a any
+  local a i32
   local and_res bool
   i32.const 21
   local.tee 0
@@ -17,7 +16,7 @@ fn 0 snippet$main () -> i32
   local.set 0
   local.get 1
   i32.const 42
-  ref.eq
+  i32.eq
   if $L0 void
     local.get 0
     i32.const 42

@@ -3,10 +3,10 @@
 ## snippet
   fn snippet$main() -> i32
     let n: i32 = int(21) :i32
-    let a: ? =
-      call :?
+    let a: i32 =
+      call :i32
         callee:
-          scale_two :?
+          scale_two :fn(i32) -> i32
         arg0:
           n :i32
     let b: i32 =
@@ -21,7 +21,7 @@
           l:
             eq :bool
               l:
-                a :?
+                a :i32
               r:
                 int(42) :i32
           r:
