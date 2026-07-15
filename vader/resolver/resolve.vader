@@ -133,8 +133,9 @@ export resolve_module_with_collected_dp :: fn(
     collected: CollectedModule,
 ) -> ResolvedModule {
     empty_seed :: MutableMap<string, Symbol> {}
+    no_ambiguity :: MutableMap<string, string[]> {}
     return resolve_module_with_collected_dp_seeded(
-        program, module_path, display_path, factory, collected, empty_seed,
+        program, module_path, display_path, factory, collected, empty_seed, no_ambiguity,
     )
 }
 
@@ -151,6 +152,7 @@ export resolve_module_with_collected_dp :: fn(
 export resolve_module_with_collected_dp_seeded :: fn(
     program: Program, module_path: string, display_path: string, factory: SymbolFactory,
     collected: CollectedModule, core_seed: MutableMap<string, Symbol>,
+    ambiguous: MutableMap<string, string[]>,
 ) -> ResolvedModule {
     root :: make_builtin_scope(factory)
     user_syms :: collected.symbols.values()
@@ -162,7 +164,7 @@ export resolve_module_with_collected_dp_seeded :: fn(
         existing :: root[name]
         if existing is null { root[name] = cs }
     }
-    file :: resolve_program(program, root, module_path, factory)
+    file :: resolve_program(program, root, module_path, factory, ambiguous)
     return ResolvedModule {
         .path             = module_path,
         .display_path     = display_path,

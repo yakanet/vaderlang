@@ -166,6 +166,7 @@ export ResolverCode :: enum(u8) {
     ExplicitCorePreludeImport,              // R2028
     AsBindingInConjunction,                 // R2029
     ConflictingImpl,                        // R2030
+    AmbiguousWildcardImport,                // R2031
 }
 
 // C-codes belong to the comptime evaluator + monomorphizer ; once
@@ -309,6 +310,7 @@ export resolver_info :: fn(c: ResolverCode) = match c {
     .ExplicitCorePreludeImport          -> CodeInfo { .id = "R2028", .message = "explicit `import \"std/core\"` is redundant (prelude already in scope)" }
     .AsBindingInConjunction             -> CodeInfo { .id = "R2029", .message = "`as` binding not allowed in a `&&` condition" }
     .ConflictingImpl                    -> CodeInfo { .id = "R2030", .message = "conflicting trait impl for the same type" }
+    .AmbiguousWildcardImport            -> CodeInfo { .id = "R2031", .message = "name is exported by several wildcard-imported modules" }
 }
 
 export warning_info :: fn(c: WarningCode) = match c {
