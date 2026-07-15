@@ -1112,29 +1112,25 @@ emit_for_stmt :: fn(self: Printer, s: p.ForStmt) -> void {
             self.emit_condition(w.cond)
         }
         is p.InFor as f -> {
-            // `for [k, v] in it` — a destructuring loop var. The pattern lives on
-            // the node (not desugared at parse), so print it verbatim.
-            pat :: f.pattern
-            if pat != null {
-                self.write(" ")
-                self.emit_let_binding(pat)
-                self.write(" in ")
-                self.emit_condition(f.iter)
-            } else {
-                // Only recover the `for <range>` sugar when the binding was
-                // parser-synthesised : the synth `binding_span` is zero-width
-                // (start == end), so a user-written `for _ in <range>` is
-                // preserved verbatim instead of being silently rewritten.
-                zero_width :: f.binding_span.start.offset == f.binding_span.end.offset
-                is_synth_discard :: f.binding == "_" && f.iter is p.RangeExpr && zero_width
-                if is_synth_discard {
+            // The loop variable lives structurally on the node (no parse-time
+            // desugaring), so each shape re-prints verbatim — no span heuristics.
+            match f.loop_var {
+                is p.NamedVar as nv -> {
                     self.write(" ")
-                    self.emit_expr(f.iter)
-                } else {
-                    self.write(" ")
-                    self.write(f.binding)
+                    self.write(nv.name)
                     self.write(" in ")
                     self.emit_condition(f.iter)
+                }
+                is p.DestructureVar as dv -> {
+                    self.write(" ")
+                    self.emit_let_binding(dv.pattern)
+                    self.write(" in ")
+                    self.emit_condition(f.iter)
+                }
+                is p.DiscardVar -> {
+                    // `for <range>` — no variable written ; the iterable follows `for`.
+                    self.write(" ")
+                    self.emit_expr(f.iter)
                 }
             }
         }

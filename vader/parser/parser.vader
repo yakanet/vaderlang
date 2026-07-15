@@ -2230,7 +2230,7 @@ parse_for :: fn(p: Parser, label: string | null, is_comptime: bool) -> ForStmt {
         return ForStmt {
             .span  = Span { .start = start.span.start, .end = body.span.end },
             .label = label,
-            .form  = InFor { .binding = bind_tok.text, .binding_span = bind_tok.span, .iter = iter },
+            .form  = InFor { .loop_var = NamedVar { .name = bind_tok.text, .span = bind_tok.span }, .iter = iter },
             .body  = body,
             .is_comptime = is_comptime,
         }
@@ -2238,12 +2238,11 @@ parse_for :: fn(p: Parser, label: string | null, is_comptime: bool) -> ForStmt {
 
     // Tuple destructure : `for [a, b] in iter { body }`. Bracket-match the
     // opening `[` ; if the matching `]` is followed by `in`, keep the parsed
-    // pattern on the `InFor` node (`pattern`). The element-temp synthesis +
-    // `let <pattern> := <temp>` destructure is done at lower time, not here, so
+    // pattern on the `InFor` node (`DestructureVar`). The element-temp synthesis
+    // + `let <pattern> := <temp>` destructure is done at lower time, not here, so
     // `vader fmt` sees and re-prints the `for [a, b] in …` sugar verbatim.
     if p.looks_like_for_destructure() {
         binding :: p.parse_let_binding()
-        binding_span :: binding.span
         p.expect(.KwIn, "`in` after for-loop binding")
         iter :: p.parse_expr(0)
         p.allow_struct_lit = saved_allow
@@ -2251,7 +2250,7 @@ parse_for :: fn(p: Parser, label: string | null, is_comptime: bool) -> ForStmt {
         return ForStmt {
             .span  = Span { .start = start.span.start, .end = body.span.end },
             .label = label,
-            .form  = InFor { .binding = "", .binding_span = binding_span, .iter = iter, .pattern = binding },
+            .form  = InFor { .loop_var = DestructureVar { .pattern = binding }, .iter = iter },
             .body  = body,
             .is_comptime = is_comptime,
         }
@@ -2260,16 +2259,14 @@ parse_for :: fn(p: Parser, label: string | null, is_comptime: bool) -> ForStmt {
     cond :: p.parse_expr(0)
     p.allow_struct_lit = saved_allow
     body :: p.parse_block()
-    // `for <range>` desugars to `for _ in <range>` ; without this
-    // `for 0..<n` would type-error as a while condition. The synth
-    // `binding_span` is zero-width so the formatter can tell sugar
-    // apart from an explicit `for _ in`.
+    // `for <range>` iterates the range with no user variable — a `DiscardVar`
+    // (without this `for 0..<n` would type-error as a while condition). Modelled
+    // structurally so `vader fmt` re-prints `for <range>` without span heuristics.
     if cond is RangeExpr {
-        synth_span :: Span { .start = cond.span.start, .end = cond.span.start }
         return ForStmt {
             .span  = Span { .start = start.span.start, .end = body.span.end },
             .label = label,
-            .form  = InFor { .binding = "_", .binding_span = synth_span, .iter = cond },
+            .form  = InFor { .loop_var = DiscardVar {}, .iter = cond },
             .body  = body,
             .is_comptime = is_comptime,
         }

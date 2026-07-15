@@ -217,11 +217,10 @@ collect_stmt :: fn(s: AST.Stmt, out: Span[]) -> void {
                 is AST.InfiniteFor -> {}
                 is AST.WhileFor as w -> { collect_expr(w.cond, out) }
                 is AST.InFor    as f -> {
-                    pat :: f.pattern
-                    if pat != null {
-                        collect_binding(pat, out)
-                    } else {
-                        out.push(f.binding_span)
+                    match f.loop_var {
+                        is AST.NamedVar as nv -> { out.push(nv.span) }
+                        is AST.DestructureVar as dv -> { collect_binding(dv.pattern, out) }
+                        is AST.DiscardVar -> {}
                     }
                     collect_expr(f.iter, out)
                 }

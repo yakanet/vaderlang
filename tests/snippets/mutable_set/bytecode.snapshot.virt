@@ -365,7 +365,7 @@ end
 
 fn 11 std_collections$std_collections$ensure_index__i32__bool (ref) -> void
   local idx ref
-  local _ usize
+  local __for_discard_0 usize
   local.field 0 10 2
   array.len
   i64.const 0
@@ -408,7 +408,7 @@ end
 
 fn 12 std_collections$std_collections$rehash__i32__bool (ref,usize) -> void
   local fresh ref
-  local _ usize
+  local __for_discard_0 usize
   local e usize
   local $field_15 usize
   local s usize

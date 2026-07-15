@@ -202,6 +202,7 @@ export LowerCode :: enum(u8) {
     // M5007 / M5008 (generator / async closure-capture) retired : captured
     // locals now survive suspension as heap cells (see `lower_coroutine`).
     AwaitInShortCircuit,                    // M5009
+    ComptimeForNotUnrollable,               // M5010
 }
 
 // `WARNING` — non-fatal diagnostics. New entries appended ; never reused.
@@ -347,6 +348,7 @@ export lower_info :: fn(c: LowerCode) = match c {
     .IntrinsicUnsupported               -> CodeInfo { .id = "M5005", .message = "intrinsic not implemented by the lowerer" }
     .SelfReceiverMissing                -> CodeInfo { .id = "M5006", .message = "method call lacks a resolvable `self` receiver" }
     .AwaitInShortCircuit                -> CodeInfo { .id = "M5009", .message = "`await` in a short-circuit operand or loop condition is not yet supported" }
+    .ComptimeForNotUnrollable           -> CodeInfo { .id = "M5010", .message = "`@comptime for` cannot be unrolled" }
 }
 
 export typecheck_info :: fn(c: TypecheckCode) = match c {

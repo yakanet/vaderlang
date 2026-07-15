@@ -740,18 +740,18 @@ check_for :: fn(
         is AST.InFor as f -> {
             iter_ty :: check_expr_fn(f.iter, null, typed, diags)
             elem :: for_in_element(iter_ty, typed)
-            pat :: f.pattern
-            if pat != null {
+            match f.loop_var {
+                is AST.NamedVar as nv -> {
+                    typed.local_types[nv.span.hash()] = elem
+                    // A real user name is var-targetable ; the `_` wildcard is not.
+                    if nv.name != "_" { binding = nv.name }
+                }
                 // `for [k, v] in …` — type each pattern leaf against the element
                 // (tuple / array / `Entry<K,V> implements Into<[K,V]>`), reusing the
-                // destructuring-let machinery. Not var-targetable : no single user
-                // variable to name, so it behaves like a varless loop (label only).
-                assign_binding_types(pat, elem, typed, diags)
-            } else {
-                typed.local_types[f.binding_span.hash()] = elem
-                // A real user name is var-targetable ; the `_` wildcard is not
-                // (there's no variable to name), so it behaves like a varless loop.
-                if f.binding != "_" { binding = f.binding }
+                // destructuring-let machinery. Not var-targetable (no single name).
+                is AST.DestructureVar as dv -> { assign_binding_types(dv.pattern, elem, typed, diags) }
+                // `for <range>` — no binding, no target variable (label only).
+                is AST.DiscardVar -> {}
             }
         }
     }
@@ -1385,7 +1385,9 @@ first_for_in_binding_span :: fn(src: string) -> Span | null {
                     for s in b.stmts {
                         if s is AST.ForStmt {
                             match s.form {
-                                is AST.InFor as inf -> { return inf.binding_span }
+                                is AST.InFor as inf -> {
+                                    if inf.loop_var is AST.NamedVar as nv { return nv.span }
+                                }
                                 _ -> {}
                             }
                         }

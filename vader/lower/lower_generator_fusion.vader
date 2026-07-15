@@ -140,7 +140,7 @@ inline_gen_ident_call :: fn(
         })
     }
 
-    binding_symbol :: resolve_binding_or_synth(ctx, in_form)
+    lb :: resolve_loop_binding(ctx, in_form.loop_var, for_stmt.span)
     consumer_body :: block_lowerer(ctx, for_stmt.body, false, true)
 
     // Lower the generator body in its OWN fn-ctx — the generator's module +
@@ -150,7 +150,7 @@ inline_gen_ident_call :: fn(
     // its own sink on the inner ctx.
     gen_return :: substitute(return_type_of(fn_decl, make_entry_types(owner_typed, subst)), subst)
     gen_ctx :: new_fn_lower_ctx(ctx.project, stub_entry(fn_decl, owner_typed), owner_typed, subst, gen_return, null)
-    gen_ctx.gen_inline_sink = build_gen_sink(ctx, in_form.pattern, binding_symbol, in_form.binding, element_type, consumer_body, for_stmt.span)
+    gen_ctx.gen_inline_sink = build_gen_sink(ctx, lb.pattern, lb.symbol, lb.name, element_type, consumer_body, for_stmt.span)
     lowered_gen :: block_lowerer(gen_ctx, gen_body, false, false)
 
     out: LoweredStmt[] = []
@@ -375,7 +375,7 @@ match_source_loop :: fn(stmt: AST.Stmt, decl: AST.FnDecl) -> GenSourceLoop | nul
             if inf.iter is AST.IdentExpr as it {
                 for i in 0..<decl.params.len() {
                     if decl.params[i].name == it.name {
-                        return GenSourceLoop { .param_index = i, .loopvar_span = inf.binding_span, .inner = fs.body, .prelude = [] }
+                        return GenSourceLoop { .param_index = i, .loopvar_span = loop_var_span(inf.loop_var, fs.span), .inner = fs.body, .prelude = [] }
                     }
                 }
             }

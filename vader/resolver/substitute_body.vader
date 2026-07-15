@@ -340,10 +340,8 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
                 }
                 is AST.InFor as inf -> {
                     new_form = AST.InFor {
-                        .binding = inf.binding,
-                        .binding_span = inf.binding_span,
+                        .loop_var = inf.loop_var,
                         .iter = substitute_expr_full(inf.iter, subst),
-                        .pattern = inf.pattern,
                     }
                 }
                 is AST.InfiniteFor -> {}    // no children
@@ -515,7 +513,11 @@ stamp_stmt_spans :: fn(s: AST.Stmt, stamp: StampCtx) -> void {
             match fs.form {
                 is AST.WhileFor as w -> { stamp_expr_spans(w.cond, stamp) }
                 is AST.InFor as inf -> {
-                    inf.binding_span = next_clone_span(stamp)
+                    match inf.loop_var {
+                        is AST.NamedVar as nv -> { inf.loop_var = AST.NamedVar { .name = nv.name, .span = next_clone_span(stamp) } }
+                        is AST.DestructureVar as dv -> { stamp_binding_spans(dv.pattern, stamp) }
+                        is AST.DiscardVar -> {}
+                    }
                     stamp_expr_spans(inf.iter, stamp)
                 }
                 is AST.InfiniteFor -> {}

@@ -92,7 +92,7 @@ export lower_for_in :: fn(
     wrap_result :: try_wrap_array_iter(ctx, iter_lowered_raw, iter_type_raw, span)
     iter_lowered :: wrap_result.iter
     iter_type_wrapped :: wrap_result.iter_type
-    element_type :: resolve_element_type(ctx, iter_type_raw, iter_type_wrapped, in_form.binding_span.hash())
+    element_type :: resolve_element_type(ctx, iter_type_raw, iter_type_wrapped, loop_var_type_key(in_form.loop_var, for_stmt.span))
     // Direction A : an escaping `generator` result is typed as its concrete
     // `__genstate_<fn>` struct so combinator chains resolve at typecheck. When the
     // for-in DIDN'T fuse (the fusion fast paths above declined), erase it back to
@@ -132,7 +132,7 @@ export lower_for_in :: fn(
         }
     }
     yield_type :: yield_type_opt
-    binding_symbol :: resolve_binding_or_synth(ctx, in_form)
+    lb :: resolve_loop_binding(ctx, in_form.loop_var, span)
 
     iter_symbol :: fresh_synthetic_symbol(ctx, "iter")
     step_symbol :: fresh_synthetic_symbol(ctx, "step")
@@ -159,7 +159,7 @@ export lower_for_in :: fn(
     value_access :: LoweredFieldAccess {
         .span = span, .type = element_type, .target = yield_cast, .field = "value",
     }
-    bind_stmts :: bind_loop_var(ctx, binding_symbol, in_form.binding, in_form.pattern, value_access, element_type, span)
+    bind_stmts :: bind_loop_var(ctx, lb.symbol, lb.name, lb.pattern, value_access, element_type, span)
 
     user_body :: block_lowerer(ctx, for_stmt.body, false, true)
     body_stmts :: build_body_stmts(bind_stmts, user_body)
@@ -502,8 +502,8 @@ export lookup_for_binding :: fn(ctx: FnLowerCtx, binding_span: Span) -> Symbol |
 // For-in bindings that the body never references don't appear in
 // `resolved.idents` (the use-site map). Synthesize a placeholder
 // symbol so the lowered shape stays consistent.
-resolve_binding_or_synth :: fn(ctx: FnLowerCtx, in_form: AST.InFor) -> Symbol {
-    found :: lookup_for_binding(ctx, in_form.binding_span)
+resolve_or_synth_symbol :: fn(ctx: FnLowerCtx, name: string, span: Span) -> Symbol {
+    found :: lookup_for_binding(ctx, span)
     match found {
         is Symbol as s -> { return s }
         is null -> {
@@ -514,11 +514,11 @@ resolve_binding_or_synth :: fn(ctx: FnLowerCtx, in_form: AST.InFor) -> Symbol {
             // symbol id — two nested unused-binding loops both at id 0 would
             // alias one slot, so the outer increment writes the inner's
             // counter and the outer loop never terminates (infinite loop).
-            fresh :: fresh_synthetic_symbol(ctx, in_form.binding)
+            fresh :: fresh_synthetic_symbol(ctx, name)
             return Symbol {
                 .id         = fresh.id,
                 .kind       = SymbolKind.Local,
-                .name       = in_form.binding,
+                .name       = name,
                 .module     = ctx.typed.resolved.path,
                 .visibility = AST.Visibility.Private,
                 .defined_at = null,
@@ -526,6 +526,40 @@ resolve_binding_or_synth :: fn(ctx: FnLowerCtx, in_form: AST.InFor) -> Symbol {
         }
     }
 }
+
+/// The lowering view of a for-loop variable : a single (symbol, name) for a
+/// `NamedVar` (or a fresh synth for `DiscardVar`), plus the destructure pattern
+/// for a `DestructureVar` (symbol/name are a throwaway placeholder then, since
+/// `bind_loop_var` mints its own element temp for the pattern).
+LoopBinding :: struct { symbol: Symbol, name: string, pattern: AST.LetBinding | null }
+
+/// Translate an AST `LoopVar` into its lowering `LoopBinding`. Centralises the
+/// per-variant resolution so every for-in lowering site (slow / raw-array /
+/// int-range / map-set / iter-fusion / generator) stays uniform.
+resolve_loop_binding :: fn(ctx: FnLowerCtx, loop_var: AST.LoopVar, fallback_span: Span) -> LoopBinding {
+    match loop_var {
+        is AST.NamedVar as nv -> {
+            return LoopBinding { .symbol = resolve_or_synth_symbol(ctx, nv.name, nv.span), .name = nv.name, .pattern = null }
+        }
+        is AST.DestructureVar as dv -> {
+            s :: fresh_synthetic_symbol(ctx, "for_pat")
+            return LoopBinding { .symbol = s, .name = s.name, .pattern = dv.pattern }
+        }
+        is AST.DiscardVar -> {
+            s :: fresh_synthetic_symbol(ctx, "for_discard")
+            return LoopBinding { .symbol = s, .name = s.name, .pattern = null }
+        }
+    }
+}
+
+/// The span a for-loop variable is keyed by — the `NamedVar`'s own span, else
+/// `fallback` (destructure leaves / discard carry no single binding span).
+loop_var_span :: fn(loop_var: AST.LoopVar, fallback: Span) -> Span {
+    if loop_var is AST.NamedVar as nv { return nv.span }
+    return fallback
+}
+
+loop_var_type_key :: fn(loop_var: AST.LoopVar, fallback: Span) -> u64 = loop_var_span(loop_var, fallback).hash()
 
 
 // ---- raw-array fast path --------------------------------------------------
@@ -551,7 +585,7 @@ try_lower_for_in_raw_array :: fn(
         return null
     }
     span :: for_stmt.span
-    binding_symbol :: resolve_binding_or_synth(ctx, in_form)
+    lb :: resolve_loop_binding(ctx, in_form.loop_var, span)
     usize_type :: mk_primitive("usize")
 
     arr_sym :: fresh_synthetic_symbol(ctx, "for_arr")
@@ -582,7 +616,7 @@ try_lower_for_in_raw_array :: fn(
         .span = span, .type = array_elem_type,
         .target = arr_ref, .index = idx_ref,
     }
-    bind_stmts :: bind_loop_var(ctx, binding_symbol, in_form.binding, in_form.pattern, elem_access, array_elem_type, span)
+    bind_stmts :: bind_loop_var(ctx, lb.symbol, lb.name, lb.pattern, elem_access, array_elem_type, span)
     inc_stmt :: LoweredAssign {
         .span = span, .target = idx_ref,
         .value = LoweredBinary {
@@ -658,8 +692,8 @@ try_lower_for_in_int_range :: fn(
     // For-in bindings that the body never references don't surface
     // in `resolved.idents` (the use-site map). Synthesize a placeholder
     // when the lookup misses so the dump still renders.
-    binding_symbol :: resolve_binding_or_synth(ctx, in_form)
     span :: for_stmt.span
+    lb :: resolve_loop_binding(ctx, in_form.loop_var, span)
     // Re-type FreeInt literals on either bound to the resolved
     // `bound_type` so `let i: u64 = int(0) :u64` doesn't dump as
     // `int(0) :i32`. The counter's declared slot already widens to
@@ -689,11 +723,11 @@ try_lower_for_in_int_range :: fn(
     // counter on a fresh synthetic symbol and rebind the user's loop var to a
     // fresh per-iteration cell at the top of the body, so each captured closure
     // sees that iteration's value. Uncaptured loops keep the counter on
-    // `binding_symbol` itself — byte-identical to before.
-    captured :: binding_symbol.id in ctx.project.closures.captured_symbols
-    counter_symbol :: if captured { fresh_synthetic_symbol(ctx, in_form.binding) } else { binding_symbol }
+    // the resolved loop-var symbol itself — byte-identical to before.
+    captured :: lb.symbol.id in ctx.project.closures.captured_symbols
+    counter_symbol :: if captured { fresh_synthetic_symbol(ctx, lb.name) } else { lb.symbol }
     counter_init :: LoweredLet {
-        .span = span, .name = in_form.binding, .symbol = counter_symbol,
+        .span = span, .name = lb.name, .symbol = counter_symbol,
         .type = bound_type, .value = lo,
     }
     counter_ref :: LoweredIdent {
@@ -719,7 +753,7 @@ try_lower_for_in_int_range :: fn(
     user_body :: if !captured { raw_user_body } else {
         // The counter runs on `counter_symbol` ; rebind the user's loop var to a
         // fresh per-iteration cell over the current counter value.
-        bind_stmts :: bind_loop_var(ctx, binding_symbol, in_form.binding, in_form.pattern, counter_ref, bound_type, span)
+        bind_stmts :: bind_loop_var(ctx, lb.symbol, lb.name, lb.pattern, counter_ref, bound_type, span)
         prepend_stmts_to_block(bind_stmts, raw_user_body)
     }
     // One resolved label, shared by the continue-reconciliation and the loop (see
@@ -1041,8 +1075,8 @@ lower_map_set_compact :: fn(
         })
         bind_value = LoweredStructLit { .span = span, .type = entry_type, .fields = fields }
     }
-    binding_symbol :: resolve_binding_or_synth(ctx, in_form)
-    binding_stmts :: bind_loop_var(ctx, binding_symbol, in_form.binding, in_form.pattern, bind_value, binding_value_type, span)
+    lb :: resolve_loop_binding(ctx, in_form.loop_var, span)
+    binding_stmts :: bind_loop_var(ctx, lb.symbol, lb.name, lb.pattern, bind_value, binding_value_type, span)
     pos_inc :: LoweredAssign {
         .span = span, .target = pos_ref,
         .value = LoweredBinary {

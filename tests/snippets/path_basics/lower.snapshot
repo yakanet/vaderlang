@@ -49,6 +49,12 @@
                 filename :string
               arg0:
                 p :Path
+    let bn: Basename =
+      call :Basename
+        callee:
+          basename :Basename
+        arg0:
+          p :Path
     call :void
       callee:
         std_io$println__string :void
@@ -57,13 +63,10 @@
           callee:
             concat_2 :string
           arg0:
-            "stem=" :string
+            "name=" :string
           arg1:
-            call :string
-              callee:
-                stem :string
-              arg0:
-                p :Path
+            .name :string
+              bn :Basename
     call :void
       callee:
         std_io$println__string :void
@@ -74,11 +77,8 @@
           arg0:
             "extension=" :string
           arg1:
-            call :string
-              callee:
-                extension :string
-              arg0:
-                p :Path
+            .extension :string
+              bn :Basename
     call :void
       callee:
         show_path :fn(string, Path) -> void
@@ -226,7 +226,7 @@
                 arg1:
                   __off_3 :usize
                 arg2:
-                  "empty.is_empty=" :string
+                  "empty is empty=" :string
           assign
             target:
               __off_3 :usize
@@ -239,10 +239,12 @@
                 arg1:
                   __off_3 :usize
                 arg2:
-                  call :bool
-                    callee:
-                      is_empty :bool
-                    arg0:
+                  eq :bool
+                    l:
+                      call :Path
+                        callee:
+                          empty_path :fn() -> Path
+                    r:
                       call :Path
                         callee:
                           empty_path :fn() -> Path
@@ -278,7 +280,7 @@
                 arg1:
                   __off_5 :usize
                 arg2:
-                  "p.is_empty=" :string
+                  "p is empty=" :string
           assign
             target:
               __off_5 :usize
@@ -291,11 +293,13 @@
                 arg1:
                   __off_5 :usize
                 arg2:
-                  call :bool
-                    callee:
-                      is_empty :bool
-                    arg0:
+                  eq :bool
+                    l:
                       p :Path
+                    r:
+                      call :Path
+                        callee:
+                          empty_path :fn() -> Path
           ~>
             call :string
               callee:

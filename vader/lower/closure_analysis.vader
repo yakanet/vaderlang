@@ -269,18 +269,18 @@ walk_for :: fn(
         is AST.WhileFor as wf -> { walk_expr(wf.cond, scope, out_captures, out_seen, ctx) }
         is AST.InFor as inf -> {
             walk_expr(inf.iter, scope, out_captures, out_seen, ctx)
-            pat :: inf.pattern
-            if pat != null {
-                // `for [k, v] in …` : each destructured leaf is a loop-scoped local
-                // a body closure may capture, so add every leaf to the scope
-                // (reuses the shared let-binding leaf walker).
-                add_local_to_scope(pat, scope, ctx.symbol_index)
-            } else {
-                binding :: lookup_symbol_by_span(ctx.symbol_index, inf.binding_span)
-                match binding {
-                    is null -> {}
-                    is Symbol as resolved -> { _ :: scope.add(resolved.id) }
+            match inf.loop_var {
+                is AST.NamedVar as nv -> {
+                    binding :: lookup_symbol_by_span(ctx.symbol_index, nv.span)
+                    match binding {
+                        is null -> {}
+                        is Symbol as resolved -> { _ :: scope.add(resolved.id) }
+                    }
                 }
+                // `for [k, v] in …` : each leaf is a loop-scoped local a body
+                // closure may capture (reuses the shared let-binding walker).
+                is AST.DestructureVar as dv -> { add_local_to_scope(dv.pattern, scope, ctx.symbol_index) }
+                is AST.DiscardVar -> {}
             }
         }
     }

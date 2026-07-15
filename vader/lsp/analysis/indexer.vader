@@ -34,7 +34,7 @@ import "vader/parser" {
     Stmt, LetStmt, AssignStmt, ExprStmt, ReturnStmt, YieldStmt, ForStmt,
     BreakStmt, ContinueStmt, DeferStmt,
     LetBinding, SimpleBinding, TupleBinding, WildcardBinding, RestBinding,
-    InfiniteFor, WhileFor, InFor,
+    InfiniteFor, WhileFor, InFor, NamedVar, DestructureVar, DiscardVar,
     DeferStmtBody, DeferBlockBody,
     Expr,
     IntLitExpr, FloatLitExpr, BoolLitExpr, NullLitExpr, CharLitExpr, StringLitExpr,
@@ -225,8 +225,9 @@ lj_expr :: fn(e: Expr, stack: LjFrame[], out: LoopJump[]) -> void {
 // a label, not a single variable.
 lj_for_binding :: fn(f: ForStmt) -> string | null {
     if f.form is InFor as i {
-        if i.pattern != null { return null }
-        if i.binding != "_" { return i.binding }
+        if i.loop_var is NamedVar as nv {
+            if nv.name != "_" { return nv.name }
+        }
     }
     return null
 }
@@ -617,14 +618,14 @@ ix_walk_for :: fn(f: ForStmt, source: string, entries: DeclEntry[]) -> void {
         is WhileFor as w -> { ix_walk_expr(w.cond, source, entries) }
         is InFor as i -> {
             // for-in binding scope = the loop's body block.
-            pat :: i.pattern
-            if pat != null {
-                // `for [k, v] in …` : index each destructured leaf as a body-scoped
-                // local (reuses the let-binding walker).
-                collect_let_binding(pat, f.body.span, source, "", entries)
-            } else {
-                sig :: "for " + i.binding + " in ..."
-                entries.push(binding_entry(i.binding, .ForIn, i.binding_span, f.body.span, sig))
+            match i.loop_var {
+                is NamedVar as nv -> {
+                    sig :: "for " + nv.name + " in ..."
+                    entries.push(binding_entry(nv.name, .ForIn, nv.span, f.body.span, sig))
+                }
+                // `for [k, v] in …` : index each leaf as a body-scoped local.
+                is DestructureVar as dv -> { collect_let_binding(dv.pattern, f.body.span, source, "", entries) }
+                is DiscardVar -> {}
             }
             ix_walk_expr(i.iter, source, entries)
         }

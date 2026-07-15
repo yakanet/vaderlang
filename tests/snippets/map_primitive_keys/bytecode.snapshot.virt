@@ -1148,7 +1148,7 @@ end
 
 fn 26 std_collections$std_collections$ensure_index__char__i32 (ref) -> void
   local idx ref
-  local _ usize
+  local __for_discard_0 usize
   local.field 0 2 2
   array.len
   i64.const 0
@@ -1191,7 +1191,7 @@ end
 
 fn 27 std_collections$std_collections$ensure_index__i16__i32 (ref) -> void
   local idx ref
-  local _ usize
+  local __for_discard_0 usize
   local.field 0 4 2
   array.len
   i64.const 0
@@ -1234,7 +1234,7 @@ end
 
 fn 28 std_collections$std_collections$ensure_index__i64__i32 (ref) -> void
   local idx ref
-  local _ usize
+  local __for_discard_0 usize
   local.field 0 6 2
   array.len
   i64.const 0
@@ -1277,7 +1277,7 @@ end
 
 fn 29 std_collections$std_collections$ensure_index__u16__i32 (ref) -> void
   local idx ref
-  local _ usize
+  local __for_discard_0 usize
   local.field 0 8 2
   array.len
   i64.const 0
@@ -1320,7 +1320,7 @@ end
 
 fn 30 std_collections$std_collections$ensure_index__u8__i32 (ref) -> void
   local idx ref
-  local _ usize
+  local __for_discard_0 usize
   local.field 0 10 2
   array.len
   i64.const 0
@@ -1363,7 +1363,7 @@ end
 
 fn 31 std_collections$std_collections$ensure_index__usize__i32 (ref) -> void
   local idx ref
-  local _ usize
+  local __for_discard_0 usize
   local.field 0 12 2
   array.len
   i64.const 0
@@ -1406,7 +1406,7 @@ end
 
 fn 32 std_collections$std_collections$rehash__char__i32 (ref,usize) -> void
   local fresh ref
-  local _ usize
+  local __for_discard_0 usize
   local e usize
   local $field_15 usize
   local s usize
@@ -1506,7 +1506,7 @@ end
 
 fn 33 std_collections$std_collections$rehash__i16__i32 (ref,usize) -> void
   local fresh ref
-  local _ usize
+  local __for_discard_0 usize
   local e usize
   local $field_15 usize
   local s usize
@@ -1607,7 +1607,7 @@ end
 
 fn 34 std_collections$std_collections$rehash__i64__i32 (ref,usize) -> void
   local fresh ref
-  local _ usize
+  local __for_discard_0 usize
   local e usize
   local $field_15 usize
   local s usize
@@ -1707,7 +1707,7 @@ end
 
 fn 35 std_collections$std_collections$rehash__u16__i32 (ref,usize) -> void
   local fresh ref
-  local _ usize
+  local __for_discard_0 usize
   local e usize
   local $field_15 usize
   local s usize
@@ -1808,7 +1808,7 @@ end
 
 fn 36 std_collections$std_collections$rehash__u8__i32 (ref,usize) -> void
   local fresh ref
-  local _ usize
+  local __for_discard_0 usize
   local e usize
   local $field_15 usize
   local s usize
@@ -1909,7 +1909,7 @@ end
 
 fn 37 std_collections$std_collections$rehash__usize__i32 (ref,usize) -> void
   local fresh ref
-  local _ usize
+  local __for_discard_0 usize
   local e usize
   local $field_15 usize
   local s usize
