@@ -628,9 +628,10 @@ parse_decorators :: fn(p: Parser) -> Decorator[] {
     return out
 }
 
-/// Statement-position `import "..." { a, b }`. Rejects the legacy bare
-/// `import "..."` (implicit-last-segment) and `import "..." as name`
-/// forms — both are now spelled `name :: import "..."`.
+/// Statement-position `import "..."`. A brace block `{ a, b }` is a destructure
+/// import ; a bare path is a wildcard import (every function of the module
+/// becomes callable, prefix + UFCS). The `import "..." as name` form is
+/// rejected — write `name :: import "..."`.
 parse_import_decl :: fn(p: Parser, decorators: Decorator[]) -> ImportDecl {
     start :: p.advance()  // `import`
     path_info :: p.expect_string_literal("import path")
@@ -643,17 +644,21 @@ parse_import_decl :: fn(p: Parser, decorators: Decorator[]) -> ImportDecl {
         if p.check(.Ident) { p.advance() }
     }
 
-    names: ImportName[] = []
-    if p.match_kind(.LBrace) == null {
-        p.error(.ExpectedDeclaration, p.peek().span,
-            "the bare `import \"...\"` form was removed ; use either `name :: import \"...\"` for a namespace binding or `import \"...\" { a, b }` to destructure")
-    } else {
-        names = p.parse_import_name_list_rest()
+    if p.match_kind(.LBrace) != null {
+        // `import "..." { a, b }` — destructure : names into top-level scope.
+        names :: p.parse_import_name_list_rest()
+        return ImportDecl {
+            .span       = p.span_of(start, p.peek_at(-1)),
+            .path       = path_info.text,
+            .binding    = DestructureImport { .names = names },
+            .decorators = decorators,
+        }
     }
+    // bare `import "..."` — wildcard : every function of the module callable.
     return ImportDecl {
         .span       = p.span_of(start, p.peek_at(-1)),
         .path       = path_info.text,
-        .binding    = DestructureImport { .names = names },
+        .binding    = WildcardImport {},
         .decorators = decorators,
     }
 }

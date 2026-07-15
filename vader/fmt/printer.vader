@@ -412,6 +412,11 @@ emit_import :: fn(self: Printer, d: p.ImportDecl) -> void {
             self.write(d.path)
             self.write("\"")
         }
+        is p.WildcardImport -> {
+            self.write("import \"")
+            self.write(d.path)
+            self.write("\"")
+        }
         is p.DestructureImport as dst -> {
             self.write("import \"")
             self.write(d.path)

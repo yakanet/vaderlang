@@ -193,6 +193,9 @@ write_import_binding :: fn(sb: StringBuilder, b: ImportBinding, level: i32) -> v
             sb.entry(false, level + 1, "name")
             sb.write_string(b.name)
         }
+        is WildcardImport -> {
+            sb.kind_entry(level + 1, "wildcard")
+        }
         is DestructureImport -> {
             sb.kind_entry(level + 1, "destructure")
             sb.entry(false, level + 1, "names")

@@ -233,6 +233,7 @@ walk_import_decl :: fn(d: AST.ImportDecl, out: RawToken[]) -> void {
     walk_decorators(d.decorators, out)
     match d.binding {
         is AST.NamedNamespaceImport -> {}
+        is AST.WildcardImport -> {}
         is AST.DestructureImport as dest -> {
             for n in dest.names {
                 // The destructured name pulls the imported symbol into scope.
