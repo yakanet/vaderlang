@@ -83,7 +83,16 @@ export build_wildcard_seed :: fn(
         target :: name_index[path]
         if target is null { continue }
         for [_, sym] in target.collected.symbols {
-            if sym.kind != SymbolKind.Fn { continue }
+            // Wildcard exposes every nameable public export — fns AND types
+            // (struct / enum / trait / alias) AND consts — so `import "p"` brings
+            // `p`'s `Foo` type and `BAR` const into scope unqualified, not just its
+            // functions. Non-nameable kinds (import bindings, params, locals, impls)
+            // never enter another module's scope.
+            if sym.kind != SymbolKind.Fn && sym.kind != SymbolKind.Struct
+                && sym.kind != SymbolKind.Enum && sym.kind != SymbolKind.Trait
+                && sym.kind != SymbolKind.TypeAlias && sym.kind != SymbolKind.Const {
+                continue
+            }
             if sym.visibility != .Public { continue }
             existing :: out[sym.name]
             if existing is null { out[sym.name] = sym }
