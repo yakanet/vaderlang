@@ -5,8 +5,8 @@
 // across the two sleeps.
 module "snippet"
 
-import "std/io" { println }
-import "std/async" { sleep }
+import "std/io"
+import "std/async"
 
 main :: fn() -> i32 {
     println("start")

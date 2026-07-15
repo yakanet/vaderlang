@@ -3,8 +3,8 @@
 // The lower snapshot is the regression guard (0 iterator structs).
 module "snippet"
 
-import "std/io" { println }
-import "std/iter" { take, skip }
+import "std/io"
+import "std/iter"
 
 main :: fn() -> i32 {
     for v in [10, 20, 30, 40, 50].take(3) { println("t ${v}") }

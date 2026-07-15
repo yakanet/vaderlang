@@ -9,8 +9,8 @@
 
 module "ufcs_primitive_literal"
 
-import "std/io" { println }
-import "std/time" { millis, seconds, to_millis, to_seconds }
+import "std/io"
+import "std/time"
 
 main :: fn() -> i32 {
     println("${50.millis().to_millis()}")     // 50

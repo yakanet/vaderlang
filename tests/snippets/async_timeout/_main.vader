@@ -4,8 +4,8 @@
 // times out — its `defer` cleanup runs when `timeout` cancels it.
 module "snippet"
 
-import "std/io" { println }
-import "std/async" { sleep, timeout }
+import "std/io"
+import "std/async"
 
 work :: fn() -> Async<string> {
     defer { println("work cleanup") }

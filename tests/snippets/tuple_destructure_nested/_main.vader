@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // Nested tuple destructuring : the outer let binds `pair` (inner tuple)
 // to two leaves, and `flag` to the bool slot.

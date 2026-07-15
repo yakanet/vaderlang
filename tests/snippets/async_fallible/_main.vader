@@ -2,7 +2,7 @@
 // at `if`/`match`. The resume union flattens to `i32 | LoadError | Suspended`.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Ready :: struct<T> { v: T }
 Ready<T> implements Async<T> {

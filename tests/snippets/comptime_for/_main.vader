@@ -5,7 +5,7 @@
 /// so the unrolled body is straight-line constant-laden code.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Pair :: struct<K, V> {
     key:   K

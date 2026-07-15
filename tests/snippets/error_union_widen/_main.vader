@@ -7,7 +7,7 @@
 //       matching `match`'s subtract-with-impls precision).
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 A :: struct { a: i32 }
 A implements Error { message :: fn(self) -> string = "a:${self.a}" }

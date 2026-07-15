@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Day :: enum { Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday }
 

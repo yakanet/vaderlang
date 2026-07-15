@@ -10,13 +10,7 @@
       "kind": "ImportDecl",
       "path": "std/io",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "println",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -24,29 +18,7 @@
       "kind": "ImportDecl",
       "path": "std/iter",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "map",
-            "alias": null
-          },
-          {
-            "name": "filter",
-            "alias": null
-          },
-          {
-            "name": "any",
-            "alias": null
-          },
-          {
-            "name": "all",
-            "alias": null
-          },
-          {
-            "name": "find",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },

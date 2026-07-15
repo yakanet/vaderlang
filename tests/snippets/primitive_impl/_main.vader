@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // A user-defined trait implemented on a primitive type. Re-impl'ing a
 // prelude trait (`Display`, `Hash`, …) on `i32` is a coherence error

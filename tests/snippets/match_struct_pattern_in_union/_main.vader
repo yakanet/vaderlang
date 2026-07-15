@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // Regression: `is Point { x, y }` (struct destructure) on a union scrutinee
 // trapped at runtime (`vm: reached unreachable`) because the lowerer passed

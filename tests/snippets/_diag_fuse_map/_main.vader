@@ -5,8 +5,8 @@
 
 module "main"
 
-import "std/io" { println }
-import "std/iter" { map }
+import "std/io"
+import "std/iter"
 
 double :: fn(x: i32) -> i32 = x * 2
 

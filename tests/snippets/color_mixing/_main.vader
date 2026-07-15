@@ -12,7 +12,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // ---- struct-backed newtype ------------------------------------------------
 

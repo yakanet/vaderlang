@@ -10,25 +10,7 @@
       "kind": "ImportDecl",
       "path": "std/io",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "println",
-            "alias": null
-          },
-          {
-            "name": "write_file_bytes",
-            "alias": null
-          },
-          {
-            "name": "read_file_bytes",
-            "alias": null
-          },
-          {
-            "name": "temp_dir",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -36,25 +18,7 @@
       "kind": "ImportDecl",
       "path": "std/images/ppm",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "Ppm",
-            "alias": null
-          },
-          {
-            "name": "PpmError",
-            "alias": null
-          },
-          {
-            "name": "encode",
-            "alias": null
-          },
-          {
-            "name": "decode",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },

@@ -10,7 +10,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // `i32`-min magnitude (2^31) and either side of it, in an i64 slot.
 min_i32 :: fn() -> i64 = -2_147_483_648

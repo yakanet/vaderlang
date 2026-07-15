@@ -8,7 +8,7 @@
 // `_diag_` = no snapshot sidecars (temporary `@distinct` gate). Expected exit: 150.
 
 module "snippet"
-import "snippet/units" { Instant, make_instant, elapsed }
+import "snippet/units"
 
 main :: fn() -> i32 {
     a :: make_instant(100)

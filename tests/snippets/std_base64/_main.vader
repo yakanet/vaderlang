@@ -3,8 +3,8 @@
 
 module "snippet"
 
-import "std/io" { println }
-import "std/base64" { encode, decode, Base64Error }
+import "std/io"
+import "std/base64"
 
 show_decode :: fn(label: string, input: string) -> void {
     out :: decode(input)

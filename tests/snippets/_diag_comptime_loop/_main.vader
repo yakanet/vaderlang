@@ -9,7 +9,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 @comptime
 SQUARES :: build_squares()

@@ -1,7 +1,7 @@
 module "snippet"
 
-import "std/io" { println }
-import "std/string" { codepoint_at_byte, codepoint_byte_len }
+import "std/io"
+import "std/string"
 
 main :: fn() -> i32 {
     // len vs bytes().len(): codepoints, not bytes.

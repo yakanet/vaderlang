@@ -10,25 +10,7 @@
       "kind": "ImportDecl",
       "path": "std/semver",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "parse",
-            "alias": null
-          },
-          {
-            "name": "parse_range",
-            "alias": null
-          },
-          {
-            "name": "Version",
-            "alias": null
-          },
-          {
-            "name": "VersionRange",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -36,13 +18,7 @@
       "kind": "ImportDecl",
       "path": "std/string",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "ParseError",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -50,17 +26,7 @@
       "kind": "ImportDecl",
       "path": "std/io",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "println",
-            "alias": null
-          },
-          {
-            "name": "eprintln",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },

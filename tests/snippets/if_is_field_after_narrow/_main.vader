@@ -12,7 +12,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 StructVal :: struct {
     type_id: i32

@@ -6,7 +6,7 @@
 // dead here since every use is inlined. The lower snapshot is the guard.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // map shape.
 doubled :: fn(xs: i32[]) -> Iterator<i32> {

@@ -5,7 +5,7 @@
 // primary (struct literals re-enabled inside, infix chain preserved).
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Point :: struct { x: i32 }
 

@@ -4,8 +4,8 @@
 // first, then `reserve`'s (release the hold) as the unwind walks back to main.
 module "snippet"
 
-import "std/io" { println }
-import "std/abort" { panic }
+import "std/io"
+import "std/abort"
 
 charge :: fn(amount: i32) -> void {
     defer println("refund ${amount}")

@@ -4,8 +4,8 @@
 // would complete with the last error instead.)
 module "snippet"
 
-import "std/io" { println }
-import "std/async" { sleep, any }
+import "std/io"
+import "std/async"
 
 Boom :: struct {}
 Boom implements Error {

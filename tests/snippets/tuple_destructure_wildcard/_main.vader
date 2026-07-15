@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 triple :: fn() -> [i32, string, bool] {
     return [7, "ignored", true]

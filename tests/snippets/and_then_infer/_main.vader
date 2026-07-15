@@ -7,8 +7,8 @@
 // from its `return` values (`FnContext.inferred_return`).
 module "snippet"
 
-import "std/io" { println }
-import "std/option" { and_then, or }
+import "std/io"
+import "std/option"
 
 Boom :: struct {}
 Boom implements Error { message :: fn(self) -> string = "boom" }

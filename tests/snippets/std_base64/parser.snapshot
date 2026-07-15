@@ -10,13 +10,7 @@
       "kind": "ImportDecl",
       "path": "std/io",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "println",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -24,21 +18,7 @@
       "kind": "ImportDecl",
       "path": "std/base64",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "encode",
-            "alias": null
-          },
-          {
-            "name": "decode",
-            "alias": null
-          },
-          {
-            "name": "Base64Error",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },

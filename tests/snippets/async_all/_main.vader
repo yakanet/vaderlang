@@ -3,8 +3,8 @@
 // results come back in INPUT order (30, 10, 20), not completion order.
 module "snippet"
 
-import "std/io" { println }
-import "std/async" { sleep, all }
+import "std/io"
+import "std/async"
 
 mk :: fn(n: i32) -> Async<i32> {
     await sleep(i64(n))

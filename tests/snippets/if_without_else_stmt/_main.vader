@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // Regression: an `if cond { body }` without else used to lower to bytecode
 // `if <body's-result>` plus an `else; unreachable` synthesised by the

@@ -7,7 +7,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 is_digit :: fn(c: char) -> bool {
     return c in '0'..='9'

@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // Recursive expression-bodied fn — only possible with an explicit return
 // type, otherwise the inferrer can't bind the return type from the

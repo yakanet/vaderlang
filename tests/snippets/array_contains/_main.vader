@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // `v in arr` / `v !in arr` over an array literal and over a borrowed `bytes()`
 // view, both routed through the std/core blanket `T[] implements<T> Contains<T>`.

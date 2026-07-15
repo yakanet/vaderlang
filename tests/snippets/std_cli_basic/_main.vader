@@ -1,7 +1,7 @@
 module "snippet"
 
-import "std/io" { println }
-import "std/cli" { FlagSpec, FlagKind, parse, bool_flag, string_flag }
+import "std/io"
+import "std/cli"
 
 main :: fn() -> i32 {
     specs: FlagSpec[] = [

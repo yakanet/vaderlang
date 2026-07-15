@@ -9,6 +9,10 @@
   Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>
+  Wrap<Cat>
+  Wrap<Dog>
+  Wrap<T>
+  Wrap<T>
   Index<I, T>
   IndexSet<I, T>
   Contains<T>
@@ -17,10 +21,6 @@
   Yield<T>
   Yield<T>
   Yield<T>
-  Wrap<Cat>
-  Wrap<Dog>
-  Wrap<T>
-  Wrap<T>
   Async<T>
   Range<i32>
   Range<usize>

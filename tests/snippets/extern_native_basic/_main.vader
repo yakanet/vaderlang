@@ -6,7 +6,7 @@
 /// no VM host-fn registry).
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 @extern add_i32 :: fn(a: i32, b: i32) -> i32
 @extern("strlen") c_strlen :: fn(s: string) -> usize

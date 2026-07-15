@@ -11,7 +11,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Inner :: struct {
     tag: i32

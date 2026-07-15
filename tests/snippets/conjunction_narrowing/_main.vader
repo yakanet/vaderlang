@@ -11,7 +11,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Circle :: struct { radius: i32 }
 Square :: struct { side: i32 }

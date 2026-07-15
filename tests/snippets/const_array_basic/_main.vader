@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 read_first :: fn(a: const i32[]) -> i32 {
     return a[0]

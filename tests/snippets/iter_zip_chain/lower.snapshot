@@ -275,7 +275,7 @@
               arg1:
                 vcall Display.to_string :string
                   recv:
-                    x :?
+                    x :T
         assign
           target:
             __fuse_i_11 :usize
@@ -309,7 +309,7 @@
               arg1:
                 vcall Display.to_string :string
                   recv:
-                    x :?
+                    x :T
         assign
           target:
             __fuse_i_14 :usize
@@ -438,10 +438,10 @@
                 __fuse_i_22 :usize
               r:
                 int(1) :usize
-    let bursts: Iterator<i32> =
-      call :Iterator<i32>
+    let bursts: __genstate_flat_map<i32> =
+      call :__genstate_flat_map<i32>
         callee:
-          std_iter$flat_map__i32__i32 :Iterator<i32>
+          std_iter$flat_map__i32__i32 :__genstate_flat_map<i32>
         arg0:
           ArrayIterator<i32> {
             arr:
@@ -454,7 +454,7 @@
         arg1:
           LoweredMakeClosure
     block :void
-      let __iter_24: Iterator<i32> = bursts :Iterator<i32>
+      let __iter_24: Iterator<i32> = bursts :__genstate_flat_map<i32>
       loop
         let __step_25: Yield<i32> | null =
           vcall Iterator.next :Yield<i32> | null

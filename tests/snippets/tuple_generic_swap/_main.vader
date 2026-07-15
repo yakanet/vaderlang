@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // Generic inference through a tuple parameter. The unifier and the
 // "expected type contains type-param" check both recurse into Tuple slots

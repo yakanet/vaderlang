@@ -1,7 +1,7 @@
 module "snippet"
 
-import "std/io" { println }
-import "std/string" { trim, to_upper, to_lower, starts_with, ends_with, split }
+import "std/io"
+import "std/string"
 
 main :: fn() -> i32 {
     s := "  Hello, World!  "

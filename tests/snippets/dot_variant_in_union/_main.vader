@@ -5,8 +5,8 @@
 
 module "snippet"
 
-import "std/io" { println }
-import "std/string" { ParseError }
+import "std/io"
+import "std/string"
 
 Direction :: enum { North, East, South, West }
 

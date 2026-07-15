@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 export are_eq :: fn<T>(a: T, b: T) -> bool {
     return a == b

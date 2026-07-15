@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 export describe :: fn(x: i32 | string | null) -> string {
     return match x {

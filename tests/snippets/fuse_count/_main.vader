@@ -6,8 +6,8 @@
 // fusion declines and it lowers to the normal call).
 module "snippet"
 
-import "std/io" { println }
-import "std/iter" { map, filter }
+import "std/io"
+import "std/iter"
 
 main :: fn() -> i32 {
     // map + filter + count over an array source — one flat loop.

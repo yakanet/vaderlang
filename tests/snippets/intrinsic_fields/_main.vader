@@ -5,7 +5,7 @@
 /// substitution flows so `Pair(string, i64)` reports `value` as 8 bytes.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Point :: struct {
     x:     i32

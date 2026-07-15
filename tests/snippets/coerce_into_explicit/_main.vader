@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // Explicit form of the `Into<Target>` coercion : `Target(value)`. For
 // non-numeric targets the call routes through the matching `into` impl

@@ -9,8 +9,8 @@
 
 module "snippet"
 
-import "std/io" { println }
-import "std/iter" { map, filter }
+import "std/io"
+import "std/iter"
 
 tenfold :: fn(v: i32) -> i32 = v * 10
 is_even :: fn(v: i32) -> bool = v % 2 == 0

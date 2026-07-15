@@ -6,7 +6,7 @@
 // / infinite loop). See loop-jump-by-variable.md.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 gen :: fn() -> Iterator<i32> {
     for i in 0..<3 {

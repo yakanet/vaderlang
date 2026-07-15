@@ -4,7 +4,7 @@
 // that a C compiler reads as undeclared identifiers. Regression for audit B3.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 POS_INF: f64: 1.0e308 * 100.0
 NEG_INF: f64: -1.0e308 * 100.0

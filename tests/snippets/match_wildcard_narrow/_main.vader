@@ -11,7 +11,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Cat :: struct { name: string }
 Dog :: struct { name: string }

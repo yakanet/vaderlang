@@ -9,8 +9,8 @@
 
 module "snippet"
 
-import "std/io" { println }
-import "snippet/shapes" { Node }
+import "std/io"
+import "snippet/shapes"
 
 main :: fn() -> i32 {
     n :: Node { .name = "x" }       // .id omitted → default DEFAULT_ID (=99)

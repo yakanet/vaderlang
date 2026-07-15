@@ -9,9 +9,9 @@
 
 module "snippet"
 
-import "std/io" { println }
-import "std/collections" { MutableMap }
-import "snippet/lib" { pick, Wrap, Thing }
+import "std/io"
+import "std/collections"
+import "snippet/lib"
 
 main :: fn() -> i32 {
     m :: MutableMap<i32, Thing> {}

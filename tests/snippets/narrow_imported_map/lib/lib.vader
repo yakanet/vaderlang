@@ -4,7 +4,7 @@
 
 module "snippet/lib"
 
-import "std/collections" { MutableMap }
+import "std/collections"
 
 export Wrap  :: struct { items: i32[] }
 export Out   :: struct { first: i32 }

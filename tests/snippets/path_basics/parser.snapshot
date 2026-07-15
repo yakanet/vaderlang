@@ -10,13 +10,7 @@
       "kind": "ImportDecl",
       "path": "std/io",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "println",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -24,57 +18,7 @@
       "kind": "ImportDecl",
       "path": "std/path",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "Path",
-            "alias": null
-          },
-          {
-            "name": "to_path",
-            "alias": null
-          },
-          {
-            "name": "empty_path",
-            "alias": null
-          },
-          {
-            "name": "as_string",
-            "alias": null
-          },
-          {
-            "name": "is_absolute",
-            "alias": null
-          },
-          {
-            "name": "parent",
-            "alias": null
-          },
-          {
-            "name": "filename",
-            "alias": null
-          },
-          {
-            "name": "basename",
-            "alias": null
-          },
-          {
-            "name": "join",
-            "alias": null
-          },
-          {
-            "name": "starts_with",
-            "alias": null
-          },
-          {
-            "name": "ends_with",
-            "alias": null
-          },
-          {
-            "name": "normalize",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },

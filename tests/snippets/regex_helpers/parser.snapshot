@@ -10,13 +10,7 @@
       "kind": "ImportDecl",
       "path": "std/io",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "println",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -24,25 +18,7 @@
       "kind": "ImportDecl",
       "path": "std/string",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "trim_suffix",
-            "alias": null
-          },
-          {
-            "name": "trim_prefix",
-            "alias": null
-          },
-          {
-            "name": "replace_chars_where",
-            "alias": null
-          },
-          {
-            "name": "split_where",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -50,13 +26,7 @@
       "kind": "ImportDecl",
       "path": "std/char",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "is_white_char",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },

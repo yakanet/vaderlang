@@ -1,7 +1,7 @@
 module "snippet"
 
-import "std/io" { println }
-import "std/collections" { MutableMap, MutableSet, add, len }
+import "std/io"
+import "std/collections"
 
 main :: fn() -> i32 {
     s := MutableSet<i32> {}

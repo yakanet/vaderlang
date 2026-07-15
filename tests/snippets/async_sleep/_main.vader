@@ -6,8 +6,8 @@
 // fast; output is fixed by deadline ordering, not wall-clock.
 module "snippet"
 
-import "std/io" { println }
-import "std/async" { sleep, run_async_main }
+import "std/io"
+import "std/async"
 
 steps :: fn() -> Async<i32> {
     println("start")

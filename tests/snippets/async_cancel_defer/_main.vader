@@ -6,7 +6,7 @@
 // Hand-driven (no scheduler) via a child that parks forever until cancelled.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // Parks forever — keeps its parent suspended on it, so cancelling the parent
 // exercises the recursive `awaited.cancel()`.

@@ -6,7 +6,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 main :: fn() -> i32 {
     println("saved on windows, runs anywhere")

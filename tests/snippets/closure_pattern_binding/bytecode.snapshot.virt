@@ -12,7 +12,7 @@ type 9 primitive usize
 type 10 struct std_core$Buffer {  }
 type 11 primitive i64
 type 12 primitive u8
-type 13 struct "$Cell_Struct#tests/snippets/closure_pattern_binding/_main.vader:47<>" { value:3 }
+type 13 struct "$Cell_Struct#tests/snippets/closure_pattern_binding/_main.vader:35<>" { value:3 }
 type 14 fn () -> 7
 type 15 struct $Cell_i32 { value:2 }
 type 16 fn () -> 2

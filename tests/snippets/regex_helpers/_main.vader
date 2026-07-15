@@ -1,10 +1,8 @@
 module "snippet"
 
-import "std/io" { println }
-import "std/string" {
-    trim_suffix, trim_prefix, replace_chars_where, split_where,
-}
-import "std/char" { is_white_char }
+import "std/io"
+import "std/string"
+import "std/char"
 
 export is_non_id :: fn(c: char) -> bool {
     if c >= '0' && c <= '9' { return false }

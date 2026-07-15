@@ -8,7 +8,7 @@
 // most concrete (non-type-param) receiver variants.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Boom :: struct {}
 Boom implements Error { message :: fn(self) -> string = "boom" }

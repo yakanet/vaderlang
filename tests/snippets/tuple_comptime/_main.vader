@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // Comptime tuple values — the comptime VM materialises a Tuple result
 // into a `ComptimeValue.struct` (with synthetic `_0`, `_1`, … field

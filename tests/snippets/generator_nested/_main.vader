@@ -1,7 +1,7 @@
 // Nested-loop generator (the `concat_file_decls` shape) — resume mid-inner-loop.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 pairs :: fn(xs: i32[], ys: i32[]) -> Iterator<i32> {
     for x in xs {

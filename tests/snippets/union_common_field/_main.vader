@@ -7,7 +7,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Cat :: struct { name: string, age: i32 }
 Dog :: struct { name: string, age: i32 }

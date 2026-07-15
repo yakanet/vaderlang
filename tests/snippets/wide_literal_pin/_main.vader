@@ -20,8 +20,8 @@
 
 module "snippet"
 
-import "std/io" { println }
-import "std/collections" { MutableMap }
+import "std/io"
+import "std/collections"
 
 // Face 3 — explicit type argument pins T to i64.
 takes :: fn<T>(x: T) -> T = x

@@ -1,7 +1,7 @@
 module "snippet"
 
-import "std/io" { println }
-import "std/runtime" { collect }
+import "std/io"
+import "std/runtime"
 
 // `bytes()` returns a borrowed `const u8[]` view that, on the native target,
 // aliases the string's interned bytes and keeps the owner atom reachable only

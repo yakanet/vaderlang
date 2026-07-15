@@ -10,13 +10,7 @@
       "kind": "ImportDecl",
       "path": "std/io",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "println",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -24,53 +18,7 @@
       "kind": "ImportDecl",
       "path": "std/json",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "JsonValue",
-            "alias": null
-          },
-          {
-            "name": "JsonString",
-            "alias": null
-          },
-          {
-            "name": "JsonNumber",
-            "alias": null
-          },
-          {
-            "name": "JsonBool",
-            "alias": null
-          },
-          {
-            "name": "JsonNull",
-            "alias": null
-          },
-          {
-            "name": "JsonArray",
-            "alias": null
-          },
-          {
-            "name": "JsonObject",
-            "alias": null
-          },
-          {
-            "name": "JsonError",
-            "alias": null
-          },
-          {
-            "name": "parse",
-            "alias": null
-          },
-          {
-            "name": "stringify",
-            "alias": null
-          },
-          {
-            "name": "stringify_pretty",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },

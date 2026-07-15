@@ -5,8 +5,8 @@
 // every fetch succeeds, comes back as the boxed `(i32 | Outage)[]` in input order.
 module "snippet"
 
-import "std/io" { println }
-import "std/async" { sleep, try_all }
+import "std/io"
+import "std/async"
 
 Outage :: struct { service: string }
 Outage implements Error { message :: fn(self) -> string = "down: ${self.service}" }

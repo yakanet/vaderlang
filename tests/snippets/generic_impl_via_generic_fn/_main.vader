@@ -6,7 +6,7 @@
 // row at runtime. (Not async-specific ; async's `all` was the first to hit it.)
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Box :: struct<T> { v: T }
 Box<T> implements Async<T> {

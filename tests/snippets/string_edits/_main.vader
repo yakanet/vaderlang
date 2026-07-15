@@ -1,7 +1,7 @@
 module "snippet"
 
-import "std/io" { println }
-import "std/string" { replace, replace_all, repeat, contains_char }
+import "std/io"
+import "std/string"
 
 // Exercises the string methods implemented in std/string (no longer faked by
 // the typer's primitive_method_type table) — they require importing std/string.

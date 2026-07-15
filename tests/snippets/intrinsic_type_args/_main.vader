@@ -2,7 +2,7 @@
 /// literal. Sibling of `@fields(T)` ; non-generic types yield `[]`.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Pair :: struct<K, V> {
     key:   K

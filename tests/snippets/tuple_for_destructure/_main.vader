@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // `for [k, v] in pairs` destructures each tuple element bound by the loop.
 // Parser desugar : the binding is replaced by a synthetic ident, with a

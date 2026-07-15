@@ -5,8 +5,8 @@
 // element; the loop breaks as soon as the answer is known.
 module "snippet"
 
-import "std/io" { println }
-import "std/iter" { map, filter, any, all, find }
+import "std/io"
+import "std/iter"
 
 main :: fn() -> i32 {
     xs :: [1, 2, 3, 4, 5, 6]

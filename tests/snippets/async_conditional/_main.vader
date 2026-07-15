@@ -2,7 +2,7 @@
 // taken branch. The false branch takes no await.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Ready :: struct<T> { v: T }
 Ready<T> implements Async<T> {

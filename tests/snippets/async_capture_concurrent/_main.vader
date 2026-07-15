@@ -4,8 +4,8 @@
 // retired M5008 guard used to mask (two suspended frames alive at once).
 module "snippet"
 
-import "std/io" { println }
-import "std/async" { sleep, all }
+import "std/io"
+import "std/async"
 
 worker :: fn(base: i32, naps: i32) -> Async<i32> {
     acc := 0

@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // Regression: `is P { x: 10, y }` introduces `y` as a binding for the field
 // of P. The lowerer used to skip nested StructPattern bindings inside an

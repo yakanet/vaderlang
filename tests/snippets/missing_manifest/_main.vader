@@ -6,7 +6,7 @@
 
 module "snippet"
 
-import "std/io" { println, read_file_string, IOError }
+import "std/io"
 
 describe :: fn(path: string) -> string {
     r :: read_file_string(path)

@@ -1,7 +1,7 @@
 module "snippet"
 
-import "std/io" { println }
-import "std/collections" { MutableMap }
+import "std/io"
+import "std/collections"
 
 // `for [k, v] in m` over a `MutableMap` destructures the yielded
 // `Entry<K, V>` into key / value. The parser desugars the form to

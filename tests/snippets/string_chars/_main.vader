@@ -1,7 +1,7 @@
 module "snippet"
 
-import "std/io" { println }
-import "std/string" { chars }
+import "std/io"
+import "std/string"
 
 main :: fn() -> i32 {
     // ASCII path : 5 codepoints, 5 bytes.

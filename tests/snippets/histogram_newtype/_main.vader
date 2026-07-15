@@ -12,7 +12,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // A bin histogram : scale every bin via `*`, split via `/`.
 Histogram :: u32[]

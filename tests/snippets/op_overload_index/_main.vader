@@ -6,7 +6,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Cell :: struct { keys: string[], vals: i32[] }
 

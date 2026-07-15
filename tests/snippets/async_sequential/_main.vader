@@ -3,7 +3,7 @@
 // typed via the `Async<T>` return.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Ready :: struct<T> { v: T }
 Ready<T> implements Async<T> {

@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // argv[0] is the program/script path — implementation-defined and differs
 // between VM and native, so we skip it for snapshot-stability and only

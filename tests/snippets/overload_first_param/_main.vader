@@ -6,8 +6,8 @@
 
 module "snippet"
 
-import "std/io" { println }
-import "std/math" { min, max, abs, clamp }
+import "std/io"
+import "std/math"
 
 export Box :: struct { v: i32 }
 export Bag :: struct { v: string }

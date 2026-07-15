@@ -12,8 +12,8 @@
 
 module "snippet"
 
-import "std/io" { println }
-import "std/sort" { sort }
+import "std/io"
+import "std/sort"
 
 ascending :: fn(a: i32, b: i32) -> bool { return a < b }
 

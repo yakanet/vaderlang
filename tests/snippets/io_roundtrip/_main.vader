@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println, write_file_string, read_file_string, exists, temp_dir }
+import "std/io"
 
 main :: fn() -> i32 {
     path :: "${temp_dir()}/vader_io_roundtrip.txt"
