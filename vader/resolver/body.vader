@@ -55,6 +55,7 @@ export ResolvedFile :: struct {
 export resolve_program :: fn(
     program: AST.Program, top_level_seed: MutableMap<string, Symbol>,
     module_path: string, factory: SymbolFactory,
+    ambiguous: MutableMap<string, string[]>,
 ) -> ResolvedFile {
     state :: ResolveState {
         .idents = MutableMap<u64, Symbol> {},
@@ -64,6 +65,7 @@ export resolve_program :: fn(
         .scope = new_scope(top_level_seed),
         .module_path = module_path,
         .factory = factory,
+        .ambiguous = ambiguous,
     }
     for d in program.decls {
         state.walk_decl(d)
@@ -87,6 +89,10 @@ ResolveState :: struct {
     scope:            Scope
     module_path:      string
     factory:          SymbolFactory
+    /// Names two+ wildcard-imported modules both export (`name -> modules`).
+    /// Consulted by `walk_expr` to fire R2031 on an unqualified reference that
+    /// resolves to one of them. Empty when the module has no wildcard imports.
+    ambiguous:        MutableMap<string, string[]>
 }
 
 mint_local :: fn(self: ResolveState, kind: SymbolKind, name: string, span: Span) -> Symbol {
@@ -407,12 +413,33 @@ walk_for :: fn(self: ResolveState, s: AST.ForStmt) -> void {
 
 // ---- expr walkers ---------------------------------------------------------
 
+// R2031 — an unqualified reference `x` that resolves, through the wildcard seed,
+// to a name TWO+ bare-imported modules both export. `s.module == module_path`
+// means the reference bound to a local / param / this module's own decl / a
+// destructure import (all same-module) — those shadow the wildcard and are
+// unambiguous. A cross-module `s` whose name is in `ambiguous` is the real clash.
+check_wildcard_ambiguity :: fn(self: ResolveState, x: AST.IdentExpr, s: Symbol) -> void {
+    if s.module == self.module_path { return }
+    mods :: self.ambiguous[x.name]
+    if mods is null { return }
+    list := ""
+    for i in 0..<mods.len() {
+        if i > 0 { list = list + ", " }
+        list = list + mods[i]
+    }
+    self.diags.push(resolver_error(.AmbiguousWildcardImport, x.span,
+        "`${x.name}` is exported by ${list} — qualify it with a namespace import (`Ns :: import \"…\"` then `Ns.${x.name}`) or destructure the one you mean"))
+}
+
 walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
     match e {
         is AST.IdentExpr as x -> {
             v :: self.scope.lookup(x.name)
             match v {
-                is Symbol -> { self.idents[x.span.hash()] = v }
+                is Symbol as s -> {
+                    self.idents[x.span.hash()] = s
+                    self.check_wildcard_ambiguity(x, s)
+                }
                 // R2006 — caller must seed `core_symbols` via
                 // `resolve_module_with_collected_dp_seeded` ; otherwise
                 // bare references to `Range`, `Display`, `Iterator`, …
@@ -624,7 +651,7 @@ main :: fn() -> i32 {
     parsed :: parse_source(src, "test.vader")
     factory :: SymbolFactory {}
     seed :: MutableMap<string, Symbol> {}
-    resolved :: resolve_program(parsed.program, seed, "test", factory)
+    resolved :: resolve_program(parsed.program, seed, "test", factory, MutableMap<string, string[]> {})
     hit :: resolved.idents[span_at("test.vader", 3, 12).hash()]
     match hit {
         is Symbol as s -> {
@@ -648,7 +675,7 @@ f :: fn(x: i32) -> i32 {
     parsed :: parse_source(src, "test.vader")
     factory :: SymbolFactory {}
     seed :: MutableMap<string, Symbol> {}
-    resolved :: resolve_program(parsed.program, seed, "test", factory)
+    resolved :: resolve_program(parsed.program, seed, "test", factory, MutableMap<string, string[]> {})
     hit :: resolved.idents[span_at("test.vader", 2, 12).hash()]
     match hit {
         is Symbol as s -> {

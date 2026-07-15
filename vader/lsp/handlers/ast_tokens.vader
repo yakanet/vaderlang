@@ -77,7 +77,7 @@ push_module_keyword_span :: fn(md: AST.ModuleDecl, out: RawToken[]) -> void {
 refine_via_resolver :: fn(program: AST.Program, uri: string, out: RawToken[], source: string) -> void {
     factory :: SymbolFactory {}
     seed :: MutableMap<string, Symbol> {}
-    resolved :: resolve_program(program, seed, uri, factory)
+    resolved :: resolve_program(program, seed, uri, factory, MutableMap<string, string[]> {})
     // `idents` is keyed by `Span.hash()` = (file, line, **codepoint column**),
     // matching the resolver/parser columns. RawTokens now carry only byte
     // offsets (`col` is 0 until the later `reencode_columns` pass), so derive

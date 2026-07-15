@@ -83,20 +83,58 @@ export build_wildcard_seed :: fn(
         target :: name_index[path]
         if target is null { continue }
         for [_, sym] in target.collected.symbols {
-            // Wildcard exposes every nameable public export — fns AND types
-            // (struct / enum / trait / alias) AND consts — so `import "p"` brings
-            // `p`'s `Foo` type and `BAR` const into scope unqualified, not just its
-            // functions. Non-nameable kinds (import bindings, params, locals, impls)
-            // never enter another module's scope.
-            if sym.kind != SymbolKind.Fn && sym.kind != SymbolKind.Struct
-                && sym.kind != SymbolKind.Enum && sym.kind != SymbolKind.Trait
-                && sym.kind != SymbolKind.TypeAlias && sym.kind != SymbolKind.Const {
-                continue
-            }
+            if !wildcard_exposable(sym.kind) { continue }
             if sym.visibility != .Public { continue }
             existing :: out[sym.name]
             if existing is null { out[sym.name] = sym }
         }
+    }
+    return out
+}
+
+/// A wildcard `import "p"` exposes every nameable public export of `p` — fns
+/// AND types (struct / enum / trait / alias) AND consts — so `p`'s `Foo` type
+/// and `BAR` const land in scope unqualified, not just its functions. The other
+/// kinds (import bindings, params, locals, impls, builtins) are never a module's
+/// re-exportable surface.
+wildcard_exposable :: fn(k: SymbolKind) = k == SymbolKind.Fn || k == SymbolKind.Struct
+    || k == SymbolKind.Enum || k == SymbolKind.Trait || k == SymbolKind.TypeAlias
+    || k == SymbolKind.Const
+
+/// Names that two or more of `wildcard_paths`'s modules both export — the
+/// genuine collisions a bare `import "p1"` + `import "p2"` would create. Returns
+/// `name -> [module names]` for each such name (≥ 2 providers). The `base` /
+/// core prelude is intentionally NOT considered: a core name always wins and is
+/// never ambiguous. Consumed by the body-walker, which fires R2031 only when an
+/// unqualified reference actually resolves to one of these ambiguous names.
+export wildcard_ambiguities :: fn(
+    name_index: MutableMap<string, LoadedModule>, wildcard_paths: string[],
+) -> MutableMap<string, string[]> {
+    providers :: MutableMap<string, string[]> {}
+    for path in wildcard_paths {
+        target :: name_index[path]
+        if target is null { continue }
+        for [_, sym] in target.collected.symbols {
+            if !wildcard_exposable(sym.kind) { continue }
+            if sym.visibility != .Public { continue }
+            lst :: providers[sym.name]
+            if lst is null {
+                providers[sym.name] = [path]
+            } else {
+                seen := false
+                for p in lst {
+                    if p == path { seen = true }
+                }
+                if !seen {
+                    lst.push(path)
+                    providers[sym.name] = lst
+                }
+            }
+        }
+    }
+    out :: MutableMap<string, string[]> {}
+    for [name, mods] in providers {
+        if mods.len() >= 2 { out[name] = mods }
     }
     return out
 }

@@ -17,7 +17,7 @@ import "vader/lexer"
 import "vader/parser" { parse_source, dump_program, ImportDecl, DestructureImport }
 import "vader/resolver/symbol" { SymbolKind, SymbolFactory }
 import "vader/resolver" { ResolvedProject, ResolvedModule, resolve_module }
-import "vader/resolver" { LoadedModule, module_in_scope, resolve_module_with_collected, resolve_module_with_collected_dp_seeded, build_core_seed, build_wildcard_seed, module_index_by_name }
+import "vader/resolver" { LoadedModule, module_in_scope, resolve_module_with_collected, resolve_module_with_collected_dp_seeded, build_core_seed, build_wildcard_seed, wildcard_ambiguities, module_index_by_name }
 import "vader/resolver" { dump_project }
 import "vader/typecheck" { check_module_with_bodies, check_project_with_bodies, check_file }
 import "vader/typecheck" { CheckResult }
@@ -1260,6 +1260,7 @@ resolve_loaded_project :: fn(project: LoadedProject, scope: string[]) -> Resolve
             lm.module.files[0].program, lm.module.files[0].path,
             lm.module.display_path, project.factory, lm.collected,
             build_wildcard_seed(mod_index, lm.collected.wildcard_paths, core_seed),
+            wildcard_ambiguities(mod_index, lm.collected.wildcard_paths),
         )
         modules.push(rm)
         resolved_by_id[id] = rm
