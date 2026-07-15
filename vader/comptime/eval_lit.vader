@@ -7,9 +7,8 @@
 
 module "vader/comptime"
 
-import "std/string_builder" { StringBuilder, append, append_char }
-import "vader/diagnostics" { comptime_error }
-import "vader/diagnostics" { ComptimeCode }
+import "std/string_builder"
+import "vader/diagnostics"
 AST :: import "vader/parser"
 
 /// Evaluate an `IntLitExpr`. The parser stores the unsigned magnitude

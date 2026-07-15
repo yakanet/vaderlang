@@ -24,7 +24,7 @@
 
 module "vader/midir"
 
-import "std/collections" { MutableMap, MutableSet, add }
+import "std/collections"
 
 export POS_STRIDE :: i64(1000000)
 

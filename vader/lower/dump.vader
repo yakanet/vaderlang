@@ -18,14 +18,14 @@
 
 module "vader/lower"
 
-import "std/collections" { keys }
+import "std/collections"
 import "std/sort"
 import "std/string"
-import "std/string_builder" { StringBuilder, append, append_char }
-import "vader/diagnostics" { Span }
-import "vader/resolver" { module_in_scope }
-import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, PrimitiveType, display_type }
+import "std/string_builder"
+import "vader/diagnostics"
+import "vader/resolver"
+import "vader/resolver/symbol"
+import "vader/types"
 import "vader/text"
 
 /// Render the project's `# Lower` dump as a single string. Only modules in

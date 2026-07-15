@@ -18,15 +18,11 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic, Span, typecheck_error, resolver_error }
-import "vader/resolver" { ResolvedModule }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/diagnostics"
+import "vader/resolver"
+import "vader/resolver/symbol"
 AST :: import "vader/parser"
-import "vader/types" {
-    Type, UnresolvedType, mk_primitive, mk_array, mk_fn, mk_struct, mk_trait, mk_tuple,
-    mk_type_param, is_primitive_name, resolve_primitive_alias,
-    TY_TYPE, TY_SELF, TY_NULL, TY_UNRESOLVED, TY_VOID,
-}
+import "vader/types"
 
 /// Lower `expr` from type position to a `Type`. Unresolvable shapes
 /// surface T3002 and return `TY_UNRESOLVED` ; downstream passes treat
@@ -200,10 +196,6 @@ walk_substitute :: fn(t: Type, params: AST.TypeParam[], args: Type[]) -> Type {
 }
 
 import "std/math"
-import "vader/types" {
-    ArrayType, FnType, StructType, TraitType, TupleType, TypeParamType, UnionType,
-    mk_union,
-}
 
 // Follow an `ImportBinding` symbol to its concrete exported
 // counterpart via `resolved.imports_to`. Other symbol kinds pass
@@ -342,10 +334,7 @@ export primitive_from_name :: fn(name: string) -> Type | null {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/parser" { parse_source }
-import "vader/resolver" { resolve_module }
-import "vader/resolver/symbol" { SymbolFactory }
-import "vader/types" { PrimitiveType, display_type }
+import "vader/parser"
 
 resolve_test_module :: fn(src: string) -> ResolvedModule {
     parsed :: parse_source(src, "t.vader")
@@ -417,7 +406,6 @@ test_fn_type_expr_lowers_to_fn :: fn() -> void {
     assert_eq(lower_first_param_type("f :: fn(cb: fn(i32) -> bool) -> void {}"), "fn(i32) -> bool")
 }
 
-import "vader/diagnostics" { Span, Position }
 
 @test
 test_value_position_expr_emits_T3002 :: fn() -> void {

@@ -3,12 +3,12 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap, values }
+import "std/collections"
 
-import "vader/resolver" { LoadedProject, ResolvedModule, build_core_seed }
-import "vader/typecheck" { TypedProject, build_impl_registry }
-import "vader/comptime" { EvaluatedProgram, ComptimeValue }
-import "vader/resolver/symbol" { Symbol }
+import "vader/resolver"
+import "vader/typecheck"
+import "vader/comptime"
+import "vader/resolver/symbol"
 
 // Populate `core_symbols` from std/core's resolved view so the lowerer can
 // resolve `Range`, `Yield`, `ArrayIterator`, `Iterator`, `Display`, `Error`,

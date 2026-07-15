@@ -13,9 +13,9 @@
 
 module "vader/lsp/protocol"
 
-import "std/io" { read_stdin, print, eprintln, poll_stdin, set_stdin_unbuffered, IOError }
-import "std/string" { char_at_byte, starts_with, parse_int, ParseError }
-import "std/string_builder" { StringBuilder, append }
+import "std/io"
+import "std/string"
+import "std/string_builder"
 
 export TransportError :: struct {
     msg: string

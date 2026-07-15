@@ -25,11 +25,11 @@
 
 module "vader/lsp/actions"
 
-import "std/collections" { MutableMap }
+import "std/collections"
 import "std/string"
 import "std/sort"
 import "std/iter"
-import "vader/diagnostics" { Span }
+import "vader/diagnostics"
 AST :: import "vader/parser"
 
 /// The organize-imports source action. Registered in `registry::all_source_actions`.

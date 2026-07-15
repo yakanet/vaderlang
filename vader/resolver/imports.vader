@@ -9,7 +9,7 @@
 
 module "vader/resolver"
 
-import "std/collections" { MutableMap }
+import "std/collections"
 
 export ImportInfo :: struct {
     path:          string
@@ -26,7 +26,7 @@ export ImportInfo :: struct {
     binding_span:  Span
 }
 
-import "vader/diagnostics" { Span }
+import "vader/diagnostics"
 
 export new_import_table :: fn() -> MutableMap<i32, ImportInfo> {
     return MutableMap<i32, ImportInfo> {}

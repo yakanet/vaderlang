@@ -22,7 +22,7 @@ module "vader/bytecode"
 
 import "std/abort"
 import "std/string"
-import "vader/types" { is_int_name, is_primitive_name }
+import "vader/types"
 
 // Mangled module fragment for `std/core` (`mangle_module_id("std/core")`).
 // Pinned against the real mangler by `test_core_module_matches_mangler`.
@@ -220,7 +220,7 @@ export assert_host_import_wired :: fn(mangled: string, is_extern: bool) -> void 
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/lower" { mangle_module_id }
+import "vader/lower"
 
 @test test_core_module_matches_mangler :: fn() -> void {
     // Pins the manifest's grammar against the real producer — if the module

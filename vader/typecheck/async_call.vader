@@ -9,7 +9,7 @@
 
 module "vader/typecheck"
 
-import "vader/types" { Type, TraitType, mk_trait, TY_NULL, TRAIT_ASYNC }
+import "vader/types"
 AST :: import "vader/parser"
 
 /// The `Async<T>` result type when `c`'s callee is an async coroutine, else null.

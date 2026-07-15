@@ -13,13 +13,12 @@
 
 module "vader/lexer"
 
-import "std/string" { utf8_decode, utf8_lead_len, codepoint_byte_len, is_empty, parse_float, ParseError, MAX_CODEPOINT }
+import "std/string"
 import "std/char"
 
-import "std/string_builder" { StringBuilder, append, append_char }
+import "std/string_builder"
 import "std/numbers"
-import "vader/diagnostics" { Diagnostic, lexer_error }
-import "vader/diagnostics" { LexerCode }
+import "vader/diagnostics"
 // Position/Span are re-imported transparently via token.vader (same module);
 // no need to import them again here — that would trigger R2011.
 

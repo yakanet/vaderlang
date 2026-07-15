@@ -14,10 +14,10 @@
 
 module "vader/lsp/analysis"
 
-import "std/collections" { MutableMap }
-import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonArray }
-import "vader/diagnostics" { Diagnostic, Span, Severity }
-import "vader/lsp/protocol" { write_frame, encode_notification, uri_to_path, span_to_range_json, range_json, LineIndex }
+import "std/collections"
+import "std/json"
+import "vader/diagnostics"
+import "vader/lsp/protocol"
 
 /// Type-check the file at `uri` and push the resulting diagnostics to
 /// the client. Non-file URIs and empty docs short-circuit to an empty

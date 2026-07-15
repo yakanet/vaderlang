@@ -14,29 +14,11 @@
 
 module "vader/midir"
 
-import "std/collections" { MutableMap }
-import "vader/diagnostics" { Span, empty_span }
-import "vader/lower" {
-    LoweredProject, LoweredModule, LoweredDecl, LoweredFnDecl, LoweredStructDecl,
-    LoweredConstDecl, ConstFnWrap, DataPoolEntry, PrimDataPoolEntry, StrDataPoolEntry,
-    AggregateDataPoolEntry, LoweredStructLitField,
-    LoweredBlock, LoweredStmt, LoweredLet, LoweredAssign, LoweredExprStmt,
-    LoweredReturn, LoweredLoop, LoweredBreak, LoweredContinue,
-    LoweredCellSet,
-    LoweredExpr, LoweredIntLit, LoweredFloatLit, LoweredBoolLit, LoweredNullLit,
-    LoweredCharLit, LoweredStringLit, LoweredIdent, LoweredCall, LoweredVirtualCall,
-    LoweredFieldAccess, LoweredIndex, LoweredUnary, LoweredBinary, LoweredIf,
-    LoweredStructLit, LoweredArrayLit, LoweredCast, LoweredTypeCheck,
-    LoweredUnreachable, LoweredIntrinsicCall, LoweredArrayLen, LoweredArrayPush,
-    LoweredArraySlice, LoweredStringSlice, LoweredCellNew, LoweredCellGet, LoweredMakeClosure,
-    LoweredDataConst, LoweredTypeConst,
-    LoweredBinaryOp, binary_op_name,
-    type_of, span_of,
-}
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" {
-    Type, UnionType, StructType, ArrayType, display_type,
-}
+import "std/collections"
+import "vader/diagnostics"
+import "vader/lower"
+import "vader/resolver/symbol"
+import "vader/types"
 import "vader/typecheck"
 import "std/abort"
 
@@ -105,7 +87,7 @@ FnCtx :: struct {
     current:         BlockId | null
 }
 
-import "vader/comptime" { MonoEntry }
+import "vader/comptime"
 
 // ============================================================================
 // Project-level orchestration
@@ -156,11 +138,7 @@ export build_cfg_project :: fn(lp: LoweredProject) -> CFGProject {
     }
 }
 
-import "vader/bytecode" {
-    BcDataEntry, BcPrimData, BcStrData, BcAggregateData,
-    BcDataValue, BcValPrim, BcValStr, BcValStruct, BcValArray,
-    ArrayKind, array_kind_from_name,
-}
+import "vader/bytecode"
 
 // Convert each lower-side `DataPoolEntry` into its bytecode `BcDataEntry`
 // variant. Done here, at the lower→CFG boundary, because `vader/lower` can't
@@ -250,7 +228,7 @@ FnMetadata :: struct {
     is_exported: bool
 }
 
-import "vader/parser" { FnDecl, Decl }
+import "vader/parser"
 
 /// Extract source-level metadata bytecode-emit needs to route a fn to
 /// imports / exports.
@@ -294,7 +272,6 @@ decorators_have :: fn(decs: Decorator[], name: string) -> bool {
     return false
 }
 
-import "vader/parser" { Decorator, StringLitExpr, StringLitText }
 
 make_struct_decl :: fn(d: LoweredStructDecl) -> CFGStructDecl {
     fields: CFGStructField[] = []

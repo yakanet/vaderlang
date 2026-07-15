@@ -21,12 +21,12 @@
 
 module "vader/resolver"
 
-import "std/collections" { MutableMap, MutableSet, add }
+import "std/collections"
 import "std/iter"
 import "std/math"
 import "std/testing"
-import "vader/diagnostics" { Span, Position }
-import "vader/parser" { parse_source, mint }
+import "vader/diagnostics"
+import "vader/parser"
 AST :: import "vader/parser"
 
 /// `@intrinsic impl ... {}` carries an empty body : fill it with one
@@ -181,7 +181,6 @@ substitute_params_disambiguated :: fn(
     return out
 }
 
-import "vader/parser" { NodeIdFactory, new_node_id_factory }
 
 /// SAM-synthetic members come out of the parser with a placeholder
 /// name and an empty param list ; the trait's lone required method

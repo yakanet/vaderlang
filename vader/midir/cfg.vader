@@ -7,20 +7,18 @@
 // Terminator and never leak back into the Lowered tree.
 //
 // Cross-IR carry : MonoEntry, Type, Symbol, LoweredBinaryOp /
-// LoweredUnaryOp, VtableEntry are imported from upstream phases.
+// LoweredUnaryOp, LoweredVtableEntry are imported from upstream phases.
 // IntrinsicName is a `string` here — Vader stores the verbatim name.
 
 module "vader/midir"
 
-import "vader/diagnostics" { Span }
-import "vader/types" { Type }
-import "vader/resolver/symbol" { Symbol }
-import "vader/comptime" { MonoEntry }
-import "vader/bytecode" { BcDataEntry }
-import "vader/lower" {
-    LoweredBinaryOp, LoweredUnaryOp, VtableEntry,
-}
-import "std/collections" { MutableMap }
+import "vader/diagnostics"
+import "vader/types"
+import "vader/resolver/symbol"
+import "vader/comptime"
+import "vader/bytecode"
+import "vader/lower"
+import "std/collections"
 
 // ---- index types ----------------------------------------------------------
 
@@ -490,7 +488,7 @@ export CFGProject :: struct {
     modules: MutableMap<string, CFGModule>
     /// Same vtable entries the LoweredProject carries — bytecode emit
     /// reuses them as-is.
-    vtable_entries: VtableEntry[]
+    vtable_entries: LoweredVtableEntry[]
     /// Project-level string pool. The converter interns each
     /// LoweredStringLit here ; ConstString stores the index. The
     /// emitter reuses this pool verbatim as `BcModule.strings`.

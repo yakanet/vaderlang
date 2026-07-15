@@ -16,14 +16,11 @@
 
 module "vader/lsp/handlers"
 
-import "std/json" { JsonValue, JsonNull }
-import "vader/types" {
-    Type, StructType, EnumType, TraitType, TypeParamType, UnionType, PrimitiveType,
-    DistinctType, TY_VOID, mk_struct, mk_primitive, mk_union, mk_distinct,
-}
-import "vader/resolver/symbol" { Symbol }
-import "vader/lsp/protocol" { position_uri, uri_to_path, cursor_field, location_json, span_to_range_json, path_to_uri }
-import "vader/lsp/analysis" { ServerState, typed_project_for, source_file_for_path, find_expr_at }
+import "std/json"
+import "vader/types"
+import "vader/resolver/symbol"
+import "vader/lsp/protocol"
+import "vader/lsp/analysis"
 
 /// Resolve typeDefinition for the position carried in `params`. Returns a
 /// `Location` (the type's declaration), or `JsonNull` when the cursor isn't on

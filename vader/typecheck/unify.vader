@@ -13,11 +13,8 @@
 
 module "vader/typecheck"
 
-import "std/collections" { MutableMap }
-import "vader/types" {
-    Type, ArrayType, TupleType, StructType, TraitType, FnType, UnionType,
-    TypeParamType, FreeIntType, FreeCharType, FreeFloatType,
-}
+import "std/collections"
+import "vader/types"
 
 is_free_numeric :: fn(t: Type) -> bool {
     // @partial: only the three Free* literal variants are free numerics; every
@@ -184,7 +181,6 @@ export find_unused_equal :: fn(types: Type[], used: bool[], target: Type) -> i32
 }
 
 import "std/math"
-import "vader/types" { mk_array, mk_tuple, mk_struct, mk_trait, mk_fn }
 
 /// Walk `t` and replace each `TypeParam` whose symbol id appears in
 /// `subst` with the bound concrete type. The `_map` suffix distinguishes

@@ -3,16 +3,16 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap }
-import "std/string_builder" { StringBuilder, append }
+import "std/collections"
+import "std/string_builder"
 
-import "vader/parser" { IdentExpr, CallExpr, GenericInstExpr, Visibility, FnDecl }
-import "vader/diagnostics" { Span }
-import "vader/typecheck" { type_from_expr, default_if_free, lookup_struct_trait_args, substitute, find_unused_equal }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, FnType, TraitType, TypeParamType, ArrayType, TupleType, StructType, UnionType, UnresolvedType, strip_distinct_each, TRAIT_ITERATOR }
-import "vader/comptime" { mangle_type_arg, uniq }
-import "vader/resolver" { ImportTargetTable, SymbolTarget }
+import "vader/parser"
+import "vader/diagnostics"
+import "vader/typecheck"
+import "vader/resolver/symbol"
+import "vader/types"
+import "vader/comptime"
+import "vader/resolver"
 
 /// `fn<T, U>(a, b)` call to a top-level generic fn lowers to a direct
 /// call against the monomorphized instance. Detection : callee is an

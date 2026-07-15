@@ -7,8 +7,8 @@
 
 module "vader/bytecode"
 
-import "std/collections" { MutableMap }
-import "vader/types" { Type }
+import "std/collections"
+import "vader/types"
 
 /// Knobs threaded through the emit. `optimize` gates the peephole / DCE
 /// passes ; `want_debug` gates whether each op carries its source position.
@@ -216,7 +216,6 @@ export intern_cell_type :: fn(slot_type: Type, ctx: EmitterCtx) -> i32 {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/types" { mk_primitive }
 
 @test test_new_emitter_ctx_reserves_null_slot :: fn() -> void {
     ctx :: new_emitter_ctx()

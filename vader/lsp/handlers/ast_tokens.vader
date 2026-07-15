@@ -16,14 +16,14 @@
 
 module "vader/lsp/handlers"
 
-import "std/collections" { MutableMap }
-import "vader/parser" { parse_source }
+import "std/collections"
+import "vader/parser"
 AST :: import "vader/parser"
-import "vader/diagnostics" { Position, Span }
-import "vader/resolver" { resolve_program }
-import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory }
-import "vader/types" { is_primitive_name }
-import "vader/lsp/protocol" { TokenType, RawToken, new_line_index, li_character }
+import "vader/diagnostics"
+import "vader/resolver"
+import "vader/resolver/symbol"
+import "vader/types"
+import "vader/lsp/protocol"
 
 /// Primitive type names recognised by the lexer / typechecker but not as
 /// individual keywords. When an `IdentExpr` carries one of these names in

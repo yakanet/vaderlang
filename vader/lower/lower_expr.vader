@@ -13,16 +13,16 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap, values, keys }
+import "std/collections"
 import "std/sort"
 import "std/string"
 
-import "vader/parser" { Expr, IntLitExpr, FloatLitExpr, BoolLitExpr, NullLitExpr, CharLitExpr, StringLitExpr, IdentExpr, CallExpr, FieldExpr, IndexExpr, UnaryExpr, UnaryOp, BinaryExpr, BinaryOp, IfExpr, BlockExpr, MatchExpr, LambdaExpr, StructLitExpr, SeqLitExpr, RangeExpr, AwaitExpr, CastExpr, GenericInstExpr, IntrinsicCallExpr, DotVariantExpr, IfElse, IfElseIf, IfElseBlock, FnTypeExpr, ArrayTypeExpr, ExprStmt, Decl, ConstDecl }
-import "vader/diagnostics" { Span }
-import "vader/typecheck" { primitive_from_name, default_if_free, equals_type, substitute, new_substitution, is_void }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, PrimitiveType, UnionType, ArrayType, TypeMetaType, TY_BOOL, TY_VOID, TY_UNRESOLVED, TY_STRING, TY_NULL, mk_primitive, is_primitive_name, StructType }
-import "vader/comptime" { ComptimeValue, IntValue, FloatValue, BoolValue, CharValue, StringValue, NullValue, VoidValue, ArrayValue, StructValue, TypeValue }
+import "vader/parser"
+import "vader/diagnostics"
+import "vader/typecheck"
+import "vader/resolver/symbol"
+import "vader/types"
+import "vader/comptime"
 
 /// Lower an `AST.Expr` to its `LoweredExpr` form.
 /// @param ctx   the fn-body context.

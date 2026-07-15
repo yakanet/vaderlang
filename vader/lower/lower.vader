@@ -15,16 +15,16 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap, MutableSet, keys }
+import "std/collections"
 import "std/sort"
-import "std/string_builder" { append }
+import "std/string_builder"
 
-import "vader/diagnostics" { Diagnostic }
-import "vader/parser" { Decl, FnDecl, StructDecl, ConstDecl, ImplDecl, EnumDecl, TraitDecl, TypeAliasDecl, ImportDecl, AssertDecl }
-import "vader/resolver" { LoadedProject, LoadedModule, concat_file_decls }
-import "vader/typecheck" { TypedProject, TypedProgram }
-import "vader/comptime" { EvaluatedProject, ComptimeValue }
-import "vader/resolver/symbol" { Symbol }
+import "vader/diagnostics"
+import "vader/parser"
+import "vader/resolver"
+import "vader/typecheck"
+import "vader/comptime"
+import "vader/resolver/symbol"
 
 /// Lower every module's top-level decls into a `LoweredProject`.
 /// @param loaded     the loaded project (for source decls per module).
@@ -361,9 +361,6 @@ module_decls :: fn(module_loaded: LoadedModule) -> Decl[] {
 
 import "std/testing"
 
-import "vader/typecheck" { new_typed_project }
-import "vader/comptime" { new_evaluated_project }
-import "vader/resolver/symbol" { SymbolFactory }
 
 @test test_lower_empty_project :: fn() -> void {
     loaded :: LoadedProject {

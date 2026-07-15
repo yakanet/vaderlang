@@ -22,12 +22,12 @@
 module "vader/comptime_vm"
 
 import "std/string"
-import "vader/diagnostics" { Diagnostic, comptime_error }
-import "vader/resolver" { LoadedProject }
-import "vader/typecheck" { TypedProject }
+import "vader/diagnostics"
+import "vader/resolver"
+import "vader/typecheck"
 import "vader/lower"
 import "vader/midir"
-import "vader/bytecode" { BytecodeModule, default_emit_options }
+import "vader/bytecode"
 Ct :: import "vader/comptime"
 Vm :: import "vader/vm"
 

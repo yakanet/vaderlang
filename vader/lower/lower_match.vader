@@ -16,26 +16,17 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap }
-import "vader/diagnostics" { Span }
-import "vader/parser" {
-    MatchExpr, MatchArm, Pattern, WildcardPattern, BindingPattern, IsPattern,
-    StructPattern, StructPatternField, PatternFieldValue, PatternBinding,
-    PatternLiteral, TuplePattern, EnumVariantPattern, LiteralPattern, OrPattern, Expr,
-}
-import "vader/resolver/symbol" { Symbol }
+import "std/collections"
+import "vader/diagnostics"
+import "vader/parser"
+import "vader/resolver/symbol"
 // `lower_expr` is supplied as a callback ; this breaks the cycle
 // between `lower_expr` (which imports this module) and the body of
 // `lower_match` (which calls back into `lower_expr` for nested
 // expression lowering). Same pattern as
 // `vader/comptime/eval_binary.vader::evaluate_binary`'s `recurse` arg.
-import "vader/types" {
-    Type, UnionType, TupleType, StructType, EnumType, UnresolvedType, mk_primitive,
-    TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED,
-}
-import "vader/typecheck" { TypedProgram }
-import "vader/typecheck" { type_from_expr }
-import "vader/diagnostics" { Diagnostic }
+import "vader/types"
+import "vader/typecheck"
 
 /// Lower a `MatchExpr` to a block containing the scrutinee binding
 /// + an if-chain over the arms.
@@ -349,7 +340,6 @@ enum_variant_literal :: fn(target_type: Type, name: string, span: Span, ctx: FnL
     }
 }
 
-import "vader/resolver/symbol" { SymbolKind }
 
 unwrap_enum_type :: fn(target_type: Type, ctx: FnLowerCtx) -> Type {
     // @partial: only an EnumType or an enum-kind StructType placeholder needs
@@ -501,7 +491,6 @@ wrap_block :: fn(span: Span, expr: LoweredExpr) -> LoweredBlock {
     return LoweredBlock { .span = span, .type = type_of(expr), .stmts = [], .trailing = expr }
 }
 
-import "vader/parser" { TypeExpr }
 
 // Pattern-position type expressions don't always get a
 // `type_expr_types` entry — the typecheck's match arm walker doesn't
@@ -526,7 +515,6 @@ export resolve_pattern_type :: fn(ctx: FnLowerCtx, type_expr: TypeExpr) -> Type 
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/diagnostics" { empty_span }
 
 @test test_fill_unresolved_emits_unresolved_array :: fn() -> void {
     types :: fill_unresolved(3)

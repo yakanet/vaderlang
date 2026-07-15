@@ -25,11 +25,11 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap }
+import "std/collections"
 AST :: import "vader/parser"
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/comptime" { MonoEntry }
-import "vader/types" { ArrayType, StructType, display_type }
+import "vader/resolver/symbol"
+import "vader/comptime"
+import "vader/types"
 
 // Break-even point : the `call` at each read site is cheaper than re-emitting
 // `2 * N` ops to rebuild the literal once N passes this threshold.

@@ -13,16 +13,11 @@
 
 module "vader/lsp/handlers"
 
-import "std/json" { JsonValue, JsonObject, JsonString, JsonArray }
-import "std/collections" { MutableMap }
-import "vader/lsp/protocol" {
-    position_uri, uri_to_path, get_field, get_number, span_to_range_json, range_json,
-    LineIndex, new_line_index,
-}
-import "vader/lsp/analysis" {
-    ServerState, typed_project_for, source_file_for_path, enclosing_exprs,
-}
-import "vader/lsp/actions" { ActionCtx, ActionResult, run_actions, run_source_actions }
+import "std/json"
+import "std/collections"
+import "vader/lsp/protocol"
+import "vader/lsp/analysis"
+import "vader/lsp/actions"
 
 /// Resolve code actions for the range in `params`. Returns a `CodeAction[]`
 /// (possibly empty) — never null, per the LSP array-typed response.

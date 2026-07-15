@@ -9,10 +9,8 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic }
-import "vader/types" {
-    Type, PrimitiveType, FreeIntType, FreeCharType, TY_UNRESOLVED,
-}
+import "vader/diagnostics"
+import "vader/types"
 AST :: import "vader/parser"
 
 /// Type-check a range. Resolves to `Range<T>` when `std/core::Range`
@@ -58,6 +56,5 @@ pick_bound_or_default :: fn(t: Type) -> Type {
     }
 }
 
-import "vader/resolver/symbol" { Symbol }
-import "vader/types" { mk_struct, mk_primitive }
+import "vader/resolver/symbol"
 

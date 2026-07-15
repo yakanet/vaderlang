@@ -16,22 +16,8 @@
 
 module "vader/midir"
 
-import "vader/types" { Type, StructType, TraitType, canonical_args_key, for_each_type }
-import "vader/lower" {
-    LoweredBlock, LoweredDecl, LoweredExpr, LoweredStmt,
-    LoweredFnDecl, LoweredStructDecl, LoweredConstDecl,
-    LoweredLet, LoweredAssign, LoweredExprStmt, LoweredReturn, LoweredYield, LoweredAwait,
-    LoweredLoop, LoweredBreak, LoweredContinue, LoweredCellSet,
-    LoweredDeferPush, LoweredDeferPopExec,
-    LoweredIdent, LoweredCall, LoweredVirtualCall, LoweredFieldAccess,
-    LoweredIndex, LoweredUnary, LoweredBinary, LoweredIf,
-    LoweredStructLit, LoweredArrayLit, LoweredArrayLen, LoweredArrayPush,
-    LoweredArraySlice, LoweredStringSlice, LoweredCast, LoweredTypeCheck, LoweredIntrinsicCall,
-    LoweredIntLit, LoweredFloatLit, LoweredBoolLit, LoweredNullLit,
-    LoweredCharLit, LoweredStringLit, LoweredUnreachable,
-    LoweredCellNew, LoweredCellGet, LoweredMakeClosure,
-    LoweredDataConst, LoweredTypeConst,
-}
+import "vader/types"
+import "vader/lower"
 
 /// Visitor bundle threaded through the walk (see the file header for the
 /// three channels). `visit` fires on every symbol reference ;

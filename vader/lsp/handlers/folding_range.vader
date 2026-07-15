@@ -9,10 +9,10 @@
 
 module "vader/lsp/handlers"
 
-import "std/json" { JsonValue, JsonObject, JsonNumber, JsonArray }
-import "std/collections" { MutableMap }
-import "vader/lsp/protocol" { position_uri }
-import "vader/lsp/analysis" { ServerState, DocIndex, DeclEntry, build_index }
+import "std/json"
+import "std/collections"
+import "vader/lsp/protocol"
+import "vader/lsp/analysis"
 
 /// Build the `FoldingRange[]` response for the document named in `params`
 /// (`{ textDocument: { uri } }`).

@@ -12,13 +12,13 @@ module "vader/vm"
 
 bc :: import "vader/bytecode"
 
-import "std/io" { read_file_bytes, write_file_bytes, exists, is_dir, read_dir, print, eprint, temp_dir, current_executable_location, Stream, IOError }
+import "std/io"
 import "std/env"
 import "std/tty"
 import "std/process"
 import "std/math"
 import "std/time"
-import "std/string" { trim }
+import "std/string"
 
 /// Outcome of a successful host call. `value` is unused when the import
 /// has `has_return == false` — the exec checks the import's signature

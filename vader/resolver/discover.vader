@@ -8,7 +8,7 @@
 
 module "vader/resolver"
 
-import "vader/diagnostics" { Span }
+import "vader/diagnostics"
 
 /// A resolved module : its declared name, its folder, and its `.vader` file
 /// paths. Files are parsed lazily by the loader on visit — not stashed as

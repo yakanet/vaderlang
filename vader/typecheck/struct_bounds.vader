@@ -13,8 +13,8 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic, Span }
-import "vader/types" { Type }
+import "vader/diagnostics"
+import "vader/types"
 
 /// Verify that `args` satisfy the bounds attached to `type_param_syms`.
 /// MVP : no-op (no bound storage yet).

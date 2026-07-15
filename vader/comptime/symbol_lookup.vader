@@ -7,13 +7,10 @@
 
 module "vader/comptime"
 
-import "vader/parser" {
-    Decl, FnDecl, StructDecl, ConstDecl, ImplDecl,
-    AssertDecl, ImportDecl, EnumDecl, TraitDecl, TypeAliasDecl,
-}
-import "vader/typecheck" { TypedProgram }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/diagnostics" { Span }
+import "vader/parser"
+import "vader/typecheck"
+import "vader/resolver/symbol"
+import "vader/diagnostics"
 
 /// Resolve `decl` to the resolver `Symbol` minted for it, matching fn
 /// overloads by declaration span.

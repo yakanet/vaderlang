@@ -15,10 +15,10 @@
 
 module "vader/vm"
 
-import "std/string" { starts_with }
-import "std/string_builder" { StringBuilder, append }
-import "vader/bytecode" { ConvertTarget }
-import "vader/types" { TRAIT_ERROR }
+import "std/string"
+import "std/string_builder"
+import "vader/bytecode"
+import "vader/types"
 import "vader/text"
 bc :: import "vader/bytecode"
 

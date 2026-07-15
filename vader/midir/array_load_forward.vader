@@ -22,7 +22,7 @@
 
 module "vader/midir"
 
-import "std/collections" { MutableMap }
+import "std/collections"
 
 // A known array-slot value live in the current block : `target[index]` holds the
 // value currently in local `value`.

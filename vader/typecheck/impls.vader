@@ -16,11 +16,11 @@
 
 module "vader/typecheck"
 
-import "std/collections" { MutableMap }
-import "vader/parser" { ImplDecl, Decl, IdentExpr, GenericInstExpr, TypeExpr }
-import "vader/resolver" { ResolvedModule }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, StructType, EnumType, TraitType, DistinctType }
+import "std/collections"
+import "vader/parser"
+import "vader/resolver"
+import "vader/resolver/symbol"
+import "vader/types"
 
 /// One `T implements Trait { ... }` block, indexed by the registry.
 export ImplEntry :: struct {
@@ -50,17 +50,10 @@ export ImplRegistry :: struct {
     /// Key : `"${for_symbol.id}::${trait_symbol.id}"`. Concrete-target
     /// entries land here ; primitive-target lookup deferred (see file
     /// header).
-    user_index: MutableMap<string, ImplEntry>
+    user_index: MutableMap<string, ImplEntry> = MutableMap<string, ImplEntry> {}
     /// Every entry the registry has seen — used by the lowerer to drive
     /// virtual dispatch over trait-typed receivers.
-    all:        ImplEntry[]
-}
-
-export new_registry :: fn() -> ImplRegistry {
-    return ImplRegistry {
-        .user_index = MutableMap<string, ImplEntry> {},
-        .all        = [],
-    }
+    all:        ImplEntry[] = []
 }
 
 /// Walk every decl in `program_decls`, harvest `ImplDecl`s, resolve their
@@ -70,7 +63,7 @@ export build_impl_registry :: fn(
     program_decls: Decl[], resolved: ResolvedModule,
     core_syms: MutableMap<string, Symbol>,
 ) -> ImplRegistry {
-    reg :: new_registry()
+    reg :: ImplRegistry {}
     by_name :: MutableMap<string, Symbol> {}
     for s in resolved.symbols { by_name[s.name] = s }
     // Auto-imported traits (`Display`, `Iterator`, `Error`, …) live in the
@@ -200,9 +193,6 @@ export type_to_target_symbol :: fn(t: Type) -> Symbol | null {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/parser" { parse_source }
-import "vader/resolver" { resolve_module }
-import "vader/resolver/symbol" { SymbolFactory }
 
 build_test_registry :: fn(src: string) -> ImplRegistry {
     parsed :: parse_source(src, "t.vader")

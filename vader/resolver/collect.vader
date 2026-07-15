@@ -12,15 +12,11 @@
 
 module "vader/resolver"
 
-import "std/collections" { MutableMap }
+import "std/collections"
 import "std/string"
-import "vader/diagnostics" { Diagnostic, Span, resolver_error }
-import "vader/parser" {
-    Program, Decl, ImportDecl, FnDecl, StructDecl, EnumDecl, TraitDecl,
-    ImplDecl, TypeAliasDecl, ConstDecl, AssertDecl, Visibility,
-    ImportBinding, NamedNamespaceImport, DestructureImport, WildcardImport,
-}
-import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, make }
+import "vader/diagnostics"
+import "vader/parser"
+import "vader/resolver/symbol"
 
 /// Output of one module's collect pass.
 /// `symbols` is keyed by local name ; `fn_overloads` carries every fn
@@ -269,7 +265,7 @@ diagnose_import_path :: fn(
     raw_path: string, span: Span, from_module_name: string,
     index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[],
 ) -> string | null {
-    if starts_with(raw_path, "./") || starts_with(raw_path, "../") {
+    if raw_path.starts_with("./") || raw_path.starts_with("../") {
         diags.push(resolver_error(.RelativeImportRemoved, span, "`${raw_path}`"))
         return null
     }
@@ -307,7 +303,6 @@ diagnose_import_path :: fn(
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/parser" { parse_source }
 
 @test
 test_collect_mints_one_symbol_per_top_level_decl :: fn() -> void {

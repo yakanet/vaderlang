@@ -24,7 +24,7 @@
 module "vader/lsp"
 
 import "std/io"
-import "std/json" { parse, JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonError, JsonBool, JsonArray }
+import "std/json"
 P :: import "vader/lsp/protocol"
 A :: import "vader/lsp/analysis"
 H :: import "vader/lsp/handlers"

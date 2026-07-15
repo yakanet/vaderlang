@@ -15,10 +15,10 @@
 module "vader/diagnostics"
 
 import "std/string" { compare_ascending as string_less }
-import "std/string_builder" { StringBuilder, append, append_char }
+import "std/string_builder"
 import "std/sort"
 import "std/math"
-import "std/collections" { MutableSet }
+import "std/collections"
 TTY :: import "std/tty"
 
 /// Render `diags` as a `# Diagnostics` block, ordered by (offset, code). The

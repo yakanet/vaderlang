@@ -6,7 +6,7 @@
 
 module "std/string"
 
-import "std/string_builder" { StringBuilder, append, append_char }
+import "std/string_builder"
 import "std/math"
 
 /// True for the empty string. Equivalent to `s.byte_len() == 0` but

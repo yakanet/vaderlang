@@ -10,9 +10,9 @@
 
 module "vader/resolver"
 
-import "std/collections" { MutableMap }
-import "vader/diagnostics" { Diagnostic, resolver_error }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "std/collections"
+import "vader/diagnostics"
+import "vader/resolver/symbol"
 AST :: import "vader/parser"
 
 /// Walk every ImplDecl in `loaded.module.files` and push R2018 when

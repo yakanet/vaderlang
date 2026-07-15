@@ -8,15 +8,11 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap }
-import "vader/diagnostics" { Span }
-import "vader/parser" {
-    Expr, TypeExpr, SimpleBinding, RestBinding, FnParam,
-    FnDecl, StructDecl, ConstDecl,
-}
-import "vader/types" { Type, TY_UNRESOLVED }
-import "vader/typecheck" { TypedProgram }
-import "vader/typecheck" { Substitution, substitute, is_empty_substitution }
+import "std/collections"
+import "vader/diagnostics"
+import "vader/parser"
+import "vader/types"
+import "vader/typecheck"
 
 /// Per-entry view over the typed program with substitution applied at
 /// every read. The struct holds both inputs ; the accessor functions
@@ -161,13 +157,7 @@ fn_decl_type_by_span :: fn(self: EntryTypes, name: string, name_span: Span) -> T
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/typecheck" { empty_typed_program }
-import "vader/typecheck" { new_substitution }
-import "vader/types" {
-    mk_primitive, mk_array, mk_type_param, display_type,
-}
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/parser" { Visibility }
+import "vader/resolver/symbol"
 
 @test test_apply_is_identity_under_empty_subst :: fn() -> void {
     typed :: empty_typed_program()

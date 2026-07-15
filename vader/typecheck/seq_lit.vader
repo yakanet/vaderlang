@@ -15,12 +15,8 @@ module "vader/typecheck"
 
 import "std/math"
 import "std/iter"
-import "vader/diagnostics" { Diagnostic, typecheck_error }
-import "vader/types" {
-    Type, ArrayType, TupleType, TypeParamType, UnionType, UnresolvedType,
-    DistinctType, array_backing, tuple_backing,
-    display_type, mk_array, mk_tuple, TY_FREE_INT, TY_STRING, TY_UNRESOLVED,
-}
+import "vader/diagnostics"
+import "vader/types"
 AST :: import "vader/parser"
 
 /// Type a bracketed literal contextually : returns `Tuple(...)` when
@@ -183,11 +179,9 @@ pick_seq_variant :: fn(u: UnionType, arity: usize) -> Type | null {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/parser" { parse_source }
-import "vader/resolver" { resolve_module }
-import "vader/resolver/symbol" { SymbolFactory }
-import "vader/types" { mk_primitive }
-import "vader/diagnostics" { empty_span }
+import "vader/parser"
+import "vader/resolver"
+import "vader/resolver/symbol"
 
 seq_lit_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],

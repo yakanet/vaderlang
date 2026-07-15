@@ -7,12 +7,8 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic, typecheck_error }
-import "vader/types" {
-    Type, ArrayType, PrimitiveType, FreeIntType, StructType, UnresolvedType,
-    display_type, mk_array, mk_primitive, TY_STRING, TY_UNRESOLVED, STRUCT_RANGE,
-    array_backing,
-}
+import "vader/diagnostics"
+import "vader/types"
 AST :: import "vader/parser"
 
 /// Type-check `target[index]`. Returns `T` when `target: T[]`.

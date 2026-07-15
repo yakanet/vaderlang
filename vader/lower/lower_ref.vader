@@ -3,8 +3,8 @@
 
 module "vader/lower"
 
-import "vader/types" { Type, for_each_type }
-import "vader/resolver/symbol" { SymbolKind }
+import "vader/types"
+import "vader/resolver/symbol"
 
 /// Visit every `Type` node referenced by `decl` — fields (struct),
 /// signature + body (fn), type + value (const). `visit` is passed as a

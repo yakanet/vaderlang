@@ -21,9 +21,9 @@
 
 module "vader/lsp/analysis"
 
-import "vader/types" { Type }
-import "vader/typecheck" { TypedProgram }
-import "vader/lsp/protocol" { span_contains, span_size }
+import "vader/types"
+import "vader/typecheck"
+import "vader/lsp/protocol"
 AST :: import "vader/parser"
 
 // ---- smallest typed expression at a position ------------------------------

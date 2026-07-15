@@ -20,9 +20,9 @@ module "vader/vm"
 
 bc :: import "vader/bytecode"
 
-import "std/string" { starts_with, ends_with, trim, split, index_of, decode_escapes, ParseError }
+import "std/string"
 import "std/numbers"
-import "vader/types" { is_int_name, is_unsigned_int_name, is_numeric_name }
+import "vader/types"
 
 // `ScopeEntry` and `PendingBranch` live in `vader/vm/builder.vader` —
 // same module, same shape, single source of truth. The parser threads
@@ -981,7 +981,7 @@ parse_data_const :: fn(line: string) -> bc.Op | null {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "std/string_builder" { StringBuilder }
+import "std/string_builder"
 
 /// Round-trip an op through `write_op` (the canonical mnemonic writer,
 /// dump.vader) and `parse_op_line`, returning the re-serialised text. A parse

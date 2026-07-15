@@ -7,15 +7,12 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableSet, MutableMap }
-import "vader/diagnostics" { Span, empty_span }
-import "vader/parser" { Visibility }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" {
-    Type, EnumType, mk_primitive,
-    TY_BOOL, TY_UNRESOLVED, TY_VOID,
-}
-import "std/string_builder" { StringBuilder, append_char }
+import "std/collections"
+import "vader/diagnostics"
+import "vader/parser"
+import "vader/resolver/symbol"
+import "vader/types"
+import "std/string_builder"
 
 /// Mangle a module display path into a name-fragment usable in a mangled
 /// symbol: `/` and `.` both become `_`, every other byte passes through.
@@ -285,7 +282,6 @@ export span_of :: fn(expr: LoweredExpr) -> Span = match expr {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/types" { display_type }
 
 @test test_or_all_empty_emits_false :: fn() -> void {
     span :: empty_span()

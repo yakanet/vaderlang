@@ -5,10 +5,10 @@ module "vader/lower"
 
 import "std/string"
 
-import "vader/parser" { Decl, ImplDecl, ArrayTypeExpr, GenericInstExpr }
-import "vader/resolver" { LoadedProject }
-import "vader/typecheck" { TypedProject, TypedProgram, new_substitution }
-import "vader/types" { Type, StructType, mk_array, PrimitiveType }
+import "vader/parser"
+import "vader/resolver"
+import "vader/typecheck"
+import "vader/types"
 
 
 /// Post-lowering pass : surface the referenced impl members of every

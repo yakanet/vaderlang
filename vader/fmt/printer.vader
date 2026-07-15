@@ -8,9 +8,9 @@
 
 module "vader/fmt"
 
-import "std/string_builder" { StringBuilder, append, append_char, append_repeated }
-import "std/io" { eprintln }
-import "vader/diagnostics" { Span, Position }
+import "std/string_builder"
+import "std/io"
+import "vader/diagnostics"
 p :: import "vader/parser"
 
 // ============================================================================

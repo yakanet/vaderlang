@@ -13,7 +13,7 @@
 
 module "vader/midir"
 
-import "std/collections" { MutableMap, MutableSet, add }
+import "std/collections"
 
 // ---- successor / predecessor edges ---------------------------------------
 

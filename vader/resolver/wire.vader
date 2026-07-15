@@ -7,8 +7,8 @@
 
 module "vader/resolver"
 
-import "std/collections" { MutableMap }
-import "vader/resolver/symbol" { Symbol }
+import "std/collections"
+import "vader/resolver/symbol"
 
 /// What an ImportBinding resolves to. Three flat side-tables keyed
 /// by Symbol.id : `symbol_targets` for destructured-named imports,
@@ -54,8 +54,8 @@ export wire_imports :: fn(project: LoadedProject) -> ImportTargetTable {
     return out
 }
 
-import "vader/diagnostics" { Diagnostic, resolver_error }
-import "vader/parser" { Visibility }
+import "vader/diagnostics"
+import "vader/parser"
 
 wire_module :: fn(
     loaded: LoadedModule, path_index: MutableMap<string, string>,
@@ -108,4 +108,3 @@ export resolve_import_redirect :: fn(sym: Symbol, table: ImportTargetTable) -> S
     return st.symbol
 }
 
-import "vader/resolver/symbol" { SymbolKind }

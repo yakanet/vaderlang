@@ -3,12 +3,12 @@
 
 module "vader/lower"
 
-import "vader/parser" { Expr, IdentExpr, IntrinsicCallExpr, StructDecl, StringLitExpr, StringLitText }
-import "vader/diagnostics" { Span, Diagnostic }
-import "vader/typecheck" { type_from_expr, type_to_target_symbol, has_user, substitute }
-import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, FnType, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, UnionType, TraitType, TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType, SelfType, NeverType, TY_UNRESOLVED, TY_TYPE, display_type, STRUCT_FIELD, StructType, EnumType, UnresolvedType, DistinctType, TY_STRING }
-import "vader/comptime" { TypeValue, byte_size, byte_align }
+import "vader/parser"
+import "vader/diagnostics"
+import "vader/typecheck"
+import "vader/resolver/symbol"
+import "vader/types"
+import "vader/comptime"
 
 // Preserve the `@<name>(args)` call shape. Comptime-foldable variants
 // (`@size_of`, `@type_kind`, …) get baked at evaluation time and reach

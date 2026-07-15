@@ -11,12 +11,12 @@
 
 module "vader/typecheck"
 
-import "std/collections" { MutableMap }
-import "vader/parser" { FnDecl, StructDecl, TraitDecl, TypeAliasDecl }
+import "std/collections"
+import "vader/parser"
 AST :: import "vader/parser"
-import "vader/resolver" { ResolvedModule }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type }
+import "vader/resolver"
+import "vader/resolver/symbol"
+import "vader/types"
 
 /// Find the resolved `Const` symbol matching `decl` by name. The typed AST
 /// only indexes `IdentExpr` use sites, so this scans `resolved.symbols` by
@@ -376,9 +376,8 @@ export EnclosingLoop :: struct {
     label:   string | null
 }
 
-import "vader/diagnostics" { Span }
+import "vader/diagnostics"
 
-import "vader/resolver" { ImportTargetTable }
 
 /// Across the whole project — multi-module aggregation. Populated by
 /// the orchestrator (`check.vader`).
@@ -440,7 +439,6 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
     }
 }
 
-import "vader/types" { FnType }
 
 export new_typed_project :: fn() -> TypedProject {
     return TypedProject {
@@ -474,7 +472,6 @@ export empty_typed_program :: fn() -> TypedProgram {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/types" { mk_primitive, PrimitiveType }
 
 fresh_module :: fn() -> ResolvedModule {
     return ResolvedModule {

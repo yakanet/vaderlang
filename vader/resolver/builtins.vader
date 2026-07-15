@@ -11,11 +11,11 @@
 
 module "vader/resolver"
 
-import "std/collections" { MutableMap }
-import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, make }
+import "std/collections"
+import "vader/resolver/symbol"
 // `PRIMITIVE_META` / `PRIMITIVE_ALIASES` are the source of truth in
 // `vader/types`. The builtin scope derives from them so it can't drift.
-import "vader/types" { PRIMITIVE_META, PRIMITIVE_ALIASES }
+import "vader/types"
 
 /// Synthetic module id every builtin symbol carries in its `.module` field.
 export BUILTIN_MODULE_ID :: "<builtin>"

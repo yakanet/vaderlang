@@ -8,11 +8,11 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic }
-import "vader/parser" { Program }
-import "vader/resolver" { ResolvedModule }
-import "vader/resolver/symbol" { SymbolFactory, Symbol }
-import "std/collections" { MutableMap }
+import "vader/diagnostics"
+import "vader/parser"
+import "vader/resolver"
+import "vader/resolver/symbol"
+import "std/collections"
 
 /// Output of `check_module` — the typed program plus the impl registry
 /// it built. Callers that want both can grab them from one place.
@@ -56,9 +56,7 @@ export check_module :: fn(
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/parser" { parse_source }
-import "vader/resolver" { resolve_module }
-import "vader/types" { display_type }
+import "vader/types"
 
 run_check :: fn(src: string) -> CheckResult {
     parsed :: parse_source(src, "t.vader")

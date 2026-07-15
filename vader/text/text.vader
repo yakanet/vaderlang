@@ -7,7 +7,7 @@
 
 module "vader/text"
 
-import "std/string_builder" { StringBuilder, append, append_char }
+import "std/string_builder"
 
 /// Identifier byte — `[A-Za-z0-9_]` (regex `\w`). The byte-level classifier
 /// for raw UTF-8 / ASCII `bytes()` views ; bytes outside the class are what

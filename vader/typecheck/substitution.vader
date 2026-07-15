@@ -7,12 +7,8 @@
 
 module "vader/typecheck"
 
-import "std/collections" { MutableMap }
-import "vader/types" {
-    Type, PrimitiveType, StructType, EnumType, TraitType, UnionType,
-    FnType, ArrayType, TupleType, TypeParamType, TypeMetaType, SelfType,
-    UnresolvedType, FreeIntType, FreeFloatType, NeverType, mk_array, mk_tuple, mk_fn,
-}
+import "std/collections"
+import "vader/types"
 
 /// Mapping from `TypeParam.symbol.id` to a concrete replacement type.
 /// `self` rebinds `Self` to its concrete carrier inside an impl ;
@@ -100,9 +96,8 @@ substitute_each :: fn(types: Type[], subst: Substitution) -> Type[] {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/types" { mk_primitive, mk_type_param, display_type }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/parser" { Visibility }
+import "vader/resolver/symbol"
+import "vader/parser"
 
 fresh_type_param :: fn(symbol_id: i32, name: string) -> Symbol {
     return Symbol {

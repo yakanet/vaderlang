@@ -23,15 +23,9 @@
 
 module "vader/bytecode"
 
-import "vader/types" {
-    Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType,
-    UnionType, FnType, TupleType, TypeParamType, TypeMetaType, SelfType,
-    UnresolvedType, FreeIntType, FreeCharType, FreeFloatType, NeverType, AnyType,
-    DistinctType,
-    display_type,
-}
-import "vader/resolver/symbol" { Symbol }
-import "vader/diagnostics" { Span }
+import "vader/types"
+import "vader/resolver/symbol"
+import "vader/diagnostics"
 
 /// Cache key for `intern_type`. Primitives skip the `display_type`
 /// allocation by keying directly on the primitive name (already a
@@ -222,7 +216,7 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx, slot_index: i32) -> B
 /// Opaque `ref` for a `Type` with no first-class bytecode shape.
 OPAQUE_REF :: BcRef { .trait_name = "" }
 
-import "vader/lower" { type_of, LoweredIntLit }
+import "vader/lower"
 
 /// Map a primitive name to its `ValType`. Unknown names degrade to
 /// `Any` so the upstream typechecker has the only say in rejecting
@@ -239,7 +233,6 @@ export val_type_of_primitive_name :: fn(name: string) -> ValType {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/types" { mk_primitive }
 
 @test test_val_type_of_type_primitive :: fn() -> void {
     v :: val_type_of_type(mk_primitive("i32"))
@@ -262,7 +255,6 @@ import "vader/types" { mk_primitive }
     assert_eq(key, "i32")
 }
 
-import "vader/diagnostics" { Position, Span }
 
 @test test_type_of_int_literal :: fn() -> void {
     p :: Position { .file = "<test>", .offset = 0, .line = 1, .column = 1 }

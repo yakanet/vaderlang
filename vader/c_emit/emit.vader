@@ -27,19 +27,10 @@
 module "vader/c_emit"
 
 import "std/string"
-import "std/string_builder" { StringBuilder, append }
+import "std/string_builder"
 import "std/abort"
-import "vader/bytecode" { BytecodeModule, BcFunction }
-import "vader/bytecode" {
-    BcType, BcPrimitive, BcStruct, BcArray, BcUnion, BcRef, BcFn,
-    ValType, size_of_bc_type, is_string_val,
-}
-import "vader/bytecode" {
-    Op, DataConst, ArrayKind, array_kind_index, array_kind_from_name,
-    BcDataEntry, BcPrimData, BcStrData, BcAggregateData,
-    BcDataValue, BcValPrim, BcValStr, BcValStruct, BcValArray,
-}
-import "std/collections" { MutableMap }
+import "vader/bytecode"
+import "std/collections"
 
 /// Options threaded through the emit.
 ///

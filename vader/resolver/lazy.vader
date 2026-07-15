@@ -18,12 +18,12 @@
 
 module "vader/resolver"
 
-import "std/collections" { MutableMap }
-import "std/io" { is_dir, read_dir, read_file_string, IOError }
+import "std/collections"
+import "std/io"
 import "std/sort"
 import "std/string"
-import "vader/diagnostics" { Diagnostic, resolver_error, empty_span }
-import "vader/parser" { ModuleHeader, parse_module_header }
+import "vader/diagnostics"
+import "vader/parser"
 AST :: import "vader/parser"
 
 /// One module search root (GCC `-I` style). A module name maps to a folder under
@@ -181,7 +181,7 @@ scan_folder :: fn(dir: string, diags: Diagnostic[]) -> FolderBucket | null {
     files_here: string[] = []
     for name in sorted {
         full :: join_path(dir, name)
-        if ends_with(name, ".vader") && !is_dir(full) { files_here.push(full) }
+        if name.ends_with(".vader") && !is_dir(full) { files_here.push(full) }
     }
     if files_here.len() == 0 { return null }
     bucket :: FolderBucket { .name = "", .first_decl_span = empty_span(), .files = [] }

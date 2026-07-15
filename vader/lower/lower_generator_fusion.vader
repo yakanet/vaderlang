@@ -17,12 +17,12 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap }
-import "vader/diagnostics" { Span }
+import "std/collections"
+import "vader/diagnostics"
 AST :: import "vader/parser"
-import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, FnType, TraitType, TY_VOID, strip_distinct_each }
-import "vader/typecheck" { TypedProgram, Substitution, substitute, new_substitution, default_if_free, gen_state_name, fn_is_generator }
+import "vader/resolver/symbol"
+import "vader/types"
+import "vader/typecheck"
 
 // Recognise `for v in <gen-call>` where the callee is a directly-called
 // `generator` fn (generic or not), and inline its yield-loop in place of the

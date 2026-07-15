@@ -19,7 +19,7 @@
 
 module "vader/bytecode"
 
-import "std/collections" { MutableMap, MutableSet, values, add }
+import "std/collections"
 
 // ============================================================================
 // pruneUnusedImports — drop import entries no `call.import` op references

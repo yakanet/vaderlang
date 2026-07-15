@@ -23,7 +23,7 @@ module "vader/vm"
 
 bc :: import "vader/bytecode"
 
-import "std/string" { starts_with, ends_with, trim, split, index_of, decode_escapes, ParseError }
+import "std/string"
 import "std/numbers"
 
 /// Parse a full `.virt` text dump into a `BytecodeModule` ready for `emit_c`.

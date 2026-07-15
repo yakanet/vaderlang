@@ -12,8 +12,8 @@
 
 module "vader/dap"
 
-import "std/collections" { MutableMap }
-import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, stringify }
+import "std/collections"
+import "std/json"
 
 // ---- DAP response / event encoders ----------------------------------------
 

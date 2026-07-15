@@ -3,14 +3,14 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap }
+import "std/collections"
 
-import "vader/parser" { Expr, IdentExpr, CallExpr, GenericInstExpr, ArrayTypeExpr, Visibility, ImplDecl, FnDecl }
-import "vader/diagnostics" { Span }
-import "vader/typecheck" { ImplEntry }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, FnType, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, UnionType, TraitType, TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType, SelfType, NeverType, mk_primitive, STRUCT_ARRAY_ITERATOR, StructType, EnumType, UnresolvedType, DistinctType, strip_distinct_each, TRAIT_ITERATOR, TRAIT_INTO, METHOD_INTO }
-import "vader/comptime" { GenericInstance }
+import "vader/parser"
+import "vader/diagnostics"
+import "vader/typecheck"
+import "vader/resolver/symbol"
+import "vader/types"
+import "vader/comptime"
 
 UfcsMember :: struct {
     symbol: Symbol

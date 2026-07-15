@@ -20,20 +20,13 @@
 
 module "vader/typecheck"
 
-import "std/collections" { MutableMap }
-import "vader/diagnostics" { Diagnostic, Span, typecheck_error }
-import "vader/resolver" { ResolvedModule }
-import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, make }
+import "std/collections"
+import "vader/diagnostics"
+import "vader/resolver"
+import "vader/resolver/symbol"
 AST :: import "vader/parser"
-import "vader/parser" { Visibility }
-import "vader/types" {
-    Type, ArrayType, PrimitiveType, UnresolvedType, display_type,
-    StructType, EnumType, TraitType, UnionType, FnType, TupleType,
-    TypeParamType, TypeMetaType, SelfType, FreeIntType, FreeCharType, FreeFloatType,
-    NeverType, AnyType, DistinctType,
-    mk_struct, mk_trait, mk_fn, mk_enum, mk_type_param, mk_distinct,
-    TY_UNRESOLVED, TY_VOID,
-}
+import "vader/parser"
+import "vader/types"
 
 /// Walk every top-level decl in `program.decls` and mint its `Type` into
 /// `typed.decl_types`. The pass is single-shot — re-running it is
@@ -533,7 +526,6 @@ declare_type_alias :: fn(
     }
 }
 
-import "vader/parser" { TypeAliasDecl }
 
 declare_const :: fn(
     decl: AST.ConstDecl, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
@@ -588,7 +580,6 @@ lookup_sym_by_name :: fn(resolved: ResolvedModule, name: string) -> Symbol | nul
     return null
 }
 
-import "vader/types" { TY_TYPE }
 
 // ---- helpers --------------------------------------------------------------
 
@@ -612,8 +603,6 @@ resolve_repr :: fn(
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/parser" { parse_source }
-import "vader/resolver" { resolve_module }
 
 // Resolve `src`, declare-types, then look up the type of the decl
 // named `name` by rendering its `display_type`. Returns `<missing>` if

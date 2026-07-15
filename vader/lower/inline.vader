@@ -29,7 +29,7 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap, MutableSet }
+import "std/collections"
 
 // Transitive-inline depth ceiling — a wrapper-calls-wrapper chain past this many
 // levels stops inlining (a mutual-recursion backstop; real wrapper chains are 1).

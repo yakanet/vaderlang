@@ -8,9 +8,9 @@
 
 module "vader/resolver"
 
-import "std/collections" { MutableMap }
-import "vader/diagnostics" { Span }
-import "vader/resolver/symbol" { Symbol }
+import "std/collections"
+import "vader/diagnostics"
+import "vader/resolver/symbol"
 
 /// LIFO stack of binding frames — innermost at the end, root at index 0.
 export Scope :: struct {
@@ -91,9 +91,7 @@ export lookup_frame_index :: fn(self: Scope, name: string) -> i32 {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/resolver/symbol" { SymbolFactory, SymbolKind, make }
-import "vader/parser" { Visibility }
-import "vader/diagnostics" { Position }
+import "vader/parser"
 
 @test
 test_scope_lookup_finds_root_binding :: fn() -> void {

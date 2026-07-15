@@ -3,17 +3,17 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap, keys, values }
+import "std/collections"
 import "std/iter"
-import "std/string_builder" { StringBuilder, append }
+import "std/string_builder"
 
-import "vader/diagnostics" { Diagnostic, Span }
-import "vader/parser" { Decl, FnDecl, StructDecl, ImplDecl, IdentExpr, GenericInstExpr, TypeExpr }
-import "vader/resolver" { ResolvedModule }
-import "vader/typecheck" { TypedProgram, Substitution, new_substitution, substitute, type_from_expr }
-import "vader/types" { UnresolvedType, Type, StructType, ArrayType, mk_struct, TraitType, TupleType, UnionType, mk_trait, mk_array, mk_union, mk_tuple, TY_ANY, PrimitiveType, strip_distinct }
-import "vader/comptime" { mangle_type_arg }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/diagnostics"
+import "vader/parser"
+import "vader/resolver"
+import "vader/typecheck"
+import "vader/types"
+import "vader/comptime"
+import "vader/resolver/symbol"
 
 /// Erasure variant of `build_fn_subst` — maps every type-parameter
 /// of `fd` to `TY_ANY` so the materialised instance's body / signature

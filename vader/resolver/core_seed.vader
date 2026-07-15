@@ -12,9 +12,9 @@
 
 module "vader/resolver"
 
-import "std/collections" { MutableMap }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/parser" { Visibility }
+import "std/collections"
+import "vader/resolver/symbol"
+import "vader/parser"
 
 /// Build the std/core symbol seed once per project. Returns an empty map
 /// when std/core isn't part of the load (single-file snippets without

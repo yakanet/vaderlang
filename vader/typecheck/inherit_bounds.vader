@@ -15,7 +15,7 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic }
+import "vader/diagnostics"
 AST :: import "vader/parser"
 
 /// Walk every ImplDecl and inherit struct-head bounds into the impl's

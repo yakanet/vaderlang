@@ -17,13 +17,13 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap, MutableSet, add }
-import "vader/diagnostics" { Span }
+import "std/collections"
+import "vader/diagnostics"
 AST :: import "vader/parser"
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, TY_UNRESOLVED }
-import "vader/typecheck" { TypedProject, TypedProgram }
-import "vader/resolver" { LoadedProject, LoadedModule }
+import "vader/resolver/symbol"
+import "vader/types"
+import "vader/typecheck"
+import "vader/resolver"
 
 /// Walk every fn body in the project, populate `ClosureAnalysis` with
 /// each lambda's capture list + the union of captured symbol IDs.

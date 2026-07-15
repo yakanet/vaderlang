@@ -14,12 +14,8 @@
 module "vader/c_emit"
 
 import "std/string"
-import "std/string_builder" { StringBuilder, append }
-import "vader/bytecode" {
-    BcImport, BcType, BcPrimitive, BcArray, BcRef, BcStruct, ValType,
-    intrinsic_id_for,
-    struct_type_index, MANGLED_IO_ERROR,
-}
+import "std/string_builder"
+import "vader/bytecode"
 
 // ---- driver ---------------------------------------------------------------
 

@@ -9,11 +9,11 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap }
-import "vader/diagnostics" { Span }
-import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type }
-import "vader/comptime" { MonoEntry }
+import "std/collections"
+import "vader/diagnostics"
+import "vader/resolver/symbol"
+import "vader/types"
+import "vader/comptime"
 
 // ============================================================================
 // Project / module / decl shells
@@ -23,7 +23,7 @@ import "vader/comptime" { MonoEntry }
 /// emitter walks `vtable_entries` to populate `BytecodeModule.vtables` ;
 /// `struct_type` is translated to its type-table index and `fn_symbol`
 /// to its fn-table index at emit time.
-export VtableEntry :: struct {
+export LoweredVtableEntry :: struct {
     trait_name:  string
     method_name: string
     struct_type: Type
@@ -89,7 +89,7 @@ export LoweredProject :: struct {
     /// to its reachable set, the entry keeps its whole surface in a no-main
     /// build). Set by `lower_project` ; empty for a freshly-constructed project.
     entry:          string
-    vtable_entries: VtableEntry[]
+    vtable_entries: LoweredVtableEntry[]
     data_pool:      DataPoolEntry[]
     /// Const symbol id → accessor fn, populated by `inline_consts` for
     /// bulky array consts (`fn-wrap` bucket). `build_ident` emits a 0-arg

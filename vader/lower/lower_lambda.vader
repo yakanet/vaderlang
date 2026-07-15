@@ -15,19 +15,13 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap }
-import "vader/diagnostics" { Span, empty_span }
+import "std/collections"
+import "vader/diagnostics"
 AST :: import "vader/parser"
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" {
-    Type,
-    FnType,
-    mk_struct,
-    TY_UNRESOLVED,
-    TY_VOID,
-}
-import "vader/typecheck" { new_substitution }
-import "vader/comptime" { MonoEntry }
+import "vader/resolver/symbol"
+import "vader/types"
+import "vader/typecheck"
+import "vader/comptime"
 
 /// Lower a `LambdaExpr` to a `LoweredMakeClosure`. Synthesises the
 /// lifted fn + the env struct (with one `cap_<N>` field per capture

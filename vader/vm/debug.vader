@@ -13,7 +13,7 @@
 
 module "vader/vm"
 
-import "std/collections" { MutableMap, MutableSet }
+import "std/collections"
 
 /// How execution should resume after a pause — the value the DAP layer returns
 /// from `on_pause`, which the VM applies against the frame depth to decide the

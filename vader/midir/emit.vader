@@ -21,11 +21,11 @@
 
 module "vader/midir"
 
-import "std/collections" { MutableMap, MutableSet, remove }
+import "std/collections"
 import "std/abort"
-import "vader/diagnostics" { Span, has_source_position }
-import "vader/types" { Type, PrimitiveType, ArrayType, mk_struct, display_type }
-import "vader/lower" { VtableEntry as LoweredVtableEntry }
+import "vader/diagnostics"
+import "vader/types"
+import "vader/lower" { LoweredVtableEntry }
 import "vader/bytecode" {
     EmitterCtx,
     BytecodeModule,
@@ -54,91 +54,8 @@ import "vader/bytecode" {
     typed_slot_load_op_for,
     typed_slot_store_op_for,
 }
-import "vader/bytecode" {
-    Op,
-    Unreachable,
-    I32Const,
-    I64Const,
-    F64Const,
-    BoolConst,
-    CharConst,
-    StringConst,
-    NullConst,
-    LocalGet,
-    LocalSet,
-    LocalTee,
-    LocalField,
-    Return,
-    ReturnLit,
-    ConstOp,
-    const_op_of,
-    Drop,
-    Call,
-    CallImport,
-    CallIndirect,
-    FnRef,
-    VirtualCall,
-    If,
-    Else,
-    End,
-    Block,
-    Loop,
-    Branch,
-    BranchIf,
-    BoolNot,
-    StructNew,
-    StructGet,
-    StructSet,
-    ArrayNew,
-    ArrayGet,
-    ArraySet,
-    ArrayLen,
-    ArrayPush,
-    ArraySlice,
-    StringSliceCodepoints,
-    ArrayRepeat,
-    ArrayPushAll,
-    ArrayCopy,
-    ArrayRemoveLast,
-    ArrayClear,
-    DataConst,
-    BcStrData,
-    BcAggregateData,
-    BcDataValue,
-    BcValStr,
-    BcValStruct,
-    BcValArray,
-    TypeConst,
-    TypeCheck,
-    RefCast,
-    Box,
-    Convert,
-    ConvertTarget,
-    MakeClosure,
-    DeferPush,
-    DeferPopExec,
-    SizeOfType,
-}
-import "vader/bytecode" {
-    intern_cell_type,
-    run_bc_peephole,
-    run_bc_return_lit_fold,
-    run_bc_const_fold_arith,
-    BcPeepholeOut,
-    propagate_const_single_use,
-    drop_dead_stores,
-    coalesce_slots,
-    strip_self_copies,
-    prune_unused_functions,
-    prune_unused_imports,
-    prune_unused_types,
-    type_intern_key,
-    val_type_name,
-    convert_target_of,
-    build_intrinsic_wrapper_body,
-    assert_host_import_wired,
-}
-import "vader/resolver/symbol" { Symbol }
+import "vader/bytecode"
+import "vader/resolver/symbol"
 
 // ============================================================================
 // CFG-input reserve helpers (mirror bytecode/emit reserve_fn / etc. for CFG

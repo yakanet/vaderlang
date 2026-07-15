@@ -11,11 +11,11 @@
 
 module "vader/lower"
 
-import "vader/diagnostics" { Span }
+import "vader/diagnostics"
 AST :: import "vader/parser"
-import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, StructType, ArrayType, mk_primitive, mk_array, mk_union, TY_BOOL, TY_VOID, TY_NULL, TY_UNRESOLVED, STRUCT_ARRAY_ITERATOR, STRUCT_YIELD, TRAIT_ITERATOR, METHOD_INTO, METHOD_ITER, display_type }
-import "vader/typecheck" { default_if_free, is_gen_state_struct, struct_implements_trait }
+import "vader/resolver/symbol"
+import "vader/types"
+import "vader/typecheck"
 
 // ---- chain fusion ---------------------------------------------------------
 

@@ -9,19 +9,14 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap, MutableSet }
-import "vader/diagnostics" { Diagnostic }
-import "vader/parser" { Stmt, LambdaExpr }
-import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type }
-import "vader/typecheck" { TypedProgram, TypedProject }
-import "vader/typecheck" { ImplRegistry, new_registry }
-import "vader/typecheck" { Substitution, new_substitution }
-import "vader/comptime" { EvaluatedProject }
-import "vader/comptime" { ComptimeValue }
-import "vader/comptime" { GenericInstance }
-import "vader/comptime" { MonoEntry }
-import "vader/resolver" { LoadedProject }
+import "std/collections"
+import "vader/diagnostics"
+import "vader/parser"
+import "vader/resolver/symbol"
+import "vader/types"
+import "vader/typecheck"
+import "vader/comptime"
+import "vader/resolver"
 
 // ============================================================================
 // Closure analysis output
@@ -314,7 +309,7 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .evaluated           = evaluated,
         .loaded              = loaded,
         .typed               = typed,
-        .impls               = new_registry(),
+        .impls               = ImplRegistry {},
         .core_symbols        = MutableMap<string, Symbol> {},
         .module_symbol_cache = MutableMap<string, MutableMap<string, Symbol>> {},
         .core_trait_cache    = MutableMap<string, Symbol | null> {},
@@ -511,9 +506,6 @@ export new_fn_lower_ctx :: fn(
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/typecheck" { new_typed_project }
-import "vader/comptime" { new_evaluated_project }
-import "vader/resolver" { empty_loaded_project }
 
 @test test_new_lower_project_ctx_is_empty :: fn() -> void {
     evaluated :: new_evaluated_project(new_typed_project())

@@ -15,7 +15,7 @@ module "std/async"
 
 import "std/runtime"
 import "std/abort"
-import "std/collections" { MutableMap, MutableSet }
+import "std/collections"
 
 // ---- sleep ----------------------------------------------------------------
 

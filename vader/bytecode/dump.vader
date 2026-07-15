@@ -21,10 +21,10 @@
 
 module "vader/bytecode"
 
-import "std/string_builder" { StringBuilder, append, append_char }
+import "std/string_builder"
 import "std/numbers"
 import "std/string"
-import "std/collections" { MutableMap }
+import "std/collections"
 
 /// Render a `BytecodeModule` as a `.virt`-style text dump. The resulting
 /// string carries a trailing newline ; pipe to stdout directly. This is the

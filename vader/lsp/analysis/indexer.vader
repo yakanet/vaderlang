@@ -24,35 +24,11 @@
 module "vader/lsp/analysis"
 
 import "std/string"
-import "vader/parser" {
-    parse_source,
-    Decl,
-    ImportDecl, ImportBinding, NamedNamespaceImport, DestructureImport, WildcardImport,
-    FnDecl, StructDecl, EnumDecl, TraitDecl, TypeAliasDecl, ConstDecl,
-    ImplDecl, AssertDecl,
-    Decorator,
-    Stmt, LetStmt, AssignStmt, ExprStmt, ReturnStmt, YieldStmt, ForStmt,
-    BreakStmt, ContinueStmt, DeferStmt,
-    LetBinding, SimpleBinding, TupleBinding, WildcardBinding, RestBinding,
-    InfiniteFor, WhileFor, InFor, NamedVar, DestructureVar, DiscardVar,
-    DeferStmtBody, DeferBlockBody,
-    Expr,
-    IntLitExpr, FloatLitExpr, BoolLitExpr, NullLitExpr, CharLitExpr, StringLitExpr,
-    IdentExpr, CallExpr, FieldExpr, IndexExpr, UnaryExpr, BinaryExpr,
-    IfExpr, IfElseIf, IfElseBlock,
-    MatchExpr,
-    BlockExpr, LambdaExpr, StructLitExpr, SeqLitExpr,
-    RangeExpr, AwaitExpr, CastExpr, GenericInstExpr,
-    IntrinsicCallExpr, DotVariantExpr, FnTypeExpr, ArrayTypeExpr,
-    StringLitText, StringLitInterp,
-    StructLitField, StructLitSpread,
-}
-import "vader/lexer" { Token }
-import "vader/diagnostics" { Span, Position }
-import "vader/fmt" { CommentMap, scan_comments }
-import "vader/lsp/protocol" {
-    li_offset, line_start_offset, PositionEncoding, LineIndex, new_line_index,
-}
+import "vader/parser"
+import "vader/lexer"
+import "vader/diagnostics"
+import "vader/fmt"
+import "vader/lsp/protocol"
 
 /// What kind of declaration a DeclEntry points at. Drives the hover
 /// signature template + helps clients decide on icon / styling.

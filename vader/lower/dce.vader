@@ -18,9 +18,9 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap }
-import "vader/parser" { FnDecl }
-import "vader/resolver/symbol" { Symbol }
+import "std/collections"
+import "vader/parser"
+import "vader/resolver/symbol"
 
 /// Drop functions unreachable from the program roots, returning a new
 /// `LoweredProject`. Structs and consts survive verbatim.

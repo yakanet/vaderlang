@@ -14,10 +14,10 @@
 
 module "vader/c_emit"
 
-import "std/string_builder" { StringBuilder, append_repeated }
+import "std/string_builder"
 import "std/abort"
-import "vader/bytecode" { BcFunction, ValType }
-import "std/collections" { MutableMap }
+import "vader/bytecode"
+import "std/collections"
 
 // ---- StackVal -------------------------------------------------------------
 

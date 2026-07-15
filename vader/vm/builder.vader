@@ -36,7 +36,7 @@ module "vader/vm"
 
 bc :: import "vader/bytecode"
 
-import "std/collections" { MutableMap }
+import "std/collections"
 
 // ----------------------------------------------------------------- module
 

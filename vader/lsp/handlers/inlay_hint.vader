@@ -16,15 +16,15 @@
 
 module "vader/lsp/handlers"
 
-import "std/collections" { MutableMap }
-import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonArray, JsonBool }
-import "vader/diagnostics" { Span }
-import "vader/resolver" { ResolvedModule }
-import "vader/resolver/symbol" { Symbol }
-import "vader/typecheck" { TypedProgram }
-import "vader/types" { Type, UnresolvedType, FreeIntType, FreeFloatType, TypeMetaType, display_type }
-import "vader/lsp/protocol" { position_uri, uri_to_path }
-import "vader/lsp/analysis" { ServerState, typed_project_for, source_file_for_path }
+import "std/collections"
+import "std/json"
+import "vader/diagnostics"
+import "vader/resolver"
+import "vader/resolver/symbol"
+import "vader/typecheck"
+import "vader/types"
+import "vader/lsp/protocol"
+import "vader/lsp/analysis"
 AST :: import "vader/parser"
 
 /// Build the inlay-hint array for the document carried in `params`.

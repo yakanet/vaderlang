@@ -6,11 +6,8 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic, typecheck_error }
-import "vader/types" {
-    Type, PrimitiveType, FreeIntType, FreeFloatType, UnresolvedType,
-    display_type, TY_BOOL, TY_UNRESOLVED,
-}
+import "vader/diagnostics"
+import "vader/types"
 AST :: import "vader/parser"
 
 /// Type-check a `UnaryExpr`. T3017 when the op doesn't admit the

@@ -13,11 +13,11 @@
 
 module "vader/lsp/handlers"
 
-import "std/collections" { MutableMap }
-import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray }
-import "vader/typecheck" { TypedProgram }
-import "vader/lsp/protocol" { position_uri, cursor_field, uri_to_path }
-import "vader/lsp/analysis" { ServerState, typed_project_for, source_file_for_path, find_enclosing_call }
+import "std/collections"
+import "std/json"
+import "vader/typecheck"
+import "vader/lsp/protocol"
+import "vader/lsp/analysis"
 AST :: import "vader/parser"
 
 /// Build the signature-help payload for the cursor in `params`. Returns

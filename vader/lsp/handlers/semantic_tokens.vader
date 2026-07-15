@@ -17,17 +17,12 @@
 module "vader/lsp/handlers"
 
 import "std/string"
-import "std/json" {
-    JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
-}
-import "std/collections" { MutableMap }
-import "vader/lexer" { tokenize, Token, make_token, empty_span }
-import "vader/fmt" { scan_comments, Comment }
-import "vader/lsp/protocol" {
-    TokenType, RawToken, modifier_bit, position_uri,
-    LineIndex, new_line_index, li_character,
-}
-import "vader/lsp/analysis" { ServerState }
+import "std/json"
+import "std/collections"
+import "vader/lexer"
+import "vader/fmt"
+import "vader/lsp/protocol"
+import "vader/lsp/analysis"
 
 // ASCII-aware predicates used by the inner scanners. They operate on
 // `char` rather than `u8` so the source reads with the character itself
@@ -421,7 +416,7 @@ test_doc_tag_columns :: fn() -> void {
 test_yield_const_classified_as_keyword :: fn() -> void {
     // Regression: `yield` / `const` were the two keywords the old if-cascade
     // forgot, leaving them uncoloured. The exhaustive `match` now covers them.
-    sp :: empty_span("t.vader")
+    sp :: empty_file_span("t.vader")
     assert_eq(classify_token(make_token(.KwYield, "yield", sp)), i32(TokenType.Keyword))
     assert_eq(classify_token(make_token(.KwConst, "const", sp)), i32(TokenType.Keyword))
 }

@@ -15,13 +15,13 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap }
-import "vader/diagnostics" { Span, empty_span }
+import "std/collections"
+import "vader/diagnostics"
 AST :: import "vader/parser"
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, mk_struct, TY_UNRESOLVED, TY_VOID }
-import "vader/typecheck" { new_substitution }
-import "vader/comptime" { MonoEntry }
+import "vader/resolver/symbol"
+import "vader/types"
+import "vader/typecheck"
+import "vader/comptime"
 
 /// Lower a `DeferStmt` to a `LoweredDeferPush`. Synthesises the lifted
 /// fn + the env struct, pushes both onto `ctx.project.synth_decls`,
