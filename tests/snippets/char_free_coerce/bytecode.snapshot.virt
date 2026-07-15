@@ -15,8 +15,9 @@ string 3 "u32 top bit"
 string 4 "delta = "
 string 5 "A is 65"
 string 6 "\n"
-import 0 bytes std_core$bytes (string) -> ref
-import 1 write std_io$write (i32,string) -> void
+import 0 byte_len std_core$byte_len (string) -> usize
+import 1 bytes std_core$bytes (string) -> ref
+import 2 write std_io$write (i32,string) -> void
 impl 3 ByteAccess
 export main 0
 
@@ -27,7 +28,7 @@ fn 0 snippet$main () -> i32
   local __off_1 usize
   local $cast_38 u64
   string.const 0
-  call.import 0
+  call.import 1
   local.tee 0
   i32.const 1
   array.get 6
@@ -128,14 +129,13 @@ fn 2 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 3 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 9
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3
@@ -230,10 +230,10 @@ end
 fn 5 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
-  call.import 1
+  call.import 2
   i32.const 0
   string.const 6
-  call.import 1
+  call.import 2
   return
 end
 

@@ -31,10 +31,10 @@ string 4 "set="
 string 5 "héllo 世界"
 string 6 "chars="
 string 7 "\n"
-import 0 bytes std_core$bytes (string) -> ref
-import 1 hash std_core$string$Hash$hash (string) -> u64
-import 2 write std_io$write (i32,string) -> void
-import 3 byte_len std_string$byte_len (string) -> usize
+import 0 byte_len std_core$byte_len (string) -> usize
+import 1 bytes std_core$bytes (string) -> ref
+import 2 hash std_core$string$Hash$hash (string) -> u64
+import 3 write std_io$write (i32,string) -> void
 impl 4 ByteAccess
 impl 14 Into
 impl 15 Index
@@ -351,7 +351,7 @@ fn 3 std_core$write_string_at (ref,usize,string) -> usize
   local.get 2
   call 29
   local.get 2
-  call.import 3
+  call.import 0
   local.set 3
   local.get 1
   local.get 3
@@ -481,10 +481,10 @@ end
 fn 5 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
-  call.import 2
+  call.import 3
   i32.const 0
   string.const 7
-  call.import 2
+  call.import 3
   return
 end
 
@@ -1424,7 +1424,7 @@ fn 20 std_string$chars (string) -> ref
   local bs ref
   local $len_4 usize
   local.get 0
-  call.import 0
+  call.import 1
   local.tee 1
   array.len
   local.set 2
@@ -1780,6 +1780,6 @@ end
 
 fn 30 std_core$string$Hash$hash_vt (string) -> u64
   local.get 0
-  call.import 1
+  call.import 2
   return
 end

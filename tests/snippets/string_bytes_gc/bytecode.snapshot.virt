@@ -13,9 +13,10 @@ string 0 "vader-byte-view-payload-"
 string 1 "byte-view GC corruption after major cycles"
 string 2 "ok: 4 byte views survived 2 major GCs; sum="
 string 3 "\n"
-import 0 bytes std_core$bytes (string) -> ref
-import 1 write std_io$write (i32,string) -> void
-import 2 collect std_runtime$collect () -> void
+import 0 byte_len std_core$byte_len (string) -> usize
+import 1 bytes std_core$bytes (string) -> ref
+import 2 write std_io$write (i32,string) -> void
+import 3 collect std_runtime$collect () -> void
 impl 6 ByteAccess
 export main 2
 
@@ -44,7 +45,7 @@ fn 0 snippet$view_of (i32) -> ref
   local.get 1
   local.get 2
   call 4
-  call.import 0
+  call.import 1
   return
 end
 
@@ -126,8 +127,8 @@ fn 2 snippet$main () -> i32
   local.get 3
   call 1
   local.set 7
-  call.import 2
-  call.import 2
+  call.import 3
+  call.import 3
   local.get 0
   call 1
   local.get 4
@@ -214,14 +215,13 @@ fn 4 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 5 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 12
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3
@@ -435,10 +435,10 @@ end
 fn 8 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
-  call.import 1
+  call.import 2
   i32.const 0
   string.const 3
-  call.import 1
+  call.import 2
   return
 end
 

@@ -2,22 +2,21 @@ module _main
 type 0 primitive null
 type 1 primitive i32
 type 2 struct snippet$Counts { by_name:3 }
-type 3 struct std_collections$MutableMap__string__i32 { ekeys:14,evals:13,index:13,mask:4,size:4,tombs:4 }
+type 3 struct std_collections$MutableMap__string__i32 { ekeys:13,evals:12,index:12,mask:4,size:4,tombs:4 }
 type 4 primitive usize
 type 5 union 1,0
 type 6 struct std_core$Buffer {  }
 type 7 primitive string
 type 8 primitive i64
 type 9 primitive u64
-type 10 array 11
-type 11 primitive u8
-type 12 primitive void
-type 13 array 1
-type 14 array 7
+type 10 primitive u8
+type 11 primitive void
+type 12 array 1
+type 13 array 7
 string 0 "x"
 string 1 "v="
 string 2 "\n"
-import 0 bytes std_core$bytes (string) -> ref
+import 0 byte_len std_core$byte_len (string) -> usize
 import 1 hash std_core$string$Hash$hash (string) -> u64
 import 2 write std_io$write (i32,string) -> void
 impl 6 ByteAccess
@@ -34,11 +33,11 @@ fn 0 snippet$main () -> i32
   local v any
   local __off_1 usize
   local $cast_26 i64
-  array.new 14 0
+  array.new 13 0
   local.set 0
-  array.new 13 0
+  array.new 12 0
   local.set 1
-  array.new 13 0
+  array.new 12 0
   local.set 2
   local.get 0
   local.get 1
@@ -103,14 +102,13 @@ fn 2 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 3 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 17
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3
@@ -268,7 +266,7 @@ fn 8 std_collections$std_collections$ensure_index__string__i32 (ref) -> void
   i64.const 0
   i64.eq
   if $L0 void
-    array.new 13 0
+    array.new 12 0
     local.set 1
     i64.const 0
     local.set 2
@@ -310,7 +308,7 @@ fn 9 std_collections$std_collections$rehash__string__i32 (ref,usize) -> void
   local $field_15 usize
   local s usize
   local $cast_30 i32
-  array.new 13 0
+  array.new 12 0
   local.set 2
   i64.const 0
   local.set 3
@@ -349,7 +347,7 @@ fn 9 std_collections$std_collections$rehash__string__i32 (ref,usize) -> void
       if $L5 void
         local.field 0 3 0
         local.get 4
-        array.get 14
+        array.get 13
         ref.cast 7
         call 18
         local.get 3
@@ -426,7 +424,7 @@ fn 10 std_collections$std_collections$write_entry__string__i32 (ref,string,i32) 
     local.get 5
     local.get 3
     local.get 1
-    array.set 14
+    array.set 13
     local.field 0 3 1
     local.set 5
     local.field 0 3 4
@@ -577,7 +575,7 @@ fn 11 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
         local.set 4
         local.field 0 3 0
         local.get 4
-        array.get 14
+        array.get 13
         ref.cast 7
         local.get 1
         string.eq
@@ -709,7 +707,7 @@ fn 12 std_collections$std_collections$get__string__i32 (ref,string) -> any
           local.set 4
           local.field 0 3 0
           local.get 4
-          array.get 14
+          array.get 13
           ref.cast 7
           local.get 1
           string.eq

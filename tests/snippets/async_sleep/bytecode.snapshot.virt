@@ -11,20 +11,19 @@ type 8 primitive usize
 type 9 struct std_core$Buffer {  }
 type 10 primitive string
 type 11 primitive i64
-type 12 array 13
-type 13 primitive u8
-type 14 primitive void
-type 15 ref Async
-type 16 struct std_async$Sleep { ms:11,deadline:11,armed:7 }
-type 17 union 0,5
-type 18 ref _
+type 12 primitive u8
+type 13 primitive void
+type 14 ref Async
+type 15 struct std_async$Sleep { ms:11,deadline:11,armed:7 }
+type 16 union 0,5
+type 17 ref _
 string 0 "exit code = "
 string 1 "woke at 5"
 string 2 "woke at 2"
 string 3 "start"
 string 4 "\n"
 string 5 "async deadlock: a task is suspended with nothing left to wake it"
-import 0 bytes std_core$bytes (string) -> ref
+import 0 byte_len std_core$byte_len (string) -> usize
 import 1 write std_io$write (i32,string) -> void
 import 2 sched_now std_runtime$sched_now () -> i64
 import 3 sched_arm std_runtime$sched_arm (i64) -> void
@@ -32,9 +31,9 @@ import 4 sched_park std_runtime$sched_park () -> i32
 import 5 panic std_abort$panic (string) -> void
 impl 3 Async
 impl 9 ByteAccess
-impl 16 Async
+impl 15 Async
 vtable Async.resume 3 2
-vtable Async.resume 16 10
+vtable Async.resume 15 10
 export main 1
 
 fn 0 snippet$steps () -> any
@@ -251,14 +250,13 @@ fn 4 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 5 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 15
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3
@@ -399,7 +397,7 @@ fn 8 std_async$sleep (i64) -> any
   local.get 0
   i64.const 0
   bool.const false
-  struct.new 16
+  struct.new 15
   return
 end
 
@@ -412,16 +410,16 @@ end
 fn 10 std_async$Sleep$Async$resume (ref) -> any
   local $call_4 i64
   local $field_5 i64
-  local.field 0 16 2
+  local.field 0 15 2
   ref.cast 7
   bool.not
   if $L0 void
     local.get 0
     bool.const true
-    struct.set 16 2
+    struct.set 15 2
     call.import 2
     local.set 1
-    local.field 0 16 0
+    local.field 0 15 0
     ref.cast 11
     local.set 2
     local.get 1
@@ -430,15 +428,15 @@ fn 10 std_async$Sleep$Async$resume (ref) -> any
     local.set 1
     local.get 0
     local.get 1
-    struct.set 16 1
-    local.field 0 16 1
+    struct.set 15 1
+    local.field 0 15 1
     ref.cast 11
     call.import 3
   else
   end $L0
   call.import 2
   local.set 1
-  local.field 0 16 1
+  local.field 0 15 1
   ref.cast 11
   local.set 2
   local.get 1

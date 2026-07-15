@@ -7,15 +7,14 @@ type 4 primitive u64
 type 5 primitive u8
 type 6 struct std_core$Buffer {  }
 type 7 primitive string
-type 8 array 5
-type 9 primitive void
+type 8 primitive void
 string 0 "u64 sum="
 string 1 "i64 sum="
 string 2 "isize sum="
 string 3 "u8 sum="
 string 4 "i16 sum="
 string 5 "\n"
-import 0 bytes std_core$bytes (string) -> ref
+import 0 byte_len std_core$byte_len (string) -> usize
 import 1 write std_io$write (i32,string) -> void
 impl 6 ByteAccess
 export main 0
@@ -277,14 +276,13 @@ fn 2 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 3 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 10
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3

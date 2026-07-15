@@ -167,7 +167,7 @@ static void std_io_println__i32(int32_t l0) {
     vader_string_t l1;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL };
     vader_gc_top = &gc_frame;
-#line 234 "stdlib/std/core/primitives.vader"
+#line 236 "stdlib/std/core/primitives.vader"
     l1 = std_core_format_signed(((int64_t) (int32_t) l0));
 #line 60 "stdlib/std/io/io.vader"
     vader_import_0(INT32_C(0), l1);

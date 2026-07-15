@@ -23,8 +23,8 @@ string 6 "bool_both_seen="
 string 7 "true"
 string 8 "false"
 string 9 "\n"
-import 0 write std_io$write (i32,string) -> void
-import 1 byte_len std_string$byte_len (string) -> usize
+import 0 byte_len std_core$byte_len (string) -> usize
+import 1 write std_io$write (i32,string) -> void
 impl 4 ByteAccess
 export main 0
 
@@ -451,7 +451,7 @@ fn 3 std_core$write_string_at (ref,usize,string) -> usize
   local.get 2
   call 22
   local.get 2
-  call.import 1
+  call.import 0
   local.set 3
   local.get 1
   local.get 3
@@ -681,10 +681,10 @@ end
 fn 7 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
-  call.import 0
+  call.import 1
   i32.const 0
   string.const 9
-  call.import 0
+  call.import 1
   return
 end
 

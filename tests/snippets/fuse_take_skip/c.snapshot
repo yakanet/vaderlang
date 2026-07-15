@@ -112,7 +112,6 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
 static vader_string_t concat_4(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3);
 static void* std_core_new_byte_buffer(size_t l0);
-static size_t std_core_byte_len(vader_string_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static vader_string_t std_core_i8_Display_to_string(int8_t l0);
 static vader_string_t std_core_i16_Display_to_string(int16_t l0);
@@ -288,8 +287,8 @@ const vader_vtable_t* const vader_vtable_table[17] = {
     [16] = &vt_16,
 };
 const size_t vader_vtable_count = 17;
-static vader_string_t vader_import_0(void* a0) { return vader_string_as_string((vader_array_t*) a0); }
-static void* vader_import_1(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 17u, 10u); }
+static size_t vader_import_0(vader_string_t a0) { return vader_string_byte_len(a0); }
+static vader_string_t vader_import_1(void* a0) { return vader_string_as_string((vader_array_t*) a0); }
 static void vader_import_2(int32_t a0, vader_string_t a1) { vader_write(a0, a1); }
 
 
@@ -462,8 +461,8 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     void** gc_raw_roots[1] = { &l4 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
     vader_gc_top = &gc_frame;
-    l2 = std_core_byte_len(l0);
-    l3 = std_core_byte_len(l1);
+    l2 = vader_import_0(l0);
+    l3 = vader_import_0(l1);
     t0 = (l2 + l3);
     l3 = (size_t) (int64_t) t0;
     l4 = std_core_new_byte_buffer(l3);
@@ -482,11 +481,11 @@ static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_strin
     void** gc_raw_roots[1] = { &l6 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
     vader_gc_top = &gc_frame;
-    l3 = std_core_byte_len(l0);
-    l4 = std_core_byte_len(l1);
+    l3 = vader_import_0(l0);
+    l4 = vader_import_0(l1);
     t0 = (l3 + l4);
     l4 = (size_t) (int64_t) t0;
-    l5 = std_core_byte_len(l2);
+    l5 = vader_import_0(l2);
     t0 = (l4 + l5);
     l5 = (size_t) (int64_t) t0;
     l6 = std_core_new_byte_buffer(l5);
@@ -506,14 +505,14 @@ static vader_string_t concat_4(vader_string_t l0, vader_string_t l1, vader_strin
     void** gc_raw_roots[1] = { &l8 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
     vader_gc_top = &gc_frame;
-    l4 = std_core_byte_len(l0);
-    l5 = std_core_byte_len(l1);
+    l4 = vader_import_0(l0);
+    l5 = vader_import_0(l1);
     t0 = (l4 + l5);
     l5 = (size_t) (int64_t) t0;
-    l6 = std_core_byte_len(l2);
+    l6 = vader_import_0(l2);
     t0 = (l5 + l6);
     l6 = (size_t) (int64_t) t0;
-    l7 = std_core_byte_len(l3);
+    l7 = vader_import_0(l3);
     t0 = (l6 + l7);
     l7 = (size_t) (int64_t) t0;
     l8 = std_core_new_byte_buffer(l7);
@@ -537,19 +536,6 @@ static void* std_core_new_byte_buffer(size_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-static size_t std_core_byte_len(vader_string_t l0) {
-    void* t0 = NULL;
-    size_t t1;
-    void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
-    vader_gc_top = &gc_frame;
-#line 118 "stdlib/std/core/primitives.vader"
-    t0 = vader_import_1(l0);
-    t1 = ((vader_array_t*) t0)->length;
-    { size_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
-}
-
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
     vader_string_t t0;
     void** gc_raw_roots[1] = { &l0 };
@@ -565,7 +551,7 @@ static vader_string_t std_core_i8_Display_to_string(int8_t l0) {
     vader_string_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL };
     vader_gc_top = &gc_frame;
-#line 232 "stdlib/std/core/primitives.vader"
+#line 234 "stdlib/std/core/primitives.vader"
     t0 = std_core_format_signed(((int64_t) (int8_t) l0));
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -575,7 +561,7 @@ static vader_string_t std_core_i16_Display_to_string(int16_t l0) {
     vader_string_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL };
     vader_gc_top = &gc_frame;
-#line 233 "stdlib/std/core/primitives.vader"
+#line 235 "stdlib/std/core/primitives.vader"
     t0 = std_core_format_signed(((int64_t) (int16_t) l0));
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -585,7 +571,7 @@ static vader_string_t std_core_i32_Display_to_string(int32_t l0) {
     vader_string_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL };
     vader_gc_top = &gc_frame;
-#line 234 "stdlib/std/core/primitives.vader"
+#line 236 "stdlib/std/core/primitives.vader"
     t0 = std_core_format_signed(((int64_t) (int32_t) l0));
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -595,7 +581,7 @@ static vader_string_t std_core_i64_Display_to_string(int64_t l0) {
     vader_string_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL };
     vader_gc_top = &gc_frame;
-#line 235 "stdlib/std/core/primitives.vader"
+#line 237 "stdlib/std/core/primitives.vader"
     t0 = std_core_format_signed(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -605,7 +591,7 @@ static vader_string_t std_core_isize_Display_to_string(ptrdiff_t l0) {
     vader_string_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL };
     vader_gc_top = &gc_frame;
-#line 236 "stdlib/std/core/primitives.vader"
+#line 238 "stdlib/std/core/primitives.vader"
     t0 = std_core_format_signed(((int64_t) (ptrdiff_t) l0));
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -615,7 +601,7 @@ static vader_string_t std_core_u8_Display_to_string(uint8_t l0) {
     vader_string_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL };
     vader_gc_top = &gc_frame;
-#line 237 "stdlib/std/core/primitives.vader"
+#line 239 "stdlib/std/core/primitives.vader"
     t0 = std_core_format_unsigned((uint64_t) (int64_t) ((int64_t) (uint8_t) l0));
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -625,7 +611,7 @@ static vader_string_t std_core_u16_Display_to_string(uint16_t l0) {
     vader_string_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL };
     vader_gc_top = &gc_frame;
-#line 238 "stdlib/std/core/primitives.vader"
+#line 240 "stdlib/std/core/primitives.vader"
     t0 = std_core_format_unsigned((uint64_t) (int64_t) ((int64_t) (uint16_t) l0));
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -635,7 +621,7 @@ static vader_string_t std_core_u32_Display_to_string(uint32_t l0) {
     vader_string_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL };
     vader_gc_top = &gc_frame;
-#line 239 "stdlib/std/core/primitives.vader"
+#line 241 "stdlib/std/core/primitives.vader"
     t0 = std_core_format_unsigned((uint64_t) (int64_t) ((int64_t) (uint32_t) l0));
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -645,7 +631,7 @@ static vader_string_t std_core_u64_Display_to_string(uint64_t l0) {
     vader_string_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL };
     vader_gc_top = &gc_frame;
-#line 240 "stdlib/std/core/primitives.vader"
+#line 242 "stdlib/std/core/primitives.vader"
     t0 = std_core_format_unsigned(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -655,7 +641,7 @@ static vader_string_t std_core_usize_Display_to_string(size_t l0) {
     vader_string_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL };
     vader_gc_top = &gc_frame;
-#line 241 "stdlib/std/core/primitives.vader"
+#line 243 "stdlib/std/core/primitives.vader"
     t0 = std_core_format_unsigned((uint64_t) (int64_t) ((int64_t) (size_t) l0));
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -663,7 +649,7 @@ static vader_string_t std_core_usize_Display_to_string(size_t l0) {
 
 static vader_string_t std_core_bool_Display_to_string(bool l0) {
     vader_string_t l1;
-#line 242 "stdlib/std/core/primitives.vader"
+#line 244 "stdlib/std/core/primitives.vader"
     if (l0) {
         l1 = 4u;
     } else {
@@ -678,15 +664,15 @@ static vader_string_t std_core_char_Display_to_string(uint32_t l0) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
     vader_gc_top = &gc_frame;
-#line 243 "stdlib/std/core/primitives.vader"
+#line 245 "stdlib/std/core/primitives.vader"
     t0 = std_core_utf8_encode(l0);
-    t1 = vader_import_0(t0);
+    t1 = vader_import_1(t0);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
 static vader_string_t std_core_string_Display_to_string(vader_string_t l0) {
-#line 244 "stdlib/std/core/primitives.vader"
+#line 246 "stdlib/std/core/primitives.vader"
     return l0;
 }
 
@@ -694,7 +680,7 @@ static vader_string_t std_core_f32_Display_to_string(float l0) {
     vader_string_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL };
     vader_gc_top = &gc_frame;
-#line 246 "stdlib/std/core/primitives.vader"
+#line 248 "stdlib/std/core/primitives.vader"
     t0 = std_core_format_f32(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -704,7 +690,7 @@ static vader_string_t std_core_f64_Display_to_string(double l0) {
     vader_string_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL };
     vader_gc_top = &gc_frame;
-#line 247 "stdlib/std/core/primitives.vader"
+#line 249 "stdlib/std/core/primitives.vader"
     t0 = std_core_format_f64(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -872,86 +858,86 @@ static void* std_core_utf8_encode(uint32_t l0) {
     void** gc_raw_roots[1] = { &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
     vader_gc_top = &gc_frame;
-#line 183 "stdlib/std/core/primitives.vader"
+#line 185 "stdlib/std/core/primitives.vader"
     t0 = ((int32_t) (uint32_t) l0);
     l1 = (uint32_t) (int32_t) t0;
-#line 184 "stdlib/std/core/primitives.vader"
+#line 186 "stdlib/std/core/primitives.vader"
     vader_array_t* _a0_arr = vader_array_new(17u, 0u, 1u, 10u);
     l2 = (void*) _a0_arr;
-#line 185 "stdlib/std/core/primitives.vader"
+#line 187 "stdlib/std/core/primitives.vader"
     if ((l1 < INT32_C(128))) {
-#line 186 "stdlib/std/core/primitives.vader"
+#line 188 "stdlib/std/core/primitives.vader"
         t0 = ((int32_t) (uint32_t) l1);
         l3 = (uint8_t) (int32_t) t0;
         vader_array_push((vader_array_t*) l2, vader_box_i32(10u, (int32_t)(uint32_t) l3));
-#line 185 "stdlib/std/core/primitives.vader"
-    } else {
 #line 187 "stdlib/std/core/primitives.vader"
+    } else {
+#line 189 "stdlib/std/core/primitives.vader"
         if ((l1 < INT32_C(2048))) {
-#line 188 "stdlib/std/core/primitives.vader"
+#line 190 "stdlib/std/core/primitives.vader"
             l4 = (l1 >> INT32_C(6));
             t0 = (INT32_C(192) | l4);
             l3 = (uint8_t) (int32_t) t0;
             vader_array_push((vader_array_t*) l2, vader_box_i32(10u, (int32_t)(uint32_t) l3));
-#line 189 "stdlib/std/core/primitives.vader"
+#line 191 "stdlib/std/core/primitives.vader"
             t0 = (l1 & INT32_C(63));
             l4 = (uint32_t) (int32_t) t0;
             t0 = (INT32_C(128) | l4);
             l3 = (uint8_t) (int32_t) t0;
             vader_array_push((vader_array_t*) l2, vader_box_i32(10u, (int32_t)(uint32_t) l3));
-#line 187 "stdlib/std/core/primitives.vader"
+#line 189 "stdlib/std/core/primitives.vader"
         } else {
-#line 190 "stdlib/std/core/primitives.vader"
+#line 192 "stdlib/std/core/primitives.vader"
             if ((l1 < INT32_C(65536))) {
-#line 191 "stdlib/std/core/primitives.vader"
+#line 193 "stdlib/std/core/primitives.vader"
                 l4 = (l1 >> INT32_C(12));
                 t0 = (INT32_C(224) | l4);
                 l3 = (uint8_t) (int32_t) t0;
                 vader_array_push((vader_array_t*) l2, vader_box_i32(10u, (int32_t)(uint32_t) l3));
-#line 192 "stdlib/std/core/primitives.vader"
+#line 194 "stdlib/std/core/primitives.vader"
                 t0 = ((l1 >> INT32_C(6)) & INT32_C(63));
                 l4 = (uint32_t) (int32_t) t0;
                 t0 = (INT32_C(128) | l4);
                 l3 = (uint8_t) (int32_t) t0;
                 vader_array_push((vader_array_t*) l2, vader_box_i32(10u, (int32_t)(uint32_t) l3));
-#line 193 "stdlib/std/core/primitives.vader"
+#line 195 "stdlib/std/core/primitives.vader"
                 t0 = (l1 & INT32_C(63));
                 l4 = (uint32_t) (int32_t) t0;
                 t0 = (INT32_C(128) | l4);
                 l3 = (uint8_t) (int32_t) t0;
                 vader_array_push((vader_array_t*) l2, vader_box_i32(10u, (int32_t)(uint32_t) l3));
-#line 190 "stdlib/std/core/primitives.vader"
+#line 192 "stdlib/std/core/primitives.vader"
             } else {
-#line 195 "stdlib/std/core/primitives.vader"
+#line 197 "stdlib/std/core/primitives.vader"
                 l4 = (l1 >> INT32_C(18));
                 t0 = (INT32_C(240) | l4);
                 l3 = (uint8_t) (int32_t) t0;
                 vader_array_push((vader_array_t*) l2, vader_box_i32(10u, (int32_t)(uint32_t) l3));
-#line 196 "stdlib/std/core/primitives.vader"
+#line 198 "stdlib/std/core/primitives.vader"
                 t0 = ((l1 >> INT32_C(12)) & INT32_C(63));
                 l4 = (uint32_t) (int32_t) t0;
                 t0 = (INT32_C(128) | l4);
                 l3 = (uint8_t) (int32_t) t0;
                 vader_array_push((vader_array_t*) l2, vader_box_i32(10u, (int32_t)(uint32_t) l3));
-#line 197 "stdlib/std/core/primitives.vader"
+#line 199 "stdlib/std/core/primitives.vader"
                 t0 = ((l1 >> INT32_C(6)) & INT32_C(63));
                 l4 = (uint32_t) (int32_t) t0;
                 t0 = (INT32_C(128) | l4);
                 l3 = (uint8_t) (int32_t) t0;
                 vader_array_push((vader_array_t*) l2, vader_box_i32(10u, (int32_t)(uint32_t) l3));
-#line 198 "stdlib/std/core/primitives.vader"
+#line 200 "stdlib/std/core/primitives.vader"
                 t0 = (l1 & INT32_C(63));
                 l1 = (uint32_t) (int32_t) t0;
                 t0 = (INT32_C(128) | l1);
                 l3 = (uint8_t) (int32_t) t0;
                 vader_array_push((vader_array_t*) l2, vader_box_i32(10u, (int32_t)(uint32_t) l3));
-#line 190 "stdlib/std/core/primitives.vader"
+#line 192 "stdlib/std/core/primitives.vader"
             }
-#line 187 "stdlib/std/core/primitives.vader"
+#line 189 "stdlib/std/core/primitives.vader"
         }
-#line 185 "stdlib/std/core/primitives.vader"
+#line 187 "stdlib/std/core/primitives.vader"
     }
-#line 200 "stdlib/std/core/primitives.vader"
+#line 202 "stdlib/std/core/primitives.vader"
     { void* __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }

@@ -114,7 +114,7 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     .IoSetStdinUnbuffered -> { return "${head} { vader_set_stdin_unbuffered(); }" }
 
     // std/string internals + std/core string intrinsics.
-    .StringByteLen -> { return "${head} { return vader_string_byte_len(a0); }" }
+    .ByteLen -> { return "${head} { return vader_string_byte_len(a0); }" }
     .CoreStringIndexAt -> { return "${head} { return vader_string_codepoint_at(a0, a1); }" }
     .CoreBytes -> {
         u8 :: prim_tag(types, .U8)

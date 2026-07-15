@@ -114,8 +114,10 @@ export new_byte_buffer :: fn(cap: usize) -> Buffer = cap.new_buffer()
 /// Intern the buffer's leading `len` bytes as a `string` (one atom-table copy).
 export finish_buffer :: fn(self: Buffer, len: usize) -> string = self.intern_string(len)
 
-/// Byte length of `s` — used by the interpolation lowering to size the buffer.
-export byte_len :: fn(s: string) -> usize = s.bytes().len()
+/// Byte length of `s` (its UTF-8 byte count) — an `@intrinsic` host fn that is
+/// also the fold target for `s.bytes().len()` (see `lower_call.vader`).
+/// String-only: a `u8[]` uses `.len()` directly.
+@intrinsic export byte_len :: fn(s: string) -> usize
 
 /// Write `s`'s bytes at `off` ; return `off + s.bytes().len()`.
 export write_string_at :: fn(self: Buffer, off: usize, s: string) -> usize {

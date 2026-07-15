@@ -8,16 +8,15 @@ type 5 primitive usize
 type 6 struct std_core$Buffer {  }
 type 7 primitive string
 type 8 primitive i64
-type 9 array 10
-type 10 primitive u8
-type 11 primitive void
-type 12 fn (1) -> 1
-type 13 array 1
-type 14 fn (1) -> 4
+type 9 primitive u8
+type 10 primitive void
+type 11 fn (1) -> 1
+type 12 array 1
+type 13 fn (1) -> 4
 string 0 "m "
 string 1 "f "
 string 2 "\n"
-import 0 bytes std_core$bytes (string) -> ref
+import 0 byte_len std_core$byte_len (string) -> usize
 import 1 write std_io$write (i32,string) -> void
 impl 6 ByteAccess
 export main 0
@@ -33,12 +32,12 @@ fn 0 snippet$main () -> i32
   local $cast_24 i64
   local v i32
   struct.new 2
-  make_closure 1 12
+  make_closure 1 11
   local.set 0
   i32.const 1
   i32.const 2
   i32.const 3
-  array.new 13 3
+  array.new 12 3
   local.tee 1
   array.len
   local.set 2
@@ -54,7 +53,7 @@ fn 0 snippet$main () -> i32
         local.get 3
         load_slot_i32
         local.get 0
-        call.indirect 12
+        call.indirect 11
         local.set 4
         i64.const 22
         call 3
@@ -88,14 +87,14 @@ fn 0 snippet$main () -> i32
     end $L1
   end $L0
   struct.new 3
-  make_closure 2 14
+  make_closure 2 13
   local.set 0
   i32.const 1
   i32.const 2
   i32.const 3
   i32.const 4
   i32.const 5
-  array.new 13 5
+  array.new 12 5
   local.tee 1
   array.len
   local.set 2
@@ -112,7 +111,7 @@ fn 0 snippet$main () -> i32
         load_slot_i32
         local.tee 4
         local.get 0
-        call.indirect 14
+        call.indirect 13
         if $L6 void
           local.get 4
           local.set 8
@@ -182,14 +181,13 @@ fn 4 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 5 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 11
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3

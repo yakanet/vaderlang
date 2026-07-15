@@ -18,16 +18,14 @@ type 15 ref Async
 type 16 primitive bool
 type 17 primitive usize
 type 18 struct std_core$Buffer {  }
-type 19 array 20
-type 20 primitive u8
-type 21 struct std_async$Race__string { children:26 }
-type 22 ref Async
-type 23 ref Async
-type 24 struct std_async$Sleep { ms:2,deadline:2,armed:16 }
-type 25 union 0,9
-type 26 array 3
-type 27 struct $Cell_string { value:1 }
-type 28 ref _
+type 19 struct std_async$Race__string { children:24 }
+type 20 ref Async
+type 21 ref Async
+type 22 struct std_async$Sleep { ms:2,deadline:2,armed:16 }
+type 23 union 0,9
+type 24 array 3
+type 25 struct $Cell_string { value:1 }
+type 26 ref _
 string 0 ""
 string 1 "cleanup "
 string 2 "winner: "
@@ -35,7 +33,7 @@ string 3 "fast"
 string 4 "slow"
 string 5 "\n"
 string 6 "async deadlock: a task is suspended with nothing left to wake it"
-import 0 bytes std_core$bytes (string) -> ref
+import 0 byte_len std_core$byte_len (string) -> usize
 import 1 write std_io$write (i32,string) -> void
 import 2 sched_now std_runtime$sched_now () -> i64
 import 3 sched_arm std_runtime$sched_arm (i64) -> void
@@ -44,16 +42,16 @@ import 5 panic std_abort$panic (string) -> void
 impl 7 Async
 impl 10 Async
 impl 18 ByteAccess
-impl 21 Async
-impl 24 Async
+impl 19 Async
+impl 22 Async
 vtable Async.resume 7 3
 vtable Async.resume 10 5
-vtable Async.resume 21 12
-vtable Async.resume 24 16
+vtable Async.resume 19 11
+vtable Async.resume 22 15
 vtable Async.cancel 7 4
 vtable Async.cancel 10 6
-vtable Async.cancel 21 13
-vtable Async.cancel 24 17
+vtable Async.cancel 19 12
+vtable Async.cancel 22 16
 export main 1
 
 fn 0 snippet$leg (string,i64) -> any
@@ -61,7 +59,7 @@ fn 0 snippet$leg (string,i64) -> any
   local $arr_4 ref
   local $k_5 any
   local.get 0
-  struct.new 27
+  struct.new 25
   local.set 2
   array.new 13 0
   local.set 3
@@ -86,20 +84,20 @@ fn 1 snippet$main () -> i32
   local.get 0
   i32.const 4
   struct.new 10
-  ref.cast 23
-  call 15
+  ref.cast 21
+  call 14
   return
 end
 
 fn 2 __defer_1 (ref) -> void
   local $cell_get_3 string
   local.field 0 5 0
-  struct.get 27 0
+  struct.get 25 0
   local.set 1
   string.const 1
   local.get 1
   call 7
-  call 11
+  call 10
   return
 end
 
@@ -221,7 +219,7 @@ fn 3 snippet$__asyncstate_11$Async$resume (ref) -> any
         if $L9 void
           local.field 0 7 1
           ref.cast 2
-          call 14
+          call 13
           local.set 8
           local.get 0
           local.get 8
@@ -260,7 +258,7 @@ fn 3 snippet$__asyncstate_11$Async$resume (ref) -> any
   i32.const -1
   struct.set 7 5
   local.field 0 7 0
-  struct.get 27 0
+  struct.get 25 0
   box 1
   return
 end
@@ -366,7 +364,7 @@ fn 5 snippet$__asyncstate_17$Async$resume (ref) -> any
           string.const 2
           local.get 2
           call 7
-          call 11
+          call 10
           local.get 0
           i32.const 1
           struct.set 10 3
@@ -411,8 +409,8 @@ fn 5 snippet$__asyncstate_17$Async$resume (ref) -> any
           local.set 6
           local.get 5
           local.get 6
-          array.new 26 2
-          call 19
+          array.new 24 2
+          call 18
           local.set 7
           local.get 0
           local.get 7
@@ -454,10 +452,10 @@ fn 7 concat_2 (string,string) -> string
   local $call_4 usize
   local buf ref
   local.get 0
-  call 9
+  call.import 0
   local.set 2
   local.get 1
-  call 9
+  call.import 0
   local.set 3
   local.get 2
   local.get 3
@@ -467,38 +465,31 @@ fn 7 concat_2 (string,string) -> string
   local.tee 4
   i64.const 0
   local.get 0
-  call 22
+  call 21
   local.get 4
   local.get 2
   local.get 1
-  call 22
+  call 21
   local.get 4
   local.get 3
-  call 10
+  call 9
   return
 end
 
 fn 8 std_core$new_byte_buffer (usize) -> ref
   local.get 0
+  call 19
+  return
+end
+
+fn 9 std_core$finish_buffer (ref,usize) -> string
+  local.get 0
+  local.get 1
   call 20
   return
 end
 
-fn 9 std_core$byte_len (string) -> usize
-  local.get 0
-  call.import 0
-  array.len
-  return
-end
-
-fn 10 std_core$finish_buffer (ref,usize) -> string
-  local.get 0
-  local.get 1
-  call 21
-  return
-end
-
-fn 11 std_io$println__string (string) -> void
+fn 10 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 1
@@ -508,12 +499,12 @@ fn 11 std_io$println__string (string) -> void
   return
 end
 
-fn 12 std_async$Race$Async$resume__string (ref) -> any
+fn 11 std_async$Race$Async$resume__string (ref) -> any
   local n usize
   local i usize
   local r any
   local j usize
-  local.field 0 21 0
+  local.field 0 19 0
   array.len
   local.set 1
   i64.const 0
@@ -524,9 +515,9 @@ fn 12 std_async$Race$Async$resume__string (ref) -> any
       local.get 1
       u64.lt
       if $L2 void
-        local.field 0 21 0
+        local.field 0 19 0
         local.get 2
-        array.get 26
+        array.get 24
         virtual.call 1 Async.resume
         local.tee 3
         type_check 9
@@ -549,9 +540,9 @@ fn 12 std_async$Race$Async$resume__string (ref) -> any
               local.get 2
               i64.ne
               if $L7 void
-                local.field 0 21 0
+                local.field 0 19 0
                 local.get 4
-                array.get 26
+                array.get 24
                 virtual.call 1 Async.cancel
               else
               end $L7
@@ -576,11 +567,11 @@ fn 12 std_async$Race$Async$resume__string (ref) -> any
   return
 end
 
-fn 13 std_async$Race$Async$cancel__string (ref) -> void
+fn 12 std_async$Race$Async$cancel__string (ref) -> void
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local.field 0 21 0
+  local.field 0 19 0
   local.tee 1
   array.len
   local.set 2
@@ -594,7 +585,7 @@ fn 13 std_async$Race$Async$cancel__string (ref) -> void
       if $L2 void
         local.get 1
         local.get 3
-        array.get 26
+        array.get 24
         virtual.call 1 Async.cancel
         local.get 3
         i64.const 1
@@ -608,33 +599,33 @@ fn 13 std_async$Race$Async$cancel__string (ref) -> void
   return
 end
 
-fn 14 std_async$sleep (i64) -> any
+fn 13 std_async$sleep (i64) -> any
   local.get 0
   i64.const 0
   bool.const false
-  struct.new 24
+  struct.new 22
   return
 end
 
-fn 15 std_async$run_async_main (any) -> i32
+fn 14 std_async$run_async_main (any) -> i32
   local.get 0
-  call 18
+  call 17
   return
 end
 
-fn 16 std_async$Sleep$Async$resume (ref) -> any
+fn 15 std_async$Sleep$Async$resume (ref) -> any
   local $call_4 i64
   local $field_5 i64
-  local.field 0 24 2
+  local.field 0 22 2
   ref.cast 16
   bool.not
   if $L0 void
     local.get 0
     bool.const true
-    struct.set 24 2
+    struct.set 22 2
     call.import 2
     local.set 1
-    local.field 0 24 0
+    local.field 0 22 0
     ref.cast 2
     local.set 2
     local.get 1
@@ -643,15 +634,15 @@ fn 16 std_async$Sleep$Async$resume (ref) -> any
     local.set 1
     local.get 0
     local.get 1
-    struct.set 24 1
-    local.field 0 24 1
+    struct.set 22 1
+    local.field 0 22 1
     ref.cast 2
     call.import 3
   else
   end $L0
   call.import 2
   local.set 1
-  local.field 0 24 1
+  local.field 0 22 1
   ref.cast 2
   local.set 2
   local.get 1
@@ -666,11 +657,11 @@ fn 16 std_async$Sleep$Async$resume (ref) -> any
   return
 end
 
-fn 17 std_async$Sleep$Async$cancel (ref) -> void
+fn 16 std_async$Sleep$Async$cancel (ref) -> void
   return
 end
 
-fn 18 std_async$block_on__i32 (any) -> i32
+fn 17 std_async$block_on__i32 (any) -> i32
   local r any
   block $L0 void
     loop $L1 void
@@ -698,26 +689,26 @@ fn 18 std_async$block_on__i32 (any) -> i32
   return
 end
 
-fn 19 std_async$race__string (ref) -> any
+fn 18 std_async$race__string (ref) -> any
   local.get 0
-  struct.new 21
+  struct.new 19
   return
 end
 
-fn 20 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 19 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 21 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 20 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 22 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 21 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2

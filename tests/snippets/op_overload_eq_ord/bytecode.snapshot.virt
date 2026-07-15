@@ -6,9 +6,7 @@ type 3 primitive i32
 type 4 primitive usize
 type 5 struct std_core$Buffer {  }
 type 6 primitive string
-type 7 array 8
-type 8 primitive u8
-type 9 primitive void
+type 7 primitive void
 string 0 "a==b "
 string 1 "  a!=c "
 string 2 "a<c "
@@ -18,7 +16,7 @@ string 5 "  c<=c "
 string 6 "true"
 string 7 "false"
 string 8 "\n"
-import 0 bytes std_core$bytes (string) -> ref
+import 0 byte_len std_core$byte_len (string) -> usize
 import 1 write std_io$write (i32,string) -> void
 impl 1 Equals
 impl 1 Comparable
@@ -215,14 +213,13 @@ fn 3 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 4 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 9
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3

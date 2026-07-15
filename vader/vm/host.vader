@@ -157,9 +157,9 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         return HostOk { .value = zero_value() }
     }
     // ---- std/string family ----------------------------------------------
-    .StringByteLen -> {
-        // Internal fold target — `s.bytes().len()` lowers to a std_string$byte_len
-        // import. The body's own `.bytes().len()` folds to the native byte_len.
+    .ByteLen -> {
+        // Internal fold target — `s.bytes().len()` lowers to a std_core$byte_len
+        // import. String-only (a `u8[]` uses `.len()` directly).
         s :: read_string(stack[arg_base], at_pc, "byte_len")
         if s is Trap { return s }
         return HostOk { .value = I32Val { .value = i32(s.value.bytes().len()) } }
@@ -476,7 +476,7 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     .SchedNow | .SchedArm | .SchedPark -> true
     // Pure : the baked value depends only on the args, never external state.
     .IoWrite -> false
-    .StringByteLen -> false
+    .ByteLen -> false
     .CoreBytes | .CoreBytesToString | .CoreStringIndexAt | .CoreStringHash
         | .CoreStringEquals | .CoreStringNotEquals -> false
     .PrimIntEquals | .PrimIntNotEquals | .PrimDisplayToString -> false

@@ -31,9 +31,9 @@ string 1 "array sum  = "
 string 2 "hello, world!"
 string 3 "l count    = "
 string 4 "\n"
-import 0 bytes std_core$bytes (string) -> ref
-import 1 write std_io$write (i32,string) -> void
-import 2 byte_len std_string$byte_len (string) -> usize
+import 0 byte_len std_core$byte_len (string) -> usize
+import 1 bytes std_core$bytes (string) -> ref
+import 2 write std_io$write (i32,string) -> void
 impl 7 Contains
 impl 7 Iterator
 impl 10 Contains
@@ -395,7 +395,7 @@ fn 9 std_core$write_string_at (ref,usize,string) -> usize
   local.get 2
   call 25
   local.get 2
-  call.import 2
+  call.import 0
   local.set 3
   local.get 1
   local.get 3
@@ -691,10 +691,10 @@ end
 fn 15 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
-  call.import 1
+  call.import 2
   i32.const 0
   string.const 4
-  call.import 1
+  call.import 2
   return
 end
 
@@ -702,7 +702,7 @@ fn 16 std_string$chars (string) -> ref
   local bs ref
   local $len_4 usize
   local.get 0
-  call.import 0
+  call.import 1
   local.tee 1
   array.len
   local.set 2

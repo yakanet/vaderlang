@@ -7,15 +7,14 @@ type 4 primitive usize
 type 5 struct std_core$Buffer {  }
 type 6 primitive string
 type 7 primitive u64
-type 8 array 9
-type 9 primitive u8
-type 10 primitive void
-type 11 array 3
+type 8 primitive u8
+type 9 primitive void
+type 10 array 3
 string 0 "len = "
 string 1 "none"
 string 2 "got value"
 string 3 "\n"
-import 0 bytes std_core$bytes (string) -> ref
+import 0 byte_len std_core$byte_len (string) -> usize
 import 1 write std_io$write (i32,string) -> void
 impl 5 ByteAccess
 export main 0
@@ -26,7 +25,7 @@ fn 0 snippet$main () -> i32
   local __off_1 usize
   local $cast_14 u64
   local __scrut_2 any
-  array.new 11 0
+  array.new 10 0
   local.tee 0
   null.const
   array.push 0
@@ -62,7 +61,7 @@ fn 0 snippet$main () -> i32
   call 5
   local.get 0
   i32.const 1
-  array.get 11
+  array.get 10
   local.tee 4
   type_check 0
   if $L0 void
@@ -94,14 +93,13 @@ fn 2 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 3 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 9
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3

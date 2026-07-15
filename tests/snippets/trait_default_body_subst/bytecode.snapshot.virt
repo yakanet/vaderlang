@@ -9,16 +9,15 @@ type 6 array 2
 type 7 struct snippet$B { b:2 }
 type 8 primitive usize
 type 9 struct std_core$Buffer {  }
-type 10 array 11
-type 11 primitive u8
-type 12 primitive void
+type 10 primitive u8
+type 11 primitive void
 string 0 "w:"
 string 1 "w:1"
 string 2 "w:2"
 string 3 "all ok"
 string 4 "FAIL"
 string 5 "\n"
-import 0 bytes std_core$bytes (string) -> ref
+import 0 byte_len std_core$byte_len (string) -> usize
 import 1 write std_io$write (i32,string) -> void
 impl 1 Widget
 impl 7 Widget
@@ -239,14 +238,13 @@ fn 2 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 3 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 9
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3

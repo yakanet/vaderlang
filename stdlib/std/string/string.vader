@@ -9,13 +9,6 @@ module "std/string"
 import "std/string_builder" { StringBuilder, append, append_char }
 import "std/math" { min }
 
-// Length in bytes. Module-internal (NOT exported) — callers write
-// `s.bytes().len()`, which the lowerer folds to an O(1) call of this host fn
-// (see `src/lower/passes/fold-byte-len.ts` / `vader/lower/fold_byte_len.vader`).
-// Kept as a bodyless host decl so the fold has a target; DCE roots it
-// unconditionally as a bodyless host fn.
-@intrinsic byte_len :: fn(s: string) -> usize
-
 /// True for the empty string. Equivalent to `s.byte_len() == 0` but
 /// reads cleanly at call sites — emptiness is the same in byte and
 /// codepoint views.

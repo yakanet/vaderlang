@@ -13,12 +13,11 @@ type 10 primitive usize
 type 11 struct std_core$Buffer {  }
 type 12 primitive string
 type 13 primitive i64
-type 14 array 15
-type 15 primitive u8
+type 14 primitive u8
 string 0 "trailing = "
 string 1 "combine = "
 string 2 "\n"
-import 0 bytes std_core$bytes (string) -> ref
+import 0 byte_len std_core$byte_len (string) -> usize
 import 1 write std_io$write (i32,string) -> void
 impl 3 Async
 impl 6 Async
@@ -357,14 +356,13 @@ fn 10 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 11 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 17
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3

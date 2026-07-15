@@ -5,10 +5,9 @@ type 2 primitive usize
 type 3 struct std_core$Buffer {  }
 type 4 primitive string
 type 5 primitive i64
-type 6 array 7
-type 7 primitive u8
-type 8 primitive void
-type 9 array 1
+type 6 primitive u8
+type 7 primitive void
+type 8 array 1
 string 0 "after view[1]=99"
 string 1 "arr[0]="
 string 2 "arr[1]="
@@ -24,7 +23,7 @@ string 11 "indep[1]="
 string 12 "indep[2]="
 string 13 "indep[3]="
 string 14 "\n"
-import 0 bytes std_core$bytes (string) -> ref
+import 0 byte_len std_core$byte_len (string) -> usize
 import 1 write std_io$write (i32,string) -> void
 impl 3 ByteAccess
 export main 0
@@ -43,7 +42,7 @@ fn 0 snippet$main () -> i32
   i32.const 30
   i32.const 40
   i32.const 50
-  array.new 9 5
+  array.new 8 5
   local.set 0
   i32.const 1
   i32.to_i64
@@ -54,7 +53,7 @@ fn 0 snippet$main () -> i32
   local.get 0
   local.get 1
   local.get 2
-  array.slice 9
+  array.slice 8
   local.tee 3
   i32.const 1
   i32.const 99
@@ -431,14 +430,13 @@ fn 2 std_core$finish_buffer (ref,usize) -> string
 end
 
 fn 3 std_core$write_string_at (ref,usize,string) -> usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
   call 9
   local.get 2
   call.import 0
-  array.len
   local.set 3
   local.get 1
   local.get 3
