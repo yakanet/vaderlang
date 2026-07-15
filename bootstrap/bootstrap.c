@@ -47255,14 +47255,15 @@ static void vader_typecheck_push_module_exported_fns(void* l0, void* l1) {
     void* l13 = NULL;
     void* l14 = NULL;
     void* l18 = NULL;
+    void* l19 = NULL;
     size_t l7, l8, l11, l12;
-    int32_t l15;
+    int32_t l15, l20;
     vader_box_t l16 = vader_box_null(), l17 = vader_box_null();
     vader_box_t t0 = vader_box_null();
     int64_t t1;
     vader_box_t* gc_roots[3] = { &l16, &l17, &t0 };
-    void** gc_raw_roots[10] = { &l0, &l1, &l4, &l5, &l6, &l9, &l10, &l13, &l14, &l18 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 10u, gc_roots, gc_raw_roots };
+    void** gc_raw_roots[11] = { &l0, &l1, &l4, &l5, &l6, &l9, &l10, &l13, &l14, &l18, &l19 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 11u, gc_roots, gc_raw_roots };
     vader_gc_top = &gc_frame;
     l2 = ((vader_struct_vader_resolver_ResolvedModule_t*) ((vader_struct_vader_typecheck_TypedProgram_t*) l0)->f_resolved)->f_path;
     l3 = ((vader_struct_vader_resolver_ResolvedModule_t*) ((vader_struct_vader_typecheck_TypedProgram_t*) l1)->f_resolved)->f_path;
@@ -47324,6 +47325,9 @@ static void vader_typecheck_push_module_exported_fns(void* l0, void* l1) {
                             if (l17.tag == 313u) {
                                 l18 = l17.payload.obj;
                                 vader_typecheck_push_overload(l1, l3, l18);
+                                l19 = ((vader_struct_vader_typecheck_TypedProgram_t*) l1)->f_external_types;
+                                l20 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l13)->f_id;
+                                std_collections_MutableMap_IndexSet_set_at__i32__Any(l19, l20, vader_ref_box(l18));
                             } else {
                             }
                             t1 = (l12 + INT64_C(1));
