@@ -1,0 +1,11 @@
+module "snippet"
+
+// bare `import "..."` — the wildcard form. Every function of std/string
+// becomes callable (here via UFCS: `s.starts_with(...)`).
+import "std/string"
+
+main :: fn() -> i32 {
+    s :: "hello"
+    if s.starts_with("hel") { return 0 }
+    return 1
+}

@@ -18,7 +18,7 @@ import "vader/diagnostics" { Diagnostic, Span, resolver_error }
 import "vader/parser" {
     Program, Decl, ImportDecl, FnDecl, StructDecl, EnumDecl, TraitDecl,
     ImplDecl, TypeAliasDecl, ConstDecl, AssertDecl, Visibility,
-    ImportBinding, NamedNamespaceImport, DestructureImport,
+    ImportBinding, NamedNamespaceImport, DestructureImport, WildcardImport,
 }
 import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, make }
 
@@ -190,6 +190,10 @@ collect_import :: fn(
         is NamedNamespaceImport as ns -> {
             // `name :: import "p"` — namespace binding ; imported_name = null.
             self.bind_import(ns.name, d.span, d.path, null, module_path, factory, diags)
+        }
+        is WildcardImport -> {
+            // bare `import "p"` — wildcard : the path is already recorded in
+            // `import_paths` above ; binds no name.
         }
         is DestructureImport as de -> {
             for n in de.names {

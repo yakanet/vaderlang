@@ -1,0 +1,10 @@
+# Typecheck
+
+## tests/snippets/wildcard_import
+  FnDecl         main                 :: fn() -> i32
+  expr 8:10     StringLitExpr  :: string
+  expr 9:22     StringLitExpr  :: string
+  expr 9:5      IfExpr         :: void
+  expr 9:8      CallExpr       :: bool
+  expr 9:8      FieldExpr      :: fn(string) -> bool
+  expr 9:8      IdentExpr      :: string

@@ -22,7 +22,7 @@ export UNASSIGNED_NODE_ID :: usize(0)
 
 export Decl :: ImportDecl | FnDecl | StructDecl | EnumDecl | TraitDecl | ImplDecl | TypeAliasDecl | ConstDecl | AssertDecl
 
-export ImportBinding :: NamedNamespaceImport | DestructureImport
+export ImportBinding :: NamedNamespaceImport | DestructureImport | WildcardImport
 
 export ForForm :: InfiniteFor | WhileFor | InFor
 
@@ -122,6 +122,10 @@ export NamedNamespaceImport :: struct {
     name: string
 }
 export DestructureImport :: struct { names: ImportName[] }
+
+/// bare `import "..."` — wildcard : every function of the module becomes
+/// callable (prefix + UFCS) ; binds no name.
+export WildcardImport :: struct {}
 
 export ImportName :: struct {
     name:  string

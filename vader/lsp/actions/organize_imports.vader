@@ -152,6 +152,13 @@ oi_render :: fn(run: AST.ImportDecl[]) -> string {
                     ns_entries.push(OiEntry { .group = oi_group(im.path), .path = im.path, .text = text })
                 }
             }
+            is AST.WildcardImport -> {
+                text :: "import \"" + im.path + "\""
+                if ns_seen[text] == null {
+                    ns_seen[text] = true
+                    ns_entries.push(OiEntry { .group = oi_group(im.path), .path = im.path, .text = text })
+                }
+            }
         }
     }
 

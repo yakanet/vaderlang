@@ -27,7 +27,7 @@ import "std/string" { trim, starts_with }
 import "vader/parser" {
     parse_source,
     Decl,
-    ImportDecl, ImportBinding, NamedNamespaceImport, DestructureImport,
+    ImportDecl, ImportBinding, NamedNamespaceImport, DestructureImport, WildcardImport,
     FnDecl, StructDecl, EnumDecl, TraitDecl, TypeAliasDecl, ConstDecl,
     ImplDecl, AssertDecl,
     Decorator,
@@ -728,6 +728,7 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
 collect_import :: fn(d: ImportDecl, imports: ImportEntry[]) -> void {
     match d.binding {
         is NamedNamespaceImport -> {} // `name :: import "..."` — name is a namespace, not a value
+        is WildcardImport -> {} // bare `import "..."` — wildcard, binds no value
         is DestructureImport as de -> {
             for n in de.names {
                 local_name := n.name

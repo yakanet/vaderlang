@@ -1,0 +1,17 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    let s: string = "hello" :string
+    if :void
+      cond:
+        call :bool
+          callee:
+            starts_with :bool
+          arg0:
+            s :string
+          arg1:
+            "hel" :string
+      then:
+        return int(0) :i32
+    return int(1) :i32

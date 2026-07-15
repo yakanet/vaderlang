@@ -167,6 +167,7 @@ walk_decorator :: fn(d: Decorator, f: NodeIdFactory) -> void {
 walk_import_binding :: fn(b: ImportBinding, f: NodeIdFactory) -> void {
     match b {
         is NamedNamespaceImport -> {}
+        is WildcardImport -> {}
         is DestructureImport as d -> {
             for n in d.names { n.id = f.mint() }
         }
