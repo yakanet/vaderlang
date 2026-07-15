@@ -599,7 +599,7 @@ export strip_distinct_each :: fn(args: Type[]) -> Type[] {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/resolver/symbol" { SymbolKind, new_factory, make }
+import "vader/resolver/symbol" { SymbolKind, make, SymbolFactory }
 import "vader/parser" { Visibility }
 
 @test
@@ -642,7 +642,7 @@ test_display_union :: fn() -> void {
 
 @test
 test_display_struct_with_args :: fn() -> void {
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     sym :: factory.make(.Struct, "MutableMap", "test", .Public, null)
     a0: Type = mk_primitive("string")
     a1: Type = mk_primitive("i32")
@@ -652,7 +652,7 @@ test_display_struct_with_args :: fn() -> void {
 
 @test
 test_display_struct_without_args :: fn() -> void {
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     sym :: factory.make(.Struct, "Point", "test", .Public, null)
     s :: mk_struct(sym, [])
     assert_eq(display_type(s), "Point")
@@ -670,7 +670,7 @@ test_display_singletons :: fn() -> void {
 
 @test
 test_display_type_param :: fn() -> void {
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     sym :: factory.make(.TypeParam, "T", "test", .Private, null)
     tp :: mk_type_param(sym)
     assert_eq(display_type(tp), "T")

@@ -91,13 +91,13 @@ export lookup_frame_index :: fn(self: Scope, name: string) -> i32 {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/resolver/symbol" { SymbolFactory, SymbolKind, new_factory, make }
+import "vader/resolver/symbol" { SymbolFactory, SymbolKind, make }
 import "vader/parser" { Visibility }
 import "vader/diagnostics" { Position }
 
 @test
 test_scope_lookup_finds_root_binding :: fn() -> void {
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     sym :: factory.make(.Local, "x", "test", .Private, null)
     root :: MutableMap<string, Symbol> {}
     root["x"] = sym
@@ -111,7 +111,7 @@ test_scope_lookup_finds_root_binding :: fn() -> void {
 
 @test
 test_scope_push_pop_restores_outer :: fn() -> void {
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     outer :: factory.make(.Local, "x", "test", .Private, null)
     inner :: factory.make(.Local, "x", "test", .Private, null)
     root :: MutableMap<string, Symbol> {}

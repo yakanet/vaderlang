@@ -1242,7 +1242,7 @@ into_tuple_target :: fn(declared: Type, arity: usize, typed: TypedProgram) -> Ty
 import "std/testing"
 import "vader/parser" { parse_source }
 import "vader/resolver" { resolve_module }
-import "vader/resolver/symbol" { new_factory }
+import "vader/resolver/symbol" { SymbolFactory }
 // Bundles parse + resolve + declare + walks fn bodies with the stub.
 // Returns both `typed` and `diags` so test sites can assert on either.
 StubResult :: struct {
@@ -1252,7 +1252,7 @@ StubResult :: struct {
 
 stub_check_module :: fn(src: string) -> StubResult {
     parsed :: parse_source(src, "t.vader")
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     typed :: new_typed_program(rm)
     diags: Diagnostic[] = []

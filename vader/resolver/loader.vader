@@ -20,7 +20,7 @@ import "std/io" { exists, is_dir, read_file_string }
 import "std/path" { to_posix }
 import "vader/diagnostics" { Diagnostic, Position, Span, resolver_error }
 import "vader/parser" { NodeIdFactory, new_node_id_factory, parse_source, assign_program_ids }
-import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, new_factory }
+import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory }
 
 /// Synthetic 1:1 span anchored on a file path. Used by R2001 when the
 /// entry folder lies outside every scoped root — there is no source-
@@ -59,7 +59,7 @@ export empty_loaded_project :: fn() -> LoadedProject {
     return LoadedProject {
         .entry        = "",
         .modules      = MutableMap<string, LoadedModule> {},
-        .factory      = new_factory(),
+        .factory      = SymbolFactory {},
         .project_root = null,
         .diags        = [],
     }
@@ -101,7 +101,7 @@ export load_project :: fn(entry_path: string, include_path_flags: string[]) -> L
 /// @param overlay     filesystem path → current source text ; consulted
 ///                    before the disk in `parse_module_files`.
 export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<string, string>, include_path_flags: string[]) -> LoadedProject {
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     // ONE node-id factory for the whole project so AST node ids are globally
     // unique across modules (see `parse_module_files`). Threaded into every
     // module's parse + carried as each module's `node_id_factory`.

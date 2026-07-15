@@ -60,11 +60,10 @@ export make_builtin_scope :: fn(factory: SymbolFactory) -> MutableMap<string, Sy
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/resolver/symbol" { new_factory }
 
 @test
 test_builtin_scope_includes_i32 :: fn() -> void {
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     scope :: make_builtin_scope(factory)
     sym :: scope["i32"]
     match sym {
@@ -79,7 +78,7 @@ test_builtin_scope_includes_i32 :: fn() -> void {
 
 @test
 test_builtin_scope_first_id_is_one :: fn() -> void {
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     scope :: make_builtin_scope(factory)
     first :: scope["i8"]
     match first {

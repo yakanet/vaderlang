@@ -351,7 +351,7 @@ detect_is_narrow :: fn(
 import "std/testing"
 import "vader/parser" { parse_source }
 import "vader/resolver" { resolve_module }
-import "vader/resolver/symbol" { new_factory }
+import "vader/resolver/symbol" { SymbolFactory }
 
 expr_if_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
@@ -392,7 +392,7 @@ first_if_in_last_fn :: fn(src: string) -> AST.IfExpr | null {
 
 checked :: fn(src: string) -> TypedProgram {
     parsed :: parse_source(src, "t.vader")
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[] = []
     result :: check_module(parsed.program, rm, factory, diags)

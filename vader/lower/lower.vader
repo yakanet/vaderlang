@@ -363,7 +363,7 @@ import "std/testing"
 
 import "vader/typecheck" { new_typed_project }
 import "vader/comptime" { new_evaluated_project }
-import "vader/resolver/symbol" { new_factory, SymbolFactory }
+import "vader/resolver/symbol" { SymbolFactory }
 
 @test test_lower_empty_project :: fn() -> void {
     loaded :: LoadedProject {
@@ -380,4 +380,4 @@ import "vader/resolver/symbol" { new_factory, SymbolFactory }
     assert_eq(project.modules.len(), 0)
 }
 
-factory_for_test :: fn() -> SymbolFactory { return new_factory() }
+factory_for_test :: fn() -> SymbolFactory { return SymbolFactory {} }

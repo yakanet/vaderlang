@@ -21,7 +21,7 @@ import "vader/parser" { parse_source }
 AST :: import "vader/parser"
 import "vader/diagnostics" { Position, Span }
 import "vader/resolver" { resolve_program }
-import "vader/resolver/symbol" { Symbol, SymbolKind, new_factory }
+import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory }
 import "vader/types" { is_primitive_name }
 import "vader/lsp/protocol" { TokenType, RawToken, new_line_index, li_character }
 
@@ -75,7 +75,7 @@ push_module_keyword_span :: fn(md: AST.ModuleDecl, out: RawToken[]) -> void {
 /// Walk every ident through the body-resolver and override matching
 /// Phase-1 tokens with the symbol-kind-derived TokenType.
 refine_via_resolver :: fn(program: AST.Program, uri: string, out: RawToken[], source: string) -> void {
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     seed :: MutableMap<string, Symbol> {}
     resolved :: resolve_program(program, seed, uri, factory)
     // `idents` is keyed by `Span.hash()` = (file, line, **codepoint column**),

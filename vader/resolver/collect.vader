@@ -308,7 +308,6 @@ diagnose_import_path :: fn(
 
 import "std/testing"
 import "vader/parser" { parse_source }
-import "vader/resolver/symbol" { new_factory }
 
 @test
 test_collect_mints_one_symbol_per_top_level_decl :: fn() -> void {
@@ -317,7 +316,7 @@ export greet :: fn() -> i32 { return 0 }
 main :: fn() -> i32 { return 0 }
 """
     parsed :: parse_source(src, "test.vader")
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     collected :: collect_module_no_index(parsed.program, "test", factory)
     greet :: collected.symbols["greet"]
     match greet {
@@ -340,7 +339,7 @@ test_collect_destructure_emits_all_names :: fn() -> void {
 import "x" { a, b, c }
 """
     parsed :: parse_source(src, "test.vader")
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     collected :: collect_module_no_index(parsed.program, "test", factory)
     for name in ["a", "b", "c"] {
         hit :: collected.symbols[name]
@@ -358,7 +357,7 @@ foo :: fn(x: i32) -> i32 { return x }
 foo :: fn(x: string) -> string { return x }
 """
     parsed :: parse_source(src, "test.vader")
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     collected :: collect_module_no_index(parsed.program, "test", factory)
     bucket :: collected.fn_overloads["foo"]
     match bucket {

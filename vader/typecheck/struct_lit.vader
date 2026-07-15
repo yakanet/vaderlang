@@ -137,7 +137,7 @@ check_item_no_expected :: fn(
 import "std/testing"
 import "vader/parser" { parse_source }
 import "vader/resolver" { resolve_module }
-import "vader/resolver/symbol" { new_factory }
+import "vader/resolver/symbol" { SymbolFactory }
 
 struct_lit_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
@@ -165,7 +165,7 @@ ExpectedSL :: struct {
 
 expect_struct_lit :: fn(src: string) -> ExpectedSL {
     parsed :: parse_source(src, "t.vader")
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[] = []
     result :: check_module(parsed.program, rm, factory, diags)

@@ -735,7 +735,7 @@ check_args_no_expected :: fn(
 import "std/testing"
 import "vader/parser" { parse_source }
 import "vader/resolver" { resolve_module, ResolvedModule }
-import "vader/resolver/symbol" { Symbol, new_factory }
+import "vader/resolver/symbol" { Symbol, SymbolFactory }
 
 // Tiny stub : handles the variants the call tests touch. Real call sites
 // use `expr.vader::check_expr` — we can't import that here (cycle).
@@ -759,7 +759,7 @@ call_check_stub :: fn(
 // `find_first_in_block` walker.
 first_call_in_last_fn :: fn(src: string) -> CallFixture {
     parsed :: parse_source(src, "t.vader")
-    factory :: new_factory()
+    factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[] = []
     result :: check_module(parsed.program, rm, factory, diags)
