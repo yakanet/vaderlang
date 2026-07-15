@@ -1,0 +1,10 @@
+// Imports std/iter so it IS loaded into the project (the loader walks every
+// import path). That must NOT make `_main`'s `.map()` resolve — `_main` doesn't
+// import std/iter itself. This module doesn't need to USE std/iter; merely
+// importing it co-loads it, which is the whole point of the fixture.
+
+module "snippet/helper"
+
+import "std/iter"
+
+export placeholder :: fn() -> i32 = 0
