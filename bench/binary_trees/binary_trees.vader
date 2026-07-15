@@ -10,7 +10,7 @@
 
 module "main"
 
-import "std/io" { println }
+import "std/io"
 
 Node :: struct {
     value: i32

@@ -13,7 +13,7 @@
 
 module "main"
 
-import "std/io" { println }
+import "std/io"
 
 N :: 1_000_000
 

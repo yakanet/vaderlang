@@ -192,7 +192,7 @@ Ppm implements Display {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq }
+import "std/testing"
 
 @test test_encode_header_and_raster :: fn() -> void {
     px: u8[] = [10, 20, 30, 40, 50, 60]

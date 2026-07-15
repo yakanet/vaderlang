@@ -226,7 +226,7 @@ leverage beyond the stock surface.
   path↔module mapping. Capability: `workspace.fileOperations`.
 - **Auto-import on completion** (`completionItem.additionalTextEdits`).
   Completing an unimported exported symbol also inserts its
-  `import "path" { … }` (or merges the name into an existing block from that
+  `import "path"` (or merges the name into an existing block from that
   module), respecting the std → vader → third-party grouping. The single
   biggest productivity win for an explicit-nominal-import language. Extends the
   completion item.

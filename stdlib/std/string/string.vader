@@ -119,7 +119,7 @@ string implements Contains<string> {
 // could only reach it via free-fn UFCS over loaded modules — a mismatch that
 // miscompiled `s.len()` to invalid C unless std/string happened to be loaded.
 // Now a plain core free fn (byte-walk) ; callers drop it from their
-// `import "std/string" { … }` lists. See the core/string/utf8 reorg plan :
+// `import "std/string"` lists. See the core/string/utf8 reorg plan :
 // .claude/plans/core-string-utf8-reorg.md.
 
 /// Comparator suitable for `sort(arr, compare_ascending)` : returns `true`

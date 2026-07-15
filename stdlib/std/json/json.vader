@@ -621,7 +621,7 @@ export stringify_pretty :: fn(v: JsonValue, indent: i32) -> string {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert, assert_eq, fail as test_fail }
+import "std/testing"
 
 /// Parse `src` and assert it produced a `JsonString` whose value matches
 /// `expected`.
@@ -633,7 +633,7 @@ expect_string :: fn(src: string, expected: string) -> void {
     if parsed is JsonString {
         assert_eq(parsed.value, expected)
     } else {
-        test_fail("expected JsonString")
+        fail("expected JsonString")
     }
 }
 
@@ -643,7 +643,7 @@ expect_string :: fn(src: string, expected: string) -> void {
 expect_error :: fn(src: string) -> void {
     parsed :: parse(src)
     if parsed !is JsonError {
-        test_fail("expected JsonError")
+        fail("expected JsonError")
     }
 }
 
@@ -656,7 +656,7 @@ expect_number :: fn(src: string, expected: f64) -> void {
     if parsed is JsonNumber {
         assert_eq(parsed.value, expected)
     } else {
-        test_fail("expected JsonNumber")
+        fail("expected JsonNumber")
     }
 }
 
@@ -746,7 +746,7 @@ expect_number :: fn(src: string, expected: f64) -> void {
     if parsed is JsonObject {
         assert_eq(parsed.entries.len(), 2)
     } else {
-        test_fail("expected JsonObject")
+        fail("expected JsonObject")
     }
 }
 
@@ -755,7 +755,7 @@ expect_number :: fn(src: string, expected: f64) -> void {
     if parsed is JsonArray {
         assert_eq(parsed.items.len(), 3)
     } else {
-        test_fail("expected JsonArray")
+        fail("expected JsonArray")
     }
 
 }
@@ -784,5 +784,5 @@ expect_number :: fn(src: string, expected: f64) -> void {
     expect_error(sb.to_string())
     // A modestly-nested document still parses.
     ok :: parse("[[[[[1]]]]]")
-    if ok !is JsonArray { test_fail("expected JsonArray for shallow nesting") }
+    if ok !is JsonArray { fail("expected JsonArray for shallow nesting") }
 }

@@ -11,7 +11,7 @@
 
 module "std/option"
 
-import "std/abort" { panic }
+import "std/abort"
 
 // ---- nullable (`T | null`) ------------------------------------------------
 
@@ -108,7 +108,7 @@ export expect :: fn<T>(x: T | Error, msg: string) -> T {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 Boom :: struct { code: i32 }
 Boom implements Error {

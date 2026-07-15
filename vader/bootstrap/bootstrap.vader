@@ -18,21 +18,20 @@
 
 module "vader/bootstrap"
 
-import "std/io" { write_file_string, eprintln, IOError }
-import "std/collections" { keys }
-import "std/string" { trim_suffix }
-import "std/path" { to_posix, to_path, filename }
+import "std/io"
+import "std/collections"
+import "std/string"
+import "std/path"
 
-import "vader/diagnostics" { dump_diagnostics_with_file }
-import "vader/resolver" { load_project, LoadedProject }
-import "vader/typecheck" { check_project_with_bodies, CheckResult, TypedProject, new_typed_project }
-import "vader/comptime" { evaluate_project, EvaluatedProject }
-import "vader/comptime_vm" { resolve_vm_required_decls }
-import "vader/lower" { lower_project, prune_unreachable_fns, mangle_module_id, LoweredProject }
-import "vader/midir" { build_cfg_project, emit_bytecode_from_cfg, annotate_escape, eliminate_dead_cfg }
-import "vader/bytecode" { BytecodeModule, default_emit_options }
+import "vader/diagnostics"
+import "vader/resolver"
+import "vader/typecheck"
+import "vader/comptime"
+import "vader/comptime_vm"
+import "vader/lower"
+import "vader/midir"
+import "vader/bytecode"
 import "vader/c_emit" { emit_c, EmitOptions as CEmitOptions }
-import "vader/diagnostics" { Diagnostic }
 
 /// Build-only entrypoint : compile `<input.vader>` to `<output.c>`.
 ///

@@ -25,7 +25,7 @@ import "std/collections"
 import "std/abort"
 import "vader/diagnostics"
 import "vader/types"
-import "vader/lower" { LoweredVtableEntry }
+import "vader/lower"
 import "vader/bytecode" {
     EmitterCtx,
     BytecodeModule,

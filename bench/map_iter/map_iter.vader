@@ -6,8 +6,8 @@
 
 module "main"
 
-import "std/io" { println }
-import "std/collections" { MutableMap }
+import "std/io"
+import "std/collections"
 
 INNER_KEYS :: 1_000
 OUTER_LOOPS :: 1_000

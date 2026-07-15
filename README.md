@@ -17,7 +17,7 @@ fast native binaries through a compiler that is written in Vader and compiles it
 ```vader
 module "main"
 
-import "std/io" { println }
+import "std/io"
 import "std/math" { pi }
 
 // A sum type — `match` must cover every variant (the compiler checks).
@@ -72,7 +72,7 @@ Grab a [prebuilt release](#install) (or [build from the C seed](#build-from-sour
 
 ```vader
 // examples/hello/hello.vader
-import "std/io" { println }
+import "std/io"
 
 main :: fn() -> i32 {
     println("Hello, World!")

@@ -12,13 +12,10 @@
 
 module "main"
 
-import "std/io" { println, eprintln, read_file_string }
-import "std/string" {
-    chars, parse_int,
-    split_where, trim, ParseError,
-}
-import "std/char" { is_white_char }
-import "std/string_builder" { StringBuilder, append }
+import "std/io"
+import "std/string"
+import "std/char"
+import "std/string_builder"
 
 // Compile-time bake: the canonical test input is embedded next to the source.
 DEFAULT_INPUT :: @file("mowitnow_input.txt")

@@ -3114,7 +3114,7 @@ self-host correctness against the committed seed.
 ### Hello World
 
 ```vader
-import "std/io" { println }
+import "std/io"
 
 main :: fn() -> i32 {
     println("Hello, World!")
@@ -3125,7 +3125,7 @@ main :: fn() -> i32 {
 ### Fibonacci
 
 ```vader
-import "std/io" { println }
+import "std/io"
 
 fib :: fn(n: u32) -> u64 {
     if n < 2 { return u64(n) }
@@ -3143,7 +3143,7 @@ main :: fn() -> i32 {
 ### Array build + iterate
 
 ```vader
-import "std/io" { println }
+import "std/io"
 
 main :: fn() -> i32 {
     list: i32[] = []
@@ -3160,7 +3160,7 @@ main :: fn() -> i32 {
 ### Trait + impl
 
 ```vader
-import "std/io" { println }
+import "std/io"
 
 Display :: trait {
     to_string :: fn(self) -> string
@@ -3210,7 +3210,7 @@ main :: fn() -> i32 {
 ### `@comptime`
 
 ```vader
-import "std/io" { println }
+import "std/io"
 
 squares :: fn() -> u32[] {
     result: u32[] = []
