@@ -705,13 +705,18 @@ write_for_form :: fn(sb: StringBuilder, f: ForForm, level: i32) -> void {
         }
         is InFor -> {
             sb.kind_entry(level + 1, "in")
-            pat :: f.pattern
-            if pat != null {
-                sb.entry(false, level + 1, "pattern")
-                sb.write_let_binding(pat, level + 1)
-            } else {
-                sb.entry(false, level + 1, "binding")
-                sb.write_string(f.binding)
+            match f.loop_var {
+                is NamedVar as nv -> {
+                    sb.entry(false, level + 1, "binding")
+                    sb.write_string(nv.name)
+                }
+                is DestructureVar as dv -> {
+                    sb.entry(false, level + 1, "pattern")
+                    sb.write_let_binding(dv.pattern, level + 1)
+                }
+                // DiscardVar (`for <range>`) : no binding entry — the iterable is
+                // the range itself.
+                is DiscardVar -> {}
             }
             sb.entry(false, level + 1, "iter")
             sb.write_expr(f.iter, level + 1)

@@ -5,7 +5,7 @@ module "vader/lower"
 
 import "std/collections" { MutableMap }
 
-import "vader/parser" { Expr, BlockExpr, Stmt, LetStmt, AssignStmt, ExprStmt, ReturnStmt, YieldStmt, ForStmt, BreakStmt, ContinueStmt, DeferStmt, InfiniteFor, WhileFor, InFor, SimpleBinding, TupleBinding, WildcardBinding, RestBinding, Visibility }
+import "vader/parser" { Expr, BlockExpr, Stmt, LetStmt, AssignStmt, ExprStmt, ReturnStmt, YieldStmt, ForStmt, BreakStmt, ContinueStmt, DeferStmt, InfiniteFor, WhileFor, InFor, NamedVar, DestructureVar, DiscardVar, SimpleBinding, TupleBinding, WildcardBinding, RestBinding, Visibility }
 import "vader/diagnostics" { Span, lower_error }
 import "vader/typecheck" { equals_type }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
@@ -486,9 +486,8 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
             cond_type :: ctx.types.expr_type(while_for.cond)
             if cond_type is ArrayType {
                 synth_in :: InFor {
-                    .binding      = "_",
-                    .binding_span = while_for.cond.span,
-                    .iter         = while_for.cond,
+                    .loop_var = DiscardVar {},
+                    .iter     = while_for.cond,
                 }
                 return lower_for_in(ctx, for_stmt, synth_in, lower_expr, lower_block)
             }
@@ -513,47 +512,34 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
 /// Returns a synthetic block whose stmts are the body lowered once
 /// per iter element, with the loop-var symbol bound to the per-iter
 /// literal via `comptime_bindings`.
+// Reject a `@comptime for` the lowerer can't unroll : surface the reason as a
+// compile-time diagnostic (M5010) — so it fails the build rather than trapping at
+// runtime — and return a defensive `unreachable` (never executed, the build errors).
+comptime_for_reject :: fn(ctx: FnLowerCtx, span: Span, reason: string) -> LoweredStmt {
+    ctx.project.diags.push(lower_error(.ComptimeForNotUnrollable, span, reason))
+    return LoweredExprStmt {
+        .span = span,
+        .expr = LoweredUnreachable { .span = span, .type = TY_VOID, .reason = reason },
+    }
+}
+
 lower_comptime_for_in :: fn(ctx: FnLowerCtx, for_stmt: ForStmt, in_form: InFor) -> LoweredStmt {
     span :: for_stmt.span
-    if in_form.pattern != null {
-        return LoweredExprStmt {
-            .span = span,
-            .expr = LoweredUnreachable {
-                .span = span, .type = TY_VOID,
-                .reason = "@comptime for does not support `[k, v]` destructure",
-            },
-        }
+    if in_form.loop_var is DestructureVar {
+        return comptime_for_reject(ctx, span, "`@comptime for` does not support `[k, v]` destructure")
     }
-    binding_symbol :: lookup_for_binding(ctx, in_form.binding_span)
+    binding_symbol :: lookup_for_binding(ctx, loop_var_span(in_form.loop_var, span))
     if binding_symbol is null {
-        return LoweredExprStmt {
-            .span = span,
-            .expr = LoweredUnreachable {
-                .span = span, .type = TY_VOID,
-                .reason = "@comptime for binding not resolved",
-            },
-        }
+        return comptime_for_reject(ctx, span, "`@comptime for` binding not resolved")
     }
     iter_lowered :: lower_expr(ctx, in_form.iter)
     arr_lit: LoweredArrayLit | null = null
     if iter_lowered is LoweredArrayLit as al { arr_lit = al }
     if arr_lit is null {
-        return LoweredExprStmt {
-            .span = span,
-            .expr = LoweredUnreachable {
-                .span = span, .type = TY_VOID,
-                .reason = "@comptime for requires a compile-time-known array literal",
-            },
-        }
+        return comptime_for_reject(ctx, span, "`@comptime for` requires a compile-time-known array literal")
     }
     if arr_lit.elements.len() > 256 {
-        return LoweredExprStmt {
-            .span = span,
-            .expr = LoweredUnreachable {
-                .span = span, .type = TY_VOID,
-                .reason = "@comptime for exceeds the unroll cap (256)",
-            },
-        }
+        return comptime_for_reject(ctx, span, "`@comptime for` exceeds the unroll cap (256)")
     }
     // Save the prior binding so nested `@comptime for` over the same
     // name doesn't silently clobber an outer scope's substitution.

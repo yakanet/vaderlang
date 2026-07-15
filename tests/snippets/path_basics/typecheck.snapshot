@@ -23,94 +23,88 @@
   expr 18:25    IdentExpr      :: Path
   expr 18:5     CallExpr       :: void
   expr 18:5     IdentExpr      :: fn(T) -> void
-  expr 19:13    StringLitExpr  :: string
-  expr 19:21    CallExpr       :: string
-  expr 19:21    FieldExpr      :: fn() -> string
-  expr 19:21    IdentExpr      :: Path
-  expr 19:5     CallExpr       :: void
-  expr 19:5     IdentExpr      :: fn(T) -> void
+  expr 19:11    CallExpr       :: Basename
+  expr 19:11    FieldExpr      :: fn() -> Basename
+  expr 19:11    IdentExpr      :: Path
   expr 20:13    StringLitExpr  :: string
-  expr 20:26    CallExpr       :: string
-  expr 20:26    FieldExpr      :: fn() -> string
-  expr 20:26    IdentExpr      :: Path
+  expr 20:21    FieldExpr      :: string
+  expr 20:21    IdentExpr      :: Basename
   expr 20:5     CallExpr       :: void
   expr 20:5     IdentExpr      :: fn(T) -> void
-  expr 21:15    StringLitExpr  :: string
-  expr 21:25    CallExpr       :: Path
-  expr 21:25    FieldExpr      :: fn() -> Path
-  expr 21:25    IdentExpr      :: Path
+  expr 21:13    StringLitExpr  :: string
+  expr 21:26    FieldExpr      :: string
+  expr 21:26    IdentExpr      :: Basename
   expr 21:5     CallExpr       :: void
-  expr 21:5     IdentExpr      :: fn(string, Path) -> void
+  expr 21:5     IdentExpr      :: fn(T) -> void
   expr 22:15    StringLitExpr  :: string
-  expr 22:24    CallExpr       :: Path
-  expr 22:24    CallExpr       :: Path
-  expr 22:24    FieldExpr      :: fn() -> Path
-  expr 22:24    FieldExpr      :: fn() -> Path
-  expr 22:24    IdentExpr      :: Path
+  expr 22:25    CallExpr       :: Path
+  expr 22:25    FieldExpr      :: fn() -> Path
+  expr 22:25    IdentExpr      :: Path
   expr 22:5     CallExpr       :: void
   expr 22:5     IdentExpr      :: fn(string, Path) -> void
-  expr 24:12    CallExpr       :: Path
-  expr 24:12    FieldExpr      :: fn() -> Path
-  expr 24:12    StringLitExpr  :: string
-  expr 25:13    StringLitExpr  :: string
-  expr 25:32    CallExpr       :: bool
-  expr 25:32    FieldExpr      :: fn() -> bool
-  expr 25:32    IdentExpr      :: Path
-  expr 25:5     CallExpr       :: void
-  expr 25:5     IdentExpr      :: fn(T) -> void
-  expr 26:15    StringLitExpr  :: string
-  expr 26:29    CallExpr       :: Path
-  expr 26:29    FieldExpr      :: fn() -> Path
-  expr 26:29    IdentExpr      :: Path
+  expr 23:15    StringLitExpr  :: string
+  expr 23:24    CallExpr       :: Path
+  expr 23:24    CallExpr       :: Path
+  expr 23:24    FieldExpr      :: fn() -> Path
+  expr 23:24    FieldExpr      :: fn() -> Path
+  expr 23:24    IdentExpr      :: Path
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(string, Path) -> void
+  expr 25:12    CallExpr       :: Path
+  expr 25:12    FieldExpr      :: fn() -> Path
+  expr 25:12    StringLitExpr  :: string
+  expr 26:13    StringLitExpr  :: string
+  expr 26:32    CallExpr       :: bool
+  expr 26:32    FieldExpr      :: fn() -> bool
+  expr 26:32    IdentExpr      :: Path
   expr 26:5     CallExpr       :: void
-  expr 26:5     IdentExpr      :: fn(string, Path) -> void
+  expr 26:5     IdentExpr      :: fn(T) -> void
   expr 27:15    StringLitExpr  :: string
-  expr 27:31    CallExpr       :: Path
-  expr 27:31    IdentExpr      :: fn(string) -> Path
-  expr 27:39    CallExpr       :: string
-  expr 27:39    FieldExpr      :: fn() -> string
-  expr 27:39    IdentExpr      :: Path
+  expr 27:29    CallExpr       :: Path
+  expr 27:29    FieldExpr      :: fn() -> Path
+  expr 27:29    IdentExpr      :: Path
   expr 27:5     CallExpr       :: void
   expr 27:5     IdentExpr      :: fn(string, Path) -> void
   expr 28:15    StringLitExpr  :: string
-  expr 28:36    CallExpr       :: Path
-  expr 28:36    CallExpr       :: Path
-  expr 28:36    FieldExpr      :: fn() -> Path
-  expr 28:36    FieldExpr      :: fn() -> Path
-  expr 28:36    IdentExpr      :: Path
+  expr 28:31    CallExpr       :: Path
+  expr 28:31    IdentExpr      :: fn(string) -> Path
+  expr 28:39    CallExpr       :: string
+  expr 28:39    FieldExpr      :: fn() -> string
+  expr 28:39    IdentExpr      :: Path
   expr 28:5     CallExpr       :: void
   expr 28:5     IdentExpr      :: fn(string, Path) -> void
-  expr 30:13    StringLitExpr  :: string
-  expr 30:31    CallExpr       :: Path
-  expr 30:31    CallExpr       :: bool
-  expr 30:31    FieldExpr      :: fn() -> bool
-  expr 30:31    IdentExpr      :: fn() -> Path
-  expr 30:5     CallExpr       :: void
-  expr 30:5     IdentExpr      :: fn(T) -> void
+  expr 29:15    StringLitExpr  :: string
+  expr 29:36    CallExpr       :: Path
+  expr 29:36    CallExpr       :: Path
+  expr 29:36    FieldExpr      :: fn() -> Path
+  expr 29:36    FieldExpr      :: fn() -> Path
+  expr 29:36    IdentExpr      :: Path
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(string, Path) -> void
   expr 31:13    StringLitExpr  :: string
-  expr 31:27    CallExpr       :: bool
-  expr 31:27    FieldExpr      :: fn() -> bool
-  expr 31:27    IdentExpr      :: Path
+  expr 31:31    BinaryExpr     :: bool
+  expr 31:31    CallExpr       :: Path
+  expr 31:31    IdentExpr      :: fn() -> Path
+  expr 31:47    CallExpr       :: Path
+  expr 31:47    IdentExpr      :: fn() -> Path
   expr 31:5     CallExpr       :: void
   expr 31:5     IdentExpr      :: fn(T) -> void
-  expr 33:15    StringLitExpr  :: string
-  expr 33:23    CallExpr       :: Path
-  expr 33:23    CallExpr       :: Path
-  expr 33:23    FieldExpr      :: fn() -> Path
-  expr 33:23    FieldExpr      :: fn(string) -> Path
-  expr 33:23    StringLitExpr  :: string
-  expr 33:45    StringLitExpr  :: string
-  expr 33:5     CallExpr       :: void
-  expr 33:5     IdentExpr      :: fn(string, Path) -> void
+  expr 32:13    StringLitExpr  :: string
+  expr 32:27    BinaryExpr     :: bool
+  expr 32:27    IdentExpr      :: Path
+  expr 32:32    CallExpr       :: Path
+  expr 32:32    IdentExpr      :: fn() -> Path
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void
   expr 34:15    StringLitExpr  :: string
-  expr 34:32    CallExpr       :: Path
-  expr 34:32    CallExpr       :: Path
-  expr 34:32    FieldExpr      :: fn() -> Path
-  expr 34:32    FieldExpr      :: fn(string) -> Path
-  expr 34:32    StringLitExpr  :: string
+  expr 34:23    CallExpr       :: Path
+  expr 34:23    CallExpr       :: Path
+  expr 34:23    FieldExpr      :: fn() -> Path
+  expr 34:23    FieldExpr      :: fn(string) -> Path
+  expr 34:23    StringLitExpr  :: string
+  expr 34:45    StringLitExpr  :: string
   expr 34:5     CallExpr       :: void
   expr 34:5     IdentExpr      :: fn(string, Path) -> void
-  expr 34:55    StringLitExpr  :: string
   expr 35:15    StringLitExpr  :: string
   expr 35:32    CallExpr       :: Path
   expr 35:32    CallExpr       :: Path
@@ -119,96 +113,105 @@
   expr 35:32    StringLitExpr  :: string
   expr 35:5     CallExpr       :: void
   expr 35:5     IdentExpr      :: fn(string, Path) -> void
-  expr 35:54    StringLitExpr  :: string
+  expr 35:55    StringLitExpr  :: string
   expr 36:15    StringLitExpr  :: string
-  expr 36:34    CallExpr       :: Path
-  expr 36:34    CallExpr       :: Path
-  expr 36:34    FieldExpr      :: fn(string) -> Path
-  expr 36:34    IdentExpr      :: fn() -> Path
+  expr 36:32    CallExpr       :: Path
+  expr 36:32    CallExpr       :: Path
+  expr 36:32    FieldExpr      :: fn() -> Path
+  expr 36:32    FieldExpr      :: fn(string) -> Path
+  expr 36:32    StringLitExpr  :: string
   expr 36:5     CallExpr       :: void
   expr 36:5     IdentExpr      :: fn(string, Path) -> void
-  expr 36:52    StringLitExpr  :: string
-  expr 38:13    StringLitExpr  :: string
-  expr 38:39    CallExpr       :: Path
-  expr 38:39    CallExpr       :: bool
-  expr 38:39    FieldExpr      :: fn() -> Path
-  expr 38:39    FieldExpr      :: fn(Path) -> bool
-  expr 38:39    StringLitExpr  :: string
-  expr 38:5     CallExpr       :: void
-  expr 38:5     IdentExpr      :: fn(T) -> void
-  expr 38:69    CallExpr       :: Path
-  expr 38:69    FieldExpr      :: fn() -> Path
-  expr 38:69    StringLitExpr  :: string
+  expr 36:54    StringLitExpr  :: string
+  expr 37:15    StringLitExpr  :: string
+  expr 37:34    CallExpr       :: Path
+  expr 37:34    CallExpr       :: Path
+  expr 37:34    FieldExpr      :: fn(string) -> Path
+  expr 37:34    IdentExpr      :: fn() -> Path
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(string, Path) -> void
+  expr 37:52    StringLitExpr  :: string
   expr 39:13    StringLitExpr  :: string
-  expr 39:38    CallExpr       :: Path
-  expr 39:38    CallExpr       :: bool
-  expr 39:38    FieldExpr      :: fn() -> Path
-  expr 39:38    FieldExpr      :: fn(Path) -> bool
-  expr 39:38    StringLitExpr  :: string
+  expr 39:39    CallExpr       :: Path
+  expr 39:39    CallExpr       :: bool
+  expr 39:39    FieldExpr      :: fn() -> Path
+  expr 39:39    FieldExpr      :: fn(Path) -> bool
+  expr 39:39    StringLitExpr  :: string
   expr 39:5     CallExpr       :: void
   expr 39:5     IdentExpr      :: fn(T) -> void
-  expr 39:67    CallExpr       :: Path
-  expr 39:67    FieldExpr      :: fn() -> Path
-  expr 39:67    StringLitExpr  :: string
+  expr 39:69    CallExpr       :: Path
+  expr 39:69    FieldExpr      :: fn() -> Path
+  expr 39:69    StringLitExpr  :: string
   expr 40:13    StringLitExpr  :: string
-  expr 40:37    CallExpr       :: Path
-  expr 40:37    CallExpr       :: bool
-  expr 40:37    FieldExpr      :: fn() -> Path
-  expr 40:37    FieldExpr      :: fn(Path) -> bool
-  expr 40:37    StringLitExpr  :: string
+  expr 40:38    CallExpr       :: Path
+  expr 40:38    CallExpr       :: bool
+  expr 40:38    FieldExpr      :: fn() -> Path
+  expr 40:38    FieldExpr      :: fn(Path) -> bool
+  expr 40:38    StringLitExpr  :: string
   expr 40:5     CallExpr       :: void
   expr 40:5     IdentExpr      :: fn(T) -> void
-  expr 40:65    CallExpr       :: Path
-  expr 40:65    FieldExpr      :: fn() -> Path
-  expr 40:65    StringLitExpr  :: string
+  expr 40:67    CallExpr       :: Path
+  expr 40:67    FieldExpr      :: fn() -> Path
+  expr 40:67    StringLitExpr  :: string
   expr 41:13    StringLitExpr  :: string
-  expr 41:36    CallExpr       :: Path
-  expr 41:36    CallExpr       :: bool
-  expr 41:36    FieldExpr      :: fn() -> Path
-  expr 41:36    FieldExpr      :: fn(Path) -> bool
-  expr 41:36    StringLitExpr  :: string
+  expr 41:37    CallExpr       :: Path
+  expr 41:37    CallExpr       :: bool
+  expr 41:37    FieldExpr      :: fn() -> Path
+  expr 41:37    FieldExpr      :: fn(Path) -> bool
+  expr 41:37    StringLitExpr  :: string
   expr 41:5     CallExpr       :: void
   expr 41:5     IdentExpr      :: fn(T) -> void
-  expr 41:64    CallExpr       :: Path
-  expr 41:64    FieldExpr      :: fn() -> Path
-  expr 41:64    StringLitExpr  :: string
-  expr 43:15    StringLitExpr  :: string
-  expr 43:34    CallExpr       :: Path
-  expr 43:34    CallExpr       :: Path
-  expr 43:34    FieldExpr      :: fn() -> Path
-  expr 43:34    FieldExpr      :: fn() -> Path
-  expr 43:34    StringLitExpr  :: string
-  expr 43:5     CallExpr       :: void
-  expr 43:5     IdentExpr      :: fn(string, Path) -> void
+  expr 41:65    CallExpr       :: Path
+  expr 41:65    FieldExpr      :: fn() -> Path
+  expr 41:65    StringLitExpr  :: string
+  expr 42:13    StringLitExpr  :: string
+  expr 42:36    CallExpr       :: Path
+  expr 42:36    CallExpr       :: bool
+  expr 42:36    FieldExpr      :: fn() -> Path
+  expr 42:36    FieldExpr      :: fn(Path) -> bool
+  expr 42:36    StringLitExpr  :: string
+  expr 42:5     CallExpr       :: void
+  expr 42:5     IdentExpr      :: fn(T) -> void
+  expr 42:64    CallExpr       :: Path
+  expr 42:64    FieldExpr      :: fn() -> Path
+  expr 42:64    StringLitExpr  :: string
   expr 44:15    StringLitExpr  :: string
-  expr 44:33    CallExpr       :: Path
-  expr 44:33    CallExpr       :: Path
-  expr 44:33    FieldExpr      :: fn() -> Path
-  expr 44:33    FieldExpr      :: fn() -> Path
-  expr 44:33    StringLitExpr  :: string
+  expr 44:34    CallExpr       :: Path
+  expr 44:34    CallExpr       :: Path
+  expr 44:34    FieldExpr      :: fn() -> Path
+  expr 44:34    FieldExpr      :: fn() -> Path
+  expr 44:34    StringLitExpr  :: string
   expr 44:5     CallExpr       :: void
   expr 44:5     IdentExpr      :: fn(string, Path) -> void
   expr 45:15    StringLitExpr  :: string
-  expr 45:26    CallExpr       :: Path
-  expr 45:26    CallExpr       :: Path
-  expr 45:26    FieldExpr      :: fn() -> Path
-  expr 45:26    FieldExpr      :: fn() -> Path
-  expr 45:26    StringLitExpr  :: string
+  expr 45:33    CallExpr       :: Path
+  expr 45:33    CallExpr       :: Path
+  expr 45:33    FieldExpr      :: fn() -> Path
+  expr 45:33    FieldExpr      :: fn() -> Path
+  expr 45:33    StringLitExpr  :: string
   expr 45:5     CallExpr       :: void
   expr 45:5     IdentExpr      :: fn(string, Path) -> void
   expr 46:15    StringLitExpr  :: string
-  expr 46:27    CallExpr       :: Path
-  expr 46:27    CallExpr       :: Path
-  expr 46:27    FieldExpr      :: fn() -> Path
-  expr 46:27    FieldExpr      :: fn() -> Path
-  expr 46:27    StringLitExpr  :: string
+  expr 46:26    CallExpr       :: Path
+  expr 46:26    CallExpr       :: Path
+  expr 46:26    FieldExpr      :: fn() -> Path
+  expr 46:26    FieldExpr      :: fn() -> Path
+  expr 46:26    StringLitExpr  :: string
   expr 46:5     CallExpr       :: void
   expr 46:5     IdentExpr      :: fn(string, Path) -> void
   expr 47:15    StringLitExpr  :: string
-  expr 47:29    CallExpr       :: Path
-  expr 47:29    CallExpr       :: Path
-  expr 47:29    FieldExpr      :: fn() -> Path
-  expr 47:29    FieldExpr      :: fn() -> Path
-  expr 47:29    StringLitExpr  :: string
+  expr 47:27    CallExpr       :: Path
+  expr 47:27    CallExpr       :: Path
+  expr 47:27    FieldExpr      :: fn() -> Path
+  expr 47:27    FieldExpr      :: fn() -> Path
+  expr 47:27    StringLitExpr  :: string
   expr 47:5     CallExpr       :: void
   expr 47:5     IdentExpr      :: fn(string, Path) -> void
+  expr 48:15    StringLitExpr  :: string
+  expr 48:29    CallExpr       :: Path
+  expr 48:29    CallExpr       :: Path
+  expr 48:29    FieldExpr      :: fn() -> Path
+  expr 48:29    FieldExpr      :: fn() -> Path
+  expr 48:29    StringLitExpr  :: string
+  expr 48:5     CallExpr       :: void
+  expr 48:5     IdentExpr      :: fn(string, Path) -> void

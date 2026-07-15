@@ -28,47 +28,30 @@ export SEP_STR :: "/"
 /// @return   the same path with every `\` rewritten to `/`.
 export to_posix :: fn(s: string) -> string = s.replace_chars_where((c: char) -> c == '\\', SEP_STR)
 
-/// An immutable filesystem path. The underlying `repr` is a UTF-8 string ;
-/// every combinator returns a fresh `Path` rather than mutating in place.
-export Path :: struct {
-    @internal
-    repr: string
-}
+/// An immutable filesystem path — a nominal newtype over `string`. Zero-cost:
+/// at runtime a `Path` *is* its UTF-8 string, with no wrapper box. Nominal at
+/// typecheck so a `Path` never silently mixes with a raw `string` ; every
+/// combinator returns a fresh `Path` rather than mutating in place.
+export Path :: string
 
 // ---- constructors ---------------------------------------------------------
 
 /// Wrap an existing string as a `Path`. No validation — assumes the caller
 /// has produced a syntactically valid path.
 /// @param s  the path string.
-export to_path :: fn(s: string) -> Path {
-    return Path { .repr = s }
-}
+export to_path :: fn(s: string) -> Path = Path(s)
 
 /// The empty path (`""`). Useful as an identity for `join` / as a default.
-export empty_path :: fn() -> Path {
-    return Path { .repr = "" }
-}
+export empty_path :: fn() -> Path = Path("")
 
 // ---- accessors ------------------------------------------------------------
 
 /// Return the underlying string representation. Inverse of `to_path`.
-export as_string :: fn(self: Path) -> string {
-    return self.repr
-}
-
-/// True iff the path is the empty path (`""`).
-export is_empty :: fn(self: Path) -> bool {
-    return self.repr.is_empty()
-}
+export as_string :: fn(self: Path) -> string = string(self)
 
 /// True iff the path starts with the separator (`/foo`). Empty paths are
 /// considered NOT absolute.
-export is_absolute :: fn(self: Path) -> bool {
-    if self.repr.is_empty() {
-        return false
-    }
-    return self.repr[0] == SEP
-}
+export is_absolute :: fn(self: Path) -> bool = self.as_string().str_starts_with(SEP_STR)
 
 
 /// Parent directory — everything before the last separator. Returns the
@@ -77,56 +60,65 @@ export is_absolute :: fn(self: Path) -> bool {
 /// @param self  the path receiver.
 /// @return      the parent path.
 export parent :: fn(self: Path) -> Path {
-    idx := self.repr.last_index_of(SEP, 0)
+    s :: string(self)
+    idx :: s.last_index_of(SEP, 0)
     if idx < 0 {
-        return Path { .repr = "" }
+        return Path("")
     }
     if idx == 0 {
         // Root: keep the leading "/" so parent of "/foo" is "/".
-        return Path { .repr = SEP_STR }
+        return Path(SEP_STR)
     }
-    return Path { .repr = self.repr.bytes()[0..<usize(idx)].bytes_to_string() }
+    return Path(s.bytes()[0..<usize(idx)].bytes_to_string())
 }
 
 /// Last segment (filename or directory name). For a path with no
-/// separator, returns the whole path's string repr.
+/// separator, returns the whole path's string.
 /// @param self  the path receiver.
 /// @return      the filename string (no leading separator).
 export filename :: fn(self: Path) -> string {
-    idx := self.repr.last_index_of(SEP, 0)
+    s :: string(self)
+    idx :: s.last_index_of(SEP, 0)
     if idx < 0 {
-        return self.repr
+        return s
     }
-    rb :: self.repr.bytes()
+    rb :: s.bytes()
     return rb[usize(idx) + 1..<rb.len()].bytes_to_string()
 }
 
-/// File extension without the leading dot. Empty when there's no
-/// extension, or when the filename starts with a dot
-/// (`.gitignore` → `""`).
-/// @param self  the path receiver.
-/// @return      e.g. `to_path("foo.tar.gz").extension()` → `"gz"`.
-export extension :: fn(self: Path) -> string {
-    name := self.filename()
-    idx := name.last_index_of('.', 1)
-    if idx < 0 {
-        return ""
-    }
-    nb :: name.bytes()
-    return nb[usize(idx) + 1..<nb.len()].bytes_to_string()
+/// A filename split into its name and extension parts, as returned by
+/// `basename`. The two fields recombine to the full segment as
+/// `name + "." + extension` when an extension is present.
+export Basename :: struct {
+    /// The filename without its final extension — `"archive.tar"`. Equal to
+    /// the whole filename when there is no extension.
+    name:      string
+    /// The final extension without the leading dot — `"gz"`. Empty when the
+    /// filename has no extension, or is a dotfile like `.gitignore`.
+    extension: string
 }
 
-/// Filename without the extension. For names without an extension,
-/// returns the filename as-is. Inverse of `extension` w.r.t. the
-/// trailing dot (`foo.tar.gz` → `"foo.tar"`).
+/// Split the path's final segment into its name and extension at the last
+/// `.`. A leading dot is not a separator, so a dotfile (`.gitignore`) has an
+/// empty `extension` and keeps its full name.
 /// @param self  the path receiver.
-export stem :: fn(self: Path) -> string {
-    name := self.filename()
-    idx := name.last_index_of('.', 1)
+/// @return      `{ name, extension }` — `name` is the filename without its
+///              extension, `extension` the extension without the dot.
+/// @example
+///   b :: to_path("src/archive.tar.gz").basename()
+///   b.name       // "archive.tar"
+///   b.extension  // "gz"
+export basename :: fn(self: Path) -> Basename {
+    fname :: self.filename()
+    idx :: fname.last_index_of('.', 1)
     if idx < 0 {
-        return name
+        return Basename { .name = fname, .extension = "" }
     }
-    return name.bytes()[0..<usize(idx)].bytes_to_string()
+    nb :: fname.bytes()
+    return Basename {
+        .name = nb[0..<usize(idx)].bytes_to_string(),
+        .extension = nb[usize(idx) + 1..<nb.len()].bytes_to_string(),
+    }
 }
 
 // ---- combinators ----------------------------------------------------------
@@ -142,15 +134,16 @@ export join :: fn(self: Path, other: string) -> Path {
         return self
     }
     if other[0] == SEP {
-        return Path { .repr = other }
+        return Path(other)
     }
-    if self.repr.is_empty() {
-        return Path { .repr = other }
+    s :: string(self)
+    if s.is_empty() {
+        return Path(other)
     }
-    if self.repr[self.repr.bytes().len() - 1] == SEP {
-        return Path { .repr = self.repr + other }
+    if s[s.bytes().len() - 1] == SEP {
+        return Path(s + other)
     }
-    return Path { .repr = self.repr + SEP_STR + other }
+    return Path(s + SEP_STR + other)
 }
 
 // `path / "child"` — operator sugar for `join`. The `/` mirrors the path
@@ -167,20 +160,22 @@ Path implements Div<string> {
 /// @param self    the path receiver.
 /// @param prefix  the candidate prefix path.
 export starts_with :: fn(self: Path, prefix: Path) -> bool {
-    if !self.repr.str_starts_with(prefix.repr) {
+    s :: string(self)
+    pfx :: string(prefix)
+    if !s.str_starts_with(pfx) {
         return false
     }
-    self_len :: self.repr.bytes().len()
-    prefix_len :: prefix.repr.bytes().len()
+    self_len :: s.bytes().len()
+    prefix_len :: pfx.bytes().len()
     if self_len == prefix_len {
         return true
     }
     // Boundary check: next char in self must be a separator, or prefix must
     // itself end on one.
-    if !prefix.repr.is_empty() && prefix.repr[prefix_len - 1] == SEP {
+    if !pfx.is_empty() && pfx[prefix_len - 1] == SEP {
         return true
     }
-    return self.repr[prefix_len] == SEP
+    return s[prefix_len] == SEP
 }
 
 /// True when `self` ends with `suffix` on a segment boundary. Same
@@ -188,19 +183,21 @@ export starts_with :: fn(self: Path, prefix: Path) -> bool {
 /// @param self    the path receiver.
 /// @param suffix  the candidate suffix path.
 export ends_with :: fn(self: Path, suffix: Path) -> bool {
-    if !self.repr.str_ends_with(suffix.repr) {
+    s :: string(self)
+    sfx :: string(suffix)
+    if !s.str_ends_with(sfx) {
         return false
     }
-    self_len :: self.repr.bytes().len()
-    suffix_len :: suffix.repr.bytes().len()
+    self_len :: s.bytes().len()
+    suffix_len :: sfx.bytes().len()
     if self_len == suffix_len {
         return true
     }
-    cut := self_len - suffix_len
-    if !suffix.repr.is_empty() && suffix.repr[0] == SEP {
+    cut :: self_len - suffix_len
+    if !sfx.is_empty() && sfx[0] == SEP {
         return true
     }
-    return self.repr[cut - 1] == SEP
+    return s[cut - 1] == SEP
 }
 
 // ---- normalization --------------------------------------------------------
@@ -218,25 +215,26 @@ export ends_with :: fn(self: Path, suffix: Path) -> bool {
 /// @param self  the path receiver.
 /// @return      a fresh, lexically-normalised `Path`.
 export normalize :: fn(self: Path) -> Path {
-    if self.repr.is_empty() {
+    s :: string(self)
+    if s.is_empty() {
         return self
     }
-    abs := self.is_absolute()
+    abs :: self.is_absolute()
     segments: string[] = []
     count: usize = 0
-    rb :: self.repr.bytes()
-    n := rb.len()
+    rb :: s.bytes()
+    n :: rb.len()
     i: usize = if abs { 1 } else { 0 }
     seg_start := i
     for i <= n {
-        at_end := i == n
-        is_sep := !at_end && self.repr[i] == SEP
+        at_end :: i == n
+        is_sep :: !at_end && s[i] == SEP
         if is_sep || at_end {
-            seg := rb[seg_start..<i].bytes_to_string()
+            seg :: rb[seg_start..<i].bytes_to_string()
             if seg.is_empty() || seg == "." {
                 // skip
             } else if seg == ".." {
-                can_pop := count > 0 && segments[count - 1] != ".."
+                can_pop :: count > 0 && segments[count - 1] != ".."
                 if can_pop {
                     count = count - 1
                 } else if !abs {
@@ -269,11 +267,11 @@ export normalize :: fn(self: Path) -> Path {
         }
         sb.append(segments[j])
     }
-    out := sb.to_string()
+    out :: sb.to_string()
     if out.is_empty() && !abs {
-        return Path { .repr = "." }
+        return Path(".")
     }
-    return Path { .repr = out }
+    return Path(out)
 }
 
 // ---------------------------------------------------------------------- tests
@@ -287,7 +285,6 @@ import "std/testing" { assert, assert_eq }
 
 @test test_empty_path :: fn() -> void {
     p :: empty_path()
-    assert(p.is_empty(), "empty_path should be empty")
     assert_eq(p.as_string(), "")
 }
 
@@ -309,17 +306,23 @@ import "std/testing" { assert, assert_eq }
     assert_eq(to_path("a/b/").filename(), "")
 }
 
-@test test_extension :: fn() -> void {
-    assert_eq(to_path("file.txt").extension(), "txt")
-    assert_eq(to_path("a/b/c.tar.gz").extension(), "gz")
-    assert_eq(to_path("no_ext").extension(), "")
-    assert_eq(to_path("README").extension(), "")
-}
+@test test_basename :: fn() -> void {
+    txt :: to_path("file.txt").basename()
+    assert_eq(txt.name, "file")
+    assert_eq(txt.extension, "txt")
 
-@test test_stem :: fn() -> void {
-    assert_eq(to_path("file.txt").stem(), "file")
-    assert_eq(to_path("a/b/file.txt").stem(), "file")
-    assert_eq(to_path("README").stem(), "README")
+    tgz :: to_path("a/b/c.tar.gz").basename()
+    assert_eq(tgz.name, "c.tar")
+    assert_eq(tgz.extension, "gz")
+
+    none :: to_path("README").basename()
+    assert_eq(none.name, "README")
+    assert_eq(none.extension, "")
+
+    // A leading dot is not an extension separator.
+    dot :: to_path(".gitignore").basename()
+    assert_eq(dot.name, ".gitignore")
+    assert_eq(dot.extension, "")
 }
 
 @test test_join :: fn() -> void {

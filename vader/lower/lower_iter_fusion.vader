@@ -6,7 +6,7 @@
 // iterator struct, no `next()`, no `Yield` box). The entry `try_lower_chain_fusion`
 // is called first from `lower_for_in`; a `null` result falls through to the other
 // fast paths. Shared loop-building helpers (`bind_loop_var`, `build_int_range_body`,
-// `cmp_op_for_inclusive`, `is_integer_type`, `resolve_binding_or_synth`) stay in
+// `cmp_op_for_inclusive`, `is_integer_type`, `resolve_loop_binding`) stay in
 // `lower_for_in.vader` — same `module "vader/lower"`, so callable with no import.
 
 module "vader/lower"
@@ -93,14 +93,14 @@ try_lower_chain_fusion :: fn(
     // Bare ranges already hit the int-range fast path ; bypassing
     // would lose `default_if_free` + counter-name fidelity.
     if chain.kind == IterChainKind.Range { return null }
-    binding_symbol :: resolve_binding_or_synth(ctx, in_form)
+    lb :: resolve_loop_binding(ctx, in_form.loop_var, for_stmt.span)
     user_body :: block_lowerer(ctx, for_stmt.body, false, true)
     body_template :: BodyTemplate {
-        .binding_name   = in_form.binding,
-        .binding_symbol = binding_symbol,
+        .binding_name   = lb.name,
+        .binding_symbol = lb.symbol,
         .element_type   = chain_element_type(chain),
         .user_body      = user_body,
-        .pattern        = in_form.pattern,
+        .pattern        = lb.pattern,
     }
     stmts :: emit_fused_chain(ctx, chain, resolve_loop_label(ctx, for_stmt), for_stmt.span, body_template, recurse)
     return LoweredExprStmt {

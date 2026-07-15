@@ -4,7 +4,7 @@
   fn snippet$main() -> i32
     let count: i32 = int(0) :i32
     block :void
-      let _: i32 = int(0) :i32
+      let __for_discard_0: i32 = int(0) :i32
       loop while (<…>)
         assign
           target:
@@ -17,11 +17,11 @@
                 int(1) :i32
         assign
           target:
-            _ :i32
+            __for_discard_0 :i32
           value:
             add :i32
               l:
-                _ :i32
+                __for_discard_0 :i32
               r:
                 int(1) :i32
     call :void
@@ -73,7 +73,7 @@
                 __off_2 :usize
     let sum: i32 = int(0) :i32
     block :void
-      let _: i32 = int(1) :i32
+      let __for_discard_3: i32 = int(1) :i32
       loop while (<…>)
         assign
           target:
@@ -86,11 +86,11 @@
                 int(1) :i32
         assign
           target:
-            _ :i32
+            __for_discard_3 :i32
           value:
             add :i32
               l:
-                _ :i32
+                __for_discard_3 :i32
               r:
                 int(1) :i32
     call :void
@@ -142,10 +142,10 @@
                 __off_5 :usize
     let cells: i32 = int(0) :i32
     block :void
-      let _: i32 = int(0) :i32
+      let __for_discard_6: i32 = int(0) :i32
       loop while (<…>)
         block :void
-          let _: i32 = int(0) :i32
+          let __for_discard_7: i32 = int(0) :i32
           loop while (<…>)
             assign
               target:
@@ -158,20 +158,20 @@
                     int(1) :i32
             assign
               target:
-                _ :i32
+                __for_discard_7 :i32
               value:
                 add :i32
                   l:
-                    _ :i32
+                    __for_discard_7 :i32
                   r:
                     int(1) :i32
         assign
           target:
-            _ :i32
+            __for_discard_6 :i32
           value:
             add :i32
               l:
-                _ :i32
+                __for_discard_6 :i32
               r:
                 int(1) :i32
     call :void

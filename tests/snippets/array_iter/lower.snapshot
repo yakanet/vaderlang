@@ -98,7 +98,7 @@
         LoweredArrayLen
       let __for_i_8: usize = int(0) :usize
       loop while (<…>)
-        let _: i32 =
+        let __for_discard_5: i32 =
           index :i32
             on:
               __for_arr_6 :i32[]

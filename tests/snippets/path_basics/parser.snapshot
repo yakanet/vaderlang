@@ -43,10 +43,6 @@
             "alias": null
           },
           {
-            "name": "is_empty",
-            "alias": null
-          },
-          {
             "name": "is_absolute",
             "alias": null
           },
@@ -59,11 +55,7 @@
             "alias": null
           },
           {
-            "name": "extension",
-            "alias": null
-          },
-          {
-            "name": "stem",
+            "name": "basename",
             "alias": null
           },
           {
@@ -278,6 +270,27 @@
             }
           },
           {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "bn"
+            },
+            "type": null,
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "IdentExpr",
+                  "name": "p"
+                },
+                "field": "basename"
+              },
+              "args": []
+            }
+          },
+          {
             "kind": "ExprStmt",
             "expr": {
               "kind": "CallExpr",
@@ -293,21 +306,17 @@
                     "parts": [
                       {
                         "kind": "text",
-                        "value": "stem="
+                        "value": "name="
                       },
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "CallExpr",
-                          "callee": {
-                            "kind": "FieldExpr",
-                            "target": {
-                              "kind": "IdentExpr",
-                              "name": "p"
-                            },
-                            "field": "stem"
+                          "kind": "FieldExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "bn"
                           },
-                          "args": []
+                          "field": "name"
                         }
                       }
                     ]
@@ -338,16 +347,12 @@
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "CallExpr",
-                          "callee": {
-                            "kind": "FieldExpr",
-                            "target": {
-                              "kind": "IdentExpr",
-                              "name": "p"
-                            },
-                            "field": "extension"
+                          "kind": "FieldExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "bn"
                           },
-                          "args": []
+                          "field": "extension"
                         }
                       }
                     ]
@@ -673,25 +678,29 @@
                     "parts": [
                       {
                         "kind": "text",
-                        "value": "empty.is_empty="
+                        "value": "empty is empty="
                       },
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "CallExpr",
-                          "callee": {
-                            "kind": "FieldExpr",
-                            "target": {
-                              "kind": "CallExpr",
-                              "callee": {
-                                "kind": "IdentExpr",
-                                "name": "empty_path"
-                              },
-                              "args": []
+                          "kind": "BinaryExpr",
+                          "op": "eq",
+                          "left": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "empty_path"
                             },
-                            "field": "is_empty"
+                            "args": []
                           },
-                          "args": []
+                          "right": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "empty_path"
+                            },
+                            "args": []
+                          }
                         }
                       }
                     ]
@@ -717,21 +726,25 @@
                     "parts": [
                       {
                         "kind": "text",
-                        "value": "p.is_empty="
+                        "value": "p is empty="
                       },
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "CallExpr",
-                          "callee": {
-                            "kind": "FieldExpr",
-                            "target": {
-                              "kind": "IdentExpr",
-                              "name": "p"
-                            },
-                            "field": "is_empty"
+                          "kind": "BinaryExpr",
+                          "op": "eq",
+                          "left": {
+                            "kind": "IdentExpr",
+                            "name": "p"
                           },
-                          "args": []
+                          "right": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "empty_path"
+                            },
+                            "args": []
+                          }
                         }
                       }
                     ]

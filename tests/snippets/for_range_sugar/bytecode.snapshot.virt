@@ -19,11 +19,11 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local count i32
-  local _ i32
+  local __for_discard_0 i32
   local __buf_1 ref
   local __off_2 usize
   local $cast_17 i64
-  local _ i32
+  local __for_discard_7 i32
   i32.const 0
   local.set 0
   i32.const 0

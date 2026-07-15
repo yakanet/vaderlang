@@ -3,8 +3,8 @@ module "snippet"
 import "std/io" { println }
 import "std/path" {
     Path, to_path, empty_path,
-    as_string, is_empty, is_absolute,
-    parent, filename, extension, stem,
+    as_string, is_absolute,
+    parent, filename, basename,
     join, starts_with, ends_with, normalize,
 }
 
@@ -16,8 +16,9 @@ main :: fn() -> i32 {
     p :: "src/parser/expr.ts".to_path()
     show_path("path", p)
     println("filename=${p.filename()}")
-    println("stem=${p.stem()}")
-    println("extension=${p.extension()}")
+    bn :: p.basename()
+    println("name=${bn.name}")
+    println("extension=${bn.extension}")
     show_path("parent", p.parent())
     show_path("grand", p.parent().parent())
 
@@ -27,8 +28,8 @@ main :: fn() -> i32 {
     show_path("abs.filename", to_path(abs.filename()))
     show_path("abs.parent.parent", abs.parent().parent())
 
-    println("empty.is_empty=${empty_path().is_empty()}")
-    println("p.is_empty=${p.is_empty()}")
+    println("empty is empty=${empty_path() == empty_path()}")
+    println("p is empty=${p == empty_path()}")
 
     show_path("join", "/etc".to_path().join("hosts"))
     show_path("join with sep", "/etc/".to_path().join("hosts"))

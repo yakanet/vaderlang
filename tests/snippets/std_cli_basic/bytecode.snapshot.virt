@@ -891,7 +891,7 @@ end
 
 fn 18 std_collections$std_collections$ensure_index__string__string (ref) -> void
   local idx ref
-  local _ usize
+  local __for_discard_0 usize
   local.field 0 15 2
   array.len
   i64.const 0
@@ -934,7 +934,7 @@ end
 
 fn 19 std_collections$std_collections$rehash__string__string (ref,usize) -> void
   local fresh ref
-  local _ usize
+  local __for_discard_0 usize
   local e usize
   local $field_15 usize
   local s usize

@@ -388,11 +388,22 @@ export ForStmt :: struct {
 export InfiniteFor :: struct {}
 export WhileFor    :: struct { cond: Expr }
 export InFor       :: struct {
-    binding:      string
-    binding_span: Span
-    iter:         Expr
-    pattern:      LetBinding | null = null
+    loop_var: LoopVar
+    iter:     Expr
 }
+
+/// The loop variable of a `for … in …`. A union so the mutually exclusive
+/// shapes can't be miscombined and no sentinel / span-geometry heuristic is
+/// needed downstream — each pass matches on the variant. Kept structural on the
+/// AST (not desugared at parse) so `vader fmt` round-trips every sugar.
+export LoopVar :: NamedVar | DestructureVar | DiscardVar
+/// `for x in …` — and the explicit discard `for _ in coll` (name == `"_"`).
+export NamedVar       :: struct { name: string, span: Span }
+/// `for [k, v] in …` — the leaves bind against the iterable's element type.
+export DestructureVar :: struct { pattern: LetBinding }
+/// `for <range>` — no user variable is written (the iterable is the range
+/// itself). Also the lower-synthesised varless `for <coll>` (while→for sugar).
+export DiscardVar     :: struct {}
 
 export BreakStmt :: struct {
     span:  Span
