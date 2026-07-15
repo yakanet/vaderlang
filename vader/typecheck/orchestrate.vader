@@ -251,19 +251,30 @@ export check_project_with_bodies :: fn(
     // Iterator's default `count` method via `try_default_trait_method`.
     cross_publish_trait_decls(per_module)
     cross_publish_fn_decls(per_module)
+    // Index every module's typed program by its declared module name, so the
+    // import-respecting overload population (D-a) can resolve each module's
+    // `import "..."` paths to the imported module's typed program.
+    typed_by_name :: MutableMap<string, TypedProgram> {}
+    for [id, lm] in project.modules {
+        t :: per_module[id]
+        if t != null { typed_by_name[lm.module.module_name] = t }
+    }
     // Populate `imported_fn_overloads` for every NON-ENTRY module BEFORE
     // `settle_external_expr_bodied_returns` walks their bodies — otherwise
     // UFCS dispatch inside an external expr-bodied fn (e.g. `s.chars()
     // .count()` inside std/string::len) doesn't see cross-module overloads.
     // The entry's overload table is populated AFTER settle so it picks up
     // the resolved return types of expr-bodied externals.
-    for [id, other_typed] in per_module {
+    for [id, lm] in project.modules {
         if id == project.entry { continue }
-        populate_imported_fn_overloads(other_typed, per_module)
+        other_typed :: per_module[id]
+        if other_typed != null {
+            populate_imported_fn_overloads(other_typed, lm.collected.import_paths, typed_by_name)
+        }
     }
     settle_external_expr_bodied_returns(project, per_module)
     populate_external_types(entry_typed, project, per_module)
-    populate_imported_fn_overloads(entry_typed, per_module)
+    populate_imported_fn_overloads(entry_typed, entry_loaded.collected.import_paths, typed_by_name)
     merge_struct_decls(entry_typed, per_module)
     merge_external_impl_methods(entry_typed, project, per_module)
     // Coherence : at most one impl per (concrete type, trait, trait-args) across
@@ -327,7 +338,7 @@ export check_project_with_bodies :: fn(
         // ahead of the settled `fn(i64) -> i64` — no `clear` needed. (That
         // stale-ahead ordering is what `pick_overload` first-matched into `?` →
         // `any` → wide-int compares truncated to `i32.lt`, the `abs` bug.)
-        populate_imported_fn_overloads(other_typed, per_module)
+        populate_imported_fn_overloads(other_typed, other.collected.import_paths, typed_by_name)
         merge_external_impl_methods(other_typed, project, per_module)
         other_decls :: merge_module_program(other.module.files).decls
         if has_expr_bodied_fn(other_decls) {
@@ -1298,7 +1309,8 @@ settle_external_expr_bodied_returns :: fn(
 }
 
 populate_imported_fn_overloads :: fn(
-    entry_typed: TypedProgram, per_module: MutableMap<string, TypedProgram>,
+    entry_typed: TypedProgram, importing_paths: string[],
+    typed_by_name: MutableMap<string, TypedProgram>,
 ) -> void {
     // First : every named import lands in `imported_fn_overloads`
     // so explicitly-imported helpers (e.g. `import "p" { foo }`)
@@ -1328,24 +1340,40 @@ populate_imported_fn_overloads :: fn(
             }
         }
     }
-    // Then : every loaded module's `decl_types` contributes its
-    // exported fns so unqualified UFCS dispatch (e.g. `sb.to_string()`
-    // where `to_string` wasn't explicitly imported) still finds the
-    // matching free fn from `std/string_builder`. We iterate
-    // `fn_overloads` (not `symbols`) so every overload of the same
-    // name (`len :: fn<T>(self: MutableSet<T>)` AND `len :: fn<K, V>
-    // (self: MutableMap<K, V>)`) lands in the bucket.
-    entry_path :: entry_typed.resolved.path
-    for [_, other] in per_module {
-        if other.resolved.path == entry_path { continue }
-        for [name, bucket] in other.resolved.fn_overloads {
-            for sym in bucket {
-                ty :: other.decl_types[sym.id]
-                if ty is null { continue }
-                match ty {
-                    is FnType as ft -> { push_overload(entry_typed, name, ft) }
-                    _ -> {}
-                }
+    // Then (D-a: import-respecting) : only the modules THIS module actually
+    // imports — plus the always-in-scope `std/core` prelude — contribute their
+    // exported fns, so unqualified UFCS / prefix dispatch (`sb.to_string()`)
+    // resolves. Formerly EVERY co-loaded module contributed unconditionally,
+    // which let a call resolve against a module the file never imported
+    // (SPEC §1610 drift). `importing_paths` is the module's `import_paths` (all
+    // forms: destructure / namespace / wildcard), each a declared module name.
+    // Dedup: a path can appear in `import_paths` more than once (re-imported in
+    // a `// ---- tests ----` block, or split named groups), and
+    // `push_module_exported_fns` would rescan it — idempotent but wasted.
+    seen :: MutableMap<string, bool> {}
+    for path in importing_paths {
+        if seen[path] != null { continue }
+        seen[path] = true
+        other :: typed_by_name[path]
+        if other != null { push_module_exported_fns(other, entry_typed) }
+    }
+    core :: typed_by_name["std/core"]
+    if core != null { push_module_exported_fns(core, entry_typed) }
+}
+
+// Push every fn overload of `from` into `into.imported_fn_overloads`, keyed by
+// name (`push_overload` is replace-on-signature). We iterate `fn_overloads`
+// (not `symbols`) so every overload of the same name lands in the bucket. Skips
+// the self case (a module never contributes to its own import table).
+push_module_exported_fns :: fn(from: TypedProgram, into: TypedProgram) -> void {
+    if from.resolved.path == into.resolved.path { return }
+    for [name, bucket] in from.resolved.fn_overloads {
+        for sym in bucket {
+            ty :: from.decl_types[sym.id]
+            if ty is null { continue }
+            match ty {
+                is FnType as ft -> { push_overload(into, name, ft) }
+                _ -> {}
             }
         }
     }

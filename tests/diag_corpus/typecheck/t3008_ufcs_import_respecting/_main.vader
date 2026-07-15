@@ -1,0 +1,16 @@
+// D-a regression: a UFCS free-fn call resolves ONLY against modules THIS file
+// imports — never against a merely co-loaded module. The sibling
+// `snippet/helper` imports std/iter (so std/iter IS loaded in the project), but
+// `_main` does NOT import it, so `xs.map(...)` must ERROR. Before D-a this
+// resolved via the unfiltered cross-module fallback (SPEC §1610 drift): a file
+// could free-ride on any other module's imports.
+
+module "snippet"
+
+import "snippet/helper"
+
+main :: fn() -> i32 {
+    xs :: [1, 2, 3]
+    _ :: xs.map(n -> n * 2)
+    return 0
+}
