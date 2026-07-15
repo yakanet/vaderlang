@@ -47609,6 +47609,7 @@ static void vader_typecheck_push_module_exported_fns(void* l0, void* l1) {
     size_t l7, l8, l11, l12;
     int32_t l15, l20;
     vader_box_t l16 = vader_box_null(), l17 = vader_box_null();
+    bool l21, l22;
     vader_box_t t0 = vader_box_null();
     int64_t t1;
     vader_box_t* gc_roots[3] = { &l16, &l17, &t0 };
@@ -47707,6 +47708,16 @@ static void vader_typecheck_push_module_exported_fns(void* l0, void* l1) {
                     goto loop_140;
                 }
                 if (((vader_struct_vader_resolver_symbol_Symbol_t*) l5)->f_kind != INT32_C(6)) {
+                    l21 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l5)->f_kind != INT32_C(2);
+                } else {
+                    l21 = false;
+                }
+                if (l21) {
+                    l22 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l5)->f_kind != INT32_C(5);
+                } else {
+                    l22 = false;
+                }
+                if (l22) {
                     t1 = (l8 + INT64_C(1));
                     l8 = (size_t) (int64_t) t1;
                     goto loop_140;
