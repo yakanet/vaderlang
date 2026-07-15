@@ -1,0 +1,12 @@
+// The same path imported both bare (wildcard) AND destructured (`{ … }`) is
+// redundant + ambiguous — the wildcard already exposes every public name of the
+// module. R2032 flags the second form so the author collapses to one.
+module "snippet"
+
+import "std/io"
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    println("hi")
+    return 0
+}

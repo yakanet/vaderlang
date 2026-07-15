@@ -54,7 +54,6 @@ import "vader/bytecode" {
     typed_slot_load_op_for,
     typed_slot_store_op_for,
 }
-import "vader/bytecode"
 import "vader/resolver/symbol"
 
 // ============================================================================

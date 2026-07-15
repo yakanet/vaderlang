@@ -59,10 +59,41 @@ export collect_module :: fn(
         .import_paths   = [],
         .wildcard_paths = [],
     }
+    check_import_form_conflict(program.decls, diags)
     for d in program.decls {
         out.collect_decl(d, module_path, module_name, factory, index, paths, diags)
     }
     return out
+}
+
+// R2032 — a path imported BOTH as a bare wildcard (`import "p"`) AND as a
+// destructure (`import "p" { … }`) in the same file. The wildcard already
+// exposes every public name of `p`, so the destructure is redundant and
+// confusing (which binding wins for a name in both?). Flag the second form so
+// the author collapses to one. Namespace bindings (`X :: import "p"`) don't
+// conflict — they qualify, they don't inject names.
+check_import_form_conflict :: fn(decls: Decl[], diags: Diagnostic[]) -> void {
+    wildcard_of :: MutableMap<string, Span> {}
+    destructure_of :: MutableMap<string, Span> {}
+    for d in decls {
+        if d is ImportDecl as imp {
+            match imp.binding {
+                is WildcardImport -> {
+                    if destructure_of[imp.path] != null {
+                        diags.push(resolver_error(.ConflictingImportForms, imp.span, "`${imp.path}`"))
+                    }
+                    wildcard_of[imp.path] = imp.span
+                }
+                is DestructureImport -> {
+                    if wildcard_of[imp.path] != null {
+                        diags.push(resolver_error(.ConflictingImportForms, imp.span, "`${imp.path}`"))
+                    }
+                    destructure_of[imp.path] = imp.span
+                }
+                _ -> {}
+            }
+        }
+    }
 }
 
 /// Mono-file convenience : pre-strict-mode callers that don't have a

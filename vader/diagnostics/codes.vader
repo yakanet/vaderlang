@@ -167,6 +167,7 @@ export ResolverCode :: enum(u8) {
     AsBindingInConjunction,                 // R2029
     ConflictingImpl,                        // R2030
     AmbiguousWildcardImport,                // R2031
+    ConflictingImportForms,                 // R2032
 }
 
 // C-codes belong to the comptime evaluator + monomorphizer ; once
@@ -311,6 +312,7 @@ export resolver_info :: fn(c: ResolverCode) = match c {
     .AsBindingInConjunction             -> CodeInfo { .id = "R2029", .message = "`as` binding not allowed in a `&&` condition" }
     .ConflictingImpl                    -> CodeInfo { .id = "R2030", .message = "conflicting trait impl for the same type" }
     .AmbiguousWildcardImport            -> CodeInfo { .id = "R2031", .message = "name is exported by several wildcard-imported modules" }
+    .ConflictingImportForms             -> CodeInfo { .id = "R2032", .message = "the same path is imported both bare (wildcard) and with `{ … }` (destructure)" }
 }
 
 export warning_info :: fn(c: WarningCode) = match c {

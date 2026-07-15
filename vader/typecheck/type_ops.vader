@@ -11,16 +11,6 @@ module "vader/typecheck"
 
 import "std/string"
 import "std/sort"
-import "vader/types" {
-    Type, PrimitiveType, StructType, EnumType, TraitType, UnionType,
-    FnType, ArrayType, TupleType, TypeParamType, TypeMetaType, SelfType,
-    UnresolvedType, FreeIntType, FreeFloatType, FreeCharType, NeverType, AnyType,
-    DistinctType,
-    TY_NEVER, display_type, mk_primitive, mk_union, type_base_name, TRAIT_ITERATOR,
-    is_int_name as ty_is_int_name, is_signed_int_name as ty_is_signed_int_name,
-    is_unsigned_int_name as ty_is_unsigned_int_name, is_float_name as ty_is_float_name,
-    is_numeric_name as ty_is_numeric_name,
-}
 
 /// True when `t` is the `void` primitive. The canonical void test, shared by
 /// match-exhaustiveness (typecheck) and return-type checks (midir).
