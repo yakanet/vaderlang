@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // Arity 3 and 4 tuples — confirms field access via `.0` / `.1` / `.2` /
 // `.3` and the lowering's anonymous-struct synthesis works beyond the

@@ -5,8 +5,8 @@
 // Option C (captured cells survive suspension); the retired T3065 forbade it.
 module "snippet"
 
-import "std/io" { println }
-import "std/async" { sleep }
+import "std/io"
+import "std/async"
 
 step :: fn(tag: string) -> Async<i32> {
     defer { println("defer 1 ${tag}") }     // registered before the await

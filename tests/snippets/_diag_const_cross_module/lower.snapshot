@@ -10,7 +10,7 @@
           callee:
             format_f64 :fn(f64) -> string
           arg0:
-            pi :f64
+            float(3.141592653589793) :f64
     call :void
       callee:
         std_io$println__string :void
@@ -21,7 +21,7 @@
           arg0:
             mul :f64
               l:
-                pi :f64
+                float(3.141592653589793) :f64
               r:
                 float(2.0) :f64
     return int(0) :i32

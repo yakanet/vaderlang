@@ -10,13 +10,7 @@
       "kind": "ImportDecl",
       "path": "std/io",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "println",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -24,29 +18,7 @@
       "kind": "ImportDecl",
       "path": "std/cli",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "FlagSpec",
-            "alias": null
-          },
-          {
-            "name": "FlagKind",
-            "alias": null
-          },
-          {
-            "name": "parse",
-            "alias": null
-          },
-          {
-            "name": "bool_flag",
-            "alias": null
-          },
-          {
-            "name": "string_flag",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },

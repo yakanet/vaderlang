@@ -4,7 +4,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 export count_matching :: fn<T: Hash & Equals>(items: T[], target: T) -> i32 {
     n := 0

@@ -15,7 +15,7 @@
 
 module "snippet"
 
-import "std/collections" { MutableMap }
+import "std/collections"
 
 Counter :: struct {
     counts: MutableMap<string, i32>

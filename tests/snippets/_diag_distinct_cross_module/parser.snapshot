@@ -10,21 +10,7 @@
       "kind": "ImportDecl",
       "path": "snippet/units",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "Instant",
-            "alias": null
-          },
-          {
-            "name": "make_instant",
-            "alias": null
-          },
-          {
-            "name": "elapsed",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },

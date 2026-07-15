@@ -8,6 +8,12 @@
   __genstate_enumerate<[usize, T]>
   __genstate_filter<i32>
   __genstate_map<i32>
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>
@@ -50,12 +56,6 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  Into<Target>
-  Add<Rhs, Out>
-  Sub<Rhs, Out>
-  Mul<Rhs, Out>
-  Div<Rhs, Out>
-  Rem<Rhs, Out>
   Index<I, T>
   IndexSet<I, T>
   Contains<T>

@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Bag :: struct {
     items: i32[] | null

@@ -1,7 +1,7 @@
 // `yield` inside an `if` — a lazy filter.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 evens :: fn(xs: i32[]) -> Iterator<i32> {
     for x in xs {

@@ -4,8 +4,8 @@
 // loop with an inline index walk, not an iterator step-loop.
 module "snippet"
 
-import "std/io" { println }
-import "std/iter" { map, filter }
+import "std/io"
+import "std/iter"
 
 double :: fn(x: i32) -> i32 = x * 10
 is_twenty_multiple :: fn(x: i32) -> bool = x % 20 == 0

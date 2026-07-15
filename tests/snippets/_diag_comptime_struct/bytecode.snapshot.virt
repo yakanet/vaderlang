@@ -12,7 +12,7 @@ type 9 array 2
 string 0 "\n"
 string 1 "alpha"
 string 2 "beta"
-data 0 structs 2 2 2 strref 1 i32 0a000000 strref 2 i32 14000000
+data 0 structs 1 2 2 strref 1 i32 0a000000 strref 2 i32 14000000
 import 0 write std_io$write (i32,string) -> void
 impl 5 ByteAccess
 export main 0

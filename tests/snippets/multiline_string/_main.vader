@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { print, println }
+import "std/io"
 
 main :: fn() -> i32 {
     // opening newline stripped; trailing newline preserved

@@ -5,7 +5,7 @@
 // Cross-module access is rejected with T3054 (see the diag corpus).
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Counter :: struct {
     label: string

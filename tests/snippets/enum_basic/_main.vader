@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 export Direction :: enum {
     North,

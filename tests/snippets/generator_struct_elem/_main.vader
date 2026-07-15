@@ -1,7 +1,7 @@
 // A generator whose element type is a struct, flattened from nested arrays.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Decl :: struct { name: string, id: i32 }
 FileMod :: struct { decls: Decl[] }

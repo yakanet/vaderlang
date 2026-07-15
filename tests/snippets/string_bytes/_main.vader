@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 main :: fn() -> i32 {
     // ASCII path : each codepoint is one byte, sum == codepoint sum.

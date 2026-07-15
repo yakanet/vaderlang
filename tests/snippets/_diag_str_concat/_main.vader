@@ -1,5 +1,5 @@
 module "snippet"
-import "std/io" { println }
+import "std/io"
 main :: fn() -> i32 {
     a :: "foo"
     b :: "bar"

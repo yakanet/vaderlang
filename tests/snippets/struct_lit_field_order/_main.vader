@@ -4,7 +4,7 @@
 // `{ .c = 3, .a = 1, .b = 2 }` produced `c=3, a=1, b=2`.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 P :: struct {
     a: i32

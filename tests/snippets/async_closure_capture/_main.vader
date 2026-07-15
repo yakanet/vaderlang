@@ -5,8 +5,8 @@
 // used to forbid — see `vader/lower/lower_coroutine.vader::gb_add_field`.
 module "snippet"
 
-import "std/io" { println }
-import "std/async" { sleep }
+import "std/io"
+import "std/async"
 
 compute :: fn(base: i32) -> Async<i32> {
     acc := 0

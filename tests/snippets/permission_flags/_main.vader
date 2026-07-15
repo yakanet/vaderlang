@@ -10,7 +10,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // No impls → inherits u32's operators (arith / compare / equality / bitwise).
 Permissions :: u32

@@ -5,11 +5,8 @@
 
 module "snippet"
 
-import "std/io" { println }
-import "std/regex" {
-    Pattern, Match, RegexError,
-    compile, matches, find, find_all, replace_all,
-}
+import "std/io"
+import "std/regex"
 
 run_match :: fn(label: string, p: Pattern, input: string) -> void {
     println("${label}=${p.matches(input)}")

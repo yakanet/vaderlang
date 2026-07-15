@@ -3,7 +3,7 @@
 // the compiler drives it via the inline run-driver (implicit @async main).
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // The v1 primitive awaitable: an immediately-ready future (a leaf).
 Ready :: struct<T> { v: T }

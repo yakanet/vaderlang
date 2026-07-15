@@ -1,7 +1,7 @@
 module "snippet"
 
-import "std/io" { println }
-import "std/abort" { todo }
+import "std/io"
+import "std/abort"
 
 // A command dispatcher where the `compact` mode isn't built yet : its branch
 // calls `todo` (a `@no_return` primitive from std/abort) rather than returning

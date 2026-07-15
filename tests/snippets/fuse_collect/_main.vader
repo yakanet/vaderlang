@@ -7,8 +7,8 @@
 // overload on a bare array is untouched.
 module "snippet"
 
-import "std/io" { println }
-import "std/iter" { map, filter, collect }
+import "std/io"
+import "std/iter"
 
 main :: fn() -> i32 {
     // map + filter + collect over an array source — one flat loop.

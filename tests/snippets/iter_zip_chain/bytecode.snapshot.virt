@@ -40,7 +40,8 @@ type 37 struct __Tuple_46 { _0:4,_1:1 }
 type 38 struct __Tuple_47 { _0:9,_1:39 }
 type 39 ref _
 type 40 struct __Tuple_49 { _0:9,_1:4 }
-type 41 array 16
+type 41 ref __genstate_flat_map
+type 42 array 16
 string 0 "count="
 string 1 "clone[0]="
 string 2 "a"
@@ -2837,7 +2838,7 @@ fn 38 std_core$d2d (u64,u64) -> ref
     i64.const 9122891541139893884
     i64.const -3769733211313815862
     i64.const 673562245690857633
-    array.new 41 342
+    array.new 42 342
     local.set 15
     local.get 13
     i32.to_i64
@@ -3188,7 +3189,7 @@ fn 38 std_core$d2d (u64,u64) -> ref
     i64.const 2101865168015838698
     i64.const 1681492134412670958
     i64.const 1345193707530136767
-    array.new 41 342
+    array.new 42 342
     local.set 15
     local.get 13
     i32.to_i64
@@ -3617,7 +3618,7 @@ fn 38 std_core$d2d (u64,u64) -> ref
     i64.const 5246222702107417334
     i64.const 3278889188817135834
     i64.const 8710297504448807696
-    array.new 41 326
+    array.new 42 326
     local.set 15
     local.get 2
     i32.to_i64
@@ -3952,7 +3953,7 @@ fn 38 std_core$d2d (u64,u64) -> ref
     i64.const 2278475631111374216
     i64.const 1424047269444608885
     i64.const 1780059086805761106
-    array.new 41 326
+    array.new 42 326
     local.set 15
     local.get 2
     i32.to_i64
@@ -4431,7 +4432,7 @@ fn 42 std_core$mul_pow5_inv_div_pow2 (u32,i32,i32) -> u32
   i64.const 345087317339528190
   i64.const 552139707743245103
   i64.const 441711766194596083
-  array.new 41 55
+  array.new 42 55
   local.set 3
   local.get 1
   i32.to_i64
@@ -4517,7 +4518,7 @@ fn 45 std_core$mul_pow5_div_pow2 (u32,i32,i32) -> u32
   i64.const 1292469707114105741
   i64.const 1615587133892632177
   i64.const 2019483917365790221
-  array.new 41 47
+  array.new 42 47
   local.set 3
   local.get 1
   i32.to_i64

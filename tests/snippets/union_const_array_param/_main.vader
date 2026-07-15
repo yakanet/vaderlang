@@ -4,7 +4,7 @@
 // after `|` was rejected). The `is`-narrowing on the union works too.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 byte_count :: fn(x: string | const u8[]) -> usize {
     if x is string { return x.bytes().len() }

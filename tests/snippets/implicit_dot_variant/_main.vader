@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // `.Variant` shorthand triggers when the expected type at the call site
 // supplies the variant set : enum literals, tagged-union match arms, and

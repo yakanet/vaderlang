@@ -1,7 +1,7 @@
 module "snippet"
 
-import "std/io" { println }
-import "std/runtime" { collect, collections }
+import "std/io"
+import "std/runtime"
 
 export Pair :: struct {
     left:  i32

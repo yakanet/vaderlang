@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 export inner_count :: fn<T>(arr: T[]) -> i32 {
     n := 0

@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // Bracketed seq literals are disambiguated contextually :
 //   - homogeneous element types → array

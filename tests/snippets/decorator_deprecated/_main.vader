@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // `@deprecated(message)` annotates a declaration so every reference site
 // emits a non-fatal warning (W0001). The decorator argument is the

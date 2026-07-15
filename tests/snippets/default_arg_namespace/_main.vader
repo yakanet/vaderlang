@@ -6,7 +6,7 @@
 // namespace path for direct, explicit, and named-argument forms.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 G :: import "snippet/greeter"
 
 main :: fn() -> i32 {

@@ -9,7 +9,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 walk :: fn(it: Iterator<i32>) -> i32 {
     sum := 0

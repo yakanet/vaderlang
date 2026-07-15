@@ -5,7 +5,7 @@
 // path the `std/iter` combinator rewrites (map/filter as @generator) rely on.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // map shape: T -> U (element type changes).
 gen_map :: fn<T, U>(xs: T[], f: fn(T) -> U) -> Iterator<U> {

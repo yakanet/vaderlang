@@ -13,7 +13,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 make_pair :: fn(ok: bool) -> [i32, i32] | null {
     if ok { return [10, 20] }

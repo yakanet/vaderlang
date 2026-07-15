@@ -9,7 +9,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 main :: fn() -> i32 {
     // i32 get + set

@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // A lambda lifted inside a GENERIC fn body. The instance `run_id__i32` is
 // monomorphised AFTER the per-module lowering walk, so its lifted

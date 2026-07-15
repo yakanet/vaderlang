@@ -17,8 +17,8 @@
 
 module "snippet"
 
-import "std/io" { println }
-import "std/math" { pi }
+import "std/io"
+import "std/math"
 
 main :: fn() -> i32 {
     println("${pi}")

@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // Regression: VM and C backend must agree on unsigned 32-bit shifts and
 // bit-ops. The VM used to Int32-coerce results via `| 0`, which turned

@@ -10,13 +10,7 @@
       "kind": "ImportDecl",
       "path": "std/io",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "println",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -24,45 +18,7 @@
       "kind": "ImportDecl",
       "path": "std/random",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "Rng",
-            "alias": null
-          },
-          {
-            "name": "new_seeded",
-            "alias": null
-          },
-          {
-            "name": "next_u64",
-            "alias": null
-          },
-          {
-            "name": "next_u32",
-            "alias": null
-          },
-          {
-            "name": "next_bool",
-            "alias": null
-          },
-          {
-            "name": "range_i32",
-            "alias": null
-          },
-          {
-            "name": "range_u32",
-            "alias": null
-          },
-          {
-            "name": "unit_f64",
-            "alias": null
-          },
-          {
-            "name": "shuffle",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },

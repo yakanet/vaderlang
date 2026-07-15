@@ -1,6 +1,6 @@
 module "snippet"
-import "std/io" { println }
-import "std/collections" { MutableMap }
+import "std/io"
+import "std/collections"
 
 main :: fn() -> i32 {
     m :: MutableMap<string, i32> {}

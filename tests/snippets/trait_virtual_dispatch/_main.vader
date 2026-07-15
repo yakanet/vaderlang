@@ -4,7 +4,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 export ParseErr :: struct { msg: string }
 export NetErr   :: struct { reason: string }

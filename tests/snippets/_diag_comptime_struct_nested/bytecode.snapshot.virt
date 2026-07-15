@@ -16,7 +16,7 @@ string 1 "size_of"
 string 2 "usize"
 string 3 "cast"
 string 4 "T"
-data 0 structs 3 3 2 strref 1 array Kind 1 u8 01 strref 2 strref 3 array Kind 2 u8 00 u8 01 strref 4
+data 0 structs 2 3 2 strref 1 array Kind 1 u8 01 strref 2 strref 3 array Kind 2 u8 00 u8 01 strref 4
 import 0 write std_io$write (i32,string) -> void
 impl 7 ByteAccess
 export main 0

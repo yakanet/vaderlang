@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 main :: fn() -> i32 {
     // "héllo" has 5 codepoints but 6 UTF-8 bytes (é is 2 bytes).

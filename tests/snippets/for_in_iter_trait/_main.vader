@@ -12,9 +12,9 @@
 
 module "snippet"
 
-import "std/io" { println }
-import "std/iter" { filter }
-import "std/string" { chars }
+import "std/io"
+import "std/iter"
+import "std/string"
 
 // Sum every element delivered by a trait-typed iterator. Inside the
 // body, `for x in it` lowers to a `next()` virtual call on `it`.

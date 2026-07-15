@@ -3,6 +3,7 @@
 ## tests/snippets/zip_struct_field_read
 
 ## generic instances
+  __genstate_zip<[string, Point]>
   __genstate_chain<T>
   __genstate_enumerate<[usize, T]>
   __genstate_filter<i32>
@@ -17,7 +18,6 @@
   IndexSet<I, T>
   Contains<T>
   Iterator<i32>
-  Iterator<[string, Point]>
   Iterator<[usize, T]>
   Iterator<[T, U]>
   Iterator<T>

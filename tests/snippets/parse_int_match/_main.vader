@@ -1,7 +1,7 @@
 module "snippet"
 
-import "std/io" { println }
-import "std/string" { parse_int, parse_float, ParseError }
+import "std/io"
+import "std/string"
 
 // Regression: parse_int / parse_float used to box their success with the
 // `string` type's BcType index, so `match r { is i32 -> ... }` would never

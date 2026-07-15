@@ -4,7 +4,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 WIDE: const f64[]: [1.5, 2.5, 3.5]
 

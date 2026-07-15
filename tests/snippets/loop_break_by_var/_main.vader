@@ -4,7 +4,7 @@
 // Covers both the int-range fast path (`0..<n`) and the raw-array fast path.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // int-range nest : `break i` exits the whole nest ; `continue i` skips to next i.
 scan :: fn() -> void {

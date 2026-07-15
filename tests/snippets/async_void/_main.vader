@@ -2,7 +2,7 @@
 // internally). Covers fall-off completion and a nested void await.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Ready :: struct<T> { v: T }
 Ready<T> implements Async<T> {

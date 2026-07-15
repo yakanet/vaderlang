@@ -11,7 +11,7 @@
   expr 19:9     StructLitExpr  :: Point
   expr 20:9     StructLitExpr  :: Point
   expr 21:9     StructLitExpr  :: Point
-  expr 23:23    CallExpr       :: Iterator<[string, Point]>
+  expr 23:23    CallExpr       :: __genstate_zip<[string, Point]>
   expr 23:23    IdentExpr      :: fn(T[], U[]) -> Iterator<[T, U]>
   expr 23:27    IdentExpr      :: string[]
   expr 23:35    IdentExpr      :: Point[]

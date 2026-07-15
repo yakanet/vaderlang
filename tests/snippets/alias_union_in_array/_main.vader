@@ -11,8 +11,8 @@
 
 module "snippet"
 
-import "std/io" { println }
-import "snippet/types" { Cat, Dog, Pet }
+import "std/io"
+import "snippet/types"
 
 push_pet :: fn(arr: Pet[], p: Pet) -> void {
     arr.push(p)

@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Inner :: struct { flag: i32 | null }
 Outer :: struct { inner: Inner }

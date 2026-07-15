@@ -15,8 +15,8 @@
 
 module "snippet"
 
-import "std/io" { println }
-import "std/collections" { MutableMap, len }
+import "std/io"
+import "std/collections"
 
 get_or :: fn<K: Hash & Equals>(m: MutableMap<K, i32>, k: K, dflt: i32) -> i32 {
     v :: m[k]

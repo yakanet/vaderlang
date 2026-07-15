@@ -7,7 +7,7 @@
 // their def-site, mirroring `walk_fn_decl`.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 apply :: fn(x: i32, f: fn(i32) -> i32) -> i32 = f(x)
 

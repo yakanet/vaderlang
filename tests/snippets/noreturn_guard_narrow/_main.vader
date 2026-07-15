@@ -13,8 +13,8 @@
 
 module "snippet"
 
-import "std/io" { println }
-import "std/abort" { panic }
+import "std/io"
+import "std/abort"
 
 Box :: struct { v: i32 }
 

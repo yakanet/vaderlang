@@ -10,13 +10,7 @@
       "kind": "ImportDecl",
       "path": "std/io",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "println",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -24,25 +18,7 @@
       "kind": "ImportDecl",
       "path": "std/time",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "millis",
-            "alias": null
-          },
-          {
-            "name": "seconds",
-            "alias": null
-          },
-          {
-            "name": "to_millis",
-            "alias": null
-          },
-          {
-            "name": "to_seconds",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },

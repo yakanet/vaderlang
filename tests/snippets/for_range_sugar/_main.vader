@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 main :: fn() -> i32 {
     // Exclusive range — runs 5 times, no binding access in the body.

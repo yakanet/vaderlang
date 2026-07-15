@@ -10,13 +10,7 @@
       "kind": "ImportDecl",
       "path": "std/io",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "println",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -24,17 +18,7 @@
       "kind": "ImportDecl",
       "path": "std/option",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "and_then",
-            "alias": null
-          },
-          {
-            "name": "or",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },

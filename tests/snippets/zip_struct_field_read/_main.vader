@@ -8,8 +8,8 @@
 
 module "snippet"
 
-import "std/io" { println }
-import "std/iter" { zip }
+import "std/io"
+import "std/iter"
 
 Point :: struct { x: i32, y: i32 }
 

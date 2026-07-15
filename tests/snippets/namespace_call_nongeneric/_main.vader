@@ -1,7 +1,7 @@
 module "snippet"
 
 str :: import "std/string"
-import "std/io" { println }
+import "std/io"
 
 // `str.trim(...)` is a namespaced call to a NON-generic stdlib fn. The lowerer
 // must resolve the member to its real symbol (not a bare id=0 placeholder) and

@@ -6,7 +6,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Gift :: struct { value: i32 }
 Parcel :: struct { contents: Gift }

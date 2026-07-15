@@ -10,7 +10,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // Homogeneous : Money + Money -> Money, plus ordering.
 Money :: i64

@@ -2,7 +2,7 @@
 // keeps its `i32` return and inlines the run-driver (no manual `.resume()`).
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Ready :: struct<T> { v: T }
 Ready<T> implements Async<T> {

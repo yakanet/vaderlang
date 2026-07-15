@@ -4,9 +4,9 @@
 
 module "snippet"
 
-import "std/semver" { parse, parse_range, Version, VersionRange }
-import "std/string" { ParseError }
-import "std/io"     { println, eprintln }
+import "std/semver"
+import "std/string"
+import "std/io"
 
 main :: fn() -> i32 {
     match parse("1.2.3-rc.1") {

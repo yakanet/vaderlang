@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // Regression: `is T as p` in a match arm used to make `p` a fresh synthetic
 // symbol unrelated to the resolver's binding symbol — the body's `p.x` would

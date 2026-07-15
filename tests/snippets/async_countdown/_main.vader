@@ -3,7 +3,7 @@
 // `@async` — `waiter` awaits, so it is inferred async and returns `Async<i32>`.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 CountDown :: struct { n: i32 }
 

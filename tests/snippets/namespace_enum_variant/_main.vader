@@ -8,7 +8,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 P :: import "snippet/palette"
 
 // Namespace enum-variant as a value, cast to its repr.

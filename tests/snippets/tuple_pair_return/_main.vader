@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // Functions can return tuples directly — heterogeneous fixed-arity.
 make_pair :: fn() -> [i32, string] {

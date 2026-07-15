@@ -9,9 +9,9 @@
 // through `make_*` + field access without collision.
 module "snippet"
 
-import "std/io" { println }
-import "snippet/mod_a" { make_a }
-import "snippet/mod_b" { make_b }
+import "std/io"
+import "snippet/mod_a"
+import "snippet/mod_b"
 
 main :: fn() -> i32 {
     a :: make_a()

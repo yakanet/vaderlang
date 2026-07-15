@@ -5,8 +5,8 @@
 // proof that the scheduler interleaves execution and advances by deadline.
 module "snippet"
 
-import "std/io" { println }
-import "std/async" { sleep, all }
+import "std/io"
+import "std/async"
 
 task :: fn(name: string, delay: i64) -> Async<i32> {
     println("${name}: start")

@@ -5,8 +5,8 @@
 
 module "main"
 
-import "std/io" { println }
-import "std/iter" { filter }
+import "std/io"
+import "std/iter"
 
 is_even :: fn(x: i32) -> bool = x % 2 == 0
 

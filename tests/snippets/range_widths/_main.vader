@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 main :: fn() -> i32 {
     // Concrete u64 bound — FreeInt 0 adopts u64.

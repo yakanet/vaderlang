@@ -11,7 +11,7 @@
 // plain first argument). Fixing UFCS chains needs the erased-receiver UFCS gate.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 my_map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U) -> Iterator<U> {
     for x in self { yield f(x) }

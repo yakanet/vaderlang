@@ -9,7 +9,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 C :: import "snippet/config"
 
 Budget :: struct {

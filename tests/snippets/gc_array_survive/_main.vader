@@ -1,7 +1,7 @@
 module "snippet"
 
-import "std/io" { println }
-import "std/runtime" { collect, collections }
+import "std/io"
+import "std/runtime"
 
 // Force a collection mid-program with a populated `[i32]` on the shadow
 // stack. Without Phase 2.6 the buf would dangle after the swap and the

@@ -4,7 +4,7 @@
 // machine (`lower_generator.vader`) now that direct consumption inlines.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 count_up :: fn(n: i32) -> Iterator<i32> {
     for i in 0..<n { yield i }

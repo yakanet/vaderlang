@@ -10,29 +10,7 @@
       "kind": "ImportDecl",
       "path": "std/io",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "println",
-            "alias": null
-          },
-          {
-            "name": "write_file_string",
-            "alias": null
-          },
-          {
-            "name": "read_file_string",
-            "alias": null
-          },
-          {
-            "name": "exists",
-            "alias": null
-          },
-          {
-            "name": "temp_dir",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },

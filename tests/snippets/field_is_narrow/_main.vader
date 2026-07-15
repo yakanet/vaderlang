@@ -9,7 +9,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Block :: struct {
     span: i32

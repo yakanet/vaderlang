@@ -10,13 +10,7 @@
       "kind": "ImportDecl",
       "path": "std/io",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "println",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -24,17 +18,7 @@
       "kind": "ImportDecl",
       "path": "std/string",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "pad_start",
-            "alias": null
-          },
-          {
-            "name": "pad_end",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -42,13 +26,7 @@
       "kind": "ImportDecl",
       "path": "std/char",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "is_white_char",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -56,17 +34,7 @@
       "kind": "ImportDecl",
       "path": "std/numbers",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "to_hex",
-            "alias": null
-          },
-          {
-            "name": "to_bin",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },

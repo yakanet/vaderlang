@@ -12,7 +12,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Meta   :: struct { m: i32 }
 Unres  :: struct { u: i32 }

@@ -8,7 +8,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Box :: struct { v: i32 }
 

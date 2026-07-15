@@ -1,12 +1,7 @@
 module "snippet"
 
-import "std/io" { println }
-import "std/path" {
-    Path, to_path, empty_path,
-    as_string, is_absolute,
-    parent, filename, basename,
-    join, starts_with, ends_with, normalize,
-}
+import "std/io"
+import "std/path"
 
 export show_path :: fn(label: string, p: Path) -> void {
     println("${label}=${p.as_string()}")

@@ -8,8 +8,8 @@
 
 module "snippet"
 
-import "std/collections" { MutableMap }
-import "std/io" { println }
+import "std/collections"
+import "std/io"
 
 Counts :: struct {
     by_name: MutableMap<string, i32>

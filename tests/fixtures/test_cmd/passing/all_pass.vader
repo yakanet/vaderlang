@@ -1,6 +1,6 @@
 module "test_cmd_passing"
 
-import "std/testing" { assert_eq, assert_lt }
+import "std/testing"
 
 @test test_arith :: fn() -> void {
     assert_eq(2 + 3, 5)

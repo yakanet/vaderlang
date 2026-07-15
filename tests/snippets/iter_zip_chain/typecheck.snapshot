@@ -16,7 +16,7 @@
   expr 14:24    StringLitExpr  :: string
   expr 14:29    StringLitExpr  :: string
   expr 15:13    SeqLitExpr     :: i32[]
-  expr 16:19    CallExpr       :: Iterator<[string, i32]>
+  expr 16:19    CallExpr       :: __genstate_zip<[string, i32]>
   expr 16:19    IdentExpr      :: fn(T[], U[]) -> Iterator<[T, U]>
   expr 16:23    IdentExpr      :: string[]
   expr 16:29    IdentExpr      :: i32[]
@@ -27,12 +27,12 @@
   expr 17:9     IdentExpr      :: fn(T) -> void
   expr 21:13    SeqLitExpr     :: i32[]
   expr 22:13    SeqLitExpr     :: i32[]
-  expr 23:14    CallExpr       :: Iterator<T>
+  expr 23:14    CallExpr       :: __genstate_chain<T>
   expr 23:14    IdentExpr      :: fn(Iterator<T>, Iterator<T>) -> Iterator<T>
   expr 23:20    IdentExpr      :: i32[]
   expr 23:26    IdentExpr      :: i32[]
   expr 24:17    StringLitExpr  :: string
-  expr 24:22    IdentExpr      :: ?
+  expr 24:22    IdentExpr      :: T
   expr 24:9     CallExpr       :: void
   expr 24:9     IdentExpr      :: fn(T) -> void
   expr 28:15    SeqLitExpr     :: string[]
@@ -47,7 +47,7 @@
   expr 30:26    IdentExpr      :: T
   expr 30:9     CallExpr       :: void
   expr 30:9     IdentExpr      :: fn(T) -> void
-  expr 34:15    CallExpr       :: Iterator<i32>
+  expr 34:15    CallExpr       :: __genstate_flat_map<i32>
   expr 34:15    IdentExpr      :: fn(Iterator<T>, fn(T) -> U[]) -> Iterator<U>
   expr 34:24    SeqLitExpr     :: i32[]
   expr 34:35    LambdaExpr     :: fn(i32) -> i32[]
@@ -55,7 +55,7 @@
   expr 34:48    IdentExpr      :: i32
   expr 34:51    BinaryExpr     :: i32
   expr 34:51    IdentExpr      :: i32
-  expr 35:14    IdentExpr      :: Iterator<i32>
+  expr 35:14    IdentExpr      :: __genstate_flat_map<i32>
   expr 36:17    StringLitExpr  :: string
   expr 36:22    IdentExpr      :: i32
   expr 36:9     CallExpr       :: void

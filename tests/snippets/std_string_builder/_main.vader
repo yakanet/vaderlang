@@ -1,7 +1,7 @@
 module "snippet"
 
-import "std/io" { println }
-import "std/string_builder" { StringBuilder, append, append_char }
+import "std/io"
+import "std/string_builder"
 
 main :: fn() -> i32 {
     // Basic usage via StringBuilder {}

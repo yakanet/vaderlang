@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // SAM (single-abstract-method) sugar exercised on primitives. These use
 // the snippet's own traits, not prelude ones — re-impl'ing `Display` /

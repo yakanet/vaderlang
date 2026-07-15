@@ -7,7 +7,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Foo :: struct { v: i32 }
 

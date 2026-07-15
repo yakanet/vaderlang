@@ -4,8 +4,8 @@
 // runs at its own completion. Drives the real cooperative scheduler.
 module "snippet"
 
-import "std/io" { println }
-import "std/async" { sleep, race }
+import "std/io"
+import "std/async"
 
 leg :: fn(label: string, ms: i64) -> Async<string> {
     defer { println("cleanup ${label}") }

@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // `[i32, string] | null` carries a tuple variant alongside null. Matching
 // the tuple shape `[n, s]` narrows the union to the tuple variant before

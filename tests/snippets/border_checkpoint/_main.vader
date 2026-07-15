@@ -6,7 +6,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 Lane :: enum(u8) { Cars, Trucks }
 

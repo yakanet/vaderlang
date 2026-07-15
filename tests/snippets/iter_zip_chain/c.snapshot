@@ -284,9 +284,9 @@ static const uint16_t vader_type_35_refs[] = { offsetof(vader_struct___gen_state
 static const uint16_t vader_type_37_strs[] = { offsetof(vader_struct___Tuple_46_t, f__0) };
 static const uint16_t vader_type_38_ptrs[] = { offsetof(vader_struct___Tuple_47_t, f__1) };
 static const uint16_t vader_type_40_strs[] = { offsetof(vader_struct___Tuple_49_t, f__1) };
-static const uint16_t vader_type_41_ptrs[] = { offsetof(vader_array_t, buf) };
+static const uint16_t vader_type_42_ptrs[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[42] = {
+const vader_type_info_t vader_type_info_table[43] = {
     [2] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___lambda_env_31_t), NULL, 0, 0, NULL, 0, NULL },
     [3] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_3_ptrs, 1, 0, NULL, 0, NULL },
     [5] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Range__i32_t), NULL, 0, 0, NULL, 0, NULL },
@@ -306,11 +306,11 @@ const vader_type_info_t vader_type_info_table[42] = {
     [37] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___Tuple_46_t), NULL, 0, 1, vader_type_37_strs, 0, NULL },
     [38] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___Tuple_47_t), vader_type_38_ptrs, 1, 0, NULL, 0, NULL },
     [40] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___Tuple_49_t), NULL, 0, 1, vader_type_40_strs, 0, NULL },
-    [41] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_41_ptrs, 1, 0, NULL, 0, NULL },
+    [42] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_42_ptrs, 1, 0, NULL, 0, NULL },
 };
-const size_t vader_type_info_count = 42;
+const size_t vader_type_info_count = 43;
 
-const size_t vader_type_size[42] = {
+const size_t vader_type_size[43] = {
     [0] = 0u,
     [1] = 4u,
     [2] = 16u,
@@ -353,6 +353,7 @@ const size_t vader_type_size[42] = {
     [39] = 16u,
     [40] = 16u,
     [41] = 16u,
+    [42] = 16u,
 };
 
 
@@ -2154,7 +2155,7 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
 #line 161 "stdlib/std/core/dtoa.vader"
         l14 = ((-(l2) + l13) + l14);
 #line 162 "stdlib/std/core/dtoa.vader"
-        vader_array_t* _a0_arr = vader_array_new(41u, 342u, 4u, 16u);
+        vader_array_t* _a0_arr = vader_array_new(42u, 342u, 4u, 16u);
         ((int64_t*) _a0_arr->buf->slots)[_a0_arr->offset + 341u] = (int64_t) INT64_C(673562245690857633);
         ((int64_t*) _a0_arr->buf->slots)[_a0_arr->offset + 340u] = (int64_t) INT64_C(-3769733211313815862);
         ((int64_t*) _a0_arr->buf->slots)[_a0_arr->offset + 339u] = (int64_t) INT64_C(9122891541139893884);
@@ -2505,7 +2506,7 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
         if ((size_t) l16 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
         t0 = ((int64_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l16];
         l8 = (uint64_t) (int64_t) t0;
-        vader_array_t* _a2_arr = vader_array_new(41u, 342u, 4u, 16u);
+        vader_array_t* _a2_arr = vader_array_new(42u, 342u, 4u, 16u);
         ((int64_t*) _a2_arr->buf->slots)[_a2_arr->offset + 341u] = (int64_t) INT64_C(1345193707530136767);
         ((int64_t*) _a2_arr->buf->slots)[_a2_arr->offset + 340u] = (int64_t) INT64_C(1681492134412670958);
         ((int64_t*) _a2_arr->buf->slots)[_a2_arr->offset + 339u] = (int64_t) INT64_C(2101865168015838698);
@@ -2906,7 +2907,7 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
 #line 182 "stdlib/std/core/dtoa.vader"
         l14 = (l13 - l14);
 #line 183 "stdlib/std/core/dtoa.vader"
-        vader_array_t* _a4_arr = vader_array_new(41u, 326u, 4u, 16u);
+        vader_array_t* _a4_arr = vader_array_new(42u, 326u, 4u, 16u);
         ((int64_t*) _a4_arr->buf->slots)[_a4_arr->offset + 325u] = (int64_t) INT64_C(8710297504448807696);
         ((int64_t*) _a4_arr->buf->slots)[_a4_arr->offset + 324u] = (int64_t) INT64_C(3278889188817135834);
         ((int64_t*) _a4_arr->buf->slots)[_a4_arr->offset + 323u] = (int64_t) INT64_C(5246222702107417334);
@@ -3241,7 +3242,7 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
         if ((size_t) l16 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
         t0 = ((int64_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l16];
         l17 = (uint64_t) (int64_t) t0;
-        vader_array_t* _a6_arr = vader_array_new(41u, 326u, 4u, 16u);
+        vader_array_t* _a6_arr = vader_array_new(42u, 326u, 4u, 16u);
         ((int64_t*) _a6_arr->buf->slots)[_a6_arr->offset + 325u] = (int64_t) INT64_C(1780059086805761106);
         ((int64_t*) _a6_arr->buf->slots)[_a6_arr->offset + 324u] = (int64_t) INT64_C(1424047269444608885);
         ((int64_t*) _a6_arr->buf->slots)[_a6_arr->offset + 323u] = (int64_t) INT64_C(2278475631111374216);
@@ -3872,7 +3873,7 @@ static uint32_t std_core_mul_pow5_inv_div_pow2(uint32_t l0, int32_t l1, int32_t 
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
     vader_gc_top = &gc_frame;
 #line 51 "stdlib/std/core/f2s.vader"
-    vader_array_t* _a0_arr = vader_array_new(41u, 55u, 4u, 16u);
+    vader_array_t* _a0_arr = vader_array_new(42u, 55u, 4u, 16u);
     ((int64_t*) _a0_arr->buf->slots)[_a0_arr->offset + 54u] = (int64_t) INT64_C(441711766194596083);
     ((int64_t*) _a0_arr->buf->slots)[_a0_arr->offset + 53u] = (int64_t) INT64_C(552139707743245103);
     ((int64_t*) _a0_arr->buf->slots)[_a0_arr->offset + 52u] = (int64_t) INT64_C(345087317339528190);
@@ -3963,7 +3964,7 @@ static uint32_t std_core_mul_pow5_div_pow2(uint32_t l0, int32_t l1, int32_t l2) 
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
     vader_gc_top = &gc_frame;
 #line 52 "stdlib/std/core/f2s.vader"
-    vader_array_t* _a0_arr = vader_array_new(41u, 47u, 4u, 16u);
+    vader_array_t* _a0_arr = vader_array_new(42u, 47u, 4u, 16u);
     ((int64_t*) _a0_arr->buf->slots)[_a0_arr->offset + 46u] = (int64_t) INT64_C(2019483917365790221);
     ((int64_t*) _a0_arr->buf->slots)[_a0_arr->offset + 45u] = (int64_t) INT64_C(1615587133892632177);
     ((int64_t*) _a0_arr->buf->slots)[_a0_arr->offset + 44u] = (int64_t) INT64_C(1292469707114105741);

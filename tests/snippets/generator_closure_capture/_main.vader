@@ -5,7 +5,7 @@
 // with M5007 — now lifted; see `vader/lower/lower_coroutine.vader::gb_add_field`.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 gen :: fn(seed: i32) -> Iterator<i32> {
     base :: seed * 10

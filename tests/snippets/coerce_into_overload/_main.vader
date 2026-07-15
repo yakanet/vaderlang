@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // Overload resolution second-pass : when no exact-match candidate fits the
 // receiver's type, the typer probes `Into(firstParam)` and accepts a

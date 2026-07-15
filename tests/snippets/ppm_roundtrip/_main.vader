@@ -1,7 +1,7 @@
 module "snippet"
 
-import "std/io" { println, write_file_bytes, read_file_bytes, temp_dir }
-import "std/images/ppm" { Ppm, PpmError, encode, decode }
+import "std/io"
+import "std/images/ppm"
 
 // End-to-end: build a Ppm, encode to P6 bytes, persist via the byte-oriented
 // file I/O, read it back, decode, and confirm the raster survived — including

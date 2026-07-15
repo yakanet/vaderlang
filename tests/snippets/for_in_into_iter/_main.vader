@@ -5,11 +5,11 @@
 
 module "snippet"
 
-import "std/io" { println }
-import "std/collections" { MutableMap, MutableSet, add }
+import "std/io"
+import "std/collections"
 // `chars` anchors std/string's blanket `string implements Into<Iterator<char>>`
 // impl into scope ; the `for _c in <string>` leg routes through it at lowering.
-import "std/string" { chars }
+import "std/string"
 
 main :: fn() -> i32 {
     // Array — direct lowerer wrap, no Into coerce. Sum every element.

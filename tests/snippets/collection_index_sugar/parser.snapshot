@@ -10,13 +10,7 @@
       "kind": "ImportDecl",
       "path": "std/io",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "println",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -24,21 +18,7 @@
       "kind": "ImportDecl",
       "path": "std/collections",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "MutableMap",
-            "alias": null
-          },
-          {
-            "name": "MutableSet",
-            "alias": null
-          },
-          {
-            "name": "add",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },

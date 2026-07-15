@@ -3,8 +3,10 @@
 ## tests/snippets/iter_zip_chain
 
 ## generic instances
+  __genstate_zip<[string, i32]>
   __genstate_chain<T>
   __genstate_enumerate<[usize, T]>
+  __genstate_flat_map<i32>
   __genstate_filter<i32>
   __genstate_map<i32>
   Into<Target>
@@ -17,7 +19,6 @@
   IndexSet<I, T>
   Contains<T>
   Iterator<i32>
-  Iterator<[string, i32]>
   Iterator<[usize, T]>
   Iterator<[T, U]>
   Iterator<T>

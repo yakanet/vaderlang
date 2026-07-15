@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // A simple countdown iterator: yields n-1, n-2, ..., 0 then null.
 export Countdown :: struct {

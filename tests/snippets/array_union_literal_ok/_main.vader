@@ -5,7 +5,7 @@
 // Guards the T2 mutable-array-invariance fix against over-rejection.
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 main :: fn() -> i32 {
     xs: (i32 | string)[] = [1, 2, 3]

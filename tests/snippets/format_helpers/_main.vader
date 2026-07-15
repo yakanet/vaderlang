@@ -1,9 +1,9 @@
 module "snippet"
 
-import "std/io" { println }
-import "std/string" { pad_start, pad_end }
-import "std/char" { is_white_char }
-import "std/numbers" { to_hex, to_bin }
+import "std/io"
+import "std/string"
+import "std/char"
+import "std/numbers"
 
 main :: fn() -> i32 {
     println("[${"42".pad_start(5, '0')}]")

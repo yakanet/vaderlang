@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // Regression: when an if/else block has type `null`, the C emitter must
 // declare `blockres_X` as `vader_box_t`, not `void` (which would produce
