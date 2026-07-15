@@ -13,11 +13,9 @@
 
 module "vader/lsp/protocol"
 
-import "std/json" {
-    JsonValue, JsonObject, JsonString, JsonNumber, JsonNull
-}
-import "std/collections" { MutableMap }
-import "vader/diagnostics" { Span, Position }
+import "std/json"
+import "std/collections"
+import "vader/diagnostics"
 
 // ---- range geometry -------------------------------------------------------
 

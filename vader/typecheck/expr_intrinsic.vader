@@ -10,12 +10,10 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic, typecheck_error }
-import "vader/parser" { intrinsic_spec, IntrinsicArgKind }
-import "vader/resolver/symbol" { Symbol }
-import "vader/types" {
-    Type, mk_array, mk_primitive, mk_struct, TY_BOOL, TY_TYPE, TY_STRING, TY_UNRESOLVED,
-}
+import "vader/diagnostics"
+import "vader/parser"
+import "vader/resolver/symbol"
+import "vader/types"
 AST :: import "vader/parser"
 
 /// Type-check an `@name(...)` call. Each arg is dispatched per the
@@ -98,7 +96,6 @@ static_string_value :: fn(e: AST.StringLitExpr) -> string {
     return out
 }
 
-import "vader/types" { StructType, UnresolvedType }
 
 
 type_for_result :: fn(name: string, typed: TypedProgram) -> Type {

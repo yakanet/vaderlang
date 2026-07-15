@@ -9,8 +9,8 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic }
-import "vader/types" { Type, TY_TYPE }
+import "vader/diagnostics"
+import "vader/types"
 AST :: import "vader/parser"
 
 /// `T[]` in value position : lower the element for side-effects,

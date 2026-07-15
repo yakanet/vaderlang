@@ -8,7 +8,7 @@
 
 module "vader/comptime"
 
-import "vader/diagnostics" { Span }
+import "vader/diagnostics"
 AST :: import "vader/parser"
 
 /// Tree-walk dispatcher. Returns whatever the per-variant helper
@@ -122,10 +122,9 @@ expr_kind_label :: fn(expr: AST.Expr) -> string = @partial match expr {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/collections" { MutableMap }
+import "std/collections"
 import "std/testing"
-import "vader/typecheck" { empty_typed_program }
-import "vader/diagnostics" { empty_span }
+import "vader/typecheck"
 
 @test test_evaluate_int_literal :: fn() -> void {
     expr :: AST.IntLitExpr { .span = empty_span(), .id = 0, .value = 42 }

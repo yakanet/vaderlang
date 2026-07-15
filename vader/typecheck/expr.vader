@@ -17,9 +17,9 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic, warning, typecheck_error }
+import "vader/diagnostics"
 AST :: import "vader/parser"
-import "vader/types" { Type, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, TY_FREE_INT, TY_FREE_FLOAT, TY_FREE_CHAR, TY_BOOL, TY_STRING, TY_NULL, TY_UNRESOLVED }
+import "vader/types"
 
 /// Type-check `expr`. `expected` provides bidirectional context — pass
 /// `null` for fresh-position uses. The returned `Type` is the post-
@@ -171,8 +171,6 @@ infer_expr :: fn(
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/diagnostics" { empty_span }
-import "vader/types" { mk_primitive, display_type }
 
 @test
 test_check_expr_writes_into_expr_types :: fn() -> void {

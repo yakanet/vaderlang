@@ -14,7 +14,7 @@
 
 module "vader/typecheck"
 
-import "vader/resolver/symbol" { Symbol }
+import "vader/resolver/symbol"
 AST :: import "vader/parser"
 
 /// Walk a `TraitDecl`'s `bases` list (when it uses `= A & B` sugar)

@@ -10,11 +10,11 @@
 
 module "vader/lower"
 
-import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, TY_NULL, TY_BOOL, TY_VOID, TY_UNRESOLVED, TRAIT_ASYNC, METHOD_RESUME, METHOD_CANCEL, STRUCT_SUSPENDED, mk_primitive, mk_fn, mk_array }
-import "vader/typecheck" { is_void }
-import "vader/diagnostics" { Span }
-import "std/collections" { MutableMap }
+import "vader/resolver/symbol"
+import "vader/types"
+import "vader/typecheck"
+import "vader/diagnostics"
+import "std/collections"
 import "std/abort"
 
 // ---- sentinel -------------------------------------------------------------

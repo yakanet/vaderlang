@@ -13,15 +13,14 @@
 
 module "vader/resolver"
 
-import "std/collections" { MutableMap, values }
+import "std/collections"
 import "std/string"
 import "std/sort"
-import "vader/parser" { Program }
-import "vader/parser" { Expr, TypeAliasDecl }
-import "vader/resolver/symbol" { Symbol, SymbolFactory }
-import "vader/types" { Type }
+import "vader/parser"
+import "vader/resolver/symbol"
+import "vader/types"
 
-import "vader/diagnostics" { Diagnostic }
+import "vader/diagnostics"
 
 /// One resolver output entry per source module.
 ///

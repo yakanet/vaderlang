@@ -12,10 +12,10 @@
 
 module "vader/lower"
 
-import "vader/diagnostics" { Span }
-import "vader/parser" { RangeExpr, Expr }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, mk_struct, TY_BOOL, TY_UNRESOLVED, STRUCT_RANGE }
+import "vader/diagnostics"
+import "vader/parser"
+import "vader/resolver/symbol"
+import "vader/types"
 
 /// Lower a `RangeExpr` into a `Range` struct literal.
 /// @param ctx          the fn-body context.

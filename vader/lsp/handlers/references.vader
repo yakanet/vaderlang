@@ -7,15 +7,10 @@
 
 module "vader/lsp/handlers"
 
-import "std/json" { JsonValue, JsonArray, JsonBool }
-import "std/collections" { MutableMap }
-import "vader/lsp/protocol" {
-    uri_to_path, position_uri, cursor_field, location_json, span_to_range_json, get_field, path_to_uri,
-    LineIndex,
-}
-import "vader/lsp/analysis" {
-    ServerState, typed_project_for, build_reference_index, ReferenceIndex, cursor_in_span
-}
+import "std/json"
+import "std/collections"
+import "vader/lsp/protocol"
+import "vader/lsp/analysis"
 
 /// Resolve find-references for the position in `params`. Returns a `Location[]`
 /// (every use of the symbol under the cursor), empty when the cursor isn't on a

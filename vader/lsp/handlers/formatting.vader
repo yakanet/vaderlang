@@ -11,11 +11,11 @@
 
 module "vader/lsp/handlers"
 
-import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonArray }
-import "std/collections" { MutableMap }
-import "vader/fmt" { format_source, Formatted, ParseFailure }
-import "vader/lsp/protocol" { position_uri }
-import "vader/lsp/analysis" { ServerState }
+import "std/json"
+import "std/collections"
+import "vader/fmt"
+import "vader/lsp/protocol"
+import "vader/lsp/analysis"
 
 /// Build the `TextEdit[]` response for `textDocument/formatting`. The whole
 /// document is replaced with `vader/fmt`'s output.

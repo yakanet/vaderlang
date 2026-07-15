@@ -7,11 +7,10 @@
 
 module "vader/comptime"
 
-import "std/collections" { MutableMap, keys }
-import "vader/diagnostics" { Diagnostic, comptime_error }
-import "vader/diagnostics" { ComptimeCode }
-import "vader/resolver/symbol" { SymbolKind }
-import "vader/typecheck" { TypedProgram, lookup_const_symbol }
+import "std/collections"
+import "vader/diagnostics"
+import "vader/resolver/symbol"
+import "vader/typecheck"
 AST :: import "vader/parser"
 
 /// Result of dependency analysis : the `@comptime const` decls in
@@ -315,10 +314,8 @@ collect_stmt_deps :: fn(
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/parser" { parse_source }
-import "vader/resolver" { resolve_module }
-import "vader/resolver/symbol" { SymbolFactory }
-import "vader/typecheck" { check_module }
+import "vader/parser"
+import "vader/resolver"
 
 build_order :: fn(src: string) -> ComptimeOrder {
     parsed :: parse_source(src, "t.vader")

@@ -12,8 +12,8 @@
 
 module "vader/bytecode"
 
-import "vader/resolver/symbol" { Symbol }
-import "vader/types" { is_int_name, is_numeric_name, is_primitive_name }
+import "vader/resolver/symbol"
+import "vader/types"
 
 /// True when the call's mangled name resolves to a dedicated
 /// bytecode op (e.g. `std_core$i32$Add$add` → `i32.add`). Returns

@@ -24,9 +24,7 @@
 
 module "vader/bytecode"
 
-import "vader/lower" {
-    LoweredBinaryOp, LoweredUnaryOp,
-}
+import "vader/lower"
 
 /// Pick the bytecode op for a `LoweredBinaryOp` over operands of class
 /// `lhs`. `eq` / `neq` over reference shapes (`ref` / `any` / `null`) lower

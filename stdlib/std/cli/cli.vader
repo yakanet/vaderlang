@@ -16,7 +16,7 @@
 
 module "std/cli"
 
-import "std/collections" { MutableMap }
+import "std/collections"
 import "std/string"
 
 /// Kind of a flag — controls how a value (if any) is interpreted.

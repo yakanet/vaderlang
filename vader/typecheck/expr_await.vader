@@ -7,8 +7,8 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic, typecheck_error }
-import "vader/types" { Type, TraitType, TRAIT_ASYNC }
+import "vader/diagnostics"
+import "vader/types"
 AST :: import "vader/parser"
 
 /// Type-check `await e` : diagnose it outside an `async` body, type the inner,

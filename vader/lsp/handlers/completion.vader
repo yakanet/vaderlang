@@ -13,26 +13,16 @@
 
 module "vader/lsp/handlers"
 
-import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonArray }
-import "std/collections" { MutableMap }
+import "std/json"
+import "std/collections"
 import "std/string"
-import "vader/types" { ArrayType, StructType, EnumType, UnresolvedType, TypeParamType, FreeIntType, FreeFloatType, Type, display_type }
+import "vader/types"
 import "vader/text"
-import "vader/typecheck" {
-    TypedProgram, ufcs_methods_for, UfcsMethod, array_builtin_methods, ArrayBuiltinMethod,
-    namespace_base_mod_id, typeparam_bound_method_names, lift_enum_placeholder, type_from_expr,
-}
-import "vader/lsp/protocol" {
-    position_uri, position_line, position_character, span_contains,
-    uri_to_path, li_offset, line_start_offset, LineIndex, new_line_index,
-}
-import "vader/lsp/analysis" {
-    ServerState, DocIndex, DeclEntry, DeclKind, build_index,
-    typed_project_for, source_file_for_path, find_expr_at,
-    find_receiver_before_dot, find_binding_rhs_type_at, find_enclosing_call, enclosing_exprs,
-}
+import "vader/typecheck"
+import "vader/lsp/protocol"
+import "vader/lsp/analysis"
 AST :: import "vader/parser"
-import "vader/lexer" { KEYWORDS }
+import "vader/lexer"
 
 /// Build the completion response for the position in `params`. Returns a
 /// `CompletionList` (`{ isIncomplete, items }`) — empty when the document was

@@ -11,23 +11,13 @@
 
 module "vader/typecheck"
 
-import "std/collections" { MutableMap }
-import "vader/diagnostics" { Diagnostic, Span }
+import "std/collections"
+import "vader/diagnostics"
 AST :: import "vader/parser"
-import "vader/parser" { Program }
-import "vader/resolver" { LoadedProject, LoadedModule, SourceFile, concat_file_decls, load_project_with_overlay }
-import "vader/resolver" { ResolvedModule, resolve_module, resolve_module_with_collected, resolve_module_with_collected_dp, resolve_module_with_collected_dp_seeded, build_core_seed, build_wildcard_seed, wildcard_ambiguities, module_index_by_name, find_core_module_id, find_async_module_id }
-import "vader/resolver/symbol" { Symbol, SymbolFactory }
-import "vader/resolver" { wire_imports, ImportTargetTable, run_orphan_rule_check_for_module }
-import "vader/types" { display_type, type_base_name, canonical_key, canonical_args_key }
-import "vader/diagnostics" { typecheck_error }
-import "vader/types" {
-    Type, ArrayType, EnumType, FnType, SelfType, StructType, TraitType,
-    TupleType, UnionType, PrimitiveType,
-    mk_array, mk_fn, mk_struct, mk_tuple, mk_union, mk_enum,
-    TY_UNRESOLVED, TY_TYPE, TY_VOID,
-    TRAIT_ITERATOR, TRAIT_ASYNC, TRAIT_INTO, TRAIT_INDEX, TRAIT_INDEX_SET, STRUCT_RANGE, STRUCT_FIELD, METHOD_INTO,
-}
+import "vader/parser"
+import "vader/resolver"
+import "vader/resolver/symbol"
+import "vader/types"
 
 // Concatenate every file of a (possibly multi-file) module into one
 // synthetic Program so the resolver body-walks ALL files, not just
@@ -404,7 +394,7 @@ collect_direct_imports :: fn(
 import "std/string"
 
 
-empty_impls :: fn() -> ImplRegistry { return new_registry() }
+empty_impls :: fn() -> ImplRegistry { return ImplRegistry {} }
 
 empty_fallback :: fn(project: LoadedProject) -> TypedProgram {
     loaded :: project.modules[project.entry]
@@ -879,8 +869,6 @@ check_short_impl_arity :: fn(
     return !fired
 }
 
-import "vader/diagnostics" { resolver_error }
-import "vader/resolver" { required_methods }
 
 /// Project-wide trait-name lookup. Single walk discriminates
 /// "found as trait" from "found as non-trait" so the impl-resolution
@@ -912,9 +900,6 @@ find_named_decl_in_project :: fn(
     return NamedDeclLookup { .trait_decl = null, .other_kind = other }
 }
 
-import "vader/resolver" {
-    materialize_default_members, materialize_intrinsic_members, materialize_sam_members,
-}
 
 // An expression-bodied fn with no explicit return annotation — the only fn
 // shape whose return type is settled by body inference (`patch_fn_return_type`,
@@ -1657,7 +1642,6 @@ build_namespace_type_members :: fn(
 }
 
 
-import "vader/resolver" { SymbolTarget }
 
 lookup_external_type :: fn(
     st: SymbolTarget, per_module: MutableMap<string, TypedProgram>,
@@ -2008,5 +1992,4 @@ is_type_kind :: fn(k: SymbolKind) -> bool = @partial match k {
     _ -> false
 }
 
-import "vader/resolver/symbol" { SymbolKind }
 

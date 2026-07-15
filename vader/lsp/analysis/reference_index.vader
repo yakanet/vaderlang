@@ -26,11 +26,11 @@
 
 module "vader/lsp/analysis"
 
-import "std/collections" { MutableMap }
-import "vader/diagnostics" { Span, Position }
-import "vader/resolver" { LoadedProject, wire_imports, resolve_import_redirect }
-import "vader/resolver/symbol" { Symbol }
-import "vader/typecheck" { CheckResult }
+import "std/collections"
+import "vader/diagnostics"
+import "vader/resolver"
+import "vader/resolver/symbol"
+import "vader/typecheck"
 AST :: import "vader/parser"
 
 /// One recorded reference : a source span + the (import-resolved) Symbol id it

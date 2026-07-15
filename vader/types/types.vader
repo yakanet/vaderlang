@@ -8,9 +8,9 @@
 
 module "vader/types"
 
-import "std/collections" { MutableMap }
-import "std/string_builder" { StringBuilder, append, append_char }
-import "vader/resolver/symbol" { Symbol }
+import "std/collections"
+import "std/string_builder"
+import "vader/resolver/symbol"
 
 // ---- variants -------------------------------------------------------------
 
@@ -599,8 +599,7 @@ export strip_distinct_each :: fn(args: Type[]) -> Type[] {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/resolver/symbol" { SymbolKind, make, SymbolFactory }
-import "vader/parser" { Visibility }
+import "vader/parser"
 
 @test
 test_display_primitive :: fn() -> void {

@@ -3,10 +3,10 @@
 
 module "vader/lower"
 
-import "vader/parser" { Expr, IdentExpr, IndexExpr, RangeExpr, AssignStmt, Visibility }
-import "vader/diagnostics" { Span }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, PrimitiveType, ArrayType, TY_BOOL, TY_VOID, TY_UNRESOLVED, mk_primitive, StructType, STRUCT_RANGE, METHOD_AT, array_backing }
+import "vader/parser"
+import "vader/diagnostics"
+import "vader/resolver/symbol"
+import "vader/types"
 
 lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt {
     // `m[k] = v` over an IndexSet-impl receiver lowers to a static

@@ -8,15 +8,9 @@
 
 module "vader/comptime"
 
-import "vader/typecheck" { type_from_expr }
-import "vader/types" {
-    Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType, TupleType,
-    FnType, TypeParamType, TypeMetaType, UnionType, UnresolvedType, AnyType, DistinctType,
-    SelfType, FreeIntType, FreeCharType, FreeFloatType, NeverType, display_type,
-    primitive_size, primitive_align,
-}
-import "vader/diagnostics" { Diagnostic, comptime_error }
-import "vader/diagnostics" { ComptimeCode }
+import "vader/typecheck"
+import "vader/types"
+import "vader/diagnostics"
 AST :: import "vader/parser"
 
 /// Dispatch a `@<name>(args)` call to the matching evaluator. Returns
@@ -223,6 +217,5 @@ import "std/testing"
     assert_eq(type_kind_label(int_type), "primitive")
 }
 
-import "vader/types" { mk_primitive }
 
 type_for_primitive :: fn(name: string) -> Type { return mk_primitive(name) }

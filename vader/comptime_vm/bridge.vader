@@ -19,8 +19,8 @@
 
 module "vader/comptime_vm"
 
-import "vader/diagnostics" { Diagnostic, Span, comptime_error, ComptimeCode }
-import "vader/types" { Type, PrimitiveType, DistinctType, ArrayType, display_type }
+import "vader/diagnostics"
+import "vader/types"
 Ct :: import "vader/comptime"
 Vm :: import "vader/vm"
 
@@ -102,8 +102,6 @@ unsupported :: fn(span: Span, what: string) -> Diagnostic =
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/diagnostics" { empty_span }
-import "vader/types" { mk_primitive, mk_array }
 
 // Bridge then render — narrows the result union for the happy-path asserts.
 display_bridged :: fn(value: Vm.Value, ty: Type, span: Span) -> string {

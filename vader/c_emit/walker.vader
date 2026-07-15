@@ -12,10 +12,9 @@
 module "vader/c_emit"
 
 import "std/string"
-import "std/string_builder" { StringBuilder, append }
+import "std/string_builder"
 import "std/abort"
-import "vader/bytecode" { BcFunction, BcSignature, BcStruct, BcArray, BcFn, BcRef, BcUnion, BcType, ValType }
-import "vader/bytecode" { array_kind_of, array_kind_index, ArrayKind, is_ref_only_element }
+import "vader/bytecode"
 // The opcode union pulls in ~120 names ; the namespace form keeps the
 // import to one line and tags every op site as `vm.<Op>` at the match.
 vm :: import "vader/bytecode"

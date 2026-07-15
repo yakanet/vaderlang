@@ -8,15 +8,10 @@
 
 module "vader/lsp"
 
-import "std/json" {
-    JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonArray
-}
-import "std/collections" { MutableMap }
-import "vader/lsp/protocol" {
-    get_field, get_bool, log_info, TOKEN_TYPES, TOKEN_MODIFIERS,
-    PositionEncoding,
-}
-import "vader/lsp/analysis" { ServerState }
+import "std/json"
+import "std/collections"
+import "vader/lsp/protocol"
+import "vader/lsp/analysis"
 
 /// Build the response payload for `initialize` and remember the
 /// client-side capability flags that downstream handlers care about
@@ -181,7 +176,6 @@ string_array :: fn(items: string[]) -> JsonValue {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "std/json" { parse, JsonError }
 
 // Parse `text` and negotiate ; fails the test if `text` isn't valid JSON.
 negotiate_from :: fn(text: string) -> PositionEncoding {

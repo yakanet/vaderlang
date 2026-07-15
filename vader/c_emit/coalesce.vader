@@ -51,10 +51,10 @@
 module "vader/c_emit"
 
 import "std/string"
-import "std/string_builder" { StringBuilder }
+import "std/string_builder"
 import "std/sort"
 import "vader/text"
-import "vader/bytecode" { ValType }
+import "vader/bytecode"
 
 /// Compacted temp type list (index = new slot) plus the rewritten body text.
 export CoalesceResult :: struct {

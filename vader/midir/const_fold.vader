@@ -18,9 +18,9 @@
 
 module "vader/midir"
 
-import "std/collections" { MutableMap }
-import "vader/types" { Type, PrimitiveType }
-import "vader/lower" { LoweredBinaryOp, LoweredUnaryOp }
+import "std/collections"
+import "vader/types"
+import "vader/lower"
 
 /// Run constant folding on every block of every function in every
 /// module. Returns a fresh `CFGProject` with the rewritten functions ;

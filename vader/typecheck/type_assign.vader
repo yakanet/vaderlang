@@ -14,12 +14,7 @@
 
 module "vader/typecheck"
 
-import "vader/types" {
-    Type, PrimitiveType, StructType, EnumType, TraitType, UnionType,
-    FnType, ArrayType, TupleType, TypeParamType, TypeMetaType, SelfType,
-    UnresolvedType, FreeIntType, FreeCharType, FreeFloatType, NeverType,
-    DistinctType,
-}
+import "vader/types"
 
 /// Whether `from` can flow into a slot expecting `to` without explicit
 /// coercion. Trait-widening is gated by `oracle` ; pass `null` if the
@@ -243,7 +238,6 @@ export struct_args_compatible :: fn(a: Type[], b: Type[], oracle: TraitOracle | 
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/types" { mk_array, mk_primitive, mk_union, TY_FREE_INT, TY_NEVER, TY_UNRESOLVED }
 
 @test
 test_assignable_identity :: fn() -> void {

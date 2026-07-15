@@ -9,15 +9,11 @@
 
 module "vader/comptime"
 
-import "std/collections" { MutableMap, keys }
+import "std/collections"
 import "std/sort"
 import "std/string"
-import "vader/resolver/symbol" { Symbol }
-import "vader/types" {
-    Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType, TupleType,
-    FnType, TypeParamType, UnionType, UnresolvedType, FreeIntType, FreeCharType, FreeFloatType,
-    SelfType, TypeMetaType, NeverType, AnyType, DistinctType, display_type, strip_distinct_each,
-}
+import "vader/resolver/symbol"
+import "vader/types"
 
 /// One registered instantiation. `args` carries the concrete (or
 /// possibly type-param) type arguments ; `display_key` is the
@@ -32,17 +28,8 @@ export GenericInstance :: struct {
 /// preserves insertion order so callers can iterate deterministically
 /// before the final sort.
 export InstanceRegistry :: struct {
-    by_key: MutableMap<string, GenericInstance>
-    order:  GenericInstance[]
-}
-
-/// Build an empty registry.
-/// @return  a fresh registry with no instances.
-export new_registry :: fn() -> InstanceRegistry {
-    return InstanceRegistry {
-        .by_key = MutableMap<string, GenericInstance> {},
-        .order  = [],
-    }
+    by_key: MutableMap<string, GenericInstance> = MutableMap<string, GenericInstance> {}
+    order:  GenericInstance[] = []
 }
 
 /// Register `(symbol, args)` if not already present. Returns the
@@ -131,7 +118,7 @@ is_concrete_enough :: fn(t: Type) -> bool {
 }
 
 build_display_key :: fn(symbol: Symbol, args: Type[]) -> string {
-    return "${symbol.id}(${canonical_args_key(args)})"
+    return "${symbol.id}(${instance_args_key(args)})"
 }
 
 // Stable, structure-anchored —
@@ -147,7 +134,7 @@ build_display_key :: fn(symbol: Symbol, args: Type[]) -> string {
 ///
 /// @param args  the concrete type arguments.
 /// @return      the canonical key ; empty when `args` is empty.
-export canonical_args_key :: fn(args: Type[]) -> string {
+export instance_args_key :: fn(args: Type[]) -> string {
     out := ""
     for i in 0..<args.len() {
         if i > 0 { out = "${out}," }
@@ -158,18 +145,18 @@ export canonical_args_key :: fn(args: Type[]) -> string {
 
 canonical_type_key :: fn(t: Type) -> string = match t {
     is PrimitiveType  as p  -> "P:${p.name}"
-    is StructType     as s  -> "S:${s.symbol.id}(${canonical_args_key(s.args)})"
+    is StructType     as s  -> "S:${s.symbol.id}(${instance_args_key(s.args)})"
     is EnumType       as e  -> "E:${e.symbol.id}"
     // A distinct has no backend identity — its dedup key is the backing's, so a
     // display_key built from a distinct-bearing type reconciles with the
     // source-stripped instance entries (no separate slot, no name desync).
     is DistinctType   as d  -> canonical_type_key(d.backing)
-    is TraitType      as r  -> "T:${r.symbol.id}(${canonical_args_key(r.args)})"
+    is TraitType      as r  -> "T:${r.symbol.id}(${instance_args_key(r.args)})"
     is ArrayType      as a  -> "A:${canonical_type_key(a.element)}"
-    is TupleType      as tu -> "U:(${canonical_args_key(tu.elements)})"
-    is FnType         as f  -> "F:(${canonical_args_key(f.params)})->${canonical_type_key(f.return_type)}"
+    is TupleType      as tu -> "U:(${instance_args_key(tu.elements)})"
+    is FnType         as f  -> "F:(${instance_args_key(f.params)})->${canonical_type_key(f.return_type)}"
     is TypeParamType  as p  -> "X:${p.symbol.id}"
-    is UnionType      as u  -> "N:(${canonical_args_key(u.variants)})"
+    is UnionType      as u  -> "N:(${instance_args_key(u.variants)})"
     // Sentinel / metatype variants get a distinct constant key each — a single
     // shared `_ -> "?"` collapsed all of them, colliding e.g. Never with Any
     // and dropping the dedup distinction.
@@ -207,12 +194,10 @@ export render_instance :: fn(instance: GenericInstance) -> string {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/types" { mk_struct, mk_primitive }
-import "vader/resolver/symbol" { SymbolKind }
-import "vader/parser" { Visibility }
+import "vader/parser"
 
 @test test_add_deduplicates :: fn() -> void {
-    registry :: new_registry()
+    registry :: InstanceRegistry {}
     sym :: dummy_struct_symbol("Foo")
     i32_type :: mk_primitive("i32")
     args: Type[] = [i32_type]
@@ -222,7 +207,7 @@ import "vader/parser" { Visibility }
 }
 
 @test test_observe_struct_instance :: fn() -> void {
-    registry :: new_registry()
+    registry :: InstanceRegistry {}
     sym :: dummy_struct_symbol("List")
     args: Type[] = [mk_primitive("i32")]
     list_type :: mk_struct(sym, args)

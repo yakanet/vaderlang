@@ -14,12 +14,10 @@
 
 module "vader/comptime"
 
-import "std/collections" { MutableMap }
-import "std/string_builder" { StringBuilder, append, append_char }
-import "vader/parser" {
-    TypeExpr, IdentExpr, GenericInstExpr,
-}
-import "vader/types" { Type, display_type, strip_distinct }
+import "std/collections"
+import "std/string_builder"
+import "vader/parser"
+import "vader/types"
 import "vader/text"
 
 /// Mangled name for a `(decl_name, module_path, type_arguments)` triple.
@@ -147,8 +145,7 @@ generic_callee_name :: fn(gi: GenericInstExpr) -> string = @partial match gi.cal
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/types" { mk_primitive }
-import "vader/diagnostics" { Position, Span }
+import "vader/diagnostics"
 
 @test test_mangle_non_generic_same_name :: fn() -> void {
     args: Type[] = []

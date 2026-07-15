@@ -2,8 +2,8 @@
 
 module "vader/fmt"
 
-import "vader/parser" { parse_source, Program }
-import "vader/diagnostics" { Diagnostic }
+import "vader/parser"
+import "vader/diagnostics"
 
 /// Outcome of a `format_source` call : either the formatted output or the
 /// list of parser diagnostics that prevented formatting. Callers

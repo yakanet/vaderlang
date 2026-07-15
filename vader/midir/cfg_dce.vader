@@ -15,7 +15,7 @@
 
 module "vader/midir"
 
-import "std/collections" { MutableMap, MutableSet }
+import "std/collections"
 
 /// Top-level entry — apply all CFG-level optimisations to every fn in
 /// the project. Pure : returns a fresh CFGProject sharing unchanged

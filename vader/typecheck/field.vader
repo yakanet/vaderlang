@@ -16,14 +16,10 @@
 module "vader/typecheck"
 
 import "std/string"
-import "vader/diagnostics" { Diagnostic, Span, typecheck_error }
+import "vader/diagnostics"
 AST :: import "vader/parser"
-import "vader/resolver" { ResolvedModule }
-import "vader/types" {
-    Type, ArrayType, EnumType, PrimitiveType, StructType, TraitType, TupleType, UnionType, UnresolvedType,
-    FreeIntType, FreeFloatType, FreeCharType, struct_backing, tuple_backing,
-    display_type, type_base_name, TY_FREE_INT, TY_STRING, TY_NULL, TY_UNRESOLVED,
-}
+import "vader/resolver"
+import "vader/types"
 
 /// Type-check a `FieldExpr`. Chains the per-target-shape attempts in
 /// priority order ; each `try_*` returns `Type | null` (null = "not
@@ -480,13 +476,8 @@ export substitute_by_name :: fn(
     }
 }
 
-import "std/collections" { MutableMap }
+import "std/collections"
 import "std/math"
-import "vader/types" {
-    FnType, TypeParamType,
-    mk_array, mk_fn, mk_struct, mk_trait, mk_tuple, mk_union,
-}
-import "vader/types" { mk_primitive, TY_VOID }
 
 /// MVP UFCS dispatch for the canonical array methods. Returns the
 /// per-method `FnType` synthesised from the element type, or `null`
@@ -571,7 +562,7 @@ export array_builtin_methods :: fn(arr: ArrayType) -> ArrayBuiltinMethod[] {
 /// the first removed — it lives in `std/core` (the prelude) now. The remaining
 /// string/char entries move to `std/string` / `std/char` (import-required) or
 /// get implemented/dropped per .claude/plans/core-string-utf8-reorg.md.
-import "vader/resolver/symbol" { Symbol }
+import "vader/resolver/symbol"
 
 /// When `e.target` is an `IdentExpr` resolving to a namespace
 /// `ImportBinding`, look up `e.field` in the target module's
@@ -658,7 +649,6 @@ substitute_self :: fn(t: Type, self_ty: Type) -> Type {
     }
 }
 
-import "vader/types" { SelfType }
 
 // Walk a TypeParam bound expression (single trait or `A & B` chain)
 // and return the first trait whose declared methods include `name`.
@@ -1036,7 +1026,6 @@ collect_bound_method_names :: fn(bound: AST.Expr, typed: TypedProgram, out: stri
     }
 }
 
-import "vader/resolver/symbol" { SymbolKind }
 
 /// Walk a struct's fields for `name` and return the resolved field type,
 /// or `null` if the field doesn't exist. Shared with `struct_lit.vader`
@@ -1055,9 +1044,7 @@ export find_struct_field_type :: fn(
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/parser" { parse_source }
-import "vader/resolver" { resolve_module }
-import "vader/resolver/symbol" { SymbolFactory }
+import "vader/parser"
 
 // Stub that handles only the variants the field tests touch — Ident
 // (for `p` in `p.x`), Field (for nested `obj.a.b`), and Int literals.

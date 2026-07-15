@@ -35,11 +35,6 @@ export is_void :: fn(t: Type) -> bool {
 // `vader/types::PRIMITIVE_META`. These thin re-exports keep the ~40 call sites
 // that import the predicates from `vader/typecheck` unchanged.
 
-export is_signed_int_name   :: fn(name: string) -> bool = ty_is_signed_int_name(name)
-export is_unsigned_int_name :: fn(name: string) -> bool = ty_is_unsigned_int_name(name)
-export is_float_name        :: fn(name: string) -> bool = ty_is_float_name(name)
-export is_int_name          :: fn(name: string) -> bool = ty_is_int_name(name)
-export is_numeric_name      :: fn(name: string) -> bool = ty_is_numeric_name(name)
 
 /// Whether a Unicode codepoint fits the integer primitive `type_name`. A char
 /// literal coerces to an integer only when its codepoint is representable —
@@ -369,7 +364,7 @@ removed_covers :: fn(removed: Type, t: Type) -> bool {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/types" { mk_array, mk_fn, mk_tuple, TY_FREE_INT, TY_FREE_FLOAT }
+import "vader/types"
 
 @test
 test_equals_primitive :: fn() -> void {

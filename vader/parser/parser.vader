@@ -7,11 +7,8 @@ module "vader/parser"
 
 import "std/string"
 import "std/char"
-import "vader/lexer" {
-    tokenize, Token, TokenKind, Lexer, empty_span, make_token, kind_name,
-}
-import "vader/diagnostics" { Diagnostic, Position, parser_error }
-import "vader/diagnostics" { ParserCode }
+import "vader/lexer"
+import "vader/diagnostics"
 
 // ============================================================================
 // Public entry
@@ -128,7 +125,7 @@ export parse_module_header :: fn(source: string, file: string) -> ModuleHeader |
     for i < n && sb[i] != '"' { i = i + 1 }
     if i >= n { return null }                                       // unterminated
     name :: sb[name_start..<i].bytes_to_string()
-    return ModuleHeader { .name = name, .name_span = empty_span(file) }
+    return ModuleHeader { .name = name, .name_span = empty_file_span(file) }
 }
 
 // Scan budget — most module decls land in the first 1 KB ; bail past
@@ -1132,7 +1129,7 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
     return FnSignature { .params = params, .type_params = type_params }
 }
 
-empty_token :: fn() = make_token(.Eof, "", empty_span(""))
+empty_token :: fn() = make_token(.Eof, "", empty_file_span(""))
 
 parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> StructDecl {
     p.advance()  // `struct`

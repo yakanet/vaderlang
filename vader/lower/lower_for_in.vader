@@ -22,17 +22,11 @@
 
 module "vader/lower"
 
-import "vader/diagnostics" { Span, lower_error }
+import "vader/diagnostics"
 AST :: import "vader/parser"
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/typecheck" { is_gen_state_struct }
-import "vader/types" {
-    Type, ArrayType, StructType, TraitType, EnumType, PrimitiveType,
-    UnresolvedType, array_backing,
-    mk_struct, mk_array, mk_primitive, mk_trait, display_type,
-    TY_BOOL, TY_VOID, TY_NEVER, TY_NULL, TY_UNRESOLVED,
-    STRUCT_ARRAY_ITERATOR, STRUCT_YIELD, TRAIT_ITERATOR, is_int_name, METHOD_NEXT,
-}
+import "vader/resolver/symbol"
+import "vader/typecheck"
+import "vader/types"
 
 /// Lower a `for x in iter { body }` statement to a step-loop driven
 /// by the `Iterator<T>.next()` dispatch.
@@ -818,8 +812,6 @@ is_integer_type :: fn(t: Type) -> bool {
     }
 }
 
-import "vader/types" { FreeIntType, FreeCharType }
-import "vader/typecheck" { default_if_free }
 
 cmp_op_for_inclusive :: fn(inclusive: bool) -> LoweredBinaryOp {
     if inclusive { return LoweredBinaryOp.Lte }

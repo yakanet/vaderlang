@@ -6,18 +6,18 @@ module "vader/lower"
 import "std/sort"
 import "std/string"
 
-import "vader/parser" { FnDecl, Visibility }
-import "vader/resolver" { LoadedProject }
-import "vader/typecheck" { TypedProject, substitute }
-import "vader/types" { Type }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/parser"
+import "vader/resolver"
+import "vader/typecheck"
+import "vader/types"
+import "vader/resolver/symbol"
 
 // Walk every module's impl decls × surviving impl-member fns and yield
-// one `VtableEntry` per `(trait, method, receiver type, impl fn)`.
+// one `LoweredVtableEntry` per `(trait, method, receiver type, impl fn)`.
 collect_vtable_entries :: fn(
     project: LoweredProject, loaded: LoadedProject, typed: TypedProject,
-) -> VtableEntry[] {
-    out: VtableEntry[] = []
+) -> LoweredVtableEntry[] {
+    out: LoweredVtableEntry[] = []
     for [_, m] in project.modules {
         for d in m.decls {
             if d is LoweredFnDecl as fd {
@@ -36,7 +36,7 @@ collect_vtable_entries :: fn(
                         .module = "", .visibility = Visibility.Private, .defined_at = null,
                     }
                 }
-                out.push(VtableEntry {
+                out.push(LoweredVtableEntry {
                     .trait_name  = trait_method.trait_name,
                     .method_name = trait_method.method,
                     .struct_type = receiver_ty,

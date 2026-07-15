@@ -11,7 +11,7 @@
 // and the StringBuilder surface ; we only need the extras here.
 module "vader/lexer"
 
-import "std/string" { pad_start, pad_end }
+import "std/string"
 import "std/numbers"
 import "vader/text"
 // Diagnostic info is now resolved at construction time — see vader/diagnostics.

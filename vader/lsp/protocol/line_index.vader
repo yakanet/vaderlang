@@ -19,7 +19,7 @@
 module "vader/lsp/protocol"
 
 import "std/math"
-import "std/string" { utf8_lead_len }
+import "std/string"
 
 // ---- encoding -------------------------------------------------------------
 

@@ -3,15 +3,15 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap }
+import "std/collections"
 
-import "vader/parser" { Expr, IdentExpr, CallExpr, FieldExpr, Visibility, Decl, ImplDecl }
-import "vader/diagnostics" { Span }
-import "vader/typecheck" { type_list_equals, TypedProgram }
-import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, FnType, PrimitiveType, UnionType, TraitType, ArrayType, AnyType, TypeMetaType, mk_primitive, mk_fn, TY_STRING, TRAIT_EQUALS, METHOD_EQUALS, METHOD_NOT_EQUALS, array_backing, struct_backing }
-import "vader/comptime" { EvaluatedProgram }
-import "vader/resolver" { ImportTargetTable }
+import "vader/parser"
+import "vader/diagnostics"
+import "vader/typecheck"
+import "vader/resolver/symbol"
+import "vader/types"
+import "vader/comptime"
+import "vader/resolver"
 
 // Call lowering : routes through overload re-typing (`retype_overload_callee`),
 // UFCS rewrites (`try_lower_ufcs_call`), and generic-fn instance lookups

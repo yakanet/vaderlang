@@ -8,11 +8,8 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic, typecheck_error }
-import "vader/types" {
-    Type, PrimitiveType, DistinctType, EnumType, FnType,
-    UnresolvedType, TypeParamType, TypeMetaType,
-}
+import "vader/diagnostics"
+import "vader/types"
 // `display_type` and `is_numeric` live in sibling files of this module and are
 // referenced directly (a re-import would trip R2026 duplicate-declaration).
 AST :: import "vader/parser"

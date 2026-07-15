@@ -8,10 +8,10 @@
 
 module "vader/midir"
 
-import "std/string_builder" { StringBuilder, append }
+import "std/string_builder"
 import "vader/resolver"
-import "vader/resolver/symbol" { kind_name }
-import "vader/types" { display_type }
+import "vader/resolver/symbol"
+import "vader/types"
 
 /// Optional filter / shape controls for `dump_cfg_project`.
 export DumpCfgOptions :: struct {

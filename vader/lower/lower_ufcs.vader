@@ -3,13 +3,13 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap }
+import "std/collections"
 
-import "vader/parser" { Expr, CallExpr, FieldExpr, CallArg, Visibility, StructDecl }
-import "vader/typecheck" { type_from_expr, default_if_free, is_assignable, substitute_by_name, try_array_to_iter, struct_implements_trait }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, FnType, UnionType, TraitType, TypeParamType, TY_UNRESOLVED, StructType, EnumType, strip_distinct_each }
-import "vader/comptime" { EvaluatedProgram, uniq }
+import "vader/parser"
+import "vader/typecheck"
+import "vader/resolver/symbol"
+import "vader/types"
+import "vader/comptime"
 
 as_field_expr :: fn(expr: Expr) -> FieldExpr | null {
     if expr is FieldExpr as f { return f }

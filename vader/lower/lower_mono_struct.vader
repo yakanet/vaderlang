@@ -3,16 +3,16 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap }
+import "std/collections"
 import "std/iter"
 
-import "vader/diagnostics" { Diagnostic, Span }
-import "vader/parser" { Decl, StructDecl, ImplDecl, IdentExpr, GenericInstExpr, TypeExpr, BinaryExpr, BinaryOp }
-import "vader/resolver" { LoadedProject, LoadedModule }
-import "vader/typecheck" { TypedProject, TypedProgram, substitute, is_empty_substitution, ImplEntry, fn_is_generator }
-import "vader/types" { UnresolvedType, Type, FnType, StructType, TypeMetaType, TypeParamType, ArrayType, TraitType, TupleType, UnionType, SelfType, FreeIntType, FreeCharType, FreeFloatType, NeverType, AnyType, display_type, for_each_type, EnumType, PrimitiveType, DistinctType, strip_distinct_each }
-import "vader/comptime" { MonoEntry, GenericInstance }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/diagnostics"
+import "vader/parser"
+import "vader/resolver"
+import "vader/typecheck"
+import "vader/types"
+import "vader/comptime"
+import "vader/resolver/symbol"
 
 // Phase 1 of the two-pass instance materialisation : concrete struct
 // decls only. Returns the dedupe set so the representatives pass

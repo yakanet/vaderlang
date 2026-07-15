@@ -6,18 +6,13 @@
 
 module "vader/lsp/analysis"
 
-import "std/json" {
-    JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
-}
-import "std/collections" { MutableMap }
-import "vader/resolver" { LoadedProject, SourceFile }
-import "vader/typecheck" { check_file, CheckResult }
-import "vader/diagnostics" { Diagnostic }
-import "vader/lsp/protocol" {
-    get_field, get_string, uri_to_path, path_to_uri,
-    PositionEncoding, LineIndex, new_line_index,
-}
-import "std/io" { read_file_string, IOError }
+import "std/json"
+import "std/collections"
+import "vader/resolver"
+import "vader/typecheck"
+import "vader/diagnostics"
+import "vader/lsp/protocol"
+import "std/io"
 
 /// Cached load+typecheck of one project, keyed by the entry file path it was
 /// built for. Reused across typed requests (hover, diagnostics, inlay,

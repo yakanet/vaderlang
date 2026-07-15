@@ -12,14 +12,11 @@
 
 module "vader/bytecode"
 
-import "std/collections" { MutableMap }
-import "vader/diagnostics" { Span }
-import "vader/types" { Type, mk_struct }
-import "vader/resolver/symbol" { Symbol }
-import "vader/parser" {
-    Decl, FnDecl, AssertDecl, ConstDecl, EnumDecl, ImplDecl, ImportDecl,
-    StructDecl, TraitDecl, TypeAliasDecl, Decorator, StringLitExpr, StringLitText,
-}
+import "std/collections"
+import "vader/diagnostics"
+import "vader/types"
+import "vader/resolver/symbol"
+import "vader/parser"
 Lo :: import "vader/lower"
 
 

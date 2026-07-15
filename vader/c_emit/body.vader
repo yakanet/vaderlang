@@ -26,12 +26,9 @@
 
 module "vader/c_emit"
 
-import "std/string_builder" { StringBuilder, append, append_char }
+import "std/string_builder"
 import "std/numbers"
-import "vader/bytecode" {
-    BcType, BcPrimitive, BcStruct, BcArray, BcUnion, BcRef, BcFn,
-    ValType,
-}
+import "vader/bytecode"
 import "vader/text"
 
 // =========================================================================

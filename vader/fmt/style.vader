@@ -7,7 +7,7 @@
 
 module "vader/fmt"
 
-import "vader/parser" { BinaryOp, UnaryOp }
+import "vader/parser"
 
 // Visual indent width (4 spaces). Tabs are deliberately not on the table.
 export INDENT :: "    "

@@ -24,20 +24,20 @@ module "vader/typecheck"
 
 import "std/sort"
 import "std/string"
-import "std/string_builder" { StringBuilder, append, append_char }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/resolver" { module_in_scope }
-import "vader/types" { display_type }
+import "std/string_builder"
+import "vader/resolver/symbol"
+import "vader/resolver"
+import "vader/types"
 
 /// Render a single typed module — always in scope (its own display path).
 /// The header omits the `# Typecheck` banner when `with_banner = false` so
 /// multi-module callers can compose without re-emitting it ; in single-module
 /// pipelines pass `true`.
-export dump_program :: fn(typed: TypedProgram, with_banner: bool) -> string {
+export dump_typed_program :: fn(typed: TypedProgram, with_banner: bool) -> string {
     return dump_program_with_others(typed, with_banner, [], [typed.resolved.display_path])
 }
 
-/// Same as `dump_program` but accepts a list of non-entry typed
+/// Same as `dump_typed_program` but accepts a list of non-entry typed
 /// modules. Each module renders its own `## <path>` section with
 /// its own decls + exprs, sorted by module path so the entry doesn't
 /// always come first. Only modules in `scope` are rendered (the entry's
@@ -158,10 +158,8 @@ lookup_decl_type :: fn(typed: TypedProgram, s: Symbol) -> string {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/parser" { parse_source }
-import "vader/resolver/symbol" { SymbolFactory }
-import "vader/resolver" { resolve_module }
-import "vader/diagnostics" { Diagnostic }
+import "vader/parser"
+import "vader/diagnostics"
 
 dump_test :: fn(src: string) -> string {
     parsed :: parse_source(src, "t.vader")
@@ -169,7 +167,7 @@ dump_test :: fn(src: string) -> string {
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[] = []
     result :: check_module(parsed.program, rm, factory, diags)
-    return dump_program(result.typed, true)
+    return dump_typed_program(result.typed, true)
 }
 
 @test

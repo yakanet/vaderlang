@@ -17,9 +17,9 @@
 
 module "vader/midir"
 
-import "std/collections" { MutableMap, MutableSet, add }
-import "vader/bytecode" { val_type_of_type, ValType }
-import "vader/types" { Type }
+import "std/collections"
+import "vader/bytecode"
+import "vader/types"
 
 export EscapeStats :: struct {
     total_allocs: i32

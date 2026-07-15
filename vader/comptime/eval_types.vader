@@ -8,11 +8,10 @@
 
 module "vader/comptime"
 
-import "std/collections" { MutableMap }
-import "vader/diagnostics" { Diagnostic, Span, comptime_error }
-import "vader/diagnostics" { ComptimeCode }
-import "vader/parser" { Expr }
-import "vader/typecheck" { TypedProgram }
+import "std/collections"
+import "vader/diagnostics"
+import "vader/parser"
+import "vader/typecheck"
 
 /// Context threaded through the recursive evaluator.
 /// @field typed     owning typed program — gives the resolver lookup

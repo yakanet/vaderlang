@@ -15,12 +15,12 @@
 
 module "vader/lsp/handlers"
 
-import "std/json" { JsonValue, JsonObject, JsonArray, JsonNull }
-import "std/collections" { MutableMap }
-import "vader/lexer" { TokenKind }
-import "vader/diagnostics" { Span }
-import "vader/lsp/protocol" { position_uri, position_line, position_character, range_json, span_to_range_json, LineIndex }
-import "vader/lsp/analysis" { ServerState, DocIndex, build_index }
+import "std/json"
+import "std/collections"
+import "vader/lexer"
+import "vader/diagnostics"
+import "vader/lsp/protocol"
+import "vader/lsp/analysis"
 
 /// Build the `DocumentHighlight[]` response for the identifier at the position
 /// carried in `params` (`{ textDocument: { uri }, position }`).

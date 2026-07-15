@@ -14,11 +14,10 @@
 
 module "vader/comptime"
 
-import "std/collections" { MutableMap }
-import "vader/diagnostics" { Span, comptime_error }
-import "vader/types" { is_int_name }
-import "vader/diagnostics" { ComptimeCode }
-import "vader/resolver/symbol" { Symbol }
+import "std/collections"
+import "vader/diagnostics"
+import "vader/types"
+import "vader/resolver/symbol"
 AST :: import "vader/parser"
 
 /// Evaluate `callee(args)` at comptime when both sides are simple

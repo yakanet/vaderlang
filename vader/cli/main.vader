@@ -5,54 +5,33 @@
 
 module "vader/cli"
 
-import "std/io" { println, eprintln, read_file_string, write_file_string, print, IOError }
-import "std/collections" { MutableMap }
-import "std/string" { starts_with, ends_with, trim_suffix, split, trim, parse_int, ParseError }
+import "std/io"
+import "std/collections"
+import "std/string"
 import "std/path"
-import "std/process" { spawn, spawn_async, ProcessError, ProcessResult }
+import "std/process"
 import "std/async"
-import "std/cli" { FlagSpec, parse, parse_known, bool_flag, string_flag }
-import "vader/version" { CLI_VERSION }
+import "std/cli"
+import "vader/version"
 import "vader/lexer"
-import "vader/parser" { parse_source, dump_program, ImportDecl, DestructureImport }
-import "vader/resolver/symbol" { SymbolKind, SymbolFactory }
-import "vader/resolver" { ResolvedProject, ResolvedModule, resolve_module }
-import "vader/resolver" { LoadedModule, module_in_scope, resolve_module_with_collected, resolve_module_with_collected_dp_seeded, build_core_seed, build_wildcard_seed, wildcard_ambiguities, module_index_by_name }
-import "vader/resolver" { dump_project }
-import "vader/typecheck" { check_module_with_bodies, check_project_with_bodies, check_file }
-import "vader/typecheck" { CheckResult }
-import "vader/typecheck" { TypedProject, new_typed_project }
-import "vader/resolver" { load_project, resolve_sidecar }
-import "vader/typecheck" { dump_program as dump_typed, dump_program_with_others }
-import "vader/comptime" { evaluate_project }
-import "vader/comptime" { dump_evaluated }
+import "vader/parser"
+import "vader/resolver/symbol"
+import "vader/resolver"
+import "vader/typecheck"
+import "vader/comptime"
 import "vader/comptime_vm"
-import "vader/lower" { lower_project }
-import "vader/lower" { dump_lowered }
-import "vader/lower" { prune_unreachable_fns }
-import "vader/lower" { mangle_module_id }
-import "vader/lower" { LoweredProject }
-import "vader/lower" { new_lowered_project }
-import "vader/bytecode" { BytecodeModule }
-import "vader/bytecode" { default_emit_options }
-import "vader/bytecode" { dump_bytecode, dump_bytecode_annotated }
-import "vader/midir" { build_cfg_project, dump_cfg_project, DumpCfgOptions, emit_bytecode_from_cfg, const_fold_project, annotate_escape, eliminate_dead_cfg, array_load_forward_project }
+import "vader/lower"
+import "vader/bytecode"
+import "vader/midir"
 import "vader/c_emit" { emit_c, emit_c_split, CProgram, EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
 Prof :: import "vader/profile"
 TTY :: import "std/tty"
-import "vader/diagnostics" { Diagnostic, dump_diagnostics, dump_diagnostics_with_file }
+import "vader/diagnostics"
 import "vader/fmt"
-import "vader/vm" { run_virt, parse_virt_bc, prepare, exec_entry, Ok, Trap }
+import "vader/vm"
 import "vader/lsp"
-import "vader/dap" { run_dap_server, DapProgram }
+import "vader/dap"
 // `vader test` (cmd_test) — native @test discovery + per-test isolated run.
-import "std/io" { read_dir, is_dir, exists }
-import "std/string" { index_of }
-import "std/collections" { MutableSet }
-import "vader/vm" { exec_fn }
-import "vader/bytecode" { EmitOptions }
-import "vader/lower" { LoweredFnDecl }
-import "vader/parser" { FnDecl }
 
 // The CLI help text. Triple-quoted strings drop the newline immediately
 // after the opening `"""`, so the body starts at `vader —` ; the closing
@@ -1276,8 +1255,6 @@ resolve_loaded_project :: fn(project: LoadedProject, scope: string[]) -> Resolve
     return ResolvedProject { .modules = modules }
 }
 
-import "vader/typecheck" { materialize_all_sams_pre_resolve }
-import "vader/resolver" { wire_imports, run_orphan_rule_check_for_module }
 
 // Merge loader-time and body-walker diagnostics into one ordered list.
 // Body diags carry no global span ordering ; concatenated by module-
@@ -1616,8 +1593,6 @@ print_merged_diags :: fn(head: Diagnostic[], extra: Diagnostic[]) -> void {
     }
 }
 
-import "vader/resolver" { LoadedProject }
-import "vader/comptime" { EvaluatedProject }
 
 // Pipeline state shared by the comptime + lowerer dump stages : both
 // run load → typecheck → comptime and only diverge on the final dump.
@@ -1750,6 +1725,7 @@ cmd_migrate :: fn(args: string[]) -> i32 {
     apply := false
     entry := ""
     only := ""
+    types := false
     expect_only := false
     for a in args {
         if expect_only {
@@ -1757,6 +1733,8 @@ cmd_migrate :: fn(args: string[]) -> i32 {
             expect_only = false
         } else if a == "--apply" {
             apply = true
+        } else if a == "--types" {
+            types = true
         } else if a == "--only" {
             expect_only = true
         } else {
@@ -1803,7 +1781,7 @@ cmd_migrate :: fn(args: string[]) -> i32 {
                 if d is ImportDecl as imp {
                     if imp.binding is DestructureImport as di {
                         key :: "${id}||${imp.path}"
-                        if has_non_fn[key] != null { continue }   // type/const → namespace pass
+                        if !types && has_non_fn[key] != null { continue }   // type/const relation : only with --types
                         if di_has_rename(di) { continue }         // rename → deferred (wildcard+modifiers)
                         e :: MigrateEdit {
                             .start = imp.span.start.offset,

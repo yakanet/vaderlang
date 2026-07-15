@@ -13,9 +13,7 @@
 
 module "vader/lsp/protocol"
 
-import "std/json" {
-    JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
-}
+import "std/json"
 
 /// Pluck the field `key` from a JSON object. Returns `JsonNull{}` when `v`
 /// is not an object, or the field is absent.

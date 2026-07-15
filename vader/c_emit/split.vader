@@ -26,9 +26,9 @@
 module "vader/c_emit"
 
 import "std/string"
-import "std/string_builder" { StringBuilder, append }
+import "std/string_builder"
 import "std/sort"
-import "vader/bytecode" { BytecodeModule, BcFunction }
+import "vader/bytecode"
 
 /// A program emitted as several C translation units. `header` is the shared
 /// `.h`, `globals` the data-globals `.c`, and `units` the N function `.c`

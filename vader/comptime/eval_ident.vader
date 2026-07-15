@@ -11,11 +11,10 @@
 
 module "vader/comptime"
 
-import "vader/resolver/symbol" { Symbol, SymbolKind, kind_name }
-import "vader/typecheck" { type_from_expr }
-import "vader/types" { Type, UnresolvedType }
-import "vader/diagnostics" { Diagnostic, comptime_error }
-import "vader/diagnostics" { ComptimeCode }
+import "vader/resolver/symbol"
+import "vader/typecheck"
+import "vader/types"
+import "vader/diagnostics"
 AST :: import "vader/parser"
 
 /// Evaluate an `IdentExpr`. Path 1 (bound const) wins ; path 2 (type

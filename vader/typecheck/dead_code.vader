@@ -19,8 +19,8 @@
 
 module "vader/typecheck"
 
-import "std/collections" { MutableMap, MutableSet }
-import "vader/diagnostics" { Diagnostic, Span, warning }
+import "std/collections"
+import "vader/diagnostics"
 AST :: import "vader/parser"
 
 // A private top-level declaration that may be dead — keyed for the final report.

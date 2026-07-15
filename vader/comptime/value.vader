@@ -8,11 +8,11 @@
 
 module "vader/comptime"
 
-import "std/collections" { MutableMap, keys }
-import "std/string_builder" { StringBuilder, append, append_char }
+import "std/collections"
+import "std/string_builder"
 import "std/numbers"
 import "std/string"
-import "vader/types" { Type, display_type }
+import "vader/types"
 
 /// One comptime-evaluated value. Variants closed — every new
 /// representation lives behind a new variant rather than a `?` payload.
@@ -200,7 +200,6 @@ render_struct :: fn(struct_value: StructValue) -> string {
 }
 
 import "std/sort"
-import "std/string"
 
 // ---- tests ----------------------------------------------------------------
 

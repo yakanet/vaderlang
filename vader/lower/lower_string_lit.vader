@@ -13,13 +13,13 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap }
+import "std/collections"
 import "std/abort"
 
-import "vader/parser" { StringLitExpr, StringLitText, StringLitInterp }
-import "vader/diagnostics" { Span }
-import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, FnType, FreeFloatType, mk_primitive, TY_STRING, is_signed_int_name, is_unsigned_int_name, TRAIT_DISPLAY, METHOD_TO_STRING }
+import "vader/parser"
+import "vader/diagnostics"
+import "vader/resolver/symbol"
+import "vader/types"
 
 lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> LoweredExpr {
     string_type :: TY_STRING

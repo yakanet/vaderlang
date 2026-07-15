@@ -9,10 +9,9 @@
 
 module "vader/comptime"
 
-import "vader/diagnostics" { Diagnostic, comptime_error }
-import "vader/diagnostics" { ComptimeCode }
-import "vader/typecheck" { TypedProgram }
-import "std/collections" { MutableMap }
+import "vader/diagnostics"
+import "vader/typecheck"
+import "std/collections"
 AST :: import "vader/parser"
 
 /// Walk `decls` for `AssertDecl`s, evaluate each via the tree-walker,

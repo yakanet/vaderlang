@@ -20,8 +20,8 @@
 
 module "vader/resolver"
 
-import "std/collections" { MutableMap }
-import "vader/diagnostics" { Span, Position }
+import "std/collections"
+import "vader/diagnostics"
 AST :: import "vader/parser"
 
 /// Clone a BlockExpr, recursively substituting TypeParam idents.
@@ -415,7 +415,7 @@ export substitute_pattern :: fn(p: AST.Pattern, subst: Subst) -> AST.Pattern {
 
 // ---- materialised-body wrapper -------------------------------------------
 
-import "vader/parser" { NodeIdFactory, assign_block_ids }
+import "vader/parser"
 
 /// Clone `b` via `substitute_block` and mint fresh node IDs on the
 /// result. Cloned bodies keep trait-source spans.

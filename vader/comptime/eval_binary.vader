@@ -7,9 +7,8 @@
 
 module "vader/comptime"
 
-import "vader/diagnostics" { Diagnostic, comptime_error }
-import "vader/diagnostics" { ComptimeCode }
-import "vader/types" { PrimitiveType, FreeIntType }
+import "vader/diagnostics"
+import "vader/types"
 AST :: import "vader/parser"
 
 /// Evaluate a `BinaryExpr`. Recurses into both operands ; combines

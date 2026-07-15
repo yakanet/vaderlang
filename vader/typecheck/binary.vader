@@ -16,16 +16,10 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic, typecheck_error, Span }
+import "vader/diagnostics"
 AST :: import "vader/parser"
-import "vader/resolver/symbol" { SymbolKind }
-import "vader/types" {
-    Type, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, UnresolvedType,
-    EnumType, FnType, StructType, TraitType, ArrayType, DistinctType,
-    display_type, type_base_name, TY_BOOL, TY_FREE_INT, TY_STRING, TY_UNRESOLVED,
-    TRAIT_COMPARABLE, TRAIT_CONTAINS, TRAIT_EQUALS,
-    METHOD_ADD, METHOD_SUB, METHOD_MUL, METHOD_DIV, METHOD_REM, METHOD_COMPARE, METHOD_CONTAINS, METHOD_EQUALS,
-}
+import "vader/resolver/symbol"
+import "vader/types"
 
 /// Type-check a `BinaryExpr`. `check_expr_fn` is threaded to break the
 /// cyclic import with `expr.vader::check_expr`.
@@ -150,7 +144,6 @@ substitute_self_in :: fn(t: Type, self_ty: Type) -> Type {
     return t
 }
 
-import "vader/types" { SelfType }
 
 /// Validate the RHS `operand` of an operator against `recv`'s impl method
 /// (`Add::add` / `Comparable::compare` / `Equals::equals` / …). Looks up
@@ -353,7 +346,6 @@ is_resolved_enough :: fn(t: Type) -> bool {
     }
 }
 
-import "vader/types" { TypeParamType }
 
 check_logical :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
     if !is_bool(left)  && !(left  is UnresolvedType) {
@@ -552,7 +544,6 @@ is_metatype :: fn(t: Type) -> bool {
     return false
 }
 
-import "vader/types" { TypeMetaType }
 
 is_integer :: fn(t: Type) -> bool {
     if t is UnresolvedType { return true }
@@ -581,10 +572,8 @@ push_op_undefined :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagn
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/diagnostics" { empty_span }
-import "vader/parser" { parse_source }
-import "vader/resolver" { resolve_module, ResolvedModule }
-import "vader/resolver/symbol" { SymbolFactory }
+import "vader/parser"
+import "vader/resolver"
 
 binary_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],

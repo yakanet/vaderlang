@@ -9,8 +9,8 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic }
-import "vader/types" { Type }
+import "vader/diagnostics"
+import "vader/types"
 AST :: import "vader/parser"
 
 /// Type-check `callee[T1, T2, …]`. Returns the callee's type for now.

@@ -13,10 +13,10 @@
 
 module "vader/lsp/analysis"
 
-import "std/io" { read_file_string, read_dir, is_dir, IOError }
+import "std/io"
 import "std/string"
-import "vader/resolver" { default_stdlib_root, find_manifest_root }
-import "vader/lsp/protocol" { uri_to_path, path_to_uri, PositionEncoding }
+import "vader/resolver"
+import "vader/lsp/protocol"
 
 /// Where a cross-file goto-def landed : a file URI + the target's
 /// `name_span` so the handler can encode an LSP `Location`. Returns

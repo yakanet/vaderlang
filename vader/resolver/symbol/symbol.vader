@@ -7,8 +7,8 @@
 
 module "vader/resolver/symbol"
 
-import "vader/diagnostics" { Span }
-import "vader/parser" { Visibility }
+import "vader/diagnostics"
+import "vader/parser"
 
 // SymbolKind values are kept as i32 (rather than an enum) so an empty list
 // of new variants can be added without touching every match site. Each kind

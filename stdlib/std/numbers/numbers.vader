@@ -5,9 +5,9 @@
 
 module "std/numbers"
 
-import "std/string" { chars, ends_with, is_empty, replace_chars_where, ParseError }
+import "std/string"
 import "std/char"
-import "std/string_builder" { StringBuilder, append_char }
+import "std/string_builder"
 
 /// True for an ASCII hex digit — `0`..`9`, `a`..`f`, `A`..`F`.
 /// @param c  codepoint to classify.

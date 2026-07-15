@@ -16,11 +16,11 @@
 
 module "vader/resolver"
 
-import "std/collections" { MutableMap }
-import "vader/diagnostics" { Diagnostic, Span, Position, resolver_error, warning }
+import "std/collections"
+import "vader/diagnostics"
 AST :: import "vader/parser"
-import "vader/parser" { parse_source }
-import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, make }
+import "vader/parser"
+import "vader/resolver/symbol"
 
 /// Per-file resolution output. `idents` keys every resolved `AST.IdentExpr`
 /// by its span via `span_key` (packed `(line << 32) | column` `i64`,

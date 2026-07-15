@@ -26,10 +26,10 @@
 
 module "vader/lower"
 
-import "vader/diagnostics" { empty_span }
-import "vader/parser" { Visibility }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, mk_primitive, TY_VOID, TY_STRING }
+import "vader/diagnostics"
+import "vader/parser"
+import "vader/resolver/symbol"
+import "vader/types"
 
 /// Return the shared `concat_N` fn symbol for arity `n`, synthesising it on
 /// first use. The call site lowers to `mk_lowered_call(<this>, operands, …)` ;

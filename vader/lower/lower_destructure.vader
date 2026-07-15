@@ -3,13 +3,10 @@
 
 module "vader/lower"
 
-import "vader/parser" {
-    LetBinding, SimpleBinding, TupleBinding, WildcardBinding, RestBinding,
-    SeqLitExpr, FieldExpr, IdentExpr, FnDecl, Expr,
-}
-import "vader/diagnostics" { Span }
-import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, ArrayType, TupleType, TY_BOOL, TY_VOID, TY_UNRESOLVED, mk_primitive, UnresolvedType, display_type, TRAIT_INTO, METHOD_INTO, array_backing, tuple_backing }
+import "vader/parser"
+import "vader/diagnostics"
+import "vader/resolver/symbol"
+import "vader/types"
 
 // Walk a `LetBinding` tree, emitting one `LoweredLet` per leaf with
 // the target ident's `_<i>` field (tuples) or `[i]` index (arrays).

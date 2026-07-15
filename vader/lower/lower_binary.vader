@@ -3,14 +3,10 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap }
+import "std/collections"
 
-import "vader/parser" { Expr, NullLitExpr, FieldExpr, BinaryExpr, BinaryOp, RangeExpr, IdentExpr }
-import "vader/types" {
-    Type, PrimitiveType, UnionType, TypeParamType, AnyType, ArrayType, TY_BOOL, mk_primitive, TY_NULL, array_backing,
-    TRAIT_ADD, TRAIT_SUB, TRAIT_MUL, TRAIT_DIV, TRAIT_REM, TRAIT_EQUALS, TRAIT_COMPARABLE,
-    METHOD_ADD, METHOD_SUB, METHOD_MUL, METHOD_DIV, METHOD_REM, METHOD_EQUALS, METHOD_COMPARE, METHOD_CONTAINS,
-}
+import "vader/parser"
+import "vader/types"
 
 // Peel a narrowing `LoweredCast` off a type-check operand. `lower_ident`
 // inserts such a cast (`LoweredCast { value: LoweredIdent : <union> }`) when the

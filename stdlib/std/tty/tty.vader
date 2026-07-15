@@ -23,7 +23,7 @@
 
 module "std/tty"
 
-import "std/io" { Stream }
+import "std/io"
 import "std/env"
 
 // ---- detection ------------------------------------------------------------

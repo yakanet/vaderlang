@@ -8,8 +8,8 @@
 
 module "vader/comptime"
 
-import "std/collections" { MutableMap }
-import "vader/types" { Type, TupleType, ArrayType, display_type }
+import "std/collections"
+import "vader/types"
 AST :: import "vader/parser"
 
 export evaluate_seq_lit :: fn(

@@ -12,10 +12,10 @@
 
 module "vader/typecheck"
 
-import "std/collections" { MutableMap, MutableSet, add }
-import "vader/diagnostics" { Diagnostic, Span, typecheck_error }
-import "vader/parser" { EnumDecl, EnumVariant }
-import "vader/types" { primitive_meta }
+import "std/collections"
+import "vader/diagnostics"
+import "vader/parser"
+import "vader/types"
 
 /// Compute the canonical `name → value` map for `decl`. `repr` is the
 /// already-resolved backing type name (e.g. `"i32"`, `"u8"`) ; pass
@@ -125,8 +125,6 @@ span_of_value :: fn(v: EnumVariant) -> Span {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/parser" { parse_source }
-import "vader/parser" { Decl }
 
 expect_index :: fn(indices: MutableMap<string, i64>, name: string, want: i64) -> void {
     hit :: indices[name]

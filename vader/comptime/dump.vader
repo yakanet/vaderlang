@@ -13,12 +13,12 @@
 
 module "vader/comptime"
 
-import "std/collections" { keys }
+import "std/collections"
 import "std/sort"
 import "std/string"
-import "std/string_builder" { StringBuilder, append, append_char }
-import "vader/resolver" { module_in_scope }
-import "vader/typecheck" { TypedProgram }
+import "std/string_builder"
+import "vader/resolver"
+import "vader/typecheck"
 AST :: import "vader/parser"
 
 /// Render the project's `# Comptime` dump as a single string. Only modules in
@@ -94,7 +94,6 @@ module_display_path :: fn(module_program: EvaluatedProgram) -> string {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/typecheck" { new_typed_project }
 
 @test test_dump_empty_project_header_only :: fn() -> void {
     project :: new_evaluated_project(new_typed_project())

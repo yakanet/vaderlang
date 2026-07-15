@@ -7,7 +7,7 @@
 
 module "vader/lexer"
 
-import "vader/diagnostics" { Position, Span }
+import "vader/diagnostics"
 
 export TokenKind :: enum(u8) {
     // Layout
@@ -76,7 +76,7 @@ export Token :: struct {
     value: i64 | u64 | f64 | u32 | string | null
 }
 
-export empty_span :: fn(file: string) -> Span {
+export empty_file_span :: fn(file: string) -> Span {
     p := Position { .file = file, .offset = 0, .line = 1, .column = 1 }
     return Span { .start = p, .end = p }
 }

@@ -3,15 +3,15 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap }
+import "std/collections"
 
-import "vader/parser" { Expr, BlockExpr, Stmt, LetStmt, AssignStmt, ExprStmt, ReturnStmt, YieldStmt, ForStmt, BreakStmt, ContinueStmt, DeferStmt, InfiniteFor, WhileFor, InFor, NamedVar, DestructureVar, DiscardVar, SimpleBinding, TupleBinding, WildcardBinding, RestBinding, Visibility }
-import "vader/diagnostics" { Span, lower_error }
-import "vader/typecheck" { equals_type }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, UnionType, ArrayType, TypeMetaType, TY_VOID }
-import "vader/comptime" { uniq }
-import "vader/resolver" { ResolvedModule }
+import "vader/parser"
+import "vader/diagnostics"
+import "vader/typecheck"
+import "vader/resolver/symbol"
+import "vader/types"
+import "vader/comptime"
+import "vader/resolver"
 
 /// Lower a `BlockExpr` to a `LoweredBlock`. Block frames are pushed onto
 /// `ctx.blocks` so the defers registered in a frame are replayed (in

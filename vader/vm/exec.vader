@@ -30,8 +30,8 @@ module "vader/vm"
 
 bc :: import "vader/bytecode"
 
-import "std/io" { read_file_string, eprintln, IOError }
-import "std/string" { index_of, utf8_decode_len, join }
+import "std/io"
+import "std/string"
 
 // IEEE 754 bit reinterpret for the F64ToBits / BitsToF64 arms. The VM's own
 // code can't use the `f64.to_bits()` / `u64.from_bits()` intrinsics : they

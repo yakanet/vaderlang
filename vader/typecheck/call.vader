@@ -22,16 +22,12 @@
 
 module "vader/typecheck"
 
-import "std/collections" { MutableMap, keys }
+import "std/collections"
 import "std/math"
-import "vader/diagnostics" { Diagnostic, typecheck_error }
+import "vader/diagnostics"
 AST :: import "vader/parser"
-import "vader/types" {
-    ArrayType, Type, FnType, StructType, TraitType, TypeMetaType, UnresolvedType,
-    FreeIntType, FreeFloatType, UnionType, TypeParamType,
-    display_type, mk_array, TY_FREE_INT, TY_STRING, TY_UNRESOLVED, TY_NEVER,
-}
-import "vader/resolver/symbol" { SymbolKind }
+import "vader/types"
+import "vader/resolver/symbol"
 
 // Inspect the callee : when it's a bare ident whose `fn_overloads`
 // bucket has 2+ entries, pre-walk arg[0] and pick the overload whose
@@ -688,7 +684,7 @@ callee_name :: fn(callee: AST.Expr) -> string {
     }
 }
 
-import "vader/resolver" { resolve_import_redirect }
+import "vader/resolver"
 
 redirect_import_typed :: fn(sym: Symbol, typed: TypedProgram) -> Symbol {
     if typed.import_targets == null { return sym }
@@ -733,9 +729,7 @@ check_args_no_expected :: fn(
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/parser" { parse_source }
-import "vader/resolver" { resolve_module, ResolvedModule }
-import "vader/resolver/symbol" { Symbol, SymbolFactory }
+import "vader/parser"
 
 // Tiny stub : handles the variants the call tests touch. Real call sites
 // use `expr.vader::check_expr` — we can't import that here (cycle).

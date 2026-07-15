@@ -20,15 +20,12 @@
 
 module "vader/lower"
 
-import "vader/parser" { FnDecl, Visibility }
-import "vader/types" {
-    Type, TraitType, PrimitiveType, mk_struct, mk_primitive, TY_VOID, TRAIT_ITERATOR,
-    is_float_name, STRUCT_YIELD, METHOD_NEXT,
-}
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/typecheck" { gen_state_symbol }
-import "std/collections" { MutableMap }
-import "vader/diagnostics" { Span }
+import "vader/parser"
+import "vader/types"
+import "vader/resolver/symbol"
+import "vader/typecheck"
+import "std/collections"
+import "vader/diagnostics"
 import "std/abort"
 
 // ---- element type ---------------------------------------------------------

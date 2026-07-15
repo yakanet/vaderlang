@@ -3,14 +3,14 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap }
+import "std/collections"
 
-import "vader/diagnostics" { Diagnostic, Span }
-import "vader/parser" { Decl, FnDecl, FnParam, StructDecl, ConstDecl, ImportDecl, EnumDecl, TraitDecl, TypeAliasDecl, AssertDecl, ImplDecl, Visibility, IdentExpr, GenericInstExpr, TypeExpr, StructField }
-import "vader/typecheck" { TypedProgram, Substitution, new_substitution, substitute, default_if_free, type_from_expr, lookup_const_symbol, fn_is_generator, fn_is_async, async_result_arg, async_inner_type }
-import "vader/types" { Type, FnType, TypeMetaType, TY_VOID, TY_UNRESOLVED, PrimitiveType, mk_trait, TRAIT_ASYNC }
-import "vader/comptime" { ComptimeValue, MonoEntry, symbol_for_decl }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/diagnostics"
+import "vader/parser"
+import "vader/typecheck"
+import "vader/types"
+import "vader/comptime"
+import "vader/resolver/symbol"
 
 // Each `T implements Trait { method ... }` member surfaces as a fn
 // decl with mangled name `<module>$<for-type>$<trait>$<method>`.

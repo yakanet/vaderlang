@@ -9,10 +9,10 @@
 
 module "vader/comptime"
 
-import "std/collections" { MutableMap }
-import "vader/types" { Type }
-import "vader/typecheck" { TypedProgram, TypedProject }
-import "vader/diagnostics" { Span }
+import "std/collections"
+import "vader/types"
+import "vader/typecheck"
+import "vader/diagnostics"
 
 /// A `@comptime` decl the tree-walk evaluator deferred to the VM (it returned
 /// `vm_required` rather than a value). `evaluate_project` records these instead
@@ -119,7 +119,6 @@ export new_evaluated_project :: fn(typed: TypedProject) -> EvaluatedProject {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/typecheck" { new_typed_project }
 
 @test test_new_evaluated_project_is_empty :: fn() -> void {
     project :: new_evaluated_project(new_typed_project())

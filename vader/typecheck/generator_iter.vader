@@ -14,11 +14,11 @@
 module "vader/typecheck"
 
 AST :: import "vader/parser"
-import "vader/parser" { Visibility }
-import "vader/diagnostics" { Diagnostic }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, StructType, ArrayType, TraitType, mk_struct, TRAIT_ITERATOR }
-import "std/collections" { MutableMap }
+import "vader/parser"
+import "vader/diagnostics"
+import "vader/resolver/symbol"
+import "vader/types"
+import "std/collections"
 
 // The `<fn>$State` naming convention — one source of truth shared by the symbol
 // mint (`gen_state_symbol`), the registry keys, and the lower-side recognition

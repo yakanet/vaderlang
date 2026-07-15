@@ -7,11 +7,9 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic, typecheck_error }
-import "vader/resolver/symbol" { SymbolKind }
-import "vader/types" {
-    Type, EnumType, StructType, UnionType, display_type, TY_UNRESOLVED,
-}
+import "vader/diagnostics"
+import "vader/resolver/symbol"
+import "vader/types"
 AST :: import "vader/parser"
 
 /// Resolve a `.Variant` against the expected enum slot.

@@ -17,7 +17,7 @@
 module "vader/lsp/actions"
 
 import "std/string"
-import "vader/diagnostics" { Span }
+import "vader/diagnostics"
 AST :: import "vader/parser"
 
 /// What an action needs to produce its edit. Carries the document source so
