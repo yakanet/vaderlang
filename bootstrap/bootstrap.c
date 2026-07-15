@@ -47319,6 +47319,11 @@ static void vader_typecheck_push_module_exported_fns(void* l0, void* l1) {
                             while (_a4_slotarr->buf != NULL && _a4_slotarr->buf->header.forward != NULL) { _a4_slotarr->buf = (vader_array_buf_t*) _a4_slotarr->buf->header.forward; }
                             if ((size_t) l12 >= _a4_slotarr->length) { vader_trap("array index out of bounds"); }
                             l13 = vader_array_ref_load_obj(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) l12);
+                            if (((vader_struct_vader_resolver_symbol_Symbol_t*) l13)->f_visibility != INT32_C(0)) {
+                                t1 = (l12 + INT64_C(1));
+                                l12 = (size_t) (int64_t) t1;
+                                goto loop_61;
+                            }
                             l14 = ((vader_struct_vader_typecheck_TypedProgram_t*) l0)->f_decl_types;
                             l15 = ((vader_struct_vader_resolver_symbol_Symbol_t*) l13)->f_id;
                             l16 = std_collections_MutableMap_Index_at__i32__Any(l14, l15);
