@@ -17,7 +17,7 @@ import "vader/lexer" { tokenize, dump_tokens }
 import "vader/parser" { parse_source, dump_program }
 import "vader/resolver/symbol" { new_factory }
 import "vader/resolver" { ResolvedProject, ResolvedModule, resolve_module }
-import "vader/resolver" { LoadedModule, module_in_scope, resolve_module_with_collected, resolve_module_with_collected_dp_seeded, build_core_seed }
+import "vader/resolver" { LoadedModule, module_in_scope, resolve_module_with_collected, resolve_module_with_collected_dp_seeded, build_core_seed, build_wildcard_seed, module_index_by_name }
 import "vader/resolver" { dump_project }
 import "vader/typecheck" { check_module_with_bodies, check_project_with_bodies, check_file }
 import "vader/typecheck" { CheckResult }
@@ -1250,13 +1250,15 @@ run_resolver_stage :: fn(file: string, module_filter: string[]) -> i32 {
 resolve_loaded_project :: fn(project: LoadedProject, scope: string[]) -> ResolvedProject {
     materialize_all_sams_pre_resolve(project)
     core_seed :: build_core_seed(project)
+    mod_index :: module_index_by_name(project)
     modules: ResolvedModule[] = []
     resolved_by_id :: MutableMap<string, ResolvedModule> {}
     for [id, lm] in project.modules {
         if !module_in_scope(lm.module.display_path, scope) { continue }
         rm :: resolve_module_with_collected_dp_seeded(
             lm.module.files[0].program, lm.module.files[0].path,
-            lm.module.display_path, project.factory, lm.collected, core_seed,
+            lm.module.display_path, project.factory, lm.collected,
+            build_wildcard_seed(mod_index, lm.collected.wildcard_paths, core_seed),
         )
         modules.push(rm)
         resolved_by_id[id] = rm

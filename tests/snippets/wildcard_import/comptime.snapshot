@@ -2,6 +2,8 @@
 
 ## tests/snippets/wildcard_import
 
+## tests/snippets/wildcard_import/helper
+
 ## generic instances
   Into<Target>
   Add<Rhs, Out>
@@ -12,10 +14,8 @@
   Index<I, T>
   IndexSet<I, T>
   Contains<T>
-  Iterator<char>
   Iterator<T>
   Iterator<T>
-  Yield<char>
   Yield<T>
   Yield<T>
   Yield<T>

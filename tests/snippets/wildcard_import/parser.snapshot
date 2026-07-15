@@ -8,7 +8,7 @@
   "decls": [
     {
       "kind": "ImportDecl",
-      "path": "std/string",
+      "path": "snippet/helper",
       "binding": {
         "kind": "wildcard"
       },
@@ -32,17 +32,59 @@
             "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
-              "name": "s"
+              "name": "n"
             },
             "type": null,
             "value": {
-              "kind": "StringLitExpr",
-              "parts": [
+              "kind": "IntLitExpr",
+              "value": "21n"
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "a"
+            },
+            "type": null,
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "scale_two"
+              },
+              "args": [
                 {
-                  "kind": "text",
-                  "value": "hello"
+                  "name": null,
+                  "value": {
+                    "kind": "IdentExpr",
+                    "name": "n"
+                  },
+                  "spread": false
                 }
               ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "b"
+            },
+            "type": null,
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "IdentExpr",
+                  "name": "n"
+                },
+                "field": "scale_two"
+              },
+              "args": []
             }
           },
           {
@@ -50,30 +92,32 @@
             "expr": {
               "kind": "IfExpr",
               "cond": {
-                "kind": "CallExpr",
-                "callee": {
-                  "kind": "FieldExpr",
-                  "target": {
+                "kind": "BinaryExpr",
+                "op": "and",
+                "left": {
+                  "kind": "BinaryExpr",
+                  "op": "eq",
+                  "left": {
                     "kind": "IdentExpr",
-                    "name": "s"
+                    "name": "a"
                   },
-                  "field": "starts_with"
-                },
-                "args": [
-                  {
-                    "name": null,
-                    "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "text",
-                          "value": "hel"
-                        }
-                      ]
-                    },
-                    "spread": false
+                  "right": {
+                    "kind": "IntLitExpr",
+                    "value": "42n"
                   }
-                ]
+                },
+                "right": {
+                  "kind": "BinaryExpr",
+                  "op": "eq",
+                  "left": {
+                    "kind": "IdentExpr",
+                    "name": "b"
+                  },
+                  "right": {
+                    "kind": "IntLitExpr",
+                    "value": "42n"
+                  }
+                }
               },
               "then": {
                 "kind": "BlockExpr",

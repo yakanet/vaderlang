@@ -1,11 +1,14 @@
 module "snippet"
 
-// bare `import "..."` — the wildcard form. Every function of std/string
-// becomes callable (here via UFCS: `s.starts_with(...)`).
-import "std/string"
+// bare `import "..."` — the wildcard form. Every function of the module
+// becomes callable both ways: prefix `scale_two(n)` (enabled by seeding the
+// name into scope) and UFCS `n.scale_two()` (via reachability).
+import "snippet/helper"
 
 main :: fn() -> i32 {
-    s :: "hello"
-    if s.starts_with("hel") { return 0 }
+    n :: 21
+    a :: scale_two(n)
+    b :: n.scale_two()
+    if a == 42 && b == 42 { return 0 }
     return 1
 }

@@ -138,13 +138,16 @@ export resolve_module_with_collected_dp :: fn(
     )
 }
 
-/// `resolve_module_with_collected_dp` + `core_seed` for R2006 emission
-/// at the body-walker stage. The seed is folded into the root scope under
-/// the same shadow-by-insertion-order rule as user symbols : builtin <
+/// `resolve_module_with_collected_dp` + a pre-resolve `core_seed` for R2006
+/// emission at the body-walker stage. The seed is folded into the root scope
+/// under the same shadow-by-insertion-order rule as user symbols : builtin <
 /// user < core_seed (in practice user symbols already shadow core_seed
-/// names like `Range` / `Display` when both are present). With the seed
-/// populated, the resolver body-walker can fire R2006 unconditionally on
-/// any unresolved IdentExpr instead of deferring to the typechecker.
+/// names like `Range` / `Display` when both are present). The seed may be
+/// extended per-module with a wildcard import's public fns (built by
+/// `build_wildcard_seed`) via the same fill-empty merge, so the prelude still
+/// wins. With the seed populated, the resolver body-walker can fire R2006
+/// unconditionally on any unresolved IdentExpr instead of deferring to the
+/// typechecker.
 export resolve_module_with_collected_dp_seeded :: fn(
     program: Program, module_path: string, display_path: string, factory: SymbolFactory,
     collected: CollectedModule, core_seed: MutableMap<string, Symbol>,

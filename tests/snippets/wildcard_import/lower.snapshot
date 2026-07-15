@@ -2,16 +2,43 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let s: string = "hello" :string
+    let n: i32 = int(21) :i32
+    let a: ? =
+      call :?
+        callee:
+          scale_two :?
+        arg0:
+          n :i32
+    let b: i32 =
+      call :i32
+        callee:
+          scale_two :i32
+        arg0:
+          n :i32
     if :void
       cond:
-        call :bool
-          callee:
-            starts_with :bool
-          arg0:
-            s :string
-          arg1:
-            "hel" :string
+        and :bool
+          l:
+            eq :bool
+              l:
+                a :?
+              r:
+                int(42) :i32
+          r:
+            eq :bool
+              l:
+                b :i32
+              r:
+                int(42) :i32
       then:
         return int(0) :i32
     return int(1) :i32
+
+## snippet/helper
+  fn snippet_helper$scale_two(x: i32) -> i32
+    ~>
+      mul :i32
+        l:
+          x :i32
+        r:
+          int(2) :i32

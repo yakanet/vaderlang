@@ -2,9 +2,20 @@
 
 ## tests/snippets/wildcard_import
   FnDecl         main                 :: fn() -> i32
-  expr 8:10     StringLitExpr  :: string
-  expr 9:22     StringLitExpr  :: string
-  expr 9:5      IfExpr         :: void
-  expr 9:8      CallExpr       :: bool
-  expr 9:8      FieldExpr      :: fn(string) -> bool
-  expr 9:8      IdentExpr      :: string
+  expr 10:10    CallExpr       :: ?
+  expr 10:10    IdentExpr      :: ?
+  expr 10:20    IdentExpr      :: i32
+  expr 11:10    CallExpr       :: i32
+  expr 11:10    FieldExpr      :: fn() -> i32
+  expr 11:10    IdentExpr      :: i32
+  expr 12:19    BinaryExpr     :: bool
+  expr 12:19    IdentExpr      :: i32
+  expr 12:5     IfExpr         :: void
+  expr 12:8     BinaryExpr     :: bool
+  expr 12:8     BinaryExpr     :: bool
+  expr 12:8     IdentExpr      :: ?
+
+## tests/snippets/wildcard_import/helper
+  FnDecl         scale_two            :: fn(i32) -> i32
+  expr 6:41     BinaryExpr     :: i32
+  expr 6:41     IdentExpr      :: i32

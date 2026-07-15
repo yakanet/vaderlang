@@ -439,5 +439,6 @@ merge_collected :: fn(dst: CollectedModule, src: CollectedModule, diags: Diagnos
         dst.imports[id] = info
     }
     for p in src.import_paths { dst.import_paths.push(p) }
+    for p in src.wildcard_paths { dst.wildcard_paths.push(p) }
 }
 

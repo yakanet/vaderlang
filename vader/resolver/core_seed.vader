@@ -13,7 +13,8 @@
 module "vader/resolver"
 
 import "std/collections" { MutableMap }
-import "vader/resolver/symbol" { Symbol }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/parser" { Visibility }
 
 /// Build the std/core symbol seed once per project. Returns an empty map
 /// when std/core isn't part of the load (single-file snippets without
@@ -54,4 +55,49 @@ export find_async_module_id :: fn(project: LoadedProject) -> string | null {
         }
     }
     return null
+}
+
+/// Extend `base` (the core-prelude seed) with every PUBLIC function exported by
+/// each module named in `wildcard_paths` — the bare `import "..."` form. The
+/// returned map is merged into a module's root scope so a bare prefix call
+/// (`foo(x)`) to a wildcard-imported fn resolves instead of firing R2006 (UFCS
+/// already resolves cross-module). Fill-empty: a name already in `base` (the
+/// prelude) is never overwritten, so the prelude always wins over a wildcard
+/// injection. Returns `base` unchanged when there are no wildcard imports, so
+/// non-wildcard modules pay nothing and keep sharing the one core seed.
+///
+/// @param name_index      module-name → LoadedModule, from `module_index_by_name`
+///                        (built once per project, so this stays O(1) per path).
+/// @param wildcard_paths  the importing module's `CollectedModule.wildcard_paths`.
+/// @param base            the shared core-prelude seed from `build_core_seed`.
+/// @return                `base` when `wildcard_paths` is empty ; otherwise a
+///                        fresh map = `base` plus each target's public fns.
+export build_wildcard_seed :: fn(
+    name_index: MutableMap<string, LoadedModule>, wildcard_paths: string[],
+    base: MutableMap<string, Symbol>,
+) -> MutableMap<string, Symbol> {
+    if wildcard_paths.len() == 0 { return base }
+    out :: MutableMap<string, Symbol> {}
+    for [name, sym] in base { out[name] = sym }
+    for path in wildcard_paths {
+        target :: name_index[path]
+        if target is null { continue }
+        for [_, sym] in target.collected.symbols {
+            if sym.kind != SymbolKind.Fn { continue }
+            if sym.visibility != Visibility.Public { continue }
+            existing :: out[sym.name]
+            if existing is null { out[sym.name] = sym }
+        }
+    }
+    return out
+}
+
+/// Index every loaded module by its declared name (`module "..."`) for O(1)
+/// import-path → module lookup. Built once per project — mirrors the
+/// `module_name -> id` map `wire_imports` hoists, so a per-module
+/// `build_wildcard_seed` doesn't re-scan `project.modules` each call.
+export module_index_by_name :: fn(project: LoadedProject) -> MutableMap<string, LoadedModule> {
+    out :: MutableMap<string, LoadedModule> {}
+    for [_, m] in project.modules { out[m.module.module_name] = m }
+    return out
 }
