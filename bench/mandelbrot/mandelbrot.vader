@@ -6,7 +6,7 @@
 
 module "main"
 
-import "std/io" { println }
+import "std/io"
 
 WIDTH    :: 240
 HEIGHT   :: 180

@@ -1,7 +1,7 @@
 module "main"
 
-import "std/io" { println }
-import "std/string_builder" { StringBuilder, append_char }
+import "std/io"
+import "std/string_builder"
 
 WIDTH    :: 80
 HEIGHT   :: 30

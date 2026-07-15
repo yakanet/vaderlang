@@ -9,8 +9,8 @@
 
 module "main"
 
-import "std/io" { print, println }
-import "std/string_builder" { StringBuilder, append_char }
+import "std/io"
+import "std/string_builder"
 
 GENERATIONS :: 100
 WIDTH       :: GENERATIONS

@@ -7,7 +7,7 @@
 
 module "main"
 
-import "std/io" { println }
+import "std/io"
 
 main :: fn() -> i32 {
     total: i64 = 0

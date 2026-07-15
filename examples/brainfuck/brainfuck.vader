@@ -33,22 +33,11 @@
 
 module "main"
 
-import "std/io" { eprintln, read_file_string }
-import "std/string" { chars }
-import "std/testing" { assert }
+import "std/io"
+import "std/string"
+import "std/testing"
 bc :: import "vader/bytecode"
-import "vader/vm" {
-    ModuleBuilder, FunctionBuilder,
-    new_module_builder, new_function_builder,
-    add_type, add_import, add_function, set_main, finish,
-    block, loop_, end, br, br_if,
-    i32_const, i32_add, i32_sub, i32_eq, i32_lt,
-    local_get, local_set,
-    array_new, array_push, array_get, array_set, array_len,
-    call, call_import, return_op,
-}
-import "vader/vm" { exec, prepare }
-import "vader/vm" { VmResult, Ok, Trap }
+import "vader/vm"
 
 DEFAULT_PATH :: "examples/brainfuck/hello.bf"
 

@@ -26,8 +26,8 @@
 
 module "std/regex"
 
-import "std/string" { utf8_decode, utf8_decode_len, is_empty }
-import "std/string_builder" { StringBuilder, append, append_char }
+import "std/string"
+import "std/string_builder"
 
 // =========================================================================
 // Public surface
@@ -911,7 +911,7 @@ truncate_threads :: fn(threads: Thread[], cutoff: usize) -> Thread[] {
 
 // ---------------------------------------------------------------------- tests
 
-import "std/testing" { assert_eq, assert }
+import "std/testing"
 
 @test test_compile_simple :: fn() -> void {
     p :: compile("abc")

@@ -1610,7 +1610,7 @@ fns for Struct/Trait/Tuple/Array/Fn/Union/FreeInt/FreeFloat) +
 
 `type_ops.vader` removes `is_assignable` (was 150 LoC) and 5 of its
 tests (moved to `type_assign.vader` alongside the impl). 7 callsites
-add `import "vader/typecheck/type_assign" { is_assignable }` next to
+add `import "vader/typecheck/type_assign"` next to
 their existing `type_ops` import.
 
 **Measurements** (build/vader.c) :

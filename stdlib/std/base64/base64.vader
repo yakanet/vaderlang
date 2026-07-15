@@ -9,7 +9,7 @@
 
 module "std/base64"
 
-import "std/string_builder" { StringBuilder, append_char }
+import "std/string_builder"
 
 ALPHABET :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
@@ -163,7 +163,7 @@ export decode :: fn(input: string) -> u8[] | Base64Error {
 
 // ---------------------------------------------------------------------- tests
 
-import "std/testing" { assert_eq, assert }
+import "std/testing"
 
 @test test_encode_empty :: fn() -> void {
     assert_eq(encode("".bytes()), "")

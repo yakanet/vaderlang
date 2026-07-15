@@ -12,8 +12,8 @@
 
 module "main"
 
-import "std/io" { println }
-import "std/iter" { filter, map }
+import "std/io"
+import "std/iter"
 
 N :: 1_000_000
 

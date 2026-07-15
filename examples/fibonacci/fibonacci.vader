@@ -1,6 +1,6 @@
 module "main"
 
-import "std/io" { println }
+import "std/io"
 
 /**
  * Simple implementation of fibonacci numbers

@@ -189,8 +189,8 @@ Skeleton :
 ```vader
 module "vader/bootstrap"
 
-import "vader/midir"  { ... }
-import "vader/c_emit" { emit_c, EmitOptions }
+import "vader/midir"
+import "vader/c_emit"
 // pipeline imports only — NOT vader/vm, vader/fmt, vader/lsp
 
 main :: fn(args: string[]) -> i32 {

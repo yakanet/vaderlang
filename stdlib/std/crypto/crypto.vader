@@ -21,10 +21,10 @@
 
 module "std/crypto"
 
-import "std/iter" { clone }
-import "std/string_builder" { StringBuilder, append_char }
-import "std/math" { sin, abs, floor, pow }
-import "std/numbers" { hex_digit }
+import "std/iter"
+import "std/string_builder"
+import "std/math"
+import "std/numbers"
 
 // =========================================================================
 // Shared helpers
@@ -384,7 +384,7 @@ pad_md5 :: fn(input: string) -> u8[] {
 
 // ---------------------------------------------------------------------- tests
 
-import "std/testing" { assert_eq }
+import "std/testing"
 
 @test test_sha256_empty :: fn() -> void {
     assert_eq(sha256(""), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")

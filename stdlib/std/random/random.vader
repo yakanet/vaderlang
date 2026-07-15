@@ -12,7 +12,7 @@
 
 module "std/random"
 
-import "std/time" { monotonic }
+import "std/time"
 
 /// Mutable RNG state. Two 64-bit words ; the seeder guarantees at least
 /// one of them is non-zero (a fully-zero state would lock xoroshiro to
@@ -136,7 +136,7 @@ export shuffle :: fn<T>(self: Rng, arr: T[]) -> void {
 
 // ---------------------------------------------------------------------- tests
 
-import "std/testing" { assert_eq, assert }
+import "std/testing"
 
 @test test_new_seeded_deterministic :: fn() -> void {
     a := new_seeded(42)

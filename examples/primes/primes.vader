@@ -7,7 +7,7 @@
 
 module "main"
 
-import "std/io" { println, print }
+import "std/io"
 
 N :: 100
 
