@@ -391,6 +391,7 @@ export InFor       :: struct {
     binding:      string
     binding_span: Span
     iter:         Expr
+    pattern:      LetBinding | null = null
 }
 
 export BreakStmt :: struct {

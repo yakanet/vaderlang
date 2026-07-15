@@ -470,6 +470,11 @@ export GenInlineSink :: struct {
     binding_symbol: Symbol
     binding_name:   string
     element_type:   Type
+    /// The consumer body the sink splices per yield. A `for [k, v] in <gen>`
+    /// destructure is pre-lowered into the FRONT of this block (in the consumer's
+    /// ctx, where the pattern leaves resolve — see `lower_generator_fusion`), with
+    /// `binding_symbol` bound to the element temp it destructures. So the sink
+    /// itself always binds a single element ; no pattern field is needed here.
     body:           LoweredBlock
 }
 

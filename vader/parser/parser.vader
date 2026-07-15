@@ -2237,10 +2237,10 @@ parse_for :: fn(p: Parser, label: string | null, is_comptime: bool) -> ForStmt {
     }
 
     // Tuple destructure : `for [a, b] in iter { body }`. Bracket-match the
-    // opening `[` ; if the matching `]` is followed by `in`, parse a let
-    // binding, then desugar by introducing a synthetic name and prepending a
-    // `let <pattern> := <synth>` to the body — downstream passes see a
-    // regular single-binding for-in.
+    // opening `[` ; if the matching `]` is followed by `in`, keep the parsed
+    // pattern on the `InFor` node (`pattern`). The element-temp synthesis +
+    // `let <pattern> := <temp>` destructure is done at lower time, not here, so
+    // `vader fmt` sees and re-prints the `for [a, b] in …` sugar verbatim.
     if p.looks_like_for_destructure() {
         binding :: p.parse_let_binding()
         binding_span :: binding.span
@@ -2248,31 +2248,11 @@ parse_for :: fn(p: Parser, label: string | null, is_comptime: bool) -> ForStmt {
         iter :: p.parse_expr(0)
         p.allow_struct_lit = saved_allow
         body :: p.parse_block()
-        // Encoding-invariant synth name : line/column are codepoint-based,
-        // whereas `offset` would diverge with the source encoding (UTF-16
-        // units vs UTF-8 bytes).
-        synth :: "__for_${start.span.start.line}_${start.span.start.column}"
-        synth_ident :: ident_expr(binding_span, synth)
-        desugared :: LetStmt {
-            .span    = binding_span,
-            .mutable = false,
-            .binding = binding,
-            .ty      = null,
-            .value   = synth_ident,
-        }
-        new_stmts: Stmt[] = []
-        new_stmts.push(desugared)
-        for s in body.stmts { new_stmts.push(s) }
-        wrapped_body :: BlockExpr {
-            .span     = body.span,
-            .stmts    = new_stmts,
-            .trailing = body.trailing,
-        }
         return ForStmt {
             .span  = Span { .start = start.span.start, .end = body.span.end },
             .label = label,
-            .form  = InFor { .binding = synth, .binding_span = binding_span, .iter = iter },
-            .body  = wrapped_body,
+            .form  = InFor { .binding = "", .binding_span = binding_span, .iter = iter, .pattern = binding },
+            .body  = body,
             .is_comptime = is_comptime,
         }
     }

@@ -740,12 +740,19 @@ check_for :: fn(
         is AST.InFor as f -> {
             iter_ty :: check_expr_fn(f.iter, null, typed, diags)
             elem :: for_in_element(iter_ty, typed)
-            typed.local_types[f.binding_span.hash()] = elem
-            // A real user name is var-targetable ; the `_` wildcard and the
-            // synthetic `__for_*` binding a destructuring `for [k, v]` desugars to
-            // are not (there's no single user variable to name), so they behave
-            // like a varless loop — targetable only by a label.
-            if f.binding != "_" && !f.binding.starts_with("__") { binding = f.binding }
+            pat :: f.pattern
+            if pat != null {
+                // `for [k, v] in …` — type each pattern leaf against the element
+                // (tuple / array / `Entry<K,V> implements Into<[K,V]>`), reusing the
+                // destructuring-let machinery. Not var-targetable : no single user
+                // variable to name, so it behaves like a varless loop (label only).
+                assign_binding_types(pat, elem, typed, diags)
+            } else {
+                typed.local_types[f.binding_span.hash()] = elem
+                // A real user name is var-targetable ; the `_` wildcard is not
+                // (there's no variable to name), so it behaves like a varless loop.
+                if f.binding != "_" { binding = f.binding }
+            }
         }
     }
     // W0010 — a label on a for-in loop is redundant : it already has an iteration

@@ -24,13 +24,13 @@ fn 0 snippet$main () -> i32
   local $struct_2 ref
   local $struct_5 ref
   local $struct_8 ref
-  local __for_len_1 usize
-  local __for_i_2 usize
+  local __for_len_2 usize
+  local __for_i_3 usize
   local v i32
-  local __p_4 string
-  local $call_26 usize
-  local __off_6 usize
-  local $cast_35 i64
+  local __p_5 string
+  local $call_25 usize
+  local __off_7 usize
+  local $cast_34 i64
   string.const 0
   i32.const 1
   struct.new_stack 9

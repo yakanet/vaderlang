@@ -10,7 +10,6 @@
   expr 10:51    SeqLitExpr     :: [string, i32]
   expr 10:52    StringLitExpr  :: string
   expr 11:19    IdentExpr      :: [string, i32][]
-  expr 11:9     IdentExpr      :: [string, i32]
   expr 12:17    StringLitExpr  :: string
   expr 12:20    IdentExpr      :: string
   expr 12:25    IdentExpr      :: i32

@@ -361,7 +361,12 @@ walk_for :: fn(s: AST.ForStmt, out: RawToken[]) -> void {
         is AST.InfiniteFor -> {}
         is AST.WhileFor as w -> { walk_expr(w.cond, out) }
         is AST.InFor    as f -> {
-            push_span(out, f.binding_span, .Variable)
+            pat :: f.pattern
+            if pat != null {
+                walk_binding(pat, out)
+            } else {
+                push_span(out, f.binding_span, .Variable)
+            }
             walk_expr(f.iter, out)
         }
     }

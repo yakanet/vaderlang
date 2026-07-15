@@ -3,7 +3,6 @@
 ## tests/snippets/_diag_stdlib_struct_instance
 
 ## generic instances
-  Entry<i32, i32>
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>

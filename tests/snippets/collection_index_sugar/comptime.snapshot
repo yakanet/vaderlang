@@ -3,7 +3,6 @@
 ## tests/snippets/collection_index_sugar
 
 ## generic instances
-  Entry<i32, i32>
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>

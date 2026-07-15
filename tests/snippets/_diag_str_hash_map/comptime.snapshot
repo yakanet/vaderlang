@@ -3,7 +3,6 @@
 ## tests/snippets/_diag_str_hash_map
 
 ## generic instances
-  Entry<i32, i32>
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>

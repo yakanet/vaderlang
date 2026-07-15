@@ -13,7 +13,6 @@ type 10 ref _
 type 11 array 5
 type 12 array 2
 type 13 struct __Tuple_28 { _0:5,_1:10 }
-type 14 struct __Tuple_29 { _0:5,_1:2 }
 string 0 "a"
 string 1 "b"
 string 2 "c"
@@ -35,11 +34,11 @@ fn 0 snippet$main () -> i32
   local $idx_28 string
   local $idx_29 any
   local __p_1 string
-  local $call_39 usize
+  local $call_38 usize
   local __buf_2 ref
   local __off_3 usize
-  local $cast_49 i64
-  local $cast_54 i64
+  local $cast_48 i64
+  local $cast_53 i64
   string.const 0
   string.const 1
   string.const 2
@@ -101,10 +100,10 @@ fn 0 snippet$main () -> i32
         local.get 7
         struct.new_stack 13
         local.set 1
-        local.field 1 14 0
+        local.field 1 13 0
         ref.cast 5
         local.set 8
-        local.field 1 14 1
+        local.field 1 13 1
         local.set 2
         local.get 8
         call 3

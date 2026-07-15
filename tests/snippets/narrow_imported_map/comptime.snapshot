@@ -5,7 +5,6 @@
 ## tests/snippets/narrow_imported_map/lib
 
 ## generic instances
-  Entry<i32, i32>
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>

@@ -217,7 +217,12 @@ collect_stmt :: fn(s: AST.Stmt, out: Span[]) -> void {
                 is AST.InfiniteFor -> {}
                 is AST.WhileFor as w -> { collect_expr(w.cond, out) }
                 is AST.InFor    as f -> {
-                    out.push(f.binding_span)
+                    pat :: f.pattern
+                    if pat != null {
+                        collect_binding(pat, out)
+                    } else {
+                        out.push(f.binding_span)
+                    }
                     collect_expr(f.iter, out)
                 }
             }

@@ -343,6 +343,7 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
                         .binding = inf.binding,
                         .binding_span = inf.binding_span,
                         .iter = substitute_expr_full(inf.iter, subst),
+                        .pattern = inf.pattern,
                     }
                 }
                 is AST.InfiniteFor -> {}    // no children

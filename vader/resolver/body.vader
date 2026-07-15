@@ -391,7 +391,14 @@ walk_for :: fn(self: ResolveState, s: AST.ForStmt) -> void {
     self.scope.push()
     match s.form {
         is AST.InFor as f -> {
-            _ :: self.bind_local_checked(.Local, f.binding, f.binding_span)
+            // `for [k, v] in …` binds each pattern leaf directly (no synth
+            // element name at parse) ; a plain `for x in …` binds the single var.
+            pat :: f.pattern
+            if pat != null {
+                self.bind_let_binding(pat)
+            } else {
+                _ :: self.bind_local_checked(.Local, f.binding, f.binding_span)
+            }
         }
         _ -> {}
     }

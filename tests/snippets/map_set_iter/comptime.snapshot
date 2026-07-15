@@ -3,7 +3,6 @@
 ## tests/snippets/map_set_iter
 
 ## generic instances
-  Entry<i32, i32>
   Entry<string, i32>
   Entry<K, V>
   Entry<K, V>

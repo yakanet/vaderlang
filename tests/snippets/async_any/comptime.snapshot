@@ -20,7 +20,6 @@
   Timeout<T>
   Timeout<T>
   Timeout<T>
-  Entry<i32, i32>
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>
