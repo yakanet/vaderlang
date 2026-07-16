@@ -1,4 +1,4 @@
-// `* { println as _ }` EXCLUDES `println` from the std/io wildcard, so an
+// `{ println as _ }` EXCLUDES `println` from the std/io wildcard, so an
 // unqualified `println` no longer resolves — R2006.
 module "snippet"
 
