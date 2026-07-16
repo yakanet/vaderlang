@@ -1,0 +1,52 @@
+// tests/snippets/narrow_int_wrap — narrow-integer arithmetic truncates to its
+// declared width on both backends (regression guard).
+//
+// Found 2026-07-16 by differential fuzzing (VM vs native C-emit): the VM kept
+// narrow-int results wide (`u8 200+100` → 300) while native wrapped (→ 44).
+// Fixed VM-locally by masking to width at the store boundaries — `local.set` /
+// `local.tee` / `Return` / `ReturnLit` / struct-literal fields (`build_struct`).
+// See .claude/plans/narrow-int-width-truncation.md.
+//
+// The wrap bites when the result is STORED into a narrow-typed slot (local /
+// struct field / fn return / narrowing cast then stored): both backends now
+// truncate — native via the C `uint8_t` storage, the VM via the mask.
+//
+//   stored narrow surface        both backends
+//   compound-assign  a += 100    44        (300 mod 256)
+//   fn returning u8              44
+//   narrowing cast   u8(300)     44
+//
+// Subtlety: an UN-stored intermediate — `${a + b}` passed straight to
+// interpolation — stays wide on BOTH backends (prints 300 either way): native
+// doesn't truncate without a narrow store, and the VM mirrors that. So the
+// `unstored` line below is NOT a divergence; it documents the store-vs-unstored
+// distinction, and both backends agree on it.
+
+module "snippet"
+
+import "std/io"
+
+add_u8 :: fn(a: u8, b: u8) -> u8 = a + b
+
+main :: fn() -> i32 {
+    a: u8 = 200
+    b: u8 = 100
+
+    // NOT a divergence: unstored intermediate stays wide in both → 300 / 300.
+    println("unstored=${a + b}")
+
+    // compound-assign into a u8 slot — VM 300 / native 44
+    c: u8 = 200
+    c += 100
+    println("compound=${c}")
+
+    // through a fn returning u8 (defeats const-fold) — VM 300 / native 44
+    println("fn=${add_u8(a, b)}")
+
+    // widening then narrowing cast — VM 300 / native 44
+    w: i32 = 300
+    n :: u8(w)
+    println("cast=${n}")
+
+    return 0
+}
