@@ -192,13 +192,33 @@ repin_free_ufcs_receiver :: fn(
     if !(target_ty is FreeIntType || target_ty is FreeFloatType || target_ty is FreeCharType) { return }
     first_param :: typed.ufcs_receiver_types[e.id]
     if first_param == null { return }
-    // Re-check the receiver with the first-param type as `expected` — pins the
-    // free literal (propagating to sub-expressions) by recording its pinned
-    // type in `expr_types`. Diagnostics already fired on the first
-    // (no-expectation) check at infer_field's head, so a fresh `[]` sinks them.
-    // The bound result is the pinned receiver type ; we want only the side
-    // effect on `expr_types`, so it's bound (not a trailing value-return).
-    repinned :: check_expr_fn(e.target, first_param, typed, [])
+    // A UNION first param can't pin a free literal — it can't lower "as a union",
+    // so `check_expr` would leave it free and it defaults (`42.0` → f64), which
+    // then fails to match an `i32 | f32` first param at lower (f64 ∉ the union →
+    // midir panic). Resolve the concrete member the literal fits and pin to THAT.
+    pin_ty :: union_member_for_free(target_ty, first_param)
+    // Re-check the receiver with `pin_ty` as `expected` — pins the free literal
+    // (propagating to sub-expressions) by recording its pinned type in
+    // `expr_types`. Diagnostics already fired on the first (no-expectation) check
+    // at infer_field's head, so a fresh `[]` sinks them. The bound result is the
+    // pinned receiver type ; we want only the side effect on `expr_types`.
+    repinned :: check_expr_fn(e.target, pin_ty, typed, [])
+}
+
+// The concrete type to pin a free-literal UFCS receiver to. A concrete first param
+// IS the pin. A UNION first param can't pin a free literal (no "lower as a union"),
+// so pick the member it fits: its own default (`i32` / `f64` / `char`) when the
+// union carries it, else the first assignable member. Keeps `42.0.something()`
+// (free float into `i32 | f32`, whose default f64 is absent) lowering as the f32
+// member rather than defaulting to f64 and mis-matching at lower.
+union_member_for_free :: fn(free_ty: Type, first_param: Type) -> Type {
+    if first_param !is UnionType { return first_param }
+    def :: default_if_free(free_ty)
+    if is_assignable(def, first_param, null) { return def }
+    for v in first_param.variants {
+        if is_assignable(free_ty, v, null) { return v }
+    }
+    return first_param
 }
 
 try_trait_method_dispatch :: fn(
