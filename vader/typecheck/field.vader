@@ -93,7 +93,14 @@ try_array_method_dispatch :: fn(target_ty: Type, e: AST.FieldExpr) -> Type | nul
 try_impl_method_ufcs :: fn(
     target_ty: Type, e: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type | null {
-    impl_ufcs :: typed.impl_methods["${display_type(target_ty)}::${e.field}"]
+    // A free numeric literal receiver (`42.to_string()`) carries no impl methods
+    // of its own — every impl is keyed on the concrete default (`i32`/`f64`/`char`,
+    // e.g. `i32 implements Display`). Default the free type before building the
+    // lookup key so a literal resolves the same impl a pinned variable (`x :: 42`)
+    // would. `default_if_free` is the identity on concrete types, so concrete
+    // receivers are unaffected.
+    key_ty :: default_if_free(target_ty)
+    impl_ufcs :: typed.impl_methods["${display_type(key_ty)}::${e.field}"]
     match impl_ufcs {
         is null -> {}
         _ -> {
@@ -101,10 +108,10 @@ try_impl_method_ufcs :: fn(
             return impl_ufcs
         }
     }
-    base_impl :: typed.impl_methods["${type_base_name(target_ty)}::${e.field}"]
+    base_impl :: typed.impl_methods["${type_base_name(key_ty)}::${e.field}"]
     if base_impl == null { return null }
     check_trait_ambiguity(e, target_ty, typed, diags)
-    return substitute_impl_method(base_impl, target_ty, typed)
+    return substitute_impl_method(base_impl, key_ty, typed)
 }
 
 try_typeparam_bound_method :: fn(
