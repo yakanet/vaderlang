@@ -3,6 +3,6 @@
 // (rename), or a bare `import "std/io"` for the plain wildcard. R2033.
 module "snippet"
 
-import "std/io" * { println }
+import "std/io" { println }
 
 main :: fn() -> i32 = 0

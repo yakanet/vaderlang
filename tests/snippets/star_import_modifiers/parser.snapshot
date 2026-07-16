@@ -10,7 +10,7 @@
       "kind": "ImportDecl",
       "path": "snippet/toolkit",
       "binding": {
-        "kind": "wildcard-modifiers",
+        "kind": "destructure",
         "names": [
           {
             "name": "legacy_render",

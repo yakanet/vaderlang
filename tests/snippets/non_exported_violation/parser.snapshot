@@ -10,7 +10,7 @@
       "kind": "ImportDecl",
       "path": "snippet/lib",
       "binding": {
-        "kind": "wildcard-modifiers",
+        "kind": "destructure",
         "names": [
           {
             "name": "secret_helper",

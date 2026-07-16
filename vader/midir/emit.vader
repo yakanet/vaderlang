@@ -26,7 +26,7 @@ import "std/abort"
 import "vader/diagnostics"
 import "vader/types"
 import "vader/lower"
-import "vader/bytecode" * {
+import "vader/bytecode" {
     VtableEntry as BcVtableEntry,
     ImplEntry as BcImplEntry,
 }

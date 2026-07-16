@@ -3,8 +3,8 @@
 // it: the SPEC forbids silent first-wins across import lines in one file.
 module "snippet"
 
-import "std/io" * { println as p }
-import "std/io" * { print as p }
+import "std/io" { println as p }
+import "std/io" { print as p }
 
 main :: fn() -> i32 {
     p("hi")

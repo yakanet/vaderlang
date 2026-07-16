@@ -31,7 +31,7 @@ import "vader/comptime_vm"
 import "vader/lower"
 import "vader/midir"
 import "vader/bytecode"
-import "vader/c_emit" * { EmitOptions as CEmitOptions, default_emit_options as _ }
+import "vader/c_emit" { EmitOptions as CEmitOptions, default_emit_options as _ }
 
 /// Build-only entrypoint : compile `<input.vader>` to `<output.c>`.
 ///

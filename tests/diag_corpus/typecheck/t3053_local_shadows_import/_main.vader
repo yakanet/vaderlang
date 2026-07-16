@@ -4,7 +4,7 @@
 // `import { helper as h }` would not collide, since the local binding is `h`.)
 module "snippet"
 
-import "snippet/lib" * { helper as helper }
+import "snippet/lib" { helper as helper }
 
 helper :: fn(x: i32) -> i32 = x + 1     // T3053 — same signature as the import
 
