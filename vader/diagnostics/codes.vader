@@ -226,6 +226,7 @@ export WarningCode :: enum(u8) {
     LocalShadowsOuter,                      // W0008
     LocalRedeclaration,                     // W0009
     PreferLoopVariableOverLabel,            // W0010
+    EmptyImportModifierList,                // W0011
 }
 
 // `(id, message)` for a code, in one shot. The wire ID is the stable
@@ -325,6 +326,7 @@ export warning_info :: fn(c: WarningCode) = match c {
     .LocalShadowsOuter                  -> CodeInfo { .id = "W0008", .message = "local binding shadows an outer local or parameter of the same name" }
     .LocalRedeclaration                 -> CodeInfo { .id = "W0009", .message = "redeclaration of a name already bound in this block" }
     .PreferLoopVariableOverLabel        -> CodeInfo { .id = "W0010", .message = "prefer targeting this loop by its iteration variable over a label ; a label is only needed for a `while` / infinite loop that has no variable" }
+    .EmptyImportModifierList            -> CodeInfo { .id = "W0011", .message = "empty modifier list on an import — `import \"p\" {}` is just a wildcard, write `import \"p\"`" }
 }
 
 export comptime_info :: fn(c: ComptimeCode) = match c {

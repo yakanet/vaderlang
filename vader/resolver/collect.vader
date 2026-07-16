@@ -242,6 +242,10 @@ collect_import :: fn(
             //   binds it as y. A plain name (no `as`) is an error — the wildcard
             //   already brings every export.
             self.wildcard_paths.push(d.path)
+            // `import "p" {}` — an empty modifier list is just the bare wildcard.
+            if de.names.len() == 0 {
+                diags.push(warning(.EmptyImportModifierList, d.span, "`${d.path}`"))
+            }
             excluded: string[] = []
             for n in de.names {
                 match n.alias {

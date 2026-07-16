@@ -1,0 +1,10 @@
+// `import "p" {}` has an empty modifier list — it is just the bare wildcard.
+// W0011 nudges toward `import "p"`; the formatter drops the `{}` on re-format.
+module "snippet"
+
+import "std/io" {}
+
+main :: fn() -> i32 {
+    println("hi")
+    return 0
+}
