@@ -256,6 +256,19 @@ export primitive_tag_of :: fn(types: BcType[], val: ValType) -> i32 {
             if p.val == val { return i32(i) }
         }
     }
+    // f32/f64 share the F64 box representation — an f32 value flows with class
+    // F64 (there is no distinct F32 payload). If the exact class has no primitive
+    // in the table (e.g. an `i32 | f32` union carries only the f32 row), fall back
+    // to the OTHER float primitive so the box gets a real float tag rather than
+    // the 0/null default. `one_variant_check` aliases f32/f64 tags, so either
+    // float index resolves `is f32` / `is f64` downstream.
+    if is_float_val(val) {
+        for i in 0..<types.len() {
+            if types[i] is BcPrimitive as p {
+                if is_float_val(p.val) { return i32(i) }
+            }
+        }
+    }
     return 0
 }
 

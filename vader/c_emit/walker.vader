@@ -1532,7 +1532,29 @@ one_variant_check :: fn(s: FnState, tag_expr: string, type_id: i32) -> string {
     if target is BcStruct as st {
         return struct_check_expr(s.ctx.module.types, tag_expr, type_id, st.name)
     }
+    // f32/f64 share the F64 box representation, so the boxer tags a float value
+    // by class and can't tell f32 from f64. Match ANY float-primitive tag here
+    // (mirrors the VM's `primitive_matches` float aliasing) so `is f32` in an
+    // `i32 | f32` union matches a value tagged with whichever float row the boxer
+    // reached — even one f64 index when the table also carries f64.
+    if target is BcPrimitive as p {
+        if is_float_val(p.val) { return float_tag_check_expr(s.ctx.module.types, tag_expr) }
+    }
     return "${tag_expr} == ${type_id}u"
+}
+
+// C boolean expr matching `tag_expr` against EVERY float-primitive tag in the
+// table (f32/f64 are representationally identical — see `one_variant_check`).
+// `0` (never matches) when the table has no float primitive.
+float_tag_check_expr :: fn(types: BcType[], tag_expr: string) -> string {
+    parts: string[] = []
+    for i in 0..<types.len() {
+        if types[i] is BcPrimitive as p {
+            if is_float_val(p.val) { parts.push("${tag_expr} == ${i}u") }
+        }
+    }
+    if parts.len() == 0 { return "0" }
+    return "(${parts.join(" || ")})"
 }
 
 /// The C boolean expression testing whether `v_name`'s tag matches struct type
