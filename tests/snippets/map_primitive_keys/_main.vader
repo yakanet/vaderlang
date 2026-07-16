@@ -1,6 +1,6 @@
 // map_primitive_keys — MutableMap keyed by the wider Hashable primitives.
 //
-// Under the .NET-erasure model the key lands RAW in the bucket entry
+// Under the flavor-based erasure model the key lands RAW in the bucket entry
 // (`MutableMap__i64__i32`, key stored as raw `i64`). Exercise insert / get /
 // collision / miss across u8 / u16 / i16 / char / i64 / usize so a box-vs-raw
 // miscompile of the key surfaces as a wrong lookup. The generic `get_or`
@@ -10,8 +10,8 @@
 // Wide-magnitude key literals (> i32 range) flow through TYPED LOCALS : a
 // free literal in index / generic-arg position is not repinned to the
 // resolved i64 and truncates via i32 — a separate, pre-existing typer gap
-// (free literal not repinned to a resolved wide concrete type), not a
-// .NET-model issue.
+// (free literal not repinned to a resolved wide concrete type), not an
+// erasure-model issue.
 
 module "snippet"
 

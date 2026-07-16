@@ -293,7 +293,6 @@ is_known_decorator :: fn(name: string) -> bool {
         || name == "intrinsic"
         || name == "deprecated"
         || name == "assert"
-        || name == "specialize"
         || name == "no_return"
         || name == "allow_unused"
 }

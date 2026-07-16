@@ -218,7 +218,7 @@ materialize_struct_instance :: fn(
         // closure pass materialise referenced stdlib structs
         // (`StringBuilder`, `JsonObject`, …) whose bodies are never lowered.
         mangled :: mangle_struct_instance(owner_typed.resolved.display_path, inst.symbol.name, inst.args)
-        // Layout subst (.NET model, P2) : the entry's `subst` keeps the concrete
+        // Layout subst (mixed flavor, P2) : the entry's `subst` keeps the concrete
         // args (for mangling + downstream consumers that need the source-level
         // type-args), but the FIELDS get a MIXED subst — primitive type-args land
         // RAW (`Entry.key : string` / `i32`, devirt + unboxed), reference type-args

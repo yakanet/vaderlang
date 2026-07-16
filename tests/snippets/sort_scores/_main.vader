@@ -1,7 +1,7 @@
 // tests/snippets/sort_scores — GATE-B1 monomorphic recursive-generic guard.
 //
 // `std/sort::sort<T>` lowers to the RECURSIVE generic free fn
-// `merge_sort_range<T>`. For an all-primitive arg (T = i32) the .NET-model gate
+// `merge_sort_range<T>`. For an all-primitive arg (T = i32) the mixed-flavor gate
 // force-concretes it to a mangle-indexed instance (entry_symbol = null), so its
 // self-recursive call must route through the instance MANGLE — the bare generic
 // symbol owns no fn-table slot here. Unlike the mixed `std_sort` snippet (whose

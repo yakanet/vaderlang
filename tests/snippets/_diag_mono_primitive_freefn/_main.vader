@@ -1,8 +1,8 @@
-// tests/snippets/_diag_mono_primitive_freefn — .NET-model free-fn probe.
+// tests/snippets/_diag_mono_primitive_freefn — mixed-flavor free-fn probe.
 //
 // A generic free fn over `T[]` doing element access, instantiated at a raw
 // primitive (`i32`) AND at a struct (`Point`) in the same program. After the
-// .NET-model free-fn monomorphization flip the `i32` instance is force-concrete
+// mixed-flavor free-fn monomorphization flip the `i32` instance is force-concrete
 // (`second__i32`, typed `LoadSlotI32` over a genuinely I32-kind array literal)
 // while the struct instance stays erased (`second__Any`, runtime-dispatched
 // `ArrayGet`). This pins two invariants:

@@ -33,14 +33,6 @@ import "vader/resolver/symbol"
 /// can re-run it as later harvest rounds register new instances (e.g. `len`
 /// pulled in by the harvested `std/json::write_object` body). The sort +
 /// erasure-dedup + push happens once in `flush_generic_fn_instances`.
-///
-/// The mono pass's Pass 3 (`run_pass_3` in `specialize.vader`) also produces
-/// one entry per `(fn symbol, type_arguments)` pair via
-/// `evaluated.mono.fn_instance_entries`. Its mangle and the lowerer's now AGREE
-/// (both single-prefix — the lowerer's old double-prefix bug was fixed in
-/// `lower_generic_call.vader`). We still drive from `fn_instances_order` for
-/// insertion-order byte-parity. TODO: drop `fn_instances_order`, read from mono
-/// entries (now that the mangles match, this is mechanical).
 drain_generic_fn_instances :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
     project: LoweredProject, diags: Diagnostic[],
@@ -228,7 +220,7 @@ build_fn_instance_decl :: fn(
     if owner_module is null { return null }
     fn_decl :: find_fn_decl_for_symbol(module_decls(owner_module), inst.fn_symbol, inst.type_args.len())
     if fn_decl is null { return null }
-    // Monomorphization flavor (.NET model) — see `fn_instance_flavor`. Replaces the
+    // Monomorphization flavor — see `fn_instance_flavor`. Replaces the
     // old `dispatches || returns_typeparam_array || all_type_args_monomorphizable`
     // predicate with a 3-way classifier shared with the call site so the registered
     // instance mangle reconciles with this body:
@@ -329,7 +321,7 @@ returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
     return false
 }
 
-// Monomorphization flavor of a generic free-fn instance (.NET model). Drives BOTH
+// Monomorphization flavor of a generic free-fn instance. Drives BOTH
 // the materialised body's substitution AND the instance-mangle suffix, so the two
 // MUST be computed from one classifier — `fn_instance_flavor` — at both the call
 // site and the materialiser, or the registered mangle and the body drift apart.

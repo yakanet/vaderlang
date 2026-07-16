@@ -11,7 +11,7 @@
 //
 // Handles a DIRECT call `for v in gen(args)` — generic or not: a generic
 // generator reconstructs its instance substitution at this site via
-// `infer_type_args` + the `.NET`-model flavor path, then lowers the body in a
+// `infer_type_args` + the instance-flavor path, then lowers the body in a
 // gen-ctx under that subst. Chained combinators (`xs.iter().gen_map(f)`, a UFCS
 // FieldExpr callee) recurse into the receiver — Increment 3.
 
@@ -170,7 +170,7 @@ resolve_owner_typed :: fn(ctx: FnLowerCtx, module: string) -> TypedProgram | nul
 
 // The instance substitution for the generator body: empty for a non-generic
 // generator ; the inferred per-instance subst for a generic one, via the same
-// `infer_type_args` + `.NET`-model flavor path the generic call site uses
+// `infer_type_args` + instance-flavor path the generic call site uses
 // (`emit_generic_fn_call`). Null when a generic generator's type args don't
 // infer to all-concrete — the caller then bails to the boxed path.
 gen_instance_subst :: fn(
@@ -186,7 +186,7 @@ gen_instance_subst :: fn(
 }
 
 // Pick the per-instance substitution for `fn_decl<concrete_args>` via the
-// `.NET`-model flavor classifier — the shared tail of both the direct-call subst
+// instance-flavor classifier — the shared tail of both the direct-call subst
 // (`gen_instance_subst`) and the chained-combinator subst.
 subst_from_flavor :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, concrete_args: Type[]) -> Substitution {
     flavor :: fn_instance_flavor(fn_decl, owner_typed, concrete_args)
