@@ -2024,25 +2024,16 @@ Module identity is **not** derived from the filesystem. The filesystem is the st
 ### Imports
 
 ```vader
-import "std/string"                              // wildcard    — every export, unqualified
-str :: import "std/string"                       // namespace   — reached as `str.trim(…)`
-import "std/string" { trim as strip }            // destructure — bind selected names (only form that renames)
+import "std/string"                                 // wildcard   — every export, unqualified
+str :: import "std/string"                          // namespace  — reached as `str.trim(…)`
+import "std/string" { trim as strip, split as _ }   // wildcard + modifiers — rename / exclude
 ```
 
 A bare **`import "path"`** is a **wildcard**: every `export` of the module — functions, types, structs, enums, traits, and consts alike — becomes visible **unqualified** in the importing file, as if declared there. This is the default form; reach for it unless a name would clash.
 
 A **namespace** import names its binding explicitly (`name :: import "path"`) and pulls nothing into scope on its own — every member is reached through the alias (`str.trim`, `str.Builder`, and `is` / `match` against `str.Type`). Use it to keep a module behind a short prefix, or to disambiguate a name two wildcards would otherwise both provide.
 
-A **destructure** import (`import "path" { a, b }`) is the narrow form: it pulls exactly the listed names into top-level scope, and is the only form that carries a rename (`a as b`). With the wildcard as the default, plain destructure is redundant; it survives mainly for renames.
-
-> **Transition (in progress): wildcard-plus-modifiers.** The destructure allow-list
-> is being replaced by a **wildcard-with-modifiers** form written `import "path" * { … }`
-> (note the `*`): it exposes *every* export of `path` (like the bare wildcard) **minus**
-> the listed names — `x as _` drops `x`, `x as y` drops `x` under its own name and
-> rebinds it as `y`. A plain name (no `as`) inside `* { … }` is an error (`R2033`). The
-> legacy allow-list `import "path" { … }` still works during the migration; once every
-> import is on the `* { … }` form the `*` is dropped and `{ … }` itself becomes the
-> wildcard-modifiers form.
+A **wildcard-with-modifiers** import (`import "path" { x as y, z as _ }`) is a wildcard that adjusts a few names: it exposes every export of `path` (exactly like the bare form) **minus** the ones listed — `x as y` drops `x` and rebinds it as `y` (a rename), `z as _` is a pure exclusion. A plain name (no `as`) inside `{ … }` is a compile error (`R2033`): the wildcard already brings it, so listing it is meaningless. Reach for this only to rename a clashing export or drop one you don't want; the bare wildcard is the default.
 
 There is no implicit last-segment binding, and no `as` suffix on the module path itself.
 
@@ -2052,9 +2043,10 @@ There is no implicit last-segment binding, and no `as` suffix on the module path
 - Relative paths (`./foo`, `../foo`) and bareword filesystem walks are not part of the language.
 - Self-import (a file inside module `X` writing `import "X"`) is a compile error.
 - `import` declarations are **file-scoped**. Names bound in one file of a multi-file module are not visible in sibling files of the same module; each file declares its own imports.
-- **Wildcard ambiguity (`R2031`).** When a name is `export`ed by two or more wildcard-imported modules and used **unqualified**, the reference is a compile error naming every providing module. Qualify it through a namespace import, or rename one export. The check fires only on an actually-ambiguous *use* — two wildcards that merely happen to share an export are fine until the shared name is referenced unqualified — and a same-module declaration or destructured binding of that name shadows the wildcards and suppresses it.
-- **Conflicting import forms (`R2032`).** Importing the same path both bare (`import "p"`) and destructured (`import "p" { … }`) in one file is a compile error: the wildcard already exposes everything the destructure would name. Keep one form per path.
-- **Duplicate destructured names.** Two destructured bindings of the same name in one file — from two distinct modules, or shadowing a prelude binding — are a compile error.
+- **Wildcard ambiguity (`R2031`).** When a name is `export`ed by two or more wildcard-imported modules and used **unqualified**, the reference is a compile error naming every providing module. Qualify it through a namespace import, or rename/exclude one export. The check fires only on an actually-ambiguous *use* — two wildcards that merely happen to share an export are fine until the shared name is referenced unqualified — and a same-module declaration or a rename binding of that name shadows the wildcards and suppresses it. A name a wildcard shares with the prelude or a builtin is never ambiguous (the prelude/builtin symbol always wins).
+- **Conflicting import forms (`R2032`).** Importing the same path twice in one file — bare `import "p"` plus `import "p" { … }`, or two `{ … }` — is a compile error: both are wildcards of `p`, so a second is redundant. Keep one import per path (put every modifier in its `{ … }`).
+- **Plain name in a modifier list (`R2033`).** A name with no `as` inside `import "p" { … }` (e.g. `import "p" { foo }`) is a compile error — the wildcard already brings `foo`. Use `foo as bar` to rename it or `foo as _` to exclude it, or drop the entry entirely.
+- **Duplicate rename bindings (`R2011`).** Two rename modifiers that bind the same local name in one file — `import "a" { x as p }` and `import "b" { y as p }`, or one shadowing a prelude name — are a compile error.
 - Import cycles (`A → … → A`) are forbidden; the resolver emits a diagnostic.
 - **No re-exports.** A module cannot republish another module's bindings; a façade must wrap each binding manually.
 
