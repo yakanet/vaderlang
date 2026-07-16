@@ -225,50 +225,11 @@
     let p: Pair =
       Pair {
         tag:
-          block :string
-            let __buf_0: Buffer =
-              call :Buffer
-                callee:
-                  new_byte_buffer :Buffer
-                arg0:
-                  int(25) :usize
-            let __off_1: usize = int(0) :usize
-            assign
-              target:
-                __off_1 :usize
-              value:
-                call :usize
-                  callee:
-                    write_string_at :usize
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
-                    __off_1 :usize
-                  arg2:
-                    "user_" :string
-            assign
-              target:
-                __off_1 :usize
-              value:
-                call :usize
-                  callee:
-                    write_int :usize
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
-                    __off_1 :usize
-                  arg2:
-                    cast → i64
-                      .value :i32
-                        u :UserId
-            ~>
-              call :string
-                callee:
-                  finish_buffer :string
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
+          call :string
+            callee:
+              snippet$UserId$Into$into_1 :string
+            arg0:
+              u :UserId
         n:
           .value :i32
             u :UserId

@@ -80,11 +80,22 @@ export raw_expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
 }
 
 /// Per-local-binding type. Same fallback convention as `expr_type`.
+///
+/// Keyed on `name_span`, NOT `span` — `assign_binding_types`
+/// (`vader/typecheck/stmt.vader`) writes a `SimpleBinding`'s type under
+/// `sb.name_span.hash()`, and the resolver mints the local Symbol on the same
+/// `name_span`. The two coincide for every parser-produced binding
+/// (`span == name_span == name_tok.span`), so this was invisible — until a
+/// materialised default-method body clone (`substitute_body.vader::
+/// stamp_binding_spans`) stamps `span` and `name_span` with DISTINCT synthetic
+/// spans. Reading `span` then missed the `name_span`-keyed type and the local
+/// collapsed to `?` (a method call on it tripped the midir/emit ICE). Read the
+/// authoritative `name_span`.
 /// @param self     the entry-types view.
 /// @param binding  the `SimpleBinding` AST node.
 /// @return         the resolved type.
 export local_type :: fn(self: EntryTypes, binding: SimpleBinding) -> Type {
-    return apply_or_unresolved(self, self.typed.local_types[binding.span.hash()])
+    return apply_or_unresolved(self, self.typed.local_types[binding.name_span.hash()])
 }
 
 /// Per-rest-binding type (rest pattern in destructure).

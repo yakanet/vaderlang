@@ -262,50 +262,11 @@
       cond:
         neq :bool
           l:
-            block :string
-              let __buf_0: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(22) :usize
-              let __off_1: usize = int(0) :usize
-              assign
-                target:
-                  __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      "w:" :string
-              assign
-                target:
-                  __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → i64
-                        .a :i32
-                          a :A
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
-                    __off_1 :usize
+            call :string
+              callee:
+                snippet$A$Widget$label :string
+              arg0:
+                a :A
           r:
             "w:1" :string
       then:
@@ -318,50 +279,11 @@
       cond:
         neq :bool
           l:
-            block :string
-              let __buf_0: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(22) :usize
-              let __off_1: usize = int(0) :usize
-              assign
-                target:
-                  __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      "w:" :string
-              assign
-                target:
-                  __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → i64
-                        .b :i32
-                          b :B
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
-                    __off_1 :usize
+            call :string
+              callee:
+                snippet$B$Widget$label :string
+              arg0:
+                b :B
           r:
             "w:2" :string
       then:

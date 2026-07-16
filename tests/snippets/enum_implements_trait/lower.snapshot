@@ -61,169 +61,28 @@
       callee:
         std_io$println__string :void
       arg0:
-        block :string
-          let __scrut_0: Direction = d :Direction
-          ~>
-            if :string
-              cond:
-                eq :bool
-                  l:
-                    __scrut_0 :Direction
-                  r:
-                    int(0) :i32
-              then:
-                ~>
-                  "N" :string
-              else:
-                ~>
-                  if :string
-                    cond:
-                      eq :bool
-                        l:
-                          __scrut_0 :Direction
-                        r:
-                          int(1) :i32
-                    then:
-                      ~>
-                        "E" :string
-                    else:
-                      ~>
-                        if :string
-                          cond:
-                            eq :bool
-                              l:
-                                __scrut_0 :Direction
-                              r:
-                                int(2) :i32
-                          then:
-                            ~>
-                              "S" :string
-                          else:
-                            ~>
-                              if :string
-                                cond:
-                                  eq :bool
-                                    l:
-                                      __scrut_0 :Direction
-                                    r:
-                                      int(3) :i32
-                                then:
-                                  ~>
-                                    "W" :string
-                                else:
-                                  ~>
-                                    unreachable("non-exhaustive match (T3013 should have caught this)") :string
+        call :string
+          callee:
+            snippet$Direction$Display$to_string :string
+          arg0:
+            d :Direction
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        block :string
-          let __scrut_0: Direction = int(1) :i32
-          ~>
-            if :string
-              cond:
-                eq :bool
-                  l:
-                    __scrut_0 :Direction
-                  r:
-                    int(0) :i32
-              then:
-                ~>
-                  "N" :string
-              else:
-                ~>
-                  if :string
-                    cond:
-                      eq :bool
-                        l:
-                          __scrut_0 :Direction
-                        r:
-                          int(1) :i32
-                    then:
-                      ~>
-                        "E" :string
-                    else:
-                      ~>
-                        if :string
-                          cond:
-                            eq :bool
-                              l:
-                                __scrut_0 :Direction
-                              r:
-                                int(2) :i32
-                          then:
-                            ~>
-                              "S" :string
-                          else:
-                            ~>
-                              if :string
-                                cond:
-                                  eq :bool
-                                    l:
-                                      __scrut_0 :Direction
-                                    r:
-                                      int(3) :i32
-                                then:
-                                  ~>
-                                    "W" :string
-                                else:
-                                  ~>
-                                    unreachable("non-exhaustive match (T3013 should have caught this)") :string
+        call :string
+          callee:
+            snippet$Direction$Display$to_string :string
+          arg0:
+            int(1) :i32
     let s: Direction = int(2) :i32
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        block :string
-          let __scrut_0: Direction = s :Direction
-          ~>
-            if :string
-              cond:
-                eq :bool
-                  l:
-                    __scrut_0 :Direction
-                  r:
-                    int(0) :i32
-              then:
-                ~>
-                  "N" :string
-              else:
-                ~>
-                  if :string
-                    cond:
-                      eq :bool
-                        l:
-                          __scrut_0 :Direction
-                        r:
-                          int(1) :i32
-                    then:
-                      ~>
-                        "E" :string
-                    else:
-                      ~>
-                        if :string
-                          cond:
-                            eq :bool
-                              l:
-                                __scrut_0 :Direction
-                              r:
-                                int(2) :i32
-                          then:
-                            ~>
-                              "S" :string
-                          else:
-                            ~>
-                              if :string
-                                cond:
-                                  eq :bool
-                                    l:
-                                      __scrut_0 :Direction
-                                    r:
-                                      int(3) :i32
-                                then:
-                                  ~>
-                                    "W" :string
-                                else:
-                                  ~>
-                                    unreachable("non-exhaustive match (T3013 should have caught this)") :string
+        call :string
+          callee:
+            snippet$Direction$Display$to_string :string
+          arg0:
+            s :Direction
     return int(0) :i32

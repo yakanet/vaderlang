@@ -140,10 +140,13 @@ param_use_counts :: fn(result: LoweredExpr, params: LoweredParam[], self_mangle:
     for p in params { param_ids.add(p.symbol.id) }
     ctx :: CollectCtx {
         .param_ids = param_ids, .counts = MutableMap<i32, i32> {},
-        .self_mangle = self_mangle, .self_call = false,
+        .self_mangle = self_mangle, .self_call = false, .has_stmt = false,
     }
     collect_expr(result, ctx)
     if ctx.self_call { return null }
+    // Result still carries a statement → not a pure expression ; keep the call
+    // (see `CollectCtx.has_stmt`).
+    if ctx.has_stmt { return null }
     return ctx.counts
 }
 
@@ -154,6 +157,15 @@ CollectCtx :: struct {
     counts:      MutableMap<i32, i32>
     self_mangle: string
     self_call:   bool
+    /// Set when the result subtree contains a statement (a `LoweredLet`,
+    /// `LoweredReturn`, …). The inliner splices the result into an EXPRESSION
+    /// position, so any statement is unsafe: a `return` would return from the
+    /// CALLER, a `let` would collide across the N inline copies. A trait-member
+    /// expression body `= { local ; return E }` lowers to `{ trailing: block{ let
+    /// local ; return E } }`, whose trailing block carries statements — this flag
+    /// keeps such a body a real call (the "single expression, no locals" contract
+    /// from `.claude/plans/trivial-method-inliner.md` §4).
+    has_stmt:    bool
 }
 
 collect_block :: fn(b: LoweredBlock, ctx: CollectCtx) -> void {
@@ -163,6 +175,9 @@ collect_block :: fn(b: LoweredBlock, ctx: CollectCtx) -> void {
 }
 
 collect_stmt :: fn(s: LoweredStmt, ctx: CollectCtx) -> void {
+    // Any statement in the result subtree disqualifies the body from being an
+    // inlineable single expression (see `CollectCtx.has_stmt`).
+    ctx.has_stmt = true
     match s {
         is LoweredLet as st -> { collect_expr(st.value, ctx) }
         is LoweredAssign as st -> {
