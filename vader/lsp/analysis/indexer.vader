@@ -74,6 +74,11 @@ export DocIndex :: struct {
     tokens:  Token[]
     decls:   DeclEntry[]
     imports: ImportEntry[]
+    /// Paths of the file's wildcard imports (bare `import "p"`). Unlike a
+    /// destructure, a wildcard binds no named `ImportEntry` — every export of
+    /// `p` enters scope unqualified — so the cross-file resolver falls back to
+    /// these paths to locate an unqualified name (see `resolver::resolve`).
+    wildcard_paths: string[]
     /// `break` / `continue` → the loop it targets, for goto-definition on a
     /// loop jump (the reader-clarity tool that replaced the W0004 nudge).
     loop_jumps: LoopJump[]
@@ -101,17 +106,19 @@ export build_index :: fn(uri: string, source: string, encoding: PositionEncoding
     cmap :: scan_comments(source)
     entries: DeclEntry[] = []
     imports: ImportEntry[] = []
+    wildcard_paths: string[] = []
     for d in parsed.program.decls {
-        collect_decl(d, source, cmap, entries, imports)
+        collect_decl(d, source, cmap, entries, imports, wildcard_paths)
     }
     return DocIndex {
-        .uri        = uri,
-        .source     = source,
-        .tokens     = parsed.tokens,
-        .decls      = entries,
-        .imports    = imports,
-        .loop_jumps = collect_loop_jumps(parsed.program.decls),
-        .line_index = new_line_index(source, encoding),
+        .uri            = uri,
+        .source         = source,
+        .tokens         = parsed.tokens,
+        .decls          = entries,
+        .imports        = imports,
+        .wildcard_paths = wildcard_paths,
+        .loop_jumps     = collect_loop_jumps(parsed.program.decls),
+        .line_index     = new_line_index(source, encoding),
     }
 }
 
@@ -297,7 +304,7 @@ export find_import :: fn(idx: DocIndex, name: string) -> ImportEntry | null {
 
 collect_decl :: fn(
     d: Decl, source: string, cmap: CommentMap,
-    entries: DeclEntry[], imports: ImportEntry[],
+    entries: DeclEntry[], imports: ImportEntry[], wildcard_paths: string[],
 ) -> void {
     match d {
         is FnDecl as f -> {
@@ -351,7 +358,7 @@ collect_decl :: fn(
                 ix_walk_fn_body(m, source, entries)
             }
         }
-        is ImportDecl as i -> { collect_import(i, imports) }
+        is ImportDecl as i -> { collect_import(i, imports, wildcard_paths) }
         is AssertDecl -> {}
     }
 }
@@ -701,10 +708,10 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
 
 // ---- import collection ---------------------------------------------------
 
-collect_import :: fn(d: ImportDecl, imports: ImportEntry[]) -> void {
+collect_import :: fn(d: ImportDecl, imports: ImportEntry[], wildcard_paths: string[]) -> void {
     match d.binding {
         is NamedNamespaceImport -> {} // `name :: import "..."` — name is a namespace, not a value
-        is WildcardImport -> {} // bare `import "..."` — wildcard, binds no value
+        is WildcardImport -> { wildcard_paths.push(d.path) } // bare `import "..."` — every export enters scope unqualified
         is DestructureImport as de -> {
             for n in de.names {
                 local_name := n.name
