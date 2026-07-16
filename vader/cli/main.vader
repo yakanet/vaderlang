@@ -23,7 +23,7 @@ import "vader/comptime_vm"
 import "vader/lower"
 import "vader/bytecode"
 import "vader/midir"
-import "vader/c_emit" { emit_c, emit_c_split, CProgram, EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
+import "vader/c_emit" * { EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
 Prof :: import "vader/profile"
 TTY :: import "std/tty"
 import "vader/diagnostics"

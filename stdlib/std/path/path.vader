@@ -6,10 +6,8 @@
 
 module "std/path"
 
-import "std/string" {
-    is_empty, last_index_of,
+import "std/string" * {
     starts_with as str_starts_with, ends_with as str_ends_with,
-    replace_chars_where,
 }
 import "std/string_builder"
 
