@@ -91,6 +91,8 @@ Inspect any compilation stage with [`vader dump`](#dump-stages), or emit textual
 
 ## Install
 
+**Coming soon**: prebuilt binaries for macOS arm64 (Apple Silicon), Linux x64, and Windows x64 (Explorer-extractable .zip; Windows 10+ ships tar natively).
+<!---
 Prebuilt archives ship the `vader` binary alongside the stdlib, the C runtime, and the Vader sources it loads at runtime. Extract anywhere, then run `vader` directly (or add the folder to your `PATH`).
 
 ```sh
@@ -111,6 +113,7 @@ On macOS, Gatekeeper blocks the unsigned binary on first launch — strip the qu
 ```sh
 xattr -d com.apple.quarantine ./vader-darwin-arm64/vader
 ```
+-->
 
 ## Build from source
 
