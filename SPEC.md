@@ -2024,11 +2024,18 @@ Module identity is **not** derived from the filesystem. The filesystem is the st
 ### Imports
 
 ```vader
-str :: import "std/string"                       // named namespace import
-import "std/string" { trim }                     // destructured import
+import "std/string"                              // wildcard    — every export, unqualified
+str :: import "std/string"                       // namespace   — reached as `str.trim(…)`
+import "std/string" { trim as strip }            // destructure — bind selected names (only form that renames)
 ```
 
-A namespace import always names its binding explicitly (`name :: import "..."`) — there is no implicit last-segment binding, no bare `import "..."`, and no `as` suffix. The destructure form (`import "..." { a, b }`) pulls names into the importing module's top-level scope.
+A bare **`import "path"`** is a **wildcard**: every `export` of the module — functions, types, structs, enums, traits, and consts alike — becomes visible **unqualified** in the importing file, as if declared there. This is the default form; reach for it unless a name would clash.
+
+A **namespace** import names its binding explicitly (`name :: import "path"`) and pulls nothing into scope on its own — every member is reached through the alias (`str.trim`, `str.Builder`, and `is` / `match` against `str.Type`). Use it to keep a module behind a short prefix, or to disambiguate a name two wildcards would otherwise both provide.
+
+A **destructure** import (`import "path" { a, b }`) is the narrow form: it pulls exactly the listed names into top-level scope, and is the only form that carries a rename (`a as b`). With the wildcard as the default, plain destructure is redundant; it survives mainly for renames.
+
+There is no implicit last-segment binding, and no `as` suffix on the module path itself.
 
 #### Resolution rules
 
@@ -2036,7 +2043,9 @@ A namespace import always names its binding explicitly (`name :: import "..."`) 
 - Relative paths (`./foo`, `../foo`) and bareword filesystem walks are not part of the language.
 - Self-import (a file inside module `X` writing `import "X"`) is a compile error.
 - `import` declarations are **file-scoped**. Names bound in one file of a multi-file module are not visible in sibling files of the same module; each file declares its own imports.
-- Two destructured bindings of the same name in the same file — whether from two distinct modules or shadowing a prelude binding — are a compile error.
+- **Wildcard ambiguity (`R2031`).** When a name is `export`ed by two or more wildcard-imported modules and used **unqualified**, the reference is a compile error naming every providing module. Qualify it through a namespace import, or rename one export. The check fires only on an actually-ambiguous *use* — two wildcards that merely happen to share an export are fine until the shared name is referenced unqualified — and a same-module declaration or destructured binding of that name shadows the wildcards and suppresses it.
+- **Conflicting import forms (`R2032`).** Importing the same path both bare (`import "p"`) and destructured (`import "p" { … }`) in one file is a compile error: the wildcard already exposes everything the destructure would name. Keep one form per path.
+- **Duplicate destructured names.** Two destructured bindings of the same name in one file — from two distinct modules, or shadowing a prelude binding — are a compile error.
 - Import cycles (`A → … → A`) are forbidden; the resolver emits a diagnostic.
 - **No re-exports.** A module cannot republish another module's bindings; a façade must wrap each binding manually.
 

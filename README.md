@@ -18,7 +18,7 @@ fast native binaries through a compiler that is written in Vader and compiles it
 module "main"
 
 import "std/io"
-import "std/math" { pi }
+import "std/math"
 
 // A sum type — `match` must cover every variant (the compiler checks).
 Shape :: Circle | Rect
