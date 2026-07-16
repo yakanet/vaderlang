@@ -421,7 +421,9 @@ emit_import :: fn(self: Printer, d: p.ImportDecl) -> void {
             self.write("import \"")
             self.write(d.path)
             self.write("\"")
-            self.emit_import_name_block(d, dst.names)
+            // `import "p" {}` — an empty modifier list is just the bare wildcard;
+            // normalise it away (this also silences W0011 on re-format).
+            if dst.names.len() > 0 { self.emit_import_name_block(d, dst.names) }
         }
     }
 }
