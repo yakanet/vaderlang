@@ -267,6 +267,12 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
             // does so the two passes can't drift again.
             return try_array_to_iter(recv_type, first)
         }
+        // A concrete receiver fitting a UNION first param (`i32` into `i32 | f32`)
+        // — the nominal-name check below misses it (a union has no surface name).
+        // Mirrors the typer's `receiver_fits_first_param` assignability lead ;
+        // without it the typer curries the UFCS call but the lowerer declines,
+        // mis-lowering `recv.f()` to a field-access on a primitive (midir panic).
+        if first is UnionType { return is_assignable(recv_type, first, null) }
         return type_surface_name(first) == type_surface_name(recv_type)
     }
     return false
