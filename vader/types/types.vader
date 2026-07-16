@@ -435,8 +435,7 @@ write_type_list :: fn(sb: StringBuilder, items: Type[], sep: string) -> void {
 
 // ---- canonical key + walk -------------------------------------------------
 
-/// Stable single-line key for a type. Used by mono-instance DCE
-/// (`structInstKey`), specialize's `implMethodEntries` indexing, and
+/// Stable single-line key for a type. Used by mono-instance DCE and
 /// any side-table keyed on Type identity. Distinct types always
 /// produce distinct keys ; equivalent types always produce equal keys.
 export canonical_key :: fn(t: Type) -> string {

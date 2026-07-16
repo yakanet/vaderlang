@@ -45,7 +45,7 @@ build_fn_concrete_subst :: fn(fd: FnDecl, typed: TypedProgram, type_args: Type[]
     return subst
 }
 
-// Mixed per-instance subst (.NET model, P1) : map each type-param to its concrete
+// Mixed per-instance subst (mixed flavor, P1) : map each type-param to its concrete
 // arg WHEN that arg is a PrimitiveType (the body sees `K = string` / `i32`, so
 // trait dispatch devirtualises and primops/atom-eq inline), else to `TY_ANY`
 // (references erase to one uniform-pointer body, like Java). The instance mangle
@@ -182,7 +182,7 @@ build_any_subst :: fn(sd: StructDecl, owner_typed: TypedProgram) -> Substitution
     return subst
 }
 
-/// Mixed struct-layout subst (.NET model, P2 — the box-vs-raw FIELD flip). Maps
+/// Mixed struct-layout subst (mixed flavor, P2 — the box-vs-raw FIELD flip). Maps
 /// each of `sd`'s type-params POSITIONALLY to its concrete instance arg WHEN that
 /// arg is a `PrimitiveType` (so a primitive field lands RAW — `Entry.key : string`
 /// / `i32`, not a boxed `Any`), else to `TY_ANY` (reference fields stay uniform-
@@ -392,7 +392,7 @@ keep_primitive_or_erase :: fn(t: Type) -> Type {
     return any_leaves_of(t)
 }
 
-// True when AT LEAST ONE type arg is a primitive value-type (the .NET-model gate,
+// True when AT LEAST ONE type arg is a primitive value-type (the mixed-flavor gate,
 // BROAD — incl `string`/`bool`/`char`, matching `mixed_any_suffix` /
 // `map_type_params_mixed`). Such an instance is monomorphized MIXED : primitives
 // kept concrete (devirt + primops/atom-eq inline), references erased to `Any`

@@ -1,6 +1,6 @@
 // A directly-consumed GENERIC `@generator` inlines like a non-generic one: the
 // instance substitution ({T, U}) is reconstructed at the fusion site (via
-// `infer_type_args` + the .NET-model flavor path), so `for v in gen_map(...)`
+// `infer_type_args` + the instance-flavor path), so `for v in gen_map(...)`
 // lowers to the flat loop — no boxed iterator, no virtual `next()`. This is the
 // path the `std/iter` combinator rewrites (map/filter as @generator) rely on.
 module "snippet"

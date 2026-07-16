@@ -31,42 +31,30 @@ export Stream :: enum {
 // itself stays string-typed so the runtime / VM dispatch stays tiny.
 @intrinsic write :: fn(out: Stream, msg: string) -> void
 
-// `@specialize` on the four print wrappers : without it, the erasure pass
-// folds every `println[T]` instance into one Any-typed body whose
-// `msg.to_string()` lowers to `virtual.call Display.to_string`. The DCE
-// then has to keep every `Display` impl alive (it can't gate primitive
-// receivers on struct reachability — see `src/midir/dce.ts:156`) — so a
-// trivial `println("hello")` drags in `i8/i16/.../f64/char/bool.to_string`
-// imports + vtable trampolines. Specialising monomorphises each instance,
-// so `to_string` resolves statically, no vtable is built, and the DCE
-// prunes everything down to the one impl actually called. Measured impact:
-// 169 → 42 bytecode lines, 16 → 2 imports, 18 → 4 fns, 15 → 0 vtable
-// entries on the `println("hello")` baseline.
-//
-// Generic Display-typed `[T: Display]` fns elsewhere (user code,
-// `std/testing`'s `assert_*`) face the same trade-off ; consider
-// `@specialize` whenever the wrapper is short and Display-only.
+// The four print wrappers are `Display`-generic. Monomorphisation keeps each
+// concrete instance separate — a `string` / primitive `msg` stays concrete
+// under the mixed-flavor path (`fn_instance_flavor` in
+// `vader/lower/lower_mono_fn.vader`), so `msg.to_string()` resolves to the one
+// impl actually used : no `virtual.call Display.to_string`, no vtable, and the
+// DCE prunes every unused `Display` impl. A trivial `println("hello")` stays at
+// ~42 bytecode lines / 4 fns instead of dragging in every `to_string`.
 
 /// Write `msg` to stdout without a trailing newline. Accepts any type
 /// implementing `Display` — the wrapper renders it via `to_string`
 /// before handing the string to the host.
-@specialize
 export print :: fn<T: Display>(msg: T) = write(.Stdout, msg.to_string())
 
 /// Write `msg` to stdout followed by a `\n`. See `print` for the
 /// Display routing rule.
-@specialize
 export println :: fn<T: Display>(msg: T) -> void {
     write(.Stdout, msg.to_string())
     write(.Stdout, "\n")
 }
 
 /// Write `msg` to stderr without a trailing newline.
-@specialize
 export eprint :: fn<T: Display>(msg: T) = write(.Stderr, msg.to_string())
 
 /// Write `msg` to stderr followed by a `\n`.
-@specialize
 export eprintln :: fn<T: Display>(msg: T) -> void {
     write(.Stderr, msg.to_string())
     write(.Stderr, "\n")

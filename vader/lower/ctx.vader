@@ -170,7 +170,7 @@ export LowerProjectCtx :: struct {
     /// same-name/same-arity overloads (`collect(arr: T[])` vs
     /// `collect(it: Iterator<T>)`) share a base mangle ; the second to
     /// register gets a `_1` suffix so the `dump_bytecode → parse_virt`
-    /// round-trip keeps distinct fn names. Mirrors `specialize.vader`.
+    /// round-trip keeps distinct fn names.
     seen_mangled:        MutableMap<string, bool>
 
     /// NON-generic free fns observed at call sites (UFCS or direct) in any

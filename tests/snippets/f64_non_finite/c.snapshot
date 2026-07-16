@@ -2786,11 +2786,11 @@ static vader_string_t std_core_format_unsigned(uint64_t l0) {
 static void std_io_println__string(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL };
     vader_gc_top = &gc_frame;
-#line 60 "stdlib/std/io/io.vader"
+#line 50 "stdlib/std/io/io.vader"
     vader_import_1(INT32_C(0), l0);
-#line 61 "stdlib/std/io/io.vader"
+#line 51 "stdlib/std/io/io.vader"
     vader_import_1(INT32_C(0), 14u);
-#line 59 "stdlib/std/io/io.vader"
+#line 49 "stdlib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
