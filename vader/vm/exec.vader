@@ -575,13 +575,8 @@ export exec_fn_value :: fn(state: VmState, mangled: string) -> ValueResult {
 narrow_mask :: fn(v: Value, vt: bc.ValType) -> Value {
     // Only the sub-32-bit widths need masking ; i32/i64 (and the unsigned u32/u64
     // read back through the unsigned view) already wrap at their width.
-    bits: i64 = 0
-    if vt == bc.ValType.U8 || vt == bc.ValType.I8 {
-        bits = 8
-    } else if vt == bc.ValType.U16 || vt == bc.ValType.I16 {
-        bits = 16
-    }
-    if bits == 0 { return v }
+    if !is_narrow_valtype(vt) { return v }
+    bits: i64 = if vt == bc.ValType.U8 || vt == bc.ValType.I8 { 8 } else { 16 }
     // A narrow slot only ever holds an int (carried as I32Val / I64Val).
     raw: i64 = 0
     if v is I32Val as i32v {
@@ -611,6 +606,25 @@ slot_valtype :: fn(body: bc.BcFunction, slot: i32) -> bc.ValType {
     li :: s - np
     if li < body.locals.len() { return body.locals[li].val }
     return bc.ValType.I32     // defensive : unknown slot ⇒ no masking
+}
+
+// True when `vt` is a sub-32-bit width whose stored VM value must be truncated
+// to that width (`narrow_mask`). Single source of truth for "narrow" : both
+// `narrow_mask`'s fast-out and the per-frame `cur_has_narrow` gate consult it.
+is_narrow_valtype :: fn(vt: bc.ValType) = vt == bc.ValType.U8 || vt == bc.ValType.I8 || vt == bc.ValType.U16 || vt == bc.ValType.I16
+
+// True when any of `body`'s param / local slots is a narrow width. Computed once
+// per frame entry (on the interpreter loop's body reload) and cached in
+// `cur_has_narrow`, so the hot `local.set` / `local.tee` path skips
+// `slot_valtype` + `narrow_mask` entirely for the common all-wide function.
+fn_has_narrow_slot :: fn(body: bc.BcFunction) -> bool {
+    for pvt in body.signature.params {
+        if is_narrow_valtype(pvt) { return true }
+    }
+    for lo in body.locals {
+        if is_narrow_valtype(lo.val) { return true }
+    }
+    return false
 }
 
 // ValType of a struct field's declared type (`BcField.type_index` → type table).
@@ -692,6 +706,10 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     body := state.bc.functions[usize(frame.function_index)]
     op_count := body.body.len()
     cur_top := init_top
+    // Narrow-mask fast path : most functions have only wide (i32/i64/ref) slots,
+    // so `local.set` / `local.tee` can skip `slot_valtype` + `narrow_mask`
+    // altogether. Recomputed alongside `body` whenever the active frame changes.
+    cur_has_narrow := fn_has_narrow_slot(body)
     // Monotonic synthetic object-handle source for `object_new` (diagnostics
     // only — object identity is the `ObjVal` reference itself, never a machine
     // address). A 1-cell array so element mutation survives the `::` binding.
@@ -742,6 +760,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             frame = frames[top]
             body = state.bc.functions[usize(frame.function_index)]
             op_count = body.body.len()
+            cur_has_narrow = fn_has_narrow_slot(body)
             cur_top = top
         }
 
@@ -828,7 +847,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if instr.slot < 0 || usize(instr.slot) >= frame.slots.len() {
                     return Trap { .message = "local.set slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
                 }
-                frame.slots[instr.slot] = narrow_mask(frame.stack[frame.sp - 1], slot_valtype(body, instr.slot))
+                raw :: frame.stack[frame.sp - 1]
+                frame.slots[instr.slot] = if cur_has_narrow { narrow_mask(raw, slot_valtype(body, instr.slot)) } else { raw }
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -841,9 +861,15 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 }
                 // Tee stores AND leaves the value on the stack ; when the slot is
                 // narrow the expression value is the truncated one, so mask both.
-                masked_tee :: narrow_mask(frame.stack[frame.sp - 1], slot_valtype(body, instr.slot))
-                frame.slots[instr.slot] = masked_tee
-                frame.stack[frame.sp - 1] = masked_tee
+                // The all-wide fast path (`cur_has_narrow` false) skips the mask.
+                raw_tee :: frame.stack[frame.sp - 1]
+                if cur_has_narrow {
+                    masked_tee :: narrow_mask(raw_tee, slot_valtype(body, instr.slot))
+                    frame.slots[instr.slot] = masked_tee
+                    frame.stack[frame.sp - 1] = masked_tee
+                } else {
+                    frame.slots[instr.slot] = raw_tee
+                }
                 frame.pc = frame.pc + 1
             }
             is bc.StringConst -> {
