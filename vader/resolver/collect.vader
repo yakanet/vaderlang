@@ -240,8 +240,7 @@ collect_import :: fn(
             // `import "p" { … }` — WILDCARD of p PLUS per-name modifiers:
             //   `x as _` excludes x ; `x as y` excludes x under its own name and
             //   binds it as y. A plain name (no `as`) is an error — the wildcard
-            //   already brings every export. (The `* { … }` spelling is the same
-            //   thing during the transition; `de.wildcard` no longer branches.)
+            //   already brings every export.
             self.wildcard_paths.push(d.path)
             excluded: string[] = []
             for n in de.names {
