@@ -57,6 +57,11 @@ export DeclEntry :: struct {
     signature:  string
     doc:        string
     scope_span: Span | null
+    /// True when this top-level decl is `export`ed. Lets the cross-file resolver
+    /// restrict a WILDCARD lookup to a module's public surface — a bare
+    /// `import "p"` exposes only p's exports, so goto-def must not land on p's
+    /// private decls. Always false for locals / params (never module-visible).
+    exported:   bool
 }
 
 /// One imported name : `import "<module>" { name [as alias], ... }`.
@@ -292,6 +297,18 @@ export find_toplevel :: fn(idx: DocIndex, name: string) -> DeclEntry | null {
     return null
 }
 
+/// Like `find_toplevel`, but only an `export`ed decl matches. Used to resolve a
+/// name brought into scope by a bare `import "p"` wildcard, which exposes only
+/// `p`'s public surface — so goto-def / hover never lands on a private decl.
+export find_exported_toplevel :: fn(idx: DocIndex, name: string) -> DeclEntry | null {
+    for d in idx.decls {
+        if d.scope_span is null && d.exported {
+            if d.name == name { return d }
+        }
+    }
+    return null
+}
+
 /// Find the import entry whose local name matches. Returns null on miss.
 export find_import :: fn(idx: DocIndex, name: string) -> ImportEntry | null {
     for i in idx.imports {
@@ -317,29 +334,29 @@ collect_decl :: fn(
             // contained in fullRange" check and drops the WHOLE response. Still
             // walk the body so goto-def works on locals inside the block.
             if !f.name.starts_with("__comptime_") {
-                entries.push(top_entry(f.name, .Fn, f.name_span, f.span, f.decorators, source, cmap))
+                entries.push(top_entry(f.name, .Fn, f.name_span, f.span, f.decorators, f.visibility == .Public, source, cmap))
             }
             ix_walk_fn_body(f, source, entries)
         }
         is StructDecl as s -> {
-            entries.push(top_entry(s.name, .Struct, s.name_span, s.span, s.decorators, source, cmap))
+            entries.push(top_entry(s.name, .Struct, s.name_span, s.span, s.decorators, s.visibility == .Public, source, cmap))
         }
         is EnumDecl as e -> {
-            entries.push(top_entry(e.name, .Enum, e.name_span, e.span, e.decorators, source, cmap))
+            entries.push(top_entry(e.name, .Enum, e.name_span, e.span, e.decorators, e.visibility == .Public, source, cmap))
         }
         is TraitDecl as t -> {
-            entries.push(top_entry(t.name, .Trait, t.name_span, t.span, t.decorators, source, cmap))
+            entries.push(top_entry(t.name, .Trait, t.name_span, t.span, t.decorators, t.visibility == .Public, source, cmap))
             // Trait members are fn decls — index their names too so
             // goto-def on a method-name reference can land somewhere.
             for m in t.members {
-                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m.decorators, source, cmap))
+                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m.decorators, false, source, cmap))
             }
         }
         is TypeAliasDecl as ta -> {
-            entries.push(top_entry(ta.name, .TypeAlias, ta.name_span, ta.span, ta.decorators, source, cmap))
+            entries.push(top_entry(ta.name, .TypeAlias, ta.name_span, ta.span, ta.decorators, ta.visibility == .Public, source, cmap))
         }
         is ConstDecl as c -> {
-            entries.push(top_entry(c.name, .Const, c.name_span, c.span, c.decorators, source, cmap))
+            entries.push(top_entry(c.name, .Const, c.name_span, c.span, c.decorators, c.visibility == .Public, source, cmap))
         }
         is ImplDecl as ib -> {
             // Impl members are fn decls on the target type. They
@@ -353,7 +370,7 @@ collect_decl :: fn(
                 // and crashes the whole `documentSymbol` response client-side.
                 // Their body is still walked for intra-fn goto-def bindings.
                 if m.name != "" {
-                    entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m.decorators, source, cmap))
+                    entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m.decorators, false, source, cmap))
                 }
                 ix_walk_fn_body(m, source, entries)
             }
@@ -365,7 +382,7 @@ collect_decl :: fn(
 
 top_entry :: fn(
     name: string, kind: DeclKind, name_span: Span, full_span: Span,
-    decorators: Decorator[],
+    decorators: Decorator[], exported: bool,
     source: string, cmap: CommentMap,
 ) -> DeclEntry {
     sig :: head_signature(full_span, source)
@@ -390,6 +407,7 @@ top_entry :: fn(
         .signature  = sig,
         .doc        = doc,
         .scope_span = null,
+        .exported   = exported,
     }
 }
 
@@ -415,6 +433,7 @@ binding_entry :: fn(
         .signature  = signature,
         .doc        = "",
         .scope_span = scope,
+        .exported   = false,
     }
 }
 

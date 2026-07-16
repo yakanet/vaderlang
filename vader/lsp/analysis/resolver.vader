@@ -56,7 +56,7 @@ export resolve :: fn(state: ServerState, idx: DocIndex, name: string) -> Externa
 // named `name`. Returns the first hit, or null when no wildcard provides it.
 resolve_wildcard :: fn(state: ServerState, idx: DocIndex, name: string) -> ExternalHit | null {
     for path in idx.wildcard_paths {
-        hit :: resolve_in_module(state, idx.uri, path, name)
+        hit :: resolve_in_module(state, idx.uri, path, name, true)
         if hit != null { return hit }
     }
     return null
@@ -77,7 +77,7 @@ resolve_sibling :: fn(from_uri: string, name: string, encoding: PositionEncoding
                 if !fname.ends_with_vader() { continue }
                 full :: path_join(dir, fname)
                 if full == from_path { continue }
-                hit :: lookup_in_file(full, name, encoding)
+                hit :: lookup_in_file(full, name, encoding, false)
                 match hit {
                     is ExternalHit as h -> { return h }
                     is null -> {}
@@ -89,13 +89,13 @@ resolve_sibling :: fn(from_uri: string, name: string, encoding: PositionEncoding
 }
 
 resolve_imported :: fn(state: ServerState, idx: DocIndex, imp: ImportEntry) -> ExternalHit | null =
-    resolve_in_module(state, idx.uri, imp.module_path, imp.original_name)
+    resolve_in_module(state, idx.uri, imp.module_path, imp.original_name, false)
 
 // Resolve `name` to a top-level decl in the module at `module_path` (as seen
 // from `from_uri`). Shared by the destructure (`resolve_imported`) and wildcard
 // (`resolve_wildcard`) paths — the only difference is where the `name` and path
 // come from.
-resolve_in_module :: fn(state: ServerState, from_uri: string, module_path: string, name: string) -> ExternalHit | null {
+resolve_in_module :: fn(state: ServerState, from_uri: string, module_path: string, name: string, exported_only: bool) -> ExternalHit | null {
     abs :: module_path_to_absolute(module_path, state, from_uri)
     if abs.bytes().len() == 0 { return null }
 
@@ -109,7 +109,7 @@ resolve_in_module :: fn(state: ServerState, from_uri: string, module_path: strin
                 for fname in files {
                     if !fname.ends_with_vader() { continue }
                     full :: path_join(abs, fname)
-                    hit :: lookup_in_file(full, name, state.position_encoding)
+                    hit :: lookup_in_file(full, name, state.position_encoding, exported_only)
                     match hit {
                         is ExternalHit as h -> { return h }
                         is null -> {}
@@ -122,21 +122,23 @@ resolve_in_module :: fn(state: ServerState, from_uri: string, module_path: strin
 
     // File-form module : single `<abs>.vader`.
     with_ext :: ensure_vader_ext(abs)
-    return lookup_in_file(with_ext, name, state.position_encoding)
+    return lookup_in_file(with_ext, name, state.position_encoding, exported_only)
 }
 
 // Read `path` from disk, parse + index it, hunt for `name` among the
 // top-level decls. Returns `null` when the file doesn't exist, fails
 // to read, or doesn't export `name`. The returned URI is `file://`
 // + the absolute path so editors jump correctly.
-lookup_in_file :: fn(path: string, name: string, encoding: PositionEncoding) -> ExternalHit | null {
+lookup_in_file :: fn(path: string, name: string, encoding: PositionEncoding, exported_only: bool) -> ExternalHit | null {
     src_or :: read_file_string(path)
     match src_or {
         is IOError -> { return null }
         is string as src -> {
             uri :: path_to_uri(path)
             sub :: build_index(uri, src, encoding)
-            d :: sub.find_toplevel(name)
+            // A wildcard exposes only the module's public surface, so restrict to
+            // exported decls there; a same-module sibling sees private decls too.
+            d :: if exported_only { sub.find_exported_toplevel(name) } else { sub.find_toplevel(name) }
             if d == null { return null }
             return ExternalHit { .uri = uri, .target = d }
         }

@@ -253,7 +253,16 @@ bind_import :: fn(
     match existing {
         is Symbol as e -> {
             if e.kind == SymbolKind.ImportBinding {
-                // Import↔import : silent first-wins (dedup).
+                // Import↔import : silent only for a TRUE re-import — identical
+                // source (same path AND same imported name), e.g. the same name
+                // imported twice or a duplicated wildcard path. A DIFFERENT source
+                // binding the same local name (two modules' `foo`, or a destructure
+                // shadowing a namespace alias) is a genuine collision: R2011, no
+                // silent first-wins (SPEC §Imports).
+                prev :: self.imports[e.id]
+                if prev != null && !(prev.path == import_path && names_equal(prev.imported_name, imported_name)) {
+                    diags.push(resolver_error(.DuplicateImportBinding, span, "`${local}`"))
+                }
             } else if e.kind == SymbolKind.Fn {
                 // fn↔import : coexist (order-independent with `add_fn`). The
                 // import may be a free-fn overload of the local fn — a different
@@ -285,6 +294,14 @@ bind_import :: fn(
             }
         }
     }
+}
+
+// Structural equality of two optional imported-name slots: a destructure binding
+// carries the source name, a namespace binding carries null.
+names_equal :: fn(a: string | null, b: string | null) -> bool {
+    if a == null { return b == null }
+    if b == null { return false }
+    return a == b
 }
 
 /// Resolve `import "name"` against the project-wide module index.

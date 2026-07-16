@@ -1,0 +1,3 @@
+module "snippet/forms"
+
+export Field :: struct { name: string }

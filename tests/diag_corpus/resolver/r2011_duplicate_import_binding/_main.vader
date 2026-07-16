@@ -1,0 +1,12 @@
+// Two destructured bindings claim the same local name `p` from DIFFERENT source
+// names — a genuine collision, not a re-import (which is silent). R2011 rejects
+// it: the SPEC forbids silent first-wins across import lines in one file.
+module "snippet"
+
+import "std/io" { println as p }
+import "std/io" { print as p }
+
+main :: fn() -> i32 {
+    p("hi")
+    return 0
+}

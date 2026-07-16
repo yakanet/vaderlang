@@ -109,6 +109,7 @@ export wildcard_exposable :: fn(k: SymbolKind) = k == SymbolKind.Fn || k == Symb
 /// unqualified reference actually resolves to one of these ambiguous names.
 export wildcard_ambiguities :: fn(
     name_index: MutableMap<string, LoadedModule>, wildcard_paths: string[],
+    base: MutableMap<string, Symbol>,
 ) -> MutableMap<string, string[]> {
     providers :: MutableMap<string, string[]> {}
     for path in wildcard_paths {
@@ -117,6 +118,11 @@ export wildcard_ambiguities :: fn(
         for [_, sym] in target.collected.symbols {
             if !wildcard_exposable(sym.kind) { continue }
             if sym.visibility != .Public { continue }
+            // A name the prelude also owns is never ambiguous: the seed is
+            // prelude-first fill-empty, so an unqualified reference always binds
+            // the core symbol — the wildcard exports are dropped. Skip it so R2031
+            // doesn't fire on a reference that unambiguously resolves to the core.
+            if base[sym.name] != null { continue }
             lst :: providers[sym.name]
             if lst is null {
                 providers[sym.name] = [path]
