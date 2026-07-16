@@ -641,17 +641,28 @@ parse_import_decl :: fn(p: Parser, decorators: Decorator[]) -> ImportDecl {
         if p.check(.Ident) { p.advance() }
     }
 
+    // `import "p" * { … }` — the intermediate wildcard-modifiers form (a `*`
+    // before the brace marks it). `import "p" { … }` (no `*`) is the legacy
+    // allow-list, kept until every import is migrated off it.
+    star := false
+    if p.check(.Star) {
+        p.advance()
+        star = true
+    }
     if p.match_kind(.LBrace) != null {
-        // `import "..." { a, b }` — destructure : names into top-level scope.
         names :: p.parse_import_name_list_rest()
         return ImportDecl {
             .span       = p.span_of(start, p.peek_at(-1)),
             .path       = path_info.text,
-            .binding    = DestructureImport { .names = names },
+            .binding    = DestructureImport { .names = names, .wildcard = star },
             .decorators = decorators,
         }
     }
-    // bare `import "..."` — wildcard : every function of the module callable.
+    if star {
+        p.error(.ExpectedToken, p.peek().span,
+            "`{` after `*` — write `import \"...\" * { x as y, z as _ }`")
+    }
+    // bare `import "..."` — wildcard : every public export of the module callable.
     return ImportDecl {
         .span       = p.span_of(start, p.peek_at(-1)),
         .path       = path_info.text,

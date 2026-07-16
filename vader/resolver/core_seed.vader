@@ -69,11 +69,14 @@ export find_async_module_id :: fn(project: LoadedProject) -> string | null {
 /// @param name_index      module-name → LoadedModule, from `module_index_by_name`
 ///                        (built once per project, so this stays O(1) per path).
 /// @param wildcard_paths  the importing module's `CollectedModule.wildcard_paths`.
+/// @param excludes        per-path names dropped by a `{ x as _, y as z }` modifier
+///                        list (`CollectedModule.wildcard_excludes`) — skipped here.
 /// @param base            the shared core-prelude seed from `build_core_seed`.
 /// @return                `base` when `wildcard_paths` is empty ; otherwise a
-///                        fresh map = `base` plus each target's public fns.
+///                        fresh map = `base` plus each target's public exports.
 export build_wildcard_seed :: fn(
     name_index: MutableMap<string, LoadedModule>, wildcard_paths: string[],
+    excludes: MutableMap<string, string[]>,
     base: MutableMap<string, Symbol>,
 ) -> MutableMap<string, Symbol> {
     if wildcard_paths.len() == 0 { return base }
@@ -82,9 +85,11 @@ export build_wildcard_seed :: fn(
     for path in wildcard_paths {
         target :: name_index[path]
         if target is null { continue }
+        ex :: excludes[path]
         for [_, sym] in target.collected.symbols {
             if !wildcard_exposable(sym.kind) { continue }
             if sym.visibility != .Public { continue }
+            if ex != null && sym.name in ex { continue }   // `{ x as _ }` / rename source
             existing :: out[sym.name]
             if existing is null { out[sym.name] = sym }
         }
@@ -109,15 +114,20 @@ export wildcard_exposable :: fn(k: SymbolKind) = k == SymbolKind.Fn || k == Symb
 /// unqualified reference actually resolves to one of these ambiguous names.
 export wildcard_ambiguities :: fn(
     name_index: MutableMap<string, LoadedModule>, wildcard_paths: string[],
+    excludes: MutableMap<string, string[]>,
     base: MutableMap<string, Symbol>,
 ) -> MutableMap<string, string[]> {
     providers :: MutableMap<string, string[]> {}
     for path in wildcard_paths {
         target :: name_index[path]
         if target is null { continue }
+        ex :: excludes[path]
         for [_, sym] in target.collected.symbols {
             if !wildcard_exposable(sym.kind) { continue }
             if sym.visibility != .Public { continue }
+            // A name a `{ x as _ }` / rename modifier dropped isn't provided by
+            // this path, so it can't be an ambiguity source here.
+            if ex != null && sym.name in ex { continue }
             // A name the prelude also owns is never ambiguous: the seed is
             // prelude-first fill-empty, so an unqualified reference always binds
             // the core symbol — the wildcard exports are dropped. Skip it so R2031

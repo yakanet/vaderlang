@@ -440,5 +440,14 @@ merge_collected :: fn(dst: CollectedModule, src: CollectedModule, diags: Diagnos
     }
     for p in src.import_paths { dst.import_paths.push(p) }
     for p in src.wildcard_paths { dst.wildcard_paths.push(p) }
+    for [path, names] in src.wildcard_excludes {
+        existing :: dst.wildcard_excludes[path]
+        if existing is null {
+            dst.wildcard_excludes[path] = names
+        } else {
+            for n in names { existing.push(n) }
+            dst.wildcard_excludes[path] = existing
+        }
+    }
 }
 

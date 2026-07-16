@@ -31,10 +31,16 @@ export CollectedModule :: struct {
     /// Raw `import "path"` entries in source order — the loader uses
     /// these to walk the module graph transitively.
     import_paths: string[]
-    /// Paths of bare `import "path"` (wildcard) imports — every public
-    /// function of each becomes callable in this module (prefix + UFCS).
+    /// Paths of `import "path"` (wildcard) imports — every public export of
+    /// each becomes callable in this module (prefix + UFCS). Both the bare form
+    /// and `import "path" { … }` (wildcard-plus-modifiers) land here.
     /// Consumed by `build_wildcard_seed` before the body walk.
     wildcard_paths: string[]
+    /// Per-path exclusions from a `import "path" { x as _, y as z }` modifier
+    /// list — every listed source name (both `as _` and rename sources) is
+    /// removed from that path's wildcard. `build_wildcard_seed` /
+    /// `wildcard_ambiguities` skip these; renames rebind via `imports`.
+    wildcard_excludes: MutableMap<string, string[]>
 }
 
 /// Mint top-level symbols for `program`. Order of insertion mirrors source
@@ -53,11 +59,12 @@ export collect_module :: fn(
     index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[],
 ) -> CollectedModule {
     out :: CollectedModule {
-        .symbols        = MutableMap<string, Symbol> {},
-        .fn_overloads   = MutableMap<string, Symbol[]> {},
-        .imports        = new_import_table(),
-        .import_paths   = [],
-        .wildcard_paths = [],
+        .symbols           = MutableMap<string, Symbol> {},
+        .fn_overloads      = MutableMap<string, Symbol[]> {},
+        .imports           = new_import_table(),
+        .import_paths      = [],
+        .wildcard_paths    = [],
+        .wildcard_excludes = MutableMap<string, string[]> {},
     }
     check_import_form_conflict(program.decls, diags)
     for d in program.decls {
@@ -230,14 +237,41 @@ collect_import :: fn(
             self.wildcard_paths.push(d.path)
         }
         is DestructureImport as de -> {
-            for n in de.names {
-                local := match n.alias {
-                    is string as alias -> alias
-                    is null            -> n.name
+            if de.wildcard {
+                // `import "p" * { … }` — WILDCARD of p PLUS per-name modifiers:
+                //   `x as _` excludes x ; `x as y` excludes x under its own name
+                //   and binds it as y. A plain name (no `as`) is an error here —
+                //   the wildcard already brings every export.
+                self.wildcard_paths.push(d.path)
+                excluded: string[] = []
+                for n in de.names {
+                    match n.alias {
+                        is null -> {
+                            diags.push(resolver_error(.PlainNameInImportModifiers, n.span, "`${n.name}`"))
+                        }
+                        is string as alias -> {
+                            // Every modifier drops its source name from the wildcard.
+                            excluded.push(n.name)
+                            // `as _` is a pure exclusion ; any other alias renames —
+                            // bind `alias → p.<n.name>` via the usual ImportBinding path.
+                            if alias != "_" {
+                                self.bind_import(alias, n.span, d.path, n.name, module_path, factory, diags)
+                            }
+                        }
+                    }
                 }
-                // `import "p" { foo as bar }` — imported_name is `foo`,
-                // local binding is `bar` (or `foo` if no alias).
-                self.bind_import(local, n.span, d.path, n.name, module_path, factory, diags)
+                self.wildcard_excludes[d.path] = excluded
+            } else {
+                // Legacy `import "p" { a, b as c }` — ALLOW-LIST : only the listed
+                // names enter scope. Kept until every import is migrated to the
+                // `* { … }` form ; then this branch (and the flag) are removed.
+                for n in de.names {
+                    local := match n.alias {
+                        is string as alias -> alias
+                        is null            -> n.name
+                    }
+                    self.bind_import(local, n.span, d.path, n.name, module_path, factory, diags)
+                }
             }
         }
     }

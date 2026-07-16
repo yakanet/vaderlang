@@ -1,0 +1,8 @@
+// A plain name (no `as`) inside a `* { … }` modifier list is invalid — the
+// wildcard already brings every export. Use `x as _` (exclude) or `x as y`
+// (rename), or a bare `import "std/io"` for the plain wildcard. R2033.
+module "snippet"
+
+import "std/io" * { println }
+
+main :: fn() -> i32 = 0

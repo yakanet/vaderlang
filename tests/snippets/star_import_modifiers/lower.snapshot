@@ -1,0 +1,22 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    ~>
+      add :i32
+        l:
+          call :i32
+            callee:
+              draw :fn() -> i32
+        r:
+          call :i32
+            callee:
+              compute_bounding_box :fn() -> i32
+
+## snippet/toolkit
+  fn snippet_toolkit$draw() -> i32
+    ~>
+      int(10) :i32
+  fn snippet_toolkit$compute_bounding_box() -> i32
+    ~>
+      int(30) :i32
