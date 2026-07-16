@@ -235,6 +235,12 @@ const C_PARITY = new Set<string>([
   // increment must run on a var-targeted `continue` (else it spins) — native run
   // is the guard on that reconciliation. See loop-jump-by-variable.md.
   "loop_break_by_var",
+  // Regression guard for the narrow-int VM width fix (2026-07-16): the VM now
+  // truncates narrow-integer arithmetic / casts / returns / struct-literal fields
+  // to width (u8 200+100 → 44) at the store boundaries, matching native. Guards
+  // native output == vm.snapshot so the VM and native can't drift on narrow-int
+  // wrap again. See .claude/plans/narrow-int-width-truncation.md.
+  "narrow_int_wrap",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

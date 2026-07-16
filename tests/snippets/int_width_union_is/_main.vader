@@ -1,0 +1,39 @@
+// tests/snippets/int_width_union_is — `is` on a union mixing integer
+// widths narrows incorrectly, and the two backends disagree.
+//
+// Repro of a VM/native divergence found 2026-07-16 by differential fuzzing
+// (VM vs native C-emit). PARKED (2026-07-16): deprioritized behind
+// narrow_int_wrap; kept as a record. This is the integer analog of the
+// f32-union `is` fix (e29891685).
+//
+// For `x: i32 | i64 | u8`, `tag` should report 1 for a u8, 2 for an i64, 3 for
+// a free-i32-literal — i.e. `1 2 3`.
+//
+//   backend   output   what happens
+//   expected  1 2 3    each width distinguished
+//   VM        1 1 1    the FIRST `is <intType>` tested matches ANY integer
+//                      value (coarse I64 box tag matches every width)
+//   native    3 2 3    `is i64` works, but `is u8` NEVER matches a real u8
+//                      (a u8 value is boxed with a tag != the u8 type-id)
+//
+// Neither backend is correct AND they diverge. Design question (open): reject
+// width-mixed integer unions at the typer, alias all widths for `is` (as
+// f32 was aliased to f64), or carry precise primitive tags in the box.
+
+module "snippet"
+
+import "std/io"
+
+tag :: fn(x: i32 | i64 | u8) -> i32 {
+    if x is u8  { return 1 }
+    if x is i64 { return 2 }
+    return 3
+}
+
+main :: fn() -> i32 {
+    a: u8 = 5
+    b: i64 = 9999999999
+    // expected "1 2 3" ; VM prints "1 1 1" ; native prints "3 2 3"
+    println("${tag(a)} ${tag(b)} ${tag(7)}")
+    return 0
+}

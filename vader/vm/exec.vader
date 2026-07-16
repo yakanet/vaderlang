@@ -815,6 +815,68 @@ export exec_fn_value :: fn(state: VmState, mangled: string) -> ValueResult {
     return Trap { .message = "exec_fn_value: no function named '${mangled}'" }
 }
 
+// Mask an integer `Value` to a narrow ValType's width (`u8` / `u16` / `i8` /
+// `i16`), mirroring the truncation a native narrow-storage slot applies. The VM
+// stores every integer as a wide `I32Val` / `I64Val` with no width tag, and the
+// bytecode's arith ops are width-aliased to the I32/I64 family (`op_select.vader`),
+// so a sub-32-bit result (`u8 200 + 100` → 300) keeps the wide value. Native
+// truncates for free via the C `uint8_t` local / field / return type ; this is
+// the VM's equivalent, applied at the store boundaries (`local.set` / `Return` /
+// slot store). Non-narrow ValTypes return `v` unchanged — `i32` / `i64` (and the
+// unsigned `u32` / `u64`, read back through the unsigned view) already wrap at
+// their width via native `i32` / `i64` overflow.
+narrow_mask :: fn(v: Value, vt: bc.ValType) -> Value {
+    // Only the sub-32-bit widths need masking ; i32/i64 (and the unsigned u32/u64
+    // read back through the unsigned view) already wrap at their width.
+    bits: i64 = 0
+    if vt == bc.ValType.U8 || vt == bc.ValType.I8 {
+        bits = 8
+    } else if vt == bc.ValType.U16 || vt == bc.ValType.I16 {
+        bits = 16
+    }
+    if bits == 0 { return v }
+    // A narrow slot only ever holds an int (carried as I32Val / I64Val).
+    raw: i64 = 0
+    if v is I32Val as i32v {
+        raw = i64(i32v.value)
+    } else if v is I64Val as i64v {
+        raw = i64v.value
+    } else {
+        return v
+    }
+    m :: raw & ((i64(1) << bits) - i64(1))
+    signed :: vt == bc.ValType.I8 || vt == bc.ValType.I16
+    out: i64 = m
+    if signed && (m & (i64(1) << (bits - i64(1)))) != i64(0) {
+        // top bit set ⇒ sign-extend
+        out = m - (i64(1) << bits)
+    }
+    return I32Val { .value = i32(out) }
+}
+
+// Declared ValType of a local slot. Params occupy the low slots
+// (`signature.params`), then the fn body's additional locals (`BcFunction` doc :
+// slot of `locals[i]` is `params.len() + i`). Backs the `local.set` narrow-mask.
+slot_valtype :: fn(body: bc.BcFunction, slot: i32) -> bc.ValType {
+    np :: body.signature.params.len()
+    s :: usize(slot)
+    if s < np { return body.signature.params[s] }
+    li :: s - np
+    if li < body.locals.len() { return body.locals[li].val }
+    return bc.ValType.I32     // defensive : unknown slot ⇒ no masking
+}
+
+// ValType of a struct field's declared type (`BcField.type_index` → type table).
+// A non-primitive field returns `Ref` (never narrow), so `narrow_mask` no-ops.
+// Backs the `struct.new` narrow-field mask : a struct literal builds its fields
+// straight from the stack (`build_struct`) with no intervening narrow `local.set`.
+field_valtype :: fn(types: bc.BcType[], type_index: i32) -> bc.ValType {
+    if type_index < 0 || usize(type_index) >= types.len() { return bc.ValType.Ref }
+    t :: types[usize(type_index)]
+    if t is bc.BcPrimitive as p { return p.val }
+    return bc.ValType.Ref
+}
+
 /// Core interpreter loop, entered at `entry_index`. `exec` / `exec_fn` pick the
 /// entry (main vs a named `@test`).
 export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], capture: Value[] | null, is_comptime: bool, debug: DebugController | null) -> VmResult {
@@ -1019,7 +1081,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if instr.slot < 0 || usize(instr.slot) >= frame.slots.len() {
                     return Trap { .message = "local.set slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
                 }
-                frame.slots[instr.slot] = frame.stack[frame.sp - 1]
+                frame.slots[instr.slot] = narrow_mask(frame.stack[frame.sp - 1], slot_valtype(body, instr.slot))
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1030,7 +1092,11 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if instr.slot < 0 || usize(instr.slot) >= frame.slots.len() {
                     return Trap { .message = "local.tee slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
                 }
-                frame.slots[instr.slot] = frame.stack[frame.sp - 1]
+                // Tee stores AND leaves the value on the stack ; when the slot is
+                // narrow the expression value is the truncated one, so mask both.
+                masked_tee :: narrow_mask(frame.stack[frame.sp - 1], slot_valtype(body, instr.slot))
+                frame.slots[instr.slot] = masked_tee
+                frame.stack[frame.sp - 1] = masked_tee
                 frame.pc = frame.pc + 1
             }
             is bc.StringConst -> {
@@ -2049,13 +2115,15 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             is bc.Return -> {
                 has_value :: frame.sp > 0
                 return_value: Value = I32Val { .value = 0 }
-                if has_value { return_value = frame.stack[frame.sp - 1] }
+                // Narrow return type ⇒ truncate to width, like a C `uint8_t` return.
+                if has_value { return_value = narrow_mask(frame.stack[frame.sp - 1], body.signature.result) }
                 outcome :: finalise_return(return_value, has_value, frame.pc, frames, frame_count, "return from main", capture)
                 if !(outcome is null) { return outcome }
             }
             is bc.ReturnLit -> {
-                return_value :: const_op_value(instr.value, state.bc.strings, frame.pc)
-                if return_value is Trap { return return_value }
+                raw_ret :: const_op_value(instr.value, state.bc.strings, frame.pc)
+                if raw_ret is Trap { return raw_ret }
+                return_value :: narrow_mask(raw_ret, body.signature.result)
                 outcome :: finalise_return(return_value, true, frame.pc, frames, frame_count, "return.lit from main", capture)
                 if !(outcome is null) { return outcome }
             }
@@ -2280,7 +2348,11 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> Trap | nul
     arg_base :: frame.sp - field_count
     fields: Value[] = []
     for field_index in 0..<field_count {
-        fields.push(frame.stack[arg_base + field_index])
+        // Narrow-typed field ⇒ truncate to width, mirroring a C narrow struct
+        // field ; the literal's field value comes straight off the stack with no
+        // intervening narrow `local.set` to mask it (see narrow-int-width plan).
+        fvt :: field_valtype(types, type_decl.fields[field_index].type_index)
+        fields.push(narrow_mask(frame.stack[arg_base + field_index], fvt))
     }
     new_struct :: StructVal { .type_id = type_id, .fields = fields }
     push_value(frame.stack, arg_base, new_struct)

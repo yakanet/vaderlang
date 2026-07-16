@@ -1,0 +1,34 @@
+# Typecheck
+
+## tests/snippets/narrow_int_wrap
+  FnDecl         add_u8               :: fn(u8, u8) -> u8
+  FnDecl         main                 :: fn() -> i32
+  expr 29:36    BinaryExpr     :: u8
+  expr 29:36    IdentExpr      :: u8
+  expr 29:40    IdentExpr      :: u8
+  expr 36:13    StringLitExpr  :: string
+  expr 36:25    BinaryExpr     :: u8
+  expr 36:25    IdentExpr      :: u8
+  expr 36:29    IdentExpr      :: u8
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn(T) -> void
+  expr 40:5     BinaryExpr     :: u8
+  expr 40:5     IdentExpr      :: u8
+  expr 41:13    StringLitExpr  :: string
+  expr 41:25    IdentExpr      :: u8
+  expr 41:5     CallExpr       :: void
+  expr 41:5     IdentExpr      :: fn(T) -> void
+  expr 44:13    StringLitExpr  :: string
+  expr 44:19    CallExpr       :: u8
+  expr 44:19    IdentExpr      :: fn(u8, u8) -> u8
+  expr 44:26    IdentExpr      :: u8
+  expr 44:29    IdentExpr      :: u8
+  expr 44:5     CallExpr       :: void
+  expr 44:5     IdentExpr      :: fn(T) -> void
+  expr 48:10    CallExpr       :: u8
+  expr 48:10    IdentExpr      :: type
+  expr 48:13    IdentExpr      :: i32
+  expr 49:13    StringLitExpr  :: string
+  expr 49:21    IdentExpr      :: u8
+  expr 49:5     CallExpr       :: void
+  expr 49:5     IdentExpr      :: fn(T) -> void
