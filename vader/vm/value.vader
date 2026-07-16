@@ -553,6 +553,12 @@ export primitive_matches :: fn(v: Value, val: bc.ValType) -> bool {
     // through its no-match `return` and the lexer silently dropped every
     // computed integer literal.
     if is_integer_alias(val) { return v is I32Val || v is I64Val }
+    // `f32` has no dedicated Value variant — every VM float rides in `F64Val`
+    // (mirrors how width-suffixed ints ride in I32Val / I64Val above). Without
+    // this, an `f32` value checked `is f32` — e.g. the float member of an
+    // `i32 | f32` union — describes as "f64" and matches nothing, so the narrow
+    // yields NEITHER. `f64` is already caught by the exact-name check above.
+    if val == .F32 { return v is F64Val }
     return false
 }
 
