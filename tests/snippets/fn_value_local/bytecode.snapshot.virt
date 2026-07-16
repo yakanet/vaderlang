@@ -1,7 +1,6 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 fn (1,1) -> 1
 export main 1
 
 fn 0 snippet$add (i32,i32) -> i32
@@ -12,12 +11,8 @@ fn 0 snippet$add (i32,i32) -> i32
 end
 
 fn 1 snippet$main () -> i32
-  local f ref
-  fn.ref 0 2
-  local.set 0
   i32.const 2
   i32.const 3
-  local.get 0
-  call.indirect 2
+  call 0
   return
 end

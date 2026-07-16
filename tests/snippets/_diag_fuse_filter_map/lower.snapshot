@@ -32,7 +32,7 @@
           cond:
             call :bool
               callee:
-                pred :fn(i32) -> bool
+                is_even :fn(i32) -> bool
               arg0:
                 x :?
           then:
@@ -40,7 +40,7 @@
             let x: i64 =
               call :i64
                 callee:
-                  f :fn(i32) -> i64
+                  square_i64 :fn(i32) -> i64
                 arg0:
                   x :?
             assign

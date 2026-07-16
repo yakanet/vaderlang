@@ -4,24 +4,34 @@
   fn snippet$main() -> i32
     let n: ? =
       LoweredCellNew
-    let inc: fn() -> i32 =
-      LoweredMakeClosure
+    let inc: __lambda_env_2 =
+      __lambda_env_2 {
+        cap_0: n :i32
+      }
     let a: i32 =
       call :i32
         callee:
-          inc :fn() -> i32
+          __lambda_1 :fn() -> i32
+        arg0:
+          inc :__lambda_env_2
     let b: i32 =
       call :i32
         callee:
-          inc :fn() -> i32
+          __lambda_1 :fn() -> i32
+        arg0:
+          inc :__lambda_env_2
     let c: i32 =
       call :i32
         callee:
-          inc :fn() -> i32
+          __lambda_1 :fn() -> i32
+        arg0:
+          inc :__lambda_env_2
     let d: i32 =
       call :i32
         callee:
-          inc :fn() -> i32
+          __lambda_1 :fn() -> i32
+        arg0:
+          inc :__lambda_env_2
     return
       add :i32
         l:

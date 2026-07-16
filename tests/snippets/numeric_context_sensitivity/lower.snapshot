@@ -713,8 +713,9 @@
                 __buf_8 :Buffer
               arg1:
                 __off_9 :usize
-    let forty_two: fn() -> usize =
-      LoweredMakeClosure
+    let forty_two: __lambda_env_12 =
+      __lambda_env_12 {
+      }
     call :void
       callee:
         std_io$println__string :void
@@ -753,9 +754,7 @@
                   __off_12 :usize
                 arg2:
                   cast → u64
-                    call :usize
-                      callee:
-                        forty_two :fn() -> usize
+                    int(42) :usize
           ~>
             call :string
               callee:

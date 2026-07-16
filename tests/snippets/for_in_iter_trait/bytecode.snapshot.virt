@@ -24,8 +24,7 @@ type 21 struct std_core$Yield__char { value:3 }
 type 22 struct std_string$StringChars { bytes:18,cursor:6,length:6 }
 type 23 union 0,21
 type 24 struct __Tuple_35 { _0:3,_1:6 }
-type 25 fn (3) -> 4
-type 26 union 21,0
+type 25 union 21,0
 string 0 "range sum  = "
 string 1 "array sum  = "
 string 2 "hello, world!"
@@ -90,30 +89,26 @@ end
 
 fn 2 snippet$count_ls (string) -> usize
   local __count_0 usize
-  local pred ref
   local __fuse_iter_2 ref
   local __fuse_step_3 any
   i64.const 0
   local.set 1
-  fn.ref 1 25
-  local.set 2
   local.get 0
   call 16
-  local.set 3
+  local.set 2
   block $L0 void
     loop $L1 void
-      local.get 3
+      local.get 2
       call 17
-      local.tee 4
+      local.tee 3
       type_check 0
       if $L2 void
       else
-        local.get 4
+        local.get 3
         ref.cast 21
         struct.get 21 0
         ref.cast 3
-        local.get 2
-        call.indirect 25
+        call 1
         if $L3 void
           local.get 1
           i64.const 1

@@ -8,7 +8,6 @@ type 5 primitive string
 type 6 primitive i64
 type 7 primitive u8
 type 8 primitive void
-type 9 fn (1) -> 2
 string 0 "fuse_filter total="
 string 1 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
@@ -27,39 +26,36 @@ end
 
 fn 1 main$main () -> i32
   local total i32
-  local pred ref
   local x i32
   local x i32
+  local __buf_0 ref
   local __off_1 usize
   local $cast_20 i64
   i32.const 0
   local.set 0
-  fn.ref 0 9
-  local.set 1
   i32.const 0
-  local.set 2
+  local.set 1
   block $L0 void
     loop $L1 void
-      local.get 2
+      local.get 1
       i32.const 10
       i32.lt
       if $L2 void
-        local.get 2
         local.get 1
-        call.indirect 9
+        call 0
         if $L3 void
-          local.get 2
-          local.set 3
+          local.get 1
+          local.set 2
           local.get 0
-          local.get 3
+          local.get 2
           i32.add
           local.set 0
         else
         end $L3
-        local.get 2
+        local.get 1
         i32.const 1
         i32.add
-        local.set 2
+        local.set 1
         br $L1
       else
       end $L2
@@ -67,10 +63,10 @@ fn 1 main$main () -> i32
   end $L0
   i64.const 38
   call 2
-  local.set 1
+  local.set 3
   i64.const 0
   local.set 4
-  local.get 1
+  local.get 3
   local.get 4
   string.const 0
   call 4
@@ -78,12 +74,12 @@ fn 1 main$main () -> i32
   local.get 0
   i32.to_i64
   local.set 5
-  local.get 1
+  local.get 3
   local.get 4
   local.get 5
   call 5
   local.set 4
-  local.get 1
+  local.get 3
   local.get 4
   call 3
   call 6

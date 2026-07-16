@@ -4,26 +4,15 @@ type 1 primitive i32
 type 2 struct __lambda_env_2 { cap_0:3 }
 type 3 ref _
 type 4 struct $Cell_i32 { value:1 }
-type 5 fn (1) -> 1
 export main 0
 
 fn 0 snippet$main () -> i32
-  local add_x ref
   i32.const 12
   struct.new 4
-  struct.new 2
-  make_closure 1 5
-  local.set 0
-  i32.const 5
-  local.get 0
-  call.indirect 5
-  return
-end
-
-fn 1 __lambda_1 (ref,i32) -> i32
-  local.field 0 2 0
+  struct.new_stack 2
+  struct.get 2 0
   struct.get 4 0
-  local.get 1
+  i32.const 5
   i32.add
   return
 end
