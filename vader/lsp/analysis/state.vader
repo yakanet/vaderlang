@@ -26,6 +26,11 @@ export ProjectCache :: struct {
     project:    LoadedProject
     result:     CheckResult
     diags:      Diagnostic[]
+    /// Module-name → `LoadedModule` map (`module_index_by_name`), built once per
+    /// cache entry so per-request consumers (wildcard completion) don't rebuild
+    /// it. Keyed by the logical `module "..."` name — the string an `import`
+    /// uses — not the resolved filesystem path.
+    module_name_index: MutableMap<string, LoadedModule>
 }
 
 /// One LSP server instance's document table. The single shared state is
@@ -138,6 +143,7 @@ export typed_project_for :: fn(self: ServerState, file_path: string) -> ProjectC
     fc :: check_file(file_path, doc_overlay(self), [], false)
     entry :: ProjectCache {
         .entry_path = file_path, .project = fc.project, .result = fc.result, .diags = fc.diags,
+        .module_name_index = module_index_by_name(fc.project),
     }
     self.cache = entry
     return entry

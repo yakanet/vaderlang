@@ -484,6 +484,39 @@ test("lsp: member completion resolves an imported struct's fields", async () => 
   expect(list.items.find((i) => i.label === "width")?.detail).toBe("i32");
 }, { timeout: MEDIUM_BUILD });
 
+// Tier-1 completion must offer names a bare `import "p"` WILDCARD brings into
+// scope. A wildcard binds no named `ImportEntry`, so the per-file index records
+// only the path; the exports are enumerated from the typed project. Regression:
+// wildcard-exposed names were silently absent from scope completion.
+const WILDCARD_IMPORT_SOURCE = `module "demo"
+
+import "demo/widget"
+
+main :: fn() -> i32 {
+    w :: Widget { .width = 1, .height = 2 }
+    return w.width
+}
+`;
+
+test("lsp: completion offers wildcard-imported names", async () => {
+  // Line 6 = `    return w.width` ; char 4 is before `return` → Tier-1 (no dot).
+  const results = await driveLsp(WILDCARD_IMPORT_SOURCE, [
+    { method: "textDocument/completion", position: { line: 6, character: 4 } },
+  ], {
+    "widget/widget.vader":
+      `module "demo/widget"\n\n/// Rotate the widget.\nexport spin :: fn() -> i32 = 1\n\nexport Widget :: struct {\n    width: i32\n    height: i32\n}\n`,
+  });
+  const list = results[0]!.result as CompletionList;
+  const labels = new Set(list.items.map((i) => i.label));
+  // Both the wildcard-exposed fn and struct are in scope unqualified.
+  expect(labels.has("spin")).toBe(true);
+  expect(labels.has("Widget")).toBe(true);
+  // The module's struct FIELDS are not module exports — must not leak in.
+  expect(labels.has("width")).toBe(false);
+  // The provenance rides along in `detail`.
+  expect(list.items.find((i) => i.label === "spin")?.detail).toBe('import "demo/widget"');
+}, { timeout: MEDIUM_BUILD });
+
 // Member completion on a NAMESPACE-import alias (`G.<member>` where
 // `G :: import "p"`). Regression: the receiver types as UnresolvedType; without
 // the namespace-export path completion fell into the UFCS loop and offered every

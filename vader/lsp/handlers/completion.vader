@@ -22,6 +22,7 @@ import "vader/typecheck"
 import "vader/lsp/protocol"
 import "vader/lsp/analysis"
 AST :: import "vader/parser"
+Rs :: import "vader/resolver"
 import "vader/lexer"
 
 /// Build the completion response for the position in `params`. Returns a
@@ -73,6 +74,10 @@ export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonVal
                 seen[imp.local_name] = true
                 items.push(completion_item(imp.local_name, import_ci_kind(imp.local_name), "import \"${imp.module_path}\""))
             }
+
+            // Names a bare `import "p"` wildcard brings into scope — the index
+            // records only the paths, so their exports are enumerated here.
+            append_wildcard_completions(state, uri_to_path(uri), index.wildcard_paths, seen, items)
 
             for kw in KEYWORDS {
                 if seen[kw] != null { continue }
@@ -131,6 +136,37 @@ decl_detail :: fn(d: DeclEntry, decls: AST.Decl[], typed: TypedProgram | null) -
     if ty == null { return d.signature }
     if ty is UnresolvedType || ty is FreeIntType || ty is FreeFloatType { return d.signature }
     return display_type(ty)
+}
+
+// Offer the names each bare `import "p"` wildcard brings into scope. The
+// per-file index records only the wildcard PATHS (a wildcard binds no named
+// `ImportEntry`), so enumerate each wildcard-imported module's exports via the
+// project cache's memoized name index, filtered through the resolver's own
+// `wildcard_exposable` predicate (one source of truth for "what a wildcard
+// exposes", shared with `core_seed::build_wildcard_seed`). Icon falls back to
+// the casing heuristic, as for destructure imports. `seen` dedups against the
+// scope + destructure names already offered.
+append_wildcard_completions :: fn(
+    state: ServerState, fp: string, wildcard_paths: string[],
+    seen: MutableMap<string, bool>, items: JsonValue[],
+) -> void {
+    if fp == "" || wildcard_paths.len() == 0 { return }
+    cached :: typed_project_for(state, fp)
+    // The import-name → module map is memoized on the project cache; each
+    // wildcard path names a module whose public, wildcard-exposable exports
+    // (fn / struct / enum / trait / alias / const) enter scope unqualified —
+    // the same predicate the resolver's scope seeding uses.
+    for path in wildcard_paths {
+        target :: cached.module_name_index[path]
+        if target is null { continue }
+        for [_, sym] in target.collected.symbols {
+            if sym.visibility != .Public { continue }
+            if !Rs.wildcard_exposable(sym.kind) { continue }
+            if seen[sym.name] != null { continue }
+            seen[sym.name] = true
+            items.push(completion_item(sym.name, import_ci_kind(sym.name), "import \"${path}\""))
+        }
+    }
 }
 
 // Everything in a decl-head signature after the binding operator — the type
