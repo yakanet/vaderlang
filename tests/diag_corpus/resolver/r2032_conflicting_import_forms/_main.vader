@@ -4,7 +4,7 @@
 module "snippet"
 
 import "std/io"
-import "std/io" * { print as _ }
+import "std/io" { print as _ }
 
 main :: fn() -> i32 {
     println("hi")

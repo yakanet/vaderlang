@@ -6,7 +6,7 @@
 
 module "std/path"
 
-import "std/string" * {
+import "std/string" {
     starts_with as str_starts_with, ends_with as str_ends_with,
 }
 import "std/string_builder"

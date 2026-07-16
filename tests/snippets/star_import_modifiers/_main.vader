@@ -1,8 +1,8 @@
-// `import "p" * { … }` — WILDCARD of p plus modifiers: `legacy_render as _`
+// `import "p" { … }` — WILDCARD of p plus modifiers: `legacy_render as _`
 // drops it from scope, `compute_bounding_box as bbox` renames it, and every
 // other export (`draw`) stays in scope via the wildcard.
 module "snippet"
 
-import "snippet/toolkit" * { legacy_render as _, compute_bounding_box as bbox }
+import "snippet/toolkit" { legacy_render as _, compute_bounding_box as bbox }
 
 main :: fn() -> i32 = draw() + bbox()

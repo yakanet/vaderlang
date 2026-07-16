@@ -2,7 +2,7 @@ module "snippet"
 
 import "std/io"
 import "std/sort"
-import "std/string" * { compare_ascending as str_lt }
+import "std/string" { compare_ascending as str_lt }
 
 i32_lt :: fn(a: i32, b: i32) -> bool { return a < b }
 i32_gt :: fn(a: i32, b: i32) -> bool { return a > b }

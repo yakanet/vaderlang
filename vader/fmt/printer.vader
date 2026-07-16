@@ -421,7 +421,6 @@ emit_import :: fn(self: Printer, d: p.ImportDecl) -> void {
             self.write("import \"")
             self.write(d.path)
             self.write("\"")
-            if dst.wildcard { self.write(" *") }   // `import "p" * { … }` — wildcard-modifiers
             self.emit_import_name_block(d, dst.names)
         }
     }
