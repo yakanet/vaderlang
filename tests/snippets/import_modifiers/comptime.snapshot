@@ -1,8 +1,8 @@
 # Comptime
 
-## tests/snippets/star_import_modifiers
+## tests/snippets/import_modifiers
 
-## tests/snippets/star_import_modifiers/toolkit
+## tests/snippets/import_modifiers/toolkit
 
 ## generic instances
   Into<Target>

@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/star_import_modifiers
+## tests/snippets/import_modifiers
   FnDecl         main                 :: fn() -> i32
   expr 8:23     BinaryExpr     :: i32
   expr 8:23     CallExpr       :: i32
@@ -8,7 +8,7 @@
   expr 8:32     CallExpr       :: i32
   expr 8:32     IdentExpr      :: fn() -> i32
 
-## tests/snippets/star_import_modifiers/toolkit
+## tests/snippets/import_modifiers/toolkit
   FnDecl         compute_bounding_box :: fn() -> i32
   FnDecl         draw                 :: fn() -> i32
   FnDecl         legacy_render        :: fn() -> i32
