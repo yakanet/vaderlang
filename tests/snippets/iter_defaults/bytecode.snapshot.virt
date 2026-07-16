@@ -55,8 +55,8 @@ fn 0 snippet$Countdown$Iterator$next (ref) -> any
 end
 
 fn 1 snippet$Countdown$Iterator$count (ref) -> usize
-  local total any
-  local finished any
+  local total usize
+  local finished bool
   local __scrut_0 any
   i64.const 0
   local.set 1
@@ -81,7 +81,7 @@ fn 1 snippet$Countdown$Iterator$count (ref) -> usize
         if $L4 void
           local.get 1
           i64.const 1
-          i32.add
+          i64.add
           local.set 1
           br $L1
         end $L4
@@ -296,7 +296,7 @@ end
 
 fn 5 std_core$Range$Iterator$last__i32 (ref) -> any
   local result any
-  local finished any
+  local finished bool
   local __scrut_0 any
   null.const
   local.set 1

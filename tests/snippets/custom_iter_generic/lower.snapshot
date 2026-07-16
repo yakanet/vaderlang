@@ -132,8 +132,8 @@
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :bool
   fn snippet$Repeat$Iterator$count__i32(self: Repeat<i32>) -> usize
-    let total: ? = int(0) :usize
-    let finished: ? = false
+    let total: usize = int(0) :usize
+    let finished: bool = false
     loop while (<…>)
       ~>
         block :void
@@ -179,8 +179,8 @@
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
     return total :usize
   fn snippet$Repeat$Iterator$last__i32(self: Repeat<i32>) -> i32 | null
-    let result: ? = null
-    let finished: ? = false
+    let result: i32 | null = null
+    let finished: bool = false
     loop while (<…>)
       ~>
         block :void

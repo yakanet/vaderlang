@@ -236,8 +236,8 @@ fn 18 std_core$Range$Iterator$is_empty__i32 (ref) -> bool
 end
 
 fn 19 std_core$Range$Iterator$count__i32 (ref) -> usize
-  local total any
-  local finished any
+  local total usize
+  local finished bool
   local __scrut_0 any
   i64.const 0
   local.set 1
@@ -262,7 +262,7 @@ fn 19 std_core$Range$Iterator$count__i32 (ref) -> usize
         if $L4 void
           local.get 1
           i64.const 1
-          i32.add
+          i64.add
           local.set 1
           br $L1
         end $L4
@@ -277,7 +277,7 @@ end
 
 fn 20 std_core$Range$Iterator$last__i32 (ref) -> any
   local result any
-  local finished any
+  local finished bool
   local __scrut_0 any
   null.const
   local.set 1
@@ -426,8 +426,8 @@ fn 23 std_core$Range$Iterator$is_empty__usize (ref) -> bool
 end
 
 fn 24 std_core$Range$Iterator$count__usize (ref) -> usize
-  local total any
-  local finished any
+  local total usize
+  local finished bool
   local __scrut_0 any
   i64.const 0
   local.set 1
@@ -452,7 +452,7 @@ fn 24 std_core$Range$Iterator$count__usize (ref) -> usize
         if $L4 void
           local.get 1
           i64.const 1
-          i32.add
+          i64.add
           local.set 1
           br $L1
         end $L4
@@ -467,7 +467,7 @@ end
 
 fn 25 std_core$Range$Iterator$last__usize (ref) -> any
   local result any
-  local finished any
+  local finished bool
   local __scrut_0 any
   null.const
   local.set 1
