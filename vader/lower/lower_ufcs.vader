@@ -225,17 +225,19 @@ ufcs_first_param_type :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type | null {
 }
 
 first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool {
-    // Match the fn's first param against the receiver. A `TypeParam`
-    // first param matches any receiver (`identity[T](x: T)`) ; a union
-    // receiver matches via `is_assignable` (mirrors the typer's
-    // `receiver_fits_first_param`, so lower agrees with what typecheck
-    // accepted) ; otherwise match by nominal surface name.
+    // Mirror the typer's `receiver_fits_first_param` (field.vader): lead with
+    // general assignability, then the TypeParam wildcard and trait-widening.
+    // Keeping the two copies structurally aligned is what stops the recurring
+    // drift between typer and lower (a union-first-param UFCS once mis-lowered to
+    // a field-access → midir panic). The leading `is_assignable` subsumes
+    // concrete→concrete, a union receiver, AND a concrete receiver fitting a
+    // union member (`i32` into `i32 | f32`).
     fn_ty :: lookup_fn_type_anywhere(ctx, sym)
     if fn_ty is FnType as ft {
         if ft.params.len() == 0 { return false }
         first :: ft.params[0]
+        if is_assignable(recv_type, first, null) { return true }
         if first is TypeParamType { return true }
-        if recv_type is UnionType { return is_assignable(recv_type, first, null) }
         // Trait-typed first param (`filter(it: Iterator<T>, …)`) matches a
         // concrete receiver that implements the trait (`StringChars`
         // implements `Iterator<char>`). Consult the project-wide impl
@@ -267,12 +269,9 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
             // does so the two passes can't drift again.
             return try_array_to_iter(recv_type, first)
         }
-        // A concrete receiver fitting a UNION first param (`i32` into `i32 | f32`)
-        // — the nominal-name check below misses it (a union has no surface name).
-        // Mirrors the typer's `receiver_fits_first_param` assignability lead ;
-        // without it the typer curries the UFCS call but the lowerer declines,
-        // mis-lowering `recv.f()` to a field-access on a primitive (midir panic).
-        if first is UnionType { return is_assignable(recv_type, first, null) }
+        // Lower-only escape for post-monomorphization generic erasure: an erased
+        // `Struct<Any>` receiver into `Struct<i32>` shares a surface name, but
+        // `is_assignable` (carrying full type args) would decline it.
         return type_surface_name(first) == type_surface_name(recv_type)
     }
     return false
