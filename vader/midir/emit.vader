@@ -26,33 +26,9 @@ import "std/abort"
 import "vader/diagnostics"
 import "vader/types"
 import "vader/lower"
-import "vader/bytecode" {
-    EmitterCtx,
-    BytecodeModule,
-    BcFunction,
-    BcSignature,
-    BcLocal,
-    BcImport,
-    BcField,
-    BcStruct,
-    BcRef,
-    BcDataEntry,
-    DebugPos,
-    ImplEntry,
-    VtableRow,
+import "vader/bytecode" * {
     VtableEntry as BcVtableEntry,
-    new_emitter_ctx,
-    intern_type,
-    intern_string,
-    val_type_of_type,
-    ValType,
-    is_64_bit_int_val,
-    binary_op_for,
-    unary_op_for,
-    default_emit_options,
-    EmitOptions,
-    typed_slot_load_op_for,
-    typed_slot_store_op_for,
+    ImplEntry as BcImplEntry,
 }
 import "vader/resolver/symbol"
 
@@ -421,10 +397,10 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
 
 // Local equivalent of `build_impl_table` (vader/bytecode/emit.vader),
 // duplicated here so the CFG emit path doesn't need to reach the
-// legacy assemble_module. Yields one ImplEntry per (struct_type_index,
+// legacy assemble_module. Yields one BcImplEntry per (struct_type_index,
 // trait_name) seen in the vtable entries.
-build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: MutableMap<i32, string[]>, ctx: EmitterCtx) -> ImplEntry[] {
-    out: ImplEntry[] = []
+build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: MutableMap<i32, string[]>, ctx: EmitterCtx) -> BcImplEntry[] {
+    out: BcImplEntry[] = []
     seen :: MutableMap<string, bool> {}
     for entry in entries {
         // Only honour vtable entries whose receiver struct is *already*
@@ -442,7 +418,7 @@ build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: Mu
         key :: "${type_index}|${entry.trait_name}"
         if seen[key] is bool { continue }
         seen[key] = true
-        out.push(ImplEntry { .struct_type_index = type_index, .trait_name = entry.trait_name })
+        out.push(BcImplEntry { .struct_type_index = type_index, .trait_name = entry.trait_name })
     }
     // Frontend-sourced membership : every interned struct tag gets a row for
     // each trait its source symbol implements — independent of whether any
@@ -458,7 +434,7 @@ build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: Mu
                 key :: "${i}|${tr}"
                 if seen[key] is bool { continue }
                 seen[key] = true
-                out.push(ImplEntry { .struct_type_index = i32(i), .trait_name = tr })
+                out.push(BcImplEntry { .struct_type_index = i32(i), .trait_name = tr })
             }
         }
     }

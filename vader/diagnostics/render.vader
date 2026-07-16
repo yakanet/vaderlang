@@ -14,7 +14,7 @@
 
 module "vader/diagnostics"
 
-import "std/string" { compare_ascending as string_less }
+import "std/string" * { compare_ascending as string_less }
 import "std/string_builder"
 import "std/sort"
 import "std/math"
