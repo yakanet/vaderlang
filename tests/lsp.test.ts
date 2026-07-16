@@ -193,7 +193,7 @@ interface CompletionList {
   items: CompletionItem[];
 }
 
-const SOURCE = `import "std/io" { println }
+const SOURCE = `import "std/io"
 
 /// Doubles its argument.
 double :: fn(x: i32) -> i32 {
@@ -310,11 +310,36 @@ test("lsp: goto-def resolves past a multi-byte char on the line (LC1)", async ()
   expect(second.range.end).toEqual({ line: 0, character: 5 });
 }, { timeout: MEDIUM_BUILD });
 
+// A `module`-declared variant so the typed project loads (and `std/io`'s
+// wildcard exports reach completion). The shared module-less SOURCE has an
+// empty typed project — fine for goto-def (DocIndex-based) but wildcard
+// completion needs the loaded project.
+const COMPLETION_SOURCE = `module "lsp_test"
+
+import "std/io"
+
+/// Doubles its argument.
+double :: fn(x: i32) -> i32 {
+    return x * 2
+}
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1, .y = 2 }
+    y :: double(21)
+    return y
+}
+`;
+
 test("lsp: completion lists in-scope identifiers + keywords", async () => {
 
-  // Cursor inside main's body (line 16 = `    return y`).
-  const results = await driveLsp(SOURCE, [
-    { method: "textDocument/completion", position: { line: 16, character: 4 } },
+  // Cursor inside main's body (line 17 = `    return y`).
+  const results = await driveLsp(COMPLETION_SOURCE, [
+    { method: "textDocument/completion", position: { line: 17, character: 4 } },
   ]);
   const list = results[0]!.result as CompletionList;
   expect(list.isIncomplete).toBe(false);
@@ -460,7 +485,7 @@ test("lsp: member completion on a trailing dot (mid-edit, no member yet)", async
 // project-wide struct registry, not just the entry file's struct decls.
 const CROSS_MODULE_MEMBER_SOURCE = `module "demo"
 
-import "demo/widget" { Widget }
+import "demo/widget"
 
 main :: fn() -> i32 {
     w :: Widget { .width = 1, .height = 2 }
@@ -894,7 +919,7 @@ test("lsp: empty document doesn't crash, returns null on lookups", async () => {
 
 // Bindings : params + locals + for-in. Each runs in its own session so
 // the assertion failures point at a single concept.
-const BINDINGS_SOURCE = `import "std/io" { println }
+const BINDINGS_SOURCE = `import "std/io"
 
 double :: fn(x: i32) -> i32 {
     y :: x * 2
@@ -989,8 +1014,8 @@ main :: fn() -> i32 {
 // origin's name_span. Hover renders the source decl's signature + doc
 // the same way.
 
-const CROSSFILE_SOURCE = `import "std/io" { println, eprintln }
-import "std/collections" { MutableMap }
+const CROSSFILE_SOURCE = `import "std/io"
+import "std/collections"
 
 main :: fn() -> i32 {
     println("hi")
