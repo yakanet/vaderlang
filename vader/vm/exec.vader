@@ -434,259 +434,6 @@ finalise_return :: fn(return_value: Value, has_value: bool, at_pc: i32, frames: 
     return null
 }
 
-/// Apply a pure i32-to-i32 binary op (Add/Sub/Mul) on top-of-stack.
-/// Pops two i32 from `frame.stack`, runs `op`, writes the result, and
-/// advances pc + sp.
-///
-/// @param frame      current top frame.
-/// @param op_label   short label used in the Trap message on type mismatch.
-/// @param apply         the i32 binary op to apply to (left, right).
-/// @return           `null` on success, or a `Trap` if either operand
-///                   isn't an i32 (caller surfaces it).
-/// @error            type mismatch on the left or right operand.
-apply_arith_binop :: fn(frame: Frame, op_label: string, apply: fn(i32, i32) -> i32) -> Trap | null {
-    left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, op_label)
-    right :: read_i32(frame.stack[frame.sp - 1], frame.pc, op_label)
-    if left  is Trap { return left  }
-    if right is Trap { return right }
-    frame.stack[frame.sp - 2] = I32Val { .value = apply(left.value, right.value) }
-    frame.sp = frame.sp - 1
-    frame.pc = frame.pc + 1
-    return null
-}
-
-/// Pop two f64 operands, apply `op`, push as F64Val. Used by every
-/// `f64.<arith>` arm.
-///
-/// @param frame      current top frame.
-/// @param op_label   trap label.
-/// @param apply         the f64 binary op to apply.
-/// @return           `null` on success, `Trap` on type mismatch.
-/// @error            either operand isn't an `F64Val`.
-apply_f64_binop :: fn(frame: Frame, op_label: string, apply: fn(f64, f64) -> f64) -> Trap | null {
-    left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, op_label)
-    right :: read_f64(frame.stack[frame.sp - 1], frame.pc, op_label)
-    if left  is Trap { return left  }
-    if right is Trap { return right }
-    frame.stack[frame.sp - 2] = F64Val { .value = apply(left.value, right.value) }
-    frame.sp = frame.sp - 1
-    frame.pc = frame.pc + 1
-    return null
-}
-
-/// Pop one f64, apply `op`, push as F64Val. Used by `F64Neg`.
-///
-/// @param frame      current top frame.
-/// @param op_label   trap label.
-/// @param apply         the f64 unary op to apply.
-/// @return           `null` on success, `Trap` on type mismatch.
-/// @error            the operand isn't an `F64Val`.
-apply_f64_unop :: fn(frame: Frame, op_label: string, apply: fn(f64) -> f64) -> Trap | null {
-    operand :: read_f64(frame.stack[frame.sp - 1], frame.pc, op_label)
-    if operand is Trap { return operand }
-    frame.stack[frame.sp - 1] = F64Val { .value = apply(operand.value) }
-    frame.pc = frame.pc + 1
-    return null
-}
-
-/// Pop two f64 operands, apply `cmp`, push the boolean as BoolVal. Used
-/// by every `f64.<cmp>` arm.
-///
-/// @param frame      current top frame.
-/// @param op_label   trap label.
-/// @param cmp        the f64 comparator to apply.
-/// @return           `null` on success, `Trap` on type mismatch.
-/// @error            either operand isn't an `F64Val`.
-apply_f64_cmp :: fn(frame: Frame, op_label: string, cmp: fn(f64, f64) -> bool) -> Trap | null {
-    left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, op_label)
-    right :: read_f64(frame.stack[frame.sp - 1], frame.pc, op_label)
-    if left  is Trap { return left  }
-    if right is Trap { return right }
-    frame.stack[frame.sp - 2] = BoolVal { .value = cmp(left.value, right.value) }
-    frame.sp = frame.sp - 1
-    frame.pc = frame.pc + 1
-    return null
-}
-
-/// Apply an i64 binary op (Add / Sub / Mul) on top-of-stack. Pops two
-/// i64 operands, pushes an `I64Val` carrying `apply(left, right)`.
-apply_i64_binop :: fn(frame: Frame, op_label: string, apply: fn(i64, i64) -> i64) -> Trap | null {
-    left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, op_label)
-    right :: read_i64(frame.stack[frame.sp - 1], frame.pc, op_label)
-    if left  is Trap { return left  }
-    if right is Trap { return right }
-    frame.stack[frame.sp - 2] = I64Val { .value = apply(left.value, right.value) }
-    frame.sp = frame.sp - 1
-    frame.pc = frame.pc + 1
-    return null
-}
-
-/// Apply an i64 comparison (eq / ne / lt / le / gt / ge) on top-of-stack.
-/// Pops two i64 operands, pushes a `BoolVal`.
-apply_i64_cmp :: fn(frame: Frame, op_label: string, cmp: fn(i64, i64) -> bool) -> Trap | null {
-    left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, op_label)
-    right :: read_i64(frame.stack[frame.sp - 1], frame.pc, op_label)
-    if left  is Trap { return left  }
-    if right is Trap { return right }
-    frame.stack[frame.sp - 2] = BoolVal { .value = cmp(left.value, right.value) }
-    frame.sp = frame.sp - 1
-    frame.pc = frame.pc + 1
-    return null
-}
-
-/// Apply an i64 div / mod op. Same shape as `apply_i64_binop` but traps
-/// on a zero divisor before invoking `apply`. Mirrors
-/// `apply_div_mod_binop` for the i32 family.
-apply_i64_div_mod :: fn(frame: Frame, op_label: string, apply: fn(i64, i64) -> i64) -> Trap | null {
-    left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, op_label)
-    right :: read_i64(frame.stack[frame.sp - 1], frame.pc, op_label)
-    if left  is Trap { return left  }
-    if right is Trap { return right }
-    if right.value == 0 { return Trap { .message = "${op_label} by zero at pc=${frame.pc}" } }
-    frame.stack[frame.sp - 2] = I64Val { .value = apply(left.value, right.value) }
-    frame.sp = frame.sp - 1
-    frame.pc = frame.pc + 1
-    return null
-}
-
-/// Unary i32 op : pop one i32, push `op(value)`. Used by `i32.neg` /
-/// `i32.bitnot` and their width-suffixed siblings (all aliased to
-/// `I32Val`). The `op_label` reflects the canonical i32 form even when
-/// the source op was width-suffixed — width info isn't carried on the
-/// `Op` variant, so trap diagnostics lose the originating width.
-///
-/// @param frame      current top frame.
-/// @param op_label   short label used in the Trap message on type mismatch.
-/// @param apply         the i32 unary op to apply.
-/// @return           `null` on success, or a `Trap` if the operand isn't
-///                   an i32 (caller surfaces it).
-/// @error            type mismatch on the operand.
-apply_arith_unop :: fn(frame: Frame, op_label: string, apply: fn(i32) -> i32) -> Trap | null {
-    operand :: read_i32(frame.stack[frame.sp - 1], frame.pc, op_label)
-    if operand is Trap { return operand }
-    frame.stack[frame.sp - 1] = I32Val { .value = apply(operand.value) }
-    frame.pc = frame.pc + 1
-    return null
-}
-
-/// 64-bit counterpart to `apply_arith_unop`. Used by `I64Neg` and
-/// `I64BitNot`.
-///
-/// @param frame      current top frame.
-/// @param op_label   short label used in the Trap message on type mismatch.
-/// @param apply      the i64 unary op to apply.
-/// @return           `null` on success, or a `Trap` on operand type mismatch.
-/// @error            the operand isn't an i64-shaped value.
-apply_i64_unop :: fn(frame: Frame, op_label: string, apply: fn(i64) -> i64) -> Trap | null {
-    operand :: read_i64(frame.stack[frame.sp - 1], frame.pc, op_label)
-    if operand is Trap { return operand }
-    frame.stack[frame.sp - 1] = I64Val { .value = apply(operand.value) }
-    frame.pc = frame.pc + 1
-    return null
-}
-
-/// Variant of `apply_arith_binop` that traps when the right operand
-/// is zero — used by `i32.div` and `i32.mod` so division-by-zero
-/// surfaces a labelled Trap rather than a host-level abort.
-///
-/// @param frame      current top frame.
-/// @param op_label   short label used in Trap messages.
-/// @param apply         the i32 binary op (`div` or `mod`).
-/// @return           `null` on success, or a `Trap` on type mismatch /
-///                   division by zero.
-/// @error            type mismatch ; right operand equal to zero.
-apply_div_mod_binop :: fn(frame: Frame, op_label: string, apply: fn(i32, i32) -> i32) -> Trap | null {
-    left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, op_label)
-    right :: read_i32(frame.stack[frame.sp - 1], frame.pc, op_label)
-    if left  is Trap { return left  }
-    if right is Trap { return right }
-    if right.value == 0 { return Trap { .message = "${op_label} by zero at pc=${frame.pc}" } }
-    frame.stack[frame.sp - 2] = I32Val { .value = apply(left.value, right.value) }
-    frame.sp = frame.sp - 1
-    frame.pc = frame.pc + 1
-    return null
-}
-
-/// Apply a `bool` binary op (eq / ne / and / or) on top-of-stack.
-/// Pops two `BoolVal`s, runs `op`, pushes a `BoolVal`.
-///
-/// @param frame      current top frame.
-/// @param op_label   short label used in mismatch Traps.
-/// @param apply         the boolean binary op.
-/// @return           `null` on success, or a `Trap` on operand type mismatch.
-/// @error            either operand isn't a `BoolVal`.
-apply_bool_binop :: fn(frame: Frame, op_label: string, apply: fn(bool, bool) -> bool) -> Trap | null {
-    left  :: read_bool(frame.stack[frame.sp - 2], frame.pc, op_label)
-    right :: read_bool(frame.stack[frame.sp - 1], frame.pc, op_label)
-    if left  is Trap { return left  }
-    if right is Trap { return right }
-    frame.stack[frame.sp - 2] = BoolVal { .value = apply(left.value, right.value) }
-    frame.sp = frame.sp - 1
-    frame.pc = frame.pc + 1
-    return null
-}
-
-/// Apply a `char` comparison on top-of-stack. Pops two `CharVal`s,
-/// runs `cmp`, pushes a `BoolVal`.
-///
-/// @param frame      current top frame.
-/// @param op_label   short label used in mismatch Traps.
-/// @param cmp        the char comparison predicate.
-/// @return           `null` on success, or a `Trap` on operand type mismatch.
-/// @error            either operand isn't a `CharVal`.
-apply_char_cmp :: fn(frame: Frame, op_label: string, cmp: fn(char, char) -> bool) -> Trap | null {
-    left  :: read_char(frame.stack[frame.sp - 2], frame.pc, op_label)
-    right :: read_char(frame.stack[frame.sp - 1], frame.pc, op_label)
-    if left  is Trap { return left  }
-    if right is Trap { return right }
-    frame.stack[frame.sp - 2] = BoolVal { .value = cmp(left.value, right.value) }
-    frame.sp = frame.sp - 1
-    frame.pc = frame.pc + 1
-    return null
-}
-
-/// String binary comparator : pop two strings, push `BoolVal` of
-/// `cmp(left, right)`. Used by `string.eq` / `string.ne`.
-///
-/// @param frame      current top frame.
-/// @param op_label   short label used in the Trap message on type mismatch.
-/// @param cmp        the string comparator to apply.
-/// @return           `null` on success, or a `Trap` if either operand
-///                   isn't a string.
-/// @error            type mismatch on the left or right operand.
-apply_string_cmp :: fn(frame: Frame, op_label: string, cmp: fn(string, string) -> bool) -> Trap | null {
-    left  :: read_string(frame.stack[frame.sp - 2], frame.pc, op_label)
-    right :: read_string(frame.stack[frame.sp - 1], frame.pc, op_label)
-    if left  is Trap { return left  }
-    if right is Trap { return right }
-    frame.stack[frame.sp - 2] = BoolVal { .value = cmp(left.value, right.value) }
-    frame.sp = frame.sp - 1
-    frame.pc = frame.pc + 1
-    return null
-}
-
-/// Apply an i32 comparison (Eq/Ne/Lt/Le/Gt/Ge) on top-of-stack. The
-/// boolean result is pushed back as a `BoolVal` ; comparisons live in `bool`
-/// tag-space. `read_truthy` consumes
-/// either `BoolVal` or `I32Val` so legacy bytecode that conflated `0`/`1`
-/// with bool still flows through `if` / `br_if`.
-///
-/// @param frame      current top frame.
-/// @param op_label   short label used in the Trap message on type mismatch.
-/// @param cmp        the i32 comparison predicate.
-/// @return           `null` on success, or a `Trap` on type mismatch.
-/// @error            type mismatch on either operand.
-apply_cmp_binop :: fn(frame: Frame, op_label: string, cmp: fn(i32, i32) -> bool) -> Trap | null {
-    left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, op_label)
-    right :: read_i32(frame.stack[frame.sp - 1], frame.pc, op_label)
-    if left  is Trap { return left  }
-    if right is Trap { return right }
-    frame.stack[frame.sp - 2] = BoolVal { .value = cmp(left.value, right.value) }
-    frame.sp = frame.sp - 1
-    frame.pc = frame.pc + 1
-    return null
-}
-
 /// `==` / `!=` (`negate` true). The emitter routes `ref` / `any` / `null`
 /// equality through `i32.eq`, treating the boxed identity bits as a 32-bit
 /// word — but a `null` operand can't be read as an i32. Compare those by
@@ -1590,24 +1337,51 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.I32Add -> {
-                outcome :: apply_arith_binop(frame, "i32.add", (a, b) -> a + b)
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.add")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.add")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = I32Val { .value = left.value + right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I32Sub -> {
-                outcome :: apply_arith_binop(frame, "i32.sub", (a, b) -> a - b)
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.sub")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.sub")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = I32Val { .value = left.value - right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I32Mul -> {
-                outcome :: apply_arith_binop(frame, "i32.mul", (a, b) -> a * b)
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.mul")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.mul")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = I32Val { .value = left.value * right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I32Div -> {
-                outcome :: apply_div_mod_binop(frame, "i32.div", (a, b) -> a / b)
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.div")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.div")
+                if right is Trap { return right }
+                if right.value == 0 { return Trap { .message = "i32.div by zero at pc=${frame.pc}" } }
+                frame.stack[frame.sp - 2] = I32Val { .value = left.value / right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I32Mod -> {
-                outcome :: apply_div_mod_binop(frame, "i32.mod", (a, b) -> a % b)
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.mod")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.mod")
+                if right is Trap { return right }
+                if right.value == 0 { return Trap { .message = "i32.mod by zero at pc=${frame.pc}" } }
+                frame.stack[frame.sp - 2] = I32Val { .value = left.value % right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I32Eq -> {
                 outcome :: apply_eq_binop(frame, "i32.eq", false)
@@ -1618,84 +1392,170 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if outcome is Trap { return outcome }
             }
             is bc.I32Lt -> {
-                outcome :: apply_cmp_binop(frame, "i32.lt", (a, b) -> a < b)
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.lt")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.lt")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value < right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I32Le -> {
-                outcome :: apply_cmp_binop(frame, "i32.le", (a, b) -> a <= b)
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.le")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.le")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value <= right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I32Gt -> {
-                outcome :: apply_cmp_binop(frame, "i32.gt", (a, b) -> a > b)
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.gt")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.gt")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value > right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I32Ge -> {
-                outcome :: apply_cmp_binop(frame, "i32.ge", (a, b) -> a >= b)
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.ge")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.ge")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value >= right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I32Neg -> {
-                outcome :: apply_arith_unop(frame, "i32.neg", (a) -> -a)
-                if outcome is Trap { return outcome }
+                operand :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.neg")
+                if operand is Trap { return operand }
+                frame.stack[frame.sp - 1] = I32Val { .value = -operand.value }
+                frame.pc = frame.pc + 1
             }
             is bc.I32BitNot -> {
-                outcome :: apply_arith_unop(frame, "i32.bitnot", (a) -> ~a)
-                if outcome is Trap { return outcome }
+                operand :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.bitnot")
+                if operand is Trap { return operand }
+                frame.stack[frame.sp - 1] = I32Val { .value = ~operand.value }
+                frame.pc = frame.pc + 1
             }
             is bc.I32BitAnd -> {
-                outcome :: apply_arith_binop(frame, "i32.bitand", (a, b) -> a & b)
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.bitand")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.bitand")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = I32Val { .value = left.value & right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I32BitOr -> {
-                outcome :: apply_arith_binop(frame, "i32.bitor", (a, b) -> a | b)
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.bitor")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.bitor")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = I32Val { .value = left.value | right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I32BitXor -> {
-                outcome :: apply_arith_binop(frame, "i32.bitxor", (a, b) -> a ^ b)
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.bitxor")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.bitxor")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = I32Val { .value = left.value ^ right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I32Shl -> {
-                outcome :: apply_arith_binop(frame, "i32.shl", (a, b) -> a << b)
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.shl")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.shl")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = I32Val { .value = left.value << right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I32Shr -> {
-                outcome :: apply_arith_binop(frame, "i32.shr", (a, b) -> a >> b)
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.shr")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.shr")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = I32Val { .value = left.value >> right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I32ShrU -> {
                 // Logical shift : reinterpret the i32 as u32 before the
                 // shift so the sign bit isn't replicated, then reinterpret
                 // the result back as i32. Mirrors `>>>` in JS / `>>` on
                 // unsigned C types.
-                outcome :: apply_arith_binop(frame, "u32.shr", (a, b) -> i32(u32(a) >> u32(b)))
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "u32.shr")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "u32.shr")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = I32Val { .value = i32(u32(left.value) >> u32(right.value)) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             // Unsigned 32-bit divide / modulo / compare. The i32-tagged
             // operands carry a u32 bit pattern ; reinterpret via `u32(...)`
             // so the result respects unsigned semantics (zero-fill, no
             // sign-extension) before re-tagging back to i32.
             is bc.U32Div -> {
-                outcome :: apply_div_mod_binop(frame, "u32.div", (a, b) -> i32(u32(a) / u32(b)))
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "u32.div")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "u32.div")
+                if right is Trap { return right }
+                if right.value == 0 { return Trap { .message = "u32.div by zero at pc=${frame.pc}" } }
+                frame.stack[frame.sp - 2] = I32Val { .value = i32(u32(left.value) / u32(right.value)) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.U32Mod -> {
-                outcome :: apply_div_mod_binop(frame, "u32.rem", (a, b) -> i32(u32(a) % u32(b)))
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "u32.rem")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "u32.rem")
+                if right is Trap { return right }
+                if right.value == 0 { return Trap { .message = "u32.rem by zero at pc=${frame.pc}" } }
+                frame.stack[frame.sp - 2] = I32Val { .value = i32(u32(left.value) % u32(right.value)) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.U32Lt -> {
-                outcome :: apply_cmp_binop(frame, "u32.lt", (a, b) -> u32(a) < u32(b))
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "u32.lt")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "u32.lt")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = u32(left.value) < u32(right.value) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.U32Le -> {
-                outcome :: apply_cmp_binop(frame, "u32.le", (a, b) -> u32(a) <= u32(b))
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "u32.le")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "u32.le")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = u32(left.value) <= u32(right.value) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.U32Gt -> {
-                outcome :: apply_cmp_binop(frame, "u32.gt", (a, b) -> u32(a) > u32(b))
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "u32.gt")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "u32.gt")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = u32(left.value) > u32(right.value) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.U32Ge -> {
-                outcome :: apply_cmp_binop(frame, "u32.ge", (a, b) -> u32(a) >= u32(b))
-                if outcome is Trap { return outcome }
+                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "u32.ge")
+                if left  is Trap { return left  }
+                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "u32.ge")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = u32(left.value) >= u32(right.value) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.F64Const -> {
                 push_value(frame.stack, frame.sp, F64Val { .value = instr.value })
@@ -1708,153 +1568,328 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.I64Add -> {
-                outcome :: apply_i64_binop(frame, "i64.add", (a, b) -> a + b)
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.add")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.add")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = I64Val { .value = left.value + right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I64Sub -> {
-                outcome :: apply_i64_binop(frame, "i64.sub", (a, b) -> a - b)
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.sub")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.sub")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = I64Val { .value = left.value - right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I64Mul -> {
-                outcome :: apply_i64_binop(frame, "i64.mul", (a, b) -> a * b)
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.mul")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.mul")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = I64Val { .value = left.value * right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I64Div -> {
-                outcome :: apply_i64_div_mod(frame, "i64.div", (a, b) -> a / b)
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.div")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.div")
+                if right is Trap { return right }
+                if right.value == 0 { return Trap { .message = "i64.div by zero at pc=${frame.pc}" } }
+                frame.stack[frame.sp - 2] = I64Val { .value = left.value / right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I64Mod -> {
-                outcome :: apply_i64_div_mod(frame, "i64.rem", (a, b) -> a % b)
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.rem")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.rem")
+                if right is Trap { return right }
+                if right.value == 0 { return Trap { .message = "i64.rem by zero at pc=${frame.pc}" } }
+                frame.stack[frame.sp - 2] = I64Val { .value = left.value % right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I64Neg -> {
-                outcome :: apply_i64_unop(frame, "i64.neg", (a) -> -a)
-                if outcome is Trap { return outcome }
+                operand :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.neg")
+                if operand is Trap { return operand }
+                frame.stack[frame.sp - 1] = I64Val { .value = -operand.value }
+                frame.pc = frame.pc + 1
             }
             is bc.I64Eq -> {
-                outcome :: apply_i64_cmp(frame, "i64.eq", (a, b) -> a == b)
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.eq")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.eq")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value == right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I64Ne -> {
-                outcome :: apply_i64_cmp(frame, "i64.ne", (a, b) -> a != b)
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.ne")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.ne")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value != right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I64Lt -> {
-                outcome :: apply_i64_cmp(frame, "i64.lt", (a, b) -> a < b)
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.lt")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.lt")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value < right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I64Le -> {
-                outcome :: apply_i64_cmp(frame, "i64.le", (a, b) -> a <= b)
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.le")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.le")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value <= right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I64Gt -> {
-                outcome :: apply_i64_cmp(frame, "i64.gt", (a, b) -> a > b)
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.gt")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.gt")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value > right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I64Ge -> {
-                outcome :: apply_i64_cmp(frame, "i64.ge", (a, b) -> a >= b)
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.ge")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.ge")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value >= right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             // Unsigned 64-bit divide / modulo / compare. Same pattern as
             // the U32* family but for `I64Val`-tagged operands carrying
             // a u64 bit pattern.
             is bc.U64Div -> {
-                outcome :: apply_i64_div_mod(frame, "u64.div", (a, b) -> i64(u64(a) / u64(b)))
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "u64.div")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "u64.div")
+                if right is Trap { return right }
+                if right.value == 0 { return Trap { .message = "u64.div by zero at pc=${frame.pc}" } }
+                frame.stack[frame.sp - 2] = I64Val { .value = i64(u64(left.value) / u64(right.value)) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.U64Mod -> {
-                outcome :: apply_i64_div_mod(frame, "u64.rem", (a, b) -> i64(u64(a) % u64(b)))
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "u64.rem")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "u64.rem")
+                if right is Trap { return right }
+                if right.value == 0 { return Trap { .message = "u64.rem by zero at pc=${frame.pc}" } }
+                frame.stack[frame.sp - 2] = I64Val { .value = i64(u64(left.value) % u64(right.value)) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.U64Lt -> {
-                outcome :: apply_i64_cmp(frame, "u64.lt", (a, b) -> u64(a) < u64(b))
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "u64.lt")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "u64.lt")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = u64(left.value) < u64(right.value) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.U64Le -> {
-                outcome :: apply_i64_cmp(frame, "u64.le", (a, b) -> u64(a) <= u64(b))
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "u64.le")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "u64.le")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = u64(left.value) <= u64(right.value) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.U64Gt -> {
-                outcome :: apply_i64_cmp(frame, "u64.gt", (a, b) -> u64(a) > u64(b))
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "u64.gt")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "u64.gt")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = u64(left.value) > u64(right.value) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.U64Ge -> {
-                outcome :: apply_i64_cmp(frame, "u64.ge", (a, b) -> u64(a) >= u64(b))
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "u64.ge")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "u64.ge")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = u64(left.value) >= u64(right.value) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             // 64-bit bitwise / shift. The apply closure stays i64-typed so
             // wide operands keep their high bits.
             is bc.I64BitAnd -> {
-                outcome :: apply_i64_binop(frame, "i64.bitand", (a, b) -> a & b)
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.bitand")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.bitand")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = I64Val { .value = left.value & right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I64BitOr -> {
-                outcome :: apply_i64_binop(frame, "i64.bitor", (a, b) -> a | b)
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.bitor")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.bitor")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = I64Val { .value = left.value | right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I64BitXor -> {
-                outcome :: apply_i64_binop(frame, "i64.bitxor", (a, b) -> a ^ b)
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.bitxor")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.bitxor")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = I64Val { .value = left.value ^ right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I64BitNot -> {
-                outcome :: apply_i64_unop(frame, "i64.bitnot", (a) -> ~a)
-                if outcome is Trap { return outcome }
+                operand :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.bitnot")
+                if operand is Trap { return operand }
+                frame.stack[frame.sp - 1] = I64Val { .value = ~operand.value }
+                frame.pc = frame.pc + 1
             }
             is bc.I64Shl -> {
-                outcome :: apply_i64_binop(frame, "i64.shl", (a, b) -> a << b)
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.shl")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.shl")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = I64Val { .value = left.value << right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I64Shr -> {
-                outcome :: apply_i64_binop(frame, "i64.shr", (a, b) -> a >> b)
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.shr")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.shr")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = I64Val { .value = left.value >> right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.I64ShrU -> {
-                outcome :: apply_i64_binop(frame, "u64.shr", (a, b) -> i64(u64(a) >> u64(b)))
-                if outcome is Trap { return outcome }
+                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "u64.shr")
+                if left  is Trap { return left  }
+                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "u64.shr")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = I64Val { .value = i64(u64(left.value) >> u64(right.value)) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.F64Add -> {
-                outcome :: apply_f64_binop(frame, "f64.add", (a, b) -> a + b)
-                if outcome is Trap { return outcome }
+                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.add")
+                if left  is Trap { return left  }
+                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.add")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = F64Val { .value = left.value + right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.F64Sub -> {
-                outcome :: apply_f64_binop(frame, "f64.sub", (a, b) -> a - b)
-                if outcome is Trap { return outcome }
+                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.sub")
+                if left  is Trap { return left  }
+                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.sub")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = F64Val { .value = left.value - right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.F64Mul -> {
-                outcome :: apply_f64_binop(frame, "f64.mul", (a, b) -> a * b)
-                if outcome is Trap { return outcome }
+                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.mul")
+                if left  is Trap { return left  }
+                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.mul")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = F64Val { .value = left.value * right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.F64Div -> {
-                outcome :: apply_f64_binop(frame, "f64.div", (a, b) -> a / b)
-                if outcome is Trap { return outcome }
+                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.div")
+                if left  is Trap { return left  }
+                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.div")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = F64Val { .value = left.value / right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.F64Neg -> {
-                outcome :: apply_f64_unop(frame, "f64.neg", (a) -> -a)
-                if outcome is Trap { return outcome }
+                operand :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.neg")
+                if operand is Trap { return operand }
+                frame.stack[frame.sp - 1] = F64Val { .value = -operand.value }
+                frame.pc = frame.pc + 1
             }
             is bc.F64Eq -> {
-                outcome :: apply_f64_cmp(frame, "f64.eq", (a, b) -> a == b)
-                if outcome is Trap { return outcome }
+                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.eq")
+                if left  is Trap { return left  }
+                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.eq")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value == right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.F64Ne -> {
-                outcome :: apply_f64_cmp(frame, "f64.ne", (a, b) -> a != b)
-                if outcome is Trap { return outcome }
+                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.ne")
+                if left  is Trap { return left  }
+                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.ne")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value != right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.F64Lt -> {
-                outcome :: apply_f64_cmp(frame, "f64.lt", (a, b) -> a < b)
-                if outcome is Trap { return outcome }
+                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.lt")
+                if left  is Trap { return left  }
+                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.lt")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value < right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.F64Le -> {
-                outcome :: apply_f64_cmp(frame, "f64.le", (a, b) -> a <= b)
-                if outcome is Trap { return outcome }
+                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.le")
+                if left  is Trap { return left  }
+                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.le")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value <= right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.F64Gt -> {
-                outcome :: apply_f64_cmp(frame, "f64.gt", (a, b) -> a > b)
-                if outcome is Trap { return outcome }
+                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.gt")
+                if left  is Trap { return left  }
+                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.gt")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value > right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.F64Ge -> {
-                outcome :: apply_f64_cmp(frame, "f64.ge", (a, b) -> a >= b)
-                if outcome is Trap { return outcome }
+                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.ge")
+                if left  is Trap { return left  }
+                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.ge")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value >= right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.NullConst -> {
                 push_value(frame.stack, frame.sp, NullVal {})
@@ -1872,20 +1907,40 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.BoolEq -> {
-                outcome :: apply_bool_binop(frame, "bool.eq", (a, b) -> a == b)
-                if outcome is Trap { return outcome }
+                left  :: read_bool(frame.stack[frame.sp - 2], frame.pc, "bool.eq")
+                if left  is Trap { return left  }
+                right :: read_bool(frame.stack[frame.sp - 1], frame.pc, "bool.eq")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value == right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.BoolNe -> {
-                outcome :: apply_bool_binop(frame, "bool.ne", (a, b) -> a != b)
-                if outcome is Trap { return outcome }
+                left  :: read_bool(frame.stack[frame.sp - 2], frame.pc, "bool.ne")
+                if left  is Trap { return left  }
+                right :: read_bool(frame.stack[frame.sp - 1], frame.pc, "bool.ne")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value != right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.BoolAnd -> {
-                outcome :: apply_bool_binop(frame, "bool.and", (a, b) -> a && b)
-                if outcome is Trap { return outcome }
+                left  :: read_bool(frame.stack[frame.sp - 2], frame.pc, "bool.and")
+                if left  is Trap { return left  }
+                right :: read_bool(frame.stack[frame.sp - 1], frame.pc, "bool.and")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value && right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.BoolOr -> {
-                outcome :: apply_bool_binop(frame, "bool.or", (a, b) -> a || b)
-                if outcome is Trap { return outcome }
+                left  :: read_bool(frame.stack[frame.sp - 2], frame.pc, "bool.or")
+                if left  is Trap { return left  }
+                right :: read_bool(frame.stack[frame.sp - 1], frame.pc, "bool.or")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value || right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.BoolNot -> {
                 if frame.sp == 0 { return Trap { .message = "bool.not on empty stack at pc=${frame.pc}" } }
@@ -1895,36 +1950,76 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.CharEq -> {
-                outcome :: apply_char_cmp(frame, "char.eq", (a, b) -> a == b)
-                if outcome is Trap { return outcome }
+                left  :: read_char(frame.stack[frame.sp - 2], frame.pc, "char.eq")
+                if left  is Trap { return left  }
+                right :: read_char(frame.stack[frame.sp - 1], frame.pc, "char.eq")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value == right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.CharNe -> {
-                outcome :: apply_char_cmp(frame, "char.ne", (a, b) -> a != b)
-                if outcome is Trap { return outcome }
+                left  :: read_char(frame.stack[frame.sp - 2], frame.pc, "char.ne")
+                if left  is Trap { return left  }
+                right :: read_char(frame.stack[frame.sp - 1], frame.pc, "char.ne")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value != right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.CharLt -> {
-                outcome :: apply_char_cmp(frame, "char.lt", (a, b) -> a < b)
-                if outcome is Trap { return outcome }
+                left  :: read_char(frame.stack[frame.sp - 2], frame.pc, "char.lt")
+                if left  is Trap { return left  }
+                right :: read_char(frame.stack[frame.sp - 1], frame.pc, "char.lt")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value < right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.CharLe -> {
-                outcome :: apply_char_cmp(frame, "char.le", (a, b) -> a <= b)
-                if outcome is Trap { return outcome }
+                left  :: read_char(frame.stack[frame.sp - 2], frame.pc, "char.le")
+                if left  is Trap { return left  }
+                right :: read_char(frame.stack[frame.sp - 1], frame.pc, "char.le")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value <= right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.CharGt -> {
-                outcome :: apply_char_cmp(frame, "char.gt", (a, b) -> a > b)
-                if outcome is Trap { return outcome }
+                left  :: read_char(frame.stack[frame.sp - 2], frame.pc, "char.gt")
+                if left  is Trap { return left  }
+                right :: read_char(frame.stack[frame.sp - 1], frame.pc, "char.gt")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value > right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.CharGe -> {
-                outcome :: apply_char_cmp(frame, "char.ge", (a, b) -> a >= b)
-                if outcome is Trap { return outcome }
+                left  :: read_char(frame.stack[frame.sp - 2], frame.pc, "char.ge")
+                if left  is Trap { return left  }
+                right :: read_char(frame.stack[frame.sp - 1], frame.pc, "char.ge")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value >= right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.StringEq -> {
-                outcome :: apply_string_cmp(frame, "string.eq", (a, b) -> a == b)
-                if outcome is Trap { return outcome }
+                left  :: read_string(frame.stack[frame.sp - 2], frame.pc, "string.eq")
+                if left  is Trap { return left  }
+                right :: read_string(frame.stack[frame.sp - 1], frame.pc, "string.eq")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value == right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.StringNe -> {
-                outcome :: apply_string_cmp(frame, "string.ne", (a, b) -> a != b)
-                if outcome is Trap { return outcome }
+                left  :: read_string(frame.stack[frame.sp - 2], frame.pc, "string.ne")
+                if left  is Trap { return left  }
+                right :: read_string(frame.stack[frame.sp - 1], frame.pc, "string.ne")
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = BoolVal { .value = left.value != right.value }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.IntToChar -> {
                 if frame.sp == 0 { return Trap { .message = "<int>.to_char on empty stack at pc=${frame.pc}" } }
