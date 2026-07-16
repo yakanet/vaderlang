@@ -19,21 +19,9 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 bc :: import "vader/bytecode"
-import "vader/vm" {
-    ModuleBuilder, FunctionBuilder,
-    new_module_builder, new_function_builder,
-    add_type, add_import, add_function, set_main, finish, intern_string,
-    i32_const, i32_add, i32_mul, local_get, local_set, string_const,
-    call, call_import, return_op,
-    builder_new, builder_append_display, builder_finish,
-    int_to_char,
-}
-import "vader/vm" { exec, prepare }
-import "vader/vm" { VmResult, Ok, Trap }
-import "vader/vm" { parse_virt_bc }
-import "vader/vm" { write_virt }
+import "vader/vm"
 
 build_test_module :: fn() -> bc.BytecodeModule {
     module_builder :: new_module_builder()

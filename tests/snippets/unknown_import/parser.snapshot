@@ -10,13 +10,7 @@
       "kind": "ImportDecl",
       "path": "std/nonexistent",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "do_thing",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },

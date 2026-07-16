@@ -1,7 +1,7 @@
 // `std/io` doesn't export `nonexistent_export` — should trigger R2003.
 module "snippet"
 
-import "std/io" { nonexistent_export }
+import "std/io" * { nonexistent_export as missing }
 
 main :: fn() -> i32 {
     return 0

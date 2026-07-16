@@ -4,7 +4,7 @@ module "snippet"
 // `null` AND an `Error` (`i32 | Error | null`) fits neither the `T | null` nor
 // the `T | Error` overload, so `.or(d)` is a compile error (T3008) that points
 // at narrowing — not a silent leak. See docs/ERROR_HANDLING.md (Strategy A).
-import "std/option" { or }
+import "std/option"
 
 Boom :: struct {}
 Boom implements Error { message :: fn(self) -> string = "boom" }

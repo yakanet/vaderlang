@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/nonexistent" { do_thing }
+import "std/nonexistent"
 
 main :: fn() -> i32 {
     do_thing()

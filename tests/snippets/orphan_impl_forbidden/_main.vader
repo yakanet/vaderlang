@@ -7,8 +7,8 @@
 
 module "snippet"
 
-import "snippet/lib_a" { Foo }
-import "snippet/lib_b" { Bar }
+import "snippet/lib_a"
+import "snippet/lib_b"
 
 Foo implements Bar {
     baz :: fn(self) -> i32 {

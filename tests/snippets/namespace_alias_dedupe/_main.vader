@@ -1,7 +1,7 @@
 // `Decl` declared in `vader/parser/ast.vader` is reached through two
 // different modules :
 //
-//   - FILE module `vader/parser/ast`   (via `import "vader/parser" { Decl }`)
+//   - FILE module `vader/parser/ast`   (via `import "vader/parser"`)
 //   - FOLDER module `vader/parser`     (via `P :: import "vader/parser"`,
 //                                       which aggregates every `.vader`
 //                                       under the folder)
@@ -14,7 +14,7 @@
 
 module "snippet"
 
-import "vader/parser" { Decl }
+import "vader/parser"
 P :: import "vader/parser"
 
 @allow_unused

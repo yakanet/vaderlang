@@ -10,13 +10,7 @@
       "kind": "ImportDecl",
       "path": "std/io",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "println",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -24,17 +18,7 @@
       "kind": "ImportDecl",
       "path": "vader/lexer",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "tokenize",
-            "alias": null
-          },
-          {
-            "name": "TokenKind",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -42,13 +26,7 @@
       "kind": "ImportDecl",
       "path": "vader/diagnostics",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "render",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
