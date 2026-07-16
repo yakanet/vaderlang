@@ -1,6 +1,6 @@
 module "snippet"
 
-import "nonexistent/module/path" { something }
+import "nonexistent/module/path"
 
 main :: fn() -> i32 {
     return 0

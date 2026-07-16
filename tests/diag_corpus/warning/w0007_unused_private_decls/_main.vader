@@ -6,7 +6,7 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 
 // dead : private fn, referenced nowhere → W0007.
 stale_fn :: fn() -> i32 = 41

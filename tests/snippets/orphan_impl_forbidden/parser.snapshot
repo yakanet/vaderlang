@@ -10,13 +10,7 @@
       "kind": "ImportDecl",
       "path": "snippet/lib_a",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "Foo",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },
@@ -24,13 +18,7 @@
       "kind": "ImportDecl",
       "path": "snippet/lib_b",
       "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "Bar",
-            "alias": null
-          }
-        ]
+        "kind": "wildcard"
       },
       "decorators": []
     },

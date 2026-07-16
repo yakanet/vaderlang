@@ -3,7 +3,7 @@
 // would bake a non-reproducible value and break the byte-identical bootstrap.
 module "snippet"
 
-import "std/env" { get_env }
+import "std/env"
 
 @comptime
 export HOME_AT_BUILD :: read_home()

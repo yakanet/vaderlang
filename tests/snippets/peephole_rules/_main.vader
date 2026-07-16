@@ -5,14 +5,9 @@
 
 module "snippet"
 
-import "std/io" { println }
+import "std/io"
 op :: import "vader/bytecode"
-import "vader/vm" {
-    BytecodeFunction, FunctionBuilder, new_function_builder,
-    bool_const, bool_not, i32_const, i32_eq, i32_lt,
-    local_get, local_set,
-}
-import "vader/vm" { run_peepholes }
+import "vader/vm"
 
 /// Bake a finished `FunctionBuilder` into a `BytecodeFunction` so the
 /// peephole helper can rewrite its `ops` in place.
