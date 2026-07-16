@@ -17,7 +17,7 @@
         let x: i32 =
           call :i32
             callee:
-              f :fn(i32) -> i32
+              double :fn(i32) -> i32
             arg0:
               x :?
         assign

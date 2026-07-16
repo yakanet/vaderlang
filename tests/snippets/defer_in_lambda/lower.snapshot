@@ -4,11 +4,15 @@
   fn snippet$main() -> i32
     let x: ? =
       LoweredCellNew
-    let f: fn() -> void =
-      LoweredMakeClosure
+    let f: __lambda_env_2 =
+      __lambda_env_2 {
+        cap_0: x :string
+      }
     call :void
       callee:
-        f :fn() -> void
+        __lambda_1 :fn() -> void
+      arg0:
+        f :__lambda_env_2
     call :void
       callee:
         std_io$println__string :void
@@ -16,8 +20,11 @@
         "--- now panic case ---" :string
     let n: ? =
       LoweredCellNew
-    let do_panic: fn() -> i32 =
-      LoweredMakeClosure
+    let do_panic: __lambda_env_18 =
+      __lambda_env_18 {
+        cap_0: x :string
+        cap_1: n :i32
+      }
     call :void
       callee:
         std_io$println__string :void
@@ -58,7 +65,9 @@
                   cast → i64
                     call :i32
                       callee:
-                        do_panic :fn() -> i32
+                        __lambda_17 :fn() -> i32
+                      arg0:
+                        do_panic :__lambda_env_18
           ~>
             call :string
               callee:

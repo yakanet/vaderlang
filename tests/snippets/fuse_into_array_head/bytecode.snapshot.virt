@@ -9,9 +9,8 @@ type 6 primitive i64
 type 7 primitive u64
 type 8 primitive u8
 type 9 primitive void
-type 10 fn (1) -> 2
-type 11 fn (1) -> 1
-type 12 array 1
+type 10 fn (1) -> 1
+type 11 array 1
 string 0 "sum="
 string 1 " drain="
 string 2 " d0="
@@ -38,94 +37,91 @@ end
 
 fn 2 snippet$main () -> i32
   local total i32
-  local pred ref
   local f ref
   local __fuse_arr_0 ref
   local __fuse_len_1 usize
   local __fuse_i_2 usize
   local x i32
   local x i32
+  local __fuse_arr_5 ref
   local $cast_53 i64
   local $cast_58 u64
   i32.const 0
   local.set 0
-  fn.ref 1 10
+  fn.ref 0 10
   local.set 1
-  fn.ref 0 11
-  local.set 2
   i32.const 1
   i32.const 2
   i32.const 3
   i32.const 4
-  array.new 12 4
-  local.tee 3
+  array.new 11 4
+  local.tee 2
   array.len
-  local.set 4
+  local.set 3
   i64.const 0
-  local.set 5
+  local.set 4
   block $L0 void
     loop $L1 void
-      local.get 5
       local.get 4
+      local.get 3
       u64.lt
       if $L2 void
-        local.get 3
-        local.get 5
-        load_slot_i32
         local.get 2
-        call.indirect 11
-        local.tee 6
+        local.get 4
+        load_slot_i32
         local.get 1
         call.indirect 10
+        local.tee 5
+        call 1
         if $L3 void
-          local.get 6
-          local.set 7
+          local.get 5
+          local.set 6
           local.get 0
-          local.get 7
+          local.get 6
           i32.add
           local.set 0
         else
         end $L3
-        local.get 5
+        local.get 4
         i64.const 1
         i64.add
-        local.set 5
+        local.set 4
         br $L1
       else
       end $L2
     end $L1
   end $L0
-  array.new 12 0
+  array.new 11 0
   local.set 1
-  fn.ref 0 11
+  fn.ref 0 10
   local.set 2
   i32.const 10
   i32.const 20
-  array.new 12 2
-  local.tee 3
+  array.new 11 2
+  local.tee 7
   array.len
-  local.set 4
+  local.set 3
   i64.const 0
-  local.set 5
+  local.set 4
   block $L4 void
     loop $L5 void
-      local.get 5
       local.get 4
+      local.get 3
       u64.lt
       if $L6 void
-        local.get 3
-        local.get 5
+        local.get 7
+        local.get 4
         load_slot_i32
         local.get 2
-        call.indirect 11
-        local.set 6
+        call.indirect 10
+        local.set 5
         local.get 1
-        local.get 6
-        array.push 1
         local.get 5
+        array.push 1
+        local.get 4
         i64.const 1
         i64.add
-        local.set 5
+        local.set 4
         br $L5
       else
       end $L6
@@ -135,66 +131,66 @@ fn 2 snippet$main () -> i32
   call 3
   local.set 2
   i64.const 0
-  local.set 4
+  local.set 3
   local.get 2
-  local.get 4
+  local.get 3
   string.const 0
   call 5
-  local.set 4
+  local.set 3
   local.get 0
   i32.to_i64
   local.set 8
   local.get 2
-  local.get 4
+  local.get 3
   local.get 8
   call 6
-  local.set 4
+  local.set 3
   local.get 2
-  local.get 4
+  local.get 3
   string.const 1
   call 5
-  local.set 4
+  local.set 3
   local.get 1
   array.len
   usize.to_i64
   local.set 9
   local.get 2
-  local.get 4
+  local.get 3
   local.get 9
   call 7
-  local.set 4
+  local.set 3
   local.get 2
-  local.get 4
+  local.get 3
   string.const 2
   call 5
-  local.set 4
+  local.set 3
   local.get 1
   i32.const 0
   load_slot_i32
   i32.to_i64
   local.set 8
   local.get 2
-  local.get 4
+  local.get 3
   local.get 8
   call 6
-  local.set 4
+  local.set 3
   local.get 2
-  local.get 4
+  local.get 3
   string.const 3
   call 5
-  local.set 4
+  local.set 3
   local.get 1
   i32.const 1
   load_slot_i32
   i32.to_i64
   local.set 8
   local.get 2
-  local.get 4
+  local.get 3
   local.get 8
   call 6
-  local.set 4
+  local.set 3
   local.get 2
-  local.get 4
+  local.get 3
   call 4
   call 8
   return.lit i32.const 0

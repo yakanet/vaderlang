@@ -22,7 +22,7 @@
           cond:
             call :bool
               callee:
-                pred :fn(i32) -> bool
+                is_even :fn(i32) -> bool
               arg0:
                 x :?
           then:

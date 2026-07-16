@@ -245,6 +245,11 @@ lower_project_impl :: fn(
     // directives never land in the .virt — the runtime falls back to
     // mangle-keyed dispatch.
     project.vtable_entries = collect_vtable_entries(project, loaded, typed)
+    // Devirtualize calls through a fn-value local (`let f = named_fn ; … f(x) …`) to
+    // direct calls to the concrete fn — kills the erased-fn-value indirect+boxed
+    // dispatch (the `.map(f).filter(p)` iterator-fusion regression). Runs BEFORE
+    // `inline_fns` so the direct calls it produces become inline candidates.
+    devirtualize_fn_refs(project)
     // Inline single-expression function calls (trait-impl wrappers like
     // `Display.to_string`, accessors, …) — clone the callee's lowered body with
     // the args substituted, in place. Runs after vtable collection (so the

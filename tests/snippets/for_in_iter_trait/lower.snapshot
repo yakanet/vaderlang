@@ -71,7 +71,7 @@
                 cond:
                   call :bool
                     callee:
-                      pred :fn(char) -> bool
+                      is_l :fn(char) -> bool
                     arg0:
                       x :?
                 then:

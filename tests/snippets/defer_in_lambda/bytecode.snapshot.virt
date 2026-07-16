@@ -12,9 +12,7 @@ type 9 struct std_core$Buffer {  }
 type 10 primitive i64
 type 11 primitive u8
 type 12 struct $Cell_string { value:6 }
-type 13 fn () -> 3
-type 14 struct $Cell_i32 { value:1 }
-type 15 fn () -> 1
+type 13 struct $Cell_i32 { value:1 }
 string 0 "captured-x"
 string 1 "--- now panic case ---"
 string 2 "result="
@@ -33,22 +31,20 @@ fn 0 snippet$main () -> i32
   local do_panic ref
   local __buf_2 ref
   local __off_3 usize
-  local $cast_21 i64
+  local $cast_19 i64
   string.const 0
   struct.new 12
   local.tee 0
   struct.new 4
-  make_closure 2 13
-  call.indirect 13
+  call 2
   string.const 1
   call 8
   i32.const 5
-  struct.new 14
+  struct.new 13
   local.set 1
   local.get 0
   local.get 1
   struct.new 5
-  make_closure 3 15
   local.set 2
   i64.const 27
   call 4
@@ -61,7 +57,7 @@ fn 0 snippet$main () -> i32
   call 6
   local.set 4
   local.get 2
-  call.indirect 15
+  call 3
   i32.to_i64
   local.set 5
   local.get 3

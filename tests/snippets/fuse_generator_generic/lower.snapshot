@@ -3,8 +3,9 @@
 ## snippet
   fn snippet$main() -> i32
     block :void
-      let f: fn(i32) -> i32 =
-        LoweredMakeClosure
+      let f: __lambda_env_4 =
+        __lambda_env_4 {
+        }
       let __fuse_arr_3: i32[] =
         array :i32[]
           int(1) :i32
@@ -21,11 +22,11 @@
             ix:
               __fuse_i_5 :usize
         let v: i32 =
-          call :i32
-            callee:
-              f :fn(i32) -> i32
-            arg0:
+          mul :i32
+            l:
               x :i32
+            r:
+              int(10) :i32
         call :void
           callee:
             std_io$println__string :void
@@ -83,8 +84,9 @@
               r:
                 int(1) :usize
     block :void
-      let pred: fn(i32) -> bool =
-        LoweredMakeClosure
+      let pred: __lambda_env_12 =
+        __lambda_env_12 {
+        }
       let __fuse_arr_9: i32[] =
         array :i32[]
           int(1) :i32
@@ -104,11 +106,15 @@
               __fuse_i_11 :usize
         if :void
           cond:
-            call :bool
-              callee:
-                pred :fn(i32) -> bool
-              arg0:
-                x :i32
+            eq :bool
+              l:
+                mod :i32
+                  l:
+                    x :i32
+                  r:
+                    int(2) :i32
+              r:
+                int(1) :i32
           then:
             let v: i32 = x :i32
             call :void

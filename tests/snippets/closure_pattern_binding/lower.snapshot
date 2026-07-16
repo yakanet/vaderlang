@@ -16,15 +16,22 @@
                 LoweredCellNew
               ~>
                 block :void
-                  let shout: fn() -> string =
-                    LoweredMakeClosure
+                  let shout: __lambda_env_8 =
+                    __lambda_env_8 {
+                      cap_0: p :P
+                    }
                   call :void
                     callee:
                       std_io$println__string :void
                     arg0:
                       call :string
                         callee:
-                          shout :fn() -> string
+                          concat_2 :string
+                        arg0:
+                          "HELLO " :string
+                        arg1:
+                          .name :string
+                            LoweredCellGet
                   ~>
                     call :void
                       callee:
@@ -38,7 +45,12 @@
                           arg1:
                             call :string
                               callee:
-                                shout :fn() -> string
+                                concat_2 :string
+                              arg0:
+                                "HELLO " :string
+                              arg1:
+                                .name :string
+                                  LoweredCellGet
             else:
               ~>
                 if :void
@@ -50,8 +62,10 @@
                       LoweredCellNew
                     ~>
                       block :void
-                        let doubled: fn() -> i32 =
-                          LoweredMakeClosure
+                        let doubled: __lambda_env_3 =
+                          __lambda_env_3 {
+                            cap_0: n :i32
+                          }
                         ~>
                           call :void
                             callee:
@@ -91,9 +105,11 @@
                                         __off_3 :usize
                                       arg2:
                                         cast → i64
-                                          call :i32
-                                            callee:
-                                              doubled :fn() -> i32
+                                          add :i32
+                                            l:
+                                              LoweredCellGet
+                                            r:
+                                              LoweredCellGet
                                 ~>
                                   call :string
                                     callee:

@@ -20,10 +20,7 @@ type 17 array 18
 type 18 fn () -> 4
 type 19 struct $Cell_string { value:11 }
 type 20 struct $Cell_i32 { value:1 }
-type 21 fn (1) -> 1
-type 22 fn (1) -> 2
-type 23 fn (10) -> 4
-type 24 struct $Cell_i64 { value:10 }
+type 21 struct $Cell_i64 { value:10 }
 string 0 "a"
 string 1 "b"
 string 2 "c"
@@ -174,8 +171,6 @@ fn 2 snippet$main () -> i32
   end $L6
   array.new 17 0
   local.set 0
-  fn.ref 0 21
-  local.set 1
   i32.const 0
   local.set 5
   block $L9 void
@@ -185,14 +180,13 @@ fn 2 snippet$main () -> i32
       i32.lt
       if $L11 void
         local.get 5
-        local.get 1
-        call.indirect 21
+        call 0
         struct.new 20
         struct.new 6
         make_closure 5 18
-        local.set 4
+        local.set 1
         local.get 0
-        local.get 4
+        local.get 1
         array.push 18
         local.get 5
         i32.const 1
@@ -227,8 +221,6 @@ fn 2 snippet$main () -> i32
       end $L14
     end $L13
   end $L12
-  fn.ref 1 22
-  local.set 0
   i32.const 0
   local.set 5
   block $L15 void
@@ -238,8 +230,7 @@ fn 2 snippet$main () -> i32
       i32.lt
       if $L17 void
         local.get 5
-        local.get 0
-        call.indirect 22
+        call 1
         if $L18 void
           local.get 5
           struct.new 20
@@ -259,14 +250,12 @@ fn 2 snippet$main () -> i32
     end $L16
   end $L15
   struct.new 9
-  make_closure 8 23
-  local.set 0
+  local.tee 0
   i64.const 7
+  call 8
   local.get 0
-  call.indirect 23
   i64.const 8
-  local.get 0
-  call.indirect 23
+  call 8
   return.lit i32.const 0
 end
 
@@ -387,7 +376,7 @@ fn 7 __lambda_41 (ref) -> void
   call 12
   local.set 2
   local.field 0 8 0
-  struct.get 24 0
+  struct.get 21 0
   local.set 3
   local.get 1
   local.get 2
@@ -403,10 +392,9 @@ end
 
 fn 8 __lambda_38 (ref,i64) -> void
   local.get 1
-  struct.new 24
+  struct.new 21
   struct.new 8
-  make_closure 7 18
-  call.indirect 18
+  call 7
   return
 end
 

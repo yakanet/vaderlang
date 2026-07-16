@@ -4,13 +4,15 @@
   fn snippet$main() -> i32
     let x: ? =
       LoweredCellNew
-    let add_x: fn(i32) -> i32 =
-      LoweredMakeClosure
+    let add_x: __lambda_env_2 =
+      __lambda_env_2 {
+        cap_0: x :i32
+      }
     return
-      call :i32
-        callee:
-          add_x :fn(i32) -> i32
-        arg0:
+      add :i32
+        l:
+          LoweredCellGet
+        r:
           int(5) :i32
   struct __lambda_env_2 { cap_0: ? }
   fn __lambda_1(__env_0: __lambda_env_2, y: i32) -> i32

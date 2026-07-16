@@ -84,12 +84,22 @@
   fn snippet$make_greeter(name: string) -> void
     let name: ? =
       LoweredCellNew
-    let greet: fn() -> void =
-      LoweredMakeClosure
+    let greet: __lambda_env_21 =
+      __lambda_env_21 {
+        cap_0: name :string
+      }
     ~>
       call :void
         callee:
-          greet :fn() -> void
+          std_io$println__string :void
+        arg0:
+          call :string
+            callee:
+              concat_2 :string
+            arg0:
+              "hello " :string
+            arg1:
+              LoweredCellGet
   fn snippet$main() -> i32
     call :void
       callee:

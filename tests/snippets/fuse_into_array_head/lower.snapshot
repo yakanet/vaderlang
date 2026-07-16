@@ -46,7 +46,7 @@
           cond:
             call :bool
               callee:
-                pred :fn(i32) -> bool
+                keep_hi :fn(i32) -> bool
               arg0:
                 x :?
           then:

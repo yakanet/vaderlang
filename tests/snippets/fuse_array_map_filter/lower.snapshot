@@ -44,14 +44,14 @@
         let x: i32 =
           call :i32
             callee:
-              f :fn(i32) -> i32
+              double :fn(i32) -> i32
             arg0:
               x :?
         if :void
           cond:
             call :bool
               callee:
-                pred :fn(i32) -> bool
+                is_twenty_multiple :fn(i32) -> bool
               arg0:
                 x :?
           then:

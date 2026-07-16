@@ -20,7 +20,7 @@
             cond:
               call :bool
                 callee:
-                  pred :fn(i32) -> bool
+                  keep :fn(i32) -> bool
                 arg0:
                   x :?
             then:
