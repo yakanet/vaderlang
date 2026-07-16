@@ -309,7 +309,7 @@ test("dap: the Variables view names function parameters from source", async () =
   writeFileSync(program, [
     `module "snippet"`,
     ``,
-    `import "std/io" { println }`,
+    `import "std/io"`,
     ``,
     `add :: fn(x: i32, y: i32) -> i32 {`,
     `    sum :: x + y`,

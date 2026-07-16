@@ -2,8 +2,8 @@
 //
 // Walks a Program's top-level decls
 // once and mints one Symbol per name into a `MutableMap`. The same pass
-// emits multi-name destructure imports (`import "m" { a, b, c }` → 3
-// `import-binding` symbols) and groups fn overloads.
+// records wildcard imports (`import "m"` and `import "m" { x as y, z as _ }`)
+// with their per-path excludes + rename bindings, and groups fn overloads.
 //
 // Emits R2002 (empty import path), R2004 (duplicate top-level), R2011
 // (duplicate import binding), plus the import-path resolution codes
@@ -237,42 +237,30 @@ collect_import :: fn(
             self.wildcard_paths.push(d.path)
         }
         is DestructureImport as de -> {
-            if de.wildcard {
-                // `import "p" * { … }` — WILDCARD of p PLUS per-name modifiers:
-                //   `x as _` excludes x ; `x as y` excludes x under its own name
-                //   and binds it as y. A plain name (no `as`) is an error here —
-                //   the wildcard already brings every export.
-                self.wildcard_paths.push(d.path)
-                excluded: string[] = []
-                for n in de.names {
-                    match n.alias {
-                        is null -> {
-                            diags.push(resolver_error(.PlainNameInImportModifiers, n.span, "`${n.name}`"))
-                        }
-                        is string as alias -> {
-                            // Every modifier drops its source name from the wildcard.
-                            excluded.push(n.name)
-                            // `as _` is a pure exclusion ; any other alias renames —
-                            // bind `alias → p.<n.name>` via the usual ImportBinding path.
-                            if alias != "_" {
-                                self.bind_import(alias, n.span, d.path, n.name, module_path, factory, diags)
-                            }
+            // `import "p" { … }` — WILDCARD of p PLUS per-name modifiers:
+            //   `x as _` excludes x ; `x as y` excludes x under its own name and
+            //   binds it as y. A plain name (no `as`) is an error — the wildcard
+            //   already brings every export. (The `* { … }` spelling is the same
+            //   thing during the transition; `de.wildcard` no longer branches.)
+            self.wildcard_paths.push(d.path)
+            excluded: string[] = []
+            for n in de.names {
+                match n.alias {
+                    is null -> {
+                        diags.push(resolver_error(.PlainNameInImportModifiers, n.span, "`${n.name}`"))
+                    }
+                    is string as alias -> {
+                        // Every modifier drops its source name from the wildcard.
+                        excluded.push(n.name)
+                        // `as _` is a pure exclusion ; any other alias renames —
+                        // bind `alias → p.<n.name>` via the usual ImportBinding path.
+                        if alias != "_" {
+                            self.bind_import(alias, n.span, d.path, n.name, module_path, factory, diags)
                         }
                     }
-                }
-                self.wildcard_excludes[d.path] = excluded
-            } else {
-                // Legacy `import "p" { a, b as c }` — ALLOW-LIST : only the listed
-                // names enter scope. Kept until every import is migrated to the
-                // `* { … }` form ; then this branch (and the flag) are removed.
-                for n in de.names {
-                    local := match n.alias {
-                        is string as alias -> alias
-                        is null            -> n.name
-                    }
-                    self.bind_import(local, n.span, d.path, n.name, module_path, factory, diags)
                 }
             }
+            self.wildcard_excludes[d.path] = excluded
         }
     }
 }
@@ -411,20 +399,28 @@ main :: fn() -> i32 { return 0 }
 }
 
 @test
-test_collect_destructure_emits_all_names :: fn() -> void {
+test_collect_wildcard_modifiers :: fn() -> void {
     src :: """
-import "x" { a, b, c }
+import "x" { keep as kept, drop as _ }
 """
     parsed :: parse_source(src, "test.vader")
     factory :: SymbolFactory {}
     collected :: collect_module_no_index(parsed.program, "test", factory)
-    for name in ["a", "b", "c"] {
-        hit :: collected.symbols[name]
-        match hit {
-            is Symbol as s -> { assert(s.kind == SymbolKind.ImportBinding, "should be import-binding") }
-            is null        -> { assert(false, "${name} should be a destructured import binding") }
-        }
+    // The path becomes a wildcard, and both modifier source names are excluded.
+    assert(collected.wildcard_paths.len() == 1, "the path is a wildcard")
+    ex :: collected.wildcard_excludes["x"]
+    match ex {
+        is string[] as names -> { assert(names.len() == 2, "both `keep` and `drop` excluded") }
+        is null              -> { assert(false, "excludes recorded for x") }
     }
+    // The rename `keep as kept` binds `kept` as an import-binding.
+    kept :: collected.symbols["kept"]
+    match kept {
+        is Symbol as s -> { assert(s.kind == SymbolKind.ImportBinding, "rename binds an import-binding") }
+        is null        -> { assert(false, "kept should be a rename binding") }
+    }
+    // The pure exclusion `drop as _` binds nothing.
+    assert(collected.symbols["drop"] == null, "`drop as _` binds no name")
 }
 
 @test
