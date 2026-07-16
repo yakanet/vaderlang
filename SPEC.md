@@ -2035,6 +2035,15 @@ A **namespace** import names its binding explicitly (`name :: import "path"`) an
 
 A **destructure** import (`import "path" { a, b }`) is the narrow form: it pulls exactly the listed names into top-level scope, and is the only form that carries a rename (`a as b`). With the wildcard as the default, plain destructure is redundant; it survives mainly for renames.
 
+> **Transition (in progress): wildcard-plus-modifiers.** The destructure allow-list
+> is being replaced by a **wildcard-with-modifiers** form written `import "path" * { … }`
+> (note the `*`): it exposes *every* export of `path` (like the bare wildcard) **minus**
+> the listed names — `x as _` drops `x`, `x as y` drops `x` under its own name and
+> rebinds it as `y`. A plain name (no `as`) inside `* { … }` is an error (`R2033`). The
+> legacy allow-list `import "path" { … }` still works during the migration; once every
+> import is on the `* { … }` form the `*` is dropped and `{ … }` itself becomes the
+> wildcard-modifiers form.
+
 There is no implicit last-segment binding, and no `as` suffix on the module path itself.
 
 #### Resolution rules

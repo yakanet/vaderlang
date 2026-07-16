@@ -1,0 +1,10 @@
+// `* { println as _ }` EXCLUDES `println` from the std/io wildcard, so an
+// unqualified `println` no longer resolves — R2006.
+module "snippet"
+
+import "std/io" * { println as _ }
+
+main :: fn() -> i32 {
+    println("hi")
+    return 0
+}

@@ -1,0 +1,5 @@
+module "snippet/toolkit"
+
+export draw :: fn() -> i32 = 10
+export legacy_render :: fn() -> i32 = 20
+export compute_bounding_box :: fn() -> i32 = 30

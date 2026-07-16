@@ -121,7 +121,14 @@ export ImportDecl :: struct {
 export NamedNamespaceImport :: struct {
     name: string
 }
-export DestructureImport :: struct { names: ImportName[] }
+/// `import "p" { … }`. Two meanings during the wildcard-modifiers transition,
+/// keyed by `wildcard`:
+///   - `wildcard = false` — legacy ALLOW-LIST (`import "p" { a, b }`): only the
+///     listed names enter scope. Removed once every import is migrated.
+///   - `wildcard = true`  — the intermediate `import "p" * { x as y, z as _ }`:
+///     WILDCARD of p plus modifiers (each name is excluded from the wildcard;
+///     `as _` is a pure exclusion, `as y` also rebinds it as `y`).
+export DestructureImport :: struct { names: ImportName[], wildcard: bool = false }
 
 /// bare `import "..."` — wildcard : every function of the module becomes
 /// callable (prefix + UFCS) ; binds no name.

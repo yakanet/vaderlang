@@ -1,0 +1,65 @@
+# AST
+{
+  "kind": "Program",
+  "module": {
+    "kind": "ModuleDecl",
+    "name": "snippet"
+  },
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "snippet/toolkit",
+      "binding": {
+        "kind": "wildcard-modifiers",
+        "names": [
+          {
+            "name": "legacy_render",
+            "alias": "_"
+          },
+          {
+            "name": "compute_bounding_box",
+            "alias": "bbox"
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [],
+        "trailing": {
+          "kind": "BinaryExpr",
+          "op": "add",
+          "left": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "draw"
+            },
+            "args": []
+          },
+          "right": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "bbox"
+            },
+            "args": []
+          }
+        }
+      },
+      "decorators": [],
+      "isExpressionBodied": true
+    }
+  ]
+}
