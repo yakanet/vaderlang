@@ -1,0 +1,19 @@
+# Typecheck
+
+## tests/snippets/field_from_core_not_libs
+  FnDecl         count_fields         :: fn(Field[]) -> i32
+  FnDecl         main                 :: fn() -> i32
+  expr 10:42    CallExpr       :: i32
+  expr 10:42    IdentExpr      :: type
+  expr 10:46    CallExpr       :: usize
+  expr 10:46    FieldExpr      :: fn() -> usize
+  expr 10:46    IdentExpr      :: Field[]
+  expr 12:23    CallExpr       :: i32
+  expr 12:23    IdentExpr      :: fn(Field[]) -> i32
+  expr 12:36    SeqLitExpr     :: Field[]
+
+## tests/snippets/field_from_core_not_libs/db
+  StructDecl     Field                :: Field
+
+## tests/snippets/field_from_core_not_libs/forms
+  StructDecl     Field                :: Field

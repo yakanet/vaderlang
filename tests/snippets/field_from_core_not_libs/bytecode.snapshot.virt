@@ -1,0 +1,21 @@
+module _main
+type 0 primitive null
+type 1 array 2
+type 2 struct std_core$Field { name:4,type:5 }
+type 3 primitive i32
+type 4 primitive string
+type 5 ref _
+export main 1
+
+fn 0 snippet$count_fields (ref) -> i32
+  local.get 0
+  array.len
+  usize.to_i32
+  return
+end
+
+fn 1 snippet$main () -> i32
+  array.new 1 0
+  call 0
+  return
+end

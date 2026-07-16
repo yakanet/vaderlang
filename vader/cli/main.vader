@@ -1238,7 +1238,7 @@ resolve_loaded_project :: fn(project: LoadedProject, scope: string[]) -> Resolve
             lm.module.files[0].program, lm.module.files[0].path,
             lm.module.display_path, project.factory, lm.collected,
             build_wildcard_seed(mod_index, lm.collected.wildcard_paths, core_seed),
-            wildcard_ambiguities(mod_index, lm.collected.wildcard_paths),
+            wildcard_ambiguities(mod_index, lm.collected.wildcard_paths, core_seed),
         )
         modules.push(rm)
         resolved_by_id[id] = rm

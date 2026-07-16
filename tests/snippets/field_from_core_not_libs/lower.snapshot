@@ -1,0 +1,18 @@
+# Lower
+
+## snippet
+  fn snippet$count_fields(fs: Field[]) -> i32
+    ~>
+      cast → i32
+        LoweredArrayLen
+  fn snippet$main() -> i32
+    ~>
+      call :i32
+        callee:
+          count_fields :fn(Field[]) -> i32
+        arg0:
+          array :Field[]
+
+## snippet/db
+
+## snippet/forms

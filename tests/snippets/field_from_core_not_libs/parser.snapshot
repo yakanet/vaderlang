@@ -1,0 +1,115 @@
+# AST
+{
+  "kind": "Program",
+  "module": {
+    "kind": "ModuleDecl",
+    "name": "snippet"
+  },
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "snippet/forms",
+      "binding": {
+        "kind": "wildcard"
+      },
+      "decorators": []
+    },
+    {
+      "kind": "ImportDecl",
+      "path": "snippet/db",
+      "binding": {
+        "kind": "wildcard"
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "count_fields",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [
+        {
+          "name": "fs",
+          "type": {
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "IdentExpr",
+              "name": "Field"
+            }
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [],
+        "trailing": {
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "i32"
+          },
+          "args": [
+            {
+              "name": null,
+              "value": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "fs"
+                  },
+                  "field": "len"
+                },
+                "args": []
+              },
+              "spread": false
+            }
+          ]
+        }
+      },
+      "decorators": [],
+      "isExpressionBodied": true
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [],
+        "trailing": {
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "count_fields"
+          },
+          "args": [
+            {
+              "name": null,
+              "value": {
+                "kind": "SeqLitExpr",
+                "elements": []
+              },
+              "spread": false
+            }
+          ]
+        }
+      },
+      "decorators": [],
+      "isExpressionBodied": true
+    }
+  ]
+}

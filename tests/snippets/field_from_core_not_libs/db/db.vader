@@ -1,0 +1,3 @@
+module "snippet/db"
+
+export Field :: struct { column: string }

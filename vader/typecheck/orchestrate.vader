@@ -121,7 +121,7 @@ export check_project_with_bodies :: fn(
         entry_loaded.module.display_path,
         project.factory, entry_loaded.collected,
         build_wildcard_seed(mod_index, entry_loaded.collected.wildcard_paths, core_seed),
-        wildcard_ambiguities(mod_index, entry_loaded.collected.wildcard_paths),
+        wildcard_ambiguities(mod_index, entry_loaded.collected.wildcard_paths, core_seed),
     )
     entry_typed :: new_typed_program(entry_rm)
     entry_typed.dump_types = dump_types
@@ -136,7 +136,7 @@ export check_project_with_bodies :: fn(
             merge_module_program(other.module.files), id, other.module.display_path,
             project.factory, other.collected,
             build_wildcard_seed(mod_index, other.collected.wildcard_paths, core_seed),
-            wildcard_ambiguities(mod_index, other.collected.wildcard_paths),
+            wildcard_ambiguities(mod_index, other.collected.wildcard_paths, core_seed),
         )
         typed :: new_typed_program(rm)
         typed.dump_types = dump_types

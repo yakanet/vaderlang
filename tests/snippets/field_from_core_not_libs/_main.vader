@@ -1,0 +1,12 @@
+// `Field` is exported by BOTH wildcard-imported libs AND by the std/core prelude.
+// The wildcard seed is prelude-first fill-empty, so an unqualified `Field` binds
+// the core symbol — which always wins and is never ambiguous. This must compile
+// (regression guard for the R2031 false-positive that fired here before).
+module "snippet"
+
+import "snippet/forms"
+import "snippet/db"
+
+count_fields :: fn(fs: Field[]) -> i32 = i32(fs.len())
+
+main :: fn() -> i32 = count_fields([])
