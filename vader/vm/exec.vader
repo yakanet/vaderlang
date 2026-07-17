@@ -80,6 +80,10 @@ Frame :: struct {
     function_index: i32
     slots:          Value[]
     stack:          Value[]
+    payload:        i64[]
+    tag:            StackTag[]
+    slot_payload:   i64[]
+    slot_tag:       StackTag[]
     sp:             usize
     pc:             i32
     /// Defer-stack — closures pushed via `DeferPush` op, drained LIFO by
@@ -103,6 +107,133 @@ push_value :: fn(stack: Value[], cursor: usize, value: Value) -> void {
     if cursor == stack.len() { stack.push(value) }
     else                     { stack[cursor] = value }
 }
+
+// ---- SoA value stack (lever A) --------------------------------------------
+// The operand stack and locals are stored column-major: scalar bits live in
+// the `payload` (i64) column, the variant discriminant in `tag`, and only heap
+// values in the `stack` / `slots` (refs) column. A scalar write leaves the refs
+// slot as a stale-but-valid `Value` (GC-safe, retention bounded by stack depth)
+// and only a ref write updates it. `push_val` / `peek_val` bridge to a boxed
+// `Value` at the boundaries (host calls, heap-object contents, comptime).
+
+/// Discriminant column for the SoA stack / slots. `enum(u8)` so a `tag[]`
+/// packs one byte per entry ; scalar tags carry their bits in `payload`, `Ref`
+/// keeps the boxed `Value` in the refs column.
+StackTag :: enum(u8) { I32, I64, F64, Bool, Char, Null, Ref }
+
+/// Shared placeholder written into a refs column over a freshly-grown slot,
+/// never dereferenced (its tag is not `StackTag.Ref`) but kept valid so the GC's
+/// generic scan of the refs array never chases garbage.
+NULL_VALUE :: NullVal {}
+
+/// Grow the three stack columns so index `cursor` is addressable.
+stack_ensure :: fn(frame: Frame, cursor: usize) -> void {
+    if cursor == frame.payload.len() {
+        frame.payload.push(0)
+        frame.tag.push(StackTag.Null)
+        frame.stack.push(NULL_VALUE)
+    }
+}
+
+/// Write `value` into the stack columns at `cursor` (growing if needed).
+/// Mirrors `push_value` (caller bumps `sp`). Scalars land in payload + tag,
+/// heap values in the refs column.
+push_val :: fn(frame: Frame, cursor: usize, value: Value) -> void {
+    stack_ensure(frame, cursor)
+    match value {
+        is I32Val as x -> {
+            frame.payload[cursor] = i64(x.value)
+            frame.tag[cursor] = StackTag.I32
+        }
+        is I64Val as x -> {
+            frame.payload[cursor] = x.value
+            frame.tag[cursor] = StackTag.I64
+        }
+        is F64Val as x -> {
+            frame.payload[cursor] = i64(vader_f64_to_bits(x.value))
+            frame.tag[cursor] = StackTag.F64
+        }
+        is BoolVal as x -> {
+            frame.payload[cursor] = if x.value { 1 } else { 0 }
+            frame.tag[cursor] = StackTag.Bool
+        }
+        is CharVal as x -> {
+            frame.payload[cursor] = i64(u32(x.value))
+            frame.tag[cursor] = StackTag.Char
+        }
+        is NullVal -> { frame.tag[cursor] = StackTag.Null }
+        _ -> {
+            frame.stack[cursor] = value
+            frame.tag[cursor] = StackTag.Ref
+        }
+    }
+}
+
+/// Materialise the stack value at absolute index `idx` as a boxed `Value`.
+peek_val :: fn(frame: Frame, idx: usize) -> Value {
+    match frame.tag[idx] {
+        .Ref  -> { return frame.stack[idx] }
+        .I32  -> { return I32Val  { .value = i32(frame.payload[idx]) } }
+        .I64  -> { return I64Val  { .value = frame.payload[idx] } }
+        .F64  -> { return F64Val  { .value = vader_bits_to_f64(u64(frame.payload[idx])) } }
+        .Bool -> { return BoolVal { .value = frame.payload[idx] != 0 } }
+        .Char -> { return CharVal { .value = char(u32(frame.payload[idx])) } }
+        .Null -> { return NULL_VALUE }
+    }
+}
+
+/// Materialise a local slot value as a boxed `Value`.
+slot_val :: fn(frame: Frame, slot: usize) -> Value {
+    match frame.slot_tag[slot] {
+        .Ref  -> { return frame.slots[slot] }
+        .I32  -> { return I32Val  { .value = i32(frame.slot_payload[slot]) } }
+        .I64  -> { return I64Val  { .value = frame.slot_payload[slot] } }
+        .F64  -> { return F64Val  { .value = vader_bits_to_f64(u64(frame.slot_payload[slot])) } }
+        .Bool -> { return BoolVal { .value = frame.slot_payload[slot] != 0 } }
+        .Char -> { return CharVal { .value = char(u32(frame.slot_payload[slot])) } }
+        .Null -> { return NULL_VALUE }
+    }
+}
+
+/// Write a boxed `Value` into local slot `slot` (slot always exists).
+slot_set :: fn(frame: Frame, slot: usize, value: Value) -> void {
+    match value {
+        is I32Val as x -> {
+            frame.slot_payload[slot] = i64(x.value)
+            frame.slot_tag[slot] = StackTag.I32
+        }
+        is I64Val as x -> {
+            frame.slot_payload[slot] = x.value
+            frame.slot_tag[slot] = StackTag.I64
+        }
+        is F64Val as x -> {
+            frame.slot_payload[slot] = i64(vader_f64_to_bits(x.value))
+            frame.slot_tag[slot] = StackTag.F64
+        }
+        is BoolVal as x -> {
+            frame.slot_payload[slot] = if x.value { 1 } else { 0 }
+            frame.slot_tag[slot] = StackTag.Bool
+        }
+        is CharVal as x -> {
+            frame.slot_payload[slot] = i64(u32(x.value))
+            frame.slot_tag[slot] = StackTag.Char
+        }
+        is NullVal -> { frame.slot_tag[slot] = StackTag.Null }
+        _ -> {
+            frame.slots[slot] = value
+            frame.slot_tag[slot] = StackTag.Ref
+        }
+    }
+}
+
+/// Materialise stack values `[start, endx)` as a boxed `Value[]` for the call /
+/// host boundaries (`build_callee_frame`, `dispatch_import`).
+peek_range :: fn(frame: Frame, start: usize, endx: usize) -> Value[] {
+    out: Value[] = []
+    for i in start..<endx { out.push(peek_val(frame, i)) }
+    return out
+}
+
 
 /// Append `new_frame` at `cursor[0]`, growing `frames` if needed. The
 /// `frames` array is grow-only — `pop_frame` only decrements the cursor,
@@ -196,7 +327,7 @@ project_locals :: fn(f: Frame, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule
     // (`param_names`, empty on name-less paths → `arg<i>`).
     for p in 0..<param_count {
         if p < f.slots.len() {
-            out.push(project_var(param_display_name(fn_body.signature, p), f.slots[p], bc_mod, 0))
+            out.push(project_var(param_display_name(fn_body.signature, p), slot_val(f, p), bc_mod, 0))
         }
     }
     for k in 0..<fn_body.locals.len() {
@@ -205,7 +336,7 @@ project_locals :: fn(f: Frame, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule
         // Hide compiler-synthesised temps (`$…` / `__…` / `if_res`) and locals
         // outside their live window at the current pc.
         if slot < f.slots.len() && is_source_local(name) && slot_in_scope(first, last, slot, f.pc) {
-            out.push(project_var(name, f.slots[slot], bc_mod, 0))
+            out.push(project_var(name, slot_val(f, slot), bc_mod, 0))
         }
     }
     return out
@@ -306,10 +437,9 @@ validate_fn_index :: fn(function_index: i32, functions: bc.BcFunction[], at_pc: 
 /// @return                `null` on success ; `Trap` on frame-stack overflow.
 /// @error                 `frame_count[0] > MAX_FRAME_DEPTH` after push.
 dispatch_call_into :: fn(frame: Frame, frames: Frame[], frame_count: usize[], callee: bc.BcFunction, function_index: i32, arg_base: usize, env: Value | null) -> Trap | null {
-    callee_frame :: build_callee_frame(function_index, callee, frame.stack, arg_base, env)
     frame.sp = arg_base
     frame.pc = frame.pc + 1
-    push_frame(frames, frame_count, callee_frame)
+    push_callee_frame(frames, frame_count, function_index, callee, frame, arg_base, env)
     if frame_count[0] > usize(MAX_FRAME_DEPTH) {
         return Trap { .message = "call stack overflow (depth > ${MAX_FRAME_DEPTH}) at function '${callee.name}'" }
     }
@@ -334,28 +464,122 @@ dispatch_call_into :: fn(frame: Frame, frames: Frame[], frame_count: usize[], ca
 /// @param env             closure env — bound to `slot 0` when non-`null` ;
 ///                        pass `null` for direct / plain `fn.ref` calls.
 /// @return                a fresh `Frame` ready to be pushed.
-build_callee_frame :: fn(function_index: i32, callee: bc.BcFunction, args_source: Value[], args_offset: usize, env: Value | null) -> Frame {
-    slots: Value[] = []
-    user_arg_count: usize = callee.signature.params.len()
+/// Push a callee frame, REUSING the arrays of the frame parked at `cursor`
+/// when there is one (`frames` is grow-only : `pop_frame` only decrements, so
+/// the slot's six columns survive and can be refilled in place). This keeps a
+/// call from allocating six fresh arrays ; only a callee needing more slots
+/// than the parked frame grows them. Locals are re-zeroed explicitly (the
+/// parked frame's tail is stale) ; the stack columns are logically emptied by
+/// `sp = 0` and overwritten on push.
+push_callee_frame :: fn(frames: Frame[], cursor: usize[], function_index: i32, callee: bc.BcFunction, caller: Frame, arg_base: usize, env: Value | null) -> void {
+    if cursor[0] == frames.len() {
+        frames.push(build_callee_frame(function_index, callee, caller, arg_base, env))
+        cursor[0] = cursor[0] + 1
+        return
+    }
+    param_count :: callee.signature.params.len()
+    total :: param_count + callee.locals.len()
+    f :: frames[cursor[0]]
+    f.function_index = function_index
+    f.sp = 0
+    f.pc = 0
+    f.defer_count = 0
+    if f.slot_payload.len() < total {
+        for _ in f.slot_payload.len()..<total {
+            f.slots.push(NULL_VALUE)
+            f.slot_payload.push(0)
+            f.slot_tag.push(StackTag.Null)
+        }
+    }
+    env_off: usize = 0
     if !(env is null) {
-        slots.push(env)
-        user_arg_count = callee.signature.params.len() - 1
+        slot_set(f, 0, env)
+        env_off = 1
     }
-    for parameter_index in 0..<user_arg_count {
-        slots.push(args_source[args_offset + parameter_index])
+    for i in 0..<(param_count - env_off) {
+        f.slot_payload[env_off + i] = caller.payload[arg_base + i]
+        f.slot_tag[env_off + i]     = caller.tag[arg_base + i]
+        f.slots[env_off + i]        = caller.stack[arg_base + i]
     }
-    for local_index in 0..<callee.locals.len() {
-        slots.push(zero_value())
+    for i in param_count..<total {
+        f.slot_payload[i] = 0
+        f.slot_tag[i] = StackTag.Null
+        f.slots[i] = NULL_VALUE
     }
-    return Frame {
+    cursor[0] = cursor[0] + 1
+}
+
+build_callee_frame :: fn(function_index: i32, callee: bc.BcFunction, caller: Frame, arg_base: usize, env: Value | null) -> Frame {
+    // Copy the caller's SoA stack columns straight into the callee's slot
+    // columns : no boxing, no materialisation, no per-slot decompose. Args
+    // occupy `caller[arg_base ..]` ; `env` (closures) takes slot 0 ahead of them.
+    total :: callee.signature.params.len() + callee.locals.len()
+    slots: Value[] = []
+    slot_payload: i64[] = []
+    slot_tag: StackTag[] = []
+    for _ in 0..<total {
+        slots.push(NULL_VALUE)
+        slot_payload.push(0)
+        slot_tag.push(StackTag.Null)
+    }
+    result :: Frame {
         .function_index = function_index,
         .slots          = slots,
         .stack          = [],
+        .payload        = [],
+        .tag            = [],
+        .slot_payload   = slot_payload,
+        .slot_tag       = slot_tag,
         .sp             = 0,
         .pc             = 0,
         .defers         = [],
         .defer_count    = 0,
     }
+    env_off: usize = 0
+    if !(env is null) {
+        slot_set(result, 0, env)
+        env_off = 1
+    }
+    user_arg_count :: callee.signature.params.len() - env_off
+    for i in 0..<user_arg_count {
+        src :: arg_base + i
+        dst :: env_off + i
+        slot_payload[dst] = caller.payload[src]
+        slot_tag[dst]     = caller.tag[src]
+        slots[dst]        = caller.stack[src]
+    }
+    return result
+}
+
+/// Entry frame : args come from a host-built `Value[]` (argv), not a caller
+/// stack, so they are decomposed one-off through `slot_set`.
+build_entry_frame :: fn(function_index: i32, callee: bc.BcFunction, args: Value[]) -> Frame {
+    total :: callee.signature.params.len() + callee.locals.len()
+    slots: Value[] = []
+    slot_payload: i64[] = []
+    slot_tag: StackTag[] = []
+    for _ in 0..<total {
+        slots.push(NULL_VALUE)
+        slot_payload.push(0)
+        slot_tag.push(StackTag.Null)
+    }
+    result :: Frame {
+        .function_index = function_index,
+        .slots          = slots,
+        .stack          = [],
+        .payload        = [],
+        .tag            = [],
+        .slot_payload   = slot_payload,
+        .slot_tag       = slot_tag,
+        .sp             = 0,
+        .pc             = 0,
+        .defers         = [],
+        .defer_count    = 0,
+    }
+    for i in 0..<callee.signature.params.len() {
+        slot_set(result, i, args[i])
+    }
+    return result
 }
 
 /// Materialise a `ConstOp` carried inside a fused op (e.g. `ReturnLit`)
@@ -428,7 +652,7 @@ finalise_return :: fn(return_value: Value, has_value: bool, at_pc: i32, frames: 
     if has_value {
         new_top :: frame_count[0] - 1
         caller :: frames[new_top]
-        push_value(caller.stack, caller.sp, return_value)
+        push_val(caller, caller.sp, return_value)
         caller.sp = caller.sp + 1
     }
     return null
@@ -440,8 +664,8 @@ finalise_return :: fn(return_value: Value, has_value: bool, at_pc: i32, frames: 
 /// null-identity (`null == null`, `null != anything-non-null`) ; everything
 /// else falls back to the numeric i32 path.
 apply_eq_binop :: fn(frame: Frame, op_label: string, negate: bool) -> Trap | null {
-    lv :: frame.stack[frame.sp - 2]
-    rv :: frame.stack[frame.sp - 1]
+    lv :: peek_val(frame, frame.sp - 2)
+    rv :: peek_val(frame, frame.sp - 1)
     eq: bool = false
     if lv is NullVal || rv is NullVal {
         eq = lv is NullVal && rv is NullVal
@@ -452,7 +676,7 @@ apply_eq_binop :: fn(frame: Frame, op_label: string, negate: bool) -> Trap | nul
         if right is Trap { return right }
         eq = left.value == right.value
     }
-    frame.stack[frame.sp - 2] = BoolVal { .value = if negate { !eq } else { eq } }
+    push_val(frame, frame.sp - 2, BoolVal { .value = if negate { !eq } else { eq } })
     frame.sp = frame.sp - 1
     frame.pc = frame.pc + 1
     return null
@@ -682,7 +906,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     // a latent emit bug (array-index-OOB in emit at scale). The split is also
     // cleaner; the underlying limit still needs a real fix.
     main_args :: build_main_args(main_function.signature.params.len(), host_argv, string_array_type_id)
-    main_frame :: build_callee_frame(entry_index, main_function, main_args, 0, null)
+    main_frame :: build_entry_frame(entry_index, main_function, main_args)
     push_frame(frames, frame_count, main_frame)
 
     // Hoist the per-frame fetches out of the per-op hot path. `frame` / `body`
@@ -709,7 +933,9 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     // Narrow-mask fast path : most functions have only wide (i32/i64/ref) slots,
     // so `local.set` / `local.tee` can skip `slot_valtype` + `narrow_mask`
     // altogether. Recomputed alongside `body` whenever the active frame changes.
-    cur_has_narrow := fn_has_narrow_slot(body)
+    fn_narrow_tbl: bool[] = []
+    for f in state.bc.functions { fn_narrow_tbl.push(fn_has_narrow_slot(f)) }
+    cur_has_narrow := fn_narrow_tbl[usize(frame.function_index)]
     // Monotonic synthetic object-handle source for `object_new` (diagnostics
     // only — object identity is the `ObjVal` reference itself, never a machine
     // address). A 1-cell array so element mutation survives the `::` binding.
@@ -760,7 +986,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             frame = frames[top]
             body = state.bc.functions[usize(frame.function_index)]
             op_count = body.body.len()
-            cur_has_narrow = fn_has_narrow_slot(body)
+            cur_has_narrow = fn_narrow_tbl[usize(frame.function_index)]
             cur_top = top
         }
 
@@ -780,7 +1006,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if thunk_check is Trap { return pending }
                 thunk_fn :: state.bc.functions[usize(thunk.function_index)]
                 if thunk_fn.signature.params.len() != 1 { return pending }
-                push_frame(frames, frame_count, build_callee_frame(thunk.function_index, thunk_fn, frame.stack, frame.sp, thunk.env))
+                push_frame(frames, frame_count, build_callee_frame(thunk.function_index, thunk_fn, frame, frame.sp, thunk.env))
                 if frame_count[0] > usize(MAX_FRAME_DEPTH) { return pending }
             } else {
                 pop_frame(frame_count)
@@ -828,7 +1054,9 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
         instr :: body.body[frame.pc]
         match instr {
             is bc.I32Const -> {
-                push_value(frame.stack, frame.sp, I32Val { .value = instr.value })
+                stack_ensure(frame, frame.sp)
+                frame.payload[frame.sp] = i64(instr.value)
+                frame.tag[frame.sp] = StackTag.I32
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
@@ -836,7 +1064,12 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if instr.slot < 0 || usize(instr.slot) >= frame.slots.len() {
                     return Trap { .message = "local.get slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
                 }
-                push_value(frame.stack, frame.sp, frame.slots[instr.slot])
+                stack_ensure(frame, frame.sp)
+                sidx :: usize(instr.slot)
+                st :: frame.slot_tag[sidx]
+                frame.payload[frame.sp] = frame.slot_payload[sidx]
+                frame.tag[frame.sp] = st
+                if st == StackTag.Ref { frame.stack[frame.sp] = frame.slots[sidx] }
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
@@ -847,8 +1080,15 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if instr.slot < 0 || usize(instr.slot) >= frame.slots.len() {
                     return Trap { .message = "local.set slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
                 }
-                raw :: frame.stack[frame.sp - 1]
-                frame.slots[instr.slot] = if cur_has_narrow { narrow_mask(raw, slot_valtype(body, instr.slot)) } else { raw }
+                sidx :: usize(instr.slot)
+                if cur_has_narrow {
+                    slot_set(frame, sidx, narrow_mask(peek_val(frame, frame.sp - 1), slot_valtype(body, instr.slot)))
+                } else {
+                    st :: frame.tag[frame.sp - 1]
+                    frame.slot_payload[sidx] = frame.payload[frame.sp - 1]
+                    frame.slot_tag[sidx] = st
+                    if st == StackTag.Ref { frame.slots[sidx] = frame.stack[frame.sp - 1] }
+                }
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -862,13 +1102,16 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // Tee stores AND leaves the value on the stack ; when the slot is
                 // narrow the expression value is the truncated one, so mask both.
                 // The all-wide fast path (`cur_has_narrow` false) skips the mask.
-                raw_tee :: frame.stack[frame.sp - 1]
+                sidx :: usize(instr.slot)
                 if cur_has_narrow {
-                    masked_tee :: narrow_mask(raw_tee, slot_valtype(body, instr.slot))
-                    frame.slots[instr.slot] = masked_tee
-                    frame.stack[frame.sp - 1] = masked_tee
+                    masked_tee :: narrow_mask(peek_val(frame, frame.sp - 1), slot_valtype(body, instr.slot))
+                    push_val(frame, frame.sp - 1, masked_tee)
+                    slot_set(frame, sidx, masked_tee)
                 } else {
-                    frame.slots[instr.slot] = raw_tee
+                    st :: frame.tag[frame.sp - 1]
+                    frame.slot_payload[sidx] = frame.payload[frame.sp - 1]
+                    frame.slot_tag[sidx] = st
+                    if st == StackTag.Ref { frame.slots[sidx] = frame.stack[frame.sp - 1] }
                 }
                 frame.pc = frame.pc + 1
             }
@@ -876,7 +1119,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if instr.index < 0 || usize(instr.index) >= state.bc.strings.len() {
                     return Trap { .message = "string.const index ${instr.index} out of range at pc=${frame.pc}" }
                 }
-                push_value(frame.stack, frame.sp, StringVal { .value = state.bc.strings[instr.index] })
+                push_val(frame, frame.sp, StringVal { .value = state.bc.strings[instr.index] })
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
@@ -890,7 +1133,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     return Trap { .message = "call.import '${info.mangled_name}' needs ${arg_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc}" }
                 }
                 arg_base :: frame.sp - arg_count
-                dispatch_outcome :: dispatch_import(info, frame.stack, arg_base, gc_state, sched_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, is_comptime, debug)
+                dispatch_outcome :: dispatch_import(info, peek_range(frame, arg_base, frame.sp), 0, gc_state, sched_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, is_comptime, debug)
                 if dispatch_outcome is Trap {
                     // User-reachable (e.g. `panic()`) — run pending defers first.
                     if pending != null { return pending }
@@ -900,7 +1143,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 }
                 new_sp := arg_base
                 if info.signature.result != bc.ValType.Void {
-                    push_value(frame.stack, new_sp, dispatch_outcome.value)
+                    push_val(frame, new_sp, dispatch_outcome.value)
                     new_sp += 1
                 }
                 frame.sp = new_sp
@@ -921,7 +1164,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             is bc.FnRef -> {
                 index_check :: validate_fn_index(instr.function_index, state.bc.functions, frame.pc, "fn.ref")
                 if index_check is Trap { return index_check }
-                push_value(frame.stack, frame.sp, FnVal { .function_index = instr.function_index, .env = null })
+                push_val(frame, frame.sp, FnVal { .function_index = instr.function_index, .env = null })
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
@@ -931,8 +1174,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp == 0 {
                     return Trap { .message = "make_closure needs env on stack at pc=${frame.pc}" }
                 }
-                env_value :: frame.stack[frame.sp - 1]
-                frame.stack[frame.sp - 1] = FnVal { .function_index = instr.function_index, .env = env_value }
+                env_value :: peek_val(frame, frame.sp - 1)
+                push_val(frame, frame.sp - 1, FnVal { .function_index = instr.function_index, .env = env_value })
                 frame.pc = frame.pc + 1
             }
             is bc.VirtualCall -> {
@@ -946,7 +1189,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // up one slot.
                 receiver_top :: frame.sp - 1
                 arg_base :: frame.sp - usize(instr.parameter_count)
-                receiver :: frame.stack[receiver_top]
+                receiver :: peek_val(frame, receiver_top)
                 receiver_type_id :: receiver_type_id_of(state, receiver)
                 if receiver_type_id < 0 {
                     return Trap { .message = "virtual.call '${instr.vtable_key}' : receiver tag ${describe_value_tag(receiver)} has no type id at pc=${frame.pc}" }
@@ -967,10 +1210,10 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     if recv_kind != "" && host_mangle != "" {
                         shift2 := receiver_top
                         for shift2 > arg_base {
-                            frame.stack[shift2] = frame.stack[shift2 - 1]
+                            push_val(frame, shift2, peek_val(frame, shift2 - 1))
                             shift2 -= 1
                         }
-                        frame.stack[arg_base] = receiver
+                        push_val(frame, arg_base, receiver)
                         // Synthesise a minimal `BcImport` so `dispatch_import`'s
                         // host arms (which key on `mangled_name` + read the
                         // signature's arity / non-Void result) fire as they do
@@ -991,10 +1234,10 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                             },
                             .is_extern    = false,
                         }
-                        host_outcome :: dispatch_import(synth_info, frame.stack, arg_base, gc_state, sched_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, is_comptime, debug)
+                        host_outcome :: dispatch_import(synth_info, peek_range(frame, arg_base, frame.sp), 0, gc_state, sched_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, is_comptime, debug)
                         if host_outcome is Trap { return host_outcome }
                         if host_outcome is HostOk as hok {
-                            frame.stack[arg_base] = hok.value
+                            push_val(frame, arg_base, hok.value)
                             frame.sp = arg_base + 1
                             frame.pc = frame.pc + 1
                             continue
@@ -1013,10 +1256,10 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 }
                 shift_index := receiver_top
                 for shift_index > arg_base {
-                    frame.stack[shift_index] = frame.stack[shift_index - 1]
+                    push_val(frame, shift_index, peek_val(frame, shift_index - 1))
                     shift_index -= 1
                 }
-                frame.stack[arg_base] = receiver
+                push_val(frame, arg_base, receiver)
                 dispatched :: dispatch_call_into(frame, frames, frame_count, callee, callee_fn, arg_base, null)
                 if dispatched is Trap { return dispatched }
             }
@@ -1037,7 +1280,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp < 1 + indirect_arity {
                     return Trap { .message = "call.indirect needs ${indirect_arity} arg(s) + fn-ref but stack has ${frame.sp} at pc=${frame.pc} in '${body.name}'" }
                 }
-                fn_unwrap :: read_fn(frame.stack[frame.sp - 1], frame.pc, "call.indirect receiver")
+                fn_unwrap :: read_fn(peek_val(frame, frame.sp - 1), frame.pc, "call.indirect receiver")
                 if fn_unwrap is Trap { return fn_unwrap }
                 callee_index_check :: validate_fn_index(fn_unwrap.function_index, state.bc.functions, frame.pc, "call.indirect")
                 if callee_index_check is Trap { return callee_index_check }
@@ -1060,21 +1303,21 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp == 0 {
                     return Trap { .message = "struct.get on empty stack at pc=${frame.pc}" }
                 }
-                field_value :: read_struct_field(frame.stack[frame.sp - 1], instr.field_index, frame.pc, "struct.get")
+                field_value :: read_struct_field(peek_val(frame, frame.sp - 1), instr.field_index, frame.pc, "struct.get")
                 if field_value is Trap { return field_value }
-                frame.stack[frame.sp - 1] = field_value
+                push_val(frame, frame.sp - 1, field_value)
                 frame.pc = frame.pc + 1
             }
             is bc.StructSet -> {
                 if frame.sp < 2 {
                     return Trap { .message = "struct.set needs receiver + value on stack at pc=${frame.pc}" }
                 }
-                struct_unwrap :: read_struct(frame.stack[frame.sp - 2], frame.pc, "struct.set receiver")
+                struct_unwrap :: read_struct(peek_val(frame, frame.sp - 2), frame.pc, "struct.set receiver")
                 if struct_unwrap is Trap { return struct_unwrap }
                 if instr.field_index < 0 || usize(instr.field_index) >= struct_unwrap.fields.len() {
                     return Trap { .message = "struct.set field ${instr.field_index} out of range (struct has ${struct_unwrap.fields.len()} fields) at pc=${frame.pc}" }
                 }
-                struct_unwrap.fields[usize(instr.field_index)] = frame.stack[frame.sp - 1]
+                struct_unwrap.fields[usize(instr.field_index)] = peek_val(frame, frame.sp - 1)
                 frame.sp = frame.sp - 2
                 frame.pc = frame.pc + 1
             }
@@ -1082,9 +1325,9 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if instr.slot < 0 || usize(instr.slot) >= frame.slots.len() {
                     return Trap { .message = "local.field slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
                 }
-                field_value :: read_struct_field(frame.slots[instr.slot], instr.field_index, frame.pc, "local.field")
+                field_value :: read_struct_field(slot_val(frame, usize(instr.slot)), instr.field_index, frame.pc, "local.field")
                 if field_value is Trap { return field_value }
-                push_value(frame.stack, frame.sp, field_value)
+                push_val(frame, frame.sp, field_value)
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
@@ -1096,7 +1339,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp < 2 {
                     return Trap { .message = "array.push needs array + value on stack at pc=${frame.pc}" }
                 }
-                array_unwrap :: read_array(frame.stack[frame.sp - 2], frame.pc, "array.push receiver")
+                array_unwrap :: read_array(peek_val(frame, frame.sp - 2), frame.pc, "array.push receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 // A7 unified view : push on a view detaches into a fresh
                 // backing buffer so tail slots held by sibling views aren't
@@ -1109,7 +1352,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     array_unwrap.elements = fresh
                     array_unwrap.offset = 0
                 }
-                array_unwrap.elements.push(frame.stack[frame.sp - 1])
+                array_unwrap.elements.push(peek_val(frame, frame.sp - 1))
                 array_unwrap.length = array_unwrap.length + 1
                 frame.sp = frame.sp - 2
                 frame.pc = frame.pc + 1
@@ -1118,9 +1361,9 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp < 2 {
                     return Trap { .message = "array.get needs array + index on stack at pc=${frame.pc}" }
                 }
-                index_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "array.get index")
+                index_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.get index")
                 if index_unwrap is Trap { return index_unwrap }
-                array_unwrap :: read_array(frame.stack[frame.sp - 2], frame.pc, "array.get receiver")
+                array_unwrap :: read_array(peek_val(frame, frame.sp - 2), frame.pc, "array.get receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 if index_unwrap.value < 0 || usize(index_unwrap.value) >= array_unwrap.length {
                     if pending != null { return pending }
@@ -1128,7 +1371,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     unwind_target = frame_count[0] - 1
                     continue
                 }
-                frame.stack[frame.sp - 2] = array_unwrap.elements[array_unwrap.offset + usize(index_unwrap.value)]
+                push_val(frame, frame.sp - 2, array_unwrap.elements[array_unwrap.offset + usize(index_unwrap.value)])
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1136,9 +1379,9 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp < 3 {
                     return Trap { .message = "array.set needs array + index + value on stack at pc=${frame.pc}" }
                 }
-                index_unwrap :: read_i32(frame.stack[frame.sp - 2], frame.pc, "array.set index")
+                index_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "array.set index")
                 if index_unwrap is Trap { return index_unwrap }
-                array_unwrap :: read_array(frame.stack[frame.sp - 3], frame.pc, "array.set receiver")
+                array_unwrap :: read_array(peek_val(frame, frame.sp - 3), frame.pc, "array.set receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 if index_unwrap.value < 0 || usize(index_unwrap.value) >= array_unwrap.length {
                     if pending != null { return pending }
@@ -1150,7 +1393,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // parent's backing buffer (Go-style). Users opt out by
                 // materializing a fresh array (via push-detach today ;
                 // `arr[r].clone()` once T[] Clone lands).
-                array_unwrap.elements[array_unwrap.offset + usize(index_unwrap.value)] = frame.stack[frame.sp - 1]
+                array_unwrap.elements[array_unwrap.offset + usize(index_unwrap.value)] = peek_val(frame, frame.sp - 1)
                 frame.sp = frame.sp - 3
                 frame.pc = frame.pc + 1
             }
@@ -1158,20 +1401,20 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp == 0 {
                     return Trap { .message = "array.len on empty stack at pc=${frame.pc}" }
                 }
-                array_unwrap :: read_array(frame.stack[frame.sp - 1], frame.pc, "array.len receiver")
+                array_unwrap :: read_array(peek_val(frame, frame.sp - 1), frame.pc, "array.len receiver")
                 if array_unwrap is Trap { return array_unwrap }
-                frame.stack[frame.sp - 1] = I32Val { .value = i32(array_unwrap.length) }
+                push_val(frame, frame.sp - 1, I32Val { .value = i32(array_unwrap.length) })
                 frame.pc = frame.pc + 1
             }
             is bc.ArraySlice -> {
                 if frame.sp < 3 {
                     return Trap { .message = "array.slice needs array + lo + hi on stack at pc=${frame.pc}" }
                 }
-                hi_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "array.slice hi")
+                hi_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.slice hi")
                 if hi_unwrap is Trap { return hi_unwrap }
-                lo_unwrap :: read_i32(frame.stack[frame.sp - 2], frame.pc, "array.slice lo")
+                lo_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "array.slice lo")
                 if lo_unwrap is Trap { return lo_unwrap }
-                array_unwrap :: read_array(frame.stack[frame.sp - 3], frame.pc, "array.slice receiver")
+                array_unwrap :: read_array(peek_val(frame, frame.sp - 3), frame.pc, "array.slice receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 len :: array_unwrap.length
                 lo_clamped: usize = if lo_unwrap.value < 0 { 0 } else { usize(lo_unwrap.value) }
@@ -1181,12 +1424,12 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if hi_clamped > len { hi_clamped = len }
                 // A7 unified view : share `elements`, adjust bounds. Writes
                 // through the view will alias the parent (see ArraySet).
-                frame.stack[frame.sp - 3] = ArrayVal {
+                push_val(frame, frame.sp - 3, ArrayVal {
                     .type_id  = instr.type_id,
                     .elements = array_unwrap.elements,
                     .offset   = array_unwrap.offset + lo_clamped,
                     .length   = hi_clamped - lo_clamped,
-                }
+                })
                 frame.sp = frame.sp - 2
                 frame.pc = frame.pc + 1
             }
@@ -1194,9 +1437,9 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp < 2 {
                     return Trap { .message = "array.repeat needs array + count on stack at pc=${frame.pc}" }
                 }
-                count_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "array.repeat count")
+                count_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.repeat count")
                 if count_unwrap is Trap { return count_unwrap }
-                array_unwrap :: read_array(frame.stack[frame.sp - 2], frame.pc, "array.repeat receiver")
+                array_unwrap :: read_array(peek_val(frame, frame.sp - 2), frame.pc, "array.repeat receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 count: usize = if count_unwrap.value < 0 { 0 } else { usize(count_unwrap.value) }
                 // No capacity concept in the VM (capacity is a native-only perf
@@ -1207,12 +1450,12 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                         repeated.push(array_unwrap.elements[array_unwrap.offset + j])
                     }
                 }
-                frame.stack[frame.sp - 2] = ArrayVal {
+                push_val(frame, frame.sp - 2, ArrayVal {
                     .type_id  = array_unwrap.type_id,
                     .elements = repeated,
                     .offset   = 0,
                     .length   = repeated.len(),
-                }
+                })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1220,9 +1463,9 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp < 2 {
                     return Trap { .message = "array.push_all needs dst + src on stack at pc=${frame.pc}" }
                 }
-                src_unwrap :: read_array(frame.stack[frame.sp - 1], frame.pc, "array.push_all source")
+                src_unwrap :: read_array(peek_val(frame, frame.sp - 1), frame.pc, "array.push_all source")
                 if src_unwrap is Trap { return src_unwrap }
-                dst_unwrap :: read_array(frame.stack[frame.sp - 2], frame.pc, "array.push_all receiver")
+                dst_unwrap :: read_array(peek_val(frame, frame.sp - 2), frame.pc, "array.push_all receiver")
                 if dst_unwrap is Trap { return dst_unwrap }
                 // Detach a view before growing (mirror of array.push).
                 if is_array_view(dst_unwrap) {
@@ -1247,15 +1490,15 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp < 5 {
                     return Trap { .message = "array.copy needs src + src_start + dst + dst_start + len on stack at pc=${frame.pc}" }
                 }
-                len_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "array.copy len")
+                len_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.copy len")
                 if len_unwrap is Trap { return len_unwrap }
-                dst_start_unwrap :: read_i32(frame.stack[frame.sp - 2], frame.pc, "array.copy dst_start")
+                dst_start_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "array.copy dst_start")
                 if dst_start_unwrap is Trap { return dst_start_unwrap }
-                dst_unwrap :: read_array(frame.stack[frame.sp - 3], frame.pc, "array.copy dst")
+                dst_unwrap :: read_array(peek_val(frame, frame.sp - 3), frame.pc, "array.copy dst")
                 if dst_unwrap is Trap { return dst_unwrap }
-                src_start_unwrap :: read_i32(frame.stack[frame.sp - 4], frame.pc, "array.copy src_start")
+                src_start_unwrap :: read_i32(peek_val(frame, frame.sp - 4), frame.pc, "array.copy src_start")
                 if src_start_unwrap is Trap { return src_start_unwrap }
-                src_unwrap :: read_array(frame.stack[frame.sp - 5], frame.pc, "array.copy src")
+                src_unwrap :: read_array(peek_val(frame, frame.sp - 5), frame.pc, "array.copy src")
                 if src_unwrap is Trap { return src_unwrap }
                 n:  usize = if len_unwrap.value < 0 { 0 } else { usize(len_unwrap.value) }
                 ss: usize = if src_start_unwrap.value < 0 { 0 } else { usize(src_start_unwrap.value) }
@@ -1281,14 +1524,14 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp == 0 {
                     return Trap { .message = "array.remove_last on empty stack at pc=${frame.pc}" }
                 }
-                array_unwrap :: read_array(frame.stack[frame.sp - 1], frame.pc, "array.remove_last receiver")
+                array_unwrap :: read_array(peek_val(frame, frame.sp - 1), frame.pc, "array.remove_last receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 if array_unwrap.length == 0 {
-                    frame.stack[frame.sp - 1] = NullVal {}
+                    push_val(frame, frame.sp - 1, NullVal {})
                 } else {
                     last :: array_unwrap.elements[array_unwrap.offset + array_unwrap.length - 1]
                     array_unwrap.length = array_unwrap.length - 1
-                    frame.stack[frame.sp - 1] = last
+                    push_val(frame, frame.sp - 1, last)
                 }
                 frame.pc = frame.pc + 1
             }
@@ -1296,7 +1539,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp == 0 {
                     return Trap { .message = "array.clear on empty stack at pc=${frame.pc}" }
                 }
-                array_unwrap :: read_array(frame.stack[frame.sp - 1], frame.pc, "array.clear receiver")
+                array_unwrap :: read_array(peek_val(frame, frame.sp - 1), frame.pc, "array.clear receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 // Reset to a fresh empty backing : the VM tracks logical length
                 // via `elements.len()` on push, so reusing the old backing would
@@ -1315,7 +1558,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // Re-stamp the call-site's type_id onto a fresh header sharing
                 // the pool entry's `elements` ; mirrors `.rodata` sharing in
                 // the native runtime.
-                push_value(frame.stack, frame.sp, ArrayVal { .type_id = instr.type_id, .elements = entry.elements, .offset = 0, .length = entry.elements.len() })
+                push_val(frame, frame.sp, ArrayVal { .type_id = instr.type_id, .elements = entry.elements, .offset = 0, .length = entry.elements.len() })
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
@@ -1338,19 +1581,19 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp == 0 {
                     return Trap { .message = "convert on empty stack at pc=${frame.pc} in '${body.name}'" }
                 }
-                v :: frame.stack[frame.sp - 1]
+                v :: peek_val(frame, frame.sp - 1)
                 converted :: convert_value(v, instr.target, instr.from_name, frame.pc)
                 if converted is Trap {
                     return Trap { .message = "${converted.message} (got ${describe_value_tag(v)}) in '${body.name}'" }
                 }
-                frame.stack[frame.sp - 1] = converted
+                push_val(frame, frame.sp - 1, converted)
                 frame.pc = frame.pc + 1
             }
             is bc.SizeOfType -> {
                 if frame.sp == 0 {
                     return Trap { .message = "intrinsic size_of.type on empty stack at pc=${frame.pc}" }
                 }
-                top_val :: frame.stack[frame.sp - 1]
+                top_val :: peek_val(frame, frame.sp - 1)
                 if !(top_val is TypeVal) {
                     return Trap { .message = "intrinsic size_of.type: expected type value, got ${describe_value_tag(top_val)} at pc=${frame.pc}" }
                 }
@@ -1359,53 +1602,38 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     return Trap { .message = "intrinsic size_of.type: type ${type_id} out of range at pc=${frame.pc}" }
                 }
                 size :: bc.size_of_bc_type(state.bc.types[usize(type_id)])
-                frame.stack[frame.sp - 1] = I64Val { .value = i64(size) }
+                push_val(frame, frame.sp - 1, I64Val { .value = i64(size) })
                 frame.pc = frame.pc + 1
             }
             is bc.I32Add -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.add")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.add")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = I32Val { .value = left.value + right.value }
+                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) + i32(frame.payload[frame.sp - 1]))
+                frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Sub -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.sub")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.sub")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = I32Val { .value = left.value - right.value }
+                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) - i32(frame.payload[frame.sp - 1]))
+                frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Mul -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.mul")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.mul")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = I32Val { .value = left.value * right.value }
+                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) * i32(frame.payload[frame.sp - 1]))
+                frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Div -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.div")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.div")
-                if right is Trap { return right }
-                if right.value == 0 { return Trap { .message = "i32.div by zero at pc=${frame.pc}" } }
-                frame.stack[frame.sp - 2] = I32Val { .value = left.value / right.value }
+                if i32(frame.payload[frame.sp - 1]) == 0 { return Trap { .message = "i32.div by zero at pc=${frame.pc}" } }
+                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) / i32(frame.payload[frame.sp - 1]))
+                frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Mod -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.mod")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.mod")
-                if right is Trap { return right }
-                if right.value == 0 { return Trap { .message = "i32.mod by zero at pc=${frame.pc}" } }
-                frame.stack[frame.sp - 2] = I32Val { .value = left.value % right.value }
+                if i32(frame.payload[frame.sp - 1]) == 0 { return Trap { .message = "i32.mod by zero at pc=${frame.pc}" } }
+                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) % i32(frame.payload[frame.sp - 1]))
+                frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1418,95 +1646,66 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if outcome is Trap { return outcome }
             }
             is bc.I32Lt -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.lt")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.lt")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value < right.value }
+                frame.payload[frame.sp - 2] = if i32(frame.payload[frame.sp - 2]) < i32(frame.payload[frame.sp - 1]) { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Le -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.le")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.le")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value <= right.value }
+                frame.payload[frame.sp - 2] = if i32(frame.payload[frame.sp - 2]) <= i32(frame.payload[frame.sp - 1]) { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Gt -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.gt")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.gt")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value > right.value }
+                frame.payload[frame.sp - 2] = if i32(frame.payload[frame.sp - 2]) > i32(frame.payload[frame.sp - 1]) { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Ge -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.ge")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.ge")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value >= right.value }
+                frame.payload[frame.sp - 2] = if i32(frame.payload[frame.sp - 2]) >= i32(frame.payload[frame.sp - 1]) { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Neg -> {
-                operand :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.neg")
-                if operand is Trap { return operand }
-                frame.stack[frame.sp - 1] = I32Val { .value = -operand.value }
+                frame.payload[frame.sp - 1] = i64(-i32(frame.payload[frame.sp - 1]))
+                frame.tag[frame.sp - 1] = StackTag.I32
                 frame.pc = frame.pc + 1
             }
             is bc.I32BitNot -> {
-                operand :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.bitnot")
-                if operand is Trap { return operand }
-                frame.stack[frame.sp - 1] = I32Val { .value = ~operand.value }
+                frame.payload[frame.sp - 1] = i64(~i32(frame.payload[frame.sp - 1]))
+                frame.tag[frame.sp - 1] = StackTag.I32
                 frame.pc = frame.pc + 1
             }
             is bc.I32BitAnd -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.bitand")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.bitand")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = I32Val { .value = left.value & right.value }
+                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) & i32(frame.payload[frame.sp - 1]))
+                frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32BitOr -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.bitor")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.bitor")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = I32Val { .value = left.value | right.value }
+                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) | i32(frame.payload[frame.sp - 1]))
+                frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32BitXor -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.bitxor")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.bitxor")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = I32Val { .value = left.value ^ right.value }
+                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) ^ i32(frame.payload[frame.sp - 1]))
+                frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Shl -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.shl")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.shl")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = I32Val { .value = left.value << right.value }
+                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) << i32(frame.payload[frame.sp - 1]))
+                frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Shr -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "i32.shr")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "i32.shr")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = I32Val { .value = left.value >> right.value }
+                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) >> i32(frame.payload[frame.sp - 1]))
+                frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1515,11 +1714,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // shift so the sign bit isn't replicated, then reinterpret
                 // the result back as i32. Mirrors `>>>` in JS / `>>` on
                 // unsigned C types.
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "u32.shr")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "u32.shr")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = I32Val { .value = i32(u32(left.value) >> u32(right.value)) }
+                frame.payload[frame.sp - 2] = i64(i32(u32(i32(frame.payload[frame.sp - 2])) >> u32(i32(frame.payload[frame.sp - 1]))))
+                frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1528,175 +1724,127 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             // so the result respects unsigned semantics (zero-fill, no
             // sign-extension) before re-tagging back to i32.
             is bc.U32Div -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "u32.div")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "u32.div")
-                if right is Trap { return right }
-                if right.value == 0 { return Trap { .message = "u32.div by zero at pc=${frame.pc}" } }
-                frame.stack[frame.sp - 2] = I32Val { .value = i32(u32(left.value) / u32(right.value)) }
+                if i32(frame.payload[frame.sp - 1]) == 0 { return Trap { .message = "u32.div by zero at pc=${frame.pc}" } }
+                frame.payload[frame.sp - 2] = i64(i32(u32(i32(frame.payload[frame.sp - 2])) / u32(i32(frame.payload[frame.sp - 1]))))
+                frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.U32Mod -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "u32.rem")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "u32.rem")
-                if right is Trap { return right }
-                if right.value == 0 { return Trap { .message = "u32.rem by zero at pc=${frame.pc}" } }
-                frame.stack[frame.sp - 2] = I32Val { .value = i32(u32(left.value) % u32(right.value)) }
+                if i32(frame.payload[frame.sp - 1]) == 0 { return Trap { .message = "u32.rem by zero at pc=${frame.pc}" } }
+                frame.payload[frame.sp - 2] = i64(i32(u32(i32(frame.payload[frame.sp - 2])) % u32(i32(frame.payload[frame.sp - 1]))))
+                frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.U32Lt -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "u32.lt")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "u32.lt")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = u32(left.value) < u32(right.value) }
+                frame.payload[frame.sp - 2] = if u32(i32(frame.payload[frame.sp - 2])) < u32(i32(frame.payload[frame.sp - 1])) { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.U32Le -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "u32.le")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "u32.le")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = u32(left.value) <= u32(right.value) }
+                frame.payload[frame.sp - 2] = if u32(i32(frame.payload[frame.sp - 2])) <= u32(i32(frame.payload[frame.sp - 1])) { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.U32Gt -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "u32.gt")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "u32.gt")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = u32(left.value) > u32(right.value) }
+                frame.payload[frame.sp - 2] = if u32(i32(frame.payload[frame.sp - 2])) > u32(i32(frame.payload[frame.sp - 1])) { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.U32Ge -> {
-                left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, "u32.ge")
-                if left  is Trap { return left  }
-                right :: read_i32(frame.stack[frame.sp - 1], frame.pc, "u32.ge")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = u32(left.value) >= u32(right.value) }
+                frame.payload[frame.sp - 2] = if u32(i32(frame.payload[frame.sp - 2])) >= u32(i32(frame.payload[frame.sp - 1])) { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Const -> {
-                push_value(frame.stack, frame.sp, F64Val { .value = instr.value })
+                stack_ensure(frame, frame.sp)
+                frame.payload[frame.sp] = i64(vader_f64_to_bits(instr.value))
+                frame.tag[frame.sp] = StackTag.F64
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Const -> {
-                push_value(frame.stack, frame.sp, I64Val { .value = instr.value })
+                stack_ensure(frame, frame.sp)
+                frame.payload[frame.sp] = instr.value
+                frame.tag[frame.sp] = StackTag.I64
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Add -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.add")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.add")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = I64Val { .value = left.value + right.value }
+                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] + frame.payload[frame.sp - 1]
+                frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Sub -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.sub")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.sub")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = I64Val { .value = left.value - right.value }
+                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] - frame.payload[frame.sp - 1]
+                frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Mul -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.mul")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.mul")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = I64Val { .value = left.value * right.value }
+                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] * frame.payload[frame.sp - 1]
+                frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Div -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.div")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.div")
-                if right is Trap { return right }
-                if right.value == 0 { return Trap { .message = "i64.div by zero at pc=${frame.pc}" } }
-                frame.stack[frame.sp - 2] = I64Val { .value = left.value / right.value }
+                if frame.payload[frame.sp - 1] == 0 { return Trap { .message = "i64.div by zero at pc=${frame.pc}" } }
+                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] / frame.payload[frame.sp - 1]
+                frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Mod -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.rem")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.rem")
-                if right is Trap { return right }
-                if right.value == 0 { return Trap { .message = "i64.rem by zero at pc=${frame.pc}" } }
-                frame.stack[frame.sp - 2] = I64Val { .value = left.value % right.value }
+                if frame.payload[frame.sp - 1] == 0 { return Trap { .message = "i64.rem by zero at pc=${frame.pc}" } }
+                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] % frame.payload[frame.sp - 1]
+                frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Neg -> {
-                operand :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.neg")
-                if operand is Trap { return operand }
-                frame.stack[frame.sp - 1] = I64Val { .value = -operand.value }
+                frame.payload[frame.sp - 1] = -frame.payload[frame.sp - 1]
+                frame.tag[frame.sp - 1] = StackTag.I64
                 frame.pc = frame.pc + 1
             }
             is bc.I64Eq -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.eq")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.eq")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value == right.value }
+                frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] == frame.payload[frame.sp - 1] { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Ne -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.ne")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.ne")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value != right.value }
+                frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] != frame.payload[frame.sp - 1] { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Lt -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.lt")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.lt")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value < right.value }
+                frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] < frame.payload[frame.sp - 1] { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Le -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.le")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.le")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value <= right.value }
+                frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] <= frame.payload[frame.sp - 1] { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Gt -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.gt")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.gt")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value > right.value }
+                frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] > frame.payload[frame.sp - 1] { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Ge -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.ge")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.ge")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value >= right.value }
+                frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] >= frame.payload[frame.sp - 1] { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1704,368 +1852,300 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             // the U32* family but for `I64Val`-tagged operands carrying
             // a u64 bit pattern.
             is bc.U64Div -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "u64.div")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "u64.div")
-                if right is Trap { return right }
-                if right.value == 0 { return Trap { .message = "u64.div by zero at pc=${frame.pc}" } }
-                frame.stack[frame.sp - 2] = I64Val { .value = i64(u64(left.value) / u64(right.value)) }
+                if frame.payload[frame.sp - 1] == 0 { return Trap { .message = "u64.div by zero at pc=${frame.pc}" } }
+                frame.payload[frame.sp - 2] = i64(u64(frame.payload[frame.sp - 2]) / u64(frame.payload[frame.sp - 1]))
+                frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.U64Mod -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "u64.rem")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "u64.rem")
-                if right is Trap { return right }
-                if right.value == 0 { return Trap { .message = "u64.rem by zero at pc=${frame.pc}" } }
-                frame.stack[frame.sp - 2] = I64Val { .value = i64(u64(left.value) % u64(right.value)) }
+                if frame.payload[frame.sp - 1] == 0 { return Trap { .message = "u64.rem by zero at pc=${frame.pc}" } }
+                frame.payload[frame.sp - 2] = i64(u64(frame.payload[frame.sp - 2]) % u64(frame.payload[frame.sp - 1]))
+                frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.U64Lt -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "u64.lt")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "u64.lt")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = u64(left.value) < u64(right.value) }
+                frame.payload[frame.sp - 2] = if u64(frame.payload[frame.sp - 2]) < u64(frame.payload[frame.sp - 1]) { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.U64Le -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "u64.le")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "u64.le")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = u64(left.value) <= u64(right.value) }
+                frame.payload[frame.sp - 2] = if u64(frame.payload[frame.sp - 2]) <= u64(frame.payload[frame.sp - 1]) { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.U64Gt -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "u64.gt")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "u64.gt")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = u64(left.value) > u64(right.value) }
+                frame.payload[frame.sp - 2] = if u64(frame.payload[frame.sp - 2]) > u64(frame.payload[frame.sp - 1]) { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.U64Ge -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "u64.ge")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "u64.ge")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = u64(left.value) >= u64(right.value) }
+                frame.payload[frame.sp - 2] = if u64(frame.payload[frame.sp - 2]) >= u64(frame.payload[frame.sp - 1]) { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             // 64-bit bitwise / shift. The apply closure stays i64-typed so
             // wide operands keep their high bits.
             is bc.I64BitAnd -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.bitand")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.bitand")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = I64Val { .value = left.value & right.value }
+                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] & frame.payload[frame.sp - 1]
+                frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64BitOr -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.bitor")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.bitor")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = I64Val { .value = left.value | right.value }
+                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] | frame.payload[frame.sp - 1]
+                frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64BitXor -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.bitxor")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.bitxor")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = I64Val { .value = left.value ^ right.value }
+                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] ^ frame.payload[frame.sp - 1]
+                frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64BitNot -> {
-                operand :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.bitnot")
-                if operand is Trap { return operand }
-                frame.stack[frame.sp - 1] = I64Val { .value = ~operand.value }
+                frame.payload[frame.sp - 1] = ~frame.payload[frame.sp - 1]
+                frame.tag[frame.sp - 1] = StackTag.I64
                 frame.pc = frame.pc + 1
             }
             is bc.I64Shl -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.shl")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.shl")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = I64Val { .value = left.value << right.value }
+                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] << frame.payload[frame.sp - 1]
+                frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Shr -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "i64.shr")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.shr")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = I64Val { .value = left.value >> right.value }
+                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] >> frame.payload[frame.sp - 1]
+                frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64ShrU -> {
-                left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, "u64.shr")
-                if left  is Trap { return left  }
-                right :: read_i64(frame.stack[frame.sp - 1], frame.pc, "u64.shr")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = I64Val { .value = i64(u64(left.value) >> u64(right.value)) }
+                frame.payload[frame.sp - 2] = i64(u64(frame.payload[frame.sp - 2]) >> u64(frame.payload[frame.sp - 1]))
+                frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Add -> {
-                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.add")
-                if left  is Trap { return left  }
-                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.add")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = F64Val { .value = left.value + right.value }
+                frame.payload[frame.sp - 2] = i64(vader_f64_to_bits(vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) + vader_bits_to_f64(u64(frame.payload[frame.sp - 1]))))
+                frame.tag[frame.sp - 2] = StackTag.F64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Sub -> {
-                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.sub")
-                if left  is Trap { return left  }
-                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.sub")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = F64Val { .value = left.value - right.value }
+                frame.payload[frame.sp - 2] = i64(vader_f64_to_bits(vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) - vader_bits_to_f64(u64(frame.payload[frame.sp - 1]))))
+                frame.tag[frame.sp - 2] = StackTag.F64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Mul -> {
-                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.mul")
-                if left  is Trap { return left  }
-                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.mul")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = F64Val { .value = left.value * right.value }
+                frame.payload[frame.sp - 2] = i64(vader_f64_to_bits(vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) * vader_bits_to_f64(u64(frame.payload[frame.sp - 1]))))
+                frame.tag[frame.sp - 2] = StackTag.F64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Div -> {
-                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.div")
-                if left  is Trap { return left  }
-                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.div")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = F64Val { .value = left.value / right.value }
+                frame.payload[frame.sp - 2] = i64(vader_f64_to_bits(vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) / vader_bits_to_f64(u64(frame.payload[frame.sp - 1]))))
+                frame.tag[frame.sp - 2] = StackTag.F64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Neg -> {
-                operand :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.neg")
-                if operand is Trap { return operand }
-                frame.stack[frame.sp - 1] = F64Val { .value = -operand.value }
+                frame.payload[frame.sp - 1] = i64(vader_f64_to_bits(-vader_bits_to_f64(u64(frame.payload[frame.sp - 1]))))
+                frame.tag[frame.sp - 1] = StackTag.F64
                 frame.pc = frame.pc + 1
             }
             is bc.F64Eq -> {
-                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.eq")
-                if left  is Trap { return left  }
-                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.eq")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value == right.value }
+                frame.payload[frame.sp - 2] = if vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) == vader_bits_to_f64(u64(frame.payload[frame.sp - 1])) { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Ne -> {
-                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.ne")
-                if left  is Trap { return left  }
-                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.ne")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value != right.value }
+                frame.payload[frame.sp - 2] = if vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) != vader_bits_to_f64(u64(frame.payload[frame.sp - 1])) { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Lt -> {
-                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.lt")
-                if left  is Trap { return left  }
-                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.lt")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value < right.value }
+                frame.payload[frame.sp - 2] = if vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) < vader_bits_to_f64(u64(frame.payload[frame.sp - 1])) { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Le -> {
-                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.le")
-                if left  is Trap { return left  }
-                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.le")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value <= right.value }
+                frame.payload[frame.sp - 2] = if vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) <= vader_bits_to_f64(u64(frame.payload[frame.sp - 1])) { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Gt -> {
-                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.gt")
-                if left  is Trap { return left  }
-                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.gt")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value > right.value }
+                frame.payload[frame.sp - 2] = if vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) > vader_bits_to_f64(u64(frame.payload[frame.sp - 1])) { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Ge -> {
-                left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, "f64.ge")
-                if left  is Trap { return left  }
-                right :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.ge")
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value >= right.value }
+                frame.payload[frame.sp - 2] = if vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) >= vader_bits_to_f64(u64(frame.payload[frame.sp - 1])) { 1 } else { 0 }
+                frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.NullConst -> {
-                push_value(frame.stack, frame.sp, NullVal {})
+                push_val(frame, frame.sp, NullVal {})
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
             is bc.BoolConst -> {
-                push_value(frame.stack, frame.sp, BoolVal { .value = instr.value })
+                push_val(frame, frame.sp, BoolVal { .value = instr.value })
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
             is bc.CharConst -> {
-                push_value(frame.stack, frame.sp, CharVal { .value = instr.value })
+                push_val(frame, frame.sp, CharVal { .value = instr.value })
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
             is bc.BoolEq -> {
-                left  :: read_bool(frame.stack[frame.sp - 2], frame.pc, "bool.eq")
+                left  :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.eq")
                 if left  is Trap { return left  }
-                right :: read_bool(frame.stack[frame.sp - 1], frame.pc, "bool.eq")
+                right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.eq")
                 if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value == right.value }
+                push_val(frame, frame.sp - 2, BoolVal { .value = left.value == right.value })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.BoolNe -> {
-                left  :: read_bool(frame.stack[frame.sp - 2], frame.pc, "bool.ne")
+                left  :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.ne")
                 if left  is Trap { return left  }
-                right :: read_bool(frame.stack[frame.sp - 1], frame.pc, "bool.ne")
+                right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.ne")
                 if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value != right.value }
+                push_val(frame, frame.sp - 2, BoolVal { .value = left.value != right.value })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.BoolAnd -> {
-                left  :: read_bool(frame.stack[frame.sp - 2], frame.pc, "bool.and")
+                left  :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.and")
                 if left  is Trap { return left  }
-                right :: read_bool(frame.stack[frame.sp - 1], frame.pc, "bool.and")
+                right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.and")
                 if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value && right.value }
+                push_val(frame, frame.sp - 2, BoolVal { .value = left.value && right.value })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.BoolOr -> {
-                left  :: read_bool(frame.stack[frame.sp - 2], frame.pc, "bool.or")
+                left  :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.or")
                 if left  is Trap { return left  }
-                right :: read_bool(frame.stack[frame.sp - 1], frame.pc, "bool.or")
+                right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.or")
                 if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value || right.value }
+                push_val(frame, frame.sp - 2, BoolVal { .value = left.value || right.value })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.BoolNot -> {
                 if frame.sp == 0 { return Trap { .message = "bool.not on empty stack at pc=${frame.pc}" } }
-                operand :: read_bool(frame.stack[frame.sp - 1], frame.pc, "bool.not")
+                operand :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.not")
                 if operand is Trap { return operand }
-                frame.stack[frame.sp - 1] = BoolVal { .value = !operand.value }
+                push_val(frame, frame.sp - 1, BoolVal { .value = !operand.value })
                 frame.pc = frame.pc + 1
             }
             is bc.CharEq -> {
-                left  :: read_char(frame.stack[frame.sp - 2], frame.pc, "char.eq")
+                left  :: read_char(peek_val(frame, frame.sp - 2), frame.pc, "char.eq")
                 if left  is Trap { return left  }
-                right :: read_char(frame.stack[frame.sp - 1], frame.pc, "char.eq")
+                right :: read_char(peek_val(frame, frame.sp - 1), frame.pc, "char.eq")
                 if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value == right.value }
+                push_val(frame, frame.sp - 2, BoolVal { .value = left.value == right.value })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.CharNe -> {
-                left  :: read_char(frame.stack[frame.sp - 2], frame.pc, "char.ne")
+                left  :: read_char(peek_val(frame, frame.sp - 2), frame.pc, "char.ne")
                 if left  is Trap { return left  }
-                right :: read_char(frame.stack[frame.sp - 1], frame.pc, "char.ne")
+                right :: read_char(peek_val(frame, frame.sp - 1), frame.pc, "char.ne")
                 if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value != right.value }
+                push_val(frame, frame.sp - 2, BoolVal { .value = left.value != right.value })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.CharLt -> {
-                left  :: read_char(frame.stack[frame.sp - 2], frame.pc, "char.lt")
+                left  :: read_char(peek_val(frame, frame.sp - 2), frame.pc, "char.lt")
                 if left  is Trap { return left  }
-                right :: read_char(frame.stack[frame.sp - 1], frame.pc, "char.lt")
+                right :: read_char(peek_val(frame, frame.sp - 1), frame.pc, "char.lt")
                 if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value < right.value }
+                push_val(frame, frame.sp - 2, BoolVal { .value = left.value < right.value })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.CharLe -> {
-                left  :: read_char(frame.stack[frame.sp - 2], frame.pc, "char.le")
+                left  :: read_char(peek_val(frame, frame.sp - 2), frame.pc, "char.le")
                 if left  is Trap { return left  }
-                right :: read_char(frame.stack[frame.sp - 1], frame.pc, "char.le")
+                right :: read_char(peek_val(frame, frame.sp - 1), frame.pc, "char.le")
                 if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value <= right.value }
+                push_val(frame, frame.sp - 2, BoolVal { .value = left.value <= right.value })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.CharGt -> {
-                left  :: read_char(frame.stack[frame.sp - 2], frame.pc, "char.gt")
+                left  :: read_char(peek_val(frame, frame.sp - 2), frame.pc, "char.gt")
                 if left  is Trap { return left  }
-                right :: read_char(frame.stack[frame.sp - 1], frame.pc, "char.gt")
+                right :: read_char(peek_val(frame, frame.sp - 1), frame.pc, "char.gt")
                 if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value > right.value }
+                push_val(frame, frame.sp - 2, BoolVal { .value = left.value > right.value })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.CharGe -> {
-                left  :: read_char(frame.stack[frame.sp - 2], frame.pc, "char.ge")
+                left  :: read_char(peek_val(frame, frame.sp - 2), frame.pc, "char.ge")
                 if left  is Trap { return left  }
-                right :: read_char(frame.stack[frame.sp - 1], frame.pc, "char.ge")
+                right :: read_char(peek_val(frame, frame.sp - 1), frame.pc, "char.ge")
                 if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value >= right.value }
+                push_val(frame, frame.sp - 2, BoolVal { .value = left.value >= right.value })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.StringEq -> {
-                left  :: read_string(frame.stack[frame.sp - 2], frame.pc, "string.eq")
+                left  :: read_string(peek_val(frame, frame.sp - 2), frame.pc, "string.eq")
                 if left  is Trap { return left  }
-                right :: read_string(frame.stack[frame.sp - 1], frame.pc, "string.eq")
+                right :: read_string(peek_val(frame, frame.sp - 1), frame.pc, "string.eq")
                 if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value == right.value }
+                push_val(frame, frame.sp - 2, BoolVal { .value = left.value == right.value })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.StringNe -> {
-                left  :: read_string(frame.stack[frame.sp - 2], frame.pc, "string.ne")
+                left  :: read_string(peek_val(frame, frame.sp - 2), frame.pc, "string.ne")
                 if left  is Trap { return left  }
-                right :: read_string(frame.stack[frame.sp - 1], frame.pc, "string.ne")
+                right :: read_string(peek_val(frame, frame.sp - 1), frame.pc, "string.ne")
                 if right is Trap { return right }
-                frame.stack[frame.sp - 2] = BoolVal { .value = left.value != right.value }
+                push_val(frame, frame.sp - 2, BoolVal { .value = left.value != right.value })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.IntToChar -> {
                 if frame.sp == 0 { return Trap { .message = "<int>.to_char on empty stack at pc=${frame.pc}" } }
-                source :: read_i32(frame.stack[frame.sp - 1], frame.pc, "<int>.to_char")
+                source :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "<int>.to_char")
                 if source is Trap { return source }
-                frame.stack[frame.sp - 1] = CharVal { .value = char(u32(source.value)) }
+                push_val(frame, frame.sp - 1, CharVal { .value = char(u32(source.value)) })
                 frame.pc = frame.pc + 1
             }
             is bc.CharToInt -> {
                 if frame.sp == 0 { return Trap { .message = "char.to_<int> on empty stack at pc=${frame.pc}" } }
-                source :: read_char(frame.stack[frame.sp - 1], frame.pc, "char.to_<int>")
+                source :: read_char(peek_val(frame, frame.sp - 1), frame.pc, "char.to_<int>")
                 if source is Trap { return source }
-                frame.stack[frame.sp - 1] = I32Val { .value = i32(u32(source.value)) }
+                push_val(frame, frame.sp - 1, I32Val { .value = i32(u32(source.value)) })
                 frame.pc = frame.pc + 1
             }
             is bc.StringSliceCodepoints -> {
                 if frame.sp < 3 { return Trap { .message = "string.slice_codepoints needs string + lo + hi on stack at pc=${frame.pc}" } }
-                s_box  :: read_string(frame.stack[frame.sp - 3], frame.pc, "string.slice_codepoints receiver")
-                lo_box :: read_i32   (frame.stack[frame.sp - 2], frame.pc, "string.slice_codepoints lo")
-                hi_box :: read_i32   (frame.stack[frame.sp - 1], frame.pc, "string.slice_codepoints hi")
+                s_box  :: read_string(peek_val(frame, frame.sp - 3), frame.pc, "string.slice_codepoints receiver")
+                lo_box :: read_i32   (peek_val(frame, frame.sp - 2), frame.pc, "string.slice_codepoints lo")
+                hi_box :: read_i32   (peek_val(frame, frame.sp - 1), frame.pc, "string.slice_codepoints hi")
                 if s_box  is Trap { return s_box  }
                 if lo_box is Trap { return lo_box }
                 if hi_box is Trap { return hi_box }
@@ -2092,23 +2172,23 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if seen <= lo_cp { byte_lo = n_bytes }
                 if seen <= hi_cp { byte_hi = n_bytes }
                 if byte_hi < byte_lo { byte_hi = byte_lo }
-                frame.stack[frame.sp - 3] = StringVal { .value = sb[byte_lo..<byte_hi].bytes_to_string() }
+                push_val(frame, frame.sp - 3, StringVal { .value = sb[byte_lo..<byte_hi].bytes_to_string() })
                 frame.sp = frame.sp - 2
                 frame.pc = frame.pc + 1
             }
             is bc.RefEq -> {
                 if frame.sp < 2 { return Trap { .message = "ref.eq needs 2 values on stack at pc=${frame.pc}" } }
-                outcome :: value_ref_eq(frame.stack[frame.sp - 2], frame.stack[frame.sp - 1], frame.pc, "ref.eq")
+                outcome :: value_ref_eq(peek_val(frame, frame.sp - 2), peek_val(frame, frame.sp - 1), frame.pc, "ref.eq")
                 if outcome is Trap { return outcome }
-                frame.stack[frame.sp - 2] = BoolVal { .value = outcome }
+                push_val(frame, frame.sp - 2, BoolVal { .value = outcome })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.RefNe -> {
                 if frame.sp < 2 { return Trap { .message = "ref.ne needs 2 values on stack at pc=${frame.pc}" } }
-                outcome :: value_ref_eq(frame.stack[frame.sp - 2], frame.stack[frame.sp - 1], frame.pc, "ref.ne")
+                outcome :: value_ref_eq(peek_val(frame, frame.sp - 2), peek_val(frame, frame.sp - 1), frame.pc, "ref.ne")
                 if outcome is Trap { return outcome }
-                frame.stack[frame.sp - 2] = BoolVal { .value = !outcome }
+                push_val(frame, frame.sp - 2, BoolVal { .value = !outcome })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2122,15 +2202,15 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if instr.type_id < 0 || usize(instr.type_id) >= state.bc.types.len() {
                     return Trap { .message = "type_check type ${instr.type_id} out of range at pc=${frame.pc}" }
                 }
-                matched :: type_matches(state, frame.stack[frame.sp - 1], instr.type_id)
-                frame.stack[frame.sp - 1] = BoolVal { .value = matched }
+                matched :: type_matches(state, peek_val(frame, frame.sp - 1), instr.type_id)
+                push_val(frame, frame.sp - 1, BoolVal { .value = matched })
                 frame.pc = frame.pc + 1
             }
             is bc.TypeConst -> {
                 if instr.type_id < 0 || usize(instr.type_id) >= state.bc.types.len() {
                     return Trap { .message = "type.const type ${instr.type_id} out of range at pc=${frame.pc}" }
                 }
-                push_value(frame.stack, frame.sp, TypeVal { .type_id = instr.type_id })
+                push_val(frame, frame.sp, TypeVal { .type_id = instr.type_id })
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
@@ -2138,7 +2218,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp == 0 {
                     return Trap { .message = "defer.push on empty stack at pc=${frame.pc}" }
                 }
-                closure :: frame.stack[frame.sp - 1]
+                closure :: peek_val(frame, frame.sp - 1)
                 push_value(frame.defers, frame.defer_count, closure)
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
@@ -2174,7 +2254,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     if callee.signature.params.len() != 1 {
                         return Trap { .message = "defer thunk '${callee.name}' must take exactly one env param at pc=${frame.pc}" }
                     }
-                    callee_frame :: build_callee_frame(fn_unwrap.function_index, callee, frame.stack, frame.sp, fn_unwrap.env)
+                    callee_frame :: build_callee_frame(fn_unwrap.function_index, callee, frame, frame.sp, fn_unwrap.env)
                     push_frame(frames, frame_count, callee_frame)
                     if frame_count[0] > usize(MAX_FRAME_DEPTH) {
                         return Trap { .message = "call stack overflow (depth > ${MAX_FRAME_DEPTH}) at function '${callee.name}' during defer drain" }
@@ -2186,8 +2266,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             is bc.Loop  -> { frame.pc = frame.pc + 1 }
             is bc.If -> {
                 if frame.sp == 0 { return Trap { .message = "if on empty stack at pc=${frame.pc} in '${body.name}'" } }
-                cond :: read_truthy(frame.stack[frame.sp - 1], frame.pc, "if condition")
-                if cond is Trap { return cond }
+                cond :: frame.payload[frame.sp - 1] != 0
                 new_sp :: frame.sp - 1
                 if cond {
                     frame.sp = new_sp
@@ -2218,8 +2297,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             }
             is bc.BranchIf -> {
                 if frame.sp == 0 { return Trap { .message = "br_if on empty stack at pc=${frame.pc} in '${body.name}'" } }
-                cond :: read_truthy(frame.stack[frame.sp - 1], frame.pc, "br_if condition")
-                if cond is Trap { return cond }
+                cond :: frame.payload[frame.sp - 1] != 0
                 new_sp :: frame.sp - 1
                 if cond {
                     target :: body.jump_table[frame.pc]
@@ -2237,7 +2315,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 has_value :: frame.sp > 0
                 return_value: Value = I32Val { .value = 0 }
                 // Narrow return type ⇒ truncate to width, like a C `uint8_t` return.
-                if has_value { return_value = narrow_mask(frame.stack[frame.sp - 1], body.signature.result) }
+                if has_value { return_value = narrow_mask(peek_val(frame, frame.sp - 1), body.signature.result) }
                 outcome :: finalise_return(return_value, has_value, frame.pc, frames, frame_count, "return from main", capture)
                 if !(outcome is null) { return outcome }
             }
@@ -2256,55 +2334,55 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             is bc.LoadU8 -> {
                 raw :: load_bytes_op(frame, 1, "load_u8")
                 if raw is Trap { return raw }
-                frame.stack[frame.sp - 2] = I32Val { .value = i32(raw) }
+                push_val(frame, frame.sp - 2, I32Val { .value = i32(raw) })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.LoadI32 -> {
                 raw :: load_bytes_op(frame, 4, "load_i32")
                 if raw is Trap { return raw }
-                frame.stack[frame.sp - 2] = I32Val { .value = i32(raw) }
+                push_val(frame, frame.sp - 2, I32Val { .value = i32(raw) })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.LoadI64 -> {
                 raw :: load_bytes_op(frame, 8, "load_i64")
                 if raw is Trap { return raw }
-                frame.stack[frame.sp - 2] = I64Val { .value = i64(raw) }
+                push_val(frame, frame.sp - 2, I64Val { .value = i64(raw) })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.LoadF64 -> {
                 raw :: load_bytes_op(frame, 8, "load_f64")
                 if raw is Trap { return raw }
-                frame.stack[frame.sp - 2] = F64Val { .value = vader_bits_to_f64(u64(raw)) }
+                push_val(frame, frame.sp - 2, F64Val { .value = vader_bits_to_f64(u64(raw)) })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.StoreU8 -> {
                 if frame.sp < 3 { return Trap { .message = "store_u8 needs object + offset + value on stack at pc=${frame.pc}" } }
-                val_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "store_u8 value")
+                val_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "store_u8 value")
                 if val_unwrap is Trap { return val_unwrap }
                 outcome :: store_bytes_op(frame, 1, u64(u8(val_unwrap.value)), "store_u8")
                 if outcome is Trap { return outcome }
             }
             is bc.StoreI32 -> {
                 if frame.sp < 3 { return Trap { .message = "store_i32 needs object + offset + value on stack at pc=${frame.pc}" } }
-                val_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "store_i32 value")
+                val_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "store_i32 value")
                 if val_unwrap is Trap { return val_unwrap }
                 outcome :: store_bytes_op(frame, 4, u64(u32(val_unwrap.value)), "store_i32")
                 if outcome is Trap { return outcome }
             }
             is bc.StoreI64 -> {
                 if frame.sp < 3 { return Trap { .message = "store_i64 needs object + offset + value on stack at pc=${frame.pc}" } }
-                val_unwrap :: read_i64(frame.stack[frame.sp - 1], frame.pc, "store_i64 value")
+                val_unwrap :: read_i64(peek_val(frame, frame.sp - 1), frame.pc, "store_i64 value")
                 if val_unwrap is Trap { return val_unwrap }
                 outcome :: store_bytes_op(frame, 8, u64(val_unwrap.value), "store_i64")
                 if outcome is Trap { return outcome }
             }
             is bc.StoreF64 -> {
                 if frame.sp < 3 { return Trap { .message = "store_f64 needs object + offset + value on stack at pc=${frame.pc}" } }
-                val_unwrap :: read_f64(frame.stack[frame.sp - 1], frame.pc, "store_f64 value")
+                val_unwrap :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "store_f64 value")
                 if val_unwrap is Trap { return val_unwrap }
                 outcome :: store_bytes_op(frame, 8, vader_f64_to_bits(val_unwrap.value), "store_f64")
                 if outcome is Trap { return outcome }
@@ -2333,14 +2411,14 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // Pop buffer + len ; intern the leading `len` bytes verbatim as a
                 // string (same semantics as `bytes_to_string` over a `u8[]`).
                 if frame.sp < 2 { return Trap { .message = "buffer_to_string needs object + len on stack at pc=${frame.pc}" } }
-                len_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "buffer_to_string len")
+                len_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "buffer_to_string len")
                 if len_unwrap is Trap { return len_unwrap }
-                obj_unwrap :: read_obj(frame.stack[frame.sp - 2], frame.pc, "buffer_to_string receiver")
+                obj_unwrap :: read_obj(peek_val(frame, frame.sp - 2), frame.pc, "buffer_to_string receiver")
                 if obj_unwrap is Trap { return obj_unwrap }
                 // width 0 ⇒ checks `0 <= len <= bytes_len`, returns the usize len.
                 n :: check_byte_range(len_unwrap.value, 0, obj_unwrap.bytes.len(), "buffer_to_string", frame.pc)
                 if n is Trap { return n }
-                frame.stack[frame.sp - 2] = StringVal { .value = obj_unwrap.bytes[0..<n].bytes_to_string() }
+                push_val(frame, frame.sp - 2, StringVal { .value = obj_unwrap.bytes[0..<n].bytes_to_string() })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2348,11 +2426,11 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // Pop buffer + off + string ; memcpy the string's bytes into the
                 // buffer at `off` (the parts-model `to_string` assembly step).
                 if frame.sp < 3 { return Trap { .message = "buffer_write_string needs object + off + string on stack at pc=${frame.pc}" } }
-                str_unwrap :: read_string(frame.stack[frame.sp - 1], frame.pc, "buffer_write_string source")
+                str_unwrap :: read_string(peek_val(frame, frame.sp - 1), frame.pc, "buffer_write_string source")
                 if str_unwrap is Trap { return str_unwrap }
-                off_unwrap :: read_i32(frame.stack[frame.sp - 2], frame.pc, "buffer_write_string off")
+                off_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "buffer_write_string off")
                 if off_unwrap is Trap { return off_unwrap }
-                obj_unwrap :: read_obj(frame.stack[frame.sp - 3], frame.pc, "buffer_write_string receiver")
+                obj_unwrap :: read_obj(peek_val(frame, frame.sp - 3), frame.pc, "buffer_write_string receiver")
                 if obj_unwrap is Trap { return obj_unwrap }
                 if off_unwrap.value < 0 { return Trap { .message = "buffer_write_string negative offset at pc=${frame.pc}" } }
                 src_bytes :: str_unwrap.value.bytes()
@@ -2371,18 +2449,18 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // I64Val — same 64 bits) via the runtime `@extern` (see the
                 // module-top note : the VM can't use the intrinsic itself).
                 if frame.sp < 1 { return Trap { .message = "f64_to_bits needs a value on the stack at pc=${frame.pc}" } }
-                fv :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64_to_bits")
+                fv :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "f64_to_bits")
                 if fv is Trap { return fv }
-                frame.stack[frame.sp - 1] = I64Val { .value = i64(vader_f64_to_bits(fv.value)) }
+                push_val(frame, frame.sp - 1, I64Val { .value = i64(vader_f64_to_bits(fv.value)) })
                 frame.pc = frame.pc + 1
             }
             is bc.BitsToF64 -> {
                 // Inverse : reinterpret the TOS u64 bit pattern (in an I64Val) as
                 // an f64, via the runtime `@extern`.
                 if frame.sp < 1 { return Trap { .message = "bits_to_f64 needs a value on the stack at pc=${frame.pc}" } }
-                iv :: read_i64(frame.stack[frame.sp - 1], frame.pc, "bits_to_f64")
+                iv :: read_i64(peek_val(frame, frame.sp - 1), frame.pc, "bits_to_f64")
                 if iv is Trap { return iv }
-                frame.stack[frame.sp - 1] = F64Val { .value = vader_bits_to_f64(u64(iv.value)) }
+                push_val(frame, frame.sp - 1, F64Val { .value = vader_bits_to_f64(u64(iv.value)) })
                 frame.pc = frame.pc + 1
             }
             is bc.F32ToBits -> {
@@ -2390,18 +2468,18 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // widens losslessly), so narrow back to f32 before the cast; the
                 // u32 result rides in an I32Val.
                 if frame.sp < 1 { return Trap { .message = "f32_to_bits needs a value on the stack at pc=${frame.pc}" } }
-                fv :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f32_to_bits")
+                fv :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "f32_to_bits")
                 if fv is Trap { return fv }
-                frame.stack[frame.sp - 1] = I32Val { .value = i32(vader_f32_to_bits(f32(fv.value))) }
+                push_val(frame, frame.sp - 1, I32Val { .value = i32(vader_f32_to_bits(f32(fv.value))) })
                 frame.pc = frame.pc + 1
             }
             is bc.BitsToF32 -> {
                 // Inverse : reinterpret the TOS u32 bit pattern (in an I32Val) as
                 // an f32, widened back into an F64Val for VM storage.
                 if frame.sp < 1 { return Trap { .message = "bits_to_f32 needs a value on the stack at pc=${frame.pc}" } }
-                iv :: read_i32(frame.stack[frame.sp - 1], frame.pc, "bits_to_f32")
+                iv :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "bits_to_f32")
                 if iv is Trap { return iv }
-                frame.stack[frame.sp - 1] = F64Val { .value = f64(vader_bits_to_f32(u32(iv.value))) }
+                push_val(frame, frame.sp - 1, F64Val { .value = f64(vader_bits_to_f32(u32(iv.value))) })
                 frame.pc = frame.pc + 1
             }
         }
@@ -2432,10 +2510,10 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Trap | null {
     arg_base :: frame.sp - needed
     elements: Value[] = []
     for element_index in 0..<needed {
-        elements.push(frame.stack[arg_base + element_index])
+        elements.push(peek_val(frame, arg_base + element_index))
     }
     new_array :: ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
-    push_value(frame.stack, arg_base, new_array)
+    push_val(frame, arg_base, new_array)
     frame.sp = arg_base + 1
     frame.pc = frame.pc + 1
     return null
@@ -2473,10 +2551,10 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> Trap | nul
         // field ; the literal's field value comes straight off the stack with no
         // intervening narrow `local.set` to mask it (see narrow-int-width plan).
         fvt :: field_valtype(types, type_decl.fields[field_index].type_index)
-        fields.push(narrow_mask(frame.stack[arg_base + field_index], fvt))
+        fields.push(narrow_mask(peek_val(frame, arg_base + field_index), fvt))
     }
     new_struct :: StructVal { .type_id = type_id, .fields = fields }
-    push_value(frame.stack, arg_base, new_struct)
+    push_val(frame, arg_base, new_struct)
     frame.sp = arg_base + 1
     frame.pc = frame.pc + 1
     return null
@@ -2508,7 +2586,7 @@ build_object :: fn(type_id: i32, frame: Frame, handle_cell: i32[]) -> Trap | nul
     if frame.sp < 1 {
         return Trap { .message = "object_new needs size on stack at pc=${frame.pc}" }
     }
-    size_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "object_new size")
+    size_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "object_new size")
     if size_unwrap is Trap { return size_unwrap }
     if size_unwrap.value < 0 {
         return Trap { .message = "object_new size ${size_unwrap.value} is negative at pc=${frame.pc}" }
@@ -2518,7 +2596,7 @@ build_object :: fn(type_id: i32, frame: Frame, handle_cell: i32[]) -> Trap | nul
         bytes.push(0)
     }
     handle_cell[0] = handle_cell[0] + 1
-    frame.stack[frame.sp - 1] = ObjVal { .handle = handle_cell[0], .type_id = type_id, .bytes = bytes, .slots = [] }
+    push_val(frame, frame.sp - 1, ObjVal { .handle = handle_cell[0], .type_id = type_id, .bytes = bytes, .slots = [] })
     frame.pc = frame.pc + 1
     return null
 }
@@ -2562,9 +2640,9 @@ load_bytes_op :: fn(frame: Frame, width: usize, label: string) -> u64 | Trap {
     if frame.sp < 2 {
         return Trap { .message = "${label} needs object + offset on stack at pc=${frame.pc}" }
     }
-    off_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "${label} offset")
+    off_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "${label} offset")
     if off_unwrap is Trap { return off_unwrap }
-    obj_unwrap :: read_obj(frame.stack[frame.sp - 2], frame.pc, "${label} receiver")
+    obj_unwrap :: read_obj(peek_val(frame, frame.sp - 2), frame.pc, "${label} receiver")
     if obj_unwrap is Trap { return obj_unwrap }
     off :: check_byte_range(off_unwrap.value, width, obj_unwrap.bytes.len(), label, frame.pc)
     if off is Trap { return off }
@@ -2584,9 +2662,9 @@ load_bytes_op :: fn(frame: Frame, width: usize, label: string) -> u64 | Trap {
 /// @return       `null` on success, or a `Trap` on bad obj / OOB offset.
 /// @error        non-object receiver ; negative or out-of-range offset.
 store_bytes_op :: fn(frame: Frame, width: usize, value: u64, label: string) -> Trap | null {
-    off_unwrap :: read_i32(frame.stack[frame.sp - 2], frame.pc, "${label} offset")
+    off_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "${label} offset")
     if off_unwrap is Trap { return off_unwrap }
-    obj_unwrap :: read_obj(frame.stack[frame.sp - 3], frame.pc, "${label} receiver")
+    obj_unwrap :: read_obj(peek_val(frame, frame.sp - 3), frame.pc, "${label} receiver")
     if obj_unwrap is Trap { return obj_unwrap }
     off :: check_byte_range(off_unwrap.value, width, obj_unwrap.bytes.len(), label, frame.pc)
     if off is Trap { return off }
@@ -2606,14 +2684,14 @@ store_bytes_op :: fn(frame: Frame, width: usize, value: u64, label: string) -> T
 /// @return       `null` on success, or a `Trap` on underflow / non-array / OOB.
 do_load_slot :: fn(frame: Frame) -> Trap | null {
     if frame.sp < 2 { return Trap { .message = "load_slot needs array + index on stack at pc=${frame.pc}" } }
-    idx_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "load_slot index")
+    idx_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "load_slot index")
     if idx_unwrap is Trap { return idx_unwrap }
-    arr :: read_array(frame.stack[frame.sp - 2], frame.pc, "load_slot receiver")
+    arr :: read_array(peek_val(frame, frame.sp - 2), frame.pc, "load_slot receiver")
     if arr is Trap { return arr }
     if idx_unwrap.value < 0 || usize(idx_unwrap.value) >= arr.length {
         return Trap { .message = "load_slot index ${idx_unwrap.value} out of bounds (len=${arr.length}) at pc=${frame.pc}" }
     }
-    frame.stack[frame.sp - 2] = arr.elements[arr.offset + usize(idx_unwrap.value)]
+    push_val(frame, frame.sp - 2, arr.elements[arr.offset + usize(idx_unwrap.value)])
     frame.sp = frame.sp - 1
     frame.pc = frame.pc + 1
     return null
@@ -2631,10 +2709,10 @@ do_load_slot :: fn(frame: Frame) -> Trap | null {
 /// @return       `null` on success, or a `Trap` on underflow / non-array / OOB.
 do_store_slot :: fn(frame: Frame) -> Trap | null {
     if frame.sp < 3 { return Trap { .message = "store_slot needs array + index + value on stack at pc=${frame.pc}" } }
-    value :: frame.stack[frame.sp - 1]
-    idx_unwrap :: read_i32(frame.stack[frame.sp - 2], frame.pc, "store_slot index")
+    value :: peek_val(frame, frame.sp - 1)
+    idx_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "store_slot index")
     if idx_unwrap is Trap { return idx_unwrap }
-    arr :: read_array(frame.stack[frame.sp - 3], frame.pc, "store_slot receiver")
+    arr :: read_array(peek_val(frame, frame.sp - 3), frame.pc, "store_slot receiver")
     if arr is Trap { return arr }
     if idx_unwrap.value < 0 || usize(idx_unwrap.value) >= arr.length {
         return Trap { .message = "store_slot index ${idx_unwrap.value} out of bounds (len=${arr.length}) at pc=${frame.pc}" }
@@ -2659,15 +2737,15 @@ do_memory_copy :: fn(frame: Frame) -> Trap | null {
     if frame.sp < 5 {
         return Trap { .message = "memory_copy needs dst + dst_off + src + src_off + n on stack at pc=${frame.pc}" }
     }
-    n_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "memory_copy n")
+    n_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "memory_copy n")
     if n_unwrap is Trap { return n_unwrap }
-    src_off_unwrap :: read_i32(frame.stack[frame.sp - 2], frame.pc, "memory_copy src_off")
+    src_off_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "memory_copy src_off")
     if src_off_unwrap is Trap { return src_off_unwrap }
-    src_unwrap :: read_obj(frame.stack[frame.sp - 3], frame.pc, "memory_copy src")
+    src_unwrap :: read_obj(peek_val(frame, frame.sp - 3), frame.pc, "memory_copy src")
     if src_unwrap is Trap { return src_unwrap }
-    dst_off_unwrap :: read_i32(frame.stack[frame.sp - 4], frame.pc, "memory_copy dst_off")
+    dst_off_unwrap :: read_i32(peek_val(frame, frame.sp - 4), frame.pc, "memory_copy dst_off")
     if dst_off_unwrap is Trap { return dst_off_unwrap }
-    dst_unwrap :: read_obj(frame.stack[frame.sp - 5], frame.pc, "memory_copy dst")
+    dst_unwrap :: read_obj(peek_val(frame, frame.sp - 5), frame.pc, "memory_copy dst")
     if dst_unwrap is Trap { return dst_unwrap }
     if n_unwrap.value < 0 || src_off_unwrap.value < 0 || dst_off_unwrap.value < 0 {
         return Trap { .message = "memory_copy negative length/offset at pc=${frame.pc}" }
