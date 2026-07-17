@@ -617,7 +617,7 @@ check_trait_ambiguity :: fn(
 // Substitute the impl method's TypeParams against the receiver's
 // concrete type args. Lets `MutableSet<T> implements ... { contains
 // :: fn(self, value: T) -> bool }` produce `fn(i32) -> bool` when
-// called on `MutableSet(i32)`.
+// called on `MutableSet<i32>`.
 substitute_impl_method :: fn(impl_ty: Type, target_ty: Type, typed: TypedProgram) -> Type {
     if !(target_ty is StructType) { return impl_ty }
     decl :: typed.struct_decls[target_ty.symbol.id]

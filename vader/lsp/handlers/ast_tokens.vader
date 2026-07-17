@@ -548,7 +548,7 @@ walk_struct_lit :: fn(s: AST.StructLitExpr, out: RawToken[]) -> void {
 
 // Expressions in TYPE position : the topmost identifier names a type, not a
 // value. Generic argument lists recurse through `walk_type_expr` so nested
-// `Map(string, List(i32))` paints each layer with Type colour.
+// `Map<string, List<i32>>` paints each layer with Type colour.
 walk_type_expr :: fn(e: AST.Expr, out: RawToken[]) -> void {
     match e {
         is AST.IdentExpr        as x -> { push_span(out, x.span, .Type) }

@@ -43,7 +43,7 @@ export quote_simple :: fn(s: string) -> string {
 /// struct (no such `__`) returns `""` to signal "no sibling family".
 ///
 /// Single source shared by `vader/c_emit` and the VM's erasure-aware
-/// `type_check`, so a runtime sibling shape (`Entry(i32, i32)`) and a static
+/// `type_check`, so a runtime sibling shape (`Entry<i32, i32>`) and a static
 /// erased one (`Entry<Any, Any>`) group identically. The `is`-check parity this
 /// guarantees was previously carried by two hand-synced copies (vm-4).
 export prefix_before_double_underscore :: fn(s: string) -> string {

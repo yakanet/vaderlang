@@ -285,8 +285,8 @@ WrapResult :: struct {
 //   - `T[]`     → `ArrayIterator<T>` (struct-wrapped in place ; avoids the
 //                 erased-`Iterator<T>` virtual-call hazard).
 //   - `string`  → `StringChars` via a synthesised `chars(s)` call. `string`
-//                 implements `Into(Iterator(char))`, but routing through
-//                 `into()` yields the erased `Iterator(char)` trait (the same
+//                 implements `Into<Iterator<char>>`, but routing through
+//                 `into()` yields the erased `Iterator<char>` trait (the same
 //                 hazard) ; calling `chars` keeps the CONCRETE `StringChars`,
 //                 which `build_step_call`'s StructType path already resolves
 //                 (so `for c in s` matches `for c in s.chars()`). `chars` is
@@ -351,7 +351,7 @@ try_wrap_array_iter :: fn(
 //    its span in `local_types`. This is authoritative : the typer resolves
 //    the `Iterator<T>` impl and substitutes the iterator's concrete type
 //    args, so it correctly handles combinators whose element type is NOT
-//    the first type arg — `MappedIterator(i32, i64)` yields `i64` (the impl's
+//    the first type arg — `MappedIterator<i32, i64>` yields `i64` (the impl's
 //    `Iterator<U>`), not the source `i32` ; a `MutableMap` iterator yields
 //    `Entry<K, V>`. The structural heuristics below cannot, so they must
 //    only run when the typer left no usable entry.

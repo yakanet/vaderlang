@@ -32,7 +32,7 @@ import "vader/diagnostics"
 /// stable interned string the typechecker passes around).
 ///
 /// @param t  the type to key.
-/// @return   the key string ; pass to `MutableMap(string, i32)`.
+/// @return   the key string ; pass to `MutableMap<string, i32>`.
 export type_intern_key :: fn(t: Type) -> string = match t {
     is PrimitiveType as p -> p.name
     // Key structs / traits by source position (`symbol_key`) + recursive

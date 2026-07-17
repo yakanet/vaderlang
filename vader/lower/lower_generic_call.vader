@@ -389,7 +389,7 @@ unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type
 //   2. A concrete `implements` recorded in `struct_trait_args`
 //      (`Hello implements Greeter(i32)`, `i32 implements Doubler(i32)`).
 //   3. The builtin `Iterator<T>` element : the first type-arg of a struct
-//      iterator (`Range(i32)`, `ArrayIterator(i32)`) or a raw array's
+//      iterator (`Range<i32>`, `ArrayIterator<i32>`) or a raw array's
 //      element — covers generic impls whose recorded args are still
 //      type-params, plus the `T[] → Iterator<T>` coercion that has no
 //      impl decl. Returns `null` when no source resolves.

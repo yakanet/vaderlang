@@ -38,7 +38,7 @@ export infer_intrinsic :: fn(
                     // Record the resolved Type in `type_expr_types` so
                     // downstream consumers (the lowerer's intrinsic
                     // fold, the comptime instance harvester) can recover
-                    // generic instances like `Pair(string, i64)` via
+                    // generic instances like `Pair<string, i64>` via
                     // a span_key lookup. Without this write, the
                     // `harvest_instances` pass never observes the
                     // instance and the @fields / @type_args fold falls

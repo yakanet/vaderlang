@@ -12,10 +12,10 @@
 //
 // Construction examples :
 //
-//   m := MutableMap(string, i32) {}
+//   m := MutableMap<string, i32> {}
 //   m.put("answer", 42)
 //
-//   s := MutableSet(i32) {}
+//   s := MutableSet<i32> {}
 //   s.add(10)
 //
 // `MutableMap` is a COMPACT (open-addressed) hash map : dense parallel
@@ -296,7 +296,7 @@ export values :: fn<K, V>(self: MutableMap<K, V>) -> V[] {
     return out
 }
 
-// `for entry in m` works directly thanks to the `Into(Iterator(...))` impl
+// `for entry in m` works directly thanks to the `Into<Iterator<...>>` impl
 // below — no explicit `.iter()` call needed. `into` is a `generator` : consumed
 // by a `for` loop or a terminal it fuses (and `for entry in m` hits the map
 // fast-path in `lower_for_in`, never materialising it) ; an escaping `m.into()`
@@ -360,7 +360,7 @@ export clear :: fn<T>(self: MutableSet<T>) -> void = self.inner.clear()
 // reads more clearly than a hypothetical `s[v] = true`.
 MutableSet<T> implements Contains<T> -> value in self.inner
 
-// `for v in s` works directly via the `Into(Iterator(...))` impl below — same
+// `for v in s` works directly via the `Into<Iterator<...>>` impl below — same
 // `generator` pattern as `MutableMap` (fast-path for `for v in s`, state machine
 // only when the iterator escapes). Walks the backing map's dense key array by
 // index. Same undefined-behaviour caveat on concurrent mutation.

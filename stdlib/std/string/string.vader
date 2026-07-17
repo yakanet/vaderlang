@@ -79,7 +79,7 @@ StringChars implements Iterator<char> {
 }
 
 /// Iterate `s` codepoint-by-codepoint. `for c in s` desugars to this via
-/// the `Into(Iterator(char))` impl below — call `s.chars()` explicitly
+/// the `Into<Iterator<char>>` impl below — call `s.chars()` explicitly
 /// only when you need the iterator as a value. Byte-indexed `s[i]` loops
 /// return U+FFFD on continuation bytes for non-ASCII content ; prefer
 /// `for c in s` for Unicode-correct iteration.

@@ -9,8 +9,8 @@
 // Three visitor channels (the `WalkCtx` fields) :
 //   - `visit(symbolId)` — fires on every Symbol reference.
 //   - `visit_struct_inst(key)` — fires per concrete struct *instance*
-//     so DCE can prune mono variants (`ArrayIterator(string)` vs
-//     `ArrayIterator(i32)`) the symbol-only set can't distinguish.
+//     so DCE can prune mono variants (`ArrayIterator<string>` vs
+//     `ArrayIterator<i32>`) the symbol-only set can't distinguish.
 //   - `visit_virtual(trait, method)` — fires per LoweredVirtualCall
 //     so DCE keeps every impl-fn-symbol alive for that (trait, method).
 
