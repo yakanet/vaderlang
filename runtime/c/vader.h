@@ -1015,10 +1015,6 @@ void vader_defer_pop_exec(uint32_t count);
 
 /* IEEE 754 bit reinterpret — VM-only (`exec.vader` @extern ; native lowers
  * F64ToBits/BitsToF64 to an inline union cast). See vader_runtime.c. */
-uint64_t         vader_f64_to_bits(double v);
-double           vader_bits_to_f64(uint64_t b);
-uint32_t         vader_f32_to_bits(float v);
-float            vader_bits_to_f32(uint32_t b);
 
 /* ----------------------------------------------------------------- I/O */
 
