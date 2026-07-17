@@ -3043,12 +3043,6 @@ vader_array_t* vader_runtime_argv(int argc, char** argv, uint32_t arr_type, uint
     return result;
 }
 
-/* IEEE 754 bit reinterpret (`f64.to_bits` / `u64.from_bits`). The native target
- * lowers these to an inline `union` cast (no call) ; these out-of-line helpers
- * exist ONLY for the bytecode VM (`exec.vader` calls them via `@extern`, since
- * the VM's own code can't be lowered to the new opcodes without a seed two-phase).
- * `memcpy` is the portable, well-defined type-pun (compilers fold it to a move). */
-
 /* ----------------------------------------------------------------- I/O */
 
 /* `stream_tag` mirrors `std/io::Stream` ; anything outside {Stdout, Stderr}
