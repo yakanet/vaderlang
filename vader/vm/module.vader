@@ -17,6 +17,7 @@
 
 module "vader/vm"
 
+import "std/collections"
 bc :: import "vader/bytecode"
 
 /// Runtime state the executor threads through its call chain. `bc` is the
@@ -29,6 +30,25 @@ export VmState :: struct {
     data_pool:  ArrayVal[]
     /// Entry fn's index in `bc.functions`.
     main_index: i32
+    /// The `string[]` ArrayType index — stamped onto every host-produced string
+    /// array (argv, `read_dir`, `split`) so `is string[]` narrows. Resolving it
+    /// costs a linear type-table scan, so it is done once here rather than on
+    /// every `exec_entry` (the comptime pass calls into the VM once PER staged
+    /// decl, so a per-entry scan is O(decls x types)).
+    string_array_type_id: i32
+    /// The `u8[]` ArrayType index — stamped onto the array `bytes` materialises.
+    u8_array_type_id: i32
+    /// The `std/io$IOError` struct index — stamped onto host io error values.
+    io_error_type_id: i32
+    /// Per-function "has at least one narrow (u8/u16/i8/i16) slot", indexed by
+    /// fn index. Gates the `local.set` / `local.tee` narrow mask. Computing it
+    /// walks every param and local of every function — once per module here,
+    /// not once per `exec_entry`.
+    fn_narrow: bool[]
+    /// `fn name -> index`, so `exec_fn` / `exec_fn_value` resolve an entry by
+    /// one lookup instead of a linear string-compare scan. The comptime pass
+    /// resolves one entry per staged decl, which made that scan O(decls x fns).
+    fn_index_by_name: MutableMap<string, i32>
 }
 
 /// Wrap a parsed `BytecodeModule` in the runtime `VmState` `exec` consumes.
@@ -38,9 +58,22 @@ export VmState :: struct {
 /// @param bc_mod  the parsed module (from `parse_virt_bc` or the builder).
 /// @return        a `VmState` ready to pass to `exec`.
 export prepare :: fn(bc_mod: bc.BytecodeModule) -> VmState {
+    narrow: bool[] = [] * bc_mod.functions.len()
+    for f in bc_mod.functions {
+        narrow.push(fn_has_narrow_slot(f))
+    }
+    by_name :: MutableMap<string, i32> {}
+    for i in 0..<bc_mod.functions.len() {
+        by_name[bc_mod.functions[i].name] = i32(i)
+    }
     return VmState {
-        .bc         = bc_mod,
-        .data_pool  = reduce_data_pool(bc_mod.data_pool, bc_mod.types),
-        .main_index = reduce_main_index(bc_mod.functions),
+        .bc                   = bc_mod,
+        .data_pool            = reduce_data_pool(bc_mod.data_pool, bc_mod.types),
+        .main_index           = reduce_main_index(bc_mod.functions),
+        .string_array_type_id = find_string_array_type_id(bc_mod.types),
+        .u8_array_type_id     = find_u8_array_type_id(bc_mod.types),
+        .io_error_type_id     = find_io_error_type_id(bc_mod.types),
+        .fn_narrow            = narrow,
+        .fn_index_by_name     = by_name,
     }
 }

@@ -119,6 +119,29 @@ StackTag :: enum(u8) { I32, I64, F64, Bool, Char, Null, Ref }
 /// generic scan of the refs array never chases garbage.
 NULL_VALUE :: NullVal {}
 
+/// True when `t` marks a value `read_i32` accepts (i32 / char / i64 carriers).
+/// Mirrors `read_i32`'s @partial match EXACTLY — a stricter test would reject
+/// bytecode the boxed path accepted.
+is_i32_tag :: fn(t: StackTag) = t == StackTag.I32 || t == StackTag.Char || t == StackTag.I64
+
+/// True when `t` marks a value `read_i64` accepts (i64 / i32 carriers).
+is_i64_tag :: fn(t: StackTag) = t == StackTag.I64 || t == StackTag.I32
+
+/// True when `t` marks a value `read_f64` accepts. `read_f64` is STRICT (it does
+/// not coerce integers), so this is an exact tag test.
+is_f64_tag :: fn(t: StackTag) = t == StackTag.F64
+
+/// Cold path for an arithmetic arm whose operand carries an unexpected tag.
+/// The fast arms read `payload` directly, which for a `Ref` / `Null` slot holds
+/// STALE bits — so without this the VM would compute a plausible wrong number
+/// instead of naming the bad bytecode. It is the differential oracle for the
+/// native backend (CLAUDE.md §9) : silently-wrong is the one outcome it must
+/// never produce.
+arith_tag_trap :: fn(frame: Frame, back: usize, op_label: string) -> Trap {
+    v :: peek_val(frame, frame.sp - back)
+    return Trap { .message = "${op_label} at pc=${frame.pc}: expected numeric operand, got ${describe_value_tag(v)}" }
+}
+
 /// Grow the three stack columns so index `cursor` is addressable.
 stack_ensure :: fn(frame: Frame, cursor: usize) -> void {
     if cursor == frame.payload.len() {
@@ -499,6 +522,24 @@ push_callee_frame :: fn(frames: Frame[], cursor: usize[], function_index: i32, c
         f.slot_tag[i] = StackTag.Null
         f.slots[i] = NULL_VALUE
     }
+    // Release every ref the pool would otherwise PIN. The columns are grow-only
+    // and sized to the widest callee ever seen at this depth, so without this a
+    // narrow frame reusing the slot keeps the wide one's object graph alive for
+    // the rest of the run (the "retention bounded by stack depth" note at the
+    // top of the file was written before pooling — pooling extends the lifetime
+    // to `exec_entry`'s return). Slots above the live region, the whole operand
+    // stack (sp = 0 here, so none of it is live), and the drained defers.
+    for i in total..<f.slots.len() {
+        f.slots[i] = NULL_VALUE
+        f.slot_tag[i] = StackTag.Null
+    }
+    for i in 0..<f.stack.len() {
+        f.stack[i] = NULL_VALUE
+        f.tag[i] = StackTag.Null
+    }
+    for i in 0..<f.defers.len() {
+        f.defers[i] = NULL_VALUE
+    }
     cursor[0] = cursor[0] + 1
 }
 
@@ -657,19 +698,25 @@ finalise_return :: fn(return_value: Value, has_value: bool, at_pc: i32, frames: 
 /// null-identity (`null == null`, `null != anything-non-null`) ; everything
 /// else falls back to the numeric i32 path.
 apply_eq_binop :: fn(frame: Frame, op_label: string, negate: bool) -> Trap | null {
-    lv :: peek_val(frame, frame.sp - 2)
-    rv :: peek_val(frame, frame.sp - 1)
+    lt :: frame.tag[frame.sp - 2]
+    rt :: frame.tag[frame.sp - 1]
     eq: bool = false
-    if lv is NullVal || rv is NullVal {
-        eq = lv is NullVal && rv is NullVal
+    if lt == StackTag.Null || rt == StackTag.Null {
+        eq = lt == StackTag.Null && rt == StackTag.Null
+    } else if is_i32_tag(lt) && is_i32_tag(rt) {
+        // Fast path : both operands already sit unboxed in the payload column.
+        eq = i32(frame.payload[frame.sp - 2]) == i32(frame.payload[frame.sp - 1])
     } else {
-        left  :: read_i32(lv, frame.pc, op_label)
-        right :: read_i32(rv, frame.pc, op_label)
+        // Anything else (a Ref, a bool, a mismatch) — go through the boxed path
+        // so the diagnostic stays identical to the pre-SoA VM.
+        left  :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, op_label)
+        right :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, op_label)
         if left  is Trap { return left  }
         if right is Trap { return right }
         eq = left.value == right.value
     }
-    push_val(frame, frame.sp - 2, BoolVal { .value = if negate { !eq } else { eq } })
+    frame.payload[frame.sp - 2] = if (if negate { !eq } else { eq }) { 1 } else { 0 }
+    frame.tag[frame.sp - 2] = StackTag.Bool
     frame.sp = frame.sp - 1
     frame.pc = frame.pc + 1
     return null
@@ -744,11 +791,10 @@ export exec :: fn(state: VmState, host_argv: string[]) -> VmResult = exec_entry(
 /// @param mangled  the target fn's mangled name.
 /// @return         the run outcome, or a `Trap` when no such fn exists.
 export exec_fn :: fn(state: VmState, mangled: string) -> VmResult {
-    for i in 0..<state.bc.functions.len() {
-        if state.bc.functions[i].name == mangled {
-            no_args: string[] = []
-            return exec_entry(state, i32(i), no_args, null, false, null)
-        }
+    idx :: state.fn_index_by_name[mangled]
+    if !(idx is null) {
+        no_args: string[] = []
+        return exec_entry(state, idx, no_args, null, false, null)
     }
     return Trap { .message = "exec_fn: no function named '${mangled}'" }
 }
@@ -767,14 +813,13 @@ export exec_fn :: fn(state: VmState, mangled: string) -> VmResult {
 /// @return         `ValueOk { value }` carrying the return value, or `Trap`
 ///                 (no such fn, or a VM-level error during the run).
 export exec_fn_value :: fn(state: VmState, mangled: string) -> ValueResult {
-    for i in 0..<state.bc.functions.len() {
-        if state.bc.functions[i].name == mangled {
-            no_args: string[] = []
-            capture: Value[] = [zero_value()]
-            outcome :: exec_entry(state, i32(i), no_args, capture, true, null)
-            if outcome is Trap { return outcome }
-            return ValueOk { .value = capture[0] }
-        }
+    idx :: state.fn_index_by_name[mangled]
+    if !(idx is null) {
+        no_args: string[] = []
+        capture: Value[] = [zero_value()]
+        outcome :: exec_entry(state, idx, no_args, capture, true, null)
+        if outcome is Trap { return outcome }
+        return ValueOk { .value = capture[0] }
     }
     return Trap { .message = "exec_fn_value: no function named '${mangled}'" }
 }
@@ -884,13 +929,13 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     // string array (argv, `read_dir`, `split`) so `is string[]` narrows
     // (type_matches does exact-type_id equality on arrays). Computed once;
     // the scan is linear in the type table.
-    string_array_type_id :: find_string_array_type_id(state.bc.types)
+    string_array_type_id :: state.string_array_type_id
     // The `u8[]` ArrayType index — stamped onto the array `bytes` materialises
     // (the VM's copy fallback for the native zero-copy view). Same rationale.
-    u8_array_type_id :: find_u8_array_type_id(state.bc.types)
+    u8_array_type_id :: state.u8_array_type_id
     // The `std/io$IOError` struct index — stamped onto host io error values
     // so they carry a real type identity (narrowing + vtable dispatch).
-    io_error_type_id :: find_io_error_type_id(state.bc.types)
+    io_error_type_id :: state.io_error_type_id
 
     main_function :: state.bc.functions[usize(entry_index)]
     // If `main` is declared `fn(argv: string[]) -> i32`, supply its argv.
@@ -926,9 +971,13 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     // Narrow-mask fast path : most functions have only wide (i32/i64/ref) slots,
     // so `local.set` / `local.tee` can skip `slot_valtype` + `narrow_mask`
     // altogether. Recomputed alongside `body` whenever the active frame changes.
-    fn_narrow_tbl: bool[] = []
-    for f in state.bc.functions { fn_narrow_tbl.push(fn_has_narrow_slot(f)) }
+    fn_narrow_tbl :: state.fn_narrow
     cur_has_narrow := fn_narrow_tbl[usize(frame.function_index)]
+    // The pooled frame's `slots` array is grow-only and sized to the WIDEST
+    // callee ever seen at this depth, so `slots.len()` is not this callee's slot
+    // count — bounding `local.*` against it lets an out-of-range slot read the
+    // previous frame's stale data. Bound against the signature instead.
+    cur_slot_count := body.signature.params.len() + body.locals.len()
     // Monotonic synthetic object-handle source for `object_new` (diagnostics
     // only — object identity is the `ObjVal` reference itself, never a machine
     // address). A 1-cell array so element mutation survives the `::` binding.
@@ -980,6 +1029,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             body = state.bc.functions[usize(frame.function_index)]
             op_count = body.body.len()
             cur_has_narrow = fn_narrow_tbl[usize(frame.function_index)]
+            cur_slot_count = body.signature.params.len() + body.locals.len()
             cur_top = top
         }
 
@@ -1054,7 +1104,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.LocalGet -> {
-                if instr.slot < 0 || usize(instr.slot) >= frame.slots.len() {
+                if instr.slot < 0 || usize(instr.slot) >= cur_slot_count {
                     return Trap { .message = "local.get slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
                 }
                 stack_ensure(frame, frame.sp)
@@ -1070,7 +1120,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp == 0 {
                     return Trap { .message = "local.set on empty stack at pc=${frame.pc} in '${body.name}'" }
                 }
-                if instr.slot < 0 || usize(instr.slot) >= frame.slots.len() {
+                if instr.slot < 0 || usize(instr.slot) >= cur_slot_count {
                     return Trap { .message = "local.set slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
                 }
                 sidx :: usize(instr.slot)
@@ -1089,7 +1139,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp == 0 {
                     return Trap { .message = "local.tee on empty stack at pc=${frame.pc} in '${body.name}'" }
                 }
-                if instr.slot < 0 || usize(instr.slot) >= frame.slots.len() {
+                if instr.slot < 0 || usize(instr.slot) >= cur_slot_count {
                     return Trap { .message = "local.tee slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
                 }
                 // Tee stores AND leaves the value on the stack ; when the slot is
@@ -1315,7 +1365,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.LocalField -> {
-                if instr.slot < 0 || usize(instr.slot) >= frame.slots.len() {
+                if instr.slot < 0 || usize(instr.slot) >= cur_slot_count {
                     return Trap { .message = "local.field slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
                 }
                 field_value :: read_struct_field(slot_val(frame, usize(instr.slot)), instr.field_index, frame.pc, "local.field")
@@ -1599,24 +1649,32 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.I32Add -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.add") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.add") }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) + i32(frame.payload[frame.sp - 1]))
                 frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Sub -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.sub") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.sub") }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) - i32(frame.payload[frame.sp - 1]))
                 frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Mul -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.mul") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.mul") }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) * i32(frame.payload[frame.sp - 1]))
                 frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Div -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.div") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.div") }
                 if i32(frame.payload[frame.sp - 1]) == 0 { return Trap { .message = "i32.div by zero at pc=${frame.pc}" } }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) / i32(frame.payload[frame.sp - 1]))
                 frame.tag[frame.sp - 2] = StackTag.I32
@@ -1624,6 +1682,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.I32Mod -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.mod") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.mod") }
                 if i32(frame.payload[frame.sp - 1]) == 0 { return Trap { .message = "i32.mod by zero at pc=${frame.pc}" } }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) % i32(frame.payload[frame.sp - 1]))
                 frame.tag[frame.sp - 2] = StackTag.I32
@@ -1639,70 +1699,92 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if outcome is Trap { return outcome }
             }
             is bc.I32Lt -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.lt") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.lt") }
                 frame.payload[frame.sp - 2] = if i32(frame.payload[frame.sp - 2]) < i32(frame.payload[frame.sp - 1]) { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Le -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.le") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.le") }
                 frame.payload[frame.sp - 2] = if i32(frame.payload[frame.sp - 2]) <= i32(frame.payload[frame.sp - 1]) { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Gt -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.gt") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.gt") }
                 frame.payload[frame.sp - 2] = if i32(frame.payload[frame.sp - 2]) > i32(frame.payload[frame.sp - 1]) { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Ge -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.ge") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.ge") }
                 frame.payload[frame.sp - 2] = if i32(frame.payload[frame.sp - 2]) >= i32(frame.payload[frame.sp - 1]) { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Neg -> {
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.neg") }
                 frame.payload[frame.sp - 1] = i64(-i32(frame.payload[frame.sp - 1]))
                 frame.tag[frame.sp - 1] = StackTag.I32
                 frame.pc = frame.pc + 1
             }
             is bc.I32BitNot -> {
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.bitnot") }
                 frame.payload[frame.sp - 1] = i64(~i32(frame.payload[frame.sp - 1]))
                 frame.tag[frame.sp - 1] = StackTag.I32
                 frame.pc = frame.pc + 1
             }
             is bc.I32BitAnd -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.bitand") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.bitand") }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) & i32(frame.payload[frame.sp - 1]))
                 frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32BitOr -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.bitor") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.bitor") }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) | i32(frame.payload[frame.sp - 1]))
                 frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32BitXor -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.bitxor") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.bitxor") }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) ^ i32(frame.payload[frame.sp - 1]))
                 frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Shl -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.shl") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.shl") }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) << i32(frame.payload[frame.sp - 1]))
                 frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Shr -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.shr") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.shr") }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) >> i32(frame.payload[frame.sp - 1]))
                 frame.tag[frame.sp - 2] = StackTag.I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32ShrU -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.shru") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.shru") }
                 // Logical shift : reinterpret the i32 as u32 before the
                 // shift so the sign bit isn't replicated, then reinterpret
                 // the result back as i32. Mirrors `>>>` in JS / `>>` on
@@ -1717,6 +1799,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             // so the result respects unsigned semantics (zero-fill, no
             // sign-extension) before re-tagging back to i32.
             is bc.U32Div -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u32.div") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u32.div") }
                 if i32(frame.payload[frame.sp - 1]) == 0 { return Trap { .message = "u32.div by zero at pc=${frame.pc}" } }
                 frame.payload[frame.sp - 2] = i64(i32(u32(i32(frame.payload[frame.sp - 2])) / u32(i32(frame.payload[frame.sp - 1]))))
                 frame.tag[frame.sp - 2] = StackTag.I32
@@ -1724,6 +1808,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.U32Mod -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u32.mod") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u32.mod") }
                 if i32(frame.payload[frame.sp - 1]) == 0 { return Trap { .message = "u32.rem by zero at pc=${frame.pc}" } }
                 frame.payload[frame.sp - 2] = i64(i32(u32(i32(frame.payload[frame.sp - 2])) % u32(i32(frame.payload[frame.sp - 1]))))
                 frame.tag[frame.sp - 2] = StackTag.I32
@@ -1731,24 +1817,32 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.U32Lt -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u32.lt") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u32.lt") }
                 frame.payload[frame.sp - 2] = if u32(i32(frame.payload[frame.sp - 2])) < u32(i32(frame.payload[frame.sp - 1])) { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.U32Le -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u32.le") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u32.le") }
                 frame.payload[frame.sp - 2] = if u32(i32(frame.payload[frame.sp - 2])) <= u32(i32(frame.payload[frame.sp - 1])) { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.U32Gt -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u32.gt") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u32.gt") }
                 frame.payload[frame.sp - 2] = if u32(i32(frame.payload[frame.sp - 2])) > u32(i32(frame.payload[frame.sp - 1])) { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.U32Ge -> {
+                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u32.ge") }
+                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u32.ge") }
                 frame.payload[frame.sp - 2] = if u32(i32(frame.payload[frame.sp - 2])) >= u32(i32(frame.payload[frame.sp - 1])) { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
@@ -1769,24 +1863,32 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.I64Add -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.add") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.add") }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] + frame.payload[frame.sp - 1]
                 frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Sub -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.sub") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.sub") }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] - frame.payload[frame.sp - 1]
                 frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Mul -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.mul") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.mul") }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] * frame.payload[frame.sp - 1]
                 frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Div -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.div") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.div") }
                 if frame.payload[frame.sp - 1] == 0 { return Trap { .message = "i64.div by zero at pc=${frame.pc}" } }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] / frame.payload[frame.sp - 1]
                 frame.tag[frame.sp - 2] = StackTag.I64
@@ -1794,6 +1896,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.I64Mod -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.mod") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.mod") }
                 if frame.payload[frame.sp - 1] == 0 { return Trap { .message = "i64.rem by zero at pc=${frame.pc}" } }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] % frame.payload[frame.sp - 1]
                 frame.tag[frame.sp - 2] = StackTag.I64
@@ -1801,41 +1905,54 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.I64Neg -> {
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.neg") }
                 frame.payload[frame.sp - 1] = -frame.payload[frame.sp - 1]
                 frame.tag[frame.sp - 1] = StackTag.I64
                 frame.pc = frame.pc + 1
             }
             is bc.I64Eq -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.eq") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.eq") }
                 frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] == frame.payload[frame.sp - 1] { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Ne -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.ne") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.ne") }
                 frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] != frame.payload[frame.sp - 1] { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Lt -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.lt") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.lt") }
                 frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] < frame.payload[frame.sp - 1] { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Le -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.le") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.le") }
                 frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] <= frame.payload[frame.sp - 1] { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Gt -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.gt") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.gt") }
                 frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] > frame.payload[frame.sp - 1] { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Ge -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.ge") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.ge") }
                 frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] >= frame.payload[frame.sp - 1] { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
@@ -1845,6 +1962,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             // the U32* family but for `I64Val`-tagged operands carrying
             // a u64 bit pattern.
             is bc.U64Div -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u64.div") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u64.div") }
                 if frame.payload[frame.sp - 1] == 0 { return Trap { .message = "u64.div by zero at pc=${frame.pc}" } }
                 frame.payload[frame.sp - 2] = i64(u64(frame.payload[frame.sp - 2]) / u64(frame.payload[frame.sp - 1]))
                 frame.tag[frame.sp - 2] = StackTag.I64
@@ -1852,6 +1971,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.U64Mod -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u64.mod") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u64.mod") }
                 if frame.payload[frame.sp - 1] == 0 { return Trap { .message = "u64.rem by zero at pc=${frame.pc}" } }
                 frame.payload[frame.sp - 2] = i64(u64(frame.payload[frame.sp - 2]) % u64(frame.payload[frame.sp - 1]))
                 frame.tag[frame.sp - 2] = StackTag.I64
@@ -1859,24 +1980,32 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.U64Lt -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u64.lt") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u64.lt") }
                 frame.payload[frame.sp - 2] = if u64(frame.payload[frame.sp - 2]) < u64(frame.payload[frame.sp - 1]) { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.U64Le -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u64.le") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u64.le") }
                 frame.payload[frame.sp - 2] = if u64(frame.payload[frame.sp - 2]) <= u64(frame.payload[frame.sp - 1]) { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.U64Gt -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u64.gt") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u64.gt") }
                 frame.payload[frame.sp - 2] = if u64(frame.payload[frame.sp - 2]) > u64(frame.payload[frame.sp - 1]) { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.U64Ge -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u64.ge") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u64.ge") }
                 frame.payload[frame.sp - 2] = if u64(frame.payload[frame.sp - 2]) >= u64(frame.payload[frame.sp - 1]) { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
@@ -1885,106 +2014,140 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             // 64-bit bitwise / shift. The apply closure stays i64-typed so
             // wide operands keep their high bits.
             is bc.I64BitAnd -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.bitand") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.bitand") }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] & frame.payload[frame.sp - 1]
                 frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64BitOr -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.bitor") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.bitor") }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] | frame.payload[frame.sp - 1]
                 frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64BitXor -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.bitxor") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.bitxor") }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] ^ frame.payload[frame.sp - 1]
                 frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64BitNot -> {
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.bitnot") }
                 frame.payload[frame.sp - 1] = ~frame.payload[frame.sp - 1]
                 frame.tag[frame.sp - 1] = StackTag.I64
                 frame.pc = frame.pc + 1
             }
             is bc.I64Shl -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.shl") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.shl") }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] << frame.payload[frame.sp - 1]
                 frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Shr -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.shr") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.shr") }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] >> frame.payload[frame.sp - 1]
                 frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64ShrU -> {
+                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.shru") }
+                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.shru") }
                 frame.payload[frame.sp - 2] = i64(u64(frame.payload[frame.sp - 2]) >> u64(frame.payload[frame.sp - 1]))
                 frame.tag[frame.sp - 2] = StackTag.I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Add -> {
+                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.add") }
+                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.add") }
                 frame.payload[frame.sp - 2] = i64(((u64(frame.payload[frame.sp - 2])).from_bits() + (u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
                 frame.tag[frame.sp - 2] = StackTag.F64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Sub -> {
+                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.sub") }
+                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.sub") }
                 frame.payload[frame.sp - 2] = i64(((u64(frame.payload[frame.sp - 2])).from_bits() - (u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
                 frame.tag[frame.sp - 2] = StackTag.F64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Mul -> {
+                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.mul") }
+                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.mul") }
                 frame.payload[frame.sp - 2] = i64(((u64(frame.payload[frame.sp - 2])).from_bits() * (u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
                 frame.tag[frame.sp - 2] = StackTag.F64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Div -> {
+                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.div") }
+                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.div") }
                 frame.payload[frame.sp - 2] = i64(((u64(frame.payload[frame.sp - 2])).from_bits() / (u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
                 frame.tag[frame.sp - 2] = StackTag.F64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Neg -> {
+                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.neg") }
                 frame.payload[frame.sp - 1] = i64((-(u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
                 frame.tag[frame.sp - 1] = StackTag.F64
                 frame.pc = frame.pc + 1
             }
             is bc.F64Eq -> {
+                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.eq") }
+                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.eq") }
                 frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() == (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Ne -> {
+                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.ne") }
+                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.ne") }
                 frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() != (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Lt -> {
+                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.lt") }
+                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.lt") }
                 frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() < (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Le -> {
+                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.le") }
+                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.le") }
                 frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() <= (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Gt -> {
+                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.gt") }
+                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.gt") }
                 frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() > (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Ge -> {
+                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.ge") }
+                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.ge") }
                 frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() >= (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
