@@ -3048,10 +3048,6 @@ vader_array_t* vader_runtime_argv(int argc, char** argv, uint32_t arr_type, uint
  * exist ONLY for the bytecode VM (`exec.vader` calls them via `@extern`, since
  * the VM's own code can't be lowered to the new opcodes without a seed two-phase).
  * `memcpy` is the portable, well-defined type-pun (compilers fold it to a move). */
-uint64_t vader_f64_to_bits(double v) { uint64_t u; memcpy(&u, &v, sizeof u); return u; }
-double   vader_bits_to_f64(uint64_t b) { double v; memcpy(&v, &b, sizeof v); return v; }
-uint32_t vader_f32_to_bits(float v) { uint32_t u; memcpy(&u, &v, sizeof u); return u; }
-float    vader_bits_to_f32(uint32_t b) { float v; memcpy(&v, &b, sizeof v); return v; }
 
 /* ----------------------------------------------------------------- I/O */
 
