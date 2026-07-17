@@ -128,7 +128,7 @@ materialize_one_instance :: fn(
             owner_decls :: module_decls(owner_loaded)
             // (1) Find the StructDecl for this instance ; emit a
             // monomorphized struct decl. Emitted even for stdlib structs
-            // (`MutableMap(usize, Span)`, `Entry`, …) — pushed into the
+            // (`MutableMap<usize, Span>`, `Entry`, …) — pushed into the
             // empty stdlib lowered module created above so the bytecode
             // type table carries the concrete shape instead of an orphan
             // `ref`. (Filtered from the lower dump, so byte-match is safe.)
@@ -265,7 +265,7 @@ materialize_struct_instance :: fn(
 /// fields of already-emitted struct decls. A struct instance's fields
 /// are erased to `Any` for the instance's own type-params, but a field
 /// whose type names another generic struct keeps that struct's concrete
-/// (or partially-erased) args — e.g. `MutableSet(i32)`'s erased field
+/// (or partially-erased) args — e.g. `MutableSet<i32>`'s erased field
 /// `inner: MutableMap<Any, bool>`. Such a shape is neither a directly
 /// instantiated generic nor an all-Any representative, so nothing else
 /// materialises it and the bytecode interner mints an orphan `ref
@@ -409,7 +409,7 @@ materialize_impl_for_instance :: fn(
     project_ctx: LowerProjectCtx, project: LoweredProject,
 ) -> void {
     // Erasure : self type uses any-leaves args (Stack<Any> instead of
-    // Stack(i32)) and the substitution carried into params / body maps
+    // Stack<i32>) and the substitution carried into params / body maps
     // T → Any. Concrete monos that share the same impl shape post-
     // erasure can then collapse to a single C-emit body. Mangled name
     // keeps the concrete args suffix (`__i32`) so identity tags stay

@@ -1561,7 +1561,7 @@ float_tag_check_expr :: fn(types: BcType[], tag_expr: string) -> string {
 /// `target_id` — its own tag OR any **sibling** struct's tag (same generic
 /// source, by `prefix_before_double_underscore`). Mirrors the VM's
 /// `struct_siblings_match` : an erased generic flows a runtime sibling shape
-/// (`Entry(i32,i32)`, a distinct tag) into a `type_check` typed against the
+/// (`Entry<i32,i32>`, a distinct tag) into a `type_check` typed against the
 /// erased one (`Entry<Any,Any>`) — exact-tag equality would miss it (and trip
 /// the dead-return guard on the match fall-through). A non-generic struct
 /// (empty prefix) has no siblings → a bare tag compare.

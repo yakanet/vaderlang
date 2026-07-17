@@ -1,7 +1,7 @@
 // vader/comptime/instances — passive registry of generic instantiations.
 //
 // The typechecker already
-// represents `List(i32)` as `Struct { symbol, args }` ; this pass
+// represents `List<i32>` as `Struct { symbol, args }` ; this pass
 // scans every typed-AST type-expression, normalises each instance,
 // and registers it under a canonical key. Sorted output goes into
 // `EvaluatedProject.instances` and becomes the `## generic instances`
@@ -99,7 +99,7 @@ walk_type :: fn(registry: InstanceRegistry, t: Type) -> void {
 }
 
 // Filter that allows TypeParam through — the registry stores `Yield<T>`
-// etc. as observed alongside `Yield(i32)`. Rejects only types that signal
+// etc. as observed alongside `Yield<i32>`. Rejects only types that signal
 // "not yet resolved" or "free literal".
 all_concrete_enough :: fn(args: Type[]) -> bool {
     for arg in args {

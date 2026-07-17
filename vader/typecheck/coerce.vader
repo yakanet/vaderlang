@@ -12,7 +12,7 @@ import "vader/types"
 
 /// Look up `${got}::into::${expected}` in the impl-method index. The
 /// per-target keying lets a source type carry multiple `Into<T>`
-/// impls (e.g. `Into(i32)` AND `Into(string)`) without collision.
+/// impls (e.g. `Into<i32>` AND `Into<string>`) without collision.
 /// Union targets never coerce — the typer can't pick a variant —
 /// so they fall through to the standard T3001 mismatch.
 ///
@@ -100,7 +100,7 @@ import "std/testing"
 import "vader/resolver/symbol"
 import "vader/parser"
 
-// A minimal `Iterator(elem)` trait type — `try_array_to_iter` only reads
+// A minimal `Iterator<elem>` trait type — `try_array_to_iter` only reads
 // `symbol.name` and `args`, so the other Symbol fields are placeholders.
 iter_trait_for_test :: fn(elem: Type) -> Type {
     sym :: Symbol {
@@ -118,7 +118,7 @@ test_try_into_records_array_to_iter :: fn() -> void {
     typed :: empty_typed_program()
     arr  :: mk_array(mk_primitive("i32"), false)
     iter :: iter_trait_for_test(mk_primitive("i32"))
-    assert(try_into(arr, iter, typed, 7), "i32[] should coerce into Iterator(i32)")
+    assert(try_into(arr, iter, typed, 7), "i32[] should coerce into Iterator<i32>")
     assert(typed.into_coercions[7] !is null, "coercion must be recorded under node id 7")
 }
 

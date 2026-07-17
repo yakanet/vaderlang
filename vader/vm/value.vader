@@ -408,7 +408,7 @@ export type_matches :: fn(state: VmState, v: Value, type_id: i32) -> bool {
 /// Erasure-aware sibling check : returns true when both struct types
 /// come from the same generic source declaration. Post-path-γ a value
 /// may carry a sibling shape's tag (e.g. `Yield<Any>` runtime flowing
-/// into a match arm typed `is Yield(i32)`). We approximate a
+/// into a match arm typed `is Yield<i32>`). We approximate a
 /// `symbolId`-based grouping by comparing mangled-name prefixes up to
 /// the first `__` (which separates the source name from the type-arg
 /// suffix).

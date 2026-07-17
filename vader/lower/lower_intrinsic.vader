@@ -265,7 +265,7 @@ try_fold_type_args :: fn(
 
 /// Fold `@fields(T)` to an array literal of `Field { name, type }`
 /// struct lits — one entry per field declared on `T`. Generic struct
-/// args flow into each field's type so `@fields(Pair(string, i64))`
+/// args flow into each field's type so `@fields(Pair<string, i64>)`
 /// reports `value` as `i64`, not the unsubstituted TypeParam.
 ///
 /// @param ctx        the fn-body lower context.

@@ -15,7 +15,7 @@ import "vader/resolver/symbol"
 /// `namespace_targets` for `name :: import "p"` namespace bindings
 /// (value = module_id string), and `missing` for unresolved /
 /// private / unknown-name imports. Split into three maps rather
-/// than a `MutableMap(i32, Union)` because the native runtime hits
+/// than a `MutableMap<i32, Union>` because the native runtime hits
 /// a SIGSEGV on `map[k] = UnionValue` writes (union-tag bookkeeping
 /// inside the bucket allocator).
 export ImportTargetTable :: struct {

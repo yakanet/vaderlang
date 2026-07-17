@@ -6,7 +6,7 @@
 // when an impl inherits `is_empty :: fn(self) -> bool = match self.next()
 // { is null -> true ; is Yield<T> -> false }` from `Iterator`, the
 // trait method's body must be cloned and the `T` references rewritten
-// to the impl's trait arg (e.g. `Yield(i32)` for Countdown).
+// to the impl's trait arg (e.g. `Yield<i32>` for Countdown).
 //
 // SCOPE : sketch. Not all variants are handled — TODOs mark the gaps.
 // Calling `substitute_block` on a body that uses an unsupported variant

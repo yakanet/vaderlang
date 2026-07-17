@@ -1797,8 +1797,8 @@ register_impl_metadata :: fn(
             record_impl_trait(typed, base_key, id.trait_name)
         }
         // `Into<T>` impls are indexed under a target-qualified key so
-        // multiple `Into` impls for the same source (e.g. `Into(i32)` +
-        // `Into(string)`) don't collide.
+        // multiple `Into` impls for the same source (e.g. `Into<i32>` +
+        // `Into<string>`) don't collide.
         if id.trait_name == TRAIT_INTO && id.trait_args.len() == 1 && m.name == METHOD_INTO && ufcs_ty != null {
             target_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
             into_key :: "${display_type(for_ty)}::into::${display_type(target_ty)}"

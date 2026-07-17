@@ -2,7 +2,7 @@
 //
 // Extracted from `body.vader` so the body walker, future typechecker,
 // and any other pass that needs ident → symbol lookup share one
-// implementation. The stack is a LIFO of `MutableMap(string, Symbol)`
+// implementation. The stack is a LIFO of `MutableMap<string, Symbol>`
 // frames ; `bind` writes to the innermost frame, `lookup` walks
 // outward until it finds a hit or returns null.
 
