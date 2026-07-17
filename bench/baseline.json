@@ -179,6 +179,78 @@
       "checksum": "interp 5722221"
     }
   },
+  "hashmap": {
+    "vader-native": {
+      "minMs": 27.3,
+      "checksum": "hashmap rounds=8 n=100000 size=50000 chk=80017366680"
+    },
+    "bun-ts": {
+      "minMs": 108.7,
+      "checksum": "hashmap rounds=8 n=100000 size=50000 chk=80017366680"
+    },
+    "go": {
+      "minMs": 42.6,
+      "checksum": "hashmap rounds=8 n=100000 size=50000 chk=80017366680"
+    },
+    "java": {
+      "minMs": 84.3,
+      "checksum": "hashmap rounds=8 n=100000 size=50000 chk=80017366680"
+    }
+  },
+  "ackermann": {
+    "vader-native": {
+      "minMs": 36.9,
+      "checksum": "ackermann hi=9 total=8154"
+    },
+    "bun-ts": {
+      "minMs": 41.2,
+      "checksum": "ackermann hi=9 total=8154"
+    },
+    "go": {
+      "minMs": 39.2,
+      "checksum": "ackermann hi=9 total=8154"
+    },
+    "java": {
+      "minMs": 52.7,
+      "checksum": "ackermann hi=9 total=8154"
+    }
+  },
+  "wordcount": {
+    "vader-native": {
+      "minMs": 39.2,
+      "checksum": "wordcount bytes=1760000 words=360000 lines=40000 total=5400000"
+    },
+    "bun-ts": {
+      "minMs": 39.9,
+      "checksum": "wordcount bytes=1760000 words=360000 lines=40000 total=5400000"
+    },
+    "go": {
+      "minMs": 24.1,
+      "checksum": "wordcount bytes=1760000 words=360000 lines=40000 total=5400000"
+    },
+    "java": {
+      "minMs": 55.9,
+      "checksum": "wordcount bytes=1760000 words=360000 lines=40000 total=5400000"
+    }
+  },
+  "quicksort": {
+    "vader-native": {
+      "minMs": 46.9,
+      "checksum": "quicksort n=1000000 chk=2028822816"
+    },
+    "bun-ts": {
+      "minMs": 70.1,
+      "checksum": "quicksort n=1000000 chk=2028822816"
+    },
+    "go": {
+      "minMs": 33.6,
+      "checksum": "quicksort n=1000000 chk=2028822816"
+    },
+    "java": {
+      "minMs": 78.3,
+      "checksum": "quicksort n=1000000 chk=2028822816"
+    }
+  },
   "selfcompile_c": {
     "vader-native": {
       "minMs": 4462.457832999993,

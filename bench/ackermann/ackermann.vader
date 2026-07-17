@@ -1,0 +1,40 @@
+/// Ackermann — pure non-tail recursion, zero allocation. Isolates the raw
+/// function-call path (prologue / epilogue, argument passing, direct-call
+/// dispatch) with no GC, no array, no string runtime in the way — the one
+/// thing `binary_trees` (allocation-dominated) can't measure cleanly. Good
+/// regression coverage for the inliner and `devirtualize_fn_refs`.
+///
+/// We sum `A(3, n)` for n in [0, HI] rather than a single deep call : each n
+/// is a runtime loop value so the compiler can't constant-fold the pure
+/// recursion, and the richer checksum validates every recursion depth. The
+/// deepest call `A(3, 9)` reaches ~2 k stack frames — comfortably inside the
+/// primary-thread stack on every target — and the sweep drives tens of
+/// millions of calls.
+///
+/// Sized so the natively compiled binary runs in ~40 ms. At this scale
+/// Vader's near-zero process startup keeps it level with — or ahead of — the
+/// JIT / AOT peers ; its per-call overhead only overtakes the field at far
+/// larger n (A(3,11) is ~10× the calls, and there Vader native is the
+/// slowest), which would blow the suite's tens-of-ms budget. So this row
+/// tracks the call path but stays startup-sensitive, like `iter_chain`.
+
+module "main"
+
+import "std/io"
+
+HI :: 9
+
+ackermann :: fn(m: i32, n: i32) -> i64 {
+    if m == 0 { return i64(n) + 1 }
+    if n == 0 { return ackermann(m - 1, 1) }
+    return ackermann(m - 1, i32(ackermann(m, n - 1)))
+}
+
+main :: fn() -> i32 {
+    total: i64 = 0
+    for n in 0..=HI {
+        total += ackermann(3, n)
+    }
+    println("ackermann hi=${HI} total=${total}")
+    return 0
+}

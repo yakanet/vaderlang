@@ -1,6 +1,6 @@
 # Vader benchmarks
 
-Ten cross-language workloads spanning float CPU, integer CPU, iterator chains, GC throughput, string-runtime throughput, and array accessors — so a perf change in any of those subsystems trips a regression.
+Fourteen cross-language workloads spanning float CPU, integer CPU, iterator chains, non-tail recursion / call overhead, GC throughput, hash-map build + probe, string-runtime throughput, byte scanning, sorting, and array accessors — so a perf change in any of those subsystems trips a regression.
 
 Every workload lives in its own directory `bench/<name>/` with all four language implementations colocated — `<name>.vader`, `<name>.ts`, `<name>.go`, `<name>.java` — alongside the compiled artefacts the harness produces.
 
@@ -16,6 +16,10 @@ Every workload lives in its own directory `bench/<name>/` with all four language
 | `arr_push`       | array append + grow path + young-arena GC churn | build a fresh `i32[]` by `push`, discard, repeat                | 20 M pushes (200 × 100 000)            |
 | `str_concat`     | string `+` concat (Buffer-backed, off-runtime)  | grow a 13-byte string by repeated `s = s + "…"`                 | 300 000 iterations                     |
 | `interp`         | `${}` interpolation + integer formatting        | format three ints into one string via `${}`                     | 200 000 iterations                     |
+| `hashmap`        | hash-map insert / lookup / delete / grow        | 8 rounds of build + probe over N distinct keys `(i·S) mod K`     | 100 000 keys × 8 rounds                |
+| `ackermann`      | non-tail recursion, raw call overhead           | Σ `A(3, n)` for n in [0, 9] via the classic double recursion    | deepest `A(3, 9)`, ~2 k stack depth    |
+| `wordcount`      | `u8[]` byte scan + whitespace state machine     | count words / lines in a fixed ASCII buffer, rescanned          | 1.76 MB buffer × 15 passes             |
+| `quicksort`      | array get/set, swaps, bounded recursion         | in-place median-of-three quicksort of a scrambled `i32[]`       | 1 000 000 elements                     |
 
 Every program prints a one-line checksum so cross-language equivalence is verifiable.
 
@@ -57,7 +61,7 @@ We compare on `min(samples)` rather than the median because these workloads fini
 
 ## Baseline (committed)
 
-Captured 2026-07-16 on a 2026 Apple Silicon laptop, `bun run bench -- --runs=10 --update`:
+Captured 2026-07-16 on a 2026 Apple Silicon laptop, `bun run bench -- --runs=10 --update` ; the `hashmap` / `ackermann` / `wordcount` / `quicksort` rows were added 2026-07-17 (`--runs=10`, same machine):
 
 | workload         | vader-native | bun-ts    | go         | java     |
 |------------------|--------------|-----------|------------|----------|
@@ -71,6 +75,10 @@ Captured 2026-07-16 on a 2026 Apple Silicon laptop, `bun run bench -- --runs=10 
 | `arr_push`       |  66.7 ms     |  49.6 ms  |  31.0 ms ★ | 53.2 ms  |
 | `str_concat`     |  23.2 ms     |   8.3 ms ★|  11.5 ms   | 48.2 ms  |
 | `interp`         |  37.9 ms     |  42.0 ms  |  20.7 ms ★ | 54.3 ms  |
+| `hashmap`        |  27.3 ms ★   | 108.7 ms  |  42.6 ms   | 84.3 ms  |
+| `ackermann`      |  36.9 ms ★   |  41.2 ms  |  39.2 ms   | 52.7 ms  |
+| `wordcount`      |  39.2 ms     |  39.9 ms  |  24.1 ms ★ | 55.9 ms  |
+| `quicksort`      |  46.9 ms     |  70.1 ms  |  33.6 ms ★ | 78.3 ms  |
 
 Plus one Vader-only compile-time workload (no cross-language column):
 
@@ -89,6 +97,10 @@ Reading the table :
 - **`map_iter`** — Vader native (3.6 ms) leads Go (8.2 ms) by ~2.3 ×, and crushes Bun-TS (32.8 ms) and Java (42.8 ms). Earlier baselines had Vader behind Go (~23 ms, ~2.8 × slower) ; GC + dispatch optims (`O(log N)` string-mark, midir vtable pruning, lower-pass O(1) symbol lookups) first erased the gap, then the compact-dict `MutableMap` rewrite (2026-06) roughly halved it again (6.5 → 3.6 ms). Go's `for k, v := range m` allocates nothing per visit ; Vader's `for entry in m` desugars via `Into(Iterator(Entry(K, V)))` (cf. `std/collections.vader`). The `Yield(Entry)` wrapper folds into a 0-byte tag at runtime (`VADER_TYPE_KIND_INLINE_REF`) and the `Yield(T) | null` return slot folds to a raw `void*` via B1, so the dispatch is alloc-free and pointer-sized. Bun's `Map[Symbol.iterator]` and Java's `entrySet()` both box per visit.
 - **`java`** — most Java rows sit at ~33-56 ms (heavier workloads like `arr_rw`, ~86 ms, add real compute on top). That floor is JVM startup + class loading + cold JIT — measurable but bounded now that we precompile in the build phase (down from ~230 ms when each invocation also parsed the source). For steady-state Java throughput (long-running JVM, warmed JIT, millions of iterations) Java would catch up to Go ; we're benching cold script invocations on purpose because that's what `java <Class>` looks like in practice.
 - **`arr_rw` / `arr_push` / `str_concat` / `interp`** (Target-ABI workloads, added after the original six) — the Target-ABI paths, now mostly closed. `arr_rw` 58.1 ms vs Go 36.7 (1.6 ×, was 3.2 ×), `arr_push` 66.7 vs Go 31.0 (2.2 ×), `str_concat` 23.2 vs Bun 8.3 / Go 11.5 (2.8 ×), `interp` 37.9 vs Go 20.7 (1.8 ×) — Vader now edges out Bun (42.0) on `interp` (the workload gained an emoji + codepoint-count checksum, so it is not comparable to the pre-2026-07 `interp` numbers). They exercise the open-coded array load/store, the push/grow + young-arena GC churn, and the off-runtime Buffer-backed string `+` concat / `${}` interpolation paths. **`arr_rw`** dropped from a midir intra-block array-load-forward pass (drops the redundant re-read in `a[i] = a[i] + 1`, commit `6fc1def1`) plus a native c_emit resolve-CSE that shares the buf-forward walk across accesses in one straight-line region (`0af7deb9`). **`interp`** dropped earlier because a `${int}` now writes its digits straight into one exact-sized byte buffer instead of minting a throwaway interned string per part (`2e294f5c`). `str_concat` closed after the fixed-arity `concatN` `+`-chain lowering. `arr_push` stays the main open weak spot — it carries the `-falign-functions=64` cache-line fix (commit `7a96cc48`) that undid a layout-only regression — and `str_concat` still trails Bun's JIT'd string ops.
+- **`hashmap`** — Vader native (27.3 ms) is the *fastest*, ahead of Go's built-in `map` (42.6 ms) and ~4 × faster than Bun (108.7 ms). The compact-dict `MutableMap` (open-addressed `i32` index over dense entry arrays, cf. `map_iter`'s note) absorbs the insert / lookup / delete / grow churn with no per-op allocation ; this is the build-and-probe counterpart to `map_iter`'s pure iteration, and the shape a compiler's symbol table / interner actually sees. All four maps grow from empty — no port pre-sizes — so the row measures the rehash / grow path it advertises, not just steady-state probing. Keys are `(i·STRIDE) mod KEYSPACE` with STRIDE coprime to the prime KEYSPACE, so all 100 000 keys are distinct and the set is identical across ports.
+- **`ackermann`** — pure non-tail recursion, zero allocation, isolating the raw call path (prologue / epilogue, argument passing, direct-call dispatch) the way `binary_trees` (allocation-dominated) can't. Vader native (36.9 ms) lands level with Go (39.2 ms) and Bun (41.2 ms), ahead of Java's JVM-startup floor (52.7 ms). At this size a large share of the wall-clock is process startup (Vader's is ~0), so like `iter_chain` this row stays startup-sensitive ; the *pure* per-call overhead only separates the field at far larger n — `A(3,11)` is ~10 × the calls, and there Vader native is the **slowest** (a real gap), but that would blow the suite's tens-of-ms budget, so we size down to `A(3,9)`.
+- **`wordcount`** — byte-scan / tokenize, the inverse of the string-*building* rows. Go (24.1 ms) leads with its `[]byte` range loop, then Vader native (39.2 ms) ≈ Bun (39.9 ms), Java (55.9 ms) trailing. Vader scans the zero-copy `bytes()` view through the open-coded `u8[]` load and runs a branchy whitespace state machine — the lexer's inner loop, which nothing else in the corpus measures. The gap to Go is the branch-heavy state machine, not the load (per the u8-read note, `cc -O3` already erases the per-byte tax).
+- **`quicksort`** — array get/set + swaps + bounded recursion, the *same* hand-written median-of-three Lomuto sort in every language (not the stdlib), so it compares codegen rather than library quality. Go (33.6 ms) leads, Vader native (46.9 ms) is second — ahead of Bun (70.1 ms) and Java (78.3 ms). Exercises the swap / reassign lowering (a former miscompile site) and the typed `a[i]` store ; the input is a coprime-stride permutation of [0, N) so the sorted result is exactly [0, N) and the order-sensitive rolling-hash checksum proves the sort ran. Recursing the smaller half bounds the stack to O(log N).
 - **`selfcompile_c`** (Vader-only, compile-time) — times the compiler emitting C for the whole compiler. **4.5 s, roughly half the 8.7 s of an earlier baseline** : the 2026-07-16 fix that stopped the single-expression inliner from splicing statement-bearing trait-method bodies (e.g. an enum's `= match self { … }`) removed a pathological inline explosion in the compiler's own code — one diagnostic snippet's bytecode collapsed 13818 → 129 lines — so there is far less C to emit ; the `devirtualize_fn_refs` pass shaves a little more.
 
 The `mandelbrot` checksum splits three ways : Bun-TS / Java agree at 5 705 453, Vader-native lands at 5 705 449 (a 4-iteration drift, ~7 boundary pixels where clang's reassociation under `-O3` reorders a `z² + c` term and flips the escape test one iteration earlier), and Go lands at 5 689 008 because `gc` fuses `a*b + c` into a single FMA instruction with one rounding step on arm64. All three are mathematically correct ; only the rounding model differs.

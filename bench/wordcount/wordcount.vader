@@ -1,0 +1,52 @@
+/// Byte-scan / tokenize stress — the inverse of the string-*building* benches
+/// (`string_builder`, `str_concat`, `interp`) : this one *reads* a buffer
+/// byte-by-byte through the open-coded `u8[]` load and runs a branchy
+/// whitespace state machine over it, counting words and lines. That's the
+/// lexer's inner loop, and nothing else in the corpus measures it.
+///
+/// The text is a fixed ASCII line repeated REPS times, so the byte view is
+/// identical across every language port and the checksum stays comparable.
+/// It is scanned PASSES times to amortise the one-time build ; `total`
+/// accumulates each pass's word count so the scan can't be optimised away.
+///
+/// Sized so the natively compiled binary runs in ~30-70 ms.
+
+module "main"
+
+import "std/io"
+import "std/string"
+
+LINE :: "the quick brown fox jumps over the lazy dog\n"
+REPS :: 40_000
+PASSES :: 15
+
+main :: fn() -> i32 {
+    text :: repeat(LINE, usize(REPS))
+    data :: text.bytes()
+    nb: usize = data.len()
+
+    words: i64 = 0
+    lines: i64 = 0
+    total: i64 = 0
+    for _ in 0..<PASSES {
+        w: i64 = 0
+        ln: i64 = 0
+        in_word := false
+        for i in 0..<nb {
+            b :: data[i]
+            if b == '\n' { ln += 1 }
+            is_space :: b == ' ' || b == '\n'
+            if is_space {
+                in_word = false
+            } else {
+                if !in_word { w += 1 }
+                in_word = true
+            }
+        }
+        words = w
+        lines = ln
+        total += w
+    }
+    println("wordcount bytes=${nb} words=${words} lines=${lines} total=${total}")
+    return 0
+}

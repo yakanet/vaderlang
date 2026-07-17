@@ -1,0 +1,65 @@
+/// In-place quicksort — array element get/set, three-way swaps, comparisons,
+/// and bounded recursion, all in the hot path. Hand-written (not the stdlib
+/// `sort`) and bit-identical across every language port, so this compares
+/// codegen for the same algorithm rather than library quality. Good coverage
+/// for the swap / reassign lowering (a former miscompile site) and the
+/// open-coded typed `a[i]` load / store.
+///
+/// The input is the permutation `a[i] = (i * STRIDE) % N` (STRIDE coprime to
+/// N), so the sorted result is exactly [0, N) and the checksum — an
+/// order-sensitive 31-bit rolling hash, kept below 2^53 so no peer needs
+/// BigInt — validates that the sort actually ordered the data. A median-of-
+/// three pivot keeps the structured input off quicksort's O(n²) worst case ;
+/// recursing the smaller half bounds the stack to O(log N).
+///
+/// Sized so the natively compiled binary runs in ~30-90 ms.
+
+module "main"
+
+import "std/io"
+
+N :: 1_000_000
+STRIDE: i64: 999983
+N_MOD: i64: 1_000_000
+
+// Sort the half-open range a[lo, hi). Median-of-three pivot, Lomuto
+// partition, tail-recursion eliminated on the larger side.
+qsort :: fn(a: i32[], lo: usize, hi: usize) -> void {
+    l := lo
+    h := hi
+    for h - l > 1 {
+        mid :: l + (h - l) / 2
+        hh :: h - 1
+        // median-of-three: leave the median at `hh`, the min at `l`
+        if a[l] > a[mid] { t :: a[l]  a[l] = a[mid]  a[mid] = t }
+        if a[l] > a[hh]  { t :: a[l]  a[l] = a[hh]   a[hh] = t }
+        if a[mid] < a[hh] { t :: a[mid]  a[mid] = a[hh]  a[hh] = t }
+        pivot :: a[hh]
+        i := l
+        for j in l..<hh {
+            if a[j] < pivot {
+                t :: a[i]  a[i] = a[j]  a[j] = t
+                i += 1
+            }
+        }
+        t :: a[i]  a[i] = a[hh]  a[hh] = t   // pivot to its final slot `i`
+        if (i - l) < (h - (i + 1)) {
+            qsort(a, l, i)
+            l = i + 1
+        } else {
+            qsort(a, i + 1, h)
+            h = i
+        }
+    }
+}
+
+main :: fn() -> i32 {
+    n: usize = usize(N)
+    a: i32[] = [0] * n
+    for i in 0..<n { a[i] = i32((i64(i) * STRIDE) % N_MOD) }
+    qsort(a, 0, n)
+    chk: i64 = 0
+    for i in 0..<n { chk = (chk * 31 + i64(a[i])) % 2147483648 }
+    println("quicksort n=${N} chk=${chk}")
+    return 0
+}
