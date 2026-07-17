@@ -1013,9 +1013,6 @@ typedef struct {
 void vader_defer_push(vader_box_t closure);
 void vader_defer_pop_exec(uint32_t count);
 
-/* IEEE 754 bit reinterpret — VM-only (`exec.vader` @extern ; native lowers
- * F64ToBits/BitsToF64 to an inline union cast). See vader_runtime.c. */
-
 /* ----------------------------------------------------------------- I/O */
 
 void           vader_write(int32_t stream_tag, vader_string_t s);
