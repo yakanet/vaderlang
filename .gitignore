@@ -41,6 +41,10 @@ bench/arr_rw/arr_rw
 bench/arr_push/arr_push
 bench/str_concat/str_concat
 bench/interp/interp
+bench/hashmap/hashmap
+bench/ackermann/ackermann
+bench/wordcount/wordcount
+bench/quicksort/quicksort
 *.dSYM/
 
 ## POCs

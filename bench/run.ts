@@ -58,6 +58,10 @@ const WORKLOADS: readonly Workload[] = [
   { name: "arr_push",       description: "20 M i32 pushes (200 × 100k), grow + GC churn",    outputMatch: "arr_push" },
   { name: "str_concat",     description: "300k × build a 13-byte string by repeated +",      outputMatch: "str_concat" },
   { name: "interp",         description: "200k × format 3 ints via ${} interpolation",       outputMatch: "interp" },
+  { name: "hashmap",        description: "8 rounds of insert/lookup/delete/probe over 100k keys", outputMatch: "hashmap" },
+  { name: "ackermann",      description: "Σ A(3,n) for n in [0,9], pure recursion",          outputMatch: "ackermann" },
+  { name: "wordcount",      description: "scan a 1.76 MB ASCII buffer 15× counting words/lines", outputMatch: "wordcount" },
+  { name: "quicksort",      description: "in-place median-of-three quicksort of 1 M i32",     outputMatch: "quicksort" },
   // Vader-only : compiler THROUGHPUT, not generated-code runtime. Times a full C
   // emission of the self-hosted compiler (~30 kLoC) — the largest realistic input,
   // and the one thing the runtime-only workloads above can't catch (an O(n²) crept
