@@ -33,23 +33,16 @@ bc :: import "vader/bytecode"
 import "std/io"
 import "std/string"
 
-// IEEE 754 bit reinterpret for the F64ToBits / BitsToF64 arms. The VM's own
-// code can't use the `f64.to_bits()` / `u64.from_bits()` intrinsics : they
-// lower to the new opcodes, which the bootstrap seed predating them emits as
-// unbound imports. Route through the runtime's tiny `union`-cast helpers via
-// `@extern` instead (exec.vader is itself compiled to native C, so this is a
-// direct C call — no bytecode interpretation, no circularity). Native USER code
-// still lowers F64ToBits/BitsToF64 to an inline union cast (no symbol). The
-// Vader fn name MUST equal the C symbol : the bootstrap seed predates the
-// `@extern("c_name")` override-arg, so it binds by fn name.
-@extern("vader_f64_to_bits")
-vader_f64_to_bits :: fn(v: f64) -> u64
-@extern("vader_bits_to_f64")
-vader_bits_to_f64 :: fn(b: u64) -> f64
-@extern("vader_f32_to_bits")
-vader_f32_to_bits :: fn(v: f32) -> u32
-@extern("vader_bits_to_f32")
-vader_bits_to_f32 :: fn(b: u32) -> f32
+// IEEE 754 bit reinterpret uses the stdlib intrinsics (`f64.to_bits()` /
+// `u64.from_bits()`, `std/core`'s FloatBits / BitsFloat) directly. They lower to
+// the F64ToBits / BitsToF64 opcodes, which emit_c turns into an inline `union`
+// cast — no runtime symbol, no C call. This file used to bind the runtime's
+// `vader_*_to_bits` helpers via `@extern` because the bootstrap seed predated
+// those opcodes and emitted them as unbound imports ; the seed has long since
+// been regenerated, so that detour is obsolete. Dropping it also removes four
+// `@extern` from the compiler tree — an `@extern` is exempt from the emit-time
+// wiring check and therefore invisible to the VM's own host dispatcher, so the
+// fewer the compiler declares, the less of it is unrunnable on its own bytecode.
 
 // Mangled host-import names. Lifted to module-scope so the dispatch
 // chain reads as identifier comparisons rather than raw-string
@@ -150,7 +143,7 @@ push_val :: fn(frame: Frame, cursor: usize, value: Value) -> void {
             frame.tag[cursor] = StackTag.I64
         }
         is F64Val as x -> {
-            frame.payload[cursor] = i64(vader_f64_to_bits(x.value))
+            frame.payload[cursor] = i64((x.value).to_bits())
             frame.tag[cursor] = StackTag.F64
         }
         is BoolVal as x -> {
@@ -175,7 +168,7 @@ peek_val :: fn(frame: Frame, idx: usize) -> Value {
         .Ref  -> { return frame.stack[idx] }
         .I32  -> { return I32Val  { .value = i32(frame.payload[idx]) } }
         .I64  -> { return I64Val  { .value = frame.payload[idx] } }
-        .F64  -> { return F64Val  { .value = vader_bits_to_f64(u64(frame.payload[idx])) } }
+        .F64  -> { return F64Val  { .value = (u64(frame.payload[idx])).from_bits() } }
         .Bool -> { return BoolVal { .value = frame.payload[idx] != 0 } }
         .Char -> { return CharVal { .value = char(u32(frame.payload[idx])) } }
         .Null -> { return NULL_VALUE }
@@ -188,7 +181,7 @@ slot_val :: fn(frame: Frame, slot: usize) -> Value {
         .Ref  -> { return frame.slots[slot] }
         .I32  -> { return I32Val  { .value = i32(frame.slot_payload[slot]) } }
         .I64  -> { return I64Val  { .value = frame.slot_payload[slot] } }
-        .F64  -> { return F64Val  { .value = vader_bits_to_f64(u64(frame.slot_payload[slot])) } }
+        .F64  -> { return F64Val  { .value = (u64(frame.slot_payload[slot])).from_bits() } }
         .Bool -> { return BoolVal { .value = frame.slot_payload[slot] != 0 } }
         .Char -> { return CharVal { .value = char(u32(frame.slot_payload[slot])) } }
         .Null -> { return NULL_VALUE }
@@ -207,7 +200,7 @@ slot_set :: fn(frame: Frame, slot: usize, value: Value) -> void {
             frame.slot_tag[slot] = StackTag.I64
         }
         is F64Val as x -> {
-            frame.slot_payload[slot] = i64(vader_f64_to_bits(x.value))
+            frame.slot_payload[slot] = i64((x.value).to_bits())
             frame.slot_tag[slot] = StackTag.F64
         }
         is BoolVal as x -> {
@@ -1763,7 +1756,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             }
             is bc.F64Const -> {
                 stack_ensure(frame, frame.sp)
-                frame.payload[frame.sp] = i64(vader_f64_to_bits(instr.value))
+                frame.payload[frame.sp] = i64((instr.value).to_bits())
                 frame.tag[frame.sp] = StackTag.F64
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
@@ -1933,66 +1926,66 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.F64Add -> {
-                frame.payload[frame.sp - 2] = i64(vader_f64_to_bits(vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) + vader_bits_to_f64(u64(frame.payload[frame.sp - 1]))))
+                frame.payload[frame.sp - 2] = i64(((u64(frame.payload[frame.sp - 2])).from_bits() + (u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
                 frame.tag[frame.sp - 2] = StackTag.F64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Sub -> {
-                frame.payload[frame.sp - 2] = i64(vader_f64_to_bits(vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) - vader_bits_to_f64(u64(frame.payload[frame.sp - 1]))))
+                frame.payload[frame.sp - 2] = i64(((u64(frame.payload[frame.sp - 2])).from_bits() - (u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
                 frame.tag[frame.sp - 2] = StackTag.F64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Mul -> {
-                frame.payload[frame.sp - 2] = i64(vader_f64_to_bits(vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) * vader_bits_to_f64(u64(frame.payload[frame.sp - 1]))))
+                frame.payload[frame.sp - 2] = i64(((u64(frame.payload[frame.sp - 2])).from_bits() * (u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
                 frame.tag[frame.sp - 2] = StackTag.F64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Div -> {
-                frame.payload[frame.sp - 2] = i64(vader_f64_to_bits(vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) / vader_bits_to_f64(u64(frame.payload[frame.sp - 1]))))
+                frame.payload[frame.sp - 2] = i64(((u64(frame.payload[frame.sp - 2])).from_bits() / (u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
                 frame.tag[frame.sp - 2] = StackTag.F64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Neg -> {
-                frame.payload[frame.sp - 1] = i64(vader_f64_to_bits(-vader_bits_to_f64(u64(frame.payload[frame.sp - 1]))))
+                frame.payload[frame.sp - 1] = i64((-(u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
                 frame.tag[frame.sp - 1] = StackTag.F64
                 frame.pc = frame.pc + 1
             }
             is bc.F64Eq -> {
-                frame.payload[frame.sp - 2] = if vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) == vader_bits_to_f64(u64(frame.payload[frame.sp - 1])) { 1 } else { 0 }
+                frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() == (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Ne -> {
-                frame.payload[frame.sp - 2] = if vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) != vader_bits_to_f64(u64(frame.payload[frame.sp - 1])) { 1 } else { 0 }
+                frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() != (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Lt -> {
-                frame.payload[frame.sp - 2] = if vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) < vader_bits_to_f64(u64(frame.payload[frame.sp - 1])) { 1 } else { 0 }
+                frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() < (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Le -> {
-                frame.payload[frame.sp - 2] = if vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) <= vader_bits_to_f64(u64(frame.payload[frame.sp - 1])) { 1 } else { 0 }
+                frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() <= (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Gt -> {
-                frame.payload[frame.sp - 2] = if vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) > vader_bits_to_f64(u64(frame.payload[frame.sp - 1])) { 1 } else { 0 }
+                frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() > (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Ge -> {
-                frame.payload[frame.sp - 2] = if vader_bits_to_f64(u64(frame.payload[frame.sp - 2])) >= vader_bits_to_f64(u64(frame.payload[frame.sp - 1])) { 1 } else { 0 }
+                frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() >= (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
@@ -2355,7 +2348,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             is bc.LoadF64 -> {
                 raw :: load_bytes_op(frame, 8, "load_f64")
                 if raw is Trap { return raw }
-                push_val(frame, frame.sp - 2, F64Val { .value = vader_bits_to_f64(u64(raw)) })
+                push_val(frame, frame.sp - 2, F64Val { .value = (u64(raw)).from_bits() })
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2384,7 +2377,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp < 3 { return Trap { .message = "store_f64 needs object + offset + value on stack at pc=${frame.pc}" } }
                 val_unwrap :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "store_f64 value")
                 if val_unwrap is Trap { return val_unwrap }
-                outcome :: store_bytes_op(frame, 8, vader_f64_to_bits(val_unwrap.value), "store_f64")
+                outcome :: store_bytes_op(frame, 8, (val_unwrap.value).to_bits(), "store_f64")
                 if outcome is Trap { return outcome }
             }
             // Slot ops — the VM stores every element as a uniform `Value` in
@@ -2451,7 +2444,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp < 1 { return Trap { .message = "f64_to_bits needs a value on the stack at pc=${frame.pc}" } }
                 fv :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "f64_to_bits")
                 if fv is Trap { return fv }
-                push_val(frame, frame.sp - 1, I64Val { .value = i64(vader_f64_to_bits(fv.value)) })
+                push_val(frame, frame.sp - 1, I64Val { .value = i64((fv.value).to_bits()) })
                 frame.pc = frame.pc + 1
             }
             is bc.BitsToF64 -> {
@@ -2460,7 +2453,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp < 1 { return Trap { .message = "bits_to_f64 needs a value on the stack at pc=${frame.pc}" } }
                 iv :: read_i64(peek_val(frame, frame.sp - 1), frame.pc, "bits_to_f64")
                 if iv is Trap { return iv }
-                push_val(frame, frame.sp - 1, F64Val { .value = vader_bits_to_f64(u64(iv.value)) })
+                push_val(frame, frame.sp - 1, F64Val { .value = (u64(iv.value)).from_bits() })
                 frame.pc = frame.pc + 1
             }
             is bc.F32ToBits -> {
@@ -2470,7 +2463,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp < 1 { return Trap { .message = "f32_to_bits needs a value on the stack at pc=${frame.pc}" } }
                 fv :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "f32_to_bits")
                 if fv is Trap { return fv }
-                push_val(frame, frame.sp - 1, I32Val { .value = i32(vader_f32_to_bits(f32(fv.value))) })
+                push_val(frame, frame.sp - 1, I32Val { .value = i32((f32(fv.value)).to_bits()) })
                 frame.pc = frame.pc + 1
             }
             is bc.BitsToF32 -> {
@@ -2479,7 +2472,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp < 1 { return Trap { .message = "bits_to_f32 needs a value on the stack at pc=${frame.pc}" } }
                 iv :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "bits_to_f32")
                 if iv is Trap { return iv }
-                push_val(frame, frame.sp - 1, F64Val { .value = f64(vader_bits_to_f32(u32(iv.value))) })
+                push_val(frame, frame.sp - 1, F64Val { .value = f64((u32(iv.value)).from_bits()) })
                 frame.pc = frame.pc + 1
             }
         }
