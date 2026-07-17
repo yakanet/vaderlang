@@ -219,40 +219,38 @@ slot_val :: fn(frame: Frame, slot: usize) -> Value {
 }
 
 /// Write a boxed `Value` into local slot `slot` (slot always exists).
-slot_set :: fn(frame: Frame, slot: usize, value: Value) -> void {
-    match value {
-        is I32Val as x -> {
-            frame.slot_payload[slot] = i64(x.value)
-            frame.slot_tag[slot] = StackTag.I32
-        }
-        is I64Val as x -> {
-            frame.slot_payload[slot] = x.value
-            frame.slot_tag[slot] = StackTag.I64
-        }
-        is F64Val as x -> {
-            frame.slot_payload[slot] = i64((x.value).to_bits())
-            frame.slot_tag[slot] = StackTag.F64
-        }
-        is BoolVal as x -> {
-            frame.slot_payload[slot] = if x.value { 1 } else { 0 }
-            frame.slot_tag[slot] = StackTag.Bool
-        }
-        is CharVal as x -> {
-            frame.slot_payload[slot] = i64(u32(x.value))
-            frame.slot_tag[slot] = StackTag.Char
-        }
-        is NullVal -> { frame.slot_tag[slot] = StackTag.Null }
-        _ -> {
-            frame.slots[slot] = value
-            frame.slot_tag[slot] = StackTag.Ref
-        }
+slot_set :: fn(frame: Frame, slot: usize, value: Value) -> void = match value {
+    is I32Val as x -> {
+        frame.slot_payload[slot] = i64(x.value)
+        frame.slot_tag[slot] = StackTag.I32
+    }
+    is I64Val as x -> {
+        frame.slot_payload[slot] = x.value
+        frame.slot_tag[slot] = StackTag.I64
+    }
+    is F64Val as x -> {
+        frame.slot_payload[slot] = i64((x.value).to_bits())
+        frame.slot_tag[slot] = StackTag.F64
+    }
+    is BoolVal as x -> {
+        frame.slot_payload[slot] = if x.value { 1 } else { 0 }
+        frame.slot_tag[slot] = StackTag.Bool
+    }
+    is CharVal as x -> {
+        frame.slot_payload[slot] = i64(u32(x.value))
+        frame.slot_tag[slot] = StackTag.Char
+    }
+    is NullVal -> { frame.slot_tag[slot] = StackTag.Null }
+    _ -> {
+        frame.slots[slot] = value
+        frame.slot_tag[slot] = StackTag.Ref
     }
 }
 
 /// Materialise stack values `[start, endx)` as a boxed `Value[]` for the call /
 /// host boundaries (`build_callee_frame`, `dispatch_import`).
 peek_range :: fn(frame: Frame, start: usize, endx: usize) -> Value[] {
-    out: Value[] = []
+    out: Value[] = [] * (endx - start)
     for i in start..<endx { out.push(peek_val(frame, i)) }
     return out
 }
@@ -601,14 +599,9 @@ build_callee_frame :: fn(function_index: i32, callee: bc.BcFunction, caller: Fra
 /// stack, so they are decomposed one-off through `slot_set`.
 build_entry_frame :: fn(function_index: i32, callee: bc.BcFunction, args: Value[]) -> Frame {
     total :: callee.signature.params.len() + callee.locals.len()
-    slots: Value[] = []
-    slot_payload: i64[] = []
-    slot_tag: StackTag[] = []
-    for _ in 0..<total {
-        slots.push(NULL_VALUE)
-        slot_payload.push(0)
-        slot_tag.push(StackTag.Null)
-    }
+    slots: Value[] = [NULL_VALUE] * total
+    slot_payload: i64[] = [0] * total
+    slot_tag: StackTag[] = [StackTag.Null] * total
     result :: Frame {
         .function_index = function_index,
         .slots          = slots,
@@ -1275,8 +1268,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                         // for a real `call.import`. `params` carries one `Any`
                         // slot per arg purely for the arity read ; `result` is a
                         // non-Void placeholder so the result gets pushed back.
-                        synth_params: bc.ValType[] = []
-                        for _ in 0..<usize(instr.parameter_count) { synth_params.push(bc.ValType.Any) }
+                        synth_params: bc.ValType[] = [bc.ValType.Any] * usize(instr.parameter_count)
                         synth_info :: bc.BcImport {
                             .extern_name  = "",
                             .mangled_name = host_mangle,
@@ -1400,7 +1392,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // backing buffer so tail slots held by sibling views aren't
                 // clobbered. Owning arrays push in place.
                 if is_array_view(array_unwrap) {
-                    fresh: Value[] = []
+                    fresh: Value[] = [] * array_unwrap.length
                     for j in 0..<array_unwrap.length {
                         fresh.push(array_unwrap.elements[array_unwrap.offset + j])
                     }
@@ -1501,7 +1493,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 count: usize = if count_unwrap.value < 0 { 0 } else { usize(count_unwrap.value) }
                 // No capacity concept in the VM (capacity is a native-only perf
                 // hint) : `[] * n` yields a length-0 array, `[v] * n` n copies.
-                repeated: Value[] = []
+                repeated: Value[] = [] * (count * array_unwrap.length)
                 for _ in 0..<count {
                     for j in 0..<array_unwrap.length {
                         repeated.push(array_unwrap.elements[array_unwrap.offset + j])
@@ -1567,7 +1559,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     return Trap { .message = "array.copy destination range out of bounds (dst must already be long enough) at pc=${frame.pc}" }
                 }
                 // Overlap-safe : snapshot the source window before writing.
-                window: Value[] = []
+                window: Value[] = [] * n
                 for j in 0..<n {
                     window.push(src_unwrap.elements[src_unwrap.offset + ss + j])
                 }
@@ -2738,7 +2730,7 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Trap | null {
         return Trap { .message = "array.new type ${type_id} needs ${needed} initial element(s) but stack has ${frame.sp} at pc=${frame.pc}" }
     }
     arg_base :: frame.sp - needed
-    elements: Value[] = []
+    elements: Value[] = [] * needed
     for element_index in 0..<needed {
         elements.push(peek_val(frame, arg_base + element_index))
     }
@@ -2821,7 +2813,7 @@ build_object :: fn(type_id: i32, frame: Frame, handle_cell: i32[]) -> Trap | nul
     if size_unwrap.value < 0 {
         return Trap { .message = "object_new size ${size_unwrap.value} is negative at pc=${frame.pc}" }
     }
-    bytes: u8[] = []
+    bytes: u8[] = [] * usize(size_unwrap.value)
     for _ in 0..<usize(size_unwrap.value) {
         bytes.push(0)
     }
@@ -2989,7 +2981,7 @@ do_memory_copy :: fn(frame: Frame) -> Trap | null {
     if dst_off + n > dst_unwrap.bytes.len() {
         return Trap { .message = "memory_copy dest range [${dst_off}, ${dst_off + n}) exceeds ${dst_unwrap.bytes.len()} at pc=${frame.pc}" }
     }
-    snapshot: u8[] = []
+    snapshot: u8[] = [] * n
     for i in 0..<n {
         snapshot.push(src_unwrap.bytes[src_off + i])
     }
