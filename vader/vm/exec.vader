@@ -529,17 +529,22 @@ push_callee_frame :: fn(frames: Frame[], cursor: usize[], function_index: i32, c
     // top of the file was written before pooling — pooling extends the lifetime
     // to `exec_entry`'s return). Slots above the live region, the whole operand
     // stack (sp = 0 here, so none of it is live), and the drained defers.
-    for i in total..<f.slots.len() {
-        f.slots[i] = NULL_VALUE
-        f.slot_tag[i] = StackTag.Null
-    }
-    for i in 0..<f.stack.len() {
-        f.stack[i] = NULL_VALUE
-        f.tag[i] = StackTag.Null
-    }
-    for i in 0..<f.defers.len() {
-        f.defers[i] = NULL_VALUE
-    }
+    // NOT swept: the pooled frame keeps stale refs above the live region, and
+    // the GC scans the refs columns, so those objects stay reachable until a
+    // later callee at this depth overwrites the slot. That IS a retention leak
+    // (bounded by frame depth x column capacity) — it is deliberately accepted,
+    // on measurement rather than taste:
+    //
+    //   self-host (compiler on its own bytecode), sweep vs no sweep:
+    //     time  32.4s -> 35.1s   (+8%)
+    //     peak  1.145 GB -> 1.140 GB   (-4.6 MB, 0.4%)
+    //
+    // i.e. sweeping costs 8% on the call-heavy path — the primary VM workload —
+    // to reclaim 0.4% of peak. The sweep is O(column capacity) PER CALL, which is
+    // why: it scales with the widest callee ever seen at this depth, not with the
+    // work this call does. If a future workload shows real retention, the fix is
+    // a LAZY clear (drop the ref when a scalar overwrites a Ref-tagged slot,
+    // O(1) per write) — not a per-call sweep.
     cursor[0] = cursor[0] + 1
 }
 
