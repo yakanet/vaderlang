@@ -205,6 +205,61 @@ Patterns counted on the existing Vader code that paid an outsized boilerplate co
 - [x] **Parser** (`vader/parser/`) — AST representation (every node ported ; `type` keyword conflict → field renamed `ty`, dumper still emits `"type"` JSON key for parity) ; `ParserCode` enum + `parser_info()` lookup (P1001..P1020) ; ~2200-line recursive-descent + Pratt body ; AST → JSON dumper byte-for-byte with `tests/snapshot.ts:formatProgram` ; CLI `vader dump --stage=ast` ; byte-for-byte parity over every snippet shipping a `parser.snapshot` (~240/245).
 - [x] **Bugs uncovered while porting — all closed** : `as <name>` match-arm binding, primitive-only union dispatch, union-of-enums match, `match X.field { is Y as t -> ... }`, `if !bool_var`, enum_basic family, trait/impl-heavy snippets, dump diff cleanups.
 
+### 2.3 Port the bytecode emitter (DONE, fixed point 2026-06-05)
+
+The Vader-side bytecode emitter is the **only** active path and
+self-hosts : midir lowers the CFG and calls `emit_bytecode_from_cfg`
+(`vader/midir/emit.vader`), which reuses the shared emit walker under
+`vader/bytecode/` — every per-shape `emit_<X>` for all `LoweredExpr` /
+`LoweredStmt` variants, static + intrinsic + import + indirect-call
+dispatch (`emit_call_to_symbol`), `FnRef`, vtable rows, `$Cell<T>`
+closure cells — then the peephole / fold / DCE / slot-coalesce passes.
+It compiles the whole compiler to a byte-identical native fixed point
+(see §2.2). The legacy standalone `emit_project` tree-walker was deleted
+2026-06-20 (`8ea29d9e`).
+
+Files (`vader/bytecode/`) — 2026-06 snapshot; the layout has since
+evolved (`emit_body.vader` / `emit_state.vader` were merged into
+`emit.vader` + `vader/midir/emit.vader`) :
+- `emit.vader` (785 LoC) — peephole / fold passes (`run_bc_peephole`,
+  `run_bc_return_lit_fold`, `run_bc_const_fold_arith`,
+  `propagate_const_single_use`, `drop_dead_stores`) + the shared emit
+  helpers midir reuses (`emit_decl`, `emit_fn_body`, `build_signature`,
+  `build_intrinsic_wrapper_body`).
+- `emit_body.vader` (773 LoC, near the 800 cap) — every per-shape
+  `emit_<X>` for stmts + exprs ; call dispatch via `emit_call_to_symbol`.
+  Single file by Vader's mutual-import constraint (`emit_block ↔
+  emit_stmt ↔ emit_expr ↔ emit_if / emit_loop` form a cycle).
+- `emit_ctx.vader` (255) — `EmitterCtx`, `intern_type`, `intern_string`,
+  `intern_cell_type` ($Cell\<T\> synth struct).
+- `emit_state.vader` (277) — per-fn `FnEmitState` + scope stack + jump
+  table.
+- `op_select.vader` (464) — `binary_op_for` / `unary_op_for` selectors
+  over the I32X / I64X / U32X / U64X / F64X / Bool / Char / String op
+  families with width-aliasing rules.
+- `dce.vader` (484) — late EmitterCtx-level prunes (unused imports /
+  functions / types) ; `slot_coalesce.vader` (265) — coalesce
+  non-overlapping same-ValType slot live-ranges. Both run inside
+  `emit_bytecode_from_cfg` after body emit.
+- `dump.vader` (791) — `dump_bytecode : BytecodeModule → string`, the
+  `.virt` text writer (now the snapshot oracle, see below).
+- `intrinsics.vader` (99) — `intrinsic_op_for_mangled` table.
+
+Snapshot model : the native Vader CLI is the snapshot **oracle** for
+every stage — `tests/snapshot.test.ts` dumps bytecode via
+`dumpBytecodeViaVader` into `bytecode.snapshot.virt`. The old
+"Vader-emit vs TS-emit byte-diff" parity gap is obsolete (the model
+inverted ; the TS bytecode parity dimension + `BYTECODE_DIVERGENT_SNIPPETS`
+were deleted).
+
+Still open (tracked in `TODO.md`): dispatch-cascade perf.
+
+### 2.5b Port the comptime engine — closed / superseded
+
+Shipped: bytecode-driven comptime evaluation (`vader/comptime_vm/bridge.vader` stages a decl to bytecode, runs `exec_fn_value`, bridges back; `comptime/check.vader` records `vm_required` decls — `vader run main.vader` executes source now); `@file` baking + `@field` / `@fields` type-reflection intrinsics (snippets `intrinsic_field_access`, `intrinsic_fields`, `file_decorator`; `@env` lands on demand).
+
+Obsolete (premise = deleted TS reference impl): **generic fn-instance harvest**, **for-in ArrayIterator detection**, **Into-coercion materialisation**, **transitive closure** — all keyed on the TS `genericFnCalls` / `walkImplBodyForCalls` side-tables that no longer exist. Monomorphisation now lives in the lowerer (`vader/lower/{lower_mono_fn,lower_mono_struct,lower_generic_call}.vader` + `ctx.fn_instances`); comptime `observe` registers Struct/Trait only, which is dump-only and self-oracle'd.
+
 ---
 
 ## Phase 3 — completed items
@@ -269,6 +324,9 @@ Done items lifted out of otherwise-in-progress Phase 3 subsections (`TODO.md` ke
 
 Long-form write-ups of completed "next up" items. Their one-line summary stays in
 `TODO.md`.
+
+### Narrow-int arithmetic width-truncation in the VM (done 2026-07-16)
+The VM now truncates `u8`/`u16`/`i8`/`i16` arithmetic + narrowing casts to width at store boundaries (`narrow_mask`, `vader/vm/exec.vader`), matching the native SPEC-correct oracle (`u8 200+100` → 44, was 300). Fixed in `bcd133a0c`; green regression guard `tests/snippets/narrow_int_wrap/` (compound/fn/cast = 44; an unstored `${a+b}` stays wide at 300 on both backends). Was listed under "Priority — next up" as "scoping done, not coded" — the fix landed the same day the item was written.
 
 ### Remove the `T!` error-union sugar (done 2026-06-01)
 Dropped the postfix-`!` shorthand from both parsers (`src/parser/passes/{type,expr}.ts` + `vader/parser/parser.vader`) — a stray `T!` is now a parse error on both frontends (identical P1003); removed the formatter's `T!` recovery. Consolidated the three duplicate `ParseError` structs into one in `std/string` (numbers + semver import it). Pure-Vader fallible fns → concrete error unions (`T | <ConcreteError>`) with `is <ConcreteError>` matches, so the self-host VM dispatches by struct type. Host intrinsics (`std/io` ×5, `std/string.parse_float`) keep the existential `T | Error` — their failure is a generic host error value the VM already matches via `is Error`. SPEC §"Error unions" replaces the `!T` section.
