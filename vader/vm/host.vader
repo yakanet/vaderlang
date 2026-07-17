@@ -145,26 +145,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     if info.mangled_name == r"vader_profile$vader_prof_begin" { return HostOk { .value = zero_value() } }
     if info.mangled_name == r"vader_profile$vader_prof_end"   { return HostOk { .value = zero_value() } }
     if info.mangled_name == r"vader_profile$vader_prof_dump"  { return HostOk { .value = zero_value() } }
-    if info.mangled_name == r"vader_vm$vader_f64_to_bits" {
-        v :: read_f64(stack[arg_base], at_pc, "vader_f64_to_bits")
-        if v is Trap { return v }
-        return HostOk { .value = I64Val { .value = i64(vader_f64_to_bits(v.value)) } }
-    }
-    if info.mangled_name == r"vader_vm$vader_bits_to_f64" {
-        b :: read_i64(stack[arg_base], at_pc, "vader_bits_to_f64")
-        if b is Trap { return b }
-        return HostOk { .value = F64Val { .value = vader_bits_to_f64(u64(b.value)) } }
-    }
-    if info.mangled_name == r"vader_vm$vader_f32_to_bits" {
-        v :: read_f64(stack[arg_base], at_pc, "vader_f32_to_bits")
-        if v is Trap { return v }
-        return HostOk { .value = I32Val { .value = i32(vader_f32_to_bits(f32(v.value))) } }
-    }
-    if info.mangled_name == r"vader_vm$vader_bits_to_f32" {
-        b :: read_i32(stack[arg_base], at_pc, "vader_bits_to_f32")
-        if b is Trap { return b }
-        return HostOk { .value = F64Val { .value = f64(vader_bits_to_f32(u32(b.value))) } }
-    }
     match id {
     .IoWrite -> {
         // arg_base + 0 : Stream tag ; arg_base + 1 : the string payload.
