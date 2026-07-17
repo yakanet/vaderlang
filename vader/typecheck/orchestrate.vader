@@ -191,7 +191,20 @@ export check_project_with_bodies :: fn(
     // `P.Decl` in fn-signature type positions (which run during
     // `declare_module` below — before `populate_external_types`
     // builds `namespace_exports`).
-    prepopulate_namespace_member_types(entry_typed, project, per_module)
+    // Memoise each target module's exported member map + private-name set by
+    // `mod_id` across the whole prepopulate phase : a module namespace-imported
+    // by N others (`Ty :: import "vader/types"`) would otherwise rebuild the
+    // identical, importer-independent table N times. The cached value is correct
+    // whenever built — it's a pure function of `mod_id` (reads only the target's
+    // `collected.symbols`, fixed from load, and its own `alias_types`, settled by
+    // `register_aliases` above). The cache stays phase-local (not persisted)
+    // because its single consumer re-keys the result into
+    // `resolved.namespace_member_types` (`sym_id`-keyed) — nothing queries it by
+    // `mod_id` afterward. Sharing one instance across importers is safe : the
+    // inner maps are read-only downstream (`type_expr.vader::namespace_member_type`).
+    namespace_member_cache :: MutableMap<string, MutableMap<string, Type>> {}
+    namespace_private_cache :: MutableMap<string, MutableMap<string, bool>> {}
+    prepopulate_namespace_member_types(entry_typed, project, per_module, namespace_member_cache, namespace_private_cache)
 
     // Phase B : declare every decl (fn signatures, struct types, etc.)
     // across ALL files of the module. decl_types is Symbol.id-keyed and
@@ -216,7 +229,7 @@ export check_project_with_bodies :: fn(
         other_typed :: per_module[id]
         if other_typed is null { continue }
         other_typed.import_targets = wire_targets
-        prepopulate_namespace_member_types(other_typed, project, per_module)
+        prepopulate_namespace_member_types(other_typed, project, per_module, namespace_member_cache, namespace_private_cache)
         // Merge cross-module alias/union types into this import too (the entry
         // got this at top via `merge_external_alias_types`). A signature param
         // typed by an imported union/alias (`got: Type`, `sh: Shape`) resolves
@@ -1584,18 +1597,25 @@ build_namespace_export_params :: fn(
 /// so their fn signatures can reference `P.Decl` namespace-qualified types
 /// that must resolve here instead of degrading to `?`. Plain (non-namespace)
 /// imports still resolve via `imports_to` + `alias_types` and don't need this.
+///
+/// `member_cache` / `private_cache` are keyed by target `mod_id` and shared
+/// across every call this phase makes, so a module namespace-imported by N
+/// others has its (importer-independent) member map + private-name set built
+/// once, not N times.
 prepopulate_namespace_member_types :: fn(
     entry_typed: TypedProgram, project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
+    member_cache: MutableMap<string, MutableMap<string, Type>>,
+    private_cache: MutableMap<string, MutableMap<string, bool>>,
 ) -> void {
     targets :: entry_typed.import_targets
     if targets is null { return }
     for [sym_id, mod_id] in targets.namespace_targets {
-        members :: build_namespace_type_members(mod_id, project, per_module)
+        members :: build_namespace_type_members(mod_id, project, per_module, member_cache)
         entry_typed.resolved.namespace_member_types[sym_id] = members
         // Companion set of the target's PRIVATE member names, so a `P.private`
         // access can be told apart from a genuinely-absent member and fire R2008.
-        entry_typed.resolved.namespace_private_members[sym_id] = build_namespace_private_names(mod_id, project)
+        entry_typed.resolved.namespace_private_members[sym_id] = build_namespace_private_names(mod_id, project, private_cache)
     }
 }
 
@@ -1603,20 +1623,29 @@ prepopulate_namespace_member_types :: fn(
 // namespace-member access sites (`field.vader`, `type_expr.vader`) to fire R2008
 // on `P.private` instead of degrading to unresolved. Visibility lives on the
 // collected Symbol (`add_fn`/`add_named` carry the decl's `visibility`).
-build_namespace_private_names :: fn(mod_id: string, project: LoadedProject) -> MutableMap<string, bool> {
+build_namespace_private_names :: fn(
+    mod_id: string, project: LoadedProject,
+    cache: MutableMap<string, MutableMap<string, bool>>,
+) -> MutableMap<string, bool> {
+    hit :: cache[mod_id]
+    if !(hit is null) { return hit }
     out :: MutableMap<string, bool> {}
     loaded :: project.modules[mod_id]
     if loaded is null { return out }
     for [name, sym] in loaded.collected.symbols {
         if sym.visibility == AST.Visibility.Private { out[name] = true }
     }
+    cache[mod_id] = out
     return out
 }
 
 build_namespace_type_members :: fn(
     mod_id: string, project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
+    cache: MutableMap<string, MutableMap<string, Type>>,
 ) -> MutableMap<string, Type> {
+    hit :: cache[mod_id]
+    if !(hit is null) { return hit }
     out :: MutableMap<string, Type> {}
     loaded :: project.modules[mod_id]
     if loaded is null { return out }
@@ -1638,6 +1667,7 @@ build_namespace_type_members :: fn(
         }
         if is_type_kind(sym.kind) { out[name] = type_from_symbol(sym, []) }
     }
+    cache[mod_id] = out
     return out
 }
 
