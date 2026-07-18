@@ -68,3 +68,26 @@
   expr 39:35    IdentExpr      :: Rec
   expr 39:9     CallExpr       :: void
   expr 39:9     IdentExpr      :: fn(T) -> void
+  expr 47:14    CallExpr       :: __genstate_chain<Rec>
+  expr 47:14    IdentExpr      :: fn(Iterator<T>, Iterator<T>) -> Iterator<T>
+  expr 47:20    IdentExpr      :: Rec[]
+  expr 47:23    IdentExpr      :: Rec[]
+  expr 48:17    StringLitExpr  :: string
+  expr 48:27    FieldExpr      :: string
+  expr 48:27    IdentExpr      :: Rec
+  expr 48:37    FieldExpr      :: i32
+  expr 48:37    IdentExpr      :: Rec
+  expr 48:9     CallExpr       :: void
+  expr 48:9     IdentExpr      :: fn(T) -> void
+  expr 50:14    CallExpr       :: Iterator<Rec>
+  expr 50:14    GenericInstExpr :: fn(Iterator<T>, Iterator<T>) -> Iterator<T>
+  expr 50:14    IdentExpr      :: fn(Iterator<T>, Iterator<T>) -> Iterator<T>
+  expr 50:25    IdentExpr      :: Rec[]
+  expr 50:28    IdentExpr      :: Rec[]
+  expr 51:17    StringLitExpr  :: string
+  expr 51:29    FieldExpr      :: string
+  expr 51:29    IdentExpr      :: Rec
+  expr 51:39    FieldExpr      :: i32
+  expr 51:39    IdentExpr      :: Rec
+  expr 51:9     CallExpr       :: void
+  expr 51:9     IdentExpr      :: fn(T) -> void

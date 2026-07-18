@@ -368,7 +368,9 @@ match_source_loop :: fn(stmt: AST.Stmt, decl: AST.FnDecl) -> GenSourceLoop | nul
 // The resolved callee symbol of a combinator call — the free-fn symbol for a UFCS
 // `recv.name(arg)` (via the receiver type) or a direct `name(recv, arg)` ident.
 combinator_callee_sym :: fn(ctx: FnLowerCtx, call: AST.CallExpr, receiver: AST.Expr) -> Symbol | null {
-    @partial match call.callee {
+    // Unwrap an explicit type-arg wrapper (`chain<T>(...)`) to the inner callee,
+    // mirroring `unpack_fluent_combinator`, so the sym resolves.
+    @partial match combinator_effective_callee(call.callee) {
         is AST.FieldExpr as fe -> {
             found :: find_free_fn_ufcs(ctx, ctx.types.expr_type(receiver), fe.field)
             if found is UfcsMember as m { return m.symbol }
