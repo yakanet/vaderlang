@@ -1499,7 +1499,9 @@ emit_binary_operand :: fn(self: Printer, operand: p.Expr, parent_op: p.BinaryOp,
             // Equal-rank child needs parens on the right (left-assoc), or on
             // either side when the parent is non-associative.
             equal_needs :: !is_left || is_non_assoc_binop(parent_op)
-            need_parens :: child_rank < parent_rank || (child_rank == parent_rank && equal_needs)
+            need_parens :: child_rank < parent_rank
+                || (child_rank == parent_rank && equal_needs)
+                || mixed_family_parens(parent_op, inner.op)
             if need_parens {
                 self.write("(")
                 self.emit_expr(inner)
@@ -1549,6 +1551,26 @@ binary_precedence :: fn(op: p.BinaryOp) -> i32 {
 // EITHER side must be parenthesised, not just the right-hand one.
 is_non_assoc_binop :: fn(op: p.BinaryOp) = op == .Eq || op == .Neq || op == .Lt
     || op == .Lte || op == .Gt || op == .Gte || op == .Is || op == .In || op == .NotIn
+
+is_arith_op   :: fn(op: p.BinaryOp) = op == .Add || op == .Sub || op == .Mul || op == .Div || op == .Mod
+is_shift_op   :: fn(op: p.BinaryOp) = op == .Shl || op == .Shr
+is_bitwise_op :: fn(op: p.BinaryOp) = op == .BitAnd || op == .BitOr || op == .BitXor
+
+// Add clarifying parentheses around a `BinaryExpr` operand when it mixes the
+// arithmetic / shift / bitwise families — C's classic `a + b & c` precedence
+// footgun (`+` binds tighter than `&`, which almost nobody remembers). Same
+// family is fine (`a * b + c` reads clearly) except two *different* bitwise ops
+// (`a & b | c`). This only ever ADDS parens (OR-ed into `need_parens`), so it
+// can't drop a precedence-required one.
+mixed_family_parens :: fn(parent: p.BinaryOp, child: p.BinaryOp) -> bool {
+    p_in :: is_arith_op(parent) || is_shift_op(parent) || is_bitwise_op(parent)
+    c_in :: is_arith_op(child)  || is_shift_op(child)  || is_bitwise_op(child)
+    if !p_in || !c_in { return false }
+    if is_arith_op(parent)   && is_arith_op(child)   { return false }
+    if is_shift_op(parent)   && is_shift_op(child)   { return false }
+    if is_bitwise_op(parent) && is_bitwise_op(child) { return parent != child }
+    return true
+}
 
 // ---- control-flow expressions ----
 
