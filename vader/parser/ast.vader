@@ -143,7 +143,12 @@ export NamedNamespaceImport :: struct {
 /// every listed source name is dropped from the wildcard ; `x as y` also rebinds
 /// it as `y`, `z as _` is a pure exclusion. A plain name (no `as`) is an error
 /// (R2033) — the wildcard already brings every export.
-export DestructureImport :: struct { names: ImportName[] }
+export DestructureImport :: struct {
+    names: ImportName[]
+    /// True when the source wrote a trailing comma before `}`. Drives the
+    /// formatter's Dart-style layout: present -> one name per line.
+    trailing_comma: bool = false
+}
 
 /// bare `import "..."` — wildcard : every function of the module becomes
 /// callable (prefix + UFCS) ; binds no name.
@@ -187,6 +192,9 @@ export FnDecl :: struct {
     /// Defaults `false` : only the desugar sets it, every other constructor
     /// leaves it off.
     comptime_synthetic:    bool = false
+    /// True when the source wrote a trailing comma after the last parameter.
+    /// Drives the formatter's Dart-style layout: present -> one param per line.
+    trailing_comma:        bool = false
 }
 
 export FnParam :: struct {
@@ -525,6 +533,8 @@ export CallExpr :: struct {
     id:     usize = UNASSIGNED_NODE_ID
     callee: Expr
     args:   CallArg[]
+    /// Source wrote a trailing comma before `)` — formatter keeps it exploded.
+    trailing_comma: bool = false
 }
 
 export CallArg :: struct {
@@ -661,6 +671,8 @@ export LambdaExpr :: struct {
     params:      FnParam[]
     return_type: TypeExpr | null
     body:        BlockExpr
+    /// True when the source wrote a trailing comma after the last parameter.
+    trailing_comma: bool = false
 }
 
 export StructLitExpr :: struct {
@@ -668,6 +680,9 @@ export StructLitExpr :: struct {
     id:        usize = UNASSIGNED_NODE_ID
     type_name: TypeExpr
     items:     (StructLitField | StructLitSpread)[]
+    /// True when the source wrote a trailing comma before `}`. The formatter
+    /// reads it as a "keep exploded" directive (Dart-style block layout).
+    trailing_comma: bool = false
 }
 
 export StructLitItem :: StructLitField | StructLitSpread
@@ -693,6 +708,9 @@ export SeqLitExpr :: struct {
     span:     Span
     id:       usize = UNASSIGNED_NODE_ID
     elements: Expr[]
+    /// True when the source wrote a trailing comma before `]`. Drives the
+    /// formatter's Dart-style layout: present -> one element per line.
+    trailing_comma: bool = false
 }
 
 export RangeExpr :: struct {
@@ -740,6 +758,8 @@ export IntrinsicCallExpr :: struct {
     name:      string
     name_span: Span
     args:      Expr[]
+    /// Source wrote a trailing comma before `)` — formatter keeps it exploded.
+    trailing_comma: bool = false
 }
 
 export DotVariantExpr :: struct {
