@@ -226,6 +226,57 @@ for (const { name, source } of REGRESSIONS) {
   }, { timeout: MEDIUM_BUILD });
 }
 
+// ---------------------------------------------------------------------------
+// Comment-preservation fixtures. Each source is already canonically formatted,
+// so fmt must be a NO-OP : `fmt(src) === src`. A relocated or dropped comment
+// changes the output and trips the check — which neither the AST round-trip
+// (comments aren't in the AST) nor idempotency (stable on the moved version)
+// catches. Guards the enum-variant + block-trailing comment flush fixes.
+// ---------------------------------------------------------------------------
+const COMMENT_STABILITY: { name: string; source: string }[] = [
+  {
+    // A variant's leading comment must stay attached to it, not relocate after
+    // the enum's `}`.
+    name: "enum_variant_comment",
+    source: `module "reg/enum_variant_comment"
+
+Kind :: enum(u8) {
+    Alpha,
+    // Doc for Beta.
+    Beta,
+}
+`,
+  },
+  {
+    // A comment above a block-TRAILING expression (a \`match\` that is a fn's
+    // whole body) must stay put, not detach to end-of-block or into an arm.
+    name: "block_trailing_comment",
+    source: `module "reg/block_trailing_comment"
+
+classify :: fn(x: i32) -> i32 {
+    // Leading comment before the match.
+    match x {
+        0 -> 1
+        _ -> 2
+    }
+}
+`,
+  },
+];
+
+for (const { name, source } of COMMENT_STABILITY) {
+  test(`fmt comment stability : ${name}`, async () => {
+    if (!ENABLED) return;
+    const src = join(process.cwd(), `.tmp-fmt-cmt-${name}.vader`);
+    await Bun.write(src, source);
+    try {
+      expect(fmtStdout(src)).toBe(source);
+    } finally {
+      try { Bun.file(src).delete?.(); } catch { /* ignore */ }
+    }
+  }, { timeout: MEDIUM_BUILD });
+}
+
 for (const name of SNIPPETS) {
   test(`fmt idempotency : ${name}`, async () => {
     if (!ENABLED) return;

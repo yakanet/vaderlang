@@ -671,7 +671,11 @@ emit_enum_decl :: fn(self: Printer, d: p.EnumDecl) -> void {
     self.write(" {")
     self.depth = self.depth + 1
     for v in d.variants {
-        self.nl_indent()
+        // Flush the variant's leading `///` / `//` comments — without this they
+        // detach from the variant and are relocated after the enum's `}`.
+        self.newline()
+        self.flush_leading_comments(v.span.start.offset, v.span.start.line)
+        self.indent()
         self.emit_enum_variant(v)
         self.write(",")
     }
@@ -1782,7 +1786,8 @@ emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
     }
     // Empty block.
     if b.stmts.len() == 0 {
-        if b.trailing == null {
+        tr :: b.trailing
+        if tr == null {
             // If the source carried an inner comment (e.g. `{ // skip
             // }`), render it as a multi-line block so the comment
             // survives. `flush_leading_comments` ends each
@@ -1804,14 +1809,20 @@ emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
         // Single trailing expression.
         if inline_ok {
             self.write("{ ")
-            self.emit_expr(b.trailing)
+            self.emit_expr(tr)
             self.write(" }")
             return
         }
         self.write("{")
         self.depth = self.depth + 1
-        self.nl_indent()
-        self.emit_expr(b.trailing)
+        // Flush the trailing's leading comments — without this a comment above a
+        // block-trailing expression (e.g. a doc line above a `match` that is a
+        // function's whole body) detaches and is relocated to end-of-block or
+        // swallowed by a nested block. Mirrors the stmt-loop / main-trailing flush.
+        self.newline()
+        self.flush_leading_comments(tr.span.start.offset, tr.span.start.line)
+        self.indent()
+        self.emit_expr(tr)
         self.depth = self.depth - 1
         self.nl_indent()
         self.write("}")
