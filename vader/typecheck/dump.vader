@@ -43,19 +43,34 @@ export dump_typed_program :: fn(typed: TypedProgram, with_banner: bool) -> strin
 /// always come first. Only modules in `scope` are rendered (the entry's
 /// subtree by default, `--module` to widen), so dependencies stay out.
 export dump_program_with_others :: fn(
-    typed: TypedProgram, with_banner: bool, others: TypedProgram[], scope: string[],
+    typed: TypedProgram,
+    with_banner: bool,
+    others: TypedProgram[],
+    scope: string[],
 ) -> string {
     sb :: StringBuilder {}
-    if with_banner { sb.append("# Typecheck") }
+    if with_banner {
+        sb.append("# Typecheck")
+    }
     sections: TypedProgram[] = [typed]
-    for o in others { sections.push(o) }
+    for o in others {
+        sections.push(o)
+    }
     sorted :: sort(sections, (a: TypedProgram, b: TypedProgram) -> compare_ascending(a.resolved.path, b.resolved.path))
     for mod in sorted {
-        if !module_in_scope(mod.resolved.display_path, scope) { continue }
+        if !module_in_scope(mod.resolved.display_path, scope) {
+            continue
+        }
         sb.append("\n\n## ")
         sb.append(mod.resolved.path)
-        for line in build_decl_lines(mod) { sb.append("\n") sb.append(line) }
-        for line in build_expr_lines(mod) { sb.append("\n") sb.append(line) }
+        for line in build_decl_lines(mod) {
+            sb.append("\n")
+            sb.append(line)
+        }
+        for line in build_expr_lines(mod) {
+            sb.append("\n")
+            sb.append(line)
+        }
     }
     return sb.to_string()
 }
@@ -72,16 +87,22 @@ build_decl_lines :: fn(typed: TypedProgram) -> string[] {
     out: string[] = []
     for s in syms {
         kind_str :: ast_decl_kind(s)
-        if kind_str == "" { continue }
+        if kind_str == "" {
+            continue
+        }
         if kind_str == "FnDecl" {
             bucket :: typed.resolved.fn_overloads[s.name]
             match bucket {
                 is null -> {
-                    out.push("  ${kind_str.pad_end(14, ' ')} ${s.name.pad_end(20, ' ')} :: ${lookup_decl_type(typed, s)}")
+                    out.push(
+                        "  ${kind_str.pad_end(14, ' ')} ${s.name.pad_end(20, ' ')} :: ${lookup_decl_type(typed, s)}",
+                    )
                 }
                 _ -> {
                     for ov in bucket {
-                        out.push("  ${kind_str.pad_end(14, ' ')} ${ov.name.pad_end(20, ' ')} :: ${lookup_decl_type(typed, ov)}")
+                        out.push(
+                            "  ${kind_str.pad_end(14, ' ')} ${ov.name.pad_end(20, ' ')} :: ${lookup_decl_type(typed, ov)}",
+                        )
                     }
                 }
             }
@@ -100,7 +121,9 @@ sort_syms_by_name :: fn(syms: Symbol[]) -> Symbol[] {
 build_expr_lines :: fn(typed: TypedProgram) -> string[] {
     out: string[] = []
     for [id, kind] in typed.expr_kinds {
-        if is_skipped_kind(kind) { continue }
+        if is_skipped_kind(kind) {
+            continue
+        }
         ty_str :: lookup_expr_type_str(typed, id)
         loc :: start_loc_for_id(typed, id)
         out.push("  expr ${loc.pad_end(8, ' ')} ${kind.pad_end(14, ' ')} :: ${ty_str}")
@@ -124,12 +147,20 @@ lookup_expr_type_str :: fn(typed: TypedProgram, id: usize) -> string {
 }
 
 SKIPPED_KINDS: const string[]: [
-    "IntLitExpr", "FloatLitExpr", "BoolLitExpr",
-    "NullLitExpr", "CharLitExpr", "BlockExpr",
+    "IntLitExpr",
+    "FloatLitExpr",
+    "BoolLitExpr",
+    "NullLitExpr",
+    "CharLitExpr",
+    "BlockExpr",
 ]
 
 is_skipped_kind :: fn(kind: string) -> bool {
-    for s in SKIPPED_KINDS { if s == kind { return true } }
+    for s in SKIPPED_KINDS {
+        if s == kind {
+            return true
+        }
+    }
     return false
 }
 
@@ -138,13 +169,13 @@ is_skipped_kind :: fn(kind: string) -> bool {
 /// kinds the dump skips (import bindings, locals, params, …).
 // @partial: only declaring kinds map to a *Decl name; other SymbolKinds are dump-skipped → "".
 ast_decl_kind :: fn(s: Symbol) -> string = @partial match s.kind {
-    .Fn        -> "FnDecl"
-    .Struct    -> "StructDecl"
-    .Enum      -> "EnumDecl"
-    .Trait     -> "TraitDecl"
+    .Fn -> "FnDecl"
+    .Struct -> "StructDecl"
+    .Enum -> "EnumDecl"
+    .Trait -> "TraitDecl"
     .TypeAlias -> "TypeAliasDecl"
-    .Const     -> "ConstDecl"
-    _          -> ""
+    .Const -> "ConstDecl"
+    _ -> ""
 }
 
 lookup_decl_type :: fn(typed: TypedProgram, s: Symbol) -> string {
