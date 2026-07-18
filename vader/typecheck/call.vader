@@ -154,19 +154,20 @@ primary_overload_ft :: fn(callee: AST.Expr, typed: TypedProgram) -> Type | null 
 collect_overload_candidates :: fn(name: string, typed: TypedProgram) -> FnType[] {
     out: FnType[] = []
     bucket :: typed.resolved.fn_overloads[name]
-    match bucket {
-        is null -> {}
-        _ -> {
-            for sym in bucket {
-                ft :: typed.decl_types[sym.id] ?? continue
-                match ft { is FnType as f -> { out.push(f) } _ -> {} }
+    if bucket !is null {
+        for sym in bucket {
+            ft :: typed.decl_types[sym.id] ?? continue
+            match ft {
+                is FnType as f -> { out.push(f) }
+                _ -> {}
             }
         }
     }
     imported :: typed.imported_fn_overloads[name]
-    match imported {
-        is null -> {}
-        _ -> { for ft in imported { out.push(ft) } }
+    if imported !is null {
+        for ft in imported {
+            out.push(ft)
+        }
     }
     return out
 }
