@@ -232,8 +232,7 @@ oi_sorted_name_texts :: fn(names: AST.ImportName[]) -> string[] {
 }
 
 oi_name_text :: fn(n: AST.ImportName) -> string {
-    a :: n.alias
-    if a == null { return n.name }
+    a :: n.alias ?? return n.name
     return n.name + " as " + a
 }
 

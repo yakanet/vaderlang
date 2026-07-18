@@ -36,8 +36,7 @@ export infer_range :: fn(
     // `range_symbol` is the well-known `std/core::Range` symbol, populated once
     // from core by the orchestrator ; a `RangeExpr` (`0..10`) is synthesised
     // without a source span, so it resolves via this slot, not `idents`.
-    range_sym :: typed.range_symbol
-    if range_sym == null { return TY_UNRESOLVED }
+    range_sym :: typed.range_symbol ?? return TY_UNRESOLVED
     return mk_struct(range_sym, [element])
 }
 

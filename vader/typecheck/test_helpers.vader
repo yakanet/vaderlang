@@ -31,8 +31,7 @@ export find_first_in_block :: fn(
         hit :: find_first_in_stmt(stmt, pred)
         if hit !is null { return hit }
     }
-    t :: b.trailing
-    if t is null { return null }
+    t :: b.trailing ?? return null
     return find_first_in_expr(t, pred)
 }
 
@@ -43,8 +42,7 @@ find_first_in_stmt :: fn(
     // other statement kind carries no expression to search → null.
     @partial match s {
         is AST.ReturnStmt as r -> {
-            v :: r.value
-            if v is null { return null }
+            v :: r.value ?? return null
             return find_first_in_expr(v, pred)
         }
         is AST.ExprStmt as es -> { return find_first_in_expr(es.expr, pred) }

@@ -203,8 +203,7 @@ read_fn_mangled_name :: fn(cleaned: string) -> string {
 ///                 `false` for unknown lines (silently dropped so they
 ///                 don't shift pc indices).
 try_push_op :: fn(cleaned: string, head: string, ops: bc.Op[]) -> bool {
-    parsed :: parse_op_line(cleaned, head)
-    if parsed is null { return false }
+    parsed :: parse_op_line(cleaned, head) ?? return false
     ops.push(parsed)
     return true
 }
@@ -470,8 +469,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
     // write_op's arms so a known op never silently drops here (which would
     // shift every following pc).
     if head == "object_new" {
-        parsed :: parse_int_after_prefix(cleaned, "object_new ")
-        if parsed is null { return null }
+        parsed :: parse_int_after_prefix(cleaned, "object_new ") ?? return null
         return bc.ObjectNew { .type_id = parsed }
     }
     if head == "load_u8"        { return bc.LoadU8 {} }
@@ -687,8 +685,7 @@ convert_target_of :: fn(width: string) -> bc.ConvertTarget {
 }
 
 parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> bc.Op | null {
-    parsed :: parse_int_after_prefix(line, prefix)
-    if parsed is null { return null }
+    parsed :: parse_int_after_prefix(line, prefix) ?? return null
     if is_get { return bc.LocalGet { .slot = parsed } }
     return bc.LocalSet { .slot = parsed }
 }
@@ -722,26 +719,22 @@ parse_f64_const :: fn(line: string) -> bc.Op | null {
         bits :: parse_uint_in_base(rest.bytes()[usize(sp) + 1..<rest.bytes().len()].bytes_to_string(), 10)
         if bits is u64 { return bc.F64Const { .value = bits.from_bits() } }
     }
-    parsed :: parse_f64(rest)
-    if parsed is null { return null }
+    parsed :: parse_f64(rest) ?? return null
     return bc.F64Const { .value = parsed }
 }
 
 parse_string_const :: fn(line: string) -> bc.Op | null {
-    parsed :: parse_int_after_prefix(line, "string.const ")
-    if parsed is null { return null }
+    parsed :: parse_int_after_prefix(line, "string.const ") ?? return null
     return bc.StringConst { .index = parsed }
 }
 
 parse_call_import :: fn(line: string) -> bc.Op | null {
-    parsed :: parse_int_after_prefix(line, "call.import ")
-    if parsed is null { return null }
+    parsed :: parse_int_after_prefix(line, "call.import ") ?? return null
     return bc.CallImport { .index = parsed }
 }
 
 parse_call :: fn(line: string) -> bc.Op | null {
-    parsed :: parse_int_after_prefix(line, "call ")
-    if parsed is null { return null }
+    parsed :: parse_int_after_prefix(line, "call ") ?? return null
     return bc.Call { .function_index = parsed }
 }
 
@@ -760,14 +753,12 @@ parse_bool_const :: fn(line: string) -> bc.Op | null {
 
 /// Parse `char.const N` where N is the codepoint as a base-10 integer.
 parse_char_const :: fn(line: string) -> bc.Op | null {
-    parsed :: parse_int_after_prefix(line, "char.const ")
-    if parsed is null { return null }
+    parsed :: parse_int_after_prefix(line, "char.const ") ?? return null
     return bc.CharConst { .value = char(u32(parsed)) }
 }
 
 parse_call_indirect :: fn(line: string) -> bc.Op | null {
-    parsed :: parse_int_after_prefix(line, "call.indirect ")
-    if parsed is null { return null }
+    parsed :: parse_int_after_prefix(line, "call.indirect ") ?? return null
     return bc.CallIndirect { .type_id = parsed }
 }
 
@@ -796,8 +787,7 @@ parse_virtual_call :: fn(line: string) -> bc.Op | null {
 /// @param line  the .virt line (comment-stripped).
 /// @return      `FnRef { function_index }`, or `null` on malformed input.
 parse_fn_ref :: fn(line: string) -> bc.Op | null {
-    pair :: parse_int_pair_after_prefix(line, "fn.ref ")
-    if pair is null { return null }
+    pair :: parse_int_pair_after_prefix(line, "fn.ref ") ?? return null
     [fn_idx, type_id] :: pair
     return bc.FnRef { .function_index = fn_idx, .type_id = type_id }
 }
@@ -808,51 +798,43 @@ parse_fn_ref :: fn(line: string) -> bc.Op | null {
 /// @param line  the .virt line (comment-stripped).
 /// @return      `MakeClosure { function_index, env_type_id }`, or `null` on malformed input.
 parse_make_closure :: fn(line: string) -> bc.Op | null {
-    pair :: parse_int_pair_after_prefix(line, "make_closure ")
-    if pair is null { return null }
+    pair :: parse_int_pair_after_prefix(line, "make_closure ") ?? return null
     [fn_idx, env_type_id] :: pair
     return bc.MakeClosure { .function_index = fn_idx, .env_type_id = env_type_id }
 }
 
 parse_type_check :: fn(line: string) -> bc.Op | null {
-    parsed :: parse_int_after_prefix(line, "type_check ")
-    if parsed is null { return null }
+    parsed :: parse_int_after_prefix(line, "type_check ") ?? return null
     return bc.TypeCheck { .type_id = parsed }
 }
 
 parse_ref_cast :: fn(line: string) -> bc.Op | null {
-    parsed :: parse_int_after_prefix(line, "ref.cast ")
-    if parsed is null { return null }
+    parsed :: parse_int_after_prefix(line, "ref.cast ") ?? return null
     return bc.RefCast { .type_id = parsed }
 }
 
 parse_box :: fn(line: string) -> bc.Op | null {
-    parsed :: parse_int_after_prefix(line, "box ")
-    if parsed is null { return null }
+    parsed :: parse_int_after_prefix(line, "box ") ?? return null
     return bc.Box { .type_id = parsed }
 }
 
 parse_type_const :: fn(line: string) -> bc.Op | null {
-    parsed :: parse_int_after_prefix(line, "type.const ")
-    if parsed is null { return null }
+    parsed :: parse_int_after_prefix(line, "type.const ") ?? return null
     return bc.TypeConst { .type_id = parsed }
 }
 
 parse_defer_pop_exec :: fn(line: string) -> bc.Op | null {
-    parsed :: parse_int_after_prefix(line, "defer.pop_exec ")
-    if parsed is null { return null }
+    parsed :: parse_int_after_prefix(line, "defer.pop_exec ") ?? return null
     return bc.DeferPopExec { .count = parsed }
 }
 
 parse_local_tee :: fn(line: string) -> bc.Op | null {
-    parsed :: parse_int_after_prefix(line, "local.tee ")
-    if parsed is null { return null }
+    parsed :: parse_int_after_prefix(line, "local.tee ") ?? return null
     return bc.LocalTee { .slot = parsed }
 }
 
 parse_struct_new_after :: fn(line: string, prefix: string) -> bc.Op | null {
-    parsed :: parse_int_after_prefix(line, prefix)
-    if parsed is null { return null }
+    parsed :: parse_int_after_prefix(line, prefix) ?? return null
     stack :: prefix == "struct.new_stack "
     return bc.StructNew { .type_id = parsed, .stack = stack }
 }
@@ -876,8 +858,7 @@ parse_int_pair_after_prefix :: fn(line: string, prefix: string) -> [i32, i32] | 
 }
 
 parse_struct_get :: fn(line: string) -> bc.Op | null {
-    pair :: parse_int_pair_after_prefix(line, "struct.get ")
-    if pair is null { return null }
+    pair :: parse_int_pair_after_prefix(line, "struct.get ") ?? return null
     [tid, fi] :: pair
     return bc.StructGet { .type_id = tid, .field_index = fi }
 }
@@ -919,49 +900,41 @@ parse_return_lit :: fn(line: string) -> bc.Op | null {
     space :: inner_raw.index_of(' ', 0)
     inner_head: string = ""
     if space < 0 { inner_head = inner_raw } else { inner_head = inner_raw.bytes()[0..<usize(space)].bytes_to_string() }
-    inner_op :: parse_op_line(inner_raw, inner_head)
-    if inner_op is null { return null }
-    const_inner :: bc.const_op_of(inner_op)
-    if const_inner is null { return null }
+    inner_op :: parse_op_line(inner_raw, inner_head) ?? return null
+    const_inner :: bc.const_op_of(inner_op) ?? return null
     return bc.ReturnLit { .value = const_inner }
 }
 
 parse_struct_set_after :: fn(line: string, prefix: string) -> bc.Op | null {
-    pair :: parse_int_pair_after_prefix(line, prefix)
-    if pair is null { return null }
+    pair :: parse_int_pair_after_prefix(line, prefix) ?? return null
     [tid, fi] :: pair
     stack :: prefix == "struct.set_stack "
     return bc.StructSet { .type_id = tid, .field_index = fi, .stack = stack }
 }
 
 parse_array_new :: fn(line: string) -> bc.Op | null {
-    pair :: parse_int_pair_after_prefix(line, "array.new ")
-    if pair is null { return null }
+    pair :: parse_int_pair_after_prefix(line, "array.new ") ?? return null
     [tid, len] :: pair
     return bc.ArrayNew { .type_id = tid, .length = len }
 }
 
 parse_array_push :: fn(line: string) -> bc.Op | null {
-    parsed :: parse_int_after_prefix(line, "array.push ")
-    if parsed is null { return null }
+    parsed :: parse_int_after_prefix(line, "array.push ") ?? return null
     return bc.ArrayPush { .type_id = parsed }
 }
 
 parse_array_get :: fn(line: string) -> bc.Op | null {
-    parsed :: parse_int_after_prefix(line, "array.get ")
-    if parsed is null { return null }
+    parsed :: parse_int_after_prefix(line, "array.get ") ?? return null
     return bc.ArrayGet { .type_id = parsed }
 }
 
 parse_array_set :: fn(line: string) -> bc.Op | null {
-    parsed :: parse_int_after_prefix(line, "array.set ")
-    if parsed is null { return null }
+    parsed :: parse_int_after_prefix(line, "array.set ") ?? return null
     return bc.ArraySet { .type_id = parsed }
 }
 
 parse_array_slice :: fn(line: string) -> bc.Op | null {
-    parsed :: parse_int_after_prefix(line, "array.slice ")
-    if parsed is null { return null }
+    parsed :: parse_int_after_prefix(line, "array.slice ") ?? return null
     return bc.ArraySlice { .type_id = parsed }
 }
 

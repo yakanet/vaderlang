@@ -57,10 +57,8 @@ materialize_representative :: fn(
     sym :: inst.symbol
     if sym.kind != SymbolKind.Struct { return }
     owner_module_id :: sym.module
-    owner_module :: loaded.modules[owner_module_id]
-    if owner_module is null { return }
-    owner_typed :: typed.modules[owner_module_id]
-    if owner_typed is null { return }
+    owner_module :: loaded.modules[owner_module_id] ?? return
+    owner_typed :: typed.modules[owner_module_id] ?? return
     if owner_typed is TypedProgram as owner_typed_ok {
         // `join_any_displays` already renders nested wrappers with `_`
         // (`Box(Box(i32))` → `Box_Any`), so one top-level `__` join keeps
@@ -74,8 +72,7 @@ materialize_representative :: fn(
         if seen_reps.contains(rep_mangled) { return }
         if owner_module is LoadedModule as owner_loaded {
             owner_decls :: module_decls(owner_loaded)
-            decl :: find_struct_decl_by_name(owner_decls, sym.name)
-            if decl is null { return }
+            decl :: find_struct_decl_by_name(owner_decls, sym.name) ?? return
             if decl is StructDecl as sd {
                 if sd.type_params.len() == 0 { return }
                 seen_reps.add(rep_mangled)
@@ -119,10 +116,8 @@ materialize_one_instance :: fn(
     if !all_concrete_args(inst.args) { return }
     sym :: inst.symbol
     owner_module_id :: sym.module
-    owner_module :: loaded.modules[owner_module_id]
-    if owner_module is null { return }
-    owner_typed :: typed.modules[owner_module_id]
-    if owner_typed is null { return }
+    owner_module :: loaded.modules[owner_module_id] ?? return
+    owner_typed :: typed.modules[owner_module_id] ?? return
     if owner_typed is TypedProgram as owner_typed_ok {
         if owner_module is LoadedModule as owner_loaded {
             owner_decls :: module_decls(owner_loaded)
@@ -209,8 +204,7 @@ materialize_struct_instance :: fn(
     inst: GenericInstance, owner_decls: Decl[], owner_typed: TypedProgram,
     project_ctx: LowerProjectCtx, project: LoweredProject,
 ) -> LoweredStructField[] {
-    decl :: find_struct_decl_by_name(owner_decls, inst.symbol.name)
-    if decl is null { return [] }
+    decl :: find_struct_decl_by_name(owner_decls, inst.symbol.name) ?? return []
     if decl is StructDecl as sd {
         // Non-generic structs fall through safely : empty `type_params`
         // ⇒ identity substs and `args_suffix([]) == ""`, so fields are
@@ -297,8 +291,7 @@ close_over_field_shapes :: fn(
         if count >= MAX_FIELD_SHAPES { break }
         shape :: worklist[i]
         i += 1
-        mangled :: shape_mangle(shape, typed)
-        if mangled is null { continue }
+        mangled :: shape_mangle(shape, typed) ?? continue
         if materialized.contains(mangled) { continue }
         materialized.add(mangled)
         count += 1
@@ -373,8 +366,7 @@ materialize_impl_members_for :: fn(
     // Walk every module's impls (impls can be in foreign modules) and
     // emit a synth fn for each matching impl member.
     for [module_id, mt] in typed.modules {
-        module_loaded :: loaded.modules[module_id]
-        if module_loaded is null { continue }
+        module_loaded :: loaded.modules[module_id] ?? continue
         if module_loaded is LoadedModule as ml {
             for d in module_decls(ml) {
                 if d is ImplDecl as impl_decl {
@@ -511,8 +503,7 @@ materialize_bound_trait_impls :: fn(
 ) -> void {
     for i in 0..<impl_decl.type_params.len() {
         if i >= inst.args.len() { break }
-        bound :: impl_decl.type_params[i].bound
-        if bound == null { continue }
+        bound :: impl_decl.type_params[i].bound ?? continue
         type_name :: type_surface_name(inst.args[i])
         if type_name == "" { continue }
         trait_names: string[] = []
@@ -557,8 +548,7 @@ materialize_bound_impl :: fn(
     dedupe_key :: "boundimpl::${type_name}::${trait_name}"
     if project_ctx.materialized_impl_keys.contains(dedupe_key) { return }
     for [module_id, mt] in typed.modules {
-        module_loaded :: loaded.modules[module_id]
-        if module_loaded is null { continue }
+        module_loaded :: loaded.modules[module_id] ?? continue
         if module_loaded is LoadedModule as ml {
             decls :: module_decls(ml)
             for d in decls {

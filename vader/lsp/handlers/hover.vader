@@ -52,13 +52,11 @@ export handle_hover :: fn(state: ServerState, params: JsonValue) -> JsonValue {
 // document index, or an imported one via the cross-file resolver. Returns
 // null when the cursor isn't on a resolvable name.
 resolve_decl_at :: fn(state: ServerState, uri: string, line: i32, character: i32) -> DeclEntry | null {
-    idx :: state.index_for(uri)
-    if idx == null { return null }
+    idx :: state.index_for(uri) ?? return null
     found :: idx.find_at(line, character)
     if !(found is null) { return found }
     nm :: idx.name_at(line, character)
-    ext :: resolve(state, idx, nm)
-    if ext == null { return null }
+    ext :: resolve(state, idx, nm) ?? return null
     return ext.target
 }
 
@@ -178,10 +176,8 @@ try_typed_hover :: fn(self: ServerState, uri: string, line: i32, character: i32)
     cached :: typed_project_for(self, file_path)
     project :: cached.project
     result :: cached.result
-    entry :: project.modules[project.entry]
-    if entry is null { return null }
-    sf :: source_file_for_path(entry.module.files, file_path)
-    if sf is null { return null }
+    entry :: project.modules[project.entry] ?? return null
+    sf :: source_file_for_path(entry.module.files, file_path) ?? return null
     // LSP positions are 0-based ; the Vader AST is 1-based.
     target_line :: line + 1
     target_col  :: character + 1
@@ -193,10 +189,8 @@ try_typed_hover :: fn(self: ServerState, uri: string, line: i32, character: i32)
     binding_ty :: find_binding_rhs_type_at(sf.program.decls, target_line, target_col, result.typed)
     if !(binding_ty is null) { return type_hover(binding_ty) }
 
-    found :: find_expr_at(sf.program.decls, target_line, target_col, result.typed)
-    if found is null { return null }
-    ty :: result.typed.expr_types[found.id]
-    if ty is null { return null }
+    found :: find_expr_at(sf.program.decls, target_line, target_col, result.typed) ?? return null
+    ty :: result.typed.expr_types[found.id] ?? return null
     return type_hover(ty)
 }
 

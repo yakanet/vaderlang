@@ -210,8 +210,7 @@ collect_concat_operands :: fn(ctx: FnLowerCtx, e: Expr, out: LoweredExpr[]) -> v
 }
 
 try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr | null {
-    info :: op_trait_method(binary.op)
-    if info is null { return null }
+    info :: op_trait_method(binary.op) ?? return null
     if info is OpTraitInfo as oti {
         left_ty :: ctx.types.expr_type(binary.left)
         // TypeParam-bound + erased Any receivers route through
@@ -230,8 +229,7 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> 
         // Primitive operands stay on the built-in path — primitives
         // have their own arithmetic / comparison ops.
         if left_ty is PrimitiveType { return null }
-        member :: find_impl_member_for(ctx, left_ty, oti.method_name)
-        if member is null { return null }
+        member :: find_impl_member_for(ctx, left_ty, oti.method_name) ?? return null
         // Verify the impl actually targets `oti.trait_name` — UFCS
         // lookup is name-based and could match a same-named member
         // on a different trait.

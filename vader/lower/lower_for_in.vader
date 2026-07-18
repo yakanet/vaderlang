@@ -667,8 +667,7 @@ try_lower_for_in_int_range :: fn(
     recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
     block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt | null {
-    range :: extract_range(in_form.iter)
-    if range is null { return null }
+    range :: extract_range(in_form.iter) ?? return null
     raw_lower :: ctx.types.expr_type(range.lower)
     raw_upper :: ctx.types.expr_type(range.upper)
     if !is_integer_type(raw_lower) { return null }
@@ -962,8 +961,7 @@ try_lower_for_in_map_set :: fn(
     block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt | null {
     if src_type is StructType as source {
-        entry_sym :: module_export(ctx.project, "std/collections", "Entry")
-        if entry_sym is null { return null }
+        entry_sym :: module_export(ctx.project, "std/collections", "Entry") ?? return null
         is_map :: struct_sym_matches(module_export(ctx.project, "std/collections", "MutableMap"), source.symbol.id)
         is_set :: struct_sym_matches(module_export(ctx.project, "std/collections", "MutableSet"), source.symbol.id)
         if !is_map && !is_set { return null }

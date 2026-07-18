@@ -103,8 +103,7 @@ wire_module :: fn(
 /// can detect the "still an import-binding" case via `sym.kind`.
 export resolve_import_redirect :: fn(sym: Symbol, table: ImportTargetTable) -> Symbol {
     if sym.kind != SymbolKind.ImportBinding { return sym }
-    st :: table.symbol_targets[sym.id]
-    if st == null { return sym }
+    st :: table.symbol_targets[sym.id] ?? return sym
     return st.symbol
 }
 

@@ -188,8 +188,7 @@ compute_carried_across_loop_headers :: fn(fn_: CFGFunction, alias_of: MutableMap
     live :: compute_liveness(fn_)
     // Seed : intersect liveIn[header] with locals defined in the loop body.
     for [header, _] in loops {
-        body :: loops[header]
-        if body is null { continue }
+        body :: loops[header] ?? continue
         defs_in_body :: MutableSet<LocalId> {}
         for b_id in body {
             block :: fn_.blocks[i32(b_id)]

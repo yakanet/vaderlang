@@ -196,8 +196,7 @@ export module_path_to_absolute :: fn(raw: string, state: ServerState, from_uri: 
 manifest_subdir_root :: fn(from_uri: string, subdir: string) -> string {
     from_path :: uri_to_path(from_uri)
     if from_path.bytes().len() == 0 { return "" }
-    mr :: find_manifest_root(from_path)
-    if mr == null { return "" }
+    mr :: find_manifest_root(from_path) ?? return ""
     return path_join(mr, subdir)
 }
 

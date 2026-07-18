@@ -24,8 +24,7 @@ surface_referenced_intrinsic_externs :: fn(
 ) -> void {
     for [module_id, module_typed] in typed.modules {
         if module_id == loaded.entry { continue }
-        module_loaded :: loaded.modules[module_id]
-        if module_loaded is null { continue }
+        module_loaded :: loaded.modules[module_id] ?? continue
         decls_list :: module_decls(module_loaded)
         // Bracket the synth_decls the with-body members surfaced below spawn :
         // `surface_stdlib_impl_externs` / `surface_array_blanket_members` call
@@ -45,8 +44,7 @@ surface_referenced_intrinsic_externs :: fn(
             }
         }
         if extra.len() == 0 { continue }
-        existing :: project.modules[module_id]
-        if existing is null { continue }
+        existing :: project.modules[module_id] ?? continue
         merged :: existing.decls
         for e in extra { merged.push(e) }
         project.modules[module_id] = LoweredModule {

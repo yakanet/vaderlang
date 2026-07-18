@@ -791,14 +791,10 @@ flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
 build_c :: fn(file: string, out_flag: string, release: bool, include_path_flags: string[], units: i32) -> i32 {
     if units >= 2 {
         out :: if out_flag != "" { out_flag } else { strip_input_suffix(file) }
-        prog :: emit_c_program_for(file, release, include_path_flags, units, out)
-        if prog is null { return 1 }
+        prog :: emit_c_program_for(file, release, include_path_flags, units, out) ?? return 1
         return write_split_files(out, prog)
     }
-    c_src :: emit_c_for_input(file, release, include_path_flags)
-    if c_src is null {
-        return 1
-    }
+    c_src :: emit_c_for_input(file, release, include_path_flags) ?? return 1
     if out_flag == "-" {
         print(c_src)
         return 0
@@ -1168,8 +1164,7 @@ read_source :: fn(file: string) -> string | null {
 // stdout only, so this stays unchanged. Only the file-read failure path
 // moves to stderr.
 run_lexer_stage :: fn(file: string) -> i32 {
-    src :: read_source(file)
-    if src is null { return 1 }
+    src :: read_source(file) ?? return 1
     l :: tokenize(src, file)
     println(l.dump_tokens())
     if l.errors.len() > 0 {
@@ -1181,8 +1176,7 @@ run_lexer_stage :: fn(file: string) -> i32 {
 // Parser dump : `# AST\n` + 2-space-indented JSON to stdout, plus the same
 // `# Diagnostics` block on stdout.
 run_parser_stage :: fn(file: string) -> i32 {
-    src :: read_source(file)
-    if src is null { return 1 }
+    src :: read_source(file) ?? return 1
     parsed :: parse_source(src, file)
     println(dump_program(parsed.program))
     if parsed.errors.len() > 0 {
@@ -1200,7 +1194,9 @@ run_parser_stage :: fn(file: string) -> i32 {
 // scope. The two-arg form lets a caller that already holds the entry's display
 // path (the typecheck stage, which has no `LoadedProject`) reuse the default.
 scope_or_entry :: fn(module_filter: string[], entry_display_path: string) -> string[] {
-    if module_filter.len() > 0 { return module_filter }
+    if module_filter.len() > 0 {
+        return module_filter
+    }
     return [entry_display_path]
 }
 
@@ -1210,7 +1206,11 @@ scope_or_entry :: fn(module_filter: string[], entry_display_path: string) -> str
 // `LoadedModule` to recover the user-declared display path. See `module_in_scope`.
 dump_scope :: fn(module_filter: string[], loaded: LoadedProject) -> string[] {
     entry_module :: loaded.modules[loaded.entry]
-    entry_dp :: if entry_module is LoadedModule as em { em.module.display_path } else { loaded.entry }
+    entry_dp :: if entry_module is LoadedModule as em {
+        em.module.display_path
+    } else {
+        loaded.entry
+    }
     return scope_or_entry(module_filter, entry_dp)
 }
 
@@ -1219,7 +1219,9 @@ run_resolver_stage :: fn(file: string, module_filter: string[]) -> i32 {
     resolved :: resolve_loaded_project(project, dump_scope(module_filter, project))
     println(dump_project(resolved))
     diags :: collect_resolver_diags(project, resolved)
-    if diags.len() > 0 { println(diags.dump_diagnostics()) }
+    if diags.len() > 0 {
+        println(diags.dump_diagnostics())
+    }
     return 0
 }
 
@@ -1247,8 +1249,7 @@ resolve_loaded_project :: fn(project: LoadedProject, scope: string[]) -> Resolve
     // R2018 orphan-rule pre-resolve check. Runs after wire_imports so
     // ImportBinding redirects resolve to the concrete owner module.
     for [id, lm] in project.modules {
-        rm :: resolved_by_id[id]
-        if rm is null { continue }
+        rm :: resolved_by_id[id] ?? continue
         run_orphan_rule_check_for_module(lm, id, rm.idents, wire_targets, rm.diags)
     }
     return ResolvedProject { .modules = modules }
@@ -1485,8 +1486,7 @@ run_c_stage :: fn(file: string) -> i32 {
 // lowerer minted for that module's `main`. Returns "" when the entry module
 // isn't resolvable, which suppresses the directive.
 entry_main_name :: fn(typed: TypedProject, entry: string) -> string {
-    tp :: typed.modules[entry]
-    if tp == null { return "" }
+    tp :: typed.modules[entry] ?? return ""
     return "${mangle_module_id(tp.resolved.display_path)}\$main"
 }
 

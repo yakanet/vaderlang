@@ -54,14 +54,16 @@ SlotRegistry :: struct {
 /// @return      a registry mapping each key to its dispatch slot.
 build_slot_registry_from_keys :: fn(keys: string[]) -> SlotRegistry {
     slots := MutableMap<string, i32> {}
-    slots["Hash.hash"] = 0
-    slots["Equals.equals"] = 1
-    slots["Ord.compare"] = 2
+    slots["Hash.hash"]       = 0
+    slots["Equals.equals"]   = 1
+    slots["Ord.compare"]     = 2
     slots["Display.display"] = 3
 
-    unpinned: string[] = []
+    unpinned: string[] = [] * keys.len()
     for k in keys {
-        if pinned_slot(k) < 0 { unpinned.push(k) }
+        if pinned_slot(k) < 0 {
+            unpinned.push(k)
+        }
     }
     sorted :: sort(unpinned, (a: string, b: string) -> compare_ascending(a, b))
     next: i32 = FIRST_USER_SLOT
@@ -76,17 +78,14 @@ build_slot_registry_from_keys :: fn(keys: string[]) -> SlotRegistry {
 
 /// Slot for a `${trait}.${method}` key, or `-1` if unregistered.
 slot_lookup :: fn(self: SlotRegistry, key: string) -> i32 {
-    v :: self.slots[key]
-    if v == null { return -1 }
+    v :: self.slots[key] ?? return -1
     return v
 }
 
 /// Stable list of pinned trait-method slots, formatted as
 /// `"Hash.hash=0, Equals.equals=1, Ord.compare=2, Display.display=3"` for the
 /// generated comment block.
-pinned_slot_summary :: fn() -> string {
-    return "Hash.hash=0, Equals.equals=1, Ord.compare=2, Display.display=3"
-}
+pinned_slot_summary :: fn() -> string ="Hash.hash=0, Equals.equals=1, Ord.compare=2, Display.display=3"
 
 // ---- per-key dispatcher metadata ------------------------------------------
 
@@ -98,7 +97,9 @@ vtable_helper_name :: fn(key: string) -> string = "vader_vt_${sanitise(key.split
 /// The vtable row whose key is `key`, or `null` when absent.
 find_vtable_row :: fn(ctx: EmitCtx, key: string) -> VtableRow | null {
     for row in ctx.module.vtables {
-        if row.key == key { return row }
+        if row.key == key {
+            return row
+        }
     }
     return null
 }
@@ -138,7 +139,7 @@ dispatcher_formal :: fn(sig: BcSignature) -> string {
     for j in 0..<tail {
         sb.append(", vader_box_t a${j}")
     }
-    return "${sb}"
+    return sb.to_string()
 }
 
 // ---- emit -----------------------------------------------------------------
@@ -155,10 +156,14 @@ VtSlot :: struct {
 /// the bodies are emitted.
 emit_vtable_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     rows :: ctx.module.vtables
-    if rows.len() == 0 { return }
+    if rows.len() == 0 {
+        return
+    }
     out.append("\n/* ----------------------------------------------- vtable forwards */\n")
     for row in rows {
-        if row.entries.len() == 0 { continue }
+        if row.entries.len() == 0 {
+            continue
+        }
         sig :: vtable_sig_for_row(ctx, row)
         out.append("${linkage_prefix(ctx.split)}${c_type_for_val_bare(sig.result)} ${vtable_helper_name(row.key)}(${dispatcher_formal(sig)});\n")
     }
@@ -189,8 +194,14 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
         seen_tags: i32[] = []
         for e in row.entries {
             dup := false
-            for st in seen_tags { if st == e.receiver_type_index { dup = true } }
-            if dup { continue }
+            for st in seen_tags {
+                if st == e.receiver_type_index {
+                    dup = true
+                }
+            }
+            if dup {
+                continue
+            }
             seen_tags.push(e.receiver_type_index)
             callee :: ctx.module.functions[usize(e.fn_index)]
             csig :: callee.signature

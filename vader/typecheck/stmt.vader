@@ -108,8 +108,7 @@ export check_stmt :: fn(
 /// generator expresses it in the signature by returning `Iterator<T>` (T3056).
 /// Local + syntactic, so it resolves the same at a definition and at a call site.
 export fn_is_generator :: fn(fn_decl: AST.FnDecl) -> bool {
-    b :: fn_decl.body
-    if b == null { return false }
+    b :: fn_decl.body ?? return false
     return block_has_yield(b)
 }
 
@@ -118,8 +117,7 @@ export fn_is_generator :: fn(fn_decl: AST.FnDecl) -> bool {
 /// expresses it in the signature by returning `Async<T>`. Local + syntactic, so
 /// it resolves the same at a definition and at a cross-module call site.
 export fn_is_async :: fn(fn_decl: AST.FnDecl) -> bool {
-    b :: fn_decl.body
-    if b == null { return false }
+    b :: fn_decl.body ?? return false
     return block_has_await(b)
 }
 
@@ -127,8 +125,7 @@ export fn_is_async :: fn(fn_decl: AST.FnDecl) -> bool {
 // into nested lambdas — a lambda's own `await` doesn't color the enclosing fn).
 block_has_await :: fn(b: AST.BlockExpr) -> bool {
     for s in b.stmts { if stmt_has_await(s) { return true } }
-    trailing :: b.trailing
-    if trailing == null { return false }
+    trailing :: b.trailing ?? return false
     return expr_has_await(trailing)
 }
 
@@ -265,8 +262,7 @@ expr_has_yield :: fn(e: AST.Expr) -> bool =
         }
         is AST.NullCoalesceExpr as nc -> {
             if expr_has_yield(nc.left) { return true }
-            inner :: AST.coalesce_fallback_expr(nc.fallback)
-            if inner == null { return false }
+            inner :: AST.coalesce_fallback_expr(nc.fallback) ?? return false
             return expr_has_yield(inner)
         }
         // No other expression form carries a statement block a `yield` could
@@ -388,8 +384,7 @@ lookup_decl_symbol_stmt :: fn(resolved: ResolvedModule, fd: AST.FnDecl) -> Symbo
         is null -> {}
         _ -> {
             for s in bucket {
-                sp :: s.defined_at
-                if sp is null { continue }
+                sp :: s.defined_at ?? continue
                 if sp.start.line == fd.name_span.start.line &&
                    sp.start.column == fd.name_span.start.column {
                     return s
@@ -611,16 +606,13 @@ check_assign :: fn(
 declared_lvalue_type :: fn(target: AST.Expr, fallback: Type, typed: TypedProgram) -> Type {
     if target is AST.IdentExpr {
         if typed.narrowed_bindings.is_empty() { return fallback }
-        sym :: typed.resolved.idents[target.span.hash()]
-        if sym == null { return fallback }
+        sym :: typed.resolved.idents[target.span.hash()] ?? return fallback
         return type_of_symbol(sym, typed)
     }
     if target is AST.FieldExpr {
         if typed.narrowed_fields.is_empty() { return fallback }
-        recv :: typed.expr_types[target.target.id]
-        if recv == null { return fallback }
-        d :: declared_struct_field_type(recv, target.field, typed)
-        if d == null { return fallback }
+        recv :: typed.expr_types[target.target.id] ?? return fallback
+        d :: declared_struct_field_type(recv, target.field, typed) ?? return fallback
         return d
     }
     return fallback
@@ -642,8 +634,7 @@ emit_assign_mismatch_if :: fn(
 }
 
 is_const_reassign :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
-    sym :: typed.resolved.idents[ident.span.hash()]
-    if sym is null { return false }
+    sym :: typed.resolved.idents[ident.span.hash()] ?? return false
     return !(typed.resolved.immutable_locals[sym.id] is null)
 }
 
@@ -883,8 +874,7 @@ push_divergent_narrow_if :: fn(
     if_expr :: stmt.expr
     if !(if_expr.else_branch is null) { return }
     if !then_is_divergent(if_expr.then_block, typed) { return }
-    narrowing :: detect_is_narrow_for_block(if_expr.cond, typed)
-    if narrowing is null { return }
+    narrowing :: detect_is_narrow_for_block(if_expr.cond, typed) ?? return
     if narrowing.field_key == "" {
         prev :: push_narrow(typed, narrowing.sym_id, narrowing.else_ty)
         stack.push(DivergentNarrow {
@@ -958,8 +948,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     // divergent-guard case.
     if cond is AST.UnaryExpr {
         if cond.op == AST.UnaryOp.Not {
-            inner :: detect_is_narrow_for_block(cond.operand, typed)
-            if inner is null { return null }
+            inner :: detect_is_narrow_for_block(cond.operand, typed) ?? return null
             // Compose `!(x is T)`'s fall-through from the CURRENT narrowing
             // (after prior guards), not `inner.static_ty` (declared) — which
             // would RE-WIDEN and undo earlier guards, leaving a chain
@@ -986,8 +975,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     if cond.op == AST.BinaryOp.Eq || cond.op == AST.BinaryOp.Neq {
         ident_side :: pick_ident_vs_null(cond.left, cond.right)
         if !(ident_side is null) {
-            sym :: typed.resolved.idents[ident_side.span.hash()]
-            if sym is null { return null }
+            sym :: typed.resolved.idents[ident_side.span.hash()] ?? return null
             base :: type_of_symbol(sym, typed)
             // Don't record a narrowing off an unresolved base — mirrors
             // `detect_is_narrow` (expr_if.vader). The premature imported-body
@@ -1034,8 +1022,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     if cond.op != AST.BinaryOp.Is { return null }
     // Bare-ident scrutinee : narrow the symbol slot for the complement.
     if cond.left is AST.IdentExpr {
-        sym :: typed.resolved.idents[cond.left.span.hash()]
-        if sym is null { return null }
+        sym :: typed.resolved.idents[cond.left.span.hash()] ?? return null
         base :: type_of_symbol(sym, typed)
         // Same `?`-base guard as the `== null` path above : the settle
         // pre-walk sees an `m[k]`-bound scrutinee as `?` and would persist a
@@ -1054,8 +1041,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     // `if d.body is null { return }` then flows `Block` (not `Block | null`)
     // to `body :: d.body` — the `convert_function` drop this closes.
     if cond.left is AST.FieldExpr as field_lhs {
-        field_info :: resolve_field_chain_static(field_lhs, typed)
-        if field_info is null { return null }
+        field_info :: resolve_field_chain_static(field_lhs, typed) ?? return null
         current :: narrow_for_field(typed, field_info.field_key, field_info.static_ty)
         narrowed :: type_from_expr(cond.right, typed.resolved, diag_sink_stmt())
         return BlockNarrow {
@@ -1105,8 +1091,7 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
             // (`Range<T> implements Iterator<T>` records the
             // impl-side `T` — substitute_by_name swaps it
             // for the call-site's concrete arg by name).
-            decl :: typed.struct_decls[st.symbol.id]
-            if decl is null { return elem }
+            decl :: typed.struct_decls[st.symbol.id] ?? return elem
             return substitute_by_name(elem, decl.type_params, st.args)
         }
         // An erased `Iterator<E>` trait value (a boxed generator / a `.into()`
@@ -1120,8 +1105,7 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
         // per-instance monomorphisation substitutes it ; returning it here would
         // strand un-subbed params in the resulting `Yield<…>`.
         is TraitType as tt -> {
-            elem :: iterator_element_of(tt)
-            if elem == null { return TY_UNRESOLVED }
+            elem :: iterator_element_of(tt) ?? return TY_UNRESOLVED
             if type_contains_type_param(elem) { return TY_UNRESOLVED }
             return elem
         }
@@ -1220,11 +1204,9 @@ assign_tuple :: fn(
 // impl body (`into_tuple_fields`) to bind each leaf zero-alloc.
 into_tuple_target :: fn(declared: Type, arity: usize, typed: TypedProgram) -> Type | null {
     if declared is StructType as st {
-        into_args :: lookup_struct_trait_args(declared, TRAIT_INTO, typed)
-        if into_args == null { return null }
+        into_args :: lookup_struct_trait_args(declared, TRAIT_INTO, typed) ?? return null
         if into_args.len() != 1 { return null }
-        decl :: typed.struct_decls[st.symbol.id]
-        if decl == null { return null }
+        decl :: typed.struct_decls[st.symbol.id] ?? return null
         target :: substitute_by_name(into_args[0], decl.type_params, st.args)
         if target is TupleType as tup {
             if tup.elements.len() == arity { return target }

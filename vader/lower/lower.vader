@@ -139,10 +139,8 @@ lower_project_impl :: fn(
             }
             continue
         }
-        module_typed :: typed.modules[module_id]
-        if module_typed is null { continue }
-        module_loaded :: loaded.modules[module_id]
-        if module_loaded is null { continue }
+        module_typed :: typed.modules[module_id] ?? continue
+        module_loaded :: loaded.modules[module_id] ?? continue
         decls :: module_decls(module_loaded)
         display_path :: module_loaded.module.display_path
         // The entry is the ONLY module lowered eagerly (`lower_module` below

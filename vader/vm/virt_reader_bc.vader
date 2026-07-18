@@ -619,8 +619,7 @@ unquote_struct_name :: fn(s: string) -> string {
 
 /// `parse_val_type` with a `Void` fallback for unrecognised spellings.
 vt_or_void :: fn(name: string) -> bc.ValType {
-    v :: bc.parse_val_type(name)
-    if v == null { return bc.ValType.Void }
+    v :: bc.parse_val_type(name) ?? return bc.ValType.Void
     return v
 }
 

@@ -96,8 +96,7 @@ export DebugController :: struct {
 /// @param line        the op's 1-based source line.
 /// @return            `true` iff a breakpoint is set on `file:line`.
 export line_has_breakpoint :: fn(controller: DebugController, file: string, line: i32) -> bool {
-    lines :: controller.breakpoints[file]
-    if lines == null { return false }
+    lines :: controller.breakpoints[file] ?? return false
     return lines.contains(line)
 }
 

@@ -315,8 +315,7 @@ try_direct_display_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Span) -
     // call fell through to the emit's defensive `Return` (e.g. every `${usize}`
     // interpolation silently mis-compiled). `null` (no concrete Display impl:
     // generic-T / trait receiver) falls back to a `LoweredVirtualCall`.
-    member :: find_impl_member_for(ctx, source_type, METHOD_TO_STRING)
-    if member is null { return null }
+    member :: find_impl_member_for(ctx, source_type, METHOD_TO_STRING) ?? return null
     // Build the direct `to_string(value)` call — or, when the member is the
     // identity `fn(self) = self` (string's `Display`), inline to `value` itself.
     call_args: LoweredExpr[] = []

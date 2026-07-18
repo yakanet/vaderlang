@@ -22,8 +22,7 @@ as_field_expr :: fn(expr: Expr) -> FieldExpr | null {
 /// Runs after the trait-virtual probe so virtual dispatch wins for
 /// trait-typed receivers and UFCS picks up the concrete-type residue.
 try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
-    callee_field :: as_field_expr(call.callee)
-    if callee_field is null { return null }
+    callee_field :: as_field_expr(call.callee) ?? return null
     if callee_field is FieldExpr as field_expr {
         receiver :: lower_expr(ctx, field_expr.target)
         // Inline `EnumName.Variant` receivers lower to their integer repr, so
@@ -181,8 +180,7 @@ find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsM
 // first-param type via `ufcs_first_param_type` (null when the fn has no params —
 // then 0) and scores it with `overload_specificity`.
 ufcs_specificity :: fn(ctx: FnLowerCtx, recv_type: Type, sym: Symbol) -> i32 {
-    first :: ufcs_first_param_type(ctx, sym)
-    if first is null { return 0 }
+    first :: ufcs_first_param_type(ctx, sym) ?? return 0
     return overload_specificity(recv_type, first)
 }
 
@@ -328,8 +326,7 @@ harvest_ufcs_fn_instance :: fn(
 ) -> string | null {
     // Locate the fn's FnType — UFCS resolution tolerates fns defined
     // in foreign modules (e.g. stdlib's `len`).
-    fn_ty :: lookup_fn_type_anywhere(ctx, fn_sym)
-    if fn_ty is null { return null }
+    fn_ty :: lookup_fn_type_anywhere(ctx, fn_sym) ?? return null
     if fn_ty is FnType as ft {
         if !type_has_param(ft) {
             // Non-generic free fn. The entry's own are lowered eagerly by
@@ -400,8 +397,7 @@ lookup_module_display_path :: fn(ctx: FnLowerCtx, module_id: string) -> string |
 resolve_field_type :: fn(ctx: FnLowerCtx, target_arg: Expr, field_name: string) -> Type {
     recv_ty :: ctx.types.expr_type(target_arg)
     if recv_ty is StructType as st {
-        decl :: ctx.typed.struct_decls[st.symbol.id]
-        if decl is null { return TY_UNRESOLVED }
+        decl :: ctx.typed.struct_decls[st.symbol.id] ?? return TY_UNRESOLVED
         if decl is StructDecl as sd {
             for f in sd.fields {
                 if f.name != field_name { continue }
@@ -416,8 +412,7 @@ resolve_field_type :: fn(ctx: FnLowerCtx, target_arg: Expr, field_name: string) 
 lookup_fn_type_anywhere :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type | null {
     // `Symbol.module` carries the owning module id — direct lookup
     // beats walking every evaluated module per UFCS call site.
-    program :: ctx.project.evaluated.modules[sym.module]
-    if program is null { return null }
+    program :: ctx.project.evaluated.modules[sym.module] ?? return null
     if program is EvaluatedProgram as ep { return ep.typed.decl_types[sym.id] }
     return null
 }

@@ -112,10 +112,8 @@ export generator_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, co
     // Cheap program-level bail: a generator-free program (the compiler's own
     // self-compile today) skips the per-call callee probe entirely.
     if !typed.has_generators { return null }
-    fn_sym :: callee_generator_symbol(c, typed)
-    if fn_sym is null { return null }
-    elem :: iterator_element_of(concrete_ret)
-    if elem is null { return mk_struct(gen_state_symbol(fn_sym), []) }
+    fn_sym :: callee_generator_symbol(c, typed) ?? return null
+    elem :: iterator_element_of(concrete_ret) ?? return mk_struct(gen_state_symbol(fn_sym), [])
     return mk_struct(gen_state_symbol(fn_sym), [elem])
 }
 
@@ -138,14 +136,12 @@ callee_generator_symbol :: fn(c: AST.CallExpr, typed: TypedProgram) -> Symbol | 
             // Direct call `name(args)` : the resolver already picked the overload,
             // so trust its bound symbol (a picked eager overload is simply not a
             // generator).
-            sym :: typed.resolved.idents[id.span.hash()]
-            if sym is null { return null }
+            sym :: typed.resolved.idents[id.span.hash()] ?? return null
             if is_generator_symbol(sym, typed) { return sym }
             return null
         }
         is AST.FieldExpr as fe -> {
-            recv_ty :: typed.expr_types[fe.target.id]
-            if recv_ty is null { return null }
+            recv_ty :: typed.expr_types[fe.target.id] ?? return null
             return ufcs_generator_symbol(fe.field, recv_ty, typed)
         }
         _ -> { return null }
@@ -165,8 +161,7 @@ is_generator_symbol :: fn(sym: Symbol, typed: TypedProgram) -> bool {
 // receiver selects the lazy combinator too : `arr.map(f)` is lazy and fuses over
 // the raw array (`T[] implements Into<Iterator<T>>` — the implicit `.iter()` head).
 ufcs_generator_symbol :: fn(name: string, recv_ty: Type, typed: TypedProgram) -> Symbol | null {
-    gen_sym :: typed.generator_symbols[name]
-    if gen_sym is null { return null }
+    gen_sym :: typed.generator_symbols[name] ?? return null
     if generator_receiver_is_iterator(recv_ty, typed) { return gen_sym }
     return null
 }

@@ -205,8 +205,7 @@ export dispatch_key :: fn(t: Type) -> string {
 export struct_implements_trait :: fn(t: Type, trait_name: string, typed: TypedProgram) -> bool {
     name :: dispatch_key(t)
     if name == "" { return false }
-    bucket :: typed.struct_implemented_traits[name]
-    if bucket is null { return false }
+    bucket :: typed.struct_implemented_traits[name] ?? return false
     for n in bucket { if n == trait_name { return true } }
     return false
 }
@@ -219,8 +218,7 @@ export struct_implements_trait :: fn(t: Type, trait_name: string, typed: TypedPr
 export lookup_struct_trait_args :: fn(t: Type, trait_name: string, typed: TypedProgram) -> Type[] | null {
     name :: dispatch_key(t)
     if name == "" { return null }
-    per_struct :: typed.struct_trait_args[name]
-    if per_struct is null { return null }
+    per_struct :: typed.struct_trait_args[name] ?? return null
     return per_struct[trait_name]
 }
 
@@ -241,11 +239,9 @@ export resolve_struct_trait_args :: fn(t: Type, trait_name: string, typed: Typed
             if t is StructType as gst { return gst.args }
         }
     }
-    raw :: lookup_struct_trait_args(t, trait_name, typed)
-    if raw is null { return null }
+    raw :: lookup_struct_trait_args(t, trait_name, typed) ?? return null
     if t is StructType as st {
-        struct_decl :: typed.struct_decls[st.symbol.id]
-        if struct_decl is null { return raw }
+        struct_decl :: typed.struct_decls[st.symbol.id] ?? return raw
         out: Type[] = []
         for a in raw { out.push(substitute_by_name(a, struct_decl.type_params, st.args)) }
         return out

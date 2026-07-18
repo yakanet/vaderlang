@@ -99,8 +99,7 @@ build_inline_index :: fn(project: LoweredProject) -> MutableMap<string, InlineIn
 }
 
 inlineable_info :: fn(fd: LoweredFnDecl) -> InlineInfo | null {
-    body :: fd.body
-    if body == null { return null }
+    body :: fd.body ?? return null
     // Skip generic INSTANCES — CONSERVATIVE, no longer strictly necessary. The
     // original blocker (generic-instance call mangles carried a doubled module
     // prefix that didn't match the single-prefix definitions) is FIXED:
@@ -111,10 +110,8 @@ inlineable_info :: fn(fd: LoweredFnDecl) -> InlineInfo | null {
     // `Display.to_string`, `Comparable`, accessors — are impls on CONCRETE types
     // (`type_arguments` empty), so they inline regardless.
     if !fd.origin.type_arguments.is_empty() { return null }
-    result :: single_expr_result(body)
-    if result == null { return null }
-    counts :: param_use_counts(result, fd.params, fd.mangled)
-    if counts == null { return null }
+    result :: single_expr_result(body) ?? return null
+    counts :: param_use_counts(result, fd.params, fd.mangled) ?? return null
     return InlineInfo { .body = result, .params = fd.params, .use_counts = counts }
 }
 

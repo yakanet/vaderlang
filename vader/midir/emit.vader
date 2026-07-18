@@ -428,8 +428,7 @@ build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: Mu
     // carry `impl_table` rows (their `is Trait` resolves at compile time).
     for i in 0..<ctx.types.len() {
         if ctx.types[i] is BcStruct as st {
-            traits :: membership[st.symbol_id]
-            if traits is null { continue }
+            traits :: membership[st.symbol_id] ?? continue
             for tr in traits {
                 key :: "${i}|${tr}"
                 if seen[key] is bool { continue }

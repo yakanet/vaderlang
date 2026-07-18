@@ -157,8 +157,7 @@ append_wildcard_completions :: fn(
     // (fn / struct / enum / trait / alias / const) enter scope unqualified —
     // the same predicate the resolver's scope seeding uses.
     for path in wildcard_paths {
-        target :: cached.module_name_index[path]
-        if target is null { continue }
+        target :: cached.module_name_index[path] ?? continue
         for [_, sym] in target.collected.symbols {
             if sym.visibility != .Public { continue }
             if !Rs.wildcard_exposable(sym.kind) { continue }
@@ -207,10 +206,8 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
     file_path :: uri_to_path(uri)
     if file_path == "" { return completion_list([]) }
     cached :: typed_project_for(state, file_path)
-    entry :: cached.project.modules[cached.project.entry]
-    if entry is null { return completion_list([]) }
-    sf :: source_file_for_path(entry.module.files, file_path)
-    if sf is null { return completion_list([]) }
+    entry :: cached.project.modules[cached.project.entry] ?? return completion_list([])
+    sf :: source_file_for_path(entry.module.files, file_path) ?? return completion_list([])
 
     // The receiver is the expression ending exactly at the dot (spans encode
     // `end` one-past-the-last-char). Anchoring on that end column resolves a
@@ -230,8 +227,7 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
         recv = find_expr_at(sf.program.decls, line0 + 1, dot_col - 1, cached.result.typed)
     }
     if recv == null { return completion_list([]) }
-    recv_type :: cached.result.typed.expr_types[recv.id]
-    if recv_type == null { return completion_list([]) }
+    recv_type :: cached.result.typed.expr_types[recv.id] ?? return completion_list([])
 
     // Namespace-import alias receiver (`G.<member>` where `G :: import "p"`) :
     // list the target module's exports. The receiver types as UnresolvedType,
@@ -291,8 +287,7 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
     sym :: type_symbol(recv_type)
     if sym != null {
         for impl_ in cached.result.impls.all {
-            fs :: impl_.for_symbol
-            if fs == null { continue }
+            fs :: impl_.for_symbol ?? continue
             if fs.id != sym.id { continue }
             for m in impl_.decl.members {
                 if seen[m.name] != null { continue }
@@ -379,8 +374,7 @@ leading_dot_completion :: fn(decls: AST.Decl[], typed: TypedProgram, line: i32, 
         if si != null { return completion_list(si) }
     }
     // Otherwise an enum literal whose enum is reconstructed from context.
-    et :: expected_enum_at(decls, line, col, typed)
-    if et == null { return completion_list([]) }
+    et :: expected_enum_at(decls, line, col, typed) ?? return completion_list([])
     items: JsonValue[] = []
     for [name, _] in et.indices {
         items.push(completion_item(name, .Enum, ""))
@@ -400,8 +394,7 @@ struct_lit_field_items :: fn(decls: AST.Decl[], typed: TypedProgram, line: i32, 
         if e is AST.StructLitExpr as sl {
             t :: typed.expr_types[sl.id]
             if t is StructType as st {
-                decl :: typed.struct_decls[st.symbol.id]
-                if decl == null { return null }
+                decl :: typed.struct_decls[st.symbol.id] ?? return null
                 fmap :: typed.struct_field_types[st.symbol.id]
                 items: JsonValue[] = []
                 for fld in decl.fields {
@@ -466,8 +459,7 @@ struct_field_value_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: 
         if e is AST.StructLitExpr as sl {
             t :: typed.expr_types[sl.id]
             if t is StructType as st {
-                fmap :: typed.struct_field_types[st.symbol.id]
-                if fmap == null { return null }
+                fmap :: typed.struct_field_types[st.symbol.id] ?? return null
                 for j in 0..<sl.items.len() {
                     it :: sl.items[j]
                     if it is AST.StructLitField as f {
@@ -611,8 +603,7 @@ param_default_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: Typed
     for d in decls {
         if d is AST.FnDecl as fd {
             for p in fd.params {
-                dv :: p.default_value
-                if dv == null { continue }
+                dv :: p.default_value ?? continue
                 if span_contains(dv.span, line, col) {
                     return typed.param_types[p.span.hash()]
                 }
@@ -625,10 +616,8 @@ param_default_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: Typed
 // Declared type of the parameter slot the cursor sits in for an enclosing call
 // `f(…, .|, …)`. Only an IdentExpr callee resolves (via lookup_fn_decl).
 call_arg_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
-    call :: find_enclosing_call(decls, line, col)
-    if call == null { return null }
-    fd :: lookup_fn_decl(call.callee, typed)
-    if fd == null { return null }
+    call :: find_enclosing_call(decls, line, col) ?? return null
+    fd :: lookup_fn_decl(call.callee, typed) ?? return null
     if fd.params.len() == 0 { return null }
     // Clamp into range : an incomplete arg (`f(.`) can make active_param_index
     // count "past" the only slot, and over-supplied args shouldn't index OOB —

@@ -84,8 +84,7 @@ push_async_decls :: fn(
 // side effect and lets the fall-off completion emit the `null` done-marker.
 // A `null` trailing (body ends in an explicit `return`) is left untouched.
 async_fold_trailing :: fn(body: LoweredBlock, result_is_void: bool) -> LoweredBlock {
-    t :: body.trailing
-    if t == null { return body }
+    t :: body.trailing ?? return body
     stmts: LoweredStmt[] = []
     for s in body.stmts { stmts.push(s) }
     if result_is_void {

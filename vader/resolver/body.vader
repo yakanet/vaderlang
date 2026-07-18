@@ -419,8 +419,7 @@ walk_for :: fn(self: ResolveState, s: AST.ForStmt) -> void {
 // unambiguous. A cross-module `s` whose name is in `ambiguous` is the real clash.
 check_wildcard_ambiguity :: fn(self: ResolveState, x: AST.IdentExpr, s: Symbol) -> void {
     if s.module == self.module_path { return }
-    mods :: self.ambiguous[x.name]
-    if mods is null { return }
+    mods :: self.ambiguous[x.name] ?? return
     list := ""
     for i in 0..<mods.len() {
         if i > 0 { list = list + ", " }

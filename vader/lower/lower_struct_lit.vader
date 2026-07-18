@@ -174,10 +174,8 @@ target_is_enum_name :: fn(ctx: FnLowerCtx, target: Expr) -> bool {
 // callee's `field_expr.target`) and `try_lower_enum_field` (namespace-qualified
 // enum variants, passing the enum FieldExpr's receiver).
 as_namespace_binding :: fn(ctx: FnLowerCtx, expr: Expr) -> Symbol | null {
-    ident :: as_ident(expr)
-    if ident is null { return null }
-    sym :: ctx.typed.resolved.idents[ident.span.hash()]
-    if sym is null { return null }
+    ident :: as_ident(expr) ?? return null
+    sym :: ctx.typed.resolved.idents[ident.span.hash()] ?? return null
     if sym.kind == SymbolKind.ImportBinding { return sym }
     return null
 }
@@ -205,8 +203,7 @@ enum_type_or_unwrap :: fn(ctx: FnLowerCtx, type: Type) -> Type {
 // module's tables instead of the construction site's. No-op (returns `ctx`)
 // when the module isn't in the project's typed set.
 ctx_in_owning_module :: fn(ctx: FnLowerCtx, module_id: string, decl: StructDecl, args: Type[]) -> FnLowerCtx {
-    owner_typed :: ctx.project.evaluated.typed.modules[module_id]
-    if owner_typed is null { return ctx }
+    owner_typed :: ctx.project.evaluated.typed.modules[module_id] ?? return ctx
     // Thread the instance's type-args into the subst so a field DEFAULT that
     // references the struct's own type-param (`ekeys: K[] = []`) lowers with `K`
     // bound to the concrete instance arg — MIXED (primitive → concrete so the
@@ -234,10 +231,8 @@ build_struct_lit_fields :: fn(
     // field building walks the backing struct decl. A non-struct type (or a
     // struct whose decl isn't indexed) degrades to source order (defensive
     // fallback).
-    st :: struct_backing(type)
-    if st == null { return fallback_provided_order(ctx, lit) }
-    decl :: ctx.typed.struct_decls[st.symbol.id]
-    if decl is null { return fallback_provided_order(ctx, lit) }
+    st :: struct_backing(type) ?? return fallback_provided_order(ctx, lit)
+    decl :: ctx.typed.struct_decls[st.symbol.id] ?? return fallback_provided_order(ctx, lit)
     // A field DEFAULT (`id: usize = UNASSIGNED_NODE_ID`) is an AST expr
     // from the struct's OWNING module. Lowering it with the construction
     // site's `ctx` resolves its idents against the wrong `resolved.idents`

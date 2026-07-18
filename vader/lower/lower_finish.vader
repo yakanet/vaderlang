@@ -21,10 +21,8 @@ collect_vtable_entries :: fn(
     for [_, m] in project.modules {
         for d in m.decls {
             if d is LoweredFnDecl as fd {
-                trait_method :: impl_trait_method_from_mangled(fd.mangled)
-                if trait_method is null { continue }
-                receiver_ty :: impl_receiver_type_from_decl(fd, typed)
-                if receiver_ty is null { continue }
+                trait_method :: impl_trait_method_from_mangled(fd.mangled) ?? continue
+                receiver_ty :: impl_receiver_type_from_decl(fd, typed) ?? continue
                 // fn_symbol is informational here — build_impl_table only
                 // keys on (struct_type, trait_name). Use a synth Symbol
                 // when the impl-member resolver lookup returned null so
@@ -94,8 +92,7 @@ impl_receiver_type_from_decl :: fn(fd: LoweredFnDecl, _typed: TypedProject) -> T
 }
 
 push_to_module :: fn(project: LoweredProject, module_id: string, decl: LoweredDecl) -> void {
-    m :: project.modules[module_id]
-    if m is null { return }
+    m :: project.modules[module_id] ?? return
     if m is LoweredModule as mod {
         mod.decls.push(decl)
     }

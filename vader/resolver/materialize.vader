@@ -268,8 +268,7 @@ build_subst :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl) -> Subst {
     // default — or a default referencing an earlier param — resolves through
     // `subst`. Bind in order so a later default can reference an earlier one.
     for i in n..<trait_.type_params.len() {
-        d :: trait_.type_params[i].default
-        if d is null { break }
+        d :: trait_.type_params[i].default ?? break
         bind(subst, trait_.type_params[i].name, substitute_type_expr(d, subst))
     }
     return subst

@@ -65,8 +65,7 @@ export handle_signature_help :: fn(state: ServerState, params: JsonValue) -> Jso
 /// it as a SignatureInformation. Returns `null` on miss (callee not an
 /// ident, ident not bound to a Symbol, Symbol not a Fn).
 build_signature :: fn(call: AST.CallExpr, typed: TypedProgram) -> JsonValue | null {
-    fn_decl :: lookup_fn_decl(call.callee, typed)
-    if fn_decl is null { return null }
+    fn_decl :: lookup_fn_decl(call.callee, typed) ?? return null
     label :: render_signature_label(fn_decl)
     params: JsonValue[] = []
     for p in fn_decl.params {
@@ -89,8 +88,7 @@ lookup_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl | null
     // for this MVP, so those callees yield no signature.
     @partial match callee {
         is AST.IdentExpr as id -> {
-            sym :: typed.resolved.idents[id.span.hash()]
-            if sym is null { return null }
+            sym :: typed.resolved.idents[id.span.hash()] ?? return null
             return typed.fn_decls[sym.id]
         }
         _ -> { return null }

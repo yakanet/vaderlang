@@ -136,8 +136,7 @@ try_fold_static_intrinsic :: fn(
     }
     if name == "field_count" || name == "variant_count" {
         if intrinsic.args.len() != 1 { return null }
-        arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
-        if arg_or_null is null { return null }
+        arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0]) ?? return null
         ty :: arg_ty_or_unresolved(arg_or_null)
         if ty is UnresolvedType { return null }
         cnt :: if name == "field_count" { lower_field_count(ctx, ty) } else { lower_variant_count(ty) }
@@ -150,8 +149,7 @@ try_fold_static_intrinsic :: fn(
         return null
     }
     if intrinsic.args.len() != 1 { return null }
-    arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
-    if arg_or_null is null { return null }
+    arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0]) ?? return null
     ty :: arg_ty_or_unresolved(arg_or_null)
     if ty is UnresolvedType { return null }
     if name == "size_of" {
@@ -175,8 +173,7 @@ try_fold_static_intrinsic :: fn(
 // same value lands whether the call is folded at comptime or here.
 lower_field_count :: fn(ctx: FnLowerCtx, t: Type) -> i64 {
     if t is StructType as s {
-        decl :: struct_decl_for(ctx, s)
-        if decl == null { return 0 }
+        decl :: struct_decl_for(ctx, s) ?? return 0
         return i64(decl.fields.len())
     }
     if t is TupleType as p { return i64(p.elements.len()) }
@@ -191,21 +188,17 @@ lower_variant_count :: fn(t: Type) -> i64 {
 
 // Resolve a struct type to its declaration via its owning module's loaded view.
 struct_decl_for :: fn(ctx: FnLowerCtx, st: StructType) -> StructDecl | null {
-    owner_loaded :: ctx.project.loaded.modules[st.symbol.module]
-    if owner_loaded is null { return null }
+    owner_loaded :: ctx.project.loaded.modules[st.symbol.module] ?? return null
     return find_struct_decl_by_name(module_decls(owner_loaded), st.symbol.name)
 }
 
 try_fold_field_index :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type) -> LoweredExpr | null {
     if intrinsic.args.len() != 2 { return null }
-    arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
-    if arg_or_null is null { return null }
+    arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0]) ?? return null
     ty :: arg_ty_or_unresolved(arg_or_null)
-    name :: static_string_lit(intrinsic.args[1])
-    if name == null { return null }
+    name :: static_string_lit(intrinsic.args[1]) ?? return null
     if ty is StructType as st {
-        decl :: struct_decl_for(ctx, st)
-        if decl == null { return null }
+        decl :: struct_decl_for(ctx, st) ?? return null
         for i in 0..<decl.fields.len() {
             if decl.fields[i].name == name {
                 return LoweredIntLit { .span = intrinsic.span, .type = type, .value = i64(i) }
@@ -278,8 +271,7 @@ try_fold_fields :: fn(
     ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
 ) -> LoweredExpr | null {
     if intrinsic.args.len() != 1 { return null }
-    arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
-    if arg_or_null is null { return null }
+    arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0]) ?? return null
     target_ty :: arg_ty_or_unresolved(arg_or_null)
     target_struct: StructType | null = null
     if target_ty is StructType as st { target_struct = st }
@@ -413,8 +405,7 @@ resolve_intrinsic_type_arg :: fn(ctx: FnLowerCtx, arg: Expr) -> Type | null {
     //       `comptime_value_by_symbol_id` so dotted refs to a `::`
     //       alias still fold.
     if arg is IdentExpr as id {
-        sym :: ctx.typed.resolved.idents[id.span.hash()]
-        if sym is null { return via_type_expr }
+        sym :: ctx.typed.resolved.idents[id.span.hash()] ?? return via_type_expr
         if sym is Symbol as s {
             aliased :: ctx.typed.let_type_aliases[s.id]
             if !(aliased is null) { return aliased }

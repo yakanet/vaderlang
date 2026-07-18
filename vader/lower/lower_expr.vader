@@ -278,8 +278,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
 /// direct-ident fn-value path in `lower_ident`. Returns null for non-fn members
 /// (a const is handled by `try_lower_namespace_const` ; a type-as-value is exotic).
 try_lower_namespace_fn_value :: fn(ctx: FnLowerCtx, e: FieldExpr, type: Type) -> LoweredExpr | null {
-    ns :: as_namespace_binding(ctx, e.target)
-    if ns is null { return null }
+    ns :: as_namespace_binding(ctx, e.target) ?? return null
     member :: resolve_namespace_member(ctx, ns, e.field)
     if member.kind != SymbolKind.Fn { return null }
     // Harvest the non-generic imported fn so its body is emitted (self-guards to
@@ -329,12 +328,9 @@ lookup_const_baked_value :: fn(ctx: FnLowerCtx, symbol: Symbol) -> ComptimeValue
 // local / param shouldn't pay the module lookups below). Returns null when the
 // decl can't be located or its RHS isn't foldable (caller keeps its path).
 try_fold_unbaked_const :: fn(ctx: FnLowerCtx, resolved: Symbol, type: Type) -> LoweredExpr | null {
-    owner_loaded :: ctx.project.loaded.modules[resolved.module]
-    if owner_loaded is null { return null }
-    owner_typed :: ctx.project.evaluated.typed.modules[resolved.module]
-    if owner_typed is null { return null }
-    const_decl :: find_const_decl_by_name(module_decls(owner_loaded), resolved.name)
-    if const_decl is null { return null }
+    owner_loaded :: ctx.project.loaded.modules[resolved.module] ?? return null
+    owner_typed :: ctx.project.evaluated.typed.modules[resolved.module] ?? return null
+    const_decl :: find_const_decl_by_name(module_decls(owner_loaded), resolved.name) ?? return null
     // Only fold a LITERAL-RHS const. A computed RHS (`B + 1`) may depend on
     // other unbaked consts, so folding it here would (a) bypass comptime
     // cycle detection — a `@comptime A :: B + 1 ; B :: A + 1` must still
@@ -476,8 +472,7 @@ declared_type_of_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
         .Binding -> {}
         _        -> { return null }
     }
-    defined_at :: symbol.defined_at
-    if defined_at is null { return null }
+    defined_at :: symbol.defined_at ?? return null
     key :: defined_at.hash()
     // Apply the entry substitution so the narrowing comparison sees the
     // erased declared type (`Any | null`), matching the erased read-site
@@ -521,8 +516,7 @@ try_lower_common_union_field :: fn(
 try_route_through_env :: fn(
     ctx: FnLowerCtx, symbol: Symbol, span: Span, type: Type,
 ) -> LoweredExpr | null {
-    lifted :: ctx.lifted_context
-    if lifted is null { return null }
+    lifted :: ctx.lifted_context ?? return null
     field_name :: lifted.capture_fields[symbol.id]
     match field_name {
         is null -> { return null }

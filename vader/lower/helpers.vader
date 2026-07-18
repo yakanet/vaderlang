@@ -84,8 +84,7 @@ export wrap_as_block :: fn(expr: LoweredExpr, span: Span) -> LoweredBlock {
 /// @return       the stmts list, with the trailing expression appended
 ///               as an `LoweredExprStmt` when one is present.
 export block_stmts_with_trailing :: fn(block: LoweredBlock) -> LoweredStmt[] {
-    trailing :: block.trailing
-    if trailing is null { return block.stmts }
+    trailing :: block.trailing ?? return block.stmts
     out: LoweredStmt[] = []
     for stmt in block.stmts { out.push(stmt) }
     out.push(LoweredExprStmt { .span = span_of(trailing), .expr = trailing })

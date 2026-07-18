@@ -73,8 +73,7 @@ populate_comptime_value_index :: fn(project_ctx: LowerProjectCtx) -> void {
 // by `for_symbol.id::trait_symbol.id`, same as the per-module shape).
 populate_impls :: fn(loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx) -> void {
     for [module_id, module_typed] in typed.modules {
-        module_loaded :: loaded.modules[module_id]
-        if module_loaded is null { continue }
+        module_loaded :: loaded.modules[module_id] ?? continue
         module_decls_list :: module_decls(module_loaded)
         per_module :: build_impl_registry(module_decls_list, module_typed.resolved, project_ctx.core_symbols)
         for entry in per_module.all {

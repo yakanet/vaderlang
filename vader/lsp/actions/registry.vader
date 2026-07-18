@@ -221,8 +221,7 @@ t_find_in_block :: fn(b: AST.BlockExpr, pred: fn(AST.Expr) -> bool) -> AST.Expr 
         found :: t_find_in_stmt(b.stmts[si], pred)
         if found != null { return found }
     }
-    t :: b.trailing
-    if t == null { return null }
+    t :: b.trailing ?? return null
     if pred(t) { return t }
     return null
 }
@@ -233,8 +232,7 @@ t_find_in_stmt :: fn(s: AST.Stmt, pred: fn(AST.Expr) -> bool) -> AST.Expr | null
         is AST.ExprStmt   as es -> { if pred(es.expr)  { return es.expr } }
         is AST.YieldStmt  as ys -> { if pred(ys.value) { return ys.value } }
         is AST.ReturnStmt as rs -> {
-            v :: rs.value
-            if v == null { return null }
+            v :: rs.value ?? return null
             if pred(v) { return v }
         }
         _ -> {}

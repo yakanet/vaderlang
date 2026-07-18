@@ -104,8 +104,7 @@ build_impl_member_params :: fn(
 // AST level and need the entry substitution), so this narrows strictly to
 // the primitive-intrinsic collision.
 impl_member_param_type :: fn(ast_param: FnParam, types: EntryTypes, typed: TypedProgram) -> Type {
-    pty :: ast_param.ty
-    if pty is null { return types.param_type(ast_param) }
+    pty :: ast_param.ty ?? return types.param_type(ast_param)
     scratch: Diagnostic[] = []
     direct :: type_from_expr(pty, typed.resolved, scratch)
     if direct is PrimitiveType { return direct }
@@ -400,8 +399,7 @@ lower_struct_decl :: fn(
 lookup_struct_field_table :: fn(
     struct_decl: StructDecl, typed: TypedProgram,
 ) -> MutableMap<string, Type> | null {
-    sym :: symbol_for_decl(struct_decl, typed)
-    if sym is null { return null }
+    sym :: symbol_for_decl(struct_decl, typed) ?? return null
     return typed.struct_field_types[sym.id]
 }
 
@@ -413,8 +411,7 @@ resolve_field_type :: fn(
     types: EntryTypes, field: StructField, table: MutableMap<string, Type> | null,
 ) -> Type {
     if table == null { return types.type_expr_type(field.ty) }
-    from_table :: table[field.name]
-    if from_table == null { return types.type_expr_type(field.ty) }
+    from_table :: table[field.name] ?? return types.type_expr_type(field.ty)
     return from_table
 }
 
@@ -460,10 +457,8 @@ lower_const_value :: fn(
 lookup_comptime_value :: fn(
     const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
 ) -> ComptimeValue | null {
-    program :: project_ctx.evaluated.modules[typed.resolved.path]
-    if program is null { return null }
-    symbol :: lookup_const_symbol(const_decl, typed)
-    if symbol is null { return null }
+    program :: project_ctx.evaluated.modules[typed.resolved.path] ?? return null
+    symbol :: lookup_const_symbol(const_decl, typed) ?? return null
     if symbol is Symbol as s {
         return program.comptime_decls[s.id]
     }
@@ -522,11 +517,9 @@ stub_entry :: fn(decl: Decl, typed: TypedProgram) -> MonoEntry {
 /// finds the current decl's position in that bucket and emits the
 /// matching index. Returns `""` for unique names + non-fn decls.
 overload_suffix_for :: fn(decl: Decl, typed: TypedProgram) -> string {
-    name_span_or_null :: decl_name_span(decl)
-    if name_span_or_null is null { return "" }
+    name_span_or_null :: decl_name_span(decl) ?? return ""
     if name_span_or_null is Span as name_span {
-        bucket :: typed.resolved.fn_overloads[decl_name(decl)]
-        if bucket is null { return "" }
+        bucket :: typed.resolved.fn_overloads[decl_name(decl)] ?? return ""
         if bucket is Symbol[] as symbols {
             if symbols.len() < 2 { return "" }
             for i in 0..<symbols.len() {

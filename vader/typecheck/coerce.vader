@@ -86,8 +86,7 @@ export try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> 
     trait_name :: expected.symbol.name
     got_name :: dispatch_key(got)
     if got_name == "" { return false }
-    bucket :: typed.struct_implemented_traits[got_name]
-    if bucket is null { return false }
+    bucket :: typed.struct_implemented_traits[got_name] ?? return false
     for name in bucket { if name == trait_name { return true } }
     return false
 }

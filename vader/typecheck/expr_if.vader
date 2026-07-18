@@ -227,8 +227,7 @@ detect_is_narrow :: fn(
     // and degrades (the compiler's own `build_if` `e.else_block.span`).
     if cond is AST.UnaryExpr {
         if cond.op == AST.UnaryOp.Not {
-            inner :: detect_is_narrow(cond.operand, typed, diags)
-            if inner is null { return null }
+            inner :: detect_is_narrow(cond.operand, typed, diags) ?? return null
             return IsNarrow {
                 .sym_id    = inner.sym_id,
                 .static_ty = inner.static_ty,
@@ -244,8 +243,7 @@ detect_is_narrow :: fn(
     if cond.op == AST.BinaryOp.Eq || cond.op == AST.BinaryOp.Neq {
         ident_side :: pick_ident_vs_null(cond.left, cond.right)
         if !(ident_side is null) {
-            sym :: typed.resolved.idents[ident_side.span.hash()]
-            if sym is null { return null }
+            sym :: typed.resolved.idents[ident_side.span.hash()] ?? return null
             // Subtract from the binding's CURRENT flow-narrowed type, not its
             // declared type, so nested / sequential guards compose : an outer
             // `!(x is null)` must survive an inner `!(x is T)`. Falls back to
@@ -307,8 +305,7 @@ detect_is_narrow :: fn(
     }
     // Scrutinee-VARIABLE narrowing : a bare ident narrows its symbol slot.
     if cond.left is AST.IdentExpr {
-        sym :: typed.resolved.idents[cond.left.span.hash()]
-        if sym is null { return null }
+        sym :: typed.resolved.idents[cond.left.span.hash()] ?? return null
         // Current flow-narrowed base (see the `== null` path) so nested guards
         // compose instead of resetting to the declared union each time.
         base :: narrow_for_binding(typed, sym.id, type_of_symbol(sym, typed))
@@ -328,8 +325,7 @@ detect_is_narrow :: fn(
     // after a divergent `if x.y is null { return }` guard degrades — the
     // `convert_function` `body :: d.body ; body.span` drop.
     if cond.left is AST.FieldExpr as field_lhs {
-        field_info :: resolve_field_chain_static(field_lhs, typed)
-        if field_info is null { return null }
+        field_info :: resolve_field_chain_static(field_lhs, typed) ?? return null
         // Compose against the field's current flow-narrowed type so chained
         // `if x.f is A {…} else if x.f is B {…}` guards refine instead of
         // resetting to the declared type (mirrors the ident path / stmt.vader).

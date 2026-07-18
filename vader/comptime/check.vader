@@ -93,8 +93,7 @@ harvest_instances :: fn(typed: TypedProject) -> GenericInstance[] {
 // living there (e.g. a std/core formatter table moved to a sibling file) and its
 // readers emit an unreachable. Mirrors `lower.vader::module_decls`.
 lookup_module_decls :: fn(loaded: LoadedProject, module_id: string) -> AST.Decl[] | null {
-    module_loaded :: loaded.modules[module_id]
-    if module_loaded is null { return null }
+    module_loaded :: loaded.modules[module_id] ?? return null
     files :: module_loaded.module.files
     if files.len() == 0 { return null }
     return concat_file_decls(files)
@@ -151,8 +150,7 @@ evaluate_module_decls :: fn(
         match decl {
             is AST.ConstDecl as cd -> {
                 if has_comptime_decorator(cd) { continue }
-                symbol :: lookup_const_symbol(cd, typed)
-                if symbol is null { continue }
+                symbol :: lookup_const_symbol(cd, typed) ?? continue
                 if symbol is Symbol as s {
                     if !(program.comptime_decls[s.id] is null) { continue }
                     result :: evaluate_expr(cd.value, context)

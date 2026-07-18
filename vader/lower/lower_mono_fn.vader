@@ -215,8 +215,7 @@ build_fn_instance_decl :: fn(
     synth_start :: project_ctx.synth_decls.len()
     owner_module_id :: inst.owner_module
     owner_module :: loaded.modules[owner_module_id]
-    owner_typed :: typed.modules[owner_module_id]
-    if owner_typed is null { return null }
+    owner_typed :: typed.modules[owner_module_id] ?? return null
     if owner_module is null { return null }
     fn_decl :: find_fn_decl_for_symbol(module_decls(owner_module), inst.fn_symbol, inst.type_args.len())
     if fn_decl is null { return null }
@@ -309,8 +308,7 @@ build_fn_instance_decl :: fn(
 // (`[T, U][]`, `Pair<T, U>[]`) is BOXED-kind regardless, so leaving it erased is
 // sound — its reads route through the legacy runtime-dispatched op.
 returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
-    rt :: fn_decl.return_type
-    if rt == null { return false }
+    rt :: fn_decl.return_type ?? return false
     if rt is ArrayTypeExpr as a {
         if a.element is IdentExpr as id {
             for tp in fn_decl.type_params {
@@ -475,10 +473,8 @@ materialize_nongeneric_imported_fns :: fn(
     for project_ctx.nongeneric_imported_cursor < project_ctx.nongeneric_imported_order.len() {
         fn_sym :: project_ctx.nongeneric_imported_order[project_ctx.nongeneric_imported_cursor]
         project_ctx.nongeneric_imported_cursor += 1
-        module_typed :: typed.modules[fn_sym.module]
-        if module_typed is null { continue }
-        module_loaded :: loaded.modules[fn_sym.module]
-        if module_loaded is null { continue }
+        module_typed :: typed.modules[fn_sym.module] ?? continue
+        module_loaded :: loaded.modules[fn_sym.module] ?? continue
         if module_typed is TypedProgram as mt {
             if module_loaded is LoadedModule as ml {
                 fn_decl :: find_nongeneric_fn_decl_for_symbol(module_decls(ml), fn_sym)
@@ -519,10 +515,8 @@ materialize_nongeneric_imported_consts :: fn(
     for project_ctx.nongeneric_imported_const_cursor < project_ctx.nongeneric_imported_const_order.len() {
         const_sym :: project_ctx.nongeneric_imported_const_order[project_ctx.nongeneric_imported_const_cursor]
         project_ctx.nongeneric_imported_const_cursor += 1
-        module_typed :: typed.modules[const_sym.module]
-        if module_typed is null { continue }
-        module_loaded :: loaded.modules[const_sym.module]
-        if module_loaded is null { continue }
+        module_typed :: typed.modules[const_sym.module] ?? continue
+        module_loaded :: loaded.modules[const_sym.module] ?? continue
         if module_typed is TypedProgram as mt {
             if module_loaded is LoadedModule as ml {
                 const_decl :: find_const_decl_by_name(module_decls(ml), const_sym.name)

@@ -93,15 +93,12 @@ has_comptime_decorator :: fn(decl: AST.ConstDecl) -> bool {
 // later in source order) still wire correctly.
 populate_deps :: fn(nodes: Nodes, typed: TypedProgram) -> void {
     for id in nodes.order {
-        record :: nodes.by_id[id]
-        if record is null { continue }
-        symbol :: lookup_const_symbol(record.decl, typed)
-        if symbol is null { continue }
+        record :: nodes.by_id[id] ?? continue
+        symbol :: lookup_const_symbol(record.decl, typed) ?? continue
         nodes.by_symbol[symbol.id] = id
     }
     for id in nodes.order {
-        record :: nodes.by_id[id]
-        if record is null { continue }
+        record :: nodes.by_id[id] ?? continue
         deps_seen :: MutableMap<usize, bool> {}
         collect_expr_deps(record.decl.value, typed, nodes, deps_seen, record)
         nodes.by_id[id] = record
@@ -135,8 +132,7 @@ visit :: fn(
     order: AST.ConstDecl[],
     diags: Diagnostic[],
 ) -> void {
-    c :: color[id]
-    if c is null { return }
+    c :: color[id] ?? return
     if c == 2 { return }
     if c == 1 {
         emit_cycle(id, path, depth, nodes, cyclic, diags)
@@ -183,8 +179,7 @@ emit_cycle :: fn(
 cycle_names :: fn(start: usize, depth: usize, path: usize[], id: usize, nodes: Nodes) -> string {
     parts: string[] = []
     for i in start..<depth {
-        record :: nodes.by_id[path[i]]
-        if record is null { continue }
+        record :: nodes.by_id[path[i]] ?? continue
         parts.push(record.decl.name)
     }
     rec_tail :: nodes.by_id[id]
@@ -209,11 +204,9 @@ collect_expr_deps :: fn(
 ) -> void {
     match e {
         is AST.IdentExpr as x -> {
-            symbol :: typed.resolved.idents[x.span.hash()]
-            if symbol is null { return }
+            symbol :: typed.resolved.idents[x.span.hash()] ?? return
             if symbol.kind != SymbolKind.Const { return }
-            dependency_id :: nodes.by_symbol[symbol.id]
-            if dependency_id is null { return }
+            dependency_id :: nodes.by_symbol[symbol.id] ?? return
             if seen[dependency_id] is bool { return }
             seen[dependency_id] = true
             record.dependency_ids.push(dependency_id)

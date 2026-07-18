@@ -26,11 +26,9 @@ UfcsMember :: struct {
 is_identity_member :: fn(m: FnDecl) -> bool {
     if !m.is_expression_bodied { return false }
     if m.params.len() != 1 { return false }
-    b :: m.body
-    if b == null { return false }
+    b :: m.body ?? return false
     if !b.stmts.is_empty() { return false }
-    t :: b.trailing
-    if t == null { return false }
+    t :: b.trailing ?? return false
     if t is IdentExpr as id { return id.name == m.params[0].name }
     return false
 }
@@ -249,10 +247,8 @@ impl_targets_name :: fn(for_type: Expr, name: string) -> bool {
 /// through `tryInto` ; we emit the lowered arg verbatim.
 try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
     if call.args.len() != 1 { return null }
-    callee_ident :: as_ident(call.callee)
-    if callee_ident is null { return null }
-    callee_symbol :: ctx.typed.resolved.idents[callee_ident.span.hash()]
-    if callee_symbol is null { return null }
+    callee_ident :: as_ident(call.callee) ?? return null
+    callee_symbol :: ctx.typed.resolved.idents[callee_ident.span.hash()] ?? return null
     // @partial: only type-introducing symbol kinds are type-shaped callees; the rest are not.
     is_type_shaped :: @partial match callee_symbol.kind {
         .BuiltinType -> true
@@ -346,8 +342,7 @@ try_array_iter_coercion :: fn(
             if tt.args.len() != 1 { return null }
             // Guard : the blanket wraps into `ArrayIterator<element>` — bail if
             // std/core's struct isn't loaded (nothing to materialise).
-            wrapped :: find_core_type(ctx, STRUCT_ARRAY_ITERATOR, [arr.element])
-            if wrapped == null { return null }
+            wrapped :: find_core_type(ctx, STRUCT_ARRAY_ITERATOR, [arr.element]) ?? return null
             // Register the `ArrayIterator<element>` instance so its `Iterator`
             // impl (`next__<element>`) materialises + lands in the vtable — the
             // value slot dispatches `it.next()` virtually (the for-in path inlines

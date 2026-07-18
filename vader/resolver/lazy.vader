@@ -89,12 +89,10 @@ export resolve_lazy :: fn(
     cached :: index[name]
     if cached is DiscoveredModule as dm { return dm }
     for pi in 0..<paths.len() {
-        cand_opt :: rooted_candidate(paths[pi], name)
-        if cand_opt == null { continue }
+        cand_opt :: rooted_candidate(paths[pi], name) ?? continue
         cand :: cand_opt
         if !is_dir(cand) { continue }
-        bucket :: scan_folder(cand, diags)
-        if bucket == null { continue }
+        bucket :: scan_folder(cand, diags) ?? continue
         if bucket.name != name { continue }   // folder exists but declares another module
         resolved :: DiscoveredModule { .name = name, .folder = cand, .files = bucket.files }
         index[name] = resolved
@@ -115,12 +113,10 @@ export resolve_lazy :: fn(
 export misplaced_module_at :: fn(name: string, paths: IncludePath[]) -> string | null {
     discard: Diagnostic[] = []
     for pi in 0..<paths.len() {
-        cand_opt :: rooted_candidate(paths[pi], name)
-        if cand_opt == null { continue }
+        cand_opt :: rooted_candidate(paths[pi], name) ?? continue
         cand :: cand_opt
         if !is_dir(cand) { continue }
-        bucket :: scan_folder(cand, discard)
-        if bucket == null { continue }
+        bucket :: scan_folder(cand, discard) ?? continue
         if bucket.name != "" && bucket.name != name { return bucket.name }
     }
     return null
@@ -137,8 +133,7 @@ export misplaced_module_at :: fn(name: string, paths: IncludePath[]) -> string |
 export seed_entry :: fn(
     entry_folder: string, index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
 ) -> DiscoveredModule | null {
-    bucket :: scan_folder(entry_folder, diags)
-    if bucket == null { return null }
+    bucket :: scan_folder(entry_folder, diags) ?? return null
     if bucket.name == "" { return null }
     seeded :: DiscoveredModule { .name = bucket.name, .folder = entry_folder, .files = bucket.files }
     index[bucket.name] = seeded

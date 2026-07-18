@@ -272,8 +272,7 @@ slot_width_for :: fn(elem: ValType) -> SlotWidth | null = match elem {
 /// @param elem  the array's concrete element value class.
 /// @return      the store op, or `null` for a not-yet-supported element width.
 export slot_store_op_for :: fn(elem: ValType) -> Op | null {
-    w :: slot_width_for(elem)
-    if w == null { return null }
+    w :: slot_width_for(elem) ?? return null
     return match w {
         .U8    -> StoreSlotU8 {}
         .I32   -> StoreSlotI32 {}
@@ -290,8 +289,7 @@ export slot_store_op_for :: fn(elem: ValType) -> Op | null {
 /// @param elem  the array's concrete element value class.
 /// @return      the load op, or `null` for a not-yet-supported element width.
 export slot_load_op_for :: fn(elem: ValType) -> Op | null {
-    w :: slot_width_for(elem)
-    if w == null { return null }
+    w :: slot_width_for(elem) ?? return null
     return match w {
         .U8    -> LoadSlotU8 {}
         .I32   -> LoadSlotI32 {}
@@ -314,8 +312,7 @@ export slot_load_op_for :: fn(elem: ValType) -> Op | null {
 /// `typed_slot_store_op_for` delegate the op shape to `slot_load_op_for` /
 /// `slot_store_op_for` and only gate on this.
 slot_typed_flippable :: fn(elem: ValType) -> bool {
-    w :: slot_width_for(elem)
-    if w == null { return false }
+    w :: slot_width_for(elem) ?? return false
     return match w {
         .I32   -> true
         .I64   -> true

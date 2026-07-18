@@ -88,8 +88,7 @@ try_lower_chain_fusion :: fn(
     recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
     block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt | null {
-    chain :: top_level_chain(ctx, in_form.iter)
-    if chain is null { return null }
+    chain :: top_level_chain(ctx, in_form.iter) ?? return null
     // Bare ranges already hit the int-range fast path ; bypassing
     // would lose `default_if_free` + counter-name fidelity.
     if chain.kind == IterChainKind.Range { return null }
@@ -161,33 +160,28 @@ terminal_arg :: fn(call: AST.CallExpr, name: string) -> AST.Expr | null {
 export try_lower_terminal_fusion :: fn(ctx: FnLowerCtx, call: AST.CallExpr, type: Type) -> LoweredExpr | null {
     count_arg :: terminal_arg(call, "count")
     if count_arg != null {
-        chain :: top_level_chain(ctx, count_arg)
-        if chain == null { return null }
+        chain :: top_level_chain(ctx, count_arg) ?? return null
         return emit_count_fusion(ctx, chain, call.span)
     }
     collect_arg :: terminal_arg(call, "collect")
     if collect_arg != null {
-        chain :: top_level_chain(ctx, collect_arg)
-        if chain == null { return null }
+        chain :: top_level_chain(ctx, collect_arg) ?? return null
         return emit_collect_fusion(ctx, chain, call.span)
     }
     // Early-exit predicate terminals — any / all / find.
     any_call :: terminal_pred_arg(call, "any")
     if any_call != null {
-        chain :: top_level_chain(ctx, any_call.chain_arg)
-        if chain == null { return null }
+        chain :: top_level_chain(ctx, any_call.chain_arg) ?? return null
         return emit_bool_terminal(ctx, chain, any_call.pred, call.span, false, true, false)
     }
     all_call :: terminal_pred_arg(call, "all")
     if all_call != null {
-        chain :: top_level_chain(ctx, all_call.chain_arg)
-        if chain == null { return null }
+        chain :: top_level_chain(ctx, all_call.chain_arg) ?? return null
         return emit_bool_terminal(ctx, chain, all_call.pred, call.span, true, false, true)
     }
     find_call :: terminal_pred_arg(call, "find")
     if find_call != null {
-        chain :: top_level_chain(ctx, find_call.chain_arg)
-        if chain == null { return null }
+        chain :: top_level_chain(ctx, find_call.chain_arg) ?? return null
         return emit_find_terminal(ctx, chain, find_call.pred, call.span)
     }
     return null
@@ -384,8 +378,7 @@ emit_collect_fusion :: fn(ctx: FnLowerCtx, chain: IterChain, span: Span) -> Lowe
 // reached via `try_descend_gen_combinator` → `descend_chain` directly (which does
 // accept it). So a top-level bare `Array` bottom declines here.
 top_level_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
-    chain :: descend_chain(ctx, expr, false)
-    if chain is null { return null }
+    chain :: descend_chain(ctx, expr, false) ?? return null
     if chain.kind == IterChainKind.Array && chain.implicit_head { return null }
     return chain
 }
@@ -403,8 +396,7 @@ opaque_iter_bottom :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
     if !(t is StructType) { return null }
     if is_gen_state_struct(t) { return null }
     if !struct_implements_trait(t, TRAIT_ITERATOR, ctx.typed) { return null }
-    elem :: opaque_iter_element(ctx, t)
-    if elem is null { return null }
+    elem :: opaque_iter_element(ctx, t) ?? return null
     return mk_opaque_iter_chain(expr, elem, span_of(expr))
 }
 
@@ -493,8 +485,7 @@ unpack_fluent_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> FluentCom
         // free-fn UFCS dispatch (the typer stashed the receiver type under its id).
         // The callee's target is the receiver ; the first arg (if any) is the transform.
         is AST.FieldExpr as fe -> {
-            recv_ty :: ctx.typed.ufcs_receiver_types[fe.id]
-            if recv_ty is null { return null }
+            recv_ty :: ctx.typed.ufcs_receiver_types[fe.id] ?? return null
             fn_arg :: if call.args.len() > 0 { call.args[0].value } else { null }
             return FluentCombinator { .receiver = fe.target, .fn_arg = fn_arg }
         }
@@ -528,8 +519,7 @@ descend_array_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | nul
     result_ty :: ctx.types.expr_type(call)
     if result_ty is StructType as st {
         if st.symbol.name == STRUCT_ARRAY_ITERATOR {
-            arr_expr :: array_from_iter_call(ctx, call)
-            if arr_expr == null { return null }
+            arr_expr :: array_from_iter_call(ctx, call) ?? return null
             elem :: if st.args.len() > 0 { st.args[0] } else { TY_UNRESOLVED }
             return mk_array_chain(arr_expr, elem, call.span, false)
         }
@@ -618,15 +608,13 @@ emit_fused_opaque_iter :: fn(
     recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
 ) -> LoweredStmt[] {
     span :: chain.span
-    src :: chain.iter_expr
-    if src is null { return [] }
+    src :: chain.iter_expr ?? return []
     element_type :: chain.element_type
     iter_lowered :: recurse(ctx, src)
     raw_iter_type :: type_of(iter_lowered)
     iter_type :: erase_genstate_for_dispatch(ctx, raw_iter_type, element_type)
 
-    yield_opt :: find_core_type(ctx, STRUCT_YIELD, build_one(element_type))
-    if yield_opt is null { return [] }
+    yield_opt :: find_core_type(ctx, STRUCT_YIELD, build_one(element_type)) ?? return []
     yield_type :: yield_opt
     step_union :: union_of_yield_null(yield_type)
 
@@ -751,8 +739,7 @@ emit_fused_array :: fn(
 ) -> LoweredStmt[] {
     span :: array_chain.span
     elem_type :: array_chain.element_type
-    src :: array_chain.array_expr
-    if src is null { return [] }
+    src :: array_chain.array_expr ?? return []
     arr_lowered :: recurse(ctx, src)
     arr_type :: type_of(arr_lowered)
     usize_type :: mk_primitive("usize")
