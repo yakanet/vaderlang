@@ -378,30 +378,26 @@ collect_type :: fn(e: AST.Expr, out: Span[]) -> void {
 }
 
 collect_opt_type :: fn(e: AST.Expr | null, out: Span[]) -> void {
-    match e {
-        is null -> {}
-        _       -> { collect_type(e, out) }
+    if e !is null {
+        collect_type(e, out)
     }
 }
 
 collect_opt_expr :: fn(e: AST.Expr | null, out: Span[]) -> void {
-    match e {
-        is null -> {}
-        _       -> { collect_expr(e, out) }
+    if e !is null {
+        collect_expr(e, out)
     }
 }
 
 collect_opt_block :: fn(b: AST.BlockExpr | null, out: Span[]) -> void {
-    match b {
-        is null -> {}
-        _       -> { collect_block(b, out) }
+    if b !is null {
+        collect_block(b, out)
     }
 }
 
 collect_opt_pattern :: fn(p: AST.Pattern | null, out: Span[]) -> void {
-    match p {
-        is null -> {}
-        _       -> { collect_pattern(p, out) }
+    if p !is null {
+        collect_pattern(p, out)
     }
 }
 

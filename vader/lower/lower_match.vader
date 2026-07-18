@@ -253,16 +253,13 @@ tuple_pattern_predicate :: fn(
             .target = eff_target, .field = "_${i}",
         }
         sub :: pattern_predicate(ctx, element_pattern, field_access, element_type, element_pattern.span, recurse)
-        match sub {
-            is null -> {}
-            _ -> {
-                match accumulator {
-                    is null -> { accumulator = sub }
-                    _ -> {
-                        accumulator = LoweredBinary {
-                            .span = element_pattern.span, .type = TY_BOOL, .op = LoweredBinaryOp.And,
-                            .left = accumulator, .right = sub,
-                        }
+        if sub !is null {
+            match accumulator {
+                is null -> { accumulator = sub }
+                _ -> {
+                    accumulator = LoweredBinary {
+                        .span = element_pattern.span, .type = TY_BOOL, .op = LoweredBinaryOp.And,
+                        .left = accumulator, .right = sub,
                     }
                 }
             }
@@ -395,11 +392,8 @@ walk_pattern_bindings :: fn(
                     })
                 }
             }
-            match is_pattern.inner {
-                is null -> {}
-                _ -> {
-                    walk_pattern_bindings(ctx, is_pattern.inner, narrowed_target, inner_type, out, span)
-                }
+            if is_pattern.inner !is null {
+                walk_pattern_bindings(ctx, is_pattern.inner, narrowed_target, inner_type, out, span)
             }
         }
         is StructPattern as struct_pattern -> {

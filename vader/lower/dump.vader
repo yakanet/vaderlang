@@ -94,12 +94,9 @@ emit_block :: fn(lines: string[], block: LoweredBlock, indent: string) -> void {
     for stmt in block.stmts {
         emit_stmt(lines, stmt, indent)
     }
-    match block.trailing {
-        is null -> {}
-        _       -> {
-            lines.push("${indent}~>")
-            emit_expr(lines, block.trailing, "${indent}  ")
-        }
+    if block.trailing !is null {
+        lines.push("${indent}~>")
+        emit_expr(lines, block.trailing, "${indent}  ")
     }
 }
 

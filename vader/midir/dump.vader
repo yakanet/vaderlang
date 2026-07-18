@@ -58,9 +58,8 @@ dump_function :: fn(fn_: CFGFunction, sb: StringBuilder) -> void {
     for i in 0..<fn_.locals.len() {
         l :: fn_.locals[i]
         sb.append("    %${i} ${l.name}: ${display_type(l.type)}")
-        match l.symbol {
-            is null -> {}
-            _ -> { sb.append(" (${kind_name(l.symbol.kind)} ${l.symbol.name})") }
+        if l.symbol !is null {
+            sb.append(" (${kind_name(l.symbol.kind)} ${l.symbol.name})")
         }
         sb.append("\n")
     }

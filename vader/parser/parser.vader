@@ -1966,9 +1966,8 @@ parse_block :: fn(p: Parser) -> BlockExpr {
         stmts.push(raw[i])
     }
     if last_is_expr {
-        match last_expr {
-            is null -> {}
-            _       -> { trailing = last_expr }
+        if last_expr !is null {
+            trailing = last_expr
         }
     }
     rb :: p.expect(.RBrace, "`}` to close block")

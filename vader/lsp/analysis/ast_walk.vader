@@ -113,9 +113,8 @@ hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindState) -> void {
 
 hv_walk_block :: fn(b: AST.BlockExpr, typed: TypedProgram, st: FindState) -> void {
     for s in b.stmts { hv_walk_stmt(s, typed, st) }
-    match b.trailing {
-        is null -> {}
-        _ -> { hv_walk_expr(b.trailing, typed, st) }
+    if b.trailing !is null {
+        hv_walk_expr(b.trailing, typed, st)
     }
 }
 
@@ -124,9 +123,8 @@ hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindState) -> void {
         is AST.LetStmt as ls -> { hv_walk_expr(ls.value, typed, st) }
         is AST.ExprStmt as es -> { hv_walk_expr(es.expr, typed, st) }
         is AST.ReturnStmt as rs -> {
-            match rs.value {
-                is null -> {}
-                _ -> { hv_walk_expr(rs.value, typed, st) }
+            if rs.value !is null {
+                hv_walk_expr(rs.value, typed, st)
             }
         }
         is AST.YieldStmt as ys -> { hv_walk_expr(ys.value, typed, st) }
@@ -182,9 +180,8 @@ hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
         is AST.MatchExpr as m -> {
             hv_walk_expr(m.scrutinee, typed, st)
             for arm in m.arms {
-                match arm.guard {
-                    is null -> {}
-                    _ -> { hv_walk_expr(arm.guard, typed, st) }
+                if arm.guard !is null {
+                    hv_walk_expr(arm.guard, typed, st)
                 }
                 hv_walk_expr(arm.body, typed, st)
             }
@@ -290,9 +287,8 @@ binding_hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindBindingStat
 
 binding_hv_walk_block :: fn(b: AST.BlockExpr, typed: TypedProgram, st: FindBindingState) -> void {
     for s in b.stmts { binding_hv_walk_stmt(s, typed, st) }
-    match b.trailing {
-        is null -> {}
-        _ -> { binding_hv_walk_expr(b.trailing, typed, st) }
+    if b.trailing !is null {
+        binding_hv_walk_expr(b.trailing, typed, st)
     }
 }
 
@@ -314,9 +310,8 @@ binding_hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindBindingStat
         is AST.ExprStmt as es -> { binding_hv_walk_expr(es.expr, typed, st) }
         is AST.YieldStmt as ys -> { binding_hv_walk_expr(ys.value, typed, st) }
         is AST.ReturnStmt as rs -> {
-            match rs.value {
-                is null -> {}
-                _ -> { binding_hv_walk_expr(rs.value, typed, st) }
+            if rs.value !is null {
+                binding_hv_walk_expr(rs.value, typed, st)
             }
         }
         is AST.ForStmt as fs -> { binding_hv_walk_block(fs.body, typed, st) }
@@ -424,9 +419,8 @@ ee_walk_decl :: fn(d: AST.Decl, st: EncloseState) -> void {
 
 ee_walk_block :: fn(b: AST.BlockExpr, st: EncloseState) -> void {
     for s in b.stmts { ee_walk_stmt(s, st) }
-    match b.trailing {
-        is null -> {}
-        _ -> { ee_walk_expr(b.trailing, st) }
+    if b.trailing !is null {
+        ee_walk_expr(b.trailing, st)
     }
 }
 
@@ -435,9 +429,8 @@ ee_walk_stmt :: fn(s: AST.Stmt, st: EncloseState) -> void {
         is AST.LetStmt as ls -> { ee_walk_expr(ls.value, st) }
         is AST.ExprStmt as es -> { ee_walk_expr(es.expr, st) }
         is AST.ReturnStmt as rs -> {
-            match rs.value {
-                is null -> {}
-                _ -> { ee_walk_expr(rs.value, st) }
+            if rs.value !is null {
+                ee_walk_expr(rs.value, st)
             }
         }
         is AST.YieldStmt as ys -> { ee_walk_expr(ys.value, st) }
@@ -494,9 +487,8 @@ ee_walk_expr :: fn(e: AST.Expr, st: EncloseState) -> void {
         is AST.MatchExpr as m -> {
             ee_walk_expr(m.scrutinee, st)
             for arm in m.arms {
-                match arm.guard {
-                    is null -> {}
-                    _ -> { ee_walk_expr(arm.guard, st) }
+                if arm.guard !is null {
+                    ee_walk_expr(arm.guard, st)
                 }
                 ee_walk_expr(arm.body, st)
             }

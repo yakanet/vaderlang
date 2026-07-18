@@ -174,23 +174,20 @@ push_name_token :: fn(out: RawToken[], start: Position, prefix: i32, name: strin
 // narrowing happens once.
 
 walk_opt_type :: fn(t: AST.Expr | null, out: RawToken[]) -> void {
-    match t {
-        is null -> {}
-        _       -> { walk_type_expr(t, out) }
+    if t !is null {
+        walk_type_expr(t, out)
     }
 }
 
 walk_opt_expr :: fn(e: AST.Expr | null, out: RawToken[]) -> void {
-    match e {
-        is null -> {}
-        _       -> { walk_expr(e, out) }
+    if e !is null {
+        walk_expr(e, out)
     }
 }
 
 walk_opt_pattern :: fn(p: AST.Pattern | null, out: RawToken[]) -> void {
-    match p {
-        is null -> {}
-        _       -> { walk_pattern(p, out) }
+    if p !is null {
+        walk_pattern(p, out)
     }
 }
 
@@ -256,9 +253,8 @@ walk_fn_decl :: fn(d: AST.FnDecl, out: RawToken[]) -> void {
 }
 
 walk_opt_block :: fn(b: AST.BlockExpr | null, out: RawToken[]) -> void {
-    match b {
-        is null -> {}
-        _       -> { walk_block(b, out) }
+    if b !is null {
+        walk_block(b, out)
     }
 }
 

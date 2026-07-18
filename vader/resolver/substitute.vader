@@ -70,9 +70,8 @@ export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeE
             for p in e.params { new_params.push(substitute_type_expr(p, subst)) }
             rt :: e.return_type
             new_rt: AST.TypeExpr | null = null
-            match rt {
-                is null -> {}
-                _       -> { new_rt = substitute_type_expr(rt, subst) }
+            if rt !is null {
+                new_rt = substitute_type_expr(rt, subst)
             }
             return AST.FnTypeExpr {
                 .span = e.span,

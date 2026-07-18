@@ -184,9 +184,8 @@ walk_body :: fn(
     out_captures: Capture[] | null, out_seen: MutableSet<i32> | null, ctx: WalkCtx,
 ) -> void {
     for stmt in body.stmts { walk_stmt(stmt, scope, out_captures, out_seen, ctx) }
-    match body.trailing {
-        is null -> {}
-        _ -> { walk_expr(body.trailing, scope, out_captures, out_seen, ctx) }
+    if body.trailing !is null {
+        walk_expr(body.trailing, scope, out_captures, out_seen, ctx)
     }
 }
 
@@ -207,9 +206,8 @@ walk_stmt :: fn(
             walk_expr(expr_stmt.expr, scope, out_captures, out_seen, ctx)
         }
         is AST.ReturnStmt as return_stmt -> {
-            match return_stmt.value {
-                is null -> {}
-                _ -> { walk_expr(return_stmt.value, scope, out_captures, out_seen, ctx) }
+            if return_stmt.value !is null {
+                walk_expr(return_stmt.value, scope, out_captures, out_seen, ctx)
             }
         }
         is AST.YieldStmt as yield_stmt -> {
@@ -351,9 +349,8 @@ walk_expr :: fn(
                 // local count, comfortably fine for the analysis pass.
                 arm_scope :: clone_scope(scope)
                 walk_pattern_for_bindings(arm.pattern, arm_scope, ctx.symbol_index, [])
-                match arm.guard {
-                    is null -> {}
-                    _ -> { walk_expr(arm.guard, arm_scope, out_captures, out_seen, ctx) }
+                if arm.guard !is null {
+                    walk_expr(arm.guard, arm_scope, out_captures, out_seen, ctx)
                 }
                 walk_expr(arm.body, arm_scope, out_captures, out_seen, ctx)
             }
@@ -514,9 +511,8 @@ walk_pattern_for_bindings :: fn(
                     }
                 }
             }
-            match is_pattern.inner {
-                is null -> {}
-                _ -> { walk_pattern_for_bindings(is_pattern.inner, scope, symbol_index, added) }
+            if is_pattern.inner !is null {
+                walk_pattern_for_bindings(is_pattern.inner, scope, symbol_index, added)
             }
         }
         is AST.StructPattern as struct_pattern -> {

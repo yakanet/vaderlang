@@ -166,9 +166,8 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
         // recover this type-param's Symbol id when enforcing T3006.
         self.idents[tp.span.hash()] = sym
         self.walk_opt_expr(tp.bound)
-        match tp.bound {
-            is null -> {}
-            _ -> { self.type_param_bounds[sym.id] = tp.bound }
+        if tp.bound !is null {
+            self.type_param_bounds[sym.id] = tp.bound
         }
     }
     for p in d.params {
@@ -196,9 +195,8 @@ walk_struct_decl :: fn(self: ResolveState, d: AST.StructDecl) -> void {
         sym :: self.mint_local(.TypeParam, tp.name, tp.span)
         self.scope.bind(tp.name, sym)
         self.walk_opt_expr(tp.bound)
-        match tp.bound {
-            is null -> {}
-            _ -> { self.type_param_bounds[sym.id] = tp.bound }
+        if tp.bound !is null {
+            self.type_param_bounds[sym.id] = tp.bound
         }
     }
     for f in d.fields {
@@ -215,9 +213,8 @@ walk_trait_decl :: fn(self: ResolveState, d: AST.TraitDecl) -> void {
         sym :: self.mint_local(.TypeParam, tp.name, tp.span)
         self.scope.bind(tp.name, sym)
         self.walk_opt_expr(tp.bound)
-        match tp.bound {
-            is null -> {}
-            _ -> { self.type_param_bounds[sym.id] = tp.bound }
+        if tp.bound !is null {
+            self.type_param_bounds[sym.id] = tp.bound
         }
     }
     self.walk_opt_expr(d.requires)
@@ -232,9 +229,8 @@ walk_impl_decl :: fn(self: ResolveState, d: AST.ImplDecl) -> void {
         sym :: self.mint_local(.TypeParam, tp.name, tp.span)
         self.scope.bind(tp.name, sym)
         self.walk_opt_expr(tp.bound)
-        match tp.bound {
-            is null -> {}
-            _ -> { self.type_param_bounds[sym.id] = tp.bound }
+        if tp.bound !is null {
+            self.type_param_bounds[sym.id] = tp.bound
         }
     }
     // Auto-bind type params from `for_type` when the impl head
@@ -298,9 +294,8 @@ is_known_decorator :: fn(name: string) -> bool {
 }
 
 walk_opt_expr :: fn(self: ResolveState, e: AST.Expr | null) -> void {
-    match e {
-        is null -> {}
-        _       -> { self.walk_expr(e) }
+    if e !is null {
+        self.walk_expr(e)
     }
 }
 
@@ -578,9 +573,8 @@ bind_pattern :: fn(self: ResolveState, p: AST.Pattern) -> void {
                     self.scope.bind(name, sym)
                 }
             }
-            match x.inner {
-                is null -> {}
-                _       -> { self.bind_pattern(x.inner) }
+            if x.inner !is null {
+                self.bind_pattern(x.inner)
             }
         }
         is AST.StructPattern as x -> {
