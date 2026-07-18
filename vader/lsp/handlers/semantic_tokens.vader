@@ -91,11 +91,18 @@ reencode_columns :: fn(out: RawToken[], li: LineIndex) -> void {
 
 collect_token_kinds :: fn(source: string, uri: string, out: RawToken[]) -> void {
     lex :: tokenize(source, uri)
-    for t in lex.tokens {
-        rt :: token_to_raw(t)
-        match rt {
-            is null -> {}
-            is RawToken as r -> { out.push(r) }
+    toks :: lex.tokens
+    for i in 0..<toks.len() {
+        t :: toks[i]
+        // `!is` / `!in` : the leading `!` (Bang) is part of the negated operator,
+        // so paint it as a keyword too — otherwise `!` classifies as an operator
+        // and the two halves colour differently (mirrors the `!is` / `!in`
+        // patterns in the TextMate grammar).
+        bang_neg :: t.kind == .Bang && i + 1 < toks.len()
+            && (toks[i + 1].kind == .KwIs || toks[i + 1].kind == .KwIn)
+        tt :: if bang_neg { i32(TokenType.Keyword) } else { classify_token(t) }
+        if tt >= 0 {
+            out.push(raw_of_type(t, tt))
         }
     }
 }
@@ -103,6 +110,13 @@ collect_token_kinds :: fn(source: string, uri: string, out: RawToken[]) -> void 
 token_to_raw :: fn(t: Token) -> RawToken | null {
     tt :: classify_token(t)
     if tt < 0 { return null }
+    return raw_of_type(t, tt)
+}
+
+// Build a `RawToken` for `t` with the given semantic type. Split out so the
+// token loop can override the type (the `!is` / `!in` Bang) without duplicating
+// the span arithmetic.
+raw_of_type :: fn(t: Token, tt: i32) -> RawToken {
     sp :: t.span
     return RawToken {
         .line         = sp.start.line - 1,
@@ -419,6 +433,34 @@ test_yield_const_classified_as_keyword :: fn() -> void {
     sp :: empty_file_span("t.vader")
     assert_eq(classify_token(make_token(.KwYield, "yield", sp)), i32(TokenType.Keyword))
     assert_eq(classify_token(make_token(.KwConst, "const", sp)), i32(TokenType.Keyword))
+}
+
+// The semantic type of the token starting at byte `offset`, or -1 if none.
+tok_type_at :: fn(toks: RawToken[], offset: usize) -> i32 {
+    for r in toks {
+        if r.start_offset == offset {
+            return r.tok_type
+        }
+    }
+    return -1
+}
+
+@test
+test_bang_is_in_paint_as_keyword :: fn() -> void {
+    // `!is` / `!in` : the leading `!` paints as a keyword (not an operator) so
+    // the negated operator colours as one unit — mirrors the TextMate grammar.
+    is_toks: RawToken[] = []
+    collect_token_kinds("x !is y\n", "t.vader", is_toks)
+    assert_eq(tok_type_at(is_toks, 2), i32(TokenType.Keyword))
+
+    in_toks: RawToken[] = []
+    collect_token_kinds("x !in y\n", "t.vader", in_toks)
+    assert_eq(tok_type_at(in_toks, 2), i32(TokenType.Keyword))
+
+    // A bare `!` (logical not) still classifies as an operator.
+    not_toks: RawToken[] = []
+    collect_token_kinds("!x\n", "t.vader", not_toks)
+    assert_eq(tok_type_at(not_toks, 0), i32(TokenType.Operator))
 }
 
 @test
