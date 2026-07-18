@@ -12,6 +12,7 @@
 module "vader/typecheck"
 
 import "std/collections"
+import "std/iter"
 import "vader/diagnostics"
 AST :: import "vader/parser"
 import "vader/parser"
@@ -61,11 +62,10 @@ export check_file :: fn(entry_path: string, overlay: MutableMap<string, string>,
     project :: load_project_with_overlay(entry_path, overlay, include_path_flags)
     diags: Diagnostic[] = []
     result :: check_project_with_bodies(project, diags, dump_types)
-    merged: Diagnostic[] = []
-    for d in project.diags { merged.push(d) }
-    for d in diags         { merged.push(d) }
     return FileCheck {
-        .project = project, .result = result, .diags = merged,
+        .project = project,
+        .result  = result,
+        .diags   = chain(project.diags, diags).collect(),
     }
 }
 
