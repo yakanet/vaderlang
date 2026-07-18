@@ -46,7 +46,7 @@ test("every @extern under vader/ has a VM host handler", () => {
   for (const file of vaderFiles("vader")) {
     const lines = readFileSync(file, "utf8").split("\n");
     for (let i = 0; i < lines.length; i++) {
-      if (!lines[i].startsWith("@extern")) continue;
+      if (!lines[i]!  .startsWith("@extern")) continue;
       // The decorator sits directly above its bodyless declaration.
       const decl = lines[i + 1] ?? "";
       const name = decl.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*::/)?.[1];
