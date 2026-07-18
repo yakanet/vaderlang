@@ -55,8 +55,7 @@ import_link :: fn(imp: ImportDecl, source: string, state: ServerState, from_uri:
     if abs == "" { return null }
     target :: representative_file(abs)
     if target == "" { return null }
-    range :: path_string_range(imp, source, li)
-    if range == null { return null }
+    range :: path_string_range(imp, source, li) ?? return null
     obj :: MutableMap<string, JsonValue> {}
     obj["range"]  = range_json(range)
     obj["target"] = JsonString { .value = path_to_uri(target) }

@@ -90,8 +90,7 @@ import "vader/typecheck"
 ///                    matches (defensive — earlier diagnostics should
 ///                    have caught the missing impl).
 export find_impl_for :: fn(ctx: LowerProjectCtx, for_type: Type, trait_name: string) -> ImplEntry | null {
-    for_symbol :: type_to_target_symbol(for_type)
-    if for_symbol is null { return null }
+    for_symbol :: type_to_target_symbol(for_type) ?? return null
     trait_symbol :: find_core_trait(ctx, trait_name)
     match trait_symbol {
         is null -> { return find_via_all(ctx, for_symbol, trait_name) }

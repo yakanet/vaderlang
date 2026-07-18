@@ -49,8 +49,7 @@ main :: fn(argv: string[]) -> i32 {
     }
     input  :: argv[1]
     output :: argv[2]
-    c_src :: emit_c_source(input)
-    if c_src is null { return 1 }
+    c_src :: emit_c_source(input) ?? return 1
     return write_out(output, c_src)
 }
 
@@ -161,8 +160,7 @@ prepare_cfg_bytecode :: fn(file: string) -> CfgBytecode {
 // emit the `export main <index>` directive. Returns "" when the entry module
 // isn't resolvable, which suppresses the directive.
 entry_main_name :: fn(typed: TypedProject, entry: string) -> string {
-    tp :: typed.modules[entry]
-    if tp == null { return "" }
+    tp :: typed.modules[entry] ?? return ""
     return "${mangle_module_id(tp.resolved.display_path)}\$main"
 }
 
@@ -220,8 +218,7 @@ collect_body_diags :: fn(result: CheckResult) -> Diagnostic[] {
     if result.all_modules.is_empty() { return out }
     for module_id in result.all_modules.keys() {
         if module_id == result.typed.resolved.path { continue }
-        module_typed :: result.all_modules[module_id]
-        if module_typed is null { continue }
+        module_typed :: result.all_modules[module_id] ?? continue
         for d in module_typed.resolved.diags { out.push(d) }
     }
     return out
@@ -236,8 +233,7 @@ assemble_typed_project :: fn(result: CheckResult) -> TypedProject {
     // + std/* — so downstream passes (lower, bytecode emit) see std-defined impls.
     if !result.all_modules.is_empty() {
         for module_id in result.all_modules.keys() {
-            module_typed :: result.all_modules[module_id]
-            if module_typed is null { continue }
+            module_typed :: result.all_modules[module_id] ?? continue
             project.modules[module_id] = module_typed
         }
         return project

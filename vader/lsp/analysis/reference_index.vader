@@ -77,13 +77,11 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
     sites: RefSite[] = []
     seen :: MutableMap<u64, bool> {}
     for [id, typed] in result.all_modules {
-        mod :: project.modules[id]
-        if mod == null { continue }
+        mod :: project.modules[id] ?? continue
 
         // Top-level declaration + import sites from the module's symbol table.
         for sym in typed.resolved.symbols {
-            da :: sym.defined_at
-            if da == null { continue }
+            da :: sym.defined_at ?? continue
             h :: da.hash()
             if seen[h] != null { continue }
             seen[h] = true
@@ -99,8 +97,7 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
             for sp in spans {
                 h :: sp.hash()
                 if seen[h] != null { continue }
-                sym :: typed.resolved.idents[h]
-                if sym == null { continue }
+                sym :: typed.resolved.idents[h] ?? continue
                 seen[h] = true
                 canon :: resolve_import_redirect(sym, table)
                 sites.push(RefSite { .span = sp, .symbol_id = canon.id, .is_decl = false })

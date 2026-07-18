@@ -44,8 +44,7 @@ import "vader/types"
 get_or_create_concat :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     cached :: ctx.project.concat_fn_syms[n]
     if cached is Symbol as s { return s }
-    sym :: synthesize_concat_fn(ctx, n)
-    if sym == null { return null }
+    sym :: synthesize_concat_fn(ctx, n) ?? return null
     ctx.project.concat_fn_syms[n] = sym
     return sym
 }
@@ -77,16 +76,11 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     // is the `Buffer` impl member resolved directly (a void wrapper would NOT
     // inline — `inline_fns` skips void), avoiding the `write_string_at` call layer
     // + its redundant `byte_len`.
-    nbb_sym :: resolve_writer_fn(ctx, "new_byte_buffer")
-    if nbb_sym == null { return null }
-    blen_sym :: resolve_writer_fn(ctx, "byte_len")
-    if blen_sym == null { return null }
-    finish_sym :: resolve_writer_fn(ctx, "finish_buffer")
-    if finish_sym == null { return null }
-    buffer_type :: resolve_buffer_type(ctx, finish_sym)
-    if buffer_type == null { return null }
-    wstr_member :: find_impl_member_for(ctx, buffer_type, "write_string")
-    if wstr_member == null { return null }
+    nbb_sym :: resolve_writer_fn(ctx, "new_byte_buffer") ?? return null
+    blen_sym :: resolve_writer_fn(ctx, "byte_len") ?? return null
+    finish_sym :: resolve_writer_fn(ctx, "finish_buffer") ?? return null
+    buffer_type :: resolve_buffer_type(ctx, finish_sym) ?? return null
+    wstr_member :: find_impl_member_for(ctx, buffer_type, "write_string") ?? return null
     // Harvest the free wrappers for materialisation — else the synthesised calls
     // have an unresolved (non-materialised) callee. `write_string` is surfaced by
     // `find_impl_member_for` (it records the mangle in `referenced_impl_mangles`).

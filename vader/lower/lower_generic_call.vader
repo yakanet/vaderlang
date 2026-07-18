@@ -27,11 +27,9 @@ import "vader/resolver"
 /// caller's kind-check filter the wrong shape).
 follow_import_binding :: fn(ctx: FnLowerCtx, sym: Symbol) -> Symbol {
     if sym.kind != SymbolKind.ImportBinding { return sym }
-    targets :: ctx.typed.import_targets
-    if targets is null { return sym }
+    targets :: ctx.typed.import_targets ?? return sym
     if targets is ImportTargetTable as t {
-        st :: t.symbol_targets[sym.id]
-        if st is null { return sym }
+        st :: t.symbol_targets[sym.id] ?? return sym
         if st is SymbolTarget as found { return found.symbol }
     }
     return sym
@@ -81,11 +79,9 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
             }
         }
     }
-    callee_ident :: as_ident(call.callee)
-    if callee_ident is null { return null }
+    callee_ident :: as_ident(call.callee) ?? return null
     if callee_ident is IdentExpr as id {
-        raw_sym :: ctx.typed.resolved.idents[id.span.hash()]
-        if raw_sym is null { return null }
+        raw_sym :: ctx.typed.resolved.idents[id.span.hash()] ?? return null
         if raw_sym is Symbol as raw_resolved {
             fn_sym :: follow_import_binding(ctx, raw_resolved)
             if fn_sym.kind != SymbolKind.Fn { return null }

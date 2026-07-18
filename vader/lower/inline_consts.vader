@@ -52,8 +52,7 @@ FN_WRAP_MIN_ELEMENTS :: usize(4)
 ///                     them.
 export inline_consts :: fn(project: LoweredProject, project_ctx: LowerProjectCtx) -> void {
     for module_id in project.modules.keys() {
-        m :: project.modules[module_id]
-        if m is null { continue }
+        m :: project.modules[module_id] ?? continue
         new_decls: LoweredDecl[] = []
         changed := false
         for d in m.decls {
@@ -134,8 +133,7 @@ try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProjec
 // every other element type takes the primitive bit-pattern path.
 render_data_pool_entry :: fn(lit: LoweredArrayLit, element_name: string) -> DataPoolEntry | null {
     if element_name == "string" {
-        values :: render_string_items(lit)
-        if values == null { return null }
+        values :: render_string_items(lit) ?? return null
         return StrDataPoolEntry { .values = values }
     }
     rendered :: render_data_items(lit, element_name)
@@ -204,8 +202,7 @@ render_string_items :: fn(lit: LoweredArrayLit) -> string[] | null {
 render_data_items :: fn(lit: LoweredArrayLit, element_name: string) -> i64[] | null {
     out: i64[] = []
     for el in lit.elements {
-        bits :: data_item_bits(el, element_name)
-        if bits == null { return null }
+        bits :: data_item_bits(el, element_name) ?? return null
         out.push(bits)
     }
     return out

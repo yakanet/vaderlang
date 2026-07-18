@@ -54,8 +54,7 @@ export try_lower_generator_inline :: fn(
 // subst. Null when the fn isn't registered (declines fusion). Shared by the
 // direct-call and combinator fusion sites.
 genstate_element :: fn(typed: TypedProgram, fn_name: string, subst: Substitution) -> Type | null {
-    raw :: typed.iter_element_types[gen_state_name(fn_name)]
-    if raw is null { return null }
+    raw :: typed.iter_element_types[gen_state_name(fn_name)] ?? return null
     return substitute(raw, subst)
 }
 
@@ -98,30 +97,24 @@ inline_gen_ident_call :: fn(
     recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
     block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt | null {
-    raw_callee :: ctx.typed.resolved.idents[callee_id.span.hash()]
-    if raw_callee is null { return null }
+    raw_callee :: ctx.typed.resolved.idents[callee_id.span.hash()] ?? return null
     // Follow a directly-called imported generator's ImportBinding to its owner fn.
     callee_sym :: follow_import_binding(ctx, raw_callee)
-    owner_typed :: resolve_owner_typed(ctx, callee_sym.module)
-    if owner_typed is null { return null }
-    fn_decl :: owner_typed.fn_decls[callee_sym.id]
-    if fn_decl is null { return null }
+    owner_typed :: resolve_owner_typed(ctx, callee_sym.module) ?? return null
+    fn_decl :: owner_typed.fn_decls[callee_sym.id] ?? return null
     if !fn_is_generator(fn_decl) { return null }
-    gen_body :: fn_decl.body
-    if gen_body is null { return null }
+    gen_body :: fn_decl.body ?? return null
     if call.args.len() != fn_decl.params.len() { return null }
 
     // The generator's instance substitution: empty for a non-generic generator ;
     // the inferred per-instance subst for a generic one. Null → a generic body
     // whose type args don't infer to all-concrete ; bail to the boxed path.
-    subst_opt :: gen_instance_subst(ctx, callee_id, call, fn_decl, owner_typed)
-    if subst_opt is null { return null }
+    subst_opt :: gen_instance_subst(ctx, callee_id, call, fn_decl, owner_typed) ?? return null
     subst :: subst_opt
 
     // Direction A: the call result is the concrete `__genstate_<fn>` struct, not
     // `Iterator<U>` — take the yielded element from the registered element.
-    element_type :: genstate_element(ctx.typed, fn_decl.name, subst)
-    if element_type is null { return null }
+    element_type :: genstate_element(ctx.typed, fn_decl.name, subst) ?? return null
     if element_type == TY_VOID { return null }
 
     // Bind each generator param to its call arg — a `let <param> = <arg>` ahead
@@ -131,8 +124,7 @@ inline_gen_ident_call :: fn(
     param_lets: LoweredStmt[] = []
     for i in 0..<fn_decl.params.len() {
         p :: fn_decl.params[i]
-        p_sym :: lookup_local_symbol(ctx.project, owner_typed.resolved, p.span)
-        if p_sym is null { return null }
+        p_sym :: lookup_local_symbol(ctx.project, owner_typed.resolved, p.span) ?? return null
         arg_lowered :: recurse(ctx, call.args[i].value)
         param_lets.push(LoweredLet {
             .span = p.span, .name = p.name, .symbol = p_sym,
@@ -252,25 +244,18 @@ GenComboLayer :: struct {
 // layer whose primary source is `descend_chain(<recv>)` and whose extra source
 // params fuse independently, else null (the chain falls back to the boxed path).
 try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | null {
-    fluent :: unpack_fluent_combinator(ctx, call)
-    if fluent is null { return null }
-    callee_sym :: combinator_callee_sym(ctx, call, fluent.receiver)
-    if callee_sym is null { return null }
-    owner :: resolve_owner_typed(ctx, callee_sym.module)
-    if owner is null { return null }
-    decl :: owner.fn_decls[callee_sym.id]
-    if decl is null { return null }
+    fluent :: unpack_fluent_combinator(ctx, call) ?? return null
+    callee_sym :: combinator_callee_sym(ctx, call, fluent.receiver) ?? return null
+    owner :: resolve_owner_typed(ctx, callee_sym.module) ?? return null
+    decl :: owner.fn_decls[callee_sym.id] ?? return null
     if !fn_is_generator(decl) { return null }
     // v1: `self` plus zero (`enumerate`) or one (map/filter/take/skip/chain) non-self param.
     if decl.params.len() != 1 && decl.params.len() != 2 { return null }
-    loops :: extract_gen_source_loops(decl)
-    if loops is null { return null }
+    loops :: extract_gen_source_loops(decl) ?? return null
 
     // The primary loop iterates `self` (param 0) ; its source is the receiver.
-    primary :: find_source_loop(loops, 0)
-    if primary is null { return null }
-    source :: descend_chain(ctx, fluent.receiver, true)
-    if source is null { return null }
+    primary :: find_source_loop(loops, 0) ?? return null
+    source :: descend_chain(ctx, fluent.receiver, true) ?? return null
     primary_loopvar :: lookup_local_symbol(ctx.project, owner.resolved, primary.loopvar_span)
     if primary_loopvar is null { return null }
 
@@ -283,10 +268,8 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
     arg_is_data :: decl.params.len() == 2 && param1_loop is null
     extra_sources: GenSourceBinding[] = []
     if param1_loop is GenSourceLoop as sl {
-        other_expr :: fluent.fn_arg
-        if other_expr is null { return null }
-        other_src :: descend_chain(ctx, other_expr, true)
-        if other_src is null { return null }
+        other_expr :: fluent.fn_arg ?? return null
+        other_src :: descend_chain(ctx, other_expr, true) ?? return null
         other_loopvar :: lookup_local_symbol(ctx.project, owner.resolved, sl.loopvar_span)
         if other_loopvar is null { return null }
         extra_sources.push(GenSourceBinding {
@@ -307,8 +290,7 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
 
     // Direction A: the call result is the concrete `__genstate_<fn>` struct, not
     // `Iterator<U>` — take the yielded element from the registered element.
-    output_elem :: genstate_element(ctx.typed, decl.name, subst_opt)
-    if output_elem is null { return null }
+    output_elem :: genstate_element(ctx.typed, decl.name, subst_opt) ?? return null
     return mk_generator_chain(source, GenComboLayer {
         .decl = decl, .subst = subst_opt, .owner = owner,
         .loopvar = primary_loopvar, .inner = primary.inner,
@@ -342,8 +324,7 @@ GenSourceLoop :: struct { param_index: usize, loopvar_span: Span, inner: AST.Blo
 // at all — shapes the fusion doesn't model. map/filter/take/skip/enumerate yield a
 // single loop over `self` ; `chain` yields two (over `self` and `other`).
 extract_gen_source_loops :: fn(decl: AST.FnDecl) -> GenSourceLoop[] | null {
-    body :: decl.body
-    if body is null { return null }
+    body :: decl.body ?? return null
     if body.trailing != null { return null }
     if body.stmts.len() == 0 { return null }
     loops: GenSourceLoop[] = []
@@ -394,8 +375,7 @@ combinator_callee_sym :: fn(ctx: FnLowerCtx, call: AST.CallExpr, receiver: AST.E
             return null
         }
         is AST.IdentExpr as id -> {
-            sym :: ctx.typed.resolved.idents[id.span.hash()]
-            if sym is null { return null }
+            sym :: ctx.typed.resolved.idents[id.span.hash()] ?? return null
             // A directly-called imported combinator resolves to the `import`
             // ImportBinding ; follow it to the OWNER fn so `resolve_owner_typed`
             // + `gen_state_symbol` see the defining module.
@@ -452,8 +432,7 @@ gen_combo_subst :: fn(
         unify_params(f.params[1], default_if_free(ctx.types.expr_type(fn_arg)), bindings, order, ctx)
         concrete_args: Type[] = []
         for id in order {
-            v :: bindings[id]
-            if v is null { return null }
+            v :: bindings[id] ?? return null
             concrete_args.push(v)
         }
         return subst_from_concrete(decl, owner, concrete_args)

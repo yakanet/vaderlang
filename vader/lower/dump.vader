@@ -39,8 +39,7 @@ export dump_lowered :: fn(project: LoweredProject, scope: string[]) -> string {
     lines.push("# Lower")
     module_ids :: sort(project.modules.keys(), (a: string, b: string) -> compare_ascending(a, b))
     for module_id in module_ids {
-        module :: project.modules[module_id]
-        if module is null { continue }
+        module :: project.modules[module_id] ?? continue
         if !module_in_scope(module.display_path, scope) { continue }
         lines.push("")
         lines.push("## ${module.display_path}")

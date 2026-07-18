@@ -158,8 +158,7 @@ collect_overload_candidates :: fn(name: string, typed: TypedProgram) -> FnType[]
         is null -> {}
         _ -> {
             for sym in bucket {
-                ft :: typed.decl_types[sym.id]
-                if ft is null { continue }
+                ft :: typed.decl_types[sym.id] ?? continue
                 match ft { is FnType as f -> { out.push(f) } _ -> {} }
             }
         }
@@ -183,10 +182,8 @@ seed_ufcs_bindings :: fn(
     callee: AST.Expr, typed: TypedProgram, bindings: MutableMap<i32, Type>,
 ) -> void {
     if !(callee is AST.FieldExpr) { return }
-    receiver_ty :: typed.ufcs_receiver_types[callee.id]
-    if receiver_ty is null { return }
-    target_ty :: typed.expr_types[callee.target.id]
-    if target_ty is null { return }
+    receiver_ty :: typed.ufcs_receiver_types[callee.id] ?? return
+    target_ty :: typed.expr_types[callee.target.id] ?? return
     unify_type_param(receiver_ty, target_ty, bindings)
     // A struct receiver impl'ing the trait the first param expects (a concrete
     // `FilterIterator<i32>` / `ArrayIterator<i32>` curried into `self: Iterator<T>`)
@@ -209,12 +206,10 @@ seed_explicit_type_args :: fn(
     gi :: callee
     // `lookup_callee_fn_decl` already sees through the `f<…>` wrapper to
     // the ident and handles the import-redirect + null guards.
-    decl :: lookup_callee_fn_decl(callee, typed)
-    if decl is null { return }
+    decl :: lookup_callee_fn_decl(callee, typed) ?? return
     n :: min(decl.type_params.len(), gi.type_args.len())
     for i in 0..<n {
-        tp_sym :: typed.resolved.idents[decl.type_params[i].span.hash()]
-        if tp_sym is null { continue }
+        tp_sym :: typed.resolved.idents[decl.type_params[i].span.hash()] ?? continue
         bindings[tp_sym.id] = type_from_expr(gi.type_args[i], typed.resolved, diags)
     }
 }
@@ -350,12 +345,9 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
 // unless `fe` is a namespace member fn call whose arity matches `callee_ty`
 // (a mismatch stays positional rather than mis-filling).
 namespace_member_params :: fn(fe: AST.FieldExpr, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
-    mod_id :: namespace_call_mod_id(fe, typed)
-    if mod_id is null { return null }
-    by_name :: typed.namespace_export_params[mod_id]
-    if by_name is null { return null }
-    ps :: by_name[fe.field]
-    if ps is null { return null }
+    mod_id :: namespace_call_mod_id(fe, typed) ?? return null
+    by_name :: typed.namespace_export_params[mod_id] ?? return null
+    ps :: by_name[fe.field] ?? return null
     if ps.len() != callee_ty.params.len() { return null }
     return ps
 }
@@ -365,8 +357,7 @@ namespace_member_params :: fn(fe: AST.FieldExpr, callee_ty: FnType, typed: Typed
 // pick). Prefers an exact type match, falling back to the first same-arity
 // candidate so a substituted generic pick still lands.
 overload_params_matching :: fn(name: string, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
-    bucket :: typed.resolved.fn_overloads[name]
-    if bucket is null { return null }
+    bucket :: typed.resolved.fn_overloads[name] ?? return null
     fallback: AST.FnParam[] | null = null
     for sym in bucket {
         decl :: typed.fn_decls[sym.id]
@@ -388,8 +379,7 @@ overload_params_matching :: fn(name: string, callee_ty: FnType, typed: TypedProg
 // `recv_ty` — the receiver-type check disambiguates same-arity methods on
 // different receiver types (so the right param names are used).
 ufcs_method_params :: fn(method: string, recv_ty: Type, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
-    bucket :: typed.resolved.fn_overloads[method]
-    if bucket is null { return null }
+    bucket :: typed.resolved.fn_overloads[method] ?? return null
     for sym in bucket {
         decl :: typed.fn_decls[sym.id]
         if decl is AST.FnDecl as fd {
@@ -503,8 +493,7 @@ export infer_call :: fn(
         // substituting, so the return type comes back concrete
         // (`i32` / `f64`) instead of `{integer}` / `{float}`.
         for k in bindings.keys() {
-            v :: bindings[k]
-            if v is null { continue }
+            v :: bindings[k] ?? continue
             bindings[k] = default_if_free(v)
         }
         // Box a Free* numeric arg into a trait-typed param : when `7`
@@ -569,17 +558,14 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
     if c.args.len() == 0 { return }
     if !(field_callee.target is AST.IdentExpr) { return }
     target_ident :: field_callee.target
-    symbol :: typed.resolved.idents[target_ident.span.hash()]
-    if symbol is null { return }
+    symbol :: typed.resolved.idents[target_ident.span.hash()] ?? return
     if symbol.kind != SymbolKind.Local { return }
-    binding_span :: symbol.defined_at
-    if binding_span is null { return }
+    binding_span :: symbol.defined_at ?? return
     binding_key :: binding_span.hash()
     current :: typed.local_types[binding_key]
     if !(current is ArrayType) { return }
     if !(current.element is UnresolvedType) { return }
-    arg_type :: typed.expr_types[c.args[0].value.id]
-    if arg_type is null { return }
+    arg_type :: typed.expr_types[c.args[0].value.id] ?? return
     if arg_type is UnresolvedType { return }
     typed.local_types[binding_key] = mk_array(default_if_free(arg_type), false)
 }
@@ -617,14 +603,11 @@ check_typeparam_bounds :: fn(
     c: AST.CallExpr, bindings: MutableMap<i32, Type>,
     typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    fn_decl :: lookup_callee_fn_decl(c.callee, typed)
-    if fn_decl is null { return }
+    fn_decl :: lookup_callee_fn_decl(c.callee, typed) ?? return
     for tp in fn_decl.type_params {
         if tp.bound is null { continue }
-        sym :: typed.resolved.idents[tp.span.hash()]
-        if sym is null { continue }
-        bound_ty :: bindings[sym.id]
-        if bound_ty is null { continue }
+        sym :: typed.resolved.idents[tp.span.hash()] ?? continue
+        bound_ty :: bindings[sym.id] ?? continue
         bound_trait :: type_from_expr(tp.bound, typed.resolved, [])
         match bound_trait {
             is TraitType as bt -> {
@@ -641,8 +624,7 @@ check_typeparam_bounds :: fn(
 satisfies_trait :: fn(t: Type, trait_ty: TraitType, typed: TypedProgram) -> bool {
     name :: dispatch_key(t)
     if name == "" { return false }
-    bucket :: typed.struct_implemented_traits[name]
-    if bucket is null { return false }
+    bucket :: typed.struct_implemented_traits[name] ?? return false
     for n in bucket { if n == trait_ty.symbol.name { return true } }
     return false
 }
@@ -653,11 +635,9 @@ lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl
     base: AST.Expr = callee
     if callee is AST.GenericInstExpr as gi { base = gi.callee }
     if !(base is AST.IdentExpr) { return null }
-    sym :: typed.resolved.idents[base.span.hash()]
-    if sym is null { return null }
+    sym :: typed.resolved.idents[base.span.hash()] ?? return null
     redirected :: redirect_import_typed(sym, typed)
-    decl :: typed.fn_decls[redirected.id]
-    if decl is null { return null }
+    decl :: typed.fn_decls[redirected.id] ?? return null
     return decl
 }
 
@@ -665,8 +645,7 @@ lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl
 // `unreachable`). Such a call diverges, so its expression type is `never` —
 // assignable into any slot and flow-terminating (see `is_divergent_stmt`).
 callee_is_no_return :: fn(callee: AST.Expr, typed: TypedProgram) -> bool {
-    decl :: lookup_callee_fn_decl(callee, typed)
-    if decl is null { return false }
+    decl :: lookup_callee_fn_decl(callee, typed) ?? return false
     for d in decl.decorators {
         if d.name == "no_return" { return true }
     }
@@ -701,8 +680,7 @@ unify_struct_to_trait_args :: fn(
     // Resolve (not just look up) so a GENERIC impl's `[T]` args are substituted by
     // the concrete receiver instance (`FilterIterator<i32>` → `[i32]`), binding the
     // param's `T` to `i32` instead of the impl's own `T`.
-    impl_args :: resolve_struct_trait_args(arg, param.symbol.name, typed)
-    if impl_args is null { return }
+    impl_args :: resolve_struct_trait_args(arg, param.symbol.name, typed) ?? return
     n :: min(param.args.len(), impl_args.len())
     for i in 0..<n {
         unify_type_param(param.args[i], impl_args[i], out)

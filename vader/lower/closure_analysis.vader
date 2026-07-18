@@ -33,8 +33,7 @@ import "vader/resolver"
 export analyze_closures :: fn(loaded: LoadedProject, typed: TypedProject) -> ClosureAnalysis {
     analysis :: new_closure_analysis()
     for [module_id, module_typed] in typed.modules {
-        module_loaded :: loaded.modules[module_id]
-        if module_loaded is null { continue }
+        module_loaded :: loaded.modules[module_id] ?? continue
         analyze_module(module_loaded, module_typed, analysis)
     }
     return analysis

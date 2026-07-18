@@ -32,8 +32,7 @@ export dump_evaluated :: fn(project: EvaluatedProject, scope: string[]) -> strin
     sb.append("# Comptime")
     module_ids :: sort(project.modules.keys(), (a: string, b: string) -> compare_ascending(a, b))
     for module_id in module_ids {
-        module_program :: project.modules[module_id]
-        if module_program is null { continue }
+        module_program :: project.modules[module_id] ?? continue
         // Header keeps the folder path (`module_display_path`) for back-compat,
         // but the scope check is on the DECLARED module name (`resolved.display_path`,
         // e.g. `snippet`) — the folder path would never match a display-path scope.

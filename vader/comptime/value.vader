@@ -187,8 +187,7 @@ render_struct :: fn(struct_value: StructValue) -> string {
     names :: sort(struct_value.fields.keys(), (a: string, b: string) -> compare_ascending(a, b))
     for i in 0..<names.len() {
         name :: names[i]
-        field_value :: struct_value.fields[name]
-        if field_value is null { continue }
+        field_value :: struct_value.fields[name] ?? continue
         if i > 0 { sb.append(", ") }
         sb.append_char('.')
         sb.append(name)

@@ -35,8 +35,7 @@ itm_applicable :: fn(node: AST.Expr, _ctx: ActionCtx) -> bool {
 
 itm_apply :: fn(node: AST.Expr, ctx: ActionCtx) -> string {
     if node is AST.IfExpr as ifx {
-        ch :: analyze_if(ifx)
-        if ch == null { return "" }
+        ch :: analyze_if(ifx) ?? return ""
         if !chain_ok(ch) { return "" }
         rendered :: format_expr(ctx.source, build_match(ifx, ch))
         return reindent(rendered, ifx.span.start.column - 1)
@@ -53,8 +52,7 @@ IfChain :: struct {
 }
 
 is_match_convertible :: fn(ifx: AST.IfExpr) -> bool {
-    ch :: analyze_if(ifx)
-    if ch == null { return false }
+    ch :: analyze_if(ifx) ?? return false
     return chain_ok(ch)
 }
 
@@ -95,8 +93,7 @@ analyze_if :: fn(ifx: AST.IfExpr) -> IfChain | null {
         } else {
             return null
         }
-        eb :: cur.else_branch
-        if eb == null { return null }
+        eb :: cur.else_branch ?? return null
         if eb is AST.IfElseBlock as ebl {
             return IfChain { .conds = conds, .blocks = blocks, .else_block = ebl.block }
         }

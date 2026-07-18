@@ -30,8 +30,7 @@ import "vader/types"
 /// resolver already emitted R2006) or when the symbol's kind doesn't
 /// carry a typecheck-time type yet.
 export infer_ident :: fn(e: AST.IdentExpr, typed: TypedProgram) -> Type {
-    sym :: typed.resolved.idents[e.span.hash()]
-    if sym is null { return TY_UNRESOLVED }
+    sym :: typed.resolved.idents[e.span.hash()] ?? return TY_UNRESOLVED
     redirected :: redirect(sym, typed)
     static_ty :: type_of_symbol(redirected, typed)
     // Consult `narrow.vader` : if a flow-sensitive narrowing is active
@@ -77,17 +76,14 @@ export type_of_symbol :: fn(sym: Symbol, typed: TypedProgram) -> Type = match sy
 /// Look `sym`'s span up in a span-keyed table (`param_types` /
 /// `local_types`). Returns `TY_UNRESOLVED` for builtin symbols and misses.
 lookup_in :: fn(sym: Symbol, table: MutableMap<u64, Type>) -> Type {
-    sp :: sym.defined_at
-    if sp is null { return TY_UNRESOLVED }
-    ty :: table[sp.hash()]
-    if ty is null { return TY_UNRESOLVED }
+    sp :: sym.defined_at ?? return TY_UNRESOLVED
+    ty :: table[sp.hash()] ?? return TY_UNRESOLVED
     return ty
 }
 
 /// `decl_types` is keyed by `Symbol.id`. Used by `lookup_decl`.
 lookup_decl_in :: fn(sym: Symbol, table: MutableMap<i32, Type>) -> Type {
-    ty :: table[sym.id]
-    if ty is null { return TY_UNRESOLVED }
+    ty :: table[sym.id] ?? return TY_UNRESOLVED
     return ty
 }
 
@@ -100,14 +96,12 @@ lookup_decl_in :: fn(sym: Symbol, table: MutableMap<i32, Type>) -> Type {
 /// L30:8 vs std/testing's `fail` at L30:8) would otherwise collide.
 lookup_decl :: fn(sym: Symbol, typed: TypedProgram) -> Type {
     if sym.module != typed.resolved.path {
-        ext :: typed.external_types[sym.id]
-        if ext is null { return TY_UNRESOLVED }
+        ext :: typed.external_types[sym.id] ?? return TY_UNRESOLVED
         return ext
     }
     local :: lookup_decl_in(sym, typed.decl_types)
     if local is UnresolvedType {
-        ext :: typed.external_types[sym.id]
-        if ext is null { return TY_UNRESOLVED }
+        ext :: typed.external_types[sym.id] ?? return TY_UNRESOLVED
         return ext
     }
     return local
@@ -145,8 +139,7 @@ infer_ident_in_first_fn :: fn(src: string, target: string) -> string {
         match f.body {
             is null -> { return "<no body>" }
             is AST.BlockExpr as b -> {
-                found :: scan_block_for_ident(b, target)
-                if found is null { return "<not found>" }
+                found :: scan_block_for_ident(b, target) ?? return "<not found>"
                 return display_type(infer_ident(found, checked.typed))
             }
         }

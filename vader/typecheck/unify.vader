@@ -192,8 +192,7 @@ export substitute_map :: fn(t: Type, subst: MutableMap<i32, Type>) -> Type {
     // substitute; every scalar / primitive variant is returned unchanged.
     @partial match t {
         is TypeParamType as tp -> {
-            repl :: subst[tp.symbol.id]
-            if repl is null { return t }
+            repl :: subst[tp.symbol.id] ?? return t
             return repl
         }
         is ArrayType as a -> { return mk_array(substitute_map(a.element, subst), a.immutable) }

@@ -127,8 +127,7 @@ export load_module_files :: fn(root_path: string) -> SourceFile[] {
     out: SourceFile[] = []
     files :: list_vader_files(root_path)
     for f in files {
-        content :: try_read(f)
-        if content is null { continue }
+        content :: try_read(f) ?? continue
         parsed :: parse_source(content, f)
         out.push(SourceFile {
             .path       = f,
@@ -146,8 +145,7 @@ export list_vader_files :: fn(root_path: string) -> string[] {
         if root_path.ends_with(".vader") { return [root_path] }
         return []
     }
-    raw :: try_read_dir(root_path)
-    if raw is null { return [] }
+    raw :: try_read_dir(root_path) ?? return []
     files: string[] = []
     for name in raw {
         if !name.ends_with(".vader") { continue }

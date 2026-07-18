@@ -21,11 +21,9 @@ AST :: import "vader/parser"
 /// (`Async<null>`) : void isn't a first-class stack value, so `void | Suspended`
 /// couldn't represent a completed-but-void coroutine. Mirror in `lower_decl`.
 export async_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concrete_ret: Type) -> Type | null {
-    async_sym :: typed.async_symbol
-    if async_sym == null { return null }
+    async_sym :: typed.async_symbol ?? return null
     if c.callee is AST.IdentExpr as id {
-        sym :: typed.resolved.idents[id.span.hash()]
-        if sym == null { return null }
+        sym :: typed.resolved.idents[id.span.hash()] ?? return null
         fd :: typed.fn_decls[sym.id]
         if fd is AST.FnDecl as f {
             // Unwrap-then-wrap-once handles both shapes uniformly : `-> T`

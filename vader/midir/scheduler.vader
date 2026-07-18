@@ -98,13 +98,10 @@ can_pass_through_stack :: fn(
     cur: Instruction, next: Instruction,
     use_count: MutableMap<LocalId, i32>,
 ) -> bool {
-    dst :: dst_of(cur)
-    if dst == null { return false }
-    count :: use_count[dst]
-    if count == null { return false }
+    dst :: dst_of(cur) ?? return false
+    count :: use_count[dst] ?? return false
     if count != 1 { return false }
-    first_op :: first_stack_operand(next)
-    if first_op == null { return false }
+    first_op :: first_stack_operand(next) ?? return false
     return first_op == dst
 }
 
@@ -112,13 +109,10 @@ can_pass_through_terminator :: fn(
     cur: Instruction, t: Terminator,
     use_count: MutableMap<LocalId, i32>,
 ) -> bool {
-    dst :: dst_of(cur)
-    if dst == null { return false }
-    count :: use_count[dst]
-    if count == null { return false }
+    dst :: dst_of(cur) ?? return false
+    count :: use_count[dst] ?? return false
     if count != 1 { return false }
-    first_op :: first_terminator_operand(t)
-    if first_op == null { return false }
+    first_op :: first_terminator_operand(t) ?? return false
     return first_op == dst
 }
 

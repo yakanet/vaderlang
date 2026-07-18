@@ -451,13 +451,11 @@ build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
         }
         is LoweredLoop as l -> { build_loop(fn_ctx, l) }
         is LoweredBreak as br -> {
-            frame :: resolve_loop_frame(fn_ctx, br.label)
-            if frame is null { return }
+            frame :: resolve_loop_frame(fn_ctx, br.label) ?? return
             terminate(fn_ctx, TermBranch { .target = frame.exit_id, .span = br.span })
         }
         is LoweredContinue as cont -> {
-            frame :: resolve_loop_frame(fn_ctx, cont.label)
-            if frame is null { return }
+            frame :: resolve_loop_frame(fn_ctx, cont.label) ?? return
             terminate(fn_ctx, TermBranch { .target = frame.header_id, .span = cont.span })
         }
         is LoweredYield | LoweredAwait -> {
@@ -663,8 +661,7 @@ build_ident :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> LocalId | null {
 build_call :: fn(fn_ctx: FnCtx, e: LoweredCall) -> LocalId | null {
     if e.callee is LoweredIdent as callee_id {
         if callee_id.symbol.kind == SymbolKind.Fn {
-            args :: build_args(fn_ctx, e.args)
-            if args is null { return null }
+            args :: build_args(fn_ctx, e.args) ?? return null
             dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "call", e.type) }
             emit(fn_ctx, InstrCall {
                 .dst = dst, .callee = callee_id.symbol, .args = args, .type = e.type, .span = e.span,
@@ -672,10 +669,8 @@ build_call :: fn(fn_ctx: FnCtx, e: LoweredCall) -> LocalId | null {
             return dst
         }
     }
-    callee :: build_expr(fn_ctx, e.callee)
-    if callee is null { return null }
-    args :: build_args(fn_ctx, e.args)
-    if args is null { return null }
+    callee :: build_expr(fn_ctx, e.callee) ?? return null
+    args :: build_args(fn_ctx, e.args) ?? return null
     dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "call_ind", e.type) }
     emit(fn_ctx, InstrCallIndirect {
         .dst = dst, .callee = callee, .args = args,
@@ -687,18 +682,15 @@ build_call :: fn(fn_ctx: FnCtx, e: LoweredCall) -> LocalId | null {
 build_args :: fn(fn_ctx: FnCtx, args: LoweredExpr[]) -> LocalId[] | null {
     out: LocalId[] = []
     for a in args {
-        local :: build_expr(fn_ctx, a)
-        if local is null { return null }
+        local :: build_expr(fn_ctx, a) ?? return null
         out.push(local)
     }
     return out
 }
 
 build_virtual_call :: fn(fn_ctx: FnCtx, e: LoweredVirtualCall) -> LocalId | null {
-    receiver :: build_expr(fn_ctx, e.receiver)
-    if receiver is null { return null }
-    args :: build_args(fn_ctx, e.args)
-    if args is null { return null }
+    receiver :: build_expr(fn_ctx, e.receiver) ?? return null
+    args :: build_args(fn_ctx, e.args) ?? return null
     dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "vcall", e.type) }
     emit(fn_ctx, InstrVirtualCall {
         .dst = dst, .trait_name = e.trait_name, .method = e.method,
@@ -708,8 +700,7 @@ build_virtual_call :: fn(fn_ctx: FnCtx, e: LoweredVirtualCall) -> LocalId | null
 }
 
 build_field_access :: fn(fn_ctx: FnCtx, e: LoweredFieldAccess) -> LocalId | null {
-    target :: build_expr(fn_ctx, e.target)
-    if target is null { return null }
+    target :: build_expr(fn_ctx, e.target) ?? return null
     dst :: fresh_tmp(fn_ctx, "field", e.type)
     emit(fn_ctx, InstrFieldGet {
         .dst = dst, .target = target, .field = e.field, .type = e.type, .span = e.span,
@@ -730,8 +721,7 @@ build_index :: fn(fn_ctx: FnCtx, e: LoweredIndex) -> LocalId | null {
 }
 
 build_unary :: fn(fn_ctx: FnCtx, e: LoweredUnary) -> LocalId | null {
-    operand :: build_expr(fn_ctx, e.operand)
-    if operand is null { return null }
+    operand :: build_expr(fn_ctx, e.operand) ?? return null
     dst :: fresh_tmp(fn_ctx, "unop", e.type)
     emit(fn_ctx, InstrUnOp {
         .dst = dst, .op = e.op, .operand = operand, .type = e.type, .span = e.span,
@@ -742,10 +732,8 @@ build_unary :: fn(fn_ctx: FnCtx, e: LoweredUnary) -> LocalId | null {
 build_binary :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
     if e.op == LoweredBinaryOp.And { return build_short_circuit(fn_ctx, e) }
     if e.op == LoweredBinaryOp.Or  { return build_short_circuit(fn_ctx, e) }
-    lhs :: build_expr(fn_ctx, e.left)
-    if lhs is null { return null }
-    rhs :: build_expr(fn_ctx, e.right)
-    if rhs is null { return null }
+    lhs :: build_expr(fn_ctx, e.left) ?? return null
+    rhs :: build_expr(fn_ctx, e.right) ?? return null
     dst :: fresh_tmp(fn_ctx, binary_op_name(e.op), e.type)
     emit(fn_ctx, InstrBinOp {
         .dst = dst, .op = e.op, .lhs = lhs, .rhs = rhs, .type = e.type, .span = e.span,
@@ -754,8 +742,7 @@ build_binary :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
 }
 
 build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
-    lhs :: build_expr(fn_ctx, e.left)
-    if lhs is null { return null }
+    lhs :: build_expr(fn_ctx, e.left) ?? return null
 
     is_and :: e.op == LoweredBinaryOp.And
     result_name :: if is_and { "and_res" } else { "or_res" }
@@ -814,8 +801,7 @@ build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
 }
 
 build_if :: fn(fn_ctx: FnCtx, e: LoweredIf) -> LocalId | null {
-    cond_local :: build_expr(fn_ctx, e.cond)
-    if cond_local is null { return null }
+    cond_local :: build_expr(fn_ctx, e.cond) ?? return null
 
     result :: if is_void(e.type) { null } else { declare_local(fn_ctx, "if_res", e.type, null) }
 
@@ -861,8 +847,7 @@ build_if :: fn(fn_ctx: FnCtx, e: LoweredIf) -> LocalId | null {
 build_struct_lit :: fn(fn_ctx: FnCtx, e: LoweredStructLit) -> LocalId | null {
     field_locals: LocalId[] = []
     for f in e.fields {
-        local :: build_expr(fn_ctx, f.value)
-        if local is null { return null }
+        local :: build_expr(fn_ctx, f.value) ?? return null
         field_locals.push(local)
     }
     dst :: fresh_tmp(fn_ctx, "struct", e.type)
@@ -876,8 +861,7 @@ build_struct_lit :: fn(fn_ctx: FnCtx, e: LoweredStructLit) -> LocalId | null {
 build_array_lit :: fn(fn_ctx: FnCtx, e: LoweredArrayLit) -> LocalId | null {
     elems: LocalId[] = []
     for el in e.elements {
-        local :: build_expr(fn_ctx, el)
-        if local is null { return null }
+        local :: build_expr(fn_ctx, el) ?? return null
         elems.push(local)
     }
     dst :: fresh_tmp(fn_ctx, "arr", e.type)
@@ -889,16 +873,14 @@ build_array_lit :: fn(fn_ctx: FnCtx, e: LoweredArrayLit) -> LocalId | null {
 }
 
 build_cast :: fn(fn_ctx: FnCtx, e: LoweredCast) -> LocalId | null {
-    value :: build_expr(fn_ctx, e.value)
-    if value is null { return null }
+    value :: build_expr(fn_ctx, e.value) ?? return null
     dst :: fresh_tmp(fn_ctx, "cast", e.type)
     emit(fn_ctx, InstrCast { .dst = dst, .value = value, .type = e.type, .span = e.span })
     return dst
 }
 
 build_type_check :: fn(fn_ctx: FnCtx, e: LoweredTypeCheck) -> LocalId | null {
-    value :: build_expr(fn_ctx, e.value)
-    if value is null { return null }
+    value :: build_expr(fn_ctx, e.value) ?? return null
     dst :: fresh_tmp(fn_ctx, "type_check", e.type)
     emit(fn_ctx, InstrTypeCheck {
         .dst = dst, .value = value, .check_type = e.check_type, .span = e.span,
@@ -914,8 +896,7 @@ build_unreachable_type :: fn(fn_ctx: FnCtx, type: Type, span: Span, reason: stri
 }
 
 build_intrinsic_call :: fn(fn_ctx: FnCtx, e: LoweredIntrinsicCall) -> LocalId | null {
-    args :: build_args(fn_ctx, e.args)
-    if args is null { return null }
+    args :: build_args(fn_ctx, e.args) ?? return null
     dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "intrinsic", e.type) }
     emit(fn_ctx, InstrIntrinsic {
         .dst = dst, .name = e.name, .args = args, .span = e.span,
@@ -924,8 +905,7 @@ build_intrinsic_call :: fn(fn_ctx: FnCtx, e: LoweredIntrinsicCall) -> LocalId | 
 }
 
 build_array_len :: fn(fn_ctx: FnCtx, e: LoweredArrayLen) -> LocalId | null {
-    target :: build_expr(fn_ctx, e.target)
-    if target is null { return null }
+    target :: build_expr(fn_ctx, e.target) ?? return null
     dst :: fresh_tmp(fn_ctx, "len", e.type)
     emit(fn_ctx, InstrArrayLen { .dst = dst, .target = target, .span = e.span })
     return dst
@@ -977,8 +957,7 @@ build_data_const :: fn(fn_ctx: FnCtx, e: LoweredDataConst) -> LocalId | null {
 }
 
 build_cell_new :: fn(fn_ctx: FnCtx, e: LoweredCellNew) -> LocalId | null {
-    value :: build_expr(fn_ctx, e.value)
-    if value is null { return null }
+    value :: build_expr(fn_ctx, e.value) ?? return null
     dst :: fresh_tmp(fn_ctx, "cell", e.type)
     emit(fn_ctx, InstrCellNew {
         .dst = dst, .value = value, .value_type = e.value_type, .span = e.span,
@@ -987,8 +966,7 @@ build_cell_new :: fn(fn_ctx: FnCtx, e: LoweredCellNew) -> LocalId | null {
 }
 
 build_cell_get :: fn(fn_ctx: FnCtx, e: LoweredCellGet) -> LocalId | null {
-    target :: build_expr(fn_ctx, e.target)
-    if target is null { return null }
+    target :: build_expr(fn_ctx, e.target) ?? return null
     dst :: fresh_tmp(fn_ctx, "cell_get", e.type)
     emit(fn_ctx, InstrCellGet {
         .dst = dst, .cell = target, .value_type = e.value_type, .span = e.span,
@@ -997,8 +975,7 @@ build_cell_get :: fn(fn_ctx: FnCtx, e: LoweredCellGet) -> LocalId | null {
 }
 
 build_make_closure :: fn(fn_ctx: FnCtx, e: LoweredMakeClosure) -> LocalId | null {
-    env :: build_expr(fn_ctx, e.env)
-    if env is null { return null }
+    env :: build_expr(fn_ctx, e.env) ?? return null
     dst :: fresh_tmp(fn_ctx, "closure", e.type)
     emit(fn_ctx, InstrMakeClosure {
         .dst = dst, .fn_symbol = e.fn_symbol, .env = env,

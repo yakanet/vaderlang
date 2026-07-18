@@ -51,10 +51,8 @@ register_deprecated :: fn(
 ) -> void {
     name :: decorated_decl_name(decl)
     if name == "" { return }
-    msg :: deprecated_message(decorated_decl_decorators(decl))
-    if msg is null { return }
-    sym :: by_name[name]
-    if sym is null { return }
+    msg :: deprecated_message(decorated_decl_decorators(decl)) ?? return
+    sym :: by_name[name] ?? return
     resolved.deprecated_messages[sym.id] = msg
 }
 
@@ -159,8 +157,7 @@ declare_named_with_args :: fn(
     module_path: string, factory: SymbolFactory,
     mk: fn(Symbol, Type[]) -> Type,
 ) -> void {
-    sym :: by_name[name]
-    if sym is null { return }
+    sym :: by_name[name] ?? return
     args: Type[] = []
     for tp in type_params {
         tp_sym :: factory.make(.TypeParam, tp.name, module_path, .Private, tp.span)
@@ -218,8 +215,7 @@ declare_fn :: fn(
 // follow-up (see TODO §"Reject private types in a public signature").
 check_public_return_visibility :: fn(decl: AST.FnDecl, return_type: Type, diags: Diagnostic[]) -> void {
     if decl.visibility != Visibility.Public { return }
-    leak :: first_unexported_type(return_type)
-    if leak == null { return }
+    leak :: first_unexported_type(return_type) ?? return
     ret_span: Span = decl.span
     if decl.return_type != null { ret_span = decl.return_type.span }
     diags.push(typecheck_error(.PrivateTypeInPublicInterface, ret_span,
@@ -412,8 +408,7 @@ lookup_fn_symbol_by_span :: fn(
         is null -> {}
         _ -> {
             for s in bucket {
-                sp :: s.defined_at
-                if sp is null { continue }
+                sp :: s.defined_at ?? continue
                 // Match the file too : two overloads at the same (line, column)
                 // in DIFFERENT sibling files of a module would otherwise collide,
                 // and the second's decl_types entry would never be written (the
@@ -530,8 +525,7 @@ declare_type_alias :: fn(
 declare_const :: fn(
     decl: AST.ConstDecl, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    sym :: lookup_sym_by_name(resolved, decl.name)
-    if sym is null { return }
+    sym :: lookup_sym_by_name(resolved, decl.name) ?? return
     annotation :: decl.ty
     match annotation {
         is null -> {
@@ -616,8 +610,7 @@ declared_type :: fn(src: string, name: string) -> string {
     declare_module(parsed.program.decls, rm, typed, factory, diags)
     for s in rm.symbols {
         if s.name != name { continue }
-        ty :: typed.decl_types[s.id]
-        if ty is null { return "<missing>" }
+        ty :: typed.decl_types[s.id] ?? return "<missing>"
         return display_type(ty)
     }
     return "<unknown name>"

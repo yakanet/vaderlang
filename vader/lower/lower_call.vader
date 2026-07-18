@@ -182,8 +182,7 @@ param_types_of :: fn(callee_type: Type) -> Type[] {
 /// already narrowed unions / cast-call sites so the lowered tree carries
 /// the dispatch type at the surface).
 try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
-    callee_field :: as_field_expr(call.callee)
-    if callee_field is null { return null }
+    callee_field :: as_field_expr(call.callee) ?? return null
     if callee_field is FieldExpr as field_expr {
         receiver :: lower_expr(ctx, field_expr.target)
         if type_of(receiver) is TraitType as tt {
@@ -276,8 +275,7 @@ impl_trait_first_arg_is :: fn(decl: ImplDecl, name: string) -> bool {
 try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
     callee :: call.callee
     if callee is FieldExpr as field_expr {
-        namespace_symbol :: as_namespace_binding(ctx, field_expr.target)
-        if namespace_symbol is null { return null }
+        namespace_symbol :: as_namespace_binding(ctx, field_expr.target) ?? return null
         // `nsM.T(x)` — the typer typed the callee as the metatype and resolved
         // the call as a cast (infer_call → TypeMetaType, call.vader). Lower it as
         // a cast to the result `type` (shared with the direct-ident cast path),
@@ -399,8 +397,7 @@ fold_const_symbol :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) ->
 // module's compound const reached via `M.CONST` needs the same routing as a
 // bare reference (its decl is materialised on demand, not lowered eagerly).
 try_lower_namespace_const :: fn(ctx: FnLowerCtx, e: FieldExpr, type: Type) -> LoweredExpr | null {
-    ns_sym :: as_namespace_binding(ctx, e.target)
-    if ns_sym is null { return null }
+    ns_sym :: as_namespace_binding(ctx, e.target) ?? return null
     member :: resolve_namespace_member(ctx, ns_sym, e.field)
     if member.kind != .Const { return null }
     folded :: fold_const_symbol(ctx, member, type, e.span)

@@ -199,8 +199,7 @@ export is_numeric_name :: fn(name: string) -> bool {
 
 /// Size in bytes of a primitive (0 for `void` / `null` / non-primitive).
 export primitive_size :: fn(name: string) -> i64 {
-    m :: primitive_meta(name)
-    if m == null { return 0 }
+    m :: primitive_meta(name) ?? return 0
     return m.size
 }
 

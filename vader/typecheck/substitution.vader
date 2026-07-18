@@ -50,8 +50,7 @@ export substitute :: fn(t: Type, subst: Substitution) -> Type {
     // every scalar / primitive variant has no inner binding → returned unchanged.
     @partial match t {
         is TypeParamType as tp -> {
-            replacement :: subst.type_params[tp.symbol.id]
-            if replacement == null { return t }
+            replacement :: subst.type_params[tp.symbol.id] ?? return t
             return replacement
         }
         is SelfType -> {

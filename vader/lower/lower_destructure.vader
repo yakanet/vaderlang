@@ -93,11 +93,9 @@ into_tuple_fields :: fn(ctx: FnLowerCtx, target_type: Type) -> string[] | null {
 // field reads (no stmts, no computed elements) — anything else routes through
 // the allocating `into()` fallback, not this zero-alloc inline.
 seq_self_field_names :: fn(m: FnDecl) -> string[] | null {
-    body :: m.body
-    if body == null { return null }
+    body :: m.body ?? return null
     if body.stmts.len() != 0 { return null }
-    trailing :: body.trailing
-    if trailing == null { return null }
+    trailing :: body.trailing ?? return null
     if trailing is SeqLitExpr as seq {
         names: string[] = []
         for el in seq.elements {
@@ -163,8 +161,7 @@ emit_rest_loop :: fn(
 ) -> void {
     // The resolver indexes a rest binding's Symbol by `span` (not
     // `name_span` like simple bindings — see resolver `bind_let_binding`).
-    rest_sym :: lookup_local_symbol(ctx.project, ctx.typed.resolved, rest.span)
-    if rest_sym is null { return }
+    rest_sym :: lookup_local_symbol(ctx.project, ctx.typed.resolved, rest.span) ?? return
     array_type :: mk_array(elem_type, false)
     empty_arr :: LoweredArrayLit { .span = rest.span, .type = array_type, .elements = [] }
     rest_init :: lower_cell_init(ctx, rest_sym, empty_arr, array_type, rest.span)

@@ -237,8 +237,7 @@ emit_operator_hint :: fn(value_span: Span, label: string, out: JsonValue[]) -> v
 emit_let_hint :: fn(ls: AST.LetStmt, typed: TypedProgram, out: JsonValue[]) -> void {
     match ls.binding {
         is AST.SimpleBinding as sb -> {
-            ty :: typed.local_types[sb.name_span.hash()]
-            if ty is null { return }
+            ty :: typed.local_types[sb.name_span.hash()] ?? return
             if ty is UnresolvedType { return }
             if ty is FreeIntType { return }
             if ty is FreeFloatType { return }
@@ -255,10 +254,8 @@ emit_let_hint :: fn(ls: AST.LetStmt, typed: TypedProgram, out: JsonValue[]) -> v
 /// i32 | string`) get `TY_TYPE` ; we skip those — they're already
 /// self-describing.
 emit_const_hint :: fn(cd: AST.ConstDecl, typed: TypedProgram, out: JsonValue[]) -> void {
-    sym :: lookup_const_sym(typed.resolved, cd.name)
-    if sym is null { return }
-    ty :: typed.decl_types[sym.id]
-    if ty is null { return }
+    sym :: lookup_const_sym(typed.resolved, cd.name) ?? return
+    ty :: typed.decl_types[sym.id] ?? return
     if ty is UnresolvedType { return }
     if ty is TypeMetaType { return }
     emit_operator_hint(cd.value.span, display_type(ty), out)

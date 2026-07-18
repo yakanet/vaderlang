@@ -86,8 +86,7 @@ export build_impl_registry :: fn(
 collect_impl :: fn(
     self: ImplRegistry, impl_: ImplDecl, by_name: MutableMap<string, Symbol>, resolved: ResolvedModule,
 ) -> void {
-    trait_sym :: by_name[impl_.trait_name]
-    if trait_sym is null { return }
+    trait_sym :: by_name[impl_.trait_name] ?? return
     if trait_sym.kind != SymbolKind.Trait { return }
     for_sym :: for_type_symbol(impl_.for_type, by_name)
     entry :: ImplEntry {
@@ -153,8 +152,7 @@ for_type_symbol :: fn(
 }
 
 resolve_target :: fn(name: string, by_name: MutableMap<string, Symbol>) -> Symbol | null {
-    sym :: by_name[name]
-    if sym is null { return null }
+    sym :: by_name[name] ?? return null
     k :: i32(sym.kind)
     if k == i32(SymbolKind.Struct) { return sym }
     if k == i32(SymbolKind.Enum) { return sym }

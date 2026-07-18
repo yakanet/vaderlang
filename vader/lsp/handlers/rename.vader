@@ -132,8 +132,7 @@ build_source_map :: fn(project: LoadedProject) -> MutableMap<string, string> {
 // The source slice a span covers, or "" when the file is unknown or the span is
 // degenerate. Module paths + identifiers are ASCII, so a byte slice is exact.
 span_text :: fn(sources: MutableMap<string, string>, sp: Span) -> string {
-    content :: sources[sp.start.file]
-    if content == null { return "" }
+    content :: sources[sp.start.file] ?? return ""
     cb :: content.bytes()
     if sp.start.offset >= sp.end.offset { return "" }
     if sp.end.offset > cb.len() { return "" }

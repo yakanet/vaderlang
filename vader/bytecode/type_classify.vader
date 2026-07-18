@@ -225,8 +225,7 @@ import "vader/lower"
 /// @param name  the primitive name (`"i32"`, `"string"`, …).
 /// @return      the matching `ValType` ; `Any` for unrecognised names.
 export val_type_of_primitive_name :: fn(name: string) -> ValType {
-    parsed :: parse_val_type(name)
-    if parsed is null { return ValType.Any }
+    parsed :: parse_val_type(name) ?? return ValType.Any
     return parsed
 }
 

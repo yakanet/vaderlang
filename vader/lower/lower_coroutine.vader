@@ -691,8 +691,7 @@ gb_route_stmt :: fn(gb: GenBuild, s: LoweredStmt, out: LoweredStmt[]) -> void {
 gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr {
     match e {
         is LoweredIdent as id -> {
-            name :: gb.field_map[id.symbol.id]
-            if name == null { return id }
+            name :: gb.field_map[id.symbol.id] ?? return id
             // A captured symbol's field holds a cell (opaque ref), not the value ;
             // type the `self.<field>` access at the cell type so the wrapping
             // CellGet / CellSet — and any closure-env slot fed from it — stays a

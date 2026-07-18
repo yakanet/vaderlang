@@ -26,11 +26,9 @@ lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt {
 }
 
 try_lower_cell_set_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt | null {
-    target_ident :: as_ident(assign_stmt.target)
-    if target_ident is null { return null }
+    target_ident :: as_ident(assign_stmt.target) ?? return null
     if target_ident is IdentExpr as ident {
-        symbol :: ctx.typed.resolved.idents[ident.span.hash()]
-        if symbol is null { return null }
+        symbol :: ctx.typed.resolved.idents[ident.span.hash()] ?? return null
         if symbol is Symbol as resolved {
             if !ctx.project.closures.captured_symbols.contains(resolved.id) { return null }
             value_type :: ctx.types.expr_type(ident)
@@ -251,8 +249,7 @@ try_lower_index_set_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> Lo
             // silently dropped and `m[k] = v` became a no-op (the value leaked
             // onto the stack). Mirrors lower_index's `find_impl_member_for(…,
             // "at")` on the read side.
-            member :: find_impl_member_for(ctx, target_type, "set_at")
-            if member is null { return null }
+            member :: find_impl_member_for(ctx, target_type, "set_at") ?? return null
             if member is UfcsMember as found {
                 // Build `set_at(target, index, value)` direct call.
                 receiver :: lower_expr(ctx, idx.target)

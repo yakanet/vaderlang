@@ -56,8 +56,7 @@ check_orphan_rule :: fn(
     idents: MutableMap<u64, Symbol>, wire_targets: ImportTargetTable,
     diags: Diagnostic[],
 ) -> void {
-    trait_sym :: lookup_trait_sym(decl, module_symbols, wire_targets)
-    if trait_sym is null { return }
+    trait_sym :: lookup_trait_sym(decl, module_symbols, wire_targets) ?? return
     if trait_sym.kind != SymbolKind.Trait { return }
     for_sym :: for_type_owner_sym(decl.for_type, idents, wire_targets)
     for_is_primitive := false
@@ -78,8 +77,7 @@ lookup_trait_sym :: fn(
     module_symbols: MutableMap<string, Symbol>,
     wire_targets: ImportTargetTable,
 ) -> Symbol | null {
-    raw :: module_symbols[decl.trait_name]
-    if raw is null { return null }
+    raw :: module_symbols[decl.trait_name] ?? return null
     return resolve_import_redirect(raw, wire_targets)
 }
 
@@ -88,14 +86,12 @@ for_type_owner_sym :: fn(
     idents: MutableMap<u64, Symbol>, wire_targets: ImportTargetTable,
 ) -> Symbol | null {
     if t is AST.IdentExpr as i {
-        raw :: idents[i.span.hash()]
-        if raw is null { return null }
+        raw :: idents[i.span.hash()] ?? return null
         return resolve_import_redirect(raw, wire_targets)
     }
     if t is AST.GenericInstExpr as g {
         if g.callee is AST.IdentExpr as i {
-            raw :: idents[i.span.hash()]
-            if raw is null { return null }
+            raw :: idents[i.span.hash()] ?? return null
             return resolve_import_redirect(raw, wire_targets)
         }
     }

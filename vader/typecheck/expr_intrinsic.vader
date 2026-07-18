@@ -62,16 +62,14 @@ infer_field_intrinsic :: fn(
     e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
     if e.args.len() < 2 { return TY_UNRESOLVED }
-    recv_ty :: typed.expr_types[e.args[0].id]
-    if recv_ty is null { return TY_UNRESOLVED }
+    recv_ty :: typed.expr_types[e.args[0].id] ?? return TY_UNRESOLVED
     if recv_ty is UnresolvedType { return TY_UNRESOLVED }
     if !(recv_ty is StructType) { return TY_UNRESOLVED }
     name_arg :: e.args[1]
     if !(name_arg is AST.StringLitExpr) { return TY_UNRESOLVED }
     field_name :: static_string_value(name_arg)
     if field_name == "" { return TY_UNRESOLVED }
-    decl :: typed.struct_decls[recv_ty.symbol.id]
-    if decl is null { return TY_UNRESOLVED }
+    decl :: typed.struct_decls[recv_ty.symbol.id] ?? return TY_UNRESOLVED
     fmap :: typed.struct_field_types[recv_ty.symbol.id]
     if !(fmap is null) {
         cached :: fmap[field_name]

@@ -94,8 +94,7 @@ index_set_value_expected :: fn(target: Type, typed: TypedProgram) -> Type | null
 // no impl was recorded.
 resolve_index_param :: fn(st: StructType, tmpl: Type | null, typed: TypedProgram) -> Type | null {
     if tmpl is null { return null }
-    decl :: typed.struct_decls[st.symbol.id]
-    if decl is null { return tmpl }
+    decl :: typed.struct_decls[st.symbol.id] ?? return tmpl
     return substitute_by_name(tmpl, decl.type_params, st.args)
 }
 

@@ -92,10 +92,8 @@ export type_from_expr :: fn(
 ///        destructured-import check in `wire.vader`.
 namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule, diags: Diagnostic[]) -> Type {
     if !(e.target is AST.IdentExpr) { return TY_UNRESOLVED }
-    target_sym :: resolved.idents[e.target.span.hash()]
-    if target_sym is null { return TY_UNRESOLVED }
-    members :: resolved.namespace_member_types[target_sym.id]
-    if members is null { return TY_UNRESOLVED }
+    target_sym :: resolved.idents[e.target.span.hash()] ?? return TY_UNRESOLVED
+    members :: resolved.namespace_member_types[target_sym.id] ?? return TY_UNRESOLVED
     ty :: members[e.field]
     if ty is null {
         // Exported miss : fire R2008 if it's a PRIVATE member ; otherwise it's a
@@ -115,8 +113,7 @@ namespace_private_member_reported :: fn(
     binding_id: i32, field: string, span: Span,
     resolved: ResolvedModule, diags: Diagnostic[],
 ) -> bool {
-    priv :: resolved.namespace_private_members[binding_id]
-    if priv is null { return false }
+    priv :: resolved.namespace_private_members[binding_id] ?? return false
     if priv[field] is null { return false }
     diags.push(resolver_error(.SymbolNotExported, span, "`${field}`"))
     return true
@@ -300,8 +297,7 @@ export type_from_symbol :: fn(sym: Symbol, args: Type[]) -> Type {
     // SymbolKind (Fn, Local, Param, …) names a value, not a type → unresolved.
     @partial match sym.kind {
         .BuiltinType -> {
-            builtin :: primitive_from_name(sym.name)
-            if builtin == null { return TY_UNRESOLVED }
+            builtin :: primitive_from_name(sym.name) ?? return TY_UNRESOLVED
             return builtin
         }
         .Struct    -> { return mk_struct(sym, args) }
@@ -350,8 +346,7 @@ lower_first_param_type :: fn(src: string) -> string {
     parsed :: parse_source(src, "t.vader")
     fn_decl :: parsed.program.decls[0]
     if fn_decl is AST.FnDecl as f {
-        ty :: f.params[0].ty
-        if ty == null { return "<no annotation>" }
+        ty :: f.params[0].ty ?? return "<no annotation>"
         diags: Diagnostic[] = []
         return display_type(type_from_expr(ty, rm, diags))
     }

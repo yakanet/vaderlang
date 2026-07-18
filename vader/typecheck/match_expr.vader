@@ -253,8 +253,7 @@ is_overlap_checkable :: fn(t: Type) -> bool {
 
 scrutinee_sym_id :: fn(scrut: AST.Expr, typed: TypedProgram) -> i32 {
     if !(scrut is AST.IdentExpr) { return -1 }
-    sym :: typed.resolved.idents[scrut.span.hash()]
-    if sym is null { return -1 }
+    sym :: typed.resolved.idents[scrut.span.hash()] ?? return -1
     return sym.id
 }
 
@@ -316,8 +315,7 @@ bind_struct_pattern :: fn(
 ) -> void {
     match scrut {
         is StructType as st -> {
-            decl :: typed.struct_decls[st.symbol.id]
-            if decl is null { return }
+            decl :: typed.struct_decls[st.symbol.id] ?? return
             for field in sp.fields {
                 // T3054 : reject binding an `@internal` field in a struct
                 // pattern from outside its declaring module.

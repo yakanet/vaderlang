@@ -74,8 +74,7 @@ export expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
 /// @return      the recorded type, no substitution applied; `TY_UNRESOLVED`
 ///              on a miss.
 export raw_expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
-    raw :: self.typed.expr_types[expr.id]
-    if raw is null { return TY_UNRESOLVED }
+    raw :: self.typed.expr_types[expr.id] ?? return TY_UNRESOLVED
     return raw
 }
 
@@ -152,8 +151,7 @@ fn_decl_type_by_span :: fn(self: EntryTypes, name: string, name_span: Span) -> T
         is null -> {}
         _ -> {
             for s in bucket {
-                sp :: s.defined_at
-                if sp is null { continue }
+                sp :: s.defined_at ?? continue
                 if sp.start.line == name_span.start.line &&
                    sp.start.column == name_span.start.column {
                     return apply_or_unresolved(self, self.typed.decl_types[s.id])
