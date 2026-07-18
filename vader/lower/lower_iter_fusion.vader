@@ -166,7 +166,7 @@ export try_lower_terminal_fusion :: fn(ctx: FnLowerCtx, call: AST.CallExpr, type
     collect_arg :: terminal_arg(call, "collect")
     if collect_arg != null {
         chain :: top_level_chain(ctx, collect_arg) ?? return null
-        return emit_collect_fusion(ctx, chain, call.span)
+        return emit_collect_fusion(ctx, chain, type, call.span)
     }
     // Early-exit predicate terminals — any / all / find.
     any_call :: terminal_pred_arg(call, "any")
@@ -335,10 +335,23 @@ emit_count_fusion :: fn(ctx: FnLowerCtx, chain: IterChain, span: Span) -> Lowere
 }
 
 // `{ let out: element[] = []; <fused loop: out.push(v) per element>; out }`. The
-// element type is concrete (the UFCS receiver concretization binds the chain's
-// source `T`), so the raw fused push matches the result slot in both backends.
-emit_collect_fusion :: fn(ctx: FnLowerCtx, chain: IterChain, span: Span) -> LoweredExpr {
-    elem_ty :: chain_element_type(chain)
+// result array's element type is taken from the typer's `result_type`, NOT the
+// chain's fused `output_elem` (which erases to `TY_ANY` for an all-reference
+// combinator instance) — see the note on `emit_collect_fusion` for why that
+// erasure would give the array `KIND_BOXED` slots under a concrete `T[]` type.
+emit_collect_fusion :: fn(ctx: FnLowerCtx, chain: IterChain, result_type: Type, span: Span) -> LoweredExpr {
+    // Use the typer's CONCRETE result element (`result_type` = `element[]`), not
+    // the chain's fused `output_elem` — which is `TY_ANY` for an all-reference
+    // combinator instance (`.Erased` flavor). A `TY_ANY` element interns to an
+    // opaque `BcRef`, so the materialised result array gets `KIND_BOXED` slots
+    // while its source-level type is a concrete `T[]` (a `KIND_REF` array). A
+    // consumer reading the array as raw refs then dereferences a box → crash.
+    // Taking the element from `result_type` re-anchors it on the pre-reserved
+    // `BcStruct` slot, so the array is built `KIND_REF` and round-trips. Mirrors
+    // the `returns_typeparam_array -> .Mono` guard, which the inline collect
+    // array bypasses. Falls back to the fused element only if the result type
+    // isn't an array (never for a real `collect`).
+    elem_ty :: if result_type is ArrayType as a { a.element } else { chain_element_type(chain) }
     arr_ty :: mk_array(elem_ty, false)
     result_sym :: fresh_synthetic_symbol(ctx, "collect")
     elem_sym :: fresh_synthetic_symbol(ctx, "elem")
