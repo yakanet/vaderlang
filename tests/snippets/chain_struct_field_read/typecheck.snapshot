@@ -1,0 +1,70 @@
+# Typecheck
+
+## tests/snippets/chain_struct_field_read
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Rec                  :: Rec
+  expr 20:16    SeqLitExpr     :: Rec[]
+  expr 20:17    StructLitExpr  :: Rec
+  expr 20:31    StringLitExpr  :: string
+  expr 20:50    StructLitExpr  :: Rec
+  expr 20:64    StringLitExpr  :: string
+  expr 21:16    SeqLitExpr     :: Rec[]
+  expr 21:17    StructLitExpr  :: Rec
+  expr 21:31    StringLitExpr  :: string
+  expr 24:15    CallExpr       :: Rec[]
+  expr 24:15    CallExpr       :: __genstate_chain<Rec>
+  expr 24:15    FieldExpr      :: fn() -> T[]
+  expr 24:15    IdentExpr      :: fn(Iterator<T>, Iterator<T>) -> Iterator<T>
+  expr 24:21    IdentExpr      :: Rec[]
+  expr 24:24    IdentExpr      :: Rec[]
+  expr 25:13    StringLitExpr  :: string
+  expr 25:20    CallExpr       :: usize
+  expr 25:20    FieldExpr      :: fn() -> usize
+  expr 25:20    IdentExpr      :: Rec[]
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T) -> void
+  expr 26:14    IdentExpr      :: Rec[]
+  expr 27:17    StringLitExpr  :: string
+  expr 27:20    FieldExpr      :: string
+  expr 27:20    IdentExpr      :: Rec
+  expr 27:30    FieldExpr      :: i32
+  expr 27:30    IdentExpr      :: Rec
+  expr 27:9     CallExpr       :: void
+  expr 27:9     IdentExpr      :: fn(T) -> void
+  expr 31:16    CallExpr       :: Rec[]
+  expr 31:16    CallExpr       :: __genstate_map<Rec>
+  expr 31:16    FieldExpr      :: fn() -> T[]
+  expr 31:16    FieldExpr      :: fn(fn(Rec) -> U) -> Iterator<U>
+  expr 31:16    IdentExpr      :: Rec[]
+  expr 31:22    LambdaExpr     :: fn(Rec) -> Rec
+  expr 31:30    StructLitExpr  :: Rec
+  expr 31:44    FieldExpr      :: string
+  expr 31:44    IdentExpr      :: Rec
+  expr 31:62    BinaryExpr     :: i32
+  expr 31:62    FieldExpr      :: i32
+  expr 31:62    IdentExpr      :: Rec
+  expr 32:14    IdentExpr      :: Rec[]
+  expr 33:17    StringLitExpr  :: string
+  expr 33:23    FieldExpr      :: string
+  expr 33:23    IdentExpr      :: Rec
+  expr 33:33    FieldExpr      :: i32
+  expr 33:33    IdentExpr      :: Rec
+  expr 33:9     CallExpr       :: void
+  expr 33:9     IdentExpr      :: fn(T) -> void
+  expr 37:13    CallExpr       :: Rec[]
+  expr 37:13    CallExpr       :: __genstate_filter<Rec>
+  expr 37:13    FieldExpr      :: fn() -> T[]
+  expr 37:13    FieldExpr      :: fn(fn(Rec) -> bool) -> Iterator<Rec>
+  expr 37:13    IdentExpr      :: Rec[]
+  expr 37:27    LambdaExpr     :: fn(Rec) -> bool
+  expr 37:35    BinaryExpr     :: bool
+  expr 37:35    FieldExpr      :: i32
+  expr 37:35    IdentExpr      :: Rec
+  expr 38:14    IdentExpr      :: Rec[]
+  expr 39:17    StringLitExpr  :: string
+  expr 39:25    FieldExpr      :: string
+  expr 39:25    IdentExpr      :: Rec
+  expr 39:35    FieldExpr      :: i32
+  expr 39:35    IdentExpr      :: Rec
+  expr 39:9     CallExpr       :: void
+  expr 39:9     IdentExpr      :: fn(T) -> void
