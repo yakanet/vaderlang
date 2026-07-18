@@ -58815,14 +58815,17 @@ static void vader_typecheck_push_op_undefined_1(void* l0, vader_box_t l1, vader_
 }
 
 static bool vader_typecheck_is_bool(vader_box_t l0) {
+    bool l1;
     void* t0;
     vader_string_t t1;
     if (l0.tag == 322u) {
         t0 = l0.payload.obj;
         t1 = ((vader_struct_vader_types_PrimitiveType_t*) t0)->f_name;
-        return t1 == 463u;
+        l1 = t1 == 463u;
+    } else {
+        l1 = false;
     }
-    return false;
+    return l1;
 }
 
 static bool vader_typecheck_is_numeric(vader_box_t l0) {
@@ -67123,21 +67126,21 @@ static vader_box_t vader_typecheck_check_operator_rhs(vader_box_t l0, vader_box_
 }
 
 static bool vader_typecheck_is_metatype(vader_box_t l0) {
-    if (l0.tag == 327u) {
-        return true;
-    }
-    return false;
+    return l0.tag == 327u;
 }
 
 static bool vader_typecheck_is_string(vader_box_t l0) {
+    bool l1;
     void* t0;
     vader_string_t t1;
     if (l0.tag == 322u) {
         t0 = l0.payload.obj;
         t1 = ((vader_struct_vader_types_PrimitiveType_t*) t0)->f_name;
-        return t1 == 464u;
+        l1 = t1 == 464u;
+    } else {
+        l1 = false;
     }
-    return false;
+    return l1;
 }
 
 static vader_string_t vader_typecheck_arith_trait_method(uint8_t l0) {
