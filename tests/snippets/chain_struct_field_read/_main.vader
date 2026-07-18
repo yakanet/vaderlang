@@ -38,5 +38,17 @@ main :: fn() -> i32 {
     for r in kept {
         println("kept ${r.name}=${r.value}")
     }
+
+    // Direct for-loop over a struct chain (NO `collect`). The fused loop var must
+    // bind the concrete `Rec`, not the erased `Any` of the `.Erased` combinator
+    // instance — else `m.value` fails in mid-IR. Both inferred `chain(a, b)` and
+    // the explicit-type-arg form `chain<Rec>(a, b)` fuse (the latter's callee is a
+    // `GenericInstExpr` the fusion descent now sees through).
+    for m in chain(a, b) {
+        println("direct ${m.name}=${m.value}")
+    }
+    for m in chain<Rec>(a, b) {
+        println("explicit ${m.name}=${m.value}")
+    }
     return 0
 }
