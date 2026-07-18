@@ -147,11 +147,12 @@ export check_project_with_bodies :: fn(
     // before any fn signature consults them.
     register_aliases(entry_typed, merge_module_program(entry_loaded.module.files).decls)
     for [id, other] in project.modules {
-        if id == project.entry { continue }
+        if id == project.entry {
+            continue
+        }
         other_typed :: per_module[id]
-        match other_typed {
-            is null -> {}
-            _ -> { register_aliases(other_typed, merge_module_program(other.module.files).decls) }
+        if other_typed !is null {
+            register_aliases(other_typed, merge_module_program(other.module.files).decls)
         }
     }
     merge_external_alias_types(entry_typed, per_module)
@@ -177,13 +178,8 @@ export check_project_with_bodies :: fn(
     for [id, other] in project.modules {
         if id == project.entry { continue }
         other_typed :: per_module[id]
-        match other_typed {
-            is null -> {}
-            _ -> {
-                run_orphan_rule_check_for_module(other, id,
-                    other_typed.resolved.idents, wire_targets,
-                    other_typed.resolved.diags)
-            }
+        if other_typed !is null {
+            run_orphan_rule_check_for_module(other, id, other_typed.resolved.idents, wire_targets, other_typed.resolved.diags)
         }
     }
     // Pre-populate `namespace_member_types` from each target module's
@@ -261,7 +257,9 @@ export check_project_with_bodies :: fn(
     typed_by_name :: MutableMap<string, TypedProgram> {}
     for [id, lm] in project.modules {
         t :: per_module[id]
-        if t != null { typed_by_name[lm.module.module_name] = t }
+        if t != null {
+            typed_by_name[lm.module.module_name] = t
+        }
     }
     // Populate `imported_fn_overloads` for every NON-ENTRY module BEFORE
     // `settle_external_expr_bodied_returns` walks their bodies — otherwise
@@ -393,9 +391,8 @@ collect_direct_imports :: fn(
         if !(seen[target_id] is null) { continue }
         seen[target_id] = true
         tp :: per_module[target_id]
-        match tp {
-            is null -> {}
-            _ -> { out.push(tp) }
+        if tp !is null {
+            out.push(tp)
         }
     }
     return out
@@ -444,9 +441,8 @@ populate_external_types :: fn(
     entry_typed: TypedProgram, project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
 ) -> void {
-    match entry_typed.import_targets {
-        is null -> {}
-        _ -> { populate_from(entry_typed.import_targets, entry_typed, project, per_module) }
+    if entry_typed.import_targets !is null {
+        populate_from(entry_typed.import_targets, entry_typed, project, per_module)
     }
 }
 
@@ -456,9 +452,8 @@ populate_from :: fn(
 ) -> void {
     for [_, st] in targets.symbol_targets {
         external :: lookup_external_type(st, per_module)
-        match external {
-            is null -> {}
-            _ -> { entry_typed.external_types[st.symbol.id] = external }
+        if external !is null {
+            entry_typed.external_types[st.symbol.id] = external
         }
     }
     // Namespace targets : for `name :: import "p"`, materialise an
@@ -676,13 +671,10 @@ merge_external_impl_methods :: fn(
                         base_key :: "${type_base_name(for_ty)}::${m.name}"
                         trait_method_ext :: lookup_trait_method(trait_decl_ext, m.name)
                         ufcs_ty :: ufcs_method_type(m, for_ty, trait_method_ext, other, diag_sink())
-                        match ufcs_ty {
-                            is null -> {}
-                            _ -> {
-                                entry_typed.impl_methods[key] = ufcs_ty
-                                entry_typed.impl_methods[base_key] = ufcs_ty
-                                record_impl_trait(entry_typed, base_key, id_decl.trait_name)
-                            }
+                        if ufcs_ty !is null {
+                            entry_typed.impl_methods[key] = ufcs_ty
+                            entry_typed.impl_methods[base_key] = ufcs_ty
+                            record_impl_trait(entry_typed, base_key, id_decl.trait_name)
                         }
                     }
                     // Index Iterator/Into/Index/IndexSet element/key/target
@@ -1120,9 +1112,8 @@ cross_publish_trait_decls :: fn(per_module: MutableMap<string, TypedProgram>) ->
         for [sym_id, d] in tp.trait_decls {
             o :: tp.trait_decl_owners[sym_id]
             owner_resolved: ResolvedModule = tp.resolved
-            match o {
-                is null -> {}
-                _ -> { owner_resolved = o }
+            if o !is null {
+                owner_resolved = o
             }
             ids.push(sym_id)
             decls.push(d)
@@ -1173,9 +1164,10 @@ merge_struct_decls :: fn(
         for [sym_id, decl] in other.trait_decls {
             entry_typed.trait_decls[sym_id] = decl
             owner :: other.trait_decl_owners[sym_id]
-            match owner {
-                is null -> { entry_typed.trait_decl_owners[sym_id] = other.resolved }
-                _ -> { entry_typed.trait_decl_owners[sym_id] = owner }
+            entry_typed.trait_decl_owners[sym_id] = if owner is null {
+                other.resolved
+            } else {
+                owner
             }
         }
         for [sym_id, fmap] in other.struct_field_types {
@@ -1297,26 +1289,19 @@ populate_imported_fn_overloads :: fn(
     // so explicitly-imported helpers (e.g. `import "p" { foo }`)
     // dispatch via UFCS on their declared first param.
     targets :: entry_typed.import_targets
-    match targets {
-        is null -> {}
-        _ -> {
-            for [sym_id, st] in targets.symbol_targets {
-                ty :: entry_typed.external_types[st.symbol.id] ?? continue
-                match ty {
-                    is FnType as ft -> {
-                        push_overload(entry_typed, st.symbol.name, ft)
-                        // Also push under the entry's binding name so a renamed
-                        // import (`import "p" { foo as bar }`) is dispatchable as
-                        // `x.bar(...)`. sym_id is the entry's ImportBinding ; find
-                        // its local name in resolved.symbols.
-                        for s in entry_typed.resolved.symbols {
-                            if s.id == sym_id && s.name != st.symbol.name {
-                                push_overload(entry_typed, s.name, ft)
-                            }
+    if targets !is null {
+        for [sym_id, st] in targets.symbol_targets {
+            ty :: entry_typed.external_types[st.symbol.id] ?? continue
+            match ty {
+                is FnType as ft -> {
+                    push_overload(entry_typed, st.symbol.name, ft)
+                    for s in entry_typed.resolved.symbols {
+                        if s.id == sym_id && s.name != st.symbol.name {
+                            push_overload(entry_typed, s.name, ft)
                         }
                     }
-                    _ -> {}
                 }
+                _ -> {}
             }
         }
     }
@@ -1356,20 +1341,9 @@ push_module_exported_fns :: fn(from: TypedProgram, into: TypedProgram) -> void {
             // cross-module UFCS candidates.
             if sym.visibility != .Public { continue }
             ty :: from.decl_types[sym.id] ?? continue
-            match ty {
-                is FnType as ft -> {
-                    push_overload(into, name, ft)
-                    // Publish the imported fn's type into `external_types` too. A
-                    // WILDCARD import binds no name, so it creates no
-                    // `symbol_target` and `populate_external_types` never
-                    // published it — `type_of_symbol` on a wildcard callee then
-                    // degraded to `?`, which breaks null-guard narrowing (the call
-                    // never types as `never`) AND generic-fn materialisation (the
-                    // lowerer can't resolve the callee → GATE B1). Keyed by the
-                    // source symbol id — the same symbol the wildcard seed binds.
-                    into.external_types[sym.id] = ft
-                }
-                _ -> {}
+            if ty is FnType as ft {
+                push_overload(into, name, ft)
+                into.external_types[sym.id] = ft
             }
         }
     }
@@ -1418,12 +1392,9 @@ push_overload :: fn(typed: TypedProgram, name: string, ft: FnType) -> void {
 // symbols (e.g. `ParseError` from `std/string`) to their real exported
 // counterpart without needing the full `TypedProgram`.
 populate_resolver_imports :: fn(entry_typed: TypedProgram) -> void {
-    match entry_typed.import_targets {
-        is null -> {}
-        _ -> {
-            for [sym_id, st] in entry_typed.import_targets.symbol_targets {
-                entry_typed.resolved.imports_to[sym_id] = st.symbol
-            }
+    if entry_typed.import_targets !is null {
+        for [sym_id, st] in entry_typed.import_targets.symbol_targets {
+            entry_typed.resolved.imports_to[sym_id] = st.symbol
         }
     }
 }
@@ -1795,9 +1766,8 @@ walk_fn_body :: fn(
     // silently leave every skipped body at `:?` (lowerer → degraded bytecode,
     // no error).
     if mode == .ReturnsOnly && !needs_return_inference(fd) { return }
-    match fd.body {
-        is null -> {}
-        is AST.BlockExpr as body -> { check_fn_body(fd, body, typed, diags, check_expr) }
+    if fd.body is AST.BlockExpr as body {
+        check_fn_body(fd, body, typed, diags, check_expr)
     }
 }
 
@@ -1886,32 +1856,33 @@ declare_impl_return :: fn(
     typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
     // Explicit annotation wins.
-    match fd.return_type {
-        is null -> {}
-        _ -> { return type_from_expr(fd.return_type, typed.resolved, diags) }
+    if fd.return_type !is null {
+        return type_from_expr(fd.return_type, typed.resolved, diags)
     }
     // Trait method's return type, with `Self` substituted to `for_ty`,
     // when the impl's matching method has no annotation. Lets
     // `Direction implements Turnable { turn_left :: fn(self) = … }`
     // pick up `-> Self` from `Turnable.turn_left`.
-    if !(trait_method is null) {
-        match trait_method.return_type {
-            is null -> {}
-            _ -> {
-                trait_ret :: type_from_expr(trait_method.return_type, typed.resolved, diags)
-                return substitute_self(trait_ret, for_ty)
-            }
+    if trait_method !is null {
+        if trait_method.return_type !is null {
+            trait_ret :: type_from_expr(trait_method.return_type, typed.resolved, diags)
+            return substitute_self(trait_ret, for_ty)
         }
     }
     // Expression-bodied fns without an annotation defer to body
     // inference ; `check_fn_body` flips `inferred_return` on Unresolved.
-    if fd.is_expression_bodied { return TY_UNRESOLVED }
+    if fd.is_expression_bodied {
+        return TY_UNRESOLVED
+    }
     return TY_VOID
 }
 
 
 param_type :: fn(
-    p: AST.FnParam, for_ty: Type, typed: TypedProgram, diags: Diagnostic[],
+    p: AST.FnParam,
+    for_ty: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> Type {
     if p.ty == null {
         if p.name == "self" { return for_ty }
@@ -1930,9 +1901,8 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnosti
     sym :: lookup_sym_by_name_orch(typed.resolved, cd.name) ?? return
     annot :: typed.decl_types[sym.id]
     expected: Type | null = null
-    match annot {
-        is null -> {}
-        _ -> { expected = annot }
+    if annot !is null {
+        expected = annot
     }
     if is_type_expr(cd.value, typed.resolved) {
         if annot is null {
