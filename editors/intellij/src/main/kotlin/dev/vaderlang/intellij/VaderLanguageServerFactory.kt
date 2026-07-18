@@ -2,7 +2,10 @@ package dev.vaderlang.intellij
 
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiFile
 import com.redhat.devtools.lsp4ij.LanguageServerFactory
+import com.redhat.devtools.lsp4ij.client.features.LSPClientFeatures
+import com.redhat.devtools.lsp4ij.client.features.LSPFormattingFeature
 import com.redhat.devtools.lsp4ij.server.OSProcessStreamConnectionProvider
 import com.redhat.devtools.lsp4ij.server.StreamConnectionProvider
 
@@ -17,6 +20,19 @@ import com.redhat.devtools.lsp4ij.server.StreamConnectionProvider
 internal class VaderLanguageServerFactory : LanguageServerFactory {
     override fun createConnectionProvider(project: Project): StreamConnectionProvider =
         VaderConnectionProvider(project)
+
+    override fun createClientFeatures(): LSPClientFeatures =
+        LSPClientFeatures().setFormattingFeature(VaderFormattingFeature())
+}
+
+// `.vader` files are mapped to the server by filename glob (TextMate grammar,
+// no IntelliJ Language/PSI). LSP4IJ's default `LSPFormattingFeature` defers to
+// an existing native formatter — and IntelliJ's generic plain-text formatter
+// counts as one — so "Reformat Code" (⌘⌥L) was a silent no-op ("No lines were
+// changed"). Overriding `isExistingFormatterOverrideable` to true makes LSP4IJ
+// route formatting to the Vader Language Server's `textDocument/formatting`.
+private class VaderFormattingFeature : LSPFormattingFeature() {
+    override fun isExistingFormatterOverrideable(file: PsiFile): Boolean = true
 }
 
 private class VaderConnectionProvider(project: Project) : OSProcessStreamConnectionProvider() {
