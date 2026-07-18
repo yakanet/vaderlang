@@ -575,11 +575,30 @@ emit_struct_decl :: fn(self: Printer, d: p.StructDecl) -> void {
     self.write(" {")
     self.depth = self.depth + 1
     for f in d.fields {
-        self.nl_indent()
+        // Flush the field's leading `///` vaderdoc / `//` comments — without
+        // this they detach from the field and get dumped at end-of-file. An
+        // `@internal` field renders the decorator one line above the field
+        // name ; use THAT line for the blank-line check so a doc directly above
+        // it isn't split off by a spurious blank line.
+        self.newline()
+        node_line :: if f.visibility == p.Visibility.Private {
+            f.span.start.line - 1
+        } else {
+            f.span.start.line
+        }
+        self.flush_leading_comments(f.span.start.offset, node_line)
+        self.indent()
         self.emit_struct_field(f)
     }
+    // Trailing comments after the last field, before the closing brace.
+    inner_trailing :: self.comments.has_before(d.span.end.offset)
+    self.flush_leading_comments(d.span.end.offset, d.span.end.line)
     self.depth = self.depth - 1
-    self.nl_indent()
+    if inner_trailing {
+        self.indent()
+    } else {
+        self.nl_indent()
+    }
     self.write("}")
 }
 
