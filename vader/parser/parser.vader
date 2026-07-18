@@ -649,7 +649,7 @@ parse_import_decl :: fn(p: Parser, decorators: Decorator[]) -> ImportDecl {
         return ImportDecl {
             .span       = p.span_of(start, p.peek_at(-1)),
             .path       = path_info.text,
-            .binding    = DestructureImport { .names = names },
+            .binding    = DestructureImport { .names = names.items, .trailing_comma = names.trailing_comma },
             .decorators = decorators,
         }
     }
@@ -684,8 +684,9 @@ parse_named_import_decl :: fn(p: Parser, decorators: Decorator[], name_tok: Toke
 
 /// Parse `a, b as c` …` with the leading `{` already consumed. Closes
 /// on the matching `}`.
-parse_import_name_list_rest :: fn(p: Parser) -> ImportName[] {
+parse_import_name_list_rest :: fn(p: Parser) -> CommaList<ImportName> {
     names: ImportName[] = []
+    trailing := false
     p.skip_newlines()
     if !p.check(.RBrace) {
         first := true
@@ -695,7 +696,10 @@ parse_import_name_list_rest :: fn(p: Parser) -> ImportName[] {
             }
             first = false
             p.skip_newlines()
-            if p.check(.RBrace) { break }
+            if p.check(.RBrace) {
+                trailing = true
+                break
+            }
             name :: p.expect(.Ident, "imported name")
             alias_str: string | null = null
             if p.match_kind(.KwAs) != null {
@@ -711,7 +715,7 @@ parse_import_name_list_rest :: fn(p: Parser) -> ImportName[] {
     }
     p.skip_newlines()
     p.expect(.RBrace, "`}` to close import list")
-    return names
+    return CommaList<ImportName> { .items = names, .trailing_comma = trailing }
 }
 
 StringLitInfo :: struct { text: string, span: Span }
@@ -992,6 +996,7 @@ parse_fn_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, 
         .sam_synthetic        = false,
         .is_expression_bodied = tail.is_expression_bodied,
         .materialized         = false,
+        .trailing_comma       = sig.trailing_comma,
     }
 }
 
@@ -1058,17 +1063,29 @@ parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
         .sam_synthetic        = false,
         .is_expression_bodied = tail.is_expression_bodied,
         .materialized         = false,
+        .trailing_comma       = sig.trailing_comma,
     }
 }
 
 FnSignature :: struct {
-    params:      FnParam[]
-    type_params: TypeParam[]
+    params:         FnParam[]
+    type_params:    TypeParam[]
+    trailing_comma: bool = false
+}
+
+// A parsed comma-separated list plus whether the source ended it with a
+// trailing comma. The flag drives the formatter's Dart-style layout ; carrying
+// it in the return value (rather than a mutable `Parser` field) keeps each
+// list-parser self-contained and free of read-immediately temporal coupling.
+CommaList :: struct<T> {
+    items:          T[]
+    trailing_comma: bool
 }
 
 parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
     type_params: TypeParam[] = []
     params:      FnParam[]   = []
+    trailing := false
     p.expect(.LParen, "`(` after function name")
     p.skip_newlines()
     if !p.check(.RParen) {
@@ -1079,7 +1096,10 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
             if !first {
                 if p.match_kind(.Comma) == null { break }
                 p.skip_newlines()
-                if p.check(.RParen) { break }
+                if p.check(.RParen) {
+                    trailing = true
+                    break
+                }
             }
             first = false
 
@@ -1128,7 +1148,7 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
         }
     }
     p.expect(.RParen, "`)` to close parameter list")
-    return FnSignature { .params = params, .type_params = type_params }
+    return FnSignature { .params = params, .type_params = type_params, .trailing_comma = trailing }
 }
 
 empty_token :: fn() = make_token(.Eof, "", empty_file_span(""))
@@ -2838,6 +2858,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
                 p.expect(.LParen, "`(` after `@${sp.name}`")
                 args: Expr[] = []
                 p.skip_newlines()
+                intr_trailing := false
                 if !p.check(.RParen) {
                     for {
                         p.skip_newlines()
@@ -2858,6 +2879,8 @@ parse_prefix :: fn(p: Parser) -> Expr {
                         }
                         p.skip_newlines()
                         if p.match_kind(.Comma) == null { break }
+                        p.skip_newlines()
+                        intr_trailing = p.check(.RParen)
                     }
                 }
                 end :: p.expect(.RParen, "`)` to close `@${sp.name}(...)`")
@@ -2866,6 +2889,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
                     .name      = sp.name,
                     .name_span = name_tok.span,
                     .args      = args,
+                    .trailing_comma = intr_trailing,
                 }
             }
         }
@@ -2914,12 +2938,13 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
         // postfix `dot`. Same struct-lit gate as the bare path.
         if p.allow_struct_lit && p.check(.LBrace) && looks_like_struct_lit_body(p.tokens, p.pos) {
             p.advance()
-            items :: p.parse_struct_lit_fields()
+            fields :: p.parse_struct_lit_fields()
             rb :: p.expect(.RBrace, "`}` to close struct literal")
             return StructLitExpr {
                 .span      = Span { .start = left.span.start, .end = rb.span.end },
                 .type_name = field_expr,
-                .items     = items,
+                .items     = fields.items,
+                .trailing_comma = fields.trailing_comma,
             }
         }
         return field_expr
@@ -2931,7 +2956,8 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
         return CallExpr {
             .span   = Span { .start = left.span.start, .end = p.peek_at(-1).span.end },
             .callee = left,
-            .args   = args,
+            .args   = args.items,
+            .trailing_comma = args.trailing_comma,
         }
     }
     // .LBracket — two readings :
@@ -2956,10 +2982,13 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
     }
 }
 
-parse_call_args :: fn(p: Parser) -> CallArg[] {
+parse_call_args :: fn(p: Parser) -> CommaList<CallArg> {
     out: CallArg[] = []
+    trailing := false
     p.skip_newlines()
-    if p.check(.RParen) { return out }
+    if p.check(.RParen) {
+        return CommaList<CallArg> { .items = out, .trailing_comma = false }
+    }
     for {
         p.skip_newlines()
         if p.check(.RParen) { break }
@@ -2985,8 +3014,10 @@ parse_call_args :: fn(p: Parser) -> CallArg[] {
         }
         p.skip_newlines()
         if p.match_kind(.Comma) == null { break }
+        p.skip_newlines()
+        trailing = p.check(.RParen)   // comma consumed ; `)` next means trailing
     }
-    return out
+    return CommaList<CallArg> { .items = out, .trailing_comma = trailing }
 }
 
 parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
@@ -3009,12 +3040,13 @@ parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
         }
         if p.allow_struct_lit && p.check(.LBrace) {
             p.advance()
-            items :: p.parse_struct_lit_fields()
+            fields :: p.parse_struct_lit_fields()
             rb :: p.expect(.RBrace, "`}` to close struct literal")
             return StructLitExpr {
                 .span      = p.span_of(t, rb),
                 .type_name = generic_inst,
-                .items     = items,
+                .items     = fields.items,
+                .trailing_comma = fields.trailing_comma,
             }
         }
         // Must be a call — the scan only commits on `(` or `{`.
@@ -3024,18 +3056,20 @@ parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
         return CallExpr {
             .span   = p.span_of(t, rp),
             .callee = generic_inst,
-            .args   = call_args,
+            .args   = call_args.items,
+            .trailing_comma = call_args.trailing_comma,
         }
     }
 
     if p.allow_struct_lit && p.check(.LBrace) && looks_like_struct_lit_body(p.tokens, p.pos) {
         p.advance()
-        items :: p.parse_struct_lit_fields()
+        fields :: p.parse_struct_lit_fields()
         rb :: p.expect(.RBrace, "`}` to close struct literal")
         return StructLitExpr {
             .span      = p.span_of(t, rb),
             .type_name = ident_expr(t.span, t.text),
-            .items     = items,
+            .items     = fields.items,
+            .trailing_comma = fields.trailing_comma,
         }
     }
     return ident_expr(t.span, t.text)
@@ -3125,8 +3159,9 @@ looks_like_struct_lit_body :: fn(tokens: Token[], pos_at_lbrace: i32) -> bool {
     return false
 }
 
-parse_struct_lit_fields :: fn(p: Parser) -> (StructLitField | StructLitSpread)[] {
+parse_struct_lit_fields :: fn(p: Parser) -> CommaList<StructLitField | StructLitSpread> {
     out: (StructLitField | StructLitSpread)[] = []
+    trailing := false
     p.skip_newlines()
     for !p.check(.RBrace) && !p.check(.Eof) {
         start :: p.peek()
@@ -3151,9 +3186,10 @@ parse_struct_lit_fields :: fn(p: Parser) -> (StructLitField | StructLitSpread)[]
         p.skip_newlines()
         if p.match_kind(.Comma) == null { break }
         p.skip_newlines()
+        trailing = p.check(.RBrace)   // comma consumed ; a `}` next means it was trailing
     }
     p.skip_newlines()
-    return out
+    return CommaList<StructLitField | StructLitSpread> { .items = out, .trailing_comma = trailing }
 }
 
 parse_paren :: fn(p: Parser) -> Expr {
@@ -3206,6 +3242,7 @@ parse_lambda_without_fn :: fn(p: Parser) -> LambdaExpr {
         .params      = sig.params,
         .return_type = null,
         .body        = body,
+        .trailing_comma = sig.trailing_comma,
     }
 }
 
@@ -3245,6 +3282,7 @@ wrap_as_block :: fn(body: Expr) -> BlockExpr {
 parse_seq_lit :: fn(p: Parser) -> SeqLitExpr {
     lb :: p.advance()
     elements: Expr[] = []
+    trailing := false
     p.skip_newlines()
     if !p.check(.RBracket) {
         for {
@@ -3254,12 +3292,14 @@ parse_seq_lit :: fn(p: Parser) -> SeqLitExpr {
             p.skip_newlines()
             if p.match_kind(.Comma) == null { break }
             p.skip_newlines()
+            trailing = p.check(.RBracket)
         }
     }
     rb :: p.expect(.RBracket, "`]` to close seq literal")
     return SeqLitExpr {
-        .span     = p.span_of(lb, rb),
-        .elements = elements,
+        .span           = p.span_of(lb, rb),
+        .elements       = elements,
+        .trailing_comma = trailing,
     }
 }
 
@@ -3410,6 +3450,7 @@ parse_lambda :: fn(p: Parser) -> LambdaExpr {
         .params      = sig.params,
         .return_type = return_type,
         .body        = body,
+        .trailing_comma = sig.trailing_comma,
     }
 }
 

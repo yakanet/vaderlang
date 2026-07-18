@@ -44,6 +44,14 @@ export Printer :: struct {
     // the condition to this width so the braces line up. `0` disables (not a
     // chain). Mirrors `align_name_width` for `::` decl groups.
     align_if_width: usize = 0
+    // Current output column (bytes since the last newline). Maintained by
+    // `write` / `newline` / `indent` so a delimited construct can decide
+    // whether its single-line form fits within `MAX_LINE`.
+    column: usize = 0
+    // Rendering in "flat" mode : delimited constructs (struct-lit, call, seq)
+    // force their single-line form and never explode — used by `flat_width`
+    // to MEASURE a construct before deciding its real layout.
+    flat: bool = false
 }
 
 /// How `emit_block_expr` lays out a block body (see `Printer.block_mode`).
@@ -75,16 +83,22 @@ export finish :: fn(self: Printer) -> string {
 
 write :: fn(self: Printer, s: string) -> void {
     self.buf.append(s)
-    if s.bytes().len() > 0 { self.has_written = true }
+    n :: s.bytes().len()
+    if n > 0 { self.has_written = true }
+    // Emitted strings never carry a real newline (string literals escape `\n`,
+    // comments are written line-by-line), so a plain add tracks the column.
+    self.column = self.column + n
 }
 
 newline :: fn(self: Printer) -> void {
     self.buf.append(NL)
     self.has_written = true
+    self.column = 0
 }
 
 indent :: fn(self: Printer) -> void {
     for 0..<self.depth { self.buf.append(INDENT) }
+    self.column = self.column + usize(self.depth) * INDENT.bytes().len()
 }
 
 // Newline followed by current-depth indent. The most common emit shape across
@@ -446,34 +460,29 @@ emit_import :: fn(self: Printer, d: p.ImportDecl) -> void {
             self.write("\"")
             // `import "p" {}` — an empty modifier list is just the bare wildcard;
             // normalise it away (this also silences W0011 on re-format).
-            if dst.names.len() > 0 { self.emit_import_name_block(d, dst.names) }
+            if dst.names.len() > 0 { self.emit_import_name_block(dst.names, dst.trailing_comma) }
         }
     }
 }
 
-emit_import_name_block :: fn(self: Printer, d: p.ImportDecl, names: p.ImportName[]) -> void {
-    // Preserve the source's choice : if the block spanned multiple
-    // lines, keep it multi-line ; else single-line.
-    multi := d.span.start.line != d.span.end.line
-    if multi {
-        self.write(" {")
-        self.depth = self.depth + 1
-        for i in 0..<names.len() {
-            self.nl_indent()
-            self.emit_import_name(names[i])
-            self.write(",")
-        }
-        self.depth = self.depth - 1
-        self.nl_indent()
-        self.write("}")
-    } else {
-        self.write(" { ")
-        for i in 0..<names.len() {
-            if i > 0 { self.write(", ") }
-            self.emit_import_name(names[i])
-        }
-        self.write(" }")
-    }
+emit_import_name_block :: fn(self: Printer, names: p.ImportName[], trailing_comma: bool) -> void {
+    // Dart-style : a trailing comma forces one name per line ; otherwise keep
+    // it single-line when it fits under the column budget. `flat` mode
+    // (measuring) always renders single-line.
+    inline :: self.flat
+        || (!trailing_comma && self.column + flat_import_block_width(self.source, names) <= usize(MAX_LINE))
+    self.emit_comma_list(names, " {", "}", true, inline, emit_import_name)
+}
+
+// Flat width of an import modifier block rendered as ` { a, b as c }`,
+// including the surrounding braces — drives the Dart-style layout choice.
+// Measures by rendering through the real emitter in `flat` mode (which forces
+// the single-line branch), so the two never drift.
+flat_import_block_width :: fn(source: string, names: p.ImportName[]) -> usize {
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.flat = true
+    sub.emit_import_name_block(names, false)
+    return sub.finish().bytes().len()
 }
 
 emit_import_name :: fn(self: Printer, n: p.ImportName) -> void {
@@ -497,7 +506,7 @@ emit_fn_decl :: fn(self: Printer, d: p.FnDecl) -> void {
     self.write_name_padded(d.name)
     self.write(" :: fn")
     self.emit_type_params(d.type_params)
-    self.emit_fn_params(d.params)
+    self.emit_fn_params(d.params, d.trailing_comma)
     self.emit_type_expr_with_prefix(" -> ", d.return_type)
     if d.is_expression_bodied {
         self.write(" = ")
@@ -531,13 +540,20 @@ emit_type_params :: fn(self: Printer, params: p.TypeParam[]) -> void {
     self.write(">")
 }
 
-emit_fn_params :: fn(self: Printer, params: p.FnParam[]) -> void {
-    self.write("(")
-    for i in 0..<params.len() {
-        if i > 0 { self.write(", ") }
-        self.emit_fn_param(params[i])
-    }
-    self.write(")")
+emit_fn_params :: fn(self: Printer, params: p.FnParam[], trailing_comma: bool) -> void {
+    inline :: self.flat
+        || params.len() == 0
+        || (!trailing_comma && self.column + flat_params_width(self.source, params) <= usize(MAX_LINE))
+    self.emit_comma_list(params, "(", ")", false, inline, emit_fn_param)
+}
+
+// Flat width of a parameter list rendered as `(a: T, b: U)`, including the
+// parens — used to decide the Dart-style single-line vs exploded layout.
+flat_params_width :: fn(source: string, params: p.FnParam[]) -> usize {
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.flat = true
+    sub.emit_fn_params(params, false)
+    return sub.finish().bytes().len()
 }
 
 emit_fn_param :: fn(self: Printer, fp: p.FnParam) -> void {
@@ -1364,22 +1380,23 @@ emit_ident :: fn(self: Printer, x: p.IdentExpr) -> void {
 }
 
 emit_call :: fn(self: Printer, x: p.CallExpr) -> void {
+    inline :: self.flat
+        || x.args.len() == 0
+        || (!x.trailing_comma && self.column + flat_width(self.source, x) <= usize(MAX_LINE))
     self.emit_postfix_target(x.callee)
-    self.write("(")
-    for i in 0..<x.args.len() {
-        if i > 0 { self.write(", ") }
-        a :: x.args[i]
-        if a.spread { self.write("...") }
-        match a.name {
-            is null -> {}
-            is string as n -> {
-                self.write(n)
-                self.write(" = ")
-            }
+    self.emit_comma_list(x.args, "(", ")", false, inline, emit_call_arg)
+}
+
+emit_call_arg :: fn(self: Printer, a: p.CallArg) -> void {
+    if a.spread { self.write("...") }
+    match a.name {
+        is null -> {}
+        is string as n -> {
+            self.write(n)
+            self.write(" = ")
         }
-        self.emit_expr(a.value)
     }
-    self.write(")")
+    self.emit_expr(a.value)
 }
 
 emit_field :: fn(self: Printer, x: p.FieldExpr) -> void {
@@ -1864,13 +1881,13 @@ emit_lambda :: fn(self: Printer, x: p.LambdaExpr) -> void {
     // bloating to a block. Block-bodied lambdas and any lambda with an
     // explicit return type keep the `fn(p) -> T { ... }` form.
     if x.return_type is null && x.body.stmts.len() == 0 && !(x.body.trailing is null) {
-        self.emit_fn_params(x.params)
+        self.emit_fn_params(x.params, x.trailing_comma)
         self.write(" -> ")
         self.emit_expr(x.body.trailing)
         return
     }
     self.write("fn")
-    self.emit_fn_params(x.params)
+    self.emit_fn_params(x.params, x.trailing_comma)
     self.emit_type_expr_with_prefix(" -> ", x.return_type)
     self.write(" ")
     self.emit_block_expr(x.body)
@@ -1878,40 +1895,87 @@ emit_lambda :: fn(self: Printer, x: p.LambdaExpr) -> void {
 
 // ---- aggregates ----
 
-emit_struct_lit :: fn(self: Printer, x: p.StructLitExpr) -> void {
-    self.emit_type_expr(x.type_name)
-    self.write(" {")
-    if x.items.len() == 0 {
-        self.write("}")
+// Emit `items` as a comma-separated list between `open` and `close`, driving
+// the Dart-style layout : when `inline`, render on one line (an inner space on
+// each side when `inner_space`, e.g. `{ a, b }`) ; otherwise explode one item
+// per line, each ending in a trailing comma. An empty list collapses to
+// `open`+`close`. `emit_item` renders a single element — pass the element's
+// dedicated emitter (`emit_call_arg`, `emit_fn_param`, …). The caller writes
+// any prefix (callee, type name) and computes `inline` before calling.
+emit_comma_list :: fn<T>(self: Printer, items: T[], open: string, close: string,
+                         inner_space: bool, inline: bool, emit_item: fn(Printer, T) -> void) -> void {
+    self.write(open)
+    if items.len() == 0 {
+        self.write(close)
         return
     }
-    self.write(" ")
-    for i in 0..<x.items.len() {
-        if i > 0 { self.write(", ") }
-        it :: x.items[i]
-        match it {
-            is p.StructLitField as f -> {
-                self.write(".")
-                self.write(f.name)
-                self.write(" = ")
-                self.emit_expr(f.value)
-            }
-            is p.StructLitSpread as s -> {
-                self.write("...")
-                self.emit_expr(s.expr)
-            }
+    if inline {
+        if inner_space { self.write(" ") }
+        for i in 0..<items.len() {
+            if i > 0 { self.write(", ") }
+            emit_item(self, items[i])
+        }
+        if inner_space { self.write(" ") }
+        self.write(close)
+        return
+    }
+    self.depth = self.depth + 1
+    for it in items {
+        self.nl_indent()
+        emit_item(self, it)
+        self.write(",")
+    }
+    self.depth = self.depth - 1
+    self.nl_indent()
+    self.write(close)
+}
+
+// Adapter so `emit_expr` (which accepts `Expr | null`) can be passed as an
+// `emit_comma_list` item emitter over a non-null `Expr` element.
+emit_expr_item :: fn(self: Printer, e: p.Expr) -> void = self.emit_expr(e)
+
+emit_struct_lit :: fn(self: Printer, x: p.StructLitExpr) -> void {
+    // Dart-style layout : a source trailing comma FORCES the exploded form ;
+    // otherwise stay single-line iff it fits within `MAX_LINE` at the current
+    // column. `flat` mode (measuring) always renders single-line. An empty
+    // literal collapses to `Type {}`.
+    inline :: self.flat
+        || x.items.len() == 0
+        || (!x.trailing_comma && self.column + flat_width(self.source, x) <= usize(MAX_LINE))
+    self.emit_type_expr(x.type_name)
+    self.emit_comma_list(x.items, " {", "}", true, inline, emit_struct_lit_item)
+}
+
+emit_struct_lit_item :: fn(self: Printer, it: p.StructLitField | p.StructLitSpread) -> void {
+    match it {
+        is p.StructLitField as f -> {
+            self.write(".")
+            self.write(f.name)
+            self.write(" = ")
+            self.emit_expr(f.value)
+        }
+        is p.StructLitSpread as s -> {
+            self.write("...")
+            self.emit_expr(s.expr)
         }
     }
-    self.write(" }")
+}
+
+// Single-line (flat) rendered width of an expression — for the fit-in-`MAX_LINE`
+// decision on delimited constructs. Renders in `flat` mode so nested constructs
+// stay single-line too.
+flat_width :: fn(source: string, e: p.Expr) -> usize {
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.flat = true
+    sub.emit_expr(e)
+    return sub.finish().bytes().len()
 }
 
 emit_seq_lit :: fn(self: Printer, x: p.SeqLitExpr) -> void {
-    self.write("[")
-    for i in 0..<x.elements.len() {
-        if i > 0 { self.write(", ") }
-        self.emit_expr(x.elements[i])
-    }
-    self.write("]")
+    inline :: self.flat
+        || x.elements.len() == 0
+        || (!x.trailing_comma && self.column + flat_width(self.source, x) <= usize(MAX_LINE))
+    self.emit_comma_list(x.elements, "[", "]", false, inline, emit_expr_item)
 }
 
 emit_range :: fn(self: Printer, x: p.RangeExpr) -> void {
@@ -1972,14 +2036,12 @@ emit_generic_inst :: fn(self: Printer, x: p.GenericInstExpr) -> void {
 }
 
 emit_intrinsic_call :: fn(self: Printer, x: p.IntrinsicCallExpr) -> void {
+    inline :: self.flat
+        || x.args.len() == 0
+        || (!x.trailing_comma && self.column + flat_width(self.source, x) <= usize(MAX_LINE))
     self.write("@")
     self.write(x.name)
-    self.write("(")
-    for i in 0..<x.args.len() {
-        if i > 0 { self.write(", ") }
-        self.emit_expr(x.args[i])
-    }
-    self.write(")")
+    self.emit_comma_list(x.args, "(", ")", false, inline, emit_expr_item)
 }
 
 emit_fn_type :: fn(self: Printer, x: p.FnTypeExpr) -> void {
