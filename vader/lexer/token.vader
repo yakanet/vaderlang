@@ -42,6 +42,7 @@ export TokenKind :: enum(u8) {
     Amp, Pipe, Caret, Tilde, Shl, Shr,
     Eq, Neq, Lt, Lte, Gt, Gte,
     AndAnd, OrOr, Bang,
+    QuestionQuestion, // ??  (null-coalescing)
     Assign,        // =
     PlusAssign,    // +=
     MinusAssign,   // -=

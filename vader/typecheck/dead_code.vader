@@ -34,6 +34,11 @@ DeadDecl :: struct {
 collect_expr_names :: fn(e: AST.Expr, out: string[]) -> void {
     match e {
         is AST.IdentExpr         as x -> { out.push(x.name) }
+        is AST.NullCoalesceExpr  as x -> {
+            collect_expr_names(x.left, out)
+            inner :: AST.coalesce_fallback_expr(x.fallback)
+            if inner != null { collect_expr_names(inner, out) }
+        }
         is AST.CallExpr          as x -> {
             collect_expr_names(x.callee, out)
             for a in x.args { collect_expr_names(a.value, out) }

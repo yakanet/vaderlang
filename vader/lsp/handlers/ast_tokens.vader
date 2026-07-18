@@ -391,6 +391,11 @@ walk_block :: fn(b: AST.BlockExpr, out: RawToken[]) -> void {
 // the `CallExpr` walker upgrades its callee ident to Function.
 walk_expr :: fn(e: AST.Expr, out: RawToken[]) -> void {
     match e {
+        is AST.NullCoalesceExpr as x -> {
+            walk_expr(x.left, out)
+            inner :: AST.coalesce_fallback_expr(x.fallback)
+            if inner != null { walk_expr(inner, out) }
+        }
         is AST.IdentExpr        as x -> {
             // Primitives in value position (the receiver of a TypeMeta
             // method call, e.g. `i32.MAX`) paint as Type instead of the

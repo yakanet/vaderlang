@@ -96,6 +96,7 @@ export expr_kind_name :: fn(e: AST.Expr) -> string = match e {
     is AST.MatchExpr         -> "MatchExpr"
     is AST.CallExpr          -> "CallExpr"
     is AST.BinaryExpr        -> "BinaryExpr"
+    is AST.NullCoalesceExpr  -> "NullCoalesceExpr"
     is AST.UnaryExpr         -> "UnaryExpr"
     is AST.FieldExpr         -> "FieldExpr"
     is AST.IndexExpr         -> "IndexExpr"
@@ -151,6 +152,7 @@ infer_expr :: fn(
         is AST.MatchExpr     as e -> { return infer_match(e, expected, typed, diags, null, check_expr) }
         is AST.CallExpr      as e -> { return infer_call(e, typed, diags, check_expr) }
         is AST.BinaryExpr    as e -> { return infer_binary(e, expected, typed, diags, check_expr) }
+        is AST.NullCoalesceExpr as e -> { return infer_null_coalesce(e, expected, typed, diags, check_expr) }
         is AST.FieldExpr     as e -> { return infer_field(e, typed, diags, check_expr) }
         is AST.StructLitExpr as e -> { return infer_struct_lit(e, typed, diags, check_expr) }
         is AST.SeqLitExpr    as e -> { return infer_seq_lit(e, expected, typed, diags, check_expr) }

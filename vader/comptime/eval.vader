@@ -68,6 +68,7 @@ export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResu
 /// the AST.Expr union exactly.
 export span_of :: fn(expr: AST.Expr) -> Span = match expr {
     is AST.IntLitExpr        as x -> x.span
+    is AST.NullCoalesceExpr  as x -> x.span
     is AST.FloatLitExpr      as x -> x.span
     is AST.BoolLitExpr       as x -> x.span
     is AST.NullLitExpr       as x -> x.span

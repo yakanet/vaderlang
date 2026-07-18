@@ -866,6 +866,18 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
             }
             sb.close_obj(level)
         }
+        is NullCoalesceExpr -> {
+            sb.open_obj()
+            sb.kind_entry(level + 1, "NullCoalesceExpr")
+            sb.entry(false, level + 1, "left")
+            sb.write_expr(e.left, level + 1)
+            sb.entry(false, level + 1, "fallback")
+            match e.fallback {
+                is ReturnStmt | BreakStmt | ContinueStmt as s -> sb.write_stmt(s, level + 1)
+                is Expr as x -> sb.write_expr(x, level + 1)
+            }
+            sb.close_obj(level)
+        }
         is IfExpr -> {
             sb.open_obj()
             sb.kind_entry(level + 1, "IfExpr")

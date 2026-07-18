@@ -2330,6 +2330,20 @@ parse_continue :: fn(p: Parser) -> ContinueStmt {
     }
 }
 
+// Right operand of `??`. A divergent statement when the keyword leads
+// (`return` / `break` / `continue`), otherwise a value expression parsed at
+// the `??` right binding power (7 — below the operator's own 6, so `??` is
+// left-associative and non-chaining).
+parse_coalesce_fallback :: fn(p: Parser) -> CoalesceFallback {
+    // A `match … { _ -> }` over `TokenKind` (a closed enum) trips W0005 ; the
+    // if-chain keeps "3 divergent keywords, else a value expression" warning-free.
+    k :: p.peek().kind
+    if k == .KwReturn   { return p.parse_return() }
+    if k == .KwBreak    { return p.parse_break() }
+    if k == .KwContinue { return p.parse_continue() }
+    return p.parse_expr(7)
+}
+
 parse_defer :: fn(p: Parser) -> DeferStmt {
     start :: p.advance()
     body: DeferBody = DeferStmtBody { .stmt = ExprStmt { .span = start.span, .expr = NullLitExpr { .span = start.span } } }
@@ -2414,6 +2428,8 @@ infix_for :: fn(k: TokenKind) = match k {
     .InterpClose  -> no_infix()
     .Tilde        -> no_infix()
     .Bang         -> no_infix()
+    // `??` is handled specially in `parse_expr` (RHS may be a divergent stmt).
+    .QuestionQuestion -> no_infix()
     .Assign       -> no_infix()
     .PlusAssign   -> no_infix()
     .MinusAssign  -> no_infix()
@@ -2495,6 +2511,7 @@ postfix_bp :: fn(k: TokenKind) = match k {
     .Gte          -> -1
     .AndAnd       -> -1
     .OrOr         -> -1
+    .QuestionQuestion -> -1
     .Bang         -> -1
     .Assign       -> -1
     .PlusAssign   -> -1
@@ -2641,6 +2658,22 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
                 .operand = is_expr,
             }
             last_non_assoc_level = 20
+            continue
+        }
+
+        // `??` — null-coalescing. Very low precedence (below `||`). The RHS
+        // may be a value expression OR a divergent statement (`return` /
+        // `break` / `continue`), which the generic infix path can't produce,
+        // so handle it here. See `.claude/plans/null-coalescing-operator.md`.
+        if t.kind == .QuestionQuestion && 6 >= min_bp {
+            p.advance()  // `??`
+            fallback :: p.parse_coalesce_fallback()
+            left = NullCoalesceExpr {
+                .span     = Span { .start = left.span.start, .end = p.peek_at(-1).span.end },
+                .left     = left,
+                .fallback = fallback,
+            }
+            last_non_assoc_level = -1
             continue
         }
 

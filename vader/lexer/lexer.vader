@@ -80,7 +80,7 @@ suppresses_newline_after :: fn(k: TokenKind) = @partial match k {
     // continuation so multi-line union declarations read cleanly.
     .Plus | .Minus | .Star | .Slash | .Percent | .Amp | .Pipe | .Caret
         | .Shl | .Shr | .Eq | .Neq | .Lt | .Lte | .Gt | .Gte | .AndAnd
-        | .OrOr | .RangeExcl | .RangeIncl | .DotDotDot | .Assign | .PlusAssign
+        | .OrOr | .QuestionQuestion | .RangeExcl | .RangeIncl | .DotDotDot | .Assign | .PlusAssign
         | .MinusAssign | .StarAssign | .SlashAssign | .PercentAssign | .Colon
         | .Arrow | .FatArrow | .Comma | .DeclConst | .DeclVar -> true
     _ -> false
@@ -726,6 +726,7 @@ try_lex_operator :: fn(l: Lexer) -> bool {
     if c == '>' && c2 == '=' { return l.emit_and_advance(.Gte, ">=") }
     if c == '&' && c2 == '&' { return l.emit_and_advance(.AndAnd, "&&") }
     if c == '|' && c2 == '|' { return l.emit_and_advance(.OrOr, "||") }
+    if c == '?' && c2 == '?' { return l.emit_and_advance(.QuestionQuestion, "??") }
     if c == '<' && c2 == '<' { return l.emit_and_advance(.Shl, "<<") }
     if c == '>' && c2 == '>' { return l.emit_and_advance(.Shr, ">>") }
     if c == '-' && c2 == '>' { return l.emit_and_advance(.Arrow, "->") }

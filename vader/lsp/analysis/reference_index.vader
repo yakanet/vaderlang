@@ -246,6 +246,11 @@ collect_block :: fn(b: AST.BlockExpr, out: Span[]) -> void {
 collect_expr :: fn(e: AST.Expr, out: Span[]) -> void {
     match e {
         is AST.IdentExpr         as x -> { out.push(x.span) }
+        is AST.NullCoalesceExpr  as x -> {
+            collect_expr(x.left, out)
+            inner :: AST.coalesce_fallback_expr(x.fallback)
+            if inner != null { collect_expr(inner, out) }
+        }
         is AST.CallExpr          as x -> {
             collect_expr(x.callee, out)
             for a in x.args { collect_expr(a.value, out) }

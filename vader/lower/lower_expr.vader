@@ -117,6 +117,7 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             }
         }
         is BinaryExpr     as e -> { return lower_binary(ctx, e, type) }
+        is NullCoalesceExpr as e -> { return lower_null_coalesce(ctx, e) }
         is IfExpr         as e -> {
             // ANF (async) : an `if`-EXPRESSION used as a value (non-void) whose
             // arms contain an `await` can't stay a leaf `let`-RHS — the block-
@@ -543,6 +544,53 @@ try_route_through_env :: fn(
                 .target = cell_ref, .value_type = type,
             }
         }
+    }
+}
+
+// Desugar `left ?? fallback` to a temp-bound if-expression :
+//   { _t :: left ; if _t is null { fallback } else { (T) _t } }
+// The `is null` test runs on the un-narrowed union `_t` (so the C-emit tag
+// check doesn't constant-fold), and the else casts `_t` to the non-null
+// result, reusing the existing narrowing-cast lowering path.
+lower_null_coalesce :: fn(ctx: FnLowerCtx, e: NullCoalesceExpr) -> LoweredExpr {
+    result  :: ctx.types.expr_type(e)         // T (null subtracted), set by infer
+    left_ty :: ctx.types.expr_type(e.left)    // T | null
+    tmp :: fresh_synthetic_symbol(ctx, "coalesce")
+    let_stmt :: LoweredLet {
+        .span = e.span, .name = tmp.name, .symbol = tmp,
+        .type = left_ty, .value = lower_expr(ctx, e.left),
+    }
+    tmp_ref :: LoweredIdent { .span = e.span, .type = left_ty, .symbol = tmp }
+    cond :: LoweredTypeCheck {
+        .span = e.span, .type = TY_BOOL, .value = tmp_ref, .check_type = TY_NULL,
+    }
+    else_block :: wrap_block(e.span, LoweredCast {
+        .span = e.span, .type = result, .value = tmp_ref,
+    })
+    if_node :: LoweredIf {
+        .span = e.span, .type = result, .cond = cond,
+        .then_block = lower_coalesce_fallback(ctx, e.fallback, result),
+        .else_block = else_block,
+    }
+    return LoweredBlock { .span = e.span, .type = result, .stmts = [let_stmt], .trailing = if_node }
+}
+
+// Then-branch block for a `??` : the fallback value wrapped in a block, or the
+// lowered divergent statement followed by a provably-dead `unreachable`.
+lower_coalesce_fallback :: fn(ctx: FnLowerCtx, f: CoalesceFallback, result: Type) -> LoweredBlock = match f {
+    is ReturnStmt | BreakStmt | ContinueStmt as s -> coalesce_diverge_block(ctx, s, result)
+    is Expr as fe -> wrap_block(fe.span, lower_expr(ctx, fe))
+}
+
+coalesce_diverge_block :: fn(ctx: FnLowerCtx, s: Stmt, result: Type) -> LoweredBlock {
+    stmts: LoweredStmt[] = []
+    lower_stmt_into(ctx, s, stmts)
+    return LoweredBlock {
+        .span = s.span, .type = result, .stmts = stmts,
+        .trailing = LoweredUnreachable {
+            .span = s.span, .type = result,
+            .reason = "`??` fallback diverges", .trap = false,
+        },
     }
 }
 

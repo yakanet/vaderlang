@@ -26,7 +26,7 @@ export ImportBinding :: NamedNamespaceImport | DestructureImport | WildcardImpor
 
 export ForForm :: InfiniteFor | WhileFor | InFor
 
-export Expr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | AwaitExpr
+export Expr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | AwaitExpr
 
 export StringLitPart :: StringLitText | StringLitInterp
 
@@ -38,11 +38,29 @@ export LetBinding :: SimpleBinding | TupleBinding | WildcardBinding | RestBindin
 
 export PatternFieldValue :: PatternBinding | PatternLiteral
 
+/// Right operand of `??` (null-coalescing). Either an ordinary value
+/// expression (must be assignable to the non-null result type) or a
+/// divergent statement (`return` / `break` / `continue`, typed `never`).
+/// The divergent forms are statements — not `Expr` variants — so they are
+/// carried here directly rather than through the `Expr` union.
+export CoalesceFallback :: Expr | ReturnStmt | BreakStmt | ContinueStmt
+
+/// The value expression a read-only expression walker should descend into
+/// for a `??` fallback : the fallback expression itself, the value of a
+/// `return <expr>`, or `null` for a bare `return` / `break` / `continue`.
+/// Passes that also need to visit the statement node itself (id assignment,
+/// typecheck, formatting) destructure `CoalesceFallback` directly instead.
+export coalesce_fallback_expr :: fn(f: CoalesceFallback) -> Expr | null = match f {
+    is ReturnStmt as r -> r.value
+    is BreakStmt | ContinueStmt -> null
+    is Expr as e -> e
+}
+
 // Type-position expressions parse as regular `Expr` nodes — what counts
 // as a « type expression » is determined by *position* (the slot demanding
 // a type) rather than by AST shape. The alias documents intent at slot
 // declarations (e.g. `StructField.ty: TypeExpr`) ; variants mirror `Expr`.
-export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | AwaitExpr
+export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | AwaitExpr
 
 // ============================================================================
 // Visibility / shared shapes
@@ -572,6 +590,20 @@ export BinaryExpr :: struct {
     /// then-branch (mirrors match-arm semantics). Empty string when
     /// absent — `op != Is` always carries `""`.
     bind_as: string = ""
+}
+
+/// Null-coalescing `left ?? fallback`. `left` must be typed `T | null` ;
+/// the expression yields `T` (null subtracted). `fallback` supplies the
+/// value when `left` is null : either a value expression assignable to `T`,
+/// or a divergent statement (`return` / `break` / `continue`, typed
+/// `never`). Lowers to `_t :: left ; if _t is null { fallback } else { _t }`,
+/// so the existing narrowing engine refines the result to `T`. See
+/// `.claude/plans/null-coalescing-operator.md`.
+export NullCoalesceExpr :: struct {
+    span:     Span
+    id:       usize = UNASSIGNED_NODE_ID
+    left:     Expr
+    fallback: CoalesceFallback
 }
 
 // ---- control-flow expressions --------------------------------------------
