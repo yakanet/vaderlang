@@ -60,7 +60,7 @@ pick_overload :: fn(
     candidates :: collect_overload_candidates(name, typed)
     if candidates.len() < 2 { return initial }
     if c.args.len() == 0 { return initial }
-    arg0_ty :: check_expr_fn(c.args[0].value, null, typed, no_diags())
+    arg0_ty :: check_expr_fn(c.args[0].value, null, typed, [])
     // The resolver bound `c.callee` to a primary overload ; its
     // signature is what a non-overloaded display would show.
     primary_ft :: primary_overload_ft(c.callee, typed)
@@ -172,8 +172,6 @@ collect_overload_candidates :: fn(name: string, typed: TypedProgram) -> FnType[]
     return out
 }
 
-no_diags :: fn() -> Diagnostic[] { return [] }
-
 // Re-unify a UFCS-curried fn's original first param (the receiver
 // type, stashed in `ufcs_receiver_types` at FieldExpr time) against
 // the receiver itself so type-params from the dispatched fn (e.g.
@@ -200,7 +198,9 @@ seed_ufcs_bindings :: fn(
 // `<…>` argument types. No-op when the callee isn't an explicit generic
 // instantiation. Lets a free-literal arg pin to the named concrete type.
 seed_explicit_type_args :: fn(
-    callee: AST.Expr, typed: TypedProgram, bindings: MutableMap<i32, Type>,
+    callee: AST.Expr,
+    typed: TypedProgram,
+    bindings: MutableMap<i32, Type>,
     diags: Diagnostic[],
 ) -> void {
     if !(callee is AST.GenericInstExpr) { return }
@@ -233,8 +233,7 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
     for a in c.args { if a.name != null { only_positional = false } }
     if only_positional && c.args.len() == params.len() { return c.args }
 
-    slots: (AST.CallArg | null)[] = []
-    for i in 0..<params.len() { slots.push(null) }
+    slots: (AST.CallArg | null)[] = [null] * params.len()
     seen_named := false
     next_pos: usize = 0
     ok := true
