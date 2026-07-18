@@ -7,5 +7,11 @@ x2 a=2
 x2 b=4
 kept b=2
 kept c=3
+direct a=1
+direct b=2
+direct c=3
+explicit a=1
+explicit b=2
+explicit c=3
 # exit
 0
