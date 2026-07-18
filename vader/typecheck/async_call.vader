@@ -29,7 +29,9 @@ export async_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concre
             // Unwrap-then-wrap-once handles both shapes uniformly : `-> T`
             // (inner = T) and `-> Async<T>` (inner = T) both yield `Async<T>`,
             // never a nested `Async<Async<T>>`.
-            if fn_is_async(f) { return mk_trait(async_sym, [async_result_arg(async_inner_type(concrete_ret))]) }
+            if fn_is_async(f) {
+                return mk_trait(async_sym, [async_result_arg(async_inner_type(concrete_ret))])
+            }
         }
     }
     return null
@@ -41,7 +43,9 @@ export async_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concre
 /// void→null step happens only where the erased `Async<...>` type is built.
 export async_inner_type :: fn(t: Type) -> Type {
     if t is TraitType as tt {
-        if tt.symbol.name == TRAIT_ASYNC && tt.args.len() > 0 { return tt.args[0] }
+        if tt.symbol.name == TRAIT_ASYNC && tt.args.len() > 0 {
+            return tt.args[0]
+        }
     }
     return t
 }
