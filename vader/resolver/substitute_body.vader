@@ -29,9 +29,8 @@ export substitute_block :: fn(b: AST.BlockExpr, subst: Subst) -> AST.BlockExpr {
     new_stmts: AST.Stmt[] = []
     for s in b.stmts { new_stmts.push(substitute_stmt(s, subst)) }
     new_trailing: AST.Expr | null = null
-    match b.trailing {
-        is null -> {}
-        _ -> { new_trailing = substitute_expr_full(b.trailing, subst) }
+    if b.trailing !is null {
+        new_trailing = substitute_expr_full(b.trailing, subst)
     }
     return AST.BlockExpr {
         .span = b.span,
@@ -164,9 +163,8 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
             new_arms: AST.MatchArm[] = []
             for a in m.arms {
                 new_guard: AST.Expr | null = null
-                match a.guard {
-                    is null -> {}
-                    _ -> { new_guard = substitute_expr_full(a.guard, subst) }
+                if a.guard !is null {
+                    new_guard = substitute_expr_full(a.guard, subst)
                 }
                 new_arms.push(AST.MatchArm {
                     .span = a.span, .id = AST.UNASSIGNED_NODE_ID,
@@ -278,14 +276,12 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
             new_params: AST.FnParam[] = []
             for pm in lm.params {
                 new_pty: AST.TypeExpr | null = null
-                match pm.ty {
-                    is null -> {}
-                    _ -> { new_pty = substitute_type_expr(pm.ty, subst) }
+                if pm.ty !is null {
+                    new_pty = substitute_type_expr(pm.ty, subst)
                 }
                 new_default: AST.Expr | null = null
-                match pm.default_value {
-                    is null -> {}
-                    _ -> { new_default = substitute_expr_full(pm.default_value, subst) }
+                if pm.default_value !is null {
+                    new_default = substitute_expr_full(pm.default_value, subst)
                 }
                 new_params.push(AST.FnParam {
                     .span = pm.span, .id = AST.UNASSIGNED_NODE_ID, .name = pm.name,
@@ -293,9 +289,8 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
                 })
             }
             new_ret: AST.TypeExpr | null = null
-            match lm.return_type {
-                is null -> {}
-                _ -> { new_ret = substitute_type_expr(lm.return_type, subst) }
+            if lm.return_type !is null {
+                new_ret = substitute_type_expr(lm.return_type, subst)
             }
             return AST.LambdaExpr {
                 .span = lm.span, .id = AST.UNASSIGNED_NODE_ID,
@@ -313,9 +308,8 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
     @partial match s {
         is AST.LetStmt as ls -> {
             new_ty: AST.TypeExpr | null = null
-            match ls.ty {
-                is null -> {}
-                _ -> { new_ty = substitute_type_expr(ls.ty, subst) }
+            if ls.ty !is null {
+                new_ty = substitute_type_expr(ls.ty, subst)
             }
             return AST.LetStmt {
                 .span = ls.span, .id = AST.UNASSIGNED_NODE_ID,
@@ -337,9 +331,8 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
         }
         is AST.ReturnStmt as rs -> {
             new_value: AST.Expr | null = null
-            match rs.value {
-                is null -> {}
-                _ -> { new_value = substitute_expr_full(rs.value, subst) }
+            if rs.value !is null {
+                new_value = substitute_expr_full(rs.value, subst)
             }
             return AST.ReturnStmt {
                 .span = rs.span, .id = AST.UNASSIGNED_NODE_ID,
@@ -417,9 +410,8 @@ export substitute_pattern :: fn(p: AST.Pattern, subst: Subst) -> AST.Pattern {
     @partial match p {
         is AST.IsPattern as ip -> {
             new_inner: AST.Pattern | null = null
-            match ip.inner {
-                is null -> {}
-                _ -> { new_inner = substitute_pattern(ip.inner, subst) }
+            if ip.inner !is null {
+                new_inner = substitute_pattern(ip.inner, subst)
             }
             return AST.IsPattern {
                 .span = ip.span, .id = AST.UNASSIGNED_NODE_ID,
@@ -496,9 +488,8 @@ export next_clone_span :: fn(stamp: StampCtx) -> Span {
 stamp_block_spans :: fn(b: AST.BlockExpr, stamp: StampCtx) -> void {
     b.span = next_clone_span(stamp)
     for s in b.stmts { stamp_stmt_spans(s, stamp) }
-    match b.trailing {
-        is null -> {}
-        _ -> { stamp_expr_spans(b.trailing, stamp) }
+    if b.trailing !is null {
+        stamp_expr_spans(b.trailing, stamp)
     }
 }
 
@@ -507,9 +498,8 @@ stamp_stmt_spans :: fn(s: AST.Stmt, stamp: StampCtx) -> void {
         is AST.LetStmt as ls -> {
             ls.span = next_clone_span(stamp)
             stamp_binding_spans(ls.binding, stamp)
-            match ls.ty {
-                is null -> {}
-                _ -> { stamp_expr_spans(ls.ty, stamp) }
+            if ls.ty !is null {
+                stamp_expr_spans(ls.ty, stamp)
             }
             stamp_expr_spans(ls.value, stamp)
         }
@@ -519,9 +509,8 @@ stamp_stmt_spans :: fn(s: AST.Stmt, stamp: StampCtx) -> void {
         }
         is AST.ReturnStmt as rs -> {
             rs.span = next_clone_span(stamp)
-            match rs.value {
-                is null -> {}
-                _ -> { stamp_expr_spans(rs.value, stamp) }
+            if rs.value !is null {
+                stamp_expr_spans(rs.value, stamp)
             }
         }
         is AST.AssignStmt as as_ -> {
@@ -599,9 +588,8 @@ stamp_expr_spans :: fn(e: AST.Expr, stamp: StampCtx) -> void {
             for a in m.arms {
                 a.span = next_clone_span(stamp)
                 stamp_pattern_spans(a.pattern, stamp)
-                match a.guard {
-                    is null -> {}
-                    _ -> { stamp_expr_spans(a.guard, stamp) }
+                if a.guard !is null {
+                    stamp_expr_spans(a.guard, stamp)
                 }
                 stamp_expr_spans(a.body, stamp)
             }
@@ -667,18 +655,15 @@ stamp_expr_spans :: fn(e: AST.Expr, stamp: StampCtx) -> void {
             lm.span = next_clone_span(stamp)
             for pm in lm.params {
                 pm.span = next_clone_span(stamp)
-                match pm.ty {
-                    is null -> {}
-                    _ -> { stamp_expr_spans(pm.ty, stamp) }
+                if pm.ty !is null {
+                    stamp_expr_spans(pm.ty, stamp)
                 }
-                match pm.default_value {
-                    is null -> {}
-                    _ -> { stamp_expr_spans(pm.default_value, stamp) }
+                if pm.default_value !is null {
+                    stamp_expr_spans(pm.default_value, stamp)
                 }
             }
-            match lm.return_type {
-                is null -> {}
-                _ -> { stamp_expr_spans(lm.return_type, stamp) }
+            if lm.return_type !is null {
+                stamp_expr_spans(lm.return_type, stamp)
             }
             stamp_block_spans(lm.body, stamp)
         }
@@ -708,9 +693,8 @@ stamp_pattern_spans :: fn(p: AST.Pattern, stamp: StampCtx) -> void {
     match p {
         is AST.IsPattern as ip -> {
             ip.span = next_clone_span(stamp)
-            match ip.inner {
-                is null -> {}
-                _ -> { stamp_pattern_spans(ip.inner, stamp) }
+            if ip.inner !is null {
+                stamp_pattern_spans(ip.inner, stamp)
             }
         }
         _ -> {}

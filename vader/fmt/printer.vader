@@ -645,13 +645,10 @@ emit_enum_decl :: fn(self: Printer, d: p.EnumDecl) -> void {
     self.emit_visibility(d.visibility)
     self.write(d.name)
     self.write(" :: enum")
-    match d.repr {
-        is null -> {}
-        _ -> {
-            self.write("(")
-            self.emit_type_expr(d.repr)
-            self.write(")")
-        }
+    if d.repr !is null {
+        self.write("(")
+        self.emit_type_expr(d.repr)
+        self.write(")")
     }
     if d.variants.len() == 0 {
         self.write(" {}")
@@ -839,13 +836,10 @@ emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
                 // Arrow form : block body is a no-stmt wrapper around the
                 // trailing expr.
                 if b.stmts.len() == 0 {
-                    match b.trailing {
-                        is null -> {}
-                        _ -> {
-                            self.write(" -> ")
-                            self.emit_expr(b.trailing)
-                            return
-                        }
+                    if b.trailing !is null {
+                        self.write(" -> ")
+                        self.emit_expr(b.trailing)
+                        return
                     }
                 }
                 // Block form : `Type implements Trait { stmts… }`.
@@ -1328,22 +1322,16 @@ emit_type_expr :: fn(self: Printer, t: p.TypeExpr | null) -> void {
 // every caller from a repeated `match { is null -> {} _ -> { write prefix ;
 // emit } }` boilerplate.
 emit_expr_with_prefix :: fn(self: Printer, prefix: string, e: p.Expr | null) -> void {
-    match e {
-        is null -> {}
-        _ -> {
-            self.write(prefix)
-            self.emit_expr(e)
-        }
+    if e !is null {
+        self.write(prefix)
+        self.emit_expr(e)
     }
 }
 
 emit_type_expr_with_prefix :: fn(self: Printer, prefix: string, t: p.TypeExpr | null) -> void {
-    match t {
-        is null -> {}
-        _ -> {
-            self.write(prefix)
-            self.emit_type_expr(t)
-        }
+    if t !is null {
+        self.write(prefix)
+        self.emit_type_expr(t)
     }
 }
 

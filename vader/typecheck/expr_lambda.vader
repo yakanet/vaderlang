@@ -49,13 +49,10 @@ infer_param :: fn(
     p: AST.FnParam, idx: usize, expected_fn: FnType | null,
     typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    match p.ty {
-        is null -> {}
-        _ -> {
-            t :: type_from_expr(p.ty, typed.resolved, diags)
-            typed.param_types[p.span.hash()] = t
-            return t
-        }
+    if p.ty !is null {
+        t :: type_from_expr(p.ty, typed.resolved, diags)
+        typed.param_types[p.span.hash()] = t
+        return t
     }
     match expected_fn {
         is FnType as f -> {
@@ -78,9 +75,8 @@ pick_return :: fn(
     annot: AST.TypeExpr | null, expected_fn: FnType | null,
     resolved: ResolvedModule, diags: Diagnostic[],
 ) -> Type | null {
-    match annot {
-        is null -> {}
-        _ -> { return type_from_expr(annot, resolved, diags) }
+    if annot !is null {
+        return type_from_expr(annot, resolved, diags)
     }
     if expected_fn is FnType as f { return f.return_type }
     return null

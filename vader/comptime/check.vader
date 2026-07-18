@@ -33,15 +33,12 @@ export evaluate_project :: fn(
     for [module_id, module_typed] in typed.modules {
         program :: new_evaluated_program(module_typed)
         decls :: lookup_module_decls(loaded, module_id)
-        match decls {
-            is null -> {}
-            _       -> {
-                evaluate_module_decls(decls, module_typed, program, project, module_id, diags)
-                // Pass the just-baked const values so an `@assert` can resolve
-                // the comptime consts it references (else C4015 never fires).
-                evaluate_assert_decls(decls, module_typed, program.comptime_decls, diags)
-                bake_file_exprs(decls, module_typed, project, program, diags)
-            }
+        if decls !is null {
+            evaluate_module_decls(decls, module_typed, program, project, module_id, diags)
+            // Pass the just-baked const values so an `@assert` can resolve
+            // the comptime consts it references (else C4015 never fires).
+            evaluate_assert_decls(decls, module_typed, program.comptime_decls, diags)
+            bake_file_exprs(decls, module_typed, project, program, diags)
         }
         project.modules[module_id] = program
     }
@@ -128,18 +125,14 @@ evaluate_module_decls :: fn(
             if !(result.diag is null) { diags.push(result.diag) }
             continue
         }
-        match result.value {
-            is null -> {}
-            _       -> {
-                symbol :: lookup_const_symbol(decl, typed)
-                if !(symbol is null) {
-                    program.comptime_decls[symbol.id] = result.value
-                }
+        if result.value !is null {
+            symbol :: lookup_const_symbol(decl, typed)
+            if !(symbol is null) {
+                program.comptime_decls[symbol.id] = result.value
             }
         }
-        match result.diag {
-            is null -> {}
-            _       -> { diags.push(result.diag) }
+        if result.diag !is null {
+            diags.push(result.diag)
         }
     }
     // Second pass : best-effort fold of plain consts (no `@comptime`
@@ -154,9 +147,8 @@ evaluate_module_decls :: fn(
                 if symbol is Symbol as s {
                     if !(program.comptime_decls[s.id] is null) { continue }
                     result :: evaluate_expr(cd.value, context)
-                    match result.value {
-                        is null -> {}
-                        _       -> { program.comptime_decls[s.id] = result.value }
+                    if result.value !is null {
+                        program.comptime_decls[s.id] = result.value
                     }
                 }
             }
@@ -286,9 +278,8 @@ collect_file_intrinsics :: fn(decl: AST.Decl, out: AST.IntrinsicCallExpr[]) -> v
 
 collect_in_block :: fn(b: AST.BlockExpr, out: AST.IntrinsicCallExpr[]) -> void {
     for s in b.stmts { collect_in_stmt(s, out) }
-    match b.trailing {
-        is null -> {}
-        _ -> { collect_in_expr(b.trailing, out) }
+    if b.trailing !is null {
+        collect_in_expr(b.trailing, out)
     }
 }
 
@@ -301,9 +292,8 @@ collect_in_stmt :: fn(s: AST.Stmt, out: AST.IntrinsicCallExpr[]) -> void {
         }
         is AST.ExprStmt as es -> { collect_in_expr(es.expr, out) }
         is AST.ReturnStmt as rs -> {
-            match rs.value {
-                is null -> {}
-                _ -> { collect_in_expr(rs.value, out) }
+            if rs.value !is null {
+                collect_in_expr(rs.value, out)
             }
         }
         is AST.ForStmt as fs -> {

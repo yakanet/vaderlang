@@ -26,48 +26,62 @@ import "vader/types"
 /// my case"). `try_struct_field` is the terminal fallback that emits
 /// T3008/T3009 when nothing matches.
 export infer_field :: fn(
-    e: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[],
+    e: AST.FieldExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     // Namespace-import field access — `mod.foo` where `mod` is an
     // import binding. Runs before the recursive target check.
     ns_lookup :: try_namespace_field(e, typed, diags)
-    match ns_lookup {
-        is null -> {}
-        _ -> { return ns_lookup }
+    if ns_lookup !is null {
+        return ns_lookup
     }
     target_ty :: check_expr_fn(e.target, null, typed, diags)
-    if target_ty is UnresolvedType { return TY_UNRESOLVED }
-
-    candidate: Type | null = null
-    candidate = try_array_method_dispatch(target_ty, e)
-    match candidate { is null -> {} _ -> { return candidate } }
+    if target_ty is UnresolvedType {
+        return TY_UNRESOLVED
+    }
+    candidate:= try_array_method_dispatch(target_ty, e)
+    if candidate !is null {
+        return candidate
+    }
     candidate = try_impl_method_ufcs(target_ty, e, typed, diags)
-    match candidate { is null -> {} _ -> { return candidate } }
+    if candidate !is null {
+        return candidate
+    }
     // Bounded TypeParam dispatch runs BEFORE free-fn UFCS : a free fn
     // whose first param accepts the TypeParam wildcard would otherwise
     // hijack the dispatch instead of routing through the type-param's
     // trait bound.
     candidate = try_typeparam_bound_method(target_ty, e, typed)
-    match candidate { is null -> {} _ -> { return candidate } }
+    if candidate !is null {
+        return candidate
+    }
     candidate = try_free_fn_ufcs_dispatch(target_ty, e, typed)
-    match candidate {
-        is null -> {}
-        _ -> {
-            repin_free_ufcs_receiver(target_ty, e, typed, check_expr_fn)
-            return candidate
-        }
+    if candidate !is null {
+        repin_free_ufcs_receiver(target_ty, e, typed, check_expr_fn)
+        return candidate
     }
     candidate = try_trait_method_dispatch(target_ty, e, typed)
-    match candidate { is null -> {} _ -> { return candidate } }
+    if candidate !is null {
+        return candidate
+    }
     candidate = try_default_trait_method_dispatch(target_ty, e, typed)
-    match candidate { is null -> {} _ -> { return candidate } }
+    if candidate !is null {
+        return candidate
+    }
     candidate = try_tuple_index_dispatch(target_ty, e, diags)
-    match candidate { is null -> {} _ -> { return candidate } }
+    if candidate !is null {
+        return candidate
+    }
     candidate = try_union_common_field_dispatch(target_ty, e, typed, diags)
-    match candidate { is null -> {} _ -> { return candidate } }
+    if candidate !is null {
+        return candidate
+    }
     candidate = try_enum_variant_dispatch(target_ty, e, diags)
-    match candidate { is null -> {} _ -> { return candidate } }
+    if candidate !is null {
+        return candidate
+    }
     return resolve_struct_field(target_ty, e, typed, diags)
 }
 
@@ -90,7 +104,10 @@ try_array_method_dispatch :: fn(target_ty: Type, e: AST.FieldExpr) -> Type | nul
 // first, then fall back to the base-name key + substitute the impl's
 // type-params against the receiver's concrete args.
 try_impl_method_ufcs :: fn(
-    target_ty: Type, e: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[],
+    target_ty: Type,
+    e: AST.FieldExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> Type | null {
     // A free numeric literal receiver (`42.to_string()`) carries no impl methods
     // of its own — every impl is keyed on the concrete default (`i32`/`f64`/`char`,
@@ -100,12 +117,9 @@ try_impl_method_ufcs :: fn(
     // receivers are unaffected.
     key_ty :: default_if_free(target_ty)
     impl_ufcs :: typed.impl_methods["${display_type(key_ty)}::${e.field}"]
-    match impl_ufcs {
-        is null -> {}
-        _ -> {
-            check_trait_ambiguity(e, target_ty, typed, diags)
-            return impl_ufcs
-        }
+    if impl_ufcs !is null {
+        check_trait_ambiguity(e, target_ty, typed, diags)
+        return impl_ufcs
     }
     base_impl :: typed.impl_methods["${type_base_name(key_ty)}::${e.field}"] ?? return null
     check_trait_ambiguity(e, target_ty, typed, diags)
@@ -113,20 +127,28 @@ try_impl_method_ufcs :: fn(
 }
 
 try_typeparam_bound_method :: fn(
-    target_ty: Type, e: AST.FieldExpr, typed: TypedProgram,
+    target_ty: Type,
+    e: AST.FieldExpr,
+    typed: TypedProgram,
 ) -> Type | null {
-    if !(target_ty is TypeParamType) { return null }
+    if target_ty !is TypeParamType {
+        return null
+    }
     bound :: typed.resolved.type_param_bounds[target_ty.symbol.id] ?? return null
     // Find the trait carrying `e.field` AND record its name so the
     // lower can emit `vcall Trait.method` once the receiver gets
     // erased to Any post-monomorphization.
     trait_name :: dispatch_bounded_method_trait(bound, e.field, typed)
-    if trait_name == "" { return null }
+    if trait_name == "" {
+        return null
+    }
     typed.bounded_dispatch_trait[e.id] = trait_name
     // Attribute the dispatch to the enclosing fn so the lowerer keeps its
     // generic instances concrete (no Any-erasure) — see `fn_trait_dispatches`.
     if typed.current_fn_ctx is FnContext as fctx {
-        if fctx.fn_id != 0 { typed.fn_trait_dispatches[fctx.fn_id] = true }
+        if fctx.fn_id != 0 {
+            typed.fn_trait_dispatches[fctx.fn_id] = true
+        }
     }
     tm :: dispatch_bounded_method(bound, e.field, typed) ?? return null
     return substitute_self(tm, target_ty)
@@ -135,18 +157,24 @@ try_typeparam_bound_method :: fn(
 // Variant of `dispatch_bounded_method` that returns the trait NAME
 // instead of the method type. Same walk over `A & B` intersections.
 dispatch_bounded_method_trait :: fn(
-    bound: AST.Expr, name: string, typed: TypedProgram,
+    bound: AST.Expr,
+    name: string,
+    typed: TypedProgram,
 ) -> string {
     if bound is AST.BinaryExpr {
         if bound.op == AST.BinaryOp.BitAnd {
             l :: dispatch_bounded_method_trait(bound.left, name, typed)
-            if l != "" { return l }
+            if l != "" {
+                return l
+            }
             return dispatch_bounded_method_trait(bound.right, name, typed)
         }
     }
     bound_ty :: type_from_expr(bound, typed.resolved, [])
     if bound_ty is TraitType as tt {
-        if try_trait_method(bound_ty, name, typed) is null { return "" }
+        if try_trait_method(bound_ty, name, typed) is null {
+            return ""
+        }
         return tt.symbol.name
     }
     return ""
@@ -157,7 +185,9 @@ dispatch_bounded_method_trait :: fn(
 // returns the curried fn type (receiver stripped). Records the
 // receiver type in `ufcs_receiver_types` for the call-site lowerer.
 try_free_fn_ufcs_dispatch :: fn(
-    target_ty: Type, e: AST.FieldExpr, typed: TypedProgram,
+    target_ty: Type,
+    e: AST.FieldExpr,
+    typed: TypedProgram,
 ) -> Type | null {
     free_ufcs :: try_free_fn_ufcs_with_first(e.field, target_ty, typed) ?? return null
     typed.ufcs_receiver_types[e.id] = free_ufcs.first_param
@@ -181,10 +211,14 @@ try_free_fn_ufcs_dispatch :: fn(
 // int, lowers it as i32, and the lowerer can't match `millis`'s i64 first param
 // (→ midir panic, see bug_ufcs_primitive_literal_freefn).
 repin_free_ufcs_receiver :: fn(
-    target_ty: Type, e: AST.FieldExpr, typed: TypedProgram,
+    target_ty: Type,
+    e: AST.FieldExpr,
+    typed: TypedProgram,
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
-    if !(target_ty is FreeIntType || target_ty is FreeFloatType || target_ty is FreeCharType) { return }
+    if !(target_ty is FreeIntType || target_ty is FreeFloatType || target_ty is FreeCharType) {
+        return
+    }
     first_param :: typed.ufcs_receiver_types[e.id] ?? return
     // A UNION first param can't pin a free literal — it can't lower "as a union",
     // so `check_expr` would leave it free and it defaults (`42.0` → f64), which
@@ -206,19 +240,29 @@ repin_free_ufcs_receiver :: fn(
 // (free float into `i32 | f32`, whose default f64 is absent) lowering as the f32
 // member rather than defaulting to f64 and mis-matching at lower.
 union_member_for_free :: fn(free_ty: Type, first_param: Type) -> Type {
-    if first_param !is UnionType { return first_param }
+    if first_param !is UnionType {
+        return first_param
+    }
     def :: default_if_free(free_ty)
-    if is_assignable(def, first_param, null) { return def }
+    if is_assignable(def, first_param, null) {
+        return def
+    }
     for v in first_param.variants {
-        if is_assignable(free_ty, v, null) { return v }
+        if is_assignable(free_ty, v, null) {
+            return v
+        }
     }
     return first_param
 }
 
 try_trait_method_dispatch :: fn(
-    target_ty: Type, e: AST.FieldExpr, typed: TypedProgram,
+    target_ty: Type,
+    e: AST.FieldExpr,
+    typed: TypedProgram,
 ) -> Type | null {
-    if !(target_ty is TraitType) { return null }
+    if target_ty !is TraitType {
+        return null
+    }
     trait_method :: try_trait_method(target_ty, e.field, typed) ?? return null
     return substitute_self(trait_method, target_ty)
 }
@@ -227,15 +271,21 @@ try_trait_method_dispatch :: fn(
 // default body (`Iterator.count` / `Iterator.is_empty`) — synthesise
 // the dispatch from the trait method's signature.
 try_default_trait_method_dispatch :: fn(
-    target_ty: Type, e: AST.FieldExpr, typed: TypedProgram,
+    target_ty: Type,
+    e: AST.FieldExpr,
+    typed: TypedProgram,
 ) -> Type | null {
-    if !(target_ty is StructType) { return null }
+    if target_ty !is StructType {
+        return null
+    }
     return try_default_trait_method(target_ty, e.field, typed)
 }
 
 // `tup.0` — positional access on tuples. Out-of-range raises T3009.
 try_tuple_index_dispatch :: fn(
-    target_ty: Type, e: AST.FieldExpr, diags: Diagnostic[],
+    target_ty: Type,
+    e: AST.FieldExpr,
+    diags: Diagnostic[],
 ) -> Type | null {
     // `tuple_backing` accepts a tuple-backed distinct newtype too, so `coord.0`
     // forwards to the backing tuple's positional slots while the distinct keeps
@@ -243,29 +293,48 @@ try_tuple_index_dispatch :: fn(
     tup :: tuple_backing(target_ty) ?? return null
     idx :: parse_tuple_index(e.field)
     if idx < 0 || idx >= i32(tup.elements.len()) {
-        diags.push(typecheck_error(.FieldDoesNotExist, e.field_span,
-            "`${e.field}` on ${display_type(target_ty)}"))
+        diags.push(
+            typecheck_error(
+                .FieldDoesNotExist,
+                e.field_span,
+                "`${e.field}` on ${display_type(target_ty)}",
+            ),
+        )
         return TY_UNRESOLVED
     }
     return tup.elements[idx]
 }
 
 try_union_common_field_dispatch :: fn(
-    target_ty: Type, e: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[],
+    target_ty: Type,
+    e: AST.FieldExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> Type | null {
-    if !(target_ty is UnionType) { return null }
+    if target_ty !is UnionType {
+        return null
+    }
     return union_common_field(target_ty, e.field, typed, diags)
 }
 
 // `Direction.North` — variant access on the enum type itself.
 try_enum_variant_dispatch :: fn(
-    target_ty: Type, e: AST.FieldExpr, diags: Diagnostic[],
+    target_ty: Type,
+    e: AST.FieldExpr,
+    diags: Diagnostic[],
 ) -> Type | null {
-    if !(target_ty is EnumType) { return null }
+    if target_ty !is EnumType {
+        return null
+    }
     idx :: target_ty.indices[e.field]
     if idx is null {
-        diags.push(typecheck_error(.UnknownEnumVariant, e.field_span,
-            "`${e.field}` is not a variant of ${display_type(target_ty)}"))
+        diags.push(
+            typecheck_error(
+                .UnknownEnumVariant,
+                e.field_span,
+                "`${e.field}` is not a variant of ${display_type(target_ty)}",
+            ),
+        )
         return TY_UNRESOLVED
     }
     return target_ty
@@ -284,7 +353,10 @@ ufcs_name_has_candidates :: fn(name: string, typed: TypedProgram) -> bool {
 // other unsupported shape. Returns a real Type (not Type | null)
 // since this is the last fallthrough.
 resolve_struct_field :: fn(
-    target_ty: Type, e: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[],
+    target_ty: Type,
+    e: AST.FieldExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> Type {
     // `struct_backing` accepts a struct-backed distinct newtype (`Color :: Rgb`)
     // too : `color.r` forwards to the backing struct's fields while the distinct
@@ -297,12 +369,22 @@ resolve_struct_field :: fn(
         // (e.g. `T | Error | null` fits neither the `T | null` nor the `T | Error`
         // overload). Point at narrowing rather than the bare "not indexable".
         if target_ty is UnionType && ufcs_name_has_candidates(e.field, typed) {
-            diags.push(typecheck_error(.NotIndexable, e.span,
-                "no `${e.field}` overload accepts a receiver of type `${display_type(target_ty)}` — narrow the union with `if`/`match` first (a value combinator handles a single unhappy variant, `T | null` or `T | Error`, not both)"))
+            diags.push(
+                typecheck_error(
+                    .NotIndexable,
+                    e.span,
+                    "no `${e.field}` overload accepts a receiver of type `${display_type(target_ty)}` — narrow the union with `if`/`match` first (a value combinator handles a single unhappy variant, `T | null` or `T | Error`, not both)",
+                ),
+            )
             return TY_UNRESOLVED
         }
-        diags.push(typecheck_error(.NotIndexable, e.span,
-            "`.${e.field}` on non-struct type ${display_type(target_ty)}"))
+        diags.push(
+            typecheck_error(
+                .NotIndexable,
+                e.span,
+                "`.${e.field}` on non-struct type ${display_type(target_ty)}",
+            ),
+        )
         return TY_UNRESOLVED
     }
     decl :: typed.struct_decls[st.symbol.id]
@@ -316,8 +398,13 @@ resolve_struct_field :: fn(
     check_internal_field(st, decl, e.field, e.field_span, typed, diags)
     found :: resolved_field_type(st.symbol.id, decl, e.field, typed, diags)
     if found == null {
-        diags.push(typecheck_error(.FieldDoesNotExist, e.field_span,
-            "`${e.field}` on ${display_type(target_ty)}"))
+        diags.push(
+            typecheck_error(
+                .FieldDoesNotExist,
+                e.field_span,
+                "`${e.field}` on ${display_type(target_ty)}",
+            ),
+        )
         return TY_UNRESOLVED
     }
     substituted :: substitute_struct_field(found, decl, st)
@@ -339,7 +426,9 @@ resolve_struct_field :: fn(
 ///                 doesn't resolve — the caller then skips the write check
 ///                 (the read-side typing already surfaced any field error).
 export declared_struct_field_type :: fn(
-    recv_ty: Type, field: string, typed: TypedProgram,
+    recv_ty: Type,
+    field: string,
+    typed: TypedProgram,
 ) -> Type | null {
     st :: struct_backing(recv_ty) ?? return null
     decl :: typed.struct_decls[st.symbol.id] ?? return null
@@ -369,15 +458,26 @@ export declared_struct_field_type :: fn(
 /// @error             T3054 when `field_name` is `@internal` and the access is
 ///                    from a different module than `st.symbol.module`.
 export check_internal_field :: fn(
-    st: StructType, decl: AST.StructDecl, field_name: string,
-    span: Span, typed: TypedProgram, diags: Diagnostic[],
+    st: StructType,
+    decl: AST.StructDecl,
+    field_name: string,
+    span: Span,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
-    if st.symbol.module == typed.resolved.path { return }
+    if st.symbol.module == typed.resolved.path {
+        return
+    }
     for field in decl.fields {
         if field.name == field_name {
             if field.visibility == AST.Visibility.Private {
-                diags.push(typecheck_error(.InternalFieldAccess, span,
-                    "`${field_name}` is `@internal` to module `${st.symbol.module}`"))
+                diags.push(
+                    typecheck_error(
+                        .InternalFieldAccess,
+                        span,
+                        "`${field_name}` is `@internal` to module `${st.symbol.module}`",
+                    ),
+                )
             }
             return
         }
@@ -388,13 +488,19 @@ export check_internal_field :: fn(
 /// `narrowed_fields` and return that type ; falls through to `declared`
 /// when no chain narrowing is active.
 narrow_field_if_active :: fn(
-    e: AST.FieldExpr, declared: Type, typed: TypedProgram,
+    e: AST.FieldExpr,
+    declared: Type,
+    typed: TypedProgram,
 ) -> Type {
     // Fast path : the common case is no live field narrowings at all,
     // so dodge the chain walk + key build entirely.
-    if typed.narrowed_fields.is_empty() { return declared }
+    if typed.narrowed_fields.is_empty() {
+        return declared
+    }
     key :: field_chain_key(e, typed)
-    if key == "" { return declared }
+    if key == "" {
+        return declared
+    }
     return narrow_for_field(typed, key, declared)
 }
 
@@ -409,11 +515,16 @@ lookup_pre_resolved_field :: fn(struct_id: i32, name: string, typed: TypedProgra
 /// cache-before-walk ordering lives HERE so no field-type consumer can reorder
 /// or skip it ; callers keep their own post-lookup substitution / narrowing.
 resolved_field_type :: fn(
-    struct_id: i32, decl: AST.StructDecl, name: string,
-    typed: TypedProgram, diags: Diagnostic[],
+    struct_id: i32,
+    decl: AST.StructDecl,
+    name: string,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> Type | null {
     cached :: lookup_pre_resolved_field(struct_id, name, typed)
-    if !(cached is null) { return cached }
+    if cached !is null {
+        return cached
+    }
     return find_struct_field_type(decl, name, typed.resolved, diags)
 }
 
@@ -421,9 +532,13 @@ resolved_field_type :: fn(
 /// `target.args` into `field_ty`. Lets `Node(i32) { value: T }` →
 /// `value: i32` instead of leaving `T` raw.
 substitute_struct_field :: fn(
-    field_ty: Type, decl: AST.StructDecl, target: StructType,
+    field_ty: Type,
+    decl: AST.StructDecl,
+    target: StructType,
 ) -> Type {
-    if decl.type_params.len() == 0 { return field_ty }
+    if decl.type_params.len() == 0 {
+        return field_ty
+    }
     bindings :: MutableMap<i32, Type> {}
     n :: min(decl.type_params.len(), target.args.len())
     for i in 0..<n {
@@ -435,10 +550,11 @@ substitute_struct_field :: fn(
         // `tp.name` and stamps it into `target.args[i]` via
         // `mk_type_param`. The Sym id we want lives in target.args[i].
         match target.args[i] {
-            is TypeParamType as tpt -> { bindings[tpt.symbol.id] = target.args[i] }
+            is TypeParamType as tpt -> {
+                bindings[tpt.symbol.id] = target.args[i]
+            }
             _ -> {}
-        }
-        // Build a name→type bindings map so unify_by_name can match
+        }        // Build a name→type bindings map so unify_by_name can match
         // the field's raw `T` reference (TypeParam from decl.vader's
         // mint) against `target.args[i]`.
     }
@@ -448,14 +564,18 @@ substitute_struct_field :: fn(
 }
 
 export substitute_by_name :: fn(
-    t: Type, tps: AST.TypeParam[], args: Type[],
+    t: Type,
+    tps: AST.TypeParam[],
+    args: Type[],
 ) -> Type {
     // @partial: only TypeParam and the composite variants can carry a param to
     // rewrite; every scalar / primitive variant has no inner type → return as-is.
     @partial match t {
         is TypeParamType as tp -> {
             for i in 0..<min(tps.len(), args.len()) {
-                if tps[i].name == tp.symbol.name { return args[i] }
+                if tps[i].name == tp.symbol.name {
+                    return args[i]
+                }
             }
             return t
         }
@@ -464,27 +584,37 @@ export substitute_by_name :: fn(
         }
         is TupleType as tu -> {
             els: Type[] = []
-            for el in tu.elements { els.push(substitute_by_name(el, tps, args)) }
+            for el in tu.elements {
+                els.push(substitute_by_name(el, tps, args))
+            }
             return mk_tuple(els)
         }
         is StructType as s -> {
             sargs: Type[] = []
-            for a in s.args { sargs.push(substitute_by_name(a, tps, args)) }
+            for a in s.args {
+                sargs.push(substitute_by_name(a, tps, args))
+            }
             return mk_struct(s.symbol, sargs)
         }
         is TraitType as r -> {
             rargs: Type[] = []
-            for a in r.args { rargs.push(substitute_by_name(a, tps, args)) }
+            for a in r.args {
+                rargs.push(substitute_by_name(a, tps, args))
+            }
             return mk_trait(r.symbol, rargs)
         }
         is UnionType as u -> {
             vs: Type[] = []
-            for v in u.variants { vs.push(substitute_by_name(v, tps, args)) }
+            for v in u.variants {
+                vs.push(substitute_by_name(v, tps, args))
+            }
             return union_of(vs)
         }
         is FnType as f -> {
             ps: Type[] = []
-            for p in f.params { ps.push(substitute_by_name(p, tps, args)) }
+            for p in f.params {
+                ps.push(substitute_by_name(p, tps, args))
+            }
             return mk_fn(ps, substitute_by_name(f.return_type, tps, args))
         }
         _ -> { return t }
@@ -514,8 +644,8 @@ array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
     // Everything else resolves elsewhere (import required, per the UFCS policy) :
     // `is_empty` ⟶ `std/iter::is_empty(arr: T[])`, `contains` ⟶ the `Contains`
     // trait, `reverse`/`first`/`last` ⟶ std/iter free fns.
-    if name == "len"  { return mk_fn([], mk_primitive("usize")) }
-    if name == "push" { return mk_fn([arr.element], TY_VOID) }
+    if name == "len"      { return mk_fn([], mk_primitive("usize")) }
+    if name == "push"     { return mk_fn([arr.element], TY_VOID) }
     // `push_all` reads its source, so a `const T[]` param accepts both a
     // mutable and a borrowed source (mirrors `std/iter::clone`).
     if name == "push_all" { return mk_fn([mk_array(arr.element, true)], TY_VOID) }
@@ -526,7 +656,7 @@ array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
         return mk_fn([usize_t, mk_array(arr.element, false), usize_t, usize_t], TY_VOID)
     }
     if name == "remove_last" { return mk_fn([], mk_union([arr.element, TY_NULL])) }
-    if name == "clear" { return mk_fn([], TY_VOID) }
+    if name == "clear"       { return mk_fn([], TY_VOID) }
     return null
 }
 
@@ -534,19 +664,23 @@ array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
 /// of truth for both `array_method_type` (which signs each) and
 /// `array_builtin_methods` (which enumerates them for completion).
 ARRAY_METHOD_NAMES: const string[]: [
-    "len", "push", "push_all", "copy_to", "remove_last", "clear",
+    "len",
+    "push",
+    "push_all",
+    "copy_to",
+    "remove_last",
+    "clear",
 ]
 
 // The methods that mutate the receiver — rejected on an `immutable` array, so
 // completion drops them on a borrowed view (`s.bytes()` → `const u8[]`).
-array_method_mutates :: fn(name: string) -> bool =
-    name == "push" || name == "push_all" || name == "remove_last" || name == "clear"
+array_method_mutates :: fn(name: string) -> bool = name == "push" || name == "push_all" || name == "remove_last" || name == "clear"
 
 /// A built-in array method surfaced for completion — its name plus the resolved
 /// signature (`array_method_type`'s result). LSP member completion lists these :
 /// they're neither free fns nor `impl` members, so no other path enumerates them.
 export ArrayBuiltinMethod :: struct {
-    name:      string
+    name: string
     signature: Type
 }
 
@@ -560,7 +694,9 @@ export ArrayBuiltinMethod :: struct {
 export array_builtin_methods :: fn(arr: ArrayType) -> ArrayBuiltinMethod[] {
     out: ArrayBuiltinMethod[] = []
     for name in ARRAY_METHOD_NAMES {
-        if arr.immutable && array_method_mutates(name) { continue }
+        if arr.immutable && array_method_mutates(name) {
+            continue
+        }
         sig :: array_method_type(name, arr) ?? continue
         out.push(ArrayBuiltinMethod { .name = name, .signature = sig })
     }
@@ -591,13 +727,23 @@ import "vader/resolver/symbol"
 // `target_ty`. The impl_method dispatch picks one silently ; this
 // hook surfaces the ambiguity instead of letting it bite later.
 check_trait_ambiguity :: fn(
-    e: AST.FieldExpr, target_ty: Type, typed: TypedProgram, diags: Diagnostic[],
+    e: AST.FieldExpr,
+    target_ty: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
     base_key :: "${type_base_name(target_ty)}::${e.field}"
     traits :: typed.impl_method_traits[base_key] ?? return
-    if traits.len() < 2 { return }
-    diags.push(typecheck_error(.AmbiguousOverload, e.field_span,
-        "`${e.field}` on ${display_type(target_ty)} is ambiguous between traits: ${traits.join(", ")}"))
+    if traits.len() < 2 {
+        return
+    }
+    diags.push(
+        typecheck_error(
+            .AmbiguousOverload,
+            e.field_span,
+            "`${e.field}` on ${display_type(target_ty)} is ambiguous between traits: ${traits.join(", ")}",
+        ),
+    )
 }
 
 // Substitute the impl method's TypeParams against the receiver's
@@ -605,7 +751,9 @@ check_trait_ambiguity :: fn(
 // :: fn(self, value: T) -> bool }` produce `fn(i32) -> bool` when
 // called on `MutableSet<i32>`.
 substitute_impl_method :: fn(impl_ty: Type, target_ty: Type, typed: TypedProgram) -> Type {
-    if !(target_ty is StructType) { return impl_ty }
+    if target_ty !is StructType {
+        return impl_ty
+    }
     decl :: typed.struct_decls[target_ty.symbol.id] ?? return impl_ty
     return substitute_by_name(impl_ty, decl.type_params, target_ty.args)
 }
@@ -614,11 +762,16 @@ substitute_impl_method :: fn(impl_ty: Type, target_ty: Type, typed: TypedProgram
 // variant's `.field` type when every variant carries it ; null when
 // any variant lacks the field (caller falls through to T3009).
 union_common_field :: fn(
-    u: UnionType, name: string, typed: TypedProgram, diags: Diagnostic[],
+    u: UnionType,
+    name: string,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> Type | null {
     types: Type[] = []
     for v in u.variants {
-        if !(v is StructType) { return null }
+        if v !is StructType {
+            return null
+        }
         decl :: typed.struct_decls[v.symbol.id] ?? return null
         ty :: resolved_field_type(v.symbol.id, decl, name, typed, diags) ?? return null
         types.push(substitute_struct_field(ty, decl, v))
@@ -637,39 +790,50 @@ substitute_self :: fn(t: Type, self_ty: Type) -> Type {
         is ArrayType as a -> { return mk_array(substitute_self(a.element, self_ty), a.immutable) }
         is StructType as s -> {
             args: Type[] = []
-            for a in s.args { args.push(substitute_self(a, self_ty)) }
+            for a in s.args {
+                args.push(substitute_self(a, self_ty))
+            }
             return mk_struct(s.symbol, args)
         }
         is FnType as f -> {
             ps: Type[] = []
-            for p in f.params { ps.push(substitute_self(p, self_ty)) }
+            for p in f.params {
+                ps.push(substitute_self(p, self_ty))
+            }
             return mk_fn(ps, substitute_self(f.return_type, self_ty))
         }
         is UnionType as u -> {
             vs: Type[] = []
-            for v in u.variants { vs.push(substitute_self(v, self_ty)) }
+            for v in u.variants {
+                vs.push(substitute_self(v, self_ty))
+            }
             return union_of(vs)
         }
         is TupleType as t2 -> {
             els: Type[] = []
-            for el in t2.elements { els.push(substitute_self(el, self_ty)) }
+            for el in t2.elements {
+                els.push(substitute_self(el, self_ty))
+            }
             return mk_tuple(els)
         }
         _ -> { return t }
     }
 }
 
-
 // Walk a TypeParam bound expression (single trait or `A & B` chain)
 // and return the first trait whose declared methods include `name`.
 dispatch_bounded_method :: fn(
-    bound: AST.Expr, name: string, typed: TypedProgram,
+    bound: AST.Expr,
+    name: string,
+    typed: TypedProgram,
 ) -> Type | null {
     // Intersection : `A & B` — recurse on each side.
     if bound is AST.BinaryExpr {
         if bound.op == AST.BinaryOp.BitAnd {
             l :: dispatch_bounded_method(bound.left, name, typed)
-            if !(l is null) { return l }
+            if l !is null {
+                return l
+            }
             return dispatch_bounded_method(bound.right, name, typed)
         }
     }
@@ -691,7 +855,9 @@ dispatch_bounded_method :: fn(
 /// good enough for std/string's `len = s.chars().count()`
 /// where `count :: fn(self) -> usize` doesn't mention `T`.
 try_default_trait_method :: fn(
-    target_ty: StructType, name: string, typed: TypedProgram,
+    target_ty: StructType,
+    name: string,
+    typed: TypedProgram,
 ) -> Type | null {
     trait_names :: typed.struct_implemented_traits[target_ty.symbol.name] ?? return null
     for trait_name in trait_names {
@@ -699,13 +865,13 @@ try_default_trait_method :: fn(
         decl :: typed.trait_decls[trait_id] ?? continue
         owner :: typed.trait_decl_owners[trait_id]
         owner_resolved: ResolvedModule = typed.resolved
-        match owner {
-            is null -> {}
-            _ -> { owner_resolved = owner }
+        if owner !is null {
+            owner_resolved = owner
         }
         for m in decl.members {
             if m.name != name { continue }
-            if m.body is null { continue }     // require default body
+            if m.body is null { continue }
+            // require default body
             params: Type[] = []
             for i in 1..<m.params.len() {
                 p :: m.params[i]
@@ -723,10 +889,15 @@ try_default_trait_method :: fn(
 }
 
 substitute_trait_typeparams :: fn(
-    t: Type, trait_decl: AST.TraitDecl, trait_name: string,
-    target_ty: StructType, typed: TypedProgram,
+    t: Type,
+    trait_decl: AST.TraitDecl,
+    trait_name: string,
+    target_ty: StructType,
+    typed: TypedProgram,
 ) -> Type {
-    if trait_decl.type_params.len() == 0 { return t }
+    if trait_decl.type_params.len() == 0 {
+        return t
+    }
     per_struct :: typed.struct_trait_args[target_ty.symbol.name] ?? return t
     impl_args :: per_struct[trait_name] ?? return t
     // The impl args might themselves reference TypeParams from the
@@ -736,8 +907,12 @@ substitute_trait_typeparams :: fn(
     resolved_args: Type[] = []
     struct_decl :: typed.struct_decls[target_ty.symbol.id]
     for a in impl_args {
-        if struct_decl is null { resolved_args.push(a) }
-        else { resolved_args.push(substitute_by_name(a, struct_decl.type_params, target_ty.args)) }
+        if struct_decl is null {
+            resolved_args.push(a)
+        }
+        else {
+            resolved_args.push(substitute_by_name(a, struct_decl.type_params, target_ty.args))
+        }
     }
     return substitute_by_name(t, trait_decl.type_params, resolved_args)
 }
@@ -748,7 +923,9 @@ substitute_trait_typeparams :: fn(
 /// dispatch only needs the id (to index `trait_decls` / `trait_decl_owners`).
 find_trait_id_by_name :: fn(name: string, typed: TypedProgram) -> i32 | null {
     for [id, decl] in typed.trait_decls {
-        if decl.name == name { return id }
+        if decl.name == name {
+            return id
+        }
     }
     return null
 }
@@ -758,10 +935,15 @@ find_trait_id_by_name :: fn(name: string, typed: TypedProgram) -> i32 | null {
 // fewer than the trait declares. A `Self` default resolves to `TY_SELF` here ;
 // the caller's `substitute_self(target_ty)` then maps it to the receiver type.
 pad_trait_default_args :: fn(
-    args: Type[], tps: AST.TypeParam[], resolved: ResolvedModule,
+    args: Type[],
+    tps: AST.TypeParam[],
+    resolved: ResolvedModule,
 ) -> Type[] {
-    if args.len() >= tps.len() { return args }
-    out: Type[] = [] * tps.len()   // final size is args + filled defaults, ≤ tps.len()
+    if args.len() >= tps.len() {
+        return args
+    }
+    out: Type[] = [] * tps.len()
+    // final size is args + filled defaults, ≤ tps.len()
     out.push_all(args)
     for i in args.len()..<tps.len() {
         d :: tps[i].default ?? break
@@ -779,12 +961,13 @@ try_trait_method :: fn(t: TraitType, name: string, typed: TypedProgram) -> Type 
     // hand back Unresolved.
     owner :: typed.trait_decl_owners[t.symbol.id]
     owner_resolved: ResolvedModule = typed.resolved
-    match owner {
-        is null -> {}
-        _ -> { owner_resolved = owner }
+    if owner !is null {
+        owner_resolved = owner
     }
     for m in decl.members {
-        if m.name != name { continue }
+        if m.name != name {
+            continue
+        }
         params: Type[] = []
         for i in 1..<m.params.len() {
             p :: m.params[i]
@@ -798,17 +981,21 @@ try_trait_method :: fn(t: TraitType, name: string, typed: TypedProgram) -> Type 
 }
 
 type_from_expr_opt_in :: fn(e: AST.TypeExpr | null, resolved: ResolvedModule) -> Type {
-    if e is null { return TY_VOID }
+    if e is null {
+        return TY_VOID
+    }
     return type_from_expr(e, resolved, [])
 }
 
 UfcsResult :: struct {
-    curried:     Type
+    curried: Type
     first_param: Type
 }
 
 try_free_fn_ufcs_with_first :: fn(
-    name: string, target_ty: Type, typed: TypedProgram,
+    name: string,
+    target_ty: Type,
+    typed: TypedProgram,
 ) -> UfcsResult | null {
     // Gather every overload whose first param accepts the receiver (curry
     // succeeds), then keep the one with the HIGHEST receiver specificity — a
@@ -819,34 +1006,30 @@ try_free_fn_ufcs_with_first :: fn(
     best: UfcsResult | null = null
     best_spec: i32 = -1
     bucket :: typed.resolved.fn_overloads[name]
-    match bucket {
-        is null -> {}
-        _ -> {
-            for sym in bucket {
-                ft :: typed.decl_types[sym.id] ?? continue
-                if !(ft is FnType) { continue }
-                if ft.params.len() == 0 { continue }
-                curried :: try_curry_receiver(ft, target_ty, typed) ?? continue
-                spec :: overload_specificity(target_ty, ft.params[0])
-                if spec > best_spec {
-                    best = UfcsResult { .curried = curried, .first_param = ft.params[0] }
-                    best_spec = spec
-                }
+    if bucket !is null {
+        for sym in bucket {
+            ft :: typed.decl_types[sym.id] ?? continue
+            if ft !is FnType        { continue }
+            if ft.params.len() == 0 { continue }
+            curried :: try_curry_receiver(ft, target_ty, typed) ?? continue
+            spec :: overload_specificity(target_ty, ft.params[0])
+            if spec > best_spec {
+                best = UfcsResult { .curried = curried, .first_param = ft.params[0] }
+                best_spec = spec
             }
         }
     }
     imported :: typed.imported_fn_overloads[name]
-    match imported {
-        is null -> {}
-        _ -> {
-            for ft in imported {
-                if ft.params.len() == 0 { continue }
-                curried :: try_curry_receiver(ft, target_ty, typed) ?? continue
-                spec :: overload_specificity(target_ty, ft.params[0])
-                if spec > best_spec {
-                    best = UfcsResult { .curried = curried, .first_param = ft.params[0] }
-                    best_spec = spec
-                }
+    if imported !is null {
+        for ft in imported {
+            if ft.params.len() == 0 {
+                continue
+            }
+            curried :: try_curry_receiver(ft, target_ty, typed) ?? continue
+            spec :: overload_specificity(target_ty, ft.params[0])
+            if spec > best_spec {
+                best = UfcsResult { .curried = curried, .first_param = ft.params[0] }
+                best_spec = spec
             }
         }
     }
@@ -857,7 +1040,7 @@ try_free_fn_ufcs_with_first :: fn(
 /// curried signature (the type after the receiver is bound). Powers LSP member
 /// completion, which lists these alongside struct fields and impl methods.
 export UfcsMethod :: struct {
-    name:    string
+    name: string
     curried: Type
 }
 
@@ -871,16 +1054,22 @@ export ufcs_methods_for :: fn(target_ty: Type, typed: TypedProgram) -> UfcsMetho
     for [name, bucket] in typed.resolved.fn_overloads {
         for sym in bucket {
             ft :: typed.decl_types[sym.id] ?? continue
-            if !(ft is FnType) { continue }
+            if ft !is FnType {
+                continue
+            }
             curried :: try_curry_receiver(ft, target_ty, typed) ?? continue
-            if seen[name] != null { continue }
+            if seen[name] != null {
+                continue
+            }
             seen[name] = true
             out.push(UfcsMethod { .name = name, .curried = curried })
             break
         }
     }
     for [name, fts] in typed.imported_fn_overloads {
-        if seen[name] != null { continue }
+        if seen[name] != null {
+            continue
+        }
         for ft in fts {
             curried :: try_curry_receiver(ft, target_ty, typed) ?? continue
             seen[name] = true
@@ -892,15 +1081,21 @@ export ufcs_methods_for :: fn(target_ty: Type, typed: TypedProgram) -> UfcsMetho
 }
 
 try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Type | null {
-    if ft.params.len() == 0 { return null }
+    if ft.params.len() == 0 {
+        return null
+    }
     // Non-generic fast path : skip the unify+substitute walk for
     // overloads whose first param has no TypeParam (the vast majority
     // of stdlib fns), since `try_free_fn_ufcs_with_first` calls this
     // for every overload in the bucket on every UFCS site.
     if !type_contains_type_param(ft.params[0]) {
-        if !receiver_fits_first_param(target_ty, ft.params[0], typed) { return null }
+        if !receiver_fits_first_param(target_ty, ft.params[0], typed) {
+            return null
+        }
         rest: Type[] = []
-        for i in 1..<ft.params.len() { rest.push(ft.params[i]) }
+        for i in 1..<ft.params.len() {
+            rest.push(ft.params[i])
+        }
         return mk_fn(rest, ft.return_type)
     }
     bindings :: MutableMap<i32, Type> {}
@@ -913,9 +1108,13 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
         bindings[k] = default_if_free(v)
     }
     fitted_first :: substitute_map(ft.params[0], bindings)
-    if !receiver_fits_first_param(target_ty, fitted_first, typed) { return null }
+    if !receiver_fits_first_param(target_ty, fitted_first, typed) {
+        return null
+    }
     rest: Type[] = []
-    for i in 1..<ft.params.len() { rest.push(substitute_map(ft.params[i], bindings)) }
+    for i in 1..<ft.params.len() {
+        rest.push(substitute_map(ft.params[i], bindings))
+    }
     return mk_fn(rest, substitute_map(ft.return_type, bindings))
 }
 
@@ -927,10 +1126,14 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
 // because adding it to `is_assignable` bloats c-emit).
 receiver_fits_first_param :: fn(target_ty: Type, first: Type, typed: TypedProgram) -> bool {
     if is_assignable(target_ty, first, null) { return true }
-    if first is TypeParamType { return true }
+    if first is TypeParamType                { return true }
     if first is TraitType {
-        if try_trait_widen(target_ty, first, typed) { return true }
-        if try_array_to_iter(target_ty, first) { return true }
+        if try_trait_widen(target_ty, first, typed) {
+            return true
+        }
+        if try_array_to_iter(target_ty, first) {
+            return true
+        }
     }
     return false
 }
@@ -941,11 +1144,15 @@ receiver_fits_first_param :: fn(target_ty: Type, first: Type, typed: TypedProgra
 parse_tuple_index :: fn(s: string) -> i32 {
     sb :: s.bytes()
     len :: sb.len()
-    if len == 0 { return -1 }
+    if len == 0 {
+        return -1
+    }
     n: i32 = 0
     for i in 0..<len {
         c :: sb[i]
-        if c < u8('0') || c > u8('9') { return -1 }
+        if c < u8('0') || c > u8('9') {
+            return -1
+        }
         n = n * 10 + i32(c - u8('0'))
     }
     return n
@@ -955,7 +1162,9 @@ try_namespace_field :: fn(e: AST.FieldExpr, typed: TypedProgram, diags: Diagnost
     mod_id :: namespace_call_mod_id(e, typed) ?? return null
     exports :: typed.namespace_exports[mod_id] ?? return null
     result :: exports[e.field]
-    if result != null { return result }
+    if result != null {
+        return result
+    }
     // Exported miss : if the base binding names a PRIVATE member, fire R2008 and
     // return TY_UNRESOLVED (suppresses the cascade). Otherwise fall through with
     // null to the ordinary "no such field" handling. The base is a namespace
@@ -963,7 +1172,13 @@ try_namespace_field :: fn(e: AST.FieldExpr, typed: TypedProgram, diags: Diagnost
     if e.target is AST.IdentExpr {
         binding :: typed.resolved.idents[e.target.span.hash()]
         if binding != null {
-            if namespace_private_member_reported(binding.id, e.field, e.field_span, typed.resolved, diags) {
+            if namespace_private_member_reported(
+                binding.id,
+                e.field,
+                e.field_span,
+                typed.resolved,
+                diags,
+            ) {
                 return TY_UNRESOLVED
             }
         }
@@ -974,16 +1189,23 @@ try_namespace_field :: fn(e: AST.FieldExpr, typed: TypedProgram, diags: Diagnost
 // Resolve a `mod.field` FieldExpr's base to the imported module id, or null
 // when the base isn't a namespace import binding. Shared by `try_namespace_field`
 // (value type) and `call.vader::namespace_member_params` (decl params).
-namespace_call_mod_id :: fn(e: AST.FieldExpr, typed: TypedProgram) = namespace_base_mod_id(e.target, typed)
+namespace_call_mod_id :: fn(e: AST.FieldExpr, typed: TypedProgram) = namespace_base_mod_id(
+    e.target,
+    typed,
+)
 
 /// Module id behind a namespace base expr — the `mod` in a `mod.field` access,
 /// where `mod` is an `import "p"` namespace binding. Null when `base` isn't such
 /// a binding. Exported so the LSP can list a namespace alias's exports on
 /// `mod.<member>` completion (shared with `namespace_call_mod_id`).
 export namespace_base_mod_id :: fn(base: AST.Expr, typed: TypedProgram) -> string | null {
-    if !(base is AST.IdentExpr) { return null }
+    if base !is AST.IdentExpr {
+        return null
+    }
     sym :: typed.resolved.idents[base.span.hash()] ?? return null
-    if sym.kind != SymbolKind.ImportBinding { return null }
+    if sym.kind != SymbolKind.ImportBinding {
+        return null
+    }
     targets :: typed.import_targets ?? return null
     return targets.namespace_targets[sym.id]
 }
@@ -1012,21 +1234,26 @@ collect_bound_method_names :: fn(bound: AST.Expr, typed: TypedProgram, out: stri
     bound_ty :: type_from_expr(bound, typed.resolved, [])
     if bound_ty is TraitType as tt {
         decl :: typed.trait_decls[tt.symbol.id] ?? return
-        for m in decl.members { out.push(m.name) }
+        for m in decl.members {
+            out.push(m.name)
+        }
     }
 }
-
 
 /// Walk a struct's fields for `name` and return the resolved field type,
 /// or `null` if the field doesn't exist. Shared with `struct_lit.vader`
 /// so the lookup convention stays in one place — generic substitution,
 /// when it lands, plugs in here.
 export find_struct_field_type :: fn(
-    decl: AST.StructDecl, name: string,
-    resolved: ResolvedModule, diags: Diagnostic[],
+    decl: AST.StructDecl,
+    name: string,
+    resolved: ResolvedModule,
+    diags: Diagnostic[],
 ) -> Type | null {
     for field in decl.fields {
-        if field.name == name { return type_from_expr(field.ty, resolved, diags) }
+        if field.name == name {
+            return type_from_expr(field.ty, resolved, diags)
+        }
     }
     return null
 }
@@ -1039,21 +1266,26 @@ import "vader/parser"
 // Stub that handles only the variants the field tests touch — Ident
 // (for `p` in `p.x`), Field (for nested `obj.a.b`), and Int literals.
 field_check_stub :: fn(
-    e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+    e: AST.Expr,
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> Type {
     // @partial: test stub — only the ident / field / literal expr kinds the
     // field tests build are typed; every other Expr is irrelevant → unresolved.
     @partial match e {
-        is AST.IntLitExpr    as x -> { return TY_FREE_INT }
+        is AST.IntLitExpr as x -> { return TY_FREE_INT }
         is AST.StringLitExpr as x -> { return TY_STRING }
-        is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
-        is AST.FieldExpr     as x -> { return infer_field(x, typed, diags, field_check_stub) }
+        is AST.IdentExpr as x -> { return infer_ident(x, typed) }
+        is AST.FieldExpr as x -> { return infer_field(x, typed, diags, field_check_stub) }
         _ -> { return TY_UNRESOLVED }
     }
 }
 
 accept_field :: fn(e: AST.Expr) -> AST.Expr | null {
-    if e is AST.FieldExpr { return e }
+    if e is AST.FieldExpr {
+        return e
+    }
     return null
 }
 
@@ -1071,11 +1303,15 @@ first_field_in_last_fn :: fn(src: string) -> FieldFixture {
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     if last is AST.FnDecl as f {
         match f.body {
-            is null -> { return FieldFixture { .typed = result.typed, .field = null } }
+            is null -> {
+                return FieldFixture { .typed = result.typed, .field = null }
+            }
             is AST.BlockExpr as b -> {
                 hit :: find_first_in_block(b, accept_field)
                 field: AST.FieldExpr | null = null
-                if hit is AST.FieldExpr { field = hit }
+                if hit is AST.FieldExpr {
+                    field = hit
+                }
                 return FieldFixture { .typed = result.typed, .field = field }
             }
         }
