@@ -31,7 +31,11 @@ export successors_of :: fn(b: BasicBlock) -> BlockId[] {
 /// Predecessor lists keyed by BlockId. The returned array is dense
 /// (one entry per block, possibly empty).
 export predecessors_of :: fn(fn_: CFGFunction) -> BlockId[][] {
-    out: BlockId[][] = [[]] * fn_.blocks.len()
+    // NOTE: `[[]] * n` would alias one shared inner array into every slot
+    // (like Python's `[[]] * n`), so `out[i].push(...)` corrupts all lists.
+    // Build n DISTINCT empty arrays via an explicit loop.
+    out: BlockId[][] = [] * fn_.blocks.len()
+    for _ in fn_.blocks { out.push([]) }
     for b in fn_.blocks {
         for succ in successors_of(b) { out[i32(succ)].push(b.id) }
     }
