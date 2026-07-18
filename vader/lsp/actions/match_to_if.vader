@@ -10,6 +10,15 @@
 //   }                           B
 //                           }
 //
+// When ONE arm's body is empty (`-> {}`) the empty branch is dropped and the
+// other becomes a single-branch guard on the (possibly negated) condition —
+// the common null-guard idiom:
+//
+//   match ns_lookup {          if ns_lookup !is null {
+//       is null -> {}     →        return ns_lookup
+//       _ -> { return … }      }
+//   }
+//
 // Lossy policy = REFUSE : exactly two arms, no guards, the first arm an
 // `is T [as y]` (no nested sub-pattern) or a literal (→ the condition), and the
 // second arm droppable to the `else` — a `_`, a literal, or an `is T` with NO
@@ -80,12 +89,63 @@ else_pattern_ok :: fn(p: AST.Pattern) -> bool {
 build_if :: fn(m: AST.MatchExpr) -> AST.IfExpr {
     a0 :: m.arms[0]
     a1 :: m.arms[1]
+    cond :: build_cond(m.scrutinee, a0.pattern)
+    // Arm 0 empty (`is null -> {}`) → a single-branch guard on the NEGATED
+    // condition running arm 1's body (`if X !is null { … }`, no else).
+    if arm_body_empty(a0.body) {
+        return AST.IfExpr {
+            .span        = m.span,
+            .cond        = negate_cond(cond),
+            .then_block  = arm_block(a1.body),
+            .else_branch = null,
+        }
+    }
+    // Arm 1 empty (`_ -> {}`) → a single-branch guard on the condition running
+    // arm 0's body ; the empty else is dropped.
+    if arm_body_empty(a1.body) {
+        return AST.IfExpr {
+            .span        = m.span,
+            .cond        = cond,
+            .then_block  = arm_block(a0.body),
+            .else_branch = null,
+        }
+    }
     return AST.IfExpr {
         .span        = m.span,
-        .cond        = build_cond(m.scrutinee, a0.pattern),
+        .cond        = cond,
         .then_block  = arm_block(a0.body),
         .else_branch = AST.IfElseBlock { .block = arm_block(a1.body) },
     }
+}
+
+// True when an arm body is the empty block `{}` — no statements, no trailing
+// value. Such an arm carries no work, so the `if` drops that branch.
+arm_body_empty :: fn(body: AST.Expr) -> bool {
+    if body is AST.BlockExpr as b {
+        return b.stmts.len() == 0 && b.trailing == null
+    }
+    return false
+}
+
+// Negate a condition for the empty-arm-0 case. `X == v` → `X != v` ; `X is T`
+// → `X !is T` (built as `Not(Is)`, which the printer restores to the `!is`
+// spelling — a binding is dropped, unusable on the negated side). Anything else
+// wraps in `!(…)`.
+negate_cond :: fn(cond: AST.Expr) -> AST.Expr {
+    if cond is AST.BinaryExpr as b {
+        if b.op == .Eq {
+            return AST.BinaryExpr {
+                .span = b.span, .op = .Neq, .left = b.left, .right = b.right, .bind_as = "",
+            }
+        }
+        if b.op == .Is {
+            is_bare :: AST.BinaryExpr {
+                .span = b.span, .op = .Is, .left = b.left, .right = b.right, .bind_as = "",
+            }
+            return AST.UnaryExpr { .span = b.span, .op = .Not, .operand = is_bare }
+        }
+    }
+    return AST.UnaryExpr { .span = cond.span, .op = .Not, .operand = cond }
 }
 
 // `is T as y` → `scrutinee is T as y` ; literal `v` → `scrutinee == v`.
@@ -189,6 +249,57 @@ test_match_to_if_two_is_arms :: fn() -> void {
     out :: mti_apply(m, ctx)
     assert("cell is null" in out, "renders the is-null condition")
     assert("else" in out, "second arm becomes the else")
+}
+
+@test
+test_match_to_if_null_guard :: fn() -> void {
+    // The empty null arm collapses to a single-branch `if X !is null { … }` —
+    // no empty `if` branch, no `else`.
+    src :: """
+f :: fn(ns: i32 | null) -> i32 {
+    match ns {
+        is null -> {}
+        _ -> { return ns }
+    }
+    return 0
+}
+"""
+    parsed :: AST.parse_source(src, "t.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(mti_applicable(m, ctx), "empty null arm + `_` body converts")
+    out :: mti_apply(m, ctx)
+    assert("ns !is null" in out, "renders the negated `!is null` condition")
+    assert("return ns" in out, "keeps the non-empty arm's body")
+    assert(!("else" in out), "no else branch — the empty arm is dropped")
+}
+
+@test
+test_match_to_if_empty_second_arm :: fn() -> void {
+    // The empty `_` arm drops ; arm 0's body becomes the single branch.
+    src :: """
+g :: fn(v: i32 | string) -> void {
+    match v {
+        is i32 -> { work(v) }
+        _ -> {}
+    }
+}
+"""
+    parsed :: AST.parse_source(src, "t.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(mti_applicable(m, ctx), "empty `_` arm converts")
+    out :: mti_apply(m, ctx)
+    assert("if v is i32" in out, "renders the positive condition")
+    assert(!("else" in out), "no else branch — the empty arm is dropped")
 }
 
 @test
