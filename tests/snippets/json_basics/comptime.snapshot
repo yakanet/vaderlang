@@ -4,8 +4,8 @@
 
 ## generic instances
   __genstate_zip<[string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString]>
-  __genstate_chain<T>
-  __genstate_enumerate<[usize, T]>
+  __genstate_chain<i32>
+  __genstate_enumerate<[usize, string]>
   __genstate_filter<i32>
   __genstate_map<i32>
   Into<Target>
@@ -62,6 +62,7 @@
   Iterator<char>
   Iterator<i32>
   Iterator<Entry<K, V>>
+  Iterator<[usize, string]>
   Iterator<[usize, T]>
   Iterator<[T, U]>
   Iterator<T>

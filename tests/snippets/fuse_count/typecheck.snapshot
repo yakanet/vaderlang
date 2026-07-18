@@ -6,8 +6,8 @@
   expr 14:10    CallExpr       :: __genstate_map<i32>
   expr 14:10    CallExpr       :: usize
   expr 14:10    FieldExpr      :: fn() -> usize
-  expr 14:10    FieldExpr      :: fn(fn(T) -> U) -> Iterator<U>
   expr 14:10    FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
+  expr 14:10    FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
   expr 14:10    SeqLitExpr     :: i32[]
   expr 14:33    LambdaExpr     :: fn(i32) -> i32
   expr 14:45    BinaryExpr     :: i32

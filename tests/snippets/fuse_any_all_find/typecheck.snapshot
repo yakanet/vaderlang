@@ -5,8 +5,8 @@
   expr 12:11    SeqLitExpr     :: i32[]
   expr 15:10    CallExpr       :: __genstate_map<i32>
   expr 15:10    CallExpr       :: bool
-  expr 15:10    FieldExpr      :: fn(fn(T) -> U) -> Iterator<U>
   expr 15:10    FieldExpr      :: fn(fn(T) -> bool) -> bool
+  expr 15:10    FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
   expr 15:10    IdentExpr      :: i32[]
   expr 15:17    LambdaExpr     :: fn(i32) -> i32
   expr 15:29    BinaryExpr     :: i32
@@ -16,8 +16,8 @@
   expr 15:52    IdentExpr      :: i32
   expr 17:10    CallExpr       :: __genstate_filter<i32>
   expr 17:10    CallExpr       :: bool
-  expr 17:10    FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
   expr 17:10    FieldExpr      :: fn(fn(T) -> bool) -> bool
+  expr 17:10    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
   expr 17:10    IdentExpr      :: i32[]
   expr 17:20    LambdaExpr     :: fn(i32) -> bool
   expr 17:32    BinaryExpr     :: bool
@@ -27,8 +27,8 @@
   expr 17:55    IdentExpr      :: i32
   expr 18:10    CallExpr       :: __genstate_map<i32>
   expr 18:10    CallExpr       :: bool
-  expr 18:10    FieldExpr      :: fn(fn(T) -> U) -> Iterator<U>
   expr 18:10    FieldExpr      :: fn(fn(T) -> bool) -> bool
+  expr 18:10    FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
   expr 18:10    IdentExpr      :: i32[]
   expr 18:17    LambdaExpr     :: fn(i32) -> i32
   expr 18:29    BinaryExpr     :: i32
@@ -45,8 +45,8 @@
   expr 19:5     IdentExpr      :: fn(T) -> void
   expr 22:10    CallExpr       :: __genstate_map<i32>
   expr 22:10    CallExpr       :: i32 | null
-  expr 22:10    FieldExpr      :: fn(fn(T) -> U) -> Iterator<U>
   expr 22:10    FieldExpr      :: fn(fn(T) -> bool) -> null | T
+  expr 22:10    FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
   expr 22:10    IdentExpr      :: i32[]
   expr 22:17    LambdaExpr     :: fn(i32) -> i32
   expr 22:29    BinaryExpr     :: i32
@@ -66,8 +66,8 @@
   expr 23:8     IdentExpr      :: i32 | null
   expr 24:10    CallExpr       :: __genstate_filter<i32>
   expr 24:10    CallExpr       :: i32 | null
-  expr 24:10    FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
   expr 24:10    FieldExpr      :: fn(fn(T) -> bool) -> null | T
+  expr 24:10    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
   expr 24:10    IdentExpr      :: i32[]
   expr 24:20    LambdaExpr     :: fn(i32) -> bool
   expr 24:32    BinaryExpr     :: bool

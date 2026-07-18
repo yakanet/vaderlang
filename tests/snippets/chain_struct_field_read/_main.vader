@@ -1,0 +1,42 @@
+// Regression guard: generic iterator combinators over an array of STRUCTS must
+// infer the concrete element type, not the erased type parameter `T`. An array
+// argument satisfies an `Iterator<T>` parameter via the blanket `T[] -> Iterator<T>`
+// `into` coercion ; the element type has to be unified with `T` during generic
+// call solving (see `vader/typecheck/unify.vader`, the `TraitType` / `ArrayType`
+// case). When it wasn't, `chain(a, b)` / `a.map(f)` / `a.filter(p)` over `Rec[]`
+// left the element typed as the bare `T`, so a field read (`r.value`) failed with
+// T3008 "on non-struct type T" — or, when a target type masked it, corrupted the
+// erased-layout array at runtime (SIGSEGV in the diagnostics renderer). All three
+// combinators are bound WITHOUT a type annotation here, the shape that regressed.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+Rec :: struct { name: string, value: i32 }
+
+main :: fn() -> i32 {
+    a: Rec[] = [Rec { .name = "a", .value = 1 }, Rec { .name = "b", .value = 2 }]
+    b: Rec[] = [Rec { .name = "c", .value = 3 }]
+
+    // chain : element type flows from the array args, no lambda involved.
+    merged :: chain(a, b).collect()
+    println("len=${merged.len()}")
+    for r in merged {
+        println("${r.name}=${r.value}")
+    }
+
+    // map : the lambda parameter must be `Rec`, not `T`, so `it.value` resolves.
+    doubled :: a.map((it) -> Rec { .name = it.name, .value = it.value * 2 }).collect()
+    for r in doubled {
+        println("x2 ${r.name}=${r.value}")
+    }
+
+    // filter : the predicate parameter must be `Rec` for `it.value` to resolve.
+    kept :: merged.filter((it) -> it.value >= 2).collect()
+    for r in kept {
+        println("kept ${r.name}=${r.value}")
+    }
+    return 0
+}

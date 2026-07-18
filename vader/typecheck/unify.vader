@@ -80,6 +80,17 @@ export unify_type_param :: fn(
                 is TraitType as at -> {
                     if pt.symbol.id == at.symbol.id { unify_args(pt.args, at.args, out) }
                 }
+                // An array argument satisfies an `Iterator<T>` parameter through
+                // the blanket `T[] -> Iterator<T>` `into` coercion. That coercion
+                // is applied later (`try_into`), but the element type must be
+                // unified with `T` *here* or the type param stays unbound — the
+                // callee then infers `Iterator<T>` (T3008 downstream) and the
+                // generic body is never specialised. Bind `T = element`.
+                is ArrayType as aa -> {
+                    if pt.symbol.name == TRAIT_ITERATOR && pt.args.len() == 1 {
+                        unify_type_param(pt.args[0], aa.element, out)
+                    }
+                }
                 _ -> {}
             }
             return
