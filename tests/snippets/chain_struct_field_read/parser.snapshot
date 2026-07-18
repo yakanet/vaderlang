@@ -623,6 +623,187 @@
             "isComptime": false
           },
           {
+            "kind": "ForStmt",
+            "label": null,
+            "form": {
+              "kind": "in",
+              "binding": "m",
+              "iter": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "chain"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IdentExpr",
+                      "name": "a"
+                    },
+                    "spread": false
+                  },
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IdentExpr",
+                      "name": "b"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "direct "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "m"
+                            },
+                            "field": "name"
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": "="
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "m"
+                            },
+                            "field": "value"
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            "isComptime": false
+          },
+          {
+            "kind": "ForStmt",
+            "label": null,
+            "form": {
+              "kind": "in",
+              "binding": "m",
+              "iter": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "GenericInstExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "chain"
+                  },
+                  "typeArgs": [
+                    {
+                      "kind": "IdentExpr",
+                      "name": "Rec"
+                    }
+                  ]
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IdentExpr",
+                      "name": "a"
+                    },
+                    "spread": false
+                  },
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IdentExpr",
+                      "name": "b"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "explicit "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "m"
+                            },
+                            "field": "name"
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": "="
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "m"
+                            },
+                            "field": "value"
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            "isComptime": false
+          },
+          {
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
