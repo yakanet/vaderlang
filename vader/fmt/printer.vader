@@ -31,6 +31,29 @@ export Printer :: struct {
     // emit_fn_decl / emit_const_decl pad the name to this width. `0`
     // disables alignment (single-space `::`).
     align_name_width: usize
+    // How the NEXT `emit_block_expr` should lay out its body. The block-stmt
+    // loop sets it per statement (then restores) : `.Expand` for a control-flow
+    // statement body (`if` / `for` / `while` — always multi-line), `.Inline` for
+    // a member of a lookup-table `if`-chain (kept inline), `.Preserve` (the
+    // default) everywhere else (inline iff the source was single-line).
+    // Value-position blocks (`x :: if c { a } else { b }`) stay `.Preserve`, so
+    // concise conditional values are untouched.
+    block_mode: BlockLayout = .Preserve
+    // Column-alignment target for the `{` of a lookup-table `if`-chain member :
+    // the max `if <cond>` condition width across the chain run. `emit_if` pads
+    // the condition to this width so the braces line up. `0` disables (not a
+    // chain). Mirrors `align_name_width` for `::` decl groups.
+    align_if_width: usize = 0
+}
+
+/// How `emit_block_expr` lays out a block body (see `Printer.block_mode`).
+BlockLayout :: enum(u8) {
+    /// Inline iff the source was single-line — the default.
+    Preserve,
+    /// Always multi-line — a control-flow statement body (`if` / `for` / `while`).
+    Expand,
+    /// Always inline — a member of a lookup-table `if`-chain.
+    Inline,
 }
 
 export new_printer :: fn(source: string, comments: CommentMap) -> Printer {
@@ -1559,6 +1582,13 @@ expr_head_is_struct_lit :: fn(e: p.Expr) -> bool {
 emit_if :: fn(self: Printer, x: p.IfExpr) -> void {
     self.write("if ")
     self.emit_condition(x.cond)
+    // Lookup-table chain : pad the condition so the `{` column lines up.
+    if self.align_if_width > 0 {
+        w :: format_expr(self.source, x.cond).bytes().len()
+        if self.align_if_width > w {
+            for k in 0..<(self.align_if_width - w) { self.write(" ") }
+        }
+    }
     self.write(" ")
     self.emit_block_expr(x.then_block)
     match x.else_branch {
@@ -1608,7 +1638,90 @@ emit_match :: fn(self: Printer, x: p.MatchExpr) -> void {
     self.write("}")
 }
 
+// A single-line `if <cond> { <one stmt/expr> }` with no `else` — a lookup-table
+// entry. A RUN of ≥2 consecutive such statements is kept inline (the aligned
+// lookup-table idiom) ; a lone one is expanded like any other control-flow body.
+inline_if_stmt :: fn(s: p.Stmt) -> bool {
+    if s is p.ExprStmt as es {
+        if es.expr is p.IfExpr as iff {
+            if iff.else_branch != null { return false }
+            tb :: iff.then_block
+            if tb.span.start.line != tb.span.end.line { return false }
+            one_stmt :: tb.stmts.len() == 1 && tb.trailing == null
+            one_expr :: tb.stmts.len() == 0 && tb.trailing != null
+            return one_stmt || one_expr
+        }
+    }
+    return false
+}
+
+// A statement whose body is a control-flow block that should always expand
+// multi-line : a statement-position `if` (`for` / `while` are `ForStmt`).
+control_flow_stmt :: fn(s: p.Stmt) -> bool {
+    if s is p.ForStmt { return true }
+    if s is p.ExprStmt as es { return es.expr is p.IfExpr }
+    return false
+}
+
+// Layout for statement `i` of a block : keep a lookup-table `if`-chain inline,
+// force a control-flow body multi-line, otherwise preserve the source form.
+block_mode_for :: fn(stmts: p.Stmt[], i: usize) -> BlockLayout {
+    if inline_if_stmt(stmts[i]) {
+        prev :: i > 0 && inline_if_stmt(stmts[i - 1])
+        next :: i + 1 < stmts.len() && inline_if_stmt(stmts[i + 1])
+        if prev || next { return .Inline }
+    }
+    if control_flow_stmt(stmts[i]) { return .Expand }
+    return .Preserve
+}
+
+// Rendered width of a lookup-table `if`'s condition (for `{`-column alignment),
+// or 0 when `s` isn't an inline `if`.
+if_cond_width :: fn(s: p.Stmt, source: string) -> usize {
+    if s is p.ExprStmt as es {
+        if es.expr is p.IfExpr as iff {
+            return format_expr(source, iff.cond).bytes().len()
+        }
+    }
+    return 0
+}
+
+// Per-statement `{`-alignment target : for each run of ≥2 consecutive inline
+// `if`s (a lookup table), the max condition width across the run ; 0 otherwise.
+// Mirrors the `::` decl-group width computation in `alignment_widths`.
+compute_if_align :: fn(stmts: p.Stmt[], source: string) -> usize[] {
+    out: usize[] = []
+    i: usize = 0
+    for i < stmts.len() {
+        if !inline_if_stmt(stmts[i]) {
+            out.push(0)
+            i = i + 1
+            continue
+        }
+        end := i + 1
+        w_max := if_cond_width(stmts[i], source)
+        for end < stmts.len() {
+            if !inline_if_stmt(stmts[end]) { break }
+            w :: if_cond_width(stmts[end], source)
+            if w > w_max { w_max = w }
+            end = end + 1
+        }
+        // Solo inline `if` (run of 1) expands, so it needs no alignment.
+        group :: if end - i >= 2 { w_max } else { 0 }
+        for k in i..<end { out.push(group) }
+        i = end
+    }
+    return out
+}
+
 emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
+    // Inline this block ? `.Expand` never, `.Inline` always, else preserve the
+    // source's single-line form. Set by the enclosing stmt loop.
+    inline_ok :: match self.block_mode {
+        .Expand   -> false
+        .Inline   -> true
+        .Preserve -> b.span.start.line == b.span.end.line
+    }
     // Empty block.
     if b.stmts.len() == 0 {
         if b.trailing == null {
@@ -1630,9 +1743,8 @@ emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
             self.write("{}")
             return
         }
-        // Single trailing expression — inline iff the source was
-        // single-line.
-        if b.span.start.line == b.span.end.line {
+        // Single trailing expression.
+        if inline_ok {
             self.write("{ ")
             self.emit_expr(b.trailing)
             self.write(" }")
@@ -1647,9 +1759,9 @@ emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
         self.write("}")
         return
     }
-    // Single-stmt no-trailing block — render inline iff the source was
-    // single-line. Matches stdlib idiom `{ return self.foo }`.
-    if b.stmts.len() == 1 && b.span.start.line == b.span.end.line {
+    // Single-stmt no-trailing block — inline per `block_mode` (a lookup-table
+    // `if`-chain member, or a preserved single-line source block).
+    if b.stmts.len() == 1 && inline_ok {
         match b.trailing {
             is null -> {
                 self.write("{ ")
@@ -1662,12 +1774,20 @@ emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
     }
     self.write("{")
     self.depth = self.depth + 1
-    for s in b.stmts {
+    if_align :: compute_if_align(b.stmts, self.source)
+    for i in 0..<b.stmts.len() {
+        s :: b.stmts[i]
         sp :: s.span
         self.newline()
         self.flush_leading_comments(sp.start.offset, sp.start.line)
         self.indent()
+        saved_mode :: self.block_mode
+        saved_align :: self.align_if_width
+        self.block_mode = block_mode_for(b.stmts, i)
+        self.align_if_width = if_align[i]
         self.emit_stmt(s)
+        self.block_mode = saved_mode
+        self.align_if_width = saved_align
     }
     trailing :: b.trailing
     if trailing != null {
