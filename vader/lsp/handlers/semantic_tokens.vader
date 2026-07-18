@@ -107,15 +107,9 @@ collect_token_kinds :: fn(source: string, uri: string, out: RawToken[]) -> void 
     }
 }
 
-token_to_raw :: fn(t: Token) -> RawToken | null {
-    tt :: classify_token(t)
-    if tt < 0 { return null }
-    return raw_of_type(t, tt)
-}
-
-// Build a `RawToken` for `t` with the given semantic type. Split out so the
-// token loop can override the type (the `!is` / `!in` Bang) without duplicating
-// the span arithmetic.
+// Build a `RawToken` for `t` with the given semantic type. The token loop
+// computes the type (with the `!is` / `!in` Bang override) and calls this so the
+// span arithmetic lives in one place.
 raw_of_type :: fn(t: Token, tt: i32) -> RawToken {
     sp :: t.span
     return RawToken {
