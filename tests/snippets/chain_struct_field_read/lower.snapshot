@@ -20,9 +20,9 @@
           value: int(3) :i32
         }
     let merged: Rec[] =
-      block :Any[]
-        let __collect_0: Any[] =
-          array :Any[]
+      block :Rec[]
+        let __collect_0: Rec[] =
+          array :Rec[]
         let __fuse_arr_2: Rec[] = a :Rec[]
         let __fuse_len_3: usize =
           LoweredArrayLen
@@ -34,7 +34,7 @@
                 __fuse_arr_2 :Rec[]
               ix:
                 __fuse_i_4 :usize
-          let __elem_1: Any = x :?
+          let __elem_1: Rec = x :?
           LoweredArrayPush
           assign
             target:
@@ -56,7 +56,7 @@
                 __fuse_arr_5 :Rec[]
               ix:
                 __fuse_i_7 :usize
-          let __elem_1: Any = y :?
+          let __elem_1: Rec = y :?
           LoweredArrayPush
           assign
             target:
@@ -68,7 +68,7 @@
                 r:
                   int(1) :usize
         ~>
-          __collect_0 :Any[]
+          __collect_0 :Rec[]
     call :void
       callee:
         std_io$println__string :void
@@ -210,9 +210,9 @@
               r:
                 int(1) :usize
     let doubled: Rec[] =
-      block :Any[]
-        let __collect_16: Any[] =
-          array :Any[]
+      block :Rec[]
+        let __collect_16: Rec[] =
+          array :Rec[]
         let f: __lambda_env_20 =
           __lambda_env_20 {
           }
@@ -227,7 +227,7 @@
                 __fuse_arr_19 :Rec[]
               ix:
                 __fuse_i_21 :usize
-          let __elem_17: Any =
+          let __elem_17: Rec =
             Rec {
               name:
                 .name :string
@@ -251,7 +251,7 @@
                 r:
                   int(1) :usize
         ~>
-          __collect_16 :Any[]
+          __collect_16 :Rec[]
     block :void
       let __for_arr_22: Rec[] = doubled :Rec[]
       let __for_len_23: usize =
@@ -359,9 +359,9 @@
               r:
                 int(1) :usize
     let kept: Rec[] =
-      block :Any[]
-        let __collect_28: Any[] =
-          array :Any[]
+      block :Rec[]
+        let __collect_28: Rec[] =
+          array :Rec[]
         let pred: __lambda_env_34 =
           __lambda_env_34 {
           }
@@ -385,7 +385,7 @@
                 r:
                   int(2) :i32
             then:
-              let __elem_29: Any = x :?
+              let __elem_29: Rec = x :?
               LoweredArrayPush
           assign
             target:
@@ -397,7 +397,7 @@
                 r:
                   int(1) :usize
         ~>
-          __collect_28 :Any[]
+          __collect_28 :Rec[]
     block :void
       let __for_arr_34: Rec[] = kept :Rec[]
       let __for_len_35: usize =
