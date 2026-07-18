@@ -298,6 +298,11 @@ walk_expr :: fn(
         is AST.NullLitExpr -> {}
         is AST.CharLitExpr -> {}
         is AST.DotVariantExpr -> {}
+        is AST.NullCoalesceExpr as x -> {
+            walk_expr(x.left, scope, out_captures, out_seen, ctx)
+            inner :: AST.coalesce_fallback_expr(x.fallback)
+            if inner != null { walk_expr(inner, scope, out_captures, out_seen, ctx) }
+        }
         is AST.FnTypeExpr -> {}
         is AST.ArrayTypeExpr -> {}
         is AST.IdentExpr as ident -> { record_ident_capture(ident, scope, out_captures, out_seen, ctx) }

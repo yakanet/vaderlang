@@ -462,6 +462,13 @@ walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
             self.walk_expr(x.left)
             self.walk_expr(x.right)
         }
+        is AST.NullCoalesceExpr as x -> {
+            self.walk_expr(x.left)
+            match x.fallback {
+                is AST.ReturnStmt | AST.BreakStmt | AST.ContinueStmt as s -> { self.walk_stmt(s) }
+                is AST.Expr as e -> { self.walk_expr(e) }
+            }
+        }
         is AST.IfExpr as x -> { self.walk_if(x) }
         is AST.MatchExpr as x -> { self.walk_match(x) }
         is AST.BlockExpr as x -> { self.walk_block(x) }

@@ -263,6 +263,12 @@ expr_has_yield :: fn(e: AST.Expr) -> bool =
             for arm in m.arms { if expr_has_yield(arm.body) { return true } }
             return false
         }
+        is AST.NullCoalesceExpr as nc -> {
+            if expr_has_yield(nc.left) { return true }
+            inner :: AST.coalesce_fallback_expr(nc.fallback)
+            if inner == null { return false }
+            return expr_has_yield(inner)
+        }
         // No other expression form carries a statement block a `yield` could
         // live in ; a LambdaExpr body is deliberately NOT descended (a `yield`
         // there is illegal — T3059 — so it must not count for the enclosing

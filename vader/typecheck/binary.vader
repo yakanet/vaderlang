@@ -88,6 +88,41 @@ export infer_binary :: fn(
     }
 }
 
+/// Type-check `left ?? fallback`. `left` must be nullable ; the result is
+/// `left` with `null` subtracted. The fallback is either a value expression
+/// (must be assignable to the result) or a divergent statement (`return` /
+/// `break` / `continue`), checked in the enclosing function / loop context
+/// via the global `current_fn_ctx` / `loop_stack` (passing `ctx = null`).
+///
+/// @error T3068 when `left` can never be null (the fallback is unreachable).
+/// @error T3001 when a value fallback isn't assignable to the non-null result.
+export infer_null_coalesce :: fn(
+    e: AST.NullCoalesceExpr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    left_ty :: check_expr_fn(e.left, null, typed, diags)
+    result :: subtract_type(left_ty, TY_NULL)
+    if equals_type(result, left_ty) {
+        diags.push(typecheck_error(.NullCoalesceOnNonOptional, e.span, ""))
+    }
+    match e.fallback {
+        // A divergent fallback is checked in the enclosing fn / loop context via
+        // `check_stmt`'s existing `return` / `break` / `continue` dispatch
+        // (ctx = null resolves to the global `current_fn_ctx` / `loop_stack`).
+        is AST.ReturnStmt | AST.BreakStmt | AST.ContinueStmt as s -> {
+            check_stmt(s, typed, diags, null, check_expr_fn)
+        }
+        is AST.Expr         as fe -> {
+            got :: check_expr_fn(fe, result, typed, diags)
+            if !flows_into(got, result, fe.id, typed) {
+                diags.push(typecheck_error(.TypeMismatch, fe.span,
+                    "`??` fallback type ${display_type(got)} is not assignable to ${display_type(result)}"))
+            }
+        }
+    }
+    return result
+}
+
 // ---- per-op-class checkers ------------------------------------------------
 
 check_arith :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {

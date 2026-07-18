@@ -348,7 +348,8 @@ From tightest to loosest. Higher levels bind more tightly. Non-assoc operators f
 | 10    | `<`, `<=`, `>`, `>=`, `==`, `!=`, `is`, `!is`, `in`, `!in` | non-assoc      |
 | 11    | `&&`                                   | left           |
 | 12    | `\|\|`                                 | left           |
-| 13    | `=` (statement-level only)             | n/a            |
+| 13    | `??` (null-coalescing)                 | left (non-chaining) |
+| 14    | `=` (statement-level only)             | n/a            |
 
 Type casts (`Type(expr)`) are parsed as primary call expressions and naturally sit at level 1. The `is Type` form used in `match` arms binds at the comparison level. `!is Type` is a parser-level sugar that desugars to `!(x is Type)`; the flow-narrower handles the wrapping `!` to flip then/else, and `as <ident>` is rejected after `!is` since the binding has no meaningful lifetime when the type check is negated.
 
@@ -905,6 +906,51 @@ must_greet :: fn(a: Animal | null) -> string {
 ```
 
 Mirrors the per-arm narrowing inside `match`. Today the rule fires on `BinaryExpr(.Eq | .Neq, ident, NullLit)` where `ident` is a `local` / `param` / `binding` whose static type is a union containing `null`; both orderings (`x == null` / `null == x`) and both branches (`if`-true and `else`) are covered. Divergent branches (then-block ends in `return` / `break` / `continue`) propagate the complement narrowing to the subsequent statements of the enclosing block.
+
+#### Null-coalescing `??`
+
+`left ?? fallback` yields `left` with `null` removed when `left` is non-null,
+otherwise it evaluates `fallback`. The left operand must be a `T | null`
+(a union containing `null`) — otherwise the fallback is dead code and the
+compiler raises **T3068**. The result type is `left` with `null` subtracted
+(`A | B | null ?? …` → `A | B`).
+
+```vader
+port :: settings["port"] ?? 8080        // value fallback → i32
+name :: lookup(id)       ?? "anonymous" // value fallback → string
+```
+
+The fallback is one of:
+
+- a **value** expression assignable to the non-null result type, or
+- a **divergent** statement — `return` / `return <expr>` / `break` / `continue`
+  (typed `never`, so it constrains nothing). Unlike a classic value-only
+  coalescing operator, Vader's `??` accepts a divergent right operand, which
+  unifies "default" and "bail out" under one form:
+
+```vader
+node  :: resolve(sym) ?? return null    // propagate absence
+value :: entry[k]     ?? continue       // skip this iteration
+first :: rows.next()  ?? break          // stop the loop
+```
+
+- a **block** `{ … }`, whose trailing expression / divergence supplies the value:
+
+```vader
+v :: cache[k] ?? {
+    log("miss ${k}")
+    continue
+}
+```
+
+`??` is an expression operator (usable anywhere a value is), and the **loosest**
+binary operator (level 13, below `||`), so `(a ?? b) + c` needs the parentheses —
+bare `a ?? b + c` parses as `a ?? (b + c)`. It lowers to a temp-bound guard —
+`{ _t :: left ; if _t is null { fallback } else { _t } }` — so the same flow
+narrowing described above produces the non-null result. The `std/option`
+`or_else` combinator remains for the higher-order case (a fallback passed as a
+first-class function). Scope note: `??` requires `T | null` today; a `T | Error`
+form (with error-value access in the fallback) is a future extension.
 
 ### Enums
 

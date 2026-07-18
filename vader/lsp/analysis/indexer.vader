@@ -582,6 +582,7 @@ type_expr_slice :: fn(t: Expr, source: string) -> string {
     // union — match exhaustively and slice the corresponding span.
     sp: Span = match t {
         is IntLitExpr as x       -> x.span
+        is NullCoalesceExpr as x -> x.span
         is FloatLitExpr as x     -> x.span
         is BoolLitExpr as x      -> x.span
         is NullLitExpr as x      -> x.span
@@ -641,6 +642,11 @@ ix_walk_for :: fn(f: ForStmt, source: string, entries: DeclEntry[]) -> void {
 ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
     match e {
         is BlockExpr as b -> { ix_walk_block(b, source, entries) }
+        is NullCoalesceExpr as x -> {
+            ix_walk_expr(x.left, source, entries)
+            inner :: coalesce_fallback_expr(x.fallback)
+            if inner != null { ix_walk_expr(inner, source, entries) }
+        }
         is IfExpr as i -> {
             ix_walk_expr(i.cond, source, entries)
             ix_walk_block(i.then_block, source, entries)

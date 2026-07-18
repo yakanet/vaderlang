@@ -99,6 +99,7 @@ export TypecheckCode :: enum(u8) {
     // T3065 (defer in async coroutine) retired : defer now runs at coroutine
     // completion via the per-frame `__defers` stack (see `lower_coroutine`).
     LoopTargetNotLoopVariable,          // T3067
+    NullCoalesceOnNonOptional,          // T3068
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -417,6 +418,7 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .AssignTypeMismatch                 -> CodeInfo { .id = "T3063", .message = "assigned value's type is not assignable to the target's declared type" }
     .AwaitOutsideAsync                  -> CodeInfo { .id = "T3064", .message = "`await` is not allowed inside a nested lambda (a lambda cannot be an async coroutine)" }
     .LoopTargetNotLoopVariable          -> CodeInfo { .id = "T3067", .message = "`break` / `continue` target must be an enclosing loop's iteration variable or label" }
+    .NullCoalesceOnNonOptional          -> CodeInfo { .id = "T3068", .message = "`??` left operand is never null — the fallback is unreachable" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

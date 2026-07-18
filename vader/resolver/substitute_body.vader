@@ -49,10 +49,31 @@ export substitute_block :: fn(b: AST.BlockExpr, subst: Subst) -> AST.BlockExpr {
 /// corrupting the trait's own ids across every impl — the CR-f defect) and
 /// every nested `Self` / type-param is substituted. A new `Expr` variant trips
 /// T3013 here until it is handled — no silent pass-through.
+// Substitute inside a `??` fallback, preserving its concrete shape : break /
+// continue carry no substitutable expression ; return substitutes its value.
+substitute_coalesce_fallback :: fn(f: AST.CoalesceFallback, subst: Subst) -> AST.CoalesceFallback = match f {
+    is AST.ReturnStmt as r -> AST.ReturnStmt { .span = r.span, .value = subst_opt_expr(r.value, subst) }
+    is AST.BreakStmt | AST.ContinueStmt as bc -> bc
+    is AST.Expr as e -> substitute_expr_full(e, subst)
+}
+
+subst_opt_expr :: fn(v: AST.Expr | null, subst: Subst) -> AST.Expr | null {
+    if v == null { return null }
+    return substitute_expr_full(v, subst)
+}
+
 export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
     match e {
         // Leaves : reuse the original. No TypeParam refs possible.
         is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr -> { return e }
+
+        is AST.NullCoalesceExpr as nc -> {
+            return AST.NullCoalesceExpr {
+                .span = nc.span, .id = AST.UNASSIGNED_NODE_ID,
+                .left = substitute_expr_full(nc.left, subst),
+                .fallback = substitute_coalesce_fallback(nc.fallback, subst),
+            }
+        }
 
         // IdentExpr : the heart of TypeParam substitution. Delegated to
         // substitute_type_expr which already handles the rebind.

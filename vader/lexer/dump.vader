@@ -149,6 +149,7 @@ export kind_name :: fn(k: TokenKind) = match k {
     .Gte     -> "gte"
     .AndAnd  -> "and_and"
     .OrOr    -> "or_or"
+    .QuestionQuestion -> "question_question"
     .Bang    -> "bang"
     .Assign        -> "assign"
     .PlusAssign    -> "plus_assign"

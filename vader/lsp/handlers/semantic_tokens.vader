@@ -134,7 +134,7 @@ classify_token :: fn(t: Token) -> i32 = match t.kind {
         | .Plus | .Minus | .Star | .Slash | .Percent
         | .Amp | .Pipe | .Caret | .Tilde | .Shl | .Shr
         | .Eq | .Neq | .Lt | .Lte | .Gt | .Gte
-        | .AndAnd | .OrOr | .Bang
+        | .AndAnd | .OrOr | .Bang | .QuestionQuestion
         | .Assign | .PlusAssign | .MinusAssign | .StarAssign | .SlashAssign | .PercentAssign
         | .DeclConst | .DeclVar | .RangeExcl | .RangeIncl
         | .Arrow | .FatArrow -> i32(TokenType.Operator)

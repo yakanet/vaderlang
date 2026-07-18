@@ -1,0 +1,67 @@
+// tests/snippets/config_defaults — null-coalescing `??` fallbacks.
+//
+// Exercises every `??` fallback form on both backends : a default value, the
+// divergent `continue` / `break` / `return`, a `{ … }` block, and `??` in
+// expression position (its low precedence forces parentheses to keep the `+`,
+// which the formatter must preserve).
+
+module "snippet"
+
+import "std/io"
+
+setting :: fn(key: string) -> i32 | null {
+    if key == "width"  { return 80 }
+    if key == "height" { return 25 }
+    return null
+}
+
+// value fallback : a missing key falls back to a default.
+resolve :: fn(key: string) -> i32 = setting(key) ?? 0
+
+// `?? continue` : skip missing entries while scanning for the first present one.
+first_present :: fn(keys: string[]) -> i32 {
+    for k in keys {
+        value :: setting(k) ?? continue
+        return value
+    }
+    return -1
+}
+
+// `?? break` : stop the running sum at the first missing entry.
+sum_prefix :: fn(keys: string[]) -> i32 {
+    total: i32 = 0
+    for k in keys {
+        total += setting(k) ?? break
+    }
+    return total
+}
+
+// `?? return` : propagate a sentinel when a required key is absent.
+required :: fn(key: string) -> i32 {
+    return setting(key) ?? return -1
+}
+
+// `?? { block }` : run side effects, then diverge.
+count_missing :: fn(keys: string[]) -> i32 {
+    missing: i32 = 0
+    for k in keys {
+        present :: setting(k) ?? {
+            missing += 1
+            continue
+        }
+        println("have ${k}=${present}")
+    }
+    return missing
+}
+
+export main :: fn() -> i32 {
+    println("width=${resolve("width")} depth=${resolve("depth")}")
+    println("first=${first_present(["depth", "height", "width"])}")
+    println("sum=${sum_prefix(["width", "height", "depth", "width"])}")
+    println("req_width=${required("width")} req_depth=${required("depth")}")
+    println("missing=${count_missing(["width", "depth", "height"])}")
+    // `??` binds looser than `+` : the parentheses must survive the formatter.
+    scaled :: (setting("width") ?? 0) + 1
+    println("scaled=${scaled}")
+    return 0
+}

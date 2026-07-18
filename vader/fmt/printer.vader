@@ -1172,6 +1172,17 @@ emit_defer_stmt :: fn(self: Printer, s: p.DeferStmt) -> void {
     }
 }
 
+// `left ?? fallback` — the fallback is a value expression or a divergent
+// statement (`return` / `break` / `continue`).
+emit_null_coalesce :: fn(self: Printer, e: p.NullCoalesceExpr) -> void {
+    self.emit_expr(e.left)
+    self.write(" ?? ")
+    match e.fallback {
+        is p.ReturnStmt | p.BreakStmt | p.ContinueStmt as s -> self.emit_stmt(s)
+        is p.Expr as x -> self.emit_expr(x)
+    }
+}
+
 // ============================================================================
 // Expressions
 // ============================================================================
@@ -1194,6 +1205,7 @@ emit_expr :: fn(self: Printer, e: p.Expr | null) -> void {
         is p.IndexExpr         as x -> self.emit_index(x)
         is p.UnaryExpr         as x -> self.emit_unary(x)
         is p.BinaryExpr        as x -> self.emit_binary(x)
+        is p.NullCoalesceExpr  as x -> self.emit_null_coalesce(x)
         is p.IfExpr            as x -> self.emit_if(x)
         is p.MatchExpr         as x -> self.emit_match(x)
         is p.BlockExpr         as x -> self.emit_block_expr(x)
@@ -1363,6 +1375,7 @@ emit_postfix_target :: fn(self: Printer, target: p.Expr) -> void {
 // (`T(x)`, `T<U>`) fall through and stay bare.
 postfix_target_needs_parens :: fn(e: p.Expr) -> bool {
     if e is p.BinaryExpr { return true }
+    if e is p.NullCoalesceExpr { return true }
     if e is p.RangeExpr  { return true }
     if e is p.UnaryExpr  { return true }
     if e is p.IfExpr     { return true }
@@ -1401,7 +1414,7 @@ emit_unary :: fn(self: Printer, x: p.UnaryExpr) -> void {
     // to preserve precedence — `!(a || b)`, `-(a + b)` — otherwise the re-emitted
     // source reparses as `(!a) || b`. (The `!is` sugar above already handled the
     // one binary case that needs no parens.)
-    if x.operand is p.BinaryExpr {
+    if x.operand is p.BinaryExpr || x.operand is p.NullCoalesceExpr {
         self.write("(")
         self.emit_expr(x.operand)
         self.write(")")
@@ -1446,6 +1459,15 @@ emit_binary_operand :: fn(self: Printer, operand: p.Expr, parent_op: p.BinaryOp,
             self.write(")")
             return
         }
+    }
+    // `??` binds looser than every binary operator, so a null-coalescing
+    // operand of any binary parent must be parenthesised — otherwise
+    // `(a ?? b) + c` re-emits as `a ?? b + c` and reparses as `a ?? (b + c)`.
+    if operand is p.NullCoalesceExpr {
+        self.write("(")
+        self.emit_expr(operand)
+        self.write(")")
+        return
     }
     match operand {
         is p.BinaryExpr as inner -> {
@@ -1755,6 +1777,7 @@ emit_range_operand :: fn(self: Printer, operand: p.Expr) -> void {
 range_operand_needs_parens :: fn(operand: p.Expr) -> bool {
     if operand is p.BinaryExpr as b { return binary_precedence(b.op) < 4 }
     if operand is p.RangeExpr { return true }
+    if operand is p.NullCoalesceExpr { return true }   // `??` binds looser than `..`
     return false
 }
 
@@ -1762,9 +1785,9 @@ range_operand_needs_parens :: fn(operand: p.Expr) -> bool {
 
 emit_await :: fn(self: Printer, x: p.AwaitExpr) -> void {
     self.write("await ")
-    // A binary / range inner binds looser than `await` (bp 95), so it must be
-    // parenthesised — `await (a + b)` otherwise reparses as `(await a) + b`.
-    if x.inner is p.BinaryExpr || x.inner is p.RangeExpr {
+    // A binary / range / `??` inner binds looser than `await` (bp 95), so it
+    // must be parenthesised — `await (a + b)` otherwise reparses as `(await a) + b`.
+    if x.inner is p.BinaryExpr || x.inner is p.RangeExpr || x.inner is p.NullCoalesceExpr {
         self.write("(")
         self.emit_expr(x.inner)
         self.write(")")

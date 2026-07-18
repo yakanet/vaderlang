@@ -1,0 +1,11 @@
+# stdout
+width=80 depth=0
+first=25
+sum=105
+req_width=80 req_depth=-1
+have width=80
+have height=25
+missing=1
+scaled=81
+# exit
+0

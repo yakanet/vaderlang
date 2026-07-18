@@ -222,6 +222,14 @@ walk_expr :: fn(e: Expr, f: NodeIdFactory) -> void {
             walk_expr(x.left, f)
             walk_expr(x.right, f)
         }
+        is NullCoalesceExpr as x -> {
+            x.id = f.mint()
+            walk_expr(x.left, f)
+            match x.fallback {
+                is ReturnStmt | BreakStmt | ContinueStmt as s -> { walk_stmt(s, f) }
+                is Expr as e -> { walk_expr(e, f) }
+            }
+        }
         is IfExpr as x -> {
             x.id = f.mint()
             walk_expr(x.cond, f)
