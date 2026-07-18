@@ -67,18 +67,16 @@ walk_decl :: fn(d: Decl, f: NodeIdFactory) -> void {
             for fld in x.fields {
                 fld.id = f.mint()
                 walk_expr(fld.ty, f)
-                match fld.default {
-                    is null -> {}
-                    _ -> { walk_expr(fld.default, f) }
+                if fld.default !is null {
+                    walk_expr(fld.default, f)
                 }
             }
             for dec in x.decorators { walk_decorator(dec, f) }
         }
         is EnumDecl as x -> {
             x.id = f.mint()
-            match x.repr {
-                is null -> {}
-                _ -> { walk_expr(x.repr, f) }
+            if x.repr !is null {
+                walk_expr(x.repr, f)
             }
             for v in x.variants { v.id = f.mint() }
             for dec in x.decorators { walk_decorator(dec, f) }
@@ -86,9 +84,8 @@ walk_decl :: fn(d: Decl, f: NodeIdFactory) -> void {
         is TraitDecl as x -> {
             x.id = f.mint()
             for tp in x.type_params { walk_type_param(tp, f) }
-            match x.requires {
-                is null -> {}
-                _ -> { walk_expr(x.requires, f) }
+            if x.requires !is null {
+                walk_expr(x.requires, f)
             }
             for m in x.members { walk_fn_decl(m, f) }
             for dec in x.decorators { walk_decorator(dec, f) }
@@ -109,9 +106,8 @@ walk_decl :: fn(d: Decl, f: NodeIdFactory) -> void {
         }
         is ConstDecl as x -> {
             x.id = f.mint()
-            match x.ty {
-                is null -> {}
-                _ -> { walk_expr(x.ty, f) }
+            if x.ty !is null {
+                walk_expr(x.ty, f)
             }
             walk_expr(x.value, f)
             for dec in x.decorators { walk_decorator(dec, f) }
@@ -129,33 +125,28 @@ walk_fn_decl :: fn(d: FnDecl, f: NodeIdFactory) -> void {
     for dec in d.decorators { walk_decorator(dec, f) }
     for tp in d.type_params { walk_type_param(tp, f) }
     for p in d.params { walk_fn_param(p, f) }
-    match d.return_type {
-        is null -> {}
-        _ -> { walk_expr(d.return_type, f) }
+    if d.return_type !is null {
+        walk_expr(d.return_type, f)
     }
-    match d.body {
-        is null -> {}
-        _ -> { walk_block(d.body, f) }
+    if d.body !is null {
+        walk_block(d.body, f)
     }
 }
 
 walk_fn_param :: fn(p: FnParam, f: NodeIdFactory) -> void {
     p.id = f.mint()
-    match p.ty {
-        is null -> {}
-        _ -> { walk_expr(p.ty, f) }
+    if p.ty !is null {
+        walk_expr(p.ty, f)
     }
-    match p.default_value {
-        is null -> {}
-        _ -> { walk_expr(p.default_value, f) }
+    if p.default_value !is null {
+        walk_expr(p.default_value, f)
     }
 }
 
 walk_type_param :: fn(tp: TypeParam, f: NodeIdFactory) -> void {
     tp.id = f.mint()
-    match tp.bound {
-        is null -> {}
-        _ -> { walk_expr(tp.bound, f) }
+    if tp.bound !is null {
+        walk_expr(tp.bound, f)
     }
 }
 
@@ -246,9 +237,8 @@ walk_expr :: fn(e: Expr, f: NodeIdFactory) -> void {
             for a in x.arms {
                 a.id = f.mint()
                 walk_pattern(a.pattern, f)
-                match a.guard {
-                    is null -> {}
-                    _ -> { walk_expr(a.guard, f) }
+                if a.guard !is null {
+                    walk_expr(a.guard, f)
                 }
                 walk_expr(a.body, f)
             }
@@ -257,9 +247,8 @@ walk_expr :: fn(e: Expr, f: NodeIdFactory) -> void {
         is LambdaExpr as x -> {
             x.id = f.mint()
             for p in x.params { walk_fn_param(p, f) }
-            match x.return_type {
-                is null -> {}
-                _ -> { walk_expr(x.return_type, f) }
+            if x.return_type !is null {
+                walk_expr(x.return_type, f)
             }
             walk_block(x.body, f)
         }
@@ -310,9 +299,8 @@ walk_expr :: fn(e: Expr, f: NodeIdFactory) -> void {
         is FnTypeExpr as x -> {
             x.id = f.mint()
             for p in x.params { walk_expr(p, f) }
-            match x.return_type {
-                is null -> {}
-                _ -> { walk_expr(x.return_type, f) }
+            if x.return_type !is null {
+                walk_expr(x.return_type, f)
             }
         }
         is ArrayTypeExpr as x -> {
@@ -327,9 +315,8 @@ walk_expr :: fn(e: Expr, f: NodeIdFactory) -> void {
 walk_block :: fn(b: BlockExpr, f: NodeIdFactory) -> void {
     b.id = f.mint()
     for s in b.stmts { walk_stmt(s, f) }
-    match b.trailing {
-        is null -> {}
-        _ -> { walk_expr(b.trailing, f) }
+    if b.trailing !is null {
+        walk_expr(b.trailing, f)
     }
 }
 
@@ -338,9 +325,8 @@ walk_stmt :: fn(s: Stmt, f: NodeIdFactory) -> void {
         is LetStmt as x -> {
             x.id = f.mint()
             walk_let_binding(x.binding, f)
-            match x.ty {
-                is null -> {}
-                _ -> { walk_expr(x.ty, f) }
+            if x.ty !is null {
+                walk_expr(x.ty, f)
             }
             walk_expr(x.value, f)
         }
@@ -355,9 +341,8 @@ walk_stmt :: fn(s: Stmt, f: NodeIdFactory) -> void {
         }
         is ReturnStmt as x -> {
             x.id = f.mint()
-            match x.value {
-                is null -> {}
-                _ -> { walk_expr(x.value, f) }
+            if x.value !is null {
+                walk_expr(x.value, f)
             }
         }
         is YieldStmt as x -> {
@@ -406,9 +391,8 @@ walk_pattern :: fn(p: Pattern, f: NodeIdFactory) -> void {
         is IsPattern as x -> {
             x.id = f.mint()
             walk_expr(x.ty, f)
-            match x.inner {
-                is null -> {}
-                _ -> { walk_pattern(x.inner, f) }
+            if x.inner !is null {
+                walk_pattern(x.inner, f)
             }
         }
         is StructPattern as x -> {

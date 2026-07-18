@@ -147,15 +147,12 @@ decl_type_by_name :: fn(self: EntryTypes, name: string) -> Type {
 
 fn_decl_type_by_span :: fn(self: EntryTypes, name: string, name_span: Span) -> Type {
     bucket :: self.typed.resolved.fn_overloads[name]
-    match bucket {
-        is null -> {}
-        _ -> {
-            for s in bucket {
-                sp :: s.defined_at ?? continue
-                if sp.start.line == name_span.start.line &&
-                   sp.start.column == name_span.start.column {
-                    return apply_or_unresolved(self, self.typed.decl_types[s.id])
-                }
+    if bucket !is null {
+        for s in bucket {
+            sp :: s.defined_at ?? continue
+            if sp.start.line == name_span.start.line &&
+               sp.start.column == name_span.start.column {
+                return apply_or_unresolved(self, self.typed.decl_types[s.id])
             }
         }
     }

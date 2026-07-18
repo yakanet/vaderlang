@@ -104,9 +104,8 @@ render_signature_label :: fn(fd: AST.FnDecl) -> string {
         out = out + render_param_label(p)
     }
     out = out + ")"
-    match fd.return_type {
-        is null -> {}
-        _ -> { out = out + " -> " + render_type_expr(fd.return_type) }
+    if fd.return_type !is null {
+        out = out + " -> " + render_type_expr(fd.return_type)
     }
     return out
 }
@@ -143,9 +142,8 @@ render_type_expr :: fn(e: AST.TypeExpr) -> string {
                 ps = ps + render_type_expr(p)
             }
             ret := ""
-            match f.return_type {
-                is null -> {}
-                _ -> { ret = " -> " + render_type_expr(f.return_type) }
+            if f.return_type !is null {
+                ret = " -> " + render_type_expr(f.return_type)
             }
             return "fn(${ps})${ret}"
         }

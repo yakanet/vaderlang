@@ -96,9 +96,8 @@ test_new_globals_factory_starts_at_one :: fn() -> void {
     factory :: SymbolFactory {}
     g :: new_globals(factory)
     assert_eq(g.factory.next, 1)
-    match g.core_symbols {
-        is null -> {}
-        _ -> { assert(false, "core_symbols should start null") }
+    if g.core_symbols !is null {
+        assert(false, "core_symbols should start null")
     }
 }
 
@@ -110,9 +109,8 @@ test_new_fn_context_holds_return_type :: fn() -> void {
         _ -> { assert(false, "expected i32 return type") }
     }
     assert_eq(ctx.loop_depth, 0)
-    match ctx.self_type {
-        is null -> {}
-        _ -> { assert(false, "self_type should start null") }
+    if ctx.self_type !is null {
+        assert(false, "self_type should start null")
     }
 }
 

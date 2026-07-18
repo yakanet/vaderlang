@@ -156,12 +156,9 @@ scan_block_for_ident :: fn(b: AST.BlockExpr, target: string) -> AST.IdentExpr | 
         found :: scan_stmt_for_ident(stmt, target)
         if found is AST.IdentExpr { return found }
     }
-    match b.trailing {
-        is null -> {}
-        _ -> {
-            found :: scan_expr_for_ident(b.trailing, target)
-            if found is AST.IdentExpr { return found }
-        }
+    if b.trailing !is null {
+        found :: scan_expr_for_ident(b.trailing, target)
+        if found is AST.IdentExpr { return found }
     }
     return null
 }

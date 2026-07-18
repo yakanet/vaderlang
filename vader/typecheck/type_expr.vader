@@ -123,9 +123,8 @@ lower_ident :: fn(e: AST.IdentExpr, resolved: ResolvedModule) -> Type {
     // Builtin name takes precedence — even when the resolver also bound the
     // ident (e.g. user-shadowed `i32` would still resolve to the primitive).
     builtin :: primitive_from_name(e.name)
-    match builtin {
-        is null -> {}
-        _ -> { return builtin }
+    if builtin !is null {
+        return builtin
     }
     bound :: resolved.idents[e.span.hash()]
     if !(bound is null) { return resolve_named_type(bound, resolved) }
@@ -379,9 +378,8 @@ test_primitive_from_name_recognises_aliases :: fn() -> void {
 
 @test
 test_primitive_from_name_returns_null_for_user_types :: fn() -> void {
-    match primitive_from_name("MyStruct") {
-        is null -> {}
-        _ -> { assert(false, "user types should not be primitives") }
+    if primitive_from_name("MyStruct") !is null {
+        assert(false, "user types should not be primitives")
     }
 }
 

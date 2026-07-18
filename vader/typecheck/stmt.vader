@@ -221,9 +221,8 @@ block_has_yield :: fn(block: AST.BlockExpr) -> bool {
     // A trailing `if` / `match` / nested block (e.g. a for-body whose only
     // item is `if p { yield x }`) parses as the block's trailing expr, not a
     // stmt — descend it too.
-    match block.trailing {
-        is null -> {}
-        _       -> { if expr_has_yield(block.trailing) { return true } }
+    if block.trailing !is null {
+        if expr_has_yield(block.trailing) { return true }
     }
     return false
 }
@@ -347,9 +346,8 @@ export check_fn_body :: fn(
     } else {
         // Implicit-return : a trailing expression substitutes for an
         // explicit `return`. Surface T3020 against the trailing's span.
-        match body.trailing {
-            is null -> {}
-            _ -> { emit_return_mismatch_if(got, effective_return, body.trailing.span, body.trailing.id, typed, diags) }
+        if body.trailing !is null {
+            emit_return_mismatch_if(got, effective_return, body.trailing.span, body.trailing.id, typed, diags)
         }
     }
     typed.current_fn_ctx = prev
@@ -380,15 +378,12 @@ patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram) 
 lookup_decl_symbol_stmt :: fn(resolved: ResolvedModule, fd: AST.FnDecl) -> Symbol | null {
     // Match by span to support overloaded fns.
     bucket :: resolved.fn_overloads[fd.name]
-    match bucket {
-        is null -> {}
-        _ -> {
-            for s in bucket {
-                sp :: s.defined_at ?? continue
-                if sp.start.line == fd.name_span.start.line &&
-                   sp.start.column == fd.name_span.start.column {
-                    return s
-                }
+    if bucket !is null {
+        for s in bucket {
+            sp :: s.defined_at ?? continue
+            if sp.start.line == fd.name_span.start.line &&
+               sp.start.column == fd.name_span.start.column {
+                return s
             }
         }
     }
@@ -476,9 +471,8 @@ check_let :: fn(
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     ann: Type | null = null
-    match s.ty {
-        is null -> {}
-        _ -> { ann = type_from_expr(s.ty, typed.resolved, diags) }
+    if s.ty !is null {
+        ann = type_from_expr(s.ty, typed.resolved, diags)
     }
     got :: check_expr_fn(s.value, ann, typed, diags)
     declared: Type = TY_UNRESOLVED
@@ -647,12 +641,9 @@ check_return :: fn(
     // Generator: `return <value>` is a mistake (produce via `yield` — T3058);
     // a bare `return` stops the stream and needs no return-type check.
     if effective != null && effective.is_generator {
-        match s.value {
-            is null -> {}
-            _ -> {
-                check_expr_fn(s.value, null, typed, diags)
-                diags.push(typecheck_error(.ReturnValueInGenerator, s.span, ""))
-            }
+        if s.value !is null {
+            check_expr_fn(s.value, null, typed, diags)
+            diags.push(typecheck_error(.ReturnValueInGenerator, s.span, ""))
         }
         return
     }
@@ -666,24 +657,20 @@ check_return :: fn(
         return
     }
     expected: Type | null = null
-    match effective {
-        is null -> {}
-        _ -> { expected = effective.return_type }
+    if effective !is null {
+        expected = effective.return_type
     }
     got :: check_expr_fn(v, expected, typed, diags)
-    match effective {
-        is null -> {}
-        _ -> {
-            // Accumulate the returned value's type so a divergent block-body
-            // lambda can recover its real return type (see `pick_final_return`).
-            prev :: effective.inferred_return
-            if prev == null {
-                effective.inferred_return = got
-            } else {
-                effective.inferred_return = union_of([prev, got])
-            }
-            emit_return_mismatch_if(got, effective.return_type, s.span, v.id, typed, diags)
+    if effective !is null {
+        // Accumulate the returned value's type so a divergent block-body
+        // lambda can recover its real return type (see `pick_final_return`).
+        prev :: effective.inferred_return
+        if prev == null {
+            effective.inferred_return = got
+        } else {
+            effective.inferred_return = union_of([prev, got])
         }
+        emit_return_mismatch_if(got, effective.return_type, s.span, v.id, typed, diags)
     }
 }
 

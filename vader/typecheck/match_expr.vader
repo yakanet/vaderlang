@@ -45,39 +45,32 @@ export infer_match :: fn(
         arm_narrow :: arm_narrow_for(arm.pattern, remaining, typed)
         prev_arm: NarrowSlot | null = null
         if scrut_sym_id != -1 {
-            match arm_narrow {
-                is null -> {}
-                _ -> { prev_arm = push_narrow(typed, scrut_sym_id, arm_narrow) }
+            if arm_narrow !is null {
+                prev_arm = push_narrow(typed, scrut_sym_id, arm_narrow)
             }
         }
         prev_field: NarrowSlot | null = null
         if scrut_field_key != "" {
-            match arm_narrow {
-                is null -> {}
-                _ -> { prev_field = push_field_narrow(typed, scrut_field_key, arm_narrow) }
+            if arm_narrow !is null {
+                prev_field = push_field_narrow(typed, scrut_field_key, arm_narrow)
             }
         }
-        match arm.guard {
-            is null -> {}
-            _ -> {
-                got :: check_expr_fn(arm.guard, TY_BOOL, typed, diags)
-                if !is_assignable(got, TY_BOOL, null) {
-                    diags.push(typecheck_error(.ConditionMustBeBool, arm.guard.span,
-                        "match-arm guard must be `bool`, got ${display_type(got)}"))
-                }
+        if arm.guard !is null {
+            got :: check_expr_fn(arm.guard, TY_BOOL, typed, diags)
+            if !is_assignable(got, TY_BOOL, null) {
+                diags.push(typecheck_error(.ConditionMustBeBool, arm.guard.span,
+                    "match-arm guard must be `bool`, got ${display_type(got)}"))
             }
         }
         arm_types.push(check_expr_fn(arm.body, expected, typed, diags))
         if scrut_sym_id != -1 {
-            match arm_narrow {
-                is null -> {}
-                _ -> { pop_narrow(typed, scrut_sym_id, prev_arm, scrut_ty) }
+            if arm_narrow !is null {
+                pop_narrow(typed, scrut_sym_id, prev_arm, scrut_ty)
             }
         }
         if scrut_field_key != "" {
-            match arm_narrow {
-                is null -> {}
-                _ -> { pop_field_narrow(typed, scrut_field_key, prev_field, scrut_ty) }
+            if arm_narrow !is null {
+                pop_field_narrow(typed, scrut_field_key, prev_field, scrut_ty)
             }
         }
         // Subtract the matched type from `remaining` for subsequent
@@ -275,12 +268,9 @@ bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed: TypedProgram, diags
     match p {
         is AST.TuplePattern as tp -> {
             tu :: pick_tuple_variant(scrut, tp.elements.len())
-            match tu {
-                is null -> {}
-                _ -> {
-                    for i in 0..<tp.elements.len() {
-                        bind_pattern_types(tp.elements[i], tu.elements[i], typed, diags)
-                    }
+            if tu !is null {
+                for i in 0..<tp.elements.len() {
+                    bind_pattern_types(tp.elements[i], tu.elements[i], typed, diags)
                 }
             }
         }
@@ -292,16 +282,14 @@ bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed: TypedProgram, diags
             // resolver mints the binding at `ip.span` when bind_as
             // is non-null ; write the lowered T as its type.
             narrowed :: type_from_expr(ip.ty, typed.resolved, scratch_diags())
-            match ip.bind_as {
-                is null -> {}
-                _ -> { typed.local_types[ip.span.hash()] = narrowed }
+            if ip.bind_as !is null {
+                typed.local_types[ip.span.hash()] = narrowed
             }
             // Nested pattern (e.g. `is T as a { x, y }`) — recurse
             // with the narrowed type so inner StructPattern bindings
             // pick up T's field types.
-            match ip.inner {
-                is null -> {}
-                _ -> { bind_pattern_types(ip.inner, narrowed, typed, diags) }
+            if ip.inner !is null {
+                bind_pattern_types(ip.inner, narrowed, typed, diags)
             }
         }
         is AST.StructPattern as sp -> { bind_struct_pattern(sp, scrut, typed, diags) }
@@ -323,9 +311,8 @@ bind_struct_pattern :: fn(
                 match field.value {
                     is AST.PatternBinding as pb -> {
                         ft :: resolved_field_type(st.symbol.id, decl, field.name, typed, scratch_diags())
-                        match ft {
-                            is null -> {}
-                            _ -> { typed.local_types[pb.span.hash()] = ft }
+                        if ft !is null {
+                            typed.local_types[pb.span.hash()] = ft
                         }
                     }
                     _ -> {}

@@ -82,9 +82,8 @@ collect_from_decl :: fn(d: AST.Decl, typed: TypedProgram, out: JsonValue[]) -> v
 
 collect_from_block :: fn(b: AST.BlockExpr, typed: TypedProgram, out: JsonValue[]) -> void {
     for s in b.stmts { collect_from_stmt(s, typed, out) }
-    match b.trailing {
-        is null -> {}
-        _ -> { collect_from_expr(b.trailing, typed, out) }
+    if b.trailing !is null {
+        collect_from_expr(b.trailing, typed, out)
     }
 }
 
@@ -100,9 +99,8 @@ collect_from_stmt :: fn(s: AST.Stmt, typed: TypedProgram, out: JsonValue[]) -> v
         }
         is AST.ExprStmt as es -> { collect_from_expr(es.expr, typed, out) }
         is AST.ReturnStmt as rs -> {
-            match rs.value {
-                is null -> {}
-                _ -> { collect_from_expr(rs.value, typed, out) }
+            if rs.value !is null {
+                collect_from_expr(rs.value, typed, out)
             }
         }
         is AST.YieldStmt as ys -> { collect_from_expr(ys.value, typed, out) }

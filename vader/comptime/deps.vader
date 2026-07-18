@@ -231,9 +231,8 @@ collect_expr_deps :: fn(
         is AST.MatchExpr as x  -> {
             collect_expr_deps(x.scrutinee, typed, nodes, seen, record)
             for arm in x.arms {
-                match arm.guard {
-                    is null -> {}
-                    _ -> { collect_expr_deps(arm.guard, typed, nodes, seen, record) }
+                if arm.guard !is null {
+                    collect_expr_deps(arm.guard, typed, nodes, seen, record)
                 }
                 collect_expr_deps(arm.body, typed, nodes, seen, record)
             }
@@ -272,9 +271,8 @@ collect_block_deps :: fn(
     seen: MutableMap<usize, bool>, record: NodeRecord,
 ) -> void {
     for s in b.stmts { collect_stmt_deps(s, typed, nodes, seen, record) }
-    match b.trailing {
-        is null -> {}
-        _ -> { collect_expr_deps(b.trailing, typed, nodes, seen, record) }
+    if b.trailing !is null {
+        collect_expr_deps(b.trailing, typed, nodes, seen, record)
     }
 }
 
@@ -286,9 +284,8 @@ collect_stmt_deps :: fn(
         is AST.LetStmt as x    -> { collect_expr_deps(x.value, typed, nodes, seen, record) }
         is AST.ExprStmt as x   -> { collect_expr_deps(x.expr, typed, nodes, seen, record) }
         is AST.ReturnStmt as x -> {
-            match x.value {
-                is null -> {}
-                _ -> { collect_expr_deps(x.value, typed, nodes, seen, record) }
+            if x.value !is null {
+                collect_expr_deps(x.value, typed, nodes, seen, record)
             }
         }
         is AST.AssignStmt as x -> { collect_expr_deps(x.target, typed, nodes, seen, record) collect_expr_deps(x.value, typed, nodes, seen, record) }

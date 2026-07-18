@@ -404,14 +404,11 @@ export comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: 
             fields: LoweredStructLitField[] = []
             for name in sorted_names {
                 val :: sv.fields[name]
-                match val {
-                    is null -> {}
-                    _ -> {
-                        fields.push(LoweredStructLitField {
-                            .name = name,
-                            .value = comptime_value_to_lowered(val, TY_UNRESOLVED, span),
-                        })
-                    }
+                if val !is null {
+                    fields.push(LoweredStructLitField {
+                        .name = name,
+                        .value = comptime_value_to_lowered(val, TY_UNRESOLVED, span),
+                    })
                 }
             }
             return LoweredStructLit { .span = span, .type = type_hint, .fields = fields }

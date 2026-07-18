@@ -49,15 +49,12 @@ export is_assignable :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> 
 /// Common widening checks applied after every variant's specific
 /// dispatch fails : oracle-gated trait widening and union-to walking.
 export check_common :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> bool {
-    match oracle {
-        is null -> {}
-        _ -> {
-            match to {
-                is TraitType as tt -> {
-                    if oracle.has_impl(from, tt) { return true }
-                }
-                _ -> {}
+    if oracle !is null {
+        match to {
+            is TraitType as tt -> {
+                if oracle.has_impl(from, tt) { return true }
             }
+            _ -> {}
         }
     }
     match to {
