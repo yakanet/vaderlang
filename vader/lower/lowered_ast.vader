@@ -388,12 +388,15 @@ export LoweredIndex :: struct {
     target: LoweredExpr
     index:  LoweredExpr
     /// Bounds-check elimination : `true` when the producer has PROVEN the index
-    /// is in range (e.g. the `for x in a` desugar, whose counter runs `0..<len`
-    /// over `a`, when the loop body can't change `a`'s length). The C backend
-    /// then skips the D7 per-access bounds check. Default `false` — never elide
-    /// unless proven. Serves both the read (index expr) and the store
-    /// (`LoweredAssign.target`) sides.
+    /// is in range (a loop counter running `0..<len(arr)` over `arr`). The C
+    /// backend then skips the D7 per-access bounds check. Set by the
+    /// `bce_hoist_tag` post-inline pass. Default `false` — never elide unless
+    /// proven. Serves both the read (index expr) and the store side.
     bounds_safe: bool = false
+    /// BCE candidate marker : set by a loop desugar on the SYNTHESIZED element
+    /// access `arr[counter]` it emits. The `bce_hoist_tag` pass flips `bounds_safe`
+    /// when the paired loop's body is safe. Consumed (cleared) there.
+    bce_recheck: bool = false
 }
 
 /// Canonical unary operator kinds the lowerer emits. `neg` covers both
@@ -499,9 +502,16 @@ export LoweredArrayLen :: struct {
     /// BCE resolve-hoist : when `true`, the C backend ALSO resolves the array's
     /// buffer-forward chain here (in a loop preheader) and pins it, so the loop
     /// body's element accesses reuse it instead of re-resolving per iteration.
-    /// Set by the `for x in a` desugar only when the loop body is BCE-safe (no
-    /// call / push ⟹ no GC ⟹ the buffer can't move). Default `false`.
+    /// Set by the `bce_hoist_tag` post-inline pass when the paired loop's (now
+    /// fully inlined) body is BCE-safe. Default `false`.
     resolve_buf: bool = false
+    /// BCE candidate marker : set by a loop desugar (foreach / int-range /
+    /// iterator-fusion) on the `arr.len()` bound it emits into the loop preheader.
+    /// The `bce_hoist_tag` pass — which runs AFTER inlining, so map/filter
+    /// callbacks are resolved to their inlined bodies — pairs it with the sibling
+    /// loop, and if the loop body is safe flips `resolve_buf`. Consumed (cleared)
+    /// there ; never reaches codegen.
+    bce_recheck: bool = false
 }
 
 /// Push an element onto a mutable array. Type is always void.

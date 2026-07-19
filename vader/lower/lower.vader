@@ -263,6 +263,12 @@ lower_project_impl :: fn(
     // never collide with a lowering-synthetic fn-decl id (lambda / defer /
     // `concat_N`). See `inline_consts.vader`.
     inline_consts(project, project_ctx)
+    // BCE : hoist the array buffer-resolve out of `0..<len(arr)` counter loops
+    // (foreach / int-range / iterator fusion) whose body is now — post-inline —
+    // proven free of allocation / calls / rebinds. Runs LAST so map/filter
+    // callbacks and inlinable helpers in the loop body are their inlined bodies.
+    // See `bce_hoist.vader`.
+    bce_hoist_tag(project)
     return project
 }
 

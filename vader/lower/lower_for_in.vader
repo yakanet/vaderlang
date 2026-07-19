@@ -655,19 +655,6 @@ bce_opt_block_unsafe :: fn(b: LoweredBlock | null, guard_sym: i32) -> bool {
     return bce_block_unsafe(b, guard_sym)
 }
 
-// Tier 2 : if a `for i in 0..<hi` loop's upper bound `hi` is `arr.len()` for a
-// plain array variable, return arr's symbol — inside the loop `i ∈ [0, len(arr))`,
-// so `arr[i]` is in-bounds and (more importantly) arr's buffer resolve can be
-// hoisted to the preheader. `null` when the bound isn't a bare `arr.len()`.
-bce_len_bound_array :: fn(hi: LoweredExpr) -> Symbol | null {
-    if hi is LoweredArrayLen as al {
-        if al.target is LoweredIdent as id {
-            return id.symbol
-        }
-    }
-    return null
-}
-
 try_lower_for_in_raw_array :: fn(
     ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
     iter_lowered: LoweredExpr, iter_type: Type,
@@ -691,24 +678,21 @@ try_lower_for_in_raw_array :: fn(
     len_sym :: fresh_synthetic_symbol(ctx, "for_len")
     idx_sym :: fresh_synthetic_symbol(ctx, "for_i")
 
-    // Lower the body up-front so BCE can prove whether it changes the array's
-    // length : the synthesized counter runs `0..<len` over `arr`, so the element
-    // read `arr[idx]` is in-bounds BY CONSTRUCTION whenever the body can neither
-    // grow nor shrink the array — and, having no call / alloc, the body triggers
-    // no GC, so the buffer can't move and its resolve can be hoisted to the
-    // preheader (via `len_let`'s `resolve_buf`). Sound over-approximation
-    // (`bce_block_may_mutate` treats any call / push as a possible mutation).
     user_body :: block_lowerer(ctx, for_stmt.body, false, true)
-    bce_safe :: !bce_block_unsafe(user_body, -1)
 
     arr_let :: LoweredLet {
         .span = span, .name = arr_sym.name, .symbol = arr_sym,
         .type = iter_type, .value = iter_lowered,
     }
     arr_ref :: LoweredIdent { .span = span, .type = iter_type, .symbol = arr_sym }
+    // BCE : mark the preheader `arr.len()` + the synthesized `arr[idx]` access as
+    // candidates ; the post-inline `bce_hoist_tag` pass proves the (inlined) loop
+    // body safe and flips `resolve_buf` / `bounds_safe`. Deferred to post-inline
+    // so bodies whose calls inline away (or, in iterator fusion, whose callbacks
+    // inline) still qualify. The synthesized counter runs `0..<len(arr)` over `arr`.
     len_let :: LoweredLet {
         .span = span, .name = len_sym.name, .symbol = len_sym, .type = usize_type,
-        .value = LoweredArrayLen { .span = span, .type = usize_type, .target = arr_ref, .resolve_buf = bce_safe },
+        .value = LoweredArrayLen { .span = span, .type = usize_type, .target = arr_ref, .bce_recheck = true },
     }
     idx_init :: LoweredLet {
         .span = span, .name = idx_sym.name, .symbol = idx_sym, .type = usize_type,
@@ -723,7 +707,7 @@ try_lower_for_in_raw_array :: fn(
     }
     elem_access :: LoweredIndex {
         .span = span, .type = array_elem_type,
-        .target = arr_ref, .index = idx_ref, .bounds_safe = bce_safe,
+        .target = arr_ref, .index = idx_ref, .bce_recheck = true,
     }
     bind_stmts :: bind_loop_var(ctx, lb.symbol, lb.name, lb.pattern, elem_access, array_elem_type, span)
     inc_stmt :: LoweredAssign {
@@ -842,8 +826,6 @@ try_lower_for_in_int_range :: fn(
     // re-resolving every iteration — the measured 4.5x lever on index-store loops.
     // The bounds check stays (near-free, and it catches any residual OOB).
     hoisted :: !is_cheap_invariant(hi_raw)
-    bound_arr :: bce_len_bound_array(hi_raw)
-    resolve_hi :: bound_arr != null && hoisted && !bce_block_unsafe(user_body, bound_arr.id)
 
     // Hoist non-trivial upper bounds (calls, casts, …) into a `__for_hi_N`
     // synthetic let so the loop condition reads a single slot per iteration.
@@ -851,11 +833,12 @@ try_lower_for_in_int_range :: fn(
     hoist_stmts: LoweredStmt[] = []
     hi: LoweredExpr = hi_raw
     if hoisted {
+        // BCE : when the bound is `arr.len()`, mark it a candidate — the post-inline
+        // `bce_hoist_tag` pass hoists arr's buffer resolve if the loop body is safe
+        // (the body's user-written `arr[i]` reuse the pinned resolve via cache hit).
         hi_value: LoweredExpr = hi_raw
-        if resolve_hi {
-            if hi_raw is LoweredArrayLen as al {
-                hi_value = LoweredArrayLen { .span = al.span, .type = al.type, .target = al.target, .resolve_buf = true }
-            }
+        if hi_raw is LoweredArrayLen as al {
+            hi_value = LoweredArrayLen { .span = al.span, .type = al.type, .target = al.target, .bce_recheck = true }
         }
         hi_sym :: fresh_synthetic_symbol(ctx, "for_hi")
         hoist_stmts.push(LoweredLet {
