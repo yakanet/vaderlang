@@ -34,10 +34,14 @@ import "vader/resolver/symbol"
 // first param accepts it. Falls back to the initial type when no
 // overload bucket exists or none match.
 pick_overload :: fn(
-    c: AST.CallExpr, initial: Type, typed: TypedProgram,
+    c: AST.CallExpr,
+    initial: Type,
+    typed: TypedProgram,
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
-    if !(c.callee is AST.IdentExpr) { return initial }
+    if c.callee !is AST.IdentExpr {
+        return initial
+    }
     // A call through a LOCAL binding (param / local / pattern binding) invokes a
     // fn-VALUE that SHADOWS any same-named free-fn overloads. It must not be
     // overload-resolved — and crucially its callee type must NOT be patched
@@ -50,16 +54,26 @@ pick_overload :: fn(
     callee_sym :: typed.resolved.idents[c.callee.span.hash()]
     if callee_sym is Symbol as cs {
         match cs.kind {
-            .Param   -> { return initial }
-            .Local   -> { return initial }
-            .Binding -> { return initial }
+            .Param   -> {
+                return initial
+            }
+            .Local   -> {
+                return initial
+            }
+            .Binding -> {
+                return initial
+            }
             _        -> {}
         }
     }
     name :: c.callee.name
     candidates :: collect_overload_candidates(name, typed)
-    if candidates.len() < 2 { return initial }
-    if c.args.len() == 0 { return initial }
+    if candidates.len() < 2 {
+        return initial
+    }
+    if c.args.len() == 0 {
+        return initial
+    }
     arg0_ty :: check_expr_fn(c.args[0].value, null, typed, [])
     // The resolver bound `c.callee` to a primary overload ; its
     // signature is what a non-overloaded display would show.
@@ -74,17 +88,23 @@ pick_overload :: fn(
     best_spec: i32 = -1
     best_exact := false
     for ft in candidates {
-        if ft.params.len() == 0 { continue }
-        if !is_assignable(arg0_ty, ft.params[0], null) { continue }
+        if ft.params.len() == 0 {
+            continue
+        }
+        if !is_assignable(arg0_ty, ft.params[0], null) {
+            continue
+        }
         spec :: overload_specificity(arg0_ty, ft.params[0])
         exact :: ft.params.len() == c.args.len()
-        if best == null || spec > best_spec || (spec == best_spec && exact && !best_exact) {
+        if best == null || spec > best_spec || spec == best_spec && exact && !best_exact {
             best = ft
             best_spec = spec
             best_exact = exact
         }
     }
-    if best is FnType as p { return commit_overload_pick(p, c, typed, primary_ft) }
+    if best is FnType as p {
+        return commit_overload_pick(p, c, typed, primary_ft)
+    }
     return initial
 }
 
@@ -93,13 +113,17 @@ pick_overload :: fn(
 // wildcard `T` scores 0; each union member pinned to a concrete receiver variant
 // scores 1. Ranks `T | Boom` above `T | null` for an `i32 | Boom` receiver.
 overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
-    if param0 is TypeParamType { return 0 }
+    if param0 is TypeParamType {
+        return 0
+    }
     if param0 is UnionType as pu {
         arg_vars: Type[] = if arg0 is UnionType as au { au.variants } else { [arg0] }
         score: i32 = 0
         for av in arg_vars {
             for pv in pu.variants {
-                if pv is TypeParamType { continue }
+                if pv is TypeParamType {
+                    continue
+                }
                 if is_assignable(av, pv, null) {
                     score = score + 1
                     break
@@ -108,7 +132,9 @@ overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
         }
         return score
     }
-    if is_assignable(arg0, param0, null) { return 1 }
+    if is_assignable(arg0, param0, null) {
+        return 1
+    }
     return 0
 }
 
@@ -116,7 +142,12 @@ overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
 // shows the picked signature, and mark non-primary picks so the lowerer emits
 // the call's result type on the callee ident (imported overloads carry no
 // primary, so they are always non-primary).
-commit_overload_pick :: fn(ft: FnType, c: AST.CallExpr, typed: TypedProgram, primary_ft: Type | null) -> FnType {
+commit_overload_pick :: fn(
+    ft: FnType,
+    c: AST.CallExpr,
+    typed: TypedProgram,
+    primary_ft: Type | null,
+) -> FnType {
     typed.expr_types[c.callee.id] = ft
     if is_nonprimary_pick(ft, primary_ft) {
         typed.overload_result_callees[c.callee.id] = true
@@ -127,7 +158,9 @@ commit_overload_pick :: fn(ft: FnType, c: AST.CallExpr, typed: TypedProgram, pri
 // True when `picked` differs from the resolver-bound primary. An
 // imported overload (`primary == null`) is always non-primary.
 is_nonprimary_pick :: fn(picked: FnType, primary: Type | null) -> bool {
-    if primary is null { return true }
+    if primary is null {
+        return true
+    }
     return !equals_type(picked, primary)
 }
 
@@ -138,15 +171,21 @@ is_nonprimary_pick :: fn(picked: FnType, primary: Type | null) -> bool {
 // — declaration order is preserved, so `[0]` is the primary the bare
 // import name resolves to. Returns null only when nothing is found.
 primary_overload_ft :: fn(callee: AST.Expr, typed: TypedProgram) -> Type | null {
-    if !(callee is AST.IdentExpr) { return null }
+    if callee !is AST.IdentExpr {
+        return null
+    }
     sym :: typed.resolved.idents[callee.span.hash()]
     if sym != null {
         ft :: typed.decl_types[sym.id]
-        if ft is FnType { return ft }
+        if ft is FnType {
+            return ft
+        }
     }
     imported :: typed.imported_fn_overloads[callee.name]
     if imported is FnType[] as fts {
-        if fts.len() > 0 { return fts[0] }
+        if fts.len() > 0 {
+            return fts[0]
+        }
     }
     return null
 }
@@ -157,9 +196,8 @@ collect_overload_candidates :: fn(name: string, typed: TypedProgram) -> FnType[]
     if bucket !is null {
         for sym in bucket {
             ft :: typed.decl_types[sym.id] ?? continue
-            match ft {
-                is FnType as f -> { out.push(f) }
-                _ -> {}
+            if ft is FnType {
+                out.push(ft)
             }
         }
     }
@@ -178,9 +216,13 @@ collect_overload_candidates :: fn(name: string, typed: TypedProgram) -> FnType[]
 // `fn<T>(x: T) -> T` called as `42.identity()`) get their bindings
 // before arg unification.
 seed_ufcs_bindings :: fn(
-    callee: AST.Expr, typed: TypedProgram, bindings: MutableMap<i32, Type>,
+    callee: AST.Expr,
+    typed: TypedProgram,
+    bindings: MutableMap<i32, Type>,
 ) -> void {
-    if !(callee is AST.FieldExpr) { return }
+    if callee !is AST.FieldExpr {
+        return
+    }
     receiver_ty :: typed.ufcs_receiver_types[callee.id] ?? return
     target_ty :: typed.expr_types[callee.target.id] ?? return
     unify_type_param(receiver_ty, target_ty, bindings)
@@ -203,15 +245,14 @@ seed_explicit_type_args :: fn(
     bindings: MutableMap<i32, Type>,
     diags: Diagnostic[],
 ) -> void {
-    if !(callee is AST.GenericInstExpr) { return }
-    gi :: callee
-    // `lookup_callee_fn_decl` already sees through the `f<…>` wrapper to
-    // the ident and handles the import-redirect + null guards.
+    if callee !is AST.GenericInstExpr {
+        return
+    }
     decl :: lookup_callee_fn_decl(callee, typed) ?? return
-    n :: min(decl.type_params.len(), gi.type_args.len())
+    n :: min(decl.type_params.len(), callee.type_args.len())
     for i in 0..<n {
         tp_sym :: typed.resolved.idents[decl.type_params[i].span.hash()] ?? continue
-        bindings[tp_sym.id] = type_from_expr(gi.type_args[i], typed.resolved, diags)
+        bindings[tp_sym.id] = type_from_expr(callee.type_args[i], typed.resolved, diags)
     }
 }
 
@@ -227,12 +268,21 @@ seed_explicit_type_args :: fn(
 // T3003 too many / positional-after-named, T3004 unknown name, T3005 missing
 // required, T3025 a named arg duplicating a filled slot.
 normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnostic[]) -> AST.CallArg[] | null {
-    for pr in params { if pr.variadic { return null } }
+    for pr in params {
+        if pr.variadic {
+            return null
+        }
+    }
     // Fast path : already positional + full arity → nothing to reorder.
     only_positional := true
-    for a in c.args { if a.name != null { only_positional = false } }
-    if only_positional && c.args.len() == params.len() { return c.args }
-
+    for a in c.args {
+        if a.name != null {
+            only_positional = false
+        }
+    }
+    if only_positional && c.args.len() == params.len() {
+        return c.args
+    }
     slots: (AST.CallArg | null)[] = [null] * params.len()
     seen_named := false
     next_pos: usize = 0
@@ -241,12 +291,22 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
         arg_name :: a.name
         if arg_name == null {
             if seen_named {
-                diags.push(typecheck_error(.WrongArgCount, a.span,
-                    "positional argument after a named argument"))
+                diags.push(
+                    typecheck_error(
+                        .WrongArgCount,
+                        a.span,
+                        "positional argument after a named argument",
+                    ),
+                )
                 ok = false
             } else if next_pos >= params.len() {
-                diags.push(typecheck_error(.WrongArgCount, a.span,
-                    "too many arguments : expected ${params.len()}"))
+                diags.push(
+                    typecheck_error(
+                        .WrongArgCount,
+                        a.span,
+                        "too many arguments : expected ${params.len()}",
+                    ),
+                )
                 ok = false
             } else {
                 slots[next_pos] = a
@@ -256,12 +316,18 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
             seen_named = true
             idx :: param_index_by_name(params, arg_name)
             if idx < 0 {
-                diags.push(typecheck_error(.UnknownNamedArg, a.span,
-                    "no parameter named `${arg_name}`"))
+                diags.push(
+                    typecheck_error(.UnknownNamedArg, a.span, "no parameter named `${arg_name}`"),
+                )
                 ok = false
             } else if slots[usize(idx)] != null {
-                diags.push(typecheck_error(.NamedArgDuplicatesPositional, a.span,
-                    "argument for `${arg_name}` was already supplied"))
+                diags.push(
+                    typecheck_error(
+                        .NamedArgDuplicatesPositional,
+                        a.span,
+                        "argument for `${arg_name}` was already supplied",
+                    ),
+                )
                 ok = false
             } else {
                 slots[usize(idx)] = a
@@ -276,21 +342,37 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
         } else {
             dv :: params[i].default_value
             if dv != null {
-                out.push(AST.CallArg { .span = dv.span, .name = null, .value = dv, .spread = false })
+                out.push(
+                    AST.CallArg {
+                        .span = dv.span,
+                        .name = null,
+                        .value = dv,
+                        .spread = false,
+                    },
+                )
             } else {
-                diags.push(typecheck_error(.MissingRequiredArg, c.span,
-                    "missing required argument `${params[i].name}`"))
+                diags.push(
+                    typecheck_error(
+                        .MissingRequiredArg,
+                        c.span,
+                        "missing required argument `${params[i].name}`",
+                    ),
+                )
                 ok = false
             }
         }
     }
-    if !ok { return null }
+    if !ok {
+        return null
+    }
     return out
 }
 
 param_index_by_name :: fn(params: AST.FnParam[], name: string) -> isize {
     for i in 0..<params.len() {
-        if params[i].name == name { return isize(i) }
+        if params[i].name == name {
+            return isize(i)
+        }
     }
     return -1
 }
@@ -298,8 +380,14 @@ param_index_by_name :: fn(params: AST.FnParam[], name: string) -> isize {
 // A purely-positional, full-arity call needs no reordering or default fill —
 // cheap check so the common call path skips the callee-decl lookup entirely.
 call_needs_arg_normalisation :: fn(c: AST.CallExpr, callee_ty: FnType) -> bool {
-    if c.args.len() != callee_ty.params.len() { return true }
-    for a in c.args { if a.name != null { return true } }
+    if c.args.len() != callee_ty.params.len() {
+        return true
+    }
+    for a in c.args {
+        if a.name != null {
+            return true
+        }
+    }
     return false
 }
 
@@ -318,8 +406,8 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
         sym :: typed.resolved.idents[ie.span.hash()]
         if sym is Symbol as s {
             decl :: typed.fn_decls[s.id]
-            if decl is AST.FnDecl as fd {
-                if fd.params.len() == callee_ty.params.len() { return fd.params }
+            if decl is AST.FnDecl && decl.params.len() == callee_ty.params.len() {
+                return decl.params
             }
         }
         return overload_params_matching(ie.name, callee_ty, typed)
@@ -348,7 +436,9 @@ namespace_member_params :: fn(fe: AST.FieldExpr, callee_ty: FnType, typed: Typed
     mod_id :: namespace_call_mod_id(fe, typed) ?? return null
     by_name :: typed.namespace_export_params[mod_id] ?? return null
     ps :: by_name[fe.field] ?? return null
-    if ps.len() != callee_ty.params.len() { return null }
+    if ps.len() != callee_ty.params.len() {
+        return null
+    }
     return ps
 }
 
@@ -362,12 +452,18 @@ overload_params_matching :: fn(name: string, callee_ty: FnType, typed: TypedProg
     for sym in bucket {
         decl :: typed.fn_decls[sym.id]
         if decl is AST.FnDecl as fd {
-            if fd.params.len() != callee_ty.params.len() { continue }
+            if fd.params.len() != callee_ty.params.len() {
+                continue
+            }
             ft :: typed.decl_types[sym.id]
             if ft is FnType as f {
-                if equals_type(f, callee_ty) { return fd.params }
+                if equals_type(f, callee_ty) {
+                    return fd.params
+                }
             }
-            if fallback == null { fallback = fd.params }
+            if fallback == null {
+                fallback = fd.params
+            }
         }
     }
     return fallback
@@ -383,12 +479,16 @@ ufcs_method_params :: fn(method: string, recv_ty: Type, callee_ty: FnType, typed
     for sym in bucket {
         decl :: typed.fn_decls[sym.id]
         if decl is AST.FnDecl as fd {
-            if fd.params.len() != callee_ty.params.len() + 1 { continue }
+            if fd.params.len() != callee_ty.params.len() + 1 {
+                continue
+            }
             ft :: typed.decl_types[sym.id]
             if ft is FnType as f {
                 if f.params.len() > 0 && is_assignable(recv_ty, f.params[0], null) {
                     tail: AST.FnParam[] = []
-                    for i in 1..<fd.params.len() { tail.push(fd.params[i]) }
+                    for i in 1..<fd.params.len() {
+                        tail.push(fd.params[i])
+                    }
                     return tail
                 }
             }
@@ -400,7 +500,9 @@ ufcs_method_params :: fn(method: string, recv_ty: Type, callee_ty: FnType, typed
 /// Type-check a `CallExpr`. `check_expr_fn` is threaded the same way as
 /// in `expr_block.vader` to dodge the cyclic import.
 export infer_call :: fn(
-    c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[],
+    c: AST.CallExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     initial_callee_ty :: check_expr_fn(c.callee, null, typed, diags)
@@ -413,16 +515,23 @@ export infer_call :: fn(
     // metatype (a bare type name in value position), treat the
     // call as a conversion and return the target type. This case is
     // folded before reaching the not-callable arm.
-    if callee_ty is TypeMetaType { return cast_call_target(c, typed, diags, check_expr_fn) }
+    if callee_ty is TypeMetaType {
+        return cast_call_target(c, typed, diags, check_expr_fn)
+    }
     // Unresolved callee : upstream error already reported, fall through
     // to keep checking args (drives narrowing in their inner literals).
     if callee_ty is UnresolvedType {
         check_args_no_expected(c, typed, diags, check_expr_fn)
         return TY_UNRESOLVED
     }
-    if !(callee_ty is FnType) {
-        diags.push(typecheck_error(.NotCallable, c.span,
-            "callee has type ${display_type(callee_ty)}, not a function"))
+    if callee_ty !is FnType {
+        diags.push(
+            typecheck_error(
+                .NotCallable,
+                c.span,
+                "callee has type ${display_type(callee_ty)}, not a function",
+            ),
+        )
         check_args_no_expected(c, typed, diags, check_expr_fn)
         return TY_UNRESOLVED
     }
@@ -442,12 +551,19 @@ export infer_call :: fn(
             // positional check below to avoid double-reporting. A null result
             // (variadic / error) leaves `c.args` untouched for recovery.
             normalised = true
-            if norm is AST.CallArg[] as na { c.args = na }
+            if norm is AST.CallArg[] as na {
+                c.args = na
+            }
         }
     }
     if !normalised && c.args.len() != callee_ty.params.len() {
-        diags.push(typecheck_error(.WrongArgCount, c.span,
-            "expected ${callee_ty.params.len()}, got ${c.args.len()}"))
+        diags.push(
+            typecheck_error(
+                .WrongArgCount,
+                c.span,
+                "expected ${callee_ty.params.len()}, got ${c.args.len()}",
+            ),
+        )
     }
     // `@no_return` callees (`panic` / `todo` / `unreachable`) yield `never`.
     // Resolved once here, applied at each return below — args are still
@@ -483,11 +599,16 @@ export infer_call :: fn(
         }
         for i in 0..<n {
             expected :: substitute_map(callee_ty.params[i], bindings)
-            if type_contains_type_param(expected) { continue }
-            if is_assignable(arg_types[i], expected, null) { continue }
+            if type_contains_type_param(expected)                          { continue }
+            if is_assignable(arg_types[i], expected, null)                 { continue }
             if try_into(arg_types[i], expected, typed, c.args[i].value.id) { continue }
-            diags.push(typecheck_error(.TypeMismatch, c.args[i].span,
-                "expected ${display_type(expected)}, got ${display_type(arg_types[i])}"))
+            diags.push(
+                typecheck_error(
+                    .TypeMismatch,
+                    c.args[i].span,
+                    "expected ${display_type(expected)}, got ${display_type(arg_types[i])}",
+                ),
+            )
         }
         // Default any FreeInt/FreeFloat bound to a typeParam before
         // substituting, so the return type comes back concrete
@@ -505,7 +626,9 @@ export infer_call :: fn(
         // primitive downstream.
         for i in 0..<n {
             got :: arg_types[i]
-            if !(got is FreeIntType) && !(got is FreeFloatType) { continue }
+            if got !is FreeIntType && got !is FreeFloatType {
+                continue
+            }
             expected :: substitute_map(callee_ty.params[i], bindings)
             if expected is TraitType as et {
                 if struct_implements_trait(default_if_free(got), et.symbol.name, typed) {
@@ -516,32 +639,49 @@ export infer_call :: fn(
         // T3006 : enforce `T: Trait` bounds on the callee's fn-decl
         // type-params against the bindings we ended up with.
         check_typeparam_bounds(c, bindings, typed, diags)
-        if diverges { return TY_NEVER }
+        if diverges {
+            return TY_NEVER
+        }
         // Direction A : a `generator` call is typed as its concrete `<fn>$State`
         // iterator (chains resolve on a concrete receiver), not the erased return.
         // The substituted return (`Iterator<i32>`) carries the concrete element so
         // `<fn>$State<i32>` implements `Iterator<i32>` (collect/find concretise).
         concrete_ret :: substitute_map(callee_ty.return_type, bindings)
         gen_res :: generator_call_result_type(c, typed, concrete_ret)
-        if gen_res != null { return gen_res }
+        if gen_res != null {
+            return gen_res
+        }
         async_res :: async_call_result_type(c, typed, concrete_ret)
-        if async_res != null { return async_res }
+        if async_res != null {
+            return async_res
+        }
         return concrete_ret
     }
     for i in 0..<n {
         param_ty :: callee_ty.params[i]
         arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
-        if is_assignable(arg_ty, param_ty, null) { continue }
+        if is_assignable(arg_ty, param_ty, null)                 { continue }
         if try_into(arg_ty, param_ty, typed, c.args[i].value.id) { continue }
-        diags.push(typecheck_error(.TypeMismatch, c.args[i].span,
-            "expected ${display_type(param_ty)}, got ${display_type(arg_ty)}"))
+        diags.push(
+            typecheck_error(
+                .TypeMismatch,
+                c.args[i].span,
+                "expected ${display_type(param_ty)}, got ${display_type(arg_ty)}",
+            ),
+        )
     }
     widen_empty_array_on_push(c, typed)
-    if diverges { return TY_NEVER }
+    if diverges {
+        return TY_NEVER
+    }
     gen_res :: generator_call_result_type(c, typed, callee_ty.return_type)
-    if gen_res != null { return gen_res }
+    if gen_res != null {
+        return gen_res
+    }
     async_res :: async_call_result_type(c, typed, callee_ty.return_type)
-    if async_res != null { return async_res }
+    if async_res != null {
+        return async_res
+    }
     return callee_ty.return_type
 }
 
@@ -552,21 +692,37 @@ export infer_call :: fn(
 /// before this fires) — subsequent reads of `arr` see the widened
 /// type.
 widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
-    if !(c.callee is AST.FieldExpr) { return }
+    if c.callee !is AST.FieldExpr {
+        return
+    }
     field_callee :: c.callee
-    if field_callee.field != "push" { return }
-    if c.args.len() == 0 { return }
-    if !(field_callee.target is AST.IdentExpr) { return }
+    if field_callee.field != "push" {
+        return
+    }
+    if c.args.len() == 0 {
+        return
+    }
+    if field_callee.target !is AST.IdentExpr {
+        return
+    }
     target_ident :: field_callee.target
     symbol :: typed.resolved.idents[target_ident.span.hash()] ?? return
-    if symbol.kind != SymbolKind.Local { return }
+    if symbol.kind != SymbolKind.Local {
+        return
+    }
     binding_span :: symbol.defined_at ?? return
     binding_key :: binding_span.hash()
     current :: typed.local_types[binding_key]
-    if !(current is ArrayType) { return }
-    if !(current.element is UnresolvedType) { return }
+    if current !is ArrayType {
+        return
+    }
+    if current.element !is UnresolvedType {
+        return
+    }
     arg_type :: typed.expr_types[c.args[0].value.id] ?? return
-    if arg_type is UnresolvedType { return }
+    if arg_type is UnresolvedType {
+        return
+    }
     typed.local_types[binding_key] = mk_array(default_if_free(arg_type), false)
 }
 
@@ -578,7 +734,9 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
 /// @error T3010 when a `(value → target)` pair is not a legal conversion
 ///        (`i32("hello")`, `bool(someStruct)`).
 cast_call_target :: fn(
-    c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[],
+    c: AST.CallExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     target :: type_from_expr(c.callee, typed.resolved, diags)
@@ -588,8 +746,13 @@ cast_call_target :: fn(
     for arg in c.args {
         src :: check_expr_fn(arg.value, target, typed, diags)
         if !cast_allowed(src, target, typed) {
-            diags.push(typecheck_error(.InvalidCast, arg.value.span,
-                "cannot cast ${display_type(src)} to ${display_type(target)}"))
+            diags.push(
+                typecheck_error(
+                    .InvalidCast,
+                    arg.value.span,
+                    "cannot cast ${display_type(src)} to ${display_type(target)}",
+                ),
+            )
         }
     }
     return target
@@ -600,32 +763,44 @@ cast_call_target :: fn(
 /// the trait. Skips bounds whose typeParam stays unbound after unify
 /// (no arg pinned it — caller already gets a T3001 in that path).
 check_typeparam_bounds :: fn(
-    c: AST.CallExpr, bindings: MutableMap<i32, Type>,
-    typed: TypedProgram, diags: Diagnostic[],
+    c: AST.CallExpr,
+    bindings: MutableMap<i32, Type>,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
     fn_decl :: lookup_callee_fn_decl(c.callee, typed) ?? return
     for tp in fn_decl.type_params {
-        if tp.bound is null { continue }
+        if tp.bound is null {
+            continue
+        }
         sym :: typed.resolved.idents[tp.span.hash()] ?? continue
         bound_ty :: bindings[sym.id] ?? continue
         bound_trait :: type_from_expr(tp.bound, typed.resolved, [])
-        match bound_trait {
-            is TraitType as bt -> {
-                if !satisfies_trait(bound_ty, bt, typed) {
-                    diags.push(typecheck_error(.TraitNotSatisfied, c.span,
-                        "`${display_type(bound_ty)}` does not implement `${bt.symbol.name}` (required by type parameter `${tp.name}` of `${callee_name(c.callee)}`)"))
-                }
+        if bound_trait is TraitType {
+            if !satisfies_trait(bound_ty, bound_trait, typed) {
+                diags.push(
+                    typecheck_error(
+                        .TraitNotSatisfied,
+                        c.span,
+                        "`${display_type(bound_ty)}` does not implement `${bound_trait.symbol.name}` (required by type parameter `${tp.name}` of `${callee_name(c.callee)}`)",
+                    ),
+                )
             }
-            _ -> {}
         }
     }
 }
 
 satisfies_trait :: fn(t: Type, trait_ty: TraitType, typed: TypedProgram) -> bool {
     name :: dispatch_key(t)
-    if name == "" { return false }
+    if name == "" {
+        return false
+    }
     bucket :: typed.struct_implemented_traits[name] ?? return false
-    for n in bucket { if n == trait_ty.symbol.name { return true } }
+    for n in bucket {
+        if n == trait_ty.symbol.name {
+            return true
+        }
+    }
     return false
 }
 
@@ -633,8 +808,12 @@ lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl
     // See through an explicit `f<…>` instantiation to the underlying
     // ident, so T3006 bound-checking fires on `f<i64>(…)` too.
     base: AST.Expr = callee
-    if callee is AST.GenericInstExpr as gi { base = gi.callee }
-    if !(base is AST.IdentExpr) { return null }
+    if callee is AST.GenericInstExpr as gi {
+        base = gi.callee
+    }
+    if base !is AST.IdentExpr {
+        return null
+    }
     sym :: typed.resolved.idents[base.span.hash()] ?? return null
     redirected :: redirect_import_typed(sym, typed)
     decl :: typed.fn_decls[redirected.id] ?? return null
@@ -647,7 +826,9 @@ lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl
 callee_is_no_return :: fn(callee: AST.Expr, typed: TypedProgram) -> bool {
     decl :: lookup_callee_fn_decl(callee, typed) ?? return false
     for d in decl.decorators {
-        if d.name == "no_return" { return true }
+        if d.name == "no_return" {
+            return true
+        }
     }
     return false
 }
@@ -656,17 +837,19 @@ callee_name :: fn(callee: AST.Expr) -> string {
     // @partial: only ident / field / generic-inst callees carry a source name;
     // any other callee shape is anonymous → the "<callee>" placeholder.
     @partial match callee {
-        is AST.IdentExpr as e -> { return e.name }
-        is AST.FieldExpr as e -> { return e.field }
-        is AST.GenericInstExpr as e -> { return callee_name(e.callee) }
-        _ -> { return "<callee>" }
+        is AST.IdentExpr       -> { return callee.name }
+        is AST.FieldExpr       -> { return callee.field }
+        is AST.GenericInstExpr -> { return callee_name(callee.callee) }
+        _                      -> { return "<callee>" }
     }
 }
 
 import "vader/resolver"
 
 redirect_import_typed :: fn(sym: Symbol, typed: TypedProgram) -> Symbol {
-    if typed.import_targets == null { return sym }
+    if typed.import_targets == null {
+        return sym
+    }
     return resolve_import_redirect(sym, typed.import_targets)
 }
 
@@ -674,9 +857,14 @@ redirect_import_typed :: fn(sym: Symbol, typed: TypedProgram) -> Symbol {
 /// primitive — e.g. `i32 implements Doubler(i32)`) that implements
 /// that trait, bind `T`, `U`, … from `struct_trait_args`.
 unify_struct_to_trait_args :: fn(
-    param: Type, arg: Type, typed: TypedProgram, out: MutableMap<i32, Type>,
+    param: Type,
+    arg: Type,
+    typed: TypedProgram,
+    out: MutableMap<i32, Type>,
 ) -> void {
-    if !(param is TraitType) { return }
+    if param !is TraitType {
+        return
+    }
     // Resolve (not just look up) so a GENERIC impl's `[T]` args are substituted by
     // the concrete receiver instance (`FilterIterator<i32>` → `[i32]`), binding the
     // param's `T` to `i32` instead of the impl's own `T`.
@@ -687,10 +875,12 @@ unify_struct_to_trait_args :: fn(
     }
 }
 
-
-
 fn_has_type_params :: fn(f: FnType) -> bool {
-    for p in f.params { if type_contains_type_param(p) { return true } }
+    for p in f.params {
+        if type_contains_type_param(p) {
+            return true
+        }
+    }
     return type_contains_type_param(f.return_type)
 }
 
@@ -698,10 +888,14 @@ fn_has_type_params :: fn(f: FnType) -> bool {
 // fresh-position context so inner literals get a sensible type even
 // when the callee itself didn't resolve to a Fn (already errored).
 check_args_no_expected :: fn(
-    c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[],
+    c: AST.CallExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
-    for a in c.args { check_expr_fn(a.value, null, typed, diags) }
+    for a in c.args {
+        check_expr_fn(a.value, null, typed, diags)
+    }
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -712,19 +906,21 @@ import "vader/parser"
 // Tiny stub : handles the variants the call tests touch. Real call sites
 // use `expr.vader::check_expr` — we can't import that here (cycle).
 call_check_stub :: fn(
-    e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+    e: AST.Expr,
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> Type {
     // @partial: test stub — only the literal / ident / call expr kinds the call
     // tests build are typed; every other Expr is irrelevant → unresolved.
     @partial match e {
-        is AST.IntLitExpr    as x -> { return TY_FREE_INT }
-        is AST.StringLitExpr as x -> { return TY_STRING }
-        is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
-        is AST.CallExpr      as x -> { return infer_call(x, typed, diags, call_check_stub) }
-        _ -> { return TY_UNRESOLVED }
+        is AST.IntLitExpr    -> { return TY_FREE_INT }
+        is AST.StringLitExpr -> { return TY_STRING }
+        is AST.IdentExpr     -> { return infer_ident(e, typed) }
+        is AST.CallExpr      -> { return infer_call(e, typed, diags, call_check_stub) }
+        _                    -> { return TY_UNRESOLVED }
     }
 }
-
 
 // Parse + resolve + check `src`, then find the first `CallExpr` reached
 // by a depth-first walk of the last decl's body via the shared
@@ -738,11 +934,15 @@ first_call_in_last_fn :: fn(src: string) -> CallFixture {
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     if last is AST.FnDecl as f {
         match f.body {
-            is null -> { return CallFixture { .typed = result.typed, .call = null } }
-            is AST.BlockExpr as b -> {
-                hit :: find_first_in_block(b, accept_call)
+            is null          -> {
+                return CallFixture { .typed = result.typed, .call = null }
+            }
+            is AST.BlockExpr -> {
+                hit :: find_first_in_block(f.body, accept_call)
                 call: AST.CallExpr | null = null
-                if hit is AST.CallExpr { call = hit }
+                if hit is AST.CallExpr {
+                    call = hit
+                }
                 return CallFixture { .typed = result.typed, .call = call }
             }
         }
@@ -751,13 +951,15 @@ first_call_in_last_fn :: fn(src: string) -> CallFixture {
 }
 
 accept_call :: fn(e: AST.Expr) -> AST.Expr | null {
-    if e is AST.CallExpr { return e }
+    if e is AST.CallExpr {
+        return e
+    }
     return null
 }
 
 CallFixture :: struct {
     typed: TypedProgram
-    call:  AST.CallExpr | null
+    call: AST.CallExpr | null
 }
 
 @test
@@ -768,7 +970,7 @@ main :: fn() -> i32 { return add(1, 2) }
 """
     fx :: first_call_in_last_fn(src)
     match fx.call {
-        is null -> { assert(false, "expected to find a call") }
+        is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
             diags: Diagnostic[] = []
             assert_eq(display_type(infer_call(c, fx.typed, diags, call_check_stub)), "i32")
@@ -785,7 +987,7 @@ main :: fn() -> i32 { return add(1) }
 """
     fx :: first_call_in_last_fn(src)
     match fx.call {
-        is null -> { assert(false, "expected to find a call") }
+        is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
             diags: Diagnostic[] = []
             infer_call(c, fx.typed, diags, call_check_stub)
@@ -803,7 +1005,7 @@ main :: fn() -> i32 { return add(1, 2, 3) }
 """
     fx :: first_call_in_last_fn(src)
     match fx.call {
-        is null -> { assert(false, "expected to find a call") }
+        is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
             diags: Diagnostic[] = []
             infer_call(c, fx.typed, diags, call_check_stub)
@@ -820,12 +1022,16 @@ f :: fn() -> i32 { return i32("hello") }
 """
     fx :: first_call_in_last_fn(src)
     match fx.call {
-        is null -> { assert(false, "expected to find the cast call") }
+        is null              -> { assert(false, "expected to find the cast call") }
         is AST.CallExpr as c -> {
             diags: Diagnostic[] = []
             infer_call(c, fx.typed, diags, call_check_stub)
             found := false
-            for d in diags { if d.code.id == "T3010" { found = true } }
+            for d in diags {
+                if d.code.id == "T3010" {
+                    found = true
+                }
+            }
             assert(found, "expected T3010 for `i32(string)` (illegal cast)")
         }
     }
@@ -838,12 +1044,16 @@ f :: fn(a: i32) -> i64 { return i64(a) }
 """
     fx :: first_call_in_last_fn(src)
     match fx.call {
-        is null -> { assert(false, "expected to find the cast call") }
+        is null              -> { assert(false, "expected to find the cast call") }
         is AST.CallExpr as c -> {
             diags: Diagnostic[] = []
             assert_eq(display_type(infer_call(c, fx.typed, diags, call_check_stub)), "i64")
             found := false
-            for d in diags { if d.code.id == "T3010" { found = true } }
+            for d in diags {
+                if d.code.id == "T3010" {
+                    found = true
+                }
+            }
             assert(!found, "no T3010 for numeric cast `i64(i32)`")
         }
     }
@@ -857,7 +1067,7 @@ main :: fn() -> i32 { return greet(1) }
 """
     fx :: first_call_in_last_fn(src)
     match fx.call {
-        is null -> { assert(false, "expected to find a call") }
+        is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
             diags: Diagnostic[] = []
             infer_call(c, fx.typed, diags, call_check_stub)
@@ -875,13 +1085,17 @@ main :: fn() -> void { greet(42) }
 """
     fx :: first_call_in_last_fn(src)
     match fx.call {
-        is null -> { assert(false, "expected to find a call") }
+        is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
             diags: Diagnostic[] = []
             infer_call(c, fx.typed, diags, call_check_stub)
             // FreeInt is not assignable to string ; T3001 fires.
             found := false
-            for d in diags { if d.code.id == "T3001" { found = true } }
+            for d in diags {
+                if d.code.id == "T3001" {
+                    found = true
+                }
+            }
             assert(found, "expected T3001 for int → string")
         }
     }

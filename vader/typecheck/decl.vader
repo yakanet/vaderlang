@@ -35,11 +35,16 @@ import "vader/types"
 /// Builds a `name → Symbol` map up front so per-decl lookups don't scan
 /// the sorted `resolved.symbols` array N times.
 export declare_module :: fn(
-    program_decls: AST.Decl[], resolved: ResolvedModule,
-    typed: TypedProgram, factory: SymbolFactory, diags: Diagnostic[],
+    program_decls: AST.Decl[],
+    resolved: ResolvedModule,
+    typed: TypedProgram,
+    factory: SymbolFactory,
+    diags: Diagnostic[],
 ) -> void {
     by_name :: MutableMap<string, Symbol> {}
-    for s in resolved.symbols { by_name[s.name] = s }
+    for s in resolved.symbols {
+        by_name[s.name] = s
+    }
     for decl in program_decls {
         declare_decl(decl, by_name, resolved, typed, factory, diags)
         register_deprecated(decl, by_name, resolved)
@@ -47,10 +52,14 @@ export declare_module :: fn(
 }
 
 register_deprecated :: fn(
-    decl: AST.Decl, by_name: MutableMap<string, Symbol>, resolved: ResolvedModule,
+    decl: AST.Decl,
+    by_name: MutableMap<string, Symbol>,
+    resolved: ResolvedModule,
 ) -> void {
     name :: decorated_decl_name(decl)
-    if name == "" { return }
+    if name == "" {
+        return
+    }
     msg :: deprecated_message(decorated_decl_decorators(decl)) ?? return
     sym :: by_name[name] ?? return
     resolved.deprecated_messages[sym.id] = msg
@@ -59,40 +68,44 @@ register_deprecated :: fn(
 decorated_decl_name :: fn(d: AST.Decl) -> string {
     // Only the named decl kinds carry a name; Impl / Assert / Import are
     // anonymous → "" (no symbol to attach a deprecation message to).
-    match d {
-        is AST.FnDecl as x        -> { return x.name }
-        is AST.StructDecl as x    -> { return x.name }
-        is AST.EnumDecl as x      -> { return x.name }
-        is AST.TraitDecl as x     -> { return x.name }
-        is AST.TypeAliasDecl as x -> { return x.name }
-        is AST.ConstDecl as x     -> { return x.name }
-        is AST.ImportDecl | AST.ImplDecl | AST.AssertDecl -> { return "" }
+    return match d {
+        is AST.FnDecl -> { d.name }
+        is AST.StructDecl -> { d.name }
+        is AST.EnumDecl -> { d.name }
+        is AST.TraitDecl -> { d.name }
+        is AST.TypeAliasDecl -> { d.name }
+        is AST.ConstDecl -> { d.name }
+        is AST.ImportDecl | AST.ImplDecl | AST.AssertDecl -> { "" }
     }
 }
 
 decorated_decl_decorators :: fn(d: AST.Decl) -> AST.Decorator[] {
     // Only the named decl kinds carry decorators we read here; Impl / Assert /
     // Import contribute none → empty list.
-    match d {
-        is AST.FnDecl as x        -> { return x.decorators }
-        is AST.StructDecl as x    -> { return x.decorators }
-        is AST.EnumDecl as x      -> { return x.decorators }
-        is AST.TraitDecl as x     -> { return x.decorators }
-        is AST.TypeAliasDecl as x -> { return x.decorators }
-        is AST.ConstDecl as x     -> { return x.decorators }
-        is AST.ImportDecl | AST.ImplDecl | AST.AssertDecl -> { return [] }
+    return match d {
+        is AST.FnDecl -> { d.decorators }
+        is AST.StructDecl -> { d.decorators }
+        is AST.EnumDecl -> { d.decorators }
+        is AST.TraitDecl -> { d.decorators }
+        is AST.TypeAliasDecl -> { d.decorators }
+        is AST.ConstDecl -> { d.decorators }
+        is AST.ImportDecl | AST.ImplDecl | AST.AssertDecl -> { [] }
     }
 }
 
 deprecated_message :: fn(decs: AST.Decorator[]) -> string | null {
     for d in decs {
-        if d.name != "deprecated" { continue }
-        if d.args.len() == 0 { return "" }
+        if d.name != "deprecated" {
+            continue
+        }
+        if d.args.len() == 0 {
+            return ""
+        }
         a :: d.args[0]
-        if a is AST.StringLitExpr {
-            if a.parts.len() == 1 {
-                p :: a.parts[0]
-                if p is AST.StringLitText { return p.value }
+        if a is AST.StringLitExpr && a.parts.len() == 1 {
+            p :: a.parts[0]
+            if p is AST.StringLitText {
+                return p.value
             }
         }
         return ""
@@ -101,14 +114,26 @@ deprecated_message :: fn(decs: AST.Decorator[]) -> string | null {
 }
 
 declare_decl :: fn(
-    decl: AST.Decl, by_name: MutableMap<string, Symbol>,
-    resolved: ResolvedModule, typed: TypedProgram,
-    factory: SymbolFactory, diags: Diagnostic[],
+    decl: AST.Decl,
+    by_name: MutableMap<string, Symbol>,
+    resolved: ResolvedModule,
+    typed: TypedProgram,
+    factory: SymbolFactory,
+    diags: Diagnostic[],
 ) -> void {
     match decl {
-        is AST.FnDecl as fn_decl -> { declare_fn(fn_decl, by_name, resolved, typed, diags) }
-        is AST.StructDecl as sd  -> {
-            declare_named_with_args(sd.name, sd.name_span, sd.type_params, by_name, typed, resolved.path, factory, mk_struct)
+        is AST.FnDecl as fn_decl   -> { declare_fn(fn_decl, by_name, resolved, typed, diags) }
+        is AST.StructDecl as sd    -> {
+            declare_named_with_args(
+                sd.name,
+                sd.name_span,
+                sd.type_params,
+                by_name,
+                typed,
+                resolved.path,
+                factory,
+                mk_struct,
+            )
             // Index the struct decl by symbol id so `field.vader` can
             // walk fields without re-traversing the program AST.
             sym :: by_name[sd.name]
@@ -126,9 +151,18 @@ declare_decl :: fn(
                 typed.struct_field_types[sym.id] = fields_map
             }
         }
-        is AST.EnumDecl as ed    -> { declare_enum(ed, by_name, resolved, typed, diags) }
-        is AST.TraitDecl as td   -> {
-            declare_named_with_args(td.name, td.name_span, td.type_params, by_name, typed, resolved.path, factory, mk_trait)
+        is AST.EnumDecl as ed      -> { declare_enum(ed, by_name, resolved, typed, diags) }
+        is AST.TraitDecl as td     -> {
+            declare_named_with_args(
+                td.name,
+                td.name_span,
+                td.type_params,
+                by_name,
+                typed,
+                resolved.path,
+                factory,
+                mk_trait,
+            )
             sym :: by_name[td.name]
             if sym is Symbol {
                 typed.trait_decls[sym.id] = td
@@ -136,14 +170,14 @@ declare_decl :: fn(
             }
         }
         is AST.TypeAliasDecl as ta -> { declare_type_alias(ta, resolved, typed, diags) }
-        is AST.ConstDecl as cd   -> { declare_const(cd, resolved, typed, diags) }
-        // ImplDecl → ImplRegistry (impls.vader). AssertDecl → comptime only.
-        // ImportDecl was wired by the resolver. No-op here for all three.
-        is AST.ImplDecl   -> {}
-        is AST.AssertDecl -> {}
-        is AST.ImportDecl -> {}
+        is AST.ConstDecl as cd     -> { declare_const(cd, resolved, typed, diags) }
+        is AST.ImplDecl            -> {}
+        is AST.AssertDecl          -> {}
+        is AST.ImportDecl          -> {}
     }
 }
+// ImplDecl → ImplRegistry (impls.vader). AssertDecl → comptime only.
+// ImportDecl was wired by the resolver. No-op here for all three.
 
 /// Shared minter for Struct / Trait decls — they only differ in the
 /// `Type` constructor (`mk_struct` vs `mk_trait`). Mints one fresh
@@ -152,9 +186,13 @@ declare_decl :: fn(
 /// the body-walker scope ; we re-mint here because they're not exposed
 /// at the top-level symbol table.
 declare_named_with_args :: fn(
-    name: string, name_span: Span, type_params: AST.TypeParam[],
-    by_name: MutableMap<string, Symbol>, typed: TypedProgram,
-    module_path: string, factory: SymbolFactory,
+    name: string,
+    name_span: Span,
+    type_params: AST.TypeParam[],
+    by_name: MutableMap<string, Symbol>,
+    typed: TypedProgram,
+    module_path: string,
+    factory: SymbolFactory,
     mk: fn(Symbol, Type[]) -> Type,
 ) -> void {
     sym :: by_name[name] ?? return
@@ -169,8 +207,11 @@ declare_named_with_args :: fn(
 // ---- per-decl declarers ---------------------------------------------------
 
 declare_fn :: fn(
-    decl: AST.FnDecl, by_name: MutableMap<string, Symbol>,
-    resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
+    decl: AST.FnDecl,
+    by_name: MutableMap<string, Symbol>,
+    resolved: ResolvedModule,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
     params: Type[] = []
     for p in decl.params {
@@ -180,14 +221,13 @@ declare_fn :: fn(
     // For overloaded fns, `by_name[fn_name]` returns only ONE symbol.
     // Match by span so each overload gets its own decl_types entry.
     sym :: lookup_fn_symbol_by_span(decl, resolved, by_name)
-    match sym {
-        is null -> {}
-        is Symbol as s -> {
-            typed.decl_types[s.id] = mk_fn(params, return_type)
-            typed.fn_decls[s.id] = decl
-        }
+    if sym is Symbol {
+        typed.decl_types[sym.id] = mk_fn(params, return_type)
+        typed.fn_decls[sym.id] = decl
     }
-    if decl.name == "main" { check_main_signature(decl, params, return_type, diags) }
+    if decl.name == "main" {
+        check_main_signature(decl, params, return_type, diags)
+    }
     if has_extern_decorator(decl.decorators) {
         validate_extern(decl, params, return_type, typed, diags)
     }
@@ -197,11 +237,16 @@ declare_fn :: fn(
     // Without either, the import is unbound and traps at runtime — so require
     // the annotation here. Impl members (`impl_is_intrinsic`) and trait-method
     // signatures go through other declarers and never reach `declare_fn`.
-    if decl.body == null
-        && !has_intrinsic_decorator(decl.decorators)
-        && !has_extern_decorator(decl.decorators) {
-        diags.push(typecheck_error(.BodylessFnMustBeIntrinsic, decl.name_span,
-            "`${decl.name}` is bodyless and otherwise unbound at runtime ; for a function-*type*, spell the `fn(...)` type inline at its use sites rather than as a named bodyless declaration"))
+    if decl.body == null && !has_intrinsic_decorator(decl.decorators) && !has_extern_decorator(
+        decl.decorators,
+    ) {
+        diags.push(
+            typecheck_error(
+                .BodylessFnMustBeIntrinsic,
+                decl.name_span,
+                "`${decl.name}` is bodyless and otherwise unbound at runtime ; for a function-*type*, spell the `fn(...)` type inline at its use sites rather than as a named bodyless declaration",
+            ),
+        )
     }
     check_public_return_visibility(decl, return_type, diags)
 }
@@ -214,12 +259,21 @@ declare_fn :: fn(
 // types only ; params / exported struct fields / type-alias RHS are a planned
 // follow-up (see TODO §"Reject private types in a public signature").
 check_public_return_visibility :: fn(decl: AST.FnDecl, return_type: Type, diags: Diagnostic[]) -> void {
-    if decl.visibility != Visibility.Public { return }
+    if decl.visibility != Visibility.Public {
+        return
+    }
     leak :: first_unexported_type(return_type) ?? return
     ret_span: Span = decl.span
-    if decl.return_type != null { ret_span = decl.return_type.span }
-    diags.push(typecheck_error(.PrivateTypeInPublicInterface, ret_span,
-        "exported `${decl.name}` returns `${leak.name}`, which is not exported from its module ; export `${leak.name}` or make `${decl.name}` private"))
+    if decl.return_type != null {
+        ret_span = decl.return_type.span
+    }
+    diags.push(
+        typecheck_error(
+            .PrivateTypeInPublicInterface,
+            ret_span,
+            "exported `${decl.name}` returns `${leak.name}`, which is not exported from its module ; export `${leak.name}` or make `${decl.name}` private",
+        ),
+    )
 }
 
 // First non-exported user type referenced anywhere in `t`, or null when the
@@ -230,58 +284,78 @@ check_public_return_visibility :: fn(decl: AST.FnDecl, return_type: Type, diags:
 // erasure/inference synthetics) is a leaf that contributes nothing → null.
 first_unexported_type :: fn(t: Type) -> Symbol | null {
     match t {
-        is StructType as s -> {
-            if is_private_user_type(s.symbol) { return s.symbol }
+        is StructType as s   -> {
+            if is_private_user_type(s.symbol) {
+                return s.symbol
+            }
             return first_unexported_in(s.args)
         }
-        is EnumType as e -> {
+        is EnumType as e     -> {
             // EnumType carries no generic args today ; if parametric enums land,
             // recurse into them here like StructType / TraitType.
-            if is_private_user_type(e.symbol) { return e.symbol }
+            if is_private_user_type(e.symbol) {
+                return e.symbol
+            }
             return null
         }
         is DistinctType as d -> {
             // A private distinct leaking through an exported signature is an
             // error just like a private struct ; the backing is a primitive
             // (always public) but recurse for generality.
-            if is_private_user_type(d.symbol) { return d.symbol }
+            if is_private_user_type(d.symbol) {
+                return d.symbol
+            }
             return first_unexported_type(d.backing)
         }
-        is TraitType as tr -> {
-            if is_private_user_type(tr.symbol) { return tr.symbol }
+        is TraitType as tr   -> {
+            if is_private_user_type(tr.symbol) {
+                return tr.symbol
+            }
             return first_unexported_in(tr.args)
         }
-        is UnionType    as u -> { return first_unexported_in(u.variants) }
-        is ArrayType    as a -> { return first_unexported_type(a.element) }
-        is TupleType    as p -> { return first_unexported_in(p.elements) }
-        is FnType       as f -> {
+        is UnionType as u    -> {
+            return first_unexported_in(u.variants)
+        }
+        is ArrayType as a    -> {
+            return first_unexported_type(a.element)
+        }
+        is TupleType as p    -> {
+            return first_unexported_in(p.elements)
+        }
+        is FnType as f       -> {
             in_params :: first_unexported_in(f.params)
-            if in_params != null { return in_params }
+            if in_params != null {
+                return in_params
+            }
             return first_unexported_type(f.return_type)
         }
-        is PrimitiveType  -> { return null }
-        is TypeParamType  -> { return null }
-        is TypeMetaType   -> { return null }
-        is SelfType       -> { return null }
-        is UnresolvedType -> { return null }
-        is FreeIntType    -> { return null }
-        is FreeCharType   -> { return null }
-        is FreeFloatType  -> { return null }
-        is NeverType      -> { return null }
-        is AnyType        -> { return null }
+        is PrimitiveType     -> { return null }
+        is TypeParamType     -> { return null }
+        is TypeMetaType      -> { return null }
+        is SelfType          -> { return null }
+        is UnresolvedType    -> { return null }
+        is FreeIntType       -> { return null }
+        is FreeCharType      -> { return null }
+        is FreeFloatType     -> { return null }
+        is NeverType         -> { return null }
+        is AnyType           -> { return null }
     }
 }
 
 first_unexported_in :: fn(types: Type[]) -> Symbol | null {
     for t in types {
         r :: first_unexported_type(t)
-        if r != null { return r }
+        if r != null {
+            return r
+        }
     }
     return null
 }
 
 is_private_user_type :: fn(sym: Symbol) -> bool {
-    if sym.visibility != .Private { return false }
+    if sym.visibility != .Private {
+        return false
+    }
     return is_user_type_kind(sym.kind)
 }
 
@@ -296,44 +370,79 @@ is_user_type_kind :: fn(k: SymbolKind) -> bool {
 // ---- @extern ABI validation -----------------------------------------------
 
 validate_extern :: fn(
-    decl: AST.FnDecl, params: Type[], return_type: Type,
-    typed: TypedProgram, diags: Diagnostic[],
+    decl: AST.FnDecl,
+    params: Type[],
+    return_type: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
-    if !(decl.body is null) {
-        diags.push(typecheck_error(.ExternMustNotHaveBody, decl.body.span,
-            "`@extern` fn `${decl.name}` cannot have a body — drop the `= ...` / `{ ... }`"))
+    if decl.body !is null {
+        diags.push(
+            typecheck_error(
+                .ExternMustNotHaveBody,
+                decl.body.span,
+                "`@extern` fn `${decl.name}` cannot have a body — drop the `= ...` / `{ ... }`",
+            ),
+        )
     }
     args :: extern_decorator_args(decl.decorators)
     if args.len() > 2 {
-        diags.push(typecheck_error(.InvalidExternDecl, decl.span,
-            "`@extern` accepts 0, 1, or 2 string arguments — got ${args.len()}"))
+        diags.push(
+            typecheck_error(
+                .InvalidExternDecl,
+                decl.span,
+                "`@extern` accepts 0, 1, or 2 string arguments — got ${args.len()}",
+            ),
+        )
         return
     }
     for a in args {
         if !is_plain_string_literal(a) {
-            diags.push(typecheck_error(.InvalidExternDecl, a.span,
-                "`@extern` arguments must be plain string literals (no interpolation)"))
+            diags.push(
+                typecheck_error(
+                    .InvalidExternDecl,
+                    a.span,
+                    "`@extern` arguments must be plain string literals (no interpolation)",
+                ),
+            )
         }
     }
     for i in 0..<decl.params.len() {
         pt :: params[i]
         if !is_extern_abi_type(pt, false) {
-            diags.push(typecheck_error(.InvalidExternDecl, decl.params[i].span,
-                "`@extern` parameter type must be a primitive or `string`, got `${display_type(pt)}`"))
+            diags.push(
+                typecheck_error(
+                    .InvalidExternDecl,
+                    decl.params[i].span,
+                    "`@extern` parameter type must be a primitive or `string`, got `${display_type(pt)}`",
+                ),
+            )
         }
     }
     if !is_extern_abi_type(return_type, true) {
         ret_span: Span = decl.span
-        if !(decl.return_type is null) { ret_span = decl.return_type.span }
-        diags.push(typecheck_error(.InvalidExternDecl, ret_span,
-            "`@extern` return type must be a primitive, `string`, or `void`, got `${display_type(return_type)}`"))
+        if decl.return_type !is null {
+            ret_span = decl.return_type.span
+        }
+        diags.push(
+            typecheck_error(
+                .InvalidExternDecl,
+                ret_span,
+                "`@extern` return type must be a primitive, `string`, or `void`, got `${display_type(return_type)}`",
+            ),
+        )
     }
     sym_name :: extern_symbol_name_for(decl)
     prior :: typed.extern_symbols[sym_name]
     if prior is AST.FnDecl as p {
         if p.id != decl.id {
-            diags.push(typecheck_error(.InvalidExternDecl, decl.span,
-                "duplicate `@extern` C symbol `${sym_name}` — already declared on `${p.name}`"))
+            diags.push(
+                typecheck_error(
+                    .InvalidExternDecl,
+                    decl.span,
+                    "duplicate `@extern` C symbol `${sym_name}` — already declared on `${p.name}`",
+                ),
+            )
         }
     } else {
         typed.extern_symbols[sym_name] = decl
@@ -341,23 +450,39 @@ validate_extern :: fn(
 }
 
 has_extern_decorator :: fn(decs: AST.Decorator[]) -> bool {
-    for d in decs { if d.name == "extern" { return true } }
+    for d in decs {
+        if d.name == "extern" {
+            return true
+        }
+    }
     return false
 }
 
 has_intrinsic_decorator :: fn(decs: AST.Decorator[]) -> bool {
-    for d in decs { if d.name == "intrinsic" { return true } }
+    for d in decs {
+        if d.name == "intrinsic" {
+            return true
+        }
+    }
     return false
 }
 
 extern_decorator_args :: fn(decs: AST.Decorator[]) -> AST.Expr[] {
-    for d in decs { if d.name == "extern" { return d.args } }
+    for d in decs {
+        if d.name == "extern" {
+            return d.args
+        }
+    }
     return []
 }
 
 is_plain_string_literal :: fn(e: AST.Expr) -> bool {
-    if !(e is AST.StringLitExpr) { return false }
-    if e.parts.len() != 1 { return false }
+    if e !is AST.StringLitExpr {
+        return false
+    }
+    if e.parts.len() != 1 {
+        return false
+    }
     return e.parts[0] is AST.StringLitText
 }
 
@@ -370,12 +495,18 @@ is_plain_string_literal :: fn(e: AST.Expr) -> bool {
 /// convention, so the linked C symbol stays consistent across stages.
 extern_symbol_name_for :: fn(decl: AST.FnDecl) -> string {
     for d in decl.decorators {
-        if d.name != "extern" { continue }
-        if d.args.len() == 0 { continue }
+        if d.name != "extern" {
+            continue
+        }
+        if d.args.len() == 0 {
+            continue
+        }
         last :: d.args[d.args.len() - 1]
         if last is AST.StringLitExpr as s {
             if s.parts.len() == 1 {
-                if s.parts[0] is AST.StringLitText as t { return t.value }
+                if s.parts[0] is AST.StringLitText as t {
+                    return t.value
+                }
             }
         }
     }
@@ -389,18 +520,19 @@ is_extern_abi_type :: fn(t: Type, allow_void: bool) -> bool {
     // @partial: only primitives (and `string`, itself a PrimitiveType) cross the
     // C ABI; every aggregate / ref / synthetic variant is rejected.
     @partial match t {
-        is UnresolvedType -> { return true }       // upstream error, don't pile on
+        is UnresolvedType     -> { return true }
         is PrimitiveType as p -> {
             if p.name == "void" { return allow_void }
             if p.name == "null" { return false }
             return true
         }
-        _ -> { return false }
+        _                     -> { return false }
     }
 }
 
 lookup_fn_symbol_by_span :: fn(
-    decl: AST.FnDecl, resolved: ResolvedModule,
+    decl: AST.FnDecl,
+    resolved: ResolvedModule,
     by_name: MutableMap<string, Symbol>,
 ) -> Symbol | null {
     bucket :: resolved.fn_overloads[decl.name]
@@ -411,9 +543,7 @@ lookup_fn_symbol_by_span :: fn(
             // in DIFFERENT sibling files of a module would otherwise collide,
             // and the second's decl_types entry would never be written (the
             // file-blind hazard `span_key` already folds the file hash for).
-            if sp.start.line == decl.name_span.start.line &&
-               sp.start.column == decl.name_span.start.column &&
-               sp.start.file == decl.name_span.start.file {
+            if sp.start.line == decl.name_span.start.line && sp.start.column == decl.name_span.start.column && sp.start.file == decl.name_span.start.file {
                 return s
             }
         }
@@ -424,41 +554,57 @@ lookup_fn_symbol_by_span :: fn(
 // `main` must return i32 and either take no params or a single
 // `[string]` arg — emitters wire the entry point assuming both.
 check_main_signature :: fn(
-    decl: AST.FnDecl, params: Type[], return_type: Type, diags: Diagnostic[],
+    decl: AST.FnDecl,
+    params: Type[],
+    return_type: Type,
+    diags: Diagnostic[],
 ) -> void {
     if !is_primitive_named(return_type, "i32") {
-        diags.push(typecheck_error(.InvalidMainSignature, decl.span,
-            "main must return i32"))
+        diags.push(typecheck_error(.InvalidMainSignature, decl.span, "main must return i32"))
         return
     }
-    if params.len() == 0 { return }
+    if params.len() == 0 {
+        return
+    }
     if params.len() == 1 {
-        match params[0] {
-            is ArrayType as a -> {
-                if is_primitive_named(a.element, "string") { return }
+        if params[0] is ArrayType as a {
+            if is_primitive_named(a.element, "string") {
+                return
             }
-            _ -> {}
         }
     }
-    diags.push(typecheck_error(.InvalidMainSignature, decl.span,
-        "main takes either no parameters or a single `[string]` argument"))
+    diags.push(
+        typecheck_error(
+            .InvalidMainSignature,
+            decl.span,
+            "main takes either no parameters or a single `[string]` argument",
+        ),
+    )
 }
 
 is_primitive_named :: fn(t: Type, name: string) -> bool {
-    if t is PrimitiveType as p { return p.name == name }
+    if t is PrimitiveType as p {
+        return p.name == name
+    }
     return false
 }
 
 declare_fn_param :: fn(
-    p: AST.FnParam, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
+    p: AST.FnParam,
+    resolved: ResolvedModule,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> Type {
     ty :: p.ty
     if ty == null {
         // SPEC §4 : top-level fn signatures must be fully annotated, except
         // `self` which carries the implicit `Self` type, bound at body time.
-        if p.name == "self" { return TY_UNRESOLVED }
-        diags.push(typecheck_error(.FnSignatureMustBeAnnotated, p.span,
-            "parameter ${p.name} lacks a type"))
+        if p.name == "self" {
+            return TY_UNRESOLVED
+        }
+        diags.push(
+            typecheck_error(.FnSignatureMustBeAnnotated, p.span, "parameter ${p.name} lacks a type"),
+        )
         return TY_UNRESOLVED
     }
     resolved_ty :: type_from_expr(ty, resolved, diags)
@@ -467,44 +613,44 @@ declare_fn_param :: fn(
 }
 
 declare_fn_return :: fn(
-    decl: AST.FnDecl, resolved: ResolvedModule, diags: Diagnostic[],
+    decl: AST.FnDecl,
+    resolved: ResolvedModule,
+    diags: Diagnostic[],
 ) -> Type {
     rt :: decl.return_type
     if rt == null {
         // Expression-bodied without annotation : inference defers to body
         // checking. Block-bodied without annotation : default to void.
-        if decl.is_expression_bodied { return TY_UNRESOLVED }
+        if decl.is_expression_bodied {
+            return TY_UNRESOLVED
+        }
         return TY_VOID
     }
     return type_from_expr(rt, resolved, diags)
 }
 
 declare_enum :: fn(
-    decl: AST.EnumDecl, by_name: MutableMap<string, Symbol>,
-    resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
+    decl: AST.EnumDecl,
+    by_name: MutableMap<string, Symbol>,
+    resolved: ResolvedModule,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
     sym :: by_name[decl.name]
     repr :: resolve_repr(decl.repr, resolved, diags)
     indices :: resolve_enum_indices(decl, repr, diags)
-    match sym {
-        is null -> {}
-        is Symbol as s -> {
-            enum_type :: mk_enum(s, repr, indices)
-            typed.decl_types[s.id] = enum_type
-            // Also expose the `EnumType` on the resolver's type side-table so
-            // a type-position reference (`d: Direction`) resolves to the enum
-            // — `resolve_named_type` reads `alias_types` before falling to the
-            // `type_from_symbol` `.Enum -> mk_struct` placeholder, and
-            // `merge_external_alias_types` propagates it cross-module. Without
-            // this an enum slot stays a `StructType` and the bytecode emit
-            // mints a `ref` instead of collapsing to the `repr` ordinal.
-            resolved.alias_types[s.id] = enum_type
-        }
+    if sym is Symbol as s {
+        enum_type :: mk_enum(s, repr, indices)
+        typed.decl_types[s.id] = enum_type
+        resolved.alias_types[s.id] = enum_type
     }
 }
 
 declare_type_alias :: fn(
-    decl: AST.TypeAliasDecl, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
+    decl: AST.TypeAliasDecl,
+    resolved: ResolvedModule,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
     aliased :: type_from_expr(decl.aliased, resolved, diags)
     // Index by alias symbol id ; `decl_types` and `alias_types` share
@@ -518,9 +664,11 @@ declare_type_alias :: fn(
     }
 }
 
-
 declare_const :: fn(
-    decl: AST.ConstDecl, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
+    decl: AST.ConstDecl,
+    resolved: ResolvedModule,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
     sym :: lookup_sym_by_name(resolved, decl.name) ?? return
     annotation :: decl.ty
@@ -532,7 +680,7 @@ declare_const :: fn(
                 typed.decl_types[sym.id] = TY_TYPE
             }
         }
-        _ -> { typed.decl_types[sym.id] = type_from_expr(annotation, resolved, diags) }
+        _       -> { typed.decl_types[sym.id] = type_from_expr(annotation, resolved, diags) }
     }
 }
 
@@ -541,7 +689,9 @@ declare_const :: fn(
 /// (nominal newtype) ; a composite RHS (union / struct / array / fn) stays a
 /// transparent alias. See `.claude/plans/distinct-types.md`.
 alias_for :: fn(sym: Symbol, alias_ty: Type, decorators: AST.Decorator[]) -> Type {
-    if distinct_backing(alias_ty, decorators) { return mk_distinct(sym, alias_ty) }
+    if distinct_backing(alias_ty, decorators) {
+        return mk_distinct(sym, alias_ty)
+    }
     return alias_ty
 }
 
@@ -553,8 +703,14 @@ alias_for :: fn(sym: Symbol, alias_ty: Type, decorators: AST.Decorator[]) -> Typ
 /// `alias_types` writers — `declare_const` (here), `register_alias_const`, and
 /// `check_const_value` (both in orchestrate.vader).
 distinct_backing :: fn(alias_ty: Type, decorators: AST.Decorator[]) -> bool {
-    for d in decorators { if d.name == "comptime" { return false } }
-    if alias_ty is PrimitiveType as p { return p.name != "void" && p.name != "null" }
+    for d in decorators {
+        if d.name == "comptime" {
+            return false
+        }
+    }
+    if alias_ty is PrimitiveType as p {
+        return p.name != "void" && p.name != "null"
+    }
     // Composite-backed newtypes (`BigInt :: u32[]`, `Color :: Rgb`,
     // `Coord :: [i32, i32]`) are nominal too, so they can carry their own trait
     // impls (operator overloads) on the distinct's own key instead of colliding
@@ -562,34 +718,44 @@ distinct_backing :: fn(alias_ty: Type, decorators: AST.Decorator[]) -> bool {
     // Structural ops (index / field / `.N` / len / push / for-in / literal
     // coercion / destructure) forward to the backing via `array_backing` /
     // `struct_backing` / `tuple_backing`.
-    if alias_ty is ArrayType | StructType | TupleType { return true }
+    if alias_ty is ArrayType | StructType | TupleType {
+        return true
+    }
     return false
 }
 
 lookup_sym_by_name :: fn(resolved: ResolvedModule, name: string) -> Symbol | null {
-    for s in resolved.symbols { if s.name == name { return s } }
+    for s in resolved.symbols {
+        if s.name == name {
+            return s
+        }
+    }
     return null
 }
-
 
 // ---- helpers --------------------------------------------------------------
 
 resolve_repr :: fn(
-    repr: AST.TypeExpr | null, resolved: ResolvedModule, diags: Diagnostic[],
+    repr: AST.TypeExpr | null,
+    resolved: ResolvedModule,
+    diags: Diagnostic[],
 ) -> string {
-    if repr is null { return "i32" }
-    repr_ty :: type_from_expr(repr, resolved, diags)
-    if repr_ty is PrimitiveType as p {
-        if is_int_name(p.name) { return p.name }
-        diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, repr.span,
-            "got ${p.name}"))
+    if repr is null {
         return "i32"
     }
-    diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, repr.span,
-        "got ${display_type(repr_ty)}"))
+    repr_ty :: type_from_expr(repr, resolved, diags)
+    if repr_ty is PrimitiveType as p {
+        if is_int_name(p.name) {
+            return p.name
+        }
+        diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, repr.span, "got ${p.name}"))
+        return "i32"
+    }
+    diags.push(
+        typecheck_error(.EnumReprMustBePrimitiveInt, repr.span, "got ${display_type(repr_ty)}"),
+    )
     return "i32"
 }
-
 
 // ---- tests ----------------------------------------------------------------
 
@@ -606,7 +772,9 @@ declared_type :: fn(src: string, name: string) -> string {
     diags: Diagnostic[] = []
     declare_module(parsed.program.decls, rm, typed, factory, diags)
     for s in rm.symbols {
-        if s.name != name { continue }
+        if s.name != name {
+            continue
+        }
         ty :: typed.decl_types[s.id] ?? return "<missing>"
         return display_type(ty)
     }

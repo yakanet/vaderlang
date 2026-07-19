@@ -82,13 +82,13 @@ export infer_binary :: fn(
         right = check_expr_fn(e.right, oc, typed, diags)
     }
     return match classify(e.op) {
-        .Arith      -> { check_arith(e, left, right, typed, diags) }
-        .Compare    -> { check_compare(e, left, right, typed, diags) }
-        .Logical    -> { check_logical(e, left, right, diags) }
-        .Bitwise    -> { check_bitwise(e, left, right, typed, diags) }
-        .Equality   -> { check_equality(e, left, right, typed, diags) }
-        .Is         -> { TY_BOOL }
-        .In         -> { check_in(e, left, right, typed, diags) }
+        .Arith    -> { check_arith(e, left, right, typed, diags) }
+        .Compare  -> { check_compare(e, left, right, typed, diags) }
+        .Logical  -> { check_logical(e, left, right, diags) }
+        .Bitwise  -> { check_bitwise(e, left, right, typed, diags) }
+        .Equality -> { check_equality(e, left, right, typed, diags) }
+        .Is       -> { TY_BOOL }
+        .In       -> { check_in(e, left, right, typed, diags) }
     }
 }
 
@@ -470,10 +470,10 @@ is_resolved_enough :: fn(t: Type) -> bool {
     // variants below; every concrete variant is resolved enough to check.
     @partial match t {
         is UnresolvedType -> { return false }
-        is TypeParamType -> { return false }
-        is TypeMetaType -> { return false }
-        is TraitType -> { return false }
-        _ -> { return true }
+        is TypeParamType  -> { return false }
+        is TypeMetaType   -> { return false }
+        is TraitType      -> { return false }
+        _                 -> { return true }
     }
 }
 // Traits can be satisfied by any struct with a matching impl,
@@ -531,27 +531,27 @@ check_bitwise :: fn(
 OpKind :: enum(u8) { Arith, Compare, Equality, Logical, Bitwise, Is, In }
 
 classify :: fn(op: AST.BinaryOp) -> OpKind = match op {
-    .Add -> .Arith
-    .Sub -> .Arith
-    .Mul -> .Arith
-    .Div -> .Arith
-    .Mod -> .Arith
-    .Lt -> .Compare
-    .Lte -> .Compare
-    .Gt -> .Compare
-    .Gte -> .Compare
-    .Eq -> .Equality
-    .Neq -> .Equality
-    .And -> .Logical
-    .Or -> .Logical
+    .Add    -> .Arith
+    .Sub    -> .Arith
+    .Mul    -> .Arith
+    .Div    -> .Arith
+    .Mod    -> .Arith
+    .Lt     -> .Compare
+    .Lte    -> .Compare
+    .Gt     -> .Compare
+    .Gte    -> .Compare
+    .Eq     -> .Equality
+    .Neq    -> .Equality
+    .And    -> .Logical
+    .Or     -> .Logical
     .BitAnd -> .Bitwise
-    .BitOr -> .Bitwise
+    .BitOr  -> .Bitwise
     .BitXor -> .Bitwise
-    .Shl -> .Bitwise
-    .Shr -> .Bitwise
-    .Is -> .Is
-    .In -> .In
-    .NotIn -> .In
+    .Shl    -> .Bitwise
+    .Shr    -> .Bitwise
+    .Is     -> .Is
+    .In     -> .In
+    .NotIn  -> .In
 }
 
 // When left is a concrete numeric and the op propagates context, return
@@ -559,13 +559,13 @@ classify :: fn(op: AST.BinaryOp) -> OpKind = match op {
 // Otherwise null — caller infers right fresh.
 numeric_propagation :: fn(op: AST.BinaryOp, left: Type) -> Type | null {
     propagates :: match classify(op) {
-        .Arith -> true
-        .Compare -> true
+        .Arith    -> true
+        .Compare  -> true
         .Equality -> true
-        .Logical -> false
-        .Bitwise -> true
-        .Is -> false
-        .In -> false
+        .Logical  -> false
+        .Bitwise  -> true
+        .Is       -> false
+        .In       -> false
     }
     // Bitwise / shift propagate the concrete LEFT to the RIGHT so a bare
     // shift amount / mask repins (`u32(b) >> 4`, `mask & 0xFF`).
@@ -593,13 +593,13 @@ op_expected_ctx :: fn(op: AST.BinaryOp, expected: Type | null) -> Type | null {
         return null
     }
     width_carrying :: match classify(op) {
-        .Arith -> true
-        .Bitwise -> true
-        .Compare -> false
+        .Arith    -> true
+        .Bitwise  -> true
+        .Compare  -> false
         .Equality -> false
-        .Logical -> false
-        .Is -> false
-        .In -> false
+        .Logical  -> false
+        .Is       -> false
+        .In       -> false
     }
     if !width_carrying {
         return null
@@ -758,11 +758,11 @@ binary_check_stub :: fn(
     // @partial: test stub — only the literal / ident / binary expr kinds the
     // binary tests build are typed; every other Expr is irrelevant → unresolved.
     @partial match e {
-        is AST.IntLitExpr as x -> { return narrow(TY_FREE_INT, expected) }
+        is AST.IntLitExpr as x    -> { return narrow(TY_FREE_INT, expected) }
         is AST.StringLitExpr as x -> { return TY_STRING }
-        is AST.IdentExpr as x -> { return infer_ident(x, typed) }
-        is AST.BinaryExpr as x -> { return infer_binary(x, null, typed, diags, binary_check_stub) }
-        _ -> { return TY_UNRESOLVED }
+        is AST.IdentExpr as x     -> { return infer_ident(x, typed) }
+        is AST.BinaryExpr as x    -> { return infer_binary(x, null, typed, diags, binary_check_stub) }
+        _                         -> { return TY_UNRESOLVED }
     }
 }
 
@@ -794,7 +794,7 @@ expect_binary :: fn(src: string) -> ExpectedBinary {
     match last {
         is AST.FnDecl as f -> {
             match f.body {
-                is null -> {}
+                is null               -> {}
                 is AST.BlockExpr as b -> {
                     hit :: find_first_in_block(b, accept_binary)
                     if hit is AST.BinaryExpr {
@@ -803,7 +803,7 @@ expect_binary :: fn(src: string) -> ExpectedBinary {
                 }
             }
         }
-        _ -> {}
+        _                  -> {}
     }
     assert(false, "expected a BinaryExpr in: ${src}")
     return ExpectedBinary { .typed = result.typed, .bin = synthetic_binary() }
