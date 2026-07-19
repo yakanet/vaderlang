@@ -172,7 +172,7 @@ static vader_box_t vader_vt_Iterator__next(vader_box_t recv);
 static vader_box_t snippet_count_up(int32_t l0) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 9 "tests/snippets/generator_escapes/_main.vader"
     vader_struct___genstate_count_up_t* _a0_obj = (vader_struct___genstate_count_up_t*) vader_gc_alloc(sizeof(vader_struct___genstate_count_up_t));
@@ -190,7 +190,7 @@ static vader_box_t snippet_pairs(void* l0, void* l1) {
     void* l3 = NULL;
     void* t0 = NULL;
     void** gc_raw_roots[5] = { &l0, &l1, &l2, &l3, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 5u, NULL, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 13 "tests/snippets/generator_escapes/_main.vader"
     l2 = vader_box_obj(0u, NULL).payload.obj;
@@ -224,7 +224,7 @@ static int32_t snippet_main(void) {
     vader_string_t t1;
     vader_box_t* gc_roots[2] = { &l0, &l1 };
     void** gc_raw_roots[3] = { &l3, &l6, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 20 "tests/snippets/generator_escapes/_main.vader"
     l0 = snippet_count_up(INT32_C(4));
@@ -288,7 +288,7 @@ static vader_box_t snippet___genstate_count_up_Iterator_next(void* l0) {
     void* t2 = NULL;
     vader_box_t* gc_roots[1] = { &t1 };
     void** gc_raw_roots[2] = { &l0, &t2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 9 "tests/snippets/generator_escapes/_main.vader"
     {
@@ -379,7 +379,7 @@ static vader_box_t snippet___genstate_pairs_Iterator_next(void* l0) {
     void* t4 = NULL;
     vader_box_t* gc_roots[1] = { &t3 };
     void** gc_raw_roots[6] = { &l0, &l9, &l11, &l13, &l15, &t4 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 6u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 6u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 13 "tests/snippets/generator_escapes/_main.vader"
     {
@@ -564,7 +564,7 @@ static vader_box_t std_core_Range_Iterator_next__i32(void* l0) {
     void* t3 = NULL;
     vader_box_t* gc_roots[1] = { &t2 };
     void** gc_raw_roots[2] = { &l0, &t3 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 308 "stdlib/std/core/core.vader"
     t0 = ((vader_struct_std_core_Range__i32_t*) l0)->f_inclusive;
@@ -618,7 +618,7 @@ static vader_box_t std_core_Range_Iterator_next__usize(void* l0) {
     void* t5 = NULL;
     vader_box_t* gc_roots[1] = { &t2 };
     void** gc_raw_roots[2] = { &l0, &t5 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 308 "stdlib/std/core/core.vader"
     t0 = ((vader_struct_std_core_Range__usize_t*) l0)->f_inclusive;
@@ -665,7 +665,7 @@ static vader_box_t std_core_Range_Iterator_next__usize(void* l0) {
 static void* std_core_new_byte_buffer(size_t l0) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 112 "stdlib/std/core/primitives.vader"
     t0 = std_core_usize_BufferAlloc_new_buffer_vt(l0);
@@ -676,7 +676,7 @@ static void* std_core_new_byte_buffer(size_t l0) {
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
     vader_string_t t0;
     void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 115 "stdlib/std/core/primitives.vader"
     t0 = std_core_Buffer_ByteAccess_intern_string_vt(l0, l1);
@@ -687,7 +687,7 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
     size_t l3;
     void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 124 "stdlib/std/core/primitives.vader"
     std_core_Buffer_ByteAccess_write_string_vt(l0, l1, l2);
@@ -825,7 +825,7 @@ static int32_t std_core_usize_Comparable_compare(size_t l0, size_t l1) {
 }
 
 static void std_io_println__string(vader_string_t l0) {
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 50 "stdlib/std/io/io.vader"
     vader_import_1(INT32_C(0), l0);
@@ -839,7 +839,7 @@ static void std_io_println__string(vader_string_t l0) {
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     t0 = (void*) vader_buffer_new((size_t) l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -854,7 +854,7 @@ static void std_core_Buffer_ByteAccess_store_u8_vt(void* l0, size_t l1, uint8_t 
 static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size_t l1) {
     vader_string_t t0;
     void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }

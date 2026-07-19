@@ -73,6 +73,15 @@ val_of :: fn(sv: StackVal) -> ValType = match sv {
 
 // ---- FnState --------------------------------------------------------------
 
+/// One escape-stack-allocated GC struct to hoist to the function top. Both the
+/// zeroed decl (`<cname> <storage> = {0};`) and the root address
+/// (`(void*) &<storage>`) are rendered from these two names at emit time — see
+/// `emit_function_body` — so there is no pre-rendered-C-syntax to keep in sync.
+StackStorage :: struct {
+    cname:   string
+    storage: string
+}
+
 /// Mutable state for one fn-body emit. Owns the operand stack plus the
 /// temp / aux counters. Lives only for `emit_function_body` ; discarded
 /// once the body lands in `out`.
@@ -134,6 +143,15 @@ FnState :: struct {
     /// unread temp. `emit_call_result` reads it ; the driver skips the paired
     /// `drop`. See `emit_function_body`.
     drop_call_result: bool
+    /// Escape-stack-allocated GC structs to hoist to the function top — one per
+    /// stack `StructNew` in a framed fn (see `emit_struct_new`). Hoisting makes
+    /// each storage FUNCTION-scoped so its address in the `gc_stack_objs[]` root
+    /// array never dangles past a nested block, and its zeroed decl reads as type
+    /// 0 (a scan no-op) until the `StructNew` writes the real header + fields.
+    /// The GC scans each object's FIELDS in place so its captured heap refs are
+    /// forwarded across a safepoint (else they dangle — the walk_elements
+    /// closure-env use-after-forward bug).
+    stack_storages: StackStorage[]
 }
 
 /// Fresh state for `function`, emitting into `out`.
@@ -152,6 +170,7 @@ new_fn_state :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> Fn
     .resolved_arrays = MutableMap<string, string> {},
     .pinned_resolves = MutableSet<string> {},
     .drop_call_result = false,
+    .stack_storages = [],
 }
 
 // ---- indented output ------------------------------------------------------

@@ -43,7 +43,7 @@ static int32_t snippet_main(void) {
     int32_t l1, l2;
     size_t t0;
     void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 17 "tests/snippets/array_ops/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 3u, 7u, 1u);

@@ -336,8 +336,26 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
         }
         box_expr :: if root_addrs.len() > 0 { "gc_roots" } else { "NULL" }
         raw_expr :: if raw_root_addrs.len() > 0 { "gc_raw_roots" } else { "NULL" }
+        // Stack-object roots : the escape-stack-allocated GC structs discovered
+        // during the walk (see `emit_struct_new`). Their decls are hoisted here so
+        // they are function-scoped, and the array is initialised with their
+        // addresses — the GC scans each object's FIELDS in place so captured heap
+        // refs survive a safepoint. Zero-init'd storage reads as type 0 (a scan
+        // no-op) until its `StructNew` writes the real header + fields.
+        nstack :: s.stack_storages.len()
+        stack_expr :: if nstack > 0 { "gc_stack_objs" } else { "NULL" }
+        stack_addrs: string[] = []
+        for ss in s.stack_storages {
+            out.append("    ${ss.cname} ${ss.storage} = {0};\n")
+            stack_addrs.push("(void*) &${ss.storage}")
+        }
+        if nstack > 0 {
+            out.append(
+                "    void* gc_stack_objs[${nstack}] = { ${stack_addrs.join(", ")} };\n",
+            )
+        }
         out.append(
-            "    vader_gc_frame_t gc_frame = { vader_gc_top, ${root_addrs.len()}u, ${raw_root_addrs.len()}u, ${box_expr}, ${raw_expr} };\n",
+            "    vader_gc_frame_t gc_frame = { vader_gc_top, ${root_addrs.len()}u, ${raw_root_addrs.len()}u, ${box_expr}, ${raw_expr}, ${nstack}u, ${stack_expr} };\n",
         )
         out.append("    vader_gc_top = &gc_frame;\n")
     }
@@ -1806,7 +1824,21 @@ emit_struct_new :: fn(s: FnState, op: vm.StructNew) -> void {
         obj :: if op.stack {
             storage :: aux(s, "storage")
             o :: aux(s, "obj")
-            line(s, "${cname} ${storage};")
+            // A stack-allocated GC struct is off-arena, so the collector's
+            // raw-root scan skips the object and never traces its pointer FIELDS,
+            // leaving captured heap refs stale across a safepoint (the
+            // walk_elements closure-env use-after-forward bug). In a framed fn,
+            // HOIST the storage decl to the function top (`stack_storage_decls`)
+            // so it is function-scoped — its address goes into `gc_stack_objs[]`
+            // and must not dangle past a nested block — and zero-init it so a
+            // scan before the header/fields are written sees type 0 (a no-op).
+            // A `no_frame` fn has no safepoint, so its storage stays inline and
+            // unrooted (nothing can move under it).
+            if !s.no_frame {
+                s.stack_storages.push(StackStorage { .cname = cname, .storage = storage })
+            } else {
+                line(s, "${cname} ${storage};")
+            }
             line(s, "${cname}* ${o} = &${storage};")
             o
         } else {

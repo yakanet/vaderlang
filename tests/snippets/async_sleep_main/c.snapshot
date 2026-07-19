@@ -117,7 +117,7 @@ static int32_t snippet_main(void) {
     int32_t t2;
     vader_box_t* gc_roots[2] = { &l0, &t1 };
     void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 11 "tests/snippets/async_sleep_main/_main.vader"
     l0 = vader_box_obj(0u, NULL);
@@ -142,7 +142,7 @@ static vader_box_t snippet___asyncstate_3_Async_resume(void* l0) {
     vader_box_t t2 = vader_box_null();
     vader_box_t* gc_roots[5] = { &l1, &l3, &l4, &l6, &t2 };
     void** gc_raw_roots[2] = { &l0, &t1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 5u, 2u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 5u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 11 "tests/snippets/async_sleep_main/_main.vader"
     {
@@ -257,7 +257,7 @@ static vader_box_t snippet___asyncstate_3_Async_resume(void* l0) {
 }
 
 static void std_io_println__string(vader_string_t l0) {
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 50 "stdlib/std/io/io.vader"
     vader_import_0(INT32_C(0), l0);
@@ -271,7 +271,7 @@ static void std_io_println__string(vader_string_t l0) {
 static vader_box_t std_async_sleep(int64_t l0) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 55 "stdlib/std/async/async.vader"
     vader_struct_std_async_Sleep_t* _a0_obj = (vader_struct_std_async_Sleep_t*) vader_gc_alloc(sizeof(vader_struct_std_async_Sleep_t));
@@ -287,7 +287,7 @@ static vader_box_t std_async_sleep(int64_t l0) {
 static int32_t std_async_run_async_main(vader_box_t l0) {
     int32_t t0;
     vader_box_t* gc_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 68 "stdlib/std/async/async.vader"
     t0 = std_async_block_on__i32(l0);
@@ -303,7 +303,7 @@ static vader_box_t std_async_Sleep_Async_resume(void* l0) {
     void* t3 = NULL;
     vader_box_t* gc_roots[1] = { &t2 };
     void** gc_raw_roots[2] = { &l0, &t3 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 39 "stdlib/std/async/async.vader"
     t0 = ((vader_struct_std_async_Sleep_t*) l0)->f_armed;
@@ -342,7 +342,7 @@ static int32_t std_async_block_on__i32(vader_box_t l0) {
     vader_box_t l1 = vader_box_null();
     int32_t t0;
     vader_box_t* gc_roots[2] = { &l0, &l1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots, NULL };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 80 "stdlib/std/async/async.vader"
     {
