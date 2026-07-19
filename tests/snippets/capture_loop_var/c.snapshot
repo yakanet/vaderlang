@@ -324,7 +324,7 @@ static int32_t snippet_main(void) {
     {
         loop_113: {
             if ((l5 < INT32_C(3))) {
-#line 239 "stdlib/std/iter/iter.vader"
+#line 263 "stdlib/std/iter/iter.vader"
                 t4 = snippet_tenfold(l5);
                 vader_struct__Cell_i32_t* _a12_obj = (vader_struct__Cell_i32_t*) vader_gc_alloc(sizeof(vader_struct__Cell_i32_t));
                 vader_obj_header_init(_a12_obj, 20u);
@@ -372,7 +372,7 @@ static int32_t snippet_main(void) {
     {
         loop_163: {
             if ((l5 < INT32_C(5))) {
-#line 233 "stdlib/std/iter/iter.vader"
+#line 257 "stdlib/std/iter/iter.vader"
                 t5 = snippet_is_even(l5);
                 if (t5) {
                     vader_struct__Cell_i32_t* _a17_obj = (vader_struct__Cell_i32_t*) vader_gc_alloc(sizeof(vader_struct__Cell_i32_t));
@@ -392,7 +392,7 @@ static int32_t snippet_main(void) {
                     vader_defer_push(vader_ref_box(t2));
 #line 41 "tests/snippets/capture_loop_var/_main.vader"
                     vader_defer_pop_exec(1u);
-#line 233 "stdlib/std/iter/iter.vader"
+#line 257 "stdlib/std/iter/iter.vader"
                 } else {
                 }
 #line 41 "tests/snippets/capture_loop_var/_main.vader"
