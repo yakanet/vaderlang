@@ -277,6 +277,52 @@ for (const { name, source } of COMMENT_STABILITY) {
   }, { timeout: MEDIUM_BUILD });
 }
 
+// ---------------------------------------------------------------------------
+// Match-arm `->` alignment. Canonically-aligned sources so fmt is a NO-OP.
+// `aligned` : arm heads pad to the widest so the arrows line up (CLAUDE.md §6).
+// `too_wide` : the widest head exceeds the alignment cap, so arrows stay glued
+// to their heads (no padding).
+// ---------------------------------------------------------------------------
+const MATCH_ALIGN: { name: string; source: string }[] = [
+  {
+    name: "aligned",
+    source: `module "reg/match_align"
+
+k :: fn(t: Type) -> string = match t {
+    is PrimitiveType as p -> p.name
+    is StructType as s    -> "s"
+    _                     -> "?"
+}
+`,
+  },
+  {
+    name: "too_wide",
+    source: `module "reg/match_align_wide"
+
+f :: fn(x: T) -> i32 {
+    match x {
+        is A -> 1
+        is SomeVeryLongVariantNameThatExceedsTheAlignmentCapWidth as binding -> 2
+        is B -> 3
+    }
+}
+`,
+  },
+];
+
+for (const { name, source } of MATCH_ALIGN) {
+  test(`fmt match-arm alignment : ${name}`, async () => {
+    if (!ENABLED) return;
+    const src = join(process.cwd(), `.tmp-fmt-align-${name}.vader`);
+    await Bun.write(src, source);
+    try {
+      expect(fmtStdout(src)).toBe(source);
+    } finally {
+      try { Bun.file(src).delete?.(); } catch { /* ignore */ }
+    }
+  }, { timeout: MEDIUM_BUILD });
+}
+
 for (const name of SNIPPETS) {
   test(`fmt idempotency : ${name}`, async () => {
     if (!ENABLED) return;

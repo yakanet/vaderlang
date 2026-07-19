@@ -28,6 +28,7 @@ import "vader/lsp/analysis"
 /// @return        the JSON value to ship back as the `result` field.
 export handle_initialize :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     state.definition_link_support = read_definition_link_support(params)
+    state.inlay_refresh_support = read_inlay_refresh_support(params)
     state.position_encoding = negotiate_position_encoding(params)
     log_info("vader-lsp: client.linkSupport=${state.definition_link_support} positionEncoding=${position_encoding_kind(state.position_encoding)}")
 
@@ -52,6 +53,16 @@ read_definition_link_support :: fn(params: JsonValue) -> bool {
     td :: get_field(caps, "textDocument")
     def :: get_field(td, "definition")
     return get_bool(def, "linkSupport")
+}
+
+// Pull `capabilities.workspace.inlayHint.refreshSupport`. `false` when absent —
+// the server then skips the refresh push (a client that can't refresh would just
+// error on the unknown request).
+read_inlay_refresh_support :: fn(params: JsonValue) -> bool {
+    caps :: get_field(params, "capabilities")
+    ws :: get_field(caps, "workspace")
+    ih :: get_field(ws, "inlayHint")
+    return get_bool(ih, "refreshSupport")
 }
 
 // Pick the position encoding from the client's `general.positionEncodings`.
@@ -199,4 +210,22 @@ negotiate_from :: fn(text: string) -> PositionEncoding {
     assert_eq(position_encoding_kind(negotiate_from("{\"capabilities\":{}}")), "utf-16")
     // utf-16 explicitly offered, no utf-8/utf-32.
     assert_eq(position_encoding_kind(negotiate_from("{\"capabilities\":{\"general\":{\"positionEncodings\":[\"utf-16\"]}}}")), "utf-16")
+}
+
+// Parse `text` and read `workspace.inlayHint.refreshSupport`.
+refresh_support_from :: fn(text: string) -> bool {
+    r :: parse(text)
+    if r is JsonError { return false }
+    return read_inlay_refresh_support(r)
+}
+
+@test test_inlay_refresh_support_advertised :: fn() -> void {
+    assert(refresh_support_from("{\"capabilities\":{\"workspace\":{\"inlayHint\":{\"refreshSupport\":true}}}}"),
+        "refreshSupport=true is read from the nested path")
+}
+
+@test test_inlay_refresh_support_absent :: fn() -> void {
+    // Any missing link in the path → false (the safe default).
+    assert(!refresh_support_from("{\"capabilities\":{}}"), "no workspace -> false")
+    assert(!refresh_support_from("{\"capabilities\":{\"workspace\":{\"inlayHint\":{}}}}"), "no refreshSupport key -> false")
 }

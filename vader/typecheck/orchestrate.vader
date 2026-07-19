@@ -951,7 +951,7 @@ record_struct_trait_args :: fn(
             fresh[trait_name] = args
             typed.struct_trait_args[name] = fresh
         }
-        _ -> { per_struct[trait_name] = args }
+        _       -> { per_struct[trait_name] = args }
     }
 }
 
@@ -1148,10 +1148,10 @@ register_aliases :: fn(typed: TypedProgram, decls: AST.Decl[]) -> void {
                     }
                 }
             }
-            is AST.ConstDecl as cd -> {
+            is AST.ConstDecl as cd     -> {
                 if cd.ty is null && register_alias_const(cd, typed) {}
             }
-            _ -> {}
+            _                          -> {}
         }
     }
 }
@@ -1430,31 +1430,31 @@ pull_referenced_external_types :: fn(
                 pull_referenced_external_types(a, entry, per_module)
             }
         }
-        is TraitType as tr -> {
+        is TraitType as tr  -> {
             register_external(tr.symbol, entry, per_module)
             for a in tr.args {
                 pull_referenced_external_types(a, entry, per_module)
             }
         }
-        is EnumType as en -> { register_external(en.symbol, entry, per_module) }
-        is ArrayType as a -> { pull_referenced_external_types(a.element, entry, per_module) }
-        is TupleType as p -> {
+        is EnumType as en   -> { register_external(en.symbol, entry, per_module) }
+        is ArrayType as a   -> { pull_referenced_external_types(a.element, entry, per_module) }
+        is TupleType as p   -> {
             for el in p.elements {
                 pull_referenced_external_types(el, entry, per_module)
             }
         }
-        is UnionType as u -> {
+        is UnionType as u   -> {
             for v in u.variants {
                 pull_referenced_external_types(v, entry, per_module)
             }
         }
-        is FnType as f -> {
+        is FnType as f      -> {
             for p in f.params {
                 pull_referenced_external_types(p, entry, per_module)
             }
             pull_referenced_external_types(f.return_type, entry, per_module)
         }
-        _ -> {}
+        _                   -> {}
     }
 }
 
@@ -1532,16 +1532,13 @@ populate_imported_fn_overloads :: fn(
     if targets !is null {
         for [sym_id, st] in targets.symbol_targets {
             ty :: entry_typed.external_types[st.symbol.id] ?? continue
-            match ty {
-                is FnType as ft -> {
-                    push_overload(entry_typed, st.symbol.name, ft)
-                    for s in entry_typed.resolved.symbols {
-                        if s.id == sym_id && s.name != st.symbol.name {
-                            push_overload(entry_typed, s.name, ft)
-                        }
+            if ty is FnType as ft {
+                push_overload(entry_typed, st.symbol.name, ft)
+                for s in entry_typed.resolved.symbols {
+                    if s.id == sym_id && s.name != st.symbol.name {
+                        push_overload(entry_typed, s.name, ft)
                     }
                 }
-                _ -> {}
             }
         }
     }
@@ -1567,7 +1564,9 @@ populate_imported_fn_overloads :: fn(
         }
     }
     core :: typed_by_name["std/core"]
-    if core != null { push_module_exported_fns(core, entry_typed) }
+    if core != null {
+        push_module_exported_fns(core, entry_typed)
+    }
 }
 
 // Push every fn overload of `from` into `into.imported_fn_overloads`, keyed by
@@ -1601,8 +1600,12 @@ push_module_exported_fns :: fn(from: TypedProgram, into: TypedProgram) -> void {
     // (GATE B1), and a wildcard enum-variant access mis-resolves. Structs/traits
     // flow through `struct_decls` / `cross_publish` ; consts/enums/aliases need this.
     for sym in from.resolved.symbols {
-        if sym.visibility != .Public                                                                       { continue }
-        if sym.kind != SymbolKind.Const && sym.kind != SymbolKind.Enum && sym.kind != SymbolKind.TypeAlias { continue }
+        if sym.visibility != .Public {
+            continue
+        }
+        if sym.kind != SymbolKind.Const && sym.kind != SymbolKind.Enum && sym.kind != SymbolKind.TypeAlias {
+            continue
+        }
         cty :: from.decl_types[sym.id] ?? continue
         into.external_types[sym.id] = cty
     }
@@ -1610,27 +1613,18 @@ push_module_exported_fns :: fn(from: TypedProgram, into: TypedProgram) -> void {
 
 push_overload :: fn(typed: TypedProgram, name: string, ft: FnType) -> void {
     bucket :: typed.imported_fn_overloads[name]
-    match bucket {
-        is null -> { typed.imported_fn_overloads[name] = [ft] }
-        _ -> {
-            // Replace-on-signature : an overload is keyed by its PARAMS alone
-            // (`type_list_equals`, NOT `equals_type` — the latter ANDs return
-            // equality, so a stale `fn(i64) -> ?` would not collapse against the
-            // settled `fn(i64) -> i64`). A re-populate after `settle` rebuilds the
-            // same-param FnType with the now-settled return ; overwrite the stale
-            // entry in place (preserving declaration order / primary `[0]`) so
-            // first-match `pick_overload` lands on the settled return. Idempotent —
-            // the import loop no longer clears the bucket before re-populating.
-            for i in 0..<bucket.len() {
-                if type_list_equals(bucket[i].params, ft.params) {
-                    bucket[i] = ft
-                    typed.imported_fn_overloads[name] = bucket
-                    return
-                }
+    if bucket is null {
+        typed.imported_fn_overloads[name] = [ft]
+    } else {
+        for i in 0..<bucket.len() {
+            if type_list_equals(bucket[i].params, ft.params) {
+                bucket[i] = ft
+                typed.imported_fn_overloads[name] = bucket
+                return
             }
-            bucket.push(ft)
-            typed.imported_fn_overloads[name] = bucket
         }
+        bucket.push(ft)
+        typed.imported_fn_overloads[name] = bucket
     }
 }
 
@@ -1947,10 +1941,10 @@ export walk_bodies :: fn(
     }
     for decl in decls {
         match decl {
-            is AST.FnDecl as fd -> {
+            is AST.FnDecl as fd     -> {
                 walk_fn_body(fd, typed, diags, mode)
             }
-            is AST.ConstDecl as cd -> {
+            is AST.ConstDecl as cd  -> {
                 check_const_value(cd, typed, diags)
             }
             is AST.AssertDecl as ad -> {
@@ -1967,7 +1961,7 @@ export walk_bodies :: fn(
                     }
                 }
             }
-            is AST.ImplDecl as id -> {
+            is AST.ImplDecl as id   -> {
                 // All impl metadata + structural checks ran in the pre-pass
                 // (`register_impl_metadata`) so forward references resolve ;
                 // only the member bodies remain to walk here.
@@ -1975,10 +1969,10 @@ export walk_bodies :: fn(
                     walk_fn_body(m, typed, diags, mode)
                 }
             }
-            is AST.EnumDecl -> {}
-            is AST.TraitDecl -> {}
-            is AST.TypeAliasDecl -> {}
-            is AST.ImportDecl -> {}
+            is AST.EnumDecl         -> {}
+            is AST.TraitDecl        -> {}
+            is AST.TypeAliasDecl    -> {}
+            is AST.ImportDecl       -> {}
         }
     }    // Body-less decl kinds — nothing to walk. Listed explicitly (not
     // `_`) so a new Decl variant trips T3013 and forces a decision.

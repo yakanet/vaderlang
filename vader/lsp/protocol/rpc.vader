@@ -96,6 +96,19 @@ export encode_notification :: fn(method: string, params: JsonValue) -> string {
     return stringify(JsonObject { .entries = obj })
 }
 
+/// Encode a server-INITIATED request : `{ jsonrpc, id, method, params }`. Unlike
+/// a notification it carries an `id`, so the client sends back a response — the
+/// server ignores it (a response frame has no `method`, so `dispatch` drops it).
+/// Used for `workspace/*/refresh` pushes after a rebuild.
+export encode_request :: fn(id: i64, method: string, params: JsonValue) -> string {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["jsonrpc"] = JsonString { .value = "2.0" }
+    obj["id"]      = JsonNumber { .value = f64(id) }
+    obj["method"]  = JsonString { .value = method }
+    obj["params"]  = params
+    return stringify(JsonObject { .entries = obj })
+}
+
 // ---- internal helpers -----------------------------------------------------
 
 get_field_or_null :: fn(o: JsonObject, key: string) -> JsonValue {

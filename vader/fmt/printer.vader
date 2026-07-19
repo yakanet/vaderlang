@@ -1676,10 +1676,21 @@ emit_match :: fn(self: Printer, x: p.MatchExpr) -> void {
     self.emit_condition(x.scrutinee)
     self.write(" {")
     self.depth = self.depth + 1
+    // Align every arm's `->` : pad each arm head (`pattern [if guard]`) to the
+    // widest head across the arms, so the arrows line up (the `match` idiom in
+    // CLAUDE.md §6). `0` disables — fewer than 2 arms, or a head too wide to
+    // align without pushing the bodies off the line.
+    align :: match_arm_align(self.source, x.arms)
     for arm in x.arms {
         self.nl_indent()
         self.emit_pattern(arm.pattern)
         self.emit_expr_with_prefix(" if ", arm.guard)
+        if align > 0 {
+            head :: match_arm_head_width(self.source, arm)
+            for k in 0..<(align - head) {
+                self.write(" ")
+            }
+        }
         self.write(" -> ")
         self.emit_expr(arm.body)
     }
@@ -1687,6 +1698,35 @@ emit_match :: fn(self: Printer, x: p.MatchExpr) -> void {
     self.nl_indent()
     self.write("}")
 }
+
+// Rendered width of a match arm's head — `pattern [if guard]`, the part before
+// ` -> `. Measured via a sub-printer, like `if_cond_width`.
+match_arm_head_width :: fn(source: string, arm: p.MatchArm) -> usize {
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.emit_pattern(arm.pattern)
+    sub.emit_expr_with_prefix(" if ", arm.guard)
+    return sub.finish().bytes().len()
+}
+
+// The `->` alignment column for a match : the widest arm head. `0` (no
+// alignment) when there are fewer than 2 arms, or when the widest head exceeds
+// `MATCH_ALIGN_MAX` — past that, padding the short arms wastes space and risks
+// pushing bodies past `MAX_LINE`, so each `->` just follows its own head.
+match_arm_align :: fn(source: string, arms: p.MatchArm[]) -> usize {
+    if arms.len() < 2 { return 0 }
+    w := usize(0)
+    for arm in arms {
+        head :: match_arm_head_width(source, arm)
+        if head > w { w = head }
+    }
+    if w > MATCH_ALIGN_MAX { return 0 }
+    return w
+}
+
+// Widest arm head that still gets `->` alignment. Beyond it a match's arrows are
+// left unaligned (see `match_arm_align`). Chosen so an aligned `->` + a short
+// body still fits comfortably under `MAX_LINE`.
+MATCH_ALIGN_MAX: usize: 44
 
 // A single-line `if <cond> { <one stmt/expr> }` with no `else` — a lookup-table
 // entry. A RUN of ≥2 consecutive such statements is kept inline (the aligned

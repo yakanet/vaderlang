@@ -877,7 +877,8 @@ test("lsp: code action converts an if/else-if chain to match", async () => {
   const edit = conv!.edit.changes[Object.keys(conv!.edit.changes)[0]!]![0]!;
   expect(edit.newText).toContain("match v");
   expect(edit.newText).toContain("is i32 as n");
-  expect(edit.newText).toContain("_ ->");
+  // The `_` arm — `->` may be padded to align with the longer arm's arrow.
+  expect(edit.newText).toMatch(/_\s+->/);
 }, { timeout: MEDIUM_BUILD });
 
 const UFCS_SOURCE = `module "lsp_test"

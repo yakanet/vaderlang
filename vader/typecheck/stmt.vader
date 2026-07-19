@@ -18,8 +18,10 @@ import "vader/types"
 /// `ctx` carries the surrounding fn's return type + loop depth ;
 /// pass `null` for stand-alone block exprs.
 export check_block :: fn(
-    block: AST.BlockExpr, expected: Type | null,
-    typed: TypedProgram, diags: Diagnostic[],
+    block: AST.BlockExpr,
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
@@ -37,15 +39,20 @@ export check_block :: fn(
             first_unreachable_span = stmt_span(stmt)
         }
         check_stmt(stmt, typed, diags, ctx, check_expr_fn)
-        if !diverged && is_divergent_stmt(stmt, typed) { diverged = true }
+        if !diverged && is_divergent_stmt(stmt, typed) {
+            diverged = true
+        }
         push_divergent_narrow_if(stmt, typed, divergent_narrows)
     }
     if diverged && first_unreachable_span is null {
-        if block.trailing !is null { first_unreachable_span = block.trailing.span }
+        if block.trailing !is null {
+            first_unreachable_span = block.trailing.span
+        }
     }
     if first_unreachable_span !is null {
-        diags.push(warning(.UnreachableCode, first_unreachable_span,
-            "code after a divergent statement"))
+        diags.push(
+            warning(.UnreachableCode, first_unreachable_span, "code after a divergent statement"),
+        )
     }
     result: Type = TY_VOID
     match block.trailing {
@@ -58,13 +65,17 @@ export check_block :: fn(
                 if is_divergent_stmt(last, typed) { result = TY_NEVER }
             }
         }
-        _ -> { result = check_expr_fn(block.trailing, expected, typed, diags) }
+        _       -> { result = check_expr_fn(block.trailing, expected, typed, diags) }
     }
     // Restore the binding's static type on block exit so outer
     // scopes don't see the narrowed shape.
     for dn in divergent_narrows {
-        if dn.field_key == "" { pop_narrow(typed, dn.sym_id, dn.prev, dn.static_ty) }
-        else { pop_field_narrow(typed, dn.field_key, dn.prev, dn.static_ty) }
+        if dn.field_key == "" {
+            pop_narrow(typed, dn.sym_id, dn.prev, dn.static_ty)
+        }
+        else {
+            pop_field_narrow(typed, dn.field_key, dn.prev, dn.static_ty)
+        }
     }
     // Don't clobber the trailing expression's `expr_kinds` entry —
     // expression-bodied fns synthesise a BlockExpr around the trailing
@@ -77,7 +88,9 @@ export check_block :: fn(
     }
     if typed.expr_types[block.id] is null {
         typed.expr_types[block.id] = result
-        if typed.dump_types { typed.node_spans[block.id] = block.span }
+        if typed.dump_types {
+            typed.node_spans[block.id] = block.span
+        }
     }
     return result
 }
@@ -85,20 +98,22 @@ export check_block :: fn(
 /// Type-check a single statement. Reads `ctx` for `return` / `break` /
 /// `continue` validation ; writes `local_types` for let-bindings.
 export check_stmt :: fn(
-    stmt: AST.Stmt, typed: TypedProgram, diags: Diagnostic[],
+    stmt: AST.Stmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     match stmt {
-        is AST.LetStmt      as s -> { check_let(s, typed, diags, check_expr_fn) }
-        is AST.AssignStmt   as s -> { check_assign(s, typed, diags, check_expr_fn) }
-        is AST.ExprStmt     as s -> { check_expr_fn(s.expr, null, typed, diags) }
-        is AST.ReturnStmt   as s -> { check_return(s, typed, diags, ctx, check_expr_fn) }
-        is AST.YieldStmt    as s -> { check_yield(s, typed, diags, ctx, check_expr_fn) }
-        is AST.ForStmt      as s -> { check_for(s, typed, diags, ctx, check_expr_fn) }
-        is AST.BreakStmt    as s -> { check_loop_jump(s.span, s.label, typed, ctx, diags) }
+        is AST.LetStmt as s      -> { check_let(s, typed, diags, check_expr_fn) }
+        is AST.AssignStmt as s   -> { check_assign(s, typed, diags, check_expr_fn) }
+        is AST.ExprStmt as s     -> { check_expr_fn(s.expr, null, typed, diags) }
+        is AST.ReturnStmt as s   -> { check_return(s, typed, diags, ctx, check_expr_fn) }
+        is AST.YieldStmt as s    -> { check_yield(s, typed, diags, ctx, check_expr_fn) }
+        is AST.ForStmt as s      -> { check_for(s, typed, diags, ctx, check_expr_fn) }
+        is AST.BreakStmt as s    -> { check_loop_jump(s.span, s.label, typed, ctx, diags) }
         is AST.ContinueStmt as s -> { check_loop_jump(s.span, s.label, typed, ctx, diags) }
-        is AST.DeferStmt    as s -> { check_defer(s, typed, diags, ctx, check_expr_fn) }
+        is AST.DeferStmt as s    -> { check_defer(s, typed, diags, ctx, check_expr_fn) }
     }
     return
 }
@@ -124,79 +139,112 @@ export fn_is_async :: fn(fn_decl: AST.FnDecl) -> bool {
 // Whether a block lexically contains an `await` (recursively, but NOT descending
 // into nested lambdas — a lambda's own `await` doesn't color the enclosing fn).
 block_has_await :: fn(b: AST.BlockExpr) -> bool {
-    for s in b.stmts { if stmt_has_await(s) { return true } }
+    for s in b.stmts {
+        if stmt_has_await(s) {
+            return true
+        }
+    }
     trailing :: b.trailing ?? return false
     return expr_has_await(trailing)
 }
 
-stmt_has_await :: fn(s: AST.Stmt) -> bool =
-    // @partial: only expr-carrying statements can hold an `await`; break /
-    // continue / defer / yield can't reach one in a coroutine body.
-    @partial match s {
-        is AST.LetStmt      -> { return expr_has_await(s.value) }
-        is AST.AssignStmt   -> { return expr_has_await(s.target) || expr_has_await(s.value) }
-        is AST.ExprStmt     -> { return expr_has_await(s.expr) }
-        is AST.ReturnStmt   -> { rv :: s.value  if rv == null { return false }  return expr_has_await(rv) }
-        is AST.ForStmt      -> { return for_form_has_await(s.form) || block_has_await(s.body) }
-        _ -> { return false }
+stmt_has_await :: fn(s: AST.Stmt) -> bool = @partial match s {
+    is AST.LetStmt    -> { return expr_has_await(s.value) }
+    is AST.AssignStmt -> { return expr_has_await(s.target) || expr_has_await(s.value) }
+    is AST.ExprStmt   -> { return expr_has_await(s.expr) }
+    is AST.ReturnStmt -> {
+        // @partial: only expr-carrying statements can hold an `await`; break /
+        // continue / defer / yield can't reach one in a coroutine body.
+
+        rv :: s.value
+        if rv == null {
+            return false
+        }
+        return expr_has_await(rv)
     }
+    is AST.ForStmt    -> { return for_form_has_await(s.form) || block_has_await(s.body) }
+    _                 -> { return false }
+}
 
 // Whether a for-form's iterable / condition expr carries an `await` (the
 // infinite form has neither).
-for_form_has_await :: fn(form: AST.ForForm) -> bool =
-    match form {
-        is AST.InFor       -> { return expr_has_await(form.iter) }
-        is AST.WhileFor    -> { return expr_has_await(form.cond) }
-        is AST.InfiniteFor -> { return false }
-    }
+for_form_has_await :: fn(form: AST.ForForm) -> bool = match form {
+    is AST.InFor       -> { return expr_has_await(form.iter) }
+    is AST.WhileFor    -> { return expr_has_await(form.cond) }
+    is AST.InfiniteFor -> { return false }
+}
 
-expr_has_await :: fn(e: AST.Expr) -> bool =
-    // @partial: leaf/type-position exprs can't carry a top-level `await`, and
-    // LambdaExpr is deliberately NOT descended (a lambda can't be async in v1,
-    // and an await inside it doesn't color the enclosing fn).
-    @partial match e {
-        is AST.AwaitExpr  -> { return true }
-        is AST.BinaryExpr as x -> { return expr_has_await(x.left) || expr_has_await(x.right) }
-        is AST.UnaryExpr  as x -> { return expr_has_await(x.operand) }
-        is AST.CastExpr   as x -> { return expr_has_await(x.value) }
-        is AST.IndexExpr  as x -> { return expr_has_await(x.target) || expr_has_await(x.index) }
-        is AST.FieldExpr  as x -> { return expr_has_await(x.target) }
-        is AST.RangeExpr  as x -> { return expr_has_await(x.lower) || expr_has_await(x.upper) }
-        is AST.BlockExpr  as x -> { return block_has_await(x) }
-        is AST.CallExpr   as x -> {
-            if expr_has_await(x.callee) { return true }
-            for a in x.args { if expr_has_await(a.value) { return true } }
-            return false
+expr_has_await :: fn(e: AST.Expr) -> bool = @partial match e {
+    is AST.AwaitExpr          -> { return true }
+    is AST.BinaryExpr as x    -> { return expr_has_await(x.left) || expr_has_await(x.right) }
+    is AST.UnaryExpr as x     -> { return expr_has_await(x.operand) }
+    is AST.CastExpr as x      -> { return expr_has_await(x.value) }
+    is AST.IndexExpr as x     -> { return expr_has_await(x.target) || expr_has_await(x.index) }
+    is AST.FieldExpr as x     -> { return expr_has_await(x.target) }
+    is AST.RangeExpr as x     -> { return expr_has_await(x.lower) || expr_has_await(x.upper) }
+    is AST.BlockExpr as x     -> { return block_has_await(x) }
+    is AST.CallExpr as x      -> {
+        // @partial: leaf/type-position exprs can't carry a top-level `await`, and
+        // LambdaExpr is deliberately NOT descended (a lambda can't be async in v1,
+        // and an await inside it doesn't color the enclosing fn).
+
+        if expr_has_await(x.callee) {
+            return true
         }
-        is AST.IfExpr as x -> {
-            if expr_has_await(x.cond) { return true }
-            if block_has_await(x.then_block) { return true }
-            match x.else_branch {
-                is AST.IfElseIf    as ei -> { return expr_has_await(ei.branch) }
-                is AST.IfElseBlock as eb -> { return block_has_await(eb.block) }
-                is null                  -> { return false }
+        for a in x.args {
+            if expr_has_await(a.value) {
+                return true
             }
         }
-        is AST.MatchExpr as x -> {
-            if expr_has_await(x.scrutinee) { return true }
-            for a in x.arms { if expr_has_await(a.body) { return true } }
-            return false
+        return false
+    }
+    is AST.IfExpr as x        -> {
+        if expr_has_await(x.cond)        { return true }
+        if block_has_await(x.then_block) { return true }
+        match x.else_branch {
+            is AST.IfElseIf as ei    -> { return expr_has_await(ei.branch) }
+            is AST.IfElseBlock as eb -> { return block_has_await(eb.block) }
+            is null                  -> { return false }
         }
-        is AST.StructLitExpr as x -> {
-            for item in x.items {
-                match item {
-                    is AST.StructLitField  as fld -> { if expr_has_await(fld.value) { return true } }
-                    is AST.StructLitSpread as sp  -> { if expr_has_await(sp.expr) { return true } }
+    }
+    is AST.MatchExpr as x     -> {
+        if expr_has_await(x.scrutinee) {
+            return true
+        }
+        for a in x.arms {
+            if expr_has_await(a.body) {
+                return true
+            }
+        }
+        return false
+    }
+    is AST.StructLitExpr as x -> {
+        for item in x.items {
+            match item {
+                is AST.StructLitField as fld -> {
+                    if expr_has_await(fld.value) {
+                        return true
+                    }
+                }
+                is AST.StructLitSpread as sp -> {
+                    if expr_has_await(sp.expr) {
+                        return true
+                    }
                 }
             }
-            return false
         }
-        is AST.SeqLitExpr as x -> {
-            for el in x.elements { if expr_has_await(el) { return true } }
-            return false
-        }
-        _ -> { return false }
+        return false
     }
+    is AST.SeqLitExpr as x    -> {
+        for el in x.elements {
+            if expr_has_await(el) {
+                return true
+            }
+        }
+        return false
+    }
+    _                         -> { return false }
+}
 
 /// Element type `T` of a generator's `-> Iterator<T>` return, or `null`
 /// (plus a T3056 diagnostic) when the return type isn't a valid
@@ -208,8 +256,13 @@ generator_element_type :: fn(fn_decl: AST.FnDecl, return_type: Type, diags: Diag
             return tt.args[0]
         }
     }
-    diags.push(typecheck_error(.GeneratorReturnMustBeIterator, fn_decl.name_span,
-        "`${fn_decl.name}` yields but returns ${display_type(return_type)}"))
+    diags.push(
+        typecheck_error(
+            .GeneratorReturnMustBeIterator,
+            fn_decl.name_span,
+            "`${fn_decl.name}` yields but returns ${display_type(return_type)}",
+        ),
+    )
     return null
 }
 
@@ -217,72 +270,80 @@ generator_element_type :: fn(fn_decl: AST.FnDecl, return_type: Type, diags: Diag
 /// blocks / loops / ifs / matches / defers) is a `yield`. Nested lambdas
 /// are NOT descended into — a `yield` there is illegal anyway.
 block_has_yield :: fn(block: AST.BlockExpr) -> bool {
-    for s in block.stmts { if stmt_has_yield(s) { return true } }
+    for s in block.stmts {
+        if stmt_has_yield(s) {
+            return true
+        }
+    }
     // A trailing `if` / `match` / nested block (e.g. a for-body whose only
     // item is `if p { yield x }`) parses as the block's trailing expr, not a
     // stmt — descend it too.
     if block.trailing !is null {
-        if expr_has_yield(block.trailing) { return true }
+        if expr_has_yield(block.trailing) {
+            return true
+        }
     }
     return false
 }
 
-stmt_has_yield :: fn(s: AST.Stmt) -> bool =
-    match s {
-        is AST.YieldStmt    -> { return true }
-        is AST.ForStmt   as f -> { return block_has_yield(f.body) }
-        is AST.DeferStmt as d -> {
-            match d.body {
-                is AST.DeferStmtBody  as b -> { return stmt_has_yield(b.stmt) }
-                is AST.DeferBlockBody as b -> { return block_has_yield(b.block) }
-            }
+stmt_has_yield :: fn(s: AST.Stmt) -> bool = match s {
+    is AST.YieldStmt       -> { return true }
+    is AST.ForStmt as f    -> { return block_has_yield(f.body) }
+    is AST.DeferStmt as d  -> {
+        match d.body {
+            is AST.DeferStmtBody as b  -> { return stmt_has_yield(b.stmt) }
+            is AST.DeferBlockBody as b -> { return block_has_yield(b.block) }
         }
-        is AST.LetStmt      -> { return false }
-        is AST.AssignStmt   -> { return false }
-        is AST.ExprStmt  as e -> { return expr_has_yield(e.expr) }
-        is AST.ReturnStmt as r -> {
-            if r.value == null { return false }
-            return expr_has_yield(r.value)
-        }
-        is AST.BreakStmt    -> { return false }
-        is AST.ContinueStmt -> { return false }
     }
+    is AST.LetStmt         -> { return false }
+    is AST.AssignStmt      -> { return false }
+    is AST.ExprStmt as e   -> { return expr_has_yield(e.expr) }
+    is AST.ReturnStmt as r -> {
+        if r.value == null {
+            return false
+        }
+        return expr_has_yield(r.value)
+    }
+    is AST.BreakStmt       -> { return false }
+    is AST.ContinueStmt    -> { return false }
+}
 
 /// A `yield` can hide inside a block/if/match used in statement position
 /// (`yield` is a statement, so it only appears in a block's stmt list) —
 /// descend the expression forms that carry blocks, skipping lambdas.
-expr_has_yield :: fn(e: AST.Expr) -> bool =
-    match e {
-        is AST.BlockExpr as b -> { return block_has_yield(b) }
-        is AST.IfExpr    as i -> { return if_has_yield(i) }
-        is AST.MatchExpr as m -> {
-            for arm in m.arms { if expr_has_yield(arm.body) { return true } }
-            return false
+expr_has_yield :: fn(e: AST.Expr) -> bool = match e {
+    is AST.BlockExpr as b -> { return block_has_yield(b) }
+    is AST.IfExpr as i -> { return if_has_yield(i) }
+    is AST.MatchExpr as m -> {
+        for arm in m.arms {
+            if expr_has_yield(arm.body) {
+                return true
+            }
         }
-        is AST.NullCoalesceExpr as nc -> {
-            if expr_has_yield(nc.left) { return true }
-            inner :: AST.coalesce_fallback_expr(nc.fallback) ?? return false
-            return expr_has_yield(inner)
-        }
-        // No other expression form carries a statement block a `yield` could
-        // live in ; a LambdaExpr body is deliberately NOT descended (a `yield`
-        // there is illegal — T3059 — so it must not count for the enclosing
-        // generator's yield check). Exhaustive so a new block-bearing Expr
-        // variant trips T3013 here rather than being silently missed.
-        is AST.IntLitExpr   | AST.FloatLitExpr  | AST.BoolLitExpr | AST.NullLitExpr
-         | AST.CharLitExpr  | AST.StringLitExpr | AST.IdentExpr   | AST.CallExpr
-         | AST.FieldExpr    | AST.IndexExpr     | AST.UnaryExpr   | AST.BinaryExpr
-         | AST.LambdaExpr   | AST.StructLitExpr | AST.SeqLitExpr  | AST.RangeExpr
-         | AST.CastExpr      | AST.GenericInstExpr
-         | AST.IntrinsicCallExpr | AST.DotVariantExpr | AST.FnTypeExpr
-         | AST.ArrayTypeExpr | AST.AwaitExpr -> { return false }
+        return false
     }
+    is AST.NullCoalesceExpr as nc -> {
+        if expr_has_yield(nc.left) {
+            return true
+        }
+        inner :: AST.coalesce_fallback_expr(nc.fallback) ?? return false
+        return expr_has_yield(inner)
+    }
+    is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr | AST.StringLitExpr | AST.IdentExpr | AST.CallExpr | AST.FieldExpr | AST.IndexExpr | AST.UnaryExpr | AST.BinaryExpr | AST.LambdaExpr | AST.StructLitExpr | AST.SeqLitExpr | AST.RangeExpr | AST.CastExpr | AST.GenericInstExpr | AST.IntrinsicCallExpr | AST.DotVariantExpr | AST.FnTypeExpr | AST.ArrayTypeExpr | AST.AwaitExpr -> { return false }
+}
+// No other expression form carries a statement block a `yield` could
+// live in ; a LambdaExpr body is deliberately NOT descended (a `yield`
+// there is illegal — T3059 — so it must not count for the enclosing
+// generator's yield check). Exhaustive so a new block-bearing Expr
+// variant trips T3013 here rather than being silently missed.
 
 if_has_yield :: fn(i: AST.IfExpr) -> bool {
-    if block_has_yield(i.then_block) { return true }
+    if block_has_yield(i.then_block) {
+        return true
+    }
     match i.else_branch {
         is null                 -> { return false }
-        is AST.IfElseIf    as e -> { return if_has_yield(e.branch) }
+        is AST.IfElseIf as e    -> { return if_has_yield(e.branch) }
         is AST.IfElseBlock as e -> { return block_has_yield(e.block) }
     }
 }
@@ -292,8 +353,10 @@ if_has_yield :: fn(i: AST.IfExpr) -> bool {
 /// Final-expression / implicit-return type-checking happens through
 /// the trailing-expr arm of `check_block`.
 export check_fn_body :: fn(
-    fn_decl: AST.FnDecl, body: AST.BlockExpr,
-    typed: TypedProgram, diags: Diagnostic[],
+    fn_decl: AST.FnDecl,
+    body: AST.BlockExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     return_type :: lookup_return_type(fn_decl, typed)
@@ -312,17 +375,23 @@ export check_fn_body :: fn(
     // the trailing expression. `declare_fn_return` leaves this as
     // TY_UNRESOLVED ; we resolve it here and patch `decl_types` so
     // call sites see the inferred type.
-    inferred_return :: fn_decl.is_expression_bodied && (return_type is UnresolvedType)
+    inferred_return :: fn_decl.is_expression_bodied && return_type is UnresolvedType
     // An async coroutine's body produces the inner `T` of `Async<T>` (the frame
     // wraps it), so check its returns / trailing against `T`, not the erased
     // return. Transitional `async fn -> T` has inner == T (no-op) ; generators
     // keep the raw return (they yield, never return the stream).
     effective_return :: if is_async && !is_generator { async_inner_type(return_type) } else { return_type }
     expected: Type | null = effective_return
-    if inferred_return { expected = null }
+    if inferred_return {
+        expected = null
+    }
     ctx :: FnContext {
-        .return_type = effective_return, .self_type = null, .loop_depth = 0,
-        .fn_id = fn_decl.id, .is_generator = is_generator, .yield_type = yield_type,
+        .return_type = effective_return,
+        .self_type = null,
+        .loop_depth = 0,
+        .fn_id = fn_decl.id,
+        .is_generator = is_generator,
+        .yield_type = yield_type,
         .is_async = is_async,
     }
     prev :: typed.current_fn_ctx
@@ -337,8 +406,9 @@ export check_fn_body :: fn(
         // call) so substituting would just amplify the unresolved-
         // ness. Surface T3034 instead.
         if contains_unresolved(got) {
-            diags.push(typecheck_error(.RecursiveExprBodiedFn, fn_decl.name_span,
-                "`${fn_decl.name}`"))
+            diags.push(
+                typecheck_error(.RecursiveExprBodiedFn, fn_decl.name_span, "`${fn_decl.name}`"),
+            )
         } else {
             defaulted :: default_if_free(got)
             patch_fn_return_type(fn_decl, defaulted, typed)
@@ -347,7 +417,14 @@ export check_fn_body :: fn(
         // Implicit-return : a trailing expression substitutes for an
         // explicit `return`. Surface T3020 against the trailing's span.
         if body.trailing !is null {
-            emit_return_mismatch_if(got, effective_return, body.trailing.span, body.trailing.id, typed, diags)
+            emit_return_mismatch_if(
+                got,
+                effective_return,
+                body.trailing.span,
+                body.trailing.id,
+                typed,
+                diags,
+            )
         }
     }
     typed.current_fn_ctx = prev
@@ -360,16 +437,16 @@ patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram) 
             cur :: typed.decl_types[s.id]
             match cur {
                 is FnType as ft -> { typed.decl_types[s.id] = mk_fn(ft.params, ret) }
-                _ -> {}
+                _               -> {}
             }
         }
-        is null -> {
+        is null        -> {
             // Impl method — patch the span-keyed table.
             sp_key :: fn_decl.name_span.hash()
             cur :: typed.impl_method_decl_types[sp_key]
             match cur {
                 is FnType as ft -> { typed.impl_method_decl_types[sp_key] = mk_fn(ft.params, ret) }
-                _ -> {}
+                _               -> {}
             }
         }
     }
@@ -381,49 +458,70 @@ lookup_decl_symbol_stmt :: fn(resolved: ResolvedModule, fd: AST.FnDecl) -> Symbo
     if bucket !is null {
         for s in bucket {
             sp :: s.defined_at ?? continue
-            if sp.start.line == fd.name_span.start.line &&
-               sp.start.column == fd.name_span.start.column {
+            if sp.start.line == fd.name_span.start.line && sp.start.column == fd.name_span.start.column {
                 return s
             }
         }
     }
-    for s in resolved.symbols { if s.name == fd.name { return s } }
+    for s in resolved.symbols {
+        if s.name == fd.name {
+            return s
+        }
+    }
     return null
 }
 
-contains_unresolved :: fn(t: Type) -> bool =
-    // @partial: only the composite type variants can carry an Unresolved leaf;
-    // every scalar / primitive variant is unresolved-free, so `false` is right.
-    @partial match t {
-        is UnresolvedType -> { return true }
-        is UnionType as u -> {
-            for v in u.variants { if contains_unresolved(v) { return true } }
-            return false
+contains_unresolved :: fn(t: Type) -> bool = @partial match t {
+    is UnresolvedType  -> { return true }
+    is UnionType as u  -> {
+        // @partial: only the composite type variants can carry an Unresolved leaf;
+        // every scalar / primitive variant is unresolved-free, so `false` is right.
+
+        for v in u.variants {
+            if contains_unresolved(v) {
+                return true
+            }
         }
-        is ArrayType as a -> { return contains_unresolved(a.element) }
-        is FnType as f -> {
-            for p in f.params { if contains_unresolved(p) { return true } }
-            return contains_unresolved(f.return_type)
-        }
-        is TupleType as p -> {
-            for el in p.elements { if contains_unresolved(el) { return true } }
-            return false
-        }
-        is StructType as s -> {
-            for a in s.args { if contains_unresolved(a) { return true } }
-            return false
-        }
-        _ -> { return false }
+        return false
     }
-
-
+    is ArrayType as a  -> { return contains_unresolved(a.element) }
+    is FnType as f     -> {
+        for p in f.params {
+            if contains_unresolved(p) {
+                return true
+            }
+        }
+        return contains_unresolved(f.return_type)
+    }
+    is TupleType as p  -> {
+        for el in p.elements {
+            if contains_unresolved(el) {
+                return true
+            }
+        }
+        return false
+    }
+    is StructType as s -> {
+        for a in s.args {
+            if contains_unresolved(a) {
+                return true
+            }
+        }
+        return false
+    }
+    _                  -> { return false }
+}
 
 // Push T3020 when `got` doesn't flow into `expected`. Shared between
 // `check_return` and the implicit-return check in `check_fn_body` so
 // wording / arity stay in sync.
 emit_return_mismatch_if :: fn(
-    got: Type, expected: Type, span: Span, node_id: usize,
-    typed: TypedProgram, diags: Diagnostic[],
+    got: Type,
+    expected: Type,
+    span: Span,
+    node_id: usize,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void = emit_mismatch_if(got, expected, span, node_id, .BodyReturnIncompatible, typed, diags)
 
 // The one coercion gate shared by let / return / yield / assign : `got` flows
@@ -439,7 +537,9 @@ emit_return_mismatch_if :: fn(
 // compiler handles the single-expr form fine; the seed does not. Leave it
 // brace-bodied until the seed is advanced past that inliner/interning bug.
 flows_into :: fn(got: Type, expected: Type, node_id: usize, typed: TypedProgram) -> bool {
-    if is_assignable(got, expected, null) { return true }
+    if is_assignable(got, expected, null) {
+        return true
+    }
     return try_into(got, expected, typed, node_id)
 }
 
@@ -448,26 +548,38 @@ flows_into :: fn(got: Type, expected: Type, node_id: usize, typed: TypedProgram)
 // stays in sync ; only the diagnostic code differs. `node_id` is the coerced
 // value expr's `Expr.id`, forwarded to `try_into` for the LSP into-hint table.
 emit_mismatch_if :: fn(
-    got: Type, expected: Type, span: Span, node_id: usize, code: TypecheckCode,
-    typed: TypedProgram, diags: Diagnostic[],
+    got: Type,
+    expected: Type,
+    span: Span,
+    node_id: usize,
+    code: TypecheckCode,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
-    if flows_into(got, expected, node_id, typed) { return }
-    diags.push(typecheck_error(code, span,
-        "expected ${display_type(expected)}, got ${display_type(got)}"))
+    if flows_into(got, expected, node_id, typed) {
+        return
+    }
+    diags.push(
+        typecheck_error(code, span, "expected ${display_type(expected)}, got ${display_type(got)}"),
+    )
 }
 
 // Resolve the effective fn-context: the arg-side `ctx` when present, else the
 // walk-global `current_fn_ctx` (the recursive `infer_if` / `infer_match` paths
 // pass `ctx = null`, so the body's return / yield targets need this fallback).
 resolve_ctx :: fn(ctx: FnContext | null, typed: TypedProgram) -> FnContext | null {
-    if ctx != null { return ctx }
+    if ctx != null {
+        return ctx
+    }
     return typed.current_fn_ctx
 }
 
 // ---- per-stmt helpers -----------------------------------------------------
 
 check_let :: fn(
-    s: AST.LetStmt, typed: TypedProgram, diags: Diagnostic[],
+    s: AST.LetStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     ann: Type | null = null
@@ -478,11 +590,16 @@ check_let :: fn(
     declared: Type = TY_UNRESOLVED
     match ann {
         is null -> { declared = default_if_free(got) }
-        _ -> {
+        _       -> {
             declared = ann
             if !flows_into(got, ann, s.value.id, typed) {
-                diags.push(typecheck_error(.TypeMismatch, s.span,
-                    "expected ${display_type(ann)}, got ${display_type(got)}"))
+                diags.push(
+                    typecheck_error(
+                        .TypeMismatch,
+                        s.span,
+                        "expected ${display_type(ann)}, got ${display_type(got)}",
+                    ),
+                )
             }
         }
     }
@@ -512,8 +629,13 @@ check_let :: fn(
     // isn't a structural type expression (e.g. a fn call returning
     // type), since we can't pre-resolve it without VM execution.
     if declared is TypeMetaType && !is_let_type_alias {
-        diags.push(typecheck_error(.TypeValuedSlotNotYetSupported, s.span,
-            "`type`-valued locals are not yet supported (Layer 4 milestone B.1) ; use the immutable form `name :: <type-expr>` for an in-fn type alias, or a top-level alias `Name :: type[T] ...`"))
+        diags.push(
+            typecheck_error(
+                .TypeValuedSlotNotYetSupported,
+                s.span,
+                "`type`-valued locals are not yet supported (Layer 4 milestone B.1) ; use the immutable form `name :: <type-expr>` for an in-fn type alias, or a top-level alias `Name :: type[T] ...`",
+            ),
+        )
     }
     assign_binding_types(s.binding, declared, typed, diags)
 }
@@ -521,7 +643,9 @@ check_let :: fn(
 import "vader/resolver/symbol"
 
 check_assign :: fn(
-    s: AST.AssignStmt, typed: TypedProgram, diags: Diagnostic[],
+    s: AST.AssignStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     // T3041 : bare-ident assignment to a `::`-bound local. Surface
@@ -529,8 +653,13 @@ check_assign :: fn(
     // carry extra expr_types for a rejected write.
     if s.target is AST.IdentExpr {
         if is_const_reassign(s.target, typed) {
-            diags.push(typecheck_error(.CannotReassignConst, s.target.span,
-                "`${s.target.name}` is declared with `::` — use `:=` to allow mutation"))
+            diags.push(
+                typecheck_error(
+                    .CannotReassignConst,
+                    s.target.span,
+                    "`${s.target.name}` is declared with `::` — use `:=` to allow mutation",
+                ),
+            )
             return
         }
     }
@@ -547,8 +676,13 @@ check_assign :: fn(
         check_expr_fn(ix.index, index_key_expected(target_arr_ty, typed), typed, diags)
         if target_arr_ty is ArrayType {
             if target_arr_ty.immutable {
-                diags.push(typecheck_error(.CannotMutateImmutableArray, ix.target.span,
-                    "cannot mutate `${display_type(target_arr_ty)}` — declared with `const`"))
+                diags.push(
+                    typecheck_error(
+                        .CannotMutateImmutableArray,
+                        ix.target.span,
+                        "cannot mutate `${display_type(target_arr_ty)}` — declared with `const`",
+                    ),
+                )
                 return
             }
             // `arr[i]` types to the element type ; array elements are never
@@ -569,7 +703,9 @@ check_assign :: fn(
     }
     target_ty :: check_expr_fn(s.target, null, typed, diags)
     value_hint: Type | null = null
-    if !(target_ty is UnresolvedType) { value_hint = target_ty }
+    if target_ty !is UnresolvedType {
+        value_hint = target_ty
+    }
     value_ty :: check_expr_fn(s.value, value_hint, typed, diags)
     // Enforce the slot's *declared* type — not `target_ty`, which may be a
     // flow-narrowing. `x: A|B = a ; if x is A { x = b_value }` is legal (the
@@ -599,12 +735,16 @@ check_assign :: fn(
 // (`narrow.vader`) — a new narrowable lvalue shape has to be added to both.
 declared_lvalue_type :: fn(target: AST.Expr, fallback: Type, typed: TypedProgram) -> Type {
     if target is AST.IdentExpr {
-        if typed.narrowed_bindings.is_empty() { return fallback }
+        if typed.narrowed_bindings.is_empty() {
+            return fallback
+        }
         sym :: typed.resolved.idents[target.span.hash()] ?? return fallback
         return type_of_symbol(sym, typed)
     }
     if target is AST.FieldExpr {
-        if typed.narrowed_fields.is_empty() { return fallback }
+        if typed.narrowed_fields.is_empty() {
+            return fallback
+        }
         recv :: typed.expr_types[target.target.id] ?? return fallback
         d :: declared_struct_field_type(recv, target.field, typed) ?? return fallback
         return d
@@ -618,22 +758,33 @@ declared_lvalue_type :: fn(target: AST.Expr, fallback: Type, typed: TypedProgram
 // `IndexSet` impl — has no declared slot to enforce (the read side already
 // surfaced any error), so it no-ops.
 emit_assign_mismatch_if :: fn(
-    got: Type, expected: Type | null, span: Span, node_id: usize,
-    typed: TypedProgram, diags: Diagnostic[],
+    got: Type,
+    expected: Type | null,
+    span: Span,
+    node_id: usize,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
-    if expected == null { return }
+    if expected == null                          { return }
     if flows_into(got, expected, node_id, typed) { return }
-    diags.push(typecheck_error(.AssignTypeMismatch, span,
-        "cannot assign a value of type ${display_type(got)} to a slot of type ${display_type(expected)}"))
+    diags.push(
+        typecheck_error(
+            .AssignTypeMismatch,
+            span,
+            "cannot assign a value of type ${display_type(got)} to a slot of type ${display_type(expected)}",
+        ),
+    )
 }
 
 is_const_reassign :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
     sym :: typed.resolved.idents[ident.span.hash()] ?? return false
-    return !(typed.resolved.immutable_locals[sym.id] is null)
+    return typed.resolved.immutable_locals[sym.id] !is null
 }
 
 check_return :: fn(
-    s: AST.ReturnStmt, typed: TypedProgram, diags: Diagnostic[],
+    s: AST.ReturnStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
@@ -651,9 +802,19 @@ check_return :: fn(
     if v is null {
         match effective {
             is null -> {}
-            // Empty `return` : no value expr, so no coercion / hint site.
-            _ -> { emit_return_mismatch_if(TY_VOID, effective.return_type, s.span, s.id, typed, diags) }
+            _       -> {
+                emit_return_mismatch_if(
+                    TY_VOID,
+                    effective.return_type,
+                    s.span,
+                    s.id,
+                    typed,
+                    diags,
+                )
+            }
         }
+        // Empty `return` : no value expr, so no coercion / hint site.
+
         return
     }
     expected: Type | null = null
@@ -675,7 +836,9 @@ check_return :: fn(
 }
 
 check_yield :: fn(
-    s: AST.YieldStmt, typed: TypedProgram, diags: Diagnostic[],
+    s: AST.YieldStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
@@ -684,7 +847,17 @@ check_yield :: fn(
         // `yield e` must coerce to the generator's element type `T` (T3061).
         yt :: effective.yield_type
         got :: check_expr_fn(s.value, yt, typed, diags)
-        if yt != null { emit_mismatch_if(got, yt, s.value.span, s.value.id, .GeneratorYieldIncompatible, typed, diags) }
+        if yt != null {
+            emit_mismatch_if(
+                got,
+                yt,
+                s.value.span,
+                s.value.id,
+                .GeneratorYieldIncompatible,
+                typed,
+                diags,
+            )
+        }
         return
     }
     // A `yield` in the body makes a fn a generator by inference, so the only
@@ -697,48 +870,70 @@ check_yield :: fn(
 }
 
 check_for :: fn(
-    s: AST.ForStmt, typed: TypedProgram, diags: Diagnostic[],
+    s: AST.ForStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     binding: string | null = null
     match s.form {
-        is AST.InfiniteFor -> {}
+        is AST.InfiniteFor   -> {}
         is AST.WhileFor as w -> {
             got :: check_expr_fn(w.cond, null, typed, diags)
             // `for X { ... }` desugars to `for _ in X { ... }` when X
             // is iterable (array today ; custom Iterator impls land
             // with coerce.vader). Skip T3019 in that case.
-            if got is ArrayType { /* iterable — no diag */ }
+            if got is ArrayType {}
             else if !is_assignable(got, TY_BOOL, null) {
-                diags.push(typecheck_error(.ConditionMustBeBool, w.cond.span,
-                    "while condition must be `bool`, got ${display_type(got)}"))
+                /* iterable — no diag */
+
+                diags.push(
+                    typecheck_error(
+                        .ConditionMustBeBool,
+                        w.cond.span,
+                        "while condition must be `bool`, got ${display_type(got)}",
+                    ),
+                )
             }
         }
-        is AST.InFor as f -> {
+        is AST.InFor as f    -> {
             iter_ty :: check_expr_fn(f.iter, null, typed, diags)
             elem :: for_in_element(iter_ty, typed)
             match f.loop_var {
-                is AST.NamedVar as nv -> {
+                is AST.NamedVar as nv       -> {
                     typed.local_types[nv.span.hash()] = elem
                     // A real user name is var-targetable ; the `_` wildcard is not.
                     if nv.name != "_" { binding = nv.name }
                 }
-                // `for [k, v] in …` — type each pattern leaf against the element
-                // (tuple / array / `Entry<K,V> implements Into<[K,V]>`), reusing the
-                // destructuring-let machinery. Not var-targetable (no single name).
-                is AST.DestructureVar as dv -> { assign_binding_types(dv.pattern, elem, typed, diags) }
-                // `for <range>` — no binding, no target variable (label only).
-                is AST.DiscardVar -> {}
-            }
+                is AST.DestructureVar as dv -> {
+                    assign_binding_types(
+                        dv.pattern,
+                        elem,
+                        typed,
+                        diags,
+                    )
+                }
+                is AST.DiscardVar           -> {}
+            }            // `for [k, v] in …` — type each pattern leaf against the element
+            // (tuple / array / `Entry<K,V> implements Into<[K,V]>`), reusing the
+            // destructuring-let machinery. Not var-targetable (no single name).
+
+            // `for <range>` — no binding, no target variable (label only).
+
         }
     }
     // W0010 — a label on a for-in loop is redundant : it already has an iteration
     // variable to target it by (`break <var>`). A label is only needed for a
     // `while` / infinite loop, which has no variable.
     if s.label != null && binding != null {
-        diags.push(warning(.PreferLoopVariableOverLabel, s.span,
-            "target this loop by its variable `${binding}` instead of a label"))
+        diags.push(
+            warning(
+                .PreferLoopVariableOverLabel,
+                s.span,
+                "target this loop by its variable `${binding}` instead of a label",
+            ),
+        )
     }
     // Push this loop onto the walk-global stack (survives `if`/`match` nesting)
     // so a `break <name>` / `continue <name>` in the body resolves against its
@@ -750,7 +945,13 @@ check_for :: fn(
     return
 }
 
-check_loop_jump :: fn(span: Span, label: string | null, typed: TypedProgram, ctx: FnContext | null, diags: Diagnostic[]) -> void {
+check_loop_jump :: fn(
+    span: Span,
+    label: string | null,
+    typed: TypedProgram,
+    ctx: FnContext | null,
+    diags: Diagnostic[],
+) -> void {
     // A bare `break`/`continue` targets the innermost loop (no diagnostic — reader
     // clarity is served by the LSP go-to-loop). A `break <name>` must resolve to an
     // enclosing loop by its iteration variable (preferred) or its label ; the walk-
@@ -761,22 +962,36 @@ check_loop_jump :: fn(span: Span, label: string | null, typed: TypedProgram, ctx
         if target == null {
             // A local, an unknown name, or a jump outside any loop — never a valid
             // target. `break`ing a non-loop makes no sense → hard error (T3067).
-            diags.push(typecheck_error(.LoopTargetNotLoopVariable, span,
-                "`${name}` is not an enclosing loop's iteration variable or label"))
+            diags.push(
+                typecheck_error(
+                    .LoopTargetNotLoopVariable,
+                    span,
+                    "`${name}` is not an enclosing loop's iteration variable or label",
+                ),
+            )
         } else {
             // A VARIABLE match records the resolution for the lowerer (it stamps
             // that loop's `LoweredLoop.label`) ; a label match already carries its
             // own label, so nothing to record.
             tb :: target.binding
-            if tb != null && tb == name { typed.loop_target_labels[target.for_id] = name }
+            if tb != null && tb == name {
+                typed.loop_target_labels[target.for_id] = name
+            }
         }
     }
     // T3015 — `break`/`continue` outside any loop. Kept on `ctx.loop_depth` ; null
     // ctx means an expression-nested block where ctx isn't threaded — defer.
-    if ctx is null { return }
+    if ctx is null {
+        return
+    }
     if ctx.loop_depth == 0 {
-        diags.push(typecheck_error(.BreakContinueOutsideLoop, span,
-            "`break` / `continue` only allowed inside a loop"))
+        diags.push(
+            typecheck_error(
+                .BreakContinueOutsideLoop,
+                span,
+                "`break` / `continue` only allowed inside a loop",
+            ),
+        )
     }
 }
 
@@ -789,15 +1004,21 @@ resolve_loop_target :: fn(stack: EnclosingLoop[], name: string) -> EnclosingLoop
         i = i - 1
         frame :: stack[i]
         fb :: frame.binding
-        if fb != null && fb == name { return frame }
+        if fb != null && fb == name {
+            return frame
+        }
         fl :: frame.label
-        if fl != null && fl == name { return frame }
+        if fl != null && fl == name {
+            return frame
+        }
     }
     return null
 }
 
 check_defer :: fn(
-    s: AST.DeferStmt, typed: TypedProgram, diags: Diagnostic[],
+    s: AST.DeferStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
@@ -812,7 +1033,7 @@ check_defer :: fn(
         diags.push(typecheck_error(.DeferInGenerator, s.span, ""))
     }
     match s.body {
-        is AST.DeferStmtBody  as b -> { check_stmt(b.stmt, typed, diags, ctx, check_expr_fn) }
+        is AST.DeferStmtBody as b  -> { check_stmt(b.stmt, typed, diags, ctx, check_expr_fn) }
         is AST.DeferBlockBody as b -> { check_block(b.block, null, typed, diags, ctx, check_expr_fn) }
     }
     return
@@ -821,18 +1042,20 @@ check_defer :: fn(
 // ---- support --------------------------------------------------------------
 
 bump_loop_depth :: fn(ctx: FnContext | null) -> FnContext | null {
-    if ctx is null { return null }
-    return FnContext {
-        .return_type  = ctx.return_type,
-        .self_type    = ctx.self_type,
-        .loop_depth   = ctx.loop_depth + 1,
-        .fn_id        = ctx.fn_id,
-        // Preserve generator-ness so a `yield` inside a `for` / `while`
-        // (the common case) still sees `is_generator` / `yield_type`.
-        .is_generator = ctx.is_generator,
-        .yield_type   = ctx.yield_type,
-        .is_async     = ctx.is_async,
+    if ctx is null {
+        return null
     }
+    return FnContext {
+        .return_type = ctx.return_type,
+        .self_type = ctx.self_type,
+        .loop_depth = ctx.loop_depth + 1,
+        .fn_id = ctx.fn_id,
+        .is_generator = ctx.is_generator,
+        .yield_type = ctx.yield_type,
+        .is_async = ctx.is_async,
+    }    // Preserve generator-ness so a `yield` inside a `for` / `while`
+    // (the common case) still sees `is_generator` / `yield_type`.
+
 }
 
 // Restore-stack entry for a divergent-guard narrowing pushed onto
@@ -843,8 +1066,8 @@ bump_loop_depth :: fn(ctx: FnContext | null) -> FnContext | null {
 // `${sym_id}.${field}` slot used by `narrowed_fields` so divergent
 // guards on `b.items` restore the right side-table on scope exit.
 DivergentNarrow :: struct {
-    sym_id:    i32
-    prev:      NarrowSlot | null
+    sym_id: i32
+    prev: NarrowSlot | null
     static_ty: Type
     field_key: string = ""
 }
@@ -854,29 +1077,35 @@ DivergentNarrow :: struct {
 // divergent statement (return / break / continue) — we approximate
 // this by requiring the then-block's last stmt to be a `ReturnStmt`.
 push_divergent_narrow_if :: fn(
-    stmt: AST.Stmt, typed: TypedProgram, stack: DivergentNarrow[],
+    stmt: AST.Stmt,
+    typed: TypedProgram,
+    stack: DivergentNarrow[],
 ) -> void {
-    if !(stmt is AST.ExprStmt) { return }
-    if !(stmt.expr is AST.IfExpr) { return }
+    if stmt !is AST.ExprStmt    { return }
+    if stmt.expr !is AST.IfExpr { return }
     if_expr :: stmt.expr
-    if !(if_expr.else_branch is null) { return }
+    if if_expr.else_branch !is null                  { return }
     if !then_is_divergent(if_expr.then_block, typed) { return }
     narrowing :: detect_is_narrow_for_block(if_expr.cond, typed) ?? return
     if narrowing.field_key == "" {
         prev :: push_narrow(typed, narrowing.sym_id, narrowing.else_ty)
-        stack.push(DivergentNarrow {
-            .sym_id    = narrowing.sym_id,
-            .prev      = prev,
-            .static_ty = narrowing.static_ty,
-        })
+        stack.push(
+            DivergentNarrow {
+                .sym_id = narrowing.sym_id,
+                .prev = prev,
+                .static_ty = narrowing.static_ty,
+            },
+        )
     } else {
         prev :: push_field_narrow(typed, narrowing.field_key, narrowing.else_ty)
-        stack.push(DivergentNarrow {
-            .sym_id    = narrowing.sym_id,
-            .prev      = prev,
-            .static_ty = narrowing.static_ty,
-            .field_key = narrowing.field_key,
-        })
+        stack.push(
+            DivergentNarrow {
+                .sym_id = narrowing.sym_id,
+                .prev = prev,
+                .static_ty = narrowing.static_ty,
+                .field_key = narrowing.field_key,
+            },
+        )
     }
 }
 
@@ -888,44 +1117,50 @@ then_is_divergent :: fn(b: AST.BlockExpr, typed: TypedProgram) -> bool {
     // otherwise the complement narrowing is dropped and the guarded binding
     // keeps its union type (T3008 on the post-guard use).
     if b.trailing !is null {
-        if typed.expr_types[b.trailing.id] is NeverType { return true }
+        if typed.expr_types[b.trailing.id] is NeverType {
+            return true
+        }
     }
-    if b.stmts.len() == 0 { return false }
+    if b.stmts.len() == 0 {
+        return false
+    }
     return is_divergent_stmt(b.stmts[b.stmts.len() - 1], typed)
 }
 
 is_divergent_stmt :: fn(s: AST.Stmt, typed: TypedProgram) -> bool {
-    if s is AST.ReturnStmt { return true }
-    if s is AST.BreakStmt { return true }
+    if s is AST.ReturnStmt   { return true }
+    if s is AST.BreakStmt    { return true }
     if s is AST.ContinueStmt { return true }
     // An expression statement that evaluates to `never` (a call to a
     // `@no_return` fn — `panic` / `todo` / `unreachable`) terminates the
     // flow : code after it is unreachable, and it discharges a non-`void`
     // fn's return obligation.
     if s is AST.ExprStmt as e {
-        if typed.expr_types[e.expr.id] is NeverType { return true }
+        if typed.expr_types[e.expr.id] is NeverType {
+            return true
+        }
     }
     return false
 }
 
 stmt_span :: fn(s: AST.Stmt) -> Span {
     match s {
-        is AST.LetStmt      as x -> { return x.span }
-        is AST.AssignStmt   as x -> { return x.span }
-        is AST.ExprStmt     as x -> { return x.span }
-        is AST.ReturnStmt   as x -> { return x.span }
-        is AST.YieldStmt    as x -> { return x.span }
-        is AST.ForStmt      as x -> { return x.span }
-        is AST.BreakStmt    as x -> { return x.span }
+        is AST.LetStmt as x      -> { return x.span }
+        is AST.AssignStmt as x   -> { return x.span }
+        is AST.ExprStmt as x     -> { return x.span }
+        is AST.ReturnStmt as x   -> { return x.span }
+        is AST.YieldStmt as x    -> { return x.span }
+        is AST.ForStmt as x      -> { return x.span }
+        is AST.BreakStmt as x    -> { return x.span }
         is AST.ContinueStmt as x -> { return x.span }
-        is AST.DeferStmt    as x -> { return x.span }
+        is AST.DeferStmt as x    -> { return x.span }
     }
 }
 
 BlockNarrow :: struct {
-    sym_id:    i32
+    sym_id: i32
     static_ty: Type
-    else_ty:   Type
+    else_ty: Type
     field_key: string = ""
 }
 
@@ -948,20 +1183,22 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
                 narrow_for_field(typed, inner.field_key, inner.static_ty)
             }
             return BlockNarrow {
-                .sym_id    = inner.sym_id,
+                .sym_id = inner.sym_id,
                 .static_ty = inner.static_ty,
-                .else_ty   = subtract_type(current, inner.else_ty),
+                .else_ty = subtract_type(current, inner.else_ty),
                 .field_key = inner.field_key,
             }
         }
     }
-    if !(cond is AST.BinaryExpr) { return null }
+    if cond !is AST.BinaryExpr {
+        return null
+    }
     // `x == null` / `x != null` / `null == x` / `null != x` — both
     // orderings flip the same way ; divergent guard pushes the
     // complement narrowing for the rest of the block.
     if cond.op == AST.BinaryOp.Eq || cond.op == AST.BinaryOp.Neq {
         ident_side :: pick_ident_vs_null(cond.left, cond.right)
-        if !(ident_side is null) {
+        if ident_side !is null {
             sym :: typed.resolved.idents[ident_side.span.hash()] ?? return null
             base :: type_of_symbol(sym, typed)
             // Don't record a narrowing off an unresolved base — mirrors
@@ -970,43 +1207,47 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
             // module's `MutableMap.at` &c are wired, so an `m[k]`-bound local
             // is `?` there ; a `?`-based divergent narrow persists (divergent
             // narrows aren't popped) and poisons the authoritative re-walk.
-            if base is UnresolvedType { return null }
+            if base is UnresolvedType {
+                return null
+            }
             current :: narrow_for_binding(typed, sym.id, base)
             null_ty :: TY_NULL
             if cond.op == AST.BinaryOp.Eq {
                 return BlockNarrow {
-                    .sym_id    = sym.id,
+                    .sym_id = sym.id,
                     .static_ty = base,
-                    .else_ty   = subtract_type(current, null_ty),
+                    .else_ty = subtract_type(current, null_ty),
                 }
             }
             return BlockNarrow { .sym_id = sym.id, .static_ty = base, .else_ty = null_ty }
         }
         field_side :: pick_field_vs_null(cond.left, cond.right)
-        if !(field_side is null) {
+        if field_side !is null {
             target :: resolve_field_chain_static(field_side, typed)
-            if !(target is null) {
+            if target !is null {
                 null_ty :: TY_NULL
                 current :: narrow_for_field(typed, target.field_key, target.static_ty)
                 if cond.op == AST.BinaryOp.Eq {
                     return BlockNarrow {
-                        .sym_id    = 0,
+                        .sym_id = 0,
                         .static_ty = target.static_ty,
-                        .else_ty   = subtract_type(current, null_ty),
+                        .else_ty = subtract_type(current, null_ty),
                         .field_key = target.field_key,
                     }
                 }
                 return BlockNarrow {
-                    .sym_id    = 0,
+                    .sym_id = 0,
                     .static_ty = target.static_ty,
-                    .else_ty   = null_ty,
+                    .else_ty = null_ty,
                     .field_key = target.field_key,
                 }
             }
         }
         return null
     }
-    if cond.op != AST.BinaryOp.Is { return null }
+    if cond.op != AST.BinaryOp.Is {
+        return null
+    }
     // Bare-ident scrutinee : narrow the symbol slot for the complement.
     if cond.left is AST.IdentExpr {
         sym :: typed.resolved.idents[cond.left.span.hash()] ?? return null
@@ -1014,13 +1255,15 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
         // Same `?`-base guard as the `== null` path above : the settle
         // pre-walk sees an `m[k]`-bound scrutinee as `?` and would persist a
         // poisoned divergent narrow into the authoritative walk.
-        if base is UnresolvedType { return null }
+        if base is UnresolvedType {
+            return null
+        }
         current :: narrow_for_binding(typed, sym.id, base)
         narrowed :: type_from_expr(cond.right, typed.resolved, diag_sink_stmt())
         return BlockNarrow {
-            .sym_id    = sym.id,
+            .sym_id = sym.id,
             .static_ty = base,
-            .else_ty   = subtract_type_with_impls(current, narrowed, typed),
+            .else_ty = subtract_type_with_impls(current, narrowed, typed),
         }
     }
     // Field-chain scrutinee : `x.y is T` complement-narrows the `x.y` slot,
@@ -1032,19 +1275,16 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
         current :: narrow_for_field(typed, field_info.field_key, field_info.static_ty)
         narrowed :: type_from_expr(cond.right, typed.resolved, diag_sink_stmt())
         return BlockNarrow {
-            .sym_id    = 0,
+            .sym_id = 0,
             .static_ty = field_info.static_ty,
-            .else_ty   = subtract_type_with_impls(current, narrowed, typed),
+            .else_ty = subtract_type_with_impls(current, narrowed, typed),
             .field_key = field_info.field_key,
         }
     }
     return null
 }
 
-
-
 diag_sink_stmt :: fn() -> Diagnostic[] { return [] }
-
 
 // Pull the iterator's element type. `T[]` yields `T` directly ;
 // generic `StructType` falls back to first type arg (covers Range and
@@ -1053,7 +1293,9 @@ diag_sink_stmt :: fn() -> Diagnostic[] { return [] }
 for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
     // Arrays — and array-backed distinct newtypes — yield their element type.
     ab :: array_backing(iter_ty)
-    if ab != null { return ab.element }
+    if ab != null {
+        return ab.element
+    }
     // @partial: only structs (Range, Iterator<T> wrappers) remain iterable here
     // — `array_backing` already returned for every array ; other types yield an
     // unresolved element.
@@ -1065,12 +1307,16 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
             // read the arg directly (else a captured loop var over a generator chain
             // erases to the impl's generic `E`).
             if is_gen_state_struct(iter_ty) {
-                if st.args.len() >= 1 { return st.args[0] }
+                if st.args.len() >= 1 {
+                    return st.args[0]
+                }
                 return TY_UNRESOLVED
             }
             elem :: typed.iter_element_types[st.symbol.name]
             if elem == null {
-                if st.args.len() >= 1 { return st.args[0] }
+                if st.args.len() >= 1 {
+                    return st.args[0]
+                }
                 return TY_UNRESOLVED
             }
             // Substitute the impl's TypeParam against the
@@ -1081,25 +1327,27 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
             decl :: typed.struct_decls[st.symbol.id] ?? return elem
             return substitute_by_name(elem, decl.type_params, st.args)
         }
-        // An erased `Iterator<E>` trait value (a boxed generator / a `.into()`
-        // result stored as the trait) carries its element as the sole type arg.
-        // Without this a `for x in it` over such a value leaves the loop var
-        // unresolved → it defaults to `i32`, which happens to match an i32
-        // element but mis-types every other (e.g. `Iterator<string>` → `i32.add`).
-        // Only a FULLY-CONCRETE element is returned : any type-param-bearing
-        // element — a bare `T` (in a generic body like `any<T>(it: Iterator<T>)`)
-        // or a composite like `Entry<K, V>` / `T[]` — must stay unresolved so
-        // per-instance monomorphisation substitutes it ; returning it here would
-        // strand un-subbed params in the resulting `Yield<…>`.
-        is TraitType as tt -> {
+        is TraitType as tt  -> {
+            // An erased `Iterator<E>` trait value (a boxed generator / a `.into()`
+            // result stored as the trait) carries its element as the sole type arg.
+            // Without this a `for x in it` over such a value leaves the loop var
+            // unresolved → it defaults to `i32`, which happens to match an i32
+            // element but mis-types every other (e.g. `Iterator<string>` → `i32.add`).
+            // Only a FULLY-CONCRETE element is returned : any type-param-bearing
+            // element — a bare `T` (in a generic body like `any<T>(it: Iterator<T>)`)
+            // or a composite like `Entry<K, V>` / `T[]` — must stay unresolved so
+            // per-instance monomorphisation substitutes it ; returning it here would
+            // strand un-subbed params in the resulting `Yield<…>`.
+
             elem :: iterator_element_of(tt) ?? return TY_UNRESOLVED
-            if type_contains_type_param(elem) { return TY_UNRESOLVED }
+            if type_contains_type_param(elem) {
+                return TY_UNRESOLVED
+            }
             return elem
         }
-        _ -> { return TY_UNRESOLVED }
+        _                   -> { return TY_UNRESOLVED }
     }
 }
-
 
 lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {
     sym :: lookup_decl_symbol_stmt(typed.resolved, fn_decl)
@@ -1107,8 +1355,8 @@ lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {
         is Symbol as s -> typed.decl_types[s.id]
         is null        -> typed.impl_method_decl_types[fn_decl.name_span.hash()]
     }
-    if decl_ty is null { return TY_UNRESOLVED }
-    if decl_ty is FnType as f { return f.return_type }
+    if decl_ty is null   { return TY_UNRESOLVED }
+    if decl_ty is FnType { return decl_ty.return_type }
     return TY_UNRESOLVED
 }
 
@@ -1117,18 +1365,24 @@ lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {
 /// resolver passed to `mint_local`). Wildcards are skipped — they
 /// don't introduce a Symbol.
 export assign_binding_types :: fn(
-    b: AST.LetBinding, declared: Type, typed: TypedProgram, diags: Diagnostic[],
+    b: AST.LetBinding,
+    declared: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
     match b {
-        is AST.SimpleBinding   as sb -> { typed.local_types[sb.name_span.hash()] = declared }
-        is AST.RestBinding     as rb -> { typed.local_types[rb.span.hash()] = declared }
-        is AST.WildcardBinding       -> {}
-        is AST.TupleBinding    as tb -> { assign_tuple(tb, declared, typed, diags) }
+        is AST.SimpleBinding   -> { typed.local_types[b.name_span.hash()] = declared }
+        is AST.RestBinding     -> { typed.local_types[b.span.hash()] = declared }
+        is AST.WildcardBinding -> {}
+        is AST.TupleBinding    -> { assign_tuple(b, declared, typed, diags) }
     }
 }
 
 assign_tuple :: fn(
-    tb: AST.TupleBinding, declared: Type, typed: TypedProgram, diags: Diagnostic[],
+    tb: AST.TupleBinding,
+    declared: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
     // A tuple- or array-backed distinct newtype (`Coord :: [i32, i32]`,
     // `BigInt :: u32[]`) destructures through its backing composite — the
@@ -1138,7 +1392,9 @@ assign_tuple :: fn(
         if tup.elements.len() != tb.elements.len() {
             // Best-effort : Unresolved on each leaf, the resolver-
             // emitted shape error already surfaces upstream.
-            for leaf in tb.elements { assign_binding_types(leaf, TY_UNRESOLVED, typed, diags) }
+            for leaf in tb.elements {
+                assign_binding_types(leaf, TY_UNRESOLVED, typed, diags)
+            }
             return
         }
         for i in 0..<tb.elements.len() {
@@ -1152,9 +1408,10 @@ assign_tuple :: fn(
     arr :: array_backing(declared)
     if arr != null {
         for leaf in tb.elements {
-            match leaf {
-                is AST.RestBinding -> { assign_binding_types(leaf, arr, typed, diags) }
-                _ -> { assign_binding_types(leaf, arr.element, typed, diags) }
+            if leaf is AST.RestBinding {
+                assign_binding_types(leaf, arr, typed, diags)
+            } else {
+                assign_binding_types(leaf, arr.element, typed, diags)
             }
         }
         return
@@ -1175,11 +1432,18 @@ assign_tuple :: fn(
     // Skip the diagnostic when the value type is unresolved (upstream
     // error already fired) or a bare type-param (generic body —
     // checked per instance, not at the definition).
-    if !(declared is UnresolvedType) && !(declared is TypeParamType) {
-        diags.push(typecheck_error(.TypeMismatch, tb.span,
-            "cannot destructure a value of type ${display_type(declared)} ; a `[...]` pattern requires a tuple or array"))
+    if declared !is UnresolvedType && declared !is TypeParamType {
+        diags.push(
+            typecheck_error(
+                .TypeMismatch,
+                tb.span,
+                "cannot destructure a value of type ${display_type(declared)} ; a `[...]` pattern requires a tuple or array",
+            ),
+        )
     }
-    for leaf in tb.elements { assign_binding_types(leaf, TY_UNRESOLVED, typed, diags) }
+    for leaf in tb.elements {
+        assign_binding_types(leaf, TY_UNRESOLVED, typed, diags)
+    }
 }
 
 // Resolve the `[...]` destructure coercion for a non-tuple / non-array
@@ -1192,11 +1456,15 @@ assign_tuple :: fn(
 into_tuple_target :: fn(declared: Type, arity: usize, typed: TypedProgram) -> Type | null {
     if declared is StructType as st {
         into_args :: lookup_struct_trait_args(declared, TRAIT_INTO, typed) ?? return null
-        if into_args.len() != 1 { return null }
+        if into_args.len() != 1 {
+            return null
+        }
         decl :: typed.struct_decls[st.symbol.id] ?? return null
         target :: substitute_by_name(into_args[0], decl.type_params, st.args)
         if target is TupleType as tup {
-            if tup.elements.len() == arity { return target }
+            if tup.elements.len() == arity {
+                return target
+            }
         }
     }
     return null
@@ -1228,8 +1496,10 @@ stub_check_module :: fn(src: string) -> StubResult {
     for decl in parsed.program.decls {
         if decl is AST.FnDecl {
             match decl.body {
-                is AST.BlockExpr as body -> { check_fn_body(decl, body, typed, diags, stmt_check_stub) }
-                is null -> {}
+                is AST.BlockExpr as body -> {
+                    check_fn_body(decl, body, typed, diags, stmt_check_stub)
+                }
+                is null                  -> {}
             }
         }
     }
@@ -1241,20 +1511,27 @@ stub_check_module :: fn(src: string) -> StubResult {
 // the shared `narrow_for_expected` so the stub matches the real
 // orchestrator's behavior.
 stmt_check_stub :: fn(
-    e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+    e: AST.Expr,
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> Type {
     // @partial: test stub — only the literal / ident expr kinds the inline
     // tests build are typed; every other Expr is irrelevant here → unresolved.
     @partial match e {
-        is AST.IntLitExpr    as x -> { return narrow_for_expected(TY_FREE_INT, expected) }
+        is AST.IntLitExpr as x    -> { return narrow_for_expected(TY_FREE_INT, expected) }
         is AST.StringLitExpr as x -> { return TY_STRING }
-        is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
-        _ -> { return TY_UNRESOLVED }
+        is AST.IdentExpr as x     -> { return infer_ident(x, typed) }
+        _                         -> { return TY_UNRESOLVED }
     }
 }
 
 has_code :: fn(diags: Diagnostic[], code: string) -> bool {
-    for d in diags { if d.code.id == code { return true } }
+    for d in diags {
+        if d.code.id == code {
+            return true
+        }
+    }
     return false
 }
 
@@ -1263,9 +1540,15 @@ test_let_simple_binding_records_local_type :: fn() -> void {
     src :: "f :: fn() -> i32 { x :: 42 }"
     out :: stub_check_module(src)
     sb :: first_simple_binding(src)
-    if sb is null { assert(false, "expected SimpleBinding") return }
+    if sb is null {
+        assert(false, "expected SimpleBinding")
+        return
+    }
     ty :: out.typed.local_types[sb.name_span.hash()]
-    if ty is null { assert(false, "binding should have a type") return }
+    if ty is null {
+        assert(false, "binding should have a type")
+        return
+    }
     // Bare `42` defaults to i32 via `default_if_free`.
     assert_eq(display_type(ty), "i32")
 }
@@ -1275,9 +1558,15 @@ test_let_with_annotation_narrows_free_int :: fn() -> void {
     src :: "f :: fn() -> i64 { x: i64 = 5 }"
     out :: stub_check_module(src)
     sb :: first_simple_binding(src)
-    if sb is null { assert(false, "expected SimpleBinding") return }
+    if sb is null {
+        assert(false, "expected SimpleBinding")
+        return
+    }
     ty :: out.typed.local_types[sb.name_span.hash()]
-    if ty is null { assert(false, "binding should have a type") return }
+    if ty is null {
+        assert(false, "binding should have a type")
+        return
+    }
     assert_eq(display_type(ty), "i64")
 }
 
@@ -1316,9 +1605,15 @@ test_for_in_array_narrows_binding :: fn() -> void {
     src :: "f :: fn(xs: i32[]) -> void { for x in xs { } }"
     out :: stub_check_module(src)
     sp :: first_for_in_binding_span(src)
-    if sp is null { assert(false, "expected a for-in") return }
+    if sp is null {
+        assert(false, "expected a for-in")
+        return
+    }
     ty :: out.typed.local_types[sp.hash()]
-    if ty is null { assert(false, "for-in binding should have a type") return }
+    if ty is null {
+        assert(false, "for-in binding should have a type")
+        return
+    }
     assert_eq(display_type(ty), "i32")
 }
 
@@ -1326,45 +1621,35 @@ test_for_in_array_narrows_binding :: fn() -> void {
 
 first_simple_binding :: fn(src: string) -> AST.SimpleBinding | null {
     parsed :: parse_source(src, "t.vader")
-    match parsed.program.decls[0] {
-        is AST.FnDecl as f -> {
-            match f.body {
-                is AST.BlockExpr as b -> {
-                    for s in b.stmts {
-                        if s is AST.LetStmt {
-                            if s.binding is AST.SimpleBinding { return s.binding }
-                        }
+    if parsed.program.decls[0] is AST.FnDecl as f {
+        if f.body is AST.BlockExpr as b {
+            for s in b.stmts {
+                if s is AST.LetStmt {
+                    if s.binding is AST.SimpleBinding {
+                        return s.binding
                     }
                 }
-                is null -> {}
             }
         }
-        _ -> {}
     }
     return null
 }
 
 first_for_in_binding_span :: fn(src: string) -> Span | null {
     parsed :: parse_source(src, "t.vader")
-    match parsed.program.decls[0] {
-        is AST.FnDecl as f -> {
-            match f.body {
-                is AST.BlockExpr as b -> {
-                    for s in b.stmts {
-                        if s is AST.ForStmt {
-                            match s.form {
-                                is AST.InFor as inf -> {
-                                    if inf.loop_var is AST.NamedVar as nv { return nv.span }
-                                }
-                                _ -> {}
-                            }
-                        }
+    if parsed.program.decls[0] is AST.FnDecl as f {
+        if f.body is AST.BlockExpr as b {
+            for s in b.stmts {
+                if s !is AST.ForStmt {
+                    continue
+                }
+                if s.form is AST.InFor as inf {
+                    if inf.loop_var is AST.NamedVar as nv {
+                        return nv.span
                     }
                 }
-                is null -> {}
             }
         }
-        _ -> {}
     }
     return null
 }

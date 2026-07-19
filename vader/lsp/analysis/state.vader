@@ -74,6 +74,15 @@ export ServerState :: struct {
     /// conversion routes through a `LineIndex` built with this. Defaults to
     /// `Utf16` — the LSP protocol default when the client offers nothing.
     position_encoding:          PositionEncoding
+    /// True when the client advertised
+    /// `capabilities.workspace.inlayHint.refreshSupport = true`. Lets the server
+    /// push `workspace/inlayHint/refresh` after a rebuild so the client
+    /// re-requests hints computed against the pre-edit source (e.g. right after
+    /// a format edit) — otherwise their positions stay stale until the next edit.
+    inlay_refresh_support:      bool
+    /// Monotonic id for server-INITIATED requests (the `*/refresh` pushes). The
+    /// client's response is ignored, so uniqueness is the only requirement.
+    next_request_id:            i64
 }
 
 export new_state :: fn(stdlib_root: string, vader_root: string) -> ServerState {
@@ -86,6 +95,8 @@ export new_state :: fn(stdlib_root: string, vader_root: string) -> ServerState {
         .vader_root              = vader_root,
         .definition_link_support = false,
         .position_encoding       = .Utf16,
+        .inlay_refresh_support   = false,
+        .next_request_id         = 1,
     }
 }
 
@@ -249,13 +260,32 @@ export handle_did_close :: fn(self: ServerState, params: JsonValue) -> void {
 /// not the stale typed project served during the burst. Entries marked `false`
 /// (a doc closed mid-burst) are skipped.
 export flush_dirty_diagnostics :: fn(self: ServerState) -> void {
+    published := false
     for [uri, needs_publish] in self.dirty {
         if needs_publish {
             self.cache = null
             publish_diagnostics_for_uri(self, uri)
+            published = true
         }
     }
     self.dirty.clear()
+    // The rebuild invalidates any inlay hints the client fetched against the
+    // pre-edit source — most visibly right after a format edit, where every
+    // position shifts. Ask the client to re-request them (LSP §3.17). Without
+    // this the hints hang at their old positions until an unrelated edit.
+    if published && self.inlay_refresh_support {
+        send_inlay_hint_refresh(self)
+    }
+}
+
+// Push a `workspace/inlayHint/refresh` request. The client answers by
+// re-issuing `textDocument/inlayHint`, which now hits the fresh analysis. The
+// response is ignored (a bare response frame carries no `method`, so `dispatch`
+// drops it). No-op unless the client advertised `inlayHint.refreshSupport`.
+send_inlay_hint_refresh :: fn(self: ServerState) -> void {
+    id :: self.next_request_id
+    self.next_request_id = self.next_request_id + 1
+    write_frame(encode_request(id, "workspace/inlayHint/refresh", JsonNull {}))
 }
 
 /// True iff a didChange has left some document's diagnostics pending a publish.
