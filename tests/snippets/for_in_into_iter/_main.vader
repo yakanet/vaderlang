@@ -25,8 +25,8 @@ main :: fn() -> i32 {
     m["a"] = 1
     m["b"] = 2
     map_total := 0
-    for entry in m {
-        map_total = map_total + entry.value
+    for [_, value] in m {
+        map_total = map_total + value
     }
     println("map=${map_total}")
 

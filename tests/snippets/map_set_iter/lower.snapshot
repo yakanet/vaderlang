@@ -64,7 +64,7 @@
                 __iter_size_3 :usize
           then:
             break
-        let entry: [string, i32] =
+        let __for_elem_6: [string, i32] =
           [string, i32] {
             _0:
               index :string
@@ -79,6 +79,9 @@
                 ix:
                   __iter_pos_4 :usize
           }
+        let value: i32 =
+          ._1 :i32
+            __for_elem_6 :[string, i32]
         assign
           target:
             __iter_pos_4 :usize
@@ -92,48 +95,47 @@
           target:
             total :i32
           value:
-            add :?
+            add :i32
               l:
                 total :i32
               r:
-                .value :?
-                  entry :[string, i32]
+                value :i32
     call :void
       callee:
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_5: Buffer =
+          let __buf_7: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(28) :usize
-          let __off_6: usize = int(0) :usize
+          let __off_8: usize = int(0) :usize
           assign
             target:
-              __off_6 :usize
+              __off_8 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_5 :Buffer
+                  __buf_7 :Buffer
                 arg1:
-                  __off_6 :usize
+                  __off_8 :usize
                 arg2:
                   "map_sum=" :string
           assign
             target:
-              __off_6 :usize
+              __off_8 :usize
             value:
               call :usize
                 callee:
                   write_int :usize
                 arg0:
-                  __buf_5 :Buffer
+                  __buf_7 :Buffer
                 arg1:
-                  __off_6 :usize
+                  __off_8 :usize
                 arg2:
                   cast → i64
                     total :i32
@@ -142,9 +144,9 @@
               callee:
                 finish_buffer :string
               arg0:
-                __buf_5 :Buffer
+                __buf_7 :Buffer
               arg1:
-                __off_6 :usize
+                __off_8 :usize
     let s: MutableSet<i32> =
       MutableSet<i32> {
         inner:
@@ -183,39 +185,39 @@
         int(30) :i32
     let sum: i32 = int(0) :i32
     block :void
-      let __iter_src_7: MutableSet<i32> = s :MutableSet<i32>
-      let __iter_ekeys_8: i32[] =
+      let __iter_src_9: MutableSet<i32> = s :MutableSet<i32>
+      let __iter_ekeys_10: i32[] =
         .ekeys :i32[]
           .inner :MutableMap<i32, bool>
-            __iter_src_7 :MutableSet<i32>
-      let __iter_size_10: usize =
+            __iter_src_9 :MutableSet<i32>
+      let __iter_size_12: usize =
         .size :usize
           .inner :MutableMap<i32, bool>
-            __iter_src_7 :MutableSet<i32>
-      let __iter_pos_11: usize = int(0) :usize
+            __iter_src_9 :MutableSet<i32>
+      let __iter_pos_13: usize = int(0) :usize
       loop
         if :void
           cond:
             gte :bool
               l:
-                __iter_pos_11 :usize
+                __iter_pos_13 :usize
               r:
-                __iter_size_10 :usize
+                __iter_size_12 :usize
           then:
             break
         let v: i32 =
           index :i32
             on:
-              __iter_ekeys_8 :i32[]
+              __iter_ekeys_10 :i32[]
             ix:
-              __iter_pos_11 :usize
+              __iter_pos_13 :usize
         assign
           target:
-            __iter_pos_11 :usize
+            __iter_pos_13 :usize
           value:
             add :usize
               l:
-                __iter_pos_11 :usize
+                __iter_pos_13 :usize
               r:
                 int(1) :usize
         assign
@@ -232,37 +234,37 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_12: Buffer =
+          let __buf_14: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(28) :usize
-          let __off_13: usize = int(0) :usize
+          let __off_15: usize = int(0) :usize
           assign
             target:
-              __off_13 :usize
+              __off_15 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_12 :Buffer
+                  __buf_14 :Buffer
                 arg1:
-                  __off_13 :usize
+                  __off_15 :usize
                 arg2:
                   "set_sum=" :string
           assign
             target:
-              __off_13 :usize
+              __off_15 :usize
             value:
               call :usize
                 callee:
                   write_int :usize
                 arg0:
-                  __buf_12 :Buffer
+                  __buf_14 :Buffer
                 arg1:
-                  __off_13 :usize
+                  __off_15 :usize
                 arg2:
                   cast → i64
                     sum :i32
@@ -271,10 +273,7 @@
               callee:
                 finish_buffer :string
               arg0:
-                __buf_12 :Buffer
+                __buf_14 :Buffer
               arg1:
-                __off_13 :usize
+                __off_15 :usize
     return int(0) :i32
-
-# Diagnostics
-[15:31] error[T3009] field does not exist on this type: `value` on [string, i32]

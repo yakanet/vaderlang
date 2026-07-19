@@ -3,8 +3,6 @@
 ## tests/snippets/map_primitive_values
 
 ## generic instances
-  Entry<K, V>
-  Entry<K, V>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, bool>

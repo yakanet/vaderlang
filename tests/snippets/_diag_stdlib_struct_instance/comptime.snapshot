@@ -3,8 +3,6 @@
 ## tests/snippets/_diag_stdlib_struct_instance
 
 ## generic instances
-  Entry<K, V>
-  Entry<K, V>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, i32>

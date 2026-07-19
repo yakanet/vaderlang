@@ -3,8 +3,6 @@
 ## tests/snippets/wide_literal_pin
 
 ## generic instances
-  Entry<K, V>
-  Entry<K, V>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<i32, i64>
