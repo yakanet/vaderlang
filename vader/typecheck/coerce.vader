@@ -23,19 +23,18 @@ import "vader/types"
 ///                 `.into()` hint ; trait widening records nothing.
 export try_into :: fn(got: Type, expected: Type, typed: TypedProgram, node_id: usize) -> bool {
     targeted :: typed.impl_methods["${display_type(got)}::into::${display_type(expected)}"]
-    match targeted {
-        is FnType as f -> {
-            if is_assignable(f.return_type, expected, null) {
-                typed.into_coercions[node_id] = expected
-                return true
-            }
-            return false
+    if targeted is FnType as f {
+        if is_assignable(f.return_type, expected, null) {
+            typed.into_coercions[node_id] = expected
+            return true
         }
-        _ -> {}
+        return false
     }
     // Trait widening : `Cat → Animal` when `Cat implements Animal`. This
     // is a subtype widen, not an `.into()` call — record nothing.
-    if try_trait_widen(got, expected, typed) { return true }
+    if try_trait_widen(got, expected, typed) {
+        return true
+    }
     // `T[] → Iterator<T>` : lowerer materialises `ArrayIterator<T>`
     // at the call site. Lives in `try_into` (not `is_assignable`) to
     // keep the recursive assignability check small enough that
@@ -48,16 +47,15 @@ export try_into :: fn(got: Type, expected: Type, typed: TypedProgram, node_id: u
 }
 
 export try_array_to_iter :: fn(got: Type, expected: Type) -> bool {
-    if !(got is ArrayType) { return false }
-    if !(expected is TraitType) { return false }
+    if got !is ArrayType                      { return false }
+    if expected !is TraitType                 { return false }
     if expected.symbol.name != TRAIT_ITERATOR { return false }
-    if expected.args.len() != 1 { return false }
+    if expected.args.len() != 1               { return false }
     // Element compatibility : TypeParam slot accepts anything ;
     // primitive/struct/etc. must equal.
-    if expected.args[0] is TypeParamType { return true }
+    if expected.args[0] is TypeParamType      { return true }
     return equals_type(got.element, expected.args[0])
 }
-
 
 /// True when `got` implements the trait `expected` (or a variant of
 /// `expected` if it's a union). Handles struct receivers AND primitives
@@ -72,26 +70,36 @@ export try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> 
     // `implements Error`, string == string) instead of failing per-variant.
     if got is UnionType {
         for v in got.variants {
-            if !(is_assignable(v, expected, null) || try_trait_widen(v, expected, typed)) { return false }
+            if !(is_assignable(v, expected, null) || try_trait_widen(v, expected, typed)) {
+                return false
+            }
         }
         return true
     }
     if expected is UnionType {
         for v in expected.variants {
-            if try_trait_widen(got, v, typed) { return true }
+            if try_trait_widen(got, v, typed) {
+                return true
+            }
         }
         return false
     }
-    if !(expected is TraitType) { return false }
+    if expected !is TraitType {
+        return false
+    }
     trait_name :: expected.symbol.name
     got_name :: dispatch_key(got)
-    if got_name == "" { return false }
+    if got_name == "" {
+        return false
+    }
     bucket :: typed.struct_implemented_traits[got_name] ?? return false
-    for name in bucket { if name == trait_name { return true } }
+    for name in bucket {
+        if name == trait_name {
+            return true
+        }
+    }
     return false
 }
-
-
 
 // ---- tests ----------------------------------------------------------------
 
@@ -103,8 +111,12 @@ import "vader/parser"
 // `symbol.name` and `args`, so the other Symbol fields are placeholders.
 iter_trait_for_test :: fn(elem: Type) -> Type {
     sym :: Symbol {
-        .id = 0, .kind = SymbolKind.Trait, .name = "Iterator",
-        .module = "std/core", .visibility = Visibility.Public, .defined_at = null,
+        .id = 0,
+        .kind = SymbolKind.Trait,
+        .name = "Iterator",
+        .module = "std/core",
+        .visibility = Visibility.Public,
+        .defined_at = null,
     }
     return mk_trait(sym, [elem])
 }
@@ -115,7 +127,7 @@ iter_trait_for_test :: fn(elem: Type) -> Type {
 @test
 test_try_into_records_array_to_iter :: fn() -> void {
     typed :: empty_typed_program()
-    arr  :: mk_array(mk_primitive("i32"), false)
+    arr :: mk_array(mk_primitive("i32"), false)
     iter :: iter_trait_for_test(mk_primitive("i32"))
     assert(try_into(arr, iter, typed, 7), "i32[] should coerce into Iterator<i32>")
     assert(typed.into_coercions[7] !is null, "coercion must be recorded under node id 7")
@@ -127,7 +139,9 @@ test_try_into_records_array_to_iter :: fn() -> void {
 @test
 test_try_into_no_coercion_records_nothing :: fn() -> void {
     typed :: empty_typed_program()
-    assert(!try_into(mk_primitive("i32"), mk_primitive("string"), typed, 9),
-        "i32 does not coerce into string")
+    assert(
+        !try_into(mk_primitive("i32"), mk_primitive("string"), typed, 9),
+        "i32 does not coerce into string",
+    )
     assert(typed.into_coercions[9] is null, "no coercion recorded when none applies")
 }

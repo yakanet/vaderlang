@@ -28,13 +28,14 @@
 module "vader/typecheck"
 
 import "std/collections"
+import "std/iter"
 import "vader/diagnostics"
 import "vader/resolver"
 AST :: import "vader/parser"
 
 // A private top-level declaration that may be dead — keyed for the final report.
 DeadDecl :: struct {
-    name:      string
+    name: string
     name_span: Span
 }
 
@@ -42,128 +43,152 @@ DeadDecl :: struct {
 
 collect_expr_names :: fn(e: AST.Expr, out: string[]) -> void {
     match e {
-        is AST.IdentExpr         as x -> { out.push(x.name) }
-        is AST.NullCoalesceExpr  as x -> {
-            collect_expr_names(x.left, out)
-            inner :: AST.coalesce_fallback_expr(x.fallback)
+        is AST.IdentExpr         -> { out.push(e.name) }
+        is AST.NullCoalesceExpr  -> {
+            collect_expr_names(e.left, out)
+            inner :: AST.coalesce_fallback_expr(e.fallback)
             if inner != null { collect_expr_names(inner, out) }
         }
-        is AST.CallExpr          as x -> {
-            collect_expr_names(x.callee, out)
-            for a in x.args { collect_expr_names(a.value, out) }
+        is AST.CallExpr          -> {
+            collect_expr_names(e.callee, out)
+            for a in e.args {
+                collect_expr_names(a.value, out)
+            }
         }
-        // UFCS / member name : `recv.foo()` references the free fn / member `foo`.
-        // reference_index drops `.field` ; dead-code must keep it or every
-        // UFCS-only-called fn reads as dead.
-        is AST.FieldExpr         as x -> {
-            out.push(x.field)
-            collect_expr_names(x.target, out)
+        is AST.FieldExpr         -> {
+            // UFCS / member name : `recv.foo()` references the free fn / member `foo`.
+            // reference_index drops `.field` ; dead-code must keep it or every
+            // UFCS-only-called fn reads as dead.
+
+            out.push(e.field)
+            collect_expr_names(e.target, out)
         }
-        is AST.IndexExpr         as x -> {
-            collect_expr_names(x.target, out)
-            collect_expr_names(x.index, out)
+        is AST.IndexExpr         -> {
+            collect_expr_names(e.target, out)
+            collect_expr_names(e.index, out)
         }
-        is AST.UnaryExpr         as x -> { collect_expr_names(x.operand, out) }
-        is AST.BinaryExpr        as x -> {
-            collect_expr_names(x.left, out)
-            collect_expr_names(x.right, out)
+        is AST.UnaryExpr         -> { collect_expr_names(e.operand, out) }
+        is AST.BinaryExpr        -> {
+            collect_expr_names(e.left, out)
+            collect_expr_names(e.right, out)
         }
-        is AST.IfExpr            as x -> {
-            collect_expr_names(x.cond, out)
-            collect_block_names(x.then_block, out)
-            match x.else_branch {
+        is AST.IfExpr            -> {
+            collect_expr_names(e.cond, out)
+            collect_block_names(e.then_block, out)
+            match e.else_branch {
                 is null                 -> {}
-                is AST.IfElseIf    as b -> { collect_expr_names(b.branch, out) }
+                is AST.IfElseIf as b    -> { collect_expr_names(b.branch, out) }
                 is AST.IfElseBlock as b -> { collect_block_names(b.block, out) }
             }
         }
-        is AST.MatchExpr         as x -> {
-            collect_expr_names(x.scrutinee, out)
-            for arm in x.arms {
+        is AST.MatchExpr         -> {
+            collect_expr_names(e.scrutinee, out)
+            for arm in e.arms {
                 collect_pattern_names(arm.pattern, out)
                 collect_opt_expr_names(arm.guard, out)
                 collect_expr_names(arm.body, out)
             }
         }
-        is AST.BlockExpr         as x -> { collect_block_names(x, out) }
-        is AST.LambdaExpr        as x -> {
-            for p in x.params {
+        is AST.BlockExpr         -> {
+            collect_block_names(e, out)
+        }
+        is AST.LambdaExpr        -> {
+            for p in e.params {
                 collect_opt_expr_names(p.ty, out)
                 collect_opt_expr_names(p.default_value, out)
             }
-            collect_opt_expr_names(x.return_type, out)
-            collect_block_names(x.body, out)
+            collect_opt_expr_names(e.return_type, out)
+            collect_block_names(e.body, out)
         }
-        is AST.StructLitExpr     as x -> {
-            collect_expr_names(x.type_name, out)
-            for it in x.items {
+        is AST.StructLitExpr     -> {
+            collect_expr_names(e.type_name, out)
+            for it in e.items {
                 match it {
-                    is AST.StructLitField  as f  -> { collect_expr_names(f.value, out) }
-                    is AST.StructLitSpread as sp -> { collect_expr_names(sp.expr, out) }
+                    is AST.StructLitField as f   -> {
+                        collect_expr_names(f.value, out)
+                    }
+                    is AST.StructLitSpread as sp -> {
+                        collect_expr_names(sp.expr, out)
+                    }
                 }
             }
         }
-        is AST.SeqLitExpr        as x -> { for it in x.elements { collect_expr_names(it, out) } }
-        is AST.RangeExpr         as x -> {
-            collect_expr_names(x.lower, out)
-            collect_expr_names(x.upper, out)
-        }
-        is AST.AwaitExpr         as x -> { collect_expr_names(x.inner, out) }
-        is AST.CastExpr          as x -> {
-            collect_expr_names(x.value, out)
-            collect_expr_names(x.target, out)
-        }
-        is AST.GenericInstExpr   as x -> {
-            collect_expr_names(x.callee, out)
-            for a in x.type_args { collect_expr_names(a, out) }
-        }
-        is AST.IntrinsicCallExpr as x -> { for a in x.args { collect_expr_names(a, out) } }
-        // `"${foo()}"` references `foo` — reference_index skips interpolation parts.
-        is AST.StringLitExpr     as x -> {
-            for part in x.parts {
-                if part is AST.StringLitInterp as si { collect_expr_names(si.expr, out) }
+        is AST.SeqLitExpr        -> {
+            for it in e.elements {
+                collect_expr_names(it, out)
             }
         }
-        is AST.FnTypeExpr        as x -> {
-            for p in x.params { collect_expr_names(p, out) }
-            collect_opt_expr_names(x.return_type, out)
+        is AST.RangeExpr         -> {
+            collect_expr_names(e.lower, out)
+            collect_expr_names(e.upper, out)
         }
-        is AST.ArrayTypeExpr     as x -> { collect_expr_names(x.element, out) }
-        is AST.DotVariantExpr         -> {}
-        is AST.IntLitExpr             -> {}
-        is AST.FloatLitExpr           -> {}
-        is AST.BoolLitExpr            -> {}
-        is AST.NullLitExpr            -> {}
-        is AST.CharLitExpr            -> {}
+        is AST.AwaitExpr         -> {
+            collect_expr_names(e.inner, out)
+        }
+        is AST.CastExpr          -> {
+            collect_expr_names(e.value, out)
+            collect_expr_names(e.target, out)
+        }
+        is AST.GenericInstExpr   -> {
+            collect_expr_names(e.callee, out)
+            for a in e.type_args {
+                collect_expr_names(a, out)
+            }
+        }
+        is AST.IntrinsicCallExpr -> {
+            for a in e.args {
+                collect_expr_names(a, out)
+            }
+        }
+        is AST.StringLitExpr     -> {
+            for part in e.parts {
+                if part is AST.StringLitInterp as si {
+                    collect_expr_names(si.expr, out)
+                }
+            }
+        }
+        is AST.FnTypeExpr        -> {
+            for p in e.params {
+                collect_expr_names(p, out)
+            }
+            collect_opt_expr_names(e.return_type, out)
+        }
+        is AST.ArrayTypeExpr     -> { collect_expr_names(e.element, out) }
+        is AST.DotVariantExpr    -> {}
+        is AST.IntLitExpr        -> {}
+        is AST.FloatLitExpr      -> {}
+        is AST.BoolLitExpr       -> {}
+        is AST.NullLitExpr       -> {}
+        is AST.CharLitExpr       -> {}
     }
 }
 
 collect_stmt_names :: fn(s: AST.Stmt, out: string[]) -> void {
     match s {
-        is AST.LetStmt      as x -> {
-            collect_opt_expr_names(x.ty, out)
-            collect_expr_names(x.value, out)
+        is AST.LetStmt      -> {
+            collect_opt_expr_names(s.ty, out)
+            collect_expr_names(s.value, out)
         }
-        is AST.AssignStmt   as x -> {
-            collect_expr_names(x.target, out)
-            collect_expr_names(x.value, out)
+        is AST.AssignStmt   -> {
+            collect_expr_names(s.target, out)
+            collect_expr_names(s.value, out)
         }
-        is AST.ExprStmt     as x -> { collect_expr_names(x.expr, out) }
-        is AST.ReturnStmt   as x -> { collect_opt_expr_names(x.value, out) }
-        is AST.YieldStmt    as x -> { collect_expr_names(x.value, out) }
-        is AST.ForStmt      as x -> {
-            match x.form {
-                is AST.InfiniteFor      -> {}
-                is AST.WhileFor as w    -> { collect_expr_names(w.cond, out) }
-                is AST.InFor    as f    -> { collect_expr_names(f.iter, out) }
+        is AST.ExprStmt     -> { collect_expr_names(s.expr, out) }
+        is AST.ReturnStmt   -> { collect_opt_expr_names(s.value, out) }
+        is AST.YieldStmt    -> { collect_expr_names(s.value, out) }
+        is AST.ForStmt      -> {
+            match s.form {
+                is AST.InfiniteFor   -> {}
+                is AST.WhileFor as w -> { collect_expr_names(w.cond, out) }
+                is AST.InFor as f    -> { collect_expr_names(f.iter, out) }
             }
-            collect_block_names(x.body, out)
+            collect_block_names(s.body, out)
         }
         is AST.BreakStmt    -> {}
         is AST.ContinueStmt -> {}
-        is AST.DeferStmt    as x -> {
-            match x.body {
-                is AST.DeferStmtBody  as b -> { collect_stmt_names(b.stmt, out) }
+        is AST.DeferStmt    -> {
+            match s.body {
+                is AST.DeferStmtBody as b  -> { collect_stmt_names(b.stmt, out) }
                 is AST.DeferBlockBody as b -> { collect_block_names(b.block, out) }
             }
         }
@@ -171,51 +196,74 @@ collect_stmt_names :: fn(s: AST.Stmt, out: string[]) -> void {
 }
 
 collect_block_names :: fn(b: AST.BlockExpr, out: string[]) -> void {
-    for s in b.stmts { collect_stmt_names(s, out) }
+    for s in b.stmts {
+        collect_stmt_names(s, out)
+    }
     collect_opt_expr_names(b.trailing, out)
 }
 
 collect_pattern_names :: fn(p: AST.Pattern, out: string[]) -> void {
     match p {
-        is AST.IsPattern as x -> {
-            collect_expr_names(x.ty, out)
-            collect_opt_pattern_names(x.inner, out)
+        is AST.IsPattern          -> {
+            collect_expr_names(p.ty, out)
+            collect_opt_pattern_names(p.inner, out)
         }
-        is AST.StructPattern as x -> {
-            for f in x.fields {
-                match f.value {
-                    is AST.PatternBinding        -> {}
-                    is AST.PatternLiteral as lit -> { collect_expr_names(lit.value, out) }
+        is AST.StructPattern      -> {
+            for f in p.fields {
+                if f.value is AST.PatternLiteral as lit {
+                    collect_expr_names(lit.value, out)
                 }
             }
         }
-        is AST.TuplePattern       as x -> { for el in x.elements { collect_pattern_names(el, out) } }
-        is AST.WildcardPattern         -> {}
-        is AST.BindingPattern          -> {}
-        is AST.EnumVariantPattern      -> {}
-        is AST.LiteralPattern     as x -> { collect_expr_names(x.value, out) }
-        is AST.OrPattern          as x -> { for alt in x.patterns { collect_pattern_names(alt, out) } }
+        is AST.TuplePattern       -> {
+            for el in p.elements {
+                collect_pattern_names(el, out)
+            }
+        }
+        is AST.WildcardPattern    -> {}
+        is AST.BindingPattern     -> {}
+        is AST.EnumVariantPattern -> {}
+        is AST.LiteralPattern     -> {
+            collect_expr_names(p.value, out)
+        }
+        is AST.OrPattern          -> {
+            for alt in p.patterns {
+                collect_pattern_names(alt, out)
+            }
+        }
     }
 }
 
 collect_decorator_names :: fn(ds: AST.Decorator[], out: string[]) -> void {
-    for d in ds { for a in d.args { collect_expr_names(a, out) } }
+    for d in ds {
+        for a in d.args {
+            collect_expr_names(a, out)
+        }
+    }
 }
 
 collect_type_param_names :: fn(ps: AST.TypeParam[], out: string[]) -> void {
-    for p in ps { collect_opt_expr_names(p.bound, out) }
+    for p in ps {
+        collect_opt_expr_names(p.bound, out)
+    }
 }
 
 collect_opt_expr_names :: fn(e: AST.Expr | null, out: string[]) -> void {
-    if e != null { collect_expr_names(e, out) }
+    if e != null {
+        collect_expr_names(e, out)
+    }
 }
 
 collect_opt_block_names :: fn(b: AST.BlockExpr | null, out: string[]) -> void {
-    if b != null { collect_block_names(b, out) }
+    if b != null {
+        collect_block_names(b, out)
+    }
 }
 
 collect_opt_pattern_names :: fn(p: AST.Pattern | null, out: string[]) -> void {
-    if p != null { collect_pattern_names(p, out) }
+    if p != null {
+        collect_pattern_names(p, out)
+    }
 }
 
 // ---- per-decl reference sets ----------------------------------------------
@@ -235,41 +283,47 @@ fn_refs :: fn(d: AST.FnDecl, out: string[]) -> void {
 
 is_public :: fn(v: AST.Visibility) = v == AST.Visibility.Public
 
-// A declaration pins liveness regardless of visibility when it is an entry point
-// (`main`), host- or test-wired (`@test` / `@extern` / `@intrinsic` / `@export`),
-// or explicitly exempted by the author (`@allow_unused`, for intentional dead
-// code : an API not yet wired, a symmetry helper, a test fixture's deliberate
-// decoy). The single root list shared by both name-reachability lints : W0007
-// (`is_root_decl`) adds the public surface on top ; W0012 (`dead_exports`) uses
-// this alone, so a project-dead PUBLIC fn stays flaggable.
+/// A declaration pins liveness regardless of visibility when it is an entry point
+/// (`main`), host- or test-wired (`@test` / `@extern` / `@intrinsic` / `@export`),
+/// or explicitly exempted by the author (`@allow_unused`, for intentional dead
+/// code : an API not yet wired, a symmetry helper, a test fixture's deliberate
+/// decoy). The single root list shared by both name-reachability lints : W0007
+/// (`is_root_decl`) adds the public surface on top ; W0012 (`dead_exports`) uses
+/// this alone, so a project-dead PUBLIC fn stays flaggable.
 is_wired_root :: fn(decorators: AST.Decorator[], name: string) -> bool {
-    if name == "main" { return true }
+    if name == "main" {
+        return true
+    }
     for dec in decorators {
-        if dec.name == "test"         { return true }
-        if dec.name == "extern"       { return true }
-        if dec.name == "intrinsic"    { return true }
-        if dec.name == "export"       { return true }
-        if dec.name == "allow_unused" { return true }
+        if dec.name == "test"      { return true }
+        if dec.name == "extern"    { return true }
+        if dec.name == "intrinsic" { return true }
+        if dec.name == "export"    { return true }
+        if dec.name == "allow_unused" {
+            return true
+        }
     }
     return false
 }
 
 // A W0007 reachability root : the public surface (`export`) plus every
 // wired-or-exempt root. Never flagged, its refs kept live.
-is_root_decl :: fn(v: AST.Visibility, decorators: AST.Decorator[], name: string) =
-    is_public(v) || is_wired_root(decorators, name)
+is_root_decl :: fn(v: AST.Visibility, decorators: AST.Decorator[], name: string) = is_public(v) || is_wired_root(
+    decorators,
+    name,
+)
 
 // ---- shared traversal (W0007 + W0012) -------------------------------------
 
 // One named top-level decl's identity plus the names it references — the unit
 // both lints classify. `is_fn` lets W0012 flag fn exports only.
 NamedDeclRefs :: struct {
-    name:       string
-    name_span:  Span
+    name: string
+    name_span: Span
     visibility: AST.Visibility
     decorators: AST.Decorator[]
-    is_fn:      bool
-    refs:       string[]
+    is_fn: bool
+    refs: string[]
 }
 
 // Collect the reference names of a top-level decl. For the six NAMED kinds
@@ -279,98 +333,120 @@ NamedDeclRefs :: struct {
 // decl reference", shared by `check_dead_code` (W0007) and `dead_exports`
 // (W0012) so the two can never drift a collection edge apart.
 collect_decl_refs :: fn(d: AST.Decl, seed_refs: string[]) -> NamedDeclRefs | null {
-    match d {
-        is AST.FnDecl as x -> {
+    return match d {
+        is AST.FnDecl        -> {
             r: string[] = []
-            fn_refs(x, r)
-            return named_head(x.name, x.name_span, x.visibility, x.decorators, true, r)
+            fn_refs(d, r)
+            named_head(d.name, d.name_span, d.visibility, d.decorators, true, r)
         }
-        is AST.ConstDecl as x -> {
+        is AST.ConstDecl     -> {
             r: string[] = []
-            collect_decorator_names(x.decorators, r)
-            collect_opt_expr_names(x.ty, r)
-            collect_expr_names(x.value, r)
-            return named_head(x.name, x.name_span, x.visibility, x.decorators, false, r)
+            collect_decorator_names(d.decorators, r)
+            collect_opt_expr_names(d.ty, r)
+            collect_expr_names(d.value, r)
+            named_head(d.name, d.name_span, d.visibility, d.decorators, false, r)
         }
-        is AST.StructDecl as x -> {
+        is AST.StructDecl    -> {
             r: string[] = []
-            collect_decorator_names(x.decorators, r)
-            collect_type_param_names(x.type_params, r)
-            for f in x.fields {
+            collect_decorator_names(d.decorators, r)
+            collect_type_param_names(d.type_params, r)
+            for f in d.fields {
                 collect_expr_names(f.ty, r)
                 collect_opt_expr_names(f.default, r)
             }
-            return named_head(x.name, x.name_span, x.visibility, x.decorators, false, r)
+            named_head(d.name, d.name_span, d.visibility, d.decorators, false, r)
         }
-        is AST.EnumDecl as x -> {
+        is AST.EnumDecl      -> {
             r: string[] = []
-            collect_decorator_names(x.decorators, r)
-            collect_opt_expr_names(x.repr, r)
-            return named_head(x.name, x.name_span, x.visibility, x.decorators, false, r)
+            collect_decorator_names(d.decorators, r)
+            collect_opt_expr_names(d.repr, r)
+            named_head(d.name, d.name_span, d.visibility, d.decorators, false, r)
         }
-        is AST.TraitDecl as x -> {
+        is AST.TraitDecl     -> {
             r: string[] = []
-            collect_decorator_names(x.decorators, r)
-            collect_type_param_names(x.type_params, r)
-            collect_opt_expr_names(x.requires, r)
-            for m in x.members { fn_refs(m, r) }
-            return named_head(x.name, x.name_span, x.visibility, x.decorators, false, r)
+            collect_decorator_names(d.decorators, r)
+            collect_type_param_names(d.type_params, r)
+            collect_opt_expr_names(d.requires, r)
+            for m in d.members {
+                fn_refs(m, r)
+            }
+            named_head(d.name, d.name_span, d.visibility, d.decorators, false, r)
         }
-        is AST.TypeAliasDecl as x -> {
+        is AST.TypeAliasDecl -> {
             r: string[] = []
-            collect_decorator_names(x.decorators, r)
-            collect_type_param_names(x.type_params, r)
-            collect_expr_names(x.aliased, r)
-            return named_head(x.name, x.name_span, x.visibility, x.decorators, false, r)
+            collect_decorator_names(d.decorators, r)
+            collect_type_param_names(d.type_params, r)
+            collect_expr_names(d.aliased, r)
+            named_head(d.name, d.name_span, d.visibility, d.decorators, false, r)
         }
-        // Impl members are dispatched (vtable / UFCS) and can't be proven dead ;
-        // the block is nameless. Seed its refs as live roots.
-        is AST.ImplDecl as x -> {
-            collect_type_param_names(x.type_params, seed_refs)
-            collect_expr_names(x.for_type, seed_refs)
-            seed_refs.push(x.trait_name)
-            for ta in x.trait_args { collect_expr_names(ta, seed_refs) }
-            for m in x.members { fn_refs(m, seed_refs) }
-            return null
+        is AST.ImplDecl      -> {
+            // Impl members are dispatched (vtable / UFCS) and can't be proven dead ;
+            // the block is nameless. Seed its refs as live roots.
+
+            collect_type_param_names(d.type_params, seed_refs)
+            collect_expr_names(d.for_type, seed_refs)
+            seed_refs.push(d.trait_name)
+            for ta in d.trait_args {
+                collect_expr_names(ta, seed_refs)
+            }
+            for m in d.members {
+                fn_refs(m, seed_refs)
+            }
+            null
         }
-        // `@assert(cond)` is always evaluated — its refs are live.
-        is AST.AssertDecl as x -> {
-            collect_expr_names(x.condition, seed_refs)
-            return null
+        is AST.AssertDecl    -> {
+            collect_expr_names(d.condition, seed_refs)
+            null
         }
-        // Imports name CROSS-module symbols ; unused imports are W0006's job.
-        is AST.ImportDecl -> { return null }
+        is AST.ImportDecl    -> {
+            null
+        }
     }
 }
+// Imports name CROSS-module symbols ; unused imports are W0006's job.
 
 // Pack a named decl's identity + collected refs into a `NamedDeclRefs` — one
 // constructor so the six arms of `collect_decl_refs` stay one line each.
 named_head :: fn(
-    name: string, name_span: Span, visibility: AST.Visibility,
-    decorators: AST.Decorator[], is_fn: bool, refs: string[],
+    name: string,
+    name_span: Span,
+    visibility: AST.Visibility,
+    decorators: AST.Decorator[],
+    is_fn: bool,
+    refs: string[],
 ) = NamedDeclRefs {
-    .name = name, .name_span = name_span, .visibility = visibility,
-    .decorators = decorators, .is_fn = is_fn, .refs = refs,
+    .name = name,
+    .name_span = name_span,
+    .visibility = visibility,
+    .decorators = decorators,
+    .is_fn = is_fn,
+    .refs = refs,
 }
 
 // BFS over the name-edge graph from the seeded roots, returning the reachable
 // set. `work` grows as we discover referenced names ; the manual cursor loop
 // (not `0..<len`) re-reads the growing length. Shared by both lints.
 bfs_reachable :: fn(
-    root_names: string[], seed_refs: string[], refs_by_name: MutableMap<string, string[]>,
+    root_names: string[],
+    seed_refs: string[],
+    refs_by_name: MutableMap<string, string[]>,
 ) -> MutableSet<string> {
     reachable :: MutableSet<string> {}
-    work: string[] = []
-    for n in root_names { work.push(n) }
-    for r in seed_refs  { work.push(r) }
+    work :: chain(root_names, seed_refs).collect()
     cursor: usize = 0
     for cursor < work.len() {
         n :: work[cursor]
         cursor += 1
-        if n in reachable { continue }
+        if n in reachable {
+            continue
+        }
         reachable.add(n)
         nrefs :: refs_by_name[n]
-        if nrefs != null { for r in nrefs { work.push(r) } }
+        if nrefs != null {
+            for r in nrefs {
+                work.push(r)
+            }
+        }
     }
     return reachable
 }
@@ -387,9 +463,8 @@ bfs_reachable :: fn(
 export check_dead_code :: fn(decls: AST.Decl[], diags: Diagnostic[]) -> void {
     refs_by_name :: MutableMap<string, string[]> {}
     root_names: string[] = []
-    seed_refs:  string[] = []
-    flaggable:  DeadDecl[] = []
-
+    seed_refs: string[] = []
+    flaggable: DeadDecl[] = []
     for d in decls {
         nd :: collect_decl_refs(d, seed_refs)
         if nd == null {
@@ -402,7 +477,6 @@ export check_dead_code :: fn(decls: AST.Decl[], diags: Diagnostic[]) -> void {
             flaggable.push(DeadDecl { .name = nd.name, .name_span = nd.name_span })
         }
     }
-
     reachable :: bfs_reachable(root_names, seed_refs, refs_by_name)
     for fd in flaggable {
         if !(fd.name in reachable) {
@@ -414,8 +488,13 @@ export check_dead_code :: fn(decls: AST.Decl[], diags: Diagnostic[]) -> void {
 // Append `refs` to the edge set for `name` (overloads share a name → merge).
 register_refs :: fn(m: MutableMap<string, string[]>, name: string, refs: string[]) -> void {
     cur :: m[name]
-    if cur == null { m[name] = refs }
-    else { for r in refs { cur.push(r) } }
+    if cur == null {
+        m[name] = refs
+    } else {
+        for r in refs {
+            cur.push(r)
+        }
+    }
 }
 
 // ---- unused-export (W0012) : project-wide dead exported fns ----------------
@@ -439,7 +518,7 @@ register_refs :: fn(m: MutableMap<string, string[]>, name: string, refs: string[
 /// project's true roots. `name_span` points at the name token — its file + line
 /// carry the location for the report, so no separate module field is needed.
 export DeadExport :: struct {
-    name:      string
+    name: string
     name_span: Span
 }
 
@@ -463,9 +542,8 @@ export DeadExport :: struct {
 export dead_exports :: fn(decls: AST.Decl[]) -> DeadExport[] {
     refs_by_name :: MutableMap<string, string[]> {}
     root_names: string[] = []
-    seed_refs:  string[] = []
-    flaggable:  DeadExport[] = []
-
+    seed_refs: string[] = []
+    flaggable: DeadExport[] = []
     for d in decls {
         nd :: collect_decl_refs(d, seed_refs)
         if nd == null {
@@ -482,11 +560,10 @@ export dead_exports :: fn(decls: AST.Decl[]) -> DeadExport[] {
             flaggable.push(DeadExport { .name = nd.name, .name_span = nd.name_span })
         }
     }
-
     reachable :: bfs_reachable(root_names, seed_refs, refs_by_name)
     out: DeadExport[] = []
     for e in flaggable {
-        if !(e.name in reachable) {
+        if e.name !in reachable {
             out.push(e)
         }
     }
@@ -526,17 +603,26 @@ export dead_exports_of_project :: fn(project: LoadedProject) -> UnusedExportRepo
         }
     }
     if !has_main {
-        return UnusedExportReport { .has_main = false, .findings = [] }
+        return UnusedExportReport {
+            .has_main = false,
+            .findings = [],
+        }
     }
-    return UnusedExportReport { .has_main = true, .findings = dead_exports(all_decls) }
+    return UnusedExportReport {
+        .has_main = true,
+        .findings = dead_exports(all_decls),
+    }
 }
 
 /// Render one `DeadExport` as its W0012 warning. The single mapper both the CLI
 /// and the LSP use, so the code + wording stay in one place.
 ///
 /// @param e  the dead exported fn to report.
-export dead_export_diag :: fn(e: DeadExport) =
-    warning(.UnusedExport, e.name_span, "`${e.name}` is never used")
+export dead_export_diag :: fn(e: DeadExport) = warning(
+    .UnusedExport,
+    e.name_span,
+    "`${e.name}` is never used",
+)
 
 /// Render every finding of `es` as its W0012 warning — the list form of
 /// `dead_export_diag`, used by both `vader lint` and the LSP.
