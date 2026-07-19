@@ -19,8 +19,8 @@ module "main"
 import "std/io"
 import "std/collections"
 
-N :: 100_000
-ROUNDS :: 8
+N        :: 100_000
+ROUNDS   :: 8
 STRIDE: i64: 131101
 KEYSPACE: i64: 200003
 
@@ -30,26 +30,30 @@ main :: fn() -> i32 {
     for r in 0..<ROUNDS {
         // insert / update — value carries the round so overwrites do work
         for i in 0..<N {
-            k :: i32((i64(i) * STRIDE) % KEYSPACE)
+            k :: i32(i64(i) * STRIDE % KEYSPACE)
             m[k] = k + r
         }
         // look every key up — sum the values found
         for i in 0..<N {
-            k :: i32((i64(i) * STRIDE) % KEYSPACE)
+            k :: i32(i64(i) * STRIDE % KEYSPACE)
             v :: m[k]
-            if v != null { chk += i64(v) }
+            if v != null {
+                chk += i64(v)
+            }
         }
         // delete the even-indexed keys
         for i in 0..<N {
             if i % 2 == 0 {
-                k :: i32((i64(i) * STRIDE) % KEYSPACE)
+                k :: i32(i64(i) * STRIDE % KEYSPACE)
                 m.remove(k)
             }
         }
         // probe for survivors
         for i in 0..<N {
-            k :: i32((i64(i) * STRIDE) % KEYSPACE)
-            if k in m { chk += 1 }
+            k :: i32(i64(i) * STRIDE % KEYSPACE)
+            if k in m {
+                chk += 1
+            }
         }
     }
     println("hashmap rounds=${ROUNDS} n=${N} size=${m.len()} chk=${chk}")

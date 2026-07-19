@@ -9,7 +9,7 @@ module "main"
 import "std/io"
 import "std/collections"
 
-INNER_KEYS :: 1_000
+INNER_KEYS  :: 1_000
 OUTER_LOOPS :: 1_000
 
 main :: fn() -> i32 {

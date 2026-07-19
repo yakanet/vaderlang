@@ -14,7 +14,7 @@ import "std/io"
 
 Node :: struct {
     value: i32
-    left:  Node | null
+    left: Node | null
     right: Node | null
 }
 
@@ -32,7 +32,6 @@ count_nodes :: fn(t: Node | null) -> i32 {
         is null      -> { return 0 }
         is Node as n -> { return 1 + count_nodes(n.left) + count_nodes(n.right) }
     }
-    return 0
 }
 
 main :: fn() -> i32 {
