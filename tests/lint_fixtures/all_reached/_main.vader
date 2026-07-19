@@ -1,0 +1,10 @@
+// Fixture for `vader lint` — every export is reached from `main`, so
+// unused-export must stay silent (exit 0, no W0012).
+
+module "snippet"
+
+export twice :: fn(n: i32) -> i32 = n * 2
+
+export inc :: fn(n: i32) -> i32 = n + 1
+
+main :: fn() -> i32 = twice(inc(20))

@@ -17,6 +17,8 @@ module "vader/lsp/analysis"
 import "std/collections"
 import "std/json"
 import "vader/diagnostics"
+import "vader/resolver"
+import "vader/typecheck"
 import "vader/lsp/protocol"
 
 /// Type-check the file at `uri` and push the resulting diagnostics to
@@ -29,7 +31,15 @@ export publish_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void
         return
     }
     cached :: typed_project_for(self, file_path)
-    publish(self, uri, cached.diags)
+    // Merge the typecheck diagnostics (W0007 etc.) with the opt-in project-wide
+    // lints the LSP surfaces but `vader build` never runs (W0012 unused-export).
+    // The lint walks the already-loaded project graph — no reload — and
+    // `publish`'s per-file filter scopes its findings to the open document, so
+    // the analysis stays project-wide while the display is per-file, as W0007.
+    diags: Diagnostic[] = []
+    diags.push_all(cached.diags)
+    diags.push_all(unused_export_diags(cached.project))
+    publish(self, uri, diags)
 }
 
 /// Push an empty diagnostics array — clears any existing squiggles in
@@ -37,6 +47,21 @@ export publish_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void
 export clear_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void {
     publish(self, uri, [])
 }
+
+/// The opt-in project-wide `unused-export` (W0012) findings for an
+/// already-loaded project — the LSP side of the `vader lint` recipe. Surfaced
+/// by the editor but NEVER by `vader build` : it runs here in the diagnostics
+/// path only (not at cache build, so hover / completion never pay it), off the
+/// shared typecheck path (P-lean).
+///
+/// Walks the cached `LoadedProject` — NO reload — via `dead_exports_of_project`,
+/// so it is a bare name-reachability walk over decls already in memory. The
+/// caller merges these into the published set, where `publish`'s per-file filter
+/// scopes them to the open document : the ANALYSIS is project-wide (a
+/// cross-module use is never a false positive) but the DISPLAY is per-file,
+/// exactly as W0007. A rootless project (no `main`) yields nothing.
+unused_export_diags :: fn(project: LoadedProject) =
+    dead_export_diags(dead_exports_of_project(project).findings)
 
 /// Push a `publishDiagnostics` notification carrying `diags` filtered to
 /// those whose primary span belongs to `uri` — the sole presentation filter
@@ -81,10 +106,12 @@ encode_diagnostic :: fn(d: Diagnostic, li: LineIndex) -> JsonValue {
 
 /// LSP `DiagnosticTag` for a diagnostic code (LSP §3.17.16) : `1` = Unnecessary
 /// (the editor renders the range faded — for dead code), `2` = Deprecated
-/// (struck through), `0` = no tag. `W0007` (dead-code lint) fades the unused
-/// declaration ; `W0001` (use of a `@deprecated` decl) strikes the reference.
+/// (struck through), `0` = no tag. `W0007` (dead private decl) and `W0012`
+/// (dead exported fn) both fade the unused declaration ; `W0001` (use of a
+/// `@deprecated` decl) strikes the reference.
 lsp_diag_tag :: fn(code_id: string) -> i32 {
     if code_id == "W0007" { return 1 }
+    if code_id == "W0012" { return 1 }
     if code_id == "W0001" { return 2 }
     return 0
 }
@@ -109,7 +136,8 @@ lsp_severity :: fn(s: Severity) -> i32 = match s {
 import "std/testing"
 
 @test test_lsp_diag_tag :: fn() -> void {
-    assert_eq(lsp_diag_tag("W0007"), 1)   // dead code → Unnecessary (faded)
+    assert_eq(lsp_diag_tag("W0007"), 1)   // dead private → Unnecessary (faded)
+    assert_eq(lsp_diag_tag("W0012"), 1)   // dead export → Unnecessary (faded)
     assert_eq(lsp_diag_tag("W0001"), 2)   // deprecated → Deprecated (struck)
     assert_eq(lsp_diag_tag("T3054"), 0)   // ordinary error → no tag
     assert_eq(lsp_diag_tag("W0005"), 0)   // ordinary warning → no tag
