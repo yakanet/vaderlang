@@ -57,7 +57,7 @@ static int32_t snippet_main(void) {
     if ((size_t) INT32_C(1) >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
     ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) INT32_C(1)] = (int32_t) INT32_C(99);
 #line 19 "tests/snippets/array_ops/_main.vader"
-    vader_array_push((vader_array_t*) l0, vader_box_i32(1u, INT32_C(40)));
+    vader_array_push_i32((vader_array_t*) l0, INT32_C(40));
 #line 20 "tests/snippets/array_ops/_main.vader"
     vader_array_t* _a2_slotarr = ((vader_array_t*) l0);
     while (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = (vader_array_buf_t*) _a2_slotarr->buf->header.forward; }
