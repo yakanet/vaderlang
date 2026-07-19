@@ -233,7 +233,7 @@
         },
         {
           "name": "storage.type.vader",
-          "match": "\\b(fn|struct|trait|enum|impl)\\b"
+          "match": "\\b(fn|struct|trait|enum)\\b"
         },
         {
           "name": "keyword.other.implements.vader",
@@ -253,7 +253,7 @@
       "patterns": [
         {
           "name": "support.type.primitive.vader",
-          "match": "\\b(bool|u8|u16|u32|u64|usize|i8|i16|i32|i64|f32|f64|char|string|void|rawptr|int|long|float|double|byte)\\b"
+          "match": "\\b(bool|u8|u16|u32|u64|usize|isize|i8|i16|i32|i64|f32|f64|char|string|void|int|long|float|double|byte)\\b"
         },
         {
           "comment": "Generic type parameter: $T",
