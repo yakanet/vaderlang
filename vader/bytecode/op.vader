@@ -274,8 +274,10 @@ export ArrayNew :: struct { type_id: i32, length: i32 }
 /// Statement-form, no value pushed back. Sprint 4 (b2) addition.
 export ArrayPush :: struct { type_id: i32 }
 /// Pop an index (i32) and an array ; push `array.elements[index]`.
-/// Traps on out-of-bounds index. Sprint 4 (b2) addition.
-export ArrayGet :: struct { type_id: i32 }
+/// Traps on out-of-bounds index (unless `bounds_safe`). Sprint 4 (b2) addition.
+/// `bounds_safe` : the producer PROVED the index in range (BCE) → the C backend
+/// skips the check. Default `false`. The VM always checks (soundness oracle).
+export ArrayGet :: struct { type_id: i32, bounds_safe: bool = false }
 /// Pop the new element value, an index, and an array ; mutate
 /// `array.elements[index]` in place. Statement-form, no push back.
 /// Sprint 4 (b2) addition.
@@ -283,7 +285,7 @@ export ArraySet :: struct { type_id: i32 }
 /// Pop an array, push its element count (approximated as an i32 ;
 /// our `Value` doesn't carry width tags).
 /// Sprint 4 (b2) addition.
-export ArrayLen :: struct {}
+export ArrayLen :: struct { resolve_buf: bool = false }
 
 /// Zero-copy slice : pops `arr` / `lo` / `hi` from the stack ; pushes a
 /// fresh array header that shares `arr.elements` semantically. On the
@@ -706,11 +708,13 @@ export LoadSlot :: struct {}
 /// by `op_select::slot_load_op_for`. No GC trace (primitive region).
 export LoadSlotU8 :: struct {}
 /// 4-byte signed read (`i32` / `u32` / `char` elements). See `LoadSlotU8`.
-export LoadSlotI32 :: struct {}
+/// `bounds_safe` : producer PROVED the index in range (BCE) → C backend skips the
+/// bounds check ; default `false`. The VM checks regardless (soundness oracle).
+export LoadSlotI32 :: struct { bounds_safe: bool = false }
 /// 8-byte signed read (`i64` / `u64` / `usize` / `isize` elements). See `LoadSlotU8`.
-export LoadSlotI64 :: struct {}
+export LoadSlotI64 :: struct { bounds_safe: bool = false }
 /// 8-byte float read (`f64` elements). See `LoadSlotU8`.
-export LoadSlotF64 :: struct {}
+export LoadSlotF64 :: struct { bounds_safe: bool = false }
 /// Write a boxed array slot. Pops `obj, i: usize, v` ; **fires
 /// `VADER_WRITE_BARRIER(obj->buf)`** (invariant G2 — records the potential
 /// old→young edge for the generational collector ; the barrier targets the buf,

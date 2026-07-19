@@ -712,7 +712,7 @@ gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr {
             return LoweredVirtualCall { .span = v.span, .type = v.type, .trait_name = v.trait_name, .method = v.method, .receiver = gb_route_expr(gb, v.receiver), .args = new_args }
         }
         is LoweredFieldAccess as fa -> LoweredFieldAccess { .span = fa.span, .type = fa.type, .target = gb_route_expr(gb, fa.target), .field = fa.field }
-        is LoweredIndex as ix -> LoweredIndex { .span = ix.span, .type = ix.type, .target = gb_route_expr(gb, ix.target), .index = gb_route_expr(gb, ix.index) }
+        is LoweredIndex as ix -> LoweredIndex { .span = ix.span, .type = ix.type, .target = gb_route_expr(gb, ix.target), .index = gb_route_expr(gb, ix.index), .bounds_safe = ix.bounds_safe }
         is LoweredUnary as u -> LoweredUnary { .span = u.span, .type = u.type, .op = u.op, .operand = gb_route_expr(gb, u.operand) }
         is LoweredBinary as b -> LoweredBinary { .span = b.span, .type = b.type, .op = b.op, .left = gb_route_expr(gb, b.left), .right = gb_route_expr(gb, b.right) }
         is LoweredIf as ie -> {
@@ -730,7 +730,7 @@ gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr {
             for el in al.elements { new_elements.push(gb_route_expr(gb, el)) }
             return LoweredArrayLit { .span = al.span, .type = al.type, .elements = new_elements }
         }
-        is LoweredArrayLen as al -> LoweredArrayLen { .span = al.span, .type = al.type, .target = gb_route_expr(gb, al.target) }
+        is LoweredArrayLen as al -> LoweredArrayLen { .span = al.span, .type = al.type, .target = gb_route_expr(gb, al.target), .resolve_buf = al.resolve_buf }
         is LoweredArrayPush as ap -> LoweredArrayPush { .span = ap.span, .type = ap.type, .target = gb_route_expr(gb, ap.target), .value = gb_route_expr(gb, ap.value) }
         is LoweredArraySlice as asl -> LoweredArraySlice { .span = asl.span, .type = asl.type, .target = gb_route_expr(gb, asl.target), .lo = gb_route_expr(gb, asl.lo), .hi = gb_route_expr(gb, asl.hi) }
         is LoweredStringSlice as ssl -> LoweredStringSlice { .span = ssl.span, .type = ssl.type, .target = gb_route_expr(gb, ssl.target), .lo = gb_route_expr(gb, ssl.lo), .hi = gb_route_expr(gb, ssl.hi) }

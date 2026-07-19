@@ -716,6 +716,7 @@ build_index :: fn(fn_ctx: FnCtx, e: LoweredIndex) -> LocalId | null {
     dst :: fresh_tmp(fn_ctx, "idx", e.type)
     emit(fn_ctx, InstrArrayGet {
         .dst = dst, .target = target, .index = index, .type = e.type, .span = e.span,
+        .bounds_safe = e.bounds_safe,
     })
     return dst
 }
@@ -907,7 +908,7 @@ build_intrinsic_call :: fn(fn_ctx: FnCtx, e: LoweredIntrinsicCall) -> LocalId | 
 build_array_len :: fn(fn_ctx: FnCtx, e: LoweredArrayLen) -> LocalId | null {
     target :: build_expr(fn_ctx, e.target) ?? return null
     dst :: fresh_tmp(fn_ctx, "len", e.type)
-    emit(fn_ctx, InstrArrayLen { .dst = dst, .target = target, .span = e.span })
+    emit(fn_ctx, InstrArrayLen { .dst = dst, .target = target, .span = e.span, .resolve_buf = e.resolve_buf })
     return dst
 }
 

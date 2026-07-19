@@ -288,13 +288,13 @@ export slot_store_op_for :: fn(elem: ValType) -> Op | null {
 ///
 /// @param elem  the array's concrete element value class.
 /// @return      the load op, or `null` for a not-yet-supported element width.
-export slot_load_op_for :: fn(elem: ValType) -> Op | null {
+export slot_load_op_for :: fn(elem: ValType, bounds_safe: bool) -> Op | null {
     w :: slot_width_for(elem) ?? return null
     return match w {
         .U8    -> LoadSlotU8 {}
-        .I32   -> LoadSlotI32 {}
-        .I64   -> LoadSlotI64 {}
-        .F64   -> LoadSlotF64 {}
+        .I32   -> LoadSlotI32 { .bounds_safe = bounds_safe }
+        .I64   -> LoadSlotI64 { .bounds_safe = bounds_safe }
+        .F64   -> LoadSlotF64 { .bounds_safe = bounds_safe }
         .Boxed -> LoadSlot {}
     }
 }
@@ -328,8 +328,8 @@ slot_typed_flippable :: fn(elem: ValType) -> bool {
 ///
 /// @param elem  the array's concrete element value class (the static read type).
 /// @return      a typed `LoadSlot*` op, or `null` to fall back to `ArrayGet`.
-export typed_slot_load_op_for :: fn(elem: ValType) -> Op | null =
-    if slot_typed_flippable(elem) { slot_load_op_for(elem) } else { null }
+export typed_slot_load_op_for :: fn(elem: ValType, bounds_safe: bool) -> Op | null =
+    if slot_typed_flippable(elem) { slot_load_op_for(elem, bounds_safe) } else { null }
 
 /// Symmetric typed slot STORE op for the S5 access flip — typed when flippable,
 /// else `null` to fall back to the legacy `ArraySet`.
@@ -458,8 +458,8 @@ import "std/testing"
 }
 
 @test test_slot_load_mirrors_store :: fn() -> void {
-    if !(slot_load_op_for(ValType.Any) is LoadSlot) { assert_eq("expected LoadSlot for any", "") }
-    if !(slot_load_op_for(ValType.I32) is LoadSlotI32) { assert_eq("expected LoadSlotI32 for i32", "") }
-    if !(slot_load_op_for(ValType.F64) is LoadSlotF64) { assert_eq("expected LoadSlotF64 for f64", "") }
-    if slot_load_op_for(ValType.F32) != null { assert_eq("expected null for f32", "") }
+    if !(slot_load_op_for(ValType.Any, false) is LoadSlot) { assert_eq("expected LoadSlot for any", "") }
+    if !(slot_load_op_for(ValType.I32, false) is LoadSlotI32) { assert_eq("expected LoadSlotI32 for i32", "") }
+    if !(slot_load_op_for(ValType.F64, false) is LoadSlotF64) { assert_eq("expected LoadSlotF64 for f64", "") }
+    if slot_load_op_for(ValType.F32, false) != null { assert_eq("expected null for f32", "") }
 }

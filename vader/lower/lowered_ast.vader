@@ -387,6 +387,13 @@ export LoweredIndex :: struct {
     type:   Type
     target: LoweredExpr
     index:  LoweredExpr
+    /// Bounds-check elimination : `true` when the producer has PROVEN the index
+    /// is in range (e.g. the `for x in a` desugar, whose counter runs `0..<len`
+    /// over `a`, when the loop body can't change `a`'s length). The C backend
+    /// then skips the D7 per-access bounds check. Default `false` — never elide
+    /// unless proven. Serves both the read (index expr) and the store
+    /// (`LoweredAssign.target`) sides.
+    bounds_safe: bool = false
 }
 
 /// Canonical unary operator kinds the lowerer emits. `neg` covers both
@@ -489,6 +496,12 @@ export LoweredArrayLen :: struct {
     span:   Span
     type:   Type
     target: LoweredExpr
+    /// BCE resolve-hoist : when `true`, the C backend ALSO resolves the array's
+    /// buffer-forward chain here (in a loop preheader) and pins it, so the loop
+    /// body's element accesses reuse it instead of re-resolving per iteration.
+    /// Set by the `for x in a` desugar only when the loop body is BCE-safe (no
+    /// call / push ⟹ no GC ⟹ the buffer can't move). Default `false`.
+    resolve_buf: bool = false
 }
 
 /// Push an element onto a mutable array. Type is always void.
