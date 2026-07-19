@@ -354,7 +354,7 @@ transform_expr :: fn(e: LoweredExpr, ctx: TransformCtx) -> LoweredExpr {
         is LoweredIndex as ix -> LoweredIndex {
             .span = ix.span, .type = ix.type,
             .target = transform_expr(ix.target, ctx), .index = transform_expr(ix.index, ctx),
-            .bounds_safe = ix.bounds_safe,
+            .bounds_safe = ix.bounds_safe, .bce_recheck = ix.bce_recheck,
         }
         is LoweredUnary as u -> LoweredUnary {
             .span = u.span, .type = u.type, .op = u.op, .operand = transform_expr(u.operand, ctx),
@@ -382,7 +382,7 @@ transform_expr :: fn(e: LoweredExpr, ctx: TransformCtx) -> LoweredExpr {
             for el in al.elements { new_elements.push(transform_expr(el, ctx)) }
             return LoweredArrayLit { .span = al.span, .type = al.type, .elements = new_elements }
         }
-        is LoweredArrayLen as al -> LoweredArrayLen { .span = al.span, .type = al.type, .target = transform_expr(al.target, ctx), .resolve_buf = al.resolve_buf }
+        is LoweredArrayLen as al -> LoweredArrayLen { .span = al.span, .type = al.type, .target = transform_expr(al.target, ctx), .resolve_buf = al.resolve_buf, .bce_recheck = al.bce_recheck }
         is LoweredArrayPush as ap -> LoweredArrayPush {
             .span = ap.span, .type = ap.type, .target = transform_expr(ap.target, ctx), .value = transform_expr(ap.value, ctx),
         }

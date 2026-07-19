@@ -795,9 +795,15 @@ emit_fused_array :: fn(
         .type = arr_type, .value = arr_lowered,
     }
     arr_ref :: LoweredIdent { .span = span, .type = arr_type, .symbol = arr_sym }
+    // BCE : mark the preheader `arr.len()` + the synthesized `arr[idx]` access as
+    // candidates. The post-inline `bce_hoist_tag` pass runs AFTER `inline_fns`, so
+    // by then the map/filter callbacks fused into `template.user_body` are their
+    // inlined bodies — a pure `a.map(square)` proves safe and gets the resolve
+    // hoist ; an allocating callback keeps the per-iteration resolve. No combinator
+    // is special-cased — the pass only asks "does the inlined body allocate/call?".
     len_let :: LoweredLet {
         .span = span, .name = len_sym.name, .symbol = len_sym, .type = usize_type,
-        .value = LoweredArrayLen { .span = span, .type = usize_type, .target = arr_ref },
+        .value = LoweredArrayLen { .span = span, .type = usize_type, .target = arr_ref, .bce_recheck = true },
     }
     idx_init :: LoweredLet {
         .span = span, .name = idx_sym.name, .symbol = idx_sym, .type = usize_type,
@@ -810,7 +816,7 @@ emit_fused_array :: fn(
         .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Lt, .left = idx_ref, .right = len_ref,
     }
     elem_access :: LoweredIndex {
-        .span = span, .type = elem_type, .target = arr_ref, .index = idx_ref,
+        .span = span, .type = elem_type, .target = arr_ref, .index = idx_ref, .bce_recheck = true,
     }
     bind_stmts :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, template.pattern, elem_access, elem_type, span)
     inc_stmt :: LoweredAssign {

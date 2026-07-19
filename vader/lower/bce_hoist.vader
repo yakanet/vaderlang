@@ -1,0 +1,296 @@
+// vader/lower/bce_hoist — post-inline BCE (bounds-check elimination) tagging pass.
+//
+// The loop desugars (foreach `try_lower_for_in_raw_array`, int-range
+// `try_lower_for_in_int_range`, and iterator fusion `emit_fused_array`) all
+// lower to a counter loop that runs `0..<len(arr)` over an array and indexes
+// `arr[idx]`. Each marks the `arr.len()` bound it emits with
+// `LoweredArrayLen.bce_recheck` and (foreach / fusion) its synthesized
+// `arr[idx]` access with `LoweredIndex.bce_recheck`, but DEFERS the safety
+// decision to this pass.
+//
+// Why post-inline : a `for x in a.map(f)` / a `for x in a { helper(x) }` body
+// is, at desugar time, an INDIRECT call (fn-value) or a direct call not yet
+// inlined — `bce_block_unsafe` would flag it and bail. `bce_hoist_tag` runs
+// AFTER `devirtualize_fn_refs` + `inline_fns` (see `lower.vader`), so a pure
+// callback / inlinable helper has become its inlined body and proves safe. No
+// combinator is special-cased : the decision is purely "does the inlined loop
+// body allocate / call / yield / rebind the array ?" (`bce_block_unsafe`,
+// `vader/lower/lower_for_in.vader`).
+//
+// When safe : the `arr.len()` bound's `resolve_buf` is set (the C backend then
+// resolves + PINS arr's buffer in the preheader, and the body's `arr[idx]`
+// accesses reuse it — the measured lever), and each synthesized `arr[idx]` has
+// its bounds check elided. The `bce_recheck` markers are consumed here and never
+// reach codegen. Mutates the lowered tree in place (like `devirtualize_fn_refs`).
+
+module "vader/lower"
+
+/// Run the BCE tagging pass over every function body in `project`. Idempotent
+/// per node (each `bce_recheck` marker is cleared once consumed).
+export bce_hoist_tag :: fn(project: LoweredProject) -> void {
+    for [_, m] in project.modules {
+        for d in m.decls {
+            if d is LoweredFnDecl as fd {
+                body :: fd.body
+                if body != null {
+                    bh_block(body)
+                }
+            }
+        }
+    }
+}
+
+// ---- descent : reach every block, pair a recheck-len with its sibling loop ----
+
+bh_block :: fn(b: LoweredBlock) -> void {
+    for st in b.stmts {
+        bh_stmt(st)
+    }
+    trailing :: b.trailing
+    if trailing != null {
+        bh_expr(trailing)
+    }
+    bh_pair(b)
+}
+
+bh_stmt :: fn(s: LoweredStmt) -> void {
+    if s is LoweredLet as st {
+        bh_expr(st.value)
+    } else if s is LoweredAssign as st {
+        bh_expr(st.target)
+        bh_expr(st.value)
+    } else if s is LoweredCellSet as st {
+        bh_expr(st.target)
+        bh_expr(st.value)
+    } else if s is LoweredExprStmt as st {
+        bh_expr(st.expr)
+    } else if s is LoweredReturn as st {
+        v :: st.value
+        if v != null {
+            bh_expr(v)
+        }
+    } else if s is LoweredYield as st {
+        bh_expr(st.value)
+    } else if s is LoweredAwait as st {
+        bh_expr(st.awaited)
+    } else if s is LoweredLoop as st {
+        c :: st.cond
+        if c != null {
+            bh_expr(c)
+        }
+        bh_block(st.body)
+    } else if s is LoweredDeferPush as st {
+        bh_expr(st.thunk)
+    }
+    // Break / Continue / DeferPopExec : no nested block.
+}
+
+bh_expr :: fn(e: LoweredExpr) -> void {
+    if e is LoweredBlock as x {
+        bh_block(x)
+    } else if e is LoweredIf as x {
+        bh_expr(x.cond)
+        bh_block(x.then_block)
+        eb :: x.else_block
+        if eb != null {
+            bh_block(eb)
+        }
+    } else if e is LoweredBinary as x {
+        bh_expr(x.left)
+        bh_expr(x.right)
+    } else if e is LoweredUnary as x {
+        bh_expr(x.operand)
+    } else if e is LoweredCast as x {
+        bh_expr(x.value)
+    } else if e is LoweredTypeCheck as x {
+        bh_expr(x.value)
+    } else if e is LoweredIndex as x {
+        bh_expr(x.target)
+        bh_expr(x.index)
+    } else if e is LoweredFieldAccess as x {
+        bh_expr(x.target)
+    } else if e is LoweredArrayLen as x {
+        bh_expr(x.target)
+    } else if e is LoweredCall as x {
+        bh_expr(x.callee)
+        for a in x.args {
+            bh_expr(a)
+        }
+    } else if e is LoweredVirtualCall as x {
+        bh_expr(x.receiver)
+        for a in x.args {
+            bh_expr(a)
+        }
+    } else if e is LoweredIntrinsicCall as x {
+        for a in x.args {
+            bh_expr(a)
+        }
+    } else if e is LoweredStructLit as x {
+        for f in x.fields {
+            bh_expr(f.value)
+        }
+    } else if e is LoweredArrayLit as x {
+        for el in x.elements {
+            bh_expr(el)
+        }
+    } else if e is LoweredArrayPush as x {
+        bh_expr(x.target)
+        bh_expr(x.value)
+    } else if e is LoweredArraySlice as x {
+        bh_expr(x.target)
+        bh_expr(x.lo)
+        bh_expr(x.hi)
+    } else if e is LoweredStringSlice as x {
+        bh_expr(x.target)
+        bh_expr(x.lo)
+        bh_expr(x.hi)
+    } else if e is LoweredCellNew as x {
+        bh_expr(x.value)
+    } else if e is LoweredCellGet as x {
+        bh_expr(x.target)
+    } else if e is LoweredMakeClosure as x {
+        bh_expr(x.env)
+    }
+    // Leaves (lits / ident / data-const / unreachable / type-const) : nothing.
+}
+
+// In block `b`, find a `let __ = arr.len()` marked `bce_recheck` and a sibling
+// loop. If the loop body is BCE-safe (no alloc / call / yield / rebind of arr),
+// hoist arr's resolve (`resolve_buf`) and elide the synthesized `arr[idx]` checks.
+bh_pair :: fn(b: LoweredBlock) -> void {
+    the_len: LoweredArrayLen | null = null
+    for st in b.stmts {
+        if st is LoweredLet as ll {
+            if ll.value is LoweredArrayLen as al {
+                if al.bce_recheck {
+                    the_len = al
+                }
+            }
+        }
+    }
+    if the_len == null {
+        return
+    }
+    the_loop: LoweredLoop | null = null
+    for st in b.stmts {
+        if st is LoweredLoop as lp {
+            the_loop = lp
+        }
+    }
+    the_len.bce_recheck = false
+    if the_loop == null {
+        return
+    }
+    // Guard on the bound array's symbol : rebinding it (`arr = other`) would leave
+    // the pinned resolve stale. Synthetic (foreach / fusion) arrays are never
+    // rebound, so this is a no-op there ; for an int-range `0..<a.len()` it catches
+    // a user rebind of `a`.
+    guard :: bh_guard_sym(the_len)
+    if bce_block_unsafe(the_loop.body, guard) {
+        return
+    }
+    the_len.resolve_buf = true
+    bh_mark_idx_block(the_loop.body)
+}
+
+bh_guard_sym :: fn(al: LoweredArrayLen) -> i32 {
+    if al.target is LoweredIdent as id {
+        return id.symbol.id
+    }
+    return -1
+}
+
+// ---- mark synthesized `arr[idx]` accesses bounds-safe (this loop only) --------
+// Walks the loop body setting `bounds_safe` on every `bce_recheck` LoweredIndex,
+// but does NOT descend into a nested LoweredLoop — a nested loop's accesses belong
+// to its own (separately paired) len bound.
+
+bh_mark_idx_block :: fn(b: LoweredBlock) -> void {
+    for st in b.stmts {
+        bh_mark_idx_stmt(st)
+    }
+    trailing :: b.trailing
+    if trailing != null {
+        bh_mark_idx_expr(trailing)
+    }
+}
+
+bh_mark_idx_stmt :: fn(s: LoweredStmt) -> void {
+    if s is LoweredLet as st {
+        bh_mark_idx_expr(st.value)
+    } else if s is LoweredAssign as st {
+        bh_mark_idx_expr(st.target)
+        bh_mark_idx_expr(st.value)
+    } else if s is LoweredCellSet as st {
+        bh_mark_idx_expr(st.target)
+        bh_mark_idx_expr(st.value)
+    } else if s is LoweredExprStmt as st {
+        bh_mark_idx_expr(st.expr)
+    } else if s is LoweredReturn as st {
+        v :: st.value
+        if v != null {
+            bh_mark_idx_expr(v)
+        }
+    } else if s is LoweredYield as st {
+        bh_mark_idx_expr(st.value)
+    } else if s is LoweredAwait as st {
+        bh_mark_idx_expr(st.awaited)
+    } else if s is LoweredDeferPush as st {
+        bh_mark_idx_expr(st.thunk)
+    }
+    // LoweredLoop : NOT descended (nested loop owns its own accesses).
+    // Break / Continue / DeferPopExec : nothing.
+}
+
+bh_mark_idx_expr :: fn(e: LoweredExpr) -> void {
+    if e is LoweredIndex as x {
+        if x.bce_recheck {
+            x.bounds_safe = true
+            x.bce_recheck = false
+        }
+        bh_mark_idx_expr(x.target)
+        bh_mark_idx_expr(x.index)
+    } else if e is LoweredBlock as x {
+        bh_mark_idx_block(x)
+    } else if e is LoweredIf as x {
+        bh_mark_idx_expr(x.cond)
+        bh_mark_idx_block(x.then_block)
+        eb :: x.else_block
+        if eb != null {
+            bh_mark_idx_block(eb)
+        }
+    } else if e is LoweredBinary as x {
+        bh_mark_idx_expr(x.left)
+        bh_mark_idx_expr(x.right)
+    } else if e is LoweredUnary as x {
+        bh_mark_idx_expr(x.operand)
+    } else if e is LoweredCast as x {
+        bh_mark_idx_expr(x.value)
+    } else if e is LoweredTypeCheck as x {
+        bh_mark_idx_expr(x.value)
+    } else if e is LoweredFieldAccess as x {
+        bh_mark_idx_expr(x.target)
+    } else if e is LoweredArrayLen as x {
+        bh_mark_idx_expr(x.target)
+    } else if e is LoweredCall as x {
+        bh_mark_idx_expr(x.callee)
+        for a in x.args {
+            bh_mark_idx_expr(a)
+        }
+    } else if e is LoweredVirtualCall as x {
+        bh_mark_idx_expr(x.receiver)
+        for a in x.args {
+            bh_mark_idx_expr(a)
+        }
+    } else if e is LoweredIntrinsicCall as x {
+        for a in x.args {
+            bh_mark_idx_expr(a)
+        }
+    } else if e is LoweredCellNew as x {
+        bh_mark_idx_expr(x.value)
+    } else if e is LoweredCellGet as x {
+        bh_mark_idx_expr(x.target)
+    }
+    // Leaves + array/struct literals / slices / closures : a synthesized loop-var
+    // access never nests there, so no descent needed.
+}
