@@ -580,42 +580,55 @@ loop_var_type_key :: fn(loop_var: AST.LoopVar, fallback: Span) -> u64 = loop_var
 // so they stay SAFE. The matches are EXHAUSTIVE, so a new Lowered node can't
 // silently pass as "safe" (T3013). Over-approximate : a call/alloc that never
 // touches THIS array still bails — refining is a later tier.
-bce_block_unsafe :: fn(b: LoweredBlock) -> bool {
+// `guard_sym` (or `-1` for none) : a symbol whose REBIND (`guard_sym = <expr>`)
+// also makes the body unsafe — the raw-array foreach captures the iterated
+// array's value so it doesn't care, but Tier 2's index loop reads the user's
+// array directly, so rebinding it would leave the hoisted resolve pointing at
+// the old array. Rebinding is an assignment (a statement), but a statement can
+// nest inside an `if` / block expr, so the guard rides the same exhaustive walk.
+bce_block_unsafe :: fn(b: LoweredBlock, guard_sym: i32) -> bool {
     for st in b.stmts {
-        if bce_stmt_unsafe(st) {
+        if bce_stmt_unsafe(st, guard_sym) {
             return true
         }
     }
     trailing :: b.trailing
     if trailing != null {
-        return bce_expr_unsafe(trailing)
+        return bce_expr_unsafe(trailing, guard_sym)
     }
     return false
 }
 
-bce_opt_expr_unsafe :: fn(e: LoweredExpr | null) -> bool {
+bce_opt_expr_unsafe :: fn(e: LoweredExpr | null, guard_sym: i32) -> bool {
     if e == null {
         return false
     }
-    return bce_expr_unsafe(e)
+    return bce_expr_unsafe(e, guard_sym)
 }
 
-bce_stmt_unsafe :: fn(s: LoweredStmt) -> bool = match s {
-    is LoweredLet as st       -> bce_expr_unsafe(st.value)
-    is LoweredAssign as st    -> bce_expr_unsafe(st.target) || bce_expr_unsafe(st.value)
-    is LoweredCellSet as st   -> bce_expr_unsafe(st.target) || bce_expr_unsafe(st.value)
-    is LoweredExprStmt as st  -> bce_expr_unsafe(st.expr)
-    is LoweredReturn as st    -> bce_opt_expr_unsafe(st.value)
+bce_is_reassign :: fn(target: LoweredExpr, guard_sym: i32) -> bool {
+    if target is LoweredIdent as id {
+        return id.symbol.id == guard_sym
+    }
+    return false
+}
+
+bce_stmt_unsafe :: fn(s: LoweredStmt, guard_sym: i32) -> bool = match s {
+    is LoweredLet as st       -> bce_expr_unsafe(st.value, guard_sym)
+    is LoweredAssign as st    -> bce_is_reassign(st.target, guard_sym) || bce_expr_unsafe(st.target, guard_sym) || bce_expr_unsafe(st.value, guard_sym)
+    is LoweredCellSet as st   -> bce_expr_unsafe(st.target, guard_sym) || bce_expr_unsafe(st.value, guard_sym)
+    is LoweredExprStmt as st  -> bce_expr_unsafe(st.expr, guard_sym)
+    is LoweredReturn as st    -> bce_opt_expr_unsafe(st.value, guard_sym)
     is LoweredYield           -> true
     is LoweredAwait           -> true
-    is LoweredLoop as st      -> bce_opt_expr_unsafe(st.cond) || bce_block_unsafe(st.body)
+    is LoweredLoop as st      -> bce_opt_expr_unsafe(st.cond, guard_sym) || bce_block_unsafe(st.body, guard_sym)
     is LoweredBreak           -> false
     is LoweredContinue        -> false
     is LoweredDeferPush       -> true
     is LoweredDeferPopExec    -> true
 }
 
-bce_expr_unsafe :: fn(e: LoweredExpr) -> bool = match e {
+bce_expr_unsafe :: fn(e: LoweredExpr, guard_sym: i32) -> bool = match e {
     // Calls + allocations : any of these can trigger a GC (moving the buffer) or
     // change an array's length.
     is LoweredCall | LoweredVirtualCall | LoweredIntrinsicCall | LoweredArrayPush -> true
@@ -623,23 +636,36 @@ bce_expr_unsafe :: fn(e: LoweredExpr) -> bool = match e {
     // Leaves : no allocation, no call.
     is LoweredIntLit | LoweredFloatLit | LoweredBoolLit | LoweredNullLit | LoweredCharLit | LoweredStringLit | LoweredIdent | LoweredDataConst | LoweredUnreachable | LoweredTypeConst -> false
     // Pure composites : recurse (they don't allocate themselves).
-    is LoweredFieldAccess as x -> bce_expr_unsafe(x.target)
-    is LoweredIndex as x       -> bce_expr_unsafe(x.target) || bce_expr_unsafe(x.index)
-    is LoweredUnary as x       -> bce_expr_unsafe(x.operand)
-    is LoweredBinary as x      -> bce_expr_unsafe(x.left) || bce_expr_unsafe(x.right)
-    is LoweredIf as x          -> bce_expr_unsafe(x.cond) || bce_block_unsafe(x.then_block) || bce_opt_block_unsafe(x.else_block)
-    is LoweredBlock as x       -> bce_block_unsafe(x)
-    is LoweredCast as x        -> bce_expr_unsafe(x.value)
-    is LoweredTypeCheck as x   -> bce_expr_unsafe(x.value)
-    is LoweredArrayLen as x    -> bce_expr_unsafe(x.target)
-    is LoweredCellGet as x     -> bce_expr_unsafe(x.target)
+    is LoweredFieldAccess as x -> bce_expr_unsafe(x.target, guard_sym)
+    is LoweredIndex as x       -> bce_expr_unsafe(x.target, guard_sym) || bce_expr_unsafe(x.index, guard_sym)
+    is LoweredUnary as x       -> bce_expr_unsafe(x.operand, guard_sym)
+    is LoweredBinary as x      -> bce_expr_unsafe(x.left, guard_sym) || bce_expr_unsafe(x.right, guard_sym)
+    is LoweredIf as x          -> bce_expr_unsafe(x.cond, guard_sym) || bce_block_unsafe(x.then_block, guard_sym) || bce_opt_block_unsafe(x.else_block, guard_sym)
+    is LoweredBlock as x       -> bce_block_unsafe(x, guard_sym)
+    is LoweredCast as x        -> bce_expr_unsafe(x.value, guard_sym)
+    is LoweredTypeCheck as x   -> bce_expr_unsafe(x.value, guard_sym)
+    is LoweredArrayLen as x    -> bce_expr_unsafe(x.target, guard_sym)
+    is LoweredCellGet as x     -> bce_expr_unsafe(x.target, guard_sym)
 }
 
-bce_opt_block_unsafe :: fn(b: LoweredBlock | null) -> bool {
+bce_opt_block_unsafe :: fn(b: LoweredBlock | null, guard_sym: i32) -> bool {
     if b == null {
         return false
     }
-    return bce_block_unsafe(b)
+    return bce_block_unsafe(b, guard_sym)
+}
+
+// Tier 2 : if a `for i in 0..<hi` loop's upper bound `hi` is `arr.len()` for a
+// plain array variable, return arr's symbol — inside the loop `i ∈ [0, len(arr))`,
+// so `arr[i]` is in-bounds and (more importantly) arr's buffer resolve can be
+// hoisted to the preheader. `null` when the bound isn't a bare `arr.len()`.
+bce_len_bound_array :: fn(hi: LoweredExpr) -> Symbol | null {
+    if hi is LoweredArrayLen as al {
+        if al.target is LoweredIdent as id {
+            return id.symbol
+        }
+    }
+    return null
 }
 
 try_lower_for_in_raw_array :: fn(
@@ -673,7 +699,7 @@ try_lower_for_in_raw_array :: fn(
     // preheader (via `len_let`'s `resolve_buf`). Sound over-approximation
     // (`bce_block_may_mutate` treats any call / push as a possible mutation).
     user_body :: block_lowerer(ctx, for_stmt.body, false, true)
-    bce_safe :: !bce_block_unsafe(user_body)
+    bce_safe :: !bce_block_unsafe(user_body, -1)
 
     arr_let :: LoweredLet {
         .span = span, .name = arr_sym.name, .symbol = arr_sym,
@@ -783,22 +809,6 @@ try_lower_for_in_int_range :: fn(
     lo :: widen_int_lit(recurse(ctx, range.lower), bound_type)
     hi_raw :: widen_int_lit(recurse(ctx, range.upper), bound_type)
 
-    // Hoist non-trivial upper bounds (calls, casts, …) into a
-    // `__for_hi_N` synthetic let so the loop condition reads a
-    // single slot per iteration instead of re-evaluating the
-    // expression. Cheap shapes (Ident / FieldAccess / IntLit /
-    // CharLit) skip the hoist.
-    hoist_stmts: LoweredStmt[] = []
-    hi: LoweredExpr = hi_raw
-    if !is_cheap_invariant(hi_raw) {
-        hi_sym :: fresh_synthetic_symbol(ctx, "for_hi")
-        hoist_stmts.push(LoweredLet {
-            .span = span, .name = hi_sym.name, .symbol = hi_sym,
-            .type = bound_type, .value = hi_raw,
-        })
-        hi = LoweredIdent { .span = span, .type = bound_type, .symbol = hi_sym }
-    }
-
     // When a closure in the body captures the loop counter, the raw mutable
     // counter can't be captured directly (it's reassigned in place). Run the
     // counter on a fresh synthetic symbol and rebind the user's loop var to a
@@ -814,6 +824,47 @@ try_lower_for_in_int_range :: fn(
     counter_ref :: LoweredIdent {
         .span = span, .type = bound_type, .symbol = counter_symbol,
     }
+
+    // Body is lowered before the bound hoist so BCE can inspect it.
+    raw_user_body :: block_lowerer(ctx, for_stmt.body, false, true)
+    user_body :: if !captured { raw_user_body } else {
+        // The counter runs on `counter_symbol` ; rebind the user's loop var to a
+        // fresh per-iteration cell over the current counter value.
+        bind_stmts :: bind_loop_var(ctx, lb.symbol, lb.name, lb.pattern, counter_ref, bound_type, span)
+        prepend_stmts_to_block(bind_stmts, raw_user_body)
+    }
+
+    // Tier 2 BCE resolve-hoist : `for i in 0..<arr.len()` where the body neither
+    // allocates (⟹ no GC ⟹ arr's buffer can't move) nor rebinds `arr`. The
+    // `arr.len()` bound is hoisted into the preheader anyway ; tag it `resolve_buf`
+    // so that same `array.len` also resolves + PINS arr's buffer there. The body's
+    // `arr[i]` accesses then reuse the pinned resolve (cache hit) instead of
+    // re-resolving every iteration — the measured 4.5x lever on index-store loops.
+    // The bounds check stays (near-free, and it catches any residual OOB).
+    hoisted :: !is_cheap_invariant(hi_raw)
+    bound_arr :: bce_len_bound_array(hi_raw)
+    resolve_hi :: bound_arr != null && hoisted && !bce_block_unsafe(user_body, bound_arr.id)
+
+    // Hoist non-trivial upper bounds (calls, casts, …) into a `__for_hi_N`
+    // synthetic let so the loop condition reads a single slot per iteration.
+    // Cheap shapes (Ident / FieldAccess / IntLit / CharLit) skip the hoist.
+    hoist_stmts: LoweredStmt[] = []
+    hi: LoweredExpr = hi_raw
+    if hoisted {
+        hi_value: LoweredExpr = hi_raw
+        if resolve_hi {
+            if hi_raw is LoweredArrayLen as al {
+                hi_value = LoweredArrayLen { .span = al.span, .type = al.type, .target = al.target, .resolve_buf = true }
+            }
+        }
+        hi_sym :: fresh_synthetic_symbol(ctx, "for_hi")
+        hoist_stmts.push(LoweredLet {
+            .span = span, .name = hi_sym.name, .symbol = hi_sym,
+            .type = bound_type, .value = hi_value,
+        })
+        hi = LoweredIdent { .span = span, .type = bound_type, .symbol = hi_sym }
+    }
+
     op :: cmp_op_for_inclusive(range.inclusive)
     cond :: LoweredBinary {
         .span = span, .type = TY_BOOL, .op = op,
@@ -828,14 +879,6 @@ try_lower_for_in_int_range :: fn(
                 .span = span, .type = bound_type, .value = 1,
             },
         },
-    }
-
-    raw_user_body :: block_lowerer(ctx, for_stmt.body, false, true)
-    user_body :: if !captured { raw_user_body } else {
-        // The counter runs on `counter_symbol` ; rebind the user's loop var to a
-        // fresh per-iteration cell over the current counter value.
-        bind_stmts :: bind_loop_var(ctx, lb.symbol, lb.name, lb.pattern, counter_ref, bound_type, span)
-        prepend_stmts_to_block(bind_stmts, raw_user_body)
     }
     // One resolved label, shared by the continue-reconciliation and the loop (see
     // the raw-array path) — they must agree or a var-targeted `continue` spins.

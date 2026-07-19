@@ -281,7 +281,7 @@ export ArrayGet :: struct { type_id: i32, bounds_safe: bool = false }
 /// Pop the new element value, an index, and an array ; mutate
 /// `array.elements[index]` in place. Statement-form, no push back.
 /// Sprint 4 (b2) addition.
-export ArraySet :: struct { type_id: i32 }
+export ArraySet :: struct { type_id: i32, bounds_safe: bool = false }
 /// Pop an array, push its element count (approximated as an i32 ;
 /// our `Value` doesn't carry width tags).
 /// Sprint 4 (b2) addition.
@@ -727,11 +727,11 @@ export StoreSlot :: struct {}
 /// storage width ; selected by `op_select::slot_store_op_for`.
 export StoreSlotU8 :: struct {}
 /// 4-byte signed write (`i32` / `u32` / `char` elements). See `StoreSlotU8`.
-export StoreSlotI32 :: struct {}
+export StoreSlotI32 :: struct { bounds_safe: bool = false }
 /// 8-byte signed write (`i64` / `u64` / `usize` / `isize` elements). See `StoreSlotU8`.
-export StoreSlotI64 :: struct {}
+export StoreSlotI64 :: struct { bounds_safe: bool = false }
 /// 8-byte float write (`f64` elements). See `StoreSlotU8`.
-export StoreSlotF64 :: struct {}
+export StoreSlotF64 :: struct { bounds_safe: bool = false }
 
 /// Bulk byte copy obj→obj. Pops `dst, dst_off, src, src_off, n` ; copies `n`
 /// bytes. Lowers to `memcpy`. Both ends are GC handles, offsets are integers.

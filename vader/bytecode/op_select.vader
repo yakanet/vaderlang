@@ -271,13 +271,13 @@ slot_width_for :: fn(elem: ValType) -> SlotWidth | null = match elem {
 ///
 /// @param elem  the array's concrete element value class.
 /// @return      the store op, or `null` for a not-yet-supported element width.
-export slot_store_op_for :: fn(elem: ValType) -> Op | null {
+export slot_store_op_for :: fn(elem: ValType, bounds_safe: bool) -> Op | null {
     w :: slot_width_for(elem) ?? return null
     return match w {
         .U8    -> StoreSlotU8 {}
-        .I32   -> StoreSlotI32 {}
-        .I64   -> StoreSlotI64 {}
-        .F64   -> StoreSlotF64 {}
+        .I32   -> StoreSlotI32 { .bounds_safe = bounds_safe }
+        .I64   -> StoreSlotI64 { .bounds_safe = bounds_safe }
+        .F64   -> StoreSlotF64 { .bounds_safe = bounds_safe }
         .Boxed -> StoreSlot {}
     }
 }
@@ -336,8 +336,8 @@ export typed_slot_load_op_for :: fn(elem: ValType, bounds_safe: bool) -> Op | nu
 ///
 /// @param elem  the array's concrete element value class.
 /// @return      a typed `StoreSlot*` op, or `null` to fall back to `ArraySet`.
-export typed_slot_store_op_for :: fn(elem: ValType) -> Op | null =
-    if slot_typed_flippable(elem) { slot_store_op_for(elem) } else { null }
+export typed_slot_store_op_for :: fn(elem: ValType, bounds_safe: bool) -> Op | null =
+    if slot_typed_flippable(elem) { slot_store_op_for(elem, bounds_safe) } else { null }
 
 // ---- tests ---------------------------------------------------------------
 
@@ -410,41 +410,41 @@ import "std/testing"
 }
 
 @test test_slot_store_boxed_uses_store_slot :: fn() -> void {
-    op :: slot_store_op_for(ValType.String)
+    op :: slot_store_op_for(ValType.String, false)
     if op is StoreSlot { return }
     assert_eq("expected StoreSlot for string", "")
 }
 
 @test test_slot_store_ref_uses_store_slot :: fn() -> void {
-    op :: slot_store_op_for(ValType.Ref)
+    op :: slot_store_op_for(ValType.Ref, false)
     if op is StoreSlot { return }
     assert_eq("expected StoreSlot for ref", "")
 }
 
 @test test_slot_store_i32_native_width :: fn() -> void {
-    op :: slot_store_op_for(ValType.I32)
+    op :: slot_store_op_for(ValType.I32, false)
     if op is StoreSlotI32 { return }
     assert_eq("expected StoreSlotI32 for i32", "")
 }
 
 @test test_slot_store_i64_and_usize :: fn() -> void {
-    op_i64 :: slot_store_op_for(ValType.I64)
+    op_i64 :: slot_store_op_for(ValType.I64, false)
     if !(op_i64 is StoreSlotI64) { assert_eq("expected StoreSlotI64 for i64", "") }
-    op_usize :: slot_store_op_for(ValType.Usize)
+    op_usize :: slot_store_op_for(ValType.Usize, false)
     if op_usize is StoreSlotI64 { return }
     assert_eq("expected StoreSlotI64 for usize", "")
 }
 
 @test test_slot_store_f64_uses_store_f64 :: fn() -> void {
-    op :: slot_store_op_for(ValType.F64)
+    op :: slot_store_op_for(ValType.F64, false)
     if op is StoreSlotF64 { return }
     assert_eq("expected StoreSlotF64 for f64", "")
 }
 
 @test test_slot_store_u8_bool_native_width :: fn() -> void {
-    op_u8 :: slot_store_op_for(ValType.U8)
+    op_u8 :: slot_store_op_for(ValType.U8, false)
     if !(op_u8 is StoreSlotU8) { assert_eq("expected StoreSlotU8 for u8", "") }
-    op_bool :: slot_store_op_for(ValType.Bool)
+    op_bool :: slot_store_op_for(ValType.Bool, false)
     if op_bool is StoreSlotU8 { return }
     assert_eq("expected StoreSlotU8 for bool", "")
 }
@@ -452,9 +452,9 @@ import "std/testing"
 // `i16` / `u16` / `f32` slots have no dedicated opcode yet — the selector
 // returns null so the lowerer keeps those element kinds off the Vader path.
 @test test_slot_store_deferred_widths_are_null :: fn() -> void {
-    if slot_store_op_for(ValType.I16) != null { assert_eq("expected null for i16", "") }
-    if slot_store_op_for(ValType.U16) != null { assert_eq("expected null for u16", "") }
-    if slot_store_op_for(ValType.F32) != null { assert_eq("expected null for f32", "") }
+    if slot_store_op_for(ValType.I16, false) != null { assert_eq("expected null for i16", "") }
+    if slot_store_op_for(ValType.U16, false) != null { assert_eq("expected null for u16", "") }
+    if slot_store_op_for(ValType.F32, false) != null { assert_eq("expected null for f32", "") }
 }
 
 @test test_slot_load_mirrors_store :: fn() -> void {

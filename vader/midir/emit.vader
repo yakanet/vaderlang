@@ -1064,9 +1064,9 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         // S5 access flip (Solution A) — symmetric with the get above : a
         // concrete-primitive element stores through the typed slot op (no box,
         // no element-kind switch, no write barrier — primitives hold no refs).
-        store_op :: typed_slot_store_op_for(array_element_val_type(target_type))
+        store_op :: typed_slot_store_op_for(array_element_val_type(target_type), ase.bounds_safe)
         if store_op is null {
-            push_emit(ctx, ArraySet { .type_id = type_index }, ase.span)
+            push_emit(ctx, ArraySet { .type_id = type_index, .bounds_safe = ase.bounds_safe }, ase.span)
         } else {
             push_emit(ctx, store_op, ase.span)
         }

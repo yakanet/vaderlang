@@ -38,6 +38,7 @@ bench/map_iter/map_iter
 bench/primes/primes
 bench/string_builder/string_builder
 bench/arr_rw/arr_rw
+bench/arr_set/arr_set
 bench/arr_push/arr_push
 bench/str_concat/str_concat
 bench/interp/interp

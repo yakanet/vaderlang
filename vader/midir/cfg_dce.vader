@@ -409,6 +409,7 @@ remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction {
         return InstrArraySet {
             .span = ase.span, .target = remap_local(m, ase.target),
             .index = remap_local(m, ase.index), .value = remap_local(m, ase.value),
+            .bounds_safe = ase.bounds_safe,
         }
     }
     if ins is InstrArrayLen as al {
