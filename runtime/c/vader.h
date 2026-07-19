@@ -668,6 +668,52 @@ vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t eleme
  * they are no longer part of the per-target ABI. `push` / `slice` / `new` stay
  * (the GC-coupled construction primitives). */
 void           vader_array_push(vader_array_t* a, vader_box_t v);
+
+/* Typed append fast paths — one per primitive element width (all `ArrayKind`s
+ * except `Boxed` / `Ref`, matching the store path's full-primitive typed
+ * coverage in `emit_array_set`). The C emitter routes `push` on a statically-
+ * primitive array here instead of the boxed `vader_array_push` : no box, no
+ * runtime kind dispatch, and no write barrier (a primitive buf holds no
+ * references, so nothing to mark for the generational GC).
+ *
+ * Bounds/grow safety : the store index and the fast-path precondition are
+ * byte-identical to `vader_array_push`. The fast path fires exactly when that
+ * function would NOT grow — `length < capacity` (⟹ `length < buf->capacity`,
+ * since `capacity == buf->capacity` is an allocation invariant) AND not a view
+ * AND not borrowed — and writes the same slot `offset + length`. Every other
+ * case (grow, view, borrowed) delegates back to `vader_array_push`, inheriting
+ * its GC-rooted grow path unchanged. The fallback box is stamped with the buf's
+ * own `element_tag` (a primitive tag, so the grow path's `scan_box` treats the
+ * value as the primitive it is, never a ref) — `a->buf` is always non-NULL here,
+ * as only a borrowed `const u8[]` view has a NULL buf and those are `U8` kind, so
+ * the `u8` helper's `!vader_array_is_borrowed` guard routes them to the fallback. */
+/* The helpers share one body — only the storage C type and the boxing
+ * constructor differ. A macro factors the guard/store/grow logic so it lives
+ * once, while the function signatures stay explicit and greppable. `a` / `v` are
+ * the enclosing function's params. `#undef`-d right after the definitions so it
+ * never leaks past them. Sub-word / narrower-than-i32 kinds take the value as the
+ * `i32`-class it was coerced to and narrow it in the `(ctype)` store cast. */
+#define VADER_ARRAY_PUSH_BODY(ctype, box_fn)                                       \
+    bool is_view = a->offset != 0 || a->offset + a->length < a->buf->length;        \
+    if (a->length < a->capacity && !is_view && !vader_array_is_borrowed(a)) {       \
+        ((ctype*) a->buf->slots)[a->offset + a->length] = (ctype) v;                \
+        a->length += 1;                                                             \
+        if (a->offset + a->length > a->buf->length) {                              \
+            a->buf->length = a->offset + a->length;                                \
+        }                                                                          \
+    } else {                                                                       \
+        vader_array_push(a, box_fn(a->buf->element_tag, v));                        \
+    }
+static inline void vader_array_push_i32 (vader_array_t* a, vader_i32_t  v) { VADER_ARRAY_PUSH_BODY(int32_t,  vader_box_i32)  }
+static inline void vader_array_push_i64 (vader_array_t* a, vader_i64_t  v) { VADER_ARRAY_PUSH_BODY(int64_t,  vader_box_i64)  }
+static inline void vader_array_push_f64 (vader_array_t* a, vader_f64_t  v) { VADER_ARRAY_PUSH_BODY(double,   vader_box_f64)  }
+static inline void vader_array_push_u8  (vader_array_t* a, vader_i32_t  v) { VADER_ARRAY_PUSH_BODY(uint8_t,  vader_box_i32)  }
+static inline void vader_array_push_i8  (vader_array_t* a, vader_i32_t  v) { VADER_ARRAY_PUSH_BODY(int8_t,   vader_box_i32)  }
+static inline void vader_array_push_u16 (vader_array_t* a, vader_i32_t  v) { VADER_ARRAY_PUSH_BODY(uint16_t, vader_box_i32)  }
+static inline void vader_array_push_i16 (vader_array_t* a, vader_i32_t  v) { VADER_ARRAY_PUSH_BODY(int16_t,  vader_box_i32)  }
+static inline void vader_array_push_f32 (vader_array_t* a, vader_f32_t  v) { VADER_ARRAY_PUSH_BODY(float,    vader_box_f64)  }
+static inline void vader_array_push_bool(vader_array_t* a, vader_bool_t v) { VADER_ARRAY_PUSH_BODY(uint8_t,  vader_box_bool) }
+#undef VADER_ARRAY_PUSH_BODY
 /* Zero-copy view into `a[lo..hi)`. The returned array shares `a->buf` ;
  * pushing into the view detaches into a fresh buf so concurrent views
  * don't see the growth. Bounds are clamped (lo to `[0,len]`, hi to

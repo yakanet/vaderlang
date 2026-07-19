@@ -2267,12 +2267,39 @@ emit_array_set :: fn(s: FnState, op: vm.ArraySet) -> void {
     }
 }
 
-/// `array.push` — pop value + array, append the value (boxed). Here
-/// `op.type_id` is the ELEMENT type directly (not the array type).
+/// `array.push` — pop value + array, append the value. Here `op.type_id` is the
+/// ELEMENT type directly (not the array type). The flippable primitive widths
+/// (int32/int64/double storage) open-code through a `static inline` typed append
+/// helper — no box, no runtime kind dispatch, no write barrier. Sub-word / boxed
+/// / ref elements keep the generic boxed `vader_array_push`. The typed helpers
+/// delegate their grow / view / borrowed slow path back to `vader_array_push`,
+/// so GC-rooting is unchanged ; `op.type_id` is threaded as the fallback box tag.
 emit_array_push :: fn(s: FnState, op: vm.ArrayPush) -> void {
     value :: pop(s)
     arr :: pop(s)
-    line(s, "vader_array_push((vader_array_t*) ${obj_ptr_of(arr)}, ${box_expr(name_of(value), val_of(value), op.type_id)});")
+    types :: s.ctx.module.types
+    obj :: obj_ptr_of(arr)
+    kind :: array_kind_of(types[usize(op.type_id)], types)
+    // Every primitive kind gets a typed `vader_array_push_*` helper (no box, no
+    // dispatch, no barrier) — full parity with the store path, which is likewise
+    // typed for all primitives (i32/i64/f64 via `StoreSlot*`, the rest via
+    // `emit_array_set`). The coerce target per kind mirrors `typed_array_fill_for`
+    // (.val) ; `coerce_expr` already yields the helper's exact param type, so no
+    // outer cast is needed (mirrors `box_expr`'s typed-ctor calls). Only `.Ref` /
+    // `.Boxed` box. Exhaustive over `ArrayKind` on purpose : a new variant trips
+    // T3013 here rather than silently falling to the boxed path.
+    match kind {
+        .I32 | .U32 | .Char -> line(s, "vader_array_push_i32((vader_array_t*) ${obj}, ${coerce_expr(types, name_of(value), val_of(value), ValType.I32)});")
+        .I64 | .U64         -> line(s, "vader_array_push_i64((vader_array_t*) ${obj}, ${coerce_expr(types, name_of(value), val_of(value), ValType.I64)});")
+        .F64                -> line(s, "vader_array_push_f64((vader_array_t*) ${obj}, ${coerce_expr(types, name_of(value), val_of(value), ValType.F64)});")
+        .U8                 -> line(s, "vader_array_push_u8((vader_array_t*) ${obj}, ${coerce_expr(types, name_of(value), val_of(value), ValType.I32)});")
+        .I8                 -> line(s, "vader_array_push_i8((vader_array_t*) ${obj}, ${coerce_expr(types, name_of(value), val_of(value), ValType.I32)});")
+        .U16                -> line(s, "vader_array_push_u16((vader_array_t*) ${obj}, ${coerce_expr(types, name_of(value), val_of(value), ValType.I32)});")
+        .I16                -> line(s, "vader_array_push_i16((vader_array_t*) ${obj}, ${coerce_expr(types, name_of(value), val_of(value), ValType.I32)});")
+        .F32                -> line(s, "vader_array_push_f32((vader_array_t*) ${obj}, ${coerce_expr(types, name_of(value), val_of(value), ValType.F32)});")
+        .Bool               -> line(s, "vader_array_push_bool((vader_array_t*) ${obj}, ${coerce_expr(types, name_of(value), val_of(value), ValType.Bool)});")
+        .Ref | .Boxed       -> line(s, "vader_array_push((vader_array_t*) ${obj}, ${box_expr(name_of(value), val_of(value), op.type_id)});")
+    }
 }
 
 /// `array.len` — pop array, push its `usize` length.

@@ -721,7 +721,7 @@ static vader_box_t std_async_All_Async_resume__i32(void* l0) {
 #line 119 "stdlib/std/async/async.vader"
                 if (!(l3.tag == 0u)) {
                     l5 = ((int32_t) l3.payload.i);
-                    vader_array_push((vader_array_t*) l4, vader_box_i32(1u, l5));
+                    vader_array_push_i32((vader_array_t*) l4, l5);
                 } else {
                 }
 #line 117 "stdlib/std/async/async.vader"
@@ -964,7 +964,7 @@ static void std_collections_std_collections_ensure_index__usize__i32(void* l0) {
         {
             loop_10: {
                 if ((l2 < INT64_C(16))) {
-                    vader_array_push((vader_array_t*) l1, vader_box_i32(1u, INT32_C(0)));
+                    vader_array_push_i32((vader_array_t*) l1, INT32_C(0));
                     t1 = (l2 + INT64_C(1));
                     l2 = (size_t) (int64_t) t1;
                     goto loop_10;
@@ -1004,7 +1004,7 @@ static void std_collections_std_collections_rehash__usize__i32(void* l0, size_t 
     {
         loop_5: {
             if ((l3 < l1)) {
-                vader_array_push((vader_array_t*) l2, vader_box_i32(1u, INT32_C(0)));
+                vader_array_push_i32((vader_array_t*) l2, INT32_C(0));
                 t0 = (l3 + INT64_C(1));
                 l3 = (size_t) (int64_t) t0;
                 goto loop_5;
@@ -1099,9 +1099,9 @@ static void std_collections_std_collections_write_entry__usize__i32(void* l0, si
 #line 126 "stdlib/std/collections/collections.vader"
     } else {
 #line 130 "stdlib/std/collections/collections.vader"
-        vader_array_push((vader_array_t*) ((vader_struct_std_collections_MutableMap__usize__i32_t*) l0)->f_ekeys, vader_box_i64(10u, (int64_t)(uint64_t) l1));
+        vader_array_push_i64((vader_array_t*) ((vader_struct_std_collections_MutableMap__usize__i32_t*) l0)->f_ekeys, (int64_t) (size_t) l1);
 #line 131 "stdlib/std/collections/collections.vader"
-        vader_array_push((vader_array_t*) ((vader_struct_std_collections_MutableMap__usize__i32_t*) l0)->f_evals, vader_box_i32(1u, l2));
+        vader_array_push_i32((vader_array_t*) ((vader_struct_std_collections_MutableMap__usize__i32_t*) l0)->f_evals, l2);
 #line 126 "stdlib/std/collections/collections.vader"
     }
 #line 125 "stdlib/std/collections/collections.vader"
