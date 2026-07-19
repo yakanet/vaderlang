@@ -24,15 +24,17 @@ import "vader/types"
 
 /// One `T implements Trait { ... }` block, indexed by the registry.
 export ImplEntry :: struct {
-    decl:         ImplDecl
-    trait_symbol: Symbol         // SymbolKind.Trait
-    for_symbol:   Symbol | null  // null when the target is a primitive
+    decl: ImplDecl
+    trait_symbol: Symbol
+    // SymbolKind.Trait
+    for_symbol: Symbol | null
+    // null when the target is a primitive
     /// Display path of the module that DECLARES this impl block (e.g.
     /// `"std/core"` for the intrinsic `string implements Display`).
     /// Distinct from the caller's module — the impl-member mangle must
     /// use the owning module so cross-module calls resolve to the same
     /// mangle the impl's lowered/surfaced decl is registered under.
-    module:       string = ""
+    module: string = ""
     /// True when the impl references ≥1 type parameter (`Range<T>
     /// implements<T> …`, `ArrayIterator<T> implements …`). Mirrors
     /// `is_empty_substitution(build_impl_any_subst(...))` in the lowerer :
@@ -41,7 +43,7 @@ export ImplEntry :: struct {
     /// (`find_impl_member_for`, `lower_for_in`) must erase the same way.
     /// Concrete-instantiation impls (`Wrapper<i32> implements …`) keep
     /// the concrete suffix.
-    is_generic:   bool = false
+    is_generic: bool = false
 }
 
 /// Project-wide registry. Built once by `build_impl_registry` ; queried
@@ -53,19 +55,22 @@ export ImplRegistry :: struct {
     user_index: MutableMap<string, ImplEntry> = MutableMap<string, ImplEntry> {}
     /// Every entry the registry has seen — used by the lowerer to drive
     /// virtual dispatch over trait-typed receivers.
-    all:        ImplEntry[] = []
+    all: ImplEntry[] = []
 }
 
 /// Walk every decl in `program_decls`, harvest `ImplDecl`s, resolve their
 /// trait + for-type symbols via `resolved`, and register one entry per
 /// impl. Idempotent if the same `decls` array is passed twice.
 export build_impl_registry :: fn(
-    program_decls: Decl[], resolved: ResolvedModule,
+    program_decls: Decl[],
+    resolved: ResolvedModule,
     core_syms: MutableMap<string, Symbol>,
 ) -> ImplRegistry {
     reg :: ImplRegistry {}
     by_name :: MutableMap<string, Symbol> {}
-    for s in resolved.symbols { by_name[s.name] = s }
+    for s in resolved.symbols {
+        by_name[s.name] = s
+    }
     // Auto-imported traits (`Display`, `Iterator`, `Error`, …) live in the
     // core-symbol table (`core_syms`, threaded in), not `symbols`. Fold them
     // in so `impl T implements Display { … }` finds the trait symbol when
@@ -76,18 +81,23 @@ export build_impl_registry :: fn(
         }
     }
     for d in program_decls {
-        if d is ImplDecl as impl_ {
-            reg.collect_impl(impl_, by_name, resolved)
+        if d is ImplDecl {
+            reg.collect_impl(d, by_name, resolved)
         }
     }
     return reg
 }
 
 collect_impl :: fn(
-    self: ImplRegistry, impl_: ImplDecl, by_name: MutableMap<string, Symbol>, resolved: ResolvedModule,
+    self: ImplRegistry,
+    impl_: ImplDecl,
+    by_name: MutableMap<string, Symbol>,
+    resolved: ResolvedModule,
 ) -> void {
     trait_sym :: by_name[impl_.trait_name] ?? return
-    if trait_sym.kind != SymbolKind.Trait { return }
+    if trait_sym.kind != SymbolKind.Trait {
+        return
+    }
     for_sym :: for_type_symbol(impl_.for_type, by_name)
     entry :: ImplEntry {
         .decl = impl_,
@@ -116,7 +126,9 @@ impl_is_generic :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> bool {
     if impl_.for_type is GenericInstExpr as gi {
         for ta in gi.type_args {
             if ta is IdentExpr as id {
-                if name_is_type_param(resolved, id.name) { return true }
+                if name_is_type_param(resolved, id.name) {
+                    return true
+                }
             }
         }
     }
@@ -125,10 +137,14 @@ impl_is_generic :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> bool {
 
 name_is_type_param :: fn(resolved: ResolvedModule, name: string) -> bool {
     for s in resolved.symbols {
-        if s.name == name && s.kind == SymbolKind.TypeParam { return true }
+        if s.name == name && s.kind == SymbolKind.TypeParam {
+            return true
+        }
     }
     for [_, s] in resolved.idents {
-        if s.name == name && s.kind == SymbolKind.TypeParam { return true }
+        if s.name == name && s.kind == SymbolKind.TypeParam {
+            return true
+        }
     }
     return false
 }
@@ -137,14 +153,17 @@ name_is_type_param :: fn(resolved: ResolvedModule, name: string) -> bool {
 /// primitive, an unresolved name, or a shape we don't accept (Array, Fn,
 /// TypeParam, etc.).
 for_type_symbol :: fn(
-    for_type: TypeExpr, by_name: MutableMap<string, Symbol>,
+    for_type: TypeExpr,
+    by_name: MutableMap<string, Symbol>,
 ) -> Symbol | null {
     // @partial: an impl target is a nominal name, optionally generic-instantiated;
     // every other type-expr shape (array / fn / tuple / …) carries no impl symbol.
     @partial match for_type {
         is IdentExpr as id -> { return resolve_target(id.name, by_name) }
         is GenericInstExpr as gi -> {
-            if gi.callee is IdentExpr as id { return resolve_target(id.name, by_name) }
+            if gi.callee is IdentExpr as id {
+                return resolve_target(id.name, by_name)
+            }
             return null
         }
         _ -> { return null }
@@ -154,8 +173,8 @@ for_type_symbol :: fn(
 resolve_target :: fn(name: string, by_name: MutableMap<string, Symbol>) -> Symbol | null {
     sym :: by_name[name] ?? return null
     k :: i32(sym.kind)
-    if k == i32(SymbolKind.Struct) { return sym }
-    if k == i32(SymbolKind.Enum) { return sym }
+    if k == i32(SymbolKind.Struct)    { return sym }
+    if k == i32(SymbolKind.Enum)      { return sym }
     if k == i32(SymbolKind.TypeAlias) { return sym }
     return null
 }
@@ -181,9 +200,9 @@ export type_to_target_symbol :: fn(t: Type) -> Symbol | null {
     // @partial: only the three nominal variants carry an impl target symbol;
     // every structural / primitive variant (Array, Fn, Union, …) carries none.
     @partial match t {
-        is StructType   as st -> { return st.symbol }
-        is EnumType     as et -> { return et.symbol }
-        is DistinctType as d  -> { return d.symbol }
+        is StructType as st -> { return st.symbol }
+        is EnumType as et -> { return et.symbol }
+        is DistinctType as d -> { return d.symbol }
         _ -> { return null }
     }
 }
@@ -223,7 +242,7 @@ Point implements Display -> "point"
     reg :: build_impl_registry(parsed.program.decls, rm, MutableMap<string, Symbol> {})
     // Pull the two symbols by name to query the registry.
     point :: lookup_named(rm, "Point")
-    disp  :: lookup_named(rm, "Display")
+    disp :: lookup_named(rm, "Display")
     match point {
         is null -> { assert(false, "Point symbol should be resolved") }
         is Symbol as ps -> {
@@ -248,7 +267,9 @@ add :: fn(a: i32, b: i32) -> i32 { return a + b }
 
 lookup_named :: fn(rm: ResolvedModule, name: string) -> Symbol | null {
     for s in rm.symbols {
-        if s.name == name { return s }
+        if s.name == name {
+            return s
+        }
     }
     return null
 }

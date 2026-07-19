@@ -35,28 +35,23 @@ AST :: import "vader/parser"
 /// slot's current one — that is how a reassignment retires both the
 /// active narrowing and every stacked `prev` awaiting restore.
 export NarrowSlot :: struct {
-    ty:  Type
+    ty: Type
     gen: i32
 }
 
 // Current kill generation for a binding slot ; 0 until first bumped.
-cur_narrow_gen :: fn(typed: TypedProgram, sym_id: i32) -> i32 {
-    g :: typed.narrow_kill_gens[sym_id] ?? return 0
-    return g
-}
+cur_narrow_gen :: fn(typed: TypedProgram, sym_id: i32) -> i32 = typed.narrow_kill_gens[sym_id] ?? 0
 
 // Current kill generation for a field-chain slot ; 0 until first bumped.
-cur_field_narrow_gen :: fn(typed: TypedProgram, key: string) -> i32 {
-    g :: typed.narrow_field_kill_gens[key] ?? return 0
-    return g
-}
+cur_field_narrow_gen :: fn(typed: TypedProgram, key: string) -> i32 = typed.narrow_field_kill_gens[key] ?? 0
 
 /// Push a narrowed type for `sym_id` ; returns the prior narrowing
 /// (or null) so the caller can restore it on scope exit.
 export push_narrow :: fn(typed: TypedProgram, sym_id: i32, narrowed: Type) -> NarrowSlot | null {
     prev :: typed.narrowed_bindings[sym_id]
     typed.narrowed_bindings[sym_id] = NarrowSlot {
-        .ty = narrowed, .gen = cur_narrow_gen(typed, sym_id),
+        .ty = narrowed,
+        .gen = cur_narrow_gen(typed, sym_id),
     }
     return prev
 }
@@ -74,10 +69,10 @@ export push_narrow :: fn(typed: TypedProgram, sym_id: i32, narrowed: Type) -> Na
 /// that threads it through `IsNarrow` / `DivergentNarrow`.)
 export pop_narrow :: fn(typed: TypedProgram, sym_id: i32, prev: NarrowSlot | null, static_ty: Type) -> void {
     if prev == null {
-        typed.narrowed_bindings.remove(sym_id)
-        return
+        _ :: typed.narrowed_bindings.remove(sym_id)
+    } else {
+        typed.narrowed_bindings[sym_id] = prev
     }
-    typed.narrowed_bindings[sym_id] = prev
 }
 
 /// Look up the current narrowed type for `sym_id`, falling back to
@@ -86,7 +81,9 @@ export pop_narrow :: fn(typed: TypedProgram, sym_id: i32, prev: NarrowSlot | nul
 /// absent.
 export narrow_for_binding :: fn(typed: TypedProgram, sym_id: i32, static_ty: Type) -> Type {
     cur :: typed.narrowed_bindings[sym_id] ?? return static_ty
-    if cur.gen != cur_narrow_gen(typed, sym_id) { return static_ty }
+    if cur.gen != cur_narrow_gen(typed, sym_id) {
+        return static_ty
+    }
     return cur.ty
 }
 
@@ -96,7 +93,9 @@ export narrow_for_binding :: fn(typed: TypedProgram, sym_id: i32, static_ty: Typ
 /// (tuple positional access).
 export chain_key :: fn(root_sym_id: i32, fields: string[]) -> string {
     key := "${root_sym_id}"
-    for f in fields { key = "${key}#${f}" }
+    for f in fields {
+        key = "${key}#${f}"
+    }
     return key
 }
 
@@ -114,10 +113,14 @@ export FieldChainStatic :: struct {
 /// pair.
 export pick_field_vs_null :: fn(a: AST.Expr, b: AST.Expr) -> AST.FieldExpr | null {
     if a is AST.FieldExpr {
-        if b is AST.NullLitExpr { return a }
+        if b is AST.NullLitExpr {
+            return a
+        }
     }
     if b is AST.FieldExpr {
-        if a is AST.NullLitExpr { return b }
+        if a is AST.NullLitExpr {
+            return b
+        }
     }
     return null
 }
@@ -125,11 +128,11 @@ export pick_field_vs_null :: fn(a: AST.Expr, b: AST.Expr) -> AST.FieldExpr | nul
 /// Pick the IdentExpr operand of an `ident == null` / `null != ident`
 /// comparison. Mirrors `pick_field_vs_null` for plain bindings.
 export pick_ident_vs_null :: fn(a: AST.Expr, b: AST.Expr) -> AST.IdentExpr | null {
-    if a is AST.IdentExpr {
-        if b is AST.NullLitExpr { return a }
+    if a is AST.IdentExpr && b is AST.NullLitExpr {
+        return a
     }
-    if b is AST.IdentExpr {
-        if a is AST.NullLitExpr { return b }
+    if b is AST.IdentExpr && a is AST.NullLitExpr {
+        return b
     }
     return null
 }
@@ -139,15 +142,19 @@ export pick_ident_vs_null :: fn(a: AST.Expr, b: AST.Expr) -> AST.IdentExpr | nul
 /// isn't a plain ident-bound Symbol or the chain's type wasn't
 /// resolved (no point in narrowing an Unresolved slot).
 export resolve_field_chain_static :: fn(
-    e: AST.FieldExpr, typed: TypedProgram,
+    e: AST.FieldExpr,
+    typed: TypedProgram,
 ) -> FieldChainStatic | null {
     key :: field_chain_key(e, typed)
-    if key == "" { return null }
+    if key == "" {
+        return null
+    }
     static_ty :: typed.expr_types[e.id] ?? return null
-    if static_ty is UnresolvedType { return null }
+    if static_ty is UnresolvedType {
+        return null
+    }
     return FieldChainStatic { .field_key = key, .static_ty = static_ty }
 }
-
 
 /// Walk a FieldExpr down to its root `IdentExpr` and return the
 /// matching `chain_key`. Returns `""` when the root isn't a plain ident
@@ -158,15 +165,16 @@ export field_chain_key :: fn(e: AST.FieldExpr, typed: TypedProgram) -> string {
     parts_leaf_first: string[] = []
     cur: AST.Expr = e
     for true {
-        match cur {
-            is AST.FieldExpr as fe -> {
-                parts_leaf_first.push(fe.field)
-                cur = fe.target
-            }
-            _ -> { break }
+        if cur is AST.FieldExpr as fe {
+            parts_leaf_first.push(fe.field)
+            cur = fe.target
+        } else {
+            break
         }
     }
-    if !(cur is AST.IdentExpr) { return "" }
+    if cur !is AST.IdentExpr {
+        return ""
+    }
     sym :: typed.resolved.idents[cur.span.hash()] ?? return ""
     fields: string[] = []
     i := i32(parts_leaf_first.len()) - 1
@@ -183,7 +191,8 @@ export field_chain_key :: fn(e: AST.FieldExpr, typed: TypedProgram) -> string {
 export push_field_narrow :: fn(typed: TypedProgram, key: string, narrowed: Type) -> NarrowSlot | null {
     prev :: typed.narrowed_fields[key]
     typed.narrowed_fields[key] = NarrowSlot {
-        .ty = narrowed, .gen = cur_field_narrow_gen(typed, key),
+        .ty = narrowed,
+        .gen = cur_field_narrow_gen(typed, key),
     }
     return prev
 }
@@ -192,7 +201,12 @@ export push_field_narrow :: fn(typed: TypedProgram, key: string, narrowed: Type)
 /// When `prev` is null the slot is *removed* so subsequent
 /// `narrow_for_field` lookups fall through to the field's then-current
 /// static type. See `pop_narrow` for why removal (not overwrite) matters.
-export pop_field_narrow :: fn(typed: TypedProgram, key: string, prev: NarrowSlot | null, static_ty: Type) -> void {
+export pop_field_narrow :: fn(
+    typed: TypedProgram,
+    key: string,
+    prev: NarrowSlot | null,
+    static_ty: Type,
+) -> void {
     if prev == null {
         typed.narrowed_fields.remove(key)
         return
@@ -205,7 +219,9 @@ export pop_field_narrow :: fn(typed: TypedProgram, key: string, prev: NarrowSlot
 /// entry from an older kill generation counts as absent.
 export narrow_for_field :: fn(typed: TypedProgram, key: string, static_ty: Type) -> Type {
     cur :: typed.narrowed_fields[key] ?? return static_ty
-    if cur.gen != cur_field_narrow_gen(typed, key) { return static_ty }
+    if cur.gen != cur_field_narrow_gen(typed, key) {
+        return static_ty
+    }
     return cur.ty
 }
 
@@ -237,7 +253,9 @@ export invalidate_narrow_on_assign :: fn(target: AST.Expr, value_ty: Type, typed
     // retire, and this runs on every assignment in the program — skip
     // before any symbol lookup / key interpolation allocates.
     if target is AST.IdentExpr {
-        if typed.narrowed_bindings.is_empty() && typed.narrowed_fields.is_empty() { return }
+        if typed.narrowed_bindings.is_empty() && typed.narrowed_fields.is_empty() {
+            return
+        }
         sym :: typed.resolved.idents[target.span.hash()] ?? return
         cur :: typed.narrowed_bindings[sym.id]
         if cur != null {
@@ -252,9 +270,13 @@ export invalidate_narrow_on_assign :: fn(target: AST.Expr, value_ty: Type, typed
         return
     }
     if target is AST.FieldExpr {
-        if typed.narrowed_fields.is_empty() { return }
+        if typed.narrowed_fields.is_empty() {
+            return
+        }
         key :: field_chain_key(target, typed)
-        if key == "" { return }
+        if key == "" {
+            return
+        }
         cur :: typed.narrowed_fields[key]
         if cur != null {
             g :: cur_field_narrow_gen(typed, key)
@@ -273,7 +295,9 @@ export invalidate_narrow_on_assign :: fn(target: AST.Expr, value_ty: Type, typed
 // absent here has no active region, hence no stacked `prev` a later pop
 // could restore.
 retire_field_chains_under :: fn(typed: TypedProgram, prefix: string) -> void {
-    if typed.narrowed_fields.is_empty() { return }
+    if typed.narrowed_fields.is_empty() {
+        return
+    }
     for [k, _] in typed.narrowed_fields {
         if starts_with(k, prefix) {
             typed.narrow_field_kill_gens[k] = cur_field_narrow_gen(typed, k) + 1

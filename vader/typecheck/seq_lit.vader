@@ -22,8 +22,10 @@ AST :: import "vader/parser"
 /// Type a bracketed literal contextually : returns `Tuple(...)` when
 /// `expected` is a tuple-shaped slot, `Array(...)` otherwise.
 export infer_seq_lit :: fn(
-    e: AST.SeqLitExpr, expected: Type | null,
-    typed: TypedProgram, diags: Diagnostic[],
+    e: AST.SeqLitExpr,
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     // Union → pick the most appropriate variant, then recurse.
@@ -42,11 +44,12 @@ export infer_seq_lit :: fn(
         is ArrayType as arr -> {
             return infer_against_array(e, arr, typed, diags, check_expr_fn)
         }
-        // Composite-backed distinct newtype (`f: BigInt = [1]`,
-        // `p: Coord = [3, 4]`) : check the elements against the backing array /
-        // tuple, but the literal's type is the nominal distinct itself, not the
-        // raw composite.
         is DistinctType as d -> {
+            // Composite-backed distinct newtype (`f: BigInt = [1]`,
+            // `p: Coord = [3, 4]`) : check the elements against the backing array /
+            // tuple, but the literal's type is the nominal distinct itself, not the
+            // raw composite.
+
             ab :: array_backing(d)
             if ab != null {
                 infer_against_array(e, ab, typed, diags, check_expr_fn)
@@ -68,13 +71,20 @@ export infer_seq_lit :: fn(
 // ---- per-shape -----------------------------------------------------------
 
 infer_against_tuple :: fn(
-    e: AST.SeqLitExpr, tup: TupleType,
-    typed: TypedProgram, diags: Diagnostic[],
+    e: AST.SeqLitExpr,
+    tup: TupleType,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     if tup.elements.len() != e.elements.len() {
-        diags.push(typecheck_error(.TypeMismatch, e.span,
-            "expected ${display_type(tup)} (${tup.elements.len()} element(s)), got ${e.elements.len()}"))
+        diags.push(
+            typecheck_error(
+                .TypeMismatch,
+                e.span,
+                "expected ${display_type(tup)} (${tup.elements.len()} element(s)), got ${e.elements.len()}",
+            ),
+        )
         // Best-effort : check overlapping slots against their per-slot
         // expected types so cascading errors stay minimal.
         n :: min(tup.elements.len(), e.elements.len())
@@ -105,8 +115,10 @@ infer_against_tuple :: fn(
 }
 
 infer_against_array :: fn(
-    e: AST.SeqLitExpr, arr: ArrayType,
-    typed: TypedProgram, diags: Diagnostic[],
+    e: AST.SeqLitExpr,
+    arr: ArrayType,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     elem_types :: walk_elements(e, arr.element, typed, diags, check_expr_fn)
@@ -134,7 +146,8 @@ infer_against_array :: fn(
 
 infer_no_expected :: fn(
     e: AST.SeqLitExpr,
-    typed: TypedProgram, diags: Diagnostic[],
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     elem_types :: walk_elements(e, null, typed, diags, check_expr_fn)
@@ -153,12 +166,14 @@ infer_no_expected :: fn(
 // ---- helpers -------------------------------------------------------------
 
 walk_elements :: fn(
-    e: AST.SeqLitExpr, hint: Type | null,
-    typed: TypedProgram, diags: Diagnostic[],
+    e: AST.SeqLitExpr,
+    hint: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
-) -> Type[] = e.elements.map(el -> check_expr_fn(el, hint, typed, diags)).collect()
+) -> Type[] = e.elements.map((el) -> check_expr_fn(el, hint, typed, diags)).collect()
 
-default_each :: fn(types: Type[]) -> Type[] = types.map(t -> default_if_free(t)).collect()
+default_each :: fn(types: Type[]) -> Type[] = types.map((t) -> default_if_free(t)).collect()
 
 pick_seq_variant :: fn(u: UnionType, arity: usize) -> Type | null {
     for v in u.variants {
@@ -184,27 +199,38 @@ import "vader/resolver"
 import "vader/resolver/symbol"
 
 seq_lit_check_stub :: fn(
-    e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+    e: AST.Expr,
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> Type {
     // @partial: test stub — only the literal / ident / seq expr kinds the seq
     // tests build are typed; every other Expr is irrelevant → unresolved.
     @partial match e {
-        is AST.IntLitExpr    as x -> { return narrow_for_expected(TY_FREE_INT, expected) }
+        is AST.IntLitExpr as x -> { return narrow_for_expected(TY_FREE_INT, expected) }
         is AST.StringLitExpr as x -> { return TY_STRING }
-        is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
-        is AST.SeqLitExpr    as x -> { return infer_seq_lit(x, expected, typed, diags, seq_lit_check_stub) }
+        is AST.IdentExpr as x -> { return infer_ident(x, typed) }
+        is AST.SeqLitExpr as x -> { return infer_seq_lit(
+            x,
+            expected,
+            typed,
+            diags,
+            seq_lit_check_stub,
+        ) }
         _ -> { return TY_UNRESOLVED }
     }
 }
 
 accept_seq :: fn(e: AST.Expr) -> AST.Expr | null {
-    if e is AST.SeqLitExpr { return e }
+    if e is AST.SeqLitExpr {
+        return e
+    }
     return null
 }
 
 ExpectedSeq :: struct {
     typed: TypedProgram
-    sl:    AST.SeqLitExpr
+    sl: AST.SeqLitExpr
 }
 
 expect_seq :: fn(src: string) -> ExpectedSeq {
@@ -220,7 +246,10 @@ expect_seq :: fn(src: string) -> ExpectedSeq {
                 is null -> {}
                 is AST.BlockExpr as b -> {
                     hit :: find_first_in_block(b, accept_seq)
-                    if hit is AST.SeqLitExpr { return ExpectedSeq { .typed = result.typed, .sl = hit } }
+                    if hit is AST.SeqLitExpr { return ExpectedSeq {
+                        .typed = result.typed,
+                        .sl = hit,
+                    } }
                 }
             }
         }
@@ -233,7 +262,9 @@ expect_seq :: fn(src: string) -> ExpectedSeq {
 synthetic_seq :: fn() -> AST.SeqLitExpr {
     sp :: empty_span()
     return AST.SeqLitExpr {
-        .span = sp, .id = AST.UNASSIGNED_NODE_ID, .elements = [],
+        .span = sp,
+        .id = AST.UNASSIGNED_NODE_ID,
+        .elements = [],
     }
 }
 
@@ -283,6 +314,10 @@ test_seq_tuple_arity_mismatch_emits_T3001 :: fn() -> void {
     expected: Type = mk_tuple([mk_primitive("i32"), mk_primitive("i32")])
     infer_seq_lit(es.sl, expected, es.typed, diags, seq_lit_check_stub)
     found := false
-    for d in diags { if d.code.id == "T3001" { found = true } }
+    for d in diags {
+        if d.code.id == "T3001" {
+            found = true
+        }
+    }
     assert(found, "expected T3001 on tuple arity mismatch")
 }
