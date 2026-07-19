@@ -563,6 +563,85 @@ loop_var_type_key :: fn(loop_var: AST.LoopVar, fallback: Span) -> u64 = loop_var
 //
 // Returns null when the iter type isn't a plain array ; caller falls
 // back to the wrap-into-ArrayIterator slow path.
+// ---- BCE : sound loop-body safepoint probe --------------------------------
+
+// Is this loop body UNSAFE for bounds-check elimination AND for the buf-resolve
+// hoist ? Both need the SAME guarantee, so one probe gates both : the body must
+// contain no GC safepoint and no array-length mutation. It is UNSAFE if it
+// contains any of —
+//   - a CALL (`LoweredCall` / `LoweredVirtualCall` / `LoweredIntrinsicCall`) or a
+//     `push` : may allocate (⟹ GC ⟹ the buffer moves) and/or change the length ;
+//   - a pure ALLOCATION (`LoweredArrayLit` / `StructLit` / `CellNew` /
+//     `MakeClosure` / `ArraySlice` / `StringSlice`) : allocates ⟹ GC ⟹ move ;
+//   - a SUSPEND point (`yield` / `await`) : on resume a GC may have run, or another
+//     task may have mutated the array ;
+//   - a `defer` push/pop : may allocate the defer stack / runs arbitrary code.
+// Index writes `a[i] = v` and variable rebinds neither allocate nor change length,
+// so they stay SAFE. The matches are EXHAUSTIVE, so a new Lowered node can't
+// silently pass as "safe" (T3013). Over-approximate : a call/alloc that never
+// touches THIS array still bails — refining is a later tier.
+bce_block_unsafe :: fn(b: LoweredBlock) -> bool {
+    for st in b.stmts {
+        if bce_stmt_unsafe(st) {
+            return true
+        }
+    }
+    trailing :: b.trailing
+    if trailing != null {
+        return bce_expr_unsafe(trailing)
+    }
+    return false
+}
+
+bce_opt_expr_unsafe :: fn(e: LoweredExpr | null) -> bool {
+    if e == null {
+        return false
+    }
+    return bce_expr_unsafe(e)
+}
+
+bce_stmt_unsafe :: fn(s: LoweredStmt) -> bool = match s {
+    is LoweredLet as st       -> bce_expr_unsafe(st.value)
+    is LoweredAssign as st    -> bce_expr_unsafe(st.target) || bce_expr_unsafe(st.value)
+    is LoweredCellSet as st   -> bce_expr_unsafe(st.target) || bce_expr_unsafe(st.value)
+    is LoweredExprStmt as st  -> bce_expr_unsafe(st.expr)
+    is LoweredReturn as st    -> bce_opt_expr_unsafe(st.value)
+    is LoweredYield           -> true
+    is LoweredAwait           -> true
+    is LoweredLoop as st      -> bce_opt_expr_unsafe(st.cond) || bce_block_unsafe(st.body)
+    is LoweredBreak           -> false
+    is LoweredContinue        -> false
+    is LoweredDeferPush       -> true
+    is LoweredDeferPopExec    -> true
+}
+
+bce_expr_unsafe :: fn(e: LoweredExpr) -> bool = match e {
+    // Calls + allocations : any of these can trigger a GC (moving the buffer) or
+    // change an array's length.
+    is LoweredCall | LoweredVirtualCall | LoweredIntrinsicCall | LoweredArrayPush -> true
+    is LoweredArrayLit | LoweredStructLit | LoweredCellNew | LoweredMakeClosure | LoweredArraySlice | LoweredStringSlice -> true
+    // Leaves : no allocation, no call.
+    is LoweredIntLit | LoweredFloatLit | LoweredBoolLit | LoweredNullLit | LoweredCharLit | LoweredStringLit | LoweredIdent | LoweredDataConst | LoweredUnreachable | LoweredTypeConst -> false
+    // Pure composites : recurse (they don't allocate themselves).
+    is LoweredFieldAccess as x -> bce_expr_unsafe(x.target)
+    is LoweredIndex as x       -> bce_expr_unsafe(x.target) || bce_expr_unsafe(x.index)
+    is LoweredUnary as x       -> bce_expr_unsafe(x.operand)
+    is LoweredBinary as x      -> bce_expr_unsafe(x.left) || bce_expr_unsafe(x.right)
+    is LoweredIf as x          -> bce_expr_unsafe(x.cond) || bce_block_unsafe(x.then_block) || bce_opt_block_unsafe(x.else_block)
+    is LoweredBlock as x       -> bce_block_unsafe(x)
+    is LoweredCast as x        -> bce_expr_unsafe(x.value)
+    is LoweredTypeCheck as x   -> bce_expr_unsafe(x.value)
+    is LoweredArrayLen as x    -> bce_expr_unsafe(x.target)
+    is LoweredCellGet as x     -> bce_expr_unsafe(x.target)
+}
+
+bce_opt_block_unsafe :: fn(b: LoweredBlock | null) -> bool {
+    if b == null {
+        return false
+    }
+    return bce_block_unsafe(b)
+}
+
 try_lower_for_in_raw_array :: fn(
     ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
     iter_lowered: LoweredExpr, iter_type: Type,
@@ -586,6 +665,16 @@ try_lower_for_in_raw_array :: fn(
     len_sym :: fresh_synthetic_symbol(ctx, "for_len")
     idx_sym :: fresh_synthetic_symbol(ctx, "for_i")
 
+    // Lower the body up-front so BCE can prove whether it changes the array's
+    // length : the synthesized counter runs `0..<len` over `arr`, so the element
+    // read `arr[idx]` is in-bounds BY CONSTRUCTION whenever the body can neither
+    // grow nor shrink the array — and, having no call / alloc, the body triggers
+    // no GC, so the buffer can't move and its resolve can be hoisted to the
+    // preheader (via `len_let`'s `resolve_buf`). Sound over-approximation
+    // (`bce_block_may_mutate` treats any call / push as a possible mutation).
+    user_body :: block_lowerer(ctx, for_stmt.body, false, true)
+    bce_safe :: !bce_block_unsafe(user_body)
+
     arr_let :: LoweredLet {
         .span = span, .name = arr_sym.name, .symbol = arr_sym,
         .type = iter_type, .value = iter_lowered,
@@ -593,7 +682,7 @@ try_lower_for_in_raw_array :: fn(
     arr_ref :: LoweredIdent { .span = span, .type = iter_type, .symbol = arr_sym }
     len_let :: LoweredLet {
         .span = span, .name = len_sym.name, .symbol = len_sym, .type = usize_type,
-        .value = LoweredArrayLen { .span = span, .type = usize_type, .target = arr_ref },
+        .value = LoweredArrayLen { .span = span, .type = usize_type, .target = arr_ref, .resolve_buf = bce_safe },
     }
     idx_init :: LoweredLet {
         .span = span, .name = idx_sym.name, .symbol = idx_sym, .type = usize_type,
@@ -608,7 +697,7 @@ try_lower_for_in_raw_array :: fn(
     }
     elem_access :: LoweredIndex {
         .span = span, .type = array_elem_type,
-        .target = arr_ref, .index = idx_ref,
+        .target = arr_ref, .index = idx_ref, .bounds_safe = bce_safe,
     }
     bind_stmts :: bind_loop_var(ctx, lb.symbol, lb.name, lb.pattern, elem_access, array_elem_type, span)
     inc_stmt :: LoweredAssign {
@@ -620,7 +709,6 @@ try_lower_for_in_raw_array :: fn(
         },
     }
 
-    user_body :: block_lowerer(ctx, for_stmt.body, false, true)
     // One resolved label, shared by the continue-reconciliation and the loop
     // itself : `continue_targets_loop` matches by this same string, so they MUST
     // agree or a var-targeted `continue` stops advancing the index.

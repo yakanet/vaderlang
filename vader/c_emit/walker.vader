@@ -95,7 +95,37 @@ invalidate_resolve_cache :: fn(s: FnState, op: vm.Op) -> void {
         drop_resolved_for_local(s, lt.slot)
         return
     }
-    if !is_cache_safe(op) { s.resolved_arrays.clear() }
+    if is_cache_safe(op) {
+        return
+    }
+    // The op ends the straight-line region. A PINNED resolve (BCE hoist) survives
+    // a PURE control-flow op — such an op can't move a buffer, so the hoisted
+    // resolve stays valid across the loop's Loop / Branch / End. Anything else
+    // (a call / alloc — a real GC safepoint) drops everything, pins included.
+    if is_pure_control_flow(op) && s.pinned_resolves.len() > 0 {
+        keep_pinned_resolves(s)
+    } else {
+        s.resolved_arrays.clear()
+        s.pinned_resolves = MutableSet<string> {}
+    }
+}
+
+// Structured control-flow ops that end a straight-line region but provably move
+// no buffer (no allocation, no GC) — so a pinned BCE resolve survives them.
+is_pure_control_flow :: fn(op: vm.Op) -> bool {
+    return op is vm.Block | vm.Loop | vm.If | vm.End | vm.Branch | vm.BranchIf | vm.Return
+}
+
+// Drop every non-pinned resolve, keep the pinned ones (their buffer can't have
+// moved across a pure control-flow op). `pinned_resolves` keys all remain present.
+keep_pinned_resolves :: fn(s: FnState) -> void {
+    kept :: MutableMap<string, string> {}
+    for [k, v] in s.resolved_arrays {
+        if k in s.pinned_resolves {
+            kept[k] = v
+        }
+    }
+    s.resolved_arrays = kept
 }
 
 // True when the op provably cannot move/realloc an array buffer, trigger a GC, or
@@ -137,10 +167,17 @@ is_cache_safe :: fn(op: vm.Op) -> bool {
 // reassigned, so any `_slotarr` resolved from its old value is stale.
 drop_resolved_for_local :: fn(s: FnState, slot: i32) -> void {
     kept :: MutableMap<string, string> {}
+    kept_pins :: MutableSet<string> {}
     for [k, v] in s.resolved_arrays {
-        if !key_mentions_local(k, slot) { kept[k] = v }
+        if !key_mentions_local(k, slot) {
+            kept[k] = v
+            if k in s.pinned_resolves {
+                kept_pins.add(k)
+            }
+        }
     }
     s.resolved_arrays = kept
+    s.pinned_resolves = kept_pins
 }
 
 // True when C expr `k` references local `l<slot>` as a whole token. A local
@@ -441,7 +478,7 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.StructGet as sg       -> emit_struct_get(s, sg)
         is vm.StructSet as ss       -> emit_struct_set(s, ss)
         is vm.ArrayNew as a         -> emit_array_new(s, a)
-        is vm.ArrayLen              -> emit_array_len(s)
+        is vm.ArrayLen as o         -> emit_array_len(s, o.resolve_buf)
         is vm.ArrayPush as a        -> emit_array_push(s, a)
         is vm.ArrayGet as a         -> emit_array_get(s, a)
         is vm.ArraySet as a         -> emit_array_set(s, a)
@@ -556,10 +593,10 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.StoreI64              -> emit_buffer_store(s, "vader_buffer_store_i64", "(int64_t)")
         is vm.StoreF64              -> emit_buffer_store(s, "vader_buffer_store_f64", "(double)")
         is vm.LoadSlot              -> emit_slot_load_boxed(s)
-        is vm.LoadSlotU8            -> emit_slot_load_prim(s, "uint8_t", .I32)
-        is vm.LoadSlotI32           -> emit_slot_load_prim(s, "int32_t", .I32)
-        is vm.LoadSlotI64           -> emit_slot_load_prim(s, "int64_t", .I64)
-        is vm.LoadSlotF64           -> emit_slot_load_prim(s, "double", .F64)
+        is vm.LoadSlotU8            -> emit_slot_load_prim(s, "uint8_t", .I32, false)
+        is vm.LoadSlotI32 as o      -> emit_slot_load_prim(s, "int32_t", .I32, o.bounds_safe)
+        is vm.LoadSlotI64 as o      -> emit_slot_load_prim(s, "int64_t", .I64, o.bounds_safe)
+        is vm.LoadSlotF64 as o      -> emit_slot_load_prim(s, "double", .F64, o.bounds_safe)
         is vm.StoreSlot             -> emit_slot_store_boxed(s)
         is vm.StoreSlotU8           -> emit_slot_store_prim(s, "uint8_t", .I32)
         is vm.StoreSlotI32          -> emit_slot_store_prim(s, "int32_t", .I32)
@@ -2024,35 +2061,48 @@ emit_slot_store_boxed :: fn(s: FnState) -> void {
 /// is a gc_root so the array itself is current, but a minor may have relocated
 /// its buf — follow the forward pointer like `vader_array_get`) and the D7
 /// always-on bounds check (trap on out-of-range). Returns the local's name.
-emit_slot_array_local :: fn(s: FnState, obj: StackVal, idx: StackVal) -> string {
-    key :: array_hdr_ptr(obj)
+// Resolve `key`'s array buffer-forward chain into a cached `_slotarrK` C local
+// and return its name. Reuses an earlier resolve on the same array in this
+// straight-line region (the arr_rw CSE win). `pin` marks the entry so it survives
+// the loop's pure control-flow ops (the BCE resolve-hoist) — passed `true` ONLY by
+// `emit_array_len`'s hoisted preheader resolve, and only for a BCE-safe loop.
+resolve_array_local :: fn(s: FnState, key: string, pin: bool) -> string {
     cached :: s.resolved_arrays[key]
-    arr := ""
     if cached is string as c {
-        // Reuse the resolve from an earlier access on this array in this
-        // straight-line region : skip the buf-forward walk + the array_t* extract
-        // (cc -O3 then CSEs the `->buf->slots` derefs — the arr_rw native win). The
-        // cache is dropped at any GC safepoint / control-flow op / reassignment of
-        // the array's local.
-        arr = c
-    } else {
-        arr = aux(s, "slotarr")
-        line(s, "vader_array_t* ${arr} = ${key};")
-        line(s, "while (${arr}->buf != NULL && ${arr}->buf->header.forward != NULL) { ${arr}->buf = (vader_array_buf_t*) ${arr}->buf->header.forward; }")
-        s.resolved_arrays[key] = arr
+        if pin {
+            s.pinned_resolves.add(key)
+        }
+        return c
     }
-    // Bounds is always per-access (the reused resolve only shares the buffer walk).
-    line(s, "if ((size_t) ${name_of(idx)} >= ${arr}->length) { vader_trap(\"array index out of bounds\"); }")
+    arr :: aux(s, "slotarr")
+    line(s, "vader_array_t* ${arr} = ${key};")
+    line(s, "while (${arr}->buf != NULL && ${arr}->buf->header.forward != NULL) { ${arr}->buf = (vader_array_buf_t*) ${arr}->buf->header.forward; }")
+    s.resolved_arrays[key] = arr
+    if pin {
+        s.pinned_resolves.add(key)
+    }
+    return arr
+}
+
+emit_slot_array_local :: fn(s: FnState, obj: StackVal, idx: StackVal, bounds_safe: bool) -> string {
+    arr :: resolve_array_local(s, array_hdr_ptr(obj), false)
+    // Bounds is per-access (the reused resolve only shares the buffer walk),
+    // EXCEPT when the producer proved the index in range (BCE — e.g. a foreach
+    // over the array, body proven not to change its length). The G1 buf-resolve
+    // above is NEVER skipped ; only this D7 trap is.
+    if !bounds_safe {
+        line(s, "if ((size_t) ${name_of(idx)} >= ${arr}->length) { vader_trap(\"array index out of bounds\"); }")
+    }
     return arr
 }
 
 /// Primitive slot load — pop array + slot index, read the `cty`-typed element
 /// at `arr->buf->slots[arr->offset + i]`, push it with stack class `result`.
 /// Bounds-checked + buf-forward-resolved (see `emit_slot_array_local`).
-emit_slot_load_prim :: fn(s: FnState, cty: string, result: ValType) -> void {
+emit_slot_load_prim :: fn(s: FnState, cty: string, result: ValType, bounds_safe: bool) -> void {
     idx :: pop(s)
     obj :: pop(s)
-    a :: emit_slot_array_local(s, obj, idx)
+    a :: emit_slot_array_local(s, obj, idx, bounds_safe)
     name :: fresh_tmp(s, result)
     line(s, "${name} = ((${cty}*) ${a}->buf->slots)[${slot_index(a, idx)}];")
     push_tmp(s, name, result)
@@ -2076,7 +2126,7 @@ emit_slot_store_prim :: fn(s: FnState, cty: string, val: ValType) -> void {
     value :: pop(s)
     idx :: pop(s)
     obj :: pop(s)
-    a :: emit_slot_array_local(s, obj, idx)
+    a :: emit_slot_array_local(s, obj, idx, false)
     emit_typed_slot_write(s, a, idx, value, cty, val)
 }
 
@@ -2193,7 +2243,7 @@ emit_array_get :: fn(s: FnState, op: vm.ArrayGet) -> void {
     elem :: types[usize(elem_tag)]
     kind :: array_kind_of(elem, types)
     fill :: typed_array_fill_for(kind)
-    a :: emit_slot_array_local(s, arr, idx)
+    a :: emit_slot_array_local(s, arr, idx, op.bounds_safe)
     if fill == null && ref_carrying_element(elem, types) {
         // Erasure boundary (T12/P3): the buf may be `Ref` (built concretely) or
         // `Boxed` (built in erased generic code), so the reader dispatches on
@@ -2235,7 +2285,7 @@ emit_array_set :: fn(s: FnState, op: vm.ArraySet) -> void {
     elem :: types[usize(elem_tag)]
     kind :: array_kind_of(elem, types)
     fill :: typed_array_fill_for(kind)
-    a :: emit_slot_array_local(s, arr, idx)
+    a :: emit_slot_array_local(s, arr, idx, false)
     if fill == null && ref_carrying_element(elem, types) {
         // Erasure boundary (T12/P3): dispatch on the buf's actual kind inside the
         // `static inline` helper. Barrier fires on the buf (container) for both.
@@ -2309,8 +2359,16 @@ emit_array_push :: fn(s: FnState, op: vm.ArrayPush) -> void {
 /// open-coded read is byte-equivalent (no buf deref, no forward-resolve : the
 /// length lives on the array header, which is the live gc_root). Drops the
 /// codegen dependency on `vader_array_len`.
-emit_array_len :: fn(s: FnState) -> void {
+emit_array_len :: fn(s: FnState, resolve_buf: bool) -> void {
     arr :: pop(s)
+    if resolve_buf {
+        // BCE resolve-hoist : chase + PIN the buf-forward chain here (this
+        // `array.len` sits in the loop preheader), so the loop body's element
+        // accesses reuse the resolved `_slotarr` instead of re-resolving per
+        // iteration. Sound only because the caller (the `for x in a` desugar)
+        // sets this exclusively for a BCE-safe loop (no call / alloc in the body).
+        resolve_array_local(s, array_hdr_ptr(arr), true)
+    }
     name :: fresh_tmp(s, .Usize)
     line(s, "${name} = ${array_hdr_ptr(arr)}->length;")
     push_tmp(s, name, .Usize)

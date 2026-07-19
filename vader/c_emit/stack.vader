@@ -121,6 +121,13 @@ FnState :: struct {
     /// control-flow op and on reassignment of the array's local (see
     /// `invalidate_resolve_cache`) — a stale entry would read a moved buffer.
     resolved_arrays: MutableMap<string, string>
+    /// BCE resolve-hoist : keys in `resolved_arrays` that are PINNED — their
+    /// hoisted buf-resolve (emitted in a loop preheader by `emit_array_len` with
+    /// `resolve_buf`) survives the loop's pure control-flow ops so the body reuses
+    /// it. A pin is dropped only by an op that could move a buffer (call / alloc —
+    /// a real GC safepoint) or by reassignment of the array's local. Sound because
+    /// pins are minted ONLY for BCE-safe loops (no call / alloc in the body).
+    pinned_resolves: MutableSet<string>
     /// Set by the walk driver when the current `call` / `call.import` op is
     /// immediately followed by a `drop` — its non-void result is emitted as a
     /// bare statement (like a void call) instead of `tN = call(...);` + an
@@ -143,6 +150,7 @@ new_fn_state :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> Fn
     .break_targets = [],
     .no_frame = true,
     .resolved_arrays = MutableMap<string, string> {},
+    .pinned_resolves = MutableSet<string> {},
     .drop_call_result = false,
 }
 

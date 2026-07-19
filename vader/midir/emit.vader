@@ -1043,9 +1043,9 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         // A1 force-concretes the array constructors, so a concrete `i32[]` value is
         // I32-kind at runtime → the typed read is sound. Boxed / ref / `Any` / `u8`
         // elements stay on the legacy runtime-dispatched `ArrayGet`.
-        load_op :: typed_slot_load_op_for(array_element_val_type(target_type))
+        load_op :: typed_slot_load_op_for(array_element_val_type(target_type), ag.bounds_safe)
         if load_op is null {
-            push_emit(ctx, ArrayGet { .type_id = type_index }, ag.span)
+            push_emit(ctx, ArrayGet { .type_id = type_index, .bounds_safe = ag.bounds_safe }, ag.span)
             if needs_ref_cast(ag.type) {
                 push_emit(ctx, RefCast { .type_id = intern_type(ag.type, ctx.project) }, ag.span)
             }
@@ -1074,7 +1074,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     }
     if ins is InstrArrayLen as al {
         emit_first_get(ctx, pos, al.target, al.span)
-        push_emit(ctx, ArrayLen {}, al.span)
+        push_emit(ctx, ArrayLen { .resolve_buf = al.resolve_buf }, al.span)
         emit_result(ctx, pos, al.dst, al.span)
         return
     }

@@ -306,6 +306,9 @@ export InstrArrayGet :: struct {
     target: LocalId
     index:  LocalId
     type:   Type
+    /// BCE : carried from `LoweredIndex.bounds_safe` ; forwarded to the emitted
+    /// `LoadSlot*` / `ArrayGet` op so the C backend can skip the bounds check.
+    bounds_safe: bool = false
 }
 
 export InstrArraySet :: struct {
@@ -319,6 +322,9 @@ export InstrArrayLen :: struct {
     span:   Span
     dst:    LocalId
     target: LocalId
+    /// BCE resolve-hoist : forwarded from `LoweredArrayLen.resolve_buf` to the
+    /// `ArrayLen` op, telling the C backend to pin a hoisted buf-resolve here.
+    resolve_buf: bool = false
 }
 
 export InstrArrayPush :: struct {

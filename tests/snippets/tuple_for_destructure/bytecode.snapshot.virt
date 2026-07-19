@@ -26,9 +26,9 @@ fn 0 snippet$main () -> i32
   local __for_len_2 usize
   local __for_i_3 usize
   local v i32
-  local __p_5 string
+  local __p_4 string
   local $call_25 usize
-  local __off_7 usize
+  local __off_6 usize
   local $cast_34 i64
   string.const 0
   i32.const 1

@@ -22,7 +22,7 @@
         LoweredArrayLen
       let __for_i_3: usize = int(0) :usize
       loop while (<…>)
-        let __for_elem_4: [string, i32] =
+        let __for_elem_7: [string, i32] =
           index :[string, i32]
             on:
               __for_arr_1 :[string, i32][]
@@ -30,17 +30,17 @@
               __for_i_3 :usize
         let k: string =
           ._0 :string
-            __for_elem_4 :[string, i32]
+            __for_elem_7 :[string, i32]
         let v: i32 =
           ._1 :i32
-            __for_elem_4 :[string, i32]
+            __for_elem_7 :[string, i32]
         call :void
           callee:
             std_io$println__string :void
           arg0:
             block :string
-              let __p_5: string = k :string
-              let __buf_6: Buffer =
+              let __p_4: string = k :string
+              let __buf_5: Buffer =
                 call :Buffer
                   callee:
                     new_byte_buffer :Buffer
@@ -53,45 +53,45 @@
                           callee:
                             byte_len :usize
                           arg0:
-                            __p_5 :string
-              let __off_7: usize = int(0) :usize
+                            __p_4 :string
+              let __off_6: usize = int(0) :usize
               assign
                 target:
-                  __off_7 :usize
+                  __off_6 :usize
                 value:
                   call :usize
                     callee:
                       write_string_at :usize
                     arg0:
-                      __buf_6 :Buffer
+                      __buf_5 :Buffer
                     arg1:
-                      __off_7 :usize
+                      __off_6 :usize
                     arg2:
-                      __p_5 :string
+                      __p_4 :string
               assign
                 target:
-                  __off_7 :usize
+                  __off_6 :usize
                 value:
                   call :usize
                     callee:
                       write_string_at :usize
                     arg0:
-                      __buf_6 :Buffer
+                      __buf_5 :Buffer
                     arg1:
-                      __off_7 :usize
+                      __off_6 :usize
                     arg2:
                       "=" :string
               assign
                 target:
-                  __off_7 :usize
+                  __off_6 :usize
                 value:
                   call :usize
                     callee:
                       write_int :usize
                     arg0:
-                      __buf_6 :Buffer
+                      __buf_5 :Buffer
                     arg1:
-                      __off_7 :usize
+                      __off_6 :usize
                     arg2:
                       cast → i64
                         v :i32
@@ -100,9 +100,9 @@
                   callee:
                     finish_buffer :string
                   arg0:
-                    __buf_6 :Buffer
+                    __buf_5 :Buffer
                   arg1:
-                    __off_7 :usize
+                    __off_6 :usize
         assign
           target:
             __for_i_3 :usize
