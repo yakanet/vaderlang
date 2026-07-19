@@ -322,22 +322,21 @@ try_fold_fields :: fn(
     for f in decl.fields {
         raw_ty :: resolve_field_type(f.ty, owner_typed, decl, target_struct.args)
         substituted :: substitute(raw_ty, subst)
-        field_lit_fields: LoweredStructLitField[] = []
-        field_lit_fields.push(LoweredStructLitField {
-            .name = "name",
-            .value = LoweredStringLit {
-                .span = intrinsic.span, .type = string_type, .value = f.name,
+        field_lit_fields :: [
+            LoweredStructLitField {
+                .name = "name",
+                .value = LoweredStringLit {
+                    .span = intrinsic.span, .type = string_type, .value = f.name,
+                },
             },
-        })
-        field_lit_fields.push(LoweredStructLitField {
-            .name = "type",
-            .value = LoweredTypeConst {
-                .span = intrinsic.span, .type = TY_TYPE, .value = substituted,
+            LoweredStructLitField {
+                .name = "type",
+                .value = LoweredTypeConst {
+                    .span = intrinsic.span, .type = TY_TYPE, .value = substituted,
+                },
             },
-        })
-        elements.push(LoweredStructLit {
-            .span = intrinsic.span, .type = field_type, .fields = field_lit_fields,
-        })
+        ]
+        elements.push(build_core_struct_lit(ctx, field_type, field_lit_fields, intrinsic.span))
     }
     return LoweredArrayLit {
         .span = intrinsic.span, .type = type, .elements = elements,

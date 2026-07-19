@@ -133,10 +133,9 @@ gb_state_eq :: fn(gb: GenBuild, n: i64) -> LoweredExpr =
 gb_yield_return :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredStmt =
     LoweredReturn {
         .span = gb.span,
-        .value = LoweredStructLit {
-            .span = gb.span, .type = gb.yield_ty,
-            .fields = [LoweredStructLitField { .name = "value", .value = e }],
-        },
+        .value = build_core_struct_lit(gb.fn_ctx, gb.yield_ty, [
+            LoweredStructLitField { .name = "value", .value = e },
+        ], gb.span),
     }
 
 // `return null`.
