@@ -232,34 +232,36 @@ bh_expr :: fn(e: LoweredExpr, pctx: BcePurityCtx) -> void {
     // Leaves (lits / ident / data-const / unreachable / type-const) : nothing.
 }
 
-// In block `b`, find a `let __ = arr.len()` marked `bce_recheck` and a sibling
-// loop. If the loop body is BCE-safe (no alloc / impure call / yield / rebind of
-// arr), hoist arr's resolve (`resolve_buf`) and elide the synthesized `arr[idx]`
-// checks.
+// In block `b`, pair each `bce_recheck` `let __ = arr.len()` with the sibling loop
+// built from it. `emit_fused_*` emits one source as `arr_let … len_let(recheck) …
+// idx_init … loop`, so each recheck-len is followed (past its idx-init) by exactly
+// the loop that iterates it — walk the block in order and pair the pending len with
+// the next loop. A block can hold several such pairs back-to-back (`a.chain(b)`
+// fuses to two sequential source loops, and any N-way sequential fusion likewise);
+// each is hoisted independently, not just the last.
 bh_pair :: fn(b: LoweredBlock, pctx: BcePurityCtx) -> void {
-    the_len: LoweredArrayLen | null = null
+    pending_len: LoweredArrayLen | null = null
     for st in b.stmts {
         if st is LoweredLet as ll {
             if ll.value is LoweredArrayLen as al {
                 if al.bce_recheck {
-                    the_len = al
+                    pending_len = al
                 }
+            }
+        } else if st is LoweredLoop as lp {
+            if pending_len != null {
+                bh_try_hoist(pending_len, lp, pctx)
+                pending_len = null
             }
         }
     }
-    if the_len == null {
-        return
-    }
-    the_loop: LoweredLoop | null = null
-    for st in b.stmts {
-        if st is LoweredLoop as lp {
-            the_loop = lp
-        }
-    }
+}
+
+// Consume `the_len`'s recheck marker ; if `the_loop`'s body is BCE-safe (no alloc /
+// impure call / yield / rebind of the bound array), hoist the array's resolve
+// (`resolve_buf`) and elide the loop's synthesized `arr[idx]` checks.
+bh_try_hoist :: fn(the_len: LoweredArrayLen, the_loop: LoweredLoop, pctx: BcePurityCtx) -> void {
     the_len.bce_recheck = false
-    if the_loop == null {
-        return
-    }
     // Guard on the bound array's symbol : rebinding it (`arr = other`) would leave
     // the pinned resolve stale. Synthetic (foreach / fusion) arrays are never
     // rebound, so this is a no-op there ; for an int-range `0..<a.len()` it catches
@@ -512,4 +514,52 @@ bce_test_register :: fn(ctx: BcePurityCtx, fd: LoweredFnDecl) -> void {
     ctx :: bce_test_ctx()
     bce_test_register(ctx, rec)
     assert(!bce_fn_pure(ctx, rec), "a recursion cycle is conservatively impure")
+}
+
+// A `bce_recheck` `arr.len()` bound over `sym`, as the desugars emit it.
+bce_test_recheck_len :: fn(sym: Symbol) -> LoweredArrayLen = LoweredArrayLen {
+    .span = empty_span(), .type = TY_VOID,
+    .target = LoweredIdent { .span = empty_span(), .type = TY_VOID, .symbol = sym },
+    .bce_recheck = true,
+}
+
+// A `bce_recheck` `arr[0]` element access over `sym`.
+bce_test_recheck_index :: fn(sym: Symbol) -> LoweredIndex = LoweredIndex {
+    .span = empty_span(), .type = TY_VOID,
+    .target = LoweredIdent { .span = empty_span(), .type = TY_VOID, .symbol = sym },
+    .index = LoweredIntLit { .span = empty_span(), .type = TY_VOID, .value = 0 },
+    .bce_recheck = true,
+}
+
+// A safe counter loop whose only body statement is `idx` (a pure element read).
+bce_test_loop_over :: fn(idx: LoweredIndex) -> LoweredStmt = LoweredLoop {
+    .span = empty_span(), .label = null, .cond = null,
+    .body = bce_test_block([LoweredExprStmt { .span = empty_span(), .expr = idx }]),
+}
+
+// `let len = <recheck arr.len()>` — the preheader bound.
+bce_test_len_let :: fn(len: LoweredArrayLen) -> LoweredStmt = LoweredLet {
+    .span = empty_span(), .name = "len", .symbol = bce_test_sym(0, "len"),
+    .type = TY_VOID, .value = len,
+}
+
+@test test_bh_pair_hoists_each_sequential_loop :: fn() -> void {
+    // Shape of `a.chain(b)`'s fused output : two back-to-back `len(recheck) …
+    // loop{ arr[i] recheck }` pairs in one block. bh_pair must hoist BOTH — the
+    // old last-wins scan only caught the second (the observed chain resolves=2 /
+    // checks=1 partial hoist).
+    len_a :: bce_test_recheck_len(bce_test_sym(100, "a"))
+    len_b :: bce_test_recheck_len(bce_test_sym(101, "b"))
+    idx_a :: bce_test_recheck_index(bce_test_sym(100, "a"))
+    idx_b :: bce_test_recheck_index(bce_test_sym(101, "b"))
+    block :: bce_test_block([
+        bce_test_len_let(len_a), bce_test_loop_over(idx_a),
+        bce_test_len_let(len_b), bce_test_loop_over(idx_b),
+    ])
+    bh_pair(block, bce_test_ctx())
+    assert(len_a.resolve_buf, "first fused loop's array resolve is hoisted")
+    assert(len_b.resolve_buf, "second fused loop's array resolve is hoisted")
+    assert(idx_a.bounds_safe, "first loop's element access is marked bounds-safe")
+    assert(idx_b.bounds_safe, "second loop's element access is marked bounds-safe")
+    assert(!len_a.bce_recheck && !len_b.bce_recheck, "both recheck markers consumed")
 }
