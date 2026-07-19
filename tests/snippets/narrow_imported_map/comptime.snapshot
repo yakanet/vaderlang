@@ -7,7 +7,6 @@
 ## generic instances
   Entry<K, V>
   Entry<K, V>
-  Entry<K, V>
   MutableMap<i32, i32 | Wrap>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
@@ -56,7 +55,7 @@
   Index<I, T>
   IndexSet<I, T>
   Contains<T>
-  Iterator<Entry<K, V>>
+  Iterator<[K, V]>
   Iterator<T>
   Iterator<T>
   Iterator<T>

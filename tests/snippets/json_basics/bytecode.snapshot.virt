@@ -44,17 +44,17 @@ type 41 union 29,30
 type 42 union 29,31
 type 43 union 29,0
 type 44 array 34
-type 45 struct std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString { ekeys:24,evals:54,index:53,mask:8,size:8,tombs:8 }
+type 45 struct std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString { ekeys:24,evals:53,index:52,mask:8,size:8,tombs:8 }
 type 46 union 11,47
 type 47 struct std_string$ParseError { msg:1 }
 type 48 struct std_string$StringChars { bytes:12,cursor:8,length:8 }
 type 49 struct __Tuple_70 { _0:4,_1:8 }
-type 50 struct std_collections$MutableMap__string__Any___Any___Any___Any___Any___Any { ekeys:24,evals:54,index:53,mask:8,size:8,tombs:8 }
-type 51 struct __Tuple_88 { _0:1,_1:25 }
-type 52 struct std_collections$MutableMap__string__Any { ekeys:24,evals:54,index:53,mask:8,size:8,tombs:8 }
-type 53 array 3
-type 54 array 25
-type 55 array 16
+type 50 struct std_collections$MutableMap__string__Any___Any___Any___Any___Any___Any { ekeys:24,evals:53,index:52,mask:8,size:8,tombs:8 }
+type 51 struct std_collections$MutableMap__string__Any { ekeys:24,evals:53,index:52,mask:8,size:8,tombs:8 }
+type 52 array 3
+type 53 array 25
+type 54 array 16
+type 55 struct __Tuple_97 { _0:1,_1:25 }
 type 56 union 7,0
 type 57 array 4
 string 0 ": error: "
@@ -159,10 +159,10 @@ impl 45 IndexSet
 impl 45 Contains
 impl 45 Into
 impl 47 Error
-impl 52 Index
-impl 52 IndexSet
-impl 52 Contains
-impl 52 Into
+impl 51 Index
+impl 51 IndexSet
+impl 51 Contains
+impl 51 Into
 export main 1
 
 fn 0 snippet$show (string,string) -> void
@@ -1788,7 +1788,7 @@ fn 14 std_core$pf_product (i32,u64) -> ref
   i32.mul
   i32.to_i64
   local.set 3
-  data.const 0 55
+  data.const 0 54
   local.get 3
   load_slot_i64
   local.set 4
@@ -1808,7 +1808,7 @@ fn 14 std_core$pf_product (i32,u64) -> ref
   i64.const 511
   i64.eq
   if $L0 void
-    data.const 0 55
+    data.const 0 54
     local.set 5
     local.get 3
     i64.const 1
@@ -3590,7 +3590,7 @@ fn 28 std_core$d2d (u64,u64) -> ref
     i64.const 9122891541139893884
     i64.const -3769733211313815862
     i64.const 673562245690857633
-    array.new 55 342
+    array.new 54 342
     local.set 15
     local.get 13
     i32.to_i64
@@ -3941,7 +3941,7 @@ fn 28 std_core$d2d (u64,u64) -> ref
     i64.const 2101865168015838698
     i64.const 1681492134412670958
     i64.const 1345193707530136767
-    array.new 55 342
+    array.new 54 342
     local.set 15
     local.get 13
     i32.to_i64
@@ -4370,7 +4370,7 @@ fn 28 std_core$d2d (u64,u64) -> ref
     i64.const 5246222702107417334
     i64.const 3278889188817135834
     i64.const 8710297504448807696
-    array.new 55 326
+    array.new 54 326
     local.set 15
     local.get 2
     i32.to_i64
@@ -4705,7 +4705,7 @@ fn 28 std_core$d2d (u64,u64) -> ref
     i64.const 2278475631111374216
     i64.const 1424047269444608885
     i64.const 1780059086805761106
-    array.new 55 326
+    array.new 54 326
     local.set 15
     local.get 2
     i32.to_i64
@@ -6399,9 +6399,9 @@ fn 56 std_json$parse_object (ref,i32) -> any
   end $L0
   array.new 24 0
   local.set 2
-  array.new 54 0
-  local.set 3
   array.new 53 0
+  local.set 3
+  array.new 52 0
   local.set 4
   local.get 2
   local.get 3
@@ -7301,12 +7301,12 @@ fn 62 std_json$write_object (ref,ref,i32,i32) -> void
         local.set 10
         local.get 9
         local.get 10
-        struct.new 51
+        struct.new 55
         local.set 11
-        local.field 11 51 0
+        local.field 11 55 0
         ref.cast 1
         local.set 12
-        local.field 11 51 1
+        local.field 11 55 1
         local.set 13
         local.get 4
         bool.not
@@ -8879,12 +8879,12 @@ end
 fn 93 std_collections$std_collections$ensure_index__string__Any (ref) -> void
   local idx ref
   local __for_discard_0 usize
-  local.field 0 52 2
+  local.field 0 51 2
   array.len
   i64.const 0
   i64.eq
   if $L0 void
-    array.new 53 0
+    array.new 52 0
     local.set 1
     i64.const 0
     local.set 2
@@ -8908,12 +8908,12 @@ fn 93 std_collections$std_collections$ensure_index__string__Any (ref) -> void
     end $L1
     local.get 0
     local.get 1
-    struct.set 52 2
+    struct.set 51 2
     i64.const 15
     local.set 2
     local.get 0
     local.get 2
-    struct.set 52 3
+    struct.set 51 3
   else
   end $L0
   return
@@ -8926,7 +8926,7 @@ fn 94 std_collections$std_collections$rehash__string__Any (ref,usize) -> void
   local $field_15 usize
   local s usize
   local $cast_30 i32
-  array.new 53 0
+  array.new 52 0
   local.set 2
   i64.const 0
   local.set 3
@@ -8956,14 +8956,14 @@ fn 94 std_collections$std_collections$rehash__string__Any (ref,usize) -> void
   local.set 4
   block $L3 void
     loop $L4 void
-      local.field 0 52 4
+      local.field 0 51 4
       ref.cast 8
       local.set 5
       local.get 4
       local.get 5
       u64.lt
       if $L5 void
-        local.field 0 52 0
+        local.field 0 51 0
         local.get 4
         array.get 24
         ref.cast 1
@@ -9010,13 +9010,13 @@ fn 94 std_collections$std_collections$rehash__string__Any (ref,usize) -> void
   end $L3
   local.get 0
   local.get 2
-  struct.set 52 2
+  struct.set 51 2
   local.get 0
   local.get 3
-  struct.set 52 3
+  struct.set 51 3
   local.get 0
   i64.const 0
-  struct.set 52 5
+  struct.set 51 5
   return
 end
 
@@ -9024,39 +9024,39 @@ fn 95 std_collections$std_collections$write_entry__string__Any (ref,string,any) 
   local $field_3 usize
   local $len_5 usize
   local $field_7 ref
-  local.field 0 52 4
+  local.field 0 51 4
   ref.cast 8
   local.set 3
-  local.field 0 52 0
+  local.field 0 51 0
   array.len
   local.set 4
   local.get 3
   local.get 4
   u64.lt
   if $L0 void
-    local.field 0 52 0
+    local.field 0 51 0
     local.set 5
-    local.field 0 52 4
+    local.field 0 51 4
     ref.cast 8
     local.set 3
     local.get 5
     local.get 3
     local.get 1
     array.set 24
-    local.field 0 52 1
+    local.field 0 51 1
     local.set 5
-    local.field 0 52 4
+    local.field 0 51 4
     ref.cast 8
     local.set 3
     local.get 5
     local.get 3
     local.get 2
-    array.set 54
+    array.set 53
   else
-    local.field 0 52 0
+    local.field 0 51 0
     local.get 1
     array.push 1
-    local.field 0 52 1
+    local.field 0 51 1
     local.get 2
     array.push 25
   end $L0
@@ -9075,10 +9075,10 @@ fn 96 std_collections$std_collections$put__string__Any (ref,string,any) -> void
   local $cast_74 i32
   local.get 0
   call 93
-  local.field 0 52 4
+  local.field 0 51 4
   ref.cast 8
   local.set 3
-  local.field 0 52 5
+  local.field 0 51 5
   ref.cast 8
   local.set 4
   local.get 3
@@ -9089,7 +9089,7 @@ fn 96 std_collections$std_collections$put__string__Any (ref,string,any) -> void
   i64.const 4
   i64.mul
   local.set 3
-  local.field 0 52 3
+  local.field 0 51 3
   ref.cast 8
   i64.const 1
   i64.add
@@ -9104,7 +9104,7 @@ fn 96 std_collections$std_collections$put__string__Any (ref,string,any) -> void
     local.set 3
     block $L1 void
       loop $L2 void
-        local.field 0 52 4
+        local.field 0 51 4
         ref.cast 8
         i64.const 1
         i64.add
@@ -9136,7 +9136,7 @@ fn 96 std_collections$std_collections$put__string__Any (ref,string,any) -> void
   local.get 1
   call 108
   local.set 6
-  local.field 0 52 3
+  local.field 0 51 3
   ref.cast 8
   local.set 3
   local.get 6
@@ -9148,13 +9148,13 @@ fn 96 std_collections$std_collections$put__string__Any (ref,string,any) -> void
   local.set 7
   block $L4 void
     loop $L5 void
-      local.field 0 52 2
+      local.field 0 51 2
       local.get 3
       load_slot_i32
       i32.const 0
       i32.ne
       if $L6 void
-        local.field 0 52 2
+        local.field 0 51 2
         local.get 3
         load_slot_i32
         i32.const -1
@@ -9175,7 +9175,7 @@ fn 96 std_collections$std_collections$put__string__Any (ref,string,any) -> void
           local.get 5
           i64.add
           local.set 8
-          local.field 0 52 3
+          local.field 0 51 3
           ref.cast 8
           local.set 9
           local.get 8
@@ -9184,24 +9184,24 @@ fn 96 std_collections$std_collections$put__string__Any (ref,string,any) -> void
           local.set 3
           br $L5
         end $L7
-        local.field 0 52 2
+        local.field 0 51 2
         local.get 3
         load_slot_i32
         i32.to_i64
         i64.const 1
         i64.sub
         local.set 4
-        local.field 0 52 0
+        local.field 0 51 0
         local.get 4
         array.get 24
         ref.cast 1
         local.get 1
         string.eq
         if $L9 void
-          local.field 0 52 1
+          local.field 0 51 1
           local.get 4
           local.get 2
-          array.set 54
+          array.set 53
           return
         end $L9
         i64.const 1
@@ -9210,7 +9210,7 @@ fn 96 std_collections$std_collections$put__string__Any (ref,string,any) -> void
         local.get 5
         i64.add
         local.set 8
-        local.field 0 52 3
+        local.field 0 51 3
         ref.cast 8
         local.set 9
         local.get 8
@@ -9239,23 +9239,23 @@ fn 96 std_collections$std_collections$put__string__Any (ref,string,any) -> void
   i64.const 0
   i64.ge
   if $L11 void
-    local.field 0 52 5
+    local.field 0 51 5
     ref.cast 8
     i64.const 1
     i64.sub
     local.set 4
     local.get 0
     local.get 4
-    struct.set 52 5
+    struct.set 51 5
   else
   end $L11
   local.get 0
   local.get 1
   local.get 2
   call 95
-  local.field 0 52 2
+  local.field 0 51 2
   local.set 10
-  local.field 0 52 4
+  local.field 0 51 4
   ref.cast 8
   i64.const 1
   i64.add
@@ -9265,19 +9265,19 @@ fn 96 std_collections$std_collections$put__string__Any (ref,string,any) -> void
   local.get 3
   local.get 11
   store_slot_i32
-  local.field 0 52 4
+  local.field 0 51 4
   ref.cast 8
   i64.const 1
   i64.add
   local.set 3
   local.get 0
   local.get 3
-  struct.set 52 4
+  struct.set 51 4
   return
 end
 
 fn 97 std_collections$std_collections$len__string__Any (ref) -> usize
-  local.field 0 52 4
+  local.field 0 51 4
   ref.cast 8
   return
 end

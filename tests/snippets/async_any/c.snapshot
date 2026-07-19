@@ -1099,7 +1099,7 @@ static vader_box_t std_async_any__string__Any(void* l0) {
 #line 75 "stdlib/std/collections/collections.vader"
     vader_array_t* _a2_arr = vader_array_new(35u, 0u, 7u, 4u);
     l3 = (void*) _a2_arr;
-#line 326 "stdlib/std/collections/collections.vader"
+#line 328 "stdlib/std/collections/collections.vader"
     vader_struct_std_collections_MutableMap__usize__bool_t* _a3_obj = (vader_struct_std_collections_MutableMap__usize__bool_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__usize__bool_t));
     vader_obj_header_init(_a3_obj, 34u);
     _a3_obj->f_ekeys = l1;
@@ -1126,7 +1126,7 @@ static vader_box_t std_async_any__string__Any(void* l0) {
 
 static bool std_collections_MutableSet_Contains_contains__usize(void* l0, size_t l1) {
     bool t0;
-#line 361 "stdlib/std/collections/collections.vader"
+#line 363 "stdlib/std/collections/collections.vader"
     t0 = std_collections_MutableMap_Contains_contains__usize__bool(((vader_struct_std_collections_MutableSet__usize_t*) l0)->f_inner, l1);
     return t0;
 }
@@ -1550,21 +1550,21 @@ static bool std_collections_std_collections_add__usize(void* l0, size_t l1) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 335 "stdlib/std/collections/collections.vader"
+#line 337 "stdlib/std/collections/collections.vader"
     t0 = std_collections_MutableMap_Contains_contains__usize__bool(((vader_struct_std_collections_MutableSet__usize_t*) l0)->f_inner, l1);
     if (t0) {
         { vader_gc_top = gc_frame.prev; return false; }
     }
-#line 336 "stdlib/std/collections/collections.vader"
+#line 338 "stdlib/std/collections/collections.vader"
     std_collections_MutableMap_IndexSet_set_at__usize__bool(((vader_struct_std_collections_MutableSet__usize_t*) l0)->f_inner, l1, true);
-#line 337 "stdlib/std/collections/collections.vader"
+#line 339 "stdlib/std/collections/collections.vader"
     { vader_gc_top = gc_frame.prev; return true; }
     vader_gc_top = gc_frame.prev;
 }
 
 static size_t std_collections_std_collections_len__usize(void* l0) {
     size_t t0;
-#line 348 "stdlib/std/collections/collections.vader"
+#line 350 "stdlib/std/collections/collections.vader"
     t0 = ((vader_struct_std_collections_MutableMap__usize__bool_t*) ((vader_struct_std_collections_MutableSet__usize_t*) l0)->f_inner)->f_size;
     return t0;
 }

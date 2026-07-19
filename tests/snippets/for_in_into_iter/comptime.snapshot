@@ -3,8 +3,6 @@
 ## tests/snippets/for_in_into_iter
 
 ## generic instances
-  Entry<string, i32>
-  Entry<K, V>
   Entry<K, V>
   Entry<K, V>
   MutableMap<i32, bool>
@@ -55,7 +53,7 @@
   IndexSet<I, T>
   Contains<T>
   Iterator<char>
-  Iterator<Entry<K, V>>
+  Iterator<[K, V]>
   Iterator<T>
   Iterator<T>
   Iterator<T>
@@ -72,3 +70,6 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
+
+# Diagnostics
+[29:39] error[T3009] field does not exist on this type: `value` on [string, i32]

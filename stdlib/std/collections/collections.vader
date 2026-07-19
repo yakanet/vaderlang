@@ -43,10 +43,10 @@ MINIMAL_INDEX_COUNT :: usize(16)
 EMPTY_SLOT :: i32(0)    // index slot holds no entry
 TOMB_SLOT  :: i32(-1)   // index slot held an entry that was removed
 
-// Yielded by `for [k, v] in m` — the parser desugars the `[...]` destructure
-// over an `Entry` (a struct, not a tuple) through `Into<[K, V]>`, and the
-// lowerer inlines the tuple-literal body so `k = e.key` / `v = e.value` bind
-// with no per-iteration allocation. No `next` field — entries are not nodes.
+// Vestigial — kept only so the previous bootstrap seed (whose map for-in
+// fast-path still resolves `Entry` and destructures it via `Into<[K, V]>`) can
+// compile this Entry-less stdlib in one step. The live map iterator below now
+// yields `[K, V]` tuples directly; delete this pair once the seed is refreshed.
 Entry :: struct<K, V> {
     key:   K
     value: V
@@ -296,17 +296,19 @@ export values :: fn<K, V>(self: MutableMap<K, V>) -> V[] {
     return out
 }
 
-// `for entry in m` works directly thanks to the `Into<Iterator<...>>` impl
-// below — no explicit `.iter()` call needed. `into` is a `generator` : consumed
-// by a `for` loop or a terminal it fuses (and `for entry in m` hits the map
-// fast-path in `lower_for_in`, never materialising it) ; an escaping `m.into()`
-// value materialises the generator's state machine. Walks the dense entry arrays
-// by index — no snapshot. Mutating `self` while an iterator is live is UB.
+// `for [k, v] in m` works directly thanks to the `Into<Iterator<...>>` impl
+// below — no explicit `.iter()` call needed. Each entry is yielded as a plain
+// `[K, V]` tuple (like `zip` / `enumerate`), so the `[k, v]` destructure reads
+// its two leaves positionally. `into` is a `generator` : consumed by a `for`
+// loop or a terminal it fuses (and `for [k, v] in m` hits the map fast-path in
+// `lower_for_in`, never materialising it) ; an escaping `m.into()` value
+// materialises the generator's state machine. Walks the dense entry arrays by
+// index — no snapshot. Mutating `self` while an iterator is live is UB.
 
-MutableMap<K, V> implements<K, V> Into<Iterator<Entry<K, V>>> {
-    into :: fn(self) -> Iterator<Entry<K, V>> {
+MutableMap<K, V> implements<K, V> Into<Iterator<[K, V]>> {
+    into :: fn(self) -> Iterator<[K, V]> {
         for i in 0..<self.size {
-            yield Entry<K, V> { .key = self.ekeys[i], .value = self.evals[i] }
+            yield [self.ekeys[i], self.evals[i]]
         }
     }
 }

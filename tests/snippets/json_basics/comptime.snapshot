@@ -17,7 +17,6 @@
   Rem<Rhs, Out>
   Entry<K, V>
   Entry<K, V>
-  Entry<K, V>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>
@@ -64,10 +63,10 @@
   Iterator<T[]>
   Iterator<char>
   Iterator<i32>
-  Iterator<Entry<K, V>>
   Iterator<[usize, string]>
   Iterator<[usize, T]>
   Iterator<[T, U]>
+  Iterator<[K, V]>
   Iterator<T>
   Iterator<T>
   Iterator<T>

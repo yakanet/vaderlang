@@ -1104,11 +1104,12 @@ try_lower_for_in_map_set :: fn(
     block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt | null {
     if src_type is StructType as source {
-        entry_sym :: module_export(ctx.project, "std/collections", "Entry") ?? return null
+        // `MutableMap` / `MutableSet` lookups returning null (std/collections not
+        // loaded) fall through to `!is_map && !is_set` below — no separate gate.
         is_map :: struct_sym_matches(module_export(ctx.project, "std/collections", "MutableMap"), source.symbol.id)
         is_set :: struct_sym_matches(module_export(ctx.project, "std/collections", "MutableSet"), source.symbol.id)
         if !is_map && !is_set { return null }
-        // Entry<K, V> args : Map<K, V> → [K, V] ; Set<T> → [T, bool].
+        // Element component types : Map<K, V> → [K, V] ; Set<T> → [T, bool].
         entry_args: Type[] = []
         if is_map {
             for a in source.args { entry_args.push(a) }
@@ -1120,27 +1121,27 @@ try_lower_for_in_map_set :: fn(
         if entry_args.len() != 2 { return null }
         // Compact-dict map/set fast-path : dense index walk over `ekeys` / `evals`.
         return lower_map_set_compact(ctx, for_stmt, in_form, src_value, src_type, span,
-            block_lowerer, source, entry_sym, is_map, is_set, entry_args)
+            block_lowerer, source, is_map, is_set, entry_args)
     }
     return null
 }
 
 // Compact-dict map/set for-in : walk the dense `ekeys` / `evals` arrays by
-// index. For a map, bind a per-step `Entry{key, value}` (never escapes the
+// index. For a map, bind a per-step `[key, value]` tuple (never escapes the
 // body → scalar-replaced, zero-alloc) ; for a set, bind the key directly.
 lower_map_set_compact :: fn(
     ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
     src_value: LoweredExpr, src_type: Type, span: Span,
     block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
-    source: StructType, entry_sym: Symbol, is_map: bool, is_set: bool, entry_args: Type[],
+    source: StructType, is_map: bool, is_set: bool, entry_args: Type[],
 ) -> LoweredStmt {
     usize_ty :: mk_primitive("usize")
     key_ty :: entry_args[0]
     val_ty :: entry_args[1]
-    entry_type :: mk_struct(entry_sym, entry_args)
+    pair_type :: mk_tuple([key_ty, val_ty])
     ekeys_array_type :: mk_array(key_ty, false)
     evals_array_type :: mk_array(val_ty, false)
-    binding_value_type: Type = entry_type
+    binding_value_type: Type = pair_type
     if is_set { binding_value_type = source.args[0] }
 
     // Hoist the source value once.
@@ -1196,17 +1197,22 @@ lower_map_set_compact :: fn(
             .else_block = null,
         },
     }
-    // bind value : Set → ekeys[pos] (the key) ; Map → Entry{key, value}.
+    // bind value : Set → ekeys[pos] (the key) ; Map → [key, value] tuple. The
+    // tuple lowers to the `_0` / `_1` struct layout (mirrors `lower_seq_lit`), so
+    // `for [k, v] in m` destructures it positionally like `for [x, y] in zip(...)`.
     bind_value: LoweredExpr = LoweredIndex { .span = span, .type = binding_value_type, .target = ekeys_ref, .index = pos_ref }
     if is_map {
-        fields: LoweredStructLitField[] = []
-        fields.push(LoweredStructLitField {
-            .name = "key", .value = LoweredIndex { .span = span, .type = key_ty, .target = ekeys_ref, .index = pos_ref },
-        })
-        fields.push(LoweredStructLitField {
-            .name = "value", .value = LoweredIndex { .span = span, .type = val_ty, .target = evals_ref, .index = pos_ref },
-        })
-        bind_value = LoweredStructLit { .span = span, .type = entry_type, .fields = fields }
+        bind_value = LoweredStructLit {
+            .span = span, .type = pair_type,
+            .fields = [
+                LoweredStructLitField {
+                    .name = "_0", .value = LoweredIndex { .span = span, .type = key_ty, .target = ekeys_ref, .index = pos_ref },
+                },
+                LoweredStructLitField {
+                    .name = "_1", .value = LoweredIndex { .span = span, .type = val_ty, .target = evals_ref, .index = pos_ref },
+                },
+            ],
+        }
     }
     lb :: resolve_loop_binding(ctx, in_form.loop_var, span)
     binding_stmts :: bind_loop_var(ctx, lb.symbol, lb.name, lb.pattern, bind_value, binding_value_type, span)
