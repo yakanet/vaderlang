@@ -497,6 +497,7 @@ build_assign :: fn(fn_ctx: FnCtx, s: LoweredAssign) -> void {
         if value is null { return }
         emit(fn_ctx, InstrArraySet {
             .target = tgt, .index = idx, .value = value, .span = s.span,
+            .bounds_safe = idx_expr.bounds_safe,
         })
         return
     }

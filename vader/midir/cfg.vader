@@ -316,6 +316,9 @@ export InstrArraySet :: struct {
     target: LocalId
     index:  LocalId
     value:  LocalId
+    /// BCE : from the store `LoweredIndex.bounds_safe` — forwarded to the emitted
+    /// `StoreSlot*` / `ArraySet` op so the C backend can skip the bounds check.
+    bounds_safe: bool = false
 }
 
 export InstrArrayLen :: struct {
