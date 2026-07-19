@@ -13,7 +13,7 @@ main :: fn() -> i32 {
     a: i32[] = []
     for i in 0..<1024 { a.push(i32(i)) }
     sum: i64 = 0
-    for _ in 0..<100000 {
+    for 0..<100000 {
         for i in 0..<a.len() {
             a[i] = a[i] + 1
             sum = sum + i64(a[i])
