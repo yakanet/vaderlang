@@ -73,33 +73,70 @@ queue_generic_impl_receiver :: fn(ctx: FnLowerCtx, recv: StructType) -> void {
 // as constructed, so the existing `vtable_gate` surfaces their impl methods.
 // The old per-is-check `materialize_trait_check_impls` force-hook is gone.
 
-find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: string) -> UfcsMember | null {
+// An impl-member match carried across the scan as the `@intrinsic` fallback —
+// a named struct (not a bare tuple) so its fields keep their types through the
+// `| null` union and narrow cleanly after the null guard.
+ImplMemberMatch :: struct {
+    entry:  ImplEntry
+    member: FnDecl
+}
+
+/// Resolve `target_type`'s impl member, picking each impl's member via
+/// `select_member` (by method name, or the sole member of a trait's impl).
+///
+/// Owns the one invariant both public lookups share: a user impl (with a real
+/// body) shadows an `@intrinsic` builtin of the same (type, member) —
+/// `i32 implements Display -> "..."` must win over the std_core intrinsic
+/// `Display`. Single pass: return the first non-intrinsic match immediately;
+/// remember the first intrinsic match as a fallback and use it only when no
+/// user impl turns up. The mangle always reads the SELECTED member's own name,
+/// so trait-keyed dispatch picks up whatever the impl declares.
+resolve_impl_member :: fn(ctx: FnLowerCtx, target_type: Type, key: string, by_trait: bool) -> UfcsMember | null {
     target_name :: type_surface_name(target_type)
     if target_name == "" { return null }
-    // A user impl (with a real body) shadows an `@intrinsic` builtin of the
-    // same (type, method) : `i32 implements Display -> "..."` must win over the
-    // std_core intrinsic `Display`. Single pass : return the first non-intrinsic
-    // match immediately ; remember the first intrinsic match as a fallback and
-    // use it only when no user impl turns up.
-    fallback: ImplEntry | null = null
+    fallback: ImplMemberMatch | null = null
     for entry in ctx.project.impls.all {
         decl :: entry.decl
         if !impl_targets_name(decl.for_type, target_name) { continue }
-        for m in decl.members {
-            if m.name != method_name { continue }
-            if !impl_is_intrinsic(decl) {
-                return build_ufcs_member(ctx, target_type, target_name, method_name, entry, is_identity_member(m))
-            }
-            if fallback == null { fallback = entry }
-            break
+        m :: select_member(decl, key, by_trait) ?? continue
+        if !impl_is_intrinsic(decl) {
+            return build_ufcs_member(ctx, target_type, target_name, m.name, entry, is_identity_member(m))
         }
+        // An `@intrinsic` fallback is bodyless → never an inlineable identity.
+        if fallback == null { fallback = ImplMemberMatch { .entry = entry, .member = m } }
     }
-    // An `@intrinsic` fallback is bodyless → never an inlineable identity.
     if fallback != null {
-        return build_ufcs_member(ctx, target_type, target_name, method_name, fallback, false)
+        return build_ufcs_member(ctx, target_type, target_name, fallback.member.name, fallback.entry, false)
     }
     return null
 }
+
+// Pick the impl member for `resolve_impl_member`'s scan. `by_trait` selects the
+// key's meaning: the sole member of an impl of trait `key` (single-method traits
+// `Index` / `IndexSet`), else the member whose name matches `key`.
+select_member :: fn(decl: ImplDecl, key: string, by_trait: bool) -> FnDecl | null {
+    if by_trait {
+        if decl.trait_name != key { return null }
+        if decl.members.len() == 0 { return null }
+        return decl.members[0]
+    }
+    for m in decl.members {
+        if m.name == key { return m }
+    }
+    return null
+}
+
+// Resolve a UFCS member by method NAME (`recv.method()` dispatch).
+find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: string) -> UfcsMember | null =
+    resolve_impl_member(ctx, target_type, method_name, false)
+
+/// Resolve the sole method member of `target_type`'s impl of `trait_name`,
+/// reading the method's name FROM the impl instead of hard-coding a call-site
+/// literal. Dispatches on trait identity, exactly like the typechecker's index
+/// routing (`vader/typecheck/orchestrate.vader`, `TRAIT_INDEX` / `TRAIT_INDEX_SET`),
+/// so a rename of the trait's method can't drift a hard-coded name.
+find_trait_impl_member :: fn(ctx: FnLowerCtx, target_type: Type, trait_name: string) -> UfcsMember | null =
+    resolve_impl_member(ctx, target_type, trait_name, true)
 
 /// Build the `UfcsMember` for `method_name` on `entry`'s impl of `target_type` :
 /// the deterministic mangle, plus the side-tables that surface / materialise it.

@@ -110,7 +110,7 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
     // ArrayType (built-in path above) and for Range-typed indices
     // (slicing handled above).
     if !is_range && array_backing(target_type) == null {
-        member :: find_impl_member_for(ctx, target_type, METHOD_AT)
+        member :: find_trait_impl_member(ctx, target_type, TRAIT_INDEX)
         if member is UfcsMember as found {
             args: LoweredExpr[] = []
             args.push(lower_expr(ctx, expr.target))
@@ -242,14 +242,15 @@ try_lower_index_set_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> Lo
     @partial match target {
         is IndexExpr as idx -> {
             target_type :: ctx.types.expr_type(idx.target)
-            // Resolve `set_at` through the canonical impl-member path so the
-            // callee carries the SAME mangle the materialiser emits (and that
-            // DCE indexes). The old `synth_set_at_symbol` minted a bare
-            // `set_at` symbol that no fn-table slot matched, so the call was
-            // silently dropped and `m[k] = v` became a no-op (the value leaked
-            // onto the stack). Mirrors lower_index's `find_impl_member_for(…,
-            // "at")` on the read side.
-            member :: find_impl_member_for(ctx, target_type, "set_at") ?? return null
+            // Resolve the write through the `IndexSet` impl by TRAIT identity —
+            // never by a hard-coded `"set_at"` literal. This matches how the
+            // typechecker routes `m[k] = v` (`orchestrate.vader`, TRAIT_INDEX_SET)
+            // and how `lower_index` reads (`find_trait_impl_member(…, TRAIT_INDEX)`),
+            // and it carries the SAME mangle the materialiser emits (and that DCE
+            // indexes). The old `synth_set_at_symbol` minted a bare `set_at` symbol
+            // that no fn-table slot matched, so the call was silently dropped and
+            // `m[k] = v` became a no-op (the value leaked onto the stack).
+            member :: find_trait_impl_member(ctx, target_type, TRAIT_INDEX_SET) ?? return null
             if member is UfcsMember as found {
                 // Build `set_at(target, index, value)` direct call.
                 receiver :: lower_expr(ctx, idx.target)
