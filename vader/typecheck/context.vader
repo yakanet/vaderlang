@@ -25,7 +25,6 @@ export Globals :: struct {
     /// (`for <iter>` discard, narrowing temporaries) through this so ids
     /// stay globally unique across phases.
     factory: SymbolFactory
-
     /// Auto-imported `std/core` symbols, looked up for `Display` /
     /// `Error` / `Iterator` etc. when a trait reference dodges the
     /// module's local imports. Populated by `check_project` once the
@@ -35,7 +34,7 @@ export Globals :: struct {
 
 export new_globals :: fn(factory: SymbolFactory) -> Globals {
     return Globals {
-        .factory      = factory,
+        .factory = factory,
         .core_symbols = null,
     }
 }
@@ -47,7 +46,7 @@ export FnContext :: struct {
     return_type: Type
     /// `Self` substitution when type-checking a method inside an impl
     /// block. `null` outside trait/impl context.
-    self_type:  Type | null
+    self_type: Type | null
     /// Loop depth — `break` / `continue` legal only when > 0.
     loop_depth: i32
     /// AST node id of the fn whose body is being checked. Lets deep
@@ -82,8 +81,8 @@ export FnContext :: struct {
 export new_fn_context :: fn(return_type: Type, self_type: Type | null) -> FnContext {
     return FnContext {
         .return_type = return_type,
-        .self_type   = self_type,
-        .loop_depth  = 0,
+        .self_type = self_type,
+        .loop_depth = 0,
     }
 }
 
@@ -106,7 +105,7 @@ test_new_fn_context_holds_return_type :: fn() -> void {
     ctx :: new_fn_context(mk_primitive("i32"), null)
     match ctx.return_type {
         is PrimitiveType as p -> { assert_eq(p.name, "i32") }
-        _ -> { assert(false, "expected i32 return type") }
+        _                     -> { assert(false, "expected i32 return type") }
     }
     assert_eq(ctx.loop_depth, 0)
     if ctx.self_type !is null {
@@ -119,8 +118,8 @@ test_new_fn_context_records_self :: fn() -> void {
     self_t: Type = mk_primitive("string")
     ctx :: new_fn_context(TY_NEVER, self_t)
     match ctx.self_type {
-        is null -> { assert(false, "self_type should be set") }
+        is null                -> { assert(false, "self_type should be set") }
         is .PrimitiveType as p -> { assert_eq(p.name, "string") }
-        _ -> { assert(false, "expected string self_type") }
+        _                      -> { assert(false, "expected string self_type") }
     }
 }

@@ -38,8 +38,10 @@ export CheckResult :: struct {
 /// Diagnostics flow into `diags`. `factory` is shared with the resolver
 /// so locally-minted `TypeParam` Symbols stay globally unique.
 export check_module :: fn(
-    program: Program, resolved: ResolvedModule,
-    factory: SymbolFactory, diags: Diagnostic[],
+    program: Program,
+    resolved: ResolvedModule,
+    factory: SymbolFactory,
+    diags: Diagnostic[],
 ) -> CheckResult {
     // Standalone single-module check : no project-wide core seed available
     // (core traits, if any, are already in `resolved.symbols`). Pass an empty
@@ -48,7 +50,9 @@ export check_module :: fn(
     typed :: new_typed_program(resolved)
     declare_module(program.decls, resolved, typed, factory, diags)
     return CheckResult {
-        .typed = typed, .impls = impls, .others = [],
+        .typed = typed,
+        .impls = impls,
+        .others = [],
         .all_modules = MutableMap<string, TypedProgram> {},
     }
 }
