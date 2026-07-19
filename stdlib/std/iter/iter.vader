@@ -112,6 +112,30 @@ export zip :: fn<T, U>(self: T[], other: U[]) -> Iterator<[T, U]> {
     }
 }
 
+/// Slide a fixed-size window over `self`, yielding each run of `size` consecutive
+/// elements. Step 1, no partial windows — a source shorter than `size` yields
+/// nothing. Mirrors Kotlin's `windowed(size)`. Like `zip`, takes `T[]` (not a lazy
+/// `Iterator`) because the overlapping pull needs indexed access.
+///
+/// Each window is a zero-copy VIEW aliasing `self` (the built-in `arr[lo..<hi]`
+/// slice) — cheap, but a later mutation of `self` shows through ; `.clone()` a
+/// window to detach it.
+///
+/// @param self  source array.
+/// @param size  window width in elements ; `size == 0` (or `self.len() < size`)
+///              yields nothing.
+/// @return      a lazy `Iterator<T[]>` — `self[0..<size]`, `self[1..<size+1]`, …
+///              while the window fits.
+/// @example
+///   for w in [1, 2, 3, 4, 5].window(3) { println("${w}") }   // [1,2,3] [2,3,4] [3,4,5]
+export window :: fn<T>(self: T[], size: usize) -> Iterator<T[]> {
+    n :: self.len()
+    count :: if size > 0 && n >= size { n - size + 1 } else { 0 }
+    for start in 0..<count {
+        yield self[start..<(start + size)]
+    }
+}
+
 /// Lazily yield every element of `self`, then every element of `other` — a
 /// concatenated stream. Fuses to two back-to-back source loops (no intermediate
 /// array) when consumed by a `for` loop or a terminal.
@@ -310,6 +334,32 @@ import "std/testing"
     assert_eq(out.len(), 3)
     assert_eq(out[0], 2)
     assert_eq(out[2], 4)
+}
+
+@test test_window :: fn() -> void {
+    windows: i32[][] = []
+    for w in [1, 2, 3, 4, 5].window(3) {
+        windows.push(w)
+    }
+    assert_eq(windows.len(), 3)          // [1,2,3] [2,3,4] [3,4,5]
+    assert_eq(windows[0][0], 1)
+    assert_eq(windows[0][2], 3)
+    assert_eq(windows[2][0], 3)
+    assert_eq(windows[2][2], 5)
+
+    // no partial windows : size > len yields nothing
+    over: i32[][] = []
+    for w in [1, 2, 3].window(5) {
+        over.push(w)
+    }
+    assert_eq(over.len(), 0)
+
+    // size 0 yields nothing
+    zero: i32[][] = []
+    for w in [1, 2, 3].window(0) {
+        zero.push(w)
+    }
+    assert_eq(zero.len(), 0)
 }
 
 @test test_chain :: fn() -> void {
