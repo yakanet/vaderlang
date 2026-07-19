@@ -7,7 +7,7 @@
 // Usage :
 //   bun bench/run.ts                  # measure + compare to baseline
 //   bun bench/run.ts --update         # write current measurements as baseline
-//   bun bench/run.ts --runs=5         # override default 3 timed runs
+//   bun bench/run.ts --runs=5         # override default 10 timed runs
 //   bun bench/run.ts --workload=mandelbrot   # narrow to a single workload
 
 import { spawnSync } from "node:child_process";
@@ -27,7 +27,7 @@ const MIN_REGRESSION_MS = 5;  // Skip regression detection on measurements faste
 interface Args { runs: number; update: boolean; workloads: string[] | null }
 
 function parseArgs(): Args {
-  let runs = 3, update = false;
+  let runs = 10, update = false;
   let workloads: string[] | null = null;
   for (const a of process.argv.slice(2)) {
     if (a === "--update") update = true;
