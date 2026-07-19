@@ -1289,6 +1289,21 @@ static size_t vader_clamp_size(size_t x, size_t lo, size_t hi) {
 void vader_gc_init(void) {
     if (g_gc_initialized) return;
 
+    /* Stack-object roots (vader_gc_frame_t.stack_objs) depend on type_index 0
+     * being a scan no-op. A hoisted stack storage is zero-init'd (type 0) and may
+     * be handed to vader_gc_scan_object in the window before its `struct.new`
+     * writes the real header — that scan must trace no fields. Type 0 is reserved
+     * for the `null` primitive (VADER_BOX_TAG_NULL) and a BcPrimitive emits no
+     * info row, so slot 0 stays KIND_NONE with no pointer/ref fields. Assert the
+     * contract here: a future seed that put a pointer-bearing type at index 0
+     * would make that pre-init scan walk past the storage (silent OOB). */
+    if (vader_type_info_count > 0
+        && (vader_type_info_table[0].ptr_count != 0
+            || vader_type_info_table[0].ref_count != 0)) {
+        vader_trap("vader_gc_init: type_info_table[0] must be a scan no-op "
+                   "(reserved null slot) — stack-object rooting relies on it");
+    }
+
     g_gc_stress       = vader_gc_env_bool("VADER_GC_STRESS");
     g_gc_stress_major = vader_gc_env_bool("VADER_GC_STRESS_MAJOR");
     g_gc_check_box    = vader_gc_env_bool("VADER_GC_CHECK_BOX");
@@ -1924,6 +1939,19 @@ static void vader_gc_scan_roots(void) {
         if (fr->raw != NULL) {
             for (uint32_t i = 0; i < fr->nraw; i++) {
                 vader_gc_scan_raw(fr->raw[i]);
+            }
+        }
+        // Stack-object roots — GC structs the escape analysis stack-allocated.
+        // Scan their FIELDS in place: the object never moves (it's off-arena on
+        // the C stack), but its captured heap pointers must be forwarded across
+        // this collection, else they dangle. NULL until codegen registers the
+        // object post-init (a fully-initialised header + slots). See
+        // vader_gc_frame_t.stack_objs.
+        if (fr->stack_objs != NULL) {
+            for (uint32_t i = 0; i < fr->nstack; i++) {
+                if (fr->stack_objs[i] != NULL) {
+                    (void) vader_gc_scan_object((char*) fr->stack_objs[i]);
+                }
             }
         }
     }

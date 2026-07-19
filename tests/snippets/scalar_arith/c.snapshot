@@ -231,7 +231,7 @@ static vader_box_t std_core_Range_Iterator_next__i32(void* l0) {
     void* t3 = NULL;
     vader_box_t* gc_roots[1] = { &t2 };
     void** gc_raw_roots[2] = { &l0, &t3 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 308 "stdlib/std/core/core.vader"
     t0 = ((vader_struct_std_core_Range__i32_t*) l0)->f_inclusive;
@@ -278,7 +278,7 @@ static bool std_core_Range_Iterator_is_empty__i32(void* l0) {
     vader_box_t l1 = vader_box_null();
     vader_box_t* gc_roots[1] = { &l1 };
     void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 313387 "<clone>:stdlib/std/core/core.vader"
     l1 = std_core_Range_Iterator_next__i32(l0);
@@ -301,7 +301,7 @@ static size_t std_core_Range_Iterator_count__i32(void* l0) {
     int64_t t0;
     vader_box_t* gc_roots[1] = { &l3 };
     void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 331805 "<clone>:stdlib/std/core/core.vader"
     l1 = (size_t) (int64_t) INT64_C(0);
@@ -338,7 +338,7 @@ static vader_box_t std_core_Range_Iterator_last__i32(void* l0) {
     int32_t t1;
     vader_box_t* gc_roots[2] = { &l1, &l3 };
     void** gc_raw_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 331805 "<clone>:stdlib/std/core/core.vader"
     l1 = vader_box_obj(0u, NULL);
@@ -409,7 +409,7 @@ static vader_box_t std_core_Range_Iterator_next__usize(void* l0) {
     void* t5 = NULL;
     vader_box_t* gc_roots[1] = { &t2 };
     void** gc_raw_roots[2] = { &l0, &t5 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 308 "stdlib/std/core/core.vader"
     t0 = ((vader_struct_std_core_Range__usize_t*) l0)->f_inclusive;
@@ -457,7 +457,7 @@ static bool std_core_Range_Iterator_is_empty__usize(void* l0) {
     vader_box_t l1 = vader_box_null();
     vader_box_t* gc_roots[1] = { &l1 };
     void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 313387 "<clone>:stdlib/std/core/core.vader"
     l1 = std_core_Range_Iterator_next__usize(l0);
@@ -480,7 +480,7 @@ static size_t std_core_Range_Iterator_count__usize(void* l0) {
     int64_t t0;
     vader_box_t* gc_roots[1] = { &l3 };
     void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 331805 "<clone>:stdlib/std/core/core.vader"
     l1 = (size_t) (int64_t) INT64_C(0);
@@ -517,7 +517,7 @@ static vader_box_t std_core_Range_Iterator_last__usize(void* l0) {
     size_t t1;
     vader_box_t* gc_roots[2] = { &l1, &l3 };
     void** gc_raw_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 331805 "<clone>:stdlib/std/core/core.vader"
     l1 = vader_box_obj(0u, NULL);

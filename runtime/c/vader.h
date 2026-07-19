@@ -1014,6 +1014,18 @@ typedef struct vader_gc_frame {
      * referent, handles NULL, fires the write barrier). NULL until T12 codegen
      * populates it. */
     void***                raw;
+    /* Count of stack-object roots — GC structs the escape analysis proved
+     * non-escaping and stack-allocated (a `StructNew.stack` in the emit). */
+    uint32_t               nstack;
+    /* Stack-object roots : `stack_objs[i]` is a `void*` to a GC struct living
+     * on the C stack. Scanned via `vader_gc_scan_object` so its pointer FIELDS
+     * are forwarded across a collection — the object itself never moves. A stack
+     * address is off-arena, so `vader_gc_forward` skips the object entirely;
+     * without this its captured heap refs go stale (the walk_elements closure-env
+     * use-after-forward bug). NULL until codegen registers the object once fully
+     * initialised. Appended last so existing positional frame initializers
+     * `{ prev, nrefs, nraw, ptrs, raw }` read nstack=0 / stack_objs=NULL. */
+    void**                 stack_objs;
 } vader_gc_frame_t;
 
 extern vader_gc_frame_t* vader_gc_top;

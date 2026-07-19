@@ -257,7 +257,10 @@ static int32_t snippet_main(void) {
     void* t5 = NULL;
     vader_box_t* gc_roots[3] = { &l16, &l17, &t4 };
     void** gc_raw_roots[5] = { &l0, &l1, &l8, &l12, &t5 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 5u, gc_roots, gc_raw_roots };
+    vader_struct___Tuple_34_t _a6_storage = {0};
+    vader_struct___Tuple_35_t _a14_storage = {0};
+    void* gc_stack_objs[2] = { (void*) &_a6_storage, (void*) &_a14_storage };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 5u, gc_roots, gc_raw_roots, 2u, gc_stack_objs };
     vader_gc_top = &gc_frame;
 #line 8 "tests/snippets/iter_zip_chain/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(3u, 3u, 7u, 1u);
@@ -325,7 +328,6 @@ static int32_t snippet_main(void) {
                 while (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = (vader_array_buf_t*) _a5_slotarr->buf->header.forward; }
                 if ((size_t) l5 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
                 l7 = ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l5];
-                vader_struct___Tuple_34_t _a6_storage;
                 vader_struct___Tuple_34_t* _a7_obj = &_a6_storage;
                 vader_obj_header_init(_a7_obj, 24u);
                 _a7_obj->f__0 = l6;
@@ -434,7 +436,6 @@ static int32_t snippet_main(void) {
                 t4 = vader_array_box_slots(_a13_slotarr->buf)[_a13_slotarr->offset + (size_t) l11];
                 l6 = t4.payload.s;
 #line 135 "stdlib/std/iter/iter.vader"
-                vader_struct___Tuple_35_t _a14_storage;
                 vader_struct___Tuple_35_t* _a15_obj = &_a14_storage;
                 vader_obj_header_init(_a15_obj, 25u);
                 _a15_obj->f__0 = l2;
@@ -517,7 +518,7 @@ static void* __lambda_26(void* l0, int32_t l1) {
     int32_t l2;
     void* t0 = NULL;
     void** gc_raw_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 34 "tests/snippets/iter_zip_chain/_main.vader"
     l2 = (l1 * INT32_C(10));
@@ -538,7 +539,7 @@ static vader_box_t std_core_Range_Iterator_next__i32(void* l0) {
     void* t3 = NULL;
     vader_box_t* gc_roots[1] = { &t2 };
     void** gc_raw_roots[2] = { &l0, &t3 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 308 "stdlib/std/core/core.vader"
     t0 = ((vader_struct_std_core_Range__i32_t*) l0)->f_inclusive;
@@ -592,7 +593,7 @@ static vader_box_t std_core_Range_Iterator_next__usize(void* l0) {
     void* t5 = NULL;
     vader_box_t* gc_roots[1] = { &t2 };
     void** gc_raw_roots[2] = { &l0, &t5 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 308 "stdlib/std/core/core.vader"
     t0 = ((vader_struct_std_core_Range__usize_t*) l0)->f_inclusive;
@@ -646,7 +647,7 @@ static vader_box_t std_core_ArrayIterator_Iterator_next__i32(void* l0) {
     void* t3 = NULL;
     vader_box_t* gc_roots[1] = { &t0 };
     void** gc_raw_roots[3] = { &l0, &l3, &t3 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 326 "stdlib/std/core/core.vader"
     l1 = ((vader_struct_std_core_ArrayIterator__i32_t*) l0)->f_cursor;
@@ -680,7 +681,7 @@ static vader_box_t std_core_ArrayIterator_Iterator_next__i32(void* l0) {
 static void* std_core_new_byte_buffer(size_t l0) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 112 "stdlib/std/core/primitives.vader"
     t0 = std_core_usize_BufferAlloc_new_buffer_vt(l0);
@@ -691,7 +692,7 @@ static void* std_core_new_byte_buffer(size_t l0) {
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
     vader_string_t t0;
     void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 115 "stdlib/std/core/primitives.vader"
     t0 = std_core_Buffer_ByteAccess_intern_string_vt(l0, l1);
@@ -702,7 +703,7 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
     size_t l3;
     void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 124 "stdlib/std/core/primitives.vader"
     std_core_Buffer_ByteAccess_write_string_vt(l0, l1, l2);
@@ -903,7 +904,7 @@ static int32_t std_core_usize_Comparable_compare(size_t l0, size_t l1) {
 }
 
 static void std_io_println__string(vader_string_t l0) {
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 50 "stdlib/std/io/io.vader"
     vader_import_1(INT32_C(0), l0);
@@ -918,7 +919,7 @@ static void* std_iter_std_iter_clone__i32(void* l0) {
     void* l1 = NULL;
     size_t l2;
     void** gc_raw_roots[2] = { &l0, &l1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 93 "stdlib/std/iter/iter.vader"
     vader_array_t* _a0_arr = vader_array_new(3u, 0u, 7u, 1u);
@@ -939,7 +940,7 @@ static vader_box_t std_iter_flat_map__i32__i32(vader_box_t l0, void* l1) {
     void* t0 = NULL;
     vader_box_t* gc_roots[3] = { &l0, &l2, &l3 };
     void** gc_raw_roots[3] = { &l1, &l4, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 3u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 146 "stdlib/std/iter/iter.vader"
     l2 = vader_box_obj(0u, NULL);
@@ -976,7 +977,7 @@ static vader_box_t std_iter___gen_state_44_Iterator_next(void* l0) {
     void* t4 = NULL;
     vader_box_t* gc_roots[3] = { &l11, &l12, &t3 };
     void** gc_raw_roots[5] = { &l0, &l4, &l7, &l8, &t4 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 5u, gc_roots, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 5u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 146 "stdlib/std/iter/iter.vader"
     {
@@ -1173,7 +1174,7 @@ static vader_box_t std_iter___gen_state_44_Iterator_next(void* l0) {
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     t0 = (void*) vader_buffer_new((size_t) l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -1188,7 +1189,7 @@ static void std_core_Buffer_ByteAccess_store_u8_vt(void* l0, size_t l1, uint8_t 
 static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size_t l1) {
     vader_string_t t0;
     void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
