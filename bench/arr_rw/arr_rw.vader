@@ -13,9 +13,11 @@ import "std/io"
 main :: fn() -> i32 {
     n: usize = 1024
     a: i32[] = []
-    for i in 0..<n { a.push(i32(i)) }
+    for i in 0..<n {
+        a.push(i32(i))
+    }
     sum: i64 = 0
-    for _ in 0..<100000 {
+    for 0..<100000 {
         for i in 0..<n {
             a[i] = a[i] + 1
             sum = sum + i64(a[i])

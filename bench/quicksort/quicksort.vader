@@ -18,7 +18,7 @@ module "main"
 
 import "std/io"
 
-N :: 1_000_000
+N      :: 1_000_000
 STRIDE: i64: 999983
 N_MOD: i64: 1_000_000
 
@@ -31,19 +31,36 @@ qsort :: fn(a: i32[], lo: usize, hi: usize) -> void {
         mid :: l + (h - l) / 2
         hh :: h - 1
         // median-of-three: leave the median at `hh`, the min at `l`
-        if a[l] > a[mid] { t :: a[l]  a[l] = a[mid]  a[mid] = t }
-        if a[l] > a[hh]  { t :: a[l]  a[l] = a[hh]   a[hh] = t }
-        if a[mid] < a[hh] { t :: a[mid]  a[mid] = a[hh]  a[hh] = t }
+        if a[l] > a[mid] {
+            t :: a[l]
+            a[l] = a[mid]
+            a[mid] = t
+        }
+        if a[l] > a[hh] {
+            t :: a[l]
+            a[l] = a[hh]
+            a[hh] = t
+        }
+        if a[mid] < a[hh] {
+            t :: a[mid]
+            a[mid] = a[hh]
+            a[hh] = t
+        }
         pivot :: a[hh]
         i := l
         for j in l..<hh {
             if a[j] < pivot {
-                t :: a[i]  a[i] = a[j]  a[j] = t
+                t :: a[i]
+                a[i] = a[j]
+                a[j] = t
                 i += 1
             }
         }
-        t :: a[i]  a[i] = a[hh]  a[hh] = t   // pivot to its final slot `i`
-        if (i - l) < (h - (i + 1)) {
+        t :: a[i]
+        a[i] = a[hh]
+        a[hh] = t
+        // pivot to its final slot `i`
+        if i - l < h - (i + 1) {
             qsort(a, l, i)
             l = i + 1
         } else {
@@ -56,10 +73,14 @@ qsort :: fn(a: i32[], lo: usize, hi: usize) -> void {
 main :: fn() -> i32 {
     n: usize = usize(N)
     a: i32[] = [0] * n
-    for i in 0..<n { a[i] = i32((i64(i) * STRIDE) % N_MOD) }
+    for i in 0..<n {
+        a[i] = i32(i64(i) * STRIDE % N_MOD)
+    }
     qsort(a, 0, n)
     chk: i64 = 0
-    for i in 0..<n { chk = (chk * 31 + i64(a[i])) % 2147483648 }
+    for i in a {
+        chk = (chk * 31 + i64(i)) % 2147483648
+    }
     println("quicksort n=${N} chk=${chk}")
     return 0
 }

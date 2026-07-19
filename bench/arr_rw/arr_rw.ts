@@ -4,7 +4,7 @@
 
 const N = 1024;
 
-const a = new Int32Array(N);
+const a: number[] = [];
 for (let i = 0; i < N; i++) a[i] = i;
 
 let sum = 0;

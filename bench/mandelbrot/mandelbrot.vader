@@ -13,9 +13,9 @@ HEIGHT   :: 180
 MAX_ITER :: 500
 
 X_MIN :: -2.0
-X_MAX ::  1.0
+X_MAX :: 1.0
 Y_MIN :: -1.0
-Y_MAX ::  1.0
+Y_MAX :: 1.0
 
 iterations :: fn(cx: f64, cy: f64) -> i32 {
     zx := 0.0
