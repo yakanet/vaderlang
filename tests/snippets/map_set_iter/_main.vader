@@ -11,8 +11,8 @@ main :: fn() -> i32 {
     m["b"] = 2
     m["c"] = 3
     total := 0
-    for entry in m {
-        total = total + entry.value
+    for [_, value] in m {
+        total = total + value
     }
     println("map_sum=${total}")
 

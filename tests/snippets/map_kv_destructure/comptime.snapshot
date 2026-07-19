@@ -3,8 +3,6 @@
 ## tests/snippets/map_kv_destructure
 
 ## generic instances
-  Entry<K, V>
-  Entry<K, V>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, i32>

@@ -916,8 +916,8 @@ check_for :: fn(
                 }
                 is AST.DiscardVar           -> {}
             }            // `for [k, v] in …` — type each pattern leaf against the element
-            // (tuple / array / `Entry<K,V> implements Into<[K,V]>`), reusing the
-            // destructuring-let machinery. Not var-targetable (no single name).
+            // (a tuple / array, or a struct that implements `Into<[...]>`),
+            // reusing the destructuring-let machinery. Not var-targetable.
 
             // `for <range>` — no binding, no target variable (label only).
 
@@ -1335,7 +1335,7 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
             // element but mis-types every other (e.g. `Iterator<string>` → `i32.add`).
             // Only a FULLY-CONCRETE element is returned : any type-param-bearing
             // element — a bare `T` (in a generic body like `any<T>(it: Iterator<T>)`)
-            // or a composite like `Entry<K, V>` / `T[]` — must stay unresolved so
+            // or a composite like `[K, V]` / `T[]` — must stay unresolved so
             // per-instance monomorphisation substitutes it ; returning it here would
             // strand un-subbed params in the resulting `Yield<…>`.
 
@@ -1416,12 +1416,11 @@ assign_tuple :: fn(
         }
         return
     }
-    // A `[...]` pattern against a value that is neither a tuple nor
-    // an array (e.g. `for [k, v] in m` — a map yields `Entry<K, V>`,
-    // a 3-field struct, not a 2-tuple). The value still destructures
-    // when its type implements `Into<[...]>` of the same arity : bind
-    // each leaf to the coerced tuple's element type. `Entry<K, V>
-    // implements Into<[K, V]>` is what powers `for [k, v] in m`.
+    // A `[...]` pattern against a value that is neither a tuple nor an
+    // array — a struct that implements `Into<[...]>` of the same arity.
+    // The value destructures by binding each leaf to the coerced tuple's
+    // element type. (Maps no longer take this path : they yield `[K, V]`
+    // tuples, an ordinary tuple destructure.)
     coerced :: into_tuple_target(declared, tb.elements.len(), typed)
     if coerced is TupleType as ctup {
         for i in 0..<tb.elements.len() {
@@ -1449,8 +1448,9 @@ assign_tuple :: fn(
 // Resolve the `[...]` destructure coercion for a non-tuple / non-array
 // value : when `declared` is a struct implementing `Into<[...]>` of
 // `arity` elements, return that target tuple with the impl's type params
-// substituted by the concrete instance args (so `Entry<string, i32>`
-// yields `[string, i32]`). Returns null when no such coercion applies.
+// substituted by the concrete instance args (so a `Pair<string, i32>`
+// implementing `Into<[string, i32]>` yields `[string, i32]`). Returns null
+// when no such coercion applies.
 // The lowerer resolves the matching `into` member's field names from the
 // impl body (`into_tuple_fields`) to bind each leaf zero-alloc.
 into_tuple_target :: fn(declared: Type, arity: usize, typed: TypedProgram) -> Type | null {

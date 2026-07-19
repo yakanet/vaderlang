@@ -43,19 +43,6 @@ MINIMAL_INDEX_COUNT :: usize(16)
 EMPTY_SLOT :: i32(0)    // index slot holds no entry
 TOMB_SLOT  :: i32(-1)   // index slot held an entry that was removed
 
-// Vestigial — kept only so the previous bootstrap seed (whose map for-in
-// fast-path still resolves `Entry` and destructures it via `Into<[K, V]>`) can
-// compile this Entry-less stdlib in one step. The live map iterator below now
-// yields `[K, V]` tuples directly; delete this pair once the seed is refreshed.
-Entry :: struct<K, V> {
-    key:   K
-    value: V
-}
-
-Entry<K, V> implements<K, V> Into<[K, V]> {
-    into :: fn(self) -> [K, V] = [self.key, self.value]
-}
-
 /// Compact hash map keyed by any `K` that implements `Hash & Equals`. Entries
 /// are stored in insertion order in dense `ekeys` / `evals`; a sparse `i32`
 /// `index` resolves a key's hash to its entry position. `K`'s `hash()` is

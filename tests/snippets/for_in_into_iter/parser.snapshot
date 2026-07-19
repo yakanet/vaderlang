@@ -250,7 +250,18 @@
             "label": null,
             "form": {
               "kind": "in",
-              "binding": "entry",
+              "pattern": {
+                "kind": "TupleBinding",
+                "elements": [
+                  {
+                    "kind": "WildcardBinding"
+                  },
+                  {
+                    "kind": "SimpleBinding",
+                    "name": "value"
+                  }
+                ]
+              },
               "iter": {
                 "kind": "IdentExpr",
                 "name": "m"
@@ -273,12 +284,8 @@
                       "name": "map_total"
                     },
                     "right": {
-                      "kind": "FieldExpr",
-                      "target": {
-                        "kind": "IdentExpr",
-                        "name": "entry"
-                      },
-                      "field": "value"
+                      "kind": "IdentExpr",
+                      "name": "value"
                     }
                   }
                 }
