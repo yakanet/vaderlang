@@ -302,19 +302,16 @@ try_wrap_array_iter :: fn(
         is ArrayType as arr -> {
             wrapped_type :: find_core_type(ctx, STRUCT_ARRAY_ITERATOR, [arr.element])
             if wrapped_type is null { return WrapResult { .iter = iter, .iter_type = iter_type } }
-            fields: LoweredStructLitField[] = []
-            fields.push(LoweredStructLitField {
-                .name = "arr", .value = iter,
-            })
-            fields.push(LoweredStructLitField {
-                .name = "cursor",
-                .value = LoweredIntLit {
-                    .span = span, .type = mk_primitive("usize"), .value = 0,
+            fields :: [
+                LoweredStructLitField { .name = "arr", .value = iter },
+                LoweredStructLitField {
+                    .name = "cursor",
+                    .value = LoweredIntLit {
+                        .span = span, .type = mk_primitive("usize"), .value = 0,
+                    },
                 },
-            })
-            wrapped :: LoweredStructLit {
-                .span = span, .type = wrapped_type, .fields = fields,
-            }
+            ]
+            wrapped :: build_core_struct_lit(ctx, wrapped_type, fields, span)
             return WrapResult { .iter = wrapped, .iter_type = wrapped_type }
         }
         is PrimitiveType as p -> {

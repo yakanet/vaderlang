@@ -60,12 +60,13 @@ build_range_lit :: fn(
     // `start` field — when the bound is a free ident, each emits its
     // own slot read.
     cursor :: recurse(ctx, expr.lower)
-    fields: LoweredStructLitField[] = []
-    fields.push(LoweredStructLitField { .name = "start",     .value = lower_bound })
-    fields.push(LoweredStructLitField { .name = "end",       .value = upper_bound })
-    fields.push(LoweredStructLitField { .name = "inclusive", .value = inclusive })
-    fields.push(LoweredStructLitField { .name = "cursor",    .value = cursor })
-    return LoweredStructLit { .span = span, .type = result_type, .fields = fields }
+    fields :: [
+        LoweredStructLitField { .name = "start",     .value = lower_bound },
+        LoweredStructLitField { .name = "end",       .value = upper_bound },
+        LoweredStructLitField { .name = "inclusive", .value = inclusive },
+        LoweredStructLitField { .name = "cursor",    .value = cursor },
+    ]
+    return build_core_struct_lit(ctx, result_type, fields, span)
 }
 
 // End-to-end tests for `lower_range_expr` need a wired-up

@@ -293,6 +293,49 @@ lower_field_value :: fn(
     return coerced
 }
 
+// Build a `LoweredStructLit` for a compiler-SYNTHESISED construction of a
+// stdlib/core struct (Range, ArrayIterator, Field, Yield, …), ordering the
+// provided already-lowered fields by the struct's DECLARATION order instead of
+// trusting the call site to hand-match it. midir consumes struct-lit fields
+// positionally (`build_struct_lit` / `InstrStructNew` ignore the `.name`
+// label), so a stdlib field reorder would otherwise silently write the wrong
+// slot while the `.name` labels look safe. This binds the order to the decl,
+// exactly like user literals go through `build_struct_lit_fields`.
+//
+// Panics on a missing struct decl or a declared field with no provided value —
+// both are compiler invariants for a synthesised build (fail loud, never a
+// silent wrong-slot write).
+build_core_struct_lit :: fn(ctx: FnLowerCtx, type: Type, fields: LoweredStructLitField[], span: Span) -> LoweredExpr {
+    st :: struct_backing(type)
+    if st == null {
+        panic("build_core_struct_lit: not a struct type")
+    }
+    decl :: ctx.typed.struct_decls[st.symbol.id]
+    if decl == null {
+        panic("build_core_struct_lit: struct decl not indexed for ${st.symbol.name}")
+    }
+    ordered: LoweredStructLitField[] = []
+    for field_decl in decl.fields {
+        provided :: find_lowered_field(fields, field_decl.name)
+        if provided == null {
+            panic("build_core_struct_lit: missing field `${field_decl.name}` for ${st.symbol.name}")
+        }
+        ordered.push(provided)
+    }
+    return LoweredStructLit { .span = span, .type = type, .fields = ordered }
+}
+
+// Linear lookup of a provided field by name — synthesised core structs have
+// only a handful of fields, so no map is warranted.
+find_lowered_field :: fn(fields: LoweredStructLitField[], name: string) -> LoweredStructLitField | null {
+    for f in fields {
+        if f.name == name {
+            return f
+        }
+    }
+    return null
+}
+
 // Defensive fallback : when the struct decl can't be reached, emit
 // fields in source order (the previous behaviour).
 fallback_provided_order :: fn(ctx: FnLowerCtx, lit: StructLitExpr) -> LoweredStructLitField[] {
