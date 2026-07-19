@@ -3,6 +3,7 @@
 ## tests/snippets/fuse_array_map_filter
 
 ## generic instances
+  __genstate_window<i32[]>
   __genstate_chain<i32>
   __genstate_enumerate<[usize, string]>
   __genstate_filter<i32>
@@ -16,6 +17,8 @@
   Index<I, T>
   IndexSet<I, T>
   Contains<T>
+  Iterator<i32[]>
+  Iterator<T[]>
   Iterator<i32>
   Iterator<[usize, string]>
   Iterator<[usize, T]>

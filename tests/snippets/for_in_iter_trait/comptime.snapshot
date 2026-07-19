@@ -3,6 +3,7 @@
 ## tests/snippets/for_in_iter_trait
 
 ## generic instances
+  __genstate_window<i32[]>
   __genstate_chain<i32>
   __genstate_enumerate<[usize, string]>
   __genstate_filter<char>
@@ -17,6 +18,8 @@
   Index<I, T>
   IndexSet<I, T>
   Contains<T>
+  Iterator<i32[]>
+  Iterator<T[]>
   Iterator<char>
   Iterator<i32>
   Iterator<[usize, string]>

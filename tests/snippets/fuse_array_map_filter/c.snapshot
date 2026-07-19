@@ -110,9 +110,9 @@ static int32_t snippet_main(void) {
                 while (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = (vader_array_buf_t*) _a1_slotarr->buf->header.forward; }
                 if ((size_t) l2 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 t0 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l2];
-#line 239 "stdlib/std/iter/iter.vader"
+#line 263 "stdlib/std/iter/iter.vader"
                 l3 = snippet_double(t0);
-#line 233 "stdlib/std/iter/iter.vader"
+#line 257 "stdlib/std/iter/iter.vader"
                 t1 = snippet_is_twenty_multiple(l3);
                 if (t1) {
                     l4 = l3;
@@ -123,7 +123,7 @@ static int32_t snippet_main(void) {
                     l6 = std_core_write_int(l5, l6, l7);
                     t2 = std_core_finish_buffer(l5, l6);
                     std_io_println__string(t2);
-#line 233 "stdlib/std/iter/iter.vader"
+#line 257 "stdlib/std/iter/iter.vader"
                 } else {
                 }
 #line 14 "tests/snippets/fuse_array_map_filter/_main.vader"
