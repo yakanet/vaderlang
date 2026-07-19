@@ -25,15 +25,93 @@
 
 module "vader/lower"
 
+import "std/collections"
+
+/// Project-wide purity memo, shared across the whole pass. A callee is resolved
+/// to its decl the same two ways the backend does (`midir/emit.vader`, and the
+/// sibling walk in `dce.vader`): by mangle (impl-member calls carry the mangle in
+/// `symbol.name`) then by definition symbol id (bare free-fn calls carry it in
+/// `symbol.id`). `memo` caches `bce_fn_pure` verdicts keyed by mangle, and doubles
+/// as the recursion-cycle guard : a fn is stamped impure on entry (a re-entrant
+/// query reads that) and overwritten with its real verdict before returning.
+BcePurityCtx :: struct {
+    by_mangle: MutableMap<string, LoweredFnDecl>
+    by_symid:  MutableMap<i32, LoweredFnDecl>
+    memo:      MutableMap<string, bool>
+}
+
+/// Resolve a call's callee `(name, sym_id)` to its decl — mangle first, then the
+/// definition symbol id — or `null` for an unresolved / `@extern` callee.
+bce_resolve_fn :: fn(pctx: BcePurityCtx, name: string, sym_id: i32) -> LoweredFnDecl | null {
+    m :: pctx.by_mangle[name]
+    if m != null {
+        return m
+    }
+    return pctx.by_symid[sym_id]
+}
+
+/// Is `fd` provably free of allocation / GC-safepoints — its body allocates
+/// nothing (no literal / push / slice / closure), suspends nowhere (no yield /
+/// await / defer), and calls ONLY other pure fns ? Memoised by mangle. A bodyless
+/// (`@extern`) fn and any recursion cycle are conservatively impure. This is what
+/// makes `bce_call_unsafe` accept a pure callback (`a.map(square)`) without naming
+/// any combinator.
+bce_fn_pure :: fn(pctx: BcePurityCtx, fd: LoweredFnDecl) -> bool {
+    key :: fd.mangled
+    cached :: pctx.memo[key]
+    if cached != null {
+        return cached
+    }
+    body :: fd.body
+    if body == null {
+        return false
+    }
+    // Stamp impure BEFORE walking : a re-entrant (recursive) query hits this and
+    // gets `false` — a cycle can't be proven pure. The real verdict overwrites it
+    // below, so no non-cyclic caller ever reads the sentinel.
+    pctx.memo[key] = false
+    result :: !bce_block_unsafe(body, -1, pctx)
+    pctx.memo[key] = result
+    return result
+}
+
+// Index every fn decl by mangle, and non-generic-instance fns also by definition
+// symbol id, for `bce_resolve_fn`. Mangles are unique ; symbol ids are NOT — a
+// generic's monomorphic instances all share the generic's symbol id, so indexing
+// an instance by symid would collide (last-wins) and could resolve a callee to the
+// WRONG instance. Same rule as `dce.vader`. An instance is therefore only reachable
+// via its (unique) mangle ; a symid-only callee that misses stays conservatively
+// impure — never mis-resolved to a sibling with a different purity.
+bce_build_purity_ctx :: fn(project: LoweredProject) -> BcePurityCtx {
+    by_mangle :: MutableMap<string, LoweredFnDecl> {}
+    by_symid :: MutableMap<i32, LoweredFnDecl> {}
+    for [_, m] in project.modules {
+        for d in m.decls {
+            if d is LoweredFnDecl as fd {
+                by_mangle[fd.mangled] = fd
+                s :: fd.origin.symbol
+                if s != null && fd.origin.type_arguments.len() == 0 {
+                    by_symid[s.id] = fd
+                }
+            }
+        }
+    }
+    return BcePurityCtx {
+        .by_mangle = by_mangle, .by_symid = by_symid,
+        .memo = MutableMap<string, bool> {},
+    }
+}
+
 /// Run the BCE tagging pass over every function body in `project`. Idempotent
 /// per node (each `bce_recheck` marker is cleared once consumed).
 export bce_hoist_tag :: fn(project: LoweredProject) -> void {
+    pctx :: bce_build_purity_ctx(project)
     for [_, m] in project.modules {
         for d in m.decls {
             if d is LoweredFnDecl as fd {
                 body :: fd.body
                 if body != null {
-                    bh_block(body)
+                    bh_block(body, pctx)
                 }
             }
         }
@@ -42,122 +120,123 @@ export bce_hoist_tag :: fn(project: LoweredProject) -> void {
 
 // ---- descent : reach every block, pair a recheck-len with its sibling loop ----
 
-bh_block :: fn(b: LoweredBlock) -> void {
+bh_block :: fn(b: LoweredBlock, pctx: BcePurityCtx) -> void {
     for st in b.stmts {
-        bh_stmt(st)
+        bh_stmt(st, pctx)
     }
     trailing :: b.trailing
     if trailing != null {
-        bh_expr(trailing)
+        bh_expr(trailing, pctx)
     }
-    bh_pair(b)
+    bh_pair(b, pctx)
 }
 
-bh_stmt :: fn(s: LoweredStmt) -> void {
+bh_stmt :: fn(s: LoweredStmt, pctx: BcePurityCtx) -> void {
     if s is LoweredLet as st {
-        bh_expr(st.value)
+        bh_expr(st.value, pctx)
     } else if s is LoweredAssign as st {
-        bh_expr(st.target)
-        bh_expr(st.value)
+        bh_expr(st.target, pctx)
+        bh_expr(st.value, pctx)
     } else if s is LoweredCellSet as st {
-        bh_expr(st.target)
-        bh_expr(st.value)
+        bh_expr(st.target, pctx)
+        bh_expr(st.value, pctx)
     } else if s is LoweredExprStmt as st {
-        bh_expr(st.expr)
+        bh_expr(st.expr, pctx)
     } else if s is LoweredReturn as st {
         v :: st.value
         if v != null {
-            bh_expr(v)
+            bh_expr(v, pctx)
         }
     } else if s is LoweredYield as st {
-        bh_expr(st.value)
+        bh_expr(st.value, pctx)
     } else if s is LoweredAwait as st {
-        bh_expr(st.awaited)
+        bh_expr(st.awaited, pctx)
     } else if s is LoweredLoop as st {
         c :: st.cond
         if c != null {
-            bh_expr(c)
+            bh_expr(c, pctx)
         }
-        bh_block(st.body)
+        bh_block(st.body, pctx)
     } else if s is LoweredDeferPush as st {
-        bh_expr(st.thunk)
+        bh_expr(st.thunk, pctx)
     }
     // Break / Continue / DeferPopExec : no nested block.
 }
 
-bh_expr :: fn(e: LoweredExpr) -> void {
+bh_expr :: fn(e: LoweredExpr, pctx: BcePurityCtx) -> void {
     if e is LoweredBlock as x {
-        bh_block(x)
+        bh_block(x, pctx)
     } else if e is LoweredIf as x {
-        bh_expr(x.cond)
-        bh_block(x.then_block)
+        bh_expr(x.cond, pctx)
+        bh_block(x.then_block, pctx)
         eb :: x.else_block
         if eb != null {
-            bh_block(eb)
+            bh_block(eb, pctx)
         }
     } else if e is LoweredBinary as x {
-        bh_expr(x.left)
-        bh_expr(x.right)
+        bh_expr(x.left, pctx)
+        bh_expr(x.right, pctx)
     } else if e is LoweredUnary as x {
-        bh_expr(x.operand)
+        bh_expr(x.operand, pctx)
     } else if e is LoweredCast as x {
-        bh_expr(x.value)
+        bh_expr(x.value, pctx)
     } else if e is LoweredTypeCheck as x {
-        bh_expr(x.value)
+        bh_expr(x.value, pctx)
     } else if e is LoweredIndex as x {
-        bh_expr(x.target)
-        bh_expr(x.index)
+        bh_expr(x.target, pctx)
+        bh_expr(x.index, pctx)
     } else if e is LoweredFieldAccess as x {
-        bh_expr(x.target)
+        bh_expr(x.target, pctx)
     } else if e is LoweredArrayLen as x {
-        bh_expr(x.target)
+        bh_expr(x.target, pctx)
     } else if e is LoweredCall as x {
-        bh_expr(x.callee)
+        bh_expr(x.callee, pctx)
         for a in x.args {
-            bh_expr(a)
+            bh_expr(a, pctx)
         }
     } else if e is LoweredVirtualCall as x {
-        bh_expr(x.receiver)
+        bh_expr(x.receiver, pctx)
         for a in x.args {
-            bh_expr(a)
+            bh_expr(a, pctx)
         }
     } else if e is LoweredIntrinsicCall as x {
         for a in x.args {
-            bh_expr(a)
+            bh_expr(a, pctx)
         }
     } else if e is LoweredStructLit as x {
         for f in x.fields {
-            bh_expr(f.value)
+            bh_expr(f.value, pctx)
         }
     } else if e is LoweredArrayLit as x {
         for el in x.elements {
-            bh_expr(el)
+            bh_expr(el, pctx)
         }
     } else if e is LoweredArrayPush as x {
-        bh_expr(x.target)
-        bh_expr(x.value)
+        bh_expr(x.target, pctx)
+        bh_expr(x.value, pctx)
     } else if e is LoweredArraySlice as x {
-        bh_expr(x.target)
-        bh_expr(x.lo)
-        bh_expr(x.hi)
+        bh_expr(x.target, pctx)
+        bh_expr(x.lo, pctx)
+        bh_expr(x.hi, pctx)
     } else if e is LoweredStringSlice as x {
-        bh_expr(x.target)
-        bh_expr(x.lo)
-        bh_expr(x.hi)
+        bh_expr(x.target, pctx)
+        bh_expr(x.lo, pctx)
+        bh_expr(x.hi, pctx)
     } else if e is LoweredCellNew as x {
-        bh_expr(x.value)
+        bh_expr(x.value, pctx)
     } else if e is LoweredCellGet as x {
-        bh_expr(x.target)
+        bh_expr(x.target, pctx)
     } else if e is LoweredMakeClosure as x {
-        bh_expr(x.env)
+        bh_expr(x.env, pctx)
     }
     // Leaves (lits / ident / data-const / unreachable / type-const) : nothing.
 }
 
 // In block `b`, find a `let __ = arr.len()` marked `bce_recheck` and a sibling
-// loop. If the loop body is BCE-safe (no alloc / call / yield / rebind of arr),
-// hoist arr's resolve (`resolve_buf`) and elide the synthesized `arr[idx]` checks.
-bh_pair :: fn(b: LoweredBlock) -> void {
+// loop. If the loop body is BCE-safe (no alloc / impure call / yield / rebind of
+// arr), hoist arr's resolve (`resolve_buf`) and elide the synthesized `arr[idx]`
+// checks.
+bh_pair :: fn(b: LoweredBlock, pctx: BcePurityCtx) -> void {
     the_len: LoweredArrayLen | null = null
     for st in b.stmts {
         if st is LoweredLet as ll {
@@ -186,7 +265,7 @@ bh_pair :: fn(b: LoweredBlock) -> void {
     // rebound, so this is a no-op there ; for an int-range `0..<a.len()` it catches
     // a user rebind of `a`.
     guard :: bh_guard_sym(the_len)
-    if bce_block_unsafe(the_loop.body, guard) {
+    if bce_block_unsafe(the_loop.body, guard, pctx) {
         return
     }
     the_len.resolve_buf = true
@@ -293,4 +372,144 @@ bh_mark_idx_expr :: fn(e: LoweredExpr) -> void {
     }
     // Leaves + array/struct literals / slices / closures : a synthesized loop-var
     // access never nests there, so no descent needed.
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "vader/diagnostics"
+import "vader/types"
+import "vader/resolver/symbol"
+import "vader/typecheck"
+import "vader/comptime"
+AST :: import "vader/parser"
+
+// Minimal fixtures. `bce_fn_pure` reads only `fd.mangled` + `fd.body` and, via
+// the ctx, resolves callees by mangle / symbol id — the rest of the MonoEntry /
+// LoweredFnDecl shape is inert filler here.
+
+bce_test_ctx :: fn() -> BcePurityCtx = BcePurityCtx {
+    .by_mangle = MutableMap<string, LoweredFnDecl> {},
+    .by_symid = MutableMap<i32, LoweredFnDecl> {},
+    .memo = MutableMap<string, bool> {},
+}
+
+bce_test_sym :: fn(id: i32, name: string) -> Symbol = Symbol {
+    .id = id, .kind = SymbolKind.Fn, .name = name, .module = "test",
+    .visibility = AST.Visibility.Private, .defined_at = null,
+}
+
+bce_test_fn :: fn(sym: Symbol, body: LoweredBlock | null) -> LoweredFnDecl {
+    // MonoEntry shape mirrors `synth_mono_entry` (lower_lambda.vader) — kept inline
+    // because that helper needs a FnLowerCtx the fixture deliberately doesn't build.
+    entry :: MonoEntry {
+        .id = sym.id, .is_main = false, .mangled = sym.name,
+        .decl = stub_decl_for(sym), .symbol = sym, .subst = new_substitution(),
+        .type_arguments = [], .module = null,
+    }
+    return LoweredFnDecl {
+        .mangled = sym.name, .params = [], .return_type = TY_VOID,
+        .body = body, .origin = entry,
+    }
+}
+
+bce_test_block :: fn(stmts: LoweredStmt[]) -> LoweredBlock = LoweredBlock {
+    .span = empty_span(), .type = TY_VOID, .stmts = stmts, .trailing = null,
+}
+
+// `return 0` — no allocation, no call : pure.
+bce_test_pure_return :: fn() -> LoweredStmt = LoweredReturn {
+    .span = empty_span(),
+    .value = LoweredIntLit { .span = empty_span(), .type = TY_VOID, .value = 0 },
+}
+
+// `return [0]` — an array literal allocates : impure.
+bce_test_alloc_return :: fn() -> LoweredStmt = LoweredReturn {
+    .span = empty_span(),
+    .value = LoweredArrayLit {
+        .span = empty_span(), .type = TY_VOID,
+        .elements = [LoweredIntLit { .span = empty_span(), .type = TY_VOID, .value = 0 }],
+    },
+}
+
+// `return callee()` — a bare call to `callee`.
+bce_test_call_return :: fn(callee: Symbol) -> LoweredStmt = LoweredReturn {
+    .span = empty_span(),
+    .value = LoweredCall {
+        .span = empty_span(), .type = TY_VOID,
+        .callee = LoweredIdent { .span = empty_span(), .type = TY_VOID, .symbol = callee },
+        .args = [],
+    },
+}
+
+// Register a callee both ways `bce_resolve_fn` looks it up.
+bce_test_register :: fn(ctx: BcePurityCtx, fd: LoweredFnDecl) -> void {
+    ctx.by_mangle[fd.mangled] = fd
+    s :: fd.origin.symbol
+    if s != null {
+        ctx.by_symid[s.id] = fd
+    }
+}
+
+@test test_bce_fn_pure_pure_body :: fn() -> void {
+    fd :: bce_test_fn(bce_test_sym(1, "pure"), bce_test_block([bce_test_pure_return()]))
+    assert(bce_fn_pure(bce_test_ctx(), fd), "a non-allocating body is pure")
+}
+
+@test test_bce_fn_pure_allocating_body :: fn() -> void {
+    fd :: bce_test_fn(bce_test_sym(2, "alloc"), bce_test_block([bce_test_alloc_return()]))
+    assert(!bce_fn_pure(bce_test_ctx(), fd), "an allocating body is impure")
+}
+
+@test test_bce_fn_pure_extern_body :: fn() -> void {
+    fd :: bce_test_fn(bce_test_sym(3, "ext"), null)
+    assert(!bce_fn_pure(bce_test_ctx(), fd), "a bodyless (@extern) fn is conservatively impure")
+}
+
+@test test_bce_fn_pure_memoises_verdict :: fn() -> void {
+    fd :: bce_test_fn(bce_test_sym(4, "memo"), bce_test_block([bce_test_pure_return()]))
+    ctx :: bce_test_ctx()
+    assert(bce_fn_pure(ctx, fd), "first call computes the verdict")
+    assert(bce_fn_pure(ctx, fd), "second call returns the same verdict via the memo")
+    cached :: ctx.memo["memo"]
+    if cached != null {
+        assert(cached, "the memoised verdict is `pure`")
+    } else {
+        assert(false, "the verdict must have been memoised")
+    }
+}
+
+@test test_bce_fn_pure_call_to_pure_callee :: fn() -> void {
+    leaf_sym :: bce_test_sym(10, "leaf")
+    leaf :: bce_test_fn(leaf_sym, bce_test_block([bce_test_pure_return()]))
+    caller :: bce_test_fn(bce_test_sym(11, "caller"), bce_test_block([bce_test_call_return(leaf_sym)]))
+    ctx :: bce_test_ctx()
+    bce_test_register(ctx, leaf)
+    assert(bce_fn_pure(ctx, caller), "calling a pure fn keeps the caller pure")
+}
+
+@test test_bce_fn_pure_call_to_impure_callee :: fn() -> void {
+    leaf_sym :: bce_test_sym(20, "leaf_alloc")
+    leaf :: bce_test_fn(leaf_sym, bce_test_block([bce_test_alloc_return()]))
+    caller :: bce_test_fn(bce_test_sym(21, "caller_impure"), bce_test_block([bce_test_call_return(leaf_sym)]))
+    ctx :: bce_test_ctx()
+    bce_test_register(ctx, leaf)
+    assert(!bce_fn_pure(ctx, caller), "calling an allocating fn makes the caller impure")
+}
+
+@test test_bce_fn_pure_unresolved_callee :: fn() -> void {
+    // Callee absent from the ctx (an @extern / unknown fn) : the call is unsafe.
+    ghost_sym :: bce_test_sym(30, "ghost")
+    caller :: bce_test_fn(bce_test_sym(31, "caller_ghost"), bce_test_block([bce_test_call_return(ghost_sym)]))
+    assert(!bce_fn_pure(bce_test_ctx(), caller), "an unresolved callee is treated as impure")
+}
+
+@test test_bce_fn_pure_recursive_fn :: fn() -> void {
+    // `rec` calls itself : the memo sentinel (impure-on-entry) breaks the cycle and
+    // reports it impure rather than recursing forever.
+    rec_sym :: bce_test_sym(40, "rec")
+    rec :: bce_test_fn(rec_sym, bce_test_block([bce_test_call_return(rec_sym)]))
+    ctx :: bce_test_ctx()
+    bce_test_register(ctx, rec)
+    assert(!bce_fn_pure(ctx, rec), "a recursion cycle is conservatively impure")
 }
