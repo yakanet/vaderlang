@@ -775,12 +775,12 @@ Tuple sources keep the existing exact-arity rule (`[a, b] := pair` requires the 
 A `[...]` pattern applied to a value that is **neither a tuple nor an array** still destructures when the value's type implements `Into<[...]>` of matching arity. Each leaf binds to the corresponding element type of the target tuple.
 
 ```vader
-for [k, v] in m { ... }                // m: MutableMap<K, V> yields Entry<K, V>
+[n, s] := p                            // p: a struct that `implements Into<[i32, string]>`
 ```
 
-A `MutableMap` yields `Entry<K, V>` (a struct, not a tuple), and `std/collections` ships `Entry<K, V> implements Into<[K, V]>`, so the `for [k, v] in m` form (parser-desugared to `for e in m { let [k, v] := e; ... }`) binds `k: K`, `v: V`. The same rule applies to any user type with an `Into<[...]>` impl.
+Any type that ships an `Into<[...]>` impl of matching arity destructures through a `[...]` pattern: the parser desugars `[n, s] := p` to bind each leaf from the `into` body's field reads, giving `n: i32`, `s: string`. (`MutableMap` no longer uses this path — it yields plain `[K, V]` tuples directly, like `zip` / `enumerate`, so `for [k, v] in m` is an ordinary tuple destructure.)
 
-When the impl's `into` body is a tuple literal of plain field reads (`[self.key, self.value]`), the lowerer binds each leaf directly to the source field — no `into()` call and no transient tuple allocation. T3001 still fires when the source is a non-tuple, non-array type with no matching `Into<[...]>` impl.
+When the impl's `into` body is a tuple literal of plain field reads (`[self.a, self.b]`), the lowerer binds each leaf directly to the source field — no `into()` call and no transient tuple allocation. T3001 still fires when the source is a non-tuple, non-array type with no matching `Into<[...]>` impl.
 
 ### Structs
 

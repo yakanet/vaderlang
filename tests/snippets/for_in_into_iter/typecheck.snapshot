@@ -18,10 +18,10 @@
   expr 26:5     IdentExpr      :: MutableMap<string, i32>
   expr 26:7     StringLitExpr  :: string
   expr 28:18    IdentExpr      :: MutableMap<string, i32>
-  expr 29:21    BinaryExpr     :: i32
+  expr 29:21    BinaryExpr     :: ?
   expr 29:21    IdentExpr      :: i32
-  expr 29:33    FieldExpr      :: i32
-  expr 29:33    IdentExpr      :: Entry<string, i32>
+  expr 29:33    FieldExpr      :: ?
+  expr 29:33    IdentExpr      :: [string, i32]
   expr 29:9     IdentExpr      :: i32
   expr 31:13    StringLitExpr  :: string
   expr 31:20    IdentExpr      :: i32
@@ -51,3 +51,6 @@
   expr 51:22    IdentExpr      :: i32
   expr 51:5     CallExpr       :: void
   expr 51:5     IdentExpr      :: fn(T) -> void
+
+# Diagnostics
+[29:39] error[T3009] field does not exist on this type: `value` on [string, i32]

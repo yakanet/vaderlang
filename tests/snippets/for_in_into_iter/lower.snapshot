@@ -139,15 +139,15 @@
                 __iter_size_8 :usize
           then:
             break
-        let entry: Entry<string, i32> =
-          Entry<string, i32> {
-            key:
+        let entry: [string, i32] =
+          [string, i32] {
+            _0:
               index :string
                 on:
                   __iter_ekeys_6 :string[]
                 ix:
                   __iter_pos_9 :usize
-            value:
+            _1:
               index :i32
                 on:
                   __iter_evals_7 :i32[]
@@ -167,12 +167,12 @@
           target:
             map_total :i32
           value:
-            add :i32
+            add :?
               l:
                 map_total :i32
               r:
-                .value :i32
-                  entry :Entry<string, i32>
+                .value :?
+                  entry :[string, i32]
     call :void
       callee:
         std_io$println__string :void
@@ -425,3 +425,6 @@
               arg1:
                 __off_23 :usize
     return int(0) :i32
+
+# Diagnostics
+[29:39] error[T3009] field does not exist on this type: `value` on [string, i32]

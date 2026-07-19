@@ -64,15 +64,15 @@
                 __iter_size_3 :usize
           then:
             break
-        let __for_elem_6: Entry<string, i32> =
-          Entry<string, i32> {
-            key:
+        let __for_elem_6: [string, i32] =
+          [string, i32] {
+            _0:
               index :string
                 on:
                   __iter_ekeys_1 :string[]
                 ix:
                   __iter_pos_4 :usize
-            value:
+            _1:
               index :i32
                 on:
                   __iter_evals_2 :i32[]
@@ -80,11 +80,11 @@
                   __iter_pos_4 :usize
           }
         let k: string =
-          .key :string
-            __for_elem_6 :Entry<string, i32>
+          ._0 :string
+            __for_elem_6 :[string, i32]
         let v: i32 =
-          .value :i32
-            __for_elem_6 :Entry<string, i32>
+          ._1 :i32
+            __for_elem_6 :[string, i32]
         assign
           target:
             __iter_pos_4 :usize
