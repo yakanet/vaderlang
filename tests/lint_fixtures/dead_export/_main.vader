@@ -1,0 +1,15 @@
+// Fixture for `vader lint` — one dead export (W0012), one reached export, one
+// dead private fn (W0007's job, never W0012).
+
+module "snippet"
+
+// Reached from `main` → must NOT be flagged by unused-export.
+export reached :: fn() -> i32 = 42
+
+// Exported but nothing reaches it from the roots → W0012.
+export orphan :: fn() -> i32 = 7
+
+// Private + dead : this is W0007's domain, not unused-export's.
+private_dead :: fn() -> i32 = 9
+
+main :: fn() -> i32 = reached()

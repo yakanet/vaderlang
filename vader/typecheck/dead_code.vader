@@ -1,4 +1,6 @@
-// vader/typecheck/dead_code — W0007 : private declarations never used in a module.
+// vader/typecheck/dead_code — name-reachability lints : W0007 (dead private
+// decls, per-module, on every build) and W0012 (dead exported fns, project-wide,
+// `vader lint` only).
 //
 // A reference-reachability lint. For every top-level declaration of the (merged,
 // all-files) module, collect the NAMES it references — in bodies, signatures,
@@ -6,6 +8,12 @@
 // (`export`-visible decls, `main`, `@test` / `@extern` / `@intrinsic`, every
 // `impl` member, `@assert`); a PRIVATE top-level decl whose name is never reached
 // is dead → W0007.
+//
+// `dead_exports` (W0012, at the bottom) reuses the very same collectors and BFS,
+// but merges EVERY module's decls and drops the `export`-is-a-root clause, so a
+// public fn unreachable across the whole project — invisible to the per-module
+// W0007 and to a lowered-project DCE diff (lazy lowering never materialises it) —
+// is flagged. It runs only under `vader lint`, never on the default build.
 //
 // Name-based by design. Resolving every reference to a `Symbol.id` is the gap
 // that sank the unused-import attempt (W0006) : `resolved.idents` is span-keyed,
@@ -21,6 +29,7 @@ module "vader/typecheck"
 
 import "std/collections"
 import "vader/diagnostics"
+import "vader/resolver"
 AST :: import "vader/parser"
 
 // A private top-level declaration that may be dead — keyed for the final report.
@@ -226,13 +235,14 @@ fn_refs :: fn(d: AST.FnDecl, out: string[]) -> void {
 
 is_public :: fn(v: AST.Visibility) = v == AST.Visibility.Public
 
-// A declaration is a reachability ROOT — never flagged, its refs kept live — when
-// it is part of the public surface (`export`), an entry point (`main`), host- or
-// test-wired (`@test` / `@extern` / `@intrinsic` / `@export`), or explicitly
-// exempted by the author (`@allow_unused`, for intentional dead code : an API not
-// yet wired, a symmetry helper, a test fixture's deliberate decoy).
-is_root_decl :: fn(v: AST.Visibility, decorators: AST.Decorator[], name: string) -> bool {
-    if is_public(v)   { return true }
+// A declaration pins liveness regardless of visibility when it is an entry point
+// (`main`), host- or test-wired (`@test` / `@extern` / `@intrinsic` / `@export`),
+// or explicitly exempted by the author (`@allow_unused`, for intentional dead
+// code : an API not yet wired, a symmetry helper, a test fixture's deliberate
+// decoy). The single root list shared by both name-reachability lints : W0007
+// (`is_root_decl`) adds the public surface on top ; W0012 (`dead_exports`) uses
+// this alone, so a project-dead PUBLIC fn stays flaggable.
+is_wired_root :: fn(decorators: AST.Decorator[], name: string) -> bool {
     if name == "main" { return true }
     for dec in decorators {
         if dec.name == "test"         { return true }
@@ -242,6 +252,127 @@ is_root_decl :: fn(v: AST.Visibility, decorators: AST.Decorator[], name: string)
         if dec.name == "allow_unused" { return true }
     }
     return false
+}
+
+// A W0007 reachability root : the public surface (`export`) plus every
+// wired-or-exempt root. Never flagged, its refs kept live.
+is_root_decl :: fn(v: AST.Visibility, decorators: AST.Decorator[], name: string) =
+    is_public(v) || is_wired_root(decorators, name)
+
+// ---- shared traversal (W0007 + W0012) -------------------------------------
+
+// One named top-level decl's identity plus the names it references — the unit
+// both lints classify. `is_fn` lets W0012 flag fn exports only.
+NamedDeclRefs :: struct {
+    name:       string
+    name_span:  Span
+    visibility: AST.Visibility
+    decorators: AST.Decorator[]
+    is_fn:      bool
+    refs:       string[]
+}
+
+// Collect the reference names of a top-level decl. For the six NAMED kinds
+// returns its identity + refs ; for `impl` / `@assert` (whose refs are always
+// live) it seeds them into `seed_refs` and returns null ; imports reference no
+// in-module name and return null. The single source of truth for "what does a
+// decl reference", shared by `check_dead_code` (W0007) and `dead_exports`
+// (W0012) so the two can never drift a collection edge apart.
+collect_decl_refs :: fn(d: AST.Decl, seed_refs: string[]) -> NamedDeclRefs | null {
+    match d {
+        is AST.FnDecl as x -> {
+            r: string[] = []
+            fn_refs(x, r)
+            return named_head(x.name, x.name_span, x.visibility, x.decorators, true, r)
+        }
+        is AST.ConstDecl as x -> {
+            r: string[] = []
+            collect_decorator_names(x.decorators, r)
+            collect_opt_expr_names(x.ty, r)
+            collect_expr_names(x.value, r)
+            return named_head(x.name, x.name_span, x.visibility, x.decorators, false, r)
+        }
+        is AST.StructDecl as x -> {
+            r: string[] = []
+            collect_decorator_names(x.decorators, r)
+            collect_type_param_names(x.type_params, r)
+            for f in x.fields {
+                collect_expr_names(f.ty, r)
+                collect_opt_expr_names(f.default, r)
+            }
+            return named_head(x.name, x.name_span, x.visibility, x.decorators, false, r)
+        }
+        is AST.EnumDecl as x -> {
+            r: string[] = []
+            collect_decorator_names(x.decorators, r)
+            collect_opt_expr_names(x.repr, r)
+            return named_head(x.name, x.name_span, x.visibility, x.decorators, false, r)
+        }
+        is AST.TraitDecl as x -> {
+            r: string[] = []
+            collect_decorator_names(x.decorators, r)
+            collect_type_param_names(x.type_params, r)
+            collect_opt_expr_names(x.requires, r)
+            for m in x.members { fn_refs(m, r) }
+            return named_head(x.name, x.name_span, x.visibility, x.decorators, false, r)
+        }
+        is AST.TypeAliasDecl as x -> {
+            r: string[] = []
+            collect_decorator_names(x.decorators, r)
+            collect_type_param_names(x.type_params, r)
+            collect_expr_names(x.aliased, r)
+            return named_head(x.name, x.name_span, x.visibility, x.decorators, false, r)
+        }
+        // Impl members are dispatched (vtable / UFCS) and can't be proven dead ;
+        // the block is nameless. Seed its refs as live roots.
+        is AST.ImplDecl as x -> {
+            collect_type_param_names(x.type_params, seed_refs)
+            collect_expr_names(x.for_type, seed_refs)
+            seed_refs.push(x.trait_name)
+            for ta in x.trait_args { collect_expr_names(ta, seed_refs) }
+            for m in x.members { fn_refs(m, seed_refs) }
+            return null
+        }
+        // `@assert(cond)` is always evaluated — its refs are live.
+        is AST.AssertDecl as x -> {
+            collect_expr_names(x.condition, seed_refs)
+            return null
+        }
+        // Imports name CROSS-module symbols ; unused imports are W0006's job.
+        is AST.ImportDecl -> { return null }
+    }
+}
+
+// Pack a named decl's identity + collected refs into a `NamedDeclRefs` — one
+// constructor so the six arms of `collect_decl_refs` stay one line each.
+named_head :: fn(
+    name: string, name_span: Span, visibility: AST.Visibility,
+    decorators: AST.Decorator[], is_fn: bool, refs: string[],
+) = NamedDeclRefs {
+    .name = name, .name_span = name_span, .visibility = visibility,
+    .decorators = decorators, .is_fn = is_fn, .refs = refs,
+}
+
+// BFS over the name-edge graph from the seeded roots, returning the reachable
+// set. `work` grows as we discover referenced names ; the manual cursor loop
+// (not `0..<len`) re-reads the growing length. Shared by both lints.
+bfs_reachable :: fn(
+    root_names: string[], seed_refs: string[], refs_by_name: MutableMap<string, string[]>,
+) -> MutableSet<string> {
+    reachable :: MutableSet<string> {}
+    work: string[] = []
+    for n in root_names { work.push(n) }
+    for r in seed_refs  { work.push(r) }
+    cursor: usize = 0
+    for cursor < work.len() {
+        n :: work[cursor]
+        cursor += 1
+        if n in reachable { continue }
+        reachable.add(n)
+        nrefs :: refs_by_name[n]
+        if nrefs != null { for r in nrefs { work.push(r) } }
+    }
+    return reachable
 }
 
 // ---- entry ----------------------------------------------------------------
@@ -260,82 +391,19 @@ export check_dead_code :: fn(decls: AST.Decl[], diags: Diagnostic[]) -> void {
     flaggable:  DeadDecl[] = []
 
     for d in decls {
-        match d {
-            is AST.FnDecl as x -> {
-                r: string[] = []
-                fn_refs(x, r)
-                record_decl(refs_by_name, root_names, flaggable, x.name, x.name_span, x.visibility, x.decorators, r)
-            }
-            is AST.ConstDecl as x -> {
-                r: string[] = []
-                collect_decorator_names(x.decorators, r)
-                collect_opt_expr_names(x.ty, r)
-                collect_expr_names(x.value, r)
-                record_decl(refs_by_name, root_names, flaggable, x.name, x.name_span, x.visibility, x.decorators, r)
-            }
-            is AST.StructDecl as x -> {
-                r: string[] = []
-                collect_decorator_names(x.decorators, r)
-                collect_type_param_names(x.type_params, r)
-                for f in x.fields {
-                    collect_expr_names(f.ty, r)
-                    collect_opt_expr_names(f.default, r)
-                }
-                record_decl(refs_by_name, root_names, flaggable, x.name, x.name_span, x.visibility, x.decorators, r)
-            }
-            is AST.EnumDecl as x -> {
-                r: string[] = []
-                collect_decorator_names(x.decorators, r)
-                collect_opt_expr_names(x.repr, r)
-                record_decl(refs_by_name, root_names, flaggable, x.name, x.name_span, x.visibility, x.decorators, r)
-            }
-            is AST.TraitDecl as x -> {
-                r: string[] = []
-                collect_decorator_names(x.decorators, r)
-                collect_type_param_names(x.type_params, r)
-                collect_opt_expr_names(x.requires, r)
-                for m in x.members { fn_refs(m, r) }
-                record_decl(refs_by_name, root_names, flaggable, x.name, x.name_span, x.visibility, x.decorators, r)
-            }
-            is AST.TypeAliasDecl as x -> {
-                r: string[] = []
-                collect_decorator_names(x.decorators, r)
-                collect_type_param_names(x.type_params, r)
-                collect_expr_names(x.aliased, r)
-                record_decl(refs_by_name, root_names, flaggable, x.name, x.name_span, x.visibility, x.decorators, r)
-            }
-            // Impl members are dispatched (vtable / UFCS) and can't be proven
-            // dead ; the block is nameless. Seed its refs as live roots.
-            is AST.ImplDecl as x -> {
-                collect_type_param_names(x.type_params, seed_refs)
-                collect_expr_names(x.for_type, seed_refs)
-                seed_refs.push(x.trait_name)
-                for ta in x.trait_args { collect_expr_names(ta, seed_refs) }
-                for m in x.members { fn_refs(m, seed_refs) }
-            }
-            // `@assert(cond)` is always evaluated — its refs are live.
-            is AST.AssertDecl as x -> { collect_expr_names(x.condition, seed_refs) }
-            // Imports name CROSS-module symbols ; unused imports are W0006's job.
-            is AST.ImportDecl -> {}
+        nd :: collect_decl_refs(d, seed_refs)
+        if nd == null {
+            continue
+        }
+        register_refs(refs_by_name, nd.name, nd.refs)
+        if is_root_decl(nd.visibility, nd.decorators, nd.name) {
+            root_names.push(nd.name)
+        } else {
+            flaggable.push(DeadDecl { .name = nd.name, .name_span = nd.name_span })
         }
     }
 
-    // BFS over the name-edge graph. `work` grows as we discover referenced names ;
-    // the manual cursor loop (not `0..<len`) re-reads the growing length.
-    reachable :: MutableSet<string> {}
-    work: string[] = []
-    for n in root_names { work.push(n) }
-    for r in seed_refs  { work.push(r) }
-    cursor: usize = 0
-    for cursor < work.len() {
-        n :: work[cursor]
-        cursor += 1
-        if n in reachable { continue }
-        reachable.add(n)
-        nrefs :: refs_by_name[n]
-        if nrefs != null { for r in nrefs { work.push(r) } }
-    }
-
+    reachable :: bfs_reachable(root_names, seed_refs, refs_by_name)
     for fd in flaggable {
         if !(fd.name in reachable) {
             diags.push(warning(.DeadCode, fd.name_span, "`${fd.name}` is never used"))
@@ -343,22 +411,143 @@ export check_dead_code :: fn(decls: AST.Decl[], diags: Diagnostic[]) -> void {
     }
 }
 
-// Shared epilogue for the six named-decl kinds : record the decl's refs, then
-// classify it as a reachability root or a flaggable private decl.
-record_decl :: fn(
-    refs_by_name: MutableMap<string, string[]>, root_names: string[], flaggable: DeadDecl[],
-    name: string, name_span: Span, vis: AST.Visibility, decs: AST.Decorator[], refs: string[],
-) -> void {
-    register_refs(refs_by_name, name, refs)
-    if is_root_decl(vis, decs, name) { root_names.push(name) }
-    else { flaggable.push(DeadDecl { .name = name, .name_span = name_span }) }
-}
-
 // Append `refs` to the edge set for `name` (overloads share a name → merge).
 register_refs :: fn(m: MutableMap<string, string[]>, name: string, refs: string[]) -> void {
     cur :: m[name]
     if cur == null { m[name] = refs }
     else { for r in refs { cur.push(r) } }
+}
+
+// ---- unused-export (W0012) : project-wide dead exported fns ----------------
+//
+// Same name-reachability engine as W0007 (`collect_decl_refs` + `bfs_reachable`),
+// but run ONCE over the MERGED decls of every non-stdlib module instead of
+// per-module, and with one root difference : a plain `export` is NOT a root here.
+// W0007 roots the whole public surface (`is_root_decl`, so it only flags dead
+// PRIVATES) ; unused-export uses `is_wired_root` alone, so a public fn
+// unreachable across the WHOLE project is flaggable — what the per-module pass
+// structurally can't see (an `export` used by no other module looks live to
+// W0007 but is dead project-wide).
+//
+// This lives OUTSIDE the default build : `vader lint` calls it, `vader build`
+// never does (P-lean). It runs on load+parse alone — a name-reachability walk
+// needs no types — so it is cheap and, unlike a lowered-project diff, immune to
+// lazy lowering (which never materialises an unreached imported-module fn and so
+// would hide a dead export from any input-vs-output diff).
+
+/// One dead exported function : an `export`-keyword fn unreachable from the
+/// project's true roots. `name_span` points at the name token — its file + line
+/// carry the location for the report, so no separate module field is needed.
+export DeadExport :: struct {
+    name:      string
+    name_span: Span
+}
+
+/// Report every `export`-keyword FUNCTION unreachable from the project's true
+/// roots — the `unused-export` lint (W0012).
+///
+/// Pass the MERGED decls of every non-stdlib module, so a fn used by any module
+/// counts as reached. Seeds the BFS with the wired roots only (`is_wired_root`)
+/// — NOT plain exports — then flags each public non-root fn whose name no live
+/// decl reaches. Types / consts are registered (a live one can be a fn's sole
+/// caller) but never flagged: fn exports only in v1.
+///
+/// P-safe (inherits `check_dead_code`'s bias) : a name collision across modules
+/// marks the name reachable, so the lint UNDER-reports (never a false positive
+/// that would tell you to delete live code). A fn is always named at every call
+/// / UFCS / value / generic-instantiation site, so a genuinely used export is
+/// never flagged.
+///
+/// @param decls  the merged top-level decls of every non-stdlib module.
+/// @return       every dead exported fn, in the order encountered.
+export dead_exports :: fn(decls: AST.Decl[]) -> DeadExport[] {
+    refs_by_name :: MutableMap<string, string[]> {}
+    root_names: string[] = []
+    seed_refs:  string[] = []
+    flaggable:  DeadExport[] = []
+
+    for d in decls {
+        nd :: collect_decl_refs(d, seed_refs)
+        if nd == null {
+            continue
+        }
+        register_refs(refs_by_name, nd.name, nd.refs)
+        if is_wired_root(nd.decorators, nd.name) {
+            root_names.push(nd.name)
+        } else if nd.is_fn && is_public(nd.visibility) {
+            // The only kind v1 flags : a plain public non-root fn. Its refs are
+            // registered above, so a REACHABLE one still keeps its callees live ;
+            // only an unreached one is reported. (A PRIVATE dead fn is W0007's
+            // job ; a public non-root type / const is registered but not flagged.)
+            flaggable.push(DeadExport { .name = nd.name, .name_span = nd.name_span })
+        }
+    }
+
+    reachable :: bfs_reachable(root_names, seed_refs, refs_by_name)
+    out: DeadExport[] = []
+    for e in flaggable {
+        if !(e.name in reachable) {
+            out.push(e)
+        }
+    }
+    return out
+}
+
+/// Result of linting a LOADED project for unused exports : the findings plus
+/// whether the project exposed a `main` (its reachability seed). A rootless
+/// project (`has_main == false`) yields no findings — callers surface an
+/// under-report warning instead of trusting the empty list.
+export UnusedExportReport :: struct {
+    has_main: bool
+    findings: DeadExport[]
+}
+
+/// Run `dead_exports` over a loaded project : merge every non-stdlib module's
+/// decls, detect the `main` root, and lint. The single source of truth for
+/// "lint a loaded project", shared by `vader lint` (`vader/cli`) and the LSP
+/// (`vader/lsp/analysis`) so the stdlib filter and `main` detection never drift.
+///
+/// @param project  the loaded module graph (from `load_project` or the LSP cache).
+/// @return         findings + `has_main` (see `UnusedExportReport`).
+export dead_exports_of_project :: fn(project: LoadedProject) -> UnusedExportReport {
+    all_decls: AST.Decl[] = []
+    has_main := false
+    for [_, lm] in project.modules {
+        if lm.module.display_path.starts_with(STDLIB_PREFIX) {
+            continue
+        }
+        for d in concat_file_decls(lm.module.files) {
+            all_decls.push(d)
+            if d is AST.FnDecl as fd {
+                if fd.name == "main" {
+                    has_main = true
+                }
+            }
+        }
+    }
+    if !has_main {
+        return UnusedExportReport { .has_main = false, .findings = [] }
+    }
+    return UnusedExportReport { .has_main = true, .findings = dead_exports(all_decls) }
+}
+
+/// Render one `DeadExport` as its W0012 warning. The single mapper both the CLI
+/// and the LSP use, so the code + wording stay in one place.
+///
+/// @param e  the dead exported fn to report.
+export dead_export_diag :: fn(e: DeadExport) =
+    warning(.UnusedExport, e.name_span, "`${e.name}` is never used")
+
+/// Render every finding of `es` as its W0012 warning — the list form of
+/// `dead_export_diag`, used by both `vader lint` and the LSP.
+///
+/// @param es  the dead exported fns to report.
+export dead_export_diags :: fn(es: DeadExport[]) -> Diagnostic[] {
+    out: Diagnostic[] = []
+    for e in es {
+        out.push(dead_export_diag(e))
+    }
+    return out
 }
 
 // ---- tests ----------------------------------------------------------------
