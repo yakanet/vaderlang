@@ -15,8 +15,10 @@ AST :: import "vader/parser"
 /// `let x: i32 = match v { is Foo -> 1, is Bar -> 2 }` narrows each
 /// arm to i32.
 export infer_match :: fn(
-    e: AST.MatchExpr, expected: Type | null,
-    typed: TypedProgram, diags: Diagnostic[],
+    e: AST.MatchExpr,
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
@@ -29,10 +31,14 @@ export infer_match :: fn(
     has_wildcard := false
     covered_enum_variants: string[] = []
     for arm in e.arms {
-        if arm.pattern is AST.LiteralPattern as lp { check_expr_fn(lp.value, null, typed, diags) }
+        if arm.pattern is AST.LiteralPattern as lp {
+            check_expr_fn(lp.value, null, typed, diags)
+        }
         if arm.pattern is AST.OrPattern as op {
             for sub in op.patterns {
-                if sub is AST.LiteralPattern as lp { check_expr_fn(lp.value, null, typed, diags) }
+                if sub is AST.LiteralPattern {
+                    check_expr_fn(sub.value, null, typed, diags)
+                }
             }
         }
         // Re-bind the pattern types against the narrowed `remaining`
@@ -58,8 +64,13 @@ export infer_match :: fn(
         if arm.guard !is null {
             got :: check_expr_fn(arm.guard, TY_BOOL, typed, diags)
             if !is_assignable(got, TY_BOOL, null) {
-                diags.push(typecheck_error(.ConditionMustBeBool, arm.guard.span,
-                    "match-arm guard must be `bool`, got ${display_type(got)}"))
+                diags.push(
+                    typecheck_error(
+                        .ConditionMustBeBool,
+                        arm.guard.span,
+                        "match-arm guard must be `bool`, got ${display_type(got)}",
+                    ),
+                )
             }
         }
         arm_types.push(check_expr_fn(arm.body, expected, typed, diags))
@@ -84,24 +95,35 @@ export infer_match :: fn(
         // cannot make a type-impossible test reachable.)
         guarded :: arm.guard != null
         match arm.pattern {
-            is AST.IsPattern as ip -> {
+            is AST.IsPattern as ip          -> {
                 matched :: type_from_expr(ip.ty, typed.resolved, scratch_diags())
                 if is_overlap_checkable(scrut_ty) && is_overlap_checkable(matched) {
                     if !types_overlap(scrut_ty, matched) {
-                        diags.push(typecheck_error(.UnreachableIsTest, ip.span,
-                            "`${display_type(matched)}` is never a value of `${display_type(scrut_ty)}`"))
+                        diags.push(
+                            typecheck_error(
+                                .UnreachableIsTest,
+                                ip.span,
+                                "`${display_type(matched)}` is never a value of `${display_type(scrut_ty)}`",
+                            ),
+                        )
                     }
                 }
-                if !guarded { remaining = subtract_type_with_impls(remaining, matched, typed) }
+                if !guarded {
+                    remaining = subtract_type_with_impls(remaining, matched, typed)
+                }
             }
             is AST.EnumVariantPattern as ev -> {
-                if !guarded { covered_enum_variants.push(ev.variant) }
+                if !guarded {
+                    covered_enum_variants.push(ev.variant)
+                }
             }
-            is AST.TuplePattern as tp -> {
+            is AST.TuplePattern as tp       -> {
                 if !guarded {
                     // Subtract any TupleType variant whose arity matches.
                     tup_ty :: pick_tuple_variant(remaining, tp.elements.len())
-                    if !(tup_ty is null) { remaining = subtract_type(remaining, tup_ty) }
+                    if tup_ty !is null {
+                        remaining = subtract_type(remaining, tup_ty)
+                    }
                     // Irrefutable tuple (all bindings / wildcards) matches every
                     // tuple of that arity ; counts as a wildcard for exhaustiveness.
                     if is_irrefutable_tuple_pattern(tp) {
@@ -109,32 +131,38 @@ export infer_match :: fn(
                     }
                 }
             }
-            is AST.WildcardPattern -> {
+            is AST.WildcardPattern          -> {
                 if !guarded {
                     has_wildcard = true
                     remaining = TY_NEVER
                 }
             }
-            is AST.BindingPattern -> {
+            is AST.BindingPattern           -> {
                 if !guarded {
                     has_wildcard = true
                     remaining = TY_NEVER
                 }
             }
-            is AST.OrPattern as op -> {
+            is AST.OrPattern as op          -> {
                 // Each alternative consumes its own variant — enum variants add
                 // to the covered set, `is T` alternatives subtract their type.
                 // Literal alternatives exhaust nothing (open domain).
                 if !guarded {
                     for sub in op.patterns {
-                        if sub is AST.EnumVariantPattern as ev { covered_enum_variants.push(ev.variant) }
+                        if sub is AST.EnumVariantPattern as ev {
+                            covered_enum_variants.push(ev.variant)
+                        }
                         if sub is AST.IsPattern as ip {
-                            remaining = subtract_type_with_impls(remaining, type_from_expr(ip.ty, typed.resolved, scratch_diags()), typed)
+                            remaining = subtract_type_with_impls(
+                                remaining,
+                                type_from_expr(ip.ty, typed.resolved, scratch_diags()),
+                                typed,
+                            )
                         }
                     }
                 }
             }
-            _ -> {}
+            _                               -> {}
         }
     }
     // T3013 — non-exhaustive match. `@partial` / `@unreachable` opt out
@@ -142,20 +170,35 @@ export infer_match :: fn(
     if !has_wildcard && !e.partial && !e.unreachable && e.arms.len() > 0 {
         if scrut_ty is UnionType {
             if !is_never(remaining) {
-                diags.push(typecheck_error(.NonExhaustiveMatch, e.span,
-                    "variant ${display_type(remaining)} of ${display_type(scrut_ty)} is not covered"))
+                diags.push(
+                    typecheck_error(
+                        .NonExhaustiveMatch,
+                        e.span,
+                        "variant ${display_type(remaining)} of ${display_type(scrut_ty)} is not covered",
+                    ),
+                )
             }
         } else if scrut_ty is EnumType {
             missing_variant :: missing_enum_variant_name(scrut_ty, typed, covered_enum_variants)
             if missing_variant != "" {
-                diags.push(typecheck_error(.NonExhaustiveMatch, e.span,
-                    "variant .${missing_variant} of ${display_type(scrut_ty)} is not covered"))
+                diags.push(
+                    typecheck_error(
+                        .NonExhaustiveMatch,
+                        e.span,
+                        "variant .${missing_variant} of ${display_type(scrut_ty)} is not covered",
+                    ),
+                )
             }
         } else if scrut_ty is UnresolvedType {
             // skip — upstream error already surfaced.
         } else {
-            diags.push(typecheck_error(.NonExhaustiveMatch, e.span,
-                "match on non-union ${display_type(scrut_ty)} requires a wildcard arm"))
+            diags.push(
+                typecheck_error(
+                    .NonExhaustiveMatch,
+                    e.span,
+                    "match on non-union ${display_type(scrut_ty)} requires a wildcard arm",
+                ),
+            )
         }
     }
     // W0005 — a wildcard arm on a closed union silences the T3013 check above,
@@ -172,8 +215,13 @@ export infer_match :: fn(
     // implies ≥ 1 arm — no explicit arm-count guard needed.
     if has_wildcard && !e.partial && !e.unreachable && !is_void(result_ty) {
         if scrut_ty is UnionType || scrut_ty is EnumType {
-            diags.push(warning(.WildcardOnClosedUnion, e.span,
-                "wildcard arm on closed union `${display_type(scrut_ty)}` — enumerate its variants or mark the match `@partial`"))
+            diags.push(
+                warning(
+                    .WildcardOnClosedUnion,
+                    e.span,
+                    "wildcard arm on closed union `${display_type(scrut_ty)}` — enumerate its variants or mark the match `@partial`",
+                ),
+            )
         }
     }
     return result_ty
@@ -189,7 +237,9 @@ is_irrefutable_tuple_pattern :: fn(tp: AST.TuplePattern) -> bool {
         if el is AST.WildcardPattern { continue }
         if el is AST.BindingPattern  { continue }
         if el is AST.TuplePattern as nested {
-            if !is_irrefutable_tuple_pattern(nested) { return false }
+            if !is_irrefutable_tuple_pattern(nested) {
+                return false
+            }
             continue
         }
         return false
@@ -198,7 +248,9 @@ is_irrefutable_tuple_pattern :: fn(tp: AST.TuplePattern) -> bool {
 }
 
 missing_enum_variant_name :: fn(
-    en: EnumType, typed: TypedProgram, covered: string[],
+    en: EnumType,
+    typed: TypedProgram,
+    covered: string[],
 ) -> string {
     for [name, _] in en.indices {
         found := false
@@ -208,16 +260,19 @@ missing_enum_variant_name :: fn(
                 break
             }
         }
-        if !found { return name }
+        if !found {
+            return name
+        }
     }
     return ""
 }
 
 is_never :: fn(t: Type) -> bool {
-    if t is NeverType { return true }
+    if t is NeverType {
+        return true
+    }
     return false
 }
-
 
 arm_narrow_for :: fn(p: AST.Pattern, remaining: Type, typed: TypedProgram) -> Type | null {
     // Only `is T` / wildcard / binding arms narrow the scrutinee; literal /
@@ -225,27 +280,27 @@ arm_narrow_for :: fn(p: AST.Pattern, remaining: Type, typed: TypedProgram) -> Ty
     match p {
         is AST.IsPattern as ip -> { return type_from_expr(ip.ty, typed.resolved, scratch_diags()) }
         is AST.WildcardPattern -> { return remaining }
-        is AST.BindingPattern  -> { return remaining }
+        is AST.BindingPattern -> { return remaining }
         is AST.StructPattern | AST.TuplePattern | AST.EnumVariantPattern | AST.LiteralPattern | AST.OrPattern -> { return null }
     }
 }
-
 
 is_overlap_checkable :: fn(t: Type) -> bool {
     // @partial: overlap is undecidable only for the four open / abstract
     // variants below; every concrete variant has a checkable value domain.
     @partial match t {
         is UnresolvedType -> { return false }
-        is TypeParamType -> { return false }
-        is TypeMetaType -> { return false }
-        is TraitType -> { return false }
-        _ -> { return true }
+        is TypeParamType  -> { return false }
+        is TypeMetaType   -> { return false }
+        is TraitType      -> { return false }
+        _                 -> { return true }
     }
 }
 
-
 scrutinee_sym_id :: fn(scrut: AST.Expr, typed: TypedProgram) -> i32 {
-    if !(scrut is AST.IdentExpr) { return -1 }
+    if scrut !is AST.IdentExpr {
+        return -1
+    }
     sym :: typed.resolved.idents[scrut.span.hash()] ?? return -1
     return sym.id
 }
@@ -254,7 +309,9 @@ scrutinee_sym_id :: fn(scrut: AST.Expr, typed: TypedProgram) -> i32 {
 /// scrutinee is a `recv.f1.f2.…` chain rooted at an `IdentExpr`.
 /// Returns `""` (no narrowing slot) for other scrutinee shapes.
 scrutinee_field_key :: fn(scrut: AST.Expr, typed: TypedProgram) -> string {
-    if !(scrut is AST.FieldExpr) { return "" }
+    if scrut !is AST.FieldExpr {
+        return ""
+    }
     return field_chain_key(scrut, typed)
 }
 
@@ -266,7 +323,7 @@ scrutinee_field_key :: fn(scrut: AST.Expr, typed: TypedProgram) -> string {
 /// which lands with the deeper narrowing work.
 bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed: TypedProgram, diags: Diagnostic[]) -> void {
     match p {
-        is AST.TuplePattern as tp -> {
+        is AST.TuplePattern as tp   -> {
             tu :: pick_tuple_variant(scrut, tp.elements.len())
             if tu !is null {
                 for i in 0..<tp.elements.len() {
@@ -277,7 +334,7 @@ bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed: TypedProgram, diags
         is AST.BindingPattern as bp -> {
             typed.local_types[bp.span.hash()] = scrut
         }
-        is AST.IsPattern as ip -> {
+        is AST.IsPattern as ip      -> {
             // `is T as a` binds `a` to T (the narrowed type). The
             // resolver mints the binding at `ip.span` when bind_as
             // is non-null ; write the lowered T as its type.
@@ -292,14 +349,22 @@ bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed: TypedProgram, diags
                 bind_pattern_types(ip.inner, narrowed, typed, diags)
             }
         }
-        is AST.StructPattern as sp -> { bind_struct_pattern(sp, scrut, typed, diags) }
-        is AST.OrPattern as op -> { for sub in op.patterns { bind_pattern_types(sub, scrut, typed, diags) } }
-        _ -> {}
+        is AST.StructPattern as sp  -> { bind_struct_pattern(sp, scrut, typed, diags) }
+        is AST.OrPattern as op      -> { for sub in op.patterns { bind_pattern_types(
+            sub,
+            scrut,
+            typed,
+            diags,
+        ) } }
+        _                           -> {}
     }
 }
 
 bind_struct_pattern :: fn(
-    sp: AST.StructPattern, scrut: Type, typed: TypedProgram, diags: Diagnostic[],
+    sp: AST.StructPattern,
+    scrut: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
     match scrut {
         is StructType as st -> {
@@ -310,16 +375,22 @@ bind_struct_pattern :: fn(
                 check_internal_field(st, decl, field.name, field.name_span, typed, diags)
                 match field.value {
                     is AST.PatternBinding as pb -> {
-                        ft :: resolved_field_type(st.symbol.id, decl, field.name, typed, scratch_diags())
+                        ft :: resolved_field_type(
+                            st.symbol.id,
+                            decl,
+                            field.name,
+                            typed,
+                            scratch_diags(),
+                        )
                         if ft !is null {
                             typed.local_types[pb.span.hash()] = ft
                         }
                     }
-                    _ -> {}
+                    _                           -> {}
                 }
             }
         }
-        _ -> {}
+        _                   -> {}
     }
 }
 
@@ -333,24 +404,27 @@ pick_tuple_variant :: fn(t: Type, arity: usize) -> TupleType | null {
     // TupleType or a union of them; no other type kind carries one.
     @partial match t {
         is TupleType as tu -> {
-            if tu.elements.len() == arity { return tu }
+            if tu.elements.len() == arity {
+                return tu
+            }
             return null
         }
-        is UnionType as u -> {
+        is UnionType as u  -> {
             for v in u.variants {
                 match v {
                     is TupleType as tu -> {
-                        if tu.elements.len() == arity { return tu }
+                        if tu.elements.len() == arity {
+                            return tu
+                        }
                     }
-                    _ -> {}
+                    _                  -> {}
                 }
             }
             return null
         }
-        _ -> { return null }
+        _                  -> { return null }
     }
 }
-
 
 // ---- tests ----------------------------------------------------------------
 
@@ -360,28 +434,40 @@ import "vader/resolver"
 import "vader/resolver/symbol"
 
 match_expr_check_stub :: fn(
-    e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+    e: AST.Expr,
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> Type {
     // @partial: test stub — only the literal / ident / match expr kinds the
     // match tests build are typed; every other Expr is irrelevant → unresolved.
     @partial match e {
-        is AST.IntLitExpr    as x -> { return narrow_for_expected(TY_FREE_INT, expected) }
-        is AST.BoolLitExpr   as x -> { return TY_BOOL }
+        is AST.IntLitExpr as x    -> { return narrow_for_expected(TY_FREE_INT, expected) }
+        is AST.BoolLitExpr as x   -> { return TY_BOOL }
         is AST.StringLitExpr as x -> { return TY_STRING }
-        is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
-        is AST.MatchExpr     as x -> { return infer_match(x, expected, typed, diags, null, match_expr_check_stub) }
-        _ -> { return TY_UNRESOLVED }
+        is AST.IdentExpr as x     -> { return infer_ident(x, typed) }
+        is AST.MatchExpr as x     -> { return infer_match(
+            x,
+            expected,
+            typed,
+            diags,
+            null,
+            match_expr_check_stub,
+        ) }
+        _                         -> { return TY_UNRESOLVED }
     }
 }
 
 accept_match :: fn(e: AST.Expr) -> AST.Expr | null {
-    if e is AST.MatchExpr { return e }
+    if e is AST.MatchExpr {
+        return e
+    }
     return null
 }
 
 ExpectedMatch :: struct {
     typed: TypedProgram
-    m:     AST.MatchExpr
+    m: AST.MatchExpr
 }
 
 expect_match :: fn(src: string) -> ExpectedMatch {
@@ -394,14 +480,17 @@ expect_match :: fn(src: string) -> ExpectedMatch {
     match last {
         is AST.FnDecl as f -> {
             match f.body {
-                is null -> {}
+                is null               -> {}
                 is AST.BlockExpr as b -> {
                     hit :: find_first_in_block(b, accept_match)
-                    if hit is AST.MatchExpr { return ExpectedMatch { .typed = result.typed, .m = hit } }
+                    if hit is AST.MatchExpr { return ExpectedMatch {
+                        .typed = result.typed,
+                        .m = hit,
+                    } }
                 }
             }
         }
-        _ -> {}
+        _                  -> {}
     }
     assert(false, "expected a MatchExpr in: ${src}")
     return ExpectedMatch { .typed = result.typed, .m = synthetic_match() }
@@ -410,11 +499,16 @@ expect_match :: fn(src: string) -> ExpectedMatch {
 synthetic_match :: fn() -> AST.MatchExpr {
     sp :: empty_span()
     scrut: AST.Expr = AST.IntLitExpr {
-        .span = sp, .id = AST.UNASSIGNED_NODE_ID, .value = 0,
+        .span = sp,
+        .id = AST.UNASSIGNED_NODE_ID,
+        .value = 0,
     }
     return AST.MatchExpr {
-        .span = sp, .id = AST.UNASSIGNED_NODE_ID,
-        .scrutinee = scrut, .arms = [], .partial = false,
+        .span = sp,
+        .id = AST.UNASSIGNED_NODE_ID,
+        .scrutinee = scrut,
+        .arms = [],
+        .partial = false,
     }
 }
 
@@ -423,7 +517,10 @@ test_match_single_arm_returns_arm_type :: fn() -> void {
     src :: "f :: fn(x: i32) -> i32 { return match x { _ -> 42 } }"
     em :: expect_match(src)
     diags: Diagnostic[] = []
-    assert_eq(display_type(infer_match(em.m, null, em.typed, diags, null, match_expr_check_stub)), "{integer}")
+    assert_eq(
+        display_type(infer_match(em.m, null, em.typed, diags, null, match_expr_check_stub)),
+        "{integer}",
+    )
 }
 
 @test
@@ -443,6 +540,10 @@ test_match_guard_non_bool_emits_T3019 :: fn() -> void {
     diags: Diagnostic[] = []
     infer_match(em.m, null, em.typed, diags, null, match_expr_check_stub)
     found := false
-    for d in diags { if d.code.id == "T3019" { found = true } }
+    for d in diags {
+        if d.code.id == "T3019" {
+            found = true
+        }
+    }
     assert(found, "expected T3019 on non-bool guard")
 }
