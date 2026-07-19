@@ -1,0 +1,27 @@
+// bench/arr_map — map-over-array iterator with a pure callback (BCE resolve-hoist).
+//
+// `for x in a.map(square)` fuses to a counter loop over `a[i]` that calls the pure
+// `square`. Post-inline interprocedural purity proves the callback allocates
+// nothing, so the per-iteration buffer-forward resolve hoists out of the loop and
+// the iterator abstraction reaches hand-written-index-loop speed. Sibling of
+// arr_set (bare index loop) and arr_rw (open-coded load/store).
+
+module "main"
+
+import "std/io"
+import "std/iter"
+
+square :: fn(x: i32) -> i64 = i64(x) * i64(x)
+
+main :: fn() -> i32 {
+    a: i32[] = []
+    for i in 0..<1024 { a.push(i32(i)) }
+    sum: i64 = 0
+    for 0..<300000 {
+        for x in a.map(square) {
+            sum = sum + x
+        }
+    }
+    println("arr_map ${sum}")
+    return 0
+}

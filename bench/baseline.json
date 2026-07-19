@@ -143,6 +143,24 @@
       "checksum": "arr_set 5172428800000"
     }
   },
+  "arr_map": {
+    "vader-native": {
+      "minMs": 17.7,
+      "checksum": "arr_map 107216947200000"
+    },
+    "bun-ts": {
+      "minMs": 463.6,
+      "checksum": "arr_map 107216947200000"
+    },
+    "go": {
+      "minMs": 82.9,
+      "checksum": "arr_map 107216947200000"
+    },
+    "java": {
+      "minMs": 130.9,
+      "checksum": "arr_map 107216947200000"
+    }
+  },
   "arr_push": {
     "vader-native": {
       "minMs": 44.15629199999967,
