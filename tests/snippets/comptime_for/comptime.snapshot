@@ -5,6 +5,7 @@
 ## generic instances
   Pair<i32, string>
   Pair<K, V>
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

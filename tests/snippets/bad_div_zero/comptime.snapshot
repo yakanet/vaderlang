@@ -3,6 +3,7 @@
 ## tests/snippets/bad_div_zero
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

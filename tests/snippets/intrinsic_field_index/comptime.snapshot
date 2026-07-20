@@ -3,6 +3,7 @@
 ## tests/snippets/intrinsic_field_index
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

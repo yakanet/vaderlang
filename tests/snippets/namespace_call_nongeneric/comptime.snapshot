@@ -3,6 +3,7 @@
 ## tests/snippets/namespace_call_nongeneric
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

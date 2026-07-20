@@ -3,6 +3,7 @@
 ## tests/snippets/vm_fn_value_local
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

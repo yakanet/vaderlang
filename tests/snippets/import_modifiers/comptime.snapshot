@@ -5,6 +5,7 @@
 ## tests/snippets/import_modifiers/toolkit
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

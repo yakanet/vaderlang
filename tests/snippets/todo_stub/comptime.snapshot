@@ -3,6 +3,7 @@
 ## tests/snippets/todo_stub
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

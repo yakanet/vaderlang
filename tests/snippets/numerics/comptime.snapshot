@@ -15,6 +15,7 @@
   @comptime  l                    = 0.5_f64
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

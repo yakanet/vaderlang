@@ -3,6 +3,7 @@
 ## tests/snippets/if_null_narrow
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

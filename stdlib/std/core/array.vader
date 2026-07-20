@@ -1,0 +1,37 @@
+// stdlib/std/core/array.vader — built-in array methods, declared as intrinsics.
+//
+// The growable array `T[]` is a compiler built-in (no struct declaration), but
+// its mutation / query methods live here as a bodyless `@intrinsic T[] implements
+// ArrayOps` — the single source of their names and signatures. This mirrors how
+// `Buffer`'s byte ops (buffer.vader) and primitive arithmetic (`i32 + i32`) are
+// declared: an `@intrinsic` impl whose members the backend provides directly.
+//
+// The lowerer recognises these members and emits the dedicated bytecode nodes:
+// `push` / `len` keep the typed `ArrayPush { type_id }` / `ArrayLen` ops (so a
+// `push` of a primitive writes the raw value, no box / no write barrier), while
+// `push_all` / `copy_to` / `remove_last` / `clear` lower to the element-agnostic
+// `array.*` intrinsics (the runtime reads the element tag off the buffer).
+//
+// `ArrayOps` lives in `std/core` (the prelude), so array methods resolve with no
+// import — exactly like `arr in coll` (Contains) or `[v] * n` (Mul) in core.vader.
+
+module "std/core"
+
+/// The built-in methods of `T[]`. Bodyless — provided by the compiler's array
+/// ops, not a Vader body. `T` is the element type.
+export ArrayOps :: trait<T> {
+    /// Number of live elements.
+    len :: fn(self) -> usize
+    /// Append `value` to the end, growing the backing storage as needed.
+    push :: fn(self, value: T) -> void
+    /// Append every element of `other` (a borrowed, immutable view).
+    push_all :: fn(self, other: const T[]) -> void
+    /// Copy `count` elements from `self[src_off..]` into `dst[dst_off..]`.
+    copy_to :: fn(self, src_off: usize, dst: T[], dst_off: usize, count: usize) -> void
+    /// Remove and return the last element, or `null` when empty.
+    remove_last :: fn(self) -> T | null
+    /// Drop every element (length → 0), keeping the reserved capacity.
+    clear :: fn(self) -> void
+}
+
+@intrinsic T[] implements<T> ArrayOps<T>

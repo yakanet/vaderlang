@@ -19,6 +19,7 @@
   Yield<T>
   Async<i32>
   Async<T>
+  ArrayOps<T>
   Range<i32>
   Range<usize>
   Range<T>

@@ -3,6 +3,7 @@
 ## tests/snippets/parse_int_match
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

@@ -3,6 +3,7 @@
 ## tests/snippets/std_cli_basic
 
 ## generic instances
+  ArrayOps<T>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, i32>

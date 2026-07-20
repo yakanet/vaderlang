@@ -41,11 +41,10 @@ export infer_field :: fn(
     if target_ty is UnresolvedType {
         return TY_UNRESOLVED
     }
-    candidate:= try_array_method_dispatch(target_ty, e)
-    if candidate !is null {
-        return candidate
-    }
-    candidate = try_impl_method_ufcs(target_ty, e, typed, diags)
+    // Built-in array methods (`len`/`push`/…) resolve as members of the
+    // `@intrinsic T[] implements ArrayOps` blanket (std/core/array.vader), through
+    // `try_impl_method_ufcs`'s `[]`-keyed lookup + `substitute_array_element`.
+    candidate:= try_impl_method_ufcs(target_ty, e, typed, diags)
     if candidate !is null {
         return candidate
     }
@@ -92,13 +91,6 @@ export infer_field :: fn(
 // Splitting `infer_field`'s cascade into these tiny fns keeps each C
 // body bounded instead of the original 40 k-line monster.
 
-try_array_method_dispatch :: fn(target_ty: Type, e: AST.FieldExpr) -> Type | null {
-    // `array_backing` accepts an array-backed distinct newtype too, so
-    // `bigint.len()` / `.push()` forward to the backing array's builtins.
-    arr :: array_backing(target_ty) ?? return null
-    return array_method_type(e.field, arr)
-}
-
 // `x.method()` where `<x-type> implements <Trait> { method :: ... }`.
 // Indexed by orchestrate.vader at impl-load time. Try exact display
 // first, then fall back to the base-name key + substitute the impl's
@@ -121,7 +113,18 @@ try_impl_method_ufcs :: fn(
         check_trait_ambiguity(e, target_ty, typed, diags)
         return impl_ufcs
     }
-    base_impl :: typed.impl_methods["${type_base_name(key_ty)}::${e.field}"] ?? return null
+    base_impl := typed.impl_methods["${type_base_name(key_ty)}::${e.field}"]
+    if base_impl is null {
+        // Array-backed distinct newtype (`BigInt :: i32[]`) : its base name is the
+        // newtype's, not `[]`, so try the array-blanket key so `bigint.push(x)`
+        // forwards to `T[] implements ArrayOps`.
+        if array_backing(key_ty) is ArrayType {
+            base_impl = typed.impl_methods["[]::${e.field}"]
+        }
+    }
+    if base_impl is null {
+        return null
+    }
     check_trait_ambiguity(e, target_ty, typed, diags)
     return substitute_impl_method(base_impl, key_ty, typed)
 }
@@ -624,85 +627,6 @@ export substitute_by_name :: fn(
 import "std/collections"
 import "std/math"
 
-/// MVP UFCS dispatch for the canonical array methods. Returns the
-/// per-method `FnType` synthesised from the element type, or `null`
-/// when the method isn't a known array method. Mirrors the stdlib
-/// `T[]` free fns the lowerer wires in :
-///   - `len()`               → `usize`
-///   - `push(T)`             → `void`
-///   - `push_all(const T[])` → `void`
-///   - `copy_to(...)`        → `void`
-///   - `remove_last()`       → `T | null`
-///   - `clear()`            → `void`
-array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
-    // The ops with dedicated lowering are typed here : `len` / `push` lower to
-    // `LoweredArrayLen` / `LoweredArrayPush`, and `push_all` / `copy_to` /
-    // `remove_last` / `clear` lower to `LoweredIntrinsicCall`s backed by
-    // parameterless bytecode ops (`lower_call.vader::try_lower_array_op`). None
-    // have a free-fn / trait fallback, so the typer must supply their signature.
-    //
-    // Everything else resolves elsewhere (import required, per the UFCS policy) :
-    // `is_empty` ⟶ `std/iter::is_empty(arr: T[])`, `contains` ⟶ the `Contains`
-    // trait, `reverse`/`first`/`last` ⟶ std/iter free fns.
-    if name == "len"      { return mk_fn([], mk_primitive("usize")) }
-    if name == "push"     { return mk_fn([arr.element], TY_VOID) }
-    // `push_all` reads its source, so a `const T[]` param accepts both a
-    // mutable and a borrowed source (mirrors `std/iter::clone`).
-    if name == "push_all" { return mk_fn([mk_array(arr.element, true)], TY_VOID) }
-    // `copy_to(src_start, dst, dst_start, len)` — `dst` is written, so it must
-    // be a mutable `T[]` ; the three cursors are `usize`.
-    if name == "copy_to" {
-        usize_t :: mk_primitive("usize")
-        return mk_fn([usize_t, mk_array(arr.element, false), usize_t, usize_t], TY_VOID)
-    }
-    if name == "remove_last" { return mk_fn([], mk_union([arr.element, TY_NULL])) }
-    if name == "clear"       { return mk_fn([], TY_VOID) }
-    return null
-}
-
-/// The names of the built-in array methods, in declaration order. Single source
-/// of truth for both `array_method_type` (which signs each) and
-/// `array_builtin_methods` (which enumerates them for completion).
-ARRAY_METHOD_NAMES: const string[]: [
-    "len",
-    "push",
-    "push_all",
-    "copy_to",
-    "remove_last",
-    "clear",
-]
-
-// The methods that mutate the receiver — rejected on an `immutable` array, so
-// completion drops them on a borrowed view (`s.bytes()` → `const u8[]`).
-array_method_mutates :: fn(name: string) -> bool = name == "push" || name == "push_all" || name == "remove_last" || name == "clear"
-
-/// A built-in array method surfaced for completion — its name plus the resolved
-/// signature (`array_method_type`'s result). LSP member completion lists these :
-/// they're neither free fns nor `impl` members, so no other path enumerates them.
-export ArrayBuiltinMethod :: struct {
-    name: string
-    signature: Type
-}
-
-/// Every built-in method callable on `arr` via UFCS (`len`, `push`, …), each
-/// with its resolved signature. Mirrors exactly what `array_method_type`
-/// resolves ; the mutating subset is omitted when `arr.immutable`.
-///
-/// @param arr  the receiver array type (its `element` / `immutable` drive the
-///             signatures and the mutating-method filter).
-/// @return     the available built-in methods, in declaration order.
-export array_builtin_methods :: fn(arr: ArrayType) -> ArrayBuiltinMethod[] {
-    out: ArrayBuiltinMethod[] = []
-    for name in ARRAY_METHOD_NAMES {
-        if arr.immutable && array_method_mutates(name) {
-            continue
-        }
-        sig :: array_method_type(name, arr) ?? continue
-        out.push(ArrayBuiltinMethod { .name = name, .signature = sig })
-    }
-    return out
-}
-
 /// MVP UFCS for the canonical primitive (string / char) methods.
 /// Mirrors the stdlib `T` free fns the lowerer wires in.
 ///
@@ -746,11 +670,58 @@ check_trait_ambiguity :: fn(
     )
 }
 
+// Bind a blanket array impl's type param to the concrete element. A blanket
+// array impl (`T[] implements<T> ArrayOps<T>`) carries exactly one type param =
+// the element, so every `TypeParamType` leaf in the resolved member IS that
+// element. Struct receivers bind by name (`substitute_by_name`, keyed on
+// `decl.type_params` × `target.args`) ; an array carries no `.args`, so bind
+// every param leaf to `element` instead.
+substitute_array_element :: fn(t: Type, element: Type) -> Type {
+    // @partial: only TypeParam + the composite variants carry a param to rewrite;
+    // scalars have no inner type → return as-is.
+    @partial match t {
+        is TypeParamType -> { return element }
+        is ArrayType as a -> { return mk_array(substitute_array_element(a.element, element), a.immutable) }
+        is TupleType as tu -> {
+            els: Type[] = []
+            for el in tu.elements { els.push(substitute_array_element(el, element)) }
+            return mk_tuple(els)
+        }
+        is StructType as s -> {
+            sargs: Type[] = []
+            for a in s.args { sargs.push(substitute_array_element(a, element)) }
+            return mk_struct(s.symbol, sargs)
+        }
+        is TraitType as r -> {
+            rargs: Type[] = []
+            for a in r.args { rargs.push(substitute_array_element(a, element)) }
+            return mk_trait(r.symbol, rargs)
+        }
+        is UnionType as u -> {
+            vs: Type[] = []
+            for v in u.variants { vs.push(substitute_array_element(v, element)) }
+            return union_of(vs)
+        }
+        is FnType as f -> {
+            ps: Type[] = []
+            for p in f.params { ps.push(substitute_array_element(p, element)) }
+            return mk_fn(ps, substitute_array_element(f.return_type, element))
+        }
+        _ -> { return t }
+    }
+}
+
 // Substitute the impl method's TypeParams against the receiver's
 // concrete type args. Lets `MutableSet<T> implements ... { contains
 // :: fn(self, value: T) -> bool }` produce `fn(i32) -> bool` when
 // called on `MutableSet<i32>`.
 substitute_impl_method :: fn(impl_ty: Type, target_ty: Type, typed: TypedProgram) -> Type {
+    // Blanket array impl (`T[] implements<T> ArrayOps<T>` / `Index` / `IndexSet`) :
+    // the receiver carries its element in `.element`, not `.args`, so bind the
+    // single param to the element. Also covers array-backed distinct newtypes.
+    if array_backing(target_ty) is ArrayType as arr {
+        return substitute_array_element(impl_ty, arr.element)
+    }
     if target_ty !is StructType {
         return impl_ty
     }

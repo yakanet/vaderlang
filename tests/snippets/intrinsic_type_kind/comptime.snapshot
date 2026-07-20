@@ -3,6 +3,7 @@
 ## tests/snippets/intrinsic_type_kind
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

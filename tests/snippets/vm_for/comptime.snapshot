@@ -3,6 +3,7 @@
 ## tests/snippets/vm_for
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

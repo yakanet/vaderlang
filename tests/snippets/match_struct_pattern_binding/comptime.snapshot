@@ -3,6 +3,7 @@
 ## tests/snippets/match_struct_pattern_binding
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

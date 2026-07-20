@@ -3,6 +3,7 @@
 ## tests/snippets/u32_to_f64
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

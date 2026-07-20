@@ -3,6 +3,7 @@
 ## tests/snippets/narrow_int_wrap
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

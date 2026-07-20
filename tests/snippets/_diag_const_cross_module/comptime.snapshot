@@ -3,6 +3,7 @@
 ## tests/snippets/_diag_const_cross_module
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

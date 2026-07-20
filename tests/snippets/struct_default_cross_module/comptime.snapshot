@@ -6,6 +6,7 @@
   @comptime  DEFAULT_ID           = 99_usize
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

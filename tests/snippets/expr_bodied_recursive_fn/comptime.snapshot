@@ -3,6 +3,7 @@
 ## tests/snippets/expr_bodied_recursive_fn
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

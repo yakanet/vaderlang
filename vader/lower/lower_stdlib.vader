@@ -168,6 +168,12 @@ surface_array_blanket_members :: fn(
     if impl_decl.type_params.len() == 0 { return out }
     if !(impl_decl.for_type is ArrayTypeExpr) { return out }
     for member in impl_decl.members {
+        // A bodyless `@intrinsic` member (`T[] implements ArrayOps`) has no body to
+        // lower — the lowerer emits the dedicated array op at the call site. Skip it
+        // here so surfacing doesn't try to lower a null body.
+        if member.body == null {
+            continue
+        }
         // The mangle prefix that partitions this member's element instances from
         // the other array-blanket members sharing `array_blanket_elems`.
         prefix :: "${mangle_module_id(typed.resolved.display_path)}$[]$${impl_decl.trait_name}$${member.name}__"

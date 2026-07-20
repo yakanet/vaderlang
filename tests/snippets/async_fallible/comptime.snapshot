@@ -31,3 +31,4 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
+  ArrayOps<T>

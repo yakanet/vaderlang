@@ -3,6 +3,7 @@
 ## tests/snippets/tuple_generic_swap
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

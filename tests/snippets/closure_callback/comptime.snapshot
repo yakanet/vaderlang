@@ -3,6 +3,7 @@
 ## tests/snippets/closure_callback
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

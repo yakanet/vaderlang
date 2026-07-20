@@ -6,6 +6,7 @@
   Repeat<i32>
   Repeat<T>
   Repeat<T>
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

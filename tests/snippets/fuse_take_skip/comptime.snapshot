@@ -10,6 +10,7 @@
   __genstate_map<i32>
   __genstate_take<i32>
   __genstate_skip<i32>
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

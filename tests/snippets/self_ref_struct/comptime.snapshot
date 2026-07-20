@@ -5,6 +5,7 @@
 ## generic instances
   Node<i32>
   Node<T>
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

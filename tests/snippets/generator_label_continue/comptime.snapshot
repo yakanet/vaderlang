@@ -4,6 +4,7 @@
 
 ## generic instances
   __genstate_gen<i32>
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

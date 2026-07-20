@@ -3,6 +3,7 @@
 ## tests/snippets/tuple_in_array
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

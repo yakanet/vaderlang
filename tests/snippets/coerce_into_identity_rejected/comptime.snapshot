@@ -3,6 +3,7 @@
 ## tests/snippets/coerce_into_identity_rejected
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
