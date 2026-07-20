@@ -271,14 +271,20 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
         }
     }
 
-    // Built-in array methods (`len`, `push`, …) — neither free fns nor `impl`
-    // members, so the UFCS / impl loops below never surface them. The mutating
-    // ones are already filtered out on an immutable (`const T[]`) receiver.
-    if recv_type is ArrayType as at {
-        for am in array_builtin_methods(at) {
-            if seen[am.name] != null { continue }
-            seen[am.name] = true
-            items.push(completion_item(am.name, .Method, display_type(am.signature)))
+    // Blanket array impls (`T[] implements ArrayOps` / `Contains` / `Into` / `Mul`)
+    // carry the built-in array methods (`len` / `push` / …) plus the trait ones.
+    // Arrays have no nominal symbol, so the `for_symbol`-keyed impl loop below
+    // misses them — enumerate the array-targeted impls directly.
+    if recv_type is ArrayType {
+        for impl_ in cached.result.impls.all {
+            if !(impl_.decl.for_type is AST.ArrayTypeExpr) {
+                continue
+            }
+            for m in impl_.decl.members {
+                if seen[m.name] != null { continue }
+                seen[m.name] = true
+                items.push(completion_item(m.name, .Method, render_signature_label(m)))
+            }
         }
     }
 

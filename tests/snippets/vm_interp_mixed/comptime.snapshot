@@ -3,6 +3,7 @@
 ## tests/snippets/vm_interp_mixed
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

@@ -3,6 +3,7 @@
 ## tests/snippets/const_block_closure
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

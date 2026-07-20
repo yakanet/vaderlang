@@ -3,6 +3,7 @@
 ## tests/snippets/string_chars
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

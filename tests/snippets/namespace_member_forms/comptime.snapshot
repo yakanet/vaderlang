@@ -6,6 +6,7 @@
   @comptime  Meters               = i32
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

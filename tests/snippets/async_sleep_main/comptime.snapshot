@@ -20,6 +20,7 @@
   Timeout<T>
   Timeout<T>
   Timeout<T>
+  ArrayOps<T>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, i32>

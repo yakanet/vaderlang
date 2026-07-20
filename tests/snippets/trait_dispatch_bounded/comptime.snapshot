@@ -3,6 +3,7 @@
 ## tests/snippets/trait_dispatch_bounded
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

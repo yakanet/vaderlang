@@ -3,6 +3,7 @@
 ## tests/snippets/const_array_basic
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

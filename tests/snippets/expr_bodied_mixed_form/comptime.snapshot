@@ -3,6 +3,7 @@
 ## tests/snippets/expr_bodied_mixed_form
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

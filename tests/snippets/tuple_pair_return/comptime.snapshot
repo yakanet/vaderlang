@@ -3,6 +3,7 @@
 ## tests/snippets/tuple_pair_return
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

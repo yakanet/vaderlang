@@ -3,6 +3,7 @@
 ## tests/snippets/ufcs_primitive_literal
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

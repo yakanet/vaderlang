@@ -3,6 +3,7 @@
 ## tests/snippets/scalar_wide
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

@@ -3,6 +3,7 @@
 ## tests/snippets/_diag_slot_access
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

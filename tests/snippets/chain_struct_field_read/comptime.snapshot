@@ -11,6 +11,7 @@
   __genstate_filter<Rec>
   __genstate_map<i32>
   __genstate_map<Rec>
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

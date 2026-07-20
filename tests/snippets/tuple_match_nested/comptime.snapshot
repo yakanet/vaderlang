@@ -3,6 +3,7 @@
 ## tests/snippets/tuple_match_nested
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

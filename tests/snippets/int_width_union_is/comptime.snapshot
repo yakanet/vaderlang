@@ -3,6 +3,7 @@
 ## tests/snippets/int_width_union_is
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

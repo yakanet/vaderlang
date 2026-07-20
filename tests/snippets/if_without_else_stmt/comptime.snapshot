@@ -3,6 +3,7 @@
 ## tests/snippets/if_without_else_stmt
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

@@ -4,6 +4,7 @@
 
 ## generic instances
   __genstate_positives_until_big<i32>
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

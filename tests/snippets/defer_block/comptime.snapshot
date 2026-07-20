@@ -3,6 +3,7 @@
 ## tests/snippets/defer_block
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

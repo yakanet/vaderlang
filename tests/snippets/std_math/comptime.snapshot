@@ -3,6 +3,7 @@
 ## tests/snippets/std_math
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

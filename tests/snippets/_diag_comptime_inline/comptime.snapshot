@@ -6,6 +6,7 @@
   @comptime  SQUARES              = [0_u32, 1_u32, 4_u32, 9_u32, 16_u32, 25_u32]
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

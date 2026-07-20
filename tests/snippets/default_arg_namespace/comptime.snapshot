@@ -5,6 +5,7 @@
 ## tests/snippets/default_arg_namespace/greeter
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

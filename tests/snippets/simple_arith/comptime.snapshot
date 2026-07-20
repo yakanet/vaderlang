@@ -4,6 +4,7 @@
   @comptime  ANSWER               = 42_i32
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

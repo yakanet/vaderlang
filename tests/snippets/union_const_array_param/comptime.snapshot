@@ -3,6 +3,7 @@
 ## tests/snippets/union_const_array_param
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

@@ -3,6 +3,7 @@
 ## tests/snippets/tuple_match_pattern
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
