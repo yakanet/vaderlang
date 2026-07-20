@@ -269,7 +269,7 @@ export LocalField :: struct { slot: i32, type_id: i32, field_index: i32 }
 /// order — first pushed becomes `elements[0]`) and uses them as the
 /// initial contents ; if `length == 0`, creates a fresh empty array
 /// ready for `array.push`. Sprint 4 (b2) addition.
-export ArrayNew :: struct { type_id: i32, length: i32 }
+export ArrayNew :: struct { type_id: i32, length: i32 = 0 }
 /// Pop a value, then an array ; append the value to `array.elements`.
 /// Statement-form, no value pushed back. Sprint 4 (b2) addition.
 export ArrayPush :: struct { type_id: i32 }

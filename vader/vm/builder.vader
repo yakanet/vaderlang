@@ -12,8 +12,8 @@
 //   type_id_i32 :: builder.add_type(bc.BcPrimitive { .val = bc.ValType.I32 })
 //
 //   function :: new_function_builder("main", 0, 0)
-//   function.i32_const(42)
-//   function.return_op()
+//   function.push(bc.I32Const { .value = 42 })
+//   function.push(bc.Return {})
 //   main_index :: builder.add_function(function)
 //   builder.set_main(main_index)
 //
@@ -21,12 +21,15 @@
 //   result :: exec(prepare(module))
 //
 // Use cases : Brainfuck and other source-language → bytecode compilers
-// written in Vader (see `examples/brainfuck.vader`), and any consumer
+// written in Vader (see `examples/brainfuck/brainfuck.vader`), and any consumer
 // that wants compile-time type-safety on op construction rather than
 // hand-formatted `.virt` strings.
 //
-// Control-flow ops (`block` / `loop` / `if` / `else` / `end` / `br` /
-// `br_if`) are pushed via labelled methods on `FunctionBuilder` ; the
+// Straight-line ops are appended by pushing the `bc.Op` value itself —
+// `function.push(bc.I32Add {})` — so there is no per-op wrapper surface to
+// keep in sync with the opcode set. Control-flow ops (`block` / `loop` / `if`
+// / `else` / `end` / `br` / `br_if`) instead go through labelled methods on
+// `FunctionBuilder` ; the
 // builder maintains an internal scope stack and resolves each branch's
 // target pc into the jump table as ops are appended, mirroring the
 // online resolution that `virt_reader.vader::wire_control_flow` performs at
@@ -320,9 +323,15 @@ export new_function_builder :: fn(name: string, parameter_count: usize, local_co
     }
 }
 
-/// Append a non-control-flow op : push onto `ops`, push a `-1` jump-
-/// table sentinel. Used by every wrapper method below.
-push_op :: fn(self: FunctionBuilder, op_value: bc.Op) -> void {
+/// Append a straight-line (non-control-flow) op : push it onto `ops` and push
+/// a matching `-1` jump-table sentinel. This is the public op-emission entry
+/// point — callers construct the `bc.Op` value directly. Control-flow ops go
+/// through the labelled `block` / `loop_` / `if_` / `else_` / `end` / `br` /
+/// `br_if` methods instead, which additionally wire the branch targets.
+///
+/// @param op_value  the op to append ; must not be a control-flow op (those
+///                  carry no label here and would leave the jump table unwired).
+export push :: fn(self: FunctionBuilder, op_value: bc.Op) -> void {
     self.ops.push(op_value)
     self.table.push(-1)
 }
@@ -340,8 +349,7 @@ push_op :: fn(self: FunctionBuilder, op_value: bc.Op) -> void {
 /// `table[opener_pc]` to the pc just past the `end`.
 export block :: fn(self: FunctionBuilder, label: string) -> void {
     pc :: i32(self.ops.len())
-    self.ops.push(bc.Block {})
-    self.table.push(-1)
+    self.push(bc.Block {})
     push_scope(self, ScopeEntry { .label = label, .is_loop = false, .opener_pc = pc })
 }
 
@@ -349,8 +357,7 @@ export block :: fn(self: FunctionBuilder, label: string) -> void {
 /// body start (opener_pc + 1) — known immediately and filled now.
 export loop_ :: fn(self: FunctionBuilder, label: string) -> void {
     pc :: i32(self.ops.len())
-    self.ops.push(bc.Loop {})
-    self.table.push(-1)
+    self.push(bc.Loop {})
     push_scope(self, ScopeEntry { .label = label, .is_loop = true, .opener_pc = pc })
     self.table[usize(pc)] = pc + 1
 }
@@ -360,8 +367,7 @@ export loop_ :: fn(self: FunctionBuilder, label: string) -> void {
 /// one is present.
 export if_ :: fn(self: FunctionBuilder, label: string) -> void {
     pc :: i32(self.ops.len())
-    self.ops.push(bc.If {})
-    self.table.push(-1)
+    self.push(bc.If {})
     push_scope(self, ScopeEntry { .label = label, .is_loop = false, .opener_pc = pc })
 }
 
@@ -370,8 +376,7 @@ export if_ :: fn(self: FunctionBuilder, label: string) -> void {
 /// matching `end` pairs the else with the past-end pc.
 export else_ :: fn(self: FunctionBuilder) -> void {
     pc :: i32(self.ops.len())
-    self.ops.push(bc.Else {})
-    self.table.push(-1)
+    self.push(bc.Else {})
     sp :: self.scope_sp[0]
     if sp == 0 { return }
     top :: self.scopes[sp - 1]
@@ -384,8 +389,7 @@ export else_ :: fn(self: FunctionBuilder) -> void {
 /// any pending branches that named this scope's label.
 export end :: fn(self: FunctionBuilder) -> void {
     pc :: i32(self.ops.len())
-    self.ops.push(bc.End {})
-    self.table.push(-1)
+    self.push(bc.End {})
     sp :: self.scope_sp[0]
     if sp == 0 { return }
     top :: self.scopes[sp - 1]
@@ -401,16 +405,14 @@ export end :: fn(self: FunctionBuilder) -> void {
 /// matching `end()`.
 export br :: fn(self: FunctionBuilder, target_label: string) -> void {
     pc :: i32(self.ops.len())
-    self.ops.push(bc.Branch {})
-    self.table.push(-1)
+    self.push(bc.Branch {})
     defer_or_resolve_branch(self, target_label, pc)
 }
 
 /// Conditional branch — same target-resolution rules as `br`.
 export br_if :: fn(self: FunctionBuilder, target_label: string) -> void {
     pc :: i32(self.ops.len())
-    self.ops.push(bc.BranchIf {})
-    self.table.push(-1)
+    self.push(bc.BranchIf {})
     defer_or_resolve_branch(self, target_label, pc)
 }
 
@@ -465,148 +467,3 @@ drain_pending :: fn(self: FunctionBuilder, label: string, is_loop: bool, opener_
     }
     self.pending_sp[0] = new_sp
 }
-
-// ---- constants -----------------------------------------------------------
-
-export i32_const :: fn(self: FunctionBuilder, value: i32) -> void = push_op(self, bc.I32Const { .value = value })
-export i64_const :: fn(self: FunctionBuilder, value: i64) -> void = push_op(self, bc.I64Const { .value = value })
-export f64_const :: fn(self: FunctionBuilder, value: f64) -> void = push_op(self, bc.F64Const { .value = value })
-export bool_const :: fn(self: FunctionBuilder, value: bool) -> void = push_op(self, bc.BoolConst { .value = value })
-export char_const :: fn(self: FunctionBuilder, value: char) -> void = push_op(self, bc.CharConst { .value = value })
-export string_const :: fn(self: FunctionBuilder, index: i32) -> void = push_op(self, bc.StringConst { .index = index })
-export null_const :: fn(self: FunctionBuilder) -> void = push_op(self, bc.NullConst {})
-
-// ---- locals --------------------------------------------------------------
-
-export local_get :: fn(self: FunctionBuilder, slot: i32) -> void = push_op(self, bc.LocalGet { .slot = slot })
-export local_set :: fn(self: FunctionBuilder, slot: i32) -> void = push_op(self, bc.LocalSet { .slot = slot })
-export local_tee :: fn(self: FunctionBuilder, slot: i32) -> void = push_op(self, bc.LocalTee { .slot = slot })
-
-// ---- calls / fn refs -----------------------------------------------------
-
-export call :: fn(self: FunctionBuilder, function_index: i32) -> void = push_op(self, bc.Call { .function_index = function_index })
-export call_import :: fn(self: FunctionBuilder, index: i32) -> void = push_op(self, bc.CallImport { .index = index })
-export call_indirect :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, bc.CallIndirect { .type_id = type_id })
-export virtual_call :: fn(self: FunctionBuilder, parameter_count: i32, vtable_key: string) -> void = push_op(self, bc.VirtualCall { .parameter_count = parameter_count, .vtable_key = vtable_key })
-export fn_ref :: fn(self: FunctionBuilder, function_index: i32, type_id: i32) -> void = push_op(self, bc.FnRef { .function_index = function_index, .type_id = type_id })
-export make_closure :: fn(self: FunctionBuilder, function_index: i32, env_type_id: i32) -> void = push_op(self, bc.MakeClosure { .function_index = function_index, .env_type_id = env_type_id })
-
-// ---- struct / array / data ----------------------------------------------
-
-export struct_new :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, bc.StructNew { .type_id = type_id, .stack = false })
-export struct_get :: fn(self: FunctionBuilder, type_id: i32, field_index: i32) -> void = push_op(self, bc.StructGet { .type_id = type_id, .field_index = field_index })
-export struct_set :: fn(self: FunctionBuilder, type_id: i32, field_index: i32) -> void = push_op(self, bc.StructSet { .type_id = type_id, .field_index = field_index, .stack = false })
-export array_new :: fn(self: FunctionBuilder, type_id: i32, length: i32) -> void = push_op(self, bc.ArrayNew { .type_id = type_id, .length = length })
-export array_push :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, bc.ArrayPush { .type_id = type_id })
-export array_get :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, bc.ArrayGet { .type_id = type_id })
-export array_set :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, bc.ArraySet { .type_id = type_id })
-export array_len :: fn(self: FunctionBuilder) -> void = push_op(self, bc.ArrayLen {})
-export array_slice :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, bc.ArraySlice { .type_id = type_id })
-export data_const :: fn(self: FunctionBuilder, pool_index: i32, type_id: i32) -> void = push_op(self, bc.DataConst { .pool_index = pool_index, .type_id = type_id })
-
-// ---- conversions / type checks / casts ----------------------------------
-
-export ref_cast :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, bc.RefCast { .type_id = type_id })
-export type_check :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, bc.TypeCheck { .type_id = type_id })
-export convert :: fn(self: FunctionBuilder, from_name: string, target: bc.ConvertTarget) -> void = push_op(self, bc.Convert { .from_name = from_name, .target = target })
-export int_to_char :: fn(self: FunctionBuilder) -> void = push_op(self, bc.IntToChar {})
-export char_to_int :: fn(self: FunctionBuilder) -> void = push_op(self, bc.CharToInt {})
-
-// ---- i32 arith / compare / bitwise --------------------------------------
-
-export i32_add :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32Add {})
-export i32_sub :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32Sub {})
-export i32_mul :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32Mul {})
-export i32_div :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32Div {})
-export i32_mod :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32Mod {})
-export i32_neg :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32Neg {})
-export i32_eq :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32Eq {})
-export i32_ne :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32Ne {})
-export i32_lt :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32Lt {})
-export i32_le :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32Le {})
-export i32_gt :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32Gt {})
-export i32_ge :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32Ge {})
-export i32_bitnot :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32BitNot {})
-export i32_bitand :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32BitAnd {})
-export i32_bitor :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32BitOr {})
-export i32_bitxor :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32BitXor {})
-export i32_shl :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32Shl {})
-export i32_shr :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32Shr {})
-export i32_shr_u :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32ShrU {})
-
-// ---- u32 ----------------------------------------------------------------
-
-export u32_div :: fn(self: FunctionBuilder) -> void = push_op(self, bc.U32Div {})
-export u32_mod :: fn(self: FunctionBuilder) -> void = push_op(self, bc.U32Mod {})
-export u32_lt :: fn(self: FunctionBuilder) -> void = push_op(self, bc.U32Lt {})
-export u32_le :: fn(self: FunctionBuilder) -> void = push_op(self, bc.U32Le {})
-export u32_gt :: fn(self: FunctionBuilder) -> void = push_op(self, bc.U32Gt {})
-export u32_ge :: fn(self: FunctionBuilder) -> void = push_op(self, bc.U32Ge {})
-
-// ---- i64 ----------------------------------------------------------------
-
-export i64_add :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I64Add {})
-export i64_sub :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I64Sub {})
-export i64_mul :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I64Mul {})
-export i64_div :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I64Div {})
-export i64_mod :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I64Mod {})
-export i64_neg :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I64Neg {})
-export i64_eq :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I64Eq {})
-export i64_ne :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I64Ne {})
-export i64_lt :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I64Lt {})
-export i64_le :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I64Le {})
-export i64_gt :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I64Gt {})
-export i64_ge :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I64Ge {})
-export i64_shl :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I64Shl {})
-export i64_shr :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I64Shr {})
-export i64_shr_u :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I64ShrU {})
-export i64_bitand :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I64BitAnd {})
-export i64_bitor :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I64BitOr {})
-export i64_bitxor :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I64BitXor {})
-export i64_bitnot :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I64BitNot {})
-
-// ---- u64 ----------------------------------------------------------------
-
-export u64_div :: fn(self: FunctionBuilder) -> void = push_op(self, bc.U64Div {})
-export u64_mod :: fn(self: FunctionBuilder) -> void = push_op(self, bc.U64Mod {})
-export u64_lt :: fn(self: FunctionBuilder) -> void = push_op(self, bc.U64Lt {})
-export u64_le :: fn(self: FunctionBuilder) -> void = push_op(self, bc.U64Le {})
-export u64_gt :: fn(self: FunctionBuilder) -> void = push_op(self, bc.U64Gt {})
-export u64_ge :: fn(self: FunctionBuilder) -> void = push_op(self, bc.U64Ge {})
-
-// ---- f64 ----------------------------------------------------------------
-
-export f64_add :: fn(self: FunctionBuilder) -> void = push_op(self, bc.F64Add {})
-export f64_sub :: fn(self: FunctionBuilder) -> void = push_op(self, bc.F64Sub {})
-export f64_mul :: fn(self: FunctionBuilder) -> void = push_op(self, bc.F64Mul {})
-export f64_div :: fn(self: FunctionBuilder) -> void = push_op(self, bc.F64Div {})
-export f64_neg :: fn(self: FunctionBuilder) -> void = push_op(self, bc.F64Neg {})
-export f64_eq :: fn(self: FunctionBuilder) -> void = push_op(self, bc.F64Eq {})
-export f64_ne :: fn(self: FunctionBuilder) -> void = push_op(self, bc.F64Ne {})
-export f64_lt :: fn(self: FunctionBuilder) -> void = push_op(self, bc.F64Lt {})
-export f64_le :: fn(self: FunctionBuilder) -> void = push_op(self, bc.F64Le {})
-export f64_gt :: fn(self: FunctionBuilder) -> void = push_op(self, bc.F64Gt {})
-export f64_ge :: fn(self: FunctionBuilder) -> void = push_op(self, bc.F64Ge {})
-
-// ---- bool / char / string / ref ----------------------------------------
-
-export bool_eq :: fn(self: FunctionBuilder) -> void = push_op(self, bc.BoolEq {})
-export bool_ne :: fn(self: FunctionBuilder) -> void = push_op(self, bc.BoolNe {})
-export bool_and :: fn(self: FunctionBuilder) -> void = push_op(self, bc.BoolAnd {})
-export bool_or :: fn(self: FunctionBuilder) -> void = push_op(self, bc.BoolOr {})
-export bool_not :: fn(self: FunctionBuilder) -> void = push_op(self, bc.BoolNot {})
-export char_eq :: fn(self: FunctionBuilder) -> void = push_op(self, bc.CharEq {})
-export char_ne :: fn(self: FunctionBuilder) -> void = push_op(self, bc.CharNe {})
-export char_lt :: fn(self: FunctionBuilder) -> void = push_op(self, bc.CharLt {})
-export char_le :: fn(self: FunctionBuilder) -> void = push_op(self, bc.CharLe {})
-export char_gt :: fn(self: FunctionBuilder) -> void = push_op(self, bc.CharGt {})
-export char_ge :: fn(self: FunctionBuilder) -> void = push_op(self, bc.CharGe {})
-export string_eq :: fn(self: FunctionBuilder) -> void = push_op(self, bc.StringEq {})
-export string_ne :: fn(self: FunctionBuilder) -> void = push_op(self, bc.StringNe {})
-export ref_eq :: fn(self: FunctionBuilder) -> void = push_op(self, bc.RefEq {})
-export ref_ne :: fn(self: FunctionBuilder) -> void = push_op(self, bc.RefNe {})
-
-// ---- misc ---------------------------------------------------------------
-
-export drop :: fn(self: FunctionBuilder) -> void = push_op(self, bc.Drop {})
-export return_op :: fn(self: FunctionBuilder) -> void = push_op(self, bc.Return {})
