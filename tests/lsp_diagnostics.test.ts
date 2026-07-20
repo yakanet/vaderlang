@@ -36,15 +36,27 @@ function sepIndex(buf: Uint8Array): number {
   return -1;
 }
 
+// Mirror the server's `path_to_uri` (vader/lsp/protocol/uri.vader): forward-slash
+// the path, and give a Windows drive path (`C:\...`) the extra leading slash so it
+// becomes `file:///C:/...`. On POSIX the path already starts with `/`, so this is
+// byte-identical to the old `file://${p}`. A naive `file://${p}` on Windows yields
+// the malformed `file://C:\...`, which `uri_to_path` leaves with `\` separators
+// while the loader normalises spans to `/` (to_posix) — so the publish filter drops
+// every diagnostic and the server looks silent.
+function pathToUri(p: string): string {
+  const posix = p.replace(/\\/g, "/");
+  return posix.startsWith("/") ? `file://${posix}` : `file:///${posix}`;
+}
+
 // Spawn `vader lsp`, open `source` as a document, and return the diagnostics of
 // the last `publishDiagnostics` notification the server pushes for it.
 async function diagnosticsFor(source: string): Promise<Diag[]> {
   const dir = mkdtempSync(join(tmpdir(), "vlspdiag-"));
   const file = join(dir, "lint-me.vader");
   writeFileSync(file, source);
-  const uri = `file://${file}`;
+  const uri = pathToUri(file);
   const requests: object[] = [
-    { jsonrpc: "2.0", id: 1, method: "initialize", params: { rootUri: `file://${dir}`, capabilities: {} } },
+    { jsonrpc: "2.0", id: 1, method: "initialize", params: { rootUri: pathToUri(dir), capabilities: {} } },
     { jsonrpc: "2.0", method: "initialized", params: {} },
     { jsonrpc: "2.0", method: "textDocument/didOpen",
       params: { textDocument: { uri, languageId: "vader", version: 1, text: source } } },
