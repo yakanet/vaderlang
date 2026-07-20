@@ -692,6 +692,29 @@ check_assign :: fn(
             emit_assign_mismatch_if(value_ty, elem_ty, s.span, s.value.id, typed, diags)
             return
         }
+        // TypeParam bounded by `IndexSet<I, V>` — `c[i] = v` dispatches through
+        // the bound (`set_at`), like the `c[i]` read routes through `Index`.
+        // Record the dispatch so `try_lower_index_set_assign` emits the virtual
+        // call, and pin the write value to V.
+        if target_arr_ty is TypeParamType as tp {
+            bound :: typed.resolved.type_param_bounds[tp.symbol.id]
+            if bound != null {
+                set_args :: bounded_trait_args(bound, TRAIT_INDEX_SET, typed)
+                if set_args != null {
+                    if set_args.len() >= 2 {
+                        typed.bounded_dispatch_trait[ix.id] = TRAIT_INDEX_SET
+                        if typed.current_fn_ctx is FnContext as fctx {
+                            if fctx.fn_id != 0 {
+                                typed.fn_trait_dispatches[fctx.fn_id] = true
+                            }
+                        }
+                        set_value :: check_expr_fn(s.value, set_args[1], typed, diags)
+                        emit_assign_mismatch_if(set_value, set_args[1], s.span, s.value.id, typed, diags)
+                        return
+                    }
+                }
+            }
+        }
         // Pin a free-literal write value to the IndexSet value type V
         // (`m[k] = 9000000000`) and check the write fits V. A `null` V means
         // the receiver records no `IndexSet` impl — the read-side dispatch
