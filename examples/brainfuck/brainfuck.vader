@@ -118,73 +118,73 @@ match_brackets :: fn(tokens: char[]) -> i32[] {
 emit_bf_char :: fn(fb: FunctionBuilder, c: char, idx: usize, partner: i32[], cells_type_id: i32, print_byte_index: i32) -> void {
     match c {
         '>' -> { // move right ; grow the tape lazily if we step past the end.
-            fb.local_get(1)
-            fb.i32_const(1)
-            fb.i32_add()
-            fb.local_set(1)
+            fb.push(bc.LocalGet { .slot = 1 })
+            fb.push(bc.I32Const { .value = 1 })
+            fb.push(bc.I32Add {})
+            fb.push(bc.LocalSet { .slot = 1 })
             // The pointer only moves one cell at a time, so it reaches the
             // tape end exactly when a new cell is due : if __ptr < the tape
             // length the cell already exists, otherwise append a fresh zero.
             grow_label :: "bf_grow_${idx}"
             fb.block(grow_label)
-            fb.local_get(1)        // __ptr
-            fb.local_get(0)        // __mem
-            fb.array_len()         // current tape length
-            fb.i32_lt()
-            fb.br_if(grow_label)   // __ptr < length → cell exists, skip grow
-            fb.local_get(0)
-            fb.i32_const(0)
-            fb.array_push(cells_type_id)
+            fb.push(bc.LocalGet { .slot = 1 })   // __ptr
+            fb.push(bc.LocalGet { .slot = 0 })   // __mem
+            fb.push(bc.ArrayLen {})              // current tape length
+            fb.push(bc.I32Lt {})
+            fb.br_if(grow_label)                 // __ptr < length → cell exists, skip grow
+            fb.push(bc.LocalGet { .slot = 0 })
+            fb.push(bc.I32Const { .value = 0 })
+            fb.push(bc.ArrayPush { .type_id = cells_type_id })
             fb.end()
         }
         '<' -> { // move the data pointer one cell to the left.
-            fb.local_get(1)
-            fb.i32_const(1)
-            fb.i32_sub()
-            fb.local_set(1)
+            fb.push(bc.LocalGet { .slot = 1 })
+            fb.push(bc.I32Const { .value = 1 })
+            fb.push(bc.I32Sub {})
+            fb.push(bc.LocalSet { .slot = 1 })
         }
         '+' -> { // increment the cell under the pointer.
-            fb.local_get(0)
-            fb.local_get(1)
-            fb.local_get(0)
-            fb.local_get(1)
-            fb.array_get(cells_type_id)
-            fb.i32_const(1)
-            fb.i32_add()
-            fb.array_set(cells_type_id)
+            fb.push(bc.LocalGet { .slot = 0 })
+            fb.push(bc.LocalGet { .slot = 1 })
+            fb.push(bc.LocalGet { .slot = 0 })
+            fb.push(bc.LocalGet { .slot = 1 })
+            fb.push(bc.ArrayGet { .type_id = cells_type_id })
+            fb.push(bc.I32Const { .value = 1 })
+            fb.push(bc.I32Add {})
+            fb.push(bc.ArraySet { .type_id = cells_type_id })
         }
         '-' -> { // decrement the cell under the pointer.
-            fb.local_get(0)
-            fb.local_get(1)
-            fb.local_get(0)
-            fb.local_get(1)
-            fb.array_get(cells_type_id)
-            fb.i32_const(1)
-            fb.i32_sub()
-            fb.array_set(cells_type_id)
+            fb.push(bc.LocalGet { .slot = 0 })
+            fb.push(bc.LocalGet { .slot = 1 })
+            fb.push(bc.LocalGet { .slot = 0 })
+            fb.push(bc.LocalGet { .slot = 1 })
+            fb.push(bc.ArrayGet { .type_id = cells_type_id })
+            fb.push(bc.I32Const { .value = 1 })
+            fb.push(bc.I32Sub {})
+            fb.push(bc.ArraySet { .type_id = cells_type_id })
         }
         '.' -> { // print the cell under the pointer as a byte.
-            fb.local_get(0)
-            fb.local_get(1)
-            fb.array_get(cells_type_id)
-            fb.call(print_byte_index)
+            fb.push(bc.LocalGet { .slot = 0 })
+            fb.push(bc.LocalGet { .slot = 1 })
+            fb.push(bc.ArrayGet { .type_id = cells_type_id })
+            fb.push(bc.Call { .function_index = print_byte_index })
         }
         ',' -> { // read a byte into the current cell.
-            fb.local_get(0)
-            fb.local_get(1)
-            fb.i32_const(0)
-            fb.array_set(cells_type_id)
+            fb.push(bc.LocalGet { .slot = 0 })
+            fb.push(bc.LocalGet { .slot = 1 })
+            fb.push(bc.I32Const { .value = 0 })
+            fb.push(bc.ArraySet { .type_id = cells_type_id })
         }
         '[' -> { // open a loop
             block_label :: "bf_block_${idx}"
             loop_label  :: "bf_loop_${idx}"
             fb.block(block_label)
             fb.loop_(loop_label)
-            fb.local_get(0)
-            fb.local_get(1)
-            fb.array_get(cells_type_id)
-            fb.i32_const(0)
-            fb.i32_eq()
+            fb.push(bc.LocalGet { .slot = 0 })
+            fb.push(bc.LocalGet { .slot = 1 })
+            fb.push(bc.ArrayGet { .type_id = cells_type_id })
+            fb.push(bc.I32Const { .value = 0 })
+            fb.push(bc.I32Eq {})
             fb.br_if(block_label)
         }
         ']' -> { // jump back to the matching `[`
@@ -205,8 +205,8 @@ emit_bf_char :: fn(fb: FunctionBuilder, c: char, idx: usize, partner: i32[], cel
 unmatched_bracket_module :: fn() -> bc.BytecodeModule {
     stub :: new_module_builder()
     main_fn :: new_function_builder("bf_main", 0, 0)
-    main_fn.i32_const(1)
-    main_fn.return_op()
+    main_fn.push(bc.I32Const { .value = 1 })
+    main_fn.push(bc.Return {})
     stub.set_main(stub.add_function(main_fn))
     return stub.finish()
 }
@@ -244,16 +244,16 @@ compile_brainfuck :: fn(source: string) -> bc.BytecodeModule {
     //
     // Slot layout : slot 0 = byte argument (i32), slot 1 = __buf (u8[]).
     print_byte :: new_function_builder("print_byte", 1, 1)
-    print_byte.array_new(bytes_type_id, 0)
-    print_byte.local_set(1)
-    print_byte.local_get(1)
-    print_byte.local_get(0)
-    print_byte.array_push(bytes_type_id)
-    print_byte.i32_const(0)        // Stream.Stdout
-    print_byte.local_get(1)
-    print_byte.call_import(bytes_to_string_index)
-    print_byte.call_import(write_import_index)
-    print_byte.return_op()
+    print_byte.push(bc.ArrayNew { .type_id = bytes_type_id })
+    print_byte.push(bc.LocalSet { .slot = 1 })
+    print_byte.push(bc.LocalGet { .slot = 1 })
+    print_byte.push(bc.LocalGet { .slot = 0 })
+    print_byte.push(bc.ArrayPush { .type_id = bytes_type_id })
+    print_byte.push(bc.I32Const { .value = 0 })        // Stream.Stdout
+    print_byte.push(bc.LocalGet { .slot = 1 })
+    print_byte.push(bc.CallImport { .index = bytes_to_string_index })
+    print_byte.push(bc.CallImport { .index = write_import_index })
+    print_byte.push(bc.Return {})
     print_byte_index :: module_builder.add_function(print_byte)
 
     // ---- fn bf_main() -> i32 ---------------------------------------------
@@ -262,14 +262,14 @@ compile_brainfuck :: fn(source: string) -> bc.BytecodeModule {
     // __mem = [0] — start with a single zero cell ; the tape grows on demand
     // as `>` walks past the current end (see emit_bf_char). No 30000-cell
     // pre-fill : only the cells a program touches ever get allocated.
-    bf_main.array_new(cells_type_id, 0)
-    bf_main.local_set(0)
-    bf_main.local_get(0)
-    bf_main.i32_const(0)
-    bf_main.array_push(cells_type_id)
+    bf_main.push(bc.ArrayNew { .type_id = cells_type_id })
+    bf_main.push(bc.LocalSet { .slot = 0 })
+    bf_main.push(bc.LocalGet { .slot = 0 })
+    bf_main.push(bc.I32Const { .value = 0 })
+    bf_main.push(bc.ArrayPush { .type_id = cells_type_id })
     // __ptr = 0
-    bf_main.i32_const(0)
-    bf_main.local_set(1)
+    bf_main.push(bc.I32Const { .value = 0 })
+    bf_main.push(bc.LocalSet { .slot = 1 })
 
     // BF body
     token_index: usize = 0
@@ -280,8 +280,8 @@ compile_brainfuck :: fn(source: string) -> bc.BytecodeModule {
     }
 
     // return 0
-    bf_main.i32_const(0)
-    bf_main.return_op()
+    bf_main.push(bc.I32Const { .value = 0 })
+    bf_main.push(bc.Return {})
 
     main_index :: module_builder.add_function(bf_main)
     module_builder.set_main(main_index)

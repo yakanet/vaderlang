@@ -28,3 +28,53 @@ export write_virt :: fn(module: bc.BytecodeModule) -> string {
     }
     return bc.dump_bytecode(module, entry)
 }
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// Round-trip a builder-constructed module through `write_virt` → `parse_virt_bc`
+// and assert the parsed copy execs to the same value : the writer/reader pair is
+// a behavioural identity. Doubles as the coverage for `FunctionBuilder.push` (the
+// op-emission entry point) and the `ModuleBuilder` assembler — the sole consumers
+// of `vader/vm/builder`.
+@test
+test_virt_roundtrip :: fn() -> void {
+    builder :: new_module_builder()
+    builder.add_type(bc.BcPrimitive { .val = bc.ValType.I32 })
+
+    // compute(a, b) -> i32 = (a + b) * 2
+    compute :: new_function_builder("compute", 2, 0)
+    compute.push(bc.LocalGet { .slot = 0 })
+    compute.push(bc.LocalGet { .slot = 1 })
+    compute.push(bc.I32Add {})
+    compute.push(bc.I32Const { .value = 2 })
+    compute.push(bc.I32Mul {})
+    compute.push(bc.Return {})
+    compute_index :: builder.add_function(compute)
+
+    // main() -> i32 = compute(40, 1)   // → 82
+    entry :: new_function_builder("main", 0, 0)
+    entry.push(bc.I32Const { .value = 40 })
+    entry.push(bc.I32Const { .value = 1 })
+    entry.push(bc.Call { .function_index = compute_index })
+    entry.push(bc.Return {})
+    builder.set_main(builder.add_function(entry))
+
+    original :: builder.finish()
+    assert(exec_value(original) == 82, "freshly built module should exec to 82")
+
+    // write_virt → parse_virt_bc must preserve behaviour.
+    round_tripped :: parse_virt_bc(write_virt(original))
+    assert(exec_value(round_tripped) == 82, "round-tripped module should exec to 82")
+}
+
+// Exec `module` and return its exit value, failing the test on a trap.
+exec_value :: fn(module: bc.BytecodeModule) -> i32 {
+    result :: exec(prepare(module), [])
+    if result is Trap as t {
+        assert(false, "unexpected VM trap: ${t.message}")
+        return -1
+    }
+    return result.value
+}
