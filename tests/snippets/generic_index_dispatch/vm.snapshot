@@ -1,0 +1,7 @@
+# stdout
+direct_read=20
+direct_after_write=99
+generic_read=30
+generic_after_write=77
+# exit
+0

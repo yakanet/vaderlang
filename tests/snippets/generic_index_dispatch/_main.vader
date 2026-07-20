@@ -1,0 +1,52 @@
+// Regression: the index OPERATOR dispatches through the `Index` / `IndexSet`
+// trait bounds, not just on a concrete receiver.
+//
+// `c[i]` (read) and `c[i] = v` (write) on a `[C: Index]` / `[C: IndexSet]`
+// type-param bound must route to the impl's `at` / `set_at` via a virtual call.
+// Before the fix, `c[i]` on a bound gave T3008 "not indexable" and `c[i] = v`
+// mis-lowered to a built-in `array.set` (runtime "expected array, got struct").
+// Direct indexing on a concrete `Index` / `IndexSet` struct is the baseline the
+// generic form must match.
+
+module "snippet"
+
+import "std/io"
+
+// A tiny cell over a backing array : `at` reads a slot, `set_at` writes one.
+Cell :: struct {
+    slots: i32[]
+}
+
+Cell implements Index<usize, i32> {
+    at :: fn(self, i: usize) -> i32 = self.slots[i]
+}
+
+Cell implements IndexSet<usize, i32> {
+    set_at :: fn(self, i: usize, v: i32) {
+        self.slots[i] = v
+    }
+}
+
+// Generic read through the `Index` bound.
+read_nth :: fn<C: Index<usize, i32>>(c: C, i: usize) -> i32 = c[i]
+
+// Generic write through the `IndexSet` bound.
+write_nth :: fn<C: IndexSet<usize, i32>>(c: C, i: usize, v: i32) {
+    c[i] = v
+}
+
+main :: fn() -> i32 {
+    cell :: Cell { .slots = [10, 20, 30] }
+
+    // Direct concrete indexing — the baseline.
+    println("direct_read=${cell[1]}")
+    cell[1] = 99
+    println("direct_after_write=${cell[1]}")
+
+    // Generic-bounded dispatch — the fixed operator path.
+    println("generic_read=${read_nth<Cell>(cell, 2)}")
+    write_nth<Cell>(cell, 2, 77)
+    println("generic_after_write=${read_nth<Cell>(cell, 2)}")
+
+    return 0
+}

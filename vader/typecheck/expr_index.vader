@@ -47,6 +47,27 @@ export infer_index :: fn(
         }
         return arr_view.element
     }
+    // A TypeParam bounded by `Index<I, T>` — `c[i]` dispatches through the bound
+    // exactly like the method form `c.at(i)` (`try_typeparam_bound_method`).
+    // Resolve the result type `T` and record the dispatch so `lower_index` emits
+    // a virtual `Index.at` call on the erased receiver.
+    if target is TypeParamType as tp {
+        bound :: typed.resolved.type_param_bounds[tp.symbol.id]
+        if bound != null {
+            idx_args :: bounded_trait_args(bound, TRAIT_INDEX, typed)
+            if idx_args != null {
+                if idx_args.len() >= 2 {
+                    typed.bounded_dispatch_trait[e.id] = TRAIT_INDEX
+                    if typed.current_fn_ctx is FnContext as fctx {
+                        if fctx.fn_id != 0 {
+                            typed.fn_trait_dispatches[fctx.fn_id] = true
+                        }
+                    }
+                    return idx_args[1]
+                }
+            }
+        }
+    }
     // @partial: structs index by their Index impl; the string case is handled
     // above, and every other type kind is not indexable.
     @partial match target {
@@ -65,6 +86,30 @@ export infer_index :: fn(
             return TY_UNRESOLVED
         }
     }
+}
+
+/// The type args of a named trait carried by a TypeParam's bound (e.g.
+/// `Index<I, T>` / `IndexSet<I, V>` in `[C: Index<usize, T>]`), or null when the
+/// bound names no such trait. Walks `A & B` intersections the same way
+/// `dispatch_bounded_method_trait` does. Shared by the `c[i]` read (Index) and
+/// the `c[i] = v` write (IndexSet, in `stmt.vader::check_assign`).
+export bounded_trait_args :: fn(bound: AST.Expr, trait_name: string, typed: TypedProgram) -> Type[] | null {
+    if bound is AST.BinaryExpr as be {
+        if be.op == AST.BinaryOp.BitAnd {
+            l :: bounded_trait_args(be.left, trait_name, typed)
+            if l != null {
+                return l
+            }
+            return bounded_trait_args(be.right, trait_name, typed)
+        }
+    }
+    bound_ty :: type_from_expr(bound, typed.resolved, [])
+    if bound_ty is TraitType as tt {
+        if tt.symbol.name == trait_name {
+            return tt.args
+        }
+    }
+    return null
 }
 
 /// Resolved key type K for an `m[k]` index target, or null when the

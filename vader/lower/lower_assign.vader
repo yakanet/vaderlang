@@ -105,6 +105,19 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
             }
         }
     }
+    // TypeParam-bounded `Index` receiver : the typer recorded the dispatch on
+    // this index expr — emit a virtual `Index.at(c, i)` call so the erased
+    // receiver's runtime tag picks the impl, mirroring the `c.at(i)` method form
+    // (`try_lower_virtual_call`).
+    if ctx.typed.bounded_dispatch_trait[expr.id] is string as bounded_trait {
+        ctx.project.virtually_dispatched_traits.add(bounded_trait)
+        return LoweredVirtualCall {
+            .span = expr.span, .type = type,
+            .trait_name = bounded_trait, .method = METHOD_AT,
+            .receiver = lower_expr(ctx, expr.target),
+            .args = [lower_expr(ctx, expr.index)],
+        }
+    }
     // Index trait routing : `s[i]` on a `string` / user struct with an
     // `Index<I, T>` impl rewrites to a direct `at(s, i)` call. Skip for
     // ArrayType (built-in path above) and for Range-typed indices
@@ -241,6 +254,22 @@ try_lower_index_set_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> Lo
     // other Expr target → null (handled by the regular assign path).
     @partial match target {
         is IndexExpr as idx -> {
+            // TypeParam-bounded `IndexSet` receiver : the typer recorded the
+            // dispatch on this index expr (`check_assign`) — emit a virtual
+            // `IndexSet.set_at(c, i, v)` call (erased receiver, runtime tag picks
+            // the impl), mirroring the read-side `Index.at` vcall in `lower_index`.
+            if ctx.typed.bounded_dispatch_trait[idx.id] is string as bounded_trait {
+                ctx.project.virtually_dispatched_traits.add(bounded_trait)
+                return LoweredExprStmt {
+                    .span = assign_stmt.span,
+                    .expr = LoweredVirtualCall {
+                        .span = assign_stmt.span, .type = TY_VOID,
+                        .trait_name = bounded_trait, .method = METHOD_SET_AT,
+                        .receiver = lower_expr(ctx, idx.target),
+                        .args = [lower_expr(ctx, idx.index), lower_expr(ctx, assign_stmt.value)],
+                    },
+                }
+            }
             target_type :: ctx.types.expr_type(idx.target)
             // Resolve the write through the `IndexSet` impl by TRAIT identity —
             // never by a hard-coded `"set_at"` literal. This matches how the

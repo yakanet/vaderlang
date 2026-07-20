@@ -1,0 +1,276 @@
+# Lower
+
+## snippet
+  struct snippet$Cell { slots: i32[] }
+  fn snippet$Cell$Index$at(self: Cell, i: usize) -> i32
+    ~>
+      index :i32
+        on:
+          .slots :i32[]
+            self :Cell
+        ix:
+          i :usize
+  fn snippet$Cell$IndexSet$set_at(self: Cell, i: usize, v: i32) -> void
+    assign
+      target:
+        index :i32
+          on:
+            .slots :i32[]
+              self :Cell
+          ix:
+            i :usize
+      value:
+        v :i32
+  fn snippet$main() -> i32
+    let cell: Cell =
+      Cell {
+        slots:
+          array :i32[]
+            int(10) :i32
+            int(20) :i32
+            int(30) :i32
+      }
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(32) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "direct_read=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    index :i32
+                      on:
+                        .slots :i32[]
+                          cell :Cell
+                      ix:
+                        int(1) :usize
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+    call :void
+      callee:
+        snippet$Cell$IndexSet$set_at :void
+      arg0:
+        cell :Cell
+      arg1:
+        int(1) :usize
+      arg2:
+        int(99) :i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(39) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  "direct_after_write=" :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  cast → i64
+                    index :i32
+                      on:
+                        .slots :i32[]
+                          cell :Cell
+                      ix:
+                        int(1) :usize
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_4: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(33) :usize
+          let __off_5: usize = int(0) :usize
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  "generic_read=" :string
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        snippet$read_nth__Cell :i32
+                      arg0:
+                        cell :Cell
+                      arg1:
+                        int(2) :usize
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_4 :Buffer
+              arg1:
+                __off_5 :usize
+    call :void
+      callee:
+        snippet$write_nth__Cell :void
+      arg0:
+        cell :Cell
+      arg1:
+        int(2) :usize
+      arg2:
+        int(77) :i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_6: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(40) :usize
+          let __off_7: usize = int(0) :usize
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  "generic_after_write=" :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        snippet$read_nth__Cell :i32
+                      arg0:
+                        cell :Cell
+                      arg1:
+                        int(2) :usize
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_6 :Buffer
+              arg1:
+                __off_7 :usize
+    return int(0) :i32
+  fn snippet$read_nth__Cell(c: Cell, i: usize) -> i32
+    ~>
+      vcall Index.at :i32
+        recv:
+          c :Cell
+        arg0:
+          i :usize
+  fn snippet$write_nth__Cell(c: Cell, i: usize, v: i32) -> void
+    vcall IndexSet.set_at :void
+      recv:
+        c :Cell
+      arg0:
+        i :usize
+      arg1:
+        v :i32

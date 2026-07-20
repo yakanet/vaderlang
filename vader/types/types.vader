@@ -225,30 +225,30 @@ export resolve_primitive_alias :: fn(name: string) -> string {
 /// Names of stdlib core traits used for compiler-driven dispatch. Kept as
 /// plain string constants so cross-module symbol lookup goes through
 /// resolved imports rather than a privileged registry.
-export TRAIT_DISPLAY    :: "Display"
-export TRAIT_ERROR      :: "Error"
-export TRAIT_EQUALS     :: "Equals"
-export TRAIT_COMPARABLE :: "Comparable"
-export TRAIT_ADD        :: "Add"
-export TRAIT_SUB        :: "Sub"
-export TRAIT_MUL        :: "Mul"
-export TRAIT_DIV        :: "Div"
-export TRAIT_REM        :: "Rem"
-export TRAIT_HASH       :: "Hash"
-export TRAIT_CLONE      :: "Clone"
-export TRAIT_STEP       :: "Step"
-export TRAIT_INTO       :: "Into"
-export TRAIT_ITERATOR   :: "Iterator"
-export TRAIT_ASYNC      :: "Async"
+export TRAIT_DISPLAY    :: @type_name(Display)
+export TRAIT_ERROR      :: @type_name(Error)
+export TRAIT_EQUALS     :: @type_name(Equals)
+export TRAIT_COMPARABLE :: @type_name(Comparable)
+export TRAIT_ADD        :: @type_name(Add)
+export TRAIT_SUB        :: @type_name(Sub)
+export TRAIT_MUL        :: @type_name(Mul)
+export TRAIT_DIV        :: @type_name(Div)
+export TRAIT_REM        :: @type_name(Rem)
+export TRAIT_HASH       :: @type_name(Hash)
+export TRAIT_CLONE      :: @type_name(Clone)
+export TRAIT_STEP       :: @type_name(Step)
+export TRAIT_INTO       :: @type_name(Into)
+export TRAIT_ITERATOR   :: @type_name(Iterator)
+export TRAIT_ASYNC      :: @type_name(Async)
 export TRAIT_ITERABLE   :: "Iterable"
-export TRAIT_CONTAINS   :: "Contains"
-export TRAIT_INDEX      :: "Index"
-export TRAIT_INDEX_SET  :: "IndexSet"
+export TRAIT_CONTAINS   :: @type_name(Contains)
+export TRAIT_INDEX      :: @type_name(Index)
+export TRAIT_INDEX_SET  :: @type_name(IndexSet)
 
 /// Names of stdlib core structs the compiler refers to by symbol.
 export STRUCT_RANGE          :: "Range"
 export STRUCT_ARRAY_ITERATOR :: "ArrayIterator"
-export STRUCT_YIELD          :: "Yield"
+export STRUCT_YIELD          :: @type_name(Yield)
 export STRUCT_SUSPENDED      :: "Suspended"
 export STRUCT_FIELD          :: "Field"
 
@@ -272,6 +272,7 @@ export METHOD_TO_STRING  :: "to_string"
 export METHOD_HASH       :: "hash"
 export METHOD_ITER       :: "iter"
 export METHOD_AT         :: "at"
+export METHOD_SET_AT     :: "set_at"
 
 // ---- constructors ---------------------------------------------------------
 
