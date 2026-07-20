@@ -240,17 +240,16 @@ export TRAIT_STEP       :: @type_name(Step)
 export TRAIT_INTO       :: @type_name(Into)
 export TRAIT_ITERATOR   :: @type_name(Iterator)
 export TRAIT_ASYNC      :: @type_name(Async)
-export TRAIT_ITERABLE   :: "Iterable"
 export TRAIT_CONTAINS   :: @type_name(Contains)
 export TRAIT_INDEX      :: @type_name(Index)
 export TRAIT_INDEX_SET  :: @type_name(IndexSet)
 
 /// Names of stdlib core structs the compiler refers to by symbol.
-export STRUCT_RANGE          :: "Range"
-export STRUCT_ARRAY_ITERATOR :: "ArrayIterator"
+export STRUCT_RANGE          :: @type_name(Range)
+export STRUCT_ARRAY_ITERATOR :: @type_name(ArrayIterator)
 export STRUCT_YIELD          :: @type_name(Yield)
-export STRUCT_SUSPENDED      :: "Suspended"
-export STRUCT_FIELD          :: "Field"
+export STRUCT_SUSPENDED      :: @type_name(Suspended)
+export STRUCT_FIELD          :: @type_name(Field)
 
 /// Method names the compiler dispatches by, paired with the `TRAIT_*` above
 /// (`Add::add`, `Comparable::compare`, `Iterator::next`, …). Same rationale as
