@@ -159,12 +159,6 @@
               r:
                 int(1) :usize
     let bom: string = "﻿data" :string
-    let bb: const u8[] =
-      call :const u8[]
-        callee:
-          bytes :const u8[]
-        arg0:
-          bom :string
     call :void
       callee:
         std_io$println__string :void
@@ -208,10 +202,12 @@
                   __off_11 :usize
                 arg2:
                   cast → u64
-                    index :u8
-                      on:
-                        bb :const u8[]
-                      ix:
+                    call :u8
+                      callee:
+                        byte_at :u8
+                      arg0:
+                        bom :string
+                      arg1:
                         int(0) :i32
           assign
             target:
@@ -239,10 +235,12 @@
                   __off_11 :usize
                 arg2:
                   cast → u64
-                    index :u8
-                      on:
-                        bb :const u8[]
-                      ix:
+                    call :u8
+                      callee:
+                        byte_at :u8
+                      arg0:
+                        bom :string
+                      arg1:
                         int(1) :i32
           assign
             target:
@@ -270,10 +268,12 @@
                   __off_11 :usize
                 arg2:
                   cast → u64
-                    index :u8
-                      on:
-                        bb :const u8[]
-                      ix:
+                    call :u8
+                      callee:
+                        byte_at :u8
+                      arg0:
+                        bom :string
+                      arg1:
                         int(2) :i32
           ~>
             call :string
@@ -321,10 +321,12 @@
                   __off_13 :usize
                 arg2:
                   cast → u64
-                    index :u8
-                      on:
-                        bb :const u8[]
-                      ix:
+                    call :u8
+                      callee:
+                        byte_at :u8
+                      arg0:
+                        bom :string
+                      arg1:
                         int(3) :i32
           assign
             target:

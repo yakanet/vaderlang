@@ -5,8 +5,8 @@ type 2 primitive string
 type 3 primitive bool
 type 4 primitive usize
 type 5 struct std_core$Buffer {  }
-type 6 array 7
-type 7 primitive u8
+type 6 primitive u8
+type 7 array 6
 type 8 primitive void
 type 9 primitive char
 type 10 array 2
@@ -349,7 +349,7 @@ fn 11 std_string$split (string,string) -> ref
           local.get 3
           local.get 6
           local.get 7
-          array.slice 6
+          array.slice 7
           call.import 1
           local.set 8
           local.get 2
@@ -386,7 +386,7 @@ fn 11 std_string$split (string,string) -> ref
         local.get 3
         local.get 6
         local.get 7
-        array.slice 6
+        array.slice 7
         call.import 1
         local.set 8
         local.get 2
@@ -409,7 +409,7 @@ fn 11 std_string$split (string,string) -> ref
   local.get 3
   local.get 6
   local.get 4
-  array.slice 6
+  array.slice 7
   call.import 1
   local.set 8
   local.get 2
@@ -624,13 +624,13 @@ fn 16 std_string$bytes_match_at (ref,usize,ref,usize) -> bool
         local.set 5
         local.get 0
         local.get 5
-        array.get 6
-        ref.cast 7
+        array.get 7
+        ref.cast 6
         local.set 6
         local.get 2
         local.get 4
-        array.get 6
-        ref.cast 7
+        array.get 7
+        ref.cast 6
         local.set 7
         local.get 6
         local.get 7
@@ -664,8 +664,8 @@ fn 17 std_string$utf8_decode (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 1
-  array.get 6
-  ref.cast 7
+  array.get 7
+  ref.cast 6
   local.tee 3
   i32.const 128
   u32.lt
@@ -703,8 +703,8 @@ fn 17 std_string$utf8_decode (ref,usize) -> char
     local.set 4
     local.get 0
     local.get 4
-    array.get 6
-    ref.cast 7
+    array.get 7
+    ref.cast 6
     local.set 5
     local.get 3
     u8.to_i32
@@ -742,8 +742,8 @@ fn 17 std_string$utf8_decode (ref,usize) -> char
     local.set 4
     local.get 0
     local.get 4
-    array.get 6
-    ref.cast 7
+    array.get 7
+    ref.cast 6
     local.set 5
     local.get 1
     i64.const 2
@@ -751,8 +751,8 @@ fn 17 std_string$utf8_decode (ref,usize) -> char
     local.set 4
     local.get 0
     local.get 4
-    array.get 6
-    ref.cast 7
+    array.get 7
+    ref.cast 6
     local.set 8
     local.get 3
     u8.to_i32
@@ -797,8 +797,8 @@ fn 17 std_string$utf8_decode (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 2
-  array.get 6
-  ref.cast 7
+  array.get 7
+  ref.cast 6
   local.set 5
   local.get 1
   i64.const 2
@@ -806,8 +806,8 @@ fn 17 std_string$utf8_decode (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 2
-  array.get 6
-  ref.cast 7
+  array.get 7
+  ref.cast 6
   local.set 8
   local.get 1
   i64.const 3
@@ -815,8 +815,8 @@ fn 17 std_string$utf8_decode (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 2
-  array.get 6
-  ref.cast 7
+  array.get 7
+  ref.cast 6
   local.set 9
   local.get 3
   u8.to_i32

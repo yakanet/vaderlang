@@ -1234,7 +1234,7 @@ static void std_collections_std_collections_rehash__usize__bool(void* l0, size_t
                 while (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = (vader_array_buf_t*) _a1_slotarr->buf->header.forward; }
                 if ((size_t) l4 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 t0 = ((int64_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l4];
-#line 295 "stdlib/std/core/primitives.vader"
+#line 303 "stdlib/std/core/primitives.vader"
 #line 101 "stdlib/std/collections/collections.vader"
                 l6 = std_collections_slot_for((uint64_t) (int64_t) t0, l3);
 #line 102 "stdlib/std/collections/collections.vader"
@@ -1363,7 +1363,7 @@ static void std_collections_std_collections_put__usize__bool(void* l0, size_t l1
 #line 133 "stdlib/std/collections/collections.vader"
     } else {
     }
-#line 295 "stdlib/std/core/primitives.vader"
+#line 303 "stdlib/std/core/primitives.vader"
     t0 = ((int64_t) (size_t) l1);
     l6 = (uint64_t) (int64_t) t0;
 #line 138 "stdlib/std/collections/collections.vader"
@@ -1482,7 +1482,7 @@ static bool std_collections_std_collections_contains_key__usize__bool(void* l0, 
     if (t0 == INT64_C(0)) {
         return false;
     }
-#line 295 "stdlib/std/core/primitives.vader"
+#line 303 "stdlib/std/core/primitives.vader"
     t1 = ((int64_t) (size_t) l1);
     l2 = (uint64_t) (int64_t) t1;
 #line 192 "stdlib/std/collections/collections.vader"

@@ -48,7 +48,7 @@ static int32_t snippet_main(void) {
 static uint64_t snippet_hash_twice__i32(int32_t l0) {
     uint64_t l1, l2;
     int64_t t0;
-#line 288 "stdlib/std/core/primitives.vader"
+#line 296 "stdlib/std/core/primitives.vader"
     t0 = ((int64_t) (int32_t) l0);
     l1 = (uint64_t) (int64_t) t0;
     t0 = ((int64_t) (int32_t) l0);

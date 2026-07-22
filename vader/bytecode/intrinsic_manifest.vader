@@ -109,9 +109,9 @@ export IntrinsicId :: enum(u8) {
     IoWrite, IoExists, IoIsDir, IoTempDir, IoReadDir, IoReadFileBytes, IoWriteFileBytes,
     IoReadLine, IoReadStdin, IoPollStdin, IoSetStdinUnbuffered, IoCurrentExecutableLocation,
     // std/core string + bytes
-    ByteLen,
-    CoreBytes, CoreBytesToString, CoreStringIndexAt, CoreStringHash,
-    CoreStringEquals, CoreStringNotEquals,
+    ByteLen, ByteAt,
+    Bytes, BytesToString, StringIndexAt, StringHash,
+    StringEquals, StringNotEquals,
     // primitive members (recognised via the grammar helpers, any width)
     PrimIntEquals, PrimIntNotEquals, PrimDisplayToString,
     // std/runtime
@@ -156,13 +156,14 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_io$current_executable_location"  { return .IoCurrentExecutableLocation }
 
     if mangled == r"std_core$byte_len"                   { return .ByteLen }
+    if mangled == r"std_core$byte_at"                    { return .ByteAt }
 
-    if mangled == r"std_core$bytes"                      { return .CoreBytes }
-    if mangled == r"std_core$bytes_to_string"            { return .CoreBytesToString }
-    if mangled == primitive_member_mangle("string", "Index", "at")  { return .CoreStringIndexAt }
-    if mangled == primitive_member_mangle("string", "Hash", "hash") { return .CoreStringHash }
-    if mangled == r"std_core$string$Equals$equals"       { return .CoreStringEquals }
-    if mangled == r"std_core$string$Equals$not_equals"   { return .CoreStringNotEquals }
+    if mangled == r"std_core$bytes"                      { return .Bytes }
+    if mangled == r"std_core$bytes_to_string"            { return .BytesToString }
+    if mangled == primitive_member_mangle("string", "Index", "at")  { return .StringIndexAt }
+    if mangled == primitive_member_mangle("string", "Hash", "hash") { return .StringHash }
+    if mangled == r"std_core$string$Equals$equals"       { return .StringEquals }
+    if mangled == r"std_core$string$Equals$not_equals"   { return .StringNotEquals }
 
     if mangled == r"std_runtime$collect"                 { return .RuntimeCollect }
     if mangled == r"std_runtime$collections"             { return .RuntimeCollections }
@@ -261,6 +262,6 @@ import "vader/lower"
     assert(intrinsic_id_for(r"std_math$sqrt") == .MathSqrt, "math sqrt")
     assert(intrinsic_id_for(r"std_core$i32$Equals$equals") == .PrimIntEquals, "int equals")
     assert(intrinsic_id_for(r"std_core$u8$Display$to_string") == .PrimDisplayToString, "display")
-    assert(intrinsic_id_for(r"std_core$string$Equals$equals") == .CoreStringEquals, "string equals not int")
+    assert(intrinsic_id_for(r"std_core$string$Equals$equals") == .StringEquals, "string equals not int")
     assert(intrinsic_id_for(r"user_mod$foo") == .NotIntrinsic, "unknown → NotIntrinsic")
 }

@@ -111,8 +111,9 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
 
     // std/string internals + std/core string intrinsics.
     .ByteLen -> { return "${head} { return vader_string_byte_len(a0); }" }
-    .CoreStringIndexAt -> { return "${head} { return vader_string_codepoint_at(a0, a1); }" }
-    .CoreBytes -> {
+    .ByteAt -> { return "${head} { return vader_string_byte_at(a0, a1); }" }
+    .StringIndexAt -> { return "${head} { return vader_string_codepoint_at(a0, a1); }" }
+    .Bytes -> {
         u8 :: prim_tag(types, .U8)
         if u8 < 0 { return "${head} { vader_trap(\"bytes: no u8 type\"); }" }
         u8arr :: array_tag(types, u8)
@@ -121,9 +122,9 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     }
     // `bytes_to_string` (Target ABI S1) — backing runtime symbol still named
     // `vader_string_as_string`.
-    .CoreBytesToString -> { return "${head} { return vader_string_as_string((vader_array_t*) a0); }" }
+    .BytesToString -> { return "${head} { return vader_string_as_string((vader_array_t*) a0); }" }
     // `string implements Hash` reads the FNV-1a-64 cached on the atom (O(1)).
-    .CoreStringHash -> { return "${head} { return vader_string_hash(a0); }" }
+    .StringHash -> { return "${head} { return vader_string_hash(a0); }" }
 
     // std/runtime — GC introspection.
     .RuntimeCollect      -> { return "${head} { vader_gc_collect(); }" }
@@ -165,7 +166,7 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     // virtual dispatch, materialised as pure Vader natively — plus non-intrinsics.
     // Grouped so a new IntrinsicId variant trips T3013. Fall through to the
     // @extern forwarder / loud unbound trap below.
-    .CoreStringEquals | .CoreStringNotEquals
+    .StringEquals | .StringNotEquals
         | .PrimIntEquals | .PrimIntNotEquals | .PrimDisplayToString | .NotIntrinsic -> {}
     }
 

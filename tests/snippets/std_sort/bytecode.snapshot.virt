@@ -9,10 +9,9 @@ type 6 primitive string
 type 7 primitive usize
 type 8 struct std_core$Buffer {  }
 type 9 primitive i64
-type 10 array 11
-type 11 primitive u8
-type 12 fn (1,1) -> 2
-type 13 fn (6,6) -> 2
+type 10 primitive u8
+type 11 fn (1,1) -> 2
+type 12 fn (6,6) -> 2
 string 0 ""
 string 1 ", "
 string 2 "banana"
@@ -21,7 +20,7 @@ string 4 "cherry"
 string 5 "date"
 string 6 "\n"
 import 0 byte_len std_core$byte_len (string) -> usize
-import 1 bytes std_core$bytes (string) -> ref
+import 1 byte_at std_core$byte_at (string,usize) -> u8
 import 2 write std_io$write (i32,string) -> void
 impl 8 ByteAccess
 export main 4
@@ -194,7 +193,7 @@ fn 4 snippet$main () -> i32
   i32.const 42
   array.new 3 1
   local.set 0
-  fn.ref 0 12
+  fn.ref 0 11
   local.set 1
   local.get 0
   local.get 1
@@ -207,7 +206,7 @@ fn 4 snippet$main () -> i32
   i32.const 5
   array.new 3 5
   local.set 0
-  fn.ref 0 12
+  fn.ref 0 11
   local.set 1
   local.get 0
   local.get 1
@@ -220,7 +219,7 @@ fn 4 snippet$main () -> i32
   i32.const 1
   array.new 3 5
   local.set 0
-  fn.ref 0 12
+  fn.ref 0 11
   local.set 1
   local.get 0
   local.get 1
@@ -239,7 +238,7 @@ fn 4 snippet$main () -> i32
   i32.const 5
   array.new 3 11
   local.set 0
-  fn.ref 0 12
+  fn.ref 0 11
   local.set 1
   local.get 0
   local.get 1
@@ -252,7 +251,7 @@ fn 4 snippet$main () -> i32
   i32.const 5
   array.new 3 5
   local.set 0
-  fn.ref 1 12
+  fn.ref 1 11
   local.set 1
   local.get 0
   local.get 1
@@ -290,7 +289,7 @@ fn 4 snippet$main () -> i32
   i32.const 29
   array.new 3 30
   local.set 0
-  fn.ref 0 12
+  fn.ref 0 11
   local.set 1
   local.get 0
   local.get 1
@@ -302,7 +301,7 @@ fn 4 snippet$main () -> i32
   string.const 5
   array.new 5 4
   local.set 0
-  fn.ref 17 13
+  fn.ref 17 12
   local.set 1
   local.get 0
   local.get 1
@@ -313,7 +312,7 @@ fn 4 snippet$main () -> i32
   i32.const 2
   array.new 3 3
   local.set 0
-  fn.ref 0 12
+  fn.ref 0 11
   local.set 1
   local.get 0
   local.get 1
@@ -705,7 +704,7 @@ fn 13 std_sort$merge_sort_range__i32 (ref,ref,usize,usize,ref) -> void
             local.get 11
             local.get 12
             local.get 4
-            call.indirect 12
+            call.indirect 11
             if $L10 void
               local.get 1
               local.get 8
@@ -885,7 +884,7 @@ fn 14 std_sort$merge_sort_range__string (ref,ref,usize,usize,ref) -> void
             local.get 11
             local.get 12
             local.get 4
-            call.indirect 13
+            call.indirect 12
             if $L10 void
               local.get 1
               local.get 8
@@ -971,7 +970,7 @@ fn 15 std_sort$insertion_sort_range__i32 (ref,usize,usize,ref) -> void
               local.get 5
               local.get 9
               local.get 3
-              call.indirect 12
+              call.indirect 11
               local.set 7
             else
               bool.const false
@@ -1060,7 +1059,7 @@ fn 16 std_sort$insertion_sort_range__string (ref,usize,usize,ref) -> void
               local.get 5
               local.get 9
               local.get 3
-              call.indirect 13
+              call.indirect 12
               local.set 7
             else
               bool.const false
@@ -1107,8 +1106,6 @@ fn 16 std_sort$insertion_sort_range__string (ref,usize,usize,ref) -> void
 end
 
 fn 17 std_string$compare_ascending (string,string) -> bool
-  local ab ref
-  local bb ref
   local la usize
   local lb usize
   local n usize
@@ -1116,62 +1113,54 @@ fn 17 std_string$compare_ascending (string,string) -> bool
   local ca u8
   local cb u8
   local.get 0
-  call.import 1
+  call.import 0
   local.set 2
   local.get 1
-  call.import 1
+  call.import 0
   local.set 3
   local.get 2
-  array.len
-  local.set 4
   local.get 3
-  array.len
-  local.set 5
-  local.get 4
-  local.get 5
   call 20
-  local.set 6
+  local.set 4
   i64.const 0
-  local.set 7
+  local.set 5
   block $L0 void
     loop $L1 void
-      local.get 7
-      local.get 6
+      local.get 5
+      local.get 4
       u64.lt
       if $L2 void
-        local.get 2
+        local.get 0
+        local.get 5
+        call.import 1
+        local.set 6
+        local.get 1
+        local.get 5
+        call.import 1
+        local.set 7
+        local.get 6
         local.get 7
-        array.get 10
-        ref.cast 11
-        local.set 8
-        local.get 3
-        local.get 7
-        array.get 10
-        ref.cast 11
-        local.set 9
-        local.get 8
-        local.get 9
         u32.lt
         if $L3 void
           return.lit bool.const true
         end $L3
-        local.get 8
-        local.get 9
+        local.get 6
+        local.get 7
         u32.gt
         if $L4 void
           return.lit bool.const false
         end $L4
-        local.get 7
+        local.get 5
         i64.const 1
         i64.add
-        local.set 7
+        local.set 5
         br $L1
       else
       end $L2
     end $L1
   end $L0
-  local.get 4
-  local.get 5
+  local.get 2
+  local.get 3
   u64.lt
   return
 end

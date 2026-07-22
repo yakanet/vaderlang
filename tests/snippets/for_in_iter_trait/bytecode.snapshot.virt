@@ -17,11 +17,11 @@ type 14 struct std_core$Buffer {  }
 type 15 primitive i64
 type 16 primitive u64
 type 17 array 2
-type 18 array 19
-type 19 primitive u8
+type 18 primitive u8
+type 19 array 18
 type 20 primitive void
 type 21 struct std_core$Yield__char { value:3 }
-type 22 struct std_string$StringChars { bytes:18,cursor:6,length:6 }
+type 22 struct std_string$StringChars { bytes:19,cursor:6,length:6 }
 type 23 union 0,21
 type 24 struct __Tuple_35 { _0:3,_1:6 }
 type 25 union 21,0
@@ -784,8 +784,8 @@ fn 19 std_string$utf8_decode (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 1
-  array.get 18
-  ref.cast 19
+  array.get 19
+  ref.cast 18
   local.tee 3
   i32.const 128
   u32.lt
@@ -823,8 +823,8 @@ fn 19 std_string$utf8_decode (ref,usize) -> char
     local.set 4
     local.get 0
     local.get 4
-    array.get 18
-    ref.cast 19
+    array.get 19
+    ref.cast 18
     local.set 5
     local.get 3
     u8.to_i32
@@ -862,8 +862,8 @@ fn 19 std_string$utf8_decode (ref,usize) -> char
     local.set 4
     local.get 0
     local.get 4
-    array.get 18
-    ref.cast 19
+    array.get 19
+    ref.cast 18
     local.set 5
     local.get 1
     i64.const 2
@@ -871,8 +871,8 @@ fn 19 std_string$utf8_decode (ref,usize) -> char
     local.set 4
     local.get 0
     local.get 4
-    array.get 18
-    ref.cast 19
+    array.get 19
+    ref.cast 18
     local.set 8
     local.get 3
     u8.to_i32
@@ -917,8 +917,8 @@ fn 19 std_string$utf8_decode (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 2
-  array.get 18
-  ref.cast 19
+  array.get 19
+  ref.cast 18
   local.set 5
   local.get 1
   i64.const 2
@@ -926,8 +926,8 @@ fn 19 std_string$utf8_decode (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 2
-  array.get 18
-  ref.cast 19
+  array.get 19
+  ref.cast 18
   local.set 8
   local.get 1
   i64.const 3
@@ -935,8 +935,8 @@ fn 19 std_string$utf8_decode (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 2
-  array.get 18
-  ref.cast 19
+  array.get 19
+  ref.cast 18
   local.set 9
   local.get 3
   u8.to_i32
