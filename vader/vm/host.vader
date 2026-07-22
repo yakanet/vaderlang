@@ -183,7 +183,21 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if s is Trap { return s }
         return HostOk { .value = I32Val { .value = i32(s.value.bytes().len()) } }
     }
-    .CoreBytesToString -> {
+    .ByteAt -> {
+        // Header-free byte read — the fold target for a non-escaping `s.bytes()[i]`.
+        // Bounds-checked to match the native `vader_string_byte_at` / `s.bytes()[i]`.
+        s :: read_string(stack[arg_base    ], at_pc, "byte_at receiver")
+        i :: read_i32   (stack[arg_base + 1], at_pc, "byte_at index")
+        if s is Trap { return s }
+        if i is Trap { return i }
+        bs  :: s.value.bytes()
+        idx :: usize(i.value)
+        if idx >= bs.len() {
+            return Trap { .message = "byte index out of bounds" }
+        }
+        return HostOk { .value = I32Val { .value = i32(bs[idx]) } }
+    }
+    .BytesToString -> {
         // bytes→string : the VM gathers the boxed u8 slots into a real `u8[]` and
         // lets the native intern them verbatim (no UTF-8 validation). Native
         // O(1)-reinterprets a borrowed slice.
@@ -197,14 +211,14 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         }
         return HostOk { .value = StringVal { .value = raw.bytes_to_string() } }
     }
-    .CoreBytes -> {
+    .Bytes -> {
         // Native zero-copies a `const u8[]` view ; the VM materialises a copy
         // (boxed slots can't alias the interned bytes) — same values.
         s :: read_string(stack[arg_base], at_pc, "bytes receiver")
         if s is Trap { return s }
         return HostOk { .value = bytes_to_value(s.value, u8_array_type_id) }
     }
-    .CoreStringHash -> {
+    .StringHash -> {
         // String `Hash` reads the FNV-1a-64 cached on the interned atom. Calling
         // `.hash()` on the Vader string here lowers to the native
         // `vader_string_hash` intrinsic in the VM's own build, so the VM and
@@ -216,7 +230,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     // `StringBuilder implements Display` moved to pure Vader in Target ABI S3 ;
     // the resolver materialises its body (a byte-Buffer read + `bytes_to_string`),
     // so the VM runs a real fn — there is no host shim to dispatch here.
-    .CoreStringIndexAt -> {
+    .StringIndexAt -> {
         s :: read_string(stack[arg_base    ], at_pc, "string[] receiver")
         i :: read_i32   (stack[arg_base + 1], at_pc, "string[] index")
         if s is Trap { return s }
@@ -246,10 +260,10 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     // `@intrinsic string implements Equals` — structural string compare.
     // Reached when map key lookups dispatch `key.equals(other)` virtually
     // (the virtual.call intrinsic fallback in exec.vader rebuilds this mangle).
-    .CoreStringEquals -> {
+    .StringEquals -> {
         return host_str_pair_to_bool(stack, arg_base, at_pc, "equals", (a, b) -> a == b)
     }
-    .CoreStringNotEquals -> {
+    .StringNotEquals -> {
         return host_str_pair_to_bool(stack, arg_base, at_pc, "not_equals", (a, b) -> a != b)
     }
     // `@intrinsic <intwidth> implements Equals` — bodyless for every integer
@@ -495,9 +509,9 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     .SchedNow | .SchedArm | .SchedPark -> true
     // Pure : the baked value depends only on the args, never external state.
     .IoWrite -> false
-    .ByteLen -> false
-    .CoreBytes | .CoreBytesToString | .CoreStringIndexAt | .CoreStringHash
-        | .CoreStringEquals | .CoreStringNotEquals -> false
+    .ByteLen | .ByteAt -> false
+    .Bytes | .BytesToString | .StringIndexAt | .StringHash
+        | .StringEquals | .StringNotEquals -> false
     .PrimIntEquals | .PrimIntNotEquals | .PrimDisplayToString -> false
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> false
     .MathSqrt | .MathSin | .MathCos | .MathTan | .MathFloor | .MathCeil | .MathRound | .MathPow -> false

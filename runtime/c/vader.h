@@ -1148,6 +1148,7 @@ vader_string_t vader_spawn_take_stderr(vader_i64_t handle);
  * Backs `string implements Hash` → `MutableMap` bucketing. */
 uint64_t       vader_string_hash(vader_string_t s);
 size_t         vader_string_byte_len(vader_string_t s);
+uint8_t        vader_string_byte_at(vader_string_t s, size_t i);
 vader_char_t   vader_string_char_at(vader_string_t s, size_t i);
 /* Zero-copy `const u8[]` view over `s`'s interned bytes — backs
  * `std/string::bytes`. Allocates only a small `vader_array_t` header

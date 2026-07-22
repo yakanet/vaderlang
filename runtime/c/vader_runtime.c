@@ -2934,6 +2934,15 @@ size_t vader_string_byte_len(vader_string_t s) {
     return vader_atom_len(s);
 }
 
+/* Header-free byte read : the `i`-th UTF-8 byte of `s`, straight off the interned
+ * atom (no `const u8[]` view alloc). Bounds-checked to match `s.bytes()[i]`.
+ * One `vader_atom_entry` load shares the base for the length check and the read. */
+uint8_t vader_string_byte_at(vader_string_t s, size_t i) {
+    const vader_atom_entry_t* e = vader_atom_entry(s);
+    if (i >= (size_t) e->len) vader_trap("byte index out of bounds");
+    return ((const uint8_t*) e->data)[i];
+}
+
 /* Walk the UTF-8 buffer counting codepoints ; return the byte offset of
  * the `cp_index`-th codepoint, clamped to the atom's length. Invalid
  * continuation bytes count as 1-byte codepoints (mirrors

@@ -255,6 +255,12 @@ lower_project_impl :: fn(
     // (so it never re-inlines the deliberately fn-wrapped bulky array consts, and
     // inline_consts then routes any const ref the inlined bodies introduced).
     inline_fns(project)
+    // Elide non-escaping `s.bytes()` views bound to a local and only read via
+    // `.len()` / `[i]` — rewrite those to the header-free `byte_len` / `byte_at`
+    // intrinsics and drop the borrowed-view header alloc. After `inline_fns` (so
+    // inlined `.bytes()` patterns are covered), before `bce_hoist_tag`. See
+    // `bytes_view_elision.vader`.
+    elide_bytes_views(project, project_ctx)
     // Route non-scalar const decls to their read sites : bulky array consts
     // become synthetic `__const_<name>` accessor fns (resolved by a `call` in
     // `build_ident`), every other const is recorded for inline rebuild. Runs

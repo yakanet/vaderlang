@@ -1,6 +1,6 @@
 // A comptime string index past the end surfaces a clean C4002 diagnostic
 // instead of silently baking U+0000 into the program. The VM-backed comptime
-// evaluator runs `oob()` in the interpreter, whose `.CoreStringIndexAt` host
+// evaluator runs `oob()` in the interpreter, whose `.StringIndexAt` host
 // arm (vader/vm/host.vader) now traps on an out-of-range index — the trap is
 // routed to C4002 by the comptime_vm pass. Regression guard for audit item B4,
 // the most serious face of the native↔VM string-OOB divergence : before the
