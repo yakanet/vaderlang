@@ -142,7 +142,7 @@ export PrimitiveMeta :: struct {
     is_float:  bool
 }
 
-export PRIMITIVE_META :: [
+export PRIMITIVE_META: const PrimitiveMeta[]: [
     PrimitiveMeta { .name = "i8",     .size = 1,  .is_int = true,  .is_signed = true,  .is_float = false },
     PrimitiveMeta { .name = "i16",    .size = 2,  .is_int = true,  .is_signed = true,  .is_float = false },
     PrimitiveMeta { .name = "i32",    .size = 4,  .is_int = true,  .is_signed = true,  .is_float = false },
@@ -209,7 +209,7 @@ export primitive_align :: fn(name: string) -> i64 = primitive_size(name)
 /// Friendly type-name aliases that collapse to a canonical primitive
 /// (`int → i32`, …). Consumed by the resolver's builtin scope and typecheck's
 /// `primitive_from_name`. `[alias, canonical]` rows.
-export PRIMITIVE_ALIASES :: [
+export PRIMITIVE_ALIASES: const string[][]: [
     ["int", "i32"], ["long", "i64"], ["float", "f32"], ["double", "f64"], ["byte", "u8"],
 ]
 
