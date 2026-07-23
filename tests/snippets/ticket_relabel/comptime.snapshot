@@ -23,10 +23,10 @@
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
   ArrayOps<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
 
 # Diagnostics
 [13:12] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and {integer}

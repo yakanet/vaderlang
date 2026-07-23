@@ -16,12 +16,12 @@
   Div<Rhs, Out>
   Rem<Rhs, Out>
   Index<I, T>
+  ArrayOps<T>
   IndexSet<I, T>
   Contains<T>
   Iterator<i32>
   Iterator<T>
   Iterator<T>
-  ArrayOps<T>
   Yield<i32>
   Yield<T>
   Yield<T>

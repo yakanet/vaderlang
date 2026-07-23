@@ -10,12 +10,12 @@
   Div<Rhs, Out>
   Rem<Rhs, Out>
   Index<I, T>
+  ArrayOps<T>
   IndexSet<I, T>
   Contains<T>
   Iterator<char>
   Iterator<T>
   Iterator<T>
-  ArrayOps<T>
   Yield<char>
   Yield<T>
   Yield<T>

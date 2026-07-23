@@ -5,10 +5,10 @@
 ## generic instances
   Greeter<T>
   Greeter<T>
-  Into<Target>
   Doubler<i32>
   Doubler<T>
   Doubler<T>
+  Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
   Mul<Rhs, Out>

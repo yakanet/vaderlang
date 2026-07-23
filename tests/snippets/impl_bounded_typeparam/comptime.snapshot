@@ -3,13 +3,13 @@
 ## tests/snippets/impl_bounded_typeparam
 
 ## generic instances
-  Into<Target>
-  Add<Rhs, Out>
-  Sub<Rhs, Out>
   Wrap<Cat>
   Wrap<Dog>
   Wrap<T>
   Wrap<T>
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>
@@ -27,7 +27,7 @@
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
   ArrayOps<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>

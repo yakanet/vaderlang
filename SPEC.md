@@ -707,11 +707,13 @@ for x in src { buf.push(x) }   // no reallocation up to 1024 elements
 - For a **reference** element type, the LHS is evaluated **once** and the same reference is repeated (shallow): `[obj] * 3` holds three references to the one `obj`. Sharing an *existing* binding that way is deliberate, but repeating a **freshly allocated** element — an array or struct literal, a constructor call — is almost always a mistake, since nobody else holds that object: `rows :: [[]] * 3` then `rows[0].push(x)` grows all three slots. That shape warns (`W0013`); reach for `filled` (`std/core`, the prelude — no import) when each slot needs its own:
 
 ```vader
-rows: i32[][] = filled(3, () -> [])   // 3 DISTINCT arrays
-seen :: filled(n, new_visited_set)    // `make` may be any `fn() -> T`
+rows: i32[][] = filled(3, () -> [])            // 3 DISTINCT arrays
+seen :: filled(n, new_visited_set)             // `make` may be any `fn() -> T`
+squares :: filled_indexed(n, (i: usize) -> i32(i * i))   // per-slot index
+grid :: 3.filled(() -> [])                     // UFCS on the count reads fine too
 ```
 
-`filled(n, make)` calls `make` once per slot, in order, and reserves the capacity up front. It is the constructor counterpart of `[v] * n`, which can only ever repeat one value.
+`filled(n, make)` calls `make` once per slot, in order, and reserves the capacity up front; `filled_indexed(n, make)` passes each slot's index to `make`. They are the constructor counterpart of `[v] * n`, which can only ever repeat one value.
 
 - The element type is inferred from the LHS, or from the assignment slot when the LHS is empty / a free literal (`[] * n` / `[0] * n` against an annotated `T[]`).
 

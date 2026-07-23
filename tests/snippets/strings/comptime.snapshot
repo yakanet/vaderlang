@@ -17,11 +17,11 @@ line two
   Div<Rhs, Out>
   Rem<Rhs, Out>
   Index<I, T>
+  ArrayOps<T>
   IndexSet<I, T>
   Contains<T>
   Iterator<T>
   Iterator<T>
-  ArrayOps<T>
   Yield<T>
   Yield<T>
   Yield<T>
