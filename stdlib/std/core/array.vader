@@ -35,3 +35,49 @@ export ArrayOps :: trait<T> {
 }
 
 @intrinsic T[] implements<T> ArrayOps<T>
+
+// ---- construction ---------------------------------------------------------
+
+/// Build an array of `n` elements, calling `make` once per slot.
+///
+/// The complement of `[v] * n` : the repeat operator evaluates its element
+/// ONCE and copies that one reference into every slot, so it cannot build `n`
+/// distinct objects (`[[]] * n` yields n aliases of a single array — the
+/// compiler warns with `W0013`). `filled` calls `make` per slot, which is what
+/// a mutable element needs.
+///
+/// @param n     number of elements to build.
+/// @param make  called once per slot, in order ; its result fills that slot.
+/// @return      a fresh array of length `n`, its capacity reserved up front.
+/// @example
+///   rows: BlockId[][] = filled(block_count, () -> [])   // n DISTINCT arrays
+///   seen :: filled(n, new_visited_set)                  // or a named factory
+export filled :: fn<T>(n: usize, make: fn() -> T) -> T[] {
+    out: T[] = [] * n
+    for _ in 0..<n {
+        v :: make()
+        out.push(v)
+    }
+    return out
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+new_int_row :: fn() -> i32[] = []
+
+@test
+test_filled_builds_distinct_elements :: fn() -> void {
+    rows :: filled(3, new_int_row)
+    assert_eq(rows.len(), 3)
+    rows[0].push(42)
+    assert_eq(rows[0].len(), 1)
+    assert_eq(rows[1].len(), 0)
+    assert_eq(rows[2].len(), 0)
+}
+
+@test
+test_filled_of_zero_is_empty :: fn() -> void {
+    assert_eq(filled(0, new_int_row).len(), 0)
+}
