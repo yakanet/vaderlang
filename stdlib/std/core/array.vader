@@ -54,7 +54,7 @@ export ArrayOps :: trait<T> {
 ///   seen :: filled(n, new_visited_set)                  // or a named factory
 export filled :: fn<T>(n: usize, make: fn() -> T) -> T[] {
     out: T[] = [] * n
-    for _ in 0..<n {
+    for 0..<n {
         out.push(make())
     }
     return out
