@@ -145,6 +145,11 @@ check_arith :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type {
+    // `[<fresh>] * n` copies ONE reference into every slot — warn when the
+    // repeated element was allocated on the spot (W0013, below).
+    if e.op == .Mul && left is ArrayType {
+        warn_shared_repeat_element(e, typed, diags)
+    }
     // A distinct (newtype) operand is nominal — never take the built-in string /
     // numeric path (that would silently compute on the backing integer, e.g.
     // `instant + 5`). An ARRAY operand likewise : `[lhs] * n` (array repeat /
@@ -190,6 +195,68 @@ check_arith :: fn(
         return fb
     }
     return numeric_result(e, left, right, diags)
+}
+
+// ---- array repeat — shared-element warning --------------------------------
+
+/// Warn when `[<fresh>] * n` repeats a freshly allocated mutable object (W0013).
+///
+/// `array.repeat` copies the source buffer, so all `n` slots end up holding THE
+/// SAME reference (SPEC "Repeat / preallocate"). When the element was allocated
+/// right there — an array / struct literal, a constructor call — nobody else
+/// holds that object, so the sharing can't be what the author meant :
+/// `out :: [[]] * n` followed by `out[0].push(x)` mutates every slot at once.
+/// That exact shape silently corrupted `predecessors_of` into a self-compile
+/// SIGSEGV. `[obj] * n` over an existing binding stays silent — SPEC documents
+/// it as deliberate shallow sharing.
+///
+/// @param e      the `*` expression ; only its array-literal LHS is inspected.
+/// @param typed  read for the element types and the struct field lists.
+/// @param diags  W0013 is appended once per offending element.
+warn_shared_repeat_element :: fn(
+    e: AST.BinaryExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    if e.left is AST.SeqLitExpr as lit {
+        for el in lit.elements {
+            if !is_fresh_allocation(el) {
+                continue
+            }
+            t :: typed.expr_types[el.id]
+            if t != null && carries_mutable_state(t, typed) {
+                diags.push(warning(
+                    .SharedRepeatElement,
+                    el.span,
+                    "build the elements in a loop when each slot needs its own",
+                ))
+            }
+        }
+    }
+}
+
+/// True when the expression allocates its value on the spot — an array / struct
+/// literal, or a call (`MutableMap()`, `new_builder()`). Those are the shapes an
+/// author reads as "n of these", so repeating one reference surprises.
+is_fresh_allocation :: fn(e: AST.Expr) = e is AST.SeqLitExpr | AST.StructLitExpr | AST.CallExpr
+
+/// True when a value of `t` carries mutable state reachable through the
+/// reference. A field-less struct (`NullVal {}`) has nothing to mutate, so
+/// repeating it is harmless ; primitives, `string`, enums and distincts are
+/// values, never aliased.
+carries_mutable_state :: fn(t: Type, typed: TypedProgram) -> bool {
+    if t is ArrayType {
+        return true
+    }
+    if t is StructType as st {
+        decl :: typed.struct_decls[st.symbol.id]
+        // An undeclared struct (never walked) is assumed stateful — the common case.
+        if decl == null {
+            return true
+        }
+        return decl.fields.len() > 0
+    }
+    return false
 }
 
 arith_trait_method :: fn(op: AST.BinaryOp) -> string {
@@ -948,4 +1015,59 @@ test_equality_same_width_ok :: fn() -> void {
     diags: Diagnostic[] = []
     assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)), "bool")
     assert_eq(diags.len(), 0)
+}
+
+// W0013 reads the element types out of `expr_types`, which only the project's
+// body walk populates (`check_module` stops at the declarations). Pin the type
+// the pipeline would have recorded, then run the check on its own — the
+// end-to-end behaviour is covered by
+// `tests/diag_corpus/warning/w0013_repeat_shares_element`.
+repeat_element_diagnostics :: fn(src: string, element_type: Type) -> Diagnostic[] {
+    eb :: expect_binary(src)
+    if eb.bin.left is AST.SeqLitExpr as lit {
+        for el in lit.elements {
+            eb.typed.expr_types[el.id] = element_type
+        }
+    }
+    diags: Diagnostic[] = []
+    warn_shared_repeat_element(eb.bin, eb.typed, diags)
+    return diags
+}
+
+count_with_code :: fn(diags: Diagnostic[], id: string) -> i32 {
+    n := 0
+    for d in diags {
+        if d.code.id == id {
+            n += 1
+        }
+    }
+    return n
+}
+
+@test
+test_repeat_of_fresh_element_warns :: fn() -> void {
+    diags :: repeat_element_diagnostics(
+        "f :: fn() -> i32[][] { return [[]] * 3 }",
+        mk_array(mk_primitive("i32"), false),
+    )
+    assert_eq(count_with_code(diags, "W0013"), 1)
+}
+
+@test
+test_repeat_of_value_element_is_silent :: fn() -> void {
+    diags :: repeat_element_diagnostics(
+        "f :: fn() -> i32[] { return [0] * 3 }",
+        mk_primitive("i32"),
+    )
+    assert_eq(count_with_code(diags, "W0013"), 0)
+}
+
+@test
+test_repeat_of_existing_binding_is_silent :: fn() -> void {
+    // The element is a binding, not a fresh allocation — sharing is deliberate.
+    diags :: repeat_element_diagnostics(
+        "f :: fn(row: i32[]) -> i32[][] { return [row] * 3 }",
+        mk_array(mk_primitive("i32"), false),
+    )
+    assert_eq(count_with_code(diags, "W0013"), 0)
 }

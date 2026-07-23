@@ -1,0 +1,28 @@
+module "snippet"
+
+import "std/collections"
+
+Cell :: struct {
+    value: i32
+}
+
+// No field to mutate — repeating one instance is harmless.
+Marker :: struct {}
+
+main :: fn() -> i32 {
+    // W0013 — the freshly built element is shared by every slot.
+    rows: i32[][] = [[]] * 3
+    cells :: [Cell { .value = 0 }] * 2
+    maps :: [MutableMap<string, i32> {}] * 2
+
+    // Silent : value elements, a field-less struct, the preallocation form,
+    // and an existing binding the author knowingly shares.
+    marks :: [Marker {}] * 2
+    zeros :: [0] * 3
+    nulls: (Cell | null)[] = [null] * 3
+    prealloc: i32[] = [] * 4
+    shared :: [rows] * 2
+
+    return i32(rows.len() + cells.len() + maps.len() + marks.len()
+        + zeros.len() + nulls.len() + prealloc.len() + shared.len())
+}
