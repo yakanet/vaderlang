@@ -55,10 +55,12 @@ build only ever loses checks; it never gains one.
 | W0009 | redeclaration in a block | probable bug | warning (borderline, D-frontier) | piggybacks resolver |
 | W0010 | prefer loop-var over label | idiom | **lint** | no (piggybacks typecheck) |
 | W0011 | empty import modifier list | cleanliness | **lint** | no (piggybacks collect) |
+| W0013 | `[<fresh>] * n` shares one element | **safety** (caused the `predecessors_of` SIGSEGV) | **warning — never demote** | no (piggybacks typecheck) |
 
 Only **W0007** is a dedicated pass → the one existing check whose offload is a
 genuine build saving. W0008/10/11 re-categorize (emission-gated) but stay
-computed on their needed walks. **W0005 stays a warning** (safety, not hygiene).
+computed on their needed walks. **W0005 and W0013 stay warnings** (safety, not
+hygiene — both fired on shapes that miscompiled or segfaulted).
 
 ## 4. First slice — `unused-export` (the payoff, shipped alone)
 
