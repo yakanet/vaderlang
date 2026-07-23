@@ -704,12 +704,14 @@ for x in src { buf.push(x) }   // no reallocation up to 1024 elements
 ```
 
 - `[] * n` yields an **empty** array (length 0) whose reserved tail is uninitialised. Indexing is bounds-checked against **length**, so `([] * n)[0]` traps — the reserved slots become readable only as `push` / `push_all` grow the length past them. (Identical to Rust `Vec::with_capacity`.) Use `[v] * n` when you want `n` *readable* slots; `[] * n` only to preallocate before pushing.
-- For a **reference** element type, the LHS is evaluated **once** and the same reference is repeated (shallow): `[obj] * 3` holds three references to the one `obj`. Sharing an *existing* binding that way is deliberate, but repeating a **freshly allocated** element — an array or struct literal, a constructor call — is almost always a mistake, since nobody else holds that object: `rows :: [[]] * 3` then `rows[0].push(x)` grows all three slots. That shape warns (`W0013`); build the elements in a loop when each slot needs its own:
+- For a **reference** element type, the LHS is evaluated **once** and the same reference is repeated (shallow): `[obj] * 3` holds three references to the one `obj`. Sharing an *existing* binding that way is deliberate, but repeating a **freshly allocated** element — an array or struct literal, a constructor call — is almost always a mistake, since nobody else holds that object: `rows :: [[]] * 3` then `rows[0].push(x)` grows all three slots. That shape warns (`W0013`); reach for `filled` (`std/core`, the prelude — no import) when each slot needs its own:
 
 ```vader
-rows: i32[][] = [] * 3         // capacity only, no shared element
-for _ in 0..<3 { rows.push([]) }
+rows: i32[][] = filled(3, () -> [])   // 3 DISTINCT arrays
+seen :: filled(n, new_visited_set)    // `make` may be any `fn() -> T`
 ```
+
+`filled(n, make)` calls `make` once per slot, in order, and reserves the capacity up front. It is the constructor counterpart of `[v] * n`, which can only ever repeat one value.
 
 - The element type is inferred from the LHS, or from the assignment slot when the LHS is empty / a free literal (`[] * n` / `[0] * n` against an annotated `T[]`).
 

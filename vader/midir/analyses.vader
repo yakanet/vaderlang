@@ -31,8 +31,7 @@ export successors_of :: fn(b: BasicBlock) -> BlockId[] {
 /// Predecessor lists keyed by BlockId. The returned array is dense
 /// (one entry per block, possibly empty).
 export predecessors_of :: fn(fn_: CFGFunction) -> BlockId[][] {
-    out: BlockId[][] = [] * fn_.blocks.len()
-    for fn_.blocks { out.push([]) }
+    out: BlockId[][] = filled(fn_.blocks.len(), () -> [])
     for b in fn_.blocks {
         for succ in successors_of(b) { out[i32(succ)].push(b.id) }
     }
@@ -468,12 +467,8 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
     succs: BlockId[][] = [] * n
     for b in fn_.blocks { succs.push(successors_of(b)) }
 
-    live_in:  MutableSet<LocalId>[] = [] * n
-    live_out: MutableSet<LocalId>[] = [] * n
-    for 0..<n {
-        live_in.push(MutableSet<LocalId> {})
-        live_out.push(MutableSet<LocalId> {})
-    }
+    live_in:  MutableSet<LocalId>[] = filled(n, () -> MutableSet<LocalId> {})
+    live_out: MutableSet<LocalId>[] = filled(n, () -> MutableSet<LocalId> {})
 
     // Double-buffered fixpoint : recompute each block's live_out / live_in into
     // two reusable SCRATCH sets (cleared each round), then SWAP a scratch with

@@ -6,13 +6,13 @@
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
-  Mul<Rhs, Out>
-  Div<Rhs, Out>
-  Rem<Rhs, Out>
   Wrap<Cat>
   Wrap<Dog>
   Wrap<T>
   Wrap<T>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
   Index<I, T>
   IndexSet<I, T>
   Contains<T>

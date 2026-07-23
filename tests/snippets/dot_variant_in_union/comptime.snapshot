@@ -15,12 +15,12 @@
   Iterator<char>
   Iterator<T>
   Iterator<T>
+  ArrayOps<T>
   Yield<char>
   Yield<T>
   Yield<T>
   Yield<T>
   Async<T>
-  ArrayOps<T>
   Range<i32>
   Range<usize>
   Range<T>

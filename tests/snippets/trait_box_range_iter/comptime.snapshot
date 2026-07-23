@@ -6,13 +6,13 @@
   Greeter<T>
   Greeter<T>
   Into<Target>
+  Doubler<i32>
+  Doubler<T>
+  Doubler<T>
   Add<Rhs, Out>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>
-  Doubler<i32>
-  Doubler<T>
-  Doubler<T>
   Rem<Rhs, Out>
   Index<I, T>
   IndexSet<I, T>

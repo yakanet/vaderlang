@@ -282,8 +282,7 @@ emit_vtables :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     // Group the flat entry list by receiver tag in one pass, then emit the
     // per-tag `vt_<tag>` structs + the index table (each tag's slots sorted).
     table_size :: max_tag + 1
-    groups: VtSlot[][] = []
-    for _ in 0..<table_size { groups.push([]) }
+    groups: VtSlot[][] = filled(usize(table_size), () -> [])
     for e in entries { groups[usize(e.type_index)].push(e) }
 
     for tag in 0..<table_size {
