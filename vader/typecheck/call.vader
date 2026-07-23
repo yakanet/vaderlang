@@ -499,8 +499,14 @@ ufcs_method_params :: fn(method: string, recv_ty: Type, callee_ty: FnType, typed
 
 /// Type-check a `CallExpr`. `check_expr_fn` is threaded the same way as
 /// in `expr_block.vader` to dodge the cyclic import.
+///
+/// @param expected  the slot the call's result flows into, when there is one.
+///                  Only a generic callee reads it : a type-param no argument
+///                  binds takes its binding from the return type (see the
+///                  deferred-lambda pass below).
 export infer_call :: fn(
     c: AST.CallExpr,
+    expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
@@ -586,7 +592,20 @@ export infer_call :: fn(
         // substitute through the return type.
         seed_ufcs_bindings(c.callee, typed, bindings)
         arg_types: Type[] = []
+        // Lambda arguments are checked LAST. Their param type may mention a
+        // type-param that nothing has bound yet — one a later argument, or the
+        // call's `expected`, resolves. Checking `() -> []` against an
+        // unsubstituted `fn() -> T` types the body under erasure (`?[]`), and a
+        // `?[]` array literal lowers to a BOXED buffer that the concrete
+        // call-site then reads back as packed elements — silent corruption, not
+        // a diagnostic. Nothing else about the argument pass changes.
+        deferred: usize[] = []
         for i in 0..<n {
+            if c.args[i].value is AST.LambdaExpr {
+                arg_types.push(TY_UNRESOLVED)
+                deferred.push(i)
+                continue
+            }
             param_ty :: substitute_map(callee_ty.params[i], bindings)
             arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
             unify_type_param(callee_ty.params[i], arg_ty, bindings)
@@ -597,16 +616,34 @@ export infer_call :: fn(
             unify_struct_to_trait_args(callee_ty.params[i], arg_ty, typed, bindings)
             arg_types.push(arg_ty)
         }
+        // Whatever the arguments left unbound, the result slot may pin :
+        // `out: i32[][] = filled(n, () -> [])` binds `T = i32[]` through
+        // `T[]` ↔ `i32[][]`. Arguments keep priority — `unify_type_param` only
+        // fills a type-param that has no binding yet. An `expected` that still
+        // mentions a type-param is NOT a pin : nested inside another generic
+        // call (`my_filter(my_map(xs, f), p)`), the inner call's expected is the
+        // outer's still-unbound `Iterator<T>`, and binding to it would carry
+        // that foreign type-param into the result instead of a concrete type.
+        if expected != null && deferred.len() > 0 && !type_contains_type_param(expected) {
+            unify_type_param(callee_ty.return_type, expected, bindings)
+        }
+        for i in deferred {
+            param_ty :: substitute_map(callee_ty.params[i], bindings)
+            arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
+            unify_type_param(callee_ty.params[i], arg_ty, bindings)
+            unify_struct_to_trait_args(callee_ty.params[i], arg_ty, typed, bindings)
+            arg_types[i] = arg_ty
+        }
         for i in 0..<n {
-            expected :: substitute_map(callee_ty.params[i], bindings)
-            if type_contains_type_param(expected)                          { continue }
-            if is_assignable(arg_types[i], expected, null)                 { continue }
-            if try_into(arg_types[i], expected, typed, c.args[i].value.id) { continue }
+            want :: substitute_map(callee_ty.params[i], bindings)
+            if type_contains_type_param(want)                          { continue }
+            if is_assignable(arg_types[i], want, null)                 { continue }
+            if try_into(arg_types[i], want, typed, c.args[i].value.id) { continue }
             diags.push(
                 typecheck_error(
                     .TypeMismatch,
                     c.args[i].span,
-                    "expected ${display_type(expected)}, got ${display_type(arg_types[i])}",
+                    "expected ${display_type(want)}, got ${display_type(arg_types[i])}",
                 ),
             )
         }
@@ -629,10 +666,10 @@ export infer_call :: fn(
             if got !is FreeIntType && got !is FreeFloatType {
                 continue
             }
-            expected :: substitute_map(callee_ty.params[i], bindings)
-            if expected is TraitType as et {
+            want :: substitute_map(callee_ty.params[i], bindings)
+            if want is TraitType as et {
                 if struct_implements_trait(default_if_free(got), et.symbol.name, typed) {
-                    typed.expr_types[c.args[i].value.id] = expected
+                    typed.expr_types[c.args[i].value.id] = want
                 }
             }
         }
@@ -917,7 +954,7 @@ call_check_stub :: fn(
         is AST.IntLitExpr    -> { return TY_FREE_INT }
         is AST.StringLitExpr -> { return TY_STRING }
         is AST.IdentExpr     -> { return infer_ident(e, typed) }
-        is AST.CallExpr      -> { return infer_call(e, typed, diags, call_check_stub) }
+        is AST.CallExpr      -> { return infer_call(e, null, typed, diags, call_check_stub) }
         _                    -> { return TY_UNRESOLVED }
     }
 }
@@ -973,7 +1010,7 @@ main :: fn() -> i32 { return add(1, 2) }
         is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
             diags: Diagnostic[] = []
-            assert_eq(display_type(infer_call(c, fx.typed, diags, call_check_stub)), "i32")
+            assert_eq(display_type(infer_call(c, null, fx.typed, diags, call_check_stub)), "i32")
             assert_eq(diags.len(), 0)
         }
     }
@@ -990,7 +1027,7 @@ main :: fn() -> i32 { return add(1) }
         is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
             diags: Diagnostic[] = []
-            infer_call(c, fx.typed, diags, call_check_stub)
+            infer_call(c, null, fx.typed, diags, call_check_stub)
             assert(diags.len() >= 1, "expected at least one diagnostic")
             assert_eq(diags[0].code.id, "T3005")
         }
@@ -1008,7 +1045,7 @@ main :: fn() -> i32 { return add(1, 2, 3) }
         is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
             diags: Diagnostic[] = []
-            infer_call(c, fx.typed, diags, call_check_stub)
+            infer_call(c, null, fx.typed, diags, call_check_stub)
             assert(diags.len() >= 1, "expected at least one diagnostic")
             assert_eq(diags[0].code.id, "T3003")
         }
@@ -1025,7 +1062,7 @@ f :: fn() -> i32 { return i32("hello") }
         is null              -> { assert(false, "expected to find the cast call") }
         is AST.CallExpr as c -> {
             diags: Diagnostic[] = []
-            infer_call(c, fx.typed, diags, call_check_stub)
+            infer_call(c, null, fx.typed, diags, call_check_stub)
             found := false
             for d in diags {
                 if d.code.id == "T3010" {
@@ -1047,7 +1084,7 @@ f :: fn(a: i32) -> i64 { return i64(a) }
         is null              -> { assert(false, "expected to find the cast call") }
         is AST.CallExpr as c -> {
             diags: Diagnostic[] = []
-            assert_eq(display_type(infer_call(c, fx.typed, diags, call_check_stub)), "i64")
+            assert_eq(display_type(infer_call(c, null, fx.typed, diags, call_check_stub)), "i64")
             found := false
             for d in diags {
                 if d.code.id == "T3010" {
@@ -1070,7 +1107,7 @@ main :: fn() -> i32 { return greet(1) }
         is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
             diags: Diagnostic[] = []
-            infer_call(c, fx.typed, diags, call_check_stub)
+            infer_call(c, null, fx.typed, diags, call_check_stub)
             // The omitted trailing param is filled from its default.
             assert_eq(c.args.len(), 2)
         }
@@ -1088,7 +1125,7 @@ main :: fn() -> void { greet(42) }
         is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
             diags: Diagnostic[] = []
-            infer_call(c, fx.typed, diags, call_check_stub)
+            infer_call(c, null, fx.typed, diags, call_check_stub)
             // FreeInt is not assignable to string ; T3001 fires.
             found := false
             for d in diags {

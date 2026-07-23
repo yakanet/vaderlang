@@ -241,6 +241,11 @@ const C_PARITY = new Set<string>([
   // native output == vm.snapshot so the VM and native can't drift on narrow-int
   // wrap again. See .claude/plans/narrow-int-width-truncation.md.
   "narrow_int_wrap",
+  // Generic call whose type-param is bound only by the call's expected type,
+  // with a lambda factory argument. Native is the oracle that matters here: the
+  // erased-vs-packed element mismatch this guards against was invisible in the
+  // VM (it boxes uniformly) and only corrupted the native buffers.
+  "generic_lambda_factory",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));
