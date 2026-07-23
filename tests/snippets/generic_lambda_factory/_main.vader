@@ -1,0 +1,64 @@
+module "snippet"
+
+import "std/io"
+
+// A generic whose type-param appears ONLY in a callback's return type: no
+// argument can bind `T`, so it comes from the call's expected type. The lambda
+// must be checked against `fn() -> i32[]`, not the unsubstituted `fn() -> T` —
+// a `T`-typed `[]` allocates an ERASED (boxed) buffer, while the concrete
+// call-site pushes and reads it as packed `i32`. That mismatch used to corrupt
+// the elements silently (no diagnostic, no trap) once a row grew past its
+// initial capacity; it took a self-compile SIGSEGV to surface.
+build :: fn<T>(n: usize, make: fn() -> T) -> T[] {
+    out: T[] = [] * n
+    for _ in 0..<n {
+        out.push(make())
+    }
+    return out
+}
+
+/// Control factory — same shape, but a concrete return type the checker
+/// never had to substitute.
+new_row :: fn() -> i32[] = []
+
+ROWS:    usize: 40
+PER_ROW: usize: 9
+
+// Several pushes per row so each buffer outgrows its first allocation — the
+// growth path is where the erased/packed mismatch used to show up.
+fill :: fn(rows: i32[][]) -> void {
+    for i in 0..<rows.len() {
+        for j in 0..<PER_ROW {
+            rows[i].push(i32(i) * 100 + i32(j))
+        }
+    }
+}
+
+// Number of slots that don't read back what `fill` wrote.
+mismatches :: fn(rows: i32[][]) -> i32 {
+    bad := 0
+    for i in 0..<rows.len() {
+        row :: rows[i]
+        if row.len() != PER_ROW {
+            bad += 1
+            continue
+        }
+        for j in 0..<PER_ROW {
+            if row[j] != i32(i) * 100 + i32(j) {
+                bad += 1
+            }
+        }
+    }
+    return bad
+}
+
+main :: fn() -> i32 {
+    lambda_rows: i32[][] = build(ROWS, () -> [])
+    fill(lambda_rows)
+    println("lambda mismatches=${mismatches(lambda_rows)}")
+
+    named_rows: i32[][] = build(ROWS, new_row)
+    fill(named_rows)
+    println("named  mismatches=${mismatches(named_rows)}")
+    return 0
+}

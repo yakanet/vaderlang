@@ -1,0 +1,285 @@
+# Lower
+
+## snippet
+  fn snippet$new_row() -> i32[]
+    ~>
+      array :i32[]
+  const snippet$ROWS: usize =
+    int(40) :usize
+  const snippet$PER_ROW: usize =
+    int(9) :usize
+  fn snippet$fill(rows: i32[][]) -> void
+    block :void
+      let __for_hi_0: usize =
+        LoweredArrayLen
+      let i: usize = int(0) :usize
+      loop while (<…>)
+        block :void
+          let j: usize = int(0) :usize
+          loop while (<…>)
+            LoweredArrayPush
+            assign
+              target:
+                j :usize
+              value:
+                add :usize
+                  l:
+                    j :usize
+                  r:
+                    int(1) :usize
+        assign
+          target:
+            i :usize
+          value:
+            add :usize
+              l:
+                i :usize
+              r:
+                int(1) :usize
+  fn snippet$mismatches(rows: i32[][]) -> i32
+    let bad: i32 = int(0) :i32
+    block :void
+      let __for_hi_0: usize =
+        LoweredArrayLen
+      let i: usize = int(0) :usize
+      loop while (<…>)
+        let row: i32[] =
+          index :i32[]
+            on:
+              rows :i32[][]
+            ix:
+              i :usize
+        if :void
+          cond:
+            neq :bool
+              l:
+                LoweredArrayLen
+              r:
+                int(9) :usize
+          then:
+            assign
+              target:
+                bad :i32
+              value:
+                add :i32
+                  l:
+                    bad :i32
+                  r:
+                    int(1) :i32
+            block :void
+              assign
+                target:
+                  i :usize
+                value:
+                  add :usize
+                    l:
+                      i :usize
+                    r:
+                      int(1) :usize
+              continue
+        block :void
+          let j: usize = int(0) :usize
+          loop while (<…>)
+            if :void
+              cond:
+                neq :bool
+                  l:
+                    index :i32
+                      on:
+                        row :i32[]
+                      ix:
+                        j :usize
+                  r:
+                    add :i32
+                      l:
+                        mul :i32
+                          l:
+                            cast → i32
+                              i :usize
+                          r:
+                            int(100) :i32
+                      r:
+                        cast → i32
+                          j :usize
+              then:
+                assign
+                  target:
+                    bad :i32
+                  value:
+                    add :i32
+                      l:
+                        bad :i32
+                      r:
+                        int(1) :i32
+            assign
+              target:
+                j :usize
+              value:
+                add :usize
+                  l:
+                    j :usize
+                  r:
+                    int(1) :usize
+        assign
+          target:
+            i :usize
+          value:
+            add :usize
+              l:
+                i :usize
+              r:
+                int(1) :usize
+    return bad :i32
+  fn snippet$main() -> i32
+    let lambda_rows: i32[][] =
+      call :i32[][]
+        callee:
+          snippet$build__i32__ :i32[][]
+        arg0:
+          int(40) :usize
+        arg1:
+          LoweredMakeClosure
+    call :void
+      callee:
+        fill :fn(i32[][]) -> void
+      arg0:
+        lambda_rows :i32[][]
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_1: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(38) :usize
+          let __off_2: usize = int(0) :usize
+          assign
+            target:
+              __off_2 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
+                  __off_2 :usize
+                arg2:
+                  "lambda mismatches=" :string
+          assign
+            target:
+              __off_2 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
+                  __off_2 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        mismatches :fn(i32[][]) -> i32
+                      arg0:
+                        lambda_rows :i32[][]
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_1 :Buffer
+              arg1:
+                __off_2 :usize
+    let named_rows: i32[][] =
+      call :i32[][]
+        callee:
+          snippet$build__i32__ :i32[][]
+        arg0:
+          int(40) :usize
+        arg1:
+          new_row :fn() -> i32[]
+    call :void
+      callee:
+        fill :fn(i32[][]) -> void
+      arg0:
+        named_rows :i32[][]
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_3: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(38) :usize
+          let __off_4: usize = int(0) :usize
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  "named  mismatches=" :string
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        mismatches :fn(i32[][]) -> i32
+                      arg0:
+                        named_rows :i32[][]
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_3 :Buffer
+              arg1:
+                __off_4 :usize
+    return int(0) :i32
+  struct __lambda_env_4 {  }
+  fn __lambda_3(__env_0: __lambda_env_4) -> i32[]
+    ~>
+      array :i32[]
+  fn snippet$build__i32__(n: usize, make: fn() -> i32[]) -> i32[][]
+    let out: i32[][] =
+      @array.repeat :i32[][]
+        array :i32[][]
+        n :usize
+    block :void
+      let _: usize = int(0) :usize
+      loop while (<…>)
+        LoweredArrayPush
+        assign
+          target:
+            _ :usize
+          value:
+            add :usize
+              l:
+                _ :usize
+              r:
+                int(1) :usize
+    return out :i32[][]
