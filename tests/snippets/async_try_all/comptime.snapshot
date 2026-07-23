@@ -64,10 +64,10 @@
   MutableSet<T>
   Into<Target>
   Add<Rhs, Out>
+  ArrayOps<T>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>
-  ArrayOps<T>
   Rem<Rhs, Out>
   Index<I, T>
   IndexSet<I, T>

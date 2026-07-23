@@ -55,8 +55,26 @@ export ArrayOps :: trait<T> {
 export filled :: fn<T>(n: usize, make: fn() -> T) -> T[] {
     out: T[] = [] * n
     for _ in 0..<n {
-        v :: make()
-        out.push(v)
+        out.push(make())
+    }
+    return out
+}
+
+/// Build an array of `n` elements, calling `make(i)` for slot `i`.
+///
+/// The positional twin of `filled` : reach for it when an element depends on
+/// where it sits, and for `filled` when it doesn't.
+///
+/// @param n     number of elements to build.
+/// @param make  called once per slot, in order, with that slot's index.
+/// @return      a fresh array of length `n`, its capacity reserved up front.
+/// @example
+///   squares :: filled_indexed(n, (i: usize) -> i32(i * i))
+///   rows    :: filled_indexed(n, (i: usize) -> Row { .id = i })
+export filled_indexed :: fn<T>(n: usize, make: fn(usize) -> T) -> T[] {
+    out: T[] = [] * n
+    for i in 0..<n {
+        out.push(make(i))
     }
     return out
 }
@@ -80,4 +98,18 @@ test_filled_builds_distinct_elements :: fn() -> void {
 @test
 test_filled_of_zero_is_empty :: fn() -> void {
     assert_eq(filled(0, new_int_row).len(), 0)
+}
+
+@test
+test_filled_indexed_passes_the_slot_index :: fn() -> void {
+    squares :: filled_indexed(4, (i: usize) -> i32(i * i))
+    assert_eq(squares.len(), 4)
+    assert_eq(squares[0], 0)
+    assert_eq(squares[2], 4)
+    assert_eq(squares[3], 9)
+}
+
+@test
+test_filled_indexed_of_zero_is_empty :: fn() -> void {
+    assert_eq(filled_indexed(0, (i: usize) -> i32(i)).len(), 0)
 }

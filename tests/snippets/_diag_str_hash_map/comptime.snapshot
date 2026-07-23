@@ -32,6 +32,7 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
+  ArrayOps<T>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>
@@ -41,7 +42,6 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

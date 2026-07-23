@@ -23,7 +23,7 @@
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
   ArrayOps<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>

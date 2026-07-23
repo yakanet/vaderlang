@@ -3,9 +3,9 @@
 ## tests/snippets/vm_trait_dispatch
 
 ## generic instances
-  Into<Target>
   Wrapper<i32>
   Wrapper<T>
+  Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
