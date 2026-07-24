@@ -3518,6 +3518,20 @@ parse_pattern :: fn(p: Parser) -> Pattern {
         // `1 | 6 -> …` parses as two `LiteralPattern`s the arm loop folds into an
         // `OrPattern`, rather than the bitor expression `(1 | 6)`.
         value :: p.parse_prefix()
+        // `'a'..='z'` / `0..<10` — a range pattern. `parse_prefix` stops at the
+        // infix range operator, so peek for it here and fold the two literal
+        // bounds into a `RangePattern` ; otherwise it is a bare literal.
+        if p.check(.RangeIncl) || p.check(.RangeExcl) {
+            inclusive :: p.check(.RangeIncl)
+            p.advance()
+            upper :: p.parse_prefix()
+            return RangePattern {
+                .span      = p.span_of(t, p.peek_at(-1)),
+                .inclusive = inclusive,
+                .lower     = value,
+                .upper     = upper,
+            }
+        }
         return LiteralPattern {
             .span  = p.span_of(t, p.peek_at(-1)),
             .value = value,

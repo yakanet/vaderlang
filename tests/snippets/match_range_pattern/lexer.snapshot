@@ -1,0 +1,152 @@
+# Tokens
+[1:1-1:7    ] ident          "module"
+[1:8-1:9    ] string_begin   "\""
+[1:9-1:16   ] string_part    "snippet" ="snippet"
+[1:16-1:17  ] string_end     "\""
+[2:1-2:1    ] newline        "\n"
+[5:1-5:9    ] ident          "classify"
+[5:10-5:12  ] decl_const     "::"
+[5:13-5:15  ] kw_fn          "fn"
+[5:15-5:16  ] lparen         "("
+[5:16-5:17  ] ident          "c"
+[5:17-5:18  ] colon          ":"
+[5:19-5:23  ] ident          "char"
+[5:23-5:24  ] rparen         ")"
+[5:25-5:27  ] arrow          "->"
+[5:28-5:31  ] ident          "i32"
+[5:32-5:33  ] assign         "="
+[5:34-5:39  ] kw_match       "match"
+[5:40-5:41  ] ident          "c"
+[5:42-5:43  ] lbrace         "{"
+[6:1-6:1    ] newline        "\n"
+[6:5-6:8    ] char_literal   "'0'" =U+0030
+[6:8-6:11   ] range_incl     "..="
+[6:11-6:14  ] char_literal   "'9'" =U+0039
+[6:15-6:17  ] arrow          "->"
+[6:18-6:19  ] int_literal    "1" =1n
+[7:1-7:1    ] newline        "\n"
+[7:5-7:8    ] char_literal   "'a'" =U+0061
+[7:8-7:11   ] range_incl     "..="
+[7:11-7:14  ] char_literal   "'z'" =U+007a
+[7:15-7:17  ] arrow          "->"
+[7:18-7:19  ] int_literal    "2" =2n
+[8:1-8:1    ] newline        "\n"
+[8:5-8:8    ] char_literal   "'A'" =U+0041
+[8:8-8:11   ] range_incl     "..="
+[8:11-8:14  ] char_literal   "'Z'" =U+005a
+[8:15-8:17  ] arrow          "->"
+[8:18-8:19  ] int_literal    "3" =3n
+[9:1-9:1    ] newline        "\n"
+[9:5-9:6    ] ident          "_"
+[9:15-9:17  ] arrow          "->"
+[9:18-9:19  ] int_literal    "0" =0n
+[10:1-10:1  ] newline        "\n"
+[10:1-10:2  ] rbrace         "}"
+[11:1-11:1  ] newline        "\n"
+[16:1-16:7  ] ident          "bucket"
+[16:8-16:10 ] decl_const     "::"
+[16:11-16:13] kw_fn          "fn"
+[16:13-16:14] lparen         "("
+[16:14-16:15] ident          "n"
+[16:15-16:16] colon          ":"
+[16:17-16:20] ident          "i32"
+[16:20-16:21] rparen         ")"
+[16:22-16:24] arrow          "->"
+[16:25-16:28] ident          "i32"
+[16:29-16:30] assign         "="
+[16:31-16:36] kw_match       "match"
+[16:37-16:38] ident          "n"
+[16:39-16:40] lbrace         "{"
+[17:1-17:1  ] newline        "\n"
+[17:5-17:6  ] int_literal    "0" =0n
+[17:6-17:9  ] range_excl     "..<"
+[17:9-17:11 ] int_literal    "10" =10n
+[17:13-17:15] arrow          "->"
+[17:16-17:17] int_literal    "1" =1n
+[18:1-18:1  ] newline        "\n"
+[18:5-18:7  ] int_literal    "10" =10n
+[18:7-18:10 ] range_incl     "..="
+[18:10-18:12] int_literal    "99" =99n
+[18:13-18:15] arrow          "->"
+[18:16-18:17] int_literal    "2" =2n
+[19:1-19:1  ] newline        "\n"
+[19:5-19:6  ] ident          "_"
+[19:13-19:15] arrow          "->"
+[19:16-19:17] int_literal    "3" =3n
+[20:1-20:1  ] newline        "\n"
+[20:1-20:2  ] rbrace         "}"
+[21:1-21:1  ] newline        "\n"
+[22:1-22:7  ] kw_export      "export"
+[22:8-22:12 ] ident          "main"
+[22:13-22:15] decl_const     "::"
+[22:16-22:18] kw_fn          "fn"
+[22:18-22:19] lparen         "("
+[22:19-22:20] rparen         ")"
+[22:21-22:23] arrow          "->"
+[22:24-22:27] ident          "i32"
+[22:28-22:29] lbrace         "{"
+[23:1-23:1  ] newline        "\n"
+[24:5-24:6  ] ident          "c"
+[24:7-24:9  ] decl_const     "::"
+[24:10-24:18] ident          "classify"
+[24:18-24:19] lparen         "("
+[24:19-24:22] char_literal   "'5'" =U+0035
+[24:22-24:23] rparen         ")"
+[24:24-24:25] plus           "+"
+[24:26-24:34] ident          "classify"
+[24:34-24:35] lparen         "("
+[24:35-24:38] char_literal   "'q'" =U+0071
+[24:38-24:39] rparen         ")"
+[24:40-24:41] star           "*"
+[24:42-24:44] int_literal    "10" =10n
+[24:45-24:46] plus           "+"
+[24:47-24:55] ident          "classify"
+[24:55-24:56] lparen         "("
+[24:56-24:59] char_literal   "'Q'" =U+0051
+[24:59-24:60] rparen         ")"
+[24:61-24:62] star           "*"
+[24:63-24:66] int_literal    "100" =100n
+[24:67-24:68] plus           "+"
+[24:69-24:77] ident          "classify"
+[24:77-24:78] lparen         "("
+[24:78-24:81] char_literal   "'+'" =U+002b
+[24:81-24:82] rparen         ")"
+[24:83-24:84] star           "*"
+[24:85-24:89] int_literal    "1000" =1000n
+[25:1-25:1  ] newline        "\n"
+[27:5-27:6  ] ident          "b"
+[27:7-27:9  ] decl_const     "::"
+[27:10-27:16] ident          "bucket"
+[27:16-27:17] lparen         "("
+[27:17-27:18] int_literal    "9" =9n
+[27:18-27:19] rparen         ")"
+[27:20-27:21] plus           "+"
+[27:22-27:28] ident          "bucket"
+[27:28-27:29] lparen         "("
+[27:29-27:31] int_literal    "10" =10n
+[27:31-27:32] rparen         ")"
+[27:33-27:34] star           "*"
+[27:35-27:37] int_literal    "10" =10n
+[27:38-27:39] plus           "+"
+[27:40-27:46] ident          "bucket"
+[27:46-27:47] lparen         "("
+[27:47-27:49] int_literal    "99" =99n
+[27:49-27:50] rparen         ")"
+[27:51-27:52] star           "*"
+[27:53-27:56] int_literal    "100" =100n
+[27:57-27:58] plus           "+"
+[27:59-27:65] ident          "bucket"
+[27:65-27:66] lparen         "("
+[27:66-27:69] int_literal    "100" =100n
+[27:69-27:70] rparen         ")"
+[27:71-27:72] star           "*"
+[27:73-27:77] int_literal    "1000" =1000n
+[28:1-28:1  ] newline        "\n"
+[28:5-28:11 ] kw_return      "return"
+[28:12-28:13] ident          "c"
+[28:14-28:15] plus           "+"
+[28:16-28:17] ident          "b"
+[29:1-29:1  ] newline        "\n"
+[29:1-29:2  ] rbrace         "}"
+[30:1-30:1  ] newline        "\n"
+[30:1-30:1  ] eof            ""

@@ -1,0 +1,29 @@
+module "snippet"
+
+// char range patterns — inclusive `..=`. A scalar scrutinee matches when it
+// falls in `lower..=upper` ; the bounds are literal chars of the scrutinee type.
+classify :: fn(c: char) -> i32 = match c {
+    '0'..='9' -> 1
+    'a'..='z' -> 2
+    'A'..='Z' -> 3
+    _         -> 0
+}
+
+// int range patterns — exclusive `..<` vs inclusive `..=`. The boundary `10`
+// falls OUT of `0..<10` (upper excluded) and INTO `10..=99`, so the two arms
+// partition `0..=99` without overlap. Range patterns exhaust nothing, so the
+// catch-all `_` is still required.
+bucket :: fn(n: i32) -> i32 = match n {
+    0..<10  -> 1
+    10..=99 -> 2
+    _       -> 3
+}
+
+export main :: fn() -> i32 {
+    // classify : '5' -> 1, 'q' -> 2, 'Q' -> 3, '+' -> 0  ->  1 + 20 + 300 + 0 = 321
+    c :: classify('5') + classify('q') * 10 + classify('Q') * 100 + classify('+') * 1000
+    // bucket boundaries : 9 -> 1, 10 -> 2 (exclusive upper), 99 -> 2, 100 -> 3
+    //                     1 + 20 + 200 + 3000 = 3221
+    b :: bucket(9) + bucket(10) * 10 + bucket(99) * 100 + bucket(100) * 1000
+    return c + b
+}

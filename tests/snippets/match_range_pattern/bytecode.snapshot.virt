@@ -1,0 +1,195 @@
+module _main
+type 0 primitive null
+type 1 primitive char
+type 2 primitive i32
+export main 2
+
+fn 0 snippet$classify (char) -> i32
+  local __scrut_0 char
+  local and_res bool
+  local if_res i32
+  local if_res i32
+  local if_res i32
+  local.get 0
+  local.tee 1
+  char.const 48
+  i32.ge
+  if $L0 void
+    local.get 1
+    char.const 57
+    i32.le
+    local.set 2
+  else
+    bool.const false
+    local.set 2
+  end $L0
+  local.get 2
+  if $L1 void
+    i32.const 1
+    local.set 3
+  else
+    local.get 1
+    char.const 97
+    i32.ge
+    if $L2 void
+      local.get 1
+      char.const 122
+      i32.le
+      local.set 2
+    else
+      bool.const false
+      local.set 2
+    end $L2
+    local.get 2
+    if $L3 void
+      i32.const 2
+      local.set 4
+    else
+      local.get 1
+      char.const 65
+      i32.ge
+      if $L4 void
+        local.get 1
+        char.const 90
+        i32.le
+        local.set 2
+      else
+        bool.const false
+        local.set 2
+      end $L4
+      local.get 2
+      if $L5 void
+        i32.const 3
+        local.set 5
+      else
+        i32.const 0
+        local.set 5
+      end $L5
+      local.get 5
+      local.set 4
+    end $L3
+    local.get 4
+    local.set 3
+  end $L1
+  local.get 3
+  return
+end
+
+fn 1 snippet$bucket (i32) -> i32
+  local __scrut_0 i32
+  local and_res bool
+  local if_res i32
+  local.get 0
+  local.tee 1
+  i32.const 0
+  i32.ge
+  if $L0 void
+    local.get 1
+    i32.const 10
+    i32.lt
+    local.set 2
+  else
+    bool.const false
+    local.set 2
+  end $L0
+  local.get 2
+  if $L1 void
+    i32.const 1
+    local.set 3
+  else
+    local.get 1
+    i32.const 10
+    i32.ge
+    if $L2 void
+      local.get 1
+      i32.const 99
+      i32.le
+      local.set 2
+    else
+      bool.const false
+      local.set 2
+    end $L2
+    local.get 2
+    if $L3 void
+      i32.const 2
+      local.set 1
+    else
+      i32.const 3
+      local.set 1
+    end $L3
+    local.get 1
+    local.set 3
+  end $L1
+  local.get 3
+  return
+end
+
+fn 2 snippet$main () -> i32
+  local $call_1 i32
+  local $mul_5 i32
+  local $mul_23 i32
+  char.const 53
+  call 0
+  local.set 0
+  char.const 113
+  call 0
+  i32.const 10
+  i32.mul
+  local.set 1
+  local.get 0
+  local.get 1
+  i32.add
+  local.set 0
+  char.const 81
+  call 0
+  i32.const 100
+  i32.mul
+  local.set 1
+  local.get 0
+  local.get 1
+  i32.add
+  local.set 0
+  char.const 43
+  call 0
+  i32.const 1000
+  i32.mul
+  local.set 1
+  local.get 0
+  local.get 1
+  i32.add
+  local.set 0
+  i32.const 9
+  call 1
+  local.set 1
+  i32.const 10
+  call 1
+  i32.const 10
+  i32.mul
+  local.set 2
+  local.get 1
+  local.get 2
+  i32.add
+  local.set 1
+  i32.const 99
+  call 1
+  i32.const 100
+  i32.mul
+  local.set 2
+  local.get 1
+  local.get 2
+  i32.add
+  local.set 1
+  i32.const 100
+  call 1
+  i32.const 1000
+  i32.mul
+  local.set 2
+  local.get 1
+  local.get 2
+  i32.add
+  local.set 1
+  local.get 0
+  local.get 1
+  i32.add
+  return
+end

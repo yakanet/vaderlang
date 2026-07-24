@@ -2110,8 +2110,15 @@ emit_pattern :: fn(self: Printer, pat: p.Pattern) -> void {
             self.write(x.variant)
         }
         is p.LiteralPattern as x -> self.emit_expr(x.value)
+        is p.RangePattern   as x -> self.emit_range_pattern(x)
         is p.OrPattern      as x -> self.emit_or_pattern(x)
     }
+}
+
+emit_range_pattern :: fn(self: Printer, x: p.RangePattern) -> void {
+    self.emit_expr(x.lower)
+    self.write(if x.inclusive { "..=" } else { "..<" })
+    self.emit_expr(x.upper)
 }
 
 emit_is_pattern :: fn(self: Printer, x: p.IsPattern) -> void {
@@ -2143,6 +2150,10 @@ emit_is_pattern :: fn(self: Printer, x: p.IsPattern) -> void {
         is p.LiteralPattern as inner -> {
             self.write(" ")
             self.emit_expr(inner.value)
+        }
+        is p.RangePattern as inner -> {
+            self.write(" ")
+            self.emit_range_pattern(inner)
         }
         is p.OrPattern as inner -> {
             self.write(" ")

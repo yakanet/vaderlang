@@ -32,7 +32,7 @@ export StringLitPart :: StringLitText | StringLitInterp
 
 export IfElse :: IfElseIf | IfElseBlock
 
-export Pattern :: IsPattern | StructPattern | TuplePattern | WildcardPattern | BindingPattern | EnumVariantPattern | LiteralPattern | OrPattern
+export Pattern :: IsPattern | StructPattern | TuplePattern | WildcardPattern | BindingPattern | EnumVariantPattern | LiteralPattern | RangePattern | OrPattern
 
 export LetBinding :: SimpleBinding | TupleBinding | WildcardBinding | RestBinding
 
@@ -826,6 +826,20 @@ export LiteralPattern :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
     value: Expr
+}
+
+/// Range pattern : `'a'..='z' -> …`, `0..<10 -> …`. Matches when a scalar
+/// scrutinee falls in the range. `inclusive` = `..=` (upper bound included),
+/// else `..<` (excluded). The bounds are literal scalar exprs (char / int) of
+/// the scrutinee's type ; the lowerer emits
+/// `scrutinee >= lower && scrutinee <(=) upper`. Binds nothing, and — like a
+/// literal pattern over an open scalar domain — exhausts nothing.
+export RangePattern :: struct {
+    span:      Span
+    id:        usize = UNASSIGNED_NODE_ID
+    inclusive: bool
+    lower:     Expr
+    upper:     Expr
 }
 
 /// Or-pattern : `.A | .B -> …`, `1 | 2 | 3 -> …`. Matches when ANY alternative

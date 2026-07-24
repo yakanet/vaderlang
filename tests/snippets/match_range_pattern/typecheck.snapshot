@@ -1,0 +1,41 @@
+# Typecheck
+
+## tests/snippets/match_range_pattern
+  FnDecl         bucket               :: fn(i32) -> i32
+  FnDecl         classify             :: fn(char) -> i32
+  FnDecl         main                 :: fn() -> i32
+  expr 16:31    MatchExpr      :: i32
+  expr 16:37    IdentExpr      :: i32
+  expr 24:10    BinaryExpr     :: i32
+  expr 24:10    BinaryExpr     :: i32
+  expr 24:10    BinaryExpr     :: i32
+  expr 24:10    CallExpr       :: i32
+  expr 24:10    IdentExpr      :: fn(char) -> i32
+  expr 24:26    BinaryExpr     :: i32
+  expr 24:26    CallExpr       :: i32
+  expr 24:26    IdentExpr      :: fn(char) -> i32
+  expr 24:47    BinaryExpr     :: i32
+  expr 24:47    CallExpr       :: i32
+  expr 24:47    IdentExpr      :: fn(char) -> i32
+  expr 24:69    BinaryExpr     :: i32
+  expr 24:69    CallExpr       :: i32
+  expr 24:69    IdentExpr      :: fn(char) -> i32
+  expr 27:10    BinaryExpr     :: i32
+  expr 27:10    BinaryExpr     :: i32
+  expr 27:10    BinaryExpr     :: i32
+  expr 27:10    CallExpr       :: i32
+  expr 27:10    IdentExpr      :: fn(i32) -> i32
+  expr 27:22    BinaryExpr     :: i32
+  expr 27:22    CallExpr       :: i32
+  expr 27:22    IdentExpr      :: fn(i32) -> i32
+  expr 27:40    BinaryExpr     :: i32
+  expr 27:40    CallExpr       :: i32
+  expr 27:40    IdentExpr      :: fn(i32) -> i32
+  expr 27:59    BinaryExpr     :: i32
+  expr 27:59    CallExpr       :: i32
+  expr 27:59    IdentExpr      :: fn(i32) -> i32
+  expr 28:12    BinaryExpr     :: i32
+  expr 28:12    IdentExpr      :: i32
+  expr 28:16    IdentExpr      :: i32
+  expr 5:34     MatchExpr      :: i32
+  expr 5:40     IdentExpr      :: char

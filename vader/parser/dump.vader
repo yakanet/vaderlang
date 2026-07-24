@@ -1224,6 +1224,7 @@ write_pattern :: fn(sb: StringBuilder, p: Pattern, level: i32) -> void {
                 is BindingPattern -> { sb.write_pattern(inner, level + 1) }
                 is EnumVariantPattern -> { sb.write_pattern(inner, level + 1) }
                 is LiteralPattern -> { sb.write_pattern(inner, level + 1) }
+                is RangePattern -> { sb.write_pattern(inner, level + 1) }
                 is OrPattern -> { sb.write_pattern(inner, level + 1) }
             }
             sb.entry(false, level + 1, "bindAs")
@@ -1273,6 +1274,17 @@ write_pattern :: fn(sb: StringBuilder, p: Pattern, level: i32) -> void {
             sb.kind_entry(level + 1, "LiteralPattern")
             sb.entry(false, level + 1, "value")
             sb.write_expr(p.value, level + 1)
+            sb.close_obj(level)
+        }
+        is RangePattern -> {
+            sb.open_obj()
+            sb.kind_entry(level + 1, "RangePattern")
+            sb.entry(false, level + 1, "inclusive")
+            sb.write_bool(p.inclusive)
+            sb.entry(false, level + 1, "lower")
+            sb.write_expr(p.lower, level + 1)
+            sb.entry(false, level + 1, "upper")
+            sb.write_expr(p.upper, level + 1)
             sb.close_obj(level)
         }
         is OrPattern -> {

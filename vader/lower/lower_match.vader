@@ -179,6 +179,26 @@ pattern_predicate :: fn(
                 .left = target, .right = literal,
             }
         }
+        is RangePattern as range_pattern -> {
+            // `target >= lower && target <(=) upper`. `target` is the pre-bound
+            // scrutinee temp — reusing it twice is the same shape the tuple /
+            // struct predicates already rely on.
+            lo :: recurse(ctx, range_pattern.lower)
+            hi :: recurse(ctx, range_pattern.upper)
+            lo_ok :: LoweredBinary {
+                .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Gte,
+                .left = target, .right = lo,
+            }
+            hi_op :: if range_pattern.inclusive { LoweredBinaryOp.Lte } else { LoweredBinaryOp.Lt }
+            hi_ok :: LoweredBinary {
+                .span = span, .type = TY_BOOL, .op = hi_op,
+                .left = target, .right = hi,
+            }
+            return LoweredBinary {
+                .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.And,
+                .left = lo_ok, .right = hi_ok,
+            }
+        }
         is TuplePattern as tuple_pattern -> {
             return tuple_pattern_predicate(ctx, tuple_pattern, target, target_type, span, recurse)
         }
@@ -438,6 +458,7 @@ walk_pattern_bindings :: fn(
         is WildcardPattern -> {}
         is EnumVariantPattern -> {}
         is LiteralPattern -> {}
+        is RangePattern -> {}
         is OrPattern -> {}
     }
 }

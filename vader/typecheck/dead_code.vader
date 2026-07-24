@@ -226,6 +226,10 @@ collect_pattern_names :: fn(p: AST.Pattern, out: string[]) -> void {
         is AST.LiteralPattern     -> {
             collect_expr_names(p.value, out)
         }
+        is AST.RangePattern       -> {
+            collect_expr_names(p.lower, out)
+            collect_expr_names(p.upper, out)
+        }
         is AST.OrPattern          -> {
             for alt in p.patterns {
                 collect_pattern_names(alt, out)

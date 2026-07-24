@@ -524,6 +524,10 @@ walk_pattern :: fn(p: AST.Pattern, out: RawToken[]) -> void {
         is AST.BindingPattern     as x -> { push_span(out, x.span, .Variable) }
         is AST.EnumVariantPattern as x -> { push_span(out, x.span, .EnumMember) }
         is AST.LiteralPattern     as x -> { walk_expr(x.value, out) }
+        is AST.RangePattern       as x -> {
+            walk_expr(x.lower, out)
+            walk_expr(x.upper, out)
+        }
         is AST.OrPattern          as x -> { for alt in x.patterns { walk_pattern(alt, out) } }
     }
 }

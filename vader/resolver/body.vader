@@ -596,6 +596,10 @@ bind_pattern :: fn(self: ResolveState, p: AST.Pattern) -> void {
         }
         is AST.EnumVariantPattern -> {}
         is AST.LiteralPattern as x -> { self.walk_expr(x.value) }
+        is AST.RangePattern as x -> {
+            self.walk_expr(x.lower)
+            self.walk_expr(x.upper)
+        }
         is AST.OrPattern as x -> { for alt in x.patterns { self.bind_pattern(alt) } }
     }
 }

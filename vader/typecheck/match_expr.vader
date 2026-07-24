@@ -11,6 +11,28 @@ import "vader/diagnostics"
 import "vader/types"
 AST :: import "vader/parser"
 
+// Type-check the literal / range bound expressions embedded directly in a
+// pattern. Literal and range patterns carry scalar exprs (`value`, or
+// `lower`/`upper`) that must be checked so they land in `expr_types` ; every
+// other pattern kind carries none. Called on the arm pattern and on each
+// or-pattern alternative. NOTE : bounds are checked in isolation (`null`
+// expected), so a bound whose type mismatches the scrutinee is not yet rejected
+// — see TODO "range/literal pattern bound typing".
+check_pattern_bound_exprs :: fn(
+    pat: AST.Pattern,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> void {
+    if pat is AST.LiteralPattern as lp {
+        _ :: check_expr_fn(lp.value, null, typed, diags)
+    }
+    if pat is AST.RangePattern as rp {
+        _ :: check_expr_fn(rp.lower, null, typed, diags)
+        _ :: check_expr_fn(rp.upper, null, typed, diags)
+    }
+}
+
 /// Type-check a `MatchExpr`. `expected` flows into every arm body so
 /// `let x: i32 = match v { is Foo -> 1, is Bar -> 2 }` narrows each
 /// arm to i32.
@@ -31,14 +53,10 @@ export infer_match :: fn(
     has_wildcard := false
     covered_enum_variants: string[] = []
     for arm in e.arms {
-        if arm.pattern is AST.LiteralPattern as lp {
-            check_expr_fn(lp.value, null, typed, diags)
-        }
+        check_pattern_bound_exprs(arm.pattern, typed, diags, check_expr_fn)
         if arm.pattern is AST.OrPattern as op {
             for sub in op.patterns {
-                if sub is AST.LiteralPattern {
-                    check_expr_fn(sub.value, null, typed, diags)
-                }
+                check_pattern_bound_exprs(sub, typed, diags, check_expr_fn)
             }
         }
         // Re-bind the pattern types against the narrowed `remaining`
@@ -276,12 +294,12 @@ is_never :: fn(t: Type) -> bool {
 
 arm_narrow_for :: fn(p: AST.Pattern, remaining: Type, typed: TypedProgram) -> Type | null {
     // Only `is T` / wildcard / binding arms narrow the scrutinee; literal /
-    // enum-variant / struct / tuple / or patterns carry no slot narrowing.
+    // range / enum-variant / struct / tuple / or patterns carry no slot narrowing.
     match p {
         is AST.IsPattern as ip -> { return type_from_expr(ip.ty, typed.resolved, scratch_diags()) }
         is AST.WildcardPattern -> { return remaining }
         is AST.BindingPattern -> { return remaining }
-        is AST.StructPattern | AST.TuplePattern | AST.EnumVariantPattern | AST.LiteralPattern | AST.OrPattern -> { return null }
+        is AST.StructPattern | AST.TuplePattern | AST.EnumVariantPattern | AST.LiteralPattern | AST.RangePattern | AST.OrPattern -> { return null }
     }
 }
 
