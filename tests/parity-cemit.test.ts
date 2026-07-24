@@ -251,6 +251,9 @@ const C_PARITY = new Set<string>([
   // buffer and the array silently reads back garbage past its first growth. The
   // VM boxes uniformly and never saw it.
   "empty_array_widening",
+  // A type-param bound only by the call's result slot, on both sides of the
+  // pipeline (typecheck's unify + the lowerer's instance key).
+  "generic_return_binds_typaram",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

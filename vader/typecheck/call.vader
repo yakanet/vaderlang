@@ -632,13 +632,14 @@ export infer_call :: fn(
         }
         // Whatever the arguments left unbound, the result slot may pin :
         // `out: i32[][] = filled(n, () -> [])` binds `T = i32[]` through
-        // `T[]` ↔ `i32[][]`. Arguments keep priority — `unify_type_param` only
+        // `T[]` ↔ `i32[][]`, and `rows: i32[] = empty()` is a type-param NO
+        // argument can reach. Arguments keep priority — `unify_type_param` only
         // fills a type-param that has no binding yet. An `expected` that still
         // mentions a type-param is NOT a pin : nested inside another generic
         // call (`my_filter(my_map(xs, f), p)`), the inner call's expected is the
         // outer's still-unbound `Iterator<T>`, and binding to it would carry
         // that foreign type-param into the result instead of a concrete type.
-        if has_lambda && expected != null && !type_contains_type_param(expected) {
+        if expected != null && !type_contains_type_param(expected) {
             unify_type_param(callee_ty.return_type, expected, bindings)
         }
         if has_lambda {

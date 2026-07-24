@@ -1,0 +1,28 @@
+module "snippet"
+
+import "std/io"
+
+// `T` appears ONLY in the return type: no argument can carry it, so the result
+// slot is the sole binder. The typechecker unifies the return type against the
+// call's expected type, and the lowerer does the same when it keys the
+// monomorphised instance — miss either and the instance is keyed on a dangling
+// `T`, which used to abort materialisation with the GATE B1 "unresolved callee"
+// panic.
+empty_of :: fn<T>() -> T[] {
+    out: T[] = []
+    return out
+}
+
+main :: fn() -> i32 {
+    // Two distinct instances, each bound only through its slot.
+    numbers: i32[] = empty_of()
+    numbers.push(7)
+    numbers.push(8)
+
+    words: string[] = empty_of()
+    words.push("hi")
+
+    println("i32    ${numbers.len()} ${numbers[0]} ${numbers[1]}")
+    println("string ${words.len()} ${words[0]}")
+    return 0
+}
