@@ -117,8 +117,7 @@ export add_type :: fn(self: ModuleBuilder, type_decl: bc.BcType) -> i32 {
 /// only reads `params.len()` / `result`, and a `.virt` round-trip
 /// reconstructs the indices from the type table.
 synth_signature :: fn(parameter_count: usize, has_return: bool) -> bc.BcSignature {
-    params: bc.ValType[] = []
-    for _ in 0..<parameter_count { params.push(bc.ValType.Any) }
+    params: bc.ValType[] = [bc.ValType.Any] * parameter_count
     return bc.BcSignature {
         .params      = params,
         .result      = if has_return { bc.ValType.Any } else { bc.ValType.Void },
@@ -190,10 +189,11 @@ export add_impl :: fn(self: ModuleBuilder, type_id: i32, trait_name: string) -> 
 /// @return          the index into `self.functions`.
 export add_function :: fn(self: ModuleBuilder, function: FunctionBuilder) -> i32 {
     index :: i32(self.functions.len())
-    locals: bc.BcLocal[] = []
-    for _ in 0..<function.local_count { locals.push(bc.BcLocal { .name = "_", .val = bc.ValType.Any }) }
-    debug: (bc.DebugPos | null)[] = []
-    for _ in 0..<function.ops.len() { debug.push(null) }
+    locals :: function.local_count.filled(() -> bc.BcLocal {
+        .name = "_",
+        .val = bc.ValType.Any
+    })
+    debug: (bc.DebugPos | null)[] = [null] * function.ops.len()
     self.functions.push(bc.BcFunction {
         .name       = function.name,
         .is_main    = false,

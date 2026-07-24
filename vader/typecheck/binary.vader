@@ -208,7 +208,7 @@ check_arith :: fn(
 /// `out :: [[]] * n` followed by `out[0].push(x)` mutates every slot at once.
 /// That exact shape silently corrupted `predecessors_of` into a self-compile
 /// SIGSEGV. `[obj] * n` over an existing binding stays silent — SPEC documents
-/// it as deliberate shallow sharing.
+/// it as deliberate shallow sharing. One W0013 per offending element.
 ///
 /// @param e      the `*` expression ; only its array-literal LHS is inspected.
 /// @param typed  read for the element types and the struct field lists.
@@ -218,19 +218,20 @@ warn_shared_repeat_element :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    if e.left is AST.SeqLitExpr as lit {
-        for el in lit.elements {
-            if !is_fresh_allocation(el) {
-                continue
-            }
-            t :: typed.expr_types[el.id]
-            if t != null && carries_mutable_state(t, typed) {
-                diags.push(warning(
-                    .SharedRepeatElement,
-                    el.span,
-                    "build the elements in a loop when each slot needs its own",
-                ))
-            }
+    if e.left !is AST.SeqLitExpr {
+        return
+    }
+    for el in e.left.elements {
+        if !is_fresh_allocation(el) {
+            continue
+        }
+        t :: typed.expr_types[el.id]
+        if t != null && carries_mutable_state(t, typed) {
+            diags.push(warning(
+                .SharedRepeatElement,
+                el.span,
+                "build the elements in a loop when each slot needs its own",
+            ))
         }
     }
 }
@@ -1017,57 +1018,34 @@ test_equality_same_width_ok :: fn() -> void {
     assert_eq(diags.len(), 0)
 }
 
-// W0013 reads the element types out of `expr_types`, which only the project's
-// body walk populates (`check_module` stops at the declarations). Pin the type
-// the pipeline would have recorded, then run the check on its own — the
-// end-to-end behaviour is covered by
-// `tests/diag_corpus/warning/w0013_repeat_shares_element`.
-repeat_element_diagnostics :: fn(src: string, element_type: Type) -> Diagnostic[] {
-    eb :: expect_binary(src)
-    if eb.bin.left is AST.SeqLitExpr as lit {
-        for el in lit.elements {
-            eb.typed.expr_types[el.id] = element_type
-        }
-    }
+// W0013 reads element types out of `expr_types`, which only a body walk fills —
+// `check_module` alone stops at the declarations. `check_module_with_bodies`
+// runs both, so these exercise the real trigger (`check_arith`'s Mul/array
+// guard) against the types the pipeline actually records.
+repeat_diagnostics :: fn(src: string) -> Diagnostic[] {
+    parsed :: parse_source(src, "t.vader")
+    factory :: SymbolFactory {}
+    rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[] = []
-    warn_shared_repeat_element(eb.bin, eb.typed, diags)
+    check_module_with_bodies(parsed.program, rm, factory, diags)
     return diags
-}
-
-count_with_code :: fn(diags: Diagnostic[], id: string) -> i32 {
-    n := 0
-    for d in diags {
-        if d.code.id == id {
-            n += 1
-        }
-    }
-    return n
 }
 
 @test
 test_repeat_of_fresh_element_warns :: fn() -> void {
-    diags :: repeat_element_diagnostics(
-        "f :: fn() -> i32[][] { return [[]] * 3 }",
-        mk_array(mk_primitive("i32"), false),
-    )
-    assert_eq(count_with_code(diags, "W0013"), 1)
+    diags :: repeat_diagnostics("f :: fn() -> i32[][] { return [[]] * 3 }")
+    assert(has_code(diags, "W0013"), "expected W0013 for `[[]] * 3`")
 }
 
 @test
 test_repeat_of_value_element_is_silent :: fn() -> void {
-    diags :: repeat_element_diagnostics(
-        "f :: fn() -> i32[] { return [0] * 3 }",
-        mk_primitive("i32"),
-    )
-    assert_eq(count_with_code(diags, "W0013"), 0)
+    diags :: repeat_diagnostics("f :: fn() -> i32[] { return [0] * 3 }")
+    assert(!has_code(diags, "W0013"), "a value element is never aliased")
 }
 
 @test
 test_repeat_of_existing_binding_is_silent :: fn() -> void {
     // The element is a binding, not a fresh allocation — sharing is deliberate.
-    diags :: repeat_element_diagnostics(
-        "f :: fn(row: i32[]) -> i32[][] { return [row] * 3 }",
-        mk_array(mk_primitive("i32"), false),
-    )
-    assert_eq(count_with_code(diags, "W0013"), 0)
+    diags :: repeat_diagnostics("f :: fn(row: i32[]) -> i32[][] { return [row] * 3 }")
+    assert(!has_code(diags, "W0013"), "sharing an existing binding is deliberate")
 }

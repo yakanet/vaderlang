@@ -561,8 +561,7 @@ atom_for :: fn(atom_of: MutableMap<string, i32>, value: string) -> i32 {
 // Recover each data-pool entry's array type_id by scanning every fn's ops for
 // the `data.const` that references it (the entry struct doesn't store it).
 data_pool_type_ids :: fn(module: BytecodeModule) -> i32[] {
-    out: i32[] = []
-    for _ in 0..<module.data_pool.len() { out.push(0) }
+    out: i32[] = [0] * module.data_pool.len()
     for f in module.functions {
         for op in f.body {
             if op is DataConst as dc {

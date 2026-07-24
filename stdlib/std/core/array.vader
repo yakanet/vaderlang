@@ -40,11 +40,8 @@ export ArrayOps :: trait<T> {
 
 /// Build an array of `n` elements, calling `make` once per slot.
 ///
-/// The complement of `[v] * n` : the repeat operator evaluates its element
-/// ONCE and copies that one reference into every slot, so it cannot build `n`
-/// distinct objects (`[[]] * n` yields n aliases of a single array — the
-/// compiler warns with `W0013`). `filled` calls `make` per slot, which is what
-/// a mutable element needs.
+/// The complement of `[v] * n`, which repeats ONE reference into every slot and
+/// so cannot build `n` distinct objects (see `W0013`).
 ///
 /// @param n     number of elements to build.
 /// @param make  called once per slot, in order ; its result fills that slot.
@@ -69,8 +66,8 @@ export filled :: fn<T>(n: usize, make: fn() -> T) -> T[] {
 /// @param make  called once per slot, in order, with that slot's index.
 /// @return      a fresh array of length `n`, its capacity reserved up front.
 /// @example
-///   squares :: filled_indexed(n, (i: usize) -> i32(i * i))
-///   rows    :: filled_indexed(n, (i: usize) -> Row { .id = i })
+///   squares :: filled_indexed(n, (i) -> i32(i * i))
+///   rows    :: filled_indexed(n, (i) -> Row { .id = i })
 export filled_indexed :: fn<T>(n: usize, make: fn(usize) -> T) -> T[] {
     out: T[] = [] * n
     for i in 0..<n {
@@ -102,7 +99,7 @@ test_filled_of_zero_is_empty :: fn() -> void {
 
 @test
 test_filled_indexed_passes_the_slot_index :: fn() -> void {
-    squares :: filled_indexed(4, (i: usize) -> i32(i * i))
+    squares :: 4.filled_indexed((i) -> i32(i * i))
     assert_eq(squares.len(), 4)
     assert_eq(squares[0], 0)
     assert_eq(squares[2], 4)
@@ -111,5 +108,5 @@ test_filled_indexed_passes_the_slot_index :: fn() -> void {
 
 @test
 test_filled_indexed_of_zero_is_empty :: fn() -> void {
-    assert_eq(filled_indexed(0, (i: usize) -> i32(i)).len(), 0)
+    assert_eq(filled_indexed(0, (i) -> i32(i)).len(), 0)
 }

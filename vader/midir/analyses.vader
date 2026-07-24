@@ -336,11 +336,7 @@ export compute_post_dominators :: fn(fn_: CFGFunction) -> i32[] {
     fake_succs.push_all(succs)
     empty_se: BlockId[] = []
     fake_succs.push(empty_se)
-    fake_preds: BlockId[][] = [] * (n + 1)
-    for j in 0..=n {
-        empty: BlockId[] = []
-        fake_preds.push(empty)
-    }
+    fake_preds: BlockId[][] = filled(n + 1, () -> [])
     for k in 0..<n {
         for s in fake_succs[k] {
             fake_preds[usize(s)].push(BlockId(k))

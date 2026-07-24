@@ -709,7 +709,7 @@ for x in src { buf.push(x) }   // no reallocation up to 1024 elements
 ```vader
 rows: i32[][] = filled(3, () -> [])            // 3 DISTINCT arrays
 seen :: filled(n, new_visited_set)             // `make` may be any `fn() -> T`
-squares :: filled_indexed(n, (i: usize) -> i32(i * i))   // per-slot index
+squares :: filled_indexed(n, (i) -> i32(i * i))   // per-slot index
 grid :: 3.filled(() -> [])                     // UFCS on the count reads fine too
 ```
 
