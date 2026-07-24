@@ -403,15 +403,15 @@ fn 7 std_semver$parse (string) -> any
   local cb ref
   local cn usize
   local k usize
-  local __scrut_0 any
+  local v any
   local e ref
-  local $k_103 usize
+  local $k_102 usize
   local e1 string
+  local $idx_151 i32
+  local $k_152 i32
   local $idx_153 i32
   local $k_154 i32
   local $idx_155 i32
-  local $k_156 i32
-  local $idx_157 i32
   local.get 0
   call 43
   if $L0 void
@@ -891,7 +891,7 @@ fn 8 std_semver$parse_range (string) -> any
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local __scrut_3 any
+  local cl any
   local c ref
   local.get 0
   call 44
@@ -1311,24 +1311,23 @@ fn 14 std_semver$parse_clause (string) -> any
   local t ref
   local and_res bool
   local $add_61 usize
+  local lo_part any
   local $add_70 usize
   local hi_part any
-  local __scrut_4 any
   local lp ref
-  local __scrut_5 any
   local hp ref
-  local __for_arr_6 ref
-  local __for_len_7 usize
-  local __for_i_8 usize
+  local __for_arr_4 ref
+  local __for_len_5 usize
+  local __for_i_6 usize
   local t ref
   local e ref
-  local $field_102 string
+  local $field_99 string
   local e ref
-  local $field_111 string
-  local __scrut_9 any
-  local __for_arr_10 ref
-  local __for_len_11 usize
-  local __for_i_12 usize
+  local $field_107 string
+  local __scrut_7 any
+  local __for_arr_8 ref
+  local __for_len_9 usize
+  local __for_i_10 usize
   local t ref
   local.get 0
   call 18
@@ -1485,55 +1484,54 @@ fn 14 std_semver$parse_clause (string) -> any
           array.get 19
           ref.cast 2
           call 21
-          local.set 20
+          local.set 18
           local.get 4
           i64.const 2
           i64.add
-          local.set 18
+          local.set 19
           local.get 1
-          local.get 18
+          local.get 19
           array.get 19
           ref.cast 2
           call 21
-          local.set 19
-          local.get 20
+          local.set 20
+          local.get 18
           type_check 26
           if $L14 void
-            local.get 20
+            local.get 18
             ref.cast 26
             local.set 21
-            local.get 19
-            local.tee 22
+            local.get 20
             type_check 26
             if $L15 void
-              local.get 22
+              local.get 20
               ref.cast 26
-              local.set 23
+              local.set 22
               local.get 21
-              local.get 23
+              local.get 22
               call 22
-              local.tee 24
+              local.tee 23
               array.len
-              local.set 25
+              local.set 24
               i64.const 0
-              local.set 26
+              local.set 25
               block $L16 void
                 loop $L17 void
-                  local.get 26
                   local.get 25
+                  local.get 24
                   u64.lt
                   if $L18 void
-                    local.get 24
-                    local.get 26
+                    local.get 23
+                    local.get 25
                     array.get 23
-                    local.set 27
+                    local.set 26
                     local.get 2
-                    local.get 27
-                    array.push 24
                     local.get 26
+                    array.push 24
+                    local.get 25
                     i64.const 1
                     i64.add
-                    local.set 26
+                    local.set 25
                     br $L17
                   else
                   end $L18
@@ -1545,34 +1543,34 @@ fn 14 std_semver$parse_clause (string) -> any
               local.set 4
               br $L2
             end $L15
-            local.get 22
+            local.get 20
             type_check 15
             if $L19 void
-              local.get 22
+              local.get 20
               ref.cast 15
-              local.set 28
-              local.field 28 15 0
+              local.set 27
+              local.field 27 15 0
               ref.cast 2
-              local.set 29
+              local.set 28
               string.const 22
-              local.get 29
+              local.get 28
               call 2
               struct.new 15
               return
             end $L19
             return
           end $L14
-          local.get 20
+          local.get 18
           type_check 15
           if $L20 void
-            local.get 20
+            local.get 18
             ref.cast 15
-            local.set 30
-            local.field 30 15 0
+            local.set 29
+            local.field 29 15 0
             ref.cast 2
-            local.set 31
+            local.set 30
             string.const 23
-            local.get 31
+            local.get 30
             call 2
             struct.new 15
             return
@@ -1584,33 +1582,33 @@ fn 14 std_semver$parse_clause (string) -> any
         array.get 19
         ref.cast 2
         call 20
-        local.tee 32
+        local.tee 31
         type_check 23
         if $L21 void
-          local.get 32
+          local.get 31
           ref.cast 23
-          local.tee 33
+          local.tee 32
           array.len
-          local.set 34
+          local.set 33
           i64.const 0
-          local.set 35
+          local.set 34
           block $L22 void
             loop $L23 void
-              local.get 35
               local.get 34
+              local.get 33
               u64.lt
               if $L24 void
-                local.get 33
-                local.get 35
+                local.get 32
+                local.get 34
                 array.get 23
-                local.set 36
+                local.set 35
                 local.get 2
-                local.get 36
-                array.push 24
                 local.get 35
+                array.push 24
+                local.get 34
                 i64.const 1
                 i64.add
-                local.set 35
+                local.set 34
                 br $L23
               else
               end $L24
@@ -1622,10 +1620,10 @@ fn 14 std_semver$parse_clause (string) -> any
           local.set 4
           br $L2
         end $L21
-        local.get 32
+        local.get 31
         type_check 15
         if $L25 void
-          local.get 32
+          local.get 31
           ref.cast 15
           struct.get 15 0
           ref.cast 2
@@ -1998,8 +1996,8 @@ fn 20 std_semver$parse_token (string) -> any
   local $call_36 string
   local b0 u8
   local __scrut_0 any
-  local $field_90 string
-  local $struct_137 ref
+  local $field_89 string
+  local $struct_135 ref
   local.get 0
   call 43
   if $L0 void
@@ -5094,7 +5092,7 @@ end
 fn 25 std_semver$parse_comparator_token (i32,string) -> any
   local __scrut_0 any
   local v ref
-  local $field_18 string
+  local $field_17 string
   local.get 1
   call 43
   if $L0 void

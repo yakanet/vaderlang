@@ -7,16 +7,15 @@
   fn snippet$describe(p: Cat | Dog) -> string
     return
       block :string
-        let __scrut_0: Cat | Dog = p :Cat | Dog
         ~>
           if :string
             cond:
               is Cat :bool
-                __scrut_0 :Cat | Dog
+                p :Cat | Dog
             then:
               let c: Cat =
                 cast → Cat
-                  __scrut_0 :Cat | Dog
+                  p :Cat | Dog
               ~>
                 call :string
                   callee:
@@ -31,11 +30,11 @@
                 if :string
                   cond:
                     is Dog :bool
-                      __scrut_0 :Cat | Dog
+                      p :Cat | Dog
                   then:
                     let d: Dog =
                       cast → Dog
-                        __scrut_0 :Cat | Dog
+                        p :Cat | Dog
                     ~>
                       call :string
                         callee:

@@ -13,19 +13,17 @@ import 0 write std_io$write (i32,string) -> void
 export main 1
 
 fn 0 snippet$describe (any) -> string
-  local __scrut_0 any
   local.get 0
-  local.tee 1
   type_check 2
   if $L0 void
     return.lit string.const 0
   end $L0
-  local.get 1
+  local.get 0
   type_check 3
   if $L1 void
     return.lit string.const 1
   end $L1
-  local.get 1
+  local.get 0
   type_check 0
   if $L2 void
     return.lit string.const 2

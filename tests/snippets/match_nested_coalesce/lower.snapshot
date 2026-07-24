@@ -1,0 +1,377 @@
+# Lower
+
+## snippet
+  fn snippet$classify(n: i32) -> i32
+    ~>
+      block :i32
+        ~>
+          if :i32
+            cond:
+              and :bool
+                l:
+                  gte :bool
+                    l:
+                      n :i32
+                    r:
+                      int(0) :i32
+                r:
+                  lt :bool
+                    l:
+                      n :i32
+                    r:
+                      int(10) :i32
+            then:
+              ~>
+                block :i32
+                  ~>
+                    if :i32
+                      cond:
+                        or :bool
+                          l:
+                            or :bool
+                              l:
+                                or :bool
+                                  l:
+                                    or :bool
+                                      l:
+                                        eq :bool
+                                          l:
+                                            n :i32
+                                          r:
+                                            int(0) :i32
+                                      r:
+                                        eq :bool
+                                          l:
+                                            n :i32
+                                          r:
+                                            int(2) :i32
+                                  r:
+                                    eq :bool
+                                      l:
+                                        n :i32
+                                      r:
+                                        int(4) :i32
+                              r:
+                                eq :bool
+                                  l:
+                                    n :i32
+                                  r:
+                                    int(6) :i32
+                          r:
+                            eq :bool
+                              l:
+                                n :i32
+                              r:
+                                int(8) :i32
+                      then:
+                        ~>
+                          int(1) :i32
+                      else:
+                        ~>
+                          int(2) :i32
+            else:
+              ~>
+                if :i32
+                  cond:
+                    and :bool
+                      l:
+                        gte :bool
+                          l:
+                            n :i32
+                          r:
+                            int(10) :i32
+                      r:
+                        lte :bool
+                          l:
+                            n :i32
+                          r:
+                            int(19) :i32
+                  then:
+                    ~>
+                      if :i32
+                        cond:
+                          lt :bool
+                            l:
+                              n :i32
+                            r:
+                              int(15) :i32
+                        then:
+                          ~>
+                            block :i32
+                              ~>
+                                if :i32
+                                  cond:
+                                    or :bool
+                                      l:
+                                        eq :bool
+                                          l:
+                                            n :i32
+                                          r:
+                                            int(10) :i32
+                                      r:
+                                        eq :bool
+                                          l:
+                                            n :i32
+                                          r:
+                                            int(11) :i32
+                                  then:
+                                    ~>
+                                      int(3) :i32
+                                  else:
+                                    ~>
+                                      int(4) :i32
+                        else:
+                          ~>
+                            block :i32
+                              ~>
+                                if :i32
+                                  cond:
+                                    eq :bool
+                                      l:
+                                        n :i32
+                                      r:
+                                        int(19) :i32
+                                  then:
+                                    ~>
+                                      int(6) :i32
+                                  else:
+                                    ~>
+                                      int(5) :i32
+                  else:
+                    ~>
+                      if :i32
+                        cond:
+                          and :bool
+                            l:
+                              gte :bool
+                                l:
+                                  n :i32
+                                r:
+                                  int(20) :i32
+                            r:
+                              lte :bool
+                                l:
+                                  n :i32
+                                r:
+                                  int(29) :i32
+                        then:
+                          ~>
+                            sub :i32
+                              l:
+                                n :i32
+                              r:
+                                int(20) :i32
+                        else:
+                          ~>
+                            neg :i32
+                              int(1) :i32
+  fn snippet$sign(n: i32) -> i32
+    ~>
+      block :i32
+        let __scrut_0: i32 = n :i32
+        ~>
+          if :i32
+            cond:
+              and :bool
+                l:
+                  is i32 :bool
+                    __scrut_0 :i32
+                r:
+                  block :bool
+                    let v: i32 = __scrut_0 :i32
+                    ~>
+                      gt :bool
+                        l:
+                          v :i32
+                        r:
+                          int(0) :i32
+            then:
+              let v: i32 = __scrut_0 :i32
+              ~>
+                int(1) :i32
+            else:
+              ~>
+                if :i32
+                  cond:
+                    and :bool
+                      l:
+                        is i32 :bool
+                          __scrut_0 :i32
+                      r:
+                        block :bool
+                          let v: i32 = __scrut_0 :i32
+                          ~>
+                            lt :bool
+                              l:
+                                v :i32
+                              r:
+                                int(0) :i32
+                  then:
+                    let v: i32 = __scrut_0 :i32
+                    ~>
+                      neg :i32
+                        int(1) :i32
+                  else:
+                    ~>
+                      int(0) :i32
+  fn snippet$main() -> i32
+    let total: i32 =
+      mul :i32
+        l:
+          call :i32
+            callee:
+              classify :fn(i32) -> i32
+            arg0:
+              int(4) :i32
+        r:
+          int(2) :i32
+    assign
+      target:
+        total :i32
+      value:
+        add :i32
+          l:
+            total :i32
+          r:
+            mul :i32
+              l:
+                call :i32
+                  callee:
+                    classify :fn(i32) -> i32
+                  arg0:
+                    int(7) :i32
+              r:
+                int(3) :i32
+    assign
+      target:
+        total :i32
+      value:
+        add :i32
+          l:
+            total :i32
+          r:
+            mul :i32
+              l:
+                call :i32
+                  callee:
+                    classify :fn(i32) -> i32
+                  arg0:
+                    int(11) :i32
+              r:
+                int(5) :i32
+    assign
+      target:
+        total :i32
+      value:
+        add :i32
+          l:
+            total :i32
+          r:
+            mul :i32
+              l:
+                call :i32
+                  callee:
+                    classify :fn(i32) -> i32
+                  arg0:
+                    int(12) :i32
+              r:
+                int(7) :i32
+    assign
+      target:
+        total :i32
+      value:
+        add :i32
+          l:
+            total :i32
+          r:
+            mul :i32
+              l:
+                call :i32
+                  callee:
+                    classify :fn(i32) -> i32
+                  arg0:
+                    int(17) :i32
+              r:
+                int(11) :i32
+    assign
+      target:
+        total :i32
+      value:
+        add :i32
+          l:
+            total :i32
+          r:
+            mul :i32
+              l:
+                call :i32
+                  callee:
+                    classify :fn(i32) -> i32
+                  arg0:
+                    int(19) :i32
+              r:
+                int(13) :i32
+    assign
+      target:
+        total :i32
+      value:
+        add :i32
+          l:
+            total :i32
+          r:
+            mul :i32
+              l:
+                call :i32
+                  callee:
+                    classify :fn(i32) -> i32
+                  arg0:
+                    int(25) :i32
+              r:
+                int(17) :i32
+    assign
+      target:
+        total :i32
+      value:
+        add :i32
+          l:
+            total :i32
+          r:
+            mul :i32
+              l:
+                call :i32
+                  callee:
+                    classify :fn(i32) -> i32
+                  arg0:
+                    int(99) :i32
+              r:
+                int(19) :i32
+    assign
+      target:
+        total :i32
+      value:
+        add :i32
+          l:
+            total :i32
+          r:
+            add :i32
+              l:
+                add :i32
+                  l:
+                    call :i32
+                      callee:
+                        sign :fn(i32) -> i32
+                      arg0:
+                        int(8) :i32
+                  r:
+                    call :i32
+                      callee:
+                        sign :fn(i32) -> i32
+                      arg0:
+                        neg :i32
+                          int(8) :i32
+              r:
+                call :i32
+                  callee:
+                    sign :fn(i32) -> i32
+                  arg0:
+                    int(0) :i32
+    return total :i32

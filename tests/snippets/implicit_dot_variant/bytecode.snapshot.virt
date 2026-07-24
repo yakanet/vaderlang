@@ -22,21 +22,19 @@ impl 6 ByteAccess
 export main 1
 
 fn 0 snippet$show_day (i32) -> string
-  local __scrut_0 i32
   local.get 0
-  local.tee 1
   i32.const 0
   i32.eq
   if $L0 void
     return.lit string.const 0
   end $L0
-  local.get 1
+  local.get 0
   i32.const 1
   i32.eq
   if $L1 void
     return.lit string.const 1
   end $L1
-  local.get 1
+  local.get 0
   i32.const 2
   i32.eq
   if $L2 void
@@ -50,10 +48,9 @@ fn 1 snippet$main () -> i32
   local __for_len_1 usize
   local __for_i_2 usize
   local m any
-  local __scrut_3 any
-  local $cast_32 i64
-  local __scrut_6 any
-  local $k_46 string
+  local $cast_31 i64
+  local n any
+  local $k_44 string
   i32.const 0
   call 0
   call 6
@@ -88,7 +85,6 @@ fn 1 snippet$main () -> i32
   i32.const 42
   struct.new_stack 3
   local.tee 3
-  local.tee 4
   type_check 3
   if $L3 void
     i64.const 24
@@ -106,10 +102,10 @@ fn 1 snippet$main () -> i32
     struct.get 3 0
     ref.cast 1
     i32.to_i64
-    local.set 5
+    local.set 4
     local.get 0
     local.get 1
-    local.get 5
+    local.get 4
     call 5
     local.set 1
     local.get 0
@@ -117,8 +113,7 @@ fn 1 snippet$main () -> i32
     call 3
     call 6
     struct.new_stack 4
-    local.tee 3
-    local.tee 6
+    local.tee 5
     type_check 3
     if $L4 void
       i64.const 24
@@ -127,21 +122,21 @@ fn 1 snippet$main () -> i32
       i64.const 0
       local.set 1
       string.const 3
-      local.set 7
+      local.set 6
       local.get 0
       local.get 1
-      local.get 7
+      local.get 6
       call 4
       local.set 1
-      local.get 3
+      local.get 5
       ref.cast 3
       struct.get 3 0
       ref.cast 1
       i32.to_i64
-      local.set 5
+      local.set 4
       local.get 0
       local.get 1
-      local.get 5
+      local.get 4
       call 5
       local.set 1
       local.get 0
@@ -150,7 +145,7 @@ fn 1 snippet$main () -> i32
       call 6
       return.lit i32.const 0
     end $L4
-    local.get 6
+    local.get 5
     type_check 4
     if $L5 void
       string.const 4
@@ -159,14 +154,13 @@ fn 1 snippet$main () -> i32
     end $L5
     return
   end $L3
-  local.get 4
+  local.get 3
   type_check 4
   if $L6 void
     string.const 4
     call 6
     struct.new_stack 4
-    local.tee 3
-    local.tee 6
+    local.tee 5
     type_check 3
     if $L7 void
       i64.const 24
@@ -175,21 +169,21 @@ fn 1 snippet$main () -> i32
       i64.const 0
       local.set 1
       string.const 3
-      local.set 7
+      local.set 6
       local.get 0
       local.get 1
-      local.get 7
+      local.get 6
       call 4
       local.set 1
-      local.get 3
+      local.get 5
       ref.cast 3
       struct.get 3 0
       ref.cast 1
       i32.to_i64
-      local.set 5
+      local.set 4
       local.get 0
       local.get 1
-      local.get 5
+      local.get 4
       call 5
       local.set 1
       local.get 0
@@ -198,7 +192,7 @@ fn 1 snippet$main () -> i32
       call 6
       return.lit i32.const 0
     end $L7
-    local.get 6
+    local.get 5
     type_check 4
     if $L8 void
       string.const 4

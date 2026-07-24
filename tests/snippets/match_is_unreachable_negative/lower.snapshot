@@ -7,12 +7,11 @@
   fn snippet$m1(p: Cat | Dog) -> bool
     return
       block :bool
-        let __scrut_0: Cat | Dog = p :Cat | Dog
         ~>
           if :bool
             cond:
               is null :bool
-                __scrut_0 :Cat | Dog
+                p :Cat | Dog
             then:
               ~>
                 false
@@ -22,12 +21,11 @@
   fn snippet$m2(p: Cat | Dog) -> bool
     return
       block :bool
-        let __scrut_0: Cat | Dog = p :Cat | Dog
         ~>
           if :bool
             cond:
               is Bird :bool
-                __scrut_0 :Cat | Dog
+                p :Cat | Dog
             then:
               ~>
                 false
@@ -37,12 +35,11 @@
   fn snippet$m3(n: i32) -> bool
     return
       block :bool
-        let __scrut_0: i32 = n :i32
         ~>
           if :bool
             cond:
               is null :bool
-                __scrut_0 :i32
+                n :i32
             then:
               ~>
                 false

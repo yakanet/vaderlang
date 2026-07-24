@@ -101,12 +101,11 @@
         arg1:
           "hello" :string
     block :void
-      let __scrut_2: i32 | null = v1 :i32 | null
       ~>
         if :void
           cond:
             is null :bool
-              __scrut_2 :i32 | null
+              v1 :i32 | null
           then:
             ~>
               block :void
@@ -121,7 +120,7 @@
               if :void
                 cond:
                   is i32 :bool
-                    __scrut_2 :i32 | null
+                    v1 :i32 | null
                 then:
                   ~>
                     block :void
@@ -131,37 +130,37 @@
                             std_io$println__string :void
                           arg0:
                             block :string
-                              let __buf_3: Buffer =
+                              let __buf_2: Buffer =
                                 call :Buffer
                                   callee:
                                     new_byte_buffer :Buffer
                                   arg0:
                                     int(28) :usize
-                              let __off_4: usize = int(0) :usize
+                              let __off_3: usize = int(0) :usize
                               assign
                                 target:
-                                  __off_4 :usize
+                                  __off_3 :usize
                                 value:
                                   call :usize
                                     callee:
                                       write_string_at :usize
                                     arg0:
-                                      __buf_3 :Buffer
+                                      __buf_2 :Buffer
                                     arg1:
-                                      __off_4 :usize
+                                      __off_3 :usize
                                     arg2:
                                       "hello = " :string
                               assign
                                 target:
-                                  __off_4 :usize
+                                  __off_3 :usize
                                 value:
                                   call :usize
                                     callee:
                                       write_int :usize
                                     arg0:
-                                      __buf_3 :Buffer
+                                      __buf_2 :Buffer
                                     arg1:
-                                      __off_4 :usize
+                                      __off_3 :usize
                                     arg2:
                                       cast → i64
                                         cast → i32
@@ -171,9 +170,9 @@
                                   callee:
                                     finish_buffer :string
                                   arg0:
-                                    __buf_3 :Buffer
+                                    __buf_2 :Buffer
                                   arg1:
-                                    __off_4 :usize
+                                    __off_3 :usize
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -186,12 +185,11 @@
         arg1:
           "world" :string
     block :void
-      let __scrut_5: i32 | null = v2 :i32 | null
       ~>
         if :void
           cond:
             is null :bool
-              __scrut_5 :i32 | null
+              v2 :i32 | null
           then:
             ~>
               block :void
@@ -206,7 +204,91 @@
               if :void
                 cond:
                   is i32 :bool
-                    __scrut_5 :i32 | null
+                    v2 :i32 | null
+                then:
+                  ~>
+                    block :void
+                      ~>
+                        call :void
+                          callee:
+                            std_io$println__string :void
+                          arg0:
+                            block :string
+                              let __buf_4: Buffer =
+                                call :Buffer
+                                  callee:
+                                    new_byte_buffer :Buffer
+                                  arg0:
+                                    int(28) :usize
+                              let __off_5: usize = int(0) :usize
+                              assign
+                                target:
+                                  __off_5 :usize
+                                value:
+                                  call :usize
+                                    callee:
+                                      write_string_at :usize
+                                    arg0:
+                                      __buf_4 :Buffer
+                                    arg1:
+                                      __off_5 :usize
+                                    arg2:
+                                      "world = " :string
+                              assign
+                                target:
+                                  __off_5 :usize
+                                value:
+                                  call :usize
+                                    callee:
+                                      write_int :usize
+                                    arg0:
+                                      __buf_4 :Buffer
+                                    arg1:
+                                      __off_5 :usize
+                                    arg2:
+                                      cast → i64
+                                        cast → i32
+                                          v2 :i32 | null
+                              ~>
+                                call :string
+                                  callee:
+                                    finish_buffer :string
+                                  arg0:
+                                    __buf_4 :Buffer
+                                  arg1:
+                                    __off_5 :usize
+                else:
+                  ~>
+                    unreachable("non-exhaustive match (T3013 should have caught this)") :void
+    let v3: i32 | null =
+      call :i32 | null
+        callee:
+          std_collections$MutableMap$Index$at__string__i32 :i32 | null
+        arg0:
+          m :MutableMap<string, i32>
+        arg1:
+          "vader" :string
+    block :void
+      ~>
+        if :void
+          cond:
+            is null :bool
+              v3 :i32 | null
+          then:
+            ~>
+              block :void
+                ~>
+                  call :void
+                    callee:
+                      std_io$println__string :void
+                    arg0:
+                      "vader: missing" :string
+          else:
+            ~>
+              if :void
+                cond:
+                  is i32 :bool
+                    v3 :i32 | null
                 then:
                   ~>
                     block :void
@@ -235,7 +317,7 @@
                                     arg1:
                                       __off_7 :usize
                                     arg2:
-                                      "world = " :string
+                                      "vader = " :string
                               assign
                                 target:
                                   __off_7 :usize
@@ -250,7 +332,7 @@
                                     arg2:
                                       cast → i64
                                         cast → i32
-                                          v2 :i32 | null
+                                          v3 :i32 | null
                               ~>
                                 call :string
                                   callee:
@@ -262,127 +344,42 @@
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let v3: i32 | null =
-      call :i32 | null
-        callee:
-          std_collections$MutableMap$Index$at__string__i32 :i32 | null
-        arg0:
-          m :MutableMap<string, i32>
-        arg1:
-          "vader" :string
-    block :void
-      let __scrut_8: i32 | null = v3 :i32 | null
-      ~>
-        if :void
-          cond:
-            is null :bool
-              __scrut_8 :i32 | null
-          then:
-            ~>
-              block :void
-                ~>
-                  call :void
-                    callee:
-                      std_io$println__string :void
-                    arg0:
-                      "vader: missing" :string
-          else:
-            ~>
-              if :void
-                cond:
-                  is i32 :bool
-                    __scrut_8 :i32 | null
-                then:
-                  ~>
-                    block :void
-                      ~>
-                        call :void
-                          callee:
-                            std_io$println__string :void
-                          arg0:
-                            block :string
-                              let __buf_9: Buffer =
-                                call :Buffer
-                                  callee:
-                                    new_byte_buffer :Buffer
-                                  arg0:
-                                    int(28) :usize
-                              let __off_10: usize = int(0) :usize
-                              assign
-                                target:
-                                  __off_10 :usize
-                                value:
-                                  call :usize
-                                    callee:
-                                      write_string_at :usize
-                                    arg0:
-                                      __buf_9 :Buffer
-                                    arg1:
-                                      __off_10 :usize
-                                    arg2:
-                                      "vader = " :string
-                              assign
-                                target:
-                                  __off_10 :usize
-                                value:
-                                  call :usize
-                                    callee:
-                                      write_int :usize
-                                    arg0:
-                                      __buf_9 :Buffer
-                                    arg1:
-                                      __off_10 :usize
-                                    arg2:
-                                      cast → i64
-                                        cast → i32
-                                          v3 :i32 | null
-                              ~>
-                                call :string
-                                  callee:
-                                    finish_buffer :string
-                                  arg0:
-                                    __buf_9 :Buffer
-                                  arg1:
-                                    __off_10 :usize
-                else:
-                  ~>
-                    unreachable("non-exhaustive match (T3013 should have caught this)") :void
     call :void
       callee:
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_11: Buffer =
+          let __buf_8: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(16) :usize
-          let __off_12: usize = int(0) :usize
+          let __off_9: usize = int(0) :usize
           assign
             target:
-              __off_12 :usize
+              __off_9 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_11 :Buffer
+                  __buf_8 :Buffer
                 arg1:
-                  __off_12 :usize
+                  __off_9 :usize
                 arg2:
                   "has hello? " :string
           assign
             target:
-              __off_12 :usize
+              __off_9 :usize
             value:
               call :usize
                 callee:
                   write_bool :usize
                 arg0:
-                  __buf_11 :Buffer
+                  __buf_8 :Buffer
                 arg1:
-                  __off_12 :usize
+                  __off_9 :usize
                 arg2:
                   call :bool
                     callee:
@@ -396,45 +393,45 @@
               callee:
                 finish_buffer :string
               arg0:
-                __buf_11 :Buffer
+                __buf_8 :Buffer
               arg1:
-                __off_12 :usize
+                __off_9 :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_13: Buffer =
+          let __buf_10: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(18) :usize
-          let __off_14: usize = int(0) :usize
+          let __off_11: usize = int(0) :usize
           assign
             target:
-              __off_14 :usize
+              __off_11 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_13 :Buffer
+                  __buf_10 :Buffer
                 arg1:
-                  __off_14 :usize
+                  __off_11 :usize
                 arg2:
                   "has missing? " :string
           assign
             target:
-              __off_14 :usize
+              __off_11 :usize
             value:
               call :usize
                 callee:
                   write_bool :usize
                 arg0:
-                  __buf_13 :Buffer
+                  __buf_10 :Buffer
                 arg1:
-                  __off_14 :usize
+                  __off_11 :usize
                 arg2:
                   call :bool
                     callee:
@@ -448,9 +445,9 @@
               callee:
                 finish_buffer :string
               arg0:
-                __buf_13 :Buffer
+                __buf_10 :Buffer
               arg1:
-                __off_14 :usize
+                __off_11 :usize
     call :void
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__i32 :void
@@ -469,12 +466,11 @@
         arg1:
           "hello" :string
     block :void
-      let __scrut_15: i32 | null = v1b :i32 | null
       ~>
         if :void
           cond:
             is null :bool
-              __scrut_15 :i32 | null
+              v1b :i32 | null
           then:
             ~>
               block :void
@@ -489,7 +485,7 @@
               if :void
                 cond:
                   is i32 :bool
-                    __scrut_15 :i32 | null
+                    v1b :i32 | null
                 then:
                   ~>
                     block :void
@@ -499,37 +495,37 @@
                             std_io$println__string :void
                           arg0:
                             block :string
-                              let __buf_16: Buffer =
+                              let __buf_12: Buffer =
                                 call :Buffer
                                   callee:
                                     new_byte_buffer :Buffer
                                   arg0:
                                     int(36) :usize
-                              let __off_17: usize = int(0) :usize
+                              let __off_13: usize = int(0) :usize
                               assign
                                 target:
-                                  __off_17 :usize
+                                  __off_13 :usize
                                 value:
                                   call :usize
                                     callee:
                                       write_string_at :usize
                                     arg0:
-                                      __buf_16 :Buffer
+                                      __buf_12 :Buffer
                                     arg1:
-                                      __off_17 :usize
+                                      __off_13 :usize
                                     arg2:
                                       "hello updated = " :string
                               assign
                                 target:
-                                  __off_17 :usize
+                                  __off_13 :usize
                                 value:
                                   call :usize
                                     callee:
                                       write_int :usize
                                     arg0:
-                                      __buf_16 :Buffer
+                                      __buf_12 :Buffer
                                     arg1:
-                                      __off_17 :usize
+                                      __off_13 :usize
                                     arg2:
                                       cast → i64
                                         cast → i32
@@ -539,9 +535,9 @@
                                   callee:
                                     finish_buffer :string
                                   arg0:
-                                    __buf_16 :Buffer
+                                    __buf_12 :Buffer
                                   arg1:
-                                    __off_17 :usize
+                                    __off_13 :usize
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

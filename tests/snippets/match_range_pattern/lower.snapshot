@@ -4,7 +4,6 @@
   fn snippet$classify(c: char) -> i32
     ~>
       block :i32
-        let __scrut_0: char = c :char
         ~>
           if :i32
             cond:
@@ -12,13 +11,13 @@
                 l:
                   gte :bool
                     l:
-                      __scrut_0 :char
+                      c :char
                     r:
                       char(0x30)
                 r:
                   lte :bool
                     l:
-                      __scrut_0 :char
+                      c :char
                     r:
                       char(0x39)
             then:
@@ -32,13 +31,13 @@
                       l:
                         gte :bool
                           l:
-                            __scrut_0 :char
+                            c :char
                           r:
                             char(0x61)
                       r:
                         lte :bool
                           l:
-                            __scrut_0 :char
+                            c :char
                           r:
                             char(0x7a)
                   then:
@@ -52,13 +51,13 @@
                             l:
                               gte :bool
                                 l:
-                                  __scrut_0 :char
+                                  c :char
                                 r:
                                   char(0x41)
                             r:
                               lte :bool
                                 l:
-                                  __scrut_0 :char
+                                  c :char
                                 r:
                                   char(0x5a)
                         then:
@@ -70,7 +69,6 @@
   fn snippet$bucket(n: i32) -> i32
     ~>
       block :i32
-        let __scrut_0: i32 = n :i32
         ~>
           if :i32
             cond:
@@ -78,13 +76,13 @@
                 l:
                   gte :bool
                     l:
-                      __scrut_0 :i32
+                      n :i32
                     r:
                       int(0) :i32
                 r:
                   lt :bool
                     l:
-                      __scrut_0 :i32
+                      n :i32
                     r:
                       int(10) :i32
             then:
@@ -98,13 +96,13 @@
                       l:
                         gte :bool
                           l:
-                            __scrut_0 :i32
+                            n :i32
                           r:
                             int(10) :i32
                       r:
                         lte :bool
                           l:
-                            __scrut_0 :i32
+                            n :i32
                           r:
                             int(99) :i32
                   then:

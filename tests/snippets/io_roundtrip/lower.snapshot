@@ -76,12 +76,11 @@
         arg0:
           path :string
     block :void
-      let __scrut_2: IOError | string = contents :IOError | string
       ~>
         if :void
           cond:
             is string :bool
-              __scrut_2 :IOError | string
+              contents :IOError | string
           then:
             ~>
               call :void
@@ -101,7 +100,7 @@
               if :void
                 cond:
                   is Error :bool
-                    __scrut_2 :IOError | string
+                    contents :IOError | string
                 then:
                   ~>
                     call :void

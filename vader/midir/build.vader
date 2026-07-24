@@ -591,7 +591,7 @@ build_expr :: fn(fn_ctx: FnCtx, e: LoweredExpr) -> LocalId | null {
         is LoweredIndex as v        -> { return build_index(fn_ctx, v) }
         is LoweredUnary as v        -> { return build_unary(fn_ctx, v) }
         is LoweredBinary as v       -> { return build_binary(fn_ctx, v) }
-        is LoweredIf as v           -> { return build_if(fn_ctx, v) }
+        is LoweredIf as v           -> { return build_if(fn_ctx, v, null) }
         is LoweredBlock as v        -> { return build_block_body(fn_ctx, v) }
         is LoweredStructLit as v    -> { return build_struct_lit(fn_ctx, v) }
         is LoweredArrayLit as v     -> { return build_array_lit(fn_ctx, v) }
@@ -802,10 +802,30 @@ build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
     return result
 }
 
-build_if :: fn(fn_ctx: FnCtx, e: LoweredIf) -> LocalId | null {
+// The `LoweredIf` inside a bare `{ stmts: [], trailing: if }` wrapper — the
+// shape the match lowerer builds for each `else` link of a value-`match`
+// chain. Returned so the chain can be coalesced onto a single result slot.
+else_chain_if :: fn(block: LoweredBlock) -> LoweredIf | null {
+    if !block.stmts.is_empty() {
+        return null
+    }
+    t :: block.trailing
+    if t is LoweredIf as if_node {
+        return if_node
+    }
+    return null
+}
+
+build_if :: fn(fn_ctx: FnCtx, e: LoweredIf, dest: LocalId | null) -> LocalId | null {
     cond_local :: build_expr(fn_ctx, e.cond) ?? return null
 
-    result :: if is_void(e.type) { null } else { declare_local(fn_ctx, "if_res", e.type, null) }
+    result :: if dest !is null {
+        dest
+    } else if is_void(e.type) {
+        null
+    } else {
+        declare_local(fn_ctx, "if_res", e.type, null)
+    }
 
     then_id :: new_block(fn_ctx, e.then_block.span)
     else_id_opt :: if e.else_block is null { null } else { new_block(fn_ctx, e.else_block.span) }
@@ -830,13 +850,20 @@ build_if :: fn(fn_ctx: FnCtx, e: LoweredIf) -> LocalId | null {
     if else_id_opt !is null {
         if e.else_block !is null {
             fn_ctx.current = else_id_opt
-            else_val :: build_block_body(fn_ctx, e.else_block)
-            if fn_ctx.current !is null {
-                if result !is null {
-                    if else_val !is null {
-                        emit(fn_ctx, InstrMove { .dst = result, .src = else_val, .span = e.else_block.span })
-                    }
+            chain :: else_chain_if(e.else_block)
+            if chain !is null && result !is null {
+                // Coalesce : the else link writes straight into `result`, so the
+                // whole chain shares one slot — no intermediate `if_res` + copy.
+                build_if(fn_ctx, chain, result)
+            } else {
+                else_val :: build_block_body(fn_ctx, e.else_block)
+                if fn_ctx.current !is null && result !is null && else_val !is null {
+                    emit(fn_ctx, InstrMove { .dst = result, .src = else_val, .span = e.else_block.span })
                 }
+            }
+            // Both paths land here with `current` = their own join (or null if
+            // they diverged) ; branch on to the outer join once.
+            if fn_ctx.current !is null {
                 terminate(fn_ctx, TermBranch { .target = join_id, .span = e.else_block.span })
             }
         }

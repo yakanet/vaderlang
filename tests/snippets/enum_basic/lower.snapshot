@@ -4,13 +4,12 @@
   fn snippet$describe(d: Direction) -> string
     ~>
       block :string
-        let __scrut_0: Direction = d :Direction
         ~>
           if :string
             cond:
               eq :bool
                 l:
-                  __scrut_0 :Direction
+                  d :Direction
                 r:
                   int(0) :i32
             then:
@@ -22,7 +21,7 @@
                   cond:
                     eq :bool
                       l:
-                        __scrut_0 :Direction
+                        d :Direction
                       r:
                         int(1) :i32
                   then:
@@ -34,7 +33,7 @@
                         cond:
                           eq :bool
                             l:
-                              __scrut_0 :Direction
+                              d :Direction
                             r:
                               int(2) :i32
                         then:
@@ -46,7 +45,7 @@
                               cond:
                                 eq :bool
                                   l:
-                                    __scrut_0 :Direction
+                                    d :Direction
                                   r:
                                     int(3) :i32
                               then:

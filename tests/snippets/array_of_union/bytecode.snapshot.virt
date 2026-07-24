@@ -24,7 +24,7 @@ fn 0 snippet$main () -> i32
   local $struct_5 ref
   local __off_1 usize
   local $cast_14 u64
-  local __scrut_2 any
+  local cell any
   array.new 10 0
   local.tee 0
   null.const

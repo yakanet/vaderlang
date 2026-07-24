@@ -21,59 +21,57 @@ impl 7 ByteAccess
 export main 1
 
 fn 0 snippet$show (any) -> string
-  local __scrut_0 any
   local p ref
-  local __buf_1 ref
-  local __off_2 usize
-  local $cast_17 i64
-  local $field_25 string
+  local __buf_0 ref
+  local __off_1 usize
+  local $cast_15 i64
+  local $field_22 string
   local.get 0
-  local.tee 1
   type_check 0
   if $L0 void
     return.lit string.const 0
   end $L0
-  local.get 1
+  local.get 0
   type_check 2
   if $L1 void
-    local.get 1
+    local.get 0
     ref.cast 2
-    local.set 2
+    local.set 1
     i64.const 26
     call 3
-    local.set 3
+    local.set 2
     i64.const 0
-    local.set 4
+    local.set 3
+    local.get 2
     local.get 3
-    local.get 4
     string.const 1
     call 5
-    local.set 4
-    local.field 2 2 0
+    local.set 3
+    local.field 1 2 0
     ref.cast 5
     i32.to_i64
-    local.set 5
-    local.get 3
-    local.get 4
-    local.get 5
-    call 6
     local.set 4
+    local.get 2
     local.get 3
     local.get 4
+    call 6
+    local.set 3
+    local.get 2
+    local.get 3
     call 4
     return
   end $L1
-  local.get 1
+  local.get 0
   type_check 3
   if $L2 void
-    local.get 1
+    local.get 0
     ref.cast 3
-    local.set 2
-    local.field 2 3 0
+    local.set 1
+    local.field 1 3 0
     ref.cast 4
-    local.set 6
+    local.set 5
     string.const 2
-    local.get 6
+    local.get 5
     call 2
     return
   end $L2

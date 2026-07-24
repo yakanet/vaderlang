@@ -24,13 +24,12 @@
   fn snippet$label(c: Color) -> string
     ~>
       block :string
-        let __scrut_0: Color = c :Color
         ~>
           if :string
             cond:
               eq :bool
                 l:
-                  __scrut_0 :Color
+                  c :Color
                 r:
                   int(0) :i32
             then:
@@ -42,7 +41,7 @@
                   cond:
                     eq :bool
                       l:
-                        __scrut_0 :Color
+                        c :Color
                       r:
                         int(1) :i32
                   then:
@@ -54,7 +53,7 @@
                         cond:
                           eq :bool
                             l:
-                              __scrut_0 :Color
+                              c :Color
                             r:
                               int(2) :i32
                         then:
@@ -259,13 +258,12 @@
           neg :i32
             int(5) :i32
     block :void
-      let __scrut_8: Severity = s :Severity
       ~>
         if :void
           cond:
             eq :bool
               l:
-                __scrut_8 :Severity
+                s :Severity
               r:
                 int(0) :i32
           then:
@@ -281,7 +279,7 @@
                 cond:
                   eq :bool
                     l:
-                      __scrut_8 :Severity
+                      s :Severity
                     r:
                       int(1) :i32
                 then:
@@ -297,7 +295,7 @@
                       cond:
                         eq :bool
                           l:
-                            __scrut_8 :Severity
+                            s :Severity
                           r:
                             int(2) :i32
                       then:
@@ -317,13 +315,12 @@
         arg0:
           int(0) :i32
     block :void
-      let __scrut_9: Severity = s2 :Severity
       ~>
         if :void
           cond:
             eq :bool
               l:
-                __scrut_9 :Severity
+                s2 :Severity
               r:
                 int(0) :i32
           then:
@@ -339,7 +336,7 @@
                 cond:
                   eq :bool
                     l:
-                      __scrut_9 :Severity
+                      s2 :Severity
                     r:
                       int(1) :i32
                 then:
@@ -355,7 +352,7 @@
                       cond:
                         eq :bool
                           l:
-                            __scrut_9 :Severity
+                            s2 :Severity
                           r:
                             int(2) :i32
                       then:
@@ -375,13 +372,12 @@
         arg0:
           int(1) :i32
     block :void
-      let __scrut_10: Severity = s3 :Severity
       ~>
         if :void
           cond:
             eq :bool
               l:
-                __scrut_10 :Severity
+                s3 :Severity
               r:
                 int(0) :i32
           then:
@@ -397,7 +393,7 @@
                 cond:
                   eq :bool
                     l:
-                      __scrut_10 :Severity
+                      s3 :Severity
                     r:
                       int(1) :i32
                 then:
@@ -413,7 +409,7 @@
                       cond:
                         eq :bool
                           l:
-                            __scrut_10 :Severity
+                            s3 :Severity
                           r:
                             int(2) :i32
                       then:

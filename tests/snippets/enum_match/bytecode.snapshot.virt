@@ -37,21 +37,19 @@ fn 0 snippet$classify (i32) -> i32
 end
 
 fn 1 snippet$label (i32) -> string
-  local __scrut_0 i32
   local.get 0
-  local.tee 1
   i32.const 0
   i32.eq
   if $L0 void
     return.lit string.const 0
   end $L0
-  local.get 1
+  local.get 0
   i32.const 1
   i32.eq
   if $L1 void
     return.lit string.const 1
   end $L1
-  local.get 1
+  local.get 0
   i32.const 2
   i32.eq
   if $L2 void
@@ -72,14 +70,14 @@ fn 3 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 usize
   local $call_14 bool
-  local __scrut_9 i32
-  local $k_63 i32
-  local $k_66 i32
-  local $k_69 i32
-  local __scrut_10 i32
+  local s2 i32
+  local $k_61 i32
+  local $k_64 i32
+  local $k_67 i32
+  local s3 i32
+  local $k_73 i32
   local $k_76 i32
   local $k_79 i32
-  local $k_82 i32
   i32.const 1
   local.tee 0
   call 1

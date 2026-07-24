@@ -5,12 +5,11 @@
     let x: i32 | null = int(42) :i32 | null
     let y: i32 | null = null
     block :void
-      let __scrut_0: i32 | null = x :i32 | null
       ~>
         if :void
           cond:
             is null :bool
-              __scrut_0 :i32 | null
+              x :i32 | null
           then:
             ~>
               call :void
@@ -23,7 +22,7 @@
               if :void
                 cond:
                   is i32 :bool
-                    __scrut_0 :i32 | null
+                    x :i32 | null
                 then:
                   ~>
                     call :void
@@ -31,37 +30,37 @@
                         std_io$println__string :void
                       arg0:
                         block :string
-                          let __buf_1: Buffer =
+                          let __buf_0: Buffer =
                             call :Buffer
                               callee:
                                 new_byte_buffer :Buffer
                               arg0:
                                 int(24) :usize
-                          let __off_2: usize = int(0) :usize
+                          let __off_1: usize = int(0) :usize
                           assign
                             target:
-                              __off_2 :usize
+                              __off_1 :usize
                             value:
                               call :usize
                                 callee:
                                   write_string_at :usize
                                 arg0:
-                                  __buf_1 :Buffer
+                                  __buf_0 :Buffer
                                 arg1:
-                                  __off_2 :usize
+                                  __off_1 :usize
                                 arg2:
                                   "x = " :string
                           assign
                             target:
-                              __off_2 :usize
+                              __off_1 :usize
                             value:
                               call :usize
                                 callee:
                                   write_int :usize
                                 arg0:
-                                  __buf_1 :Buffer
+                                  __buf_0 :Buffer
                                 arg1:
-                                  __off_2 :usize
+                                  __off_1 :usize
                                 arg2:
                                   cast → i64
                                     cast → i32
@@ -71,19 +70,18 @@
                               callee:
                                 finish_buffer :string
                               arg0:
-                                __buf_1 :Buffer
+                                __buf_0 :Buffer
                               arg1:
-                                __off_2 :usize
+                                __off_1 :usize
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     block :void
-      let __scrut_3: i32 | null = y :i32 | null
       ~>
         if :void
           cond:
             is null :bool
-              __scrut_3 :i32 | null
+              y :i32 | null
           then:
             ~>
               call :void
@@ -96,7 +94,7 @@
               if :void
                 cond:
                   is i32 :bool
-                    __scrut_3 :i32 | null
+                    y :i32 | null
                 then:
                   ~>
                     call :void
@@ -104,37 +102,37 @@
                         std_io$println__string :void
                       arg0:
                         block :string
-                          let __buf_4: Buffer =
+                          let __buf_2: Buffer =
                             call :Buffer
                               callee:
                                 new_byte_buffer :Buffer
                               arg0:
                                 int(24) :usize
-                          let __off_5: usize = int(0) :usize
+                          let __off_3: usize = int(0) :usize
                           assign
                             target:
-                              __off_5 :usize
+                              __off_3 :usize
                             value:
                               call :usize
                                 callee:
                                   write_string_at :usize
                                 arg0:
-                                  __buf_4 :Buffer
+                                  __buf_2 :Buffer
                                 arg1:
-                                  __off_5 :usize
+                                  __off_3 :usize
                                 arg2:
                                   "y = " :string
                           assign
                             target:
-                              __off_5 :usize
+                              __off_3 :usize
                             value:
                               call :usize
                                 callee:
                                   write_int :usize
                                 arg0:
-                                  __buf_4 :Buffer
+                                  __buf_2 :Buffer
                                 arg1:
-                                  __off_5 :usize
+                                  __off_3 :usize
                                 arg2:
                                   cast → i64
                                     cast → i32
@@ -144,20 +142,19 @@
                               callee:
                                 finish_buffer :string
                               arg0:
-                                __buf_4 :Buffer
+                                __buf_2 :Buffer
                               arg1:
-                                __off_5 :usize
+                                __off_3 :usize
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     let p: i32 | string = "hello" :string
     block :void
-      let __scrut_6: i32 | string = p :i32 | string
       ~>
         if :void
           cond:
             is i32 :bool
-              __scrut_6 :i32 | string
+              p :i32 | string
           then:
             ~>
               call :void
@@ -165,37 +162,37 @@
                   std_io$println__string :void
                 arg0:
                   block :string
-                    let __buf_7: Buffer =
+                    let __buf_4: Buffer =
                       call :Buffer
                         callee:
                           new_byte_buffer :Buffer
                         arg0:
                           int(33) :usize
-                    let __off_8: usize = int(0) :usize
+                    let __off_5: usize = int(0) :usize
                     assign
                       target:
-                        __off_8 :usize
+                        __off_5 :usize
                       value:
                         call :usize
                           callee:
                             write_string_at :usize
                           arg0:
-                            __buf_7 :Buffer
+                            __buf_4 :Buffer
                           arg1:
-                            __off_8 :usize
+                            __off_5 :usize
                           arg2:
                             "pair int   = " :string
                     assign
                       target:
-                        __off_8 :usize
+                        __off_5 :usize
                       value:
                         call :usize
                           callee:
                             write_int :usize
                           arg0:
-                            __buf_7 :Buffer
+                            __buf_4 :Buffer
                           arg1:
-                            __off_8 :usize
+                            __off_5 :usize
                           arg2:
                             cast → i64
                               cast → i32
@@ -205,15 +202,15 @@
                         callee:
                           finish_buffer :string
                         arg0:
-                          __buf_7 :Buffer
+                          __buf_4 :Buffer
                         arg1:
-                          __off_8 :usize
+                          __off_5 :usize
           else:
             ~>
               if :void
                 cond:
                   is string :bool
-                    __scrut_6 :i32 | string
+                    p :i32 | string
                 then:
                   ~>
                     call :void

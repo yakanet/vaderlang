@@ -1,0 +1,43 @@
+module "snippet"
+
+// Adversarial nesting for the match-lowering coalescing (destination-passing in
+// `midir/build::build_if`) and the scrutinee-temp elision (`lower_match`). The
+// outer value-match on `n` collapses its arm chain onto ONE result slot, while
+// its arm bodies are themselves an inner match, a value-`if` whose two branches
+// are matches, an arithmetic expression, and a fallthrough. Each level must
+// deposit its value in the correct slot for the result to be right.
+classify :: fn(n: i32) -> i32 = match n {
+    0..<10  -> match n {                 // nested match as an arm body
+        0 | 2 | 4 | 6 | 8 -> 1
+        _                 -> 2
+    }
+    10..=19 -> if n < 15 {               // value-if arm; both branches are matches
+        match n { 10 | 11 -> 3, _ -> 4 }
+    } else {
+        match n { 19 -> 6, _ -> 5 }
+    }
+    20..=29 -> n - 20                     // arithmetic arm
+    _       -> -1                         // fallthrough
+}
+
+// Guarded match : elision must NOT fire (a guard can mutate the scrutinee
+// between predicates), so this keeps the `__scrut` spill — but the arm chain
+// still coalesces onto one slot.
+sign :: fn(n: i32) -> i32 = match n {
+    is i32 as v if v > 0 -> 1
+    is i32 as v if v < 0 -> -1
+    _                    -> 0
+}
+
+export main :: fn() -> i32 {
+    total := classify(4)  * 2       // 1  -> 2
+    total += classify(7)  * 3       // 2  -> 6
+    total += classify(11) * 5       // 3  -> 15
+    total += classify(12) * 7       // 4  -> 28
+    total += classify(17) * 11      // 5  -> 55
+    total += classify(19) * 13      // 6  -> 78
+    total += classify(25) * 17      // 5  -> 85
+    total += classify(99) * 19      // -1 -> -19
+    total += sign(8) + sign(-8) + sign(0)   // 1 + -1 + 0 -> 0
+    return total                    // 250
+}

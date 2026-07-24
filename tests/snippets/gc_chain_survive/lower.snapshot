@@ -106,12 +106,11 @@
     loop while (<…>)
       ~>
         block :void
-          let __scrut_2: Node | null = cur :Node | null
           ~>
             if :void
               cond:
                 is null :bool
-                  __scrut_2 :Node | null
+                  cur :Node | null
               then:
                 ~>
                   block :void
@@ -125,7 +124,7 @@
                   if :void
                     cond:
                       is Node :bool
-                        __scrut_2 :Node | null
+                        cur :Node | null
                     then:
                       ~>
                         block :void
@@ -173,64 +172,64 @@
             std_io$println__string :void
           arg0:
             block :string
-              let __buf_3: Buffer =
+              let __buf_2: Buffer =
                 call :Buffer
                   callee:
                     new_byte_buffer :Buffer
                   arg0:
                     int(69) :usize
-              let __off_4: usize = int(0) :usize
+              let __off_3: usize = int(0) :usize
               assign
                 target:
-                  __off_4 :usize
+                  __off_3 :usize
                 value:
                   call :usize
                     callee:
                       write_string_at :usize
                     arg0:
-                      __buf_3 :Buffer
+                      __buf_2 :Buffer
                     arg1:
-                      __off_4 :usize
+                      __off_3 :usize
                     arg2:
                       "sum mismatch: got " :string
               assign
                 target:
-                  __off_4 :usize
+                  __off_3 :usize
                 value:
                   call :usize
                     callee:
                       write_int :usize
                     arg0:
-                      __buf_3 :Buffer
+                      __buf_2 :Buffer
                     arg1:
-                      __off_4 :usize
+                      __off_3 :usize
                     arg2:
                       cast → i64
                         sum :i32
               assign
                 target:
-                  __off_4 :usize
+                  __off_3 :usize
                 value:
                   call :usize
                     callee:
                       write_string_at :usize
                     arg0:
-                      __buf_3 :Buffer
+                      __buf_2 :Buffer
                     arg1:
-                      __off_4 :usize
+                      __off_3 :usize
                     arg2:
                       ", expected " :string
               assign
                 target:
-                  __off_4 :usize
+                  __off_3 :usize
                 value:
                   call :usize
                     callee:
                       write_int :usize
                     arg0:
-                      __buf_3 :Buffer
+                      __buf_2 :Buffer
                     arg1:
-                      __off_4 :usize
+                      __off_3 :usize
                     arg2:
                       cast → i64
                         expected :i32
@@ -239,46 +238,46 @@
                   callee:
                     finish_buffer :string
                   arg0:
-                    __buf_3 :Buffer
+                    __buf_2 :Buffer
                   arg1:
-                    __off_4 :usize
+                    __off_3 :usize
         return int(2) :i32
     call :void
       callee:
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_5: Buffer =
+          let __buf_4: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(51) :usize
-          let __off_6: usize = int(0) :usize
+          let __off_5: usize = int(0) :usize
           assign
             target:
-              __off_6 :usize
+              __off_5 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_5 :Buffer
+                  __buf_4 :Buffer
                 arg1:
-                  __off_6 :usize
+                  __off_5 :usize
                 arg2:
                   "ok: 200 nodes survived GC; sum=" :string
           assign
             target:
-              __off_6 :usize
+              __off_5 :usize
             value:
               call :usize
                 callee:
                   write_int :usize
                 arg0:
-                  __buf_5 :Buffer
+                  __buf_4 :Buffer
                 arg1:
-                  __off_6 :usize
+                  __off_5 :usize
                 arg2:
                   cast → i64
                     sum :i32
@@ -287,7 +286,7 @@
               callee:
                 finish_buffer :string
               arg0:
-                __buf_5 :Buffer
+                __buf_4 :Buffer
               arg1:
-                __off_6 :usize
+                __off_5 :usize
     return int(0) :i32

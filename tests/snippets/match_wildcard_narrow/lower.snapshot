@@ -6,12 +6,11 @@
   fn snippet$greet_wildcard(p: Cat | Dog | null) -> string
     return
       block :string
-        let __scrut_0: Cat | Dog | null = p :Cat | Dog | null
         ~>
           if :string
             cond:
               is null :bool
-                __scrut_0 :Cat | Dog | null
+                p :Cat | Dog | null
             then:
               ~>
                 "no pet" :string
@@ -30,17 +29,16 @@
   fn snippet$greet_binding(p: Cat | Dog | null) -> string
     return
       block :string
-        let __scrut_0: Cat | Dog | null = p :Cat | Dog | null
         ~>
           if :string
             cond:
               is null :bool
-                __scrut_0 :Cat | Dog | null
+                p :Cat | Dog | null
             then:
               ~>
                 "no pet" :string
             else:
-              let pet: Cat | Dog | null = __scrut_0 :Cat | Dog | null
+              let pet: Cat | Dog | null = p :Cat | Dog | null
               ~>
                 call :string
                   callee:

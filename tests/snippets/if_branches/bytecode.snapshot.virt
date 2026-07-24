@@ -22,7 +22,6 @@ impl 9 Iterator
 
 fn 0 snippet$classify (i32) -> string
   local if_res string
-  local if_res string
   local.get 0
   i32.const 0
   i32.gt
@@ -35,13 +34,11 @@ fn 0 snippet$classify (i32) -> string
     i32.lt
     if $L1 void
       string.const 1
-      local.set 2
+      local.set 1
     else
       string.const 2
-      local.set 2
+      local.set 1
     end $L1
-    local.get 2
-    local.set 1
   end $L0
   local.get 1
   return
@@ -429,7 +426,6 @@ end
 
 fn 11 std_core$three_way (bool,bool) -> i32
   local if_res i32
-  local if_res i32
   local.get 0
   if $L0 void
     i32.const 1
@@ -439,13 +435,11 @@ fn 11 std_core$three_way (bool,bool) -> i32
     local.get 1
     if $L1 void
       i32.const 1
-      local.set 3
+      local.set 2
     else
       i32.const 0
-      local.set 3
+      local.set 2
     end $L1
-    local.get 3
-    local.set 2
   end $L0
   local.get 2
   return

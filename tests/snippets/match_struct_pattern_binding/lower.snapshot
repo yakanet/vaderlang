@@ -9,16 +9,15 @@
         name: "alice" :string
       }
     block :void
-      let __scrut_0: P = p :P
       ~>
         if :void
           cond:
             is P :bool
-              __scrut_0 :P
+              p :P
           then:
             let name: string =
               .name :string
-                __scrut_0 :P
+                p :P
             ~>
               call :void
                 callee:

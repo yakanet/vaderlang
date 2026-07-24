@@ -10,12 +10,11 @@
           src :string
     ~>
       block :void
-        let __scrut_0: JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString = parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
         ~>
           if :void
             cond:
               is JsonError :bool
-                __scrut_0 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
+                parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
             then:
               ~>
                 block :void
@@ -40,7 +39,7 @@
                 if :void
                   cond:
                     is JsonString :bool
-                      __scrut_0 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
+                      parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                   then:
                     ~>
                       block :void
@@ -68,7 +67,7 @@
                       if :void
                         cond:
                           is JsonNumber :bool
-                            __scrut_0 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
+                            parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                         then:
                           ~>
                             block :void
@@ -96,7 +95,7 @@
                             if :void
                               cond:
                                 is JsonBool :bool
-                                  __scrut_0 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
+                                  parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                               then:
                                 ~>
                                   block :void
@@ -124,7 +123,7 @@
                                   if :void
                                     cond:
                                       is JsonNull :bool
-                                        __scrut_0 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
+                                        parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                     then:
                                       ~>
                                         block :void
@@ -152,7 +151,7 @@
                                         if :void
                                           cond:
                                             is JsonArray :bool
-                                              __scrut_0 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
+                                              parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                           then:
                                             ~>
                                               block :void
@@ -180,7 +179,7 @@
                                               if :void
                                                 cond:
                                                   is JsonObject :bool
-                                                    __scrut_0 :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
+                                                    parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                                 then:
                                                   ~>
                                                     block :void

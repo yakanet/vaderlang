@@ -56,27 +56,25 @@ fn 0 snippet$parse (char) -> any
 end
 
 fn 1 snippet$dir_label (i32) -> string
-  local __scrut_0 i32
   local.get 0
-  local.tee 1
   i32.const 0
   i32.eq
   if $L0 void
     return.lit string.const 1
   end $L0
-  local.get 1
+  local.get 0
   i32.const 1
   i32.eq
   if $L1 void
     return.lit string.const 2
   end $L1
-  local.get 1
+  local.get 0
   i32.const 2
   i32.eq
   if $L2 void
     return.lit string.const 3
   end $L2
-  local.get 1
+  local.get 0
   i32.const 3
   i32.eq
   if $L3 void

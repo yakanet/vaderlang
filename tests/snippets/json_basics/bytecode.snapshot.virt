@@ -168,106 +168,104 @@ export main 1
 
 fn 0 snippet$show (string,string) -> void
   local parsed any
-  local __scrut_0 any
-  local $field_8 string
+  local $field_7 string
   local.get 1
   call 46
   local.tee 2
-  local.tee 3
   type_check 29
   if $L0 void
     local.get 2
     ref.cast 29
     struct.get 29 0
     ref.cast 1
-    local.set 4
+    local.set 3
     local.get 0
     string.const 0
-    local.get 4
+    local.get 3
     call 2
     call 45
     return
   end $L0
-  local.get 3
+  local.get 2
   type_check 33
   if $L1 void
     local.get 2
     ref.cast 33
     call 47
-    local.set 4
+    local.set 3
     local.get 0
     string.const 1
-    local.get 4
+    local.get 3
     call 2
     call 45
     return
   end $L1
-  local.get 3
+  local.get 2
   type_check 31
   if $L2 void
     local.get 2
     ref.cast 31
     call 47
-    local.set 4
+    local.set 3
     local.get 0
     string.const 1
-    local.get 4
+    local.get 3
     call 2
     call 45
     return
   end $L2
-  local.get 3
+  local.get 2
   type_check 28
   if $L3 void
     local.get 2
     ref.cast 28
     call 47
-    local.set 4
+    local.set 3
     local.get 0
     string.const 1
-    local.get 4
+    local.get 3
     call 2
     call 45
     return
   end $L3
-  local.get 3
+  local.get 2
   type_check 30
   if $L4 void
     local.get 2
     ref.cast 30
     call 47
-    local.set 4
+    local.set 3
     local.get 0
     string.const 1
-    local.get 4
+    local.get 3
     call 2
     call 45
     return
   end $L4
-  local.get 3
+  local.get 2
   type_check 27
   if $L5 void
     local.get 2
     ref.cast 27
     call 47
-    local.set 4
+    local.set 3
     local.get 0
     string.const 1
-    local.get 4
+    local.get 3
     call 2
     call 45
     return
   end $L5
-  local.get 3
+  local.get 2
   type_check 32
   if $L6 void
     local.get 2
     ref.cast 32
     call 47
-    local.set 4
+    local.set 3
     local.get 0
     string.const 1
-    local.get 4
+    local.get 3
     call 2
     call 45
     return
@@ -6134,12 +6132,10 @@ fn 52 std_json$fail (ref,string) -> ref
 end
 
 fn 53 std_json$write_value (ref,any,i32,i32) -> void
-  local __scrut_0 any
-  local $field_14 f64
-  local $field_17 string
-  local $cast_19 ref
+  local $field_13 f64
+  local $field_16 string
+  local $cast_18 ref
   local.get 1
-  local.tee 4
   type_check 30
   if $L0 void
     local.get 0
@@ -6147,7 +6143,7 @@ fn 53 std_json$write_value (ref,any,i32,i32) -> void
     call 87
     return
   end $L0
-  local.get 4
+  local.get 1
   type_check 28
   if $L1 void
     local.get 1
@@ -6165,53 +6161,53 @@ fn 53 std_json$write_value (ref,any,i32,i32) -> void
     end $L2
     return
   end $L1
-  local.get 4
+  local.get 1
   type_check 31
   if $L3 void
     local.get 1
     ref.cast 31
     struct.get 31 0
     ref.cast 11
-    local.set 5
+    local.set 4
     local.get 0
-    local.get 5
+    local.get 4
     call 65
     return
   end $L3
-  local.get 4
+  local.get 1
   type_check 33
   if $L4 void
     local.get 1
     ref.cast 33
     struct.get 33 0
     ref.cast 1
-    local.set 6
+    local.set 5
     local.get 0
-    local.get 6
+    local.get 5
     call 64
     return
   end $L4
-  local.get 4
+  local.get 1
   type_check 27
   if $L5 void
     local.get 1
     ref.cast 27
-    local.set 7
+    local.set 6
     local.get 0
-    local.get 7
+    local.get 6
     local.get 2
     local.get 3
     call 63
     return
   end $L5
-  local.get 4
+  local.get 1
   type_check 32
   if $L6 void
     local.get 1
     ref.cast 32
-    local.set 7
+    local.set 6
     local.get 0
-    local.get 7
+    local.get 6
     local.get 2
     local.get 3
     call 62
@@ -6671,8 +6667,7 @@ fn 60 std_json$parse_number (ref) -> any
   local $field_93 ref
   local $field_94 usize
   local parsed any
-  local __scrut_0 any
-  local $k_108 string
+  local $k_106 string
   local.field 0 35 2
   ref.cast 8
   local.set 1
@@ -6950,7 +6945,6 @@ fn 60 std_json$parse_number (ref) -> any
       call.import 2
       call 73
       local.tee 19
-      local.tee 20
       type_check 11
       if $L30 void
         local.get 19
@@ -6958,13 +6952,13 @@ fn 60 std_json$parse_number (ref) -> any
         struct.new 31
         return
       end $L30
-      local.get 20
+      local.get 19
       type_check 47
       if $L31 void
         string.const 58
-        local.set 21
+        local.set 20
         local.get 0
-        local.get 21
+        local.get 20
         call 52
         return
       end $L31
@@ -6982,7 +6976,6 @@ fn 60 std_json$parse_number (ref) -> any
     call.import 2
     call 73
     local.tee 19
-    local.tee 20
     type_check 11
     if $L32 void
       local.get 19
@@ -6990,13 +6983,13 @@ fn 60 std_json$parse_number (ref) -> any
       struct.new 31
       return
     end $L32
-    local.get 20
+    local.get 19
     type_check 47
     if $L33 void
       string.const 58
-      local.set 21
+      local.set 20
       local.get 0
-      local.get 21
+      local.get 20
       call 52
       return
     end $L33
@@ -7132,7 +7125,6 @@ fn 60 std_json$parse_number (ref) -> any
     call.import 2
     call 73
     local.tee 19
-    local.tee 20
     type_check 11
     if $L46 void
       local.get 19
@@ -7140,13 +7132,13 @@ fn 60 std_json$parse_number (ref) -> any
       struct.new 31
       return
     end $L46
-    local.get 20
+    local.get 19
     type_check 47
     if $L47 void
       string.const 58
-      local.set 21
+      local.set 20
       local.get 0
-      local.get 21
+      local.get 20
       call 52
       return
     end $L47
@@ -7164,7 +7156,6 @@ fn 60 std_json$parse_number (ref) -> any
   call.import 2
   call 73
   local.tee 19
-  local.tee 20
   type_check 11
   if $L48 void
     local.get 19
@@ -7172,13 +7163,13 @@ fn 60 std_json$parse_number (ref) -> any
     struct.new 31
     return
   end $L48
-  local.get 20
+  local.get 19
   type_check 47
   if $L49 void
     string.const 58
-    local.set 21
+    local.set 20
     local.get 0
-    local.get 21
+    local.get 20
     call 52
     return
   end $L49

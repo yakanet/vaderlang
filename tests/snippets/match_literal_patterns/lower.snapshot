@@ -4,13 +4,12 @@
   fn snippet$describe_char(c: char) -> string
     return
       block :string
-        let __scrut_0: char = c :char
         ~>
           if :string
             cond:
               eq :bool
                 l:
-                  __scrut_0 :char
+                  c :char
                 r:
                   char(0x3e)
             then:
@@ -22,7 +21,7 @@
                   cond:
                     eq :bool
                       l:
-                        __scrut_0 :char
+                        c :char
                       r:
                         char(0x3c)
                   then:
@@ -34,7 +33,7 @@
                         cond:
                           eq :bool
                             l:
-                              __scrut_0 :char
+                              c :char
                             r:
                               char(0x2b)
                         then:
@@ -46,13 +45,12 @@
   fn snippet$describe_int(n: i32) -> string
     return
       block :string
-        let __scrut_0: i32 = n :i32
         ~>
           if :string
             cond:
               eq :bool
                 l:
-                  __scrut_0 :i32
+                  n :i32
                 r:
                   int(0) :i32
             then:
@@ -64,7 +62,7 @@
                   cond:
                     eq :bool
                       l:
-                        __scrut_0 :i32
+                        n :i32
                       r:
                         int(1) :i32
                   then:
@@ -76,7 +74,7 @@
                         cond:
                           eq :bool
                             l:
-                              __scrut_0 :i32
+                              n :i32
                             r:
                               int(2) :i32
                         then:
@@ -88,13 +86,12 @@
   fn snippet$flag_label(b: bool) -> string
     return
       block :string
-        let __scrut_0: bool = b :bool
         ~>
           if :string
             cond:
               eq :bool
                 l:
-                  __scrut_0 :bool
+                  b :bool
                 r:
                   true
             then:
@@ -106,7 +103,7 @@
                   cond:
                     eq :bool
                       l:
-                        __scrut_0 :bool
+                        b :bool
                       r:
                         false
                   then:
@@ -118,13 +115,12 @@
   fn snippet$mode_name(s: string) -> string
     return
       block :string
-        let __scrut_0: string = s :string
         ~>
           if :string
             cond:
               eq :bool
                 l:
-                  __scrut_0 :string
+                  s :string
                 r:
                   "r" :string
             then:
@@ -136,7 +132,7 @@
                   cond:
                     eq :bool
                       l:
-                        __scrut_0 :string
+                        s :string
                       r:
                         "w" :string
                   then:
@@ -148,7 +144,7 @@
                         cond:
                           eq :bool
                             l:
-                              __scrut_0 :string
+                              s :string
                             r:
                               "rw" :string
                         then:

@@ -37,22 +37,22 @@ fn 0 snippet$lookup (string) -> any
 end
 
 fn 1 snippet$main () -> i32
-  local __scrut_0 any
+  local a any
   local n i32
-  local __p_1 string
-  local $call_15 usize
-  local __buf_2 ref
-  local $cast_23 i64
-  local __scrut_4 any
+  local __p_0 string
+  local $call_14 usize
+  local __buf_1 ref
+  local $cast_22 i64
+  local b any
   local n i32
-  local __p_5 string
-  local $k_43 usize
-  local $call_44 usize
-  local __buf_6 ref
-  local __off_7 usize
-  local $k_50 string
-  local $cast_52 i64
-  local $k_54 string
+  local __p_3 string
+  local $k_41 usize
+  local $call_42 usize
+  local __buf_4 ref
+  local __off_5 usize
+  local $k_48 string
+  local $cast_50 i64
+  local $k_52 string
   string.const 0
   call 0
   local.tee 0

@@ -23,12 +23,12 @@ impl 4 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  local __scrut_0 ref
+  local record ref
   local id i32
   local active bool
-  local __p_1 string
-  local $call_17 usize
-  local $cast_25 i64
+  local __p_0 string
+  local $call_16 usize
+  local $cast_24 i64
   i32.const 42
   string.const 0
   struct.new_stack 9

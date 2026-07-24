@@ -18,11 +18,11 @@ impl 3 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  local __scrut_0 ref
+  local pair ref
   local n i32
-  local __p_1 string
-  local $call_11 usize
-  local $cast_19 i64
+  local __p_0 string
+  local $call_10 usize
+  local $cast_18 i64
   i32.const 3
   string.const 0
   struct.new_stack 8

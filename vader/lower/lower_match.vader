@@ -41,14 +41,30 @@ export lower_match :: fn(
     recurse: fn(FnLowerCtx, Expr) -> LoweredExpr,
 ) -> LoweredExpr {
     scrut_type :: ctx.types.expr_type(expr.scrutinee)
-    scrut_symbol :: fresh_synthetic_symbol(ctx, "scrut")
     scrut_value :: recurse(ctx, expr.scrutinee)
 
     stmts: LoweredStmt[] = []
-    stmts.push(LoweredLet {
-        .span = span_of(scrut_value), .name = scrut_symbol.name, .symbol = scrut_symbol,
-        .type = scrut_type, .value = scrut_value,
-    })
+    // Scrutinee-temp elision : when the scrutinee already lowers to a direct
+    // local/param read AND no arm carries a guard, reuse that slot instead of
+    // spilling to a synthetic `__scrut` temp. Pattern predicates are pure, so
+    // re-reading the slot once per predicate sees the same value — UNLESS an
+    // earlier arm's guard runs between predicates and mutates the scrutinee
+    // local (a guard can be a block expression with an assignment). The spill
+    // snapshots the value once, matching "scrutinee evaluated once", so a
+    // guarded match keeps it. A non-trivial scrutinee (`match f(x)`, a
+    // field/index access, a captured-cell / env read — none of which lower to
+    // `LoweredIdent`) also still spills, evaluated exactly once.
+    elide_symbol :: if any_arm_guarded(expr.arms) { null } else { scrut_ident_symbol(scrut_value) }
+    scrut_symbol :: if elide_symbol != null {
+        elide_symbol
+    } else {
+        spilled :: fresh_synthetic_symbol(ctx, "scrut")
+        stmts.push(LoweredLet {
+            .span = span_of(scrut_value), .name = spilled.name, .symbol = spilled,
+            .type = scrut_type, .value = scrut_value,
+        })
+        spilled
+    }
 
     // `@unreachable` asserts the uncovered variants can't occur, so its
     // fall-through trap carries an intent-revealing reason ; a plain match is
@@ -101,6 +117,22 @@ export lower_match :: fn(
         .stmts = stmts, .trailing = chain.trailing,
     }
 }
+
+// True when any arm carries an `if <guard>`. A guard is the only user code that
+// runs between two arms' predicates, so it's the only thing that can mutate the
+// scrutinee mid-match — the gate for scrutinee-temp elision.
+any_arm_guarded :: fn(arms: MatchArm[]) -> bool {
+    for arm in arms {
+        if arm.guard != null {
+            return true
+        }
+    }
+    return false
+}
+
+// The symbol behind a scrutinee that lowered to a direct local/param read, or
+// null for anything else — the read the elision can safely reuse in place.
+scrut_ident_symbol :: fn(e: LoweredExpr) -> Symbol | null = if e is LoweredIdent as id { id.symbol } else { null }
 
 lower_arm :: fn(
     ctx: FnLowerCtx, arm: MatchArm, scrut_symbol: Symbol, scrut_type: Type,

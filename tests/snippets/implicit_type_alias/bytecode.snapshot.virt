@@ -6,14 +6,12 @@ type 3 primitive string
 export main 1
 
 fn 0 snippet$classify (any) -> i32
-  local __scrut_0 any
   local.get 0
-  local.tee 1
   type_check 2
   if $L0 void
     return.lit i32.const 1
   end $L0
-  local.get 1
+  local.get 0
   type_check 3
   if $L1 void
     return.lit i32.const 2

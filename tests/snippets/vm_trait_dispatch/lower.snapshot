@@ -10,12 +10,11 @@
   fn snippet$describe(items: Cat | Dog) -> i32
     ~>
       block :i32
-        let __scrut_0: Cat | Dog = items :Cat | Dog
         ~>
           if :i32
             cond:
               is Printable :bool
-                __scrut_0 :Cat | Dog
+                items :Cat | Dog
             then:
               ~>
                 int(1) :i32
@@ -25,12 +24,11 @@
   fn snippet$describe_wrapper(w: Cat | Wrapper<i32>) -> i32
     ~>
       block :i32
-        let __scrut_0: Cat | Wrapper<i32> = w :Cat | Wrapper<i32>
         ~>
           if :i32
             cond:
               is Printable :bool
-                __scrut_0 :Cat | Wrapper<i32>
+                w :Cat | Wrapper<i32>
             then:
               ~>
                 int(1) :i32

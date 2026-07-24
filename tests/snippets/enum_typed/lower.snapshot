@@ -4,13 +4,12 @@
   fn snippet$describe(d: Direction) -> string
     return
       block :string
-        let __scrut_0: Direction = d :Direction
         ~>
           if :string
             cond:
               eq :bool
                 l:
-                  __scrut_0 :Direction
+                  d :Direction
                 r:
                   int(1) :u8
             then:
@@ -22,7 +21,7 @@
                   cond:
                     eq :bool
                       l:
-                        __scrut_0 :Direction
+                        d :Direction
                       r:
                         int(2) :u8
                   then:
@@ -34,7 +33,7 @@
                         cond:
                           eq :bool
                             l:
-                              __scrut_0 :Direction
+                              d :Direction
                             r:
                               int(4) :u8
                         then:
@@ -46,7 +45,7 @@
                               cond:
                                 eq :bool
                                   l:
-                                    __scrut_0 :Direction
+                                    d :Direction
                                   r:
                                     int(8) :u8
                               then:
@@ -76,13 +75,12 @@
             int(8) :u8
     let op: Op = int(101) :u16
     block :void
-      let __scrut_0: Op = op :Op
       ~>
         if :void
           cond:
             eq :bool
               l:
-                __scrut_0 :Op
+                op :Op
               r:
                 int(0) :u16
           then:
@@ -98,7 +96,7 @@
                 cond:
                   eq :bool
                     l:
-                      __scrut_0 :Op
+                      op :Op
                     r:
                       int(100) :u16
                 then:
@@ -114,7 +112,7 @@
                       cond:
                         eq :bool
                           l:
-                            __scrut_0 :Op
+                            op :Op
                           r:
                             int(101) :u16
                       then:
@@ -130,7 +128,7 @@
                             cond:
                               eq :bool
                                 l:
-                                  __scrut_0 :Op
+                                  op :Op
                                 r:
                                   int(102) :u16
                             then:

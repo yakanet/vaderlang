@@ -4,12 +4,11 @@
   fn snippet$classify(x: i32 | string) -> i32
     return
       block :i32
-        let __scrut_0: i32 | string = x :i32 | string
         ~>
           if :i32
             cond:
               is i32 :bool
-                __scrut_0 :i32 | string
+                x :i32 | string
             then:
               ~>
                 int(1) :i32
@@ -18,7 +17,7 @@
                 if :i32
                   cond:
                     is string :bool
-                      __scrut_0 :i32 | string
+                      x :i32 | string
                   then:
                     ~>
                       int(2) :i32

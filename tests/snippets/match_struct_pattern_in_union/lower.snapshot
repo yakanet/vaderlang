@@ -5,12 +5,11 @@
   fn snippet$describe(value: null | Point) -> string
     let out: string =
       block :string
-        let __scrut_0: null | Point = value :null | Point
         ~>
           if :string
             cond:
               is null :bool
-                __scrut_0 :null | Point
+                value :null | Point
             then:
               ~>
                 "null" :string
@@ -19,90 +18,90 @@
                 if :string
                   cond:
                     is Point :bool
-                      __scrut_0 :null | Point
+                      value :null | Point
                   then:
                     let x: i32 =
                       .x :i32
                         cast → Point
-                          __scrut_0 :null | Point
+                          value :null | Point
                     let y: i32 =
                       .y :i32
                         cast → Point
-                          __scrut_0 :null | Point
+                          value :null | Point
                     ~>
                       block :string
-                        let __buf_1: Buffer =
+                        let __buf_0: Buffer =
                           call :Buffer
                             callee:
                               new_byte_buffer :Buffer
                             arg0:
                               int(44) :usize
-                        let __off_2: usize = int(0) :usize
+                        let __off_1: usize = int(0) :usize
                         assign
                           target:
-                            __off_2 :usize
+                            __off_1 :usize
                           value:
                             call :usize
                               callee:
                                 write_string_at :usize
                               arg0:
-                                __buf_1 :Buffer
+                                __buf_0 :Buffer
                               arg1:
-                                __off_2 :usize
+                                __off_1 :usize
                               arg2:
                                 "(" :string
                         assign
                           target:
-                            __off_2 :usize
+                            __off_1 :usize
                           value:
                             call :usize
                               callee:
                                 write_int :usize
                               arg0:
-                                __buf_1 :Buffer
+                                __buf_0 :Buffer
                               arg1:
-                                __off_2 :usize
+                                __off_1 :usize
                               arg2:
                                 cast → i64
                                   x :i32
                         assign
                           target:
-                            __off_2 :usize
+                            __off_1 :usize
                           value:
                             call :usize
                               callee:
                                 write_string_at :usize
                               arg0:
-                                __buf_1 :Buffer
+                                __buf_0 :Buffer
                               arg1:
-                                __off_2 :usize
+                                __off_1 :usize
                               arg2:
                                 ", " :string
                         assign
                           target:
-                            __off_2 :usize
+                            __off_1 :usize
                           value:
                             call :usize
                               callee:
                                 write_int :usize
                               arg0:
-                                __buf_1 :Buffer
+                                __buf_0 :Buffer
                               arg1:
-                                __off_2 :usize
+                                __off_1 :usize
                               arg2:
                                 cast → i64
                                   y :i32
                         assign
                           target:
-                            __off_2 :usize
+                            __off_1 :usize
                           value:
                             call :usize
                               callee:
                                 write_string_at :usize
                               arg0:
-                                __buf_1 :Buffer
+                                __buf_0 :Buffer
                               arg1:
-                                __off_2 :usize
+                                __off_1 :usize
                               arg2:
                                 ")" :string
                         ~>
@@ -110,9 +109,9 @@
                             callee:
                               finish_buffer :string
                             arg0:
-                              __buf_1 :Buffer
+                              __buf_0 :Buffer
                             arg1:
-                              __off_2 :usize
+                              __off_1 :usize
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :string

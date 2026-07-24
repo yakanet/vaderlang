@@ -5,19 +5,18 @@
   fn snippet$greet(v: i32 | P) -> void
     ~>
       block :void
-        let __scrut_0: i32 | P = v :i32 | P
         ~>
           if :void
             cond:
               is P :bool
-                __scrut_0 :i32 | P
+                v :i32 | P
             then:
               let p: ? =
                 LoweredCellNew
               ~>
                 block :void
-                  let shout: __lambda_env_8 =
-                    __lambda_env_8 {
+                  let shout: __lambda_env_7 =
+                    __lambda_env_7 {
                       cap_0: p :P
                     }
                   call :void
@@ -56,14 +55,14 @@
                 if :void
                   cond:
                     is i32 :bool
-                      __scrut_0 :i32 | P
+                      v :i32 | P
                   then:
                     let n: ? =
                       LoweredCellNew
                     ~>
                       block :void
-                        let doubled: __lambda_env_3 =
-                          __lambda_env_3 {
+                        let doubled: __lambda_env_2 =
+                          __lambda_env_2 {
                             cap_0: n :i32
                           }
                         ~>
@@ -72,37 +71,37 @@
                               std_io$println__string :void
                             arg0:
                               block :string
-                                let __buf_2: Buffer =
+                                let __buf_1: Buffer =
                                   call :Buffer
                                     callee:
                                       new_byte_buffer :Buffer
                                     arg0:
                                       int(28) :usize
-                                let __off_3: usize = int(0) :usize
+                                let __off_2: usize = int(0) :usize
                                 assign
                                   target:
-                                    __off_3 :usize
+                                    __off_2 :usize
                                   value:
                                     call :usize
                                       callee:
                                         write_string_at :usize
                                       arg0:
-                                        __buf_2 :Buffer
+                                        __buf_1 :Buffer
                                       arg1:
-                                        __off_3 :usize
+                                        __off_2 :usize
                                       arg2:
                                         "twice = " :string
                                 assign
                                   target:
-                                    __off_3 :usize
+                                    __off_2 :usize
                                   value:
                                     call :usize
                                       callee:
                                         write_int :usize
                                       arg0:
-                                        __buf_2 :Buffer
+                                        __buf_1 :Buffer
                                       arg1:
-                                        __off_3 :usize
+                                        __off_2 :usize
                                       arg2:
                                         cast → i64
                                           add :i32
@@ -115,9 +114,9 @@
                                     callee:
                                       finish_buffer :string
                                     arg0:
-                                      __buf_2 :Buffer
+                                      __buf_1 :Buffer
                                     arg1:
-                                      __off_3 :usize
+                                      __off_2 :usize
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -135,16 +134,16 @@
       arg0:
         int(21) :i32 | P
     return int(0) :i32
-  struct __lambda_env_3 { cap_0: ? }
-  fn __lambda_2(__env_1: __lambda_env_3) -> i32
+  struct __lambda_env_2 { cap_0: ? }
+  fn __lambda_1(__env_0: __lambda_env_2) -> i32
     ~>
       add :i32
         l:
           LoweredCellGet
         r:
           LoweredCellGet
-  struct __lambda_env_8 { cap_0: ? }
-  fn __lambda_7(__env_4: __lambda_env_8) -> string
+  struct __lambda_env_7 { cap_0: ? }
+  fn __lambda_6(__env_3: __lambda_env_7) -> string
     ~>
       call :string
         callee:

@@ -16,7 +16,7 @@ impl 5 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  local __scrut_0 ref
+  local p ref
   local name string
   i32.const 10
   string.const 0

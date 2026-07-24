@@ -4,12 +4,11 @@
   fn snippet$describe(x: i32 | null | string) -> string
     return
       block :string
-        let __scrut_0: i32 | null | string = x :i32 | null | string
         ~>
           if :string
             cond:
               is i32 :bool
-                __scrut_0 :i32 | null | string
+                x :i32 | null | string
             then:
               ~>
                 "an int" :string
@@ -18,7 +17,7 @@
                 if :string
                   cond:
                     is string :bool
-                      __scrut_0 :i32 | null | string
+                      x :i32 | null | string
                   then:
                     ~>
                       "a string" :string
@@ -27,7 +26,7 @@
                       if :string
                         cond:
                           is null :bool
-                            __scrut_0 :i32 | null | string
+                            x :i32 | null | string
                         then:
                           ~>
                             "nothing" :string

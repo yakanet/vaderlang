@@ -4,13 +4,12 @@
   fn snippet$Direction$Turnable$turn_left(self: Direction) -> Direction
     ~>
       block :Direction
-        let __scrut_0: Direction = self :Direction
         ~>
           if :Direction
             cond:
               eq :bool
                 l:
-                  __scrut_0 :Direction
+                  self :Direction
                 r:
                   int(0) :i32
             then:
@@ -22,7 +21,7 @@
                   cond:
                     eq :bool
                       l:
-                        __scrut_0 :Direction
+                        self :Direction
                       r:
                         int(3) :i32
                   then:
@@ -34,7 +33,7 @@
                         cond:
                           eq :bool
                             l:
-                              __scrut_0 :Direction
+                              self :Direction
                             r:
                               int(2) :i32
                         then:
@@ -46,7 +45,7 @@
                               cond:
                                 eq :bool
                                   l:
-                                    __scrut_0 :Direction
+                                    self :Direction
                                   r:
                                     int(1) :i32
                               then:
@@ -58,13 +57,12 @@
   fn snippet$Direction$Turnable$turn_right(self: Direction) -> Direction
     ~>
       block :Direction
-        let __scrut_0: Direction = self :Direction
         ~>
           if :Direction
             cond:
               eq :bool
                 l:
-                  __scrut_0 :Direction
+                  self :Direction
                 r:
                   int(0) :i32
             then:
@@ -76,7 +74,7 @@
                   cond:
                     eq :bool
                       l:
-                        __scrut_0 :Direction
+                        self :Direction
                       r:
                         int(1) :i32
                   then:
@@ -88,7 +86,7 @@
                         cond:
                           eq :bool
                             l:
-                              __scrut_0 :Direction
+                              self :Direction
                             r:
                               int(2) :i32
                         then:
@@ -100,7 +98,7 @@
                               cond:
                                 eq :bool
                                   l:
-                                    __scrut_0 :Direction
+                                    self :Direction
                                   r:
                                     int(3) :i32
                               then:
@@ -112,13 +110,12 @@
   fn snippet$Direction$Display$to_string(self: Direction) -> string
     ~>
       block :string
-        let __scrut_0: Direction = self :Direction
         ~>
           if :string
             cond:
               eq :bool
                 l:
-                  __scrut_0 :Direction
+                  self :Direction
                 r:
                   int(0) :i32
             then:
@@ -130,7 +127,7 @@
                   cond:
                     eq :bool
                       l:
-                        __scrut_0 :Direction
+                        self :Direction
                       r:
                         int(1) :i32
                   then:
@@ -142,7 +139,7 @@
                         cond:
                           eq :bool
                             l:
-                              __scrut_0 :Direction
+                              self :Direction
                             r:
                               int(2) :i32
                         then:
@@ -154,7 +151,7 @@
                               cond:
                                 eq :bool
                                   l:
-                                    __scrut_0 :Direction
+                                    self :Direction
                                   r:
                                     int(3) :i32
                               then:
@@ -169,11 +166,57 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            snippet$Direction$Display$to_string :string
-          arg0:
-            d :Direction
+        block :string
+          ~>
+            if :string
+              cond:
+                eq :bool
+                  l:
+                    d :Direction
+                  r:
+                    int(0) :i32
+              then:
+                ~>
+                  "N" :string
+              else:
+                ~>
+                  if :string
+                    cond:
+                      eq :bool
+                        l:
+                          d :Direction
+                        r:
+                          int(1) :i32
+                    then:
+                      ~>
+                        "E" :string
+                    else:
+                      ~>
+                        if :string
+                          cond:
+                            eq :bool
+                              l:
+                                d :Direction
+                              r:
+                                int(2) :i32
+                          then:
+                            ~>
+                              "S" :string
+                          else:
+                            ~>
+                              if :string
+                                cond:
+                                  eq :bool
+                                    l:
+                                      d :Direction
+                                    r:
+                                      int(3) :i32
+                                then:
+                                  ~>
+                                    "W" :string
+                                else:
+                                  ~>
+                                    unreachable("non-exhaustive match (T3013 should have caught this)") :string
     call :void
       callee:
         std_io$println__string :void
@@ -182,11 +225,57 @@
           callee:
             snippet$Direction$Display$to_string :string
           arg0:
-            call :Direction
-              callee:
-                snippet$Direction$Turnable$turn_left :Direction
-              arg0:
-                d :Direction
+            block :Direction
+              ~>
+                if :Direction
+                  cond:
+                    eq :bool
+                      l:
+                        d :Direction
+                      r:
+                        int(0) :i32
+                  then:
+                    ~>
+                      int(3) :i32
+                  else:
+                    ~>
+                      if :Direction
+                        cond:
+                          eq :bool
+                            l:
+                              d :Direction
+                            r:
+                              int(3) :i32
+                        then:
+                          ~>
+                            int(2) :i32
+                        else:
+                          ~>
+                            if :Direction
+                              cond:
+                                eq :bool
+                                  l:
+                                    d :Direction
+                                  r:
+                                    int(2) :i32
+                              then:
+                                ~>
+                                  int(1) :i32
+                              else:
+                                ~>
+                                  if :Direction
+                                    cond:
+                                      eq :bool
+                                        l:
+                                          d :Direction
+                                        r:
+                                          int(1) :i32
+                                    then:
+                                      ~>
+                                        int(0) :i32
+                                    else:
+                                      ~>
+                                        unreachable("non-exhaustive match (T3013 should have caught this)") :Direction
     call :void
       callee:
         std_io$println__string :void
@@ -195,9 +284,55 @@
           callee:
             snippet$Direction$Display$to_string :string
           arg0:
-            call :Direction
-              callee:
-                snippet$Direction$Turnable$turn_right :Direction
-              arg0:
-                d :Direction
+            block :Direction
+              ~>
+                if :Direction
+                  cond:
+                    eq :bool
+                      l:
+                        d :Direction
+                      r:
+                        int(0) :i32
+                  then:
+                    ~>
+                      int(1) :i32
+                  else:
+                    ~>
+                      if :Direction
+                        cond:
+                          eq :bool
+                            l:
+                              d :Direction
+                            r:
+                              int(1) :i32
+                        then:
+                          ~>
+                            int(2) :i32
+                        else:
+                          ~>
+                            if :Direction
+                              cond:
+                                eq :bool
+                                  l:
+                                    d :Direction
+                                  r:
+                                    int(2) :i32
+                              then:
+                                ~>
+                                  int(3) :i32
+                              else:
+                                ~>
+                                  if :Direction
+                                    cond:
+                                      eq :bool
+                                        l:
+                                          d :Direction
+                                        r:
+                                          int(3) :i32
+                                    then:
+                                      ~>
+                                        int(0) :i32
+                                    else:
+                                      ~>
+                                        unreachable("non-exhaustive match (T3013 should have caught this)") :Direction
     return int(0) :i32

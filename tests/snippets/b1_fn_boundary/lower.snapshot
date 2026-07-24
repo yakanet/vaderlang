@@ -11,12 +11,11 @@
   fn snippet$find(n: Node | null, needle: i32) -> Node | null
     ~>
       block :Node | null
-        let __scrut_0: Node | null = n :Node | null
         ~>
           if :Node | null
             cond:
               is null :bool
-                __scrut_0 :Node | null
+                n :Node | null
             then:
               ~>
                 null
@@ -25,11 +24,11 @@
                 if :Node | null
                   cond:
                     is Node :bool
-                      __scrut_0 :Node | null
+                      n :Node | null
                   then:
                     let h: Node =
                       cast → Node
-                        __scrut_0 :Node | null
+                        n :Node | null
                     ~>
                       if :Node | null
                         cond:
@@ -58,12 +57,11 @@
   fn snippet$length(n: Node | null) -> i32
     ~>
       block :i32
-        let __scrut_0: Node | null = n :Node | null
         ~>
           if :i32
             cond:
               is null :bool
-                __scrut_0 :Node | null
+                n :Node | null
             then:
               ~>
                 int(0) :i32
@@ -72,11 +70,11 @@
                 if :i32
                   cond:
                     is Node :bool
-                      __scrut_0 :Node | null
+                      n :Node | null
                   then:
                     let h: Node =
                       cast → Node
-                        __scrut_0 :Node | null
+                        n :Node | null
                     ~>
                       add :i32
                         l:

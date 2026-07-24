@@ -23,7 +23,7 @@ export main 2
 
 fn 0 snippet$greet_wildcard (any) -> string
   local if_res string
-  local $field_8 string
+  local $field_7 string
   local.get 0
   type_check 0
   if $L0 void
@@ -45,27 +45,25 @@ fn 0 snippet$greet_wildcard (any) -> string
 end
 
 fn 1 snippet$greet_binding (any) -> string
-  local __scrut_0 any
   local if_res string
-  local $field_9 string
+  local $field_8 string
   local.get 0
-  local.tee 1
   type_check 0
   if $L0 void
     string.const 0
-    local.set 2
+    local.set 1
   else
-    local.get 1
+    local.get 0
     ref.cast 2
     struct.get 2 0
     ref.cast 4
-    local.set 3
-    string.const 2
-    local.get 3
-    call 3
     local.set 2
+    string.const 2
+    local.get 2
+    call 3
+    local.set 1
   end $L0
-  local.get 2
+  local.get 1
   return
 end
 
