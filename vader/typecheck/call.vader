@@ -922,8 +922,16 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
     if arg_type is UnresolvedType {
         return
     }
-    widened :: mk_array(default_if_free(arg_type), false)
+    element :: default_if_free(arg_type)
+    widened :: mk_array(element, false)
     typed.local_types[binding_key] = widened
+    // This very call's receiver and `push` member were typed before the widening
+    // fired, so they still read `?[]` / `fn(?) -> void`. Nothing downstream picks
+    // the element kind from them today — the emitted C is identical either way —
+    // but leaving a type that lies is how the literal-vs-local mismatch started,
+    // and the LSP reads these same entries for hover.
+    typed.expr_types[target_ident.id] = widened
+    typed.expr_types[c.callee.id] = mk_fn([element], TY_VOID)
     init_id :: typed.empty_array_inits[binding_key] ?? return
     typed.expr_types[init_id] = widened
 }

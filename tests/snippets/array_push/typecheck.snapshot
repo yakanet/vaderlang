@@ -20,8 +20,8 @@
   expr 12:5     IdentExpr      :: fn(T) -> void
   expr 6:12     SeqLitExpr     :: i32[]
   expr 7:5      CallExpr       :: void
-  expr 7:5      FieldExpr      :: fn(?) -> void
-  expr 7:5      IdentExpr      :: ?[]
+  expr 7:5      FieldExpr      :: fn(i32) -> void
+  expr 7:5      IdentExpr      :: i32[]
   expr 8:5      CallExpr       :: void
   expr 8:5      FieldExpr      :: fn(i32) -> void
   expr 8:5      IdentExpr      :: i32[]

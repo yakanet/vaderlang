@@ -12,8 +12,8 @@
   expr 26:14    RangeExpr      :: Range<i32>
   expr 27:22    IdentExpr      :: i32
   expr 27:9     CallExpr       :: void
-  expr 27:9     FieldExpr      :: fn(?) -> void
-  expr 27:9     IdentExpr      :: ?[]
+  expr 27:9     FieldExpr      :: fn(i32) -> void
+  expr 27:9     IdentExpr      :: i32[]
   expr 29:13    StringLitExpr  :: string
   expr 29:27    CallExpr       :: usize
   expr 29:27    FieldExpr      :: fn() -> usize
@@ -32,8 +32,8 @@
   expr 34:20    StringLitExpr  :: string
   expr 34:24    IdentExpr      :: i32
   expr 34:9     CallExpr       :: void
-  expr 34:9     FieldExpr      :: fn(?) -> void
-  expr 34:9     IdentExpr      :: ?[]
+  expr 34:9     FieldExpr      :: fn(string) -> void
+  expr 34:9     IdentExpr      :: string[]
   expr 36:13    StringLitExpr  :: string
   expr 36:27    CallExpr       :: usize
   expr 36:27    FieldExpr      :: fn() -> usize
