@@ -246,6 +246,11 @@ const C_PARITY = new Set<string>([
   // erased-vs-packed element mismatch this guards against was invisible in the
   // VM (it boxes uniformly) and only corrupted the native buffers.
   "generic_lambda_factory",
+  // `x := []` widened by its first push. Native is the oracle: the widened local
+  // reads/writes packed elements, so a literal left erased allocates a boxed
+  // buffer and the array silently reads back garbage past its first growth. The
+  // VM boxes uniformly and never saw it.
+  "empty_array_widening",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

@@ -638,6 +638,23 @@ check_let :: fn(
         )
     }
     assign_binding_types(s.binding, declared, typed, diags)
+    record_empty_array_init(s, declared, typed)
+}
+
+// `x := []` : remember which expression the `?[]` came from, so the first
+// `x.push(elem)` can widen the LITERAL as well as the local (see
+// `TypedProgram.empty_array_inits`).
+record_empty_array_init :: fn(s: AST.LetStmt, declared: Type, typed: TypedProgram) -> void {
+    if declared !is ArrayType {
+        return
+    }
+    if declared.element !is UnresolvedType {
+        return
+    }
+    if s.binding !is AST.SimpleBinding {
+        return
+    }
+    typed.empty_array_inits[s.binding.name_span.hash()] = s.value.id
 }
 
 import "vader/resolver/symbol"

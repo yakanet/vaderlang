@@ -64,6 +64,15 @@ export TypedProgram :: struct {
     /// via `span_key` (packed `(line << 32) | column` `i64`).
     local_types: MutableMap<u64, Type>
 
+    /// `x := []` — the empty-array initialiser's expression id, keyed by the
+    /// same binding span as `local_types`. Read by
+    /// `call.vader::widen_empty_array_on_push`, which must widen the LITERAL
+    /// alongside the local : the literal's own `expr_types` entry is what the
+    /// lowerer reads to pick the buffer's element kind, so leaving it at `?[]`
+    /// allocates a BOXED buffer that the (now concrete) reads and writes access
+    /// as packed elements. Only empty-array bindings are recorded.
+    empty_array_inits: MutableMap<u64, usize>
+
     /// Type of every top-level decl (FnDecl, StructDecl, ConstDecl…).
     /// Keyed by `Symbol.id`. Previously span-keyed via
     /// `decl.name_span.hash()` but that collided across files in
@@ -393,6 +402,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .loop_target_labels = MutableMap<usize, string> {},
     .into_coercions  = MutableMap<usize, Type> {},
     .local_types     = MutableMap<u64, Type> {},
+    .empty_array_inits = MutableMap<u64, usize> {},
     .decl_types      = MutableMap<i32, Type> {},
     .impl_method_decl_types = MutableMap<u64, Type> {},
     .param_types     = MutableMap<u64, Type> {},
