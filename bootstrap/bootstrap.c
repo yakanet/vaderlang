@@ -56571,12 +56571,7 @@ static vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2
                 }
             }
         }
-        if (l14) {
-            l17 = !(l1.tag == 0u);
-        } else {
-            l17 = false;
-        }
-        if (l17) {
+        if (!(l1.tag == 0u)) {
             t2 = vader_typecheck_type_contains_type_param(l1);
             l17 = !(t2);
         } else {
@@ -56592,7 +56587,7 @@ static vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2
         if (l14) {
             l11 = (size_t) (int64_t) INT64_C(0);
             {
-                loop_316: {
+                loop_308: {
                     if ((l11 < l10)) {
                         vader_array_t* _a10_slotarr = ((vader_array_t*) ((vader_struct_vader_parser_CallExpr_t*) l0)->f_args);
                         while (_a10_slotarr->buf != NULL && _a10_slotarr->buf->header.forward != NULL) { _a10_slotarr->buf = (vader_array_buf_t*) _a10_slotarr->buf->header.forward; }
@@ -56601,7 +56596,7 @@ static vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2
                         if (!(((vader_struct_vader_parser_CallArg_t*) t1)->f_value.tag == 245u)) {
                             t4 = (l11 + INT64_C(1));
                             l11 = (size_t) (int64_t) t4;
-                            goto loop_316;
+                            goto loop_308;
                         }
                         l15 = l5.payload.obj;
                         l9 = vader_typecheck_check_generic_arg(l0, l11, l15, l6, l2, l3, l4);
@@ -56612,7 +56607,7 @@ static vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2
                         VADER_WRITE_BARRIER(_a11_slotarr->buf);
                         t4 = (l11 + INT64_C(1));
                         l11 = (size_t) (int64_t) t4;
-                        goto loop_316;
+                        goto loop_308;
                     } else {
                     }
                 }
@@ -56621,7 +56616,7 @@ static vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2
         }
         l11 = (size_t) (int64_t) INT64_C(0);
         {
-            loop_364: {
+            loop_356: {
                 if ((l11 < l10)) {
                     t1 = l5.payload.obj;
                     vader_array_t* _a12_slotarr = ((vader_array_t*) ((vader_struct_vader_types_FnType_t*) t1)->f_params);
@@ -56633,7 +56628,7 @@ static vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2
                     if (t2) {
                         t4 = (l11 + INT64_C(1));
                         l11 = (size_t) (int64_t) t4;
-                        goto loop_364;
+                        goto loop_356;
                     }
                     vader_array_t* _a13_slotarr = ((vader_array_t*) l12);
                     while (_a13_slotarr->buf != NULL && _a13_slotarr->buf->header.forward != NULL) { _a13_slotarr->buf = (vader_array_buf_t*) _a13_slotarr->buf->header.forward; }
@@ -56643,7 +56638,7 @@ static vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2
                     if (t2) {
                         t4 = (l11 + INT64_C(1));
                         l11 = (size_t) (int64_t) t4;
-                        goto loop_364;
+                        goto loop_356;
                     }
                     vader_array_t* _a14_slotarr = ((vader_array_t*) l12);
                     while (_a14_slotarr->buf != NULL && _a14_slotarr->buf->header.forward != NULL) { _a14_slotarr->buf = (vader_array_buf_t*) _a14_slotarr->buf->header.forward; }
@@ -56659,7 +56654,7 @@ static vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2
                     if (t2) {
                         t4 = (l11 + INT64_C(1));
                         l11 = (size_t) (int64_t) t4;
-                        goto loop_364;
+                        goto loop_356;
                     }
                     vader_array_t* _a16_slotarr = ((vader_array_t*) ((vader_struct_vader_parser_CallExpr_t*) l0)->f_args);
                     while (_a16_slotarr->buf != NULL && _a16_slotarr->buf->header.forward != NULL) { _a16_slotarr->buf = (vader_array_buf_t*) _a16_slotarr->buf->header.forward; }
@@ -56677,7 +56672,7 @@ static vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2
                     vader_array_push((vader_array_t*) l3, vader_ref_box(l16));
                     t4 = (l11 + INT64_C(1));
                     l11 = (size_t) (int64_t) t4;
-                    goto loop_364;
+                    goto loop_356;
                 } else {
                 }
             }
@@ -56686,7 +56681,7 @@ static vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2
         l11 = ((vader_array_t*) l15)->length;
         l19 = (size_t) (int64_t) INT64_C(0);
         {
-            loop_466: {
+            loop_458: {
                 if ((l19 < l11)) {
                     vader_array_t* _a18_slotarr = ((vader_array_t*) l15);
                     while (_a18_slotarr->buf != NULL && _a18_slotarr->buf->header.forward != NULL) { _a18_slotarr->buf = (vader_array_buf_t*) _a18_slotarr->buf->header.forward; }
@@ -56696,20 +56691,20 @@ static vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2
                     if (l9.tag == 0u) {
                         t4 = (l19 + INT64_C(1));
                         l19 = (size_t) (int64_t) t4;
-                        goto loop_466;
+                        goto loop_458;
                     }
                     l18 = vader_typecheck_default_if_free(l9);
                     std_collections_MutableMap_IndexSet_set_at__i32__Any(l6, l22, l18);
                     t4 = (l19 + INT64_C(1));
                     l19 = (size_t) (int64_t) t4;
-                    goto loop_466;
+                    goto loop_458;
                 } else {
                 }
             }
         }
         l11 = (size_t) (int64_t) INT64_C(0);
         {
-            loop_506: {
+            loop_498: {
                 if ((l11 < l10)) {
                     vader_array_t* _a19_slotarr = ((vader_array_t*) l12);
                     while (_a19_slotarr->buf != NULL && _a19_slotarr->buf->header.forward != NULL) { _a19_slotarr->buf = (vader_array_buf_t*) _a19_slotarr->buf->header.forward; }
@@ -56723,7 +56718,7 @@ static vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2
                     if (l14) {
                         t4 = (l11 + INT64_C(1));
                         l11 = (size_t) (int64_t) t4;
-                        goto loop_506;
+                        goto loop_498;
                     }
                     t1 = l5.payload.obj;
                     vader_array_t* _a20_slotarr = ((vader_array_t*) ((vader_struct_vader_types_FnType_t*) t1)->f_params);
@@ -56752,7 +56747,7 @@ static vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2
                     }
                     t4 = (l11 + INT64_C(1));
                     l11 = (size_t) (int64_t) t4;
-                    goto loop_506;
+                    goto loop_498;
                 } else {
                 }
             }
@@ -56778,7 +56773,7 @@ static vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2
     }
     l11 = (size_t) (int64_t) INT64_C(0);
     {
-        loop_633: {
+        loop_625: {
             if ((l11 < l10)) {
                 t1 = l5.payload.obj;
                 vader_array_t* _a23_slotarr = ((vader_array_t*) ((vader_struct_vader_types_FnType_t*) t1)->f_params);
@@ -56795,7 +56790,7 @@ static vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2
                 if (t2) {
                     t4 = (l11 + INT64_C(1));
                     l11 = (size_t) (int64_t) t4;
-                    goto loop_633;
+                    goto loop_625;
                 }
                 vader_array_t* _a26_slotarr = ((vader_array_t*) ((vader_struct_vader_parser_CallExpr_t*) l0)->f_args);
                 while (_a26_slotarr->buf != NULL && _a26_slotarr->buf->header.forward != NULL) { _a26_slotarr->buf = (vader_array_buf_t*) _a26_slotarr->buf->header.forward; }
@@ -56807,7 +56802,7 @@ static vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2
                 if (t2) {
                     t4 = (l11 + INT64_C(1));
                     l11 = (size_t) (int64_t) t4;
-                    goto loop_633;
+                    goto loop_625;
                 }
                 vader_array_t* _a27_slotarr = ((vader_array_t*) ((vader_struct_vader_parser_CallExpr_t*) l0)->f_args);
                 while (_a27_slotarr->buf != NULL && _a27_slotarr->buf->header.forward != NULL) { _a27_slotarr->buf = (vader_array_buf_t*) _a27_slotarr->buf->header.forward; }
@@ -56821,7 +56816,7 @@ static vader_box_t vader_typecheck_infer_call(void* l0, vader_box_t l1, void* l2
                 vader_array_push((vader_array_t*) l3, vader_ref_box(l12));
                 t4 = (l11 + INT64_C(1));
                 l11 = (size_t) (int64_t) t4;
-                goto loop_633;
+                goto loop_625;
             } else {
             }
         }
@@ -120945,12 +120940,16 @@ static void* vader_lower_infer_type_args(void* l0, void* l1, void* l2) {
             }
         }
     }
+    l8 = ((vader_struct_vader_types_FnType_t*) l0)->f_return_type;
+    t1 = vader_lower_expr_type(((vader_struct_vader_lower_FnLowerCtx_t*) l2)->f_types, vader_ref_box(l1));
+    l9 = vader_typecheck_default_if_free(t1);
+    vader_lower_unify_params(l8, l9, l3, l4, l2);
     vader_array_t* _a8_arr = vader_array_new(311u, 0u, 13u, 291u);
     l5 = (void*) _a8_arr;
     l6 = ((vader_array_t*) l4)->length;
     l7 = (size_t) (int64_t) INT64_C(0);
     {
-        loop_76: {
+        loop_89: {
             if ((l7 < l6)) {
                 vader_array_t* _a9_slotarr = ((vader_array_t*) l4);
                 while (_a9_slotarr->buf != NULL && _a9_slotarr->buf->header.forward != NULL) { _a9_slotarr->buf = (vader_array_buf_t*) _a9_slotarr->buf->header.forward; }
@@ -120966,7 +120965,7 @@ static void* vader_lower_infer_type_args(void* l0, void* l1, void* l2) {
                 }
                 t2 = (l7 + INT64_C(1));
                 l7 = (size_t) (int64_t) t2;
-                goto loop_76;
+                goto loop_89;
             } else {
             }
         }
