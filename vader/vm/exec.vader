@@ -332,9 +332,8 @@ project_locals :: fn(f: Frame, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule
     // when the current pc is inside it (`optimize = false` gives each source
     // local its own slot, so the window ≈ its lexical scope). This hides
     // not-yet-declared locals and the `v` of already-finished sibling loops.
-    first: i32[] = []
-    last: i32[] = []
-    for _ in 0..<total_slots { first.push(-1)  last.push(-1) }
+    first: i32[] = [-1] * total_slots
+    last:  i32[] = [-1] * total_slots
     for pc in 0..<fn_body.body.len() {
         s :: slot_touched_by(fn_body.body[pc])
         if s >= 0 && usize(s) < total_slots {

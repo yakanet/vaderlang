@@ -497,6 +497,28 @@ ufcs_method_params :: fn(method: string, recv_ty: Type, callee_ty: FnType, typed
     return null
 }
 
+// Check ONE argument of a generic call against its substituted param type, then
+// feed both unifiers from what came back. Shared by the eager pass and the
+// deferred-lambda pass so a future unify step can't land in only one of them.
+check_generic_arg :: fn(
+    c: AST.CallExpr,
+    i: usize,
+    callee_ty: FnType,
+    bindings: MutableMap<i32, Type>,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    param_ty :: substitute_map(callee_ty.params[i], bindings)
+    arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
+    unify_type_param(callee_ty.params[i], arg_ty, bindings)
+    // `fn<T>(g: Greeter<T>)` called with `Hello{}` (where `Hello implements
+    // Greeter(i32)`) : unify can't recover T from a struct→trait dispatch —
+    // read it from the recorded impl args.
+    unify_struct_to_trait_args(callee_ty.params[i], arg_ty, typed, bindings)
+    return arg_ty
+}
+
 /// Type-check a `CallExpr`. `check_expr_fn` is threaded the same way as
 /// in `expr_block.vader` to dodge the cyclic import.
 ///
@@ -598,23 +620,15 @@ export infer_call :: fn(
         // unsubstituted `fn() -> T` types the body under erasure (`?[]`), and a
         // `?[]` array literal lowers to a BOXED buffer that the concrete
         // call-site then reads back as packed elements — silent corruption, not
-        // a diagnostic. Nothing else about the argument pass changes.
-        deferred: usize[] = []
+        // a diagnostic.
+        has_lambda := false
         for i in 0..<n {
             if c.args[i].value is AST.LambdaExpr {
                 arg_types.push(TY_UNRESOLVED)
-                deferred.push(i)
+                has_lambda = true
                 continue
             }
-            param_ty :: substitute_map(callee_ty.params[i], bindings)
-            arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
-            unify_type_param(callee_ty.params[i], arg_ty, bindings)
-            // `fn<T>(g: Greeter<T>)` called with `Hello{}` (where
-            // `Hello implements Greeter(i32)`) : unify can't recover T
-            // from a struct→trait dispatch — read it from the
-            // recorded impl args.
-            unify_struct_to_trait_args(callee_ty.params[i], arg_ty, typed, bindings)
-            arg_types.push(arg_ty)
+            arg_types.push(check_generic_arg(c, i, callee_ty, bindings, typed, diags, check_expr_fn))
         }
         // Whatever the arguments left unbound, the result slot may pin :
         // `out: i32[][] = filled(n, () -> [])` binds `T = i32[]` through
@@ -624,15 +638,16 @@ export infer_call :: fn(
         // call (`my_filter(my_map(xs, f), p)`), the inner call's expected is the
         // outer's still-unbound `Iterator<T>`, and binding to it would carry
         // that foreign type-param into the result instead of a concrete type.
-        if expected != null && deferred.len() > 0 && !type_contains_type_param(expected) {
+        if has_lambda && expected != null && !type_contains_type_param(expected) {
             unify_type_param(callee_ty.return_type, expected, bindings)
         }
-        for i in deferred {
-            param_ty :: substitute_map(callee_ty.params[i], bindings)
-            arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
-            unify_type_param(callee_ty.params[i], arg_ty, bindings)
-            unify_struct_to_trait_args(callee_ty.params[i], arg_ty, typed, bindings)
-            arg_types[i] = arg_ty
+        if has_lambda {
+            for i in 0..<n {
+                if c.args[i].value !is AST.LambdaExpr {
+                    continue
+                }
+                arg_types[i] = check_generic_arg(c, i, callee_ty, bindings, typed, diags, check_expr_fn)
+            }
         }
         for i in 0..<n {
             want :: substitute_map(callee_ty.params[i], bindings)
@@ -728,6 +743,7 @@ export infer_call :: fn(
 /// call's `arr` IdentExpr stays at `?[]` in `expr_types` (typed
 /// before this fires) — subsequent reads of `arr` see the widened
 /// type.
+
 widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
     if c.callee !is AST.FieldExpr {
         return

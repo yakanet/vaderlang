@@ -246,8 +246,7 @@ fold_moves_in_block :: fn(
 
 compact_locals :: fn(f: CFGFunction) -> CFGFunction {
     n :: f.locals.len()
-    referenced: bool[] = []
-    for _ in 0..<n { referenced.push(false) }
+    referenced: bool[] = [false] * n
     // Params keep their slots regardless.
     for p in f.params { if usize(p.local) < n { referenced[usize(p.local)] = true } }
 

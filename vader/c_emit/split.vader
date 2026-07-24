@@ -165,13 +165,8 @@ emit_data_global_externs :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
 partition_functions :: fn(fns: BcFunction[], num_units: i32) -> i32[][] {
     order :: sorted_fn_indices(fns)
 
-    buckets: i32[][] = []
-    sizes: i32[] = []
-    for _ in 0..<num_units {
-        empty: i32[] = []
-        buckets.push(empty)
-        sizes.push(0)
-    }
+    buckets: i32[][] = filled(usize(num_units), () -> [])
+    sizes: i32[] = [0] * usize(num_units)
 
     for idx in order {
         target :: min_bucket(sizes)

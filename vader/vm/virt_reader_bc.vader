@@ -381,8 +381,7 @@ parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[], strings: 
     items: u64[] = []
     if esz > 0 {
         bytes_arr :: hex_to_bytes(hex_body)
-        count :: bytes_arr.len() / esz
-        for i in 0..<count { items.push(read_le(bytes_arr, i * esz, esz)) }
+        items = filled_indexed(bytes_arr.len() / esz, (i) -> read_le(bytes_arr, i * esz, esz))
     }
     data_pool.push(bc.BcPrimData { .kind = kind, .items = items })
 }
