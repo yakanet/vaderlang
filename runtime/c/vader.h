@@ -693,9 +693,31 @@ void           vader_array_push(vader_array_t* a, vader_box_t v);
  * the enclosing function's params. `#undef`-d right after the definitions so it
  * never leaks past them. Sub-word / narrower-than-i32 kinds take the value as the
  * `i32`-class it was coerced to and narrow it in the `(ctype)` store cast. */
+/* Debug-only representation check, guarding the PACKED store only — the
+ * fallback below boxes through `vader_array_push`, which honours whatever kind
+ * the buffer actually has and is correct either way.
+ *
+ * The packed store trusts the STATIC element type of the call site. When the
+ * buffer was really allocated boxed (an erased generic body, or a literal whose
+ * element type was never resolved), writing 4 packed bytes into 24-byte slots
+ * corrupts the array silently — no diagnostic, no trap, and only past the first
+ * growth, which is what made two separate instances of this bug cost a
+ * self-compile SIGSEGV each to find. Trapping here turns the whole family into
+ * an immediate, located failure. Debug builds and the test suite get it;
+ * `--release` passes -DNDEBUG and pays nothing (see `vader/cli/main.vader`). */
+#ifndef NDEBUG
+#define VADER_ARRAY_PUSH_KIND_CHECK(ctype)                                         \
+    if (a->buf != NULL && vader_array_element_size(a->buf->element_kind) != sizeof(ctype)) { \
+        vader_trap("array push: element width mismatch (buffer is boxed/erased, "  \
+                   "call site is packed) — the element type was lost upstream");   \
+    }
+#else
+#define VADER_ARRAY_PUSH_KIND_CHECK(ctype) /* release: no check */
+#endif
 #define VADER_ARRAY_PUSH_BODY(ctype, box_fn)                                       \
     bool is_view = a->offset != 0 || a->offset + a->length < a->buf->length;        \
     if (a->length < a->capacity && !is_view && !vader_array_is_borrowed(a)) {       \
+        VADER_ARRAY_PUSH_KIND_CHECK(ctype)                                         \
         ((ctype*) a->buf->slots)[a->offset + a->length] = (ctype) v;                \
         a->length += 1;                                                             \
         if (a->offset + a->length > a->buf->length) {                              \
@@ -707,13 +729,14 @@ void           vader_array_push(vader_array_t* a, vader_box_t v);
 static inline void vader_array_push_i32 (vader_array_t* a, vader_i32_t  v) { VADER_ARRAY_PUSH_BODY(int32_t,  vader_box_i32)  }
 static inline void vader_array_push_i64 (vader_array_t* a, vader_i64_t  v) { VADER_ARRAY_PUSH_BODY(int64_t,  vader_box_i64)  }
 static inline void vader_array_push_f64 (vader_array_t* a, vader_f64_t  v) { VADER_ARRAY_PUSH_BODY(double,   vader_box_f64)  }
-static inline void vader_array_push_u8  (vader_array_t* a, vader_i32_t  v) { VADER_ARRAY_PUSH_BODY(uint8_t,  vader_box_i32)  }
-static inline void vader_array_push_i8  (vader_array_t* a, vader_i32_t  v) { VADER_ARRAY_PUSH_BODY(int8_t,   vader_box_i32)  }
+static inline void vader_array_push_u8  (vader_array_t* a, vader_i32_t  v) { VADER_ARRAY_PUSH_BODY(uint8_t,  vader_box_i32)   }
+static inline void vader_array_push_i8  (vader_array_t* a, vader_i32_t  v) { VADER_ARRAY_PUSH_BODY(int8_t,   vader_box_i32)   }
 static inline void vader_array_push_u16 (vader_array_t* a, vader_i32_t  v) { VADER_ARRAY_PUSH_BODY(uint16_t, vader_box_i32)  }
 static inline void vader_array_push_i16 (vader_array_t* a, vader_i32_t  v) { VADER_ARRAY_PUSH_BODY(int16_t,  vader_box_i32)  }
 static inline void vader_array_push_f32 (vader_array_t* a, vader_f32_t  v) { VADER_ARRAY_PUSH_BODY(float,    vader_box_f64)  }
 static inline void vader_array_push_bool(vader_array_t* a, vader_bool_t v) { VADER_ARRAY_PUSH_BODY(uint8_t,  vader_box_bool) }
 #undef VADER_ARRAY_PUSH_BODY
+#undef VADER_ARRAY_PUSH_KIND_CHECK
 /* Zero-copy view into `a[lo..hi)`. The returned array shares `a->buf` ;
  * pushing into the view detaches into a fresh buf so concurrent views
  * don't see the growth. Bounds are clamped (lo to `[0,len]`, hi to
