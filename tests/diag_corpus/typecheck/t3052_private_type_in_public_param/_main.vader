@@ -1,0 +1,13 @@
+// An exported fn taking a non-exported type as a parameter — T3052.
+// A caller in another module cannot name `Secret` to build the argument.
+module "snippet"
+
+Secret :: struct { value: i32 }
+
+export consume :: fn(s: Secret) -> i32 {
+    return s.value
+}
+
+main :: fn() -> i32 {
+    return consume(Secret { .value = 1 })
+}

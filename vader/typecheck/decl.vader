@@ -145,8 +145,16 @@ declare_decl :: fn(
                 // is read from main) consult these directly via the
                 // owner module's bindings.
                 fields_map :: MutableMap<string, Type> {}
+                // A private field (`@internal`) is invisible across the module
+                // boundary, so it never leaks — only public fields of an
+                // exported struct expose their type through the interface.
+                struct_public :: sd.visibility == Visibility.Public
                 for f in sd.fields {
-                    fields_map[f.name] = type_from_expr(f.ty, resolved, diags)
+                    fty :: type_from_expr(f.ty, resolved, diags)
+                    fields_map[f.name] = fty
+                    if struct_public && f.visibility == Visibility.Public {
+                        report_private_leak(fty, f.ty.span, sd.name, "exposes a field of type", diags)
+                    }
                 }
                 typed.struct_field_types[sym.id] = fields_map
             }
@@ -248,32 +256,54 @@ declare_fn :: fn(
             ),
         )
     }
-    check_public_return_visibility(decl, return_type, diags)
+    check_public_fn_visibility(decl, params, return_type, diags)
 }
 
 // ---- T3052 : private type in a public interface ---------------------------
 
-// Fire T3052 when an `export`ed fn's return type names a type that isn't
-// itself exported — a caller in another module receives a value of a type it
-// can't name. Mirrors Rust's E0446 (`private_interfaces`). v1 covers return
-// types only ; params / exported struct fields / type-alias RHS are a planned
-// follow-up (see TODO §"Reject private types in a public signature").
-check_public_return_visibility :: fn(decl: AST.FnDecl, return_type: Type, diags: Diagnostic[]) -> void {
-    if decl.visibility != Visibility.Public {
-        return
-    }
-    leak :: first_unexported_type(return_type) ?? return
-    ret_span: Span = decl.span
-    if decl.return_type != null {
-        ret_span = decl.return_type.span
-    }
+// Fire T3052 when a private user type leaks through the public interface of
+// `owner_name`. `role` completes the sentence : "returns", "takes a parameter
+// of type", "exposes a field of type". Mirrors Rust's E0446
+// (`private_interfaces`) — a caller in another module can neither name such a
+// type nor construct a value of it, so the export is unusable across the
+// boundary. No-op when the interface names only exported types.
+report_private_leak :: fn(
+    ty: Type,
+    span: Span,
+    owner_name: string,
+    role: string,
+    diags: Diagnostic[],
+) -> void {
+    leak :: first_unexported_type(ty) ?? return
     diags.push(
         typecheck_error(
             .PrivateTypeInPublicInterface,
-            ret_span,
-            "exported `${decl.name}` returns `${leak.name}`, which is not exported from its module ; export `${leak.name}` or make `${decl.name}` private",
+            span,
+            "exported `${owner_name}` ${role} `${leak.name}`, which is not exported from its module ; export `${leak.name}` or make `${owner_name}` private",
         ),
     )
+}
+
+// Check both halves of an exported fn's signature — its return type and every
+// parameter type. Params cover `@extern` / `@intrinsic` host bindings too : a
+// public foreign ABI over a private type is the same leak. `params[i]`
+// corresponds to `decl.params[i]` (built in the same order by `declare_fn`).
+check_public_fn_visibility :: fn(
+    decl: AST.FnDecl,
+    params: Type[],
+    return_type: Type,
+    diags: Diagnostic[],
+) -> void {
+    if decl.visibility != Visibility.Public {
+        return
+    }
+    ret_span :: if decl.return_type != null { decl.return_type.span } else { decl.span }
+    report_private_leak(return_type, ret_span, decl.name, "returns", diags)
+    for i in 0..<decl.params.len() {
+        p :: decl.params[i]
+        span :: if p.ty != null { p.ty.span } else { p.span }
+        report_private_leak(params[i], span, decl.name, "takes a parameter of type", diags)
+    }
 }
 
 // First non-exported user type referenced anywhere in `t`, or null when the

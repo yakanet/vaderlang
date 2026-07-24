@@ -281,6 +281,7 @@ export LowerProjectCtx :: struct {
     /// earlier ones. `generic_collected` accumulates every built instance across
     /// rounds ; the flush sorts + erasure-dedups + pushes it ONCE after the
     /// fixpoint converges, so emission order is a single deterministic sort.
+    @internal
     generic_collected:   PendingFnInstance[]
     generic_processed:   MutableMap<string, bool>
     generic_fn_cursor:   usize

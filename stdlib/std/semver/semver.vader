@@ -51,6 +51,10 @@ export Version :: struct {
 /// `parse_range` only ; the internal `RangeClause` / `RangeTerm` types
 /// are not exported.
 export VersionRange :: struct {
+    // Internal parse result — `RangeClause` is deliberately not exported, so the
+    // field opts out of the public surface ; construct via `parse_range` and
+    // query through the range methods rather than reading `clauses` directly.
+    @internal
     clauses: RangeClause[]
 }
 

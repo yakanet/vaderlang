@@ -293,8 +293,10 @@ export FunctionBuilder :: struct {
     local_count: usize
     ops: bc.Op[]
     table: i32[]
+    @internal
     scopes: ScopeEntry[]
     scope_sp: usize[]
+    @internal
     pending: PendingBranch[]
     pending_sp: usize[]
 }

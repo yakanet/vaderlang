@@ -82,7 +82,10 @@ export InstClass :: struct {
     negated: bool
 }
 
-CharRange :: struct {
+/// An inclusive `[lo, hi]` codepoint range inside an `InstClass`. Part of the
+/// public compiled-instruction surface — `InstClass.ranges` exposes these, so a
+/// consumer introspecting a compiled `Inst` can read them.
+export CharRange :: struct {
     lo: char
     hi: char
 }

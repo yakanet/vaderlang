@@ -38,6 +38,7 @@ export Printer :: struct {
     // default) everywhere else (inline iff the source was single-line).
     // Value-position blocks (`x :: if c { a } else { b }`) stay `.Preserve`, so
     // concise conditional values are untouched.
+    @internal
     block_mode: BlockLayout = .Preserve
     // Column-alignment target for the `{` of a lookup-table `if`-chain member :
     // the max `if <cond>` condition width across the chain run. `emit_if` pads

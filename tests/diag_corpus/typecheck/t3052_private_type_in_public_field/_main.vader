@@ -1,0 +1,15 @@
+// An exported struct with a public field of a non-exported type — T3052.
+// A cross-module reader of `.secret` receives a `Secret` it cannot name ; an
+// `@internal` field would opt out of the public surface and silence this.
+module "snippet"
+
+Secret :: struct { value: i32 }
+
+export Config :: struct {
+    secret: Secret
+}
+
+main :: fn() -> i32 {
+    c :: Config { .secret = Secret { .value = 1 } }
+    return c.secret.value
+}
