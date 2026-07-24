@@ -6,8 +6,6 @@ export main 2
 fn 0 snippet$classify (i32) -> i32
   local and_res bool
   local if_res i32
-  local if_res i32
-  local if_res i32
   local.get 0
   i32.const 0
   i32.ge
@@ -106,10 +104,10 @@ fn 0 snippet$classify (i32) -> i32
         local.get 1
         if $L11 void
           i32.const 3
-          local.set 3
+          local.set 2
         else
           i32.const 4
-          local.set 3
+          local.set 2
         end $L11
       else
         local.get 0
@@ -117,16 +115,12 @@ fn 0 snippet$classify (i32) -> i32
         i32.eq
         if $L12 void
           i32.const 6
-          local.set 4
+          local.set 2
         else
           i32.const 5
-          local.set 4
+          local.set 2
         end $L12
-        local.get 4
-        local.set 3
       end $L9
-      local.get 3
-      local.set 2
     else
       local.get 0
       i32.const 20

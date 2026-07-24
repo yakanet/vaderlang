@@ -125,29 +125,28 @@ static vader_string_t std_core_format_signed(int64_t l0) {
     } else {
         l4 = l2;
     }
-    l2 = l4;
 #line 67 "stdlib/std/core/primitives.vader"
-    l5 = std_core_usize_BufferAlloc_new_buffer_vt(l2);
+    l5 = std_core_usize_BufferAlloc_new_buffer_vt(l4);
 #line 68 "stdlib/std/core/primitives.vader"
-    l4 = l2;
+    l2 = l4;
 #line 69 "stdlib/std/core/primitives.vader"
     {
-        loop_59: {
+        loop_58: {
             if (l0 != INT64_C(0)) {
 #line 70 "stdlib/std/core/primitives.vader"
-                t0 = (l4 - INT64_C(1));
-                l4 = (size_t) (int64_t) t0;
+                t0 = (l2 - INT64_C(1));
+                l2 = (size_t) (int64_t) t0;
 #line 71 "stdlib/std/core/primitives.vader"
                 t0 = vader_mod_i64(l0, INT64_C(10));
                 t1 = ((int32_t) (int64_t) -(t0));
                 l6 = (uint8_t) (int32_t) t1;
                 t1 = (INT32_C(48) + l6);
                 l7 = (uint8_t) (int32_t) t1;
-                std_core_Buffer_ByteAccess_store_u8_vt(l5, l4, l7);
+                std_core_Buffer_ByteAccess_store_u8_vt(l5, l2, l7);
 #line 72 "stdlib/std/core/primitives.vader"
                 l0 = vader_div_i64(l0, INT64_C(10));
 #line 69 "stdlib/std/core/primitives.vader"
-                goto loop_59;
+                goto loop_58;
             } else {
             }
         }
@@ -158,7 +157,7 @@ static vader_string_t std_core_format_signed(int64_t l0) {
     } else {
     }
 #line 75 "stdlib/std/core/primitives.vader"
-    t2 = std_core_Buffer_ByteAccess_intern_string_vt(l5, l2);
+    t2 = std_core_Buffer_ByteAccess_intern_string_vt(l5, l4);
     { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }

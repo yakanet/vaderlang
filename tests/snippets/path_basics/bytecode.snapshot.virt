@@ -868,7 +868,7 @@ fn 19 std_path$normalize (string) -> string
   local count usize
   local rb ref
   local n usize
-  local if_res usize
+  local i usize
   local seg_start usize
   local at_end bool
   local and_res bool
@@ -876,9 +876,9 @@ fn 19 std_path$normalize (string) -> string
   local seg string
   local or_res bool
   local and_res bool
-  local $sub_44 usize
-  local $len_53 usize
-  local $len_57 usize
+  local $sub_43 usize
+  local $len_52 usize
+  local $len_56 usize
   local.get 0
   local.tee 1
   call 22

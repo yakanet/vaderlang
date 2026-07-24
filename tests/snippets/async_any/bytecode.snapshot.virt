@@ -1160,8 +1160,8 @@ fn 30 std_collections$std_collections$put__usize__bool (ref,usize,bool) -> void
   local first_tomb i64
   local $add_57 usize
   local $field_58 usize
-  local $field_70 ref
-  local $cast_74 i32
+  local $field_69 ref
+  local $cast_73 i32
   local.get 0
   call 27
   local.field 0 34 4
@@ -1321,8 +1321,6 @@ fn 30 std_collections$std_collections$put__usize__bool (ref,usize,bool) -> void
     local.get 3
     local.set 4
   end $L10
-  local.get 4
-  local.set 3
   local.get 7
   i64.const 0
   i64.ge
@@ -1331,9 +1329,9 @@ fn 30 std_collections$std_collections$put__usize__bool (ref,usize,bool) -> void
     ref.cast 19
     i64.const 1
     i64.sub
-    local.set 4
+    local.set 3
     local.get 0
-    local.get 4
+    local.get 3
     struct.set 34 5
   else
   end $L11
@@ -1350,7 +1348,7 @@ fn 30 std_collections$std_collections$put__usize__bool (ref,usize,bool) -> void
   usize.to_i32
   local.set 11
   local.get 10
-  local.get 3
+  local.get 4
   local.get 11
   store_slot_i32
   local.field 0 34 4

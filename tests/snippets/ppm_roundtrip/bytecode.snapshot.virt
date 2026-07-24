@@ -1105,10 +1105,10 @@ fn 13 std_images_ppm$is_digit_byte (u8) -> bool
 end
 
 fn 14 std_images_ppm$Ppm$Display$to_string (ref) -> string
-  local if_res string
-  local $call_11 usize
+  local depth string
+  local $call_10 usize
   local __buf_1 ref
-  local $cast_20 u64
+  local $cast_19 u64
   local.field 0 13 2
   ref.cast 17
   call 9

@@ -407,12 +407,25 @@ build_block_body :: fn(fn_ctx: FnCtx, b: LoweredBlock) -> LocalId | null {
 build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
     match s {
         is LoweredLet as let_stmt -> {
-            value_local :: build_expr(fn_ctx, let_stmt.value)
-            dst :: declare_local(fn_ctx, let_stmt.name, let_stmt.type, let_stmt.symbol)
-            fn_ctx.local_by_sym_id[let_stmt.symbol.id] = dst
-            if value_local !is null {
+            v :: let_stmt.value
+            if v is LoweredIf | LoweredBlock {
+                // Destination-passing : declare the slot first and build the
+                // value-`if` / block-`match` straight into it — no intermediate
+                // `if_res` temp, no copy. Only control-flow values take this path,
+                // so a plain `let` keeps its build-then-bind slot order.
+                dst :: declare_local(fn_ctx, let_stmt.name, let_stmt.type, let_stmt.symbol)
+                fn_ctx.local_by_sym_id[let_stmt.symbol.id] = dst
                 if fn_ctx.current !is null {
-                    emit(fn_ctx, InstrMove { .dst = dst, .src = value_local, .span = let_stmt.span })
+                    build_expr_into(fn_ctx, v, dst)
+                }
+            } else {
+                value_local :: build_expr(fn_ctx, v)
+                dst :: declare_local(fn_ctx, let_stmt.name, let_stmt.type, let_stmt.symbol)
+                fn_ctx.local_by_sym_id[let_stmt.symbol.id] = dst
+                if value_local !is null {
+                    if fn_ctx.current !is null {
+                        emit(fn_ctx, InstrMove { .dst = dst, .src = value_local, .span = let_stmt.span })
+                    }
                 }
             }
         }
@@ -802,18 +815,57 @@ build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
     return result
 }
 
-// The `LoweredIf` inside a bare `{ stmts: [], trailing: if }` wrapper — the
-// shape the match lowerer builds for each `else` link of a value-`match`
-// chain. Returned so the chain can be coalesced onto a single result slot.
-else_chain_if :: fn(block: LoweredBlock) -> LoweredIf | null {
-    if !block.stmts.is_empty() {
-        return null
+// Destination-passing : build `e` so its value lands in `dest` (a pre-existing
+// slot), eliding the intermediate temp + copy where the shape allows. A value
+// `if` / `match` — an if-chain, possibly wrapped in a block — writes every arm
+// straight into `dest` ; anything else is built normally and moved once. This
+// is what collapses a value-`match`'s per-arm `if_res` slots onto one, and it
+// is shape-independent : any nesting of if / block / match is handled by the
+// mutual recursion rather than a structural pattern-match on the lowerer output.
+build_expr_into :: fn(fn_ctx: FnCtx, e: LoweredExpr, dest: LocalId) -> void {
+    // No `current is null` early-return here : `build_expr` below (and `build_if`
+    // / `build_block_into`) already handle a departed block, and narrowing
+    // `current` up front would make the post-`build_expr` re-check read as dead.
+    if e is LoweredIf as v {
+        build_if(fn_ctx, v, dest)
+        return
     }
-    t :: block.trailing
-    if t is LoweredIf as if_node {
-        return if_node
+    if e is LoweredBlock as v {
+        build_block_into(fn_ctx, v, dest)
+        return
     }
-    return null
+    val :: build_expr(fn_ctx, e)
+    if fn_ctx.current !is null && val !is null {
+        emit(fn_ctx, InstrMove { .dst = dest, .src = val, .span = e.span_of() })
+    }
+}
+
+// A block built in destination-passing position : its statements run, then its
+// trailing value lands in `dest`.
+build_block_into :: fn(fn_ctx: FnCtx, b: LoweredBlock, dest: LocalId) -> void {
+    for s in b.stmts {
+        if fn_ctx.current is null {
+            return
+        }
+        build_stmt(fn_ctx, s)
+    }
+    if fn_ctx.current is null {
+        return
+    }
+    if b.trailing !is null {
+        build_expr_into(fn_ctx, b.trailing, dest)
+    }
+}
+
+// Build one `if`-arm block : route its value into `result` when the `if` is
+// value-typed (so a nested value-if / match arm coalesces onto `result` instead
+// of allocating its own slot), else just run it for effect.
+build_if_arm :: fn(fn_ctx: FnCtx, block: LoweredBlock, result: LocalId | null) -> void {
+    if result !is null {
+        build_block_into(fn_ctx, block, result)
+    } else {
+        _ :: build_block_body(fn_ctx, block)
+    }
 }
 
 build_if :: fn(fn_ctx: FnCtx, e: LoweredIf, dest: LocalId | null) -> LocalId | null {
@@ -837,32 +889,15 @@ build_if :: fn(fn_ctx: FnCtx, e: LoweredIf, dest: LocalId | null) -> LocalId | n
     })
 
     fn_ctx.current = then_id
-    then_val :: build_block_body(fn_ctx, e.then_block)
+    build_if_arm(fn_ctx, e.then_block, result)
     if fn_ctx.current !is null {
-        if result !is null {
-            if then_val !is null {
-                emit(fn_ctx, InstrMove { .dst = result, .src = then_val, .span = e.then_block.span })
-            }
-        }
         terminate(fn_ctx, TermBranch { .target = join_id, .span = e.then_block.span })
     }
 
     if else_id_opt !is null {
         if e.else_block !is null {
             fn_ctx.current = else_id_opt
-            chain :: else_chain_if(e.else_block)
-            if chain !is null && result !is null {
-                // Coalesce : the else link writes straight into `result`, so the
-                // whole chain shares one slot — no intermediate `if_res` + copy.
-                build_if(fn_ctx, chain, result)
-            } else {
-                else_val :: build_block_body(fn_ctx, e.else_block)
-                if fn_ctx.current !is null && result !is null && else_val !is null {
-                    emit(fn_ctx, InstrMove { .dst = result, .src = else_val, .span = e.else_block.span })
-                }
-            }
-            // Both paths land here with `current` = their own join (or null if
-            // they diverged) ; branch on to the outer join once.
+            build_if_arm(fn_ctx, e.else_block, result)
             if fn_ctx.current !is null {
                 terminate(fn_ctx, TermBranch { .target = join_id, .span = e.else_block.span })
             }

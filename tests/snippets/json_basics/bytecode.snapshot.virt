@@ -1192,7 +1192,7 @@ fn 10 std_core$eisel_lemire (u64,i32) -> u64
   local shift i32
   local $cast_39 u64
   local $cast_66 u64
-  local $cast_85 u64
+  local $cast_84 u64
   local.get 0
   i64.const 0
   i64.eq
@@ -1471,17 +1471,17 @@ end
 
 fn 11 std_core$parse_f64_slow (string,bool) -> f64
   local p ref
-  local if_res u64
+  local sign u64
   local m ref
   local b_exp i32
   local sticky bool
-  local $field_24 i32
+  local $field_23 i32
   local g i32
   local _k i32
   local __tup_2 ref
-  local $shl_72 u64
-  local $shl_88 u64
-  local $sub_111 u64
+  local $shl_71 u64
+  local $shl_87 u64
+  local $sub_110 u64
   local.get 0
   call 15
   local.set 2
@@ -5507,8 +5507,8 @@ fn 39 std_core$format_decimal (ref,i32,i32) -> string
   local $call_9 string
   local $call_11 string
   local e i32
-  local if_res i32
-  local $call_64 string
+  local exp_abs i32
+  local $call_62 string
   local.get 1
   local.get 2
   i32.le
@@ -7193,15 +7193,15 @@ fn 62 std_json$write_object (ref,ref,i32,i32) -> void
   local first bool
   local self ref
   local other ref
-  local $len_20 usize
-  local $len_21 usize
-  local $idx_30 string
-  local $idx_31 any
+  local n usize
+  local $len_22 usize
+  local $idx_29 string
+  local $idx_30 any
   local __gen_elem_1 ref
   local k string
   local v any
-  local $add_41 i32
-  local $add_47 i32
+  local $add_40 i32
+  local $add_46 i32
   local.field 1 32 0
   call 97
   i64.const 0
@@ -9017,8 +9017,8 @@ fn 96 std_collections$std_collections$put__string__Any (ref,string,any) -> void
   local first_tomb i64
   local $add_57 usize
   local $field_58 usize
-  local $field_70 ref
-  local $cast_74 i32
+  local $field_69 ref
+  local $cast_73 i32
   local.get 0
   call 93
   local.field 0 51 4
@@ -9179,8 +9179,6 @@ fn 96 std_collections$std_collections$put__string__Any (ref,string,any) -> void
     local.get 3
     local.set 4
   end $L10
-  local.get 4
-  local.set 3
   local.get 7
   i64.const 0
   i64.ge
@@ -9189,9 +9187,9 @@ fn 96 std_collections$std_collections$put__string__Any (ref,string,any) -> void
     ref.cast 8
     i64.const 1
     i64.sub
-    local.set 4
+    local.set 3
     local.get 0
-    local.get 4
+    local.get 3
     struct.set 51 5
   else
   end $L11
@@ -9208,7 +9206,7 @@ fn 96 std_collections$std_collections$put__string__Any (ref,string,any) -> void
   usize.to_i32
   local.set 11
   local.get 10
-  local.get 3
+  local.get 4
   local.get 11
   store_slot_i32
   local.field 0 51 4

@@ -38,19 +38,20 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local xs ref
-  local __acc_0 bool
+  local a bool
   local f ref
   local __fuse_arr_4 ref
   local __fuse_len_5 usize
   local __fuse_i_6 usize
   local __elem_1 i32
-  local $closure_24 ref
-  local __acc_7 bool
+  local $closure_25 ref
+  local b bool
   local __elem_8 i32
-  local $k_50 usize
-  local __acc_14 bool
-  local __find_23 any
+  local $k_51 usize
+  local c bool
+  local f any
   local $cast_122 i64
+  local __find_32 any
   i32.const 1
   i32.const 2
   i32.const 3
@@ -317,7 +318,7 @@ fn 0 snippet$main () -> i32
     call 16
   end $L17
   null.const
-  local.set 12
+  local.set 14
   struct.new 12
   make_closure 10 21
   local.set 2
@@ -349,7 +350,7 @@ fn 0 snippet$main () -> i32
           call.indirect 21
           if $L22 void
             local.get 9
-            local.set 12
+            local.set 14
           else
             i64.const 1
             local.set 10
@@ -372,7 +373,8 @@ fn 0 snippet$main () -> i32
       end $L20
     end $L19
   end $L18
-  local.get 12
+  local.get 14
+  local.tee 12
   type_check 0
   if $L23 void
     string.const 5
@@ -509,9 +511,9 @@ fn 14 std_core$write_int (ref,usize,i64) -> usize
   local neg bool
   local ndigits usize
   local m i64
-  local if_res usize
-  local $cast_37 u8
-  local $add_38 u8
+  local total usize
+  local $cast_36 u8
+  local $add_37 u8
   local.get 2
   i64.const 0
   i64.eq
@@ -571,22 +573,20 @@ fn 14 std_core$write_int (ref,usize,i64) -> usize
     local.get 4
     local.set 6
   end $L5
-  local.get 6
-  local.set 4
   local.get 1
-  local.get 4
+  local.get 6
   i64.add
-  local.set 6
+  local.set 4
   block $L6 void
     loop $L7 void
       local.get 2
       i64.const 0
       i64.ne
       if $L8 void
-        local.get 6
+        local.get 4
         i64.const 1
         i64.sub
-        local.set 6
+        local.set 4
         local.get 2
         i64.const 10
         i64.rem
@@ -598,7 +598,7 @@ fn 14 std_core$write_int (ref,usize,i64) -> usize
         i32.add
         local.set 8
         local.get 0
-        local.get 6
+        local.get 4
         local.get 8
         call 18
         local.get 2
@@ -619,7 +619,7 @@ fn 14 std_core$write_int (ref,usize,i64) -> usize
   else
   end $L9
   local.get 1
-  local.get 4
+  local.get 6
   i64.add
   return
 end

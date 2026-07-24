@@ -2845,8 +2845,8 @@ fn 19 std_core$format_decimal (ref,i32,i32) -> string
   local $call_9 string
   local $call_11 string
   local e i32
-  local if_res i32
-  local $call_64 string
+  local exp_abs i32
+  local $call_62 string
   local.get 1
   local.get 2
   i32.le

@@ -1440,13 +1440,12 @@ static void std_collections_std_collections_put__usize__bool(void* l0, size_t l1
     } else {
         l4 = l3;
     }
-    l3 = l4;
 #line 150 "stdlib/std/collections/collections.vader"
     if ((l7 >= INT64_C(0))) {
         t1 = ((vader_struct_std_collections_MutableMap__usize__bool_t*) l0)->f_tombs;
         t0 = (t1 - INT64_C(1));
-        l4 = (size_t) (int64_t) t0;
-        ((vader_struct_std_collections_MutableMap__usize__bool_t*) l0)->f_tombs = l4;
+        l3 = (size_t) (int64_t) t0;
+        ((vader_struct_std_collections_MutableMap__usize__bool_t*) l0)->f_tombs = l3;
         VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__usize__bool_t*) l0);
     } else {
     }
@@ -1458,8 +1457,8 @@ static void std_collections_std_collections_put__usize__bool(void* l0, size_t l1
     l11 = ((int32_t) (int64_t) (t1 + INT64_C(1)));
     vader_array_t* _a5_slotarr = ((vader_array_t*) l10);
     while (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = (vader_array_buf_t*) _a5_slotarr->buf->header.forward; }
-    if ((size_t) l3 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
-    ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l3] = (int32_t) l11;
+    if ((size_t) l4 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
+    ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l4] = (int32_t) l11;
 #line 153 "stdlib/std/collections/collections.vader"
     t1 = ((vader_struct_std_collections_MutableMap__usize__bool_t*) l0)->f_size;
     t0 = (t1 + INT64_C(1));

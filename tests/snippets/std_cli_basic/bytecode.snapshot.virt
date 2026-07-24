@@ -567,15 +567,14 @@ fn 12 std_cli$parse_inner (ref,ref,bool) -> ref
   local parts ref
   local name string
   local has_value bool
-  local if_res string
   local value string
   local spec any
-  local $call_63 string
+  local $call_62 string
   local __scrut_3 i32
   local or_res bool
-  local $call_79 string
-  local $call_86 string
-  local $k_87 usize
+  local $call_78 string
+  local $call_85 string
+  local $k_86 usize
   array.new 10 0
   local.set 3
   array.new 10 0
@@ -682,12 +681,10 @@ fn 12 std_cli$parse_inner (ref,ref,bool) -> ref
           string.const 12
           local.set 16
         end $L6
-        local.get 16
-        local.set 17
         local.get 1
         local.get 14
         call 13
-        local.tee 18
+        local.tee 17
         type_check 0
         if $L7 void
           local.get 2
@@ -695,9 +692,9 @@ fn 12 std_cli$parse_inner (ref,ref,bool) -> ref
             string.const 25
             local.get 14
             call 1
-            local.set 19
+            local.set 18
             local.get 5
-            local.get 19
+            local.get 18
             array.push 2
           else
             local.get 4
@@ -705,53 +702,53 @@ fn 12 std_cli$parse_inner (ref,ref,bool) -> ref
             array.push 2
           end $L8
           i64.const 1
-          local.set 24
+          local.set 23
           local.get 9
-          local.get 24
+          local.get 23
           i64.add
           local.set 9
           br $L1
         end $L7
-        local.get 18
+        local.get 17
         type_check 12
         if $L9 void
-          local.get 18
+          local.get 17
           ref.cast 12
           struct.get 12 1
-          local.tee 20
+          local.tee 19
           i32.const 0
           i32.eq
           if $L10 void
             local.get 15
             if $L11 void
-              local.get 17
+              local.get 16
               string.const 20
               string.eq
               if $L12 void
                 bool.const true
-                local.set 21
+                local.set 20
               else
-                local.get 17
+                local.get 16
                 string.const 21
                 string.eq
-                local.set 21
+                local.set 20
               end $L12
-              local.get 21
+              local.get 20
               if $L13 void
                 local.get 3
                 local.get 14
-                local.get 17
+                local.get 16
                 call 15
               else
                 string.const 23
                 local.get 14
                 string.const 26
-                local.get 17
+                local.get 16
                 string.const 27
                 call 2
-                local.set 22
+                local.set 21
                 local.get 5
-                local.get 22
+                local.get 21
                 array.push 2
               end $L13
             else
@@ -761,14 +758,14 @@ fn 12 std_cli$parse_inner (ref,ref,bool) -> ref
               call 15
             end $L11
             i64.const 1
-            local.set 24
+            local.set 23
             local.get 9
-            local.get 24
+            local.get 23
             i64.add
             local.set 9
             br $L1
           end $L10
-          local.get 20
+          local.get 19
           i32.const 1
           i32.eq
           if $L14 void
@@ -776,7 +773,7 @@ fn 12 std_cli$parse_inner (ref,ref,bool) -> ref
             if $L15 void
               local.get 3
               local.get 14
-              local.get 17
+              local.get 16
               call 15
             else
               string.const 23
@@ -785,15 +782,15 @@ fn 12 std_cli$parse_inner (ref,ref,bool) -> ref
               local.get 14
               string.const 29
               call 2
-              local.set 23
+              local.set 22
               local.get 5
-              local.get 23
+              local.get 22
               array.push 2
             end $L15
             i64.const 1
-            local.set 24
+            local.set 23
             local.get 9
-            local.get 24
+            local.get 23
             i64.add
             local.set 9
             br $L1
@@ -1073,8 +1070,8 @@ fn 20 std_collections$std_collections$put__string__string (ref,string,string) ->
   local first_tomb i64
   local $add_57 usize
   local $field_58 usize
-  local $field_70 ref
-  local $cast_74 i32
+  local $field_69 ref
+  local $cast_73 i32
   local.get 0
   call 17
   local.field 0 15 4
@@ -1235,8 +1232,6 @@ fn 20 std_collections$std_collections$put__string__string (ref,string,string) ->
     local.get 3
     local.set 4
   end $L10
-  local.get 4
-  local.set 3
   local.get 7
   i64.const 0
   i64.ge
@@ -1245,9 +1240,9 @@ fn 20 std_collections$std_collections$put__string__string (ref,string,string) ->
     ref.cast 4
     i64.const 1
     i64.sub
-    local.set 4
+    local.set 3
     local.get 0
-    local.get 4
+    local.get 3
     struct.set 15 5
   else
   end $L11
@@ -1264,7 +1259,7 @@ fn 20 std_collections$std_collections$put__string__string (ref,string,string) ->
   usize.to_i32
   local.set 11
   local.get 10
-  local.get 3
+  local.get 4
   local.get 11
   store_slot_i32
   local.field 0 15 4

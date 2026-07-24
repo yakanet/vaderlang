@@ -54,9 +54,9 @@ fn 2 snippet$h (bool,bool) -> bool
 end
 
 fn 3 snippet$main () -> i32
-  local if_res i32
-  local if_res i32
-  local if_res i32
+  local a i32
+  local b i32
+  local c i32
   bool.const false
   bool.const false
   call 0

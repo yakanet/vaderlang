@@ -927,7 +927,7 @@ fn 6 std_core$eisel_lemire (u64,i32) -> u64
   local shift i32
   local $cast_39 u64
   local $cast_66 u64
-  local $cast_85 u64
+  local $cast_84 u64
   local.get 0
   i64.const 0
   i64.eq
@@ -1206,17 +1206,17 @@ end
 
 fn 7 std_core$parse_f64_slow (string,bool) -> f64
   local p ref
-  local if_res u64
+  local sign u64
   local m ref
   local b_exp i32
   local sticky bool
-  local $field_24 i32
+  local $field_23 i32
   local g i32
   local _k i32
   local __tup_2 ref
-  local $shl_72 u64
-  local $shl_88 u64
-  local $sub_111 u64
+  local $shl_71 u64
+  local $shl_87 u64
+  local $sub_110 u64
   local.get 0
   call 11
   local.set 2

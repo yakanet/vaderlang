@@ -361,9 +361,9 @@ fn 4 std_core$write_int (ref,usize,i64) -> usize
   local neg bool
   local ndigits usize
   local m i64
-  local if_res usize
-  local $cast_37 u8
-  local $add_38 u8
+  local total usize
+  local $cast_36 u8
+  local $add_37 u8
   local.get 2
   i64.const 0
   i64.eq
@@ -423,22 +423,20 @@ fn 4 std_core$write_int (ref,usize,i64) -> usize
     local.get 4
     local.set 6
   end $L5
-  local.get 6
-  local.set 4
   local.get 1
-  local.get 4
+  local.get 6
   i64.add
-  local.set 6
+  local.set 4
   block $L6 void
     loop $L7 void
       local.get 2
       i64.const 0
       i64.ne
       if $L8 void
-        local.get 6
+        local.get 4
         i64.const 1
         i64.sub
-        local.set 6
+        local.set 4
         local.get 2
         i64.const 10
         i64.rem
@@ -450,7 +448,7 @@ fn 4 std_core$write_int (ref,usize,i64) -> usize
         i32.add
         local.set 8
         local.get 0
-        local.get 6
+        local.get 4
         local.get 8
         call 27
         local.get 2
@@ -471,7 +469,7 @@ fn 4 std_core$write_int (ref,usize,i64) -> usize
   else
   end $L9
   local.get 1
-  local.get 4
+  local.get 6
   i64.add
   return
 end
@@ -898,8 +896,8 @@ fn 16 std_collections$std_collections$put__i32__bool (ref,i32,bool) -> void
   local first_tomb i64
   local $add_57 usize
   local $field_58 usize
-  local $field_70 ref
-  local $cast_74 i32
+  local $field_69 ref
+  local $cast_73 i32
   local.get 0
   call 10
   local.field 0 14 4
@@ -1059,8 +1057,6 @@ fn 16 std_collections$std_collections$put__i32__bool (ref,i32,bool) -> void
     local.get 3
     local.set 4
   end $L10
-  local.get 4
-  local.set 3
   local.get 7
   i64.const 0
   i64.ge
@@ -1069,9 +1065,9 @@ fn 16 std_collections$std_collections$put__i32__bool (ref,i32,bool) -> void
     ref.cast 3
     i64.const 1
     i64.sub
-    local.set 4
+    local.set 3
     local.get 0
-    local.get 4
+    local.get 3
     struct.set 14 5
   else
   end $L11
@@ -1088,7 +1084,7 @@ fn 16 std_collections$std_collections$put__i32__bool (ref,i32,bool) -> void
   usize.to_i32
   local.set 11
   local.get 10
-  local.get 3
+  local.get 4
   local.get 11
   store_slot_i32
   local.field 0 14 4
@@ -1110,8 +1106,8 @@ fn 17 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   local first_tomb i64
   local $add_57 usize
   local $field_58 usize
-  local $field_70 ref
-  local $cast_74 i32
+  local $field_69 ref
+  local $cast_73 i32
   local.get 0
   call 11
   local.field 0 15 4
@@ -1272,8 +1268,6 @@ fn 17 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
     local.get 3
     local.set 4
   end $L10
-  local.get 4
-  local.set 3
   local.get 7
   i64.const 0
   i64.ge
@@ -1282,9 +1276,9 @@ fn 17 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
     ref.cast 3
     i64.const 1
     i64.sub
-    local.set 4
+    local.set 3
     local.get 0
-    local.get 4
+    local.get 3
     struct.set 15 5
   else
   end $L11
@@ -1301,7 +1295,7 @@ fn 17 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   usize.to_i32
   local.set 11
   local.get 10
-  local.get 3
+  local.get 4
   local.get 11
   store_slot_i32
   local.field 0 15 4

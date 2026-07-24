@@ -116,8 +116,8 @@ fn 2 snippet$kind (any) -> i32
 end
 
 fn 3 snippet$main () -> i32
-  local if_res i32
-  local if_res i32
+  local go i32
+  local stop i32
   i32.const 2
   call 0
   if $L0 void

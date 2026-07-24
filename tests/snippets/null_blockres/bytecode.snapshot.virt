@@ -13,7 +13,7 @@ import 0 write std_io$write (i32,string) -> void
 export main 1
 
 fn 0 snippet$pick (bool) -> any
-  local if_res null
+  local x null
   local.get 0
   if $L0 void
     null.const

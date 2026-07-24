@@ -24,7 +24,7 @@ fn 0 snippet$keep (i32) -> bool
 end
 
 fn 1 snippet$main () -> i32
-  local __collect_0 ref
+  local kept ref
   local x i32
   local __elem_1 i32
   local __buf_2 ref
