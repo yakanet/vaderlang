@@ -1150,6 +1150,7 @@ Top-level constants follow the same pattern but are restricted to compile-time e
 - Top-down: function signatures used to infer lambda arguments.
 - No global Hindley-Milner (by simplicity choice).
 - **Function signatures must be fully annotated** (no top-level inference).
+- A generic call binds its type arguments from the arguments first, then from the **result slot** — `rows: i32[] = empty_of()` binds `T = i32` for `empty_of :: fn<T>() -> T[]`, which no argument could reach. A type parameter nothing binds is `T3069` at the call site, not an erased value that fails downstream. The check stays silent where nothing can be concluded: inside a generic body (an abstract argument, receiver, or result slot) and when calling a fn-value.
 
 ### Casts
 

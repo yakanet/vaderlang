@@ -1,0 +1,25 @@
+module "snippet"
+
+// `T` is reachable from nothing but the result slot.
+empty_of :: fn<T>() -> T[] {
+    out: T[] = []
+    return out
+}
+
+// Two type-params, one bound by the argument and one not.
+pair_of :: fn<A, B>(first: A) -> B[] {
+    out: B[] = []
+    return out
+}
+
+main :: fn() -> i32 {
+    // T3069 — nothing binds T.
+    loose :: empty_of()
+
+    // T3069 on B only ; A comes from the argument.
+    half :: pair_of(1)
+
+    // Silent : the slot binds it.
+    annotated: i32[] = empty_of()
+    return i32(loose.len() + half.len() + annotated.len())
+}
