@@ -1,0 +1,162 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    let empty: usize =
+      call :usize
+        callee:
+          snippet$zip_with__string :usize
+        arg0:
+          LoweredMakeClosure
+        arg1:
+          LoweredMakeClosure
+    let filled_in: usize =
+      call :usize
+        callee:
+          snippet$zip_with__string :usize
+        arg0:
+          LoweredMakeClosure
+        arg1:
+          LoweredMakeClosure
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_4: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(54) :usize
+          let __off_5: usize = int(0) :usize
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  "empty=" :string
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  cast → u64
+                    empty :usize
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  " filled=" :string
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  cast → u64
+                    filled_in :usize
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_4 :Buffer
+              arg1:
+                __off_5 :usize
+    return int(0) :i32
+  struct __lambda_env_2 {  }
+  fn __lambda_1(__env_0: __lambda_env_2) -> string[]
+    ~>
+      array :string[]
+  struct __lambda_env_5 {  }
+  fn __lambda_4(__env_1: __lambda_env_5, s: string) -> usize
+    ~>
+      call :usize
+        callee:
+          len :usize
+        arg0:
+          s :string
+  struct __lambda_env_8 {  }
+  fn __lambda_7(__env_2: __lambda_env_8) -> string[]
+    ~>
+      array :string[]
+        "ab" :string
+        "cde" :string
+  struct __lambda_env_11 {  }
+  fn __lambda_10(__env_3: __lambda_env_11, s: string) -> usize
+    ~>
+      call :usize
+        callee:
+          len :usize
+        arg0:
+          s :string
+  fn snippet$zip_with__string(make: fn() -> string[], probe: fn(string) -> usize) -> usize
+    let rows: string[] =
+      call :string[]
+        callee:
+          make :fn() -> string[]
+    let total: usize = int(0) :usize
+    block :void
+      let __for_arr_0: string[] = rows :string[]
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let r: string =
+          index :string
+            on:
+              __for_arr_0 :string[]
+            ix:
+              __for_i_2 :usize
+        assign
+          target:
+            total :usize
+          value:
+            add :usize
+              l:
+                total :usize
+              r:
+                call :usize
+                  callee:
+                    probe :fn(string) -> usize
+                  arg0:
+                    r :string
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
+    return total :usize

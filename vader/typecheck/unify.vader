@@ -34,6 +34,24 @@ export unify_type_param :: fn(
 ) -> void {
     match param_type {
         is TypeParamType as tp -> {
+            // An arg that is itself unresolved carries no information : binding
+            // to it would freeze the type-param at `?` and, since first binding
+            // wins, lock out the argument that actually knows. That is what a
+            // lambda checked before its siblings produces —
+            // `zip_with(() -> [], (s: string) -> s.len())` types the first one
+            // `?[]` while the second is what binds `T`.
+            if type_contains_unresolved(arg_type) {
+                return
+            }
+            // `T := T` says nothing either, and it is what a lambda checked
+            // before its binder produces once the param type is substituted with
+            // the still-abstract `T`. Left recorded, first-binding-wins would
+            // lock the type-param onto itself.
+            if arg_type is TypeParamType as self_ref {
+                if self_ref.symbol.id == tp.symbol.id {
+                    return
+                }
+            }
             existing :: out[tp.symbol.id]
             if existing is null { out[tp.symbol.id] = arg_type  return }
             // Tighten Free* bindings when a later arg pins the same
@@ -43,6 +61,17 @@ export unify_type_param :: fn(
             // so the post-loop assignability check accepts the lambda.
             if is_free_numeric(existing) && !is_free_numeric(arg_type) {
                 out[tp.symbol.id] = arg_type
+            }
+            // Same reasoning as above for a binding that was recorded before
+            // this rule existed elsewhere in the tree : an unresolved binding
+            // yields to anything that carries real information.
+            if type_contains_unresolved(existing) {
+                out[tp.symbol.id] = arg_type
+            }
+            if existing is TypeParamType as prev {
+                if prev.symbol.id == tp.symbol.id {
+                    out[tp.symbol.id] = arg_type
+                }
             }
             return
         }
@@ -114,6 +143,40 @@ export unify_type_param :: fn(
             return
         }
         _ -> {}
+    }
+}
+
+/// True when `t` carries an `UnresolvedType` anywhere in its tree — i.e. the
+/// checker failed to work out part of it, so the type says nothing. Used by
+/// `unify_type_param` to refuse a binding that would freeze a type-param at `?`.
+export type_contains_unresolved :: fn(t: Type) -> bool {
+    // @partial: only these variants have inner types to walk ; every scalar /
+    // primitive variant carries nothing unresolved.
+    @partial match t {
+        is UnresolvedType -> { return true }
+        is ArrayType as a -> { return type_contains_unresolved(a.element) }
+        is TupleType as tu -> {
+            for el in tu.elements { if type_contains_unresolved(el) { return true } }
+            return false
+        }
+        is StructType as s -> {
+            for a in s.args { if type_contains_unresolved(a) { return true } }
+            return false
+        }
+        is TraitType as tr -> {
+            for a in tr.args { if type_contains_unresolved(a) { return true } }
+            return false
+        }
+        is FnType as f -> {
+            for p in f.params { if type_contains_unresolved(p) { return true } }
+            return type_contains_unresolved(f.return_type)
+        }
+        is UnionType as u -> {
+            for v in u.variants { if type_contains_unresolved(v) { return true } }
+            return false
+        }
+        is DistinctType as d -> { return type_contains_unresolved(d.backing) }
+        _ -> { return false }
     }
 }
 
