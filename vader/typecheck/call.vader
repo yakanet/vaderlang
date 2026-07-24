@@ -497,6 +497,118 @@ ufcs_method_params :: fn(method: string, recv_ty: Type, callee_ty: FnType, typed
     return null
 }
 
+/// T3069 for every type-param of `callee_ty` that nothing at this call site
+/// bound — no argument, no explicit `<…>`, no result slot.
+///
+/// Left unreported, an unbound type-param doesn't fail : `substitute_map`
+/// returns it unchanged and the call flows on erased, so the failure lands far
+/// downstream and unrecognisably — a vtable miss at runtime, or the lowerer's
+/// GATE B1 "unresolved callee" panic.
+///
+/// Deliberately silent in two cases, both of which would be noise :
+///   - an arity mismatch (a T3003 / T3005 already names the real problem, and
+///     the missing argument is exactly why the binding is missing) ;
+///   - an `expected` that still mentions a type-param — inside a generic body
+///     the enclosing fn's own params are legitimately abstract, so nothing can
+///     be concluded about what the call should have bound.
+report_unbound_type_args :: fn(
+    c: AST.CallExpr,
+    callee_ty: FnType,
+    bindings: MutableMap<i32, Type>,
+    arg_types: Type[],
+    expected: Type | null,
+    checked_arg_count: usize,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    if checked_arg_count != callee_ty.params.len() {
+        return
+    }
+    // Calling a fn-VALUE (a param / local / pattern binding whose type happens
+    // to mention type-params, e.g. `f: fn(T) -> U[]` inside a generic body):
+    // there is nothing to infer and no syntax to pass a type argument through.
+    if c.callee is AST.IdentExpr {
+        callee_sym :: typed.resolved.idents[c.callee.span.hash()]
+        if callee_sym is Symbol as cs {
+            @partial match cs.kind {
+                .Param | .Local | .Binding -> { return }
+                _ -> {}
+            }
+        }
+    }
+    if expected != null && type_contains_type_param(expected) {
+        return
+    }
+    // Inside a generic body every abstract type in scope is legitimately
+    // unbound, so an abstract argument — or an abstract UFCS receiver, as in
+    // `arr.clone()` on a `T[]` — means nothing can be concluded here.
+    for at in arg_types {
+        if type_contains_type_param(at) {
+            return
+        }
+    }
+    if c.callee is AST.FieldExpr as fe {
+        receiver :: typed.expr_types[fe.target.id]
+        if receiver != null && type_contains_type_param(receiver) {
+            return
+        }
+    }
+    unbound: Symbol[] = []
+    for p in callee_ty.params {
+        collect_unbound_type_params(p, bindings, unbound)
+    }
+    collect_unbound_type_params(callee_ty.return_type, bindings, unbound)
+    for tp in unbound {
+        diags.push(
+            typecheck_error(
+                .TypeArgumentNotInferable,
+                c.span,
+                "`${tp.name}` — annotate the result slot, or pass the type argument explicitly",
+            ),
+        )
+    }
+}
+
+// Walk `t` and append every type-param `bindings` has no entry for, skipping
+// ones already collected. Mirrors `type_contains_type_param`'s traversal rather
+// than threading a closure through `for_each_type`.
+collect_unbound_type_params :: fn(t: Type, bindings: MutableMap<i32, Type>, out: Symbol[]) -> void {
+    // @partial: only these variants can hold a type-param ; every scalar /
+    // primitive variant has no inner type to walk.
+    @partial match t {
+        is TypeParamType as tp -> {
+            if bindings[tp.symbol.id] != null {
+                return
+            }
+            for seen in out {
+                if seen.id == tp.symbol.id {
+                    return
+                }
+            }
+            out.push(tp.symbol)
+        }
+        is ArrayType as a -> { collect_unbound_type_params(a.element, bindings, out) }
+        is TupleType as tu -> {
+            for el in tu.elements { collect_unbound_type_params(el, bindings, out) }
+        }
+        is StructType as st -> {
+            for a in st.args { collect_unbound_type_params(a, bindings, out) }
+        }
+        is TraitType as tr -> {
+            for a in tr.args { collect_unbound_type_params(a, bindings, out) }
+        }
+        is FnType as f -> {
+            for p in f.params { collect_unbound_type_params(p, bindings, out) }
+            collect_unbound_type_params(f.return_type, bindings, out)
+        }
+        is UnionType as u -> {
+            for v in u.variants { collect_unbound_type_params(v, bindings, out) }
+        }
+        is DistinctType as d -> { collect_unbound_type_params(d.backing, bindings, out) }
+        _ -> {}
+    }
+}
+
 // Check ONE argument of a generic call against its substituted param type, then
 // feed both unifiers from what came back. Shared by the eager pass and the
 // deferred-lambda pass so a future unify step can't land in only one of them.
@@ -650,6 +762,7 @@ export infer_call :: fn(
                 arg_types[i] = check_generic_arg(c, i, callee_ty, bindings, typed, diags, check_expr_fn)
             }
         }
+        report_unbound_type_args(c, callee_ty, bindings, arg_types, expected, n, typed, diags)
         for i in 0..<n {
             want :: substitute_map(callee_ty.params[i], bindings)
             if type_contains_type_param(want)                          { continue }
