@@ -1,0 +1,6 @@
+# stdout
+i32    len=9 first=0 last=8 sum=36
+string len=9 first=n0 last=n8
+annot  len=9 last=16 sum=72
+# exit
+0

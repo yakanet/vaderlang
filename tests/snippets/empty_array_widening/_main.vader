@@ -1,0 +1,45 @@
+module "snippet"
+
+import "std/io"
+
+// `x := []` has no element type of its own — the first `x.push(v)` widens the
+// binding retroactively. The `[]` LITERAL has to be widened with it: the
+// lowerer reads the literal's type to pick the buffer's element kind, so a
+// literal left at `?[]` allocates a BOXED (24-byte slot) buffer while the now
+// concrete local reads and writes it as PACKED elements. Under four pushes the
+// two layouts happen to agree; from the first buffer growth on they don't, and
+// the array silently reads back garbage.
+//
+// Every count below is deliberately past that first growth.
+
+sum_of :: fn(xs: i32[]) -> i32 {
+    total := 0
+    for v in xs {
+        total += v
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    // Inferred from the first push, then grown well past the initial capacity.
+    numbers := []
+    for i in 0..<9 {
+        numbers.push(i)
+    }
+    println("i32    len=${numbers.len()} first=${numbers[0]} last=${numbers[8]} sum=${sum_of(numbers)}")
+
+    // A reference element type takes the same path.
+    names := []
+    for i in 0..<9 {
+        names.push("n${i}")
+    }
+    println("string len=${names.len()} first=${names[0]} last=${names[8]}")
+
+    // The annotated form, as the control — it never lost its element type.
+    annotated: i32[] = []
+    for i in 0..<9 {
+        annotated.push(i * 2)
+    }
+    println("annot  len=${annotated.len()} last=${annotated[8]} sum=${sum_of(annotated)}")
+    return 0
+}

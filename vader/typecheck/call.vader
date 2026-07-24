@@ -743,7 +743,12 @@ export infer_call :: fn(
 /// call's `arr` IdentExpr stays at `?[]` in `expr_types` (typed
 /// before this fires) — subsequent reads of `arr` see the widened
 /// type.
-
+///
+/// The `[]` LITERAL is widened alongside it (via `empty_array_inits`). It is
+/// what the lowerer reads to pick the buffer's element kind, so leaving it at
+/// `?[]` allocates a BOXED buffer while the widened local makes every read and
+/// write packed — a mismatch that corrupts silently once the buffer grows past
+/// its first allocation (`x := [] ; 9 × push(i)` read back `x[8] == 0`).
 widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
     if c.callee !is AST.FieldExpr {
         return
@@ -776,7 +781,10 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
     if arg_type is UnresolvedType {
         return
     }
-    typed.local_types[binding_key] = mk_array(default_if_free(arg_type), false)
+    widened :: mk_array(default_if_free(arg_type), false)
+    typed.local_types[binding_key] = widened
+    init_id :: typed.empty_array_inits[binding_key] ?? return
+    typed.expr_types[init_id] = widened
 }
 
 /// `T(x)` where `T` is a type-name — the call-syntax cast (the parser emits a

@@ -3,7 +3,7 @@
 ## snippet
   fn snippet$main() -> i32
     let arr: i32[] =
-      array :?[]
+      array :i32[]
     LoweredArrayPush
     LoweredArrayPush
     LoweredArrayPush
