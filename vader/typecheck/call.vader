@@ -497,6 +497,7 @@ ufcs_method_params :: fn(method: string, recv_ty: Type, callee_ty: FnType, typed
     return null
 }
 
+
 /// T3069 for every type-param of `callee_ty` that nothing at this call site
 /// bound — no argument, no explicit `<…>`, no result slot.
 ///
@@ -541,7 +542,11 @@ report_unbound_type_args :: fn(
     }
     // Inside a generic body every abstract type in scope is legitimately
     // unbound, so an abstract argument — or an abstract UFCS receiver, as in
-    // `arr.clone()` on a `T[]` — means nothing can be concluded here.
+    // `arr.clone()` on a `T[]` — means nothing can be concluded here. This also
+    // under-reports a lambda argument typed against its own still-abstract
+    // signature (`a :: build(1, () -> [])` stays silent, and surfaces as a T3008
+    // downstream instead) : distinguishing the two costs more false positives
+    // than the extra coverage is worth — 35 of them across the tree when tried.
     for at in arg_types {
         if type_contains_type_param(at) {
             return
@@ -755,6 +760,28 @@ export infer_call :: fn(
             unify_type_param(callee_ty.return_type, expected, bindings)
         }
         if has_lambda {
+            // Run the deferred lambdas to a FIXPOINT, not once : within the
+            // group, an earlier lambda can need a type-param a later one binds
+            // (`zip_with(() -> [], (s: string) -> s.len())` — the second binds
+            // `T`, the first consumes it), and a single ordered pass would type
+            // the first one under erasure. Diagnostics from these rounds go to a
+            // scratch sink so a lambda that reports twice isn't counted twice ;
+            // the authoritative pass below re-runs them against `diags`.
+            // Bounded by the argument count : every round that continues has
+            // bound at least one more type-param.
+            scratch: Diagnostic[] = []
+            for 0..<n {
+                before :: bindings.len()
+                for i in 0..<n {
+                    if c.args[i].value !is AST.LambdaExpr {
+                        continue
+                    }
+                    check_generic_arg(c, i, callee_ty, bindings, typed, scratch, check_expr_fn)
+                }
+                if bindings.len() == before {
+                    break
+                }
+            }
             for i in 0..<n {
                 if c.args[i].value !is AST.LambdaExpr {
                     continue

@@ -254,6 +254,9 @@ const C_PARITY = new Set<string>([
   // A type-param bound only by the call's result slot, on both sides of the
   // pipeline (typecheck's unify + the lowerer's instance key).
   "generic_return_binds_typaram",
+  // Two lambda arguments, the second one the binder — guards the fixpoint in
+  // the deferred-lambda pass and the two no-information unification refusals.
+  "generic_lambda_binder_order",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

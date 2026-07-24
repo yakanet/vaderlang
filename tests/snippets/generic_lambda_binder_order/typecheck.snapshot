@@ -1,0 +1,37 @@
+# Typecheck
+
+## tests/snippets/generic_lambda_binder_order
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         zip_with             :: fn(fn() -> T[], fn(T) -> usize) -> usize
+  expr 13:13    CallExpr       :: T[]
+  expr 13:13    IdentExpr      :: fn() -> T[]
+  expr 15:14    IdentExpr      :: T[]
+  expr 16:18    CallExpr       :: usize
+  expr 16:18    IdentExpr      :: fn(T) -> usize
+  expr 16:24    IdentExpr      :: T
+  expr 16:9     BinaryExpr     :: usize
+  expr 16:9     IdentExpr      :: usize
+  expr 18:12    IdentExpr      :: usize
+  expr 23:14    CallExpr       :: usize
+  expr 23:14    IdentExpr      :: fn(fn() -> T[], fn(T) -> usize) -> usize
+  expr 23:23    LambdaExpr     :: fn() -> string[]
+  expr 23:29    SeqLitExpr     :: string[]
+  expr 23:33    LambdaExpr     :: fn(string) -> usize
+  expr 23:48    CallExpr       :: usize
+  expr 23:48    FieldExpr      :: fn() -> usize
+  expr 23:48    IdentExpr      :: string
+  expr 26:18    CallExpr       :: usize
+  expr 26:18    IdentExpr      :: fn(fn() -> T[], fn(T) -> usize) -> usize
+  expr 26:27    LambdaExpr     :: fn() -> string[]
+  expr 26:33    SeqLitExpr     :: string[]
+  expr 26:34    StringLitExpr  :: string
+  expr 26:40    StringLitExpr  :: string
+  expr 26:48    LambdaExpr     :: fn(string) -> usize
+  expr 26:63    CallExpr       :: usize
+  expr 26:63    FieldExpr      :: fn() -> usize
+  expr 26:63    IdentExpr      :: string
+  expr 28:13    StringLitExpr  :: string
+  expr 28:22    IdentExpr      :: usize
+  expr 28:38    IdentExpr      :: usize
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void
