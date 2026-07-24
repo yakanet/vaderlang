@@ -273,6 +273,13 @@ infer_type_args :: fn(ft: FnType, call: CallExpr, ctx: FnLowerCtx) -> Type[] {
         concrete :: default_if_free(ctx.types.expr_type(call.args[i].value))
         unify_params(pattern, concrete, bindings, order, ctx)
     }
+    // A type-param that appears ONLY in the return type (`empty :: fn<T>() ->
+    // T[]`) is reachable from no argument — the typechecker bound it from the
+    // result slot, so unify against the call's own recorded type. Last, so the
+    // arguments keep priority (`unify_params` is first-binding-wins) ; without
+    // it the instance is keyed on a dangling `T` and materialisation fails with
+    // the GATE B1 "unresolved callee" panic.
+    unify_params(ft.return_type, default_if_free(ctx.types.expr_type(call)), bindings, order, ctx)
     out: Type[] = []
     for id in order {
         v :: bindings[id]

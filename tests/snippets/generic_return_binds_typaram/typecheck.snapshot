@@ -1,0 +1,39 @@
+# Typecheck
+
+## tests/snippets/generic_return_binds_typaram
+  FnDecl         empty_of             :: fn() -> T[]
+  FnDecl         main                 :: fn() -> i32
+  expr 12:16    SeqLitExpr     :: T[]
+  expr 13:12    IdentExpr      :: T[]
+  expr 18:22    CallExpr       :: i32[]
+  expr 18:22    IdentExpr      :: fn() -> T[]
+  expr 19:5     CallExpr       :: void
+  expr 19:5     FieldExpr      :: fn(i32) -> void
+  expr 19:5     IdentExpr      :: i32[]
+  expr 20:5     CallExpr       :: void
+  expr 20:5     FieldExpr      :: fn(i32) -> void
+  expr 20:5     IdentExpr      :: i32[]
+  expr 22:23    CallExpr       :: string[]
+  expr 22:23    IdentExpr      :: fn() -> T[]
+  expr 23:16    StringLitExpr  :: string
+  expr 23:5     CallExpr       :: void
+  expr 23:5     FieldExpr      :: fn(string) -> void
+  expr 23:5     IdentExpr      :: string[]
+  expr 25:13    StringLitExpr  :: string
+  expr 25:23    CallExpr       :: usize
+  expr 25:23    FieldExpr      :: fn() -> usize
+  expr 25:23    IdentExpr      :: i32[]
+  expr 25:40    IdentExpr      :: i32[]
+  expr 25:40    IndexExpr      :: i32
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T) -> void
+  expr 25:54    IdentExpr      :: i32[]
+  expr 25:54    IndexExpr      :: i32
+  expr 26:13    StringLitExpr  :: string
+  expr 26:23    CallExpr       :: usize
+  expr 26:23    FieldExpr      :: fn() -> usize
+  expr 26:23    IdentExpr      :: string[]
+  expr 26:38    IdentExpr      :: string[]
+  expr 26:38    IndexExpr      :: string
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void
