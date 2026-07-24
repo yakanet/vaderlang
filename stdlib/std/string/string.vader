@@ -381,21 +381,21 @@ export right_trim :: fn(s: string) -> string {
 // (`a..z`, `à..ö`, `ø..þ`, `ÿ`). `×`/`÷` (0xD7/0xF7) are excluded by the range
 // gaps ; `ß` has no single-codepoint uppercase and passes through. Scripts
 // beyond Latin-1 pass through unchanged — no full Unicode case tables.
-to_upper_cp :: fn(cp: u32) -> u32 {
-    if cp >= 0x61 && cp <= 0x7A { return cp - 0x20 }   // a-z
-    if cp >= 0xE0 && cp <= 0xF6 { return cp - 0x20 }   // à-ö
-    if cp >= 0xF8 && cp <= 0xFE { return cp - 0x20 }   // ø-þ
-    if cp == 0xFF               { return 0x178 }       // ÿ → Ÿ
-    return cp
+to_upper_cp :: fn(cp: u32) -> u32 = match cp {
+    0x61..=0x7A -> cp - 0x20   // a-z
+    0xE0..=0xF6 -> cp - 0x20   // à-ö
+    0xF8..=0xFE -> cp - 0x20   // ø-þ
+    0xFF        -> 0x178       // ÿ → Ÿ
+    _           -> cp
 }
 
 // Codepoint-level lowercase, the inverse of `to_upper_cp`.
-to_lower_cp :: fn(cp: u32) -> u32 {
-    if cp >= 0x41 && cp <= 0x5A { return cp + 0x20 }   // A-Z
-    if cp >= 0xC0 && cp <= 0xD6 { return cp + 0x20 }   // À-Ö
-    if cp >= 0xD8 && cp <= 0xDE { return cp + 0x20 }   // Ø-Þ
-    if cp == 0x178              { return 0xFF }        // Ÿ → ÿ
-    return cp
+to_lower_cp :: fn(cp: u32) -> u32 = match cp {
+    0x41..=0x5A -> cp + 0x20   // A-Z
+    0xC0..=0xD6 -> cp + 0x20   // À-Ö
+    0xD8..=0xDE -> cp + 0x20   // Ø-Þ
+    0x178       -> 0xFF        // Ÿ → ÿ
+    _           -> cp
 }
 
 /// Uppercase `s` over ASCII and the Latin-1 Supplement (`a..z`, `à..þ`, `ÿ`).

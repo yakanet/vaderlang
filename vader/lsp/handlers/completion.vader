@@ -681,11 +681,13 @@ ci_kind :: fn(k: DeclKind) -> CompletionItemKind = match k {
 // casing : PascalCase reads as a type (Class icon), otherwise a fn / value.
 import_ci_kind :: fn(name: string) -> CompletionItemKind {
     nb :: name.bytes()
-    if nb.len() > 0 {
-        c :: nb[0]
-        if c >= 'A' && c <= 'Z' { return .Class }
+    if nb.len() == 0 {
+        return .Function
     }
-    return .Function
+    return match nb[0] {
+        'A'..='Z' -> .Class
+        _         -> .Function
+    }
 }
 
 completion_item :: fn(label: string, kind: CompletionItemKind, detail: string) -> JsonValue {

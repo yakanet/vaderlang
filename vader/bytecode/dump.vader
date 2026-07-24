@@ -256,15 +256,10 @@ is_simple_ident :: fn(s: string) -> bool {
     n :: sb.len()
     if n == 0 { return false }
     for i in 0..<n {
-        b :: sb[i]
-        ok := false
-        if b >= 'A' && b <= 'Z' { ok = true }
-        if b >= 'a' && b <= 'z' { ok = true }
-        if b >= '0' && b <= '9' { ok = true }
-        if b == '_' { ok = true }
-        if b == '$' { ok = true }
-        if b == '.' { ok = true }
-        if !ok { return false }
+        match sb[i] {
+            'A'..='Z' | 'a'..='z' | '0'..='9' | '_' | '$' | '.' -> { continue }
+            _ -> { return false }
+        }
     }
     return true
 }

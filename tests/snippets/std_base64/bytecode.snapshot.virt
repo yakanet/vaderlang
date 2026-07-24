@@ -1985,12 +1985,13 @@ end
 
 fn 13 std_base64$decode_byte (u8) -> i32
   local and_res bool
+  local if_res i32
   local.get 0
-  i32.const 65
+  char.const 65
   u32.ge
   if $L0 void
     local.get 0
-    i32.const 90
+    char.const 90
     u32.le
     local.set 1
   else
@@ -2003,66 +2004,75 @@ fn 13 std_base64$decode_byte (u8) -> i32
     i32.const 65
     i32.sub
     u8.to_i32
-    return
+    local.set 2
+  else
+    local.get 0
+    char.const 97
+    u32.ge
+    if $L2 void
+      local.get 0
+      char.const 122
+      u32.le
+      local.set 1
+    else
+      bool.const false
+      local.set 1
+    end $L2
+    local.get 1
+    if $L3 void
+      local.get 0
+      i32.const 97
+      i32.sub
+      u8.to_i32
+      i32.const 26
+      i32.add
+      local.set 2
+    else
+      local.get 0
+      char.const 48
+      u32.ge
+      if $L4 void
+        local.get 0
+        char.const 57
+        u32.le
+        local.set 1
+      else
+        bool.const false
+        local.set 1
+      end $L4
+      local.get 1
+      if $L5 void
+        local.get 0
+        i32.const 48
+        i32.sub
+        u8.to_i32
+        i32.const 52
+        i32.add
+        local.set 2
+      else
+        local.get 0
+        char.const 43
+        i32.eq
+        if $L6 void
+          i32.const 62
+          local.set 2
+        else
+          local.get 0
+          char.const 47
+          i32.eq
+          if $L7 void
+            i32.const 63
+            local.set 2
+          else
+            i32.const 1
+            i32.neg
+            local.set 2
+          end $L7
+        end $L6
+      end $L5
+    end $L3
   end $L1
-  local.get 0
-  i32.const 97
-  u32.ge
-  if $L2 void
-    local.get 0
-    i32.const 122
-    u32.le
-    local.set 1
-  else
-    bool.const false
-    local.set 1
-  end $L2
-  local.get 1
-  if $L3 void
-    local.get 0
-    i32.const 97
-    i32.sub
-    u8.to_i32
-    i32.const 26
-    i32.add
-    return
-  end $L3
-  local.get 0
-  i32.const 48
-  u32.ge
-  if $L4 void
-    local.get 0
-    i32.const 57
-    u32.le
-    local.set 1
-  else
-    bool.const false
-    local.set 1
-  end $L4
-  local.get 1
-  if $L5 void
-    local.get 0
-    i32.const 48
-    i32.sub
-    u8.to_i32
-    i32.const 52
-    i32.add
-    return
-  end $L5
-  local.get 0
-  i32.const 43
-  i32.eq
-  if $L6 void
-    return.lit i32.const 62
-  end $L6
-  local.get 0
-  i32.const 47
-  i32.eq
-  if $L7 void
-    return.lit i32.const 63
-  end $L7
-  i32.const 1
-  i32.neg
+  local.get 2
   return
 end
 

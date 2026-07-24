@@ -65,11 +65,11 @@ percent_decode :: fn(s: string) -> string {
 }
 
 // Hex digit value for an ASCII byte, or -1 when not a hex digit.
-hex_val :: fn(b: u8) -> i32 {
-    if b >= '0' && b <= '9' { return i32(b - '0') }
-    if b >= 'A' && b <= 'F' { return i32(b - 'A') + 10 }
-    if b >= 'a' && b <= 'f' { return i32(b - 'a') + 10 }
-    return -1
+hex_val :: fn(b: u8) -> i32 = match b {
+    '0'..='9' -> i32(b - '0')
+    'A'..='F' -> i32(b - 'A') + 10
+    'a'..='f' -> i32(b - 'a') + 10
+    _         -> -1
 }
 
 /// Build a `file://` URI from a filesystem path. POSIX `/abs/f` → `file:///abs/f`

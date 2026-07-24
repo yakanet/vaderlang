@@ -9461,9 +9461,10 @@ end
 
 fn 103 std_numbers$hex_digit_value (char) -> i32
   local and_res bool
-  char.const 48
+  local if_res i32
   local.get 0
-  i32.le
+  char.const 48
+  i32.ge
   if $L0 void
     local.get 0
     char.const 57
@@ -9480,56 +9481,61 @@ fn 103 std_numbers$hex_digit_value (char) -> i32
     i32.const 48
     i32.sub
     u32.to_i32
-    return
+    local.set 2
+  else
+    local.get 0
+    char.const 97
+    i32.ge
+    if $L2 void
+      local.get 0
+      char.const 102
+      i32.le
+      local.set 1
+    else
+      bool.const false
+      local.set 1
+    end $L2
+    local.get 1
+    if $L3 void
+      local.get 0
+      char.to_i32
+      i32.const 97
+      i32.sub
+      i32.const 10
+      i32.add
+      u32.to_i32
+      local.set 2
+    else
+      local.get 0
+      char.const 65
+      i32.ge
+      if $L4 void
+        local.get 0
+        char.const 70
+        i32.le
+        local.set 1
+      else
+        bool.const false
+        local.set 1
+      end $L4
+      local.get 1
+      if $L5 void
+        local.get 0
+        char.to_i32
+        i32.const 65
+        i32.sub
+        i32.const 10
+        i32.add
+        u32.to_i32
+        local.set 2
+      else
+        i32.const 1
+        i32.neg
+        local.set 2
+      end $L5
+    end $L3
   end $L1
-  char.const 97
-  local.get 0
-  i32.le
-  if $L2 void
-    local.get 0
-    char.const 102
-    i32.le
-    local.set 1
-  else
-    bool.const false
-    local.set 1
-  end $L2
-  local.get 1
-  if $L3 void
-    local.get 0
-    char.to_i32
-    i32.const 97
-    i32.sub
-    i32.const 10
-    i32.add
-    u32.to_i32
-    return
-  end $L3
-  char.const 65
-  local.get 0
-  i32.le
-  if $L4 void
-    local.get 0
-    char.const 70
-    i32.le
-    local.set 1
-  else
-    bool.const false
-    local.set 1
-  end $L4
-  local.get 1
-  if $L5 void
-    local.get 0
-    char.to_i32
-    i32.const 65
-    i32.sub
-    i32.const 10
-    i32.add
-    u32.to_i32
-    return
-  end $L5
-  i32.const 1
-  i32.neg
+  local.get 2
   return
 end
 
