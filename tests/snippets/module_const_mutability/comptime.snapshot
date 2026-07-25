@@ -1,0 +1,35 @@
+# Comptime
+
+## tests/snippets/module_const_mutability
+  @comptime  DIGITS               = ["0", "1", "2"]
+  @comptime  GREETING             = "hello"
+  @comptime  LIMITS               = [10_i32, 20_i32, 30_i32]
+  @comptime  MAX                  = 42_i32
+  @comptime  PAIR                 = [i32, string] { ._0 = 7_i32, ._1 = "seven" }
+  @comptime  SCRATCH              = [1_i32, 2_i32, 3_i32]
+
+## generic instances
+  ArrayOps<T>
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<T>
+  Iterator<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Async<T>
+  Range<i32>
+  Range<usize>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>

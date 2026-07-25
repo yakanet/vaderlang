@@ -84,6 +84,7 @@ export type_from_expr :: fn(
         // here and carried by the `Type` itself.
         is AST.MutableTypeExpr as e -> {
             inner :: type_from_expr(e.inner, resolved, diags)
+            reject_marker_on_value_type(inner, e.span, diags)
             // A type that arrives ALREADY read-only is not un-frozen by a marker —
             // the stricter side wins. A belt: with `const` gone the surface cannot
             // write a frozen type under a `!` (and P1031 rejects the legacy
@@ -319,6 +320,35 @@ opt_or_void :: fn(
 ) -> Type {
     if ret == null { return TY_VOID }
     return type_from_expr(ret, resolved, diags)
+}
+
+// A `!` on a type with no interior is a no-op — `with_immutable` hands such a type
+// straight back — so `s :: string! = "hi"` used to read as a promise the compiler
+// silently dropped. Report it (T3075) instead.
+//
+// Restricted to the four kinds that are values through and through: a primitive, an
+// enum, a fn and `never`. A type PARAMETER or `Self` is deliberately NOT rejected —
+// the marker there is intent about the instantiation, which may well be a struct.
+reject_marker_on_value_type :: fn(t: Type, span: Span, diags: Diagnostic[]!) -> void {
+    if !is_value_only_type(t) {
+        return
+    }
+    diags.push(typecheck_error(
+        .MutabilityMarkerOnValueType, span,
+        "`${display_type_key(t)}` has no interior to mutate — drop the `!`"))
+}
+
+// A union answers yes only when NO variant has an interior : `(i32 | string)!` is
+// as meaningless as `string!`, while `i32 | Cfg[]!` marks the one variant that can
+// carry it.
+is_value_only_type :: fn(t: Type) -> bool {
+    if t is UnionType as u {
+        for v in u.variants {
+            if !is_value_only_type(v) { return false }
+        }
+        return true
+    }
+    return t is PrimitiveType | EnumType | FnType | NeverType
 }
 
 /// Map a resolved symbol to its Type. MVP : builds a fresh constructor

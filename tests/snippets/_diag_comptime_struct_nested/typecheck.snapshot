@@ -4,8 +4,8 @@
   EnumDecl       Kind                 :: Kind
   FnDecl         main                 :: fn() -> i32
   StructDecl     Spec                 :: Spec!
-  ConstDecl      SPECS                :: Spec![]!
-  expr 20:16    SeqLitExpr     :: Spec![]!
+  ConstDecl      SPECS                :: Spec[]
+  expr 20:16    SeqLitExpr     :: Spec[]
   expr 21:20    StringLitExpr  :: string
   expr 21:39    SeqLitExpr     :: Kind[]
   expr 21:40    DotVariantExpr :: Kind
@@ -18,24 +18,24 @@
   expr 22:5     StructLitExpr  :: Spec!
   expr 22:63    StringLitExpr  :: string
   expr 26:13    FieldExpr      :: string
-  expr 26:13    IdentExpr      :: Spec![]!
-  expr 26:13    IndexExpr      :: Spec!
+  expr 26:13    IdentExpr      :: Spec[]
+  expr 26:13    IndexExpr      :: Spec
   expr 26:5     CallExpr       :: void
   expr 26:5     IdentExpr      :: fn(T) -> void
   expr 27:13    StringLitExpr  :: string
   expr 27:16    CallExpr       :: usize
   expr 27:16    FieldExpr      :: Kind[]
   expr 27:16    FieldExpr      :: fn() -> usize
-  expr 27:16    IdentExpr      :: Spec![]!
-  expr 27:16    IndexExpr      :: Spec!
+  expr 27:16    IdentExpr      :: Spec[]
+  expr 27:16    IndexExpr      :: Spec
   expr 27:5     CallExpr       :: void
   expr 27:5     IdentExpr      :: fn(T) -> void
   expr 28:13    StringLitExpr  :: string
   expr 28:16    CallExpr       :: i32
   expr 28:16    IdentExpr      :: type
   expr 28:20    FieldExpr      :: Kind[]
-  expr 28:20    IdentExpr      :: Spec![]!
+  expr 28:20    IdentExpr      :: Spec[]
   expr 28:20    IndexExpr      :: Kind
-  expr 28:20    IndexExpr      :: Spec!
+  expr 28:20    IndexExpr      :: Spec
   expr 28:5     CallExpr       :: void
   expr 28:5     IdentExpr      :: fn(T) -> void

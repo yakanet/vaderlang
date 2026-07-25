@@ -257,6 +257,13 @@ const C_PARITY = new Set<string>([
   // Two lambda arguments, the second one the binder — guards the fixpoint in
   // the deferred-lambda pass and the two no-information unification refusals.
   "generic_lambda_binder_order",
+  // Every module-const shape, read-only and marked. Native is the oracle that
+  // matters: the storage each shape lands in is a C-emit decision (a read-only
+  // array becomes a `static const` .rodata blob read through a zero-copy view,
+  // a marked one is rebuilt or fn-wrapped), and a mismatch between the pooled
+  // representation and the read site is a silent wrong-value read, not a trap.
+  // Guards the regression where an ANNOTATED const lost its pooling.
+  "module_const_mutability",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

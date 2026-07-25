@@ -106,6 +106,7 @@ export TypecheckCode :: enum(u8) {
     ImmutableBorrowIntoMutableParam,    // T3072
     FnValueMutabilityMismatch,          // T3073
     UnionMixesMutabilities,             // T3074
+    MutabilityMarkerOnValueType,        // T3075
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -443,6 +444,7 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .ImmutableBorrowIntoMutableParam    -> CodeInfo { .id = "T3072", .message = "this argument is immutable, but the parameter is declared `!` (the callee may mutate it)" }
     .FnValueMutabilityMismatch          -> CodeInfo { .id = "T3073", .message = "this function mutates a parameter the target slot lends out read-only" }
     .UnionMixesMutabilities             -> CodeInfo { .id = "T3074", .message = "a union mixes the same type at two mutabilities" }
+    .MutabilityMarkerOnValueType        -> CodeInfo { .id = "T3075", .message = "`!` on a type that has nothing to mutate" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

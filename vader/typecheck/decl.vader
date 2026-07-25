@@ -727,7 +727,19 @@ declare_const :: fn(
                 typed.decl_types[sym.id] = TY_TYPE
             }
         }
-        _       -> { typed.decl_types[sym.id] = type_from_expr(annotation, resolved, diags) }
+        // A module const's ANNOTATION is a written slot, so it takes the read-only
+        // default like any other — `X: u32[]: [...]` is frozen, `X: u32[]!: [...]`
+        // opts out. Skipping the default here is what silently un-pooled
+        // `DECIMAL_DIGITS`: `inline_consts` routes an array into `.rodata` only when
+        // its type is read-only, so the const went back to being rebuilt op-by-op at
+        // every read site (10 `string.const` + `array.new` instead of one
+        // `data.const`). The UNANNOTATED path gets the same result through
+        // `auto_const_module_array`.
+        _       -> {
+            typed.decl_types[sym.id] = apply_readonly_default(
+                type_from_expr(annotation, resolved, diags), annotation,
+            )
+        }
     }
 }
 

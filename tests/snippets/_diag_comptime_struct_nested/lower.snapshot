@@ -2,32 +2,15 @@
 
 ## snippet
   struct snippet$Spec { name: string, args: Kind[], result: string }
-  const snippet$SPECS: Spec![]! =
-    array :Spec![]!
-      Spec! {
-        name: "size_of" :string
-        args:
-          array :Kind[]
-            int(1) :u8
-        result: "usize" :string
-      }
-      Spec! {
-        name: "cast" :string
-        args:
-          array :Kind[]
-            int(0) :u8
-            int(1) :u8
-        result: "T" :string
-      }
   fn snippet$main() -> i32
     call :void
       callee:
         std_io$println__string :void
       arg0:
         .name :string
-          index :Spec!
+          index :Spec
             on:
-              SPECS :Spec![]!
+              SPECS :Spec[]
             ix:
               int(1) :i32
     call :void
@@ -93,9 +76,9 @@
                       index :Kind
                         on:
                           .args :Kind[]
-                            index :Spec!
+                            index :Spec
                               on:
-                                SPECS :Spec![]!
+                                SPECS :Spec[]
                               ix:
                                 int(1) :i32
                         ix:

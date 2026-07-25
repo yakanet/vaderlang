@@ -670,6 +670,8 @@ read([4, 5, 6])           // OK — fresh array passes
 
 **In a union**: an array variant is a valid member anywhere in a type union, not only as the first — `string | u8[]` and `A | T[]! | B` both parse. The marker attaches to the variant it follows, never to the union.
 
+**On a module const the marker selects STORAGE, not mutation.** A module const is frozen because it has no runtime storage — a write through it is T3070 whatever its type says. What `!` does there is keep the value **out** of the data pool: `X: T[]!: [...]` is rebuilt (or fn-wrapped) at each read site instead of being baked into `.rodata`.
+
 **Inference**: an unannotated module-level array const is automatically pinned read-only — it has no runtime storage, so a write through it would be discarded rather than take effect. Annotating the type explicitly (`X: T[]!: [...]`) opts out. An **annotated local** takes the same read-only default; an unannotated one keeps its inferred type and stays owned.
 
 ```vader
@@ -1574,6 +1576,10 @@ A union carries no mutability of its own — each variant carries its own. `u8[]
 
 Two variants that differ **only** by mutability cannot coexist: `i32[] | i32[]!` is rejected (T3074) — write `i32[]!`, the mutable one, since the union would have to be one or the other at each use. This is an error rather than a silent collapse: which side wins is the author's call, not the compiler's.
 
+#### Only a type with an interior takes the marker
+
+`!` grants mutation *through* a slot, so it means something only where there is something to mutate: an array, a struct, a tuple. On a **primitive**, an **enum**, a **fn** or **`never`** the marker is a no-op, and writing it is T3075 — `s: string!` was a promise the compiler dropped silently. A **type parameter** (`fn<T>(x: T!)`) is not rejected: the marker there is intent about the instantiation, which may well be a struct.
+
 #### `self`
 
 `self` is the one parameter whose type is never written, so its marker stays on the name:
@@ -1600,7 +1606,7 @@ Markers on function values are **contravariant**: a function that does not mutat
 
 #### Diagnostics
 
-Calling a `self!` method on a read-only receiver is T3071; handing a read-only value to a `!` parameter is T3072; writing through a read-only path is T3070, and through a read-only array T3042. On the surface itself: `T!!` is P1030, the marker on a parameter *name* (`x!: T`) is P1031 — it belongs on the type — and a union mixing mutabilities is T3074.
+Calling a `self!` method on a read-only receiver is T3071; handing a read-only value to a `!` parameter is T3072; writing through a read-only path is T3070, and through a read-only array T3042. On the marker itself: `T!!` is P1030, the marker on a parameter *name* (`x!: T`) is P1031 — it belongs on the type — a union mixing mutabilities is T3074, and a marker on a type with no interior is T3075. Writing the removed `const` qualifier is P1027.
 
 T3070/T3071/T3042 carry the fix as a hint: they name the declaration to annotate (`annotate \`out!\` at file:line:col`), pointing at the slot rather than at the failing write.
 

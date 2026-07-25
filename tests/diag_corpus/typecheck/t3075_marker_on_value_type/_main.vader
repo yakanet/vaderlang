@@ -1,0 +1,26 @@
+// `!` grants mutation through a slot, so it only means something on a type that
+// HAS an interior — an array, a struct, a tuple. On a primitive, an enum, a fn or
+// `never` there is nothing to mutate, and `with_immutable` hands such a type
+// straight back : the marker was a silent no-op, a promise the compiler dropped.
+// T3075 on each, wherever the type is written — module const, parameter, local,
+// fn type, return.
+//
+// A type PARAMETER is deliberately NOT rejected: the marker there is intent about
+// the instantiation, which may well be a struct.
+module "snippet"
+
+Mode :: enum(u8) { Fast, Small }
+
+LIMIT: i32!: 3
+
+tally :: fn(n: i32!, tag: string!) -> i32! {
+    seen: Mode! = .Fast
+    if seen == Mode.Fast {
+        return n + i32(tag.byte_len())
+    }
+    return n
+}
+
+apply :: fn(f: fn(i32) -> i32!) -> i32 = f(LIMIT)
+
+main :: fn() -> i32 = tally(1, "x") + apply((v: i32) -> v)

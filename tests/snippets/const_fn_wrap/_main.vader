@@ -4,12 +4,16 @@
 // reference becomes a `call` to it. Guards the Vader-emitter side of that path
 // (the suite never exercises the Vader emitter outside VADER_SELF_EMIT).
 //
-// The `: Spec[]:` annotation is LOAD-BEARING — do not "clean it up". It opts out
-// of the auto-`const` pin `orchestrate::auto_const_module_array` applies to every
-// UNANNOTATED module-level array const. Without it `SPECS` is a read-only `Spec[]`, and
-// `inline_consts::try_data_pool` (which refuses mutable arrays) bakes it into the
-// data pool instead — a path `_diag_comptime_struct` already covers, leaving
-// fn-wrap with no regression guard.
+// The `!` on `: Spec[]!:` is LOAD-BEARING — do not "clean it up". Every module
+// const is read-only, annotated or not (`auto_const_module_array` for the
+// unannotated ones, the read-only default for the annotated ones), and
+// `inline_consts::try_data_pool` refuses only MUTABLE arrays. So without the `!`
+// SPECS is baked into the data pool instead — a path `_diag_comptime_struct`
+// already covers, leaving fn-wrap with no regression guard.
+//
+// The marker does NOT grant mutation here: a module const has no storage, so a
+// write through it is still T3070 whatever its type says. On a module const `!`
+// means exactly "keep it out of `.rodata`".
 
 module "snippet"
 
@@ -20,7 +24,7 @@ Spec :: struct {
     code: i32
 }
 
-SPECS: Spec[]: [
+SPECS: Spec[]!: [
     Spec { .name = "alpha", .code = 10 },
     Spec { .name = "beta",  .code = 20 },
     Spec { .name = "gamma", .code = 30 },

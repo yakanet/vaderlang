@@ -1,13 +1,13 @@
 # Lower
 
 ## snippet
-  const snippet$DIM: [i32, i32]! =
-    [i32, i32]! {
+  const snippet$DIM: [i32, i32] =
+    [i32, i32] {
       _0: int(10) :?
       _1: int(20) :?
     }
-  const snippet$ORIGIN: [f64, f64, string]! =
-    [f64, f64, string]! {
+  const snippet$ORIGIN: [f64, f64, string] =
+    [f64, f64, string] {
       _0: float(0.0) :?
       _1: float(0.0) :?
       _2: "origin" :string
@@ -52,7 +52,7 @@
                 arg2:
                   cast → i64
                     ._0 :i32
-                      [i32, i32]! {
+                      [i32, i32] {
                         _0: int(10) :?
                         _1: int(20) :?
                       }
@@ -83,7 +83,7 @@
                 arg2:
                   cast → i64
                     ._1 :i32
-                      [i32, i32]! {
+                      [i32, i32] {
                         _0: int(10) :?
                         _1: int(20) :?
                       }
@@ -110,7 +110,7 @@
                 format_f64 :fn(f64) -> string
               arg0:
                 ._0 :f64
-                  [f64, f64, string]! {
+                  [f64, f64, string] {
                     _0: float(0.0) :?
                     _1: float(0.0) :?
                     _2: "origin" :string
@@ -123,7 +123,7 @@
                 format_f64 :fn(f64) -> string
               arg0:
                 ._1 :f64
-                  [f64, f64, string]! {
+                  [f64, f64, string] {
                     _0: float(0.0) :?
                     _1: float(0.0) :?
                     _2: "origin" :string
@@ -132,14 +132,14 @@
             ") = " :string
           arg5:
             ._2 :string
-              [f64, f64, string]! {
+              [f64, f64, string] {
                 _0: float(0.0) :?
                 _1: float(0.0) :?
                 _2: "origin" :string
               }
     return
       ._0 :i32
-        [i32, i32]! {
+        [i32, i32] {
           _0: int(10) :?
           _1: int(20) :?
         }

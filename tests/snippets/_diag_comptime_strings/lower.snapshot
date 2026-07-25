@@ -1,15 +1,6 @@
 # Lower
 
 ## snippet
-  const snippet$WORDS: string[]! =
-    array :string[]!
-      "alpha" :string
-      "beta" :string
-      "gamma" :string
-  const snippet$TRICKY: string[]! =
-    array :string[]!
-      "a\\b" :string
-      "x" :string
   fn snippet$main() -> i32
     call :void
       callee:
@@ -17,10 +8,7 @@
       arg0:
         index :string
           on:
-            array :string[]!
-              "alpha" :string
-              "beta" :string
-              "gamma" :string
+            WORDS :string[]
           ix:
             int(1) :i32
     call :void
@@ -29,9 +17,7 @@
       arg0:
         index :string
           on:
-            array :string[]!
-              "a\\b" :string
-              "x" :string
+            TRICKY :string[]
           ix:
             int(0) :i32
     call :void
