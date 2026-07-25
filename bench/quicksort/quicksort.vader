@@ -24,7 +24,7 @@ N_MOD: i64: 1_000_000
 
 // Sort the half-open range a[lo, hi). Median-of-three pivot, Lomuto
 // partition, tail-recursion eliminated on the larger side.
-qsort :: fn(a: i32[], lo: usize, hi: usize) -> void {
+qsort :: fn(a: i32[]!, lo: usize, hi: usize) -> void {
     l := lo
     h := hi
     for h - l > 1 {

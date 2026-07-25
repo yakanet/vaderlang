@@ -115,7 +115,7 @@ match_brackets :: fn(tokens: char[]) -> i32[] {
 //   slot 0 = byte argument (i32)
 //   slot 1 = __buf (u8[], the one-byte view interned into a string)
 
-emit_bf_char :: fn(fb: FunctionBuilder, c: char, idx: usize, partner: i32[], cells_type_id: i32, print_byte_index: i32) -> void {
+emit_bf_char :: fn(fb: FunctionBuilder!, c: char, idx: usize, partner: i32[], cells_type_id: i32, print_byte_index: i32) -> void {
     match c {
         '>' -> { // move right ; grow the tape lazily if we step past the end.
             fb.push(bc.LocalGet { .slot = 1 })

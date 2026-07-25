@@ -15,7 +15,9 @@ square :: fn(x: i32) -> i64 = i64(x) * i64(x)
 
 main :: fn() -> i32 {
     a: i32[] = []
-    for i in 0..<1024 { a.push(i32(i)) }
+    for i in 0..<1024 {
+        a.push(i32(i))
+    }
     sum: i64 = 0
     for 0..<300000 {
         for x in a.map(square) {

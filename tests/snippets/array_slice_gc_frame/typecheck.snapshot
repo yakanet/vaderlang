@@ -6,7 +6,7 @@
   FnDecl         main                 :: fn() -> i32
   expr 16:14    RangeExpr      :: Range<i32>!
   expr 17:14    IdentExpr      :: i32[]
-  expr 17:14    IndexExpr      :: i32[]!
+  expr 17:14    IndexExpr      :: i32[]
   expr 17:18    RangeExpr      :: Range<i32>!
   expr 18:15    BinaryExpr     :: i32
   expr 18:15    BinaryExpr     :: i32
@@ -17,7 +17,7 @@
   expr 18:27    IdentExpr      :: type
   expr 18:31    CallExpr       :: usize
   expr 18:31    FieldExpr      :: fn() -> usize
-  expr 18:31    IdentExpr      :: i32[]!
+  expr 18:31    IdentExpr      :: i32[]
   expr 18:9     IdentExpr      :: i32
   expr 20:12    IdentExpr      :: i32
   expr 24:18    SeqLitExpr     :: i32[]!

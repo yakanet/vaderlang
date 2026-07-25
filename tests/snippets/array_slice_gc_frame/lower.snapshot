@@ -7,8 +7,8 @@
     block :void
       let _: i32 = int(0) :i32
       loop while (<…>)
-        let s: i32[]! =
-          slice :i32[]!
+        let s: i32[] =
+          slice :i32[]
             on:
               arr :i32[]
             lo:

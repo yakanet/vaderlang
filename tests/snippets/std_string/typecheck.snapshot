@@ -37,7 +37,7 @@
   expr 15:13    CallExpr       :: u8[]
   expr 15:13    FieldExpr      :: fn() -> string
   expr 15:13    FieldExpr      :: fn() -> u8[]
-  expr 15:13    IndexExpr      :: u8[]!
+  expr 15:13    IndexExpr      :: u8[]
   expr 15:13    StringLitExpr  :: string
   expr 15:35    RangeExpr      :: Range<i32>!
   expr 15:5     CallExpr       :: void

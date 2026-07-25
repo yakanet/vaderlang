@@ -40,7 +40,13 @@ export infer_index :: fn(
     // `array_backing` — index by element. `arr[r]` with `r: Range<T>` slices.
     arr_view :: array_backing(target)
     if arr_view != null {
-        if is_range_type(index) { return mk_array(arr_view.element, false) }
+        if is_range_type(index) {
+            // A slice is a zero-copy VIEW sharing the parent's buffer (SPEC §Arrays),
+            // so it inherits the parent's mutability. Hard-wiring it mutable
+            // laundered the freeze : `frozen[0..<1]` handed back a writable alias
+            // onto the very buffer that was frozen.
+            return mk_array(arr_view.element, arr_view.immutable)
+        }
         if !is_integer_index(index) {
             diags.push(typecheck_error(.TypeMismatch, e.index.span,
                 "array index must be an integer, got ${display_type(index)}"))

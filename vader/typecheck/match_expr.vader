@@ -229,6 +229,10 @@ export infer_match :: fn(
     // statement match (`_ -> {}`, side-effects only) and open scrutinees
     // (i32 / string / …) stay out of scope.
     result_ty :: union_of(arm_types)
+    // Same rule as the `if` join : only when nothing pins the result.
+    if expected == null {
+        report_mixed_mutability(result_ty, e.span, diags)
+    }
     // `has_wildcard` is only set by a wildcard / binding arm, so it already
     // implies ≥ 1 arm — no explicit arm-count guard needed.
     if has_wildcard && !e.partial && !e.unreachable && !is_void(result_ty) {

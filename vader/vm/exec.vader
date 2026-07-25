@@ -765,8 +765,14 @@ intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
 build_main_args :: fn(parameter_count: usize, host_argv: string[], string_array_type_id: i32) -> Value[] {
     out: Value[] = []
     if parameter_count != 1 { return out }
-    argv :: if host_argv.len() == 0 { ["<vader-vm>"] } else { host_argv }
-    out.push(string_array_to_value(argv, string_array_type_id))
+    // Pushed per branch rather than through a joined local : the fallback is a fresh
+    // literal (mutable) and `host_argv` is a read-only borrow, so a join would have
+    // to pick one mutability for both (T3074).
+    if host_argv.len() == 0 {
+        out.push(string_array_to_value(["<vader-vm>"], string_array_type_id))
+    } else {
+        out.push(string_array_to_value(host_argv, string_array_type_id))
+    }
     return out
 }
 

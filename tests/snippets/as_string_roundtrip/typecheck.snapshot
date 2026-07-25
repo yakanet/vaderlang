@@ -13,7 +13,7 @@
   expr 14:13    CallExpr       :: u8[]
   expr 14:13    FieldExpr      :: fn() -> string
   expr 14:13    FieldExpr      :: fn() -> u8[]
-  expr 14:13    IndexExpr      :: u8[]!
+  expr 14:13    IndexExpr      :: u8[]
   expr 14:13    StringLitExpr  :: string
   expr 14:29    CallExpr       :: usize
   expr 14:29    IdentExpr      :: type

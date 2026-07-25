@@ -21,6 +21,19 @@ AST :: import "vader/parser"
 /// (`binary.vader::numeric_result`). Without this, an unannotated `::` binding
 /// (`expected = null`) escapes as a union with no arithmetic defined on it
 /// (T3017). Unrelated branches fall back to the plain union.
+/// T3074 when a join carries the same array type at two mutabilities.
+///
+/// The two branches disagree on whether the result may be mutated, and neither
+/// answer can be picked for the author : a read-only array cannot flow into a
+/// mutable slot, so widening would break the read-only branch, and narrowing would
+/// silently drop a permission the other branch had.
+export report_mixed_mutability :: fn(joined: Type, span: Span, diags: Diagnostic[]!) -> void {
+    mixed :: union_mixed_mutability(joined) ?? return
+    diags.push(typecheck_error(.UnionMixesMutabilities, span,
+        "`${display_type(joined)}` — write `${display_type(with_immutable(mixed, false))}` "
+        + "on both sides, or pin the slot's type"))
+}
+
 join_if_branches :: fn(a: Type, b: Type) -> Type {
     if a is FreeIntType {
         if b is FreeIntType { return a }
@@ -87,7 +100,15 @@ export infer_if :: fn(
         }
         is AST.IfElseBlock as eb -> {
             else_ty :: check_else_with_narrow(eb.block, else_narrowing, expected, typed, diags, ctx, check_expr_fn)
-            return collapse_if_unresolved(join_if_branches(then_ty, else_ty), then_ty, else_ty)
+            joined :: join_if_branches(then_ty, else_ty)
+            // Only when nothing pins the result. With an `expected` slot each branch
+            // was already checked against it, so the union is an artefact of the join
+            // — reporting it would flag every `if c { field } else { [] }` used as a
+            // field initialiser, where covariance settles the question.
+            if expected == null {
+                report_mixed_mutability(joined, e.span, diags)
+            }
+            return collapse_if_unresolved(joined, then_ty, else_ty)
         }
         is AST.IfElseIf as ei -> {
             inner: AST.Expr = ei.branch

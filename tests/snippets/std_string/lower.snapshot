@@ -193,7 +193,7 @@
           callee:
             bytes_to_string :string
           arg0:
-            slice :u8[]!
+            slice :u8[]
               on:
                 call :u8[]
                   callee:

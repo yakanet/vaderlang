@@ -1,0 +1,22 @@
+// T3074 — a join whose branches disagree on mutability is an ERROR, not a type the
+// compiler invents.
+//
+// Collapsing it either way is wrong: widening to `i32[]!` breaks the read-only
+// branch (a read-only array cannot flow into a mutable slot), and narrowing to
+// `i32[]` silently drops a permission the other branch had. So the author picks.
+//
+// Only reported when NOTHING pins the result: with an expected slot each branch is
+// already checked against it and the union is a join artefact.
+module "snippet"
+
+Box :: struct { items: i32[] }
+
+mixed :: fn(b: Box, alt: i32) -> usize {
+    // `b.items` is a read-only field ; `[alt]` is a fresh mutable literal.
+    xs :: if b.items.len() > 0 { b.items } else { [alt] }
+    return xs.len()
+}
+
+main :: fn() -> i32 {
+    return i32(mixed(Box { .items = [1] }, 9))
+}

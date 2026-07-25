@@ -320,6 +320,37 @@ export union_of :: fn(variants: Type[]) -> Type {
     return mk_union(sorted)
 }
 
+// Two arrays that differ ONLY by their own mutability bit. Nested bits still
+// count : `Cfg[][]` and `Cfg[]![]` are genuinely different element types.
+same_array_modulo_mutability :: fn(a: Type, b: Type) -> bool {
+    if a is ArrayType as ax {
+        if b is ArrayType as bx {
+            return ax.immutable != bx.immutable && equals_type(ax.element, bx.element)
+        }
+    }
+    return false
+}
+
+/// The array type a union carries at two different mutabilities, or null.
+///
+/// `i32[] | i32[]!` is not a type worth inventing : reading it is fine, mutating it
+/// is only safe for one of the two, and collapsing it either way changes the type
+/// behind the author's back. It is reported (T3074) so the author picks — and since
+/// a read-only array cannot flow into a mutable slot, the fix is to pin the slot,
+/// not to widen the union.
+export union_mixed_mutability :: fn(t: Type) -> Type | null {
+    if t is UnionType as u {
+        for i in 0..<u.variants.len() {
+            for j in i + 1..<u.variants.len() {
+                if same_array_modulo_mutability(u.variants[i], u.variants[j]) {
+                    return u.variants[i]
+                }
+            }
+        }
+    }
+    return null
+}
+
 collect_variant :: fn(v: Type, into: Type[]!) -> void {
     if v is NeverType { return }
     match v {
@@ -330,10 +361,10 @@ collect_variant :: fn(v: Type, into: Type[]!) -> void {
             for i in 0..<into.len() {
                 existing :: into[i]
                 if equals_type(existing, v) {
-                    // Same type, possibly two mutabilities (`equals_type` ignores the
-                    // bit on struct / tuple). Keep the LESS permissive one : a value
-                    // that is "either a read-only or a mutable Cfg" can't be mutated
-                    // without knowing which.
+                    // Same type under two mutabilities — reachable on struct / tuple,
+                    // where `equals_type` ignores the bit. Keep the LESS permissive
+                    // one : a value that is "either a read-only or a mutable T" can't
+                    // be mutated without knowing which.
                     if type_is_immutable(v) { into[i] = v }
                     return
                 }

@@ -128,7 +128,7 @@ export zip :: fn<T, U>(self: T[], other: U[]) -> Iterator<[T, U]> {
 ///              while the window fits.
 /// @example
 ///   for w in [1, 2, 3, 4, 5].window(3) { println("${w}") }   // [1,2,3] [2,3,4] [3,4,5]
-export window :: fn<T>(self: T[], size: usize) -> Iterator<T[]> {
+export window :: fn<T>(self: T[]!, size: usize) -> Iterator<T[]> {
     n :: self.len()
     count :: if size > 0 && n >= size { n - size + 1 } else { 0 }
     for start in 0..<count {
