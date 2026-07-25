@@ -75,6 +75,19 @@ export check_common :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> b
 }
 
 /// `from is StructType`. Nominal match with TypeParam-bearing args.
+///
+/// **Immutability is deliberately NOT part of assignability here.** The bit a
+/// parameter gets from the `!` desugaring says "THIS FUNCTION won't mutate it",
+/// a promise about the body — not "this value is frozen". Making it travel with
+/// the value would ban every factory (`FnState { .ctx = ctx }`), passthrough
+/// (`fn(f: BcFunction) -> BcFunction`) and registry insert in the tree, and the
+/// surface has no way to write the read-only form of a struct field or return
+/// type anyway. The bit is read by the MUTATION checks instead, which is where
+/// the promise actually bites.
+///
+/// `ArrayType` is the exception, and on purpose : `const T[]` is an explicit,
+/// writable annotation that freezes the REFERENT (module consts, `.bytes()`
+/// views), so it stays covariant in `is_assignable_array`.
 export is_assignable_struct :: fn(from: Type, self: StructType, to: Type, oracle: TraitOracle | null) -> bool {
     match to {
         is StructType as ts -> {
@@ -101,6 +114,7 @@ export is_assignable_trait_from :: fn(from: Type, self: TraitType, to: Type, ora
 }
 
 /// `from is TupleType`. Element-wise. No Array ↔ Tuple by design.
+/// Immutability is not part of assignability — see `is_assignable_struct`.
 export is_assignable_tuple :: fn(from: Type, self: TupleType, to: Type, oracle: TraitOracle | null) -> bool {
     match to {
         is TupleType as tt -> {
@@ -300,7 +314,7 @@ export fn_param_compatible :: fn(a: Type, b: Type, oracle: TraitOracle | null) -
 /// `is_assignable`), so generic code is unaffected ; only a concrete widen/narrow
 /// between differing args is rejected. The equal-arg fast path keeps the dominant
 /// `Foo<T>` → `Foo<T>` case single-pass.
-export struct_args_compatible :: fn(a: Type[], b: Type[], oracle: TraitOracle | null) -> bool {
+export struct_args_compatible :: fn(a: const Type[], b: const Type[], oracle: TraitOracle | null) -> bool {
     if a.len() != b.len() { return false }
     for i in 0..<a.len() {
         if equals_type(a[i], b[i]) { continue }

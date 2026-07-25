@@ -17,7 +17,7 @@
   expr 14:29    StringLitExpr  :: string
   expr 15:13    SeqLitExpr     :: i32[]
   expr 16:19    CallExpr       :: __genstate_zip<[string, i32]>
-  expr 16:19    IdentExpr      :: fn(T[], U[]) -> Iterator<[T, U]>
+  expr 16:19    IdentExpr      :: fn(const T[], const U[]) -> Iterator<[T, U]>
   expr 16:23    IdentExpr      :: string[]
   expr 16:29    IdentExpr      :: i32[]
   expr 17:17    StringLitExpr  :: string

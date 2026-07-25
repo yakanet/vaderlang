@@ -102,7 +102,7 @@ lower_struct_lit :: fn(ctx!: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lowe
 erase_generic_struct_tag :: fn(t: Type) -> Type {
     if t is StructType as s {
         if s.args.is_empty() { return t }
-        return mk_struct(s.symbol, build_mixed_args_list(s.args))
+        return mk_struct(s.symbol, build_mixed_args_list(s.args), s.immutable)
     }
     return t
 }
@@ -202,7 +202,7 @@ enum_type_or_unwrap :: fn(ctx: FnLowerCtx, type: Type) -> Type {
 // foreign struct decl) resolves its idents / expr-types against the right
 // module's tables instead of the construction site's. No-op (returns `ctx`)
 // when the module isn't in the project's typed set.
-ctx_in_owning_module :: fn(ctx: FnLowerCtx, module_id: string, decl: StructDecl, args: Type[]) -> FnLowerCtx {
+ctx_in_owning_module :: fn(ctx: FnLowerCtx, module_id: string, decl: StructDecl, args: const Type[]) -> FnLowerCtx {
     owner_typed :: ctx.project.evaluated.typed.modules[module_id] ?? return ctx
     // Thread the instance's type-args into the subst so a field DEFAULT that
     // references the struct's own type-param (`ekeys: K[] = []`) lowers with `K`

@@ -1475,7 +1475,10 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
             return null
         }
         current :: narrow_for_binding(typed, sym.id, base)
-        narrowed :: type_from_expr(cond.right, typed.resolved, diag_sink_stmt())
+        // The written type name carries no mutability : take the scrutinee's, or
+        // `subtract_type` no longer recognises the variant it is meant to remove
+        // and the divergent guard stops narrowing (see `pattern_type_of`).
+        narrowed :: complement_narrowed_type(cond.right, current, typed)
         return BlockNarrow {
             .sym_id = sym.id,
             .static_ty = base,
@@ -1489,7 +1492,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     if cond.left is AST.FieldExpr as field_lhs {
         field_info :: resolve_field_chain_static(field_lhs, typed) ?? return null
         current :: narrow_for_field(typed, field_info.field_key, field_info.static_ty)
-        narrowed :: type_from_expr(cond.right, typed.resolved, diag_sink_stmt())
+        narrowed :: complement_narrowed_type(cond.right, current, typed)
         return BlockNarrow {
             .sym_id = 0,
             .static_ty = field_info.static_ty,
@@ -1501,6 +1504,14 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
 }
 
 diag_sink_stmt :: fn() -> Diagnostic[] { return [] }
+
+// The type written on the right of an `is`, carrying the immutability of the
+// slot it is subtracted from. Same rationale as `match_expr::pattern_type_of`.
+complement_narrowed_type :: fn(ty: AST.Expr, current: Type, typed: TypedProgram) -> Type {
+    narrowed :: type_from_expr(ty, typed.resolved, diag_sink_stmt())
+    if !(narrowed is ArrayType | StructType | TupleType | UnionType) { return narrowed }
+    return with_immutable(narrowed, narrowing_immutability(current, narrowed))
+}
 
 // Pull the iterator's element type. `T[]` yields `T` directly ;
 // generic `StructType` falls back to first type arg (covers Range and

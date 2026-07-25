@@ -57,8 +57,15 @@ export type_from_expr :: fn(
         is AST.CallExpr as e -> { return lower_call_in_type_position(e, resolved, diags) }
         is AST.BinaryExpr as e -> { return lower_binary(e, resolved, diags) }
         is AST.FnTypeExpr as e -> {
+            // Desugar the `!` of a fn TYPE (`fn(u8[]!) -> void`) the same way a
+            // declaration's `!` is desugared : an unmarked slot is a read-only
+            // borrow. Skipping this would leave every callback slot mutable, so
+            // passing a read-only value to `fn(Cfg) -> void` would be rejected.
             params: Type[] = []
-            for p in e.params { params.push(type_from_expr(p, resolved, diags)) }
+            for i in 0..<e.params.len() {
+                marked :: i < e.params_mutable.len() && e.params_mutable[i]
+                params.push(desugared_param_type(type_from_expr(e.params[i], resolved, diags), marked))
+            }
             return FnType {
                 .params         = params,
                 .params_mutable = e.params_mutable,
@@ -75,7 +82,7 @@ export type_from_expr :: fn(
         is AST.SeqLitExpr as e -> {
             elements: Type[] = []
             for el in e.elements { elements.push(type_from_expr(el, resolved, diags)) }
-            return mk_tuple(elements)
+            return mk_tuple(elements, false)
         }
         // `P.Decl` — namespace field access in type position.
         // `resolved.idents` is start-only-keyed, so a lookup on the
@@ -152,12 +159,12 @@ resolve_named_type :: fn(sym: Symbol, resolved: ResolvedModule) -> Type {
 // Substitute an alias's type-params with the call-site's args.
 // `Maybe<T> :: T | null` instantiated as `Maybe(i32)` walks the
 // alias body and replaces every `TypeParam<T>` with `i32`.
-substitute_alias_args :: fn(t: Type, params: AST.TypeParam[], args: Type[]) -> Type {
+substitute_alias_args :: fn(t: Type, params: const AST.TypeParam[], args: const Type[]) -> Type {
     if params.len() == 0 || args.len() == 0 { return t }
     return walk_substitute(t, params, args)
 }
 
-walk_substitute :: fn(t: Type, params: AST.TypeParam[], args: Type[]) -> Type {
+walk_substitute :: fn(t: Type, params: const AST.TypeParam[], args: const Type[]) -> Type {
     // @partial: only TypeParam and the composite variants can carry a param to
     // substitute; every scalar / primitive variant has no inner type → as-is.
     @partial match t {
@@ -172,7 +179,7 @@ walk_substitute :: fn(t: Type, params: AST.TypeParam[], args: Type[]) -> Type {
         is StructType as s -> {
             sargs: Type[] = []
             for a in s.args { sargs.push(walk_substitute(a, params, args)) }
-            return mk_struct(s.symbol, sargs)
+            return mk_struct(s.symbol, sargs, s.immutable)
         }
         is TraitType as tr -> {
             sargs: Type[] = []
@@ -187,7 +194,7 @@ walk_substitute :: fn(t: Type, params: AST.TypeParam[], args: Type[]) -> Type {
         is TupleType as t2 -> {
             els: Type[] = []
             for el in t2.elements { els.push(walk_substitute(el, params, args)) }
-            return mk_tuple(els)
+            return mk_tuple(els, t2.immutable)
         }
         is FnType as f -> {
             ps: Type[] = []
@@ -298,7 +305,7 @@ opt_or_void :: fn(
 /// Map a resolved symbol to its Type. MVP : builds a fresh constructor
 /// each call — `decl.vader` (Phase 2.3) will route through `decl_types`
 /// for the canonical instance.
-export type_from_symbol :: fn(sym: Symbol, args: Type[]) -> Type {
+export type_from_symbol :: fn(sym: Symbol, args: const Type[]) -> Type {
     // @partial: only the type-introducing kinds below map to a Type; every other
     // SymbolKind (Fn, Local, Param, …) names a value, not a type → unresolved.
     @partial match sym.kind {
@@ -306,14 +313,14 @@ export type_from_symbol :: fn(sym: Symbol, args: Type[]) -> Type {
             builtin :: primitive_from_name(sym.name) ?? return TY_UNRESOLVED
             return builtin
         }
-        .Struct    -> { return mk_struct(sym, args) }
+        .Struct    -> { return mk_struct(sym, args, false) }
         .Trait     -> { return mk_trait(sym, args) }
         .TypeParam -> { return mk_type_param(sym) }
-        .Enum      -> { return mk_struct(sym, args) }   // placeholder until enum_pass plumbs declTypes
+        .Enum      -> { return mk_struct(sym, args, false) }   // placeholder until enum_pass plumbs declTypes
         // TypeAlias / Const-as-type-alias fall through to a marker
         // StructType so display_type renders the alias name. Proper
         // expansion needs decl_types (threaded via the typechecker).
-        .TypeAlias -> { return mk_struct(sym, args) }
+        .TypeAlias -> { return mk_struct(sym, args, false) }
         _          -> { return TY_UNRESOLVED }
     }
 }

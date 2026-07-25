@@ -2,8 +2,8 @@
 
 ## tests/snippets/empty_array_widening
   FnDecl         main                 :: fn() -> i32
-  FnDecl         sum_of               :: fn(i32[]) -> i32
-  expr 17:14    IdentExpr      :: i32[]
+  FnDecl         sum_of               :: fn(const i32[]) -> i32
+  expr 17:14    IdentExpr      :: const i32[]
   expr 18:18    IdentExpr      :: i32
   expr 18:9     BinaryExpr     :: i32
   expr 18:9     IdentExpr      :: i32
@@ -25,7 +25,7 @@
   expr 29:69    IdentExpr      :: i32[]
   expr 29:69    IndexExpr      :: i32
   expr 29:87    CallExpr       :: i32
-  expr 29:87    IdentExpr      :: fn(i32[]) -> i32
+  expr 29:87    IdentExpr      :: fn(const i32[]) -> i32
   expr 29:94    IdentExpr      :: i32[]
   expr 32:14    SeqLitExpr     :: string[]
   expr 33:14    RangeExpr      :: Range<i32>
@@ -60,5 +60,5 @@
   expr 43:51    IdentExpr      :: i32[]
   expr 43:51    IndexExpr      :: i32
   expr 43:71    CallExpr       :: i32
-  expr 43:71    IdentExpr      :: fn(i32[]) -> i32
+  expr 43:71    IdentExpr      :: fn(const i32[]) -> i32
   expr 43:78    IdentExpr      :: i32[]

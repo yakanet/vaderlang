@@ -114,7 +114,7 @@ export infer_match :: fn(
         guarded :: arm.guard != null
         match arm.pattern {
             is AST.IsPattern as ip          -> {
-                matched :: type_from_expr(ip.ty, typed.resolved, scratch_diags())
+                matched :: pattern_type_of(ip.ty, remaining, typed)
                 if is_overlap_checkable(scrut_ty) && is_overlap_checkable(matched) {
                     if !types_overlap(scrut_ty, matched) {
                         diags.push(
@@ -173,7 +173,7 @@ export infer_match :: fn(
                         if sub is AST.IsPattern as ip {
                             remaining = subtract_type_with_impls(
                                 remaining,
-                                type_from_expr(ip.ty, typed.resolved, scratch_diags()),
+                                pattern_type_of(ip.ty, remaining, typed),
                                 typed,
                             )
                         }
@@ -292,11 +292,26 @@ is_never :: fn(t: Type) -> bool {
     return false
 }
 
+// The type an `is T` pattern denotes, carrying the immutability of the
+// scrutinee it is tested against.
+//
+// A pattern writes a bare type NAME, which has no mutability of its own — taken
+// verbatim it costs twice over: the arm would see a MUTABLE `Cfg` where the
+// scrutinee holds a read-only borrow (laundering it), and `subtract_type` would
+// no longer recognise the variant it just matched, so `remaining` would stop
+// shrinking and exhaustiveness (T3013) would misfire. Mirrors the `is` operator
+// in `expr_if.vader`.
+pattern_type_of :: fn(ty: AST.Expr, scrut: Type, typed: TypedProgram) -> Type {
+    narrowed :: type_from_expr(ty, typed.resolved, scratch_diags())
+    if !(narrowed is ArrayType | StructType | TupleType | UnionType) { return narrowed }
+    return with_immutable(narrowed, narrowing_immutability(scrut, narrowed))
+}
+
 arm_narrow_for :: fn(p: AST.Pattern, remaining: Type, typed: TypedProgram) -> Type | null {
     // Only `is T` / wildcard / binding arms narrow the scrutinee; literal /
     // range / enum-variant / struct / tuple / or patterns carry no slot narrowing.
     match p {
-        is AST.IsPattern as ip -> { return type_from_expr(ip.ty, typed.resolved, scratch_diags()) }
+        is AST.IsPattern as ip -> { return pattern_type_of(ip.ty, remaining, typed) }
         is AST.WildcardPattern -> { return remaining }
         is AST.BindingPattern -> { return remaining }
         is AST.StructPattern | AST.TuplePattern | AST.EnumVariantPattern | AST.LiteralPattern | AST.RangePattern | AST.OrPattern -> { return null }
@@ -356,7 +371,7 @@ bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed!: TypedProgram, diag
             // `is T as a` binds `a` to T (the narrowed type). The
             // resolver mints the binding at `ip.span` when bind_as
             // is non-null ; write the lowered T as its type.
-            narrowed :: type_from_expr(ip.ty, typed.resolved, scratch_diags())
+            narrowed :: pattern_type_of(ip.ty, scrut, typed)
             if ip.bind_as !is null {
                 typed.local_types[ip.span.hash()] = narrowed
             }

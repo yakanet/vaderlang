@@ -35,17 +35,17 @@
         r:
           .x :i32
             p :Point
-  fn snippet$second__Point(xs: Any[]) -> Any
+  fn snippet$second__Point(xs: const Any[]) -> Any
     ~>
       index :Any
         on:
-          xs :Any[]
+          xs :const Any[]
         ix:
           int(1) :i32
-  fn snippet$second__i32(xs: i32[]) -> i32
+  fn snippet$second__i32(xs: const i32[]) -> i32
     ~>
       index :i32
         on:
-          xs :i32[]
+          xs :const i32[]
         ix:
           int(1) :i32

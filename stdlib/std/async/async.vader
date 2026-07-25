@@ -97,7 +97,7 @@ export block_on :: fn<T>(root: Async<T>) -> T {
 /// results are returned in INPUT order once every one completes. No cancellation
 /// in v1, so `all` waits for every child (failure latency = the slowest child).
 All :: struct<T> {
-    children: Async<T>[]
+    children: const Async<T>[]
     /// Completed results keyed by input index ; an index is present iff its
     /// child is done. `results.len() == children.len()` ⇒ all joined.
     results:  MutableMap<usize, T>
@@ -178,7 +178,7 @@ export try_all :: fn<U, E>(xs: Async<U | E>[]) -> Async<(U | E)[] | Error> =
 /// all the others and completes with its result. Deterministic tie-break : the
 /// lowest input index wins within a tick.
 Race :: struct<T> {
-    children: Async<T>[]
+    children: const Async<T>[]
 }
 
 Race<T> implements Async<T> {
@@ -213,7 +213,7 @@ export race :: fn<T>(xs: Async<T>[]) -> Async<T> = Race<T> { .children = xs }
 /// the child is retired and the others keep running. Completes with the FIRST
 /// SUCCESS (cancelling the losers), or — if every child fails — the last error.
 Any :: struct<U, E> {
-    children: Async<U | E>[]
+    children: const Async<U | E>[]
     /// Indices whose child has already settled as an error (skipped on re-drive).
     /// A pure set — the error value itself is kept in `last`.
     errors:   MutableSet<usize>

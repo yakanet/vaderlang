@@ -337,7 +337,7 @@ InstanceFlavor :: enum { Mono, Mixed, Erased }
 // check (`fn_trait_dispatches[fn_decl.id]`). Order matters: Mono (dispatch /
 // array-return) is checked before Mixed so an array-returning fn with a primitive
 // arg stays full-concrete.
-fn_instance_flavor :: fn(fn_decl: FnDecl, owner_typed: TypedProgram, type_args: Type[]) -> InstanceFlavor {
+fn_instance_flavor :: fn(fn_decl: FnDecl, owner_typed: TypedProgram, type_args: const Type[]) -> InstanceFlavor {
     if owner_typed.fn_trait_dispatches[fn_decl.id] is bool { return .Mono }
     if returns_typeparam_array(fn_decl) { return .Mono }
     if has_any_primitive_arg(type_args) { return .Mixed }
@@ -349,7 +349,7 @@ fn_instance_flavor :: fn(fn_decl: FnDecl, owner_typed: TypedProgram, type_args: 
 // miss — safe, because an Erased instance resolves by symbol-id and never matches
 // on its mangle, so its suffix is irrelevant. The suffix the call site derives from
 // this MUST equal the flavor the materialiser computes for the same instance.
-call_site_fn_flavor :: fn(ctx: FnLowerCtx, fn_sym: Symbol, type_args: Type[]) -> InstanceFlavor {
+call_site_fn_flavor :: fn(ctx: FnLowerCtx, fn_sym: Symbol, type_args: const Type[]) -> InstanceFlavor {
     owner_typed :: ctx.project.typed.modules[fn_sym.module]
     if owner_typed is TypedProgram as ot {
         owner_loaded :: ctx.project.loaded.modules[fn_sym.module]
@@ -367,7 +367,7 @@ call_site_fn_flavor :: fn(ctx: FnLowerCtx, fn_sym: Symbol, type_args: Type[]) ->
 // `[string, Any]` reconcile on one body), else `mono_suffix`. Shared by all three
 // call-site mangle builders (`emit_generic_fn_call`, `register_and_emit_generic_call`,
 // `try_lower_ufcs_call`) so the registered mangle + inst_key reconcile with the body.
-call_site_instance_suffix :: fn(ctx: FnLowerCtx, fn_sym: Symbol, concrete_args: Type[]) -> string {
+call_site_instance_suffix :: fn(ctx: FnLowerCtx, fn_sym: Symbol, concrete_args: const Type[]) -> string {
     if call_site_fn_flavor(ctx, fn_sym, concrete_args) == InstanceFlavor.Mixed {
         return mixed_any_suffix(concrete_args)
     }

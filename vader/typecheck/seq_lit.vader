@@ -95,7 +95,7 @@ infer_against_tuple :: fn(
         for i in n..<e.elements.len() {
             elem_types.push(check_expr_fn(e.elements[i], null, typed, diags))
         }
-        return mk_tuple(default_each(elem_types))
+        return mk_tuple(default_each(elem_types), false)
     }
     elem_types: Type[] = []
     for i in 0..<e.elements.len() {
@@ -111,7 +111,7 @@ infer_against_tuple :: fn(
             elem_types.push(got)
         }
     }
-    return mk_tuple(elem_types)
+    return mk_tuple(elem_types, false)
 }
 
 infer_against_array :: fn(
@@ -158,7 +158,7 @@ infer_no_expected :: fn(
     merged :: union_of(widened)
     // Heterogeneous elements stay UnionType → treat as a tuple.
     if merged is UnionType {
-        return mk_tuple(widened)
+        return mk_tuple(widened, false)
     }
     return mk_array(merged, false)
 }
@@ -173,7 +173,7 @@ walk_elements :: fn(
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type[] = e.elements.map((el) -> check_expr_fn(el, hint, typed, diags)).collect()
 
-default_each :: fn(types: Type[]) -> Type[] = types.map((t) -> default_if_free(t)).collect()
+default_each :: fn(types: const Type[]) -> Type[] = types.map((t) -> default_if_free(t)).collect()
 
 pick_seq_variant :: fn(u: UnionType, arity: usize) -> Type | null {
     for v in u.variants {
@@ -311,7 +311,7 @@ test_seq_tuple_arity_mismatch_emits_T3001 :: fn() -> void {
     src :: "f :: fn() -> [i32, i32] { return [1, 2, 3] }"
     es :: expect_seq(src)
     diags: Diagnostic[] = []
-    expected: Type = mk_tuple([mk_primitive("i32"), mk_primitive("i32")])
+    expected: Type = mk_tuple([mk_primitive("i32"), mk_primitive("i32")], false)
     infer_seq_lit(es.sl, expected, es.typed, diags, seq_lit_check_stub)
     found := false
     for d in diags {

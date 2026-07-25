@@ -20,7 +20,7 @@
     let r: ParsedArgs =
       call :ParsedArgs
         callee:
-          parse :fn(string[], FlagSpec[]) -> ParsedArgs
+          parse :fn(const string[], const FlagSpec[]) -> ParsedArgs
         arg0:
           argv :string[]
         arg1:
@@ -280,9 +280,9 @@
     let bad: ParsedArgs =
       call :ParsedArgs
         callee:
-          parse :fn(string[], FlagSpec[]) -> ParsedArgs
+          parse :fn(const string[], const FlagSpec[]) -> ParsedArgs
         arg0:
-          array :string[]
+          array :const string[]
             "--out" :string
             "--unknown" :string
         arg1:

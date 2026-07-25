@@ -642,7 +642,7 @@
                                               callee:
                                                 std_async$any__string__Any :Async<Boom | string>
                                               arg0:
-                                                array :Async<Boom | string>[]
+                                                array :const Async<Boom | string>[]
                                                   call :Async<Boom | string>
                                                     callee:
                                                       fail_fast :fn() -> Async<Boom | string>

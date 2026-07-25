@@ -212,7 +212,7 @@ gb_drive_state :: fn(gb!: GenBuild, target_field: string, target_type: Type, con
 // ---- block-split (structured-lowered-CFG → numbered states) ---------------
 
 // Append a filled state, returning its index.
-gb_new_state :: fn(gb!: GenBuild, stmts: LoweredStmt[]) -> i64 {
+gb_new_state :: fn(gb!: GenBuild, stmts!: LoweredStmt[]) -> i64 {
     idx :: i64(gb.states.len())
     gb.states.push(stmts)
     return idx
@@ -226,7 +226,7 @@ gb_reserve :: fn(gb!: GenBuild) -> i64 {
     return idx
 }
 
-gb_fill :: fn(gb!: GenBuild, idx: i64, stmts: LoweredStmt[]) -> void {
+gb_fill :: fn(gb!: GenBuild, idx: i64, stmts!: LoweredStmt[]) -> void {
     gb.states[usize(idx)] = stmts
 }
 

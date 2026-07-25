@@ -39,7 +39,7 @@ export InstanceRegistry :: struct {
 /// @param symbol    the generic decl's resolver symbol.
 /// @param args      the concrete type arguments.
 /// @return          the registered instance.
-export add :: fn(registry!: InstanceRegistry, symbol: Symbol, raw_args: Type[]) -> GenericInstance {
+export add :: fn(registry!: InstanceRegistry, symbol: Symbol, raw_args: const Type[]) -> GenericInstance {
     // Distinct→backing before this instance is keyed or stored: a distinct has
     // no runtime identity, so `MutableMap<BlockId>` must register as the same
     // raw instance as `MutableMap<i32>`, never a separate erased one. This is
@@ -101,7 +101,7 @@ walk_type :: fn(registry!: InstanceRegistry, t: Type) -> void {
 // Filter that allows TypeParam through — the registry stores `Yield<T>`
 // etc. as observed alongside `Yield<i32>`. Rejects only types that signal
 // "not yet resolved" or "free literal".
-all_concrete_enough :: fn(args: Type[]) -> bool {
+all_concrete_enough :: fn(args: const Type[]) -> bool {
     for arg in args {
         if !is_concrete_enough(arg) { return false }
     }
@@ -117,7 +117,7 @@ is_concrete_enough :: fn(t: Type) -> bool {
     }
 }
 
-build_display_key :: fn(symbol: Symbol, args: Type[]) -> string {
+build_display_key :: fn(symbol: Symbol, args: const Type[]) -> string {
     return "${symbol.id}(${instance_args_key(args)})"
 }
 
@@ -134,7 +134,7 @@ build_display_key :: fn(symbol: Symbol, args: Type[]) -> string {
 ///
 /// @param args  the concrete type arguments.
 /// @return      the canonical key ; empty when `args` is empty.
-export instance_args_key :: fn(args: Type[]) -> string {
+export instance_args_key :: fn(args: const Type[]) -> string {
     out := ""
     for i in 0..<args.len() {
         if i > 0 { out = "${out}," }
@@ -210,7 +210,7 @@ import "vader/parser"
     registry :: InstanceRegistry {}
     sym :: dummy_struct_symbol("List")
     args: Type[] = [mk_primitive("i32")]
-    list_type :: mk_struct(sym, args)
+    list_type :: mk_struct(sym, args, immutable = false)
     registry.observe(list_type)
     assert_eq(registry.order.len(), 1)
     assert_eq(render_instance(registry.order[0]), "List<i32>")

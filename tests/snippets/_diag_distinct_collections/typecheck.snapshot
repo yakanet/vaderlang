@@ -2,10 +2,10 @@
 
 ## tests/snippets/_diag_distinct_collections
   FnDecl         main                 :: fn() -> i32
-  FnDecl         sum_ids              :: fn(UserId[]) -> i32
+  FnDecl         sum_ids              :: fn(const UserId[]) -> i32
   FnDecl         unwrap_or            :: fn(null | UserId, i32) -> i32
   ConstDecl      UserId               :: type
-  expr 19:15    IdentExpr      :: UserId[]
+  expr 19:15    IdentExpr      :: const UserId[]
   expr 19:21    IdentExpr      :: i32
   expr 19:29    BinaryExpr     :: i32
   expr 19:29    IdentExpr      :: i32
@@ -36,6 +36,6 @@
   expr 30:38    UnaryExpr      :: i32
   expr 31:12    BinaryExpr     :: i32
   expr 31:12    CallExpr       :: i32
-  expr 31:12    IdentExpr      :: fn(UserId[]) -> i32
+  expr 31:12    IdentExpr      :: fn(const UserId[]) -> i32
   expr 31:20    IdentExpr      :: UserId[]
   expr 31:27    IdentExpr      :: i32

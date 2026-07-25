@@ -27,7 +27,7 @@ AST :: import "vader/parser"
 /// @param project  the evaluated project (from `evaluate_project`).
 /// @param scope    in-scope module ids / prefixes (see `module_in_scope`).
 /// @return         the formatted dump, no trailing newline.
-export dump_evaluated :: fn(project: EvaluatedProject, scope: string[]) -> string {
+export dump_evaluated :: fn(project: EvaluatedProject, scope: const string[]) -> string {
     sb := StringBuilder {}
     sb.append("# Comptime")
     module_ids :: sort(project.modules.keys(), (a: string, b: string) -> compare_ascending(a, b))

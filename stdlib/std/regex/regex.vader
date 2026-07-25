@@ -711,7 +711,7 @@ expand_replacement :: fn(sb!: StringBuilder, rb: const u8[], m: Match) -> void {
 
 Thread :: struct {
     pc:     usize
-    groups: usize[]
+    groups: const usize[]
 }
 
 // Sentinel for "this slot was never written". `_u64` is mandatory :
@@ -837,7 +837,7 @@ class_matches :: fn(inst: InstClass, c: char) -> bool {
 // (copy-on-write) capture array reaching it.
 WorkItem :: struct {
     pc:     usize
-    groups: usize[]
+    groups: const usize[]
 }
 
 add_thread :: fn(out!: Thread[], start_pc: usize, start_groups: usize[], p: Pattern, input: const u8[], pos: usize, seen!: usize[], gen: usize) -> void {

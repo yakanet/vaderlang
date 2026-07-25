@@ -83,7 +83,7 @@ export wrap_as_block :: fn(expr: LoweredExpr, span: Span) -> LoweredBlock {
 /// @param block  the block to re-shape.
 /// @return       the stmts list, with the trailing expression appended
 ///               as an `LoweredExprStmt` when one is present.
-export block_stmts_with_trailing :: fn(block: LoweredBlock) -> LoweredStmt[] {
+export block_stmts_with_trailing :: fn(block: LoweredBlock) -> const LoweredStmt[] {
     trailing :: block.trailing ?? return block.stmts
     out: LoweredStmt[] = []
     for stmt in block.stmts { out.push(stmt) }

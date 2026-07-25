@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Bag { items: i32[] | null }
-  fn snippet$count(items: i32[]) -> i32
+  fn snippet$count(items: const i32[]) -> i32
     return
       cast → i32
         LoweredArrayLen
@@ -77,7 +77,7 @@
                                 cast → i64
                                   call :i32
                                     callee:
-                                      count :fn(i32[]) -> i32
+                                      count :fn(const i32[]) -> i32
                                     arg0:
                                       .items :i32[]
                                         b :Bag
@@ -155,7 +155,7 @@
                                 cast → i64
                                   call :i32
                                     callee:
-                                      count :fn(i32[]) -> i32
+                                      count :fn(const i32[]) -> i32
                                     arg0:
                                       .items :i32[]
                                         empty :Bag

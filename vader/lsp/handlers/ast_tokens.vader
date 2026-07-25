@@ -210,7 +210,7 @@ walk_decl :: fn(d: AST.Decl, out!: RawToken[]) -> void {
     }
 }
 
-walk_decorators :: fn(ds: AST.Decorator[], out!: RawToken[]) -> void {
+walk_decorators :: fn(ds: const AST.Decorator[], out!: RawToken[]) -> void {
     for deco in ds {
         // `deco.span` covers `@name(args)` whole ; tag only `@name` so the
         // argument tokens (walked below) don't sit inside a Decorator token.
@@ -219,7 +219,7 @@ walk_decorators :: fn(ds: AST.Decorator[], out!: RawToken[]) -> void {
     }
 }
 
-walk_type_params :: fn(ps: AST.TypeParam[], out!: RawToken[]) -> void {
+walk_type_params :: fn(ps: const AST.TypeParam[], out!: RawToken[]) -> void {
     for p in ps {
         push_span(out, p.span, .Type)
         walk_opt_type(p.bound, out)

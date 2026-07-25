@@ -612,8 +612,8 @@ substitute_struct_field :: fn(
 
 export substitute_by_name :: fn(
     t: Type,
-    tps: AST.TypeParam[],
-    args: Type[],
+    tps: const AST.TypeParam[],
+    args: const Type[],
 ) -> Type {
     // @partial: only TypeParam and the composite variants can carry a param to
     // rewrite; every scalar / primitive variant has no inner type → return as-is.
@@ -634,14 +634,14 @@ export substitute_by_name :: fn(
             for el in tu.elements {
                 els.push(substitute_by_name(el, tps, args))
             }
-            return mk_tuple(els)
+            return mk_tuple(els, tu.immutable)
         }
         is StructType as s -> {
             sargs: Type[] = []
             for a in s.args {
                 sargs.push(substitute_by_name(a, tps, args))
             }
-            return mk_struct(s.symbol, sargs)
+            return mk_struct(s.symbol, sargs, s.immutable)
         }
         is TraitType as r -> {
             rargs: Type[] = []
@@ -729,12 +729,12 @@ substitute_array_element :: fn(t: Type, element: Type) -> Type {
         is TupleType as tu -> {
             els: Type[] = []
             for el in tu.elements { els.push(substitute_array_element(el, element)) }
-            return mk_tuple(els)
+            return mk_tuple(els, tu.immutable)
         }
         is StructType as s -> {
             sargs: Type[] = []
             for a in s.args { sargs.push(substitute_array_element(a, element)) }
-            return mk_struct(s.symbol, sargs)
+            return mk_struct(s.symbol, sargs, s.immutable)
         }
         is TraitType as r -> {
             rargs: Type[] = []
@@ -808,7 +808,7 @@ substitute_self :: fn(t: Type, self_ty: Type) -> Type {
             for a in s.args {
                 args.push(substitute_self(a, self_ty))
             }
-            return mk_struct(s.symbol, args)
+            return mk_struct(s.symbol, args, s.immutable)
         }
         is FnType as f -> {
             ps: Type[] = []
@@ -829,7 +829,7 @@ substitute_self :: fn(t: Type, self_ty: Type) -> Type {
             for el in t2.elements {
                 els.push(substitute_self(el, self_ty))
             }
-            return mk_tuple(els)
+            return mk_tuple(els, t2.immutable)
         }
         _ -> { return t }
     }
@@ -950,10 +950,10 @@ find_trait_id_by_name :: fn(name: string, typed: TypedProgram) -> i32 | null {
 // fewer than the trait declares. A `Self` default resolves to `TY_SELF` here ;
 // the caller's `substitute_self(target_ty)` then maps it to the receiver type.
 pad_trait_default_args :: fn(
-    args: Type[],
-    tps: AST.TypeParam[],
+    args: const Type[],
+    tps: const AST.TypeParam[],
     resolved: ResolvedModule,
-) -> Type[] {
+) -> const Type[] {
     if args.len() >= tps.len() {
         return args
     }

@@ -1,10 +1,10 @@
 # Lower
 
 ## snippet
-  fn snippet$sum_ids(ids: UserId[]) -> i32
+  fn snippet$sum_ids(ids: const UserId[]) -> i32
     let total: i32 = int(0) :i32
     block :void
-      let __for_arr_0: UserId[] = ids :UserId[]
+      let __for_arr_0: const UserId[] = ids :const UserId[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -12,7 +12,7 @@
         let id: UserId =
           index :UserId
             on:
-              __for_arr_0 :UserId[]
+              __for_arr_0 :const UserId[]
             ix:
               __for_i_2 :usize
         assign
@@ -70,7 +70,7 @@
         l:
           call :i32
             callee:
-              sum_ids :fn(UserId[]) -> i32
+              sum_ids :fn(const UserId[]) -> i32
             arg0:
               ids :UserId[]
         r:

@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Foo { v: i32 }
-  fn snippet$leaf(x: Foo, arr: i32[]) -> i32
+  fn snippet$leaf(x: Foo, arr: const i32[]) -> i32
     let acc: i32 = int(0) :i32
     block :void
       let _: i32 = int(0) :i32
@@ -10,7 +10,7 @@
         let s: i32[] =
           slice :i32[]
             on:
-              arr :i32[]
+              arr :const i32[]
             lo:
               cast → usize
                 int(0) :i32
@@ -57,7 +57,7 @@
     let r: i32 =
       call :i32
         callee:
-          leaf :fn(Foo, i32[]) -> i32
+          leaf :fn(Foo, const i32[]) -> i32
         arg0:
           x :Foo
         arg1:

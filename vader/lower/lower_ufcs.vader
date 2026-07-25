@@ -193,7 +193,7 @@ ufcs_specificity :: fn(ctx: FnLowerCtx, recv_type: Type, sym: Symbol) -> i32 {
 overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
     if param0 is TypeParamType { return 0 }
     if param0 is UnionType as pu {
-        arg_vars: Type[] = if arg0 is UnionType as au { au.variants } else { [arg0] }
+        arg_vars: const Type[] = if arg0 is UnionType as au { au.variants } else { [arg0] }
         score: i32 = 0
         for av in arg_vars {
             for pv in pu.variants {

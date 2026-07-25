@@ -49,7 +49,7 @@ export MonoEntry :: struct {
 
     /// Concrete type-args in source order when this entry comes from a
     /// generic instantiation ; empty otherwise.
-    type_arguments: Type[]
+    type_arguments: const Type[]
 
     /// Module the origin decl lives in — needed for resolver-table
     /// lookups (TypedProgram side-tables are per-module).

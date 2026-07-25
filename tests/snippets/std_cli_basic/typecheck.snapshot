@@ -7,7 +7,7 @@
   expr 11:27    StringLitExpr  :: string
   expr 11:43    StringLitExpr  :: string
   expr 12:10    CallExpr       :: ParsedArgs
-  expr 12:10    IdentExpr      :: fn(string[], FlagSpec[]) -> ParsedArgs
+  expr 12:10    IdentExpr      :: fn(const string[], const FlagSpec[]) -> ParsedArgs
   expr 12:16    IdentExpr      :: string[]
   expr 12:22    IdentExpr      :: FlagSpec[]
   expr 14:13    StringLitExpr  :: string
@@ -61,8 +61,8 @@
   expr 20:5     CallExpr       :: void
   expr 20:5     IdentExpr      :: fn(T) -> void
   expr 23:12    CallExpr       :: ParsedArgs
-  expr 23:12    IdentExpr      :: fn(string[], FlagSpec[]) -> ParsedArgs
-  expr 23:18    SeqLitExpr     :: string[]
+  expr 23:12    IdentExpr      :: fn(const string[], const FlagSpec[]) -> ParsedArgs
+  expr 23:18    SeqLitExpr     :: const string[]
   expr 23:19    StringLitExpr  :: string
   expr 23:28    StringLitExpr  :: string
   expr 23:42    IdentExpr      :: FlagSpec[]

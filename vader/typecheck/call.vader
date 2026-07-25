@@ -117,7 +117,7 @@ overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
         return 0
     }
     if param0 is UnionType as pu {
-        arg_vars: Type[] = if arg0 is UnionType as au { au.variants } else { [arg0] }
+        arg_vars: const Type[] = if arg0 is UnionType as au { au.variants } else { [arg0] }
         score: i32 = 0
         for av in arg_vars {
             for pv in pu.variants {
@@ -516,7 +516,7 @@ report_unbound_type_args :: fn(
     c: AST.CallExpr,
     callee_ty: FnType,
     bindings: MutableMap<i32, Type>,
-    arg_types: Type[],
+    arg_types: const Type[],
     expected: Type | null,
     checked_arg_count: usize,
     typed: TypedProgram,

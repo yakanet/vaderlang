@@ -3,10 +3,10 @@
 ## snippet
   struct snippet$Decl { name: string, id: i32 }
   struct snippet$FileMod { decls: Decl[] }
-  fn snippet$concat_decls(files: FileMod[]) -> Iterator<Decl>
+  fn snippet$concat_decls(files: const FileMod[]) -> Iterator<Decl>
     return
       __genstate_concat_decls {
-        s0: files :FileMod[]
+        s0: files :const FileMod[]
         s1: null
         s2: int(0) :usize
         s3: int(0) :usize
@@ -162,7 +162,7 @@
               r:
                 int(1) :usize
     return int(0) :i32
-  struct __genstate_concat_decls { s0: FileMod[], s1: FileMod[], s2: usize, s3: usize, s4: FileMod, s5: Decl[], s6: usize, s7: usize, s8: Decl, state: i32 }
+  struct __genstate_concat_decls { s0: const FileMod[], s1: const FileMod[], s2: usize, s3: usize, s4: FileMod, s5: Decl[], s6: usize, s7: usize, s8: Decl, state: i32 }
   fn snippet$__genstate_concat_decls$Iterator$next(self: __genstate_concat_decls) -> Yield<Decl> | null
     loop
       if :void
@@ -435,7 +435,7 @@
                                                     value:
                                                       index :FileMod
                                                         on:
-                                                          .s1 :FileMod[]
+                                                          .s1 :const FileMod[]
                                                             __self_6 :__genstate_concat_decls
                                                         ix:
                                                           .s3 :usize
@@ -458,10 +458,10 @@
                                                     then:
                                                       assign
                                                         target:
-                                                          .s1 :FileMod[]
+                                                          .s1 :const FileMod[]
                                                             __self_6 :__genstate_concat_decls
                                                         value:
-                                                          .s0 :FileMod[]
+                                                          .s0 :const FileMod[]
                                                             __self_6 :__genstate_concat_decls
                                                       assign
                                                         target:

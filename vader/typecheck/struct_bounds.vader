@@ -19,7 +19,7 @@ import "vader/types"
 /// Verify that `args` satisfy the bounds attached to `type_param_syms`.
 /// MVP : no-op (no bound storage yet).
 export check_struct_bounds :: fn(
-    _: Type[], _: Span, _: TypedProgram, _: Diagnostic[],
+    _: const Type[], _: Span, _: TypedProgram, _: Diagnostic[],
 ) -> void {
     return
 }

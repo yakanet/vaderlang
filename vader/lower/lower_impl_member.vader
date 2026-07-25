@@ -40,7 +40,7 @@ is_identity_member :: fn(m: FnDecl) -> bool {
 /// `LoweredCall` exactly as before. The single hook every "resolve impl member +
 /// build call" site should route through (P2 will extend it to general
 /// expression bodies via value-substitution).
-build_member_call_or_inline :: fn(member: UfcsMember, args: LoweredExpr[], ret: Type, span: Span) -> LoweredExpr {
+build_member_call_or_inline :: fn(member: UfcsMember, args!: LoweredExpr[], ret: Type, span: Span) -> LoweredExpr {
     // Identity uses `self` exactly once, so returning the (already-lowered)
     // receiver evaluates it once — no temp / double-eval concern.
     if member.is_identity && args.len() == 1 { return args[0] }

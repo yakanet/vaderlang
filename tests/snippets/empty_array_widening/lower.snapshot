@@ -1,10 +1,10 @@
 # Lower
 
 ## snippet
-  fn snippet$sum_of(xs: i32[]) -> i32
+  fn snippet$sum_of(xs: const i32[]) -> i32
     let total: i32 = int(0) :i32
     block :void
-      let __for_arr_0: i32[] = xs :i32[]
+      let __for_arr_0: const i32[] = xs :const i32[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -12,7 +12,7 @@
         let v: i32 =
           index :i32
             on:
-              __for_arr_0 :i32[]
+              __for_arr_0 :const i32[]
             ix:
               __for_i_2 :usize
         assign
@@ -179,7 +179,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        sum_of :fn(i32[]) -> i32
+                        sum_of :fn(const i32[]) -> i32
                       arg0:
                         numbers :i32[]
           ~>
@@ -445,7 +445,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        sum_of :fn(i32[]) -> i32
+                        sum_of :fn(const i32[]) -> i32
                       arg0:
                         annotated :i32[]
           ~>

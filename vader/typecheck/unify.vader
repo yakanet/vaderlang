@@ -52,25 +52,35 @@ export unify_type_param :: fn(
                     return
                 }
             }
+            // Bind the SHAPE, never the mutability. The immutability bit says
+            // "this slot is a read-only borrow" ; a type ARGUMENT is not a slot of
+            // the program (there is no syntax for one — `MutableMap<i32, Cfg>`
+            // describes what is stored, and read-only-ness of the container is
+            // spelled on the container). Letting it through would fork every
+            // generic on it: `MutableMap<i32, Cfg>` from an immutable arg would
+            // stop being the same type as the one from a mutable one, and the two
+            // would fail to unify everywhere downstream. Matches the level-1 depth
+            // rule — the bit only ever lives at the root of a slot.
+            bound :: with_immutable(arg_type, false)
             existing :: out[tp.symbol.id]
-            if existing is null { out[tp.symbol.id] = arg_type  return }
+            if existing is null { out[tp.symbol.id] = bound  return }
             // Tighten Free* bindings when a later arg pins the same
             // type-param to a concrete numeric. Lets
             // `fold([1,2,3], 1, (a, b) -> a + b)` re-bind U from
             // FreeInt (init=1) to i32 (the lambda body returns i32)
             // so the post-loop assignability check accepts the lambda.
             if is_free_numeric(existing) && !is_free_numeric(arg_type) {
-                out[tp.symbol.id] = arg_type
+                out[tp.symbol.id] = bound
             }
             // Same reasoning as above for a binding that was recorded before
             // this rule existed elsewhere in the tree : an unresolved binding
             // yields to anything that carries real information.
             if type_contains_unresolved(existing) {
-                out[tp.symbol.id] = arg_type
+                out[tp.symbol.id] = bound
             }
             if existing is TypeParamType as prev {
                 if prev.symbol.id == tp.symbol.id {
-                    out[tp.symbol.id] = arg_type
+                    out[tp.symbol.id] = bound
                 }
             }
             return
@@ -209,12 +219,12 @@ export type_contains_type_param :: fn(t: Type) -> bool {
 
 // ---- helpers --------------------------------------------------------------
 
-any_contains :: fn(ts: Type[]) -> bool {
+any_contains :: fn(ts: const Type[]) -> bool {
     for t in ts { if type_contains_type_param(t) { return true } }
     return false
 }
 
-unify_args :: fn(p_args: Type[], a_args: Type[], out!: MutableMap<i32, Type>) -> void {
+unify_args :: fn(p_args: const Type[], a_args: const Type[], out!: MutableMap<i32, Type>) -> void {
     n :: min(p_args.len(), a_args.len())
     for i in 0..<n { unify_type_param(p_args[i], a_args[i], out) }
 }
@@ -247,7 +257,7 @@ unify_unions :: fn(pu: UnionType, au: UnionType, out!: MutableMap<i32, Type>) ->
 /// @param used    parallel flags — entries already paired off are skipped.
 /// @param target  the variant to find a structural match for.
 /// @return        the matching index, or -1 when none is free + equal.
-export find_unused_equal :: fn(types: Type[], used: bool[], target: Type) -> i32 {
+export find_unused_equal :: fn(types: const Type[], used: bool[], target: Type) -> i32 {
     for i in 0..<types.len() {
         if !used[i] && equals_type(types[i], target) { return i32(i) }
     }
@@ -270,8 +280,8 @@ export substitute_map :: fn(t: Type, subst: MutableMap<i32, Type>) -> Type {
             return repl
         }
         is ArrayType as a -> { return mk_array(substitute_map(a.element, subst), a.immutable) }
-        is TupleType as tu -> { return mk_tuple(substitute_each_map(tu.elements, subst)) }
-        is StructType as s -> { return mk_struct(s.symbol, substitute_each_map(s.args, subst)) }
+        is TupleType as tu -> { return mk_tuple(substitute_each_map(tu.elements, subst), tu.immutable) }
+        is StructType as s -> { return mk_struct(s.symbol, substitute_each_map(s.args, subst), s.immutable) }
         is TraitType as tr -> { return mk_trait(tr.symbol, substitute_each_map(tr.args, subst)) }
         is FnType as f -> {
             return mk_fn_like(f, substitute_each_map(f.params, subst), substitute_map(f.return_type, subst))
@@ -281,7 +291,7 @@ export substitute_map :: fn(t: Type, subst: MutableMap<i32, Type>) -> Type {
     }
 }
 
-substitute_each_map :: fn(types: Type[], subst: MutableMap<i32, Type>) -> Type[] {
+substitute_each_map :: fn(types: const Type[], subst: MutableMap<i32, Type>) -> Type[] {
     out: Type[] = []
     for t in types { out.push(substitute_map(t, subst)) }
     return out

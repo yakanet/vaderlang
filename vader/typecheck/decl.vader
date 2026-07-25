@@ -79,7 +79,7 @@ decorated_decl_name :: fn(d: AST.Decl) -> string {
     }
 }
 
-decorated_decl_decorators :: fn(d: AST.Decl) -> AST.Decorator[] {
+decorated_decl_decorators :: fn(d: AST.Decl) -> const AST.Decorator[] {
     // Only the named decl kinds carry decorators we read here; Impl / Assert /
     // Import contribute none → empty list.
     return match d {
@@ -93,7 +93,7 @@ decorated_decl_decorators :: fn(d: AST.Decl) -> AST.Decorator[] {
     }
 }
 
-deprecated_message :: fn(decs: AST.Decorator[]) -> string | null {
+deprecated_message :: fn(decs: const AST.Decorator[]) -> string | null {
     for d in decs {
         if d.name != "deprecated" {
             continue
@@ -132,7 +132,9 @@ declare_decl :: fn(
                 typed,
                 resolved.path,
                 factory,
-                mk_struct,
+                // A declared type is the mutable form ; immutability is a property
+                // of a SLOT (a parameter without `!`), never of the declaration.
+                (sym: Symbol, args: const Type[]) -> mk_struct(sym, args, false),
             )
             // Index the struct decl by symbol id so `field.vader` can
             // walk fields without re-traversing the program AST.
@@ -196,7 +198,7 @@ declare_decl :: fn(
 declare_named_with_args :: fn(
     name: string,
     name_span: Span,
-    type_params: AST.TypeParam[],
+    type_params: const AST.TypeParam[],
     by_name: MutableMap<string, Symbol>,
     typed!: TypedProgram,
     module_path: string,
@@ -294,7 +296,7 @@ report_private_leak :: fn(
 // corresponds to `decl.params[i]` (built in the same order by `declare_fn`).
 check_public_fn_visibility :: fn(
     decl: AST.FnDecl,
-    params: Type[],
+    params: const Type[],
     return_type: Type,
     diags!: Diagnostic[],
 ) -> void {
@@ -376,7 +378,7 @@ first_unexported_type :: fn(t: Type) -> Symbol | null {
     }
 }
 
-first_unexported_in :: fn(types: Type[]) -> Symbol | null {
+first_unexported_in :: fn(types: const Type[]) -> Symbol | null {
     for t in types {
         r :: first_unexported_type(t)
         if r != null {
@@ -405,7 +407,7 @@ is_user_type_kind :: fn(k: SymbolKind) -> bool {
 
 validate_extern :: fn(
     decl: AST.FnDecl,
-    params: Type[],
+    params: const Type[],
     return_type: Type,
     typed!: TypedProgram,
     diags!: Diagnostic[],
@@ -483,7 +485,7 @@ validate_extern :: fn(
     }
 }
 
-has_extern_decorator :: fn(decs: AST.Decorator[]) -> bool {
+has_extern_decorator :: fn(decs: const AST.Decorator[]) -> bool {
     for d in decs {
         if d.name == "extern" {
             return true
@@ -492,7 +494,7 @@ has_extern_decorator :: fn(decs: AST.Decorator[]) -> bool {
     return false
 }
 
-has_intrinsic_decorator :: fn(decs: AST.Decorator[]) -> bool {
+has_intrinsic_decorator :: fn(decs: const AST.Decorator[]) -> bool {
     for d in decs {
         if d.name == "intrinsic" {
             return true
@@ -501,7 +503,7 @@ has_intrinsic_decorator :: fn(decs: AST.Decorator[]) -> bool {
     return false
 }
 
-extern_decorator_args :: fn(decs: AST.Decorator[]) -> AST.Expr[] {
+extern_decorator_args :: fn(decs: const AST.Decorator[]) -> AST.Expr[] {
     for d in decs {
         if d.name == "extern" {
             return d.args
@@ -589,7 +591,7 @@ lookup_fn_symbol_by_span :: fn(
 // `[string]` arg — emitters wire the entry point assuming both.
 check_main_signature :: fn(
     decl: AST.FnDecl,
-    params: Type[],
+    params: const Type[],
     return_type: Type,
     diags!: Diagnostic[],
 ) -> void {
@@ -641,7 +643,7 @@ declare_fn_param :: fn(
         )
         return TY_UNRESOLVED
     }
-    resolved_ty :: type_from_expr(ty, resolved, diags)
+    resolved_ty :: desugared_param_type(type_from_expr(ty, resolved, diags), p.mutable)
     typed.param_types[p.span.hash()] = resolved_ty
     return resolved_ty
 }
@@ -722,7 +724,7 @@ declare_const :: fn(
 /// **primitive** RHS (`Name :: i64`) becomes a zero-cost `DistinctType`
 /// (nominal newtype) ; a composite RHS (union / struct / array / fn) stays a
 /// transparent alias. See `.claude/plans/distinct-types.md`.
-alias_for :: fn(sym: Symbol, alias_ty: Type, decorators: AST.Decorator[]) -> Type {
+alias_for :: fn(sym: Symbol, alias_ty: Type, decorators: const AST.Decorator[]) -> Type {
     if distinct_backing(alias_ty, decorators) {
         return mk_distinct(sym, alias_ty)
     }
@@ -736,7 +738,7 @@ alias_for :: fn(sym: Symbol, alias_ty: Type, decorators: AST.Decorator[]) -> Typ
 /// `@size_of`) — it stays transparent, never a newtype. Shared by the three
 /// `alias_types` writers — `declare_const` (here), `register_alias_const`, and
 /// `check_const_value` (both in orchestrate.vader).
-distinct_backing :: fn(alias_ty: Type, decorators: AST.Decorator[]) -> bool {
+distinct_backing :: fn(alias_ty: Type, decorators: const AST.Decorator[]) -> bool {
     for d in decorators {
         if d.name == "comptime" {
             return false

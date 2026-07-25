@@ -59,7 +59,7 @@ export substitute :: fn(t: Type, subst: Substitution) -> Type {
         }
         is StructType as st -> {
             new_args :: substitute_each(st.args, subst)
-            return StructType { .symbol = st.symbol, .args = new_args }
+            return StructType { .symbol = st.symbol, .args = new_args, .immutable = st.immutable }
         }
         is TraitType as tr -> {
             new_args :: substitute_each(tr.args, subst)
@@ -69,7 +69,7 @@ export substitute :: fn(t: Type, subst: Substitution) -> Type {
             return mk_array(substitute(arr.element, subst), arr.immutable)
         }
         is TupleType as tup -> {
-            return mk_tuple(substitute_each(tup.elements, subst))
+            return mk_tuple(substitute_each(tup.elements, subst), tup.immutable)
         }
         is FnType as fty -> {
             return mk_fn_like(fty, substitute_each(fty.params, subst), substitute(fty.return_type, subst))
@@ -86,7 +86,7 @@ export substitute :: fn(t: Type, subst: Substitution) -> Type {
     }
 }
 
-substitute_each :: fn(types: Type[], subst: Substitution) -> Type[] {
+substitute_each :: fn(types: const Type[], subst: Substitution) -> Type[] {
     out: Type[] = []
     for t in types { out.push(substitute(t, subst)) }
     return out

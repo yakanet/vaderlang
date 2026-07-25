@@ -311,7 +311,7 @@ sort_raws :: fn(arr!: RawToken[]) -> void {
     }
 }
 
-encode_delta :: fn(arr: RawToken[]) -> JsonValue {
+encode_delta :: fn(arr: const RawToken[]) -> JsonValue {
     out: JsonValue[] = []
     prev_line: i32 = 0
     prev_col:  i32 = 0
@@ -350,7 +350,7 @@ build_sorted_for_test :: fn(source: string, uri: string) -> RawToken[] {
 
 // Column of the first documentation-modifier token of `tok_type` on `line`,
 // or -1 if none. Test helper for doc-comment tag positioning.
-doc_token_col :: fn(toks: RawToken[], line: i32, tok_type: i32) -> i32 {
+doc_token_col :: fn(toks: const RawToken[], line: i32, tok_type: i32) -> i32 {
     for t in toks {
         if t.line == line && t.tok_type == tok_type && t.modifiers != 0 { return t.col }
     }
@@ -360,7 +360,7 @@ doc_token_col :: fn(toks: RawToken[], line: i32, tok_type: i32) -> i32 {
 // Count tokens that start inside the extent of an earlier token on the same
 // line. The LSP semantic-tokens spec forbids overlap ; clients render it
 // inconsistently, so this must stay zero.
-count_token_overlaps :: fn(toks: RawToken[]) -> i32 {
+count_token_overlaps :: fn(toks: const RawToken[]) -> i32 {
     overlaps := 0
     cur_line: i32 = -1
     line_end: i32 = 0
@@ -430,7 +430,7 @@ test_yield_const_classified_as_keyword :: fn() -> void {
 }
 
 // The semantic type of the token starting at byte `offset`, or -1 if none.
-tok_type_at :: fn(toks: RawToken[], offset: usize) -> i32 {
+tok_type_at :: fn(toks: const RawToken[], offset: usize) -> i32 {
     for r in toks {
         if r.start_offset == offset {
             return r.tok_type

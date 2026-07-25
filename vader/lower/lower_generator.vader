@@ -66,7 +66,7 @@ zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
 // here for the next fn + state struct.
 push_generator_decls :: fn(
     fn_ctx!: FnLowerCtx, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
-    yield_ty: Type, next_body: LoweredBlock, state_fields: LoweredStructField[],
+    yield_ty: Type, next_body: LoweredBlock, state_fields: const LoweredStructField[],
 ) -> void {
     module_seg :: mangle_module_id(fn_ctx.typed.resolved.display_path)
     next_mangled :: "${module_seg}$${state_sym.name}$${TRAIT_ITERATOR}$${METHOD_NEXT}"
@@ -127,7 +127,7 @@ export lower_generator_fn :: fn(
     // `__genstate_<fn><element>` only exists to concretise chain terminals; the boxed
     // consumer erases it to `Iterator<element>` (name-based) before dispatch, so the
     // runtime tag (this no-arg struct) still matches the vtable row.
-    state_ty :: mk_struct(state_sym, [])
+    state_ty :: mk_struct(state_sym, [], immutable = false)
     self_sym :: fresh_synthetic_symbol(fn_ctx, "self")
 
     yield_opt :: find_core_type(fn_ctx, STRUCT_YIELD, [element_ty])

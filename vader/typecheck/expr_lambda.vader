@@ -54,15 +54,20 @@ infer_param :: fn(
     typed!: TypedProgram, diags!: Diagnostic[],
 ) -> Type {
     if p.ty !is null {
-        t :: type_from_expr(p.ty, typed.resolved, diags)
+        t :: desugared_param_type(type_from_expr(p.ty, typed.resolved, diags), p.mutable)
         typed.param_types[p.span.hash()] = t
         return t
     }
     match expected_fn {
         is FnType as f -> {
             if idx < f.params.len() {
-                typed.param_types[p.span.hash()] = f.params[idx]
-                return f.params[idx]
+                // The expected slot supplies the SHAPE ; the marker on this
+                // lambda's own parameter supplies the mutability. A lambda that
+                // doesn't write `!` promises not to mutate even when handed to a
+                // slot that would allow it — it simply promises more.
+                t :: desugared_param_type(f.params[idx], p.mutable)
+                typed.param_types[p.span.hash()] = t
+                return t
             }
         }
         _ -> {}

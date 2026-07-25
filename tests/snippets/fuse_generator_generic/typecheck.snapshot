@@ -1,22 +1,22 @@
 # Typecheck
 
 ## tests/snippets/fuse_generator_generic
-  FnDecl         gen_filter           :: fn(T[], fn(T) -> bool) -> Iterator<T>
-  FnDecl         gen_map              :: fn(T[], fn(T) -> U) -> Iterator<U>
+  FnDecl         gen_filter           :: fn(const T[], fn(T) -> bool) -> Iterator<T>
+  FnDecl         gen_map              :: fn(const T[], fn(T) -> U) -> Iterator<U>
   FnDecl         main                 :: fn() -> i32
-  expr 12:14    IdentExpr      :: T[]
+  expr 12:14    IdentExpr      :: const T[]
   expr 12:25    CallExpr       :: U
   expr 12:25    IdentExpr      :: fn(T) -> U
   expr 12:27    IdentExpr      :: T
-  expr 17:14    IdentExpr      :: T[]
+  expr 17:14    IdentExpr      :: const T[]
   expr 17:19    IfExpr         :: void
   expr 17:22    CallExpr       :: bool
   expr 17:22    IdentExpr      :: fn(T) -> bool
   expr 17:27    IdentExpr      :: T
   expr 17:38    IdentExpr      :: T
   expr 21:14    CallExpr       :: __genstate_gen_map<i32>
-  expr 21:14    IdentExpr      :: fn(T[], fn(T) -> U) -> Iterator<U>
-  expr 21:22    SeqLitExpr     :: i32[]
+  expr 21:14    IdentExpr      :: fn(const T[], fn(T) -> U) -> Iterator<U>
+  expr 21:22    SeqLitExpr     :: const i32[]
   expr 21:33    LambdaExpr     :: fn(i32) -> i32
   expr 21:38    BinaryExpr     :: i32
   expr 21:38    IdentExpr      :: i32
@@ -25,8 +25,8 @@
   expr 21:56    StringLitExpr  :: string
   expr 21:61    IdentExpr      :: i32
   expr 22:14    CallExpr       :: __genstate_gen_filter<i32>
-  expr 22:14    IdentExpr      :: fn(T[], fn(T) -> bool) -> Iterator<T>
-  expr 22:25    SeqLitExpr     :: i32[]
+  expr 22:14    IdentExpr      :: fn(const T[], fn(T) -> bool) -> Iterator<T>
+  expr 22:25    SeqLitExpr     :: const i32[]
   expr 22:42    LambdaExpr     :: fn(i32) -> bool
   expr 22:47    BinaryExpr     :: bool
   expr 22:47    BinaryExpr     :: i32

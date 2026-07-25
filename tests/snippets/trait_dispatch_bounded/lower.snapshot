@@ -98,10 +98,10 @@
               arg1:
                 __off_3 :usize
     return int(0) :i32
-  fn snippet$count_matching__i32(items: i32[], target: i32) -> i32
+  fn snippet$count_matching__i32(items: const i32[], target: i32) -> i32
     let n: i32 = int(0) :i32
     block :void
-      let __for_arr_0: i32[] = items :i32[]
+      let __for_arr_0: const i32[] = items :const i32[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -109,7 +109,7 @@
         let x: i32 =
           index :i32
             on:
-              __for_arr_0 :i32[]
+              __for_arr_0 :const i32[]
             ix:
               __for_i_2 :usize
         if :void
@@ -149,10 +149,10 @@
               r:
                 int(1) :usize
     return n :i32
-  fn snippet$count_matching__string(items: string[], target: string) -> i32
+  fn snippet$count_matching__string(items: const string[], target: string) -> i32
     let n: i32 = int(0) :i32
     block :void
-      let __for_arr_0: string[] = items :string[]
+      let __for_arr_0: const string[] = items :const string[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -160,7 +160,7 @@
         let x: string =
           index :string
             on:
-              __for_arr_0 :string[]
+              __for_arr_0 :const string[]
             ix:
               __for_i_2 :usize
         if :void

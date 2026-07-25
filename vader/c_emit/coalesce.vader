@@ -69,9 +69,9 @@ export CoalesceResult :: struct {
 /// @return       the compacted type list (index = surviving slot) and the body
 ///               rewritten so every `tN` reference names its assigned slot. A
 ///               no-op (inputs returned verbatim) when there are no temps.
-export coalesce_temps :: fn(body: string, types: ValType[]) -> CoalesceResult {
+export coalesce_temps :: fn(body: string, types: const ValType[]) -> CoalesceResult {
     n :: types.len()
-    if n == 0 { return CoalesceResult { .types = types, .body = body } }
+    if n == 0 { return CoalesceResult { .types = [], .body = body } }
 
     // 0. Elide temp->local copies (`tN = EXPR; lM = tN;` -> `lM = EXPR;`) so a
     //    temp whose sole consumer is an immediate `local.set` disappears

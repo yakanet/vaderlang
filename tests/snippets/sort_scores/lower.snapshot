@@ -14,7 +14,7 @@
         callee:
           std_sort$sort__i32 :i32[]
         arg0:
-          array :i32[]
+          array :const i32[]
             int(50) :i32
             int(12) :i32
             int(88) :i32

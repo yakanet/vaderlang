@@ -20,8 +20,8 @@
   expr 15:12    IdentExpr      :: type
   expr 15:16    IdentExpr      :: i64
   expr 19:11    CallExpr       :: Async<i32[]>
-  expr 19:11    IdentExpr      :: fn(Async<T>[]) -> Async<T[]>
-  expr 19:15    SeqLitExpr     :: Async<i32>[]
+  expr 19:11    IdentExpr      :: fn(const Async<T>[]) -> Async<T[]>
+  expr 19:15    SeqLitExpr     :: const Async<i32>[]
   expr 19:16    CallExpr       :: Async<i32>
   expr 19:16    IdentExpr      :: fn(string, i64) -> Async<i32>
   expr 19:21    StringLitExpr  :: string

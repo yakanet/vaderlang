@@ -147,13 +147,13 @@
               _0:
                 index :string
                   on:
-                    self :string[]
+                    self :const string[]
                   ix:
                     i :usize
               _1:
                 index :i32
                   on:
-                    other :i32[]
+                    other :const i32[]
                   ix:
                     i :usize
             }

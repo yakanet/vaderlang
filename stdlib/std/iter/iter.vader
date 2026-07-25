@@ -28,7 +28,7 @@ module "std/iter"
 ///
 /// @param arr  source array.
 /// @return     true when `arr.len() == 0`.
-export is_empty :: fn<T>(arr: T[]) -> bool = arr.len() == 0
+export is_empty :: fn<T>(arr: const T[]) -> bool = arr.len() == 0
 
 // `collect` on an array is `arr.clone()` (built-in) ; the only `collect` here
 // is the Iterator terminal below — drains a lazy chain into a fresh array.

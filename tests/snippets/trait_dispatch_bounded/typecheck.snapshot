@@ -1,9 +1,9 @@
 # Typecheck
 
 ## tests/snippets/trait_dispatch_bounded
-  FnDecl         count_matching       :: fn(T[], T) -> i32
+  FnDecl         count_matching       :: fn(const T[], T) -> i32
   FnDecl         main                 :: fn() -> i32
-  expr 11:14    IdentExpr      :: T[]
+  expr 11:14    IdentExpr      :: const T[]
   expr 12:12    BinaryExpr     :: bool
   expr 12:12    BinaryExpr     :: bool
   expr 12:12    CallExpr       :: u64
@@ -24,7 +24,7 @@
   expr 20:13    SeqLitExpr     :: i32[]
   expr 21:13    StringLitExpr  :: string
   expr 21:16    CallExpr       :: i32
-  expr 21:16    IdentExpr      :: fn(T[], T) -> i32
+  expr 21:16    IdentExpr      :: fn(const T[], T) -> i32
   expr 21:31    IdentExpr      :: i32[]
   expr 21:5     CallExpr       :: void
   expr 21:5     IdentExpr      :: fn(T) -> void
@@ -36,7 +36,7 @@
   expr 23:43    StringLitExpr  :: string
   expr 24:13    StringLitExpr  :: string
   expr 24:16    CallExpr       :: i32
-  expr 24:16    IdentExpr      :: fn(T[], T) -> i32
+  expr 24:16    IdentExpr      :: fn(const T[], T) -> i32
   expr 24:31    IdentExpr      :: string[]
   expr 24:38    StringLitExpr  :: string
   expr 24:5     CallExpr       :: void

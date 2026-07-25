@@ -36,7 +36,7 @@
                 i :usize
               r:
                 int(1) :usize
-  fn snippet$mismatches(rows: i32[][]) -> i32
+  fn snippet$mismatches(rows: const i32[][]) -> i32
     let bad: i32 = int(0) :i32
     block :void
       let __for_hi_0: usize =
@@ -46,7 +46,7 @@
         let row: i32[] =
           index :i32[]
             on:
-              rows :i32[][]
+              rows :const i32[][]
             ix:
               i :usize
         if :void
@@ -184,7 +184,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        mismatches :fn(i32[][]) -> i32
+                        mismatches :fn(const i32[][]) -> i32
                       arg0:
                         lambda_rows :i32[][]
           ~>
@@ -248,7 +248,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        mismatches :fn(i32[][]) -> i32
+                        mismatches :fn(const i32[][]) -> i32
                       arg0:
                         named_rows :i32[][]
           ~>

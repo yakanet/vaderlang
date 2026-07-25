@@ -144,7 +144,7 @@ materialize_one_instance :: fn(
     }
 }
 
-all_concrete_args :: fn(args: Type[]) -> bool {
+all_concrete_args :: fn(args: const Type[]) -> bool {
     for a in args {
         if has_type_param(a) { return false }
     }
@@ -197,7 +197,7 @@ has_type_param :: fn(t: Type) -> bool {
 /// `materialize_struct_instance` and `shape_mangle` build their name
 /// here so the closure pass dedups field-referenced shapes against
 /// emitted decls by name.
-mangle_struct_instance :: fn(display_path: string, name: string, args: Type[]) =
+mangle_struct_instance :: fn(display_path: string, name: string, args: const Type[]) =
     "${mangle_module_id(display_path)}$${name}${args_suffix(args)}"
 
 materialize_struct_instance :: fn(
@@ -340,7 +340,7 @@ shape_mangle :: fn(s: StructType, typed: TypedProject) -> string | null {
 /// fields. Thin wrapper over `materialize_struct_instance` that resolves
 /// the owning module's decls + typed view from a bare symbol + args.
 materialize_shape :: fn(
-    sym: Symbol, args: Type[], loaded: LoadedProject, typed: TypedProject,
+    sym: Symbol, args: const Type[], loaded: LoadedProject, typed: TypedProject,
     project_ctx: LowerProjectCtx, project: LoweredProject,
 ) -> LoweredStructField[] {
     owner_module :: loaded.modules[sym.module]
@@ -417,7 +417,7 @@ materialize_impl_for_instance :: fn(
     // tag (`erase_generic_struct_tag`) MUST route through the same kernel so a
     // generic-struct box interns to this exact receiver key (else `vtable miss`).
     erased_args :: if is_empty_substitution(subst) { inst.args } else { build_mixed_args_list(inst.args) }
-    self_struct :: StructType { .symbol = inst.symbol, .args = erased_args }
+    self_struct :: StructType { .symbol = inst.symbol, .args = erased_args, .immutable = false }
     self_type: Type = self_struct
     // Suffix from the ERASED args : a generic impl mangles `count__Any`
     // (not `count__i32`) so the shared erased body's sibling self-calls

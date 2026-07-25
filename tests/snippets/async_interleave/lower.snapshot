@@ -387,7 +387,7 @@
                                   callee:
                                     std_async$all__i32 :Async<i32[]>
                                   arg0:
-                                    array :Async<i32>[]
+                                    array :const Async<i32>[]
                                       call :Async<i32>
                                         callee:
                                           task :fn(string, i64) -> Async<i32>

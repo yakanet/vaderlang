@@ -70,7 +70,7 @@ all_actions :: fn() -> CodeAction[] = [
 ///               (`analysis/ast_walk::enclosing_exprs`).
 /// @param ctx    the action context (document source).
 /// @return       the applicable actions' results, in registration order.
-export run_actions :: fn(nodes: AST.Expr[], ctx: ActionCtx) -> ActionResult[] {
+export run_actions :: fn(nodes: const AST.Expr[], ctx: ActionCtx) -> ActionResult[] {
     out: ActionResult[] = []
     acts :: all_actions()
     // Index loops (not `for x in arr`) sidestep a for-in iterator

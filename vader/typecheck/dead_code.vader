@@ -238,7 +238,7 @@ collect_pattern_names :: fn(p: AST.Pattern, out!: string[]) -> void {
     }
 }
 
-collect_decorator_names :: fn(ds: AST.Decorator[], out!: string[]) -> void {
+collect_decorator_names :: fn(ds: const AST.Decorator[], out!: string[]) -> void {
     for d in ds {
         for a in d.args {
             collect_expr_names(a, out)
@@ -246,7 +246,7 @@ collect_decorator_names :: fn(ds: AST.Decorator[], out!: string[]) -> void {
     }
 }
 
-collect_type_param_names :: fn(ps: AST.TypeParam[], out!: string[]) -> void {
+collect_type_param_names :: fn(ps: const AST.TypeParam[], out!: string[]) -> void {
     for p in ps {
         collect_opt_expr_names(p.bound, out)
     }
@@ -294,7 +294,7 @@ is_public :: fn(v: AST.Visibility) = v == AST.Visibility.Public
 /// decoy). The single root list shared by both name-reachability lints : W0007
 /// (`is_root_decl`) adds the public surface on top ; W0012 (`dead_exports`) uses
 /// this alone, so a project-dead PUBLIC fn stays flaggable.
-is_wired_root :: fn(decorators: AST.Decorator[], name: string) -> bool {
+is_wired_root :: fn(decorators: const AST.Decorator[], name: string) -> bool {
     if name == "main" {
         return true
     }
@@ -312,7 +312,7 @@ is_wired_root :: fn(decorators: AST.Decorator[], name: string) -> bool {
 
 // A W0007 reachability root : the public surface (`export`) plus every
 // wired-or-exempt root. Never flagged, its refs kept live.
-is_root_decl :: fn(v: AST.Visibility, decorators: AST.Decorator[], name: string) = is_public(v) || is_wired_root(
+is_root_decl :: fn(v: AST.Visibility, decorators: const AST.Decorator[], name: string) = is_public(v) || is_wired_root(
     decorators,
     name,
 )
@@ -325,7 +325,7 @@ NamedDeclRefs :: struct {
     name: string
     name_span: Span
     visibility: AST.Visibility
-    decorators: AST.Decorator[]
+    decorators: const AST.Decorator[]
     is_fn: bool
     refs: string[]
 }
@@ -415,9 +415,9 @@ named_head :: fn(
     name: string,
     name_span: Span,
     visibility: AST.Visibility,
-    decorators: AST.Decorator[],
+    decorators: const AST.Decorator[],
     is_fn: bool,
-    refs: string[],
+    refs!: string[],
 ) = NamedDeclRefs {
     .name = name,
     .name_span = name_span,
@@ -490,7 +490,7 @@ export check_dead_code :: fn(decls: AST.Decl[], diags!: Diagnostic[]) -> void {
 }
 
 // Append `refs` to the edge set for `name` (overloads share a name → merge).
-register_refs :: fn(m!: MutableMap<string, string[]>, name: string, refs: string[]) -> void {
+register_refs :: fn(m!: MutableMap<string, string[]>, name: string, refs!: string[]) -> void {
     cur :: m[name]
     if cur == null {
         m[name] = refs

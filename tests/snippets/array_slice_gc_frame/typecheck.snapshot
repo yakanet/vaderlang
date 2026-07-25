@@ -2,10 +2,10 @@
 
 ## tests/snippets/array_slice_gc_frame
   StructDecl     Foo                  :: Foo
-  FnDecl         leaf                 :: fn(Foo, i32[]) -> i32
+  FnDecl         leaf                 :: fn(Foo, const i32[]) -> i32
   FnDecl         main                 :: fn() -> i32
   expr 16:14    RangeExpr      :: Range<i32>
-  expr 17:14    IdentExpr      :: i32[]
+  expr 17:14    IdentExpr      :: const i32[]
   expr 17:14    IndexExpr      :: i32[]
   expr 17:18    RangeExpr      :: Range<i32>
   expr 18:15    BinaryExpr     :: i32
@@ -23,7 +23,7 @@
   expr 24:18    SeqLitExpr     :: i32[]
   expr 25:10    StructLitExpr  :: Foo
   expr 26:10    CallExpr       :: i32
-  expr 26:10    IdentExpr      :: fn(Foo, i32[]) -> i32
+  expr 26:10    IdentExpr      :: fn(Foo, const i32[]) -> i32
   expr 26:15    IdentExpr      :: Foo
   expr 26:18    IdentExpr      :: i32[]
   expr 27:17    BinaryExpr     :: {integer}

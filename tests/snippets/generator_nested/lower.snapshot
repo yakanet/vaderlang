@@ -1,11 +1,11 @@
 # Lower
 
 ## snippet
-  fn snippet$pairs(xs: i32[], ys: i32[]) -> Iterator<i32>
+  fn snippet$pairs(xs: const i32[], ys: const i32[]) -> Iterator<i32>
     return
       __genstate_pairs {
-        s0: xs :i32[]
-        s1: ys :i32[]
+        s0: xs :const i32[]
+        s1: ys :const i32[]
         s2: null
         s3: int(0) :usize
         s4: int(0) :usize
@@ -18,12 +18,12 @@
       }
   fn snippet$main() -> i32
     block :void
-      let ys: i32[] =
-        array :i32[]
+      let ys: const i32[] =
+        array :const i32[]
           int(10) :i32
           int(20) :i32
-      let __fuse_arr_2: i32[] =
-        array :i32[]
+      let __fuse_arr_2: const i32[] =
+        array :const i32[]
           int(1) :i32
           int(2) :i32
           int(3) :i32
@@ -34,11 +34,11 @@
         let x: i32 =
           index :i32
             on:
-              __fuse_arr_2 :i32[]
+              __fuse_arr_2 :const i32[]
             ix:
               __fuse_i_4 :usize
         block :void
-          let __for_arr_0: i32[] = ys :i32[]
+          let __for_arr_0: const i32[] = ys :const i32[]
           let __for_len_1: usize =
             LoweredArrayLen
           let __for_i_2: usize = int(0) :usize
@@ -46,7 +46,7 @@
             let y: i32 =
               index :i32
                 on:
-                  __for_arr_0 :i32[]
+                  __for_arr_0 :const i32[]
                 ix:
                   __for_i_2 :usize
             let v: i32 =
@@ -108,7 +108,7 @@
               r:
                 int(1) :usize
     return int(0) :i32
-  struct __genstate_pairs { s0: i32[], s1: i32[], s2: i32[], s3: usize, s4: usize, s5: i32, s6: i32[], s7: usize, s8: usize, s9: i32, state: i32 }
+  struct __genstate_pairs { s0: const i32[], s1: const i32[], s2: const i32[], s3: usize, s4: usize, s5: i32, s6: const i32[], s7: usize, s8: usize, s9: i32, state: i32 }
   fn snippet$__genstate_pairs$Iterator$next(self: __genstate_pairs) -> Yield<i32> | null
     loop
       if :void
@@ -322,7 +322,7 @@
                                             value:
                                               index :i32
                                                 on:
-                                                  .s6 :i32[]
+                                                  .s6 :const i32[]
                                                     __self_6 :__genstate_pairs
                                                 ix:
                                                   .s8 :usize
@@ -345,10 +345,10 @@
                                             then:
                                               assign
                                                 target:
-                                                  .s6 :i32[]
+                                                  .s6 :const i32[]
                                                     __self_6 :__genstate_pairs
                                                 value:
-                                                  .s1 :i32[]
+                                                  .s1 :const i32[]
                                                     __self_6 :__genstate_pairs
                                               assign
                                                 target:
@@ -385,7 +385,7 @@
                                                     value:
                                                       index :i32
                                                         on:
-                                                          .s2 :i32[]
+                                                          .s2 :const i32[]
                                                             __self_6 :__genstate_pairs
                                                         ix:
                                                           .s4 :usize
@@ -408,10 +408,10 @@
                                                     then:
                                                       assign
                                                         target:
-                                                          .s2 :i32[]
+                                                          .s2 :const i32[]
                                                             __self_6 :__genstate_pairs
                                                         value:
-                                                          .s0 :i32[]
+                                                          .s0 :const i32[]
                                                             __self_6 :__genstate_pairs
                                                       assign
                                                         target:

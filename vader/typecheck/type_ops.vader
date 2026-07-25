@@ -91,6 +91,12 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     } else if b is StructType as bx {
         bx.symbol.id == ax.symbol.id
     } else { false }
+    // Immutability is NOT part of struct / tuple identity : the bit records a
+    // promise made by one function about one parameter, not a different type.
+    // Two `Cfg` are one type whether or not a borrow is read-only, so caches,
+    // union dedup, monomorphisation keys and overlap tests all keep working
+    // unchanged. `ArrayType` below is the exception — `const T[]` is a written
+    // annotation that freezes the referent, hence a genuinely distinct type.
     is StructType    as ax  -> if b is StructType as bx {
         nominal_eq(ax.symbol.id, ax.args, bx.symbol.id, bx.args)
     } else if b is EnumType as bx {
@@ -107,7 +113,7 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     is DistinctType  as ax  -> if b is DistinctType as bx { ax.symbol.id == bx.symbol.id } else { false }
 }
 
-nominal_eq :: fn(a_id: i32, a_args: Type[], b_id: i32, b_args: Type[]) -> bool {
+nominal_eq :: fn(a_id: i32, a_args: const Type[], b_id: i32, b_args: const Type[]) -> bool {
     if a_id != b_id { return false }
     return type_list_equals(a_args, b_args)
 }
@@ -115,7 +121,7 @@ nominal_eq :: fn(a_id: i32, a_args: Type[], b_id: i32, b_args: Type[]) -> bool {
 /// Element-wise structural equality of two type lists (params, tuple
 /// elements, union variants). Companion to `equals_type` — same per-element
 /// `equals_type` comparison, length-checked first.
-export type_list_equals :: fn(a: Type[], b: Type[]) -> bool {
+export type_list_equals :: fn(a: const Type[], b: const Type[]) -> bool {
     if a.len() != b.len() { return false }
     for i in 0..<a.len() {
         if !equals_type(a[i], b[i]) { return false }
@@ -141,13 +147,72 @@ export TraitOracle :: struct {
     has_impl: fn(Type, TraitType) -> bool
 }
 
+// ---- immutability ---------------------------------------------------------
+
+/// `t` with its top-level immutability bit set to `immutable`.
+///
+/// On a union the bit is **distributed over the variants** — `UnionType` itself
+/// never carries one — so a later `x is Cfg` narrowing finds the bit already on
+/// the variant it selects. Shapes that can't carry the bit (`type_is_immutable`
+/// answers false for them) come back unchanged, and so does a type that already
+/// has the requested bit.
+export with_immutable :: fn(t: Type, immutable: bool) -> Type = match t {
+    is ArrayType  as a -> if a.immutable == immutable { t } else { mk_array(a.element, immutable) }
+    is StructType as s -> if s.immutable == immutable { t } else { mk_struct(s.symbol, s.args, immutable) }
+    is TupleType  as p -> if p.immutable == immutable { t } else { mk_tuple(p.elements, immutable) }
+    is UnionType  as u -> union_of(with_immutable_each(u.variants, immutable))
+    is PrimitiveType | EnumType | TraitType | FnType | TypeParamType | TypeMetaType
+     | SelfType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
+     | NeverType | AnyType | DistinctType -> t
+}
+
+with_immutable_each :: fn(variants: const Type[], immutable: bool) -> Type[] {
+    out: Type[] = []
+    for v in variants { out.push(with_immutable(v, immutable)) }
+    return out
+}
+
+/// The type of a parameter once its `!` marker is desugared onto the type.
+///
+/// An unmarked parameter is a read-only borrow. A `!` grants mutation — but only
+/// when the WRITTEN type doesn't already forbid it : `fn(a!: const i32[])` stays
+/// read-only. `const` is a property of the TYPE (the referent is frozen, e.g. a
+/// module const), `!` a property of the SLOT ; they are orthogonal and the
+/// stricter of the two wins. Without this the marker would silently launder a
+/// frozen referent into a mutable one.
+export desugared_param_type :: fn(t: Type, mutable: bool) -> Type {
+    if type_is_immutable(t) { return t }
+    return with_immutable(t, !mutable)
+}
+
+/// The immutability a value narrowed to `narrowed` inherits from `scrutinee`.
+///
+/// `x is Cfg` writes only a type NAME, which carries no mutability of its own —
+/// without this the narrowing would hand back a mutable `Cfg` and launder a
+/// read-only borrow in one line. Since the bit is distributed over a union's
+/// variants, the answer is the matching variant's bit ; failing a nominal match
+/// (trait / subtype narrowing) the union stays immutable only when every variant
+/// is, so a narrowing never grants more than the scrutinee had.
+export narrowing_immutability :: fn(scrutinee: Type, narrowed: Type) -> bool {
+    if scrutinee is UnionType as u {
+        for v in u.variants {
+            if equals_type(v, narrowed) { return type_is_immutable(v) }
+        }
+        for v in u.variants {
+            if !type_is_immutable(v) { return false }
+        }
+        return true
+    }
+    return type_is_immutable(scrutinee)
+}
+
 // ---- canonical union ------------------------------------------------------
 
 /// Build a union from `variants`. Flattens nested unions, drops `Never`
 /// (absorbed — a value of that type doesn't exist), dedups, sorts by
 /// `display_type` output for stability. Empty / all-Never input
 /// collapses to `Never`.
-export union_of :: fn(variants: Type[]) -> Type {
+export union_of :: fn(variants: const Type[]) -> Type {
     dedup: Type[] = []
     for v in variants {
         v.collect_variant(dedup)
@@ -165,8 +230,16 @@ collect_variant :: fn(v: Type, into!: Type[]) -> void {
             for inner in u.variants { inner.collect_variant(into) }
         }
         _ -> {
-            for existing in into {
-                if equals_type(existing, v) { return }
+            for i in 0..<into.len() {
+                existing :: into[i]
+                if equals_type(existing, v) {
+                    // Same type, possibly two mutabilities (`equals_type` ignores the
+                    // bit on struct / tuple). Keep the LESS permissive one : a value
+                    // that is "either a read-only or a mutable Cfg" can't be mutated
+                    // without knowing which.
+                    if type_is_immutable(v) { into[i] = v }
+                    return
+                }
             }
             into.push(v)
         }
@@ -215,7 +288,7 @@ export struct_implements_trait :: fn(t: Type, trait_name: string, typed: TypedPr
 /// `[i32]`), or `null` when no concrete impl is registered for `t`'s
 /// nominal carrier. Shared by the typecheck's `unify_struct_to_trait_args`
 /// and the lowerer's trait-param monomorphisation.
-export lookup_struct_trait_args :: fn(t: Type, trait_name: string, typed: TypedProgram) -> Type[] | null {
+export lookup_struct_trait_args :: fn(t: Type, trait_name: string, typed: TypedProgram) -> const Type[] | null {
     name :: dispatch_key(t)
     if name == "" { return null }
     per_struct :: typed.struct_trait_args[name] ?? return null
@@ -230,7 +303,7 @@ export lookup_struct_trait_args :: fn(t: Type, trait_name: string, typed: TypedP
 /// when `t` isn't a struct instance or its decl is unavailable. Mirrors
 /// `field.vader::substitute_trait_typeparams`; the source of truth for binding a
 /// combinator/terminal's `Iterator<T>` param `T` from a concrete receiver.
-export resolve_struct_trait_args :: fn(t: Type, trait_name: string, typed: TypedProgram) -> Type[] | null {
+export resolve_struct_trait_args :: fn(t: Type, trait_name: string, typed: TypedProgram) -> const Type[] | null {
     // A `generator`'s `<fn>$State<E>` implements `Iterator<E>` — its trait args ARE
     // its own type args (the concrete element carried per instance). The synthetic
     // struct has no `struct_decl`, so the generic-substitution path below can't apply.
@@ -284,7 +357,7 @@ export types_overlap :: fn(a: Type, b: Type) -> bool {
     return equals_type(a, b)
 }
 
-union_variants :: fn(t: Type) -> Type[] | null {
+union_variants :: fn(t: Type) -> const Type[] | null {
     if t is UnionType as u { return u.variants }
     return null
 }

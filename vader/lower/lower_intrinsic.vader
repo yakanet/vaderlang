@@ -239,7 +239,7 @@ try_fold_type_args :: fn(
 ) -> LoweredExpr | null {
     if intrinsic.args.len() != 1 { return null }
     arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
-    args: Type[] = []
+    args: const Type[] = []
     if !(arg_or_null is null) {
         ty :: arg_ty_or_unresolved(arg_or_null)
         if ty is StructType as st { args = st.args }

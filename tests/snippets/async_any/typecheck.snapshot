@@ -19,9 +19,9 @@
   expr 23:12    StringLitExpr  :: string
   expr 29:10    AwaitExpr      :: Boom | string
   expr 29:16    CallExpr       :: Async<Boom | string>
-  expr 29:16    GenericInstExpr :: fn(Async<E | U>[]) -> Async<E | U>
-  expr 29:16    IdentExpr      :: fn(Async<E | U>[]) -> Async<E | U>
-  expr 29:34    SeqLitExpr     :: Async<Boom | string>[]
+  expr 29:16    GenericInstExpr :: fn(const Async<E | U>[]) -> Async<E | U>
+  expr 29:16    IdentExpr      :: fn(const Async<E | U>[]) -> Async<E | U>
+  expr 29:34    SeqLitExpr     :: const Async<Boom | string>[]
   expr 29:35    CallExpr       :: Async<Boom | string>
   expr 29:35    IdentExpr      :: fn() -> Async<Boom | string>
   expr 29:48    CallExpr       :: Async<Boom | string>

@@ -89,7 +89,7 @@ export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedP
     for [_, tp] in per_module {
         if entries.len() > 0 { tp.has_generators = true }
         for e in entries {
-            state_ty :: mk_struct(gen_state_symbol_of(e.id, e.name, e.module), [])
+            state_ty :: mk_struct(gen_state_symbol_of(e.id, e.name, e.module), [], immutable = false)
             record_struct_trait(tp, state_ty, TRAIT_ITERATOR)
             record_struct_trait_args(tp, state_ty, TRAIT_ITERATOR, [e.element])
             tp.iter_element_types[gen_state_name(e.name)] = e.element
@@ -113,8 +113,8 @@ export generator_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, co
     // self-compile today) skips the per-call callee probe entirely.
     if !typed.has_generators { return null }
     fn_sym :: callee_generator_symbol(c, typed) ?? return null
-    elem :: iterator_element_of(concrete_ret) ?? return mk_struct(gen_state_symbol(fn_sym), [])
-    return mk_struct(gen_state_symbol(fn_sym), [elem])
+    elem :: iterator_element_of(concrete_ret) ?? return mk_struct(gen_state_symbol(fn_sym), [], false)
+    return mk_struct(gen_state_symbol(fn_sym), [elem], false)
 }
 
 /// The element `E` of an `Iterator<E>`, or null when `t` isn't a single-arg

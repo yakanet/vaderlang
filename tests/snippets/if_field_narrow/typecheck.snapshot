@@ -2,7 +2,7 @@
 
 ## tests/snippets/if_field_narrow
   StructDecl     Bag                  :: Bag
-  FnDecl         count                :: fn(i32[]) -> i32
+  FnDecl         count                :: fn(const i32[]) -> i32
   FnDecl         main                 :: fn() -> i32
   FnDecl         report               :: fn(Bag) -> void
   FnDecl         total                :: fn(Bag) -> i32
@@ -10,14 +10,14 @@
   expr 15:12    IdentExpr      :: type
   expr 15:16    CallExpr       :: usize
   expr 15:16    FieldExpr      :: fn() -> usize
-  expr 15:16    IdentExpr      :: i32[]
+  expr 15:16    IdentExpr      :: const i32[]
   expr 20:5     IfExpr         :: void
   expr 20:8     BinaryExpr     :: bool
   expr 20:8     FieldExpr      :: i32[] | null
   expr 20:8     IdentExpr      :: Bag
   expr 21:17    StringLitExpr  :: string
   expr 21:26    CallExpr       :: i32
-  expr 21:26    IdentExpr      :: fn(i32[]) -> i32
+  expr 21:26    IdentExpr      :: fn(const i32[]) -> i32
   expr 21:32    FieldExpr      :: i32[]
   expr 21:32    IdentExpr      :: Bag
   expr 21:9     CallExpr       :: void
@@ -31,7 +31,7 @@
   expr 29:8     FieldExpr      :: i32[] | null
   expr 29:8     IdentExpr      :: Bag
   expr 30:12    CallExpr       :: i32
-  expr 30:12    IdentExpr      :: fn(i32[]) -> i32
+  expr 30:12    IdentExpr      :: fn(const i32[]) -> i32
   expr 30:18    FieldExpr      :: i32[]
   expr 30:18    IdentExpr      :: Bag
   expr 34:13    StructLitExpr  :: Bag

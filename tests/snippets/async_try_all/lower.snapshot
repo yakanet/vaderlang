@@ -710,7 +710,7 @@
                                                                               callee:
                                                                                 std_async$try_all__i32__Any :Async<(i32 | Outage)[] | Error>
                                                                               arg0:
-                                                                                array :Async<i32 | Outage>[]
+                                                                                array :const Async<i32 | Outage>[]
                                                                                   call :Async<i32 | Outage>
                                                                                     callee:
                                                                                       fetch :fn(string, i64, bool) -> Async<i32 | Outage>
@@ -882,7 +882,7 @@
                                                                                                   callee:
                                                                                                     std_async$try_all__i32__Any :Async<(i32 | Outage)[] | Error>
                                                                                                   arg0:
-                                                                                                    array :Async<i32 | Outage>[]
+                                                                                                    array :const Async<i32 | Outage>[]
                                                                                                       call :Async<i32 | Outage>
                                                                                                         callee:
                                                                                                           fetch :fn(string, i64, bool) -> Async<i32 | Outage>

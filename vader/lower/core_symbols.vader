@@ -28,13 +28,13 @@ export lookup_core_symbol :: fn(ctx: FnLowerCtx, name: string) -> Symbol | null 
 /// @param args  concrete type arguments in source order ; empty for
 ///              non-generic structs.
 /// @return      the struct type, or `null` when not resolvable.
-export find_core_type :: fn(ctx: FnLowerCtx, name: string, args: Type[]) -> Type | null {
+export find_core_type :: fn(ctx: FnLowerCtx, name: string, args: const Type[]) -> Type | null {
     symbol :: lookup_core_symbol(ctx, name)
     match symbol {
         is null -> { return null }
         is Symbol as s -> {
             if s.kind != SymbolKind.Struct { return null }
-            return mk_struct(s, args)
+            return mk_struct(s, args, immutable = false)
         }
     }
 }

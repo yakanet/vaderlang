@@ -6,8 +6,8 @@
       let f: __lambda_env_4 =
         __lambda_env_4 {
         }
-      let __fuse_arr_3: i32[] =
-        array :i32[]
+      let __fuse_arr_3: const i32[] =
+        array :const i32[]
           int(1) :i32
           int(2) :i32
           int(3) :i32
@@ -18,7 +18,7 @@
         let x: i32 =
           index :i32
             on:
-              __fuse_arr_3 :i32[]
+              __fuse_arr_3 :const i32[]
             ix:
               __fuse_i_5 :usize
         let v: i32 =
@@ -87,8 +87,8 @@
       let pred: __lambda_env_12 =
         __lambda_env_12 {
         }
-      let __fuse_arr_9: i32[] =
-        array :i32[]
+      let __fuse_arr_9: const i32[] =
+        array :const i32[]
           int(1) :i32
           int(2) :i32
           int(3) :i32
@@ -101,7 +101,7 @@
         let x: i32 =
           index :i32
             on:
-              __fuse_arr_9 :i32[]
+              __fuse_arr_9 :const i32[]
             ix:
               __fuse_i_11 :usize
         if :void

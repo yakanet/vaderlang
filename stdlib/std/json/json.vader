@@ -40,7 +40,7 @@ export JsonBool :: struct { value: bool }
 export JsonNull :: struct {}
 
 /// JSON array — ordered list of `JsonValue`s.
-export JsonArray :: struct { items: JsonValue[] }
+export JsonArray :: struct { items: const JsonValue[] }
 
 /// JSON object — string-keyed map of `JsonValue`s. Insertion order is
 /// preserved by the parser ; lookup is O(1) average via `MutableMap`.

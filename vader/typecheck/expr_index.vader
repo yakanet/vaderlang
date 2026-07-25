@@ -93,7 +93,7 @@ export infer_index :: fn(
 /// bound names no such trait. Walks `A & B` intersections the same way
 /// `dispatch_bounded_method_trait` does. Shared by the `c[i]` read (Index) and
 /// the `c[i] = v` write (IndexSet, in `stmt.vader::check_assign`).
-export bounded_trait_args :: fn(bound: AST.Expr, trait_name: string, typed: TypedProgram) -> Type[] | null {
+export bounded_trait_args :: fn(bound: AST.Expr, trait_name: string, typed: TypedProgram) -> const Type[] | null {
     if bound is AST.BinaryExpr as be {
         if be.op == AST.BinaryOp.BitAnd {
             l :: bounded_trait_args(be.left, trait_name, typed)

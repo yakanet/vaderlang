@@ -118,7 +118,7 @@
     return int(0) :i32
   fn snippet$snippet$identity__i32(x: i32) -> i32
     return x :i32
-  fn snippet$snippet$first__i32(arr: i32[], fallback: i32) -> i32
+  fn snippet$snippet$first__i32(arr: const i32[], fallback: i32) -> i32
     if :void
       cond:
         gt :bool
@@ -130,7 +130,7 @@
         return
           index :i32
             on:
-              arr :i32[]
+              arr :const i32[]
             ix:
               int(0) :i32
     return fallback :i32

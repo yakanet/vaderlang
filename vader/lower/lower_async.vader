@@ -64,7 +64,7 @@ mk_async_method_decl :: fn(
 push_async_decls :: fn(
     fn_ctx!: FnLowerCtx, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
     resume_ty: Type, resume_body: LoweredBlock, cancel_body: LoweredBlock,
-    state_fields: LoweredStructField[],
+    state_fields: const LoweredStructField[],
 ) -> void {
     module_seg :: mangle_module_id(fn_ctx.typed.resolved.display_path)
     resume_decl :: mk_async_method_decl(fn_ctx, module_seg, state_sym, self_sym, state_ty, METHOD_RESUME, resume_ty, resume_body)
@@ -131,7 +131,7 @@ export lower_async_fn :: fn(
     // suffices. Both the synth `resume` fn's receiver and the body's
     // `return __asyncstate {…}` box use THIS symbol, so the vtable row matches.
     state_sym :: fresh_lifted_symbol_with_prefix(fn_ctx, true, "__async_", "__asyncstate_")
-    state_ty :: mk_struct(state_sym, [])
+    state_ty :: mk_struct(state_sym, [], immutable = false)
     self_sym :: fresh_synthetic_symbol(fn_ctx, "self")
 
     suspended_opt :: find_core_type(fn_ctx, STRUCT_SUSPENDED, [])

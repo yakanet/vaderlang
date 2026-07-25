@@ -300,7 +300,7 @@ export TypedProgram :: struct {
     /// `struct_trait_args["Hello"]["Greeter"] = [i32]`. Consumed by
     /// `unify.vader::unify_type_param` so a generic fn parametrised by
     /// `fn<T>(g: Greeter<T>)` called as `f(Hello {})` can bind T → i32.
-    struct_trait_args: MutableMap<string, MutableMap<string, Type[]>>
+    struct_trait_args: MutableMap<string, MutableMap<string, const Type[]>>
 
     /// Enclosing fn-body context, pushed by `check_fn_body` and
     /// popped when it returns. Lets `check_return` (called via the
@@ -450,7 +450,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .struct_field_types = MutableMap<i32, MutableMap<string, Type>> {},
     .struct_implemented_traits = MutableMap<string, string[]> {},
     .struct_traits_by_sym = MutableMap<i32, string[]> {},
-    .struct_trait_args = MutableMap<string, MutableMap<string, Type[]>> {},
+    .struct_trait_args = MutableMap<string, MutableMap<string, const Type[]>> {},
     .current_fn_ctx  = null,
     .node_spans      = MutableMap<usize, Span> {},
     .dump_types      = false,

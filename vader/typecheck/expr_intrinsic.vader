@@ -109,7 +109,7 @@ type_for_result :: fn(name: string, typed: TypedProgram) -> Type {
         field_sym :: typed.field_symbol
         match field_sym {
             is null -> { return TY_UNRESOLVED }
-            is Symbol as fs -> { return mk_array(mk_struct(fs, []), false) }
+            is Symbol as fs -> { return mk_array(mk_struct(fs, [], immutable = false), immutable = false) }
         }
     }
     return TY_UNRESOLVED

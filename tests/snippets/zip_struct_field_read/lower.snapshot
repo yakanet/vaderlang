@@ -47,13 +47,13 @@
               _0:
                 index :string
                   on:
-                    self :string[]
+                    self :const string[]
                   ix:
                     i :usize
               _1:
                 index :Any
                   on:
-                    other :Any[]
+                    other :const Any[]
                   ix:
                     i :usize
             }

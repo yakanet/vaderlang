@@ -416,7 +416,7 @@
                                   callee:
                                     std_async$race__string :Async<string>
                                   arg0:
-                                    array :Async<string>[]
+                                    array :const Async<string>[]
                                       call :Async<string>
                                         callee:
                                           leg :fn(string, i64) -> Async<string>

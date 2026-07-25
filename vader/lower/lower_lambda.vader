@@ -34,10 +34,10 @@ import "vader/comptime"
 /// @return              the make-closure expression.
 export lower_lambda :: fn(ctx!: FnLowerCtx, lambda: AST.LambdaExpr, block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock) -> LoweredExpr {
     captures :: lookup_captures(ctx, lambda)
-    lifted_symbol :: fresh_lifted_symbol(ctx, false)
-    env_symbol :: fresh_lifted_symbol(ctx, true)
+    lifted_symbol :: fresh_lifted_symbol(ctx, is_env = false)
+    env_symbol :: fresh_lifted_symbol(ctx, is_env = true)
     env_param_symbol :: synth_env_param_symbol(ctx)
-    env_type :: mk_struct(env_symbol, [])
+    env_type :: mk_struct(env_symbol, [], immutable = false)
     env_fields :: build_env_struct_fields(captures)
     capture_fields_map :: build_capture_fields_map(captures)
     env_decl :: LoweredStructDecl { .mangled = env_symbol.name, .fields = env_fields, .origin = synth_mono_entry(ctx, env_symbol) }

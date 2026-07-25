@@ -1241,7 +1241,7 @@ run_parser_stage :: fn(file: string) -> i32 {
 // The explicit `--module` list, else the entry's own module as the default
 // scope. The two-arg form lets a caller that already holds the entry's display
 // path (the typecheck stage, which has no `LoadedProject`) reuse the default.
-scope_or_entry :: fn(module_filter: string[], entry_display_path: string) -> string[] {
+scope_or_entry :: fn(module_filter: const string[], entry_display_path: string) -> const string[] {
     if module_filter.len() > 0 {
         return module_filter
     }
@@ -1252,7 +1252,7 @@ scope_or_entry :: fn(module_filter: string[], entry_display_path: string) -> str
 // the entry module's own display path (so the dump shows the entry's subtree).
 // `loaded.entry` is the entry FOLDER (the modules-map key), so look up its
 // `LoadedModule` to recover the user-declared display path. See `module_in_scope`.
-dump_scope :: fn(module_filter: string[], loaded: LoadedProject) -> string[] {
+dump_scope :: fn(module_filter: const string[], loaded: LoadedProject) -> const string[] {
     entry_module :: loaded.modules[loaded.entry]
     entry_dp :: if entry_module is LoadedModule as em {
         em.module.display_path
@@ -1262,7 +1262,7 @@ dump_scope :: fn(module_filter: string[], loaded: LoadedProject) -> string[] {
     return scope_or_entry(module_filter, entry_dp)
 }
 
-run_resolver_stage :: fn(file: string, module_filter: string[]) -> i32 {
+run_resolver_stage :: fn(file: string, module_filter: const string[]) -> i32 {
     project :: load_project(file, [])
     resolved :: resolve_loaded_project(project, dump_scope(module_filter, project))
     println(dump_project(resolved))
@@ -1276,7 +1276,7 @@ run_resolver_stage :: fn(file: string, module_filter: string[]) -> i32 {
 // Resolve every loaded module. Out-of-scope modules (dependencies, by default
 // everything outside the entry's subtree) stay loaded for import targets but
 // aren't surfaced in the dump. `ResolvedModule.path` is the first file's path.
-resolve_loaded_project :: fn(project!: LoadedProject, scope: string[]) -> ResolvedProject {
+resolve_loaded_project :: fn(project!: LoadedProject, scope: const string[]) -> ResolvedProject {
     materialize_all_sams_pre_resolve(project)
     core_seed :: build_core_seed(project)
     mod_index :: module_index_by_name(project)
@@ -1318,7 +1318,7 @@ collect_resolver_diags :: fn(project: LoadedProject, resolved: ResolvedProject) 
 // top-level decl types only — expression / local types arrive with Phase 3
 // (body checking). The dump format is stable so snapshots can byte-diff
 // stdout.
-run_typecheck_stage :: fn(file: string, module_filter: string[]) -> i32 {
+run_typecheck_stage :: fn(file: string, module_filter: const string[]) -> i32 {
     // `check_file` is the shared load+typecheck+merge the LSP also routes
     // through, so the editor's squiggles and this dump never diverge.
     // `dump_types = true` : this stage renders the `expr_kinds` / `node_spans`
@@ -1334,7 +1334,7 @@ run_typecheck_stage :: fn(file: string, module_filter: string[]) -> i32 {
     return 0
 }
 
-run_comptime_stage :: fn(file: string, module_filter: string[]) -> i32 {
+run_comptime_stage :: fn(file: string, module_filter: const string[]) -> i32 {
     pipeline :: prepare_evaluated_project(file)
     println(dump_evaluated(pipeline.evaluated, dump_scope(module_filter, pipeline.loaded)))
     // Mirror `run_lower_stage` / `run_bytecode_stage` : surface the merged
@@ -1345,7 +1345,7 @@ run_comptime_stage :: fn(file: string, module_filter: string[]) -> i32 {
     return 0
 }
 
-run_cfg_stage :: fn(file: string, module_filter: string[]) -> i32 {
+run_cfg_stage :: fn(file: string, module_filter: const string[]) -> i32 {
     pipeline :: prepare_evaluated_project(file)
     lower_diags: Diagnostic[] = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
@@ -1547,7 +1547,7 @@ entry_main_name :: fn(typed: TypedProject, entry: string) -> string {
 // `to_posix` first so the basename scan works on Windows `\` paths too.
 module_name_from_file :: fn(file: string) = file.to_posix().to_path().filename().trim_suffix(".vader")
 
-run_lower_stage :: fn(file: string, module_filter: string[]) -> i32 {
+run_lower_stage :: fn(file: string, module_filter: const string[]) -> i32 {
     pipeline :: prepare_evaluated_project(file)
     lower_diags: Diagnostic[] = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
@@ -1560,7 +1560,7 @@ run_lower_stage :: fn(file: string, module_filter: string[]) -> i32 {
 // `main` + `@export` / `@extern` (tests dropped — this is the run/build
 // view, not the test-runner view). Validates the call-graph reachability
 // walk before it's wired into the emit paths.
-run_dced_stage :: fn(file: string, module_filter: string[]) -> i32 {
+run_dced_stage :: fn(file: string, module_filter: const string[]) -> i32 {
     pipeline :: prepare_evaluated_project(file)
     lower_diags: Diagnostic[] = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
@@ -1581,7 +1581,7 @@ run_dced_stage :: fn(file: string, module_filter: string[]) -> i32 {
 // inspection. These two helpers implement that per-caller scoping: gather the
 // file paths of the in-scope modules, then drop any diagnostic anchored outside
 // them. `build` never calls these — `flush_build_diags` shows the full set.
-in_scope_diag_files :: fn(loaded: LoadedProject, scope: string[]) -> string[] {
+in_scope_diag_files :: fn(loaded: LoadedProject, scope: const string[]) -> string[] {
     out: string[] = []
     for [id, lm] in loaded.modules {
         if module_in_scope(lm.module.display_path, scope) {
@@ -1599,7 +1599,7 @@ filter_diags_in_scope :: fn(diags: Diagnostic[], files: string[]) -> Diagnostic[
     return out
 }
 
-print_pipeline_diags :: fn(pipeline: EvaluatedPipeline, extra: Diagnostic[], scope: string[]) -> void {
+print_pipeline_diags :: fn(pipeline: EvaluatedPipeline, extra: Diagnostic[], scope: const string[]) -> void {
     all :: merge_diagnostics(gather_pipeline_diags(pipeline), extra)
     files :: in_scope_diag_files(pipeline.loaded, scope)
     print_merged_diags(filter_diags_in_scope(all, files), [])

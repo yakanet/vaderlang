@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  fn snippet$count_fields(fs: Field[]) -> i32
+  fn snippet$count_fields(fs: const Field[]) -> i32
     ~>
       cast → i32
         LoweredArrayLen
@@ -9,9 +9,9 @@
     ~>
       call :i32
         callee:
-          count_fields :fn(Field[]) -> i32
+          count_fields :fn(const Field[]) -> i32
         arg0:
-          array :Field[]
+          array :const Field[]
 
 ## snippet/db
 

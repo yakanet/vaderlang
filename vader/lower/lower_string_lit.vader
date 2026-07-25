@@ -48,7 +48,7 @@ lower_string_lit :: fn(ctx!: FnLowerCtx, expr: StringLitExpr, type: Type) -> Low
 // parts array, one intern for the whole chain, ANY arity (no magic 2/3/4, no
 // cliff). It is synthesised on first use of arity N and shared across every
 // N-leaf concat ; the call site stays one `call`.
-lower_concat_chain :: fn(ctx!: FnLowerCtx, operands: LoweredExpr[], span: Span) -> LoweredExpr {
+lower_concat_chain :: fn(ctx!: FnLowerCtx, operands!: LoweredExpr[], span: Span) -> LoweredExpr {
     n :: operands.len()
     string_type :: TY_STRING
     // A 1-leaf "chain" can't arise from `+` (always ≥ 2 leaves), but the all-
@@ -67,7 +67,7 @@ unreachable_buffer :: fn(why: string) -> LoweredExpr =
     unreachable("lower_string_lit: ${why} (std/core must be force-loaded)")
 
 // Build a `<fn>(args)` call typed `ret`.
-mk_lowered_call :: fn(sym: Symbol, args: LoweredExpr[], ret: Type, span: Span) -> LoweredExpr =
+mk_lowered_call :: fn(sym: Symbol, args!: LoweredExpr[], ret: Type, span: Span) -> LoweredExpr =
     LoweredCall {
         .span = span, .type = ret,
         .callee = LoweredIdent { .span = span, .type = ret, .symbol = sym },

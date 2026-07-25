@@ -41,7 +41,7 @@ export MANIFEST_FILENAME :: "vader.json"
 ///
 /// @param display_path  the module's user-declared name (`module "..."`).
 /// @param scope         the in-scope module ids / prefixes.
-export module_in_scope :: fn(display_path: string, scope: string[]) -> bool {
+export module_in_scope :: fn(display_path: string, scope: const string[]) -> bool {
     for m in scope {
         if display_path == m { return true }
         if display_path.starts_with("${m}/") { return true }

@@ -39,7 +39,7 @@ export lower_defer :: fn(
     lifted_symbol :: fresh_lifted_defer_symbol(ctx, false)
     env_symbol    :: fresh_lifted_defer_symbol(ctx, true)
     env_param_symbol :: fresh_synthetic_symbol(ctx, "env")
-    env_type :: mk_struct(env_symbol, [])
+    env_type :: mk_struct(env_symbol, [], immutable = false)
 
     env_fields :: build_defer_env_fields(captures)
     capture_fields_map :: build_defer_capture_fields_map(captures)

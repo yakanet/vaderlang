@@ -418,7 +418,7 @@ emit_tmp_decls :: fn(
 /// diverges past 10 slots of one type.
 emit_slot_decls :: fn(
     out!: StringBuilder,
-    vals: ValType[],
+    vals: const ValType[],
     names: string[],
     root_addrs!: string[],
     raw_root_addrs!: string[],
@@ -1600,7 +1600,7 @@ tramp_box_params :: fn(count: usize) -> string {
 
 /// Unbox `a0..a<n-1>` to the concrete `params` classes, comma-joined — the
 /// `fn.ref` trampoline's argument list (params map 1:1 to `a<j>`).
-tramp_unbox_args :: fn(params: ValType[]) -> string {
+tramp_unbox_args :: fn(params: const ValType[]) -> string {
     parts: string[] = []
     for j in 0..<params.len() {
         parts.push(unbox_expr("a${j}", params[j]))
@@ -1610,7 +1610,7 @@ tramp_unbox_args :: fn(params: ValType[]) -> string {
 
 /// Unbox the lift wrapper's tail `a0..` to `params[1..]` (param 0 is the env
 /// slot, supplied as `env_box`), comma-joined.
-lift_unbox_tail :: fn(params: ValType[]) -> string {
+lift_unbox_tail :: fn(params: const ValType[]) -> string {
     parts: string[] = []
     for j in 1..<params.len() {
         parts.push(unbox_expr("a${j - 1}", params[j]))
