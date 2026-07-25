@@ -436,7 +436,7 @@ import "vader/parser"
 /// don't collide with the trait module's own typing pass (which keys
 /// on the trait's original AST node IDs).
 export substitute_block_materialized :: fn(
-    b: AST.BlockExpr, subst: Subst, factory: NodeIdFactory, stamp!: StampCtx,
+    b: AST.BlockExpr, subst: Subst, factory!: NodeIdFactory, stamp!: StampCtx,
 ) -> AST.BlockExpr {
     cloned :: substitute_block(b, subst)
     assign_block_ids(cloned, factory)

@@ -106,7 +106,7 @@ export ResolvedProject :: struct {
 /// `symbols` excludes builtins so the resolved-ast dump stays focused on
 /// user code ; `idents` includes them because the body walker resolves
 /// every IdentExpr against the full root scope.
-export resolve_module :: fn(program: Program, module_path: string, factory: SymbolFactory) -> ResolvedModule {
+export resolve_module :: fn(program: Program, module_path: string, factory!: SymbolFactory) -> ResolvedModule {
     collected :: collect_module_no_index(program, module_path, factory)
     return resolve_module_with_collected_dp(program, module_path, module_path, factory, collected)
 }
@@ -114,7 +114,7 @@ export resolve_module :: fn(program: Program, module_path: string, factory: Symb
 /// Variant for callers that have a distinct `display_path` (the
 /// `module "..."` declaration) ; thin wrapper that just threads through.
 export resolve_module_with_display :: fn(
-    program: Program, module_path: string, display_path: string, factory: SymbolFactory,
+    program: Program, module_path: string, display_path: string, factory!: SymbolFactory,
 ) -> ResolvedModule {
     collected :: collect_module_no_index(program, module_path, factory)
     return resolve_module_with_collected_dp(program, module_path, display_path, factory, collected)
@@ -124,7 +124,7 @@ export resolve_module_with_display :: fn(
 /// that already collected (e.g. the multi-module orchestrator) can
 /// skip the duplicate work and keep Symbol ids stable across passes.
 export resolve_module_with_collected :: fn(
-    program: Program, module_path: string, factory: SymbolFactory,
+    program: Program, module_path: string, factory!: SymbolFactory,
     collected: CollectedModule,
 ) -> ResolvedModule {
     // Back-compat thin wrapper : display_path defaults to module_path.
@@ -135,7 +135,7 @@ export resolve_module_with_collected :: fn(
 /// `module_path`. The orchestrator threads this from
 /// `LoadedModule.module.display_path` so dump + mangling stay stable.
 export resolve_module_with_collected_dp :: fn(
-    program: Program, module_path: string, display_path: string, factory: SymbolFactory,
+    program: Program, module_path: string, display_path: string, factory!: SymbolFactory,
     collected: CollectedModule,
 ) -> ResolvedModule {
     empty_seed :: MutableMap<string, Symbol> {}
@@ -156,7 +156,7 @@ export resolve_module_with_collected_dp :: fn(
 /// unconditionally on any unresolved IdentExpr instead of deferring to the
 /// typechecker.
 export resolve_module_with_collected_dp_seeded :: fn(
-    program: Program, module_path: string, display_path: string, factory: SymbolFactory,
+    program: Program, module_path: string, display_path: string, factory!: SymbolFactory,
     collected: CollectedModule, core_seed: MutableMap<string, Symbol>,
     ambiguous: MutableMap<string, string[]>,
 ) -> ResolvedModule {

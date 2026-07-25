@@ -415,7 +415,7 @@ export type_base_name :: fn(t: Type) -> string {
 }
 
 
-write_type :: fn(sb: StringBuilder, t: Type) -> void {
+write_type :: fn(sb!: StringBuilder, t: Type) -> void {
     match t {
         is PrimitiveType as x -> { sb.append(x.name) }
         is StructType    as x -> { sb.write_named(x.symbol.name, x.args) }
@@ -467,7 +467,7 @@ write_type :: fn(sb: StringBuilder, t: Type) -> void {
     }
 }
 
-write_named :: fn(sb: StringBuilder, name: string, args: Type[]) -> void {
+write_named :: fn(sb!: StringBuilder, name: string, args: Type[]) -> void {
     sb.append(name)
     if args.len() == 0 { return }
     sb.append_char('<')
@@ -475,7 +475,7 @@ write_named :: fn(sb: StringBuilder, name: string, args: Type[]) -> void {
     sb.append_char('>')
 }
 
-write_type_list :: fn(sb: StringBuilder, items: Type[], sep: string) -> void {
+write_type_list :: fn(sb!: StringBuilder, items: Type[], sep: string) -> void {
     first := true
     for it in items {
         if !first { sb.append(sep) }

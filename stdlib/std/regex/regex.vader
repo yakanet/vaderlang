@@ -683,7 +683,7 @@ export replace_all :: fn(self: Pattern, input: string, repl: string) -> string {
     return sb.to_string()
 }
 
-expand_replacement :: fn(sb: StringBuilder, rb: const u8[], m: Match) -> void {
+expand_replacement :: fn(sb!: StringBuilder, rb: const u8[], m: Match) -> void {
     n :: rb.len()
     i: usize = 0
     for i < n {

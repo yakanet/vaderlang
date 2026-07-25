@@ -98,7 +98,7 @@ diag_less_with_file :: fn(a: Diagnostic, b: Diagnostic) -> bool {
 // Format one diagnostic as `[file:line:col] error[CODE] message: detail`. The
 // severity word is TTY-coloured only on the user-facing (show_file) channel ;
 // the machine channel stays plain so the `*.snapshot` fixtures are byte-stable.
-format_diagnostic :: fn(sb: StringBuilder, d: Diagnostic, show_file: bool) -> void {
+format_diagnostic :: fn(sb!: StringBuilder, d: Diagnostic, show_file: bool) -> void {
     sev_word :: match d.severity {
         .Error   -> "error"
         .Warning -> "warning"

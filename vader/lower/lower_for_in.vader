@@ -409,7 +409,7 @@ erase_genstate_for_dispatch :: fn(ctx: FnLowerCtx, iter_type: Type, element_type
 // synth `next` symbol. The bytecode emit resolves the synth callee
 // via the impl-member mangling once that wiring lands.
 build_step_call :: fn(
-    ctx: FnLowerCtx, iter_ref: LoweredExpr, iter_type: Type, step_union: Type, span: Span,
+    ctx!: FnLowerCtx, iter_ref: LoweredExpr, iter_type: Type, step_union: Type, span: Span,
 ) -> LoweredExpr {
     match iter_type {
         is TraitType as tt -> {

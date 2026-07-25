@@ -414,7 +414,7 @@ type_index_of :: fn(op: Op) -> i32 {
 /// Recursive reachability walk on the type table. Composite types
 /// (struct / union / array / fn) extend the visit through their
 /// inner type indices.
-visit_type :: fn(idx: i32, ctx: EmitterCtx, reachable: MutableSet<i32>) -> void {
+visit_type :: fn(idx: i32, ctx: EmitterCtx, reachable!: MutableSet<i32>) -> void {
     if idx < 0 { return }
     if idx in reachable { return }
     if usize(idx) >= ctx.types.len() { return }

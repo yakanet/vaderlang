@@ -6,7 +6,7 @@
 // immutable receiver. T3071.
 module "snippet"
 
-grow :: fn(a: const i32[]) -> void {
+grow :: fn(a!: const i32[]) -> void {
     a.push(9)
 }
 

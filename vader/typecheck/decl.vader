@@ -38,7 +38,7 @@ export declare_module :: fn(
     program_decls: AST.Decl[],
     resolved!: ResolvedModule,
     typed!: TypedProgram,
-    factory: SymbolFactory,
+    factory!: SymbolFactory,
     diags!: Diagnostic[],
 ) -> void {
     by_name :: MutableMap<string, Symbol> {}
@@ -118,7 +118,7 @@ declare_decl :: fn(
     by_name: MutableMap<string, Symbol>,
     resolved!: ResolvedModule,
     typed!: TypedProgram,
-    factory: SymbolFactory,
+    factory!: SymbolFactory,
     diags!: Diagnostic[],
 ) -> void {
     match decl {
@@ -200,7 +200,7 @@ declare_named_with_args :: fn(
     by_name: MutableMap<string, Symbol>,
     typed!: TypedProgram,
     module_path: string,
-    factory: SymbolFactory,
+    factory!: SymbolFactory,
     mk: fn(Symbol, Type[]) -> Type,
 ) -> void {
     sym :: by_name[name] ?? return

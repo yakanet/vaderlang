@@ -72,10 +72,10 @@ export next_u64 :: fn(self!: Rng) -> u64 {
 /// Draw the next u32 by taking the upper 32 bits of `next_u64` — the
 /// upper bits of xoroshiro128++ pass BigCrush, the lower bits are
 /// slightly weaker on certain tests.
-export next_u32 :: fn(self: Rng) -> u32 = u32(self.next_u64() >> 32)
+export next_u32 :: fn(self!: Rng) -> u32 = u32(self.next_u64() >> 32)
 
 /// Uniform random boolean (50/50). Advances the RNG state.
-export next_bool :: fn(self: Rng) -> bool = (self.next_u64() >> 63) == 1
+export next_bool :: fn(self!: Rng) -> bool = (self.next_u64() >> 63) == 1
 
 /// Uniform i32 in the half-open range `[lo, hi)`. A degenerate range
 /// (`hi <= lo`) is empty and returns `lo` — without this guard the
@@ -83,7 +83,7 @@ export next_bool :: fn(self: Rng) -> bool = (self.next_u64() >> 63) == 1
 ///
 /// Implementation uses rejection sampling on the top 32 bits to avoid
 /// modulo bias when `(hi - lo)` doesn't divide `2^32`.
-export range_i32 :: fn(self: Rng, lo: i32, hi: i32) -> i32 {
+export range_i32 :: fn(self!: Rng, lo: i32, hi: i32) -> i32 {
     if hi <= lo { return lo }
     span :: u32(hi - lo)
     limit :: 0xFFFFFFFF - (0xFFFFFFFF % span)
@@ -97,7 +97,7 @@ export range_i32 :: fn(self: Rng, lo: i32, hi: i32) -> i32 {
 /// Uniform u32 in the half-open range `[lo, hi)`. A degenerate range
 /// (`hi <= lo`) is empty and returns `lo` — without this guard the
 /// modulus would divide by zero.
-export range_u32 :: fn(self: Rng, lo: u32, hi: u32) -> u32 {
+export range_u32 :: fn(self!: Rng, lo: u32, hi: u32) -> u32 {
     if hi <= lo { return lo }
     span :: hi - lo
     limit :: 0xFFFFFFFF - (0xFFFFFFFF % span)
@@ -113,14 +113,14 @@ export range_u32 :: fn(self: Rng, lo: u32, hi: u32) -> u32 {
 /// divided by `2^52` is the immediate predecessor of `1.0` rather than
 /// rounding up to exactly `1.0` (which `(2^53 - 1) / 2^53` does on
 /// IEEE 754 round-to-nearest).
-export unit_f64 :: fn(self: Rng) -> f64 {
+export unit_f64 :: fn(self!: Rng) -> f64 {
     return f64(self.next_u64() >> 12) / f64(u64(0x10_0000_0000_0000))
 }
 
 /// In-place Fisher-Yates shuffle. Visits each element once in O(n) ;
 /// O(1) extra memory (one i32 swap helper). Returns nothing — the
 /// input array is permuted directly.
-export shuffle :: fn<T>(self: Rng, arr!: T[]) -> void {
+export shuffle :: fn<T>(self!: Rng, arr!: T[]) -> void {
     n :: arr.len()
     if n <= 1 { return }
     i: usize = n - 1

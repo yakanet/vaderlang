@@ -111,7 +111,7 @@ export emit_c_split :: fn(m: BytecodeModule, opts: EmitOptions, num_units: i32, 
 /// Prototype for every `call.import` shim (`vader_import_N`). Split builds
 /// scatter the shim definitions (unit 0) and their call sites (any unit), so
 /// each needs a prototype. The signature mirrors `host.vader::import_shim`.
-emit_import_shim_protos :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+emit_import_shim_protos :: fn(ctx: EmitCtx, out!: StringBuilder) -> void {
     imports :: ctx.module.imports
     for i in 0..<imports.len() {
         out.append("${import_shim_signature(imports[i], i32(i))};\n")
@@ -122,7 +122,7 @@ emit_import_shim_protos :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
 /// `#define VADER_COMPTIME_ATOM_COUNT N` for the shared header — the unit that
 /// carries `main` reads it to size `vader_atom_init_with_comptime`. Mirrors the
 /// value `emit_atom_comptime_table` bakes into the globals TU.
-emit_atom_count_define :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+emit_atom_count_define :: fn(ctx: EmitCtx, out!: StringBuilder) -> void {
     out.append("#define VADER_COMPTIME_ATOM_COUNT ${comptime_atom_count(ctx)}u\n\n")
 }
 
@@ -141,7 +141,7 @@ comptime_atom_count :: fn(ctx: EmitCtx) -> i32 {
 /// the function units : the data-pool arrays (`data.const`), the atom table
 /// (`main`), and the size table (`@size_of`). `vader_type_info_table` /
 /// `vader_vtable_table` + their counts are already declared by `vader.h`.
-emit_data_global_externs :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+emit_data_global_externs :: fn(ctx: EmitCtx, out!: StringBuilder) -> void {
     for i in 0..<ctx.module.data_pool.len() {
         out.append("extern const vader_array_t vader_data_${i};\n")
     }

@@ -23,7 +23,7 @@ vm :: import "vader/bytecode"
 /// separated by a blank line. Delegates to `emit_function_body`, which
 /// walks the op stream against a `FnState` ; `emit_op` is the exhaustive
 /// per-op dispatch with a real arm for every `Op` variant.
-emit_functions :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+emit_functions :: fn(ctx: EmitCtx, out!: StringBuilder) -> void {
     fns :: ctx.module.functions
     for i in 0..<fns.len() {
         emit_function_body(ctx, i32(i), fns[i], out)
@@ -251,7 +251,7 @@ op_allocates :: fn(op: vm.Op) -> bool = match op {
 /// local + temp declarations and the GC-frame prologue (skipped for
 /// `no_frame` fns) can be assembled above it :
 /// signature → local decls → temp decls → frame → body.
-emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out: StringBuilder) -> void {
+emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out!: StringBuilder) -> void {
     no_frame :: !(fn_index in ctx.may_alloc)
     out.append("${linkage_prefix(ctx.split)}${signature_for(function)} {\n")
     // Walk the body into a separate buffer first : temps are discovered
@@ -376,7 +376,7 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
 /// chunking (it would only matter past 10 locals of one type).
 emit_local_decls :: fn(
     function: BcFunction,
-    out: StringBuilder,
+    out!: StringBuilder,
     root_addrs!: string[],
     raw_root_addrs!: string[],
     no_frame: bool,
@@ -399,7 +399,7 @@ emit_local_decls :: fn(
 /// `s.tmp_types` (index N → ValType of `tN`), populated during the walk.
 emit_tmp_decls :: fn(
     s: FnState,
-    out: StringBuilder,
+    out!: StringBuilder,
     root_addrs!: string[],
     raw_root_addrs!: string[],
     no_frame: bool,
@@ -417,7 +417,7 @@ emit_tmp_decls :: fn(
 /// PER_LINE chunking (10 names / line) is deferred — it only
 /// diverges past 10 slots of one type.
 emit_slot_decls :: fn(
-    out: StringBuilder,
+    out!: StringBuilder,
     vals: ValType[],
     names: string[],
     root_addrs!: string[],
@@ -973,7 +973,7 @@ emit_return :: fn(s!: FnState) -> void {
 /// `return.lit` — the fused `<T>.const X ; return`. A const can't read a
 /// frame-pinned local, so the framed form pops the frame inline (no
 /// `__vret` snapshot needed).
-emit_return_lit :: fn(s: FnState, value: vm.ConstOp) -> void {
+emit_return_lit :: fn(s!: FnState, value: vm.ConstOp) -> void {
     // Coerce the literal to the fn's result class : a boxed-result fn (e.g. an
     // enum / union returned as `any`) needs the const boxed, not returned raw.
     rv :: coerce_expr(
@@ -989,7 +989,7 @@ emit_return_lit :: fn(s: FnState, value: vm.ConstOp) -> void {
 /// GC-frame pop for framed fns. For a value return whose expression may
 /// read a frame-pinned local, `emit_return` uses the `__vret` snapshot
 /// form instead.
-emit_return_stmt :: fn(s: FnState, ret: string) -> void {
+emit_return_stmt :: fn(s!: FnState, ret: string) -> void {
     if s.no_frame {
         line(s, ret)
     } else {
@@ -1434,7 +1434,7 @@ emit_virtual_call :: fn(s!: FnState, op: vm.VirtualCall) -> void {
 /// (`vader_box_t` per arg + return) so one `code` pointer is castable at any
 /// `call.indirect` site. Gated on the ops actually appearing — a fn-typed
 /// field can exist with no fn-value op.
-emit_fn_trampolines :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+emit_fn_trampolines :: fn(ctx: EmitCtx, out!: StringBuilder) -> void {
     usage :: scan_fn_value_usage(ctx.module.functions)
     if !usage.any {
         return
@@ -1500,7 +1500,7 @@ scan_fn_value_usage :: fn(fns: BcFunction[]) -> FnValueUsage {
 /// split build scatters callers and definitions across TUs → each needs a
 /// prototype (fns) / `extern` (the static value) in the shared header. The
 /// heads mirror `emit_fn_ref_tramp` / `emit_closure_lift` exactly.
-emit_closure_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+emit_closure_forward_decls :: fn(ctx: EmitCtx, out!: StringBuilder) -> void {
     if !ctx.split {
         return
     }
@@ -1531,7 +1531,7 @@ emit_closure_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
 
 /// Emit the `fn.ref` trampoline (drops env, unboxes args to the fn's concrete
 /// sig, boxes the result) + the static `vader_fn_t` value pointing at it.
-emit_fn_ref_tramp :: fn(ctx: EmitCtx, out: StringBuilder, fn_index: i32, type_id: i32) -> void {
+emit_fn_ref_tramp :: fn(ctx: EmitCtx, out!: StringBuilder, fn_index: i32, type_id: i32) -> void {
     fn_decl :: ctx.module.functions[usize(fn_index)]
     cname :: sanitise(fn_decl.name)
     sig :: fn_decl.signature
@@ -1555,7 +1555,7 @@ emit_fn_ref_tramp :: fn(ctx: EmitCtx, out: StringBuilder, fn_index: i32, type_id
 /// Emit the `make_closure` lift wrapper : takes `void* env` + the tail args
 /// boxed, re-boxes env into the `vader_box_t` the lifted fn's first param
 /// expects, unboxes the tail to the concrete sig, boxes the result.
-emit_closure_lift :: fn(ctx: EmitCtx, out: StringBuilder, fn_index: i32) -> void {
+emit_closure_lift :: fn(ctx: EmitCtx, out!: StringBuilder, fn_index: i32) -> void {
     fn_decl :: ctx.module.functions[usize(fn_index)]
     cname :: sanitise(fn_decl.name)
     sig :: fn_decl.signature
@@ -1777,7 +1777,7 @@ emit_defer_push :: fn(s!: FnState) -> void {
 
 /// `defer.pop_exec` — run + pop the top `count` deferred closures at a scope
 /// exit.
-emit_defer_pop_exec :: fn(s: FnState, op: vm.DeferPopExec) -> void = line(
+emit_defer_pop_exec :: fn(s!: FnState, op: vm.DeferPopExec) -> void = line(
     s,
     "vader_defer_pop_exec(${op.count}u);",
 )
@@ -2318,7 +2318,7 @@ emit_slot_load_prim :: fn(s!: FnState, cty: string, result: ValType, bounds_safe
 /// `emit_slot_array_local`. No write barrier (a primitive slot holds no reference).
 /// The value is coerced to `val` first (unboxing an erased `Any` box).
 emit_typed_slot_write :: fn(
-    s: FnState,
+    s!: FnState,
     a: string,
     idx: StackVal,
     value: StackVal,

@@ -35,7 +35,7 @@ materialize_concrete_struct_instances :: fn(
 //   concrete structs ; fn instances ; representative structs.
 materialize_representatives :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
-    project: LoweredProject, seen_reps: MutableSet<string>,
+    project: LoweredProject, seen_reps!: MutableSet<string>,
 ) -> void {
     for inst in project_ctx.evaluated.instances {
         materialize_representative(inst, loaded, typed, project_ctx, project, seen_reps)
@@ -51,7 +51,7 @@ materialize_representatives :: fn(
 materialize_representative :: fn(
     inst: GenericInstance, loaded: LoadedProject, typed: TypedProject,
     project_ctx: LowerProjectCtx, project: LoweredProject,
-    seen_reps: MutableSet<string>,
+    seen_reps!: MutableSet<string>,
 ) -> void {
     if !all_concrete_args(inst.args) { return }
     sym :: inst.symbol
@@ -312,7 +312,7 @@ MAX_FIELD_SHAPES :: 4096
 /// same shape recurs across hundreds of field / signature slots
 /// otherwise. TypeParam-bearing shapes (a generic decl's own
 /// self-reference) are skipped.
-push_struct_shape :: fn(t: Type, out!: StructType[], seen: MutableSet<string>) -> void {
+push_struct_shape :: fn(t: Type, out!: StructType[], seen!: MutableSet<string>) -> void {
     if t is StructType as s {
         if has_type_param(s) { return }
         key :: "${s.symbol.id}|${display_type(s)}"

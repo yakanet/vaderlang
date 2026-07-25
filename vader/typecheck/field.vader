@@ -56,7 +56,7 @@ export infer_field :: fn(
     if candidate !is null {
         return candidate
     }
-    candidate = try_free_fn_ufcs_dispatch(target_ty, e, typed)
+    candidate = try_free_fn_ufcs_dispatch(target_ty, e, typed, diags)
     if candidate !is null {
         repin_free_ufcs_receiver(target_ty, e, typed, check_expr_fn)
         return candidate
@@ -227,9 +227,17 @@ try_free_fn_ufcs_dispatch :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
     typed!: TypedProgram,
+    diags!: Diagnostic[],
 ) -> Type | null {
     free_ufcs :: try_free_fn_ufcs_with_first(e.field, target_ty, typed) ?? return null
     typed.ufcs_receiver_types[e.id] = free_ufcs.first_param
+    // T3071 on THIS dispatch path too. A mutator declared as a free fn called via
+    // UFCS — `put`, `remove`, `clear`, `append` — is the dominant stdlib style, and
+    // it never reached the check while it lived only in `try_impl_method_ufcs`.
+    reject_mutating_method_on_immutable(
+        ImplMethod { .ty = free_ufcs.curried, .self_mutable = free_ufcs.self_mutable },
+        e, target_ty, typed, diags,
+    )
     // A `T[]` receiver fitting an `Iterator<T>` first param coerces through the
     // very `.into()` the lowerer synthesizes at `lower_ufcs`. Record it on the
     // receiver expr so the LSP surfaces the `.into()` hint here too — the
@@ -997,6 +1005,9 @@ type_from_expr_opt_in :: fn(e: AST.TypeExpr | null, resolved: ResolvedModule) ->
 UfcsResult :: struct {
     curried: Type
     first_param: Type
+    /// True when the winning overload declares its receiver `self!` — read off the
+    /// `FnType`'s marker vector, so no `FnDecl` lookup is needed.
+    self_mutable: bool = false
 }
 
 try_free_fn_ufcs_with_first :: fn(
@@ -1021,7 +1032,10 @@ try_free_fn_ufcs_with_first :: fn(
             curried :: try_curry_receiver(ft, target_ty, typed) ?? continue
             spec :: overload_specificity(target_ty, ft.params[0])
             if spec > best_spec {
-                best = UfcsResult { .curried = curried, .first_param = ft.params[0] }
+                best = UfcsResult {
+                    .curried = curried, .first_param = ft.params[0],
+                    .self_mutable = param_mutable_at(ft, 0),
+                }
                 best_spec = spec
             }
         }
@@ -1035,7 +1049,10 @@ try_free_fn_ufcs_with_first :: fn(
             curried :: try_curry_receiver(ft, target_ty, typed) ?? continue
             spec :: overload_specificity(target_ty, ft.params[0])
             if spec > best_spec {
-                best = UfcsResult { .curried = curried, .first_param = ft.params[0] }
+                best = UfcsResult {
+                    .curried = curried, .first_param = ft.params[0],
+                    .self_mutable = param_mutable_at(ft, 0),
+                }
                 best_spec = spec
             }
         }

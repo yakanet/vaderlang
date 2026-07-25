@@ -45,7 +45,7 @@ export dump_cfg_project :: fn(p: CFGProject, opts: DumpCfgOptions) -> string {
     return sb.to_string()
 }
 
-dump_function :: fn(fn_: CFGFunction, sb: StringBuilder) -> void {
+dump_function :: fn(fn_: CFGFunction, sb!: StringBuilder) -> void {
     sb.append("fn ${fn_.mangled}(")
     first := true
     for p in fn_.params {
@@ -66,7 +66,7 @@ dump_function :: fn(fn_: CFGFunction, sb: StringBuilder) -> void {
     for b in fn_.blocks { dump_block(b, sb) }
 }
 
-dump_block :: fn(b: BasicBlock, sb: StringBuilder) -> void {
+dump_block :: fn(b: BasicBlock, sb!: StringBuilder) -> void {
     sb.append("  bb${b.id}:\n")
     for ins in b.instructions { sb.append("    ${dump_instr(ins)}\n") }
     sb.append("    ${dump_terminator(b.terminator)}\n")

@@ -1,0 +1,27 @@
+// T3071 lived only in `try_impl_method_ufcs`, so it never saw a mutator declared
+// as a FREE FUNCTION and called through UFCS — which is the dominant stdlib style
+// (`put`, `remove`, `clear`, `append`). The check now sits on that dispatch path
+// too, reading the receiver's marker off the winning overload's FnType.
+//
+// What the gap hid: 358 mutators across 39 files never declared `self!`, and
+// `MutableSet.remove` / `clear` mutated through `self.inner` with an unmarked
+// receiver. T3071.
+module "snippet"
+
+Box :: struct {
+    n: i32
+}
+
+bump :: fn(self!: Box, by: i32) -> void {
+    self.n += by
+}
+
+reader :: fn(b: Box) -> void {
+    b.bump(1)
+}
+
+main :: fn() -> i32 {
+    box :: Box { .n = 0 }
+    reader(box)
+    return box.n
+}

@@ -180,7 +180,7 @@ new_fn_state :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> Fn
 /// old hard-coded `"    "` prefixes so nested control flow lands at the
 /// right column ; level 1 (the function-body top) reproduces that prefix
 /// byte-for-byte.
-line :: fn(s: FnState, code: string) -> void {
+line :: fn(s!: FnState, code: string) -> void {
     s.out.append_repeated(' ', s.indent * 4)
     s.out.append(code)
     s.out.append("\n")

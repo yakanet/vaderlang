@@ -85,7 +85,7 @@ export check_file :: fn(
 export check_module_with_bodies :: fn(
     program: Program,
     resolved!: ResolvedModule,
-    factory: SymbolFactory,
+    factory!: SymbolFactory,
     diags!: Diagnostic[],
 ) -> CheckResult {
     result :: check_module(program, resolved, factory, diags)
@@ -493,7 +493,7 @@ import "std/string"
 
 empty_impls :: fn() -> ImplRegistry { return ImplRegistry {} }
 
-empty_fallback :: fn(project: LoadedProject) -> TypedProgram {
+empty_fallback :: fn(project!: LoadedProject) -> TypedProgram {
     loaded :: project.modules[project.entry]
     if loaded == null {
         // Defensive — load_project guarantees entry is loaded.

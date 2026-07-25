@@ -40,7 +40,7 @@ export CheckResult :: struct {
 export check_module :: fn(
     program: Program,
     resolved!: ResolvedModule,
-    factory: SymbolFactory,
+    factory!: SymbolFactory,
     diags!: Diagnostic[],
 ) -> CheckResult {
     // Standalone single-module check : no project-wide core seed available

@@ -197,9 +197,9 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
 // (and so the force-load can run as a separate, order-preserving pass).
 drain_load_queue :: fn(
     queue!: DiscoveredModule[], bases: IncludePath[],
-    modules!: MutableMap<string, LoadedModule>, factory: SymbolFactory,
+    modules!: MutableMap<string, LoadedModule>, factory!: SymbolFactory,
     index!: MutableMap<string, DiscoveredModule>, diags!: Diagnostic[],
-    overlay: MutableMap<string, string>, node_factory: NodeIdFactory,
+    overlay: MutableMap<string, string>, node_factory!: NodeIdFactory,
 ) -> void {
     cursor: usize = 0
     for cursor < queue.len() {
@@ -268,9 +268,9 @@ walk_import_cycle :: fn(
 
 ingest_module :: fn(
     m: DiscoveredModule, bases: IncludePath[],
-    modules!: MutableMap<string, LoadedModule>, factory: SymbolFactory,
+    modules!: MutableMap<string, LoadedModule>, factory!: SymbolFactory,
     index!: MutableMap<string, DiscoveredModule>, diags!: Diagnostic[],
-    overlay: MutableMap<string, string>, node_factory: NodeIdFactory,
+    overlay: MutableMap<string, string>, node_factory!: NodeIdFactory,
 ) -> void {
     if m.files.len() == 0 { return }
     sources :: parse_module_files(m.files, diags, overlay, node_factory)
@@ -313,7 +313,7 @@ read_with_overlay :: fn(overlay: MutableMap<string, string>, path: string) -> st
     return ""
 }
 
-parse_module_files :: fn(paths: string[], diags!: Diagnostic[], overlay: MutableMap<string, string>, node_factory: NodeIdFactory) -> SourceFile[] {
+parse_module_files :: fn(paths: string[], diags!: Diagnostic[], overlay: MutableMap<string, string>, node_factory!: NodeIdFactory) -> SourceFile[] {
     // ONE factory threaded across the WHOLE project, so AST node ids are
     // globally unique — not just module-unique. Per-module factories (each
     // restarting at 1) overlapped, and the side-tables keyed by raw node id
@@ -374,7 +374,7 @@ has_module :: fn(modules: MutableMap<string, LoadedModule>, id: string) -> bool 
 
 collect_files :: fn(
     files: SourceFile[], module_id: string, module_name: string,
-    factory: SymbolFactory,
+    factory!: SymbolFactory,
     index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags!: Diagnostic[],
 ) -> CollectedModule {
     // Multi-file collect : merge every file's collected view into one

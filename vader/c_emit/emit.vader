@@ -197,7 +197,7 @@ export emit_c :: fn(m: BytecodeModule, opts: EmitOptions) -> string {
 /// data-pool .rodata blocks. Each sub-section is followed by a blank
 /// line so the resulting C reads cleanly even when a sub-section is
 /// empty.
-emit_type_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+emit_type_decls :: fn(ctx: EmitCtx, out!: StringBuilder) -> void {
     // Struct typedefs + bodies (the split routes these to the shared header).
     emit_struct_typedefs(ctx, out)
 
@@ -214,7 +214,7 @@ emit_type_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
 /// of `emit_type_decls` : in a split build these are the module's public
 /// shape, routed to the shared header ; the atom table + data pool (the data
 /// half) go to the globals TU.
-emit_struct_typedefs :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+emit_struct_typedefs :: fn(ctx: EmitCtx, out!: StringBuilder) -> void {
     // Forward decls for every struct so field references compile in
     // any declaration order.
     for i in 0..<ctx.module.types.len() {
@@ -240,7 +240,7 @@ emit_struct_typedefs :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
 /// into the live atom table at indices `1..M` (index 0 is
 /// VADER_ATOM_EMPTY). A `vader_string_t` is a u32 atom id, so a literal
 /// is referenced by its bare `ctx.atom_ids[i]` at each use site.
-emit_atom_comptime_table :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+emit_atom_comptime_table :: fn(ctx: EmitCtx, out!: StringBuilder) -> void {
     out.append("/* Compile-time atom table — see docs/ATOM_INTERNING.md. */\n")
     strings :: ctx.module.strings
 
@@ -301,7 +301,7 @@ emit_atom_comptime_table :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
 /// @param type_index  index of `s` in `ctx.module.types` ; used to look
 ///                    up the cached C identifier in `struct_c_names`.
 /// @param out         the accumulating C source.
-emit_struct_body :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize, out: StringBuilder) -> void {
+emit_struct_body :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize, out!: StringBuilder) -> void {
     cname :: ctx.struct_c_names[type_index]
     out.append("struct ${cname} {\n")
     out.append("    vader_obj_header_t header;\n")
@@ -317,7 +317,7 @@ emit_struct_body :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize, out: String
 /// Skipped when `data_pool.len() == 0`. Primitive arrays bake a concrete-typed
 /// element buffer ; string arrays bake a `vader_box_t` slot buffer holding the
 /// elements' atom ids.
-emit_data_pool :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+emit_data_pool :: fn(ctx: EmitCtx, out!: StringBuilder) -> void {
     if ctx.module.data_pool.len() == 0 { return }
     out.append("/* Comptime data pool — immutable `const T[]` arrays in `.rodata`.\n")
     out.append(" * Out-of-arena pointers are immortal to the GC (it never copies /\n")
@@ -346,7 +346,7 @@ emit_data_pool :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
 // One aggregate (struct / tuple / nested) `.rodata` array : a boxed slot buffer
 // of pointers to each element's own materialised static, emitted depth-first
 // (children before parents) so the C forward-refs resolve.
-emit_agg_data_entry :: fn(out: StringBuilder, i: usize, ad: BcAggregateData, array_type_id: i32, elem_tag: i32, atom_of: MutableMap<string, i32>, ctx: EmitCtx) -> void {
+emit_agg_data_entry :: fn(out!: StringBuilder, i: usize, ad: BcAggregateData, array_type_id: i32, elem_tag: i32, atom_of: MutableMap<string, i32>, ctx: EmitCtx) -> void {
     n :: ad.elements.len()
     boxed_kind :: array_kind_index(ArrayKind.Boxed)
     slot_exprs: string[] = []
@@ -365,7 +365,7 @@ emit_agg_data_entry :: fn(out: StringBuilder, i: usize, ad: BcAggregateData, arr
 // return the C init expression to place in the parent slot/field. Prim leaves
 // inline their literal ; string leaves inline their atom id ; structs and nested
 // arrays emit their own static and return its address (cast to the slot type).
-emit_data_value :: fn(ctx: EmitCtx, out: StringBuilder, v: BcDataValue, name: string, atom_of: MutableMap<string, i32>) -> string {
+emit_data_value :: fn(ctx: EmitCtx, out!: StringBuilder, v: BcDataValue, name: string, atom_of: MutableMap<string, i32>) -> string {
     if v is BcValPrim as p { return data_slot_c(p.kind, p.bits, c_type_for_array_kind(p.kind)) }
     if v is BcValStr as s { return "${atom_for(atom_of, s.value)}u" }
     if v is BcValStruct as st {
@@ -389,7 +389,7 @@ emit_data_value :: fn(ctx: EmitCtx, out: StringBuilder, v: BcDataValue, name: st
 
 // A nested array field (e.g. a struct's `T[]` field). Primitive-element arrays
 // inline concrete-typed slots ; otherwise a boxed slot buffer of element statics.
-emit_nested_array :: fn(ctx: EmitCtx, out: StringBuilder, a: BcValArray, name: string, atom_of: MutableMap<string, i32>) -> string {
+emit_nested_array :: fn(ctx: EmitCtx, out!: StringBuilder, a: BcValArray, name: string, atom_of: MutableMap<string, i32>) -> string {
     // The storage kind comes from the ELEMENTS (an enum array's name resolves to
     // Boxed, but its values are prim leaves at the repr width), not the type name.
     elem_kind :: element_storage_kind(a.elements)
@@ -423,7 +423,7 @@ emit_nested_array :: fn(ctx: EmitCtx, out: StringBuilder, a: BcValArray, name: s
 // fields inline their atom id (a `vader_string_t` slot), and struct / array
 // fields are stored as a `vader_box_t` ref slot — a pointer to the field value's
 // own static, tagged with the declared field type index.
-struct_field_init :: fn(ctx: EmitCtx, out: StringBuilder, v: BcDataValue, name: string, field_tid: i32, atom_of: MutableMap<string, i32>) -> string {
+struct_field_init :: fn(ctx: EmitCtx, out!: StringBuilder, v: BcDataValue, name: string, field_tid: i32, atom_of: MutableMap<string, i32>) -> string {
     if v is BcValPrim as p { return data_slot_c(p.kind, p.bits, c_type_for_array_kind(p.kind)) }
     if v is BcValStr as s { return "${atom_for(atom_of, s.value)}u" }
     expr :: emit_data_value(ctx, out, v, name, atom_of)
@@ -437,7 +437,7 @@ struct_field_init :: fn(ctx: EmitCtx, out: StringBuilder, v: BcDataValue, name: 
 
 // One `vader_box_t` slot for a boxed-array element : a string boxes its atom in
 // `.s`, a struct / nested array boxes a pointer to its static in `.obj`.
-box_slot_c :: fn(ctx: EmitCtx, out: StringBuilder, v: BcDataValue, name: string, tag: i32, atom_of: MutableMap<string, i32>) -> string {
+box_slot_c :: fn(ctx: EmitCtx, out!: StringBuilder, v: BcDataValue, name: string, tag: i32, atom_of: MutableMap<string, i32>) -> string {
     if v is BcValStr as s { return "{ ${tag}u, 0u, { .s = ${atom_for(atom_of, s.value)}u } }" }
     expr :: emit_data_value(ctx, out, v, name, atom_of)
     return "{ ${tag}u, 0u, { .obj = (void*) ${expr} } }"
@@ -497,7 +497,7 @@ join_commas :: fn(parts: string[]) -> string {
 // One primitive-element `.rodata` buffer + array header. Concrete-typed slots so
 // the initialiser is a plain C aggregate (`vader_array_buf_t.slots[]` is a
 // flexible member).
-emit_prim_data_entry :: fn(out: StringBuilder, i: usize, pd: BcPrimData, array_type_id: i32, elem_tag: i32, split: bool) -> void {
+emit_prim_data_entry :: fn(out!: StringBuilder, i: usize, pd: BcPrimData, array_type_id: i32, elem_tag: i32, split: bool) -> void {
     cty :: c_type_for_array_kind(pd.kind)
     n :: pd.items.len()
     kind_idx :: array_kind_index(pd.kind)
@@ -517,7 +517,7 @@ emit_prim_data_entry :: fn(out: StringBuilder, i: usize, pd: BcPrimData, array_t
 // One string-array `.rodata` buffer + array header. A string is a `vader_string_t`
 // atom id, so the elements live in `vader_box_t` slots (element_kind Boxed) — each
 // box tagged with the string element type, payload `.s` = the interned atom id.
-emit_str_data_entry :: fn(out: StringBuilder, i: usize, sd: BcStrData, array_type_id: i32, elem_tag: i32, atom_of: MutableMap<string, i32>, split: bool) -> void {
+emit_str_data_entry :: fn(out!: StringBuilder, i: usize, sd: BcStrData, array_type_id: i32, elem_tag: i32, atom_of: MutableMap<string, i32>, split: bool) -> void {
     n :: sd.values.len()
     boxed_kind :: array_kind_index(ArrayKind.Boxed)
     link :: linkage_prefix(split)
@@ -607,7 +607,7 @@ c_type_for_array_kind :: fn(k: ArrayKind) -> string = match k {
 /// `static <sig>;` forward decl for every fn in the module so call sites
 /// compile in any declaration order. A trailing blank line closes the
 /// section.
-emit_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+emit_forward_decls :: fn(ctx: EmitCtx, out!: StringBuilder) -> void {
     fns :: ctx.module.functions
     link :: linkage_prefix(ctx.split)
     for i in 0..<fns.len() {
@@ -643,7 +643,7 @@ signature_for :: fn(function: BcFunction) -> string {
 /// Per-`BcFn` function-pointer typedef + per-arity canonical erased
 /// typedef. The canonical erased family is always emitted at least for
 /// arity 0 (used by the closure dispatch path's lift / tramp wrapper).
-emit_fn_sig_typedefs :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+emit_fn_sig_typedefs :: fn(ctx: EmitCtx, out!: StringBuilder) -> void {
     // Per-BcFn typedef. Phase 1-2 : no fn types.
 
     // Canonical erased fn-pointer signatures per arity. Trivial case :
@@ -697,7 +697,7 @@ erased_sig_params :: fn(n: i32) -> string {
 ///
 /// @param ctx  the emit context.
 /// @param out  the accumulating C source.
-emit_type_info_table :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+emit_type_info_table :: fn(ctx: EmitCtx, out!: StringBuilder) -> void {
     types :: ctx.module.types
     count :: types.len()
 
@@ -819,7 +819,7 @@ classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize) -> St
 /// `vader_string_t` fields (the string GC needs to mark them
 /// independently of the box-aliased Cheney walk) ; `_refs[]` lists B1
 /// nullable-ref slots that store a raw `void*`.
-emit_struct_offset_arrays :: fn(offs: StructOffsets, type_index: usize, out: StringBuilder, split: bool) -> void {
+emit_struct_offset_arrays :: fn(offs: StructOffsets, type_index: usize, out!: StringBuilder, split: bool) -> void {
     link :: linkage_prefix(split)
     if offs.ptr_offsets.len() > 0 {
         out.append("${link}const uint16_t vader_type_${type_index}_ptrs[] = { ${offs.ptr_offsets.join(", ")} };\n")
@@ -838,7 +838,7 @@ emit_struct_offset_arrays :: fn(offs: StructOffsets, type_index: usize, out: Str
 /// gets a regular heap-backed `VADER_TYPE_KIND_STRUCT` row). Future
 /// phases will detect inline-variant (`VADER_TYPE_KIND_INLINE_REF`)
 /// and packed-payload shapes.
-emit_struct_info_row :: fn(ctx: EmitCtx, _s: BcStruct, offs: StructOffsets, type_index: usize, out: StringBuilder) -> void {
+emit_struct_info_row :: fn(ctx: EmitCtx, _s: BcStruct, offs: StructOffsets, type_index: usize, out!: StringBuilder) -> void {
     cname :: ctx.struct_c_names[type_index]
     ptr_count :: offs.ptr_offsets.len()
     str_count :: offs.str_offsets.len()
@@ -868,7 +868,7 @@ emit_struct_info_row :: fn(ctx: EmitCtx, _s: BcStruct, offs: StructOffsets, type
 /// `[string]` argv construction, and the call to the user `main`
 /// (`return (int) main()` for an `i32` result, `main(); return 0;` for
 /// `void`). T3033 guarantees the signature is `()` or `([string])`.
-emit_main :: fn(ctx: EmitCtx, out: StringBuilder, entry_mangled: string) -> void {
+emit_main :: fn(ctx: EmitCtx, out!: StringBuilder, entry_mangled: string) -> void {
     main_index :: find_main(ctx.module, entry_mangled)
     if main_index < 0 {
         out.append("int main(int argc, char** argv) { (void)argc; (void)argv; return 0; }\n")

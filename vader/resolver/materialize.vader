@@ -60,7 +60,7 @@ export materialize_intrinsic_members :: fn(impl_!: AST.ImplDecl, trait_: AST.Tra
 /// module's namespace so id-keyed `expr_types` / `expr_kinds` slots
 /// don't collide with the impl module's pre-existing nodes.
 export materialize_default_members :: fn(
-    impl_!: AST.ImplDecl, trait_: AST.TraitDecl, host_factory: NodeIdFactory,
+    impl_!: AST.ImplDecl, trait_: AST.TraitDecl, host_factory!: NodeIdFactory,
 ) -> void {
     if !any_has_body(trait_.members) { return }
     provided :: provided_names(impl_.members)
@@ -153,7 +153,7 @@ substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp!: Sta
 /// non-self param (or body node). `line = 0` keeps it clear of any real
 /// source span (real spans are 1-based) ; the minted factory id rides in
 /// `column` so each call yields a distinct `Span.hash()`.
-synth_clone_span :: fn(factory: NodeIdFactory) -> Span {
+synth_clone_span :: fn(factory!: NodeIdFactory) -> Span {
     pos :: Position { .file = "", .offset = 0, .line = 0, .column = i32(factory.mint()) }
     return Span { .start = pos, .end = pos }
 }
@@ -164,7 +164,7 @@ synth_clone_span :: fn(factory: NodeIdFactory) -> Span {
 /// Self)`) doesn't collide `other` across sibling impls in the span-keyed
 /// `param_types` table.
 substitute_params_disambiguated :: fn(
-    params: AST.FnParam[], subst: Subst, self_span: Span, factory: NodeIdFactory,
+    params: AST.FnParam[], subst: Subst, self_span: Span, factory!: NodeIdFactory,
 ) -> AST.FnParam[] {
     out: AST.FnParam[] = []
     for p in params {
@@ -188,7 +188,7 @@ substitute_params_disambiguated :: fn(
 /// member in place. SAM shape-mismatch diagnostics (R2016) aren't
 /// emitted here — `check_short_impl_arity` (orchestrate.vader) fires
 /// them before this runs.
-export materialize_sam_members :: fn(impl_!: AST.ImplDecl, trait_: AST.TraitDecl, factory: NodeIdFactory) -> void {
+export materialize_sam_members :: fn(impl_!: AST.ImplDecl, trait_: AST.TraitDecl, factory!: NodeIdFactory) -> void {
     syn_count :: count_sam_synthetics(impl_.members)
     if syn_count == 0 { return }
     required :: required_methods(trait_.members)

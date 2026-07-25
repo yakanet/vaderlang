@@ -48,7 +48,7 @@ export is_builtin_type_name :: fn(name: string) -> bool {
 /// Build the root scope seed every per-file resolution starts from.
 /// Mints one `.BuiltinType` symbol per name, in declaration order so
 /// the resulting IDs are stable across implementations.
-export make_builtin_scope :: fn(factory: SymbolFactory) -> MutableMap<string, Symbol> {
+export make_builtin_scope :: fn(factory!: SymbolFactory) -> MutableMap<string, Symbol> {
     out :: MutableMap<string, Symbol> {}
     for name in builtin_type_names() {
         sym :: factory.make(.BuiltinType, name, BUILTIN_MODULE_ID, .Public, null)

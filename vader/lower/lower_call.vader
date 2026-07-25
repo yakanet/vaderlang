@@ -29,7 +29,7 @@ import "vader/resolver"
 // u8[] | IOError`) is treated as constructed, making it vtable-eligible for
 // `is Trait` + trait-method dispatch without hard-coding the type. Redundant
 // (idempotent set add) for a Vader-bodied callee whose producer already marked it.
-mark_produced_structs :: fn(t: Type, ctx: FnLowerCtx) -> void {
+mark_produced_structs :: fn(t: Type, ctx!: FnLowerCtx) -> void {
     // `struct_backing` unwraps a struct-backed distinct newtype too, mirroring
     // the struct-literal path (`lower_struct_lit.vader`).
     st :: struct_backing(t)
