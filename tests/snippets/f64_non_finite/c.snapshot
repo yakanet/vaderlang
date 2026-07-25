@@ -2074,11 +2074,11 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
             } else {
                 l12 = !(l6);
             }
-            l4 = l12;
+            l6 = l12;
         } else {
-            l4 = false;
+            l6 = false;
         }
-        if (l4) {
+        if (l6) {
             l4 = true;
         } else {
             l4 = (l3 >= INT64_C(5));

@@ -2144,7 +2144,7 @@ fn 15 std_core$sd_round_at (ref,i32,bool) -> u64
   local $cast_8 u64
   local $sub_13 i32
   local round_bit bool
-  local or_res bool
+  local sticky bool
   local.get 1
   i32.const 0
   i32.le

@@ -2338,12 +2338,12 @@ fn 15 std_core$d2d (u64,u64) -> ref
         local.set 12
       end $L25
       local.get 12
-      local.set 4
+      local.set 6
     else
       bool.const false
-      local.set 4
+      local.set 6
     end $L24
-    local.get 4
+    local.get 6
     if $L26 void
       bool.const true
       local.set 4

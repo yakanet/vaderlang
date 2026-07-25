@@ -408,11 +408,12 @@ build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
     match s {
         is LoweredLet as let_stmt -> {
             v :: let_stmt.value
-            if v is LoweredIf | LoweredBlock {
+            if is_dest_passing_shape(v) {
                 // Destination-passing : declare the slot first and build the
-                // value-`if` / block-`match` straight into it — no intermediate
-                // `if_res` temp, no copy. Only control-flow values take this path,
-                // so a plain `let` keeps its build-then-bind slot order.
+                // value-`if` / `match` / `&&` `||` straight into it — no
+                // intermediate result temp, no copy. Only these join-slot shapes
+                // take this path, so a plain `let` keeps its build-then-bind slot
+                // order (declaring first would renumber every let's slots).
                 dst :: declare_local(fn_ctx, let_stmt.name, let_stmt.type, let_stmt.symbol)
                 fn_ctx.local_by_sym_id[let_stmt.symbol.id] = dst
                 if fn_ctx.current !is null {
@@ -745,8 +746,7 @@ build_unary :: fn(fn_ctx: FnCtx, e: LoweredUnary) -> LocalId | null {
 }
 
 build_binary :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
-    if e.op == LoweredBinaryOp.And { return build_short_circuit(fn_ctx, e) }
-    if e.op == LoweredBinaryOp.Or  { return build_short_circuit(fn_ctx, e) }
+    if is_short_circuit_op(e.op) { return build_short_circuit(fn_ctx, e, null) }
     lhs :: build_expr(fn_ctx, e.left) ?? return null
     rhs :: build_expr(fn_ctx, e.right) ?? return null
     dst :: fresh_tmp(fn_ctx, binary_op_name(e.op), e.type)
@@ -756,12 +756,19 @@ build_binary :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
     return dst
 }
 
-build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
+build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary, dest: LocalId | null) -> LocalId | null {
     lhs :: build_expr(fn_ctx, e.left) ?? return null
 
     is_and :: e.op == LoweredBinaryOp.And
-    result_name :: if is_and { "and_res" } else { "or_res" }
-    result :: declare_local(fn_ctx, result_name, e.type, null)
+    // Destination-passing : `&&` / `||` is a phi-slot builder like `build_if`
+    // (its result is written from both branches, read after the join), so when a
+    // `dest` is supplied write straight into it — no `and_res` / `or_res` temp,
+    // no copy at the `let x = a && b` / `if c { a && b }` use site.
+    result :: if dest !is null {
+        dest
+    } else {
+        declare_local(fn_ctx, if is_and { "and_res" } else { "or_res" }, e.type, null)
+    }
 
     then_id :: new_block(fn_ctx, e.right.span_of())
     else_id :: new_block(fn_ctx, e.right.span_of())
@@ -815,13 +822,32 @@ build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
     return result
 }
 
+// True for the shapes that build their result through a cross-block join —
+// `if` / `match` (if-chains, `if_res`), blocks that end in one, and short-circuit
+// `&&` / `||` (`and_res` / `or_res`). These are the phi-slot builders whose
+// result slot `build_expr_into` can supply, so a `let x = <shape>` writes
+// straight into the binding rather than a temp + copy. Single source of truth
+// for the shape set — `build_expr_into`'s dispatch below mirrors it.
+is_dest_passing_shape :: fn(e: LoweredExpr) -> bool {
+    if e is LoweredIf | LoweredBlock {
+        return true
+    }
+    if e is LoweredBinary as b {
+        return is_short_circuit_op(b.op)
+    }
+    return false
+}
+
+is_short_circuit_op :: fn(op: LoweredBinaryOp) -> bool = op == LoweredBinaryOp.And || op == LoweredBinaryOp.Or
+
 // Destination-passing : build `e` so its value lands in `dest` (a pre-existing
 // slot), eliding the intermediate temp + copy where the shape allows. A value
-// `if` / `match` — an if-chain, possibly wrapped in a block — writes every arm
-// straight into `dest` ; anything else is built normally and moved once. This
-// is what collapses a value-`match`'s per-arm `if_res` slots onto one, and it
-// is shape-independent : any nesting of if / block / match is handled by the
-// mutual recursion rather than a structural pattern-match on the lowerer output.
+// `if` / `match` / short-circuit `&&` `||` writes its arms straight into `dest` ;
+// anything else is built normally and moved once. This is what collapses a
+// value-`match`'s per-arm `if_res` slots onto one, and it is shape-independent :
+// any nesting of if / block / match is handled by the mutual recursion rather
+// than a structural pattern-match on the lowerer output. The special-cased set
+// mirrors `is_dest_passing_shape`.
 build_expr_into :: fn(fn_ctx: FnCtx, e: LoweredExpr, dest: LocalId) -> void {
     // No `current is null` early-return here : `build_expr` below (and `build_if`
     // / `build_block_into`) already handle a departed block, and narrowing
@@ -833,6 +859,12 @@ build_expr_into :: fn(fn_ctx: FnCtx, e: LoweredExpr, dest: LocalId) -> void {
     if e is LoweredBlock as v {
         build_block_into(fn_ctx, v, dest)
         return
+    }
+    if e is LoweredBinary as v {
+        if is_short_circuit_op(v.op) {
+            build_short_circuit(fn_ctx, v, dest)
+            return
+        }
     }
     val :: build_expr(fn_ctx, e)
     if fn_ctx.current !is null && val !is null {

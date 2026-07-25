@@ -871,14 +871,14 @@ fn 19 std_path$normalize (string) -> string
   local i usize
   local seg_start usize
   local at_end bool
-  local and_res bool
+  local is_sep bool
   local or_res bool
   local seg string
   local or_res bool
-  local and_res bool
-  local $sub_43 usize
-  local $len_52 usize
-  local $len_56 usize
+  local can_pop bool
+  local $sub_42 usize
+  local $len_50 usize
+  local $len_54 usize
   local.get 0
   local.tee 1
   call 22

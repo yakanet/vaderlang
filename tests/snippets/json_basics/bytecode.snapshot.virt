@@ -2409,7 +2409,7 @@ fn 19 std_core$sd_round_at (ref,i32,bool) -> u64
   local $cast_8 u64
   local $sub_13 i32
   local round_bit bool
-  local or_res bool
+  local sticky bool
   local.get 1
   i32.const 0
   i32.le
@@ -4921,12 +4921,12 @@ fn 28 std_core$d2d (u64,u64) -> ref
         local.set 12
       end $L25
       local.get 12
-      local.set 4
+      local.set 6
     else
       bool.const false
-      local.set 4
+      local.set 6
     end $L24
-    local.get 4
+    local.get 6
     if $L26 void
       bool.const true
       local.set 4
