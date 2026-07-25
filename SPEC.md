@@ -320,6 +320,8 @@ Declaration  : x :: value           (immutable, type inferred)
                x := value           (mutable,   type inferred)
                x: T : value         (immutable, typed)
                x: T = value         (mutable,   typed)
+Mutability   : name!                (parameter — grants the callee permission to mutate)
+               fn(T!) -> R          (same marker in a fn TYPE, which has no param names)
 Range        : 0..<10 (exclusive)  0..=10 (inclusive)
 Cast         : Type(expr) (numeric ↔ numeric, char ↔ integer)
 Field access : .name
@@ -646,7 +648,9 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 
 #### `const T[]` — immutable arrays
 
-The `const` prefix qualifies an array type as immutable. Through a value typed `const T[]`, mutation is rejected at typecheck — neither `arr[i] = v` nor `arr.push(v)` compiles.
+The `const` prefix qualifies an array type as immutable. Through a value typed `const T[]`, mutation is rejected at typecheck — neither `arr[i] = v` (T3042) nor `arr.push(v)` (T3071) compiles.
+
+In parameter position `const` is now redundant with the read-only default — `fn(a: const i32[])` and `fn(a: i32[])` both reject mutation. It stays meaningful on returns, struct fields and module consts, where there is no borrow to default.
 
 ```vader
 read :: fn(a: const i32[]) -> i32 = a[0]            // OK to read
@@ -672,7 +676,7 @@ view: const (i32 | string)[] = a     // OK — const element is covariant (read-
 xs: (i32 | string)[] = [1, 2, 3]     // OK — fresh literal built at the target type
 ```
 
-**Inference**: a module-level array-literal const-decl is automatically pinned as `const T[]`. Locals stay mutable by default.
+**Inference**: an unannotated module-level array const is automatically pinned as `const T[]` — it has no runtime storage, so a write through it would be discarded rather than take effect. Annotating the type explicitly (`X: T[]: [...]`) opts out. Locals stay mutable by default (a local is owned).
 
 ```vader
 KEYWORDS :: ["fn", "if", "else"]      // const string[] (module scope)
@@ -1497,13 +1501,57 @@ Mutability is chosen by the declaration operator; an optional `: T` annotation p
 
 So with a type annotation the separator decides mutability: `:` → immutable, `=` → mutable.
 
-### Mutability = binding only
+### Mutability: two independent axes
 
-`::` freezes the binding, not the contents. If `p :: Point { ... }`, you cannot `p = otherPoint`, but `p.x = 5` is allowed.
+Vader separates **who may rebind a name** from **who may mutate what it points at**.
 
-For deep immutability of collections, use **stdlib convention**:
-- raw `T[]` arrays are mutable (`arr.push`, `arr[i] = v`)
-- read-only `List<T>` / `Map<K, V>` / `Set<T>` will pair with mutable variants when implemented (post-MVP — currently struct stubs in `std/collections`)
+**The binding.** `::` freezes it, `:=` allows rebinding. If `p :: Point { ... }`, `p = otherPoint` is rejected (T3041).
+
+**The referent.** A **local is owned**: `::` freezes only its binding, so `p.x = 5` and `x :: i32[] ; x.push(1)` stay legal. A **parameter is a read-only borrow** — see below. And a **module-level const freezes both**: it has no runtime storage (its value is rebuilt at each read site), so a write through it would be silently discarded, and is rejected instead (T3070).
+
+```vader
+CONFIG :: Config { .retries = 3 }
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1, .y = 2 }
+    p.x = 5              // OK — a local is owned; `::` froze the name, not the contents
+    // p = otherPoint    // T3041 — that IS the binding
+    // CONFIG.retries = 5  // T3070 — a module const has no storage to mutate
+    return 0
+}
+```
+
+### Parameters are read-only borrows — `!` grants mutation
+
+A parameter without `!` may be read but not mutated. Writing a field or element through it, or calling a method that mutates it, is rejected. Appending `!` to the **name** asks the caller for permission to mutate:
+
+```vader
+describe :: fn(c: Counter) -> string = "${c.label} = ${c.count}"   // reads only
+
+bump :: fn(self!, by: i32) -> void {                              // mutates its receiver
+    self.count += by
+}
+
+fill :: fn(buf!: i32[], value: i32, n: i32) -> void {
+    for _ in 0..<n {
+        buf.push(value)
+    }
+}
+```
+
+The marker sits on the **name**, not the type: the same `i32[]` is a sink in one signature and a read in another, and `self` has no written type to carry it. It is **deep** — reading a field of a borrowed value yields something borrowed too, so `cfg.child.count = 0` is rejected just as `cfg.count = 0` is (T3070). Calling a `self!` method on a read-only receiver is T3071, and handing a read-only value to a `!` parameter is T3072.
+
+A **function type** has no parameter names, so there the marker goes on the type:
+
+```vader
+apply :: fn(f: fn(i32[]!) -> void, xs!: i32[]) -> void {
+    f(xs)
+}
+```
+
+Markers on function values are **contravariant**: a function that does not mutate fits a slot that would allow it — it simply promises less — while one that does cannot be handed to a caller lending its value out read-only (T3073).
+
+**What this does and does not guarantee.** The property is attached to the *access path*, not to the value: passing the same object as both a `!` and a non-`!` argument is legal, and the read-only borrow is then only a statement about what that parameter is allowed to do. Vader does not track aliasing, so this buys clarity and local reasoning — a signature that tells the truth about what a function may touch — not a non-aliasing proof.
 
 ### Explicit type annotations
 
@@ -1921,6 +1969,8 @@ All non-primitive values (struct, array, string buffer contents, future stdlib t
 - Primitives (`i32`, `f64`, `bool`, etc.): value, copied on assignment.
 - `string`: fat value `(ptr, len)`, copied on assignment, immutable shared content.
 - Structs, arrays: heap-allocated, manipulated via implicit references (the user does not see pointers).
+  Passing one to a function therefore lets the callee reach the caller's value — which is why a parameter is a
+  read-only borrow unless its name carries `!` (see "Parameters are read-only borrows").
 
 ### No visible pointers
 
