@@ -187,7 +187,7 @@ ranges_overlap :: fn(a: SlotRange, b: SlotRange) -> bool {
 }
 
 extend_into_loops :: fn(
-    ranges: SlotRange[], has_range: bool[], total_slots: usize, loops: SlotRange[],
+    ranges!: SlotRange[], has_range: bool[], total_slots: usize, loops: SlotRange[],
 ) -> bool {
     changed := false
     for s in 0..<total_slots {
@@ -231,7 +231,7 @@ find_loop_ranges :: fn(body: Op[]) -> SlotRange[] {
     return out
 }
 
-push_scope :: fn(kinds: string[], starts: i32[], sp: usize, kind: string, start_pc: i32) -> void {
+push_scope :: fn(kinds!: string[], starts!: i32[], sp: usize, kind: string, start_pc: i32) -> void {
     if sp == kinds.len() {
         kinds.push(kind)
         starts.push(start_pc)

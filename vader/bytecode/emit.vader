@@ -362,7 +362,7 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
 
 /// Append `value` when the cursor is at the end ; overwrite in place
 /// otherwise. Mirrors `push_op_at` in `vader/bytecode/peephole.vader`.
-push_or_assign :: fn(items: Op[], sp: usize, value: Op) -> void {
+push_or_assign :: fn(items!: Op[], sp: usize, value: Op) -> void {
     if sp == items.len() {
         items.push(value)
     } else {

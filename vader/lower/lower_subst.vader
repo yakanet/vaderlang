@@ -351,7 +351,7 @@ collect_impl_type_param_names :: fn(impl_decl: ImplDecl) -> string[] {
 /// Mixed substitution : map each impl type param to its concrete instance arg
 /// WHEN primitive (so the materialised body sees `K = i32` and primitive trait
 /// dispatch devirtualises), else to `Any`. `names[i]` corresponds to `args[i]`.
-map_type_params_mixed :: fn(subst: Substitution, scope: Symbol[], names: string[], args: Type[]) -> void {
+map_type_params_mixed :: fn(subst!: Substitution, scope: Symbol[], names: string[], args: Type[]) -> void {
     for s in scope {
         if s.kind != SymbolKind.TypeParam { continue }
         idx: i32 = -1

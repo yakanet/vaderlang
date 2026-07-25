@@ -82,7 +82,7 @@ export finish :: fn(self: Printer) -> string {
 
 // ----- low-level primitives -----
 
-write :: fn(self: Printer, s: string) -> void {
+write :: fn(self!: Printer, s: string) -> void {
     self.buf.append(s)
     n :: s.bytes().len()
     if n > 0 { self.has_written = true }
@@ -91,13 +91,13 @@ write :: fn(self: Printer, s: string) -> void {
     self.column = self.column + n
 }
 
-newline :: fn(self: Printer) -> void {
+newline :: fn(self!: Printer) -> void {
     self.buf.append(NL)
     self.has_written = true
     self.column = 0
 }
 
-indent :: fn(self: Printer) -> void {
+indent :: fn(self!: Printer) -> void {
     for 0..<self.depth { self.buf.append(INDENT) }
     self.column = self.column + usize(self.depth) * INDENT.bytes().len()
 }
@@ -189,7 +189,7 @@ emittable_decls :: fn(decls: p.Decl[]) -> p.Decl[] {
     return out
 }
 
-export emit_program :: fn(self: Printer, prog: p.Program) -> string {
+export emit_program :: fn(self!: Printer, prog: p.Program) -> string {
     // Drop the `__comptime_NAME` helper fns the parser synthesises for the
     // `NAME :: @comptime <expr>` const sugar : they are never source-visible,
     // and the surface sugar is re-emitted from the paired `ConstDecl`
@@ -568,7 +568,7 @@ emit_fn_param :: fn(self: Printer, fp: p.FnParam) -> void {
 
 // ---- Struct ----
 
-emit_struct_decl :: fn(self: Printer, d: p.StructDecl) -> void {
+emit_struct_decl :: fn(self!: Printer, d: p.StructDecl) -> void {
     self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     self.write(d.name)
@@ -643,7 +643,7 @@ emit_struct_field :: fn(self: Printer, f: p.StructField) -> void {
 
 // ---- Enum ----
 
-emit_enum_decl :: fn(self: Printer, d: p.EnumDecl) -> void {
+emit_enum_decl :: fn(self!: Printer, d: p.EnumDecl) -> void {
     self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     self.write(d.name)
@@ -697,7 +697,7 @@ emit_enum_variant :: fn(self: Printer, v: p.EnumVariant) -> void {
 
 // ---- Trait / Impl ----
 
-emit_trait_decl :: fn(self: Printer, d: p.TraitDecl) -> void {
+emit_trait_decl :: fn(self!: Printer, d: p.TraitDecl) -> void {
     self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     self.write(d.name)
@@ -787,7 +787,7 @@ compute_fn_alignment_widths :: fn(members: p.FnDecl[]) -> usize[] {
     return out
 }
 
-emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
+emit_impl_decl :: fn(self!: Printer, d: p.ImplDecl) -> void {
     self.emit_decorators(d.decorators, d.for_type.span.start.line)
     self.emit_type_expr(d.for_type)
     self.write(" implements")
@@ -1672,7 +1672,7 @@ emit_if :: fn(self: Printer, x: p.IfExpr) -> void {
     }
 }
 
-emit_match :: fn(self: Printer, x: p.MatchExpr) -> void {
+emit_match :: fn(self!: Printer, x: p.MatchExpr) -> void {
     if x.partial { self.write("@partial ") }
     if x.unreachable { self.write("@unreachable ") }
     self.write("match ")
@@ -1807,7 +1807,7 @@ compute_if_align :: fn(stmts: p.Stmt[], source: string) -> usize[] {
     return out
 }
 
-emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
+emit_block_expr :: fn(self!: Printer, b: p.BlockExpr) -> void {
     // Inline this block ? `.Expand` never, `.Inline` always, else preserve the
     // source's single-line form. Set by the enclosing stmt loop.
     inline_ok :: match self.block_mode {
@@ -1944,7 +1944,7 @@ emit_lambda :: fn(self: Printer, x: p.LambdaExpr) -> void {
 // `open`+`close`. `emit_item` renders a single element — pass the element's
 // dedicated emitter (`emit_call_arg`, `emit_fn_param`, …). The caller writes
 // any prefix (callee, type name) and computes `inline` before calling.
-emit_comma_list :: fn<T>(self: Printer, items: T[], open: string, close: string,
+emit_comma_list :: fn<T>(self!: Printer, items: T[], open: string, close: string,
                          inner_space: bool, inline: bool, emit_item: fn(Printer, T) -> void) -> void {
     self.write(open)
     if items.len() == 0 {

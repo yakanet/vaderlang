@@ -33,6 +33,6 @@
   ArrayIterator<T>
 
 # Diagnostics
-[19:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `push` mutates its receiver (declared `self!`), but this receiver is immutable
-[20:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `size` is reached through an immutable path
-[23:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `size` is reached through an immutable path
+[19:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `push` mutates its receiver (declared `self!`), but this receiver is immutable — annotate `self!` at tests/snippets/generic_struct/_main.vader:18:16
+[20:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `size` is reached through an immutable path — annotate `self!` at tests/snippets/generic_struct/_main.vader:18:16
+[23:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `size` is reached through an immutable path — annotate `self!` at tests/snippets/generic_struct/_main.vader:22:15

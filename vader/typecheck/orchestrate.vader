@@ -84,9 +84,9 @@ export check_file :: fn(
 /// `check_module`, just with `expr_types` / `local_types` populated.
 export check_module_with_bodies :: fn(
     program: Program,
-    resolved: ResolvedModule,
+    resolved!: ResolvedModule,
     factory: SymbolFactory,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
 ) -> CheckResult {
     result :: check_module(program, resolved, factory, diags)
     walk_bodies(program.decls, result.typed, diags, .Full)
@@ -107,8 +107,8 @@ export check_module_with_bodies :: fn(
 /// (set only by `check_file` for `dump --stage=typed-ast`) ; build / run /
 /// bootstrap / LSP pass `false`, since nothing reads those tables there.
 export check_project_with_bodies :: fn(
-    project: LoadedProject,
-    diags: Diagnostic[],
+    project!: LoadedProject,
+    diags!: Diagnostic[],
     dump_types: bool,
 ) -> CheckResult {
     entry_loaded :: project.modules[project.entry]
@@ -529,7 +529,7 @@ synth_resolved :: fn() -> ResolvedModule {
 /// `infer_ident` resolve a cross-module name to its full type
 /// without re-walking the project at lookup time.
 populate_external_types :: fn(
-    entry_typed: TypedProgram,
+    entry_typed!: TypedProgram,
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
 ) -> void {
@@ -540,7 +540,7 @@ populate_external_types :: fn(
 
 populate_from :: fn(
     targets: ImportTargetTable,
-    entry_typed: TypedProgram,
+    entry_typed!: TypedProgram,
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
 ) -> void {
@@ -595,7 +595,7 @@ coherence_key :: fn(for_ty: Type, trait_name: string, args: Type[]) -> string | 
 check_impl_coherence :: fn(
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
 ) -> void {
     seen :: MutableMap<string, Span> {}
     // Register every NON-entry module's impls (the `std/core` prelude + stdlib +
@@ -616,8 +616,8 @@ check_module_impl_coherence :: fn(
     id: string,
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
-    seen: MutableMap<string, Span>,
-    diags: Diagnostic[],
+    seen!: MutableMap<string, Span>,
+    diags!: Diagnostic[],
 ) -> void {
     tp :: per_module[id] ?? return
     loaded :: project.modules[id] ?? return
@@ -654,7 +654,7 @@ check_module_impl_coherence :: fn(
 check_fn_redefinitions :: fn(
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
 ) -> void {
     for [id, _] in project.modules {
         check_module_fn_redefinitions(id, project, per_module, diags)
@@ -665,7 +665,7 @@ check_module_fn_redefinitions :: fn(
     id: string,
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
 ) -> void {
     tp :: per_module[id] ?? return
     loaded :: project.modules[id] ?? return
@@ -793,7 +793,7 @@ fn_signature_key :: fn(fd: AST.FnDecl, resolved: ResolvedModule) -> string | nul
 // `sb.to_string()` (where the impl lives in `std/string_builder`)
 // dispatch through the same path as local impls.
 merge_external_impl_methods :: fn(
-    entry_typed: TypedProgram,
+    entry_typed!: TypedProgram,
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
 ) -> void {
@@ -868,11 +868,11 @@ into_iterator_element :: fn(
 // resolution ; `diags` sinks any resolution error (throwaway for the external
 // path, real for the local one).
 index_impl_metadata :: fn(
-    typed: TypedProgram,
+    typed!: TypedProgram,
     id: AST.ImplDecl,
     for_ty: Type,
     resolved: ResolvedModule,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
 ) -> void {
     base_key :: type_base_name(for_ty)
     if id.trait_name == TRAIT_ITERATOR && id.trait_args.len() == 1 {
@@ -903,7 +903,7 @@ index_impl_metadata :: fn(
 // the three trait-membership recorders (`record_impl_trait` + both maps of
 // `record_struct_trait`), generic over the key type so the id-keyed and
 // name-keyed maps use one form.
-add_trait_unique :: fn<K>(m: MutableMap<K, string[]>, key: K, trait_name: string) -> void {
+add_trait_unique :: fn<K>(m!: MutableMap<K, string[]>, key: K, trait_name: string) -> void {
     bucket :: m[key]
     if bucket == null {
         m[key] = [trait_name]
@@ -921,11 +921,11 @@ add_trait_unique :: fn<K>(m: MutableMap<K, string[]>, key: K, trait_name: string
 // Append `trait_name` to the impl-method-trait bucket for `base_key`.
 // Two distinct traits providing the same method on the same receiver
 // make `x.method()` ambiguous (T3032).
-record_impl_trait :: fn(typed: TypedProgram, base_key: string, trait_name: string) -> void {
+record_impl_trait :: fn(typed!: TypedProgram, base_key: string, trait_name: string) -> void {
     add_trait_unique(typed.impl_method_traits, base_key, trait_name)
 }
 
-record_struct_trait :: fn(typed: TypedProgram, for_ty: Type, trait_name: string) -> void {
+record_struct_trait :: fn(typed!: TypedProgram, for_ty: Type, trait_name: string) -> void {
     // Two membership maps populated in lockstep: the id-keyed twin (project-
     // global-unique symbol ids → collision-free, drives the runtime `is Trait`
     // impl_table rows via the emitter) and the name-keyed map (base-name
@@ -940,7 +940,7 @@ record_struct_trait :: fn(typed: TypedProgram, for_ty: Type, trait_name: string)
 }
 
 record_struct_trait_args :: fn(
-    typed: TypedProgram,
+    typed!: TypedProgram,
     for_ty: Type,
     trait_name: string,
     args: Type[],
@@ -966,7 +966,7 @@ record_struct_trait_args :: fn(
 // Display from `std/core`. Emits R2016 when the short impl form
 // (`Type implements Trait -> expr`) targets a trait with != 1
 // required method.
-export materialize_all_sams_pre_resolve :: fn(project: LoadedProject) -> void {
+export materialize_all_sams_pre_resolve :: fn(project!: LoadedProject) -> void {
     for [_, loaded] in project.modules {
         for decl in merge_module_program(loaded.module.files).decls {
             if decl !is AST.ImplDecl {
@@ -1022,9 +1022,9 @@ export materialize_all_sams_pre_resolve :: fn(project: LoadedProject) -> void {
 /// trait's lone required method. When the trait has 0 or 2+ required
 /// methods, the sugar is ill-defined — emit once per synthetic member.
 check_short_impl_arity :: fn(
-    impl_: AST.ImplDecl,
+    impl_!: AST.ImplDecl,
     trait_: AST.TraitDecl,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
 ) -> bool {
     required :: required_methods(trait_.members).len()
     if required == 1 {
@@ -1118,7 +1118,7 @@ has_expr_bodied_fn :: fn(decls: AST.Decl[]) -> bool {
 // them with the now-settled fn return types. Decl-level tables
 // (`decl_types`, struct/trait decls, impl_methods, …) stay intact —
 // only side-tables filled from inside fn bodies need a refresh.
-reset_expr_tables :: fn(typed: TypedProgram) -> void {
+reset_expr_tables :: fn(typed!: TypedProgram) -> void {
     typed.expr_types = MutableMap<usize, Type> {}
     typed.expr_kinds = MutableMap<usize, string> {}
     typed.node_spans = MutableMap<usize, Span> {}
@@ -1141,7 +1141,7 @@ reset_expr_tables :: fn(typed: TypedProgram) -> void {
 // `resolved.alias_types`. Runs across the project BEFORE
 // `declare_module` so cross-module aliases resolve at fn-signature
 // lowering time.
-register_aliases :: fn(typed: TypedProgram, decls: AST.Decl[]) -> void {
+register_aliases :: fn(typed!: TypedProgram, decls: AST.Decl[]) -> void {
     for decl in decls {
         match decl {
             is AST.TypeAliasDecl as ta -> {
@@ -1230,7 +1230,7 @@ broadcast_enum_types :: fn(per_module: MutableMap<string, TypedProgram>, project
     }
 }
 
-register_alias_const :: fn(cd: AST.ConstDecl, typed: TypedProgram) -> bool {
+register_alias_const :: fn(cd: AST.ConstDecl, typed!: TypedProgram) -> bool {
     if !is_type_expr(cd.value, typed.resolved) {
         return false
     }
@@ -1303,7 +1303,7 @@ export is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
 // the entry's resolver tables so cross-module aliases (e.g. `Pet`
 // imported from `./types`) expand at use sites.
 merge_external_alias_types :: fn(
-    entry_typed: TypedProgram,
+    entry_typed!: TypedProgram,
     per_module: MutableMap<string, TypedProgram>,
 ) -> void {
     entry_path :: entry_typed.resolved.path
@@ -1375,7 +1375,7 @@ cross_publish_fn_decls :: fn(per_module: MutableMap<string, TypedProgram>) -> vo
 // the entry's tables so `field.vader` can look up cross-module
 // struct field definitions when resolving `external_pt.field`.
 merge_struct_decls :: fn(
-    entry_typed: TypedProgram,
+    entry_typed!: TypedProgram,
     per_module: MutableMap<string, TypedProgram>,
 ) -> void {
     entry_path :: entry_typed.resolved.path
@@ -1425,7 +1425,7 @@ merge_struct_decls :: fn(
 /// codegen at the time of writing.
 pull_referenced_external_types :: fn(
     t: Type,
-    entry: TypedProgram,
+    entry!: TypedProgram,
     per_module: MutableMap<string, TypedProgram>,
 ) -> void {
     match t {
@@ -1465,7 +1465,7 @@ pull_referenced_external_types :: fn(
 
 register_external :: fn(
     sym: Symbol,
-    entry: TypedProgram,
+    entry!: TypedProgram,
     per_module: MutableMap<string, TypedProgram>,
 ) -> void {
     if entry.external_types[sym.id] !is null { return }
@@ -1526,7 +1526,7 @@ settle_external_expr_bodied_returns :: fn(
 }
 
 populate_imported_fn_overloads :: fn(
-    entry_typed: TypedProgram,
+    entry_typed!: TypedProgram,
     importing_paths: string[],
     typed_by_name: MutableMap<string, TypedProgram>,
 ) -> void {
@@ -1578,7 +1578,7 @@ populate_imported_fn_overloads :: fn(
 // name (`push_overload` is replace-on-signature). We iterate `fn_overloads`
 // (not `symbols`) so every overload of the same name lands in the bucket. Skips
 // the self case (a module never contributes to its own import table).
-push_module_exported_fns :: fn(from: TypedProgram, into: TypedProgram) -> void {
+push_module_exported_fns :: fn(from: TypedProgram, into!: TypedProgram) -> void {
     if from.resolved.path == into.resolved.path {
         return
     }
@@ -1616,7 +1616,7 @@ push_module_exported_fns :: fn(from: TypedProgram, into: TypedProgram) -> void {
     }
 }
 
-push_overload :: fn(typed: TypedProgram, name: string, ft: FnType) -> void {
+push_overload :: fn(typed!: TypedProgram, name: string, ft: FnType) -> void {
     bucket :: typed.imported_fn_overloads[name]
     if bucket is null {
         typed.imported_fn_overloads[name] = [ft]
@@ -1637,7 +1637,7 @@ push_overload :: fn(typed: TypedProgram, name: string, ft: FnType) -> void {
 // `imports_to` table so `type_from_expr` can dereference ImportBinding
 // symbols (e.g. `ParseError` from `std/string`) to their real exported
 // counterpart without needing the full `TypedProgram`.
-populate_resolver_imports :: fn(entry_typed: TypedProgram) -> void {
+populate_resolver_imports :: fn(entry_typed!: TypedProgram) -> void {
     if entry_typed.import_targets !is null {
         for [sym_id, st] in entry_typed.import_targets.symbol_targets {
             entry_typed.resolved.imports_to[sym_id] = st.symbol
@@ -1673,7 +1673,7 @@ populate_resolver_imports_for_others :: fn(
 }
 
 populate_core_symbols :: fn(
-    entry_typed: TypedProgram,
+    entry_typed!: TypedProgram,
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
 ) -> void {
@@ -1701,7 +1701,7 @@ populate_core_symbols :: fn(
 }
 
 populate_core_symbols_into :: fn(
-    typed: TypedProgram,
+    typed!: TypedProgram,
     core_loaded: LoadedModule,
     core_typed: TypedProgram | null,
 ) -> void {
@@ -1803,11 +1803,11 @@ build_namespace_export_params :: fn(
 /// others has its (importer-independent) member map + private-name set built
 /// once, not N times.
 prepopulate_namespace_member_types :: fn(
-    entry_typed: TypedProgram,
+    entry_typed!: TypedProgram,
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
-    member_cache: MutableMap<string, MutableMap<string, Type>>,
-    private_cache: MutableMap<string, MutableMap<string, bool>>,
+    member_cache!: MutableMap<string, MutableMap<string, Type>>,
+    private_cache!: MutableMap<string, MutableMap<string, bool>>,
 ) -> void {
     targets :: entry_typed.import_targets ?? return
     for [sym_id, mod_id] in targets.namespace_targets {
@@ -1830,7 +1830,7 @@ prepopulate_namespace_member_types :: fn(
 build_namespace_private_names :: fn(
     mod_id: string,
     project: LoadedProject,
-    cache: MutableMap<string, MutableMap<string, bool>>,
+    cache!: MutableMap<string, MutableMap<string, bool>>,
 ) -> MutableMap<string, bool> {
     hit :: cache[mod_id]
     if hit !is null {
@@ -1851,7 +1851,7 @@ build_namespace_type_members :: fn(
     mod_id: string,
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
-    cache: MutableMap<string, MutableMap<string, Type>>,
+    cache!: MutableMap<string, MutableMap<string, Type>>,
 ) -> MutableMap<string, Type> {
     hit :: cache[mod_id]
     if hit !is null {
@@ -1918,8 +1918,8 @@ export WalkMode :: enum(u8) {
 /// against it return a concrete type.
 export walk_bodies :: fn(
     decls: AST.Decl[],
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
     mode: WalkMode,
 ) -> void {
     // Pre-pass : seed ALL impl metadata for every impl in the module BEFORE
@@ -1992,8 +1992,8 @@ export walk_bodies :: fn(
 // up front) and the member body walk (deferred to the main pass).
 register_impl_metadata :: fn(
     id: AST.ImplDecl,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
 ) -> void {
     for_ty :: type_from_expr(id.for_type, typed.resolved, diags)
     if id.trait_name == TRAIT_INTO {
@@ -2053,8 +2053,8 @@ register_impl_metadata :: fn(
 
 walk_fn_body :: fn(
     fd: AST.FnDecl,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
     mode: WalkMode,
 ) -> void {
     // SAM short-impl synthetics carry no real body to type ; skip them.
@@ -2090,7 +2090,7 @@ walk_fn_body :: fn(
 check_impl_missing_methods :: fn(
     id: AST.ImplDecl,
     typed: TypedProgram,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
 ) -> void {
     trait_decl :: lookup_trait_decl(id.trait_name, typed) ?? return
     for required in trait_decl.members {
@@ -2189,7 +2189,7 @@ ufcs_method_type :: fn(
     for_ty: Type,
     trait_method: AST.FnDecl | null,
     typed: TypedProgram,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
 ) -> Type | null {
     rest: Type[] = []
     for i in 0..<fd.params.len() {
@@ -2207,8 +2207,8 @@ declare_impl_method_for_trait :: fn(
     fd: AST.FnDecl,
     for_ty: Type,
     trait_method: AST.FnDecl | null,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
 ) -> void {
     params: Type[] = []
     for p in fd.params {
@@ -2232,7 +2232,7 @@ declare_impl_return :: fn(
     for_ty: Type,
     trait_method: AST.FnDecl | null,
     typed: TypedProgram,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
 ) -> Type {
     // Explicit annotation wins.
     if fd.return_type !is null {
@@ -2260,7 +2260,7 @@ param_type :: fn(
     p: AST.FnParam,
     for_ty: Type,
     typed: TypedProgram,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
 ) -> Type {
     if p.ty == null {
         if p.name == "self" {
@@ -2276,7 +2276,7 @@ param_type :: fn(
     return substitute_self(type_from_expr(p.ty, typed.resolved, diags), for_ty)
 }
 
-check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
+check_const_value :: fn(cd: AST.ConstDecl, typed!: TypedProgram, diags!: Diagnostic[]) -> void {
     sym :: lookup_sym_by_name_orch(typed.resolved, cd.name) ?? return
     annot :: typed.decl_types[sym.id]
     expected: Type | null = null

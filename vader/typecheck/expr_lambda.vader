@@ -17,9 +17,9 @@ AST :: import "vader/parser"
 
 /// Type-check a `LambdaExpr`. Returns `fn(params...) -> body`.
 export infer_lambda :: fn(
-    e: AST.LambdaExpr, expected: Type | null,
-    typed: TypedProgram, diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+    e!: AST.LambdaExpr, expected: Type | null,
+    typed!: TypedProgram, diags!: Diagnostic[],
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     expected_fn: FnType | null = null
     match expected {
@@ -51,7 +51,7 @@ export infer_lambda :: fn(
 
 infer_param :: fn(
     p: AST.FnParam, idx: usize, expected_fn: FnType | null,
-    typed: TypedProgram, diags: Diagnostic[],
+    typed!: TypedProgram, diags!: Diagnostic[],
 ) -> Type {
     if p.ty !is null {
         t :: type_from_expr(p.ty, typed.resolved, diags)
@@ -77,7 +77,7 @@ import "vader/resolver"
 
 pick_return :: fn(
     annot: AST.TypeExpr | null, expected_fn: FnType | null,
-    resolved: ResolvedModule, diags: Diagnostic[],
+    resolved: ResolvedModule, diags!: Diagnostic[],
 ) -> Type | null {
     if annot !is null {
         return type_from_expr(annot, resolved, diags)

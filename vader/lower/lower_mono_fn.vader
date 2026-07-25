@@ -34,7 +34,7 @@ import "vader/resolver/symbol"
 /// pulled in by the harvested `std/json::write_object` body). The sort +
 /// erasure-dedup + push happens once in `flush_generic_fn_instances`.
 drain_generic_fn_instances :: fn(
-    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
+    loaded: LoadedProject, typed: TypedProject, project_ctx!: LowerProjectCtx,
     project: LoweredProject, diags: Diagnostic[],
 ) -> void {
     // Transitive monomorphisation : lowering an instance body can register
@@ -206,7 +206,7 @@ lower_async_body :: fn(
 // missing.
 build_fn_instance_decl :: fn(
     inst: GenericFnInstance, key: string, loaded: LoadedProject, typed: TypedProject,
-    project_ctx: LowerProjectCtx, diags: Diagnostic[],
+    project_ctx!: LowerProjectCtx, diags: Diagnostic[],
 ) -> PendingFnInstance | null {
     // Bracket the synth_decls this instance's body lowering spawns (lambdas /
     // defers) so the push loop can drain exactly this window — see
@@ -462,7 +462,7 @@ find_nongeneric_fn_decl_for_symbol :: fn(decls: Decl[], fn_sym: Symbol) -> FnDec
 // `write_string_at` and other non-generic fns of non-entry modules are dropped
 // (only GENERIC instances are otherwise harvested).
 materialize_nongeneric_imported_fns :: fn(
-    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
+    loaded: LoadedProject, typed: TypedProject, project_ctx!: LowerProjectCtx,
     project: LoweredProject, diags: Diagnostic[],
 ) -> void {
     // Cursor over a growing array : lowering one stdlib body can harvest
@@ -505,7 +505,7 @@ materialize_nongeneric_imported_fns :: fn(
 // `build_ident` emits `unreachable`, truncating the caller. Sibling of
 // `materialize_nongeneric_imported_fns`.
 materialize_nongeneric_imported_consts :: fn(
-    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
+    loaded: LoadedProject, typed: TypedProject, project_ctx!: LowerProjectCtx,
     project: LoweredProject, diags: Diagnostic[],
 ) -> void {
     // Cursor over a growing array : lowering one const value can harvest

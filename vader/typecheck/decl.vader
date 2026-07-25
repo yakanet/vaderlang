@@ -36,10 +36,10 @@ import "vader/types"
 /// the sorted `resolved.symbols` array N times.
 export declare_module :: fn(
     program_decls: AST.Decl[],
-    resolved: ResolvedModule,
-    typed: TypedProgram,
+    resolved!: ResolvedModule,
+    typed!: TypedProgram,
     factory: SymbolFactory,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
 ) -> void {
     by_name :: MutableMap<string, Symbol> {}
     for s in resolved.symbols {
@@ -54,7 +54,7 @@ export declare_module :: fn(
 register_deprecated :: fn(
     decl: AST.Decl,
     by_name: MutableMap<string, Symbol>,
-    resolved: ResolvedModule,
+    resolved!: ResolvedModule,
 ) -> void {
     name :: decorated_decl_name(decl)
     if name == "" {
@@ -116,10 +116,10 @@ deprecated_message :: fn(decs: AST.Decorator[]) -> string | null {
 declare_decl :: fn(
     decl: AST.Decl,
     by_name: MutableMap<string, Symbol>,
-    resolved: ResolvedModule,
-    typed: TypedProgram,
+    resolved!: ResolvedModule,
+    typed!: TypedProgram,
     factory: SymbolFactory,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
 ) -> void {
     match decl {
         is AST.FnDecl as fn_decl   -> { declare_fn(fn_decl, by_name, resolved, typed, diags) }
@@ -198,7 +198,7 @@ declare_named_with_args :: fn(
     name_span: Span,
     type_params: AST.TypeParam[],
     by_name: MutableMap<string, Symbol>,
-    typed: TypedProgram,
+    typed!: TypedProgram,
     module_path: string,
     factory: SymbolFactory,
     mk: fn(Symbol, Type[]) -> Type,
@@ -218,8 +218,8 @@ declare_fn :: fn(
     decl: AST.FnDecl,
     by_name: MutableMap<string, Symbol>,
     resolved: ResolvedModule,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
 ) -> void {
     params: Type[] = []
     for p in decl.params {
@@ -276,7 +276,7 @@ report_private_leak :: fn(
     span: Span,
     owner_name: string,
     role: string,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
 ) -> void {
     leak :: first_unexported_type(ty) ?? return
     diags.push(
@@ -296,7 +296,7 @@ check_public_fn_visibility :: fn(
     decl: AST.FnDecl,
     params: Type[],
     return_type: Type,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
 ) -> void {
     if decl.visibility != Visibility.Public {
         return
@@ -407,8 +407,8 @@ validate_extern :: fn(
     decl: AST.FnDecl,
     params: Type[],
     return_type: Type,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
 ) -> void {
     if decl.body !is null {
         diags.push(
@@ -591,7 +591,7 @@ check_main_signature :: fn(
     decl: AST.FnDecl,
     params: Type[],
     return_type: Type,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
 ) -> void {
     if !is_primitive_named(return_type, "i32") {
         diags.push(typecheck_error(.InvalidMainSignature, decl.span, "main must return i32"))
@@ -626,8 +626,8 @@ is_primitive_named :: fn(t: Type, name: string) -> bool {
 declare_fn_param :: fn(
     p: AST.FnParam,
     resolved: ResolvedModule,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
 ) -> Type {
     ty :: p.ty
     if ty == null {
@@ -649,7 +649,7 @@ declare_fn_param :: fn(
 declare_fn_return :: fn(
     decl: AST.FnDecl,
     resolved: ResolvedModule,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
 ) -> Type {
     rt :: decl.return_type
     if rt == null {
@@ -666,9 +666,9 @@ declare_fn_return :: fn(
 declare_enum :: fn(
     decl: AST.EnumDecl,
     by_name: MutableMap<string, Symbol>,
-    resolved: ResolvedModule,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    resolved!: ResolvedModule,
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
 ) -> void {
     sym :: by_name[decl.name]
     repr :: resolve_repr(decl.repr, resolved, diags)
@@ -682,9 +682,9 @@ declare_enum :: fn(
 
 declare_type_alias :: fn(
     decl: AST.TypeAliasDecl,
-    resolved: ResolvedModule,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    resolved!: ResolvedModule,
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
 ) -> void {
     aliased :: type_from_expr(decl.aliased, resolved, diags)
     // Index by alias symbol id ; `decl_types` and `alias_types` share
@@ -700,9 +700,9 @@ declare_type_alias :: fn(
 
 declare_const :: fn(
     decl: AST.ConstDecl,
-    resolved: ResolvedModule,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    resolved!: ResolvedModule,
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
 ) -> void {
     sym :: lookup_sym_by_name(resolved, decl.name) ?? return
     annotation :: decl.ty
@@ -772,7 +772,7 @@ lookup_sym_by_name :: fn(resolved: ResolvedModule, name: string) -> Symbol | nul
 resolve_repr :: fn(
     repr: AST.TypeExpr | null,
     resolved: ResolvedModule,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
 ) -> string {
     if repr is null {
         return "i32"

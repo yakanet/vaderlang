@@ -90,7 +90,7 @@ find_expr_with_mode :: fn(
     return state.best
 }
 
-hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindState) -> void {
+hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st!: FindState) -> void {
     match d {
         is AST.FnDecl as fd -> {
             match fd.body {
@@ -111,14 +111,14 @@ hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindState) -> void {
     }
 }
 
-hv_walk_block :: fn(b: AST.BlockExpr, typed: TypedProgram, st: FindState) -> void {
+hv_walk_block :: fn(b: AST.BlockExpr, typed: TypedProgram, st!: FindState) -> void {
     for s in b.stmts { hv_walk_stmt(s, typed, st) }
     if b.trailing !is null {
         hv_walk_expr(b.trailing, typed, st)
     }
 }
 
-hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindState) -> void {
+hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st!: FindState) -> void {
     match s {
         is AST.LetStmt as ls -> { hv_walk_expr(ls.value, typed, st) }
         is AST.ExprStmt as es -> { hv_walk_expr(es.expr, typed, st) }
@@ -151,7 +151,7 @@ hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindState) -> void {
     }
 }
 
-hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
+hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st!: FindState) -> void {
     hv_consider(e, typed, st)
     match e {
         is AST.CallExpr as c -> {
@@ -217,7 +217,7 @@ hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
     }
 }
 
-hv_consider :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
+hv_consider :: fn(e: AST.Expr, typed: TypedProgram, st!: FindState) -> void {
     // Skip until we have a type entry — no point reporting a node whose hover
     // would show `?`, nor resolving a receiver the typed cache can't type.
     if typed.expr_types[e.id] is null { return }
@@ -265,7 +265,7 @@ FindBindingState :: struct {
     ty:   Type | null
 }
 
-binding_hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindBindingState) -> void {
+binding_hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st!: FindBindingState) -> void {
     match d {
         is AST.FnDecl as fd -> {
             match fd.body {
@@ -285,14 +285,14 @@ binding_hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindBindingStat
     }
 }
 
-binding_hv_walk_block :: fn(b: AST.BlockExpr, typed: TypedProgram, st: FindBindingState) -> void {
+binding_hv_walk_block :: fn(b: AST.BlockExpr, typed: TypedProgram, st!: FindBindingState) -> void {
     for s in b.stmts { binding_hv_walk_stmt(s, typed, st) }
     if b.trailing !is null {
         binding_hv_walk_expr(b.trailing, typed, st)
     }
 }
 
-binding_hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindBindingState) -> void {
+binding_hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st!: FindBindingState) -> void {
     match s {
         is AST.LetStmt as ls -> {
             match ls.binding {
@@ -325,7 +325,7 @@ binding_hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindBindingStat
     }
 }
 
-binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingState) -> void {
+binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st!: FindBindingState) -> void {
     match e {
         is AST.BlockExpr as b -> { binding_hv_walk_block(b, typed, st) }
         is AST.IfExpr as ifx -> {
@@ -396,7 +396,7 @@ EncloseState :: struct {
     acc:  AST.Expr[]
 }
 
-ee_walk_decl :: fn(d: AST.Decl, st: EncloseState) -> void {
+ee_walk_decl :: fn(d: AST.Decl, st!: EncloseState) -> void {
     match d {
         is AST.FnDecl as fd -> {
             match fd.body {
@@ -417,14 +417,14 @@ ee_walk_decl :: fn(d: AST.Decl, st: EncloseState) -> void {
     }
 }
 
-ee_walk_block :: fn(b: AST.BlockExpr, st: EncloseState) -> void {
+ee_walk_block :: fn(b: AST.BlockExpr, st!: EncloseState) -> void {
     for s in b.stmts { ee_walk_stmt(s, st) }
     if b.trailing !is null {
         ee_walk_expr(b.trailing, st)
     }
 }
 
-ee_walk_stmt :: fn(s: AST.Stmt, st: EncloseState) -> void {
+ee_walk_stmt :: fn(s: AST.Stmt, st!: EncloseState) -> void {
     match s {
         is AST.LetStmt as ls -> { ee_walk_expr(ls.value, st) }
         is AST.ExprStmt as es -> { ee_walk_expr(es.expr, st) }
@@ -459,7 +459,7 @@ ee_walk_stmt :: fn(s: AST.Stmt, st: EncloseState) -> void {
 
 // Recurse into children FIRST, then record `e` — post-order push yields an
 // innermost-first chain (a child is appended before its parent).
-ee_walk_expr :: fn(e: AST.Expr, st: EncloseState) -> void {
+ee_walk_expr :: fn(e: AST.Expr, st!: EncloseState) -> void {
     match e {
         is AST.CallExpr as c -> {
             ee_walk_expr(c.callee, st)

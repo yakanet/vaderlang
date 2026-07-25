@@ -25,7 +25,7 @@ import "vader/types"
 /// onto `diags`. The map still includes every variant even on error so
 /// downstream phases don't cascade with "unknown variant" noise.
 export resolve_enum_indices :: fn(
-    decl: EnumDecl, repr: string, diags: Diagnostic[],
+    decl: EnumDecl, repr: string, diags!: Diagnostic[],
 ) -> MutableMap<string, i64> {
     out :: MutableMap<string, i64> {}
     seen_values :: MutableSet<i64> {}

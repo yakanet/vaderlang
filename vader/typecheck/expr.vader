@@ -26,7 +26,7 @@ import "vader/types"
 /// narrowing type ; it's also written into `typed.expr_types`.
 export check_expr :: fn(
     expr: AST.Expr, expected: Type | null,
-    typed: TypedProgram, diags: Diagnostic[],
+    typed!: TypedProgram, diags!: Diagnostic[],
 ) -> Type {
     got :: infer_expr(expr, expected, typed, diags)
     final :: narrow_for_expected(got, expected)
@@ -73,7 +73,7 @@ export check_expr :: fn(
 /// three in lockstep. `expr_kinds` / `node_spans` are populated only when
 /// `typed.dump_types` is set (the typed-ast dump) — they feed nothing else,
 /// so build / run / LSP skip those two inserts per expression.
-export record_expr :: fn(typed: TypedProgram, expr: AST.Expr, ty: Type) -> void {
+export record_expr :: fn(typed!: TypedProgram, expr: AST.Expr, ty: Type) -> void {
     typed.expr_types[expr.id] = ty
     if typed.dump_types {
         typed.expr_kinds[expr.id] = expr_kind_name(expr)
@@ -115,7 +115,7 @@ export expr_kind_name :: fn(e: AST.Expr) -> string = match e {
 
 infer_expr :: fn(
     expr: AST.Expr, expected: Type | null,
-    typed: TypedProgram, diags: Diagnostic[],
+    typed!: TypedProgram, diags!: Diagnostic[],
 ) -> Type {
     // Every Expr variant has a dedicated arm — the match is exhaustive, so
     // T3013 now guards it: a new Expr variant trips the check here.

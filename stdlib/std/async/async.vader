@@ -35,7 +35,7 @@ Sleep :: struct {
 }
 
 Sleep implements Async<null> {
-    resume :: fn(self) -> null | Suspended {
+    resume :: fn(self!) -> null | Suspended {
         if !self.armed {
             self.armed = true
             self.deadline = sched_now() + self.ms
@@ -104,7 +104,7 @@ All :: struct<T> {
 }
 
 All<T> implements Async<T[]> {
-    resume :: fn(self) -> T[] | Suspended {
+    resume :: fn(self!) -> T[] | Suspended {
         n :: self.children.len()
         for i in 0..<n {
             if i in self.results { continue }
@@ -146,7 +146,7 @@ TryAll :: struct<U, E> {
 }
 
 TryAll<U, E> implements Async<(U | E)[] | Error> {
-    resume :: fn(self) -> (U | E)[] | Error | Suspended {
+    resume :: fn(self!) -> (U | E)[] | Error | Suspended {
         r :: self.inner.resume()
         if r is Suspended { return Suspended {} }
         for v in r {
@@ -222,7 +222,7 @@ Any :: struct<U, E> {
 }
 
 Any<U, E> implements Async<U | E> {
-    resume :: fn(self) -> (U | E) | Suspended {
+    resume :: fn(self!) -> (U | E) | Suspended {
         n :: self.children.len()
         for i in 0..<n {
             if i in self.errors { continue }

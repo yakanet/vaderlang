@@ -285,7 +285,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
                 }
                 new_params.push(AST.FnParam {
                     .span = pm.span, .id = AST.UNASSIGNED_NODE_ID, .name = pm.name,
-                    .ty = new_pty, .default_value = new_default, .variadic = pm.variadic,
+                    .ty = new_pty, .default_value = new_default, .variadic = pm.variadic, .mutable = pm.mutable,
                 })
             }
             new_ret: AST.TypeExpr | null = null
@@ -436,7 +436,7 @@ import "vader/parser"
 /// don't collide with the trait module's own typing pass (which keys
 /// on the trait's original AST node IDs).
 export substitute_block_materialized :: fn(
-    b: AST.BlockExpr, subst: Subst, factory: NodeIdFactory, stamp: StampCtx,
+    b: AST.BlockExpr, subst: Subst, factory: NodeIdFactory, stamp!: StampCtx,
 ) -> AST.BlockExpr {
     cloned :: substitute_block(b, subst)
     assign_block_ids(cloned, factory)
@@ -478,14 +478,14 @@ export substitute_block_materialized :: fn(
 /// typecheck/lower materialisation generations (the source file is invariant).
 export StampCtx :: struct { base_line: i32, counter: i32, file: string }
 
-export next_clone_span :: fn(stamp: StampCtx) -> Span {
+export next_clone_span :: fn(stamp!: StampCtx) -> Span {
     col :: stamp.counter
     stamp.counter = stamp.counter + 1
     pos :: Position { .file = stamp.file, .offset = 0, .line = stamp.base_line, .column = col }
     return Span { .start = pos, .end = pos }
 }
 
-stamp_block_spans :: fn(b: AST.BlockExpr, stamp: StampCtx) -> void {
+stamp_block_spans :: fn(b!: AST.BlockExpr, stamp!: StampCtx) -> void {
     b.span = next_clone_span(stamp)
     for s in b.stmts { stamp_stmt_spans(s, stamp) }
     if b.trailing !is null {
@@ -493,7 +493,7 @@ stamp_block_spans :: fn(b: AST.BlockExpr, stamp: StampCtx) -> void {
     }
 }
 
-stamp_stmt_spans :: fn(s: AST.Stmt, stamp: StampCtx) -> void {
+stamp_stmt_spans :: fn(s: AST.Stmt, stamp!: StampCtx) -> void {
     match s {
         is AST.LetStmt as ls -> {
             ls.span = next_clone_span(stamp)
@@ -538,7 +538,7 @@ stamp_stmt_spans :: fn(s: AST.Stmt, stamp: StampCtx) -> void {
     }
 }
 
-stamp_expr_spans :: fn(e: AST.Expr, stamp: StampCtx) -> void {
+stamp_expr_spans :: fn(e: AST.Expr, stamp!: StampCtx) -> void {
     match e {
         is AST.IntLitExpr   as x -> { x.span = next_clone_span(stamp) }
         is AST.FloatLitExpr as x -> { x.span = next_clone_span(stamp) }
@@ -671,7 +671,7 @@ stamp_expr_spans :: fn(e: AST.Expr, stamp: StampCtx) -> void {
     }
 }
 
-stamp_binding_spans :: fn(b: AST.LetBinding, stamp: StampCtx) -> void {
+stamp_binding_spans :: fn(b: AST.LetBinding, stamp!: StampCtx) -> void {
     match b {
         is AST.SimpleBinding as x -> {
             x.span = next_clone_span(stamp)
@@ -689,7 +689,7 @@ stamp_binding_spans :: fn(b: AST.LetBinding, stamp: StampCtx) -> void {
     }
 }
 
-stamp_pattern_spans :: fn(p: AST.Pattern, stamp: StampCtx) -> void {
+stamp_pattern_spans :: fn(p: AST.Pattern, stamp!: StampCtx) -> void {
     match p {
         is AST.IsPattern as ip -> {
             ip.span = next_clone_span(stamp)

@@ -24,8 +24,8 @@ import "vader/types"
 /// @param recurse      callback to lower `expr.lower` + `expr.upper`.
 /// @return             the lowered struct literal (or unreachable on miss).
 export lower_range_expr :: fn(
-    ctx: FnLowerCtx, expr: RangeExpr, result_type: Type,
-    recurse: fn(FnLowerCtx, Expr) -> LoweredExpr,
+    ctx!: FnLowerCtx, expr: RangeExpr, result_type: Type,
+    recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr,
 ) -> LoweredExpr {
     range_symbol :: ctx.project.core_symbols[STRUCT_RANGE]
     match range_symbol {
@@ -49,8 +49,8 @@ export lower_range_expr :: fn(
 
 build_range_lit :: fn(
     expr: RangeExpr, result_type: Type,
-    recurse: fn(FnLowerCtx, Expr) -> LoweredExpr,
-    ctx: FnLowerCtx,
+    recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr,
+    ctx!: FnLowerCtx,
 ) -> LoweredExpr {
     span :: expr.span
     lower_bound :: recurse(ctx, expr.lower)

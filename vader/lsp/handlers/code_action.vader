@@ -25,7 +25,7 @@ import "vader/lsp/actions"
 /// @param state   shared server state (carries the typed-project cache).
 /// @param params  request params : `{ textDocument: { uri }, range, context }`.
 /// @return        a `CodeAction[]` JSON array.
-export handle_code_action :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+export handle_code_action :: fn(state!: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     if uri == "" { return JsonArray { .items = [] } }
     file_path :: uri_to_path(uri)

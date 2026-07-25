@@ -133,7 +133,7 @@ parse_int_list :: fn(csv: string) -> i32[] {
 ///
 /// @param cleaned  the .virt line, already comment-stripped.
 /// @param strings  the module-wide string pool, appended to in place.
-parse_string_decl :: fn(cleaned: string, strings: string[]) -> void {
+parse_string_decl :: fn(cleaned: string, strings!: string[]) -> void {
     after :: cleaned.bytes()["string ".bytes().len()..<cleaned.bytes().len()].bytes_to_string()
     first_quote :: after.index_of('"', 0)
     if first_quote < 0 { return }
@@ -202,7 +202,7 @@ read_fn_mangled_name :: fn(cleaned: string) -> string {
 /// @return         `true` if a known op was recognised and pushed ;
 ///                 `false` for unknown lines (silently dropped so they
 ///                 don't shift pc indices).
-try_push_op :: fn(cleaned: string, head: string, ops: bc.Op[]) -> bool {
+try_push_op :: fn(cleaned: string, head: string, ops!: bc.Op[]) -> bool {
     parsed :: parse_op_line(cleaned, head) ?? return false
     ops.push(parsed)
     return true
@@ -216,7 +216,7 @@ try_push_op :: fn(cleaned: string, head: string, ops: bc.Op[]) -> bool {
 ///                 helpers that re-parse args like the branch label.
 /// @param head     the line's pre-computed head token (see `head_of`).
 /// @param pc       the pc that was just emitted (= `state.ops.len() - 1`).
-wire_control_flow :: fn(state: ParserState, cleaned: string, head: string, pc: i32) -> void {
+wire_control_flow :: fn(state!: ParserState, cleaned: string, head: string, pc: i32) -> void {
     if head == "block" {
         push_scope(state.scopes, state.scope_sp, ScopeEntry { .label = first_token_after(cleaned, "block "), .is_loop = false, .opener_pc = pc })
     } else if head == "loop" {
@@ -263,7 +263,7 @@ wire_control_flow :: fn(state: ParserState, cleaned: string, head: string, pc: i
 /// @param scopes  the grow-only scope stack (shared across functions).
 /// @param sp_box  1-element cursor — `[0]` is the logical top index.
 /// @param entry   the scope to push.
-push_scope :: fn(scopes: ScopeEntry[], sp_box: usize[], entry: ScopeEntry) -> void {
+push_scope :: fn(scopes!: ScopeEntry[], sp_box!: usize[], entry: ScopeEntry) -> void {
     sp :: sp_box[0]
     if sp == scopes.len() { scopes.push(entry) }
     else                  { scopes[sp] = entry }
@@ -278,7 +278,7 @@ push_scope :: fn(scopes: ScopeEntry[], sp_box: usize[], entry: ScopeEntry) -> vo
 /// @param cleaned  the .virt line (comment-stripped).
 /// @param prefix   `"br "` or `"br_if "` — used to locate the label.
 /// @param pc       the pc of the branching op being wired.
-defer_or_resolve_branch :: fn(state: ParserState, cleaned: string, prefix: string, pc: i32) -> void {
+defer_or_resolve_branch :: fn(state!: ParserState, cleaned: string, prefix: string, pc: i32) -> void {
     label :: first_token_after(cleaned, prefix)
     sp :: state.scope_sp[0]
     // Find the matching scope by label from the top.
@@ -314,7 +314,7 @@ defer_or_resolve_branch :: fn(state: ParserState, cleaned: string, prefix: strin
 /// @param is_loop    `true` for loops (back-edge target = opener+1).
 /// @param opener_pc  pc of the scope's opener (block/loop/if/else).
 /// @param end_pc     pc of the matching `end` op.
-drain_pending :: fn(state: ParserState, label: string, is_loop: bool, opener_pc: i32, end_pc: i32) -> void {
+drain_pending :: fn(state!: ParserState, label: string, is_loop: bool, opener_pc: i32, end_pc: i32) -> void {
     psp :: state.pending_sp[0]
     new_sp: usize = 0
     for i in 0..<psp {

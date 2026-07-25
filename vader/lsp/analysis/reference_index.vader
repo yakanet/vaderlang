@@ -72,7 +72,7 @@ export cursor_in_span :: fn(sp: Span, line: i32, col: i32) -> bool {
 ///                 wiring resolved by `wire_imports`).
 /// @param result   the typecheck result (carries per-module `resolved`).
 /// @return         a flat `ReferenceIndex` ready for `symbol_at` / `site_at`.
-export build_reference_index :: fn(project: LoadedProject, result: CheckResult) -> ReferenceIndex {
+export build_reference_index :: fn(project!: LoadedProject, result: CheckResult) -> ReferenceIndex {
     table :: wire_imports(project)
     sites: RefSite[] = []
     seen :: MutableMap<u64, bool> {}
@@ -114,7 +114,7 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
 // params, type-params, for-bindings, pattern bindings. Top-level decl names are
 // NOT pushed here (they come from `resolved.symbols`).
 
-collect_decl_idents :: fn(d: AST.Decl, out: Span[]) -> void {
+collect_decl_idents :: fn(d: AST.Decl, out!: Span[]) -> void {
     match d {
         is AST.ImportDecl    as x -> { collect_decorators(x.decorators, out) }
         is AST.FnDecl        as x -> { collect_fn(x, out) }
@@ -160,7 +160,7 @@ collect_decl_idents :: fn(d: AST.Decl, out: Span[]) -> void {
     }
 }
 
-collect_decorators :: fn(ds: AST.Decorator[], out: Span[]) -> void {
+collect_decorators :: fn(ds: AST.Decorator[], out!: Span[]) -> void {
     for deco in ds {
         for a in deco.args { collect_expr(a, out) }
     }
@@ -171,11 +171,11 @@ collect_decorators :: fn(ds: AST.Decorator[], out: Span[]) -> void {
 // a clean rename target nor a precise reference range. Their uses (IdentExpr)
 // are still collected. Param / type-param rename is a follow-up needing a
 // name-only span.
-collect_type_params :: fn(ps: AST.TypeParam[], out: Span[]) -> void {
+collect_type_params :: fn(ps: AST.TypeParam[], out!: Span[]) -> void {
     for p in ps { collect_opt_type(p.bound, out) }
 }
 
-collect_fn :: fn(d: AST.FnDecl, out: Span[]) -> void {
+collect_fn :: fn(d: AST.FnDecl, out!: Span[]) -> void {
     collect_decorators(d.decorators, out)
     collect_type_params(d.type_params, out)
     for p in d.params {
@@ -186,7 +186,7 @@ collect_fn :: fn(d: AST.FnDecl, out: Span[]) -> void {
     collect_opt_block(d.body, out)
 }
 
-collect_binding :: fn(b: AST.LetBinding, out: Span[]) -> void {
+collect_binding :: fn(b: AST.LetBinding, out!: Span[]) -> void {
     match b {
         is AST.SimpleBinding   as x -> { out.push(x.name_span) }
         is AST.TupleBinding    as x -> { for e in x.elements { collect_binding(e, out) } }
@@ -195,7 +195,7 @@ collect_binding :: fn(b: AST.LetBinding, out: Span[]) -> void {
     }
 }
 
-collect_stmt :: fn(s: AST.Stmt, out: Span[]) -> void {
+collect_stmt :: fn(s: AST.Stmt, out!: Span[]) -> void {
     match s {
         is AST.LetStmt      as x -> {
             collect_binding(x.binding, out)
@@ -235,12 +235,12 @@ collect_stmt :: fn(s: AST.Stmt, out: Span[]) -> void {
     }
 }
 
-collect_block :: fn(b: AST.BlockExpr, out: Span[]) -> void {
+collect_block :: fn(b: AST.BlockExpr, out!: Span[]) -> void {
     for s in b.stmts { collect_stmt(s, out) }
     collect_opt_expr(b.trailing, out)
 }
 
-collect_expr :: fn(e: AST.Expr, out: Span[]) -> void {
+collect_expr :: fn(e: AST.Expr, out!: Span[]) -> void {
     match e {
         is AST.IdentExpr         as x -> { out.push(x.span) }
         is AST.NullCoalesceExpr  as x -> {
@@ -327,7 +327,7 @@ collect_expr :: fn(e: AST.Expr, out: Span[]) -> void {
     }
 }
 
-collect_pattern :: fn(p: AST.Pattern, out: Span[]) -> void {
+collect_pattern :: fn(p: AST.Pattern, out!: Span[]) -> void {
     match p {
         is AST.IsPattern as x -> {
             collect_type(x.ty, out)
@@ -356,7 +356,7 @@ collect_pattern :: fn(p: AST.Pattern, out: Span[]) -> void {
 
 // Type-position identifiers (`x: Foo`, `Map<K, V>`, `A | B`). The topmost ident
 // names a type that the body walker resolves into `idents`, so it's a reference.
-collect_type :: fn(e: AST.Expr, out: Span[]) -> void {
+collect_type :: fn(e: AST.Expr, out!: Span[]) -> void {
     match e {
         is AST.IdentExpr       as x -> { out.push(x.span) }
         is AST.GenericInstExpr as x -> {
@@ -381,25 +381,25 @@ collect_type :: fn(e: AST.Expr, out: Span[]) -> void {
     }
 }
 
-collect_opt_type :: fn(e: AST.Expr | null, out: Span[]) -> void {
+collect_opt_type :: fn(e: AST.Expr | null, out!: Span[]) -> void {
     if e !is null {
         collect_type(e, out)
     }
 }
 
-collect_opt_expr :: fn(e: AST.Expr | null, out: Span[]) -> void {
+collect_opt_expr :: fn(e: AST.Expr | null, out!: Span[]) -> void {
     if e !is null {
         collect_expr(e, out)
     }
 }
 
-collect_opt_block :: fn(b: AST.BlockExpr | null, out: Span[]) -> void {
+collect_opt_block :: fn(b: AST.BlockExpr | null, out!: Span[]) -> void {
     if b !is null {
         collect_block(b, out)
     }
 }
 
-collect_opt_pattern :: fn(p: AST.Pattern | null, out: Span[]) -> void {
+collect_opt_pattern :: fn(p: AST.Pattern | null, out!: Span[]) -> void {
     if p !is null {
         collect_pattern(p, out)
     }

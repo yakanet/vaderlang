@@ -18,12 +18,12 @@ import "vader/types"
 /// `ctx` carries the surrounding fn's return type + loop depth ;
 /// pass `null` for stand-alone block exprs.
 export check_block :: fn(
-    block: AST.BlockExpr,
+    block!: AST.BlockExpr,
     expected: Type | null,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     // Track flow-narrowing pushed by divergent guards (`if x is T
     // { return … }`) so subsequent stmts see the complement type.
@@ -99,10 +99,10 @@ export check_block :: fn(
 /// `continue` validation ; writes `local_types` for let-bindings.
 export check_stmt :: fn(
     stmt: AST.Stmt,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     match stmt {
         is AST.LetStmt as s      -> { check_let(s, typed, diags, check_expr_fn) }
@@ -250,7 +250,7 @@ expr_has_await :: fn(e: AST.Expr) -> bool = @partial match e {
 /// (plus a T3056 diagnostic) when the return type isn't a valid
 /// `Iterator<T>`. A function that `yield`s must honour it with an
 /// `Iterator<T>` return.
-generator_element_type :: fn(fn_decl: AST.FnDecl, return_type: Type, diags: Diagnostic[]) -> Type | null {
+generator_element_type :: fn(fn_decl: AST.FnDecl, return_type: Type, diags!: Diagnostic[]) -> Type | null {
     if return_type is TraitType as tt {
         if tt.symbol.name == TRAIT_ITERATOR && tt.args.len() > 0 {
             return tt.args[0]
@@ -354,10 +354,10 @@ if_has_yield :: fn(i: AST.IfExpr) -> bool {
 /// the trailing-expr arm of `check_block`.
 export check_fn_body :: fn(
     fn_decl: AST.FnDecl,
-    body: AST.BlockExpr,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+    body!: AST.BlockExpr,
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     return_type :: lookup_return_type(fn_decl, typed)
     is_generator :: fn_is_generator(fn_decl)
@@ -430,7 +430,7 @@ export check_fn_body :: fn(
     typed.current_fn_ctx = prev
 }
 
-patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram) -> void {
+patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed!: TypedProgram) -> void {
     sym :: lookup_decl_symbol_stmt(typed.resolved, fn_decl)
     match sym {
         is Symbol as s -> {
@@ -520,8 +520,8 @@ emit_return_mismatch_if :: fn(
     expected: Type,
     span: Span,
     node_id: usize,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
 ) -> void = emit_mismatch_if(got, expected, span, node_id, .BodyReturnIncompatible, typed, diags)
 
 // The one coercion gate shared by let / return / yield / assign : `got` flows
@@ -536,7 +536,7 @@ emit_return_mismatch_if :: fn(
 // `check_block`, tripping the emit-time field-access panic). The current
 // compiler handles the single-expr form fine; the seed does not. Leave it
 // brace-bodied until the seed is advanced past that inliner/interning bug.
-flows_into :: fn(got: Type, expected: Type, node_id: usize, typed: TypedProgram) -> bool {
+flows_into :: fn(got: Type, expected: Type, node_id: usize, typed!: TypedProgram) -> bool {
     if is_assignable(got, expected, null) {
         return true
     }
@@ -553,8 +553,8 @@ emit_mismatch_if :: fn(
     span: Span,
     node_id: usize,
     code: TypecheckCode,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
 ) -> void {
     if flows_into(got, expected, node_id, typed) {
         return
@@ -577,10 +577,10 @@ resolve_ctx :: fn(ctx: FnContext | null, typed: TypedProgram) -> FnContext | nul
 // ---- per-stmt helpers -----------------------------------------------------
 
 check_let :: fn(
-    s: AST.LetStmt,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+    s!: AST.LetStmt,
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     ann: Type | null = null
     if s.ty !is null {
@@ -638,7 +638,7 @@ check_let :: fn(
 // `x := []` : remember which expression the `?[]` came from, so the first
 // `x.push(elem)` can widen the LITERAL as well as the local (see
 // `TypedProgram.empty_array_inits`).
-record_empty_array_init :: fn(s: AST.LetStmt, declared: Type, typed: TypedProgram) -> void {
+record_empty_array_init :: fn(s: AST.LetStmt, declared: Type, typed!: TypedProgram) -> void {
     if declared !is ArrayType {
         return
     }
@@ -654,10 +654,10 @@ record_empty_array_init :: fn(s: AST.LetStmt, declared: Type, typed: TypedProgra
 import "vader/resolver/symbol"
 
 check_assign :: fn(
-    s: AST.AssignStmt,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+    s!: AST.AssignStmt,
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     // T3041 : bare-ident assignment to a `::`-bound local. Surface
     // the diag and skip the value-side typing so the dump doesn't
@@ -680,9 +680,10 @@ check_assign :: fn(
     // rejected because the predicate walks back to the root.
     if s.target is AST.FieldExpr as fe {
         root :: immutable_root(fe.target, typed)
-        if push_immutability_diag(
+        if push_immutability_diag_at(
             root, .CannotMutateImmutableBinding, s.target.span,
-            "`${fe.field}` is reached through an immutable path", diags,
+            "`${fe.field}` is reached through an immutable path",
+            immutable_root_param(fe.target, typed), diags,
         ) {
             return
         }
@@ -712,7 +713,10 @@ check_assign :: fn(
             // T3070 : the array itself is mutable, but we got to it through an
             // immutable path — `CFG.tags[0] = 9`, where `tags: i32[]`. T3042 above
             // already handled the `const T[]` leaf, so this only fires past it.
-            if push_immutable_path_write(immutable_root(ix.target, typed), s.target.span, diags) {
+            if push_immutable_path_write(
+                immutable_root(ix.target, typed), s.target.span,
+                immutable_root_param(ix.target, typed), diags,
+            ) {
                 return
             }
             // `arr[i]` types to the element type ; array elements are never
@@ -746,7 +750,10 @@ check_assign :: fn(
             }
         }
         // T3070 : same rule for an `IndexSet` receiver (a map field of a const).
-        if push_immutable_path_write(immutable_root(ix.target, typed), s.target.span, diags) {
+        if push_immutable_path_write(
+            immutable_root(ix.target, typed), s.target.span,
+            immutable_root_param(ix.target, typed), diags,
+        ) {
             return
         }
         // Pin a free-literal write value to the IndexSet value type V
@@ -819,8 +826,8 @@ emit_assign_mismatch_if :: fn(
     expected: Type | null,
     span: Span,
     node_id: usize,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
 ) -> void {
     if expected == null                          { return }
     if flows_into(got, expected, node_id, typed) { return }
@@ -893,17 +900,37 @@ export ImmutabilityRoot :: enum(u8) {
 ///              entry (`build_core_struct_lit: not a struct type`).
 push_immutability_diag :: fn(
     root: ImmutabilityRoot, code: TypecheckCode, span: Span, message: string,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
+) -> bool = push_immutability_diag_at(root, code, span, message, null, diags)
+
+/// Same, plus the root PARAMETER whose declaration the reader must annotate.
+push_immutability_diag_at :: fn(
+    root: ImmutabilityRoot, code: TypecheckCode, span: Span, message: string,
+    root_param: Symbol | null, diags!: Diagnostic[],
 ) -> bool {
     if root == .None {
         return false
     }
     if root == .ImplicitParam {
-        diags.push(warning(.ImplicitImmutableParam, span, message))
+        diags.push(warning(.ImplicitImmutableParam, span, message + annotate_hint(root_param)))
         return false
     }
     diags.push(typecheck_error(code, span, message))
     return true
+}
+
+// " — annotate `name!` at file:line:col", empty when the root isn't an annotatable
+// parameter. The position is machine-readable on purpose: the migration sweep reads
+// it to place the `!` itself.
+annotate_hint :: fn(root_param: Symbol | null) -> string {
+    if root_param is null {
+        return ""
+    }
+    at :: root_param.defined_at
+    if at is null {
+        return " — annotate `${root_param.name}!`"
+    }
+    return " — annotate `${root_param.name}!` at ${at.start.file}:${at.start.line}:${at.start.column}"
 }
 
 /// Walk an access path back to its root and report why it is immutable.
@@ -915,6 +942,31 @@ export immutable_root :: fn(e: AST.Expr, typed: TypedProgram) -> ImmutabilityRoo
     is AST.FieldExpr as f  -> immutable_root(f.target, typed)
     is AST.IndexExpr as ix -> immutable_root(ix.target, typed)
     _                      -> .None
+}
+
+/// The ROOT symbol an access path starts from, when that root is a PARAMETER —
+/// the only root the reader can annotate.
+///
+/// Powers W0014's "annotate it at …" hint: the write and the declaration to fix are
+/// usually in different places, so a warning pointing only at the write leaves the
+/// parameter to be hunted for.
+///
+/// Returns null for any other root on purpose. A loop variable is immutable only
+/// because its ITERABLE is, and `!` is not valid syntax on one — annotating the
+/// iterable's own parameter is what clears it, on the next pass.
+export immutable_root_param :: fn(e: AST.Expr, typed: TypedProgram) -> Symbol | null {
+    sym :: immutable_root_symbol(e, typed) ?? return null
+    if sym.kind != .Param {
+        return null
+    }
+    return sym
+}
+
+immutable_root_symbol :: fn(e: AST.Expr, typed: TypedProgram) -> Symbol | null = @partial match e {
+    is AST.IdentExpr as x  -> typed.resolved.idents[x.span.hash()]
+    is AST.FieldExpr as f  -> immutable_root_symbol(f.target, typed)
+    is AST.IndexExpr as ix -> immutable_root_symbol(ix.target, typed)
+    _                      -> null
 }
 
 ident_immutable_root :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> ImmutabilityRoot {
@@ -944,7 +996,7 @@ ident_immutable_root :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> Immutab
 // there would mean a second, weaker copy of the predicate. The resolver's only
 // contribution is recording the loop var's Symbol in `idents` so it can be reached
 // from here. Runs before the body is checked, so uses inside see the mark.
-mark_loop_var_borrow :: fn(nv: AST.NamedVar, iter: AST.Expr, typed: TypedProgram) -> void {
+mark_loop_var_borrow :: fn(nv: AST.NamedVar, iter: AST.Expr, typed!: TypedProgram) -> void {
     root :: immutable_root(iter, typed)
     if root == .None {
         return
@@ -960,18 +1012,19 @@ mark_loop_var_borrow :: fn(nv: AST.NamedVar, iter: AST.Expr, typed: TypedProgram
 // T3070 for an element write (`CFG.tags[0] = 9`) whose container is mutable but
 // reached through an immutable path. Shared by the array and IndexSet branches of
 // `check_assign` ; the `const T[]` case keeps T3042's more specific wording.
-push_immutable_path_write :: fn(root: ImmutabilityRoot, span: Span, diags: Diagnostic[]) -> bool =
-    push_immutability_diag(
-        root, .CannotMutateImmutableBinding, span,
-        "this element is reached through an immutable path", diags,
-    )
+push_immutable_path_write :: fn(
+    root: ImmutabilityRoot, span: Span, root_param: Symbol | null, diags!: Diagnostic[],
+) -> bool = push_immutability_diag_at(
+    root, .CannotMutateImmutableBinding, span,
+    "this element is reached through an immutable path", root_param, diags,
+)
 
 check_return :: fn(
-    s: AST.ReturnStmt,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    s!: AST.ReturnStmt,
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     effective :: resolve_ctx(ctx, typed)
     // Generator: `return <value>` is a mistake (produce via `yield` — T3058);
@@ -1021,11 +1074,11 @@ check_return :: fn(
 }
 
 check_yield :: fn(
-    s: AST.YieldStmt,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    s!: AST.YieldStmt,
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     effective :: resolve_ctx(ctx, typed)
     if effective != null && effective.is_generator {
@@ -1055,11 +1108,11 @@ check_yield :: fn(
 }
 
 check_for :: fn(
-    s: AST.ForStmt,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    s!: AST.ForStmt,
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     binding: string | null = null
     match s.form {
@@ -1134,9 +1187,9 @@ check_for :: fn(
 check_loop_jump :: fn(
     span: Span,
     label: string | null,
-    typed: TypedProgram,
+    typed!: TypedProgram,
     ctx: FnContext | null,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
 ) -> void {
     // A bare `break`/`continue` targets the innermost loop (no diagnostic — reader
     // clarity is served by the LSP go-to-loop). A `break <name>` must resolve to an
@@ -1203,10 +1256,10 @@ resolve_loop_target :: fn(stack: EnclosingLoop[], name: string) -> EnclosingLoop
 
 check_defer :: fn(
     s: AST.DeferStmt,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     // `defer` inside a generator is still forbidden in v1 — a generator can be
     // abandoned mid-iteration, and the runtime has no drop hook to fire pending
@@ -1264,8 +1317,8 @@ DivergentNarrow :: struct {
 // this by requiring the then-block's last stmt to be a `ReturnStmt`.
 push_divergent_narrow_if :: fn(
     stmt: AST.Stmt,
-    typed: TypedProgram,
-    stack: DivergentNarrow[],
+    typed!: TypedProgram,
+    stack!: DivergentNarrow[],
 ) -> void {
     if stmt !is AST.ExprStmt    { return }
     if stmt.expr !is AST.IfExpr { return }
@@ -1553,8 +1606,8 @@ lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {
 export assign_binding_types :: fn(
     b: AST.LetBinding,
     declared: Type,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
 ) -> void {
     match b {
         is AST.SimpleBinding   -> { typed.local_types[b.name_span.hash()] = declared }
@@ -1567,8 +1620,8 @@ export assign_binding_types :: fn(
 assign_tuple :: fn(
     tb: AST.TupleBinding,
     declared: Type,
-    typed: TypedProgram,
-    diags: Diagnostic[],
+    typed!: TypedProgram,
+    diags!: Diagnostic[],
 ) -> void {
     // A tuple- or array-backed distinct newtype (`Coord :: [i32, i32]`,
     // `BigInt :: u32[]`) destructures through its backing composite — the

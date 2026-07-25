@@ -27,7 +27,7 @@ AST :: import "vader/parser"
 /// trips on cycles before the C stack does.
 COMPTIME_MAX_EVAL_DEPTH: i64: 2000
 
-export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult {
+export evaluate_expr :: fn(expr: AST.Expr, context!: ComptimeContext) -> EvalResult {
     // Depth guard — `context` is shared across operand recursion
     // (`evaluate_binary_expr` passes it straight through), so `depth` tracks the
     // live nesting level. Check the ceiling BEFORE incrementing, so the

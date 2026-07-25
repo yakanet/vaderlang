@@ -96,7 +96,7 @@ Frame :: struct {
 ///                fresh slot is needed, otherwise an existing one is
 ///                overwritten (cheaper than `push`).
 /// @param value   the value to write.
-push_value :: fn(stack: Value[], cursor: usize, value: Value) -> void {
+push_value :: fn(stack!: Value[], cursor: usize, value: Value) -> void {
     if cursor == stack.len() { stack.push(value) }
     else                     { stack[cursor] = value }
 }
@@ -148,7 +148,7 @@ arith_tag_trap :: fn(frame: Frame, back: usize, op_label: string) -> Trap {
 /// runtime grow + write barrier), and its bulk was pushing `stack_ensure` past
 /// clang's inline threshold — so every push op paid a full call for what is, on
 /// the hot path, a single compare.
-stack_grow :: fn(frame: Frame) -> void {
+stack_grow :: fn(frame!: Frame) -> void {
     frame.payload.push(0)
     frame.tag.push(StackTag.Null)
     frame.stack.push(NULL_VALUE)
@@ -156,12 +156,12 @@ stack_grow :: fn(frame: Frame) -> void {
 
 /// Ensure index `cursor` is addressable in the three stack columns. One compare
 /// on the hot path — small enough to inline at the push sites.
-stack_ensure :: fn(frame: Frame, cursor: usize) -> void { if cursor == frame.payload.len() { stack_grow(frame) } }
+stack_ensure :: fn(frame!: Frame, cursor: usize) -> void { if cursor == frame.payload.len() { stack_grow(frame) } }
 
 /// Write `value` into the stack columns at `cursor` (growing if needed).
 /// Mirrors `push_value` (caller bumps `sp`). Scalars land in payload + tag,
 /// heap values in the refs column.
-push_val :: fn(frame: Frame, cursor: usize, value: Value) -> void {
+push_val :: fn(frame!: Frame, cursor: usize, value: Value) -> void {
     stack_ensure(frame, cursor)
     match value {
         is I32Val as x -> {
@@ -219,7 +219,7 @@ slot_val :: fn(frame: Frame, slot: usize) -> Value {
 }
 
 /// Write a boxed `Value` into local slot `slot` (slot always exists).
-slot_set :: fn(frame: Frame, slot: usize, value: Value) -> void = match value {
+slot_set :: fn(frame!: Frame, slot: usize, value: Value) -> void = match value {
     is I32Val as x -> {
         frame.slot_payload[slot] = i64(x.value)
         frame.slot_tag[slot] = StackTag.I32
@@ -264,7 +264,7 @@ peek_range :: fn(frame: Frame, start: usize, endx: usize) -> Value[] {
 /// @param frames     the grow-only frame stack (mutated in place).
 /// @param cursor     1-element box — `[0]` is the logical top index.
 /// @param new_frame  the callee frame to push.
-push_frame :: fn(frames: Frame[], cursor: usize[], new_frame: Frame) -> void {
+push_frame :: fn(frames!: Frame[], cursor!: usize[], new_frame: Frame) -> void {
     if cursor[0] == frames.len() { frames.push(new_frame) }
     else                         { frames[cursor[0]] = new_frame }
     cursor[0] += 1
@@ -275,7 +275,7 @@ push_frame :: fn(frames: Frame[], cursor: usize[], new_frame: Frame) -> void {
 /// until the next push overwrites it).
 ///
 /// @param cursor  1-element box — `[0]` is the logical top index.
-pop_frame :: fn(cursor: usize[]) -> void {
+pop_frame :: fn(cursor!: usize[]) -> void {
     cursor[0] -= 1
 }
 
@@ -456,7 +456,7 @@ validate_fn_index :: fn(function_index: i32, functions: bc.BcFunction[], at_pc: 
 /// @param env             closure env for the callee, or `null`.
 /// @return                `null` on success ; `Trap` on frame-stack overflow.
 /// @error                 `frame_count[0] > MAX_FRAME_DEPTH` after push.
-dispatch_call_into :: fn(frame: Frame, frames: Frame[], frame_count: usize[], callee: bc.BcFunction, function_index: i32, arg_base: usize, env: Value | null) -> Trap | null {
+dispatch_call_into :: fn(frame!: Frame, frames!: Frame[], frame_count!: usize[], callee: bc.BcFunction, function_index: i32, arg_base: usize, env: Value | null) -> Trap | null {
     frame.sp = arg_base
     frame.pc = frame.pc + 1
     push_callee_frame(frames, frame_count, function_index, callee, frame, arg_base, env)
@@ -491,7 +491,7 @@ dispatch_call_into :: fn(frame: Frame, frames: Frame[], frame_count: usize[], ca
 /// than the parked frame grows them. Locals are re-zeroed explicitly (the
 /// parked frame's tail is stale) ; the stack columns are logically emptied by
 /// `sp = 0` and overwritten on push.
-push_callee_frame :: fn(frames: Frame[], cursor: usize[], function_index: i32, callee: bc.BcFunction, caller: Frame, arg_base: usize, env: Value | null) -> void {
+push_callee_frame :: fn(frames!: Frame[], cursor!: usize[], function_index: i32, callee: bc.BcFunction, caller: Frame, arg_base: usize, env: Value | null) -> void {
     if cursor[0] == frames.len() {
         frames.push(build_callee_frame(function_index, callee, caller, arg_base, env))
         cursor[0] = cursor[0] + 1
@@ -669,7 +669,7 @@ const_op_value :: fn(c: bc.ConstOp, strings: string[], pc: i32) -> Value | Trap 
 ///                      executor should stop ; `null` when execution
 ///                      should continue with the caller frame.
 /// @error               main returned a non-i32 value.
-finalise_return :: fn(return_value: Value, has_value: bool, at_pc: i32, frames: Frame[], frame_count: usize[], main_label: string, capture: Value[] | null) -> VmResult | null {
+finalise_return :: fn(return_value: Value, has_value: bool, at_pc: i32, frames: Frame[], frame_count!: usize[], main_label: string, capture!: Value[] | null) -> VmResult | null {
     pop_frame(frame_count)
     if frame_count[0] == 0 {
         // Value-capturing entry (`exec_fn_value`, comptime VM fallback) : publish
@@ -701,7 +701,7 @@ finalise_return :: fn(return_value: Value, has_value: bool, at_pc: i32, frames: 
 /// word — but a `null` operand can't be read as an i32. Compare those by
 /// null-identity (`null == null`, `null != anything-non-null`) ; everything
 /// else falls back to the numeric i32 path.
-apply_eq_binop :: fn(frame: Frame, op_label: string, negate: bool) -> Trap | null {
+apply_eq_binop :: fn(frame!: Frame, op_label: string, negate: bool) -> Trap | null {
     lt :: frame.tag[frame.sp - 2]
     rt :: frame.tag[frame.sp - 1]
     eq: bool = false
@@ -906,7 +906,7 @@ field_valtype :: fn(types: bc.BcType[], type_index: i32) -> bc.ValType {
 
 /// Core interpreter loop, entered at `entry_index`. `exec` / `exec_fn` pick the
 /// entry (main vs a named `@test`).
-export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], capture: Value[] | null, is_comptime: bool, debug: DebugController | null) -> VmResult {
+export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], capture!: Value[] | null, is_comptime: bool, debug: DebugController | null) -> VmResult {
     if entry_index < 0 || usize(entry_index) >= state.bc.functions.len() {
         return Trap { .message = "no entry function (index=${entry_index})" }
     }
@@ -2720,7 +2720,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
 /// @param frame    current top frame, mutated in place (sp/pc advanced).
 /// @return         `null` on success, or a `Trap` if the stack is too short.
 /// @error          stack underflow when `frame.sp < length`.
-build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Trap | null {
+build_array :: fn(type_id: i32, length: i32, frame!: Frame) -> Trap | null {
     if length < 0 {
         return Trap { .message = "array.new length ${length} is negative at pc=${frame.pc}" }
     }
@@ -2753,7 +2753,7 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Trap | null {
 /// @error          `type_id` out of range ; type-table entry isn't a
 ///                 `BcStruct` ; stack carries fewer than `field_count`
 ///                 values.
-build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> Trap | null {
+build_struct :: fn(types: bc.BcType[], type_id: i32, frame!: Frame) -> Trap | null {
     if type_id < 0 || usize(type_id) >= types.len() {
         return Trap { .message = "struct.new type ${type_id} out of range at pc=${frame.pc}" }
     }
@@ -2803,7 +2803,7 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> Trap | nul
 /// @return             `null` on success, or a `Trap` on stack underflow /
 ///                     negative size.
 /// @error              empty stack ; negative size.
-build_object :: fn(type_id: i32, frame: Frame, handle_cell: i32[]) -> Trap | null {
+build_object :: fn(type_id: i32, frame!: Frame, handle_cell!: i32[]) -> Trap | null {
     if frame.sp < 1 {
         return Trap { .message = "object_new needs size on stack at pc=${frame.pc}" }
     }
@@ -2882,7 +2882,7 @@ load_bytes_op :: fn(frame: Frame, width: usize, label: string) -> u64 | Trap {
 /// @param label  op label for trap messages.
 /// @return       `null` on success, or a `Trap` on bad obj / OOB offset.
 /// @error        non-object receiver ; negative or out-of-range offset.
-store_bytes_op :: fn(frame: Frame, width: usize, value: u64, label: string) -> Trap | null {
+store_bytes_op :: fn(frame!: Frame, width: usize, value: u64, label: string) -> Trap | null {
     off_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "${label} offset")
     if off_unwrap is Trap { return off_unwrap }
     obj_unwrap :: read_obj(peek_val(frame, frame.sp - 3), frame.pc, "${label} receiver")
@@ -2903,7 +2903,7 @@ store_bytes_op :: fn(frame: Frame, width: usize, value: u64, label: string) -> T
 /// `load_slot_*` alike (the native byte-width distinction is native-only).
 /// @param frame  current top frame, mutated in place (1 operand dropped).
 /// @return       `null` on success, or a `Trap` on underflow / non-array / OOB.
-do_load_slot :: fn(frame: Frame) -> Trap | null {
+do_load_slot :: fn(frame!: Frame) -> Trap | null {
     if frame.sp < 2 { return Trap { .message = "load_slot needs array + index on stack at pc=${frame.pc}" } }
     idx_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "load_slot index")
     if idx_unwrap is Trap { return idx_unwrap }
@@ -2928,7 +2928,7 @@ do_load_slot :: fn(frame: Frame) -> Trap | null {
 /// separate path — S5 inc 3.)
 /// @param frame  current top frame, mutated in place (3 operands dropped).
 /// @return       `null` on success, or a `Trap` on underflow / non-array / OOB.
-do_store_slot :: fn(frame: Frame) -> Trap | null {
+do_store_slot :: fn(frame!: Frame) -> Trap | null {
     if frame.sp < 3 { return Trap { .message = "store_slot needs array + index + value on stack at pc=${frame.pc}" } }
     value :: peek_val(frame, frame.sp - 1)
     idx_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "store_slot index")
@@ -2954,7 +2954,7 @@ do_store_slot :: fn(frame: Frame) -> Trap | null {
 /// @return       `null` on success, or a `Trap` on underflow / bad obj / OOB.
 /// @error        fewer than 5 stack slots ; non-object dst/src ; negative
 ///               length/offset ; source or dest range past the byte length.
-do_memory_copy :: fn(frame: Frame) -> Trap | null {
+do_memory_copy :: fn(frame!: Frame) -> Trap | null {
     if frame.sp < 5 {
         return Trap { .message = "memory_copy needs dst + dst_off + src + src_off + n on stack at pc=${frame.pc}" }
     }

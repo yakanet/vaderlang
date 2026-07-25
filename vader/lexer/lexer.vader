@@ -111,7 +111,7 @@ position_here :: fn(l: Lexer) =
 // Advance `pos` by `n` raw bytes. Column counts **codepoints** — UTF-8
 // continuation bytes (0x80..0xBF) don't increment the column, only leading
 // bytes do. Newlines reset col to 1 as usual.
-advance :: fn(l: Lexer, n: usize) -> void {
+advance :: fn(l!: Lexer, n: usize) -> void {
     for 0..<n {
         if l.pos >= l.bytes.len() {
             return
@@ -139,7 +139,7 @@ advance :: fn(l: Lexer, n: usize) -> void {
 
 // ---- token emission -------------------------------------------------------
 
-emit :: fn(l: Lexer, t: Token) -> void {
+emit :: fn(l!: Lexer, t: Token) -> void {
     l.tokens.push(t)
     l.last_kind = t.kind
 }
@@ -149,7 +149,7 @@ push_simple :: fn(l: Lexer, kind: TokenKind, text: string, start: Position) -> v
     l.emit(make_token(kind, text, span))
 }
 
-push_error :: fn(l: Lexer, code: LexerCode, span: Span, detail: string) -> void {
+push_error :: fn(l!: Lexer, code: LexerCode, span: Span, detail: string) -> void {
     l.errors.push(lexer_error(code, span, detail))
 }
 
@@ -555,7 +555,7 @@ top_interp :: fn(l: Lexer) -> InterpFrame | null {
 }
 
 // Drop the current top frame (called at `}` matching depth 0).
-pop_interp :: fn(l: Lexer) -> void {
+pop_interp :: fn(l!: Lexer) -> void {
     n :: l.interp_stack.len()
     if n == 0 { return }
     // `0` because FreeInt repinning doesn't cross the `slice as
@@ -608,7 +608,7 @@ flush_string_part :: fn(l: Lexer, sb: StringBuilder, part_start: Position, has_p
 // emits StringPart / InterpOpen / StringEnd as needed. When the body opens
 // an interpolation we push onto `interp_stack` and return — `lex_one` will
 // resume the body when the matching `}` closes the interp.
-lex_string_body :: fn(l: Lexer, triple: bool, raw: bool) -> void {
+lex_string_body :: fn(l!: Lexer, triple: bool, raw: bool) -> void {
     part_start := l.position_here()
     sb := StringBuilder {}
     has_part := false
@@ -707,7 +707,7 @@ lex_string_body :: fn(l: Lexer, triple: bool, raw: bool) -> void {
 
 // Return true if dispatched. The dispatch order matters: 3-char ops first,
 // then 2-char, then 1-char.
-try_lex_operator :: fn(l: Lexer) -> bool {
+try_lex_operator :: fn(l!: Lexer) -> bool {
     c := l.peek()
     c2 := l.peek_at(1)
 

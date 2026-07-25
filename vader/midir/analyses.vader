@@ -224,7 +224,7 @@ export reverse_postorder :: fn(fn_: CFGFunction) -> BlockId[] {
     return out
 }
 
-walk_rpo :: fn(fn_: CFGFunction, b: BlockId, visited: bool[], order: BlockId[]) -> void {
+walk_rpo :: fn(fn_: CFGFunction, b: BlockId, visited!: bool[], order!: BlockId[]) -> void {
     if visited[i32(b)] { return }
     visited[i32(b)] = true
     for s in successors_of(fn_.blocks[i32(b)]) { walk_rpo(fn_, s, visited, order) }
@@ -387,7 +387,7 @@ export compute_post_dominators :: fn(fn_: CFGFunction) -> i32[] {
     return out
 }
 
-walk_rpo_reverse :: fn(preds: BlockId[][], b: BlockId, visited: bool[], order: BlockId[]) -> void {
+walk_rpo_reverse :: fn(preds: BlockId[][], b: BlockId, visited!: bool[], order!: BlockId[]) -> void {
     if visited[usize(b)] {
         return
     }

@@ -14,8 +14,8 @@ AST :: import "vader/parser"
 /// Type-check `await e` : diagnose it outside an `async` body, type the inner,
 /// and return the awaited element type.
 export infer_await :: fn(
-    e: AST.AwaitExpr, typed: TypedProgram, diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+    e!: AST.AwaitExpr, typed!: TypedProgram, diags!: Diagnostic[],
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     ctx :: resolve_ctx(null, typed)
     is_async :: if ctx == null { false } else { ctx.is_async }

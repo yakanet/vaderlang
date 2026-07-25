@@ -22,7 +22,7 @@ AST :: import "vader/parser"
 
 /// Build the hover response payload for the position carried in `params`.
 /// Returns a `Hover` object on hit, `JsonNull` on miss.
-export handle_hover :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+export handle_hover :: fn(state!: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     if uri == "" { return JsonNull {} }
     line :: position_line(params)
@@ -170,7 +170,7 @@ format_param_payload :: fn(payload: string) -> string {
 /// Run the typechecker for `uri` and return a Hover payload with the
 /// inferred type at (line, character). Returns `null` on miss so the
 /// caller can fall through to the scope-based decl lookup.
-try_typed_hover :: fn(self: ServerState, uri: string, line: i32, character: i32) -> JsonValue | null {
+try_typed_hover :: fn(self!: ServerState, uri: string, line: i32, character: i32) -> JsonValue | null {
     file_path :: uri_to_path(uri)
     if file_path == "" { return null }
     cached :: typed_project_for(self, file_path)

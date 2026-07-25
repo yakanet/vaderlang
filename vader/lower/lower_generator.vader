@@ -65,7 +65,7 @@ zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
 // are what `collect_vtable_entries` keys on to wire the vtable — single-sourced
 // here for the next fn + state struct.
 push_generator_decls :: fn(
-    fn_ctx: FnLowerCtx, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
+    fn_ctx!: FnLowerCtx, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
     yield_ty: Type, next_body: LoweredBlock, state_fields: LoweredStructField[],
 ) -> void {
     module_seg :: mangle_module_id(fn_ctx.typed.resolved.display_path)
@@ -105,7 +105,7 @@ push_generator_decls :: fn(
 /// @param return_type   the declared `Iterator<T>` return type (source of `T`).
 /// @return              the rewritten `g` body.
 export lower_generator_fn :: fn(
-    fn_ctx: FnLowerCtx, fn_decl: FnDecl, params: LoweredParam[],
+    fn_ctx!: FnLowerCtx, fn_decl: FnDecl, params: LoweredParam[],
     lowered_body: LoweredBlock, return_type: Type,
 ) -> LoweredBlock {
     span :: fn_decl.span

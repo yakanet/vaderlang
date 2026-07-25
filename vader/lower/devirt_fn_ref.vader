@@ -90,13 +90,13 @@ AnalyzeCtx :: struct {
     bound: MutableSet<i32>
 }
 
-analyze_block :: fn(b: LoweredBlock, ctx: AnalyzeCtx) -> void {
+analyze_block :: fn(b: LoweredBlock, ctx!: AnalyzeCtx) -> void {
     for s in b.stmts { analyze_stmt(s, ctx) }
     t :: b.trailing
     if t != null { analyze_expr(t, ctx) }
 }
 
-analyze_stmt :: fn(s: LoweredStmt, ctx: AnalyzeCtx) -> void {
+analyze_stmt :: fn(s: LoweredStmt, ctx!: AnalyzeCtx) -> void {
     match s {
         is LoweredLet as st -> {
             // A symbol bound more than once (the fusion reuses a combinator's param
@@ -138,7 +138,7 @@ analyze_stmt :: fn(s: LoweredStmt, ctx: AnalyzeCtx) -> void {
     }
 }
 
-analyze_expr :: fn(e: LoweredExpr, ctx: AnalyzeCtx) -> void {
+analyze_expr :: fn(e: LoweredExpr, ctx!: AnalyzeCtx) -> void {
     match e {
         // A bare ident in value position = an escaping use of that local.
         is LoweredIdent as id -> { _ :: ctx.escaped.add(id.symbol.id) }

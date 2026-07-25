@@ -246,7 +246,7 @@ check_at :: fn(p: Parser, kind: TokenKind, offset: i32) -> bool {
     return p.peek_at(offset).kind == kind
 }
 
-advance :: fn(p: Parser) -> Token {
+advance :: fn(p!: Parser) -> Token {
     t :: p.peek()
     if p.shr_pending_half != null {
         // The synthetic Gt is consumed ; `pos` was already advanced past
@@ -283,7 +283,7 @@ check_closing_angle :: fn(p: Parser) -> bool {
 /// half is written into that slot. Without this, a nested `Iter<i32>` inside
 /// `Into<Iter<i32>>` would inherit the whole-`>>` span and `fmt`'s verbatim
 /// source-slice would emit the extra `>` (audit F3).
-consume_closing_angle :: fn(p: Parser) -> Token {
+consume_closing_angle :: fn(p!: Parser) -> Token {
     pending :: p.shr_pending_half
     if pending != null {
         // Second half of an already-split `>>`. The first half was consumed by
@@ -355,7 +355,7 @@ expect :: fn(p: Parser, kind: TokenKind, what: string) -> Token {
     return t
 }
 
-skip_newlines :: fn(p: Parser) -> void {
+skip_newlines :: fn(p!: Parser) -> void {
     for p.check(.Newline) { p.pos = p.pos + 1 }
 }
 
@@ -379,7 +379,7 @@ sync_to_top_level :: fn(p: Parser) -> void {
 
 // -------------------------------------------------------- error reporting
 
-error :: fn(p: Parser, code: ParserCode, span: Span, detail: string) -> void {
+error :: fn(p!: Parser, code: ParserCode, span: Span, detail: string) -> void {
     // Once the expression-depth guard trips, mute every further diagnostic :
     // the unwinding `expect` calls would otherwise emit one error per nesting
     // level. The single P1029 is pushed by `report_nesting_too_deep`, which
@@ -394,7 +394,7 @@ error :: fn(p: Parser, code: ParserCode, span: Span, detail: string) -> void {
 // `(` / `!` tokens) would otherwise spawn a fresh statement — and downstream
 // type errors — for every `MAX_EXPR_DEPTH`-token chunk. `what` names the
 // grammar ("expression" / "type") for the detail line.
-report_nesting_too_deep :: fn(p: Parser, what: string) -> void {
+report_nesting_too_deep :: fn(p!: Parser, what: string) -> void {
     if p.depth_exceeded { return }
     p.errors.push(parser_error(.ExpressionNestingTooDeep, p.peek().span,
         "${what} nested more than ${MAX_EXPR_DEPTH} levels deep"))
@@ -421,7 +421,7 @@ export describe_token :: fn(t: Token) -> string {
 // Program
 // ============================================================================
 
-parse_program :: fn(p: Parser) -> Program {
+parse_program :: fn(p!: Parser) -> Program {
     start_tok :: p.peek()
     decls: Decl[] = []
     p.skip_newlines()
@@ -1483,7 +1483,7 @@ parse_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
 // rewritten to `@comptime NAME :: __comptime_NAME()`. A block inner is used
 // verbatim as the fn body (so a `return` inside it works) ; any other expression
 // is wrapped as the block's trailing expression.
-desugar_comptime_const :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token, ty: TypeExpr | null) -> ConstDecl {
+desugar_comptime_const :: fn(p!: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token, ty: TypeExpr | null) -> ConstDecl {
     at_tok :: p.advance()   // `@`
     p.advance()             // `comptime`
     // A `{ … }` block isn't an expression-position prefix, so parse it directly ;
@@ -1597,7 +1597,7 @@ ident_expr :: fn(span: Span, name: string) -> IdentExpr {
     }
 }
 
-parse_type :: fn(p: Parser) -> TypeExpr {
+parse_type :: fn(p!: Parser) -> TypeExpr {
     // Depth guard, sharing `parse_expr`'s budget : the type grammar recurses
     // through `parse_type_primary`'s `(T)` grouping and `[T, …]` tuples, so
     // pathologically nested type syntax (`((((…))))` in type position) could
@@ -1869,7 +1869,7 @@ parse_type_list_until_angle :: fn(p: Parser) -> TypeExpr[] {
 // actually produces in type position need to be traversed. Accepts `null`
 // so call sites with optional type-bearing slots can dispatch directly
 // without an outer match.
-collect_type_params :: fn(t: TypeExpr | null, out: TypeParam[]) -> void {
+collect_type_params :: fn(t: TypeExpr | null, out!: TypeParam[]) -> void {
     // Other TypeExpr variants are no-ops here. This MUST stay a plain
     // `match … _ -> {}`, NOT `@partial` : `parse_type` does produce variants
     // beyond the listed set on real input (the self-compile hits them), so a
@@ -1918,7 +1918,7 @@ collect_type_params :: fn(t: TypeExpr | null, out: TypeParam[]) -> void {
 // Statements / blocks
 // ============================================================================
 
-parse_block :: fn(p: Parser) -> BlockExpr {
+parse_block :: fn(p!: Parser) -> BlockExpr {
     lb :: p.expect(.LBrace, "`{` to open block")
     // Depth guard, sharing `parse_expr`/`parse_type`'s budget. Block nesting
     // recurses parse_block ↔ parse_stmt, so a pathologically deep `for {…}` /
@@ -2246,7 +2246,7 @@ parse_yield :: fn(p: Parser) -> YieldStmt {
     }
 }
 
-parse_for :: fn(p: Parser, label: string | null, is_comptime: bool) -> ForStmt {
+parse_for :: fn(p!: Parser, label: string | null, is_comptime: bool) -> ForStmt {
     start :: p.advance()  // `for`
 
     if p.check(.LBrace) {
@@ -2599,7 +2599,7 @@ postfix_bp :: fn(k: TokenKind) = match k {
     .KwConst      -> -1
 }
 
-parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
+parse_expr :: fn(p!: Parser, min_bp: i32) -> Expr {
     // Depth guard : bail before recursing past `MAX_EXPR_DEPTH` so deeply
     // nested input (`((((…))))`, `!!!!…`) can't overflow the native stack.
     p.expr_depth = p.expr_depth + 1
@@ -3210,7 +3210,7 @@ parse_struct_lit_fields :: fn(p: Parser) -> CommaList<StructLitField | StructLit
     return CommaList<StructLitField | StructLitSpread> { .items = out, .trailing_comma = trailing }
 }
 
-parse_paren :: fn(p: Parser) -> Expr {
+parse_paren :: fn(p!: Parser) -> Expr {
     p.advance()  // `(`
     p.skip_newlines()
     saved_allow :: p.allow_struct_lit
@@ -3358,7 +3358,7 @@ parse_string_lit :: fn(p: Parser) -> StringLitExpr {
     }
 }
 
-parse_if_expr :: fn(p: Parser) -> IfExpr {
+parse_if_expr :: fn(p!: Parser) -> IfExpr {
     start :: p.advance()  // `if`
     saved_allow :: p.allow_struct_lit
     // Struct literals are disabled at condition top-level so `if Foo { … }`
@@ -3397,7 +3397,7 @@ parse_if_expr :: fn(p: Parser) -> IfExpr {
     }
 }
 
-parse_match_expr :: fn(p: Parser, partial: bool, unreachable: bool) -> MatchExpr {
+parse_match_expr :: fn(p!: Parser, partial: bool, unreachable: bool) -> MatchExpr {
     start :: p.advance()  // `match`
     saved_allow :: p.allow_struct_lit
     p.allow_struct_lit = false
@@ -3422,7 +3422,7 @@ parse_match_expr :: fn(p: Parser, partial: bool, unreachable: bool) -> MatchExpr
     }
 }
 
-parse_match_arm :: fn(p: Parser) -> MatchArm {
+parse_match_arm :: fn(p!: Parser) -> MatchArm {
     start :: p.peek()
     first :: p.parse_pattern()
     // Or-pattern : `.A | .B`, `1 | 2`. Pipe-separated alternatives collected into

@@ -32,7 +32,7 @@ import "vader/lexer"
 /// @param state   shared server state (carries the per-document index).
 /// @param params  request params : `{ textDocument: { uri }, position }`.
 /// @return        a `CompletionList` of in-scope identifiers + keywords.
-export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+export handle_completion :: fn(state!: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     idx :: state.index_for(uri)
     match idx {
@@ -108,7 +108,7 @@ DetailCtx :: struct {
 // `decl_detail` falls back to the index's source slice. Loading the project
 // typechecks it (cached within the edit window), the same cost the
 // member-completion / hover / inlay handlers already pay.
-detail_ctx :: fn(state: ServerState, fp: string) -> DetailCtx {
+detail_ctx :: fn(state!: ServerState, fp: string) -> DetailCtx {
     if fp == "" { return DetailCtx { .typed = null, .decls = [] } }
     cached :: typed_project_for(state, fp)
     typed :: cached.result.typed
@@ -147,8 +147,8 @@ decl_detail :: fn(d: DeclEntry, decls: AST.Decl[], typed: TypedProgram | null) -
 // the casing heuristic, as for destructure imports. `seen` dedups against the
 // scope + destructure names already offered.
 append_wildcard_completions :: fn(
-    state: ServerState, fp: string, wildcard_paths: string[],
-    seen: MutableMap<string, bool>, items: JsonValue[],
+    state!: ServerState, fp: string, wildcard_paths: string[],
+    seen!: MutableMap<string, bool>, items!: JsonValue[],
 ) -> void {
     if fp == "" || wildcard_paths.len() == 0 { return }
     cached :: typed_project_for(state, fp)
@@ -202,7 +202,7 @@ member_context :: fn(li: LineIndex, line0: i32, char0: i32) -> i32 | null {
 // smallest typed expression ending at `dot_col - 1` (the char before the `.`) —
 // the parser error-recovers a trailing `.` into a `FieldExpr` whose target is
 // still typed, so the typed cache resolves the receiver even mid-edit.
-member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i32, leading: bool, struct_key: bool) -> JsonValue {
+member_completion :: fn(state!: ServerState, uri: string, line0: i32, dot_col: i32, leading: bool, struct_key: bool) -> JsonValue {
     file_path :: uri_to_path(uri)
     if file_path == "" { return completion_list([]) }
     cached :: typed_project_for(state, file_path)

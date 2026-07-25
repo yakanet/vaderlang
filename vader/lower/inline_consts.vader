@@ -57,7 +57,7 @@ FN_WRAP_MIN_ELEMENTS :: usize(4)
 ///                     to a bodyless stub. Real (resolver-minted) ids are
 ///                     positive, so the negative synthetic range never touches
 ///                     them.
-export inline_consts :: fn(project: LoweredProject, project_ctx: LowerProjectCtx) -> void {
+export inline_consts :: fn(project!: LoweredProject, project_ctx!: LowerProjectCtx) -> void {
     for module_id in project.modules.keys() {
         m :: project.modules[module_id] ?? continue
         new_decls: LoweredDecl[] = []
@@ -116,7 +116,7 @@ should_fn_wrap :: fn(value: LoweredExpr) -> bool {
 // Poolable elements : integer / char / bool / float literals (each reduced to an
 // `i64` bit pattern) and string literals (kept verbatim). Struct arrays route
 // through later phases.
-try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProject) -> bool {
+try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project!: LoweredProject) -> bool {
     if cd.type is ArrayType as arr_type {
         if !arr_type.immutable { return false }
         if cd.value is LoweredArrayLit as lit {

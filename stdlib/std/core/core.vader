@@ -170,21 +170,21 @@ export Contains :: trait<T> {
 /// type is a nullable T at the type level" (relevant when T itself can be
 /// `null`).
 export Iterator :: trait<T> {
-    next :: fn(self) -> Yield<T> | null
+    next :: fn(self!) -> Yield<T> | null
 
     // True iff the next `next()` call returns `null`. Drains exactly one
     // step ; a `false` result has *consumed* the first yielded item already
     // (the iterator is one step ahead from the caller's perspective).
     // Reflects the pull-based shape — there's no peek without an internal
     // buffer.
-    is_empty :: fn(self) -> bool = match self.next() {
+    is_empty :: fn(self!) -> bool = match self.next() {
         is null     -> true
         is Yield<T> -> false
     }
 
     // Drain the iterator, returning the count of yielded items. Consumes
     // self ; the iterator is exhausted after this call.
-    count :: fn(self) -> usize {
+    count :: fn(self!) -> usize {
         total: usize = 0
         finished := false
         for !finished {
@@ -198,7 +198,7 @@ export Iterator :: trait<T> {
 
     // Drain the iterator, returning the last yielded item or `null` if it
     // was empty. Consumes self.
-    last :: fn(self) -> T | null {
+    last :: fn(self!) -> T | null {
         result: T | null = null
         finished := false
         for !finished {
@@ -304,7 +304,7 @@ Range<T> implements<T: Comparable & Step> Contains<T> {
 }
 
 Range<T> implements<T: Comparable & Step> Iterator<T> {
-    next :: fn(self) -> Yield<T> | null {
+    next :: fn(self!) -> Yield<T> | null {
         done :: if (self.inclusive) { self.cursor.gt(self.end) }
                 else                 { self.cursor.gte(self.end) }
         if (done) { return null }
@@ -322,7 +322,7 @@ export ArrayIterator :: struct<T> {
 }
 
 ArrayIterator<T> implements Iterator<T> {
-    next :: fn(self) -> Yield<T> | null {
+    next :: fn(self!) -> Yield<T> | null {
         if (self.cursor >= self.arr.len()) { return null }
         v :: self.arr[self.cursor]
         self.cursor = self.cursor + 1

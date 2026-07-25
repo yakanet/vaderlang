@@ -15,7 +15,7 @@ AST :: import "vader/parser"
 /// Resolve a `.Variant` against the expected enum slot.
 export infer_dot_variant :: fn(
     e: AST.DotVariantExpr, expected: Type | null,
-    typed: TypedProgram, diags: Diagnostic[],
+    typed: TypedProgram, diags!: Diagnostic[],
 ) -> Type {
     if expected is null {
         diags.push(typecheck_error(.CannotInferEnumType, e.span,

@@ -22,7 +22,7 @@ AST :: import "vader/parser"
 
 /// Build the signature-help payload for the cursor in `params`. Returns
 /// `JsonNull` when the cursor isn't inside a `CallExpr`'s arg list.
-export handle_signature_help :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+export handle_signature_help :: fn(state!: ServerState, params: JsonValue) -> JsonValue {
     uri  :: position_uri(params)
     line :: cursor_field(params, "line")
     char :: cursor_field(params, "character")

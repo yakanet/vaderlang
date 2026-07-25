@@ -32,7 +32,7 @@ AST :: import "vader/parser"
 /// `@intrinsic impl ... {}` carries an empty body : fill it with one
 /// stub FnDecl per trait method so downstream phases see the impl's
 /// full surface. No-op when the impl already has members.
-export materialize_intrinsic_members :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl) -> void {
+export materialize_intrinsic_members :: fn(impl_!: AST.ImplDecl, trait_: AST.TraitDecl) -> void {
     if !is_intrinsic(impl_.decorators) { return }
     if impl_.members.len() > 0 { return }
     subst :: build_subst(impl_, trait_)
@@ -60,7 +60,7 @@ export materialize_intrinsic_members :: fn(impl_: AST.ImplDecl, trait_: AST.Trai
 /// module's namespace so id-keyed `expr_types` / `expr_kinds` slots
 /// don't collide with the impl module's pre-existing nodes.
 export materialize_default_members :: fn(
-    impl_: AST.ImplDecl, trait_: AST.TraitDecl, host_factory: NodeIdFactory,
+    impl_!: AST.ImplDecl, trait_: AST.TraitDecl, host_factory: NodeIdFactory,
 ) -> void {
     if !any_has_body(trait_.members) { return }
     provided :: provided_names(impl_.members)
@@ -96,7 +96,7 @@ export materialize_default_members :: fn(
 
 synth_with_body :: fn(
     method: AST.FnDecl, subst: Subst,
-    decorators: AST.Decorator[], body: AST.BlockExpr, stamp: StampCtx,
+    decorators: AST.Decorator[], body: AST.BlockExpr, stamp!: StampCtx,
 ) -> AST.FnDecl {
     return AST.FnDecl {
         .span = method.span,
@@ -134,7 +134,7 @@ synth_with_body :: fn(
 /// Substitute params, anchoring each at a deterministic `<clone>` span from
 /// `stamp` (shared with the cloned body). Used for default-method clones so
 /// the param Symbols agree with the body's span-keyed `idents` entries.
-substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp: StampCtx) -> AST.FnParam[] {
+substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp!: StampCtx) -> AST.FnParam[] {
     out: AST.FnParam[] = []
     for p in params {
         out.push(AST.FnParam {
@@ -143,7 +143,7 @@ substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp: Stam
             .name = p.name,
             .ty = substitute_opt_type(p.ty, subst),
             .default_value = p.default_value,
-            .variadic = p.variadic,
+            .variadic = p.variadic, .mutable = p.mutable,
         })
     }
     return out
@@ -175,7 +175,7 @@ substitute_params_disambiguated :: fn(
             .name = p.name,
             .ty = substitute_opt_type(p.ty, subst),
             .default_value = p.default_value,
-            .variadic = p.variadic,
+            .variadic = p.variadic, .mutable = p.mutable,
         })
     }
     return out
@@ -303,7 +303,7 @@ substitute_params :: fn(params: AST.FnParam[], subst: Subst) -> AST.FnParam[] {
             .name = p.name,
             .ty = substitute_opt_type(p.ty, subst),
             .default_value = p.default_value,
-            .variadic = p.variadic,
+            .variadic = p.variadic, .mutable = p.mutable,
         })
     }
     return out

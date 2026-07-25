@@ -92,7 +92,7 @@ DEBOUNCE_MS :: 200
 // Read one frame (blocking) and process it. Transport errors (incl. EOF) map to
 // `ExitAbnormal` so the caller tears down. Shared by the blocking first read and
 // the non-blocking burst drain.
-read_and_process :: fn(state: A.ServerState, shutdown_received: bool) -> DispatchResult {
+read_and_process :: fn(state!: A.ServerState, shutdown_received: bool) -> DispatchResult {
     frame :: P.read_frame()
     match frame {
         is P.TransportError -> {
@@ -105,7 +105,7 @@ read_and_process :: fn(state: A.ServerState, shutdown_received: bool) -> Dispatc
 
 // Parse a frame body and dispatch it. JSON-RPC frames are always top-level
 // objects ; non-object payloads are protocol violations, dropped with a warning.
-process_frame :: fn(state: A.ServerState, body: string, shutdown_received: bool) -> DispatchResult {
+process_frame :: fn(state!: A.ServerState, body: string, shutdown_received: bool) -> DispatchResult {
     msg :: parse(body)
     match msg {
         is JsonObject as obj -> { return dispatch(state, obj, shutdown_received) }
@@ -127,7 +127,7 @@ DispatchResult :: enum(u8) {
     ExitAbnormal,
 }
 
-dispatch :: fn(state: A.ServerState, msg: JsonValue, shutdown_received: bool) -> DispatchResult {
+dispatch :: fn(state!: A.ServerState, msg: JsonValue, shutdown_received: bool) -> DispatchResult {
     method :: P.method_name(msg)
     id :: P.request_id(msg)
     params :: P.params_value(msg)

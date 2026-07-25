@@ -81,7 +81,7 @@ SpawnAsync :: struct {
 }
 
 SpawnAsync implements Async<ProcessResult | ProcessError> {
-    resume :: fn(self) -> ProcessResult | ProcessError | Suspended {
+    resume :: fn(self!) -> ProcessResult | ProcessError | Suspended {
         if !self.started {
             self.started = true
             if self.argv.len() == 0 {

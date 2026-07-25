@@ -38,14 +38,14 @@ export StringBuilder :: struct {
 /// Append a string — an O(1) reference push, no byte copy.
 /// @param self  builder receiver.
 /// @param s     UTF-8 string to append.
-export append :: fn(self: StringBuilder, s: string) -> void {
+export append :: fn(self!: StringBuilder, s: string) -> void {
     self.parts.push(s)
 }
 
 /// Append a single Unicode codepoint, UTF-8-encoded then interned as a part.
 /// @param self  builder receiver.
 /// @param c     codepoint to encode (`u32(c)` ≤ `0x10FFFF`).
-export append_char :: fn(self: StringBuilder, c: char) -> void {
+export append_char :: fn(self!: StringBuilder, c: char) -> void {
     self.parts.push(utf8_encode(c).bytes_to_string())
 }
 
@@ -60,7 +60,7 @@ export append_char :: fn(self: StringBuilder, c: char) -> void {
 /// @param self   builder receiver.
 /// @param c      codepoint to repeat.
 /// @param count  number of copies to append (≤ 0 → no-op).
-export append_repeated :: fn(self: StringBuilder, c: char, count: i32) -> void {
+export append_repeated :: fn(self!: StringBuilder, c: char, count: i32) -> void {
     s :: utf8_encode(c).bytes_to_string()
     for _ in 0..<count {
         self.parts.push(s)

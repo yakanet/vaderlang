@@ -43,7 +43,7 @@ import "std/abort"
 // `self_sym` — each references it only inside its own body, so the shared symbol
 // resolves to each fn's own param slot).
 mk_async_method_decl :: fn(
-    fn_ctx: FnLowerCtx, module_seg: string, state_sym: Symbol, self_sym: Symbol,
+    fn_ctx!: FnLowerCtx, module_seg: string, state_sym: Symbol, self_sym: Symbol,
     state_ty: Type, method: string, return_ty: Type, body: LoweredBlock,
 ) -> LoweredFnDecl {
     mangled :: "${module_seg}$${state_sym.name}$${TRAIT_ASYNC}$${method}"
@@ -62,7 +62,7 @@ mk_async_method_decl :: fn(
 // Synthesize + register the `__asyncstate` struct and its `$Async$resume` +
 // `$Async$cancel` fns into `project.synth_decls`.
 push_async_decls :: fn(
-    fn_ctx: FnLowerCtx, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
+    fn_ctx!: FnLowerCtx, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
     resume_ty: Type, resume_body: LoweredBlock, cancel_body: LoweredBlock,
     state_fields: LoweredStructField[],
 ) -> void {
@@ -119,7 +119,7 @@ async_fold_trailing :: fn(body: LoweredBlock, result_is_void: bool) -> LoweredBl
 ///                      frame ; every other async fn returns the frame.
 /// @return              the rewritten `f` body.
 export lower_async_fn :: fn(
-    fn_ctx: FnLowerCtx, fn_decl: FnDecl, params: LoweredParam[],
+    fn_ctx!: FnLowerCtx, fn_decl: FnDecl, params: LoweredParam[],
     lowered_body: LoweredBlock, result_type: Type, is_main: bool,
 ) -> LoweredBlock {
     span :: fn_decl.span
@@ -232,7 +232,7 @@ export lower_async_fn :: fn(
 // awaits only immediately-ready things), fall back to the inline single-resume
 // driver — no scheduler dependency, and a stray suspension traps loudly.
 async_main_driver :: fn(
-    fn_ctx: FnLowerCtx, construct: LoweredExpr, async_sym: Symbol,
+    fn_ctx!: FnLowerCtx, construct: LoweredExpr, async_sym: Symbol,
     suspended_ty: Type, resume_ty: Type, result_type: Type, span: Span,
 ) -> LoweredBlock {
     async_ty :: mk_trait(async_sym, [result_type])

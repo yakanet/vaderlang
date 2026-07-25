@@ -21,7 +21,7 @@ as_field_expr :: fn(expr: Expr) -> FieldExpr | null {
 /// matching name exists. The receiver becomes the first arg.
 /// Runs after the trait-virtual probe so virtual dispatch wins for
 /// trait-typed receivers and UFCS picks up the concrete-type residue.
-try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
+try_lower_ufcs_call :: fn(ctx!: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
     callee_field :: as_field_expr(call.callee) ?? return null
     if callee_field is FieldExpr as field_expr {
         receiver :: lower_expr(ctx, field_expr.target)
@@ -282,7 +282,7 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
 /// (`lower_project`) so they short-circuit on the seen-set check below — they
 /// are already lowered eagerly and must not be harvested a second time. Dedup
 /// by `fn_symbol.id`.
-register_nongeneric_imported_fn :: fn(ctx: FnLowerCtx, fn_sym: Symbol) -> void {
+register_nongeneric_imported_fn :: fn(ctx!: FnLowerCtx, fn_sym: Symbol) -> void {
     if fn_sym.kind != SymbolKind.Fn { return }
     if ctx.project.nongeneric_imported_fns[fn_sym.id] != null { return }
     // Generic fns route through the GenericFnInstance harvest instead.
@@ -303,7 +303,7 @@ register_nongeneric_imported_fn :: fn(ctx: FnLowerCtx, fn_sym: Symbol) -> void {
 /// keeps its `LoweredIdent` ; `materialize_nongeneric_imported_consts` lowers the
 /// decl so `inline_consts` can route the read site (`build_ident` would
 /// otherwise emit `unreachable`).
-register_nongeneric_imported_const :: fn(ctx: FnLowerCtx, const_sym: Symbol) -> void {
+register_nongeneric_imported_const :: fn(ctx!: FnLowerCtx, const_sym: Symbol) -> void {
     if const_sym.kind != SymbolKind.Const { return }
     if ctx.project.nongeneric_imported_consts[const_sym.id] != null { return }
     ctx.project.nongeneric_imported_consts[const_sym.id] = true
@@ -322,7 +322,7 @@ register_nongeneric_imported_const :: fn(ctx: FnLowerCtx, const_sym: Symbol) -> 
 // resolves to no fn-table entry — the emit drops it to its defensive
 // `Return` (every `recv.generic_fn()` call silently mis-compiled).
 harvest_ufcs_fn_instance :: fn(
-    ctx: FnLowerCtx, fn_sym: Symbol, recv_type: Type, ast_args: CallArg[],
+    ctx!: FnLowerCtx, fn_sym: Symbol, recv_type: Type, ast_args: CallArg[],
 ) -> string | null {
     // Locate the fn's FnType — UFCS resolution tolerates fns defined
     // in foreign modules (e.g. stdlib's `len`).

@@ -24,7 +24,7 @@ export new_node_id_factory :: fn() -> NodeIdFactory {
 }
 
 /// Mint the next ID and advance the counter. Pure side-effect on `self`.
-export mint :: fn(self: NodeIdFactory) -> usize {
+export mint :: fn(self!: NodeIdFactory) -> usize {
     id :: self.next
     self.next = id + 1
     return id
@@ -34,7 +34,7 @@ export mint :: fn(self: NodeIdFactory) -> usize {
 /// AST node. Idempotent only if called once per program — re-running
 /// would re-stamp IDs and break any side-table built against the prior
 /// IDs.
-export assign_program_ids :: fn(p: Program, f: NodeIdFactory) -> void {
+export assign_program_ids :: fn(p!: Program, f: NodeIdFactory) -> void {
     p.id = f.mint()
     match p.module {
         is null       -> {}
@@ -47,7 +47,7 @@ export assign_program_ids :: fn(p: Program, f: NodeIdFactory) -> void {
 /// `vader/resolver/materialize.vader` after substituting default-method
 /// bodies into an impl). Same factory the host module's parse used so
 /// cloned IDs don't collide with pre-existing ones.
-export assign_block_ids :: fn(b: BlockExpr, f: NodeIdFactory) -> void {
+export assign_block_ids :: fn(b!: BlockExpr, f: NodeIdFactory) -> void {
     walk_block(b, f)
 }
 
@@ -120,7 +120,7 @@ walk_decl :: fn(d: Decl, f: NodeIdFactory) -> void {
     }
 }
 
-walk_fn_decl :: fn(d: FnDecl, f: NodeIdFactory) -> void {
+walk_fn_decl :: fn(d!: FnDecl, f: NodeIdFactory) -> void {
     d.id = f.mint()
     for dec in d.decorators { walk_decorator(dec, f) }
     for tp in d.type_params { walk_type_param(tp, f) }
@@ -133,7 +133,7 @@ walk_fn_decl :: fn(d: FnDecl, f: NodeIdFactory) -> void {
     }
 }
 
-walk_fn_param :: fn(p: FnParam, f: NodeIdFactory) -> void {
+walk_fn_param :: fn(p!: FnParam, f: NodeIdFactory) -> void {
     p.id = f.mint()
     if p.ty !is null {
         walk_expr(p.ty, f)
@@ -143,14 +143,14 @@ walk_fn_param :: fn(p: FnParam, f: NodeIdFactory) -> void {
     }
 }
 
-walk_type_param :: fn(tp: TypeParam, f: NodeIdFactory) -> void {
+walk_type_param :: fn(tp!: TypeParam, f: NodeIdFactory) -> void {
     tp.id = f.mint()
     if tp.bound !is null {
         walk_expr(tp.bound, f)
     }
 }
 
-walk_decorator :: fn(d: Decorator, f: NodeIdFactory) -> void {
+walk_decorator :: fn(d!: Decorator, f: NodeIdFactory) -> void {
     d.id = f.mint()
     for a in d.args { walk_expr(a, f) }
 }
@@ -312,7 +312,7 @@ walk_expr :: fn(e: Expr, f: NodeIdFactory) -> void {
 
 // ---- block / stmt / pattern walkers ---------------------------------------
 
-walk_block :: fn(b: BlockExpr, f: NodeIdFactory) -> void {
+walk_block :: fn(b!: BlockExpr, f: NodeIdFactory) -> void {
     b.id = f.mint()
     for s in b.stmts { walk_stmt(s, f) }
     if b.trailing !is null {

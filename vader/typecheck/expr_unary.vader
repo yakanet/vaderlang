@@ -13,9 +13,9 @@ AST :: import "vader/parser"
 /// Type-check a `UnaryExpr`. T3017 when the op doesn't admit the
 /// operand's family.
 export infer_unary :: fn(
-    e: AST.UnaryExpr, expected: Type | null,
-    typed: TypedProgram, diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+    e!: AST.UnaryExpr, expected: Type | null,
+    typed!: TypedProgram, diags!: Diagnostic[],
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     // `-x` / `~x` over a Free* literal propagate the enclosing `expected`
     // through so `i64(-250)` types the `-` as i64. `!x` stays bool, no
@@ -52,7 +52,7 @@ export infer_unary :: fn(
 
 
 
-push_op_undefined :: fn(e: AST.UnaryExpr, operand: Type, sym: string, diags: Diagnostic[]) -> void {
+push_op_undefined :: fn(e: AST.UnaryExpr, operand: Type, sym: string, diags!: Diagnostic[]) -> void {
     diags.push(typecheck_error(.OperatorNotDefined, e.span,
         "unary `${sym}` not defined for ${display_type(operand)}"))
 }

@@ -56,7 +56,7 @@ bce_resolve_fn :: fn(pctx: BcePurityCtx, name: string, sym_id: i32) -> LoweredFn
 /// (`@extern`) fn and any recursion cycle are conservatively impure. This is what
 /// makes `bce_call_unsafe` accept a pure callback (`a.map(square)`) without naming
 /// any combinator.
-bce_fn_pure :: fn(pctx: BcePurityCtx, fd: LoweredFnDecl) -> bool {
+bce_fn_pure :: fn(pctx!: BcePurityCtx, fd: LoweredFnDecl) -> bool {
     key :: fd.mangled
     cached :: pctx.memo[key]
     if cached != null {
@@ -120,7 +120,7 @@ export bce_hoist_tag :: fn(project: LoweredProject) -> void {
 
 // ---- descent : reach every block, pair a recheck-len with its sibling loop ----
 
-bh_block :: fn(b: LoweredBlock, pctx: BcePurityCtx) -> void {
+bh_block :: fn(b: LoweredBlock, pctx!: BcePurityCtx) -> void {
     for st in b.stmts {
         bh_stmt(st, pctx)
     }
@@ -131,7 +131,7 @@ bh_block :: fn(b: LoweredBlock, pctx: BcePurityCtx) -> void {
     bh_pair(b, pctx)
 }
 
-bh_stmt :: fn(s: LoweredStmt, pctx: BcePurityCtx) -> void {
+bh_stmt :: fn(s: LoweredStmt, pctx!: BcePurityCtx) -> void {
     if s is LoweredLet as st {
         bh_expr(st.value, pctx)
     } else if s is LoweredAssign as st {
@@ -163,7 +163,7 @@ bh_stmt :: fn(s: LoweredStmt, pctx: BcePurityCtx) -> void {
     // Break / Continue / DeferPopExec : no nested block.
 }
 
-bh_expr :: fn(e: LoweredExpr, pctx: BcePurityCtx) -> void {
+bh_expr :: fn(e: LoweredExpr, pctx!: BcePurityCtx) -> void {
     if e is LoweredBlock as x {
         bh_block(x, pctx)
     } else if e is LoweredIf as x {
@@ -239,7 +239,7 @@ bh_expr :: fn(e: LoweredExpr, pctx: BcePurityCtx) -> void {
 // the next loop. A block can hold several such pairs back-to-back (`a.chain(b)`
 // fuses to two sequential source loops, and any N-way sequential fusion likewise);
 // each is hoisted independently, not just the last.
-bh_pair :: fn(b: LoweredBlock, pctx: BcePurityCtx) -> void {
+bh_pair :: fn(b: LoweredBlock, pctx!: BcePurityCtx) -> void {
     pending_len: LoweredArrayLen | null = null
     for st in b.stmts {
         if st is LoweredLet as ll {
@@ -260,7 +260,7 @@ bh_pair :: fn(b: LoweredBlock, pctx: BcePurityCtx) -> void {
 // Consume `the_len`'s recheck marker ; if `the_loop`'s body is BCE-safe (no alloc /
 // impure call / yield / rebind of the bound array), hoist the array's resolve
 // (`resolve_buf`) and elide the loop's synthesized `arr[idx]` checks.
-bh_try_hoist :: fn(the_len: LoweredArrayLen, the_loop: LoweredLoop, pctx: BcePurityCtx) -> void {
+bh_try_hoist :: fn(the_len!: LoweredArrayLen, the_loop: LoweredLoop, pctx!: BcePurityCtx) -> void {
     the_len.bce_recheck = false
     // Guard on the bound array's symbol : rebinding it (`arr = other`) would leave
     // the pinned resolve stale. Synthetic (foreach / fusion) arrays are never
@@ -445,7 +445,7 @@ bce_test_call_return :: fn(callee: Symbol) -> LoweredStmt = LoweredReturn {
 }
 
 // Register a callee both ways `bce_resolve_fn` looks it up.
-bce_test_register :: fn(ctx: BcePurityCtx, fd: LoweredFnDecl) -> void {
+bce_test_register :: fn(ctx!: BcePurityCtx, fd: LoweredFnDecl) -> void {
     ctx.by_mangle[fd.mangled] = fd
     s :: fd.origin.symbol
     if s != null {

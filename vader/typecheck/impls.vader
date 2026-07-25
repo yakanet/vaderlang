@@ -89,7 +89,7 @@ export build_impl_registry :: fn(
 }
 
 collect_impl :: fn(
-    self: ImplRegistry,
+    self!: ImplRegistry,
     impl_: ImplDecl,
     by_name: MutableMap<string, Symbol>,
     resolved: ResolvedModule,

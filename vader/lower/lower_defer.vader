@@ -32,8 +32,8 @@ import "vader/comptime"
 /// @param block_lowerer callback to lower a `BlockExpr` (cycle-breaker).
 /// @return              the lowered defer.push stmt.
 export lower_defer :: fn(
-    ctx: FnLowerCtx, defer_stmt: AST.DeferStmt,
-    block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
+    ctx!: FnLowerCtx, defer_stmt: AST.DeferStmt,
+    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt {
     captures :: lookup_defer_captures(ctx, defer_stmt)
     lifted_symbol :: fresh_lifted_defer_symbol(ctx, false)
@@ -153,6 +153,6 @@ synth_body_block :: fn(defer_stmt: AST.DeferStmt) -> AST.BlockExpr {
     }
 }
 
-fresh_lifted_defer_symbol :: fn(ctx: FnLowerCtx, is_env: bool) -> Symbol {
+fresh_lifted_defer_symbol :: fn(ctx!: FnLowerCtx, is_env: bool) -> Symbol {
     return fresh_lifted_symbol_with_prefix(ctx, is_env, "__defer_", "__defer_env_")
 }

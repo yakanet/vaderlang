@@ -28,7 +28,7 @@ AST :: import "vader/parser"
 /// @param diags     diagnostics emitted by the walker.
 export evaluate_assert_decls :: fn(
     decls: AST.Decl[], typed: TypedProgram,
-    bindings: MutableMap<i32, ComptimeValue>, diags: Diagnostic[],
+    bindings: MutableMap<i32, ComptimeValue>, diags!: Diagnostic[],
 ) -> void {
     context :: ComptimeContext {
         .typed    = typed,

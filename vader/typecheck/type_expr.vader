@@ -28,7 +28,7 @@ import "vader/types"
 /// surface T3002 and return `TY_UNRESOLVED` ; downstream passes treat
 /// unresolved as compatible with anything to dodge cascading errors.
 export type_from_expr :: fn(
-    expr: AST.Expr, resolved: ResolvedModule, diags: Diagnostic[],
+    expr: AST.Expr, resolved: ResolvedModule, diags!: Diagnostic[],
 ) -> Type {
     // @partial: only the type-shaped expr kinds below denote a type; every other
     // (value-position) Expr is illegal in a type slot → T3002, handled by `_`.
@@ -97,7 +97,7 @@ export type_from_expr :: fn(
 /// @error R2008 when `P.Decl` names a PRIVATE (non-`export`) type of the
 ///        target module — visibility enforcement, mirroring the
 ///        destructured-import check in `wire.vader`.
-namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule, diags: Diagnostic[]) -> Type {
+namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule, diags!: Diagnostic[]) -> Type {
     if !(e.target is AST.IdentExpr) { return TY_UNRESOLVED }
     target_sym :: resolved.idents[e.target.span.hash()] ?? return TY_UNRESOLVED
     members :: resolved.namespace_member_types[target_sym.id] ?? return TY_UNRESOLVED
@@ -118,7 +118,7 @@ namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule, diags: D
 /// (`field.vader::try_namespace_field`) and the type path above.
 namespace_private_member_reported :: fn(
     binding_id: i32, field: string, span: Span,
-    resolved: ResolvedModule, diags: Diagnostic[],
+    resolved: ResolvedModule, diags!: Diagnostic[],
 ) -> bool {
     priv :: resolved.namespace_private_members[binding_id] ?? return false
     if priv[field] is null { return false }
@@ -214,7 +214,7 @@ redirect_import :: fn(sym: Symbol, resolved: ResolvedModule) -> Symbol {
 
 
 lower_call_in_type_position :: fn(
-    e: AST.CallExpr, resolved: ResolvedModule, diags: Diagnostic[],
+    e: AST.CallExpr, resolved: ResolvedModule, diags!: Diagnostic[],
 ) -> Type {
     args: Type[] = []
     for a in e.args { args.push(type_from_expr(a.value, resolved, diags)) }
@@ -239,7 +239,7 @@ lower_call_in_type_position :: fn(
 }
 
 lower_generic_inst :: fn(
-    e: AST.GenericInstExpr, resolved: ResolvedModule, diags: Diagnostic[],
+    e: AST.GenericInstExpr, resolved: ResolvedModule, diags!: Diagnostic[],
 ) -> Type {
     args: Type[] = []
     for a in e.type_args { args.push(type_from_expr(a, resolved, diags)) }
@@ -274,7 +274,7 @@ lookup_type_name :: fn(id: AST.IdentExpr, resolved: ResolvedModule) -> Symbol | 
 }
 
 lower_binary :: fn(
-    e: AST.BinaryExpr, resolved: ResolvedModule, diags: Diagnostic[],
+    e: AST.BinaryExpr, resolved: ResolvedModule, diags!: Diagnostic[],
 ) -> Type {
     if u8(e.op) != u8(AST.BinaryOp.BitOr) {
         diags.push(typecheck_error(.ExpectedKnownType, e.span,
@@ -289,7 +289,7 @@ lower_binary :: fn(
 }
 
 opt_or_void :: fn(
-    ret: AST.TypeExpr | null, resolved: ResolvedModule, diags: Diagnostic[],
+    ret: AST.TypeExpr | null, resolved: ResolvedModule, diags!: Diagnostic[],
 ) -> Type {
     if ret == null { return TY_VOID }
     return type_from_expr(ret, resolved, diags)

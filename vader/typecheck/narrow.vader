@@ -47,7 +47,7 @@ cur_field_narrow_gen :: fn(typed: TypedProgram, key: string) -> i32 = typed.narr
 
 /// Push a narrowed type for `sym_id` ; returns the prior narrowing
 /// (or null) so the caller can restore it on scope exit.
-export push_narrow :: fn(typed: TypedProgram, sym_id: i32, narrowed: Type) -> NarrowSlot | null {
+export push_narrow :: fn(typed!: TypedProgram, sym_id: i32, narrowed: Type) -> NarrowSlot | null {
     prev :: typed.narrowed_bindings[sym_id]
     typed.narrowed_bindings[sym_id] = NarrowSlot {
         .ty = narrowed,
@@ -67,7 +67,7 @@ export push_narrow :: fn(typed: TypedProgram, sym_id: i32, narrowed: Type) -> Na
 /// outlive its scope and poison the authoritative re-walk. (`static_ty`
 /// is retained in the signature for symmetry with the restore machinery
 /// that threads it through `IsNarrow` / `DivergentNarrow`.)
-export pop_narrow :: fn(typed: TypedProgram, sym_id: i32, prev: NarrowSlot | null, static_ty: Type) -> void {
+export pop_narrow :: fn(typed!: TypedProgram, sym_id: i32, prev: NarrowSlot | null, static_ty: Type) -> void {
     if prev == null {
         _ :: typed.narrowed_bindings.remove(sym_id)
     } else {
@@ -188,7 +188,7 @@ export field_chain_key :: fn(e: AST.FieldExpr, typed: TypedProgram) -> string {
 /// Push a narrowed type for a `${receiver_sym_id}.${field_name}` slot ;
 /// returns the prior narrowing (or null) so the caller can restore it
 /// on scope exit. Mirrors `push_narrow` for ident bindings.
-export push_field_narrow :: fn(typed: TypedProgram, key: string, narrowed: Type) -> NarrowSlot | null {
+export push_field_narrow :: fn(typed!: TypedProgram, key: string, narrowed: Type) -> NarrowSlot | null {
     prev :: typed.narrowed_fields[key]
     typed.narrowed_fields[key] = NarrowSlot {
         .ty = narrowed,
@@ -202,7 +202,7 @@ export push_field_narrow :: fn(typed: TypedProgram, key: string, narrowed: Type)
 /// `narrow_for_field` lookups fall through to the field's then-current
 /// static type. See `pop_narrow` for why removal (not overwrite) matters.
 export pop_field_narrow :: fn(
-    typed: TypedProgram,
+    typed!: TypedProgram,
     key: string,
     prev: NarrowSlot | null,
     static_ty: Type,
@@ -248,7 +248,7 @@ export narrow_for_field :: fn(typed: TypedProgram, key: string, static_ty: Type)
 /// @param target    the assignment's LHS expression.
 /// @param value_ty  the checked type of the RHS.
 /// @param typed     the program's typing tables.
-export invalidate_narrow_on_assign :: fn(target: AST.Expr, value_ty: Type, typed: TypedProgram) -> void {
+export invalidate_narrow_on_assign :: fn(target: AST.Expr, value_ty: Type, typed!: TypedProgram) -> void {
     // Fast path first : with no active narrowing there is nothing to
     // retire, and this runs on every assignment in the program — skip
     // before any symbol lookup / key interpolation allocates.
@@ -294,7 +294,7 @@ export invalidate_narrow_on_assign :: fn(target: AST.Expr, value_ty: Type, typed
 // separator). Only chains present in the table need a bump : a chain
 // absent here has no active region, hence no stacked `prev` a later pop
 // could restore.
-retire_field_chains_under :: fn(typed: TypedProgram, prefix: string) -> void {
+retire_field_chains_under :: fn(typed!: TypedProgram, prefix: string) -> void {
     if typed.narrowed_fields.is_empty() {
         return
     }

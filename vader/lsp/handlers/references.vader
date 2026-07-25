@@ -15,7 +15,7 @@ import "vader/lsp/analysis"
 /// Resolve find-references for the position in `params`. Returns a `Location[]`
 /// (every use of the symbol under the cursor), empty when the cursor isn't on a
 /// resolvable identifier. Honours `context.includeDeclaration`.
-export handle_references :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+export handle_references :: fn(state!: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     if uri == "" { return JsonArray { .items = [] } }
     file_path :: uri_to_path(uri)
@@ -44,7 +44,7 @@ export handle_references :: fn(state: ServerState, params: JsonValue) -> JsonVal
 }
 
 // Fetch (and memoise) the LineIndex for `path` within one request.
-line_index_cached :: fn(state: ServerState, cache: MutableMap<string, LineIndex>, path: string) -> LineIndex {
+line_index_cached :: fn(state: ServerState, cache!: MutableMap<string, LineIndex>, path: string) -> LineIndex {
     hit :: cache[path]
     if hit is LineIndex as li { return li }
     built :: state.line_index_for_path(path)

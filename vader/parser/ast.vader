@@ -903,7 +903,7 @@ export collect_bitor_variants :: fn(e: Expr) -> Expr[] {
     return out
 }
 
-append_bitor_variants :: fn(e: Expr, out: Expr[]) -> void {
+append_bitor_variants :: fn(e: Expr, out!: Expr[]) -> void {
     match e {
         is BinaryExpr as b -> {
             if b.op == .BitOr {

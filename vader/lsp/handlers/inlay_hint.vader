@@ -30,7 +30,7 @@ AST :: import "vader/parser"
 /// Build the inlay-hint array for the document carried in `params`.
 /// Returns a `JsonArray` (possibly empty) — the LSP spec mandates an
 /// array response, never a null.
-export handle_inlay_hint :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+export handle_inlay_hint :: fn(state!: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     if uri == "" { return JsonArray { .items = [] } }
     file_path :: uri_to_path(uri)
@@ -53,7 +53,7 @@ export handle_inlay_hint :: fn(state: ServerState, params: JsonValue) -> JsonVal
 
 // ---- AST walkers ---------------------------------------------------------
 
-collect_from_decl :: fn(d: AST.Decl, typed: TypedProgram, out: JsonValue[]) -> void {
+collect_from_decl :: fn(d: AST.Decl, typed: TypedProgram, out!: JsonValue[]) -> void {
     match d {
         is AST.FnDecl as fd -> {
             match fd.body {
@@ -80,14 +80,14 @@ collect_from_decl :: fn(d: AST.Decl, typed: TypedProgram, out: JsonValue[]) -> v
     }
 }
 
-collect_from_block :: fn(b: AST.BlockExpr, typed: TypedProgram, out: JsonValue[]) -> void {
+collect_from_block :: fn(b: AST.BlockExpr, typed: TypedProgram, out!: JsonValue[]) -> void {
     for s in b.stmts { collect_from_stmt(s, typed, out) }
     if b.trailing !is null {
         collect_from_expr(b.trailing, typed, out)
     }
 }
 
-collect_from_stmt :: fn(s: AST.Stmt, typed: TypedProgram, out: JsonValue[]) -> void {
+collect_from_stmt :: fn(s: AST.Stmt, typed: TypedProgram, out!: JsonValue[]) -> void {
     match s {
         is AST.LetStmt as ls -> {
             // Skip when the user already annotated the binding type.
@@ -127,7 +127,7 @@ collect_from_stmt :: fn(s: AST.Stmt, typed: TypedProgram, out: JsonValue[]) -> v
     }
 }
 
-collect_from_expr :: fn(e: AST.Expr, typed: TypedProgram, out: JsonValue[]) -> void {
+collect_from_expr :: fn(e: AST.Expr, typed: TypedProgram, out!: JsonValue[]) -> void {
     // Surface an implicit `.into()` coercion carried on this value, if any.
     check_into_hint(e, typed, out)
     // Recurse into every child expression : nested coercions (a coerced arg
@@ -202,7 +202,7 @@ collect_from_expr :: fn(e: AST.Expr, typed: TypedProgram, out: JsonValue[]) -> v
 /// `Expr.id`). Anchors right after the value : `span.end` is 1-based and
 /// exclusive, so 0-based column `end.column - 1` lands immediately past the
 /// last char and the zero-padding label reads as `value.into()`.
-check_into_hint :: fn(e: AST.Expr, typed: TypedProgram, out: JsonValue[]) -> void {
+check_into_hint :: fn(e: AST.Expr, typed: TypedProgram, out!: JsonValue[]) -> void {
     if typed.into_coercions[e.id] is null { return }
     line :: e.span.end.line - 1
     col  :: e.span.end.column - 1
@@ -221,7 +221,7 @@ check_into_hint :: fn(e: AST.Expr, typed: TypedProgram, out: JsonValue[]) -> voi
 /// space before the value, so the second operator char is at the value's 1-based
 /// column `- 2`, i.e. 0-based column `value.column - 3` — exactly where the hint
 /// must insert to land between the two operator chars.
-emit_operator_hint :: fn(value_span: Span, label: string, out: JsonValue[]) -> void {
+emit_operator_hint :: fn(value_span: Span, label: string, out!: JsonValue[]) -> void {
     line :: value_span.start.line - 1
     col  :: value_span.start.column - 3
     out.push(build_hint(line, col, label))
@@ -232,7 +232,7 @@ emit_operator_hint :: fn(value_span: Span, label: string, out: JsonValue[]) -> v
 /// Currently handles the `SimpleBinding` case ; tuple-destructuring
 /// bindings are skipped (each leaf would need its own hint, and the
 /// static type isn't always useful on the destructure itself).
-emit_let_hint :: fn(ls: AST.LetStmt, typed: TypedProgram, out: JsonValue[]) -> void {
+emit_let_hint :: fn(ls: AST.LetStmt, typed: TypedProgram, out!: JsonValue[]) -> void {
     match ls.binding {
         is AST.SimpleBinding as sb -> {
             ty :: typed.local_types[sb.name_span.hash()] ?? return
@@ -251,7 +251,7 @@ emit_let_hint :: fn(ls: AST.LetStmt, typed: TypedProgram, out: JsonValue[]) -> v
 /// keeps the un-defaulted free type. Type-alias constants (`Type ::
 /// i32 | string`) get `TY_TYPE` ; we skip those — they're already
 /// self-describing.
-emit_const_hint :: fn(cd: AST.ConstDecl, typed: TypedProgram, out: JsonValue[]) -> void {
+emit_const_hint :: fn(cd: AST.ConstDecl, typed: TypedProgram, out!: JsonValue[]) -> void {
     sym :: lookup_const_sym(typed.resolved, cd.name) ?? return
     ty :: typed.decl_types[sym.id] ?? return
     if ty is UnresolvedType { return }

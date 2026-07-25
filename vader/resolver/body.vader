@@ -115,7 +115,7 @@ ResolveState :: struct {
     ambiguous:        MutableMap<string, string[]>
 }
 
-mint_local :: fn(self: ResolveState, kind: SymbolKind, name: string, span: Span) -> Symbol {
+mint_local :: fn(self!: ResolveState, kind: SymbolKind, name: string, span: Span) -> Symbol {
     if name == "void" {
         self.diags.push(resolver_error(.ReservedName, span, "`${name}`"))
     }
@@ -131,7 +131,7 @@ mint_local :: fn(self: ResolveState, kind: SymbolKind, name: string, span: Span)
 // may legitimately share a name with a module-level fn/type/const. Narrowing
 // binds (`is T as x`, patterns) don't route here : reusing the scrutinee's name
 // there is idiomatic, not problematic shadowing.
-bind_local_checked :: fn(self: ResolveState, kind: SymbolKind, name: string, span: Span) -> Symbol {
+bind_local_checked :: fn(self!: ResolveState, kind: SymbolKind, name: string, span: Span) -> Symbol {
     // `_` is the discard wildcard — many `_` bindings coexist by design
     // (`for _ in …`, `_ :: expr`), so never flag it as a shadow / redeclaration.
     idx :: if name == "_" { -1 } else { self.scope.lookup_frame_index(name) }
@@ -175,7 +175,7 @@ walk_decl :: fn(self: ResolveState, d: AST.Decl) -> void {
     }
 }
 
-walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
+walk_fn_decl :: fn(self!: ResolveState, d: AST.FnDecl) -> void {
     self.walk_decorators(d.decorators)
     self.scope.push()
     // Type-params first so the rest of the signature + body sees them.
@@ -209,7 +209,7 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
     self.scope.pop()
 }
 
-walk_struct_decl :: fn(self: ResolveState, d: AST.StructDecl) -> void {
+walk_struct_decl :: fn(self!: ResolveState, d: AST.StructDecl) -> void {
     self.walk_decorators(d.decorators)
     self.scope.push()
     for tp in d.type_params {
@@ -227,7 +227,7 @@ walk_struct_decl :: fn(self: ResolveState, d: AST.StructDecl) -> void {
     self.scope.pop()
 }
 
-walk_trait_decl :: fn(self: ResolveState, d: AST.TraitDecl) -> void {
+walk_trait_decl :: fn(self!: ResolveState, d: AST.TraitDecl) -> void {
     self.walk_decorators(d.decorators)
     self.scope.push()
     for tp in d.type_params {
@@ -243,7 +243,7 @@ walk_trait_decl :: fn(self: ResolveState, d: AST.TraitDecl) -> void {
     self.scope.pop()
 }
 
-walk_impl_decl :: fn(self: ResolveState, d: AST.ImplDecl) -> void {
+walk_impl_decl :: fn(self!: ResolveState, d: AST.ImplDecl) -> void {
     self.walk_decorators(d.decorators)
     self.scope.push()
     for tp in d.type_params {
@@ -291,7 +291,7 @@ auto_bind_for_type_params :: fn(self: ResolveState, t: AST.TypeExpr) -> void {
     }
 }
 
-walk_decorators :: fn(self: ResolveState, decs: AST.Decorator[]) -> void {
+walk_decorators :: fn(self!: ResolveState, decs: AST.Decorator[]) -> void {
     for d in decs {
         if !is_known_decorator(d.name) {
             self.diags.push(resolver_error(.UnknownDecorator, d.span, "`@${d.name}`"))
@@ -365,7 +365,7 @@ walk_defer :: fn(self: ResolveState, d: AST.DeferStmt) -> void {
 // default flips module-by-module in a later step, so this writes nothing today
 // and the table stays empty. Keeping the write site here (rather than adding it
 // with the flip) means the flip is one flag, not new plumbing.
-mark_param_borrow :: fn(self: ResolveState, p: AST.FnParam, sym: Symbol) -> void {
+mark_param_borrow :: fn(self!: ResolveState, p: AST.FnParam, sym: Symbol) -> void {
     if p.mutable {
         return
     }
@@ -377,7 +377,7 @@ mark_param_borrow :: fn(self: ResolveState, p: AST.FnParam, sym: Symbol) -> void
     self.immutable_borrows[sym.id] = true
 }
 
-mark_binding_immutable :: fn(self: ResolveState, b: AST.LetBinding) -> void {
+mark_binding_immutable :: fn(self!: ResolveState, b: AST.LetBinding) -> void {
     match b {
         is AST.SimpleBinding as sb -> {
             sym :: self.scope.lookup(sb.name)
@@ -399,7 +399,7 @@ mark_binding_immutable :: fn(self: ResolveState, b: AST.LetBinding) -> void {
     }
 }
 
-bind_let_binding :: fn(self: ResolveState, b: AST.LetBinding) -> void {
+bind_let_binding :: fn(self!: ResolveState, b: AST.LetBinding) -> void {
     match b {
         is AST.SimpleBinding as x -> {
             sym :: self.bind_local_checked(.Local, x.name, x.name_span)
@@ -422,7 +422,7 @@ bind_let_binding :: fn(self: ResolveState, b: AST.LetBinding) -> void {
     }
 }
 
-walk_for :: fn(self: ResolveState, s: AST.ForStmt) -> void {
+walk_for :: fn(self!: ResolveState, s: AST.ForStmt) -> void {
     match s.form {
         is AST.InfiniteFor -> {}
         is AST.WhileFor as w -> { self.walk_expr(w.cond) }
@@ -459,7 +459,7 @@ walk_for :: fn(self: ResolveState, s: AST.ForStmt) -> void {
 // means the reference bound to a local / param / this module's own decl / a
 // destructure import (all same-module) — those shadow the wildcard and are
 // unambiguous. A cross-module `s` whose name is in `ambiguous` is the real clash.
-check_wildcard_ambiguity :: fn(self: ResolveState, x: AST.IdentExpr, s: Symbol) -> void {
+check_wildcard_ambiguity :: fn(self!: ResolveState, x: AST.IdentExpr, s: Symbol) -> void {
     if s.module == self.module_path { return }
     mods :: self.ambiguous[x.name] ?? return
     list := ""
@@ -471,7 +471,7 @@ check_wildcard_ambiguity :: fn(self: ResolveState, x: AST.IdentExpr, s: Symbol) 
         "`${x.name}` is exported by ${list} — qualify it with a namespace import (`Ns :: import \"…\"` then `Ns.${x.name}`) or destructure the one you mean"))
 }
 
-walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
+walk_expr :: fn(self!: ResolveState, e: AST.Expr) -> void {
     match e {
         is AST.IdentExpr as x -> {
             v :: self.scope.lookup(x.name)
@@ -574,7 +574,7 @@ walk_if :: fn(self: ResolveState, e: AST.IfExpr) -> void {
 // (later `&&` operands, the then-block). An `as` binding inside a `&&` is
 // rejected (R2029) — its scope across short-circuit operands is ambiguous —
 // but still minted so the use doesn't cascade into a spurious R2006.
-bind_cond_is_as :: fn(self: ResolveState, cond: AST.Expr, in_conjunction: bool) -> void {
+bind_cond_is_as :: fn(self!: ResolveState, cond: AST.Expr, in_conjunction: bool) -> void {
     if cond is AST.BinaryExpr as x {
         if x.op == AST.BinaryOp.And {
             self.bind_cond_is_as(x.left, true)
@@ -651,7 +651,7 @@ bind_pattern :: fn(self: ResolveState, p: AST.Pattern) -> void {
     }
 }
 
-walk_lambda :: fn(self: ResolveState, l: AST.LambdaExpr) -> void {
+walk_lambda :: fn(self!: ResolveState, l: AST.LambdaExpr) -> void {
     self.scope.push()
     for p in l.params {
         self.walk_opt_expr(p.ty)

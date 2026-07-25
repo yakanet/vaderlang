@@ -14,7 +14,7 @@ import "vader/comptime"
 // (`@size_of`, `@type_kind`, …) get baked at evaluation time and reach
 // the lowerer as bound `@comptime const` references ; what remains is
 // the runtime-bound shape, which the bytecode emit consumes.
-lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type) -> LoweredExpr {
+lower_intrinsic :: fn(ctx!: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type) -> LoweredExpr {
     // `@file("path")` was baked at comptime — substitute the file's
     // contents as a `LoweredStringLit` so downstream phases see the
     // materialised constant rather than re-running the AST.

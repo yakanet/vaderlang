@@ -15,7 +15,7 @@ import "vader/resolver/symbol"
 // … without re-walking the project per call. Per-module export lookups
 // (std/collections' `MutableMap`, std/string's `bytes`, …) go through the lazy
 // `module_export` below instead of dedicated per-module tables.
-populate_core_symbols :: fn(loaded: LoadedProject, project_ctx: LowerProjectCtx) -> void {
+populate_core_symbols :: fn(loaded: LoadedProject, project_ctx!: LowerProjectCtx) -> void {
     // Source std/core's exports directly from the core module (one seed) rather
     // than from per-module `resolved.core_symbols` copies (removed). This is the
     // lowerer's single core-symbol cache — `find_core_type` / `find_core_trait`
@@ -34,7 +34,7 @@ populate_core_symbols :: fn(loaded: LoadedProject, project_ctx: LowerProjectCtx)
 // to a per-file subfolder, and `std/string` would match `std/string_builder`).
 // Returns null when the module isn't loaded or has no such export, so the
 // gated peepholes simply don't fire.
-module_export :: fn(ctx: LowerProjectCtx, display_path: string, name: string) -> Symbol | null {
+module_export :: fn(ctx!: LowerProjectCtx, display_path: string, name: string) -> Symbol | null {
     cached :: ctx.module_symbol_cache[display_path]
     if cached != null { return cached[name] }
     table :: MutableMap<string, Symbol> {}
@@ -48,7 +48,7 @@ module_export :: fn(ctx: LowerProjectCtx, display_path: string, name: string) ->
     return table[name]
 }
 
-populate_comptime_value_index :: fn(project_ctx: LowerProjectCtx) -> void {
+populate_comptime_value_index :: fn(project_ctx!: LowerProjectCtx) -> void {
     // Flatten every loaded module's `comptime_decls` into one global
     // `symbol_id -> ComptimeValue` map. Const symbol ids are project-
     // unique (resolver mints from a single counter), so no module can
@@ -71,7 +71,7 @@ populate_comptime_value_index :: fn(project_ctx: LowerProjectCtx) -> void {
 // registry. `build_impl_registry` works per-module ; we drain every
 // resulting entry into `project_ctx.impls.all` (+ rekey `user_index`
 // by `for_symbol.id::trait_symbol.id`, same as the per-module shape).
-populate_impls :: fn(loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx) -> void {
+populate_impls :: fn(loaded: LoadedProject, typed: TypedProject, project_ctx!: LowerProjectCtx) -> void {
     for [module_id, module_typed] in typed.modules {
         module_loaded :: loaded.modules[module_id] ?? continue
         module_decls_list :: module_decls(module_loaded)

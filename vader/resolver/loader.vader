@@ -196,9 +196,9 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
 // std/string_builder force-load so both follow identical ingestion logic
 // (and so the force-load can run as a separate, order-preserving pass).
 drain_load_queue :: fn(
-    queue: DiscoveredModule[], bases: IncludePath[],
-    modules: MutableMap<string, LoadedModule>, factory: SymbolFactory,
-    index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
+    queue!: DiscoveredModule[], bases: IncludePath[],
+    modules!: MutableMap<string, LoadedModule>, factory: SymbolFactory,
+    index!: MutableMap<string, DiscoveredModule>, diags!: Diagnostic[],
     overlay: MutableMap<string, string>, node_factory: NodeIdFactory,
 ) -> void {
     cursor: usize = 0
@@ -233,7 +233,7 @@ drain_load_queue :: fn(
 detect_import_cycles :: fn(
     modules: MutableMap<string, LoadedModule>,
     index: MutableMap<string, DiscoveredModule>,
-    diags: Diagnostic[],
+    diags!: Diagnostic[],
 ) -> void {
     // Per module : absent = unvisited, 1 = on the current DFS stack, 2 = done.
     state :: MutableMap<string, i32> {}
@@ -245,7 +245,7 @@ detect_import_cycles :: fn(
 walk_import_cycle :: fn(
     id: string, modules: MutableMap<string, LoadedModule>,
     index: MutableMap<string, DiscoveredModule>,
-    state: MutableMap<string, i32>, diags: Diagnostic[],
+    state!: MutableMap<string, i32>, diags!: Diagnostic[],
 ) -> void {
     state[id] = 1
     lm :: modules[id]
@@ -268,8 +268,8 @@ walk_import_cycle :: fn(
 
 ingest_module :: fn(
     m: DiscoveredModule, bases: IncludePath[],
-    modules: MutableMap<string, LoadedModule>, factory: SymbolFactory,
-    index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
+    modules!: MutableMap<string, LoadedModule>, factory: SymbolFactory,
+    index!: MutableMap<string, DiscoveredModule>, diags!: Diagnostic[],
     overlay: MutableMap<string, string>, node_factory: NodeIdFactory,
 ) -> void {
     if m.files.len() == 0 { return }
@@ -313,7 +313,7 @@ read_with_overlay :: fn(overlay: MutableMap<string, string>, path: string) -> st
     return ""
 }
 
-parse_module_files :: fn(paths: string[], diags: Diagnostic[], overlay: MutableMap<string, string>, node_factory: NodeIdFactory) -> SourceFile[] {
+parse_module_files :: fn(paths: string[], diags!: Diagnostic[], overlay: MutableMap<string, string>, node_factory: NodeIdFactory) -> SourceFile[] {
     // ONE factory threaded across the WHOLE project, so AST node ids are
     // globally unique — not just module-unique. Per-module factories (each
     // restarting at 1) overlapped, and the side-tables keyed by raw node id
@@ -375,7 +375,7 @@ has_module :: fn(modules: MutableMap<string, LoadedModule>, id: string) -> bool 
 collect_files :: fn(
     files: SourceFile[], module_id: string, module_name: string,
     factory: SymbolFactory,
-    index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[],
+    index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags!: Diagnostic[],
 ) -> CollectedModule {
     // Multi-file collect : merge every file's collected view into one
     // module-wide table. Each file mints fresh Symbol ids through the
@@ -388,7 +388,7 @@ collect_files :: fn(
     return merged
 }
 
-merge_collected :: fn(dst: CollectedModule, src: CollectedModule, diags: Diagnostic[]) -> void {
+merge_collected :: fn(dst!: CollectedModule, src: CollectedModule, diags!: Diagnostic[]) -> void {
     for [name, sym] in src.symbols {
         existing :: dst.symbols[name]
         match existing {

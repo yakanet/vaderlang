@@ -179,7 +179,7 @@ gb_suspend_return :: fn(gb: GenBuild) -> LoweredStmt =
 // advances on the NEXT resume), a completed result binds into `target_field`
 // and falls through to `cont`. The child's value is read back through its own
 // `resume`'s return channel — no external injection (Model A).
-gb_drive_state :: fn(gb: GenBuild, target_field: string, target_type: Type, cont: i64) -> LoweredStmt[] {
+gb_drive_state :: fn(gb!: GenBuild, target_field: string, target_type: Type, cont: i64) -> LoweredStmt[] {
     r_sym :: fresh_synthetic_symbol(gb.fn_ctx, "resumed")
     r_ref :: LoweredIdent { .span = gb.span, .type = gb.resume_erased_ty, .symbol = r_sym }
     // r :: self.awaited.resume()   (virtual — Any | Suspended)
@@ -212,7 +212,7 @@ gb_drive_state :: fn(gb: GenBuild, target_field: string, target_type: Type, cont
 // ---- block-split (structured-lowered-CFG → numbered states) ---------------
 
 // Append a filled state, returning its index.
-gb_new_state :: fn(gb: GenBuild, stmts: LoweredStmt[]) -> i64 {
+gb_new_state :: fn(gb!: GenBuild, stmts: LoweredStmt[]) -> i64 {
     idx :: i64(gb.states.len())
     gb.states.push(stmts)
     return idx
@@ -220,13 +220,13 @@ gb_new_state :: fn(gb: GenBuild, stmts: LoweredStmt[]) -> i64 {
 
 // Reserve an empty state slot (filled later via `gb_fill`) — needed for a
 // loop header, whose index must be known before its body is compiled.
-gb_reserve :: fn(gb: GenBuild) -> i64 {
+gb_reserve :: fn(gb!: GenBuild) -> i64 {
     idx :: i64(gb.states.len())
     gb.states.push([])
     return idx
 }
 
-gb_fill :: fn(gb: GenBuild, idx: i64, stmts: LoweredStmt[]) -> void {
+gb_fill :: fn(gb!: GenBuild, idx: i64, stmts: LoweredStmt[]) -> void {
     gb.states[usize(idx)] = stmts
 }
 
@@ -249,7 +249,7 @@ gb_is_leaf :: fn(s: LoweredStmt) -> bool {
 
 // Compile a stmt list so that, when it finishes, control goes to state `cont`.
 // Returns the ENTRY state index. Leading leaves batch into one state.
-gb_compile_seq :: fn(gb: GenBuild, stmts: LoweredStmt[], cont: i64) -> i64 {
+gb_compile_seq :: fn(gb!: GenBuild, stmts: LoweredStmt[], cont: i64) -> i64 {
     // Split off the leading run of leaves.
     leaves: LoweredStmt[] = []
     i: usize = 0
@@ -274,7 +274,7 @@ gb_compile_seq :: fn(gb: GenBuild, stmts: LoweredStmt[], cont: i64) -> i64 {
 }
 
 // Compile a block (stmts + trailing) with continuation `cont`.
-gb_compile_block :: fn(gb: GenBuild, block: LoweredBlock, cont: i64) -> i64 {
+gb_compile_block :: fn(gb!: GenBuild, block: LoweredBlock, cont: i64) -> i64 {
     stmts: LoweredStmt[] = []
     for s in block.stmts { stmts.push(s) }
     if block.trailing != null {
@@ -284,7 +284,7 @@ gb_compile_block :: fn(gb: GenBuild, block: LoweredBlock, cont: i64) -> i64 {
 }
 
 // Compile a control-flow stmt with continuation `cont`. Returns entry state.
-gb_compile_ctrl :: fn(gb: GenBuild, s: LoweredStmt, cont: i64) -> i64 {
+gb_compile_ctrl :: fn(gb!: GenBuild, s: LoweredStmt, cont: i64) -> i64 {
     if s is LoweredYield as y {
         // Reaching the yield: record the resume state (`cont`), emit the value.
         return gb_new_state(gb, [gb_set_state(gb, cont), gb_yield_return(gb, y.value)])
@@ -365,7 +365,7 @@ gb_compile_ctrl :: fn(gb: GenBuild, s: LoweredStmt, cont: i64) -> i64 {
 
 // Compile the routed body into the state list. Returns the ENTRY state index
 // (the `g$State` constructor seeds `self.state` with it).
-gb_build :: fn(gb: GenBuild, body: LoweredBlock) -> i64 {
+gb_build :: fn(gb!: GenBuild, body: LoweredBlock) -> i64 {
     if gb.is_async && gb_result_is_void(gb) {
         // A `void async fn` with no explicit `return` completes on fall-off :
         // route it to a completion state (`state = done ; return`). Non-void
@@ -470,7 +470,7 @@ gb_defers_len :: fn(gb: GenBuild, span: Span) -> LoweredExpr =
 // Drain the top `count` defer thunks LIFO, then truncate. `count` is static (the
 // defers of the exiting scope[s]) — emit all calls before truncating so
 // `len - 1 - k` walks the live tail top-down, then slice off the drained run.
-gb_defer_drain :: fn(gb: GenBuild, dpe: LoweredDeferPopExec, out: LoweredStmt[]) -> void {
+gb_defer_drain :: fn(gb: GenBuild, dpe: LoweredDeferPopExec, out!: LoweredStmt[]) -> void {
     count :: i64(dpe.count)
     if count == 0 { return }
     usize_ty :: mk_primitive("usize")
@@ -504,7 +504,7 @@ gb_defer_drain :: fn(gb: GenBuild, dpe: LoweredDeferPopExec, out: LoweredStmt[])
 // `gb_defer_drain` (which drains a statically-known scope count on a structured
 // exit). At cancel time the pending count is dynamic (how far the coroutine ran
 // before it was abandoned), so loop `while len != 0 { call last ; truncate }`.
-gb_defer_drain_all :: fn(gb: GenBuild, out: LoweredStmt[]) -> void {
+gb_defer_drain_all :: fn(gb: GenBuild, out!: LoweredStmt[]) -> void {
     usize_ty :: mk_primitive("usize")
     // idx = self.__defers.len() - 1 (recomputed each iteration — the truncate
     // below shrinks the array, so the last live thunk moves down every step).
@@ -573,11 +573,11 @@ gb_cancel_body :: fn(gb: GenBuild) -> LoweredBlock {
 // Collect every `LoweredLet` symbol in a block (recursively through loops /
 // ifs) into `gb.field_map` (symbol id → field name) + `gb.fields`. v1 spills
 // every local ; params are pre-seeded by the caller.
-gb_collect_block :: fn(gb: GenBuild, block: LoweredBlock) -> void {
+gb_collect_block :: fn(gb!: GenBuild, block: LoweredBlock) -> void {
     for s in block.stmts { gb_collect_stmt(gb, s) }
 }
 
-gb_collect_stmt :: fn(gb: GenBuild, s: LoweredStmt) -> void {
+gb_collect_stmt :: fn(gb!: GenBuild, s: LoweredStmt) -> void {
     match s {
         is LoweredLet as lt -> {
             gb_add_field(gb, lt.symbol, lt.type)
@@ -611,7 +611,7 @@ gb_collect_stmt :: fn(gb: GenBuild, s: LoweredStmt) -> void {
 
 // Only expression forms that carry nested blocks (whose lets must be spilled)
 // need descending ; the rest carry no lets.
-gb_collect_expr :: fn(gb: GenBuild, e: LoweredExpr) -> void {
+gb_collect_expr :: fn(gb!: GenBuild, e: LoweredExpr) -> void {
     match e {
         is LoweredBlock as b -> { gb_collect_block(gb, b) }
         is LoweredIf as i -> {
@@ -629,7 +629,7 @@ gb_collect_expr :: fn(gb: GenBuild, e: LoweredExpr) -> void {
 // covers both ; `gb_route_expr` applies the same cell-type override to the
 // access (it can't just reuse this type — a non-captured access legitimately
 // uses its use-site type, which differs for erased generic combinators).
-gb_add_field :: fn(gb: GenBuild, sym: Symbol, ty: Type) -> void {
+gb_add_field :: fn(gb!: GenBuild, sym: Symbol, ty: Type) -> void {
     if gb.field_map[sym.id] != null { return }
     name :: "s${gb.fields.len()}"
     gb.field_map[sym.id] = name
@@ -646,7 +646,7 @@ gb_route_block :: fn(gb: GenBuild, block: LoweredBlock) -> LoweredBlock {
     return LoweredBlock { .span = block.span, .type = block.type, .stmts = out, .trailing = new_trailing }
 }
 
-gb_route_stmt :: fn(gb: GenBuild, s: LoweredStmt, out: LoweredStmt[]) -> void {
+gb_route_stmt :: fn(gb: GenBuild, s: LoweredStmt, out!: LoweredStmt[]) -> void {
     match s {
         is LoweredLet as lt -> {
             // Every local is spilled → `self.<field> = value`.

@@ -68,7 +68,7 @@ export StringChars :: struct {
 }
 
 StringChars implements Iterator<char> {
-    next :: fn(self) -> Yield<char> | null {
+    next :: fn(self!) -> Yield<char> | null {
         if (self.cursor >= self.length) {
             return null
         }

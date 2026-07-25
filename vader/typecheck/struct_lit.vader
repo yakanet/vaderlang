@@ -14,8 +14,8 @@ AST :: import "vader/parser"
 /// Type-check a `StructLitExpr`. Always returns the struct type even
 /// when the body has errors so downstream passes keep flowing.
 export infer_struct_lit :: fn(
-    e: AST.StructLitExpr, typed: TypedProgram, diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+    e: AST.StructLitExpr, typed!: TypedProgram, diags!: Diagnostic[],
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     ty :: type_from_expr(e.type_name, typed.resolved, diags)
     // A struct-backed distinct newtype (`Color :: Rgb`) constructs through the
@@ -34,8 +34,8 @@ export infer_struct_lit :: fn(
 }
 
 check_struct_body :: fn(
-    e: AST.StructLitExpr, st: StructType, typed: TypedProgram, diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+    e: AST.StructLitExpr, st: StructType, typed!: TypedProgram, diags!: Diagnostic[],
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     decl :: typed.struct_decls[st.symbol.id]
     provided: string[] = []
@@ -64,9 +64,9 @@ check_struct_body :: fn(
 }
 
 check_field :: fn(
-    f: AST.StructLitField, st: StructType, decl: AST.StructDecl | null,
-    typed: TypedProgram, diags: Diagnostic[], provided: string[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+    f!: AST.StructLitField, st: StructType, decl: AST.StructDecl | null,
+    typed!: TypedProgram, diags!: Diagnostic[], provided!: string[],
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     expected: Type | null = null
     if decl is AST.StructDecl {
@@ -105,7 +105,7 @@ check_field :: fn(
 
 check_missing_fields :: fn(
     e: AST.StructLitExpr, st: StructType, decl: AST.StructDecl,
-    provided: string[], diags: Diagnostic[],
+    provided: string[], diags!: Diagnostic[],
 ) -> void {
     missing: string[] = []
     for sf in decl.fields {
@@ -121,8 +121,8 @@ check_missing_fields :: fn(
 }
 
 check_item_no_expected :: fn(
-    item: AST.StructLitItem, typed: TypedProgram, diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+    item: AST.StructLitItem, typed!: TypedProgram, diags!: Diagnostic[],
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     match item {
         is AST.StructLitField  as f  -> { check_expr_fn(f.value, null, typed, diags) }
@@ -140,7 +140,7 @@ import "vader/resolver"
 import "vader/resolver/symbol"
 
 struct_lit_check_stub :: fn(
-    e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+    e: AST.Expr, expected: Type | null, typed!: TypedProgram, diags!: Diagnostic[],
 ) -> Type {
     // @partial: test stub — only the literal / ident / struct-lit expr kinds the
     // struct-lit tests build are typed; every other Expr is irrelevant → unresolved.

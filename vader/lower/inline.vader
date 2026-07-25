@@ -165,13 +165,13 @@ CollectCtx :: struct {
     has_stmt:    bool
 }
 
-collect_block :: fn(b: LoweredBlock, ctx: CollectCtx) -> void {
+collect_block :: fn(b: LoweredBlock, ctx!: CollectCtx) -> void {
     for s in b.stmts { collect_stmt(s, ctx) }
     t :: b.trailing
     if t != null { collect_expr(t, ctx) }
 }
 
-collect_stmt :: fn(s: LoweredStmt, ctx: CollectCtx) -> void {
+collect_stmt :: fn(s: LoweredStmt, ctx!: CollectCtx) -> void {
     // Any statement in the result subtree disqualifies the body from being an
     // inlineable single expression (see `CollectCtx.has_stmt`).
     ctx.has_stmt = true
@@ -204,7 +204,7 @@ collect_stmt :: fn(s: LoweredStmt, ctx: CollectCtx) -> void {
     }
 }
 
-collect_expr :: fn(e: LoweredExpr, ctx: CollectCtx) -> void {
+collect_expr :: fn(e: LoweredExpr, ctx!: CollectCtx) -> void {
     match e {
         is LoweredIdent as id -> {
             if ctx.param_ids.contains(id.symbol.id) {

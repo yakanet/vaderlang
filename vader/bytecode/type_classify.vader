@@ -161,7 +161,7 @@ export bc_type_of :: fn(t: Type) -> BcType = BcPrimitive { .val = val_type_of_ty
 ///                    caller. Used only to name synthesised tuple
 ///                    structs (`__Tuple_<slot_index>`) stably.
 /// @return            the `BcType` for the type table.
-export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx, slot_index: i32) -> BcType {
+export bc_type_of_with_ctx :: fn(t: Type, ctx!: EmitterCtx, slot_index: i32) -> BcType {
     match t {
         is PrimitiveType as p -> { return BcPrimitive { .val = val_type_of_primitive_name(p.name) } }
         is EnumType as e      -> { return BcPrimitive { .val = val_type_of_primitive_name(e.repr) } }

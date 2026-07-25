@@ -23,7 +23,7 @@ import "vader/resolver"
 /// @param is_loop_body  true when this is the body of a loop.
 /// @return              the lowered block.
 export lower_block :: fn(
-    ctx: FnLowerCtx, block: BlockExpr, is_fn_root: bool, is_loop_body: bool,
+    ctx!: FnLowerCtx, block: BlockExpr, is_fn_root: bool, is_loop_body: bool,
 ) -> LoweredBlock {
     entry_depth :: ctx.blocks.len()
     ctx.blocks.push(new_block_ctx(is_fn_root, is_loop_body))
@@ -95,7 +95,7 @@ export lower_block :: fn(
     }
 }
 
-lower_trailing :: fn(ctx: FnLowerCtx, trailing: Expr | null) -> LoweredExpr | null {
+lower_trailing :: fn(ctx!: FnLowerCtx, trailing: Expr | null) -> LoweredExpr | null {
     if trailing == null { return null }
     return lower_expr(ctx, trailing)
 }
@@ -104,7 +104,7 @@ lower_trailing :: fn(ctx: FnLowerCtx, trailing: Expr | null) -> LoweredExpr | nu
 // (statement position), truncating the sink back to `base`. Awaits below `base`
 // belong to an enclosing statement's drain and are left untouched (the block
 // watermark — see `lower_block`).
-drain_pending_from :: fn(ctx: FnLowerCtx, out: LoweredStmt[], base: usize) -> void {
+drain_pending_from :: fn(ctx!: FnLowerCtx, out!: LoweredStmt[], base: usize) -> void {
     n :: ctx.pending_awaits.len()
     // Fast path : the statement hoisted nothing (the common case) — no drain, no
     // realloc. Otherwise move the tail `[base, n)` into `out` and truncate the
@@ -119,7 +119,7 @@ drain_pending_from :: fn(ctx: FnLowerCtx, out: LoweredStmt[], base: usize) -> vo
 // unconditionally / only once — unsound. v1 diagnoses (M5009) and drops the
 // leaked awaits ; the full flow-sensitive ANF that lifts them correctly is a
 // later phase. No-op outside async or when nothing was hoisted.
-export guard_no_pending_await :: fn(ctx: FnLowerCtx, base: usize, span: Span) -> void {
+export guard_no_pending_await :: fn(ctx!: FnLowerCtx, base: usize, span: Span) -> void {
     if !ctx.in_async { return }
     if ctx.pending_awaits.len() <= base { return }
     ctx.project.diags.push(lower_error(.AwaitInShortCircuit, span, ""))
@@ -135,7 +135,7 @@ trailing_type :: fn(trailing: LoweredExpr | null) -> Type {
 // Lower a single stmt and push its lowered form(s) onto `out`. Most
 // stmts produce exactly one ; tuple-destructure `let` produces one
 // __tup binding + N leaf lets ; defer currently produces zero.
-lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
+lower_stmt_into :: fn(ctx!: FnLowerCtx, stmt: Stmt, out!: LoweredStmt[]) -> void {
     match stmt {
         is LetStmt      as let_stmt      -> { lower_let_into(ctx, let_stmt, out) }
         is AssignStmt   as assign_stmt   -> { out.push(lower_assign(ctx, assign_stmt)) }
@@ -231,7 +231,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
     }
 }
 
-lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> void {
+lower_let_into :: fn(ctx!: FnLowerCtx, let_stmt: LetStmt, out!: LoweredStmt[]) -> void {
     match let_stmt.binding {
         is SimpleBinding as simple -> {
             symbol_or_null :: lookup_local_symbol(ctx.project, ctx.typed.resolved, simple.name_span)
@@ -305,7 +305,7 @@ lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> 
 /// @param resolved  the module's resolved view (`typed.resolved`).
 /// @param name_span the binding-site name span.
 /// @return          the resolver-minted symbol, or `null` if absent.
-synth_unused_local :: fn(ctx: FnLowerCtx, name: string) -> Symbol {
+synth_unused_local :: fn(ctx!: FnLowerCtx, name: string) -> Symbol {
     next_id :: next_project_synthetic_id(ctx.project)
     return Symbol {
         .id         = next_id,
@@ -318,7 +318,7 @@ synth_unused_local :: fn(ctx: FnLowerCtx, name: string) -> Symbol {
 }
 
 export lookup_local_symbol :: fn(
-    project_ctx: LowerProjectCtx, resolved: ResolvedModule, name_span: Span,
+    project_ctx!: LowerProjectCtx, resolved: ResolvedModule, name_span: Span,
 ) -> Symbol | null {
     index :: ensure_local_symbol_index(project_ctx, resolved)
     return index[name_span.hash()]
@@ -331,7 +331,7 @@ export lookup_local_symbol :: fn(
 // flat `symbols` array (for zero-use bindings) it covers exactly
 // the two passes of the previous naive walk.
 ensure_local_symbol_index :: fn(
-    project_ctx: LowerProjectCtx, resolved: ResolvedModule,
+    project_ctx!: LowerProjectCtx, resolved: ResolvedModule,
 ) -> MutableMap<u64, Symbol> {
     cached :: project_ctx.local_symbol_indices[resolved.path]
     if !(cached is null) { return cached }
@@ -361,7 +361,7 @@ ensure_local_symbol_index :: fn(
 }
 
 
-lower_return :: fn(ctx: FnLowerCtx, return_stmt: ReturnStmt) -> LoweredStmt {
+lower_return :: fn(ctx!: FnLowerCtx, return_stmt: ReturnStmt) -> LoweredStmt {
     if return_stmt.value == null {
         return LoweredReturn { .span = return_stmt.span, .value = null }
     }
@@ -404,7 +404,7 @@ stmt_diverges :: fn(s: LoweredStmt) -> bool {
 // Sum the `defers` count across every open BlockCtx and emit a
 // single `defer.pop_exec N` — drains everything to fn root before
 // return.
-drain_all_defers :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]) -> void {
+drain_all_defers :: fn(ctx: FnLowerCtx, span: Span, out!: LoweredStmt[]) -> void {
     total: i32 = 0
     for b in ctx.blocks { total += i32(b.defers.len()) }
     if total > 0 {
@@ -415,7 +415,7 @@ drain_all_defers :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]) -> void 
 // Sum defers from the innermost block up to (but not including) the
 // nearest enclosing loop body — break/continue exit only the loop
 // scope, not the fn.
-drain_defers_to_loop :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]) -> void {
+drain_defers_to_loop :: fn(ctx: FnLowerCtx, span: Span, out!: LoweredStmt[]) -> void {
     total: i32 = 0
     i := i64(ctx.blocks.len()) - 1
     for i >= 0 {
@@ -460,7 +460,7 @@ union_contains_variant :: fn(union: Type, variant: Type) -> bool {
 
 // Dispatch by for-form : infinite-for and while-for lower here ; for-in
 // (and a while-for that desugars to one) delegates to `lower_for_in`.
-lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
+lower_for :: fn(ctx!: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
     // `@comptime for x in <arr> { body }` — unroll at lower time when
     // the iter folds to a `LoweredArrayLit`. Threads the per-iter
     // substitution through `ctx.comptime_bindings` so `lower_ident`
@@ -515,7 +515,7 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
 // Reject a `@comptime for` the lowerer can't unroll : surface the reason as a
 // compile-time diagnostic (M5010) — so it fails the build rather than trapping at
 // runtime — and return a defensive `unreachable` (never executed, the build errors).
-comptime_for_reject :: fn(ctx: FnLowerCtx, span: Span, reason: string) -> LoweredStmt {
+comptime_for_reject :: fn(ctx!: FnLowerCtx, span: Span, reason: string) -> LoweredStmt {
     ctx.project.diags.push(lower_error(.ComptimeForNotUnrollable, span, reason))
     return LoweredExprStmt {
         .span = span,
@@ -523,7 +523,7 @@ comptime_for_reject :: fn(ctx: FnLowerCtx, span: Span, reason: string) -> Lowere
     }
 }
 
-lower_comptime_for_in :: fn(ctx: FnLowerCtx, for_stmt: ForStmt, in_form: InFor) -> LoweredStmt {
+lower_comptime_for_in :: fn(ctx!: FnLowerCtx, for_stmt: ForStmt, in_form: InFor) -> LoweredStmt {
     span :: for_stmt.span
     if in_form.loop_var is DestructureVar {
         return comptime_for_reject(ctx, span, "`@comptime for` does not support `[k, v]` destructure")

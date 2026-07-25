@@ -32,7 +32,7 @@ export new_subst :: fn() -> Subst {
 /// "original" tree ; substitution clones it on every lookup so a single
 /// subst entry can be reused across multiple call sites without
 /// AST-node aliasing.
-export bind :: fn(self: Subst, name: string, replacement: AST.TypeExpr) -> void {
+export bind :: fn(self!: Subst, name: string, replacement: AST.TypeExpr) -> void {
     self.entries[name] = replacement
 }
 

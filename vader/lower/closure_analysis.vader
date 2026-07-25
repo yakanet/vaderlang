@@ -181,7 +181,7 @@ lookup_symbol_by_span :: fn(symbol_index: MutableMap<u64, Symbol>, span: Span) -
 
 walk_body :: fn(
     body: AST.BlockExpr, scope: MutableSet<i32>,
-    out_captures: Capture[] | null, out_seen: MutableSet<i32> | null, ctx: WalkCtx,
+    out_captures!: Capture[] | null, out_seen: MutableSet<i32> | null, ctx!: WalkCtx,
 ) -> void {
     for stmt in body.stmts { walk_stmt(stmt, scope, out_captures, out_seen, ctx) }
     if body.trailing !is null {
@@ -191,7 +191,7 @@ walk_body :: fn(
 
 walk_stmt :: fn(
     stmt: AST.Stmt, scope: MutableSet<i32>,
-    out_captures: Capture[] | null, out_seen: MutableSet<i32> | null, ctx: WalkCtx,
+    out_captures!: Capture[] | null, out_seen: MutableSet<i32> | null, ctx!: WalkCtx,
 ) -> void {
     match stmt {
         is AST.LetStmt as let_stmt -> {
@@ -259,7 +259,7 @@ walk_stmt :: fn(
 
 walk_for :: fn(
     for_stmt: AST.ForStmt, scope: MutableSet<i32>,
-    out_captures: Capture[] | null, out_seen: MutableSet<i32> | null, ctx: WalkCtx,
+    out_captures!: Capture[] | null, out_seen: MutableSet<i32> | null, ctx!: WalkCtx,
 ) -> void {
     match for_stmt.form {
         is AST.InfiniteFor -> {}
@@ -286,7 +286,7 @@ walk_for :: fn(
 
 walk_expr :: fn(
     expr: AST.Expr, scope: MutableSet<i32>,
-    out_captures: Capture[] | null, out_seen: MutableSet<i32> | null, ctx: WalkCtx,
+    out_captures!: Capture[] | null, out_seen: MutableSet<i32> | null, ctx!: WalkCtx,
 ) -> void {
     match expr {
         is AST.IntLitExpr -> {}
@@ -390,7 +390,7 @@ walk_expr :: fn(
 
 record_ident_capture :: fn(
     ident: AST.IdentExpr, scope: MutableSet<i32>,
-    out_captures: Capture[] | null, out_seen: MutableSet<i32> | null, ctx: WalkCtx,
+    out_captures!: Capture[] | null, out_seen: MutableSet<i32> | null, ctx: WalkCtx,
 ) -> void {
     if out_captures is null { return }
     if out_seen is null { return }
@@ -415,7 +415,7 @@ is_capturable :: fn(symbol: Symbol) -> bool {
 
 add_capture :: fn(
     symbol: Symbol, ident: AST.IdentExpr,
-    captures: Capture[], seen: MutableSet<i32>, typed: TypedProgram,
+    captures!: Capture[], seen: MutableSet<i32>, typed: TypedProgram,
 ) -> void {
     if !seen.add(symbol.id) { return }
     captures.push(Capture {
@@ -425,7 +425,7 @@ add_capture :: fn(
 }
 
 add_capture_value :: fn(
-    capture: Capture, captures: Capture[], seen: MutableSet<i32>,
+    capture: Capture, captures!: Capture[], seen: MutableSet<i32>,
 ) -> void {
     if !seen.add(capture.symbol.id) { return }
     captures.push(capture)
@@ -482,7 +482,7 @@ add_local_to_scope :: fn(binding: AST.LetBinding, scope: MutableSet<i32>, symbol
 }
 
 walk_pattern_for_bindings :: fn(
-    pattern: AST.Pattern, scope: MutableSet<i32>, symbol_index: MutableMap<u64, Symbol>, added: i32[],
+    pattern: AST.Pattern, scope: MutableSet<i32>, symbol_index: MutableMap<u64, Symbol>, added!: i32[],
 ) -> void {
     match pattern {
         is AST.BindingPattern as binding -> {
@@ -550,7 +550,7 @@ walk_pattern_for_bindings :: fn(
 
 process_lambda :: fn(
     lambda: AST.LambdaExpr, outer_scope: MutableSet<i32>,
-    outer_captures: Capture[] | null, outer_seen: MutableSet<i32> | null, ctx: WalkCtx,
+    outer_captures!: Capture[] | null, outer_seen: MutableSet<i32> | null, ctx!: WalkCtx,
 ) -> void {
     own_scope :: collect_owned_scope_for_params(lambda.params, ctx.symbol_index)
     captures: Capture[] = []

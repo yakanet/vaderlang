@@ -21,7 +21,7 @@ import "vader/types"
 ///                 blanket) the target type is recorded under this id in
 ///                 `typed.into_coercions` so the LSP can surface a ghost
 ///                 `.into()` hint ; trait widening records nothing.
-export try_into :: fn(got: Type, expected: Type, typed: TypedProgram, node_id: usize) -> bool {
+export try_into :: fn(got: Type, expected: Type, typed!: TypedProgram, node_id: usize) -> bool {
     targeted :: typed.impl_methods["${display_type(got)}::into::${display_type(expected)}"]
     if targeted !is null {
         if targeted.ty is FnType as f {

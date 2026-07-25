@@ -25,7 +25,7 @@ import "vader/lsp/analysis"
 /// Validate that the cursor sits on a renameable identifier and return its
 /// range (LSP `prepareRename`). Returns `JsonNull` when the cursor isn't on a
 /// resolved reference — the client then refuses the rename.
-export handle_prepare_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+export handle_prepare_rename :: fn(state!: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     if uri == "" { return JsonNull {} }
     file_path :: uri_to_path(uri)
@@ -41,7 +41,7 @@ export handle_prepare_rename :: fn(state: ServerState, params: JsonValue) -> Jso
 /// Compute the project-wide `WorkspaceEdit` renaming the symbol under the cursor
 /// to `params.newName`. Returns `JsonNull` when the cursor isn't on a resolved
 /// reference or `newName` is empty.
-export handle_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+export handle_rename :: fn(state!: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     if uri == "" { return JsonNull {} }
     file_path :: uri_to_path(uri)
@@ -88,7 +88,7 @@ sites_to_rename :: fn(index: ReferenceIndex, symbol_id: i32, old_name: string, s
 // ---- WorkspaceEdit encoding ----------------------------------------------
 
 // `{ changes: { <uri>: TextEdit[] } }` grouping the edits by file.
-workspace_edit_json :: fn(edits: RefSite[], new_name: string, state: ServerState, li_cache: MutableMap<string, LineIndex>) -> JsonValue {
+workspace_edit_json :: fn(edits: RefSite[], new_name: string, state: ServerState, li_cache!: MutableMap<string, LineIndex>) -> JsonValue {
     by_uri :: MutableMap<string, JsonValue[]> {}
     for e in edits {
         key :: path_to_uri(e.span.start.file)
@@ -110,7 +110,7 @@ workspace_edit_json :: fn(edits: RefSite[], new_name: string, state: ServerState
     return JsonObject { .entries = edit }
 }
 
-text_edit_json :: fn(sp: Span, new_name: string, state: ServerState, li_cache: MutableMap<string, LineIndex>) -> JsonValue {
+text_edit_json :: fn(sp: Span, new_name: string, state: ServerState, li_cache!: MutableMap<string, LineIndex>) -> JsonValue {
     obj :: MutableMap<string, JsonValue> {}
     li :: line_index_cached(state, li_cache, sp.start.file)
     obj["range"]   = range_json(sp.span_to_range_json(li))

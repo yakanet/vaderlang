@@ -54,4 +54,4 @@
   expr 30:5     IdentExpr      :: fn(T) -> void
 
 # Diagnostics
-[17:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `remaining` is reached through an immutable path
+[17:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `remaining` is reached through an immutable path — annotate `self!` at tests/snippets/custom_iter_generic/_main.vader:12:16

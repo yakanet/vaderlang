@@ -489,7 +489,7 @@ write_body_with_scopes :: fn(sb: StringBuilder, module: BytecodeModule, function
 }
 
 push_scope_entry :: fn(
-    labels: string[], opener_pc: i32[], is_loop: bool[],
+    labels!: string[], opener_pc!: i32[], is_loop!: bool[],
     sp: usize, label: string, pc: i32, loop_flag: bool,
 ) -> void {
     if sp == labels.len() {
