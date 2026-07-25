@@ -821,7 +821,7 @@ merge_external_impl_methods :: fn(
                 )
                 trait_decl_ext :: lookup_trait_decl(decl.trait_name, entry_typed)
                 for m in decl.members {
-                    key :: "${display_type(for_ty)}::${m.name}"
+                    key :: "${display_type_key(for_ty)}::${m.name}"
                     base_key :: "${type_base_name(for_ty)}::${m.name}"
                     trait_method_ext :: lookup_trait_method(trait_decl_ext, m.name)
                     ufcs_ty :: ufcs_method_type(m, for_ty, trait_method_ext, other, diag_sink())
@@ -2024,7 +2024,7 @@ register_impl_metadata :: fn(
     for m in id.members {
         trait_method :: lookup_trait_method(trait_decl, m.name)
         declare_impl_method_for_trait(m, for_ty, trait_method, typed, diags)
-        key :: "${display_type(for_ty)}::${m.name}"
+        key :: "${display_type_key(for_ty)}::${m.name}"
         base_key :: "${type_base_name(for_ty)}::${m.name}"
         ufcs_ty :: ufcs_method_type(m, for_ty, trait_method, typed, diags)
         if ufcs_ty != null {
@@ -2044,7 +2044,7 @@ register_impl_metadata :: fn(
         // `Into<string>`) don't collide.
         if id.trait_name == TRAIT_INTO && id.trait_args.len() == 1 && m.name == METHOD_INTO && ufcs_ty != null {
             target_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
-            into_key :: "${display_type(for_ty)}::into::${display_type(target_ty)}"
+            into_key :: "${display_type_key(for_ty)}::into::${display_type_key(target_ty)}"
             typed.impl_methods[into_key] = ImplMethod {
                 .ty = ufcs_ty, .self_mutable = declares_mutable_self(m, trait_method),
             }

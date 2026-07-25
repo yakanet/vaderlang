@@ -1,19 +1,19 @@
 # Typecheck
 
 ## tests/snippets/and_then_infer
-  StructDecl     Boom                 :: Boom
+  StructDecl     Boom                 :: Boom!
   FnDecl         fetch                :: fn(bool) -> Error | i32
   FnDecl         halve                :: fn(i32) -> Error | i32
   FnDecl         main                 :: fn() -> i32
   expr 14:57    StringLitExpr  :: string
   expr 16:40    IfExpr         :: void
   expr 16:43    IdentExpr      :: bool
-  expr 16:67    StructLitExpr  :: Boom
+  expr 16:67    StructLitExpr  :: Boom!
   expr 17:38    IfExpr         :: void
   expr 17:41    BinaryExpr     :: bool
   expr 17:41    BinaryExpr     :: i32
   expr 17:41    IdentExpr      :: i32
-  expr 17:61    StructLitExpr  :: Boom
+  expr 17:61    StructLitExpr  :: Boom!
   expr 17:78    BinaryExpr     :: i32
   expr 17:78    IdentExpr      :: i32
   expr 21:11    CallExpr       :: Error | i32

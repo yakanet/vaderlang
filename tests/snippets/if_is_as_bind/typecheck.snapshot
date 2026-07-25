@@ -5,16 +5,16 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         post_narrow          :: fn(V01 | V02) -> i32
   ConstDecl      U                    :: type
-  StructDecl     V01                  :: V01
-  StructDecl     V02                  :: V02
-  expr 19:13    IdentExpr      :: V01
+  StructDecl     V01                  :: V01!
+  StructDecl     V02                  :: V02!
+  expr 19:13    IdentExpr      :: V01!
   expr 19:31    BinaryExpr     :: i32
   expr 19:31    FieldExpr      :: i32
   expr 19:31    IdentExpr      :: V01
   expr 19:5     IfExpr         :: void
   expr 19:8     BinaryExpr     :: bool
   expr 19:8     IdentExpr      :: V01 | V02
-  expr 20:13    IdentExpr      :: V02
+  expr 20:13    IdentExpr      :: V02!
   expr 20:31    BinaryExpr     :: i32
   expr 20:31    FieldExpr      :: i32
   expr 20:31    IdentExpr      :: V02
@@ -22,7 +22,7 @@
   expr 20:8     BinaryExpr     :: bool
   expr 20:8     IdentExpr      :: V02
   expr 21:12    UnaryExpr      :: i32
-  expr 27:13    IdentExpr      :: V01
+  expr 27:13    IdentExpr      :: V01!
   expr 27:31    BinaryExpr     :: i32
   expr 27:31    FieldExpr      :: i32
   expr 27:31    IdentExpr      :: V01
@@ -34,24 +34,24 @@
   expr 32:13    StringLitExpr  :: string
   expr 32:34    CallExpr       :: i32
   expr 32:34    IdentExpr      :: fn(V01 | V02) -> i32
-  expr 32:41    StructLitExpr  :: V01
+  expr 32:41    StructLitExpr  :: V01!
   expr 32:5     CallExpr       :: void
   expr 32:5     IdentExpr      :: fn(T) -> void
   expr 33:13    StringLitExpr  :: string
   expr 33:34    CallExpr       :: i32
   expr 33:34    IdentExpr      :: fn(V01 | V02) -> i32
-  expr 33:41    StructLitExpr  :: V02
+  expr 33:41    StructLitExpr  :: V02!
   expr 33:5     CallExpr       :: void
   expr 33:5     IdentExpr      :: fn(T) -> void
   expr 34:13    StringLitExpr  :: string
   expr 34:34    CallExpr       :: i32
   expr 34:34    IdentExpr      :: fn(V01 | V02) -> i32
-  expr 34:46    StructLitExpr  :: V01
+  expr 34:46    StructLitExpr  :: V01!
   expr 34:5     CallExpr       :: void
   expr 34:5     IdentExpr      :: fn(T) -> void
   expr 35:13    StringLitExpr  :: string
   expr 35:34    CallExpr       :: i32
   expr 35:34    IdentExpr      :: fn(V01 | V02) -> i32
-  expr 35:46    StructLitExpr  :: V02
+  expr 35:46    StructLitExpr  :: V02!
   expr 35:5     CallExpr       :: void
   expr 35:5     IdentExpr      :: fn(T) -> void

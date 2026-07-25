@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/overload_by_receiver
-  StructDecl     Boom                 :: Boom
+  StructDecl     Boom                 :: Boom!
   FnDecl         main                 :: fn() -> i32
   FnDecl         maybe                :: fn(bool) -> i32 | null
   FnDecl         pick                 :: fn(null | T, T) -> T
@@ -16,14 +16,14 @@
   expr 17:41    IfExpr         :: void
   expr 17:44    BinaryExpr     :: bool
   expr 17:44    IdentExpr      :: Boom | T
-  expr 17:49    IdentExpr      :: Boom
+  expr 17:49    IdentExpr      :: Boom!
   expr 17:64    IdentExpr      :: T
   expr 17:76    IdentExpr      :: T
   expr 19:38    IfExpr         :: void
   expr 19:41    IdentExpr      :: bool
   expr 20:38    IfExpr         :: void
   expr 20:41    IdentExpr      :: bool
-  expr 20:64    StructLitExpr  :: Boom
+  expr 20:64    StructLitExpr  :: Boom!
   expr 23:13    StringLitExpr  :: string
   expr 23:16    CallExpr       :: i32
   expr 23:16    CallExpr       :: i32 | null

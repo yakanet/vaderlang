@@ -2,11 +2,11 @@
 
 ## tests/snippets/ufcs_union_receiver
   FnDecl         area                 :: fn(Circle | Square) -> i32
-  StructDecl     Circle               :: Circle
+  StructDecl     Circle               :: Circle!
   FnDecl         describe             :: fn(Circle | Square) -> string
   FnDecl         main                 :: fn() -> i32
   ConstDecl      Shape                :: type
-  StructDecl     Square               :: Square
+  StructDecl     Square               :: Square!
   expr 17:12    MatchExpr      :: string
   expr 17:18    IdentExpr      :: Circle | Square
   expr 18:27    StringLitExpr  :: string
@@ -28,27 +28,27 @@
   expr 26:28    IdentExpr      :: Square
   expr 26:38    FieldExpr      :: i32
   expr 26:38    IdentExpr      :: Square
-  expr 31:16    StructLitExpr  :: Circle
-  expr 32:16    StructLitExpr  :: Square
+  expr 31:16    StructLitExpr  :: Circle!
+  expr 32:16    StructLitExpr  :: Square!
   expr 33:13    CallExpr       :: string
   expr 33:13    FieldExpr      :: fn() -> string
-  expr 33:13    IdentExpr      :: Circle | Square
+  expr 33:13    IdentExpr      :: Circle! | Square!
   expr 33:5     CallExpr       :: void
   expr 33:5     IdentExpr      :: fn(T) -> void
   expr 34:13    CallExpr       :: string
   expr 34:13    FieldExpr      :: fn() -> string
-  expr 34:13    IdentExpr      :: Circle | Square
+  expr 34:13    IdentExpr      :: Circle! | Square!
   expr 34:5     CallExpr       :: void
   expr 34:5     IdentExpr      :: fn(T) -> void
   expr 35:13    StringLitExpr  :: string
   expr 35:25    CallExpr       :: i32
   expr 35:25    FieldExpr      :: fn() -> i32
-  expr 35:25    IdentExpr      :: Circle | Square
+  expr 35:25    IdentExpr      :: Circle! | Square!
   expr 35:5     CallExpr       :: void
   expr 35:5     IdentExpr      :: fn(T) -> void
   expr 36:13    StringLitExpr  :: string
   expr 36:25    CallExpr       :: i32
   expr 36:25    FieldExpr      :: fn() -> i32
-  expr 36:25    IdentExpr      :: Circle | Square
+  expr 36:25    IdentExpr      :: Circle! | Square!
   expr 36:5     CallExpr       :: void
   expr 36:5     IdentExpr      :: fn(T) -> void

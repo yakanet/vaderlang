@@ -9,7 +9,7 @@ type 6 array 5
 type 7 primitive void
 type 8 union 9,1
 type 9 struct std_io$IOError { msg:1 }
-type 10 union 6,9
+type 10 union 9,6
 string 0 "unreadable ("
 string 1 " / "
 string 2 ")"

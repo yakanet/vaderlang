@@ -1,16 +1,16 @@
 # Typecheck
 
 ## tests/snippets/vm_struct_nested
-  StructDecl     Inner                :: Inner
+  StructDecl     Inner                :: Inner!
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Outer                :: Outer
-  expr 11:10    StructLitExpr  :: Outer
-  expr 12:16    StructLitExpr  :: Inner
-  expr 13:16    StructLitExpr  :: Inner
+  StructDecl     Outer                :: Outer!
+  expr 11:10    StructLitExpr  :: Outer!
+  expr 12:16    StructLitExpr  :: Inner!
+  expr 13:16    StructLitExpr  :: Inner!
   expr 15:12    BinaryExpr     :: i32
   expr 15:12    FieldExpr      :: Inner
   expr 15:12    FieldExpr      :: i32
-  expr 15:12    IdentExpr      :: Outer
+  expr 15:12    IdentExpr      :: Outer!
   expr 15:22    FieldExpr      :: Inner
   expr 15:22    FieldExpr      :: i32
-  expr 15:22    IdentExpr      :: Outer
+  expr 15:22    IdentExpr      :: Outer!

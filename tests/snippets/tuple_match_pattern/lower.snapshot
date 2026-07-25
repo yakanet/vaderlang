@@ -2,18 +2,18 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let pair: [i32, string] =
-      [i32, string] {
+    let pair: [i32, string]! =
+      [i32, string]! {
         _0: int(3) :i32
         _1: "match" :string
       }
     block :void
       let n: i32 =
         ._0 :i32
-          pair :[i32, string]
+          pair :[i32, string]!
       let s: string =
         ._1 :string
-          pair :[i32, string]
+          pair :[i32, string]!
       ~>
         call :void
           callee:

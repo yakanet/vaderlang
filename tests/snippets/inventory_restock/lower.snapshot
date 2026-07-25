@@ -2,8 +2,8 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let shelf: i32[] =
-      array :i32[]
+    let shelf: i32[]! =
+      array :i32[]!
         int(0) :i32
         int(0) :i32
         int(0) :i32
@@ -13,7 +13,7 @@
       target:
         index :i32
           on:
-            shelf :i32[]
+            shelf :i32[]!
           ix:
             aisle :i32
       value:
@@ -30,7 +30,7 @@
     let on_shelf: i32 =
       index :i32
         on:
-          shelf :i32[]
+          shelf :i32[]!
         ix:
           aisle :i32
     call :void

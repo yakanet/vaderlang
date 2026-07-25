@@ -8,7 +8,7 @@
       cond:
         and :bool
           l:
-            is Circle :bool
+            is Circle! :bool
               shape :Circle | Square
           r:
             gt :bool
@@ -75,7 +75,7 @@
           callee:
             classify :fn(Circle | Square) -> string
           arg0:
-            Circle {
+            Circle! {
               radius: int(5) :i32
             }
     call :void
@@ -86,7 +86,7 @@
           callee:
             classify :fn(Circle | Square) -> string
           arg0:
-            Square {
+            Square! {
               side: int(3) :i32
             }
     call :void
@@ -97,7 +97,7 @@
           callee:
             classify :fn(Circle | Square) -> string
           arg0:
-            Circle {
+            Circle! {
               radius: int(0) :i32
             }
     return int(0) :i32

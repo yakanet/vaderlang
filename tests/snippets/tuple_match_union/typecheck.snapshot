@@ -7,7 +7,7 @@
   expr 10:5     IfExpr         :: void
   expr 10:8     BinaryExpr     :: bool
   expr 10:8     IdentExpr      :: string
-  expr 11:16    SeqLitExpr     :: [i32, string]
+  expr 11:16    SeqLitExpr     :: [i32, string]!
   expr 11:21    StringLitExpr  :: string
   expr 17:10    CallExpr       :: [i32, string] | null
   expr 17:10    IdentExpr      :: fn(string) -> [i32, string] | null

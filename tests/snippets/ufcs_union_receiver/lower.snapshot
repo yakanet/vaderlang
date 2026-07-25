@@ -9,11 +9,11 @@
         ~>
           if :string
             cond:
-              is Circle :bool
+              is Circle! :bool
                 s :Circle | Square
             then:
-              let c: Circle =
-                cast → Circle
+              let c: Circle! =
+                cast → Circle!
                   s :Circle | Square
               ~>
                 block :string
@@ -77,11 +77,11 @@
               ~>
                 if :string
                   cond:
-                    is Square :bool
+                    is Square! :bool
                       s :Circle | Square
                   then:
-                    let sq: Square =
-                      cast → Square
+                    let sq: Square! =
+                      cast → Square!
                         s :Circle | Square
                     ~>
                       block :string
@@ -150,11 +150,11 @@
         ~>
           if :i32
             cond:
-              is Circle :bool
+              is Circle! :bool
                 s :Circle | Square
             then:
-              let c: Circle =
-                cast → Circle
+              let c: Circle! =
+                cast → Circle!
                   s :Circle | Square
               ~>
                 mul :i32
@@ -172,11 +172,11 @@
               ~>
                 if :i32
                   cond:
-                    is Square :bool
+                    is Square! :bool
                       s :Circle | Square
                   then:
-                    let sq: Square =
-                      cast → Square
+                    let sq: Square! =
+                      cast → Square!
                         s :Circle | Square
                     ~>
                       mul :i32
@@ -190,12 +190,12 @@
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :i32
   fn snippet$main() -> i32
-    let a: Circle | Square =
-      Circle {
+    let a: Circle! | Square! =
+      Circle! {
         radius: int(5) :i32
       }
-    let b: Circle | Square =
-      Square {
+    let b: Circle! | Square! =
+      Square! {
         side: int(4) :i32
       }
     call :void
@@ -206,7 +206,7 @@
           callee:
             describe :string
           arg0:
-            a :Circle | Square
+            a :Circle! | Square!
     call :void
       callee:
         std_io$println__string :void
@@ -215,7 +215,7 @@
           callee:
             describe :string
           arg0:
-            b :Circle | Square
+            b :Circle! | Square!
     call :void
       callee:
         std_io$println__string :void
@@ -258,7 +258,7 @@
                       callee:
                         area :i32
                       arg0:
-                        a :Circle | Square
+                        a :Circle! | Square!
           ~>
             call :string
               callee:
@@ -309,7 +309,7 @@
                       callee:
                         area :i32
                       arg0:
-                        b :Circle | Square
+                        b :Circle! | Square!
           ~>
             call :string
               callee:

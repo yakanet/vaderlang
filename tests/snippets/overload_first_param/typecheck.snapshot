@@ -1,8 +1,8 @@
 # Typecheck
 
 ## tests/snippets/overload_first_param
-  StructDecl     Bag                  :: Bag
-  StructDecl     Box                  :: Box
+  StructDecl     Bag                  :: Bag!
+  StructDecl     Box                  :: Box!
   FnDecl         describe             :: fn(Box) -> string
   FnDecl         describe             :: fn(Bag) -> string
   FnDecl         main                 :: fn() -> i32
@@ -12,27 +12,27 @@
   expr 16:50    StringLitExpr  :: string
   expr 16:57    FieldExpr      :: string
   expr 16:57    IdentExpr      :: Bag
-  expr 19:10    StructLitExpr  :: Box
-  expr 20:10    StructLitExpr  :: Bag
+  expr 19:10    StructLitExpr  :: Box!
+  expr 20:10    StructLitExpr  :: Bag!
   expr 20:21    StringLitExpr  :: string
   expr 22:13    CallExpr       :: string
   expr 22:13    IdentExpr      :: fn(Box) -> string
-  expr 22:22    IdentExpr      :: Box
+  expr 22:22    IdentExpr      :: Box!
   expr 22:5     CallExpr       :: void
   expr 22:5     IdentExpr      :: fn(T) -> void
   expr 23:13    CallExpr       :: string
   expr 23:13    IdentExpr      :: fn(Bag) -> string
-  expr 23:22    IdentExpr      :: Bag
+  expr 23:22    IdentExpr      :: Bag!
   expr 23:5     CallExpr       :: void
   expr 23:5     IdentExpr      :: fn(T) -> void
   expr 25:13    CallExpr       :: string
   expr 25:13    FieldExpr      :: fn() -> string
-  expr 25:13    IdentExpr      :: Box
+  expr 25:13    IdentExpr      :: Box!
   expr 25:5     CallExpr       :: void
   expr 25:5     IdentExpr      :: fn(T) -> void
   expr 26:13    CallExpr       :: string
   expr 26:13    FieldExpr      :: fn() -> string
-  expr 26:13    IdentExpr      :: Bag
+  expr 26:13    IdentExpr      :: Bag!
   expr 26:5     CallExpr       :: void
   expr 26:5     IdentExpr      :: fn(T) -> void
   expr 30:13    StringLitExpr  :: string

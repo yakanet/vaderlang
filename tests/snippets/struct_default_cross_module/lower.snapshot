@@ -2,8 +2,8 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let n: Node =
-      Node {
+    let n: Node! =
+      Node! {
         name: "x" :string
         id: int(99) :usize
       }
@@ -14,7 +14,7 @@
         block :string
           let __p_0: string =
             .name :string
-              n :Node
+              n :Node!
           let __buf_1: Buffer =
             call :Buffer
               callee:
@@ -83,7 +83,7 @@
                 arg2:
                   cast → u64
                     .id :usize
-                      n :Node
+                      n :Node!
           ~>
             call :string
               callee:
@@ -95,7 +95,7 @@
     return
       cast → i32
         .id :usize
-          n :Node
+          n :Node!
 
 ## snippet/shapes
   struct snippet_shapes$Node { name: string, id: usize }

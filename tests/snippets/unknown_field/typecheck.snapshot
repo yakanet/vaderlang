@@ -2,7 +2,7 @@
 
 ## tests/snippets/unknown_field
   FnDecl         dist                 :: fn(Point) -> f64
-  StructDecl     Point                :: Point
+  StructDecl     Point                :: Point!
   expr 9:12     FieldExpr      :: ?
   expr 9:12     IdentExpr      :: Point
 

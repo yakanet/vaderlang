@@ -2,8 +2,8 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let arr: i32[] =
-      array :i32[]
+    let arr: i32[]! =
+      array :i32[]!
     LoweredArrayPush
     LoweredArrayPush
     LoweredArrayPush
@@ -68,7 +68,7 @@
                   cast → i64
                     index :i32
                       on:
-                        arr :i32[]
+                        arr :i32[]!
                       ix:
                         int(0) :i32
           ~>
@@ -106,7 +106,7 @@
                   cast → i64
                     index :i32
                       on:
-                        arr :i32[]
+                        arr :i32[]!
                       ix:
                         int(2) :i32
           ~>

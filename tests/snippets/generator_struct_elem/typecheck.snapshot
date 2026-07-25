@@ -1,34 +1,34 @@
 # Typecheck
 
 ## tests/snippets/generator_struct_elem
-  FnDecl         concat_decls         :: fn(const FileMod[]) -> Iterator<Decl>
-  StructDecl     Decl                 :: Decl
-  StructDecl     FileMod              :: FileMod
+  FnDecl         concat_decls         :: fn(FileMod[]) -> Iterator<Decl!>
+  StructDecl     Decl                 :: Decl!
+  StructDecl     FileMod              :: FileMod!
   FnDecl         main                 :: fn() -> i32
-  expr 10:14    IdentExpr      :: const FileMod[]
-  expr 11:18    FieldExpr      :: const Decl[]
+  expr 10:14    IdentExpr      :: FileMod[]
+  expr 11:18    FieldExpr      :: Decl[]
   expr 11:18    IdentExpr      :: FileMod
   expr 11:34    IdentExpr      :: Decl
-  expr 16:14    SeqLitExpr     :: FileMod[]
-  expr 17:28    SeqLitExpr     :: const Decl[]
-  expr 17:29    StructLitExpr  :: Decl
+  expr 16:14    SeqLitExpr     :: FileMod![]!
+  expr 17:28    SeqLitExpr     :: Decl[]
+  expr 17:29    StructLitExpr  :: Decl!
   expr 17:44    StringLitExpr  :: string
-  expr 17:60    StructLitExpr  :: Decl
+  expr 17:60    StructLitExpr  :: Decl!
   expr 17:75    StringLitExpr  :: string
-  expr 17:9     StructLitExpr  :: FileMod
-  expr 18:28    SeqLitExpr     :: const Decl[]
-  expr 18:9     StructLitExpr  :: FileMod
-  expr 19:28    SeqLitExpr     :: const Decl[]
-  expr 19:29    StructLitExpr  :: Decl
+  expr 17:9     StructLitExpr  :: FileMod!
+  expr 18:28    SeqLitExpr     :: Decl[]
+  expr 18:9     StructLitExpr  :: FileMod!
+  expr 19:28    SeqLitExpr     :: Decl[]
+  expr 19:29    StructLitExpr  :: Decl!
   expr 19:44    StringLitExpr  :: string
-  expr 19:9     StructLitExpr  :: FileMod
-  expr 21:14    CallExpr       :: __genstate_concat_decls<Decl>
-  expr 21:14    IdentExpr      :: fn(const FileMod[]) -> Iterator<Decl>
-  expr 21:27    IdentExpr      :: FileMod[]
+  expr 19:9     StructLitExpr  :: FileMod!
+  expr 21:14    CallExpr       :: __genstate_concat_decls<Decl!>!
+  expr 21:14    IdentExpr      :: fn(FileMod[]) -> Iterator<Decl!>
+  expr 21:27    IdentExpr      :: FileMod![]!
   expr 21:36    CallExpr       :: void
   expr 21:36    IdentExpr      :: fn(T) -> void
   expr 21:44    StringLitExpr  :: string
   expr 21:47    FieldExpr      :: string
-  expr 21:47    IdentExpr      :: Decl
+  expr 21:47    IdentExpr      :: Decl!
   expr 21:57    FieldExpr      :: i32
-  expr 21:57    IdentExpr      :: Decl
+  expr 21:57    IdentExpr      :: Decl!

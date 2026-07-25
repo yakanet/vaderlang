@@ -1714,6 +1714,14 @@ parse_type_postfix :: fn(p: Parser!) -> TypeExpr {
         }
         bang :: p.parse_type_mut_marker()
         if bang == null { break }
+        // `T!!` says the same thing twice about one level — accepting it would let
+        // two markers stack into nested `MutableTypeExpr` nodes that no pass can
+        // tell apart from one. Report and keep the first.
+        if head is MutableTypeExpr {
+            p.error(.RepeatedMutabilityMarker, bang.span,
+                "`!` already applies to this type level")
+            continue
+        }
         head_span :: head.span
         head = MutableTypeExpr {
             .span  = Span { .start = head_span.start, .end = bang.span.end },

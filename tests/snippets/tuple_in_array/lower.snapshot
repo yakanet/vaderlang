@@ -2,30 +2,30 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let rows: [i32, string][] =
-      array :[i32, string][]
-        [i32, string] {
+    let rows: [i32, string]![]! =
+      array :[i32, string]![]!
+        [i32, string]! {
           _0: int(1) :i32
           _1: "one" :string
         }
-        [i32, string] {
+        [i32, string]! {
           _0: int(2) :i32
           _1: "two" :string
         }
-        [i32, string] {
+        [i32, string]! {
           _0: int(3) :i32
           _1: "three" :string
         }
     block :void
-      let __for_arr_0: [i32, string][] = rows :[i32, string][]
+      let __for_arr_0: [i32, string]![]! = rows :[i32, string]![]!
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
       loop while (<…>)
-        let row: [i32, string] =
-          index :[i32, string]
+        let row: [i32, string]! =
+          index :[i32, string]!
             on:
-              __for_arr_0 :[i32, string][]
+              __for_arr_0 :[i32, string]![]!
             ix:
               __for_i_2 :usize
         call :void
@@ -35,7 +35,7 @@
             block :string
               let __p_3: string =
                 ._1 :string
-                  row :[i32, string]
+                  row :[i32, string]!
               let __buf_4: Buffer =
                 call :Buffer
                   callee:
@@ -65,7 +65,7 @@
                     arg2:
                       cast → i64
                         ._0 :i32
-                          row :[i32, string]
+                          row :[i32, string]!
               assign
                 target:
                   __off_5 :usize

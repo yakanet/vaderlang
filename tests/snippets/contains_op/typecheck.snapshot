@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/contains_op
-  StructDecl     DigitSet             :: DigitSet
+  StructDecl     DigitSet             :: DigitSet!
   FnDecl         main                 :: fn() -> i32
   expr 12:12    BinaryExpr     :: bool
   expr 12:12    BinaryExpr     :: bool
@@ -16,43 +16,43 @@
   expr 16:17    FieldExpr      :: i32
   expr 16:17    IdentExpr      :: DigitSet
   expr 16:29    IdentExpr      :: i32
-  expr 21:13    RangeExpr      :: Range<i32>
+  expr 21:13    RangeExpr      :: Range<i32>!
   expr 21:22    CallExpr       :: void
   expr 21:22    IdentExpr      :: fn(T) -> void
   expr 21:30    StringLitExpr  :: string
   expr 21:5     IfExpr         :: void
   expr 21:8     BinaryExpr     :: bool
-  expr 22:15    RangeExpr      :: Range<i32>
+  expr 22:15    RangeExpr      :: Range<i32>!
   expr 22:24    CallExpr       :: void
   expr 22:24    IdentExpr      :: fn(T) -> void
   expr 22:32    StringLitExpr  :: string
   expr 22:5     IfExpr         :: void
   expr 22:8     BinaryExpr     :: bool
-  expr 23:14    RangeExpr      :: Range<i32>
+  expr 23:14    RangeExpr      :: Range<i32>!
   expr 23:23    CallExpr       :: void
   expr 23:23    IdentExpr      :: fn(T) -> void
   expr 23:31    StringLitExpr  :: string
   expr 23:5     IfExpr         :: void
   expr 23:8     BinaryExpr     :: bool
-  expr 25:10    StructLitExpr  :: DigitSet
+  expr 25:10    StructLitExpr  :: DigitSet!
   expr 25:30    BinaryExpr     :: i32
   expr 25:30    BinaryExpr     :: i32
   expr 25:30    BinaryExpr     :: i32
   expr 25:41    BinaryExpr     :: i32
   expr 25:52    BinaryExpr     :: i32
-  expr 26:13    IdentExpr      :: DigitSet
+  expr 26:13    IdentExpr      :: DigitSet!
   expr 26:17    CallExpr       :: void
   expr 26:17    IdentExpr      :: fn(T) -> void
   expr 26:25    StringLitExpr  :: string
   expr 26:5     IfExpr         :: void
   expr 26:8     BinaryExpr     :: bool
-  expr 27:14    IdentExpr      :: DigitSet
+  expr 27:14    IdentExpr      :: DigitSet!
   expr 27:18    CallExpr       :: void
   expr 27:18    IdentExpr      :: fn(T) -> void
   expr 27:26    StringLitExpr  :: string
   expr 27:5     IfExpr         :: void
   expr 27:8     BinaryExpr     :: bool
-  expr 28:13    IdentExpr      :: DigitSet
+  expr 28:13    IdentExpr      :: DigitSet!
   expr 28:17    CallExpr       :: void
   expr 28:17    IdentExpr      :: fn(T) -> void
   expr 28:25    StringLitExpr  :: string

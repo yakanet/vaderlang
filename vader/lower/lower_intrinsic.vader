@@ -95,7 +95,7 @@ try_late_fold_type_arg :: fn(name: string, args: LoweredExpr[], span: Span, type
         return LoweredIntLit { .span = span, .type = type, .value = byte_align(ty) }
     }
     if name == "type_name" {
-        return LoweredStringLit { .span = span, .type = TY_STRING, .value = display_type(ty) }
+        return LoweredStringLit { .span = span, .type = TY_STRING, .value = display_type_key(ty) }
     }
     if name == "type_kind" {
         return LoweredStringLit { .span = span, .type = TY_STRING, .value = kind_string_of_type(ty) }
@@ -159,7 +159,7 @@ try_fold_static_intrinsic :: fn(
         return LoweredIntLit { .span = intrinsic.span, .type = type, .value = byte_align(ty) }
     }
     if name == "type_name" {
-        return LoweredStringLit { .span = intrinsic.span, .type = TY_STRING, .value = display_type(ty) }
+        return LoweredStringLit { .span = intrinsic.span, .type = TY_STRING, .value = display_type_key(ty) }
     }
     if name == "type_kind" {
         return LoweredStringLit { .span = intrinsic.span, .type = TY_STRING, .value = kind_string_of_type(ty) }

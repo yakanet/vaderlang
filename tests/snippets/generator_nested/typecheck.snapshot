@@ -2,17 +2,17 @@
 
 ## tests/snippets/generator_nested
   FnDecl         main                 :: fn() -> i32
-  FnDecl         pairs                :: fn(const i32[], const i32[]) -> Iterator<i32>
-  expr 13:14    CallExpr       :: __genstate_pairs<i32>
-  expr 13:14    IdentExpr      :: fn(const i32[], const i32[]) -> Iterator<i32>
-  expr 13:20    SeqLitExpr     :: const i32[]
-  expr 13:31    SeqLitExpr     :: const i32[]
+  FnDecl         pairs                :: fn(i32[], i32[]) -> Iterator<i32>
+  expr 13:14    CallExpr       :: __genstate_pairs<i32>!
+  expr 13:14    IdentExpr      :: fn(i32[], i32[]) -> Iterator<i32>
+  expr 13:20    SeqLitExpr     :: i32[]
+  expr 13:31    SeqLitExpr     :: i32[]
   expr 13:43    CallExpr       :: void
   expr 13:43    IdentExpr      :: fn(T) -> void
   expr 13:51    StringLitExpr  :: string
   expr 13:54    IdentExpr      :: i32
-  expr 7:14     IdentExpr      :: const i32[]
-  expr 8:18     IdentExpr      :: const i32[]
+  expr 7:14     IdentExpr      :: i32[]
+  expr 8:18     IdentExpr      :: i32[]
   expr 8:29     BinaryExpr     :: i32
   expr 8:29     IdentExpr      :: i32
   expr 8:33     IdentExpr      :: i32

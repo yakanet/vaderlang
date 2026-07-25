@@ -159,7 +159,7 @@ fn_instance_key :: fn(inst: GenericFnInstance) -> string {
     sb.append("${inst.fn_symbol.id}::")
     for a in inst.type_args {
         sb.append(":")
-        sb.append(display_type(a))
+        sb.append(display_type_key(a))
     }
     return sb.to_string()
 }

@@ -2,11 +2,11 @@
 
 ## snippet
   struct snippet$UserId { value: i32 }
-  fn snippet$UserId$Into$into(self: UserId) -> i32
+  fn snippet$UserId$Into$into(self: UserId!) -> i32
     return
       .value :i32
         self :UserId
-  fn snippet$UserId$Into$into_1(self: UserId) -> string
+  fn snippet$UserId$Into$into_1(self: UserId!) -> string
     return
       block :string
         let __buf_0: Buffer =
@@ -53,14 +53,14 @@
             arg1:
               __off_1 :usize
   fn snippet$main() -> i32
-    let u: UserId =
-      UserId {
+    let u: UserId! =
+      UserId! {
         value: int(7) :i32
       }
     let n: i32 =
       cast → i32
         .value :i32
-          u :UserId
+          u :UserId!
     call :void
       callee:
         std_io$println__string :void
@@ -113,7 +113,7 @@
         callee:
           snippet$UserId$Into$into_1 :string
         arg0:
-          u :UserId
+          u :UserId!
     call :void
       callee:
         std_io$println__string :void

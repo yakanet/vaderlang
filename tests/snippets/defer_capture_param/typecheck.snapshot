@@ -2,7 +2,7 @@
 
 ## tests/snippets/defer_capture_param
   FnDecl         bump_at_exit         :: fn(Counter!, i64) -> void
-  StructDecl     Counter              :: Counter
+  StructDecl     Counter              :: Counter!
   FnDecl         log_at_exit          :: fn(string, i64) -> void
   FnDecl         main                 :: fn() -> i32
   FnDecl         make_greeter         :: fn(string) -> void
@@ -16,10 +16,10 @@
   expr 20:5     CallExpr       :: void
   expr 20:5     IdentExpr      :: fn(T) -> void
   expr 25:13    FieldExpr      :: i64
-  expr 25:13    IdentExpr      :: Counter
+  expr 25:13    IdentExpr      :: Counter!
   expr 25:28    BinaryExpr     :: i64
   expr 25:28    FieldExpr      :: i64
-  expr 25:28    IdentExpr      :: Counter
+  expr 25:28    IdentExpr      :: Counter!
   expr 25:43    IdentExpr      :: i64
   expr 26:13    StringLitExpr  :: string
   expr 26:27    IdentExpr      :: i64
@@ -35,16 +35,16 @@
   expr 36:17    StringLitExpr  :: string
   expr 36:5     CallExpr       :: void
   expr 36:5     IdentExpr      :: fn(string, i64) -> void
-  expr 37:16    StructLitExpr  :: Counter
-  expr 38:18    IdentExpr      :: Counter
+  expr 37:16    StructLitExpr  :: Counter!
+  expr 38:18    IdentExpr      :: Counter!
   expr 38:5     CallExpr       :: void
   expr 38:5     IdentExpr      :: fn(Counter!, i64) -> void
-  expr 39:18    IdentExpr      :: Counter
+  expr 39:18    IdentExpr      :: Counter!
   expr 39:5     CallExpr       :: void
   expr 39:5     IdentExpr      :: fn(Counter!, i64) -> void
   expr 40:13    StringLitExpr  :: string
   expr 40:29    FieldExpr      :: i64
-  expr 40:29    IdentExpr      :: Counter
+  expr 40:29    IdentExpr      :: Counter!
   expr 40:5     CallExpr       :: void
   expr 40:5     IdentExpr      :: fn(T) -> void
   expr 41:18    StringLitExpr  :: string

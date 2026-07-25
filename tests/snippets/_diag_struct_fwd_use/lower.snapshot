@@ -12,6 +12,6 @@
         callee:
           handle :fn(Box) -> i32
         arg0:
-          Box {
+          Box! {
             v: int(7) :i32
           }

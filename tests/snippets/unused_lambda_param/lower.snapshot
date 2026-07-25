@@ -91,10 +91,10 @@
                 __off_5 :usize
     return int(0) :i32
   struct __lambda_env_2 {  }
-  fn __lambda_1(__env_0: __lambda_env_2, v: i32) -> i32
+  fn __lambda_1(__env_0: __lambda_env_2!, v: i32) -> i32
     return int(7) :i32
   struct __lambda_env_7 {  }
-  fn __lambda_6(__env_3: __lambda_env_7, v: i32) -> i32
+  fn __lambda_6(__env_3: __lambda_env_7!, v: i32) -> i32
     return
       add :i32
         l:

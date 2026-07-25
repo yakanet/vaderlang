@@ -6,21 +6,21 @@
     block :void
       let __iter_0: Iterator<i32> = it :Iterator<i32>
       loop
-        let __step_1: Yield<i32> | null =
-          vcall Iterator.next :Yield<i32> | null
+        let __step_1: Yield<i32>! | null =
+          vcall Iterator.next :Yield<i32>! | null
             recv:
               __iter_0 :Iterator<i32>
         if :void
           cond:
             is null :bool
-              __step_1 :Yield<i32> | null
+              __step_1 :Yield<i32>! | null
           then:
             break
           else:
             let x: i32 =
               .value :i32
-                cast → Yield<i32>
-                  __step_1 :Yield<i32> | null
+                cast → Yield<i32>!
+                  __step_1 :Yield<i32>! | null
             assign
               target:
                 total :i32
@@ -50,8 +50,8 @@
             arg0:
               s :string
         loop
-          let __fuse_step_3: Yield<char> | null =
-            call :Yield<char> | null
+          let __fuse_step_3: Yield<char>! | null =
+            call :Yield<char>! | null
               callee:
                 std_string$StringChars$Iterator$next :?
               arg0:
@@ -59,14 +59,14 @@
           if :void
             cond:
               is null :bool
-                __fuse_step_3 :Yield<char> | null
+                __fuse_step_3 :Yield<char>! | null
             then:
               break
             else:
               let x: char =
                 .value :char
-                  cast → Yield<char>
-                    __fuse_step_3 :Yield<char> | null
+                  cast → Yield<char>!
+                    __fuse_step_3 :Yield<char>! | null
               if :void
                 cond:
                   call :bool
@@ -93,7 +93,7 @@
         callee:
           sum_iter :fn(Iterator<i32>) -> i32
         arg0:
-          Range<i32> {
+          Range<i32>! {
             start: int(0) :i32
             end: int(5) :i32
             inclusive: false
@@ -104,9 +104,9 @@
         callee:
           sum_iter :fn(Iterator<i32>) -> i32
         arg0:
-          ArrayIterator<i32> {
+          ArrayIterator<i32>! {
             arr:
-              array :i32[]
+              array :i32[]!
                 int(10) :i32
                 int(20) :i32
                 int(30) :i32

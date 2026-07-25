@@ -2,14 +2,14 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let m: MutableMap<string, i32> =
-      MutableMap<string, i32> {
+    let m: MutableMap<string, i32>! =
+      MutableMap<string, i32>! {
         ekeys:
-          array :string[]
+          array :string[]!
         evals:
-          array :i32[]
+          array :i32[]!
         index:
-          array :i32[]
+          array :i32[]!
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
@@ -18,7 +18,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
-        m :MutableMap<string, i32>
+        m :MutableMap<string, i32>!
       arg1:
         "a" :string
       arg2:
@@ -27,7 +27,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
-        m :MutableMap<string, i32>
+        m :MutableMap<string, i32>!
       arg1:
         "b" :string
       arg2:
@@ -36,23 +36,23 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
-        m :MutableMap<string, i32>
+        m :MutableMap<string, i32>!
       arg1:
         "c" :string
       arg2:
         int(3) :i32
     let sum: i32 = int(0) :i32
     block :void
-      let __iter_src_0: MutableMap<string, i32> = m :MutableMap<string, i32>
-      let __iter_ekeys_1: string[] =
-        .ekeys :string[]
-          __iter_src_0 :MutableMap<string, i32>
-      let __iter_evals_2: i32[] =
-        .evals :i32[]
-          __iter_src_0 :MutableMap<string, i32>
+      let __iter_src_0: MutableMap<string, i32>! = m :MutableMap<string, i32>!
+      let __iter_ekeys_1: string[]! =
+        .ekeys :string[]!
+          __iter_src_0 :MutableMap<string, i32>!
+      let __iter_evals_2: i32[]! =
+        .evals :i32[]!
+          __iter_src_0 :MutableMap<string, i32>!
       let __iter_size_3: usize =
         .size :usize
-          __iter_src_0 :MutableMap<string, i32>
+          __iter_src_0 :MutableMap<string, i32>!
       let __iter_pos_4: usize = int(0) :usize
       loop
         if :void
@@ -64,27 +64,27 @@
                 __iter_size_3 :usize
           then:
             break
-        let __for_elem_6: [string, i32] =
-          [string, i32] {
+        let __for_elem_6: [string, i32]! =
+          [string, i32]! {
             _0:
               index :string
                 on:
-                  __iter_ekeys_1 :string[]
+                  __iter_ekeys_1 :string[]!
                 ix:
                   __iter_pos_4 :usize
             _1:
               index :i32
                 on:
-                  __iter_evals_2 :i32[]
+                  __iter_evals_2 :i32[]!
                 ix:
                   __iter_pos_4 :usize
           }
         let k: string =
           ._0 :string
-            __for_elem_6 :[string, i32]
+            __for_elem_6 :[string, i32]!
         let v: i32 =
           ._1 :i32
-            __for_elem_6 :[string, i32]
+            __for_elem_6 :[string, i32]!
         assign
           target:
             __iter_pos_4 :usize

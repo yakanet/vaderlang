@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  fn snippet$view_of(seed: i32) -> const u8[]
+  fn snippet$view_of(seed: i32) -> u8[]
     let s: string =
       block :string
         let __buf_0: Buffer =
@@ -47,17 +47,17 @@
             arg1:
               __off_1 :usize
     return
-      call :const u8[]
+      call :u8[]
         callee:
-          bytes :const u8[]
+          bytes :u8[]
         arg0:
           s :string
-  fn snippet$fold(v: const u8[]) -> u64
+  fn snippet$fold(v: u8[]) -> u64
     let acc: u64 =
       cast → u64
         int(0) :u64
     block :void
-      let __for_arr_0: const u8[] = v :const u8[]
+      let __for_arr_0: u8[] = v :u8[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -65,7 +65,7 @@
         let b: u8 =
           index :u8
             on:
-              __for_arr_0 :const u8[]
+              __for_arr_0 :u8[]
             ix:
               __for_i_2 :usize
         assign
@@ -89,54 +89,54 @@
                 int(1) :usize
     return acc :u64
   fn snippet$main() -> i32
-    let va: const u8[] =
-      call :const u8[]
+    let va: u8[] =
+      call :u8[]
         callee:
-          view_of :fn(i32) -> const u8[]
+          view_of :fn(i32) -> u8[]
         arg0:
           int(1) :i32
-    let vb: const u8[] =
-      call :const u8[]
+    let vb: u8[] =
+      call :u8[]
         callee:
-          view_of :fn(i32) -> const u8[]
+          view_of :fn(i32) -> u8[]
         arg0:
           int(22) :i32
-    let vc: const u8[] =
-      call :const u8[]
+    let vc: u8[] =
+      call :u8[]
         callee:
-          view_of :fn(i32) -> const u8[]
+          view_of :fn(i32) -> u8[]
         arg0:
           int(333) :i32
-    let vd: const u8[] =
-      call :const u8[]
+    let vd: u8[] =
+      call :u8[]
         callee:
-          view_of :fn(i32) -> const u8[]
+          view_of :fn(i32) -> u8[]
         arg0:
           int(4444) :i32
     let sa: u64 =
       call :u64
         callee:
-          fold :fn(const u8[]) -> u64
+          fold :fn(u8[]) -> u64
         arg0:
-          va :const u8[]
+          va :u8[]
     let sb: u64 =
       call :u64
         callee:
-          fold :fn(const u8[]) -> u64
+          fold :fn(u8[]) -> u64
         arg0:
-          vb :const u8[]
+          vb :u8[]
     let sc: u64 =
       call :u64
         callee:
-          fold :fn(const u8[]) -> u64
+          fold :fn(u8[]) -> u64
         arg0:
-          vc :const u8[]
+          vc :u8[]
     let sd: u64 =
       call :u64
         callee:
-          fold :fn(const u8[]) -> u64
+          fold :fn(u8[]) -> u64
         arg0:
-          vd :const u8[]
+          vd :u8[]
     call :void
       callee:
         collect :fn() -> void
@@ -155,9 +155,9 @@
                       l:
                         call :u64
                           callee:
-                            fold :fn(const u8[]) -> u64
+                            fold :fn(u8[]) -> u64
                           arg0:
-                            va :const u8[]
+                            va :u8[]
                       r:
                         sa :u64
                   r:
@@ -165,9 +165,9 @@
                       l:
                         call :u64
                           callee:
-                            fold :fn(const u8[]) -> u64
+                            fold :fn(u8[]) -> u64
                           arg0:
-                            vb :const u8[]
+                            vb :u8[]
                       r:
                         sb :u64
               r:
@@ -175,9 +175,9 @@
                   l:
                     call :u64
                       callee:
-                        fold :fn(const u8[]) -> u64
+                        fold :fn(u8[]) -> u64
                       arg0:
-                        vc :const u8[]
+                        vc :u8[]
                   r:
                     sc :u64
           r:
@@ -185,9 +185,9 @@
               l:
                 call :u64
                   callee:
-                    fold :fn(const u8[]) -> u64
+                    fold :fn(u8[]) -> u64
                   arg0:
-                    vd :const u8[]
+                    vd :u8[]
               r:
                 sd :u64
       then:

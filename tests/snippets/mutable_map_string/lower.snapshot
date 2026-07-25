@@ -2,14 +2,14 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let m: MutableMap<string, i32> =
-      MutableMap<string, i32> {
+    let m: MutableMap<string, i32>! =
+      MutableMap<string, i32>! {
         ekeys:
-          array :string[]
+          array :string[]!
         evals:
-          array :i32[]
+          array :i32[]!
         index:
-          array :i32[]
+          array :i32[]!
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
@@ -18,7 +18,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
-        m :MutableMap<string, i32>
+        m :MutableMap<string, i32>!
       arg1:
         "hello" :string
       arg2:
@@ -27,7 +27,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
-        m :MutableMap<string, i32>
+        m :MutableMap<string, i32>!
       arg1:
         "world" :string
       arg2:
@@ -36,7 +36,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
-        m :MutableMap<string, i32>
+        m :MutableMap<string, i32>!
       arg1:
         "vader" :string
       arg2:
@@ -83,7 +83,7 @@
                       callee:
                         std_collections$std_collections$len__string__i32 :usize
                       arg0:
-                        m :MutableMap<string, i32>
+                        m :MutableMap<string, i32>!
           ~>
             call :string
               callee:
@@ -97,7 +97,7 @@
         callee:
           std_collections$MutableMap$Index$at__string__i32 :i32 | null
         arg0:
-          m :MutableMap<string, i32>
+          m :MutableMap<string, i32>!
         arg1:
           "hello" :string
     block :void
@@ -181,7 +181,7 @@
         callee:
           std_collections$MutableMap$Index$at__string__i32 :i32 | null
         arg0:
-          m :MutableMap<string, i32>
+          m :MutableMap<string, i32>!
         arg1:
           "world" :string
     block :void
@@ -265,7 +265,7 @@
         callee:
           std_collections$MutableMap$Index$at__string__i32 :i32 | null
         arg0:
-          m :MutableMap<string, i32>
+          m :MutableMap<string, i32>!
         arg1:
           "vader" :string
     block :void
@@ -385,7 +385,7 @@
                     callee:
                       std_collections$MutableMap$Contains$contains__string__i32 :bool
                     arg0:
-                      m :MutableMap<string, i32>
+                      m :MutableMap<string, i32>!
                     arg1:
                       "hello" :string
           ~>
@@ -437,7 +437,7 @@
                     callee:
                       std_collections$MutableMap$Contains$contains__string__i32 :bool
                     arg0:
-                      m :MutableMap<string, i32>
+                      m :MutableMap<string, i32>!
                     arg1:
                       "missing" :string
           ~>
@@ -452,7 +452,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
-        m :MutableMap<string, i32>
+        m :MutableMap<string, i32>!
       arg1:
         "hello" :string
       arg2:
@@ -462,7 +462,7 @@
         callee:
           std_collections$MutableMap$Index$at__string__i32 :i32 | null
         arg0:
-          m :MutableMap<string, i32>
+          m :MutableMap<string, i32>!
         arg1:
           "hello" :string
     block :void

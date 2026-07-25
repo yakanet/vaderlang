@@ -2,7 +2,7 @@
 
 ## tests/snippets/intrinsic_type_kind
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Pair                 :: Pair
+  StructDecl     Pair                 :: Pair!
   expr 14:11    IntrinsicCallExpr :: string
   expr 15:11    IntrinsicCallExpr :: string
   expr 16:11    IntrinsicCallExpr :: string

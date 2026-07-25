@@ -3,16 +3,16 @@
 ## snippet
   struct snippet$Counter { value: i32 }
   fn snippet$main() -> i32
-    let c: Counter =
-      Counter {
+    let c: Counter! =
+      Counter! {
         value: int(0) :i32
       }
     assign
       target:
         .value :i32
-          c :Counter
+          c :Counter!
       value:
         int(100) :i32
     return
       .value :i32
-        c :Counter
+        c :Counter!

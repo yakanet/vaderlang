@@ -205,12 +205,19 @@ export desugared_param_type :: fn(t: Type, mutable: bool) -> Type {
 /// @param t        the lowered type.
 /// @param written  the type as written, or null when there is none.
 export apply_readonly_default :: fn(t: Type, written: AST.TypeExpr | null) -> Type {
-    // A union carries no marker of its own — the bit is distributed over its
-    // variants, and those are sorted by `display_type`, so they cannot be paired
-    // positionally with the written form. Fall back to the whole-type question.
-    if t is UnionType {
-        if AST.type_expr_marks_mutable(written) { return t }
-        return with_immutable(t, true)
+    // A union carries no marker of its own — the bit is DISTRIBUTED over its
+    // variants, so the default applies variant by variant. `union_of` sorts the
+    // lowered variants by `display_type`, so they cannot be paired positionally
+    // with the written list ; pair them by SHAPE instead (array / tuple /
+    // nominal). Bailing out wholesale on "any variant is marked" is what left
+    // `u8[]! | Err` with a MUTABLE `Err` — the mark on the array leaked onto a
+    // variant nobody marked.
+    if t is UnionType as u {
+        out: Type[] = []
+        for v in u.variants {
+            out.push(with_immutable(v, !written_marks_shape(written, v)))
+        }
+        return union_of(out)
     }
     if written is AST.MutableTypeExpr as m {
         // A `const T[]` under a marker is a contradiction, and it is reachable : the
@@ -226,6 +233,30 @@ export apply_readonly_default :: fn(t: Type, written: AST.TypeExpr | null) -> Ty
     // children still take the default.
     if type_is_immutable(t) { return readonly_children(t, written) }
     return with_immutable(readonly_children(t, written), true)
+}
+
+// Whether the written form marks a variant of the same SHAPE as `v`. Shape, not
+// identity : the written variant hasn't been lowered here, so an array pairs with
+// an array, a tuple with a tuple, and anything nominal with a named type. That is
+// enough for every mixed union the surface can express — two variants of the same
+// shape differing only in their marker would be indistinguishable, and also
+// meaningless (`Cfg | Cfg!` collapses in `collect_variant`).
+written_marks_shape :: fn(written: AST.TypeExpr | null, v: Type) -> bool {
+    if written == null { return false }
+    for w in AST.collect_bitor_variants(written) {
+        // Positive form on purpose : an `as` binding does not survive a negated
+        // `is` test (`!(w is T as m)` leaves `m` unbound).
+        if w is AST.MutableTypeExpr as m {
+            if same_written_shape(m.inner, v) { return true }
+        }
+    }
+    return false
+}
+
+same_written_shape :: fn(w: AST.TypeExpr, v: Type) -> bool {
+    if w is AST.ArrayTypeExpr { return v is ArrayType }
+    if w is AST.SeqLitExpr    { return v is TupleType }
+    return v is StructType | TraitType | EnumType | DistinctType | PrimitiveType
 }
 
 // Rebuild `t`'s structural children under the default, pairing each with the
@@ -285,7 +316,7 @@ export union_of :: fn(variants: Type[]) -> Type {
     }
     if dedup.len() == 0 { return TY_NEVER }
     if dedup.len() == 1 { return dedup[0] }
-    sorted :: sort(dedup, (a: Type, b: Type) -> compare_ascending_ci(display_type(a), display_type(b)))
+    sorted :: sort(dedup, (a: Type, b: Type) -> compare_ascending_ci(display_type_key(a), display_type_key(b)))
     return mk_union(sorted)
 }
 

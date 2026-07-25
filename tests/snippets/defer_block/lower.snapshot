@@ -25,14 +25,14 @@
       defer.pop_exec 1
       return int(0) :i32
   struct __defer_env_2 {  }
-  fn __defer_1(__env_0: __defer_env_2) -> void
+  fn __defer_1(__env_0: __defer_env_2!) -> void
     call :void
       callee:
         std_io$println__string :void
       arg0:
         "outer cleanup" :string
   struct __defer_env_5 {  }
-  fn __defer_4(__env_1: __defer_env_5) -> void
+  fn __defer_4(__env_1: __defer_env_5!) -> void
     call :void
       callee:
         std_io$println__string :void

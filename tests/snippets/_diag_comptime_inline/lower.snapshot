@@ -1,9 +1,9 @@
 # Lower
 
 ## snippet
-  fn snippet$__comptime_SQUARES() -> u32[]
-    let r: u32[] =
-      array :u32[]
+  fn snippet$__comptime_SQUARES() -> u32[]!
+    let r: u32[]! =
+      array :u32[]!
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
@@ -18,7 +18,7 @@
               r:
                 int(1) :i32
     ~>
-      r :u32[]
+      r :u32[]!
   fn snippet$build_answer() -> i32
     ~>
       add :i32
@@ -45,7 +45,7 @@
       then:
         return null
     return
-      Maybe {
+      Maybe! {
         n: k :i32
       }
   fn snippet$__comptime_PICKED() -> i32
@@ -57,11 +57,11 @@
           int(7) :i32
     if :void
       cond:
-        is Maybe :bool
+        is Maybe! :bool
           m :Maybe | null
       then:
-        let mm: Maybe =
-          cast → Maybe
+        let mm: Maybe! =
+          cast → Maybe!
             m :Maybe | null
         return
           .n :i32
@@ -98,7 +98,7 @@
                   cast → u64
                     index :u32
                       on:
-                        SQUARES :const u32[]
+                        SQUARES :u32[]
                       ix:
                         int(3) :i32
           ~>

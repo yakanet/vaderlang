@@ -3,7 +3,7 @@
 ## snippet
   fn snippet$make_pair() -> [i32, string]
     return
-      [i32, string] {
+      [i32, string]! {
         _0: int(42) :i32
         _1: "answer" :string
       }

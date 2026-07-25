@@ -2,7 +2,7 @@
 
 ## default_type_param
   struct default_type_param$N { v: i32 }
-  fn default_type_param$N$Adder$add_to(self: N, other: N) -> i32
+  fn default_type_param$N$Adder$add_to(self: N!, other: N) -> i32
     ~>
       add :i32
         l:
@@ -11,7 +11,7 @@
         r:
           .v :i32
             other :N
-  fn default_type_param$N$Adder$twice(self: N, other: N) -> i32
+  fn default_type_param$N$Adder$twice(self: N!, other: N) -> i32
     ~>
       add :i32
         l:
@@ -31,11 +31,11 @@
               .v :i32
                 other :N
   struct default_type_param$Tick { c: i32 }
-  fn default_type_param$Tick$Counter$current(self: Tick) -> i32
+  fn default_type_param$Tick$Counter$current(self: Tick!) -> i32
     ~>
       .c :i32
         self :Tick
-  fn default_type_param$Tick$Counter$bumped(self: Tick) -> i32
+  fn default_type_param$Tick$Counter$bumped(self: Tick!) -> i32
     ~>
       add :i32
         l:
@@ -45,12 +45,12 @@
           .c :i32
             self :Tick
   fn default_type_param$main() -> i32
-    let a: N =
-      N {
+    let a: N! =
+      N! {
         v: int(10) :i32
       }
-    let b: N =
-      N {
+    let b: N! =
+      N! {
         v: int(5) :i32
       }
     call :void
@@ -83,18 +83,18 @@
                         add :i32
                           l:
                             .v :i32
-                              a :N
+                              a :N!
                           r:
                             .v :i32
-                              b :N
+                              b :N!
                       r:
                         add :i32
                           l:
                             .v :i32
-                              a :N
+                              a :N!
                           r:
                             .v :i32
-                              b :N
+                              b :N!
           ~>
             call :string
               callee:
@@ -103,8 +103,8 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
-    let t: Tick =
-      Tick {
+    let t: Tick! =
+      Tick! {
         c: int(7) :i32
       }
     call :void
@@ -135,10 +135,10 @@
                     add :i32
                       l:
                         .c :i32
-                          t :Tick
+                          t :Tick!
                       r:
                         .c :i32
-                          t :Tick
+                          t :Tick!
           ~>
             call :string
               callee:

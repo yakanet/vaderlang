@@ -10,7 +10,7 @@
             c :Counter
         r:
           int(1) :i32
-  fn snippet$Counter$Bump$bump(self: Counter) -> i32
+  fn snippet$Counter$Bump$bump(self: Counter!) -> i32
     ~>
       add :i32
         l:
@@ -61,7 +61,7 @@
                       callee:
                         run :fn(Counter) -> i32
                       arg0:
-                        Counter {
+                        Counter! {
                           n: int(41) :i32
                         }
           ~>

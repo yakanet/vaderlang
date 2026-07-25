@@ -5,8 +5,8 @@
   FnDecl         find                 :: fn(Node | null, i32) -> Node | null
   FnDecl         length               :: fn(Node | null) -> i32
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Node                 :: Node
-  expr 17:12    StructLitExpr  :: Node
+  StructDecl     Node                 :: Node!
+  expr 17:12    StructLitExpr  :: Node!
   expr 17:28    IdentExpr      :: i32
   expr 17:42    IdentExpr      :: Node | null
   expr 21:11    IdentExpr      :: Node | null

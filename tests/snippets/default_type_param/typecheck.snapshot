@@ -4,8 +4,8 @@
   TraitDecl      Adder                :: Adder<Rhs>
   TraitDecl      Counter              :: Counter<Step>
   FnDecl         main                 :: fn() -> i32
-  StructDecl     N                    :: N
-  StructDecl     Tick                 :: Tick
+  StructDecl     N                    :: N!
+  StructDecl     Tick                 :: Tick!
   expr 20494:1  BinaryExpr     :: i32
   expr 20494:11 IdentExpr      :: N
   expr 20494:2  CallExpr       :: i32
@@ -29,19 +29,19 @@
   expr 31761:7  IdentExpr      :: Tick
   expr 32:34    FieldExpr      :: i32
   expr 32:34    IdentExpr      :: Tick
-  expr 36:10    StructLitExpr  :: N
-  expr 37:10    StructLitExpr  :: N
+  expr 36:10    StructLitExpr  :: N!
+  expr 37:10    StructLitExpr  :: N!
   expr 38:13    StringLitExpr  :: string
   expr 38:16    CallExpr       :: i32
   expr 38:16    FieldExpr      :: fn(N) -> i32
-  expr 38:16    IdentExpr      :: N
-  expr 38:24    IdentExpr      :: N
+  expr 38:16    IdentExpr      :: N!
+  expr 38:24    IdentExpr      :: N!
   expr 38:5     CallExpr       :: void
   expr 38:5     IdentExpr      :: fn(T) -> void
-  expr 40:10    StructLitExpr  :: Tick
+  expr 40:10    StructLitExpr  :: Tick!
   expr 41:13    StringLitExpr  :: string
   expr 41:16    CallExpr       :: i32
   expr 41:16    FieldExpr      :: fn() -> i32
-  expr 41:16    IdentExpr      :: Tick
+  expr 41:16    IdentExpr      :: Tick!
   expr 41:5     CallExpr       :: void
   expr 41:5     IdentExpr      :: fn(T) -> void

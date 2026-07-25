@@ -4,19 +4,19 @@
   struct snippet$Point { x: i32, y: i32, label: string }
   fn snippet$main() -> i32
     block :void
-      let __for_arr_0: Field[] =
-        array :Field[]
-          Field {
+      let __for_arr_0: Field![]! =
+        array :Field![]!
+          Field! {
             name: "x" :string
             type:
               LoweredTypeConst
           }
-          Field {
+          Field! {
             name: "y" :string
             type:
               LoweredTypeConst
           }
-          Field {
+          Field! {
             name: "label" :string
             type:
               LoweredTypeConst
@@ -25,10 +25,10 @@
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
       loop while (<…>)
-        let f: Field =
-          index :Field
+        let f: Field! =
+          index :Field!
             on:
-              __for_arr_0 :Field[]
+              __for_arr_0 :Field![]!
             ix:
               __for_i_2 :usize
         call :void
@@ -38,7 +38,7 @@
             block :string
               let __p_3: string =
                 .name :string
-                  f :Field
+                  f :Field!
               let __buf_4: Buffer =
                 call :Buffer
                   callee:
@@ -95,7 +95,7 @@
                       cast → u64
                         @size_of.type :usize
                           .type :type
-                            f :Field
+                            f :Field!
               ~>
                 call :string
                   callee:
@@ -114,14 +114,14 @@
               r:
                 int(1) :usize
     block :void
-      let __for_arr_6: Field[] =
-        array :Field[]
-          Field {
+      let __for_arr_6: Field![]! =
+        array :Field![]!
+          Field! {
             name: "key" :string
             type:
               LoweredTypeConst
           }
-          Field {
+          Field! {
             name: "value" :string
             type:
               LoweredTypeConst
@@ -130,10 +130,10 @@
         LoweredArrayLen
       let __for_i_8: usize = int(0) :usize
       loop while (<…>)
-        let f: Field =
-          index :Field
+        let f: Field! =
+          index :Field!
             on:
-              __for_arr_6 :Field[]
+              __for_arr_6 :Field![]!
             ix:
               __for_i_8 :usize
         call :void
@@ -143,7 +143,7 @@
             block :string
               let __p_9: string =
                 .name :string
-                  f :Field
+                  f :Field!
               let __buf_10: Buffer =
                 call :Buffer
                   callee:
@@ -213,7 +213,7 @@
                       cast → u64
                         @size_of.type :usize
                           .type :type
-                            f :Field
+                            f :Field!
               ~>
                 call :string
                   callee:

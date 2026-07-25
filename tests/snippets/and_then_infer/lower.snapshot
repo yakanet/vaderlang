@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Boom {  }
-  fn snippet$Boom$Error$message(self: Boom) -> string
+  fn snippet$Boom$Error$message(self: Boom!) -> string
     ~>
       "boom" :string
   fn snippet$fetch(ok: bool) -> Error | i32
@@ -12,7 +12,7 @@
       then:
         return int(20) :Error | i32
     return
-      Boom {
+      Boom! {
       }
   fn snippet$halve(v: i32) -> Error | i32
     if :void
@@ -28,7 +28,7 @@
             int(0) :i32
       then:
         return
-          Boom {
+          Boom! {
           }
     return
       div :i32
@@ -145,7 +145,7 @@
                 __off_5 :usize
     return int(0) :i32
   struct __lambda_env_2 {  }
-  fn __lambda_1(__env_0: __lambda_env_2, v: i32) -> Error | i32
+  fn __lambda_1(__env_0: __lambda_env_2!, v: i32) -> Error | i32
     return
       call :Error | i32
         callee:
@@ -153,7 +153,7 @@
         arg0:
           v :i32
   struct __lambda_env_7 {  }
-  fn __lambda_6(__env_3: __lambda_env_7, v: i32) -> Error | i32
+  fn __lambda_6(__env_3: __lambda_env_7!, v: i32) -> Error | i32
     return
       call :Error | i32
         callee:

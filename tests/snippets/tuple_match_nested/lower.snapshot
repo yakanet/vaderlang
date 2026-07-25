@@ -2,10 +2,10 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let record: [[i32, string], bool] =
-      [[i32, string], bool] {
+    let record: [[i32, string]!, bool]! =
+      [[i32, string]!, bool]! {
         _0:
-          [i32, string] {
+          [i32, string]! {
             _0: int(42) :i32
             _1: "answer" :string
           }
@@ -14,15 +14,15 @@
     block :void
       let id: i32 =
         ._0 :i32
-          ._0 :[i32, string]
-            record :[[i32, string], bool]
+          ._0 :[i32, string]!
+            record :[[i32, string]!, bool]!
       let label: string =
         ._1 :string
-          ._0 :[i32, string]
-            record :[[i32, string], bool]
+          ._0 :[i32, string]!
+            record :[[i32, string]!, bool]!
       let active: bool =
         ._1 :bool
-          record :[[i32, string], bool]
+          record :[[i32, string]!, bool]!
       ~>
         call :void
           callee:

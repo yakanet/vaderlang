@@ -31,7 +31,7 @@
                       callee:
                         snippet$outer__i32 :i32
                       arg0:
-                        array :const i32[]
+                        array :i32[]
                           int(1) :i32
                           int(2) :i32
                           int(3) :i32
@@ -74,7 +74,7 @@
                       callee:
                         snippet$outer__string :i32
                       arg0:
-                        array :const string[]
+                        array :string[]
                           "a" :string
                           "b" :string
                           "c" :string
@@ -87,10 +87,10 @@
               arg1:
                 __off_3 :usize
     return int(0) :i32
-  fn snippet$inner_count__i32(arr: const i32[]) -> i32
+  fn snippet$inner_count__i32(arr: i32[]) -> i32
     let n: i32 = int(0) :i32
     block :void
-      let __for_arr_0: const i32[] = arr :const i32[]
+      let __for_arr_0: i32[] = arr :i32[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -98,7 +98,7 @@
         let x: i32 =
           index :i32
             on:
-              __for_arr_0 :const i32[]
+              __for_arr_0 :i32[]
             ix:
               __for_i_2 :usize
         assign
@@ -120,10 +120,10 @@
               r:
                 int(1) :usize
     return n :i32
-  fn snippet$inner_count__string(arr: const string[]) -> i32
+  fn snippet$inner_count__string(arr: string[]) -> i32
     let n: i32 = int(0) :i32
     block :void
-      let __for_arr_0: const string[] = arr :const string[]
+      let __for_arr_0: string[] = arr :string[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -131,7 +131,7 @@
         let x: string =
           index :string
             on:
-              __for_arr_0 :const string[]
+              __for_arr_0 :string[]
             ix:
               __for_i_2 :usize
         assign
@@ -153,17 +153,17 @@
               r:
                 int(1) :usize
     return n :i32
-  fn snippet$outer__i32(arr: const i32[]) -> i32
+  fn snippet$outer__i32(arr: i32[]) -> i32
     return
       call :i32
         callee:
           snippet$inner_count__i32 :i32
         arg0:
-          arr :const i32[]
-  fn snippet$outer__string(arr: const string[]) -> i32
+          arr :i32[]
+  fn snippet$outer__string(arr: string[]) -> i32
     return
       call :i32
         callee:
           snippet$inner_count__string :i32
         arg0:
-          arr :const string[]
+          arr :string[]

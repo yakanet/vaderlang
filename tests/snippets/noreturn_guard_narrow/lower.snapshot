@@ -80,7 +80,7 @@
                       callee:
                         unwrap :fn(Box | null) -> i32
                       arg0:
-                        Box {
+                        Box! {
                           v: int(42) :i32
                         }
           ~>
@@ -133,7 +133,7 @@
                       callee:
                         unwrap_logged :fn(Box | null) -> i32
                       arg0:
-                        Box {
+                        Box! {
                           v: int(7) :i32
                         }
           ~>

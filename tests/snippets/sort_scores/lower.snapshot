@@ -9,12 +9,12 @@
         r:
           b :i32
   fn snippet$main() -> i32
-    let scores: const i32[] =
-      call :const i32[]
+    let scores: i32[] =
+      call :i32[]
         callee:
-          std_sort$sort__i32 :const i32[]
+          std_sort$sort__i32 :i32[]
         arg0:
-          array :const i32[]
+          array :i32[]
             int(50) :i32
             int(12) :i32
             int(88) :i32
@@ -38,7 +38,7 @@
         arg1:
           ascending :fn(i32, i32) -> bool
     block :void
-      let __for_arr_0: const i32[] = scores :const i32[]
+      let __for_arr_0: i32[] = scores :i32[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -46,7 +46,7 @@
         let s: i32 =
           index :i32
             on:
-              __for_arr_0 :const i32[]
+              __for_arr_0 :i32[]
             ix:
               __for_i_2 :usize
         call :void

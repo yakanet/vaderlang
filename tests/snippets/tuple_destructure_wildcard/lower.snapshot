@@ -3,7 +3,7 @@
 ## snippet
   fn snippet$triple() -> [i32, string, bool]
     return
-      [i32, string, bool] {
+      [i32, string, bool]! {
         _0: int(7) :i32
         _1: "ignored" :string
         _2: true

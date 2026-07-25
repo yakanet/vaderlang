@@ -1,27 +1,27 @@
 # Typecheck
 
 ## tests/snippets/transitive_mono
-  FnDecl         inner_count          :: fn(const T[]) -> i32
+  FnDecl         inner_count          :: fn(T[]) -> i32
   FnDecl         main                 :: fn() -> i32
-  FnDecl         outer                :: fn(const T[]) -> i32
-  expr 12:14    IdentExpr      :: const T[]
+  FnDecl         outer                :: fn(T[]) -> i32
+  expr 12:14    IdentExpr      :: T[]
   expr 13:13    BinaryExpr     :: i32
   expr 13:13    IdentExpr      :: i32
   expr 13:9     IdentExpr      :: i32
   expr 15:12    IdentExpr      :: i32
   expr 19:12    CallExpr       :: i32
-  expr 19:12    IdentExpr      :: fn(const T[]) -> i32
-  expr 19:24    IdentExpr      :: const T[]
+  expr 19:12    IdentExpr      :: fn(T[]) -> i32
+  expr 19:24    IdentExpr      :: T[]
   expr 23:13    StringLitExpr  :: string
   expr 23:16    CallExpr       :: i32
-  expr 23:16    IdentExpr      :: fn(const T[]) -> i32
-  expr 23:22    SeqLitExpr     :: const i32[]
+  expr 23:16    IdentExpr      :: fn(T[]) -> i32
+  expr 23:22    SeqLitExpr     :: i32[]
   expr 23:5     CallExpr       :: void
   expr 23:5     IdentExpr      :: fn(T) -> void
   expr 24:13    StringLitExpr  :: string
   expr 24:16    CallExpr       :: i32
-  expr 24:16    IdentExpr      :: fn(const T[]) -> i32
-  expr 24:22    SeqLitExpr     :: const string[]
+  expr 24:16    IdentExpr      :: fn(T[]) -> i32
+  expr 24:22    SeqLitExpr     :: string[]
   expr 24:23    StringLitExpr  :: string
   expr 24:28    StringLitExpr  :: string
   expr 24:33    StringLitExpr  :: string

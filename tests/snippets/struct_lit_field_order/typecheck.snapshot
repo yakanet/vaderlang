@@ -2,14 +2,14 @@
 
 ## tests/snippets/struct_lit_field_order
   FnDecl         main                 :: fn() -> i32
-  StructDecl     P                    :: P
-  expr 16:10    StructLitExpr  :: P
+  StructDecl     P                    :: P!
+  expr 16:10    StructLitExpr  :: P!
   expr 17:13    StringLitExpr  :: string
   expr 17:18    FieldExpr      :: i32
-  expr 17:18    IdentExpr      :: P
+  expr 17:18    IdentExpr      :: P!
   expr 17:27    FieldExpr      :: i32
-  expr 17:27    IdentExpr      :: P
+  expr 17:27    IdentExpr      :: P!
   expr 17:36    FieldExpr      :: i32
-  expr 17:36    IdentExpr      :: P
+  expr 17:36    IdentExpr      :: P!
   expr 17:5     CallExpr       :: void
   expr 17:5     IdentExpr      :: fn(T) -> void

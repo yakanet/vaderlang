@@ -55,8 +55,8 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
-    let arr: i32[] =
-      array :i32[]
+    let arr: i32[]! =
+      array :i32[]!
         int(10) :i32
         int(20) :i32
         int(30) :i32
@@ -65,7 +65,7 @@
         callee:
           snippet$snippet$first__i32 :i32
         arg0:
-          arr :i32[]
+          arr :i32[]!
         arg1:
           int(0) :i32
     call :void
@@ -118,7 +118,7 @@
     return int(0) :i32
   fn snippet$snippet$identity__i32(x: i32) -> i32
     return x :i32
-  fn snippet$snippet$first__i32(arr: const i32[], fallback: i32) -> i32
+  fn snippet$snippet$first__i32(arr: i32[], fallback: i32) -> i32
     if :void
       cond:
         gt :bool
@@ -130,7 +130,7 @@
         return
           index :i32
             on:
-              arr :const i32[]
+              arr :i32[]
             ix:
               int(0) :i32
     return fallback :i32

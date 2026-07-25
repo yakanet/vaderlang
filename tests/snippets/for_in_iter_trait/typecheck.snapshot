@@ -14,7 +14,7 @@
   expr 33:38    BinaryExpr     :: bool
   expr 33:38    IdentExpr      :: char
   expr 35:12    CallExpr       :: StringChars
-  expr 35:12    CallExpr       :: __genstate_filter<char>
+  expr 35:12    CallExpr       :: __genstate_filter<char>!
   expr 35:12    CallExpr       :: usize
   expr 35:12    FieldExpr      :: fn() -> StringChars
   expr 35:12    FieldExpr      :: fn() -> usize
@@ -23,10 +23,10 @@
   expr 35:29    IdentExpr      :: fn(char) -> bool
   expr 39:10    CallExpr       :: i32
   expr 39:10    IdentExpr      :: fn(Iterator<i32>) -> i32
-  expr 39:19    RangeExpr      :: Range<i32>
+  expr 39:19    RangeExpr      :: Range<i32>!
   expr 40:10    CallExpr       :: i32
   expr 40:10    IdentExpr      :: fn(Iterator<i32>) -> i32
-  expr 40:19    SeqLitExpr     :: i32[]
+  expr 40:19    SeqLitExpr     :: i32[]!
   expr 41:13    StringLitExpr  :: string
   expr 41:29    IdentExpr      :: i32
   expr 41:5     CallExpr       :: void

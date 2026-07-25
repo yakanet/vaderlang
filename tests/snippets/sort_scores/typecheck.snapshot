@@ -6,11 +6,11 @@
   expr 18:50    BinaryExpr     :: bool
   expr 18:50    IdentExpr      :: i32
   expr 18:54    IdentExpr      :: i32
-  expr 21:15    CallExpr       :: const i32[]
-  expr 21:15    IdentExpr      :: fn(const T[], fn(T, T) -> bool) -> const T[]
-  expr 22:9     SeqLitExpr     :: const i32[]
+  expr 21:15    CallExpr       :: i32[]
+  expr 21:15    IdentExpr      :: fn(T[], fn(T, T) -> bool) -> T[]
+  expr 22:9     SeqLitExpr     :: i32[]
   expr 23:9     IdentExpr      :: fn(i32, i32) -> bool
-  expr 25:14    IdentExpr      :: const i32[]
+  expr 25:14    IdentExpr      :: i32[]
   expr 25:23    CallExpr       :: void
   expr 25:23    IdentExpr      :: fn(T) -> void
   expr 25:31    StringLitExpr  :: string

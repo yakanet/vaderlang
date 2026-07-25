@@ -101,18 +101,18 @@
   expr 59:10    IdentExpr      :: fn(u64) -> Rng
   expr 59:21    CallExpr       :: u64
   expr 59:21    IdentExpr      :: type
-  expr 60:18    SeqLitExpr     :: i32[]
-  expr 61:15    IdentExpr      :: i32[]
+  expr 60:18    SeqLitExpr     :: i32[]!
+  expr 61:15    IdentExpr      :: i32[]!
   expr 61:5     CallExpr       :: void
   expr 61:5     FieldExpr      :: fn(T[]!) -> void
   expr 61:5     IdentExpr      :: Rng
   expr 62:13    StringLitExpr  :: string
   expr 62:29    CallExpr       :: usize
   expr 62:29    FieldExpr      :: fn() -> usize
-  expr 62:29    IdentExpr      :: i32[]
+  expr 62:29    IdentExpr      :: i32[]!
   expr 62:5     CallExpr       :: void
   expr 62:5     IdentExpr      :: fn(T) -> void
-  expr 64:14    IdentExpr      :: i32[]
+  expr 64:14    IdentExpr      :: i32[]!
   expr 65:15    BinaryExpr     :: i32
   expr 65:15    IdentExpr      :: i32
   expr 65:21    IdentExpr      :: i32

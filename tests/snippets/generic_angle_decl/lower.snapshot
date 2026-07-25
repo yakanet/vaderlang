@@ -178,10 +178,10 @@
                 __buf_4 :Buffer
               arg1:
                 __off_5 :usize
-    let nested: Box<Box<i32>> =
-      call :Box<Box<i32>>
+    let nested: Box<Box<i32>!> =
+      call :Box<Box<i32>!>
         callee:
-          snippet$snippet$make_nested__i32 :Box<Box<i32>>
+          snippet$snippet$make_nested__i32 :Box<Box<i32>!>
         arg0:
           int(99) :i32
     call :void
@@ -223,8 +223,8 @@
                 arg2:
                   cast → i64
                     .value :i32
-                      .value :Box<i32>
-                        nested :Box<Box<i32>>
+                      .value :Box<i32>!
+                        nested :Box<Box<i32>!>
           ~>
             call :string
               callee:
@@ -288,18 +288,18 @@
   struct snippet$Box__Box_i32_ { value: Any }
   fn snippet$snippet$identity__i32(x: i32) -> i32
     return x :i32
-  fn snippet$snippet$make_nested__i32(v: i32) -> Box<Box<i32>>
-    let inner: Box<i32> =
-      Box<i32> {
+  fn snippet$snippet$make_nested__i32(v: i32) -> Box<Box<i32>!>
+    let inner: Box<i32>! =
+      Box<i32>! {
         value: v :i32
       }
     return
-      Box<Box<Any>> {
-        value: inner :Box<i32>
+      Box<Box<Any>!>! {
+        value: inner :Box<i32>!
       }
   fn snippet$snippet$make_box__i32(v: i32) -> Box<i32>
     return
-      Box<i32> {
+      Box<i32>! {
         value: v :i32
       }
   struct snippet$Box__Any { value: Any }

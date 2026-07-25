@@ -3,24 +3,24 @@
 ## snippet
   struct snippet$P { a: i32, b: i32, c: i32 }
   fn snippet$main() -> i32
-    let base: P =
-      P {
+    let base: P! =
+      P! {
         a: int(1) :i32
         b: int(2) :i32
         c: int(3) :i32
       }
-    let upd: P =
-      block :P
-        let __spread_0: P = base :P
+    let upd: P! =
+      block :P!
+        let __spread_0: P! = base :P!
         ~>
-          P {
+          P! {
             a:
               .a :i32
-                __spread_0 :P
+                __spread_0 :P!
             b: int(99) :i32
             c:
               .c :i32
-                __spread_0 :P
+                __spread_0 :P!
           }
     call :void
       callee:
@@ -61,7 +61,7 @@
                 arg2:
                   cast → i64
                     .a :i32
-                      base :P
+                      base :P!
           assign
             target:
               __off_2 :usize
@@ -89,7 +89,7 @@
                 arg2:
                   cast → i64
                     .b :i32
-                      base :P
+                      base :P!
           assign
             target:
               __off_2 :usize
@@ -117,7 +117,7 @@
                 arg2:
                   cast → i64
                     .c :i32
-                      base :P
+                      base :P!
           ~>
             call :string
               callee:
@@ -165,7 +165,7 @@
                 arg2:
                   cast → i64
                     .a :i32
-                      upd :P
+                      upd :P!
           assign
             target:
               __off_4 :usize
@@ -193,7 +193,7 @@
                 arg2:
                   cast → i64
                     .b :i32
-                      upd :P
+                      upd :P!
           assign
             target:
               __off_4 :usize
@@ -221,7 +221,7 @@
                 arg2:
                   cast → i64
                     .c :i32
-                      upd :P
+                      upd :P!
           ~>
             call :string
               callee:
@@ -230,25 +230,25 @@
                 __buf_3 :Buffer
               arg1:
                 __off_4 :usize
-    let other: P =
-      P {
+    let other: P! =
+      P! {
         a: int(10) :i32
         b: int(20) :i32
         c: int(30) :i32
       }
-    let merged: P =
-      block :P
-        let __spread_5: P = base :P
-        let __spread_6: P = other :P
+    let merged: P! =
+      block :P!
+        let __spread_5: P! = base :P!
+        let __spread_6: P! = other :P!
         ~>
-          P {
+          P! {
             a:
               .a :i32
-                __spread_6 :P
+                __spread_6 :P!
             b: int(7) :i32
             c:
               .c :i32
-                __spread_6 :P
+                __spread_6 :P!
           }
     call :void
       callee:
@@ -289,7 +289,7 @@
                 arg2:
                   cast → i64
                     .a :i32
-                      merged :P
+                      merged :P!
           assign
             target:
               __off_8 :usize
@@ -317,7 +317,7 @@
                 arg2:
                   cast → i64
                     .b :i32
-                      merged :P
+                      merged :P!
           assign
             target:
               __off_8 :usize
@@ -345,7 +345,7 @@
                 arg2:
                   cast → i64
                     .c :i32
-                      merged :P
+                      merged :P!
           ~>
             call :string
               callee:

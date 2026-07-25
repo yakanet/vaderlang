@@ -1,60 +1,60 @@
 # Typecheck
 
 ## tests/snippets/if_is_field_after_narrow
-  StructDecl     ArrayVal             :: ArrayVal
+  StructDecl     ArrayVal             :: ArrayVal!
   FnDecl         first_item           :: fn(ArrayVal | IntVal | StructVal) -> i32
-  StructDecl     IntVal               :: IntVal
+  StructDecl     IntVal               :: IntVal!
   FnDecl         main                 :: fn() -> i32
-  StructDecl     StructVal            :: StructVal
+  StructDecl     StructVal            :: StructVal!
   FnDecl         type_id_of           :: fn(ArrayVal | IntVal | StructVal) -> i32
   ConstDecl      Value                :: type
-  expr 31:13    IdentExpr      :: StructVal
+  expr 31:13    IdentExpr      :: StructVal!
   expr 31:32    FieldExpr      :: i32
   expr 31:32    IdentExpr      :: StructVal
   expr 31:5     IfExpr         :: void
   expr 31:8     BinaryExpr     :: bool
   expr 31:8     IdentExpr      :: ArrayVal | IntVal | StructVal
-  expr 32:13    IdentExpr      :: ArrayVal
+  expr 32:13    IdentExpr      :: ArrayVal!
   expr 32:32    FieldExpr      :: i32
   expr 32:32    IdentExpr      :: ArrayVal
   expr 32:5     IfExpr         :: void
   expr 32:8     BinaryExpr     :: bool
   expr 32:8     IdentExpr      :: ArrayVal | IntVal
   expr 33:12    UnaryExpr      :: i32
-  expr 38:13    IdentExpr      :: ArrayVal
-  expr 38:31    FieldExpr      :: const i32[]
+  expr 38:13    IdentExpr      :: ArrayVal!
+  expr 38:31    FieldExpr      :: i32[]
   expr 38:31    IdentExpr      :: ArrayVal
   expr 38:31    IndexExpr      :: i32
   expr 38:5     IfExpr         :: void
   expr 38:8     BinaryExpr     :: bool
   expr 38:8     IdentExpr      :: ArrayVal | IntVal | StructVal
   expr 39:12    UnaryExpr      :: i32
-  expr 43:16    StructLitExpr  :: StructVal
-  expr 43:54    SeqLitExpr     :: const i32[]
-  expr 44:16    StructLitExpr  :: ArrayVal
-  expr 44:53    SeqLitExpr     :: const i32[]
-  expr 45:16    StructLitExpr  :: IntVal
+  expr 43:16    StructLitExpr  :: StructVal!
+  expr 43:54    SeqLitExpr     :: i32[]
+  expr 44:16    StructLitExpr  :: ArrayVal!
+  expr 44:53    SeqLitExpr     :: i32[]
+  expr 45:16    StructLitExpr  :: IntVal!
   expr 46:13    StringLitExpr  :: string
   expr 46:27    CallExpr       :: i32
   expr 46:27    IdentExpr      :: fn(ArrayVal | IntVal | StructVal) -> i32
-  expr 46:38    IdentExpr      :: ArrayVal | IntVal | StructVal
+  expr 46:38    IdentExpr      :: ArrayVal! | IntVal! | StructVal!
   expr 46:5     CallExpr       :: void
   expr 46:5     IdentExpr      :: fn(T) -> void
   expr 47:13    StringLitExpr  :: string
   expr 47:27    CallExpr       :: i32
   expr 47:27    IdentExpr      :: fn(ArrayVal | IntVal | StructVal) -> i32
-  expr 47:38    IdentExpr      :: ArrayVal | IntVal | StructVal
+  expr 47:38    IdentExpr      :: ArrayVal! | IntVal! | StructVal!
   expr 47:5     CallExpr       :: void
   expr 47:5     IdentExpr      :: fn(T) -> void
   expr 48:13    StringLitExpr  :: string
   expr 48:27    CallExpr       :: i32
   expr 48:27    IdentExpr      :: fn(ArrayVal | IntVal | StructVal) -> i32
-  expr 48:38    IdentExpr      :: ArrayVal | IntVal | StructVal
+  expr 48:38    IdentExpr      :: ArrayVal! | IntVal! | StructVal!
   expr 48:5     CallExpr       :: void
   expr 48:5     IdentExpr      :: fn(T) -> void
   expr 49:13    StringLitExpr  :: string
   expr 49:25    CallExpr       :: i32
   expr 49:25    IdentExpr      :: fn(ArrayVal | IntVal | StructVal) -> i32
-  expr 49:36    IdentExpr      :: ArrayVal | IntVal | StructVal
+  expr 49:36    IdentExpr      :: ArrayVal! | IntVal! | StructVal!
   expr 49:5     CallExpr       :: void
   expr 49:5     IdentExpr      :: fn(T) -> void

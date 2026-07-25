@@ -2,15 +2,15 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let arr: i32[] =
-      array :i32[]
+    let arr: i32[]! =
+      array :i32[]!
         int(10) :i32
         int(20) :i32
         int(30) :i32
         int(40) :i32
     let sum: i32 = int(0) :i32
     block :void
-      let __for_arr_0: i32[] = arr :i32[]
+      let __for_arr_0: i32[]! = arr :i32[]!
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -18,7 +18,7 @@
         let x: i32 =
           index :i32
             on:
-              __for_arr_0 :i32[]
+              __for_arr_0 :i32[]!
             ix:
               __for_i_2 :usize
         assign
@@ -86,14 +86,14 @@
                 __buf_3 :Buffer
               arg1:
                 __off_4 :usize
-    let empty: i32[] =
-      array :i32[]
+    let empty: i32[]! =
+      array :i32[]!
         int(0) :i32
         int(0) :i32
         int(0) :i32
     let n: i32 = int(0) :i32
     block :void
-      let __for_arr_6: i32[] = empty :i32[]
+      let __for_arr_6: i32[]! = empty :i32[]!
       let __for_len_7: usize =
         LoweredArrayLen
       let __for_i_8: usize = int(0) :usize
@@ -101,7 +101,7 @@
         let __for_discard_5: i32 =
           index :i32
             on:
-              __for_arr_6 :i32[]
+              __for_arr_6 :i32[]!
             ix:
               __for_i_8 :usize
         assign

@@ -12,8 +12,8 @@
               temp_dir :fn() -> string
         arg1:
           "/vader_ppm_roundtrip.ppm" :string
-    let px: u8[] =
-      array :u8[]
+    let px: u8[]! =
+      array :u8[]!
         int(0) :u8
         int(128) :u8
         int(255) :u8
@@ -26,23 +26,23 @@
         int(127) :u8
         int(1) :u8
         int(254) :u8
-    let img: Ppm =
-      Ppm {
+    let img: Ppm! =
+      Ppm! {
         width: int(2) :u32
         height: int(2) :u32
         maxval: int(255) :u32
-        pixels: px :u8[]
+        pixels: px :u8[]!
       }
-    let enc: const u8[] | PpmError =
-      call :const u8[] | PpmError
+    let enc: PpmError | u8[] =
+      call :PpmError | u8[]
         callee:
-          encode :fn(Ppm) -> const u8[] | PpmError
+          encode :fn(Ppm) -> PpmError | u8[]
         arg0:
-          img :Ppm
+          img :Ppm!
     if :void
       cond:
-        is PpmError :bool
-          enc :const u8[] | PpmError
+        is PpmError! :bool
+          enc :PpmError | u8[]
       then:
         call :void
           callee:
@@ -53,12 +53,12 @@
     let wr: IOError | null =
       call :IOError | null
         callee:
-          write_file_bytes :fn(string, const u8[]) -> IOError | null
+          write_file_bytes :fn(string, u8[]) -> IOError | null
         arg0:
           path :string
         arg1:
-          cast → const u8[]
-            enc :const u8[] | PpmError
+          cast → u8[]
+            enc :PpmError | u8[]
     if :void
       cond:
         is Error :bool
@@ -70,16 +70,16 @@
           arg0:
             "write failed" :string
         return int(1) :i32
-    let raw: const u8[] | IOError =
-      call :const u8[] | IOError
+    let raw: IOError | u8[] =
+      call :IOError | u8[]
         callee:
-          read_file_bytes :fn(string) -> const u8[] | IOError
+          read_file_bytes :fn(string) -> IOError | u8[]
         arg0:
           path :string
     if :void
       cond:
         is Error :bool
-          raw :const u8[] | IOError
+          raw :IOError | u8[]
       then:
         call :void
           callee:
@@ -90,13 +90,13 @@
     let dec: Ppm | PpmError =
       call :Ppm | PpmError
         callee:
-          decode :fn(const u8[]) -> Ppm | PpmError
+          decode :fn(u8[]) -> Ppm | PpmError
         arg0:
-          cast → const u8[]
-            raw :const u8[] | IOError
+          cast → u8[]
+            raw :IOError | u8[]
     if :void
       cond:
-        is PpmError :bool
+        is PpmError! :bool
           dec :Ppm | PpmError
       then:
         call :void
@@ -156,7 +156,7 @@
               l:
                 index :u8
                   on:
-                    .pixels :const u8[]
+                    .pixels :u8[]
                       cast → Ppm
                         dec :Ppm | PpmError
                   ix:
@@ -164,7 +164,7 @@
               r:
                 index :u8
                   on:
-                    px :u8[]
+                    px :u8[]!
                   ix:
                     i :usize
           then:

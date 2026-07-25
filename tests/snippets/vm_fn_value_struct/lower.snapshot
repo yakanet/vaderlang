@@ -10,15 +10,15 @@
         r:
           b :i32
   fn snippet$main() -> i32
-    let c: Calculator =
-      Calculator {
+    let c: Calculator! =
+      Calculator! {
         op: mul :fn(i32, i32) -> i32
       }
     return
       call :i32
         callee:
           .op :fn(i32, i32) -> i32
-            c :Calculator
+            c :Calculator!
         arg0:
           int(6) :i32
         arg1:

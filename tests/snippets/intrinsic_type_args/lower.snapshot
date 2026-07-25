@@ -4,8 +4,8 @@
   struct snippet$Wrapper { inner: i32 }
   fn snippet$main() -> i32
     block :void
-      let __for_arr_0: type[] =
-        array :type[]
+      let __for_arr_0: type[]! =
+        array :type[]!
           LoweredTypeConst
           LoweredTypeConst
       let __for_len_1: usize =
@@ -15,7 +15,7 @@
         let t: type =
           index :type
             on:
-              __for_arr_0 :type[]
+              __for_arr_0 :type[]!
             ix:
               __for_i_2 :usize
         call :void
@@ -75,8 +75,8 @@
                 __for_i_2 :usize
               r:
                 int(1) :usize
-    let args: type[] =
-      array :type[]
+    let args: type[]! =
+      array :type[]!
     call :void
       callee:
         std_io$println__string :void

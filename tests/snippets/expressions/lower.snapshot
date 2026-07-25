@@ -47,22 +47,22 @@
               false
         r:
           true
-    let e: Range<i32> =
-      Range<i32> {
+    let e: Range<i32>! =
+      Range<i32>! {
         start: int(0) :i32
         end: int(10) :i32
         inclusive: false
         cursor: int(0) :i32
       }
-    let arr: i32[] =
-      array :i32[]
+    let arr: i32[]! =
+      array :i32[]!
         int(1) :i32
         int(2) :i32
         int(3) :i32
     let f: i32 =
       index :i32
         on:
-          arr :i32[]
+          arr :i32[]!
         ix:
           int(0) :i32
     let h: i32 =

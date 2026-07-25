@@ -4,14 +4,14 @@
   struct snippet$Inner { v: i32 }
   struct snippet$Outer { lhs: Inner, rhs: Inner }
   fn snippet$main() -> i32
-    let o: Outer =
-      Outer {
+    let o: Outer! =
+      Outer! {
         lhs:
-          Inner {
+          Inner! {
             v: int(10) :i32
           }
         rhs:
-          Inner {
+          Inner! {
             v: int(32) :i32
           }
       }
@@ -20,8 +20,8 @@
         l:
           .v :i32
             .lhs :Inner
-              o :Outer
+              o :Outer!
         r:
           .v :i32
             .rhs :Inner
-              o :Outer
+              o :Outer!

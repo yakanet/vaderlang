@@ -94,11 +94,11 @@
                 __off_5 :usize
     return int(0) :i32
   struct __lambda_env_2 {  }
-  fn __lambda_1(__env_0: __lambda_env_2) -> string[]
+  fn __lambda_1(__env_0: __lambda_env_2!) -> string[]!
     ~>
-      array :string[]
+      array :string[]!
   struct __lambda_env_5 {  }
-  fn __lambda_4(__env_1: __lambda_env_5, s: string) -> usize
+  fn __lambda_4(__env_1: __lambda_env_5!, s: string) -> usize
     ~>
       call :usize
         callee:
@@ -106,27 +106,27 @@
         arg0:
           s :string
   struct __lambda_env_8 {  }
-  fn __lambda_7(__env_2: __lambda_env_8) -> string[]
+  fn __lambda_7(__env_2: __lambda_env_8!) -> string[]!
     ~>
-      array :string[]
+      array :string[]!
         "ab" :string
         "cde" :string
   struct __lambda_env_11 {  }
-  fn __lambda_10(__env_3: __lambda_env_11, s: string) -> usize
+  fn __lambda_10(__env_3: __lambda_env_11!, s: string) -> usize
     ~>
       call :usize
         callee:
           len :usize
         arg0:
           s :string
-  fn snippet$zip_with__string(make: fn() -> string[], probe: fn(string) -> usize) -> usize
-    let rows: string[] =
-      call :string[]
+  fn snippet$zip_with__string(make: fn() -> string[]!, probe: fn(string) -> usize) -> usize
+    let rows: string[]! =
+      call :string[]!
         callee:
-          make :fn() -> string[]
+          make :fn() -> string[]!
     let total: usize = int(0) :usize
     block :void
-      let __for_arr_0: string[] = rows :string[]
+      let __for_arr_0: string[]! = rows :string[]!
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -134,7 +134,7 @@
         let r: string =
           index :string
             on:
-              __for_arr_0 :string[]
+              __for_arr_0 :string[]!
             ix:
               __for_i_2 :usize
         assign

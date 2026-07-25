@@ -1,13 +1,13 @@
 # Typecheck
 
 ## tests/snippets/union_computed_u64
-  StructDecl     Err                  :: Err
+  StructDecl     Err                  :: Err!
   FnDecl         main                 :: fn() -> i32
   FnDecl         scale                :: fn(u64) -> Err | u64
   FnDecl         show                 :: fn(u64) -> i32
   expr 22:18    CallExpr       :: u64
   expr 22:18    IdentExpr      :: type
-  expr 22:34    StructLitExpr  :: Err
+  expr 22:34    StructLitExpr  :: Err!
   expr 22:47    StringLitExpr  :: string
   expr 22:5     IfExpr         :: void
   expr 22:8     BinaryExpr     :: bool

@@ -2,5 +2,5 @@
 
 ## snippet
   struct snippet$Point { x: f64, y: f64 }
-  fn snippet$Point$Display$to_string(self: Point) -> string
+  fn snippet$Point$Display$to_string(self: Point!) -> string
     return "point" :string

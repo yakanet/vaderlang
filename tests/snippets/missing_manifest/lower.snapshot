@@ -10,7 +10,7 @@
           path :string
     if :void
       cond:
-        is IOError :bool
+        is IOError! :bool
           r :IOError | string
       then:
         return
@@ -41,7 +41,7 @@
           path :string
     if :void
       cond:
-        is IOError :bool
+        is IOError! :bool
           r :IOError | string
       then:
         let e: Error =

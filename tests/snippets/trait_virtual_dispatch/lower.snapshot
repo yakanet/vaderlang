@@ -3,7 +3,7 @@
 ## snippet
   struct snippet$ParseErr { msg: string }
   struct snippet$NetErr { reason: string }
-  fn snippet$ParseErr$Error$message(self: ParseErr) -> string
+  fn snippet$ParseErr$Error$message(self: ParseErr!) -> string
     ~>
       call :string
         callee:
@@ -13,7 +13,7 @@
         arg1:
           .msg :string
             self :ParseErr
-  fn snippet$NetErr$Error$message(self: NetErr) -> string
+  fn snippet$NetErr$Error$message(self: NetErr!) -> string
     ~>
       call :string
         callee:
@@ -37,7 +37,7 @@
           callee:
             report :fn(Error) -> string
           arg0:
-            ParseErr {
+            ParseErr! {
               msg: "bad token" :string
             }
     call :void
@@ -48,7 +48,7 @@
           callee:
             report :fn(Error) -> string
           arg0:
-            NetErr {
+            NetErr! {
               reason: "timeout" :string
             }
     return int(0) :i32

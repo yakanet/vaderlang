@@ -13,7 +13,7 @@
               int(0) :u64
       then:
         return
-          Err {
+          Err! {
             msg: "zero" :string
           }
     return
@@ -55,7 +55,7 @@
               ~>
                 if :never
                   cond:
-                    is Err :bool
+                    is Err! :bool
                       __scrut_0 :Err | u64
                   then:
                     ~>

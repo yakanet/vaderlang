@@ -9,10 +9,10 @@
         r:
           int(1) :i32
   fn snippet$main() -> i32
-    let kept: i32[] =
-      block :i32[]
-        let __collect_0: i32[] =
-          array :i32[]
+    let kept: i32[]! =
+      block :i32[]!
+        let __collect_0: i32[]! =
+          array :i32[]!
         let pred: fn(i32) -> bool = keep :fn(i32) -> bool
         let x: i32 = int(0) :i32
         loop while (<…>)
@@ -36,7 +36,7 @@
                 r:
                   int(1) :i32
         ~>
-          __collect_0 :i32[]
+          __collect_0 :i32[]!
     call :void
       callee:
         std_io$println__string :void

@@ -22,11 +22,11 @@
   fn snippet$kind_span(d: Decl, fallback: Block | Decl) -> i32
     if :void
       cond:
-        is Block :bool
+        is Block! :bool
           fallback :Block | Decl
       then:
-        let b: Block =
-          cast → Block
+        let b: Block! =
+          cast → Block!
             fallback :Block | Decl
         return
           .span :i32
@@ -43,9 +43,9 @@
         callee:
           convert :fn(Decl) -> i32
         arg0:
-          Decl {
+          Decl! {
             body:
-              Block {
+              Block! {
                 span: int(42) :i32
               }
             name: "x" :string
@@ -55,7 +55,7 @@
         callee:
           convert :fn(Decl) -> i32
         arg0:
-          Decl {
+          Decl! {
             body: null
             name: "y" :string
           }
@@ -64,15 +64,15 @@
         callee:
           kind_span :fn(Decl, Block | Decl) -> i32
         arg0:
-          Decl {
+          Decl! {
             body:
-              Block {
+              Block! {
                 span: int(7) :i32
               }
             name: "z" :string
           }
         arg1:
-          Block {
+          Block! {
             span: int(99) :i32
           }
     call :void

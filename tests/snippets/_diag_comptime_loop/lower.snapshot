@@ -1,9 +1,9 @@
 # Lower
 
 ## snippet
-  fn snippet$build_squares() -> const u32[]
-    let r: u32[] =
-      array :u32[]
+  fn snippet$build_squares() -> u32[]
+    let r: u32[]! =
+      array :u32[]!
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
@@ -17,7 +17,7 @@
                 i :i32
               r:
                 int(1) :i32
-    return r :u32[]
+    return r :u32[]!
   fn snippet$main() -> i32
     call :void
       callee:
@@ -46,7 +46,7 @@
                   cast → u64
                     index :u32
                       on:
-                        SQUARES :const u32[]
+                        SQUARES :u32[]
                       ix:
                         int(3) :i32
           ~>
@@ -84,7 +84,7 @@
                   cast → u64
                     index :u32
                       on:
-                        SQUARES :const u32[]
+                        SQUARES :u32[]
                       ix:
                         int(7) :i32
           ~>

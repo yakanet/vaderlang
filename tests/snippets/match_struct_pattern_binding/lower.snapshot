@@ -3,8 +3,8 @@
 ## snippet
   struct snippet$P { x: i32, name: string }
   fn snippet$main() -> i32
-    let p: P =
-      P {
+    let p: P! =
+      P! {
         x: int(10) :i32
         name: "alice" :string
       }
@@ -12,12 +12,12 @@
       ~>
         if :void
           cond:
-            is P :bool
-              p :P
+            is P! :bool
+              p :P!
           then:
             let name: string =
               .name :string
-                p :P
+                p :P!
             ~>
               call :void
                 callee:

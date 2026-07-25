@@ -2,17 +2,17 @@
 
 ## snippet
   struct snippet$Foo { value: i32 }
-  fn snippet$Foo$Into$into(self: Foo) -> i32
+  fn snippet$Foo$Into$into(self: Foo!) -> i32
     return
       .value :i32
         self :Foo
   fn snippet$main() -> i32
-    let f: Foo =
-      Foo {
+    let f: Foo! =
+      Foo! {
         value: int(42) :i32
       }
-    let x: i32 | string = f :Foo
+    let x: i32 | string = f :Foo!
     return int(0) :i32
 
 # Diagnostics
-[16:5] error[T3001] type mismatch: expected i32 | string, got Foo
+[16:5] error[T3001] type mismatch: expected i32 | string, got Foo!

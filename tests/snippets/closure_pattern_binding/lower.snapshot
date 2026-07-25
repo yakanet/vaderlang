@@ -8,15 +8,15 @@
         ~>
           if :void
             cond:
-              is P :bool
+              is P! :bool
                 v :i32 | P
             then:
               let p: ? =
                 LoweredCellNew
               ~>
                 block :void
-                  let shout: __lambda_env_7 =
-                    __lambda_env_7 {
+                  let shout: __lambda_env_7! =
+                    __lambda_env_7! {
                       cap_0: p :P
                     }
                   call :void
@@ -61,8 +61,8 @@
                       LoweredCellNew
                     ~>
                       block :void
-                        let doubled: __lambda_env_2 =
-                          __lambda_env_2 {
+                        let doubled: __lambda_env_2! =
+                          __lambda_env_2! {
                             cap_0: n :i32
                           }
                         ~>
@@ -125,7 +125,7 @@
       callee:
         greet :fn(i32 | P) -> void
       arg0:
-        P {
+        P! {
           name: "world" :string
         }
     call :void
@@ -135,7 +135,7 @@
         int(21) :i32 | P
     return int(0) :i32
   struct __lambda_env_2 { cap_0: ? }
-  fn __lambda_1(__env_0: __lambda_env_2) -> i32
+  fn __lambda_1(__env_0: __lambda_env_2!) -> i32
     ~>
       add :i32
         l:
@@ -143,7 +143,7 @@
         r:
           LoweredCellGet
   struct __lambda_env_7 { cap_0: ? }
-  fn __lambda_6(__env_3: __lambda_env_7) -> string
+  fn __lambda_6(__env_3: __lambda_env_7!) -> string
     ~>
       call :string
         callee:

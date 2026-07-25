@@ -1,8 +1,8 @@
 # Typecheck
 
 ## tests/snippets/if_field_narrow
-  StructDecl     Bag                  :: Bag
-  FnDecl         count                :: fn(const i32[]) -> i32
+  StructDecl     Bag                  :: Bag!
+  FnDecl         count                :: fn(i32[]) -> i32
   FnDecl         main                 :: fn() -> i32
   FnDecl         report               :: fn(Bag) -> void
   FnDecl         total                :: fn(Bag) -> i32
@@ -10,15 +10,15 @@
   expr 15:12    IdentExpr      :: type
   expr 15:16    CallExpr       :: usize
   expr 15:16    FieldExpr      :: fn() -> usize
-  expr 15:16    IdentExpr      :: const i32[]
+  expr 15:16    IdentExpr      :: i32[]
   expr 20:5     IfExpr         :: void
   expr 20:8     BinaryExpr     :: bool
-  expr 20:8     FieldExpr      :: const i32[] | null
+  expr 20:8     FieldExpr      :: i32[] | null
   expr 20:8     IdentExpr      :: Bag
   expr 21:17    StringLitExpr  :: string
   expr 21:26    CallExpr       :: i32
-  expr 21:26    IdentExpr      :: fn(const i32[]) -> i32
-  expr 21:32    FieldExpr      :: const i32[]
+  expr 21:26    IdentExpr      :: fn(i32[]) -> i32
+  expr 21:32    FieldExpr      :: i32[]
   expr 21:32    IdentExpr      :: Bag
   expr 21:9     CallExpr       :: void
   expr 21:9     IdentExpr      :: fn(T) -> void
@@ -28,30 +28,30 @@
   expr 29:33    UnaryExpr      :: i32
   expr 29:5     IfExpr         :: void
   expr 29:8     BinaryExpr     :: bool
-  expr 29:8     FieldExpr      :: const i32[] | null
+  expr 29:8     FieldExpr      :: i32[] | null
   expr 29:8     IdentExpr      :: Bag
   expr 30:12    CallExpr       :: i32
-  expr 30:12    IdentExpr      :: fn(const i32[]) -> i32
-  expr 30:18    FieldExpr      :: const i32[]
+  expr 30:12    IdentExpr      :: fn(i32[]) -> i32
+  expr 30:18    FieldExpr      :: i32[]
   expr 30:18    IdentExpr      :: Bag
-  expr 34:13    StructLitExpr  :: Bag
-  expr 34:28    SeqLitExpr     :: const i32[]
-  expr 35:14    StructLitExpr  :: Bag
-  expr 36:12    IdentExpr      :: Bag
+  expr 34:13    StructLitExpr  :: Bag!
+  expr 34:28    SeqLitExpr     :: i32[]
+  expr 35:14    StructLitExpr  :: Bag!
+  expr 36:12    IdentExpr      :: Bag!
   expr 36:5     CallExpr       :: void
   expr 36:5     IdentExpr      :: fn(Bag) -> void
-  expr 37:12    IdentExpr      :: Bag
+  expr 37:12    IdentExpr      :: Bag!
   expr 37:5     CallExpr       :: void
   expr 37:5     IdentExpr      :: fn(Bag) -> void
   expr 38:13    StringLitExpr  :: string
   expr 38:22    CallExpr       :: i32
   expr 38:22    IdentExpr      :: fn(Bag) -> i32
-  expr 38:28    IdentExpr      :: Bag
+  expr 38:28    IdentExpr      :: Bag!
   expr 38:5     CallExpr       :: void
   expr 38:5     IdentExpr      :: fn(T) -> void
   expr 39:13    StringLitExpr  :: string
   expr 39:22    CallExpr       :: i32
   expr 39:22    IdentExpr      :: fn(Bag) -> i32
-  expr 39:28    IdentExpr      :: Bag
+  expr 39:28    IdentExpr      :: Bag!
   expr 39:5     CallExpr       :: void
   expr 39:5     IdentExpr      :: fn(T) -> void

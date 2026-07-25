@@ -315,7 +315,7 @@ MAX_FIELD_SHAPES :: 4096
 push_struct_shape :: fn(t: Type, out: StructType[]!, seen: MutableSet<string>!) -> void {
     if t is StructType as s {
         if has_type_param(s) { return }
-        key :: "${s.symbol.id}|${display_type(s)}"
+        key :: "${s.symbol.id}|${display_type_key(s)}"
         if seen.contains(key) { return }
         seen.add(key)
         out.push(s)

@@ -2,9 +2,9 @@
 
 ## snippet
   struct snippet$Vec { x: i32, y: i32 }
-  fn snippet$Vec$Add$add(self: Vec, other: Vec) -> Vec
+  fn snippet$Vec$Add$add(self: Vec!, other: Vec) -> Vec!
     return
-      Vec {
+      Vec! {
         x:
           add :i32
             l:
@@ -22,9 +22,9 @@
               .y :i32
                 other :Vec
       }
-  fn snippet$Vec$Sub$sub(self: Vec, other: Vec) -> Vec
+  fn snippet$Vec$Sub$sub(self: Vec!, other: Vec) -> Vec!
     return
-      Vec {
+      Vec! {
         x:
           sub :i32
             l:
@@ -89,36 +89,36 @@
             n :i32
           r:
             int(5) :i32
-    let v: Vec =
-      Vec {
+    let v: Vec! =
+      Vec! {
         x: int(1) :i32
         y: int(2) :i32
       }
     assign
       target:
-        v :Vec
+        v :Vec!
       value:
-        call :Vec
+        call :Vec!
           callee:
-            snippet$Vec$Add$add :Vec
+            snippet$Vec$Add$add :Vec!
           arg0:
-            v :Vec
+            v :Vec!
           arg1:
-            Vec {
+            Vec! {
               x: int(10) :i32
               y: int(20) :i32
             }
     assign
       target:
-        v :Vec
+        v :Vec!
       value:
-        call :Vec
+        call :Vec!
           callee:
-            snippet$Vec$Sub$sub :Vec
+            snippet$Vec$Sub$sub :Vec!
           arg0:
-            v :Vec
+            v :Vec!
           arg1:
-            Vec {
+            Vec! {
               x: int(1) :i32
               y: int(1) :i32
             }
@@ -188,7 +188,7 @@
                 arg2:
                   cast → i64
                     .x :i32
-                      v :Vec
+                      v :Vec!
           assign
             target:
               __off_1 :usize
@@ -216,7 +216,7 @@
                 arg2:
                   cast → i64
                     .y :i32
-                      v :Vec
+                      v :Vec!
           assign
             target:
               __off_1 :usize

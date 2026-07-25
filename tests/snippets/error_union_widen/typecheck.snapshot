@@ -1,8 +1,8 @@
 # Typecheck
 
 ## tests/snippets/error_union_widen
-  StructDecl     A                    :: A
-  StructDecl     B                    :: B
+  StructDecl     A                    :: A!
+  StructDecl     B                    :: B!
   FnDecl         main                 :: fn() -> i32
   FnDecl         only_string          :: fn(string) -> string
   FnDecl         tail_string          :: fn(A | B | string) -> string

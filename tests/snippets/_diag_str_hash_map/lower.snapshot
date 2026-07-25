@@ -2,20 +2,20 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let m: MutableMap<string, i32> =
-      MutableMap<string, i32> {
+    let m: MutableMap<string, i32>! =
+      MutableMap<string, i32>! {
         ekeys:
-          array :string[]
+          array :string[]!
         evals:
-          array :i32[]
+          array :i32[]!
         index:
-          array :i32[]
+          array :i32[]!
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
       }
-    let keys: string[] =
-      array :string[]
+    let keys: string[]! =
+      array :string[]!
         "alpha" :string
         "beta" :string
         "gamma" :string
@@ -26,7 +26,7 @@
         "" :string
     let i: i32 = int(0) :i32
     block :void
-      let __for_arr_0: string[] = keys :string[]
+      let __for_arr_0: string[]! = keys :string[]!
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -34,14 +34,14 @@
         let k: string =
           index :string
             on:
-              __for_arr_0 :string[]
+              __for_arr_0 :string[]!
             ix:
               __for_i_2 :usize
         call :void
           callee:
             std_collections$MutableMap$IndexSet$set_at__string__i32 :void
           arg0:
-            m :MutableMap<string, i32>
+            m :MutableMap<string, i32>!
           arg1:
             k :string
           arg2:
@@ -65,7 +65,7 @@
               r:
                 int(1) :usize
     block :void
-      let __for_arr_3: string[] = keys :string[]
+      let __for_arr_3: string[]! = keys :string[]!
       let __for_len_4: usize =
         LoweredArrayLen
       let __for_i_5: usize = int(0) :usize
@@ -73,7 +73,7 @@
         let k: string =
           index :string
             on:
-              __for_arr_3 :string[]
+              __for_arr_3 :string[]!
             ix:
               __for_i_5 :usize
         let v: i32 | null =
@@ -81,7 +81,7 @@
             callee:
               std_collections$MutableMap$Index$at__string__i32 :i32 | null
             arg0:
-              m :MutableMap<string, i32>
+              m :MutableMap<string, i32>!
             arg1:
               k :string
         if :void
@@ -226,7 +226,7 @@
                       callee:
                         std_collections$std_collections$len__string__i32 :usize
                       arg0:
-                        m :MutableMap<string, i32>
+                        m :MutableMap<string, i32>!
           ~>
             call :string
               callee:

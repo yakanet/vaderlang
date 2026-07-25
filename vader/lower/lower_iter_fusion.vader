@@ -435,7 +435,7 @@ opaque_iter_bottom :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
 // `iter_element_types` side table first (keyed by display name), then the sole
 // type arg (`ArrayIterator<T>` etc.).
 opaque_iter_element :: fn(ctx: FnLowerCtx, t: Type) -> Type | null {
-    side :: ctx.typed.iter_element_types[display_type(t)]
+    side :: ctx.typed.iter_element_types[display_type_key(t)]
     if !(side is null) { return side }
     if t is StructType as st {
         if st.args.len() > 0 { return st.args[0] }

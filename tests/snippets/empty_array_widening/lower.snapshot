@@ -1,10 +1,10 @@
 # Lower
 
 ## snippet
-  fn snippet$sum_of(xs: const i32[]) -> i32
+  fn snippet$sum_of(xs: i32[]) -> i32
     let total: i32 = int(0) :i32
     block :void
-      let __for_arr_0: const i32[] = xs :const i32[]
+      let __for_arr_0: i32[] = xs :i32[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -12,7 +12,7 @@
         let v: i32 =
           index :i32
             on:
-              __for_arr_0 :const i32[]
+              __for_arr_0 :i32[]
             ix:
               __for_i_2 :usize
         assign
@@ -35,8 +35,8 @@
                 int(1) :usize
     return total :i32
   fn snippet$main() -> i32
-    let numbers: i32[] =
-      array :i32[]
+    let numbers: i32[]! =
+      array :i32[]!
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
@@ -117,7 +117,7 @@
                   cast → i64
                     index :i32
                       on:
-                        numbers :i32[]
+                        numbers :i32[]!
                       ix:
                         int(0) :i32
           assign
@@ -148,7 +148,7 @@
                   cast → i64
                     index :i32
                       on:
-                        numbers :i32[]
+                        numbers :i32[]!
                       ix:
                         int(8) :i32
           assign
@@ -179,9 +179,9 @@
                   cast → i64
                     call :i32
                       callee:
-                        sum_of :fn(const i32[]) -> i32
+                        sum_of :fn(i32[]) -> i32
                       arg0:
-                        numbers :i32[]
+                        numbers :i32[]!
           ~>
             call :string
               callee:
@@ -190,8 +190,8 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
-    let names: string[] =
-      array :string[]
+    let names: string[]! =
+      array :string[]!
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
@@ -213,13 +213,13 @@
           let __p_4: string =
             index :string
               on:
-                names :string[]
+                names :string[]!
               ix:
                 int(0) :i32
           let __p_5: string =
             index :string
               on:
-                names :string[]
+                names :string[]!
               ix:
                 int(8) :i32
           let __buf_6: Buffer =
@@ -332,8 +332,8 @@
                 __buf_6 :Buffer
               arg1:
                 __off_7 :usize
-    let annotated: i32[] =
-      array :i32[]
+    let annotated: i32[]! =
+      array :i32[]!
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
@@ -414,7 +414,7 @@
                   cast → i64
                     index :i32
                       on:
-                        annotated :i32[]
+                        annotated :i32[]!
                       ix:
                         int(8) :i32
           assign
@@ -445,9 +445,9 @@
                   cast → i64
                     call :i32
                       callee:
-                        sum_of :fn(const i32[]) -> i32
+                        sum_of :fn(i32[]) -> i32
                       arg0:
-                        annotated :i32[]
+                        annotated :i32[]!
           ~>
             call :string
               callee:

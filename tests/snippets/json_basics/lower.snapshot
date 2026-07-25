@@ -13,7 +13,7 @@
         ~>
           if :void
             cond:
-              is JsonError :bool
+              is JsonError! :bool
                 parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
             then:
               ~>
@@ -38,7 +38,7 @@
               ~>
                 if :void
                   cond:
-                    is JsonString :bool
+                    is JsonString! :bool
                       parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                   then:
                     ~>
@@ -66,7 +66,7 @@
                     ~>
                       if :void
                         cond:
-                          is JsonNumber :bool
+                          is JsonNumber! :bool
                             parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                         then:
                           ~>
@@ -94,7 +94,7 @@
                           ~>
                             if :void
                               cond:
-                                is JsonBool :bool
+                                is JsonBool! :bool
                                   parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                               then:
                                 ~>
@@ -122,7 +122,7 @@
                                 ~>
                                   if :void
                                     cond:
-                                      is JsonNull :bool
+                                      is JsonNull! :bool
                                         parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                     then:
                                       ~>
@@ -150,7 +150,7 @@
                                       ~>
                                         if :void
                                           cond:
-                                            is JsonArray :bool
+                                            is JsonArray! :bool
                                               parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                           then:
                                             ~>
@@ -178,7 +178,7 @@
                                             ~>
                                               if :void
                                                 cond:
-                                                  is JsonObject :bool
+                                                  is JsonObject! :bool
                                                     parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                                 then:
                                                   ~>

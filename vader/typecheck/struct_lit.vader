@@ -209,7 +209,7 @@ f :: fn() -> Point { return Point { .x = 1, .y = 2 } }
 """
     eb :: expect_struct_lit(src)
     diags: Diagnostic[] = []
-    assert_eq(display_type(infer_struct_lit(eb.sl, eb.typed, diags, struct_lit_check_stub)), "Point")
+    assert_eq(display_type(infer_struct_lit(eb.sl, eb.typed, diags, struct_lit_check_stub)), "Point!")
     assert_eq(diags.len(), 0)
 }
 

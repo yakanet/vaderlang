@@ -1,41 +1,41 @@
 # Typecheck
 
 ## tests/snippets/generic_array_producer_marked
-  FnDecl         dup                  :: fn(const T[]) -> T[]
+  FnDecl         dup                  :: fn(T[]) -> T[]!
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Tag                  :: Tag
-  expr 19:16    BinaryExpr     :: T[]
-  expr 19:16    SeqLitExpr     :: T[]
+  StructDecl     Tag                  :: Tag!
+  expr 19:16    BinaryExpr     :: T[]!
+  expr 19:16    SeqLitExpr     :: T[]!
   expr 19:21    CallExpr       :: usize
   expr 19:21    FieldExpr      :: fn() -> usize
-  expr 19:21    IdentExpr      :: const T[]
-  expr 20:18    IdentExpr      :: const T[]
+  expr 19:21    IdentExpr      :: T[]
+  expr 20:18    IdentExpr      :: T[]
   expr 20:5     CallExpr       :: void
-  expr 20:5     FieldExpr      :: fn(const T[]) -> void
-  expr 20:5     IdentExpr      :: T[]
-  expr 21:12    IdentExpr      :: T[]
-  expr 25:13    CallExpr       :: i32[]
-  expr 25:13    IdentExpr      :: fn(const T[]) -> T[]
-  expr 25:17    SeqLitExpr     :: const i32[]
-  expr 26:13    CallExpr       :: Tag[]
-  expr 26:13    IdentExpr      :: fn(const T[]) -> T[]
-  expr 26:17    SeqLitExpr     :: const Tag[]
-  expr 26:18    StructLitExpr  :: Tag
-  expr 26:34    StructLitExpr  :: Tag
+  expr 20:5     FieldExpr      :: fn(T[]) -> void
+  expr 20:5     IdentExpr      :: T[]!
+  expr 21:12    IdentExpr      :: T[]!
+  expr 25:13    CallExpr       :: i32[]!
+  expr 25:13    IdentExpr      :: fn(T[]) -> T[]!
+  expr 25:17    SeqLitExpr     :: i32[]
+  expr 26:13    CallExpr       :: Tag![]!
+  expr 26:13    IdentExpr      :: fn(T[]) -> T[]!
+  expr 26:17    SeqLitExpr     :: Tag![]
+  expr 26:18    StructLitExpr  :: Tag!
+  expr 26:34    StructLitExpr  :: Tag!
   expr 28:5     CallExpr       :: void
   expr 28:5     FieldExpr      :: fn(i32) -> void
-  expr 28:5     IdentExpr      :: i32[]
+  expr 28:5     IdentExpr      :: i32[]!
   expr 29:13    StringLitExpr  :: string
   expr 29:16    CallExpr       :: usize
   expr 29:16    FieldExpr      :: fn() -> usize
-  expr 29:16    IdentExpr      :: i32[]
-  expr 29:30    IdentExpr      :: i32[]
+  expr 29:16    IdentExpr      :: i32[]!
+  expr 29:30    IdentExpr      :: i32[]!
   expr 29:30    IndexExpr      :: i32
   expr 29:41    CallExpr       :: usize
   expr 29:41    FieldExpr      :: fn() -> usize
-  expr 29:41    IdentExpr      :: Tag[]
+  expr 29:41    IdentExpr      :: Tag![]!
   expr 29:5     CallExpr       :: void
   expr 29:5     IdentExpr      :: fn(T) -> void
   expr 29:55    FieldExpr      :: i32
-  expr 29:55    IdentExpr      :: Tag[]
-  expr 29:55    IndexExpr      :: Tag
+  expr 29:55    IdentExpr      :: Tag![]!
+  expr 29:55    IndexExpr      :: Tag!

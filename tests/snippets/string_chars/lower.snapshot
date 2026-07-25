@@ -15,8 +15,8 @@
           arg0:
             "vader" :string
       loop
-        let __step_1: Yield<char> | null =
-          call :Yield<char> | null
+        let __step_1: Yield<char>! | null =
+          call :Yield<char>! | null
             callee:
               std_string$StringChars$Iterator$next :?
             arg0:
@@ -24,14 +24,14 @@
         if :void
           cond:
             is null :bool
-              __step_1 :Yield<char> | null
+              __step_1 :Yield<char>! | null
           then:
             break
           else:
             let c: char =
               .value :char
-                cast → Yield<char>
-                  __step_1 :Yield<char> | null
+                cast → Yield<char>!
+                  __step_1 :Yield<char>! | null
             call :void
               callee:
                 std_io$println__string :void
@@ -40,9 +40,9 @@
                   callee:
                     bytes_to_string :string
                   arg0:
-                    call :const u8[]
+                    call :u8[]
                       callee:
-                        utf8_encode :fn(char) -> const u8[]
+                        utf8_encode :fn(char) -> u8[]
                       arg0:
                         c :char
     call :void
@@ -58,8 +58,8 @@
           arg0:
             "你好嗎？" :string
       loop
-        let __step_3: Yield<char> | null =
-          call :Yield<char> | null
+        let __step_3: Yield<char>! | null =
+          call :Yield<char>! | null
             callee:
               std_string$StringChars$Iterator$next :?
             arg0:
@@ -67,14 +67,14 @@
         if :void
           cond:
             is null :bool
-              __step_3 :Yield<char> | null
+              __step_3 :Yield<char>! | null
           then:
             break
           else:
             let c: char =
               .value :char
-                cast → Yield<char>
-                  __step_3 :Yield<char> | null
+                cast → Yield<char>!
+                  __step_3 :Yield<char>! | null
             call :void
               callee:
                 std_io$println__string :void
@@ -83,9 +83,9 @@
                   callee:
                     bytes_to_string :string
                   arg0:
-                    call :const u8[]
+                    call :u8[]
                       callee:
-                        utf8_encode :fn(char) -> const u8[]
+                        utf8_encode :fn(char) -> u8[]
                       arg0:
                         c :char
     let n: i32 = int(0) :i32
@@ -97,8 +97,8 @@
           arg0:
             "héllo" :string
       loop
-        let __step_5: Yield<char> | null =
-          call :Yield<char> | null
+        let __step_5: Yield<char>! | null =
+          call :Yield<char>! | null
             callee:
               std_string$StringChars$Iterator$next :?
             arg0:
@@ -106,14 +106,14 @@
         if :void
           cond:
             is null :bool
-              __step_5 :Yield<char> | null
+              __step_5 :Yield<char>! | null
           then:
             break
           else:
             let c: char =
               .value :char
-                cast → Yield<char>
-                  __step_5 :Yield<char> | null
+                cast → Yield<char>!
+                  __step_5 :Yield<char>! | null
             assign
               target:
                 n :i32
@@ -214,8 +214,8 @@
           arg0:
             "" :string
       loop
-        let __step_9: Yield<char> | null =
-          call :Yield<char> | null
+        let __step_9: Yield<char>! | null =
+          call :Yield<char>! | null
             callee:
               std_string$StringChars$Iterator$next :?
             arg0:
@@ -223,14 +223,14 @@
         if :void
           cond:
             is null :bool
-              __step_9 :Yield<char> | null
+              __step_9 :Yield<char>! | null
           then:
             break
           else:
             let c: char =
               .value :char
-                cast → Yield<char>
-                  __step_9 :Yield<char> | null
+                cast → Yield<char>!
+                  __step_9 :Yield<char>! | null
             call :void
               callee:
                 std_io$println__string :void

@@ -3,9 +3,9 @@
 ## snippet
   fn snippet$make_record() -> [[i32, string], bool]
     return
-      [[i32, string], bool] {
+      [[i32, string]!, bool]! {
         _0:
-          [i32, string] {
+          [i32, string]! {
             _0: int(7) :i32
             _1: "seven" :string
           }

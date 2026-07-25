@@ -92,8 +92,8 @@
           int(5) :i32
         arg1:
           int(4) :i32
-    let b: Box =
-      Box {
+    let b: Box! =
+      Box! {
         v: int(6) :i32
       }
     let u: i32 =
@@ -101,7 +101,7 @@
         callee:
           scale :i32
         arg0:
-          b :Box
+          b :Box!
         arg1:
           int(2) :i32
         arg2:

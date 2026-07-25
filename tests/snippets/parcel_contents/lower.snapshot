@@ -4,29 +4,29 @@
   struct snippet$Gift { value: i32 }
   struct snippet$Parcel { contents: Gift }
   fn snippet$unwrap() -> Gift
-    let gift: Gift =
-      Gift {
+    let gift: Gift! =
+      Gift! {
         value: int(42) :i32
       }
-    let parcel: Parcel =
-      Parcel {
-        contents: gift :Gift
+    let parcel: Parcel! =
+      Parcel! {
+        contents: gift :Gift!
       }
     return
       .contents :Gift
-        parcel :Parcel
+        parcel :Parcel!
   fn snippet$first_of_batch() -> Gift
-    let gift: Gift =
-      Gift {
+    let gift: Gift! =
+      Gift! {
         value: int(77) :i32
       }
-    let batch: Gift[] =
-      array :Gift[]
-        gift :Gift
+    let batch: Gift![]! =
+      array :Gift![]!
+        gift :Gift!
     return
-      index :Gift
+      index :Gift!
         on:
-          batch :Gift[]
+          batch :Gift![]!
         ix:
           int(0) :i32
   fn snippet$main() -> i32
@@ -34,8 +34,8 @@
       call :Gift
         callee:
           unwrap :fn() -> Gift
-    let scratch: Gift =
-      Gift {
+    let scratch: Gift! =
+      Gift! {
         value: int(2) :i32
       }
     let b: Gift =
@@ -109,7 +109,7 @@
                 arg2:
                   cast → i64
                     .value :i32
-                      scratch :Gift
+                      scratch :Gift!
           assign
             target:
               __off_1 :usize

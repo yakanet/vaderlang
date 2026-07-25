@@ -28,9 +28,9 @@ export evaluate_seq_lit :: fn(
         for i in 0..<elements.len() {
             fields["_${i}"] = elements[i]
         }
-        return ok(StructValue { .type_name = display_type(inferred), .fields = fields })
+        return ok(StructValue { .type_name = display_type_key(inferred), .fields = fields })
     }
     element_type_name: string = ""
-    if inferred is ArrayType { element_type_name = display_type(inferred.element) }
+    if inferred is ArrayType { element_type_name = display_type_key(inferred.element) }
     return ok(ArrayValue { .elements = elements, .element_type_name = element_type_name })
 }

@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Money { amount: i32 }
-  fn snippet$Money$Equals$equals(self: Money, other: Money) -> bool
+  fn snippet$Money$Equals$equals(self: Money!, other: Money) -> bool
     ~>
       eq :bool
         l:
@@ -11,7 +11,7 @@
         r:
           .amount :i32
             other :Money
-  fn snippet$Money$Equals$not_equals(self: Money, other: Money) -> bool
+  fn snippet$Money$Equals$not_equals(self: Money!, other: Money) -> bool
     return
       not :bool
         eq :bool
@@ -21,7 +21,7 @@
           r:
             .amount :i32
               other :Money
-  fn snippet$Money$Comparable$compare(self: Money, other: Money) -> i32
+  fn snippet$Money$Comparable$compare(self: Money!, other: Money) -> i32
     if :void
       cond:
         lt :bool
@@ -47,7 +47,7 @@
       then:
         return int(1) :i32
     return int(0) :i32
-  fn snippet$Money$Comparable$lt(self: Money, other: Money) -> bool
+  fn snippet$Money$Comparable$lt(self: Money!, other: Money) -> bool
     return
       lt :bool
         l:
@@ -60,7 +60,7 @@
               other :Money
         r:
           int(0) :i32
-  fn snippet$Money$Comparable$lte(self: Money, other: Money) -> bool
+  fn snippet$Money$Comparable$lte(self: Money!, other: Money) -> bool
     return
       lte :bool
         l:
@@ -73,7 +73,7 @@
               other :Money
         r:
           int(0) :i32
-  fn snippet$Money$Comparable$gt(self: Money, other: Money) -> bool
+  fn snippet$Money$Comparable$gt(self: Money!, other: Money) -> bool
     return
       gt :bool
         l:
@@ -86,7 +86,7 @@
               other :Money
         r:
           int(0) :i32
-  fn snippet$Money$Comparable$gte(self: Money, other: Money) -> bool
+  fn snippet$Money$Comparable$gte(self: Money!, other: Money) -> bool
     return
       gte :bool
         l:
@@ -100,16 +100,16 @@
         r:
           int(0) :i32
   fn snippet$main() -> i32
-    let a: Money =
-      Money {
+    let a: Money! =
+      Money! {
         amount: int(100) :i32
       }
-    let b: Money =
-      Money {
+    let b: Money! =
+      Money! {
         amount: int(100) :i32
       }
-    let c: Money =
-      Money {
+    let c: Money! =
+      Money! {
         amount: int(200) :i32
       }
     call :void
@@ -152,10 +152,10 @@
                   eq :bool
                     l:
                       .amount :i32
-                        a :Money
+                        a :Money!
                     r:
                       .amount :i32
-                        b :Money
+                        b :Money!
           assign
             target:
               __off_1 :usize
@@ -185,10 +185,10 @@
                     eq :bool
                       l:
                         .amount :i32
-                          a :Money
+                          a :Money!
                       r:
                         .amount :i32
-                          c :Money
+                          c :Money!
           ~>
             call :string
               callee:
@@ -240,9 +240,9 @@
                         callee:
                           snippet$Money$Comparable$compare :i32
                         arg0:
-                          a :Money
+                          a :Money!
                         arg1:
-                          c :Money
+                          c :Money!
                     r:
                       int(0) :i32
           assign
@@ -276,9 +276,9 @@
                         callee:
                           snippet$Money$Comparable$compare :i32
                         arg0:
-                          c :Money
+                          c :Money!
                         arg1:
-                          a :Money
+                          a :Money!
                     r:
                       int(0) :i32
           assign
@@ -312,9 +312,9 @@
                         callee:
                           snippet$Money$Comparable$compare :i32
                         arg0:
-                          a :Money
+                          a :Money!
                         arg1:
-                          b :Money
+                          b :Money!
                     r:
                       int(0) :i32
           assign
@@ -348,9 +348,9 @@
                         callee:
                           snippet$Money$Comparable$compare :i32
                         arg0:
-                          c :Money
+                          c :Money!
                         arg1:
-                          c :Money
+                          c :Money!
                     r:
                       int(0) :i32
           ~>

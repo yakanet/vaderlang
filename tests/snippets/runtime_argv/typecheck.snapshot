@@ -1,8 +1,8 @@
 # Typecheck
 
 ## tests/snippets/runtime_argv
-  FnDecl         main                 :: fn(const string[]) -> i32
-  expr 11:14    IdentExpr      :: const string[]
+  FnDecl         main                 :: fn(string[]) -> i32
+  expr 11:14    IdentExpr      :: string[]
   expr 12:12    IdentExpr      :: bool
   expr 12:9     IfExpr         :: void
   expr 13:13    IdentExpr      :: bool
@@ -13,6 +13,6 @@
   expr 9:21     BinaryExpr     :: usize
   expr 9:21     CallExpr       :: usize
   expr 9:21     FieldExpr      :: fn() -> usize
-  expr 9:21     IdentExpr      :: const string[]
+  expr 9:21     IdentExpr      :: string[]
   expr 9:5      CallExpr       :: void
   expr 9:5      IdentExpr      :: fn(T) -> void

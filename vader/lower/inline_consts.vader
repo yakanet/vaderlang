@@ -120,7 +120,7 @@ try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProjec
     if cd.type is ArrayType as arr_type {
         if !arr_type.immutable { return false }
         if cd.value is LoweredArrayLit as lit {
-            element_type_name :: display_type(arr_type.element)
+            element_type_name :: display_type_key(arr_type.element)
             entry :: render_data_pool_entry(lit, element_type_name)
             if entry != null {
                 pool_index :: project.data_pool.len()

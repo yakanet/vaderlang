@@ -2,23 +2,23 @@
 
 ## tests/snippets/intrinsic_fields
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Pair                 :: Pair<K, V>
-  StructDecl     Point                :: Point
-  expr 22:14    IntrinsicCallExpr :: Field[]
+  StructDecl     Pair                 :: Pair<K, V>!
+  StructDecl     Point                :: Point!
+  expr 22:14    IntrinsicCallExpr :: Field![]!
   expr 23:17    StringLitExpr  :: string
   expr 23:20    FieldExpr      :: string
-  expr 23:20    IdentExpr      :: Field
+  expr 23:20    IdentExpr      :: Field!
   expr 23:35    IntrinsicCallExpr :: usize
   expr 23:44    FieldExpr      :: type
-  expr 23:44    IdentExpr      :: Field
+  expr 23:44    IdentExpr      :: Field!
   expr 23:9     CallExpr       :: void
   expr 23:9     IdentExpr      :: fn(T) -> void
-  expr 25:14    IntrinsicCallExpr :: Field[]
+  expr 25:14    IntrinsicCallExpr :: Field![]!
   expr 26:17    StringLitExpr  :: string
   expr 26:25    FieldExpr      :: string
-  expr 26:25    IdentExpr      :: Field
+  expr 26:25    IdentExpr      :: Field!
   expr 26:40    IntrinsicCallExpr :: usize
   expr 26:49    FieldExpr      :: type
-  expr 26:49    IdentExpr      :: Field
+  expr 26:49    IdentExpr      :: Field!
   expr 26:9     CallExpr       :: void
   expr 26:9     IdentExpr      :: fn(T) -> void

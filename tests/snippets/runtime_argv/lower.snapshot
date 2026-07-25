@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  fn snippet$main(argv: const string[]) -> i32
+  fn snippet$main(argv: string[]) -> i32
     call :void
       callee:
         std_io$println__string :void
@@ -55,7 +55,7 @@
                 __off_1 :usize
     let first: bool = true
     block :void
-      let __for_arr_2: const string[] = argv :const string[]
+      let __for_arr_2: string[] = argv :string[]
       let __for_len_3: usize =
         LoweredArrayLen
       let __for_i_4: usize = int(0) :usize
@@ -63,7 +63,7 @@
         let s: string =
           index :string
             on:
-              __for_arr_2 :const string[]
+              __for_arr_2 :string[]
             ix:
               __for_i_4 :usize
         if :void

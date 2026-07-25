@@ -8,7 +8,7 @@
   fn snippet$params_of(t: FnLike | Meta | Other | Unres) -> i32
     if :void
       cond:
-        is Meta :bool
+        is Meta! :bool
           t :FnLike | Meta | Other | Unres
       then:
         return
@@ -16,7 +16,7 @@
             int(1) :i32
     if :void
       cond:
-        is Unres :bool
+        is Unres! :bool
           t :FnLike | Meta | Other | Unres
       then:
         return
@@ -25,7 +25,7 @@
     if :void
       cond:
         not :bool
-          is FnLike :bool
+          is FnLike! :bool
             t :FnLike | Meta | Other | Unres
       then:
         return
@@ -41,7 +41,7 @@
         callee:
           params_of :fn(FnLike | Meta | Other | Unres) -> i32
         arg0:
-          FnLike {
+          FnLike! {
             params: int(42) :i32
           }
     let b: i32 =
@@ -49,7 +49,7 @@
         callee:
           params_of :fn(FnLike | Meta | Other | Unres) -> i32
         arg0:
-          Other {
+          Other! {
             o: int(9) :i32
           }
     call :void

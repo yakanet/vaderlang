@@ -1,42 +1,42 @@
 # Typecheck
 
 ## tests/snippets/fuse_generator_direct
-  FnDecl         doubled              :: fn(const i32[]) -> Iterator<i32>
-  FnDecl         evens                :: fn(const i32[]) -> Iterator<i32>
-  FnDecl         flatten              :: fn(const const i32[][]) -> Iterator<i32>
+  FnDecl         doubled              :: fn(i32[]) -> Iterator<i32>
+  FnDecl         evens                :: fn(i32[]) -> Iterator<i32>
+  FnDecl         flatten              :: fn(i32[][]) -> Iterator<i32>
   FnDecl         main                 :: fn() -> i32
-  expr 13:14    IdentExpr      :: const i32[]
+  expr 13:14    IdentExpr      :: i32[]
   expr 13:25    BinaryExpr     :: i32
   expr 13:25    IdentExpr      :: i32
-  expr 18:14    IdentExpr      :: const i32[]
+  expr 18:14    IdentExpr      :: i32[]
   expr 18:19    IfExpr         :: void
   expr 18:22    BinaryExpr     :: bool
   expr 18:22    BinaryExpr     :: i32
   expr 18:22    IdentExpr      :: i32
   expr 18:41    IdentExpr      :: i32
-  expr 23:16    IdentExpr      :: const const i32[][]
-  expr 24:18    IdentExpr      :: const i32[]
+  expr 23:16    IdentExpr      :: i32[][]
+  expr 24:18    IdentExpr      :: i32[]
   expr 24:30    IdentExpr      :: i32
-  expr 29:14    CallExpr       :: __genstate_doubled<i32>
-  expr 29:14    IdentExpr      :: fn(const i32[]) -> Iterator<i32>
-  expr 29:22    SeqLitExpr     :: const i32[]
+  expr 29:14    CallExpr       :: __genstate_doubled<i32>!
+  expr 29:14    IdentExpr      :: fn(i32[]) -> Iterator<i32>
+  expr 29:22    SeqLitExpr     :: i32[]
   expr 29:35    CallExpr       :: void
   expr 29:35    IdentExpr      :: fn(T) -> void
   expr 29:43    StringLitExpr  :: string
   expr 29:48    IdentExpr      :: i32
-  expr 30:14    CallExpr       :: __genstate_evens<i32>
-  expr 30:14    IdentExpr      :: fn(const i32[]) -> Iterator<i32>
-  expr 30:20    SeqLitExpr     :: const i32[]
+  expr 30:14    CallExpr       :: __genstate_evens<i32>!
+  expr 30:14    IdentExpr      :: fn(i32[]) -> Iterator<i32>
+  expr 30:20    SeqLitExpr     :: i32[]
   expr 30:42    CallExpr       :: void
   expr 30:42    IdentExpr      :: fn(T) -> void
   expr 30:50    StringLitExpr  :: string
   expr 30:55    IdentExpr      :: i32
-  expr 31:14    CallExpr       :: __genstate_flatten<i32>
-  expr 31:14    IdentExpr      :: fn(const const i32[][]) -> Iterator<i32>
-  expr 31:22    SeqLitExpr     :: const const i32[][]
-  expr 31:23    SeqLitExpr     :: const i32[]
-  expr 31:31    SeqLitExpr     :: const i32[]
-  expr 31:36    SeqLitExpr     :: const i32[]
+  expr 31:14    CallExpr       :: __genstate_flatten<i32>!
+  expr 31:14    IdentExpr      :: fn(i32[][]) -> Iterator<i32>
+  expr 31:22    SeqLitExpr     :: i32[][]
+  expr 31:23    SeqLitExpr     :: i32[]
+  expr 31:31    SeqLitExpr     :: i32[]
+  expr 31:36    SeqLitExpr     :: i32[]
   expr 31:47    CallExpr       :: void
   expr 31:47    IdentExpr      :: fn(T) -> void
   expr 31:55    StringLitExpr  :: string

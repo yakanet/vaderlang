@@ -20,15 +20,15 @@
         r:
           int(0) :i32
   fn snippet$main() -> i32
-    let labels: string[] =
-      array :string[]
+    let labels: string[]! =
+      array :string[]!
         "a" :string
         "b" :string
         "c" :string
-    let thunks: (fn() -> void)[] =
-      array :(fn() -> void)[]
+    let thunks: (fn() -> void)[]! =
+      array :(fn() -> void)[]!
     block :void
-      let __for_arr_0: string[] = labels :string[]
+      let __for_arr_0: string[]! = labels :string[]!
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -46,7 +46,7 @@
               r:
                 int(1) :usize
     block :void
-      let __for_arr_4: (fn() -> void)[] = thunks :(fn() -> void)[]
+      let __for_arr_4: (fn() -> void)[]! = thunks :(fn() -> void)[]!
       let __for_len_5: usize =
         LoweredArrayLen
       let __for_i_6: usize = int(0) :usize
@@ -54,7 +54,7 @@
         let t: fn() -> void =
           index :fn() -> void
             on:
-              __for_arr_4 :(fn() -> void)[]
+              __for_arr_4 :(fn() -> void)[]!
             ix:
               __for_i_6 :usize
         call :void
@@ -135,8 +135,8 @@
                 __i_7 :i32
               r:
                 int(1) :i32
-    let mapped: (fn() -> void)[] =
-      array :(fn() -> void)[]
+    let mapped: (fn() -> void)[]! =
+      array :(fn() -> void)[]!
     block :void
       let f: fn(i32) -> i32 = tenfold :fn(i32) -> i32
       let x: i32 = int(0) :i32
@@ -154,7 +154,7 @@
               r:
                 int(1) :i32
     block :void
-      let __for_arr_13: (fn() -> void)[] = mapped :(fn() -> void)[]
+      let __for_arr_13: (fn() -> void)[]! = mapped :(fn() -> void)[]!
       let __for_len_14: usize =
         LoweredArrayLen
       let __for_i_15: usize = int(0) :usize
@@ -162,7 +162,7 @@
         let t: fn() -> void =
           index :fn() -> void
             on:
-              __for_arr_13 :(fn() -> void)[]
+              __for_arr_13 :(fn() -> void)[]!
             ix:
               __for_i_15 :usize
         call :void
@@ -203,26 +203,26 @@
                 x :i32
               r:
                 int(1) :i32
-    let apply: __lambda_env_39 =
-      __lambda_env_39 {
+    let apply: __lambda_env_39! =
+      __lambda_env_39! {
       }
     call :void
       callee:
         __lambda_38 :fn(i64) -> void
       arg0:
-        apply :__lambda_env_39
+        apply :__lambda_env_39!
       arg1:
         int(7) :i64
     call :void
       callee:
         __lambda_38 :fn(i64) -> void
       arg0:
-        apply :__lambda_env_39
+        apply :__lambda_env_39!
       arg1:
         int(8) :i64
     return int(0) :i32
   struct __lambda_env_5 { cap_0: ? }
-  fn __lambda_4(__env_3: __lambda_env_5) -> void
+  fn __lambda_4(__env_3: __lambda_env_5!) -> void
     ~>
       call :void
         callee:
@@ -236,7 +236,7 @@
             arg1:
               LoweredCellGet
   struct __defer_env_18 { cap_0: ? }
-  fn __defer_17(__env_8: __defer_env_18) -> void
+  fn __defer_17(__env_8: __defer_env_18!) -> void
     ~>
       call :void
         callee:
@@ -286,7 +286,7 @@
                 arg1:
                   __off_1 :usize
   struct __lambda_env_26 { cap_0: ? }
-  fn __lambda_25(__env_12: __lambda_env_26) -> void
+  fn __lambda_25(__env_12: __lambda_env_26!) -> void
     ~>
       call :void
         callee:
@@ -336,7 +336,7 @@
                 arg1:
                   __off_1 :usize
   struct __defer_env_34 { cap_0: ? }
-  fn __defer_33(__env_16: __defer_env_34) -> void
+  fn __defer_33(__env_16: __defer_env_34!) -> void
     ~>
       call :void
         callee:
@@ -386,7 +386,7 @@
                 arg1:
                   __off_1 :usize
   struct __lambda_env_42 { cap_0: ? }
-  fn __lambda_41(__env_0: __lambda_env_42) -> void
+  fn __lambda_41(__env_0: __lambda_env_42!) -> void
     ~>
       call :void
         callee:
@@ -435,11 +435,11 @@
                 arg1:
                   __off_1 :usize
   struct __lambda_env_39 {  }
-  fn __lambda_38(__env_17: __lambda_env_39, n: i64) -> void
+  fn __lambda_38(__env_17: __lambda_env_39!, n: i64) -> void
     let n: ? =
       LoweredCellNew
-    let twice: __lambda_env_42 =
-      __lambda_env_42 {
+    let twice: __lambda_env_42! =
+      __lambda_env_42! {
         cap_0: n :i64
       }
     ~>
@@ -447,7 +447,7 @@
         callee:
           __lambda_41 :fn() -> void
         arg0:
-          twice :__lambda_env_42
+          twice :__lambda_env_42!
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

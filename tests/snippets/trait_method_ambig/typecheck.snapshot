@@ -2,7 +2,7 @@
 
 ## tests/snippets/trait_method_ambig
   TraitDecl      Annot                :: Annot
-  StructDecl     Cat                  :: Cat
+  StructDecl     Cat                  :: Cat!
   TraitDecl      Greet                :: Greet
   FnDecl         main                 :: fn() -> i32
   expr 13:61    StringLitExpr  :: string
@@ -11,11 +11,11 @@
   expr 14:61    StringLitExpr  :: string
   expr 14:66    FieldExpr      :: string
   expr 14:66    IdentExpr      :: Cat
-  expr 17:10    StructLitExpr  :: Cat
+  expr 17:10    StructLitExpr  :: Cat!
   expr 17:24    StringLitExpr  :: string
   expr 19:10    CallExpr       :: string
   expr 19:10    FieldExpr      :: fn() -> string
-  expr 19:10    IdentExpr      :: Cat
+  expr 19:10    IdentExpr      :: Cat!
 
 # Diagnostics
-[19:12] error[T3032] ambiguous overload resolution: `greet` on Cat is ambiguous between traits: Greet, Annot
+[19:12] error[T3032] ambiguous overload resolution: `greet` on Cat! is ambiguous between traits: Greet, Annot

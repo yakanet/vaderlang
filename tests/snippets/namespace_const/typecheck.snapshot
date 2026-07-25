@@ -1,10 +1,10 @@
 # Typecheck
 
 ## tests/snippets/namespace_const
-  StructDecl     Budget               :: Budget
+  StructDecl     Budget               :: Budget!
   FnDecl         main                 :: fn() -> i32
   FnDecl         mk                   :: fn() -> Budget
-  expr 20:24    StructLitExpr  :: Budget
+  expr 20:24    StructLitExpr  :: Budget!
   expr 20:44    FieldExpr      :: usize
   expr 20:68    FieldExpr      :: string
   expr 23:10    CallExpr       :: Budget

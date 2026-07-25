@@ -2,4 +2,4 @@
 
 ## tests/snippets/intrinsic_field_index
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Vec3                 :: Vec3
+  StructDecl     Vec3                 :: Vec3!

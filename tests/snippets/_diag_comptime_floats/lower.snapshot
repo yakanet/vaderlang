@@ -12,7 +12,7 @@
           arg0:
             index :f64
               on:
-                WIDE :const f64[]
+                WIDE :f64[]
               ix:
                 int(1) :i32
     call :void
@@ -25,7 +25,7 @@
           arg0:
             index :f32
               on:
-                NARROW :const f32[]
+                NARROW :f32[]
               ix:
                 int(0) :i32
     return int(0) :i32

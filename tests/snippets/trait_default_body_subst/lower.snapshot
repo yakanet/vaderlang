@@ -4,13 +4,13 @@
   struct snippet$Box { v: i32 }
   struct snippet$A { a: i32 }
   struct snippet$B { b: i32 }
-  fn snippet$A$Widget$base(self: A) -> i32
+  fn snippet$A$Widget$base(self: A!) -> i32
     ~>
       .a :i32
         self :A
-  fn snippet$A$Widget$boxed(self: A) -> Box
+  fn snippet$A$Widget$boxed(self: A!) -> Box!
     ~>
-      Box {
+      Box! {
         v:
           add :i32
             l:
@@ -19,7 +19,7 @@
             r:
               int(100) :i32
       }
-  fn snippet$A$Widget$wide(self: A) -> i64
+  fn snippet$A$Widget$wide(self: A!) -> i64
     ~>
       mul :i64
         l:
@@ -28,7 +28,7 @@
               self :A
         r:
           int(2) :i64
-  fn snippet$A$Widget$label(self: A) -> string
+  fn snippet$A$Widget$label(self: A!) -> string
     ~>
       block :string
         let __buf_0: Buffer =
@@ -74,9 +74,9 @@
               __buf_0 :Buffer
             arg1:
               __off_1 :usize
-  fn snippet$A$Widget$pair(self: A) -> i32[]
+  fn snippet$A$Widget$pair(self: A!) -> i32[]!
     ~>
-      array :i32[]
+      array :i32[]!
         .a :i32
           self :A
         add :i32
@@ -85,13 +85,13 @@
               self :A
           r:
             int(1) :i32
-  fn snippet$B$Widget$base(self: B) -> i32
+  fn snippet$B$Widget$base(self: B!) -> i32
     ~>
       .b :i32
         self :B
-  fn snippet$B$Widget$boxed(self: B) -> Box
+  fn snippet$B$Widget$boxed(self: B!) -> Box!
     ~>
-      Box {
+      Box! {
         v:
           add :i32
             l:
@@ -100,7 +100,7 @@
             r:
               int(100) :i32
       }
-  fn snippet$B$Widget$wide(self: B) -> i64
+  fn snippet$B$Widget$wide(self: B!) -> i64
     ~>
       mul :i64
         l:
@@ -109,7 +109,7 @@
               self :B
         r:
           int(2) :i64
-  fn snippet$B$Widget$label(self: B) -> string
+  fn snippet$B$Widget$label(self: B!) -> string
     ~>
       block :string
         let __buf_0: Buffer =
@@ -155,9 +155,9 @@
               __buf_0 :Buffer
             arg1:
               __off_1 :usize
-  fn snippet$B$Widget$pair(self: B) -> i32[]
+  fn snippet$B$Widget$pair(self: B!) -> i32[]!
     ~>
-      array :i32[]
+      array :i32[]!
         .b :i32
           self :B
         add :i32
@@ -167,12 +167,12 @@
           r:
             int(1) :i32
   fn snippet$main() -> i32
-    let a: A =
-      A {
+    let a: A! =
+      A! {
         a: int(1) :i32
       }
-    let b: B =
-      B {
+    let b: B! =
+      B! {
         b: int(2) :i32
       }
     let ok: bool = true
@@ -181,12 +181,12 @@
         neq :bool
           l:
             .v :i32
-              Box {
+              Box! {
                 v:
                   add :i32
                     l:
                       .a :i32
-                        a :A
+                        a :A!
                     r:
                       int(100) :i32
               }
@@ -203,12 +203,12 @@
         neq :bool
           l:
             .v :i32
-              Box {
+              Box! {
                 v:
                   add :i32
                     l:
                       .b :i32
-                        b :B
+                        b :B!
                     r:
                       int(100) :i32
               }
@@ -228,7 +228,7 @@
               l:
                 cast → i64
                   .a :i32
-                    a :A
+                    a :A!
               r:
                 int(2) :i64
           r:
@@ -247,7 +247,7 @@
               l:
                 cast → i64
                   .b :i32
-                    b :B
+                    b :B!
               r:
                 int(2) :i64
           r:
@@ -266,7 +266,7 @@
               callee:
                 snippet$A$Widget$label :string
               arg0:
-                a :A
+                a :A!
           r:
             "w:1" :string
       then:
@@ -283,7 +283,7 @@
               callee:
                 snippet$B$Widget$label :string
               arg0:
-                b :B
+                b :B!
           r:
             "w:2" :string
       then:
@@ -292,14 +292,14 @@
             ok :bool
           value:
             false
-    let pa: i32[] =
-      array :i32[]
+    let pa: i32[]! =
+      array :i32[]!
         .a :i32
-          a :A
+          a :A!
         add :i32
           l:
             .a :i32
-              a :A
+              a :A!
           r:
             int(1) :i32
     if :void
@@ -308,7 +308,7 @@
           l:
             index :i32
               on:
-                pa :i32[]
+                pa :i32[]!
               ix:
                 int(0) :i32
           r:
@@ -325,7 +325,7 @@
           l:
             index :i32
               on:
-                pa :i32[]
+                pa :i32[]!
               ix:
                 int(1) :i32
           r:
@@ -336,14 +336,14 @@
             ok :bool
           value:
             false
-    let pb: i32[] =
-      array :i32[]
+    let pb: i32[]! =
+      array :i32[]!
         .b :i32
-          b :B
+          b :B!
         add :i32
           l:
             .b :i32
-              b :B
+              b :B!
           r:
             int(1) :i32
     if :void
@@ -352,7 +352,7 @@
           l:
             index :i32
               on:
-                pb :i32[]
+                pb :i32[]!
               ix:
                 int(0) :i32
           r:
@@ -369,7 +369,7 @@
           l:
             index :i32
               on:
-                pb :i32[]
+                pb :i32[]!
               ix:
                 int(1) :i32
           r:

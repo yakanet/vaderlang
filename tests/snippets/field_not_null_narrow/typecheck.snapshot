@@ -1,8 +1,8 @@
 # Typecheck
 
 ## tests/snippets/field_not_null_narrow
-  StructDecl     Box                  :: Box
-  StructDecl     Inner                :: Inner
+  StructDecl     Box                  :: Box!
+  StructDecl     Inner                :: Inner!
   FnDecl         main                 :: fn() -> i32
   FnDecl         tag_of               :: fn(Box) -> i32
   expr 26:10    BinaryExpr     :: bool
@@ -17,11 +17,11 @@
   expr 29:12    UnaryExpr      :: i32
   expr 33:13    CallExpr       :: i32
   expr 33:13    IdentExpr      :: fn(Box) -> i32
-  expr 33:20    StructLitExpr  :: Box
-  expr 33:33    StructLitExpr  :: Inner
+  expr 33:20    StructLitExpr  :: Box!
+  expr 33:33    StructLitExpr  :: Inner!
   expr 34:13    CallExpr       :: i32
   expr 34:13    IdentExpr      :: fn(Box) -> i32
-  expr 34:20    StructLitExpr  :: Box
+  expr 34:20    StructLitExpr  :: Box!
   expr 35:13    StringLitExpr  :: string
   expr 35:20    IdentExpr      :: i32
   expr 35:32    IdentExpr      :: i32

@@ -2,27 +2,27 @@
 
 ## snippet
   struct snippet$Cat { name: string }
-  fn snippet$Cat$Tag$tag(self: Cat) -> string
+  fn snippet$Cat$Tag$tag(self: Cat!) -> string
     return
       .name :string
         self :Cat
   struct snippet$Dog { name: string }
-  fn snippet$Dog$Tag$tag(self: Dog) -> string
+  fn snippet$Dog$Tag$tag(self: Dog!) -> string
     return
       .name :string
         self :Dog
   fn snippet$main() -> i32
-    let a: Wrap<Cat> =
-      Wrap<Any> {
+    let a: Wrap<Cat!>! =
+      Wrap<Any>! {
         value:
-          Cat {
+          Cat! {
             name: "Mira" :string
           }
       }
-    let b: Wrap<Dog> =
-      Wrap<Any> {
+    let b: Wrap<Dog!>! =
+      Wrap<Any>! {
         value:
-          Dog {
+          Dog! {
             name: "Rex" :string
           }
       }
@@ -34,7 +34,7 @@
           callee:
             snippet$Wrap$Display$to_string__Any :string
           arg0:
-            a :Wrap<Cat>
+            a :Wrap<Cat!>!
     call :void
       callee:
         std_io$println__string :void
@@ -43,17 +43,17 @@
           callee:
             snippet$Wrap$Display$to_string__Any :string
           arg0:
-            b :Wrap<Dog>
+            b :Wrap<Dog!>!
     return int(0) :i32
   struct snippet$Wrap__Cat { value: Any }
-  fn snippet$Wrap$Display$to_string__Any(self: Wrap<Any>) -> string
+  fn snippet$Wrap$Display$to_string__Any(self: Wrap<Any>!) -> string
     return "wrapped" :string
-  fn snippet$Cat$Tag$tag(self: Cat) -> string
+  fn snippet$Cat$Tag$tag(self: Cat!) -> string
     return
       .name :string
         self :Cat
   struct snippet$Wrap__Dog { value: Any }
-  fn snippet$Dog$Tag$tag(self: Dog) -> string
+  fn snippet$Dog$Tag$tag(self: Dog!) -> string
     return
       .name :string
         self :Dog

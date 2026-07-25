@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Hello {  }
-  fn snippet$Hello$Greeter$greet(self: Hello) -> i32
+  fn snippet$Hello$Greeter$greet(self: Hello!) -> i32
     return int(100) :i32
   fn snippet$i32$Doubler$doubled(self: i32) -> i32
     return
@@ -42,9 +42,9 @@
         callee:
           snippet$count__i32 :i32
         arg0:
-          ArrayIterator<i32> {
+          ArrayIterator<i32>! {
             arr:
-              array :i32[]
+              array :i32[]!
                 int(10) :i32
                 int(20) :i32
                 int(30) :i32
@@ -55,7 +55,7 @@
         callee:
           snippet$invoke__i32 :i32
         arg0:
-          Hello {
+          Hello! {
           }
     let d: i32 =
       call :i32
@@ -83,15 +83,15 @@
     loop while (cont :bool)
       ~>
         block :void
-          let __scrut_0: null | Yield<i32> =
-            vcall Iterator.next :null | Yield<i32>
+          let __scrut_0: null | Yield<i32>! =
+            vcall Iterator.next :null | Yield<i32>!
               recv:
                 it :Iterator<i32>
           ~>
             if :void
               cond:
                 is null :bool
-                  __scrut_0 :null | Yield<i32>
+                  __scrut_0 :null | Yield<i32>!
               then:
                 ~>
                   block :void
@@ -104,8 +104,8 @@
                 ~>
                   if :void
                     cond:
-                      is Yield<i32> :bool
-                        __scrut_0 :null | Yield<i32>
+                      is Yield<i32>! :bool
+                        __scrut_0 :null | Yield<i32>!
                     then:
                       ~>
                         block :void

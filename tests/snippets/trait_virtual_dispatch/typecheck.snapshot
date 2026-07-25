@@ -2,8 +2,8 @@
 
 ## tests/snippets/trait_virtual_dispatch
   FnDecl         main                 :: fn() -> i32
-  StructDecl     NetErr               :: NetErr
-  StructDecl     ParseErr             :: ParseErr
+  StructDecl     NetErr               :: NetErr!
+  StructDecl     ParseErr             :: ParseErr!
   FnDecl         report               :: fn(Error) -> string
   expr 12:30    StringLitExpr  :: string
   expr 12:40    FieldExpr      :: string
@@ -16,13 +16,13 @@
   expr 16:12    IdentExpr      :: Error
   expr 20:13    CallExpr       :: string
   expr 20:13    IdentExpr      :: fn(Error) -> string
-  expr 20:20    StructLitExpr  :: ParseErr
+  expr 20:20    StructLitExpr  :: ParseErr!
   expr 20:38    StringLitExpr  :: string
   expr 20:5     CallExpr       :: void
   expr 20:5     IdentExpr      :: fn(T) -> void
   expr 21:13    CallExpr       :: string
   expr 21:13    IdentExpr      :: fn(Error) -> string
-  expr 21:20    StructLitExpr  :: NetErr
+  expr 21:20    StructLitExpr  :: NetErr!
   expr 21:41    StringLitExpr  :: string
   expr 21:5     CallExpr       :: void
   expr 21:5     IdentExpr      :: fn(T) -> void

@@ -4,11 +4,11 @@
   FnDecl         main                 :: fn() -> i32
   expr 10:11    IdentExpr      :: string
   expr 10:16    IdentExpr      :: i32
-  expr 10:9     IdentExpr      :: MutableMap<string, i32>
+  expr 10:9     IdentExpr      :: MutableMap<string, i32>!
   expr 11:9     BinaryExpr     :: i32
   expr 11:9     IdentExpr      :: i32
-  expr 14:14    IdentExpr      :: string[]
-  expr 15:14    IdentExpr      :: MutableMap<string, i32>
+  expr 14:14    IdentExpr      :: string[]!
+  expr 15:14    IdentExpr      :: MutableMap<string, i32>!
   expr 15:14    IndexExpr      :: i32 | null
   expr 15:16    IdentExpr      :: string
   expr 16:12    BinaryExpr     :: bool
@@ -27,11 +27,11 @@
   expr 18:13    StringLitExpr  :: string
   expr 18:21    CallExpr       :: usize
   expr 18:21    FieldExpr      :: fn() -> usize
-  expr 18:21    IdentExpr      :: MutableMap<string, i32>
+  expr 18:21    IdentExpr      :: MutableMap<string, i32>!
   expr 18:5     CallExpr       :: void
   expr 18:5     IdentExpr      :: fn(T) -> void
-  expr 6:10     StructLitExpr  :: MutableMap<string, i32>
-  expr 7:13     SeqLitExpr     :: string[]
+  expr 6:10     StructLitExpr  :: MutableMap<string, i32>!
+  expr 7:13     SeqLitExpr     :: string[]!
   expr 7:14     StringLitExpr  :: string
   expr 7:23     StringLitExpr  :: string
   expr 7:31     StringLitExpr  :: string
@@ -40,4 +40,4 @@
   expr 7:59     StringLitExpr  :: string
   expr 7:74     StringLitExpr  :: string
   expr 7:79     StringLitExpr  :: string
-  expr 9:14     IdentExpr      :: string[]
+  expr 9:14     IdentExpr      :: string[]!

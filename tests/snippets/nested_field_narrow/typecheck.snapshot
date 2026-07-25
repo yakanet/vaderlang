@@ -2,9 +2,9 @@
 
 ## tests/snippets/nested_field_narrow
   FnDecl         count_match          :: fn(Outer) -> i32
-  StructDecl     Inner                :: Inner
+  StructDecl     Inner                :: Inner!
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Outer                :: Outer
+  StructDecl     Outer                :: Outer!
   FnDecl         unwrap               :: fn(Outer) -> i32
   expr 15:11    FieldExpr      :: Inner
   expr 15:11    FieldExpr      :: i32 | null
@@ -23,32 +23,32 @@
   expr 24:12    FieldExpr      :: Inner
   expr 24:12    FieldExpr      :: i32
   expr 24:12    IdentExpr      :: Outer
-  expr 28:14    StructLitExpr  :: Outer
-  expr 28:31    StructLitExpr  :: Inner
-  expr 29:14    StructLitExpr  :: Outer
-  expr 29:31    StructLitExpr  :: Inner
+  expr 28:14    StructLitExpr  :: Outer!
+  expr 28:31    StructLitExpr  :: Inner!
+  expr 29:14    StructLitExpr  :: Outer!
+  expr 29:31    StructLitExpr  :: Inner!
   expr 30:13    StringLitExpr  :: string
   expr 30:27    CallExpr       :: i32
   expr 30:27    IdentExpr      :: fn(Outer) -> i32
-  expr 30:39    IdentExpr      :: Outer
+  expr 30:39    IdentExpr      :: Outer!
   expr 30:5     CallExpr       :: void
   expr 30:5     IdentExpr      :: fn(T) -> void
   expr 31:13    StringLitExpr  :: string
   expr 31:29    CallExpr       :: i32
   expr 31:29    IdentExpr      :: fn(Outer) -> i32
-  expr 31:41    IdentExpr      :: Outer
+  expr 31:41    IdentExpr      :: Outer!
   expr 31:5     CallExpr       :: void
   expr 31:5     IdentExpr      :: fn(T) -> void
   expr 32:13    StringLitExpr  :: string
   expr 32:28    CallExpr       :: i32
   expr 32:28    IdentExpr      :: fn(Outer) -> i32
-  expr 32:35    IdentExpr      :: Outer
+  expr 32:35    IdentExpr      :: Outer!
   expr 32:5     CallExpr       :: void
   expr 32:5     IdentExpr      :: fn(T) -> void
   expr 33:13    StringLitExpr  :: string
   expr 33:30    CallExpr       :: i32
   expr 33:30    IdentExpr      :: fn(Outer) -> i32
-  expr 33:37    IdentExpr      :: Outer
+  expr 33:37    IdentExpr      :: Outer!
   expr 33:5     CallExpr       :: void
   expr 33:5     IdentExpr      :: fn(T) -> void
 

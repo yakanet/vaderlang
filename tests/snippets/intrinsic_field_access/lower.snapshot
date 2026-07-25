@@ -89,8 +89,8 @@
                 arg1:
                   __off_2 :usize
   fn snippet$main() -> i32
-    let u: User =
-      User {
+    let u: User! =
+      User! {
         name: "alice" :string
         age: int(30) :i32
       }
@@ -101,7 +101,7 @@
         block :string
           let __p_0: string =
             .name :string
-              u :User
+              u :User!
           let __buf_1: Buffer =
             call :Buffer
               callee:
@@ -170,7 +170,7 @@
                 arg2:
                   cast → i64
                     .age :i32
-                      u :User
+                      u :User!
           assign
             target:
               __off_2 :usize
@@ -196,7 +196,7 @@
       callee:
         derive_print :fn(User) -> void
       arg0:
-        u :User
+        u :User!
     return int(0) :i32
   fn concat_3(p0: string, p1: string, p2: string) -> string
     let c0: usize =

@@ -2,8 +2,8 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let list: i32[] =
-      array :i32[]
+    let list: i32[]! =
+      array :i32[]!
     let i: i32 = int(0) :i32
     loop while (<…>)
       LoweredArrayPush
@@ -102,7 +102,7 @@
             r:
               index :i32
                 on:
-                  list :i32[]
+                  list :i32[]!
                 ix:
                   j :i32
       assign

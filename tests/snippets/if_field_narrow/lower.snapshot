@@ -1,8 +1,8 @@
 # Lower
 
 ## snippet
-  struct snippet$Bag { items: const i32[] | null }
-  fn snippet$count(items: const i32[]) -> i32
+  struct snippet$Bag { items: i32[] | null }
+  fn snippet$count(items: i32[]) -> i32
     return
       cast → i32
         LoweredArrayLen
@@ -12,7 +12,7 @@
         cond:
           not :bool
             is null :bool
-              .items :const i32[] | null
+              .items :i32[] | null
                 b :Bag
         then:
           ~>
@@ -56,9 +56,9 @@
                           cast → i64
                             call :i32
                               callee:
-                                count :fn(const i32[]) -> i32
+                                count :fn(i32[]) -> i32
                               arg0:
-                                .items :const i32[]
+                                .items :i32[]
                                   b :Bag
                   ~>
                     call :string
@@ -79,7 +79,7 @@
     if :void
       cond:
         is null :bool
-          .items :const i32[] | null
+          .items :i32[] | null
             b :Bag
       then:
         return
@@ -88,33 +88,33 @@
     return
       call :i32
         callee:
-          count :fn(const i32[]) -> i32
+          count :fn(i32[]) -> i32
         arg0:
-          .items :const i32[]
+          .items :i32[]
             b :Bag
   fn snippet$main() -> i32
-    let full: Bag =
-      Bag {
+    let full: Bag! =
+      Bag! {
         items:
-          array :const i32[]
+          array :i32[]
             int(1) :i32
             int(2) :i32
             int(3) :i32
       }
-    let empty: Bag =
-      Bag {
+    let empty: Bag! =
+      Bag! {
         items: null
       }
     call :void
       callee:
         report :fn(Bag) -> void
       arg0:
-        full :Bag
+        full :Bag!
     call :void
       callee:
         report :fn(Bag) -> void
       arg0:
-        empty :Bag
+        empty :Bag!
     call :void
       callee:
         std_io$println__string :void
@@ -157,7 +157,7 @@
                       callee:
                         total :fn(Bag) -> i32
                       arg0:
-                        full :Bag
+                        full :Bag!
           ~>
             call :string
               callee:
@@ -208,7 +208,7 @@
                       callee:
                         total :fn(Bag) -> i32
                       arg0:
-                        empty :Bag
+                        empty :Bag!
           ~>
             call :string
               callee:

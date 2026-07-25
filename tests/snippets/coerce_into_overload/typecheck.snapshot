@@ -6,7 +6,7 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         preferred            :: fn(UserId) -> i32
   FnDecl         preferred            :: fn(i32) -> i32
-  StructDecl     UserId               :: UserId
+  StructDecl     UserId               :: UserId!
   expr 12:38    FieldExpr      :: i32
   expr 12:38    IdentExpr      :: UserId
   expr 16:38    BinaryExpr     :: i32
@@ -17,17 +17,17 @@
   expr 17:42    IdentExpr      :: f64
   expr 21:41    BinaryExpr     :: i32
   expr 21:41    IdentExpr      :: i32
-  expr 24:10    StructLitExpr  :: UserId
+  expr 24:10    StructLitExpr  :: UserId!
   expr 26:10    CallExpr       :: i32
   expr 26:10    IdentExpr      :: fn(i32) -> i32
-  expr 26:17    IdentExpr      :: UserId
+  expr 26:17    IdentExpr      :: UserId!
   expr 27:13    StringLitExpr  :: string
   expr 27:18    IdentExpr      :: i32
   expr 27:5     CallExpr       :: void
   expr 27:5     IdentExpr      :: fn(T) -> void
   expr 30:10    CallExpr       :: i32
   expr 30:10    IdentExpr      :: fn(UserId) -> i32
-  expr 30:20    IdentExpr      :: UserId
+  expr 30:20    IdentExpr      :: UserId!
   expr 31:13    StringLitExpr  :: string
   expr 31:18    IdentExpr      :: i32
   expr 31:5     CallExpr       :: void

@@ -6,7 +6,7 @@
   struct snippet$Fish { fins: i32 }
   fn snippet$is_pet(v: Cat | Dog | Fish) -> bool
     ~>
-      is Cat | Dog :bool
+      is Cat! | Dog! :bool
         v :Cat | Dog | Fish
   fn snippet$main() -> i32
     call :void
@@ -37,7 +37,7 @@
                     callee:
                       is_pet :fn(Cat | Dog | Fish) -> bool
                     arg0:
-                      Cat {
+                      Cat! {
                         name: "felix" :string
                       }
           ~>
@@ -76,7 +76,7 @@
                     callee:
                       is_pet :fn(Cat | Dog | Fish) -> bool
                     arg0:
-                      Dog {
+                      Dog! {
                         sound: "woof" :string
                       }
           ~>
@@ -115,7 +115,7 @@
                     callee:
                       is_pet :fn(Cat | Dog | Fish) -> bool
                     arg0:
-                      Fish {
+                      Fish! {
                         fins: int(4) :i32
                       }
           ~>

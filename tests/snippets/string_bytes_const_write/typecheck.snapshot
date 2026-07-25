@@ -2,10 +2,10 @@
 
 ## tests/snippets/string_bytes_const_write
   FnDecl         main                 :: fn() -> i32
-  expr 10:5     IdentExpr      :: const u8[]
-  expr 9:11     CallExpr       :: const u8[]
-  expr 9:11     FieldExpr      :: fn() -> const u8[]
+  expr 10:5     IdentExpr      :: u8[]
+  expr 9:11     CallExpr       :: u8[]
+  expr 9:11     FieldExpr      :: fn() -> u8[]
   expr 9:11     StringLitExpr  :: string
 
 # Diagnostics
-[10:5] error[T3042] cannot mutate an immutable array: cannot mutate `const u8[]`
+[10:5] error[T3042] cannot mutate an immutable array: cannot mutate `u8[]`

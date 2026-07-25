@@ -11,7 +11,7 @@
             "found" :string
       then:
         return
-          [i32, string] {
+          [i32, string]! {
             _0: int(42) :i32
             _1: "match" :string
           }

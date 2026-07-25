@@ -129,5 +129,5 @@ fresh_type_param :: fn(symbol_id: i32, name: string) -> Symbol {
     subst :: new_substitution()
     subst.type_params[3] = mk_primitive("string")
     rewritten :: substitute(mk_array(mk_type_param(sym), false), subst)
-    assert_eq(display_type(rewritten), "string[]")
+    assert_eq(display_type(rewritten), "string[]!")
 }

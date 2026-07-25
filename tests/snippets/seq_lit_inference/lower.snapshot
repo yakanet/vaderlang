@@ -2,13 +2,13 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let scores: i32[] =
-      array :i32[]
+    let scores: i32[]! =
+      array :i32[]!
         int(10) :i32
         int(20) :i32
         int(30) :i32
     block :void
-      let __for_arr_0: i32[] = scores :i32[]
+      let __for_arr_0: i32[]! = scores :i32[]!
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -16,7 +16,7 @@
         let s: i32 =
           index :i32
             on:
-              __for_arr_0 :i32[]
+              __for_arr_0 :i32[]!
             ix:
               __for_i_2 :usize
         call :void
@@ -75,8 +75,8 @@
                 __for_i_2 :usize
               r:
                 int(1) :usize
-    let entry: [i32, string] =
-      [i32, string] {
+    let entry: [i32, string]! =
+      [i32, string]! {
         _0: int(42) :i32
         _1: "answer" :string
       }
@@ -119,7 +119,7 @@
                 arg2:
                   cast → i64
                     ._0 :i32
-                      entry :[i32, string]
+                      entry :[i32, string]!
           ~>
             call :string
               callee:
@@ -139,7 +139,7 @@
             "label=" :string
           arg1:
             ._1 :string
-              entry :[i32, string]
+              entry :[i32, string]!
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

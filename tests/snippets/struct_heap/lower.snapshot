@@ -4,7 +4,7 @@
   struct snippet$Point { x: i32, y: i32 }
   fn snippet$make(a: i32, b: i32) -> Point
     ~>
-      Point {
+      Point! {
         x: a :i32
         y: b :i32
       }

@@ -2,17 +2,17 @@
 
 ## snippet
   fn snippet$show_decode(label: string, input: string) -> void
-    let out: Base64Error | const u8[] =
-      call :Base64Error | const u8[]
+    let out: Base64Error | u8[] =
+      call :Base64Error | u8[]
         callee:
-          decode :fn(string) -> Base64Error | const u8[]
+          decode :fn(string) -> Base64Error | u8[]
         arg0:
           input :string
     ~>
       if :void
         cond:
-          is Base64Error :bool
-            out :Base64Error | const u8[]
+          is Base64Error! :bool
+            out :Base64Error | u8[]
         then:
           ~>
             call :void
@@ -29,7 +29,7 @@
                   arg2:
                     .msg :string
                       cast → Base64Error
-                        out :Base64Error | const u8[]
+                        out :Base64Error | u8[]
         else:
           ~>
             call :void
@@ -48,8 +48,8 @@
                       callee:
                         bytes_to_string :string
                       arg0:
-                        cast → const u8[]
-                          out :Base64Error | const u8[]
+                        cast → u8[]
+                          out :Base64Error | u8[]
   fn snippet$main() -> i32
     call :void
       callee:
@@ -63,11 +63,11 @@
           arg1:
             call :string
               callee:
-                encode :fn(const u8[]) -> string
+                encode :fn(u8[]) -> string
               arg0:
-                call :const u8[]
+                call :u8[]
                   callee:
-                    bytes :const u8[]
+                    bytes :u8[]
                   arg0:
                     "f" :string
     call :void
@@ -82,11 +82,11 @@
           arg1:
             call :string
               callee:
-                encode :fn(const u8[]) -> string
+                encode :fn(u8[]) -> string
               arg0:
-                call :const u8[]
+                call :u8[]
                   callee:
-                    bytes :const u8[]
+                    bytes :u8[]
                   arg0:
                     "fo" :string
     call :void
@@ -101,11 +101,11 @@
           arg1:
             call :string
               callee:
-                encode :fn(const u8[]) -> string
+                encode :fn(u8[]) -> string
               arg0:
-                call :const u8[]
+                call :u8[]
                   callee:
-                    bytes :const u8[]
+                    bytes :u8[]
                   arg0:
                     "foo" :string
     call :void
@@ -120,11 +120,11 @@
           arg1:
             call :string
               callee:
-                encode :fn(const u8[]) -> string
+                encode :fn(u8[]) -> string
               arg0:
-                call :const u8[]
+                call :u8[]
                   callee:
-                    bytes :const u8[]
+                    bytes :u8[]
                   arg0:
                     "foob" :string
     call :void
@@ -139,11 +139,11 @@
           arg1:
             call :string
               callee:
-                encode :fn(const u8[]) -> string
+                encode :fn(u8[]) -> string
               arg0:
-                call :const u8[]
+                call :u8[]
                   callee:
-                    bytes :const u8[]
+                    bytes :u8[]
                   arg0:
                     "fooba" :string
     call :void
@@ -158,11 +158,11 @@
           arg1:
             call :string
               callee:
-                encode :fn(const u8[]) -> string
+                encode :fn(u8[]) -> string
               arg0:
-                call :const u8[]
+                call :u8[]
                   callee:
-                    bytes :const u8[]
+                    bytes :u8[]
                   arg0:
                     "foobar" :string
     call :void
@@ -207,15 +207,15 @@
         "dec-foobar" :string
       arg1:
         "Zm9vYmFy" :string
-    let inputs: string[] =
-      array :string[]
+    let inputs: string[]! =
+      array :string[]!
         "hello world" :string
         "" :string
         "a" :string
         "ab" :string
         "The quick brown fox" :string
     block :void
-      let __for_arr_0: string[] = inputs :string[]
+      let __for_arr_0: string[]! = inputs :string[]!
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -223,27 +223,27 @@
         let s: string =
           index :string
             on:
-              __for_arr_0 :string[]
+              __for_arr_0 :string[]!
             ix:
               __for_i_2 :usize
-        let decoded: Base64Error | const u8[] =
-          call :Base64Error | const u8[]
+        let decoded: Base64Error | u8[] =
+          call :Base64Error | u8[]
             callee:
-              decode :fn(string) -> Base64Error | const u8[]
+              decode :fn(string) -> Base64Error | u8[]
             arg0:
               call :string
                 callee:
-                  encode :fn(const u8[]) -> string
+                  encode :fn(u8[]) -> string
                 arg0:
-                  call :const u8[]
+                  call :u8[]
                     callee:
-                      bytes :const u8[]
+                      bytes :u8[]
                     arg0:
                       s :string
         if :void
           cond:
-            is Base64Error :bool
-              decoded :Base64Error | const u8[]
+            is Base64Error! :bool
+              decoded :Base64Error | u8[]
           then:
             ~>
               call :void
@@ -339,8 +339,8 @@
                                   callee:
                                     bytes_to_string :string
                                   arg0:
-                                    cast → const u8[]
-                                      decoded :Base64Error | const u8[]
+                                    cast → u8[]
+                                      decoded :Base64Error | u8[]
                               r:
                                 s :string
                     ~>

@@ -58,7 +58,7 @@
           callee:
             greet_wildcard :fn(Cat | Dog | null) -> string
           arg0:
-            Cat {
+            Cat! {
               name: "Whiskers" :string
             }
     call :void
@@ -69,7 +69,7 @@
           callee:
             greet_wildcard :fn(Cat | Dog | null) -> string
           arg0:
-            Dog {
+            Dog! {
               name: "Rex" :string
             }
     call :void
@@ -89,7 +89,7 @@
           callee:
             greet_binding :fn(Cat | Dog | null) -> string
           arg0:
-            Cat {
+            Cat! {
               name: "Mittens" :string
             }
     call :void
@@ -100,7 +100,7 @@
           callee:
             greet_binding :fn(Cat | Dog | null) -> string
           arg0:
-            Dog {
+            Dog! {
               name: "Buddy" :string
             }
     call :void

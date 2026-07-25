@@ -422,6 +422,19 @@ export display_type :: fn(t: Type) -> string {
     return sb.to_string()
 }
 
+/// Render `t` WITHOUT any mutability marker — the key form.
+///
+/// Every side-table keyed on a rendered type (`impl_methods`, the `Into` target
+/// key) must use this: a receiver's mutability is not part of what an impl is
+/// registered under, so rendering it would look up `"Cfg!::bump"` where
+/// registration wrote `"Cfg::bump"` and the whole impl dispatch would miss —
+/// silently, since a miss just means "no such method".
+export display_type_key :: fn(t: Type) -> string {
+    sb :: StringBuilder {}
+    sb.write_type_mut(t, false)
+    return sb.to_string()
+}
+
 /// Base name of a nominal type — strips type-args. Used as the lookup
 /// key for impl-side tables (`impl_methods`, `iter_element_types`,
 /// `index_target_types`) so generic instantiations dispatch through
@@ -444,18 +457,27 @@ export type_base_name :: fn(t: Type) -> string {
         is EnumType     as en -> { return en.symbol.name }
         is DistinctType as dt -> { return dt.symbol.name }
         is ArrayType          -> { return "[]" }
-        _ -> { return display_type(t) }
+        // A KEY, so the mutability-free rendering : a tuple / fn / union receiver
+        // must key the same whether or not its slot is mutable, else registration
+        // and lookup drift and the dispatch misses in silence.
+        _ -> { return display_type_key(t) }
     }
 }
 
 
-write_type :: fn(sb: StringBuilder!, t: Type) -> void {
+write_type :: fn(sb: StringBuilder!, t: Type) -> void { sb.write_type_mut(t, true) }
+
+// `show_mut = false` renders the SHAPE only — see `display_type_key`.
+write_type_mut :: fn(sb: StringBuilder!, t: Type, show_mut: bool) -> void {
     match t {
         is PrimitiveType as x -> { sb.append(x.name) }
-        is StructType    as x -> { sb.write_named(x.symbol.name, x.args) }
+        is StructType    as x -> {
+            sb.write_named_mut(x.symbol.name, x.args, show_mut)
+            if show_mut && !x.immutable { sb.append_char('!') }
+        }
         is EnumType      as x -> { sb.append(x.symbol.name) }
         is DistinctType  as x -> { sb.append(x.symbol.name) }
-        is TraitType     as x -> { sb.write_named(x.symbol.name, x.args) }
+        is TraitType     as x -> { sb.write_named_mut(x.symbol.name, x.args, show_mut) }
         is TypeParamType as x -> { sb.append(x.symbol.name) }
         is TypeMetaType       -> { sb.append("type") }
         is SelfType           -> { sb.append("Self") }
@@ -465,20 +487,27 @@ write_type :: fn(sb: StringBuilder!, t: Type) -> void {
         is FreeFloatType      -> { sb.append("{float}") }
         is FreeCharType       -> { sb.append("{char}") }
         is ArrayType as x -> {
-            if x.immutable { sb.append("const ") }
             // `(A | B)[]` is unambiguous ; bare `A | B[]` would read as
             // `A | (B[])` since `[]` binds tighter than `|`. Same for
             // bare fn types like `fn() -> A`.
             needs_parens :: x.element is UnionType || x.element is FnType
             if needs_parens { sb.append_char('(') }
-            sb.write_type(x.element)
+            sb.write_type_mut(x.element, show_mut)
             if needs_parens { sb.append_char(')') }
             sb.append("[]")
+            // A SUFFIX, and on the mutable form — exactly what the source spells.
+            // The old `const ` prefix was ambiguous in the two places it mattered:
+            // on a union it read as governing every variant (`const u8[] | Err`
+            // marks only the array — the bit is distributed), and on a nested
+            // array it attached to the wrong level (`Array(const Array(i32))`
+            // printed `const i32[][]`, suggesting the OUTER array was frozen).
+            if show_mut && !x.immutable { sb.append_char('!') }
         }
         is TupleType as x -> {
             sb.append_char('[')
-            sb.write_type_list(x.elements, ", ")
+            sb.write_type_list_mut(x.elements, ", ", show_mut)
             sb.append_char(']')
+            if show_mut && !x.immutable { sb.append_char('!') }
         }
         is FnType as x -> {
             sb.append("fn(")
@@ -486,35 +515,41 @@ write_type :: fn(sb: StringBuilder!, t: Type) -> void {
             for i in 0..<x.params.len() {
                 if !first { sb.append(", ") }
                 first = false
-                sb.write_type(x.params[i])
-                // `!` renders per marked parameter ; an empty `params_mutable`
-                // (the common case) emits nothing, so existing dumps are unchanged.
-                if i < x.params_mutable.len() && x.params_mutable[i] {
-                    sb.append_char('!')
-                }
+                // The marker now rides the param's TYPE, which renders its own
+                // `!` just above — `params_mutable` is the same fact recorded a
+                // second time, so rendering it too printed `Cfg[]!!`.
+                sb.write_type_mut(x.params[i], show_mut)
             }
             sb.append(") -> ")
-            sb.write_type(x.return_type)
+            sb.write_type_mut(x.return_type, show_mut)
         }
-        is UnionType as x -> { sb.write_type_list(x.variants, " | ") }
+        is UnionType as x -> { sb.write_type_list_mut(x.variants, " | ", show_mut) }
         is AnyType            -> { sb.append("Any") }
     }
 }
 
 write_named :: fn(sb: StringBuilder!, name: string, args: Type[]) -> void {
+    sb.write_named_mut(name, args, true)
+}
+
+write_named_mut :: fn(sb: StringBuilder!, name: string, args: Type[], show_mut: bool) -> void {
     sb.append(name)
     if args.len() == 0 { return }
     sb.append_char('<')
-    sb.write_type_list(args, ", ")
+    sb.write_type_list_mut(args, ", ", show_mut)
     sb.append_char('>')
 }
 
 write_type_list :: fn(sb: StringBuilder!, items: Type[], sep: string) -> void {
+    sb.write_type_list_mut(items, sep, true)
+}
+
+write_type_list_mut :: fn(sb: StringBuilder!, items: Type[], sep: string, show_mut: bool) -> void {
     first := true
     for it in items {
         if !first { sb.append(sep) }
         first = false
-        sb.write_type(it)
+        sb.write_type_mut(it, show_mut)
     }
 }
 
@@ -696,10 +731,20 @@ test_display_primitive :: fn() -> void {
 
 @test
 test_display_array :: fn() -> void {
-    arr :: mk_array(mk_primitive("i32"), false)
-    assert_eq(display_type(arr), "i32[]")
-    imm :: mk_array(mk_primitive("i32"), true)
-    assert_eq(display_type(imm), "const i32[]")
+    // The marker is a SUFFIX on the MUTABLE form — exactly what the source spells,
+    // so a dump round-trips as written. The read-only form is bare (it is the
+    // default), and `display_type_key` drops the marker for side-table keys.
+    mut_arr :: mk_array(mk_primitive("i32"), false)
+    assert_eq(display_type(mut_arr), "i32[]!")
+    // the KEY form never carries the marker — that is what keeps a side table
+    // keyed the same whether the slot is mutable or not
+    assert_eq(display_type_key(mut_arr), "i32[]")
+    ro :: mk_array(mk_primitive("i32"), true)
+    assert_eq(display_type(ro), "i32[]")
+    // Nested : each level carries its own marker, which the old `const ` prefix
+    // could not express (it printed `const i32[][]` for a frozen INNER array).
+    outer_mut :: mk_array(mk_array(mk_primitive("i32"), true), false)
+    assert_eq(display_type(outer_mut), "i32[][]!")
 }
 
 @test
@@ -707,7 +752,7 @@ test_display_tuple :: fn() -> void {
     el0: Type = mk_primitive("i32")
     el1: Type = mk_primitive("string")
     t :: mk_tuple([el0, el1], false)
-    assert_eq(display_type(t), "[i32, string]")
+    assert_eq(display_type(t), "[i32, string]!")
 }
 
 @test
@@ -733,7 +778,7 @@ test_display_struct_with_args :: fn() -> void {
     a0: Type = mk_primitive("string")
     a1: Type = mk_primitive("i32")
     s :: mk_struct(sym, [a0, a1], false)
-    assert_eq(display_type(s), "MutableMap<string, i32>")
+    assert_eq(display_type(s), "MutableMap<string, i32>!")
 }
 
 @test
@@ -741,7 +786,7 @@ test_display_struct_without_args :: fn() -> void {
     factory :: SymbolFactory {}
     sym :: factory.make(.Struct, "Point", "test", .Public, null)
     s :: mk_struct(sym, [], false)
-    assert_eq(display_type(s), "Point")
+    assert_eq(display_type(s), "Point!")
 }
 
 @test
@@ -790,5 +835,5 @@ test_display_nested :: fn() -> void {
     null_t: Type = mk_primitive("null")
     ret :: mk_union([i32_t, null_t])
     f :: mk_fn([arr, str], ret)
-    assert_eq(display_type(f), "fn(i32[], string) -> i32 | null")
+    assert_eq(display_type(f), "fn(i32[]!, string) -> i32 | null")
 }

@@ -2,15 +2,15 @@
 
 ## snippet
   struct snippet$Foo { v: i32 }
-  fn snippet$leaf(x: Foo, arr: const i32[]) -> i32
+  fn snippet$leaf(x: Foo, arr: i32[]) -> i32
     let acc: i32 = int(0) :i32
     block :void
       let _: i32 = int(0) :i32
       loop while (<…>)
-        let s: i32[] =
-          slice :i32[]
+        let s: i32[]! =
+          slice :i32[]!
             on:
-              arr :const i32[]
+              arr :i32[]
             lo:
               cast → usize
                 int(0) :i32
@@ -43,25 +43,25 @@
                 int(1) :i32
     return acc :i32
   fn snippet$main() -> i32
-    let arr: i32[] =
-      array :i32[]
+    let arr: i32[]! =
+      array :i32[]!
         int(10) :i32
         int(20) :i32
         int(30) :i32
         int(40) :i32
         int(50) :i32
-    let x: Foo =
-      Foo {
+    let x: Foo! =
+      Foo! {
         v: int(7) :i32
       }
     let r: i32 =
       call :i32
         callee:
-          leaf :fn(Foo, const i32[]) -> i32
+          leaf :fn(Foo, i32[]) -> i32
         arg0:
-          x :Foo
+          x :Foo!
         arg1:
-          arr :i32[]
+          arr :i32[]!
     let expected: i32 =
       mul :{integer}
         l:

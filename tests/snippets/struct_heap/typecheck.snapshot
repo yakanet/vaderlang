@@ -3,8 +3,8 @@
 ## tests/snippets/struct_heap
   FnDecl         main                 :: fn() -> i32
   FnDecl         make                 :: fn(i32, i32) -> Point
-  StructDecl     Point                :: Point
-  expr 14:39    StructLitExpr  :: Point
+  StructDecl     Point                :: Point!
+  expr 14:39    StructLitExpr  :: Point!
   expr 14:52    IdentExpr      :: i32
   expr 14:60    IdentExpr      :: i32
   expr 17:10    CallExpr       :: Point

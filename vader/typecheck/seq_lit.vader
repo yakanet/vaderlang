@@ -274,7 +274,7 @@ test_seq_homogeneous_int_returns_array :: fn() -> void {
     es :: expect_seq(src)
     diags: Diagnostic[] = []
     ty :: infer_seq_lit(es.sl, null, es.typed, diags, seq_lit_check_stub)
-    assert_eq(display_type(ty), "i32[]")
+    assert_eq(display_type(ty), "i32[]!")
 }
 
 @test
@@ -283,7 +283,7 @@ test_seq_heterogeneous_returns_tuple :: fn() -> void {
     es :: expect_seq(src)
     diags: Diagnostic[] = []
     ty :: infer_seq_lit(es.sl, null, es.typed, diags, seq_lit_check_stub)
-    assert_eq(display_type(ty), "[i32, string]")
+    assert_eq(display_type(ty), "[i32, string]!")
 }
 
 @test
@@ -293,7 +293,7 @@ test_seq_with_expected_array_narrows :: fn() -> void {
     diags: Diagnostic[] = []
     expected: Type = mk_array(mk_primitive("i64"), false)
     ty :: infer_seq_lit(es.sl, expected, es.typed, diags, seq_lit_check_stub)
-    assert_eq(display_type(ty), "i64[]")
+    assert_eq(display_type(ty), "i64[]!")
 }
 
 @test
@@ -303,7 +303,7 @@ test_seq_empty_with_array_expected :: fn() -> void {
     diags: Diagnostic[] = []
     expected: Type = mk_array(mk_primitive("i32"), false)
     ty :: infer_seq_lit(es.sl, expected, es.typed, diags, seq_lit_check_stub)
-    assert_eq(display_type(ty), "i32[]")
+    assert_eq(display_type(ty), "i32[]!")
 }
 
 @test

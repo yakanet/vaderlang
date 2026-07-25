@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/named_args
-  StructDecl     Box                  :: Box
+  StructDecl     Box                  :: Box!
   FnDecl         combine              :: fn(i32, i32, i32) -> i32
   FnDecl         greet                :: fn(string, string) -> string
   FnDecl         main                 :: fn() -> i32
@@ -41,10 +41,10 @@
   expr 32:10    IdentExpr      :: fn(i32, i32, i32) -> i32
   expr 33:10    CallExpr       :: i32
   expr 33:10    IdentExpr      :: fn(i32, i32) -> i32
-  expr 34:10    StructLitExpr  :: Box
+  expr 34:10    StructLitExpr  :: Box!
   expr 35:10    CallExpr       :: i32
   expr 35:10    FieldExpr      :: fn(i32, i32) -> i32
-  expr 35:10    IdentExpr      :: Box
+  expr 35:10    IdentExpr      :: Box!
   expr 36:12    BinaryExpr     :: i32
   expr 36:12    BinaryExpr     :: i32
   expr 36:12    BinaryExpr     :: i32

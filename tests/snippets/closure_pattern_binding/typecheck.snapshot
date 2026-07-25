@@ -3,7 +3,7 @@
 ## tests/snippets/closure_pattern_binding
   FnDecl         greet                :: fn(i32 | P) -> void
   FnDecl         main                 :: fn() -> i32
-  StructDecl     P                    :: P
+  StructDecl     P                    :: P!
   expr 15:11    IdentExpr      :: i32 | P
   expr 15:5     MatchExpr      :: void
   expr 17:22    LambdaExpr     :: fn() -> string
@@ -28,7 +28,7 @@
   expr 23:21    StringLitExpr  :: string
   expr 23:32    CallExpr       :: i32
   expr 23:32    IdentExpr      :: fn() -> i32
-  expr 29:11    StructLitExpr  :: P
+  expr 29:11    StructLitExpr  :: P!
   expr 29:23    StringLitExpr  :: string
   expr 29:5     CallExpr       :: void
   expr 29:5     IdentExpr      :: fn(i32 | P) -> void

@@ -184,7 +184,7 @@ lowered_to_bc_value :: fn(el: LoweredExpr) -> BcDataValue {
         for e in a.elements { elements.push(lowered_to_bc_value(e)) }
         return BcValArray { .element_type_name = array_element_name(a.type), .elements = elements }
     }
-    name :: display_type(type_of(el))
+    name :: display_type_key(type_of(el))
     return BcValPrim { .kind = array_kind_from_name(name), .bits = bc_value_bits(el, name) }
 }
 
@@ -196,7 +196,7 @@ struct_symbol_id :: fn(t: Type) -> i32 {
 
 // Element type display name of an array type (for the runtime element kind).
 array_element_name :: fn(t: Type) -> string {
-    if t is ArrayType as at { return display_type(at.element) }
+    if t is ArrayType as at { return display_type_key(at.element) }
     return ""
 }
 

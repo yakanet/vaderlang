@@ -2,38 +2,38 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let pairs: [string, i32][] =
-      array :[string, i32][]
-        [string, i32] {
+    let pairs: [string, i32]![]! =
+      array :[string, i32]![]!
+        [string, i32]! {
           _0: "a" :string
           _1: int(1) :i32
         }
-        [string, i32] {
+        [string, i32]! {
           _0: "b" :string
           _1: int(2) :i32
         }
-        [string, i32] {
+        [string, i32]! {
           _0: "c" :string
           _1: int(3) :i32
         }
     block :void
-      let __for_arr_1: [string, i32][] = pairs :[string, i32][]
+      let __for_arr_1: [string, i32]![]! = pairs :[string, i32]![]!
       let __for_len_2: usize =
         LoweredArrayLen
       let __for_i_3: usize = int(0) :usize
       loop while (<…>)
-        let __for_elem_7: [string, i32] =
-          index :[string, i32]
+        let __for_elem_7: [string, i32]! =
+          index :[string, i32]!
             on:
-              __for_arr_1 :[string, i32][]
+              __for_arr_1 :[string, i32]![]!
             ix:
               __for_i_3 :usize
         let k: string =
           ._0 :string
-            __for_elem_7 :[string, i32]
+            __for_elem_7 :[string, i32]!
         let v: i32 =
           ._1 :i32
-            __for_elem_7 :[string, i32]
+            __for_elem_7 :[string, i32]!
         call :void
           callee:
             std_io$println__string :void

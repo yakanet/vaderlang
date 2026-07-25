@@ -7,7 +7,7 @@
   fn snippet$direct(p: Cat | Dog) -> string
     if :void
       cond:
-        is Cat :bool
+        is Cat! :bool
           p :Cat | Dog
       then:
         return
@@ -34,7 +34,7 @@
     if :void
       cond:
         not :bool
-          is Cat :bool
+          is Cat! :bool
             p :Cat | Dog
       then:
         return
@@ -60,7 +60,7 @@
   fn snippet$cascade(p: Cat | Dog | Pig) -> string
     if :void
       cond:
-        is Cat :bool
+        is Cat! :bool
           p :Cat | Dog | Pig
       then:
         return
@@ -75,7 +75,7 @@
                   p :Cat | Dog | Pig
     if :void
       cond:
-        is Dog :bool
+        is Dog! :bool
           p :Cat | Dog | Pig
       then:
         return
@@ -216,7 +216,7 @@
           callee:
             direct :fn(Cat | Dog) -> string
           arg0:
-            Cat {
+            Cat! {
               name: "felix" :string
             }
     call :void
@@ -227,7 +227,7 @@
           callee:
             direct :fn(Cat | Dog) -> string
           arg0:
-            Dog {
+            Dog! {
               sound: "woof" :string
             }
     call :void
@@ -238,7 +238,7 @@
           callee:
             negated :fn(Cat | Dog) -> string
           arg0:
-            Cat {
+            Cat! {
               name: "garfield" :string
             }
     call :void
@@ -249,7 +249,7 @@
           callee:
             negated :fn(Cat | Dog) -> string
           arg0:
-            Dog {
+            Dog! {
               sound: "bark" :string
             }
     call :void
@@ -260,7 +260,7 @@
           callee:
             cascade :fn(Cat | Dog | Pig) -> string
           arg0:
-            Pig {
+            Pig! {
               weight: int(200) :i32
             }
     call :void

@@ -8,8 +8,8 @@
   const snippet$NOT_A_NUM: f64 =
     float(nan) :f64
   fn snippet$main() -> i32
-    let arr: f64[] =
-      array :f64[]
+    let arr: f64[]! =
+      array :f64[]!
         float(inf) :f64
         float(-inf) :f64
     call :void
@@ -50,7 +50,7 @@
               arg0:
                 index :f64
                   on:
-                    arr :f64[]
+                    arr :f64[]!
                   ix:
                     int(0) :i32
           arg7:
@@ -62,7 +62,7 @@
               arg0:
                 index :f64
                   on:
-                    arr :f64[]
+                    arr :f64[]!
                   ix:
                     int(1) :i32
     return int(0) :i32

@@ -11,10 +11,10 @@
       cast → u32
         int(0) :u32
     block :void
-      let __for_arr_0: const u8[] =
-        call :const u8[]
+      let __for_arr_0: u8[] =
+        call :u8[]
           callee:
-            bytes :const u8[]
+            bytes :u8[]
           arg0:
             "vader" :string
       let __for_len_1: usize =
@@ -24,7 +24,7 @@
         let b: u8 =
           index :u8
             on:
-              __for_arr_0 :const u8[]
+              __for_arr_0 :u8[]
             ix:
               __for_i_2 :usize
         assign
@@ -99,10 +99,10 @@
       arg0:
         "-- multibyte --" :string
     block :void
-      let __for_arr_5: const u8[] =
-        call :const u8[]
+      let __for_arr_5: u8[] =
+        call :u8[]
           callee:
-            bytes :const u8[]
+            bytes :u8[]
           arg0:
             "你" :string
       let __for_len_6: usize =
@@ -112,7 +112,7 @@
         let b: u8 =
           index :u8
             on:
-              __for_arr_5 :const u8[]
+              __for_arr_5 :u8[]
             ix:
               __for_i_7 :usize
         call :void
@@ -356,9 +356,9 @@
                   cast → u64
                     index :u8
                       on:
-                        call :const u8[]
+                        call :u8[]
                           callee:
-                            bytes :const u8[]
+                            bytes :u8[]
                           arg0:
                             "d" :string
                       ix:
@@ -377,10 +377,10 @@
       arg0:
         "-- empty --" :string
     block :void
-      let __for_arr_14: const u8[] =
-        call :const u8[]
+      let __for_arr_14: u8[] =
+        call :u8[]
           callee:
-            bytes :const u8[]
+            bytes :u8[]
           arg0:
             "" :string
       let __for_len_15: usize =
@@ -390,7 +390,7 @@
         let b: u8 =
           index :u8
             on:
-              __for_arr_14 :const u8[]
+              __for_arr_14 :u8[]
             ix:
               __for_i_16 :usize
         call :void
@@ -463,10 +463,10 @@
         std_io$println__string :void
       arg0:
         "-- u8[] surface --" :string
-    let bs: const u8[] =
-      call :const u8[]
+    let bs: u8[] =
+      call :u8[]
         callee:
-          bytes :const u8[]
+          bytes :u8[]
         arg0:
           "abc" :string
     call :void
@@ -536,7 +536,7 @@
                   cast → u64
                     index :u8
                       on:
-                        bs :const u8[]
+                        bs :u8[]
                       ix:
                         int(0) :i32
           assign
@@ -567,7 +567,7 @@
                   cast → u64
                     index :u8
                       on:
-                        bs :const u8[]
+                        bs :u8[]
                       ix:
                         int(1) :i32
           assign
@@ -598,7 +598,7 @@
                   cast → u64
                     index :u8
                       on:
-                        bs :const u8[]
+                        bs :u8[]
                       ix:
                         int(2) :i32
           ~>
@@ -614,12 +614,12 @@
         std_io$println__string :void
       arg0:
         "-- slice --" :string
-    let sl: u8[] =
-      slice :u8[]
+    let sl: u8[]! =
+      slice :u8[]!
         on:
-          call :const u8[]
+          call :u8[]
             callee:
-              bytes :const u8[]
+              bytes :u8[]
             arg0:
               "abcde" :string
         lo:
@@ -695,7 +695,7 @@
                   cast → u64
                     index :u8
                       on:
-                        sl :u8[]
+                        sl :u8[]!
                       ix:
                         int(0) :i32
           assign
@@ -726,7 +726,7 @@
                   cast → u64
                     index :u8
                       on:
-                        sl :u8[]
+                        sl :u8[]!
                       ix:
                         int(1) :i32
           assign
@@ -757,7 +757,7 @@
                   cast → u64
                     index :u8
                       on:
-                        sl :u8[]
+                        sl :u8[]!
                       ix:
                         int(2) :i32
           ~>

@@ -40,7 +40,7 @@ export BcFunction :: struct {
     locals: BcLocal[]!
     body: Op[]!
     debug: (DebugPos | null)[]!
-    jump_table: i32[]!!
+    jump_table: i32[]!
 }
 
 /// Static signature of a fn-shaped slot. The VM only consults `params`

@@ -193,11 +193,11 @@
           callee:
             bytes_to_string :string
           arg0:
-            slice :u8[]
+            slice :u8[]!
               on:
-                call :const u8[]
+                call :u8[]
                   callee:
-                    bytes :const u8[]
+                    bytes :u8[]
                   arg0:
                     "hello world" :string
               lo:
@@ -214,9 +214,9 @@
           callee:
             bytes_to_string :string
           arg0:
-            call :const u8[]
+            call :u8[]
               callee:
-                utf8_encode :fn(char) -> const u8[]
+                utf8_encode :fn(char) -> u8[]
               arg0:
                 call :char
                   callee:
@@ -233,9 +233,9 @@
           callee:
             bytes_to_string :string
           arg0:
-            call :const u8[]
+            call :u8[]
               callee:
-                utf8_encode :fn(char) -> const u8[]
+                utf8_encode :fn(char) -> u8[]
               arg0:
                 call :char
                   callee:
@@ -252,9 +252,9 @@
           callee:
             bytes_to_string :string
           arg0:
-            call :const u8[]
+            call :u8[]
               callee:
-                utf8_encode :fn(char) -> const u8[]
+                utf8_encode :fn(char) -> u8[]
               arg0:
                 call :char
                   callee:
@@ -271,9 +271,9 @@
           callee:
             bytes_to_string :string
           arg0:
-            call :const u8[]
+            call :u8[]
               callee:
-                utf8_encode :fn(char) -> const u8[]
+                utf8_encode :fn(char) -> u8[]
               arg0:
                 call :char
                   callee:
@@ -282,10 +282,10 @@
                     "你好嗎？" :string
                   arg1:
                     int(3) :i32
-    let parts: string[] =
-      call :string[]
+    let parts: string[]! =
+      call :string[]!
         callee:
-          split :string[]
+          split :string[]!
         arg0:
           "a,b,c" :string
         arg1:
@@ -296,7 +296,7 @@
       arg0:
         index :string
           on:
-            parts :string[]
+            parts :string[]!
           ix:
             int(0) :i32
     call :void
@@ -305,7 +305,7 @@
       arg0:
         index :string
           on:
-            parts :string[]
+            parts :string[]!
           ix:
             int(1) :i32
     call :void
@@ -314,7 +314,7 @@
       arg0:
         index :string
           on:
-            parts :string[]
+            parts :string[]!
           ix:
             int(2) :i32
     return int(0) :i32

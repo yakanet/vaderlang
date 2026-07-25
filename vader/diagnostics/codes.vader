@@ -136,6 +136,7 @@ export ParserCode :: enum(u8) {
     InvalidConstQualifierPlacement,         // P1027
     InvalidModuleName,                      // P1028
     ExpressionNestingTooDeep,               // P1029
+    RepeatedMutabilityMarker,               // P1030
 }
 
 // R-codes belong to the resolver pass (name-binding) ; once shipped,
@@ -292,6 +293,7 @@ export parser_info :: fn(c: ParserCode) = match c {
     .InvalidConstQualifierPlacement     -> CodeInfo { .id = "P1027", .message = "invalid `const` qualifier placement" }
     .InvalidModuleName                  -> CodeInfo { .id = "P1028", .message = "invalid module name (does not match `[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*)*` grammar)" }
     .ExpressionNestingTooDeep           -> CodeInfo { .id = "P1029", .message = "expression nesting too deep" }
+    .RepeatedMutabilityMarker           -> CodeInfo { .id = "P1030", .message = "repeated `!` on the same type level" }
 }
 
 export resolver_info :: fn(c: ResolverCode) = match c {

@@ -2,17 +2,17 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let bs: const u8[] =
-      call :const u8[]
+    let bs: u8[] =
+      call :u8[]
         callee:
-          bytes :const u8[]
+          bytes :u8[]
         arg0:
           "abc" :string
     assign
       target:
         index :?
           on:
-            bs :const u8[]
+            bs :u8[]
           ix:
             int(0) :i32
       value:
@@ -20,4 +20,4 @@
     return int(0) :i32
 
 # Diagnostics
-[10:5] error[T3042] cannot mutate an immutable array: cannot mutate `const u8[]`
+[10:5] error[T3042] cannot mutate an immutable array: cannot mutate `u8[]`

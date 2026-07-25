@@ -5,7 +5,7 @@
   ConstDecl      Histogram            :: type
   FnDecl         main                 :: fn() -> i32
   expr 22:26    SeqLitExpr     :: Histogram
-  expr 23:18    RangeExpr      :: Range<usize>
+  expr 23:18    RangeExpr      :: Range<usize>!
   expr 23:22    CallExpr       :: usize
   expr 23:22    FieldExpr      :: fn() -> usize
   expr 23:22    IdentExpr      :: Histogram
@@ -19,7 +19,7 @@
   expr 23:54    IdentExpr      :: u32
   expr 24:16    IdentExpr      :: Histogram
   expr 30:26    SeqLitExpr     :: Histogram
-  expr 31:18    RangeExpr      :: Range<usize>
+  expr 31:18    RangeExpr      :: Range<usize>!
   expr 31:22    CallExpr       :: usize
   expr 31:22    FieldExpr      :: fn() -> usize
   expr 31:22    IdentExpr      :: Histogram
@@ -31,7 +31,7 @@
   expr 31:44    IndexExpr      :: u32
   expr 31:49    IdentExpr      :: usize
   expr 31:54    IdentExpr      :: u32
-  expr 32:16    SeqLitExpr     :: [Histogram, u32]
+  expr 32:16    SeqLitExpr     :: [Histogram, u32]!
   expr 32:17    IdentExpr      :: Histogram
   expr 32:22    BinaryExpr     :: u32
   expr 32:22    IdentExpr      :: Histogram
@@ -58,7 +58,7 @@
   expr 43:5     IdentExpr      :: fn(T) -> void
   expr 43:55    IdentExpr      :: Histogram
   expr 43:55    IndexExpr      :: u32
-  expr 44:20    BinaryExpr     :: [Histogram, u32]
+  expr 44:20    BinaryExpr     :: [Histogram, u32]!
   expr 44:20    IdentExpr      :: Histogram
   expr 44:24    CallExpr       :: u32
   expr 44:24    IdentExpr      :: type

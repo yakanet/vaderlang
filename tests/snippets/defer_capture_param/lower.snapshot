@@ -24,7 +24,7 @@
     defer.pop_exec 1
     ~>
       __block_1 :void
-  fn snippet$bump_at_exit(counter: Counter, by: i64) -> void
+  fn snippet$bump_at_exit(counter: Counter!, by: i64) -> void
     let counter: ? =
       LoweredCellNew
     let by: ? =
@@ -84,8 +84,8 @@
   fn snippet$make_greeter(name: string) -> void
     let name: ? =
       LoweredCellNew
-    let greet: __lambda_env_21 =
-      __lambda_env_21 {
+    let greet: __lambda_env_21! =
+      __lambda_env_21! {
         cap_0: name :string
       }
     ~>
@@ -108,22 +108,22 @@
         "task" :string
       arg1:
         int(7) :i64
-    let counter: Counter =
-      Counter {
+    let counter: Counter! =
+      Counter! {
         hits: int(0) :i64
       }
     call :void
       callee:
         bump_at_exit :fn(Counter!, i64) -> void
       arg0:
-        counter :Counter
+        counter :Counter!
       arg1:
         int(3) :i64
     call :void
       callee:
         bump_at_exit :fn(Counter!, i64) -> void
       arg0:
-        counter :Counter
+        counter :Counter!
       arg1:
         int(4) :i64
     call :void
@@ -164,7 +164,7 @@
                   __off_1 :usize
                 arg2:
                   .hits :i64
-                    counter :Counter
+                    counter :Counter!
           ~>
             call :string
               callee:
@@ -180,7 +180,7 @@
         "world" :string
     return int(0) :i32
   struct __defer_env_2 { cap_0: ?, cap_1: ? }
-  fn __defer_1(__env_0: __defer_env_2) -> void
+  fn __defer_1(__env_0: __defer_env_2!) -> void
     ~>
       call :void
         callee:
@@ -265,7 +265,7 @@
                 arg1:
                   __off_2 :usize
   struct __defer_env_15 { cap_0: ?, cap_1: ? }
-  fn __defer_14(__env_0: __defer_env_15) -> void
+  fn __defer_14(__env_0: __defer_env_15!) -> void
     assign
       target:
         .hits :i64
@@ -278,7 +278,7 @@
           r:
             LoweredCellGet
   struct __lambda_env_21 { cap_0: ? }
-  fn __lambda_20(__env_0: __lambda_env_21) -> void
+  fn __lambda_20(__env_0: __lambda_env_21!) -> void
     ~>
       call :void
         callee:

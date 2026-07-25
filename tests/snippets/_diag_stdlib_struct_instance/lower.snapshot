@@ -3,16 +3,16 @@
 ## snippet
   struct snippet$Counts { by_name: MutableMap<string, i32> }
   fn snippet$main() -> i32
-    let c: Counts =
-      Counts {
+    let c: Counts! =
+      Counts! {
         by_name:
-          MutableMap<string, i32> {
+          MutableMap<string, i32>! {
             ekeys:
-              array :string[]
+              array :string[]!
             evals:
-              array :i32[]
+              array :i32[]!
             index:
-              array :i32[]
+              array :i32[]!
             mask: int(0) :usize
             size: int(0) :usize
             tombs: int(0) :usize
@@ -23,7 +23,7 @@
         std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
         .by_name :MutableMap<string, i32>
-          c :Counts
+          c :Counts!
       arg1:
         "x" :string
       arg2:
@@ -34,7 +34,7 @@
           std_collections$MutableMap$Index$at__string__i32 :i32 | null
         arg0:
           .by_name :MutableMap<string, i32>
-            c :Counts
+            c :Counts!
         arg1:
           "x" :string
     if :void

@@ -24,7 +24,7 @@
         ~>
           if :bool
             cond:
-              is Bird :bool
+              is Bird! :bool
                 p :Cat | Dog
             then:
               ~>

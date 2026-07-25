@@ -124,7 +124,7 @@
 ## snippet/mod_a
   fn snippet_mod_a$make_a() -> Box
     return
-      Box {
+      Box! {
         id: int(42) :i32
       }
   struct snippet_mod_a$Box { id: i32 }
@@ -132,7 +132,7 @@
 ## snippet/mod_b
   fn snippet_mod_b$make_b() -> Box
     return
-      Box {
+      Box! {
         label: "hello" :string
       }
   struct snippet_mod_b$Box { label: string }

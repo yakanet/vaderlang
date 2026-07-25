@@ -60,12 +60,12 @@
           .v :string
             b :Bag
   fn snippet$main() -> i32
-    let a: Box =
-      Box {
+    let a: Box! =
+      Box! {
         v: int(42) :i32
       }
-    let b: Bag =
-      Bag {
+    let b: Bag! =
+      Bag! {
         v: "hi" :string
       }
     call :void
@@ -76,7 +76,7 @@
           callee:
             describe :fn(Box) -> string
           arg0:
-            a :Box
+            a :Box!
     call :void
       callee:
         std_io$println__string :void
@@ -85,7 +85,7 @@
           callee:
             describe :string
           arg0:
-            b :Bag
+            b :Bag!
     call :void
       callee:
         std_io$println__string :void
@@ -94,7 +94,7 @@
           callee:
             describe :string
           arg0:
-            a :Box
+            a :Box!
     call :void
       callee:
         std_io$println__string :void
@@ -103,7 +103,7 @@
           callee:
             describe :string
           arg0:
-            b :Bag
+            b :Bag!
     call :void
       callee:
         std_io$println__string :void

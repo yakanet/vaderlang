@@ -2,7 +2,7 @@
 
 ## tests/snippets/ticket_relabel
   FnDecl         after_guard          :: fn() -> i32
-  StructDecl     Desk                 :: Desk
+  StructDecl     Desk                 :: Desk!
   FnDecl         inside_branch        :: fn() -> i32
   FnDecl         main                 :: fn() -> i32
   FnDecl         on_field             :: fn() -> i32
@@ -22,18 +22,18 @@
   expr 19:9     IdentExpr      :: i32
   expr 20:16    BinaryExpr     :: ?
   expr 20:16    IdentExpr      :: i32 | string
-  expr 28:13    StructLitExpr  :: Desk
+  expr 28:13    StructLitExpr  :: Desk!
   expr 29:24    IdentExpr      :: string
   expr 29:5     IfExpr         :: void
   expr 29:8     BinaryExpr     :: bool
   expr 29:8     FieldExpr      :: i32 | string
-  expr 29:8     IdentExpr      :: Desk
+  expr 29:8     IdentExpr      :: Desk!
   expr 30:20    StringLitExpr  :: string
   expr 30:5     FieldExpr      :: i32
-  expr 30:5     IdentExpr      :: Desk
+  expr 30:5     IdentExpr      :: Desk!
   expr 31:12    BinaryExpr     :: ?
   expr 31:12    FieldExpr      :: i32 | string
-  expr 31:12    IdentExpr      :: Desk
+  expr 31:12    IdentExpr      :: Desk!
   expr 35:12    BinaryExpr     :: i32
   expr 35:12    BinaryExpr     :: i32
   expr 35:12    CallExpr       :: i32

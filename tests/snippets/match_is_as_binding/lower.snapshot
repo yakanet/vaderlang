@@ -18,11 +18,11 @@
               ~>
                 if :string
                   cond:
-                    is P :bool
+                    is P! :bool
                       a :null | P | Q
                   then:
-                    let p: P =
-                      cast → P
+                    let p: P! =
+                      cast → P!
                         a :null | P | Q
                     ~>
                       block :string
@@ -73,11 +73,11 @@
                     ~>
                       if :string
                         cond:
-                          is Q :bool
+                          is Q! :bool
                             a :null | P | Q
                         then:
-                          let q: Q =
-                            cast → Q
+                          let q: Q! =
+                            cast → Q!
                               a :null | P | Q
                           ~>
                             call :string
@@ -100,7 +100,7 @@
           callee:
             show :fn(null | P | Q) -> string
           arg0:
-            P {
+            P! {
               x: int(42) :i32
             }
     call :void
@@ -111,7 +111,7 @@
           callee:
             show :fn(null | P | Q) -> string
           arg0:
-            Q {
+            Q! {
               y: "hello" :string
             }
     call :void

@@ -17,16 +17,16 @@
               ~>
                 if :string
                   cond:
-                    is Point :bool
+                    is Point! :bool
                       value :null | Point
                   then:
                     let x: i32 =
                       .x :i32
-                        cast → Point
+                        cast → Point!
                           value :null | Point
                     let y: i32 =
                       .y :i32
-                        cast → Point
+                        cast → Point!
                           value :null | Point
                     ~>
                       block :string
@@ -125,7 +125,7 @@
           callee:
             describe :fn(null | Point) -> string
           arg0:
-            Point {
+            Point! {
               x: int(3) :i32
               y: int(4) :i32
             }

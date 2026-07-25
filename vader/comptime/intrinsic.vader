@@ -119,7 +119,7 @@ intrinsic_type_name :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext)
     }
     arg_type :: resolve_type_arg(expr.args[0], context)
     if arg_type == null { return arg_error(expr, "type_name: argument is not a type") }
-    return ok(string_val(display_type(arg_type)))
+    return ok(string_val(display_type_key(arg_type)))
 }
 
 intrinsic_type_kind :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {

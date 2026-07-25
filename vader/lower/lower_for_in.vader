@@ -378,7 +378,7 @@ resolve_element_type :: fn(ctx: FnLowerCtx, raw_iter_type: Type, iter_type: Type
         }
         _ -> {}
     }
-    side_table_key :: display_type(iter_type)
+    side_table_key :: display_type_key(iter_type)
     from_typed :: ctx.typed.iter_element_types[side_table_key]
     if !(from_typed is null) { return from_typed }
     return TY_UNRESOLVED

@@ -4,8 +4,8 @@
   fn snippet$main() -> i32
     let n: ? =
       LoweredCellNew
-    let inc: __lambda_env_2 =
-      __lambda_env_2 {
+    let inc: __lambda_env_2! =
+      __lambda_env_2! {
         cap_0: n :i32
       }
     let a: i32 =
@@ -13,19 +13,19 @@
         callee:
           __lambda_1 :fn() -> i32
         arg0:
-          inc :__lambda_env_2
+          inc :__lambda_env_2!
     let b: i32 =
       call :i32
         callee:
           __lambda_1 :fn() -> i32
         arg0:
-          inc :__lambda_env_2
+          inc :__lambda_env_2!
     let c: i32 =
       call :i32
         callee:
           __lambda_1 :fn() -> i32
         arg0:
-          inc :__lambda_env_2
+          inc :__lambda_env_2!
     return
       add :i32
         l:
@@ -37,6 +37,6 @@
         r:
           c :i32
   struct __lambda_env_2 { cap_0: ? }
-  fn __lambda_1(__env_0: __lambda_env_2) -> i32
+  fn __lambda_1(__env_0: __lambda_env_2!) -> i32
     return
       LoweredCellGet

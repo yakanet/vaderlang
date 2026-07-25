@@ -1,11 +1,11 @@
 # Lower
 
 ## snippet
-  fn snippet$byte_count(x: const u8[] | string) -> usize
+  fn snippet$byte_count(x: string | u8[]) -> usize
     if :void
       cond:
         is string :bool
-          x :const u8[] | string
+          x :string | u8[]
       then:
         return
           call :usize
@@ -13,12 +13,12 @@
               byte_len :fn(string) -> usize
             arg0:
               cast → string
-                x :const u8[] | string
+                x :string | u8[]
     return
       LoweredArrayLen
   fn snippet$main() -> i32
-    let a: u8[] =
-      array :u8[]
+    let a: u8[]! =
+      array :u8[]!
         int(1) :u8
         int(2) :u8
         int(3) :u8
@@ -50,7 +50,7 @@
                   cast → u64
                     call :usize
                       callee:
-                        byte_count :fn(const u8[] | string) -> usize
+                        byte_count :fn(string | u8[]) -> usize
                       arg0:
                         "hi" :string
           assign
@@ -81,11 +81,11 @@
                   cast → u64
                     call :usize
                       callee:
-                        byte_count :fn(const u8[] | string) -> usize
+                        byte_count :fn(string | u8[]) -> usize
                       arg0:
-                        call :const u8[]
+                        call :u8[]
                           callee:
-                            bytes :const u8[]
+                            bytes :u8[]
                           arg0:
                             "hi" :string
           assign
@@ -116,9 +116,9 @@
                   cast → u64
                     call :usize
                       callee:
-                        byte_count :fn(const u8[] | string) -> usize
+                        byte_count :fn(string | u8[]) -> usize
                       arg0:
-                        a :u8[]
+                        a :u8[]!
           ~>
             call :string
               callee:

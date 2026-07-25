@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/impl_missing_method
-  StructDecl     Foo                  :: Foo
+  StructDecl     Foo                  :: Foo!
   FnDecl         main                 :: fn() -> i32
   TraitDecl      TwoFn                :: TwoFn
   expr 16:39    FieldExpr      :: i32

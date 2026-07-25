@@ -3,28 +3,28 @@
 ## snippet
   struct snippet$Point { x: i32, y: i32 }
   fn snippet$main() -> i32
-    let labels: string[] =
-      array :string[]
+    let labels: string[]! =
+      array :string[]!
         "a" :string
         "b" :string
         "c" :string
-    let pts: Point[] =
-      array :Point[]
-        Point {
+    let pts: Point![]! =
+      array :Point![]!
+        Point! {
           x: int(10) :i32
           y: int(1) :i32
         }
-        Point {
+        Point! {
           x: int(20) :i32
           y: int(2) :i32
         }
-        Point {
+        Point! {
           x: int(30) :i32
           y: int(3) :i32
         }
     block :void
-      let self: string[] = labels :string[]
-      let other: Point[] = pts :Point[]
+      let self: string[]! = labels :string[]!
+      let other: Point![]! = pts :Point![]!
       let n: usize =
         if :usize
           cond:
@@ -42,27 +42,27 @@
       block :void
         let i: usize = int(0) :usize
         loop while (<…>)
-          let __gen_elem_4: [string, Any] =
-            [string, Any] {
+          let __gen_elem_4: [string, Any]! =
+            [string, Any]! {
               _0:
                 index :string
                   on:
-                    self :const string[]
+                    self :string[]
                   ix:
                     i :usize
               _1:
                 index :Any
                   on:
-                    other :const Any[]
+                    other :Any[]
                   ix:
                     i :usize
             }
           let label: string =
             ._0 :string
-              __gen_elem_4 :[string, Any]
-          let p: Point =
-            ._1 :Point
-              __gen_elem_4 :[string, Any]
+              __gen_elem_4 :[string, Any]!
+          let p: Point! =
+            ._1 :Point!
+              __gen_elem_4 :[string, Any]!
           call :void
             callee:
               std_io$println__string :void
@@ -124,7 +124,7 @@
                       arg2:
                         cast → i64
                           .x :i32
-                            p :Point
+                            p :Point!
                 assign
                   target:
                     __off_3 :usize
@@ -152,7 +152,7 @@
                       arg2:
                         cast → i64
                           .y :i32
-                            p :Point
+                            p :Point!
                 ~>
                   call :string
                     callee:

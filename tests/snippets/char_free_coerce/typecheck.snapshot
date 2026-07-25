@@ -2,18 +2,18 @@
 
 ## tests/snippets/char_free_coerce
   FnDecl         main                 :: fn() -> i32
-  expr 10:11    CallExpr       :: const u8[]
-  expr 10:11    FieldExpr      :: fn() -> const u8[]
+  expr 10:11    CallExpr       :: u8[]
+  expr 10:11    FieldExpr      :: fn() -> u8[]
   expr 10:11    StringLitExpr  :: string
   expr 12:23    CallExpr       :: void
   expr 12:23    IdentExpr      :: fn(T) -> void
   expr 12:31    StringLitExpr  :: string
   expr 12:5     IfExpr         :: void
   expr 12:8     BinaryExpr     :: bool
-  expr 12:8     IdentExpr      :: const u8[]
+  expr 12:8     IdentExpr      :: u8[]
   expr 12:8     IndexExpr      :: u8
   expr 13:24    BinaryExpr     :: bool
-  expr 13:24    IdentExpr      :: const u8[]
+  expr 13:24    IdentExpr      :: u8[]
   expr 13:24    IndexExpr      :: u8
   expr 13:39    CallExpr       :: void
   expr 13:39    IdentExpr      :: fn(T) -> void
@@ -21,7 +21,7 @@
   expr 13:5     IfExpr         :: void
   expr 13:8     BinaryExpr     :: bool
   expr 13:8     BinaryExpr     :: bool
-  expr 13:8     IdentExpr      :: const u8[]
+  expr 13:8     IdentExpr      :: u8[]
   expr 13:8     IndexExpr      :: u8
   expr 16:16    BinaryExpr     :: u32
   expr 17:28    CallExpr       :: void
@@ -31,7 +31,7 @@
   expr 17:8     BinaryExpr     :: bool
   expr 17:8     IdentExpr      :: u32
   expr 20:14    BinaryExpr     :: u8
-  expr 20:14    IdentExpr      :: const u8[]
+  expr 20:14    IdentExpr      :: u8[]
   expr 20:14    IndexExpr      :: u8
   expr 21:13    StringLitExpr  :: string
   expr 21:24    IdentExpr      :: u8

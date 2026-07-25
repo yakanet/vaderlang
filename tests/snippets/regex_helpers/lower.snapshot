@@ -121,10 +121,10 @@
             is_non_id :fn(char) -> bool
           arg2:
             "_" :string
-    let parts: const string[] =
-      call :const string[]
+    let parts: string[] =
+      call :string[]
         callee:
-          split_where :fn(string, fn(char) -> bool) -> const string[]
+          split_where :fn(string, fn(char) -> bool) -> string[]
         arg0:
           "  hello  world\tfoo\n bar  " :string
         arg1:
@@ -186,7 +186,7 @@
         arg0:
           index :string
             on:
-              parts :const string[]
+              parts :string[]
             ix:
               i :usize
       assign

@@ -1,12 +1,12 @@
 # Lower
 
 ## snippet
-  struct snippet$Cell { keys: string[], vals: i32[] }
-  fn snippet$Cell$Index$at(self: Cell, key: string) -> i32
+  struct snippet$Cell { keys: string[]!, vals: i32[]! }
+  fn snippet$Cell$Index$at(self: Cell!, key: string) -> i32
     let i: i32 = int(0) :i32
     block :void
-      let __for_arr_0: string[] =
-        .keys :string[]
+      let __for_arr_0: string[]! =
+        .keys :string[]!
           self :Cell
       let __for_len_1: usize =
         LoweredArrayLen
@@ -15,7 +15,7 @@
         let k: string =
           index :string
             on:
-              __for_arr_0 :string[]
+              __for_arr_0 :string[]!
             ix:
               __for_i_2 :usize
         if :void
@@ -29,7 +29,7 @@
             return
               index :i32
                 on:
-                  .vals :i32[]
+                  .vals :i32[]!
                     self :Cell
                 ix:
                   i :i32
@@ -52,12 +52,12 @@
               r:
                 int(1) :usize
     return int(0) :i32
-  fn snippet$Cell$IndexSet$set_at(self: Cell, key: string, v: i32) -> void
+  fn snippet$Cell$IndexSet$set_at(self: Cell!, key: string, v: i32) -> void
     let i: i32 = int(0) :i32
     block :void
-      let __for_arr_0: string[] =
-        .keys :string[]
-          self :Cell
+      let __for_arr_0: string[]! =
+        .keys :string[]!
+          self :Cell!
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -65,7 +65,7 @@
         let k: string =
           index :string
             on:
-              __for_arr_0 :string[]
+              __for_arr_0 :string[]!
             ix:
               __for_i_2 :usize
         if :void
@@ -80,8 +80,8 @@
               target:
                 index :i32
                   on:
-                    .vals :i32[]
-                      self :Cell
+                    .vals :i32[]!
+                      self :Cell!
                   ix:
                     i :i32
               value:
@@ -109,18 +109,18 @@
     ~>
       LoweredArrayPush
   fn snippet$main() -> i32
-    let c: Cell =
-      Cell {
+    let c: Cell! =
+      Cell! {
         keys:
-          array :string[]
+          array :string[]!
         vals:
-          array :i32[]
+          array :i32[]!
       }
     call :void
       callee:
         snippet$Cell$IndexSet$set_at :void
       arg0:
-        c :Cell
+        c :Cell!
       arg1:
         "a" :string
       arg2:
@@ -129,7 +129,7 @@
       callee:
         snippet$Cell$IndexSet$set_at :void
       arg0:
-        c :Cell
+        c :Cell!
       arg1:
         "b" :string
       arg2:
@@ -138,7 +138,7 @@
       callee:
         snippet$Cell$IndexSet$set_at :void
       arg0:
-        c :Cell
+        c :Cell!
       arg1:
         "a" :string
       arg2:
@@ -185,7 +185,7 @@
                       callee:
                         snippet$Cell$Index$at :i32
                       arg0:
-                        c :Cell
+                        c :Cell!
                       arg1:
                         "a" :string
           assign
@@ -218,7 +218,7 @@
                       callee:
                         snippet$Cell$Index$at :i32
                       arg0:
-                        c :Cell
+                        c :Cell!
                       arg1:
                         "b" :string
           assign
@@ -251,7 +251,7 @@
                       callee:
                         snippet$Cell$Index$at :i32
                       arg0:
-                        c :Cell
+                        c :Cell!
                       arg1:
                         "c" :string
           ~>

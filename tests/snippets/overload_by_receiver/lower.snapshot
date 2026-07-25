@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Boom {  }
-  fn snippet$Boom$Error$message(self: Boom) -> string
+  fn snippet$Boom$Error$message(self: Boom!) -> string
     ~>
       "boom" :string
   fn snippet$maybe(h: bool) -> i32 | null
@@ -19,7 +19,7 @@
       then:
         return int(42) :Boom | i32
     return
-      Boom {
+      Boom! {
       }
   fn snippet$main() -> i32
     call :void
@@ -214,7 +214,7 @@
   fn snippet$snippet$pick__i32_1(x: Boom | i32, d: i32) -> i32
     if :void
       cond:
-        is Boom :bool
+        is Boom! :bool
           x :Boom | i32
       then:
         return d :i32

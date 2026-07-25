@@ -4,8 +4,8 @@
   struct snippet$Pair { a: i32 }
   struct snippet$Wrap { b: i32 }
   fn snippet$run(u: Pair | Wrap, gate1: bool, gate2: bool) -> i32
-    let items: i32[] =
-      array :i32[]
+    let items: i32[]! =
+      array :i32[]!
         int(1) :i32
         int(2) :i32
         int(3) :i32
@@ -14,11 +14,11 @@
       ~>
         if :void
           cond:
-            is Pair :bool
+            is Pair! :bool
               u :Pair | Wrap
           then:
-            let p: Pair =
-              cast → Pair
+            let p: Pair! =
+              cast → Pair!
                 u :Pair | Wrap
             ~>
               block :void
@@ -32,11 +32,11 @@
             ~>
               if :void
                 cond:
-                  is Wrap :bool
+                  is Wrap! :bool
                     u :Pair | Wrap
                 then:
-                  let w: Wrap =
-                    cast → Wrap
+                  let w: Wrap! =
+                    cast → Wrap!
                       u :Pair | Wrap
                   ~>
                     block :void
@@ -59,7 +59,7 @@
             gate2 :bool
           then:
             block :void
-              let __for_arr_0: i32[] = items :i32[]
+              let __for_arr_0: i32[]! = items :i32[]!
               let __for_len_1: usize =
                 LoweredArrayLen
               let __for_i_2: usize = int(0) :usize
@@ -67,7 +67,7 @@
                 let it: i32 =
                   index :i32
                     on:
-                      __for_arr_0 :i32[]
+                      __for_arr_0 :i32[]!
                     ix:
                       __for_i_2 :usize
                 if :void
@@ -114,7 +114,7 @@
         callee:
           run :fn(Pair | Wrap, bool, bool) -> i32
         arg0:
-          Pair {
+          Pair! {
             a: int(5) :i32
           }
         arg1:

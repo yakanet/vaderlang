@@ -12,11 +12,11 @@
       ~>
         if :void
           cond:
-            is Version :bool
+            is Version! :bool
               __scrut_0 :ParseError | Version
           then:
-            let ver: Version =
-              cast → Version
+            let ver: Version! =
+              cast → Version!
                 __scrut_0 :ParseError | Version
             ~>
               block :void
@@ -65,11 +65,11 @@
                     ~>
                       if :void
                         cond:
-                          is VersionRange :bool
+                          is VersionRange! :bool
                             __scrut_1 :ParseError | VersionRange
                         then:
-                          let rg: VersionRange =
-                            cast → VersionRange
+                          let rg: VersionRange! =
+                            cast → VersionRange!
                               __scrut_1 :ParseError | VersionRange
                           ~>
                             block :void
@@ -99,11 +99,11 @@
                           ~>
                             if :void
                               cond:
-                                is ParseError :bool
+                                is ParseError! :bool
                                   __scrut_1 :ParseError | VersionRange
                               then:
-                                let e: ParseError =
-                                  cast → ParseError
+                                let e: ParseError! =
+                                  cast → ParseError!
                                     __scrut_1 :ParseError | VersionRange
                                 ~>
                                   block :void
@@ -127,11 +127,11 @@
             ~>
               if :void
                 cond:
-                  is ParseError :bool
+                  is ParseError! :bool
                     __scrut_0 :ParseError | Version
                 then:
-                  let e: ParseError =
-                    cast → ParseError
+                  let e: ParseError! =
+                    cast → ParseError!
                       __scrut_0 :ParseError | Version
                   ~>
                     block :void
@@ -164,11 +164,11 @@
         ~>
           if :never
             cond:
-              is Version :bool
+              is Version! :bool
                 __scrut_0 :ParseError | Version
             then:
-              let v: Version =
-                cast → Version
+              let v: Version! =
+                cast → Version!
                   __scrut_0 :ParseError | Version
               ~>
                 block :void
@@ -177,13 +177,13 @@
               ~>
                 if :never
                   cond:
-                    is ParseError :bool
+                    is ParseError! :bool
                       __scrut_0 :ParseError | Version
                   then:
                     ~>
                       block :void
                         return
-                          Version {
+                          Version! {
                             major: int(0) :i32
                             minor: int(0) :i32
                             patch: int(0) :i32

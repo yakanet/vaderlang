@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Cat { name: string }
-  fn snippet$Cat$Greet$greet(self: Cat) -> string
+  fn snippet$Cat$Greet$greet(self: Cat!) -> string
     return
       call :string
         callee:
@@ -12,7 +12,7 @@
         arg1:
           .name :string
             self :Cat
-  fn snippet$Cat$Annot$greet(self: Cat) -> string
+  fn snippet$Cat$Annot$greet(self: Cat!) -> string
     return
       call :string
         callee:
@@ -23,8 +23,8 @@
           .name :string
             self :Cat
   fn snippet$main() -> i32
-    let c: Cat =
-      Cat {
+    let c: Cat! =
+      Cat! {
         name: "x" :string
       }
     let s: string =
@@ -35,7 +35,7 @@
           "G:" :string
         arg1:
           .name :string
-            c :Cat
+            c :Cat!
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
@@ -88,4 +88,4 @@
           c1 :usize
 
 # Diagnostics
-[19:12] error[T3032] ambiguous overload resolution: `greet` on Cat is ambiguous between traits: Greet, Annot
+[19:12] error[T3032] ambiguous overload resolution: `greet` on Cat! is ambiguous between traits: Greet, Annot

@@ -5,8 +5,8 @@
   FnDecl         fetch                :: fn() -> Async<i32>
   FnDecl         main                 :: fn() -> i32
   FnDecl         pick                 :: fn(bool) -> Async<i32>
-  StructDecl     Ready                :: Ready<T>
-  expr 12:31    StructLitExpr  :: Ready<i32>
+  StructDecl     Ready                :: Ready<T>!
+  expr 12:31    StructLitExpr  :: Ready<i32>!
   expr 16:5     IfExpr         :: void
   expr 16:8     IdentExpr      :: bool
   expr 17:13    AwaitExpr      :: i32
@@ -16,14 +16,14 @@
   expr 19:9     IdentExpr      :: i32
   expr 21:12    BinaryExpr     :: i32
   expr 21:12    IdentExpr      :: i32
-  expr 25:10    CallExpr       :: i32 | Suspended
-  expr 25:10    FieldExpr      :: fn() -> i32 | Suspended
+  expr 25:10    CallExpr       :: i32 | Suspended!
+  expr 25:10    FieldExpr      :: fn() -> i32 | Suspended!
   expr 25:10    IdentExpr      :: Async<i32>
-  expr 26:13    IdentExpr      :: Suspended
+  expr 26:13    IdentExpr      :: Suspended!
   expr 26:32    UnaryExpr      :: i32
   expr 26:5     IfExpr         :: void
   expr 26:8     BinaryExpr     :: bool
-  expr 26:8     IdentExpr      :: i32 | Suspended
+  expr 26:8     IdentExpr      :: i32 | Suspended!
   expr 27:12    IdentExpr      :: i32
   expr 31:13    StringLitExpr  :: string
   expr 31:24    CallExpr       :: i32

@@ -4,7 +4,7 @@
   ConstDecl      Color                :: type
   ConstDecl      Coord                :: type
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Rgb                  :: Rgb
+  StructDecl     Rgb                  :: Rgb!
   ConstDecl      Swatch               :: type
   expr 30:46    StructLitExpr  :: Color
   expr 31:15    BinaryExpr     :: i32

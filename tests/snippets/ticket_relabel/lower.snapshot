@@ -41,28 +41,28 @@
     return int(0) :i32
   struct snippet$Desk { current: i32 | string }
   fn snippet$on_field() -> i32
-    let desk: Desk =
-      Desk {
+    let desk: Desk! =
+      Desk! {
         current: int(5) :i32 | string
       }
     if :void
       cond:
         is string :bool
           .current :i32 | string
-            desk :Desk
+            desk :Desk!
       then:
         return int(0) :i32
     assign
       target:
         .current :i32
-          desk :Desk
+          desk :Desk!
       value:
         "expedited" :string
     return
       add :?
         l:
           .current :i32 | string
-            desk :Desk
+            desk :Desk!
         r:
           int(1) :i32
   fn snippet$main() -> i32

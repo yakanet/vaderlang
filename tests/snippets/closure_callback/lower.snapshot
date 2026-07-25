@@ -22,7 +22,7 @@
         arg1:
           int(23) :i32
   struct __lambda_env_2 { cap_0: ? }
-  fn __lambda_1(__env_0: __lambda_env_2, x: i32) -> i32
+  fn __lambda_1(__env_0: __lambda_env_2!, x: i32) -> i32
     return
       add :i32
         l:

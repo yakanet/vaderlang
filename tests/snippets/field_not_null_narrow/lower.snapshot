@@ -24,9 +24,9 @@
         callee:
           tag_of :fn(Box) -> i32
         arg0:
-          Box {
+          Box! {
             opt:
-              Inner {
+              Inner! {
                 tag: int(7) :i32
               }
           }
@@ -35,7 +35,7 @@
         callee:
           tag_of :fn(Box) -> i32
         arg0:
-          Box {
+          Box! {
             opt: null
           }
     call :void

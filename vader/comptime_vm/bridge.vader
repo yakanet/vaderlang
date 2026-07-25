@@ -86,7 +86,7 @@ array_to_comptime :: fn(array: Vm.ArrayVal, ty: Type, span: Span) -> Ct.Comptime
         if bridged is Diagnostic as d { return d }
         elements.push(bridged)
     }
-    return Ct.ArrayValue { .elements = elements, .element_type_name = display_type(elem_ty) }
+    return Ct.ArrayValue { .elements = elements, .element_type_name = display_type_key(elem_ty) }
 }
 
 // Element type of an array type ; falls back to `ty` itself for a non-array

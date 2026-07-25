@@ -437,7 +437,7 @@ test_primitive_from_name_returns_null_for_user_types :: fn() -> void {
 
 @test
 test_array_type_expr_lowers_to_array :: fn() -> void {
-    assert_eq(lower_first_param_type("f :: fn(x: i32[]) -> void {}"), "i32[]")
+    assert_eq(lower_first_param_type("f :: fn(x: i32[]) -> void {}"), "i32[]!")
 }
 
 @test

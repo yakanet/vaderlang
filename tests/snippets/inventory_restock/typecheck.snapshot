@@ -2,15 +2,15 @@
 
 ## tests/snippets/inventory_restock
   FnDecl         main                 :: fn() -> i32
-  expr 11:20    SeqLitExpr     :: i32[]
+  expr 11:20    SeqLitExpr     :: i32[]!
   expr 14:11    IdentExpr      :: i32
   expr 14:20    IdentExpr      :: i32
-  expr 14:5     IdentExpr      :: i32[]
+  expr 14:5     IdentExpr      :: i32[]!
   expr 14:5     IndexExpr      :: i32
   expr 15:13    BinaryExpr     :: i32
   expr 15:13    IdentExpr      :: i32
   expr 15:5     IdentExpr      :: i32
-  expr 16:17    IdentExpr      :: i32[]
+  expr 16:17    IdentExpr      :: i32[]!
   expr 16:17    IndexExpr      :: i32
   expr 16:23    IdentExpr      :: i32
   expr 17:13    StringLitExpr  :: string

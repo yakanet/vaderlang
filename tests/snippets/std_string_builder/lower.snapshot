@@ -2,37 +2,37 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let sb: StringBuilder =
-      StringBuilder {
+    let sb: StringBuilder! =
+      StringBuilder! {
         parts:
-          array :string[]
+          array :string[]!
       }
     call :void
       callee:
         append :void
       arg0:
-        sb :StringBuilder
+        sb :StringBuilder!
       arg1:
         "Hello" :string
     call :void
       callee:
         append :void
       arg0:
-        sb :StringBuilder
+        sb :StringBuilder!
       arg1:
         ", " :string
     call :void
       callee:
         append :void
       arg0:
-        sb :StringBuilder
+        sb :StringBuilder!
       arg1:
         "World" :string
     call :void
       callee:
         append_char :void
       arg0:
-        sb :StringBuilder
+        sb :StringBuilder!
       arg1:
         char(0x21)
     call :void
@@ -43,31 +43,31 @@
           callee:
             std_string_builder$StringBuilder$Display$to_string :string
           arg0:
-            sb :StringBuilder
-    let sb2: StringBuilder =
-      StringBuilder {
+            sb :StringBuilder!
+    let sb2: StringBuilder! =
+      StringBuilder! {
         parts:
-          array :string[]
+          array :string[]!
       }
     call :void
       callee:
         append :void
       arg0:
-        sb2 :StringBuilder
+        sb2 :StringBuilder!
       arg1:
         "foo" :string
     call :void
       callee:
         append :void
       arg0:
-        sb2 :StringBuilder
+        sb2 :StringBuilder!
       arg1:
         "bar" :string
     call :void
       callee:
         append :void
       arg0:
-        sb2 :StringBuilder
+        sb2 :StringBuilder!
       arg1:
         "baz" :string
     call :void
@@ -78,11 +78,11 @@
           callee:
             std_string_builder$StringBuilder$Display$to_string :string
           arg0:
-            sb2 :StringBuilder
-    let sb3: StringBuilder =
-      StringBuilder {
+            sb2 :StringBuilder!
+    let sb3: StringBuilder! =
+      StringBuilder! {
         parts:
-          array :string[]
+          array :string[]!
       }
     call :void
       callee:
@@ -98,26 +98,26 @@
               callee:
                 std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                sb3 :StringBuilder
+                sb3 :StringBuilder!
           arg2:
             "'" :string
-    let sb4: StringBuilder =
-      StringBuilder {
+    let sb4: StringBuilder! =
+      StringBuilder! {
         parts:
-          array :string[]
+          array :string[]!
       }
     call :void
       callee:
         append_char :void
       arg0:
-        sb4 :StringBuilder
+        sb4 :StringBuilder!
       arg1:
         char(0x20ac)
     call :void
       callee:
         append_char :void
       arg0:
-        sb4 :StringBuilder
+        sb4 :StringBuilder!
       arg1:
         char(0x29)
     call :void
@@ -128,25 +128,25 @@
           callee:
             std_string_builder$StringBuilder$Display$to_string :string
           arg0:
-            sb4 :StringBuilder
+            sb4 :StringBuilder!
     let n: i32 = int(42) :i32
-    let sb5: StringBuilder =
-      StringBuilder {
+    let sb5: StringBuilder! =
+      StringBuilder! {
         parts:
-          array :string[]
+          array :string[]!
       }
     call :void
       callee:
         append :void
       arg0:
-        sb5 :StringBuilder
+        sb5 :StringBuilder!
       arg1:
         "n=" :string
     call :void
       callee:
         append :void
       arg0:
-        sb5 :StringBuilder
+        sb5 :StringBuilder!
       arg1:
         block :string
           let __buf_0: Buffer =
@@ -186,7 +186,7 @@
           callee:
             std_string_builder$StringBuilder$Display$to_string :string
           arg0:
-            sb5 :StringBuilder
+            sb5 :StringBuilder!
     return int(0) :i32
   fn concat_3(p0: string, p1: string, p2: string) -> string
     let c0: usize =

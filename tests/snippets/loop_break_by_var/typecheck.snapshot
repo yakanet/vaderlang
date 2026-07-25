@@ -4,8 +4,8 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         scan                 :: fn() -> void
   FnDecl         sift                 :: fn() -> void
-  expr 11:14    RangeExpr      :: Range<i32>
-  expr 12:18    RangeExpr      :: Range<i32>
+  expr 11:14    RangeExpr      :: Range<i32>!
+  expr 12:18    RangeExpr      :: Range<i32>!
   expr 13:13    IfExpr         :: void
   expr 13:16    BinaryExpr     :: bool
   expr 13:16    IdentExpr      :: i32
@@ -17,12 +17,12 @@
   expr 15:21    StringLitExpr  :: string
   expr 15:29    IdentExpr      :: i32
   expr 15:34    IdentExpr      :: i32
-  expr 22:13    SeqLitExpr     :: i32[][]
-  expr 22:14    SeqLitExpr     :: i32[]
-  expr 22:25    SeqLitExpr     :: i32[]
-  expr 22:36    SeqLitExpr     :: i32[]
-  expr 23:16    IdentExpr      :: i32[][]
-  expr 24:21    IdentExpr      :: i32[]
+  expr 22:13    SeqLitExpr     :: i32[]![]!
+  expr 22:14    SeqLitExpr     :: i32[]!
+  expr 22:25    SeqLitExpr     :: i32[]!
+  expr 22:36    SeqLitExpr     :: i32[]!
+  expr 23:16    IdentExpr      :: i32[]![]!
+  expr 24:21    IdentExpr      :: i32[]!
   expr 25:13    IfExpr         :: void
   expr 25:16    BinaryExpr     :: bool
   expr 25:16    IdentExpr      :: i32

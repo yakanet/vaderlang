@@ -3,25 +3,25 @@
 ## snippet
   struct snippet$Tag { n: i32 }
   fn snippet$main() -> i32
-    let ints: i32[] =
-      call :i32[]
+    let ints: i32[]! =
+      call :i32[]!
         callee:
-          snippet$dup__i32 :i32[]
+          snippet$dup__i32 :i32[]!
         arg0:
-          array :const i32[]
+          array :i32[]
             int(4) :i32
             int(5) :i32
             int(6) :i32
-    let tags: Tag[] =
-      call :Tag[]
+    let tags: Tag![]! =
+      call :Tag![]!
         callee:
-          snippet$dup__Tag :Tag[]
+          snippet$dup__Tag :Tag![]!
         arg0:
-          array :const Tag[]
-            Tag {
+          array :Tag![]
+            Tag! {
               n: int(7) :i32
             }
-            Tag {
+            Tag! {
               n: int(8) :i32
             }
     LoweredArrayPush
@@ -79,7 +79,7 @@
                   cast → i64
                     index :i32
                       on:
-                        ints :i32[]
+                        ints :i32[]!
                       ix:
                         int(3) :i32
           assign
@@ -136,9 +136,9 @@
                 arg2:
                   cast → i64
                     .n :i32
-                      index :Tag
+                      index :Tag!
                         on:
-                          tags :Tag[]
+                          tags :Tag![]!
                         ix:
                           int(1) :i32
           ~>
@@ -150,21 +150,21 @@
               arg1:
                 __off_1 :usize
     return int(0) :i32
-  fn snippet$dup__Tag(src: const Tag[]) -> Tag[]
-    let out: Tag[] =
-      @array.repeat :Tag[]
-        array :Tag[]
+  fn snippet$dup__Tag(src: Tag![]) -> Tag![]!
+    let out: Tag![]! =
+      @array.repeat :Tag![]!
+        array :Tag![]!
         LoweredArrayLen
     @array.push_all :void
-      out :Tag[]
-      src :const Tag[]
-    return out :Tag[]
-  fn snippet$dup__i32(src: const i32[]) -> i32[]
-    let out: i32[] =
-      @array.repeat :i32[]
-        array :i32[]
+      out :Tag![]!
+      src :Tag![]
+    return out :Tag![]!
+  fn snippet$dup__i32(src: i32[]) -> i32[]!
+    let out: i32[]! =
+      @array.repeat :i32[]!
+        array :i32[]!
         LoweredArrayLen
     @array.push_all :void
-      out :i32[]
-      src :const i32[]
-    return out :i32[]
+      out :i32[]!
+      src :i32[]
+    return out :i32[]!

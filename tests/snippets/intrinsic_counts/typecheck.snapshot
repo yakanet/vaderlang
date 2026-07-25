@@ -2,6 +2,6 @@
 
 ## tests/snippets/intrinsic_counts
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Pair                 :: Pair
+  StructDecl     Pair                 :: Pair!
   EnumDecl       Side                 :: Side
-  StructDecl     Triple               :: Triple
+  StructDecl     Triple               :: Triple!

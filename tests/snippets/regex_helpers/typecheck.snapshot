@@ -43,23 +43,23 @@
   expr 21:5     IdentExpr      :: fn(T) -> void
   expr 21:51    IdentExpr      :: fn(char) -> bool
   expr 21:62    StringLitExpr  :: string
-  expr 23:14    CallExpr       :: const string[]
-  expr 23:14    IdentExpr      :: fn(string, fn(char) -> bool) -> const string[]
+  expr 23:14    CallExpr       :: string[]
+  expr 23:14    IdentExpr      :: fn(string, fn(char) -> bool) -> string[]
   expr 23:26    StringLitExpr  :: string
   expr 23:57    IdentExpr      :: fn(char) -> bool
   expr 24:13    StringLitExpr  :: string
   expr 24:22    CallExpr       :: usize
   expr 24:22    FieldExpr      :: fn() -> usize
-  expr 24:22    IdentExpr      :: const string[]
+  expr 24:22    IdentExpr      :: string[]
   expr 24:5     CallExpr       :: void
   expr 24:5     IdentExpr      :: fn(T) -> void
   expr 25:10    CallExpr       :: usize
   expr 25:10    FieldExpr      :: fn() -> usize
-  expr 25:10    IdentExpr      :: const string[]
+  expr 25:10    IdentExpr      :: string[]
   expr 27:13    IdentExpr      :: usize
   expr 27:9     BinaryExpr     :: bool
   expr 27:9     IdentExpr      :: usize
-  expr 28:17    IdentExpr      :: const string[]
+  expr 28:17    IdentExpr      :: string[]
   expr 28:17    IndexExpr      :: string
   expr 28:23    IdentExpr      :: usize
   expr 28:9     CallExpr       :: void

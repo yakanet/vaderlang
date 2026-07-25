@@ -85,7 +85,7 @@
         reserve :fn() -> void
     return int(0) :i32
   struct __defer_env_2 { cap_0: ? }
-  fn __defer_1(__env_0: __defer_env_2) -> void
+  fn __defer_1(__env_0: __defer_env_2!) -> void
     call :void
       callee:
         std_io$println__string :void
@@ -134,7 +134,7 @@
               arg1:
                 __off_1 :usize
   struct __defer_env_10 {  }
-  fn __defer_9(__env_0: __defer_env_10) -> void
+  fn __defer_9(__env_0: __defer_env_10!) -> void
     call :void
       callee:
         std_io$println__string :void

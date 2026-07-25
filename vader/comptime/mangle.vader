@@ -65,7 +65,7 @@ export mangle :: fn(decl_name: string, module_path: string, type_arguments: Type
 // every instance name (call site, struct literal, allocation, dispatch) is
 // consistent with the source-stripped instance entries. `strip_distinct`
 // handles nesting (`MutableMap<BlockId>` → `MutableMap<i32>`).
-export mangle_type_arg :: fn(t: Type) -> string = sanitise_ident(display_type(strip_distinct(t)))
+export mangle_type_arg :: fn(t: Type) -> string = sanitise_ident(display_type_key(strip_distinct(t)))
 
 /// Replace every byte outside `[A-Za-z0-9_]` with `_`. Distinct from
 /// `vader/c_emit/body.sanitise` — the C-emit variant additionally

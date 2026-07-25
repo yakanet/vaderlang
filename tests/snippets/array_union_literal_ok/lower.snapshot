@@ -2,14 +2,14 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let xs: (i32 | string)[] =
-      array :(i32 | string)[]
+    let xs: (i32 | string)[]! =
+      array :(i32 | string)[]!
         int(1) :i32
         int(2) :i32
         int(3) :i32
     LoweredArrayPush
     block :void
-      let __for_arr_0: (i32 | string)[] = xs :(i32 | string)[]
+      let __for_arr_0: (i32 | string)[]! = xs :(i32 | string)[]!
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -17,7 +17,7 @@
         let x: i32 | string =
           index :i32 | string
             on:
-              __for_arr_0 :(i32 | string)[]
+              __for_arr_0 :(i32 | string)[]!
             ix:
               __for_i_2 :usize
         if :void
@@ -106,17 +106,17 @@
                 __for_i_2 :usize
               r:
                 int(1) :usize
-    let a: i32[] =
-      array :i32[]
+    let a: i32[]! =
+      array :i32[]!
         int(10) :i32
         int(20) :i32
-    let view: const (i32 | string)[] = a :i32[]
+    let view: (i32 | string)[] = a :i32[]!
     if :void
       cond:
         is i32 :bool
           index :i32 | string
             on:
-              view :const (i32 | string)[]
+              view :(i32 | string)[]
             ix:
               int(0) :i32
       then:
@@ -124,7 +124,7 @@
           cast → i32
             index :i32 | string
               on:
-                view :const (i32 | string)[]
+                view :(i32 | string)[]
               ix:
                 int(0) :i32
         call :void

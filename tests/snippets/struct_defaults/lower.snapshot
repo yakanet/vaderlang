@@ -3,20 +3,20 @@
 ## snippet
   struct snippet$Settings { name: string, timeout: i32, debug: bool }
   fn snippet$main() -> i32
-    let s1: Settings =
-      Settings {
+    let s1: Settings! =
+      Settings! {
         name: "minimal" :string
         timeout: int(30) :i32
         debug: false
       }
-    let s2: Settings =
-      Settings {
+    let s2: Settings! =
+      Settings! {
         name: "loud" :string
         timeout: int(30) :i32
         debug: true
       }
-    let s3: Settings =
-      Settings {
+    let s3: Settings! =
+      Settings! {
         name: "tight" :string
         timeout: int(5) :i32
         debug: true
@@ -28,7 +28,7 @@
         block :string
           let __p_0: string =
             .name :string
-              s1 :Settings
+              s1 :Settings!
           let __buf_1: Buffer =
             call :Buffer
               callee:
@@ -84,7 +84,7 @@
                 arg2:
                   cast → i64
                     .timeout :i32
-                      s1 :Settings
+                      s1 :Settings!
           assign
             target:
               __off_2 :usize
@@ -111,7 +111,7 @@
                   __off_2 :usize
                 arg2:
                   .debug :bool
-                    s1 :Settings
+                    s1 :Settings!
           ~>
             call :string
               callee:
@@ -127,7 +127,7 @@
         block :string
           let __p_3: string =
             .name :string
-              s2 :Settings
+              s2 :Settings!
           let __buf_4: Buffer =
             call :Buffer
               callee:
@@ -183,7 +183,7 @@
                 arg2:
                   cast → i64
                     .timeout :i32
-                      s2 :Settings
+                      s2 :Settings!
           assign
             target:
               __off_5 :usize
@@ -210,7 +210,7 @@
                   __off_5 :usize
                 arg2:
                   .debug :bool
-                    s2 :Settings
+                    s2 :Settings!
           ~>
             call :string
               callee:
@@ -226,7 +226,7 @@
         block :string
           let __p_6: string =
             .name :string
-              s3 :Settings
+              s3 :Settings!
           let __buf_7: Buffer =
             call :Buffer
               callee:
@@ -282,7 +282,7 @@
                 arg2:
                   cast → i64
                     .timeout :i32
-                      s3 :Settings
+                      s3 :Settings!
           assign
             target:
               __off_8 :usize
@@ -309,7 +309,7 @@
                   __off_8 :usize
                 arg2:
                   .debug :bool
-                    s3 :Settings
+                    s3 :Settings!
           ~>
             call :string
               callee:

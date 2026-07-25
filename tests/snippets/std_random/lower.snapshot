@@ -383,8 +383,8 @@
         arg0:
           cast → u64
             int(99) :u64
-    let arr: i32[] =
-      array :i32[]
+    let arr: i32[]! =
+      array :i32[]!
         int(1) :i32
         int(2) :i32
         int(3) :i32
@@ -399,7 +399,7 @@
       arg0:
         s :Rng
       arg1:
-        arr :i32[]
+        arr :i32[]!
     call :void
       callee:
         std_io$println__string :void
@@ -449,7 +449,7 @@
                 __off_9 :usize
     let sum: i32 = int(0) :i32
     block :void
-      let __for_arr_10: i32[] = arr :i32[]
+      let __for_arr_10: i32[]! = arr :i32[]!
       let __for_len_11: usize =
         LoweredArrayLen
       let __for_i_12: usize = int(0) :usize
@@ -457,7 +457,7 @@
         let x: i32 =
           index :i32
             on:
-              __for_arr_10 :i32[]
+              __for_arr_10 :i32[]!
             ix:
               __for_i_12 :usize
         assign

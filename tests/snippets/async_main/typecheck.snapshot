@@ -3,8 +3,8 @@
 ## tests/snippets/async_main
   FnDecl         greeting             :: fn() -> Async<string>
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Ready                :: Ready<T>
-  expr 12:37    StructLitExpr  :: Ready<string>
+  StructDecl     Ready                :: Ready<T>!
+  expr 12:37    StructLitExpr  :: Ready<string>!
   expr 12:58    StringLitExpr  :: string
   expr 15:12    AwaitExpr      :: string
   expr 15:18    CallExpr       :: Async<string>

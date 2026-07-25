@@ -20,12 +20,12 @@
         r:
           int(100) :i32
   fn snippet$main() -> i32
-    let a: A =
-      A {
+    let a: A! =
+      A! {
         x: int(5) :i32
       }
-    let b: B =
-      B {
+    let b: B! =
+      B! {
         y: int(5) :i32
       }
     call :void
@@ -57,7 +57,7 @@
                       callee:
                         inc :i32
                       arg0:
-                        a :A
+                        a :A!
           ~>
             call :string
               callee:
@@ -95,7 +95,7 @@
                       callee:
                         inc :i32
                       arg0:
-                        b :B
+                        b :B!
           ~>
             call :string
               callee:

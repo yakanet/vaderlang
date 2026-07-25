@@ -9,7 +9,7 @@ type 6 array 7
 type 7 primitive u8
 type 8 primitive void
 type 9 array 2
-type 10 union 6,2
+type 10 union 2,6
 type 11 primitive u32
 type 12 struct std_string_builder$StringBuilder { parts:9 }
 type 13 array 11

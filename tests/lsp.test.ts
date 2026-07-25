@@ -393,9 +393,11 @@ test("lsp: completion shows a local's inferred type as detail", async () => {
   expect(labels.has("n")).toBe(true);
   expect(labels.has("b")).toBe(true);
 
-  // `n :: mk()` → `i32` (the call's return type), `b :: Box {...}` → `Box`.
+  // `n :: mk()` → `i32` (the call's return type), `b :: Box {...}` → `Box!`.
+  // The `!` is the point: a LOCAL is owned, so it stays mutable — the read-only
+  // default governs parameters, fields and returns, never a local.
   expect(list.items.find((i) => i.label === "n")?.detail).toBe("i32");
-  expect(list.items.find((i) => i.label === "b")?.detail).toBe("Box");
+  expect(list.items.find((i) => i.label === "b")?.detail).toBe("Box!");
 
   // A function's detail is its signature, with the redundant `<name> :: `
   // prefix stripped — the label already carries the name.

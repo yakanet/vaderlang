@@ -6,12 +6,12 @@
   fn snippet$probe(w: Wrapper) -> i32
     if :void
       cond:
-        is Inner :bool
+        is Inner! :bool
           .payload :Inner | null
             w :Wrapper
       then:
-        let p: Inner =
-          cast → Inner
+        let p: Inner! =
+          cast → Inner!
             .payload :Inner | null
               w :Wrapper
         return
@@ -63,9 +63,9 @@
                       callee:
                         probe :fn(Wrapper) -> i32
                       arg0:
-                        Wrapper {
+                        Wrapper! {
                           payload:
-                            Inner {
+                            Inner! {
                               kind: int(42) :i32
                             }
                         }
@@ -119,7 +119,7 @@
                       callee:
                         probe :fn(Wrapper) -> i32
                       arg0:
-                        Wrapper {
+                        Wrapper! {
                           payload: null
                         }
           ~>

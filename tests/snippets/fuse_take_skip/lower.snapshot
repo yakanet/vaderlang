@@ -5,8 +5,8 @@
     block :void
       let n: usize = int(3) :usize
       let i: usize = int(0) :usize
-      let __fuse_arr_2: i32[] =
-        array :i32[]
+      let __fuse_arr_2: i32[]! =
+        array :i32[]!
           int(10) :i32
           int(20) :i32
           int(30) :i32
@@ -19,7 +19,7 @@
         let x: i32 =
           index :i32
             on:
-              __fuse_arr_2 :i32[]
+              __fuse_arr_2 :i32[]!
             ix:
               __fuse_i_4 :usize
         if :void
@@ -100,8 +100,8 @@
     block :void
       let n: usize = int(2) :usize
       let i: usize = int(0) :usize
-      let __fuse_arr_7: i32[] =
-        array :i32[]
+      let __fuse_arr_7: i32[]! =
+        array :i32[]!
           int(10) :i32
           int(20) :i32
           int(30) :i32
@@ -114,7 +114,7 @@
         let x: i32 =
           index :i32
             on:
-              __fuse_arr_7 :i32[]
+              __fuse_arr_7 :i32[]!
             ix:
               __fuse_i_9 :usize
         if :void
@@ -196,8 +196,8 @@
       let i: usize = int(0) :usize
       let n: usize = int(1) :usize
       let i: usize = int(0) :usize
-      let __fuse_arr_12: i32[] =
-        array :i32[]
+      let __fuse_arr_12: i32[]! =
+        array :i32[]!
           int(10) :i32
           int(20) :i32
           int(30) :i32
@@ -210,7 +210,7 @@
         let x: i32 =
           index :i32
             on:
-              __fuse_arr_12 :i32[]
+              __fuse_arr_12 :i32[]!
             ix:
               __fuse_i_14 :usize
         if :void

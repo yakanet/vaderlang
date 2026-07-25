@@ -1,16 +1,16 @@
 # Lower
 
 ## snippet
-  fn snippet$read_first(a: const i32[]) -> i32
+  fn snippet$read_first(a: i32[]) -> i32
     return
       index :i32
         on:
-          a :const i32[]
+          a :i32[]
         ix:
           int(0) :i32
   fn snippet$main() -> i32
-    let arr: i32[] =
-      array :i32[]
+    let arr: i32[]! =
+      array :i32[]!
         int(10) :i32
         int(20) :i32
         int(30) :i32
@@ -54,9 +54,9 @@
                   cast → i64
                     call :i32
                       callee:
-                        read_first :fn(const i32[]) -> i32
+                        read_first :fn(i32[]) -> i32
                       arg0:
-                        arr :i32[]
+                        arr :i32[]!
           ~>
             call :string
               callee:

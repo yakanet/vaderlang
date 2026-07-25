@@ -8,9 +8,9 @@
         std_io$println__string :void
       arg0:
         .name :string
-          index :Pair
+          index :Pair!
             on:
-              PAIRS :const Pair[]
+              PAIRS :Pair![]
             ix:
               int(1) :i32
     call :void
@@ -39,9 +39,9 @@
                 arg2:
                   cast → i64
                     .code :i32
-                      index :Pair
+                      index :Pair!
                         on:
-                          PAIRS :const Pair[]
+                          PAIRS :Pair![]
                         ix:
                           int(0) :i32
           ~>

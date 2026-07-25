@@ -22,7 +22,7 @@ import "vader/types"
 ///                 `typed.into_coercions` so the LSP can surface a ghost
 ///                 `.into()` hint ; trait widening records nothing.
 export try_into :: fn(got: Type, expected: Type, typed: TypedProgram!, node_id: usize) -> bool {
-    targeted :: typed.impl_methods["${display_type(got)}::into::${display_type(expected)}"]
+    targeted :: typed.impl_methods["${display_type_key(got)}::into::${display_type_key(expected)}"]
     if targeted !is null {
         if targeted.ty is FnType as f {
             if is_assignable(f.return_type, expected, null) {

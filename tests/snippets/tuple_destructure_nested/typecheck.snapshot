@@ -17,6 +17,6 @@
   expr 15:23    IdentExpr      :: bool
   expr 15:5     CallExpr       :: void
   expr 15:5     IdentExpr      :: fn(T) -> void
-  expr 8:12     SeqLitExpr     :: [[i32, string], bool]
-  expr 8:13     SeqLitExpr     :: [i32, string]
+  expr 8:12     SeqLitExpr     :: [[i32, string]!, bool]!
+  expr 8:13     SeqLitExpr     :: [i32, string]!
   expr 8:17     StringLitExpr  :: string

@@ -4,8 +4,8 @@
   FnDecl         add                  :: fn(Vec3, Vec3) -> Vec3
   FnDecl         double               :: fn(T) -> T
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Vec3                 :: Vec3
-  expr 13:12    StructLitExpr  :: Vec3
+  StructDecl     Vec3                 :: Vec3!
+  expr 13:12    StructLitExpr  :: Vec3!
   expr 13:24    BinaryExpr     :: i32
   expr 13:24    FieldExpr      :: i32
   expr 13:24    IdentExpr      :: Vec3
@@ -25,10 +25,10 @@
   expr 17:12    FieldExpr      :: fn(T) -> T
   expr 17:12    IdentExpr      :: T
   expr 17:18    IdentExpr      :: T
-  expr 21:10    StructLitExpr  :: Vec3
-  expr 22:10    CallExpr       :: Vec3
+  expr 21:10    StructLitExpr  :: Vec3!
+  expr 22:10    CallExpr       :: Vec3!
   expr 22:10    IdentExpr      :: fn(T) -> T
-  expr 22:17    IdentExpr      :: Vec3
+  expr 22:17    IdentExpr      :: Vec3!
 
 # Diagnostics
-[22:10] error[T3006] trait not satisfied: `Vec3` does not implement `Add` (required by type parameter `T` of `double`)
+[22:10] error[T3006] trait not satisfied: `Vec3!` does not implement `Add` (required by type parameter `T` of `double`)

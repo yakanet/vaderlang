@@ -1,28 +1,28 @@
 # Typecheck
 
 ## tests/snippets/op_overload_index
-  StructDecl     Cell                 :: Cell
+  StructDecl     Cell                 :: Cell!
   FnDecl         main                 :: fn() -> i32
-  expr 16:18    FieldExpr      :: string[]
+  expr 16:18    FieldExpr      :: string[]!
   expr 16:18    IdentExpr      :: Cell
   expr 17:13    IfExpr         :: void
   expr 17:16    BinaryExpr     :: bool
   expr 17:16    IdentExpr      :: string
   expr 17:21    IdentExpr      :: string
-  expr 17:34    FieldExpr      :: i32[]
+  expr 17:34    FieldExpr      :: i32[]!
   expr 17:34    IdentExpr      :: Cell
   expr 17:34    IndexExpr      :: i32
   expr 17:44    IdentExpr      :: i32
   expr 18:13    BinaryExpr     :: i32
   expr 18:13    IdentExpr      :: i32
-  expr 27:18    FieldExpr      :: string[]
-  expr 27:18    IdentExpr      :: Cell
+  expr 27:18    FieldExpr      :: string[]!
+  expr 27:18    IdentExpr      :: Cell!
   expr 28:13    IfExpr         :: void
   expr 28:16    BinaryExpr     :: bool
   expr 28:16    IdentExpr      :: string
   expr 28:21    IdentExpr      :: string
-  expr 29:17    FieldExpr      :: i32[]
-  expr 29:17    IdentExpr      :: Cell
+  expr 29:17    FieldExpr      :: i32[]!
+  expr 29:17    IdentExpr      :: Cell!
   expr 29:17    IndexExpr      :: i32
   expr 29:27    IdentExpr      :: i32
   expr 29:32    IdentExpr      :: i32
@@ -31,30 +31,30 @@
   expr 34:24    IdentExpr      :: string
   expr 34:9     CallExpr       :: void
   expr 34:9     FieldExpr      :: fn(string) -> void
-  expr 34:9     FieldExpr      :: string[]
-  expr 34:9     IdentExpr      :: Cell
+  expr 34:9     FieldExpr      :: string[]!
+  expr 34:9     IdentExpr      :: Cell!
   expr 35:24    IdentExpr      :: i32
   expr 35:9     CallExpr       :: void
   expr 35:9     FieldExpr      :: fn(i32) -> void
-  expr 35:9     FieldExpr      :: i32[]
-  expr 35:9     IdentExpr      :: Cell
-  expr 40:10    StructLitExpr  :: Cell
-  expr 40:25    SeqLitExpr     :: string[]
-  expr 40:37    SeqLitExpr     :: i32[]
-  expr 41:5     IdentExpr      :: Cell
+  expr 35:9     FieldExpr      :: i32[]!
+  expr 35:9     IdentExpr      :: Cell!
+  expr 40:10    StructLitExpr  :: Cell!
+  expr 40:25    SeqLitExpr     :: string[]!
+  expr 40:37    SeqLitExpr     :: i32[]!
+  expr 41:5     IdentExpr      :: Cell!
   expr 41:7     StringLitExpr  :: string
-  expr 42:5     IdentExpr      :: Cell
+  expr 42:5     IdentExpr      :: Cell!
   expr 42:7     StringLitExpr  :: string
-  expr 43:5     IdentExpr      :: Cell
+  expr 43:5     IdentExpr      :: Cell!
   expr 43:7     StringLitExpr  :: string
   expr 44:13    StringLitExpr  :: string
-  expr 44:18    IdentExpr      :: Cell
+  expr 44:18    IdentExpr      :: Cell!
   expr 44:18    IndexExpr      :: i32
   expr 44:20    StringLitExpr  :: string
-  expr 44:30    IdentExpr      :: Cell
+  expr 44:30    IdentExpr      :: Cell!
   expr 44:30    IndexExpr      :: i32
   expr 44:32    StringLitExpr  :: string
-  expr 44:42    IdentExpr      :: Cell
+  expr 44:42    IdentExpr      :: Cell!
   expr 44:42    IndexExpr      :: i32
   expr 44:44    StringLitExpr  :: string
   expr 44:5     CallExpr       :: void

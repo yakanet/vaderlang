@@ -345,7 +345,7 @@
                 __off_17 :usize
     return int(0) :i32
   struct __lambda_env_2 {  }
-  fn __lambda_1(__env_0: __lambda_env_2, x: i32) -> i32
+  fn __lambda_1(__env_0: __lambda_env_2!, x: i32) -> i32
     ~>
       add :i32
         l:
@@ -353,7 +353,7 @@
         r:
           int(1) :i32
   struct __lambda_env_7 {  }
-  fn __lambda_6(__env_3: __lambda_env_7, x: i32) -> i32
+  fn __lambda_6(__env_3: __lambda_env_7!, x: i32) -> i32
     ~>
       mul :i32
         l:
@@ -361,7 +361,7 @@
         r:
           int(2) :i32
   struct __lambda_env_12 {  }
-  fn __lambda_11(__env_6: __lambda_env_12, x: i32) -> i32
+  fn __lambda_11(__env_6: __lambda_env_12!, x: i32) -> i32
     ~>
       mul :i32
         l:
@@ -369,7 +369,7 @@
         r:
           x :i32
   struct __lambda_env_17 {  }
-  fn __lambda_16(__env_9: __lambda_env_17, a: i32, b: i32) -> i32
+  fn __lambda_16(__env_9: __lambda_env_17!, a: i32, b: i32) -> i32
     ~>
       add :i32
         l:
@@ -377,11 +377,11 @@
         r:
           b :i32
   struct __lambda_env_22 {  }
-  fn __lambda_21(__env_12: __lambda_env_22) -> i32
+  fn __lambda_21(__env_12: __lambda_env_22!) -> i32
     ~>
       int(42) :i32
   struct __lambda_env_27 {  }
-  fn __lambda_26(__env_15: __lambda_env_27, x: i32) -> i32
+  fn __lambda_26(__env_15: __lambda_env_27!, x: i32) -> i32
     let tmp: i32 =
       mul :i32
         l:

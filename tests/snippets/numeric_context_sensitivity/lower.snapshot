@@ -536,8 +536,8 @@
                 __buf_4 :Buffer
               arg1:
                 __off_5 :usize
-    let c: Counter =
-      Counter {
+    let c: Counter! =
+      Counter! {
         n: int(0) :usize
         delta:
           neg :isize
@@ -582,7 +582,7 @@
                 arg2:
                   cast → u64
                     .n :usize
-                      c :Counter
+                      c :Counter!
           assign
             target:
               __off_7 :usize
@@ -610,7 +610,7 @@
                 arg2:
                   cast → i64
                     .delta :isize
-                      c :Counter
+                      c :Counter!
           ~>
             call :string
               callee:
@@ -645,8 +645,8 @@
             std_io$println__string :void
           arg0:
             "isz_neg ok" :string
-    let arr: i32[] =
-      array :i32[]
+    let arr: i32[]! =
+      array :i32[]!
         int(10) :i32
         int(20) :i32
         int(30) :i32
@@ -654,10 +654,10 @@
         int(50) :i32
     let n: usize =
       LoweredArrayLen
-    let sub: i32[] =
-      slice :i32[]
+    let sub: i32[]! =
+      slice :i32[]!
         on:
-          arr :i32[]
+          arr :i32[]!
         lo:
           int(0) :usize
         hi:
@@ -713,8 +713,8 @@
                 __buf_8 :Buffer
               arg1:
                 __off_9 :usize
-    let forty_two: __lambda_env_12 =
-      __lambda_env_12 {
+    let forty_two: __lambda_env_12! =
+      __lambda_env_12! {
       }
     call :void
       callee:
@@ -765,5 +765,5 @@
                 __off_12 :usize
     return int(0) :i32
   struct __lambda_env_12 {  }
-  fn __lambda_11(__env_10: __lambda_env_12) -> usize
+  fn __lambda_11(__env_10: __lambda_env_12!) -> usize
     return int(42) :usize

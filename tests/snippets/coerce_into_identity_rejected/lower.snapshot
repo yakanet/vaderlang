@@ -2,10 +2,10 @@
 
 ## snippet
   struct snippet$Foo { value: i32 }
-  fn snippet$Foo$Into$into(self: Foo) -> Foo
+  fn snippet$Foo$Into$into(self: Foo!) -> Foo!
     return self :Foo
   fn snippet$main() -> i32
     return int(0) :i32
 
 # Diagnostics
-[9:1] error[T3039] `Into<T>` cannot use `T` as its target (identity coercion is forbidden): `Foo implements Into<Foo>` — source and target must differ
+[9:1] error[T3039] `Into<T>` cannot use `T` as its target (identity coercion is forbidden): `Foo! implements Into<Foo!>` — source and target must differ

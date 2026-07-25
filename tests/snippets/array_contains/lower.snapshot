@@ -2,8 +2,8 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let primes: i32[] =
-      array :i32[]
+    let primes: i32[]! =
+      array :i32[]!
         int(2) :i32
         int(3) :i32
         int(5) :i32
@@ -15,7 +15,7 @@
           callee:
             std_core$[]$Contains$contains__i32 :bool
           arg0:
-            primes :i32[]
+            primes :i32[]!
           arg1:
             int(7) :i32
       then:
@@ -31,7 +31,7 @@
             callee:
               std_core$[]$Contains$contains__i32 :bool
             arg0:
-              primes :i32[]
+              primes :i32[]!
             arg1:
               int(4) :i32
       then:
@@ -40,10 +40,10 @@
             std_io$println__string :void
           arg0:
             "4 is not prime" :string
-    let vowels: const u8[] =
-      call :const u8[]
+    let vowels: u8[] =
+      call :u8[]
         callee:
-          bytes :const u8[]
+          bytes :u8[]
         arg0:
           "aeiou" :string
     if :void
@@ -52,7 +52,7 @@
           callee:
             std_core$[]$Contains$contains__u8 :bool
           arg0:
-            vowels :const u8[]
+            vowels :u8[]
           arg1:
             char(0x65)
       then:
@@ -68,7 +68,7 @@
             callee:
               std_core$[]$Contains$contains__u8 :bool
             arg0:
-              vowels :const u8[]
+              vowels :u8[]
             arg1:
               char(0x7a)
       then:

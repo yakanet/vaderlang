@@ -10,9 +10,9 @@
           callee:
             bytes_to_string :string
           arg0:
-            call :const u8[]
+            call :u8[]
               callee:
-                bytes :const u8[]
+                bytes :u8[]
               arg0:
                 "vader" :string
     call :void
@@ -23,9 +23,9 @@
           callee:
             bytes_to_string :string
           arg0:
-            call :const u8[]
+            call :u8[]
               callee:
-                bytes :const u8[]
+                bytes :u8[]
               arg0:
                 "héllo café 你好" :string
     call :void
@@ -36,11 +36,11 @@
           callee:
             bytes_to_string :string
           arg0:
-            slice :u8[]
+            slice :u8[]!
               on:
-                call :const u8[]
+                call :u8[]
                   callee:
-                    bytes :const u8[]
+                    bytes :u8[]
                   arg0:
                     "abcde" :string
               lo:
@@ -54,9 +54,9 @@
         callee:
           bytes_to_string :string
         arg0:
-          call :const u8[]
+          call :u8[]
             callee:
-              bytes :const u8[]
+              bytes :u8[]
             arg0:
               "" :string
     call :void

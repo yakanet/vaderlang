@@ -89,7 +89,7 @@
     ~>
       if :void
         cond:
-          is Match :bool
+          is Match! :bool
             r :Match | null
         then:
           ~>
@@ -102,7 +102,7 @@
                   let __p_1: string =
                     index :string
                       on:
-                        .groups :const string[]
+                        .groups :string[]
                           cast → Match
                             r :Match | null
                       ix:
@@ -257,7 +257,7 @@
           "hello" :string
     if :void
       cond:
-        is Pattern :bool
+        is Pattern! :bool
           p_lit :Pattern | RegexError
       then:
         call :void
@@ -288,7 +288,7 @@
           "\\d{3}-\\d{4}" :string
     if :void
       cond:
-        is Pattern :bool
+        is Pattern! :bool
           p_digits :Pattern | RegexError
       then:
         call :void
@@ -319,7 +319,7 @@
           "[a-z]+" :string
     if :void
       cond:
-        is Pattern :bool
+        is Pattern! :bool
           p_word :Pattern | RegexError
       then:
         call :void
@@ -332,10 +332,10 @@
               p_word :Pattern | RegexError
           arg2:
             "abc def ghi" :string
-        let all: const Match[] =
-          call :const Match[]
+        let all: Match[] =
+          call :Match[]
             callee:
-              find_all :const Match[]
+              find_all :Match[]
             arg0:
               cast → Pattern
                 p_word :Pattern | RegexError
@@ -398,10 +398,10 @@
                 let __p_2: string =
                   index :string
                     on:
-                      .groups :const string[]
+                      .groups :string[]
                         index :Match
                           on:
-                            all :const Match[]
+                            all :Match[]
                           ix:
                             i :usize
                     ix:
@@ -500,7 +500,7 @@
           "^foo" :string
     if :void
       cond:
-        is Pattern :bool
+        is Pattern! :bool
           p_anchor :Pattern | RegexError
       then:
         call :void
@@ -531,7 +531,7 @@
           "(\\w+)@(\\w+)\\.(\\w+)" :string
     if :void
       cond:
-        is Pattern :bool
+        is Pattern! :bool
           p_email :Pattern | RegexError
       then:
         let r: Match | null =
@@ -545,7 +545,7 @@
               "contact user@domain.com please" :string
         if :void
           cond:
-            is Match :bool
+            is Match! :bool
               r :Match | null
           then:
             call :void
@@ -560,7 +560,7 @@
                   arg1:
                     index :string
                       on:
-                        .groups :const string[]
+                        .groups :string[]
                           cast → Match
                             r :Match | null
                       ix:
@@ -577,7 +577,7 @@
                   arg1:
                     index :string
                       on:
-                        .groups :const string[]
+                        .groups :string[]
                           cast → Match
                             r :Match | null
                       ix:
@@ -594,7 +594,7 @@
                   arg1:
                     index :string
                       on:
-                        .groups :const string[]
+                        .groups :string[]
                           cast → Match
                             r :Match | null
                       ix:
@@ -611,7 +611,7 @@
                   arg1:
                     index :string
                       on:
-                        .groups :const string[]
+                        .groups :string[]
                           cast → Match
                             r :Match | null
                       ix:
@@ -624,7 +624,7 @@
           "cat|dog|bird" :string
     if :void
       cond:
-        is Pattern :bool
+        is Pattern! :bool
           p_alt :Pattern | RegexError
       then:
         call :void
@@ -675,7 +675,7 @@
           "a{3}" :string
     if :void
       cond:
-        is Pattern :bool
+        is Pattern! :bool
           p_3a :Pattern | RegexError
       then:
         call :void
@@ -706,7 +706,7 @@
           "a{2,4}" :string
     if :void
       cond:
-        is Pattern :bool
+        is Pattern! :bool
           p_2to4 :Pattern | RegexError
       then:
         call :void
@@ -747,7 +747,7 @@
           "(\\w+) (\\w+)" :string
     if :void
       cond:
-        is Pattern :bool
+        is Pattern! :bool
           p_swap :Pattern | RegexError
       then:
         call :void
@@ -778,7 +778,7 @@
           "\\d+" :string
     if :void
       cond:
-        is Pattern :bool
+        is Pattern! :bool
           p_redact :Pattern | RegexError
       then:
         call :void
@@ -809,7 +809,7 @@
           "[abc" :string
     if :void
       cond:
-        is RegexError :bool
+        is RegexError! :bool
           bad :Pattern | RegexError
       then:
         call :void

@@ -1,28 +1,28 @@
 # Lower
 
 ## snippet
-  fn snippet$write_first(a: const i32[]) -> void
+  fn snippet$write_first(a: i32[]) -> void
     assign
       target:
         index :?
           on:
-            a :const i32[]
+            a :i32[]
           ix:
             int(0) :i32
       value:
         int(99) :?
   fn snippet$main() -> i32
-    let arr: i32[] =
-      array :i32[]
+    let arr: i32[]! =
+      array :i32[]!
         int(10) :i32
         int(20) :i32
         int(30) :i32
     call :void
       callee:
-        write_first :fn(const i32[]) -> void
+        write_first :fn(i32[]) -> void
       arg0:
-        arr :i32[]
+        arr :i32[]!
     return int(0) :i32
 
 # Diagnostics
-[6:5] error[T3042] cannot mutate an immutable array: cannot mutate `const i32[]`
+[6:5] error[T3042] cannot mutate an immutable array: cannot mutate `i32[]`

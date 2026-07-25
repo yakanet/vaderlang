@@ -3,7 +3,7 @@
 ## tests/snippets/match_struct_pattern_in_union
   FnDecl         describe             :: fn(null | Point) -> string
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Point                :: Point
+  StructDecl     Point                :: Point!
   expr 14:12    MatchExpr      :: string
   expr 14:18    IdentExpr      :: null | Point
   expr 15:20    StringLitExpr  :: string
@@ -13,7 +13,7 @@
   expr 18:12    IdentExpr      :: string
   expr 22:13    CallExpr       :: string
   expr 22:13    IdentExpr      :: fn(null | Point) -> string
-  expr 22:22    StructLitExpr  :: Point
+  expr 22:22    StructLitExpr  :: Point!
   expr 22:5     CallExpr       :: void
   expr 22:5     IdentExpr      :: fn(T) -> void
   expr 23:13    CallExpr       :: string

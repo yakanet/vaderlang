@@ -2,29 +2,29 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let specs: FlagSpec[] =
-      array :FlagSpec[]
-        FlagSpec {
+    let specs: FlagSpec![]! =
+      array :FlagSpec![]!
+        FlagSpec! {
           name: "verbose" :string
           kind: int(0) :i32
         }
-        FlagSpec {
+        FlagSpec! {
           name: "out" :string
           kind: int(1) :i32
         }
-    let argv: string[] =
-      array :string[]
+    let argv: string[]! =
+      array :string[]!
         "--verbose" :string
         "--out=/tmp/x" :string
         "extra" :string
     let r: ParsedArgs =
       call :ParsedArgs
         callee:
-          parse :fn(const string[], const FlagSpec[]) -> ParsedArgs
+          parse :fn(string[], FlagSpec[]) -> ParsedArgs
         arg0:
-          argv :string[]
+          argv :string[]!
         arg1:
-          specs :FlagSpec[]
+          specs :FlagSpec![]!
     call :void
       callee:
         std_io$println__string :void
@@ -131,7 +131,7 @@
           arg1:
             index :string
               on:
-                .positionals :const string[]
+                .positionals :string[]
                   r :ParsedArgs
               ix:
                 int(0) :i32
@@ -280,13 +280,13 @@
     let bad: ParsedArgs =
       call :ParsedArgs
         callee:
-          parse :fn(const string[], const FlagSpec[]) -> ParsedArgs
+          parse :fn(string[], FlagSpec[]) -> ParsedArgs
         arg0:
-          array :const string[]
+          array :string[]
             "--out" :string
             "--unknown" :string
         arg1:
-          specs :FlagSpec[]
+          specs :FlagSpec![]!
     call :void
       callee:
         std_io$println__string :void
@@ -335,8 +335,8 @@
               arg1:
                 __off_9 :usize
     block :void
-      let __for_arr_10: const string[] =
-        .errors :const string[]
+      let __for_arr_10: string[] =
+        .errors :string[]
           bad :ParsedArgs
       let __for_len_11: usize =
         LoweredArrayLen
@@ -345,7 +345,7 @@
         let e: string =
           index :string
             on:
-              __for_arr_10 :const string[]
+              __for_arr_10 :string[]
             ix:
               __for_i_12 :usize
         call :void

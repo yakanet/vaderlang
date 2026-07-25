@@ -2,16 +2,16 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let numbers: i32[] =
-      call :i32[]
+    let numbers: i32[]! =
+      call :i32[]!
         callee:
-          snippet$empty_of__i32 :i32[]
+          snippet$empty_of__i32 :i32[]!
     LoweredArrayPush
     LoweredArrayPush
-    let words: string[] =
-      call :string[]
+    let words: string[]! =
+      call :string[]!
         callee:
-          snippet$empty_of__string :string[]
+          snippet$empty_of__string :string[]!
     LoweredArrayPush
     call :void
       callee:
@@ -80,7 +80,7 @@
                   cast → i64
                     index :i32
                       on:
-                        numbers :i32[]
+                        numbers :i32[]!
                       ix:
                         int(0) :i32
           assign
@@ -111,7 +111,7 @@
                   cast → i64
                     index :i32
                       on:
-                        numbers :i32[]
+                        numbers :i32[]!
                       ix:
                         int(1) :i32
           ~>
@@ -130,7 +130,7 @@
           let __p_2: string =
             index :string
               on:
-                words :string[]
+                words :string[]!
               ix:
                 int(0) :i32
           let __buf_3: Buffer =
@@ -210,11 +210,11 @@
               arg1:
                 __off_4 :usize
     return int(0) :i32
-  fn snippet$empty_of__i32() -> i32[]
-    let out: i32[] =
-      array :i32[]
-    return out :i32[]
-  fn snippet$empty_of__string() -> string[]
-    let out: string[] =
-      array :string[]
-    return out :string[]
+  fn snippet$empty_of__i32() -> i32[]!
+    let out: i32[]! =
+      array :i32[]!
+    return out :i32[]!
+  fn snippet$empty_of__string() -> string[]!
+    let out: string[]! =
+      array :string[]!
+    return out :string[]!

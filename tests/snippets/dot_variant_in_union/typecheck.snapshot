@@ -21,7 +21,7 @@
   expr 17:5     IfExpr         :: void
   expr 17:8     BinaryExpr     :: bool
   expr 17:8     IdentExpr      :: char
-  expr 18:12    StructLitExpr  :: ParseError
+  expr 18:12    StructLitExpr  :: ParseError!
   expr 18:32    StringLitExpr  :: string
   expr 22:11    IdentExpr      :: Direction
   expr 22:5     MatchExpr      :: string

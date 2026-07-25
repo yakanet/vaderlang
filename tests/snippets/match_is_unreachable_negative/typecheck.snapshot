@@ -1,9 +1,9 @@
 # Typecheck
 
 ## tests/snippets/match_is_unreachable_negative
-  StructDecl     Bird                 :: Bird
-  StructDecl     Cat                  :: Cat
-  StructDecl     Dog                  :: Dog
+  StructDecl     Bird                 :: Bird!
+  StructDecl     Cat                  :: Cat!
+  StructDecl     Dog                  :: Dog!
   FnDecl         m1                   :: fn(Cat | Dog) -> bool
   FnDecl         m2                   :: fn(Cat | Dog) -> bool
   FnDecl         m3                   :: fn(i32) -> bool
