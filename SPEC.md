@@ -650,7 +650,9 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 
 The `const` prefix qualifies an array type as immutable. Through a value typed `const T[]`, mutation is rejected at typecheck — neither `arr[i] = v` (T3042) nor `arr.push(v)` (T3071) compiles.
 
-In parameter position `const` is now redundant with the read-only default — `fn(a: const i32[])` and `fn(a: i32[])` both reject mutation. It stays meaningful on returns, struct fields and module consts, where there is no borrow to default.
+`const` is **not** redundant with the read-only parameter default: the two are orthogonal. The default governs what the *function* may do; `const` governs what the *type* accepts. Neither `fn(a: i32[])` nor `fn(a: const i32[])` may mutate `a` — but only the second accepts a `const i32[]` argument, since `T[] <: const T[]` and never the reverse.
+
+So a function that reads an array should take `const T[]`: it then accepts both a mutable array and an immutable one (a module-level array const, a `@comptime` table). Writing `T[]` for a read-only parameter needlessly rejects every immutable caller.
 
 ```vader
 read :: fn(a: const i32[]) -> i32 = a[0]            // OK to read
@@ -1550,6 +1552,8 @@ apply :: fn(f: fn(i32[]!) -> void, xs!: i32[]) -> void {
 ```
 
 Markers on function values are **contravariant**: a function that does not mutate fits a slot that would allow it — it simply promises less — while one that does cannot be handed to a caller lending its value out read-only (T3073).
+
+Note that `!` and `const T[]` answer different questions and compose: `!` says whether this function may mutate its parameter, `const T[]` says whether the type accepts an immutable argument. `fn(buf!: u8[])` mutates and so requires a mutable array; `fn(a: const u8[])` reads and accepts either.
 
 **What this does and does not guarantee.** The property is attached to the *access path*, not to the value: passing the same object as both a `!` and a non-`!` argument is legal, and the read-only borrow is then only a statement about what that parameter is allowed to do. Vader does not track aliasing, so this buys clarity and local reasoning — a signature that tells the truth about what a function may touch — not a non-aliasing proof.
 
