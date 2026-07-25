@@ -36,7 +36,7 @@ export StepMode :: enum(u8) {
 export PauseVar :: struct {
     name:     string
     value:    string
-    children: PauseVar[]
+    children: PauseVar[]!
 }
 
 /// One frame of the paused call stack, projected to plain data by the VM
@@ -54,7 +54,7 @@ export PauseFrame :: struct {
     /// view (each possibly expandable via `PauseVar.children`). Accurate only
     /// when the target is compiled `optimize = false` (no slot coalescing) —
     /// which the DAP compile does.
-    locals:        PauseVar[]
+    locals:        PauseVar[]!
 }
 
 /// Everything the `on_pause` callback needs to answer a `stackTrace` /

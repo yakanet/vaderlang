@@ -33,14 +33,14 @@ GenBuild :: struct {
     yield_ty: Type            // `Yield<T>` StructType
     span:     Span
     /// Finalized states — `states[k]` is the if-arm body for `self.state == k`.
-    states:   LoweredStmt[][]
+    states:   LoweredStmt![][]!
     /// Spilled symbol id → its `g$State` field name (params + all locals).
     field_map: MutableMap<i32, string>
     /// `g$State` fields for the spilled symbols (in declaration order),
     /// excluding the trailing `state: i32`.
-    fields:    LoweredStructField[]
+    fields:    LoweredStructField[]!
     /// Enclosing-loop targets for `break` / `continue` resolution.
-    loop_stack: LoopFrame[]
+    loop_stack: LoopFrame[]!
     /// The fn-lowering context — used to mint per-drive-state temporaries
     /// (async) ; the generator path sets it too but never reads it.
     fn_ctx:    FnLowerCtx

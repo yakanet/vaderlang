@@ -102,7 +102,7 @@
                   let __p_1: string =
                     index :string
                       on:
-                        .groups :string[]
+                        .groups :const string[]
                           cast → Match
                             r :Match | null
                       ix:
@@ -398,7 +398,7 @@
                 let __p_2: string =
                   index :string
                     on:
-                      .groups :string[]
+                      .groups :const string[]
                         index :Match
                           on:
                             all :Match[]
@@ -560,7 +560,7 @@
                   arg1:
                     index :string
                       on:
-                        .groups :string[]
+                        .groups :const string[]
                           cast → Match
                             r :Match | null
                       ix:
@@ -577,7 +577,7 @@
                   arg1:
                     index :string
                       on:
-                        .groups :string[]
+                        .groups :const string[]
                           cast → Match
                             r :Match | null
                       ix:
@@ -594,7 +594,7 @@
                   arg1:
                     index :string
                       on:
-                        .groups :string[]
+                        .groups :const string[]
                           cast → Match
                             r :Match | null
                       ix:
@@ -611,7 +611,7 @@
                   arg1:
                     index :string
                       on:
-                        .groups :string[]
+                        .groups :const string[]
                           cast → Match
                             r :Match | null
                       ix:

@@ -130,7 +130,7 @@ export LowerProjectCtx :: struct {
     /// top-level fns and their env structs spawned by lambda lifting.
     /// Appended to the result project under `synth_module_id` so the
     /// bytecode emit picks them up alongside user decls.
-    synth_decls:         LoweredDecl[]
+    synth_decls:         LoweredDecl[]!
 
     /// Synthetic `concat_N` fns, keyed by arity. The string `+`-concat and
     /// all-string `${}` lowering route an N-leaf chain to one shared
@@ -146,7 +146,7 @@ export LowerProjectCtx :: struct {
     /// `concat_N` first synthesised inside a deduped generic instance would be
     /// stranded). They are collected here and drained ONCE, unconditionally,
     /// into the entry module after the lowering fixpoint (`drain_concat_decls`).
-    concat_decls:        LoweredFnDecl[]
+    concat_decls:        LoweredFnDecl[]!
 
     /// Monotonically-decreasing counter for synthetic symbol IDs.
     /// Starts at `-1` so it cannot collide with resolver-minted IDs
@@ -165,7 +165,7 @@ export LowerProjectCtx :: struct {
     /// `fn_instances_order` preserves insertion order so the dump
     /// stays deterministic.
     fn_instances:        MutableMap<string, GenericFnInstance>
-    fn_instances_order:  GenericFnInstance[]
+    fn_instances_order:  GenericFnInstance[]!
     /// Claimed instance mangles, for `uniq` overload disambiguation. Two
     /// same-name/same-arity overloads (`collect(arr: T[])` vs
     /// `collect(it: Iterator<T>)`) share a base mangle ; the second to
@@ -182,7 +182,7 @@ export LowerProjectCtx :: struct {
     /// `null` for `@extern` → import table). Keyed by `fn_symbol.id` for
     /// dedup ; `_order` preserves discovery order for a deterministic dump.
     nongeneric_imported_fns:   MutableMap<i32, bool>
-    nongeneric_imported_order: Symbol[]
+    nongeneric_imported_order: Symbol[]!
     /// Resume cursor into `nongeneric_imported_order` for
     /// `materialize_nongeneric_imported_fns`. Persisted so the
     /// materialise↔surface fixpoint loop drains newly-harvested fns
@@ -201,7 +201,7 @@ export LowerProjectCtx :: struct {
     /// Keyed by `const_symbol.id` for dedup ; `_order` preserves discovery
     /// order for a deterministic dump.
     nongeneric_imported_consts:       MutableMap<i32, bool>
-    nongeneric_imported_const_order:  Symbol[]
+    nongeneric_imported_const_order:  Symbol[]!
     /// Resume cursor into `nongeneric_imported_const_order`, persisted across
     /// the materialise↔surface fixpoint so a const harvested late (e.g. one
     /// referenced only by a surfaced stdlib fn body) is lowered without
@@ -266,7 +266,7 @@ export LowerProjectCtx :: struct {
     /// inside the `drain_generic_fn_instances` fixpoint so the impl
     /// bodies' transitive free-fn harvests stay on the same cursor. Struct
     /// analogue of `array_blanket_elems`.
-    pending_generic_impl_recv: GenericInstance[]
+    pending_generic_impl_recv: GenericInstance[]!
     /// Receiver keys already queued, so each erased instance is queued once
     /// (bounds the queue + avoids redundant per-receiver module scans).
     seen_generic_impl_recv: MutableSet<string>
@@ -282,12 +282,12 @@ export LowerProjectCtx :: struct {
     /// rounds ; the flush sorts + erasure-dedups + pushes it ONCE after the
     /// fixpoint converges, so emission order is a single deterministic sort.
     @internal
-    generic_collected:   PendingFnInstance[]
+    generic_collected:   PendingFnInstance[]!
     generic_processed:   MutableMap<string, bool>
     generic_fn_cursor:   usize
     generic_recv_cursor: usize
 
-    diags:               Diagnostic[]
+    diags:               Diagnostic[]!
 }
 
 /// Per-(generic fn, concrete args) instance captured at a call site.
@@ -356,7 +356,7 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
 /// `is_loop_body` for the body of an enclosing loop — both fields drive
 /// `break` / `continue` / `return` defer replay semantics.
 export BlockCtx :: struct {
-    defers:       Stmt[]
+    defers:       Stmt[]!
     is_fn_root:   bool
     is_loop_body: bool
 }
@@ -411,7 +411,7 @@ export FnLowerCtx :: struct {
 
     return_type:        Type
     self_type:          Type | null
-    blocks:             BlockCtx[]
+    blocks:             BlockCtx[]!
 
     /// Monotonically-increasing counter used to mint unique synthetic
     /// hint suffixes per fn body. Reset at fn entry so two parallel
@@ -446,7 +446,7 @@ export FnLowerCtx :: struct {
     /// (respecting a per-block watermark, so an enclosing `if`-condition's await
     /// isn't stolen by an arm body) into statement position just before the
     /// statement that used their value. See `.claude/plans/async-await-...` §12.
-    pending_awaits:     LoweredStmt[] = []
+    pending_awaits:     LoweredStmt[]! = []
 
     /// Non-null while INLINING a generator body at a for-in consumption site
     /// (Couche 4): `lower_stmt` redirects each `yield e` to bind the consumer's

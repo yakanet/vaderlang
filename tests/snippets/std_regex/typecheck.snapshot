@@ -36,7 +36,7 @@
   expr 18:29    IdentExpr      :: Match
   expr 18:41    FieldExpr      :: usize
   expr 18:41    IdentExpr      :: Match
-  expr 18:50    FieldExpr      :: string[]
+  expr 18:50    FieldExpr      :: const string[]
   expr 18:50    IdentExpr      :: Match
   expr 18:50    IndexExpr      :: string
   expr 18:9     CallExpr       :: void
@@ -110,7 +110,7 @@
   expr 47:13    IdentExpr      :: fn(T) -> void
   expr 47:21    StringLitExpr  :: string
   expr 47:29    IdentExpr      :: usize
-  expr 47:35    FieldExpr      :: string[]
+  expr 47:35    FieldExpr      :: const string[]
   expr 47:35    IdentExpr      :: Match[]
   expr 47:35    IndexExpr      :: Match
   expr 47:35    IndexExpr      :: string
@@ -155,25 +155,25 @@
   expr 64:13    CallExpr       :: void
   expr 64:13    IdentExpr      :: fn(T) -> void
   expr 64:21    StringLitExpr  :: string
-  expr 64:36    FieldExpr      :: string[]
+  expr 64:36    FieldExpr      :: const string[]
   expr 64:36    IdentExpr      :: Match
   expr 64:36    IndexExpr      :: string
   expr 65:13    CallExpr       :: void
   expr 65:13    IdentExpr      :: fn(T) -> void
   expr 65:21    StringLitExpr  :: string
-  expr 65:35    FieldExpr      :: string[]
+  expr 65:35    FieldExpr      :: const string[]
   expr 65:35    IdentExpr      :: Match
   expr 65:35    IndexExpr      :: string
   expr 66:13    CallExpr       :: void
   expr 66:13    IdentExpr      :: fn(T) -> void
   expr 66:21    StringLitExpr  :: string
-  expr 66:35    FieldExpr      :: string[]
+  expr 66:35    FieldExpr      :: const string[]
   expr 66:35    IdentExpr      :: Match
   expr 66:35    IndexExpr      :: string
   expr 67:13    CallExpr       :: void
   expr 67:13    IdentExpr      :: fn(T) -> void
   expr 67:21    StringLitExpr  :: string
-  expr 67:34    FieldExpr      :: string[]
+  expr 67:34    FieldExpr      :: const string[]
   expr 67:34    IdentExpr      :: Match
   expr 67:34    IndexExpr      :: string
   expr 71:14    CallExpr       :: Pattern | RegexError

@@ -50,7 +50,7 @@ export LoadedProject :: struct {
     modules:      MutableMap<string, LoadedModule>
     factory:      SymbolFactory
     project_root: string | null
-    diags:        Diagnostic[]
+    diags:        Diagnostic[]!
 }
 
 /// Empty placeholder — used by test fixtures that construct downstream

@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  struct snippet$Bag { items: i32[] | null }
+  struct snippet$Bag { items: const i32[] | null }
   fn snippet$count(items: const i32[]) -> i32
     return
       cast → i32
@@ -10,20 +10,20 @@
     let b: Bag =
       Bag {
         items:
-          array :i32[]
+          array :const i32[]
             int(1) :i32
             int(2) :i32
             int(3) :i32
       }
     block :void
-      let __scrut_0: i32[] | null =
-        .items :i32[] | null
+      let __scrut_0: const i32[] | null =
+        .items :const i32[] | null
           b :Bag
       ~>
         if :void
           cond:
             is null :bool
-              __scrut_0 :i32[] | null
+              __scrut_0 :const i32[] | null
           then:
             ~>
               block :void
@@ -79,7 +79,7 @@
                                     callee:
                                       count :fn(const i32[]) -> i32
                                     arg0:
-                                      .items :i32[]
+                                      .items :const i32[]
                                         b :Bag
                         ~>
                           call :string
@@ -94,14 +94,14 @@
         items: null
       }
     block :void
-      let __scrut_3: i32[] | null =
-        .items :i32[] | null
+      let __scrut_3: const i32[] | null =
+        .items :const i32[] | null
           empty :Bag
       ~>
         if :void
           cond:
             is null :bool
-              __scrut_3 :i32[] | null
+              __scrut_3 :const i32[] | null
           then:
             ~>
               block :void
@@ -157,7 +157,7 @@
                                     callee:
                                       count :fn(const i32[]) -> i32
                                     arg0:
-                                      .items :i32[]
+                                      .items :const i32[]
                                         empty :Bag
                         ~>
                           call :string

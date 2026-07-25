@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  struct snippet$Spec { name: string, args: Kind[], result: string }
+  struct snippet$Spec { name: string, args: const Kind[], result: string }
   fn snippet$main() -> i32
     call :void
       callee:
@@ -75,7 +75,7 @@
                     cast → i32
                       index :Kind
                         on:
-                          .args :Kind[]
+                          .args :const Kind[]
                             index :Spec
                               on:
                                 SPECS :const Spec[]

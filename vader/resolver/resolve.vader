@@ -73,7 +73,7 @@ export ResolvedModule :: struct {
     type_param_bounds: MutableMap<i32, Expr>
     /// R-code diagnostics emitted during body resolution.
     /// Forwarded to the typecheck CLI's `# Diagnostics` block.
-    diags: Diagnostic[]
+    diags: Diagnostic[]!
     /// `Symbol.id → message` for every decl annotated with
     /// `@deprecated("...")`. `expr.vader` reads this when an
     /// IdentExpr references a deprecated decl and emits W0001.

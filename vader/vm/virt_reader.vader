@@ -43,12 +43,12 @@ import "vader/types"
 /// `scopes` and `pending` are reused across functions (only their
 /// cursors reset to 0).
 ParserState :: struct {
-    ops:        bc.Op[]
-    table:      i32[]
-    scopes:     ScopeEntry[]
-    scope_sp:   usize[]
-    pending:    PendingBranch[]
-    pending_sp: usize[]
+    ops:        bc.Op[]!
+    table:      i32[]!
+    scopes:     ScopeEntry[]!
+    scope_sp:   usize[]!
+    pending:    PendingBranch[]!
+    pending_sp: usize[]!
 }
 
 /// Strip a trailing `; ...` comment (the .virt format glues a source-

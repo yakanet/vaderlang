@@ -90,7 +90,7 @@ export LoweredProject :: struct {
     /// build). Set by `lower_project` ; empty for a freshly-constructed project.
     entry:          string
     vtable_entries: LoweredVtableEntry[]
-    data_pool:      DataPoolEntry[]
+    data_pool:      DataPoolEntry[]!
     /// Const symbol id → accessor fn, populated by `inline_consts` for
     /// bulky array consts (`fn-wrap` bucket). `build_ident` emits a 0-arg
     /// `call` to the accessor. The accessor REUSES the const's symbol id, so
@@ -114,7 +114,7 @@ export LoweredProject :: struct {
 export LoweredModule :: struct {
     module_id:    string
     display_path: string
-    decls:        LoweredDecl[]
+    decls:        LoweredDecl[]!
 }
 
 /// Tagged union of every lowered top-level decl shape.
@@ -360,7 +360,7 @@ export LoweredCall :: struct {
     span:   Span
     type:   Type
     callee: LoweredExpr
-    args:   LoweredExpr[]
+    args:   LoweredExpr[]!
 }
 
 /// Virtual dispatch on a trait-typed receiver — the runtime indexes a
@@ -372,7 +372,7 @@ export LoweredVirtualCall :: struct {
     trait_name: string
     method:     string
     receiver:   LoweredExpr
-    args:       LoweredExpr[]
+    args:       LoweredExpr[]!
 }
 
 export LoweredFieldAccess :: struct {
@@ -478,7 +478,7 @@ export LoweredStructLitField :: struct {
 export LoweredArrayLit :: struct {
     span:     Span
     type:     Type
-    elements: LoweredExpr[]
+    elements: LoweredExpr[]!
 }
 
 /// A `const T[]` module-level literal that lives in the project's data
@@ -581,7 +581,7 @@ export LoweredIntrinsicCall :: struct {
     span:        Span
     type:        Type
     name:        string
-    args:        LoweredExpr[]
+    args:        LoweredExpr[]!
 }
 
 /// Allocate a new closure cell holding `value`. Cells are 1-slot heap

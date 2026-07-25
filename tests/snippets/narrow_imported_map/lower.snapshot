@@ -24,7 +24,7 @@
       arg2:
         Wrap {
           items:
-            array :i32[]
+            array :const i32[]
               int(42) :i32
               int(7) :i32
         }
@@ -113,7 +113,7 @@
         first:
           index :i32
             on:
-              .items :i32[]
+              .items :const i32[]
                 cast → Wrap
                   v :i32 | null | Wrap
             ix:

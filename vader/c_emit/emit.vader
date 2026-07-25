@@ -768,9 +768,9 @@ emit_type_info_table :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 /// `emit_struct_info_row` (which only reads the lengths). Splitting
 /// the walk from the emit lets both consumers share a single pass.
 StructOffsets :: struct {
-    ptr_offsets: string[]
-    str_offsets: string[]
-    ref_offsets: string[]
+    ptr_offsets: string[]!
+    str_offsets: string[]!
+    ref_offsets: string[]!
 }
 
 empty_struct_offsets :: fn() -> StructOffsets {

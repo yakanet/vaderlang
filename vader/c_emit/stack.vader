@@ -90,13 +90,13 @@ FnState :: struct {
     function: BcFunction
     out:      StringBuilder
     /// Virtual operand stack — the top of stack is the last element.
-    stack:    StackVal[]
+    stack:    StackVal[]!
     /// ValType of each materialised temp `tN` (index = N). Drives the
     /// prelude temp declarations. Allocation is monotone — no free-list
     /// recycling ; the run-oracle is the gate, not byte-parity, and
     /// monotone allocation is fine since a fn allocates each temp at most
     /// once).
-    tmp_types: ValType[]
+    tmp_types: ValType[]!
     /// Monotone `_aN` scratch allocator for struct storage / call args.
     /// Never recycled, so it can't collide with a reused name.
     aux_counter: i32
@@ -151,7 +151,7 @@ FnState :: struct {
     /// The GC scans each object's FIELDS in place so its captured heap refs are
     /// forwarded across a safepoint (else they dangle — the walk_elements
     /// closure-env use-after-forward bug).
-    stack_storages: StackStorage[]
+    stack_storages: StackStorage[]!
 }
 
 /// Fresh state for `function`, emitting into `out`.

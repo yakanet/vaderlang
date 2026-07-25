@@ -86,7 +86,7 @@ export EvaluatedProject :: struct {
     /// `evaluate_project` ; consumed by the `comptime_vm` pass (run from
     /// `bootstrap`) which bakes each into the owning module's `comptime_decls`.
     /// Empty for projects with no VM-required comptime decls.
-    vm_required: VmRequiredDecl[]
+    vm_required: VmRequiredDecl[]!
 }
 
 /// Construct an empty `EvaluatedProgram` bound to `typed`. Used by the

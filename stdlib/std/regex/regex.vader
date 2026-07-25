@@ -125,7 +125,7 @@ Parser :: struct {
     // byte view, so the pattern's `string` is never re-fetched.
     bytes:          const u8[]
     cursor:         usize
-    insts:          Inst[]
+    insts:          Inst[]!
     next_group_id:  usize
     // Current group-nesting depth. Bumped on each `(` descent and capped at
     // MAX_GROUP_DEPTH so a pathological `(((…` can't overflow the parser's

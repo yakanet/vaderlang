@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Decl { name: string, id: i32 }
-  struct snippet$FileMod { decls: Decl[] }
+  struct snippet$FileMod { decls: const Decl[] }
   fn snippet$concat_decls(files: const FileMod[]) -> Iterator<Decl>
     return
       __genstate_concat_decls {
@@ -22,7 +22,7 @@
       array :FileMod[]
         FileMod {
           decls:
-            array :Decl[]
+            array :const Decl[]
               Decl {
                 name: "a" :string
                 id: int(1) :i32
@@ -34,11 +34,11 @@
         }
         FileMod {
           decls:
-            array :Decl[]
+            array :const Decl[]
         }
         FileMod {
           decls:
-            array :Decl[]
+            array :const Decl[]
               Decl {
                 name: "c" :string
                 id: int(3) :i32
@@ -57,8 +57,8 @@
             ix:
               __fuse_i_5 :usize
         block :void
-          let __for_arr_0: Decl[] =
-            .decls :Decl[]
+          let __for_arr_0: const Decl[] =
+            .decls :const Decl[]
               f :FileMod
           let __for_len_1: usize =
             LoweredArrayLen
@@ -67,7 +67,7 @@
             let d: Decl =
               index :Decl
                 on:
-                  __for_arr_0 :Decl[]
+                  __for_arr_0 :const Decl[]
                 ix:
                   __for_i_2 :usize
             let d: Decl = d :Decl
@@ -162,7 +162,7 @@
               r:
                 int(1) :usize
     return int(0) :i32
-  struct __genstate_concat_decls { s0: const FileMod[], s1: const FileMod[], s2: usize, s3: usize, s4: FileMod, s5: Decl[], s6: usize, s7: usize, s8: Decl, state: i32 }
+  struct __genstate_concat_decls { s0: const FileMod[], s1: const FileMod[], s2: usize, s3: usize, s4: FileMod, s5: const Decl[], s6: usize, s7: usize, s8: Decl, state: i32 }
   fn snippet$__genstate_concat_decls$Iterator$next(self: __genstate_concat_decls) -> Yield<Decl> | null
     loop
       if :void
@@ -371,7 +371,7 @@
                                             value:
                                               index :Decl
                                                 on:
-                                                  .s5 :Decl[]
+                                                  .s5 :const Decl[]
                                                     __self_6 :__genstate_concat_decls
                                                 ix:
                                                   .s7 :usize
@@ -394,10 +394,10 @@
                                             then:
                                               assign
                                                 target:
-                                                  .s5 :Decl[]
+                                                  .s5 :const Decl[]
                                                     __self_6 :__genstate_concat_decls
                                                 value:
-                                                  .decls :Decl[]
+                                                  .decls :const Decl[]
                                                     .s4 :FileMod
                                                       __self_6 :__genstate_concat_decls
                                               assign

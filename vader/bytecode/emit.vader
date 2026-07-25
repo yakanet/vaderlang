@@ -122,9 +122,9 @@ mark_jump_targets :: fn(jump_table: i32[], n: usize) -> bool[] {
 /// c-emit's per-op `#line` walk and the VM debug hook read the right
 /// source position after the rewrite.
 export BcPeepholeOut :: struct {
-    body:       Op[]
-    jump_table: i32[]
-    debug:      (DebugPos | null)[]
+    body:       Op[]!
+    jump_table: i32[]!
+    debug:      (DebugPos | null)[]!
 }
 
 /// Remap a debug table from old PC space to new PC space, parallel to

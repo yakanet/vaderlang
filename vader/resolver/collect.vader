@@ -30,12 +30,12 @@ export CollectedModule :: struct {
     imports:      MutableMap<i32, ImportInfo>
     /// Raw `import "path"` entries in source order — the loader uses
     /// these to walk the module graph transitively.
-    import_paths: string[]
+    import_paths: string[]!
     /// Paths of `import "path"` (wildcard) imports — every public export of
     /// each becomes callable in this module (prefix + UFCS). Both the bare form
     /// and `import "path" { … }` (wildcard-plus-modifiers) land here.
     /// Consumed by `build_wildcard_seed` before the body walk.
-    wildcard_paths: string[]
+    wildcard_paths: string[]!
     /// Per-path exclusions from a `import "path" { x as _, y as z }` modifier
     /// list — every listed source name (both `as _` and rename sources) is
     /// removed from that path's wildcard. `build_wildcard_seed` /

@@ -152,7 +152,12 @@ declare_decl :: fn(
                 // exported struct expose their type through the interface.
                 struct_public :: sd.visibility == Visibility.Public
                 for f in sd.fields {
-                    fty :: type_from_expr(f.ty, resolved, diags)
+                    // A field is read-only unless its type says otherwise — same
+                    // default as a parameter, and for the same reason : a field is
+                    // a slot others reach through. `!` reopens the level that needs
+                    // it (`stmts: LoweredStmt![]` = rewrite the elements in place,
+                    // `buf: u8[]!` = append to the array itself).
+                    fty :: apply_readonly_default(type_from_expr(f.ty, resolved, diags), f.ty)
                     fields_map[f.name] = fty
                     if struct_public && f.visibility == Visibility.Public {
                         report_private_leak(fty, f.ty.span, sd.name, "exposes a field of type", diags)
@@ -503,7 +508,7 @@ has_intrinsic_decorator :: fn(decs: const AST.Decorator[]) -> bool {
     return false
 }
 
-extern_decorator_args :: fn(decs: const AST.Decorator[]) -> AST.Expr[] {
+extern_decorator_args :: fn(decs: const AST.Decorator[]) -> const AST.Expr[] {
     for d in decs {
         if d.name == "extern" {
             return d.args
@@ -805,7 +810,7 @@ declared_type :: fn(src: string, name: string) -> string {
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     typed :: new_typed_program(rm)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     declare_module(parsed.program.decls, rm, typed, factory, diags)
     for s in rm.symbols {
         if s.name != name {

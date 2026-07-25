@@ -11,6 +11,7 @@ module "vader/typecheck"
 
 import "std/string"
 import "std/sort"
+AST :: import "vader/parser"
 
 /// True when `t` is the `void` primitive. The canonical void test, shared by
 /// match-exhaustiveness (typecheck) and return-type checks (midir).
@@ -183,6 +184,65 @@ with_immutable_each :: fn(variants: const Type[], immutable: bool) -> Type[] {
 export desugared_param_type :: fn(t: Type, mutable: bool) -> Type {
     if type_is_immutable(t) { return t }
     return with_immutable(t, !mutable)
+}
+
+/// `t` with every level the writer did NOT mark turned read-only.
+///
+/// The default has to be RECURSIVE or `Cfg![]` means nothing — it would be
+/// indistinguishable from a plain `Cfg[]`. So `x: Cfg[]` freezes the array AND
+/// its elements, and only a written `!` reopens a level.
+///
+/// It descends through STRUCTURAL children (array element, tuple elements) and
+/// stops at NOMINAL boundaries : the args of `Map<K, V>` describe what is stored,
+/// not slots of the program, and the bit must never live there — it would fork
+/// every generic instantiated from both a parameter (frozen) and a local
+/// (mutable), which is why `unify_type_param` erases it.
+///
+/// `written` is walked ALONGSIDE `t` because, once lowered, an explicit `!` and
+/// the default are indistinguishable : both leave `immutable = false`. Only the
+/// written form still knows which levels the author marked.
+///
+/// @param t        the lowered type.
+/// @param written  the type as written, or null when there is none.
+export apply_readonly_default :: fn(t: Type, written: AST.TypeExpr | null) -> Type {
+    // A union carries no marker of its own — the bit is distributed over its
+    // variants, and those are sorted by `display_type`, so they cannot be paired
+    // positionally with the written form. Fall back to the whole-type question.
+    if t is UnionType {
+        if AST.type_expr_marks_mutable(written) { return t }
+        return with_immutable(t, true)
+    }
+    if written is AST.MutableTypeExpr as m {
+        // This level is explicitly mutable ; deeper levels still take the default.
+        return with_immutable(readonly_children(t, m.inner), false)
+    }
+    // `const T[]` already froze the referent : the stricter side wins, but the
+    // children still take the default.
+    if type_is_immutable(t) { return readonly_children(t, written) }
+    return with_immutable(readonly_children(t, written), true)
+}
+
+// Rebuild `t`'s structural children under the default, pairing each with the
+// matching node of the written type when the shapes line up. A mismatch (an
+// alias, an inferred type) passes `null` — the child then takes the plain
+// default, the conservative answer.
+readonly_children :: fn(t: Type, written: AST.TypeExpr | null) -> Type {
+    if t is ArrayType as a {
+        elem_written :: if written is AST.ArrayTypeExpr as ae { ae.element } else { null }
+        return mk_array(apply_readonly_default(a.element, elem_written), a.immutable)
+    }
+    if t is TupleType as p {
+        elems: Type[] = []
+        for i in 0..<p.elements.len() {
+            el_written: AST.TypeExpr | null = null
+            if written is AST.SeqLitExpr as se {
+                if i < se.elements.len() { el_written = se.elements[i] }
+            }
+            elems.push(apply_readonly_default(p.elements[i], el_written))
+        }
+        return mk_tuple(elems, p.immutable)
+    }
+    return t
 }
 
 /// The immutability a value narrowed to `narrowed` inherits from `scrutinee`.

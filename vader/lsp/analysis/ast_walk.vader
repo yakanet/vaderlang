@@ -393,7 +393,7 @@ export enclosing_exprs :: fn(decls: AST.Decl[], line: i32, col: i32) -> AST.Expr
 EncloseState :: struct {
     line: i32
     col:  i32
-    acc:  AST.Expr[]
+    acc:  AST.Expr[]!
 }
 
 ee_walk_decl :: fn(d: AST.Decl, st: EncloseState!) -> void {

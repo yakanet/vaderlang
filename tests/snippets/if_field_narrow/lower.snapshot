@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  struct snippet$Bag { items: i32[] | null }
+  struct snippet$Bag { items: const i32[] | null }
   fn snippet$count(items: const i32[]) -> i32
     return
       cast → i32
@@ -12,7 +12,7 @@
         cond:
           not :bool
             is null :bool
-              .items :i32[] | null
+              .items :const i32[] | null
                 b :Bag
         then:
           ~>
@@ -58,7 +58,7 @@
                               callee:
                                 count :fn(const i32[]) -> i32
                               arg0:
-                                .items :i32[]
+                                .items :const i32[]
                                   b :Bag
                   ~>
                     call :string
@@ -79,7 +79,7 @@
     if :void
       cond:
         is null :bool
-          .items :i32[] | null
+          .items :const i32[] | null
             b :Bag
       then:
         return
@@ -90,13 +90,13 @@
         callee:
           count :fn(const i32[]) -> i32
         arg0:
-          .items :i32[]
+          .items :const i32[]
             b :Bag
   fn snippet$main() -> i32
     let full: Bag =
       Bag {
         items:
-          array :i32[]
+          array :const i32[]
             int(1) :i32
             int(2) :i32
             int(3) :i32

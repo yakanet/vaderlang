@@ -25,7 +25,7 @@ import "std/abort"
 /// Project-level interning context — accumulates strings into a single
 /// pool shared by every fn's CFG.
 ProjectCtx :: struct {
-    strings:      string[]
+    strings:      string[]!
     string_index: MutableMap<string, i32>
     /// Const symbol id → accessor fn (fn-wrap bucket), forwarded from the
     /// `LoweredProject` so `build_ident` can lower a const reference to a
@@ -59,7 +59,7 @@ intern_string_pool :: fn(ctx: ProjectCtx!, s: string) -> i32 {
 /// `terminator` (set once). `freeze_block` converts to the final form.
 MutableBlock :: struct {
     id:           BlockId
-    instructions: Instruction[]
+    instructions: Instruction[]!
     terminator:   Terminator | null
     span:         Span
 }
@@ -80,10 +80,10 @@ FnCtx :: struct {
     origin:          MonoEntry
     return_type:     Type
     params:          CFGParam[]
-    locals:          CFGLocal[]
+    locals:          CFGLocal[]!
     local_by_sym_id: MutableMap<i32, LocalId>
-    blocks:          MutableBlock[]
-    loop_stack:      LoopFrame[]
+    blocks:          MutableBlock[]!
+    loop_stack:      LoopFrame[]!
     current:         BlockId | null
 }
 

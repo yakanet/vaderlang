@@ -37,10 +37,10 @@ export BcFunction :: struct {
     name: string
     is_main: bool
     signature: BcSignature
-    locals: BcLocal[]
-    body: Op[]
-    debug: (DebugPos | null)[]
-    jump_table: i32[]
+    locals: BcLocal[]!
+    body: Op[]!
+    debug: (DebugPos | null)[]!
+    jump_table: i32[]!!
 }
 
 /// Static signature of a fn-shaped slot. The VM only consults `params`
@@ -124,7 +124,7 @@ export VtableEntry :: struct {
 /// One `(trait, method) → entries[]` row of the vtable table.
 export VtableRow :: struct {
     key: string                      // "<Trait>.<method>"
-    entries: VtableEntry[]
+    entries: VtableEntry[]!
 }
 
 /// Top-level holder. Read-only after construction.

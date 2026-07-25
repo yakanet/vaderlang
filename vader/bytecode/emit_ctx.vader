@@ -46,20 +46,20 @@ export EmitterCtx :: struct {
     /// Type table being built. Index 0 is reserved for the `null`
     /// primitive so unboxed nulls have a well-defined tag at runtime
     /// (matches `VADER_BOX_TAG_NULL = 0` in `runtime/c/vader.h`).
-    types: BcType[]
+    types: BcType[]!
     /// `type_intern_key(t)` → index into `types`. Pre-loaded with
     /// `"null"` at index 0 by `new_emitter_ctx`.
     type_key: MutableMap<string, i32>
 
     /// String literal pool. Deduplicated by content via `string_key`.
-    strings: string[]
+    strings: string[]!
     /// `string content` → index into `strings`.
     string_key: MutableMap<string, i32>
 
     /// Function table. Each entry mirrors a top-level `LoweredFnDecl`
     /// (regular fns) ; `is_extern`-flagged decls route to `imports`
     /// instead.
-    functions: BcFunction[]
+    functions: BcFunction[]!
     /// `MonoEntry.symbol.id` → index into `functions`. Lets call sites
     /// resolve target fn slots through the symbol id rather than the
     /// mangled name.
@@ -74,7 +74,7 @@ export EmitterCtx :: struct {
     /// Host-side import table (`@extern` user decls + stdlib
     /// `@intrinsic` shims). Each entry's `signature` mirrors what the
     /// host expects at the C-ABI boundary.
-    imports: BcImport[]
+    imports: BcImport[]!
     /// `MonoEntry.symbol.id` → index into `imports`. Same role as
     /// `function_index_by_symbol_id` for the import side.
     import_index_by_symbol_id: MutableMap<i32, i32>
@@ -93,7 +93,7 @@ export EmitterCtx :: struct {
     /// scoped to a single function (the vtable-receiver pins from the
     /// midir Pass-4 prune setup, already gated on used vtable keys).
     /// Per-call arg/result pins live in `pinned_types_by_fn` instead.
-    pinned_types: i32[]
+    pinned_types: i32[]!
 
     /// Per-function arg/result type pins, keyed by fn index. Each Call's
     /// arg + dst static types are pinned here under the emitting function,

@@ -328,7 +328,7 @@ NamedDeclRefs :: struct {
     visibility: AST.Visibility
     decorators: const AST.Decorator[]
     is_fn: bool
-    refs: string[]
+    refs: string[]!
 }
 
 // Collect the reference names of a top-level decl. For the six NAMED kinds

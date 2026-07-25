@@ -1,8 +1,8 @@
 # Lower
 
 ## snippet
-  struct snippet$StructVal { type_id: i32, fields: i32[] }
-  struct snippet$ArrayVal { type_id: i32, items: i32[] }
+  struct snippet$StructVal { type_id: i32, fields: const i32[] }
+  struct snippet$ArrayVal { type_id: i32, items: const i32[] }
   struct snippet$IntVal { value: i32 }
   fn snippet$type_id_of(v: ArrayVal | IntVal | StructVal) -> i32
     if :void
@@ -35,7 +35,7 @@
         return
           index :i32
             on:
-              .items :i32[]
+              .items :const i32[]
                 cast → ArrayVal
                   v :ArrayVal | IntVal | StructVal
             ix:
@@ -48,7 +48,7 @@
       StructVal {
         type_id: int(100) :i32
         fields:
-          array :i32[]
+          array :const i32[]
             int(1) :i32
             int(2) :i32
       }
@@ -56,7 +56,7 @@
       ArrayVal {
         type_id: int(200) :i32
         items:
-          array :i32[]
+          array :const i32[]
             int(42) :i32
             int(43) :i32
       }

@@ -177,10 +177,10 @@ skip_block_comment :: fn(sb: const u8[], from: usize, n: usize) -> usize {
 MAX_EXPR_DEPTH :: 256
 
 export Parser :: struct {
-    tokens: Token[]
+    tokens: Token[]!
     file:   string
     pos:    i32
-    errors: Diagnostic[]
+    errors: Diagnostic[]!
     // True except inside the immediate condition expression of if/for/match.
     allow_struct_lit: bool
     // True except inside a match-arm guard : `is T as n if n > 0 -> body`
@@ -199,7 +199,7 @@ export Parser :: struct {
     // flushes these into the decl list after each parsed decl. Avoids a
     // dedicated `ComptimeExpr` AST node (which would ripple a T3013 arm across
     // every exhaustive `match expr` in the compiler).
-    pending_decls: Decl[] = []
+    pending_decls: Decl[]! = []
     // Current `parse_expr` recursion depth ; guards against a native stack
     // overflow on pathologically nested input. Bounded by `MAX_EXPR_DEPTH`.
     expr_depth: i32 = 0
@@ -1068,8 +1068,8 @@ parse_fn_decl_inside_trait :: fn(p: Parser!) -> FnDecl | null {
 }
 
 FnSignature :: struct {
-    params:         FnParam[]
-    type_params:    TypeParam[]
+    params:         FnParam[]!
+    type_params:    TypeParam[]!
     trailing_comma: bool = false
 }
 
@@ -1078,7 +1078,7 @@ FnSignature :: struct {
 // it in the return value (rather than a mutable `Parser` field) keeps each
 // list-parser self-contained and free of read-immediately temporal coupling.
 CommaList :: struct<T> {
-    items:          T[]
+    items:          T[]!
     trailing_comma: bool
 }
 

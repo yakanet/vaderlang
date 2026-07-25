@@ -25,5 +25,5 @@ export DiscoveredModule :: struct {
 FolderBucket :: struct {
     name:            string
     first_decl_span: Span
-    files:           string[]
+    files:           string[]!
 }

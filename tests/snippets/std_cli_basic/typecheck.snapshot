@@ -12,20 +12,20 @@
   expr 12:22    IdentExpr      :: FlagSpec[]
   expr 14:13    StringLitExpr  :: string
   expr 14:23    CallExpr       :: usize
+  expr 14:23    FieldExpr      :: const string[]
   expr 14:23    FieldExpr      :: fn() -> usize
-  expr 14:23    FieldExpr      :: string[]
   expr 14:23    IdentExpr      :: ParsedArgs
   expr 14:5     CallExpr       :: void
   expr 14:5     IdentExpr      :: fn(T) -> void
   expr 15:13    StringLitExpr  :: string
   expr 15:28    CallExpr       :: usize
+  expr 15:28    FieldExpr      :: const string[]
   expr 15:28    FieldExpr      :: fn() -> usize
-  expr 15:28    FieldExpr      :: string[]
   expr 15:28    IdentExpr      :: ParsedArgs
   expr 15:5     CallExpr       :: void
   expr 15:5     IdentExpr      :: fn(T) -> void
   expr 16:13    StringLitExpr  :: string
-  expr 16:22    FieldExpr      :: string[]
+  expr 16:22    FieldExpr      :: const string[]
   expr 16:22    IdentExpr      :: ParsedArgs
   expr 16:22    IndexExpr      :: string
   expr 16:5     CallExpr       :: void
@@ -68,12 +68,12 @@
   expr 23:42    IdentExpr      :: FlagSpec[]
   expr 24:13    StringLitExpr  :: string
   expr 24:26    CallExpr       :: usize
+  expr 24:26    FieldExpr      :: const string[]
   expr 24:26    FieldExpr      :: fn() -> usize
-  expr 24:26    FieldExpr      :: string[]
   expr 24:26    IdentExpr      :: ParsedArgs
   expr 24:5     CallExpr       :: void
   expr 24:5     IdentExpr      :: fn(T) -> void
-  expr 25:14    FieldExpr      :: string[]
+  expr 25:14    FieldExpr      :: const string[]
   expr 25:14    IdentExpr      :: ParsedArgs
   expr 26:17    StringLitExpr  :: string
   expr 26:24    IdentExpr      :: string

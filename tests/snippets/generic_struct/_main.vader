@@ -3,7 +3,7 @@ module "snippet"
 import "std/io"
 
 export Stack :: struct<T> {
-    data: T[]
+    data: T[]!
     size: i32
 }
 

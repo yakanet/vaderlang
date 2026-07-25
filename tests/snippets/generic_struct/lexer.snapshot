@@ -23,6 +23,7 @@
 [6:11-6:12  ] ident          "T"
 [6:12-6:13  ] lbracket       "["
 [6:13-6:14  ] rbracket       "]"
+[6:14-6:15  ] bang           "!"
 [7:1-7:1    ] newline        "\n"
 [7:5-7:9    ] ident          "size"
 [7:9-7:10   ] colon          ":"

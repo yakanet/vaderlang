@@ -727,7 +727,8 @@ check_assign :: fn(
                     typecheck_error(
                         .CannotMutateImmutableArray,
                         ix.target.span,
-                        "cannot mutate `${display_type(target_arr_ty)}` — declared with `const`",
+                        "cannot mutate `${display_type(target_arr_ty)}`"
+                            + field_annotate_hint(ix.target, typed),
                     ),
                 )
                 return
@@ -912,6 +913,27 @@ push_immutability_diag_at :: fn(
 // " — annotate `name!` at file:line:col", empty when the root isn't an annotatable
 // parameter. The position is machine-readable on purpose: the migration sweep reads
 // it to place the `!` itself.
+/// `annotate \`<field>!\` at <where its type is written>` when `e` reaches through
+/// a struct FIELD whose declaration is the thing to reopen.
+///
+/// The parameter hint (`annotate_hint`) can't cover this : the reader holds
+/// `ctx.blocks`, and no `!` on `ctx` unfreezes `blocks` — the level that needs
+/// reopening is the field's own type. Only the typechecker can say which struct a
+/// field belongs to, so pointing at it is its job, not the reader's to work out.
+export field_annotate_hint :: fn(e: AST.Expr, typed: TypedProgram) -> string {
+    if e is AST.FieldExpr as fe {
+        owner :: typed.expr_types[fe.target.id] ?? return ""
+        st :: struct_backing(owner) ?? return ""
+        sd :: typed.struct_decls[st.symbol.id] ?? return ""
+        for f in sd.fields {
+            if f.name != fe.field { continue }
+            at :: f.ty.span
+            return " — annotate `${f.name}!` at ${at.start.file}:${at.start.line}:${at.start.column}"
+        }
+    }
+    return ""
+}
+
 annotate_hint :: fn(root_param: Symbol | null) -> string {
     if root_param is null {
         return ""

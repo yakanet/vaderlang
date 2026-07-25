@@ -364,7 +364,7 @@ seed_harvest_seen :: fn(
     if sym is Symbol as s { seen[s.id] = true }
 }
 
-module_decls :: fn(module_loaded: LoadedModule) -> Decl[] {
+module_decls :: fn(module_loaded: LoadedModule) -> const Decl[] {
     files :: module_loaded.module.files
     if files.len() == 0 { return [] }
     // Shared concat with the single-file zero-copy fast path. Hot :

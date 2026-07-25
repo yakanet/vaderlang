@@ -29,10 +29,13 @@
         {
           "name": "data",
           "type": {
-            "kind": "ArrayTypeExpr",
-            "element": {
-              "kind": "IdentExpr",
-              "name": "T"
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "T"
+              }
             }
           },
           "visibility": "public",

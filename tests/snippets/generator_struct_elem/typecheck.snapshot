@@ -6,19 +6,19 @@
   StructDecl     FileMod              :: FileMod
   FnDecl         main                 :: fn() -> i32
   expr 10:14    IdentExpr      :: const FileMod[]
-  expr 11:18    FieldExpr      :: Decl[]
+  expr 11:18    FieldExpr      :: const Decl[]
   expr 11:18    IdentExpr      :: FileMod
   expr 11:34    IdentExpr      :: Decl
   expr 16:14    SeqLitExpr     :: FileMod[]
-  expr 17:28    SeqLitExpr     :: Decl[]
+  expr 17:28    SeqLitExpr     :: const Decl[]
   expr 17:29    StructLitExpr  :: Decl
   expr 17:44    StringLitExpr  :: string
   expr 17:60    StructLitExpr  :: Decl
   expr 17:75    StringLitExpr  :: string
   expr 17:9     StructLitExpr  :: FileMod
-  expr 18:28    SeqLitExpr     :: Decl[]
+  expr 18:28    SeqLitExpr     :: const Decl[]
   expr 18:9     StructLitExpr  :: FileMod
-  expr 19:28    SeqLitExpr     :: Decl[]
+  expr 19:28    SeqLitExpr     :: const Decl[]
   expr 19:29    StructLitExpr  :: Decl
   expr 19:44    StringLitExpr  :: string
   expr 19:9     StructLitExpr  :: FileMod

@@ -71,12 +71,12 @@ COMPTIME_STEP_BUDGET: i64: 100_000_000
 /// the function's `ops` array.
 Frame :: struct {
     function_index: i32
-    slots:          Value[]
-    stack:          Value[]
-    payload:        i64[]
-    tag:            StackTag[]
-    slot_payload:   i64[]
-    slot_tag:       StackTag[]
+    slots:          Value[]!
+    stack:          Value[]!
+    payload:        i64[]!
+    tag:            StackTag[]!
+    slot_payload:   i64[]!
+    slot_tag:       StackTag[]!
     sp:             usize
     pc:             i32
     /// Defer-stack — closures pushed via `DeferPush` op, drained LIFO by
@@ -84,7 +84,7 @@ Frame :: struct {
     /// the top of `exec_entry`'s loop when a user-reachable op traps (which
     /// runs each thunk as a normal frame above the one being torn down).
     /// Grow-only ; the live region is `defers[0..defer_count]`.
-    defers:         Value[]
+    defers:         Value[]!
     defer_count:    usize
 }
 

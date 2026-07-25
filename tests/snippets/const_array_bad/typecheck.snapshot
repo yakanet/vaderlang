@@ -10,4 +10,4 @@
   expr 6:5      IdentExpr      :: const i32[]
 
 # Diagnostics
-[6:5] error[T3042] cannot mutate an immutable array: cannot mutate `const i32[]` — declared with `const`
+[6:5] error[T3042] cannot mutate an immutable array: cannot mutate `const i32[]`

@@ -69,18 +69,18 @@
   expr 36:26    IdentExpr      :: type
   expr 36:38    BinaryExpr     :: bool
   expr 36:38    CallExpr       :: usize
+  expr 36:38    FieldExpr      :: const u8[]
   expr 36:38    FieldExpr      :: fn() -> usize
-  expr 36:38    FieldExpr      :: u8[]
   expr 36:38    IdentExpr      :: Ppm
   expr 36:58    CallExpr       :: usize
   expr 36:58    IdentExpr      :: type
   expr 37:14    RangeExpr      :: Range<usize>
   expr 37:18    CallExpr       :: usize
+  expr 37:18    FieldExpr      :: const u8[]
   expr 37:18    FieldExpr      :: fn() -> usize
-  expr 37:18    FieldExpr      :: u8[]
   expr 37:18    IdentExpr      :: Ppm
   expr 38:12    BinaryExpr     :: bool
-  expr 38:12    FieldExpr      :: u8[]
+  expr 38:12    FieldExpr      :: const u8[]
   expr 38:12    IdentExpr      :: Ppm
   expr 38:12    IndexExpr      :: u8
   expr 38:23    IdentExpr      :: usize

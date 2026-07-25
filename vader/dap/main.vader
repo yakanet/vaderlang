@@ -187,7 +187,7 @@ run_pause_loop :: fn(ctx: PauseCtx, seq_cell: i32[]!, bps: MutableMap<string, Mu
     // Variables-view expansion registry : `variablesReference` → the vars to
     // return. Scope refs are `frame_id + 1` (see `scopes_body`) ; child refs are
     // minted above the frame range as aggregates are expanded.
-    var_refs :: MutableMap<i32, PauseVar[]> {}
+    var_refs :: MutableMap<i32, PauseVar[]!> {}
     for fi in 0..<ctx.frames.len() { var_refs[i32(fi) + 1] = ctx.frames[fi].locals }
     next_ref :: [i32(ctx.frames.len()) + 1]
     for {

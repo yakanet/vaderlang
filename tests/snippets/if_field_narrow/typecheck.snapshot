@@ -13,12 +13,12 @@
   expr 15:16    IdentExpr      :: const i32[]
   expr 20:5     IfExpr         :: void
   expr 20:8     BinaryExpr     :: bool
-  expr 20:8     FieldExpr      :: i32[] | null
+  expr 20:8     FieldExpr      :: const i32[] | null
   expr 20:8     IdentExpr      :: Bag
   expr 21:17    StringLitExpr  :: string
   expr 21:26    CallExpr       :: i32
   expr 21:26    IdentExpr      :: fn(const i32[]) -> i32
-  expr 21:32    FieldExpr      :: i32[]
+  expr 21:32    FieldExpr      :: const i32[]
   expr 21:32    IdentExpr      :: Bag
   expr 21:9     CallExpr       :: void
   expr 21:9     IdentExpr      :: fn(T) -> void
@@ -28,14 +28,14 @@
   expr 29:33    UnaryExpr      :: i32
   expr 29:5     IfExpr         :: void
   expr 29:8     BinaryExpr     :: bool
-  expr 29:8     FieldExpr      :: i32[] | null
+  expr 29:8     FieldExpr      :: const i32[] | null
   expr 29:8     IdentExpr      :: Bag
   expr 30:12    CallExpr       :: i32
   expr 30:12    IdentExpr      :: fn(const i32[]) -> i32
-  expr 30:18    FieldExpr      :: i32[]
+  expr 30:18    FieldExpr      :: const i32[]
   expr 30:18    IdentExpr      :: Bag
   expr 34:13    StructLitExpr  :: Bag
-  expr 34:28    SeqLitExpr     :: i32[]
+  expr 34:28    SeqLitExpr     :: const i32[]
   expr 35:14    StructLitExpr  :: Bag
   expr 36:12    IdentExpr      :: Bag
   expr 36:5     CallExpr       :: void

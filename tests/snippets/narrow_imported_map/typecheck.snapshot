@@ -4,7 +4,7 @@
   FnDecl         main                 :: fn() -> i32
   expr 17:10    StructLitExpr  :: MutableMap<i32, i32 | Wrap>
   expr 18:12    StructLitExpr  :: Wrap
-  expr 18:28    SeqLitExpr     :: i32[]
+  expr 18:28    SeqLitExpr     :: const i32[]
   expr 18:5     IdentExpr      :: MutableMap<i32, i32 | Wrap>
   expr 19:10    CallExpr       :: null | Out
   expr 19:10    IdentExpr      :: fn(MutableMap<i32, i32 | Wrap>, i32) -> null | Out
@@ -40,6 +40,6 @@
   expr 16:5     IfExpr         :: void
   expr 16:8     UnaryExpr      :: bool
   expr 17:12    StructLitExpr  :: Out
-  expr 17:27    FieldExpr      :: i32[]
+  expr 17:27    FieldExpr      :: const i32[]
   expr 17:27    IdentExpr      :: Wrap
   expr 17:27    IndexExpr      :: i32

@@ -55,7 +55,7 @@ export ImplRegistry :: struct {
     user_index: MutableMap<string, ImplEntry> = MutableMap<string, ImplEntry> {}
     /// Every entry the registry has seen — used by the lowerer to drive
     /// virtual dispatch over trait-typed receivers.
-    all: ImplEntry[] = []
+    all: ImplEntry[]! = []
 }
 
 /// Walk every decl in `program_decls`, harvest `ImplDecl`s, resolve their

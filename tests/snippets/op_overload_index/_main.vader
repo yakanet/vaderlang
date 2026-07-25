@@ -8,7 +8,7 @@ module "snippet"
 
 import "std/io"
 
-Cell :: struct { keys: string[], vals: i32[] }
+Cell :: struct { keys: string[]!, vals: i32[]! }
 
 Cell implements Index<string, i32> {
     at :: fn(self, key: string) -> i32 {

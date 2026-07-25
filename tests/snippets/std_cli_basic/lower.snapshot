@@ -131,7 +131,7 @@
           arg1:
             index :string
               on:
-                .positionals :string[]
+                .positionals :const string[]
                   r :ParsedArgs
               ix:
                 int(0) :i32
@@ -335,8 +335,8 @@
               arg1:
                 __off_9 :usize
     block :void
-      let __for_arr_10: string[] =
-        .errors :string[]
+      let __for_arr_10: const string[] =
+        .errors :const string[]
           bad :ParsedArgs
       let __for_len_11: usize =
         LoweredArrayLen
@@ -345,7 +345,7 @@
         let e: string =
           index :string
             on:
-              __for_arr_10 :string[]
+              __for_arr_10 :const string[]
             ix:
               __for_i_12 :usize
         call :void

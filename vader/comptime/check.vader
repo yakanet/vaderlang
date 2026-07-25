@@ -89,7 +89,7 @@ harvest_instances :: fn(typed: TypedProject) -> GenericInstance[] {
 // drops a 2nd file's decls, so the comptime const-bake never folds a const
 // living there (e.g. a std/core formatter table moved to a sibling file) and its
 // readers emit an unreachable. Mirrors `lower.vader::module_decls`.
-lookup_module_decls :: fn(loaded: LoadedProject, module_id: string) -> AST.Decl[] | null {
+lookup_module_decls :: fn(loaded: LoadedProject, module_id: string) -> const AST.Decl[] | null {
     module_loaded :: loaded.modules[module_id] ?? return null
     files :: module_loaded.module.files
     if files.len() == 0 { return null }

@@ -467,7 +467,7 @@ PendingBranch :: struct {
 /// Per-fn structurer state.
 FnEmitCfg :: struct {
     fn_: CFGFunction
-    pinned_types_bucket: i32[]
+    pinned_types_bucket: i32[]!
     slot: BcFunction
     project: EmitterCtx
     string_index_map: const i32[]
@@ -476,8 +476,8 @@ FnEmitCfg :: struct {
     idom: i32[]
     ipostdom: i32[]
     loop_exit: MutableMap<i32, BlockId | null>
-    scopes: ScopeFrame[]
-    pending: PendingBranch[]
+    scopes: ScopeFrame[]!
+    pending: PendingBranch[]!
     wrapped_loop_headers: MutableSet<i32>
     hints: ScheduleHints
     /// When false, the two push helpers store `null` in `slot.debug` instead

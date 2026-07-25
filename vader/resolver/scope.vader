@@ -14,7 +14,7 @@ import "vader/resolver/symbol"
 
 /// LIFO stack of binding frames — innermost at the end, root at index 0.
 export Scope :: struct {
-    frames: MutableMap<string, Symbol>[]
+    frames: MutableMap<string, Symbol>[]!
 }
 
 /// Build a scope whose root frame is `root`. The caller keeps ownership ;

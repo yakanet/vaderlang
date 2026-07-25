@@ -23,10 +23,13 @@
         {
           "name": "keys",
           "type": {
-            "kind": "ArrayTypeExpr",
-            "element": {
-              "kind": "IdentExpr",
-              "name": "string"
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "string"
+              }
             }
           },
           "visibility": "public",
@@ -35,10 +38,13 @@
         {
           "name": "vals",
           "type": {
-            "kind": "ArrayTypeExpr",
-            "element": {
-              "kind": "IdentExpr",
-              "name": "i32"
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
+              }
             }
           },
           "visibility": "public",

@@ -401,7 +401,7 @@ call_needs_arg_normalisation :: fn(c: AST.CallExpr, callee_ty: FnType) -> bool {
 //     param, which lines up with the curried callee type.
 // Returns null when no decl is reachable (fn-values, imported overloads,
 // impl-block methods) — those stay positional.
-callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
+callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram) -> const AST.FnParam[] | null {
     if c.callee is AST.IdentExpr as ie {
         sym :: typed.resolved.idents[ie.span.hash()]
         if sym is Symbol as s {
@@ -690,7 +690,7 @@ export infer_call :: fn(
     normalised := false
     if call_needs_arg_normalisation(c, callee_ty) {
         decl_params :: callee_param_decls(c, callee_ty, typed)
-        if decl_params is AST.FnParam[] as ps {
+        if decl_params is const AST.FnParam[] as ps {
             norm :: normalize_call_args(ps, c, diags)
             // normalize_call_args owns arity/named diagnostics here ; skip the
             // positional check below to avoid double-reporting. A null result

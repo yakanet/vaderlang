@@ -58,7 +58,7 @@ import "vader/bytecode"
 
 /// Compacted temp type list (index = new slot) plus the rewritten body text.
 export CoalesceResult :: struct {
-    types: ValType[]
+    types: ValType[]!
     body:  string
 }
 

@@ -82,7 +82,7 @@ export Program :: struct {
     /// The `module "..."` declaration. Null when absent — the parser
     /// is tolerant ; the resolver's scan emits R2020 on absence.
     module:  ModuleDecl | null = null
-    decls:   Decl[]
+    decls:   const Decl[]
 }
 
 /// The `module "<name>"` decl that opens every `.vader` file. Carries
@@ -173,7 +173,7 @@ export FnDecl :: struct {
     name_span:             Span
     visibility:            Visibility
     type_params:           const TypeParam[]
-    params:                FnParam[]
+    params:                FnParam[]!
     return_type:           TypeExpr | null
     body:                  BlockExpr | null
     decorators:            const Decorator[]
@@ -291,7 +291,7 @@ export ImplDecl :: struct {
     trait_name:       string
     trait_name_span:  Span
     trait_args:       TypeExpr[]
-    members:          FnDecl[]
+    members:          FnDecl[]!
     decorators:       const Decorator[]
 }
 
@@ -538,7 +538,7 @@ export CallExpr :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
     callee: Expr
-    args:   CallArg[]
+    args:   CallArg[]!
     /// Source wrote a trailing comma before `)` — formatter keeps it exploded.
     trailing_comma: bool = false
 }
@@ -763,7 +763,7 @@ export IntrinsicCallExpr :: struct {
     id:        usize = UNASSIGNED_NODE_ID
     name:      string
     name_span: Span
-    args:      Expr[]
+    args:      Expr[]!
     /// Source wrote a trailing comma before `)` — formatter keeps it exploded.
     trailing_comma: bool = false
 }

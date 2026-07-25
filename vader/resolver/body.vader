@@ -51,7 +51,7 @@ export ResolvedFile :: struct {
     type_param_bounds: MutableMap<i32, AST.Expr>
     /// R-code diagnostics emitted during body resolution
     /// (unresolved ident, reserved name, …).
-    diags: Diagnostic[]
+    diags: Diagnostic[]!
 }
 
 /// Build a `ResolvedFile` for `program`. `top_level_seed` provides
@@ -105,7 +105,7 @@ ResolveState :: struct {
     /// once every module is clean.
     params_immutable_default: bool = true
     type_param_bounds: MutableMap<i32, AST.Expr>
-    diags:            Diagnostic[]
+    diags:            Diagnostic[]!
     scope:            Scope
     module_path:      string
     factory:          SymbolFactory

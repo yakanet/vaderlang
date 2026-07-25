@@ -647,7 +647,7 @@ export StringVal :: struct { value: string }
 /// alias-expansion bug (TODO §3.8, cross-module-only) doesn't bite here.
 export StructVal :: struct {
     type_id: i32
-    fields: Value[]
+    fields: Value[]!
 }
 
 /// Heap-allocated array payload — grow-only via `array.push`, fixed-size
@@ -662,7 +662,7 @@ export StructVal :: struct {
 /// view so tail slots held by sibling views aren't clobbered.
 export ArrayVal :: struct {
     type_id:  i32
-    elements: Value[]
+    elements: Value[]!
     offset:   usize
     length:   usize
 }
@@ -719,7 +719,7 @@ export TypeVal :: struct { type_id: i32 }
 export ObjVal :: struct {
     handle:  i32
     type_id: i32
-    bytes:   u8[]
+    bytes:   u8[]!
     slots:   Value[]
 }
 

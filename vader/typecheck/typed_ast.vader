@@ -381,7 +381,7 @@ export TypedProgram :: struct {
     /// resolve a `break <name>` / `continue <name>` to the loop whose iteration
     /// variable (or label) is `<name>` — innermost-first. Its `.len()` is also
     /// the loop-nesting depth, if ever needed.
-    loop_stack: EnclosingLoop[] = []
+    loop_stack: EnclosingLoop[]! = []
 
     /// Resolution result for var-targeted loop jumps : `ForStmt.id` → the
     /// iteration-variable name a `break <var>` / `continue <var>` targeted it by.

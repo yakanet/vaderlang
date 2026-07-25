@@ -1,11 +1,12 @@
 // `tags` is a MUTABLE `i32[]`, so T3042 (which keys on the array's own `const`
-// qualifier) says nothing here. The write is still rejected: the path reaches it
+// qualifier) says nothing here — the field is explicitly `i32[]!`, so the LEAF is
+// mutable and T3042 cannot fire. The write is still rejected: the path reaches it
 // through a module-level const, whose value is rebuilt per read site, so the
 // element write would hit a throwaway array. This is the case that proves the
 // check keys on the path rather than on the leaf's type. T3070.
 module "snippet"
 
-Cfg :: struct { tags: i32[] }
+Cfg :: struct { tags: i32[]! }
 
 CFG :: Cfg { .tags = [7, 8] }
 

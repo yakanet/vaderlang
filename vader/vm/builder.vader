@@ -51,17 +51,17 @@ import "std/collections"
 /// array so member methods can `self.strings.push(...)` without taking
 /// `self` by reference (Vader arrays are heap-allocated references).
 export ModuleBuilder :: struct {
-    strings: string[]
+    strings: string[]!
     /// Intern map for `strings` — keyed by the source string, valued
     /// with the pool index. Avoids O(n) lookups when interning the
     /// same string twice from caller code.
     string_index: MutableMap<string, i32>
-    types: bc.BcType[]
-    imports: bc.BcImport[]
-    functions: bc.BcFunction[]
-    impl_table: bc.ImplEntry[]
-    data_pool: bc.BcDataEntry[]
-    main_index: i32[]
+    types: bc.BcType[]!
+    imports: bc.BcImport[]!
+    functions: bc.BcFunction[]!
+    impl_table: bc.ImplEntry[]!
+    data_pool: bc.BcDataEntry[]!
+    main_index: i32[]!
 }
 
 /// Fresh, empty builder. `main_index` is held in a 1-element `i32[]` so
@@ -291,14 +291,14 @@ export FunctionBuilder :: struct {
     name: string
     parameter_count: usize
     local_count: usize
-    ops: bc.Op[]
-    table: i32[]
+    ops: bc.Op[]!
+    table: i32[]!
     @internal
-    scopes: ScopeEntry[]
-    scope_sp: usize[]
+    scopes: ScopeEntry[]!
+    scope_sp: usize[]!
     @internal
-    pending: PendingBranch[]
-    pending_sp: usize[]
+    pending: PendingBranch[]!
+    pending_sp: usize[]!
 }
 
 /// Fresh function builder with `parameter_count` argument slots followed
