@@ -308,7 +308,12 @@ build_fn_instance_decl :: fn(
 // (`[T, U][]`, `Pair<T, U>[]`) is BOXED-kind regardless, so leaving it erased is
 // sound — its reads route through the legacy runtime-dispatched op.
 returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
-    rt :: fn_decl.return_type ?? return false
+    // A `!` on the return (`-> T[]!`) wraps the written type, and the shape this
+    // looks for is INSIDE the wrapper. Missing it makes the gate blind : the
+    // instance stays erased, its buffer is built at BOXED width, and reads come
+    // back null — a native segfault rather than a diagnostic. The marker is a
+    // mutability note, never a reason to skip force-concreting.
+    rt :: strip_mut_marker(fn_decl.return_type) ?? return false
     if rt is ArrayTypeExpr as a {
         if a.element is IdentExpr as id {
             for tp in fn_decl.type_params {

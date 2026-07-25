@@ -166,7 +166,7 @@ surface_array_blanket_members :: fn(
 ) -> LoweredDecl[] {
     out: LoweredDecl[] = []
     if impl_decl.type_params.len() == 0 { return out }
-    if !(impl_decl.for_type is ArrayTypeExpr) { return out }
+    if !(strip_mut_marker(impl_decl.for_type) is ArrayTypeExpr) { return out }
     for member in impl_decl.members {
         // A bodyless `@intrinsic` member (`T[] implements ArrayOps`) has no body to
         // lower — the lowerer emits the dedicated array op at the call site. Skip it

@@ -1283,6 +1283,7 @@ export is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
     if e is AST.GenericInstExpr { return true }
     if e is AST.FnTypeExpr      { return true }
     if e is AST.ArrayTypeExpr   { return true }
+    if e is AST.MutableTypeExpr { return true }
     // `Coord :: [i32, i32]` — a ≥ 2-element all-type bracketed list is a tuple
     // type alias (1-tuples are forbidden).
     if e is AST.SeqLitExpr as seq {

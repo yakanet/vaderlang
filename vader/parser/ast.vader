@@ -932,6 +932,23 @@ export type_expr_marks_mutable :: fn(ty: TypeExpr | null) -> bool {
     return false
 }
 
+/// `ty` with any top-level `!` marker peeled off — the written type's SHAPE.
+///
+/// Every pass that inspects a written type structurally (is it an array? does its
+/// element name a type-param? does it name this impl?) must go through this, or
+/// the marker makes it blind. That blindness is not a lost diagnostic : the
+/// array-constructor gate in `lower_mono_fn` uses such a shape test to force
+/// concrete monomorphisation, and missing it leaves the instance erased, its
+/// buffer built at the wrong element width, and its reads returning null — a
+/// native segfault.
+///
+/// Only the TOP level is peeled : a marker deeper in (`Cfg![]`) belongs to the
+/// level it follows and is read from the lowered `Type`.
+export strip_mut_marker :: fn(ty: TypeExpr | null) -> TypeExpr | null {
+    if ty is MutableTypeExpr as m { return m.inner }
+    return ty
+}
+
 /// Whether `p` may be mutated by the callee — the SINGLE source of truth for
 /// that question.
 ///
