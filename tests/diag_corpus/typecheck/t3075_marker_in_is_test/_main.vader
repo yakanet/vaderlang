@@ -1,0 +1,15 @@
+// A `!` written inside an `is` test grants nothing: the test compares the SHAPE,
+// and mutability has no runtime representation (an array header carries length,
+// capacity and element kind — never a read-only bit). The narrowed binding keeps
+// the scrutinee's own mutability whatever the test says, so the marker is a
+// no-op the reader would misread. T3075.
+module "snippet"
+
+pick :: fn(x: i32[] | string) -> usize {
+    if x is i32[]! {
+        return x.len()
+    }
+    return x.byte_len()
+}
+
+main :: fn() -> i32 = i32(pick("ab"))

@@ -264,6 +264,11 @@ const C_PARITY = new Set<string>([
   // representation and the read site is a silent wrong-value read, not a trap.
   // Guards the regression where an ANNOTATED const lost its pooling.
   "module_const_mutability",
+  // An `is` test on a union of arrays selects the variant on SHAPE alone, so
+  // native is the oracle: each branch must still land on the right concrete
+  // element width. A variant matched modulo mutability that read back at the
+  // wrong representation would be a silent wrong value, not a trap.
+  "union_variant_narrow_mutation",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

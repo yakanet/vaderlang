@@ -293,7 +293,7 @@ readonly_children :: fn(t: Type, written: AST.TypeExpr | null) -> Type {
 export narrowing_immutability :: fn(scrutinee: Type, narrowed: Type) -> bool {
     if scrutinee is UnionType as u {
         for v in u.variants {
-            if equals_type(v, narrowed) { return type_is_immutable(v) }
+            if equals_type_shape(v, narrowed) { return type_is_immutable(v) }
         }
         for v in u.variants {
             if !type_is_immutable(v) { return false }
@@ -467,10 +467,47 @@ export narrow_for_expected :: fn(got: Type, expected: Type | null) -> Type {
     return got
 }
 
+/// `t` with every ARRAY level's mutability erased — the SHAPE of the type, which
+/// is all a runtime test can observe. An array header carries length, capacity and
+/// element kind, never a read-only bit, so `x is i32[]` and `x is i32[]!` name the
+/// same runtime values and must select the same variant.
+///
+/// Only arrays are rebuilt: the struct / tuple bit is already outside
+/// `equals_type`, so it never reaches an identity comparison in the first place.
+///
+/// @param t  the type to reduce to its shape.
+/// @return   `t` itself when no array appears inside it.
+export strip_mutability :: fn(t: Type) -> Type = match t {
+    is ArrayType  as a -> mk_array(strip_mutability(a.element), true)
+    is TupleType  as p -> mk_tuple(strip_mutability_each(p.elements), p.immutable)
+    is StructType as s -> mk_struct(s.symbol, strip_mutability_each(s.args), s.immutable)
+    is TraitType  as x -> mk_trait(x.symbol, strip_mutability_each(x.args))
+    is UnionType  as u -> mk_union(strip_mutability_each(u.variants))
+    is FnType     as f -> FnType {
+        .params         = strip_mutability_each(f.params),
+        .params_mutable = f.params_mutable,
+        .return_type    = strip_mutability(f.return_type),
+    }
+    is PrimitiveType | EnumType | TypeParamType | TypeMetaType | SelfType
+     | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
+     | NeverType | AnyType | DistinctType -> t
+}
+
+strip_mutability_each :: fn(ts: Type[]) -> Type[] {
+    out: Type[]! = []
+    for t in ts { out.push(strip_mutability(t)) }
+    return out
+}
+
+/// Structural equality modulo mutability — `equals_type` on the two SHAPES.
+/// The comparison a runtime test needs: `i32[]` and `i32[]!` are one shape.
+export equals_type_shape :: fn(a: Type, b: Type) = equals_type(strip_mutability(a), strip_mutability(b))
+
 /// Do `a` and `b` share any concrete runtime value ? Powers T3040
 /// ("test can never match") and the match-arm overlap check.
 /// UnionType on either side recurses into its variants. Otherwise
-/// falls back to `equals_type`.
+/// compares SHAPES — mutability is a static discipline with no runtime
+/// representation, so it can never make two types fail to overlap.
 export types_overlap :: fn(a: Type, b: Type) -> bool {
     av :: union_variants(a)
     if !(av is null) {
@@ -482,7 +519,7 @@ export types_overlap :: fn(a: Type, b: Type) -> bool {
         for v in bv { if types_overlap(a, v) { return true } }
         return false
     }
-    return equals_type(a, b)
+    return equals_type_shape(a, b)
 }
 
 union_variants :: fn(t: Type) -> Type[] | null {

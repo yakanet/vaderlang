@@ -1576,6 +1576,23 @@ A union carries no mutability of its own — each variant carries its own. `u8[]
 
 Two variants that differ **only** by mutability cannot coexist: `i32[] | i32[]!` is rejected (T3074) — write `i32[]!`, the mutable one, since the union would have to be one or the other at each use. This is an error rather than a silent collapse: which side wins is the author's call, not the compiler's.
 
+#### An `is` test compares the shape
+
+Mutability is a static discipline with no runtime representation — an array header carries length, capacity and element kind, never a read-only bit. So an `is` test selects **which** variant, never a mutability: `x is i32[]` and `x is i32[]!` name the same runtime values, and writing the marker there is T3075. What the narrowed binding carries is the **scrutinee's** own mutability.
+
+```vader
+fill :: fn(x: i32[]! | string[]!) -> usize {
+    if x is i32[] { x.push(0); return x.len() }   // narrows to `i32[]!` — push allowed
+    x.push("hello")
+    return x.len()
+}
+
+frozen :: fn(x: i32[] | string[]) -> usize {
+    if x is i32[] { x.push(0) }                   // T3071 — narrows to `i32[]`
+    return x.len()
+}
+```
+
 #### Only a type with an interior takes the marker
 
 `!` grants mutation *through* a slot, so it means something only where there is something to mutate: an array, a struct, a tuple. On a **primitive**, an **enum**, a **fn** or **`never`** the marker is a no-op, and writing it is T3075 — `s: string!` was a promise the compiler dropped silently. A **type parameter** (`fn<T>(x: T!)`) is not rejected: the marker there is intent about the instantiation, which may well be a struct.

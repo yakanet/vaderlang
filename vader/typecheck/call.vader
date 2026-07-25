@@ -700,7 +700,7 @@ export infer_call :: fn(
             // positional check below to avoid double-reporting. A null result
             // (variadic / error) leaves `c.args` untouched for recovery.
             normalised = true
-            if norm is AST.CallArg[]! as na {
+            if norm is AST.CallArg[] as na {
                 c.args = na
             }
         }

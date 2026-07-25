@@ -1,0 +1,51 @@
+// An `is` test on a union of MUTABLE arrays: the narrowed binding keeps the
+// scrutinee's mutability, so mutating through it is legal on both sides.
+//
+// This used to compile only by accident. The overlap check compared mutability,
+// so `is i32[]` lowered to the MUTABLE `i32[]!` and happened to match a mutable
+// variant — while the same test against a read-only variant died on a T3040
+// "test can never match" before the body was ever reached (`fn(x: string | u8[])`
+// with `if x is u8[]` was rejected outright). Now the test compares the SHAPE and
+// the mutability comes from the scrutinee, which makes both directions work:
+// mutable variants mutate here, read-only ones are T3071 on the mutation
+// (`t3071_readonly_union_variant_push`).
+//
+// The run is the oracle that matters: each branch must push into the right
+// buffer at the right element width, so a variant selected on shape alone still
+// lands on the correct concrete representation.
+
+module "snippet"
+
+import "std/io"
+
+fill :: fn(x: i32[]! | string[]!) -> usize {
+    if x is i32[] {
+        x.push(30)
+        x.push(40)
+        return x.len()
+    }
+    x.push("added")
+    return x.len()
+}
+
+// Read-only variants narrow the same way — only the mutation is rejected, so
+// reading through the narrowed binding stays available.
+total :: fn(x: i32[] | string[]) -> usize {
+    if x is i32[] {
+        sum := 0
+        for v in x {
+            sum = sum + v
+        }
+        return usize(sum)
+    }
+    return x.len()
+}
+
+main :: fn() -> i32 {
+    nums:  i32[]!    = [10, 20]
+    words: string[]! = ["a", "b"]
+    println("nums=${fill(nums)} words=${fill(words)}")
+    println("elems=${nums[2]},${nums[3]} last=${words[2]}")
+    println("total=${total(nums)} count=${total(words)}")
+    return 0
+}

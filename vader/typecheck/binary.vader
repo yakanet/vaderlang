@@ -52,6 +52,7 @@ export infer_binary :: fn(
                 typed.expr_kinds[e.right.id] = "IdentExpr"
             }
         }
+        reject_marker_in_is_test(e.right, diags)
         check_is_overlap(e, left, rhs_ty, diags)
         return TY_BOOL
     }
@@ -509,6 +510,21 @@ is_null_type :: fn(t: Type) -> bool {
         return p.name == "null"
     }
     return false
+}
+
+// An `is` test compares the SHAPE : mutability is a static discipline with no
+// runtime representation (an array header carries length / capacity / element
+// kind, never a read-only bit), so `x is i32[]!` selects the same variant as
+// `x is i32[]`. The marker grants nothing here — and what the narrowed binding
+// gets is the SCRUTINEE's mutability, never the one written in the test. T3075.
+reject_marker_in_is_test :: fn(tested: AST.TypeExpr, diags: Diagnostic[]!) -> void {
+    if !AST.type_expr_marks_mutable(tested) {
+        return
+    }
+    diags.push(typecheck_error(
+        .MutabilityMarkerOnValueType, tested.span,
+        "an `is` test compares the shape — mutability has no runtime representation, "
+        + "so drop the `!` (the narrowed binding keeps the scrutinee's own mutability)"))
 }
 
 /// T3040 : `x is T` test where `T` can never be a runtime value of
