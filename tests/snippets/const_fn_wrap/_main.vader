@@ -1,9 +1,15 @@
 // tests/snippets/const_fn_wrap — module-level struct-array const referenced in
-// a loop, exercising the `inline_consts` fn-wrap accessor path (mirror of the
-// compiler's own `vader/parser/intrinsics.vader::INTRINSICS`). A const array of
+// a loop, exercising the `inline_consts` fn-wrap accessor path. An array of
 // ≥4 struct literals lowers to a synthetic `__const_<name>` accessor fn ; every
 // reference becomes a `call` to it. Guards the Vader-emitter side of that path
 // (the suite never exercises the Vader emitter outside VADER_SELF_EMIT).
+//
+// The `: Spec[]:` annotation is LOAD-BEARING — do not "clean it up". It opts out
+// of the auto-`const` pin `orchestrate::auto_const_module_array` applies to every
+// UNANNOTATED module-level array const. Without it `SPECS` is `const Spec[]`, and
+// `inline_consts::try_data_pool` (which refuses mutable arrays) bakes it into the
+// data pool instead — a path `_diag_comptime_struct` already covers, leaving
+// fn-wrap with no regression guard.
 
 module "snippet"
 
@@ -14,7 +20,7 @@ Spec :: struct {
     code: i32
 }
 
-SPECS :: [
+SPECS: Spec[]: [
     Spec { .name = "alpha", .code = 10 },
     Spec { .name = "beta",  .code = 20 },
     Spec { .name = "gamma", .code = 30 },

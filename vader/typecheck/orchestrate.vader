@@ -2250,37 +2250,32 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnosti
     }
     got :: check_expr(cd.value, expected, typed, diags)
     if annot is null {
-        typed.decl_types[sym.id] = auto_const_comptime_array(cd, default_if_free(got))
+        typed.decl_types[sym.id] = auto_const_module_array(default_if_free(got))
     }
 }
 
-// A `@comptime` const value is computed once and frozen — and when it's a
-// primitive array it is materialised into read-only `.rodata` (mutating it would
-// segfault). So an UNANNOTATED `@comptime` const whose inferred type is a
-// mutable primitive array is auto-typed `const T[]` (immutable → Phase-A
-// bakeable). Explicit annotations are respected (this only runs when `annot is
-// null`), so `X: u32[]: @comptime …` stays a mutable, non-baked opt-out.
-auto_const_comptime_array :: fn(cd: AST.ConstDecl, t: Type) -> Type {
-    if !decl_is_comptime(cd.decorators) {
-        return t
-    }
+// A module-level const has NO runtime storage : `lower/inline_consts.vader`
+// re-builds its value at every read site (`inline` bucket) or returns a freshly
+// built literal from a synthesised accessor (`fn-wrap` bucket). So a mutation
+// through such a const targets a throwaway copy and is silently discarded —
+// `KEYWORDS[0] = "x"` used to compile and do nothing. An UNANNOTATED const whose
+// inferred type is a mutable array is therefore auto-typed `const T[]`, turning
+// that silent loss into T3042 at typecheck. This is what SPEC.md §"const T[]"
+// (Inference) has always promised.
+//
+// `@comptime` consts have a second, harder reason : a primitive array is
+// materialised into read-only `.rodata`, where mutating would segfault. They are
+// covered by the same rule, no longer by a dedicated one.
+//
+// Explicit annotations are respected (this only runs when `annot is null`), so
+// `X: u32[]: [...]` stays a mutable, non-baked opt-out.
+auto_const_module_array :: fn(t: Type) -> Type {
     if t is ArrayType as a {
         if !a.immutable {
-            if a.element is PrimitiveType {
-                return mk_array(a.element, true)
-            }
+            return mk_array(a.element, true)
         }
     }
     return t
-}
-
-decl_is_comptime :: fn(decorators: AST.Decorator[]) -> bool {
-    for d in decorators {
-        if d.name == "comptime" {
-            return true
-        }
-    }
-    return false
 }
 
 lookup_sym_by_name_orch :: fn(resolved: ResolvedModule, name: string) -> Symbol | null {

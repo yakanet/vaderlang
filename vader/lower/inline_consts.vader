@@ -18,10 +18,17 @@
 //     site. Scalars normally fold earlier in `lower_expr.vader::lower_ident` ;
 //     recording them here is a safety net for any reference that didn't fold.
 //
-// The data-pool bucket (primitive-element `const T[]` → `.rodata`) is NOT yet
-// ported : such consts fall through to fn-wrap. The compiler tree reaches no
-// primitive-array const (the crypto K-tables live in unimported std/crypto),
-// so this is byte-parity-neutral for the self-host audit — see CLAUDE.md §9.
+//   - data pool : an IMMUTABLE `const T[]` array literal whose elements are all
+//     bakeable (primitives, strings, or named-struct literals) — see
+//     `try_data_pool`. Registered once in `project.data_pool` and read back via
+//     a `data.const` op, so the value exists in one place instead of being
+//     rebuilt. Tried FIRST ; mutable arrays are refused outright.
+//
+// Since `orchestrate::auto_const_module_array` pins every unannotated
+// module-level array const as `const T[]`, the data pool is now the default
+// route for them (`KEYWORDS`, `TOKEN_TYPES`, …) and fn-wrap is reached only by
+// consts that opt out with an explicit mutable annotation, or whose elements
+// aren't bakeable. `tests/snippets/const_fn_wrap` guards that remaining path.
 
 module "vader/lower"
 

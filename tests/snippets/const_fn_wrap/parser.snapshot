@@ -45,7 +45,13 @@
       "kind": "ConstDecl",
       "name": "SPECS",
       "visibility": "private",
-      "type": null,
+      "type": {
+        "kind": "ArrayTypeExpr",
+        "element": {
+          "kind": "IdentExpr",
+          "name": "Spec"
+        }
+      },
       "value": {
         "kind": "SeqLitExpr",
         "elements": [
