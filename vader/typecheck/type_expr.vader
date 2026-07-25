@@ -72,7 +72,7 @@ export type_from_expr :: fn(
                     || (i < e.params_mutable.len() && e.params_mutable[i])
                 if marked { any_marked = true }
                 marks.push(marked)
-                params.push(desugared_param_type(type_from_expr(e.params[i], resolved, diags), marked))
+                params.push(apply_readonly_default(type_from_expr(e.params[i], resolved, diags), e.params[i]))
             }
             return FnType {
                 .params         = params,

@@ -648,7 +648,7 @@ declare_fn_param :: fn(
         )
         return TY_UNRESOLVED
     }
-    resolved_ty :: desugared_param_type(type_from_expr(ty, resolved, diags), AST.param_is_mutable(p))
+    resolved_ty :: apply_readonly_default(type_from_expr(ty, resolved, diags), ty)
     typed.param_types[p.span.hash()] = resolved_ty
     return resolved_ty
 }
@@ -667,6 +667,9 @@ declare_fn_return :: fn(
         }
         return TY_VOID
     }
+    // A return hands the caller a slot too, so it takes the same default : the value
+    // handed back is read-only unless the type says `!`. That is what makes `const`
+    // unnecessary in return position — it WAS the default all along.
     return type_from_expr(rt, resolved, diags)
 }
 

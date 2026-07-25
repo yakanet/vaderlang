@@ -19,7 +19,7 @@ import "std/iter"
 // ---- successor / predecessor edges ---------------------------------------
 
 /// Successors of a block, derived from its terminator.
-export successors_of :: fn(b: BasicBlock) -> BlockId[] {
+export successors_of :: fn(b: BasicBlock) -> BlockId[]! {
     match b.terminator {
         is TermBranch     as t -> { return [t.target] }
         is TermCondBranch as t -> { return [t.then_block, t.else_block] }

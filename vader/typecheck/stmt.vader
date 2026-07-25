@@ -1525,7 +1525,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     return null
 }
 
-diag_sink_stmt :: fn() -> Diagnostic[] { return [] }
+diag_sink_stmt :: fn() -> Diagnostic[]! { return [] }
 
 // The type written on the right of an `is`, carrying the immutability of the
 // slot it is subtracted from. Same rationale as `match_expr::pattern_type_of`.

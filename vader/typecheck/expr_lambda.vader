@@ -54,7 +54,7 @@ infer_param :: fn(
     typed: TypedProgram!, diags: Diagnostic[]!,
 ) -> Type {
     if p.ty !is null {
-        t :: desugared_param_type(type_from_expr(p.ty, typed.resolved, diags), AST.param_is_mutable(p))
+        t :: apply_readonly_default(type_from_expr(p.ty, typed.resolved, diags), p.ty)
         typed.param_types[p.span.hash()] = t
         return t
     }

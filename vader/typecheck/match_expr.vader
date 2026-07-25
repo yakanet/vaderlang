@@ -427,7 +427,7 @@ bind_struct_pattern :: fn(
     }
 }
 
-scratch_diags :: fn() -> Diagnostic[] { return [] }
+scratch_diags :: fn() -> Diagnostic[]! { return [] }
 
 /// Find a matching `TupleType` variant inside `t` for a pattern of
 /// `arity` elements. Falls back to the bare `TupleType` when `t` is

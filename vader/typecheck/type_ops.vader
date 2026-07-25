@@ -213,8 +213,14 @@ export apply_readonly_default :: fn(t: Type, written: AST.TypeExpr | null) -> Ty
         return with_immutable(t, true)
     }
     if written is AST.MutableTypeExpr as m {
+        // A `const T[]` under a marker is a contradiction, and it is reachable : the
+        // parser desugars the legacy `a!: const i32[]` by wrapping the written type.
+        // `const` freezes the REFERENT, so no marker can grant mutation through it —
+        // the stricter side wins, here as everywhere.
+        inner :: readonly_children(t, m.inner)
+        if type_is_immutable(inner) { return inner }
         // This level is explicitly mutable ; deeper levels still take the default.
-        return with_immutable(readonly_children(t, m.inner), false)
+        return with_immutable(inner, false)
     }
     // `const T[]` already froze the referent : the stricter side wins, but the
     // children still take the default.

@@ -325,7 +325,7 @@ DEBUG_MAX_ELEMS: usize: 64
 // `[0..params)` are params (no source names in `BcSignature` → `arg0`, `arg1`,
 // …) ; `locals[k]` lives at slot `params + k`. Accurate when the target is
 // compiled `optimize = false` (no slot coalescing) — the DAP compile's mode.
-project_locals :: fn(f: Frame, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule) -> PauseVar[] {
+project_locals :: fn(f: Frame, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule) -> PauseVar[]! {
     param_count :: fn_body.signature.params.len()
     total_slots :: param_count + fn_body.locals.len()
     // Per-slot [first, last] touch pc — a slot's live window. A local shows only

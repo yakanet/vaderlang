@@ -2278,9 +2278,8 @@ param_type :: fn(
     // — otherwise the impl method's type keeps `other: Self`, and a default-
     // method clone calling it (`self.compare(other)`, `other` already
     // substituted to `for_ty`) mismatches `expected Self, got <for_ty>`.
-    return desugared_param_type(
-        substitute_self(type_from_expr(p.ty, typed.resolved, diags), for_ty),
-        AST.param_is_mutable(p),
+    return apply_readonly_default(
+        substitute_self(type_from_expr(p.ty, typed.resolved, diags), for_ty), p.ty,
     )
 }
 

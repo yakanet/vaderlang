@@ -26,7 +26,7 @@ PER_ROW: usize: 9
 
 // Several pushes per row so each buffer outgrows its first allocation — the
 // growth path is where the erased/packed mismatch used to show up.
-fill :: fn(rows: i32[][]!) -> void {
+fill :: fn(rows: i32[]![]!) -> void {
     for i in 0..<rows.len() {
         for j in 0..<PER_ROW {
             rows[i].push(i32(i) * 100 + i32(j))
