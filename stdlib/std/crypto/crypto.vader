@@ -199,8 +199,8 @@ to_bytes :: fn(x: string | u8[]) -> u8[] {
 //
 // Computed at compile time via the VM-backed comptime engine (the loops / `push`
 // / `pow` fall outside the tree-walk subset, so the block is staged + executed in
-// the embedded VM). A `@comptime` primitive-array const is auto-typed `const
-// u32[]` — the result is materialised into the binary's read-only data section
+// the embedded VM). A `@comptime` primitive-array const is read-only, annotated
+// or not — the result is materialised into the binary's read-only data section
 // and read through a zero-copy view, never recomputed at runtime. The
 // known-answer tests (`test_sha256_*`) guard the baked values against host-libm
 // `pow` drift across platforms.

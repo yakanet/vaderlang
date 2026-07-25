@@ -31,18 +31,12 @@ export successors_of :: fn(b: BasicBlock) -> BlockId[]! {
 /// Predecessor lists keyed by BlockId. The returned array is dense
 /// (one entry per block, possibly empty).
 export predecessors_of :: fn(fn_: CFGFunction) -> BlockId[][] {
-    // Built through a mutable-inner accumulator, then resealed into the
-    // read-only element type the signature promises. The reseal copies the
-    // outer spine only (one reference per block) — element assignability
-    // doesn't descend into a nested array, so handing the accumulator back
-    // directly would force `BlockId[]![]` on every consumer instead.
-    acc: BlockId[]![] = filled(fn_.blocks.len(), () -> [])
+    // The inner lists must be mutable to be filled, the outer only read — and the
+    // element is covariant into the read-only array the signature promises, so
+    // `out` returns as-is.
+    out: BlockId[]![] = filled(fn_.blocks.len(), () -> [])
     for b in fn_.blocks {
-        for succ in successors_of(b) { acc[i32(succ)].push(b.id) }
-    }
-    out: BlockId[][]! = []
-    for lst in acc {
-        out.push(lst)
+        for succ in successors_of(b) { out[i32(succ)].push(b.id) }
     }
     return out
 }
@@ -347,7 +341,7 @@ export compute_post_dominators :: fn(fn_: CFGFunction) -> i32[] {
     fake_succs.push_all(succs)
     empty_se: BlockId[]! = []
     fake_succs.push(empty_se)
-    fake_preds: BlockId[]![]! = filled(n + 1, () -> [])
+    fake_preds: BlockId[]![] = filled(n + 1, () -> [])
     for k in 0..<n {
         for s in fake_succs[k] {
             fake_preds[usize(s)].push(BlockId(k))
@@ -398,9 +392,7 @@ export compute_post_dominators :: fn(fn_: CFGFunction) -> i32[] {
     return out
 }
 
-// `preds` inner lists are declared mutable only because the sole caller
-// (`compute_post_dominators`) builds them that way — this walk reads them.
-walk_rpo_reverse :: fn(preds: BlockId[]![], b: BlockId, visited: bool[]!, order: BlockId[]!) -> void {
+walk_rpo_reverse :: fn(preds: BlockId[][], b: BlockId, visited: bool[]!, order: BlockId[]!) -> void {
     if visited[usize(b)] {
         return
     }

@@ -165,19 +165,15 @@ emit_data_global_externs :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 partition_functions :: fn(fns: BcFunction[], num_units: i32) -> i32[][] {
     order :: sorted_fn_indices(fns)
 
-    acc: i32[]![] = filled(usize(num_units), () -> [])
+    // Inner buckets are filled, the outer only read — and the element is covariant
+    // into the read-only array the signature promises, so `buckets` returns as-is.
+    buckets: i32[]![] = filled(usize(num_units), () -> [])
     sizes: i32[]! = [0] * usize(num_units)
 
     for idx in order {
         target :: min_bucket(sizes)
-        acc[usize(target)].push(idx)
+        buckets[usize(target)].push(idx)
         sizes[usize(target)] += i32(fns[usize(idx)].body.len())
-    }
-    // Reseal the mutable-inner accumulator into the read-only element type the
-    // signature promises — the outer spine only, one reference per bucket.
-    buckets: i32[][]! = []
-    for b in acc {
-        buckets.push(b)
     }
     return buckets
 }
