@@ -42,7 +42,11 @@ export infer_lambda :: fn(
     body :: check_block(e.body, expected_ret, typed, diags, ctx, check_expr_fn)
     typed.current_fn_ctx = prev_ctx
     ret :: pick_final_return(expected_ret, body, ctx)
-    return mk_fn(param_types, ret)
+    return FnType {
+        .params         = param_types,
+        .params_mutable = params_mutable_of(e.params),
+        .return_type    = ret,
+    }
 }
 
 infer_param :: fn(

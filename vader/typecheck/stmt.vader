@@ -436,7 +436,7 @@ patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram) 
         is Symbol as s -> {
             cur :: typed.decl_types[s.id]
             match cur {
-                is FnType as ft -> { typed.decl_types[s.id] = mk_fn(ft.params, ret) }
+                is FnType as ft -> { typed.decl_types[s.id] = mk_fn_like(ft, ft.params, ret) }
                 _               -> {}
             }
         }
@@ -866,10 +866,19 @@ is_const_reassign :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
 // @partial: only an access path can be immutable — an ident, or a field / element
 // reached from one. Every other expression form yields a fresh owned value.
 expr_is_immutable :: fn(e: AST.Expr, typed: TypedProgram) -> bool = @partial match e {
-    is AST.IdentExpr as x  -> is_module_const(x, typed)
+    is AST.IdentExpr as x  -> is_module_const(x, typed) || is_immutable_borrow(x, typed)
     is AST.FieldExpr as f  -> expr_is_immutable(f.target, typed)
     is AST.IndexExpr as ix -> expr_is_immutable(ix.target, typed)
     _                      -> false
+}
+
+// A borrowed root recorded by the resolver: a parameter declared without `!`, or
+// a loop variable over an immutable iterable. Empty until the default flips per
+// module, so this contributes nothing today — the write side is
+// `resolver/body::mark_param_borrow`, gated on `params_immutable_default`.
+is_immutable_borrow :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
+    sym :: typed.resolved.idents[ident.span.hash()] ?? return false
+    return typed.resolved.immutable_borrows[sym.id] !is null
 }
 
 // A bare reference to a module-level `ConstDecl`. `SymbolKind.Const` is set by

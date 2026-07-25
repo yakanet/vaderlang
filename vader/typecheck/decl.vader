@@ -230,7 +230,11 @@ declare_fn :: fn(
     // Match by span so each overload gets its own decl_types entry.
     sym :: lookup_fn_symbol_by_span(decl, resolved, by_name)
     if sym is Symbol {
-        typed.decl_types[sym.id] = mk_fn(params, return_type)
+        typed.decl_types[sym.id] = FnType {
+            .params         = params,
+            .params_mutable = params_mutable_of(decl.params),
+            .return_type    = return_type,
+        }
         typed.fn_decls[sym.id] = decl
     }
     if decl.name == "main" {

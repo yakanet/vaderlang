@@ -205,6 +205,12 @@ export FnParam :: struct {
     ty:            TypeExpr | null
     default_value: Expr | null
     variadic:      bool
+    /// `!` suffix on the NAME (`buf!: u8[]`, `self!`) — the caller grants this
+    /// parameter permission to mutate its referent. Carried on the name rather
+    /// than the type so `self!`, which has no written type, reads the same way.
+    /// The type-side spelling of the same notion is `FnType.params_mutable`,
+    /// needed because a fn TYPE has no parameter names.
+    mutable:       bool = false
 }
 
 // ---- Struct ---------------------------------------------------------------
@@ -863,6 +869,12 @@ export FnTypeExpr :: struct {
     span:        Span
     id:          usize = UNASSIGNED_NODE_ID
     params:      TypeExpr[]
+    /// `!` suffix per parameter TYPE (`fn(u8[]!) -> void`) — a fn type has no
+    /// parameter names, so the mutation marker lands on the type here, where the
+    /// declaration side spells it on the name (`FnParam.mutable`). Empty means no
+    /// parameter is marked ; it is never a same-length all-`false` vector, so
+    /// "unmarked" stays a single representation.
+    params_mutable: bool[] = []
     return_type: TypeExpr | null
 }
 

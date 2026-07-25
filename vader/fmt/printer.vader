@@ -560,6 +560,8 @@ flat_params_width :: fn(source: string, params: p.FnParam[]) -> usize {
 emit_fn_param :: fn(self: Printer, fp: p.FnParam) -> void {
     if fp.variadic { self.write("...") }
     self.write(fp.name)
+    // `!` binds to the NAME, so it precedes the `: T` ascription.
+    if fp.mutable { self.write("!") }
     self.emit_type_expr_with_prefix(": ", fp.ty)
     self.emit_expr_with_prefix(" = ", fp.default_value)
 }
@@ -2089,6 +2091,11 @@ emit_fn_type :: fn(self: Printer, x: p.FnTypeExpr) -> void {
     for i in 0..<x.params.len() {
         if i > 0 { self.write(", ") }
         self.emit_type_expr(x.params[i])
+        // In a fn TYPE the mutation marker sits on the type, since there is no
+        // parameter name to carry it (`fn(u8[]!) -> void`).
+        if i < x.params_mutable.len() && x.params_mutable[i] {
+            self.write("!")
+        }
     }
     self.write(")")
     self.emit_type_expr_with_prefix(" -> ", x.return_type)

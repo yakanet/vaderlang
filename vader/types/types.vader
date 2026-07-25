@@ -61,6 +61,15 @@ export UnionType :: struct {
 
 export FnType :: struct {
     params:      Type[]
+    /// Per-parameter `!` mutation marker (`fn(u8[]!) -> void`). A parallel vector
+    /// rather than a bit inside each param `Type`, so the notion stays confined to
+    /// this one IR node — `StructType` / `TupleType` / … and the whole
+    /// substitute / unify / erase machinery keep ignoring it.
+    ///
+    /// Empty means no parameter is marked ; it is never a same-length all-`false`
+    /// vector. Every constructor that rebuilds an `FnType` from another must carry
+    /// it over (`mk_fn_like`) or the marker is silently lost.
+    params_mutable: bool[] = []
     return_type: Type
 }
 
@@ -289,6 +298,39 @@ export mk_distinct :: fn(symbol: Symbol, backing: Type) -> Type = DistinctType {
 
 export mk_array :: fn(element: Type, immutable: bool) -> Type = ArrayType { .element = element, .immutable = immutable }
 
+/// Rebuild an `FnType` from `src`, carrying its `params_mutable` vector over.
+///
+/// Use this — not `mk_fn` — whenever the result derives from an existing fn type
+/// (substitution, `Self` resolution, distinct-stripping). `mk_fn` yields an
+/// unmarked vector, so reaching for it on a derived type drops the `!` markers
+/// silently, which is exactly how a marked callback would slip past the
+/// contravariance check.
+///
+/// @param src     the fn type the result derives from ; only its marker vector is read.
+/// @param params  the rewritten parameter types — must keep `src`'s arity and order.
+/// @param ret     the rewritten return type.
+export mk_fn_like :: fn(src: FnType, params: Type[], ret: Type) -> Type = FnType {
+    .params = params, .params_mutable = src.params_mutable, .return_type = ret,
+}
+
+/// Rebuild an `FnType` that DROPS its leading parameter (UFCS curries the
+/// receiver away), shifting the marker vector by one so the remaining markers
+/// stay aligned with `params`.
+///
+/// @param src     the fn type before the receiver is dropped.
+/// @param params  the tail parameter types, `src.params` minus its head.
+/// @param ret     the return type.
+export mk_fn_drop_self :: fn(src: FnType, params: Type[], ret: Type) -> Type {
+    if src.params_mutable.len() == 0 {
+        return mk_fn(params, ret)
+    }
+    tail: bool[] = []
+    for i in 1..<src.params_mutable.len() {
+        tail.push(src.params_mutable[i])
+    }
+    return FnType { .params = params, .params_mutable = tail, .return_type = ret }
+}
+
 export mk_tuple :: fn(elements: Type[]) -> Type = TupleType { .elements = elements }
 
 export mk_fn :: fn(params: Type[], return_type: Type) -> Type {
@@ -406,7 +448,17 @@ write_type :: fn(sb: StringBuilder, t: Type) -> void {
         }
         is FnType as x -> {
             sb.append("fn(")
-            sb.write_type_list(x.params, ", ")
+            first := true
+            for i in 0..<x.params.len() {
+                if !first { sb.append(", ") }
+                first = false
+                sb.write_type(x.params[i])
+                // `!` renders per marked parameter ; an empty `params_mutable`
+                // (the common case) emits nothing, so existing dumps are unchanged.
+                if i < x.params_mutable.len() && x.params_mutable[i] {
+                    sb.append_char('!')
+                }
+            }
             sb.append(") -> ")
             sb.write_type(x.return_type)
         }
@@ -539,7 +591,7 @@ export strip_distinct :: fn(t: Type) -> Type {
     if t is TraitType  as r { return mk_trait(r.symbol, strip_distinct_each(r.args)) }
     if t is ArrayType  as a { return mk_array(strip_distinct(a.element), a.immutable) }
     if t is TupleType  as p { return mk_tuple(strip_distinct_each(p.elements)) }
-    if t is FnType     as f { return mk_fn(strip_distinct_each(f.params), strip_distinct(f.return_type)) }
+    if t is FnType     as f { return mk_fn_like(f, strip_distinct_each(f.params), strip_distinct(f.return_type)) }
     if t is UnionType  as u { return mk_union(strip_distinct_each(u.variants)) }
     return t
 }

@@ -293,6 +293,11 @@ write_fn_param :: fn(sb: StringBuilder, p: FnParam, level: i32) -> void {
     sb.write_optional_expr(p.default_value, level + 1)
     sb.entry(false, level + 1, "variadic")
     sb.write_bool(p.variadic)
+    // Emitted only when set, so every existing fixture's dump is unchanged.
+    if p.mutable {
+        sb.entry(false, level + 1, "mutable")
+        sb.write_bool(p.mutable)
+    }
     sb.close_obj(level)
 }
 

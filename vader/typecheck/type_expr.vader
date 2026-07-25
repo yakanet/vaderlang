@@ -59,8 +59,15 @@ export type_from_expr :: fn(
         is AST.FnTypeExpr as e -> {
             params: Type[] = []
             for p in e.params { params.push(type_from_expr(p, resolved, diags)) }
-            return mk_fn(params, opt_or_void(e.return_type, resolved, diags))
+            return FnType {
+                .params         = params,
+                .params_mutable = e.params_mutable,
+                .return_type    = opt_or_void(e.return_type, resolved, diags),
+            }
         }
+        // NOTE: the `!` marker vector for a DECLARATION (`fn(buf!: u8[])`) comes
+        // from `params_mutable_of` below, not from here — a declaration's params
+        // are `FnParam`s, not `TypeExpr`s.
         is AST.ArrayTypeExpr as e -> {
             return mk_array(type_from_expr(e.element, resolved, diags), e.immutable)
         }
@@ -185,7 +192,7 @@ walk_substitute :: fn(t: Type, params: AST.TypeParam[], args: Type[]) -> Type {
         is FnType as f -> {
             ps: Type[] = []
             for p in f.params { ps.push(walk_substitute(p, params, args)) }
-            return mk_fn(ps, walk_substitute(f.return_type, params, args))
+            return mk_fn_like(f, ps, walk_substitute(f.return_type, params, args))
         }
         _ -> { return t }
     }
@@ -324,6 +331,24 @@ export primitive_from_name :: fn(name: string) -> Type | null {
     canonical :: resolve_primitive_alias(name)
     if canonical != name { return mk_primitive(canonical) }
     return null
+}
+
+/// Marker vector for a DECLARATION's parameters — the bridge from `FnParam.mutable`
+/// (`!` on the name) to `FnType.params_mutable` (`!` on the type). Without it a
+/// `fn(buf!: u8[])` would type as an unmarked `fn(u8[])` and nothing downstream
+/// could tell the two apart.
+///
+/// @param ps  the declaration's parameters, in order.
+/// @return    one flag per parameter, or **empty** when none is marked — the
+///            canonical "unmarked" form, never an all-`false` run.
+params_mutable_of :: fn(ps: AST.FnParam[]) -> bool[] {
+    any_mutable := false
+    out: bool[] = []
+    for p in ps {
+        if p.mutable { any_mutable = true }
+        out.push(p.mutable)
+    }
+    return if any_mutable { out } else { [] }
 }
 
 // ---- tests ----------------------------------------------------------------

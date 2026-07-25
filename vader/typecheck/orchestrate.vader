@@ -510,6 +510,7 @@ synth_resolved :: fn() -> ResolvedModule {
         .symbols = [],
         .idents = MutableMap<u64, Symbol> {},
         .immutable_locals = MutableMap<i32, bool> {},
+        .immutable_borrows = MutableMap<i32, bool> {},
         .fn_overloads = MutableMap<string, Symbol[]> {},
         .imports_to = MutableMap<i32, Symbol> {},
         .alias_types = MutableMap<i32, Type> {},
@@ -2177,7 +2178,11 @@ declare_impl_method_for_trait :: fn(
     // Impl methods aren't in `resolved.symbols` (they're members of
     // an ImplDecl, not top-level names) — use the dedicated span-keyed
     // table.
-    typed.impl_method_decl_types[fd.name_span.hash()] = mk_fn(params, ret)
+    typed.impl_method_decl_types[fd.name_span.hash()] = FnType {
+        .params         = params,
+        .params_mutable = params_mutable_of(fd.params),
+        .return_type    = ret,
+    }
 }
 
 declare_impl_return :: fn(

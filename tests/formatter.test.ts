@@ -203,6 +203,42 @@ S :: struct {
 }
 `,
   },
+  {
+    // Mutable-parameter marker `!`. It has TWO surfaces for one notion, and each
+    // must survive a round-trip: on the NAME in a declaration (`buf!: u8[]`, and
+    // `self!`, which has no written type to hang it on), and on the TYPE inside a
+    // fn type (`fn(u8[]!) -> void`), where there are no parameter names at all.
+    // Dropping either one silently widens a read-only borrow into a mutable slot.
+    name: "mutable_param_marker",
+    source: `module "reg/mutable_param_marker"
+
+Counter :: struct {
+    count: i32
+}
+
+Bumpable :: trait {
+    bump :: fn(self!, by: i32) -> void
+}
+
+Counter implements Bumpable {
+    bump :: fn(self!, by: i32) -> void {
+        self.count += by
+    }
+}
+
+fill :: fn(buf!: u8[], byte: u8) -> void {
+    buf.push(byte)
+}
+
+apply :: fn(f: fn(u8[]!) -> void, xs!: u8[]) -> void {
+    f(xs)
+}
+
+mixed :: fn(a: u8[], b!: u8[], c: i32) -> void {
+    b.push(c)
+}
+`,
+  },
 ];
 
 for (const { name, source } of REGRESSIONS) {

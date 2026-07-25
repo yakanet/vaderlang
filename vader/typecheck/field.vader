@@ -618,7 +618,7 @@ export substitute_by_name :: fn(
             for p in f.params {
                 ps.push(substitute_by_name(p, tps, args))
             }
-            return mk_fn(ps, substitute_by_name(f.return_type, tps, args))
+            return mk_fn_like(f, ps, substitute_by_name(f.return_type, tps, args))
         }
         _ -> { return t }
     }
@@ -705,7 +705,7 @@ substitute_array_element :: fn(t: Type, element: Type) -> Type {
         is FnType as f -> {
             ps: Type[] = []
             for p in f.params { ps.push(substitute_array_element(p, element)) }
-            return mk_fn(ps, substitute_array_element(f.return_type, element))
+            return mk_fn_like(f, ps, substitute_array_element(f.return_type, element))
         }
         _ -> { return t }
     }
@@ -771,7 +771,7 @@ substitute_self :: fn(t: Type, self_ty: Type) -> Type {
             for p in f.params {
                 ps.push(substitute_self(p, self_ty))
             }
-            return mk_fn(ps, substitute_self(f.return_type, self_ty))
+            return mk_fn_like(f, ps, substitute_self(f.return_type, self_ty))
         }
         is UnionType as u -> {
             vs: Type[] = []
@@ -1067,7 +1067,7 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
         for i in 1..<ft.params.len() {
             rest.push(ft.params[i])
         }
-        return mk_fn(rest, ft.return_type)
+        return mk_fn_drop_self(ft, rest, ft.return_type)
     }
     bindings :: MutableMap<i32, Type> {}
     unify_type_param(ft.params[0], target_ty, bindings)
@@ -1086,7 +1086,7 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
     for i in 1..<ft.params.len() {
         rest.push(substitute_map(ft.params[i], bindings))
     }
-    return mk_fn(rest, substitute_map(ft.return_type, bindings))
+    return mk_fn_drop_self(ft, rest, substitute_map(ft.return_type, bindings))
 }
 
 // A receiver fits a UFCS first-param when (a) direct assignability holds,

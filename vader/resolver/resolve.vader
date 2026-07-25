@@ -40,6 +40,13 @@ export ResolvedModule :: struct {
     /// Local Symbol ids minted from `name :: ...` bindings (no `:=`).
     /// Consumed by stmt.vader::check_assign to surface T3041.
     immutable_locals: MutableMap<i32, bool>
+    /// Symbols that are an immutable BORROW root: a parameter declared without
+    /// `!` once `params_immutable_default` is on, and loop variables over an
+    /// immutable iterable. Sibling of `immutable_locals`, which tracks the
+    /// orthogonal axis (`::` freezes the binding, not the referent).
+    /// Module-level consts are NOT here — they are recognised from
+    /// `SymbolKind.Const`, so they need no table and work cross-module.
+    immutable_borrows: MutableMap<i32, bool>
     /// `fn_overloads[name]` carries every Symbol minted for a given
     /// fn name — only one of which lands in `symbols`. The typecheck
     /// dump iterates this to surface every overload.
@@ -170,6 +177,7 @@ export resolve_module_with_collected_dp_seeded :: fn(
         .symbols          = sort_by_name(user_syms),
         .idents           = file.idents,
         .immutable_locals = file.immutable_locals,
+        .immutable_borrows = file.immutable_borrows,
         .fn_overloads     = collected.fn_overloads,
         .imports_to       = MutableMap<i32, Symbol> {},
         .alias_types      = MutableMap<i32, Type> {},

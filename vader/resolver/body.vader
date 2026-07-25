@@ -38,6 +38,13 @@ export ResolvedFile :: struct {
     /// binding (`mutable = false`). `name :=` ones don't appear here.
     /// Read by typecheck's check_assign for T3041.
     immutable_locals: MutableMap<i32, bool>
+    /// Symbols that are an immutable BORROW root — a parameter declared without
+    /// `!` once the default flips, and loop variables over an immutable iterable.
+    /// Sibling of `immutable_locals`, which tracks the orthogonal axis (`::`
+    /// freezes the binding, not the referent). Module-level consts are NOT here:
+    /// they are recognised from `SymbolKind.Const`, needing no table and working
+    /// cross-module for free.
+    immutable_borrows: MutableMap<i32, bool>
     /// `Symbol.id → bound TypeExpr` for every TypeParam minted with
     /// an explicit `T: Trait` clause. Lets downstream consumers
     /// dispatch trait methods on bounded type parameters.
@@ -60,6 +67,7 @@ export resolve_program :: fn(
     state :: ResolveState {
         .idents = MutableMap<u64, Symbol> {},
         .immutable_locals = MutableMap<i32, bool> {},
+        .immutable_borrows = MutableMap<i32, bool> {},
         .type_param_bounds = MutableMap<i32, AST.Expr> {},
         .diags = [],
         .scope = new_scope(top_level_seed),
@@ -74,6 +82,7 @@ export resolve_program :: fn(
         .top_level = top_level_seed,
         .idents = state.idents,
         .immutable_locals = state.immutable_locals,
+        .immutable_borrows = state.immutable_borrows,
         .type_param_bounds = state.type_param_bounds,
         .diags = state.diags,
     }
@@ -84,6 +93,14 @@ export resolve_program :: fn(
 ResolveState :: struct {
     idents:           MutableMap<u64, Symbol>
     immutable_locals: MutableMap<i32, bool>
+    immutable_borrows: MutableMap<i32, bool>
+    /// When true, a parameter declared WITHOUT `!` is recorded as an immutable
+    /// borrow root. An INPUT to the walk, not part of its output — which is why it
+    /// lives here and not on `ResolvedFile` / `ResolvedModule`: those carry the
+    /// resulting `immutable_borrows`, and nothing downstream needs to know which
+    /// policy produced it. Still false everywhere; the flip is per-module later, so
+    /// today the table stays empty and no check fires on a parameter.
+    params_immutable_default: bool = false
     type_param_bounds: MutableMap<i32, AST.Expr>
     diags:            Diagnostic[]
     scope:            Scope
@@ -179,6 +196,7 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
         // interpreter) can recover the Symbol.id without re-walking
         // the body to find a use-site.
         self.idents[p.span.hash()] = sym
+        self.mark_param_borrow(p, sym)
     }
     self.walk_opt_expr(d.return_type)
     match d.body {
@@ -335,6 +353,23 @@ walk_defer :: fn(self: ResolveState, d: AST.DeferStmt) -> void {
         is AST.DeferStmtBody  as x -> { self.walk_stmt(x.stmt) }
         is AST.DeferBlockBody as x -> { self.walk_block(x.block) }
     }
+}
+
+// Record a parameter as an immutable borrow root — a param WITHOUT `!` is a
+// read-only borrow of the caller's value.
+//
+// Gated on `params_immutable_default`, which is still false everywhere: the
+// default flips module-by-module in a later step, so this writes nothing today
+// and the table stays empty. Keeping the write site here (rather than adding it
+// with the flip) means the flip is one flag, not new plumbing.
+mark_param_borrow :: fn(self: ResolveState, p: AST.FnParam, sym: Symbol) -> void {
+    if p.mutable {
+        return
+    }
+    if !self.params_immutable_default {
+        return
+    }
+    self.immutable_borrows[sym.id] = true
 }
 
 mark_binding_immutable :: fn(self: ResolveState, b: AST.LetBinding) -> void {

@@ -274,7 +274,7 @@ export substitute_map :: fn(t: Type, subst: MutableMap<i32, Type>) -> Type {
         is StructType as s -> { return mk_struct(s.symbol, substitute_each_map(s.args, subst)) }
         is TraitType as tr -> { return mk_trait(tr.symbol, substitute_each_map(tr.args, subst)) }
         is FnType as f -> {
-            return mk_fn(substitute_each_map(f.params, subst), substitute_map(f.return_type, subst))
+            return mk_fn_like(f, substitute_each_map(f.params, subst), substitute_map(f.return_type, subst))
         }
         is UnionType as u -> { return union_of(substitute_each_map(u.variants, subst)) }
         _ -> { return t }

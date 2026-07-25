@@ -1124,13 +1124,27 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
                 continue
             }
 
+            // `!` right after the name grants mutation permission (`buf!: u8[]`,
+            // `self!`). `!=` lexes as a single `.Neq` (lexer.vader), so
+            // `fn(buf!= [])` would silently lose the marker — treat that token
+            // here as the `!` plus the default-value `=` the writer meant.
+            is_mutable := false
+            if p.match_kind(.Bang) != null {
+                is_mutable = true
+            }
+            splits_neq := false
+            if !is_mutable && p.check(.Neq) {
+                p.advance()
+                is_mutable = true
+                splits_neq = true
+            }
             ty: TypeExpr | null = null
             if p.match_kind(.Colon) != null {
                 p.skip_newlines()
                 ty = p.parse_type()
             }
             default_value: Expr | null = null
-            if p.match_kind(.Assign) != null {
+            if splits_neq || p.match_kind(.Assign) != null {
                 default_value = p.parse_expr(0)
             }
 
@@ -1144,6 +1158,7 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
                 .ty            = ty,
                 .default_value = default_value,
                 .variadic      = is_variadic,
+                .mutable       = is_mutable,
             })
         }
     }
@@ -1793,33 +1808,37 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
 parse_fn_type :: fn(p: Parser) -> FnTypeExpr {
     start :: p.advance()  // `fn`
     p.expect(.LParen, "`(` after `fn` in function type")
-    params :: p.parse_type_list_until(.RParen)
+    // The parameter list is parsed inline because a trailing `!` mutation marker
+    // is legal ONLY here — everywhere else a type is parsed (`parse_type`), a `!`
+    // must stay a syntax error, so the loop cannot be factored out for reuse.
+    params: TypeExpr[] = []
+    marks: bool[] = []
+    any_mutable := false
+    p.skip_newlines()
+    if !p.check(.RParen) {
+        for {
+            p.skip_newlines()
+            if p.check(.RParen) { break }
+            params.push(p.parse_type())
+            marked :: p.match_kind(.Bang) != null
+            if marked { any_mutable = true }
+            marks.push(marked)
+            p.skip_newlines()
+            if p.match_kind(.Comma) == null { break }
+        }
+    }
     p.expect(.RParen, "`)` after function parameter types")
     return_type: TypeExpr | null = null
     if p.match_kind(.Arrow) != null { return_type = p.parse_type() }
     return FnTypeExpr {
-        .span        = p.span_of(start, p.peek_at(-1)),
-        .params      = params,
-        .return_type = return_type,
+        .span           = p.span_of(start, p.peek_at(-1)),
+        .params         = params,
+        // Keep "nothing marked" as the empty vector, never an all-`false` run.
+        .params_mutable = if any_mutable { marks } else { [] },
+        .return_type    = return_type,
     }
 }
 
-// Comma-separated `parse_type` list up to (but not consuming) `close`.
-// Skips leading newlines around commas. Caller is responsible for
-// expecting the close token.
-parse_type_list_until :: fn(p: Parser, close: TokenKind) -> TypeExpr[] {
-    out: TypeExpr[] = []
-    p.skip_newlines()
-    if p.check(close) { return out }
-    for {
-        p.skip_newlines()
-        if p.check(close) { break }
-        out.push(p.parse_type())
-        p.skip_newlines()
-        if p.match_kind(.Comma) == null { break }
-    }
-    return out
-}
 
 // Variant for `<...>` angle-bracket generic argument lists. Handles `>>`
 // split-on-demand (nested generics like `Box<Box<T>>` close with a single
