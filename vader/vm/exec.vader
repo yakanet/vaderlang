@@ -669,7 +669,7 @@ const_op_value :: fn(c: bc.ConstOp, strings: string[], pc: i32) -> Value | Trap 
 ///                      executor should stop ; `null` when execution
 ///                      should continue with the caller frame.
 /// @error               main returned a non-i32 value.
-finalise_return :: fn(return_value: Value, has_value: bool, at_pc: i32, frames: Frame[], frame_count!: usize[], main_label: string, capture!: Value[] | null) -> VmResult | null {
+finalise_return :: fn(return_value: Value, has_value: bool, at_pc: i32, frames!: Frame[], frame_count!: usize[], main_label: string, capture!: Value[] | null) -> VmResult | null {
     pop_frame(frame_count)
     if frame_count[0] == 0 {
         // Value-capturing entry (`exec_fn_value`, comptime VM fallback) : publish

@@ -44,7 +44,7 @@ export pop :: fn(self!: Scope) -> void {
 
 /// Bind `name` in the innermost frame. Silently shadows any outer
 /// binding of the same name ; lookup picks the innermost match.
-export bind :: fn(self: Scope, name: string, sym: Symbol) -> void {
+export bind :: fn(self!: Scope, name: string, sym: Symbol) -> void {
     n :: self.frames.len()
     if n == 0 { return }
     top :: self.frames[n - 1]

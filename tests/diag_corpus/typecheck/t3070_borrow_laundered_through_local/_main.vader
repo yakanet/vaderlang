@@ -1,0 +1,19 @@
+// A local initialised FROM a borrowed parameter keeps borrowing. Without that,
+// the read-only default was decorative: `m := a` shares `a`'s reference, so
+// `m[0] = 99` reached the caller's array through a one-line detour — it compiled,
+// and the mutation took effect (verified: `xs[0]=99 len=4`).
+//
+// A local initialised from an OWNED value stays mutable, which is the whole point
+// of "a local is owned" — see snippets/const_binding_no_mutate. T3070.
+module "snippet"
+
+sneak :: fn(a: i32[]) -> void {
+    m := a
+    m[0] = 99
+}
+
+main :: fn() -> i32 {
+    xs :: [1, 2, 3]
+    sneak(xs)
+    return xs[0]
+}

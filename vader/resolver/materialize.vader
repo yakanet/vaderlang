@@ -188,7 +188,7 @@ substitute_params_disambiguated :: fn(
 /// member in place. SAM shape-mismatch diagnostics (R2016) aren't
 /// emitted here — `check_short_impl_arity` (orchestrate.vader) fires
 /// them before this runs.
-export materialize_sam_members :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl, factory: NodeIdFactory) -> void {
+export materialize_sam_members :: fn(impl_!: AST.ImplDecl, trait_: AST.TraitDecl, factory: NodeIdFactory) -> void {
     syn_count :: count_sam_synthetics(impl_.members)
     if syn_count == 0 { return }
     required :: required_methods(trait_.members)

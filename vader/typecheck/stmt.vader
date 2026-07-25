@@ -632,7 +632,29 @@ check_let :: fn(
         )
     }
     assign_binding_types(s.binding, declared, typed, diags)
+    mark_binding_borrow(s.binding, s.value, typed)
     record_empty_array_init(s, declared, typed)
+}
+
+// A local initialised FROM an immutable borrow keeps borrowing — `m := a` shares
+// `a`'s reference, so letting `m` be owned would make the whole read-only default
+// decorative: `m[0] = 9` would reach the caller's array through a one-line detour.
+//
+// This is the local counterpart of `mark_loop_var_borrow`, and the same reason it
+// lives in typecheck rather than the resolver: deciding it needs
+// `expr_is_immutable`, hence the types.
+//
+// Only a WHOLE-value rebind propagates. A tuple destructure takes elements APART,
+// and an element of an immutable aggregate is reached through the path predicate
+// already, so nothing is lost by not marking the leaves here.
+mark_binding_borrow :: fn(b: AST.LetBinding, value: AST.Expr, typed!: TypedProgram) -> void {
+    if !expr_is_immutable(value, typed) {
+        return
+    }
+    if b is AST.SimpleBinding as sb {
+        sym :: typed.resolved.idents[sb.name_span.hash()] ?? return
+        typed.resolved.immutable_borrows[sym.id] = true
+    }
 }
 
 // `x := []` : remember which expression the `?[]` came from, so the first
