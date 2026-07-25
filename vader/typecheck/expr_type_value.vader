@@ -22,6 +22,15 @@ export infer_array_type_value :: fn(
     return TY_TYPE
 }
 
+/// `T!` in value position (a type alias RHS such as `Buf :: u8[]!`) : walk the
+/// inner type for side-effects, return the metatype value.
+export infer_mutable_type_value :: fn(
+    e: AST.MutableTypeExpr, typed: TypedProgram, diags!: Diagnostic[],
+) -> Type {
+    type_from_expr(e.inner, typed.resolved, diags)
+    return TY_TYPE
+}
+
 /// `fn(T) -> R` in value position.
 export infer_fn_type_value :: fn(
     e: AST.FnTypeExpr, typed: TypedProgram, diags!: Diagnostic[],

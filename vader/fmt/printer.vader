@@ -1293,6 +1293,15 @@ emit_expr :: fn(self!: Printer, e: p.Expr | null) -> void {
             self.emit_array_or_union_element(x.element)
             self.write("[]")
         }
+        is p.MutableTypeExpr   as x -> {
+            // `T!` marks ONE level mutable — dropping it would silently turn a
+            // mutable slot read-only (round-trip corruption, mirror of `const`
+            // above). The marker binds tighter than `|` / `&`, so a union or
+            // intersection inner gets the same parenthesising as an array
+            // element : `(A | B)!` must round-trip verbatim.
+            self.emit_array_or_union_element(x.inner)
+            self.write("!")
+        }
     }
 }
 

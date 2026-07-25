@@ -26,7 +26,7 @@ export ImportBinding :: NamedNamespaceImport | DestructureImport | WildcardImpor
 
 export ForForm :: InfiniteFor | WhileFor | InFor
 
-export Expr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | AwaitExpr
+export Expr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | MutableTypeExpr | AwaitExpr
 
 export StringLitPart :: StringLitText | StringLitInterp
 
@@ -60,7 +60,7 @@ export coalesce_fallback_expr :: fn(f: CoalesceFallback) -> Expr | null = match 
 // as a « type expression » is determined by *position* (the slot demanding
 // a type) rather than by AST shape. The alias documents intent at slot
 // declarations (e.g. `StructField.ty: TypeExpr`) ; variants mirror `Expr`.
-export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | AwaitExpr
+export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | MutableTypeExpr | AwaitExpr
 
 // ============================================================================
 // Visibility / shared shapes
@@ -889,9 +889,46 @@ export ArrayTypeExpr :: struct {
     immutable: bool  = false
 }
 
+/// Postfix `T!` — "mutation through this slot is allowed", one level of the
+/// type. Type-only AST node.
+///
+/// A WRAPPER rather than a `mutable` field, because there is nowhere to put such
+/// a field : `TypeExpr` is an alias of `Expr`, so a named type is an `IdentExpr`
+/// — a value node that must not grow a type-only flag. Wrapping also gets the
+/// per-level granularity for free, which is the whole point : `Cfg![]` (mutable
+/// elements in a read-only array) and `Cfg[]!` (mutable array of read-only
+/// elements) are different types, and only a per-level marker can tell them
+/// apart. `ArrayTypeExpr.immutable` (the `const T[]` form) is its predecessor
+/// and covers arrays only.
+export MutableTypeExpr :: struct {
+    span:  Span
+    id:    usize = UNASSIGNED_NODE_ID
+    inner: TypeExpr
+}
+
 // ============================================================================
 // Helpers
 // ============================================================================
+
+/// Whether a written type carries an explicit `!` at its top level (`Cfg[]!`).
+/// Nested markers (`Cfg![]`) belong to the level they follow and are read from
+/// the `Type` once lowered, not here.
+export type_expr_marks_mutable :: fn(ty: TypeExpr | null) -> bool {
+    if ty == null { return false }
+    return ty is MutableTypeExpr
+}
+
+/// Whether `p` may be mutated by the callee — the SINGLE source of truth for
+/// that question.
+///
+/// Two spellings reach it : the marker on the TYPE (`fn(x: Cfg[]!)`, the form
+/// this chantier moves to) and the legacy marker on the NAME (`fn(x!: Cfg)`),
+/// which `self!` keeps for good — `self` is the one parameter whose type is
+/// never written, so its marker has nowhere else to go. Anything that asks
+/// "is this parameter mutable" must come through here : the resolver's borrow
+/// table and the typechecker's desugaring live in different modules and would
+/// otherwise drift apart, each answering from one spelling only.
+export param_is_mutable :: fn(p: FnParam) -> bool = p.mutable || type_expr_marks_mutable(p.ty)
 
 /// Flatten a `T | U | V | …` `BitOr` BinaryExpr chain into its variant
 /// list, in source order. Non-`BitOr` expressions are returned as a

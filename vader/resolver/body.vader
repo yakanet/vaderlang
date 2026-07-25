@@ -366,7 +366,7 @@ walk_defer :: fn(self!: ResolveState, d: AST.DeferStmt) -> void {
 // and the table stays empty. Keeping the write site here (rather than adding it
 // with the flip) means the flip is one flag, not new plumbing.
 mark_param_borrow :: fn(self!: ResolveState, p: AST.FnParam, sym: Symbol) -> void {
-    if p.mutable {
+    if AST.param_is_mutable(p) {
         return
     }
     if !self.params_immutable_default {
@@ -536,6 +536,7 @@ walk_expr :: fn(self!: ResolveState, e: AST.Expr) -> void {
             self.walk_opt_expr(x.return_type)
         }
         is AST.ArrayTypeExpr as x -> { self.walk_expr(x.element) }
+        is AST.MutableTypeExpr as x -> { self.walk_expr(x.inner) }
         is AST.IntLitExpr -> {}
         is AST.FloatLitExpr -> {}
         is AST.BoolLitExpr -> {}

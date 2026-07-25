@@ -608,6 +608,7 @@ type_expr_slice :: fn(t: Expr, source: string) -> string {
         is DotVariantExpr as x   -> x.span
         is FnTypeExpr as x       -> x.span
         is ArrayTypeExpr as x    -> x.span
+        is MutableTypeExpr as x  -> x.span
     }
     if sp.end.offset > sp.start.offset {
         return source.bytes()[sp.start.offset..<sp.end.offset].bytes_to_string().trim()
@@ -728,6 +729,7 @@ ix_walk_expr :: fn(e: Expr, source: string, entries!: DeclEntry[]) -> void {
         is DotVariantExpr -> {}
         is FnTypeExpr     -> {}
         is ArrayTypeExpr  -> {}
+        is MutableTypeExpr -> {}
     }
 }
 

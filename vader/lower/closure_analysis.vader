@@ -302,6 +302,7 @@ walk_expr :: fn(
         }
         is AST.FnTypeExpr -> {}
         is AST.ArrayTypeExpr -> {}
+        is AST.MutableTypeExpr -> {}
         is AST.IdentExpr as ident -> { record_ident_capture(ident, scope, out_captures, out_seen, ctx) }
         is AST.StringLitExpr as str_lit -> {
             for part in str_lit.parts {

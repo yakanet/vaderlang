@@ -1683,19 +1683,64 @@ parse_type_intersection :: fn(p!: Parser) -> TypeExpr {
 
 parse_type_postfix :: fn(p!: Parser) -> TypeExpr {
     head := p.parse_type_primary()
-    // Postfix `T[]` loop : `T[]`, `T[][]`, ... wraps `head` into an
-    // ArrayTypeExpr. Two-token lookahead `[ ]` keeps us from consuming a `[`
-    // that belongs to something else.
-    for p.check(.LBracket) && p.check_at(.RBracket, 1) {
-        p.advance()              // [
-        rb :: p.advance()        // ]
+    // Postfix loop, left to right, so each marker binds to the level it follows :
+    // `Cfg![]` is an array of mutable Cfg, `Cfg[]!` a mutable array of read-only
+    // Cfg, `Cfg![]!` both. That per-level reading is the whole point of carrying
+    // the marker on the TYPE — a marker on the parameter name can only say one
+    // of the four.
+    //
+    // `T[]` needs a two-token lookahead `[ ]` so we don't eat a `[` that belongs
+    // to something else. Neither branch skips newlines : a `!` opening the next
+    // line is a unary `not`, not a marker for the type above it.
+    for {
+        if p.check(.LBracket) && p.check_at(.RBracket, 1) {
+            p.advance()              // [
+            rb :: p.advance()        // ]
+            head_span :: head.span
+            head = ArrayTypeExpr {
+                .span    = Span { .start = head_span.start, .end = rb.span.end },
+                .element = head,
+            }
+            continue
+        }
+        bang :: p.parse_type_mut_marker()
+        if bang == null { break }
         head_span :: head.span
-        head = ArrayTypeExpr {
-            .span    = Span { .start = head_span.start, .end = rb.span.end },
-            .element = head,
+        head = MutableTypeExpr {
+            .span  = Span { .start = head_span.start, .end = bang.span.end },
+            .inner = head,
         }
     }
     return head
+}
+
+// The `!` of a mutability marker, or null.
+//
+// `!=` lexes as a single `.Neq` (lexer.vader) — the same trap the parameter-name
+// marker hit — so `x: Cfg!= v` (a marked parameter with a default value) would
+// silently lose its marker. Split it in place : hand back the `!` and leave an
+// `=` in the stream for the default-value parser, the way
+// `consume_closing_angle` splits `>>`.
+parse_type_mut_marker :: fn(p!: Parser) -> Token | null {
+    if p.check(.Bang) { return p.advance() }
+    if !p.check(.Neq) { return null }
+    cur :: p.peek()
+    mid :: Position {
+        .file   = cur.span.start.file,
+        .offset = cur.span.start.offset + 1,
+        .line   = cur.span.start.line,
+        .column = cur.span.start.column + 1,
+    }
+    // Leave the `=` half where the `!=` was — the cursor does NOT advance, so the
+    // caller's `match_kind(.Assign)` finds it.
+    p.tokens[usize(p.pos)] = Token {
+        .kind = .Assign, .text = "=",
+        .span = Span { .start = mid, .end = cur.span.end }, .value = null,
+    }
+    return Token {
+        .kind = .Bang, .text = "!",
+        .span = Span { .start = cur.span.start, .end = mid }, .value = null,
+    }
 }
 
 parse_type_primary :: fn(p!: Parser) -> TypeExpr {

@@ -94,6 +94,7 @@ export span_of :: fn(expr: AST.Expr) -> Span = match expr {
     is AST.DotVariantExpr    as x -> x.span
     is AST.FnTypeExpr        as x -> x.span
     is AST.ArrayTypeExpr     as x -> x.span
+    is AST.MutableTypeExpr   as x -> x.span
 }
 
 // Human-readable label for unsupported variants. Surfaces in the C4001
@@ -118,6 +119,7 @@ expr_kind_label :: fn(expr: AST.Expr) -> string = @partial match expr {
     is AST.DotVariantExpr    -> "DotVariantExpr"
     is AST.FnTypeExpr        -> "FnTypeExpr"
     is AST.ArrayTypeExpr     -> "ArrayTypeExpr"
+    is AST.MutableTypeExpr   -> "MutableTypeExpr"
     _                        -> "Expr"
 }
 

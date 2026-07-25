@@ -447,6 +447,7 @@ walk_expr :: fn(e: AST.Expr, out!: RawToken[]) -> void {
             walk_opt_type(x.return_type, out)
         }
         is AST.ArrayTypeExpr    as x -> { walk_type_expr(x.element, out) }
+        is AST.MutableTypeExpr  as x -> { walk_type_expr(x.inner, out) }
         // Literals carry no identifiers worth tagging.
         is AST.IntLitExpr   -> {}
         is AST.FloatLitExpr -> {}
@@ -582,6 +583,7 @@ walk_type_expr :: fn(e: AST.Expr, out!: RawToken[]) -> void {
             walk_opt_type(x.return_type, out)
         }
         is AST.ArrayTypeExpr    as x -> { walk_type_expr(x.element, out) }
+        is AST.MutableTypeExpr  as x -> { walk_type_expr(x.inner, out) }
         // Anything else — literal in a type position (`null`, `0..<N` etc.)
         // — defer to the value walker so spans still get classified.
         _ -> { walk_expr(e, out) }

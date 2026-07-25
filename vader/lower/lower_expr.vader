@@ -169,6 +169,7 @@ export lower_expr :: fn(ctx!: FnLowerCtx, expr: Expr) -> LoweredExpr {
         // emit T3035 ; the lowerer just emits a stub.
         is FnTypeExpr    as e -> { return stub(e.span, type, "type-valued slot not lowered") }
         is ArrayTypeExpr as e -> { return stub(e.span, type, "type-valued slot not lowered") }
+        is MutableTypeExpr as e -> { return stub(e.span, type, "type-valued slot not lowered") }
     }
 }
 

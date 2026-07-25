@@ -643,7 +643,7 @@ declare_fn_param :: fn(
         )
         return TY_UNRESOLVED
     }
-    resolved_ty :: desugared_param_type(type_from_expr(ty, resolved, diags), p.mutable)
+    resolved_ty :: desugared_param_type(type_from_expr(ty, resolved, diags), AST.param_is_mutable(p))
     typed.param_types[p.span.hash()] = resolved_ty
     return resolved_ty
 }

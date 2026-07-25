@@ -2269,7 +2269,7 @@ param_type :: fn(
             // method unavailable on an immutable receiver: UFCS dispatch compares
             // the receiver against this slot through `is_assignable`, on EVERY
             // resolution path, instead of a check each path has to remember.
-            return desugared_param_type(for_ty, p.mutable)
+            return desugared_param_type(for_ty, AST.param_is_mutable(p))
         }
         return TY_UNRESOLVED
     }
@@ -2279,7 +2279,8 @@ param_type :: fn(
     // method clone calling it (`self.compare(other)`, `other` already
     // substituted to `for_ty`) mismatches `expected Self, got <for_ty>`.
     return desugared_param_type(
-        substitute_self(type_from_expr(p.ty, typed.resolved, diags), for_ty), p.mutable,
+        substitute_self(type_from_expr(p.ty, typed.resolved, diags), for_ty),
+        AST.param_is_mutable(p),
     )
 }
 

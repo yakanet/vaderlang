@@ -1017,6 +1017,13 @@ write_expr :: fn(sb!: StringBuilder, e: Expr | null, level: i32) -> void {
             }
             sb.close_obj(level)
         }
+        is MutableTypeExpr -> {
+            sb.open_obj()
+            sb.kind_entry(level + 1, "MutableTypeExpr")
+            sb.entry(false, level + 1, "inner")
+            sb.write_expr(e.inner, level + 1)
+            sb.close_obj(level)
+        }
     }
 }
 

@@ -82,6 +82,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
         is AST.GenericInstExpr -> { return substitute_type_expr(e, subst) }
         is AST.FnTypeExpr -> { return substitute_type_expr(e, subst) }
         is AST.ArrayTypeExpr -> { return substitute_type_expr(e, subst) }
+        is AST.MutableTypeExpr -> { return substitute_type_expr(e, subst) }
 
         // Value-position composites : recurse children.
         is AST.CallExpr as c -> {

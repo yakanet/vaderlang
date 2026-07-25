@@ -62,15 +62,28 @@ export type_from_expr :: fn(
             // borrow. Skipping this would leave every callback slot mutable, so
             // passing a read-only value to `fn(Cfg) -> void` would be rejected.
             params: Type[] = []
+            marks: bool[] = []
+            any_marked := false
             for i in 0..<e.params.len() {
-                marked :: i < e.params_mutable.len() && e.params_mutable[i]
+                // The marker now rides the TYPE (`fn(u8[]!)` parses as a
+                // `MutableTypeExpr`), so read it from there ; `params_mutable`
+                // stays consulted for the shape the older parser produced.
+                marked :: AST.type_expr_marks_mutable(e.params[i])
+                    || (i < e.params_mutable.len() && e.params_mutable[i])
+                if marked { any_marked = true }
+                marks.push(marked)
                 params.push(desugared_param_type(type_from_expr(e.params[i], resolved, diags), marked))
             }
             return FnType {
                 .params         = params,
-                .params_mutable = e.params_mutable,
+                .params_mutable = if any_marked { marks } else { [] },
                 .return_type    = opt_or_void(e.return_type, resolved, diags),
             }
+        }
+        // `T!` — one level of the written type is mutable. The marker is stripped
+        // here and carried by the `Type` itself.
+        is AST.MutableTypeExpr as e -> {
+            return with_immutable(type_from_expr(e.inner, resolved, diags), false)
         }
         // NOTE: the `!` marker vector for a DECLARATION (`fn(buf!: u8[])`) comes
         // from `params_mutable_of` below, not from here — a declaration's params
@@ -352,8 +365,9 @@ params_mutable_of :: fn(ps: AST.FnParam[]) -> bool[] {
     any_mutable := false
     out: bool[] = []
     for p in ps {
-        if p.mutable { any_mutable = true }
-        out.push(p.mutable)
+        m :: AST.param_is_mutable(p)
+        if m { any_mutable = true }
+        out.push(m)
     }
     return if any_mutable { out } else { [] }
 }

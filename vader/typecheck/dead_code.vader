@@ -154,6 +154,7 @@ collect_expr_names :: fn(e: AST.Expr, out!: string[]) -> void {
             collect_opt_expr_names(e.return_type, out)
         }
         is AST.ArrayTypeExpr     -> { collect_expr_names(e.element, out) }
+        is AST.MutableTypeExpr   -> { collect_expr_names(e.inner, out) }
         is AST.DotVariantExpr    -> {}
         is AST.IntLitExpr        -> {}
         is AST.FloatLitExpr      -> {}

@@ -329,7 +329,7 @@ expr_has_yield :: fn(e: AST.Expr) -> bool = match e {
         inner :: AST.coalesce_fallback_expr(nc.fallback) ?? return false
         return expr_has_yield(inner)
     }
-    is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr | AST.StringLitExpr | AST.IdentExpr | AST.CallExpr | AST.FieldExpr | AST.IndexExpr | AST.UnaryExpr | AST.BinaryExpr | AST.LambdaExpr | AST.StructLitExpr | AST.SeqLitExpr | AST.RangeExpr | AST.CastExpr | AST.GenericInstExpr | AST.IntrinsicCallExpr | AST.DotVariantExpr | AST.FnTypeExpr | AST.ArrayTypeExpr | AST.AwaitExpr -> { return false }
+    is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr | AST.StringLitExpr | AST.IdentExpr | AST.CallExpr | AST.FieldExpr | AST.IndexExpr | AST.UnaryExpr | AST.BinaryExpr | AST.LambdaExpr | AST.StructLitExpr | AST.SeqLitExpr | AST.RangeExpr | AST.CastExpr | AST.GenericInstExpr | AST.IntrinsicCallExpr | AST.DotVariantExpr | AST.FnTypeExpr | AST.ArrayTypeExpr | AST.MutableTypeExpr | AST.AwaitExpr -> { return false }
 }
 // No other expression form carries a statement block a `yield` could
 // live in ; a LambdaExpr body is deliberately NOT descended (a `yield`
