@@ -1,0 +1,16 @@
+// A module-level const has no runtime storage: `lower/inline_consts` rebuilds
+// its value at every read site, so writing a field of one landed on a throwaway
+// copy and was silently discarded — `CFG.count = 99` compiled, then read back 1.
+// `::` freezes only the binding for a LOCAL (a local is owned, so `p.x = 10`
+// stays legal, see snippets/const_binding_no_mutate); at module scope the
+// referent is frozen too, because no referent survives. T3070.
+module "snippet"
+
+Cfg :: struct { count: i32 }
+
+CFG :: Cfg { .count = 1 }
+
+main :: fn() -> i32 {
+    CFG.count = 99
+    return 0
+}

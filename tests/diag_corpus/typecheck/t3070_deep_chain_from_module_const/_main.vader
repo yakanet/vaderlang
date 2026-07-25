@@ -1,0 +1,16 @@
+// Immutability is a property of the ACCESS PATH, not of the value: reading a
+// field of an immutable root yields something immutable too, so the whole chain
+// from a module-level const is rejected — not just its first hop. `child` is a
+// plain mutable struct; what makes the write illegal is only how we got there.
+// T3070.
+module "snippet"
+
+Child :: struct { count: i32 }
+Cfg :: struct { child: Child }
+
+CFG :: Cfg { .child = Child { .count = 2 } }
+
+main :: fn() -> i32 {
+    CFG.child.count = 0
+    return 0
+}

@@ -680,6 +680,22 @@ check_assign :: fn(
             return
         }
     }
+    // T3070 : `p.x = v` reached through an immutable access path — today a
+    // module-level const, whose write would otherwise be silently discarded
+    // (it has no storage). Deep by construction : `CFG.child.count = 0` is
+    // rejected because the predicate walks back to the root.
+    if s.target is AST.FieldExpr as fe {
+        if expr_is_immutable(fe.target, typed) {
+            diags.push(
+                typecheck_error(
+                    .CannotMutateImmutableBinding,
+                    s.target.span,
+                    "`${fe.field}` is reached through an immutable path — a module-level const has no storage, so this write would be discarded",
+                ),
+            )
+            return
+        }
+    }
     // T3042 : `arr[i] = v` when arr's static type is `const T[]`.
     // For Array-typed receivers we still write the full IndexExpr
     // into `expr_types`. For non-Array receivers the
@@ -700,6 +716,13 @@ check_assign :: fn(
                         "cannot mutate `${display_type(target_arr_ty)}` — declared with `const`",
                     ),
                 )
+                return
+            }
+            // T3070 : the array itself is mutable, but we got to it through an
+            // immutable path — `CFG.tags[0] = 9`, where `tags: i32[]`. T3042 above
+            // already handled the `const T[]` leaf, so this only fires past it.
+            if expr_is_immutable(ix.target, typed) {
+                push_immutable_path_write(s.target.span, diags)
                 return
             }
             // `arr[i]` types to the element type ; array elements are never
@@ -731,6 +754,11 @@ check_assign :: fn(
                     }
                 }
             }
+        }
+        // T3070 : same rule for an `IndexSet` receiver (a map field of a const).
+        if expr_is_immutable(ix.target, typed) {
+            push_immutable_path_write(s.target.span, diags)
+            return
         }
         // Pin a free-literal write value to the IndexSet value type V
         // (`m[k] = 9000000000`) and check the write fits V. A `null` V means
@@ -819,6 +847,57 @@ emit_assign_mismatch_if :: fn(
 is_const_reassign :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
     sym :: typed.resolved.idents[ident.span.hash()] ?? return false
     return typed.resolved.immutable_locals[sym.id] !is null
+}
+
+// True when writing THROUGH `e` must be rejected. Immutability is a property of
+// the ACCESS PATH, not of the value : reading a field or element of an immutable
+// root yields something immutable too, so this recurses into the target instead
+// of consulting a type. That is what catches `CFG.child.count = 0` and
+// `CFG.tags[0] = 9` — where the leaf's own type is perfectly mutable.
+//
+// Root today : a module-level const. It has NO runtime storage — `lower/
+// inline_consts` rebuilds its value at every read site, so a write lands on a
+// throwaway copy and is silently discarded. Params and loop variables join as
+// roots when the default flips (see the immutable-params plan).
+//
+// NOT a root : a `::` local. `::` freezes the binding, not the referent — a local
+// is OWNED, so `x :: i32[] ; x.push(1)` stays legal. Reassignment is T3041's job.
+//
+// @partial: only an access path can be immutable — an ident, or a field / element
+// reached from one. Every other expression form yields a fresh owned value.
+expr_is_immutable :: fn(e: AST.Expr, typed: TypedProgram) -> bool = @partial match e {
+    is AST.IdentExpr as x  -> is_module_const(x, typed)
+    is AST.FieldExpr as f  -> expr_is_immutable(f.target, typed)
+    is AST.IndexExpr as ix -> expr_is_immutable(ix.target, typed)
+    _                      -> false
+}
+
+// A bare reference to a module-level `ConstDecl`. `SymbolKind.Const` is set by
+// `resolver/collect` on every top-level const, and `build_wildcard_seed` seeds
+// the ORIGINAL symbol into an importing module's scope — so this holds across
+// module boundaries with no side table.
+//
+// Two indirect routes are NOT covered yet, both fail-open : a namespace member
+// (`Ns.CONST` is a FieldExpr whose root is the namespace alias, not a `.Const`
+// ident) and a renamed import (`import "p" { CONST as C }` binds an
+// `.ImportBinding`). Neither is written to anywhere in the tree today ; closing
+// them needs the namespace member table rather than the symbol kind.
+is_module_const :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
+    sym :: typed.resolved.idents[ident.span.hash()] ?? return false
+    return sym.kind == .Const
+}
+
+// T3070 for an element write (`CFG.tags[0] = 9`) whose container is mutable but
+// reached through an immutable path. Shared by the array and IndexSet branches of
+// `check_assign` ; the `const T[]` case keeps T3042's more specific wording.
+push_immutable_path_write :: fn(span: Span, diags: Diagnostic[]) -> void {
+    diags.push(
+        typecheck_error(
+            .CannotMutateImmutableBinding,
+            span,
+            "this element is reached through an immutable path — a module-level const has no storage, so this write would be discarded",
+        ),
+    )
 }
 
 check_return :: fn(
