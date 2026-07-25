@@ -1,0 +1,26 @@
+// Mirror of the covariance already enforced type-side for arrays (a `const T[]`
+// does not fit a `T[]` slot), for the roots that carry no marker in their type. A
+// `!` parameter grants the callee permission to mutate, so an immutable value
+// cannot be handed to it — here a module-level const, which has no storage at all,
+// so `bump` would increment a throwaway copy.
+//
+// A local of the very same type is fine (`bump(local)` below): a local is OWNED.
+// It is the argument's provenance that decides, not its type. T3072.
+module "snippet"
+
+Cfg :: struct {
+    count: i32
+}
+
+CFG :: Cfg { .count = 1 }
+
+bump :: fn(c!: Cfg) -> void {
+    c.count += 1
+}
+
+main :: fn() -> i32 {
+    bump(CFG)
+    local :: Cfg { .count = 0 }
+    bump(local)
+    return local.count
+}

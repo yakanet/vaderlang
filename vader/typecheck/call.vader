@@ -792,6 +792,7 @@ export infer_call :: fn(
         report_unbound_type_args(c, callee_ty, bindings, arg_types, expected, n, typed, diags)
         for i in 0..<n {
             want :: substitute_map(callee_ty.params[i], bindings)
+            reject_immutable_into_mutable_param(callee_ty, i, c, typed, diags)
             if type_contains_type_param(want)                          { continue }
             if is_assignable(arg_types[i], want, null)                 { continue }
             if try_into(arg_types[i], want, typed, c.args[i].value.id) { continue }
@@ -847,6 +848,7 @@ export infer_call :: fn(
     for i in 0..<n {
         param_ty :: callee_ty.params[i]
         arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
+        reject_immutable_into_mutable_param(callee_ty, i, c, typed, diags)
         if is_assignable(arg_ty, param_ty, null)                 { continue }
         if try_into(arg_ty, param_ty, typed, c.args[i].value.id) { continue }
         diags.push(mismatch_diagnostic(arg_ty, param_ty, c.args[i].span, .TypeMismatch))
@@ -1297,4 +1299,31 @@ main :: fn() -> void { greet(42) }
             assert(found, "expected T3001 for int → string")
         }
     }
+}
+
+// T3072 — an immutable value cannot be handed to a `!` parameter, which grants
+// the callee permission to mutate it. The mirror of the covariance already
+// enforced type-side for arrays (`const T[]` doesn't fit a `T[]` slot), for the
+// roots that carry no marker in their type: a module-level const today, borrowed
+// params once the default flips.
+//
+// Only the ARGUMENT side is checked here — the receiver of a `self!` method is
+// T3071's job, in `field.vader`.
+reject_immutable_into_mutable_param :: fn(
+    callee_ty: FnType, i: usize, c: AST.CallExpr,
+    typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    if !param_mutable_at(callee_ty, i) {
+        return
+    }
+    if !expr_is_immutable(c.args[i].value, typed) {
+        return
+    }
+    diags.push(
+        typecheck_error(
+            .ImmutableBorrowIntoMutableParam,
+            c.args[i].span,
+            "this argument is immutable, but the parameter is declared `!` — the callee may mutate it",
+        ),
+    )
 }
