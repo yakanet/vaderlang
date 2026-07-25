@@ -28,7 +28,7 @@ export ArrayOps :: trait<T> {
     push_all :: fn(self!, other: const T[]) -> void
     /// Copy `count` elements from `self[src_off..]` into `dst[dst_off..]`.
     /// Reads `self` ; it is `dst` that is written, hence the marker there.
-    copy_to :: fn(self, src_off: usize, dst!: T[], dst_off: usize, count: usize) -> void
+    copy_to :: fn(self, src_off: usize, dst: T[]!, dst_off: usize, count: usize) -> void
     /// Remove and return the last element, or `null` when empty.
     remove_last :: fn(self!) -> T | null
     /// Drop every element (length → 0), keeping the reserved capacity.

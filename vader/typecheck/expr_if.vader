@@ -52,8 +52,8 @@ is_concrete_float :: fn(t: Type) -> bool {
 /// Type-check an `IfExpr`. `expected` flows into both branches so
 /// `let x: i64 = if c { 1 } else { 2 }` narrows each literal to i64.
 export infer_if :: fn(
-    e!: AST.IfExpr, expected: Type | null,
-    typed!: TypedProgram, diags!: Diagnostic[],
+    e: AST.IfExpr!, expected: Type | null,
+    typed: TypedProgram!, diags: Diagnostic[]!,
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
@@ -108,8 +108,8 @@ collapse_if_unresolved :: fn(joined: Type, a: Type, b: Type) -> Type {
 }
 
 check_else_with_narrow :: fn(
-    block!: AST.BlockExpr, narrowing: IsNarrow | null,
-    expected: Type | null, typed!: TypedProgram, diags!: Diagnostic[],
+    block: AST.BlockExpr!, narrowing: IsNarrow | null,
+    expected: Type | null, typed: TypedProgram!, diags: Diagnostic[]!,
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
@@ -129,8 +129,8 @@ check_else_with_narrow :: fn(
 }
 
 check_else_branch_expr :: fn(
-    inner!: AST.Expr, narrowing: IsNarrow | null,
-    expected: Type | null, typed!: TypedProgram, diags!: Diagnostic[],
+    inner: AST.Expr!, narrowing: IsNarrow | null,
+    expected: Type | null, typed: TypedProgram!, diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     prev: NarrowSlot | null = null
@@ -179,7 +179,7 @@ PushedNarrow :: struct {
 // which operand was false), so callers apply these to the then side only.
 // Detection only — operands are type-checked with real diags by the caller,
 // so `detect_is_narrow` routes its own here to a sink.
-collect_and_narrows :: fn(cond: AST.Expr, typed!: TypedProgram) -> IsNarrow[] {
+collect_and_narrows :: fn(cond: AST.Expr, typed: TypedProgram!) -> IsNarrow[] {
     if cond is AST.BinaryExpr as x {
         if x.op == AST.BinaryOp.And {
             out :: collect_and_narrows(x.left, typed)
@@ -194,7 +194,7 @@ collect_and_narrows :: fn(cond: AST.Expr, typed!: TypedProgram) -> IsNarrow[] {
 }
 
 // Push each narrowing's `then` type and return the records to unwind later.
-push_then_narrows :: fn(narrows: IsNarrow[], typed!: TypedProgram) -> PushedNarrow[] {
+push_then_narrows :: fn(narrows: IsNarrow[], typed: TypedProgram!) -> PushedNarrow[] {
     pushed: PushedNarrow[] = []
     for n in narrows {
         if n.field_key == "" {
@@ -209,7 +209,7 @@ push_then_narrows :: fn(narrows: IsNarrow[], typed!: TypedProgram) -> PushedNarr
 }
 
 // Unwind in reverse (LIFO) so stacked pushes on the same slot restore cleanly.
-pop_then_narrows :: fn(pushed: PushedNarrow[], typed!: TypedProgram) -> void {
+pop_then_narrows :: fn(pushed: PushedNarrow[], typed: TypedProgram!) -> void {
     for k in 0..<pushed.len() {
         rec :: pushed[pushed.len() - 1 - k]
         if rec.field_key == "" { pop_narrow(typed, rec.sym_id, rec.prev, rec.static_ty) }
@@ -245,7 +245,7 @@ scrutinee_narrow_base :: fn(scrut: AST.Expr, typed: TypedProgram) -> Type | null
 }
 
 detect_is_narrow :: fn(
-    cond: AST.Expr, typed!: TypedProgram, diags!: Diagnostic[],
+    cond: AST.Expr, typed: TypedProgram!, diags: Diagnostic[]!,
 ) -> IsNarrow | null {
     // `!(x is T)` flips the two arms — peel the Not, then swap. Carry
     // `field_key` so a field scrutinee (`!(b.opt is null)`) still narrows the
@@ -385,7 +385,7 @@ import "vader/resolver"
 import "vader/resolver/symbol"
 
 expr_if_check_stub :: fn(
-    e: AST.Expr, expected: Type | null, typed!: TypedProgram, diags!: Diagnostic[],
+    e: AST.Expr, expected: Type | null, typed: TypedProgram!, diags: Diagnostic[]!,
 ) -> Type {
     // @partial: test stub — only the literal / ident / if expr kinds the if
     // tests build are typed; every other Expr is irrelevant → unresolved.

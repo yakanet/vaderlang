@@ -28,7 +28,7 @@ import "std/collections"
 /// Walk every fn body for `call.import` references, build a remap
 /// table, drop unused import entries, and rewrite the surviving
 /// `call.import` ops to use the compacted indices.
-export prune_unused_imports :: fn(ctx!: EmitterCtx) -> void {
+export prune_unused_imports :: fn(ctx: EmitterCtx!) -> void {
     used :: MutableMap<i32, bool> {}
     for fn_ in ctx.functions {
         for op in fn_.body {
@@ -70,7 +70,7 @@ export prune_unused_imports :: fn(ctx!: EmitterCtx) -> void {
 /// drop the fns the walk didn't visit. Surviving fns are renumbered
 /// dense from 0 ; every fn-index reference (in bodies + exports +
 /// fn_index_by_symbol_id) is rewritten.
-export prune_unused_functions :: fn(ctx!: EmitterCtx, vtable_roots: i32[], keep_mangles: string[]) -> void {
+export prune_unused_functions :: fn(ctx: EmitterCtx!, vtable_roots: i32[], keep_mangles: string[]) -> void {
     n :: ctx.functions.len()
     reachable :: MutableMap<i32, bool> {}
 
@@ -268,7 +268,7 @@ export prune_unused_functions :: fn(ctx!: EmitterCtx, vtable_roots: i32[], keep_
 ///
 /// Vader's BcRef doesn't carry a type-id reference (just trait_name) so
 /// its reach-walk is a no-op.
-export prune_unused_types :: fn(ctx!: EmitterCtx) -> void {
+export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
     reachable :: MutableSet<i32> {}
     reachable.add(0)   // null slot is load-bearing for the runtime
 
@@ -414,7 +414,7 @@ type_index_of :: fn(op: Op) -> i32 {
 /// Recursive reachability walk on the type table. Composite types
 /// (struct / union / array / fn) extend the visit through their
 /// inner type indices.
-visit_type :: fn(idx: i32, ctx: EmitterCtx, reachable!: MutableSet<i32>) -> void {
+visit_type :: fn(idx: i32, ctx: EmitterCtx, reachable: MutableSet<i32>!) -> void {
     if idx < 0 { return }
     if idx in reachable { return }
     if usize(idx) >= ctx.types.len() { return }

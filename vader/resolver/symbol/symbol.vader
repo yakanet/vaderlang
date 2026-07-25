@@ -64,7 +64,7 @@ export SymbolFactory :: struct {
 }
 
 export make :: fn(
-        self!: SymbolFactory,
+        self: SymbolFactory!,
         kind: SymbolKind,
         name: string,
         module: string,

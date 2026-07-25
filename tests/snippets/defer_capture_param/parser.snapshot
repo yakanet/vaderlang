@@ -156,12 +156,14 @@
         {
           "name": "counter",
           "type": {
-            "kind": "IdentExpr",
-            "name": "Counter"
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "IdentExpr",
+              "name": "Counter"
+            }
           },
           "defaultValue": null,
-          "variadic": false,
-          "mutable": true
+          "variadic": false
         },
         {
           "name": "by",

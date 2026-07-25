@@ -20,7 +20,7 @@ AST :: import "vader/parser"
 ///        scalar↔scalar (numeric / char / enum), a distinct newtype
 ///        construct / unwrap, an assignable/subtype pair, or an `Into<T>` impl.
 export infer_cast :: fn(
-    e!: AST.CastExpr, typed!: TypedProgram, diags!: Diagnostic[],
+    e: AST.CastExpr!, typed: TypedProgram!, diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     target :: type_from_expr(e.target, typed.resolved, diags)

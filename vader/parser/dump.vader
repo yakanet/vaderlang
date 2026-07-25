@@ -29,11 +29,11 @@ export dump_program :: fn(prog: Program) -> string {
 // Local indentation helper — wraps `append_repeated` so existing call sites
 // that pass `level` (rather than the absolute space count) don't have to
 // multiply themselves. The stride is 2 spaces per level.
-indent :: fn(sb!: StringBuilder, level: i32) -> void {
+indent :: fn(sb: StringBuilder!, level: i32) -> void {
     sb.append_repeated(' ', level * 2)
 }
 
-write_string :: fn(sb!: StringBuilder, s: string) -> void {
+write_string :: fn(sb: StringBuilder!, s: string) -> void {
     sb.append_char('"')
     // Walk by codepoint so multi-byte sequences emit cleanly (a byte
     // walk would surface FFFD on continuation bytes).
@@ -60,36 +60,36 @@ write_string :: fn(sb!: StringBuilder, s: string) -> void {
 // `u64` for IntLitExpr (full unsigned
 // magnitude — negative literals are carried by an outer UnaryExpr.neg) ;
 // `i64` for EnumVariant.value (signed repr — variants can be negative).
-write_bigint :: fn(sb!: StringBuilder, v: u64) -> void {
+write_bigint :: fn(sb: StringBuilder!, v: u64) -> void {
     sb.append("\"${v}n\"")
 }
 
-write_signed_bigint :: fn(sb!: StringBuilder, v: i64) -> void {
+write_signed_bigint :: fn(sb: StringBuilder!, v: i64) -> void {
     sb.append("\"${v}n\"")
 }
 
 // Match JS `JSON.stringify` : integer-valued floats serialise without `.0`
 // (`10.0` → `"10"`). Delegates to `f64.to_compact_str` from std/numbers.
-write_f64 :: fn(sb!: StringBuilder, v: f64) -> void {
+write_f64 :: fn(sb: StringBuilder!, v: f64) -> void {
     sb.append(v.to_compact_str())
 }
 
-write_null :: fn(sb!: StringBuilder) -> void { sb.append("null") }
-write_bool :: fn(sb!: StringBuilder, v: bool) -> void {
+write_null :: fn(sb: StringBuilder!) -> void { sb.append("null") }
+write_bool :: fn(sb: StringBuilder!, v: bool) -> void {
     if v { sb.append("true") } else { sb.append("false") }
 }
 
 // Begin/end helpers reduce indent bookkeeping noise at call sites.
-open_obj :: fn(sb!: StringBuilder) -> void { sb.append_char('{') }
-close_obj :: fn(sb!: StringBuilder, level: i32) -> void {
+open_obj :: fn(sb: StringBuilder!) -> void { sb.append_char('{') }
+close_obj :: fn(sb: StringBuilder!, level: i32) -> void {
     sb.append_char('\n')
     sb.indent(level)
     sb.append_char('}')
 }
 
-open_arr :: fn(sb!: StringBuilder) -> void { sb.append_char('[') }
-close_arr_empty :: fn(sb!: StringBuilder) -> void { sb.append("[]") }
-close_arr :: fn(sb!: StringBuilder, level: i32) -> void {
+open_arr :: fn(sb: StringBuilder!) -> void { sb.append_char('[') }
+close_arr_empty :: fn(sb: StringBuilder!) -> void { sb.append("[]") }
+close_arr :: fn(sb: StringBuilder!, level: i32) -> void {
     sb.append_char('\n')
     sb.indent(level)
     sb.append_char(']')
@@ -97,7 +97,7 @@ close_arr :: fn(sb!: StringBuilder, level: i32) -> void {
 
 // Emit `<comma><newline><indent>"key": ` for object entries. Pass `first =
 // true` for the very first entry (no leading comma).
-entry :: fn(sb!: StringBuilder, first: bool, level: i32, key: string) -> void {
+entry :: fn(sb: StringBuilder!, first: bool, level: i32, key: string) -> void {
     if !first { sb.append_char(',') }
     sb.append_char('\n')
     sb.indent(level)
@@ -106,7 +106,7 @@ entry :: fn(sb!: StringBuilder, first: bool, level: i32, key: string) -> void {
     sb.append("\": ")
 }
 
-kind_entry :: fn(sb!: StringBuilder, level: i32, kind: string) -> void {
+kind_entry :: fn(sb: StringBuilder!, level: i32, kind: string) -> void {
     sb.entry(true, level, "kind")
     sb.write_string(kind)
 }
@@ -115,7 +115,7 @@ kind_entry :: fn(sb!: StringBuilder, level: i32, kind: string) -> void {
 // Program / Decl
 // ============================================================================
 
-write_program :: fn(sb!: StringBuilder, prog: Program, level: i32) -> void {
+write_program :: fn(sb: StringBuilder!, prog: Program, level: i32) -> void {
     sb.open_obj()
     sb.kind_entry(level + 1, "Program")
     // The `module` field is suppressed when null so pre-migration files
@@ -132,7 +132,7 @@ write_program :: fn(sb!: StringBuilder, prog: Program, level: i32) -> void {
     sb.close_obj(level)
 }
 
-write_module_decl :: fn(sb!: StringBuilder, d: ModuleDecl, level: i32) -> void {
+write_module_decl :: fn(sb: StringBuilder!, d: ModuleDecl, level: i32) -> void {
     sb.open_obj()
     sb.kind_entry(level + 1, "ModuleDecl")
     sb.entry(false, level + 1, "name")
@@ -140,7 +140,7 @@ write_module_decl :: fn(sb!: StringBuilder, d: ModuleDecl, level: i32) -> void {
     sb.close_obj(level)
 }
 
-write_decls :: fn(sb!: StringBuilder, decls: Decl[], level: i32) -> void {
+write_decls :: fn(sb: StringBuilder!, decls: Decl[], level: i32) -> void {
     if decls.len() == 0 {
         sb.close_arr_empty()
         return
@@ -157,7 +157,7 @@ write_decls :: fn(sb!: StringBuilder, decls: Decl[], level: i32) -> void {
     sb.close_arr(level)
 }
 
-write_decl :: fn(sb!: StringBuilder, d: Decl, level: i32) -> void {
+write_decl :: fn(sb: StringBuilder!, d: Decl, level: i32) -> void {
     match d {
         is ImportDecl    -> { sb.write_import_decl(d, level) }
         is FnDecl        -> { sb.write_fn_decl(d, level) }
@@ -173,7 +173,7 @@ write_decl :: fn(sb!: StringBuilder, d: Decl, level: i32) -> void {
 
 // ---- ImportDecl -----------------------------------------------------------
 
-write_import_decl :: fn(sb!: StringBuilder, d: ImportDecl, level: i32) -> void {
+write_import_decl :: fn(sb: StringBuilder!, d: ImportDecl, level: i32) -> void {
     sb.open_obj()
     sb.kind_entry(level + 1, "ImportDecl")
     sb.entry(false, level + 1, "path")
@@ -185,7 +185,7 @@ write_import_decl :: fn(sb!: StringBuilder, d: ImportDecl, level: i32) -> void {
     sb.close_obj(level)
 }
 
-write_import_binding :: fn(sb!: StringBuilder, b: ImportBinding, level: i32) -> void {
+write_import_binding :: fn(sb: StringBuilder!, b: ImportBinding, level: i32) -> void {
     sb.open_obj()
     match b {
         is NamedNamespaceImport -> {
@@ -205,7 +205,7 @@ write_import_binding :: fn(sb!: StringBuilder, b: ImportBinding, level: i32) -> 
     sb.close_obj(level)
 }
 
-write_import_names :: fn(sb!: StringBuilder, names: ImportName[], level: i32) -> void {
+write_import_names :: fn(sb: StringBuilder!, names: ImportName[], level: i32) -> void {
     if names.len() == 0 {
         sb.close_arr_empty()
         return
@@ -234,7 +234,7 @@ write_import_names :: fn(sb!: StringBuilder, names: ImportName[], level: i32) ->
 
 // ---- FnDecl ---------------------------------------------------------------
 
-write_fn_decl :: fn(sb!: StringBuilder, d: FnDecl, level: i32) -> void {
+write_fn_decl :: fn(sb: StringBuilder!, d: FnDecl, level: i32) -> void {
     sb.open_obj()
     sb.kind_entry(level + 1, "FnDecl")
     sb.entry(false, level + 1, "name")
@@ -266,7 +266,7 @@ write_fn_decl :: fn(sb!: StringBuilder, d: FnDecl, level: i32) -> void {
     sb.close_obj(level)
 }
 
-write_fn_params :: fn(sb!: StringBuilder, params: FnParam[], level: i32) -> void {
+write_fn_params :: fn(sb: StringBuilder!, params: FnParam[], level: i32) -> void {
     if params.len() == 0 {
         sb.close_arr_empty()
         return
@@ -283,7 +283,7 @@ write_fn_params :: fn(sb!: StringBuilder, params: FnParam[], level: i32) -> void
     sb.close_arr(level)
 }
 
-write_fn_param :: fn(sb!: StringBuilder, p: FnParam, level: i32) -> void {
+write_fn_param :: fn(sb: StringBuilder!, p: FnParam, level: i32) -> void {
     sb.open_obj()
     sb.entry(true, level + 1, "name")
     sb.write_string(p.name)
@@ -303,7 +303,7 @@ write_fn_param :: fn(sb!: StringBuilder, p: FnParam, level: i32) -> void {
 
 // ---- StructDecl -----------------------------------------------------------
 
-write_struct_decl :: fn(sb!: StringBuilder, d: StructDecl, level: i32) -> void {
+write_struct_decl :: fn(sb: StringBuilder!, d: StructDecl, level: i32) -> void {
     sb.open_obj()
     sb.kind_entry(level + 1, "StructDecl")
     sb.entry(false, level + 1, "name")
@@ -319,7 +319,7 @@ write_struct_decl :: fn(sb!: StringBuilder, d: StructDecl, level: i32) -> void {
     sb.close_obj(level)
 }
 
-write_struct_fields :: fn(sb!: StringBuilder, fields: StructField[], level: i32) -> void {
+write_struct_fields :: fn(sb: StringBuilder!, fields: StructField[], level: i32) -> void {
     if fields.len() == 0 {
         sb.close_arr_empty()
         return
@@ -347,7 +347,7 @@ write_struct_fields :: fn(sb!: StringBuilder, fields: StructField[], level: i32)
 
 // ---- EnumDecl -------------------------------------------------------------
 
-write_enum_decl :: fn(sb!: StringBuilder, d: EnumDecl, level: i32) -> void {
+write_enum_decl :: fn(sb: StringBuilder!, d: EnumDecl, level: i32) -> void {
     sb.open_obj()
     sb.kind_entry(level + 1, "EnumDecl")
     sb.entry(false, level + 1, "name")
@@ -387,7 +387,7 @@ write_enum_decl :: fn(sb!: StringBuilder, d: EnumDecl, level: i32) -> void {
 
 // ---- TraitDecl / ImplDecl / TypeAliasDecl / ConstDecl --------------------
 
-write_trait_decl :: fn(sb!: StringBuilder, d: TraitDecl, level: i32) -> void {
+write_trait_decl :: fn(sb: StringBuilder!, d: TraitDecl, level: i32) -> void {
     sb.open_obj()
     sb.kind_entry(level + 1, "TraitDecl")
     sb.entry(false, level + 1, "name")
@@ -405,7 +405,7 @@ write_trait_decl :: fn(sb!: StringBuilder, d: TraitDecl, level: i32) -> void {
     sb.close_obj(level)
 }
 
-write_impl_decl :: fn(sb!: StringBuilder, d: ImplDecl, level: i32) -> void {
+write_impl_decl :: fn(sb: StringBuilder!, d: ImplDecl, level: i32) -> void {
     sb.open_obj()
     sb.kind_entry(level + 1, "ImplDecl")
     sb.entry(false, level + 1, "typeParams")
@@ -423,7 +423,7 @@ write_impl_decl :: fn(sb!: StringBuilder, d: ImplDecl, level: i32) -> void {
     sb.close_obj(level)
 }
 
-write_type_alias_decl :: fn(sb!: StringBuilder, d: TypeAliasDecl, level: i32) -> void {
+write_type_alias_decl :: fn(sb: StringBuilder!, d: TypeAliasDecl, level: i32) -> void {
     sb.open_obj()
     sb.kind_entry(level + 1, "TypeAliasDecl")
     sb.entry(false, level + 1, "name")
@@ -439,7 +439,7 @@ write_type_alias_decl :: fn(sb!: StringBuilder, d: TypeAliasDecl, level: i32) ->
     sb.close_obj(level)
 }
 
-write_const_decl :: fn(sb!: StringBuilder, d: ConstDecl, level: i32) -> void {
+write_const_decl :: fn(sb: StringBuilder!, d: ConstDecl, level: i32) -> void {
     sb.open_obj()
     sb.kind_entry(level + 1, "ConstDecl")
     sb.entry(false, level + 1, "name")
@@ -455,7 +455,7 @@ write_const_decl :: fn(sb!: StringBuilder, d: ConstDecl, level: i32) -> void {
     sb.close_obj(level)
 }
 
-write_assert_decl :: fn(sb!: StringBuilder, d: AssertDecl, level: i32) -> void {
+write_assert_decl :: fn(sb: StringBuilder!, d: AssertDecl, level: i32) -> void {
     sb.open_obj()
     sb.kind_entry(level + 1, "AssertDecl")
     sb.entry(false, level + 1, "condition")
@@ -471,7 +471,7 @@ write_assert_decl :: fn(sb!: StringBuilder, d: AssertDecl, level: i32) -> void {
     sb.close_obj(level)
 }
 
-write_fn_decls :: fn(sb!: StringBuilder, ds: FnDecl[], level: i32) -> void {
+write_fn_decls :: fn(sb: StringBuilder!, ds: FnDecl[], level: i32) -> void {
     if ds.len() == 0 {
         sb.close_arr_empty()
         return
@@ -490,14 +490,14 @@ write_fn_decls :: fn(sb!: StringBuilder, ds: FnDecl[], level: i32) -> void {
 
 // ---- Visibility / decorators / type-params -------------------------------
 
-write_visibility :: fn(sb!: StringBuilder, v: Visibility) -> void {
+write_visibility :: fn(sb: StringBuilder!, v: Visibility) -> void {
     match v {
         .Public  -> { sb.write_string("public")  }
         .Private -> { sb.write_string("private") }
     }
 }
 
-write_decorators :: fn(sb!: StringBuilder, ds: const Decorator[], level: i32) -> void {
+write_decorators :: fn(sb: StringBuilder!, ds: const Decorator[], level: i32) -> void {
     if ds.len() == 0 {
         sb.close_arr_empty()
         return
@@ -519,7 +519,7 @@ write_decorators :: fn(sb!: StringBuilder, ds: const Decorator[], level: i32) ->
     sb.close_arr(level)
 }
 
-write_type_params :: fn(sb!: StringBuilder, tps: const TypeParam[], level: i32) -> void {
+write_type_params :: fn(sb: StringBuilder!, tps: const TypeParam[], level: i32) -> void {
     if tps.len() == 0 {
         sb.close_arr_empty()
         return
@@ -547,7 +547,7 @@ write_type_params :: fn(sb!: StringBuilder, tps: const TypeParam[], level: i32) 
 // Type expressions
 // ============================================================================
 
-write_types :: fn(sb!: StringBuilder, ts: TypeExpr[], level: i32) -> void {
+write_types :: fn(sb: StringBuilder!, ts: TypeExpr[], level: i32) -> void {
     if ts.len() == 0 {
         sb.close_arr_empty()
         return
@@ -566,11 +566,11 @@ write_types :: fn(sb!: StringBuilder, ts: TypeExpr[], level: i32) -> void {
 
 // `TypeExpr` is an alias for `Expr` ; type-position dumps forward to
 // `write_expr` directly.
-write_optional_type :: fn(sb!: StringBuilder, t: TypeExpr | null, level: i32) -> void {
+write_optional_type :: fn(sb: StringBuilder!, t: TypeExpr | null, level: i32) -> void {
     sb.write_expr(t, level)
 }
 
-write_type :: fn(sb!: StringBuilder, t: TypeExpr, level: i32) -> void {
+write_type :: fn(sb: StringBuilder!, t: TypeExpr, level: i32) -> void {
     sb.write_expr(t, level)
 }
 
@@ -578,7 +578,7 @@ write_type :: fn(sb!: StringBuilder, t: TypeExpr, level: i32) -> void {
 // Statements
 // ============================================================================
 
-write_stmts :: fn(sb!: StringBuilder, ss: Stmt[], level: i32) -> void {
+write_stmts :: fn(sb: StringBuilder!, ss: Stmt[], level: i32) -> void {
     if ss.len() == 0 {
         sb.close_arr_empty()
         return
@@ -595,7 +595,7 @@ write_stmts :: fn(sb!: StringBuilder, ss: Stmt[], level: i32) -> void {
     sb.close_arr(level)
 }
 
-write_stmt :: fn(sb!: StringBuilder, s: Stmt, level: i32) -> void {
+write_stmt :: fn(sb: StringBuilder!, s: Stmt, level: i32) -> void {
     match s {
         is LetStmt -> {
             sb.open_obj()
@@ -697,7 +697,7 @@ write_stmt :: fn(sb!: StringBuilder, s: Stmt, level: i32) -> void {
     }
 }
 
-write_for_form :: fn(sb!: StringBuilder, f: ForForm, level: i32) -> void {
+write_for_form :: fn(sb: StringBuilder!, f: ForForm, level: i32) -> void {
     sb.open_obj()
     match f {
         is InfiniteFor -> { sb.kind_entry(level + 1, "infinite") }
@@ -732,11 +732,11 @@ write_for_form :: fn(sb!: StringBuilder, f: ForForm, level: i32) -> void {
 // Expressions
 // ============================================================================
 
-write_optional_expr :: fn(sb!: StringBuilder, e: Expr | null, level: i32) -> void {
+write_optional_expr :: fn(sb: StringBuilder!, e: Expr | null, level: i32) -> void {
     sb.write_expr(e, level)
 }
 
-write_exprs :: fn(sb!: StringBuilder, es: const Expr[], level: i32) -> void {
+write_exprs :: fn(sb: StringBuilder!, es: const Expr[], level: i32) -> void {
     if es.len() == 0 {
         sb.close_arr_empty()
         return
@@ -753,7 +753,7 @@ write_exprs :: fn(sb!: StringBuilder, es: const Expr[], level: i32) -> void {
     sb.close_arr(level)
 }
 
-write_expr :: fn(sb!: StringBuilder, e: Expr | null, level: i32) -> void {
+write_expr :: fn(sb: StringBuilder!, e: Expr | null, level: i32) -> void {
     match e {
         is null -> { sb.write_null() }
         is IntLitExpr -> {
@@ -1027,7 +1027,7 @@ write_expr :: fn(sb!: StringBuilder, e: Expr | null, level: i32) -> void {
     }
 }
 
-write_block_expr :: fn(sb!: StringBuilder, b: BlockExpr, level: i32) -> void {
+write_block_expr :: fn(sb: StringBuilder!, b: BlockExpr, level: i32) -> void {
     sb.open_obj()
     sb.kind_entry(level + 1, "BlockExpr")
     sb.entry(false, level + 1, "stmts")
@@ -1037,7 +1037,7 @@ write_block_expr :: fn(sb!: StringBuilder, b: BlockExpr, level: i32) -> void {
     sb.close_obj(level)
 }
 
-write_string_parts :: fn(sb!: StringBuilder, parts: StringLitPart[], level: i32) -> void {
+write_string_parts :: fn(sb: StringBuilder!, parts: StringLitPart[], level: i32) -> void {
     if parts.len() == 0 {
         sb.close_arr_empty()
         return
@@ -1067,7 +1067,7 @@ write_string_parts :: fn(sb!: StringBuilder, parts: StringLitPart[], level: i32)
     sb.close_arr(level)
 }
 
-write_call_args :: fn(sb!: StringBuilder, args: CallArg[], level: i32) -> void {
+write_call_args :: fn(sb: StringBuilder!, args: CallArg[], level: i32) -> void {
     if args.len() == 0 {
         sb.close_arr_empty()
         return
@@ -1096,7 +1096,7 @@ write_call_args :: fn(sb!: StringBuilder, args: CallArg[], level: i32) -> void {
     sb.close_arr(level)
 }
 
-write_struct_lit_items :: fn(sb!: StringBuilder, items: (StructLitField | StructLitSpread)[], level: i32) -> void {
+write_struct_lit_items :: fn(sb: StringBuilder!, items: (StructLitField | StructLitSpread)[], level: i32) -> void {
     if items.len() == 0 {
         sb.close_arr_empty()
         return
@@ -1128,7 +1128,7 @@ write_struct_lit_items :: fn(sb!: StringBuilder, items: (StructLitField | Struct
     sb.close_arr(level)
 }
 
-write_match_arms :: fn(sb!: StringBuilder, arms: MatchArm[], level: i32) -> void {
+write_match_arms :: fn(sb: StringBuilder!, arms: MatchArm[], level: i32) -> void {
     if arms.len() == 0 {
         sb.close_arr_empty()
         return
@@ -1152,7 +1152,7 @@ write_match_arms :: fn(sb!: StringBuilder, arms: MatchArm[], level: i32) -> void
     sb.close_arr(level)
 }
 
-write_let_binding :: fn(sb!: StringBuilder, b: LetBinding, level: i32) -> void {
+write_let_binding :: fn(sb: StringBuilder!, b: LetBinding, level: i32) -> void {
     match b {
         is SimpleBinding -> {
             sb.open_obj()
@@ -1183,7 +1183,7 @@ write_let_binding :: fn(sb!: StringBuilder, b: LetBinding, level: i32) -> void {
     }
 }
 
-write_let_bindings :: fn(sb!: StringBuilder, bs: LetBinding[], level: i32) -> void {
+write_let_bindings :: fn(sb: StringBuilder!, bs: LetBinding[], level: i32) -> void {
     if bs.len() == 0 {
         sb.close_arr_empty()
         return
@@ -1200,7 +1200,7 @@ write_let_bindings :: fn(sb!: StringBuilder, bs: LetBinding[], level: i32) -> vo
     sb.close_arr(level)
 }
 
-write_patterns :: fn(sb!: StringBuilder, ps: Pattern[], level: i32) -> void {
+write_patterns :: fn(sb: StringBuilder!, ps: Pattern[], level: i32) -> void {
     if ps.len() == 0 {
         sb.close_arr_empty()
         return
@@ -1217,7 +1217,7 @@ write_patterns :: fn(sb!: StringBuilder, ps: Pattern[], level: i32) -> void {
     sb.close_arr(level)
 }
 
-write_pattern :: fn(sb!: StringBuilder, p: Pattern, level: i32) -> void {
+write_pattern :: fn(sb: StringBuilder!, p: Pattern, level: i32) -> void {
     match p {
         is IsPattern -> {
             sb.open_obj()
@@ -1309,7 +1309,7 @@ write_pattern :: fn(sb!: StringBuilder, p: Pattern, level: i32) -> void {
     }
 }
 
-write_struct_pattern_fields :: fn(sb!: StringBuilder, fields: StructPatternField[], level: i32) -> void {
+write_struct_pattern_fields :: fn(sb: StringBuilder!, fields: StructPatternField[], level: i32) -> void {
     if fields.len() == 0 {
         sb.close_arr_empty()
         return

@@ -20,8 +20,8 @@ AST :: import "vader/parser"
 // — see TODO "range/literal pattern bound typing".
 check_pattern_bound_exprs :: fn(
     pat: AST.Pattern,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     if pat is AST.LiteralPattern as lp {
@@ -37,10 +37,10 @@ check_pattern_bound_exprs :: fn(
 /// `let x: i32 = match v { is Foo -> 1, is Bar -> 2 }` narrows each
 /// arm to i32.
 export infer_match :: fn(
-    e!: AST.MatchExpr,
+    e: AST.MatchExpr!,
     expected: Type | null,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
@@ -354,7 +354,7 @@ scrutinee_field_key :: fn(scrut: AST.Expr, typed: TypedProgram) -> string {
 /// no-ops at MVP — adding StructPattern field binding support
 /// requires the resolver to expose field-name → Symbol mappings,
 /// which lands with the deeper narrowing work.
-bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed!: TypedProgram, diags!: Diagnostic[]) -> void {
+bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed: TypedProgram!, diags: Diagnostic[]!) -> void {
     match p {
         is AST.TuplePattern as tp   -> {
             tu :: pick_tuple_variant(scrut, tp.elements.len())
@@ -396,8 +396,8 @@ bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed!: TypedProgram, diag
 bind_struct_pattern :: fn(
     sp: AST.StructPattern,
     scrut: Type,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
 ) -> void {
     match scrut {
         is StructType as st -> {
@@ -469,8 +469,8 @@ import "vader/resolver/symbol"
 match_expr_check_stub :: fn(
     e: AST.Expr,
     expected: Type | null,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
 ) -> Type {
     // @partial: test stub — only the literal / ident / match expr kinds the
     // match tests build are typed; every other Expr is irrelevant → unresolved.

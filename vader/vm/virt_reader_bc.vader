@@ -156,7 +156,7 @@ parse_module_name :: fn(cleaned: string) -> string {
 /// Parse `type N <decl>` into the matching `BcType`, appended in ordinal order
 /// (the index is implicit in the array position, so an unknown kind still
 /// pushes a `BcRef` placeholder to keep ordinals aligned).
-parse_type_decl_bc :: fn(cleaned: string, types!: bc.BcType[]) -> void {
+parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]!) -> void {
     cb :: cleaned.bytes()
     after_type :: cb["type ".bytes().len()..<cb.len()].bytes_to_string().trim()
     first_space :: after_type.index_of(' ', 0)
@@ -257,7 +257,7 @@ parse_union_type_bc :: fn(rest: string) -> bc.BcUnion {
 
 /// Parse `import N [extern ]EXTERN_NAME MANGLED (sig) -> ret`. The `extern`
 /// keyword (when present) shifts the name/mangled tokens by one.
-parse_import_decl_bc :: fn(cleaned: string, imports!: bc.BcImport[], types: bc.BcType[]) -> void {
+parse_import_decl_bc :: fn(cleaned: string, imports: bc.BcImport[]!, types: bc.BcType[]) -> void {
     cb :: cleaned.bytes()
     after :: cb["import ".bytes().len()..<cb.len()].bytes_to_string()
     open :: after.index_of('(', 0)
@@ -282,7 +282,7 @@ parse_import_decl_bc :: fn(cleaned: string, imports!: bc.BcImport[], types: bc.B
     })
 }
 
-parse_impl_decl_bc :: fn(cleaned: string, impl_table!: bc.ImplEntry[]) -> void {
+parse_impl_decl_bc :: fn(cleaned: string, impl_table: bc.ImplEntry[]!) -> void {
     cb :: cleaned.bytes()
     after :: cb["impl ".bytes().len()..<cb.len()].bytes_to_string().trim()
     space :: after.index_of(' ', 0)
@@ -295,7 +295,7 @@ parse_impl_decl_bc :: fn(cleaned: string, impl_table!: bc.ImplEntry[]) -> void {
     impl_table.push(bc.ImplEntry { .struct_type_index = i32(parsed), .trait_name = trait_name })
 }
 
-parse_vtable_decl_bc :: fn(cleaned: string, vtables!: bc.VtableRow[]) -> void {
+parse_vtable_decl_bc :: fn(cleaned: string, vtables: bc.VtableRow[]!) -> void {
     cb :: cleaned.bytes()
     after :: cb["vtable ".bytes().len()..<cb.len()].bytes_to_string().trim()
     last_space :: last_index_of_space(after)
@@ -318,7 +318,7 @@ parse_vtable_decl_bc :: fn(cleaned: string, vtables!: bc.VtableRow[]) -> void {
     })
 }
 
-register_vtable_row :: fn(vtables!: bc.VtableRow[], key: string, entry: bc.VtableEntry) -> void {
+register_vtable_row :: fn(vtables: bc.VtableRow[]!, key: string, entry: bc.VtableEntry) -> void {
     for i in 0..<vtables.len() {
         if vtables[i].key == key { vtables[i].entries.push(entry) return }
     }
@@ -328,7 +328,7 @@ register_vtable_row :: fn(vtables!: bc.VtableRow[], key: string, entry: bc.Vtabl
 
 /// Parse `export NAME N`. Returns the fn index when `NAME == "main"` (the
 /// entry directive), otherwise records a `BcExport` row and returns `-1`.
-parse_export_decl_bc :: fn(cleaned: string, exports!: bc.BcExport[]) -> i32 {
+parse_export_decl_bc :: fn(cleaned: string, exports: bc.BcExport[]!) -> i32 {
     cb :: cleaned.bytes()
     after :: cb["export ".bytes().len()..<cb.len()].bytes_to_string().trim()
     parts :: after.split(" ")
@@ -345,7 +345,7 @@ parse_export_decl_bc :: fn(cleaned: string, exports!: bc.BcExport[]) -> i32 {
 /// `data N str "v0" "v1" …` (each value `quote_string`-escaped). Mirrors
 /// `virt_reader::parse_data_decl` but keeps the unmaterialised form `emit_c`
 /// lowers to `.rodata` (the VM reader materialises to values in `reduce_data_pool`).
-parse_data_decl_bc :: fn(cleaned: string, data_pool!: bc.BcDataEntry[], strings: string[]) -> void {
+parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[]!, strings: string[]) -> void {
     cb :: cleaned.bytes()
     after :: cb["data ".bytes().len()..<cb.len()].bytes_to_string()
     sp1 :: after.index_of(' ', 0)
@@ -460,7 +460,7 @@ parse_structs_decl :: fn(payload: string, strings: string[]) -> bc.BcAggregateDa
 
 // Recursive descent over the token stream (`pos` is a 1-element mutable cursor).
 // `strings` resolves a `strref <i>` leaf to the `string N` pool value.
-parse_data_value :: fn(tokens: string[], pos!: i32[], strings: string[]) -> bc.BcDataValue {
+parse_data_value :: fn(tokens: string[], pos: i32[]!, strings: string[]) -> bc.BcDataValue {
     tag :: take_token(tokens, pos)
     if tag == "str" { return bc.BcValStr { .value = take_token(tokens, pos) } }
     if tag == "strref" {
@@ -491,7 +491,7 @@ parse_data_value :: fn(tokens: string[], pos!: i32[], strings: string[]) -> bc.B
 }
 
 // Read the token at the cursor and advance it ; "" past the end.
-take_token :: fn(tokens: string[], pos!: i32[]) -> string {
+take_token :: fn(tokens: string[], pos: i32[]!) -> string {
     if usize(pos[0]) >= tokens.len() { return "" }
     t :: tokens[usize(pos[0])]
     pos[0] = pos[0] + 1

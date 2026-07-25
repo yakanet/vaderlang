@@ -30,7 +30,7 @@ is_free_numeric :: fn(t: Type) -> bool {
 /// Walk `param_type` against `arg_type` and record any TypeParam
 /// binding into `out`. First binding wins.
 export unify_type_param :: fn(
-    param_type: Type, arg_type: Type, out!: MutableMap<i32, Type>,
+    param_type: Type, arg_type: Type, out: MutableMap<i32, Type>!,
 ) -> void {
     match param_type {
         is TypeParamType as tp -> {
@@ -224,12 +224,12 @@ any_contains :: fn(ts: const Type[]) -> bool {
     return false
 }
 
-unify_args :: fn(p_args: const Type[], a_args: const Type[], out!: MutableMap<i32, Type>) -> void {
+unify_args :: fn(p_args: const Type[], a_args: const Type[], out: MutableMap<i32, Type>!) -> void {
     n :: min(p_args.len(), a_args.len())
     for i in 0..<n { unify_type_param(p_args[i], a_args[i], out) }
 }
 
-unify_unions :: fn(pu: UnionType, au: UnionType, out!: MutableMap<i32, Type>) -> void {
+unify_unions :: fn(pu: UnionType, au: UnionType, out: MutableMap<i32, Type>!) -> void {
     // Pair off exact-equal variants first (`null`, concrete primitives),
     // then position-match the leftovers. The "concrete first" pass
     // prevents `T | null` from spuriously binding `T = null`.

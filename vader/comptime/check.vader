@@ -27,7 +27,7 @@ AST :: import "vader/parser"
 ///                sandbox, type-mismatch, vm-required).
 /// @return        the evaluated project, ready to feed the dumper.
 export evaluate_project :: fn(
-    loaded: LoadedProject, typed: TypedProject, diags!: Diagnostic[],
+    loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[]!,
 ) -> EvaluatedProject {
     project :: new_evaluated_project(typed)
     for [module_id, module_typed] in typed.modules {
@@ -97,8 +97,8 @@ lookup_module_decls :: fn(loaded: LoadedProject, module_id: string) -> AST.Decl[
 }
 
 evaluate_module_decls :: fn(
-    decls: AST.Decl[], typed: TypedProgram, program!: EvaluatedProgram,
-    project!: EvaluatedProject, module_id: string, diags!: Diagnostic[],
+    decls: AST.Decl[], typed: TypedProgram, program: EvaluatedProgram!,
+    project: EvaluatedProject!, module_id: string, diags: Diagnostic[]!,
 ) -> void {
     order :: sort_comptime_decls(decls, typed)
     for diagnostic in order.cycle_diags { diags.push(diagnostic) }
@@ -165,7 +165,7 @@ evaluate_module_decls :: fn(
 // literal.
 bake_file_exprs :: fn(
     decls: AST.Decl[], typed: TypedProgram,
-    project!: EvaluatedProject, program: EvaluatedProgram, diags: Diagnostic[],
+    project: EvaluatedProject!, program: EvaluatedProgram, diags: Diagnostic[],
 ) -> void {
     // Two-step : collect every `@file(arg)` IntrinsicCallExpr first,
     // then evaluate + bake. Avoids closures over the call-time
@@ -211,8 +211,8 @@ bake_file_exprs :: fn(
 }
 
 bake_one_file_expr :: fn(
-    ic: AST.IntrinsicCallExpr, context!: ComptimeContext, typed: TypedProgram,
-    project!: EvaluatedProject, diags: Diagnostic[],
+    ic: AST.IntrinsicCallExpr, context: ComptimeContext!, typed: TypedProgram,
+    project: EvaluatedProject!, diags: Diagnostic[],
 ) -> void {
     arg_result :: evaluate_expr(ic.args[0], context)
     match arg_result.value {
@@ -254,7 +254,7 @@ import "std/string"
 // named "file" reachable from a decl's bodies (FnDecl body, ImplDecl
 // members' bodies, ConstDecl value, AssertDecl condition). Avoids
 // closures for portability — `out` accumulates the matches.
-collect_file_intrinsics :: fn(decl: AST.Decl, out!: AST.IntrinsicCallExpr[]) -> void {
+collect_file_intrinsics :: fn(decl: AST.Decl, out: AST.IntrinsicCallExpr[]!) -> void {
     match decl {
         is AST.FnDecl as fd -> {
             match fd.body {
@@ -276,14 +276,14 @@ collect_file_intrinsics :: fn(decl: AST.Decl, out!: AST.IntrinsicCallExpr[]) -> 
     }
 }
 
-collect_in_block :: fn(b: AST.BlockExpr, out!: AST.IntrinsicCallExpr[]) -> void {
+collect_in_block :: fn(b: AST.BlockExpr, out: AST.IntrinsicCallExpr[]!) -> void {
     for s in b.stmts { collect_in_stmt(s, out) }
     if b.trailing !is null {
         collect_in_expr(b.trailing, out)
     }
 }
 
-collect_in_stmt :: fn(s: AST.Stmt, out!: AST.IntrinsicCallExpr[]) -> void {
+collect_in_stmt :: fn(s: AST.Stmt, out: AST.IntrinsicCallExpr[]!) -> void {
     match s {
         is AST.LetStmt as let_s -> { collect_in_expr(let_s.value, out) }
         is AST.AssignStmt as as_s -> {
@@ -314,7 +314,7 @@ collect_in_stmt :: fn(s: AST.Stmt, out!: AST.IntrinsicCallExpr[]) -> void {
     }
 }
 
-collect_in_expr :: fn(e: AST.Expr, out!: AST.IntrinsicCallExpr[]) -> void {
+collect_in_expr :: fn(e: AST.Expr, out: AST.IntrinsicCallExpr[]!) -> void {
     if e is AST.IntrinsicCallExpr as ic {
         if ic.name == "file" && ic.args.len() == 1 { out.push(ic) }
     }

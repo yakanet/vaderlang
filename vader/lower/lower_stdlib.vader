@@ -20,7 +20,7 @@ import "vader/types"
 /// module is skipped : it is lowered eagerly by `lower_module`, which already
 /// emits all its impl members (surfacing them again would double-emit).
 surface_referenced_intrinsic_externs :: fn(
-    loaded: LoadedProject, typed: TypedProject, project_ctx!: LowerProjectCtx, project!: LoweredProject,
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx!, project: LoweredProject!,
 ) -> void {
     for [module_id, module_typed] in typed.modules {
         if module_id == loaded.entry { continue }
@@ -66,7 +66,7 @@ surface_referenced_intrinsic_externs :: fn(
 /// externs would lose their behaviour, and lowering their bodies up front
 /// is the thing the stdlib-skip is meant to avoid.
 surface_stdlib_impl_externs :: fn(
-    impl_decl: ImplDecl, typed: TypedProgram, project_ctx!: LowerProjectCtx, module_decls: Decl[],
+    impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!, module_decls: Decl[],
 ) -> LoweredDecl[] {
     out: LoweredDecl[] = []
     if impl_decl.type_params.len() > 0 { return out }
@@ -162,7 +162,7 @@ vtable_receiver_eligible :: fn(self_type: Type, project_ctx: LowerProjectCtx) ->
 ///                     `materialized_impl_keys` dedupe set.
 /// @return             one materialised `LoweredFnDecl` per fresh element mangle.
 surface_array_blanket_members :: fn(
-    impl_decl: ImplDecl, typed: TypedProgram, project_ctx!: LowerProjectCtx,
+    impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!,
 ) -> LoweredDecl[] {
     out: LoweredDecl[] = []
     if impl_decl.type_params.len() == 0 { return out }

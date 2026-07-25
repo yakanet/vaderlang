@@ -41,7 +41,7 @@ DeadDecl :: struct {
 
 // ---- name collection (mirror of reference_index, emitting names) ----------
 
-collect_expr_names :: fn(e: AST.Expr, out!: string[]) -> void {
+collect_expr_names :: fn(e: AST.Expr, out: string[]!) -> void {
     match e {
         is AST.IdentExpr         -> { out.push(e.name) }
         is AST.NullCoalesceExpr  -> {
@@ -164,7 +164,7 @@ collect_expr_names :: fn(e: AST.Expr, out!: string[]) -> void {
     }
 }
 
-collect_stmt_names :: fn(s: AST.Stmt, out!: string[]) -> void {
+collect_stmt_names :: fn(s: AST.Stmt, out: string[]!) -> void {
     match s {
         is AST.LetStmt      -> {
             collect_opt_expr_names(s.ty, out)
@@ -196,14 +196,14 @@ collect_stmt_names :: fn(s: AST.Stmt, out!: string[]) -> void {
     }
 }
 
-collect_block_names :: fn(b: AST.BlockExpr, out!: string[]) -> void {
+collect_block_names :: fn(b: AST.BlockExpr, out: string[]!) -> void {
     for s in b.stmts {
         collect_stmt_names(s, out)
     }
     collect_opt_expr_names(b.trailing, out)
 }
 
-collect_pattern_names :: fn(p: AST.Pattern, out!: string[]) -> void {
+collect_pattern_names :: fn(p: AST.Pattern, out: string[]!) -> void {
     match p {
         is AST.IsPattern          -> {
             collect_expr_names(p.ty, out)
@@ -239,7 +239,7 @@ collect_pattern_names :: fn(p: AST.Pattern, out!: string[]) -> void {
     }
 }
 
-collect_decorator_names :: fn(ds: const AST.Decorator[], out!: string[]) -> void {
+collect_decorator_names :: fn(ds: const AST.Decorator[], out: string[]!) -> void {
     for d in ds {
         for a in d.args {
             collect_expr_names(a, out)
@@ -247,25 +247,25 @@ collect_decorator_names :: fn(ds: const AST.Decorator[], out!: string[]) -> void
     }
 }
 
-collect_type_param_names :: fn(ps: const AST.TypeParam[], out!: string[]) -> void {
+collect_type_param_names :: fn(ps: const AST.TypeParam[], out: string[]!) -> void {
     for p in ps {
         collect_opt_expr_names(p.bound, out)
     }
 }
 
-collect_opt_expr_names :: fn(e: AST.Expr | null, out!: string[]) -> void {
+collect_opt_expr_names :: fn(e: AST.Expr | null, out: string[]!) -> void {
     if e != null {
         collect_expr_names(e, out)
     }
 }
 
-collect_opt_block_names :: fn(b: AST.BlockExpr | null, out!: string[]) -> void {
+collect_opt_block_names :: fn(b: AST.BlockExpr | null, out: string[]!) -> void {
     if b != null {
         collect_block_names(b, out)
     }
 }
 
-collect_opt_pattern_names :: fn(p: AST.Pattern | null, out!: string[]) -> void {
+collect_opt_pattern_names :: fn(p: AST.Pattern | null, out: string[]!) -> void {
     if p != null {
         collect_pattern_names(p, out)
     }
@@ -273,7 +273,7 @@ collect_opt_pattern_names :: fn(p: AST.Pattern | null, out!: string[]) -> void {
 
 // ---- per-decl reference sets ----------------------------------------------
 
-fn_refs :: fn(d: AST.FnDecl, out!: string[]) -> void {
+fn_refs :: fn(d: AST.FnDecl, out: string[]!) -> void {
     collect_decorator_names(d.decorators, out)
     collect_type_param_names(d.type_params, out)
     for p in d.params {
@@ -337,7 +337,7 @@ NamedDeclRefs :: struct {
 // in-module name and return null. The single source of truth for "what does a
 // decl reference", shared by `check_dead_code` (W0007) and `dead_exports`
 // (W0012) so the two can never drift a collection edge apart.
-collect_decl_refs :: fn(d: AST.Decl, seed_refs!: string[]) -> NamedDeclRefs | null {
+collect_decl_refs :: fn(d: AST.Decl, seed_refs: string[]!) -> NamedDeclRefs | null {
     return match d {
         is AST.FnDecl        -> {
             r: string[] = []
@@ -418,7 +418,7 @@ named_head :: fn(
     visibility: AST.Visibility,
     decorators: const AST.Decorator[],
     is_fn: bool,
-    refs!: string[],
+    refs: string[]!,
 ) = NamedDeclRefs {
     .name = name,
     .name_span = name_span,
@@ -465,7 +465,7 @@ bfs_reachable :: fn(
 ///
 /// @param decls  the module's merged top-level declarations (all files).
 /// @param diags  sink for the W0007 warnings.
-export check_dead_code :: fn(decls: AST.Decl[], diags!: Diagnostic[]) -> void {
+export check_dead_code :: fn(decls: AST.Decl[], diags: Diagnostic[]!) -> void {
     refs_by_name :: MutableMap<string, string[]> {}
     root_names: string[] = []
     seed_refs: string[] = []
@@ -491,7 +491,7 @@ export check_dead_code :: fn(decls: AST.Decl[], diags!: Diagnostic[]) -> void {
 }
 
 // Append `refs` to the edge set for `name` (overloads share a name → merge).
-register_refs :: fn(m!: MutableMap<string, string[]>, name: string, refs!: string[]) -> void {
+register_refs :: fn(m: MutableMap<string, string[]>!, name: string, refs: string[]!) -> void {
     cur :: m[name]
     if cur == null {
         m[name] = refs

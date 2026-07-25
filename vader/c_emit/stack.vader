@@ -180,32 +180,32 @@ new_fn_state :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> Fn
 /// old hard-coded `"    "` prefixes so nested control flow lands at the
 /// right column ; level 1 (the function-body top) reproduces that prefix
 /// byte-for-byte.
-line :: fn(s!: FnState, code: string) -> void {
+line :: fn(s: FnState!, code: string) -> void {
     s.out.append_repeated(' ', s.indent * 4)
     s.out.append(code)
     s.out.append("\n")
 }
 
 /// Open one nesting level — call right after emitting the opening brace.
-indent_push :: fn(s!: FnState) -> void { s.indent = s.indent + 1 }
+indent_push :: fn(s: FnState!) -> void { s.indent = s.indent + 1 }
 
 /// Close one nesting level — call right before emitting the closing brace.
-indent_pop :: fn(s!: FnState) -> void { s.indent = s.indent - 1 }
+indent_pop :: fn(s: FnState!) -> void { s.indent = s.indent - 1 }
 
 /// Push a pure literal — inlined at the consumer, no temp line emitted.
-push_lit :: fn(s!: FnState, val: ValType, text: string) -> void {
+push_lit :: fn(s: FnState!, val: ValType, text: string) -> void {
     s.stack.push(StackLit { .text = text, .val = val })
 }
 
 /// Push a side-effect-free C expression, inlined verbatim at the
 /// consumer. `text` must already carry whatever parentheses precedence
 /// safety requires.
-push_expr :: fn(s!: FnState, val: ValType, text: string) -> void {
+push_expr :: fn(s: FnState!, val: ValType, text: string) -> void {
     s.stack.push(StackExpr { .text = text, .val = val })
 }
 
 /// Push a snapshot of local slot `slot`, spelled `lN` when popped.
-push_local_ref :: fn(s!: FnState, slot: i32, val: ValType) -> void {
+push_local_ref :: fn(s: FnState!, slot: i32, val: ValType) -> void {
     s.stack.push(StackLocalRef { .slot = slot, .val = val })
 }
 
@@ -214,7 +214,7 @@ push_local_ref :: fn(s!: FnState, slot: i32, val: ValType) -> void {
 /// a `drop` / `call` past an exhaustive-returning match), and the walker
 /// tracks no reachability (T2). Return a defensive dummy so the dead op
 /// emits harmless (never-executed) C rather than trapping.
-pop :: fn(s!: FnState) -> StackVal {
+pop :: fn(s: FnState!) -> StackVal {
     n :: s.stack.len()
     if n == 0 { return StackLit { .text = "0", .val = .I32 } }
     top :: s.stack[n - 1]
@@ -225,7 +225,7 @@ pop :: fn(s!: FnState) -> StackVal {
 /// Discard the top of the operand stack — the `drop` op. An empty stack
 /// means a dead `drop` in unreachable code (see `pop`) ; no-op rather than
 /// trap.
-drop_top :: fn(s!: FnState) -> void {
+drop_top :: fn(s: FnState!) -> void {
     n :: s.stack.len()
     if n == 0 { return }
     s.stack = s.stack[0..<n - 1]
@@ -245,14 +245,14 @@ slot_val_type :: fn(function: BcFunction, slot: i32) -> ValType {
 
 /// Allocate a fresh `tN` temp of type `val` : record its ValType for the
 /// prelude declaration and return the name. Monotone (index = count).
-fresh_tmp :: fn(s!: FnState, val: ValType) -> string {
+fresh_tmp :: fn(s: FnState!, val: ValType) -> string {
     idx :: s.tmp_types.len()
     s.tmp_types.push(val)
     return "t${idx}"
 }
 
 /// Push an already-named temp onto the operand stack.
-push_tmp :: fn(s!: FnState, name: string, val: ValType) -> void {
+push_tmp :: fn(s: FnState!, name: string, val: ValType) -> void {
     s.stack.push(StackTmp { .name = name, .val = val })
 }
 
@@ -260,7 +260,7 @@ push_tmp :: fn(s!: FnState, name: string, val: ValType) -> void {
 /// `tN = <expr>;` and push the temp. The eager-result idiom shared by
 /// every op that forces its value into a slot (`push_eager`'s div/rem,
 /// call results, struct/array results).
-push_into_tmp :: fn(s!: FnState, expr: string, val: ValType) -> void {
+push_into_tmp :: fn(s: FnState!, expr: string, val: ValType) -> void {
     name :: fresh_tmp(s, val)
     line(s, "${name} = ${expr};")
     push_tmp(s, name, val)
@@ -270,7 +270,7 @@ push_into_tmp :: fn(s!: FnState, expr: string, val: ValType) -> void {
 /// local storage that isn't an operand-stack temp (struct stack storage,
 /// the obj pointer, call-arg buffers). Never recycled, so names never
 /// collide with a reused `tN`.
-aux :: fn(s!: FnState, suffix: string) -> string {
+aux :: fn(s: FnState!, suffix: string) -> string {
     name :: "_a${s.aux_counter}_${suffix}"
     s.aux_counter = s.aux_counter + 1
     return name
@@ -278,7 +278,7 @@ aux :: fn(s!: FnState, suffix: string) -> string {
 
 /// Force `e` into a fresh `tN` temp : allocate the index, emit
 /// `tN = <e>;`, and return the `StackTmp`.
-materialise_entry :: fn(s!: FnState, e: StackVal) -> StackVal {
+materialise_entry :: fn(s: FnState!, e: StackVal) -> StackVal {
     val :: val_of(e)
     name :: fresh_tmp(s, val)
     line(s, "${name} = ${name_of(e)};")
@@ -300,7 +300,7 @@ entry_needs_materialise :: fn(e: StackVal, slot: i32) -> bool = match e {
 /// invalidate, in bottom-to-top order (so the emitted `tN = …;` lines
 /// keep stack order). Run before a `local.set` / `local.tee` mutates the
 /// slot.
-materialize_stack_for_slot :: fn(s!: FnState, slot: i32) -> void {
+materialize_stack_for_slot :: fn(s: FnState!, slot: i32) -> void {
     for i in 0..<s.stack.len() {
         e :: s.stack[i]
         if entry_needs_materialise(e, slot) {

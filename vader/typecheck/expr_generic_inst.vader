@@ -15,7 +15,7 @@ AST :: import "vader/parser"
 
 /// Type-check `callee[T1, T2, …]`. Returns the callee's type for now.
 export infer_generic_inst :: fn(
-    e!: AST.GenericInstExpr, typed!: TypedProgram, diags!: Diagnostic[],
+    e: AST.GenericInstExpr!, typed: TypedProgram!, diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     callee :: check_expr_fn(e.callee, null, typed, diags)

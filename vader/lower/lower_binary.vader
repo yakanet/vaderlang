@@ -22,7 +22,7 @@ strip_narrowing_cast :: fn(e: LoweredExpr) -> LoweredExpr {
     return e
 }
 
-lower_binary :: fn(ctx!: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr {
+lower_binary :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredExpr {
     // `expr is T` lowers to a runtime tag check ; the RHS is a type
     // expression, not a value. The `bind_as` parsing is handled inside
     // `if x is T as alias` where the if's then-branch consumes the
@@ -198,7 +198,7 @@ is_primitive_string_concat :: fn(ctx: FnLowerCtx, b: BinaryExpr) -> bool {
 // Flatten a primitive string `+` tree into its leaf operands, lowered in order.
 // `((a + b) + c)` collects `[a, b, c]`. A nested node is recursed into only when
 // it is itself a primitive string `+` ; everything else is an opaque leaf.
-collect_concat_operands :: fn(ctx!: FnLowerCtx, e: Expr, out!: LoweredExpr[]) -> void {
+collect_concat_operands :: fn(ctx: FnLowerCtx!, e: Expr, out: LoweredExpr[]!) -> void {
     if e is BinaryExpr as b {
         if is_primitive_string_concat(ctx, b) {
             collect_concat_operands(ctx, b.left, out)
@@ -209,7 +209,7 @@ collect_concat_operands :: fn(ctx!: FnLowerCtx, e: Expr, out!: LoweredExpr[]) ->
     out.push(lower_expr(ctx, e))
 }
 
-try_lower_op_overload :: fn(ctx!: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr | null {
+try_lower_op_overload :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredExpr | null {
     info :: op_trait_method(binary.op) ?? return null
     if info is OpTraitInfo as oti {
         left_ty :: ctx.types.expr_type(binary.left)
@@ -291,7 +291,7 @@ try_lower_op_overload :: fn(ctx!: FnLowerCtx, binary: BinaryExpr, type: Type) ->
 // erased to Any). Shape mirrors the field-expr vcall path : Eq /
 // Comparable share the dispatch + outer-op patterns from `op_trait_method`.
 lower_op_overload_via_vcall :: fn(
-    ctx!: FnLowerCtx, binary: BinaryExpr, type: Type, oti: OpTraitInfo,
+    ctx: FnLowerCtx!, binary: BinaryExpr, type: Type, oti: OpTraitInfo,
 ) -> LoweredExpr | null {
     lowered_left  :: lower_expr(ctx, binary.left)
     lowered_right :: lower_expr(ctx, binary.right)
@@ -371,7 +371,7 @@ op_trait_method :: fn(op: BinaryOp) -> OpTraitInfo | null {
     return null
 }
 
-try_lower_null_eq :: fn(ctx!: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr | null {
+try_lower_null_eq :: fn(ctx: FnLowerCtx!, binary: BinaryExpr) -> LoweredExpr | null {
     union_operand: Expr | null = null
     if is_null_lit(binary.left) && is_union_with_null(ctx.types.expr_type(binary.right)) {
         union_operand = binary.right

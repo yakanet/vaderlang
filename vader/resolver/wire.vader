@@ -39,7 +39,7 @@ export new_import_target_table :: fn() -> ImportTargetTable {
 
 /// Wire every ImportBinding across every loaded module. Emits
 /// R2003 / R2008 on the binding's own span into `project.diags`.
-export wire_imports :: fn(project!: LoadedProject) -> ImportTargetTable {
+export wire_imports :: fn(project: LoadedProject!) -> ImportTargetTable {
     out :: new_import_target_table()
     // One name → id map for the whole project ; reused across every
     // module's import-path resolution. Hoisted out of the inner loop
@@ -59,7 +59,7 @@ import "vader/parser"
 
 wire_module :: fn(
     loaded: LoadedModule, path_index: MutableMap<string, string>,
-    project!: LoadedProject, out!: ImportTargetTable,
+    project: LoadedProject!, out: ImportTargetTable!,
 ) -> void {
     for [sym_id, info] in loaded.collected.imports {
         target_id :: path_index[info.path]

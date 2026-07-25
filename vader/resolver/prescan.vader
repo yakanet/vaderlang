@@ -38,7 +38,7 @@ AST :: import "vader/parser"
 export run_orphan_rule_check_for_module :: fn(
     loaded: LoadedModule, module_id: string,
     idents: MutableMap<u64, Symbol>, wire_targets: ImportTargetTable,
-    diags!: Diagnostic[],
+    diags: Diagnostic[]!,
 ) -> void {
     for file in loaded.module.files {
         for decl in file.program.decls {
@@ -54,7 +54,7 @@ check_orphan_rule :: fn(
     decl: AST.ImplDecl, module_id: string,
     module_symbols: MutableMap<string, Symbol>,
     idents: MutableMap<u64, Symbol>, wire_targets: ImportTargetTable,
-    diags!: Diagnostic[],
+    diags: Diagnostic[]!,
 ) -> void {
     trait_sym :: lookup_trait_sym(decl, module_symbols, wire_targets) ?? return
     if trait_sym.kind != SymbolKind.Trait { return }

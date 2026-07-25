@@ -40,7 +40,7 @@ export read_le :: fn(bytes: u8[], offset: usize, width: usize) -> u64 {
 /// @param offset  byte offset of the least-significant byte.
 /// @param width   number of bytes to write (1–8).
 /// @param value   the value whose low `width` bytes are stored.
-export write_le :: fn(bytes!: u8[], offset: usize, width: usize, value: u64) -> void {
+export write_le :: fn(bytes: u8[]!, offset: usize, width: usize, value: u64) -> void {
     // Peel the low byte and shift down by the constant 8 (free literal), so
     // the loop index needs no cast.
     v := value

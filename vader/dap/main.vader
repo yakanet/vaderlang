@@ -112,7 +112,7 @@ export run_dap_server :: fn(compile: fn(string) -> DapProgram) -> i32 {
 // client that sends a backslash path (`C:\dir\f.vader`) still matches the VM's
 // lookup key (`C:/dir/f.vader`). Without this the breakpoint never binds on
 // Windows and the program runs straight past it.
-store_breakpoints :: fn(bps!: MutableMap<string, MutableSet<i32>>, args: JsonValue) -> void {
+store_breakpoints :: fn(bps: MutableMap<string, MutableSet<i32>>!, args: JsonValue) -> void {
     path :: to_posix(get_string(get_field(args, "source"), "path"))
     lines :: MutableSet<i32> {}
     requested :: get_field(args, "breakpoints")
@@ -128,7 +128,7 @@ store_breakpoints :: fn(bps!: MutableMap<string, MutableSet<i32>>, args: JsonVal
 // its breakpoint stops to a nested DAP conversation, then emit `exited` +
 // `terminated` when it finishes. A `null` / failed program reports the compile
 // error and terminates without running.
-run_program :: fn(prog: DapProgram | null, seq_cell!: i32[], bps!: MutableMap<string, MutableSet<i32>>) -> void {
+run_program :: fn(prog: DapProgram | null, seq_cell: i32[]!, bps: MutableMap<string, MutableSet<i32>>!) -> void {
     if prog == null {
         emit_event(seq_cell, "terminated", empty_body())
         return
@@ -182,7 +182,7 @@ run_program :: fn(prog: DapProgram | null, seq_cell!: i32[], bps!: MutableMap<st
 // the `StepMode` the resume command maps to (`continue` → Continue, `next` →
 // StepOver, `stepIn` → StepInto, `stepOut` → StepOut ; `disconnect` / EOF →
 // Continue so the program runs to its end).
-run_pause_loop :: fn(ctx: PauseCtx, seq_cell!: i32[], bps!: MutableMap<string, MutableSet<i32>>, stopped_text: string) -> StepMode {
+run_pause_loop :: fn(ctx: PauseCtx, seq_cell: i32[]!, bps: MutableMap<string, MutableSet<i32>>!, stopped_text: string) -> StepMode {
     emit_stopped(seq_cell, ctx.reason, stopped_text)
     // Variables-view expansion registry : `variablesReference` → the vars to
     // return. Scope refs are `frame_id + 1` (see `scopes_body`) ; child refs are
@@ -247,7 +247,7 @@ run_pause_loop :: fn(ctx: PauseCtx, seq_cell!: i32[], bps!: MutableMap<string, M
 // Emit a `stopped` event : the client then requests the stack + scopes. A
 // non-empty `text` (the trap message on an exception stop) surfaces in VSCode's
 // "Paused on exception" banner.
-emit_stopped :: fn(seq_cell!: i32[], reason: string, text: string) -> void {
+emit_stopped :: fn(seq_cell: i32[]!, reason: string, text: string) -> void {
     body :: MutableMap<string, JsonValue> {}
     body["reason"]             = JsonString { .value = reason }
     body["threadId"]           = JsonNumber { .value = f64(1) }
@@ -262,19 +262,19 @@ emit_stopped :: fn(seq_cell!: i32[], reason: string, text: string) -> void {
 // ---- frame helpers ----------------------------------------------------------
 
 // Bump the shared seq and write a response frame.
-respond :: fn(seq_cell!: i32[], request_seq: i32, command: string, success: bool, body: JsonValue) -> void {
+respond :: fn(seq_cell: i32[]!, request_seq: i32, command: string, success: bool, body: JsonValue) -> void {
     seq_cell[0] = seq_cell[0] + 1
     write_frame(encode_response(seq_cell[0], request_seq, command, success, body))
 }
 
 // Bump the shared seq and write an event frame.
-emit_event :: fn(seq_cell!: i32[], event: string, body: JsonValue) -> void {
+emit_event :: fn(seq_cell: i32[]!, event: string, body: JsonValue) -> void {
     seq_cell[0] = seq_cell[0] + 1
     write_frame(encode_event(seq_cell[0], event, body))
 }
 
 // Emit an `output` event (`category` = "stdout" / "stderr", `text` = payload).
-emit_output :: fn(seq_cell!: i32[], category: string, text: string) -> void {
+emit_output :: fn(seq_cell: i32[]!, category: string, text: string) -> void {
     body :: MutableMap<string, JsonValue> {}
     body["category"] = JsonString { .value = category }
     body["output"]   = JsonString { .value = text }
@@ -282,7 +282,7 @@ emit_output :: fn(seq_cell!: i32[], category: string, text: string) -> void {
 }
 
 // Emit an `exited` event carrying the program's exit code.
-emit_exited :: fn(seq_cell!: i32[], code: i32) -> void {
+emit_exited :: fn(seq_cell: i32[]!, code: i32) -> void {
     body :: MutableMap<string, JsonValue> {}
     body["exitCode"] = JsonNumber { .value = f64(code) }
     emit_event(seq_cell, "exited", JsonObject { .entries = body })
@@ -375,7 +375,7 @@ scopes_body :: fn(frame_id: i32) -> JsonValue {
 // children is itself expandable — mint a fresh reference, register its
 // children, and hand VSCode that reference so a later `variables` call descends.
 // Leaves get `variablesReference: 0`.
-variables_body :: fn(var_refs!: MutableMap<i32, PauseVar[]>, next_ref!: i32[], reference: i32) -> JsonValue {
+variables_body :: fn(var_refs: MutableMap<i32, PauseVar[]>!, next_ref: i32[]!, reference: i32) -> JsonValue {
     vars: JsonValue[] = []
     entries :: var_refs[reference]
     if entries != null {

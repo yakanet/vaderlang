@@ -154,7 +154,7 @@ VtSlot :: struct {
 
 /// Forward-declare every dispatcher so user fns calling them compile before
 /// the bodies are emitted.
-emit_vtable_forward_decls :: fn(ctx: EmitCtx, out!: StringBuilder) -> void {
+emit_vtable_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     rows :: ctx.module.vtables
     if rows.len() == 0 {
         return
@@ -175,7 +175,7 @@ emit_vtable_forward_decls :: fn(ctx: EmitCtx, out!: StringBuilder) -> void {
 /// concrete signature ; when the dispatcher returns `any` but the impl
 /// returns a primitive, the result is re-boxed. B1 nullable-ref returns are
 /// deferred to T12 (the non-erased subset never produces them).
-emit_vtable_dispatchers :: fn(ctx: EmitCtx, out!: StringBuilder) -> void {
+emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     rows :: ctx.module.vtables
     if rows.len() == 0 { return }
     types :: ctx.module.types
@@ -239,7 +239,7 @@ dispatcher_result :: fn(types: BcType[], call_expr: string, impl_result: ValType
 /// Per-tag slot tables + the `vader_vtable_table[]` index + count. Always
 /// emitted — the strong symbols override the runtime's weak empty fallback,
 /// keeping the link-time takeover deterministic.
-emit_vtables :: fn(ctx: EmitCtx, out!: StringBuilder) -> void {
+emit_vtables :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // Column-0 body : triple-quoted strings take their content verbatim
     // (only the newline right after the opening `"""` is stripped), so the
     // C comment can't be indented. The leading blank line supplies the `\n`

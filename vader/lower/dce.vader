@@ -191,7 +191,7 @@ is_generic_instance :: fn(fn_decl: LoweredFnDecl) = fn_decl.origin.type_argument
 
 /// Mark a root fn reachable in the index keyed to its kind (mangle for
 /// generic instances, symbol id otherwise).
-mark_reachable :: fn(fn_decl: LoweredFnDecl, reachable_sym!: MutableMap<i32, bool>, reachable_mangle!: MutableMap<string, bool>) -> void {
+mark_reachable :: fn(fn_decl: LoweredFnDecl, reachable_sym: MutableMap<i32, bool>!, reachable_mangle: MutableMap<string, bool>!) -> void {
     sym :: fn_decl.origin.symbol
     if sym is Symbol as s {
         if is_generic_instance(fn_decl) {

@@ -38,7 +38,7 @@ export mangle_module_id :: fn(module_id: string) -> string {
 /// @param ctx   the fn-body context (carries `uniq` + project counter).
 /// @param hint  short kebab-case-ish tag describing the synth slot.
 /// @return      the freshly minted symbol.
-export fresh_synthetic_symbol :: fn(ctx!: FnLowerCtx, hint: string) -> Symbol {
+export fresh_synthetic_symbol :: fn(ctx: FnLowerCtx!, hint: string) -> Symbol {
     n :: ctx.uniq
     ctx.uniq = n + 1
     next_id :: next_project_synthetic_id(ctx.project)

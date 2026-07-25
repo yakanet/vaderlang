@@ -223,7 +223,7 @@ export union_of :: fn(variants: const Type[]) -> Type {
     return mk_union(sorted)
 }
 
-collect_variant :: fn(v: Type, into!: Type[]) -> void {
+collect_variant :: fn(v: Type, into: Type[]!) -> void {
     if v is NeverType { return }
     match v {
         is UnionType as u -> {

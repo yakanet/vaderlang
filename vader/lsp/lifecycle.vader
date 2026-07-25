@@ -26,7 +26,7 @@ import "vader/lsp/analysis"
 /// @param state   the server state — mutated to absorb the client's caps.
 /// @param params  the JSON params block from the request.
 /// @return        the JSON value to ship back as the `result` field.
-export handle_initialize :: fn(state!: ServerState, params: JsonValue) -> JsonValue {
+export handle_initialize :: fn(state: ServerState!, params: JsonValue) -> JsonValue {
     state.definition_link_support = read_definition_link_support(params)
     state.inlay_refresh_support = read_inlay_refresh_support(params)
     state.position_encoding = negotiate_position_encoding(params)

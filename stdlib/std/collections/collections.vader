@@ -81,7 +81,7 @@ slot_for :: fn(h: u64, mask: usize) -> usize = usize(h) & mask
 
 // Lazy-initialise the index on first insert. No-op once allocated, so cheap to
 // call from every mutating entry point. Mirrors the old `ensure_buckets`.
-ensure_index :: fn<K, V>(self!: MutableMap<K, V>) -> void {
+ensure_index :: fn<K, V>(self: MutableMap<K, V>!) -> void {
     if self.index.len() == 0 {
         idx: i32[] = []
         for 0..<MINIMAL_INDEX_COUNT { idx.push(EMPTY_SLOT) }
@@ -93,7 +93,7 @@ ensure_index :: fn<K, V>(self!: MutableMap<K, V>) -> void {
 // Rebuild the index at `new_count` slots from the dense entries — re-probing
 // each live key. Clears all tombstones. The dense `ekeys` / `evals` are never
 // touched (entries don't move), so growth allocates no entries.
-rehash :: fn<K: Hash & Equals, V>(self!: MutableMap<K, V>, new_count: usize) -> void {
+rehash :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>!, new_count: usize) -> void {
     fresh: i32[] = []
     for 0..<new_count { fresh.push(EMPTY_SLOT) }
     new_mask :: new_count - 1
@@ -109,7 +109,7 @@ rehash :: fn<K: Hash & Equals, V>(self!: MutableMap<K, V>, new_count: usize) -> 
 
 // Write the (key, value) entry at logical position `self.size` — reusing a
 // spare dense slot freed by a prior `remove`, or appending.
-write_entry :: fn<K, V>(self!: MutableMap<K, V>, key: K, value: V) -> void {
+write_entry :: fn<K, V>(self: MutableMap<K, V>!, key: K, value: V) -> void {
     if self.size < self.ekeys.len() {
         self.ekeys[self.size] = key
         self.evals[self.size] = value
@@ -125,7 +125,7 @@ write_entry :: fn<K, V>(self!: MutableMap<K, V>, key: K, value: V) -> void {
 /// @param self   the map receiver.
 /// @param key    key with which `value` is associated.
 /// @param value  the new value.
-put :: fn<K: Hash & Equals, V>(self!: MutableMap<K, V>, key: K, value: V) -> void {
+put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>!, key: K, value: V) -> void {
     self.ensure_index()
     // Rehash when used slots (entries + tombstones) pass 0.75. Size the new
     // table to the LIVE entry count so a tombstone-heavy map compacts (clears
@@ -160,7 +160,7 @@ put :: fn<K: Hash & Equals, V>(self!: MutableMap<K, V>, key: K, value: V) -> voi
 /// `size` are stale but unreachable (`size = 0`), and `write_entry` overwrites
 /// them from slot 0 on the next insert. O(index slots).
 /// @param self  the map receiver.
-export clear :: fn<K, V>(self!: MutableMap<K, V>) -> void {
+export clear :: fn<K, V>(self: MutableMap<K, V>!) -> void {
     self.size = 0
     self.tombs = 0
     for i in 0..<self.index.len() { self.index[i] = EMPTY_SLOT }
@@ -217,7 +217,7 @@ slot_holding :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, want: i3
 /// @param self  the map receiver.
 /// @param key   key whose entry to drop.
 /// @return      `true` when an entry was removed, `false` when `key` was absent.
-export remove :: fn<K: Hash & Equals, V>(self!: MutableMap<K, V>, key: K) -> bool {
+export remove :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>!, key: K) -> bool {
     if self.index.len() == 0 { return false }
     s: usize = slot_for(key.hash(), self.mask)
     for self.index[s] != EMPTY_SLOT {
@@ -320,7 +320,7 @@ export MutableSet :: struct<T: Hash & Equals> {
 /// @param self   the set receiver.
 /// @param value  the element to add.
 /// @return       `true` on insertion, `false` on duplicate.
-export add :: fn<T>(self!: MutableSet<T>, value: T) -> bool {
+export add :: fn<T>(self: MutableSet<T>!, value: T) -> bool {
     if value in self.inner { return false }
     self.inner[value] = true
     return true
@@ -331,7 +331,7 @@ export add :: fn<T>(self!: MutableSet<T>, value: T) -> bool {
 /// @param self   the set receiver.
 /// @param value  the element to drop.
 /// @return       `true` when `value` was removed, `false` when it was absent.
-export remove :: fn<T>(self!: MutableSet<T>, value: T) -> bool = self.inner.remove(value)
+export remove :: fn<T>(self: MutableSet<T>!, value: T) -> bool = self.inner.remove(value)
 
 /// Number of members in the set. O(1).
 export len :: fn<T>(self: MutableSet<T>) -> usize = self.inner.size
@@ -342,7 +342,7 @@ export is_empty :: fn<T>(self: MutableSet<T>) -> bool = self.inner.size == 0
 /// Logically empty the set, keeping the backing arrays for reuse — for hot
 /// reuse loops (e.g. a dataflow fixpoint's scratch set). Delegates to the
 /// backing map's `clear`. O(index slots).
-export clear :: fn<T>(self!: MutableSet<T>) -> void = self.inner.clear()
+export clear :: fn<T>(self: MutableSet<T>!) -> void = self.inner.clear()
 
 // `value in set` / `value !in set` dispatch through Contains. No
 // Index/IndexSet impl — sets have no value-at-key semantics, and `s.add(v)`

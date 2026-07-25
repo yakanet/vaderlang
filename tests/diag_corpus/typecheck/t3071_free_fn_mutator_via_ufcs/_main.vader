@@ -12,7 +12,7 @@ Box :: struct {
     n: i32
 }
 
-bump :: fn(self!: Box, by: i32) -> void {
+bump :: fn(self: Box!, by: i32) -> void {
     self.n += by
 }
 

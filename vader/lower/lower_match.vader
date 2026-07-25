@@ -37,7 +37,7 @@ import "vader/typecheck"
 ///                     `lower_expr ↔ lower_match` import cycle).
 /// @return             the lowered block.
 export lower_match :: fn(
-    ctx!: FnLowerCtx, expr: MatchExpr, result_type: Type,
+    ctx: FnLowerCtx!, expr: MatchExpr, result_type: Type,
     recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr,
 ) -> LoweredExpr {
     scrut_type :: ctx.types.expr_type(expr.scrutinee)
@@ -135,7 +135,7 @@ any_arm_guarded :: fn(arms: MatchArm[]) -> bool {
 scrut_ident_symbol :: fn(e: LoweredExpr) -> Symbol | null = if e is LoweredIdent as id { id.symbol } else { null }
 
 lower_arm :: fn(
-    ctx!: FnLowerCtx, arm: MatchArm, scrut_symbol: Symbol, scrut_type: Type,
+    ctx: FnLowerCtx!, arm: MatchArm, scrut_symbol: Symbol, scrut_type: Type,
     recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr,
 ) -> LoweredBlock {
     stmts: LoweredStmt[] = []
@@ -148,7 +148,7 @@ lower_arm :: fn(
 }
 
 arm_predicate :: fn(
-    ctx!: FnLowerCtx, arm: MatchArm, scrut_symbol: Symbol, scrut_type: Type,
+    ctx: FnLowerCtx!, arm: MatchArm, scrut_symbol: Symbol, scrut_type: Type,
     recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr,
 ) -> LoweredExpr | null {
     span :: arm.pattern.span
@@ -180,7 +180,7 @@ arm_predicate :: fn(
 }
 
 pattern_predicate :: fn(
-    ctx!: FnLowerCtx, pattern: Pattern, target: LoweredExpr, target_type: Type, span: Span,
+    ctx: FnLowerCtx!, pattern: Pattern, target: LoweredExpr, target_type: Type, span: Span,
     recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr,
 ) -> LoweredExpr | null {
     match pattern {
@@ -250,7 +250,7 @@ pattern_predicate :: fn(
 }
 
 struct_pattern_predicate :: fn(
-    ctx!: FnLowerCtx, pattern: StructPattern, target: LoweredExpr, span: Span,
+    ctx: FnLowerCtx!, pattern: StructPattern, target: LoweredExpr, span: Span,
     recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr,
 ) -> LoweredExpr {
     accumulator: LoweredExpr = LoweredBoolLit { .span = span, .type = TY_BOOL, .value = true }
@@ -278,7 +278,7 @@ struct_pattern_predicate :: fn(
 }
 
 tuple_pattern_predicate :: fn(
-    ctx!: FnLowerCtx, pattern: TuplePattern, target: LoweredExpr, target_type: Type, span: Span,
+    ctx: FnLowerCtx!, pattern: TuplePattern, target: LoweredExpr, target_type: Type, span: Span,
     recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr,
 ) -> LoweredExpr | null {
     accumulator: LoweredExpr | null = null
@@ -410,16 +410,16 @@ unwrap_enum_type :: fn(target_type: Type, ctx: FnLowerCtx) -> Type {
 // ============================================================================
 
 introduce_pattern_bindings :: fn(
-    ctx!: FnLowerCtx, pattern: Pattern, scrut_symbol: Symbol, scrut_type: Type,
-    out!: LoweredStmt[], span: Span,
+    ctx: FnLowerCtx!, pattern: Pattern, scrut_symbol: Symbol, scrut_type: Type,
+    out: LoweredStmt[]!, span: Span,
 ) -> void {
     scrut_ref :: LoweredIdent { .span = span, .type = scrut_type, .symbol = scrut_symbol }
     walk_pattern_bindings(ctx, pattern, scrut_ref, scrut_type, out, span)
 }
 
 walk_pattern_bindings :: fn(
-    ctx!: FnLowerCtx, pattern: Pattern, target: LoweredExpr, target_type: Type,
-    out!: LoweredStmt[], span: Span,
+    ctx: FnLowerCtx!, pattern: Pattern, target: LoweredExpr, target_type: Type,
+    out: LoweredStmt[]!, span: Span,
 ) -> void {
     match pattern {
         is BindingPattern as binding -> {
@@ -527,7 +527,7 @@ struct_field_type :: fn(ctx: FnLowerCtx, target_type: Type, field_name: string) 
 // `defined_span -> Symbol` index (`lookup_local_symbol`); mint a fresh
 // synthetic only when the binding is genuinely absent. Was a naive
 // O(idents) scan per binding until routed through the constant-time index.
-resolve_pattern_symbol :: fn(ctx!: FnLowerCtx, name_span: Span, name: string) -> Symbol {
+resolve_pattern_symbol :: fn(ctx: FnLowerCtx!, name_span: Span, name: string) -> Symbol {
     found :: lookup_local_symbol(ctx.project, ctx.typed.resolved, name_span)
     if found == null { return fresh_synthetic_symbol(ctx, name) }
     return found

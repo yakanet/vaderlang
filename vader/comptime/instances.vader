@@ -39,7 +39,7 @@ export InstanceRegistry :: struct {
 /// @param symbol    the generic decl's resolver symbol.
 /// @param args      the concrete type arguments.
 /// @return          the registered instance.
-export add :: fn(registry!: InstanceRegistry, symbol: Symbol, raw_args: const Type[]) -> GenericInstance {
+export add :: fn(registry: InstanceRegistry!, symbol: Symbol, raw_args: const Type[]) -> GenericInstance {
     // Distinct→backing before this instance is keyed or stored: a distinct has
     // no runtime identity, so `MutableMap<BlockId>` must register as the same
     // raw instance as `MutableMap<i32>`, never a separate erased one. This is
@@ -68,11 +68,11 @@ export add :: fn(registry!: InstanceRegistry, symbol: Symbol, raw_args: const Ty
 /// name (`T`).
 /// @param registry  the registry.
 /// @param t         the type to scan.
-export observe :: fn(registry!: InstanceRegistry, t: Type) -> void {
+export observe :: fn(registry: InstanceRegistry!, t: Type) -> void {
     walk_type(registry, t)
 }
 
-walk_type :: fn(registry!: InstanceRegistry, t: Type) -> void {
+walk_type :: fn(registry: InstanceRegistry!, t: Type) -> void {
     match t {
         is StructType as s -> {
             if s.args.len() > 0 && all_concrete_enough(s.args) {

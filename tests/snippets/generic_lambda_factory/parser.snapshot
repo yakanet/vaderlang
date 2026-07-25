@@ -209,18 +209,20 @@
         {
           "name": "rows",
           "type": {
-            "kind": "ArrayTypeExpr",
-            "element": {
+            "kind": "MutableTypeExpr",
+            "inner": {
               "kind": "ArrayTypeExpr",
               "element": {
-                "kind": "IdentExpr",
-                "name": "i32"
+                "kind": "ArrayTypeExpr",
+                "element": {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
               }
             }
           },
           "defaultValue": null,
-          "variadic": false,
-          "mutable": true
+          "variadic": false
         }
       ],
       "returnType": {

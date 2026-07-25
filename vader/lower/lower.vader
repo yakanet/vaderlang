@@ -33,7 +33,7 @@ import "vader/resolver/symbol"
 /// @param diags      diagnostics emitted by the lowerer (L5xxx codes).
 /// @return           the lowered project ready for downstream phases.
 export lower_project :: fn(
-    loaded: LoadedProject, typed: TypedProject, evaluated: EvaluatedProject, diags!: Diagnostic[],
+    loaded: LoadedProject, typed: TypedProject, evaluated: EvaluatedProject, diags: Diagnostic[]!,
 ) -> LoweredProject = lower_project_impl(loaded, typed, evaluated, [], diags)
 
 /// VM-backed-comptime staging variant : lower ONLY the closure reachable from
@@ -49,12 +49,12 @@ export lower_project :: fn(
 ///                       non-empty (use `lower_project` for the whole project).
 export lower_project_staged :: fn(
     loaded: LoadedProject, typed: TypedProject, evaluated: EvaluatedProject,
-    eager_modules: string[], diags!: Diagnostic[],
+    eager_modules: string[], diags: Diagnostic[]!,
 ) -> LoweredProject = lower_project_impl(loaded, typed, evaluated, eager_modules, diags)
 
 lower_project_impl :: fn(
     loaded: LoadedProject, typed: TypedProject, evaluated: EvaluatedProject,
-    eager_modules: string[], diags!: Diagnostic[],
+    eager_modules: string[], diags: Diagnostic[]!,
 ) -> LoweredProject {
     // Staging mode narrows the eager (with-body) set from the single entry to
     // `eager_modules`; the whole-project generic-struct materialization is
@@ -285,7 +285,7 @@ lower_project_impl :: fn(
 // this module's bodies, so they ship alongside the regular decls.
 lower_module :: fn(
     module_id: string, display_path: string, typed: TypedProgram, decls: Decl[],
-    project_ctx!: LowerProjectCtx, diags: Diagnostic[],
+    project_ctx: LowerProjectCtx!, diags: Diagnostic[],
 ) -> LoweredModule {
     out_decls: LoweredDecl[] = []
     // First pass : every regular decl in source order. Impl members
@@ -315,7 +315,7 @@ lower_module :: fn(
 /// per member so impl methods land inline (right after the impl) in
 /// the dump.
 lower_decl_list :: fn(
-    decl: Decl, typed: TypedProgram, project_ctx!: LowerProjectCtx,
+    decl: Decl, typed: TypedProgram, project_ctx: LowerProjectCtx!,
     diags: Diagnostic[], module_decls: Decl[],
 ) -> LoweredDecl[] {
     if decl is ImplDecl as impl_decl {
@@ -334,7 +334,7 @@ lower_decl_list :: fn(
 // (Enum, Trait, TypeAlias, Import, Assert) returns null — they don't
 // produce runtime slots.
 lower_decl :: fn(
-    decl: Decl, typed: TypedProgram, project_ctx!: LowerProjectCtx, diags: Diagnostic[],
+    decl: Decl, typed: TypedProgram, project_ctx: LowerProjectCtx!, diags: Diagnostic[],
     module_decls: Decl[],
 ) -> LoweredDecl | null {
     // Only Fn/Struct/Const/Impl produce runtime slots; every other decl kind
@@ -358,7 +358,7 @@ lower_decl :: fn(
 // and for the bodyless fns the skip branch surfaces up front — either way an
 // on-demand re-materialisation of the same symbol would be a duplicate.
 seed_harvest_seen :: fn(
-    symbols: MutableMap<string, Symbol>, name: string, seen!: MutableMap<i32, bool>,
+    symbols: MutableMap<string, Symbol>, name: string, seen: MutableMap<i32, bool>!,
 ) -> void {
     sym :: symbols[name]
     if sym is Symbol as s { seen[s.id] = true }

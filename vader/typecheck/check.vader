@@ -39,9 +39,9 @@ export CheckResult :: struct {
 /// so locally-minted `TypeParam` Symbols stay globally unique.
 export check_module :: fn(
     program: Program,
-    resolved!: ResolvedModule,
-    factory!: SymbolFactory,
-    diags!: Diagnostic[],
+    resolved: ResolvedModule!,
+    factory: SymbolFactory!,
+    diags: Diagnostic[]!,
 ) -> CheckResult {
     // Standalone single-module check : no project-wide core seed available
     // (core traits, if any, are already in `resolved.symbols`). Pass an empty

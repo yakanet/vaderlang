@@ -55,8 +55,8 @@ export CollectedModule :: struct {
 /// callers (e.g. legacy `resolve_module` tests).
 export collect_module :: fn(
     program: Program, module_path: string, module_name: string,
-    factory!: SymbolFactory,
-    index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags!: Diagnostic[],
+    factory: SymbolFactory!,
+    index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[]!,
 ) -> CollectedModule {
     out :: CollectedModule {
         .symbols           = MutableMap<string, Symbol> {},
@@ -79,7 +79,7 @@ export collect_module :: fn(
 // confusing (which binding wins for a name in both?). Flag the second form so
 // the author collapses to one. Namespace bindings (`X :: import "p"`) don't
 // conflict — they qualify, they don't inject names.
-check_import_form_conflict :: fn(decls: Decl[], diags!: Diagnostic[]) -> void {
+check_import_form_conflict :: fn(decls: Decl[], diags: Diagnostic[]!) -> void {
     wildcard_of :: MutableMap<string, Span> {}
     destructure_of :: MutableMap<string, Span> {}
     for d in decls {
@@ -107,7 +107,7 @@ check_import_form_conflict :: fn(decls: Decl[], diags!: Diagnostic[]) -> void {
 /// module index. Skips import-path resolution (R2001 / R2024 / R2025 /
 /// R2028) and duplicate-binding emission ; still mints symbols.
 export collect_module_no_index :: fn(
-    program: Program, module_path: string, factory!: SymbolFactory,
+    program: Program, module_path: string, factory: SymbolFactory!,
 ) -> CollectedModule {
     empty_index :: MutableMap<string, DiscoveredModule> {}
     discard: Diagnostic[] = []
@@ -116,9 +116,9 @@ export collect_module_no_index :: fn(
 }
 
 collect_decl :: fn(
-    self!: CollectedModule, d: Decl, module_path: string, module_name: string,
-    factory!: SymbolFactory,
-    index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags!: Diagnostic[],
+    self: CollectedModule!, d: Decl, module_path: string, module_name: string,
+    factory: SymbolFactory!,
+    index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[]!,
 ) -> void {
     match d {
         is ImportDecl    as x -> { self.collect_import(x, module_path, module_name, factory, index, paths, diags) }
@@ -141,7 +141,7 @@ collect_decl :: fn(
 /// @error R2004 when the fn's name collides with a same-named TYPE or CONST
 ///        (a fn can't overload a non-fn declaration). Order-independent with
 ///        `add_named`, which flags the reverse decl order.
-add_fn :: fn(self!: CollectedModule, d: FnDecl, module_path: string, factory!: SymbolFactory, diags!: Diagnostic[]) -> void {
+add_fn :: fn(self: CollectedModule!, d: FnDecl, module_path: string, factory: SymbolFactory!, diags: Diagnostic[]!) -> void {
     // `main` is the program entry point and is always public. Letting it
     // default to private locks the entry-point fn behind module visibility.
     visibility := d.visibility
@@ -185,9 +185,9 @@ add_fn :: fn(self!: CollectedModule, d: FnDecl, module_path: string, factory!: S
 }
 
 add_named :: fn(
-    self!: CollectedModule, kind: SymbolKind, name: string, name_span: Span,
-    visibility: Visibility, module_path: string, factory!: SymbolFactory,
-    diags!: Diagnostic[],
+    self: CollectedModule!, kind: SymbolKind, name: string, name_span: Span,
+    visibility: Visibility, module_path: string, factory: SymbolFactory!,
+    diags: Diagnostic[]!,
 ) -> void {
     // First-wins on duplicates ; later occurrences raise R2004.
     // Non-fn-vs-non-fn collision only ; fn overload buckets handle
@@ -211,9 +211,9 @@ add_named :: fn(
 /// R2002 ; the path itself is run through `diagnose_import_path` for
 /// R2001 / R2024 / R2025 / R2028.
 collect_import :: fn(
-    self!: CollectedModule, d: ImportDecl, module_path: string,
-    module_name: string, factory!: SymbolFactory,
-    index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags!: Diagnostic[],
+    self: CollectedModule!, d: ImportDecl, module_path: string,
+    module_name: string, factory: SymbolFactory!,
+    index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[]!,
 ) -> void {
     if d.path == "" {
         diags.push(resolver_error(.EmptyImportPath, d.span, ""))
@@ -269,10 +269,10 @@ collect_import :: fn(
 }
 
 bind_import :: fn(
-    self!: CollectedModule, local: string, span: Span,
+    self: CollectedModule!, local: string, span: Span,
     import_path: string, imported_name: string | null,
-    module_path: string, factory!: SymbolFactory,
-    diags!: Diagnostic[],
+    module_path: string, factory: SymbolFactory!,
+    diags: Diagnostic[]!,
 ) -> void {
     existing :: self.symbols[local]
     match existing {
@@ -336,7 +336,7 @@ names_equal :: fn(a: string | null, b: string | null) -> bool {
 /// failed.
 diagnose_import_path :: fn(
     raw_path: string, span: Span, from_module_name: string,
-    index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags!: Diagnostic[],
+    index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[]!,
 ) -> string | null {
     if raw_path.starts_with("./") || raw_path.starts_with("../") {
         diags.push(resolver_error(.RelativeImportRemoved, span, "`${raw_path}`"))

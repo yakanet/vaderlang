@@ -26,9 +26,9 @@ import "vader/types"
 /// my case"). `try_struct_field` is the terminal fallback that emits
 /// T3008/T3009 when nothing matches.
 export infer_field :: fn(
-    e!: AST.FieldExpr,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    e: AST.FieldExpr!,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     // Namespace-import field access — `mod.foo` where `mod` is an
@@ -99,7 +99,7 @@ try_impl_method_ufcs :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
     typed: TypedProgram,
-    diags!: Diagnostic[],
+    diags: Diagnostic[]!,
 ) -> Type | null {
     // A free numeric literal receiver (`42.to_string()`) carries no impl methods
     // of its own — every impl is keyed on the concrete default (`i32`/`f64`/`char`,
@@ -147,7 +147,7 @@ try_impl_method_ufcs :: fn(
 // of the real diagnostic.
 reject_mutating_method_on_immutable :: fn(
     im: ImplMethod, e: AST.FieldExpr, recv_ty: Type,
-    typed: TypedProgram, diags!: Diagnostic[],
+    typed: TypedProgram, diags: Diagnostic[]!,
 ) -> void {
     if !im.self_mutable {
         return
@@ -168,7 +168,7 @@ reject_mutating_method_on_immutable :: fn(
 try_typeparam_bound_method :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
-    typed!: TypedProgram,
+    typed: TypedProgram!,
 ) -> Type | null {
     if target_ty !is TypeParamType {
         return null
@@ -226,8 +226,8 @@ dispatch_bounded_method_trait :: fn(
 try_free_fn_ufcs_dispatch :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
 ) -> Type | null {
     free_ufcs :: try_free_fn_ufcs_with_first(e.field, target_ty, typed) ?? return null
     typed.ufcs_receiver_types[e.id] = free_ufcs.first_param
@@ -259,8 +259,8 @@ try_free_fn_ufcs_dispatch :: fn(
 // (→ midir panic, see bug_ufcs_primitive_literal_freefn).
 repin_free_ufcs_receiver :: fn(
     target_ty: Type,
-    e!: AST.FieldExpr,
-    typed!: TypedProgram,
+    e: AST.FieldExpr!,
+    typed: TypedProgram!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     if !(target_ty is FreeIntType || target_ty is FreeFloatType || target_ty is FreeCharType) {
@@ -332,7 +332,7 @@ try_default_trait_method_dispatch :: fn(
 try_tuple_index_dispatch :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
-    diags!: Diagnostic[],
+    diags: Diagnostic[]!,
 ) -> Type | null {
     // `tuple_backing` accepts a tuple-backed distinct newtype too, so `coord.0`
     // forwards to the backing tuple's positional slots while the distinct keeps
@@ -356,7 +356,7 @@ try_union_common_field_dispatch :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
     typed: TypedProgram,
-    diags!: Diagnostic[],
+    diags: Diagnostic[]!,
 ) -> Type | null {
     if target_ty !is UnionType {
         return null
@@ -368,7 +368,7 @@ try_union_common_field_dispatch :: fn(
 try_enum_variant_dispatch :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
-    diags!: Diagnostic[],
+    diags: Diagnostic[]!,
 ) -> Type | null {
     if target_ty !is EnumType {
         return null
@@ -403,7 +403,7 @@ resolve_struct_field :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
     typed: TypedProgram,
-    diags!: Diagnostic[],
+    diags: Diagnostic[]!,
 ) -> Type {
     // `struct_backing` accepts a struct-backed distinct newtype (`Color :: Rgb`)
     // too : `color.r` forwards to the backing struct's fields while the distinct
@@ -510,7 +510,7 @@ export check_internal_field :: fn(
     field_name: string,
     span: Span,
     typed: TypedProgram,
-    diags!: Diagnostic[],
+    diags: Diagnostic[]!,
 ) -> void {
     if st.symbol.module == typed.resolved.path {
         return
@@ -566,7 +566,7 @@ resolved_field_type :: fn(
     decl: AST.StructDecl,
     name: string,
     typed: TypedProgram,
-    diags!: Diagnostic[],
+    diags: Diagnostic[]!,
 ) -> Type | null {
     cached :: lookup_pre_resolved_field(struct_id, name, typed)
     if cached !is null {
@@ -698,7 +698,7 @@ check_trait_ambiguity :: fn(
     e: AST.FieldExpr,
     target_ty: Type,
     typed: TypedProgram,
-    diags!: Diagnostic[],
+    diags: Diagnostic[]!,
 ) -> void {
     base_key :: "${type_base_name(target_ty)}::${e.field}"
     traits :: typed.impl_method_traits[base_key] ?? return
@@ -780,7 +780,7 @@ union_common_field :: fn(
     u: UnionType,
     name: string,
     typed: TypedProgram,
-    diags!: Diagnostic[],
+    diags: Diagnostic[]!,
 ) -> Type | null {
     types: Type[] = []
     for v in u.variants {
@@ -1182,7 +1182,7 @@ parse_tuple_index :: fn(s: string) -> i32 {
     return n
 }
 
-try_namespace_field :: fn(e: AST.FieldExpr, typed: TypedProgram, diags!: Diagnostic[]) -> Type | null {
+try_namespace_field :: fn(e: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[]!) -> Type | null {
     mod_id :: namespace_call_mod_id(e, typed) ?? return null
     exports :: typed.namespace_exports[mod_id] ?? return null
     result :: exports[e.field]
@@ -1247,7 +1247,7 @@ export typeparam_bound_method_names :: fn(tp: TypeParamType, typed: TypedProgram
 
 // Append every trait-method name reachable through `bound` (single trait or
 // `A & B`) into `out`. Mirrors `dispatch_bounded_method`'s bound walk.
-collect_bound_method_names :: fn(bound: AST.Expr, typed: TypedProgram, out!: string[]) -> void {
+collect_bound_method_names :: fn(bound: AST.Expr, typed: TypedProgram, out: string[]!) -> void {
     if bound is AST.BinaryExpr {
         if bound.op == AST.BinaryOp.BitAnd {
             collect_bound_method_names(bound.left, typed, out)
@@ -1272,7 +1272,7 @@ export find_struct_field_type :: fn(
     decl: AST.StructDecl,
     name: string,
     resolved: ResolvedModule,
-    diags!: Diagnostic[],
+    diags: Diagnostic[]!,
 ) -> Type | null {
     for field in decl.fields {
         if field.name == name {
@@ -1292,8 +1292,8 @@ import "vader/parser"
 field_check_stub :: fn(
     e: AST.Expr,
     expected: Type | null,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
 ) -> Type {
     // @partial: test stub — only the ident / field / literal expr kinds the
     // field tests build are typed; every other Expr is irrelevant → unresolved.

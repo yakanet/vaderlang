@@ -14,7 +14,7 @@ Cfg :: struct {
 
 CFG :: Cfg { .count = 1 }
 
-bump :: fn(c!: Cfg) -> void {
+bump :: fn(c: Cfg!) -> void {
     c.count += 1
 }
 

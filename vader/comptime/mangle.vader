@@ -97,7 +97,7 @@ export sanitise_ident :: fn(raw: string) -> string {
 /// @param seen        registry of names already taken.
 /// @param candidate   the preferred name ; returned as-is when free.
 /// @return            a fresh name (either `candidate` or `candidate_N`).
-export uniq :: fn(seen!: MutableMap<string, bool>, candidate: string) -> string {
+export uniq :: fn(seen: MutableMap<string, bool>!, candidate: string) -> string {
     existing :: seen[candidate]
     if existing == null {
         seen[candidate] = true

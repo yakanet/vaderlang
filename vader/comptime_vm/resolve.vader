@@ -44,7 +44,7 @@ Vm :: import "vader/vm"
 /// @error            C4002 when the staged callee traps in the VM ; C4001 when
 ///                   its result `Value` can't be bridged (cf. `bridge.vader`).
 export resolve_vm_required_decls :: fn(
-    loaded: LoadedProject, typed: TypedProject, evaluated: Ct.EvaluatedProject, diags!: Diagnostic[],
+    loaded: LoadedProject, typed: TypedProject, evaluated: Ct.EvaluatedProject, diags: Diagnostic[]!,
 ) -> void {
     if evaluated.vm_required.len() == 0 { return }
 
@@ -87,7 +87,7 @@ export resolve_vm_required_decls :: fn(
 // Run the canonical lower → cfg → dce → escape → emit tail over the (still
 // un-baked) project. Mirror of `bootstrap.vader::prepare_cfg_bytecode`'s tail.
 stage_to_bytecode :: fn(
-    loaded: LoadedProject, typed: TypedProject, evaluated: Ct.EvaluatedProject, diags!: Diagnostic[],
+    loaded: LoadedProject, typed: TypedProject, evaluated: Ct.EvaluatedProject, diags: Diagnostic[]!,
 ) -> BytecodeModule {
     // Stage only the modules owning vm_required consts (+ their harvested
     // closure), not the whole entry-rooted project : each such module's un-baked

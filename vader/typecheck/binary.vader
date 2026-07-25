@@ -24,10 +24,10 @@ import "vader/types"
 /// Type-check a `BinaryExpr`. `check_expr_fn` is threaded to break the
 /// cyclic import with `expr.vader::check_expr`.
 export infer_binary :: fn(
-    e!: AST.BinaryExpr,
+    e: AST.BinaryExpr!,
     expected: Type | null,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     // `[lhs] * n` array-repeat : when an array result is expected, thread the
@@ -101,10 +101,10 @@ export infer_binary :: fn(
 /// @error T3068 when `left` can never be null (the fallback is unreachable).
 /// @error T3001 when a value fallback isn't assignable to the non-null result.
 export infer_null_coalesce :: fn(
-    e!: AST.NullCoalesceExpr,
+    e: AST.NullCoalesceExpr!,
     expected: Type | null,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     left_ty :: check_expr_fn(e.left, null, typed, diags)
@@ -142,8 +142,8 @@ check_arith :: fn(
     e: AST.BinaryExpr,
     left: Type,
     right: Type,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
 ) -> Type {
     // `[<fresh>] * n` copies ONE reference into every slot — warn when the
     // repeated element was allocated on the spot (W0013, below).
@@ -216,7 +216,7 @@ check_arith :: fn(
 warn_shared_repeat_element :: fn(
     e: AST.BinaryExpr,
     typed: TypedProgram,
-    diags!: Diagnostic[],
+    diags: Diagnostic[]!,
 ) -> void {
     if e.left !is AST.SeqLitExpr {
         return
@@ -301,7 +301,7 @@ check_operator_rhs :: fn(
     op_label: string,
     span: Span,
     typed: TypedProgram,
-    diags!: Diagnostic[],
+    diags: Diagnostic[]!,
 ) -> FnType | null {
     base :: type_base_name(recv)
     method_impl :: typed.impl_methods["${base}::${method_name}"]
@@ -337,8 +337,8 @@ distinct_op_fallback :: fn(
     e: AST.BinaryExpr,
     left: Type,
     right: Type,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     recheck: fn(AST.BinaryExpr, Type, Type, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type | null {
     if left !is DistinctType && right !is DistinctType {
@@ -353,8 +353,8 @@ check_compare :: fn(
     e: AST.BinaryExpr,
     left: Type,
     right: Type,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
 ) -> Type {
     // Numeric ordering : both operands must be the SAME numeric family / width.
     // `numeric_result` is the shared compatibility gate (Free* fold to their own
@@ -405,7 +405,7 @@ has_impl_method :: fn(t: Type, name: string, typed: TypedProgram) -> bool {
 /// such impl exists. More precise than the generic T3017 : it names the missing
 /// trait, so the fix (write the impl) is obvious. `UnresolvedType` opts out —
 /// a cascade from an earlier error, not a real missing impl.
-push_trait_missing :: fn(e: AST.BinaryExpr, t: Type, trait_name: string, diags!: Diagnostic[]) -> void {
+push_trait_missing :: fn(e: AST.BinaryExpr, t: Type, trait_name: string, diags: Diagnostic[]!) -> void {
     if t is UnresolvedType {
         return
     }
@@ -425,7 +425,7 @@ push_trait_missing :: fn(e: AST.BinaryExpr, t: Type, trait_name: string, diags!:
 /// `Contains` impl) — or none at all — has no `in` ; reject it with T3043 here
 /// rather than letting the lowerer stub the call into an `unreachable` trap
 /// (a runtime crash instead of a compile error).
-check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed!: TypedProgram, diags!: Diagnostic[]) -> Type {
+check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram!, diags: Diagnostic[]!) -> Type {
     // Arrays support `in` via the blanket `T[] implements<T: Equals> Contains<T>`,
     // matched through the `"[]"` base key (`type_base_name`) — no array special-case
     // needed (it used to be required because the element-specific `[string]` key
@@ -458,7 +458,7 @@ check_equality :: fn(
     left: Type,
     right: Type,
     typed: TypedProgram,
-    diags!: Diagnostic[],
+    diags: Diagnostic[]!,
 ) -> Type {
     // `==` / `!=` against `null` gets the same unreachable check as `is null`
     // (SPEC §1002 ; T3040) — an operand that can never be null makes the
@@ -520,7 +520,7 @@ check_is_overlap :: fn(
     e: AST.BinaryExpr,
     scrut: Type,
     tested: Type,
-    diags!: Diagnostic[],
+    diags: Diagnostic[]!,
 ) -> void {
     if !is_resolved_enough(scrut)   { return }
     if !is_resolved_enough(tested)  { return }
@@ -549,7 +549,7 @@ is_resolved_enough :: fn(t: Type) -> bool {
 // so structural overlap isn't enough to call the test
 // unreachable — defer that to the impl-driven dispatch.
 
-check_logical :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags!: Diagnostic[]) -> Type {
+check_logical :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]!) -> Type {
     if !is_bool(left) && left !is UnresolvedType {
         diags.push(
             typecheck_error(
@@ -575,8 +575,8 @@ check_bitwise :: fn(
     e: AST.BinaryExpr,
     left: Type,
     right: Type,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
 ) -> Type {
     // `T | U` (`|`) on two metatype values is the Layer 5b implicit
     // union — return the metatype so callers can lift the binary
@@ -686,11 +686,11 @@ op_expected_ctx :: fn(op: AST.BinaryOp, expected: Type | null) -> Type | null {
 // `got` is not a free literal that narrows to `other`. The re-check routes back
 // through check_expr, which bounds-checks a char literal at the pin (T3055).
 repin_operand :: fn(
-    operand!: AST.Expr,
+    operand: AST.Expr!,
     got: Type,
     other: Type,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     if equals_type(narrow_for_expected(got, other), got) {
@@ -702,7 +702,7 @@ repin_operand :: fn(
 // Compute the result type of a numeric binary op. Both operands must
 // be numeric AND in the same family (int / float) — Free* folds to a
 // concrete operand of its own family only. No implicit widening.
-numeric_result :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags!: Diagnostic[]) -> Type {
+numeric_result :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]!) -> Type {
     if !is_numeric(left) || !is_numeric(right) {
         push_op_undefined(e, left, right, diags)
         return TY_UNRESOLVED
@@ -798,7 +798,7 @@ is_string :: fn(t: Type) -> bool = t is PrimitiveType && t.name == "string"
 
 is_bool :: fn(t: Type) -> bool = t is PrimitiveType && t.name == "bool"
 
-push_op_undefined :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags!: Diagnostic[]) -> void {
+push_op_undefined :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]!) -> void {
     // Don't pile on if either side already errored.
     if left is UnresolvedType || right is UnresolvedType {
         return
@@ -821,8 +821,8 @@ import "vader/resolver"
 binary_check_stub :: fn(
     e: AST.Expr,
     expected: Type | null,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
 ) -> Type {
     // @partial: test stub — only the literal / ident / binary expr kinds the
     // binary tests build are typed; every other Expr is irrelevant → unresolved.

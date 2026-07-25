@@ -22,10 +22,10 @@ AST :: import "vader/parser"
 /// Type a bracketed literal contextually : returns `Tuple(...)` when
 /// `expected` is a tuple-shaped slot, `Array(...)` otherwise.
 export infer_seq_lit :: fn(
-    e!: AST.SeqLitExpr,
+    e: AST.SeqLitExpr!,
     expected: Type | null,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     // Union → pick the most appropriate variant, then recurse.
@@ -71,10 +71,10 @@ export infer_seq_lit :: fn(
 // ---- per-shape -----------------------------------------------------------
 
 infer_against_tuple :: fn(
-    e!: AST.SeqLitExpr,
+    e: AST.SeqLitExpr!,
     tup: TupleType,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     if tup.elements.len() != e.elements.len() {
@@ -117,8 +117,8 @@ infer_against_tuple :: fn(
 infer_against_array :: fn(
     e: AST.SeqLitExpr,
     arr: ArrayType,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     elem_types :: walk_elements(e, arr.element, typed, diags, check_expr_fn)
@@ -146,8 +146,8 @@ infer_against_array :: fn(
 
 infer_no_expected :: fn(
     e: AST.SeqLitExpr,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     elem_types :: walk_elements(e, null, typed, diags, check_expr_fn)
@@ -168,8 +168,8 @@ infer_no_expected :: fn(
 walk_elements :: fn(
     e: AST.SeqLitExpr,
     hint: Type | null,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type[] = e.elements.map((el) -> check_expr_fn(el, hint, typed, diags)).collect()
 
@@ -201,8 +201,8 @@ import "vader/resolver/symbol"
 seq_lit_check_stub :: fn(
     e: AST.Expr,
     expected: Type | null,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
 ) -> Type {
     // @partial: test stub — only the literal / ident / seq expr kinds the seq
     // tests build are typed; every other Expr is irrelevant → unresolved.

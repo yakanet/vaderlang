@@ -25,13 +25,13 @@ export new_scope :: fn(root: MutableMap<string, Symbol>) -> Scope {
 
 /// Open a fresh inner scope. Subsequent `bind` calls land here until the
 /// matching `pop`.
-export push :: fn(self!: Scope) -> void {
+export push :: fn(self: Scope!) -> void {
     self.frames.push(MutableMap<string, Symbol> {})
 }
 
 /// Drop the innermost scope. No-op on an empty stack — the body walker
 /// over-pops on malformed AST rather than crashing.
-export pop :: fn(self!: Scope) -> void {
+export pop :: fn(self: Scope!) -> void {
     n :: self.frames.len()
     if n == 0 { return }
     // Arrays don't have `pop` yet, so slice everything but the last entry.
@@ -44,7 +44,7 @@ export pop :: fn(self!: Scope) -> void {
 
 /// Bind `name` in the innermost frame. Silently shadows any outer
 /// binding of the same name ; lookup picks the innermost match.
-export bind :: fn(self!: Scope, name: string, sym: Symbol) -> void {
+export bind :: fn(self: Scope!, name: string, sym: Symbol) -> void {
     n :: self.frames.len()
     if n == 0 { return }
     top :: self.frames[n - 1]

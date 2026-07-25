@@ -244,7 +244,7 @@ export peek_before :: fn(self: CommentMap, before: usize) -> Comment[] {
 // Return every un-emitted comment whose `offset < before` and advance the
 // cursor past them. The printer calls this just before emitting each
 // AST node so leading comments land at the right position.
-export take_before :: fn(self!: CommentMap, before: usize) -> Comment[] {
+export take_before :: fn(self: CommentMap!, before: usize) -> Comment[] {
     out: Comment[] = []
     for self.cursor < self.comments.len() {
         c :: self.comments[self.cursor]
@@ -259,7 +259,7 @@ export take_before :: fn(self!: CommentMap, before: usize) -> Comment[] {
 // equals `node_end_line` AND whose `offset >= node_end_offset`. There's at
 // most one — once we find it, advance the cursor. `null` when nothing
 // matches.
-export take_trailing :: fn(self!: CommentMap, node_end_line: i32, node_end_offset: usize) -> Comment | null {
+export take_trailing :: fn(self: CommentMap!, node_end_line: i32, node_end_offset: usize) -> Comment | null {
     if self.cursor >= self.comments.len() { return null }
     c :: self.comments[self.cursor]
     if c.line == node_end_line && c.offset >= node_end_offset {
@@ -271,7 +271,7 @@ export take_trailing :: fn(self!: CommentMap, node_end_line: i32, node_end_offse
 
 // Drain every remaining comment (used at end-of-file to flush trailing
 // comments after the last decl).
-export drain_remaining :: fn(self!: CommentMap) -> Comment[] {
+export drain_remaining :: fn(self: CommentMap!) -> Comment[] {
     out: Comment[] = []
     for self.cursor < self.comments.len() {
         out.push(self.comments[self.cursor])

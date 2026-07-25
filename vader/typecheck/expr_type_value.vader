@@ -16,7 +16,7 @@ AST :: import "vader/parser"
 /// `T[]` in value position : lower the element for side-effects,
 /// return the metatype value.
 export infer_array_type_value :: fn(
-    e: AST.ArrayTypeExpr, typed: TypedProgram, diags!: Diagnostic[],
+    e: AST.ArrayTypeExpr, typed: TypedProgram, diags: Diagnostic[]!,
 ) -> Type {
     type_from_expr(e.element, typed.resolved, diags)
     return TY_TYPE
@@ -25,7 +25,7 @@ export infer_array_type_value :: fn(
 /// `T!` in value position (a type alias RHS such as `Buf :: u8[]!`) : walk the
 /// inner type for side-effects, return the metatype value.
 export infer_mutable_type_value :: fn(
-    e: AST.MutableTypeExpr, typed: TypedProgram, diags!: Diagnostic[],
+    e: AST.MutableTypeExpr, typed: TypedProgram, diags: Diagnostic[]!,
 ) -> Type {
     type_from_expr(e.inner, typed.resolved, diags)
     return TY_TYPE
@@ -33,7 +33,7 @@ export infer_mutable_type_value :: fn(
 
 /// `fn(T) -> R` in value position.
 export infer_fn_type_value :: fn(
-    e: AST.FnTypeExpr, typed: TypedProgram, diags!: Diagnostic[],
+    e: AST.FnTypeExpr, typed: TypedProgram, diags: Diagnostic[]!,
 ) -> Type {
     for p in e.params { type_from_expr(p, typed.resolved, diags) }
     if e.return_type != null { type_from_expr(e.return_type, typed.resolved, diags) }

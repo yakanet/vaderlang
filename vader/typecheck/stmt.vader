@@ -18,10 +18,10 @@ import "vader/types"
 /// `ctx` carries the surrounding fn's return type + loop depth ;
 /// pass `null` for stand-alone block exprs.
 export check_block :: fn(
-    block!: AST.BlockExpr,
+    block: AST.BlockExpr!,
     expected: Type | null,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
@@ -99,8 +99,8 @@ export check_block :: fn(
 /// `continue` validation ; writes `local_types` for let-bindings.
 export check_stmt :: fn(
     stmt: AST.Stmt,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
@@ -250,7 +250,7 @@ expr_has_await :: fn(e: AST.Expr) -> bool = @partial match e {
 /// (plus a T3056 diagnostic) when the return type isn't a valid
 /// `Iterator<T>`. A function that `yield`s must honour it with an
 /// `Iterator<T>` return.
-generator_element_type :: fn(fn_decl: AST.FnDecl, return_type: Type, diags!: Diagnostic[]) -> Type | null {
+generator_element_type :: fn(fn_decl: AST.FnDecl, return_type: Type, diags: Diagnostic[]!) -> Type | null {
     if return_type is TraitType as tt {
         if tt.symbol.name == TRAIT_ITERATOR && tt.args.len() > 0 {
             return tt.args[0]
@@ -354,9 +354,9 @@ if_has_yield :: fn(i: AST.IfExpr) -> bool {
 /// the trailing-expr arm of `check_block`.
 export check_fn_body :: fn(
     fn_decl: AST.FnDecl,
-    body!: AST.BlockExpr,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    body: AST.BlockExpr!,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     return_type :: lookup_return_type(fn_decl, typed)
@@ -430,7 +430,7 @@ export check_fn_body :: fn(
     typed.current_fn_ctx = prev
 }
 
-patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed!: TypedProgram) -> void {
+patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram!) -> void {
     sym :: lookup_decl_symbol_stmt(typed.resolved, fn_decl)
     match sym {
         is Symbol as s -> {
@@ -520,8 +520,8 @@ emit_return_mismatch_if :: fn(
     expected: Type,
     span: Span,
     node_id: usize,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
 ) -> void = emit_mismatch_if(got, expected, span, node_id, .BodyReturnIncompatible, typed, diags)
 
 // The one coercion gate shared by let / return / yield / assign : `got` flows
@@ -536,7 +536,7 @@ emit_return_mismatch_if :: fn(
 // `check_block`, tripping the emit-time field-access panic). The current
 // compiler handles the single-expr form fine; the seed does not. Leave it
 // brace-bodied until the seed is advanced past that inliner/interning bug.
-flows_into :: fn(got: Type, expected: Type, node_id: usize, typed!: TypedProgram) -> bool {
+flows_into :: fn(got: Type, expected: Type, node_id: usize, typed: TypedProgram!) -> bool {
     if is_assignable(got, expected, null) {
         return true
     }
@@ -553,8 +553,8 @@ emit_mismatch_if :: fn(
     span: Span,
     node_id: usize,
     code: TypecheckCode,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
 ) -> void {
     if flows_into(got, expected, node_id, typed) {
         return
@@ -577,9 +577,9 @@ resolve_ctx :: fn(ctx: FnContext | null, typed: TypedProgram) -> FnContext | nul
 // ---- per-stmt helpers -----------------------------------------------------
 
 check_let :: fn(
-    s!: AST.LetStmt,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    s: AST.LetStmt!,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     ann: Type | null = null
@@ -647,7 +647,7 @@ check_let :: fn(
 // Only a WHOLE-value rebind propagates. A tuple destructure takes elements APART,
 // and an element of an immutable aggregate is reached through the path predicate
 // already, so nothing is lost by not marking the leaves here.
-mark_binding_borrow :: fn(b: AST.LetBinding, value: AST.Expr, typed!: TypedProgram) -> void {
+mark_binding_borrow :: fn(b: AST.LetBinding, value: AST.Expr, typed: TypedProgram!) -> void {
     if !expr_is_immutable(value, typed) {
         return
     }
@@ -660,7 +660,7 @@ mark_binding_borrow :: fn(b: AST.LetBinding, value: AST.Expr, typed!: TypedProgr
 // `x := []` : remember which expression the `?[]` came from, so the first
 // `x.push(elem)` can widen the LITERAL as well as the local (see
 // `TypedProgram.empty_array_inits`).
-record_empty_array_init :: fn(s: AST.LetStmt, declared: Type, typed!: TypedProgram) -> void {
+record_empty_array_init :: fn(s: AST.LetStmt, declared: Type, typed: TypedProgram!) -> void {
     if declared !is ArrayType {
         return
     }
@@ -676,9 +676,9 @@ record_empty_array_init :: fn(s: AST.LetStmt, declared: Type, typed!: TypedProgr
 import "vader/resolver/symbol"
 
 check_assign :: fn(
-    s!: AST.AssignStmt,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    s: AST.AssignStmt!,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     // T3041 : bare-ident assignment to a `::`-bound local. Surface
@@ -848,8 +848,8 @@ emit_assign_mismatch_if :: fn(
     expected: Type | null,
     span: Span,
     node_id: usize,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
 ) -> void {
     if expected == null                          { return }
     if flows_into(got, expected, node_id, typed) { return }
@@ -900,7 +900,7 @@ is_const_reassign :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
 ///                    has no meaningful value left to type.
 push_immutability_diag_at :: fn(
     immutable: bool, code: TypecheckCode, span: Span, message: string,
-    root_param: Symbol | null, diags!: Diagnostic[],
+    root_param: Symbol | null, diags: Diagnostic[]!,
 ) -> bool {
     if !immutable {
         return false
@@ -976,7 +976,7 @@ ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
 // there would mean a second, weaker copy of the predicate. The resolver's only
 // contribution is recording the loop var's Symbol in `idents` so it can be reached
 // from here. Runs before the body is checked, so uses inside see the mark.
-mark_loop_var_borrow :: fn(nv: AST.NamedVar, iter: AST.Expr, typed!: TypedProgram) -> void {
+mark_loop_var_borrow :: fn(nv: AST.NamedVar, iter: AST.Expr, typed: TypedProgram!) -> void {
     if !expr_is_immutable(iter, typed) {
         return
     }
@@ -990,16 +990,16 @@ mark_loop_var_borrow :: fn(nv: AST.NamedVar, iter: AST.Expr, typed!: TypedProgra
 // reached through an immutable path. Shared by the array and IndexSet branches of
 // `check_assign` ; the `const T[]` case keeps T3042's more specific wording.
 push_immutable_path_write :: fn(
-    immutable: bool, span: Span, root_param: Symbol | null, diags!: Diagnostic[],
+    immutable: bool, span: Span, root_param: Symbol | null, diags: Diagnostic[]!,
 ) -> bool = push_immutability_diag_at(
     immutable, .CannotMutateImmutableBinding, span,
     "this element is reached through an immutable path", root_param, diags,
 )
 
 check_return :: fn(
-    s!: AST.ReturnStmt,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    s: AST.ReturnStmt!,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
@@ -1051,9 +1051,9 @@ check_return :: fn(
 }
 
 check_yield :: fn(
-    s!: AST.YieldStmt,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    s: AST.YieldStmt!,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
@@ -1085,9 +1085,9 @@ check_yield :: fn(
 }
 
 check_for :: fn(
-    s!: AST.ForStmt,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    s: AST.ForStmt!,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
@@ -1164,9 +1164,9 @@ check_for :: fn(
 check_loop_jump :: fn(
     span: Span,
     label: string | null,
-    typed!: TypedProgram,
+    typed: TypedProgram!,
     ctx: FnContext | null,
-    diags!: Diagnostic[],
+    diags: Diagnostic[]!,
 ) -> void {
     // A bare `break`/`continue` targets the innermost loop (no diagnostic — reader
     // clarity is served by the LSP go-to-loop). A `break <name>` must resolve to an
@@ -1233,8 +1233,8 @@ resolve_loop_target :: fn(stack: EnclosingLoop[], name: string) -> EnclosingLoop
 
 check_defer :: fn(
     s: AST.DeferStmt,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
@@ -1294,8 +1294,8 @@ DivergentNarrow :: struct {
 // this by requiring the then-block's last stmt to be a `ReturnStmt`.
 push_divergent_narrow_if :: fn(
     stmt: AST.Stmt,
-    typed!: TypedProgram,
-    stack!: DivergentNarrow[],
+    typed: TypedProgram!,
+    stack: DivergentNarrow[]!,
 ) -> void {
     if stmt !is AST.ExprStmt    { return }
     if stmt.expr !is AST.IfExpr { return }
@@ -1594,8 +1594,8 @@ lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {
 export assign_binding_types :: fn(
     b: AST.LetBinding,
     declared: Type,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
 ) -> void {
     match b {
         is AST.SimpleBinding   -> { typed.local_types[b.name_span.hash()] = declared }
@@ -1608,8 +1608,8 @@ export assign_binding_types :: fn(
 assign_tuple :: fn(
     tb: AST.TupleBinding,
     declared: Type,
-    typed!: TypedProgram,
-    diags!: Diagnostic[],
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
 ) -> void {
     // A tuple- or array-backed distinct newtype (`Coord :: [i32, i32]`,
     // `BigInt :: u32[]`) destructures through its backing composite — the

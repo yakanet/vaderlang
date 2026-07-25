@@ -25,7 +25,7 @@ AST :: import "vader/parser"
 /// concrete `ComptimeValue`s, and the body is a single trailing
 /// expression or `return <expr>`.
 export evaluate_call_expr :: fn(
-    expr: AST.CallExpr, context!: ComptimeContext,
+    expr: AST.CallExpr, context: ComptimeContext!,
 ) -> EvalResult {
     if !(expr.callee is AST.IdentExpr) {
         return vm_required(expr.span, "CallExpr (non-ident callee)")
@@ -80,7 +80,7 @@ export evaluate_call_expr :: fn(
 is_primitive_int_name :: fn(name: string) -> bool = is_int_name(name)
 
 evaluate_fn_body :: fn(
-    fn_decl: AST.FnDecl, context!: ComptimeContext, call_span: Span,
+    fn_decl: AST.FnDecl, context: ComptimeContext!, call_span: Span,
 ) -> EvalResult {
     if fn_decl.body is null {
         return vm_required(call_span, "CallExpr (callee has no body)")

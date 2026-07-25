@@ -31,7 +31,7 @@ export dump_tokens :: fn(l: Lexer) -> string {
 // `vader/diagnostics/render` — rendering a `Diagnostic[]` is a diagnostics
 // concern, not a lexer one. This module keeps only the token dump below.
 
-format_token :: fn(sb!: StringBuilder, t: Token) -> void {
+format_token :: fn(sb: StringBuilder!, t: Token) -> void {
     span :: "${t.span.start.line}:${t.span.start.column}-${t.span.end.line}:${t.span.end.column}"
     sb.append_char('[')
     sb.append(span.pad_end(11, ' '))
@@ -42,7 +42,7 @@ format_token :: fn(sb!: StringBuilder, t: Token) -> void {
     sb.append_token_detail(t)
 }
 
-append_token_detail :: fn(sb!: StringBuilder, t: Token) -> void {
+append_token_detail :: fn(sb: StringBuilder!, t: Token) -> void {
     // The `_ -> "?"` arms below are defensive : the kind/value type pairing
     // is contractually guaranteed by `lex_number` / `lex_char` / etc., but
     // Vader's type system can't narrow the `value` union on `t.kind`, so

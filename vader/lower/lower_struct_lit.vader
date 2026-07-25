@@ -10,7 +10,7 @@ import "vader/diagnostics"
 import "vader/resolver/symbol"
 import "vader/types"
 
-lower_struct_lit :: fn(ctx!: FnLowerCtx, lit: StructLitExpr, type: Type) -> LoweredExpr {
+lower_struct_lit :: fn(ctx: FnLowerCtx!, lit: StructLitExpr, type: Type) -> LoweredExpr {
     // Index the literal's provided values by name so we can walk the
     // struct decl in declaration order ; this yields a canonical field
     // ordering even when the source literal reorders
@@ -222,7 +222,7 @@ ctx_in_owning_module :: fn(ctx: FnLowerCtx, module_id: string, decl: StructDecl,
 }
 
 build_struct_lit_fields :: fn(
-    ctx!: FnLowerCtx, type: Type,
+    ctx: FnLowerCtx!, type: Type,
     provided: MutableMap<string, Expr>, lit: StructLitExpr,
     spread_sym: Symbol | null,
 ) -> LoweredStructLitField[] {
@@ -284,7 +284,7 @@ build_struct_lit_fields :: fn(
 // declared type : widen free literals to the field's union context,
 // then apply an `Into` coercion when the field type calls for one.
 lower_field_value :: fn(
-    ctx!: FnLowerCtx, value: Expr, field_type: Type, span: Span,
+    ctx: FnLowerCtx!, value: Expr, field_type: Type, span: Span,
 ) -> LoweredExpr {
     lowered :: lower_expr(ctx, value)
     widened :: widen_literal_to_context(lowered, field_type)
@@ -338,7 +338,7 @@ find_lowered_field :: fn(fields: LoweredStructLitField[], name: string) -> Lower
 
 // Defensive fallback : when the struct decl can't be reached, emit
 // fields in source order (the previous behaviour).
-fallback_provided_order :: fn(ctx!: FnLowerCtx, lit: StructLitExpr) -> LoweredStructLitField[] {
+fallback_provided_order :: fn(ctx: FnLowerCtx!, lit: StructLitExpr) -> LoweredStructLitField[] {
     out: LoweredStructLitField[] = []
     for item in lit.items {
         match item {
@@ -353,7 +353,7 @@ fallback_provided_order :: fn(ctx!: FnLowerCtx, lit: StructLitExpr) -> LoweredSt
     return out
 }
 
-lower_seq_lit :: fn(ctx!: FnLowerCtx, lit: SeqLitExpr, type: Type) -> LoweredExpr {
+lower_seq_lit :: fn(ctx: FnLowerCtx!, lit: SeqLitExpr, type: Type) -> LoweredExpr {
     // Tuples share the parser shape `[a, b, c]` with arrays — disambiguate
     // by the resolved type. Tuple-typed literals (and tuple-backed distinct
     // newtypes, via `tuple_backing`) become struct lits with synthetic

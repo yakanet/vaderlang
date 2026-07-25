@@ -145,7 +145,7 @@ export new_emitter_ctx :: fn() -> EmitterCtx {
 /// @param t    the type to intern.
 /// @param ctx  the emit context — its `types` + `type_key` get mutated.
 /// @return     the type table index.
-export intern_type :: fn(t: Type, ctx!: EmitterCtx) -> i32 {
+export intern_type :: fn(t: Type, ctx: EmitterCtx!) -> i32 {
     key :: type_intern_key(t)
     existing :: ctx.type_key[key]
     if existing is i32 { return existing }
@@ -168,7 +168,7 @@ export intern_type :: fn(t: Type, ctx!: EmitterCtx) -> i32 {
 /// @param s    the string to intern.
 /// @param ctx  the emit context.
 /// @return     the pool index.
-export intern_string :: fn(s: string, ctx!: EmitterCtx) -> i32 {
+export intern_string :: fn(s: string, ctx: EmitterCtx!) -> i32 {
     existing :: ctx.string_key[s]
     if existing is i32 { return existing }
     new_index :: i32(ctx.strings.len())
@@ -190,7 +190,7 @@ export intern_string :: fn(s: string, ctx!: EmitterCtx) -> i32 {
 /// @param slot_type  the captured local's type.
 /// @param ctx        the emit context.
 /// @return           the type-table index of the `$Cell<T>` struct.
-export intern_cell_type :: fn(slot_type: Type, ctx!: EmitterCtx) -> i32 {
+export intern_cell_type :: fn(slot_type: Type, ctx: EmitterCtx!) -> i32 {
     slot_index :: intern_type(slot_type, ctx)
     key :: "\$Cell<${type_intern_key(slot_type)}>"
     existing :: ctx.type_key[key]

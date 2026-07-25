@@ -74,7 +74,7 @@ dump_bytecode_impl :: fn(module: BytecodeModule, entry_mangled: string, annotate
     return "${sb}"
 }
 
-write_types :: fn(sb!: StringBuilder, types: BcType[]) -> void {
+write_types :: fn(sb: StringBuilder!, types: BcType[]) -> void {
     for i in 0..<types.len() {
         sb.append("type ${i} ${format_bc_type(types[i])}\n")
     }
@@ -86,7 +86,7 @@ write_types :: fn(sb!: StringBuilder, types: BcType[]) -> void {
 // Round-trips through `virt_reader_bc::parse_data_decl_bc` so the VM reconstructs
 // the pool ; without this the `.virt` carries `data.const N` ops with no backing
 // entry (pool_index out of range).
-write_data_pool :: fn(sb!: StringBuilder, data_pool: BcDataEntry[], strings: string[]) -> void {
+write_data_pool :: fn(sb: StringBuilder!, data_pool: BcDataEntry[], strings: string[]) -> void {
     // Only aggregate entries reference the pool via `strref` ; skip the index
     // build for pools without one (const string[] / primitive tables) so a dump
     // over a large `module.strings` stays free.
@@ -167,7 +167,7 @@ build_string_index :: fn(strings: string[]) -> MutableMap<string, i32> {
 }
 
 // Serialise one recursive baked value into the count-prefixed `.virt` form.
-write_data_value :: fn(out!: StringBuilder, v: BcDataValue, str_index: MutableMap<string, i32>) -> void {
+write_data_value :: fn(out: StringBuilder!, v: BcDataValue, str_index: MutableMap<string, i32>) -> void {
     if v is BcValPrim as p {
         // No `prim` tag : a primitive leaf is `<kind> <hex>`. The kind name
         // (i32, u8, f64, …) never collides with the str/strref/struct/array tags,
@@ -283,13 +283,13 @@ json_escape :: fn(s: string) -> string {
     return "${sb}"
 }
 
-write_strings :: fn(sb!: StringBuilder, strings: string[]) -> void {
+write_strings :: fn(sb: StringBuilder!, strings: string[]) -> void {
     for i in 0..<strings.len() {
         sb.append("string ${i} ${quote_string(strings[i])}\n")
     }
 }
 
-write_imports :: fn(sb!: StringBuilder, imports: BcImport[]) -> void {
+write_imports :: fn(sb: StringBuilder!, imports: BcImport[]) -> void {
     for i in 0..<imports.len() {
         imp :: imports[i]
         prefix :: if imp.is_extern { "extern " } else { "" }
@@ -299,14 +299,14 @@ write_imports :: fn(sb!: StringBuilder, imports: BcImport[]) -> void {
     }
 }
 
-write_impl_table :: fn(sb!: StringBuilder, impls: ImplEntry[]) -> void {
+write_impl_table :: fn(sb: StringBuilder!, impls: ImplEntry[]) -> void {
     for i in 0..<impls.len() {
         row :: impls[i]
         sb.append("impl ${row.struct_type_index} ${row.trait_name}\n")
     }
 }
 
-write_vtable_rows :: fn(sb!: StringBuilder, vtables: VtableRow[]) -> void {
+write_vtable_rows :: fn(sb: StringBuilder!, vtables: VtableRow[]) -> void {
     for row in vtables {
         for e in row.entries {
             sb.append("vtable ${row.key} ${e.receiver_type_index} ${e.fn_index}\n")
@@ -321,7 +321,7 @@ write_vtable_rows :: fn(sb!: StringBuilder, vtables: VtableRow[]) -> void {
 // which is emission-order-dependent and picks the wrong module's `main`
 // when several modules declare one (e.g. `vader_lsp$main` before
 // `vader_cli$main`). `entry_mangled == ""` (no known entry) emits nothing.
-write_entry_main :: fn(sb!: StringBuilder, functions: BcFunction[], entry_mangled: string) -> void {
+write_entry_main :: fn(sb: StringBuilder!, functions: BcFunction[], entry_mangled: string) -> void {
     if entry_mangled == "" { return }
     entry_idx: i32 = -1
     for i in 0..<functions.len() {
@@ -330,7 +330,7 @@ write_entry_main :: fn(sb!: StringBuilder, functions: BcFunction[], entry_mangle
     if entry_idx >= 0 { sb.append("export main ${entry_idx}\n") }
 }
 
-write_exports :: fn(sb!: StringBuilder, exports: BcExport[], functions: BcFunction[]) -> void {
+write_exports :: fn(sb: StringBuilder!, exports: BcExport[], functions: BcFunction[]) -> void {
     // Iterate the emitted exports list only, no implicit `export main`.
     // The host recognises the entry via `BcFunction.is_main`, not via an
     // export directive.
@@ -339,7 +339,7 @@ write_exports :: fn(sb!: StringBuilder, exports: BcExport[], functions: BcFuncti
     }
 }
 
-write_signature :: fn(sb!: StringBuilder, signature: BcSignature) -> void {
+write_signature :: fn(sb: StringBuilder!, signature: BcSignature) -> void {
     sb.append_char('(')
     for i in 0..<signature.params.len() {
         if i > 0 { sb.append(",") }
@@ -349,7 +349,7 @@ write_signature :: fn(sb!: StringBuilder, signature: BcSignature) -> void {
     sb.append(val_type_name(signature.result))
 }
 
-write_function :: fn(sb!: StringBuilder, module: BytecodeModule, function_decl: BcFunction, function_index: i32, annotate: bool) -> void {
+write_function :: fn(sb: StringBuilder!, module: BytecodeModule, function_decl: BcFunction, function_index: i32, annotate: bool) -> void {
     sb.append("fn ${function_index} ${function_decl.name} ")
     write_signature(sb, function_decl.signature)
     sb.append("\n")
@@ -367,7 +367,7 @@ write_function :: fn(sb!: StringBuilder, module: BytecodeModule, function_decl: 
 // scope ; `else` lives at the parent indent. `br` / `br_if` rewrite their
 // integer depth into the matching `$L<N>` label by walking the label
 // stack from the top.
-write_body_with_scopes :: fn(sb!: StringBuilder, module: BytecodeModule, function_decl: BcFunction, annotate: bool) -> void {
+write_body_with_scopes :: fn(sb: StringBuilder!, module: BytecodeModule, function_decl: BcFunction, annotate: bool) -> void {
     body        :: function_decl.body
     jump_table  :: function_decl.jump_table
     locals      :: function_decl.locals
@@ -489,7 +489,7 @@ write_body_with_scopes :: fn(sb!: StringBuilder, module: BytecodeModule, functio
 }
 
 push_scope_entry :: fn(
-    labels!: string[], opener_pc!: i32[], is_loop!: bool[],
+    labels: string[]!, opener_pc: i32[]!, is_loop: bool[]!,
     sp: usize, label: string, pc: i32, loop_flag: bool,
 ) -> void {
     if sp == labels.len() {
@@ -527,7 +527,7 @@ top_non_loop_label_local :: fn(
     return ""
 }
 
-write_indent :: fn(sb!: StringBuilder, depth: i32) -> void {
+write_indent :: fn(sb: StringBuilder!, depth: i32) -> void {
     d := depth
     for d > 0 { sb.append("  ")  d = d - 1 }
 }
@@ -568,7 +568,7 @@ f64_const_operands :: fn(v: f64) -> string {
 // staying exhaustive (a new op with no arm trips T3013 — no `_` wildcard).
 // The single canonical op→text table, shared by `dump_bytecode` and
 // `vader/vm/virt_writer` (which imports this).
-export write_op :: fn(out!: StringBuilder, op: Op) -> void {
+export write_op :: fn(out: StringBuilder!, op: Op) -> void {
     match op {
         is I32Const as c            -> out.append("i32.const ${c.value}")
         is I64Const as c            -> out.append("i64.const ${c.value}")

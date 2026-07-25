@@ -84,11 +84,11 @@ peek_byte :: fn(p: Parser) -> char {
     return p.bytes.utf8_decode(p.pos)
 }
 
-advance :: fn(p!: Parser) -> void {
+advance :: fn(p: Parser!) -> void {
     p.pos = p.pos + 1
 }
 
-skip_ws :: fn(p!: Parser) -> void {
+skip_ws :: fn(p: Parser!) -> void {
     for !at_end(p) {
         if is_white_char(peek_byte(p)) {
             advance(p)
@@ -102,7 +102,7 @@ fail :: fn(p: Parser, msg: string) -> JsonError {
     return JsonError { .msg = msg, .pos = p.pos }
 }
 
-expect_byte :: fn(p!: Parser, expected: char) -> JsonError | null {
+expect_byte :: fn(p: Parser!, expected: char) -> JsonError | null {
     if at_end(p) {
         return fail(p, "unexpected end of input")
     }
@@ -113,7 +113,7 @@ expect_byte :: fn(p!: Parser, expected: char) -> JsonError | null {
     return null
 }
 
-match_keyword :: fn(p!: Parser, kw: string) -> bool {
+match_keyword :: fn(p: Parser!, kw: string) -> bool {
     kb :: kw.bytes()
     n :: kb.len()
     if p.pos + n > p.eof {
@@ -138,7 +138,7 @@ match_keyword :: fn(p!: Parser, kw: string) -> bool {
 /// costs ~2 frames — and comfortably above any realistic document.
 MAX_DEPTH :: 200
 
-parse_value :: fn(p!: Parser, depth: i32) -> JsonValue | JsonError {
+parse_value :: fn(p: Parser!, depth: i32) -> JsonValue | JsonError {
     if depth > MAX_DEPTH {
         return fail(p, "maximum nesting depth exceeded")
     }
@@ -182,14 +182,14 @@ parse_value :: fn(p!: Parser, depth: i32) -> JsonValue | JsonError {
 
 // ---- literal-keyword parsers ---------------------------------------------
 
-parse_null :: fn(p!: Parser) -> JsonNull | JsonError {
+parse_null :: fn(p: Parser!) -> JsonNull | JsonError {
     if !match_keyword(p, "null") {
         return fail(p, "expected `null`")
     }
     return JsonNull {}
 }
 
-parse_bool :: fn(p!: Parser) -> JsonBool | JsonError {
+parse_bool :: fn(p: Parser!) -> JsonBool | JsonError {
     if match_keyword(p, "true") {
         return JsonBool { .value = true }
     }
@@ -201,7 +201,7 @@ parse_bool :: fn(p!: Parser) -> JsonBool | JsonError {
 
 // ---- number parser --------------------------------------------------------
 
-parse_number :: fn(p!: Parser) -> JsonNumber | JsonError {
+parse_number :: fn(p: Parser!) -> JsonNumber | JsonError {
     start := p.pos
     if peek_byte(p) == '-' {
         advance(p)
@@ -264,7 +264,7 @@ parse_number :: fn(p!: Parser) -> JsonNumber | JsonError {
 /// @param p  the parser (advanced past the closing quote on success).
 /// @return   the decoded string body.
 /// @error    `JsonError` on unterminated input or a bad escape.
-parse_string :: fn(p!: Parser) -> string | JsonError {
+parse_string :: fn(p: Parser!) -> string | JsonError {
     if expect_byte(p, '"') is JsonError as e { return e }
     start :: p.pos
     for scan in p.pos..<p.eof {
@@ -295,7 +295,7 @@ parse_string :: fn(p!: Parser) -> string | JsonError {
 /// @param sb  the builder seeded with the pre-escape literal prefix.
 /// @return    the decoded string body.
 /// @error     `JsonError` on unterminated input or a bad escape.
-parse_string_with_escapes :: fn(p!: Parser, sb!: StringBuilder) -> string | JsonError {
+parse_string_with_escapes :: fn(p: Parser!, sb: StringBuilder!) -> string | JsonError {
     for !at_end(p) {
         c := peek_byte(p)
         if c == '"' {
@@ -348,7 +348,7 @@ parse_string_with_escapes :: fn(p!: Parser, sb!: StringBuilder) -> string | Json
 // Read exactly 4 hex digits at `p.pos` (a `\uXXXX` payload — the `\u` is
 // already consumed), advancing `p.pos` by 4 on success. Returns the 0..0xFFFF
 // value, or -1 (without advancing) on incomplete input / a non-hex digit.
-read_hex4 :: fn(p!: Parser) -> i32 {
+read_hex4 :: fn(p: Parser!) -> i32 {
     if p.pos + 4 > p.eof {
         return -1
     }
@@ -371,7 +371,7 @@ read_hex4 :: fn(p!: Parser) -> i32 {
 // trailing escape that wasn't a low surrogate is left unconsumed for the main
 // loop to re-decode, so it keeps its own meaning. Returns false on incomplete /
 // non-hex input.
-decode_unicode_escape :: fn(p!: Parser, sb!: StringBuilder) -> bool {
+decode_unicode_escape :: fn(p: Parser!, sb: StringBuilder!) -> bool {
     hi_val :: read_hex4(p)
     if hi_val < 0 {
         return false
@@ -402,7 +402,7 @@ decode_unicode_escape :: fn(p!: Parser, sb!: StringBuilder) -> bool {
 
 // ---- array parser ---------------------------------------------------------
 
-parse_array :: fn(p!: Parser, depth: i32) -> JsonArray | JsonError {
+parse_array :: fn(p: Parser!, depth: i32) -> JsonArray | JsonError {
     if expect_byte(p, '[') is JsonError as e { return e }
     items: JsonValue[] = []
     skip_ws(p)
@@ -435,7 +435,7 @@ parse_array :: fn(p!: Parser, depth: i32) -> JsonArray | JsonError {
 
 // ---- object parser --------------------------------------------------------
 
-parse_object :: fn(p!: Parser, depth: i32) -> JsonObject | JsonError {
+parse_object :: fn(p: Parser!, depth: i32) -> JsonObject | JsonError {
     if expect_byte(p, '{') is JsonError as e { return e }
     entries := MutableMap<string, JsonValue> {}
     skip_ws(p)
@@ -498,7 +498,7 @@ export parse :: fn(input: string) -> JsonValue | JsonError {
 
 // ---- stringify ------------------------------------------------------------
 
-write_string :: fn(sb!: StringBuilder, s: string) -> void {
+write_string :: fn(sb: StringBuilder!, s: string) -> void {
     sb.append_char('"')
     for c in s.chars() {
         cp := i32(c)
@@ -522,9 +522,9 @@ write_string :: fn(sb!: StringBuilder, s: string) -> void {
 // an int/float distinction), so preserving `.0` would carry no information
 // — emit the canonical short form, matching JS `JSON.stringify`, Go
 // `encoding/json`, and RFC 8785 (JCS).
-write_number :: fn(sb!: StringBuilder, v: f64) -> void = sb.append(v.to_compact_str())
+write_number :: fn(sb: StringBuilder!, v: f64) -> void = sb.append(v.to_compact_str())
 
-write_value :: fn(sb!: StringBuilder, v: JsonValue, indent: i32, depth: i32) -> void {
+write_value :: fn(sb: StringBuilder!, v: JsonValue, indent: i32, depth: i32) -> void {
     match v {
         is JsonNull   -> { sb.append("null") }
         is JsonBool   -> {
@@ -541,7 +541,7 @@ write_value :: fn(sb!: StringBuilder, v: JsonValue, indent: i32, depth: i32) -> 
     }
 }
 
-write_indent :: fn(sb!: StringBuilder, indent: i32, depth: i32) -> void {
+write_indent :: fn(sb: StringBuilder!, indent: i32, depth: i32) -> void {
     if indent <= 0 {
         return
     }
@@ -549,7 +549,7 @@ write_indent :: fn(sb!: StringBuilder, indent: i32, depth: i32) -> void {
     sb.append_repeated(' ', indent * depth)
 }
 
-write_array :: fn(sb!: StringBuilder, a: JsonArray, indent: i32, depth: i32) -> void {
+write_array :: fn(sb: StringBuilder!, a: JsonArray, indent: i32, depth: i32) -> void {
     if a.items.len() == 0 {
         sb.append("[]")
         return
@@ -568,7 +568,7 @@ write_array :: fn(sb!: StringBuilder, a: JsonArray, indent: i32, depth: i32) -> 
     sb.append_char(']')
 }
 
-write_object :: fn(sb!: StringBuilder, o: JsonObject, indent: i32, depth: i32) -> void {
+write_object :: fn(sb: StringBuilder!, o: JsonObject, indent: i32, depth: i32) -> void {
     if o.entries.len() == 0 {
         sb.append("{}")
         return

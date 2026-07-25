@@ -14,7 +14,7 @@ Counter :: struct {
 }
 
 // Same-module helpers — `@internal` does not restrict these.
-bump :: fn(c!: Counter) -> void { c.count = c.count + 1 }
+bump :: fn(c: Counter!) -> void { c.count = c.count + 1 }
 
 main :: fn() -> i32 {
     c :: Counter { .label = "hits" }   // construct via the field's default

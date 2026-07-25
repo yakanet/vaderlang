@@ -22,7 +22,7 @@ AST :: import "vader/parser"
 ///                    cycle.
 /// @return            the combined value or a diagnostic.
 export evaluate_binary_expr :: fn(
-    expr: AST.BinaryExpr, context!: ComptimeContext,
+    expr: AST.BinaryExpr, context: ComptimeContext!,
     recurse: fn(AST.Expr, ComptimeContext!) -> EvalResult,
 ) -> EvalResult {
     left_result :: recurse(expr.left, context)
@@ -76,7 +76,7 @@ combine_binary :: fn(expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeV
 /// @param recurse  dispatcher callback ; see `evaluate_binary_expr`.
 /// @return         the result value or a diagnostic.
 export evaluate_unary_expr :: fn(
-    expr: AST.UnaryExpr, context!: ComptimeContext,
+    expr: AST.UnaryExpr, context: ComptimeContext!,
     recurse: fn(AST.Expr, ComptimeContext!) -> EvalResult,
 ) -> EvalResult {
     inner :: recurse(expr.operand, context)

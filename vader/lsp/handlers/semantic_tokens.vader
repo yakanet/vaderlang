@@ -79,7 +79,7 @@ produce_tokens :: fn(source: string, uri: string, li: LineIndex) -> JsonValue {
 // Derive every token's `col` + `length` from its byte offsets in the negotiated
 // encoding. Run once, after all producers have filled the offsets. This is the
 // sole place the position encoding is applied — producers stay encoding-agnostic.
-reencode_columns :: fn(out!: RawToken[], li: LineIndex) -> void {
+reencode_columns :: fn(out: RawToken[]!, li: LineIndex) -> void {
     for i in 0..<out.len() {
         col :: li_character(li, out[i].line, out[i].start_offset)
         out[i].col    = col
@@ -89,7 +89,7 @@ reencode_columns :: fn(out!: RawToken[], li: LineIndex) -> void {
 
 // ---- lexer tokens → semantic tokens --------------------------------------
 
-collect_token_kinds :: fn(source: string, uri: string, out!: RawToken[]) -> void {
+collect_token_kinds :: fn(source: string, uri: string, out: RawToken[]!) -> void {
     lex :: tokenize(source, uri)
     toks :: lex.tokens
     for i in 0..<toks.len() {
@@ -159,7 +159,7 @@ classify_token :: fn(t: Token) -> i32 = match t.kind {
 
 // ---- comments → semantic tokens ------------------------------------------
 
-collect_comment_kinds :: fn(source: string, out!: RawToken[]) -> void {
+collect_comment_kinds :: fn(source: string, out: RawToken[]!) -> void {
     cm :: scan_comments(source)
     for c in cm.comments {
         rt :: comment_to_raw(c)
@@ -218,7 +218,7 @@ make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken {
 // `///` prefix and narrative therefore keep their TextMate coloring
 // from `comment.line.documentation.vader` ; only the tag fragments
 // receive semantic-token treatment.
-collect_doc_line_tokens :: fn(c: Comment, out!: RawToken[]) -> void {
+collect_doc_line_tokens :: fn(c: Comment, out: RawToken[]!) -> void {
     text :: c.text
     text_bytes :: text.bytes()
     n :: text_bytes.len()
@@ -295,7 +295,7 @@ scan_ident_end :: fn(s: string, start: usize) -> usize {
 // Sort by (line, col) ascending. The lexer emits tokens in source order
 // already, but comment tokens are produced separately and need merging.
 // Insertion sort suffices — token count per file is small (≤ a few k).
-sort_raws :: fn(arr!: RawToken[]) -> void {
+sort_raws :: fn(arr: RawToken[]!) -> void {
     n :: arr.len()
     for i in 1..<n {
         x :: arr[i]

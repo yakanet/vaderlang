@@ -52,7 +52,7 @@ is_self_recursive_instance_call :: fn(ctx: FnLowerCtx, callee: Symbol) -> bool {
     return false
 }
 
-try_lower_generic_fn_call :: fn(ctx!: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
+try_lower_generic_fn_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr | null {
     // Explicit-args generic call : `identity<i32>(42)`. The callee
     // is a GenericInstExpr whose inner callee is the fn IdentExpr.
     // Type args come from the GenericInstExpr's type_args slot,
@@ -130,7 +130,7 @@ try_lower_generic_fn_call :: fn(ctx!: FnLowerCtx, call: CallExpr, type: Type) ->
 // Returns null when `ft` isn't generic or the type args don't infer to all-
 // concrete (recovery — the caller falls through to its non-generic handling).
 emit_generic_fn_call :: fn(
-    ctx!: FnLowerCtx, call: CallExpr, type: Type, fn_sym: Symbol, ft: FnType, callee_span: Span,
+    ctx: FnLowerCtx!, call: CallExpr, type: Type, fn_sym: Symbol, ft: FnType, callee_span: Span,
 ) -> LoweredExpr | null {
     if !type_has_param(ft) { return null }
     // Resolve concrete type args by unifying each `ft.params[i]` (which carries
@@ -195,7 +195,7 @@ emit_generic_fn_call :: fn(
 // keeping the `dump_bytecode → parse_virt → exec` round-trip's fn names
 // distinct. Subsequent call sites of the same instance reuse the cached mangle.
 register_fn_instance_mangle :: fn(
-    ctx!: FnLowerCtx, fn_sym: Symbol, concrete_args: const Type[],
+    ctx: FnLowerCtx!, fn_sym: Symbol, concrete_args: const Type[],
     owner_module: string, base_mangled: string, inst_key: string,
 ) -> string {
     existing :: ctx.project.fn_instances[inst_key]
@@ -220,7 +220,7 @@ register_fn_instance_mangle :: fn(
 // `fn<T>(args)` GenericInstExpr calls. Registers the GenericFnInstance
 // and emits the LoweredCall pointing at the monomorphic mangled symbol.
 register_and_emit_generic_call :: fn(
-    ctx!: FnLowerCtx, call: CallExpr, type: Type,
+    ctx: FnLowerCtx!, call: CallExpr, type: Type,
     fn_sym: Symbol, concrete_args: const Type[], callee_span: Span,
 ) -> LoweredExpr {
     // `owner_module` is the fn's defining module, NOT the caller's —
@@ -296,7 +296,7 @@ infer_type_args :: fn(ft: FnType, call: CallExpr, ctx: FnLowerCtx) -> Type[] {
     return out
 }
 
-unify_params :: fn(pattern: Type, concrete: Type, bindings!: MutableMap<i32, Type>, order!: i32[], ctx: FnLowerCtx) -> void {
+unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type>!, order: i32[]!, ctx: FnLowerCtx) -> void {
     if pattern is TypeParamType as tp {
         existing :: bindings[tp.symbol.id]
         match existing {

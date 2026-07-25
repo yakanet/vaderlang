@@ -13,7 +13,7 @@ import "vader/types"
 AST :: import "vader/parser"
 
 export evaluate_seq_lit :: fn(
-    expr: AST.SeqLitExpr, context!: ComptimeContext,
+    expr: AST.SeqLitExpr, context: ComptimeContext!,
     recurse: fn(AST.Expr, ComptimeContext!) -> EvalResult,
 ) -> EvalResult {
     elements: ComptimeValue[] = []

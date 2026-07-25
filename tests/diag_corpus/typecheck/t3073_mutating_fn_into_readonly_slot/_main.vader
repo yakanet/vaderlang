@@ -14,7 +14,7 @@ readonly_slot :: fn(f: fn(i32[]) -> void, xs: i32[]) -> void {
     f(xs)
 }
 
-mutates :: fn(b!: i32[]) -> void {
+mutates :: fn(b: i32[]!) -> void {
     b.push(1)
 }
 

@@ -25,7 +25,7 @@ import "vader/lsp/analysis"
 /// Resolve typeDefinition for the position carried in `params`. Returns a
 /// `Location` (the type's declaration), or `JsonNull` when the cursor isn't on
 /// a typed value or the value's type has no declaration to jump to.
-export handle_type_definition :: fn(state!: ServerState, params: JsonValue) -> JsonValue {
+export handle_type_definition :: fn(state: ServerState!, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     if uri == "" { return JsonNull {} }
     file_path :: uri_to_path(uri)

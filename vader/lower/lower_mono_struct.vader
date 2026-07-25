@@ -20,7 +20,7 @@ import "vader/resolver/symbol"
 // state. `pending_reps` is rebuilt inside the second pass from
 // `evaluated.instances` since they're stored on the project ctx.
 materialize_concrete_struct_instances :: fn(
-    loaded: LoadedProject, typed: TypedProject, project_ctx!: LowerProjectCtx,
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx!,
     project: LoweredProject, diags: Diagnostic[],
 ) -> MutableSet<string> {
     seen_reps :: new_string_set()
@@ -35,7 +35,7 @@ materialize_concrete_struct_instances :: fn(
 //   concrete structs ; fn instances ; representative structs.
 materialize_representatives :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
-    project: LoweredProject, seen_reps!: MutableSet<string>,
+    project: LoweredProject, seen_reps: MutableSet<string>!,
 ) -> void {
     for inst in project_ctx.evaluated.instances {
         materialize_representative(inst, loaded, typed, project_ctx, project, seen_reps)
@@ -51,7 +51,7 @@ materialize_representatives :: fn(
 materialize_representative :: fn(
     inst: GenericInstance, loaded: LoadedProject, typed: TypedProject,
     project_ctx: LowerProjectCtx, project: LoweredProject,
-    seen_reps!: MutableSet<string>,
+    seen_reps: MutableSet<string>!,
 ) -> void {
     if !all_concrete_args(inst.args) { return }
     sym :: inst.symbol
@@ -108,7 +108,7 @@ materialize_representative :: fn(
 
 materialize_one_instance :: fn(
     inst: GenericInstance, loaded: LoadedProject, typed: TypedProject,
-    project_ctx!: LowerProjectCtx, project: LoweredProject, diags: Diagnostic[],
+    project_ctx: LowerProjectCtx!, project: LoweredProject, diags: Diagnostic[],
 ) -> void {
     // Only concrete instances get a monomorphized decl. Skip uses where
     // any arg is still a TypeParam (those are the generic decl's own
@@ -312,7 +312,7 @@ MAX_FIELD_SHAPES :: 4096
 /// same shape recurs across hundreds of field / signature slots
 /// otherwise. TypeParam-bearing shapes (a generic decl's own
 /// self-reference) are skipped.
-push_struct_shape :: fn(t: Type, out!: StructType[], seen!: MutableSet<string>) -> void {
+push_struct_shape :: fn(t: Type, out: StructType[]!, seen: MutableSet<string>!) -> void {
     if t is StructType as s {
         if has_type_param(s) { return }
         key :: "${s.symbol.id}|${display_type(s)}"
@@ -360,7 +360,7 @@ materialize_shape :: fn(
 
 materialize_impl_members_for :: fn(
     inst: GenericInstance, owner_typed: TypedProgram,
-    project_ctx!: LowerProjectCtx, project: LoweredProject,
+    project_ctx: LowerProjectCtx!, project: LoweredProject,
     loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
 ) -> void {
     // Walk every module's impls (impls can be in foreign modules) and
@@ -398,7 +398,7 @@ is_generic_impl_for :: fn(impl_decl: ImplDecl, struct_name: string) -> bool {
 materialize_impl_for_instance :: fn(
     impl_decl: ImplDecl, inst: GenericInstance,
     impl_typed: TypedProgram, owner_typed: TypedProgram,
-    project_ctx!: LowerProjectCtx, project: LoweredProject,
+    project_ctx: LowerProjectCtx!, project: LoweredProject,
 ) -> void {
     // Erasure : self type uses any-leaves args (Stack<Any> instead of
     // Stack<i32>) and the substitution carried into params / body maps
@@ -498,7 +498,7 @@ materialize_impl_for_instance :: fn(
 /// Deduped per `(type, trait)` ; no-op for unbounded type params.
 materialize_bound_trait_impls :: fn(
     impl_decl: ImplDecl, inst: GenericInstance,
-    project_ctx!: LowerProjectCtx, project: LoweredProject,
+    project_ctx: LowerProjectCtx!, project: LoweredProject,
     loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
 ) -> void {
     for i in 0..<impl_decl.type_params.len() {
@@ -518,7 +518,7 @@ materialize_bound_trait_impls :: fn(
 // names. `Comparable & Step` is a `BinaryExpr(BitAnd, ...)` ; a single
 // bound is a bare `IdentExpr` ; a generic bound (`Iterator<T>`) takes the
 // callee name.
-flatten_trait_bound :: fn(bound: TypeExpr, out!: string[]) -> void {
+flatten_trait_bound :: fn(bound: TypeExpr, out: string[]!) -> void {
     match bound {
         is IdentExpr as id -> { out.push(id.name) }
         is BinaryExpr as b -> {
@@ -542,7 +542,7 @@ flatten_trait_bound :: fn(bound: TypeExpr, out!: string[]) -> void {
 // vtable picks them up. Deduped per `(type_name, trait_name)`.
 materialize_bound_impl :: fn(
     type_name: string, trait_name: string,
-    project_ctx!: LowerProjectCtx, project: LoweredProject,
+    project_ctx: LowerProjectCtx!, project: LoweredProject,
     loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
 ) -> void {
     dedupe_key :: "boundimpl::${type_name}::${trait_name}"

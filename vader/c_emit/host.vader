@@ -23,7 +23,7 @@ import "vader/bytecode"
 /// for `@extern` foreign symbols. Unused imports are pruned upstream, so
 /// `module.imports` already carries only the referenced host fns. A
 /// trailing blank line keeps the spacing before the fn bodies stable.
-emit_import_shims :: fn(ctx: EmitCtx, out!: StringBuilder) -> void {
+emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     extern_decls: string[] = []
     seen_extern: string[] = []
     shims: string[] = []

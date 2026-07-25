@@ -55,7 +55,7 @@ parse_args :: fn(args: string[]) -> Options {
 
 // Recursive `.vader` collector. Skips hidden entries and known build dirs by
 // name so `vader fmt .` doesn't walk vendored / generated trees.
-collect_files :: fn(root: string, out!: string[]) -> void {
+collect_files :: fn(root: string, out: string[]!) -> void {
     if !exists(root) {
         eprintln("vader fmt: path not found: ${root}")
         return

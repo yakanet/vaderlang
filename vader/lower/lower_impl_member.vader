@@ -40,7 +40,7 @@ is_identity_member :: fn(m: FnDecl) -> bool {
 /// `LoweredCall` exactly as before. The single hook every "resolve impl member +
 /// build call" site should route through (P2 will extend it to general
 /// expression bodies via value-substitution).
-build_member_call_or_inline :: fn(member: UfcsMember, args!: LoweredExpr[], ret: Type, span: Span) -> LoweredExpr {
+build_member_call_or_inline :: fn(member: UfcsMember, args: LoweredExpr[]!, ret: Type, span: Span) -> LoweredExpr {
     // Identity uses `self` exactly once, so returning the (already-lowered)
     // receiver evaluates it once — no temp / double-eval concern.
     if member.is_identity && args.len() == 1 { return args[0] }
@@ -52,7 +52,7 @@ build_member_call_or_inline :: fn(member: UfcsMember, args!: LoweredExpr[], ret:
 // virtual `recv.method()` resolves at emit. Deduped per receiver via
 // `seen_generic_impl_recv`. Shared by the erased-receiver path
 // (`find_impl_member_for`) and the array→Iterator wrap (`try_array_iter_coercion`).
-queue_generic_impl_receiver :: fn(ctx!: FnLowerCtx, recv: StructType) -> void {
+queue_generic_impl_receiver :: fn(ctx: FnLowerCtx!, recv: StructType) -> void {
     // Distinct→backing on the receiver's args before keying/queuing — the
     // queued instance must match the registry's raw backing instance, not a
     // separate distinct one. Distinct ends at the lowering boundary.
@@ -91,7 +91,7 @@ ImplMemberMatch :: struct {
 /// remember the first intrinsic match as a fallback and use it only when no
 /// user impl turns up. The mangle always reads the SELECTED member's own name,
 /// so trait-keyed dispatch picks up whatever the impl declares.
-resolve_impl_member :: fn(ctx!: FnLowerCtx, target_type: Type, key: string, by_trait: bool) -> UfcsMember | null {
+resolve_impl_member :: fn(ctx: FnLowerCtx!, target_type: Type, key: string, by_trait: bool) -> UfcsMember | null {
     target_name :: type_surface_name(target_type)
     if target_name == "" { return null }
     fallback: ImplMemberMatch | null = null
@@ -127,7 +127,7 @@ select_member :: fn(decl: ImplDecl, key: string, by_trait: bool) -> FnDecl | nul
 }
 
 // Resolve a UFCS member by method NAME (`recv.method()` dispatch).
-find_impl_member_for :: fn(ctx!: FnLowerCtx, target_type: Type, method_name: string) -> UfcsMember | null =
+find_impl_member_for :: fn(ctx: FnLowerCtx!, target_type: Type, method_name: string) -> UfcsMember | null =
     resolve_impl_member(ctx, target_type, method_name, false)
 
 /// Resolve the sole method member of `target_type`'s impl of `trait_name`,
@@ -135,12 +135,12 @@ find_impl_member_for :: fn(ctx!: FnLowerCtx, target_type: Type, method_name: str
 /// literal. Dispatches on trait identity, exactly like the typechecker's index
 /// routing (`vader/typecheck/orchestrate.vader`, `TRAIT_INDEX` / `TRAIT_INDEX_SET`),
 /// so a rename of the trait's method can't drift a hard-coded name.
-find_trait_impl_member :: fn(ctx!: FnLowerCtx, target_type: Type, trait_name: string) -> UfcsMember | null =
+find_trait_impl_member :: fn(ctx: FnLowerCtx!, target_type: Type, trait_name: string) -> UfcsMember | null =
     resolve_impl_member(ctx, target_type, trait_name, true)
 
 /// Build the `UfcsMember` for `method_name` on `entry`'s impl of `target_type` :
 /// the deterministic mangle, plus the side-tables that surface / materialise it.
-build_ufcs_member :: fn(ctx!: FnLowerCtx, target_type: Type, target_name: string, method_name: string, entry: ImplEntry, is_identity: bool) -> UfcsMember {
+build_ufcs_member :: fn(ctx: FnLowerCtx!, target_type: Type, target_name: string, method_name: string, entry: ImplEntry, is_identity: bool) -> UfcsMember {
     decl :: entry.decl
     // Synthesise a Fn symbol carrying the member's deterministic mangle so the
     // call site resolves to the synth decl's mangle index
@@ -282,7 +282,7 @@ impl_targets_name :: fn(for_type: Expr, name: string) -> bool {
 /// is a type-shaped symbol (builtin primitive, struct, or type alias) with
 /// a single arg. For non-numeric targets the typer already routed the arg
 /// through `tryInto` ; we emit the lowered arg verbatim.
-try_lower_cast_call :: fn(ctx!: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
+try_lower_cast_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr | null {
     if call.args.len() != 1 { return null }
     callee_ident :: as_ident(call.callee) ?? return null
     callee_symbol :: ctx.typed.resolved.idents[callee_ident.span.hash()] ?? return null
@@ -310,7 +310,7 @@ try_lower_cast_call :: fn(ctx!: FnLowerCtx, call: CallExpr, type: Type) -> Lower
 /// by the direct-ident path (`try_lower_cast_call`) and the namespace path
 /// (`nsM.T(value)` in `try_lower_namespace_call`). The caller has already
 /// confirmed this is a cast (type-shaped callee / TypeMetaType) with one arg.
-emit_value_cast :: fn(ctx!: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
+emit_value_cast :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr {
     arg :: lower_expr(ctx, call.args[0].value)
     arg_type :: type_of(arg)
     // `Target(value)` probes for `value : Source` where
@@ -371,7 +371,7 @@ mk_bare_into_call :: fn(ctx: FnLowerCtx, arg: LoweredExpr, result_type: Type, sp
 // (`std_core$[]$Into$into__<element>`) and records the element in
 // `array_blanket_elems`, which `surface_array_blanket_members` materialises.
 try_array_iter_coercion :: fn(
-    ctx!: FnLowerCtx, arg: LoweredExpr, arg_type: Type, target_type: Type, span: Span,
+    ctx: FnLowerCtx!, arg: LoweredExpr, arg_type: Type, target_type: Type, span: Span,
 ) -> LoweredExpr | null {
     if arg_type is ArrayType as arr {
         if target_type is TraitType as tt {
@@ -402,7 +402,7 @@ try_array_iter_coercion :: fn(
 /// `Target(value)` where `value : Source` and `Source implements Into<Target>`
 /// emits `LoweredCall { callee: into, args: [value] }`.
 try_emit_into_coercion :: fn(
-    ctx!: FnLowerCtx, arg: LoweredExpr, arg_type: Type, target_type: Type, span: Span,
+    ctx: FnLowerCtx!, arg: LoweredExpr, arg_type: Type, target_type: Type, span: Span,
 ) -> LoweredExpr | null {
     // Built-in array→Iterator coercion ; arrays have no nominal surface
     // name, so it must precede the name-keyed impl scan below.

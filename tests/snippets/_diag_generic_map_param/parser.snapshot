@@ -65,25 +65,27 @@
         {
           "name": "m",
           "type": {
-            "kind": "GenericInstExpr",
-            "callee": {
-              "kind": "IdentExpr",
-              "name": "MutableMap"
-            },
-            "typeArgs": [
-              {
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "GenericInstExpr",
+              "callee": {
                 "kind": "IdentExpr",
-                "name": "K"
+                "name": "MutableMap"
               },
-              {
-                "kind": "IdentExpr",
-                "name": "V"
-              }
-            ]
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "K"
+                },
+                {
+                  "kind": "IdentExpr",
+                  "name": "V"
+                }
+              ]
+            }
           },
           "defaultValue": null,
-          "variadic": false,
-          "mutable": true
+          "variadic": false
         },
         {
           "name": "k",

@@ -84,7 +84,7 @@ mk_generator_chain :: fn(source: IterChain, gen_layer: GenComboLayer, span: Span
 // counter loop. Returns null whenever the chain doesn't match a fusible
 // shape (`generator` combinators over an int-range or `arr.iter()` bottom).
 try_lower_chain_fusion :: fn(
-    ctx!: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
+    ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
     block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt | null {
@@ -175,7 +175,7 @@ terminal_arg :: fn(call: AST.CallExpr, name: string) -> AST.Expr | null {
 /// @param call  the terminal call expression.
 /// @param type  the call's result type from typecheck (`usize` / `element[]`).
 /// @return      a block-expression evaluating to the accumulated result, or null.
-export try_lower_terminal_fusion :: fn(ctx!: FnLowerCtx, call: AST.CallExpr, type: Type) -> LoweredExpr | null {
+export try_lower_terminal_fusion :: fn(ctx: FnLowerCtx!, call: AST.CallExpr, type: Type) -> LoweredExpr | null {
     count_arg :: terminal_arg(call, "count")
     if count_arg != null {
         chain :: top_level_chain(ctx, count_arg) ?? return null
@@ -231,7 +231,7 @@ maybe_negate :: fn(cond: LoweredExpr, negate: bool, span: Span) -> LoweredExpr {
 }
 
 // `pred(<elem>)` — the predicate lowered + applied to the loop-var symbol, cell-aware.
-emit_pred_call :: fn(ctx!: FnLowerCtx, pred: AST.Expr, elem_sym: Symbol, elem_ty: Type, span: Span) -> LoweredExpr =
+emit_pred_call :: fn(ctx: FnLowerCtx!, pred: AST.Expr, elem_sym: Symbol, elem_ty: Type, span: Span) -> LoweredExpr =
     LoweredCall {
         .span = span, .type = TY_BOOL, .callee = lower_expr(ctx, pred),
         .args = [read_local_cell_aware(ctx, elem_sym, elem_ty, span)],
@@ -240,7 +240,7 @@ emit_pred_call :: fn(ctx!: FnLowerCtx, pred: AST.Expr, elem_sym: Symbol, elem_ty
 // `any` / `all`: `{ let r = init; <flat loop> if [!]pred(v) { r = hit; break }; r }`.
 // any → (init=false, hit=true, negate=false) ; all → (init=true, hit=false, negate=true).
 emit_bool_terminal :: fn(
-    ctx!: FnLowerCtx, chain: IterChain, pred: AST.Expr, span: Span,
+    ctx: FnLowerCtx!, chain: IterChain, pred: AST.Expr, span: Span,
     init: bool, hit: bool, negate: bool,
 ) -> LoweredExpr {
     elem_ty :: chain_element_type(chain)
@@ -281,7 +281,7 @@ emit_bool_terminal :: fn(
 }
 
 // `find`: `{ let r: element | null = null; <flat loop> if pred(v) { r = v; break }; r }`.
-emit_find_terminal :: fn(ctx!: FnLowerCtx, chain: IterChain, pred: AST.Expr, span: Span) -> LoweredExpr {
+emit_find_terminal :: fn(ctx: FnLowerCtx!, chain: IterChain, pred: AST.Expr, span: Span) -> LoweredExpr {
     elem_ty :: chain_element_type(chain)
     result_ty :: mk_union([elem_ty, TY_NULL])
     result_sym :: fresh_synthetic_symbol(ctx, "find")
@@ -322,7 +322,7 @@ emit_find_terminal :: fn(ctx!: FnLowerCtx, chain: IterChain, pred: AST.Expr, spa
 
 // `{ let n: usize = 0; <fused loop: n += 1 per element>; n }`. The result is
 // definitionally `usize` (the `Iterator::count` contract).
-emit_count_fusion :: fn(ctx!: FnLowerCtx, chain: IterChain, span: Span) -> LoweredExpr {
+emit_count_fusion :: fn(ctx: FnLowerCtx!, chain: IterChain, span: Span) -> LoweredExpr {
     usize_ty :: mk_primitive("usize")
     result_sym :: fresh_synthetic_symbol(ctx, "count")
     elem_sym :: fresh_synthetic_symbol(ctx, "elem")
@@ -357,7 +357,7 @@ emit_count_fusion :: fn(ctx!: FnLowerCtx, chain: IterChain, span: Span) -> Lower
 // chain's fused `output_elem` (which erases to `TY_ANY` for an all-reference
 // combinator instance) — see the note on `emit_collect_fusion` for why that
 // erasure would give the array `KIND_BOXED` slots under a concrete `T[]` type.
-emit_collect_fusion :: fn(ctx!: FnLowerCtx, chain: IterChain, result_type: Type, span: Span) -> LoweredExpr {
+emit_collect_fusion :: fn(ctx: FnLowerCtx!, chain: IterChain, result_type: Type, span: Span) -> LoweredExpr {
     // Use the typer's CONCRETE result element (`result_type` = `element[]`), not
     // the chain's fused `output_elem` — which is `TY_ANY` for an all-reference
     // combinator instance (`.Erased` flavor). A `TY_ANY` element interns to an
@@ -408,7 +408,7 @@ emit_collect_fusion :: fn(ctx!: FnLowerCtx, chain: IterChain, result_type: Type,
 // The bare-array bottom is only meant as a COMBINATOR's source (`arr.map(f)`),
 // reached via `try_descend_gen_combinator` → `descend_chain` directly (which does
 // accept it). So a top-level bare `Array` bottom declines here.
-top_level_chain :: fn(ctx!: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
+top_level_chain :: fn(ctx: FnLowerCtx!, expr: AST.Expr) -> IterChain | null {
     chain :: descend_chain(ctx, expr, false) ?? return null
     if chain.kind == IterChainKind.Array && chain.implicit_head { return null }
     return chain
@@ -448,14 +448,14 @@ opaque_iter_element :: fn(ctx: FnLowerCtx, t: Type) -> Type | null {
 // (`chars()`) then fuses via `opaque_iter_bottom`. A top-level receiver
 // (`as_source = false`) keeps that fallback OFF so a bare concrete-iterator
 // terminal (`s.chars().count()`) keeps its own dispatch — no output churn.
-descend_chain :: fn(ctx!: FnLowerCtx, expr: AST.Expr, as_source: bool) -> IterChain | null {
+descend_chain :: fn(ctx: FnLowerCtx!, expr: AST.Expr, as_source: bool) -> IterChain | null {
     concrete :: descend_chain_concrete(ctx, expr)
     if concrete != null { return concrete }
     if as_source { return opaque_iter_bottom(ctx, expr) }
     return null
 }
 
-descend_chain_concrete :: fn(ctx!: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
+descend_chain_concrete :: fn(ctx: FnLowerCtx!, expr: AST.Expr) -> IterChain | null {
     // @partial: only a Range bottom, an `arr.iter()` array cursor, or a
     // `generator` combinator call forms a fusible chain; every other Expr → null.
     @partial match expr {
@@ -628,7 +628,7 @@ chain_element_type :: fn(chain: IterChain) -> Type = match chain.kind {
 // counter loop ; a Generator layer inlines its `generator` body over its
 // source (map / filter / take / skip all lower through here).
 emit_fused_chain :: fn(
-    ctx!: FnLowerCtx, chain: IterChain, loop_label: string | null, outer_span: Span,
+    ctx: FnLowerCtx!, chain: IterChain, loop_label: string | null, outer_span: Span,
     template: BodyTemplate,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
 ) -> LoweredStmt[] = match chain.kind {
@@ -645,7 +645,7 @@ emit_fused_chain :: fn(
 // through the vtable. `break` inside the template (any / all / find) exits the
 // loop ; `continue` is naturally step-safe (the next iteration re-pulls `next()`).
 emit_fused_opaque_iter :: fn(
-    ctx!: FnLowerCtx, chain: IterChain, loop_label: string | null, outer_span: Span,
+    ctx: FnLowerCtx!, chain: IterChain, loop_label: string | null, outer_span: Span,
     template: BodyTemplate,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
 ) -> LoweredStmt[] {
@@ -715,7 +715,7 @@ emit_fused_opaque_iter :: fn(
 // re-cast under the surface name so the body sees the same symbol
 // the resolver bound.
 emit_fused_range :: fn(
-    ctx!: FnLowerCtx, range_chain: IterChain, loop_label: string | null, outer_span: Span,
+    ctx: FnLowerCtx!, range_chain: IterChain, loop_label: string | null, outer_span: Span,
     template: BodyTemplate,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
 ) -> LoweredStmt[] {
@@ -775,7 +775,7 @@ emit_fused_range :: fn(
 // with the array element bound to the chain's source binding. `continue` is made
 // increment-safe exactly like the non-fused raw-array path.
 emit_fused_array :: fn(
-    ctx!: FnLowerCtx, array_chain: IterChain, loop_label: string | null, outer_span: Span,
+    ctx: FnLowerCtx!, array_chain: IterChain, loop_label: string | null, outer_span: Span,
     template: BodyTemplate,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
 ) -> LoweredStmt[] {

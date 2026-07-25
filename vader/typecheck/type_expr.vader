@@ -28,7 +28,7 @@ import "vader/types"
 /// surface T3002 and return `TY_UNRESOLVED` ; downstream passes treat
 /// unresolved as compatible with anything to dodge cascading errors.
 export type_from_expr :: fn(
-    expr: AST.Expr, resolved: ResolvedModule, diags!: Diagnostic[],
+    expr: AST.Expr, resolved: ResolvedModule, diags: Diagnostic[]!,
 ) -> Type {
     // @partial: only the type-shaped expr kinds below denote a type; every other
     // (value-position) Expr is illegal in a type slot → T3002, handled by `_`.
@@ -83,9 +83,15 @@ export type_from_expr :: fn(
         // `T!` — one level of the written type is mutable. The marker is stripped
         // here and carried by the `Type` itself.
         is AST.MutableTypeExpr as e -> {
-            return with_immutable(type_from_expr(e.inner, resolved, diags), false)
+            inner :: type_from_expr(e.inner, resolved, diags)
+            // `const T[]` under a marker is a contradiction, and it is reachable :
+            // the parser desugars the legacy `a!: const i32[]` by wrapping the
+            // written type. `const` freezes the REFERENT, so no marker can grant
+            // mutation through it — the stricter side wins, as everywhere else.
+            if type_is_immutable(inner) { return inner }
+            return with_immutable(inner, false)
         }
-        // NOTE: the `!` marker vector for a DECLARATION (`fn(buf!: u8[])`) comes
+        // NOTE: the `!` marker vector for a DECLARATION (`fn(buf: u8[]!)`) comes
         // from `params_mutable_of` below, not from here — a declaration's params
         // are `FnParam`s, not `TypeExpr`s.
         is AST.ArrayTypeExpr as e -> {
@@ -117,7 +123,7 @@ export type_from_expr :: fn(
 /// @error R2008 when `P.Decl` names a PRIVATE (non-`export`) type of the
 ///        target module — visibility enforcement, mirroring the
 ///        destructured-import check in `wire.vader`.
-namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule, diags!: Diagnostic[]) -> Type {
+namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule, diags: Diagnostic[]!) -> Type {
     if !(e.target is AST.IdentExpr) { return TY_UNRESOLVED }
     target_sym :: resolved.idents[e.target.span.hash()] ?? return TY_UNRESOLVED
     members :: resolved.namespace_member_types[target_sym.id] ?? return TY_UNRESOLVED
@@ -138,7 +144,7 @@ namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule, diags!: 
 /// (`field.vader::try_namespace_field`) and the type path above.
 namespace_private_member_reported :: fn(
     binding_id: i32, field: string, span: Span,
-    resolved: ResolvedModule, diags!: Diagnostic[],
+    resolved: ResolvedModule, diags: Diagnostic[]!,
 ) -> bool {
     priv :: resolved.namespace_private_members[binding_id] ?? return false
     if priv[field] is null { return false }
@@ -234,7 +240,7 @@ redirect_import :: fn(sym: Symbol, resolved: ResolvedModule) -> Symbol {
 
 
 lower_call_in_type_position :: fn(
-    e: AST.CallExpr, resolved: ResolvedModule, diags!: Diagnostic[],
+    e: AST.CallExpr, resolved: ResolvedModule, diags: Diagnostic[]!,
 ) -> Type {
     args: Type[] = []
     for a in e.args { args.push(type_from_expr(a.value, resolved, diags)) }
@@ -259,7 +265,7 @@ lower_call_in_type_position :: fn(
 }
 
 lower_generic_inst :: fn(
-    e: AST.GenericInstExpr, resolved: ResolvedModule, diags!: Diagnostic[],
+    e: AST.GenericInstExpr, resolved: ResolvedModule, diags: Diagnostic[]!,
 ) -> Type {
     args: Type[] = []
     for a in e.type_args { args.push(type_from_expr(a, resolved, diags)) }
@@ -294,7 +300,7 @@ lookup_type_name :: fn(id: AST.IdentExpr, resolved: ResolvedModule) -> Symbol | 
 }
 
 lower_binary :: fn(
-    e: AST.BinaryExpr, resolved: ResolvedModule, diags!: Diagnostic[],
+    e: AST.BinaryExpr, resolved: ResolvedModule, diags: Diagnostic[]!,
 ) -> Type {
     if u8(e.op) != u8(AST.BinaryOp.BitOr) {
         diags.push(typecheck_error(.ExpectedKnownType, e.span,
@@ -309,7 +315,7 @@ lower_binary :: fn(
 }
 
 opt_or_void :: fn(
-    ret: AST.TypeExpr | null, resolved: ResolvedModule, diags!: Diagnostic[],
+    ret: AST.TypeExpr | null, resolved: ResolvedModule, diags: Diagnostic[]!,
 ) -> Type {
     if ret == null { return TY_VOID }
     return type_from_expr(ret, resolved, diags)
@@ -355,7 +361,7 @@ export primitive_from_name :: fn(name: string) -> Type | null {
 
 /// Marker vector for a DECLARATION's parameters — the bridge from `FnParam.mutable`
 /// (`!` on the name) to `FnType.params_mutable` (`!` on the type). Without it a
-/// `fn(buf!: u8[])` would type as an unmarked `fn(u8[])` and nothing downstream
+/// `fn(buf: u8[]!)` would type as an unmarked `fn(u8[])` and nothing downstream
 /// could tell the two apart.
 ///
 /// @param ps  the declaration's parameters, in order.

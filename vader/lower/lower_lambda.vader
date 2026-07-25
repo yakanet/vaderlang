@@ -32,7 +32,7 @@ import "vader/comptime"
 /// @param block_lowerer callback to lower a `BlockExpr` (cycle-breaker,
 ///                      same pattern as `lower_match`).
 /// @return              the make-closure expression.
-export lower_lambda :: fn(ctx!: FnLowerCtx, lambda: AST.LambdaExpr, block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock) -> LoweredExpr {
+export lower_lambda :: fn(ctx: FnLowerCtx!, lambda: AST.LambdaExpr, block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock) -> LoweredExpr {
     captures :: lookup_captures(ctx, lambda)
     lifted_symbol :: fresh_lifted_symbol(ctx, is_env = false)
     env_symbol :: fresh_lifted_symbol(ctx, is_env = true)
@@ -133,13 +133,13 @@ lambda_return_type :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr) -> Type {
 /// monotonically-decreasing pool. Shared with `lower_defer` so both
 /// lifts pull from a single counter (otherwise `__lambda_N` /
 /// `__defer_N` names would drift apart per fn).
-export next_synthetic_id :: fn(ctx!: FnLowerCtx) -> i32 = next_project_synthetic_id(ctx.project)
+export next_synthetic_id :: fn(ctx: FnLowerCtx!) -> i32 = next_project_synthetic_id(ctx.project)
 
 /// Bump and return the next synthetic id straight off a `LowerProjectCtx` — the
 /// `FnLowerCtx`-free form for post-lowering passes (e.g. `inline_consts`) that
 /// hold only the project ctx. `next_synthetic_id` routes through this so the
 /// whole pipeline shares ONE live, monotonic negative-id counter.
-export next_project_synthetic_id :: fn(p!: LowerProjectCtx) -> i32 {
+export next_project_synthetic_id :: fn(p: LowerProjectCtx!) -> i32 {
     id :: p.next_synthetic_id
     p.next_synthetic_id = id - 1
     return id
@@ -148,19 +148,19 @@ export next_project_synthetic_id :: fn(p!: LowerProjectCtx) -> i32 {
 /// Bump and return the next synthetic MonoEntry id. Separate counter
 /// from `next_synthetic_id` so MonoEntry minting doesn't bump the
 /// symbol-id pool the `__lambda_N` / `__defer_N` naming uses.
-export next_mono_entry_id :: fn(ctx!: FnLowerCtx) -> i32 {
+export next_mono_entry_id :: fn(ctx: FnLowerCtx!) -> i32 {
     id :: ctx.project.next_mono_entry_id
     ctx.project.next_mono_entry_id = id + 1
     return id
 }
 
-synth_env_param_symbol :: fn(ctx!: FnLowerCtx) -> Symbol {
+synth_env_param_symbol :: fn(ctx: FnLowerCtx!) -> Symbol {
     // Use the per-fn `uniq` counter so the name takes the
     // `fresh_synthetic_symbol("env")` form (`__env_0`, `__env_1`, …).
     return fresh_synthetic_symbol(ctx, "env")
 }
 
-fresh_lifted_symbol :: fn(ctx!: FnLowerCtx, is_env: bool) -> Symbol {
+fresh_lifted_symbol :: fn(ctx: FnLowerCtx!, is_env: bool) -> Symbol {
     return fresh_lifted_symbol_with_prefix(ctx, is_env, "__lambda_", "__lambda_env_")
 }
 
@@ -168,7 +168,7 @@ fresh_lifted_symbol :: fn(ctx!: FnLowerCtx, is_env: bool) -> Symbol {
 /// the same Symbol shape, only the `__lambda_*` vs `__defer_*` name
 /// prefixes diverge. Synthetic IDs come from `next_synthetic_id`'s
 /// shared pool so the two passes' naming counters stay consistent.
-export fresh_lifted_symbol_with_prefix :: fn(ctx!: FnLowerCtx, is_env: bool, fn_prefix: string, env_prefix: string) -> Symbol {
+export fresh_lifted_symbol_with_prefix :: fn(ctx: FnLowerCtx!, is_env: bool, fn_prefix: string, env_prefix: string) -> Symbol {
     id :: next_synthetic_id(ctx)
     suffix :: render_id_for_name(id)
     prefix := fn_prefix
@@ -191,7 +191,7 @@ export render_id_for_name :: fn(id: i32) -> string {
 
 /// Shared MonoEntry constructor for lambda + defer lifts. Each pass
 /// passes its own `symbol` (already minted via `next_synthetic_id`).
-export synth_mono_entry :: fn(ctx!: FnLowerCtx, symbol: Symbol) -> MonoEntry {
+export synth_mono_entry :: fn(ctx: FnLowerCtx!, symbol: Symbol) -> MonoEntry {
     return MonoEntry { .id = next_mono_entry_id(ctx), .is_main = false, .mangled = symbol.name, .decl = stub_decl_for(symbol), .symbol = symbol, .subst = new_substitution(), .type_arguments = [], .module = ctx.typed }    // Use a private counter (not the project-wide synthetic id pool)
     // so MonoEntry minting doesn't bump the symbol-id counter the
     // lambda-naming uses.

@@ -51,7 +51,7 @@ export evaluate_char_lit :: fn(literal: AST.CharLitExpr) -> EvalResult {
 /// @return         the concatenated string value, or C4001 when an
 ///                 interpolation segment can't be evaluated.
 export evaluate_string_lit :: fn(
-    literal: AST.StringLitExpr, context!: ComptimeContext,
+    literal: AST.StringLitExpr, context: ComptimeContext!,
     recurse: fn(AST.Expr, ComptimeContext!) -> EvalResult,
 ) -> EvalResult {
     sb := StringBuilder {}

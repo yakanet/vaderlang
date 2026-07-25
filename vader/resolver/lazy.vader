@@ -84,7 +84,7 @@ rooted_candidate :: fn(ip: IncludePath, name: string) -> string | null {
 ///               caller — `diagnose_import_path` — turns that into R2001).
 export resolve_lazy :: fn(
     name: string, paths: IncludePath[],
-    index!: MutableMap<string, DiscoveredModule>, diags!: Diagnostic[],
+    index: MutableMap<string, DiscoveredModule>!, diags: Diagnostic[]!,
 ) -> DiscoveredModule | null {
     cached :: index[name]
     if cached is DiscoveredModule as dm { return dm }
@@ -131,7 +131,7 @@ export misplaced_module_at :: fn(name: string, paths: IncludePath[]) -> string |
 ///                      decl (→ the caller emits R2001, matching the eager
 ///                      `find_by_folder` miss).
 export seed_entry :: fn(
-    entry_folder: string, index!: MutableMap<string, DiscoveredModule>, diags!: Diagnostic[],
+    entry_folder: string, index: MutableMap<string, DiscoveredModule>!, diags: Diagnostic[]!,
 ) -> DiscoveredModule | null {
     bucket :: scan_folder(entry_folder, diags) ?? return null
     if bucket.name == "" { return null }
@@ -150,7 +150,7 @@ export seed_entry :: fn(
 /// @param index    the lazy cache to populate.
 export preresolve_imports :: fn(
     sources: SourceFile[], paths: IncludePath[],
-    index!: MutableMap<string, DiscoveredModule>, diags!: Diagnostic[],
+    index: MutableMap<string, DiscoveredModule>!, diags: Diagnostic[]!,
 ) -> void {
     for sf in sources {
         for d in sf.program.decls {
@@ -165,7 +165,7 @@ export preresolve_imports :: fn(
 // and bucketed by declared module name (R2020 missing decl / R2022 mixed names).
 // Returns null when the folder has no `.vader`. The non-recursive sibling of
 // `discover.vader::walk_dir` (which recurses) — lazy never descends.
-scan_folder :: fn(dir: string, diags!: Diagnostic[]) -> FolderBucket | null {
+scan_folder :: fn(dir: string, diags: Diagnostic[]!) -> FolderBucket | null {
     entries_opt :: read_dir(dir)
     raw: string[] = match entries_opt {
         is string[] as ss -> ss

@@ -205,7 +205,7 @@ export FnParam :: struct {
     ty:            TypeExpr | null
     default_value: Expr | null
     variadic:      bool
-    /// `!` suffix on the NAME (`buf!: u8[]`, `self!`) — the caller grants this
+    /// `!` suffix on the NAME (`buf: u8[]`!, `self!`) — the caller grants this
     /// parameter permission to mutate its referent. Carried on the name rather
     /// than the type so `self!`, which has no written type, reads the same way.
     /// The type-side spelling of the same notion is `FnType.params_mutable`,
@@ -910,19 +910,33 @@ export MutableTypeExpr :: struct {
 // Helpers
 // ============================================================================
 
-/// Whether a written type carries an explicit `!` at its top level (`Cfg[]!`).
-/// Nested markers (`Cfg![]`) belong to the level they follow and are read from
-/// the `Type` once lowered, not here.
+/// Whether a written type grants mutation at ITS OWN level (`Cfg[]!`), or — for
+/// a union — at the level of any variant (`Capture[]! | null`).
+///
+/// A union carries no marker of its own : the bit is DISTRIBUTED over the
+/// variants, so `Capture[]! | null` means "mutable when it is an array" and
+/// `null` simply can't carry one. Descending into the variants is therefore the
+/// same question asked one level down, not a special case.
+///
+/// Markers deeper inside a composite (`Cfg![]` — mutable elements of a read-only
+/// array) belong to the level they follow and are read from the lowered `Type`,
+/// not here.
 export type_expr_marks_mutable :: fn(ty: TypeExpr | null) -> bool {
     if ty == null { return false }
-    return ty is MutableTypeExpr
+    if ty is MutableTypeExpr { return true }
+    if ty is BinaryExpr as b {
+        if b.op == BinaryOp.BitOr {
+            return type_expr_marks_mutable(b.left) || type_expr_marks_mutable(b.right)
+        }
+    }
+    return false
 }
 
 /// Whether `p` may be mutated by the callee — the SINGLE source of truth for
 /// that question.
 ///
 /// Two spellings reach it : the marker on the TYPE (`fn(x: Cfg[]!)`, the form
-/// this chantier moves to) and the legacy marker on the NAME (`fn(x!: Cfg)`),
+/// this chantier moves to) and the legacy marker on the NAME (`fn(x: Cfg!)`),
 /// which `self!` keeps for good — `self` is the one parameter whose type is
 /// never written, so its marker has nowhere else to go. Anything that asks
 /// "is this parameter mutable" must come through here : the resolver's borrow
@@ -940,7 +954,7 @@ export collect_bitor_variants :: fn(e: Expr) -> Expr[] {
     return out
 }
 
-append_bitor_variants :: fn(e: Expr, out!: Expr[]) -> void {
+append_bitor_variants :: fn(e: Expr, out: Expr[]!) -> void {
     match e {
         is BinaryExpr as b -> {
             if b.op == .BitOr {

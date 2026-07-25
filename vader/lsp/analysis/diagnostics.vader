@@ -24,7 +24,7 @@ import "vader/lsp/protocol"
 /// Type-check the file at `uri` and push the resulting diagnostics to
 /// the client. Non-file URIs and empty docs short-circuit to an empty
 /// array — the client clears any stale squiggles either way.
-export publish_diagnostics_for_uri :: fn(self!: ServerState, uri: string) -> void {
+export publish_diagnostics_for_uri :: fn(self: ServerState!, uri: string) -> void {
     file_path :: uri_to_path(uri)
     if file_path == "" {
         publish(self, uri, [])

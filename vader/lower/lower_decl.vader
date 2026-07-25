@@ -18,7 +18,7 @@ import "vader/resolver/symbol"
 // `for_type`. The lifted fns are appended to `project_ctx.synth_decls`
 // so the module driver drains them in the right order.
 lower_impl_members :: fn(
-    impl_decl: ImplDecl, typed: TypedProgram, project_ctx!: LowerProjectCtx, diags: Diagnostic[],
+    impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!, diags: Diagnostic[],
     module_decls: Decl[],
 ) -> void {
     // Back-compat shape : keep the void-returning entry but route
@@ -35,7 +35,7 @@ lower_impl_members :: fn(
 /// right after the impl's source position, emitting each member
 /// individually.
 lower_impl_member_list :: fn(
-    impl_decl: ImplDecl, typed: TypedProgram, project_ctx!: LowerProjectCtx, diags: Diagnostic[],
+    impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!, diags: Diagnostic[],
     module_decls: Decl[],
 ) -> LoweredDecl[] {
     out: LoweredDecl[] = []
@@ -67,7 +67,7 @@ lower_impl_member_list :: fn(
 
 build_impl_member_params :: fn(
     member: FnDecl, self_type: Type, types: EntryTypes,
-    typed: TypedProgram, project_ctx!: LowerProjectCtx,
+    typed: TypedProgram, project_ctx: LowerProjectCtx!,
 ) -> LoweredParam[] {
     params: LoweredParam[] = []
     for ast_param in member.params {
@@ -228,7 +228,7 @@ synth_impl_entry :: fn(member: FnDecl, typed: TypedProgram, mangled: string) -> 
 // skipped here — they're materialised per concrete instance by the mono
 // pass (`lower_mono_fn.vader`) ; this path handles non-generic decls only.
 lower_fn_decl :: fn(
-    fn_decl: FnDecl, typed: TypedProgram, project_ctx!: LowerProjectCtx, diags: Diagnostic[],
+    fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!, diags: Diagnostic[],
 ) -> LoweredDecl | null {
     if fn_decl.type_params.len() > 0 { return null }
     subst :: new_substitution()
@@ -340,7 +340,7 @@ lower_fn_body :: fn(
 /// @return        `block` unchanged when no param is captured, else a new block
 ///                with the cell-promoting prologue prepended.
 export promote_captured_params :: fn(
-    fn_ctx!: FnLowerCtx, params: FnParam[], block: LoweredBlock,
+    fn_ctx: FnLowerCtx!, params: FnParam[], block: LoweredBlock,
 ) -> LoweredBlock {
     // Common case — a closure-free project never promotes anything, so skip the
     // per-param symbol lookups entirely.
@@ -447,7 +447,7 @@ lower_const_decl :: fn(
 
 lower_const_value :: fn(
     const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
-    fn_ctx!: FnLowerCtx, type_val: Type,
+    fn_ctx: FnLowerCtx!, type_val: Type,
 ) -> LoweredExpr {
     baked :: lookup_comptime_value(const_decl, typed, project_ctx)
     if baked == null { return lower_expr(fn_ctx, const_decl.value) }

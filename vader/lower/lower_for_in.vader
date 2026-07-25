@@ -37,7 +37,7 @@ import "vader/types"
 /// @param block_lowerer callback to lower the body block (cycle break).
 /// @return             the lowered stmt (a block wrapping the loop).
 export lower_for_in :: fn(
-    ctx!: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
+    ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
     block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt {
@@ -230,7 +230,7 @@ build_break_stmts :: fn(span: Span) -> LoweredStmt[] {
 // `let [k, v] := <element>` lowers to (reuses `emit_let_binding_leaves` ; the k/v
 // symbols were minted by the resolver). Returns a list so every bind site splices it.
 bind_loop_var :: fn(
-    ctx!: FnLowerCtx, binding_symbol: Symbol, name: string, pattern: AST.LetBinding | null,
+    ctx: FnLowerCtx!, binding_symbol: Symbol, name: string, pattern: AST.LetBinding | null,
     value: LoweredExpr, value_type: Type, span: Span,
 ) -> LoweredStmt[] {
     out: LoweredStmt[] = []
@@ -258,7 +258,7 @@ bind_loop_var :: fn(
 // fusion path pre-lowers this into the sink body there, since the sink itself is
 // spliced in the generator's own ctx where those leaf symbols don't resolve.
 export emit_for_pattern_destructure :: fn(
-    ctx!: FnLowerCtx, tup: AST.TupleBinding, elem_sym: Symbol, elem_type: Type, span: Span,
+    ctx: FnLowerCtx!, tup: AST.TupleBinding, elem_sym: Symbol, elem_type: Type, span: Span,
 ) -> LoweredStmt[] {
     out: LoweredStmt[] = []
     elem_ref :: LoweredIdent { .span = span, .type = elem_type, .symbol = elem_sym }
@@ -294,7 +294,7 @@ WrapResult :: struct {
 //                 call.
 // Returns the input verbatim when no wrap applies.
 try_wrap_array_iter :: fn(
-    ctx!: FnLowerCtx, iter: LoweredExpr, iter_type: Type, span: Span,
+    ctx: FnLowerCtx!, iter: LoweredExpr, iter_type: Type, span: Span,
 ) -> WrapResult {
     // @partial: only arrays and `string` need wrapping; every other Type is
     // returned verbatim (already an iterator or handled upstream).
@@ -409,7 +409,7 @@ erase_genstate_for_dispatch :: fn(ctx: FnLowerCtx, iter_type: Type, element_type
 // synth `next` symbol. The bytecode emit resolves the synth callee
 // via the impl-member mangling once that wiring lands.
 build_step_call :: fn(
-    ctx!: FnLowerCtx, iter_ref: LoweredExpr, iter_type: Type, step_union: Type, span: Span,
+    ctx: FnLowerCtx!, iter_ref: LoweredExpr, iter_type: Type, step_union: Type, span: Span,
 ) -> LoweredExpr {
     match iter_type {
         is TraitType as tt -> {
@@ -487,13 +487,13 @@ synth_next_symbol :: fn(ctx: FnLowerCtx, name: string) -> Symbol {
 // per-module `defined_span -> Symbol` index (`lookup_local_symbol`).
 // Was a naive O(idents) scan per binding until it was routed through
 // the constant-time index every other lowering site already uses.
-export lookup_for_binding :: fn(ctx!: FnLowerCtx, binding_span: Span) -> Symbol | null =
+export lookup_for_binding :: fn(ctx: FnLowerCtx!, binding_span: Span) -> Symbol | null =
     lookup_local_symbol(ctx.project, ctx.typed.resolved, binding_span)
 
 // For-in bindings that the body never references don't appear in
 // `resolved.idents` (the use-site map). Synthesize a placeholder
 // symbol so the lowered shape stays consistent.
-resolve_or_synth_symbol :: fn(ctx!: FnLowerCtx, name: string, span: Span) -> Symbol {
+resolve_or_synth_symbol :: fn(ctx: FnLowerCtx!, name: string, span: Span) -> Symbol {
     found :: lookup_for_binding(ctx, span)
     match found {
         is Symbol as s -> { return s }
@@ -527,7 +527,7 @@ LoopBinding :: struct { symbol: Symbol, name: string, pattern: AST.LetBinding | 
 /// Translate an AST `LoopVar` into its lowering `LoopBinding`. Centralises the
 /// per-variant resolution so every for-in lowering site (slow / raw-array /
 /// int-range / map-set / iter-fusion / generator) stays uniform.
-resolve_loop_binding :: fn(ctx!: FnLowerCtx, loop_var: AST.LoopVar, fallback_span: Span) -> LoopBinding {
+resolve_loop_binding :: fn(ctx: FnLowerCtx!, loop_var: AST.LoopVar, fallback_span: Span) -> LoopBinding {
     match loop_var {
         is AST.NamedVar as nv -> {
             return LoopBinding { .symbol = resolve_or_synth_symbol(ctx, nv.name, nv.span), .name = nv.name, .pattern = null }
@@ -590,7 +590,7 @@ loop_var_type_key :: fn(loop_var: AST.LoopVar, fallback: Span) -> u64 = loop_var
 // fusion body still calls the pure `square`) qualify, generally, for ANY pure
 // callback — no combinator is named. Indirect callees, virtual calls, intrinsics
 // and impure/unknown fns still bail. `pctx` carries the project-wide purity memo.
-bce_call_unsafe :: fn(x: LoweredCall, guard_sym: i32, pctx!: BcePurityCtx) -> bool {
+bce_call_unsafe :: fn(x: LoweredCall, guard_sym: i32, pctx: BcePurityCtx!) -> bool {
     if x.callee is LoweredIdent as cid {
         if cid.symbol.kind == SymbolKind.Fn {
             fd :: bce_resolve_fn(pctx, cid.symbol.name, cid.symbol.id)
@@ -604,7 +604,7 @@ bce_call_unsafe :: fn(x: LoweredCall, guard_sym: i32, pctx!: BcePurityCtx) -> bo
     return true
 }
 
-bce_any_expr_unsafe :: fn(exprs: LoweredExpr[], guard_sym: i32, pctx!: BcePurityCtx) -> bool {
+bce_any_expr_unsafe :: fn(exprs: LoweredExpr[], guard_sym: i32, pctx: BcePurityCtx!) -> bool {
     for e in exprs {
         if bce_expr_unsafe(e, guard_sym, pctx) {
             return true
@@ -613,7 +613,7 @@ bce_any_expr_unsafe :: fn(exprs: LoweredExpr[], guard_sym: i32, pctx!: BcePurity
     return false
 }
 
-bce_block_unsafe :: fn(b: LoweredBlock, guard_sym: i32, pctx!: BcePurityCtx) -> bool {
+bce_block_unsafe :: fn(b: LoweredBlock, guard_sym: i32, pctx: BcePurityCtx!) -> bool {
     for st in b.stmts {
         if bce_stmt_unsafe(st, guard_sym, pctx) {
             return true
@@ -626,7 +626,7 @@ bce_block_unsafe :: fn(b: LoweredBlock, guard_sym: i32, pctx!: BcePurityCtx) -> 
     return false
 }
 
-bce_opt_expr_unsafe :: fn(e: LoweredExpr | null, guard_sym: i32, pctx!: BcePurityCtx) -> bool {
+bce_opt_expr_unsafe :: fn(e: LoweredExpr | null, guard_sym: i32, pctx: BcePurityCtx!) -> bool {
     if e == null {
         return false
     }
@@ -640,7 +640,7 @@ bce_is_reassign :: fn(target: LoweredExpr, guard_sym: i32) -> bool {
     return false
 }
 
-bce_stmt_unsafe :: fn(s: LoweredStmt, guard_sym: i32, pctx!: BcePurityCtx) -> bool = match s {
+bce_stmt_unsafe :: fn(s: LoweredStmt, guard_sym: i32, pctx: BcePurityCtx!) -> bool = match s {
     is LoweredLet as st       -> bce_expr_unsafe(st.value, guard_sym, pctx)
     is LoweredAssign as st    -> bce_is_reassign(st.target, guard_sym) || bce_expr_unsafe(st.target, guard_sym, pctx) || bce_expr_unsafe(st.value, guard_sym, pctx)
     is LoweredCellSet as st   -> bce_expr_unsafe(st.target, guard_sym, pctx) || bce_expr_unsafe(st.value, guard_sym, pctx)
@@ -655,7 +655,7 @@ bce_stmt_unsafe :: fn(s: LoweredStmt, guard_sym: i32, pctx!: BcePurityCtx) -> bo
     is LoweredDeferPopExec    -> true
 }
 
-bce_expr_unsafe :: fn(e: LoweredExpr, guard_sym: i32, pctx!: BcePurityCtx) -> bool = match e {
+bce_expr_unsafe :: fn(e: LoweredExpr, guard_sym: i32, pctx: BcePurityCtx!) -> bool = match e {
     // A call to a proven-pure fn is safe (recurse into its args) ; everything else
     // callable bails.
     is LoweredCall as x        -> bce_call_unsafe(x, guard_sym, pctx)
@@ -677,7 +677,7 @@ bce_expr_unsafe :: fn(e: LoweredExpr, guard_sym: i32, pctx!: BcePurityCtx) -> bo
     is LoweredCellGet as x     -> bce_expr_unsafe(x.target, guard_sym, pctx)
 }
 
-bce_opt_block_unsafe :: fn(b: LoweredBlock | null, guard_sym: i32, pctx!: BcePurityCtx) -> bool {
+bce_opt_block_unsafe :: fn(b: LoweredBlock | null, guard_sym: i32, pctx: BcePurityCtx!) -> bool {
     if b == null {
         return false
     }
@@ -685,7 +685,7 @@ bce_opt_block_unsafe :: fn(b: LoweredBlock | null, guard_sym: i32, pctx!: BcePur
 }
 
 try_lower_for_in_raw_array :: fn(
-    ctx!: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
+    ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
     iter_lowered: LoweredExpr, iter_type: Type,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
     block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
@@ -790,7 +790,7 @@ try_lower_for_in_raw_array :: fn(
 // Returns null when the bound isn't an integer ; caller falls back to
 // the slow path (Iterator step dispatch).
 try_lower_for_in_int_range :: fn(
-    ctx!: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
+    ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
     block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt | null {
@@ -1099,7 +1099,7 @@ rewrite_continue_expr :: fn(e: LoweredExpr, inside_nested_loop: bool, inc: Lower
 // per-iter `Yield` allocation. Returns null when the iter type isn't a
 // recognised map/set or std/collections isn't loaded.
 try_lower_for_in_map_set :: fn(
-    ctx!: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
+    ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
     src_value: LoweredExpr, src_type: Type, span: Span,
     block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt | null {
@@ -1130,7 +1130,7 @@ try_lower_for_in_map_set :: fn(
 // index. For a map, bind a per-step `[key, value]` tuple (never escapes the
 // body → scalar-replaced, zero-alloc) ; for a set, bind the key directly.
 lower_map_set_compact :: fn(
-    ctx!: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
+    ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
     src_value: LoweredExpr, src_type: Type, span: Span,
     block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
     source: StructType, is_map: bool, is_set: bool, entry_args: const Type[],
