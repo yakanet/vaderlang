@@ -383,6 +383,36 @@ main :: fn() -> i32 {
 }
 `;
 
+// A local bound from a mutable-array producer. The inlay hint is where a reader
+// learns what they may DO with the binding, so the mutability marker has to reach
+// it — a bare `u32[]` would read as read-only when the value is anything but.
+const INLAY_MUT_SOURCE = `module "demo"
+
+import "std/iter"
+
+main :: fn() -> i32 {
+    h: u32[] = [1, 2]
+    v :: h.clone()
+    return i32(v.len())
+}
+`;
+
+test("lsp: an inlay hint carries the mutability marker", async () => {
+  const results = await driveLsp(INLAY_MUT_SOURCE, [
+    {
+      method: "textDocument/inlayHint",
+      range: {
+        start: { line: 0, character: 0 },
+        end: { line: 9, character: 0 },
+      },
+    },
+  ]);
+  const hints = results[0]!.result as { label: string }[];
+  const labels = hints.map((h) => h.label);
+  // `clone` returns `T[]!`, so `v` is a mutable array — and says so.
+  expect(labels).toContain("u32[]!");
+}, { timeout: MEDIUM_BUILD });
+
 test("lsp: completion shows a local's inferred type as detail", async () => {
   // Line 13 = `    return n` — inside main's body, so `n` and `b` are visible.
   const results = await driveLsp(LOCAL_TYPE_SOURCE, [
