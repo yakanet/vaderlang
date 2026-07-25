@@ -121,7 +121,7 @@ overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
         // a fresh literal, and an inferred `::` join is not a plain array — the
         // for-in below then falls to the iterator path and the lowerer panics on an
         // unresolved `next`. Pinning the slot read-only keeps it one array type.
-        arg_vars: const Type[] = if arg0 is UnionType as au { au.variants } else { [arg0] }
+        arg_vars: Type[] = if arg0 is UnionType as au { au.variants } else { [arg0] }
         score: i32 = 0
         for av in arg_vars {
             for pv in pu.variants {
@@ -694,8 +694,8 @@ export infer_call :: fn(
     normalised := false
     if call_needs_arg_normalisation(c, callee_ty) {
         decl_params :: callee_param_decls(c, callee_ty, typed)
-        if decl_params is const AST.FnParam[] as ps {
-            norm :: normalize_call_args(ps, c, diags)
+        if decl_params != null {
+            norm :: normalize_call_args(decl_params, c, diags)
             // normalize_call_args owns arity/named diagnostics here ; skip the
             // positional check below to avoid double-reporting. A null result
             // (variadic / error) leaves `c.args` untouched for recovery.
@@ -1307,7 +1307,7 @@ main :: fn() -> void { greet(42) }
 
 // T3072 — an immutable value cannot be handed to a `!` parameter, which grants
 // the callee permission to mutate it. The mirror of the covariance already
-// enforced type-side for arrays (`const T[]` doesn't fit a `T[]` slot), for the
+// enforced type-side for arrays (read-only `T[]` doesn't fit a `T[]` slot), for the
 // roots that carry no marker in their type: a module-level const today, borrowed
 // params once the default flips.
 //

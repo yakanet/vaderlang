@@ -340,7 +340,7 @@ T[] implements<T> Into<Iterator<T>> {
 }
 
 /// Membership for arrays — `v in arr` / `v !in arr` dispatch here. Linear scan
-/// via `Equals` ; `const T[]` so a borrowed `s.bytes()` view is accepted. As an
+/// via `Equals` ; read-only `T[]` so a borrowed `s.bytes()` view is accepted. As an
 /// impl member, the monomorphised `==` devirtualises to the element's primitive
 /// comparison on every backend. Blanket impl (orphan rule : `Contains` is
 /// std/core's, `T[]` isn't), mirroring the `Into` blanket above.

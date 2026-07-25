@@ -1282,10 +1282,6 @@ emit_expr :: fn(self: Printer!, e: p.Expr | null) -> void {
         }
         is p.FnTypeExpr        as x -> self.emit_fn_type(x)
         is p.ArrayTypeExpr     as x -> {
-            // `const T[]` is an immutable array view — a DISTINCT type from
-            // `T[]`. Re-emit the `const` qualifier or the formatter silently
-            // widens the view to a mutable array (round-trip corruption).
-            if x.immutable { self.write("const ") }
             // Postfix `[]` binds tighter than `|` / `&` — `A | B[]` parses
             // as `A | (B[])`. If the element is a union/intersection
             // BinaryExpr, wrap it so the round-trip stays semantically

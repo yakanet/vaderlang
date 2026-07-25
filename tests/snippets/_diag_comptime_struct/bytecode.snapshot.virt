@@ -9,19 +9,30 @@ type 6 primitive i64
 type 7 primitive u8
 type 8 primitive void
 type 9 array 2
-string 0 "\n"
-string 1 "alpha"
-string 2 "beta"
-data 0 structs 1 2 2 strref 1 i32 0a000000 strref 2 i32 14000000
+string 0 "alpha"
+string 1 "beta"
+string 2 "\n"
 import 0 write std_io$write (i32,string) -> void
 impl 5 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  local __buf_0 ref
+  local $struct_2 ref
+  local $struct_5 ref
   local __off_1 usize
-  local $cast_13 i64
-  data.const 0 9
+  local $struct_20 ref
+  local $cast_25 i64
+  string.const 0
+  i32.const 10
+  struct.new_stack 2
+  local.set 0
+  string.const 1
+  i32.const 20
+  struct.new_stack 2
+  local.set 1
+  local.get 0
+  local.get 1
+  array.new 9 2
   i32.const 1
   array.get 9
   struct.get 2 0
@@ -31,21 +42,31 @@ fn 0 snippet$main () -> i32
   call 1
   local.set 0
   i64.const 0
+  local.set 2
+  string.const 0
+  i32.const 10
+  struct.new_stack 2
   local.set 1
-  data.const 0 9
+  string.const 1
+  i32.const 20
+  struct.new_stack 2
+  local.set 3
+  local.get 1
+  local.get 3
+  array.new 9 2
   i32.const 0
   array.get 9
   struct.get 2 1
   ref.cast 1
   i32.to_i64
+  local.set 4
+  local.get 0
+  local.get 2
+  local.get 4
+  call 3
   local.set 2
   local.get 0
-  local.get 1
   local.get 2
-  call 3
-  local.set 1
-  local.get 0
-  local.get 1
   call 2
   call 4
   return.lit i32.const 0
@@ -186,7 +207,7 @@ fn 4 std_io$println__string (string) -> void
   local.get 0
   call.import 0
   i32.const 0
-  string.const 0
+  string.const 2
   call.import 0
   return
 end

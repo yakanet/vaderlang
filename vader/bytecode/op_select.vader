@@ -304,7 +304,7 @@ export slot_load_op_for :: fn(elem: ValType, bounds_safe: bool) -> Op | null {
 /// else stays on the legacy runtime-dispatched `ArrayGet`/`ArraySet` :
 ///   - `.Boxed` (ref / string / `Any`) — an erased `Any[]` struct field may hold
 ///     a concrete-kind array, so only the kind-dispatched legacy op is sound.
-///   - `.U8` — `const u8[]` byte views are borrowed (`buf == NULL`, atom-backed),
+///   - `.U8` — read-only `u8[]` byte views are borrowed (`buf == NULL`, atom-backed),
 ///     which the raw slot op can't address.
 ///   - sub-word i16/u16/f32 — no slot opcode yet (`slot_width_for` → null).
 ///

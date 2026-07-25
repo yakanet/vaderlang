@@ -1,4 +1,4 @@
-// Mirror of the covariance already enforced type-side for arrays (a `const T[]`
+// Mirror of the covariance already enforced type-side for arrays (a read-only `T[]`
 // does not fit a `T[]` slot), for the roots that carry no marker in their type. A
 // `!` parameter grants the callee permission to mutate, so an immutable value
 // cannot be handed to it — here a module-level const, which has no storage at all,

@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/union_const_array_param
+## tests/snippets/union_array_param
   FnDecl         byte_count           :: fn(string | u8[]) -> usize
   FnDecl         main                 :: fn() -> i32
   expr 10:13    IdentExpr      :: string

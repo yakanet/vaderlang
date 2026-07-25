@@ -209,7 +209,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     // Pre-translate CFG string indices into bytecode pool indices.
     string_index_map: i32[]! = []
     for s in cfg.strings { string_index_map.push(intern_string(s, ctx)) }
-    // Intern each pooled `const string[]`'s values into the module string table
+    // Intern each pooled read-only `string[]`'s values into the module string table
     // so the comptime atom table (built from `module.strings`) covers them — the
     // native backend resolves each value's atom there, and the `.virt` dump
     // references them by table index. Side-effect only ; the entry keeps values.

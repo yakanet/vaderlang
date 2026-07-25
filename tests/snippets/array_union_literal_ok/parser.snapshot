@@ -263,8 +263,7 @@
                   "kind": "IdentExpr",
                   "name": "string"
                 }
-              },
-              "immutable": true
+              }
             },
             "value": {
               "kind": "IdentExpr",

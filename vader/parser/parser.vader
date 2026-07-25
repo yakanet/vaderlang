@@ -1579,7 +1579,7 @@ parse_typed_const_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Vi
     p.expect(.Colon, "`:` between type annotation and value")
     // `NAME: T: @comptime <expr>` — same desugar as the untyped form, but the
     // declared `T` becomes the synthetic fn's return type (so e.g.
-    // `K: const u32[]: @comptime { … }` evaluates AND `.rodata`-bakes).
+    // `K: u32[]: @comptime { … }` evaluates AND `.rodata`-bakes).
     if p.check(.At) && p.peek_at(1).kind == .Ident && p.peek_at(1).text == "comptime" {
         return p.desugar_comptime_const(decorators, visibility, name_tok, ty)
     }
@@ -1624,22 +1624,21 @@ parse_type :: fn(p: Parser!) -> TypeExpr {
         p.report_nesting_too_deep("type")
         return ident_expr(here, "?")
     }
-    // Precedence : `const` prefix (qualifies the array type), postfix
-    // `[]` (tightest), then `&` intersection, then `|` union
-    // (loosest). Mirrors the value-side Pratt table.
+    // Precedence : postfix `[]` and `!` (tightest), then `&` intersection,
+    // then `|` union (loosest). Mirrors the value-side Pratt table.
     // Optional leading `|` lets multi-line unions read cleanly in the
     // Haskell / Rust style. The lexer's `peeks_leading_continuation`
     // drops the newline before each leading `|` so the tokens
     // look identical to `T :: | A | B | C`.
     p.match_kind(.Pipe)
-    head := p.parse_const_qualified()
-    // `T | U | V` — left-associative `bitor` chain. Each member is parsed with
-    // `parse_const_qualified` so a `const T[]` element is valid anywhere in the
-    // union (`string | const u8[]`), not only as the first member.
+    p.reject_removed_const()
+    head := p.parse_type_intersection()
+    // `T | U | V` — left-associative `bitor` chain.
     if p.check(.Pipe) {
         head_span :: head.span
         for p.match_kind(.Pipe) != null {
-            next :: p.parse_const_qualified()
+            p.reject_removed_const()
+            next :: p.parse_type_intersection()
             next_span :: next.span
             head = BinaryExpr {
                 .span  = Span { .start = head_span.start, .end = next_span.end },
@@ -1653,24 +1652,19 @@ parse_type :: fn(p: Parser!) -> TypeExpr {
     return head
 }
 
-// A `&`-intersection type, optionally carrying a leading `const` qualifier that
-// (as for a standalone type) applies to an array element (`const T[]`). Factored
-// out of `parse_type` so every union member — not just the first — accepts it.
-parse_const_qualified :: fn(p: Parser!) -> TypeExpr {
-    const_tok :: p.match_kind(.KwConst)
-    head := p.parse_type_intersection()
-    if const_tok != null {
-        if head is ArrayTypeExpr {
-            head_span :: head.span
-            return ArrayTypeExpr {
-                .span      = Span { .start = const_tok.span.start, .end = head_span.end },
-                .element   = head.element,
-                .immutable = true,
-            }
-        }
-        p.error(.InvalidConstQualifierPlacement, const_tok.span, "`const` qualifier only applies to array types (`const T[]`)")
+// read-only `T[]` froze the referent before the read-only default made it the norm
+// and `!` made mutation the marked case. Both spellings would now mean the same
+// thing, so `const` is gone — but it is still a keyword, and a leading one in
+// type position gets a diagnostic that says so rather than a parse error about
+// an unexpected token.
+reject_removed_const :: fn(p: Parser!) -> void {
+    tok :: p.match_kind(.KwConst)
+    if tok != null {
+        p.error(
+            .RemovedConstQualifier, tok.span,
+            "a written type is read-only by default — drop `const`, and write `!` where mutation is needed",
+        )
     }
-    return head
 }
 
 // `T & U & V` — left-associative `bitand` chain, tighter than `|` and
@@ -2585,6 +2579,7 @@ postfix_bp :: fn(k: TokenKind) = match k {
     .LParen   -> 100
     .LBracket -> 100
     .Dot      -> 100
+    .KwConst      -> -1
     .Eof          -> -1
     .Newline      -> -1
     .Ident        -> -1
@@ -2662,7 +2657,6 @@ postfix_bp :: fn(k: TokenKind) = match k {
     .KwFalse      -> -1
     .KwNull       -> -1
     .KwSelf       -> -1
-    .KwConst      -> -1
 }
 
 parse_expr :: fn(p: Parser!, min_bp: i32) -> Expr {
@@ -2790,7 +2784,7 @@ parse_expr :: fn(p: Parser!, min_bp: i32) -> Expr {
             p.advance()
             right_bp :: if infix.non_assoc { infix.right_bp + 1 } else { infix.right_bp }
             // `is` takes a TYPE on the right, not a value expression : route it
-            // through `parse_type` so `x is Foo<T>` / `x is const T[]` /
+            // through `parse_type` so `x is Foo<T>` / `x is T[]` /
             // `x is fn(...)` parse as the type they denote. As a value expr the
             // generic path expects a `(` and chokes on the `{` of an `if` body
             // (parser-1/2). `TypeExpr` aliases `Expr`, so it stores straight
@@ -3724,11 +3718,11 @@ parse_error_count :: fn(src: string) -> i32 = i32(parse_source(src, "test.vader"
     assert_eq(parse_error_count(src), 0)
 }
 
-@test test_is_const_array_and_fn_type :: fn() -> void {
-    // parser-2 : `is const T[]` and `is fn(...)` route through `parse_type` too.
+@test test_is_array_and_fn_type :: fn() -> void {
+    // parser-2 : `is T[]` and `is fn(...)` route through `parse_type` too.
     src :: "module \"t\"\n" +
         "g :: fn(x: u8[] | i32) -> i32 {\n" +
-        "    if x is const u8[] { return 1 }\n" +
+        "    if x is u8[] { return 1 }\n" +
         "    return 0\n" +
         "}\n" +
         "h :: fn(x: fn(i32) -> i32 | i32) -> i32 {\n" +
@@ -3750,4 +3744,15 @@ parse_error_count :: fn(src: string) -> i32 = i32(parse_source(src, "test.vader"
         "}\n" +
         "n :: fn(x: i32 | string) -> bool = x !is i32\n"
     assert_eq(parse_error_count(src), 0)
+}
+
+@test test_removed_const_qualifier_is_reported :: fn() -> void {
+    // read-only `T[]` used to freeze the referent ; the read-only default replaced it.
+    // Writing it must name the removal (P1027) rather than fail on an unexpected
+    // token — the keyword is still lexed for exactly that reason.
+    src :: "module \"t\"\n" +
+        "f :: fn(x: const u8[]) -> usize = x.len()\n"
+    errors :: parse_source(src, "test.vader").errors
+    assert_eq(errors.len(), 1)
+    assert_eq(errors[0].code.id, "P1027")
 }

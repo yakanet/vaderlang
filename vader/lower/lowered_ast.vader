@@ -30,11 +30,11 @@ export LoweredVtableEntry :: struct {
     fn_symbol:   Symbol
 }
 
-/// Module-level `const T[]` literal routed to the data pool (`.rodata`
+/// Module-level read-only `T[]` literal routed to the data pool (`.rodata`
 /// on native, pre-materialised `ArrayVal` in the VM). The `inline-consts`
 /// pass populates this for eligible primitive-element const arrays ;
 /// references become `LoweredDataConst` nodes carrying the pool index.
-/// One pooled `const T[]`, lower-side — either a primitive-element array or a
+/// One pooled read-only `T[]`, lower-side — either a primitive-element array or a
 /// string array. `midir::convert_data_pool` lowers each into the matching
 /// `BcDataEntry` variant at the CFG boundary (lower can't import
 /// `vader/bytecode` — it would close the bytecode→lower import cycle). Produced
@@ -49,14 +49,14 @@ export PrimDataPoolEntry :: struct {
     items: i64[]
 }
 
-/// A pooled `const string[]`. Carries the element string values verbatim ;
+/// A pooled read-only `string[]`. Carries the element string values verbatim ;
 /// `midir` interns them into the module string table at emit (so the comptime
 /// atom table covers them) and lowers to a `BcStrData { values }`.
 export StrDataPoolEntry :: struct {
     values: string[]
 }
 
-/// A pooled aggregate `const T[]` — struct / tuple / nested-array elements.
+/// A pooled aggregate read-only `T[]` — struct / tuple / nested-array elements.
 /// Carries the raw array literal ; `midir::convert_data_pool` recursively lowers
 /// it to a `BcAggregateData` (resolving struct symbol-ids + element kinds). The
 /// `LoweredExpr` tree IS the recursive value — no doubled lower-side type. The
@@ -481,7 +481,7 @@ export LoweredArrayLit :: struct {
     elements: LoweredExpr[]!
 }
 
-/// A `const T[]` module-level literal that lives in the project's data
+/// A read-only `T[]` module-level literal that lives in the project's data
 /// pool. The `inline-consts` pass replaces idents that referred to a
 /// pool-eligible const decl with this node ; the bytecode emit lowers it
 /// to `data.const`.

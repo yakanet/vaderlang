@@ -943,7 +943,9 @@ record_struct_trait_args :: fn(
     typed: TypedProgram!,
     for_ty: Type,
     trait_name: string,
-    args: Type[],
+    // Mutable because that is what `struct_trait_args` stores : a generic
+    // argument takes no read-only default (see `apply_readonly_default`).
+    args: Type[]!,
 ) -> void {
     name :: type_base_name(for_ty)
     if name == "" {
@@ -952,7 +954,7 @@ record_struct_trait_args :: fn(
     per_struct :: typed.struct_trait_args[name]
     match per_struct {
         is null -> {
-            fresh :: MutableMap<string, const Type[]> {}
+            fresh :: MutableMap<string, Type[]> {}
             fresh[trait_name] = args
             typed.struct_trait_args[name] = fresh
         }
@@ -2314,8 +2316,8 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram!, diags: Diagnost
 // built literal from a synthesised accessor (`fn-wrap` bucket). So a mutation
 // through such a const targets a throwaway copy and is silently discarded —
 // `KEYWORDS[0] = "x"` used to compile and do nothing. An UNANNOTATED const whose
-// inferred type is a mutable array is therefore auto-typed `const T[]`, turning
-// that silent loss into T3042 at typecheck. This is what SPEC.md §"const T[]"
+// inferred type is a mutable array is therefore auto-typed read-only `T[]`, turning
+// that silent loss into T3042 at typecheck. This is what SPEC.md §"Read-only arrays"
 // (Inference) has always promised.
 //
 // `@comptime` consts have a second, harder reason : a primitive array is

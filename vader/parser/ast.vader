@@ -879,14 +879,12 @@ export FnTypeExpr :: struct {
 }
 
 // Postfix array type `T[]` — type-only AST node. The bracketed form
-// `[T1, T2]` parses as `SeqLitExpr` (tuple type) instead. `const T[]`
-// sets `immutable = true` so downstream phases reject mutation through
-// the type.
+// `[T1, T2]` parses as `SeqLitExpr` (tuple type) instead. Mutability is not a
+// field here : it is the `MutableTypeExpr` wrapper below, one level at a time.
 export ArrayTypeExpr :: struct {
-    span:      Span
-    id:        usize = UNASSIGNED_NODE_ID
-    element:   TypeExpr
-    immutable: bool  = false
+    span:    Span
+    id:      usize = UNASSIGNED_NODE_ID
+    element: TypeExpr
 }
 
 /// Postfix `T!` — "mutation through this slot is allowed", one level of the
@@ -898,8 +896,7 @@ export ArrayTypeExpr :: struct {
 /// per-level granularity for free, which is the whole point : `Cfg![]` (mutable
 /// elements in a read-only array) and `Cfg[]!` (mutable array of read-only
 /// elements) are different types, and only a per-level marker can tell them
-/// apart. `ArrayTypeExpr.immutable` (the `const T[]` form) is its predecessor
-/// and covers arrays only.
+/// apart.
 export MutableTypeExpr :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID

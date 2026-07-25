@@ -40,7 +40,7 @@ module "std/core"
 
 /// One-char strings per decimal digit. Used by the f64 digit collector in
 /// `dtoa.vader` ; the integer formatters below emit digit *bytes* directly.
-DECIMAL_DIGITS: const string[]: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+DECIMAL_DIGITS: string[]: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 // Render a signed value working entirely in NON-POSITIVE space, because
 // `abs(i64 min)` overflows i64 (|i64 min| = i64 max + 1). So rather than negate
@@ -120,7 +120,7 @@ export finish_buffer :: fn(self: Buffer, len: usize) -> string = self.intern_str
 @intrinsic export byte_len :: fn(s: string) -> usize
 
 /// The byte at index `i` of `s` — an `@intrinsic` header-free read straight off
-/// the interned atom, no `const u8[]` view materialised. The fold target for a
+/// the interned atom, no read-only `u8[]` view materialised. The fold target for a
 /// non-escaping `s.bytes()` bound to a local and indexed (see
 /// `lower/bytes_view_elision.vader`), the peer of `byte_len` for the `[i]` case.
 ///
@@ -218,12 +218,12 @@ export utf8_encode :: fn(c: char) -> u8[] {
 /// @return    the string those bytes encode.
 @intrinsic export bytes_to_string :: fn(bs: u8[]) -> string
 
-/// Borrow the UTF-8 bytes of a string as a `const u8[]` view — the canonical
+/// Borrow the UTF-8 bytes of a string as a read-only `u8[]` view — the canonical
 /// string→bytes primitive, inverse of `bytes_to_string`. Host intrinsic backed
 /// by `vader_string_bytes_view` (no new runtime symbol) ; a zero-copy borrowed
 /// view of the interned bytes on native, a fresh copy on the VM.
 /// @param s  source string.
-/// @return   a `const u8[]` over the UTF-8 bytes of `s`.
+/// @return   a read-only `u8[]` over the UTF-8 bytes of `s`.
 @intrinsic export bytes :: fn(s: string) -> u8[]
 
 /// Codepoint length of `s` — the number of Unicode codepoints, not bytes.

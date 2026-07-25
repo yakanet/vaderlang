@@ -132,7 +132,7 @@ infer_against_array :: fn(
     // 3]` against a `(i32 | string)[]` slot types as `(i32 | string)[]`. This
     // keeps the literal's type equal to the slot's, so the invariant mutable-
     // array rule (`is_assignable_array`) accepts the init without a covariant
-    // widening — covariance is reserved for the sound `const T[]` case. The
+    // widening — covariance is reserved for the sound read-only `T[]` case. The
     // `is_assignable` guard (same null-oracle predicate as the binding's
     // `flows_into`) preserves the mismatch diagnostic when an element does NOT
     // fit — `xs: i32[] = ["a"]` keeps `string[]` and is rejected downstream. A

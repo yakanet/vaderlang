@@ -60,7 +60,7 @@ export string_array_to_value :: fn(items: string[], type_id: i32) -> ArrayVal {
 
 /// Box a string's UTF-8 bytes as an `ArrayVal` of `u8` values — the VM's
 /// copy fallback for `std/string::bytes`. The native target returns a
-/// zero-copy `const u8[]` view aliasing the interned bytes ; the VM boxes
+/// zero-copy read-only `u8[]` view aliasing the interned bytes ; the VM boxes
 /// every slot so it cannot alias a raw buffer and materialises a copy
 /// (same observable values). `u8` rides in `I32Val` (see `coerce_i32`).
 ///

@@ -96,7 +96,7 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     // promise made by one function about one parameter, not a different type.
     // Two `Cfg` are one type whether or not a borrow is read-only, so caches,
     // union dedup, monomorphisation keys and overlap tests all keep working
-    // unchanged. `ArrayType` below is the exception — `const T[]` is a written
+    // unchanged. `ArrayType` below is the exception — read-only `T[]` is a written
     // annotation that freezes the referent, hence a genuinely distinct type.
     is StructType    as ax  -> if b is StructType as bx {
         nominal_eq(ax.symbol.id, ax.args, bx.symbol.id, bx.args)
@@ -176,7 +176,7 @@ with_immutable_each :: fn(variants: Type[], immutable: bool) -> Type[] {
 /// The type of a parameter once its `!` marker is desugared onto the type.
 ///
 /// An unmarked parameter is a read-only borrow. A `!` grants mutation — but only
-/// when the WRITTEN type doesn't already forbid it : a `const i32[]` slot stays
+/// when the WRITTEN type doesn't already forbid it : a read-only `i32[]` slot stays
 /// read-only. `const` is a property of the TYPE (the referent is frozen, e.g. a
 /// module const), `!` a property of the SLOT ; they are orthogonal and the
 /// stricter of the two wins. Without this the marker would silently launder a
@@ -220,17 +220,17 @@ export apply_readonly_default :: fn(t: Type, written: AST.TypeExpr | null) -> Ty
         return union_of(out)
     }
     if written is AST.MutableTypeExpr as m {
-        // A `const T[]` under a marker is a contradiction the parser rejects (P1027 /
-        // P1031), so this is a belt rather than a live path : `const` freezes the
-        // REFERENT, and no marker can grant mutation through it — the stricter side
-        // wins, here as everywhere.
+        // A type that arrives ALREADY read-only (an alias, a side-table entry) is
+        // not un-frozen by a marker : the stricter side wins, here as everywhere.
+        // A belt rather than a live path now that `const` is gone — the surface has
+        // no way left to write a frozen type under a `!`.
         inner :: readonly_children(t, m.inner)
         if type_is_immutable(inner) { return inner }
         // This level is explicitly mutable ; deeper levels still take the default.
         return with_immutable(inner, false)
     }
-    // `const T[]` already froze the referent : the stricter side wins, but the
-    // children still take the default.
+    // Already read-only : the stricter side wins, but the children still take the
+    // default.
     if type_is_immutable(t) { return readonly_children(t, written) }
     return with_immutable(readonly_children(t, written), true)
 }
@@ -565,7 +565,7 @@ test_equals_array :: fn() -> void {
     a2: Type = mk_array(mk_primitive("i32"), false)
     a3: Type = mk_array(mk_primitive("i32"), true)
     assert(equals_type(a1, a2), "i32[] == i32[]")
-    assert(!equals_type(a1, a3), "i32[] != const i32[]")
+    assert(!equals_type(a1, a3), "i32[]! != i32[]")
 }
 
 // `is_assignable` tests live in `type_assign.vader` alongside the impl.

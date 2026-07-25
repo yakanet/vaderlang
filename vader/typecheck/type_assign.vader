@@ -85,7 +85,7 @@ export check_common :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> b
 /// type anyway. The bit is read by the MUTATION checks instead, which is where
 /// the promise actually bites.
 ///
-/// `ArrayType` is the exception, and on purpose : `const T[]` is an explicit,
+/// `ArrayType` is the exception, and on purpose : read-only `T[]` is an explicit,
 /// writable annotation that freezes the REFERENT (module consts, `.bytes()`
 /// views), so it stays covariant in `is_assignable_array`.
 export is_assignable_struct :: fn(from: Type, self: StructType, to: Type, oracle: TraitOracle | null) -> bool {
@@ -131,7 +131,7 @@ export is_assignable_tuple :: fn(from: Type, self: TupleType, to: Type, oracle: 
     return check_common(from, to, oracle)
 }
 
-/// `from is ArrayType`. `T[] <: const T[]` (mutable into const ; reverse
+/// `from is ArrayType`. `T[]! <: T[]` (mutable into read-only ; reverse
 /// forbidden). The element is **covariant** into a `const` (read-only) target
 /// but **invariant** into a mutable one : covariance on a mutable array is
 /// unsound (arrays are reference-aliased — SPEC §Arrays — so a write through a
@@ -140,7 +140,7 @@ export is_assignable_tuple :: fn(from: Type, self: TupleType, to: Type, oracle: 
 export is_assignable_array :: fn(from: Type, self: ArrayType, to: Type, oracle: TraitOracle | null) -> bool {
     if to is ArrayType as ta {
         if self.immutable && !ta.immutable { return false }
-        // `const T[]` (read-only) target : element is covariant — reading a
+        // read-only `T[]` (read-only) target : element is covariant — reading a
         // narrower array through a wider read-only view is sound (no write can
         // violate the source element type).
         if ta.immutable {
@@ -358,8 +358,8 @@ test_assignable_into_union :: fn() -> void {
 test_assignable_array_mut_into_const :: fn() -> void {
     mut_arr: Type = mk_array(mk_primitive("i32"), false)
     const_arr: Type = mk_array(mk_primitive("i32"), true)
-    assert(is_assignable(mut_arr, const_arr, null), "T[] → const T[]")
-    assert(!is_assignable(const_arr, mut_arr, null), "const T[] ↛ T[]")
+    assert(is_assignable(mut_arr, const_arr, null), "T[]! → T[]")
+    assert(!is_assignable(const_arr, mut_arr, null), "T[] ↛ T[]!")
 }
 
 @test

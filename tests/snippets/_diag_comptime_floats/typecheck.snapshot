@@ -2,17 +2,17 @@
 
 ## tests/snippets/_diag_comptime_floats
   FnDecl         main                 :: fn() -> i32
-  ConstDecl      NARROW               :: f32[]
-  ConstDecl      WIDE                 :: f64[]
-  expr 11:22    SeqLitExpr     :: f32[]
+  ConstDecl      NARROW               :: f32[]!
+  ConstDecl      WIDE                 :: f64[]!
+  expr 11:16    SeqLitExpr     :: f32[]!
   expr 14:13    StringLitExpr  :: string
-  expr 14:16    IdentExpr      :: f64[]
+  expr 14:16    IdentExpr      :: f64[]!
   expr 14:16    IndexExpr      :: f64
   expr 14:5     CallExpr       :: void
   expr 14:5     IdentExpr      :: fn(T) -> void
   expr 15:13    StringLitExpr  :: string
-  expr 15:16    IdentExpr      :: f32[]
+  expr 15:16    IdentExpr      :: f32[]!
   expr 15:16    IndexExpr      :: f32
   expr 15:5     CallExpr       :: void
   expr 15:5     IdentExpr      :: fn(T) -> void
-  expr 9:20     SeqLitExpr     :: f64[]
+  expr 9:14     SeqLitExpr     :: f64[]!

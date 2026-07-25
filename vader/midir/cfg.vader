@@ -382,13 +382,13 @@ export InstrArrayNew :: struct {
     stack: bool
 }
 
-/// Pre-materialised module-level `const T[]` literal. Pool entry built
+/// Pre-materialised module-level read-only `T[]` literal. Pool entry built
 /// by inline-consts ; emit lowers to bytecode `data.const`. No operands
 /// — the value is the static pool entry's runtime ref.
 export InstrDataConst :: struct {
     span:       Span
     dst:        LocalId
-    type:       Type                    // `const T[]` array type
+    type:       Type                    // read-only `T[]` array type
     pool_index: i32
 }
 

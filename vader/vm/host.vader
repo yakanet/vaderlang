@@ -212,7 +212,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         return HostOk { .value = StringVal { .value = raw.bytes_to_string() } }
     }
     .Bytes -> {
-        // Native zero-copies a `const u8[]` view ; the VM materialises a copy
+        // Native zero-copies a read-only `u8[]` view ; the VM materialises a copy
         // (boxed slots can't alias the interned bytes) — same values.
         s :: read_string(stack[arg_base], at_pc, "bytes receiver")
         if s is Trap { return s }

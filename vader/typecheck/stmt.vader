@@ -714,7 +714,7 @@ check_assign :: fn(
             return
         }
     }
-    // T3042 : `arr[i] = v` when arr's static type is `const T[]`.
+    // T3042 : `arr[i] = v` when arr's static type is read-only `T[]`.
     // For Array-typed receivers we still write the full IndexExpr
     // into `expr_types`. For non-Array receivers the
     // assignment LHS doesn't land in `expr_types` — only its sub-
@@ -742,7 +742,7 @@ check_assign :: fn(
             }
             // T3070 : the array itself is mutable, but we got to it through an
             // immutable path — `CFG.tags[0] = 9`, where `tags: i32[]`. T3042 above
-            // already handled the `const T[]` leaf, so this only fires past it.
+            // already handled the read-only `T[]` leaf, so this only fires past it.
             if push_immutable_path_write(
                 expr_is_immutable(ix.target, typed), s.target.span,
                 immutable_root_param(ix.target, typed), diags,
@@ -1018,7 +1018,7 @@ mark_loop_var_borrow :: fn(nv: AST.NamedVar, iter: AST.Expr, typed: TypedProgram
 
 // T3070 for an element write (`CFG.tags[0] = 9`) whose container is mutable but
 // reached through an immutable path. Shared by the array and IndexSet branches of
-// `check_assign` ; the `const T[]` case keeps T3042's more specific wording.
+// `check_assign` ; the read-only `T[]` case keeps T3042's more specific wording.
 push_immutable_path_write :: fn(
     immutable: bool, span: Span, root_param: Symbol | null, diags: Diagnostic[]!,
 ) -> bool = push_immutability_diag_at(

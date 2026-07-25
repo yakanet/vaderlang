@@ -32,7 +32,7 @@ main :: fn() -> i32 {
     }
     println("done bytes=${"".bytes().len()}")
 
-    // bytes() returns const u8[], so the array supports random access and
+    // bytes() returns a read-only `u8[]`, so the array supports random access and
     // .len() like any other array. On native this is a zero-copy view over
     // the interned bytes ; on the VM a materialised copy. Same values.
     println("-- u8[] surface --")

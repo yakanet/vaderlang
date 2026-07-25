@@ -1,4 +1,4 @@
-// T3042 — `bytes()` returns `const u8[]`, so writing through the view is
+// T3042 — `bytes()` returns read-only `u8[]`, so writing through the view is
 // rejected at typecheck. The view aliases the string's immutable interned
 // bytes ; the const-ness is what makes the native zero-copy view sound.
 

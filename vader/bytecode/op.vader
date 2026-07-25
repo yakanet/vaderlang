@@ -321,10 +321,10 @@ export ArrayRemoveLast :: struct {}
 export ArrayClear :: struct {}
 
 /// Push the pre-materialised array at `module.data_pool[pool_index]`.
-/// `type_id` is the BcType index of the resulting `const T[]` array.
+/// `type_id` is the BcType index of the resulting read-only `T[]` array.
 /// The pool is built once at module-load time (parser materialises
 /// each `data N <kind> hex"..."` directive into an `ArrayVal`) ; this
-/// op is the runtime read for `const T[]` literals routed to .rodata
+/// op is the runtime read for read-only `T[]` literals routed to .rodata
 /// by the bytecode emitter.
 export DataConst :: struct { pool_index: i32, type_id: i32 }
 

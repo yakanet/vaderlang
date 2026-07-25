@@ -80,7 +80,7 @@ write_types :: fn(sb: StringBuilder!, types: BcType[]) -> void {
     }
 }
 
-// Data pool — one line per pre-materialised `const T[]`. Primitive arrays dump
+// Data pool — one line per pre-materialised read-only `T[]`. Primitive arrays dump
 // as `data N <kind> hex"<le-bytes>"` ; string arrays as `data N str "v0" "v1" …`
 // (each value `quote_string`-escaped, mirroring the `string N "…"` section).
 // Round-trips through `virt_reader_bc::parse_data_decl_bc` so the VM reconstructs
@@ -88,7 +88,7 @@ write_types :: fn(sb: StringBuilder!, types: BcType[]) -> void {
 // entry (pool_index out of range).
 write_data_pool :: fn(sb: StringBuilder!, data_pool: BcDataEntry[], strings: string[]) -> void {
     // Only aggregate entries reference the pool via `strref` ; skip the index
-    // build for pools without one (const string[] / primitive tables) so a dump
+    // build for pools without one (`string[]` / primitive tables) so a dump
     // over a large `module.strings` stays free.
     str_index :: if data_pool_has_aggregate(data_pool) { build_string_index(strings) } else { MutableMap<string, i32> {} }
     for i in 0..<data_pool.len() {

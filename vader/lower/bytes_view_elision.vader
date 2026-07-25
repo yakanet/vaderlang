@@ -1,6 +1,6 @@
 // vader/lower/bytes_view_elision — elide a non-escaping `s.bytes()` view.
 //
-// `s.bytes()` returns a borrowed `const u8[]` view: the DATA aliases the
+// `s.bytes()` returns a borrowed read-only `u8[]` view: the DATA aliases the
 // interned atom (zero-copy), but the array-descriptor HEADER
 // (`vader_array_t`, ~40 B) is heap-allocated every call — 2.4M+ times across a
 // self-compile. The hot pattern binds the view to a local and only ever reads

@@ -82,8 +82,7 @@
         "element": {
           "kind": "IdentExpr",
           "name": "Spec"
-        },
-        "immutable": true
+        }
       },
       "value": {
         "kind": "SeqLitExpr",

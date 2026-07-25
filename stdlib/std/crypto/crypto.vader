@@ -53,17 +53,17 @@ append_hex_u8 :: fn(sb: StringBuilder!, x: u8) -> void {
 /// Operates on the UTF-8 bytes of the source string ; non-ASCII content
 /// hashes consistently with `shasum -a 256` provided the caller hasn't
 /// re-encoded the input upstream.
-export sha256 :: fn(input: string | const u8[]) -> string = hex_of_bytes(sha256_bytes(input))
+export sha256 :: fn(input: string | u8[]) -> string = hex_of_bytes(sha256_bytes(input))
 
 /// SHA-256 digest as the raw 32-byte hash — the byte-level core that `sha256`
 /// hex-encodes and `hmac_sha256` chains. Use this when a downstream primitive
 /// (HMAC, a key-derivation step, a binary protocol field) needs the bytes
 /// rather than the hex rendering. Accepts a `string` (hashed as its UTF-8
-/// bytes) or raw bytes (`u8[]` / `const u8[]` / `s.bytes()`).
+/// bytes) or raw bytes (`u8[]` / read-only `u8[]` / `s.bytes()`).
 ///
-/// @param input  the message : a `string` or a `const u8[]` (e.g. `s.bytes()`).
+/// @param input  the message : a `string` or a read-only `u8[]` (e.g. `s.bytes()`).
 /// @return       the 32-byte big-endian digest.
-export sha256_bytes :: fn(input: string | const u8[]) -> u8[] {
+export sha256_bytes :: fn(input: string | u8[]) -> u8[] {
     data :: to_bytes(input)
     // The eight working hash values (SHA-256 initial constants : the first 32
     // bits of the fractional parts of the square roots of the first 8 primes).
@@ -148,10 +148,10 @@ export hex_of_bytes :: fn(bytes: u8[]) -> string {
 /// zero-padded to the block. Key and message each accept a `string` or raw
 /// bytes ; hex-render the result with `hex_of_bytes` when a string is wanted.
 ///
-/// @param key  the secret key : a `string` or raw bytes (`const u8[]`).
+/// @param key  the secret key : a `string` or raw bytes (read-only `u8[]`).
 /// @param msg  the message : a `string` or raw bytes.
 /// @return     the 32-byte HMAC.
-export hmac_sha256 :: fn(key: string | const u8[], msg: string | const u8[]) -> u8[] {
+export hmac_sha256 :: fn(key: string | u8[], msg: string | u8[]) -> u8[] {
     BLOCK : usize : 64
     kb :: to_bytes(key)
     mb :: to_bytes(msg)
@@ -186,10 +186,10 @@ export hmac_sha256 :: fn(key: string | const u8[], msg: string | const u8[]) -> 
     return sha256_bytes(outer_in)
 }
 
-// Coerce a `string | const u8[]` hash/HMAC input to bytes — a string
+// Coerce a `string | u8[]` hash/HMAC input to bytes — a string
 // contributes its UTF-8 bytes; raw bytes pass through. Shared by sha256_bytes
 // and hmac_sha256 so both accept either form.
-to_bytes :: fn(x: string | const u8[]) -> u8[] {
+to_bytes :: fn(x: string | u8[]) -> u8[] {
     if x is string { return x.bytes() }
     return x
 }
@@ -332,7 +332,7 @@ append_hex_u32_le :: fn(sb: StringBuilder!, x: u32) -> void {
 // shifts across its 16 steps, so the 64-entry table is those 4×4 base shifts
 // with each row repeated four times. Built at compile time from the base rows
 // (loop / `push` are outside the tree-walk subset → VM-staged) and materialised
-// as `const u32[]` in the data section, exactly like `SHA256_K`.
+// read-only in the data section, exactly like `SHA256_K`.
 MD5_S :: @comptime {
     // Round r's four shifts live at base[r*4 .. r*4+3].
     base :: [7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21]
@@ -350,7 +350,7 @@ MD5_S :: @comptime {
 // Computed at compile time via the VM-backed comptime engine (the loop / `push`
 // / `sin` are outside the tree-walk subset, so the comptime fallback stages +
 // executes the block in the embedded VM). A `@comptime` primitive-array const is
-// auto-typed `const u32[]` — so the result is materialised into the binary's
+// auto-typed read-only — so the result is materialised into the binary's
 // read-only data section and read through a zero-copy view, never recomputed at
 // runtime. The known-answer tests (`test_md5_*`) guard the baked values against
 // host-libm `sin` drift across platforms.
@@ -428,7 +428,7 @@ import "std/testing"
     d :: sha256_bytes("abc")
     assert_eq(d.len(), 32)                            // raw 32-byte digest
     assert_eq(hex_of_bytes(d), sha256("abc"))         // hex view agrees with sha256
-    // The `string` and `const u8[]` input forms produce the same digest.
+    // The `string` and read-only `u8[]` input forms produce the same digest.
     assert_eq(hex_of_bytes(sha256_bytes("abc".bytes())), sha256("abc"))
 }
 

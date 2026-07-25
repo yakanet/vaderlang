@@ -16,7 +16,7 @@ main :: fn() -> i32 {
     }
 
     a: i32[] = [10, 20]
-    view: const (i32 | string)[] = a
+    view: (i32 | string)[] = a
     if view[0] is i32 as n { println("view0 ${n}") }
     return 0
 }

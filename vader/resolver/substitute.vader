@@ -85,7 +85,6 @@ export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeE
                 .span = e.span,
                 .id = AST.UNASSIGNED_NODE_ID,
                 .element = substitute_type_expr(e.element, subst),
-                .immutable = e.immutable,
             }
         }
         // `T!` — descend into the marked type. Falling through to the `_` arm

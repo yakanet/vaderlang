@@ -646,18 +646,17 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 - **Slicing**: `arr[r]` where `r: Range<integer>` returns a **zero-copy view** sharing the parent's buffer. Both literal ranges (`arr[1..<4]`, `arr[0..=2]`) and let-bound range values work — dispatch keys on the index *type*, not the AST shape. Any integer-bounded range is accepted; bounds are coerced to `usize` at the use site. Pushing into the view detaches it into a fresh buffer so the parent is never mutated through the slice. For an independent copy use `arr[r].clone()`.
 - Postfix `[]` binds tighter than `|`; use parens to group: `(T | U)[]` is "array of T-or-U", `T | U[]` is "T or array-of-U".
 
-#### `const T[]` — a frozen referent
+#### Read-only arrays
 
-`const` qualifies an array type as immutable, and after the read-only default it survives in exactly **one** role: freezing a **referent** that has no storage to write to. That is the module-level array const.
-
-It is **not** written in a parameter, a field or a return type — read-only is already the default there, so `const` would say nothing. Only a `!` says something in those positions.
+An unmarked array type is read-only, everywhere a type is written. There is no separate qualifier: `const` was removed (P1027 if written) once the default made it redundant — a frozen referent and an unmarked slot are the same thing, and only `!` says something.
 
 ```vader
-KEYWORDS :: ["fn", "if", "else"]      // const string[] — inferred, module scope
-read :: fn(a: i32[]) -> i32 = a[0]    // read-only by default ; no `const`
+KEYWORDS :: ["fn", "if", "else"]      // string[] — inferred read-only, module scope
+read :: fn(a: i32[]) -> i32 = a[0]    // read-only by default
+fill :: fn(a: i32[]!) -> void { a.push(0) }
 ```
 
-Through a value typed `const T[]`, mutation is rejected at typecheck — neither `arr[i] = v` (T3042) nor `arr.push(v)` (T3071) compiles.
+Through a read-only array, mutation is rejected at typecheck — neither `arr[i] = v` (T3042) nor `arr.push(v)` (T3071) compiles.
 
 **Subtyping**: `T[]! <: T[]`. A mutable array passes anywhere a read-only one is expected (covariant), never the reverse. This lets read-only fns accept both kinds without overloads.
 
@@ -674,7 +673,7 @@ read([4, 5, 6])           // OK — fresh array passes
 **Inference**: an unannotated module-level array const is automatically pinned read-only — it has no runtime storage, so a write through it would be discarded rather than take effect. Annotating the type explicitly (`X: T[]!: [...]`) opts out. An **annotated local** takes the same read-only default; an unannotated one keeps its inferred type and stays owned.
 
 ```vader
-KEYWORDS :: ["fn", "if", "else"]      // const string[] (module scope)
+KEYWORDS :: ["fn", "if", "else"]      // string[], read-only (module scope)
 
 main :: fn() {
     local :: [1, 2, 3]                // i32[]! (local — mutable)
@@ -684,7 +683,7 @@ main :: fn() {
 
 **Escape hatch**: `arr.clone()` produces a fresh mutable `T[]!` from any array. Mutating the copy never affects the original — which is why its return is marked.
 
-**Storage**: module-level `const T[]` literals whose elements are all primitive (fixed-width integers, floats, char, bool) and all literal-valued land in the bytecode module's data pool — the C backend emits them as `static const` `.rodata` arrays, the VM materialises them once at module load, and `data.const` op-codes resolve to those pre-built values. References share one allocation across the whole process. Non-primitive elements (struct, string) continue to fn-wrap until the pool gains the matching representation.
+**Storage**: module-level read-only array literals whose elements are all primitive (fixed-width integers, floats, char, bool) and all literal-valued land in the bytecode module's data pool — the C backend emits them as `static const` `.rodata` arrays, the VM materialises them once at module load, and `data.const` op-codes resolve to those pre-built values. References share one allocation across the whole process. Non-primitive elements (struct, string) continue to fn-wrap until the pool gains the matching representation.
 
 **How a type is printed.** A dump renders the marker exactly as the source spells it: `i32[]!` for a mutable array, `i32[]` for a read-only one, `Cfg![]` when only the elements are mutable. Side-table keys (impl dispatch, monomorphisation mangles, `@type_name`) use the marker-free rendering, so a receiver's mutability never changes an emitted name or a lookup key.
 
@@ -2509,7 +2508,7 @@ build_lookup_table :: fn() -> u32[] {
 TABLE :: build_lookup_table()
 ```
 
-`build_lookup_table()` runs during compilation — loops, local mutation and calls are evaluated by the embedded bytecode VM (see the implementation note). `TABLE` is a constant whose value is computed once at compile time. When typed as an immutable `const T[]` of primitive elements it is **materialised into the binary's read-only data section** (`.rodata` natively, a data segment under wasm) and referenced by a zero-copy view — never rebuilt at runtime ; otherwise the value is inlined at each use site.
+`build_lookup_table()` runs during compilation — loops, local mutation and calls are evaluated by the embedded bytecode VM (see the implementation note). `TABLE` is a constant whose value is computed once at compile time. When typed as a read-only array of primitive elements it is **materialised into the binary's read-only data section** (`.rodata` natively, a data segment under wasm) and referenced by a zero-copy view — never rebuilt at runtime ; otherwise the value is inlined at each use site.
 
 **Inline form.** `@comptime` also works as an expression prefix on a const's right-hand side, so the builder can be written at the const instead of as a separate fn:
 

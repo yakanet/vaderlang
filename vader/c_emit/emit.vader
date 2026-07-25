@@ -313,13 +313,13 @@ emit_struct_body :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize, out: String
     out.append("};\n")
 }
 
-/// Data pool — module-level `const T[]` literals emitted as `.rodata` statics.
+/// Data pool — module-level read-only `T[]` literals emitted as `.rodata` statics.
 /// Skipped when `data_pool.len() == 0`. Primitive arrays bake a concrete-typed
 /// element buffer ; string arrays bake a `vader_box_t` slot buffer holding the
 /// elements' atom ids.
 emit_data_pool :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     if ctx.module.data_pool.len() == 0 { return }
-    out.append("/* Comptime data pool — immutable `const T[]` arrays in `.rodata`.\n")
+    out.append("/* Comptime data pool — read-only arrays in `.rodata`.\n")
     out.append(" * Out-of-arena pointers are immortal to the GC (it never copies /\n")
     out.append(" * relocates them), so `data.const` boxes a zero-copy view. */\n")
     // The `BcDataEntry` carries no array type_id (the op does) ; recover it by

@@ -134,7 +134,7 @@ export ParserCode :: enum(u8) {
     OneTupleNotAllowed,                     // P1021
     TuplePatternRequiresTwoElements,        // P1022
     LetDestructureRequiresTwoElements,      // P1023
-    InvalidConstQualifierPlacement,         // P1027
+    RemovedConstQualifier,                  // P1027
     InvalidModuleName,                      // P1028
     ExpressionNestingTooDeep,               // P1029
     RepeatedMutabilityMarker,               // P1030
@@ -292,7 +292,7 @@ export parser_info :: fn(c: ParserCode) = match c {
     .OneTupleNotAllowed                 -> CodeInfo { .id = "P1021", .message = "1-tuple types are not allowed" }
     .TuplePatternRequiresTwoElements    -> CodeInfo { .id = "P1022", .message = "tuple pattern requires at least 2 elements" }
     .LetDestructureRequiresTwoElements  -> CodeInfo { .id = "P1023", .message = "let destructure requires at least 2 elements" }
-    .InvalidConstQualifierPlacement     -> CodeInfo { .id = "P1027", .message = "invalid `const` qualifier placement" }
+    .RemovedConstQualifier              -> CodeInfo { .id = "P1027", .message = "`const` was removed from the language" }
     .InvalidModuleName                  -> CodeInfo { .id = "P1028", .message = "invalid module name (does not match `[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*)*` grammar)" }
     .ExpressionNestingTooDeep           -> CodeInfo { .id = "P1029", .message = "expression nesting too deep" }
     .RepeatedMutabilityMarker           -> CodeInfo { .id = "P1030", .message = "repeated `!` on the same type level" }

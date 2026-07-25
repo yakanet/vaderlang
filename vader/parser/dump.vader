@@ -1011,10 +1011,6 @@ write_expr :: fn(sb: StringBuilder!, e: Expr | null, level: i32) -> void {
             sb.kind_entry(level + 1, "ArrayTypeExpr")
             sb.entry(false, level + 1, "element")
             sb.write_expr(e.element, level + 1)
-            if e.immutable {
-                sb.entry(false, level + 1, "immutable")
-                sb.append("true")
-            }
             sb.close_obj(level)
         }
         is MutableTypeExpr -> {

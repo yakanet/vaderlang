@@ -1,4 +1,4 @@
-// Diag snippet: an immutable `const Pair[]` (named struct, prim + string fields)
+// Diag snippet: a read-only `Pair[]` (named struct, prim + string fields)
 // bakes into the data pool as a recursive aggregate value — no per-use struct.new
 // + array.new. Expected: prints "beta" then "10", exits 0.
 
@@ -11,7 +11,7 @@ Pair :: struct {
     code: i32
 }
 
-PAIRS: const Pair[]: [
+PAIRS: Pair[]: [
     Pair { .name = "alpha", .code = 10 },
     Pair { .name = "beta", .code = 20 },
 ]

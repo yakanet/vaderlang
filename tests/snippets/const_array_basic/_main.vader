@@ -1,4 +1,4 @@
-// `const T[]` now has ONE role: a frozen referent, which is what a module-level
+// read-only `T[]` now has ONE role: a frozen referent, which is what a module-level
 // array const is. Reading through it works, and it passes to a read-only slot —
 // which every unmarked slot is, so no qualifier is written at the call boundary.
 

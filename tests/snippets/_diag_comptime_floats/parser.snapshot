@@ -23,8 +23,7 @@
         "element": {
           "kind": "IdentExpr",
           "name": "f64"
-        },
-        "immutable": true
+        }
       },
       "value": {
         "kind": "SeqLitExpr",
@@ -54,8 +53,7 @@
         "element": {
           "kind": "IdentExpr",
           "name": "f32"
-        },
-        "immutable": true
+        }
       },
       "value": {
         "kind": "SeqLitExpr",

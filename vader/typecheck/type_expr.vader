@@ -84,10 +84,10 @@ export type_from_expr :: fn(
         // here and carried by the `Type` itself.
         is AST.MutableTypeExpr as e -> {
             inner :: type_from_expr(e.inner, resolved, diags)
-            // `const T[]` under a marker is a contradiction. The parser now rejects
-            // it outright (P1027 on `const T[]!`, P1031 on the legacy `a!: const T[]`),
-            // so this is a belt : `const` freezes the REFERENT, and no marker can
-            // grant mutation through it — the stricter side wins, as everywhere else.
+            // A type that arrives ALREADY read-only is not un-frozen by a marker —
+            // the stricter side wins. A belt: with `const` gone the surface cannot
+            // write a frozen type under a `!` (and P1031 rejects the legacy
+            // name-borne marker).
             if type_is_immutable(inner) { return inner }
             return with_immutable(inner, false)
         }
@@ -95,7 +95,7 @@ export type_from_expr :: fn(
         // from `params_mutable_of` below, not from here — a declaration's params
         // are `FnParam`s, not `TypeExpr`s.
         is AST.ArrayTypeExpr as e -> {
-            return mk_array(type_from_expr(e.element, resolved, diags), e.immutable)
+            return mk_array(type_from_expr(e.element, resolved, diags), false)
         }
         is AST.NullLitExpr -> { return TY_NULL }
         is AST.SeqLitExpr as e -> {

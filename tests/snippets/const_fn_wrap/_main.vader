@@ -6,7 +6,7 @@
 //
 // The `: Spec[]:` annotation is LOAD-BEARING — do not "clean it up". It opts out
 // of the auto-`const` pin `orchestrate::auto_const_module_array` applies to every
-// UNANNOTATED module-level array const. Without it `SPECS` is `const Spec[]`, and
+// UNANNOTATED module-level array const. Without it `SPECS` is a read-only `Spec[]`, and
 // `inline_consts::try_data_pool` (which refuses mutable arrays) bakes it into the
 // data pool instead — a path `_diag_comptime_struct` already covers, leaving
 // fn-wrap with no regression guard.

@@ -151,7 +151,7 @@ export add_import :: fn(self: ModuleBuilder!, name: string, mangled: string, par
 
 /// Append a pre-materialised constant array to the module's data pool
 /// and return its index. Used by `data.const` ops to push routed
-/// `const T[]` literals onto the stack at runtime.
+/// read-only `T[]` literals onto the stack at runtime.
 ///
 /// @param self        the builder.
 /// @param entry       the pre-built `BcDataEntry` (kind + raw `u64` bits).

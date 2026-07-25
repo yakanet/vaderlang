@@ -7,7 +7,7 @@
 // of "a local is owned" — see snippets/const_binding_no_mutate.
 //
 // Requalified: the rejection now comes from the TYPE, not from a flow predicate.
-// `a` desugars to `const i32[]`, `m := a` inherits that type, and the ordinary
+// `a` desugars to read-only `i32[]`, `m := a` inherits that type, and the ordinary
 // array-mutation check fires — T3042 instead of T3070, same position, same
 // rejection, and no dedicated "did the borrow leak into a local" analysis. This
 // is exactly what "the bit travels on its own" buys.

@@ -11,31 +11,29 @@
 [8:1-8:1    ] newline        "\n"
 [9:1-9:5    ] ident          "WIDE"
 [9:5-9:6    ] colon          ":"
-[9:7-9:12   ] kw_const       "const"
-[9:13-9:16  ] ident          "f64"
-[9:16-9:17  ] lbracket       "["
-[9:17-9:18  ] rbracket       "]"
-[9:18-9:19  ] colon          ":"
-[9:20-9:21  ] lbracket       "["
-[9:21-9:24  ] float_literal  "1.5" =1.5
-[9:24-9:25  ] comma          ","
-[9:26-9:29  ] float_literal  "2.5" =2.5
-[9:29-9:30  ] comma          ","
-[9:31-9:34  ] float_literal  "3.5" =3.5
-[9:34-9:35  ] rbracket       "]"
+[9:7-9:10   ] ident          "f64"
+[9:10-9:11  ] lbracket       "["
+[9:11-9:12  ] rbracket       "]"
+[9:12-9:13  ] colon          ":"
+[9:14-9:15  ] lbracket       "["
+[9:15-9:18  ] float_literal  "1.5" =1.5
+[9:18-9:19  ] comma          ","
+[9:20-9:23  ] float_literal  "2.5" =2.5
+[9:23-9:24  ] comma          ","
+[9:25-9:28  ] float_literal  "3.5" =3.5
+[9:28-9:29  ] rbracket       "]"
 [10:1-10:1  ] newline        "\n"
 [11:1-11:7  ] ident          "NARROW"
 [11:7-11:8  ] colon          ":"
-[11:9-11:14 ] kw_const       "const"
-[11:15-11:18] ident          "f32"
-[11:18-11:19] lbracket       "["
-[11:19-11:20] rbracket       "]"
-[11:20-11:21] colon          ":"
-[11:22-11:23] lbracket       "["
-[11:23-11:27] float_literal  "0.25" =0.25
-[11:27-11:28] comma          ","
-[11:29-11:32] float_literal  "0.5" =0.5
-[11:32-11:33] rbracket       "]"
+[11:9-11:12 ] ident          "f32"
+[11:12-11:13] lbracket       "["
+[11:13-11:14] rbracket       "]"
+[11:14-11:15] colon          ":"
+[11:16-11:17] lbracket       "["
+[11:17-11:21] float_literal  "0.25" =0.25
+[11:21-11:22] comma          ","
+[11:23-11:26] float_literal  "0.5" =0.5
+[11:26-11:27] rbracket       "]"
 [12:1-12:1  ] newline        "\n"
 [13:1-13:5  ] ident          "main"
 [13:6-13:8  ] decl_const     "::"

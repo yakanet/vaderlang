@@ -23,8 +23,7 @@
         "element": {
           "kind": "IdentExpr",
           "name": "string"
-        },
-        "immutable": true
+        }
       },
       "value": {
         "kind": "SeqLitExpr",
@@ -69,8 +68,7 @@
         "element": {
           "kind": "IdentExpr",
           "name": "string"
-        },
-        "immutable": true
+        }
       },
       "value": {
         "kind": "SeqLitExpr",

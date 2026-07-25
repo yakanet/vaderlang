@@ -11,22 +11,42 @@ type 8 primitive i64
 type 9 primitive u64
 type 10 primitive void
 type 11 array 2
-string 0 "\n"
-string 1 "size_of"
-string 2 "usize"
-string 3 "cast"
-string 4 "T"
-data 0 structs 2 3 2 strref 1 array Kind 1 u8 01 strref 2 strref 3 array Kind 2 u8 00 u8 01 strref 4
+string 0 "size_of"
+string 1 "usize"
+string 2 "cast"
+string 3 "T"
+string 4 "\n"
 import 0 write std_io$write (i32,string) -> void
 impl 7 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  local __buf_0 ref
+  local $arr_2 ref
+  local $arr_8 ref
   local __off_1 usize
-  local $cast_14 u64
-  local $cast_29 i64
-  data.const 0 11
+  local $arr_28 ref
+  local $cast_36 u64
+  local $cast_62 i64
+  i32.const 1
+  array.new 4 1
+  local.set 0
+  string.const 0
+  local.get 0
+  string.const 1
+  struct.new_stack 2
+  local.set 0
+  i32.const 0
+  i32.const 1
+  array.new 4 2
+  local.set 1
+  string.const 2
+  local.get 1
+  string.const 3
+  struct.new_stack 2
+  local.set 1
+  local.get 0
+  local.get 1
+  array.new 11 2
   i32.const 1
   array.get 11
   struct.get 2 0
@@ -36,29 +56,67 @@ fn 0 snippet$main () -> i32
   call 1
   local.set 0
   i64.const 0
+  local.set 2
+  i32.const 1
+  array.new 4 1
   local.set 1
-  data.const 0 11
+  string.const 0
+  local.get 1
+  string.const 1
+  struct.new_stack 2
+  local.set 1
+  i32.const 0
+  i32.const 1
+  array.new 4 2
+  local.set 3
+  string.const 2
+  local.get 3
+  string.const 3
+  struct.new_stack 2
+  local.set 3
+  local.get 1
+  local.get 3
+  array.new 11 2
   i32.const 1
   array.get 11
   struct.get 2 1
   array.len
   usize.to_i64
+  local.set 4
+  local.get 0
+  local.get 2
+  local.get 4
+  call 4
   local.set 2
   local.get 0
-  local.get 1
   local.get 2
-  call 4
-  local.set 1
-  local.get 0
-  local.get 1
   call 2
   call 5
   i64.const 20
   call 1
   local.set 0
   i64.const 0
+  local.set 2
+  i32.const 1
+  array.new 4 1
   local.set 1
-  data.const 0 11
+  string.const 0
+  local.get 1
+  string.const 1
+  struct.new_stack 2
+  local.set 1
+  i32.const 0
+  i32.const 1
+  array.new 4 2
+  local.set 3
+  string.const 2
+  local.get 3
+  string.const 3
+  struct.new_stack 2
+  local.set 3
+  local.get 1
+  local.get 3
+  array.new 11 2
   i32.const 1
   array.get 11
   struct.get 2 1
@@ -66,14 +124,14 @@ fn 0 snippet$main () -> i32
   array.get 4
   u8.to_i32
   i32.to_i64
-  local.set 3
+  local.set 5
   local.get 0
-  local.get 1
-  local.get 3
+  local.get 2
+  local.get 5
   call 3
-  local.set 1
+  local.set 2
   local.get 0
-  local.get 1
+  local.get 2
   call 2
   call 5
   return.lit i32.const 0
@@ -298,7 +356,7 @@ fn 5 std_io$println__string (string) -> void
   local.get 0
   call.import 0
   i32.const 0
-  string.const 0
+  string.const 4
   call.import 0
   return
 end

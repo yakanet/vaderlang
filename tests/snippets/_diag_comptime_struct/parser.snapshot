@@ -50,8 +50,7 @@
         "element": {
           "kind": "IdentExpr",
           "name": "Pair"
-        },
-        "immutable": true
+        }
       },
       "value": {
         "kind": "SeqLitExpr",

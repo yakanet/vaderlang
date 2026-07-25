@@ -1,6 +1,6 @@
 # Comptime
 
-## tests/snippets/union_const_array_param
+## tests/snippets/union_array_param
 
 ## generic instances
   ArrayOps<T>

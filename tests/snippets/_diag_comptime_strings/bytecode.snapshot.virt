@@ -8,14 +8,12 @@ type 5 primitive u64
 type 6 primitive u8
 type 7 primitive void
 type 8 array 4
-string 0 "\n"
-string 1 "alpha"
-string 2 "beta"
-string 3 "gamma"
-string 4 "a\\b"
-string 5 "x"
-data 0 str "alpha" "beta" "gamma"
-data 1 str "a\\b" "x"
+string 0 "alpha"
+string 1 "beta"
+string 2 "gamma"
+string 3 "a\\b"
+string 4 "x"
+string 5 "\n"
 import 0 write std_io$write (i32,string) -> void
 impl 3 ByteAccess
 export main 0
@@ -23,13 +21,18 @@ export main 0
 fn 0 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 usize
-  local $cast_13 u64
-  data.const 0 8
+  local $cast_21 u64
+  string.const 0
+  string.const 1
+  string.const 2
+  array.new 8 3
   i32.const 1
   array.get 8
   ref.cast 4
   call 4
-  data.const 1 8
+  string.const 3
+  string.const 4
+  array.new 8 2
   i32.const 0
   array.get 8
   ref.cast 4
@@ -39,7 +42,10 @@ fn 0 snippet$main () -> i32
   local.set 0
   i64.const 0
   local.set 1
-  data.const 0 8
+  string.const 0
+  string.const 1
+  string.const 2
+  array.new 8 3
   array.len
   usize.to_i64
   local.set 2
@@ -157,7 +163,7 @@ fn 4 std_io$println__string (string) -> void
   local.get 0
   call.import 0
   i32.const 0
-  string.const 0
+  string.const 5
   call.import 0
   return
 end

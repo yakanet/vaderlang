@@ -1,0 +1,19 @@
+// Through a read-only array neither `arr[i] = v` nor `arr.push(v)` compiles.
+// Only the first half was enforced (T3042, keyed on the array type in
+// `check_assign`); the method path never tested the receiver against `self`, so
+// `a.push(9)` compiled silently. `ArrayOps`' mutators declare `self!`, and
+// dispatch rejects them on a read-only receiver. T3071.
+//
+// The parameter carries no marker — that IS the read-only default, and it is
+// what the callee's `push` runs into.
+module "snippet"
+
+grow :: fn(a: i32[]) -> void {
+    a.push(9)
+}
+
+main :: fn() -> i32 {
+    xs :: [1, 2]
+    grow(xs)
+    return 0
+}

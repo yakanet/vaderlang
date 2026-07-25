@@ -80,10 +80,10 @@ export sum :: fn(self: Iterator<i32>) -> i32 {
 // form directly.
 
 /// Fresh mutable copy of `arr`. Accepts both `T[]` (by subtype) and
-/// `const T[]` (by signature). The returned array is independent —
+/// read-only `T[]` (by signature). The returned array is independent —
 /// mutating it does not affect `arr`.
 ///
-/// Use this when you need to escape `const T[]`'s immutability locally,
+/// Use this when you need to escape a read-only array's immutability locally,
 /// or to break aliasing between a slice view and its parent.
 ///
 /// Naming overlaps with the `Clone` trait in `std/core` (currently

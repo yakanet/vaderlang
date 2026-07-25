@@ -2,8 +2,8 @@
 // re-builds its value at every read site, so a write through the const hits a
 // throwaway copy and used to be silently discarded (`WORDS[0] = "z"` compiled
 // and did nothing). An unannotated module-level array const is therefore pinned
-// `const T[]`, turning that silent loss into a typecheck error — what SPEC.md
-// §"const T[]" (Inference) has always promised. T3042.
+// read-only `T[]`, turning that silent loss into a typecheck error — what SPEC.md
+// §"Read-only arrays" (Inference) has always promised. T3042.
 module "snippet"
 
 WORDS :: ["fn", "if", "else"]

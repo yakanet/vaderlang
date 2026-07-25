@@ -46,7 +46,7 @@ export ends_with :: fn(s: string, suffix: string) -> bool {
     return true
 }
 
-// `bytes` (string→`const u8[]` view) moved to `std/core` (the prelude) in
+// `bytes` (string→read-only `u8[]` view) moved to `std/core` (the prelude) in
 // Target ABI S3 — it sits below `std/string_builder`, which now needs it, and
 // `std/string` imports `std/string_builder`, so keeping `bytes` here would make
 // the buffer-backed builder's dependency a cycle. It is ambient now ; callers

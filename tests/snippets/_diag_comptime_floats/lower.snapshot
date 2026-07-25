@@ -1,6 +1,15 @@
 # Lower
 
 ## snippet
+  const snippet$WIDE: f64[]! =
+    array :f64[]!
+      float(1.5) :f64
+      float(2.5) :f64
+      float(3.5) :f64
+  const snippet$NARROW: f32[]! =
+    array :f32[]!
+      float(0.25) :f32
+      float(0.5) :f32
   fn snippet$main() -> i32
     call :void
       callee:
@@ -12,7 +21,10 @@
           arg0:
             index :f64
               on:
-                WIDE :f64[]
+                array :f64[]!
+                  float(1.5) :f64
+                  float(2.5) :f64
+                  float(3.5) :f64
               ix:
                 int(1) :i32
     call :void
@@ -25,7 +37,9 @@
           arg0:
             index :f32
               on:
-                NARROW :f32[]
+                array :f32[]!
+                  float(0.25) :f32
+                  float(0.5) :f32
               ix:
                 int(0) :i32
     return int(0) :i32

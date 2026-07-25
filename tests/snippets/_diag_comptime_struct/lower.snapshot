@@ -2,6 +2,16 @@
 
 ## snippet
   struct snippet$Pair { name: string, code: i32 }
+  const snippet$PAIRS: Pair![]! =
+    array :Pair![]!
+      Pair! {
+        name: "alpha" :string
+        code: int(10) :i32
+      }
+      Pair! {
+        name: "beta" :string
+        code: int(20) :i32
+      }
   fn snippet$main() -> i32
     call :void
       callee:
@@ -10,7 +20,7 @@
         .name :string
           index :Pair!
             on:
-              PAIRS :Pair![]
+              PAIRS :Pair![]!
             ix:
               int(1) :i32
     call :void
@@ -41,7 +51,7 @@
                     .code :i32
                       index :Pair!
                         on:
-                          PAIRS :Pair![]
+                          PAIRS :Pair![]!
                         ix:
                           int(0) :i32
           ~>

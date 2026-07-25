@@ -18,14 +18,14 @@
 //     site. Scalars normally fold earlier in `lower_expr.vader::lower_ident` ;
 //     recording them here is a safety net for any reference that didn't fold.
 //
-//   - data pool : an IMMUTABLE `const T[]` array literal whose elements are all
+//   - data pool : an read-only array literal whose elements are all
 //     bakeable (primitives, strings, or named-struct literals) — see
 //     `try_data_pool`. Registered once in `project.data_pool` and read back via
 //     a `data.const` op, so the value exists in one place instead of being
 //     rebuilt. Tried FIRST ; mutable arrays are refused outright.
 //
 // Since `orchestrate::auto_const_module_array` pins every unannotated
-// module-level array const as `const T[]`, the data pool is now the default
+// module-level array const as read-only `T[]`, the data pool is now the default
 // route for them (`KEYWORDS`, `TOKEN_TYPES`, …) and fn-wrap is reached only by
 // consts that opt out with an explicit mutable annotation, or whose elements
 // aren't bakeable. `tests/snippets/const_fn_wrap` guards that remaining path.
@@ -66,7 +66,7 @@ export inline_consts :: fn(project: LoweredProject!, project_ctx: LowerProjectCt
             if d is LoweredConstDecl as cd {
                 sym :: cd.origin.symbol
                 if sym is Symbol as s {
-                    // Data-pool bucket : an immutable `const T[]` of primitive
+                    // Data-pool bucket : an read-only of primitive
                     // literals is materialised once into `.rodata` (native) /
                     // a data segment (wasm) / an in-memory const buffer (VM),
                     // and every read site lowers to a zero-copy `data.const`
@@ -106,7 +106,7 @@ should_fn_wrap :: fn(value: LoweredExpr) -> bool {
     return false
 }
 
-// Route an immutable `const T[]` into the project data pool : register a
+// Route an read-only into the project data pool : register a
 // `DataPoolEntry`, point the const's read sites at a `LoweredDataConst` (via
 // `const_inline`, which `build_ident` rebuilds as the `data.const` op), and
 // report success so the caller drops the decl. Returns false for any
