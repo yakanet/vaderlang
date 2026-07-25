@@ -53,7 +53,7 @@ export ProcessResult :: struct {
 /// Launch `argv` without waiting ; returns a handle into the runtime child
 /// table, or a negative value on launch failure. Pipes for stdout/stderr are
 /// captured and drained by `spawn_poll`.
-@intrinsic export spawn_start :: fn(argv: const string[]) -> i64
+@intrinsic export spawn_start :: fn(argv: string[]) -> i64
 
 /// Advance a launched child WITHOUT blocking: drain its pipes and reap if it
 /// exited. Returns `RUNNING` while alive, `SIGNALED` on abnormal termination,

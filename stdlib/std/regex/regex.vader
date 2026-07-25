@@ -595,7 +595,7 @@ space_class_ranges :: fn() -> CharRange[] {
 
 // Number of UTF-8 bytes occupied by the codepoint starting at `offset`.
 // Width-only wrapper over the shared `utf8_decode_len` (std/string).
-codepoint_byte_advance :: fn(bs: const u8[], offset: usize) -> usize {
+codepoint_byte_advance :: fn(bs: u8[], offset: usize) -> usize {
     [c, width] :: bs.utf8_decode_len(offset)
     return width
 }
@@ -683,7 +683,7 @@ export replace_all :: fn(self: Pattern, input: string, repl: string) -> string {
     return sb.to_string()
 }
 
-expand_replacement :: fn(sb: StringBuilder!, rb: const u8[], m: Match) -> void {
+expand_replacement :: fn(sb: StringBuilder!, rb: u8[], m: Match) -> void {
     n :: rb.len()
     i: usize = 0
     for i < n {
@@ -719,14 +719,14 @@ Thread :: struct {
 // f64, so the sentinel collides with valid offsets on native.
 SLOT_UNSET :: usize(0xFFFF_FFFF_FFFF_FFFF)
 
-run_at :: fn(p: Pattern, input: const u8[], start: usize) = run_vm(p, input, start, false)
+run_at :: fn(p: Pattern, input: u8[], start: usize) = run_vm(p, input, start, false)
 
 /// One Thompson-VM run from `start`. `full` selects full-match semantics :
 /// an `InstMatch` only counts when the whole input is consumed, and a
 /// shorter match does NOT cut lower-priority threads — `a|ab` must still
 /// try `ab` after `a` matched a prefix (leftmost-first would otherwise
 /// make `matches` depend on alternative order).
-run_vm :: fn(p: Pattern, input: const u8[], start: usize, full: bool) -> Match | null {
+run_vm :: fn(p: Pattern, input: u8[], start: usize, full: bool) -> Match | null {
     slots :: 2 * (p.group_count + 1)
     current: Thread[] = []
     next: Thread[] = []
@@ -840,7 +840,7 @@ WorkItem :: struct {
     groups: const usize[]
 }
 
-add_thread :: fn(out: Thread[]!, start_pc: usize, start_groups: usize[], p: Pattern, input: const u8[], pos: usize, seen: usize[]!, gen: usize) -> void {
+add_thread :: fn(out: Thread[]!, start_pc: usize, start_groups: usize[], p: Pattern, input: u8[], pos: usize, seen: usize[]!, gen: usize) -> void {
     // Iterative epsilon-closure (was recursive). A long ACYCLIC epsilon chain —
     // e.g. the N chained `InstSplit` a `a?`×N pattern compiles to — recursed one
     // frame per link and blew the stack (VM trap at 1024 frames) even though
@@ -889,7 +889,7 @@ resolve_slot :: fn(slot_value: usize, fallback: usize) -> usize {
     return slot_value
 }
 
-captured_groups :: fn(t: Thread, input: const u8[]) -> string[] {
+captured_groups :: fn(t: Thread, input: u8[]) -> string[] {
     n_groups :: t.groups.len() / 2
     out: string[] = []
     for i in 0..<n_groups {

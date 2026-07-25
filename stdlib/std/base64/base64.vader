@@ -18,7 +18,7 @@ ALPHABET :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 /// encode text, pass `text.bytes()`.
 ///
 /// @param input  the raw bytes to encode.
-export encode :: fn(input: const u8[]) -> string {
+export encode :: fn(input: u8[]) -> string {
     bs :: input
     n :: bs.len()
     sb := StringBuilder {}

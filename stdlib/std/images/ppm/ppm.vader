@@ -64,7 +64,7 @@ ScanInt :: struct {
 
 // Advance past whitespace and `# … <LF>` comment lines, returning the index of
 // the next significant byte (or `bs.len()` at end of input).
-skip_ws :: fn(bs: const u8[], from: usize) -> usize {
+skip_ws :: fn(bs: u8[], from: usize) -> usize {
     n :: bs.len()
     p: usize = from
     for p < n {
@@ -83,7 +83,7 @@ skip_ws :: fn(bs: const u8[], from: usize) -> usize {
 // Read a run of ASCII digits as a u32 starting at `from`. Stops at the first
 // non-digit. Guards against u32 overflow so a malformed huge run errors rather
 // than wrapping.
-scan_uint :: fn(bs: const u8[], from: usize) -> ScanInt {
+scan_uint :: fn(bs: u8[], from: usize) -> ScanInt {
     n :: bs.len()
     p: usize = from
     v: u32 = 0
@@ -114,7 +114,7 @@ scan_uint :: fn(bs: const u8[], from: usize) -> ScanInt {
 /// @error       `PpmError` on a bad magic, a missing/invalid header integer, a
 ///              maxval outside `1..=65535`, a missing whitespace after maxval,
 ///              or a raster whose length disagrees with the header.
-export decode :: fn(data: const u8[]) -> Ppm | PpmError {
+export decode :: fn(data: u8[]) -> Ppm | PpmError {
     if data.len() < 2 || data[0] != 'P' || data[1] != '6' {
         return PpmError { .msg = "ppm: not a P6 stream (bad magic)" }
     }

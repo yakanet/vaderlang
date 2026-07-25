@@ -63,7 +63,7 @@ export int_fits :: fn(value: u64, type_name: string) -> bool {
 }
 
 // True when `target` is one of `names`. A small shared membership helper.
-contains_name :: fn(names: const string[], target: string) -> bool {
+contains_name :: fn(names: string[], target: string) -> bool {
     for n in names { if n == target { return true } }
     return false
 }
@@ -114,7 +114,7 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     is DistinctType  as ax  -> if b is DistinctType as bx { ax.symbol.id == bx.symbol.id } else { false }
 }
 
-nominal_eq :: fn(a_id: i32, a_args: const Type[], b_id: i32, b_args: const Type[]) -> bool {
+nominal_eq :: fn(a_id: i32, a_args: Type[], b_id: i32, b_args: Type[]) -> bool {
     if a_id != b_id { return false }
     return type_list_equals(a_args, b_args)
 }
@@ -122,7 +122,7 @@ nominal_eq :: fn(a_id: i32, a_args: const Type[], b_id: i32, b_args: const Type[
 /// Element-wise structural equality of two type lists (params, tuple
 /// elements, union variants). Companion to `equals_type` — same per-element
 /// `equals_type` comparison, length-checked first.
-export type_list_equals :: fn(a: const Type[], b: const Type[]) -> bool {
+export type_list_equals :: fn(a: Type[], b: Type[]) -> bool {
     if a.len() != b.len() { return false }
     for i in 0..<a.len() {
         if !equals_type(a[i], b[i]) { return false }
@@ -167,7 +167,7 @@ export with_immutable :: fn(t: Type, immutable: bool) -> Type = match t {
      | NeverType | AnyType | DistinctType -> t
 }
 
-with_immutable_each :: fn(variants: const Type[], immutable: bool) -> Type[] {
+with_immutable_each :: fn(variants: Type[], immutable: bool) -> Type[] {
     out: Type[] = []
     for v in variants { out.push(with_immutable(v, immutable)) }
     return out
@@ -176,7 +176,7 @@ with_immutable_each :: fn(variants: const Type[], immutable: bool) -> Type[] {
 /// The type of a parameter once its `!` marker is desugared onto the type.
 ///
 /// An unmarked parameter is a read-only borrow. A `!` grants mutation — but only
-/// when the WRITTEN type doesn't already forbid it : `fn(a!: const i32[])` stays
+/// when the WRITTEN type doesn't already forbid it : `fn(a!: i32[])` stays
 /// read-only. `const` is a property of the TYPE (the referent is frozen, e.g. a
 /// module const), `!` a property of the SLOT ; they are orthogonal and the
 /// stricter of the two wins. Without this the marker would silently launder a
@@ -278,7 +278,7 @@ export narrowing_immutability :: fn(scrutinee: Type, narrowed: Type) -> bool {
 /// (absorbed — a value of that type doesn't exist), dedups, sorts by
 /// `display_type` output for stability. Empty / all-Never input
 /// collapses to `Never`.
-export union_of :: fn(variants: const Type[]) -> Type {
+export union_of :: fn(variants: Type[]) -> Type {
     dedup: Type[] = []
     for v in variants {
         v.collect_variant(dedup)

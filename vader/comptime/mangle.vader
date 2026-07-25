@@ -35,7 +35,7 @@ import "vader/text"
 /// @param module_path     the owning module's display path (`ResolvedModule.path`).
 /// @param type_arguments  concrete type-args ; empty for non-generic decls.
 /// @return                the mangled name.
-export mangle :: fn(decl_name: string, module_path: string, type_arguments: const Type[]) -> string {
+export mangle :: fn(decl_name: string, module_path: string, type_arguments: Type[]) -> string {
     module_stem :: sanitise_ident(module_path)
     head: string = ""
     if module_stem == "" || module_stem == decl_name {

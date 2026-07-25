@@ -295,7 +295,7 @@ decl_alignable_name :: fn(d: p.Decl) -> string {
 
 // True iff `a` and `b` carry the same ordered list of decorator names.
 // Walks both lists in lock-step — no intermediate `string[]` allocation.
-decorators_equal :: fn(a: const p.Decorator[], b: const p.Decorator[]) -> bool {
+decorators_equal :: fn(a: p.Decorator[], b: p.Decorator[]) -> bool {
     if a.len() != b.len() { return false }
     for i in 0..<a.len() {
         if a[i].name != b[i].name { return false }
@@ -403,7 +403,7 @@ decl_first_line :: fn(d: p.Decl) -> i32 {
 // decorator on the same line as the decl). `decl_start_line` is the line
 // of the decl's first non-decorator token — the printer's call site picks
 // it (`name_span.start.line` for named decls, fallback to `span.start.line`).
-emit_decorators :: fn(self: Printer!, decos: const p.Decorator[], decl_start_line: i32) -> void {
+emit_decorators :: fn(self: Printer!, decos: p.Decorator[], decl_start_line: i32) -> void {
     for i in 0..<decos.len() {
         deco :: decos[i]
         self.write("@")
@@ -528,7 +528,7 @@ emit_fn_decl :: fn(self: Printer!, d: p.FnDecl) -> void {
     }
 }
 
-emit_type_params :: fn(self: Printer!, params: const p.TypeParam[]) -> void {
+emit_type_params :: fn(self: Printer!, params: p.TypeParam[]) -> void {
     if params.len() == 0 { return }
     self.write("<")
     for i in 0..<params.len() {

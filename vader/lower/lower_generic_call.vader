@@ -195,7 +195,7 @@ emit_generic_fn_call :: fn(
 // keeping the `dump_bytecode → parse_virt → exec` round-trip's fn names
 // distinct. Subsequent call sites of the same instance reuse the cached mangle.
 register_fn_instance_mangle :: fn(
-    ctx: FnLowerCtx!, fn_sym: Symbol, concrete_args: const Type[],
+    ctx: FnLowerCtx!, fn_sym: Symbol, concrete_args: Type[],
     owner_module: string, base_mangled: string, inst_key: string,
 ) -> string {
     existing :: ctx.project.fn_instances[inst_key]
@@ -221,7 +221,7 @@ register_fn_instance_mangle :: fn(
 // and emits the LoweredCall pointing at the monomorphic mangled symbol.
 register_and_emit_generic_call :: fn(
     ctx: FnLowerCtx!, call: CallExpr, type: Type,
-    fn_sym: Symbol, concrete_args: const Type[], callee_span: Span,
+    fn_sym: Symbol, concrete_args: Type[], callee_span: Span,
 ) -> LoweredExpr {
     // `owner_module` is the fn's defining module, NOT the caller's —
     // `build_fn_instance_decl` looks up the AST decl in
@@ -446,7 +446,7 @@ type_contains_param :: fn(t: Type) -> bool {
     }
 }
 
-all_concrete :: fn(args: const Type[]) -> bool {
+all_concrete :: fn(args: Type[]) -> bool {
     for a in args {
         if type_contains_param(a) { return false }
         if a is UnresolvedType { return false }
@@ -454,7 +454,7 @@ all_concrete :: fn(args: const Type[]) -> bool {
     return true
 }
 
-mono_suffix :: fn(args: const Type[]) -> string {
+mono_suffix :: fn(args: Type[]) -> string {
     sb := StringBuilder {}
     for a in args {
         sb.append("__")

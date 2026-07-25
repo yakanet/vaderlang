@@ -96,7 +96,7 @@ export materialize_default_members :: fn(
 
 synth_with_body :: fn(
     method: AST.FnDecl, subst: Subst,
-    decorators: const AST.Decorator[], body: AST.BlockExpr, stamp: StampCtx!,
+    decorators: AST.Decorator[], body: AST.BlockExpr, stamp: StampCtx!,
 ) -> AST.FnDecl {
     return AST.FnDecl {
         .span = method.span,
@@ -214,7 +214,7 @@ export materialize_sam_members :: fn(impl_: AST.ImplDecl!, trait_: AST.TraitDecl
 
 // ---- helpers --------------------------------------------------------------
 
-is_intrinsic :: fn(decs: const AST.Decorator[]) -> bool {
+is_intrinsic :: fn(decs: AST.Decorator[]) -> bool {
     for d in decs {
         if d.name == "intrinsic" { return true }
     }
@@ -275,7 +275,7 @@ build_subst :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl) -> Subst {
 }
 
 synth_signature :: fn(
-    method: AST.FnDecl, name_span: Span, subst: Subst, decorators: const AST.Decorator[],
+    method: AST.FnDecl, name_span: Span, subst: Subst, decorators: AST.Decorator[],
 ) -> AST.FnDecl {
     return AST.FnDecl {
         .span = method.span,

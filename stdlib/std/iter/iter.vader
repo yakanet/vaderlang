@@ -28,7 +28,7 @@ module "std/iter"
 ///
 /// @param arr  source array.
 /// @return     true when `arr.len() == 0`.
-export is_empty :: fn<T>(arr: const T[]) -> bool = arr.len() == 0
+export is_empty :: fn<T>(arr: T[]) -> bool = arr.len() == 0
 
 // `collect` on an array is `arr.clone()` (built-in) ; the only `collect` here
 // is the Iterator terminal below — drains a lazy chain into a fresh array.
@@ -89,7 +89,7 @@ export sum :: fn(self: Iterator<i32>) -> i32 {
 /// Naming overlaps with the `Clone` trait in `std/core` (currently
 /// without implementors). When `T[] implements Clone` lands, this free
 /// fn becomes the impl — `arr.clone()` resolves identically either way.
-export clone :: fn<T>(arr: const T[]) -> T[]! {
+export clone :: fn<T>(arr: T[]) -> T[]! {
     out: T[] = [] * arr.len()
     out.push_all(arr)
     return out

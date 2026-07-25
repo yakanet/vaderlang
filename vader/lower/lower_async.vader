@@ -64,7 +64,7 @@ mk_async_method_decl :: fn(
 push_async_decls :: fn(
     fn_ctx: FnLowerCtx!, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
     resume_ty: Type, resume_body: LoweredBlock, cancel_body: LoweredBlock,
-    state_fields: const LoweredStructField[],
+    state_fields: LoweredStructField[],
 ) -> void {
     module_seg :: mangle_module_id(fn_ctx.typed.resolved.display_path)
     resume_decl :: mk_async_method_decl(fn_ctx, module_seg, state_sym, self_sym, state_ty, METHOD_RESUME, resume_ty, resume_body)

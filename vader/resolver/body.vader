@@ -291,7 +291,7 @@ auto_bind_for_type_params :: fn(self: ResolveState!, t: AST.TypeExpr) -> void {
     }
 }
 
-walk_decorators :: fn(self: ResolveState!, decs: const AST.Decorator[]) -> void {
+walk_decorators :: fn(self: ResolveState!, decs: AST.Decorator[]) -> void {
     for d in decs {
         if !is_known_decorator(d.name) {
             self.diags.push(resolver_error(.UnknownDecorator, d.span, "`@${d.name}`"))

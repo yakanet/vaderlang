@@ -38,7 +38,7 @@ export WalkCtx :: struct {
 
 /// Canonical key for a concrete struct instance — shared between
 /// DCE's reachability set and LoweredStructDecl.origin lookup.
-export struct_inst_key :: fn(symbol_id: i32, args: const Type[]) -> string {
+export struct_inst_key :: fn(symbol_id: i32, args: Type[]) -> string {
     return "${symbol_id}|${canonical_args_key(args)}"
 }
 

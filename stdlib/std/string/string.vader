@@ -185,7 +185,7 @@ is_white_byte :: fn(b: u8) = b == ' ' || b == '\t' || b == '\n' || b == '\r'
 
 // True iff the `m` bytes of `subb` match `sb` starting at byte offset `off`.
 // Takes byte views (not strings) so the caller holds them once across the scan.
-bytes_match_at :: fn(sb: const u8[], off: usize, subb: const u8[], m: usize) -> bool {
+bytes_match_at :: fn(sb: u8[], off: usize, subb: u8[], m: usize) -> bool {
     for j in 0..<m {
         if sb[off + j] != subb[j] { return false }
     }

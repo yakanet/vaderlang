@@ -516,7 +516,7 @@ report_unbound_type_args :: fn(
     c: AST.CallExpr,
     callee_ty: FnType,
     bindings: MutableMap<i32, Type>,
-    arg_types: const Type[],
+    arg_types: Type[],
     expected: Type | null,
     checked_arg_count: usize,
     typed: TypedProgram,

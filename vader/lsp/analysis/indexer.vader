@@ -382,7 +382,7 @@ collect_decl :: fn(
 
 top_entry :: fn(
     name: string, kind: DeclKind, name_span: Span, full_span: Span,
-    decorators: const Decorator[], exported: bool,
+    decorators: Decorator[], exported: bool,
     source: string, cmap: CommentMap,
 ) -> DeclEntry {
     sig :: head_signature(full_span, source)
@@ -414,7 +414,7 @@ top_entry :: fn(
 // Smallest start-offset among the decl itself and every decorator
 // stacked above it. `///` comments contiguous with this offset are
 // the decl's vaderdoc.
-doc_boundary_offset :: fn(decl_start: usize, decorators: const Decorator[]) -> usize {
+doc_boundary_offset :: fn(decl_start: usize, decorators: Decorator[]) -> usize {
     best := decl_start
     for d in decorators {
         if d.span.start.offset < best { best = d.span.start.offset }
@@ -868,7 +868,7 @@ strip_doc_prefix :: fn(text: string) -> string {
 
 // ---- token-based position resolution -------------------------------------
 
-token_name_at :: fn(tokens: const Token[], offset: usize) -> string {
+token_name_at :: fn(tokens: Token[], offset: usize) -> string {
     for t in tokens {
         if t.kind != .Ident { continue }
         if t.span.start.offset <= offset && offset < t.span.end.offset {
@@ -878,7 +878,7 @@ token_name_at :: fn(tokens: const Token[], offset: usize) -> string {
     return ""
 }
 
-token_span_at :: fn(tokens: const Token[], offset: usize) -> Span | null {
+token_span_at :: fn(tokens: Token[], offset: usize) -> Span | null {
     for t in tokens {
         if t.kind != .Ident { continue }
         if t.span.start.offset <= offset && offset < t.span.end.offset {

@@ -144,7 +144,7 @@ materialize_one_instance :: fn(
     }
 }
 
-all_concrete_args :: fn(args: const Type[]) -> bool {
+all_concrete_args :: fn(args: Type[]) -> bool {
     for a in args {
         if has_type_param(a) { return false }
     }
@@ -197,7 +197,7 @@ has_type_param :: fn(t: Type) -> bool {
 /// `materialize_struct_instance` and `shape_mangle` build their name
 /// here so the closure pass dedups field-referenced shapes against
 /// emitted decls by name.
-mangle_struct_instance :: fn(display_path: string, name: string, args: const Type[]) =
+mangle_struct_instance :: fn(display_path: string, name: string, args: Type[]) =
     "${mangle_module_id(display_path)}$${name}${args_suffix(args)}"
 
 materialize_struct_instance :: fn(
@@ -340,7 +340,7 @@ shape_mangle :: fn(s: StructType, typed: TypedProject) -> string | null {
 /// fields. Thin wrapper over `materialize_struct_instance` that resolves
 /// the owning module's decls + typed view from a bare symbol + args.
 materialize_shape :: fn(
-    sym: Symbol, args: const Type[], loaded: LoadedProject, typed: TypedProject,
+    sym: Symbol, args: Type[], loaded: LoadedProject, typed: TypedProject,
     project_ctx: LowerProjectCtx, project: LoweredProject,
 ) -> LoweredStructField[] {
     owner_module :: loaded.modules[sym.module]

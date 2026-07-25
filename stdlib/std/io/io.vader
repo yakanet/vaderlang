@@ -106,7 +106,7 @@ export eprintln :: fn<T: Display>(msg: T) -> void {
 /// @param path     filesystem path.
 /// @param content  the raw bytes to write.
 /// @error          `IOError` if the file can't be opened or written.
-@intrinsic export write_file_bytes :: fn(path: string, content: const u8[]) -> null | IOError
+@intrinsic export write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError
 
 /// Read a file fully into a UTF-8 string — a thin text decode over
 /// `read_file_bytes`. Use `read_file_bytes` directly for binary data.

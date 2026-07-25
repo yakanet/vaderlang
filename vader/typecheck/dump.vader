@@ -46,7 +46,7 @@ export dump_program_with_others :: fn(
     typed: TypedProgram,
     with_banner: bool,
     others: TypedProgram[],
-    scope: const string[],
+    scope: string[],
 ) -> string {
     sb :: StringBuilder {}
     if with_banner {

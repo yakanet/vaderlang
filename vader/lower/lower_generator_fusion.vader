@@ -180,7 +180,7 @@ gen_instance_subst :: fn(
 // Pick the per-instance substitution for `fn_decl<concrete_args>` via the
 // instance-flavor classifier — the shared tail of both the direct-call subst
 // (`gen_instance_subst`) and the chained-combinator subst.
-subst_from_flavor :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, concrete_args: const Type[]) -> Substitution {
+subst_from_flavor :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, concrete_args: Type[]) -> Substitution {
     flavor :: fn_instance_flavor(fn_decl, owner_typed, concrete_args)
     if flavor == InstanceFlavor.Mono { return build_fn_concrete_subst(fn_decl, owner_typed, concrete_args) }
     if flavor == InstanceFlavor.Mixed { return build_fn_mixed_subst(fn_decl, owner_typed, concrete_args) }
@@ -190,7 +190,7 @@ subst_from_flavor :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, concrete
 // Strip distinct wrappers off `args`, require all-concrete, then pick the flavor
 // subst — the shared finalize tail of every generator subst path. Null when any
 // arg stays a free type param (the caller bails to the boxed path).
-subst_from_concrete :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, args: const Type[]) -> Substitution | null {
+subst_from_concrete :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, args: Type[]) -> Substitution | null {
     concrete :: strip_distinct_each(args)
     if !all_concrete(concrete) { return null }
     return subst_from_flavor(fn_decl, owner_typed, concrete)

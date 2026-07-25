@@ -497,7 +497,7 @@ write_visibility :: fn(sb: StringBuilder!, v: Visibility) -> void {
     }
 }
 
-write_decorators :: fn(sb: StringBuilder!, ds: const Decorator[], level: i32) -> void {
+write_decorators :: fn(sb: StringBuilder!, ds: Decorator[], level: i32) -> void {
     if ds.len() == 0 {
         sb.close_arr_empty()
         return
@@ -519,7 +519,7 @@ write_decorators :: fn(sb: StringBuilder!, ds: const Decorator[], level: i32) ->
     sb.close_arr(level)
 }
 
-write_type_params :: fn(sb: StringBuilder!, tps: const TypeParam[], level: i32) -> void {
+write_type_params :: fn(sb: StringBuilder!, tps: TypeParam[], level: i32) -> void {
     if tps.len() == 0 {
         sb.close_arr_empty()
         return
@@ -736,7 +736,7 @@ write_optional_expr :: fn(sb: StringBuilder!, e: Expr | null, level: i32) -> voi
     sb.write_expr(e, level)
 }
 
-write_exprs :: fn(sb: StringBuilder!, es: const Expr[], level: i32) -> void {
+write_exprs :: fn(sb: StringBuilder!, es: Expr[], level: i32) -> void {
     if es.len() == 0 {
         sb.close_arr_empty()
         return

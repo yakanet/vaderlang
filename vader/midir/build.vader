@@ -267,7 +267,7 @@ extern_symbol_name :: fn(fn_decl: FnDecl) -> string {
     return fn_decl.name
 }
 
-decorators_have :: fn(decs: const Decorator[], name: string) -> bool {
+decorators_have :: fn(decs: Decorator[], name: string) -> bool {
     for d in decs { if d.name == name { return true } }
     return false
 }

@@ -173,7 +173,7 @@ walk_elements :: fn(
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type[] = e.elements.map((el) -> check_expr_fn(el, hint, typed, diags)).collect()
 
-default_each :: fn(types: const Type[]) -> Type[] = types.map((t) -> default_if_free(t)).collect()
+default_each :: fn(types: Type[]) -> Type[] = types.map((t) -> default_if_free(t)).collect()
 
 pick_seq_variant :: fn(u: UnionType, arity: usize) -> Type | null {
     for v in u.variants {

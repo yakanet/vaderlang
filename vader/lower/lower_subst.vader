@@ -33,7 +33,7 @@ build_fn_any_subst :: fn(fd: FnDecl, typed: TypedProgram) -> Substitution {
 // concrete arg instead of `Any`. Mirror of `build_fn_any_subst`'s symbol
 // resolution (same `find_type_param_in_resolved`, which `build_subst`'s
 // span-offset finder doesn't match here) — only the mapped value differs.
-build_fn_concrete_subst :: fn(fd: FnDecl, typed: TypedProgram, type_args: const Type[]) -> Substitution {
+build_fn_concrete_subst :: fn(fd: FnDecl, typed: TypedProgram, type_args: Type[]) -> Substitution {
     subst :: new_substitution()
     i: usize = 0
     for tp in fd.type_params {
@@ -54,7 +54,7 @@ build_fn_concrete_subst :: fn(fd: FnDecl, typed: TypedProgram, type_args: const 
 // inside an erased body (`[string, Any]`) reconcile on the one materialised body.
 // Mirror of `build_fn_concrete_subst`'s symbol resolution + the impl-member
 // `map_type_params_mixed`'s primitive-or-Any choice ; only used by free fns.
-build_fn_mixed_subst :: fn(fd: FnDecl, typed: TypedProgram, type_args: const Type[]) -> Substitution {
+build_fn_mixed_subst :: fn(fd: FnDecl, typed: TypedProgram, type_args: Type[]) -> Substitution {
     subst :: new_substitution()
     i: usize = 0
     for tp in fd.type_params {
@@ -116,7 +116,7 @@ display_any_arg :: fn(t: Type) -> string = @partial match t {
     _                  -> "Any"
 }
 
-joined_named :: fn(name: string, args: const Type[], sep: string) -> string {
+joined_named :: fn(name: string, args: Type[], sep: string) -> string {
     sb :: StringBuilder {}
     sb.append(name)
     for a in args {
@@ -126,7 +126,7 @@ joined_named :: fn(name: string, args: const Type[], sep: string) -> string {
     return "${sb}"
 }
 
-joined_unnamed :: fn(args: const Type[], sep: string) -> string {
+joined_unnamed :: fn(args: Type[], sep: string) -> string {
     sb :: StringBuilder {}
     first := true
     for a in args {
@@ -137,7 +137,7 @@ joined_unnamed :: fn(args: const Type[], sep: string) -> string {
     return "${sb}"
 }
 
-build_any_args_list :: fn(args: const Type[]) -> Type[] {
+build_any_args_list :: fn(args: Type[]) -> Type[] {
     out: Type[] = []
     for a in args { out.push(any_leaves_of(a)) }
     return out
@@ -149,13 +149,13 @@ build_any_args_list :: fn(args: const Type[]) -> Type[] {
 // (`materialize_impl_for_instance`) and the box runtime tag (`erase_generic_struct_tag`)
 // — the two MUST agree arg-for-arg or a generic-struct box `vtable miss`es, so the
 // formula lives here once, not copied at each site.
-build_mixed_args_list :: fn(args: const Type[]) -> Type[] {
+build_mixed_args_list :: fn(args: Type[]) -> Type[] {
     out: Type[] = []
     for a in args { out.push(keep_primitive_or_erase(a)) }
     return out
 }
 
-join_any_displays :: fn(args: const Type[]) -> string {
+join_any_displays :: fn(args: Type[]) -> string {
     sb :: StringBuilder {}
     first := true
     for a in args {
@@ -194,7 +194,7 @@ build_any_subst :: fn(sd: StructDecl, owner_typed: TypedProgram) -> Substitution
 /// erased `__Any` reader of a now-raw field is the Inc-3 `Hash.hash` trap; P1
 /// closed that. Mirror of `build_any_subst` + `build_fn_mixed_subst`'s primitive-
 /// or-Any choice.
-build_struct_mixed_subst :: fn(sd: StructDecl, owner_typed: TypedProgram, args: const Type[]) -> Substitution {
+build_struct_mixed_subst :: fn(sd: StructDecl, owner_typed: TypedProgram, args: Type[]) -> Substitution {
     subst :: new_substitution()
     i: usize = 0
     for tp in sd.type_params {
@@ -229,7 +229,7 @@ merge_subst :: fn(base: Substitution, extra: Substitution) -> Substitution {
 }
 
 resolve_field_type :: fn(
-    ty: TypeExpr, owner_typed: TypedProgram, sd: StructDecl, args: const Type[],
+    ty: TypeExpr, owner_typed: TypedProgram, sd: StructDecl, args: Type[],
 ) -> Type {
     // Prefer the typer's recorded type ; fall back to `type_from_expr`
     // resolving fresh against the struct's typeParam-shadowed scope.
@@ -244,7 +244,7 @@ resolve_field_type :: fn(
     return type_from_expr(ty, owner_typed.resolved, scratch)
 }
 
-build_struct_subst :: fn(decl: StructDecl, args: const Type[], typed: TypedProgram) -> Substitution {
+build_struct_subst :: fn(decl: StructDecl, args: Type[], typed: TypedProgram) -> Substitution {
     subst :: new_substitution()
     for i in 0..<decl.type_params.len() {
         if i >= args.len() { break }
@@ -283,7 +283,7 @@ find_type_param_in_resolved :: fn(resolved: ResolvedModule, name: string, def_sp
 }
 
 build_impl_subst :: fn(
-    impl_decl: ImplDecl, args: const Type[],
+    impl_decl: ImplDecl, args: Type[],
     impl_typed: TypedProgram, owner_typed: TypedProgram,
 ) -> Substitution {
     subst :: new_substitution()
@@ -351,7 +351,7 @@ collect_impl_type_param_names :: fn(impl_decl: ImplDecl) -> string[] {
 /// Mixed substitution : map each impl type param to its concrete instance arg
 /// WHEN primitive (so the materialised body sees `K = i32` and primitive trait
 /// dispatch devirtualises), else to `Any`. `names[i]` corresponds to `args[i]`.
-map_type_params_mixed :: fn(subst: Substitution!, scope: Symbol[], names: string[], args: const Type[]) -> void {
+map_type_params_mixed :: fn(subst: Substitution!, scope: Symbol[], names: string[], args: Type[]) -> void {
     for s in scope {
         if s.kind != SymbolKind.TypeParam { continue }
         idx: i32 = -1
@@ -375,7 +375,7 @@ map_type_params_mixed :: fn(subst: Substitution!, scope: Symbol[], names: string
 
 /// Variant of `build_impl_any_subst` keeping PRIMITIVE type args concrete.
 build_impl_mixed_subst :: fn(
-    impl_decl: ImplDecl, impl_typed: TypedProgram, args: const Type[],
+    impl_decl: ImplDecl, impl_typed: TypedProgram, args: Type[],
 ) -> Substitution {
     subst :: new_substitution()
     names :: collect_impl_type_param_names(impl_decl)
@@ -402,7 +402,7 @@ keep_primitive_or_erase :: fn(t: Type) -> Type {
 // primitives" gate : an all-primitive arg list satisfies this too, and a mixed
 // subst over all-primitive args equals the concrete subst, so Inc 1's instances
 // are byte-unchanged.
-has_any_primitive_arg :: fn(type_args: const Type[]) -> bool {
+has_any_primitive_arg :: fn(type_args: Type[]) -> bool {
     for a in type_args {
         // Distinct→backing: a distinct-over-primitive arg counts as primitive,
         // so an all-distinct instance still monomorphizes MIXED (raw fields).
@@ -447,7 +447,7 @@ lookup_type_param_symbol :: fn(resolved: ResolvedModule, name_span: Span) -> Sym
     return null
 }
 
-args_suffix :: fn(args: const Type[]) -> string {
+args_suffix :: fn(args: Type[]) -> string {
     sb := StringBuilder {}
     for a in args {
         sb.append("__")
@@ -467,7 +467,7 @@ args_suffix :: fn(args: const Type[]) -> string {
 /// reconciles with the single materialised body (the dedupe keys on the suffix).
 /// @param args  the impl's concrete type arguments.
 /// @return      `"__<prim>"` per primitive arg, `"__Any"` per other arg.
-export mixed_any_suffix :: fn(args: const Type[]) -> string {
+export mixed_any_suffix :: fn(args: Type[]) -> string {
     sb := StringBuilder {}
     for a in args {
         // Distinct→backing: a distinct (newtype) over a primitive keeps the

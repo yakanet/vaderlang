@@ -25,7 +25,7 @@ export ArrayOps :: trait<T> {
     /// Append `value` to the end, growing the backing storage as needed.
     push :: fn(self!, value: T) -> void
     /// Append every element of `other` (a borrowed, immutable view).
-    push_all :: fn(self!, other: const T[]) -> void
+    push_all :: fn(self!, other: T[]) -> void
     /// Copy `count` elements from `self[src_off..]` into `dst[dst_off..]`.
     /// Reads `self` ; it is `dst` that is written, hence the marker there.
     copy_to :: fn(self, src_off: usize, dst: T[]!, dst_off: usize, count: usize) -> void

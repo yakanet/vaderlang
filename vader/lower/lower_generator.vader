@@ -66,7 +66,7 @@ zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
 // here for the next fn + state struct.
 push_generator_decls :: fn(
     fn_ctx: FnLowerCtx!, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
-    yield_ty: Type, next_body: LoweredBlock, state_fields: const LoweredStructField[],
+    yield_ty: Type, next_body: LoweredBlock, state_fields: LoweredStructField[],
 ) -> void {
     module_seg :: mangle_module_id(fn_ctx.typed.resolved.display_path)
     next_mangled :: "${module_seg}$${state_sym.name}$${TRAIT_ITERATOR}$${METHOD_NEXT}"

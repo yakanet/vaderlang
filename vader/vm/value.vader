@@ -82,7 +82,7 @@ export bytes_to_value :: fn(s: string, type_id: i32) -> ArrayVal {
 /// @param bs       source bytes.
 /// @param type_id  the module's `u8[]` ArrayType index (see `find_u8_array_type_id`).
 /// @return         an `ArrayVal` whose elements are the bytes of `bs`.
-export u8_array_to_value :: fn(bs: const u8[], type_id: i32) -> ArrayVal {
+export u8_array_to_value :: fn(bs: u8[], type_id: i32) -> ArrayVal {
     elements: Value[] = []
     for b in bs { elements.push(I32Val { .value = i32(b) }) }
     return ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }

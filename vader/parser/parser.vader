@@ -137,14 +137,14 @@ header_budget :: fn(n: usize) -> usize {
     return cap
 }
 
-skip_to_eol :: fn(sb: const u8[], from: usize, n: usize) -> usize {
+skip_to_eol :: fn(sb: u8[], from: usize, n: usize) -> usize {
     i := from
     for i < n && sb[i] != '\n' { i = i + 1 }
     if i < n { i = i + 1 }
     return i
 }
 
-skip_block_comment :: fn(sb: const u8[], from: usize, n: usize) -> usize {
+skip_block_comment :: fn(sb: u8[], from: usize, n: usize) -> usize {
     i := from
     depth: i32 = 1
     for i + 1 < n && depth > 0 {
@@ -629,7 +629,7 @@ parse_decorators :: fn(p: Parser!) -> Decorator[] {
 /// import ; a bare path is a wildcard import (every function of the module
 /// becomes callable, prefix + UFCS). The `import "..." as name` form is
 /// rejected — write `name :: import "..."`.
-parse_import_decl :: fn(p: Parser!, decorators: const Decorator[]) -> ImportDecl {
+parse_import_decl :: fn(p: Parser!, decorators: Decorator[]) -> ImportDecl {
     start :: p.advance()  // `import`
     path_info :: p.expect_string_literal("import path")
 
@@ -664,7 +664,7 @@ parse_import_decl :: fn(p: Parser!, decorators: const Decorator[]) -> ImportDecl
 
 /// Named-decl-position `name :: import "..."`. Routed from
 /// `parse_named_decl` when the RHS keyword after `::` is `import`.
-parse_named_import_decl :: fn(p: Parser!, decorators: const Decorator[], name_tok: Token) -> ImportDecl {
+parse_named_import_decl :: fn(p: Parser!, decorators: Decorator[], name_tok: Token) -> ImportDecl {
     p.advance()  // `import`
     path_info :: p.expect_string_literal("import path")
     lbrace :: p.match_kind(.LBrace)
@@ -802,7 +802,7 @@ peek_is_lhs_generic_alias_head :: fn(p: Parser) -> bool {
     return false
 }
 
-parse_lhs_generic_alias_decl :: fn(p: Parser!, decorators: const Decorator[], visibility: Visibility) -> TypeAliasDecl {
+parse_lhs_generic_alias_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility) -> TypeAliasDecl {
     name_tok :: p.advance()  // ident
     type_params :: p.parse_angle_type_params()
     p.advance()  // `::`
@@ -818,7 +818,7 @@ parse_lhs_generic_alias_decl :: fn(p: Parser!, decorators: const Decorator[], vi
     }
 }
 
-parse_impl_decl :: fn(p: Parser!, decorators: const Decorator[]) -> ImplDecl {
+parse_impl_decl :: fn(p: Parser!, decorators: Decorator[]) -> ImplDecl {
     start_tok :: p.peek()
     for_type :: p.parse_type()
     p.expect(.KwImplements, "`implements` keyword")
@@ -961,7 +961,7 @@ parse_sam_block_member :: fn(p: Parser!) -> FnDecl {
     }
 }
 
-parse_named_decl :: fn(p: Parser!, decorators: const Decorator[], visibility: Visibility) -> Decl {
+parse_named_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility) -> Decl {
     name_tok :: p.advance()  // ident
     p.advance()              // `::`
 
@@ -973,7 +973,7 @@ parse_named_decl :: fn(p: Parser!, decorators: const Decorator[], visibility: Vi
     return p.parse_const_decl(decorators, visibility, name_tok)
 }
 
-parse_fn_decl :: fn(p: Parser!, decorators: const Decorator[], visibility: Visibility, name_tok: Token) -> FnDecl {
+parse_fn_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> FnDecl {
     p.advance()  // `fn`
     // Angle type-params `fn<T: Bound>(...)` are merged with the legacy
     // dollar-prefixed introductions collected from the value-arg types.
@@ -1177,7 +1177,7 @@ parse_fn_signature_params :: fn(p: Parser!) -> FnSignature {
 
 empty_token :: fn() = make_token(.Eof, "", empty_file_span(""))
 
-parse_struct_decl :: fn(p: Parser!, decorators: const Decorator[], visibility: Visibility, name_tok: Token) -> StructDecl {
+parse_struct_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> StructDecl {
     p.advance()  // `struct`
     type_params :: p.parse_struct_type_param_list()
     p.expect(.LBrace, "`{` to open struct body")
@@ -1340,7 +1340,7 @@ parse_angle_type_params :: fn(p: Parser!) -> TypeParam[]! {
 // collected from the value-arg types (legacy dollar-prefixed form).
 // The angle list takes precedence — a name already declared explicitly
 // is not re-added from the inline list.
-merge_type_params :: fn(angle: const TypeParam[], inlined: const TypeParam[]) -> TypeParam[] {
+merge_type_params :: fn(angle: TypeParam[], inlined: TypeParam[]) -> TypeParam[] {
     if angle.len() == 0 { return inlined }
     if inlined.len() == 0   { return angle }
     merged: TypeParam[] = []
@@ -1358,7 +1358,7 @@ merge_type_params :: fn(angle: const TypeParam[], inlined: const TypeParam[]) ->
     return merged
 }
 
-parse_trait_decl :: fn(p: Parser!, decorators: const Decorator[], visibility: Visibility, name_tok: Token) -> TraitDecl {
+parse_trait_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> TraitDecl {
     p.advance()  // `trait`
     type_params :: p.parse_struct_type_param_list()
     // Trait composition. Two forms :
@@ -1405,7 +1405,7 @@ parse_trait_decl :: fn(p: Parser!, decorators: const Decorator[], visibility: Vi
     }
 }
 
-parse_enum_decl :: fn(p: Parser!, decorators: const Decorator[], visibility: Visibility, name_tok: Token) -> EnumDecl {
+parse_enum_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> EnumDecl {
     p.advance()  // `enum`
     repr: TypeExpr | null = null
     if p.match_kind(.LParen) != null {
@@ -1455,7 +1455,7 @@ parse_enum_decl :: fn(p: Parser!, decorators: const Decorator[], visibility: Vis
 
 // `name :: value` — untyped top-level const. The typed shape uses the
 // Odin-style `name : Type : value` form parsed by `parse_typed_const_decl`.
-parse_const_decl :: fn(p: Parser!, decorators: const Decorator[], visibility: Visibility, name_tok: Token) -> ConstDecl {
+parse_const_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> ConstDecl {
     // Multi-line union with a leading pipe :
     //   T ::
     //       | A
@@ -1492,7 +1492,7 @@ parse_const_decl :: fn(p: Parser!, decorators: const Decorator[], visibility: Vi
 // rewritten to `@comptime NAME :: __comptime_NAME()`. A block inner is used
 // verbatim as the fn body (so a `return` inside it works) ; any other expression
 // is wrapped as the block's trailing expression.
-desugar_comptime_const :: fn(p: Parser!, decorators: const Decorator[], visibility: Visibility, name_tok: Token, ty: TypeExpr | null) -> ConstDecl {
+desugar_comptime_const :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token, ty: TypeExpr | null) -> ConstDecl {
     at_tok :: p.advance()   // `@`
     p.advance()             // `comptime`
     // A `{ … }` block isn't an expression-position prefix, so parse it directly ;
@@ -1568,7 +1568,7 @@ lift_trailing_return :: fn(block: BlockExpr) -> BlockExpr {
 
 // `name : Type : value` — typed top-level const, mirrors the local
 // `name : Type : value` immutable-let form for surface uniformity.
-parse_typed_const_decl :: fn(p: Parser!, decorators: const Decorator[], visibility: Visibility) -> ConstDecl {
+parse_typed_const_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility) -> ConstDecl {
     name_tok :: p.advance()  // name
     p.advance()  // first `:`
     ty :: p.parse_type()
@@ -3217,7 +3217,7 @@ is_angle_scan_bailout :: fn(k: TokenKind) -> bool {
     return false
 }
 
-looks_like_struct_lit_body :: fn(tokens: const Token[], pos_at_lbrace: i32) -> bool {
+looks_like_struct_lit_body :: fn(tokens: Token[], pos_at_lbrace: i32) -> bool {
     n :: i32(tokens.len())
     i := pos_at_lbrace + 1
     for i < n {
@@ -3715,7 +3715,7 @@ parse_error_count :: fn(src: string) -> i32 = i32(parse_source(src, "test.vader"
 @test test_is_const_array_and_fn_type :: fn() -> void {
     // parser-2 : `is const T[]` and `is fn(...)` route through `parse_type` too.
     src :: "module \"t\"\n" +
-        "g :: fn(x: const u8[] | i32) -> i32 {\n" +
+        "g :: fn(x: u8[] | i32) -> i32 {\n" +
         "    if x is const u8[] { return 1 }\n" +
         "    return 0\n" +
         "}\n" +

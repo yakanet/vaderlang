@@ -1133,7 +1133,7 @@ lower_map_set_compact :: fn(
     ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
     src_value: LoweredExpr, src_type: Type, span: Span,
     block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
-    source: StructType, is_map: bool, is_set: bool, entry_args: const Type[],
+    source: StructType, is_map: bool, is_set: bool, entry_args: Type[],
 ) -> LoweredStmt {
     usize_ty :: mk_primitive("usize")
     key_ty :: entry_args[0]
@@ -1248,7 +1248,7 @@ struct_sym_matches :: fn(sym: Symbol | null, id: i32) -> bool {
     return false
 }
 
-map_struct_type :: fn(map_sym: Symbol | null, entry_args: const Type[]) -> Type {
+map_struct_type :: fn(map_sym: Symbol | null, entry_args: Type[]) -> Type {
     if map_sym != null { return mk_struct(map_sym, entry_args, immutable = false) }
     return TY_UNRESOLVED
 }

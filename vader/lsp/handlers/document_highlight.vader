@@ -52,7 +52,7 @@ ident_occurrences :: fn(idx: DocIndex, name: string) -> Span[] {
     return out
 }
 
-highlight_json :: fn(spans: const Span[], li: LineIndex) -> JsonValue {
+highlight_json :: fn(spans: Span[], li: LineIndex) -> JsonValue {
     items: JsonValue[] = []
     for sp in spans { items.push(highlight_item_json(sp, li)) }
     return JsonArray { .items = items }

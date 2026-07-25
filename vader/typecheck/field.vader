@@ -139,7 +139,7 @@ try_impl_method_ufcs :: fn(
 // tested: its ACCESS PATH is immutable (a module-level const, later a borrowed
 // param — `expr_is_immutable`), or its own TYPE says so (`const T[]`, the
 // pre-existing type-level marker). Only the second one makes
-// `fn(a: const i32[]) { a.push(9) }` an error — the promise SPEC.md §"const T[]"
+// `fn(a: i32[]) { a.push(9) }` an error — the promise SPEC.md §"const T[]"
 // has always made about `arr.push(v)` and that nothing enforced until now.
 //
 // The type is still returned to the caller afterwards: reporting and then
@@ -613,8 +613,8 @@ substitute_struct_field :: fn(
 
 export substitute_by_name :: fn(
     t: Type,
-    tps: const AST.TypeParam[],
-    args: const Type[],
+    tps: AST.TypeParam[],
+    args: Type[],
 ) -> Type {
     // @partial: only TypeParam and the composite variants can carry a param to
     // rewrite; every scalar / primitive variant has no inner type → return as-is.
@@ -951,8 +951,8 @@ find_trait_id_by_name :: fn(name: string, typed: TypedProgram) -> i32 | null {
 // fewer than the trait declares. A `Self` default resolves to `TY_SELF` here ;
 // the caller's `substitute_self(target_ty)` then maps it to the receiver type.
 pad_trait_default_args :: fn(
-    args: const Type[],
-    tps: const AST.TypeParam[],
+    args: Type[],
+    tps: AST.TypeParam[],
     resolved: ResolvedModule,
 ) -> Type[] {
     if args.len() >= tps.len() {

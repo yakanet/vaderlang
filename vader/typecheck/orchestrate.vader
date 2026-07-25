@@ -579,7 +579,7 @@ populate_from :: fn(
 // equivalent types always match. Returns null for a blanket / generic receiver
 // (`T implements …`, `T[] implements …`) — their overlap rules are subtler than
 // concrete-vs-concrete, so they're left unchecked for now.
-coherence_key :: fn(for_ty: Type, trait_name: string, args: const Type[]) -> string | null {
+coherence_key :: fn(for_ty: Type, trait_name: string, args: Type[]) -> string | null {
     if type_contains_type_param(for_ty) {
         return null
     }
@@ -943,7 +943,7 @@ record_struct_trait_args :: fn(
     typed: TypedProgram!,
     for_ty: Type,
     trait_name: string,
-    args: const Type[],
+    args: Type[],
 ) -> void {
     name :: type_base_name(for_ty)
     if name == "" {

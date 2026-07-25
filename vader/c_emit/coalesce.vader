@@ -69,7 +69,7 @@ export CoalesceResult :: struct {
 /// @return       the compacted type list (index = surviving slot) and the body
 ///               rewritten so every `tN` reference names its assigned slot. A
 ///               no-op (inputs returned verbatim) when there are no temps.
-export coalesce_temps :: fn(body: string, types: const ValType[]) -> CoalesceResult {
+export coalesce_temps :: fn(body: string, types: ValType[]) -> CoalesceResult {
     n :: types.len()
     if n == 0 { return CoalesceResult { .types = [], .body = body } }
 
@@ -154,7 +154,7 @@ no_slot :: fn(end: usize) = SlotToken { .ok = false, .id = 0, .end = end }
 // Recognise a `<kind><digits>` token starting at `i`, respecting identifier word
 // boundaries on both sides (so `gc_top`, `int32_t`, `t50`, `l1x` are not
 // mis-split). Callers guard on the kind byte first ; the check is defensive.
-slot_token_at :: fn(b: const u8[], i: usize, len: usize, kind: u8) -> SlotToken {
+slot_token_at :: fn(b: u8[], i: usize, len: usize, kind: u8) -> SlotToken {
     if b[i] != kind { return no_slot(i + 1) }
     if i > 0 && is_ident_byte(b[i - 1]) { return no_slot(i + 1) }
     if i + 1 >= len || !is_digit_byte(b[i + 1]) { return no_slot(i + 1) }
@@ -170,7 +170,7 @@ slot_token_at :: fn(b: const u8[], i: usize, len: usize, kind: u8) -> SlotToken 
 }
 
 // The coalescer's operand-temp recogniser (`t<digits>`).
-temp_token_at :: fn(b: const u8[], i: usize, len: usize) = slot_token_at(b, i, len, 't')
+temp_token_at :: fn(b: u8[], i: usize, len: usize) = slot_token_at(b, i, len, 't')
 
 // Temp indices `0..<n` with a real occurrence, ordered by first-occurrence line
 // (ties by index, via the stable sort). Temps that never appear (first < 0) are
@@ -237,13 +237,13 @@ DefLine :: struct { ok: bool  id: usize  indent: string  expr: string }
 // A parsed `<indent>lM = tN;` local-from-temp copy.
 CopyLine :: struct { ok: bool  id: usize  local: string }
 
-leading_spaces :: fn(b: const u8[], len: usize) -> usize {
+leading_spaces :: fn(b: u8[], len: usize) -> usize {
     i: usize = 0
     for i < len && b[i] == ' ' { i += 1 }
     return i
 }
 
-count_byte :: fn(b: const u8[], len: usize, c: u8) -> i32 {
+count_byte :: fn(b: u8[], len: usize, c: u8) -> i32 {
     n: i32 = 0
     for i in 0..<len { if b[i] == c { n += 1 } }
     return n

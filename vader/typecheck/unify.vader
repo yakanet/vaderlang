@@ -219,12 +219,12 @@ export type_contains_type_param :: fn(t: Type) -> bool {
 
 // ---- helpers --------------------------------------------------------------
 
-any_contains :: fn(ts: const Type[]) -> bool {
+any_contains :: fn(ts: Type[]) -> bool {
     for t in ts { if type_contains_type_param(t) { return true } }
     return false
 }
 
-unify_args :: fn(p_args: const Type[], a_args: const Type[], out: MutableMap<i32, Type>!) -> void {
+unify_args :: fn(p_args: Type[], a_args: Type[], out: MutableMap<i32, Type>!) -> void {
     n :: min(p_args.len(), a_args.len())
     for i in 0..<n { unify_type_param(p_args[i], a_args[i], out) }
 }
@@ -257,7 +257,7 @@ unify_unions :: fn(pu: UnionType, au: UnionType, out: MutableMap<i32, Type>!) ->
 /// @param used    parallel flags — entries already paired off are skipped.
 /// @param target  the variant to find a structural match for.
 /// @return        the matching index, or -1 when none is free + equal.
-export find_unused_equal :: fn(types: const Type[], used: bool[], target: Type) -> i32 {
+export find_unused_equal :: fn(types: Type[], used: bool[], target: Type) -> i32 {
     for i in 0..<types.len() {
         if !used[i] && equals_type(types[i], target) { return i32(i) }
     }
@@ -291,7 +291,7 @@ export substitute_map :: fn(t: Type, subst: MutableMap<i32, Type>) -> Type {
     }
 }
 
-substitute_each_map :: fn(types: const Type[], subst: MutableMap<i32, Type>) -> Type[] {
+substitute_each_map :: fn(types: Type[], subst: MutableMap<i32, Type>) -> Type[] {
     out: Type[] = []
     for t in types { out.push(substitute_map(t, subst)) }
     return out

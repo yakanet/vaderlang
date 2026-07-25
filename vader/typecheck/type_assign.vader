@@ -314,7 +314,7 @@ export fn_param_compatible :: fn(a: Type, b: Type, oracle: TraitOracle | null) -
 /// `is_assignable`), so generic code is unaffected ; only a concrete widen/narrow
 /// between differing args is rejected. The equal-arg fast path keeps the dominant
 /// `Foo<T>` → `Foo<T>` case single-pass.
-export struct_args_compatible :: fn(a: const Type[], b: const Type[], oracle: TraitOracle | null) -> bool {
+export struct_args_compatible :: fn(a: Type[], b: Type[], oracle: TraitOracle | null) -> bool {
     if a.len() != b.len() { return false }
     for i in 0..<a.len() {
         if equals_type(a[i], b[i]) { continue }

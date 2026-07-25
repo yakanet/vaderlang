@@ -70,7 +70,7 @@ export codepoint_byte_len :: fn(c: char) -> usize {
 ///
 /// @param bs  the byte view (e.g. `s.bytes()`).
 /// @param i   byte offset of a UTF-8 leading byte. Traps if `i >= bs.len()`.
-export utf8_decode :: fn(bs: const u8[], i: usize) -> char {
+export utf8_decode :: fn(bs: u8[], i: usize) -> char {
     n :: bs.len()
     b :: bs[i]
     if b < 0x80 { return char(b) }
@@ -103,7 +103,7 @@ export utf8_decode :: fn(bs: const u8[], i: usize) -> char {
 /// @param bs  the byte view (e.g. `s.bytes()`).
 /// @param i   byte offset of a UTF-8 leading byte.
 /// @return    `[codepoint, byte_length]`.
-export utf8_decode_len :: fn(bs: const u8[], i: usize) -> [char, usize] {
+export utf8_decode_len :: fn(bs: u8[], i: usize) -> [char, usize] {
     c :: bs.utf8_decode(i)
     return [c, c.codepoint_byte_len()]
 }

@@ -80,7 +80,7 @@ symbol_key :: fn(sym: Symbol) -> string = match sym.defined_at {
 
 // Join each type's intern key with `sep`. Recurses through `type_intern_key`
 // so a struct nested in an arg / variant carries its source-position key.
-type_key_join :: fn(args: const Type[], sep: string) -> string {
+type_key_join :: fn(args: Type[], sep: string) -> string {
     out := ""
     for i in 0..<args.len() {
         prefix :: if i > 0 { sep } else { "" }

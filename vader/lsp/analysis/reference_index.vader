@@ -160,7 +160,7 @@ collect_decl_idents :: fn(d: AST.Decl, out: Span[]!) -> void {
     }
 }
 
-collect_decorators :: fn(ds: const AST.Decorator[], out: Span[]!) -> void {
+collect_decorators :: fn(ds: AST.Decorator[], out: Span[]!) -> void {
     for deco in ds {
         for a in deco.args { collect_expr(a, out) }
     }
@@ -171,7 +171,7 @@ collect_decorators :: fn(ds: const AST.Decorator[], out: Span[]!) -> void {
 // a clean rename target nor a precise reference range. Their uses (IdentExpr)
 // are still collected. Param / type-param rename is a follow-up needing a
 // name-only span.
-collect_type_params :: fn(ps: const AST.TypeParam[], out: Span[]!) -> void {
+collect_type_params :: fn(ps: AST.TypeParam[], out: Span[]!) -> void {
     for p in ps { collect_opt_type(p.bound, out) }
 }
 

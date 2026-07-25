@@ -176,7 +176,7 @@ export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
     return JsonObject { .entries = caps }
 }
 
-string_array :: fn(items: const string[]) -> JsonValue {
+string_array :: fn(items: string[]) -> JsonValue {
     out: JsonValue[] = []
     for s in items {
         out.push(JsonString { .value = s })

@@ -137,7 +137,7 @@ append_u32_be :: fn(out: u8[]!, x: u32) -> void {
 ///
 /// @param bytes  the bytes to render.
 /// @return       a `2 * bytes.len()`-char lowercase hex string.
-export hex_of_bytes :: fn(bytes: const u8[]) -> string {
+export hex_of_bytes :: fn(bytes: u8[]) -> string {
     sb := StringBuilder {}
     for b in bytes { append_hex_u8(sb, b) }
     return sb.to_string()
@@ -229,7 +229,7 @@ SHA256_K :: @comptime {
 
 // SHA-256 padding : append `0x80`, then zeros until length ≡ 56 mod 64,
 // then the message-length-in-bits as a big-endian 64-bit suffix.
-pad_sha256_bytes :: fn(ib: const u8[]) -> u8[] {
+pad_sha256_bytes :: fn(ib: u8[]) -> u8[] {
     n :: ib.len()
     bit_len :: u64(n) * 8
     out :: ib.clone()
