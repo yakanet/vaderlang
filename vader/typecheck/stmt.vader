@@ -593,13 +593,7 @@ check_let :: fn(
         _       -> {
             declared = ann
             if !flows_into(got, ann, s.value.id, typed) {
-                diags.push(
-                    typecheck_error(
-                        .TypeMismatch,
-                        s.span,
-                        "expected ${display_type(ann)}, got ${display_type(got)}",
-                    ),
-                )
+                diags.push(mismatch_diagnostic(got, ann, s.span, .TypeMismatch))
             }
         }
     }
@@ -835,6 +829,10 @@ emit_assign_mismatch_if :: fn(
 ) -> void {
     if expected == null                          { return }
     if flows_into(got, expected, node_id, typed) { return }
+    if fn_mutability_widens(got, expected) {
+        diags.push(mismatch_diagnostic(got, expected, span, .AssignTypeMismatch))
+        return
+    }
     diags.push(
         typecheck_error(
             .AssignTypeMismatch,

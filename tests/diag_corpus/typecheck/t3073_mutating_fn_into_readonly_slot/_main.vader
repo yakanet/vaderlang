@@ -1,0 +1,25 @@
+// `!` markers on a fn TYPE are contravariant, like the parameter types around
+// them: a fn that doesn't mutate fits a slot that would allow it (it promises
+// less), but one that DOES mutate cannot be handed to a caller that lends its
+// value out read-only. Without this, every marker would be erased the moment a fn
+// became a value — `apply(mutates, xs)` would silently mutate through a slot
+// declared read-only.
+//
+// The marker is deliberately outside type identity (`equals_type` ignores it, so
+// monomorphisation and erasure see one type), which is why assignability tests it
+// ahead of its equality short-circuit. T3073.
+module "snippet"
+
+readonly_slot :: fn(f: fn(i32[]) -> void, xs: i32[]) -> void {
+    f(xs)
+}
+
+mutates :: fn(b!: i32[]) -> void {
+    b.push(1)
+}
+
+main :: fn() -> i32 {
+    xs :: [1]
+    readonly_slot(mutates, xs)
+    return 0
+}

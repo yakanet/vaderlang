@@ -23,6 +23,12 @@ export is_assignable :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> 
     if from is UnresolvedType { return true }
     if to   is UnresolvedType { return true }
     if from is NeverType      { return true }
+    // Mutation markers are deliberately OUTSIDE type identity: `equals_type`
+    // ignores `params_mutable`, so two fn types differing only by a `!` stay one
+    // type for monomorphisation, erasure and the bytecode — no duplicated monos.
+    // That makes the equality short-circuit below blind to the marker, hence this
+    // guard ahead of it. Assignability is a different question from identity.
+    if fn_mutability_widens(from, to) { return false }
     if equals_type(from, to) { return true }
 
     // TypeParam wildcard — accepts any concrete type. Lets a generic
@@ -150,12 +156,84 @@ export is_assignable_fn :: fn(from: Type, self: FnType, to: Type, oracle: TraitO
             if self.params.len() != ft.params.len() { return false }
             for i in 0..<self.params.len() {
                 if !fn_param_compatible(ft.params[i], self.params[i], oracle) { return false }
+                // `!` markers are contravariant, like the param types around them:
+                // a fn that does NOT mutate fits a slot that would allow it (it
+                // simply promises less), while one that DOES mutate cannot be
+                // handed to a caller expecting a read-only borrow.
+                if param_mutable_at(self, i) && !param_mutable_at(ft, i) { return false }
             }
             return fn_param_compatible(self.return_type, ft.return_type, oracle)
         }
         _ -> {}
     }
     return check_common(from, to, oracle)
+}
+
+/// Whether parameter `i` of `f` carries the `!` mutation marker. Reads through the
+/// parallel vector's "empty means none marked" convention, so an unmarked fn type
+/// answers false without allocating a same-length all-`false` run.
+export param_mutable_at :: fn(f: FnType, i: usize) -> bool {
+    if i >= f.params_mutable.len() {
+        return false
+    }
+    return f.params_mutable[i]
+}
+
+/// Diagnostic for a value of type `got` that does not fit a slot of type
+/// `expected`, picking the message that explains the actual cause.
+///
+/// A `!` mismatch between two fn types otherwise renders as a plain type mismatch
+/// whose two sides differ by a single character (`fn(T)` vs `fn(T!)`) — easy to
+/// stare past. T3073 says what is wrong instead of leaving it to be spotted.
+///
+/// @param got       the value's type.
+/// @param expected  the slot's type.
+/// @param span      where to anchor the diagnostic.
+/// @param fallback  the code to use when the cause is an ordinary mismatch.
+export mismatch_diagnostic :: fn(
+    got: Type, expected: Type, span: Span, fallback: TypecheckCode,
+) -> Diagnostic {
+    if fn_mutability_widens(got, expected) {
+        return typecheck_error(
+            .FnValueMutabilityMismatch,
+            span,
+            "`${display_type(got)}` mutates a parameter that `${display_type(expected)}` lends out read-only — drop the `!`, or mark the slot's parameter `!` to allow it",
+        )
+    }
+    return typecheck_error(
+        fallback,
+        span,
+        "expected ${display_type(expected)}, got ${display_type(got)}",
+    )
+}
+
+/// True when `from` would grant mutation permission that `to` does not — the one
+/// direction the `!` marker forbids between two fn types.
+///
+/// Handing a `fn(T!)` to a slot typed `fn(T)` lets the callee mutate a value its
+/// caller lent out read-only, so it is rejected. The reverse is fine: a fn that
+/// doesn't mutate simply promises less than the slot allows.
+///
+/// Answers false for anything that is not a pair of fn types, and for equal
+/// arities only — a genuine arity or param-type mismatch is reported by the
+/// ordinary assignability rules, not attributed to the marker.
+///
+/// @return `true` when the ONLY thing to say is "this fn mutates and the slot
+///         forbids it" — used both to reject and to pick the T3073 message.
+export fn_mutability_widens :: fn(from: Type, to: Type) -> bool {
+    if from is FnType as f {
+        if to is FnType as t {
+            if f.params.len() != t.params.len() {
+                return false
+            }
+            for i in 0..<f.params.len() {
+                if param_mutable_at(f, i) && !param_mutable_at(t, i) {
+                    return true
+                }
+            }
+        }
+    }
+    return false
 }
 
 /// `from is UnionType`. Every variant must be assignable to `to`.
