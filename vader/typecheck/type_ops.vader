@@ -176,7 +176,7 @@ with_immutable_each :: fn(variants: Type[], immutable: bool) -> Type[] {
 /// The type of a parameter once its `!` marker is desugared onto the type.
 ///
 /// An unmarked parameter is a read-only borrow. A `!` grants mutation — but only
-/// when the WRITTEN type doesn't already forbid it : `fn(a!: i32[])` stays
+/// when the WRITTEN type doesn't already forbid it : a `const i32[]` slot stays
 /// read-only. `const` is a property of the TYPE (the referent is frozen, e.g. a
 /// module const), `!` a property of the SLOT ; they are orthogonal and the
 /// stricter of the two wins. Without this the marker would silently launder a
@@ -220,10 +220,10 @@ export apply_readonly_default :: fn(t: Type, written: AST.TypeExpr | null) -> Ty
         return union_of(out)
     }
     if written is AST.MutableTypeExpr as m {
-        // A `const T[]` under a marker is a contradiction, and it is reachable : the
-        // parser desugars the legacy `a!: const i32[]` by wrapping the written type.
-        // `const` freezes the REFERENT, so no marker can grant mutation through it —
-        // the stricter side wins, here as everywhere.
+        // A `const T[]` under a marker is a contradiction the parser rejects (P1027 /
+        // P1031), so this is a belt rather than a live path : `const` freezes the
+        // REFERENT, and no marker can grant mutation through it — the stricter side
+        // wins, here as everywhere.
         inner :: readonly_children(t, m.inner)
         if type_is_immutable(inner) { return inner }
         // This level is explicitly mutable ; deeper levels still take the default.

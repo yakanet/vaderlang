@@ -74,7 +74,7 @@ export ProcessResult :: struct {
 /// alive, re-arms the timer and parks (`Suspended`). Completes with a
 /// `ProcessResult` (or `ProcessError` on launch failure / signal).
 SpawnAsync :: struct {
-    argv:     const string[]
+    argv:     string[]
     started:  bool = false
     handle:   i64  = -1
     deadline: i64  = 0

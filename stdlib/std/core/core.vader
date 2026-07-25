@@ -317,7 +317,7 @@ Range<T> implements<T: Comparable & Step> Iterator<T> {
 /// Iterator over a `T[]`. The lowerer auto-wraps array exprs flowing into
 /// `for x in arr`, so direct construction is rarely needed.
 export ArrayIterator :: struct<T> {
-    arr:    const T[]
+    arr:    T[]
     cursor: usize
 }
 

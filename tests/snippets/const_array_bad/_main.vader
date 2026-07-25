@@ -1,13 +1,19 @@
-// T3042 — mutating an array typed `const T[]` is rejected at typecheck.
+// T3042 — mutating a frozen array is rejected at typecheck.
+//
+// Two ways in, and both must be caught: a module-level const (no runtime storage,
+// so the write would be silently discarded) and a read-only slot (the default for
+// a parameter, which is why no `const` is written on it).
 
 module "snippet"
 
-write_first :: fn(a: const i32[]) -> void {
+DIGITS :: [10, 20, 30]
+
+write_through_param :: fn(a: i32[]) -> void {
     a[0] = 99
 }
 
 main :: fn() -> i32 {
-    arr :: [10, 20, 30]
-    write_first(arr)
+    DIGITS[0] = 99
+    write_through_param(DIGITS)
     return 0
 }

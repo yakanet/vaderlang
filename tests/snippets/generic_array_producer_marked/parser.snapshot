@@ -51,8 +51,7 @@
             "element": {
               "kind": "IdentExpr",
               "name": "T"
-            },
-            "immutable": true
+            }
           },
           "defaultValue": null,
           "variadic": false

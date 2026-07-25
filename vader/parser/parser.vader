@@ -1152,10 +1152,14 @@ parse_fn_signature_params :: fn(p: Parser!) -> FnSignature {
             // parameters (the canonical surface is `fn<T>(...)`).
             collect_type_params(ty, type_params)
 
-            // Desugar the legacy name marker onto the TYPE : `buf: u8[]` becomes!
-            // `buf: u8[]!`, one representation instead of two. `self!` is the one
-            // that stays on the name — it has no written type to carry it (D2) —
-            // so an untyped param keeps the flag.
+            // The marker belongs on the TYPE. `self!` is the one exception, and for
+            // a reason rather than by exemption : `self` is the only parameter whose
+            // type is never written, so its marker has nowhere else to go. Any other
+            // `name!: T` is rejected — one notation, not two.
+            if is_mutable && ty != null {
+                p.error(.MutabilityMarkerOnName, param_name_tok.span,
+                    "write `${param_name_tok.text}: <type>!` instead")
+            }
             marked_ty :: if is_mutable && ty != null {
                 MutableTypeExpr { .span = ty.span, .inner = ty }
             } else {

@@ -137,6 +137,7 @@ export ParserCode :: enum(u8) {
     InvalidModuleName,                      // P1028
     ExpressionNestingTooDeep,               // P1029
     RepeatedMutabilityMarker,               // P1030
+    MutabilityMarkerOnName,                 // P1031
 }
 
 // R-codes belong to the resolver pass (name-binding) ; once shipped,
@@ -294,6 +295,7 @@ export parser_info :: fn(c: ParserCode) = match c {
     .InvalidModuleName                  -> CodeInfo { .id = "P1028", .message = "invalid module name (does not match `[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*)*` grammar)" }
     .ExpressionNestingTooDeep           -> CodeInfo { .id = "P1029", .message = "expression nesting too deep" }
     .RepeatedMutabilityMarker           -> CodeInfo { .id = "P1030", .message = "repeated `!` on the same type level" }
+    .MutabilityMarkerOnName             -> CodeInfo { .id = "P1031", .message = "`!` belongs on the type, not the parameter name" }
 }
 
 export resolver_info :: fn(c: ResolverCode) = match c {

@@ -1,11 +1,12 @@
 # Comptime
 
 ## tests/snippets/const_array_basic
+  @comptime  DIGITS               = [10_i32, 20_i32, 30_i32]
 
 ## generic instances
-  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
+  ArrayOps<T>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>

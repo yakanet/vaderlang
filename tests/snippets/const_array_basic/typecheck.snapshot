@@ -1,14 +1,19 @@
 # Typecheck
 
 ## tests/snippets/const_array_basic
+  ConstDecl      DIGITS               :: i32[]
   FnDecl         main                 :: fn() -> i32
   FnDecl         read_first           :: fn(i32[]) -> i32
-  expr 10:12    SeqLitExpr     :: i32[]!
-  expr 11:13    StringLitExpr  :: string
-  expr 11:22    CallExpr       :: i32
-  expr 11:22    IdentExpr      :: fn(i32[]) -> i32
-  expr 11:33    IdentExpr      :: i32[]!
-  expr 11:5     CallExpr       :: void
-  expr 11:5     IdentExpr      :: fn(T) -> void
-  expr 6:12     IdentExpr      :: i32[]
-  expr 6:12     IndexExpr      :: i32
+  expr 12:12    IdentExpr      :: i32[]
+  expr 12:12    IndexExpr      :: i32
+  expr 17:14    SeqLitExpr     :: i32[]!
+  expr 18:13    StringLitExpr  :: string
+  expr 18:22    CallExpr       :: i32
+  expr 18:22    IdentExpr      :: fn(i32[]) -> i32
+  expr 18:33    IdentExpr      :: i32[]
+  expr 18:44    CallExpr       :: i32
+  expr 18:44    IdentExpr      :: fn(i32[]) -> i32
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void
+  expr 18:55    IdentExpr      :: i32[]!
+  expr 9:11     SeqLitExpr     :: i32[]!

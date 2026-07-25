@@ -84,10 +84,10 @@ export type_from_expr :: fn(
         // here and carried by the `Type` itself.
         is AST.MutableTypeExpr as e -> {
             inner :: type_from_expr(e.inner, resolved, diags)
-            // `const T[]` under a marker is a contradiction, and it is reachable :
-            // the parser desugars the legacy `a!: const i32[]` by wrapping the
-            // written type. `const` freezes the REFERENT, so no marker can grant
-            // mutation through it — the stricter side wins, as everywhere else.
+            // `const T[]` under a marker is a contradiction. The parser now rejects
+            // it outright (P1027 on `const T[]!`, P1031 on the legacy `a!: const T[]`),
+            // so this is a belt : `const` freezes the REFERENT, and no marker can
+            // grant mutation through it — the stricter side wins, as everywhere else.
             if type_is_immutable(inner) { return inner }
             return with_immutable(inner, false)
         }

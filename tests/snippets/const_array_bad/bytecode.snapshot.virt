@@ -1,3 +1,4 @@
 
 # Diagnostics
-[6:5] error[T3042] cannot mutate an immutable array: cannot mutate `i32[]`
+[12:5] error[T3042] cannot mutate an immutable array: cannot mutate `i32[]`
+[16:5] error[T3042] cannot mutate an immutable array: cannot mutate `i32[]`

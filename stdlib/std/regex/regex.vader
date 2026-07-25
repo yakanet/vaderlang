@@ -123,7 +123,7 @@ export InstAnchorEnd :: struct {}
 Parser :: struct {
     // Pattern bytes (held once at `compile`) — all parsing works on the
     // byte view, so the pattern's `string` is never re-fetched.
-    bytes:          const u8[]
+    bytes:          u8[]
     cursor:         usize
     insts:          Inst[]!
     next_group_id:  usize
@@ -711,7 +711,7 @@ expand_replacement :: fn(sb: StringBuilder!, rb: u8[], m: Match) -> void {
 
 Thread :: struct {
     pc:     usize
-    groups: const usize[]
+    groups: usize[]
 }
 
 // Sentinel for "this slot was never written". `_u64` is mandatory :
@@ -837,7 +837,7 @@ class_matches :: fn(inst: InstClass, c: char) -> bool {
 // (copy-on-write) capture array reaching it.
 WorkItem :: struct {
     pc:     usize
-    groups: const usize[]
+    groups: usize[]
 }
 
 add_thread :: fn(out: Thread[]!, start_pc: usize, start_groups: usize[], p: Pattern, input: u8[], pos: usize, seen: usize[]!, gen: usize) -> void {

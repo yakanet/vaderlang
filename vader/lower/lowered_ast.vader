@@ -134,7 +134,7 @@ export LoweredFnDecl :: struct {
 
 export LoweredStructDecl :: struct {
     mangled: string
-    fields:  const LoweredStructField[]
+    fields:  LoweredStructField[]
     origin:  MonoEntry
 }
 
@@ -460,7 +460,7 @@ export LoweredIf :: struct {
 export LoweredBlock :: struct {
     span:     Span
     type:     Type
-    stmts:    const LoweredStmt[]
+    stmts:    LoweredStmt[]
     trailing: LoweredExpr | null
 }
 

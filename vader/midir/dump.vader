@@ -17,7 +17,7 @@ import "vader/types"
 export DumpCfgOptions :: struct {
     /// Only modules in this scope are rendered (the entry's subtree by default,
     /// `--module` to widen) ; dependencies stay out. See `module_in_scope`.
-    scope: const string[]
+    scope: string[]
     /// When false, the project-level string pool is not appended.
     include_strings: bool
 }

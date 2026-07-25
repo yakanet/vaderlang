@@ -40,7 +40,7 @@ export JsonBool :: struct { value: bool }
 export JsonNull :: struct {}
 
 /// JSON array — ordered list of `JsonValue`s.
-export JsonArray :: struct { items: const JsonValue[] }
+export JsonArray :: struct { items: JsonValue[] }
 
 /// JSON object — string-keyed map of `JsonValue`s. Insertion order is
 /// preserved by the parser ; lookup is O(1) average via `MutableMap`.
@@ -64,7 +64,7 @@ JsonError implements Error {
 Parser :: struct {
     src: string
     // Byte view of `src`, held once so the scan never re-fetches it.
-    bytes: const u8[]
+    bytes: u8[]
     pos: usize
     eof: usize
 }

@@ -1,13 +1,20 @@
+// `const T[]` now has ONE role: a frozen referent, which is what a module-level
+// array const is. Reading through it works, and it passes to a read-only slot —
+// which every unmarked slot is, so no qualifier is written at the call boundary.
+
 module "snippet"
 
 import "std/io"
 
-read_first :: fn(a: const i32[]) -> i32 {
+DIGITS :: [10, 20, 30]
+
+read_first :: fn(a: i32[]) -> i32 {
     return a[0]
 }
 
 main :: fn() -> i32 {
-    arr :: [10, 20, 30]
-    println("first=${read_first(arr)}")
+    // A module const (frozen) and a local (owned, mutable) both pass.
+    local :: [40, 50]
+    println("first=${read_first(DIGITS)} ${read_first(local)}")
     return 0
 }

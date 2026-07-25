@@ -1,13 +1,16 @@
 # Typecheck
 
 ## tests/snippets/const_array_bad
+  ConstDecl      DIGITS               :: i32[]
   FnDecl         main                 :: fn() -> i32
-  FnDecl         write_first          :: fn(i32[]) -> void
-  expr 10:12    SeqLitExpr     :: i32[]!
-  expr 11:17    IdentExpr      :: i32[]!
-  expr 11:5     CallExpr       :: void
-  expr 11:5     IdentExpr      :: fn(i32[]) -> void
-  expr 6:5      IdentExpr      :: i32[]
+  FnDecl         write_through_param  :: fn(i32[]) -> void
+  expr 12:5     IdentExpr      :: i32[]
+  expr 16:5     IdentExpr      :: i32[]
+  expr 17:25    IdentExpr      :: i32[]
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(i32[]) -> void
+  expr 9:11     SeqLitExpr     :: i32[]!
 
 # Diagnostics
-[6:5] error[T3042] cannot mutate an immutable array: cannot mutate `i32[]`
+[12:5] error[T3042] cannot mutate an immutable array: cannot mutate `i32[]`
+[16:5] error[T3042] cannot mutate an immutable array: cannot mutate `i32[]`

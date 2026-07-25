@@ -295,7 +295,7 @@ export LowerProjectCtx :: struct {
 /// downstream consumers (bytecode emit, vtable build) can route by id.
 export GenericFnInstance :: struct {
     fn_symbol:    Symbol
-    type_args:    const Type[]
+    type_args:    Type[]
     mangled:      string
     owner_module: string
 }

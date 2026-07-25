@@ -326,7 +326,7 @@ NamedDeclRefs :: struct {
     name: string
     name_span: Span
     visibility: AST.Visibility
-    decorators: const AST.Decorator[]
+    decorators: AST.Decorator[]
     is_fn: bool
     refs: string[]!
 }

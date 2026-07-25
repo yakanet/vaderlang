@@ -15,6 +15,30 @@
       "decorators": []
     },
     {
+      "kind": "ConstDecl",
+      "name": "DIGITS",
+      "visibility": "private",
+      "type": null,
+      "value": {
+        "kind": "SeqLitExpr",
+        "elements": [
+          {
+            "kind": "IntLitExpr",
+            "value": "10n"
+          },
+          {
+            "kind": "IntLitExpr",
+            "value": "20n"
+          },
+          {
+            "kind": "IntLitExpr",
+            "value": "30n"
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
       "kind": "FnDecl",
       "name": "read_first",
       "visibility": "private",
@@ -27,8 +51,7 @@
             "element": {
               "kind": "IdentExpr",
               "name": "i32"
-            },
-            "immutable": true
+            }
           },
           "defaultValue": null,
           "variadic": false
@@ -78,7 +101,7 @@
             "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
-              "name": "arr"
+              "name": "local"
             },
             "type": null,
             "value": {
@@ -86,15 +109,11 @@
               "elements": [
                 {
                   "kind": "IntLitExpr",
-                  "value": "10n"
+                  "value": "40n"
                 },
                 {
                   "kind": "IntLitExpr",
-                  "value": "20n"
-                },
-                {
-                  "kind": "IntLitExpr",
-                  "value": "30n"
+                  "value": "50n"
                 }
               ]
             }
@@ -130,7 +149,31 @@
                               "name": null,
                               "value": {
                                 "kind": "IdentExpr",
-                                "name": "arr"
+                                "name": "DIGITS"
+                              },
+                              "spread": false
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "IdentExpr",
+                            "name": "read_first"
+                          },
+                          "args": [
+                            {
+                              "name": null,
+                              "value": {
+                                "kind": "IdentExpr",
+                                "name": "local"
                               },
                               "spread": false
                             }

@@ -470,7 +470,7 @@ FnEmitCfg :: struct {
     pinned_types_bucket: i32[]!
     slot: BcFunction
     project: EmitterCtx
-    string_index_map: const i32[]
+    string_index_map: i32[]
     local_to_slot: i32[]
     preds: BlockId[][]
     idom: i32[]

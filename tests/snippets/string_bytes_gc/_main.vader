@@ -3,7 +3,7 @@ module "snippet"
 import "std/io"
 import "std/runtime"
 
-// `bytes()` returns a borrowed `const u8[]` view that, on the native target,
+// `bytes()` returns a borrowed read-only `u8[]` view that, on the native target,
 // aliases the string's interned bytes and keeps the owner atom reachable only
 // through its own header. This exercises the native GC paths :
 //   - the view headers live in the young arena and are relocated by a major
@@ -15,12 +15,12 @@ import "std/runtime"
 // atom. On the VM, `bytes()` copies (no aliasing), so reads are trivially
 // stable ; the assertion holds identically on both targets.
 
-view_of :: fn(seed: i32) -> const u8[] {
+view_of :: fn(seed: i32) -> u8[] {
     s :: "vader-byte-view-payload-${seed}"
     return s.bytes()
 }
 
-fold :: fn(v: const u8[]) -> u64 {
+fold :: fn(v: u8[]) -> u64 {
     acc: u64 = u64(0)
     for b in v { acc = acc + u64(b) }
     return acc

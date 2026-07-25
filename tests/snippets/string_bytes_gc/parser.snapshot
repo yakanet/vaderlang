@@ -43,8 +43,7 @@
         "element": {
           "kind": "IdentExpr",
           "name": "u8"
-        },
-        "immutable": true
+        }
       },
       "body": {
         "kind": "BlockExpr",
@@ -107,8 +106,7 @@
             "element": {
               "kind": "IdentExpr",
               "name": "u8"
-            },
-            "immutable": true
+            }
           },
           "defaultValue": null,
           "variadic": false

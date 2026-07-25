@@ -82,7 +82,7 @@ export Program :: struct {
     /// The `module "..."` declaration. Null when absent — the parser
     /// is tolerant ; the resolver's scan emits R2020 on absence.
     module:  ModuleDecl | null = null
-    decls:   const Decl[]
+    decls:   Decl[]
 }
 
 /// The `module "<name>"` decl that opens every `.vader` file. Carries
@@ -132,7 +132,7 @@ export ImportDecl :: struct {
     id:         usize = UNASSIGNED_NODE_ID
     path:       string
     binding:    ImportBinding
-    decorators: const Decorator[]
+    decorators: Decorator[]
 }
 
 /// `name :: import "..."` — namespace binding ; members reached via `name.X`.
@@ -172,11 +172,11 @@ export FnDecl :: struct {
     name:                  string
     name_span:             Span
     visibility:            Visibility
-    type_params:           const TypeParam[]
+    type_params:           TypeParam[]
     params:                FnParam[]!
     return_type:           TypeExpr | null
     body:                  BlockExpr | null
-    decorators:            const Decorator[]
+    decorators:            Decorator[]
     sam_synthetic:         bool
     is_expression_bodied:  bool
     /// `true` when this FnDecl was synthesised by `materialize_default_members`
@@ -221,9 +221,9 @@ export StructDecl :: struct {
     name:          string
     name_span:     Span
     visibility:    Visibility
-    type_params:   const TypeParam[]
+    type_params:   TypeParam[]
     fields:        StructField[]
-    decorators:    const Decorator[]
+    decorators:    Decorator[]
 }
 
 export StructField :: struct {
@@ -247,7 +247,7 @@ export EnumDecl :: struct {
     // `null` means default `i32` — typechecker resolves the backing type.
     repr:       TypeExpr | null
     variants:   EnumVariant[]
-    decorators: const Decorator[]
+    decorators: Decorator[]
 }
 
 export EnumVariant :: struct {
@@ -275,10 +275,10 @@ export TraitDecl :: struct {
     name:        string
     name_span:   Span
     visibility:  Visibility
-    type_params: const TypeParam[]
+    type_params: TypeParam[]
     requires:    TypeExpr | null
     members:     FnDecl[]
-    decorators:  const Decorator[]
+    decorators:  Decorator[]
 }
 
 // ---- Impl -----------------------------------------------------------------
@@ -286,13 +286,13 @@ export TraitDecl :: struct {
 export ImplDecl :: struct {
     span:             Span
     id:               usize = UNASSIGNED_NODE_ID
-    type_params:      const TypeParam[]
+    type_params:      TypeParam[]
     for_type:         TypeExpr
     trait_name:       string
     trait_name_span:  Span
     trait_args:       TypeExpr[]
     members:          FnDecl[]!
-    decorators:       const Decorator[]
+    decorators:       Decorator[]
 }
 
 // ---- TypeAlias ------------------------------------------------------------
@@ -303,9 +303,9 @@ export TypeAliasDecl :: struct {
     name:        string
     name_span:   Span
     visibility:  Visibility
-    type_params: const TypeParam[]
+    type_params: TypeParam[]
     aliased:     TypeExpr
-    decorators:  const Decorator[]
+    decorators:  Decorator[]
 }
 
 // ---- Const ----------------------------------------------------------------
@@ -318,7 +318,7 @@ export ConstDecl :: struct {
     visibility: Visibility
     ty:         TypeExpr | null
     value:      Expr
-    decorators: const Decorator[]
+    decorators: Decorator[]
     /// Original `@comptime` operand for the `NAME :: @comptime <expr>` sugar,
     /// kept so the formatter re-emits the surface form rather than the
     /// desugared `__comptime_NAME()` call. Non-null marks this const as a
@@ -336,7 +336,7 @@ export AssertDecl :: struct {
     id:         usize = UNASSIGNED_NODE_ID
     condition:  Expr
     message:    string | null
-    decorators: const Decorator[]
+    decorators: Decorator[]
 }
 
 // ============================================================================

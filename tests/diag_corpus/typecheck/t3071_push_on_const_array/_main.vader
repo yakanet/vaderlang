@@ -2,11 +2,15 @@
 // "neither `arr[i] = v` nor `arr.push(v)` compiles". Only the first half was
 // enforced (T3042, keyed on the array type in `check_assign`); the method path
 // never tested the receiver against `self`, so `a.push(9)` compiled silently.
-// `ArrayOps`' mutators now declare `self!`, and dispatch rejects them on an
-// immutable receiver. T3071.
+// `ArrayOps`' mutators declare `self!`, and dispatch rejects them on an immutable
+// receiver. T3071.
+//
+// No marker on the parameter : `const` already freezes the referent, and writing
+// both (`const i32[]!`) is a contradiction the PARSER rejects (P1027). The legacy
+// name marker is gone from the tree, so this is the reachable form.
 module "snippet"
 
-grow :: fn(a!: const i32[]) -> void {
+grow :: fn(a: const i32[]) -> void {
     a.push(9)
 }
 

@@ -100,7 +100,7 @@ export handle_completion :: fn(state: ServerState!, params: JsonValue) -> JsonVa
 // `typed_project_for` lookup.
 DetailCtx :: struct {
     typed: TypedProgram | null
-    decls: const AST.Decl[]
+    decls: AST.Decl[]
 }
 
 // Resolve the `DetailCtx` for the document at `fp`. `typed` is null / `decls`

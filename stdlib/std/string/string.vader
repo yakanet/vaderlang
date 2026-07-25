@@ -62,7 +62,7 @@ export StringChars :: struct {
     /// A borrowed view self-roots its owner atom through the GC (the array header
     /// carries the owner id ; `vader_atom_mark_heap` keeps it alive), so no
     /// separate string handle is needed.
-    bytes:  const u8[]
+    bytes:  u8[]
     cursor: usize
     length: usize
 }

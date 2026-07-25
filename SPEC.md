@@ -633,7 +633,7 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 - Immutable. Concatenation allocates.
 - `len()` returns the number of Unicode codepoints (allocation-free walk via leading-byte widths). For the **byte** length, take a view and ask its length: `s.bytes().len()` — written inline like that, the lowerer folds it to an O(1) byte-length primitive (no view materialised). Byte vs. codepoint is thus explicit at the call site: `len()` for codepoint arithmetic, `s.bytes().len()` for byte arithmetic.
 - `chars()` returns an iterator of `char` (`StringChars implements Iterator<char>`); pair with `for c in s.chars()` for a true Unicode loop.
-- `bytes()` returns the UTF-8 byte sequence as `const u8[]`; for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). On the native target it is a **zero-copy view** aliasing the string's interned bytes (it allocates only a small array header, not the byte storage); the `const` is what keeps that view sound — writes are rejected at compile time (T3042) since the shared bytes are immutable. On the VM the bytes are **copied** into a materialised array (VM arrays box every slot and cannot alias a raw byte buffer) — same observable values, just not zero-copy. Iteration works through `for b in s.bytes()` via the built-in array iterator. Strings iterate by **codepoint** by default — `string implements Into<Iterator<char>>`, so `for c in s` is the codepoint loop (equivalent to `for c in s.chars()`); use `for b in s.bytes()` to walk raw bytes.
+- `bytes()` returns the UTF-8 byte sequence as `u8[]` — read-only, since a return takes the default; for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). On the native target it is a **zero-copy view** aliasing the string's interned bytes (it allocates only a small array header, not the byte storage); the `const` is what keeps that view sound — writes are rejected at compile time (T3042) since the shared bytes are immutable. On the VM the bytes are **copied** into a materialised array (VM arrays box every slot and cannot alias a raw byte buffer) — same observable values, just not zero-copy. Iteration works through `for b in s.bytes()` via the built-in array iterator. Strings iterate by **codepoint** by default — `string implements Into<Iterator<char>>`, so `for c in s` is the codepoint loop (equivalent to `for c in s.chars()`); use `for b in s.bytes()` to walk raw bytes.
 - `is_empty()` — sugar for `s.bytes().len() == 0` (codepoint count and byte count agree on emptiness).
 - **Subscript** `s[i]` returns the Unicode codepoint at *codepoint* index `i` (via `string implements Index<usize, char>` in `std/core`). Walking from the start is O(i); pair `chars()` with `for c in s.chars()` for O(n) iteration. For byte-cursor access, take a view with `s.bytes()` (a `const u8[]`) and index it — `s.bytes()[i] -> u8` for the raw byte, `s.bytes()[lo..<hi].bytes_to_string()` to slice a byte range back into a string (the inverse of `bytes()`, O(1) on the borrowed view). `byte_decode_at(i) -> char` decodes the UTF-8 codepoint starting at byte offset `i` (used by lexers, JSON parsers, LSP transport; byte-view consumers that hold the view call `decode_codepoint_at(bs, i)` instead). There is no `IndexSet` impl; strings are immutable.
 - Literals stored in the binary's data section.
@@ -646,52 +646,47 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 - **Slicing**: `arr[r]` where `r: Range<integer>` returns a **zero-copy view** sharing the parent's buffer. Both literal ranges (`arr[1..<4]`, `arr[0..=2]`) and let-bound range values work — dispatch keys on the index *type*, not the AST shape. Any integer-bounded range is accepted; bounds are coerced to `usize` at the use site. Pushing into the view detaches it into a fresh buffer so the parent is never mutated through the slice. For an independent copy use `arr[r].clone()`.
 - Postfix `[]` binds tighter than `|`; use parens to group: `(T | U)[]` is "array of T-or-U", `T | U[]` is "T or array-of-U".
 
-#### `const T[]` — immutable arrays
+#### `const T[]` — a frozen referent
 
-The `const` prefix qualifies an array type as immutable. Through a value typed `const T[]`, mutation is rejected at typecheck — neither `arr[i] = v` (T3042) nor `arr.push(v)` (T3071) compiles.
+`const` qualifies an array type as immutable, and after the read-only default it survives in exactly **one** role: freezing a **referent** that has no storage to write to. That is the module-level array const.
 
-`const` is **not** redundant with the read-only parameter default: the two are orthogonal. The default governs what the *function* may do; `const` governs what the *type* accepts. Neither `fn(a: i32[])` nor `fn(a: const i32[])` may mutate `a` — but only the second accepts a `const i32[]` argument, since `T[] <: const T[]` and never the reverse.
-
-So a function that reads an array should take `const T[]`: it then accepts both a mutable array and an immutable one (a module-level array const, a `@comptime` table). Writing `T[]` for a read-only parameter needlessly rejects every immutable caller.
+It is **not** written in a parameter, a field or a return type — read-only is already the default there, so `const` would say nothing. Only a `!` says something in those positions.
 
 ```vader
-read :: fn(a: const i32[]) -> i32 = a[0]            // OK to read
-write :: fn(a: const i32[]) { a[0] = 99 }           // T3042 at typecheck
+KEYWORDS :: ["fn", "if", "else"]      // const string[] — inferred, module scope
+read :: fn(a: i32[]) -> i32 = a[0]    // read-only by default ; no `const`
 ```
 
-**Subtyping**: `T[] <: const T[]`. A mutable array passes anywhere a `const T[]` is expected (covariant), never the reverse. This lets read-only fns accept both kinds without overloads.
+Through a value typed `const T[]`, mutation is rejected at typecheck — neither `arr[i] = v` (T3042) nor `arr.push(v)` (T3071) compiles.
+
+**Subtyping**: `T[]! <: T[]`. A mutable array passes anywhere a read-only one is expected (covariant), never the reverse. This lets read-only fns accept both kinds without overloads.
 
 ```vader
-mut_arr := [1, 2, 3]
-read(mut_arr)             // OK: T[] passes for const T[]
-read([4, 5, 6])           // OK: fresh array passes
+mut_arr := [1, 2, 3]      // a local : mutable
+read(mut_arr)             // OK — mutable passes for read-only
+read([4, 5, 6])           // OK — fresh array passes
 ```
 
-**Element variance**: the element type is **covariant** into a `const T[]` target but **invariant** into a mutable one. Because arrays are reference-aliased (`b := a` shares the buffer), a mutable `(i32 | string)[]` does **not** accept an `i32[]` — a write `b[0] = "x"` through the wider alias would store a string into the shared i32 buffer (T3001 on the binding / T3063 on a reassignment). A fresh **literal** is exempt: it is materialised directly at the target element type, so `xs: (i32 | string)[] = [1, 2, 3]` builds a union array (not a covariant widening of an existing reference) and compiles.
+**Element variance**: the element type is **covariant** into a read-only target but **invariant** into a mutable one. Because arrays are reference-aliased (`b := a` shares the buffer), a mutable `(i32 | string)[]!` does **not** accept an `i32[]!` — a write `b[0] = "x"` through the wider alias would store a string into the shared i32 buffer (T3001 on the binding / T3063 on a reassignment). A fresh **literal** is exempt: it is materialised directly at the target element type, so `xs: (i32 | string)[] = [1, 2, 3]` builds a union array (not a covariant widening of an existing reference) and compiles.
 
-**In a union**: `const T[]` is a valid member anywhere in a type union, not only as the first — `string | const u8[]` and `A | const T[] | B` both parse. (A `const` array member accepts a mutable `u8[]` argument too, via the covariance above.)
+**In a union**: an array variant is a valid member anywhere in a type union, not only as the first — `string | u8[]` and `A | T[]! | B` both parse. The marker attaches to the variant it follows, never to the union.
 
-```vader
-a: i32[] = [1, 2, 3]
-b: (i32 | string)[] = a              // T3001 — mutable element is invariant
-view: const (i32 | string)[] = a     // OK — const element is covariant (read-only)
-xs: (i32 | string)[] = [1, 2, 3]     // OK — fresh literal built at the target type
-```
-
-**Inference**: an unannotated module-level array const is automatically pinned as `const T[]` — it has no runtime storage, so a write through it would be discarded rather than take effect. Annotating the type explicitly (`X: T[]: [...]`) opts out. Locals stay mutable by default (a local is owned).
+**Inference**: an unannotated module-level array const is automatically pinned as `const T[]` — it has no runtime storage, so a write through it would be discarded rather than take effect. Annotating the type explicitly (`X: T[]!: [...]`) opts out. Locals stay mutable by default (a local is owned).
 
 ```vader
 KEYWORDS :: ["fn", "if", "else"]      // const string[] (module scope)
 
 main :: fn() {
-    local :: [1, 2, 3]                // i32[] (local — mutable)
+    local :: [1, 2, 3]                // i32[]! (local — mutable)
     local[0] = 99                     // OK
 }
 ```
 
-**Escape hatch**: `arr.clone()` produces a fresh mutable `T[]` from any `T[]` or `const T[]` source. Mutating the copy never affects the original.
+**Escape hatch**: `arr.clone()` produces a fresh mutable `T[]!` from any array. Mutating the copy never affects the original — which is why its return is marked.
 
 **Storage**: module-level `const T[]` literals whose elements are all primitive (fixed-width integers, floats, char, bool) and all literal-valued land in the bytecode module's data pool — the C backend emits them as `static const` `.rodata` arrays, the VM materialises them once at module load, and `data.const` op-codes resolve to those pre-built values. References share one allocation across the whole process. Non-primitive elements (struct, string) continue to fn-wrap until the pool gains the matching representation.
+
+**How a type is printed.** A dump renders the marker exactly as the source spells it: `i32[]!` for a mutable array, `i32[]` for a read-only one, `Cfg![]` when only the elements are mutable. Side-table keys (impl dispatch, monomorphisation mangles, `@type_name`) use the marker-free rendering, so a receiver's mutability never changes an emitted name or a lookup key.
 
 #### Repeat / preallocate — `[lhs] * n`
 
@@ -729,12 +724,12 @@ Beyond `push(v)`, mutable arrays expose:
 
 | Method | Effect |
 |---|---|
-| `dst.push_all(src)` | Append every element of `src` (a `const T[]`) to `dst`, growing it. |
+| `dst.push_all(src)` | Append every element of `src` (read-only) to `dst`, growing it. |
 | `src.copy_to(src_start, dst, dst_start, len)` | Overlap-safe positional copy of `len` elements from `src[src_start..]` into the **existing** `dst[dst_start..]` region (`dst` must already be long enough — traps otherwise). |
 | `arr.remove_last()` | Remove and return the last element as `T \| null` (`null` when empty). |
 | `arr.clear()` | Drop every element (length 0; keeps capacity). |
 
-All four reject a borrowed `const u8[]` view at runtime (mutation of a `bytes()` view is forbidden, as with `push`). `remove_last` returns the nullable through the usual `T | null` union, narrowed by `if x == null`.
+All four reject a borrowed read-only `u8[]` view at runtime (mutation of a `bytes()` view is forbidden, as with `push`). `remove_last` returns the nullable through the usual `T | null` union, narrowed by `if x == null`.
 
 ### Tuples
 
@@ -1523,37 +1518,80 @@ main :: fn() -> i32 {
 }
 ```
 
-### Parameters are read-only borrows — `!` grants mutation
+### Read-only by default — `!` grants mutation
 
-A parameter without `!` may be read but not mutated. Writing a field or element through it, or calling a method that mutates it, is rejected. Appending `!` to the **name** asks the caller for permission to mutate:
+Every **slot** a value is reached through is read-only unless its type says otherwise. A slot is a **parameter**, a **struct field** or a **return type**. Writing a field or element through a read-only slot, or calling a method that mutates it, is rejected. Appending `!` to the **type** grants mutation:
 
 ```vader
 describe :: fn(c: Counter) -> string = "${c.label} = ${c.count}"   // reads only
 
-bump :: fn(self!, by: i32) -> void {                              // mutates its receiver
-    self.count += by
-}
-
-fill :: fn(buf!: i32[], value: i32, n: i32) -> void {
+fill :: fn(buf: i32[]!, value: i32, n: i32) -> void {              // mutates the array
     for _ in 0..<n {
         buf.push(value)
     }
 }
+
+Block :: struct {
+    stmts: Stmt![]        // the elements are rewritten in place
+    label: string         // read-only
+}
+
+fresh :: fn() -> i32[]! = []    // the caller owns what it gets back, and may push
 ```
 
-The marker sits on the **name**, not the type: the same `i32[]` is a sink in one signature and a read in another, and `self` has no written type to carry it. It is **deep** — reading a field of a borrowed value yields something borrowed too, so `cfg.child.count = 0` is rejected just as `cfg.count = 0` is (T3070). Calling a `self!` method on a read-only receiver is T3071, and handing a read-only value to a `!` parameter is T3072.
-
-A **function type** has no parameter names, so there the marker goes on the type:
+A **local is not a slot** — it is owned (see "Ownership"), so it stays mutable and takes no marker:
 
 ```vader
-apply :: fn(f: fn(i32[]!) -> void, xs!: i32[]) -> void {
+out: Stmt[] = []      // a local : mutable, no marker needed
+out.push(s)           // OK
+```
+
+#### The marker is per LEVEL
+
+A composite type has one mutability per level, and `!` marks the level it follows. This is why the marker lives on the type rather than on the parameter name — a single flag on the name cannot express four distinct types:
+
+| written | the array | its elements |
+|---|---|---|
+| `x: Cfg[]` | read-only | read-only |
+| `x: Cfg[]!` | mutable (`push`, `x[i] = …`) | read-only |
+| `x: Cfg![]` | read-only | mutable (`x[i].f = …`) |
+| `x: Cfg![]!` | mutable | mutable |
+
+The default is **recursive**: an unmarked `Cfg[]` freezes the array *and* its elements. It stops at nominal boundaries — the arguments of `Map<K, V>` describe what is *stored*, not slots of the program, so `Map<K, Cfg>` freezes the map and the depth of its values is written `Map<K, Cfg!>`.
+
+Writing `!` twice on one level is an error (P1030): `Cfg[]!!` says the same thing twice.
+
+#### In a union, the marker is distributed
+
+A union carries no mutability of its own — each variant carries its own. `u8[]! | Err` marks **only** the array; `Err` stays read-only. This is why the marker is a suffix: a prefix would read as governing the whole union.
+
+#### `self`
+
+`self` is the one parameter whose type is never written, so its marker stays on the name:
+
+```vader
+bump :: fn(self!, by: i32) -> void {
+    self.count += by
+}
+```
+
+A free function whose first parameter is named `self` **does** write a type, so it takes the marker there like any other: `put :: fn(self: Map<K, V>!, k: K, v: V) -> void`.
+
+#### Function types
+
+A function type has no parameter names, so the marker goes on the type there too — the same notation as everywhere else:
+
+```vader
+apply :: fn(f: fn(i32[]!) -> void, xs: i32[]!) -> void {
     f(xs)
 }
 ```
 
 Markers on function values are **contravariant**: a function that does not mutate fits a slot that would allow it — it simply promises less — while one that does cannot be handed to a caller lending its value out read-only (T3073).
 
-Note that `!` and `const T[]` answer different questions and compose: `!` says whether this function may mutate its parameter, `const T[]` says whether the type accepts an immutable argument. `fn(buf!: u8[])` mutates and so requires a mutable array; `fn(a: const u8[])` reads and accepts either.
+#### Diagnostics
+
+Calling a `self!` method on a read-only receiver is T3071; handing a read-only value to a `!` parameter is T3072; writing through a read-only path is T3070, and through a read-only array T3042.
 
 **What this does and does not guarantee.** The property is attached to the *access path*, not to the value: passing the same object as both a `!` and a non-`!` argument is legal, and the read-only borrow is then only a statement about what that parameter is allowed to do. Vader does not track aliasing, so this buys clarity and local reasoning — a signature that tells the truth about what a function may touch — not a non-aliasing proof.
 
@@ -1974,7 +2012,7 @@ All non-primitive values (struct, array, string buffer contents, future stdlib t
 - `string`: fat value `(ptr, len)`, copied on assignment, immutable shared content.
 - Structs, arrays: heap-allocated, manipulated via implicit references (the user does not see pointers).
   Passing one to a function therefore lets the callee reach the caller's value — which is why a parameter is a
-  read-only borrow unless its name carries `!` (see "Parameters are read-only borrows").
+  read-only borrow unless its type carries `!` (see "Read-only by default").
 
 ### No visible pointers
 
@@ -2562,7 +2600,7 @@ read_stdin :: fn(n: usize) -> string | Error  // read up to n bytes from stdin
 read_file_string  :: fn(path: string) -> string | Error
 write_file_string :: fn(path: string, content: string) -> null | Error
 read_file_bytes   :: fn(path: string) -> u8[] | Error
-write_file_bytes  :: fn(path: string, content: const u8[]) -> null | Error
+write_file_bytes  :: fn(path: string, content: u8[]) -> null | Error
 exists     :: fn(path: string) -> bool
 is_dir     :: fn(path: string) -> bool
 read_dir   :: fn(path: string) -> string[] | Error  // names only (no recursion)
@@ -2604,10 +2642,10 @@ chars            :: fn(s: string) -> StringChars                // StringChars i
 decode_codepoint :: fn(s: string, i: usize) -> [char, usize]    // (codepoint, byte width)
 
 // Byte access (raw UTF-8 — for ASCII / binary protocols / BOM detection).
-bytes          :: fn(s: string) -> const u8[]                   // UTF-8 bytes; zero-copy borrowed view on native, materialised copy on the VM
-bytes_to_string :: fn(bs: const u8[]) -> string                 // inverse of bytes(); `s.bytes()[lo..<hi].bytes_to_string()` is the byte-indexed substring (O(1) on the borrowed view)
+bytes          :: fn(s: string) -> u8[]                   // UTF-8 bytes; zero-copy borrowed view on native, materialised copy on the VM
+bytes_to_string :: fn(bs: u8[]) -> string                 // inverse of bytes(); `s.bytes()[lo..<hi].bytes_to_string()` is the byte-indexed substring (O(1) on the borrowed view)
 byte_decode_at :: fn(s: string, i: usize) -> char               // decode UTF-8 codepoint at byte offset (for byte-cursor parsers)
-decode_codepoint_at :: fn(bs: const u8[], i: usize) -> [char, usize]  // byte-view codepoint decode; advance a held-view cursor by the returned width
+decode_codepoint_at :: fn(bs: u8[], i: usize) -> [char, usize]  // byte-view codepoint decode; advance a held-view cursor by the returned width
 
 // Indexing helpers. `min_index` / `from` and the result use `isize` so the
 // `-1`-on-miss sentinel stays expressible without a `usize | null`.

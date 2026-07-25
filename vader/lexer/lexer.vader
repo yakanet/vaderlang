@@ -36,7 +36,7 @@ export InterpFrame :: struct {
 export Lexer :: struct {
     src: string
     // Byte view of `src`, held once so the scan never re-fetches it.
-    bytes: const u8[]
+    bytes: u8[]
     file: string
     pos: usize
     line: i32

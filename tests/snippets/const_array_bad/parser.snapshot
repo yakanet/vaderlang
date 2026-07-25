@@ -7,8 +7,32 @@
   },
   "decls": [
     {
+      "kind": "ConstDecl",
+      "name": "DIGITS",
+      "visibility": "private",
+      "type": null,
+      "value": {
+        "kind": "SeqLitExpr",
+        "elements": [
+          {
+            "kind": "IntLitExpr",
+            "value": "10n"
+          },
+          {
+            "kind": "IntLitExpr",
+            "value": "20n"
+          },
+          {
+            "kind": "IntLitExpr",
+            "value": "30n"
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
       "kind": "FnDecl",
-      "name": "write_first",
+      "name": "write_through_param",
       "visibility": "private",
       "typeParams": [],
       "params": [
@@ -19,8 +43,7 @@
             "element": {
               "kind": "IdentExpr",
               "name": "i32"
-            },
-            "immutable": true
+            }
           },
           "defaultValue": null,
           "variadic": false
@@ -70,29 +93,21 @@
         "kind": "BlockExpr",
         "stmts": [
           {
-            "kind": "LetStmt",
-            "mutable": false,
-            "binding": {
-              "kind": "SimpleBinding",
-              "name": "arr"
+            "kind": "AssignStmt",
+            "target": {
+              "kind": "IndexExpr",
+              "target": {
+                "kind": "IdentExpr",
+                "name": "DIGITS"
+              },
+              "index": {
+                "kind": "IntLitExpr",
+                "value": "0n"
+              }
             },
-            "type": null,
             "value": {
-              "kind": "SeqLitExpr",
-              "elements": [
-                {
-                  "kind": "IntLitExpr",
-                  "value": "10n"
-                },
-                {
-                  "kind": "IntLitExpr",
-                  "value": "20n"
-                },
-                {
-                  "kind": "IntLitExpr",
-                  "value": "30n"
-                }
-              ]
+              "kind": "IntLitExpr",
+              "value": "99n"
             }
           },
           {
@@ -101,14 +116,14 @@
               "kind": "CallExpr",
               "callee": {
                 "kind": "IdentExpr",
-                "name": "write_first"
+                "name": "write_through_param"
               },
               "args": [
                 {
                   "name": null,
                   "value": {
                     "kind": "IdentExpr",
-                    "name": "arr"
+                    "name": "DIGITS"
                   },
                   "spread": false
                 }

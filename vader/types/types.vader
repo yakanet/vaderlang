@@ -20,7 +20,7 @@ export PrimitiveType :: struct {
 
 export StructType :: struct {
     symbol: Symbol
-    args:   const Type[]
+    args:   Type[]
     /// When true, mutation through this slot is rejected at typecheck — same
     /// role as `ArrayType.immutable`, and like it the bit stops at the bytecode
     /// boundary (`type_intern_key` / `bc_type_of` / `val_type_of_type` ignore
@@ -56,16 +56,16 @@ export DistinctType :: struct {
 
 export TraitType :: struct {
     symbol: Symbol
-    args:   const Type[]
+    args:   Type[]
 }
 
 export UnionType :: struct {
     /// Canonical : sorted by `display_type` output, deduped.
-    variants: const Type[]
+    variants: Type[]
 }
 
 export FnType :: struct {
-    params:      const Type[]
+    params:      Type[]
     /// Per-parameter `!` mutation marker (`fn(u8[]!) -> void`). A parallel vector
     /// rather than a bit inside each param `Type`, so the notion stays confined to
     /// this one IR node — `StructType` / `TupleType` / … and the whole
@@ -86,7 +86,7 @@ export ArrayType :: struct {
 
 export TupleType :: struct {
     /// Heterogeneous fixed-arity sequence (≥ 2 elements).
-    elements:  const Type[]
+    elements:  Type[]
     /// When true, mutation through this slot is rejected at typecheck. See
     /// `StructType.immutable`.
     immutable: bool

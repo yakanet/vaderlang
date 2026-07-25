@@ -9,11 +9,10 @@
         ix:
           int(0) :i32
   fn snippet$main() -> i32
-    let arr: i32[]! =
+    let local: i32[]! =
       array :i32[]!
-        int(10) :i32
-        int(20) :i32
-        int(30) :i32
+        int(40) :i32
+        int(50) :i32
     call :void
       callee:
         std_io$println__string :void
@@ -24,7 +23,7 @@
               callee:
                 new_byte_buffer :Buffer
               arg0:
-                int(26) :usize
+                int(47) :usize
           let __off_1: usize = int(0) :usize
           assign
             target:
@@ -56,7 +55,38 @@
                       callee:
                         read_first :fn(i32[]) -> i32
                       arg0:
-                        arr :i32[]!
+                        DIGITS :i32[]
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        read_first :fn(i32[]) -> i32
+                      arg0:
+                        local :i32[]!
           ~>
             call :string
               callee:
