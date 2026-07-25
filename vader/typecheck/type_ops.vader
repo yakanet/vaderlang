@@ -354,7 +354,7 @@ export struct_implements_trait :: fn(t: Type, trait_name: string, typed: TypedPr
 /// `[i32]`), or `null` when no concrete impl is registered for `t`'s
 /// nominal carrier. Shared by the typecheck's `unify_struct_to_trait_args`
 /// and the lowerer's trait-param monomorphisation.
-export lookup_struct_trait_args :: fn(t: Type, trait_name: string, typed: TypedProgram) -> const Type[] | null {
+export lookup_struct_trait_args :: fn(t: Type, trait_name: string, typed: TypedProgram) -> Type[] | null {
     name :: dispatch_key(t)
     if name == "" { return null }
     per_struct :: typed.struct_trait_args[name] ?? return null
@@ -369,7 +369,7 @@ export lookup_struct_trait_args :: fn(t: Type, trait_name: string, typed: TypedP
 /// when `t` isn't a struct instance or its decl is unavailable. Mirrors
 /// `field.vader::substitute_trait_typeparams`; the source of truth for binding a
 /// combinator/terminal's `Iterator<T>` param `T` from a concrete receiver.
-export resolve_struct_trait_args :: fn(t: Type, trait_name: string, typed: TypedProgram) -> const Type[] | null {
+export resolve_struct_trait_args :: fn(t: Type, trait_name: string, typed: TypedProgram) -> Type[] | null {
     // A `generator`'s `<fn>$State<E>` implements `Iterator<E>` — its trait args ARE
     // its own type args (the concrete element carried per instance). The synthetic
     // struct has no `struct_decl`, so the generic-substitution path below can't apply.
@@ -423,7 +423,7 @@ export types_overlap :: fn(a: Type, b: Type) -> bool {
     return equals_type(a, b)
 }
 
-union_variants :: fn(t: Type) -> const Type[] | null {
+union_variants :: fn(t: Type) -> Type[] | null {
     if t is UnionType as u { return u.variants }
     return null
 }

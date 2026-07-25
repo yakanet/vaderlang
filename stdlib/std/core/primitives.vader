@@ -224,7 +224,7 @@ export utf8_encode :: fn(c: char) -> u8[] {
 /// view of the interned bytes on native, a fresh copy on the VM.
 /// @param s  source string.
 /// @return   a `const u8[]` over the UTF-8 bytes of `s`.
-@intrinsic export bytes :: fn(s: string) -> const u8[]
+@intrinsic export bytes :: fn(s: string) -> u8[]
 
 /// Codepoint length of `s` — the number of Unicode codepoints, not bytes.
 /// A core primitive of the `string` type (the auto-imported prelude), so

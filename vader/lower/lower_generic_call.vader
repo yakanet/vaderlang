@@ -396,7 +396,7 @@ unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type
 //      element — covers generic impls whose recorded args are still
 //      type-params, plus the `T[] → Iterator<T>` coercion that has no
 //      impl decl. Returns `null` when no source resolves.
-trait_concrete_args :: fn(tt: TraitType, concrete: Type, ctx: FnLowerCtx) -> const Type[] | null {
+trait_concrete_args :: fn(tt: TraitType, concrete: Type, ctx: FnLowerCtx) -> Type[] | null {
     if concrete is TraitType as ct {
         if ct.symbol.name == tt.symbol.name { return ct.args }
         return null

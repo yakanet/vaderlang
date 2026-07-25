@@ -164,7 +164,7 @@ match_overload_in_bucket :: fn(typed: TypedProgram, name: string, picked: FnType
     return null
 }
 
-param_types_of :: fn(callee_type: Type) -> const Type[] {
+param_types_of :: fn(callee_type: Type) -> Type[] {
     // @partial: only a FnType carries param types; every other Type → no params.
     @partial match callee_type {
         is FnType as ft -> { return ft.params }

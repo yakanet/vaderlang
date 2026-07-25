@@ -1340,7 +1340,7 @@ parse_angle_type_params :: fn(p: Parser!) -> TypeParam[]! {
 // collected from the value-arg types (legacy dollar-prefixed form).
 // The angle list takes precedence — a name already declared explicitly
 // is not re-added from the inline list.
-merge_type_params :: fn(angle: const TypeParam[], inlined: const TypeParam[]) -> const TypeParam[] {
+merge_type_params :: fn(angle: const TypeParam[], inlined: const TypeParam[]) -> TypeParam[] {
     if angle.len() == 0 { return inlined }
     if inlined.len() == 0   { return angle }
     merged: TypeParam[] = []

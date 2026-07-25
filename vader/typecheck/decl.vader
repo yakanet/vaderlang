@@ -79,7 +79,7 @@ decorated_decl_name :: fn(d: AST.Decl) -> string {
     }
 }
 
-decorated_decl_decorators :: fn(d: AST.Decl) -> const AST.Decorator[] {
+decorated_decl_decorators :: fn(d: AST.Decl) -> AST.Decorator[] {
     // Only the named decl kinds carry decorators we read here; Impl / Assert /
     // Import contribute none → empty list.
     return match d {
@@ -508,7 +508,7 @@ has_intrinsic_decorator :: fn(decs: const AST.Decorator[]) -> bool {
     return false
 }
 
-extern_decorator_args :: fn(decs: const AST.Decorator[]) -> const AST.Expr[] {
+extern_decorator_args :: fn(decs: const AST.Decorator[]) -> AST.Expr[] {
     for d in decs {
         if d.name == "extern" {
             return d.args

@@ -401,7 +401,7 @@ call_needs_arg_normalisation :: fn(c: AST.CallExpr, callee_ty: FnType) -> bool {
 //     param, which lines up with the curried callee type.
 // Returns null when no decl is reachable (fn-values, imported overloads,
 // impl-block methods) — those stay positional.
-callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram) -> const AST.FnParam[] | null {
+callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
     if c.callee is AST.IdentExpr as ie {
         sym :: typed.resolved.idents[ie.span.hash()]
         if sym is Symbol as s {
@@ -432,7 +432,7 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
 // params table populated by `build_namespace_export_params`. Returns null
 // unless `fe` is a namespace member fn call whose arity matches `callee_ty`
 // (a mismatch stays positional rather than mis-filling).
-namespace_member_params :: fn(fe: AST.FieldExpr, callee_ty: FnType, typed: TypedProgram) -> const AST.FnParam[] | null {
+namespace_member_params :: fn(fe: AST.FieldExpr, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
     mod_id :: namespace_call_mod_id(fe, typed) ?? return null
     by_name :: typed.namespace_export_params[mod_id] ?? return null
     ps :: by_name[fe.field] ?? return null
@@ -446,7 +446,7 @@ namespace_member_params :: fn(fe: AST.FieldExpr, callee_ty: FnType, typed: Typed
 // resolver picked, returning its declared params (arity-aligned with the
 // pick). Prefers an exact type match, falling back to the first same-arity
 // candidate so a substituted generic pick still lands.
-overload_params_matching :: fn(name: string, callee_ty: FnType, typed: TypedProgram) -> const AST.FnParam[] | null {
+overload_params_matching :: fn(name: string, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
     bucket :: typed.resolved.fn_overloads[name] ?? return null
     fallback: AST.FnParam[] | null = null
     for sym in bucket {
@@ -474,7 +474,7 @@ overload_params_matching :: fn(name: string, callee_ty: FnType, typed: TypedProg
 // minus `self`, for the free fn named `method` whose `self` param accepts
 // `recv_ty` — the receiver-type check disambiguates same-arity methods on
 // different receiver types (so the right param names are used).
-ufcs_method_params :: fn(method: string, recv_ty: Type, callee_ty: FnType, typed: TypedProgram) -> const AST.FnParam[] | null {
+ufcs_method_params :: fn(method: string, recv_ty: Type, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
     bucket :: typed.resolved.fn_overloads[method] ?? return null
     for sym in bucket {
         decl :: typed.fn_decls[sym.id]

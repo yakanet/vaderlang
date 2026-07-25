@@ -1241,7 +1241,7 @@ run_parser_stage :: fn(file: string) -> i32 {
 // The explicit `--module` list, else the entry's own module as the default
 // scope. The two-arg form lets a caller that already holds the entry's display
 // path (the typecheck stage, which has no `LoadedProject`) reuse the default.
-scope_or_entry :: fn(module_filter: const string[], entry_display_path: string) -> const string[] {
+scope_or_entry :: fn(module_filter: const string[], entry_display_path: string) -> string[] {
     if module_filter.len() > 0 {
         return module_filter
     }
@@ -1252,7 +1252,7 @@ scope_or_entry :: fn(module_filter: const string[], entry_display_path: string) 
 // the entry module's own display path (so the dump shows the entry's subtree).
 // `loaded.entry` is the entry FOLDER (the modules-map key), so look up its
 // `LoadedModule` to recover the user-declared display path. See `module_in_scope`.
-dump_scope :: fn(module_filter: const string[], loaded: LoadedProject) -> const string[] {
+dump_scope :: fn(module_filter: const string[], loaded: LoadedProject) -> string[] {
     entry_module :: loaded.modules[loaded.entry]
     entry_dp :: if entry_module is LoadedModule as em {
         em.module.display_path

@@ -68,7 +68,7 @@ export SourceFile :: struct {
 /// @param files  the module's source files (`Module.files`).
 /// @return       every file's decls in file order ; the sole file's decls
 ///               verbatim for a single-file module.
-export concat_file_decls :: fn(files: SourceFile[]) -> const Decl[] {
+export concat_file_decls :: fn(files: SourceFile[]) -> Decl[] {
     if files.len() == 1 { return files[0].program.decls }
     out: Decl[] = []
     for f in files {

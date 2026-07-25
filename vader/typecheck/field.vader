@@ -954,7 +954,7 @@ pad_trait_default_args :: fn(
     args: const Type[],
     tps: const AST.TypeParam[],
     resolved: ResolvedModule,
-) -> const Type[] {
+) -> Type[] {
     if args.len() >= tps.len() {
         return args
     }
