@@ -264,7 +264,7 @@ export index_of :: fn(s: string, c: char, from: usize) -> isize {
 /// @param sep  separator (matched byte-wise). Empty `sep` yields one
 ///             single-byte segment per byte of `s`.
 /// @return     array of segments ; never empty (at minimum, `[""]`).
-export split :: fn(s: string, sep: string) -> string[] {
+export split :: fn(s: string, sep: string) -> string[]! {
     out: string[] = []
     sb :: s.bytes()
     n :: sb.len()

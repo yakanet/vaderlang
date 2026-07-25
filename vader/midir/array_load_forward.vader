@@ -101,7 +101,7 @@ lookup_slot :: fn(slots: SlotVal[], target: LocalId, index: LocalId) -> LocalId 
 // Locals are mutable pre-SSA : a tracked `value` local can be reassigned in
 // place (`a[i] = x ; x = x + 5`), after which forwarding it would read the new
 // value, not the one stored in the slot.
-drop_slots_using :: fn(slots: SlotVal[], d: LocalId) -> SlotVal[] {
+drop_slots_using :: fn(slots: SlotVal[], d: LocalId) -> SlotVal[]! {
     out: SlotVal[] = []
     for s in slots {
         if s.target != d && s.index != d && s.value != d { out.push(s) }

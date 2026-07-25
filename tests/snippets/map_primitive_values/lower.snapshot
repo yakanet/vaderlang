@@ -293,9 +293,9 @@
                     callee:
                       bytes_to_string :string
                     arg0:
-                      call :u8[]
+                      call :const u8[]
                         callee:
-                          utf8_encode :fn(char) -> u8[]
+                          utf8_encode :fn(char) -> const u8[]
                         arg0:
                           cast → char
                             vc :char | null

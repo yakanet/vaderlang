@@ -8,7 +8,7 @@ import "std/io"
 // monomorphised instance — miss either and the instance is keyed on a dangling
 // `T`, which used to abort materialisation with the GATE B1 "unresolved callee"
 // panic.
-empty_of :: fn<T>() -> T[] {
+empty_of :: fn<T>() -> T[]! {
     out: T[] = []
     return out
 }

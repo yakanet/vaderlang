@@ -434,7 +434,7 @@ named_head :: fn(
 bfs_reachable :: fn(
     root_names: string[],
     seed_refs: string[],
-    refs_by_name: MutableMap<string, string[]>,
+    refs_by_name: MutableMap<string, string[]!>,
 ) -> MutableSet<string> {
     reachable :: MutableSet<string> {}
     work :: chain(root_names, seed_refs).collect()

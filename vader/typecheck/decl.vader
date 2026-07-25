@@ -670,7 +670,10 @@ declare_fn_return :: fn(
     // A return hands the caller a slot too, so it takes the same default : the value
     // handed back is read-only unless the type says `!`. That is what makes `const`
     // unnecessary in return position — it WAS the default all along.
-    return type_from_expr(rt, resolved, diags)
+    // A return hands the caller a slot too, so it takes the same default : the value
+    // handed back is read-only unless the type says `!`. That is what makes `const`
+    // unnecessary in return position — it WAS the default all along.
+    return apply_readonly_default(type_from_expr(rt, resolved, diags), rt)
 }
 
 declare_enum :: fn(

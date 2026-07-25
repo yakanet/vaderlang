@@ -145,7 +145,7 @@ export write_file_string :: fn(path: string, content: string) -> null | IOError 
 /// @param path  the directory to list.
 /// @return      entry names (no path prefix).
 /// @error       `IOError` if `path` isn't a directory or can't be opened.
-@intrinsic export read_dir :: fn(path: string) -> string[] | IOError
+@intrinsic export read_dir :: fn(path: string) -> string[]! | IOError
 
 /// Full path of the running executable, `/`-separated. Use `std/path`'s
 /// `parent` to get its directory — e.g. to resolve sidecar resources (stdlib,

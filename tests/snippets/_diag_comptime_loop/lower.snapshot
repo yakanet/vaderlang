@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  fn snippet$build_squares() -> u32[]
+  fn snippet$build_squares() -> const u32[]
     let r: u32[] =
       array :u32[]
     block :void

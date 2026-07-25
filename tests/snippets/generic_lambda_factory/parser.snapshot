@@ -50,10 +50,13 @@
         }
       ],
       "returnType": {
-        "kind": "ArrayTypeExpr",
-        "element": {
-          "kind": "IdentExpr",
-          "name": "T"
+        "kind": "MutableTypeExpr",
+        "inner": {
+          "kind": "ArrayTypeExpr",
+          "element": {
+            "kind": "IdentExpr",
+            "name": "T"
+          }
         }
       },
       "body": {
@@ -91,7 +94,6 @@
             "label": null,
             "form": {
               "kind": "in",
-              "binding": "_",
               "iter": {
                 "kind": "RangeExpr",
                 "inclusive": false,
@@ -155,10 +157,13 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "ArrayTypeExpr",
-        "element": {
-          "kind": "IdentExpr",
-          "name": "i32"
+        "kind": "MutableTypeExpr",
+        "inner": {
+          "kind": "ArrayTypeExpr",
+          "element": {
+            "kind": "IdentExpr",
+            "name": "i32"
+          }
         }
       },
       "body": {

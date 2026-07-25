@@ -134,7 +134,7 @@ synth_with_body :: fn(
 /// Substitute params, anchoring each at a deterministic `<clone>` span from
 /// `stamp` (shared with the cloned body). Used for default-method clones so
 /// the param Symbols agree with the body's span-keyed `idents` entries.
-substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp: StampCtx!) -> AST.FnParam[] {
+substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp: StampCtx!) -> AST.FnParam[]! {
     out: AST.FnParam[] = []
     for p in params {
         out.push(AST.FnParam {
@@ -165,7 +165,7 @@ synth_clone_span :: fn(factory: NodeIdFactory!) -> Span {
 /// `param_types` table.
 substitute_params_disambiguated :: fn(
     params: AST.FnParam[], subst: Subst, self_span: Span, factory: NodeIdFactory!,
-) -> AST.FnParam[] {
+) -> AST.FnParam[]! {
     out: AST.FnParam[] = []
     for p in params {
         span :: if p.name == "self" { self_span } else { synth_clone_span(factory) }
@@ -294,7 +294,7 @@ synth_signature :: fn(
     }
 }
 
-substitute_params :: fn(params: AST.FnParam[], subst: Subst) -> AST.FnParam[] {
+substitute_params :: fn(params: AST.FnParam[], subst: Subst) -> AST.FnParam[]! {
     out: AST.FnParam[] = []
     for p in params {
         out.push(AST.FnParam {

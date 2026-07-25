@@ -179,7 +179,7 @@ gb_suspend_return :: fn(gb: GenBuild) -> LoweredStmt =
 // advances on the NEXT resume), a completed result binds into `target_field`
 // and falls through to `cont`. The child's value is read back through its own
 // `resume`'s return channel — no external injection (Model A).
-gb_drive_state :: fn(gb: GenBuild!, target_field: string, target_type: Type, cont: i64) -> LoweredStmt[] {
+gb_drive_state :: fn(gb: GenBuild!, target_field: string, target_type: Type, cont: i64) -> LoweredStmt[]! {
     r_sym :: fresh_synthetic_symbol(gb.fn_ctx, "resumed")
     r_ref :: LoweredIdent { .span = gb.span, .type = gb.resume_erased_ty, .symbol = r_sym }
     // r :: self.awaited.resume()   (virtual — Any | Suspended)

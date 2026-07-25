@@ -9,9 +9,9 @@ import "std/io"
 // call-site pushes and reads it as packed `i32`. That mismatch used to corrupt
 // the elements silently (no diagnostic, no trap) once a row grew past its
 // initial capacity; it took a self-compile SIGSEGV to surface.
-build :: fn<T>(n: usize, make: fn() -> T) -> T[] {
+build :: fn<T>(n: usize, make: fn() -> T) -> T[]! {
     out: T[] = [] * n
-    for _ in 0..<n {
+    for 0..<n {
         out.push(make())
     }
     return out
@@ -19,7 +19,7 @@ build :: fn<T>(n: usize, make: fn() -> T) -> T[] {
 
 /// Control factory — same shape, but a concrete return type the checker
 /// never had to substitute.
-new_row :: fn() -> i32[] = []
+new_row :: fn() -> i32[]! = []
 
 ROWS:    usize: 40
 PER_ROW: usize: 9

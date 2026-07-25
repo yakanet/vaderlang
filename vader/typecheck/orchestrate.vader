@@ -461,7 +461,7 @@ collect_direct_imports :: fn(
     entry_loaded: LoadedModule,
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
-) -> TypedProgram[] {
+) -> TypedProgram[]! {
     out: TypedProgram[] = []
     // The loader already resolved every import. A module imported as
     // `import "path"` declares `module "path"` (module-system invariant), so
@@ -844,7 +844,7 @@ merge_external_impl_methods :: fn(
     }
 }
 
-diag_sink :: fn() -> Diagnostic[] { return [] }
+diag_sink :: fn() -> Diagnostic[]! { return [] }
 
 // `Into<Iterator<T>>` is the for-in coercion entry point — pull T
 // out of the `Iterator<T>` arg so `for x in X` binds x to T.

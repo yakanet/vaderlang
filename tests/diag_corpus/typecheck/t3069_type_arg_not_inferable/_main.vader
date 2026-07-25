@@ -1,13 +1,13 @@
 module "snippet"
 
 // `T` is reachable from nothing but the result slot.
-empty_of :: fn<T>() -> T[] {
+empty_of :: fn<T>() -> T[]! {
     out: T[] = []
     return out
 }
 
 // Two type-params, one bound by the argument and one not.
-pair_of :: fn<A, B>(first: A) -> B[] {
+pair_of :: fn<A, B>(first: A) -> B[]! {
     out: B[] = []
     return out
 }

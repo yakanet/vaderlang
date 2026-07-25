@@ -264,7 +264,7 @@ end
 
 fn 5 snippet$build__i32__ (usize,ref) -> ref
   local out ref
-  local _ usize
+  local __for_discard_0 usize
   local $call_ind_8 ref
   array.new 3 0
   local.get 0

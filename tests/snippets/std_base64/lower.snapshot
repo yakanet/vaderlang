@@ -2,17 +2,17 @@
 
 ## snippet
   fn snippet$show_decode(label: string, input: string) -> void
-    let out: Base64Error | u8[] =
-      call :Base64Error | u8[]
+    let out: Base64Error | const u8[] =
+      call :Base64Error | const u8[]
         callee:
-          decode :fn(string) -> Base64Error | u8[]
+          decode :fn(string) -> Base64Error | const u8[]
         arg0:
           input :string
     ~>
       if :void
         cond:
           is Base64Error :bool
-            out :Base64Error | u8[]
+            out :Base64Error | const u8[]
         then:
           ~>
             call :void
@@ -29,7 +29,7 @@
                   arg2:
                     .msg :string
                       cast → Base64Error
-                        out :Base64Error | u8[]
+                        out :Base64Error | const u8[]
         else:
           ~>
             call :void
@@ -48,8 +48,8 @@
                       callee:
                         bytes_to_string :string
                       arg0:
-                        cast → u8[]
-                          out :Base64Error | u8[]
+                        cast → const u8[]
+                          out :Base64Error | const u8[]
   fn snippet$main() -> i32
     call :void
       callee:
@@ -226,10 +226,10 @@
               __for_arr_0 :string[]
             ix:
               __for_i_2 :usize
-        let decoded: Base64Error | u8[] =
-          call :Base64Error | u8[]
+        let decoded: Base64Error | const u8[] =
+          call :Base64Error | const u8[]
             callee:
-              decode :fn(string) -> Base64Error | u8[]
+              decode :fn(string) -> Base64Error | const u8[]
             arg0:
               call :string
                 callee:
@@ -243,7 +243,7 @@
         if :void
           cond:
             is Base64Error :bool
-              decoded :Base64Error | u8[]
+              decoded :Base64Error | const u8[]
           then:
             ~>
               call :void
@@ -339,8 +339,8 @@
                                   callee:
                                     bytes_to_string :string
                                   arg0:
-                                    cast → u8[]
-                                      decoded :Base64Error | u8[]
+                                    cast → const u8[]
+                                      decoded :Base64Error | const u8[]
                               r:
                                 s :string
                     ~>

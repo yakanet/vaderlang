@@ -406,7 +406,7 @@ project_var :: fn(name: string, v: Value, bc_mod: bc.BytecodeModule, depth: i32)
 // Project a struct's fields, naming each from the module type table's
 // `BcStruct.fields` (falling back to `field<i>` if the entry isn't a struct or
 // is shorter than the value's field list).
-project_struct_fields :: fn(s: StructVal, bc_mod: bc.BytecodeModule, depth: i32) -> PauseVar[] {
+project_struct_fields :: fn(s: StructVal, bc_mod: bc.BytecodeModule, depth: i32) -> PauseVar[]! {
     out: PauseVar[] = []
     names: string[] = []
     if usize(s.type_id) < bc_mod.types.len() {

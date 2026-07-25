@@ -270,16 +270,16 @@
         array :i32[][]
         n :usize
     block :void
-      let _: usize = int(0) :usize
+      let __for_discard_0: usize = int(0) :usize
       loop while (<…>)
         LoweredArrayPush
         assign
           target:
-            _ :usize
+            __for_discard_0 :usize
           value:
             add :usize
               l:
-                _ :usize
+                __for_discard_0 :usize
               r:
                 int(1) :usize
     return out :i32[][]

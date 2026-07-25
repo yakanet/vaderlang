@@ -71,7 +71,7 @@ export run_bc_return_lit_fold :: fn(function: BcFunction) -> BcPeepholeOut {
 /// Remap a jump_table from old PC space to new PC space using a
 /// per-old-PC `old_to_new` map (entries < 0 mark removed ops).
 /// New entries default to -1.
-remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) -> i32[] {
+remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) -> i32[]! {
     new_jt: i32[] = []
     for p in 0..<new_len { new_jt.push(-1) }
     old_n :: old_jt.len()
@@ -139,7 +139,7 @@ export BcPeepholeOut :: struct {
 /// @param old_to_new  per-old-PC new PC, `< 0` for removed ops.
 /// @param new_len     length of the rewritten body.
 /// @return            a fresh debug table of length `new_len`.
-remap_debug :: fn(old_debug: (DebugPos | null)[], old_to_new: i32[], new_len: usize) -> (DebugPos | null)[] {
+remap_debug :: fn(old_debug: (DebugPos | null)[], old_to_new: i32[], new_len: usize) -> (DebugPos | null)[]! {
     // `old_debug` and `old_to_new` are always parallel to the old body (both
     // grown one entry per op), so a plain walk over `old_debug` is safe.
     new_debug: (DebugPos | null)[] = [null] * new_len
@@ -657,7 +657,7 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
 /// @param import_index  its slot in the import table (the `call.import` target
 ///                      when no dedicated op exists).
 /// @return              the wrapper's op list (`local.get`* + op/import + return).
-export build_intrinsic_wrapper_body :: fn(imp: BcImport, import_index: i32) -> Op[] {
+export build_intrinsic_wrapper_body :: fn(imp: BcImport, import_index: i32) -> Op[]! {
     body: Op[] = []
     for i in 0..<imp.signature.params.len() {
         body.push(LocalGet { .slot = i32(i) })

@@ -21,7 +21,7 @@ type 18 union 1,15
 type 19 array 2
 type 20 union 15,21
 type 21 struct std_semver$RangeClause { terms:23 }
-type 22 union 15,23
+type 22 union 23,15
 type 23 array 24
 type 24 struct std_semver$RangeTerm { op:1,version:3 }
 type 25 union 15,26

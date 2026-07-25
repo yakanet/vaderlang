@@ -1296,7 +1296,7 @@ parse_struct_type_param_list :: fn(p: Parser!) -> TypeParam[] {
 // (`<T: Hash & Eq>`) work via the same parser. Always returns
 // non-comptime-value entries — comptime-value params keep the paren
 // form `(N: i32)`.
-parse_angle_type_params :: fn(p: Parser!) -> TypeParam[] {
+parse_angle_type_params :: fn(p: Parser!) -> TypeParam[]! {
     if !p.check(.Lt) { return [] }
     p.advance()  // `<`
     out: TypeParam[] = []
@@ -1899,7 +1899,7 @@ parse_fn_type :: fn(p: Parser!) -> FnTypeExpr {
 // `Shr` token that the parser splits via `consume_closing_angle`). The
 // opening `<` must already have been consumed by the caller ; the closing
 // `>` (or first half of a `Shr`) is consumed before returning.
-parse_type_list_until_angle :: fn(p: Parser!) -> TypeExpr[] {
+parse_type_list_until_angle :: fn(p: Parser!) -> TypeExpr[]! {
     out: TypeExpr[] = []
     p.skip_newlines()
     if p.check_closing_angle() {

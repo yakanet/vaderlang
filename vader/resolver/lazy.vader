@@ -168,7 +168,7 @@ export preresolve_imports :: fn(
 scan_folder :: fn(dir: string, diags: Diagnostic[]!) -> FolderBucket | null {
     entries_opt :: read_dir(dir)
     raw: string[] = match entries_opt {
-        is string[] as ss -> ss
+        is string[]! as ss -> ss
         is IOError -> []
     }
     if raw.len() == 0 { return null }

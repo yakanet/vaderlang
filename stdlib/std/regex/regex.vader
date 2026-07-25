@@ -606,7 +606,7 @@ codepoint_byte_advance :: fn(bs: const u8[], offset: usize) -> usize {
 // `arr[lo..<hi]` (ArraySlice op) and `dst.push_all(src)` (ArrayPushAll op) are
 // intrinsics that see the concrete element type post-mono, so they don't.
 // `push_all` itself is now a built-in array method — no local helper needed.
-extract_range :: fn(arr: Inst[], start: usize, end: usize) -> Inst[] {
+extract_range :: fn(arr: Inst[], start: usize, end: usize) -> Inst[]! {
     view :: arr[start..<end]
     out: Inst[] = [] * view.len()
     out.push_all(view)
@@ -904,7 +904,7 @@ captured_groups :: fn(t: Thread, input: const u8[]) -> string[] {
     return out
 }
 
-truncate_threads :: fn(threads: Thread[], cutoff: usize) -> Thread[] {
+truncate_threads :: fn(threads: Thread[], cutoff: usize) -> Thread[]! {
     out: Thread[] = []
     for i in 0..<cutoff {
         out.push(threads[i])

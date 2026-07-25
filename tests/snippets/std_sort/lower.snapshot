@@ -199,10 +199,10 @@
         arg0:
           sb :string
   fn snippet$main() -> i32
-    let one: i32[] =
-      call :i32[]
+    let one: const i32[] =
+      call :const i32[]
         callee:
-          std_sort$sort__i32 :i32[]
+          std_sort$sort__i32 :const i32[]
         arg0:
           array :const i32[]
             int(42) :i32
@@ -212,11 +212,11 @@
       callee:
         print_ints :fn(const i32[]) -> void
       arg0:
-        one :i32[]
-    let asc: i32[] =
-      call :i32[]
+        one :const i32[]
+    let asc: const i32[] =
+      call :const i32[]
         callee:
-          std_sort$sort__i32 :i32[]
+          std_sort$sort__i32 :const i32[]
         arg0:
           array :const i32[]
             int(1) :i32
@@ -230,11 +230,11 @@
       callee:
         print_ints :fn(const i32[]) -> void
       arg0:
-        asc :i32[]
-    let desc: i32[] =
-      call :i32[]
+        asc :const i32[]
+    let desc: const i32[] =
+      call :const i32[]
         callee:
-          std_sort$sort__i32 :i32[]
+          std_sort$sort__i32 :const i32[]
         arg0:
           array :const i32[]
             int(5) :i32
@@ -248,11 +248,11 @@
       callee:
         print_ints :fn(const i32[]) -> void
       arg0:
-        desc :i32[]
-    let rand: i32[] =
-      call :i32[]
+        desc :const i32[]
+    let rand: const i32[] =
+      call :const i32[]
         callee:
-          std_sort$sort__i32 :i32[]
+          std_sort$sort__i32 :const i32[]
         arg0:
           array :const i32[]
             int(3) :i32
@@ -272,11 +272,11 @@
       callee:
         print_ints :fn(const i32[]) -> void
       arg0:
-        rand :i32[]
-    let descending: i32[] =
-      call :i32[]
+        rand :const i32[]
+    let descending: const i32[] =
+      call :const i32[]
         callee:
-          std_sort$sort__i32 :i32[]
+          std_sort$sort__i32 :const i32[]
         arg0:
           array :const i32[]
             int(1) :i32
@@ -290,11 +290,11 @@
       callee:
         print_ints :fn(const i32[]) -> void
       arg0:
-        descending :i32[]
-    let big: i32[] =
-      call :i32[]
+        descending :const i32[]
+    let big: const i32[] =
+      call :const i32[]
         callee:
-          std_sort$sort__i32 :i32[]
+          std_sort$sort__i32 :const i32[]
         arg0:
           array :const i32[]
             int(10) :i32
@@ -333,11 +333,11 @@
       callee:
         print_ints :fn(const i32[]) -> void
       arg0:
-        big :i32[]
-    let strs: string[] =
-      call :string[]
+        big :const i32[]
+    let strs: const string[] =
+      call :const string[]
         callee:
-          std_sort$sort__string :string[]
+          std_sort$sort__string :const string[]
         arg0:
           array :const string[]
             "banana" :string
@@ -350,16 +350,16 @@
       callee:
         print_strings :fn(const string[]) -> void
       arg0:
-        strs :string[]
+        strs :const string[]
     let input: i32[] =
       array :i32[]
         int(3) :i32
         int(1) :i32
         int(2) :i32
-    let out: i32[] =
-      call :i32[]
+    let out: const i32[] =
+      call :const i32[]
         callee:
-          std_sort$sort__i32 :i32[]
+          std_sort$sort__i32 :const i32[]
         arg0:
           input :i32[]
         arg1:
@@ -373,7 +373,7 @@
       callee:
         print_ints :fn(const i32[]) -> void
       arg0:
-        out :i32[]
+        out :const i32[]
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

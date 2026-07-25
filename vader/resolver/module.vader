@@ -162,7 +162,7 @@ try_read :: fn(path: string) -> string | null {
 
 try_read_dir :: fn(path: string) -> string[] | null {
     result :: read_dir(path)
-    if result is string[] as ss { return ss }
+    if result is string[]! as ss { return ss }
     return null
 }
 

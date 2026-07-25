@@ -59,7 +59,7 @@ type_from_expr_safe :: fn(expr: AST.IdentExpr, context: ComptimeContext) -> Type
     return raw
 }
 
-diag_sink :: fn() -> Diagnostic[] { return [] }
+diag_sink :: fn() -> Diagnostic[]! { return [] }
 
 is_resolved :: fn(t: Type) -> bool {
     if t is UnresolvedType { return false }

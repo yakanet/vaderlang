@@ -116,7 +116,7 @@ head_of :: fn(s: string) -> string {
 ///
 /// @param csv  string body, e.g. `"1,2,3"` or `""`.
 /// @return     parsed ids, in order.
-parse_int_list :: fn(csv: string) -> i32[] {
+parse_int_list :: fn(csv: string) -> i32[]! {
     ids: i32[] = []
     if csv.bytes().len() == 0 { return ids }
     parts :: csv.split(",")

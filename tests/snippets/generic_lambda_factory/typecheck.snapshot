@@ -11,15 +11,15 @@
   expr 13:16    BinaryExpr     :: T[]
   expr 13:16    SeqLitExpr     :: T[]
   expr 13:21    IdentExpr      :: usize
-  expr 14:14    RangeExpr      :: Range<usize>
-  expr 14:18    IdentExpr      :: usize
+  expr 14:13    IdentExpr      :: usize
+  expr 14:9     RangeExpr      :: Range<usize>
   expr 15:18    CallExpr       :: T
   expr 15:18    IdentExpr      :: fn() -> T
   expr 15:9     CallExpr       :: void
   expr 15:9     FieldExpr      :: fn(T) -> void
   expr 15:9     IdentExpr      :: T[]
   expr 17:12    IdentExpr      :: T[]
-  expr 22:28    SeqLitExpr     :: i32[]
+  expr 22:29    SeqLitExpr     :: i32[]
   expr 30:14    RangeExpr      :: Range<usize>
   expr 30:18    CallExpr       :: usize
   expr 30:18    FieldExpr      :: fn() -> usize

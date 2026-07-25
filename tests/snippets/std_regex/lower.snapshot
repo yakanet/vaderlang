@@ -332,10 +332,10 @@
               p_word :Pattern | RegexError
           arg2:
             "abc def ghi" :string
-        let all: Match[] =
-          call :Match[]
+        let all: const Match[] =
+          call :const Match[]
             callee:
-              find_all :Match[]
+              find_all :const Match[]
             arg0:
               cast → Pattern
                 p_word :Pattern | RegexError
@@ -401,7 +401,7 @@
                       .groups :const string[]
                         index :Match
                           on:
-                            all :Match[]
+                            all :const Match[]
                           ix:
                             i :usize
                     ix:

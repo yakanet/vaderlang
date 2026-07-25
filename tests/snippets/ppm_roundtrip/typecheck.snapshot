@@ -8,20 +8,20 @@
   expr 11:16    SeqLitExpr     :: u8[]
   expr 12:12    StructLitExpr  :: Ppm
   expr 12:68    IdentExpr      :: u8[]
-  expr 14:12    CallExpr       :: PpmError | u8[]
-  expr 14:12    IdentExpr      :: fn(Ppm) -> PpmError | u8[]
+  expr 14:12    CallExpr       :: const u8[] | PpmError
+  expr 14:12    IdentExpr      :: fn(Ppm) -> const u8[] | PpmError
   expr 14:19    IdentExpr      :: Ppm
   expr 15:15    IdentExpr      :: PpmError
   expr 15:5     IfExpr         :: void
   expr 15:8     BinaryExpr     :: bool
-  expr 15:8     IdentExpr      :: PpmError | u8[]
+  expr 15:8     IdentExpr      :: const u8[] | PpmError
   expr 16:17    StringLitExpr  :: string
   expr 16:9     CallExpr       :: void
   expr 16:9     IdentExpr      :: fn(T) -> void
   expr 19:11    CallExpr       :: IOError | null
   expr 19:11    IdentExpr      :: fn(string, const u8[]) -> IOError | null
   expr 19:28    IdentExpr      :: string
-  expr 19:34    IdentExpr      :: u8[]
+  expr 19:34    IdentExpr      :: const u8[]
   expr 20:14    IdentExpr      :: Error
   expr 20:5     IfExpr         :: void
   expr 20:8     BinaryExpr     :: bool
@@ -29,19 +29,19 @@
   expr 21:17    StringLitExpr  :: string
   expr 21:9     CallExpr       :: void
   expr 21:9     IdentExpr      :: fn(T) -> void
-  expr 24:12    CallExpr       :: IOError | u8[]
-  expr 24:12    IdentExpr      :: fn(string) -> IOError | u8[]
+  expr 24:12    CallExpr       :: const u8[] | IOError
+  expr 24:12    IdentExpr      :: fn(string) -> const u8[] | IOError
   expr 24:28    IdentExpr      :: string
   expr 25:15    IdentExpr      :: Error
   expr 25:5     IfExpr         :: void
   expr 25:8     BinaryExpr     :: bool
-  expr 25:8     IdentExpr      :: IOError | u8[]
+  expr 25:8     IdentExpr      :: const u8[] | IOError
   expr 26:17    StringLitExpr  :: string
   expr 26:9     CallExpr       :: void
   expr 26:9     IdentExpr      :: fn(T) -> void
   expr 29:12    CallExpr       :: Ppm | PpmError
   expr 29:12    IdentExpr      :: fn(const u8[]) -> Ppm | PpmError
-  expr 29:19    IdentExpr      :: u8[]
+  expr 29:19    IdentExpr      :: const u8[]
   expr 30:15    IdentExpr      :: PpmError
   expr 30:5     IfExpr         :: void
   expr 30:8     BinaryExpr     :: bool

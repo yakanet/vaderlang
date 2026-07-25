@@ -1,11 +1,11 @@
 # Typecheck
 
 ## tests/snippets/_diag_comptime_loop
-  FnDecl         build_squares        :: fn() -> u32[]
+  FnDecl         build_squares        :: fn() -> const u32[]
   FnDecl         main                 :: fn() -> i32
   ConstDecl      SQUARES              :: const u32[]
-  expr 15:12    CallExpr       :: u32[]
-  expr 15:12    IdentExpr      :: fn() -> u32[]
+  expr 15:12    CallExpr       :: const u32[]
+  expr 15:12    IdentExpr      :: fn() -> const u32[]
   expr 18:16    SeqLitExpr     :: u32[]
   expr 19:14    RangeExpr      :: Range<i32>
   expr 20:16    CallExpr       :: u32

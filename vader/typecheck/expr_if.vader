@@ -179,7 +179,7 @@ PushedNarrow :: struct {
 // which operand was false), so callers apply these to the then side only.
 // Detection only — operands are type-checked with real diags by the caller,
 // so `detect_is_narrow` routes its own here to a sink.
-collect_and_narrows :: fn(cond: AST.Expr, typed: TypedProgram!) -> IsNarrow[] {
+collect_and_narrows :: fn(cond: AST.Expr, typed: TypedProgram!) -> IsNarrow[]! {
     if cond is AST.BinaryExpr as x {
         if x.op == AST.BinaryOp.And {
             out :: collect_and_narrows(x.left, typed)

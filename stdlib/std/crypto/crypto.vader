@@ -189,7 +189,7 @@ export hmac_sha256 :: fn(key: string | const u8[], msg: string | const u8[]) -> 
 // Coerce a `string | const u8[]` hash/HMAC input to bytes — a string
 // contributes its UTF-8 bytes; raw bytes pass through. Shared by sha256_bytes
 // and hmac_sha256 so both accept either form.
-to_bytes :: fn(x: string | const u8[]) -> const u8[] {
+to_bytes :: fn(x: string | const u8[]) -> u8[] {
     if x is string { return x.bytes() }
     return x
 }
