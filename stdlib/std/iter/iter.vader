@@ -89,7 +89,7 @@ export sum :: fn(self: Iterator<i32>) -> i32 {
 /// Naming overlaps with the `Clone` trait in `std/core` (currently
 /// without implementors). When `T[] implements Clone` lands, this free
 /// fn becomes the impl — `arr.clone()` resolves identically either way.
-export clone :: fn<T>(arr: const T[]) -> T[] {
+export clone :: fn<T>(arr: const T[]) -> T[]! {
     out: T[] = [] * arr.len()
     out.push_all(arr)
     return out

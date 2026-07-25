@@ -1,0 +1,170 @@
+# Lower
+
+## snippet
+  struct snippet$Tag { n: i32 }
+  fn snippet$main() -> i32
+    let ints: i32[] =
+      call :i32[]
+        callee:
+          snippet$dup__i32 :i32[]
+        arg0:
+          array :const i32[]
+            int(4) :i32
+            int(5) :i32
+            int(6) :i32
+    let tags: Tag[] =
+      call :Tag[]
+        callee:
+          snippet$dup__Tag :Tag[]
+        arg0:
+          array :const Tag[]
+            Tag {
+              n: int(7) :i32
+            }
+            Tag {
+              n: int(8) :i32
+            }
+    LoweredArrayPush
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(83) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → u64
+                    LoweredArrayLen
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    index :i32
+                      on:
+                        ints :i32[]
+                      ix:
+                        int(3) :i32
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → u64
+                    LoweredArrayLen
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    .n :i32
+                      index :Tag
+                        on:
+                          tags :Tag[]
+                        ix:
+                          int(1) :i32
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+    return int(0) :i32
+  fn snippet$dup__Tag(src: const Tag[]) -> Tag[]
+    let out: Tag[] =
+      @array.repeat :Tag[]
+        array :Tag[]
+        LoweredArrayLen
+    @array.push_all :void
+      out :Tag[]
+      src :const Tag[]
+    return out :Tag[]
+  fn snippet$dup__i32(src: const i32[]) -> i32[]
+    let out: i32[] =
+      @array.repeat :i32[]
+        array :i32[]
+        LoweredArrayLen
+    @array.push_all :void
+      out :i32[]
+      src :const i32[]
+    return out :i32[]

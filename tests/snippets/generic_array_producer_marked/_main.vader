@@ -1,0 +1,31 @@
+// Regression: a `!` on a generic array-constructor's RETURN must not hide the
+// shape from `lower_mono_fn::returns_typeparam_array`.
+//
+// That gate is what force-concretes `clone`/`collect`/`map`/`sort`-shaped fns, so
+// a `T = i32` instance builds an I32-kind buffer instead of the erased BOXED one.
+// The `!` wraps the written return type ; before `strip_mut_marker` the gate went
+// blind, the instance stayed erased, its buffer was built at BOXED width, and its
+// reads came back null — a SIGSEGV with no diagnostic at all.
+//
+// Two instantiations at different widths, one of them a struct element, so an
+// erased buffer shows up as a null read rather than a silently wrong number.
+module "snippet"
+
+import "std/io"
+
+Tag :: struct { n: i32 }
+
+dup :: fn<T>(src: const T[]) -> T[]! {
+    out: T[] = [] * src.len()
+    out.push_all(src)
+    return out
+}
+
+main :: fn() -> i32 {
+    ints :: dup([4, 5, 6])
+    tags :: dup([Tag { .n = 7 }, Tag { .n = 8 }])
+    // Mutating through the returned array is the point of the `!`.
+    ints.push(9)
+    println("${ints.len()} ${ints[3]} ${tags.len()} ${tags[1].n}")
+    return 0
+}
