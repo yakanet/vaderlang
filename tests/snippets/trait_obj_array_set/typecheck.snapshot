@@ -18,7 +18,7 @@
   expr 20:57    IdentExpr      :: Circle
   expr 20:66    FieldExpr      :: i32
   expr 20:66    IdentExpr      :: Circle
-  expr 23:23    SeqLitExpr     :: Shape[]!
+  expr 23:24    SeqLitExpr     :: Shape[]!
   expr 24:17    CallExpr       :: Square
   expr 24:17    IdentExpr      :: type
   expr 24:5     CallExpr       :: void

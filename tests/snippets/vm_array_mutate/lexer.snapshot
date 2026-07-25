@@ -18,14 +18,15 @@
 [7:10-7:13  ] ident          "i32"
 [7:13-7:14  ] lbracket       "["
 [7:14-7:15  ] rbracket       "]"
-[7:16-7:17  ] assign         "="
-[7:18-7:19  ] lbracket       "["
-[7:19-7:21  ] int_literal    "10" =10n
-[7:21-7:22  ] comma          ","
-[7:23-7:25  ] int_literal    "20" =20n
-[7:25-7:26  ] comma          ","
-[7:27-7:29  ] int_literal    "30" =30n
-[7:29-7:30  ] rbracket       "]"
+[7:15-7:16  ] bang           "!"
+[7:17-7:18  ] assign         "="
+[7:19-7:20  ] lbracket       "["
+[7:20-7:22  ] int_literal    "10" =10n
+[7:22-7:23  ] comma          ","
+[7:24-7:26  ] int_literal    "20" =20n
+[7:26-7:27  ] comma          ","
+[7:28-7:30  ] int_literal    "30" =30n
+[7:30-7:31  ] rbracket       "]"
 [8:1-8:1    ] newline        "\n"
 [8:5-8:8    ] ident          "arr"
 [8:8-8:9    ] lbracket       "["

@@ -8,7 +8,7 @@ module "snippet"
 import "std/io"
 
 main :: fn() -> i32 {
-    shelf: i32[] = [0, 0, 0]
+    shelf: i32[]! = [0, 0, 0]
     aisle :: 1
     stock := 10
     shelf[aisle] = stock

@@ -85,7 +85,7 @@ export wrap_as_block :: fn(expr: LoweredExpr, span: Span) -> LoweredBlock {
 ///               as an `LoweredExprStmt` when one is present.
 export block_stmts_with_trailing :: fn(block: LoweredBlock) -> LoweredStmt[] {
     trailing :: block.trailing ?? return block.stmts
-    out: LoweredStmt[] = []
+    out: LoweredStmt[]! = []
     for stmt in block.stmts { out.push(stmt) }
     out.push(LoweredExprStmt { .span = span_of(trailing), .expr = trailing })
     return out
@@ -188,7 +188,7 @@ export lower_cell_init :: fn(
 ///                `prefix` is empty.
 export prepend_stmts_to_block :: fn(prefix: LoweredStmt[], block: LoweredBlock) -> LoweredBlock {
     if prefix.len() == 0 { return block }
-    stmts: LoweredStmt[] = []
+    stmts: LoweredStmt[]! = []
     stmts.push_all(prefix)
     stmts.push_all(block.stmts)
     return LoweredBlock {
@@ -294,7 +294,7 @@ import "std/testing"
 @test test_or_all_single_returns_input :: fn() -> void {
     span :: empty_span()
     only: LoweredExpr = LoweredBoolLit { .span = span, .type = TY_BOOL, .value = true }
-    parts: LoweredExpr[] = []
+    parts: LoweredExpr[]! = []
     parts.push(only)
     result :: or_all(span, parts)
     // single-element chain returns the input unchanged

@@ -8,8 +8,8 @@
   expr 14:9     IdentExpr      :: i32
   expr 15:16    StructLitExpr  :: Node!
   expr 15:32    IdentExpr      :: i32
-  expr 15:43    IdentExpr      :: Node! | null
-  expr 15:9     IdentExpr      :: Node! | null
+  expr 15:43    IdentExpr      :: Node | null
+  expr 15:9     IdentExpr      :: Node | null
   expr 16:13    BinaryExpr     :: i32
   expr 16:13    IdentExpr      :: i32
   expr 16:9     IdentExpr      :: i32
@@ -29,20 +29,20 @@
   expr 25:47    IdentExpr      :: i32
   expr 25:9     CallExpr       :: void
   expr 25:9     IdentExpr      :: fn(T) -> void
-  expr 30:12    IdentExpr      :: Node! | null
+  expr 30:12    IdentExpr      :: Node | null
   expr 32:10    IdentExpr      :: bool
   expr 32:9     UnaryExpr      :: bool
-  expr 33:15    IdentExpr      :: Node! | null
+  expr 33:15    IdentExpr      :: Node | null
   expr 33:9     MatchExpr      :: void
   expr 34:26    IdentExpr      :: bool
   expr 36:17    IdentExpr      :: i32
   expr 36:23    BinaryExpr     :: i32
   expr 36:23    IdentExpr      :: i32
   expr 36:29    FieldExpr      :: i32
-  expr 36:29    IdentExpr      :: Node!
-  expr 37:17    IdentExpr      :: Node!
+  expr 36:29    IdentExpr      :: Node
+  expr 37:17    IdentExpr      :: Node
   expr 37:23    FieldExpr      :: Node | null
-  expr 37:23    IdentExpr      :: Node!
+  expr 37:23    IdentExpr      :: Node
   expr 42:17    BinaryExpr     :: {integer}
   expr 42:17    BinaryExpr     :: {integer}
   expr 43:15    IdentExpr      :: i32

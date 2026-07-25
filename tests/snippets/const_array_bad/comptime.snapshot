@@ -30,5 +30,5 @@
   ArrayIterator<T>
 
 # Diagnostics
-[12:5] error[T3042] cannot mutate an immutable array: cannot mutate `i32[]`
+[12:5] error[T3042] cannot mutate an immutable array: cannot mutate `i32[]` — annotate `a!` at tests/snippets/const_array_bad/_main.vader:11:27
 [16:5] error[T3042] cannot mutate an immutable array: cannot mutate `i32[]`

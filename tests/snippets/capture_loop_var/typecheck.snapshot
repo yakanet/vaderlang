@@ -13,7 +13,7 @@
   expr 20:16    StringLitExpr  :: string
   expr 20:21    StringLitExpr  :: string
   expr 20:26    StringLitExpr  :: string
-  expr 21:32    SeqLitExpr     :: (fn() -> void)[]!
+  expr 21:33    SeqLitExpr     :: (fn() -> void)[]!
   expr 22:18    IdentExpr      :: string[]!
   expr 23:21    LambdaExpr     :: fn() -> void
   expr 23:29    CallExpr       :: void
@@ -35,7 +35,7 @@
   expr 30:33    IdentExpr      :: i32
   expr 30:9     CallExpr       :: void
   expr 30:9     IdentExpr      :: fn(T) -> void
-  expr 34:32    SeqLitExpr     :: (fn() -> void)[]!
+  expr 34:33    SeqLitExpr     :: (fn() -> void)[]!
   expr 35:15    CallExpr       :: __genstate_map<i32>!
   expr 35:15    FieldExpr      :: fn(fn(T) -> U) -> Iterator<U>
   expr 35:15    RangeExpr      :: Range<i32>!

@@ -69,7 +69,7 @@ lower_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr {
     // fn-type, so take params off `raw_callee` before any result-type
     // retype below.
     param_types :: param_types_of(type_of(raw_callee))
-    args: LoweredExpr[] = []
+    args: LoweredExpr[]! = []
     for i in 0..<call.args.len() {
         arg :: lower_expr(ctx, call.args[i].value)
         if i < param_types.len() {
@@ -194,7 +194,7 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lo
             // `ufcs_receiver_types[id]` iff it resolved free-fn UFCS ; a genuine
             // trait method leaves it null → the vcall below still fires.
             if !(ctx.typed.ufcs_receiver_types[field_expr.id] is null) { return null }
-            args: LoweredExpr[] = []
+            args: LoweredExpr[]! = []
             for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
             // Record the dispatched trait so every primitive implementor is
             // surfaced into the vtable — see `virtually_dispatched_traits`.
@@ -212,7 +212,7 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lo
         if type_of(receiver) is AnyType {
             trait_name :: ctx.typed.bounded_dispatch_trait[field_expr.id]
             if trait_name is string as tname {
-                args: LoweredExpr[] = []
+                args: LoweredExpr[]! = []
                 for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
                 // Erased bounded-trait receiver : surface every primitive
                 // implementor of `tname` — see `virtually_dispatched_traits`.
@@ -255,7 +255,7 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lo
 // counter (`impl_member_overload_suffix`) needs the owning module's impls to
 // reproduce the mangle `lower_impl_member_list` materialised the member under.
 module_impl_decls :: fn(ctx: FnLowerCtx, module: string) -> Decl[] {
-    out: Decl[] = []
+    out: Decl[]! = []
     for e in ctx.project.impls.all {
         if e.module == module { out.push(e.decl) }
     }
@@ -306,7 +306,7 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> 
         // lowered lazily (every non-entry module is), so without this its
         // body is never reserved and the call is unresolved at emit.
         register_nongeneric_imported_fn(ctx, member_symbol)
-        args: LoweredExpr[] = []
+        args: LoweredExpr[]! = []
         for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
         return LoweredCall {
             .span = call.span, .type = type,

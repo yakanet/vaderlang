@@ -59,7 +59,7 @@ build_slot_registry_from_keys :: fn(keys: string[]) -> SlotRegistry {
     slots["Ord.compare"]     = 2
     slots["Display.display"] = 3
 
-    unpinned: string[] = [] * keys.len()
+    unpinned: string[]! = [] * keys.len()
     for k in keys {
         if pinned_slot(k) < 0 {
             unpinned.push(k)
@@ -191,7 +191,7 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
         // BlockId/LocalId → tag 4). Emit one `case` per tag : the first (the
         // backing's, whose delegating impl is equivalent) wins. Without this
         // the C carries a `duplicate case value`.
-        seen_tags: i32[] = []
+        seen_tags: i32[]! = []
         for e in row.entries {
             dup := false
             for st in seen_tags {
@@ -205,7 +205,7 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
             seen_tags.push(e.receiver_type_index)
             callee :: ctx.module.functions[usize(e.fn_index)]
             csig :: callee.signature
-            args: string[] = [coerce_expr(types, "recv", .Any, csig.params[0])]
+            args: string[]! = [coerce_expr(types, "recv", .Any, csig.params[0])]
             tail :: i32(csig.params.len()) - 1
             for i in 0..<tail {
                 args.push(coerce_expr(types, "a${i}", .Any, csig.params[usize(i + 1)]))
@@ -257,7 +257,7 @@ emit_vtables :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 
     rows :: ctx.module.vtables
     reg :: build_slot_registry_from_keys(vtable_keys(rows))
-    entries: VtSlot[] = []
+    entries: VtSlot[]! = []
     max_tag: i32 = -1
     for row in rows {
         if row.entries.len() == 0 { continue }
@@ -282,7 +282,7 @@ emit_vtables :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // Group the flat entry list by receiver tag in one pass, then emit the
     // per-tag `vt_<tag>` structs + the index table (each tag's slots sorted).
     table_size :: max_tag + 1
-    groups: VtSlot[][] = filled(usize(table_size), () -> [])
+    groups: VtSlot[]![] = filled(usize(table_size), () -> [])
     for e in entries { groups[usize(e.type_index)].push(e) }
 
     for tag in 0..<table_size {
@@ -309,7 +309,7 @@ emit_vtables :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 
 /// Every `${trait}.${method}` key in `rows`, for the slot registry.
 vtable_keys :: fn(rows: VtableRow[]) -> string[] {
-    out: string[] = []
+    out: string[]! = []
     for row in rows { out.push(row.key) }
     return out
 }

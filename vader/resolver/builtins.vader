@@ -30,7 +30,7 @@ BUILTIN_EXTRA_NAMES :: ["Self", "type"]
 /// and are embedded in snapshots, so the three sources are concatenated in a
 /// fixed order rather than re-listed here.
 builtin_type_names :: fn() -> string[] {
-    out: string[] = []
+    out: string[]! = []
     for m in PRIMITIVE_META { out.push(m.name) }
     for a in PRIMITIVE_ALIASES { out.push(a[0]) }
     for e in BUILTIN_EXTRA_NAMES { out.push(e) }

@@ -127,8 +127,8 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx!, expr: StringLitExpr) -> LoweredExpr 
     usize_type :: mk_primitive("usize")
     span :: expr.span
     // Lower every part once, classifying interpolated values by type.
-    values: LoweredExpr[] = []
-    kinds: WriterKind[] = []
+    values: LoweredExpr[]! = []
+    kinds: WriterKind[]! = []
     has_direct := false
     for part in expr.parts {
         match part {
@@ -177,9 +177,9 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx!, expr: StringLitExpr) -> LoweredExpr 
     // Process parts : bind each string / `${Display}` to a tmp (referenced twice —
     // size + write — so `${f()}` isn't evaluated twice), accumulate the static byte
     // bound + the runtime `byte_len` size terms, and record what to write.
-    stmts: LoweredStmt[] = []
-    write_values: LoweredExpr[] = []
-    write_kinds: WriterKind[] = []
+    stmts: LoweredStmt[]! = []
+    write_values: LoweredExpr[]! = []
+    write_kinds: WriterKind[]! = []
     const_bytes: i64 = 0
     runtime_size: LoweredExpr | null = null
     for i in 0..<values.len() {
@@ -253,7 +253,7 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx!, expr: StringLitExpr) -> LoweredExpr 
 // `value.to_string()`), concatenated via the same shared `concat_N` as `+`.
 // Used when no part is a direct-write primitive, or the buffer API doesn't resolve.
 concat_from_collected :: fn(ctx: FnLowerCtx!, values: LoweredExpr[], kinds: WriterKind[], span: Span) -> LoweredExpr {
-    operands: LoweredExpr[] = []
+    operands: LoweredExpr[]! = []
     for i in 0..<values.len() {
         if kinds[i] == WriterKind.Str || kinds[i] == WriterKind.Text {
             operands.push(values[i])
@@ -278,7 +278,7 @@ cast_to_width :: fn(inner: LoweredExpr, width: string, span: Span) -> LoweredExp
 // the impl exists per-instantiation but isn't reachable at lower-time.
 build_display_to_string_call :: fn(ctx: FnLowerCtx!, value: LoweredExpr, span: Span) -> LoweredExpr {
     string_type :: TY_STRING
-    no_args: LoweredExpr[] = []
+    no_args: LoweredExpr[]! = []
     direct :: try_direct_display_call(ctx, value, span)
     if direct != null { return direct }
     // Erased Display dispatch (generic-`T` receiver) : record the trait so
@@ -318,7 +318,7 @@ try_direct_display_call :: fn(ctx: FnLowerCtx!, value: LoweredExpr, span: Span) 
     member :: find_impl_member_for(ctx, source_type, METHOD_TO_STRING) ?? return null
     // Build the direct `to_string(value)` call — or, when the member is the
     // identity `fn(self) = self` (string's `Display`), inline to `value` itself.
-    call_args: LoweredExpr[] = []
+    call_args: LoweredExpr[]! = []
     call_args.push(value)
     return build_member_call_or_inline(member, call_args, string_type, span)
 }

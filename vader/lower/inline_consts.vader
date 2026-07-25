@@ -60,7 +60,7 @@ FN_WRAP_MIN_ELEMENTS :: usize(4)
 export inline_consts :: fn(project: LoweredProject!, project_ctx: LowerProjectCtx!) -> void {
     for module_id in project.modules.keys() {
         m :: project.modules[module_id] ?? continue
-        new_decls: LoweredDecl[] = []
+        new_decls: LoweredDecl[]! = []
         changed := false
         for d in m.decls {
             if d is LoweredConstDecl as cd {
@@ -195,7 +195,7 @@ is_bakeable_struct :: fn(s: LoweredStructLit) -> bool {
 // Collect every element's string value, or null when any element isn't a plain
 // string literal (interpolation lowers to a builder, never reaching here).
 render_string_items :: fn(lit: LoweredArrayLit) -> string[] | null {
-    out: string[] = []
+    out: string[]! = []
     for el in lit.elements {
         if el is LoweredStringLit as s { out.push(s.value) } else { return null }
     }
@@ -207,7 +207,7 @@ render_string_items :: fn(lit: LoweredArrayLit) -> string[] | null {
 // is the array's element type name — needed to pick the f32 vs f64 width when
 // reinterpreting a float literal's IEEE-754 bits.
 render_data_items :: fn(lit: LoweredArrayLit, element_name: string) -> i64[] | null {
-    out: i64[] = []
+    out: i64[]! = []
     for el in lit.elements {
         bits :: data_item_bits(el, element_name) ?? return null
         out.push(bits)

@@ -78,13 +78,13 @@ build_fn_mixed_subst :: fn(fd: FnDecl, typed: TypedProgram, type_args: Type[]) -
 any_leaves_of :: fn(t: Type) -> Type {
     if t is StructType as s {
         if s.args.is_empty() { return TY_ANY }
-        new_args: Type[] = []
+        new_args: Type[]! = []
         for a in s.args { new_args.push(any_leaves_of(a)) }
         return mk_struct(s.symbol, new_args, s.immutable)
     }
     if t is TraitType as tt {
         if tt.args.is_empty() { return TY_ANY }
-        new_args: Type[] = []
+        new_args: Type[]! = []
         for a in tt.args { new_args.push(any_leaves_of(a)) }
         return mk_trait(tt.symbol, new_args)
     }
@@ -92,12 +92,12 @@ any_leaves_of :: fn(t: Type) -> Type {
         return mk_array(any_leaves_of(a.element), a.immutable)
     }
     if t is UnionType as u {
-        new_vars: Type[] = []
+        new_vars: Type[]! = []
         for v in u.variants { new_vars.push(any_leaves_of(v)) }
         return mk_union(new_vars)
     }
     if t is TupleType as tu {
-        new_elems: Type[] = []
+        new_elems: Type[]! = []
         for el in tu.elements { new_elems.push(any_leaves_of(el)) }
         return mk_tuple(new_elems, tu.immutable)
     }
@@ -138,7 +138,7 @@ joined_unnamed :: fn(args: Type[], sep: string) -> string {
 }
 
 build_any_args_list :: fn(args: Type[]) -> Type[] {
-    out: Type[] = []
+    out: Type[]! = []
     for a in args { out.push(any_leaves_of(a)) }
     return out
 }
@@ -150,7 +150,7 @@ build_any_args_list :: fn(args: Type[]) -> Type[] {
 // — the two MUST agree arg-for-arg or a generic-struct box `vtable miss`es, so the
 // formula lives here once, not copied at each site.
 build_mixed_args_list :: fn(args: Type[]) -> Type[] {
-    out: Type[] = []
+    out: Type[]! = []
     for a in args { out.push(keep_primitive_or_erase(a)) }
     return out
 }
@@ -240,7 +240,7 @@ resolve_field_type :: fn(
         // alias. After the null check, `raw` already narrows to `Type`.
         if !(raw is UnresolvedType) { return raw }
     }
-    scratch: Diagnostic[] = []
+    scratch: Diagnostic[]! = []
     return type_from_expr(ty, owner_typed.resolved, scratch)
 }
 
@@ -334,7 +334,7 @@ build_impl_subst :: fn(
 /// symbol id ; matching by `(name, kind=TypeParam)` catches it
 /// regardless of whose `defined_at` the use sites carry.
 collect_impl_type_param_names :: fn(impl_decl: ImplDecl) -> string[] {
-    names: string[] = []
+    names: string[]! = []
     for tp in impl_decl.type_params { names.push(tp.name) }
     match impl_decl.for_type {
         is GenericInstExpr as gi -> {

@@ -203,7 +203,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         // O(1)-reinterprets a borrowed slice.
         arr :: read_array(stack[arg_base], at_pc, "bytes_to_string receiver")
         if arr is Trap { return arr }
-        raw: u8[] = []
+        raw: u8[]! = []
         for i in 0..<arr.length {
             b :: read_i32(arr.elements[arr.offset + i], at_pc, "bytes_to_string byte")
             if b is Trap { return b }
@@ -374,7 +374,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if path is Trap { return path }
         arr :: read_array(stack[arg_base + 1], at_pc, "write_file_bytes content")
         if arr is Trap { return arr }
-        content: u8[] = [] * arr.length
+        content: u8[]! = [] * arr.length
         for i in 0..<arr.length {
             b :: read_i32(arr.elements[arr.offset + i], at_pc, "write_file_bytes byte")
             if b is Trap { return b }
@@ -421,7 +421,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     .ProcessSpawnStart -> {
         argv :: read_array(stack[arg_base], at_pc, "spawn_start argv")
         if argv is Trap { return argv }
-        argv_strings: string[] = []
+        argv_strings: string[]! = []
         for i in 0..<argv.length {
             element :: read_string(argv.elements[argv.offset + i], at_pc, "spawn_start argv element")
             if element is Trap { return element }

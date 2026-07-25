@@ -85,26 +85,29 @@
               "name": "arr"
             },
             "type": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "BinaryExpr",
-                "op": "bitor",
-                "left": {
-                  "kind": "GenericInstExpr",
-                  "callee": {
-                    "kind": "IdentExpr",
-                    "name": "Node"
-                  },
-                  "typeArgs": [
-                    {
+              "kind": "MutableTypeExpr",
+              "inner": {
+                "kind": "ArrayTypeExpr",
+                "element": {
+                  "kind": "BinaryExpr",
+                  "op": "bitor",
+                  "left": {
+                    "kind": "GenericInstExpr",
+                    "callee": {
                       "kind": "IdentExpr",
-                      "name": "i32"
-                    }
-                  ]
-                },
-                "right": {
-                  "kind": "IdentExpr",
-                  "name": "null"
+                      "name": "Node"
+                    },
+                    "typeArgs": [
+                      {
+                        "kind": "IdentExpr",
+                        "name": "i32"
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "IdentExpr",
+                    "name": "null"
+                  }
                 }
               }
             },

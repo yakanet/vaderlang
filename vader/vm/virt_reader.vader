@@ -117,7 +117,7 @@ head_of :: fn(s: string) -> string {
 /// @param csv  string body, e.g. `"1,2,3"` or `""`.
 /// @return     parsed ids, in order.
 parse_int_list :: fn(csv: string) -> i32[]! {
-    ids: i32[] = []
+    ids: i32[]! = []
     if csv.bytes().len() == 0 { return ids }
     parts :: csv.split(",")
     n :: parts.len()
@@ -150,7 +150,7 @@ parse_string_decl :: fn(cleaned: string, strings: string[]!) -> void {
 /// @param s  hex digits (no `0x` prefix, no separators).
 /// @return   one byte per pair of hex digits, in input order.
 hex_to_bytes :: fn(s: string) -> u8[] {
-    out: u8[] = []
+    out: u8[]! = []
     i: usize = 0
     sb :: s.bytes()
     len :: sb.len()

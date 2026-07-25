@@ -404,7 +404,7 @@ decode_unicode_escape :: fn(p: Parser!, sb: StringBuilder!) -> bool {
 
 parse_array :: fn(p: Parser!, depth: i32) -> JsonArray | JsonError {
     if expect_byte(p, '[') is JsonError as e { return e }
-    items: JsonValue[] = []
+    items: JsonValue[]! = []
     skip_ws(p)
     if !at_end(p) && peek_byte(p) == ']' {
         advance(p)

@@ -29,7 +29,7 @@ export check_block :: fn(
     // { return … }`) so subsequent stmts see the complement type.
     // Each entry holds the binding's sym_id + the static type to
     // restore on block exit (mirrors `pop_narrow` semantics).
-    divergent_narrows: DivergentNarrow[] = []
+    divergent_narrows: DivergentNarrow[]! = []
     // W0002 — track the first stmt past a divergent guard so we can
     // warn once per block.
     first_unreachable_span: Span | null = null
@@ -584,7 +584,11 @@ check_let :: fn(
 ) -> void {
     ann: Type | null = null
     if s.ty !is null {
-        ann = type_from_expr(s.ty, typed.resolved, diags)
+        // An ANNOTATED local takes the read-only default like every other written
+        // slot, so `i32[]` means one thing wherever it appears : the marker is what
+        // grants mutation (`out: i32[]! = []`). An UNANNOTATED local keeps the
+        // inferred type — nothing was written, and a local is owned.
+        ann = apply_readonly_default(type_from_expr(s.ty, typed.resolved, diags), s.ty)
     }
     got :: check_expr_fn(s.value, ann, typed, diags)
     declared: Type = TY_UNRESOLVED
@@ -727,8 +731,11 @@ check_assign :: fn(
                     typecheck_error(
                         .CannotMutateImmutableArray,
                         ix.target.span,
+                        // Two hints, and only one can apply : the receiver is either
+                        // reached through a field or rooted in a parameter / local.
                         "cannot mutate `${display_type(target_arr_ty)}`"
-                            + field_annotate_hint(ix.target, typed),
+                            + field_annotate_hint(ix.target, typed)
+                            + annotate_hint(immutable_root_param(ix.target, typed)),
                     ),
                 )
                 return
@@ -945,18 +952,19 @@ annotate_hint :: fn(root_param: Symbol | null) -> string {
     return " — annotate `${root_param.name}!` at ${at.start.file}:${at.start.line}:${at.start.column}"
 }
 
-/// The ROOT symbol an access path starts from, when that root is a PARAMETER —
-/// the only root a reader can annotate.
+/// The ROOT symbol an access path starts from, when that root is one a reader can
+/// annotate — a PARAMETER or an annotated LOCAL.
 ///
-/// Returns null for anything else on purpose. A module-level const can't take a `!`,
-/// and a loop variable is immutable only because its ITERABLE is (`for x! in` isn't
-/// valid syntax) — annotating the iterable's own parameter is what clears it.
+/// Both take the read-only default now, so both are cleared the same way: by writing
+/// `!` on the declared type. Returns null for anything else on purpose: a
+/// module-level const has no type to mark, and a loop variable is read-only only
+/// because its ITERABLE is (`for x! in` isn't valid syntax) — marking the iterable's
+/// own declaration is what clears it.
 export immutable_root_param :: fn(e: AST.Expr, typed: TypedProgram) -> Symbol | null {
     sym :: immutable_root_symbol(e, typed) ?? return null
-    if sym.kind != .Param {
-        return null
-    }
-    return sym
+    if sym.kind == .Param { return sym }
+    if sym.kind == .Local { return sym }
+    return null
 }
 
 immutable_root_symbol :: fn(e: AST.Expr, typed: TypedProgram) -> Symbol | null = @partial match e {
@@ -1740,7 +1748,7 @@ stub_check_module :: fn(src: string) -> StubResult {
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     typed :: new_typed_program(rm)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     declare_module(parsed.program.decls, rm, typed, factory, diags)
     for decl in parsed.program.decls {
         if decl is AST.FnDecl {

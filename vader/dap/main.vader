@@ -54,7 +54,7 @@ export run_dap_server :: fn(compile: fn(string) -> DapProgram) -> i32 {
     // Monotonic DAP `seq`, shared (by cell) with the output-sink + pause-loop
     // closures so response / event / program-output frames all draw from one
     // counter.
-    seq_cell: i32[] = [0]
+    seq_cell: i32[]! = [0]
     // Breakpoints : absolute file → set of 1-based lines. Populated by
     // `setBreakpoints` BEFORE `configurationDone`, then handed to the VM inside
     // the `DebugController` (shared by reference, so mid-pause `setBreakpoints`
@@ -307,7 +307,7 @@ capabilities :: fn() -> JsonValue {
 // blank / comment — simply never fires ; refining `verified` to reflect that
 // is a later nicety.)
 breakpoints_body :: fn(args: JsonValue) -> JsonValue {
-    result: JsonValue[] = []
+    result: JsonValue[]! = []
     requested :: get_field(args, "breakpoints")
     if requested is JsonArray as arr {
         for item in arr.items {
@@ -336,7 +336,7 @@ single_thread :: fn() -> JsonValue {
 // The `stackTrace` body from the paused call stack — one frame per `PauseFrame`,
 // innermost first, with `id` = its index (the frame reference `scopes` keys on).
 stacktrace_body :: fn(ctx: PauseCtx) -> JsonValue {
-    frames_json: JsonValue[] = []
+    frames_json: JsonValue[]! = []
     for i in 0..<ctx.frames.len() {
         f :: ctx.frames[i]
         src :: MutableMap<string, JsonValue> {}
@@ -376,7 +376,7 @@ scopes_body :: fn(frame_id: i32) -> JsonValue {
 // children, and hand VSCode that reference so a later `variables` call descends.
 // Leaves get `variablesReference: 0`.
 variables_body :: fn(var_refs: MutableMap<i32, PauseVar[]>!, next_ref: i32[]!, reference: i32) -> JsonValue {
-    vars: JsonValue[] = []
+    vars: JsonValue[]! = []
     entries :: var_refs[reference]
     if entries != null {
         for pv in entries {

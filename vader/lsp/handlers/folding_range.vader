@@ -33,7 +33,7 @@ export handle_folding_range :: fn(state: ServerState, params: JsonValue) -> Json
 /// editor can collapse. One-line decls (`MAX :: 10`) and scoped intra-file
 /// bindings are skipped.
 foldable_decls :: fn(idx: DocIndex) -> DeclEntry[] {
-    out: DeclEntry[] = []
+    out: DeclEntry[]! = []
     for d in idx.decls {
         if d.scope_span != null { continue }
         if d.full_span.end.line > d.full_span.start.line { out.push(d) }
@@ -42,7 +42,7 @@ foldable_decls :: fn(idx: DocIndex) -> DeclEntry[] {
 }
 
 folding_range_json :: fn(entries: DeclEntry[]) -> JsonValue {
-    items: JsonValue[] = []
+    items: JsonValue[]! = []
     for e in entries { items.push(fold_json(e)) }
     return JsonArray { .items = items }
 }

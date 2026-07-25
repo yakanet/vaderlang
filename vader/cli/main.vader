@@ -118,7 +118,7 @@ parse_global_opts :: fn(args: string[]) -> ParseGlobalsResult {
     parsed :: parse_known(args, specs)
 
     diagnostics := "text"
-    errors: string[] = []
+    errors: string[]! = []
 
     diag_raw :: parsed.string_flag("diagnostics", "text")
     if diag_raw == "text" || diag_raw == "json" {
@@ -232,7 +232,7 @@ cmd_run :: fn(args: string[]) -> i32 {
 // while keeping the trailing tokens as positionals, so the args land here
 // either way:  vader run prog.virt -- dump --stage=bytecode main.vader
 forwarded_argv :: fn(path: string, args: string[]) -> string[] {
-    out: string[] = [path]
+    out: string[]! = [path]
     for i in 1..<args.len() {
         out.push(args[i])
     }
@@ -470,7 +470,7 @@ cmd_test :: fn(args: string[]) -> i32 {
         all_tests :: find_tests(pruned)
         // Stdlib modules surface under nearly every rep (imported transitively) ;
         // run each unique @test once across the whole invocation.
-        fresh: DiscoveredTest[] = []
+        fresh: DiscoveredTest[]! = []
         for t in all_tests {
             if !(t.mangled in ran) { fresh.push(t) }
         }
@@ -479,7 +479,7 @@ cmd_test :: fn(args: string[]) -> i32 {
         }
         files_with_tests += 1
         println(rep)
-        mangles: string[] = []
+        mangles: string[]! = []
         for t in fresh { mangles.push(t.mangled) }
         module :: cfg_to_bytecode(
             pruned, module_name_from_file(rep),
@@ -522,7 +522,7 @@ cmd_test :: fn(args: string[]) -> i32 {
 /// whose origin AST `FnDecl` carries a `@test` decorator. Display name is the
 /// fn's source name (the rare `@test("custom")` string arg is not surfaced).
 find_tests :: fn(lp: LoweredProject) -> DiscoveredTest[] {
-    out: DiscoveredTest[] = []
+    out: DiscoveredTest[]! = []
     for [_, m] in lp.modules {
         for d in m.decls {
             if d is LoweredFnDecl as fd {
@@ -555,7 +555,7 @@ has_test_decorator :: fn(ast: FnDecl) -> bool {
 /// Recursively collect every `.vader` file under `target` (or `target` itself
 /// when it's a single `.vader` file). Skips `SKIP_TEST_DIRS` + dot-entries.
 discover_vader_files :: fn(target: string) -> string[] {
-    out: string[] = []
+    out: string[]! = []
     if !exists(target) { return out }
     if is_dir(target) {
         walk_test_dir(target, out)
@@ -599,11 +599,11 @@ pick_module_representatives :: fn(files: string[]) -> string[] {
         if existing is string[] {
             existing.push(f)
         } else {
-            bucket: string[] = [f]
+            bucket: string[]! = [f]
             by_dir[d] = bucket
         }
     }
-    out: string[] = []
+    out: string[]! = []
     for [d, group] in by_dir {
         if group.len() <= 1 {
             out.push(group[0])
@@ -625,11 +625,11 @@ is_folder_module :: fn(group: string[]) -> bool = collect_sibling_imports(group)
 /// name. An empty result means the dir is a folder module (siblings share one
 /// scope, no by-name imports).
 collect_sibling_imports :: fn(group: string[]) -> string[] {
-    names: string[] = []
+    names: string[]! = []
     for f in group {
         names.push(basename_no_ext(f))
     }
-    out: string[] = []
+    out: string[]! = []
     for f in group {
         src :: read_file_string(f)
         if src is IOError {
@@ -953,8 +953,8 @@ build_native_split :: fn(file: string, out: string, release: bool, cc: string, l
     // Fan out one `cc -c` per TU (+ the runtime) as concurrent async spawns, so
     // the OS compiles them across cores. `all` joins them ; `block_on` drives
     // the cooperative scheduler from this synchronous entry.
-    tasks: Async<ProcessResult | ProcessError>[] = []
-    obj_files: string[] = []
+    tasks: Async<ProcessResult | ProcessError>[]! = []
+    obj_files: string[]! = []
     for cf in c_files {
         obj :: "${cf}.o"
         obj_files.push(obj)
@@ -1028,7 +1028,7 @@ write_split_files :: fn(out: string, prog: CProgram) -> i32 {
 // The `.c` files to compile : the globals TU + each function TU (the header is
 // included, not compiled).
 split_c_files :: fn(out: string, unit_count: usize) -> string[] {
-    files: string[] = ["${out}.split.g.c"]
+    files: string[]! = ["${out}.split.g.c"]
     for k in 0..<unit_count {
         files.push("${out}.split.${k}.c")
     }
@@ -1040,7 +1040,7 @@ split_c_files :: fn(out: string, unit_count: usize) -> string[] {
 // and the co-located split header resolve. One of these runs per object, in
 // parallel.
 cc_compile_argv :: fn(cc: string, src: string, obj: string, rt: string, release: bool) -> string[] {
-    argv: string[] = [cc]
+    argv: string[]! = [cc]
     argv.push_all(cc_opt_flags(release))
     argv.push("-I")
     argv.push(rt)
@@ -1055,7 +1055,7 @@ cc_compile_argv :: fn(cc: string, src: string, obj: string, rt: string, release:
 // parallel compiles. `-lm` satisfies the runtime's `floor` / `fmod` on glibc
 // (a no-op on macOS / MinGW).
 cc_link_argv :: fn(cc: string, objs: string[], out: string, ldflags: string) -> string[] {
-    argv: string[] = [cc]
+    argv: string[]! = [cc]
     argv.push_all(objs)
     push_ldflags(argv, ldflags)
     argv.push("-o")
@@ -1088,7 +1088,7 @@ push_ldflags :: fn(argv: string[]!, ldflags: string) -> void {
 // external runtime unit, opt flags, any user `--ldflags`, then `-o <out> -lm`.
 // `-lm` satisfies the runtime's `floor` / `fmod` on glibc ; no-op on macOS / MinGW.
 cc_argv :: fn(cc: string, c_file: string, out: string, release: bool, ldflags: string) -> string[] {
-    argv: string[] = [cc]
+    argv: string[]! = [cc]
     argv.push_all(cc_opt_flags(release))
     rt :: runtime_c_root()
     argv.push("-I")
@@ -1280,7 +1280,7 @@ resolve_loaded_project :: fn(project: LoadedProject!, scope: string[]) -> Resolv
     materialize_all_sams_pre_resolve(project)
     core_seed :: build_core_seed(project)
     mod_index :: module_index_by_name(project)
-    modules: ResolvedModule[] = []
+    modules: ResolvedModule[]! = []
     resolved_by_id :: MutableMap<string, ResolvedModule> {}
     for [id, lm] in project.modules {
         if !module_in_scope(lm.module.display_path, scope) { continue }
@@ -1308,7 +1308,7 @@ resolve_loaded_project :: fn(project: LoadedProject!, scope: string[]) -> Resolv
 // Body diags carry no global span ordering ; concatenated by module-
 // iteration order.
 collect_resolver_diags :: fn(project: LoadedProject, resolved: ResolvedProject) -> Diagnostic[] {
-    all: Diagnostic[] = []
+    all: Diagnostic[]! = []
     for d in project.diags { all.push(d) }
     for m in resolved.modules { for d in m.diags { all.push(d) } }
     return all
@@ -1347,7 +1347,7 @@ run_comptime_stage :: fn(file: string, module_filter: string[]) -> i32 {
 
 run_cfg_stage :: fn(file: string, module_filter: string[]) -> i32 {
     pipeline :: prepare_evaluated_project(file)
-    lower_diags: Diagnostic[] = []
+    lower_diags: Diagnostic[]! = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     cfg :: build_cfg_project(lowered)
     // Scope the dump to the entry's subtree (or `--module`) without the string
@@ -1362,7 +1362,7 @@ run_cfg_stage :: fn(file: string, module_filter: string[]) -> i32 {
 
 run_bytecode_cfg_stage :: fn(file: string) -> i32 {
     pipeline :: prepare_evaluated_project(file)
-    lower_diags: Diagnostic[] = []
+    lower_diags: Diagnostic[]! = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     cfg :: build_cfg_project(lowered)
     folded :: const_fold_project(cfg)
@@ -1409,7 +1409,7 @@ lower_to_entry_with :: fn(file: string, include_path_flags: string[]) -> Lowered
     // emitter an ill-typed shape (e.g. a UFCS method on an unimported
     // primitive) trips its `emit_bytecode_from_cfg` backstop panic before the
     // caller's `flush_build_diags` gate runs — a plain user error would ICE.
-    lower_diags: Diagnostic[] = []
+    lower_diags: Diagnostic[]! = []
     // profiling bracket — inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
     Prof.prof_begin(Prof.PHASE_LOWER)
     lowered :: if any_error_diag(pre_diags) {
@@ -1549,7 +1549,7 @@ module_name_from_file :: fn(file: string) = file.to_posix().to_path().filename()
 
 run_lower_stage :: fn(file: string, module_filter: string[]) -> i32 {
     pipeline :: prepare_evaluated_project(file)
-    lower_diags: Diagnostic[] = []
+    lower_diags: Diagnostic[]! = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     println(dump_lowered(lowered, dump_scope(module_filter, pipeline.loaded)))
     print_pipeline_diags(pipeline, lower_diags, dump_scope(module_filter, pipeline.loaded))
@@ -1562,7 +1562,7 @@ run_lower_stage :: fn(file: string, module_filter: string[]) -> i32 {
 // walk before it's wired into the emit paths.
 run_dced_stage :: fn(file: string, module_filter: string[]) -> i32 {
     pipeline :: prepare_evaluated_project(file)
-    lower_diags: Diagnostic[] = []
+    lower_diags: Diagnostic[]! = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     pruned :: prune_unreachable_fns(lowered, false)
     println(dump_lowered(pruned, dump_scope(module_filter, pipeline.loaded)))
@@ -1582,7 +1582,7 @@ run_dced_stage :: fn(file: string, module_filter: string[]) -> i32 {
 // file paths of the in-scope modules, then drop any diagnostic anchored outside
 // them. `build` never calls these — `flush_build_diags` shows the full set.
 in_scope_diag_files :: fn(loaded: LoadedProject, scope: string[]) -> string[] {
-    out: string[] = []
+    out: string[]! = []
     for [id, lm] in loaded.modules {
         if module_in_scope(lm.module.display_path, scope) {
             for f in lm.module.files { out.push(f.path) }
@@ -1592,7 +1592,7 @@ in_scope_diag_files :: fn(loaded: LoadedProject, scope: string[]) -> string[] {
 }
 
 filter_diags_in_scope :: fn(diags: Diagnostic[], files: string[]) -> Diagnostic[] {
-    out: Diagnostic[] = []
+    out: Diagnostic[]! = []
     for d in diags {
         if d.primary.start.file in files { out.push(d) }
     }
@@ -1618,7 +1618,7 @@ print_dump_diags :: fn(b: CfgBytecode) -> void {
 // list, in the canonical order the dump stages expect. Pulled out so
 // `lower_to_entry` can snapshot the diags before releasing the pipeline.
 gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] {
-    out: Diagnostic[] = []
+    out: Diagnostic[]! = []
     for d in pipeline.loaded.diags    { out.push(d) }
     for d in pipeline.resolver_diags  { out.push(d) }
     for d in pipeline.typecheck_diags { out.push(d) }
@@ -1630,7 +1630,7 @@ gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] {
 // then `extra`). Shared by the dump-stage renderer (`print_merged_diags`,
 // stdout) and the build renderer (`flush_build_diags`, stderr + fail-on-error).
 merge_diagnostics :: fn(head: Diagnostic[], extra: Diagnostic[]) -> Diagnostic[] {
-    all: Diagnostic[] = []
+    all: Diagnostic[]! = []
     for d in head  { all.push(d) }
     for d in extra { all.push(d) }
     return all
@@ -1690,13 +1690,13 @@ prepare_evaluated_project_with :: fn(file: string, include_path_flags: string[])
     Prof.prof_begin(Prof.PHASE_LOAD)
     loaded :: load_project(file, include_path_flags)
     Prof.prof_end(Prof.PHASE_LOAD)
-    typecheck_diags: Diagnostic[] = []
+    typecheck_diags: Diagnostic[]! = []
     Prof.prof_begin(Prof.PHASE_TYPECHECK)
     result :: check_project_with_bodies(loaded, typecheck_diags, false)
     resolver_diags :: collect_body_diags(result)
     typed :: assemble_typed_project(result)
     Prof.prof_end(Prof.PHASE_TYPECHECK)
-    comptime_diags: Diagnostic[] = []
+    comptime_diags: Diagnostic[]! = []
     Prof.prof_begin(Prof.PHASE_COMPTIME)
     // The tree-walk `evaluate_project` always runs : it does the `@comptime`
     // dependency ordering (source of the C4009 cycle diagnostic), folds
@@ -1739,7 +1739,7 @@ prepare_evaluated_project_with :: fn(file: string, include_path_flags: string[])
 /// (orchestrate.vader:163), so we'd double-fire if we pushed them
 /// here too.
 collect_body_diags :: fn(result: CheckResult) -> Diagnostic[] {
-    out: Diagnostic[] = []
+    out: Diagnostic[]! = []
     if result.all_modules.is_empty() { return out }
     for [module_id, module_typed] in result.all_modules {
         if module_id == result.typed.resolved.path { continue }

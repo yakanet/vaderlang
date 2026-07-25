@@ -40,19 +40,19 @@ import "std/numbers"
 ///                surfaces any resulting gap.
 export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule {
     module_name := ""
-    strings: string[] = []
-    types: bc.BcType[] = []
-    imports: bc.BcImport[] = []
-    exports: bc.BcExport[] = []
-    impl_table: bc.ImplEntry[] = []
-    vtables: bc.VtableRow[] = []
-    data_pool: bc.BcDataEntry[] = []
-    functions: bc.BcFunction[] = []
+    strings: string[]! = []
+    types: bc.BcType[]! = []
+    imports: bc.BcImport[]! = []
+    exports: bc.BcExport[]! = []
+    impl_table: bc.ImplEntry[]! = []
+    vtables: bc.VtableRow[]! = []
+    data_pool: bc.BcDataEntry[]! = []
+    functions: bc.BcFunction[]! = []
     main_index := -1
 
     current_name := ""
     current_sig := bc.BcSignature { .params = [], .result = bc.ValType.Void, .param_types = [], .result_type = 0, .param_names = [] }
-    current_locals: bc.BcLocal[] = []
+    current_locals: bc.BcLocal[]! = []
     in_function := false
 
     state := ParserState {
@@ -106,7 +106,7 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule {
             continue
         }
         if cleaned == "end" && state.scope_sp[0] == 0 {
-            debug: (bc.DebugPos | null)[] = []
+            debug: (bc.DebugPos | null)[]! = []
             for _ in 0..<state.ops.len() { debug.push(null) }
             functions.push(bc.BcFunction {
                 .name       = current_name,
@@ -202,7 +202,7 @@ parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct {
     // json-escapes ; unquote so `sanitise` derives the same C identifier as the
     // direct-source build.
     name :: unquote_struct_name(raw_name)
-    fields: bc.BcField[] = []
+    fields: bc.BcField[]! = []
     if open >= 0 {
         asb :: after_struct.bytes()
         close :: after_struct.index_of('}', 0)
@@ -322,7 +322,7 @@ register_vtable_row :: fn(vtables: bc.VtableRow[]!, key: string, entry: bc.Vtabl
     for i in 0..<vtables.len() {
         if vtables[i].key == key { vtables[i].entries.push(entry) return }
     }
-    fresh: bc.VtableEntry[] = [entry]
+    fresh: bc.VtableEntry[]! = [entry]
     vtables.push(bc.VtableRow { .key = key, .entries = fresh })
 }
 
@@ -391,7 +391,7 @@ parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[]!, strings:
 /// `decode_escapes` the `string N "…"` section uses, so a value containing a
 /// quote round-trips. Whitespace between tokens is skipped.
 parse_quoted_strings :: fn(s: string) -> string[] {
-    out: string[] = []
+    out: string[]! = []
     sb :: s.bytes()
     n :: sb.len()
     i: usize = 0
@@ -427,8 +427,8 @@ parse_agg_decl :: fn(payload: string, strings: string[]) -> bc.BcAggregateData {
     }
     element_type_name :: tokens[0]
     count :: token_to_int(tokens[1])
-    pos: i32[] = [2]
-    elements: bc.BcDataValue[] = []
+    pos: i32[]! = [2]
+    elements: bc.BcDataValue[]! = []
     for _ in 0..<count { elements.push(parse_data_value(tokens, pos, strings)) }
     return bc.BcAggregateData { .element_type_name = element_type_name, .elements = elements }
 }
@@ -448,10 +448,10 @@ parse_structs_decl :: fn(payload: string, strings: string[]) -> bc.BcAggregateDa
     symbol_id :: token_to_int(tokens[0])
     nfields :: token_to_int(tokens[1])
     count :: token_to_int(tokens[2])
-    pos: i32[] = [3]
-    elements: bc.BcDataValue[] = []
+    pos: i32[]! = [3]
+    elements: bc.BcDataValue[]! = []
     for _ in 0..<count {
-        fields: bc.BcDataValue[] = []
+        fields: bc.BcDataValue[]! = []
         for _ in 0..<nfields { fields.push(parse_data_value(tokens, pos, strings)) }
         elements.push(bc.BcValStruct { .symbol_id = symbol_id, .fields = fields })
     }
@@ -471,14 +471,14 @@ parse_data_value :: fn(tokens: string[], pos: i32[]!, strings: string[]) -> bc.B
     if tag == "struct" {
         symbol_id :: token_to_int(take_token(tokens, pos))
         nfields :: token_to_int(take_token(tokens, pos))
-        fields: bc.BcDataValue[] = []
+        fields: bc.BcDataValue[]! = []
         for _ in 0..<nfields { fields.push(parse_data_value(tokens, pos, strings)) }
         return bc.BcValStruct { .symbol_id = symbol_id, .fields = fields }
     }
     if tag == "array" {
         element_type_name :: take_token(tokens, pos)
         n :: token_to_int(take_token(tokens, pos))
-        elems: bc.BcDataValue[] = []
+        elems: bc.BcDataValue[]! = []
         for _ in 0..<n { elems.push(parse_data_value(tokens, pos, strings)) }
         return bc.BcValArray { .element_type_name = element_type_name, .elements = elems }
     }
@@ -506,7 +506,7 @@ token_to_int :: fn(s: string) -> i32 {
 
 // Quoted-aware whitespace tokeniser : a `"…"` run (escape-decoded) is one token.
 tokenize_agg :: fn(s: string) -> string[] {
-    out: string[] = []
+    out: string[]! = []
     sb :: s.bytes()
     n :: sb.len()
     i: usize = 0
@@ -551,8 +551,8 @@ parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature {
     lb :: line.bytes()
     open :: line.index_of('(', 0)
     close :: line.index_of(')', 0)
-    params: bc.ValType[] = []
-    param_types: i32[] = []
+    params: bc.ValType[]! = []
+    param_types: i32[]! = []
     if open >= 0 && close >= 0 && close > open + 1 {
         inner :: lb[usize(open) + 1..<usize(close)].bytes_to_string()
         for p in inner.split(",") {
@@ -649,9 +649,9 @@ reduce_main_index :: fn(funcs: bc.BcFunction[]) -> i32 {
 }
 
 reduce_data_pool :: fn(entries: bc.BcDataEntry[], types: bc.BcType[]) -> ArrayVal[] {
-    out: ArrayVal[] = []
+    out: ArrayVal[]! = []
     for e in entries {
-        elements: Value[] = []
+        elements: Value[]! = []
         if e is bc.BcStrData as sd {
             for v in sd.values { elements.push(StringVal { .value = v }) }
         } else if e is bc.BcPrimData as pd {
@@ -671,12 +671,12 @@ bc_value_to_vm :: fn(v: bc.BcDataValue, types: bc.BcType[]) -> Value {
     if v is bc.BcValStr as s { return StringVal { .value = s.value } }
     if v is bc.BcValPrim as p { return value_from_bits(p.kind, p.bits) }
     if v is bc.BcValStruct as st {
-        fields: Value[] = []
+        fields: Value[]! = []
         for f in st.fields { fields.push(bc_value_to_vm(f, types)) }
         return StructVal { .type_id = type_id_for_symbol(types, st.symbol_id), .fields = fields }
     }
     if v is bc.BcValArray as a {
-        elems: Value[] = []
+        elems: Value[]! = []
         for e in a.elements { elems.push(bc_value_to_vm(e, types)) }
         return ArrayVal { .type_id = 0, .elements = elems, .offset = 0, .length = elems.len() }
     }

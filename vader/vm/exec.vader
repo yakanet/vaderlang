@@ -250,7 +250,7 @@ slot_set :: fn(frame: Frame!, slot: usize, value: Value) -> void = match value {
 /// Materialise stack values `[start, endx)` as a boxed `Value[]` for the call /
 /// host boundaries (`build_callee_frame`, `dispatch_import`).
 peek_range :: fn(frame: Frame, start: usize, endx: usize) -> Value[] {
-    out: Value[] = [] * (endx - start)
+    out: Value[]! = [] * (endx - start)
     for i in start..<endx { out.push(peek_val(frame, i)) }
     return out
 }
@@ -291,7 +291,7 @@ pop_frame :: fn(cursor: usize[]!) -> void {
 /// @param bc_mod  the running module — for fn names + the per-op `debug` table.
 /// @return        a `PauseCtx` snapshot safe to hand across the module boundary.
 build_pause_ctx :: fn(reason: string, frames: Frame[], count: usize, bc_mod: bc.BytecodeModule) -> PauseCtx {
-    projected: PauseFrame[] = []
+    projected: PauseFrame[]! = []
     i: i64 = i64(count) - 1
     for i >= 0 {
         f :: frames[usize(i)]
@@ -332,8 +332,8 @@ project_locals :: fn(f: Frame, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule
     // when the current pc is inside it (`optimize = false` gives each source
     // local its own slot, so the window ≈ its lexical scope). This hides
     // not-yet-declared locals and the `v` of already-finished sibling loops.
-    first: i32[] = [-1] * total_slots
-    last:  i32[] = [-1] * total_slots
+    first: i32[]! = [-1] * total_slots
+    last:  i32[]! = [-1] * total_slots
     for pc in 0..<fn_body.body.len() {
         s :: slot_touched_by(fn_body.body[pc])
         if s >= 0 && usize(s) < total_slots {
@@ -342,7 +342,7 @@ project_locals :: fn(f: Frame, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule
         }
     }
 
-    out: PauseVar[] = []
+    out: PauseVar[]! = []
     // Params live the whole frame — always shown, named from the signature
     // (`param_names`, empty on name-less paths → `arg<i>`).
     for p in 0..<param_count {
@@ -389,7 +389,7 @@ param_display_name :: fn(sig: bc.BcSignature, p: usize) -> string {
 // children. Depth-bounded (which also breaks cycles) ; arrays cap at
 // `DEBUG_MAX_ELEMS`.
 project_var :: fn(name: string, v: Value, bc_mod: bc.BytecodeModule, depth: i32) -> PauseVar {
-    children: PauseVar[] = []
+    children: PauseVar[]! = []
     if depth < DEBUG_MAX_DEPTH {
         if v is ArrayVal as a {
             shown :: if a.length > DEBUG_MAX_ELEMS { DEBUG_MAX_ELEMS } else { a.length }
@@ -407,8 +407,8 @@ project_var :: fn(name: string, v: Value, bc_mod: bc.BytecodeModule, depth: i32)
 // `BcStruct.fields` (falling back to `field<i>` if the entry isn't a struct or
 // is shorter than the value's field list).
 project_struct_fields :: fn(s: StructVal, bc_mod: bc.BytecodeModule, depth: i32) -> PauseVar[]! {
-    out: PauseVar[] = []
-    names: string[] = []
+    out: PauseVar[]! = []
+    names: string[]! = []
     if usize(s.type_id) < bc_mod.types.len() {
         entry :: bc_mod.types[usize(s.type_id)]
         if entry is bc.BcStruct as bs {
@@ -557,9 +557,9 @@ build_callee_frame :: fn(function_index: i32, callee: bc.BcFunction, caller: Fra
     // columns : no boxing, no materialisation, no per-slot decompose. Args
     // occupy `caller[arg_base ..]` ; `env` (closures) takes slot 0 ahead of them.
     total :: callee.signature.params.len() + callee.locals.len()
-    slots: Value[] = []
-    slot_payload: i64[] = []
-    slot_tag: StackTag[] = []
+    slots: Value[]! = []
+    slot_payload: i64[]! = []
+    slot_tag: StackTag[]! = []
     for _ in 0..<total {
         slots.push(NULL_VALUE)
         slot_payload.push(0)
@@ -598,9 +598,9 @@ build_callee_frame :: fn(function_index: i32, callee: bc.BcFunction, caller: Fra
 /// stack, so they are decomposed one-off through `slot_set`.
 build_entry_frame :: fn(function_index: i32, callee: bc.BcFunction, args: Value[]) -> Frame {
     total :: callee.signature.params.len() + callee.locals.len()
-    slots: Value[] = [NULL_VALUE] * total
-    slot_payload: i64[] = [0] * total
-    slot_tag: StackTag[] = [StackTag.Null] * total
+    slots: Value[]! = [NULL_VALUE] * total
+    slot_payload: i64[]! = [0] * total
+    slot_tag: StackTag[]! = [StackTag.Null] * total
     result :: Frame {
         .function_index = function_index,
         .slots          = slots,
@@ -763,7 +763,7 @@ intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
 }
 
 build_main_args :: fn(parameter_count: usize, host_argv: string[], string_array_type_id: i32) -> Value[] {
-    out: Value[] = []
+    out: Value[]! = []
     if parameter_count != 1 { return out }
     // Pushed per branch rather than through a joined local : the fallback is a fresh
     // literal (mutable) and `host_argv` is a read-only borrow, so a join would have
@@ -825,8 +825,8 @@ export exec_fn :: fn(state: VmState, mangled: string) -> VmResult {
 export exec_fn_value :: fn(state: VmState, mangled: string) -> ValueResult {
     idx :: state.fn_index_by_name[mangled]
     if !(idx is null) {
-        no_args: string[] = []
-        capture: Value[] = [zero_value()]
+        no_args: string[]! = []
+        capture: Value[]! = [zero_value()]
         outcome :: exec_entry(state, idx, no_args, capture, true, null)
         if outcome is Trap { return outcome }
         return ValueOk { .value = capture[0] }
@@ -917,8 +917,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
         return Trap { .message = "no entry function (index=${entry_index})" }
     }
 
-    frames: Frame[] = []
-    frame_count: usize[] = [0]
+    frames: Frame[]! = []
+    frame_count: usize[]! = [0]
     // 1-element box for the GC-collection counter — the Vader VM has no
     // arena, but `std/runtime.collect` / `collections` snippet tests just
     // need the counter to be present + monotonic. `dispatch_import`
@@ -927,13 +927,13 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     // Increments monotonically within this invocation only — the box is
     // discarded when `exec` returns, so cross-call persistence is not
     // implied. Snippet tests check `after - before == N` within one run.
-    gc_state: usize[] = [0]
+    gc_state: usize[]! = [0]
 
     // Async scheduler state, mirroring the C runtime's (invisible to the VM).
     // Index 0 = the virtual clock `now` ; indices 1.. = pending wake deadlines.
     // `dispatch_import` arms `sched_arm` (push) / `sched_park` (pop nearest +
     // advance now). Boxed for the same reason as `gc_state` ; per-invocation.
-    sched_state: usize[] = [0]
+    sched_state: usize[]! = [0]
 
     // The `string[]` ArrayType index — stamped onto every host-produced
     // string array (argv, `read_dir`, `split`) so `is string[]` narrows
@@ -1397,7 +1397,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // backing buffer so tail slots held by sibling views aren't
                 // clobbered. Owning arrays push in place.
                 if is_array_view(array_unwrap) {
-                    fresh: Value[] = [] * array_unwrap.length
+                    fresh: Value[]! = [] * array_unwrap.length
                     for j in 0..<array_unwrap.length {
                         fresh.push(array_unwrap.elements[array_unwrap.offset + j])
                     }
@@ -1498,7 +1498,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 count: usize = if count_unwrap.value < 0 { 0 } else { usize(count_unwrap.value) }
                 // No capacity concept in the VM (capacity is a native-only perf
                 // hint) : `[] * n` yields a length-0 array, `[v] * n` n copies.
-                repeated: Value[] = [] * (count * array_unwrap.length)
+                repeated: Value[]! = [] * (count * array_unwrap.length)
                 for _ in 0..<count {
                     for j in 0..<array_unwrap.length {
                         repeated.push(array_unwrap.elements[array_unwrap.offset + j])
@@ -1523,7 +1523,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if dst_unwrap is Trap { return dst_unwrap }
                 // Detach a view before growing (mirror of array.push).
                 if is_array_view(dst_unwrap) {
-                    fresh: Value[] = []
+                    fresh: Value[]! = []
                     for j in 0..<dst_unwrap.length {
                         fresh.push(dst_unwrap.elements[dst_unwrap.offset + j])
                     }
@@ -1564,7 +1564,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     return Trap { .message = "array.copy destination range out of bounds (dst must already be long enough) at pc=${frame.pc}" }
                 }
                 // Overlap-safe : snapshot the source window before writing.
-                window: Value[] = [] * n
+                window: Value[]! = [] * n
                 for j in 0..<n {
                     window.push(src_unwrap.elements[src_unwrap.offset + ss + j])
                 }
@@ -2735,7 +2735,7 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame!) -> Trap | null {
         return Trap { .message = "array.new type ${type_id} needs ${needed} initial element(s) but stack has ${frame.sp} at pc=${frame.pc}" }
     }
     arg_base :: frame.sp - needed
-    elements: Value[] = [] * needed
+    elements: Value[]! = [] * needed
     for element_index in 0..<needed {
         elements.push(peek_val(frame, arg_base + element_index))
     }
@@ -2772,7 +2772,7 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame!) -> Trap | nu
         return Trap { .message = "struct.new type ${type_id} needs ${field_count} field value(s) but stack has ${frame.sp} at pc=${frame.pc}" }
     }
     arg_base :: frame.sp - field_count
-    fields: Value[] = []
+    fields: Value[]! = []
     for field_index in 0..<field_count {
         // Narrow-typed field ⇒ truncate to width, mirroring a C narrow struct
         // field ; the literal's field value comes straight off the stack with no
@@ -2818,7 +2818,7 @@ build_object :: fn(type_id: i32, frame: Frame!, handle_cell: i32[]!) -> Trap | n
     if size_unwrap.value < 0 {
         return Trap { .message = "object_new size ${size_unwrap.value} is negative at pc=${frame.pc}" }
     }
-    bytes: u8[] = [] * usize(size_unwrap.value)
+    bytes: u8[]! = [] * usize(size_unwrap.value)
     for _ in 0..<usize(size_unwrap.value) {
         bytes.push(0)
     }
@@ -2986,7 +2986,7 @@ do_memory_copy :: fn(frame: Frame!) -> Trap | null {
     if dst_off + n > dst_unwrap.bytes.len() {
         return Trap { .message = "memory_copy dest range [${dst_off}, ${dst_off + n}) exceeds ${dst_unwrap.bytes.len()} at pc=${frame.pc}" }
     }
-    snapshot: u8[] = [] * n
+    snapshot: u8[]! = [] * n
     for i in 0..<n {
         snapshot.push(src_unwrap.bytes[src_off + i])
     }

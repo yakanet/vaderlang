@@ -3,13 +3,13 @@
 ## snippet
   struct snippet$Point { x: i32, y: i32 }
   fn snippet$main() -> i32
-    let labels: string[]! =
-      array :string[]!
+    let labels: string[] =
+      array :string[]
         "a" :string
         "b" :string
         "c" :string
-    let pts: Point![]! =
-      array :Point![]!
+    let pts: Point[] =
+      array :Point[]
         Point! {
           x: int(10) :i32
           y: int(1) :i32
@@ -23,8 +23,8 @@
           y: int(3) :i32
         }
     block :void
-      let self: string[]! = labels :string[]!
-      let other: Point![]! = pts :Point![]!
+      let self: string[] = labels :string[]
+      let other: Point[] = pts :Point[]
       let n: usize =
         if :usize
           cond:

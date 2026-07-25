@@ -191,7 +191,7 @@ export write_bool :: fn(self: Buffer, off: usize, b: bool) -> usize {
 /// @return   the 1–4 UTF-8 bytes encoding `c`.
 export utf8_encode :: fn(c: char) -> u8[] {
     cp :: u32(c)
-    out: u8[] = []
+    out: u8[]! = []
     if cp < 0x80 {
         out.push(u8(cp))
     } else if cp < 0x800 {

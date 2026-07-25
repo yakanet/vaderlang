@@ -35,10 +35,13 @@
               "name": "xs"
             },
             "type": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "i32"
+              "kind": "MutableTypeExpr",
+              "inner": {
+                "kind": "ArrayTypeExpr",
+                "element": {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
               }
             },
             "value": {
@@ -182,10 +185,13 @@
               "name": "ls"
             },
             "type": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "i64"
+              "kind": "MutableTypeExpr",
+              "inner": {
+                "kind": "ArrayTypeExpr",
+                "element": {
+                  "kind": "IdentExpr",
+                  "name": "i64"
+                }
               }
             },
             "value": {
@@ -293,10 +299,13 @@
               "name": "fs"
             },
             "type": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "f64"
+              "kind": "MutableTypeExpr",
+              "inner": {
+                "kind": "ArrayTypeExpr",
+                "element": {
+                  "kind": "IdentExpr",
+                  "name": "f64"
+                }
               }
             },
             "value": {
@@ -478,10 +487,13 @@
               "name": "ss"
             },
             "type": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "string"
+              "kind": "MutableTypeExpr",
+              "inner": {
+                "kind": "ArrayTypeExpr",
+                "element": {
+                  "kind": "IdentExpr",
+                  "name": "string"
+                }
               }
             },
             "value": {

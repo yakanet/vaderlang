@@ -6,7 +6,7 @@
   ConstDecl      SQUARES              :: u32[]
   expr 15:12    CallExpr       :: u32[]
   expr 15:12    IdentExpr      :: fn() -> u32[]
-  expr 18:16    SeqLitExpr     :: u32[]!
+  expr 18:17    SeqLitExpr     :: u32[]!
   expr 19:14    RangeExpr      :: Range<i32>!
   expr 20:16    CallExpr       :: u32
   expr 20:16    IdentExpr      :: type

@@ -2,8 +2,8 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let xs: f64[]! =
-      array :f64[]!
+    let xs: f64[] =
+      array :f64[]
         float(0.0) :f64
         float(1.0) :f64
         float(3.0) :f64
@@ -28,7 +28,7 @@
         neg :f64
           float(2.5) :f64
     block :void
-      let __for_arr_0: f64[]! = xs :f64[]!
+      let __for_arr_0: f64[] = xs :f64[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -36,7 +36,7 @@
         let x: f64 =
           index :f64
             on:
-              __for_arr_0 :f64[]!
+              __for_arr_0 :f64[]
             ix:
               __for_i_2 :usize
         call :void

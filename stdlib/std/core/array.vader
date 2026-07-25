@@ -51,7 +51,7 @@ export ArrayOps :: trait<T> {
 ///   rows: BlockId[][] = filled(block_count, () -> [])   // n DISTINCT arrays
 ///   seen :: filled(n, new_visited_set)                  // or a named factory
 export filled :: fn<T>(n: usize, make: fn() -> T) -> T[]! {
-    out: T[] = [] * n
+    out: T[]! = [] * n
     for 0..<n {
         out.push(make())
     }
@@ -70,7 +70,7 @@ export filled :: fn<T>(n: usize, make: fn() -> T) -> T[]! {
 ///   squares :: filled_indexed(n, (i) -> i32(i * i))
 ///   rows    :: filled_indexed(n, (i) -> Row { .id = i })
 export filled_indexed :: fn<T>(n: usize, make: fn(usize) -> T) -> T[]! {
-    out: T[] = [] * n
+    out: T[]! = [] * n
     for i in 0..<n {
         out.push(make(i))
     }

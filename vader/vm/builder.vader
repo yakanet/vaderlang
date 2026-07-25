@@ -193,7 +193,7 @@ export add_function :: fn(self: ModuleBuilder!, function: FunctionBuilder) -> i3
         .name = "_",
         .val = bc.ValType.Any
     })
-    debug: (bc.DebugPos | null)[] = [null] * function.ops.len()
+    debug: (bc.DebugPos | null)[]! = [null] * function.ops.len()
     self.functions.push(bc.BcFunction {
         .name       = function.name,
         .is_main    = false,

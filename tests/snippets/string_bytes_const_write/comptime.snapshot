@@ -29,4 +29,4 @@
   ArrayIterator<T>
 
 # Diagnostics
-[10:5] error[T3042] cannot mutate an immutable array: cannot mutate `u8[]`
+[10:5] error[T3042] cannot mutate an immutable array: cannot mutate `u8[]` — annotate `bs!` at tests/snippets/string_bytes_const_write/_main.vader:9:5

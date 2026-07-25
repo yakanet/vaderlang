@@ -4,11 +4,11 @@
   FnDecl         dup                  :: fn(T[]) -> T[]!
   FnDecl         main                 :: fn() -> i32
   StructDecl     Tag                  :: Tag!
-  expr 19:16    BinaryExpr     :: T[]!
-  expr 19:16    SeqLitExpr     :: T[]!
-  expr 19:21    CallExpr       :: usize
-  expr 19:21    FieldExpr      :: fn() -> usize
-  expr 19:21    IdentExpr      :: T[]
+  expr 19:17    BinaryExpr     :: T[]!
+  expr 19:17    SeqLitExpr     :: T[]!
+  expr 19:22    CallExpr       :: usize
+  expr 19:22    FieldExpr      :: fn() -> usize
+  expr 19:22    IdentExpr      :: T[]
   expr 20:18    IdentExpr      :: T[]
   expr 20:5     CallExpr       :: void
   expr 20:5     FieldExpr      :: fn(T[]) -> void

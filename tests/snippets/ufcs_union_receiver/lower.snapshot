@@ -190,11 +190,11 @@
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :i32
   fn snippet$main() -> i32
-    let a: Circle! | Square! =
+    let a: Circle | Square =
       Circle! {
         radius: int(5) :i32
       }
-    let b: Circle! | Square! =
+    let b: Circle | Square =
       Square! {
         side: int(4) :i32
       }
@@ -206,7 +206,7 @@
           callee:
             describe :string
           arg0:
-            a :Circle! | Square!
+            a :Circle | Square
     call :void
       callee:
         std_io$println__string :void
@@ -215,7 +215,7 @@
           callee:
             describe :string
           arg0:
-            b :Circle! | Square!
+            b :Circle | Square
     call :void
       callee:
         std_io$println__string :void
@@ -258,7 +258,7 @@
                       callee:
                         area :i32
                       arg0:
-                        a :Circle! | Square!
+                        a :Circle | Square
           ~>
             call :string
               callee:
@@ -309,7 +309,7 @@
                       callee:
                         area :i32
                       arg0:
-                        b :Circle! | Square!
+                        b :Circle | Square
           ~>
             call :string
               callee:

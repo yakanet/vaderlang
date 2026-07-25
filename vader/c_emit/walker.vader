@@ -42,7 +42,7 @@ emit_functions :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 /// `call.indirect` / `virtual.call`) ; transitive via any direct `call` to
 /// a fn already in the set.
 compute_may_alloc :: fn(fns: BcFunction[]) -> i32[] {
-    may_alloc: i32[] = []
+    may_alloc: i32[]! = []
     for fi in 0..<fns.len() {
         if fn_has_direct_alloc(fns[fi]) {
             may_alloc.push(i32(fi))
@@ -308,8 +308,8 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
     // skip the whole shadow-stack apparatus.
     // Two root lists (T12): box roots (`vader_box_t*`, for `.Any` slots) and raw
     // roots (`void**`, for `.Ref` concrete-ref slots — scanned via scan_raw).
-    root_addrs: string[] = []
-    raw_root_addrs: string[] = []
+    root_addrs: string[]! = []
+    raw_root_addrs: string[]! = []
     if !no_frame {
         params :: function.signature.params
         for i in 0..<params.len() {
@@ -344,7 +344,7 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
         // no-op) until its `StructNew` writes the real header + fields.
         nstack :: s.stack_storages.len()
         stack_expr :: if nstack > 0 { "gc_stack_objs" } else { "NULL" }
-        stack_addrs: string[] = []
+        stack_addrs: string[]! = []
         for ss in s.stack_storages {
             out.append("    ${ss.cname} ${ss.storage} = {0};\n")
             stack_addrs.push("(void*) &${ss.storage}")
@@ -383,8 +383,8 @@ emit_local_decls :: fn(
 ) -> void {
     locals :: function.locals
     param_count :: function.signature.params.len()
-    vals: ValType[] = []
-    names: string[] = []
+    vals: ValType[]! = []
+    names: string[]! = []
     for i in 0..<locals.len() {
         if locals[i].val == ValType.Void {
             continue
@@ -404,7 +404,7 @@ emit_tmp_decls :: fn(
     raw_root_addrs: string[]!,
     no_frame: bool,
 ) -> void {
-    names: string[] = []
+    names: string[]! = []
     for i in 0..<s.tmp_types.len() {
         names.push("t${i}")
     }
@@ -424,7 +424,7 @@ emit_slot_decls :: fn(
     raw_root_addrs: string[]!,
     no_frame: bool,
 ) -> void {
-    emitted: ValType[] = []
+    emitted: ValType[]! = []
     for i in 0..<vals.len() {
         val :: vals[i]
         if val in emitted {
@@ -452,7 +452,7 @@ emit_slot_decls :: fn(
                 }
             }
         } else {
-            group: string[] = []
+            group: string[]! = []
             for j in 0..<vals.len() {
                 if vals[j] == val {
                     if rooted {
@@ -1045,9 +1045,9 @@ ScopeInfo :: struct {
 /// live in `function.jump_table`, resolved against this table by
 /// `branch_target`.
 precompute_scopes :: fn(function: BcFunction) -> ScopeInfo[] {
-    scopes: ScopeInfo[] = []
-    open_pc: i32[] = []
-    open_kind: ScopeKind[] = []
+    scopes: ScopeInfo[]! = []
+    open_pc: i32[]! = []
+    open_kind: ScopeKind[]! = []
     body :: function.body
     for pc in 0..<body.len() {
         op :: body[pc]
@@ -1091,8 +1091,8 @@ BranchTargets :: struct {
 /// `br` / `br_if` targets (`function.jump_table` via `branch_target`), so a
 /// C label is emitted only where referenced (an unused label warns).
 precompute_branch_targets :: fn(function: BcFunction, scopes: ScopeInfo[]) -> BranchTargets {
-    continue_t: i32[] = []
-    break_t: i32[] = []
+    continue_t: i32[]! = []
+    break_t: i32[]! = []
     body :: function.body
     jump_table :: function.jump_table
     for pc in 0..<body.len() {
@@ -1268,7 +1268,7 @@ emit_call_to :: fn(s: FnState!, callee_name: string, sig: BcSignature) -> void {
     n :: i32(sig.params.len())
     // Top-of-stack is the last argument, so pop into `args` back-to-front :
     // pop #k lands in slot `n-1-k`, restoring source order for the join.
-    args: string[] = []
+    args: string[]! = []
     for _ in 0..<n {
         args.push("")
     }
@@ -1317,7 +1317,7 @@ emit_call_result :: fn(s: FnState!, call_expr: string, result: ValType) -> void 
 /// `virtual.call` tail).
 pop_args_boxed :: fn(s: FnState!, count: i32) -> string[] {
     types :: s.ctx.module.types
-    args: string[] = []
+    args: string[]! = []
     for _ in 0..<count {
         args.push("")
     }
@@ -1413,7 +1413,7 @@ emit_virtual_call :: fn(s: FnState!, op: vm.VirtualCall) -> void {
     recv_boxed :: coerce_expr(types, name_of(recv), val_of(recv), .Any)
     boxed :: pop_args_boxed(s, op.parameter_count - 1)
     sig :: vtable_sig_for_row(s.ctx, row)
-    all_args: string[] = [recv_boxed]
+    all_args: string[]! = [recv_boxed]
     for a in boxed {
         all_args.push(a)
     }
@@ -1470,8 +1470,8 @@ FnValueUsage :: struct {
 /// `make_closure` (need a lift wrapper). Indices are parallel to `fns`.
 scan_fn_value_usage :: fn(fns: BcFunction[]) -> FnValueUsage {
     n :: fns.len()
-    fn_ref_type: i32[] = []
-    is_closure: bool[] = []
+    fn_ref_type: i32[]! = []
+    is_closure: bool[]! = []
     for _ in 0..<n {
         fn_ref_type.push(-1)
         is_closure.push(false)
@@ -1601,7 +1601,7 @@ tramp_box_params :: fn(count: usize) -> string {
 /// Unbox `a0..a<n-1>` to the concrete `params` classes, comma-joined — the
 /// `fn.ref` trampoline's argument list (params map 1:1 to `a<j>`).
 tramp_unbox_args :: fn(params: ValType[]) -> string {
-    parts: string[] = []
+    parts: string[]! = []
     for j in 0..<params.len() {
         parts.push(unbox_expr("a${j}", params[j]))
     }
@@ -1611,7 +1611,7 @@ tramp_unbox_args :: fn(params: ValType[]) -> string {
 /// Unbox the lift wrapper's tail `a0..` to `params[1..]` (param 0 is the env
 /// slot, supplied as `env_box`), comma-joined.
 lift_unbox_tail :: fn(params: ValType[]) -> string {
-    parts: string[] = []
+    parts: string[]! = []
     for j in 1..<params.len() {
         parts.push(unbox_expr("a${j - 1}", params[j]))
     }
@@ -1662,7 +1662,7 @@ emit_type_check :: fn(s: FnState!, op: vm.TypeCheck) -> void {
             // `x is (A | B)` — a boxed value never carries a union's own tag, so
             // OR the per-variant checks (mirrors the VM's `union_matches`). This
             // makes `is <union>` correct on native, matching the VM.
-            parts: string[] = []
+            parts: string[]! = []
             for vid in u.variants {
                 parts.push(one_variant_check(s, tag_of(v), vid))
             }
@@ -1706,7 +1706,7 @@ one_variant_check :: fn(s: FnState, tag_expr: string, type_id: i32) -> string {
 // table (f32/f64 are representationally identical — see `one_variant_check`).
 // `0` (never matches) when the table has no float primitive.
 float_tag_check_expr :: fn(types: BcType[], tag_expr: string) -> string {
-    parts: string[] = []
+    parts: string[]! = []
     for i in 0..<types.len() {
         if types[i] is BcPrimitive as p {
             if is_float_val(p.val) {
@@ -1734,7 +1734,7 @@ struct_check_expr :: fn(types: BcType[], tag_expr: string, target_id: i32, targe
     if prefix == "" {
         return base
     }
-    parts: string[] = [base]
+    parts: string[]! = [base]
     for i in 0..<types.len() {
         if i32(i) == target_id {
             continue
@@ -1756,7 +1756,7 @@ struct_check_expr :: fn(types: BcType[], tag_expr: string, target_id: i32, targe
 /// like `Error` carry their own tag) plus every struct implementing the trait
 /// (the module's `impl_table`).
 trait_check_expr :: fn(ctx: EmitCtx, tag_expr: string, trait_name: string, ref_type_index: i32) -> string {
-    parts: string[] = ["(${tag_expr} == ${ref_type_index}u)"]
+    parts: string[]! = ["(${tag_expr} == ${ref_type_index}u)"]
     for entry in ctx.module.impl_table {
         if entry.trait_name == trait_name {
             parts.push("(${tag_expr} == ${entry.struct_type_index}u)")
@@ -1803,7 +1803,7 @@ emit_struct_new :: fn(s: FnState!, op: vm.StructNew) -> void {
         cname :: s.ctx.struct_c_names[usize(op.type_id)]
         n :: i32(st.fields.len())
         // Pop top-to-bottom : pop #k is the value for field `n-1-k`.
-        field_vals: string[] = []
+        field_vals: string[]! = []
         for _ in 0..<n {
             field_vals.push("")
         }
@@ -1958,7 +1958,7 @@ struct_all_ref :: fn(types: BcType[], st: BcStruct) -> bool {
 /// index, erases only the element → `[usize, Any]`). Returns [] when
 /// `struct_idx` is itself the erased form.
 find_erased_siblings :: fn(types: BcType[], struct_idx: i32) -> i32[] {
-    out: i32[] = []
+    out: i32[]! = []
     et :: types[usize(struct_idx)]
     if et is BcStruct as exp {
         if struct_all_ref(types, exp) {

@@ -29,11 +29,11 @@
   expr 55:30    IdentExpr      :: Wrapper<i32>!
   expr 56:20    CallExpr       :: i32
   expr 56:20    IdentExpr      :: fn(Cat | Wrapper<i32>) -> i32
-  expr 56:37    IdentExpr      :: Cat! | Wrapper<i32>!
+  expr 56:37    IdentExpr      :: Cat | Wrapper<i32>
   expr 58:30    IdentExpr      :: Cat!
   expr 59:24    CallExpr       :: i32
   expr 59:24    IdentExpr      :: fn(Cat | Wrapper<i32>) -> i32
-  expr 59:41    IdentExpr      :: Cat! | Wrapper<i32>!
+  expr 59:41    IdentExpr      :: Cat | Wrapper<i32>
   expr 62:12    BinaryExpr     :: i32
   expr 62:12    BinaryExpr     :: i32
   expr 62:12    BinaryExpr     :: i32

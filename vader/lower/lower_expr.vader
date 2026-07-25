@@ -390,7 +390,7 @@ export comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: 
         is VoidValue         -> { return LoweredUnreachable { .span = span, .type = type_hint, .reason = "comptime void value" } }
         is ArrayValue as av -> {
             element_type :: array_element_type(type_hint)
-            elements: LoweredExpr[] = []
+            elements: LoweredExpr[]! = []
             for e in av.elements { elements.push(comptime_value_to_lowered(e, element_type, span)) }
             return LoweredArrayLit { .span = span, .type = type_hint, .elements = elements }
         }
@@ -402,7 +402,7 @@ export comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: 
             // that matches the positional order ; for named structs
             // the same ordering keeps the dump stable.
             sorted_names :: sort(sv.fields.keys(), (a: string, b: string) -> compare_ascending(a, b))
-            fields: LoweredStructLitField[] = []
+            fields: LoweredStructLitField[]! = []
             for name in sorted_names {
                 val :: sv.fields[name]
                 if val !is null {
@@ -575,7 +575,7 @@ lower_coalesce_fallback :: fn(ctx: FnLowerCtx!, f: CoalesceFallback, result: Typ
 }
 
 coalesce_diverge_block :: fn(ctx: FnLowerCtx!, s: Stmt, result: Type) -> LoweredBlock {
-    stmts: LoweredStmt[] = []
+    stmts: LoweredStmt[]! = []
     lower_stmt_into(ctx, s, stmts)
     return LoweredBlock {
         .span = s.span, .type = result, .stmts = stmts,
@@ -645,7 +645,7 @@ arm_block :: fn(stmts: LoweredStmt[], span: Span) -> LoweredBlock =
 // `block.stmts` + a trailing `tmp = <block.trailing>` (skipped when the arm
 // diverges — a null trailing, e.g. an early `return`).
 assign_trailing_to :: fn(block: LoweredBlock, tmp: Symbol, type: Type, span: Span) -> LoweredStmt[] {
-    out: LoweredStmt[] = []
+    out: LoweredStmt[]! = []
     for s in block.stmts { out.push(s) }
     if block.trailing != null {
         out.push(LoweredAssign {
@@ -718,7 +718,7 @@ lower_then_with_binding :: fn(ctx: FnLowerCtx!, if_expr: IfExpr) -> LoweredBlock
             .span = bin.span, .name = bin.bind_as, .symbol = symbol,
             .type = inner_type, .value = cast_value,
         }
-        new_stmts: LoweredStmt[] = []
+        new_stmts: LoweredStmt[]! = []
         new_stmts.push(let_stmt)
         for s in block.stmts { new_stmts.push(s) }
         return LoweredBlock {

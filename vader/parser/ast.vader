@@ -966,7 +966,7 @@ export param_is_mutable :: fn(p: FnParam) -> bool = p.mutable || type_expr_marks
 /// single-element list. Used by `vader/fmt` and `vader/typecheck` to
 /// avoid hand-rolling the same recursion on each side.
 export collect_bitor_variants :: fn(e: Expr) -> Expr[] {
-    out: Expr[] = []
+    out: Expr[]! = []
     append_bitor_variants(e, out)
     return out
 }

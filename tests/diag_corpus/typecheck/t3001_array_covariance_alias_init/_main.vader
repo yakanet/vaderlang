@@ -2,12 +2,13 @@
 // are reference-aliased (SPEC §Arrays), so a write through the wider alias
 // (`b[0] = "hello"`) would store a string into the shared i32 buffer —
 // corruption on native, a VM trap. Mutable arrays are element-invariant;
-// covariance is reserved for the `const T[]` (read-only) case. T3001.
+// covariance is reserved for the read-only case, which is why both slots
+// carry `!` here — unmarked, they would be read-only and the init legal.
 module "snippet"
 
 main :: fn() -> i32 {
-    a: i32[] = [1, 2, 3]
-    b: (i32 | string)[] = a
+    a: i32[]! = [1, 2, 3]
+    b: (i32 | string)[]! = a
     b[0] = "hello"
     return 0
 }

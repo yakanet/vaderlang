@@ -230,7 +230,7 @@ walk_stmt :: fn(
             // (an outer closure capturing through a defer body still needs the
             // heap-promotion).
             defer_scope :: empty_scope()
-            defer_captures: Capture[] = []
+            defer_captures: Capture[]! = []
             defer_seen :: MutableSet<i32> {}
             match defer_stmt.body {
                 is AST.DeferStmtBody as dsb -> { walk_stmt(dsb.stmt, defer_scope, defer_captures, defer_seen, ctx) }
@@ -554,7 +554,7 @@ process_lambda :: fn(
     outer_captures: Capture[]! | null, outer_seen: MutableSet<i32>! | null, ctx: WalkCtx!,
 ) -> void {
     own_scope :: collect_owned_scope_for_params(lambda.params, ctx.symbol_index)
-    captures: Capture[] = []
+    captures: Capture[]! = []
     seen :: empty_scope()
     walk_body(lambda.body, own_scope, captures, seen, ctx)
 

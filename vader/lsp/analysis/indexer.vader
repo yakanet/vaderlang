@@ -109,9 +109,9 @@ export LoopJump :: struct {
 export build_index :: fn(uri: string, source: string, encoding: PositionEncoding) -> DocIndex {
     parsed :: parse_source(source, uri)
     cmap :: scan_comments(source)
-    entries: DeclEntry[] = []
-    imports: ImportEntry[] = []
-    wildcard_paths: string[] = []
+    entries: DeclEntry[]! = []
+    imports: ImportEntry[]! = []
+    wildcard_paths: string[]! = []
     for d in parsed.program.decls {
         collect_decl(d, source, cmap, entries, imports, wildcard_paths)
     }
@@ -136,7 +136,7 @@ LjFrame :: struct { span: Span, binding: string | null, label: string | null }
 /// descended (a jump there can't target an enclosing loop) ; unresolved jumps
 /// (outside any loop, or a name matching nothing) are simply not recorded.
 collect_loop_jumps :: fn(decls: Decl[]) -> LoopJump[] {
-    out: LoopJump[] = []
+    out: LoopJump[]! = []
     for d in decls { lj_decl(d, out) }
     return out
 }
@@ -152,7 +152,7 @@ lj_decl :: fn(d: Decl, out: LoopJump[]!) -> void {
 
 lj_fn_body :: fn(body: BlockExpr | null, out: LoopJump[]!) -> void {
     if body is BlockExpr as b {
-        stack: LjFrame[] = []
+        stack: LjFrame[]! = []
         lj_block(b, stack, out)
     }
 }

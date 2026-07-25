@@ -110,7 +110,7 @@ export collect_module_no_index :: fn(
     program: Program, module_path: string, factory: SymbolFactory!,
 ) -> CollectedModule {
     empty_index :: MutableMap<string, DiscoveredModule> {}
-    discard: Diagnostic[] = []
+    discard: Diagnostic[]! = []
     no_paths: IncludePath[] = []
     return collect_module(program, module_path, module_path, factory, empty_index, no_paths, discard)
 }
@@ -246,7 +246,7 @@ collect_import :: fn(
             if de.names.len() == 0 {
                 diags.push(warning(.EmptyImportModifierList, d.span, "`${d.path}`"))
             }
-            excluded: string[] = []
+            excluded: string[]! = []
             for n in de.names {
                 match n.alias {
                     is null -> {

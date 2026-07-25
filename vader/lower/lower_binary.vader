@@ -98,7 +98,7 @@ lower_binary :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredE
             if back != null { find_impl_member_for(ctx, back, METHOD_CONTAINS) } else { direct }
         }
         if member is UfcsMember as found {
-            args: LoweredExpr[] = []
+            args: LoweredExpr[]! = []
             args.push(lower_expr(ctx, binary.right))
             args.push(lower_expr(ctx, binary.left))
             call :: LoweredCall {
@@ -151,7 +151,7 @@ lower_binary :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredE
     // `string + string` case (user-struct `Add` and `T`/`Any` receivers were
     // handled by `try_lower_op_overload` above).
     if binary.op == BinaryOp.Add && is_string_type(type) {
-        operands: LoweredExpr[] = []
+        operands: LoweredExpr[]! = []
         collect_concat_operands(ctx, binary.left, operands)
         collect_concat_operands(ctx, binary.right, operands)
         return lower_concat_chain(ctx, operands, binary.span)
@@ -237,7 +237,7 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) ->
         if member is UfcsMember as found {
             lowered_left  :: lower_expr(ctx, binary.left)
             lowered_right :: lower_expr(ctx, binary.right)
-            call_args: LoweredExpr[] = []
+            call_args: LoweredExpr[]! = []
             call_args.push(lowered_left)
             call_args.push(lowered_right)
             if oti.shape == OpShape.DirectCall {
@@ -295,7 +295,7 @@ lower_op_overload_via_vcall :: fn(
 ) -> LoweredExpr | null {
     lowered_left  :: lower_expr(ctx, binary.left)
     lowered_right :: lower_expr(ctx, binary.right)
-    args: LoweredExpr[] = []
+    args: LoweredExpr[]! = []
     args.push(lowered_right)
     // Erased op-trait dispatch (`T`/`Any` operand) : surface every primitive
     // implementor of the op-trait — see `virtually_dispatched_traits`.

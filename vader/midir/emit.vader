@@ -41,10 +41,10 @@ import "vader/resolver/symbol"
 reserve_cfg_function :: fn(cfg_fn: CFGFunction, ctx: EmitterCtx!) -> void {
     signature :: build_cfg_signature(cfg_fn.params, cfg_fn.return_type, ctx)
     function_index :: i32(ctx.functions.len())
-    empty_body: Op[] = []
-    empty_debug: (DebugPos | null)[] = []
-    empty_jump_table: i32[] = []
-    empty_locals: BcLocal[] = []
+    empty_body: Op[]! = []
+    empty_debug: (DebugPos | null)[]! = []
+    empty_jump_table: i32[]! = []
+    empty_locals: BcLocal[]! = []
     ctx.functions.push(BcFunction { .name = cfg_fn.mangled, .is_main = cfg_fn.origin.is_main, .signature = signature, .locals = empty_locals, .body = empty_body, .debug = empty_debug, .jump_table = empty_jump_table })
     if cfg_fn.origin.symbol is Symbol as sym {
         ctx.function_index_by_symbol_id[sym.id] = function_index
@@ -82,11 +82,11 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx!) -> vo
         // lands on a real op rather than an unbound host import ; genuine host
         // shims (`string` FNV `Hash`) forward via `call.import`.
         body :: build_intrinsic_wrapper_body(imp, import_index)
-        debug: (DebugPos | null)[] = []
+        debug: (DebugPos | null)[]! = []
         for _d in 0..<body.len() { debug.push(null) }
-        jump_table: i32[] = []
+        jump_table: i32[]! = []
         for _j in 0..<body.len() { jump_table.push(-1) }
-        no_locals: BcLocal[] = []
+        no_locals: BcLocal[]! = []
         fn_index :: i32(ctx.functions.len())
         ctx.functions.push(BcFunction { .name = "${imp.mangled_name}_vt", .is_main = false, .signature = imp.signature, .locals = no_locals, .body = body, .debug = debug, .jump_table = jump_table })
         ctx.function_index_by_mangle[imp.mangled_name] = fn_index
@@ -133,7 +133,7 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
             ctx.type_key[key] = idx
             ctx.types.push(BcRef { .trait_name = s.mangled })
         }
-        fields: BcField[] = []
+        fields: BcField[]! = []
         for f in s.fields {
             type_index :: intern_type(f.type, ctx)
             fields.push(BcField { .name = f.name, .type_index = type_index })
@@ -147,7 +147,7 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
     // intern dance for symmetry with the symbol-bearing branch.
     new_index :: i32(ctx.types.len())
     ctx.types.push(BcRef { .trait_name = s.mangled })
-    fields: BcField[] = []
+    fields: BcField[]! = []
     for f in s.fields {
         type_index :: intern_type(f.type, ctx)
         fields.push(BcField { .name = f.name, .type_index = type_index })
@@ -157,9 +157,9 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
 }
 
 build_cfg_signature :: fn(params: CFGParam[], return_type: Type, ctx: EmitterCtx!) -> BcSignature {
-    params_val: ValType[] = []
-    param_types: i32[] = []
-    param_names: string[] = []
+    params_val: ValType[]! = []
+    param_types: i32[]! = []
+    param_names: string[]! = []
     for p in params {
         params_val.push(val_type_of_type(p.type))
         param_types.push(intern_type(p.type, ctx))
@@ -207,7 +207,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     // via `CallImport`. Mirror of vader/bytecode/emit.vader::synthesise_intrinsic_wrappers.
     synthesise_cfg_intrinsic_wrappers(cfg, ctx)
     // Pre-translate CFG string indices into bytecode pool indices.
-    string_index_map: i32[] = []
+    string_index_map: i32[]! = []
     for s in cfg.strings { string_index_map.push(intern_string(s, ctx)) }
     // Intern each pooled `const string[]`'s values into the module string table
     // so the comptime atom table (built from `module.strings`) covers them — the
@@ -315,7 +315,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
                 if op is VirtualCall as v { used_vt_keys[v.vtable_key] = true }
             }
         }
-        vtable_roots: i32[] = []
+        vtable_roots: i32[]! = []
         for ve in cfg.vtable_entries {
             key :: "${ve.trait_name}.${ve.method_name}"
             if used_vt_keys[key] !is bool { continue }
@@ -374,7 +374,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx!
         }
     }
     rows_by_key: MutableMap<string, usize> = MutableMap<string, usize> {}
-    out: VtableRow[] = []
+    out: VtableRow[]! = []
     for ve in entries {
         key :: "${ve.trait_name}.${ve.method_name}"
         if used_keys[key] !is bool { continue }
@@ -386,7 +386,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx!
             out[ei].entries.push(BcVtableEntry { .receiver_type_index = receiver_idx, .fn_index = fn_idx })
         } else {
             new_idx :: out.len()
-            entries_arr: BcVtableEntry[] = []
+            entries_arr: BcVtableEntry[]! = []
             entries_arr.push(BcVtableEntry { .receiver_type_index = receiver_idx, .fn_index = fn_idx })
             out.push(VtableRow { .key = key, .entries = entries_arr })
             rows_by_key[key] = new_idx
@@ -400,7 +400,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx!
 // legacy assemble_module. Yields one BcImplEntry per (struct_type_index,
 // trait_name) seen in the vtable entries.
 build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: MutableMap<i32, string[]>, ctx: EmitterCtx) -> BcImplEntry[] {
-    out: BcImplEntry[] = []
+    out: BcImplEntry[]! = []
     seen :: MutableMap<string, bool> {}
     for entry in entries {
         // Only honour vtable entries whose receiver struct is *already*
@@ -513,14 +513,14 @@ emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx!,
     // Open this function's per-call type-pin bucket (see `pinned_types_by_fn`) ;
     // the same array is cached on `fn_ctx.pinned_types_bucket` below so the
     // per-call emit appends to it directly (no per-op map lookup).
-    pins_bucket: i32[] = []
+    pins_bucket: i32[]! = []
     ctx.pinned_types_by_fn[fn_idx] = pins_bucket
     // Map CFG locals to bytecode slots. Params take slots 0..N-1 ;
     // additional locals get fresh slots indexed AFTER the params.
     // (slot.locals only contains the non-param locals — params live
     // in signature.params — so the surviving slot indices need the
     // n_params offset added when pushing.)
-    local_to_slot: i32[] = []
+    local_to_slot: i32[]! = []
     n_params :: cfg_fn.params.len()
     for i in 0..<cfg_fn.locals.len() {
         if i < n_params {
@@ -580,7 +580,7 @@ cf_end :: fn(ctx: FnEmitCfg!, span: Span) -> void {
     if sp == 0 { return }
     top :: ctx.scopes[sp - 1]
     // Pop top scope.
-    new_scopes: ScopeFrame[] = []
+    new_scopes: ScopeFrame[]! = []
     for j in 0..<sp - 1 {
         new_scopes.push(ctx.scopes[j])
     }
@@ -634,7 +634,7 @@ defer_or_resolve_branch :: fn(ctx: FnEmitCfg!, target_blk: BlockId, pc: i32) -> 
 
 drain_pending :: fn(ctx: FnEmitCfg!, target_blk: BlockId, is_loop: bool, opener_pc: i32, end_pc: i32) -> void {
     resolved_pc :: if is_loop { opener_pc + 1 } else { end_pc + 1 }
-    kept: PendingBranch[] = []
+    kept: PendingBranch[]! = []
     for entry in ctx.pending {
         if entry.target_blk == target_blk {
             ctx.slot.jump_table[usize(entry.branch_pc)] = resolved_pc

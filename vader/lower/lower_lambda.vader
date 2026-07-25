@@ -71,7 +71,7 @@ lookup_captures :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr) -> Capture[] {
 }
 
 build_env_struct_fields :: fn(captures: Capture[]) -> LoweredStructField[] {
-    fields: LoweredStructField[] = []
+    fields: LoweredStructField[]! = []
     for i in 0..<captures.len() {
         fields.push(LoweredStructField { .name = "cap_${i}", .type = TY_UNRESOLVED })
     }
@@ -79,7 +79,7 @@ build_env_struct_fields :: fn(captures: Capture[]) -> LoweredStructField[] {
 }
 
 build_env_lit_fields :: fn(span: Span, captures: Capture[]) -> LoweredStructLitField[] {
-    fields: LoweredStructLitField[] = []
+    fields: LoweredStructLitField[]! = []
     for i in 0..<captures.len() {
         capture :: captures[i]
         fields.push(LoweredStructLitField { .name = "cap_${i}", .value = LoweredIdent { .span = span, .type = capture.type, .symbol = capture.symbol } })
@@ -96,7 +96,7 @@ build_capture_fields_map :: fn(captures: Capture[]) -> MutableMap<i32, string> {
 }
 
 build_lifted_params :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr, env_param_symbol: Symbol, env_type: Type) -> LoweredParam[] {
-    params: LoweredParam[] = []
+    params: LoweredParam[]! = []
     params.push(LoweredParam { .name = env_param_symbol.name, .symbol = env_param_symbol, .type = env_type })
     for ast_param in lambda.params {
         symbol :: find_param_symbol(ctx, ast_param)

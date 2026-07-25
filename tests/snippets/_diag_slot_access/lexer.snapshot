@@ -23,14 +23,15 @@
 [16:9-16:12 ] ident          "i32"
 [16:12-16:13] lbracket       "["
 [16:13-16:14] rbracket       "]"
-[16:15-16:16] assign         "="
-[16:17-16:18] lbracket       "["
-[16:18-16:19] int_literal    "1" =1n
-[16:19-16:20] comma          ","
-[16:21-16:22] int_literal    "2" =2n
-[16:22-16:23] comma          ","
-[16:24-16:25] int_literal    "3" =3n
-[16:25-16:26] rbracket       "]"
+[16:14-16:15] bang           "!"
+[16:16-16:17] assign         "="
+[16:18-16:19] lbracket       "["
+[16:19-16:20] int_literal    "1" =1n
+[16:20-16:21] comma          ","
+[16:22-16:23] int_literal    "2" =2n
+[16:23-16:24] comma          ","
+[16:25-16:26] int_literal    "3" =3n
+[16:26-16:27] rbracket       "]"
 [17:1-17:1  ] newline        "\n"
 [17:5-17:7  ] ident          "xs"
 [17:7-17:8  ] lbracket       "["
@@ -79,14 +80,15 @@
 [21:9-21:12 ] ident          "i64"
 [21:12-21:13] lbracket       "["
 [21:13-21:14] rbracket       "]"
-[21:15-21:16] assign         "="
-[21:17-21:18] lbracket       "["
-[21:18-21:20] int_literal    "10" =10n
-[21:20-21:21] comma          ","
-[21:22-21:24] int_literal    "20" =20n
-[21:24-21:25] comma          ","
-[21:26-21:28] int_literal    "30" =30n
-[21:28-21:29] rbracket       "]"
+[21:14-21:15] bang           "!"
+[21:16-21:17] assign         "="
+[21:18-21:19] lbracket       "["
+[21:19-21:21] int_literal    "10" =10n
+[21:21-21:22] comma          ","
+[21:23-21:25] int_literal    "20" =20n
+[21:25-21:26] comma          ","
+[21:27-21:29] int_literal    "30" =30n
+[21:29-21:30] rbracket       "]"
 [22:1-22:1  ] newline        "\n"
 [22:5-22:7  ] ident          "ls"
 [22:7-22:8  ] lbracket       "["
@@ -121,12 +123,13 @@
 [26:9-26:12 ] ident          "f64"
 [26:12-26:13] lbracket       "["
 [26:13-26:14] rbracket       "]"
-[26:15-26:16] assign         "="
-[26:17-26:18] lbracket       "["
-[26:18-26:21] float_literal  "1.5" =1.5
-[26:21-26:22] comma          ","
-[26:23-26:26] float_literal  "2.5" =2.5
-[26:26-26:27] rbracket       "]"
+[26:14-26:15] bang           "!"
+[26:16-26:17] assign         "="
+[26:18-26:19] lbracket       "["
+[26:19-26:22] float_literal  "1.5" =1.5
+[26:22-26:23] comma          ","
+[26:24-26:27] float_literal  "2.5" =2.5
+[26:27-26:28] rbracket       "]"
 [27:1-27:1  ] newline        "\n"
 [27:5-27:7  ] ident          "fs"
 [27:7-27:8  ] lbracket       "["
@@ -187,16 +190,17 @@
 [35:9-35:15 ] ident          "string"
 [35:15-35:16] lbracket       "["
 [35:16-35:17] rbracket       "]"
-[35:18-35:19] assign         "="
-[35:20-35:21] lbracket       "["
-[35:21-35:22] string_begin   "\""
-[35:22-35:23] string_part    "a" ="a"
-[35:23-35:24] string_end     "\""
-[35:24-35:25] comma          ","
-[35:26-35:27] string_begin   "\""
-[35:27-35:28] string_part    "b" ="b"
-[35:28-35:29] string_end     "\""
-[35:29-35:30] rbracket       "]"
+[35:17-35:18] bang           "!"
+[35:19-35:20] assign         "="
+[35:21-35:22] lbracket       "["
+[35:22-35:23] string_begin   "\""
+[35:23-35:24] string_part    "a" ="a"
+[35:24-35:25] string_end     "\""
+[35:25-35:26] comma          ","
+[35:27-35:28] string_begin   "\""
+[35:28-35:29] string_part    "b" ="b"
+[35:29-35:30] string_end     "\""
+[35:30-35:31] rbracket       "]"
 [36:1-36:1  ] newline        "\n"
 [36:5-36:7  ] ident          "ss"
 [36:7-36:8  ] lbracket       "["

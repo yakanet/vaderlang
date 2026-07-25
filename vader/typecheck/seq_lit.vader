@@ -88,7 +88,7 @@ infer_against_tuple :: fn(
         // Best-effort : check overlapping slots against their per-slot
         // expected types so cascading errors stay minimal.
         n :: min(tup.elements.len(), e.elements.len())
-        elem_types: Type[] = []
+        elem_types: Type[]! = []
         for i in 0..<n {
             elem_types.push(check_expr_fn(e.elements[i], tup.elements[i], typed, diags))
         }
@@ -97,7 +97,7 @@ infer_against_tuple :: fn(
         }
         return mk_tuple(default_each(elem_types), false)
     }
-    elem_types: Type[] = []
+    elem_types: Type[]! = []
     for i in 0..<e.elements.len() {
         slot :: tup.elements[i]
         got :: check_expr_fn(e.elements[i], slot, typed, diags)
@@ -237,7 +237,7 @@ expect_seq :: fn(src: string) -> ExpectedSeq {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     result :: check_module(parsed.program, rm, factory, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
@@ -272,7 +272,7 @@ synthetic_seq :: fn() -> AST.SeqLitExpr {
 test_seq_homogeneous_int_returns_array :: fn() -> void {
     src :: "f :: fn() -> i32[] { return [1, 2, 3] }"
     es :: expect_seq(src)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     ty :: infer_seq_lit(es.sl, null, es.typed, diags, seq_lit_check_stub)
     assert_eq(display_type(ty), "i32[]!")
 }
@@ -281,7 +281,7 @@ test_seq_homogeneous_int_returns_array :: fn() -> void {
 test_seq_heterogeneous_returns_tuple :: fn() -> void {
     src :: "f :: fn() -> [i32, string] { return [1, \"two\"] }"
     es :: expect_seq(src)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     ty :: infer_seq_lit(es.sl, null, es.typed, diags, seq_lit_check_stub)
     assert_eq(display_type(ty), "[i32, string]!")
 }
@@ -290,7 +290,7 @@ test_seq_heterogeneous_returns_tuple :: fn() -> void {
 test_seq_with_expected_array_narrows :: fn() -> void {
     src :: "f :: fn() -> i64[] { return [1, 2, 3] }"
     es :: expect_seq(src)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     expected: Type = mk_array(mk_primitive("i64"), false)
     ty :: infer_seq_lit(es.sl, expected, es.typed, diags, seq_lit_check_stub)
     assert_eq(display_type(ty), "i64[]!")
@@ -300,7 +300,7 @@ test_seq_with_expected_array_narrows :: fn() -> void {
 test_seq_empty_with_array_expected :: fn() -> void {
     src :: "f :: fn() -> i32[] { return [] }"
     es :: expect_seq(src)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     expected: Type = mk_array(mk_primitive("i32"), false)
     ty :: infer_seq_lit(es.sl, expected, es.typed, diags, seq_lit_check_stub)
     assert_eq(display_type(ty), "i32[]!")
@@ -310,7 +310,7 @@ test_seq_empty_with_array_expected :: fn() -> void {
 test_seq_tuple_arity_mismatch_emits_T3001 :: fn() -> void {
     src :: "f :: fn() -> [i32, i32] { return [1, 2, 3] }"
     es :: expect_seq(src)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     expected: Type = mk_tuple([mk_primitive("i32"), mk_primitive("i32")], false)
     infer_seq_lit(es.sl, expected, es.typed, diags, seq_lit_check_stub)
     found := false

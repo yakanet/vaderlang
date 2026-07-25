@@ -12,8 +12,8 @@
               temp_dir :fn() -> string
         arg1:
           "/vader_ppm_roundtrip.ppm" :string
-    let px: u8[]! =
-      array :u8[]!
+    let px: u8[] =
+      array :u8[]
         int(0) :u8
         int(128) :u8
         int(255) :u8
@@ -31,7 +31,7 @@
         width: int(2) :u32
         height: int(2) :u32
         maxval: int(255) :u32
-        pixels: px :u8[]!
+        pixels: px :u8[]
       }
     let enc: PpmError | u8[] =
       call :PpmError | u8[]
@@ -164,7 +164,7 @@
               r:
                 index :u8
                   on:
-                    px :u8[]!
+                    px :u8[]
                   ix:
                     i :usize
           then:

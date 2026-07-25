@@ -52,7 +52,7 @@ export dump_program_with_others :: fn(
     if with_banner {
         sb.append("# Typecheck")
     }
-    sections: TypedProgram[] = [typed]
+    sections: TypedProgram[]! = [typed]
     for o in others {
         sections.push(o)
     }
@@ -84,7 +84,7 @@ build_decl_lines :: fn(typed: TypedProgram) -> string[] {
     // overload separately ; for non-fn kinds the primary entry is
     // emitted directly.
     syms :: sort_syms_by_name(typed.resolved.symbols)
-    out: string[] = []
+    out: string[]! = []
     for s in syms {
         kind_str :: ast_decl_kind(s)
         if kind_str == "" {
@@ -119,7 +119,7 @@ sort_syms_by_name :: fn(syms: Symbol[]) -> Symbol[] {
 }
 
 build_expr_lines :: fn(typed: TypedProgram) -> string[] {
-    out: string[] = []
+    out: string[]! = []
     for [id, kind] in typed.expr_kinds {
         if is_skipped_kind(kind) {
             continue
@@ -193,7 +193,7 @@ dump_test :: fn(src: string) -> string {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     result :: check_module(parsed.program, rm, factory, diags)
     return dump_typed_program(result.typed, true)
 }

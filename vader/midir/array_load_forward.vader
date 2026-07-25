@@ -41,7 +41,7 @@ SlotVal :: struct {
 export array_load_forward_project :: fn(p: CFGProject) -> CFGProject {
     out :: MutableMap<string, CFGModule> {}
     for [id, m] in p.modules {
-        new_fns: CFGFunction[] = []
+        new_fns: CFGFunction[]! = []
         for f in m.functions { new_fns.push(forward_function(f)) }
         out[id] = CFGModule { ...m, .functions = new_fns }
     }
@@ -49,7 +49,7 @@ export array_load_forward_project :: fn(p: CFGProject) -> CFGProject {
 }
 
 forward_function :: fn(fn_: CFGFunction) -> CFGFunction {
-    new_blocks: BasicBlock[] = []
+    new_blocks: BasicBlock[]! = []
     for b in fn_.blocks {
         new_blocks.push(BasicBlock { ...b, .instructions = forward_block(b.instructions) })
     }
@@ -57,8 +57,8 @@ forward_function :: fn(fn_: CFGFunction) -> CFGFunction {
 }
 
 forward_block :: fn(instrs: Instruction[]) -> Instruction[] {
-    slots: SlotVal[] = []
-    out: Instruction[] = [] * instrs.len()
+    slots: SlotVal[]! = []
+    out: Instruction[]! = [] * instrs.len()
     for ins in instrs {
         // A redefinition of any tracked slot's array, index, or value local
         // invalidates that slot — the name now points elsewhere, or the value
@@ -102,7 +102,7 @@ lookup_slot :: fn(slots: SlotVal[], target: LocalId, index: LocalId) -> LocalId 
 // place (`a[i] = x ; x = x + 5`), after which forwarding it would read the new
 // value, not the one stored in the slot.
 drop_slots_using :: fn(slots: SlotVal[], d: LocalId) -> SlotVal[]! {
-    out: SlotVal[] = []
+    out: SlotVal[]! = []
     for s in slots {
         if s.target != d && s.index != d && s.value != d { out.push(s) }
     }

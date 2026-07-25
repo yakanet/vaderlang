@@ -23,10 +23,10 @@
       A! {
         value: int(1) :i32
       }
-    let c: C! = a :A!
+    let c: C = a :A!
     return
       .value :i32
-        c :C!
+        c :C
 
 # Diagnostics
-[21:5] error[T3001] type mismatch: expected C!, got A!
+[21:5] error[T3001] type mismatch: expected C, got A!

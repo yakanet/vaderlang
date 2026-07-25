@@ -97,7 +97,7 @@ seq_self_field_names :: fn(m: FnDecl) -> string[] | null {
     if body.stmts.len() != 0 { return null }
     trailing :: body.trailing ?? return null
     if trailing is SeqLitExpr as seq {
-        names: string[] = []
+        names: string[]! = []
         for el in seq.elements {
             name :: self_field_name(el)
             if name == "" { return null }
@@ -191,7 +191,7 @@ emit_rest_loop :: fn(
             .right = LoweredIntLit { .span = span, .type = mk_primitive("usize"), .value = 1 },
         },
     }
-    loop_stmts: LoweredStmt[] = []
+    loop_stmts: LoweredStmt[]! = []
     loop_stmts.push(push_stmt)
     loop_stmts.push(inc_stmt)
     loop_body :: LoweredBlock {

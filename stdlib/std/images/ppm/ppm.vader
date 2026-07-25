@@ -147,7 +147,7 @@ export decode :: fn(data: u8[]) -> Ppm | PpmError {
         return PpmError { .msg = "ppm: raster is ${raster_len} bytes, expected ${expected}" }
     }
 
-    pixels: u8[] = [] * raster_len
+    pixels: u8[]! = [] * raster_len
     pixels.push_all(data[raster_start..<data.len()])
     return Ppm { .width = w.value, .height = h.value, .maxval = mv.value, .pixels = pixels }
 }
@@ -173,7 +173,7 @@ export encode :: fn(img: Ppm) -> u8[] | PpmError {
 
     header :: "P6\n${img.width} ${img.height}\n${img.maxval}\n"
     hb :: header.bytes()
-    out: u8[] = [] * (hb.len() + img.pixels.len())
+    out: u8[]! = [] * (hb.len() + img.pixels.len())
     out.push_all(hb)
     out.push_all(img.pixels)
     return out
@@ -253,7 +253,7 @@ import "std/testing"
 
 @test test_decode_with_comment :: fn() -> void {
     src :: "P6\n# a comment\n2 1\n255\n"
-    full: u8[] = [] * (src.bytes().len() + 6)
+    full: u8[]! = [] * (src.bytes().len() + 6)
     full.push_all(src.bytes())
     tail: u8[] = [11, 22, 33, 44, 55, 66]
     full.push_all(tail)
@@ -275,7 +275,7 @@ import "std/testing"
 
 @test test_decode_rejects_size_mismatch :: fn() -> void {
     src :: "P6\n2 2\n255\n"
-    full: u8[] = [] * (src.bytes().len() + 3)
+    full: u8[]! = [] * (src.bytes().len() + 3)
     full.push_all(src.bytes())
     tail: u8[] = [1, 2, 3]
     full.push_all(tail)

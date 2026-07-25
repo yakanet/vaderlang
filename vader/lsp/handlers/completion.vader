@@ -55,7 +55,7 @@ export handle_completion :: fn(state: ServerState!, params: JsonValue) -> JsonVa
             line :: line0 + 1
             col  :: char0 + 1
 
-            items: JsonValue[] = []
+            items: JsonValue[]! = []
             seen :: MutableMap<string, bool> {}
 
             // The typed cache lets us show a binding's *inferred* type
@@ -237,7 +237,7 @@ member_completion :: fn(state: ServerState!, uri: string, line0: i32, dot_col: i
     if ns_mod != null {
         exports :: cached.result.typed.namespace_exports[ns_mod]
         if exports != null {
-            ns_items: JsonValue[] = []
+            ns_items: JsonValue[]! = []
             for [name, ty] in exports {
                 ns_items.push(completion_item(name, import_ci_kind(name), display_type(ty)))
             }
@@ -245,7 +245,7 @@ member_completion :: fn(state: ServerState!, uri: string, line0: i32, dot_col: i
         }
     }
 
-    items: JsonValue[] = []
+    items: JsonValue[]! = []
     seen :: MutableMap<string, bool> {}
 
     // Struct fields — look up the receiver type's decl in the project-wide
@@ -381,7 +381,7 @@ leading_dot_completion :: fn(decls: AST.Decl[], typed: TypedProgram, line: i32, 
     }
     // Otherwise an enum literal whose enum is reconstructed from context.
     et :: expected_enum_at(decls, line, col, typed) ?? return completion_list([])
-    items: JsonValue[] = []
+    items: JsonValue[]! = []
     for [name, _] in et.indices {
         items.push(completion_item(name, .Enum, ""))
     }
@@ -402,7 +402,7 @@ struct_lit_field_items :: fn(decls: AST.Decl[], typed: TypedProgram, line: i32, 
             if t is StructType as st {
                 decl :: typed.struct_decls[st.symbol.id] ?? return null
                 fmap :: typed.struct_field_types[st.symbol.id]
-                items: JsonValue[] = []
+                items: JsonValue[]! = []
                 for fld in decl.fields {
                     detail := ""
                     if fmap != null {
@@ -637,7 +637,7 @@ call_arg_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgr
 /// Declarations reachable at `(line, col)` : every file-wide decl plus the
 /// intra-file bindings whose `scope_span` covers the cursor. 1-based coords.
 visible_decls :: fn(idx: DocIndex, line: i32, col: i32) -> DeclEntry[] {
-    out: DeclEntry[] = []
+    out: DeclEntry[]! = []
     for d in idx.decls {
         ss :: d.scope_span
         if ss != null {

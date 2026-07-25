@@ -27,10 +27,13 @@
               "name": "arr"
             },
             "type": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "i32"
+              "kind": "MutableTypeExpr",
+              "inner": {
+                "kind": "ArrayTypeExpr",
+                "element": {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
               }
             },
             "value": {

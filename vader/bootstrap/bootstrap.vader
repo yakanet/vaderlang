@@ -95,7 +95,7 @@ write_out :: fn(path: string, content: string) -> i32 {
 // Concatenate two diagnostic bags into one list, preserving order
 // (`head` then `extra`).
 merge_diagnostics :: fn(head: Diagnostic[], extra: Diagnostic[]) -> Diagnostic[] {
-    all: Diagnostic[] = []
+    all: Diagnostic[]! = []
     for d in head  { all.push(d) }
     for d in extra { all.push(d) }
     return all
@@ -117,7 +117,7 @@ LoweredEntry :: struct {
 // its per-module side-table maps leave scope before the CFG → bytecode tail.
 lower_to_entry :: fn(file: string) -> LoweredEntry {
     pipeline :: prepare_evaluated_project(file)
-    lower_diags: Diagnostic[] = []
+    lower_diags: Diagnostic[]! = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     entry :: entry_main_name(pipeline.typed, pipeline.loaded.entry)
     pre_diags :: gather_pipeline_diags(pipeline)
@@ -170,7 +170,7 @@ module_name_from_file :: fn(file: string) = file.to_posix().to_path().filename()
 // Flatten the loader + resolver + typecheck + comptime diagnostic bags into
 // one list, in the canonical order the dump stages expect.
 gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] {
-    out: Diagnostic[] = []
+    out: Diagnostic[]! = []
     for d in pipeline.loaded.diags    { out.push(d) }
     for d in pipeline.resolver_diags  { out.push(d) }
     for d in pipeline.typecheck_diags { out.push(d) }
@@ -191,11 +191,11 @@ EvaluatedPipeline :: struct {
 
 prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
     loaded :: load_project(file, [])
-    typecheck_diags: Diagnostic[] = []
+    typecheck_diags: Diagnostic[]! = []
     result :: check_project_with_bodies(loaded, typecheck_diags, false)
     resolver_diags :: collect_body_diags(result)
     typed :: assemble_typed_project(result)
-    comptime_diags: Diagnostic[] = []
+    comptime_diags: Diagnostic[]! = []
     evaluated :: evaluate_project(loaded, typed, comptime_diags)
     // VM-backed comptime : bake any loop-bearing `@comptime` decls the tree-walk
     // deferred (S2 two-pass — see vader/comptime_vm). No-op when none deferred.
@@ -214,7 +214,7 @@ prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
 // flat list. The entry module's R-codes are already forwarded by
 // `check_project_with_bodies` into `typecheck_diags`.
 collect_body_diags :: fn(result: CheckResult) -> Diagnostic[] {
-    out: Diagnostic[] = []
+    out: Diagnostic[]! = []
     if result.all_modules.is_empty() { return out }
     for module_id in result.all_modules.keys() {
         if module_id == result.typed.resolved.path { continue }

@@ -66,7 +66,7 @@ export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeE
             }
         }
         is AST.FnTypeExpr as e -> {
-            new_params: AST.TypeExpr[] = []
+            new_params: AST.TypeExpr[]! = []
             for p in e.params { new_params.push(substitute_type_expr(p, subst)) }
             rt :: e.return_type
             new_rt: AST.TypeExpr | null = null
@@ -103,7 +103,7 @@ export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeE
         is AST.SeqLitExpr as e -> {
             // Bracketed type tuple `[T1, T2, ...]` ; elements are all TypeExprs
             // in this position.
-            new_elements: AST.Expr[] = []
+            new_elements: AST.Expr[]! = []
             for el in e.elements { new_elements.push(substitute_type_expr(el, subst)) }
             return AST.SeqLitExpr {
                 .span = e.span,
@@ -114,7 +114,7 @@ export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeE
         is AST.GenericInstExpr as e -> {
             // In type position, callee is always an IdentExpr (parser invariant).
             // Substitute type-args ; preserve callee as-is.
-            new_args: AST.TypeExpr[] = []
+            new_args: AST.TypeExpr[]! = []
             for a in e.type_args { new_args.push(substitute_type_expr(a, subst)) }
             return AST.GenericInstExpr {
                 .span = e.span,

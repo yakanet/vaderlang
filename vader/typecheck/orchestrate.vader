@@ -70,7 +70,7 @@ export check_file :: fn(
     dump_types: bool,
 ) -> FileCheck {
     project :: load_project_with_overlay(entry_path, overlay, include_path_flags)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     result :: check_project_with_bodies(project, diags, dump_types)
     return FileCheck {
         .project = project,
@@ -462,7 +462,7 @@ collect_direct_imports :: fn(
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
 ) -> TypedProgram[]! {
-    out: TypedProgram[] = []
+    out: TypedProgram[]! = []
     // The loader already resolved every import. A module imported as
     // `import "path"` declares `module "path"` (module-system invariant), so
     // map each loaded module's declared name to its id and look the import up
@@ -624,7 +624,7 @@ check_module_impl_coherence :: fn(
     for decl in merge_module_program(loaded.module.files).decls {
         if decl is AST.ImplDecl as impl_decl {
             for_ty :: type_from_expr(impl_decl.for_type, tp.resolved, diag_sink())
-            args: Type[] = []
+            args: Type[]! = []
             for ta in impl_decl.trait_args {
                 args.push(type_from_expr(ta, tp.resolved, diag_sink()))
             }
@@ -777,7 +777,7 @@ imported_fn_sig_keys :: fn(
 // param is un-annotated (only lambdas omit param types ; a named fn always has
 // them, so the null branch is a defensive skip).
 fn_signature_key :: fn(fd: AST.FnDecl, resolved: ResolvedModule) -> string | null {
-    params: Type[] = []
+    params: Type[]! = []
     for p in fd.params {
         pty :: p.ty ?? return null
         params.push(type_from_expr(pty, resolved, diag_sink()))
@@ -809,7 +809,7 @@ merge_external_impl_methods :: fn(
                 record_struct_trait(entry_typed, for_ty, decl.trait_name)
                 // Trait args resolve in the impl owner's scope so
                 // cross-module impls record concrete types.
-                impl_trait_args: Type[] = []
+                impl_trait_args: Type[]! = []
                 for ta in decl.trait_args {
                     impl_trait_args.push(type_from_expr(ta, other.resolved, diag_sink()))
                 }
@@ -1328,9 +1328,9 @@ merge_external_alias_types :: fn(
 /// module the trait lives in.
 cross_publish_trait_decls :: fn(per_module: MutableMap<string, TypedProgram>) -> void {
     // Pass 1 : collect every (trait_sym_id, decl, owner) tuple.
-    ids: i32[] = []
-    decls: AST.TraitDecl[] = []
-    owners: ResolvedModule[] = []
+    ids: i32[]! = []
+    decls: AST.TraitDecl[]! = []
+    owners: ResolvedModule[]! = []
     for [_, tp] in per_module {
         for [sym_id, d] in tp.trait_decls {
             o :: tp.trait_decl_owners[sym_id]
@@ -1357,8 +1357,8 @@ cross_publish_trait_decls :: fn(per_module: MutableMap<string, TypedProgram>) ->
 /// Lets T3006 enforcement reach cross-module callees (e.g. checking
 /// bounds on `std/math.min`'s type-params from an entry call site).
 cross_publish_fn_decls :: fn(per_module: MutableMap<string, TypedProgram>) -> void {
-    ids: i32[] = []
-    fdecls: AST.FnDecl[] = []
+    ids: i32[]! = []
+    fdecls: AST.FnDecl[]! = []
     for [_, tp] in per_module {
         for [sym_id, d] in tp.fn_decls {
             ids.push(sym_id)
@@ -2015,7 +2015,7 @@ register_impl_metadata :: fn(
     // the external-impl import loop so the two passes can't diverge.
     index_impl_metadata(typed, id, for_ty, typed.resolved, diags)
     check_impl_missing_methods(id, typed, diags)
-    local_impl_trait_args: Type[] = []
+    local_impl_trait_args: Type[]! = []
     for ta in id.trait_args {
         local_impl_trait_args.push(type_from_expr(ta, typed.resolved, diags))
     }
@@ -2192,7 +2192,7 @@ ufcs_method_type :: fn(
     typed: TypedProgram,
     diags: Diagnostic[]!,
 ) -> Type | null {
-    rest: Type[] = []
+    rest: Type[]! = []
     for i in 0..<fd.params.len() {
         p :: fd.params[i]
         if i == 0 && p.name == "self" {
@@ -2211,7 +2211,7 @@ declare_impl_method_for_trait :: fn(
     typed: TypedProgram!,
     diags: Diagnostic[]!,
 ) -> void {
-    params: Type[] = []
+    params: Type[]! = []
     for p in fd.params {
         pt :: param_type(p, for_ty, typed, diags)
         typed.param_types[p.span.hash()] = pt

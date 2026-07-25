@@ -44,7 +44,7 @@ export handle_inlay_hint :: fn(state: ServerState!, params: JsonValue) -> JsonVa
     sf :: source_file_for_path(entry_loaded.module.files, file_path)
     if sf is null { return JsonArray { .items = [] } }
 
-    hints: JsonValue[] = []
+    hints: JsonValue[]! = []
     for decl in sf.program.decls {
         collect_from_decl(decl, result.typed, hints)
     }

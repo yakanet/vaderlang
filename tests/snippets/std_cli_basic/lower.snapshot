@@ -2,8 +2,8 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let specs: FlagSpec![]! =
-      array :FlagSpec![]!
+    let specs: FlagSpec[] =
+      array :FlagSpec[]
         FlagSpec! {
           name: "verbose" :string
           kind: int(0) :i32
@@ -24,7 +24,7 @@
         arg0:
           argv :string[]!
         arg1:
-          specs :FlagSpec![]!
+          specs :FlagSpec[]
     call :void
       callee:
         std_io$println__string :void
@@ -286,7 +286,7 @@
             "--out" :string
             "--unknown" :string
         arg1:
-          specs :FlagSpec![]!
+          specs :FlagSpec[]
     call :void
       callee:
         std_io$println__string :void

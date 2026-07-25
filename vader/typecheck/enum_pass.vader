@@ -148,7 +148,7 @@ Color :: enum {
     match enum_decl {
         is null -> { assert(false, "Color enum should parse") }
         is EnumDecl as e -> {
-            diags: Diagnostic[] = []
+            diags: Diagnostic[]! = []
             indices :: resolve_enum_indices(e, "i32", diags)
             expect_index(indices, "Red",   0)
             expect_index(indices, "Green", 1)
@@ -173,7 +173,7 @@ Flag :: enum {
     match enum_decl {
         is null -> { assert(false, "Flag enum should parse") }
         is EnumDecl as e -> {
-            diags: Diagnostic[] = []
+            diags: Diagnostic[]! = []
             indices :: resolve_enum_indices(e, "i32", diags)
             expect_index(indices, "A",   5)
             expect_index(indices, "B",   6)
@@ -196,7 +196,7 @@ Bad :: enum {
     match enum_decl {
         is null -> { assert(false, "Bad enum should parse") }
         is EnumDecl as e -> {
-            diags: Diagnostic[] = []
+            diags: Diagnostic[]! = []
             resolve_enum_indices(e, "i32", diags)
             assert_eq(diags.len(), 1)
             assert_eq(diags[0].code.id, "T3031")
@@ -216,7 +216,7 @@ Overflow :: enum {
     match enum_decl {
         is null -> { assert(false, "Overflow enum should parse") }
         is EnumDecl as e -> {
-            diags: Diagnostic[] = []
+            diags: Diagnostic[]! = []
             resolve_enum_indices(e, "u8", diags)
             assert_eq(diags.len(), 1)
             assert_eq(diags[0].code.id, "T3030")

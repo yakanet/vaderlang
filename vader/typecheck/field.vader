@@ -481,7 +481,7 @@ export declared_struct_field_type :: fn(
     st :: struct_backing(recv_ty) ?? return null
     decl :: typed.struct_decls[st.symbol.id] ?? return null
     // Discard sink : the read-side check already emitted any field error.
-    discard: Diagnostic[] = []
+    discard: Diagnostic[]! = []
     found :: resolved_field_type(st.symbol.id, decl, field, typed, discard) ?? return null
     return substitute_struct_field(found, decl, st)
 }
@@ -631,35 +631,35 @@ export substitute_by_name :: fn(
             return mk_array(substitute_by_name(a.element, tps, args), a.immutable)
         }
         is TupleType as tu -> {
-            els: Type[] = []
+            els: Type[]! = []
             for el in tu.elements {
                 els.push(substitute_by_name(el, tps, args))
             }
             return mk_tuple(els, tu.immutable)
         }
         is StructType as s -> {
-            sargs: Type[] = []
+            sargs: Type[]! = []
             for a in s.args {
                 sargs.push(substitute_by_name(a, tps, args))
             }
             return mk_struct(s.symbol, sargs, s.immutable)
         }
         is TraitType as r -> {
-            rargs: Type[] = []
+            rargs: Type[]! = []
             for a in r.args {
                 rargs.push(substitute_by_name(a, tps, args))
             }
             return mk_trait(r.symbol, rargs)
         }
         is UnionType as u -> {
-            vs: Type[] = []
+            vs: Type[]! = []
             for v in u.variants {
                 vs.push(substitute_by_name(v, tps, args))
             }
             return union_of(vs)
         }
         is FnType as f -> {
-            ps: Type[] = []
+            ps: Type[]! = []
             for p in f.params {
                 ps.push(substitute_by_name(p, tps, args))
             }
@@ -728,27 +728,27 @@ substitute_array_element :: fn(t: Type, element: Type) -> Type {
         is TypeParamType -> { return element }
         is ArrayType as a -> { return mk_array(substitute_array_element(a.element, element), a.immutable) }
         is TupleType as tu -> {
-            els: Type[] = []
+            els: Type[]! = []
             for el in tu.elements { els.push(substitute_array_element(el, element)) }
             return mk_tuple(els, tu.immutable)
         }
         is StructType as s -> {
-            sargs: Type[] = []
+            sargs: Type[]! = []
             for a in s.args { sargs.push(substitute_array_element(a, element)) }
             return mk_struct(s.symbol, sargs, s.immutable)
         }
         is TraitType as r -> {
-            rargs: Type[] = []
+            rargs: Type[]! = []
             for a in r.args { rargs.push(substitute_array_element(a, element)) }
             return mk_trait(r.symbol, rargs)
         }
         is UnionType as u -> {
-            vs: Type[] = []
+            vs: Type[]! = []
             for v in u.variants { vs.push(substitute_array_element(v, element)) }
             return union_of(vs)
         }
         is FnType as f -> {
-            ps: Type[] = []
+            ps: Type[]! = []
             for p in f.params { ps.push(substitute_array_element(p, element)) }
             return mk_fn_like(f, ps, substitute_array_element(f.return_type, element))
         }
@@ -783,7 +783,7 @@ union_common_field :: fn(
     typed: TypedProgram,
     diags: Diagnostic[]!,
 ) -> Type | null {
-    types: Type[] = []
+    types: Type[]! = []
     for v in u.variants {
         if v !is StructType {
             return null
@@ -805,28 +805,28 @@ substitute_self :: fn(t: Type, self_ty: Type) -> Type {
         is SelfType -> { return self_ty }
         is ArrayType as a -> { return mk_array(substitute_self(a.element, self_ty), a.immutable) }
         is StructType as s -> {
-            args: Type[] = []
+            args: Type[]! = []
             for a in s.args {
                 args.push(substitute_self(a, self_ty))
             }
             return mk_struct(s.symbol, args, s.immutable)
         }
         is FnType as f -> {
-            ps: Type[] = []
+            ps: Type[]! = []
             for p in f.params {
                 ps.push(substitute_self(p, self_ty))
             }
             return mk_fn_like(f, ps, substitute_self(f.return_type, self_ty))
         }
         is UnionType as u -> {
-            vs: Type[] = []
+            vs: Type[]! = []
             for v in u.variants {
                 vs.push(substitute_self(v, self_ty))
             }
             return union_of(vs)
         }
         is TupleType as t2 -> {
-            els: Type[] = []
+            els: Type[]! = []
             for el in t2.elements {
                 els.push(substitute_self(el, self_ty))
             }
@@ -888,7 +888,7 @@ try_default_trait_method :: fn(
             if m.name != name { continue }
             if m.body is null { continue }
             // require default body
-            params: Type[] = []
+            params: Type[]! = []
             for i in 1..<m.params.len() {
                 p :: m.params[i]
                 params.push(type_from_expr_opt_in(p.ty, owner_resolved))
@@ -920,7 +920,7 @@ substitute_trait_typeparams :: fn(
     // implementing struct (`Range<T> implements Iterator<T>` records
     // `[T]` where T is Range's). Resolve those against the receiver's
     // concrete args first so `(10..=15).last()` ends up `i32 | null`.
-    resolved_args: Type[] = []
+    resolved_args: Type[]! = []
     struct_decl :: typed.struct_decls[target_ty.symbol.id]
     for a in impl_args {
         if struct_decl is null {
@@ -958,7 +958,7 @@ pad_trait_default_args :: fn(
     if args.len() >= tps.len() {
         return args
     }
-    out: Type[] = [] * tps.len()
+    out: Type[]! = [] * tps.len()
     // final size is args + filled defaults, ≤ tps.len()
     out.push_all(args)
     for i in args.len()..<tps.len() {
@@ -984,7 +984,7 @@ try_trait_method :: fn(t: TraitType, name: string, typed: TypedProgram) -> Type 
         if m.name != name {
             continue
         }
-        params: Type[] = []
+        params: Type[]! = []
         for i in 1..<m.params.len() {
             p :: m.params[i]
             params.push(type_from_expr_opt_in(p.ty, owner_resolved))
@@ -1074,7 +1074,7 @@ export UfcsMethod :: struct {
 /// the imported ones — the same two buckets `try_free_fn_ufcs_with_first`
 /// resolves a single call against, but surfaced as a list for completion.
 export ufcs_methods_for :: fn(target_ty: Type, typed: TypedProgram) -> UfcsMethod[] {
-    out: UfcsMethod[] = []
+    out: UfcsMethod[]! = []
     seen :: MutableMap<string, bool> {}
     for [name, bucket] in typed.resolved.fn_overloads {
         for sym in bucket {
@@ -1117,7 +1117,7 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
         if !receiver_fits_first_param(target_ty, ft.params[0], typed) {
             return null
         }
-        rest: Type[] = []
+        rest: Type[]! = []
         for i in 1..<ft.params.len() {
             rest.push(ft.params[i])
         }
@@ -1136,7 +1136,7 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
     if !receiver_fits_first_param(target_ty, fitted_first, typed) {
         return null
     }
-    rest: Type[] = []
+    rest: Type[]! = []
     for i in 1..<ft.params.len() {
         rest.push(substitute_map(ft.params[i], bindings))
     }
@@ -1241,7 +1241,7 @@ export namespace_base_mod_id :: fn(base: AST.Expr, typed: TypedProgram) -> strin
 /// unbound or its bound doesn't resolve to a trait.
 export typeparam_bound_method_names :: fn(tp: TypeParamType, typed: TypedProgram) -> string[] {
     bound :: typed.resolved.type_param_bounds[tp.symbol.id] ?? return []
-    out: string[] = []
+    out: string[]! = []
     collect_bound_method_names(bound, typed, out)
     return out
 }
@@ -1323,7 +1323,7 @@ first_field_in_last_fn :: fn(src: string) -> FieldFixture {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     result :: check_module(parsed.program, rm, factory, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     if last is AST.FnDecl as f {
@@ -1357,7 +1357,7 @@ get_x :: fn(p: Point) -> i32 { return p.x }
     match fx.field {
         is null -> { assert(false, "expected a field expr") }
         is AST.FieldExpr as f -> {
-            diags: Diagnostic[] = []
+            diags: Diagnostic[]! = []
             assert_eq(display_type(infer_field(f, fx.typed, diags, field_check_stub)), "i32")
             assert_eq(diags.len(), 0)
         }
@@ -1376,7 +1376,7 @@ get_z :: fn(p: Point) -> i32 { return p.z }
     match fx.field {
         is null -> { assert(false, "expected a field expr") }
         is AST.FieldExpr as f -> {
-            diags: Diagnostic[] = []
+            diags: Diagnostic[]! = []
             infer_field(f, fx.typed, diags, field_check_stub)
             assert(diags.len() >= 1, "expected a diagnostic")
             assert_eq(diags[0].code.id, "T3009")
@@ -1393,7 +1393,7 @@ f :: fn(n: i32) -> i32 { return n.x }
     match fx.field {
         is null -> { assert(false, "expected a field expr") }
         is AST.FieldExpr as f -> {
-            diags: Diagnostic[] = []
+            diags: Diagnostic[]! = []
             infer_field(f, fx.typed, diags, field_check_stub)
             assert(diags.len() >= 1, "expected a diagnostic")
             assert_eq(diags[0].code.id, "T3008")

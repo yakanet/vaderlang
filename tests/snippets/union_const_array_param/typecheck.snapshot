@@ -15,7 +15,7 @@
   expr 11:12    CallExpr       :: usize
   expr 11:12    FieldExpr      :: fn() -> usize
   expr 11:12    IdentExpr      :: u8[]
-  expr 15:15    SeqLitExpr     :: u8[]!
+  expr 15:15    SeqLitExpr     :: u8[]
   expr 16:13    StringLitExpr  :: string
   expr 16:16    CallExpr       :: usize
   expr 16:16    IdentExpr      :: fn(string | u8[]) -> usize
@@ -29,4 +29,4 @@
   expr 16:5     IdentExpr      :: fn(T) -> void
   expr 16:64    CallExpr       :: usize
   expr 16:64    IdentExpr      :: fn(string | u8[]) -> usize
-  expr 16:75    IdentExpr      :: u8[]!
+  expr 16:75    IdentExpr      :: u8[]

@@ -233,15 +233,15 @@ unify_unions :: fn(pu: UnionType, au: UnionType, out: MutableMap<i32, Type>!) ->
     // Pair off exact-equal variants first (`null`, concrete primitives),
     // then position-match the leftovers. The "concrete first" pass
     // prevents `T | null` from spuriously binding `T = null`.
-    arg_used: bool[] = []
+    arg_used: bool[]! = []
     for _ in au.variants { arg_used.push(false) }
-    remaining_param: Type[] = []
+    remaining_param: Type[]! = []
     for pv in pu.variants {
         idx :: find_unused_equal(au.variants, arg_used, pv)
         if idx >= 0 { arg_used[usize(idx)] = true }
         else { remaining_param.push(pv) }
     }
-    remaining_arg: Type[] = []
+    remaining_arg: Type[]! = []
     for i in 0..<au.variants.len() {
         if !arg_used[i] { remaining_arg.push(au.variants[i]) }
     }
@@ -292,7 +292,7 @@ export substitute_map :: fn(t: Type, subst: MutableMap<i32, Type>) -> Type {
 }
 
 substitute_each_map :: fn(types: Type[], subst: MutableMap<i32, Type>) -> Type[] {
-    out: Type[] = []
+    out: Type[]! = []
     for t in types { out.push(substitute_map(t, subst)) }
     return out
 }

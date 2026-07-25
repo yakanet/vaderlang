@@ -3,18 +3,18 @@
 ## tests/snippets/generic_return_binds_typaram
   FnDecl         empty_of             :: fn() -> T[]!
   FnDecl         main                 :: fn() -> i32
-  expr 12:16    SeqLitExpr     :: T[]!
+  expr 12:17    SeqLitExpr     :: T[]!
   expr 13:12    IdentExpr      :: T[]!
-  expr 18:22    CallExpr       :: i32[]!
-  expr 18:22    IdentExpr      :: fn() -> T[]!
+  expr 18:23    CallExpr       :: i32[]!
+  expr 18:23    IdentExpr      :: fn() -> T[]!
   expr 19:5     CallExpr       :: void
   expr 19:5     FieldExpr      :: fn(i32) -> void
   expr 19:5     IdentExpr      :: i32[]!
   expr 20:5     CallExpr       :: void
   expr 20:5     FieldExpr      :: fn(i32) -> void
   expr 20:5     IdentExpr      :: i32[]!
-  expr 22:23    CallExpr       :: string[]!
-  expr 22:23    IdentExpr      :: fn() -> T[]!
+  expr 22:24    CallExpr       :: string[]!
+  expr 22:24    IdentExpr      :: fn() -> T[]!
   expr 23:16    StringLitExpr  :: string
   expr 23:5     CallExpr       :: void
   expr 23:5     FieldExpr      :: fn(string) -> void

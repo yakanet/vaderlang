@@ -61,19 +61,19 @@
   expr 53:17    StringLitExpr  :: string
   expr 53:9     CallExpr       :: void
   expr 53:9     IdentExpr      :: fn(T) -> void
-  expr 58:18    SeqLitExpr     :: i32[]!
+  expr 58:18    SeqLitExpr     :: i32[]
   expr 59:16    CallExpr       :: usize
   expr 59:16    FieldExpr      :: fn() -> usize
-  expr 59:16    IdentExpr      :: i32[]!
-  expr 60:12    IdentExpr      :: i32[]!
-  expr 60:12    IndexExpr      :: i32[]!
+  expr 59:16    IdentExpr      :: i32[]
+  expr 60:12    IdentExpr      :: i32[]
+  expr 60:12    IndexExpr      :: i32[]
   expr 60:16    RangeExpr      :: Range<usize>!
   expr 60:20    BinaryExpr     :: usize
   expr 60:20    IdentExpr      :: usize
   expr 61:13    StringLitExpr  :: string
   expr 61:29    CallExpr       :: usize
   expr 61:29    FieldExpr      :: fn() -> usize
-  expr 61:29    IdentExpr      :: i32[]!
+  expr 61:29    IdentExpr      :: i32[]
   expr 61:5     CallExpr       :: void
   expr 61:5     IdentExpr      :: fn(T) -> void
   expr 64:18    LambdaExpr     :: fn() -> usize

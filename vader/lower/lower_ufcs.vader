@@ -47,7 +47,7 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
         member :: find_impl_member_for(ctx, recv_type, field_expr.field)
         if !(member is null) {
             if member is UfcsMember as found {
-                args: LoweredExpr[] = []
+                args: LoweredExpr[]! = []
                 args.push(receiver)
                 for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
                 return LoweredCall {
@@ -65,7 +65,7 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
         free :: find_free_fn_ufcs(ctx, recv_type, field_expr.field)
         if !(free is null) {
             if free is UfcsMember as found_free {
-                args: LoweredExpr[] = []
+                args: LoweredExpr[]! = []
                 // Coerce the receiver into the fn's first-param type the same
                 // way the canonical call path does (`try_emit_into_coercion`,
                 // shared with lower_call / lower_generic_call) — a raw array
@@ -343,7 +343,7 @@ harvest_ufcs_fn_instance :: fn(
         }
         if ft.params.len() == 0 { return null }
         bindings :: MutableMap<i32, Type> {}
-        order: i32[] = []
+        order: i32[]! = []
         unify_params(ft.params[0], default_if_free(recv_type), bindings, order, ctx)
         n :: ft.params.len()
         for i in 1..<n {
@@ -352,7 +352,7 @@ harvest_ufcs_fn_instance :: fn(
             concrete :: default_if_free(ctx.types.expr_type(ast_args[ai].value))
             unify_params(ft.params[i], concrete, bindings, order, ctx)
         }
-        concrete_args: Type[] = []
+        concrete_args: Type[]! = []
         for id in order {
             v :: bindings[id]
             match v {

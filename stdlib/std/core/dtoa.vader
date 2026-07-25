@@ -280,13 +280,13 @@ d2d :: fn(ieee_mantissa: u64, ieee_exponent: u64) -> Dec64 {
 // zeros. `n == 0` yields ["0"].
 digits_of :: fn(n: u64) -> string[] {
     if n == 0 { return ["0"] }
-    rev: string[] = []
+    rev: string[]! = []
     m := n
     for m != 0 {
         rev.push(DECIMAL_DIGITS[usize(m % 10)])
         m = m / 10
     }
-    out: string[] = []
+    out: string[]! = []
     n_digits :: rev.len()
     for i in 0..<n_digits {
         out.push(rev[n_digits - 1 - i])

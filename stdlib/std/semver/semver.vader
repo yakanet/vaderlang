@@ -201,7 +201,7 @@ export parse_range :: fn(s: string) -> VersionRange | ParseError {
         // Empty range == `*` per node-semver — matches any non-pre-release.
         return wildcard_range()
     }
-    out_clauses: RangeClause[] = []
+    out_clauses: RangeClause[]! = []
     for cstr in split_or(trimmed) {
         cl :: parse_clause(cstr.trim())
         match cl {
@@ -403,7 +403,7 @@ compare_prerelease :: fn(a: string, b: string) -> i32 {
 // Split `s` on `||` (the OR operator). Adjacent `||` produces an
 // empty element ; the caller is expected to filter / trim.
 split_or :: fn(s: string) -> string[] {
-    out: string[] = []
+    out: string[]! = []
     sb :: s.bytes()
     n :: sb.len()
     if n < 2 {
@@ -425,7 +425,7 @@ split_or :: fn(s: string) -> string[] {
 // collapses to a single separator — distinct from `std/string::split`
 // which preserves empty pieces).
 split_ws :: fn(s: string) -> string[] {
-    out: string[] = []
+    out: string[]! = []
     sb :: s.bytes()
     n :: sb.len()
     start: usize = 0
@@ -720,7 +720,7 @@ parse_clause :: fn(s: string) -> RangeClause | ParseError {
     if tokens.len() == 0 {
         return ParseError { .msg = "empty clause" }
     }
-    terms: RangeTerm[] = []
+    terms: RangeTerm[]! = []
     n :: tokens.len()
     i: usize = 0
     for i < n {

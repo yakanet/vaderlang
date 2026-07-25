@@ -84,7 +84,7 @@ export emit_c_split :: fn(m: BytecodeModule, opts: EmitOptions, num_units: i32, 
 
     // ---- function TUs : partitioned bodies + unit-0 fixed code ------------
     buckets :: partition_functions(m.functions, n)
-    units: string[] = []
+    units: string[]! = []
     for k in 0..<n {
         u :: StringBuilder {}
         u.append("#include \"${header_name}\"\n\n")
@@ -165,20 +165,26 @@ emit_data_global_externs :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 partition_functions :: fn(fns: BcFunction[], num_units: i32) -> i32[][] {
     order :: sorted_fn_indices(fns)
 
-    buckets: i32[][] = filled(usize(num_units), () -> [])
-    sizes: i32[] = [0] * usize(num_units)
+    acc: i32[]![] = filled(usize(num_units), () -> [])
+    sizes: i32[]! = [0] * usize(num_units)
 
     for idx in order {
         target :: min_bucket(sizes)
-        buckets[usize(target)].push(idx)
+        acc[usize(target)].push(idx)
         sizes[usize(target)] += i32(fns[usize(idx)].body.len())
+    }
+    // Reseal the mutable-inner accumulator into the read-only element type the
+    // signature promises — the outer spine only, one reference per bucket.
+    buckets: i32[][]! = []
+    for b in acc {
+        buckets.push(b)
     }
     return buckets
 }
 
 /// Fn indices sorted by mangled name — the deterministic visit order.
 sorted_fn_indices :: fn(fns: BcFunction[]) -> i32[] {
-    idxs: i32[] = []
+    idxs: i32[]! = []
     for i in 0..<fns.len() { idxs.push(i32(i)) }
     return sort(idxs, (a: i32, b: i32) -> compare_ascending(fns[usize(a)].name, fns[usize(b)].name))
 }

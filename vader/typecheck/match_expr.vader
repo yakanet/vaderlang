@@ -48,10 +48,10 @@ export infer_match :: fn(
     scrut_ty :: lift_enum_placeholder(raw_scrut, typed)
     scrut_sym_id :: scrutinee_sym_id(e.scrutinee, typed)
     scrut_field_key :: scrutinee_field_key(e.scrutinee, typed)
-    arm_types: Type[] = []
+    arm_types: Type[]! = []
     remaining := scrut_ty
     has_wildcard := false
-    covered_enum_variants: string[] = []
+    covered_enum_variants: string[]! = []
     for arm in e.arms {
         check_pattern_bound_exprs(arm.pattern, typed, diags, check_expr_fn)
         if arm.pattern is AST.OrPattern as op {
@@ -511,7 +511,7 @@ expect_match :: fn(src: string) -> ExpectedMatch {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     result :: check_module(parsed.program, rm, factory, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
@@ -553,7 +553,7 @@ synthetic_match :: fn() -> AST.MatchExpr {
 test_match_single_arm_returns_arm_type :: fn() -> void {
     src :: "f :: fn(x: i32) -> i32 { return match x { _ -> 42 } }"
     em :: expect_match(src)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     assert_eq(
         display_type(infer_match(em.m, null, em.typed, diags, null, match_expr_check_stub)),
         "{integer}",
@@ -564,7 +564,7 @@ test_match_single_arm_returns_arm_type :: fn() -> void {
 test_match_two_arms_unions :: fn() -> void {
     src :: "f :: fn(x: i32) -> string | i32 { return match x { 0 -> \"zero\", _ -> 1 } }"
     em :: expect_match(src)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     ty :: infer_match(em.m, null, em.typed, diags, null, match_expr_check_stub)
     // union_of sorts by display (`s` < `{`), so `string | {integer}`.
     assert_eq(display_type(ty), "string | {integer}")
@@ -574,7 +574,7 @@ test_match_two_arms_unions :: fn() -> void {
 test_match_guard_non_bool_emits_T3019 :: fn() -> void {
     src :: "f :: fn(x: i32) -> i32 { return match x { _ if 1 -> 0, _ -> 1 } }"
     em :: expect_match(src)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     infer_match(em.m, null, em.typed, diags, null, match_expr_check_stub)
     found := false
     for d in diags {

@@ -339,7 +339,7 @@ export mk_fn_drop_self :: fn(src: FnType, params: Type[], ret: Type) -> Type {
     if src.params_mutable.len() == 0 {
         return mk_fn(params, ret)
     }
-    tail: bool[] = []
+    tail: bool[]! = []
     for i in 1..<src.params_mutable.len() {
         tail.push(src.params_mutable[i])
     }
@@ -705,7 +705,7 @@ export tuple_backing :: fn(t: Type) -> TupleType | null {
 /// @param args  the concrete type arguments.
 /// @return      `args` with every distinct collapsed to its backing.
 export strip_distinct_each :: fn(args: Type[]) -> Type[] {
-    out: Type[] = []
+    out: Type[]! = []
     for a in args { out.push(strip_distinct(a)) }
     return out
 }

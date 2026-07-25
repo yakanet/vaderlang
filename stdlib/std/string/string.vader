@@ -265,7 +265,7 @@ export index_of :: fn(s: string, c: char, from: usize) -> isize {
 ///             single-byte segment per byte of `s`.
 /// @return     array of segments ; never empty (at minimum, `[""]`).
 export split :: fn(s: string, sep: string) -> string[]! {
-    out: string[] = []
+    out: string[]! = []
     sb :: s.bytes()
     n :: sb.len()
     m :: sep.bytes().len()
@@ -312,7 +312,7 @@ export join :: fn(parts: string[], sep: string) -> string {
 export replace :: fn(s: string, old: string, new: string) -> string {
     parts :: s.split(old)
     if parts.len() <= 1 { return s }
-    rest: string[] = []
+    rest: string[]! = []
     for i in 1..<parts.len() { rest.push(parts[i]) }
     return parts[0] + new + rest.join(old)
 }
@@ -650,7 +650,7 @@ export replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement:
 ///    `"  hello\tworld  ".split_where(is_white_char) → ["hello", "world"]`
 ///    `"a,b,,c".split_where(c => c == ',') → ["a", "b", "c"]`
 export split_where :: fn(s: string, pred: fn(char) -> bool) -> string[] {
-    out: string[] = []
+    out: string[]! = []
     sb := StringBuilder {}
     has_pending := false
     for c in s.chars() {

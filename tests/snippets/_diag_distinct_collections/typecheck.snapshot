@@ -24,7 +24,7 @@
   expr 25:16    CallExpr       :: i64
   expr 25:16    IdentExpr      :: type
   expr 25:20    IdentExpr      :: UserId
-  expr 29:21    SeqLitExpr     :: UserId[]!
+  expr 29:21    SeqLitExpr     :: UserId[]
   expr 29:22    CallExpr       :: UserId
   expr 29:22    IdentExpr      :: type
   expr 29:34    CallExpr       :: UserId
@@ -37,5 +37,5 @@
   expr 31:12    BinaryExpr     :: i32
   expr 31:12    CallExpr       :: i32
   expr 31:12    IdentExpr      :: fn(UserId[]) -> i32
-  expr 31:20    IdentExpr      :: UserId[]!
+  expr 31:20    IdentExpr      :: UserId[]
   expr 31:27    IdentExpr      :: i32

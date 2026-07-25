@@ -18,7 +18,7 @@ is_even :: fn(v: i32) -> bool = v % 2 == 0
 main :: fn() -> i32 {
     // Array loop var captured into closures invoked AFTER the loop.
     labels :: ["a", "b", "c"]
-    thunks: (fn() -> void)[] = []
+    thunks: (fn() -> void)[]! = []
     for label in labels {
         thunks.push(() -> { println("thunk ${label}") })
     }
@@ -31,7 +31,7 @@ main :: fn() -> i32 {
     }
 
     // Fused map chain : loop var captured into stashed closures.
-    mapped: (fn() -> void)[] = []
+    mapped: (fn() -> void)[]! = []
     for y in (0..<3).map(tenfold) {
         mapped.push(() -> { println("mapped ${y}") })
     }

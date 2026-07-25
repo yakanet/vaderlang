@@ -4,7 +4,7 @@
 module "snippet"
 
 main :: fn() -> i32 {
-    arr: i32[] = [10, 20, 30]
+    arr: i32[]! = [10, 20, 30]
     arr[1] = 99
     return arr[0] + arr[1] + arr[2]
 }

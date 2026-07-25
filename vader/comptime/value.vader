@@ -228,7 +228,7 @@ import "std/testing"
 
 @test test_display_array_truncated :: fn() -> void {
     // Arrays longer than ARRAY_DISPLAY_CAP show the first 8 + the total length.
-    elements: ComptimeValue[] = []
+    elements: ComptimeValue[]! = []
     for i in 0..<20 { elements.push(int_val(i64(i))) }
     array_value :: ArrayValue { .elements = elements, .element_type_name = "i32" }
     assert_eq(

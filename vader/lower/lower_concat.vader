@@ -92,8 +92,8 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx!, n: i32) -> Symbol | null {
 
     // Params p0..p<n-1>, all `string`. Keep the symbols so the body can
     // reference each param by the same id midir keys its slot on.
-    params: LoweredParam[] = []
-    param_refs: LoweredExpr[] = []
+    params: LoweredParam[]! = []
+    param_refs: LoweredExpr[]! = []
     for i in 0..<n {
         psym :: synth_concat_symbol(ctx, SymbolKind.Synthetic, "p${i}")
         params.push(LoweredParam { .name = psym.name, .symbol = psym, .type = string_type })
@@ -104,8 +104,8 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx!, n: i32) -> Symbol | null {
     // `c_{i-1}` is the byte offset where `p_i` is written ; `c_{n-1}` is the total.
     // Each `byte_len` is evaluated exactly once (n total, vs 2n if the writes
     // recomputed it).
-    stmts: LoweredStmt[] = []
-    cum_syms: Symbol[] = []
+    stmts: LoweredStmt[]! = []
+    cum_syms: Symbol[]! = []
     for i in 0..<n {
         bl :: mk_lowered_call(blen_sym, [param_refs[i]], usize_type, span)
         value :: if i == 0 { bl } else {

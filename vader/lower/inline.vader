@@ -278,7 +278,7 @@ collect_expr :: fn(e: LoweredExpr, ctx: CollectCtx!) -> void {
 // ---- transform (clone + substitute params + inline calls) ------------------
 
 transform_block :: fn(b: LoweredBlock, ctx: TransformCtx) -> LoweredBlock {
-    new_stmts: LoweredStmt[] = []
+    new_stmts: LoweredStmt[]! = []
     for s in b.stmts { new_stmts.push(transform_stmt(s, ctx)) }
     new_trailing :: transform_opt(b.trailing, ctx)
     return LoweredBlock { .span = b.span, .type = b.type, .stmts = new_stmts, .trailing = new_trailing }
@@ -328,7 +328,7 @@ transform_expr :: fn(e: LoweredExpr, ctx: TransformCtx) -> LoweredExpr {
         }
         is LoweredCall as c -> {
             new_callee :: transform_expr(c.callee, ctx)
-            new_args: LoweredExpr[] = []
+            new_args: LoweredExpr[]! = []
             for a in c.args { new_args.push(transform_expr(a, ctx)) }
             // Inline when the (original) callee names an inlineable single-expr fn.
             if c.callee is LoweredIdent as cid {
@@ -341,7 +341,7 @@ transform_expr :: fn(e: LoweredExpr, ctx: TransformCtx) -> LoweredExpr {
             return LoweredCall { .span = c.span, .type = c.type, .callee = new_callee, .args = new_args }
         }
         is LoweredVirtualCall as v -> {
-            new_args: LoweredExpr[] = []
+            new_args: LoweredExpr[]! = []
             for a in v.args { new_args.push(transform_expr(a, ctx)) }
             return LoweredVirtualCall {
                 .span = v.span, .type = v.type, .trait_name = v.trait_name, .method = v.method,
@@ -373,12 +373,12 @@ transform_expr :: fn(e: LoweredExpr, ctx: TransformCtx) -> LoweredExpr {
         }
         is LoweredBlock as bl -> transform_block(bl, ctx)
         is LoweredStructLit as sl -> {
-            new_fields: LoweredStructLitField[] = []
+            new_fields: LoweredStructLitField[]! = []
             for f in sl.fields { new_fields.push(LoweredStructLitField { .name = f.name, .value = transform_expr(f.value, ctx) }) }
             return LoweredStructLit { .span = sl.span, .type = sl.type, .fields = new_fields }
         }
         is LoweredArrayLit as al -> {
-            new_elements: LoweredExpr[] = []
+            new_elements: LoweredExpr[]! = []
             for el in al.elements { new_elements.push(transform_expr(el, ctx)) }
             return LoweredArrayLit { .span = al.span, .type = al.type, .elements = new_elements }
         }
@@ -399,7 +399,7 @@ transform_expr :: fn(e: LoweredExpr, ctx: TransformCtx) -> LoweredExpr {
             .span = tc.span, .type = tc.type, .value = transform_expr(tc.value, ctx), .check_type = tc.check_type,
         }
         is LoweredIntrinsicCall as ic -> {
-            new_args: LoweredExpr[] = []
+            new_args: LoweredExpr[]! = []
             for a in ic.args { new_args.push(transform_expr(a, ctx)) }
             return LoweredIntrinsicCall { .span = ic.span, .type = ic.type, .name = ic.name, .args = new_args }
         }

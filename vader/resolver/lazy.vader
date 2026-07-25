@@ -54,7 +54,7 @@ export IncludePath :: struct {
 export include_paths :: fn(
     entry_module: string, entry_folder: string, plain: string[],
 ) -> IncludePath[] {
-    paths: IncludePath[] = [IncludePath { .dir = entry_folder, .prefix = entry_module }]
+    paths: IncludePath[]! = [IncludePath { .dir = entry_folder, .prefix = entry_module }]
     for pi in 0..<plain.len() {
         paths.push(IncludePath { .dir = plain[pi], .prefix = "" })
     }
@@ -111,7 +111,7 @@ export resolve_lazy :: fn(
 /// @param paths  the include-paths that were searched.
 /// @return       the wrong `module` name declared at `name`'s location, or null.
 export misplaced_module_at :: fn(name: string, paths: IncludePath[]) -> string | null {
-    discard: Diagnostic[] = []
+    discard: Diagnostic[]! = []
     for pi in 0..<paths.len() {
         cand_opt :: rooted_candidate(paths[pi], name) ?? continue
         cand :: cand_opt
@@ -173,7 +173,7 @@ scan_folder :: fn(dir: string, diags: Diagnostic[]!) -> FolderBucket | null {
     }
     if raw.len() == 0 { return null }
     sorted :: sort(raw, (a: string, b: string) -> compare_ascending(a, b))
-    files_here: string[] = []
+    files_here: string[]! = []
     for name in sorted {
         full :: join_path(dir, name)
         if name.ends_with(".vader") && !is_dir(full) { files_here.push(full) }

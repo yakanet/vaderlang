@@ -3,20 +3,20 @@
 ## tests/snippets/chain_struct_field_read
   FnDecl         main                 :: fn() -> i32
   StructDecl     Rec                  :: Rec!
-  expr 20:16    SeqLitExpr     :: Rec![]!
+  expr 20:16    SeqLitExpr     :: Rec[]
   expr 20:17    StructLitExpr  :: Rec!
   expr 20:31    StringLitExpr  :: string
   expr 20:50    StructLitExpr  :: Rec!
   expr 20:64    StringLitExpr  :: string
-  expr 21:16    SeqLitExpr     :: Rec![]!
+  expr 21:16    SeqLitExpr     :: Rec[]
   expr 21:17    StructLitExpr  :: Rec!
   expr 21:31    StringLitExpr  :: string
   expr 24:15    CallExpr       :: Rec![]!
   expr 24:15    CallExpr       :: __genstate_chain<Rec!>!
   expr 24:15    FieldExpr      :: fn() -> T[]!
   expr 24:15    IdentExpr      :: fn(Iterator<T>, Iterator<T>) -> Iterator<T>
-  expr 24:21    IdentExpr      :: Rec![]!
-  expr 24:24    IdentExpr      :: Rec![]!
+  expr 24:21    IdentExpr      :: Rec[]
+  expr 24:24    IdentExpr      :: Rec[]
   expr 25:13    StringLitExpr  :: string
   expr 25:20    CallExpr       :: usize
   expr 25:20    FieldExpr      :: fn() -> usize
@@ -35,7 +35,7 @@
   expr 31:16    CallExpr       :: __genstate_map<Rec!>!
   expr 31:16    FieldExpr      :: fn() -> T[]!
   expr 31:16    FieldExpr      :: fn(fn(Rec!) -> U) -> Iterator<U>
-  expr 31:16    IdentExpr      :: Rec![]!
+  expr 31:16    IdentExpr      :: Rec[]
   expr 31:22    LambdaExpr     :: fn(Rec) -> Rec!
   expr 31:30    StructLitExpr  :: Rec!
   expr 31:44    FieldExpr      :: string
@@ -70,8 +70,8 @@
   expr 39:9     IdentExpr      :: fn(T) -> void
   expr 47:14    CallExpr       :: __genstate_chain<Rec!>!
   expr 47:14    IdentExpr      :: fn(Iterator<T>, Iterator<T>) -> Iterator<T>
-  expr 47:20    IdentExpr      :: Rec![]!
-  expr 47:23    IdentExpr      :: Rec![]!
+  expr 47:20    IdentExpr      :: Rec[]
+  expr 47:23    IdentExpr      :: Rec[]
   expr 48:17    StringLitExpr  :: string
   expr 48:27    FieldExpr      :: string
   expr 48:27    IdentExpr      :: Rec!
@@ -82,8 +82,8 @@
   expr 50:14    CallExpr       :: Iterator<Rec!>
   expr 50:14    GenericInstExpr :: fn(Iterator<T>, Iterator<T>) -> Iterator<T>
   expr 50:14    IdentExpr      :: fn(Iterator<T>, Iterator<T>) -> Iterator<T>
-  expr 50:25    IdentExpr      :: Rec![]!
-  expr 50:28    IdentExpr      :: Rec![]!
+  expr 50:25    IdentExpr      :: Rec[]
+  expr 50:28    IdentExpr      :: Rec[]
   expr 51:17    StringLitExpr  :: string
   expr 51:29    FieldExpr      :: string
   expr 51:29    IdentExpr      :: Rec!

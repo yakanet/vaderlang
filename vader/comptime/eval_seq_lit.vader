@@ -16,7 +16,7 @@ export evaluate_seq_lit :: fn(
     expr: AST.SeqLitExpr, context: ComptimeContext!,
     recurse: fn(AST.Expr, ComptimeContext!) -> EvalResult,
 ) -> EvalResult {
-    elements: ComptimeValue[] = []
+    elements: ComptimeValue[]! = []
     for el in expr.elements {
         r :: recurse(el, context)
         if r.value is null { return r }

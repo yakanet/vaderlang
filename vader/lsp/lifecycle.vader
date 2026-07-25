@@ -177,7 +177,7 @@ export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
 }
 
 string_array :: fn(items: string[]) -> JsonValue {
-    out: JsonValue[] = []
+    out: JsonValue[]! = []
     for s in items {
         out.push(JsonString { .value = s })
     }

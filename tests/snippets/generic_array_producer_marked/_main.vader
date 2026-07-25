@@ -16,7 +16,7 @@ import "std/io"
 Tag :: struct { n: i32 }
 
 dup :: fn<T>(src: T[]) -> T[]! {
-    out: T[] = [] * src.len()
+    out: T[]! = [] * src.len()
     out.push_all(src)
     return out
 }

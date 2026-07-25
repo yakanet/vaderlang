@@ -4,7 +4,7 @@
   struct snippet$Cat { name: string, age: i32 }
   struct snippet$Dog { name: string, age: i32 }
   fn snippet$main() -> i32
-    let a: Cat! | Dog! =
+    let a: Cat | Dog =
       Cat! {
         name: "Whiskers" :string
         age: int(3) :i32
@@ -20,8 +20,8 @@
             "name = " :string
           arg1:
             .name :string
-              cast → Cat!
-                a :Cat! | Dog!
+              cast → Cat
+                a :Cat | Dog
     call :void
       callee:
         std_io$println__string :void
@@ -61,8 +61,8 @@
                 arg2:
                   cast → i64
                     .age :i32
-                      cast → Cat!
-                        a :Cat! | Dog!
+                      cast → Cat
+                        a :Cat | Dog
           ~>
             call :string
               callee:
@@ -71,7 +71,7 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
-    let b: Cat! | Dog! =
+    let b: Cat | Dog =
       Dog! {
         name: "Rex" :string
         age: int(7) :i32
@@ -87,8 +87,8 @@
             "name = " :string
           arg1:
             .name :string
-              cast → Cat!
-                b :Cat! | Dog!
+              cast → Cat
+                b :Cat | Dog
     call :void
       callee:
         std_io$println__string :void
@@ -128,8 +128,8 @@
                 arg2:
                   cast → i64
                     .age :i32
-                      cast → Cat!
-                        b :Cat! | Dog!
+                      cast → Cat
+                        b :Cat | Dog
           ~>
             call :string
               callee:

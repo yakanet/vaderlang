@@ -20,7 +20,7 @@ lower_struct_lit :: fn(ctx: FnLowerCtx!, lit: StructLitExpr, type: Type) -> Lowe
     // evaluated exactly once even when several fields inherit from it.
     // Later spreads win, so `spread_sym` tracks the LAST source —
     // omitted fields read from it.
-    spread_stmts: LoweredStmt[] = []
+    spread_stmts: LoweredStmt[]! = []
     spread_sym: Symbol | null = null
     for item in lit.items {
         match item {
@@ -226,7 +226,7 @@ build_struct_lit_fields :: fn(
     provided: MutableMap<string, Expr>, lit: StructLitExpr,
     spread_sym: Symbol | null,
 ) -> LoweredStructLitField[] {
-    out: LoweredStructLitField[] = []
+    out: LoweredStructLitField[]! = []
     // `struct_backing` unwraps a struct-backed distinct newtype so declared-order
     // field building walks the backing struct decl. A non-struct type (or a
     // struct whose decl isn't indexed) degrades to source order (defensive
@@ -314,7 +314,7 @@ build_core_struct_lit :: fn(ctx: FnLowerCtx, type: Type, fields: LoweredStructLi
     if decl == null {
         panic("build_core_struct_lit: struct decl not indexed for ${st.symbol.name}")
     }
-    ordered: LoweredStructLitField[] = []
+    ordered: LoweredStructLitField[]! = []
     for field_decl in decl.fields {
         provided :: find_lowered_field(fields, field_decl.name)
         if provided == null {
@@ -339,7 +339,7 @@ find_lowered_field :: fn(fields: LoweredStructLitField[], name: string) -> Lower
 // Defensive fallback : when the struct decl can't be reached, emit
 // fields in source order (the previous behaviour).
 fallback_provided_order :: fn(ctx: FnLowerCtx!, lit: StructLitExpr) -> LoweredStructLitField[] {
-    out: LoweredStructLitField[] = []
+    out: LoweredStructLitField[]! = []
     for item in lit.items {
         match item {
             is StructLitField as field -> {
@@ -360,7 +360,7 @@ lower_seq_lit :: fn(ctx: FnLowerCtx!, lit: SeqLitExpr, type: Type) -> LoweredExp
     // `_0` / `_1` / ... fields ; the bytecode emit reads them off the same
     // struct layout the typer pins (distinct wrappers strip at the emit boundary).
     if tuple_backing(type) != null {
-        fields: LoweredStructLitField[] = []
+        fields: LoweredStructLitField[]! = []
         for i in 0..<lit.elements.len() {
             fields.push(LoweredStructLitField {
                 .name = "_${i}",
@@ -369,7 +369,7 @@ lower_seq_lit :: fn(ctx: FnLowerCtx!, lit: SeqLitExpr, type: Type) -> LoweredExp
         }
         return LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
     } else {
-        elements: LoweredExpr[] = []
+        elements: LoweredExpr[]! = []
         for element in lit.elements { elements.push(lower_expr(ctx, element)) }
         return LoweredArrayLit { .span = lit.span, .type = type, .elements = elements }
     }

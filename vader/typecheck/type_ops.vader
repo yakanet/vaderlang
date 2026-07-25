@@ -168,7 +168,7 @@ export with_immutable :: fn(t: Type, immutable: bool) -> Type = match t {
 }
 
 with_immutable_each :: fn(variants: Type[], immutable: bool) -> Type[] {
-    out: Type[] = []
+    out: Type[]! = []
     for v in variants { out.push(with_immutable(v, immutable)) }
     return out
 }
@@ -213,7 +213,7 @@ export apply_readonly_default :: fn(t: Type, written: AST.TypeExpr | null) -> Ty
     // `u8[]! | Err` with a MUTABLE `Err` — the mark on the array leaked onto a
     // variant nobody marked.
     if t is UnionType as u {
-        out: Type[] = []
+        out: Type[]! = []
         for v in u.variants {
             out.push(with_immutable(v, !written_marks_shape(written, v)))
         }
@@ -269,7 +269,7 @@ readonly_children :: fn(t: Type, written: AST.TypeExpr | null) -> Type {
         return mk_array(apply_readonly_default(a.element, elem_written), a.immutable)
     }
     if t is TupleType as p {
-        elems: Type[] = []
+        elems: Type[]! = []
         for i in 0..<p.elements.len() {
             el_written: AST.TypeExpr | null = null
             if written is AST.SeqLitExpr as se {
@@ -310,7 +310,7 @@ export narrowing_immutability :: fn(scrutinee: Type, narrowed: Type) -> bool {
 /// `display_type` output for stability. Empty / all-Never input
 /// collapses to `Never`.
 export union_of :: fn(variants: Type[]) -> Type {
-    dedup: Type[] = []
+    dedup: Type[]! = []
     for v in variants {
         v.collect_variant(dedup)
     }
@@ -443,7 +443,7 @@ export resolve_struct_trait_args :: fn(t: Type, trait_name: string, typed: Typed
     raw :: lookup_struct_trait_args(t, trait_name, typed) ?? return null
     if t is StructType as st {
         struct_decl :: typed.struct_decls[st.symbol.id] ?? return raw
-        out: Type[] = []
+        out: Type[]! = []
         for a in raw { out.push(substitute_by_name(a, struct_decl.type_params, st.args)) }
         return out
     }
@@ -497,7 +497,7 @@ union_variants :: fn(t: Type) -> Type[] | null {
 /// the false side / in code after a divergent guard.
 export subtract_type :: fn(from: Type, removed: Type) -> Type {
     if from is UnionType {
-        kept: Type[] = []
+        kept: Type[]! = []
         for v in from.variants {
             if !removed_covers(removed, v) { kept.push(v) }
         }
@@ -519,7 +519,7 @@ export subtract_type_with_impls :: fn(from: Type, removed: Type, typed: TypedPro
     if !(removed is TraitType) { return subtract_type(from, removed) }
     trait_name :: removed.symbol.name
     if from is UnionType {
-        kept: Type[] = []
+        kept: Type[]! = []
         for v in from.variants {
             if removed_covers(removed, v) { continue }
             if struct_implements_trait(v, trait_name, typed) { continue }

@@ -64,7 +64,7 @@ export dump_evaluated :: fn(project: EvaluatedProject, scope: string[]) -> strin
 // Build the per-decl entry lines, sorted alphabetically so the dump
 // is stable across runs regardless of MutableMap iteration order.
 format_module_entries :: fn(module_program: EvaluatedProgram) -> string[] {
-    entries: string[] = []
+    entries: string[]! = []
     typed :: module_program.typed
     for [symbol_id, value] in module_program.comptime_decls {
         name :: lookup_comptime_decl_name(typed, symbol_id)

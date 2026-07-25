@@ -5,9 +5,9 @@
   expr 10:13    StringLitExpr  :: string
   expr 10:16    CallExpr       :: string
   expr 10:16    IdentExpr      :: fn() -> string
-  expr 11:16    SeqLitExpr     :: u8[]!
+  expr 11:16    SeqLitExpr     :: u8[]
   expr 12:12    StructLitExpr  :: Ppm!
-  expr 12:68    IdentExpr      :: u8[]!
+  expr 12:68    IdentExpr      :: u8[]
   expr 14:12    CallExpr       :: PpmError | u8[]
   expr 14:12    IdentExpr      :: fn(Ppm) -> PpmError | u8[]
   expr 14:19    IdentExpr      :: Ppm!
@@ -84,7 +84,7 @@
   expr 38:12    IdentExpr      :: Ppm
   expr 38:12    IndexExpr      :: u8
   expr 38:23    IdentExpr      :: usize
-  expr 38:29    IdentExpr      :: u8[]!
+  expr 38:29    IdentExpr      :: u8[]
   expr 38:29    IndexExpr      :: u8
   expr 38:32    IdentExpr      :: usize
   expr 38:37    IdentExpr      :: bool

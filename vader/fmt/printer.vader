@@ -179,7 +179,7 @@ flush_remaining_comments :: fn(self: Printer!) -> void {
 // fns produced by the `@comptime` const-sugar desugar. Every other decl passes
 // through in order.
 emittable_decls :: fn(decls: p.Decl[]) -> p.Decl[] {
-    out: p.Decl[] = []
+    out: p.Decl[]! = []
     for d in decls {
         if d is p.FnDecl as f {
             if f.comptime_synthetic { continue }
@@ -340,7 +340,7 @@ decls_in_same_group :: fn(prev: p.Decl, cur: p.Decl) -> bool {
 // decls all see the same width — the max name length in the group — so
 // every name in the group aligns to the same column.
 compute_decl_alignment_widths :: fn(decls: p.Decl[]) -> usize[] {
-    out: usize[] = []
+    out: usize[]! = []
     i: usize = 0
     for i < decls.len() {
         if !decl_is_alignable(decls[i]) {
@@ -750,7 +750,7 @@ emit_trait_decl :: fn(self: Printer!, d: p.TraitDecl) -> void {
 // consecutive signature-only fns with matching visibility and decorator
 // set share a group.
 compute_fn_alignment_widths :: fn(members: p.FnDecl[]) -> usize[] {
-    out: usize[] = []
+    out: usize[]! = []
     i: usize = 0
     for i < members.len() {
         m :: members[i]
@@ -1792,7 +1792,7 @@ if_cond_width :: fn(s: p.Stmt, source: string) -> usize {
 // `if`s (a lookup table), the max condition width across the run ; 0 otherwise.
 // Mirrors the `::` decl-group width computation in `alignment_widths`.
 compute_if_align :: fn(stmts: p.Stmt[], source: string) -> usize[] {
-    out: usize[] = []
+    out: usize[]! = []
     i: usize = 0
     for i < stmts.len() {
         if !inline_if_stmt(stmts[i]) {

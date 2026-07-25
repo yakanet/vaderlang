@@ -211,7 +211,7 @@ declare_named_with_args :: fn(
     mk: fn(Symbol, Type[]) -> Type,
 ) -> void {
     sym :: by_name[name] ?? return
-    args: Type[] = []
+    args: Type[]! = []
     for tp in type_params {
         tp_sym :: factory.make(.TypeParam, tp.name, module_path, .Private, tp.span)
         args.push(mk_type_param(tp_sym))
@@ -228,7 +228,7 @@ declare_fn :: fn(
     typed: TypedProgram!,
     diags: Diagnostic[]!,
 ) -> void {
-    params: Type[] = []
+    params: Type[]! = []
     for p in decl.params {
         params.push(declare_fn_param(p, resolved, typed, diags))
     }

@@ -121,7 +121,7 @@ inline_gen_ident_call :: fn(
     // of the inlined body. Args lower in the CONSUMER ctx (they are consumer
     // exprs) ; the param SYMBOL is the generator module's own, so the body (lowered
     // below in `owner_typed`) resolves its references to these lets.
-    param_lets: LoweredStmt[] = []
+    param_lets: LoweredStmt[]! = []
     for i in 0..<fn_decl.params.len() {
         p :: fn_decl.params[i]
         p_sym :: lookup_local_symbol(ctx.project, owner_typed.resolved, p.span) ?? return null
@@ -145,7 +145,7 @@ inline_gen_ident_call :: fn(
     gen_ctx.gen_inline_sink = build_gen_sink(ctx, lb.pattern, lb.symbol, lb.name, element_type, consumer_body, for_stmt.span)
     lowered_gen :: block_lowerer(gen_ctx, gen_body, false, false)
 
-    out: LoweredStmt[] = []
+    out: LoweredStmt[]! = []
     out.push_all(param_lets)
     out.push_all(block_stmts_with_trailing(lowered_gen))
     return wrap_stmts(for_stmt.span, out)
@@ -266,7 +266,7 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterCh
     // The non-self param is DATA (map's `f`, take's `n`) unless it has its own source
     // loop — `chain`'s `other`, which fuses as an extra source instead.
     arg_is_data :: decl.params.len() == 2 && param1_loop is null
-    extra_sources: GenSourceBinding[] = []
+    extra_sources: GenSourceBinding[]! = []
     if param1_loop is GenSourceLoop as sl {
         other_expr :: fluent.fn_arg ?? return null
         other_src :: descend_chain(ctx, other_expr, true) ?? return null
@@ -327,8 +327,8 @@ extract_gen_source_loops :: fn(decl: AST.FnDecl) -> GenSourceLoop[] | null {
     body :: decl.body ?? return null
     if body.trailing != null { return null }
     if body.stmts.len() == 0 { return null }
-    loops: GenSourceLoop[] = []
-    pending: AST.Stmt[] = []
+    loops: GenSourceLoop[]! = []
+    pending: AST.Stmt[]! = []
     for stmt in body.stmts {
         matched :: match_source_loop(stmt, decl)
         if matched is GenSourceLoop as sl {
@@ -407,7 +407,7 @@ gen_combo_subst :: fn(
     if ft is FnType as f {
         if f.params.len() < 2 { return null }
         bindings :: MutableMap<i32, Type> {}
-        order: i32[] = []
+        order: i32[]! = []
         // Bind the SOURCE element type-param from the post-fusion concrete
         // `source_elem`, NOT from the receiver's (possibly erased) type. `self` is
         // `Iterator<T>` for every combinator, so its element `T` is `params[0]`'s
@@ -432,7 +432,7 @@ gen_combo_subst :: fn(
         // (map's `U` from `f: fn(T) -> U`). `T` is already pinned, and
         // `unify_params` keeps the first binding, so a concrete arg just agrees.
         unify_params(f.params[1], default_if_free(ctx.types.expr_type(fn_arg)), bindings, order, ctx)
-        concrete_args: Type[] = []
+        concrete_args: Type[]! = []
         for id in order {
             v :: bindings[id] ?? return null
             concrete_args.push(v)
@@ -463,7 +463,7 @@ emit_fused_gen_combinator :: fn(
     gen_ctx :: new_fn_lower_ctx(ctx.project, stub_entry(layer.decl, layer.owner), layer.owner, layer.subst, gen_return, null)
     gen_ctx.gen_inline_sink = build_gen_sink(ctx, template.pattern, template.binding_symbol, template.binding_name, template.element_type, template.user_body, chain.span)
 
-    out: LoweredStmt[] = []
+    out: LoweredStmt[]! = []
     // Bind the combinator's single non-self DATA arg (map's `f`, take's `n`) once,
     // ahead of the loops. A 0-arg / all-source combinator (enumerate / chain) has none.
     arg_expr :: layer.arg_expr
@@ -502,7 +502,7 @@ fuse_source_loop :: fn(
             .user_body = inner_block,
         }
         source_stmts :: emit_fused_chain(ctx, binding.source, loop_label, outer_span, inner_template, recurse)
-        out: LoweredStmt[] = []
+        out: LoweredStmt[]! = []
         if binding.prelude.len() > 0 {
             prelude_expr: AST.Expr = AST.BlockExpr { .span = span, .stmts = binding.prelude, .trailing = null }
             prelude_lowered :: recurse(gen_ctx, prelude_expr)

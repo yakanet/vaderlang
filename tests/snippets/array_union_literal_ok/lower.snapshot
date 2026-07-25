@@ -106,11 +106,11 @@
                 __for_i_2 :usize
               r:
                 int(1) :usize
-    let a: i32[]! =
-      array :i32[]!
+    let a: i32[] =
+      array :i32[]
         int(10) :i32
         int(20) :i32
-    let view: (i32 | string)[] = a :i32[]!
+    let view: (i32 | string)[] = a :i32[]
     if :void
       cond:
         is i32 :bool

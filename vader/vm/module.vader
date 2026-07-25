@@ -58,7 +58,7 @@ export VmState :: struct {
 /// @param bc_mod  the parsed module (from `parse_virt_bc` or the builder).
 /// @return        a `VmState` ready to pass to `exec`.
 export prepare :: fn(bc_mod: bc.BytecodeModule) -> VmState {
-    narrow: bool[] = [] * bc_mod.functions.len()
+    narrow: bool[]! = [] * bc_mod.functions.len()
     for f in bc_mod.functions {
         narrow.push(fn_has_narrow_slot(f))
     }

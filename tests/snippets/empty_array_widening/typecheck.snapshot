@@ -44,7 +44,7 @@
   expr 36:5     IdentExpr      :: fn(T) -> void
   expr 36:65    IdentExpr      :: string[]!
   expr 36:65    IndexExpr      :: string
-  expr 39:24    SeqLitExpr     :: i32[]!
+  expr 39:25    SeqLitExpr     :: i32[]!
   expr 40:14    RangeExpr      :: Range<i32>!
   expr 41:24    BinaryExpr     :: i32
   expr 41:24    IdentExpr      :: i32

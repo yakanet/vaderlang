@@ -125,7 +125,7 @@ lower_index :: fn(ctx: FnLowerCtx!, expr: IndexExpr, type: Type) -> LoweredExpr 
     if !is_range && array_backing(target_type) == null {
         member :: find_trait_impl_member(ctx, target_type, TRAIT_INDEX)
         if member is UfcsMember as found {
-            args: LoweredExpr[] = []
+            args: LoweredExpr[]! = []
             args.push(lower_expr(ctx, expr.target))
             args.push(lower_expr(ctx, expr.index))
             return LoweredCall {
@@ -199,7 +199,7 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx!, expr: IndexExpr, type: Type, as_st
         hi_value :: adjust_hi_inclusive_dynamic(hi_raw, LoweredFieldAccess {
             .span = span, .type = TY_BOOL, .target = range_ref, .field = "inclusive",
         }, span)
-        stmts: LoweredStmt[] = []
+        stmts: LoweredStmt[]! = []
         stmts.push(range_binding)
         return LoweredBlock {
             .span = span, .type = type, .stmts = stmts,
@@ -285,7 +285,7 @@ try_lower_index_set_assign :: fn(ctx: FnLowerCtx!, assign_stmt: AssignStmt) -> L
                 receiver :: lower_expr(ctx, idx.target)
                 index :: lower_expr(ctx, idx.index)
                 value :: lower_expr(ctx, assign_stmt.value)
-                args: LoweredExpr[] = []
+                args: LoweredExpr[]! = []
                 args.push(receiver)
                 args.push(index)
                 args.push(value)

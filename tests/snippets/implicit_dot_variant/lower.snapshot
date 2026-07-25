@@ -55,12 +55,12 @@
             show_day :fn(Day) -> string
           arg0:
             a :Day
-    let days: Day[]! =
-      array :Day[]!
+    let days: Day[] =
+      array :Day[]
         int(0) :i32
         int(2) :i32
     block :void
-      let __for_arr_0: Day[]! = days :Day[]!
+      let __for_arr_0: Day[] = days :Day[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -68,7 +68,7 @@
         let d: Day =
           index :Day
             on:
-              __for_arr_0 :Day[]!
+              __for_arr_0 :Day[]
             ix:
               __for_i_2 :usize
         call :void
@@ -89,7 +89,7 @@
                 __for_i_2 :usize
               r:
                 int(1) :usize
-    let m: None! | Some! =
+    let m: None | Some =
       Some! {
         value: int(42) :i32
       }
@@ -98,7 +98,7 @@
         if :void
           cond:
             is Some! :bool
-              m :None! | Some!
+              m :None | Some
           then:
             ~>
               call :void
@@ -140,8 +140,8 @@
                           arg2:
                             cast → i64
                               .value :i32
-                                cast → Some!
-                                  m :None! | Some!
+                                cast → Some
+                                  m :None | Some
                     ~>
                       call :string
                         callee:
@@ -155,7 +155,7 @@
               if :void
                 cond:
                   is None! :bool
-                    m :None! | Some!
+                    m :None | Some
                 then:
                   ~>
                     call :void
@@ -166,7 +166,7 @@
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let n: None! | Some! =
+    let n: None | Some =
       None! {
       }
     block :void
@@ -174,7 +174,7 @@
         if :void
           cond:
             is Some! :bool
-              n :None! | Some!
+              n :None | Some
           then:
             ~>
               call :void
@@ -216,8 +216,8 @@
                           arg2:
                             cast → i64
                               .value :i32
-                                cast → Some!
-                                  n :None! | Some!
+                                cast → Some
+                                  n :None | Some
                     ~>
                       call :string
                         callee:
@@ -231,7 +231,7 @@
               if :void
                 cond:
                   is None! :bool
-                    n :None! | Some!
+                    n :None | Some
                 then:
                   ~>
                     call :void

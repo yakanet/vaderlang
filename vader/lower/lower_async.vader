@@ -85,7 +85,7 @@ push_async_decls :: fn(
 // A `null` trailing (body ends in an explicit `return`) is left untouched.
 async_fold_trailing :: fn(body: LoweredBlock, result_is_void: bool) -> LoweredBlock {
     t :: body.trailing ?? return body
-    stmts: LoweredStmt[] = []
+    stmts: LoweredStmt[]! = []
     for s in body.stmts { stmts.push(s) }
     if result_is_void {
         stmts.push(LoweredExprStmt { .span = body.span, .expr = t })
@@ -173,7 +173,7 @@ export lower_async_fn :: fn(
 
     // Synthesize the frame struct (spilled fields + optional `__defers` +
     // `awaited` + `state`) and its `$Async$resume` fn.
-    state_fields: LoweredStructField[] = []
+    state_fields: LoweredStructField[]! = []
     for f in gb.fields { state_fields.push(f) }
     if gb.has_defers {
         state_fields.push(LoweredStructField { .name = GB_DEFERS_FIELD, .type = gb_defers_ty() })
@@ -188,7 +188,7 @@ export lower_async_fn :: fn(
     // value (assigned in `resume()` before first read, but `struct.new` needs
     // every field). Field order matches the struct decl.
     nparams :: params.len()
-    construct_fields: LoweredStructLitField[] = []
+    construct_fields: LoweredStructLitField[]! = []
     for idx in 0..<gb.fields.len() {
         f :: gb.fields[idx]
         value :: if idx < nparams {

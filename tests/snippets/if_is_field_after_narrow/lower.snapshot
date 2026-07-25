@@ -44,7 +44,7 @@
       neg :i32
         int(1) :i32
   fn snippet$main() -> i32
-    let s: ArrayVal! | IntVal! | StructVal! =
+    let s: ArrayVal | IntVal | StructVal =
       StructVal! {
         type_id: int(100) :i32
         fields:
@@ -52,7 +52,7 @@
             int(1) :i32
             int(2) :i32
       }
-    let a: ArrayVal! | IntVal! | StructVal! =
+    let a: ArrayVal | IntVal | StructVal =
       ArrayVal! {
         type_id: int(200) :i32
         items:
@@ -60,7 +60,7 @@
             int(42) :i32
             int(43) :i32
       }
-    let i: ArrayVal! | IntVal! | StructVal! =
+    let i: ArrayVal | IntVal | StructVal =
       IntVal! {
         value: int(7) :i32
       }
@@ -106,7 +106,7 @@
                       callee:
                         type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
                       arg0:
-                        s :ArrayVal! | IntVal! | StructVal!
+                        s :ArrayVal | IntVal | StructVal
           ~>
             call :string
               callee:
@@ -157,7 +157,7 @@
                       callee:
                         type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
                       arg0:
-                        a :ArrayVal! | IntVal! | StructVal!
+                        a :ArrayVal | IntVal | StructVal
           ~>
             call :string
               callee:
@@ -208,7 +208,7 @@
                       callee:
                         type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
                       arg0:
-                        i :ArrayVal! | IntVal! | StructVal!
+                        i :ArrayVal | IntVal | StructVal
           ~>
             call :string
               callee:
@@ -259,7 +259,7 @@
                       callee:
                         first_item :fn(ArrayVal | IntVal | StructVal) -> i32
                       arg0:
-                        a :ArrayVal! | IntVal! | StructVal!
+                        a :ArrayVal | IntVal | StructVal
           ~>
             call :string
               callee:

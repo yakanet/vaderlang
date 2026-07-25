@@ -83,8 +83,8 @@ export coalesce_temps :: fn(body: string, types: ValType[]) -> CoalesceResult {
     //    A single byte walk tracks the line counter — no `split` (which would
     //    intern one throwaway atom per line). A `t<digits>` token never spans a
     //    newline, so line granularity is exact.
-    first: i32[] = []
-    last:  i32[] = []
+    first: i32[]! = []
+    last:  i32[]! = []
     for i in 0..<n { first.push(-1)  last.push(-1) }
     b :: fused.bytes()
     blen :: b.len()
@@ -114,9 +114,9 @@ export coalesce_temps :: fn(body: string, types: ValType[]) -> CoalesceResult {
     //    strictly before this temp begins (equal endpoints share a line, so
     //    they overlap and must not merge).
     order :: order_by_first(first, n)
-    remap: i32[] = [-1] * n
-    new_types: ValType[] = []
-    slot_end:  i32[] = []
+    remap: i32[]! = [-1] * n
+    new_types: ValType[]! = []
+    slot_end:  i32[]! = []
     for k in 0..<order.len() {
         oi :: order[k]
         d :: first[oi]
@@ -176,7 +176,7 @@ temp_token_at :: fn(b: u8[], i: usize, len: usize) = slot_token_at(b, i, len, 't
 // (ties by index, via the stable sort). Temps that never appear (first < 0) are
 // dropped — they hold no slot and are never referenced.
 order_by_first :: fn(first: i32[], n: usize) -> usize[] {
-    idx: usize[] = []
+    idx: usize[]! = []
     for i in 0..<n {
         if first[i] >= 0 { idx.push(i) }
     }
@@ -218,7 +218,7 @@ rewrite_temps :: fn(body: string, remap: i32[]) -> string {
 
 // Occurrence count of each temp id `0..<n` across the whole body.
 count_temp_occurrences :: fn(body: string, n: usize) -> i32[] {
-    count: i32[] = []
+    count: i32[]! = []
     for i in 0..<n { count.push(0) }
     b :: body.bytes()
     blen :: b.len()
@@ -298,7 +298,7 @@ fuse_temp_local_copies :: fn(body: string, n: usize) -> string {
     count :: count_temp_occurrences(body, n)
     lines :: body.split("\n")
     nlines :: lines.len()
-    out: string[] = []
+    out: string[]! = []
     li: usize = 0
     for li < nlines {
         if li + 1 < nlines {

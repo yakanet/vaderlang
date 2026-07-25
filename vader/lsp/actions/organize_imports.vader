@@ -73,7 +73,7 @@ oi_apply :: fn(decls: AST.Decl[], ctx: ActionCtx) -> ActionResult | null {
 // The contiguous run of import decls at the head of `decls` (Vader files open
 // with their imports). Stops at the first non-import.
 oi_import_run :: fn(decls: AST.Decl[]) -> AST.ImportDecl[] {
-    run: AST.ImportDecl[] = []
+    run: AST.ImportDecl[]! = []
     for di in 0..<decls.len() {
         d :: decls[di]
         if d is AST.ImportDecl as im {
@@ -128,8 +128,8 @@ OiEntry :: struct {
 oi_render :: fn(run: AST.ImportDecl[]) -> string {
     // Merge destructure imports by path ; collect namespace imports (dedup exact).
     destructure: MutableMap<string, AST.ImportName[]> = MutableMap<string, AST.ImportName[]> {}
-    dpaths: string[] = []
-    ns_entries: OiEntry[] = []
+    dpaths: string[]! = []
+    ns_entries: OiEntry[]! = []
     ns_seen: MutableMap<string, bool> = MutableMap<string, bool> {}
 
     for i in 0..<run.len() {
@@ -163,7 +163,7 @@ oi_render :: fn(run: AST.ImportDecl[]) -> string {
         }
     }
 
-    entries: OiEntry[] = []
+    entries: OiEntry[]! = []
     for pi in 0..<dpaths.len() {
         p :: dpaths[pi]
         names :: destructure[p]
@@ -219,7 +219,7 @@ oi_render_namespace :: fn(path: string, nn: AST.NamedNamespaceImport) -> string 
 // Render each import name to text, de-duplicate, and sort ascending. Rendering
 // first lets a plain string sort order names then aliases (`A` < `A as X` < `B`).
 oi_sorted_name_texts :: fn(names: AST.ImportName[]) -> string[] {
-    texts: string[] = []
+    texts: string[]! = []
     seen :: MutableMap<string, bool> {}
     for i in 0..<names.len() {
         t :: oi_name_text(names[i])

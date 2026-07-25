@@ -374,19 +374,19 @@ write_body_with_scopes :: fn(sb: StringBuilder!, module: BytecodeModule, functio
     param_count :: i32(function_decl.signature.params.len())
     // Per-active-scope stacks. Grow-only with `sp` cursor for the
     // logical top so closing a scope is a cheap decrement.
-    stack_labels:    string[] = []
-    stack_opener_pc: i32[]    = []
-    stack_is_loop:   bool[]   = []
+    stack_labels:    string[]! = []
+    stack_opener_pc: i32[]!    = []
+    stack_is_loop:   bool[]!   = []
     sp: usize = 0
     // Pending Branch/BranchIf whose target scope hasn't closed yet
     // (block / if / else falls through to its End). Drained when the
     // matching End is seen ; `branch_target_label[pc]` carries the
     // resolved label string.
-    pending_pc:    i32[]    = []
-    pending_label: string[] = []
+    pending_pc:    i32[]!    = []
+    pending_label: string[]! = []
     psp: usize = 0
     // pc → resolved label string (filled lazily for Branch/BranchIf).
-    branch_target_label: string[] = []
+    branch_target_label: string[]! = []
     n :: body.len()
     for init_label in 0..<n { branch_target_label.push("") }
 

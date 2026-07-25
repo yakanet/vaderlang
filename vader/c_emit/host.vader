@@ -24,9 +24,9 @@ import "vader/bytecode"
 /// `module.imports` already carries only the referenced host fns. A
 /// trailing blank line keeps the spacing before the fn bodies stable.
 emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
-    extern_decls: string[] = []
-    seen_extern: string[] = []
-    shims: string[] = []
+    extern_decls: string[]! = []
+    seen_extern: string[]! = []
+    shims: string[]! = []
     for i in 0..<ctx.module.imports.len() {
         imp :: ctx.module.imports[i]
         if imp.is_extern && !(imp.extern_name in seen_extern) {
@@ -47,7 +47,7 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 /// `extern <ret> <name>(<params>);` for an `@extern` import — foreign ABI
 /// types (`string` → `const char*`), declared once per distinct symbol.
 extern_decl :: fn(imp: BcImport) -> string {
-    parts: string[] = []
+    parts: string[]! = []
     for j in 0..<imp.signature.params.len() { parts.push(extern_c_type(imp.signature.params[j])) }
     params :: if parts.len() == 0 { "void" } else { parts.join(", ") }
     return "extern ${extern_c_type(imp.signature.result)} ${imp.extern_name}(${params});"
@@ -66,7 +66,7 @@ extern_decl :: fn(imp: BcImport) -> string {
 // two can't drift on the ABI.
 import_shim_signature :: fn(imp: BcImport, idx: i32) -> string {
     sig :: imp.signature
-    parts: string[] = []
+    parts: string[]! = []
     for j in 0..<sig.params.len() { parts.push("${c_type_for_val_bare(sig.params[j])} a${j}") }
     params :: if parts.len() == 0 { "void" } else { parts.join(", ") }
     return "${c_type_for_val_bare(sig.result)} vader_import_${idx}(${params})"
@@ -189,9 +189,9 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
 /// returned pointer into a dup can't be used after free.
 user_extern_shim :: fn(imp: BcImport, head: string) -> string {
     sig :: imp.signature
-    call_args: string[] = []
-    lines: string[] = []
-    free_lines: string[] = []
+    call_args: string[]! = []
+    lines: string[]! = []
+    free_lines: string[]! = []
     for j in 0..<sig.params.len() {
         if sig.params[j] == ValType.String {
             lines.push("const char* c${j} = vader_string_to_cstr(a${j});")

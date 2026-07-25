@@ -112,17 +112,17 @@
               cast → Cat | Dog
                 b :Cat | Dog | null
   fn snippet$main() -> i32
-    let cat: Cat! | Dog! | null =
+    let cat: Cat | Dog | null =
       Cat! {
         name: "Whiskers" :string
         age: int(3) :i32
       }
-    let dog: Cat! | Dog! | null =
+    let dog: Cat | Dog | null =
       Dog! {
         name: "Rex" :string
         age: int(7) :i32
       }
-    let nothing: Cat! | Dog! | null = null
+    let nothing: Cat | Dog | null = null
     call :void
       callee:
         std_io$println__string :void
@@ -131,7 +131,7 @@
           callee:
             greet :fn(Cat | Dog | null) -> string
           arg0:
-            cat :Cat! | Dog! | null
+            cat :Cat | Dog | null
     call :void
       callee:
         std_io$println__string :void
@@ -140,7 +140,7 @@
           callee:
             greet :fn(Cat | Dog | null) -> string
           arg0:
-            nothing :Cat! | Dog! | null
+            nothing :Cat | Dog | null
     call :void
       callee:
         std_io$println__string :void
@@ -149,7 +149,7 @@
           callee:
             greet_v2 :fn(Cat | Dog | null) -> string
           arg0:
-            cat :Cat! | Dog! | null
+            cat :Cat | Dog | null
     call :void
       callee:
         std_io$println__string :void
@@ -158,7 +158,7 @@
           callee:
             greet_v2 :fn(Cat | Dog | null) -> string
           arg0:
-            nothing :Cat! | Dog! | null
+            nothing :Cat | Dog | null
     call :void
       callee:
         std_io$println__string :void
@@ -167,7 +167,7 @@
           callee:
             greet_v3 :fn(Cat | Dog | null) -> string
           arg0:
-            cat :Cat! | Dog! | null
+            cat :Cat | Dog | null
     call :void
       callee:
         std_io$println__string :void
@@ -176,7 +176,7 @@
           callee:
             greet_v3 :fn(Cat | Dog | null) -> string
           arg0:
-            nothing :Cat! | Dog! | null
+            nothing :Cat | Dog | null
     call :void
       callee:
         std_io$println__string :void
@@ -185,7 +185,7 @@
           callee:
             greet_v4 :fn(Cat | Dog | null) -> string
           arg0:
-            cat :Cat! | Dog! | null
+            cat :Cat | Dog | null
     call :void
       callee:
         std_io$println__string :void
@@ -194,7 +194,7 @@
           callee:
             greet_v4 :fn(Cat | Dog | null) -> string
           arg0:
-            nothing :Cat! | Dog! | null
+            nothing :Cat | Dog | null
     call :void
       callee:
         std_io$println__string :void
@@ -203,9 +203,9 @@
           callee:
             combine :fn(Cat | Dog | null, Cat | Dog | null) -> string
           arg0:
-            cat :Cat! | Dog! | null
+            cat :Cat | Dog | null
           arg1:
-            dog :Cat! | Dog! | null
+            dog :Cat | Dog | null
     call :void
       callee:
         std_io$println__string :void
@@ -214,9 +214,9 @@
           callee:
             combine :fn(Cat | Dog | null, Cat | Dog | null) -> string
           arg0:
-            nothing :Cat! | Dog! | null
+            nothing :Cat | Dog | null
           arg1:
-            dog :Cat! | Dog! | null
+            dog :Cat | Dog | null
     call :void
       callee:
         std_io$println__string :void
@@ -225,9 +225,9 @@
           callee:
             combine :fn(Cat | Dog | null, Cat | Dog | null) -> string
           arg0:
-            cat :Cat! | Dog! | null
+            cat :Cat | Dog | null
           arg1:
-            nothing :Cat! | Dog! | null
+            nothing :Cat | Dog | null
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

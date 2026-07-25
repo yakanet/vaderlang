@@ -77,7 +77,7 @@ materialize_representative :: fn(
                 if sd.type_params.len() == 0 { return }
                 seen_reps.add(rep_mangled)
                 erase :: build_any_subst(sd, owner_typed_ok)
-                fields: LoweredStructField[] = []
+                fields: LoweredStructField[]! = []
                 for f in sd.fields {
                     raw_ty :: resolve_field_type(f.ty, owner_typed_ok, sd, inst.args)
                     fields.push(LoweredStructField {
@@ -225,7 +225,7 @@ materialize_struct_instance :: fn(
         // ref arg pre-erased), so only field types change.
         subst :: build_struct_subst(sd, inst.args, owner_typed)
         erase :: build_struct_mixed_subst(sd, owner_typed, inst.args)
-        fields: LoweredStructField[] = []
+        fields: LoweredStructField[]! = []
         for f in sd.fields {
             raw_ty :: resolve_field_type(f.ty, owner_typed, sd, inst.args)
             field_ty :: substitute(raw_ty, erase)
@@ -274,7 +274,7 @@ close_over_field_shapes :: fn(
 ) -> void {
     materialized :: new_string_set()
     seen_pushed :: new_string_set()
-    worklist: StructType[] = []
+    worklist: StructType[]! = []
     collect :: (sub: Type) -> push_struct_shape(sub, worklist, seen_pushed)
     for [_, mod] in project.modules {
         for decl in mod.decls {
@@ -506,7 +506,7 @@ materialize_bound_trait_impls :: fn(
         bound :: impl_decl.type_params[i].bound ?? continue
         type_name :: type_surface_name(inst.args[i])
         if type_name == "" { continue }
-        trait_names: string[] = []
+        trait_names: string[]! = []
         flatten_trait_bound(bound, trait_names)
         for trait_name in trait_names {
             materialize_bound_impl(type_name, trait_name, project_ctx, project, loaded, typed, diags)

@@ -43,8 +43,8 @@
                 int(1) :i32
     return acc :i32
   fn snippet$main() -> i32
-    let arr: i32[]! =
-      array :i32[]!
+    let arr: i32[] =
+      array :i32[]
         int(10) :i32
         int(20) :i32
         int(30) :i32
@@ -61,7 +61,7 @@
         arg0:
           x :Foo!
         arg1:
-          arr :i32[]!
+          arr :i32[]
     let expected: i32 =
       mul :{integer}
         l:

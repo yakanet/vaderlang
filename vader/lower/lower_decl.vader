@@ -38,7 +38,7 @@ lower_impl_member_list :: fn(
     impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!, diags: Diagnostic[],
     module_decls: Decl[],
 ) -> LoweredDecl[] {
-    out: LoweredDecl[] = []
+    out: LoweredDecl[]! = []
     // Skip generic impls entirely — the mono pass binds them via a
     // separate path.
     if impl_decl.type_params.len() > 0 { return out }
@@ -69,7 +69,7 @@ build_impl_member_params :: fn(
     member: FnDecl, self_type: Type, types: EntryTypes,
     typed: TypedProgram, project_ctx: LowerProjectCtx!,
 ) -> LoweredParam[] {
-    params: LoweredParam[] = []
+    params: LoweredParam[]! = []
     for ast_param in member.params {
         // `self` may have no use-sites inside the body (`-> "point"`),
         // in which case `resolved.idents` doesn't surface the symbol.
@@ -105,7 +105,7 @@ build_impl_member_params :: fn(
 // the primitive-intrinsic collision.
 impl_member_param_type :: fn(ast_param: FnParam, types: EntryTypes, typed: TypedProgram) -> Type {
     pty :: ast_param.ty ?? return types.param_type(ast_param)
-    scratch: Diagnostic[] = []
+    scratch: Diagnostic[]! = []
     direct :: type_from_expr(pty, typed.resolved, scratch)
     if direct is PrimitiveType { return direct }
     return types.param_type(ast_param)
@@ -201,7 +201,7 @@ for_type_name :: fn(for_type: TypeExpr, typed: TypedProgram) -> string {
 
 
 lower_for_type :: fn(impl_decl: ImplDecl, typed: TypedProgram) -> Type {
-    scratch: Diagnostic[] = []
+    scratch: Diagnostic[]! = []
     return type_from_expr(impl_decl.for_type, typed.resolved, scratch)
 }
 
@@ -233,7 +233,7 @@ lower_fn_decl :: fn(
     if fn_decl.type_params.len() > 0 { return null }
     subst :: new_substitution()
     types :: make_entry_types(typed, subst)
-    params: LoweredParam[] = []
+    params: LoweredParam[]! = []
     for ast_param in fn_decl.params {
         // Param symbols live behind `resolved.idents` use-sites — recover
         // by matching `defined_at` against the param's source span.
@@ -345,7 +345,7 @@ export promote_captured_params :: fn(
     // Common case — a closure-free project never promotes anything, so skip the
     // per-param symbol lookups entirely.
     if fn_ctx.project.closures.captured_symbols.len() == 0 { return block }
-    prologue: LoweredStmt[] = []
+    prologue: LoweredStmt[]! = []
     for ast_param in params {
         sym :: lookup_local_symbol(fn_ctx.project, fn_ctx.typed.resolved, ast_param.span)
         if sym is null { continue }
@@ -375,7 +375,7 @@ lower_struct_decl :: fn(
     if struct_decl.type_params.len() > 0 { return null }
     types :: make_entry_types(typed, new_substitution())
     field_table :: lookup_struct_field_table(struct_decl, typed)
-    fields: LoweredStructField[] = []
+    fields: LoweredStructField[]! = []
     for field in struct_decl.fields {
         fields.push(LoweredStructField {
             .name = field.name,

@@ -32,7 +32,7 @@ surface_referenced_intrinsic_externs :: fn(
         // `synth_decls` — the same post-module orphan class as the materialise
         // sites. Drained into this module after the batch merge.
         synth_start :: project_ctx.synth_decls.len()
-        extra: LoweredDecl[] = []
+        extra: LoweredDecl[]! = []
         for d in decls_list {
             if d is ImplDecl as impl_ {
                 for ext in surface_stdlib_impl_externs(impl_, module_typed, project_ctx, decls_list) {
@@ -68,7 +68,7 @@ surface_referenced_intrinsic_externs :: fn(
 surface_stdlib_impl_externs :: fn(
     impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!, module_decls: Decl[],
 ) -> LoweredDecl[] {
-    out: LoweredDecl[] = []
+    out: LoweredDecl[]! = []
     if impl_decl.type_params.len() > 0 { return out }
     if impl_decl.for_type is GenericInstExpr { return out }
     self_type :: lower_for_type(impl_decl, typed)
@@ -164,7 +164,7 @@ vtable_receiver_eligible :: fn(self_type: Type, project_ctx: LowerProjectCtx) ->
 surface_array_blanket_members :: fn(
     impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!,
 ) -> LoweredDecl[] {
-    out: LoweredDecl[] = []
+    out: LoweredDecl[]! = []
     if impl_decl.type_params.len() == 0 { return out }
     if !(strip_mut_marker(impl_decl.for_type) is ArrayTypeExpr) { return out }
     for member in impl_decl.members {

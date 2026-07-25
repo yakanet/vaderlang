@@ -113,7 +113,7 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
     // from this normalised form.
     entry :: entry_path.to_posix()
     modules :: MutableMap<string, LoadedModule> {}
-    loader_diags: Diagnostic[] = []
+    loader_diags: Diagnostic[]! = []
     project_root :: find_manifest_root(entry)
     // Read the project manifest once (the LSP re-loads on every didOpen).
     manifest :: match project_root {
@@ -146,7 +146,7 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
         }
         is DiscoveredModule as em -> {
             bases :: include_paths(em.name, em.folder, plain_roots)
-            queue: DiscoveredModule[] = [em]
+            queue: DiscoveredModule[]! = [em]
             core :: resolve_lazy("std/core", bases, index, loader_diags)
             match core {
                 is DiscoveredModule as cm -> {
@@ -170,7 +170,7 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
             match string_builder {
                 is DiscoveredModule as sbm -> {
                     if !has_module(modules, sbm.folder) {
-                        sb_queue: DiscoveredModule[] = [sbm]
+                        sb_queue: DiscoveredModule[]! = [sbm]
                         drain_load_queue(sb_queue, bases, modules, factory, index, loader_diags, overlay, node_factory)
                     }
                 }
@@ -323,7 +323,7 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[]!, overlay: Mutable
     // and typed into a consumer module (the `expand_tilde` return-array
     // miscompile). A global factory makes that collision impossible (mirrors
     // globally-unique Symbol ids).
-    out: SourceFile[] = []
+    out: SourceFile[]! = []
     for path in paths {
         content :: read_with_overlay(overlay, path)
         if content == "" { continue }
@@ -350,7 +350,7 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[]!, overlay: Mutable
 project_include_paths :: fn(
     project_root: string | null, manifest: Manifest, flag_paths: string[],
 ) -> string[] {
-    roots: string[] = []
+    roots: string[]! = []
     for p in flag_paths { roots.push(p) }
     match project_root {
         is string as pr -> {

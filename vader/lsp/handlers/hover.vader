@@ -98,8 +98,8 @@ hover_json :: fn(d: DeclEntry) -> JsonValue {
 format_vaderdoc :: fn(raw: string) -> string {
     if raw.bytes().len() == 0 { return raw }
     lines :: raw.split("\n")
-    body: string[] = []
-    tags: string[] = []
+    body: string[]! = []
+    tags: string[]! = []
     for ln in lines {
         rest :: ln.trim()
         // One byte view per trimmed line ; the @tag branches slice off it.

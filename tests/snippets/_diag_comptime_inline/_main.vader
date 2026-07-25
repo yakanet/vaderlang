@@ -14,7 +14,7 @@ import "std/io"
 
 // Block form with an imperative `return`.
 SQUARES :: @comptime {
-    r: u32[] = []
+    r: u32[]! = []
     for i in 0..<6 { r.push(u32(i * i)) }
     return r
 }

@@ -115,7 +115,7 @@ export decode :: fn(input: string) -> u8[] | Base64Error {
     // earlier version returned a `string` built via `char()` + StringBuilder,
     // which UTF-8-encodes each codepoint — so every octet >= 0x80 was doubled,
     // corrupting binary payloads.
-    out: u8[] = []
+    out: u8[]! = []
     i: usize = 0
     full_quads :: n - 4
     for i < full_quads {

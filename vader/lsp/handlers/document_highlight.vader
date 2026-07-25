@@ -43,7 +43,7 @@ export handle_document_highlight :: fn(state: ServerState, params: JsonValue) ->
 
 /// Spans of every identifier token in the document whose text is `name`.
 ident_occurrences :: fn(idx: DocIndex, name: string) -> Span[] {
-    out: Span[] = []
+    out: Span[]! = []
     for t in idx.tokens {
         if t.kind == TokenKind.Ident {
             if t.text == name { out.push(t.span) }
@@ -53,7 +53,7 @@ ident_occurrences :: fn(idx: DocIndex, name: string) -> Span[] {
 }
 
 highlight_json :: fn(spans: Span[], li: LineIndex) -> JsonValue {
-    items: JsonValue[] = []
+    items: JsonValue[]! = []
     for sp in spans { items.push(highlight_item_json(sp, li)) }
     return JsonArray { .items = items }
 }

@@ -17,8 +17,8 @@
     return
       LoweredArrayLen
   fn snippet$main() -> i32
-    let a: u8[]! =
-      array :u8[]!
+    let a: u8[] =
+      array :u8[]
         int(1) :u8
         int(2) :u8
         int(3) :u8
@@ -118,7 +118,7 @@
                       callee:
                         byte_count :fn(string | u8[]) -> usize
                       arg0:
-                        a :u8[]!
+                        a :u8[]
           ~>
             call :string
               callee:

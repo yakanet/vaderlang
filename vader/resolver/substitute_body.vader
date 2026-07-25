@@ -26,7 +26,7 @@ AST :: import "vader/parser"
 
 /// Clone a BlockExpr, recursively substituting TypeParam idents.
 export substitute_block :: fn(b: AST.BlockExpr, subst: Subst) -> AST.BlockExpr {
-    new_stmts: AST.Stmt[] = []
+    new_stmts: AST.Stmt[]! = []
     for s in b.stmts { new_stmts.push(substitute_stmt(s, subst)) }
     new_trailing: AST.Expr | null = null
     if b.trailing !is null {
@@ -86,7 +86,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
 
         // Value-position composites : recurse children.
         is AST.CallExpr as c -> {
-            new_args: AST.CallArg[] = []
+            new_args: AST.CallArg[]! = []
             for a in c.args {
                 new_args.push(AST.CallArg {
                     .span = a.span, .id = AST.UNASSIGNED_NODE_ID,
@@ -161,7 +161,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
             }
         }
         is AST.MatchExpr as m -> {
-            new_arms: AST.MatchArm[] = []
+            new_arms: AST.MatchArm[]! = []
             for a in m.arms {
                 new_guard: AST.Expr | null = null
                 if a.guard !is null {
@@ -185,7 +185,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
         is AST.BlockExpr as b -> { return substitute_block(b, subst) }
 
         is AST.StructLitExpr as sl -> {
-            new_items: (AST.StructLitField | AST.StructLitSpread)[] = []
+            new_items: (AST.StructLitField | AST.StructLitSpread)[]! = []
             for it in sl.items {
                 match it {
                     is AST.StructLitField as fld -> {
@@ -210,7 +210,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
             }
         }
         is AST.SeqLitExpr as sq -> {
-            new_elems: AST.Expr[] = []
+            new_elems: AST.Expr[]! = []
             for el in sq.elements { new_elems.push(substitute_expr_full(el, subst)) }
             return AST.SeqLitExpr {
                 .span = sq.span, .id = AST.UNASSIGNED_NODE_ID, .elements = new_elems,
@@ -237,7 +237,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
             }
         }
         is AST.IntrinsicCallExpr as icx -> {
-            new_args: AST.Expr[] = []
+            new_args: AST.Expr[]! = []
             for a in icx.args { new_args.push(substitute_expr_full(a, subst)) }
             return AST.IntrinsicCallExpr {
                 .span = icx.span, .id = AST.UNASSIGNED_NODE_ID,
@@ -253,7 +253,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
             }
         }
         is AST.StringLitExpr as st -> {
-            new_parts: AST.StringLitPart[] = []
+            new_parts: AST.StringLitPart[]! = []
             for pt in st.parts {
                 match pt {
                     is AST.StringLitText as tx -> {
@@ -274,7 +274,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
             }
         }
         is AST.LambdaExpr as lm -> {
-            new_params: AST.FnParam[] = []
+            new_params: AST.FnParam[]! = []
             for pm in lm.params {
                 new_pty: AST.TypeExpr | null = null
                 if pm.ty !is null {
@@ -388,7 +388,7 @@ clone_let_binding :: fn(b: AST.LetBinding) -> AST.LetBinding {
             }
         }
         is AST.TupleBinding as x -> {
-            new_elems: AST.LetBinding[] = []
+            new_elems: AST.LetBinding[]! = []
             for e in x.elements { new_elems.push(clone_let_binding(e)) }
             return AST.TupleBinding { .span = x.span, .id = AST.UNASSIGNED_NODE_ID, .elements = new_elems }
         }

@@ -173,7 +173,7 @@ export lower_for_in :: fn(
         },
     }
 
-    loop_stmts: LoweredStmt[] = []
+    loop_stmts: LoweredStmt[]! = []
     loop_stmts.push(step_let)
     loop_stmts.push(branch_if)
 
@@ -184,7 +184,7 @@ export lower_for_in :: fn(
         },
     }
 
-    block_stmts: LoweredStmt[] = []
+    block_stmts: LoweredStmt[]! = []
     block_stmts.push(iter_let)
     block_stmts.push(loop_stmt)
     return LoweredExprStmt {
@@ -199,7 +199,7 @@ export lower_for_in :: fn(
 // ---- helpers --------------------------------------------------------------
 
 build_one :: fn(t: Type) -> Type[] {
-    out: Type[] = []
+    out: Type[]! = []
     out.push(t)
     return out
 }
@@ -216,7 +216,7 @@ resolve_loop_label :: fn(ctx: FnLowerCtx, for_stmt: AST.ForStmt) -> string | nul
 }
 
 build_break_stmts :: fn(span: Span) -> LoweredStmt[] {
-    out: LoweredStmt[] = []
+    out: LoweredStmt[]! = []
     out.push(LoweredBreak { .span = span, .label = null })
     return out
 }
@@ -233,7 +233,7 @@ bind_loop_var :: fn(
     ctx: FnLowerCtx!, binding_symbol: Symbol, name: string, pattern: AST.LetBinding | null,
     value: LoweredExpr, value_type: Type, span: Span,
 ) -> LoweredStmt[] {
-    out: LoweredStmt[] = []
+    out: LoweredStmt[]! = []
     if pattern is AST.TupleBinding as tup {
         elem_sym :: fresh_synthetic_symbol(ctx, "for_elem")
         out.push(LoweredLet {
@@ -260,14 +260,14 @@ bind_loop_var :: fn(
 export emit_for_pattern_destructure :: fn(
     ctx: FnLowerCtx!, tup: AST.TupleBinding, elem_sym: Symbol, elem_type: Type, span: Span,
 ) -> LoweredStmt[] {
-    out: LoweredStmt[] = []
+    out: LoweredStmt[]! = []
     elem_ref :: LoweredIdent { .span = span, .type = elem_type, .symbol = elem_sym }
     emit_let_binding_leaves(ctx, tup, elem_ref, elem_type, span, out)
     return out
 }
 
 build_body_stmts :: fn(bind_stmts: LoweredStmt[], user_body: LoweredBlock) -> LoweredStmt[] {
-    out: LoweredStmt[] = []
+    out: LoweredStmt[]! = []
     out.push_all(bind_stmts)
     for stmt in user_body.stmts { out.push(stmt) }
     if user_body.trailing is null { return out }
@@ -326,7 +326,7 @@ try_wrap_array_iter :: fn(
                 // surrounding code happens to call `.chars()` explicitly. Without
                 // this the call resolves to no fn-table entry → GATE B1 at emit.
                 register_nongeneric_imported_fn(ctx, chars_member.symbol)
-                args: LoweredExpr[] = []
+                args: LoweredExpr[]! = []
                 args.push(iter)
                 chars_call :: LoweredCall {
                     .span = span, .type = ft.return_type,
@@ -414,7 +414,7 @@ build_step_call :: fn(
     match iter_type {
         is TraitType as tt -> {
             if tt.symbol.name == TRAIT_ITERATOR {
-                args: LoweredExpr[] = []
+                args: LoweredExpr[]! = []
                 return LoweredVirtualCall {
                     .span = span, .type = step_union,
                     .trait_name = TRAIT_ITERATOR, .method = METHOD_NEXT,
@@ -461,7 +461,7 @@ build_step_call :: fn(
         ctx.project.referenced_impl_mangles.add(next_name)
     }
     next_symbol :: synth_next_symbol(ctx, next_name)
-    args: LoweredExpr[] = []
+    args: LoweredExpr[]! = []
     args.push(iter_ref)
     return LoweredCall {
         .span = span, .type = step_union,
@@ -753,7 +753,7 @@ try_lower_for_in_raw_array :: fn(
     // agree or a var-targeted `continue` stops advancing the index.
     loop_label :: resolve_loop_label(ctx, for_stmt)
     advanced :: prepend_inc_before_matching_continue(user_body, inc_stmt, loop_label)
-    body_stmts: LoweredStmt[] = []
+    body_stmts: LoweredStmt[]! = []
     body_stmts.push_all(bind_stmts)
     for stmt in advanced.stmts { body_stmts.push(stmt) }
     if !(advanced.trailing is null) {
@@ -768,7 +768,7 @@ try_lower_for_in_raw_array :: fn(
         },
     }
 
-    block_stmts: LoweredStmt[] = []
+    block_stmts: LoweredStmt[]! = []
     block_stmts.push(arr_let)
     block_stmts.push(len_let)
     block_stmts.push(idx_init)
@@ -859,7 +859,7 @@ try_lower_for_in_int_range :: fn(
     // Hoist non-trivial upper bounds (calls, casts, …) into a `__for_hi_N`
     // synthetic let so the loop condition reads a single slot per iteration.
     // Cheap shapes (Ident / FieldAccess / IntLit / CharLit) skip the hoist.
-    hoist_stmts: LoweredStmt[] = []
+    hoist_stmts: LoweredStmt[]! = []
     hi: LoweredExpr = hi_raw
     if hoisted {
         // BCE : when the bound is `arr.len()`, mark it a candidate — the post-inline
@@ -903,7 +903,7 @@ try_lower_for_in_int_range :: fn(
         },
     }
 
-    block_stmts: LoweredStmt[] = []
+    block_stmts: LoweredStmt[]! = []
     for hs in hoist_stmts { block_stmts.push(hs) }
     block_stmts.push(counter_init)
     block_stmts.push(loop_stmt)
@@ -962,7 +962,7 @@ cmp_op_for_inclusive :: fn(inclusive: bool) -> LoweredBinaryOp {
 
 build_int_range_body :: fn(user_body: LoweredBlock, inc_stmt: LoweredStmt, loop_label: string | null) -> LoweredStmt[] {
     advanced :: prepend_inc_before_matching_continue(user_body, inc_stmt, loop_label)
-    out: LoweredStmt[] = []
+    out: LoweredStmt[]! = []
     for stmt in advanced.stmts { out.push(stmt) }
     trailing :: advanced.trailing
     if !(trailing is null) {
@@ -1001,7 +1001,7 @@ continue_targets_loop :: fn(c_label: string | null, inside_nested_loop: bool, lo
 }
 
 rewrite_continue_block :: fn(b: LoweredBlock, inside_nested_loop: bool, inc: LoweredStmt, loop_label: string | null) -> LoweredBlock {
-    new_stmts: LoweredStmt[] = []
+    new_stmts: LoweredStmt[]! = []
     for s in b.stmts { new_stmts.push(rewrite_continue_stmt(s, inside_nested_loop, inc, loop_label)) }
     t :: b.trailing
     new_trailing :: if t == null { null } else { rewrite_continue_expr(t, inside_nested_loop, inc, loop_label) }
@@ -1110,7 +1110,7 @@ try_lower_for_in_map_set :: fn(
         is_set :: struct_sym_matches(module_export(ctx.project, "std/collections", "MutableSet"), source.symbol.id)
         if !is_map && !is_set { return null }
         // Element component types : Map<K, V> → [K, V] ; Set<T> → [T, bool].
-        entry_args: Type[] = []
+        entry_args: Type[]! = []
         if is_map {
             for a in source.args { entry_args.push(a) }
         } else {
@@ -1224,7 +1224,7 @@ lower_map_set_compact :: fn(
         },
     }
     user_body :: block_lowerer(ctx, for_stmt.body, false, true)
-    loop_body_stmts: LoweredStmt[] = []
+    loop_body_stmts: LoweredStmt[]! = []
     loop_body_stmts.push(oob_if)
     loop_body_stmts.push_all(binding_stmts)
     loop_body_stmts.push(pos_inc)
@@ -1233,7 +1233,7 @@ lower_map_set_compact :: fn(
         .span = span, .label = resolve_loop_label(ctx, for_stmt), .cond = null,
         .body = LoweredBlock { .span = span, .type = TY_VOID, .stmts = loop_body_stmts, .trailing = null },
     }
-    all_stmts: LoweredStmt[] = []
+    all_stmts: LoweredStmt[]! = []
     all_stmts.push(src_let)
     all_stmts.push(ekeys_let)
     if is_map { all_stmts.push(evals_let) }
@@ -1254,7 +1254,7 @@ map_struct_type :: fn(map_sym: Symbol | null, entry_args: Type[]) -> Type {
 }
 
 single_stmt_block :: fn(span: Span, stmt: LoweredStmt) -> LoweredBlock {
-    stmts: LoweredStmt[] = []
+    stmts: LoweredStmt[]! = []
     stmts.push(stmt)
     return LoweredBlock { .span = span, .type = TY_VOID, .stmts = stmts, .trailing = null }
 }

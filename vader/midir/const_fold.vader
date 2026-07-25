@@ -31,7 +31,7 @@ import "vader/lower"
 export const_fold_project :: fn(p: CFGProject) -> CFGProject {
     out :: MutableMap<string, CFGModule> {}
     for [id, m] in p.modules {
-        new_fns: CFGFunction[] = []
+        new_fns: CFGFunction[]! = []
         for f in m.functions { new_fns.push(const_fold_function(f)) }
         out[id] = CFGModule {
             .module_id    = m.module_id,
@@ -45,7 +45,7 @@ export const_fold_project :: fn(p: CFGProject) -> CFGProject {
 }
 
 const_fold_function :: fn(fn_: CFGFunction) -> CFGFunction {
-    new_blocks: BasicBlock[] = [] * fn_.blocks.len()
+    new_blocks: BasicBlock[]! = [] * fn_.blocks.len()
     for b in fn_.blocks {
         folded :: const_fold_block(b)
         new_blocks.push(BasicBlock {
@@ -71,7 +71,7 @@ const_fold_function :: fn(fn_: CFGFunction) -> CFGFunction {
 
 const_fold_block :: fn(b: BasicBlock) -> Instruction[] {
     consts :: MutableMap<i32, ConstValue> {}
-    out: Instruction[] = [] * b.instructions.len()
+    out: Instruction[]! = [] * b.instructions.len()
     for ins in b.instructions {
         if ins is InstrConst as c {
             consts[c.dst] = c.value

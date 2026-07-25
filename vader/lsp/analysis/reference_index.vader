@@ -74,7 +74,7 @@ export cursor_in_span :: fn(sp: Span, line: i32, col: i32) -> bool {
 /// @return         a flat `ReferenceIndex` ready for `symbol_at` / `site_at`.
 export build_reference_index :: fn(project: LoadedProject!, result: CheckResult) -> ReferenceIndex {
     table :: wire_imports(project)
-    sites: RefSite[] = []
+    sites: RefSite[]! = []
     seen :: MutableMap<u64, bool> {}
     for [id, typed] in result.all_modules {
         mod :: project.modules[id] ?? continue
@@ -92,7 +92,7 @@ export build_reference_index :: fn(project: LoadedProject!, result: CheckResult)
         // Identifier spans (uses + local/param/binding decl names) the body
         // walker bound to a Symbol in `idents`.
         for f in mod.module.files {
-            spans: Span[] = []
+            spans: Span[]! = []
             for d in f.program.decls { collect_decl_idents(d, spans) }
             for sp in spans {
                 h :: sp.hash()
@@ -415,7 +415,7 @@ import "std/testing"
 // the walker's coverage (parse-only, no resolution needed).
 collect_count :: fn(src: string) -> usize {
     parsed :: AST.parse_source(src, "t.vader")
-    out: Span[] = []
+    out: Span[]! = []
     for d in parsed.program.decls { collect_decl_idents(d, out) }
     return out.len()
 }
@@ -423,7 +423,7 @@ collect_count :: fn(src: string) -> usize {
 // Count collected spans whose source text equals `name`.
 idents_named :: fn(src: string, name: string) -> i32 {
     parsed :: AST.parse_source(src, "t.vader")
-    out: Span[] = []
+    out: Span[]! = []
     for d in parsed.program.decls { collect_decl_idents(d, out) }
     sb :: src.bytes()
     count := 0

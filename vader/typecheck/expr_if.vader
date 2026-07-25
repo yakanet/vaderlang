@@ -80,7 +80,7 @@ export infer_if :: fn(
     // operand was false). A single (non-`&&`) condition keeps the existing
     // then + inverse-else narrowing.
     is_and :: if e.cond is AST.BinaryExpr as bc { bc.op == AST.BinaryOp.And } else { false }
-    then_narrows: IsNarrow[] = []
+    then_narrows: IsNarrow[]! = []
     else_narrowing: IsNarrow | null = null
     if is_and {
         then_narrows = collect_and_narrows(e.cond, typed)
@@ -208,7 +208,7 @@ collect_and_narrows :: fn(cond: AST.Expr, typed: TypedProgram!) -> IsNarrow[]! {
             return out
         }
     }
-    out: IsNarrow[] = []
+    out: IsNarrow[]! = []
     single :: detect_is_narrow(cond, typed, diag_sink())
     if single is IsNarrow as n { out.push(n) }
     return out
@@ -216,7 +216,7 @@ collect_and_narrows :: fn(cond: AST.Expr, typed: TypedProgram!) -> IsNarrow[]! {
 
 // Push each narrowing's `then` type and return the records to unwind later.
 push_then_narrows :: fn(narrows: IsNarrow[], typed: TypedProgram!) -> PushedNarrow[] {
-    pushed: PushedNarrow[] = []
+    pushed: PushedNarrow[]! = []
     for n in narrows {
         if n.field_key == "" {
             prev :: push_narrow(typed, n.sym_id, n.then_ty)
@@ -446,7 +446,7 @@ checked :: fn(src: string) -> TypedProgram {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     result :: check_module(parsed.program, rm, factory, diags)
     return result.typed
 }
@@ -457,7 +457,7 @@ test_if_both_branches_int_returns_int :: fn() -> void {
     typed :: checked(src)
     ifx :: first_if_in_last_fn(src)
     if ifx is null { assert(false, "expected an if expr") return }
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     ty :: infer_if(ifx, mk_primitive("i32"), typed, diags, null, expr_if_check_stub)
     assert_eq(display_type(ty), "i32")
 }
@@ -468,7 +468,7 @@ test_if_without_else_yields_union_with_void :: fn() -> void {
     typed :: checked(src)
     ifx :: first_if_in_last_fn(src)
     if ifx is null { assert(false, "expected an if expr") return }
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     ty :: infer_if(ifx, null, typed, diags, null, expr_if_check_stub)
     assert_eq(display_type(ty), "void | {integer}")
 }
@@ -479,7 +479,7 @@ test_if_cond_not_bool_emits_T3019 :: fn() -> void {
     typed :: checked(src)
     ifx :: first_if_in_last_fn(src)
     if ifx is null { assert(false, "expected an if expr") return }
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     infer_if(ifx, null, typed, diags, null, expr_if_check_stub)
     found := false
     for d in diags { if d.code.id == "T3019" { found = true } }

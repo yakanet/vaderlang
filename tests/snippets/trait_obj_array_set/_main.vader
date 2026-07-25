@@ -20,7 +20,7 @@ Circle :: struct { r: i32 }
 Circle implements Shape { area :: fn(self) -> i32 = 3 * self.r * self.r }
 
 main :: fn() -> i32 {
-    shapes: Shape[] = []
+    shapes: Shape[]! = []
     shapes.push(Square(2))
     shapes.push(Circle { .r = 10 })
     shapes[0] = Square(5)              // subscript-set, distinct-primitive value

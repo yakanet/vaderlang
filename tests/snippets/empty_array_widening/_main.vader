@@ -36,7 +36,7 @@ main :: fn() -> i32 {
     println("string len=${names.len()} first=${names[0]} last=${names[8]}")
 
     // The annotated form, as the control — it never lost its element type.
-    annotated: i32[] = []
+    annotated: i32[]! = []
     for i in 0..<9 {
         annotated.push(i * 2)
     }

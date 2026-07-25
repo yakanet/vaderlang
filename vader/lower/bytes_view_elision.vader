@@ -338,7 +338,7 @@ bve_rewrite_block :: fn(b: LoweredBlock!, ctx: BveCtx) -> void {
         }
     }
     if dropped {
-        kept: LoweredStmt[] = []
+        kept: LoweredStmt[]! = []
         for s in b.stmts {
             keep: bool = true
             if s is LoweredLet as st {

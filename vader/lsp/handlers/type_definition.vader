@@ -74,7 +74,7 @@ type_symbol :: fn(t: Type) -> Symbol | null {
 // (one non-null member) → `T`'s symbol ; a genuine multi-member sum type has
 // no single declaration to jump to → null.
 union_symbol :: fn(u: UnionType) -> Symbol | null {
-    named: Type[] = []
+    named: Type[]! = []
     for v in u.variants {
         if !is_null_primitive(v) { named.push(v) }
     }

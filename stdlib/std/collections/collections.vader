@@ -83,7 +83,7 @@ slot_for :: fn(h: u64, mask: usize) -> usize = usize(h) & mask
 // call from every mutating entry point. Mirrors the old `ensure_buckets`.
 ensure_index :: fn<K, V>(self: MutableMap<K, V>!) -> void {
     if self.index.len() == 0 {
-        idx: i32[] = []
+        idx: i32[]! = []
         for 0..<MINIMAL_INDEX_COUNT { idx.push(EMPTY_SLOT) }
         self.index = idx
         self.mask = MINIMAL_INDEX_COUNT - 1
@@ -94,7 +94,7 @@ ensure_index :: fn<K, V>(self: MutableMap<K, V>!) -> void {
 // each live key. Clears all tombstones. The dense `ekeys` / `evals` are never
 // touched (entries don't move), so growth allocates no entries.
 rehash :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>!, new_count: usize) -> void {
-    fresh: i32[] = []
+    fresh: i32[]! = []
     for 0..<new_count { fresh.push(EMPTY_SLOT) }
     new_mask :: new_count - 1
     for e in 0..<self.size {
@@ -268,7 +268,7 @@ MutableMap<K, V> implements Contains<K> {
 /// @param self  the map receiver.
 /// @return      a new array of every stored key.
 export keys :: fn<K, V>(self: MutableMap<K, V>) -> K[] {
-    out: K[] = [] * self.size
+    out: K[]! = [] * self.size
     for e in 0..<self.size { out.push(self.ekeys[e]) }
     return out
 }
@@ -278,7 +278,7 @@ export keys :: fn<K, V>(self: MutableMap<K, V>) -> K[] {
 /// @param self  the map receiver.
 /// @return      a new array of every stored value.
 export values :: fn<K, V>(self: MutableMap<K, V>) -> V[] {
-    out: V[] = [] * self.size
+    out: V[]! = [] * self.size
     for e in 0..<self.size { out.push(self.evals[e]) }
     return out
 }

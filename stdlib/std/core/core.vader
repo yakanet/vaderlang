@@ -367,7 +367,7 @@ T[] implements<T: Equals> Contains<T> {
 /// (orphan rule : `Mul` is std/core's, `T[]` isn't), mirroring `Into` / `Contains`.
 T[] implements<T> Mul<usize> {
     mul :: fn(self, other: usize) -> T[] {
-        out: T[] = []
+        out: T[]! = []
         for _ in 0..<other { out.push_all(self) }
         return out
     }

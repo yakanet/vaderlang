@@ -162,7 +162,7 @@ export resolve_field_chain_static :: fn(
 /// empty string sentinel.
 export field_chain_key :: fn(e: AST.FieldExpr, typed: TypedProgram) -> string {
     // Collect fields leaf-to-root, then reverse for chain_key.
-    parts_leaf_first: string[] = []
+    parts_leaf_first: string[]! = []
     cur: AST.Expr = e
     for true {
         if cur is AST.FieldExpr as fe {
@@ -176,7 +176,7 @@ export field_chain_key :: fn(e: AST.FieldExpr, typed: TypedProgram) -> string {
         return ""
     }
     sym :: typed.resolved.idents[cur.span.hash()] ?? return ""
-    fields: string[] = []
+    fields: string[]! = []
     i := i32(parts_leaf_first.len()) - 1
     for i >= 0 {
         fields.push(parts_leaf_first[usize(i)])

@@ -36,7 +36,7 @@ export handle_document_symbol :: fn(state: ServerState, params: JsonValue) -> Js
 /// no enclosing scope. Intra-file bindings (params / locals / for-in vars)
 /// carry a `scope_span` and are filtered out.
 toplevel_symbols :: fn(idx: DocIndex) -> DeclEntry[] {
-    out: DeclEntry[] = []
+    out: DeclEntry[]! = []
     for d in idx.decls {
         if d.scope_span == null { out.push(d) }
     }
@@ -59,7 +59,7 @@ lsp_symbol_kind :: fn(k: DeclKind) -> i32 = match k {
 }
 
 document_symbol_json :: fn(entries: DeclEntry[], li: LineIndex) -> JsonValue {
-    items: JsonValue[] = []
+    items: JsonValue[]! = []
     for e in entries { items.push(symbol_json(e, li)) }
     return JsonArray { .items = items }
 }

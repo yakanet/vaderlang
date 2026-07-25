@@ -78,8 +78,8 @@ scrutinee_name :: fn(c: AST.BinaryExpr) -> string {
 // and the final else block. Returns null when a condition isn't an Is/Eq binary
 // or there's no final else (can't form an exhaustive match).
 analyze_if :: fn(ifx: AST.IfExpr) -> IfChain | null {
-    conds:  AST.BinaryExpr[] = []
-    blocks: AST.BlockExpr[] = []
+    conds:  AST.BinaryExpr[]! = []
+    blocks: AST.BlockExpr[]! = []
     cur := ifx
     for {
         c :: cur.cond
@@ -109,7 +109,7 @@ analyze_if :: fn(ifx: AST.IfExpr) -> IfChain | null {
 // Synthesise the match from the chain : one arm per condition (reusing each
 // block as the arm body), plus a wildcard arm for the final else.
 build_match :: fn(ifx: AST.IfExpr, ch: IfChain) -> AST.MatchExpr {
-    arms: AST.MatchArm[] = []
+    arms: AST.MatchArm[]! = []
     i := 0
     for c in ch.conds {
         arms.push(AST.MatchArm {

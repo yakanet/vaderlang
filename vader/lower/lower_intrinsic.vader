@@ -54,7 +54,7 @@ lower_intrinsic :: fn(ctx: FnLowerCtx!, intrinsic: IntrinsicCallExpr, type: Type
     // the arg's underlying Type.
     folded :: try_fold_static_intrinsic(ctx, intrinsic, type)
     if folded != null { return folded }
-    args: LoweredExpr[] = []
+    args: LoweredExpr[]! = []
     for arg_expr in intrinsic.args {
         args.push(lower_expr(ctx, arg_expr))
     }
@@ -254,7 +254,7 @@ try_fold_type_args :: fn(
     // slot (array immutability is invariant). A value-position `if` binds the
     // borrowed list directly — no copy, and nothing to freeze by hand.
     args :: type_args_of(arg_or_null)
-    elements: LoweredExpr[] = []
+    elements: LoweredExpr[]! = []
     for a in args {
         elements.push(LoweredTypeConst {
             .span = intrinsic.span, .type = TY_TYPE, .value = a,
@@ -327,7 +327,7 @@ try_fold_fields :: fn(
     // helper that the generic-instance materialiser uses.
     subst :: build_struct_subst(decl, target_struct.args, owner_typed)
     string_type :: TY_STRING
-    elements: LoweredExpr[] = []
+    elements: LoweredExpr[]! = []
     for f in decl.fields {
         raw_ty :: resolve_field_type(f.ty, owner_typed, decl, target_struct.args)
         substituted :: substitute(raw_ty, subst)
@@ -402,7 +402,7 @@ arg_ty_or_unresolved :: fn(t: Type | null) -> Type {
 resolve_intrinsic_type_arg :: fn(ctx: FnLowerCtx, arg: Expr) -> Type | null {
     raw :: ctx.types.type_expr_type(arg)
     if !(raw is UnresolvedType) { return raw }
-    scratch: Diagnostic[] = []
+    scratch: Diagnostic[]! = []
     via_type_expr :: type_from_expr(arg, ctx.typed.resolved, scratch)
     if !(via_type_expr is UnresolvedType) { return via_type_expr }
     // Fall-throughs for IdentExpr args that resolve to a Symbol :

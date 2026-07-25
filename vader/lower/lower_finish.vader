@@ -17,7 +17,7 @@ import "vader/resolver/symbol"
 collect_vtable_entries :: fn(
     project: LoweredProject, loaded: LoadedProject, typed: TypedProject,
 ) -> LoweredVtableEntry[] {
-    out: LoweredVtableEntry[] = []
+    out: LoweredVtableEntry[]! = []
     for [_, m] in project.modules {
         for d in m.decls {
             if d is LoweredFnDecl as fd {
@@ -69,7 +69,7 @@ impl_trait_method_from_mangled :: fn(mangled: string) -> ImplTraitMethod | null 
 }
 
 split_dollar :: fn(s: string) -> string[] {
-    out: string[] = []
+    out: string[]! = []
     cur := ""
     sb :: s.bytes()
     for i in 0..<sb.len() {

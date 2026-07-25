@@ -251,7 +251,7 @@ gb_is_leaf :: fn(s: LoweredStmt) -> bool {
 // Returns the ENTRY state index. Leading leaves batch into one state.
 gb_compile_seq :: fn(gb: GenBuild!, stmts: LoweredStmt[], cont: i64) -> i64 {
     // Split off the leading run of leaves.
-    leaves: LoweredStmt[] = []
+    leaves: LoweredStmt[]! = []
     i: usize = 0
     for i < stmts.len() && gb_is_leaf(stmts[i]) {
         leaves.push(stmts[i])
@@ -263,7 +263,7 @@ gb_compile_seq :: fn(gb: GenBuild!, stmts: LoweredStmt[], cont: i64) -> i64 {
         return gb_new_state(gb, leaves)
     }
     // Compile the rest after the control stmt, then the control stmt itself.
-    rest: LoweredStmt[] = []
+    rest: LoweredStmt[]! = []
     for j in (i + 1)..<stmts.len() { rest.push(stmts[j]) }
     rest_entry :: gb_compile_seq(gb, rest, cont)
     ctrl_entry :: gb_compile_ctrl(gb, stmts[i], rest_entry)
@@ -275,7 +275,7 @@ gb_compile_seq :: fn(gb: GenBuild!, stmts: LoweredStmt[], cont: i64) -> i64 {
 
 // Compile a block (stmts + trailing) with continuation `cont`.
 gb_compile_block :: fn(gb: GenBuild!, block: LoweredBlock, cont: i64) -> i64 {
-    stmts: LoweredStmt[] = []
+    stmts: LoweredStmt[]! = []
     for s in block.stmts { stmts.push(s) }
     if block.trailing != null {
         stmts.push(LoweredExprStmt { .span = gb.span, .expr = block.trailing })
@@ -546,7 +546,7 @@ gb_defer_drain_all :: fn(gb: GenBuild, out: LoweredStmt[]!) -> void {
 // Retire the frame (`state = DONE_STATE`) so a stray later resume falls to
 // dispatch's trailing `Suspended` and a repeat cancel finds nothing to do.
 gb_cancel_body :: fn(gb: GenBuild) -> LoweredBlock {
-    stmts: LoweredStmt[] = []
+    stmts: LoweredStmt[]! = []
     // if self.awaited is null { } else { self.awaited.cancel() }
     // The field is declared `Async<Any>` (non-null) but seeded null, so this
     // runtime null-check leans on the erased trait's fat-pointer representation
@@ -640,7 +640,7 @@ gb_add_field :: fn(gb: GenBuild!, sym: Symbol, ty: Type) -> void {
 // ---- routing (spilled local/param refs → self.<field>) --------------------
 
 gb_route_block :: fn(gb: GenBuild, block: LoweredBlock) -> LoweredBlock {
-    out: LoweredStmt[] = []
+    out: LoweredStmt[]! = []
     for s in block.stmts { gb_route_stmt(gb, s, out) }
     new_trailing :: if block.trailing == null { null } else { gb_route_expr(gb, block.trailing) }
     return LoweredBlock { .span = block.span, .type = block.type, .stmts = out, .trailing = new_trailing }
@@ -701,12 +701,12 @@ gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr {
             return gb_field(gb, name, field_ty)
         }
         is LoweredCall as c -> {
-            new_args: LoweredExpr[] = []
+            new_args: LoweredExpr[]! = []
             for a in c.args { new_args.push(gb_route_expr(gb, a)) }
             return LoweredCall { .span = c.span, .type = c.type, .callee = gb_route_expr(gb, c.callee), .args = new_args }
         }
         is LoweredVirtualCall as v -> {
-            new_args: LoweredExpr[] = []
+            new_args: LoweredExpr[]! = []
             for a in v.args { new_args.push(gb_route_expr(gb, a)) }
             return LoweredVirtualCall { .span = v.span, .type = v.type, .trait_name = v.trait_name, .method = v.method, .receiver = gb_route_expr(gb, v.receiver), .args = new_args }
         }
@@ -720,12 +720,12 @@ gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr {
         }
         is LoweredBlock as bl -> gb_route_block(gb, bl)
         is LoweredStructLit as sl -> {
-            new_fields: LoweredStructLitField[] = []
+            new_fields: LoweredStructLitField[]! = []
             for f in sl.fields { new_fields.push(LoweredStructLitField { .name = f.name, .value = gb_route_expr(gb, f.value) }) }
             return LoweredStructLit { .span = sl.span, .type = sl.type, .fields = new_fields }
         }
         is LoweredArrayLit as al -> {
-            new_elements: LoweredExpr[] = []
+            new_elements: LoweredExpr[]! = []
             for el in al.elements { new_elements.push(gb_route_expr(gb, el)) }
             return LoweredArrayLit { .span = al.span, .type = al.type, .elements = new_elements }
         }
@@ -736,7 +736,7 @@ gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr {
         is LoweredCast as cs -> LoweredCast { .span = cs.span, .type = cs.type, .value = gb_route_expr(gb, cs.value) }
         is LoweredTypeCheck as tc -> LoweredTypeCheck { .span = tc.span, .type = tc.type, .value = gb_route_expr(gb, tc.value), .check_type = tc.check_type }
         is LoweredIntrinsicCall as ic -> {
-            new_args: LoweredExpr[] = []
+            new_args: LoweredExpr[]! = []
             for a in ic.args { new_args.push(gb_route_expr(gb, a)) }
             return LoweredIntrinsicCall { .span = ic.span, .type = ic.type, .name = ic.name, .args = new_args }
         }

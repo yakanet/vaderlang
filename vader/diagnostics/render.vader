@@ -67,7 +67,7 @@ render_diagnostics :: fn(diags: Diagnostic[], show_file: bool, cap: bool) -> str
 // once per importer) ; the user should see it a single time.
 dedup_diagnostics :: fn(diags: Diagnostic[]) -> Diagnostic[] {
     seen :: MutableSet<string> {}
-    out: Diagnostic[] = []
+    out: Diagnostic[]! = []
     for d in diags {
         if seen.add(diag_key(d)) { out.push(d) }
     }
@@ -148,7 +148,7 @@ mk_diag_span :: fn(start: i32, end: i32) -> Span = Span {
 
 @test test_cap_collapses_tail :: fn() -> void {
     // The user-facing channel (with_file) caps at MAX_SHOWN_DIAGNOSTICS.
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     for i in 0..<150 {
         diags.push(lexer_error(.UnexpectedCharacter, mk_diag_span(i, i + 1), "e"))
     }
@@ -157,7 +157,7 @@ mk_diag_span :: fn(start: i32, end: i32) -> Span = Span {
 }
 
 @test test_no_cap_tail_under_limit :: fn() -> void {
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     for i in 0..<10 {
         diags.push(lexer_error(.UnexpectedCharacter, mk_diag_span(i, i + 1), "e"))
     }
@@ -166,7 +166,7 @@ mk_diag_span :: fn(start: i32, end: i32) -> Span = Span {
 
 @test test_machine_channel_uncapped :: fn() -> void {
     // The snapshot/machine channel must stay complete — no cap, no collapse line.
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     for i in 0..<150 {
         diags.push(lexer_error(.UnexpectedCharacter, mk_diag_span(i, i + 1), "e"))
     }

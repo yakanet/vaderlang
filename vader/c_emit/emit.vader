@@ -101,7 +101,7 @@ export EmitCtx :: struct {
 }
 
 new_ctx :: fn(m: BytecodeModule, release: bool, split: bool) -> EmitCtx {
-    names: string[] = []
+    names: string[]! = []
     for i in 0..<m.types.len() {
         match m.types[i] {
             is BcStruct as s -> names.push(struct_c_name(s.name))
@@ -139,7 +139,7 @@ linkage_prefix :: fn(split: bool) -> string = if split { "" } else { "static " }
 /// @param strings  the bytecode string-literal pool.
 /// @return         atom ids parallel to `strings`.
 compute_atom_ids :: fn(strings: string[]) -> i32[] {
-    ids: i32[] = []
+    ids: i32[]! = []
     next_id: i32 = 1
     for i in 0..<strings.len() {
         if strings[i] == "" {
@@ -247,9 +247,9 @@ emit_atom_comptime_table :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // Blob + entry table for the non-empty literals, in id order (a
     // literal with atom id k lands at index k-1). Empty literals carry
     // no atom — they alias VADER_ATOM_EMPTY (0) at their use sites.
-    blob_lines: string[] = []
-    offsets: i32[] = []
-    lens: i32[] = []
+    blob_lines: string[]! = []
+    offsets: i32[]! = []
+    lens: i32[]! = []
     offset: i32 = 0
     for i in 0..<strings.len() {
         if ctx.atom_ids[i] != 0 {
@@ -349,7 +349,7 @@ emit_data_pool :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 emit_agg_data_entry :: fn(out: StringBuilder!, i: usize, ad: BcAggregateData, array_type_id: i32, elem_tag: i32, atom_of: MutableMap<string, i32>, ctx: EmitCtx) -> void {
     n :: ad.elements.len()
     boxed_kind :: array_kind_index(ArrayKind.Boxed)
-    slot_exprs: string[] = []
+    slot_exprs: string[]! = []
     for k in 0..<n {
         slot_exprs.push(box_slot_c(ctx, out, ad.elements[k], "vader_data_${i}_e${k}", elem_tag, atom_of))
     }
@@ -371,7 +371,7 @@ emit_data_value :: fn(ctx: EmitCtx, out: StringBuilder!, v: BcDataValue, name: s
     if v is BcValStruct as st {
         type_id :: type_id_for_struct_symbol(ctx.module.types, st.symbol_id)
         cname :: ctx.struct_c_names[usize(type_id)]
-        parts: string[] = ["{ ${type_id}u, 0u, 0u, 0u, NULL }"]
+        parts: string[]! = ["{ ${type_id}u, 0u, 0u, 0u, NULL }"]
         if ctx.module.types[usize(type_id)] is BcStruct as bcs {
             for k in 0..<st.fields.len() {
                 field_tid :: if k < bcs.fields.len() { bcs.fields[k].type_index } else { 0 }
@@ -398,7 +398,7 @@ emit_nested_array :: fn(ctx: EmitCtx, out: StringBuilder!, a: BcValArray, name: 
     arr_tid :: array_type_index_for_element(ctx.module.types, elem_tag)
     link :: linkage_prefix(ctx.split)
     if elem_kind == ArrayKind.Boxed {
-        slot_exprs: string[] = []
+        slot_exprs: string[]! = []
         for k in 0..<n {
             slot_exprs.push(box_slot_c(ctx, out, a.elements[k], "${name}_x${k}", elem_tag, atom_of))
         }
@@ -407,7 +407,7 @@ emit_nested_array :: fn(ctx: EmitCtx, out: StringBuilder!, a: BcValArray, name: 
         out.append("    { ${join_commas(slot_exprs)} }\n};\n")
     } else {
         cty :: c_type_for_array_kind(elem_kind)
-        slots: string[] = []
+        slots: string[]! = []
         for el in a.elements {
             if el is BcValPrim as p { slots.push(data_slot_c(p.kind, p.bits, cty)) }
         }
@@ -561,7 +561,7 @@ atom_for :: fn(atom_of: MutableMap<string, i32>, value: string) -> i32 {
 // Recover each data-pool entry's array type_id by scanning every fn's ops for
 // the `data.const` that references it (the entry struct doesn't store it).
 data_pool_type_ids :: fn(module: BytecodeModule) -> i32[] {
-    out: i32[] = [0] * module.data_pool.len()
+    out: i32[]! = [0] * module.data_pool.len()
     for f in module.functions {
         for op in f.body {
             if op is DataConst as dc {
@@ -704,7 +704,7 @@ emit_type_info_table :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // Per-type pre-classification : for each struct, capture its three
     // offset lists once ; the info row downstream reads only the
     // lengths. Non-struct kinds emit their fixed `_ptrs[]` immediately.
-    struct_offsets: StructOffsets[] = []
+    struct_offsets: StructOffsets[]! = []
     for i in 0..<count {
         match types[i] {
             is BcStruct as s -> {
@@ -774,9 +774,9 @@ StructOffsets :: struct {
 }
 
 empty_struct_offsets :: fn() -> StructOffsets {
-    p: string[] = []
-    s: string[] = []
-    r: string[] = []
+    p: string[]! = []
+    s: string[]! = []
+    r: string[]! = []
     return StructOffsets { .ptr_offsets = p, .str_offsets = s, .ref_offsets = r }
 }
 

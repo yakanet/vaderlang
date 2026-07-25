@@ -29,7 +29,7 @@ export handle_references :: fn(state: ServerState!, params: JsonValue) -> JsonVa
     if target == null { return JsonArray { .items = [] } }
 
     include_decl :: include_declaration(params)
-    items: JsonValue[] = []
+    items: JsonValue[]! = []
     // Memoise one LineIndex per referenced file — a symbol can have many sites in
     // the same file, and `line_index_for_path` reads from disk for non-open ones.
     li_cache :: MutableMap<string, LineIndex> {}

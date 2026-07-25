@@ -2,7 +2,7 @@
 
 ## tests/snippets/gc_array_survive
   FnDecl         main                 :: fn() -> i32
-  expr 11:19    SeqLitExpr     :: i32[]!
+  expr 11:20    SeqLitExpr     :: i32[]!
   expr 13:9     BinaryExpr     :: bool
   expr 13:9     IdentExpr      :: i32
   expr 14:19    IdentExpr      :: i32

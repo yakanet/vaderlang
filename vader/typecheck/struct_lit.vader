@@ -38,7 +38,7 @@ check_struct_body :: fn(
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     decl :: typed.struct_decls[st.symbol.id]
-    provided: string[] = []
+    provided: string[]! = []
     has_spread := false
     for item in e.items {
         match item {
@@ -107,7 +107,7 @@ check_missing_fields :: fn(
     e: AST.StructLitExpr, st: StructType, decl: AST.StructDecl,
     provided: string[], diags: Diagnostic[]!,
 ) -> void {
-    missing: string[] = []
+    missing: string[]! = []
     for sf in decl.fields {
         if sf.default is null {
             if !contains_name(provided, sf.name) { missing.push("`${sf.name}`") }
@@ -167,7 +167,7 @@ expect_struct_lit :: fn(src: string) -> ExpectedSL {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     result :: check_module(parsed.program, rm, factory, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
@@ -208,7 +208,7 @@ Point :: struct {
 f :: fn() -> Point { return Point { .x = 1, .y = 2 } }
 """
     eb :: expect_struct_lit(src)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     assert_eq(display_type(infer_struct_lit(eb.sl, eb.typed, diags, struct_lit_check_stub)), "Point!")
     assert_eq(diags.len(), 0)
 }
@@ -220,7 +220,7 @@ Point :: struct { x: i32 }
 f :: fn() -> Point { return Point { .x = 1, .z = 2 } }
 """
     eb :: expect_struct_lit(src)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     infer_struct_lit(eb.sl, eb.typed, diags, struct_lit_check_stub)
     found := false
     for d in diags { if d.code.id == "T3009" { found = true } }
@@ -237,7 +237,7 @@ Point :: struct {
 f :: fn() -> Point { return Point { .x = 1 } }
 """
     eb :: expect_struct_lit(src)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     infer_struct_lit(eb.sl, eb.typed, diags, struct_lit_check_stub)
     found := false
     for d in diags { if d.code.id == "T3037" { found = true } }
@@ -251,7 +251,7 @@ Point :: struct { x: i32 }
 f :: fn() -> Point { return Point { .x = "hello" } }
 """
     eb :: expect_struct_lit(src)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     infer_struct_lit(eb.sl, eb.typed, diags, struct_lit_check_stub)
     found := false
     for d in diags { if d.code.id == "T3001" { found = true } }

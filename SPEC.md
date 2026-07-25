@@ -671,7 +671,7 @@ read([4, 5, 6])           // OK — fresh array passes
 
 **In a union**: an array variant is a valid member anywhere in a type union, not only as the first — `string | u8[]` and `A | T[]! | B` both parse. The marker attaches to the variant it follows, never to the union.
 
-**Inference**: an unannotated module-level array const is automatically pinned as `const T[]` — it has no runtime storage, so a write through it would be discarded rather than take effect. Annotating the type explicitly (`X: T[]!: [...]`) opts out. Locals stay mutable by default (a local is owned).
+**Inference**: an unannotated module-level array const is automatically pinned read-only — it has no runtime storage, so a write through it would be discarded rather than take effect. Annotating the type explicitly (`X: T[]!: [...]`) opts out. An **annotated local** takes the same read-only default; an unannotated one keeps its inferred type and stays owned.
 
 ```vader
 KEYWORDS :: ["fn", "if", "else"]      // const string[] (module scope)
@@ -1504,7 +1504,7 @@ Vader separates **who may rebind a name** from **who may mutate what it points a
 
 **The binding.** `::` freezes it, `:=` allows rebinding. If `p :: Point { ... }`, `p = otherPoint` is rejected (T3041).
 
-**The referent.** A **local is owned**: `::` freezes only its binding, so `p.x = 5` and `x :: i32[] ; x.push(1)` stay legal. A **parameter is a read-only borrow** — see below. And a **module-level const freezes both**: it has no runtime storage (its value is rebuilt at each read site), so a write through it would be silently discarded, and is rejected instead (T3070).
+**The referent.** An **inferred local is owned**: `::` freezes only its binding, so `p.x = 5` and `x :: [1, 2] ; x.push(3)` stay legal. A **written type is a read-only slot** — that covers parameters, struct fields, return types *and* annotated locals, see below. And a **module-level const freezes both**: it has no runtime storage (its value is rebuilt at each read site), so a write through it would be silently discarded, and is rejected instead (T3070).
 
 ```vader
 CONFIG :: Config { .retries = 3 }
@@ -1520,7 +1520,7 @@ main :: fn() -> i32 {
 
 ### Read-only by default — `!` grants mutation
 
-Every **slot** a value is reached through is read-only unless its type says otherwise. A slot is a **parameter**, a **struct field** or a **return type**. Writing a field or element through a read-only slot, or calling a method that mutates it, is rejected. Appending `!` to the **type** grants mutation:
+Every **slot** a value is reached through is read-only unless its type says otherwise. A slot is anywhere a type is **written**: a **parameter**, a **struct field**, a **return type**, or an **annotated local**. Writing a field or element through a read-only slot, or calling a method that mutates it, is rejected. Appending `!` to the **type** grants mutation:
 
 ```vader
 describe :: fn(c: Counter) -> string = "${c.label} = ${c.count}"   // reads only
@@ -1539,11 +1539,17 @@ Block :: struct {
 fresh :: fn() -> i32[]! = []    // the caller owns what it gets back, and may push
 ```
 
-A **local is not a slot** — it is owned (see "Ownership"), so it stays mutable and takes no marker:
+An **annotated local is a slot like any other**, so `i32[]` means the same thing wherever it appears — the marker is what grants mutation. A local with **no annotation** keeps its inferred type: nothing was written, and a local is owned.
 
 ```vader
-out: Stmt[] = []      // a local : mutable, no marker needed
+out: Stmt[]! = []     // annotated : the marker grants the push
 out.push(s)           // OK
+
+frozen: Stmt[] = []
+// frozen.push(s)     // T3071 — an annotated slot is read-only by default
+
+inferred :: [s]       // no annotation : inferred, owned
+inferred.push(other)  // OK
 ```
 
 #### The marker is per LEVEL
@@ -1561,9 +1567,13 @@ The default is **recursive**: an unmarked `Cfg[]` freezes the array *and* its el
 
 Writing `!` twice on one level is an error (P1030): `Cfg[]!!` says the same thing twice.
 
+The assignability of an array does **not** descend into a nested array: `T[]![]` and `T[][]` are distinct element types, and arrays are invariant in their element. A builder that fills mutable inner arrays and hands them back read-only copies the outer spine into the promised type rather than propagating `T[]![]` to every consumer.
+
 #### In a union, the marker is distributed
 
 A union carries no mutability of its own — each variant carries its own. `u8[]! | Err` marks **only** the array; `Err` stays read-only. This is why the marker is a suffix: a prefix would read as governing the whole union.
+
+Two variants that differ **only** by mutability cannot coexist: `i32[] | i32[]!` is rejected (T3074) — write `i32[]!`, the mutable one, since the union would have to be one or the other at each use. This is an error rather than a silent collapse: which side wins is the author's call, not the compiler's.
 
 #### `self`
 
@@ -1591,7 +1601,9 @@ Markers on function values are **contravariant**: a function that does not mutat
 
 #### Diagnostics
 
-Calling a `self!` method on a read-only receiver is T3071; handing a read-only value to a `!` parameter is T3072; writing through a read-only path is T3070, and through a read-only array T3042.
+Calling a `self!` method on a read-only receiver is T3071; handing a read-only value to a `!` parameter is T3072; writing through a read-only path is T3070, and through a read-only array T3042. On the surface itself: `T!!` is P1030, the marker on a parameter *name* (`x!: T`) is P1031 — it belongs on the type — and a union mixing mutabilities is T3074.
+
+T3070/T3071/T3042 carry the fix as a hint: they name the declaration to annotate (`annotate \`out!\` at file:line:col`), pointing at the slot rather than at the failing write.
 
 **What this does and does not guarantee.** The property is attached to the *access path*, not to the value: passing the same object as both a `!` and a non-`!` argument is legal, and the read-only borrow is then only a statement about what that parameter is allowed to do. Vader does not track aliasing, so this buys clarity and local reasoning — a signature that tells the truth about what a function may touch — not a non-aliasing proof.
 

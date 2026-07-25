@@ -9,17 +9,17 @@ import "std/io"
 // `T`, which used to abort materialisation with the GATE B1 "unresolved callee"
 // panic.
 empty_of :: fn<T>() -> T[]! {
-    out: T[] = []
+    out: T[]! = []
     return out
 }
 
 main :: fn() -> i32 {
     // Two distinct instances, each bound only through its slot.
-    numbers: i32[] = empty_of()
+    numbers: i32[]! = empty_of()
     numbers.push(7)
     numbers.push(8)
 
-    words: string[] = empty_of()
+    words: string[]! = empty_of()
     words.push("hi")
 
     println("i32    ${numbers.len()} ${numbers[0]} ${numbers[1]}")

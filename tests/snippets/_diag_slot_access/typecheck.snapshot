@@ -2,7 +2,7 @@
 
 ## tests/snippets/_diag_slot_access
   FnDecl         main                 :: fn() -> i32
-  expr 16:17    SeqLitExpr     :: i32[]!
+  expr 16:18    SeqLitExpr     :: i32[]!
   expr 17:13    BinaryExpr     :: i32
   expr 17:13    IdentExpr      :: i32[]!
   expr 17:13    IndexExpr      :: i32
@@ -19,7 +19,7 @@
   expr 18:37    IndexExpr      :: i32
   expr 18:5     CallExpr       :: void
   expr 18:5     IdentExpr      :: fn(T) -> void
-  expr 21:17    SeqLitExpr     :: i64[]!
+  expr 21:18    SeqLitExpr     :: i64[]!
   expr 22:13    BinaryExpr     :: i64
   expr 22:13    IdentExpr      :: i64[]!
   expr 22:13    IndexExpr      :: i64
@@ -32,7 +32,7 @@
   expr 23:20    IndexExpr      :: i64
   expr 23:5     CallExpr       :: void
   expr 23:5     IdentExpr      :: fn(T) -> void
-  expr 26:17    SeqLitExpr     :: f64[]!
+  expr 26:18    SeqLitExpr     :: f64[]!
   expr 27:13    BinaryExpr     :: f64
   expr 27:13    IdentExpr      :: f64[]!
   expr 27:13    IndexExpr      :: f64
@@ -53,9 +53,9 @@
   expr 32:32    IndexExpr      :: i32
   expr 32:5     CallExpr       :: void
   expr 32:5     IdentExpr      :: fn(T) -> void
-  expr 35:20    SeqLitExpr     :: string[]!
-  expr 35:21    StringLitExpr  :: string
-  expr 35:26    StringLitExpr  :: string
+  expr 35:21    SeqLitExpr     :: string[]!
+  expr 35:22    StringLitExpr  :: string
+  expr 35:27    StringLitExpr  :: string
   expr 36:13    IdentExpr      :: string[]!
   expr 36:13    IndexExpr      :: string
   expr 36:5     IdentExpr      :: string[]!

@@ -175,8 +175,8 @@ parse_alternation :: fn(p: Parser!) -> RegexError | null {
     // Flat `branches_buf` + `branch_offsets[i..i+1]` slice. A nested
     // `Inst[][]` would be more direct but the current code generator
     // doesn't handle indexing into one.
-    branches_buf: Inst[] = []
-    branch_offsets: usize[] = [0]
+    branches_buf: Inst[]! = []
+    branch_offsets: usize[]! = [0]
     branches_buf.push_all(extract_range(p.insts, branch_start, p.insts.len()))
     branch_offsets.push(branches_buf.len())
     p.insts = truncate_to(p.insts, branch_start)
@@ -200,7 +200,7 @@ parse_alternation :: fn(p: Parser!) -> RegexError | null {
     //   S_{N-1}: <b_{N-1}>
     //   end:
     n :: branch_offsets.len() - 1
-    end_jumps: usize[] = []
+    end_jumps: usize[]! = []
     for i in 0..<n - 1 {
         split_pos :: p.insts.len()
         p.insts.push(InstSplit { .a = 0, .b = 0 })
@@ -379,7 +379,7 @@ apply_counted :: fn(p: Parser!, atom_start: usize) -> RegexError | null {
     if has_upper {
         // {n,m} : up to (m - n) optional copies. Each one : Split atom, after.
         diff :: m - n
-        splits: usize[] = []
+        splits: usize[]! = []
         for _ in 0..<diff {
             split_pos :: p.insts.len()
             splits.push(split_pos)
@@ -519,7 +519,7 @@ parse_char_class :: fn(p: Parser!) -> RegexError | null {
         negated = true
         p.cursor = p.cursor + 1
     }
-    ranges: CharRange[] = []
+    ranges: CharRange[]! = []
     for p.cursor < p.bytes.len() && p.bytes[p.cursor] != ']' {
         lo_c :: read_class_char(p)
         if lo_c is RegexError { return lo_c }
@@ -608,7 +608,7 @@ codepoint_byte_advance :: fn(bs: u8[], offset: usize) -> usize {
 // `push_all` itself is now a built-in array method — no local helper needed.
 extract_range :: fn(arr: Inst[], start: usize, end: usize) -> Inst[]! {
     view :: arr[start..<end]
-    out: Inst[] = [] * view.len()
+    out: Inst[]! = [] * view.len()
     out.push_all(view)
     return out
 }
@@ -641,7 +641,7 @@ export find :: fn(self: Pattern, input: string) -> Match | null {
 /// advance by one codepoint to avoid an infinite loop.
 export find_all :: fn(self: Pattern, input: string) -> Match[] {
     ib :: input.bytes()
-    out: Match[] = []
+    out: Match[]! = []
     start: usize = 0
     for start <= ib.len() {
         m :: run_at(self, ib, start)
@@ -728,16 +728,16 @@ run_at :: fn(p: Pattern, input: u8[], start: usize) = run_vm(p, input, start, fa
 /// make `matches` depend on alternative order).
 run_vm :: fn(p: Pattern, input: u8[], start: usize, full: bool) -> Match | null {
     slots :: 2 * (p.group_count + 1)
-    current: Thread[] = []
-    next: Thread[] = []
+    current: Thread[]! = []
+    next: Thread[]! = []
     // Per-step pc dedup : `seen[pc] == gen` means pc already holds a
     // (higher-priority) thread this step. Kills the exponential thread
     // blowup on `(a+)+` AND bounds `add_thread`'s epsilon recursion on
     // cyclic programs (`(a*)*`).
-    seen: usize[] = [0] * p.insts.len()
+    seen: usize[]! = [0] * p.insts.len()
     gen: usize = 1
 
-    seed_groups: usize[] = [SLOT_UNSET] * slots
+    seed_groups: usize[]! = [SLOT_UNSET] * slots
     add_thread(current, 0, seed_groups, p, input, start, seen, gen)
 
     matched: Match | null = null
@@ -848,7 +848,7 @@ add_thread :: fn(out: Thread[]!, start_pc: usize, start_groups: usize[], p: Patt
     // depth limit. Children are pushed in REVERSE of the recursive visit order so
     // they pop in order, preserving thread priority (first arrival at a pc wins ;
     // later arrivals are dropped by `seen`).
-    stack: WorkItem[] = [WorkItem { .pc = start_pc, .groups = start_groups }]
+    stack: WorkItem[]! = [WorkItem { .pc = start_pc, .groups = start_groups }]
     for stack.len() > 0 {
         item :: stack[stack.len() - 1]
         stack.remove_last()
@@ -866,7 +866,7 @@ add_thread :: fn(out: Thread[]!, start_pc: usize, start_groups: usize[], p: Patt
                 stack.push(WorkItem { .pc = inst.a, .groups = groups })
             }
             is InstSave -> {
-                g: usize[] = []
+                g: usize[]! = []
                 g.push_all(groups)
                 g[inst.slot] = pos
                 stack.push(WorkItem { .pc = pc + 1, .groups = g })
@@ -891,7 +891,7 @@ resolve_slot :: fn(slot_value: usize, fallback: usize) -> usize {
 
 captured_groups :: fn(t: Thread, input: u8[]) -> string[] {
     n_groups :: t.groups.len() / 2
-    out: string[] = []
+    out: string[]! = []
     for i in 0..<n_groups {
         lo_slot :: t.groups[2 * i]
         hi_slot :: t.groups[2 * i + 1]
@@ -905,7 +905,7 @@ captured_groups :: fn(t: Thread, input: u8[]) -> string[] {
 }
 
 truncate_threads :: fn(threads: Thread[], cutoff: usize) -> Thread[]! {
-    out: Thread[] = []
+    out: Thread[]! = []
     for i in 0..<cutoff {
         out.push(threads[i])
     }

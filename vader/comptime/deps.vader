@@ -70,7 +70,7 @@ collect_nodes :: fn(program_decls: AST.Decl[]) -> Nodes {
         match decl {
             is AST.ConstDecl as cd -> {
                 if !has_comptime_decorator(cd) { continue }
-                empty_deps: usize[] = []
+                empty_deps: usize[]! = []
                 nodes.by_id[cd.id] = NodeRecord { .decl = cd, .dependency_ids = empty_deps }
                 nodes.order.push(cd.id)
             }
@@ -111,12 +111,12 @@ populate_deps :: fn(nodes: Nodes!, typed: TypedProgram) -> void {
 // (stdlib lacks one). `path[0..depth]` is the active DFS stack at any
 // point ; positions beyond `depth` are stale but never read.
 topo_sort :: fn(nodes: Nodes) -> ComptimeOrder {
-    order: AST.ConstDecl[] = []
-    diags: Diagnostic[] = []
+    order: AST.ConstDecl[]! = []
+    diags: Diagnostic[]! = []
     color :: MutableMap<usize, i32> {}
     cyclic :: MutableMap<usize, bool> {}
     for id in nodes.order { color[id] = 0 }
-    path: usize[] = []
+    path: usize[]! = []
     for id in nodes.order { visit(id, nodes, color, cyclic, path, 0, order, diags) }
     return ComptimeOrder { .order = order, .cycle_diags = diags }
 }
@@ -177,7 +177,7 @@ emit_cycle :: fn(
 }
 
 cycle_names :: fn(start: usize, depth: usize, path: usize[], id: usize, nodes: Nodes) -> string {
-    parts: string[] = []
+    parts: string[]! = []
     for i in start..<depth {
         record :: nodes.by_id[path[i]] ?? continue
         parts.push(record.decl.name)
@@ -311,7 +311,7 @@ build_order :: fn(src: string) -> ComptimeOrder {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     result :: check_module(parsed.program, rm, factory, diags)
     return sort_comptime_decls(parsed.program.decls, result.typed)
 }

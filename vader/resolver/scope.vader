@@ -35,7 +35,7 @@ export pop :: fn(self: Scope!) -> void {
     n :: self.frames.len()
     if n == 0 { return }
     // Arrays don't have `pop` yet, so slice everything but the last entry.
-    new_frames: MutableMap<string, Symbol>[] = []
+    new_frames: MutableMap<string, Symbol>[]! = []
     for i in 0..<usize(n - 1) {
         new_frames.push(self.frames[i])
     }

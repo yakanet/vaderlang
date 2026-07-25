@@ -53,7 +53,7 @@ export zero_value :: fn() -> Value { return I32Val { .value = 0 } }
 ///                 matched against `string[]` so the tag is moot).
 /// @return         an `ArrayVal` whose elements are `StringVal`s of `items`.
 export string_array_to_value :: fn(items: string[], type_id: i32) -> ArrayVal {
-    elements: Value[] = []
+    elements: Value[]! = []
     for s in items { elements.push(StringVal { .value = s }) }
     return ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
 }
@@ -70,7 +70,7 @@ export string_array_to_value :: fn(items: string[], type_id: i32) -> ArrayVal {
 /// @param type_id  the module's `u8[]` ArrayType index, or 0 when absent.
 /// @return         an `ArrayVal` whose elements are the UTF-8 bytes of `s`.
 export bytes_to_value :: fn(s: string, type_id: i32) -> ArrayVal {
-    elements: Value[] = []
+    elements: Value[]! = []
     for b in s.bytes() { elements.push(I32Val { .value = i32(b) }) }
     return ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
 }
@@ -83,7 +83,7 @@ export bytes_to_value :: fn(s: string, type_id: i32) -> ArrayVal {
 /// @param type_id  the module's `u8[]` ArrayType index (see `find_u8_array_type_id`).
 /// @return         an `ArrayVal` whose elements are the bytes of `bs`.
 export u8_array_to_value :: fn(bs: u8[], type_id: i32) -> ArrayVal {
-    elements: Value[] = []
+    elements: Value[]! = []
     for b in bs { elements.push(I32Val { .value = i32(b) }) }
     return ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
 }

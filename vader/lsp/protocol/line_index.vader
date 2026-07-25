@@ -56,7 +56,7 @@ export LineIndex :: struct {
 export new_line_index :: fn(source: string, encoding: PositionEncoding) -> LineIndex {
     b :: source.bytes()
     n :: b.len()
-    starts: usize[] = [0]
+    starts: usize[]! = [0]
     i: usize = 0
     for i < n {
         if b[i] == '\n' {

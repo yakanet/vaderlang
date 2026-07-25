@@ -102,9 +102,9 @@ export build_cfg_project :: fn(lp: LoweredProject) -> CFGProject {
     ctx :: new_project_ctx(lp)
     modules :: MutableMap<string, CFGModule> {}
     for [module_id, m] in lp.modules {
-        functions: CFGFunction[] = []
-        externs: CFGExternDecl[] = []
-        struct_decls: CFGStructDecl[] = []
+        functions: CFGFunction[]! = []
+        externs: CFGExternDecl[]! = []
+        struct_decls: CFGStructDecl[]! = []
         for d in m.decls {
             match d {
                 is LoweredFnDecl as fn_decl -> {
@@ -148,17 +148,17 @@ import "vader/bytecode"
 // carry their values through to `midir::emit`, which interns them ; aggregate
 // arrays recurse over the carried literal into a `BcAggregateData`.
 convert_data_pool :: fn(entries: DataPoolEntry[]) -> BcDataEntry[] {
-    out: BcDataEntry[] = []
+    out: BcDataEntry[]! = []
     for e in entries {
         match e {
             is StrDataPoolEntry as se -> { out.push(BcStrData { .values = se.values }) }
             is PrimDataPoolEntry as pe -> {
-                items: u64[] = []
+                items: u64[]! = []
                 for v in pe.items { items.push(u64(v)) }
                 out.push(BcPrimData { .kind = array_kind_from_name(pe.element_type_name), .items = items })
             }
             is AggregateDataPoolEntry as ae -> {
-                elements: BcDataValue[] = []
+                elements: BcDataValue[]! = []
                 for el in ae.literal.elements { elements.push(lowered_to_bc_value(el)) }
                 out.push(BcAggregateData { .element_type_name = ae.element_type_name, .elements = elements })
             }
@@ -175,12 +175,12 @@ convert_data_pool :: fn(entries: DataPoolEntry[]) -> BcDataEntry[] {
 lowered_to_bc_value :: fn(el: LoweredExpr) -> BcDataValue {
     if el is LoweredStringLit as s { return BcValStr { .value = s.value } }
     if el is LoweredStructLit as st {
-        fields: BcDataValue[] = []
+        fields: BcDataValue[]! = []
         for f in st.fields { fields.push(lowered_to_bc_value(f.value)) }
         return BcValStruct { .symbol_id = struct_symbol_id(st.type), .fields = fields }
     }
     if el is LoweredArrayLit as a {
-        elements: BcDataValue[] = []
+        elements: BcDataValue[]! = []
         for e in a.elements { elements.push(lowered_to_bc_value(e)) }
         return BcValArray { .element_type_name = array_element_name(a.type), .elements = elements }
     }
@@ -274,7 +274,7 @@ decorators_have :: fn(decs: Decorator[], name: string) -> bool {
 
 
 make_struct_decl :: fn(d: LoweredStructDecl) -> CFGStructDecl {
-    fields: CFGStructField[] = []
+    fields: CFGStructField[]! = []
     for f in d.fields {
         fields.push(CFGStructField { .name = f.name, .type = f.type })
     }
@@ -287,7 +287,7 @@ make_struct_decl :: fn(d: LoweredStructDecl) -> CFGStructDecl {
 
 make_extern_decl :: fn(d: LoweredFnDecl) -> CFGExternDecl {
     meta :: fn_metadata(d)
-    params: CFGParam[] = []
+    params: CFGParam[]! = []
     for i in 0..<d.params.len() {
         p :: d.params[i]
         params.push(CFGParam {
@@ -312,8 +312,8 @@ convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | n
     if d.body is null { return null }
     body :: d.body
 
-    params: CFGParam[] = []
-    locals: CFGLocal[] = []
+    params: CFGParam[]! = []
+    locals: CFGLocal[]! = []
     local_by_sym_id :: MutableMap<i32, LocalId> {}
 
     // Params occupy local slots 0..N-1.
@@ -354,7 +354,7 @@ convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | n
     }
 
     meta :: fn_metadata(d)
-    frozen: BasicBlock[] = []
+    frozen: BasicBlock[]! = []
     for b in fn_ctx.blocks { frozen.push(freeze_block(b)) }
     return CFGFunction {
         .mangled     = d.mangled,
@@ -553,7 +553,7 @@ build_loop :: fn(fn_ctx: FnCtx!, s: LoweredLoop) -> void {
         terminate(fn_ctx, TermBranch { .target = header_id, .span = s.span })
     }
     // pop loop frame
-    new_stack: LoopFrame[] = []
+    new_stack: LoopFrame[]! = []
     for i in 0..<fn_ctx.loop_stack.len() - 1 {
         new_stack.push(fn_ctx.loop_stack[i])
     }
@@ -695,7 +695,7 @@ build_call :: fn(fn_ctx: FnCtx!, e: LoweredCall) -> LocalId | null {
 }
 
 build_args :: fn(fn_ctx: FnCtx!, args: LoweredExpr[]) -> LocalId[] | null {
-    out: LocalId[] = []
+    out: LocalId[]! = []
     for a in args {
         local :: build_expr(fn_ctx, a) ?? return null
         out.push(local)
@@ -941,7 +941,7 @@ build_if :: fn(fn_ctx: FnCtx!, e: LoweredIf, dest: LocalId | null) -> LocalId | 
 }
 
 build_struct_lit :: fn(fn_ctx: FnCtx!, e: LoweredStructLit) -> LocalId | null {
-    field_locals: LocalId[] = []
+    field_locals: LocalId[]! = []
     for f in e.fields {
         local :: build_expr(fn_ctx, f.value) ?? return null
         field_locals.push(local)
@@ -955,7 +955,7 @@ build_struct_lit :: fn(fn_ctx: FnCtx!, e: LoweredStructLit) -> LocalId | null {
 }
 
 build_array_lit :: fn(fn_ctx: FnCtx!, e: LoweredArrayLit) -> LocalId | null {
-    elems: LocalId[] = []
+    elems: LocalId[]! = []
     for el in e.elements {
         local :: build_expr(fn_ctx, el) ?? return null
         elems.push(local)

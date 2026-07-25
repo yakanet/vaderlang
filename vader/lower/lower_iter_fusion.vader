@@ -272,7 +272,7 @@ emit_bool_terminal :: fn(
             }], .trailing = null,
         },
     }
-    stmts: LoweredStmt[] = [init_let]
+    stmts: LoweredStmt[]! = [init_let]
     stmts.push_all(emit_fused_chain(ctx, chain, null, span, template, lower_expr))
     return LoweredBlock {
         .span = span, .type = TY_BOOL, .stmts = stmts,
@@ -312,7 +312,7 @@ emit_find_terminal :: fn(ctx: FnLowerCtx!, chain: IterChain, pred: AST.Expr, spa
             }], .trailing = null,
         },
     }
-    stmts: LoweredStmt[] = [init_let]
+    stmts: LoweredStmt[]! = [init_let]
     stmts.push_all(emit_fused_chain(ctx, chain, null, span, template, lower_expr))
     return LoweredBlock {
         .span = span, .type = result_ty, .stmts = stmts,
@@ -344,7 +344,7 @@ emit_count_fusion :: fn(ctx: FnLowerCtx!, chain: IterChain, span: Span) -> Lower
         .element_type = chain_element_type(chain),
         .user_body = LoweredBlock { .span = span, .type = TY_VOID, .stmts = [step], .trailing = null },
     }
-    stmts: LoweredStmt[] = [init]
+    stmts: LoweredStmt[]! = [init]
     stmts.push_all(emit_fused_chain(ctx, chain, null, span, template, lower_expr))
     return LoweredBlock {
         .span = span, .type = usize_ty, .stmts = stmts,
@@ -389,7 +389,7 @@ emit_collect_fusion :: fn(ctx: FnLowerCtx!, chain: IterChain, result_type: Type,
             .stmts = [LoweredExprStmt { .span = span, .expr = push }], .trailing = null,
         },
     }
-    stmts: LoweredStmt[] = [init]
+    stmts: LoweredStmt[]! = [init]
     stmts.push_all(emit_fused_chain(ctx, chain, null, span, template, lower_expr))
     return LoweredBlock {
         .span = span, .type = arr_ty, .stmts = stmts,
@@ -681,7 +681,7 @@ emit_fused_opaque_iter :: fn(
     }
     bind_stmts :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, template.pattern, value_access, element_type, span)
 
-    body_stmts: LoweredStmt[] = []
+    body_stmts: LoweredStmt[]! = []
     body_stmts.push_all(bind_stmts)
     for s in template.user_body.stmts { body_stmts.push(s) }
     if template.user_body.trailing != null {
@@ -763,7 +763,7 @@ emit_fused_range :: fn(
             .stmts = body_stmts, .trailing = null,
         },
     }
-    out: LoweredStmt[] = []
+    out: LoweredStmt[]! = []
     out.push(counter_init)
     out.push(loop_stmt)
     return out
@@ -837,7 +837,7 @@ emit_fused_array :: fn(
         .body = LoweredBlock { .span = span, .type = TY_VOID, .stmts = body_stmts, .trailing = null },
     }
 
-    out: LoweredStmt[] = []
+    out: LoweredStmt[]! = []
     out.push(arr_let)
     out.push(len_let)
     out.push(idx_init)

@@ -384,7 +384,7 @@ export find_enclosing_call :: fn(
 /// @param col    1-based cursor column.
 /// @return       the containing expressions, innermost (smallest span) first.
 export enclosing_exprs :: fn(decls: AST.Decl[], line: i32, col: i32) -> AST.Expr[] {
-    acc: AST.Expr[] = []
+    acc: AST.Expr[]! = []
     st :: EncloseState { .line = line, .col = col, .acc = acc }
     for d in decls { ee_walk_decl(d, st) }
     return st.acc

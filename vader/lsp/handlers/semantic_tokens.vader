@@ -67,7 +67,7 @@ export handle_semantic_tokens_full :: fn(state: ServerState, params: JsonValue) 
 // ---- producer -------------------------------------------------------------
 
 produce_tokens :: fn(source: string, uri: string, li: LineIndex) -> JsonValue {
-    raws: RawToken[] = []
+    raws: RawToken[]! = []
     collect_token_kinds(source, uri, raws)
     collect_comment_kinds(source, raws)
     collect_ast_idents(source, uri, raws)
@@ -174,7 +174,7 @@ collect_comment_kinds :: fn(source: string, out: RawToken[]!) -> void {
 //     decorator (documentation modifier), `@param`'s name as parameter
 //     (documentation modifier).
 comment_to_raw :: fn(c: Comment) -> RawToken[] {
-    out: RawToken[] = []
+    out: RawToken[]! = []
     // Base case : non-doc comments emit a single comment-typed token.
     match c.kind {
         .Line -> {
@@ -312,7 +312,7 @@ sort_raws :: fn(arr: RawToken[]!) -> void {
 }
 
 encode_delta :: fn(arr: RawToken[]) -> JsonValue {
-    out: JsonValue[] = []
+    out: JsonValue[]! = []
     prev_line: i32 = 0
     prev_col:  i32 = 0
     for r in arr {
@@ -339,7 +339,7 @@ import "std/testing"
 build_sorted_for_test :: fn(source: string, uri: string) -> RawToken[] {
     // The colocated tests assert codepoint-equivalent columns, so index in
     // utf-16 (BMP codepoint == 1 utf-16 unit).
-    raws: RawToken[] = []
+    raws: RawToken[]! = []
     collect_token_kinds(source, uri, raws)
     collect_comment_kinds(source, raws)
     collect_ast_idents(source, uri, raws)
@@ -443,16 +443,16 @@ tok_type_at :: fn(toks: RawToken[], offset: usize) -> i32 {
 test_bang_is_in_paint_as_keyword :: fn() -> void {
     // `!is` / `!in` : the leading `!` paints as a keyword (not an operator) so
     // the negated operator colours as one unit — mirrors the TextMate grammar.
-    is_toks: RawToken[] = []
+    is_toks: RawToken[]! = []
     collect_token_kinds("x !is y\n", "t.vader", is_toks)
     assert_eq(tok_type_at(is_toks, 2), i32(TokenType.Keyword))
 
-    in_toks: RawToken[] = []
+    in_toks: RawToken[]! = []
     collect_token_kinds("x !in y\n", "t.vader", in_toks)
     assert_eq(tok_type_at(in_toks, 2), i32(TokenType.Keyword))
 
     // A bare `!` (logical not) still classifies as an operator.
-    not_toks: RawToken[] = []
+    not_toks: RawToken[]! = []
     collect_token_kinds("!x\n", "t.vader", not_toks)
     assert_eq(tok_type_at(not_toks, 0), i32(TokenType.Operator))
 }

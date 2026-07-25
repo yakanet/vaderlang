@@ -51,7 +51,7 @@ export resolve_vm_required_decls :: fn(
     // Pass-1 staging : lower + emit the whole project with the deferred consts
     // still un-baked. Diagnostics are throwaway — the real pass-2 lower reports
     // any genuine errors.
-    stage_diags: Diagnostic[] = []
+    stage_diags: Diagnostic[]! = []
     module :: stage_to_bytecode(loaded, typed, evaluated, stage_diags)
     state :: Vm.prepare(module)
 
@@ -93,7 +93,7 @@ stage_to_bytecode :: fn(
     // closure), not the whole entry-rooted project : each such module's un-baked
     // const inlines its RHS call, pulling the nullary callee thunk into the
     // harvest so `find_callee_mangle` locates it.
-    eager_modules: string[] = []
+    eager_modules: string[]! = []
     for vr in evaluated.vm_required {
         if !(vr.module_id in eager_modules) { eager_modules.push(vr.module_id) }
     }

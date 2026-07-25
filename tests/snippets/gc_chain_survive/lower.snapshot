@@ -3,7 +3,7 @@
 ## snippet
   struct snippet$Node { value: i32, next: Node | null }
   fn snippet$main() -> i32
-    let head: Node! | null =
+    let head: Node | null =
       Node! {
         value: int(0) :i32
         next: null
@@ -12,11 +12,11 @@
     loop while (<…>)
       assign
         target:
-          head :Node! | null
+          head :Node | null
         value:
           Node! {
             value: i :i32
-            next: head :Node! | null
+            next: head :Node | null
           }
       assign
         target:
@@ -101,7 +101,7 @@
                     __off_1 :usize
         return int(1) :i32
     let sum: i32 = int(0) :i32
-    let cur: Node! | null = head :Node! | null
+    let cur: Node | null = head :Node | null
     let done: bool = false
     loop while (<…>)
       ~>
@@ -110,7 +110,7 @@
             if :void
               cond:
                 is null :bool
-                  cur :Node! | null
+                  cur :Node | null
               then:
                 ~>
                   block :void
@@ -124,7 +124,7 @@
                   if :void
                     cond:
                       is Node! :bool
-                        cur :Node! | null
+                        cur :Node | null
                     then:
                       ~>
                         block :void
@@ -137,15 +137,15 @@
                                   sum :i32
                                 r:
                                   .value :i32
-                                    cast → Node!
-                                      cur :Node! | null
+                                    cast → Node
+                                      cur :Node | null
                           assign
                             target:
-                              cur :Node!
+                              cur :Node
                             value:
                               .next :Node | null
-                                cast → Node!
-                                  cur :Node! | null
+                                cast → Node
+                                  cur :Node | null
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void

@@ -218,7 +218,7 @@ export normalize :: fn(self: Path) -> Path {
         return self
     }
     abs :: self.is_absolute()
-    segments: string[] = []
+    segments: string[]! = []
     count: usize = 0
     rb :: s.bytes()
     n :: rb.len()

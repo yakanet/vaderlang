@@ -36,7 +36,7 @@ export publish_diagnostics_for_uri :: fn(self: ServerState!, uri: string) -> voi
     // The lint walks the already-loaded project graph — no reload — and
     // `publish`'s per-file filter scopes its findings to the open document, so
     // the analysis stays project-wide while the display is per-file, as W0007.
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     diags.push_all(cached.diags)
     diags.push_all(unused_export_diags(cached.project))
     publish(self, uri, diags)
@@ -75,7 +75,7 @@ publish :: fn(self: ServerState, uri: string, diags: Diagnostic[]) -> void {
     // Every published diagnostic is filtered to `file_path` below, so one index
     // for the open document encodes them all.
     li :: self.line_index_for_path(file_path)
-    items: JsonValue[] = []
+    items: JsonValue[]! = []
     for d in diags {
         if file_path != "" && d.primary.start.file != file_path { continue }
         items.push(encode_diagnostic(d, li))

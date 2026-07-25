@@ -35,17 +35,20 @@
               "name": "xs"
             },
             "type": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "BinaryExpr",
-                "op": "bitor",
-                "left": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                },
-                "right": {
-                  "kind": "IdentExpr",
-                  "name": "string"
+              "kind": "MutableTypeExpr",
+              "inner": {
+                "kind": "ArrayTypeExpr",
+                "element": {
+                  "kind": "BinaryExpr",
+                  "op": "bitor",
+                  "left": {
+                    "kind": "IdentExpr",
+                    "name": "i32"
+                  },
+                  "right": {
+                    "kind": "IdentExpr",
+                    "name": "string"
+                  }
                 }
               }
             },

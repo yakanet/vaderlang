@@ -10,7 +10,7 @@ import "std/io"
 // the elements silently (no diagnostic, no trap) once a row grew past its
 // initial capacity; it took a self-compile SIGSEGV to surface.
 build :: fn<T>(n: usize, make: fn() -> T) -> T[]! {
-    out: T[] = [] * n
+    out: T[]! = [] * n
     for 0..<n {
         out.push(make())
     }
@@ -35,7 +35,7 @@ fill :: fn(rows: i32[]![]!) -> void {
 }
 
 // Number of slots that don't read back what `fill` wrote.
-mismatches :: fn(rows: i32[][]) -> i32 {
+mismatches :: fn(rows: i32[]![]) -> i32 {
     bad := 0
     for i in 0..<rows.len() {
         row :: rows[i]
@@ -53,11 +53,11 @@ mismatches :: fn(rows: i32[][]) -> i32 {
 }
 
 main :: fn() -> i32 {
-    lambda_rows: i32[][] = build(ROWS, () -> [])
+    lambda_rows: i32[]![]! = build(ROWS, () -> [])
     fill(lambda_rows)
     println("lambda mismatches=${mismatches(lambda_rows)}")
 
-    named_rows: i32[][] = build(ROWS, new_row)
+    named_rows: i32[]![]! = build(ROWS, new_row)
     fill(named_rows)
     println("named  mismatches=${mismatches(named_rows)}")
     return 0

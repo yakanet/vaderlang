@@ -47,7 +47,7 @@ export sanitise :: fn(raw: string) -> string {
     // 1-char string per byte — the hottest `append_char` caller in c-emit.
     rawb :: raw.bytes()
     n :: rawb.len()
-    buf: u8[] = []
+    buf: u8[]! = []
     for i in 0..<n {
         b :: rawb[i]
         buf.push(if is_ident_byte(b) { b } else { u8('_') })
@@ -97,7 +97,7 @@ export c_string_lit :: fn(s: string) -> string {
     // 1-char string per char — the 2nd-hottest `append_char` caller in c-emit.
     sbytes :: s.bytes()
     n :: sbytes.len()
-    buf: u8[] = []
+    buf: u8[]! = []
     buf.push('"')
     for i in 0..<n {
         b :: sbytes[i]

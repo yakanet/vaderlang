@@ -177,12 +177,12 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx!, slot_index: i32) -> 
         is TraitType as tt    -> { return BcRef { .trait_name = tt.symbol.name } }
         is ArrayType as a     -> { return BcArray { .element = intern_type(a.element, ctx) } }
         is UnionType as u     -> {
-            variant_indices: i32[] = []
+            variant_indices: i32[]! = []
             for v in u.variants { variant_indices.push(intern_type(v, ctx)) }
             return BcUnion { .variants = variant_indices }
         }
         is FnType as f -> {
-            param_indices: i32[] = []
+            param_indices: i32[]! = []
             for p in f.params { param_indices.push(intern_type(p, ctx)) }
             return BcFn {
                 .params = param_indices,
@@ -193,7 +193,7 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx!, slot_index: i32) -> 
         // `_1`, … . The slot index disambiguates same-arity shapes so
         // `[i32, string]` and `[bool, string]` emit distinct C structs.
         is TupleType as p -> {
-            fields: BcField[] = []
+            fields: BcField[]! = []
             for i in 0..<p.elements.len() {
                 fields.push(BcField {
                     .name       = "_${i}",

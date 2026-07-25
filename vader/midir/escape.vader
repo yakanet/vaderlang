@@ -39,7 +39,7 @@ export annotate_escape :: fn(p: CFGProject) -> AnnotatedProject {
     stack_promoted := 0
     modules :: MutableMap<string, CFGModule> {}
     for [_, m] in p.modules {
-        functions: CFGFunction[] = []
+        functions: CFGFunction[]! = []
         for fn_ in m.functions {
             annotated :: annotate_function(fn_)
             for b in annotated.blocks {
@@ -67,7 +67,7 @@ export annotate_escape :: fn(p: CFGProject) -> AnnotatedProject {
 annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
     // Collect alloc-producing locals.
     alloc_locals :: MutableSet<LocalId> {}
-    struct_news: LocalId[] = []
+    struct_news: LocalId[]! = []
     for b in fn_.blocks {
         for ins in b.instructions {
             @partial match ins {
@@ -89,7 +89,7 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
     // with any non-stack source stays out — one heap origin requires
     // the barrier.
     stack_origin :: MutableSet<LocalId> {}
-    worklist: LocalId[] = []
+    worklist: LocalId[]! = []
     for dst in struct_news {
         if res.escaping.contains(dst) { continue }
         if carried.contains(dst) { continue }
@@ -122,10 +122,10 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
     }
     // Rewrite blocks if any flag changed.
     mutated := false
-    new_blocks: BasicBlock[] = []
+    new_blocks: BasicBlock[]! = []
     for b in fn_.blocks {
         block_mutated := false
-        new_instrs: Instruction[] = []
+        new_instrs: Instruction[]! = []
         for ins in b.instructions {
             match ins {
                 is InstrStructNew as s -> {
@@ -202,7 +202,7 @@ compute_carried_across_loop_headers :: fn(fn_: CFGFunction, alias_of: MutableMap
         }
     }
     // Backward-propagate via alias_of.
-    work: LocalId[] = []
+    work: LocalId[]! = []
     for l in carried { work.push(l) }
     for work.len() > 0 {
         cur :: work[work.len() - 1]
@@ -293,7 +293,7 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
         }
     }
     // Backward propagation : if dst escapes and aliases src, src escapes too.
-    work: LocalId[] = []
+    work: LocalId[]! = []
     for l in escaping { work.push(l) }
     for work.len() > 0 {
         cur :: work[work.len() - 1]

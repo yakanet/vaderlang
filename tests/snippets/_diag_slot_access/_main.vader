@@ -13,17 +13,17 @@ import "std/io"
 
 main :: fn() -> i32 {
     // i32 get + set
-    xs: i32[] = [1, 2, 3]
+    xs: i32[]! = [1, 2, 3]
     xs[1] = xs[0] + xs[2]
     println("xs=${xs[0]},${xs[1]},${xs[2]}")
 
     // i64 get + set
-    ls: i64[] = [10, 20, 30]
+    ls: i64[]! = [10, 20, 30]
     ls[2] = ls[0] + ls[1]
     println("ls2=${ls[2]}")
 
     // f64 get + set
-    fs: f64[] = [1.5, 2.5]
+    fs: f64[]! = [1.5, 2.5]
     fs[0] = fs[1] * 2.0
     println("fs0=${fs[0]}")
 
@@ -32,7 +32,7 @@ main :: fn() -> i32 {
     println("view=${view[0]},${view[1]}")
 
     // boxed string[] — stays on the legacy runtime-dispatched op.
-    ss: string[] = ["a", "b"]
+    ss: string[]! = ["a", "b"]
     ss[0] = ss[1]
     println("ss0=${ss[0]}")
 

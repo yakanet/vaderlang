@@ -32,10 +32,13 @@
               "name": "r"
             },
             "type": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "u32"
+              "kind": "MutableTypeExpr",
+              "inner": {
+                "kind": "ArrayTypeExpr",
+                "element": {
+                  "kind": "IdentExpr",
+                  "name": "u32"
+                }
               }
             },
             "value": {

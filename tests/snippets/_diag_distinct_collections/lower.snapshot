@@ -49,8 +49,8 @@
           cast → UserId
             x :null | UserId
   fn snippet$main() -> i32
-    let ids: UserId[]! =
-      array :UserId[]!
+    let ids: UserId[] =
+      array :UserId[]
         cast → UserId
           int(10) :i32
         cast → UserId
@@ -72,6 +72,6 @@
             callee:
               sum_ids :fn(UserId[]) -> i32
             arg0:
-              ids :UserId[]!
+              ids :UserId[]
         r:
           present :i32

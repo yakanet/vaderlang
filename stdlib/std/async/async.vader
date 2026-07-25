@@ -113,7 +113,7 @@ All<T> implements Async<T[]> {
             self.results[i] = r
         }
         if self.results.len() != n { return Suspended {} }
-        out: T[] = []
+        out: T[]! = []
         for i in 0..<n {
             v :: self.results[i]
             if v != null { out.push(v) }

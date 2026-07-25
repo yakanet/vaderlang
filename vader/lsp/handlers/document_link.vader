@@ -36,7 +36,7 @@ export handle_document_link :: fn(state: ServerState, params: JsonValue) -> Json
     // The index keeps the source but not the AST ; re-parse (lexer + parser
     // only, no resolve) to walk the import decls. documentLink isn't hot.
     parsed :: parse_source(idx.source, uri)
-    links: JsonValue[] = []
+    links: JsonValue[]! = []
     for d in parsed.program.decls {
         if d is ImportDecl as imp {
             link :: import_link(imp, idx.source, state, uri, idx.line_index)

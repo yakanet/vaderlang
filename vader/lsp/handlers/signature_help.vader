@@ -67,7 +67,7 @@ export handle_signature_help :: fn(state: ServerState!, params: JsonValue) -> Js
 build_signature :: fn(call: AST.CallExpr, typed: TypedProgram) -> JsonValue | null {
     fn_decl :: lookup_fn_decl(call.callee, typed) ?? return null
     label :: render_signature_label(fn_decl)
-    params: JsonValue[] = []
+    params: JsonValue[]! = []
     for p in fn_decl.params {
         p_label :: render_param_label(p)
         p_obj :: MutableMap<string, JsonValue> {}

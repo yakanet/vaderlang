@@ -80,7 +80,7 @@ prim_name :: fn(ty: Type, fallback: string) -> string {
 // resolved element type. Honours the array's view bounds (`offset` / `length`).
 array_to_comptime :: fn(array: Vm.ArrayVal, ty: Type, span: Span) -> Ct.ComptimeValue | Diagnostic {
     elem_ty :: array_element_type(ty)
-    elements: Ct.ComptimeValue[] = []
+    elements: Ct.ComptimeValue[]! = []
     for i in 0..<array.length {
         bridged :: value_to_comptime(array.elements[array.offset + i], elem_ty, span)
         if bridged is Diagnostic as d { return d }
@@ -129,7 +129,7 @@ display_bridged :: fn(value: Vm.Value, ty: Type, span: Span) -> string {
 
 @test test_bridge_u32_array :: fn() -> void {
     s :: empty_span()
-    elems: Vm.Value[] = [
+    elems: Vm.Value[]! = [
         Vm.I32Val { .value = 1 },
         Vm.I32Val { .value = 2 },
         Vm.I32Val { .value = 3 },
@@ -141,7 +141,7 @@ display_bridged :: fn(value: Vm.Value, ty: Type, span: Span) -> string {
 
 @test test_bridge_unsupported_obj :: fn() -> void {
     s :: empty_span()
-    bytes: u8[] = []
+    bytes: u8[]! = []
     slots: Vm.Value[] = []
     obj :: Vm.ObjVal { .handle = 0, .type_id = 0, .bytes = bytes, .slots = slots }
     result :: value_to_comptime(obj, mk_primitive("i32"), s)

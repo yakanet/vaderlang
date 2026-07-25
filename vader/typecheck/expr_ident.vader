@@ -125,7 +125,7 @@ check_test_module :: fn(src: string) -> CheckedSrc {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     result :: check_module(parsed.program, rm, factory, diags)
     return CheckedSrc { .program = parsed.program, .typed = result.typed }
 }

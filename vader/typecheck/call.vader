@@ -195,7 +195,7 @@ primary_overload_ft :: fn(callee: AST.Expr, typed: TypedProgram) -> Type | null 
 }
 
 collect_overload_candidates :: fn(name: string, typed: TypedProgram) -> FnType[] {
-    out: FnType[] = []
+    out: FnType[]! = []
     bucket :: typed.resolved.fn_overloads[name]
     if bucket !is null {
         for sym in bucket {
@@ -287,7 +287,7 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
     if only_positional && c.args.len() == params.len() {
         return c.args
     }
-    slots: (AST.CallArg | null)[] = [null] * params.len()
+    slots: (AST.CallArg | null)[]! = [null] * params.len()
     seen_named := false
     next_pos: usize = 0
     ok := true
@@ -338,7 +338,7 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
             }
         }
     }
-    out: AST.CallArg[] = []
+    out: AST.CallArg[]! = []
     for i in 0..<params.len() {
         slot :: slots[i]
         if slot is AST.CallArg as s {
@@ -489,7 +489,7 @@ ufcs_method_params :: fn(method: string, recv_ty: Type, callee_ty: FnType, typed
             ft :: typed.decl_types[sym.id]
             if ft is FnType as f {
                 if f.params.len() > 0 && is_assignable(recv_ty, f.params[0], null) {
-                    tail: AST.FnParam[] = []
+                    tail: AST.FnParam[]! = []
                     for i in 1..<fd.params.len() {
                         tail.push(fd.params[i])
                     }
@@ -562,7 +562,7 @@ report_unbound_type_args :: fn(
             return
         }
     }
-    unbound: Symbol[] = []
+    unbound: Symbol[]! = []
     for p in callee_ty.params {
         collect_unbound_type_params(p, bindings, unbound)
     }
@@ -734,7 +734,7 @@ export infer_call :: fn(
         // (`fn<T>(x: T) -> T` called as `42.identity()`) still
         // substitute through the return type.
         seed_ufcs_bindings(c.callee, typed, bindings)
-        arg_types: Type[] = []
+        arg_types: Type[]! = []
         // Lambda arguments are checked LAST. Their param type may mention a
         // type-param that nothing has bound yet — one a later argument, or the
         // call's `expected`, resolves. Checking `() -> []` against an
@@ -773,7 +773,7 @@ export infer_call :: fn(
             // the authoritative pass below re-runs them against `diags`.
             // Bounded by the argument count : every round that continues has
             // bound at least one more type-param.
-            scratch: Diagnostic[] = []
+            scratch: Diagnostic[]! = []
             for 0..<n {
                 before :: bindings.len()
                 for i in 0..<n {
@@ -1133,7 +1133,7 @@ first_call_in_last_fn :: fn(src: string) -> CallFixture {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     result :: check_module(parsed.program, rm, factory, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     if last is AST.FnDecl as f {
@@ -1176,7 +1176,7 @@ main :: fn() -> i32 { return add(1, 2) }
     match fx.call {
         is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
-            diags: Diagnostic[] = []
+            diags: Diagnostic[]! = []
             assert_eq(display_type(infer_call(c, null, fx.typed, diags, call_check_stub)), "i32")
             assert_eq(diags.len(), 0)
         }
@@ -1193,7 +1193,7 @@ main :: fn() -> i32 { return add(1) }
     match fx.call {
         is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
-            diags: Diagnostic[] = []
+            diags: Diagnostic[]! = []
             infer_call(c, null, fx.typed, diags, call_check_stub)
             assert(diags.len() >= 1, "expected at least one diagnostic")
             assert_eq(diags[0].code.id, "T3005")
@@ -1211,7 +1211,7 @@ main :: fn() -> i32 { return add(1, 2, 3) }
     match fx.call {
         is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
-            diags: Diagnostic[] = []
+            diags: Diagnostic[]! = []
             infer_call(c, null, fx.typed, diags, call_check_stub)
             assert(diags.len() >= 1, "expected at least one diagnostic")
             assert_eq(diags[0].code.id, "T3003")
@@ -1228,7 +1228,7 @@ f :: fn() -> i32 { return i32("hello") }
     match fx.call {
         is null              -> { assert(false, "expected to find the cast call") }
         is AST.CallExpr as c -> {
-            diags: Diagnostic[] = []
+            diags: Diagnostic[]! = []
             infer_call(c, null, fx.typed, diags, call_check_stub)
             found := false
             for d in diags {
@@ -1250,7 +1250,7 @@ f :: fn(a: i32) -> i64 { return i64(a) }
     match fx.call {
         is null              -> { assert(false, "expected to find the cast call") }
         is AST.CallExpr as c -> {
-            diags: Diagnostic[] = []
+            diags: Diagnostic[]! = []
             assert_eq(display_type(infer_call(c, null, fx.typed, diags, call_check_stub)), "i64")
             found := false
             for d in diags {
@@ -1273,7 +1273,7 @@ main :: fn() -> i32 { return greet(1) }
     match fx.call {
         is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
-            diags: Diagnostic[] = []
+            diags: Diagnostic[]! = []
             infer_call(c, null, fx.typed, diags, call_check_stub)
             // The omitted trailing param is filled from its default.
             assert_eq(c.args.len(), 2)
@@ -1291,7 +1291,7 @@ main :: fn() -> void { greet(42) }
     match fx.call {
         is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
-            diags: Diagnostic[] = []
+            diags: Diagnostic[]! = []
             infer_call(c, null, fx.typed, diags, call_check_stub)
             // FreeInt is not assignable to string ; T3001 fires.
             found := false

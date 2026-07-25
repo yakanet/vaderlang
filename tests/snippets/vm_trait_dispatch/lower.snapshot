@@ -60,20 +60,20 @@
           describe :fn(Cat | Dog) -> i32
         arg0:
           c :Cat!
-    let wc: Cat! | Wrapper<i32>! = w :Wrapper<i32>!
+    let wc: Cat | Wrapper<i32> = w :Wrapper<i32>!
     let wrap_result: i32 =
       call :i32
         callee:
           describe_wrapper :fn(Cat | Wrapper<i32>) -> i32
         arg0:
-          wc :Cat! | Wrapper<i32>!
-    let cc: Cat! | Wrapper<i32>! = c :Cat!
+          wc :Cat | Wrapper<i32>
+    let cc: Cat | Wrapper<i32> = c :Cat!
     let cat_wrap_result: i32 =
       call :i32
         callee:
           describe_wrapper :fn(Cat | Wrapper<i32>) -> i32
         arg0:
-          cc :Cat! | Wrapper<i32>!
+          cc :Cat | Wrapper<i32>
     return
       add :i32
         l:

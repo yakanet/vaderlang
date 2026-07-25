@@ -15,7 +15,7 @@ main :: fn(argv: string[]) -> i32 {
     // flags). The host shim seeds the two root flags so cross-file
     // goto-def can resolve `std/*` / `vader/*` imports to absolute
     // paths.
-    args: string[] = []
+    args: string[]! = []
     n :: argv.len()
     for i in 1..<n {
         args.push(argv[i])

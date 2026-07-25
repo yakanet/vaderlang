@@ -23,14 +23,15 @@
 [11:12-11:15] ident          "i32"
 [11:15-11:16] lbracket       "["
 [11:16-11:17] rbracket       "]"
-[11:18-11:19] assign         "="
-[11:20-11:21] lbracket       "["
-[11:21-11:22] int_literal    "0" =0n
-[11:22-11:23] comma          ","
-[11:24-11:25] int_literal    "0" =0n
-[11:25-11:26] comma          ","
-[11:27-11:28] int_literal    "0" =0n
-[11:28-11:29] rbracket       "]"
+[11:17-11:18] bang           "!"
+[11:19-11:20] assign         "="
+[11:21-11:22] lbracket       "["
+[11:22-11:23] int_literal    "0" =0n
+[11:23-11:24] comma          ","
+[11:25-11:26] int_literal    "0" =0n
+[11:26-11:27] comma          ","
+[11:28-11:29] int_literal    "0" =0n
+[11:29-11:30] rbracket       "]"
 [12:1-12:1  ] newline        "\n"
 [12:5-12:10 ] ident          "aisle"
 [12:11-12:13] decl_const     "::"

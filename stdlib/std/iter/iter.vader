@@ -37,7 +37,7 @@ export is_empty :: fn<T>(arr: T[]) -> bool = arr.len() == 0
 /// (`it.filter(p).map(f).collect()`) when a snapshot is required ;
 /// `for x in it` consumes directly without the intermediate array.
 export collect :: fn<T>(it: Iterator<T>) -> T[]! {
-    out: T[] = []
+    out: T[]! = []
     for x in it {
         out.push(x)
     }
@@ -90,7 +90,7 @@ export sum :: fn(self: Iterator<i32>) -> i32 {
 /// without implementors). When `T[] implements Clone` lands, this free
 /// fn becomes the impl — `arr.clone()` resolves identically either way.
 export clone :: fn<T>(arr: T[]) -> T[]! {
-    out: T[] = [] * arr.len()
+    out: T[]! = [] * arr.len()
     out.push_all(arr)
     return out
 }
@@ -337,7 +337,7 @@ import "std/testing"
 }
 
 @test test_window :: fn() -> void {
-    windows: i32[][] = []
+    windows: i32[][]! = []
     for w in [1, 2, 3, 4, 5].window(3) {
         windows.push(w)
     }
@@ -348,14 +348,14 @@ import "std/testing"
     assert_eq(windows[2][2], 5)
 
     // no partial windows : size > len yields nothing
-    over: i32[][] = []
+    over: i32[][]! = []
     for w in [1, 2, 3].window(5) {
         over.push(w)
     }
     assert_eq(over.len(), 0)
 
     // size 0 yields nothing
-    zero: i32[][] = []
+    zero: i32[][]! = []
     for w in [1, 2, 3].window(0) {
         zero.push(w)
     }
@@ -363,7 +363,7 @@ import "std/testing"
 }
 
 @test test_chain :: fn() -> void {
-    out: i32[] = []
+    out: i32[]! = []
     for x in chain([1, 2], [3, 4, 5]) {
         out.push(x)
     }
@@ -373,8 +373,8 @@ import "std/testing"
 }
 
 @test test_enumerate :: fn() -> void {
-    idxs: usize[] = []
-    vals: string[] = []
+    idxs: usize[]! = []
+    vals: string[]! = []
     for [i, s] in ["a", "b", "c"].enumerate() {
         idxs.push(i)
         vals.push(s)

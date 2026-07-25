@@ -110,7 +110,7 @@ lower_project_impl :: fn(
         if !should_eager {
             imported_loaded :: loaded.modules[module_id]
             imported_typed_opt :: typed.modules[module_id]
-            imported_decls: LoweredDecl[] = []
+            imported_decls: LoweredDecl[]! = []
             if imported_loaded is LoadedModule as sl {
                 if imported_typed_opt is TypedProgram as imported_typed {
                     for d in module_decls(sl) {
@@ -287,7 +287,7 @@ lower_module :: fn(
     module_id: string, display_path: string, typed: TypedProgram, decls: Decl[],
     project_ctx: LowerProjectCtx!, diags: Diagnostic[],
 ) -> LoweredModule {
-    out_decls: LoweredDecl[] = []
+    out_decls: LoweredDecl[]! = []
     // First pass : every regular decl in source order. Impl members
     // surface as a multi-decl list right after their ImplDecl so the
     // dump's per-struct grouping follows source order.
@@ -321,7 +321,7 @@ lower_decl_list :: fn(
     if decl is ImplDecl as impl_decl {
         return lower_impl_member_list(impl_decl, typed, project_ctx, diags, module_decls)
     }
-    out: LoweredDecl[] = []
+    out: LoweredDecl[]! = []
     result :: lower_decl(decl, typed, project_ctx, diags, module_decls)
     if !(result is null) { out.push(result) }
     return out
@@ -387,7 +387,7 @@ import "std/testing"
     }
     typed :: new_typed_project()
     evaluated :: new_evaluated_project(typed)
-    diags: Diagnostic[] = []
+    diags: Diagnostic[]! = []
     project :: lower_project(loaded, typed, evaluated, diags)
     assert_eq(project.modules.len(), 0)
 }

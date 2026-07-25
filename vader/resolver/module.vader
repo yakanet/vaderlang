@@ -70,7 +70,7 @@ export SourceFile :: struct {
 ///               verbatim for a single-file module.
 export concat_file_decls :: fn(files: SourceFile[]) -> Decl[] {
     if files.len() == 1 { return files[0].program.decls }
-    out: Decl[] = []
+    out: Decl[]! = []
     for f in files {
         for d in f.program.decls { out.push(d) }
     }
@@ -124,7 +124,7 @@ export module_id_from_root :: fn(root: string) -> string { return root }
 /// Read every `.vader` file under `root_path` (sorted by filename),
 /// parse each, and return the resulting `SourceFile` list.
 export load_module_files :: fn(root_path: string) -> SourceFile[] {
-    out: SourceFile[] = []
+    out: SourceFile[]! = []
     files :: list_vader_files(root_path)
     for f in files {
         content :: try_read(f) ?? continue
@@ -146,7 +146,7 @@ export list_vader_files :: fn(root_path: string) -> string[] {
         return []
     }
     raw :: try_read_dir(root_path) ?? return []
-    files: string[] = []
+    files: string[]! = []
     for name in raw {
         if !name.ends_with(".vader") { continue }
         files.push(join_path(root_path, name))
@@ -229,7 +229,7 @@ export Manifest :: struct {
 /// One pass matters : the LSP re-loads the project on every didOpen / didChange,
 /// so re-reading + re-parsing the manifest per field would double the I/O.
 export read_manifest :: fn(project_root: string) -> Manifest {
-    include_paths: string[] = []
+    include_paths: string[]! = []
     manifest_path :: join_path(project_root, MANIFEST_FILENAME)
     if !exists(manifest_path) { return Manifest { .include_paths = include_paths } }
     content :: try_read(manifest_path)

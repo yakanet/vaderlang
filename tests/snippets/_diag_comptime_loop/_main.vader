@@ -15,7 +15,7 @@ import "std/io"
 SQUARES :: build_squares()
 
 build_squares :: fn() -> u32[] {
-    r: u32[] = []
+    r: u32[]! = []
     for i in 0..<8 {
         r.push(u32(i * i))
     }

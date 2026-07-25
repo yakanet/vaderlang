@@ -4,7 +4,7 @@
 module "snippet"
 
 main :: fn() -> i32 {
-    arr: i32[] = []
+    arr: i32[]! = []
     arr.push(7)
     arr.push(8)
     arr.push(9)

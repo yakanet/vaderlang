@@ -16,21 +16,21 @@
   expr 24:24    StringLitExpr  :: string
   expr 24:31    FieldExpr      :: string
   expr 24:31    IdentExpr      :: Dog
-  expr 29:19    SeqLitExpr     :: (Cat! | Dog!)[]!
-  expr 30:14    IdentExpr      :: (Cat! | Dog!)[]!
+  expr 29:20    SeqLitExpr     :: (Cat | Dog)[]!
+  expr 30:14    IdentExpr      :: (Cat | Dog)[]!
   expr 30:20    StructLitExpr  :: Cat!
   expr 30:34    StringLitExpr  :: string
   expr 30:5     CallExpr       :: void
   expr 30:5     IdentExpr      :: fn((Cat | Dog)[]!, Cat | Dog) -> void
-  expr 31:14    IdentExpr      :: (Cat! | Dog!)[]!
+  expr 31:14    IdentExpr      :: (Cat | Dog)[]!
   expr 31:20    StructLitExpr  :: Dog!
   expr 31:34    StringLitExpr  :: string
   expr 31:5     CallExpr       :: void
   expr 31:5     IdentExpr      :: fn((Cat | Dog)[]!, Cat | Dog) -> void
-  expr 32:14    IdentExpr      :: (Cat! | Dog!)[]!
+  expr 32:14    IdentExpr      :: (Cat | Dog)[]!
   expr 33:17    CallExpr       :: string
   expr 33:17    IdentExpr      :: fn(Cat | Dog) -> string
-  expr 33:26    IdentExpr      :: Cat! | Dog!
+  expr 33:26    IdentExpr      :: Cat | Dog
   expr 33:9     CallExpr       :: void
   expr 33:9     IdentExpr      :: fn(T) -> void
 

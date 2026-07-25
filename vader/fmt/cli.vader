@@ -37,7 +37,7 @@ Options :: struct {
 
 parse_args :: fn(args: string[]) -> Options {
     mode := Mode.InPlace
-    paths: string[] = []
+    paths: string[]! = []
     for a in args {
         if a == "--check" {
             mode = Mode.Check
@@ -113,7 +113,7 @@ export run_fmt :: fn(args: string[]) -> i32 {
         return i32(run_one_stdout(opts.paths[0]))
     }
 
-    files: string[] = []
+    files: string[]! = []
     for p in opts.paths { collect_files(p, files) }
 
     drift   := 0

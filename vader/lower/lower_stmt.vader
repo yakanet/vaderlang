@@ -27,7 +27,7 @@ export lower_block :: fn(
 ) -> LoweredBlock {
     entry_depth :: ctx.blocks.len()
     ctx.blocks.push(new_block_ctx(is_fn_root, is_loop_body))
-    stmts: LoweredStmt[] = []
+    stmts: LoweredStmt[]! = []
     for stmt in block.stmts {
         if ctx.in_async {
             // ANF (async) : lower the stmt into a scratch buffer, then splice the
@@ -36,7 +36,7 @@ export lower_block :: fn(
             // await from being stolen by this block (an arm body) — it belongs to
             // the enclosing statement's drain, not ours.
             base :: ctx.pending_awaits.len()
-            stmt_out: LoweredStmt[] = []
+            stmt_out: LoweredStmt[]! = []
             lower_stmt_into(ctx, stmt, stmt_out)
             drain_pending_from(ctx, stmts, base)
             for s in stmt_out { stmts.push(s) }
@@ -85,7 +85,7 @@ export lower_block :: fn(
     block_type :: trailing_type(trailing)
     // Pop the BlockCtx by maintaining the stack depth
     // invariant so nested blocks see only their own defers.
-    new_blocks: BlockCtx[] = []
+    new_blocks: BlockCtx[]! = []
     for i in 0..<entry_depth {
         new_blocks.push(ctx.blocks[i])
     }
@@ -123,7 +123,7 @@ export guard_no_pending_await :: fn(ctx: FnLowerCtx!, base: usize, span: Span) -
     if !ctx.in_async { return }
     if ctx.pending_awaits.len() <= base { return }
     ctx.project.diags.push(lower_error(.AwaitInShortCircuit, span, ""))
-    scratch: LoweredStmt[] = []
+    scratch: LoweredStmt[]! = []
     drain_pending_from(ctx, scratch, base)
 }
 
@@ -150,7 +150,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
             // a single statement via `wrap_stmts` so the dump records
             // `(block (pop_exec N) (return …))` shape rather than two
             // flat sibling stmts.
-            drain: LoweredStmt[] = []
+            drain: LoweredStmt[]! = []
             drain_all_defers(ctx, return_stmt.span, drain)
             exit :: lower_return(ctx, return_stmt)
             if drain.len() > 0 {
@@ -192,7 +192,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
         }
         is ForStmt      as for_stmt      -> { out.push(lower_for(ctx, for_stmt)) }
         is BreakStmt    as break_stmt    -> {
-            drain: LoweredStmt[] = []
+            drain: LoweredStmt[]! = []
             drain_defers_to_loop(ctx, break_stmt.span, drain)
             exit :: LoweredBreak { .span = break_stmt.span, .label = break_stmt.label }
             if drain.len() > 0 {
@@ -203,7 +203,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
             }
         }
         is ContinueStmt as continue_stmt -> {
-            drain: LoweredStmt[] = []
+            drain: LoweredStmt[]! = []
             drain_defers_to_loop(ctx, continue_stmt.span, drain)
             exit :: LoweredContinue { .span = continue_stmt.span, .label = continue_stmt.label }
             if drain.len() > 0 {
@@ -544,7 +544,7 @@ lower_comptime_for_in :: fn(ctx: FnLowerCtx!, for_stmt: ForStmt, in_form: InFor)
     // Save the prior binding so nested `@comptime for` over the same
     // name doesn't silently clobber an outer scope's substitution.
     prior :: ctx.comptime_bindings[binding_symbol.id]
-    unrolled: LoweredStmt[] = []
+    unrolled: LoweredStmt[]! = []
     for elt in arr_lit.elements {
         ctx.comptime_bindings[binding_symbol.id] = elt
         body :: lower_block(ctx, for_stmt.body, false, false)

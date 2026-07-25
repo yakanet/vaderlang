@@ -645,8 +645,8 @@
             std_io$println__string :void
           arg0:
             "isz_neg ok" :string
-    let arr: i32[]! =
-      array :i32[]!
+    let arr: i32[] =
+      array :i32[]
         int(10) :i32
         int(20) :i32
         int(30) :i32
@@ -654,10 +654,10 @@
         int(50) :i32
     let n: usize =
       LoweredArrayLen
-    let sub: i32[]! =
-      slice :i32[]!
+    let sub: i32[] =
+      slice :i32[]
         on:
-          arr :i32[]!
+          arr :i32[]
         lo:
           int(0) :usize
         hi:

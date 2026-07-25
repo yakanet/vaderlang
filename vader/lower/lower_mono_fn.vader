@@ -239,7 +239,7 @@ build_fn_instance_decl :: fn(
     }
     force_concrete :: flavor == InstanceFlavor.Mono || flavor == InstanceFlavor.Mixed
     types :: make_entry_types(owner_typed, subst)
-    params: LoweredParam[] = []
+    params: LoweredParam[]! = []
     for ast_param in fn_decl.params {
         symbol_or_null :: lookup_local_symbol(project_ctx, owner_typed.resolved, ast_param.span)
         sym :: synth_param_or(symbol_or_null, ast_param.name, owner_typed)

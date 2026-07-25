@@ -48,13 +48,13 @@
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :string
   fn snippet$main() -> i32
-    let pets: (Cat! | Dog!)[]! =
-      array :(Cat! | Dog!)[]!
+    let pets: (Cat | Dog)[]! =
+      array :(Cat | Dog)[]!
     call :void
       callee:
         push_pet :fn((Cat | Dog)[]!, Cat | Dog) -> void
       arg0:
-        pets :(Cat! | Dog!)[]!
+        pets :(Cat | Dog)[]!
       arg1:
         Cat! {
           name: "Whiskers" :string
@@ -63,21 +63,21 @@
       callee:
         push_pet :fn((Cat | Dog)[]!, Cat | Dog) -> void
       arg0:
-        pets :(Cat! | Dog!)[]!
+        pets :(Cat | Dog)[]!
       arg1:
         Dog! {
           name: "Rex" :string
         }
     block :void
-      let __for_arr_0: (Cat! | Dog!)[]! = pets :(Cat! | Dog!)[]!
+      let __for_arr_0: (Cat | Dog)[]! = pets :(Cat | Dog)[]!
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
       loop while (<…>)
-        let p: Cat! | Dog! =
-          index :Cat! | Dog!
+        let p: Cat | Dog =
+          index :Cat | Dog
             on:
-              __for_arr_0 :(Cat! | Dog!)[]!
+              __for_arr_0 :(Cat | Dog)[]!
             ix:
               __for_i_2 :usize
         call :void
@@ -88,7 +88,7 @@
               callee:
                 describe :fn(Cat | Dog) -> string
               arg0:
-                p :Cat! | Dog!
+                p :Cat | Dog
         assign
           target:
             __for_i_2 :usize

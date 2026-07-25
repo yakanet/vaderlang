@@ -31,7 +31,7 @@ main :: fn() -> i32 {
     if ab.len() == 4 && ab[0] == 7 && ab[1] == 9 && ab[2] == 7 && ab[3] == 9 { pass = pass + 1 }
 
     // `[] * n` — reserve n slots, length 0 (the preallocation case).
-    buf: i32[] = [] * 8
+    buf: i32[]! = [] * 8
     if buf.len() == 0 { pass = pass + 1 }
     for i in 0..<5 { buf.push(i) }
     if buf.len() == 5 && buf[0] == 0 && buf[4] == 4 { pass = pass + 1 }
@@ -64,7 +64,7 @@ main :: fn() -> i32 {
     if last != null && last == 200 && st.len() == 1 && st[0] == 100 { pass = pass + 1 }
 
     // `remove_last` — empty returns null.
-    drained: i32[] = []
+    drained: i32[]! = []
     gone :: drained.remove_last()
     if gone == null { pass = pass + 1 }
 
