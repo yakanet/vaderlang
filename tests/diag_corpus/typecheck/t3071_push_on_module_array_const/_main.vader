@@ -1,0 +1,12 @@
+// Same rule reached through the other kind of immutable root: a module-level
+// const. `WORDS` is pinned `const string[]`, and beyond the type it has no
+// storage at all — `lower/inline_consts` rebuilds it per read site, so the push
+// used to compile, mutate a throwaway copy, and leave `WORDS` untouched. T3071.
+module "snippet"
+
+WORDS :: ["fn", "if"]
+
+main :: fn() -> i32 {
+    WORDS.push("else")
+    return 0
+}

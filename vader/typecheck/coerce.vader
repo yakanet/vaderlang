@@ -23,12 +23,14 @@ import "vader/types"
 ///                 `.into()` hint ; trait widening records nothing.
 export try_into :: fn(got: Type, expected: Type, typed: TypedProgram, node_id: usize) -> bool {
     targeted :: typed.impl_methods["${display_type(got)}::into::${display_type(expected)}"]
-    if targeted is FnType as f {
-        if is_assignable(f.return_type, expected, null) {
-            typed.into_coercions[node_id] = expected
-            return true
+    if targeted !is null {
+        if targeted.ty is FnType as f {
+            if is_assignable(f.return_type, expected, null) {
+                typed.into_coercions[node_id] = expected
+                return true
+            }
+            return false
         }
-        return false
     }
     // Trait widening : `Cat → Animal` when `Cat implements Animal`. This
     // is a subtype widen, not an `.into()` call — record nothing.

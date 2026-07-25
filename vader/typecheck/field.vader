@@ -111,7 +111,8 @@ try_impl_method_ufcs :: fn(
     impl_ufcs :: typed.impl_methods["${display_type(key_ty)}::${e.field}"]
     if impl_ufcs !is null {
         check_trait_ambiguity(e, target_ty, typed, diags)
-        return impl_ufcs
+        reject_mutating_method_on_immutable(impl_ufcs, e, target_ty, typed, diags)
+        return impl_ufcs.ty
     }
     base_impl := typed.impl_methods["${type_base_name(key_ty)}::${e.field}"]
     if base_impl is null {
@@ -126,7 +127,42 @@ try_impl_method_ufcs :: fn(
         return null
     }
     check_trait_ambiguity(e, target_ty, typed, diags)
-    return substitute_impl_method(base_impl, key_ty, typed)
+    reject_mutating_method_on_immutable(base_impl, e, target_ty, typed, diags)
+    return substitute_impl_method(base_impl.ty, key_ty, typed)
+}
+
+// T3071 — a `self!` method is unavailable on an immutable receiver. This is the
+// convergence point for EVERY impl-method dispatch (direct key, base-name key and
+// the array blanket), so one check here covers them all.
+//
+// A receiver is immutable for either of two independent reasons, and both must be
+// tested: its ACCESS PATH is immutable (a module-level const, later a borrowed
+// param — `expr_is_immutable`), or its own TYPE says so (`const T[]`, the
+// pre-existing type-level marker). Only the second one makes
+// `fn(a: const i32[]) { a.push(9) }` an error — the promise SPEC.md §"const T[]"
+// has always made about `arr.push(v)` and that nothing enforced until now.
+//
+// The type is still returned to the caller afterwards: reporting and then
+// pretending the method doesn't exist would pile a spurious "no such field" on top
+// of the real diagnostic.
+reject_mutating_method_on_immutable :: fn(
+    im: ImplMethod, e: AST.FieldExpr, recv_ty: Type,
+    typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    if !im.self_mutable {
+        return
+    }
+    immutable_by_type :: if recv_ty is ArrayType as a { a.immutable } else { false }
+    if !immutable_by_type && !expr_is_immutable(e.target, typed) {
+        return
+    }
+    diags.push(
+        typecheck_error(
+            .MutatingMethodOnImmutable,
+            e.span,
+            "`${e.field}` mutates its receiver (declared `self!`), but this receiver is immutable",
+        ),
+    )
 }
 
 try_typeparam_bound_method :: fn(

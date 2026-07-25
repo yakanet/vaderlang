@@ -34,6 +34,23 @@ export lookup_const_symbol :: fn(decl: AST.ConstDecl, typed: TypedProgram) -> Sy
     return null
 }
 
+/// One UFCS-dispatchable impl method: its signature plus whether it may mutate
+/// its receiver.
+///
+/// `self_mutable` cannot be recovered from `ty`: `ufcs_method_type` curries the
+/// receiver away, so `ty.params_mutable[0]` describes the param AFTER `self`.
+/// Carrying it here rather than in a sibling table is what makes it survive
+/// `merge_external_impl_methods`, which rebroadcasts `impl_methods` across
+/// modules — a second table would have to be broadcast too, and forgetting that
+/// loses the marker cross-module with no diagnostic.
+export ImplMethod :: struct {
+    /// The UFCS-bound signature, WITHOUT the `self` parameter.
+    ty:           Type
+    /// True when the method declares `self!` — it mutates its receiver, so it is
+    /// unavailable on an immutable one (T3071).
+    self_mutable: bool = false
+}
+
 /// Per-module typechecker output. Every span-keyed side-table uses the
 /// `i64` key produced by `scope.node.span.hash()` — packed
 /// `(line << 32) | column`. Consumers walk the resolved AST and look
@@ -121,12 +138,11 @@ export TypedProgram :: struct {
     /// trait's Symbol id, populated alongside `trait_decls`.
     trait_decl_owners: MutableMap<i32, ResolvedModule>
 
-    /// `for_type_display::method_name → FnType` (UFCS-bound, without
-    /// the `self` param). Populated by `walk_bodies` as it visits
-    /// each `ImplDecl` ; consumed by `field.vader::infer_field` for
-    /// the `x.method()` dispatch path when `x` is not a struct
-    /// with a member named `method`.
-    impl_methods: MutableMap<string, Type>
+    /// `for_type_display::method_name → ImplMethod`. Populated by `walk_bodies`
+    /// as it visits each `ImplDecl` ; consumed by `field.vader::infer_field` for
+    /// the `x.method()` dispatch path when `x` is not a struct with a member
+    /// named `method`.
+    impl_methods: MutableMap<string, ImplMethod>
 
     /// Per-binding narrowed type stack (`Symbol.id → NarrowSlot`).
     /// `narrow.vader`'s `push_narrow` / `pop_narrow` write when a
@@ -411,7 +427,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .trait_decls     = MutableMap<i32, TraitDecl> {},
     .fn_decls        = MutableMap<i32, FnDecl> {},
     .trait_decl_owners = MutableMap<i32, ResolvedModule> {},
-    .impl_methods    = MutableMap<string, Type> {},
+    .impl_methods    = MutableMap<string, ImplMethod> {},
     .narrowed_bindings = MutableMap<i32, NarrowSlot> {},
     .narrowed_fields = MutableMap<string, NarrowSlot> {},
     .narrow_kill_gens = MutableMap<i32, i32> {},

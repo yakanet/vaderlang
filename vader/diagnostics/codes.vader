@@ -102,6 +102,7 @@ export TypecheckCode :: enum(u8) {
     NullCoalesceOnNonOptional,          // T3068
     TypeArgumentNotInferable,           // T3069
     CannotMutateImmutableBinding,       // T3070
+    MutatingMethodOnImmutable,          // T3071
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -427,6 +428,7 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .NullCoalesceOnNonOptional          -> CodeInfo { .id = "T3068", .message = "`??` left operand is never null — the fallback is unreachable" }
     .TypeArgumentNotInferable           -> CodeInfo { .id = "T3069", .message = "cannot infer type argument — nothing at this call site binds the type parameter" }
     .CannotMutateImmutableBinding       -> CodeInfo { .id = "T3070", .message = "cannot mutate through an immutable access path" }
+    .MutatingMethodOnImmutable          -> CodeInfo { .id = "T3071", .message = "this method mutates its receiver (`self!`), but the receiver is immutable" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

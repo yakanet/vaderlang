@@ -826,8 +826,12 @@ merge_external_impl_methods :: fn(
                     trait_method_ext :: lookup_trait_method(trait_decl_ext, m.name)
                     ufcs_ty :: ufcs_method_type(m, for_ty, trait_method_ext, other, diag_sink())
                     if ufcs_ty !is null {
-                        entry_typed.impl_methods[key] = ufcs_ty
-                        entry_typed.impl_methods[base_key] = ufcs_ty
+                        entry_ext :: ImplMethod {
+                            .ty = ufcs_ty,
+                            .self_mutable = declares_mutable_self(m, trait_method_ext),
+                        }
+                        entry_typed.impl_methods[key] = entry_ext
+                        entry_typed.impl_methods[base_key] = entry_ext
                         record_impl_trait(entry_typed, base_key, decl.trait_name)
                     }
                 }
@@ -2023,8 +2027,15 @@ register_impl_metadata :: fn(
         base_key :: "${type_base_name(for_ty)}::${m.name}"
         ufcs_ty :: ufcs_method_type(m, for_ty, trait_method, typed, diags)
         if ufcs_ty != null {
-            typed.impl_methods[key] = ufcs_ty
-            typed.impl_methods[base_key] = ufcs_ty
+            // `self!` is read from the impl member when it declares one, else
+            // from the trait's own signature — a blanket impl like
+            // `@intrinsic T[] implements<T> ArrayOps<T>` has NO members at all,
+            // so the trait declaration is the only place the marker exists.
+            entry :: ImplMethod {
+                .ty = ufcs_ty, .self_mutable = declares_mutable_self(m, trait_method),
+            }
+            typed.impl_methods[key] = entry
+            typed.impl_methods[base_key] = entry
             record_impl_trait(typed, base_key, id.trait_name)
         }
         // `Into<T>` impls are indexed under a target-qualified key so
@@ -2033,7 +2044,9 @@ register_impl_metadata :: fn(
         if id.trait_name == TRAIT_INTO && id.trait_args.len() == 1 && m.name == METHOD_INTO && ufcs_ty != null {
             target_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
             into_key :: "${display_type(for_ty)}::into::${display_type(target_ty)}"
-            typed.impl_methods[into_key] = ufcs_ty
+            typed.impl_methods[into_key] = ImplMethod {
+                .ty = ufcs_ty, .self_mutable = declares_mutable_self(m, trait_method),
+            }
         }
     }
 }
@@ -2142,6 +2155,35 @@ impl_has_method :: fn(id: AST.ImplDecl, name: string) -> bool {
 /// UFCS-bound method type : `fn(self, ...rest) -> R` lowers to
 /// `fn(...rest) -> R` since the self is bound from the receiver.
 /// Returns null when the signature is malformed.
+/// True when this method's receiver is declared `self!` — i.e. calling it mutates
+/// the receiver, so it is unavailable on an immutable one (T3071).
+///
+/// Reads the impl member first, falling back to the trait's signature. The
+/// fallback is not a nicety: `@intrinsic T[] implements<T> ArrayOps<T>`
+/// (`stdlib/std/core/array.vader`) declares NO members, so for every array method
+/// the trait declaration is the only place `self!` is written.
+///
+/// @param m             the impl member.
+/// @param trait_method  the matching trait signature, when the impl is for a trait.
+/// @return              whether the receiver may be mutated.
+declares_mutable_self :: fn(m: AST.FnDecl, trait_method: AST.FnDecl | null) -> bool {
+    if has_mutable_self(m) {
+        return true
+    }
+    if trait_method is AST.FnDecl as tm {
+        return has_mutable_self(tm)
+    }
+    return false
+}
+
+has_mutable_self :: fn(fd: AST.FnDecl) -> bool {
+    if fd.params.len() == 0 {
+        return false
+    }
+    first :: fd.params[0]
+    return first.name == "self" && first.mutable
+}
+
 ufcs_method_type :: fn(
     fd: AST.FnDecl,
     for_ty: Type,

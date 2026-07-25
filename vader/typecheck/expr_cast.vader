@@ -50,7 +50,8 @@ cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
     // narrowed to the target, a subtype widen (`Animal(cat)`).
     if is_assignable(src, target, null) || is_assignable(target, src, null) { return true }
     // Explicit `Into<Target>` conversion (string-keyed lookup — last resort).
-    if typed.impl_methods["${display_type(src)}::into::${display_type(target)}"] is FnType { return true }
+    into_impl :: typed.impl_methods["${display_type(src)}::into::${display_type(target)}"]
+    if into_impl !is null && into_impl.ty is FnType { return true }
     return false
 }
 

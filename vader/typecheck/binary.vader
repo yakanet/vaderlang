@@ -304,7 +304,8 @@ check_operator_rhs :: fn(
     diags: Diagnostic[],
 ) -> FnType | null {
     base :: type_base_name(recv)
-    method :: typed.impl_methods["${base}::${method_name}"]
+    method_impl :: typed.impl_methods["${base}::${method_name}"]
+    method :: if method_impl !is null { method_impl.ty } else { null }
     if method is FnType as ft {
         if ft.params.len() > 0 {
             rhs :: substitute_self_in(ft.params[0], recv)
