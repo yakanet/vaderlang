@@ -377,22 +377,22 @@
       arg0:
         "-- empty --" :string
     block :void
-      let __for_arr_15: const u8[] =
+      let __for_arr_14: const u8[] =
         call :const u8[]
           callee:
             bytes :const u8[]
           arg0:
             "" :string
-      let __for_len_16: usize =
+      let __for_len_15: usize =
         LoweredArrayLen
-      let __for_i_17: usize = int(0) :usize
+      let __for_i_16: usize = int(0) :usize
       loop while (<…>)
         let b: u8 =
           index :u8
             on:
-              __for_arr_15 :const u8[]
+              __for_arr_14 :const u8[]
             ix:
-              __for_i_17 :usize
+              __for_i_16 :usize
         call :void
           callee:
             std_io$println__string :void
@@ -400,11 +400,11 @@
             "never" :string
         assign
           target:
-            __for_i_17 :usize
+            __for_i_16 :usize
           value:
             add :usize
               l:
-                __for_i_17 :usize
+                __for_i_16 :usize
               r:
                 int(1) :usize
     call :void
@@ -412,37 +412,37 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_18: Buffer =
+          let __buf_17: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(31) :usize
-          let __off_19: usize = int(0) :usize
+          let __off_18: usize = int(0) :usize
           assign
             target:
-              __off_19 :usize
+              __off_18 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_18 :Buffer
+                  __buf_17 :Buffer
                 arg1:
-                  __off_19 :usize
+                  __off_18 :usize
                 arg2:
                   "done bytes=" :string
           assign
             target:
-              __off_19 :usize
+              __off_18 :usize
             value:
               call :usize
                 callee:
                   write_unsigned :usize
                 arg0:
-                  __buf_18 :Buffer
+                  __buf_17 :Buffer
                 arg1:
-                  __off_19 :usize
+                  __off_18 :usize
                 arg2:
                   cast → u64
                     call :usize
@@ -455,9 +455,9 @@
               callee:
                 finish_buffer :string
               arg0:
-                __buf_18 :Buffer
+                __buf_17 :Buffer
               arg1:
-                __off_19 :usize
+                __off_18 :usize
     call :void
       callee:
         std_io$println__string :void
@@ -474,64 +474,64 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_20: Buffer =
+          let __buf_19: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(105) :usize
-          let __off_21: usize = int(0) :usize
+          let __off_20: usize = int(0) :usize
           assign
             target:
-              __off_21 :usize
+              __off_20 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_20 :Buffer
+                  __buf_19 :Buffer
                 arg1:
-                  __off_21 :usize
+                  __off_20 :usize
                 arg2:
                   "len=" :string
           assign
             target:
-              __off_21 :usize
+              __off_20 :usize
             value:
               call :usize
                 callee:
                   write_unsigned :usize
                 arg0:
-                  __buf_20 :Buffer
+                  __buf_19 :Buffer
                 arg1:
-                  __off_21 :usize
+                  __off_20 :usize
                 arg2:
                   cast → u64
                     LoweredArrayLen
           assign
             target:
-              __off_21 :usize
+              __off_20 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_20 :Buffer
+                  __buf_19 :Buffer
                 arg1:
-                  __off_21 :usize
+                  __off_20 :usize
                 arg2:
                   " bs[0]=" :string
           assign
             target:
-              __off_21 :usize
+              __off_20 :usize
             value:
               call :usize
                 callee:
                   write_unsigned :usize
                 arg0:
-                  __buf_20 :Buffer
+                  __buf_19 :Buffer
                 arg1:
-                  __off_21 :usize
+                  __off_20 :usize
                 arg2:
                   cast → u64
                     index :u8
@@ -541,28 +541,28 @@
                         int(0) :i32
           assign
             target:
-              __off_21 :usize
+              __off_20 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_20 :Buffer
+                  __buf_19 :Buffer
                 arg1:
-                  __off_21 :usize
+                  __off_20 :usize
                 arg2:
                   " bs[1]=" :string
           assign
             target:
-              __off_21 :usize
+              __off_20 :usize
             value:
               call :usize
                 callee:
                   write_unsigned :usize
                 arg0:
-                  __buf_20 :Buffer
+                  __buf_19 :Buffer
                 arg1:
-                  __off_21 :usize
+                  __off_20 :usize
                 arg2:
                   cast → u64
                     index :u8
@@ -572,28 +572,28 @@
                         int(1) :i32
           assign
             target:
-              __off_21 :usize
+              __off_20 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_20 :Buffer
+                  __buf_19 :Buffer
                 arg1:
-                  __off_21 :usize
+                  __off_20 :usize
                 arg2:
                   " bs[2]=" :string
           assign
             target:
-              __off_21 :usize
+              __off_20 :usize
             value:
               call :usize
                 callee:
                   write_unsigned :usize
                 arg0:
-                  __buf_20 :Buffer
+                  __buf_19 :Buffer
                 arg1:
-                  __off_21 :usize
+                  __off_20 :usize
                 arg2:
                   cast → u64
                     index :u8
@@ -606,9 +606,9 @@
               callee:
                 finish_buffer :string
               arg0:
-                __buf_20 :Buffer
+                __buf_19 :Buffer
               arg1:
-                __off_21 :usize
+                __off_20 :usize
     call :void
       callee:
         std_io$println__string :void
@@ -633,64 +633,64 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_22: Buffer =
+          let __buf_21: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(102) :usize
-          let __off_23: usize = int(0) :usize
+          let __off_22: usize = int(0) :usize
           assign
             target:
-              __off_23 :usize
+              __off_22 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_22 :Buffer
+                  __buf_21 :Buffer
                 arg1:
-                  __off_23 :usize
+                  __off_22 :usize
                 arg2:
                   "sl.len=" :string
           assign
             target:
-              __off_23 :usize
+              __off_22 :usize
             value:
               call :usize
                 callee:
                   write_unsigned :usize
                 arg0:
-                  __buf_22 :Buffer
+                  __buf_21 :Buffer
                 arg1:
-                  __off_23 :usize
+                  __off_22 :usize
                 arg2:
                   cast → u64
                     LoweredArrayLen
           assign
             target:
-              __off_23 :usize
+              __off_22 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_22 :Buffer
+                  __buf_21 :Buffer
                 arg1:
-                  __off_23 :usize
+                  __off_22 :usize
                 arg2:
                   " sl0=" :string
           assign
             target:
-              __off_23 :usize
+              __off_22 :usize
             value:
               call :usize
                 callee:
                   write_unsigned :usize
                 arg0:
-                  __buf_22 :Buffer
+                  __buf_21 :Buffer
                 arg1:
-                  __off_23 :usize
+                  __off_22 :usize
                 arg2:
                   cast → u64
                     index :u8
@@ -700,28 +700,28 @@
                         int(0) :i32
           assign
             target:
-              __off_23 :usize
+              __off_22 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_22 :Buffer
+                  __buf_21 :Buffer
                 arg1:
-                  __off_23 :usize
+                  __off_22 :usize
                 arg2:
                   " sl1=" :string
           assign
             target:
-              __off_23 :usize
+              __off_22 :usize
             value:
               call :usize
                 callee:
                   write_unsigned :usize
                 arg0:
-                  __buf_22 :Buffer
+                  __buf_21 :Buffer
                 arg1:
-                  __off_23 :usize
+                  __off_22 :usize
                 arg2:
                   cast → u64
                     index :u8
@@ -731,28 +731,28 @@
                         int(1) :i32
           assign
             target:
-              __off_23 :usize
+              __off_22 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_22 :Buffer
+                  __buf_21 :Buffer
                 arg1:
-                  __off_23 :usize
+                  __off_22 :usize
                 arg2:
                   " sl2=" :string
           assign
             target:
-              __off_23 :usize
+              __off_22 :usize
             value:
               call :usize
                 callee:
                   write_unsigned :usize
                 arg0:
-                  __buf_22 :Buffer
+                  __buf_21 :Buffer
                 arg1:
-                  __off_23 :usize
+                  __off_22 :usize
                 arg2:
                   cast → u64
                     index :u8
@@ -765,7 +765,7 @@
               callee:
                 finish_buffer :string
               arg0:
-                __buf_22 :Buffer
+                __buf_21 :Buffer
               arg1:
-                __off_23 :usize
+                __off_22 :usize
     return int(0) :i32

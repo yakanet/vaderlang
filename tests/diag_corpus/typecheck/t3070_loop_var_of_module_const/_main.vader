@@ -1,0 +1,27 @@
+// Iterating an immutable value lends out immutable elements. Without this the
+// loop would launder the whole check: `CFG` is a module-level const, so it has no
+// storage — `it.n = 99` used to compile, mutate a rebuilt-per-read copy, and leave
+// CFG at 1, with no diagnostic.
+//
+// The mark is applied by typecheck rather than the resolver because deciding it
+// needs `expr_is_immutable`, hence the types; the resolver only records the loop
+// var's Symbol so it can be reached. Iterating an OWNED local stays mutable.
+// T3070.
+module "snippet"
+
+Item :: struct {
+    n: i32
+}
+
+Cfg :: struct {
+    items: Item[]
+}
+
+CFG :: Cfg { .items = [Item { .n = 1 }] }
+
+main :: fn() -> i32 {
+    for it in CFG.items {
+        it.n = 99
+    }
+    return 0
+}

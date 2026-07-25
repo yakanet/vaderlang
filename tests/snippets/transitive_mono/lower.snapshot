@@ -90,17 +90,17 @@
   fn snippet$inner_count__i32(arr: i32[]) -> i32
     let n: i32 = int(0) :i32
     block :void
-      let __for_arr_1: i32[] = arr :i32[]
-      let __for_len_2: usize =
+      let __for_arr_0: i32[] = arr :i32[]
+      let __for_len_1: usize =
         LoweredArrayLen
-      let __for_i_3: usize = int(0) :usize
+      let __for_i_2: usize = int(0) :usize
       loop while (<…>)
         let x: i32 =
           index :i32
             on:
-              __for_arr_1 :i32[]
+              __for_arr_0 :i32[]
             ix:
-              __for_i_3 :usize
+              __for_i_2 :usize
         assign
           target:
             n :i32
@@ -112,28 +112,28 @@
                 int(1) :i32
         assign
           target:
-            __for_i_3 :usize
+            __for_i_2 :usize
           value:
             add :usize
               l:
-                __for_i_3 :usize
+                __for_i_2 :usize
               r:
                 int(1) :usize
     return n :i32
   fn snippet$inner_count__string(arr: string[]) -> i32
     let n: i32 = int(0) :i32
     block :void
-      let __for_arr_1: string[] = arr :string[]
-      let __for_len_2: usize =
+      let __for_arr_0: string[] = arr :string[]
+      let __for_len_1: usize =
         LoweredArrayLen
-      let __for_i_3: usize = int(0) :usize
+      let __for_i_2: usize = int(0) :usize
       loop while (<…>)
         let x: string =
           index :string
             on:
-              __for_arr_1 :string[]
+              __for_arr_0 :string[]
             ix:
-              __for_i_3 :usize
+              __for_i_2 :usize
         assign
           target:
             n :i32
@@ -145,11 +145,11 @@
                 int(1) :i32
         assign
           target:
-            __for_i_3 :usize
+            __for_i_2 :usize
           value:
             add :usize
               l:
-                __for_i_3 :usize
+                __for_i_2 :usize
               r:
                 int(1) :usize
     return n :i32

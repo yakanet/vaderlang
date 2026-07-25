@@ -870,10 +870,28 @@ expr_is_immutable :: fn(e: AST.Expr, typed: TypedProgram) -> bool = @partial mat
     _                      -> false
 }
 
-// A borrowed root recorded by the resolver: a parameter declared without `!`, or
-// a loop variable over an immutable iterable. Empty until the default flips per
-// module, so this contributes nothing today — the write side is
-// `resolver/body::mark_param_borrow`, gated on `params_immutable_default`.
+// Iterating an immutable value lends out immutable elements: `for it in CFG.items`
+// where `CFG` is a module-level const must not allow `it.n = 99`. Without this the
+// loop is a laundering path around the whole check — and a silent one, since a
+// module const has no storage, so the write is simply discarded.
+//
+// Marked HERE rather than in the resolver on purpose: deciding it needs
+// `expr_is_immutable`, hence the types, which the resolver does not have. Doing it
+// there would mean a second, weaker copy of the predicate. The resolver's only
+// contribution is recording the loop var's Symbol in `idents` so it can be reached
+// from here. Runs before the body is checked, so uses inside see the mark.
+mark_loop_var_borrow :: fn(nv: AST.NamedVar, iter: AST.Expr, typed: TypedProgram) -> void {
+    if !expr_is_immutable(iter, typed) {
+        return
+    }
+    sym :: typed.resolved.idents[nv.span.hash()] ?? return
+    typed.resolved.immutable_borrows[sym.id] = true
+}
+
+// A borrowed root recorded upstream: a loop variable over an immutable iterable
+// (`mark_loop_var_borrow` above), or a parameter declared without `!` — the latter
+// still empty until the default flips per module (`resolver/body::mark_param_borrow`,
+// gated on `params_immutable_default`).
 is_immutable_borrow :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
     sym :: typed.resolved.idents[ident.span.hash()] ?? return false
     return typed.resolved.immutable_borrows[sym.id] !is null
@@ -1029,6 +1047,7 @@ check_for :: fn(
             match f.loop_var {
                 is AST.NamedVar as nv       -> {
                     typed.local_types[nv.span.hash()] = elem
+                    mark_loop_var_borrow(nv, f.iter, typed)
                     // A real user name is var-targetable ; the `_` wildcard is not.
                     if nv.name != "_" { binding = nv.name }
                 }

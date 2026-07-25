@@ -1478,7 +1478,7 @@ fn 11 std_core$parse_f64_slow (string,bool) -> f64
   local $field_23 i32
   local g i32
   local _k i32
-  local __tup_2 ref
+  local __tup_0 ref
   local $shl_71 u64
   local $shl_87 u64
   local $sub_110 u64
@@ -2199,7 +2199,7 @@ end
 
 fn 17 std_core$shl (ref,i32) -> ref
   local out ref
-  local __for_hi_1 usize
+  local __for_hi_0 usize
   local _z usize
   local bit_shift i32
   local $idx_24 u32

@@ -90,30 +90,30 @@
                         c :char
     let n: i32 = int(0) :i32
     block :void
-      let __iter_5: StringChars =
+      let __iter_4: StringChars =
         call :StringChars
           callee:
             chars :StringChars
           arg0:
             "héllo" :string
       loop
-        let __step_6: Yield<char> | null =
+        let __step_5: Yield<char> | null =
           call :Yield<char> | null
             callee:
               std_string$StringChars$Iterator$next :?
             arg0:
-              __iter_5 :StringChars
+              __iter_4 :StringChars
         if :void
           cond:
             is null :bool
-              __step_6 :Yield<char> | null
+              __step_5 :Yield<char> | null
           then:
             break
           else:
             let c: char =
               .value :char
                 cast → Yield<char>
-                  __step_6 :Yield<char> | null
+                  __step_5 :Yield<char> | null
             assign
               target:
                 n :i32
@@ -128,64 +128,64 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_7: Buffer =
+          let __buf_6: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(58) :usize
-          let __off_8: usize = int(0) :usize
+          let __off_7: usize = int(0) :usize
           assign
             target:
-              __off_8 :usize
+              __off_7 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_7 :Buffer
+                  __buf_6 :Buffer
                 arg1:
-                  __off_8 :usize
+                  __off_7 :usize
                 arg2:
                   "codepoints=" :string
           assign
             target:
-              __off_8 :usize
+              __off_7 :usize
             value:
               call :usize
                 callee:
                   write_int :usize
                 arg0:
-                  __buf_7 :Buffer
+                  __buf_6 :Buffer
                 arg1:
-                  __off_8 :usize
+                  __off_7 :usize
                 arg2:
                   cast → i64
                     n :i32
           assign
             target:
-              __off_8 :usize
+              __off_7 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_7 :Buffer
+                  __buf_6 :Buffer
                 arg1:
-                  __off_8 :usize
+                  __off_7 :usize
                 arg2:
                   " bytes=" :string
           assign
             target:
-              __off_8 :usize
+              __off_7 :usize
             value:
               call :usize
                 callee:
                   write_unsigned :usize
                 arg0:
-                  __buf_7 :Buffer
+                  __buf_6 :Buffer
                 arg1:
-                  __off_8 :usize
+                  __off_7 :usize
                 arg2:
                   cast → u64
                     call :usize
@@ -198,39 +198,39 @@
               callee:
                 finish_buffer :string
               arg0:
-                __buf_7 :Buffer
+                __buf_6 :Buffer
               arg1:
-                __off_8 :usize
+                __off_7 :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
         "-- empty --" :string
     block :void
-      let __iter_10: StringChars =
+      let __iter_8: StringChars =
         call :StringChars
           callee:
             chars :StringChars
           arg0:
             "" :string
       loop
-        let __step_11: Yield<char> | null =
+        let __step_9: Yield<char> | null =
           call :Yield<char> | null
             callee:
               std_string$StringChars$Iterator$next :?
             arg0:
-              __iter_10 :StringChars
+              __iter_8 :StringChars
         if :void
           cond:
             is null :bool
-              __step_11 :Yield<char> | null
+              __step_9 :Yield<char> | null
           then:
             break
           else:
             let c: char =
               .value :char
                 cast → Yield<char>
-                  __step_11 :Yield<char> | null
+                  __step_9 :Yield<char> | null
             call :void
               callee:
                 std_io$println__string :void

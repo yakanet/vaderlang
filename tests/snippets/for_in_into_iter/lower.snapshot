@@ -346,30 +346,30 @@
                 __off_20 :usize
     let chars: i32 = int(0) :i32
     block :void
-      let __iter_22: StringChars =
+      let __iter_21: StringChars =
         call :StringChars
           callee:
             chars :StringChars
           arg0:
             "héllo 世界" :string
       loop
-        let __step_23: Yield<char> | null =
+        let __step_22: Yield<char> | null =
           call :Yield<char> | null
             callee:
               std_string$StringChars$Iterator$next :?
             arg0:
-              __iter_22 :StringChars
+              __iter_21 :StringChars
         if :void
           cond:
             is null :bool
-              __step_23 :Yield<char> | null
+              __step_22 :Yield<char> | null
           then:
             break
           else:
             let _c: char =
               .value :char
                 cast → Yield<char>
-                  __step_23 :Yield<char> | null
+                  __step_22 :Yield<char> | null
             assign
               target:
                 chars :i32
@@ -384,37 +384,37 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_24: Buffer =
+          let __buf_23: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(26) :usize
-          let __off_25: usize = int(0) :usize
+          let __off_24: usize = int(0) :usize
           assign
             target:
-              __off_25 :usize
+              __off_24 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_24 :Buffer
+                  __buf_23 :Buffer
                 arg1:
-                  __off_25 :usize
+                  __off_24 :usize
                 arg2:
                   "chars=" :string
           assign
             target:
-              __off_25 :usize
+              __off_24 :usize
             value:
               call :usize
                 callee:
                   write_int :usize
                 arg0:
-                  __buf_24 :Buffer
+                  __buf_23 :Buffer
                 arg1:
-                  __off_25 :usize
+                  __off_24 :usize
                 arg2:
                   cast → i64
                     chars :i32
@@ -423,7 +423,7 @@
               callee:
                 finish_buffer :string
               arg0:
-                __buf_24 :Buffer
+                __buf_23 :Buffer
               arg1:
-                __off_25 :usize
+                __off_24 :usize
     return int(0) :i32

@@ -40,7 +40,7 @@ fn 0 snippet$main () -> i32
   local __iter_0 ref
   local __step_1 any
   local n i32
-  local __off_8 usize
+  local __off_7 usize
   local $cast_44 i64
   local $cast_50 u64
   string.const 0

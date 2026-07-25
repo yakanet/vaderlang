@@ -70,8 +70,8 @@ end
 
 fn 1 snippet$inner_count__i32 (ref) -> i32
   local n i32
-  local __for_len_2 usize
-  local __for_i_3 usize
+  local __for_len_1 usize
+  local __for_i_2 usize
   i32.const 0
   local.set 1
   local.get 0
@@ -104,8 +104,8 @@ end
 
 fn 2 snippet$inner_count__string (ref) -> i32
   local n i32
-  local __for_len_2 usize
-  local __for_i_3 usize
+  local __for_len_1 usize
+  local __for_i_2 usize
   i32.const 0
   local.set 1
   local.get 0

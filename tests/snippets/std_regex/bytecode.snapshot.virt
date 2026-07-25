@@ -3562,7 +3562,7 @@ fn 36 std_regex$apply_counted (ref,usize) -> any
   local $struct_121 ref
   local $k_123 usize
   local after usize
-  local __for_hi_4 usize
+  local __for_hi_2 usize
   local k usize
   local sp usize
   local $field_135 ref
@@ -3582,8 +3582,8 @@ fn 36 std_regex$apply_counted (ref,usize) -> any
   local $struct_158 ref
   local $len_160 usize
   local $k_161 usize
-  local __buf_5 ref
-  local __off_6 usize
+  local __buf_3 ref
+  local __off_4 usize
   local $k_168 string
   local $cast_171 u64
   local $k_173 string

@@ -106,8 +106,8 @@ fn 3 snippet$main () -> i32
   local n i32
   local c char
   local $k_42 char
-  local __buf_1 ref
-  local __off_2 usize
+  local __buf_0 ref
+  local __off_1 usize
   local $cast_51 i64
   char.const 53
   call 0
