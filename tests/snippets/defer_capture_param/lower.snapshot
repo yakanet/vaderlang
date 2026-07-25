@@ -114,14 +114,14 @@
       }
     call :void
       callee:
-        bump_at_exit :fn(Counter, i64) -> void
+        bump_at_exit :fn(Counter!, i64) -> void
       arg0:
         counter :Counter
       arg1:
         int(3) :i64
     call :void
       callee:
-        bump_at_exit :fn(Counter, i64) -> void
+        bump_at_exit :fn(Counter!, i64) -> void
       arg0:
         counter :Counter
       arg1:
@@ -340,6 +340,3 @@
           buf :Buffer
         arg1:
           c1 :usize
-
-# Diagnostics
-[25:13] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `hits` is reached through an immutable path — annotate `counter!` at tests/snippets/defer_capture_param/_main.vader:24:20

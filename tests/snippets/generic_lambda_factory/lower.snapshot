@@ -141,7 +141,7 @@
           LoweredMakeClosure
     call :void
       callee:
-        fill :fn(i32[][]) -> void
+        fill :fn(i32[][]!) -> void
       arg0:
         lambda_rows :i32[][]
     call :void
@@ -205,7 +205,7 @@
           new_row :fn() -> i32[]
     call :void
       callee:
-        fill :fn(i32[][]) -> void
+        fill :fn(i32[][]!) -> void
       arg0:
         named_rows :i32[][]
     call :void
@@ -283,6 +283,3 @@
               r:
                 int(1) :usize
     return out :i32[][]
-
-# Diagnostics
-[32:13] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `push` mutates its receiver (declared `self!`), but this receiver is immutable — annotate `rows!` at tests/snippets/generic_lambda_factory/_main.vader:29:12

@@ -22,17 +22,17 @@
       }
     call :void
       callee:
-        bump :fn(Counter) -> void
+        bump :fn(Counter!) -> void
       arg0:
         c :Counter
     call :void
       callee:
-        bump :fn(Counter) -> void
+        bump :fn(Counter!) -> void
       arg0:
         c :Counter
     call :void
       callee:
-        bump :fn(Counter) -> void
+        bump :fn(Counter!) -> void
       arg0:
         c :Counter
     call :void
@@ -108,6 +108,3 @@
               arg1:
                 __off_2 :usize
     return int(0) :i32
-
-# Diagnostics
-[17:34] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `count` is reached through an immutable path — annotate `c!` at tests/snippets/internal_field/_main.vader:17:12

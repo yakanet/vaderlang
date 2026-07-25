@@ -189,7 +189,8 @@
               "name": "self",
               "type": null,
               "defaultValue": null,
-              "variadic": false
+              "variadic": false,
+              "mutable": true
             },
             {
               "name": "value",
@@ -278,7 +279,8 @@
               "name": "self",
               "type": null,
               "defaultValue": null,
-              "variadic": false
+              "variadic": false,
+              "mutable": true
             }
           ],
           "returnType": {

@@ -2,7 +2,7 @@
 
 ## tests/snippets/generic_lambda_factory
   FnDecl         build                :: fn(usize, fn() -> T) -> T[]
-  FnDecl         fill                 :: fn(i32[][]) -> void
+  FnDecl         fill                 :: fn(i32[][]!) -> void
   FnDecl         main                 :: fn() -> i32
   FnDecl         mismatches           :: fn(i32[][]) -> i32
   FnDecl         new_row              :: fn() -> i32[]
@@ -79,7 +79,7 @@
   expr 56:46    SeqLitExpr     :: i32[]
   expr 57:10    IdentExpr      :: i32[][]
   expr 57:5     CallExpr       :: void
-  expr 57:5     IdentExpr      :: fn(i32[][]) -> void
+  expr 57:5     IdentExpr      :: fn(i32[][]!) -> void
   expr 58:13    StringLitExpr  :: string
   expr 58:34    CallExpr       :: i32
   expr 58:34    IdentExpr      :: fn(i32[][]) -> i32
@@ -92,13 +92,10 @@
   expr 60:39    IdentExpr      :: fn() -> i32[]
   expr 61:10    IdentExpr      :: i32[][]
   expr 61:5     CallExpr       :: void
-  expr 61:5     IdentExpr      :: fn(i32[][]) -> void
+  expr 61:5     IdentExpr      :: fn(i32[][]!) -> void
   expr 62:13    StringLitExpr  :: string
   expr 62:34    CallExpr       :: i32
   expr 62:34    IdentExpr      :: fn(i32[][]) -> i32
   expr 62:45    IdentExpr      :: i32[][]
   expr 62:5     CallExpr       :: void
   expr 62:5     IdentExpr      :: fn(T) -> void
-
-# Diagnostics
-[32:13] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `push` mutates its receiver (declared `self!`), but this receiver is immutable — annotate `rows!` at tests/snippets/generic_lambda_factory/_main.vader:29:12

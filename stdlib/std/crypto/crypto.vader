@@ -124,7 +124,7 @@ export sha256_bytes :: fn(input: string | const u8[]) -> u8[] {
 }
 
 // Push `x` as four big-endian bytes onto `out`.
-append_u32_be :: fn(out: u8[], x: u32) -> void {
+append_u32_be :: fn(out!: u8[], x: u32) -> void {
     out.push(u8((x >> 24) & 0xFF))
     out.push(u8((x >> 16) & 0xFF))
     out.push(u8((x >> 8)  & 0xFF))

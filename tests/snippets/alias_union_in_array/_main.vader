@@ -14,7 +14,7 @@ module "snippet"
 import "std/io"
 import "snippet/types"
 
-push_pet :: fn(arr: Pet[], p: Pet) -> void {
+push_pet :: fn(arr!: Pet[], p: Pet) -> void {
     arr.push(p)
 }
 

@@ -22,7 +22,7 @@ Cell implements Index<usize, i32> {
 }
 
 Cell implements IndexSet<usize, i32> {
-    set_at :: fn(self, i: usize, v: i32) {
+    set_at :: fn(self!, i: usize, v: i32) {
         self.slots[i] = v
     }
 }

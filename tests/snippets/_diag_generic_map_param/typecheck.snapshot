@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/_diag_generic_map_param
-  FnDecl         bump                 :: fn(MutableMap<K, V>, K, V) -> void
+  FnDecl         bump                 :: fn(MutableMap<K, V>!, K, V) -> void
   StructDecl     Counter              :: Counter
   FnDecl         main                 :: fn() -> i32
   expr 25:12    IdentExpr      :: V
@@ -13,13 +13,10 @@
   expr 30:10    IdentExpr      :: Counter
   expr 30:20    StringLitExpr  :: string
   expr 30:5     CallExpr       :: void
-  expr 30:5     IdentExpr      :: fn(MutableMap<K, V>, K, V) -> void
+  expr 30:5     IdentExpr      :: fn(MutableMap<K, V>!, K, V) -> void
   expr 31:12    CallExpr       :: i32
   expr 31:12    IdentExpr      :: type
   expr 31:16    CallExpr       :: usize
   expr 31:16    FieldExpr      :: MutableMap<string, i32>
   expr 31:16    FieldExpr      :: fn() -> usize
   expr 31:16    IdentExpr      :: Counter
-
-# Diagnostics
-[25:5] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: this element is reached through an immutable path — annotate `m!` at tests/snippets/_diag_generic_map_param/_main.vader:24:18

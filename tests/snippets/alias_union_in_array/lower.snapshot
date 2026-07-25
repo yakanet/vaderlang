@@ -52,7 +52,7 @@
       array :(Cat | Dog)[]
     call :void
       callee:
-        push_pet :fn((Cat | Dog)[], Cat | Dog) -> void
+        push_pet :fn((Cat | Dog)[]!, Cat | Dog) -> void
       arg0:
         pets :(Cat | Dog)[]
       arg1:
@@ -61,7 +61,7 @@
         }
     call :void
       callee:
-        push_pet :fn((Cat | Dog)[], Cat | Dog) -> void
+        push_pet :fn((Cat | Dog)[]!, Cat | Dog) -> void
       arg0:
         pets :(Cat | Dog)[]
       arg1:
@@ -152,6 +152,3 @@
 ## snippet/types
   struct snippet_types$Cat { name: string }
   struct snippet_types$Dog { name: string }
-
-# Diagnostics
-[18:5] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `push` mutates its receiver (declared `self!`), but this receiver is immutable — annotate `arr!` at tests/snippets/alias_union_in_array/_main.vader:17:16

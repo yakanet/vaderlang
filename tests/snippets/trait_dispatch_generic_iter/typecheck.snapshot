@@ -104,7 +104,3 @@
   expr 60:26    IdentExpr      :: Once<i32>
   expr 60:5     CallExpr       :: void
   expr 60:5     IdentExpr      :: fn(T) -> void
-
-# Diagnostics
-[26:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `remaining` is reached through an immutable path — annotate `self!` at tests/snippets/trait_dispatch_generic_iter/_main.vader:23:16
-[39:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `yielded` is reached through an immutable path — annotate `self!` at tests/snippets/trait_dispatch_generic_iter/_main.vader:37:16

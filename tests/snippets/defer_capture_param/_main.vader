@@ -21,7 +21,7 @@ log_at_exit :: fn(label: string, code: i64) -> void {
 }
 
 // defer mutates an outer struct through a captured param ref
-bump_at_exit :: fn(counter: Counter, by: i64) -> void {
+bump_at_exit :: fn(counter!: Counter, by: i64) -> void {
     defer { counter.hits = counter.hits + by }
     println("bumping by ${by}")
 }

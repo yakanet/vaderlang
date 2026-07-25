@@ -8,7 +8,7 @@ import "std/io"
 CountDown :: struct { n: i32 }
 
 CountDown implements Async<i32> {
-    resume :: fn(self) -> i32 | Suspended {
+    resume :: fn(self!) -> i32 | Suspended {
         if self.n > 0 {
             self.n = self.n - 1
             return Suspended {}

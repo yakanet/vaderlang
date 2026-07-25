@@ -15,11 +15,11 @@ export Stackable :: trait<T> {
 }
 
 Stack<T> implements Stackable<T> {
-    push :: fn(self, value: T) -> void {
+    push :: fn(self!, value: T) -> void {
         self.data.push(value)
         self.size = self.size + 1
     }
-    pop :: fn(self) -> T {
+    pop :: fn(self!) -> T {
         self.size = self.size - 1
         return self.data[self.size]
     }

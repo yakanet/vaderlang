@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/defer_capture_param
-  FnDecl         bump_at_exit         :: fn(Counter, i64) -> void
+  FnDecl         bump_at_exit         :: fn(Counter!, i64) -> void
   StructDecl     Counter              :: Counter
   FnDecl         log_at_exit          :: fn(string, i64) -> void
   FnDecl         main                 :: fn() -> i32
@@ -38,10 +38,10 @@
   expr 37:16    StructLitExpr  :: Counter
   expr 38:18    IdentExpr      :: Counter
   expr 38:5     CallExpr       :: void
-  expr 38:5     IdentExpr      :: fn(Counter, i64) -> void
+  expr 38:5     IdentExpr      :: fn(Counter!, i64) -> void
   expr 39:18    IdentExpr      :: Counter
   expr 39:5     CallExpr       :: void
-  expr 39:5     IdentExpr      :: fn(Counter, i64) -> void
+  expr 39:5     IdentExpr      :: fn(Counter!, i64) -> void
   expr 40:13    StringLitExpr  :: string
   expr 40:29    FieldExpr      :: i64
   expr 40:29    IdentExpr      :: Counter
@@ -50,6 +50,3 @@
   expr 41:18    StringLitExpr  :: string
   expr 41:5     CallExpr       :: void
   expr 41:5     IdentExpr      :: fn(string) -> void
-
-# Diagnostics
-[25:13] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `hits` is reached through an immutable path — annotate `counter!` at tests/snippets/defer_capture_param/_main.vader:24:20

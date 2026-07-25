@@ -1318,7 +1318,7 @@ reject_immutable_into_mutable_param :: fn(
     }
     // Return value ignored: the remaining arguments must still be typed.
     _ :: push_immutability_diag_at(
-        immutable_root(c.args[i].value, typed), .ImmutableBorrowIntoMutableParam,
+        expr_is_immutable(c.args[i].value, typed), .ImmutableBorrowIntoMutableParam,
         c.args[i].span,
         "this argument is immutable, but the parameter is declared `!` — the callee may mutate it",
         immutable_root_param(c.args[i].value, typed), diags,

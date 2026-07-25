@@ -60,7 +60,7 @@ export new_from_clock :: fn() -> Rng = new_seeded(u64(i64(monotonic())))
 
 /// Draw the next u64. The full 64 bits are uniformly distributed.
 /// Advances the RNG state.
-export next_u64 :: fn(self: Rng) -> u64 {
+export next_u64 :: fn(self!: Rng) -> u64 {
     sum    :: mask64(self.s0 + self.s1)
     result :: mask64(rotl(sum, 17) + self.s0)
     t      :: self.s1 ^ self.s0
@@ -120,7 +120,7 @@ export unit_f64 :: fn(self: Rng) -> f64 {
 /// In-place Fisher-Yates shuffle. Visits each element once in O(n) ;
 /// O(1) extra memory (one i32 swap helper). Returns nothing — the
 /// input array is permuted directly.
-export shuffle :: fn<T>(self: Rng, arr: T[]) -> void {
+export shuffle :: fn<T>(self: Rng, arr!: T[]) -> void {
     n :: arr.len()
     if n <= 1 { return }
     i: usize = n - 1

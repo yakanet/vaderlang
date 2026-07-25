@@ -21,7 +21,7 @@ Counter :: struct {
     counts: MutableMap<string, i32>
 }
 
-bump :: fn<K, V>(m: MutableMap<K, V>, k: K, v: V) -> void {
+bump :: fn<K, V>(m!: MutableMap<K, V>, k: K, v: V) -> void {
     m[k] = v
 }
 

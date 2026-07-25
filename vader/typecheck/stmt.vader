@@ -679,7 +679,7 @@ check_assign :: fn(
     // (it has no storage). Deep by construction : `CFG.child.count = 0` is
     // rejected because the predicate walks back to the root.
     if s.target is AST.FieldExpr as fe {
-        root :: immutable_root(fe.target, typed)
+        root :: expr_is_immutable(fe.target, typed)
         if push_immutability_diag_at(
             root, .CannotMutateImmutableBinding, s.target.span,
             "`${fe.field}` is reached through an immutable path",
@@ -714,7 +714,7 @@ check_assign :: fn(
             // immutable path — `CFG.tags[0] = 9`, where `tags: i32[]`. T3042 above
             // already handled the `const T[]` leaf, so this only fires past it.
             if push_immutable_path_write(
-                immutable_root(ix.target, typed), s.target.span,
+                expr_is_immutable(ix.target, typed), s.target.span,
                 immutable_root_param(ix.target, typed), diags,
             ) {
                 return
@@ -751,7 +751,7 @@ check_assign :: fn(
         }
         // T3070 : same rule for an `IndexSet` receiver (a map field of a const).
         if push_immutable_path_write(
-            immutable_root(ix.target, typed), s.target.span,
+            expr_is_immutable(ix.target, typed), s.target.span,
             immutable_root_param(ix.target, typed), diags,
         ) {
             return
@@ -866,56 +866,24 @@ is_const_reassign :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
 // @partial: only an access path can be immutable — an ident, or a field / element
 // reached from one. Every other expression form yields a fresh owned value.
 
-/// WHY an access path is immutable — which decides whether writing through it is an
-/// error or the migration warning.
+/// Report a write through an immutable access path, naming the parameter to annotate.
 ///
-/// The distinction is the whole point of the staged rollout: an author who wrote
-/// `const` or declared a module const asked for immutability and gets a hard error,
-/// while a parameter that is immutable only because the default flipped gets W0014
-/// until its module is migrated.
-export ImmutabilityRoot :: enum(u8) {
-    /// Mutable — nothing to report.
-    None,
-    /// The author asked for it: a module-level const, or a `const T[]`.
-    Explicit,
-    /// A parameter carrying no `!`, immutable only because the default flipped.
-    ImplicitParam,
-}
-
-/// Report a write through an immutable access path, picking error or warning by
-/// WHY the path is immutable.
+/// The write and the declaration to fix usually sit in different functions, so the
+/// message carries `annotate `x!` at file:line:col` — actionable for a reader, and
+/// what made the tree-wide migration mechanical.
 ///
-/// An explicit marker (module const, `const T[]`) is a hard error: the author asked
-/// for it. A bare parameter is only immutable because the default flipped, so it
-/// gets W0014 until its module is migrated — that staging is what lets the tree keep
-/// building while ~1000 sites are annotated.
-///
-/// @param root  why the path is immutable ; `.None` reports nothing.
-/// @param code  the error code to use for an explicit root.
-/// @return      whether the caller must ABANDON this statement. True only for the
-///              error case: a rejected write has no meaningful value to go on
-///              typing. A warning must NOT stop the walk — the code is still going
-///              to be compiled and run, so skipping the rest would leave holes in
-///              `expr_types` and the lowerer would later trip over the missing
-///              entry (`build_core_struct_lit: not a struct type`).
-push_immutability_diag :: fn(
-    root: ImmutabilityRoot, code: TypecheckCode, span: Span, message: string,
-    diags!: Diagnostic[],
-) -> bool = push_immutability_diag_at(root, code, span, message, null, diags)
-
-/// Same, plus the root PARAMETER whose declaration the reader must annotate.
+/// @param immutable   whether the path is immutable ; false reports nothing.
+/// @param root_param  the root PARAMETER, when there is one to annotate.
+/// @return            whether the caller must ABANDON the statement. A rejected write
+///                    has no meaningful value left to type.
 push_immutability_diag_at :: fn(
-    root: ImmutabilityRoot, code: TypecheckCode, span: Span, message: string,
+    immutable: bool, code: TypecheckCode, span: Span, message: string,
     root_param: Symbol | null, diags!: Diagnostic[],
 ) -> bool {
-    if root == .None {
+    if !immutable {
         return false
     }
-    if root == .ImplicitParam {
-        diags.push(warning(.ImplicitImmutableParam, span, message + annotate_hint(root_param)))
-        return false
-    }
-    diags.push(typecheck_error(code, span, message))
+    diags.push(typecheck_error(code, span, message + annotate_hint(root_param)))
     return true
 }
 
@@ -933,27 +901,12 @@ annotate_hint :: fn(root_param: Symbol | null) -> string {
     return " — annotate `${root_param.name}!` at ${at.start.file}:${at.start.line}:${at.start.column}"
 }
 
-/// Walk an access path back to its root and report why it is immutable.
-///
-/// @partial: only an access path can be immutable — an ident, or a field / element
-/// reached from one. Every other expression form yields a fresh owned value.
-export immutable_root :: fn(e: AST.Expr, typed: TypedProgram) -> ImmutabilityRoot = @partial match e {
-    is AST.IdentExpr as x  -> ident_immutable_root(x, typed)
-    is AST.FieldExpr as f  -> immutable_root(f.target, typed)
-    is AST.IndexExpr as ix -> immutable_root(ix.target, typed)
-    _                      -> .None
-}
-
 /// The ROOT symbol an access path starts from, when that root is a PARAMETER —
-/// the only root the reader can annotate.
+/// the only root a reader can annotate.
 ///
-/// Powers W0014's "annotate it at …" hint: the write and the declaration to fix are
-/// usually in different places, so a warning pointing only at the write leaves the
-/// parameter to be hunted for.
-///
-/// Returns null for any other root on purpose. A loop variable is immutable only
-/// because its ITERABLE is, and `!` is not valid syntax on one — annotating the
-/// iterable's own parameter is what clears it, on the next pass.
+/// Returns null for anything else on purpose. A module-level const can't take a `!`,
+/// and a loop variable is immutable only because its ITERABLE is (`for x! in` isn't
+/// valid syntax) — annotating the iterable's own parameter is what clears it.
 export immutable_root_param :: fn(e: AST.Expr, typed: TypedProgram) -> Symbol | null {
     sym :: immutable_root_symbol(e, typed) ?? return null
     if sym.kind != .Param {
@@ -969,21 +922,26 @@ immutable_root_symbol :: fn(e: AST.Expr, typed: TypedProgram) -> Symbol | null =
     _                      -> null
 }
 
-ident_immutable_root :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> ImmutabilityRoot {
-    sym :: typed.resolved.idents[ident.span.hash()] ?? return .None
-    // A module-level const is always explicit — the author declared it `::` at
-    // module scope, and it has no storage to mutate anyway.
+/// True when writing THROUGH `e` must be rejected.
+///
+/// @partial: only an access path can be immutable — an ident, or a field / element
+/// reached from one. Every other expression form yields a fresh owned value.
+export expr_is_immutable :: fn(e: AST.Expr, typed: TypedProgram) -> bool = @partial match e {
+    is AST.IdentExpr as x  -> ident_is_immutable(x, typed)
+    is AST.FieldExpr as f  -> expr_is_immutable(f.target, typed)
+    is AST.IndexExpr as ix -> expr_is_immutable(ix.target, typed)
+    _                      -> false
+}
+
+ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
+    sym :: typed.resolved.idents[ident.span.hash()] ?? return false
+    // A module-level const needs no table, and holds cross-module for free:
+    // `build_wildcard_seed` seeds the ORIGINAL symbol, kind included.
     if sym.kind == .Const {
-        return .Explicit
+        return true
     }
-    // The resolver stores WHY it marked the symbol: `true` for a root that is only
-    // immutable because the default flipped (a bare parameter, or a loop variable
-    // over one), `false` when it inherits an explicit marker.
-    implicit :: typed.resolved.immutable_borrows[sym.id] ?? return .None
-    if implicit {
-        return .ImplicitParam
-    }
-    return .Explicit
+    // A parameter without `!`, or a loop variable over an immutable iterable.
+    return typed.resolved.immutable_borrows[sym.id] !is null
 }
 
 // Iterating an immutable value lends out immutable elements: `for it in CFG.items`
@@ -997,14 +955,11 @@ ident_immutable_root :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> Immutab
 // contribution is recording the loop var's Symbol in `idents` so it can be reached
 // from here. Runs before the body is checked, so uses inside see the mark.
 mark_loop_var_borrow :: fn(nv: AST.NamedVar, iter: AST.Expr, typed!: TypedProgram) -> void {
-    root :: immutable_root(iter, typed)
-    if root == .None {
+    if !expr_is_immutable(iter, typed) {
         return
     }
     sym :: typed.resolved.idents[nv.span.hash()] ?? return
-    // The element inherits the iterable's KIND, so iterating an explicit const
-    // still errors while iterating a bare parameter only warns.
-    typed.resolved.immutable_borrows[sym.id] = root == .ImplicitParam
+    typed.resolved.immutable_borrows[sym.id] = true
 }
 
 
@@ -1013,9 +968,9 @@ mark_loop_var_borrow :: fn(nv: AST.NamedVar, iter: AST.Expr, typed!: TypedProgra
 // reached through an immutable path. Shared by the array and IndexSet branches of
 // `check_assign` ; the `const T[]` case keeps T3042's more specific wording.
 push_immutable_path_write :: fn(
-    root: ImmutabilityRoot, span: Span, root_param: Symbol | null, diags!: Diagnostic[],
+    immutable: bool, span: Span, root_param: Symbol | null, diags!: Diagnostic[],
 ) -> bool = push_immutability_diag_at(
-    root, .CannotMutateImmutableBinding, span,
+    immutable, .CannotMutateImmutableBinding, span,
     "this element is reached through an immutable path", root_param, diags,
 )
 

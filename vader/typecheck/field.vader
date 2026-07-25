@@ -155,7 +155,7 @@ reject_mutating_method_on_immutable :: fn(
     // A `const T[]` receiver is an EXPLICIT marker, so it errors regardless of what
     // the access path says.
     immutable_by_type :: if recv_ty is ArrayType as a { a.immutable } else { false }
-    root :: if immutable_by_type { ImmutabilityRoot.Explicit } else { immutable_root(e.target, typed) }
+    root :: immutable_by_type || expr_is_immutable(e.target, typed)
     // Return value ignored on purpose: the method's type is handed back either way
     // (see the note above), so there is nothing to abandon here.
     _ :: push_immutability_diag_at(
