@@ -193,6 +193,10 @@ ufcs_specificity :: fn(ctx: FnLowerCtx, recv_type: Type, sym: Symbol) -> i32 {
 overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
     if param0 is TypeParamType { return 0 }
     if param0 is UnionType as pu {
+        // `const` earns its keep here : the two branches join a read-only field and
+        // a fresh literal, and an inferred `::` join is not a plain array — the
+        // for-in below then falls to the iterator path and the lowerer panics on an
+        // unresolved `next`. Pinning the slot read-only keeps it one array type.
         arg_vars: const Type[] = if arg0 is UnionType as au { au.variants } else { [arg0] }
         score: i32 = 0
         for av in arg_vars {

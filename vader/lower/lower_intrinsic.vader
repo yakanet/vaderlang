@@ -234,17 +234,26 @@ try_fold_type_of :: fn(
 /// Fold `@type_args(T)` to an array literal of `LoweredTypeConst`s — one
 /// per generic argument of `T`. Returns an empty array for non-generic
 /// shapes.
+// The type arguments of a resolved intrinsic type argument — a struct's or a
+// trait's, else empty. Read-only : they are borrowed straight from the type.
+type_args_of :: fn(arg_or_null: Type | null) -> Type[] {
+    if arg_or_null is null { return [] }
+    ty :: arg_ty_or_unresolved(arg_or_null)
+    if ty is StructType as st { return st.args }
+    if ty is TraitType as tt { return tt.args }
+    return []
+}
+
 try_fold_type_args :: fn(
     ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
 ) -> LoweredExpr | null {
     if intrinsic.args.len() != 1 { return null }
     arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
-    args: const Type[] = []
-    if !(arg_or_null is null) {
-        ty :: arg_ty_or_unresolved(arg_or_null)
-        if ty is StructType as st { args = st.args }
-        if ty is TraitType as tt { args = tt.args }
-    }
+    // Bound with `::`, not built up in a mutable local : the type args come from a
+    // FIELD, which is read-only, and a read-only array cannot flow into a mutable
+    // slot (array immutability is invariant). A value-position `if` binds the
+    // borrowed list directly — no copy, and nothing to freeze by hand.
+    args :: type_args_of(arg_or_null)
     elements: LoweredExpr[] = []
     for a in args {
         elements.push(LoweredTypeConst {

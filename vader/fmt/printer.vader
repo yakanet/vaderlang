@@ -383,7 +383,7 @@ decl_span :: fn(d: p.Decl) -> Span {
 // by the parser. For "what line does this decl visually start on" we want
 // the first decorator's line if any, else the decl's own span start.
 decl_first_line :: fn(d: p.Decl) -> i32 {
-    decos: const p.Decorator[] = match d {
+    decos:= match d {
         is p.ImportDecl    as x -> x.decorators
         is p.FnDecl        as x -> x.decorators
         is p.StructDecl    as x -> x.decorators

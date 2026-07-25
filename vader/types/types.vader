@@ -528,20 +528,12 @@ write_type_mut :: fn(sb: StringBuilder!, t: Type, show_mut: bool) -> void {
     }
 }
 
-write_named :: fn(sb: StringBuilder!, name: string, args: Type[]) -> void {
-    sb.write_named_mut(name, args, true)
-}
-
 write_named_mut :: fn(sb: StringBuilder!, name: string, args: Type[], show_mut: bool) -> void {
     sb.append(name)
     if args.len() == 0 { return }
     sb.append_char('<')
     sb.write_type_list_mut(args, ", ", show_mut)
     sb.append_char('>')
-}
-
-write_type_list :: fn(sb: StringBuilder!, items: Type[], sep: string) -> void {
-    sb.write_type_list_mut(items, sep, true)
 }
 
 write_type_list_mut :: fn(sb: StringBuilder!, items: Type[], sep: string, show_mut: bool) -> void {
