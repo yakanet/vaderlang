@@ -1316,14 +1316,11 @@ reject_immutable_into_mutable_param :: fn(
     if !param_mutable_at(callee_ty, i) {
         return
     }
-    if !expr_is_immutable(c.args[i].value, typed) {
-        return
-    }
-    diags.push(
-        typecheck_error(
-            .ImmutableBorrowIntoMutableParam,
-            c.args[i].span,
-            "this argument is immutable, but the parameter is declared `!` — the callee may mutate it",
-        ),
+    // Return value ignored: the remaining arguments must still be typed.
+    _ :: push_immutability_diag(
+        immutable_root(c.args[i].value, typed), .ImmutableBorrowIntoMutableParam,
+        c.args[i].span,
+        "this argument is immutable, but the parameter is declared `!` — the callee may mutate it",
+        diags,
     )
 }

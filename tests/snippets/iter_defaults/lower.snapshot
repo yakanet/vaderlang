@@ -266,3 +266,6 @@
               remaining: int(3) :i32
             }
     return int(0) :i32
+
+# Diagnostics
+[15:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `remaining` is reached through an immutable path

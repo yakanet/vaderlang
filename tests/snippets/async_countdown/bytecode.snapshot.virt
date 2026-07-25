@@ -460,3 +460,6 @@ fn 14 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   buffer_write_string
   return
 end
+
+# Diagnostics
+[13:13] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `n` is reached through an immutable path

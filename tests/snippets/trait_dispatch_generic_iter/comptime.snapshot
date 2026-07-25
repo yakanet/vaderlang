@@ -37,3 +37,7 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
+
+# Diagnostics
+[26:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `remaining` is reached through an immutable path
+[39:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `yielded` is reached through an immutable path

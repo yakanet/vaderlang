@@ -655,3 +655,6 @@ fn 16 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   buffer_to_string
   return
 end
+
+# Diagnostics
+[15:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `remaining` is reached through an immutable path

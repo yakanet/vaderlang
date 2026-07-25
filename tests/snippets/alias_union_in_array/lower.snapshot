@@ -152,3 +152,6 @@
 ## snippet/types
   struct snippet_types$Cat { name: string }
   struct snippet_types$Dog { name: string }
+
+# Diagnostics
+[18:5] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `push` mutates its receiver (declared `self!`), but this receiver is immutable

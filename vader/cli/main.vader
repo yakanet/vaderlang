@@ -1519,7 +1519,12 @@ run_c_stage :: fn(file: string) -> i32 {
     // `emit_c` already returns a trailing-newline-terminated string ; use
     // `print` (no auto-newline) so the output isn't double-newlined.
     print(emit_c(b.module, CEmitOptions { .release = false, .entry_mangled = b.entry }))
-    print_dump_diags(b)
+    // Diagnostics go to STDERR here, unlike every other dump stage: this stage's
+    // stdout is C source that gets fed straight to a compiler, so a `# Diagnostics`
+    // block appended to it is read as a preprocessor directive and the build dies.
+    // Harmless while nothing warned on these inputs ; the W0014 rollout made every
+    // such dump emit one.
+    eprint_dump_diags(b)
     return 0
 }
 
@@ -1637,6 +1642,18 @@ print_merged_diags :: fn(head: Diagnostic[], extra: Diagnostic[]) -> void {
     all_diags :: merge_diagnostics(head, extra)
     if all_diags.len() > 0 {
         println(all_diags.dump_diagnostics())
+    }
+}
+
+// Same rendering as `print_dump_diags`, on stderr — for the C stage, whose stdout
+// must stay valid C.
+eprint_dump_diags :: fn(b: CfgBytecode) -> void {
+    all_diags :: merge_diagnostics(
+        filter_diags_in_scope(b.pre_diags, b.in_scope_files),
+        filter_diags_in_scope(b.lower_diags, b.in_scope_files),
+    )
+    if all_diags.len() > 0 {
+        eprintln(all_diags.dump_diagnostics())
     }
 }
 

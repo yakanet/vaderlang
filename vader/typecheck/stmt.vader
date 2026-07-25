@@ -679,14 +679,11 @@ check_assign :: fn(
     // (it has no storage). Deep by construction : `CFG.child.count = 0` is
     // rejected because the predicate walks back to the root.
     if s.target is AST.FieldExpr as fe {
-        if expr_is_immutable(fe.target, typed) {
-            diags.push(
-                typecheck_error(
-                    .CannotMutateImmutableBinding,
-                    s.target.span,
-                    "`${fe.field}` is reached through an immutable path — a module-level const has no storage, so this write would be discarded",
-                ),
-            )
+        root :: immutable_root(fe.target, typed)
+        if push_immutability_diag(
+            root, .CannotMutateImmutableBinding, s.target.span,
+            "`${fe.field}` is reached through an immutable path", diags,
+        ) {
             return
         }
     }
@@ -715,8 +712,7 @@ check_assign :: fn(
             // T3070 : the array itself is mutable, but we got to it through an
             // immutable path — `CFG.tags[0] = 9`, where `tags: i32[]`. T3042 above
             // already handled the `const T[]` leaf, so this only fires past it.
-            if expr_is_immutable(ix.target, typed) {
-                push_immutable_path_write(s.target.span, diags)
+            if push_immutable_path_write(immutable_root(ix.target, typed), s.target.span, diags) {
                 return
             }
             // `arr[i]` types to the element type ; array elements are never
@@ -750,8 +746,7 @@ check_assign :: fn(
             }
         }
         // T3070 : same rule for an `IndexSet` receiver (a map field of a const).
-        if expr_is_immutable(ix.target, typed) {
-            push_immutable_path_write(s.target.span, diags)
+        if push_immutable_path_write(immutable_root(ix.target, typed), s.target.span, diags) {
             return
         }
         // Pin a free-literal write value to the IndexSet value type V
@@ -847,7 +842,7 @@ is_const_reassign :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
     return typed.resolved.immutable_locals[sym.id] !is null
 }
 
-// True when writing THROUGH `e` must be rejected. Immutability is a property of
+// Immutability of an access path, in detail. Immutability is a property of
 // the ACCESS PATH, not of the value : reading a field or element of an immutable
 // root yields something immutable too, so this recurses into the target instead
 // of consulting a type. That is what catches `CFG.child.count = 0` and
@@ -863,11 +858,80 @@ is_const_reassign :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
 //
 // @partial: only an access path can be immutable — an ident, or a field / element
 // reached from one. Every other expression form yields a fresh owned value.
-expr_is_immutable :: fn(e: AST.Expr, typed: TypedProgram) -> bool = @partial match e {
-    is AST.IdentExpr as x  -> is_module_const(x, typed) || is_immutable_borrow(x, typed)
-    is AST.FieldExpr as f  -> expr_is_immutable(f.target, typed)
-    is AST.IndexExpr as ix -> expr_is_immutable(ix.target, typed)
-    _                      -> false
+
+/// WHY an access path is immutable — which decides whether writing through it is an
+/// error or the migration warning.
+///
+/// The distinction is the whole point of the staged rollout: an author who wrote
+/// `const` or declared a module const asked for immutability and gets a hard error,
+/// while a parameter that is immutable only because the default flipped gets W0014
+/// until its module is migrated.
+export ImmutabilityRoot :: enum(u8) {
+    /// Mutable — nothing to report.
+    None,
+    /// The author asked for it: a module-level const, or a `const T[]`.
+    Explicit,
+    /// A parameter carrying no `!`, immutable only because the default flipped.
+    ImplicitParam,
+}
+
+/// Report a write through an immutable access path, picking error or warning by
+/// WHY the path is immutable.
+///
+/// An explicit marker (module const, `const T[]`) is a hard error: the author asked
+/// for it. A bare parameter is only immutable because the default flipped, so it
+/// gets W0014 until its module is migrated — that staging is what lets the tree keep
+/// building while ~1000 sites are annotated.
+///
+/// @param root  why the path is immutable ; `.None` reports nothing.
+/// @param code  the error code to use for an explicit root.
+/// @return      whether the caller must ABANDON this statement. True only for the
+///              error case: a rejected write has no meaningful value to go on
+///              typing. A warning must NOT stop the walk — the code is still going
+///              to be compiled and run, so skipping the rest would leave holes in
+///              `expr_types` and the lowerer would later trip over the missing
+///              entry (`build_core_struct_lit: not a struct type`).
+push_immutability_diag :: fn(
+    root: ImmutabilityRoot, code: TypecheckCode, span: Span, message: string,
+    diags: Diagnostic[],
+) -> bool {
+    if root == .None {
+        return false
+    }
+    if root == .ImplicitParam {
+        diags.push(warning(.ImplicitImmutableParam, span, message))
+        return false
+    }
+    diags.push(typecheck_error(code, span, message))
+    return true
+}
+
+/// Walk an access path back to its root and report why it is immutable.
+///
+/// @partial: only an access path can be immutable — an ident, or a field / element
+/// reached from one. Every other expression form yields a fresh owned value.
+export immutable_root :: fn(e: AST.Expr, typed: TypedProgram) -> ImmutabilityRoot = @partial match e {
+    is AST.IdentExpr as x  -> ident_immutable_root(x, typed)
+    is AST.FieldExpr as f  -> immutable_root(f.target, typed)
+    is AST.IndexExpr as ix -> immutable_root(ix.target, typed)
+    _                      -> .None
+}
+
+ident_immutable_root :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> ImmutabilityRoot {
+    sym :: typed.resolved.idents[ident.span.hash()] ?? return .None
+    // A module-level const is always explicit — the author declared it `::` at
+    // module scope, and it has no storage to mutate anyway.
+    if sym.kind == .Const {
+        return .Explicit
+    }
+    // The resolver stores WHY it marked the symbol: `true` for a root that is only
+    // immutable because the default flipped (a bare parameter, or a loop variable
+    // over one), `false` when it inherits an explicit marker.
+    implicit :: typed.resolved.immutable_borrows[sym.id] ?? return .None
+    if implicit {
+        return .ImplicitParam
+    }
+    return .Explicit
 }
 
 // Iterating an immutable value lends out immutable elements: `for it in CFG.items`
@@ -881,49 +945,26 @@ expr_is_immutable :: fn(e: AST.Expr, typed: TypedProgram) -> bool = @partial mat
 // contribution is recording the loop var's Symbol in `idents` so it can be reached
 // from here. Runs before the body is checked, so uses inside see the mark.
 mark_loop_var_borrow :: fn(nv: AST.NamedVar, iter: AST.Expr, typed: TypedProgram) -> void {
-    if !expr_is_immutable(iter, typed) {
+    root :: immutable_root(iter, typed)
+    if root == .None {
         return
     }
     sym :: typed.resolved.idents[nv.span.hash()] ?? return
-    typed.resolved.immutable_borrows[sym.id] = true
+    // The element inherits the iterable's KIND, so iterating an explicit const
+    // still errors while iterating a bare parameter only warns.
+    typed.resolved.immutable_borrows[sym.id] = root == .ImplicitParam
 }
 
-// A borrowed root recorded upstream: a loop variable over an immutable iterable
-// (`mark_loop_var_borrow` above), or a parameter declared without `!` — the latter
-// still empty until the default flips per module (`resolver/body::mark_param_borrow`,
-// gated on `params_immutable_default`).
-is_immutable_borrow :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
-    sym :: typed.resolved.idents[ident.span.hash()] ?? return false
-    return typed.resolved.immutable_borrows[sym.id] !is null
-}
 
-// A bare reference to a module-level `ConstDecl`. `SymbolKind.Const` is set by
-// `resolver/collect` on every top-level const, and `build_wildcard_seed` seeds
-// the ORIGINAL symbol into an importing module's scope — so this holds across
-// module boundaries with no side table.
-//
-// Two indirect routes are NOT covered yet, both fail-open : a namespace member
-// (`Ns.CONST` is a FieldExpr whose root is the namespace alias, not a `.Const`
-// ident) and a renamed import (`import "p" { CONST as C }` binds an
-// `.ImportBinding`). Neither is written to anywhere in the tree today ; closing
-// them needs the namespace member table rather than the symbol kind.
-is_module_const :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
-    sym :: typed.resolved.idents[ident.span.hash()] ?? return false
-    return sym.kind == .Const
-}
 
 // T3070 for an element write (`CFG.tags[0] = 9`) whose container is mutable but
 // reached through an immutable path. Shared by the array and IndexSet branches of
 // `check_assign` ; the `const T[]` case keeps T3042's more specific wording.
-push_immutable_path_write :: fn(span: Span, diags: Diagnostic[]) -> void {
-    diags.push(
-        typecheck_error(
-            .CannotMutateImmutableBinding,
-            span,
-            "this element is reached through an immutable path — a module-level const has no storage, so this write would be discarded",
-        ),
+push_immutable_path_write :: fn(root: ImmutabilityRoot, span: Span, diags: Diagnostic[]) -> bool =
+    push_immutability_diag(
+        root, .CannotMutateImmutableBinding, span,
+        "this element is reached through an immutable path", diags,
     )
-}
 
 check_return :: fn(
     s: AST.ReturnStmt,

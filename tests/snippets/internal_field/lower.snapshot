@@ -108,3 +108,6 @@
               arg1:
                 __off_2 :usize
     return int(0) :i32
+
+# Diagnostics
+[17:34] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `count` is reached through an immutable path

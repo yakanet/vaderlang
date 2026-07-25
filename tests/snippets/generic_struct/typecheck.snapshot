@@ -58,3 +58,8 @@
   expr 41:22    IdentExpr      :: Stack<i32>
   expr 41:5     CallExpr       :: void
   expr 41:5     IdentExpr      :: fn(T) -> void
+
+# Diagnostics
+[19:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `push` mutates its receiver (declared `self!`), but this receiver is immutable
+[20:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `size` is reached through an immutable path
+[23:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `size` is reached through an immutable path

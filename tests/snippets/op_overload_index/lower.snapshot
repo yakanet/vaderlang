@@ -263,3 +263,8 @@
               arg1:
                 __off_1 :usize
     return int(0) :i32
+
+# Diagnostics
+[29:17] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: this element is reached through an immutable path
+[34:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `push` mutates its receiver (declared `self!`), but this receiver is immutable
+[35:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `push` mutates its receiver (declared `self!`), but this receiver is immutable

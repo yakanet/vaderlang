@@ -235,6 +235,7 @@ export WarningCode :: enum(u8) {
     EmptyImportModifierList,                // W0011
     UnusedExport,                           // W0012
     SharedRepeatElement,                    // W0013
+    ImplicitImmutableParam,                 // W0014
 }
 
 // `(id, message)` for a code, in one shot. The wire ID is the stable
@@ -336,6 +337,7 @@ export warning_info :: fn(c: WarningCode) = match c {
     .PreferLoopVariableOverLabel        -> CodeInfo { .id = "W0010", .message = "prefer targeting this loop by its iteration variable over a label ; a label is only needed for a `while` / infinite loop that has no variable" }
     .EmptyImportModifierList            -> CodeInfo { .id = "W0011", .message = "empty modifier list on an import — `import \"p\" {}` is just a wildcard, write `import \"p\"`" }
     .UnusedExport                       -> CodeInfo { .id = "W0012", .message = "exported function is never reached from the project's roots" }
+    .ImplicitImmutableParam             -> CodeInfo { .id = "W0014", .message = "mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it" }
     .SharedRepeatElement                -> CodeInfo { .id = "W0013", .message = "`[v] * n` repeats one reference — every slot shares this freshly allocated element" }
 }
 

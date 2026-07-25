@@ -98,9 +98,12 @@ ResolveState :: struct {
     /// borrow root. An INPUT to the walk, not part of its output — which is why it
     /// lives here and not on `ResolvedFile` / `ResolvedModule`: those carry the
     /// resulting `immutable_borrows`, and nothing downstream needs to know which
-    /// policy produced it. Still false everywhere; the flip is per-module later, so
-    /// today the table stays empty and no check fires on a parameter.
-    params_immutable_default: bool = false
+    /// policy produced it.
+    ///
+    /// ON since the W0014 rollout: a write through a bare parameter is a WARNING
+    /// while modules are annotated, so the tree keeps building. It becomes an error
+    /// once every module is clean.
+    params_immutable_default: bool = true
     type_param_bounds: MutableMap<i32, AST.Expr>
     diags:            Diagnostic[]
     scope:            Scope
@@ -369,6 +372,8 @@ mark_param_borrow :: fn(self: ResolveState, p: AST.FnParam, sym: Symbol) -> void
     if !self.params_immutable_default {
         return
     }
+    // `true` = implicit: immutable only because the default flipped, so a write
+    // through it is W0014 (migration) rather than a hard error.
     self.immutable_borrows[sym.id] = true
 }
 

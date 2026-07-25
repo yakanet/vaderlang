@@ -99,3 +99,6 @@
   expr 62:45    IdentExpr      :: i32[][]
   expr 62:5     CallExpr       :: void
   expr 62:5     IdentExpr      :: fn(T) -> void
+
+# Diagnostics
+[32:13] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: `push` mutates its receiver (declared `self!`), but this receiver is immutable

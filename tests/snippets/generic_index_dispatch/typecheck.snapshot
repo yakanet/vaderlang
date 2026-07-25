@@ -51,3 +51,6 @@
   expr 49:5     CallExpr       :: void
   expr 49:5     IdentExpr      :: fn(T) -> void
   expr 49:51    IdentExpr      :: Cell
+
+# Diagnostics
+[26:9] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: this element is reached through an immutable path

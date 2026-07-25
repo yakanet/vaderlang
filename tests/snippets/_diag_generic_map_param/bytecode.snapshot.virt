@@ -479,3 +479,6 @@ fn 9 std_core$string$Hash$hash_vt (string) -> u64
   call.import 0
   return
 end
+
+# Diagnostics
+[25:5] warning[W0014] mutating a parameter that carries no `!` — parameters are becoming read-only borrows ; add `!` to the parameter name to keep mutating it: this element is reached through an immutable path
