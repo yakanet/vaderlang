@@ -1,4 +1,4 @@
-vader_source_sha: e5bbee301f31f6304fa105beabdecc640da443a8 (pre-rewrite, no longer resolvable)
+vader_source_sha: 927c3a9bfe2db39609e63c6a05bc926104b4df90 (pre-rewrite, no longer resolvable)
 vader_version:    0.0.0-pre-mvp
-regenerated_at:   2026-07-25T02:14:29Z
+regenerated_at:   2026-07-25T02:42:49Z
 generator:        ./build/vader
