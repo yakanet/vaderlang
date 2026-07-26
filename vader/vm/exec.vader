@@ -72,7 +72,9 @@ COMPTIME_STEP_BUDGET: i64: 100_000_000
 Frame :: struct {
     function_index: i32
     slots:          Value[]!
-    stack:          Value[]!
+    /// Live handles, not copies: an `ArrayVal` here is the object `array.push`
+    /// grows in place, so the ELEMENT carries the marker too.
+    stack:          Value![]!
     payload:        i64[]!
     tag:            StackTag[]!
     slot_payload:   i64[]!
@@ -161,7 +163,7 @@ stack_ensure :: fn(frame: Frame!, cursor: usize) -> void { if cursor == frame.pa
 /// Write `value` into the stack columns at `cursor` (growing if needed).
 /// Mirrors `push_value` (caller bumps `sp`). Scalars land in payload + tag,
 /// heap values in the refs column.
-push_val :: fn(frame: Frame!, cursor: usize, value: Value) -> void {
+push_val :: fn(frame: Frame!, cursor: usize, value: Value!) -> void {
     stack_ensure(frame, cursor)
     match value {
         is I32Val as x -> {
@@ -202,6 +204,32 @@ peek_val :: fn(frame: Frame, idx: usize) -> Value {
         .Bool -> { return BoolVal { .value = frame.payload[idx] != 0 } }
         .Char -> { return CharVal { .value = char(u32(frame.payload[idx])) } }
         .Null -> { return NULL_VALUE }
+    }
+}
+
+/// Peek stack slot `idx` as a WRITABLE array handle.
+///
+/// The in-place array opcodes (`array.push`, `array.set`, `memory_copy`) grow or
+/// overwrite the very object the stack holds, so they need the handle itself and
+/// not the unboxed copy `peek_val` hands out. Only a `.Ref` slot can hold an
+/// array, which is why this reads `frame.stack` directly.
+///
+/// @param frame  the executing frame — mutable, because the rights on the value
+///               can only come from the frame that owns it.
+/// @param idx    slot index within the frame, as for `peek_val`.
+/// @param at_pc  informational — the pc quoted in the trap message.
+/// @param label  informational — names the operand in the trap message.
+/// @return       the writable `ArrayVal`, or a `Trap` when the slot holds
+///               anything else.
+peek_array_mut :: fn(frame: Frame!, idx: usize, at_pc: i32, label: string) -> ArrayVal! | Trap! {
+    if frame.tag[idx] == .Ref {
+        v :: frame.stack[idx]
+        if v is ArrayVal {
+            return v
+        }
+    }
+    return Trap {
+        .message = "${label} at pc=${at_pc}: expected array, got ${describe_value_tag(peek_val(frame, idx))}",
     }
 }
 
@@ -264,7 +292,7 @@ peek_range :: fn(frame: Frame, start: usize, endx: usize) -> Value[] {
 /// @param frames     the grow-only frame stack (mutated in place).
 /// @param cursor     1-element box — `[0]` is the logical top index.
 /// @param new_frame  the callee frame to push.
-push_frame :: fn(frames: Frame![]!, cursor: usize[]!, new_frame: Frame) -> void {
+push_frame :: fn(frames: Frame![]!, cursor: usize[]!, new_frame: Frame!) -> void {
     if cursor[0] == frames.len() { frames.push(new_frame) }
     else                         { frames[cursor[0]] = new_frame }
     cursor[0] += 1
@@ -669,7 +697,7 @@ const_op_value :: fn(c: bc.ConstOp, strings: string[], pc: i32) -> Value | Trap 
 ///                      executor should stop ; `null` when execution
 ///                      should continue with the caller frame.
 /// @error               main returned a non-i32 value.
-finalise_return :: fn(return_value: Value, has_value: bool, at_pc: i32, frames: Frame![]!, frame_count: usize[]!, main_label: string, capture: Value[]! | null) -> VmResult | null {
+finalise_return :: fn(return_value: Value!, has_value: bool, at_pc: i32, frames: Frame![]!, frame_count: usize[]!, main_label: string, capture: Value[]! | null) -> VmResult | null {
     pop_frame(frame_count)
     if frame_count[0] == 0 {
         // Value-capturing entry (`exec_fn_value`, comptime VM fallback) : publish
@@ -1391,7 +1419,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp < 2 {
                     return Trap { .message = "array.push needs array + value on stack at pc=${frame.pc}" }
                 }
-                array_unwrap :: read_array(peek_val(frame, frame.sp - 2), frame.pc, "array.push receiver")
+                array_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.push receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 // A7 unified view : push on a view detaches into a fresh
                 // backing buffer so tail slots held by sibling views aren't
@@ -1415,7 +1443,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 }
                 index_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.get index")
                 if index_unwrap is Trap { return index_unwrap }
-                array_unwrap :: read_array(peek_val(frame, frame.sp - 2), frame.pc, "array.get receiver")
+                array_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.get receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 if index_unwrap.value < 0 || usize(index_unwrap.value) >= array_unwrap.length {
                     if pending != null { return pending }
@@ -1433,7 +1461,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 }
                 index_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "array.set index")
                 if index_unwrap is Trap { return index_unwrap }
-                array_unwrap :: read_array(peek_val(frame, frame.sp - 3), frame.pc, "array.set receiver")
+                array_unwrap :: peek_array_mut(frame, frame.sp - 3, frame.pc, "array.set receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 if index_unwrap.value < 0 || usize(index_unwrap.value) >= array_unwrap.length {
                     if pending != null { return pending }
@@ -1453,7 +1481,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp == 0 {
                     return Trap { .message = "array.len on empty stack at pc=${frame.pc}" }
                 }
-                array_unwrap :: read_array(peek_val(frame, frame.sp - 1), frame.pc, "array.len receiver")
+                array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.len receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 stack_ensure(frame, frame.sp - 1)
                 frame.payload[frame.sp - 1] = i64(i32(array_unwrap.length))
@@ -1468,7 +1496,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if hi_unwrap is Trap { return hi_unwrap }
                 lo_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "array.slice lo")
                 if lo_unwrap is Trap { return lo_unwrap }
-                array_unwrap :: read_array(peek_val(frame, frame.sp - 3), frame.pc, "array.slice receiver")
+                array_unwrap :: peek_array_mut(frame, frame.sp - 3, frame.pc, "array.slice receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 len :: array_unwrap.length
                 lo_clamped: usize = if lo_unwrap.value < 0 { 0 } else { usize(lo_unwrap.value) }
@@ -1493,7 +1521,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 }
                 count_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.repeat count")
                 if count_unwrap is Trap { return count_unwrap }
-                array_unwrap :: read_array(peek_val(frame, frame.sp - 2), frame.pc, "array.repeat receiver")
+                array_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.repeat receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 count: usize = if count_unwrap.value < 0 { 0 } else { usize(count_unwrap.value) }
                 // No capacity concept in the VM (capacity is a native-only perf
@@ -1517,9 +1545,9 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp < 2 {
                     return Trap { .message = "array.push_all needs dst + src on stack at pc=${frame.pc}" }
                 }
-                src_unwrap :: read_array(peek_val(frame, frame.sp - 1), frame.pc, "array.push_all source")
+                src_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.push_all source")
                 if src_unwrap is Trap { return src_unwrap }
-                dst_unwrap :: read_array(peek_val(frame, frame.sp - 2), frame.pc, "array.push_all receiver")
+                dst_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.push_all receiver")
                 if dst_unwrap is Trap { return dst_unwrap }
                 // Detach a view before growing (mirror of array.push).
                 if is_array_view(dst_unwrap) {
@@ -1548,11 +1576,11 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if len_unwrap is Trap { return len_unwrap }
                 dst_start_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "array.copy dst_start")
                 if dst_start_unwrap is Trap { return dst_start_unwrap }
-                dst_unwrap :: read_array(peek_val(frame, frame.sp - 3), frame.pc, "array.copy dst")
+                dst_unwrap :: peek_array_mut(frame, frame.sp - 3, frame.pc, "array.copy dst")
                 if dst_unwrap is Trap { return dst_unwrap }
                 src_start_unwrap :: read_i32(peek_val(frame, frame.sp - 4), frame.pc, "array.copy src_start")
                 if src_start_unwrap is Trap { return src_start_unwrap }
-                src_unwrap :: read_array(peek_val(frame, frame.sp - 5), frame.pc, "array.copy src")
+                src_unwrap :: peek_array_mut(frame, frame.sp - 5, frame.pc, "array.copy src")
                 if src_unwrap is Trap { return src_unwrap }
                 n:  usize = if len_unwrap.value < 0 { 0 } else { usize(len_unwrap.value) }
                 ss: usize = if src_start_unwrap.value < 0 { 0 } else { usize(src_start_unwrap.value) }
@@ -1578,7 +1606,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp == 0 {
                     return Trap { .message = "array.remove_last on empty stack at pc=${frame.pc}" }
                 }
-                array_unwrap :: read_array(peek_val(frame, frame.sp - 1), frame.pc, "array.remove_last receiver")
+                array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.remove_last receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 if array_unwrap.length == 0 {
                     stack_ensure(frame, frame.sp - 1)
@@ -1594,7 +1622,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if frame.sp == 0 {
                     return Trap { .message = "array.clear on empty stack at pc=${frame.pc}" }
                 }
-                array_unwrap :: read_array(peek_val(frame, frame.sp - 1), frame.pc, "array.clear receiver")
+                array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.clear receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 // Reset to a fresh empty backing : the VM tracks logical length
                 // via `elements.len()` on push, so reusing the old backing would
@@ -2913,7 +2941,7 @@ do_load_slot :: fn(frame: Frame!) -> Trap | null {
     if frame.sp < 2 { return Trap { .message = "load_slot needs array + index on stack at pc=${frame.pc}" } }
     idx_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "load_slot index")
     if idx_unwrap is Trap { return idx_unwrap }
-    arr :: read_array(peek_val(frame, frame.sp - 2), frame.pc, "load_slot receiver")
+    arr :: peek_array_mut(frame, frame.sp - 2, frame.pc, "load_slot receiver")
     if arr is Trap { return arr }
     if idx_unwrap.value < 0 || usize(idx_unwrap.value) >= arr.length {
         return Trap { .message = "load_slot index ${idx_unwrap.value} out of bounds (len=${arr.length}) at pc=${frame.pc}" }
@@ -2939,7 +2967,7 @@ do_store_slot :: fn(frame: Frame!) -> Trap | null {
     value :: peek_val(frame, frame.sp - 1)
     idx_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "store_slot index")
     if idx_unwrap is Trap { return idx_unwrap }
-    arr :: read_array(peek_val(frame, frame.sp - 3), frame.pc, "store_slot receiver")
+    arr :: peek_array_mut(frame, frame.sp - 3, frame.pc, "store_slot receiver")
     if arr is Trap { return arr }
     if idx_unwrap.value < 0 || usize(idx_unwrap.value) >= arr.length {
         return Trap { .message = "store_slot index ${idx_unwrap.value} out of bounds (len=${arr.length}) at pc=${frame.pc}" }

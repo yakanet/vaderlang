@@ -49,7 +49,7 @@ SlotRange :: struct {
 /// Coalesce same-ValType non-overlapping slots in `function`. Returns
 /// a rewritten BcFunction ; when no coalescing fires the body / locals
 /// are unchanged (caller can drop the result with no cost).
-export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
+export coalesce_slots :: fn(function: BcFunction!) -> BcFunction! {
     param_count :: function.signature.params.len()
     total_slots :: param_count + function.locals.len()
     if total_slots <= param_count { return function }

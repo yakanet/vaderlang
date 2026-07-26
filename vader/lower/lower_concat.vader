@@ -162,7 +162,7 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx!, n: i32) -> Symbol | null {
 ///
 /// @param project_ctx  carries the collected `concat_decls`.
 /// @param project       the lowered project ; the entry module gains the decls.
-drain_concat_decls :: fn(project_ctx: LowerProjectCtx, project: LoweredProject) -> void {
+drain_concat_decls :: fn(project_ctx: LowerProjectCtx!, project: LoweredProject) -> void {
     for decl in project_ctx.concat_decls {
         push_to_module(project, project.entry, decl)
     }

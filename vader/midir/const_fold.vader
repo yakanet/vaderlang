@@ -28,7 +28,7 @@ import "vader/lower"
 ///
 /// @param p  the CFG project from `build_cfg_project`.
 /// @return   a project with foldable BinOp/UnOp replaced by Const.
-export const_fold_project :: fn(p: CFGProject) -> CFGProject {
+export const_fold_project :: fn(p: CFGProject!) -> CFGProject {
     out :: MutableMap<string, CFGModule> {}
     for [id, m] in p.modules {
         new_fns: CFGFunction[]! = []

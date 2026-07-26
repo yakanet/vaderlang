@@ -41,7 +41,7 @@ export infer_match :: fn(
     expected: Type | null,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
-    ctx: FnContext | null,
+    ctx: FnContext! | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     raw_scrut :: check_expr_fn(e.scrutinee, null, typed, diags)

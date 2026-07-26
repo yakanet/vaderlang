@@ -188,7 +188,7 @@ export lower_async_fn :: fn(
     // value (assigned in `resume()` before first read, but `struct.new` needs
     // every field). Field order matches the struct decl.
     nparams :: params.len()
-    construct_fields: LoweredStructLitField[]! = []
+    construct_fields: LoweredStructLitField![]! = []
     for idx in 0..<gb.fields.len() {
         f :: gb.fields[idx]
         value :: if idx < nparams {

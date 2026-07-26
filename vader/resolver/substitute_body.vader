@@ -161,7 +161,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
             }
         }
         is AST.MatchExpr as m -> {
-            new_arms: AST.MatchArm[]! = []
+            new_arms: AST.MatchArm![]! = []
             for a in m.arms {
                 new_guard: AST.Expr | null = null
                 if a.guard !is null {
@@ -274,7 +274,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
             }
         }
         is AST.LambdaExpr as lm -> {
-            new_params: AST.FnParam[]! = []
+            new_params: AST.FnParam![]! = []
             for pm in lm.params {
                 new_pty: AST.TypeExpr | null = null
                 if pm.ty !is null {

@@ -129,7 +129,7 @@ oi_render :: fn(run: AST.ImportDecl[]) -> string {
     // Merge destructure imports by path ; collect namespace imports (dedup exact).
     destructure: MutableMap<string, AST.ImportName[]!> = MutableMap<string, AST.ImportName[]!> {}
     dpaths: string[]! = []
-    ns_entries: OiEntry[]! = []
+    ns_entries: OiEntry![]! = []
     ns_seen: MutableMap<string, bool> = MutableMap<string, bool> {}
 
     for i in 0..<run.len() {
@@ -163,7 +163,7 @@ oi_render :: fn(run: AST.ImportDecl[]) -> string {
         }
     }
 
-    entries: OiEntry[]! = []
+    entries: OiEntry![]! = []
     for pi in 0..<dpaths.len() {
         p :: dpaths[pi]
         names :: destructure[p]

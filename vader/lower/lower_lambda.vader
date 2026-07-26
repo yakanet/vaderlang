@@ -79,7 +79,7 @@ build_env_struct_fields :: fn(captures: Capture[]) -> LoweredStructField[] {
 }
 
 build_env_lit_fields :: fn(span: Span, captures: Capture[]) -> LoweredStructLitField[] {
-    fields: LoweredStructLitField[]! = []
+    fields: LoweredStructLitField![]! = []
     for i in 0..<captures.len() {
         capture :: captures[i]
         fields.push(LoweredStructLitField { .name = "cap_${i}", .value = LoweredIdent { .span = span, .type = capture.type, .symbol = capture.symbol } })

@@ -114,7 +114,7 @@ build_defer_env_fields :: fn(captures: Capture[]) -> LoweredStructField[] {
 }
 
 build_defer_env_lit_fields :: fn(span: Span, captures: Capture[]) -> LoweredStructLitField[] {
-    fields: LoweredStructLitField[]! = []
+    fields: LoweredStructLitField![]! = []
     for i in 0..<captures.len() {
         capture :: captures[i]
         fields.push(LoweredStructLitField {

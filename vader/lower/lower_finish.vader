@@ -112,7 +112,7 @@ push_to_module :: fn(project: LoweredProject, module_id: string, decl: LoweredDe
 // windows of erasure-deduped siblings.
 drain_synth_window :: fn(
     project: LoweredProject, module_id: string,
-    project_ctx: LowerProjectCtx, start: usize, end: usize,
+    project_ctx: LowerProjectCtx!, start: usize, end: usize,
 ) -> void {
     for i in start..<end {
         push_to_module(project, module_id, project_ctx.synth_decls[i])
@@ -126,5 +126,5 @@ drain_synth_window :: fn(
 // build and push are separated by a sort + erasure-dedup (later instances
 // advance `synth_decls.len()` before the survivor is pushed).
 drain_synth_since :: fn(
-    project: LoweredProject, module_id: string, project_ctx: LowerProjectCtx, start: usize,
+    project: LoweredProject, module_id: string, project_ctx: LowerProjectCtx!, start: usize,
 ) = drain_synth_window(project, module_id, project_ctx, start, project_ctx.synth_decls.len())

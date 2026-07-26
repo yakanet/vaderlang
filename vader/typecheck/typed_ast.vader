@@ -271,7 +271,7 @@ export TypedProgram :: struct {
     /// provide the same method on the same receiver. When the list
     /// has 2+ entries, an unqualified `x.method()` is ambiguous —
     /// `field.vader` emits T3032.
-    impl_method_traits: MutableMap<string, string[]!>
+    impl_method_traits: MutableMap<string, string[]!>!
 
     /// `Struct.symbol.id → field_name → resolved Type`. Pre-resolved
     /// at declare-time using the OWNING module's resolved.idents so
@@ -283,7 +283,7 @@ export TypedProgram :: struct {
     /// `"${TypeBaseName}" → trait names` for every `X implements
     /// Trait` impl. Consumed by `type_ops.vader::is_assignable` for
     /// trait-widening (`Cat → Animal` when `Cat implements Animal`).
-    struct_implemented_traits: MutableMap<string, string[]!>
+    struct_implemented_traits: MutableMap<string, string[]!>!
 
     /// `Symbol.id → trait names` — the id-keyed twin of
     /// `struct_implemented_traits`, populated in lockstep by
@@ -293,7 +293,7 @@ export TypedProgram :: struct {
     /// emitter (via `LoweredProject.trait_membership`) to seed `impl_table`
     /// rows per interned struct tag — replacing the lowering force-hook's
     /// membership role.
-    struct_traits_by_sym: MutableMap<i32, string[]!>
+    struct_traits_by_sym: MutableMap<i32, string[]!>!
 
     /// Per-impl trait args, keyed by `${struct_name}` then `${trait_name}`.
     /// `Hello implements Greeter(i32)` records
@@ -306,7 +306,7 @@ export TypedProgram :: struct {
     /// popped when it returns. Lets `check_return` (called via the
     /// recursive expression path where the ctx arg is `null`) still
     /// validate against the fn's declared return type. Mutable.
-    current_fn_ctx: FnContext | null
+    current_fn_ctx: FnContext! | null
 
     /// `AST.id → Span` reverse lookup for the typed-ast dump's `line:col`
     /// rendering (or `undefined:undefined` for materialised spans). Populated
@@ -366,6 +366,15 @@ export TypedProgram :: struct {
     /// reaches `immutable_borrows` — and it is exactly the case with no guessable
     /// lever.
     loop_var_iterable: MutableMap<i32, AST.Expr>
+    /// Local Symbol.id → its written type, for an ANNOTATED local.
+    ///
+    /// A mutability-only mismatch on such a local is fixed at its annotation, and at
+    /// the LEVEL that differs — `out: X[]!` hands out read-only elements because the
+    /// default is recursive, so a slot wanting `X![]` needs `out: X![]!`. The reader
+    /// sees two types that print almost alike; only the compiler knows which level
+    /// they diverge at.
+    local_annotation: MutableMap<i32, AST.TypeExpr>
+
     /// Local Symbol.id → the collection it was indexed out of (`top :: stack[i]`).
     /// Same lever as a loop variable — the ELEMENT type — and the same reason the
     /// reader cannot guess it: marking the local would be a strengthening.
@@ -497,6 +506,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .let_type_aliases = MutableMap<i32, Type> {},
     .local_init_callee = MutableMap<i32, Symbol> {},
     .loop_var_iterable = MutableMap<i32, AST.Expr> {},
+    .local_annotation = MutableMap<i32, AST.TypeExpr> {},
     .local_init_index = MutableMap<i32, AST.Expr> {},
     .narrow_binding_scrutinee = MutableMap<i64, AST.Expr> {},
     .const_decls = MutableMap<i32, ConstDecl> {},

@@ -7,6 +7,9 @@
 
 module "vader/text"
 
+// `std/string` for the `chars` free fn `for c in s` lowers to — the impl has to
+// be in THIS module's closure, not merely somewhere in the program.
+import "std/string"
 import "std/string_builder"
 
 /// Identifier byte — `[A-Za-z0-9_]` (regex `\w`). The byte-level classifier

@@ -29,6 +29,7 @@ export is_assignable :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> 
     // That makes the equality short-circuit below blind to the marker, hence this
     // guard ahead of it. Assignability is a different question from identity.
     if fn_mutability_widens(from, to) { return false }
+    if struct_mutability_widens(from, to) { return false }
     if equals_type(from, to) { return true }
 
     // TypeParam wildcard — accepts any concrete type. Lets a generic
@@ -206,7 +207,26 @@ export param_mutable_at :: fn(f: FnType, i: usize) -> bool {
 /// @param fallback  the code to use when the cause is an ordinary mismatch.
 export mismatch_diagnostic :: fn(
     got: Type, expected: Type, span: Span, fallback: TypecheckCode,
+) -> Diagnostic = mismatch_diagnostic_hinted(got, expected, span, fallback, "")
+
+/// `mismatch_diagnostic` with a caller-supplied hint appended to the mutability
+/// wordings — the generic "expected X, got Y" never takes one.
+///
+/// @param hint  e.g. `producer_annotate_hint`'s output, or "" when the caller has
+///              no value expression to reason from.
+export mismatch_diagnostic_hinted :: fn(
+    got: Type, expected: Type, span: Span, fallback: TypecheckCode, hint: string,
 ) -> Diagnostic {
+    // A read-only struct / tuple into a slot promising mutation. Same treatment as
+    // the fn case below : a dedicated wording, because "expected Cfg!, got Cfg" says
+    // nothing about WHY they differ nor where to fix it.
+    if struct_mutability_widens(got, expected) {
+        return typecheck_error(
+            .ImmutableValueIntoMutableSlot,
+            span,
+            "`${display_type(got)}` is read-only, but this slot is declared `${display_type(expected)}`${hint}",
+        )
+    }
     if fn_mutability_widens(got, expected) {
         return typecheck_error(
             .FnValueMutabilityMismatch,
@@ -234,6 +254,38 @@ export mismatch_diagnostic :: fn(
 ///
 /// @return `true` when the ONLY thing to say is "this fn mutates and the slot
 ///         forbids it" — used both to reject and to pick the T3073 message.
+/// True when `from` is a read-only struct / tuple and `to` promises mutation — a
+/// WIDENING of rights, which assignability must refuse.
+///
+/// Same shape and same placement as `fn_mutability_widens` : ahead of the
+/// `equals_type` short-circuit, because the bit is deliberately outside identity
+/// (mangles, dispatch keys and union dedup must not fork on it).
+///
+/// Without this a read-only borrow launders through any slot promising mutation, a
+/// struct-literal field being the reachable one :
+/// `steal :: fn(c: Cfg) -> Holder! = Holder { .cfg = c }` where `cfg: Cfg!`, then
+/// `h.cfg.n = 99` writes the CALLER's value. T3072 only ever covered a call
+/// argument, hand-written at that one site.
+///
+/// @param from  the value's type.
+/// @param to    the slot's type.
+struct_mutability_widens :: fn(from: Type, to: Type) -> bool {
+    if from is StructType as f {
+        // The SAME struct at two mutabilities — without the symbol check this fired
+        // on any read-only struct against any mutable one (`Subst` vs `Scope!`),
+        // turning an ordinary type mismatch into a mutability story.
+        if to is StructType as t {
+            return f.symbol.id == t.symbol.id && f.immutable && !t.immutable
+        }
+    }
+    if from is TupleType as f2 {
+        if to is TupleType as t2 {
+            return f2.elements.len() == t2.elements.len() && f2.immutable && !t2.immutable
+        }
+    }
+    return false
+}
+
 export fn_mutability_widens :: fn(from: Type, to: Type) -> bool {
     if from is FnType as f {
         if to is FnType as t {

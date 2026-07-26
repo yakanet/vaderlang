@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  struct snippet$Counter { counts: MutableMap<string, i32> }
+  struct snippet$Counter { counts: MutableMap<string, i32>! }
   fn snippet$main() -> i32
     let c: Counter! =
       Counter! {
@@ -22,7 +22,7 @@
       callee:
         snippet$bump__string__i32 :void
       arg0:
-        .counts :MutableMap<string, i32>
+        .counts :MutableMap<string, i32>!
           c :Counter!
       arg1:
         "a" :string
@@ -34,7 +34,7 @@
           callee:
             std_collections$std_collections$len__string__i32 :usize
           arg0:
-            .counts :MutableMap<string, i32>
+            .counts :MutableMap<string, i32>!
               c :Counter!
   fn snippet$bump__string__i32(m: MutableMap<string, i32>!, k: string, v: i32) -> void
     call :void

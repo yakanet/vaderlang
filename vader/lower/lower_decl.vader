@@ -307,7 +307,7 @@ lower_fn_decl :: fn(
 // Build the fn-body context and invoke the block lowerer. Returns
 // `null` for `@extern` / signature-only fns (`body is null`).
 lower_fn_body :: fn(
-    fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
+    fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!,
     entry: MonoEntry, subst: Substitution, return_type: Type,
 ) -> LoweredBlock | null {
     if fn_decl.body == null { return null }
@@ -370,7 +370,7 @@ export promote_captured_params :: fn(
 // place self-referential types like `Node.next: Node | null` reach
 // without going through a `TypeExpr` lookup that may miss.
 lower_struct_decl :: fn(
-    struct_decl: StructDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
+    struct_decl: StructDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!, diags: Diagnostic[],
 ) -> LoweredDecl | null {
     if struct_decl.type_params.len() > 0 { return null }
     types :: make_entry_types(typed, new_substitution())
@@ -421,7 +421,7 @@ resolve_field_type :: fn(
 // downstream phases see the materialised literal. Type-alias / metatype
 // consts have no runtime slot and are skipped.
 lower_const_decl :: fn(
-    const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
+    const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!, diags: Diagnostic[],
 ) -> LoweredDecl | null {
     subst :: new_substitution()
     types :: make_entry_types(typed, subst)
@@ -446,7 +446,7 @@ lower_const_decl :: fn(
 }
 
 lower_const_value :: fn(
-    const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
+    const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!,
     fn_ctx: FnLowerCtx!, type_val: Type,
 ) -> LoweredExpr {
     baked :: lookup_comptime_value(const_decl, typed, project_ctx)
@@ -455,7 +455,7 @@ lower_const_value :: fn(
 }
 
 lookup_comptime_value :: fn(
-    const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
+    const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!,
 ) -> ComptimeValue | null {
     program :: project_ctx.evaluated.modules[typed.resolved.path] ?? return null
     symbol :: lookup_const_symbol(const_decl, typed) ?? return null

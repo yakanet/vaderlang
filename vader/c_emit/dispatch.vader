@@ -257,7 +257,7 @@ emit_vtables :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 
     rows :: ctx.module.vtables
     reg :: build_slot_registry_from_keys(vtable_keys(rows))
-    entries: VtSlot[]! = []
+    entries: VtSlot![]! = []
     max_tag: i32 = -1
     for row in rows {
         if row.entries.len() == 0 { continue }
@@ -282,7 +282,7 @@ emit_vtables :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // Group the flat entry list by receiver tag in one pass, then emit the
     // per-tag `vt_<tag>` structs + the index table (each tag's slots sorted).
     table_size :: max_tag + 1
-    groups: VtSlot[]![] = filled(usize(table_size), () -> [])
+    groups: VtSlot![]![] = filled(usize(table_size), () -> [])
     for e in entries { groups[usize(e.type_index)].push(e) }
 
     for tag in 0..<table_size {

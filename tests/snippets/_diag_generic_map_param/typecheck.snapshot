@@ -4,19 +4,19 @@
   FnDecl         bump                 :: fn(MutableMap<K, V>!, K, V) -> void
   StructDecl     Counter              :: Counter!
   FnDecl         main                 :: fn() -> i32
-  expr 25:12    IdentExpr      :: V
-  expr 25:5     IdentExpr      :: MutableMap<K, V>!
-  expr 25:7     IdentExpr      :: K
-  expr 29:10    StructLitExpr  :: Counter!
-  expr 29:30    StructLitExpr  :: MutableMap<string, i32>!
-  expr 30:10    FieldExpr      :: MutableMap<string, i32>
-  expr 30:10    IdentExpr      :: Counter!
-  expr 30:20    StringLitExpr  :: string
-  expr 30:5     CallExpr       :: void
-  expr 30:5     IdentExpr      :: fn(MutableMap<K, V>!, K, V) -> void
-  expr 31:12    CallExpr       :: i32
-  expr 31:12    IdentExpr      :: type
-  expr 31:16    CallExpr       :: usize
-  expr 31:16    FieldExpr      :: MutableMap<string, i32>
-  expr 31:16    FieldExpr      :: fn() -> usize
-  expr 31:16    IdentExpr      :: Counter!
+  expr 27:12    IdentExpr      :: V
+  expr 27:5     IdentExpr      :: MutableMap<K, V>!
+  expr 27:7     IdentExpr      :: K
+  expr 31:10    StructLitExpr  :: Counter!
+  expr 31:30    StructLitExpr  :: MutableMap<string, i32>!
+  expr 32:10    FieldExpr      :: MutableMap<string, i32>!
+  expr 32:10    IdentExpr      :: Counter!
+  expr 32:20    StringLitExpr  :: string
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(MutableMap<K, V>!, K, V) -> void
+  expr 33:12    CallExpr       :: i32
+  expr 33:12    IdentExpr      :: type
+  expr 33:16    CallExpr       :: usize
+  expr 33:16    FieldExpr      :: MutableMap<string, i32>!
+  expr 33:16    FieldExpr      :: fn() -> usize
+  expr 33:16    IdentExpr      :: Counter!

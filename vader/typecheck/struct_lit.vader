@@ -45,7 +45,11 @@ check_struct_body :: fn(
             is AST.StructLitSpread as sp -> {
                 has_spread = true
                 got :: check_expr_fn(sp.expr, st, typed, diags)
-                if !is_assignable(got, st, null) {
+                // Shape, not mutability: a spread only READS the source's fields into a
+                // fresh value, and reading a read-only struct is always allowed. The
+                // literal's own mutability says nothing about the source's rights — same
+                // rule as `is` tests and UFCS receiver dispatch.
+                if !is_assignable(strip_mutability(got), strip_mutability(st), null) {
                     diags.push(typecheck_error(.TypeMismatch, sp.span,
                         "spread source must be assignable to ${display_type(st)}, got ${display_type(got)}"))
                 }

@@ -96,7 +96,7 @@ drain_generic_fn_instances :: fn(
 /// joint fixpoint converges so emission order is a single deterministic sort
 /// over the whole set — `inner` (lower symbol id) emits before `outer`
 /// regardless of discovery order.
-flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx, project: LoweredProject) -> void {
+flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx!, project: LoweredProject) -> void {
     // Erasure-dedupe : every instance of a NON-trait-dispatching free
     // generic fn erases to the same Any-typed body, so collapse a fn's
     // group to a single decl keyed by `fn_symbol.id`, keeping the first
@@ -172,7 +172,7 @@ fn_instance_key :: fn(inst: GenericFnInstance) -> string {
 // (`lower_generator_fn`). Keep the callers in lock-step : a site that lowers a
 // generator body WITHOUT this drops every `yield` and returns no value.
 lower_generator_body :: fn(
-    project_ctx: LowerProjectCtx, entry: MonoEntry, typed: TypedProgram,
+    project_ctx: LowerProjectCtx!, entry: MonoEntry, typed: TypedProgram,
     subst: Substitution, fn_decl: FnDecl, gen_body: BlockExpr,
     params: LoweredParam[], return_type: Type,
 ) -> LoweredBlock {
@@ -189,7 +189,7 @@ lower_generator_body :: fn(
 // `T` (NOT the erased `Async<T>` the caller sees — that wraps this at the
 // `LoweredFnDecl` boundary in `lower_decl`).
 lower_async_body :: fn(
-    project_ctx: LowerProjectCtx, entry: MonoEntry, typed: TypedProgram,
+    project_ctx: LowerProjectCtx!, entry: MonoEntry, typed: TypedProgram,
     subst: Substitution, fn_decl: FnDecl, async_body: BlockExpr,
     params: LoweredParam[], result_type: Type, is_main: bool,
 ) -> LoweredBlock {

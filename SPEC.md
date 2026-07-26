@@ -1624,6 +1624,20 @@ frozen :: fn(x: i32[] | string[]) -> usize {
 }
 ```
 
+#### A `...spread` compares the shape too
+
+`Point { ...src, .x = 1 }` builds a **fresh** value and only *reads* `src`'s fields to fill it, so `src`'s own rights are irrelevant — a read-only source can seed a mutable literal, and the literal is mutable because it is new, not because the source was. Same law as the `is` test above and as UFCS receiver dispatch: an operation that reads compares shapes.
+
+```vader
+freeze :: fn(cfgs: Cfg[]) -> Cfg[]! {
+    out: Cfg[]! = []
+    for c in cfgs {
+        out.push(Cfg { ...c, .retries = 0 })   // `c` is read-only ; the literal is not
+    }
+    return out
+}
+```
+
 #### Only a type with an interior takes the marker
 
 `!` grants mutation *through* a slot, so it means something only where there is something to mutate: an array, a struct, a tuple. On a **primitive**, an **enum**, a **fn** or **`never`** the marker is a no-op, and writing it is T3075 — `s: string!` was a promise the compiler dropped silently. A **type parameter** (`fn<T>(x: T!)`) is not rejected: the marker there is intent about the instantiation, which may well be a struct.

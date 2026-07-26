@@ -720,7 +720,7 @@ gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr {
         }
         is LoweredBlock as bl -> gb_route_block(gb, bl)
         is LoweredStructLit as sl -> {
-            new_fields: LoweredStructLitField[]! = []
+            new_fields: LoweredStructLitField![]! = []
             for f in sl.fields { new_fields.push(LoweredStructLitField { .name = f.name, .value = gb_route_expr(gb, f.value) }) }
             return LoweredStructLit { .span = sl.span, .type = sl.type, .fields = new_fields }
         }

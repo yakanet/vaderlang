@@ -202,7 +202,7 @@ enum_type_or_unwrap :: fn(ctx: FnLowerCtx, type: Type) -> Type {
 // foreign struct decl) resolves its idents / expr-types against the right
 // module's tables instead of the construction site's. No-op (returns `ctx`)
 // when the module isn't in the project's typed set.
-ctx_in_owning_module :: fn(ctx: FnLowerCtx, module_id: string, decl: StructDecl, args: Type[]) -> FnLowerCtx {
+ctx_in_owning_module :: fn(ctx: FnLowerCtx!, module_id: string, decl: StructDecl, args: Type[]) -> FnLowerCtx {
     owner_typed :: ctx.project.evaluated.typed.modules[module_id] ?? return ctx
     // Thread the instance's type-args into the subst so a field DEFAULT that
     // references the struct's own type-param (`ekeys: K[] = []`) lowers with `K`
@@ -226,7 +226,7 @@ build_struct_lit_fields :: fn(
     provided: MutableMap<string, Expr>, lit: StructLitExpr,
     spread_sym: Symbol | null,
 ) -> LoweredStructLitField[] {
-    out: LoweredStructLitField[]! = []
+    out: LoweredStructLitField![]! = []
     // `struct_backing` unwraps a struct-backed distinct newtype so declared-order
     // field building walks the backing struct decl. A non-struct type (or a
     // struct whose decl isn't indexed) degrades to source order (defensive
@@ -314,7 +314,7 @@ build_core_struct_lit :: fn(ctx: FnLowerCtx, type: Type, fields: LoweredStructLi
     if decl == null {
         panic("build_core_struct_lit: struct decl not indexed for ${st.symbol.name}")
     }
-    ordered: LoweredStructLitField[]! = []
+    ordered: LoweredStructLitField![]! = []
     for field_decl in decl.fields {
         provided :: find_lowered_field(fields, field_decl.name)
         if provided == null {
@@ -339,7 +339,7 @@ find_lowered_field :: fn(fields: LoweredStructLitField[], name: string) -> Lower
 // Defensive fallback : when the struct decl can't be reached, emit
 // fields in source order (the previous behaviour).
 fallback_provided_order :: fn(ctx: FnLowerCtx!, lit: StructLitExpr) -> LoweredStructLitField[] {
-    out: LoweredStructLitField[]! = []
+    out: LoweredStructLitField![]! = []
     for item in lit.items {
         match item {
             is StructLitField as field -> {
@@ -360,7 +360,7 @@ lower_seq_lit :: fn(ctx: FnLowerCtx!, lit: SeqLitExpr, type: Type) -> LoweredExp
     // `_0` / `_1` / ... fields ; the bytecode emit reads them off the same
     // struct layout the typer pins (distinct wrappers strip at the emit boundary).
     if tuple_backing(type) != null {
-        fields: LoweredStructLitField[]! = []
+        fields: LoweredStructLitField![]! = []
         for i in 0..<lit.elements.len() {
             fields.push(LoweredStructLitField {
                 .name = "_${i}",

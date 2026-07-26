@@ -29,7 +29,7 @@ import "vader/resolver/symbol"
 /// @param keep_tests  when true, `@test` fns count as roots (for the
 ///                    test-runner build) ; regular run / build drops them.
 /// @return            a new `LoweredProject` with unreachable fns removed.
-export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> LoweredProject {
+export prune_unreachable_fns :: fn(lp: LoweredProject!, keep_tests: bool) -> LoweredProject {
     by_sym_id :: MutableMap<i32, LoweredDecl> {}
     by_mangle :: MutableMap<string, LoweredDecl> {}
     reachable_sym :: MutableMap<i32, bool> {}

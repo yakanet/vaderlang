@@ -489,7 +489,7 @@ ufcs_method_params :: fn(method: string, recv_ty: Type, callee_ty: FnType, typed
             ft :: typed.decl_types[sym.id]
             if ft is FnType as f {
                 if f.params.len() > 0 && is_assignable(recv_ty, f.params[0], null) {
-                    tail: AST.FnParam[]! = []
+                    tail: AST.FnParam![]! = []
                     for i in 1..<fd.params.len() {
                         tail.push(fd.params[i])
                     }
@@ -800,7 +800,9 @@ export infer_call :: fn(
             if type_contains_type_param(want)                          { continue }
             if is_assignable(arg_types[i], want, null)                 { continue }
             if try_into(arg_types[i], want, typed, c.args[i].value.id) { continue }
-            diags.push(mismatch_diagnostic(arg_types[i], want, c.args[i].span, .TypeMismatch))
+            diags.push(mismatch_diagnostic_hinted(
+                arg_types[i], want, c.args[i].span, .TypeMismatch,
+                mutability_level_hint(c.args[i].value, arg_types[i], want, typed)))
         }
         // Default any FreeInt/FreeFloat bound to a typeParam before
         // substituting, so the return type comes back concrete
@@ -853,9 +855,16 @@ export infer_call :: fn(
         param_ty :: callee_ty.params[i]
         arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
         reject_immutable_into_mutable_param(callee_ty, i, c, typed, diags)
-        if is_assignable(arg_ty, param_ty, null)                 { continue }
+        // T3072 above owns struct mutability at an argument, and says it better (it
+        // names the parameter and the annotatable root). Clear the top-level struct
+        // bit so the generic assignability check doesn't double-report the same
+        // problem as T3077 — measured, that double-report alone was 424 of 535 sites.
+        // Array mutability still flows through : nothing else checks it here.
+        if is_assignable(arg_mutability_cleared(arg_ty), param_ty, null) { continue }
         if try_into(arg_ty, param_ty, typed, c.args[i].value.id) { continue }
-        diags.push(mismatch_diagnostic(arg_ty, param_ty, c.args[i].span, .TypeMismatch))
+        diags.push(mismatch_diagnostic_hinted(
+                arg_ty, param_ty, c.args[i].span, .TypeMismatch,
+                mutability_level_hint(c.args[i].value, arg_ty, param_ty, typed)))
     }
     widen_empty_array_on_push(c, typed)
     if diverges {
@@ -1312,6 +1321,31 @@ main :: fn() -> void { greet(42) }
 // params once the default flips.
 //
 // Only the ARGUMENT side is checked here — the receiver of a `self!` method is
+// An argument with its STRUCT / TUPLE read-only bits dropped at every level, the
+// array bits untouched.
+//
+// T3072 owns struct mutability at an argument, and it reasons about the whole access
+// path — so letting it reach the generic check only double-reports. Depth matters
+// because `unify_type_param` binds `T` to the mutable form: a read-only `VtSlot`
+// element binds `T = VtSlot!`, and `arr: T[]` then demands `VtSlot![]` from the very
+// argument that produced the binding. ARRAY mutability stays: nothing else checks
+// that a read-only array is not handed to a `T[]!` parameter.
+arg_mutability_cleared :: fn(t: Type) -> Type = match t {
+    is StructType as s -> mk_struct(s.symbol, arg_mutability_cleared_each(s.args), false)
+    is TupleType  as p -> mk_tuple(arg_mutability_cleared_each(p.elements), false)
+    is ArrayType  as a -> mk_array(arg_mutability_cleared(a.element), a.immutable)
+    is UnionType  as u -> mk_union(arg_mutability_cleared_each(u.variants))
+    is PrimitiveType | EnumType | TraitType | FnType | TypeParamType | TypeMetaType
+     | SelfType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
+     | NeverType | AnyType | DistinctType -> t
+}
+
+arg_mutability_cleared_each :: fn(ts: Type[]) -> Type[] {
+    out: Type[]! = []
+    for t in ts { out.push(arg_mutability_cleared(t)) }
+    return out
+}
+
 // T3071's job, in `field.vader`.
 reject_immutable_into_mutable_param :: fn(
     callee_ty: FnType, i: usize, c: AST.CallExpr,

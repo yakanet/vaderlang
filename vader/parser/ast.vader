@@ -173,7 +173,7 @@ export FnDecl :: struct {
     name_span:             Span
     visibility:            Visibility
     type_params:           TypeParam[]
-    params:                FnParam[]!
+    params:                FnParam![]!
     return_type:           TypeExpr | null
     body:                  BlockExpr | null
     decorators:            Decorator[]

@@ -564,7 +564,7 @@ tokenize_agg :: fn(s: string) -> string[] {
 /// The `.virt` carries only ValType names ; `param_types` / `result_type`
 /// (BcType indices) are reconstructed via `primitive_index_for` — exact for
 /// primitive slots, `0` for ref/any (which `c_emit` doesn't tag).
-parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature {
+parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature! {
     lb :: line.bytes()
     open :: line.index_of('(', 0)
     close :: line.index_of(')', 0)

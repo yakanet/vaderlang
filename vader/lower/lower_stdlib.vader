@@ -136,7 +136,7 @@ surface_stdlib_impl_externs :: fn(
 // the impl at runtime). STRUCT : only when the struct is actually constructed
 // (`constructed_struct_symbols`), so an unconstructed stdlib implementor isn't
 // pulled into an unrelated snippet. Other receiver shapes don't reach here.
-vtable_receiver_eligible :: fn(self_type: Type, project_ctx: LowerProjectCtx) -> bool {
+vtable_receiver_eligible :: fn(self_type: Type, project_ctx: LowerProjectCtx!) -> bool {
     if self_type is PrimitiveType { return true }
     if self_type is StructType as st { return project_ctx.constructed_struct_symbols.contains(st.symbol.id) }
     return false

@@ -176,7 +176,7 @@ build_cfg_signature :: fn(params: CFGParam[], return_type: Type, ctx: EmitterCtx
 /// rewritten `body` / `debug` / `jump_table` — a pass can't mutate `f` in place
 /// (Vader structs are by-value). Collapses the identical field-by-field rebuild
 /// each `BcPeepholeOut`-returning pass in Pass 3 would otherwise repeat inline.
-with_peephole_out :: fn(f: BcFunction, out: BcPeepholeOut) -> BcFunction = BcFunction {
+with_peephole_out :: fn(f: BcFunction, out: BcPeepholeOut) -> BcFunction! = BcFunction {
     .name = f.name, .is_main = f.is_main, .signature = f.signature, .locals = f.locals,
     .body = out.body, .debug = out.debug, .jump_table = out.jump_table,
 }

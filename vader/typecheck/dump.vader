@@ -52,7 +52,7 @@ export dump_program_with_others :: fn(
     if with_banner {
         sb.append("# Typecheck")
     }
-    sections: TypedProgram[]! = [typed]
+    sections: TypedProgram![]! = [typed]
     for o in others {
         sections.push(o)
     }

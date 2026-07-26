@@ -109,7 +109,7 @@ analyze_if :: fn(ifx: AST.IfExpr) -> IfChain | null {
 // Synthesise the match from the chain : one arm per condition (reusing each
 // block as the arm body), plus a wildcard arm for the final else.
 build_match :: fn(ifx: AST.IfExpr, ch: IfChain) -> AST.MatchExpr {
-    arms: AST.MatchArm[]! = []
+    arms: AST.MatchArm![]! = []
     i := 0
     for c in ch.conds {
         arms.push(AST.MatchArm {

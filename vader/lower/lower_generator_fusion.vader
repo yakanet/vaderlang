@@ -327,7 +327,7 @@ extract_gen_source_loops :: fn(decl: AST.FnDecl) -> GenSourceLoop[] | null {
     body :: decl.body ?? return null
     if body.trailing != null { return null }
     if body.stmts.len() == 0 { return null }
-    loops: GenSourceLoop[]! = []
+    loops: GenSourceLoop![]! = []
     pending: AST.Stmt[]! = []
     for stmt in body.stmts {
         matched :: match_source_loop(stmt, decl)

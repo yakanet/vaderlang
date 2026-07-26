@@ -18,7 +18,9 @@ module "snippet"
 import "std/collections"
 
 Counter :: struct {
-    counts: MutableMap<string, i32>
+    // Marked: `bump` mutates it in place, and a field takes the read-only
+    // default like any other written type.
+    counts: MutableMap<string, i32>!
 }
 
 bump :: fn<K, V>(m: MutableMap<K, V>!, k: K, v: V) -> void {

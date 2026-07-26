@@ -24,7 +24,7 @@ export Subst :: struct {
     entries: MutableMap<string, AST.TypeExpr>
 }
 
-export new_subst :: fn() -> Subst {
+export new_subst :: fn() -> Subst! {
     return Subst { .entries = MutableMap<string, AST.TypeExpr> {} }
 }
 

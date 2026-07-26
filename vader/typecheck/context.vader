@@ -78,7 +78,7 @@ export FnContext :: struct {
     inferred_return: Type | null = null
 }
 
-export new_fn_context :: fn(return_type: Type, self_type: Type | null) -> FnContext {
+export new_fn_context :: fn(return_type: Type, self_type: Type | null) -> FnContext! {
     return FnContext {
         .return_type = return_type,
         .self_type = self_type,

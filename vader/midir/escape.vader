@@ -34,7 +34,7 @@ export AnnotatedProject :: struct {
 /// Walk every fn in `p`, escape-analyse it, and rewrite StructNew /
 /// ArrayNew / FieldSet with `stack` / `barrierless` flags set.
 /// Returns the rewritten project + aggregate stats.
-export annotate_escape :: fn(p: CFGProject) -> AnnotatedProject {
+export annotate_escape :: fn(p: CFGProject!) -> AnnotatedProject {
     total_allocs := 0
     stack_promoted := 0
     modules :: MutableMap<string, CFGModule> {}

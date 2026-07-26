@@ -34,7 +34,7 @@ materialize_concrete_struct_instances :: fn(
 // the fn-instance pass has run, so the dump order is :
 //   concrete structs ; fn instances ; representative structs.
 materialize_representatives :: fn(
-    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx!,
     project: LoweredProject, seen_reps: MutableSet<string>!,
 ) -> void {
     for inst in project_ctx.evaluated.instances {
@@ -50,7 +50,7 @@ materialize_representatives :: fn(
 /// instantiations of the same generic shape only emit one.
 materialize_representative :: fn(
     inst: GenericInstance, loaded: LoadedProject, typed: TypedProject,
-    project_ctx: LowerProjectCtx, project: LoweredProject,
+    project_ctx: LowerProjectCtx!, project: LoweredProject,
     seen_reps: MutableSet<string>!,
 ) -> void {
     if !all_concrete_args(inst.args) { return }
@@ -202,7 +202,7 @@ mangle_struct_instance :: fn(display_path: string, name: string, args: Type[]) =
 
 materialize_struct_instance :: fn(
     inst: GenericInstance, owner_decls: Decl[], owner_typed: TypedProgram,
-    project_ctx: LowerProjectCtx, project: LoweredProject,
+    project_ctx: LowerProjectCtx!, project: LoweredProject,
 ) -> LoweredStructField[] {
     decl :: find_struct_decl_by_name(owner_decls, inst.symbol.name) ?? return []
     if decl is StructDecl as sd {
@@ -269,7 +269,7 @@ materialize_struct_instance :: fn(
 /// shapes the newly-emitted decls reference in turn. Bounded by
 /// `MAX_FIELD_SHAPES` against a pathological ever-growing generic.
 close_over_field_shapes :: fn(
-    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx!,
     project: LoweredProject,
 ) -> void {
     materialized :: new_string_set()
@@ -341,7 +341,7 @@ shape_mangle :: fn(s: StructType, typed: TypedProject) -> string | null {
 /// the owning module's decls + typed view from a bare symbol + args.
 materialize_shape :: fn(
     sym: Symbol, args: Type[], loaded: LoadedProject, typed: TypedProject,
-    project_ctx: LowerProjectCtx, project: LoweredProject,
+    project_ctx: LowerProjectCtx!, project: LoweredProject,
 ) -> LoweredStructField[] {
     owner_module :: loaded.modules[sym.module]
     owner_typed :: typed.modules[sym.module]

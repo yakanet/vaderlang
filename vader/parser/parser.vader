@@ -684,8 +684,8 @@ parse_named_import_decl :: fn(p: Parser!, decorators: Decorator[], name_tok: Tok
 
 /// Parse `a, b as c` …` with the leading `{` already consumed. Closes
 /// on the matching `}`.
-parse_import_name_list_rest :: fn(p: Parser!) -> CommaList<ImportName> {
-    names: ImportName[]! = []
+parse_import_name_list_rest :: fn(p: Parser!) -> CommaList<ImportName!> {
+    names: ImportName![]! = []
     trailing := false
     p.skip_newlines()
     if !p.check(.RBrace) {
@@ -1068,7 +1068,7 @@ parse_fn_decl_inside_trait :: fn(p: Parser!) -> FnDecl | null {
 }
 
 FnSignature :: struct {
-    params:         FnParam[]!
+    params:         FnParam![]!
     type_params:    TypeParam[]!
     trailing_comma: bool = false
 }
@@ -1084,7 +1084,7 @@ CommaList :: struct<T> {
 
 parse_fn_signature_params :: fn(p: Parser!) -> FnSignature {
     type_params: TypeParam[]! = []
-    params:      FnParam[]!   = []
+    params:      FnParam![]!  = []
     trailing := false
     p.expect(.LParen, "`(` after function name")
     p.skip_newlines()
@@ -1186,7 +1186,7 @@ parse_struct_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibil
     type_params :: p.parse_struct_type_param_list()
     p.expect(.LBrace, "`{` to open struct body")
     p.skip_newlines()
-    fields: StructField[]! = []
+    fields: StructField![]! = []
     for !p.check(.RBrace) && !p.check(.Eof) {
         // Fields are PUBLIC by default ; an `@internal` decorator restricts a
         // field to its declaring module (typecheck enforces, T3054). Any other
@@ -1418,7 +1418,7 @@ parse_enum_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibilit
     }
     p.expect(.LBrace, "`{` to open enum body")
     p.skip_newlines()
-    variants: EnumVariant[]! = []
+    variants: EnumVariant![]! = []
     for !p.check(.RBrace) && !p.check(.Eof) {
         v_tok :: p.expect(.Ident, "variant name")
         value: i64 | null = null
@@ -3466,7 +3466,7 @@ parse_match_expr :: fn(p: Parser!, partial: bool, unreachable: bool) -> MatchExp
 
     p.expect(.LBrace, "`{` to open match arms")
     p.skip_newlines()
-    arms: MatchArm[]! = []
+    arms: MatchArm![]! = []
     for !p.check(.RBrace) && !p.check(.Eof) {
         arms.push(p.parse_match_arm())
         p.skip_newlines()
@@ -3648,7 +3648,7 @@ parse_tuple_pattern :: fn(p: Parser!) -> TuplePattern {
 parse_struct_pattern :: fn(p: Parser!) -> StructPattern {
     start :: p.expect(.LBrace, "`{` to open struct pattern")
     p.skip_newlines()
-    fields: StructPatternField[]! = []
+    fields: StructPatternField![]! = []
     for !p.check(.RBrace) && !p.check(.Eof) {
         f_start :: p.peek()
         name :: p.expect(.Ident, "field name in struct pattern")

@@ -328,7 +328,7 @@ lookup_const_baked_value :: fn(ctx: FnLowerCtx, symbol: Symbol) -> ComptimeValue
 // Caller gates on `resolved.kind == Const` (the hot-path read of every
 // local / param shouldn't pay the module lookups below). Returns null when the
 // decl can't be located or its RHS isn't foldable (caller keeps its path).
-try_fold_unbaked_const :: fn(ctx: FnLowerCtx, resolved: Symbol, type: Type) -> LoweredExpr | null {
+try_fold_unbaked_const :: fn(ctx: FnLowerCtx!, resolved: Symbol, type: Type) -> LoweredExpr | null {
     owner_loaded :: ctx.project.loaded.modules[resolved.module] ?? return null
     owner_typed :: ctx.project.evaluated.typed.modules[resolved.module] ?? return null
     const_decl :: find_const_decl_by_name(module_decls(owner_loaded), resolved.name) ?? return null
@@ -402,7 +402,7 @@ export comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: 
             // that matches the positional order ; for named structs
             // the same ordering keeps the dump stable.
             sorted_names :: sort(sv.fields.keys(), (a: string, b: string) -> compare_ascending(a, b))
-            fields: LoweredStructLitField[]! = []
+            fields: LoweredStructLitField![]! = []
             for name in sorted_names {
                 val :: sv.fields[name]
                 if val !is null {

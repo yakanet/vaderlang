@@ -23,21 +23,24 @@
         {
           "name": "counts",
           "type": {
-            "kind": "GenericInstExpr",
-            "callee": {
-              "kind": "IdentExpr",
-              "name": "MutableMap"
-            },
-            "typeArgs": [
-              {
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "GenericInstExpr",
+              "callee": {
                 "kind": "IdentExpr",
-                "name": "string"
+                "name": "MutableMap"
               },
-              {
-                "kind": "IdentExpr",
-                "name": "i32"
-              }
-            ]
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "string"
+                },
+                {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
+              ]
+            }
           },
           "visibility": "public",
           "default": null

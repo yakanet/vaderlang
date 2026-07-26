@@ -67,7 +67,7 @@ is_concrete_float :: fn(t: Type) -> bool {
 export infer_if :: fn(
     e: AST.IfExpr!, expected: Type | null,
     typed: TypedProgram!, diags: Diagnostic[]!,
-    ctx: FnContext | null,
+    ctx: FnContext! | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     cond_ty :: check_expr_fn(e.cond, TY_BOOL, typed, diags)
@@ -131,7 +131,7 @@ collapse_if_unresolved :: fn(joined: Type, a: Type, b: Type) -> Type {
 check_else_with_narrow :: fn(
     block: AST.BlockExpr!, narrowing: IsNarrow | null,
     expected: Type | null, typed: TypedProgram!, diags: Diagnostic[]!,
-    ctx: FnContext | null,
+    ctx: FnContext! | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     prev: NarrowSlot | null = null

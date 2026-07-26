@@ -29,7 +29,7 @@ export GenericInstance :: struct {
 /// before the final sort.
 export InstanceRegistry :: struct {
     by_key: MutableMap<string, GenericInstance> = MutableMap<string, GenericInstance> {}
-    order:  GenericInstance[]! = []
+    order:  GenericInstance![]! = []
 }
 
 /// Register `(symbol, args)` if not already present. Returns the

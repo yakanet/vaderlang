@@ -462,7 +462,7 @@ collect_direct_imports :: fn(
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram!>,
 ) -> TypedProgram[]! {
-    out: TypedProgram[]! = []
+    out: TypedProgram![]! = []
     // The loader already resolved every import. A module imported as
     // `import "path"` declares `module "path"` (module-system invariant), so
     // map each loaded module's declared name to its id and look the import up

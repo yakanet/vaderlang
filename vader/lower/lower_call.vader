@@ -358,7 +358,7 @@ resolve_namespace_member :: fn(ctx: FnLowerCtx, namespace_symbol: Symbol, name: 
 // `try_fold_unbaked_const`. Returns null for a non-const symbol, or a const
 // whose value isn't a foldable scalar — the caller keeps a real reference.
 // Shared by `lower_ident` (every ident) and `try_lower_namespace_const`.
-fold_const_symbol :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) -> LoweredExpr | null {
+fold_const_symbol :: fn(ctx: FnLowerCtx!, sym: Symbol, type: Type, span: Span) -> LoweredExpr | null {
     baked :: lookup_const_baked_value(ctx, sym)
     if baked == null {
         // Bake missed. Gate on Const kind so the common baked-miss (every

@@ -38,7 +38,7 @@ SlotVal :: struct {
 ///
 /// @param p  the CFG project (post escape-annotation).
 /// @return   a fresh project with redundant `ArrayGet`s rewritten to `Move`.
-export array_load_forward_project :: fn(p: CFGProject) -> CFGProject {
+export array_load_forward_project :: fn(p: CFGProject!) -> CFGProject {
     out :: MutableMap<string, CFGModule> {}
     for [id, m] in p.modules {
         new_fns: CFGFunction[]! = []
@@ -48,7 +48,7 @@ export array_load_forward_project :: fn(p: CFGProject) -> CFGProject {
     return CFGProject { ...p, .modules = out }
 }
 
-forward_function :: fn(fn_: CFGFunction) -> CFGFunction {
+forward_function :: fn(fn_: CFGFunction!) -> CFGFunction {
     new_blocks: BasicBlock[]! = []
     for b in fn_.blocks {
         new_blocks.push(BasicBlock { ...b, .instructions = forward_block(b.instructions) })

@@ -22,7 +22,7 @@ export check_block :: fn(
     expected: Type | null,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
-    ctx: FnContext | null,
+    ctx: FnContext! | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     // Track flow-narrowing pushed by divergent guards (`if x is T
@@ -101,7 +101,7 @@ export check_stmt :: fn(
     stmt: AST.Stmt,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
-    ctx: FnContext | null,
+    ctx: FnContext! | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     match stmt {
@@ -567,7 +567,7 @@ emit_mismatch_if :: fn(
 // Resolve the effective fn-context: the arg-side `ctx` when present, else the
 // walk-global `current_fn_ctx` (the recursive `infer_if` / `infer_match` paths
 // pass `ctx = null`, so the body's return / yield targets need this fallback).
-resolve_ctx :: fn(ctx: FnContext | null, typed: TypedProgram) -> FnContext! | null {
+resolve_ctx :: fn(ctx: FnContext! | null, typed: TypedProgram) -> FnContext! | null {
     if ctx != null {
         return ctx
     }
@@ -598,7 +598,9 @@ check_let :: fn(
         _       -> {
             declared = ann
             if !flows_into(got, ann, s.value.id, typed) {
-                diags.push(mismatch_diagnostic(got, ann, s.span, .TypeMismatch))
+                diags.push(mismatch_diagnostic_hinted(
+                    got, ann, s.span, .TypeMismatch,
+                    mutability_level_hint(s.value, got, ann, typed)))
             }
         }
     }
@@ -867,7 +869,9 @@ emit_assign_mismatch_if :: fn(
 ) -> void {
     if expected == null                          { return }
     if flows_into(got, expected, node_id, typed) { return }
-    if fn_mutability_widens(got, expected) {
+    // Both mutability families take the dedicated wording — "cannot assign A to a
+    // slot of type B" says nothing when A and B differ only by a marker.
+    if fn_mutability_widens(got, expected) || struct_mutability_widens(got, expected) {
         diags.push(mismatch_diagnostic(got, expected, span, .AssignTypeMismatch))
         return
     }
@@ -986,6 +990,10 @@ record_local_producer :: fn(s: AST.LetStmt, typed: TypedProgram!) -> void {
     // Positive form throughout : an `as` binding does not survive a negated `is`.
     if s.binding is AST.SimpleBinding as sb {
         local_sym :: typed.resolved.idents[sb.name_span.hash()] ?? return
+        ann :: s.ty
+        if ann !is null {
+            typed.local_annotation[local_sym.id] = ann
+        }
         if s.value is AST.CallExpr as call {
             if call.callee is AST.IdentExpr as callee {
                 callee_sym :: typed.resolved.idents[callee.span.hash()] ?? return
@@ -999,6 +1007,35 @@ record_local_producer :: fn(s: AST.LetStmt, typed: TypedProgram!) -> void {
             typed.local_init_index[local_sym.id] = ix.target
         }
     }
+}
+
+/// The fix for a mismatch that is ONLY about mutability, named by the compiler.
+///
+/// Two types that print almost alike (`X![]` vs `X[]!`) differ at a LEVEL, and the
+/// reader has to work out which — so the compiler says it. The lever is the value's
+/// own declaration when it is an annotated local, else its producer.
+///
+/// Empty when the mismatch is not mutability-only: then "expected A, got B" is the
+/// whole story and a hint would mislead.
+///
+/// @param value     the expression that failed to fit.
+/// @param got       its type.
+/// @param expected  the slot's type.
+export mutability_level_hint :: fn(
+    value: AST.Expr, got: Type, expected: Type, typed: TypedProgram,
+) -> string {
+    if !equals_type(strip_mutability(got), strip_mutability(expected)) {
+        return ""
+    }
+    sym :: immutable_root_symbol(value, typed)
+    if sym is Symbol as s {
+        ann :: typed.local_annotation[s.id]
+        if ann !is null {
+            at :: ann.span
+            return " — `${s.name}` is declared `${display_type(got)}` at ${where_of(at)} : the level that differs is the element"
+        }
+    }
+    return mutation_fix_hint(value, typed)
 }
 
 /// The one actionable fix for a rejected write, named by the compiler.
@@ -1105,8 +1142,7 @@ module_const_hint_for :: fn(sym: Symbol, typed: TypedProgram) -> string {
     // advice is to WRITE one. Most module consts are in this shape, and the auto-pin
     // is what froze them — invisible in the source, hence worth spelling out.
     at :: where_of(decl.name_span)
-    return " — `${sym.name}` is frozen by the module-const default at ${at} :"
-        " give it a marked type (`${sym.name}: T[]!: …`)"
+    return " — `${sym.name}` is frozen by the module-const default at ${at} : give it a marked type (`${sym.name}: T[]!: …`)"
 }
 
 // Where the iterable's type is WRITTEN : a struct field's declared type. A bare
@@ -1262,7 +1298,7 @@ check_return :: fn(
     s: AST.ReturnStmt!,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
-    ctx: FnContext | null,
+    ctx: FnContext! | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     effective :: resolve_ctx(ctx, typed)
@@ -1316,7 +1352,7 @@ check_yield :: fn(
     s: AST.YieldStmt!,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
-    ctx: FnContext | null,
+    ctx: FnContext! | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     effective :: resolve_ctx(ctx, typed)
@@ -1350,7 +1386,7 @@ check_for :: fn(
     s: AST.ForStmt!,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
-    ctx: FnContext | null,
+    ctx: FnContext! | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     binding: string | null = null
@@ -1427,7 +1463,7 @@ check_loop_jump :: fn(
     span: Span,
     label: string | null,
     typed: TypedProgram!,
-    ctx: FnContext | null,
+    ctx: FnContext! | null,
     diags: Diagnostic[]!,
 ) -> void {
     // A bare `break`/`continue` targets the innermost loop (no diagnostic — reader
@@ -1497,7 +1533,7 @@ check_defer :: fn(
     s: AST.DeferStmt,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
-    ctx: FnContext | null,
+    ctx: FnContext! | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     // `defer` inside a generator is still forbidden in v1 — a generator can be
@@ -1519,7 +1555,7 @@ check_defer :: fn(
 
 // ---- support --------------------------------------------------------------
 
-bump_loop_depth :: fn(ctx: FnContext | null) -> FnContext | null {
+bump_loop_depth :: fn(ctx: FnContext! | null) -> FnContext | null {
     if ctx is null {
         return null
     }

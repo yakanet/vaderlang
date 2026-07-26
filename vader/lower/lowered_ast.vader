@@ -473,7 +473,7 @@ export LoweredBlock :: struct {
     span:     Span
     type:     Type
     stmts:    LoweredStmt[]
-    trailing: LoweredExpr! | null
+    trailing: LoweredExpr | null
 }
 
 export LoweredStructLit :: struct {

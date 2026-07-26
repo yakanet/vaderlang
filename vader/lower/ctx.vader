@@ -266,7 +266,7 @@ export LowerProjectCtx :: struct {
     /// inside the `drain_generic_fn_instances` fixpoint so the impl
     /// bodies' transitive free-fn harvests stay on the same cursor. Struct
     /// analogue of `array_blanket_elems`.
-    pending_generic_impl_recv: GenericInstance[]!
+    pending_generic_impl_recv: GenericInstance![]!
     /// Receiver keys already queued, so each erased instance is queued once
     /// (bounds the queue + avoids redundant per-receiver module scans).
     seen_generic_impl_recv: MutableSet<string>
@@ -282,7 +282,7 @@ export LowerProjectCtx :: struct {
     /// rounds ; the flush sorts + erasure-dedups + pushes it ONCE after the
     /// fixpoint converges, so emission order is a single deterministic sort.
     @internal
-    generic_collected:   PendingFnInstance[]!
+    generic_collected:   PendingFnInstance![]!
     generic_processed:   MutableMap<string, bool>
     generic_fn_cursor:   usize
     generic_recv_cursor: usize
@@ -486,7 +486,7 @@ export GenInlineSink :: struct {
 /// @param self_type    the receiver type for impl members ; null otherwise.
 /// @return             a fresh fn-body context.
 export new_fn_lower_ctx :: fn(
-    project: LowerProjectCtx, entry: MonoEntry, typed: TypedProgram,
+    project: LowerProjectCtx!, entry: MonoEntry, typed: TypedProgram,
     subst: Substitution, return_type: Type, self_type: Type | null,
 ) -> FnLowerCtx! {
     return FnLowerCtx {

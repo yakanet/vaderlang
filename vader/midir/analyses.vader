@@ -439,8 +439,8 @@ export find_loop_exits :: fn(
 /// Per-block live-in / live-out sets. Standard backward dataflow on
 /// the use/def of each block. Used by DCE (kill-dead-stores).
 export Liveness :: struct {
-    live_in:  MutableSet<LocalId>[]
-    live_out: MutableSet<LocalId>[]
+    live_in:  MutableSet<LocalId>![]
+    live_out: MutableSet<LocalId>![]
 }
 
 export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
@@ -468,8 +468,8 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
     succs: BlockId[][]! = [] * n
     for b in fn_.blocks { succs.push(successors_of(b)) }
 
-    live_in:  MutableSet<LocalId>[]! = filled(n, () -> MutableSet<LocalId> {})
-    live_out: MutableSet<LocalId>[]! = filled(n, () -> MutableSet<LocalId> {})
+    live_in:  MutableSet<LocalId>![]! = filled(n, () -> MutableSet<LocalId> {})
+    live_out: MutableSet<LocalId>![]! = filled(n, () -> MutableSet<LocalId> {})
 
     // Double-buffered fixpoint : recompute each block's live_out / live_in into
     // two reusable SCRATCH sets (cleared each round), then SWAP a scratch with
