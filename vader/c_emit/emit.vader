@@ -340,39 +340,49 @@ emit_data_pool :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
             emit_agg_data_entry(out, i, ad, array_type_id, elem_tag, atom_of, ctx)
         }
     }
-    emit_atom_root_table(ctx, out)
+    emit_global_const_roots(ctx, out)
     out.append("\n")
 }
 
-// A static table of the mutable module-const STRING arrays, registered as atom
-// roots by `main`. Their storage is a writable global, which belongs to no other
-// root set, so a runtime-built string stored in one used to be swept out from under
-// it — measured as 50/50 corrupted slots after GC churn. Only string arrays need it:
-// a mutable primitive array holds no atom, and an aggregate can't be mutable (T3076).
-emit_atom_root_table :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
-    indices :: mutable_string_pool_indices(ctx.module.data_pool)
+// A static table of the mutable module-const arrays plus a PERMANENT GC frame
+// rooting them, installed as the base of the frame chain by `main`.
+//
+// A writable global belongs to no other root set — the frame chain and the defer
+// stack are it — so its buffer was invisible to the collector. Growing one
+// reallocates the buffer on the GC heap, and a runtime-built string stored in one
+// had its atom swept (measured: 50/50 slots corrupted after GC churn).
+//
+// The frame needs NO new runtime machinery: `stack_objs` was built for
+// stack-allocated structs — an off-arena object that never moves but whose pointer
+// FIELDS must be forwarded — and a static global is exactly that case.
+// `vader_gc_scan_object` reads the array's type-info row, sees `KIND_ARRAY`, and
+// forwards `.buf` through `vader_gc_scan_raw` (write barrier included). Atoms need
+// their own pass because `vader_atom_mark_roots` only walks a frame's boxed `ptrs`.
+emit_global_const_roots :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
+    indices :: mutable_pool_indices(ctx.module.data_pool)
     if indices.len() == 0 {
         return
     }
-    out.append("static vader_array_t* const vader_atom_root_table[] = {")
+    out.append("static vader_array_t* vader_global_const_arrays[] = {")
     for k in 0..<indices.len() {
         if k > 0 { out.append(",") }
         out.append(" &vader_data_${indices[k]}")
     }
     out.append(" };\n")
+    out.append("static vader_gc_frame_t vader_global_const_frame = ")
+    out.append("{ NULL, 0u, 0u, NULL, NULL, ${indices.len()}u, (void**) vader_global_const_arrays };\n")
 }
 
-/// Pool indices of the mutable `string[]` entries, in pool order.
+/// Pool indices of the mutable entries, in pool order — the writable globals that
+/// need rooting. Aggregates are always read-only (T3076), so only the two flat
+/// kinds can appear.
 ///
 /// @param pool  the module's data pool.
-/// @return      the indices whose entry is a mutable `BcStrData` ; empty when none.
-mutable_string_pool_indices :: fn(pool: BcDataEntry[]) -> usize[] {
+/// @return      the indices whose entry is mutable ; empty when none.
+mutable_pool_indices :: fn(pool: BcDataEntry[]) -> usize[] {
     out: usize[]! = []
     for i in 0..<pool.len() {
-        e :: pool[i]
-        if e is BcStrData as sd {
-            if sd.mutable { out.push(i) }
-        }
+        if data_entry_mutable(pool[i]) { out.push(i) }
     }
     return out
 }
@@ -932,10 +942,13 @@ emit_main :: fn(ctx: EmitCtx, out: StringBuilder!, entry_mangled: string) -> voi
     // Atom table init must precede any string interning. `atexit`
     // handlers fire LIFO, so atom shutdown runs after gc shutdown.
     out.append("    vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);\n")
-    // Before any Vader code runs, so the first collection already sees them.
-    root_count :: mutable_string_pool_indices(ctx.module.data_pool).len()
+    // Before any Vader code runs, so the very first collection already sees them.
+    // The frame becomes the BASE of the chain: every later frame links onto it and
+    // nothing ever pops below it.
+    root_count :: mutable_pool_indices(ctx.module.data_pool).len()
     if root_count > 0 {
-        out.append("    vader_atom_roots_register(vader_atom_root_table, ${root_count}u);\n")
+        out.append("    vader_gc_top = &vader_global_const_frame;\n")
+        out.append("    vader_atom_roots_register(vader_global_const_arrays, ${root_count}u);\n")
     }
     out.append("    atexit(vader_atom_shutdown);\n")
     out.append("    atexit(vader_gc_shutdown);\n")

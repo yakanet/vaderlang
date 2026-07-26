@@ -488,142 +488,141 @@
                 __buf_11 :Buffer
               arg1:
                 __off_12 :usize
-    let n: i32 = int(7) :i32
-    assign
-      target:
-        index :string
-          on:
-            SLOTS :string[]!
-          ix:
-            int(0) :i32
-      value:
-        block :string
-          let __buf_13: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(28) :usize
-          let __off_14: usize = int(0) :usize
-          assign
-            target:
-              __off_14 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_13 :Buffer
-                arg1:
-                  __off_14 :usize
-                arg2:
-                  "runtime-" :string
-          assign
-            target:
-              __off_14 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_13 :Buffer
-                arg1:
-                  __off_14 :usize
-                arg2:
-                  cast → i64
-                    n :i32
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_13 :Buffer
-              arg1:
-                __off_14 :usize
-    assign
-      target:
-        index :string
-          on:
-            SLOTS :string[]!
-          ix:
-            int(1) :i32
-      value:
-        "literal" :string
-    let junk: i32 = int(0) :i32
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
-        let s: string =
-          block :string
-            let __buf_15: Buffer =
-              call :Buffer
-                callee:
-                  new_byte_buffer :Buffer
-                arg0:
-                  int(36) :usize
-            let __off_16: usize = int(0) :usize
-            assign
-              target:
-                __off_16 :usize
-              value:
-                call :usize
-                  callee:
-                    write_string_at :usize
-                  arg0:
-                    __buf_15 :Buffer
-                  arg1:
-                    __off_16 :usize
-                  arg2:
-                    "garbage-" :string
-            assign
-              target:
-                __off_16 :usize
-              value:
-                call :usize
-                  callee:
-                    write_int :usize
-                  arg0:
-                    __buf_15 :Buffer
-                  arg1:
-                    __off_16 :usize
-                  arg2:
-                    cast → i64
-                      i :i32
-            assign
-              target:
-                __off_16 :usize
-              value:
-                call :usize
-                  callee:
-                    write_string_at :usize
-                  arg0:
-                    __buf_15 :Buffer
-                  arg1:
-                    __off_16 :usize
-                  arg2:
-                    "-padding" :string
-            ~>
-              call :string
-                callee:
-                  finish_buffer :string
-                arg0:
-                  __buf_15 :Buffer
-                arg1:
-                  __off_16 :usize
         assign
           target:
-            junk :i32
+            index :string
+              on:
+                SLOTS :string[]!
+              ix:
+                cast → usize
+                  i :i32
+          value:
+            block :string
+              let __buf_13: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    int(33) :usize
+              let __off_14: usize = int(0) :usize
+              assign
+                target:
+                  __off_14 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_13 :Buffer
+                    arg1:
+                      __off_14 :usize
+                    arg2:
+                      "runtime-slot-" :string
+              assign
+                target:
+                  __off_14 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_13 :Buffer
+                    arg1:
+                      __off_14 :usize
+                    arg2:
+                      cast → i64
+                        i :i32
+              ~>
+                call :string
+                  callee:
+                    finish_buffer :string
+                  arg0:
+                    __buf_13 :Buffer
+                  arg1:
+                    __off_14 :usize
+        assign
+          target:
+            i :i32
           value:
             add :i32
               l:
-                junk :i32
+                i :i32
               r:
-                cast → i32
-                  call :usize
-                    callee:
-                      byte_len :usize
-                    arg0:
-                      s :string
+                int(1) :i32
+    call :void
+      callee:
+        collect :fn() -> void
+    let lost: i32 = int(0) :i32
+    block :void
+      let i: i32 = int(0) :i32
+      loop while (<…>)
+        if :void
+          cond:
+            neq :bool
+              l:
+                index :string
+                  on:
+                    SLOTS :string[]!
+                  ix:
+                    cast → usize
+                      i :i32
+              r:
+                block :string
+                  let __buf_15: Buffer =
+                    call :Buffer
+                      callee:
+                        new_byte_buffer :Buffer
+                      arg0:
+                        int(33) :usize
+                  let __off_16: usize = int(0) :usize
+                  assign
+                    target:
+                      __off_16 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_string_at :usize
+                        arg0:
+                          __buf_15 :Buffer
+                        arg1:
+                          __off_16 :usize
+                        arg2:
+                          "runtime-slot-" :string
+                  assign
+                    target:
+                      __off_16 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_int :usize
+                        arg0:
+                          __buf_15 :Buffer
+                        arg1:
+                          __off_16 :usize
+                        arg2:
+                          cast → i64
+                            i :i32
+                  ~>
+                    call :string
+                      callee:
+                        finish_buffer :string
+                      arg0:
+                        __buf_15 :Buffer
+                      arg1:
+                        __off_16 :usize
+          then:
+            assign
+              target:
+                lost :i32
+              value:
+                add :i32
+                  l:
+                    lost :i32
+                  r:
+                    int(1) :i32
         assign
           target:
             i :i32
@@ -649,7 +648,7 @@
               on:
                 SLOTS :string[]!
               ix:
-                int(1) :i32
+                int(23) :i32
           let __buf_19: Buffer =
             call :Buffer
               callee:
@@ -657,7 +656,7 @@
               arg0:
                 add :usize
                   l:
-                    int(21) :usize
+                    int(52) :usize
                   r:
                     add :usize
                       l:
@@ -737,7 +736,34 @@
                 arg1:
                   __off_20 :usize
                 arg2:
-                  " churned=" :string
+                  " lost=" :string
+          assign
+            target:
+              __off_20 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_19 :Buffer
+                arg1:
+                  __off_20 :usize
+                arg2:
+                  cast → i64
+                    lost :i32
+          assign
+            target:
+              __off_20 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_19 :Buffer
+                arg1:
+                  __off_20 :usize
+                arg2:
+                  "/24 collected=" :string
           assign
             target:
               __off_20 :usize
@@ -752,7 +778,9 @@
                 arg2:
                   gt :bool
                     l:
-                      junk :i32
+                      call :i32
+                        callee:
+                          collections :fn() -> i32
                     r:
                       int(0) :i32
           ~>
@@ -879,19 +907,149 @@
                 __buf_21 :Buffer
               arg1:
                 __off_22 :usize
+    block :void
+      let i: i32 = int(0) :i32
+      loop while (<…>)
+        LoweredArrayPush
+        assign
+          target:
+            i :i32
+          value:
+            add :i32
+              l:
+                i :i32
+              r:
+                int(1) :i32
+    call :void
+      callee:
+        collect :fn() -> void
+    let grown: i32 = int(0) :i32
+    block :void
+      let i: i32 = int(0) :i32
+      loop while (<…>)
+        if :void
+          cond:
+            eq :bool
+              l:
+                index :i32
+                  on:
+                    COUNTS :i32[]!
+                  ix:
+                    add :usize
+                      l:
+                        cast → usize
+                          i :i32
+                      r:
+                        int(3) :usize
+              r:
+                cast → i32
+                  i :i32
+          then:
+            assign
+              target:
+                grown :i32
+              value:
+                add :i32
+                  l:
+                    grown :i32
+                  r:
+                    int(1) :i32
+        assign
+          target:
+            i :i32
+          value:
+            add :i32
+              l:
+                i :i32
+              r:
+                int(1) :i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_23: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(54) :usize
+          let __off_24: usize = int(0) :usize
+          assign
+            target:
+              __off_24 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_23 :Buffer
+                arg1:
+                  __off_24 :usize
+                arg2:
+                  "grown=" :string
+          assign
+            target:
+              __off_24 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_23 :Buffer
+                arg1:
+                  __off_24 :usize
+                arg2:
+                  cast → i64
+                    grown :i32
+          assign
+            target:
+              __off_24 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_23 :Buffer
+                arg1:
+                  __off_24 :usize
+                arg2:
+                  "/40 len=" :string
+          assign
+            target:
+              __off_24 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_23 :Buffer
+                arg1:
+                  __off_24 :usize
+                arg2:
+                  cast → u64
+                    LoweredArrayLen
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_23 :Buffer
+              arg1:
+                __off_24 :usize
     let total: i32 = int(0) :i32
     block :void
-      let __for_arr_23: i32[] = LIMITS :i32[]
-      let __for_len_24: usize =
+      let __for_arr_25: i32[] = LIMITS :i32[]
+      let __for_len_26: usize =
         LoweredArrayLen
-      let __for_i_25: usize = int(0) :usize
+      let __for_i_27: usize = int(0) :usize
       loop while (<…>)
         let v: i32 =
           index :i32
             on:
-              __for_arr_23 :i32[]
+              __for_arr_25 :i32[]
             ix:
-              __for_i_25 :usize
+              __for_i_27 :usize
         assign
           target:
             total :i32
@@ -903,11 +1061,11 @@
                 v :i32
         assign
           target:
-            __for_i_25 :usize
+            __for_i_27 :usize
           value:
             add :usize
               l:
-                __for_i_25 :usize
+                __for_i_27 :usize
               r:
                 int(1) :usize
     call :void
@@ -915,37 +1073,37 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_26: Buffer =
+          let __buf_28: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(26) :usize
-          let __off_27: usize = int(0) :usize
+          let __off_29: usize = int(0) :usize
           assign
             target:
-              __off_27 :usize
+              __off_29 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_26 :Buffer
+                  __buf_28 :Buffer
                 arg1:
-                  __off_27 :usize
+                  __off_29 :usize
                 arg2:
                   "total=" :string
           assign
             target:
-              __off_27 :usize
+              __off_29 :usize
             value:
               call :usize
                 callee:
                   write_int :usize
                 arg0:
-                  __buf_26 :Buffer
+                  __buf_28 :Buffer
                 arg1:
-                  __off_27 :usize
+                  __off_29 :usize
                 arg2:
                   cast → i64
                     total :i32
@@ -954,7 +1112,7 @@
               callee:
                 finish_buffer :string
               arg0:
-                __buf_26 :Buffer
+                __buf_28 :Buffer
               arg1:
-                __off_27 :usize
+                __off_29 :usize
     return int(0) :i32

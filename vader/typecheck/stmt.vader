@@ -1002,9 +1002,9 @@ ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
 }
 
 /// True when a module const's declared type is the one shape with real storage:
-/// a MUTABLE array whose elements are values (no heap pointer in the static
-/// buffer). Its capacity is fixed — growing it would allocate, and the collector's
-/// root set never sees a global, hence T3077 on `push` / `push_all`.
+/// a MUTABLE array of flat elements, emitted as a writable global. Growing it is
+/// fine — `emit_global_const_roots` roots the array so the collector forwards a
+/// reallocated buffer.
 ///
 /// @param t  the const's declared type, or null when it has none.
 export has_mutable_const_storage :: fn(t: Type | null) -> bool {
@@ -1012,20 +1012,6 @@ export has_mutable_const_storage :: fn(t: Type | null) -> bool {
         return !a.immutable && is_value_element(a.element)
     }
     return false
-}
-
-/// True when `e`'s access path is rooted in a module const with real storage —
-/// the receiver of a growth attempt T3077 must reject.
-///
-/// @param e  the receiver expression of a mutating method.
-export rooted_in_mutable_const :: fn(e: AST.Expr, typed: TypedProgram) -> bool = @partial match e {
-    is AST.IdentExpr as x  -> {
-        sym :: typed.resolved.idents[x.span.hash()] ?? return false
-        sym.kind == .Const && has_mutable_const_storage(typed.decl_types[sym.id])
-    }
-    is AST.FieldExpr as f  -> rooted_in_mutable_const(f.target, typed)
-    is AST.IndexExpr as ix -> rooted_in_mutable_const(ix.target, typed)
-    _                      -> false
 }
 
 // Iterating an immutable value lends out immutable elements: `for it in CFG.items`

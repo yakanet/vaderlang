@@ -7,7 +7,6 @@
   @comptime  LIMITS               = [10_i32, 20_i32, 30_i32]
   @comptime  MAX                  = 42_i32
   @comptime  PAIR                 = [i32, string] { ._0 = 7_i32, ._1 = "seven" }
-  @comptime  SLOTS                = ["", ""]
 
 ## generic instances
   ArrayOps<T>

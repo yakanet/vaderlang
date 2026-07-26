@@ -744,17 +744,17 @@ declare_const :: fn(
     }
 }
 
-// A `!` on a module const asks for the one shape that can have real storage: a
-// fixed-capacity global whose buffer is a plain `static` the GC never allocated,
-// never moves and never has to trace. That holds exactly while every element is a
-// value — a primitive (`string` included: it is an interned `u32` atom), an enum,
-// or a distinct newtype over one of those.
+// A `!` on a module const asks for real storage: a writable global, initialised
+// once, that grows like any other array (`emit_global_const_roots` roots it, so a
+// reallocated buffer is forwarded, not collected).
 //
-// A struct / tuple / nested-array element would put a GC POINTER in that static
-// buffer, and the collector's root set is the frame chain plus the defer stack —
-// it would never see it, so the pointee would be freed (or moved, the young gen
-// copies) with the global left dangling. Same for a bare struct or map const.
-// T3076 until a global root registry exists.
+// The restriction is the POOL's, not the collector's. A flat entry — primitive
+// (`string` included: it is an interned `u32` atom), enum, or a distinct newtype
+// over one — carries a storage class. An aggregate entry does not: its struct
+// elements are themselves emitted as separate `static const` objects, so a mutable
+// aggregate has two independent levels to decide (the slots, and the elements), and
+// that surface stays closed for now. A bare struct or map const isn't pooled at all,
+// so it has no storage to make writable. T3076.
 reject_mutable_module_const :: fn(
     ty: Type, annotation: AST.TypeExpr, diags: Diagnostic[]!,
 ) -> void {
@@ -781,10 +781,9 @@ reject_mutable_module_const :: fn(
     if ty is ArrayType as a {
         diags.push(typecheck_error(
             .ModuleConstMutableElement, annotation.span,
-            "`${display_type(ty)}` — a mutable module const is a fixed-capacity global, "
-            + "so the ARRAY level takes the marker and every element must be a value "
-            + "(a primitive, an enum, or a distinct over one) ; "
-            + "`${display_type_key(a.element)}` would put a heap pointer in it"))
+            "`${display_type(ty)}` — only a flat element type can be a writable global, "
+            + "and the ARRAY level takes the marker : a primitive, an enum, or a distinct "
+            + "over one ; `${display_type_key(a.element)}` is pooled as an aggregate"))
         return
     }
     diags.push(typecheck_error(
@@ -813,8 +812,8 @@ marks_mutable_anywhere :: fn(w: AST.TypeExpr) -> bool {
     return false
 }
 
-// Element types that occupy a static buffer without any heap pointer in it. A
-// distinct newtype is zero-cost, so it follows its backing.
+// Element types the data pool emits as a FLAT buffer, the one shape that carries a
+// storage class today. A distinct newtype is zero-cost, so it follows its backing.
 is_value_element :: fn(t: Type) -> bool {
     if t is DistinctType as d { return is_value_element(d.backing) }
     return t is PrimitiveType | EnumType

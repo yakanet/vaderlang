@@ -1139,11 +1139,12 @@ static void vader_atom_mark_cstack_conservative(void) {
     }
 }
 
-/* Mutable module-const string arrays (`X: string[]!: [...]`). Their storage is a
- * writable global, which is in NO other root set — the frame chain and the defer
- * stack are it — so a runtime-built string stored in one was swept and its atom id
- * left pointing at a recycled entry. Measured: 50/50 slots corrupted after GC
- * churn. Registered once by `main`.
+/* Mutable module-const arrays (`X: string[]!: [...]`). Their storage is a writable
+ * global, which is in NO other root set — the frame chain and the defer stack are it
+ * — so a runtime-built string stored in one was swept and its atom id left pointing
+ * at a recycled entry. Measured: 50/50 slots corrupted after GC churn. Registered
+ * once by `main`, which also installs a permanent frame rooting the same arrays as
+ * OBJECTS (see `emit_global_const_roots`).
  *
  * A SCAN suffices, unlike object roots: an atom id is stable, atoms never move, so
  * there is nothing to write back. Only string arrays register — a mutable
@@ -1160,6 +1161,10 @@ static void vader_atom_mark_global_arrays(void) {
     for (size_t i = 0; i < g_atom_root_len; i++) {
         vader_array_t* a = g_atom_root_arrays[i];
         if (a == NULL || a->buf == NULL) continue;
+        /* Only a boxed buffer can hold an atom id — a primitive one registers for
+         * OBJECT rooting (its buffer can be reallocated by a push) but has nothing
+         * to mark here. */
+        if (a->buf->element_kind != VADER_ARRAY_KIND_BOXED) continue;
         vader_box_t* slots = vader_array_box_slots(a->buf);
         for (size_t k = 0; k < a->length; k++) {
             vader_atom_mark_box(&slots[a->offset + k]);

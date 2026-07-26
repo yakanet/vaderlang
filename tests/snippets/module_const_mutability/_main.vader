@@ -8,13 +8,12 @@
 //   - unmarked  -> a `static const` blob in `.rodata`, shared process-wide.
 //   - `!`       -> a writable GLOBAL, initialised once, mutable IN PLACE.
 //
-// `!` is restricted to an array of VALUE elements (a primitive — `string`
-// included, it is an interned `u32` atom — an enum, or a distinct over one).
-// A struct or nested-array element would put a heap pointer in a static buffer,
-// and the collector's root set is the frame chain plus the defer stack: it would
-// never see it. That is T3076 (`t3076_mutable_module_const_element`), and growth
-// is T3077 (`t3077_grow_module_const`) — a fixed-capacity buffer has nothing to
-// grow into.
+// A marked const behaves like any other mutable array — `push` included: a
+// permanent GC frame roots it (`emit_global_const_roots`), so a reallocated buffer
+// is forwarded rather than collected. `!` is restricted to a FLAT element type (a
+// primitive — `string` included, it is an interned `u32` atom — an enum, or a
+// distinct over one), which is the one pool entry kind that carries a storage
+// class: T3076 (`t3076_mutable_module_const_element`).
 //
 // Two regressions this pins down, both of which lost writes SILENTLY:
 //   - `fold_const_symbol` inlined a mutable array's baked value at each use site,
@@ -22,15 +21,30 @@
 //   - `[0] * n`, the idiomatic fixed-size table, lowers to an `array.repeat`
 //     intrinsic rather than a literal and fell out of the pool entirely.
 //
-// The native run is the oracle: storage class is a c-emit decision, and writing
-// through a `static const` lands in `.rodata` — a segfault, not a diagnostic.
-// A mutable `string[]` also has to survive collection: its atoms live only in the
-// global, so `emit_atom_root_table` registers it (measured before the fix:
-// 50/50 slots corrupted after GC churn).
+// VM/native EQUIVALENCE is the point of this snippet, and both harnesses share
+// `vm.snapshot` as their oracle: `vader-vm:` feeds the committed `.virt` to the
+// Vader VM (which also round-trips the `mut` tag through the text-IR reader), and
+// `c-emit-run:` compiles the emitted C and runs it. The two backends implement this
+// storage class in genuinely different ways — a `static` global on one side, a
+// shared `ArrayVal` in `VmState.data_pool` on the other — so agreement is worth
+// pinning down. On the native side alone, writing through a `static const` lands in
+// `.rodata`: a segfault, not a diagnostic.
+//
+// The `collect()` below is CALIBRATED, not decorative. A mutable global is in no
+// other root set, so its buffer and its atoms used to be swept out from under it.
+// Two things make the guard actually bite:
+//   - an explicit `collect()` rather than allocation churn — 20k small strings sit
+//     far below the default 16 MB young arena, so no collection ran at all and the
+//     regression went unguarded ;
+//   - ENOUGH slots that their atom ids are no longer on the C stack, which
+//     `vader_atom_mark_cstack_conservative` would otherwise retain by accident.
+// Measured with `vader_atom_mark_global_arrays` disabled: 18/24 slots corrupted,
+// 0/24 with it. One slot and no loop reported 0 either way — a worthless guard.
 
 module "snippet"
 
 import "std/io"
+import "std/runtime"
 
 Spec :: struct {
     name: string
@@ -64,8 +78,8 @@ PAIR: [i32, string]: [7, "seven"]
 // ---- marked : a writable global, mutable in place ------------------------
 
 COUNTS: i32[]!:    [0, 0, 0]
-SLOTS:  string[]!: ["", ""]
 // The repeat form is the idiomatic fixed-size table, and it pools like a literal.
+SLOTS:  string[]!: [""] * 24
 FLAGS:  bool[]!:   [false] * 4
 
 bump :: fn(i: usize) -> void {
@@ -83,21 +97,39 @@ main :: fn() -> i32 {
     bump(usize(2))
     println("counts=${COUNTS[0]},${COUNTS[1]},${COUNTS[2]}")
 
-    // A RUNTIME-built string: its atom is not permanent, so this only survives
-    // because the global is registered as an atom root.
-    n :: 7
-    SLOTS[0] = "runtime-${n}"
-    SLOTS[1] = "literal"
-    // Enough churn to force a collection between the write and the read.
-    junk := 0
-    for i in 0..<20000 {
-        s :: "garbage-${i}-padding"
-        junk = junk + i32(s.byte_len())
+    // RUNTIME-built strings: their atoms are not permanent, so these survive the
+    // collection below only because the global is registered as an atom root.
+    for i in 0..<24 {
+        SLOTS[usize(i)] = "runtime-slot-${i}"
     }
-    println("slots=${SLOTS[0]}/${SLOTS[1]} churned=${junk > 0}")
+    collect()
+    lost := 0
+    for i in 0..<24 {
+        if SLOTS[usize(i)] != "runtime-slot-${i}" {
+            lost = lost + 1
+        }
+    }
+    println("slots=${SLOTS[0]}/${SLOTS[23]} lost=${lost}/24 collected=${collections() > 0}")
 
     FLAGS[2] = true
     println("flags=${FLAGS[0]},${FLAGS[2]} len=${FLAGS.len()}")
+
+    // GROWTH past the initial capacity: the buffer is reallocated on the GC heap
+    // and hangs off the global, which only survives because the permanent frame
+    // roots the array as an object (`stack_objs`, the mechanism written for
+    // stack-allocated structs — an off-arena object whose pointer fields must be
+    // forwarded). The collect() below is what proves it.
+    for i in 0..<40 {
+        COUNTS.push(i32(i))
+    }
+    collect()
+    grown := 0
+    for i in 0..<40 {
+        if COUNTS[usize(i) + 3] == i32(i) {
+            grown = grown + 1
+        }
+    }
+    println("grown=${grown}/40 len=${COUNTS.len()}")
 
     // Reading is always available ; only writes are gated.
     total := 0

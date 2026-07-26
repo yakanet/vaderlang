@@ -1,18 +1,16 @@
-// A `!` on a module const asks for the one shape that can have real storage: a
-// fixed-capacity global whose buffer is a plain `static`. The GC never allocated
-// it, never moves it and never has to trace it — which holds exactly while every
-// element is a VALUE (a primitive, `string` included since it is an interned u32
-// atom, an enum, or a distinct over one).
+// A `!` on a module const asks for real storage: a writable global that grows like
+// any other array. The restriction is the POOL's, not the collector's — a permanent
+// GC frame roots these globals, so a reallocated buffer is forwarded, not collected.
 //
-// A struct / nested-array element would put a heap POINTER in that static buffer,
-// and the collector's root set is the frame chain plus the defer stack: it would
-// never see it, so the pointee would be freed — or moved, the young gen copies —
-// with the global left dangling. T3076 on each, until a global root registry for
-// object references exists.
+// A FLAT pool entry (primitive — `string` included, it is an interned u32 atom —
+// enum, or a distinct over one) carries a storage class. An AGGREGATE entry does
+// not: its struct elements are emitted as separate `static const` objects, so a
+// mutable aggregate has two independent levels to decide (the slots, and the
+// elements), and that surface stays closed. A bare struct or map const isn't pooled
+// at all, so it has no storage to make writable. T3076 on each.
 //
 // The marker is rejected at ANY level, not just the array's: `Spec![]` promises no
-// more than `Spec[]!` does (writing through either is T3070 anyway, a module const
-// has no path to write through), so it would only mislead.
+// more than `Spec[]!` does, so it would only mislead.
 module "snippet"
 
 Spec :: struct { code: i32 }

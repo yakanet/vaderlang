@@ -683,7 +683,9 @@ FLAGS:  bool[]!:   [false] * 8       // the repeat form pools like a literal
 bump :: fn(i: usize) -> void { COUNTS[i] = COUNTS[i] + 1 }   // persists across calls
 ```
 
-`!` is restricted to an **array of value elements** — a primitive (`string` included: it is an interned `u32` atom), an enum, or a distinct over one. A struct or nested-array element would put a heap pointer in a static buffer, and the collector's root set is the frame chain plus the defer stack: it would never see it. That is **T3076**, reported for a marker at any level (`Spec![]` promises no more than `Spec[]!`). **Growth** is **T3077** — a fixed-capacity buffer has nothing to grow into, so `push` / `push_all` are rejected while `arr[i] = v`, `clear` and `remove_last` stay. Both lift the day a global root registry for object references exists.
+A marked const behaves like any other mutable array, **`push` included** — a permanent GC frame roots these globals, so a reallocated buffer is forwarded rather than collected.
+
+`!` is restricted to a **flat element type** — a primitive (`string` included: it is an interned `u32` atom), an enum, or a distinct over one. That is the one pool entry kind carrying a storage class; an aggregate entry emits its struct elements as separate `static const` objects, so a mutable one would have two independent levels to decide. A bare struct or map const isn't pooled at all and has no storage to make writable. That is **T3076**, reported for a marker at any level (`Spec![]` promises no more than `Spec[]!`).
 
 **Inference**: an unannotated module-level array const is automatically pinned read-only — it has no runtime storage, so a write through it would be discarded rather than take effect. Annotating the type explicitly (`X: T[]!: [...]`) opts out. An **annotated local** takes the same read-only default; an unannotated one keeps its inferred type and stays owned.
 
@@ -1636,7 +1638,7 @@ Markers on function values are **contravariant**: a function that does not mutat
 
 #### Diagnostics
 
-Calling a `self!` method on a read-only receiver is T3071; handing a read-only value to a `!` parameter is T3072; writing through a read-only path is T3070, and through a read-only array T3042. On the marker itself: `T!!` is P1030, the marker on a parameter *name* (`x!: T`) is P1031 — it belongs on the type — a union mixing mutabilities is T3074, and a marker on a type with no interior is T3075. On a module const, a marker outside the one storable shape is T3076 and growing one is T3077. Writing the removed `const` qualifier is P1027.
+Calling a `self!` method on a read-only receiver is T3071; handing a read-only value to a `!` parameter is T3072; writing through a read-only path is T3070, and through a read-only array T3042. On the marker itself: `T!!` is P1030, the marker on a parameter *name* (`x!: T`) is P1031 — it belongs on the type — a union mixing mutabilities is T3074, and a marker on a type with no interior is T3075. On a module const, a marker outside the one storable shape is T3076. Writing the removed `const` qualifier is P1027.
 
 T3070/T3071/T3042 carry the fix as a hint: they name the declaration to annotate (`annotate \`out!\` at file:line:col`), pointing at the slot rather than at the failing write.
 
