@@ -356,8 +356,25 @@ parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[]!, strings:
     sp2 :: kind_payload.index_of(' ', 0)
     kind_name :: if sp2 < 0 { kind_payload } else { kind_payload_bytes[0..<usize(sp2)].bytes_to_string() }
     payload :: if sp2 < 0 { "" } else { kind_payload_bytes[usize(sp2) + 1..<kind_payload_bytes.len()].bytes_to_string() }
+    // `mut` before the kind marks a writable global (see `dump::storage_class`).
+    // Re-split once past it so the rest reads exactly as the read-only form.
+    if kind_name == "mut" {
+        pb :: payload.bytes()
+        sp3 :: payload.index_of(' ', 0)
+        inner_kind :: if sp3 < 0 { payload } else { pb[0..<usize(sp3)].bytes_to_string() }
+        inner_payload :: if sp3 < 0 { "" } else { pb[usize(sp3) + 1..<pb.len()].bytes_to_string() }
+        parse_data_entry_body(inner_kind, inner_payload, true, data_pool, strings)
+        return
+    }
+    parse_data_entry_body(kind_name, payload, false, data_pool, strings)
+}
+
+parse_data_entry_body :: fn(
+    kind_name: string, payload: string, mutable: bool,
+    data_pool: bc.BcDataEntry[]!, strings: string[],
+) -> void {
     if kind_name == "str" {
-        data_pool.push(bc.BcStrData { .values = parse_quoted_strings(payload) })
+        data_pool.push(bc.BcStrData { .values = parse_quoted_strings(payload), .mutable = mutable })
         return
     }
     if kind_name == "agg" {
@@ -383,7 +400,7 @@ parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[]!, strings:
         bytes_arr :: hex_to_bytes(hex_body)
         items = filled_indexed(bytes_arr.len() / esz, (i) -> read_le(bytes_arr, i * esz, esz))
     }
-    data_pool.push(bc.BcPrimData { .kind = kind, .items = items })
+    data_pool.push(bc.BcPrimData { .kind = kind, .items = items, .mutable = mutable })
 }
 
 /// Tokenise a `"v0" "v1" …` sequence into the decoded string values. Each token

@@ -433,6 +433,11 @@ export BcDataEntry :: BcPrimData | BcStrData | BcAggregateData
 export BcPrimData :: struct {
     kind: ArrayKind         // never Boxed — primitive arrays only
     items: u64[]
+    /// True for a mutable module const : the native backend emits a writable
+    /// global instead of a `static const` `.rodata` blob, and the VM shares the
+    /// one materialised array. Lives here rather than on `BcArray` because the
+    /// type table erases mutability by design — same layout either way.
+    mutable: bool = false
 }
 
 /// A pooled read-only `string[]`. `values` carries the element string values ; each
@@ -442,6 +447,8 @@ export BcPrimData :: struct {
 /// is a `vader_string_t` atom id, never an inline primitive.
 export BcStrData :: struct {
     values: string[]
+    /// See `BcPrimData.mutable`.
+    mutable: bool = false
 }
 
 /// A pooled aggregate read-only `T[]` — a struct / tuple array, or any array whose

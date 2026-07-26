@@ -3,6 +3,8 @@
 ## tests/snippets/const_fn_wrap
 
 ## generic instances
+  Spec<i32>
+  Spec<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>

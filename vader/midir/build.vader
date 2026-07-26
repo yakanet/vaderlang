@@ -151,11 +151,15 @@ convert_data_pool :: fn(entries: DataPoolEntry[]) -> BcDataEntry[] {
     out: BcDataEntry[]! = []
     for e in entries {
         match e {
-            is StrDataPoolEntry as se -> { out.push(BcStrData { .values = se.values }) }
+            is StrDataPoolEntry as se -> { out.push(BcStrData { .values = se.values, .mutable = se.mutable }) }
             is PrimDataPoolEntry as pe -> {
                 items: u64[]! = []
                 for v in pe.items { items.push(u64(v)) }
-                out.push(BcPrimData { .kind = array_kind_from_name(pe.element_type_name), .items = items })
+                out.push(BcPrimData {
+                    .kind    = array_kind_from_name(pe.element_type_name),
+                    .items   = items,
+                    .mutable = pe.mutable,
+                })
             }
             is AggregateDataPoolEntry as ae -> {
                 elements: BcDataValue[]! = []

@@ -729,18 +729,95 @@ declare_const :: fn(
         }
         // A module const's ANNOTATION is a written slot, so it takes the read-only
         // default like any other — `X: u32[]: [...]` is frozen, `X: u32[]!: [...]`
-        // opts out. Skipping the default here is what silently un-pooled
+        // asks for a shared mutable global. Skipping the default here is what
+        // silently un-pooled
         // `DECIMAL_DIGITS`: `inline_consts` routes an array into `.rodata` only when
         // its type is read-only, so the const went back to being rebuilt op-by-op at
         // every read site (10 `string.const` + `array.new` instead of one
         // `data.const`). The UNANNOTATED path gets the same result through
         // `auto_const_module_array`.
         _       -> {
-            typed.decl_types[sym.id] = apply_readonly_default(
-                type_from_expr(annotation, resolved, diags), annotation,
-            )
+            ty :: apply_readonly_default(type_from_expr(annotation, resolved, diags), annotation)
+            reject_mutable_module_const(ty, annotation, diags)
+            typed.decl_types[sym.id] = ty
         }
     }
+}
+
+// A `!` on a module const asks for the one shape that can have real storage: a
+// fixed-capacity global whose buffer is a plain `static` the GC never allocated,
+// never moves and never has to trace. That holds exactly while every element is a
+// value — a primitive (`string` included: it is an interned `u32` atom), an enum,
+// or a distinct newtype over one of those.
+//
+// A struct / tuple / nested-array element would put a GC POINTER in that static
+// buffer, and the collector's root set is the frame chain plus the defer stack —
+// it would never see it, so the pointee would be freed (or moved, the young gen
+// copies) with the global left dangling. Same for a bare struct or map const.
+// T3076 until a global root registry exists.
+reject_mutable_module_const :: fn(
+    ty: Type, annotation: AST.TypeExpr, diags: Diagnostic[]!,
+) -> void {
+    // Keyed on the WRITTEN marker, never on `type_is_immutable` : a primitive
+    // carries no mutability bit, so `type_is_immutable(i32)` is false and every
+    // ordinary `MAX: i32: 42` would look mutable. Scanned at EVERY level, because
+    // `Spec![]` is as misleading as `Spec[]!` — writing through it is T3070 either
+    // way (a module const's path root is frozen), so the marker promises nothing.
+    if !marks_mutable_anywhere(annotation) {
+        return
+    }
+    // The one shape that can have real storage : the ARRAY level marked, every
+    // element a value.
+    if ty is ArrayType as a {
+        if !a.immutable && is_value_element(a.element) {
+            return
+        }
+    }
+    // A scalar marker is T3075's business (`i32!` grants nothing anywhere, not
+    // just here) — don't double-report.
+    if is_value_only_type(ty) {
+        return
+    }
+    if ty is ArrayType as a {
+        diags.push(typecheck_error(
+            .ModuleConstMutableElement, annotation.span,
+            "`${display_type(ty)}` — a mutable module const is a fixed-capacity global, "
+            + "so the ARRAY level takes the marker and every element must be a value "
+            + "(a primitive, an enum, or a distinct over one) ; "
+            + "`${display_type_key(a.element)}` would put a heap pointer in it"))
+        return
+    }
+    diags.push(typecheck_error(
+        .ModuleConstMutableElement, annotation.span,
+        "`${display_type(ty)}` — only an ARRAY of value elements can be a mutable "
+        + "module const ; drop the `!` to get the read-only form"))
+}
+
+// Whether the written type carries a `!` at ANY level. `type_expr_marks_mutable`
+// only answers for the level it is handed, and a module const has to be judged on
+// the whole annotation.
+marks_mutable_anywhere :: fn(w: AST.TypeExpr) -> bool {
+    if w is AST.MutableTypeExpr { return true }
+    if w is AST.ArrayTypeExpr as a { return marks_mutable_anywhere(a.element) }
+    if w is AST.SeqLitExpr as t {
+        for el in t.elements {
+            if marks_mutable_anywhere(el) { return true }
+        }
+        return false
+    }
+    if w is AST.BinaryExpr as b {
+        if b.op == BinaryOp.BitOr {
+            return marks_mutable_anywhere(b.left) || marks_mutable_anywhere(b.right)
+        }
+    }
+    return false
+}
+
+// Element types that occupy a static buffer without any heap pointer in it. A
+// distinct newtype is zero-cost, so it follows its backing.
+is_value_element :: fn(t: Type) -> bool {
+    if t is DistinctType as d { return is_value_element(d.backing) }
+    return t is PrimitiveType | EnumType
 }
 
 /// Resolve the type a `Name :: <type-expr>` declaration registers. A

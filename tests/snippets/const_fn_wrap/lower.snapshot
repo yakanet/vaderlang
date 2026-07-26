@@ -1,37 +1,36 @@
 # Lower
 
 ## snippet
-  struct snippet$Spec { name: string, code: i32 }
-  fn __const_snippet$SPECS() -> Spec[]!
+  fn __const_snippet$SPECS() -> Spec<i32>[]
     ~>
-      array :Spec[]!
-        Spec! {
+      array :Spec<i32>[]
+        Spec<i32>! {
           name: "alpha" :string
           code: int(10) :i32
         }
-        Spec! {
+        Spec<i32>! {
           name: "beta" :string
           code: int(20) :i32
         }
-        Spec! {
+        Spec<i32>! {
           name: "gamma" :string
           code: int(30) :i32
         }
-        Spec! {
+        Spec<i32>! {
           name: "delta" :string
           code: int(40) :i32
         }
   fn snippet$lookup(name: string) -> i32
     block :void
-      let __for_arr_0: Spec[]! = SPECS :Spec[]!
+      let __for_arr_0: Spec<i32>[] = SPECS :Spec<i32>[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
       loop while (<…>)
-        let s: Spec =
-          index :Spec
+        let s: Spec<i32> =
+          index :Spec<i32>
             on:
-              __for_arr_0 :Spec[]!
+              __for_arr_0 :Spec<i32>[]
             ix:
               __for_i_2 :usize
         if :void
@@ -39,13 +38,13 @@
             eq :bool
               l:
                 .name :string
-                  s :Spec
+                  s :Spec<i32>
               r:
                 name :string
           then:
             return
               .code :i32
-                s :Spec
+                s :Spec<i32>
         assign
           target:
             __for_i_2 :usize
@@ -162,3 +161,5 @@
               arg1:
                 __off_3 :usize
     return int(0) :i32
+  struct snippet$Spec__i32 { name: string, code: i32 }
+  struct snippet$Spec__Any { name: string, code: Any }

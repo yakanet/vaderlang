@@ -4,31 +4,33 @@
 // reference becomes a `call` to it. Guards the Vader-emitter side of that path
 // (the suite never exercises the Vader emitter outside VADER_SELF_EMIT).
 //
-// The `!` on `: Spec[]!:` is LOAD-BEARING — do not "clean it up". Every module
-// const is read-only, annotated or not (`auto_const_module_array` for the
-// unannotated ones, the read-only default for the annotated ones), and
-// `inline_consts::try_data_pool` refuses only MUTABLE arrays. So without the `!`
-// SPECS is baked into the data pool instead — a path `_diag_comptime_struct`
-// already covers, leaving fn-wrap with no regression guard.
+// The GENERIC struct element is LOAD-BEARING — do not "clean it up" to a plain
+// `Spec`. Every module const is read-only (`auto_const_module_array` for the
+// unannotated ones, the read-only default for the annotated ones), so the pool
+// would otherwise bake this array and leave fn-wrap with no regression guard.
+// `inline_consts::is_bakeable_struct` refuses a struct carrying type args
+// (`st.args.len() > 0`), which is what keeps this const on the fn-wrap path.
 //
-// The marker does NOT grant mutation here: a module const has no storage, so a
-// write through it is still T3070 whatever its type says. On a module const `!`
-// means exactly "keep it out of `.rodata`".
+// A `!` used to serve the same purpose here, but a marker on a module const is
+// now T3076 unless it is an array of VALUE elements — a struct element would put
+// a heap pointer in a static buffer the GC never traces.
 
 module "snippet"
 
 import "std/io"
 
-Spec :: struct {
+// Generic on purpose : a type-arg-carrying struct is not bakeable, so the array
+// takes the fn-wrap accessor instead of a data-pool entry.
+Spec :: struct<T> {
     name: string
-    code: i32
+    code: T
 }
 
-SPECS: Spec[]!: [
-    Spec { .name = "alpha", .code = 10 },
-    Spec { .name = "beta",  .code = 20 },
-    Spec { .name = "gamma", .code = 30 },
-    Spec { .name = "delta", .code = 40 },
+SPECS: Spec<i32>[]: [
+    Spec<i32> { .name = "alpha", .code = 10 },
+    Spec<i32> { .name = "beta",  .code = 20 },
+    Spec<i32> { .name = "gamma", .code = 30 },
+    Spec<i32> { .name = "delta", .code = 40 },
 ]
 
 lookup :: fn(name: string) -> i32 {

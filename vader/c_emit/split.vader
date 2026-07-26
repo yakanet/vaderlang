@@ -143,7 +143,10 @@ comptime_atom_count :: fn(ctx: EmitCtx) -> i32 {
 /// `vader_vtable_table` + their counts are already declared by `vader.h`.
 emit_data_global_externs :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     for i in 0..<ctx.module.data_pool.len() {
-        out.append("extern const vader_array_t vader_data_${i};\n")
+        // The qualifier must match the definition in the globals TU — a mutable
+        // module const is a writable global, so `const` here would be a conflicting
+        // declaration.
+        out.append("extern ${storage_qualifier(data_entry_mutable(ctx.module.data_pool[i]))}vader_array_t vader_data_${i};\n")
     }
     out.append("extern const vader_atom_entry_t vader_atom_comptime_table[];\n")
     out.append("extern const size_t vader_type_size[];\n")

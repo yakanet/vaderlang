@@ -990,10 +990,42 @@ ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
     // A module-level const needs no table, and holds cross-module for free:
     // `build_wildcard_seed` seeds the ORIGINAL symbol, kind included.
     if sym.kind == .Const {
-        return true
+        // ... except for the ONE shape that gets real storage : a mutable array of
+        // value elements is emitted as a fixed-capacity global, so an element write
+        // through it lands somewhere and must be allowed. Every other module const
+        // is rebuilt at each read site, so a write would be discarded — frozen.
+        // `declare_const`'s T3076 is what keeps this shape to value elements.
+        return !has_mutable_const_storage(typed.decl_types[sym.id])
     }
     // A parameter without `!`, or a loop variable over an immutable iterable.
     return typed.resolved.immutable_borrows[sym.id] !is null
+}
+
+/// True when a module const's declared type is the one shape with real storage:
+/// a MUTABLE array whose elements are values (no heap pointer in the static
+/// buffer). Its capacity is fixed — growing it would allocate, and the collector's
+/// root set never sees a global, hence T3077 on `push` / `push_all`.
+///
+/// @param t  the const's declared type, or null when it has none.
+export has_mutable_const_storage :: fn(t: Type | null) -> bool {
+    if t is ArrayType as a {
+        return !a.immutable && is_value_element(a.element)
+    }
+    return false
+}
+
+/// True when `e`'s access path is rooted in a module const with real storage —
+/// the receiver of a growth attempt T3077 must reject.
+///
+/// @param e  the receiver expression of a mutating method.
+export rooted_in_mutable_const :: fn(e: AST.Expr, typed: TypedProgram) -> bool = @partial match e {
+    is AST.IdentExpr as x  -> {
+        sym :: typed.resolved.idents[x.span.hash()] ?? return false
+        sym.kind == .Const && has_mutable_const_storage(typed.decl_types[sym.id])
+    }
+    is AST.FieldExpr as f  -> rooted_in_mutable_const(f.target, typed)
+    is AST.IndexExpr as ix -> rooted_in_mutable_const(ix.target, typed)
+    _                      -> false
 }
 
 // Iterating an immutable value lends out immutable elements: `for it in CFG.items`

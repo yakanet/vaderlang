@@ -95,11 +95,11 @@ write_data_pool :: fn(sb: StringBuilder!, data_pool: BcDataEntry[], strings: str
         e :: data_pool[i]
         if e is BcStrData as sd {
             out :: StringBuilder {}
-            out.append("data ${i} str")
+            out.append("data ${i} ${storage_class(sd.mutable)}str")
             for v in sd.values { out.append(" ${quote_string(v)}") }
             sb.append("${out}\n")
         } else if e is BcPrimData as pd {
-            sb.append("data ${i} ${array_kind_name(pd.kind)} hex\"${data_items_hex(pd)}\"\n")
+            sb.append("data ${i} ${storage_class(pd.mutable)}${array_kind_name(pd.kind)} hex\"${data_items_hex(pd)}\"\n")
         } else if e is BcAggregateData as ad {
             // Count-prefixed token stream (no paren balancing). String leaves dump
             // as `strref <i>` (a `string N` pool index) instead of inline `str "…"`
@@ -201,6 +201,11 @@ data_value_hex :: fn(kind: ArrayKind, bits: u64) -> string {
 }
 
 // Little-endian hex of every element's bit pattern (`element_size` bytes each).
+// `mut ` before the kind for a writable global, nothing for a `.rodata` blob.
+// A prefix rather than a suffix so the kind token stays where the reader expects
+// it after one optional skip.
+storage_class :: fn(mutable: bool) -> string = if mutable { "mut " } else { "" }
+
 data_items_hex :: fn(entry: BcPrimData) -> string {
     esz :: usize(array_kind_element_size(entry.kind))
     out :: StringBuilder {}

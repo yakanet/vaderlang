@@ -18,7 +18,13 @@
       "kind": "StructDecl",
       "name": "Spec",
       "visibility": "private",
-      "typeParams": [],
+      "typeParams": [
+        {
+          "name": "T",
+          "bound": null,
+          "isComptimeValue": false
+        }
+      ],
       "fields": [
         {
           "name": "name",
@@ -33,7 +39,7 @@
           "name": "code",
           "type": {
             "kind": "IdentExpr",
-            "name": "i32"
+            "name": "T"
           },
           "visibility": "public",
           "default": null
@@ -46,13 +52,19 @@
       "name": "SPECS",
       "visibility": "private",
       "type": {
-        "kind": "MutableTypeExpr",
-        "inner": {
-          "kind": "ArrayTypeExpr",
-          "element": {
+        "kind": "ArrayTypeExpr",
+        "element": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
             "name": "Spec"
-          }
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            }
+          ]
         }
       },
       "value": {
@@ -61,8 +73,17 @@
           {
             "kind": "StructLitExpr",
             "typeName": {
-              "kind": "IdentExpr",
-              "name": "Spec"
+              "kind": "GenericInstExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "Spec"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
+              ]
             },
             "items": [
               {
@@ -91,8 +112,17 @@
           {
             "kind": "StructLitExpr",
             "typeName": {
-              "kind": "IdentExpr",
-              "name": "Spec"
+              "kind": "GenericInstExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "Spec"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
+              ]
             },
             "items": [
               {
@@ -121,8 +151,17 @@
           {
             "kind": "StructLitExpr",
             "typeName": {
-              "kind": "IdentExpr",
-              "name": "Spec"
+              "kind": "GenericInstExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "Spec"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
+              ]
             },
             "items": [
               {
@@ -151,8 +190,17 @@
           {
             "kind": "StructLitExpr",
             "typeName": {
-              "kind": "IdentExpr",
-              "name": "Spec"
+              "kind": "GenericInstExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "Spec"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
+              ]
             },
             "items": [
               {

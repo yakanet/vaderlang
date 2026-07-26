@@ -1139,6 +1139,34 @@ static void vader_atom_mark_cstack_conservative(void) {
     }
 }
 
+/* Mutable module-const string arrays (`X: string[]!: [...]`). Their storage is a
+ * writable global, which is in NO other root set — the frame chain and the defer
+ * stack are it — so a runtime-built string stored in one was swept and its atom id
+ * left pointing at a recycled entry. Measured: 50/50 slots corrupted after GC
+ * churn. Registered once by `main`.
+ *
+ * A SCAN suffices, unlike object roots: an atom id is stable, atoms never move, so
+ * there is nothing to write back. Only string arrays register — a mutable
+ * primitive array holds no atom. */
+static vader_array_t* const* g_atom_root_arrays = NULL;
+static size_t               g_atom_root_len     = 0;
+
+void vader_atom_roots_register(vader_array_t* const* arrays, size_t count) {
+    g_atom_root_arrays = arrays;
+    g_atom_root_len    = count;
+}
+
+static void vader_atom_mark_global_arrays(void) {
+    for (size_t i = 0; i < g_atom_root_len; i++) {
+        vader_array_t* a = g_atom_root_arrays[i];
+        if (a == NULL || a->buf == NULL) continue;
+        vader_box_t* slots = vader_array_box_slots(a->buf);
+        for (size_t k = 0; k < a->length; k++) {
+            vader_atom_mark_box(&slots[a->offset + k]);
+        }
+    }
+}
+
 static void vader_atom_mark_roots(void) {
     for (vader_gc_frame_t* fr = vader_gc_top; fr != NULL; fr = fr->prev) {
         if (fr->ptrs == NULL) continue;
@@ -1149,6 +1177,7 @@ static void vader_atom_mark_roots(void) {
     for (size_t i = 0; i < g_defer_len; i++) {
         vader_atom_mark_box(&g_defer_stack[i]);
     }
+    vader_atom_mark_global_arrays();
     vader_atom_mark_cstack_conservative();
 }
 

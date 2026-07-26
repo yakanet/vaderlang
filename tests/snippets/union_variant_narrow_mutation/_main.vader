@@ -1,4 +1,4 @@
-// An `is` test on a union of MUTABLE arrays: the narrowed binding keeps the
+ // An `is` test on a union of MUTABLE arrays: the narrowed binding keeps the
 // scrutinee's mutability, so mutating through it is legal on both sides.
 //
 // This used to compile only by accident. The overlap check compared mutability,

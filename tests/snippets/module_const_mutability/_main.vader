@@ -1,28 +1,32 @@
-// tests/snippets/module_const_mutability — every module-const shape, read-only
-// and marked, across the type kinds that can carry the marker.
+// tests/snippets/module_const_mutability — every module-const shape and the
+// storage it lands in.
 //
-// A module const has NO runtime storage: its value is rebuilt at each read site,
-// fn-wrapped behind a synthetic accessor, or baked into `.rodata`. Three
-// consequences this snippet pins down:
+// A module const has no storage of its own: its value is inlined at each use
+// site, fn-wrapped behind a synthetic accessor, or baked into the data pool. The
+// pool has two classes, and `!` is what picks between them:
 //
-//   1. Read-only is the default whether or not a type is written. Unannotated
-//      goes through `orchestrate::auto_const_module_array`; annotated goes
-//      through the read-only default in `declare_const`. Both end up frozen —
-//      before they agreed, an annotated array silently lost its `.rodata`
-//      pooling and went back to being rebuilt op-by-op at every read.
-//   2. `!` on a module const does NOT grant mutation — a write through it is
-//      T3070 regardless (see `t3070_element_through_module_const`). What it
-//      does is keep the value OUT of the data pool, which is the fn-wrap /
-//      rebuild path (`const_fn_wrap` guards that side).
-//   3. Only a type with an interior takes the marker. `MAX: i32!` and
-//      `MODE: Mode!` are T3075 — see `t3075_marker_on_value_type`.
+//   - unmarked  -> a `static const` blob in `.rodata`, shared process-wide.
+//   - `!`       -> a writable GLOBAL, initialised once, mutable IN PLACE.
 //
-// The storage each shape lands in is visible in `bytecode.snapshot.virt`. The
-// pool holds ARRAYS: a read-only one becomes a `data` entry read by `data.const`
-// (primitive elements as a packed blob, struct elements as an aggregate), a
-// marked one an `array.new` sequence. A lone struct or tuple is not a pool
-// candidate today whatever its mutability, and a primitive / enum const is
-// inlined at each use site.
+// `!` is restricted to an array of VALUE elements (a primitive — `string`
+// included, it is an interned `u32` atom — an enum, or a distinct over one).
+// A struct or nested-array element would put a heap pointer in a static buffer,
+// and the collector's root set is the frame chain plus the defer stack: it would
+// never see it. That is T3076 (`t3076_mutable_module_const_element`), and growth
+// is T3077 (`t3077_grow_module_const`) — a fixed-capacity buffer has nothing to
+// grow into.
+//
+// Two regressions this pins down, both of which lost writes SILENTLY:
+//   - `fold_const_symbol` inlined a mutable array's baked value at each use site,
+//     so every read and every write got its own fresh array.
+//   - `[0] * n`, the idiomatic fixed-size table, lowers to an `array.repeat`
+//     intrinsic rather than a literal and fell out of the pool entirely.
+//
+// The native run is the oracle: storage class is a c-emit decision, and writing
+// through a `static const` lands in `.rodata` — a segfault, not a diagnostic.
+// A mutable `string[]` also has to survive collection: its atoms live only in the
+// global, so `emit_atom_root_table` registers it (measured before the fix:
+// 50/50 slots corrupted after GC churn).
 
 module "snippet"
 
@@ -35,44 +39,67 @@ Spec :: struct {
 
 Mode :: enum(u8) { Fast, Small }
 
-// ---- read-only : the default, annotated or not ----------------------------
+// ---- read-only : the default, annotated or not -> `.rodata` ---------------
 
-// Primitive — no interior, so no marker is possible. Inlined at each use site.
+// Primitive — inlined at each use site, no pool entry.
 MAX: i32: 42
 // Inferred, no annotation at all.
 GREETING :: "hello"
 // Enum — a value through and through, like a primitive.
 MODE: Mode: .Fast
-// Primitive-element array, annotated : frozen by the read-only default, so it
-// bakes into `.rodata`.
+// Annotated, frozen by the read-only default -> pooled.
 DIGITS: string[]: ["0", "1", "2"]
-// Same, unannotated : frozen by the auto-pin. Same storage.
+// Unannotated, frozen by the auto-pin -> same storage.
 LIMITS :: [10, 20, 30]
-// Struct element — pooled as an aggregate.
+// Struct elements pool as an aggregate.
 SPECS: Spec[]: [
     Spec { .name = "alpha", .code = 1 },
     Spec { .name = "beta",  .code = 2 },
 ]
-// A struct, not an array. Read-only by default too.
+// A lone struct is not a pool candidate — it inlines.
 ORIGIN: Spec: Spec { .name = "origin", .code = 0 }
 // A tuple carries the bit per level like an array does.
 PAIR: [i32, string]: [7, "seven"]
 
-// ---- marked : out of the data pool ---------------------------------------
+// ---- marked : a writable global, mutable in place ------------------------
 
-// The `!` opts out of pooling — the value is rebuilt / fn-wrapped instead. It
-// grants no mutation: `SCRATCH.push(4)` here would still be T3071.
-SCRATCH: i32[]!: [1, 2, 3]
-// Marked at the ELEMENT level instead of the array level: a different type
-// (`Spec![]` vs `Spec[]!`), and the array itself stays read-only.
-TEMPLATES: Spec![]: [Spec { .name = "tpl", .code = 9 }]
+COUNTS: i32[]!:    [0, 0, 0]
+SLOTS:  string[]!: ["", ""]
+// The repeat form is the idiomatic fixed-size table, and it pools like a literal.
+FLAGS:  bool[]!:   [false] * 4
+
+bump :: fn(i: usize) -> void {
+    COUNTS[i] = COUNTS[i] + 1
+}
 
 main :: fn() -> i32 {
     println("${MAX} ${GREETING} ${MODE == Mode.Fast}")
     println("${DIGITS[1]} ${LIMITS[2]} ${SPECS[1].name} ${ORIGIN.name}")
     println("${PAIR.0}${PAIR.1}")
-    println("${SCRATCH[0]} ${TEMPLATES[0].code}")
-    // Reading through any of them is always fine — only writes are rejected.
+
+    // Writes through the globals persist across calls — one shared allocation.
+    bump(usize(0))
+    bump(usize(0))
+    bump(usize(2))
+    println("counts=${COUNTS[0]},${COUNTS[1]},${COUNTS[2]}")
+
+    // A RUNTIME-built string: its atom is not permanent, so this only survives
+    // because the global is registered as an atom root.
+    n :: 7
+    SLOTS[0] = "runtime-${n}"
+    SLOTS[1] = "literal"
+    // Enough churn to force a collection between the write and the read.
+    junk := 0
+    for i in 0..<20000 {
+        s :: "garbage-${i}-padding"
+        junk = junk + i32(s.byte_len())
+    }
+    println("slots=${SLOTS[0]}/${SLOTS[1]} churned=${junk > 0}")
+
+    FLAGS[2] = true
+    println("flags=${FLAGS[0]},${FLAGS[2]} len=${FLAGS.len()}")
+
+    // Reading is always available ; only writes are gated.
     total := 0
     for v in LIMITS {
         total = total + v

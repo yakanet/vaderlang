@@ -164,6 +164,29 @@ reject_mutating_method_on_immutable :: fn(
             + field_annotate_hint(e.target, typed),
         immutable_root_param(e.target, typed), diags,
     )
+    reject_growth_on_module_const(e, typed, diags)
+}
+
+// A mutable module const IS writable — but its storage is a fixed-capacity static
+// buffer, so growing it would allocate a fresh buffer on the GC heap and hang it
+// off a global the collector's root set never visits (frames + defers only). The
+// pointee would then be freed, or moved by the copying young gen, with the global
+// left dangling — silent corruption, no trap. So the two growth mutators are
+// rejected while the in-place ones (`clear`, `remove_last`, `arr[i] = v`) stay.
+// T3077, lifted the day a global root registry exists.
+reject_growth_on_module_const :: fn(
+    e: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[]!,
+) -> void {
+    if e.field != "push" && e.field != "push_all" {
+        return
+    }
+    if !rooted_in_mutable_const(e.target, typed) {
+        return
+    }
+    diags.push(typecheck_error(
+        .ModuleConstCannotGrow, e.span,
+        "`${e.field}` would grow it, but a module const's storage is a fixed-capacity "
+        + "global — write its elements in place (`arr[i] = v`) or build a local array"))
 }
 
 try_typeparam_bound_method :: fn(

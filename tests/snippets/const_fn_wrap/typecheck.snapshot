@@ -3,35 +3,35 @@
 ## tests/snippets/const_fn_wrap
   FnDecl         lookup               :: fn(string) -> i32
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Spec                 :: Spec!
-  ConstDecl      SPECS                :: Spec[]!
-  expr 27:17    SeqLitExpr     :: Spec[]!
-  expr 28:20    StringLitExpr  :: string
-  expr 28:5     StructLitExpr  :: Spec!
-  expr 29:20    StringLitExpr  :: string
-  expr 29:5     StructLitExpr  :: Spec!
-  expr 30:20    StringLitExpr  :: string
-  expr 30:5     StructLitExpr  :: Spec!
-  expr 31:20    StringLitExpr  :: string
-  expr 31:5     StructLitExpr  :: Spec!
-  expr 35:14    IdentExpr      :: Spec[]!
-  expr 36:12    BinaryExpr     :: bool
-  expr 36:12    FieldExpr      :: string
-  expr 36:12    IdentExpr      :: Spec
-  expr 36:22    IdentExpr      :: string
-  expr 36:36    FieldExpr      :: i32
-  expr 36:36    IdentExpr      :: Spec
-  expr 36:9     IfExpr         :: void
-  expr 38:12    UnaryExpr      :: i32
-  expr 42:13    StringLitExpr  :: string
-  expr 42:22    CallExpr       :: i32
-  expr 42:22    IdentExpr      :: fn(string) -> i32
-  expr 42:29    StringLitExpr  :: string
-  expr 42:5     CallExpr       :: void
-  expr 42:5     IdentExpr      :: fn(T) -> void
-  expr 43:13    StringLitExpr  :: string
-  expr 43:24    CallExpr       :: i32
-  expr 43:24    IdentExpr      :: fn(string) -> i32
-  expr 43:31    StringLitExpr  :: string
-  expr 43:5     CallExpr       :: void
-  expr 43:5     IdentExpr      :: fn(T) -> void
+  StructDecl     Spec                 :: Spec<T>!
+  ConstDecl      SPECS                :: Spec<i32>[]
+  expr 29:21    SeqLitExpr     :: Spec<i32>[]
+  expr 30:25    StringLitExpr  :: string
+  expr 30:5     StructLitExpr  :: Spec<i32>!
+  expr 31:25    StringLitExpr  :: string
+  expr 31:5     StructLitExpr  :: Spec<i32>!
+  expr 32:25    StringLitExpr  :: string
+  expr 32:5     StructLitExpr  :: Spec<i32>!
+  expr 33:25    StringLitExpr  :: string
+  expr 33:5     StructLitExpr  :: Spec<i32>!
+  expr 37:14    IdentExpr      :: Spec<i32>[]
+  expr 38:12    BinaryExpr     :: bool
+  expr 38:12    FieldExpr      :: string
+  expr 38:12    IdentExpr      :: Spec<i32>
+  expr 38:22    IdentExpr      :: string
+  expr 38:36    FieldExpr      :: i32
+  expr 38:36    IdentExpr      :: Spec<i32>
+  expr 38:9     IfExpr         :: void
+  expr 40:12    UnaryExpr      :: i32
+  expr 44:13    StringLitExpr  :: string
+  expr 44:22    CallExpr       :: i32
+  expr 44:22    IdentExpr      :: fn(string) -> i32
+  expr 44:29    StringLitExpr  :: string
+  expr 44:5     CallExpr       :: void
+  expr 44:5     IdentExpr      :: fn(T) -> void
+  expr 45:13    StringLitExpr  :: string
+  expr 45:24    CallExpr       :: i32
+  expr 45:24    IdentExpr      :: fn(string) -> i32
+  expr 45:31    StringLitExpr  :: string
+  expr 45:5     CallExpr       :: void
+  expr 45:5     IdentExpr      :: fn(T) -> void

@@ -118,10 +118,12 @@ should_fn_wrap :: fn(value: LoweredExpr) -> bool {
 // through later phases.
 try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProject!) -> bool {
     if cd.type is ArrayType as arr_type {
-        if !arr_type.immutable { return false }
-        if cd.value is LoweredArrayLit as lit {
+        // A MUTABLE array pools too, into a writable global rather than `.rodata`.
+        // Typecheck's T3076 has already restricted that shape to value elements, so
+        // nothing here can put a heap pointer in a static buffer.
+        if pool_literal_of(cd.value) is LoweredArrayLit as lit {
             element_type_name :: display_type_key(arr_type.element)
-            entry :: render_data_pool_entry(lit, element_type_name)
+            entry :: render_data_pool_entry(lit, element_type_name, !arr_type.immutable)
             if entry != null {
                 pool_index :: project.data_pool.len()
                 project.data_pool.push(entry)
@@ -135,18 +137,55 @@ try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProjec
     return false
 }
 
+// The array literal a const's value pools from, expanding the repeat form.
+//
+// `[0] * 4` lowers to an `array.repeat` intrinsic over a literal LHS and a literal
+// count, which is the idiomatic way to declare a fixed-size table — so without this
+// the whole shape fell out of the pool. For a READ-ONLY const that only cost a
+// rebuild per read ; for a MUTABLE one it was a correctness hole, since a const with
+// no storage silently discards every write. A non-constant count, or anything else,
+// returns null and takes the fn-wrap / inline bucket as before.
+pool_literal_of :: fn(value: LoweredExpr) -> LoweredExpr | null {
+    if value is LoweredArrayLit { return value }
+    if value is LoweredIntrinsicCall as ic {
+        if ic.name != INTRINSIC_ARRAY_REPEAT || ic.args.len() != 2 {
+            return null
+        }
+        if ic.args[0] is LoweredArrayLit as base {
+            if ic.args[1] is LoweredIntLit as count {
+                if count.value <= 0 { return null }
+                elements: LoweredExpr[]! = []
+                for _ in 0..<count.value {
+                    for el in base.elements { elements.push(el) }
+                }
+                return LoweredArrayLit {
+                    .span = base.span, .type = base.type, .elements = elements,
+                }
+            }
+        }
+    }
+    return null
+}
+
 // Build the pooled entry for an immutable array literal, or null when an element
 // isn't poolable. A `string[]` becomes a `StrDataPoolEntry` (values verbatim) ;
 // every other element type takes the primitive bit-pattern path.
-render_data_pool_entry :: fn(lit: LoweredArrayLit, element_name: string) -> DataPoolEntry | null {
+render_data_pool_entry :: fn(
+    lit: LoweredArrayLit, element_name: string, mutable: bool,
+) -> DataPoolEntry | null {
     if element_name == "string" {
         values :: render_string_items(lit) ?? return null
-        return StrDataPoolEntry { .values = values }
+        return StrDataPoolEntry { .values = values, .mutable = mutable }
     }
     rendered :: render_data_items(lit, element_name)
     if rendered != null {
-        return PrimDataPoolEntry { .element_type_name = element_name, .items = rendered }
+        return PrimDataPoolEntry {
+            .element_type_name = element_name, .items = rendered, .mutable = mutable,
+        }
     }
+    // Only a VALUE-element array can be mutable (T3076), so an aggregate reaching
+    // here is always the read-only form.
+    if mutable { return null }
     // Aggregate (struct / nested-array elements) : bakeable only when every leaf
     // is a constant literal and every struct is a named, non-generic struct (its
     // symbol-id keys the baked value ; `midir` recurses over the same literal).

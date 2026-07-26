@@ -2,7 +2,9 @@
 42 hello true
 1 30 beta origin
 7seven
-1 9
+counts=2,0,1
+slots=runtime-7/literal churned=true
+flags=false,true len=4
 total=60
 # exit
 0

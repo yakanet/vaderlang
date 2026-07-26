@@ -47,13 +47,20 @@ export DataPoolEntry :: PrimDataPoolEntry | StrDataPoolEntry | AggregateDataPool
 export PrimDataPoolEntry :: struct {
     element_type_name: string
     items: i64[]
+    /// True for a `X: T[]!: [...]` const — a fixed-capacity global rather than a
+    /// `.rodata` blob. Carried on the ENTRY, not on the type: `BcArray` erases the
+    /// bit on purpose (`i32[]` and `i32[]!` share one layout and one type-table
+    /// slot), so storage class is the entry's business.
+    mutable: bool = false
 }
 
-/// A pooled read-only `string[]`. Carries the element string values verbatim ;
+/// A pooled `string[]`. Carries the element string values verbatim ;
 /// `midir` interns them into the module string table at emit (so the comptime
 /// atom table covers them) and lowers to a `BcStrData { values }`.
 export StrDataPoolEntry :: struct {
     values: string[]
+    /// See `PrimDataPoolEntry.mutable`.
+    mutable: bool = false
 }
 
 /// A pooled aggregate read-only `T[]` — struct / tuple / nested-array elements.

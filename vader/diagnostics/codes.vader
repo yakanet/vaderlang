@@ -107,6 +107,8 @@ export TypecheckCode :: enum(u8) {
     FnValueMutabilityMismatch,          // T3073
     UnionMixesMutabilities,             // T3074
     MutabilityMarkerOnValueType,        // T3075
+    ModuleConstMutableElement,          // T3076
+    ModuleConstCannotGrow,              // T3077
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -445,6 +447,8 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .FnValueMutabilityMismatch          -> CodeInfo { .id = "T3073", .message = "this function mutates a parameter the target slot lends out read-only" }
     .UnionMixesMutabilities             -> CodeInfo { .id = "T3074", .message = "a union mixes the same type at two mutabilities" }
     .MutabilityMarkerOnValueType        -> CodeInfo { .id = "T3075", .message = "a `!` that grants nothing" }
+    .ModuleConstMutableElement          -> CodeInfo { .id = "T3076", .message = "a mutable module const needs a primitive element type" }
+    .ModuleConstCannotGrow              -> CodeInfo { .id = "T3077", .message = "cannot grow a module const" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but
