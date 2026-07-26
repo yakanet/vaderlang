@@ -232,7 +232,7 @@ export TypedProgram :: struct {
     /// `field.vader::try_free_fn_ufcs` so `x.method()` can dispatch
     /// to a fn imported from another module without requiring the
     /// method body to live in the entry module.
-    imported_fn_overloads: MutableMap<string, FnType[]>
+    imported_fn_overloads: MutableMap<string, FnType[]!>
 
     /// `display_type(for_ty) → element` for every `X implements
     /// Iterator<T>` impl reached during type-checking. Consumed by
@@ -271,7 +271,7 @@ export TypedProgram :: struct {
     /// provide the same method on the same receiver. When the list
     /// has 2+ entries, an unqualified `x.method()` is ambiguous —
     /// `field.vader` emits T3032.
-    impl_method_traits: MutableMap<string, string[]>
+    impl_method_traits: MutableMap<string, string[]!>
 
     /// `Struct.symbol.id → field_name → resolved Type`. Pre-resolved
     /// at declare-time using the OWNING module's resolved.idents so
@@ -283,7 +283,7 @@ export TypedProgram :: struct {
     /// `"${TypeBaseName}" → trait names` for every `X implements
     /// Trait` impl. Consumed by `type_ops.vader::is_assignable` for
     /// trait-widening (`Cat → Animal` when `Cat implements Animal`).
-    struct_implemented_traits: MutableMap<string, string[]>
+    struct_implemented_traits: MutableMap<string, string[]!>
 
     /// `Symbol.id → trait names` — the id-keyed twin of
     /// `struct_implemented_traits`, populated in lockstep by
@@ -293,7 +293,7 @@ export TypedProgram :: struct {
     /// emitter (via `LoweredProject.trait_membership`) to seed `impl_table`
     /// rows per interned struct tag — replacing the lowering force-hook's
     /// membership role.
-    struct_traits_by_sym: MutableMap<i32, string[]>
+    struct_traits_by_sym: MutableMap<i32, string[]!>
 
     /// Per-impl trait args, keyed by `${struct_name}` then `${trait_name}`.
     /// `Hello implements Greeter(i32)` records
@@ -440,17 +440,17 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .range_symbol    = null,
     .field_symbol    = null,
     .async_symbol    = null,
-    .imported_fn_overloads = MutableMap<string, FnType[]> {},
+    .imported_fn_overloads = MutableMap<string, FnType[]!> {},
     .iter_element_types = MutableMap<string, Type> {},
     .index_target_types = MutableMap<string, Type> {},
     .index_key_types = MutableMap<string, Type> {},
     .index_set_value_types = MutableMap<string, Type> {},
     .ufcs_receiver_types = MutableMap<usize, Type> {},
-    .impl_method_traits = MutableMap<string, string[]> {},
+    .impl_method_traits = MutableMap<string, string[]!> {},
     .struct_field_types = MutableMap<i32, MutableMap<string, Type>> {},
-    .struct_implemented_traits = MutableMap<string, string[]> {},
-    .struct_traits_by_sym = MutableMap<i32, string[]> {},
-    .struct_trait_args = MutableMap<string, MutableMap<string, Type[]>> {},
+    .struct_implemented_traits = MutableMap<string, string[]!> {},
+    .struct_traits_by_sym = MutableMap<i32, string[]!> {},
+    .struct_trait_args = MutableMap<string, MutableMap<string, Type[]!>> {},
     .current_fn_ctx  = null,
     .node_spans      = MutableMap<usize, Span> {},
     .dump_types      = false,
@@ -480,7 +480,7 @@ export empty_typed_program :: fn() -> TypedProgram {
         .idents = MutableMap<u64, Symbol> {},
         .immutable_locals = MutableMap<i32, bool> {},
         .immutable_borrows = MutableMap<i32, bool> {},
-        .fn_overloads = MutableMap<string, Symbol[]> {},
+        .fn_overloads = MutableMap<string, Symbol[]!> {},
         .imports_to = MutableMap<i32, Symbol> {},
         .alias_types = MutableMap<i32, Type> {},
         .alias_decls = MutableMap<i32, TypeAliasDecl> {},
@@ -505,7 +505,7 @@ fresh_module :: fn() -> ResolvedModule {
         .idents = MutableMap<u64, Symbol> {},
         .immutable_locals = MutableMap<i32, bool> {},
         .immutable_borrows = MutableMap<i32, bool> {},
-        .fn_overloads = MutableMap<string, Symbol[]> {},
+        .fn_overloads = MutableMap<string, Symbol[]!> {},
         .imports_to = MutableMap<i32, Symbol> {},
         .alias_types = MutableMap<i32, Type> {},
         .alias_decls = MutableMap<i32, TypeAliasDecl> {},

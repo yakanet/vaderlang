@@ -89,7 +89,7 @@ sites_to_rename :: fn(index: ReferenceIndex, symbol_id: i32, old_name: string, s
 
 // `{ changes: { <uri>: TextEdit[] } }` grouping the edits by file.
 workspace_edit_json :: fn(edits: RefSite[], new_name: string, state: ServerState, li_cache: MutableMap<string, LineIndex>!) -> JsonValue {
-    by_uri :: MutableMap<string, JsonValue[]> {}
+    by_uri :: MutableMap<string, JsonValue[]!> {}
     for e in edits {
         key :: path_to_uri(e.span.start.file)
         te :: text_edit_json(e.span, new_name, state, li_cache)

@@ -399,7 +399,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx!
 // duplicated here so the CFG emit path doesn't need to reach the
 // legacy assemble_module. Yields one BcImplEntry per (struct_type_index,
 // trait_name) seen in the vtable entries.
-build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: MutableMap<i32, string[]>, ctx: EmitterCtx) -> BcImplEntry[] {
+build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: MutableMap<i32, string[]!>, ctx: EmitterCtx) -> BcImplEntry[] {
     out: BcImplEntry[]! = []
     seen :: MutableMap<string, bool> {}
     for entry in entries {

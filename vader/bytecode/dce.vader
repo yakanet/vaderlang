@@ -239,7 +239,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx!, vtable_roots: i32[], keep_
     // pins drop with it (so `prune_unused_types` no longer roots arg types
     // only a dead fn referenced), and a folded mangle-duplicate merges its
     // (empty) pins onto the canonical.
-    new_pins_by_fn :: MutableMap<i32, i32[]> {}
+    new_pins_by_fn :: MutableMap<i32, i32[]!> {}
     for [old_fn, pins] in ctx.pinned_types_by_fn {
         if usize(old_fn) >= remap.len() { continue }
         new_fn :: remap[usize(old_fn)]

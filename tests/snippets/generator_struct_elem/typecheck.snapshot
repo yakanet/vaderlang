@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/generator_struct_elem
-  FnDecl         concat_decls         :: fn(FileMod[]) -> Iterator<Decl!>
+  FnDecl         concat_decls         :: fn(FileMod[]) -> Iterator<Decl>
   StructDecl     Decl                 :: Decl!
   StructDecl     FileMod              :: FileMod!
   FnDecl         main                 :: fn() -> i32
@@ -22,13 +22,13 @@
   expr 19:29    StructLitExpr  :: Decl!
   expr 19:44    StringLitExpr  :: string
   expr 19:9     StructLitExpr  :: FileMod!
-  expr 21:14    CallExpr       :: __genstate_concat_decls<Decl!>!
-  expr 21:14    IdentExpr      :: fn(FileMod[]) -> Iterator<Decl!>
+  expr 21:14    CallExpr       :: __genstate_concat_decls<Decl>!
+  expr 21:14    IdentExpr      :: fn(FileMod[]) -> Iterator<Decl>
   expr 21:27    IdentExpr      :: FileMod![]!
   expr 21:36    CallExpr       :: void
   expr 21:36    IdentExpr      :: fn(T) -> void
   expr 21:44    StringLitExpr  :: string
   expr 21:47    FieldExpr      :: string
-  expr 21:47    IdentExpr      :: Decl!
+  expr 21:47    IdentExpr      :: Decl
   expr 21:57    FieldExpr      :: i32
-  expr 21:57    IdentExpr      :: Decl!
+  expr 21:57    IdentExpr      :: Decl

@@ -7,7 +7,7 @@
       Ready<i32>! {
         v: int(5) :i32
       }
-  fn snippet$load(fail: bool) -> Async<i32 | LoadError!>
+  fn snippet$load(fail: bool) -> Async<i32 | LoadError>
     return
       __asyncstate_2! {
         s0: fail :bool
@@ -16,15 +16,15 @@
         awaited: null
         state: int(7) :i32
       }
-  fn snippet$report(f: Async<i32 | LoadError!>) -> void
-    let r: i32 | LoadError! | Suspended! =
-      vcall Async.resume :i32 | LoadError! | Suspended!
+  fn snippet$report(f: Async<i32 | LoadError>) -> void
+    let r: i32 | LoadError | Suspended! =
+      vcall Async.resume :i32 | LoadError | Suspended!
         recv:
-          f :Async<i32 | LoadError!>
+          f :Async<i32 | LoadError>
     if :void
       cond:
         is Suspended! :bool
-          r :i32 | LoadError! | Suspended!
+          r :i32 | LoadError | Suspended!
       then:
         call :void
           callee:
@@ -35,12 +35,12 @@
     if :void
       cond:
         is LoadError! :bool
-          r :i32 | LoadError! | Suspended!
+          r :i32 | LoadError | Suspended!
       then:
         let e: LoadError! =
           cast → LoadError!
-            cast → i32 | LoadError!
-              r :i32 | LoadError! | Suspended!
+            cast → i32 | LoadError
+              r :i32 | LoadError | Suspended!
         call :void
           callee:
             std_io$println__string :void
@@ -52,7 +52,7 @@
                 "err: " :string
               arg1:
                 .reason :string
-                  e :LoadError!
+                  e :LoadError
         return
     ~>
       call :void
@@ -94,7 +94,7 @@
                   arg2:
                     cast → i64
                       cast → i32
-                        r :i32 | LoadError! | Suspended!
+                        r :i32 | LoadError | Suspended!
             ~>
               call :string
                 callee:
@@ -106,25 +106,25 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        report :fn(Async<i32 | LoadError!>) -> void
+        report :fn(Async<i32 | LoadError>) -> void
       arg0:
-        call :Async<i32 | LoadError!>
+        call :Async<i32 | LoadError>
           callee:
-            load :fn(bool) -> Async<i32 | LoadError!>
+            load :fn(bool) -> Async<i32 | LoadError>
           arg0:
             true
     call :void
       callee:
-        report :fn(Async<i32 | LoadError!>) -> void
+        report :fn(Async<i32 | LoadError>) -> void
       arg0:
-        call :Async<i32 | LoadError!>
+        call :Async<i32 | LoadError>
           callee:
-            load :fn(bool) -> Async<i32 | LoadError!>
+            load :fn(bool) -> Async<i32 | LoadError>
           arg0:
             false
     return int(0) :i32
   struct __asyncstate_2 { s0: bool, s1: i32, s2: i32, awaited: Async<Any>, state: i32 }
-  fn snippet$__asyncstate_2$Async$resume(self: __asyncstate_2!) -> i32 | LoadError! | Suspended!
+  fn snippet$__asyncstate_2$Async$resume(self: __asyncstate_2!) -> i32 | LoadError | Suspended!
     loop
       if :void
         cond:

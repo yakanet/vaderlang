@@ -5,14 +5,14 @@
   fn snippet$Boom$Error$message(self: Boom!) -> string
     ~>
       "boom" :string
-  fn snippet$fail_fast() -> Async<Boom! | string>
+  fn snippet$fail_fast() -> Async<Boom | string>
     return
       __asyncstate_2! {
         s0: null
         awaited: null
         state: int(4) :i32
       }
-  fn snippet$win_slow() -> Async<Boom! | string>
+  fn snippet$win_slow() -> Async<Boom | string>
     return
       __asyncstate_11! {
         s0: null
@@ -36,7 +36,7 @@
               state: int(7) :i32
             }
   struct __asyncstate_2 { s0: null, awaited: Async<Any>, state: i32 }
-  fn snippet$__asyncstate_2$Async$resume(self: __asyncstate_2!) -> Boom! | string | Suspended!
+  fn snippet$__asyncstate_2$Async$resume(self: __asyncstate_2!) -> Boom | string | Suspended!
     loop
       if :void
         cond:
@@ -185,7 +185,7 @@
         arg0:
           "winner cleanup" :string
   struct __asyncstate_11 { s0: null, __defers: (fn() -> void)[]!, awaited: Async<Any>, state: i32 }
-  fn snippet$__asyncstate_11$Async$resume(self: __asyncstate_11!) -> Boom! | string | Suspended!
+  fn snippet$__asyncstate_11$Async$resume(self: __asyncstate_11!) -> Boom | string | Suspended!
     loop
       if :void
         cond:
@@ -642,13 +642,13 @@
                                               callee:
                                                 std_async$any__string__Any :Async<Boom! | string>
                                               arg0:
-                                                array :Async<Boom! | string>[]
-                                                  call :Async<Boom! | string>
+                                                array :Async<Boom | string>[]
+                                                  call :Async<Boom | string>
                                                     callee:
-                                                      fail_fast :fn() -> Async<Boom! | string>
-                                                  call :Async<Boom! | string>
+                                                      fail_fast :fn() -> Async<Boom | string>
+                                                  call :Async<Boom | string>
                                                     callee:
-                                                      win_slow :fn() -> Async<Boom! | string>
+                                                      win_slow :fn() -> Async<Boom | string>
                                       assign
                                         target:
                                           .state :i32

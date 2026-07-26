@@ -26,7 +26,7 @@ import "vader/resolver/symbol"
 /// binding to its concrete target.
 export CollectedModule :: struct {
     symbols:      MutableMap<string, Symbol>
-    fn_overloads: MutableMap<string, Symbol[]>
+    fn_overloads: MutableMap<string, Symbol[]!>
     imports:      MutableMap<i32, ImportInfo>
     /// Raw `import "path"` entries in source order — the loader uses
     /// these to walk the module graph transitively.
@@ -40,7 +40,7 @@ export CollectedModule :: struct {
     /// list — every listed source name (both `as _` and rename sources) is
     /// removed from that path's wildcard. `build_wildcard_seed` /
     /// `wildcard_ambiguities` skip these; renames rebind via `imports`.
-    wildcard_excludes: MutableMap<string, string[]>
+    wildcard_excludes: MutableMap<string, string[]!>
 }
 
 /// Mint top-level symbols for `program`. Order of insertion mirrors source
@@ -60,11 +60,11 @@ export collect_module :: fn(
 ) -> CollectedModule {
     out :: CollectedModule {
         .symbols           = MutableMap<string, Symbol> {},
-        .fn_overloads      = MutableMap<string, Symbol[]> {},
+        .fn_overloads      = MutableMap<string, Symbol[]!> {},
         .imports           = new_import_table(),
         .import_paths      = [],
         .wildcard_paths    = [],
-        .wildcard_excludes = MutableMap<string, string[]> {},
+        .wildcard_excludes = MutableMap<string, string[]!> {},
     }
     check_import_form_conflict(program.decls, diags)
     for d in program.decls {

@@ -592,7 +592,7 @@ walk_test_dir :: fn(dir: string, out: string[]!) -> void {
 /// (siblings import each other) → only the files no sibling imports, the
 /// entries whose transitive imports drag the rest in.
 pick_module_representatives :: fn(files: string[]) -> string[] {
-    by_dir :: MutableMap<string, string[]> {}
+    by_dir :: MutableMap<string, string[]!> {}
     for f in files {
         d :: dir_of(f)
         existing :: by_dir[d]

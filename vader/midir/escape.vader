@@ -179,7 +179,7 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
 
 // ---- loop-carried detection ----------------------------------------------
 
-compute_carried_across_loop_headers :: fn(fn_: CFGFunction, alias_of: MutableMap<LocalId, LocalId[]>) -> MutableSet<LocalId> {
+compute_carried_across_loop_headers :: fn(fn_: CFGFunction, alias_of: MutableMap<LocalId, LocalId[]!>) -> MutableSet<LocalId> {
     carried :: MutableSet<LocalId> {}
     preds :: predecessors_of(fn_)
     idom :: compute_dominators(fn_, preds)
@@ -223,14 +223,14 @@ compute_carried_across_loop_headers :: fn(fn_: CFGFunction, alias_of: MutableMap
 
 EscapeResult :: struct {
     escaping: MutableSet<LocalId>
-    alias_of: MutableMap<LocalId, LocalId[]>
-    alias_from: MutableMap<LocalId, LocalId[]>
+    alias_of: MutableMap<LocalId, LocalId[]!>
+    alias_from: MutableMap<LocalId, LocalId[]!>
 }
 
 compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> EscapeResult {
     escaping :: MutableSet<LocalId> {}
-    alias_of :: MutableMap<LocalId, LocalId[]> {}
-    alias_from :: MutableMap<LocalId, LocalId[]> {}
+    alias_of :: MutableMap<LocalId, LocalId[]!> {}
+    alias_from :: MutableMap<LocalId, LocalId[]!> {}
     for b in fn_.blocks {
         for ins in b.instructions {
             @partial match ins {
@@ -326,7 +326,7 @@ read_may_carry_ref :: fn(t: Type) -> bool {
     return v == ValType.Ref || v == ValType.Any
 }
 
-append_alias :: fn(map: MutableMap<LocalId, LocalId[]>!, dst: LocalId, src: LocalId) -> void {
+append_alias :: fn(map: MutableMap<LocalId, LocalId[]!>!, dst: LocalId, src: LocalId) -> void {
     existing :: map[dst]
     match existing {
         is null -> { map[dst] = [src] }
@@ -334,7 +334,7 @@ append_alias :: fn(map: MutableMap<LocalId, LocalId[]>!, dst: LocalId, src: Loca
     }
 }
 
-record_alias :: fn(alias_of: MutableMap<LocalId, LocalId[]>!, alias_from: MutableMap<LocalId, LocalId[]>!, dst: LocalId, src: LocalId) -> void {
+record_alias :: fn(alias_of: MutableMap<LocalId, LocalId[]!>!, alias_from: MutableMap<LocalId, LocalId[]!>!, dst: LocalId, src: LocalId) -> void {
     append_alias(alias_of, dst, src)
     append_alias(alias_from, src, dst)
 }

@@ -127,7 +127,7 @@ OiEntry :: struct {
 
 oi_render :: fn(run: AST.ImportDecl[]) -> string {
     // Merge destructure imports by path ; collect namespace imports (dedup exact).
-    destructure: MutableMap<string, AST.ImportName[]> = MutableMap<string, AST.ImportName[]> {}
+    destructure: MutableMap<string, AST.ImportName[]!> = MutableMap<string, AST.ImportName[]!> {}
     dpaths: string[]! = []
     ns_entries: OiEntry[]! = []
     ns_seen: MutableMap<string, bool> = MutableMap<string, bool> {}

@@ -2,7 +2,7 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let m: MutableMap<i32, i32 | Wrap!>! =
+    let m: MutableMap<i32, i32 | Wrap>! =
       MutableMap<i32, Any | Any>! {
         ekeys:
           array :i32[]!
@@ -18,7 +18,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__i32__Any :void
       arg0:
-        m :MutableMap<i32, i32 | Wrap!>!
+        m :MutableMap<i32, i32 | Wrap>!
       arg1:
         int(1) :i32
       arg2:
@@ -31,9 +31,9 @@
     let r: null | Out =
       call :null | Out
         callee:
-          pick :fn(MutableMap<i32, i32 | Wrap!>, i32) -> null | Out
+          pick :fn(MutableMap<i32, i32 | Wrap>, i32) -> null | Out
         arg0:
-          m :MutableMap<i32, i32 | Wrap!>!
+          m :MutableMap<i32, i32 | Wrap>!
         arg1:
           int(1) :i32
     if :void
@@ -86,26 +86,26 @@
     return int(0) :i32
 
 ## snippet/lib
-  fn snippet_lib$pick(m: MutableMap<i32, i32 | Wrap!>, k: i32) -> null | Out
-    let v: i32 | null | Wrap! =
-      call :i32 | null | Wrap!
+  fn snippet_lib$pick(m: MutableMap<i32, i32 | Wrap>, k: i32) -> null | Out
+    let v: i32 | null | Wrap =
+      call :i32 | null | Wrap
         callee:
-          std_collections$MutableMap$Index$at__i32__Any :i32 | null | Wrap!
+          std_collections$MutableMap$Index$at__i32__Any :i32 | null | Wrap
         arg0:
-          m :MutableMap<i32, i32 | Wrap!>
+          m :MutableMap<i32, i32 | Wrap>
         arg1:
           k :i32
     if :void
       cond:
         is null :bool
-          v :i32 | null | Wrap!
+          v :i32 | null | Wrap
       then:
         return null
     if :void
       cond:
         not :bool
           is Wrap! :bool
-            v :i32 | null | Wrap!
+            v :i32 | null | Wrap
       then:
         return null
     return
@@ -114,8 +114,8 @@
           index :i32
             on:
               .items :i32[]
-                cast → Wrap!
-                  v :i32 | null | Wrap!
+                cast → Wrap
+                  v :i32 | null | Wrap
             ix:
               int(0) :i32
       }

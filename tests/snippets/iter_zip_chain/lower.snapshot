@@ -142,7 +142,7 @@
       block :void
         let i: usize = int(0) :usize
         loop while (<…>)
-          let __gen_elem_8: [string, i32]! =
+          let __gen_elem_8: [string, i32] =
             [string, i32]! {
               _0:
                 index :string
@@ -159,10 +159,10 @@
             }
           let k: string =
             ._0 :string
-              __gen_elem_8 :[string, i32]!
+              __gen_elem_8 :[string, i32]
           let v: i32 =
             ._1 :i32
-              __gen_elem_8 :[string, i32]!
+              __gen_elem_8 :[string, i32]
           call :void
             callee:
               std_io$println__string :void
@@ -405,17 +405,17 @@
               __fuse_arr_22 :string[]!
             ix:
               __fuse_i_24 :usize
-        let __gen_elem_21: [usize, string]! =
+        let __gen_elem_21: [usize, string] =
           [usize, ?]! {
             _0: i :usize
             _1: x :?
           }
         let i: usize =
           ._0 :usize
-            __gen_elem_21 :[usize, string]!
+            __gen_elem_21 :[usize, string]
         let f: string =
           ._1 :string
-            __gen_elem_21 :[usize, string]!
+            __gen_elem_21 :[usize, string]
         call :void
           callee:
             std_io$println__string :void

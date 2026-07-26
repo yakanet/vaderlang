@@ -3,7 +3,7 @@
 ## snippet
   struct snippet$Decl { name: string, id: i32 }
   struct snippet$FileMod { decls: Decl[] }
-  fn snippet$concat_decls(files: FileMod[]) -> Iterator<Decl!>
+  fn snippet$concat_decls(files: FileMod[]) -> Iterator<Decl>
     return
       __genstate_concat_decls! {
         s0: files :FileMod[]
@@ -70,7 +70,7 @@
                   __for_arr_0 :Decl[]
                 ix:
                   __for_i_2 :usize
-            let d: Decl! = d :Decl
+            let d: Decl = d :Decl
             call :void
               callee:
                 std_io$println__string :void
@@ -78,7 +78,7 @@
                 block :string
                   let __p_0: string =
                     .name :string
-                      d :Decl!
+                      d :Decl
                   let __buf_1: Buffer =
                     call :Buffer
                       callee:
@@ -134,7 +134,7 @@
                         arg2:
                           cast → i64
                             .id :i32
-                              d :Decl!
+                              d :Decl
                   ~>
                     call :string
                       callee:
@@ -163,7 +163,7 @@
                 int(1) :usize
     return int(0) :i32
   struct __genstate_concat_decls { s0: FileMod[], s1: FileMod[], s2: usize, s3: usize, s4: FileMod, s5: Decl[], s6: usize, s7: usize, s8: Decl, state: i32 }
-  fn snippet$__genstate_concat_decls$Iterator$next(self: __genstate_concat_decls!) -> Yield<Decl!>! | null
+  fn snippet$__genstate_concat_decls$Iterator$next(self: __genstate_concat_decls!) -> Yield<Decl>! | null
     loop
       if :void
         cond:
@@ -349,7 +349,7 @@
                                         value:
                                           int(6) :i32
                                       return
-                                        Yield<Decl!>! {
+                                        Yield<Decl>! {
                                           value:
                                             .s8 :Decl
                                               __self_6 :__genstate_concat_decls!

@@ -2,9 +2,9 @@
 
 ## tests/snippets/async_any
   StructDecl     Boom                 :: Boom!
-  FnDecl         fail_fast            :: fn() -> Async<Boom! | string>
+  FnDecl         fail_fast            :: fn() -> Async<Boom | string>
   FnDecl         main                 :: fn() -> i32
-  FnDecl         win_slow             :: fn() -> Async<Boom! | string>
+  FnDecl         win_slow             :: fn() -> Async<Boom | string>
   expr 12:37    StringLitExpr  :: string
   expr 16:11    CallExpr       :: Async<null>
   expr 16:11    IdentExpr      :: fn(i64) -> Async<null>
@@ -21,11 +21,11 @@
   expr 29:16    CallExpr       :: Async<Boom! | string>
   expr 29:16    GenericInstExpr :: fn(Async<E | U>[]) -> Async<E | U>
   expr 29:16    IdentExpr      :: fn(Async<E | U>[]) -> Async<E | U>
-  expr 29:34    SeqLitExpr     :: Async<Boom! | string>[]
-  expr 29:35    CallExpr       :: Async<Boom! | string>
-  expr 29:35    IdentExpr      :: fn() -> Async<Boom! | string>
-  expr 29:48    CallExpr       :: Async<Boom! | string>
-  expr 29:48    IdentExpr      :: fn() -> Async<Boom! | string>
+  expr 29:34    SeqLitExpr     :: Async<Boom | string>[]
+  expr 29:35    CallExpr       :: Async<Boom | string>
+  expr 29:35    IdentExpr      :: fn() -> Async<Boom | string>
+  expr 29:48    CallExpr       :: Async<Boom | string>
+  expr 29:48    IdentExpr      :: fn() -> Async<Boom | string>
   expr 30:13    IdentExpr      :: Error
   expr 30:5     IfExpr         :: void
   expr 30:8     BinaryExpr     :: bool

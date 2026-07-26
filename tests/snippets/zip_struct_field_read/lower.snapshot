@@ -42,7 +42,7 @@
       block :void
         let i: usize = int(0) :usize
         loop while (<…>)
-          let __gen_elem_4: [string, Any]! =
+          let __gen_elem_4: [string, Any] =
             [string, Any]! {
               _0:
                 index :string
@@ -59,10 +59,10 @@
             }
           let label: string =
             ._0 :string
-              __gen_elem_4 :[string, Any]!
+              __gen_elem_4 :[string, Any]
           let p: Point! =
             ._1 :Point!
-              __gen_elem_4 :[string, Any]!
+              __gen_elem_4 :[string, Any]
           call :void
             callee:
               std_io$println__string :void

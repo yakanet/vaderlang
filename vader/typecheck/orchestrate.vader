@@ -511,7 +511,7 @@ synth_resolved :: fn() -> ResolvedModule {
         .idents = MutableMap<u64, Symbol> {},
         .immutable_locals = MutableMap<i32, bool> {},
         .immutable_borrows = MutableMap<i32, bool> {},
-        .fn_overloads = MutableMap<string, Symbol[]> {},
+        .fn_overloads = MutableMap<string, Symbol[]!> {},
         .imports_to = MutableMap<i32, Symbol> {},
         .alias_types = MutableMap<i32, Type> {},
         .alias_decls = MutableMap<i32, AST.TypeAliasDecl> {},
@@ -675,7 +675,7 @@ check_module_fn_redefinitions :: fn(
     // untyped because `lookup_fn_symbol_by_span` matches spans file-blind, so the
     // second `main` of the `vader run dir/file.vader` footgun never lands in
     // `decl_types`. The AST is the authoritative source of declared params.
-    by_name :: MutableMap<string, AST.FnDecl[]> {}
+    by_name :: MutableMap<string, AST.FnDecl[]!> {}
     for decl in merge_module_program(loaded.module.files).decls {
         if decl !is AST.FnDecl {
             continue
@@ -903,7 +903,7 @@ index_impl_metadata :: fn(
 // the three trait-membership recorders (`record_impl_trait` + both maps of
 // `record_struct_trait`), generic over the key type so the id-keyed and
 // name-keyed maps use one form.
-add_trait_unique :: fn<K>(m: MutableMap<K, string[]>!, key: K, trait_name: string) -> void {
+add_trait_unique :: fn<K>(m: MutableMap<K, string[]!>!, key: K, trait_name: string) -> void {
     bucket :: m[key]
     if bucket == null {
         m[key] = [trait_name]
@@ -954,7 +954,7 @@ record_struct_trait_args :: fn(
     per_struct :: typed.struct_trait_args[name]
     match per_struct {
         is null -> {
-            fresh :: MutableMap<string, Type[]> {}
+            fresh :: MutableMap<string, Type[]!> {}
             fresh[trait_name] = args
             typed.struct_trait_args[name] = fresh
         }

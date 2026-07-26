@@ -62,7 +62,7 @@ export ResolvedFile :: struct {
 export resolve_program :: fn(
     program: AST.Program, top_level_seed: MutableMap<string, Symbol>,
     module_path: string, factory: SymbolFactory,
-    ambiguous: MutableMap<string, string[]>,
+    ambiguous: MutableMap<string, string[]!>,
 ) -> ResolvedFile {
     state :: ResolveState {
         .idents = MutableMap<u64, Symbol> {},
@@ -112,7 +112,7 @@ ResolveState :: struct {
     /// Names two+ wildcard-imported modules both export (`name -> modules`).
     /// Consulted by `walk_expr` to fire R2031 on an unqualified reference that
     /// resolves to one of them. Empty when the module has no wildcard imports.
-    ambiguous:        MutableMap<string, string[]>
+    ambiguous:        MutableMap<string, string[]!>
 }
 
 mint_local :: fn(self: ResolveState!, kind: SymbolKind, name: string, span: Span) -> Symbol {
@@ -702,7 +702,7 @@ main :: fn() -> i32 {
     parsed :: parse_source(src, "test.vader")
     factory :: SymbolFactory {}
     seed :: MutableMap<string, Symbol> {}
-    resolved :: resolve_program(parsed.program, seed, "test", factory, MutableMap<string, string[]> {})
+    resolved :: resolve_program(parsed.program, seed, "test", factory, MutableMap<string, string[]!> {})
     hit :: resolved.idents[span_at("test.vader", 3, 12).hash()]
     match hit {
         is Symbol as s -> {
@@ -726,7 +726,7 @@ f :: fn(x: i32) -> i32 {
     parsed :: parse_source(src, "test.vader")
     factory :: SymbolFactory {}
     seed :: MutableMap<string, Symbol> {}
-    resolved :: resolve_program(parsed.program, seed, "test", factory, MutableMap<string, string[]> {})
+    resolved :: resolve_program(parsed.program, seed, "test", factory, MutableMap<string, string[]!> {})
     hit :: resolved.idents[span_at("test.vader", 2, 12).hash()]
     match hit {
         is Symbol as s -> {

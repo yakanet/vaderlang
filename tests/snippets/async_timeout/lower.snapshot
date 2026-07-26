@@ -279,7 +279,7 @@
           __self_2 :__asyncstate_5!
       value:
         int(-1) :i32
-  struct __asyncstate_17 { s0: string | TimeoutError!, s1: string | TimeoutError!, s2: Error, awaited: Async<Any>, state: i32 }
+  struct __asyncstate_17 { s0: string | TimeoutError, s1: string | TimeoutError, s2: Error, awaited: Async<Any>, state: i32 }
   fn snippet$__asyncstate_17$Async$resume(self: __asyncstate_17!) -> i32 | Suspended!
     loop
       if :void
@@ -330,7 +330,7 @@
                         __self_1 :__asyncstate_17!
                     value:
                       cast → Error
-                        .s1 :string | TimeoutError!
+                        .s1 :string | TimeoutError
                           __self_1 :__asyncstate_17!
                   call :void
                     callee:
@@ -373,7 +373,7 @@
                               "got: " :string
                             arg1:
                               cast → string
-                                .s1 :string | TimeoutError!
+                                .s1 :string | TimeoutError
                                   __self_1 :__asyncstate_17!
                       assign
                         target:
@@ -394,7 +394,7 @@
                           if :void
                             cond:
                               is Error :bool
-                                .s1 :string | TimeoutError!
+                                .s1 :string | TimeoutError
                                   __self_1 :__asyncstate_17!
                             then:
                               assign
@@ -422,10 +422,10 @@
                             then:
                               assign
                                 target:
-                                  .s1 :string | TimeoutError!
+                                  .s1 :string | TimeoutError
                                     __self_1 :__asyncstate_17!
                                 value:
-                                  .s0 :string | TimeoutError!
+                                  .s0 :string | TimeoutError
                                     __self_1 :__asyncstate_17!
                               assign
                                 target:
@@ -459,10 +459,10 @@
                                     else:
                                       assign
                                         target:
-                                          .s0 :string | TimeoutError!
+                                          .s0 :string | TimeoutError
                                             __self_1 :__asyncstate_17!
                                         value:
-                                          cast → string | TimeoutError!
+                                          cast → string | TimeoutError
                                             __resumed_2 :Any | Suspended!
                                       assign
                                         target:
@@ -486,9 +486,9 @@
                                             __self_1 :__asyncstate_17!
                                         value:
                                           cast → Async<Any>
-                                            call :Async<string | TimeoutError!>
+                                            call :Async<string | TimeoutError>
                                               callee:
-                                                std_async$timeout__string :Async<string | TimeoutError!>
+                                                std_async$timeout__string :Async<string | TimeoutError>
                                               arg0:
                                                 int(10) :i64
                                               arg1:

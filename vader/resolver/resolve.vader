@@ -50,7 +50,7 @@ export ResolvedModule :: struct {
     /// `fn_overloads[name]` carries every Symbol minted for a given
     /// fn name — only one of which lands in `symbols`. The typecheck
     /// dump iterates this to surface every overload.
-    fn_overloads: MutableMap<string, Symbol[]>
+    fn_overloads: MutableMap<string, Symbol[]!>
     /// `imports_to[sym.id]` follows an ImportBinding symbol to its
     /// concrete exported counterpart. Lets `type_from_expr` resolve
     /// `ParseError` to the real struct symbol on the std/string side
@@ -139,7 +139,7 @@ export resolve_module_with_collected_dp :: fn(
     collected: CollectedModule,
 ) -> ResolvedModule {
     empty_seed :: MutableMap<string, Symbol> {}
-    no_ambiguity :: MutableMap<string, string[]> {}
+    no_ambiguity :: MutableMap<string, string[]!> {}
     return resolve_module_with_collected_dp_seeded(
         program, module_path, display_path, factory, collected, empty_seed, no_ambiguity,
     )
@@ -158,7 +158,7 @@ export resolve_module_with_collected_dp :: fn(
 export resolve_module_with_collected_dp_seeded :: fn(
     program: Program, module_path: string, display_path: string, factory: SymbolFactory!,
     collected: CollectedModule, core_seed: MutableMap<string, Symbol>,
-    ambiguous: MutableMap<string, string[]>,
+    ambiguous: MutableMap<string, string[]!>,
 ) -> ResolvedModule {
     root :: make_builtin_scope(factory)
     user_syms :: collected.symbols.values()

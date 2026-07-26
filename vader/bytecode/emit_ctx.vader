@@ -102,7 +102,7 @@ export EmitterCtx :: struct {
     /// the op). A global list would keep dead types (and the impl rows /
     /// monomorphised `Range` types they anchor) alive in every program.
     /// `prune_unused_functions` re-keys this by the post-prune index.
-    pinned_types_by_fn: MutableMap<i32, i32[]>
+    pinned_types_by_fn: MutableMap<i32, i32[]!>
 }
 
 /// Construct a fresh `EmitterCtx`. Reserves type-table slot 0 for the
@@ -127,7 +127,7 @@ export new_emitter_ctx :: fn() -> EmitterCtx {
         .import_index_by_mangle      = MutableMap<string, i32> {},
         .exports                     = [],
         .pinned_types                = [],
-        .pinned_types_by_fn          = MutableMap<i32, i32[]> {},
+        .pinned_types_by_fn          = MutableMap<i32, i32[]!> {},
     }
 }
 

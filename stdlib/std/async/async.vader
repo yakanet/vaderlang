@@ -132,7 +132,7 @@ All<T> implements Async<T[]> {
 ///
 /// @param xs  the awaitables to join.
 /// @return    an awaitable of the results, index-aligned with `xs`.
-export all :: fn<T>(xs: Async<T>[]) -> Async<T[]> = All<T> { .children = xs, .results = MutableMap<usize, T> {} }
+export all :: fn<T>(xs: Async<T>[]) -> Async<T[]!> = All<T> { .children = xs, .results = MutableMap<usize, T> {} }
 
 // ---- try_all (fallible join, first-error) ---------------------------------
 

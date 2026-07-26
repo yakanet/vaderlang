@@ -1586,7 +1586,14 @@ A composite type has one mutability per level, and `!` marks the level it follow
 | `x: Cfg![]` | read-only | mutable (`x[i].f = …`) |
 | `x: Cfg![]!` | mutable | mutable |
 
-The default is **recursive**: an unmarked `Cfg[]` freezes the array *and* its elements. It stops at nominal boundaries — the arguments of `Map<K, V>` describe what is *stored*, not slots of the program, so `Map<K, Cfg>` freezes the map and the depth of its values is written `Map<K, Cfg!>`.
+The default is **recursive**: an unmarked `Cfg[]` freezes the array *and* its elements. A **generic argument** takes it too — `Map<K, Cfg>` stores read-only values, and mutable ones are written `Map<K, Cfg!>`:
+
+```vader
+frozen:  MutableMap<string, Stmt[]>  = …    // its arrays cannot be appended to
+growing: MutableMap<string, Stmt[]!> = …    // `m[k].push(s)` is what this says
+```
+
+The default does **not** descend through the argument into the *program's* slots: what `Map<K, V>`'s arguments describe is what the map STORES.
 
 > **Not yet enforced at depth on a parameter.** A marked *element* (`Cfg![]`) parses, takes the recursive default, displays and round-trips — but the mutation check still reasons at the root, so on a parameter `Cfg![]` behaves like `Cfg[]` and `rows[0].f = …` is rejected (T3070). The direction is conservative — read-only where the table promises mutable — so nothing unsound follows, but the element level of the table above describes the model, not today's behaviour. The array level (`Cfg[]!`) is enforced.
 

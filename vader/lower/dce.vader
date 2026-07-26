@@ -99,7 +99,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
 
     // Index impl fns by `"trait|method"` once so the virtual-call drain
     // is an O(1) bucket lookup, not an O(vtable) rescan per outer pass.
-    impls_by_vtable_key :: MutableMap<string, Symbol[]> {}
+    impls_by_vtable_key :: MutableMap<string, Symbol[]!> {}
     for e in lp.vtable_entries {
         key :: "${e.trait_name}|${e.method_name}"
         bucket :: impls_by_vtable_key[key]
