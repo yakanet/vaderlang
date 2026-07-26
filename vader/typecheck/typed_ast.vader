@@ -349,6 +349,32 @@ export TypedProgram :: struct {
     /// fold to a literal when the ident resolves to a key here.
     let_type_aliases: MutableMap<i32, Type>
 
+    /// Where the fix goes when a write is rejected — four tables, one per shape a
+    /// read-only value can arrive in, all read by `mutation_fix_hint`.
+    ///
+    /// The reader cannot work these out: the value's own declaration is usually NOT
+    /// the lever (marking a local bound from a factory would be a strengthening,
+    /// which assignability refuses; a loop variable takes no marker at all). Only
+    /// the typechecker knows which declaration hands the value out, so naming it is
+    /// its job — the same reasoning as `field_annotate_hint`.
+    ///
+    /// Local Symbol.id → the Symbol of the fn whose RETURN produced its value.
+    local_init_callee: MutableMap<i32, Symbol>
+    /// Loop-variable Symbol.id → the expression it iterates. Recorded for EVERY
+    /// loop variable: one over a collection with a MUTABLE root but read-only
+    /// ELEMENTS is rejected by the element's type, never by the path, so it never
+    /// reaches `immutable_borrows` — and it is exactly the case with no guessable
+    /// lever.
+    loop_var_iterable: MutableMap<i32, AST.Expr>
+    /// `is T as x` binding Symbol.id → the scrutinee. One hop further: the binding
+    /// inherits the scrutinee's mutability, so the lever is whatever the scrutinee's
+    /// own lever is.
+    narrow_binding_scrutinee: MutableMap<i32, AST.Expr>
+    /// Const Symbol.id → its declaration, for the span of its written type. A module
+    /// const IS reopenable now (a mutable one gets a writable global), so `annotate
+    /// \`WORDS!\`` is actionable rather than a dead end.
+    const_decls: MutableMap<i32, ConstDecl>
+
     /// FieldExpr.id → resolved trait name. Populated when a
     /// `x.method()` call dispatches via a TypeParam bound (`T: Hash`
     /// resolves `.hash` through the Hash trait). The lower consumes
@@ -458,6 +484,10 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .generator_symbols = MutableMap<string, Symbol> {},
     .extern_symbols  = MutableMap<string, FnDecl> {},
     .let_type_aliases = MutableMap<i32, Type> {},
+    .local_init_callee = MutableMap<i32, Symbol> {},
+    .loop_var_iterable = MutableMap<i32, AST.Expr> {},
+    .narrow_binding_scrutinee = MutableMap<i32, AST.Expr> {},
+    .const_decls = MutableMap<i32, ConstDecl> {},
     .bounded_dispatch_trait = MutableMap<usize, string> {},
     .fn_trait_dispatches = MutableMap<usize, bool> {},
     .overload_result_callees = MutableMap<usize, bool> {},

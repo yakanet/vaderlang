@@ -30,4 +30,4 @@
 
 # Diagnostics
 [12:5] error[T3042] cannot mutate an immutable array: cannot mutate `i32[]` — annotate `a!` at tests/snippets/const_array_bad/_main.vader:11:27
-[16:5] error[T3042] cannot mutate an immutable array: cannot mutate `i32[]`
+[16:5] error[T3042] cannot mutate an immutable array: cannot mutate `i32[]` — `DIGITS` is frozen by the module-const default at tests/snippets/const_array_bad/_main.vader:9:1 :

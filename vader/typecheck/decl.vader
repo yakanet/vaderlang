@@ -718,6 +718,7 @@ declare_const :: fn(
     diags: Diagnostic[]!,
 ) -> void {
     sym :: lookup_sym_by_name(resolved, decl.name) ?? return
+    typed.const_decls[sym.id] = decl
     annotation :: decl.ty
     match annotation {
         is null -> {

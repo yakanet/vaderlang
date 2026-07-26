@@ -161,8 +161,9 @@ reject_mutating_method_on_immutable :: fn(
     _ :: push_immutability_diag_at(
         root, .MutatingMethodOnImmutable, e.span,
         "`${e.field}` mutates its receiver (declared `self!`), but this receiver is immutable"
-            + field_annotate_hint(e.target, typed),
-        immutable_root_param(e.target, typed), diags,
+            + field_annotate_hint(e.target, typed)
+            + mutation_fix_hint(e.target, typed),
+        null, diags,
     )
 }
 

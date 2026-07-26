@@ -591,6 +591,7 @@ check_let :: fn(
         ann = apply_readonly_default(type_from_expr(s.ty, typed.resolved, diags), s.ty)
     }
     got :: check_expr_fn(s.value, ann, typed, diags)
+    record_local_producer(s, typed)
     declared: Type = TY_UNRESOLVED
     match ann {
         is null -> { declared = default_if_free(got) }
@@ -706,10 +707,10 @@ check_assign :: fn(
     // rejected because the predicate walks back to the root.
     if s.target is AST.FieldExpr as fe {
         root :: expr_is_immutable(fe.target, typed)
-        if push_immutability_diag_at(
+        if push_immutability_diag_hinted(
             root, .CannotMutateImmutableBinding, s.target.span,
             "`${fe.field}` is reached through an immutable path",
-            immutable_root_param(fe.target, typed), diags,
+            mutation_fix_hint(fe.target, typed), diags,
         ) {
             return
         }
@@ -735,7 +736,7 @@ check_assign :: fn(
                         // reached through a field or rooted in a parameter / local.
                         "cannot mutate `${display_type(target_arr_ty)}`"
                             + field_annotate_hint(ix.target, typed)
-                            + annotate_hint(immutable_root_param(ix.target, typed)),
+                            + mutation_fix_hint(ix.target, typed),
                     ),
                 )
                 return
@@ -743,9 +744,10 @@ check_assign :: fn(
             // T3070 : the array itself is mutable, but we got to it through an
             // immutable path — `CFG.tags[0] = 9`, where `tags: i32[]`. T3042 above
             // already handled the read-only `T[]` leaf, so this only fires past it.
-            if push_immutable_path_write(
-                expr_is_immutable(ix.target, typed), s.target.span,
-                immutable_root_param(ix.target, typed), diags,
+            if push_immutability_diag_hinted(
+                expr_is_immutable(ix.target, typed), .CannotMutateImmutableBinding,
+                s.target.span, "this element is reached through an immutable path",
+                mutation_fix_hint(ix.target, typed), diags,
             ) {
                 return
             }
@@ -906,6 +908,19 @@ is_const_reassign :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
 /// @param root_param  the root PARAMETER, when there is one to annotate.
 /// @return            whether the caller must ABANDON the statement. A rejected write
 ///                    has no meaningful value left to type.
+// `push_immutability_diag_at` with the hint already rendered, for the callers that
+// go through `mutation_fix_hint` (which reaches past `annotate_hint`).
+push_immutability_diag_hinted :: fn(
+    immutable: bool, code: TypecheckCode, span: Span, message: string,
+    hint: string, diags: Diagnostic[]!,
+) -> bool {
+    if !immutable {
+        return false
+    }
+    diags.push(typecheck_error(code, span, message + hint))
+    return true
+}
+
 push_immutability_diag_at :: fn(
     immutable: bool, code: TypecheckCode, span: Span, message: string,
     root_param: Symbol | null, diags: Diagnostic[]!,
@@ -960,6 +975,125 @@ annotate_hint :: fn(root_param: Symbol | null) -> string {
 /// module-level const has no type to mark, and a loop variable is read-only only
 /// because its ITERABLE is (`for x! in` isn't valid syntax) — marking the iterable's
 /// own declaration is what clears it.
+// Remember which fn's RETURN produced a local's value, for a local bound directly
+// from a call.
+record_local_producer :: fn(s: AST.LetStmt, typed: TypedProgram!) -> void {
+    // Positive form throughout : an `as` binding does not survive a negated `is`.
+    if s.value is AST.CallExpr as call {
+        if call.callee is AST.IdentExpr as callee {
+            if s.binding is AST.SimpleBinding as sb {
+                callee_sym :: typed.resolved.idents[callee.span.hash()] ?? return
+                local_sym  :: typed.resolved.idents[sb.name_span.hash()] ?? return
+                typed.local_init_callee[local_sym.id] = callee_sym
+            }
+        }
+    }
+}
+
+/// The one actionable fix for a rejected write, named by the compiler.
+///
+/// Ordered from the most specific lever to the least, because a reader following the
+/// wrong one hits a wall: marking a local bound from a factory is a STRENGTHENING
+/// (gaining rights from a read-only value), which assignability refuses, and a loop
+/// variable takes no marker at all (`for x! in` is not syntax).
+///
+///   1. the producing fn's RETURN — a factory hands out ownership ;
+///   2. the iterated collection's ELEMENT type, following `is T as x` bindings back
+///      to their scrutinee ;
+///   3. the module const's own type — reopenable since a mutable one gets storage ;
+///   4. the annotatable root (parameter / annotated local), the pre-existing hint.
+///
+/// @param value  the expression whose write was rejected.
+/// @return       " — …" ready to append to a message, or "" when nothing is nameable.
+export mutation_fix_hint :: fn(value: AST.Expr, typed: TypedProgram) -> string {
+    sym :: immutable_root_symbol(value, typed) ?? return annotate_hint(immutable_root_param(value, typed))
+    prod :: producer_hint_for(sym, typed)
+    if prod != "" {
+        return prod
+    }
+    elem :: element_hint_for(sym, typed)
+    if elem != "" {
+        return elem
+    }
+    konst :: module_const_hint_for(sym, typed)
+    if konst != "" {
+        return konst
+    }
+    return annotate_hint(immutable_root_param(value, typed))
+}
+
+producer_hint_for :: fn(sym: Symbol, typed: TypedProgram) -> string {
+    callee :: typed.local_init_callee[sym.id] ?? return ""
+    decl :: typed.fn_decls[callee.id] ?? return ""
+    rt :: decl.return_type ?? return ""
+    return " — annotate the return of `${callee.name}` at ${where_of(rt.span)}"
+}
+
+// Follows `is T as x` bindings back to their scrutinee before asking about the
+// iterable, so a write through a narrowed element still names the collection.
+element_hint_for :: fn(sym: Symbol, typed: TypedProgram) -> string {
+    iter :: iterable_behind(sym, typed, 4) ?? return ""
+    at :: iterable_type_span(iter, typed) ?? return ""
+    return " — its elements come from `${path_name(iter)}` : annotate that element type at ${where_of(at)}"
+}
+
+// `budget` bounds the narrowing chain : `is A as a` inside `is B as b` nests, and a
+// cycle would otherwise be reachable through a malformed table.
+iterable_behind :: fn(sym: Symbol, typed: TypedProgram, budget: i32) -> AST.Expr | null {
+    if budget <= 0 {
+        return null
+    }
+    direct :: typed.loop_var_iterable[sym.id]
+    if direct !is null {
+        return direct
+    }
+    scrut :: typed.narrow_binding_scrutinee[sym.id] ?? return null
+    next :: immutable_root_symbol(scrut, typed) ?? return null
+    if next.id == sym.id {
+        return null
+    }
+    return iterable_behind(next, typed, budget - 1)
+}
+
+module_const_hint_for :: fn(sym: Symbol, typed: TypedProgram) -> string {
+    if sym.kind != .Const {
+        return ""
+    }
+    decl :: typed.const_decls[sym.id] ?? return ""
+    ty :: decl.ty
+    if ty !is null {
+        return " — annotate `${sym.name}!` at ${where_of(ty.span)}"
+    }
+    // Unannotated (`WORDS :: [...]`) : there is no written type to reopen, so the
+    // advice is to WRITE one. Most module consts are in this shape, and the auto-pin
+    // is what froze them — invisible in the source, hence worth spelling out.
+    at :: where_of(decl.name_span)
+    return " — `${sym.name}` is frozen by the module-const default at ${at} :"
+        " give it a marked type (`${sym.name}: T[]!: …`)"
+}
+
+// Where the iterable's type is WRITTEN : a struct field's declared type. A bare
+// ident falls through to `annotate_hint`, which already points at such a root.
+iterable_type_span :: fn(iter: AST.Expr, typed: TypedProgram) -> Span | null {
+    if iter is AST.FieldExpr as fe {
+        owner :: typed.expr_types[fe.target.id] ?? return null
+        st :: struct_backing(owner) ?? return null
+        sd :: typed.struct_decls[st.symbol.id] ?? return null
+        for f in sd.fields {
+            if f.name == fe.field { return f.ty.span }
+        }
+    }
+    return null
+}
+
+path_name :: fn(e: AST.Expr) -> string {
+    if e is AST.FieldExpr as fe { return "${path_name(fe.target)}.${fe.field}" }
+    if e is AST.IdentExpr as id { return id.name }
+    return "the collection"
+}
+
+where_of :: fn(s: Span) -> string = "${s.start.file}:${s.start.line}:${s.start.column}"
+
 export immutable_root_param :: fn(e: AST.Expr, typed: TypedProgram) -> Symbol | null {
     sym :: immutable_root_symbol(e, typed) ?? return null
     if sym.kind == .Param { return sym }
@@ -1025,10 +1159,13 @@ export has_mutable_const_storage :: fn(t: Type | null) -> bool {
 // contribution is recording the loop var's Symbol in `idents` so it can be reached
 // from here. Runs before the body is checked, so uses inside see the mark.
 mark_loop_var_borrow :: fn(nv: AST.NamedVar, iter: AST.Expr, typed: TypedProgram!) -> void {
+    sym :: typed.resolved.idents[nv.span.hash()] ?? return
+    // Recorded for EVERY loop variable — see `loop_var_iterable`'s doc for why the
+    // interesting case never reaches the borrow marking below.
+    typed.loop_var_iterable[sym.id] = iter
     if !expr_is_immutable(iter, typed) {
         return
     }
-    sym :: typed.resolved.idents[nv.span.hash()] ?? return
     typed.resolved.immutable_borrows[sym.id] = true
 }
 

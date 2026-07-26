@@ -1656,7 +1656,14 @@ Markers on function values are **contravariant**: a function that does not mutat
 
 Calling a `self!` method on a read-only receiver is T3071; handing a read-only value to a `!` parameter is T3072; writing through a read-only path is T3070, and through a read-only array T3042. On the marker itself: `T!!` is P1030, the marker on a parameter *name* (`x!: T`) is P1031 — it belongs on the type — a union mixing mutabilities is T3074, and a marker on a type with no interior is T3075. On a module const, a marker outside the one storable shape is T3076. Writing the removed `const` qualifier is P1027.
 
-T3070/T3071/T3042 carry the fix as a hint: they name the declaration to annotate (`annotate \`out!\` at file:line:col`), pointing at the slot rather than at the failing write.
+T3070/T3071/T3042 carry the fix as a hint, and it names the **one** declaration that can be reopened — following the wrong one hits a wall, since marking a local bound from a factory is a strengthening and a loop variable takes no marker at all. Ordered from the most specific lever to the least:
+
+| the value came from | the hint names |
+|---|---|
+| a factory's return | `annotate the return of \`new_fn_state\` at …` |
+| an iterated collection (through any `is T as x`) | `its elements come from \`ctx.functions\` : annotate that element type at …` |
+| a module const | its type, or — unannotated — that the module-const default froze it |
+| a parameter / annotated local | `annotate \`out!\` at …` |
 
 **What this does and does not guarantee.** The property is attached to the *access path*, not to the value: passing the same object as both a `!` and a non-`!` argument is legal, and the read-only borrow is then only a statement about what that parameter is allowed to do. Vader does not track aliasing, so this buys clarity and local reasoning — a signature that tells the truth about what a function may touch — not a non-aliasing proof.
 
