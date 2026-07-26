@@ -1,0 +1,93 @@
+// `break` out of a for-in over a MULTI-SOURCE combinator (`chain`).
+//
+// Fusion is push: each `yield` site gets its own copy of the consumer body, and
+// `chain` has one loop per source. A `break` therefore left only the loop holding
+// that copy and the second source ran anyway — this summed 61 (1 + 10 + 20 + 30)
+// where the lazy iterator path stops at 1. Labelled `break <var>` was wrong the
+// same way, the label landing on both emitted loops.
+//
+// So a chain whose body can break declines fusion and runs lazily. What this
+// snippet pins is both halves of that: the RESULTS below, and — through the lower
+// / bytecode snapshots — that only the breaking chain declines. A chain with no
+// break, and any single-source combinator (map / filter / …) with one, must stay
+// fused.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+main :: fn() -> i32 {
+    a :: [1, 2, 3]
+    b :: [10, 20, 30]
+
+    // break while still in the FIRST source: nothing after it may run.
+    first := 0
+    for x in a.chain(b) {
+        if x == 2 {
+            break
+        }
+        first += x
+    }
+    println("break in 1st source=${first} want=1")
+
+    // break in the SECOND source: the first source is fully consumed.
+    second := 0
+    for x in a.chain(b) {
+        if x == 20 {
+            break
+        }
+        second += x
+    }
+    println("break in 2nd source=${second} want=16")
+
+    // Labelled break by iteration variable — same requirement.
+    labelled := 0
+    for y in a.chain(b) {
+        if y == 2 {
+            break y
+        }
+        labelled += y
+    }
+    println("labelled break=${labelled} want=1")
+
+    // `continue` never needed the guard: advancing the current source is right.
+    kept := 0
+    for x in a.chain(b) {
+        if x == 2 || x == 20 {
+            continue
+        }
+        kept += x
+    }
+    println("continue=${kept} want=44")
+
+    // No break: stays fused.
+    whole := 0
+    for x in a.chain(b) {
+        whole += x
+    }
+    println("no break=${whole} want=66")
+
+    // Single-source combinator with a break: stays fused, and correct.
+    mapped := 0
+    for x in a.map(v -> v * 10) {
+        if x == 30 {
+            break
+        }
+        mapped += x
+    }
+    println("map+break=${mapped} want=30")
+
+    // A break in a NESTED loop targets that loop, so the chain still fuses.
+    nested := 0
+    for x in a.chain(b) {
+        for y in a {
+            if y == 2 {
+                break
+            }
+            nested += y
+        }
+    }
+    println("nested break=${nested} want=6")
+    return 0
+}

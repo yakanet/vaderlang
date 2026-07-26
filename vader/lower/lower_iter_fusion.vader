@@ -92,6 +92,28 @@ try_lower_chain_fusion :: fn(
     // Bare ranges already hit the int-range fast path ; bypassing
     // would lose `default_if_free` + counter-name fidelity.
     if chain.kind == IterChainKind.Range { return null }
+    // Decline when the consumer body can `break` out of a MULTI-SOURCE combinator
+    // (`chain`), because fusion would give the wrong answer, silently.
+    //
+    // Fusion is push : each `yield` site gets its own copy of the user body, and a
+    // multi-source generator has one loop per source. A `break` then leaves only
+    // the loop holding that copy, and the next source starts anyway —
+    // `for x in a.chain(b) { if x == 2 { break } }` summed 1 + 10 + 20 + 30 where
+    // the lazy path (an actual `Iterator` object, one `next()` per element) stops
+    // at 1. Labelled `break <var>` was equally wrong here: the label lands on both
+    // emitted loops, so it too escapes just one of them.
+    //
+    // `continue` needs no guard — advancing the current source IS the right
+    // behaviour, and it already agreed with the lazy path.
+    //
+    // Declining hands the loop to the lazy iterator, whose single `next()`-driven
+    // loop makes `break` correct by construction. That costs the fusion on this
+    // shape ; fusing a multi-source combinator into ONE loop with a phase cursor
+    // (the shape `Chain::next` has in pull-based languages) would keep both, and is
+    // the standing follow-up.
+    if chain_has_multi_source_layer(chain) && body_breaks_this_loop(for_stmt.body) {
+        return null
+    }
     lb :: resolve_loop_binding(ctx, in_form.loop_var, for_stmt.span)
     user_body :: block_lowerer(ctx, for_stmt.body, false, true)
     body_template :: BodyTemplate {
@@ -622,6 +644,97 @@ array_from_iter_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> AST.Expr | nu
 chain_element_type :: fn(chain: IterChain) -> Type = match chain.kind {
     .Range | .Array | .OpaqueIter -> chain.element_type
     .Generator -> if chain.gen_layer is GenComboLayer as gl { gl.output_elem } else { TY_UNRESOLVED }
+}
+
+// ---- break-safety of a fused chain ---------------------------------------
+
+// True when any `Generator` layer of `chain` draws from MORE THAN ONE source loop
+// — `chain` (over `self` then `other`) as opposed to map / filter / take / skip /
+// enumerate, which all have exactly one. Such a layer emits one loop per source
+// and copies the consumer body into each, which is what makes a `break` in that
+// body unsound (see the guard in `try_lower_chain_fusion`).
+chain_has_multi_source_layer :: fn(chain: IterChain) -> bool {
+    if chain.kind == IterChainKind.Generator {
+        if chain.gen_layer is GenComboLayer as gl {
+            loops :: extract_gen_source_loops(gl.decl)
+            if loops is GenSourceLoop[] as ls {
+                if ls.len() > 1 {
+                    return true
+                }
+            }
+        }
+    }
+    src :: chain.source
+    if src is IterChain as inner {
+        return chain_has_multi_source_layer(inner)
+    }
+    return false
+}
+
+// True when `body` can `break` out of the for-in it belongs to — a `break` at this
+// loop's own nesting level, labelled or not.
+//
+// Nested loops are NOT descended into : a `break` inside `for y in inner { … }`
+// targets that loop, and fusing the outer chain leaves it alone. Lambdas are
+// likewise skipped — their body belongs to another function. Everything that can
+// hold a statement at the SAME loop level (blocks, if / else, match arms, defer)
+// is walked.
+body_breaks_this_loop :: fn(body: AST.BlockExpr) -> bool {
+    for stmt in body.stmts {
+        if stmt_breaks_this_loop(stmt) {
+            return true
+        }
+    }
+    trailing :: body.trailing
+    if trailing is AST.Expr as t {
+        return expr_breaks_this_loop(t)
+    }
+    return false
+}
+
+stmt_breaks_this_loop :: fn(stmt: AST.Stmt) -> bool = match stmt {
+    is AST.BreakStmt -> true
+    is AST.ExprStmt as e -> expr_breaks_this_loop(e.expr)
+    is AST.LetStmt as l -> expr_breaks_this_loop(l.value)
+    is AST.AssignStmt as a -> expr_breaks_this_loop(a.value)
+    is AST.ReturnStmt as r ->
+        if r.value is AST.Expr as rv { expr_breaks_this_loop(rv) } else { false }
+    is AST.YieldStmt as y ->
+        if y.value is AST.Expr as yv { expr_breaks_this_loop(yv) } else { false }
+    is AST.DeferStmt as d -> match d.body {
+        is AST.DeferStmtBody as ds -> stmt_breaks_this_loop(ds.stmt)
+        is AST.DeferBlockBody as db -> body_breaks_this_loop(db.block)
+    }
+    // A `break` inside a nested loop targets THAT loop, so the nested body is not
+    // walked. `continue` never needs the guard.
+    is AST.ForStmt | AST.ContinueStmt -> false
+}
+
+expr_breaks_this_loop :: fn(expr: AST.Expr) -> bool {
+    if expr is AST.BlockExpr as b {
+        return body_breaks_this_loop(b)
+    }
+    if expr is AST.IfExpr as i {
+        if body_breaks_this_loop(i.then_block) {
+            return true
+        }
+        return match i.else_branch {
+            is null -> false
+            is AST.IfElseIf as eif -> expr_breaks_this_loop(eif.branch)
+            is AST.IfElseBlock as eb -> body_breaks_this_loop(eb.block)
+        }
+    }
+    if expr is AST.MatchExpr as m {
+        for arm in m.arms {
+            if expr_breaks_this_loop(arm.body) {
+                return true
+            }
+        }
+        return false
+    }
+    // Every other expression form either can't hold a statement, or holds it in a
+    // nested function (a lambda body) where a `break` targets nothing here.
+    return false
 }
 
 // Emit the fused chain recursively. The Range / Array bottoms expand into a

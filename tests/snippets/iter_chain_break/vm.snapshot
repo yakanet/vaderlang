@@ -1,0 +1,10 @@
+# stdout
+break in 1st source=1 want=1
+break in 2nd source=16 want=16
+labelled break=1 want=1
+continue=44 want=44
+no break=66 want=66
+map+break=30 want=30
+nested break=6 want=6
+# exit
+0
