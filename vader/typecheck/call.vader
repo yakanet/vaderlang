@@ -408,20 +408,44 @@ call_needs_arg_normalisation :: fn(c: AST.CallExpr, callee_ty: FnType) -> bool {
 callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
     if c.callee is AST.IdentExpr as ie {
         sym :: typed.resolved.idents[ie.span.hash()]
+        // Params of the resolved declaration — but matching ARITY is not enough to
+        // trust them. On an overloaded name the resolver binds the ident to the
+        // PRIMARY (first-declared) sibling while `pick_overload` may have retained
+        // another one of the same arity, and handing back the primary's params then
+        // mis-fills the call: `pick("a")` took `pick(n: i32, x = "int")`'s default
+        // instead of `pick(s: string, y = "str")`'s, silently, and a named arg
+        // legal for the picked overload was rejected as T3004. So confirm the
+        // resolved decl carries the PICKED signature ; when it doesn't, its params
+        // are kept only as a last resort, after the bucket scan below.
+        arity_match: AST.FnParam[] | null = null
         if sym is Symbol as s {
             decl :: typed.fn_decls[s.id]
             if decl is AST.FnDecl && decl.params.len() == callee_ty.params.len() {
-                return decl.params
+                declared :: typed.decl_types[s.id]
+                if declared is FnType as df {
+                    if equals_type(df, callee_ty) {
+                        return decl.params
+                    }
+                    arity_match = decl.params
+                } else {
+                    // No recorded signature to compare against — this decl is the
+                    // only candidate this path knows of, so keep the old behaviour.
+                    return decl.params
+                }
             }
         }
-        return overload_params_matching(ie.name, callee_ty, typed)
+        picked :: overload_params_matching(ie.name, callee_ty, typed)
+        if picked != null {
+            return picked
+        }
+        return arity_match
     }
     if c.callee is AST.FieldExpr as fe {
-        // Genuine UFCS dispatch (the receiver type was stashed when the
-        // FieldExpr was typed) curries away `self`.
-        recv :: typed.ufcs_receiver_types[fe.id]
-        if recv != null {
-            return ufcs_method_params(fe.field, recv, callee_ty, typed)
+        // Genuine UFCS dispatch (the dispatched fn's own first param was stashed
+        // when the FieldExpr was typed) curries away `self`.
+        dispatched_first :: typed.ufcs_receiver_types[fe.id]
+        if dispatched_first != null {
+            return ufcs_method_params(fe.field, dispatched_first, callee_ty, typed)
         }
         // Otherwise a namespace member call (`mod.foo(...)`) : reach the
         // export's declared params so named args + defaults fill, same as the
@@ -475,10 +499,22 @@ overload_params_matching :: fn(name: string, callee_ty: FnType, typed: TypedProg
 
 // UFCS dispatch curries away the receiver (`self`), so the call's `callee_ty`
 // has one fewer param than the method's decl. Return the method decl's params
-// minus `self`, for the free fn named `method` whose `self` param accepts
-// `recv_ty` — the receiver-type check disambiguates same-arity methods on
-// different receiver types (so the right param names are used).
-ufcs_method_params :: fn(method: string, recv_ty: Type, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
+// minus `self`, for the free fn named `method` whose first param is the one the
+// dispatch retained.
+//
+// `dispatched_first_param` is NOT the receiver's type: `field.vader` stores the
+// chosen fn's own first param there (`ufcs_receiver_types[e.id] =
+// free_ufcs.first_param` — see the field's doc, "the param that got curried
+// away"). So the test below identifies the candidate the typer already picked,
+// rather than re-deciding which receiver fits: for that candidate the two types
+// are the same one and it matches outright, which is exactly the intent. Don't
+// read it as a receiver-fits check and try to align it with
+// `field.vader::receiver_fits_first_param` — the two answer different questions,
+// and the wider routes that one accepts (trait widening, `T[]` → `Iterator<T>`,
+// the TypeParam wildcard) are already reflected in what was stored.
+ufcs_method_params :: fn(
+    method: string, dispatched_first_param: Type, callee_ty: FnType, typed: TypedProgram,
+) -> AST.FnParam[] | null {
     bucket :: typed.resolved.fn_overloads[method] ?? return null
     for sym in bucket {
         decl :: typed.fn_decls[sym.id]
@@ -488,7 +524,7 @@ ufcs_method_params :: fn(method: string, recv_ty: Type, callee_ty: FnType, typed
             }
             ft :: typed.decl_types[sym.id]
             if ft is FnType as f {
-                if f.params.len() > 0 && is_assignable(recv_ty, f.params[0], null) {
+                if f.params.len() > 0 && is_assignable(dispatched_first_param, f.params[0], null) {
                     tail: AST.FnParam![]! = []
                     for i in 1..<fd.params.len() {
                         tail.push(fd.params[i])

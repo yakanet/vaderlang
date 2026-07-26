@@ -1,0 +1,9 @@
+# stdout
+7:int a:str want=7:int a:str
+>|7 abc|! want=>|7 abc|!
+one two:d want=one two:d
+7:X a:Y want=7:X a:Y
+#|7 abc|? want=#|7 abc|?
+7:P a:Q want=7:P a:Q
+# exit
+0

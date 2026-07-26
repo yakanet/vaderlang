@@ -1,0 +1,41 @@
+// Named args and default values on an OVERLOADED name, where two siblings share
+// an arity.
+//
+// The resolver binds a call's ident to the PRIMARY (first-declared) overload,
+// while `pick_overload` may retain another one. The param-name lookup used to
+// accept the primary's params on arity alone, so the call was normalised against
+// the wrong signature: `pick("a")` silently took the `i32` overload's default
+// ("a:int" instead of "a:str"), and a named arg legal for the picked overload was
+// rejected as T3004. Both directions are checked here — the primary AND the
+// sibling, so a fix that just swaps which one wins doesn't pass.
+
+module "snippet"
+
+import "std/io"
+
+pick :: fn(n: i32, x: string = "int") -> string = "${n}:${x}"
+pick :: fn(s: string, y: string = "str") -> string = "${s}:${y}"
+
+// Same, with the sibling reachable only by trait-widening (`i32` is Display).
+tag :: fn(d: Display, prefix: string = ">") -> string = "${prefix}|${d.to_string()}"
+tag :: fn(s: string, suffix: string = "!") -> string = "${s}|${suffix}"
+
+// Siblings of DIFFERENT arity: the primary's arity doesn't match the pick, so
+// this always went through the bucket scan. Guards that path too.
+tw :: fn(n: i32) -> string = "one"
+tw :: fn(s: string, t: string = "d") -> string = "two:${t}"
+
+main :: fn() -> i32 {
+    // Defaults: each overload must contribute its OWN.
+    println("${pick(7)} ${pick("a")} want=7:int a:str")
+    println("${tag(7)} ${tag("abc")} want=>|7 abc|!")
+    println("${tw(1)} ${tw("a")} want=one two:d")
+
+    // Named args, on the primary and on the sibling.
+    println("${pick(7, x = "X")} ${pick("a", y = "Y")} want=7:X a:Y")
+    println("${tag(7, prefix = "#")} ${tag("abc", suffix = "?")} want=#|7 abc|?")
+
+    // Positional stays unaffected.
+    println("${pick(7, "P")} ${pick("a", "Q")} want=7:P a:Q")
+    return 0
+}
