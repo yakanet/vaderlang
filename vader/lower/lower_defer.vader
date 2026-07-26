@@ -8,9 +8,11 @@
 //   3. A `LoweredDeferPush` carrying `LoweredMakeClosure { lifted_fn,
 //      env }` at the original `defer` site.
 //
-// Captures come from `ctx.project.closures.defer_captures[span_key]`,
-// populated by `analyze_closures` at project entry. The lifted fn's
-// body is lowered with a `lifted_context` so captured idents route
+// Captures come from `closures.defer_captures`, populated by
+// `analyze_closures` at project entry and keyed by
+// `capture_key(module path, DeferStmt.id)` — the module path prefix is what
+// keeps two modules' node ids from colliding in this project-global map. The
+// lifted fn's body is lowered with a `lifted_context` so captured idents route
 // through `env.cap_N`.
 
 module "vader/lower"

@@ -78,7 +78,8 @@ export TypedProgram :: struct {
 
     /// Type of every `:=` / `::` local binding, keyed by binding span
     /// (the span on `SimpleBinding` / `RestBinding`, not the LetStmt)
-    /// via `span_key` (packed `(line << 32) | column` `i64`).
+    /// via `Span.hash()` — the file's FNV hash folded with the start
+    /// line/column (`diagnostics/diagnostic.vader`).
     local_types: MutableMap<u64, Type>
 
     /// `x := []` — the empty-array initialiser's expression id, keyed by the
@@ -99,7 +100,7 @@ export TypedProgram :: struct {
     decl_types: MutableMap<i32, Type>
 
     /// Impl-method types, keyed by the method's `name_span` via
-    /// `span_key`. Impl methods don't have a resolver `Symbol` —
+    /// `Span.hash()`. Impl methods don't have a resolver `Symbol` —
     /// they live as members of an `ImplDecl` block, not as
     /// top-level names — so they can't share the `Symbol.id`
     /// keying used by `decl_types`. Per-file uniqueness is enough
@@ -108,12 +109,12 @@ export TypedProgram :: struct {
     impl_method_decl_types: MutableMap<u64, Type>
 
     /// Type of every fn / lambda parameter, keyed by `FnParam.span`
-    /// via `span_key`.
+    /// via `Span.hash()`.
     param_types: MutableMap<u64, Type>
 
     /// Type of every type-position expression — `let x: T = …` annotations,
     /// fn signatures, struct field types, etc. Keyed by the expression's
-    /// own span via `span_key` so downstream passes can reuse what
+    /// own span via `Span.hash()` so downstream passes can reuse what
     /// `type_from_expr` already computed.
     type_expr_types: MutableMap<u64, Type>
 

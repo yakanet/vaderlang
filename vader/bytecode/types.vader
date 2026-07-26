@@ -632,12 +632,6 @@ export size_of_bc_type :: fn(t: BcType) -> i32 = match t {
     is BcFn -> 16
 }
 
-/// Map a `BcType` (the element of an array) to its native storage class.
-/// Anything that's not a small fixed-width primitive collapses to
-/// `Boxed` — strings, structs, unions, refs, fns all live in a
-/// `vader_box_t` slot.
-/// @param element  the array element's bytecode type.
-/// @return         the storage discriminator the runtime uses.
 /// True when `t` can be stored as a raw `void*` array slot (T12/P3): a
 /// header-bearing heap object, or `null` (a `NULL` slot). Drives `array_kind_of`'s
 /// `Ref` decision. A non-null primitive / `string` (no object header) and an
@@ -660,12 +654,18 @@ export is_ref_only_element :: fn(t: BcType, types: BcType[]) -> bool = match t {
     }
 }
 
-// T12/P3: a concrete heap ref (struct/array/fn) — and a union of only such refs
-// or `null` (`Expr[]`, `T | null`) — stores as a raw `void*` slot (`.Ref`, 8 B),
-// the tag recovered from each referent's header on read. A `BcRef` (erased trait,
-// may box a primitive) and a mixed / primitive-bearing union stay `Boxed` (24 B).
-// Access sites runtime-dispatch on `buf->element_kind` because the SAME array type
-// is constructed `Ref` at a concrete site but `Boxed` in erased generic code.
+/// Map an array's element `BcType` to the storage class its slots use.
+///
+/// T12/P3: a concrete heap ref (struct/array/fn) — and a union of only such refs
+/// or `null` (`Expr[]`, `T | null`) — stores as a raw `void*` slot (`.Ref`, 8 B),
+/// the tag recovered from each referent's header on read. A `BcRef` (erased trait,
+/// may box a primitive) and a mixed / primitive-bearing union stay `Boxed` (24 B).
+/// Access sites runtime-dispatch on `buf->element_kind` because the SAME array type
+/// is constructed `Ref` at a concrete site but `Boxed` in erased generic code.
+///
+/// @param element  the array element's bytecode type.
+/// @param types    the module type table (to resolve union variant indices).
+/// @return         the storage discriminator the runtime reads off the buffer.
 export array_kind_of :: fn(element: BcType, types: BcType[]) -> ArrayKind = match element {
     is BcPrimitive as p -> array_kind_of_val(p.val)
     is BcStruct -> ArrayKind.Ref

@@ -60,7 +60,7 @@ export skip_first_get_at :: fn(h: ScheduleHints, block: BlockId, idx: usize) -> 
     return h.skip_first_get.contains(pos_key(block, idx))
 }
 
-/// Empty hints — `scheduleStack` callers that disable scheduling get
+/// Empty hints — `schedule_stack` callers that disable scheduling get
 /// this sentinel. Every `.contains()` query returns false.
 export no_hints :: fn() -> ScheduleHints {
     return ScheduleHints {

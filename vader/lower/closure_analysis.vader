@@ -161,12 +161,6 @@ empty_scope :: fn() -> MutableSet<i32> {
     return MutableSet<i32> {}
 }
 
-clone_scope :: fn(scope: MutableSet<i32>) -> MutableSet<i32> {
-    out :: empty_scope()
-    for id in scope { out.add(id) }
-    return out
-}
-
 // Recover the resolver-minted Symbol for a binding site. Backed by the
 // per-module index built in `analyze_module` ; one map lookup per call.
 lookup_symbol_by_span :: fn(symbol_index: MutableMap<u64, Symbol>, span: Span) -> Symbol | null =
@@ -344,16 +338,20 @@ walk_expr :: fn(
         is AST.MatchExpr as match_expr -> {
             walk_expr(match_expr.scrutinee, scope, out_captures, out_seen, ctx)
             for arm in match_expr.arms {
-                // Vader's `MutableSet` lacks a remove op ; clone the
-                // scope per-arm so introduced bindings don't leak. The
-                // clone is O(scope size) per arm — bounded by the fn's
-                // local count, comfortably fine for the analysis pass.
-                arm_scope :: clone_scope(scope)
-                walk_pattern_for_bindings(arm.pattern, arm_scope, ctx.symbol_index, [])
+                // An arm's pattern bindings are scoped to that arm : add them to
+                // the shared scope, walk the arm, then drop exactly what this arm
+                // introduced. `added` only carries the ids `scope.add` reported as
+                // NEW, so an arm binding shadowing an outer local leaves the outer
+                // id in place. Locals declared in the arm BODY are not isolated —
+                // no more than for an `if` or a nested block above, and harmless:
+                // an ident only ever resolves to a binding lexically in scope.
+                added: i32[]! = []
+                walk_pattern_for_bindings(arm.pattern, scope, ctx.symbol_index, added)
                 if arm.guard !is null {
-                    walk_expr(arm.guard, arm_scope, out_captures, out_seen, ctx)
+                    walk_expr(arm.guard, scope, out_captures, out_seen, ctx)
                 }
-                walk_expr(arm.body, arm_scope, out_captures, out_seen, ctx)
+                walk_expr(arm.body, scope, out_captures, out_seen, ctx)
+                for id in added { _ :: scope.remove(id) }
             }
         }
         is AST.BlockExpr as block -> {

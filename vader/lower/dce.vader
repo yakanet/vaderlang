@@ -11,10 +11,13 @@
 // Generic-fn instances share their generic's symbol id (Vader mono does
 // not allocate a fresh id per instance — `register_and_emit_generic_call`
 // reuses `fn_sym.id` and distinguishes instances by mangle). The call
-// graph is therefore followed by MANGLE first, then symbol id — mirroring
-// `vader/bytecode/emit_body.vader::emit_call_to_symbol`. That keeps
-// DCE-survival ⟺ emit-resolvable : a fn the emitter can resolve at a
-// call site is exactly a fn this pass marks reachable.
+// graph is therefore followed by MANGLE first, then symbol id. That keeps
+// DCE-survival ⟺ emit-resolvable : the emitter
+// (`midir/emit.vader::emit_bytecode_from_cfg`) reserves every fn under BOTH keys
+// and resolves symbol-id-then-mangle, and a generic instance necessarily comes
+// in through the mangle — `lower_mono_fn.vader::build_fn_instance_decl` leaves
+// its `origin.symbol` null on purpose. So a fn the emitter can resolve at a call
+// site is exactly a fn this pass marks reachable.
 
 module "vader/lower"
 

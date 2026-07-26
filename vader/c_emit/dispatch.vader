@@ -12,7 +12,7 @@
 //
 // Slot indices are a C-emit-only concept here : the Vader VM dispatches a
 // `virtual.call` by `(vtable_key → receiver tag)` directly (see
-// `vader/vm/op.vader::VirtualCall`), never by slot — so the registry lives in
+// `vader/bytecode/op.vader::VirtualCall`), never by slot — so the registry lives in
 // this module and exists purely to lay out the runtime slot tables.
 
 module "vader/c_emit"

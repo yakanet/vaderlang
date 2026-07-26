@@ -23,10 +23,11 @@ collect_vtable_entries :: fn(
             if d is LoweredFnDecl as fd {
                 trait_method :: impl_trait_method_from_mangled(fd.mangled) ?? continue
                 receiver_ty :: impl_receiver_type_from_decl(fd, typed) ?? continue
-                // fn_symbol is informational here — build_impl_table only
-                // keys on (struct_type, trait_name). Use a synth Symbol
-                // when the impl-member resolver lookup returned null so
-                // the entry still lands in the table.
+                // fn_symbol is informational here — the table builder
+                // (`midir/emit.vader::build_impl_table_from_vtable`) only keys on
+                // (struct_type, trait_name). Use a synth Symbol when the
+                // impl-member resolver lookup returned null so the entry still
+                // lands in the table.
                 sym :: fd.origin.symbol
                 fn_sym :: if sym is Symbol { sym } else {
                     Symbol {

@@ -1,4 +1,4 @@
-// vader/lsp/diagnostics — `textDocument/publishDiagnostics` push.
+// vader/lsp/analysis/diagnostics — `textDocument/publishDiagnostics` push.
 //
 // Runs the typechecker on a document and pushes the resulting
 // `Diagnostic[]` to the client as a server-initiated notification.

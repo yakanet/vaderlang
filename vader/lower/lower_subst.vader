@@ -15,7 +15,7 @@ import "vader/types"
 import "vader/comptime"
 import "vader/resolver/symbol"
 
-/// Erasure variant of `build_fn_subst` — maps every type-parameter
+/// Erasure variant of `build_fn_concrete_subst` — maps every type-parameter
 /// of `fd` to `TY_ANY` so the materialised instance's body / signature
 /// renders with `Any` slots regardless of the concrete call-site type
 /// arguments. The mangled name still embeds the concrete args (handled
@@ -373,7 +373,8 @@ map_type_params_mixed :: fn(subst: Substitution!, scope: Symbol[], names: string
     }
 }
 
-/// Variant of `build_impl_any_subst` keeping PRIMITIVE type args concrete.
+/// Variant of `build_impl_subst` keeping PRIMITIVE type args concrete and
+/// erasing every other one to `Any` (see `keep_primitive_or_erase`).
 build_impl_mixed_subst :: fn(
     impl_decl: ImplDecl, impl_typed: TypedProgram, args: Type[],
 ) -> Substitution {

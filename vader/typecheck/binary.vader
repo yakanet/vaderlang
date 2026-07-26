@@ -462,10 +462,10 @@ check_equality :: fn(
     diags: Diagnostic[]!,
 ) -> Type {
     // `==` / `!=` against `null` gets the same unreachable check as `is null`
-    // (SPEC §1002 ; T3040) — an operand that can never be null makes the
-    // comparison statically false. Scoped to the null operand so a free-literal
-    // compare like `x == 0` (FreeInt vs i32, which don't structurally overlap)
-    // is not flagged.
+    // (SPEC.md §"Flow-narrowing on `T | null`" ; T3040) — an operand that can
+    // never be null makes the comparison statically false. Scoped to the null
+    // operand so a free-literal compare like `x == 0` (FreeInt vs i32, which
+    // don't structurally overlap) is not flagged.
     if is_null_type(right) {
         check_is_overlap(e, left, right, diags)
         return TY_BOOL

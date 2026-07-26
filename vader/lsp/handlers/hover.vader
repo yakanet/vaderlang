@@ -1,4 +1,4 @@
-// vader/lsp/hover — `textDocument/hover` handler.
+// vader/lsp/handlers/hover — `textDocument/hover` handler.
 //
 // The client sends `{ textDocument: { uri }, position: { line, character } }`
 // (both 0-based). We resolve the identifier under the cursor via the

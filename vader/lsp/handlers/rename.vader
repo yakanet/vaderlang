@@ -1,4 +1,4 @@
-// vader/lsp/rename — `textDocument/prepareRename` + `textDocument/rename`.
+// vader/lsp/handlers/rename — `textDocument/prepareRename` + `textDocument/rename`.
 //
 // Rename a symbol across the whole project. Reuses the reference index
 // (`analysis/reference_index`) : the cursor resolves to a Symbol, and every recorded

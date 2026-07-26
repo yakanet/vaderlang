@@ -474,7 +474,7 @@ return_type_of :: fn(fn_decl: FnDecl, types: EntryTypes) -> Type {
     if decl_type is FnType as ft { return ft.return_type }
     // Impl members aren't in `decl_types` (Symbol.id-keyed for
     // top-level decls). They live in `impl_method_decl_types`
-    // keyed by name_span via `span_key` — consult that as a
+    // keyed by name_span via `Span.hash()` — consult that as a
     // fallback so impl-member return types stop falling through
     // to TY_VOID. Apply the entry's subst so an erasure-flavoured
     // EntryTypes still produces an erased return type.

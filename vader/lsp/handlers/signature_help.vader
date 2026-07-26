@@ -1,4 +1,4 @@
-// vader/lsp/signature_help — `textDocument/signatureHelp` handler.
+// vader/lsp/handlers/signature_help — `textDocument/signatureHelp` handler.
 //
 // When the cursor sits inside a `CallExpr`'s argument list, look up
 // the callee's `FnDecl` and render its signature with the active

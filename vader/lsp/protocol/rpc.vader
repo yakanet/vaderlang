@@ -1,4 +1,4 @@
-// vader/lsp/rpc — JSON-RPC field accessors + response encoders.
+// vader/lsp/protocol/rpc — JSON-RPC field accessors + response encoders.
 //
 // LSP messages are JSON-RPC 2.0 wrappers :
 //   request      : { jsonrpc, id, method, params }

@@ -23,8 +23,8 @@ import "vader/parser"
 import "vader/resolver/symbol"
 
 /// Per-file resolution output. `idents` keys every resolved `AST.IdentExpr`
-/// by its span via `span_key` (packed `(line << 32) | column` `i64`,
-/// file-local and unique per node). Consumers look up a span to get
+/// by its span via `Span.hash()` (the file's FNV hash folded with the start
+/// line/column, unique per node). Consumers look up a span to get
 /// the bound symbol's kind ; `Variable` is the fallback for un-resolvable
 /// idents (the resolver is intentionally lenient — diagnostics are
 /// the compiler-grade resolver's job).
@@ -32,7 +32,7 @@ export ResolvedFile :: struct {
     /// Top-level declarations of this file, indexed for downstream use.
     top_level: MutableMap<string, Symbol>
     /// Every `AST.IdentExpr` reached during the body walk, span-keyed
-    /// via `span_key` (packed `(line << 32) | column` `i64`).
+    /// via `Span.hash()`.
     idents:    MutableMap<u64, Symbol>
     /// `Symbol.id` set for every Local minted from a `name :: ...`
     /// binding (`mutable = false`). `name :=` ones don't appear here.
@@ -684,7 +684,7 @@ walk_struct_lit :: fn(self: ResolveState!, s: AST.StructLitExpr) -> void {
 
 import "std/testing"
 
-// A zero-width span at `(line, column)` in `file` — enough for `span_key`,
+// A zero-width span at `(line, column)` in `file` — enough for `Span.hash()`,
 // which reads only `start.file` / `start.line` / `start.column`.
 span_at :: fn(file: string, line: i32, column: i32) -> Span {
     pos :: Position { .file = file, .offset = 0, .line = line, .column = column }

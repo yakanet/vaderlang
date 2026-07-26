@@ -503,10 +503,15 @@ export LoweredDataConst :: struct {
     pool_index: usize
 }
 
-/// Length of an array, exposed by the bytecode op `array.len`. The
-/// lowerer emits this when auto-wrapping `for x in arr` into an
-/// `ArrayIter<T>` literal — the `length` field needs the runtime length
-/// but Vader doesn't yet have a generic `len(arr)` fn.
+/// Length of an array, exposed by the bytecode op `array.len`.
+///
+/// This is what `arr.len()` lowers TO — `ArrayOps.len` does exist, in the
+/// prelude (`std/core/array.vader`), and `lower_call` turns every call on an
+/// array receiver into this node rather than a `LoweredCall`. Being the op
+/// itself, it needs no callee resolution and no inlining pass to collapse, and
+/// the BCE probes (`lower_for_in`, `bce_hoist`) and `bytes_view_elision` can
+/// pattern-match a loop bound / a view read directly on it. Also filled into the
+/// `length` field when `for x in arr` is auto-wrapped into an `ArrayIter<T>`.
 export LoweredArrayLen :: struct {
     span:   Span
     type:   Type

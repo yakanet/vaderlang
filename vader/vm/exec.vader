@@ -494,24 +494,6 @@ dispatch_call_into :: fn(frame: Frame!, frames: Frame![]!, frame_count: usize[]!
     return null
 }
 
-/// Build a new `Frame` for a callee. User args are copied straight from
-/// `args_source[args_offset ..]` into `slots` — typically `args_source`
-/// is the caller's stack and `args_offset` is its post-pop cursor. When
-/// `env` is non-`null` (closures from `make_closure`), it's bound to
-/// `slot 0` *before* the user args, so the lifted-closure body sees its
-/// extra leading `env` parameter in the expected position. Locals
-/// (`local_count` of them) follow, zero-initialised. `env` is mandatory
-/// — pass `null` explicitly for direct calls and plain `fn.ref` calls.
-///
-/// @param function_index  module-level index of the callee (recorded on
-///                        the frame so the executor can look up the body).
-/// @param callee          the callee's `BcFunction` (read for the
-///                        slot counts).
-/// @param args_source     the array to read params from.
-/// @param args_offset     start offset of the params within `args_source`.
-/// @param env             closure env — bound to `slot 0` when non-`null` ;
-///                        pass `null` for direct / plain `fn.ref` calls.
-/// @return                a fresh `Frame` ready to be pushed.
 /// Push a callee frame, REUSING the arrays of the frame parked at `cursor`
 /// when there is one (`frames` is grow-only : `pop_frame` only decrements, so
 /// the slot's six columns survive and can be refilled in place). This keeps a
@@ -580,6 +562,24 @@ push_callee_frame :: fn(frames: Frame![]!, cursor: usize[]!, function_index: i32
     cursor[0] = cursor[0] + 1
 }
 
+/// Build a fresh `Frame` for a callee. User args are copied out of the CALLER's
+/// stack starting at `arg_base` into `slots`. When `env` is non-`null` (closures
+/// from `make_closure`), it is bound to `slot 0` *before* the user args, so the
+/// lifted-closure body sees its extra leading `env` parameter in the expected
+/// position. Locals follow, zero-initialised. `env` is mandatory — pass `null`
+/// explicitly for direct calls and plain `fn.ref` calls.
+///
+/// Allocates the frame's arrays, so the hot path is `push_callee_frame`, which
+/// refills a parked frame in place and only falls back here when there is none.
+///
+/// @param function_index  module-level index of the callee (recorded on the
+///                        frame so the executor can look up the body).
+/// @param callee          the callee's `BcFunction` (read for the slot counts).
+/// @param caller          the calling frame — the args are read off its stack.
+/// @param arg_base        index in the caller's stack where the args start.
+/// @param env             closure env — bound to `slot 0` when non-`null` ;
+///                        `null` for direct / plain `fn.ref` calls.
+/// @return                a fresh `Frame` ready to be pushed.
 build_callee_frame :: fn(function_index: i32, callee: bc.BcFunction, caller: Frame, arg_base: usize, env: Value | null) -> Frame {
     // Copy the caller's SoA stack columns straight into the callee's slot
     // columns : no boxing, no materialisation, no per-slot decompose. Args
@@ -754,16 +754,6 @@ apply_eq_binop :: fn(frame: Frame!, op_label: string, negate: bool) -> Trap | nu
     return null
 }
 
-/// Build the argv argument for a `fn(argv: string[]) -> i32` entry point.
-/// `host_argv` carries the forwarded CLI args (argv[0] = program path, then
-/// the program's own args) — set by `run_virt` from the `--` separator so the
-/// compiler can run itself through the VM. When empty, fall back to a single
-/// synthetic path element. Returns an empty arg list when
-/// `main` takes no parameters.
-///
-/// @param parameter_count  the entry fn's declared parameter count.
-/// @param host_argv        forwarded CLI argv, or empty for the synthetic path.
-/// @return                 the `Value[]` to seed the main frame's slots.
 /// Primitive kind ("string" / "char" / "i32" / …) of `types[type_id]`,
 /// or "" when the slot isn't a primitive. Used by the virtual.call intrinsic
 /// fallback to rebuild a host mangle.
@@ -790,6 +780,19 @@ intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
     return bc.primitive_member_mangle(kind, trait_name, method)
 }
 
+/// Build the argv argument for a `fn(argv: string[]) -> i32` entry point.
+/// `host_argv` carries the forwarded CLI args (argv[0] = program path, then the
+/// program's own args) — set by `run_virt` from the `--` separator so the
+/// compiler can run itself through the VM. When empty, falls back to a single
+/// synthetic path element. Returns an empty arg list when `main` takes no
+/// parameters.
+///
+/// @param parameter_count        the entry fn's declared parameter count.
+/// @param host_argv              forwarded CLI argv, or empty for the synthetic
+///                               path.
+/// @param string_array_type_id   the module's `string[]` type-table index, used
+///                               to tag the boxed array.
+/// @return                       the `Value[]` to seed the main frame's slots.
 build_main_args :: fn(parameter_count: usize, host_argv: string[], string_array_type_id: i32) -> Value[] {
     out: Value[]! = []
     if parameter_count != 1 { return out }
@@ -2856,18 +2859,6 @@ build_object :: fn(type_id: i32, frame: Frame!, handle_cell: i32[]!) -> Trap | n
     return null
 }
 
-/// Shared front-half of the typed/byte loads (`load_u8` / `load_i32` /
-/// `load_i64`). Validates `obj, off` on the stack and bounds, then returns the
-/// `width` little-endian bytes at `off` as a zero-extended u64 — the caller
-/// wraps it in the right `Value` and advances the stack/pc.
-///
-/// @param frame  current top frame ; not mutated here (the arm overwrites
-///               `stack[sp-2]` and drops one slot).
-/// @param width  byte width to read (1 / 4 / 8).
-/// @param label  op label for trap messages.
-/// @return       the raw value, or a `Trap` on underflow / bad obj / OOB.
-/// @error        fewer than 2 stack slots ; non-object receiver ; negative or
-///               out-of-range offset.
 /// Validate a byte-region access for the typed load/store ops: the offset must
 /// be non-negative and `[off, off + width)` must fall within `bytes_len`.
 /// Centralises the bounds logic + trap wording shared by `load_bytes_op` and
@@ -2891,6 +2882,18 @@ check_byte_range :: fn(off: i32, width: usize, bytes_len: usize, label: string, 
     return o
 }
 
+/// Shared front-half of the typed/byte loads (`load_u8` / `load_i32` /
+/// `load_i64`). Validates `obj, off` on the stack and bounds, then returns the
+/// `width` little-endian bytes at `off` as a zero-extended u64 — the caller
+/// wraps it in the right `Value` and advances the stack/pc.
+///
+/// @param frame  current top frame ; not mutated here (the arm overwrites
+///               `stack[sp-2]` and drops one slot).
+/// @param width  byte width to read (1 / 4 / 8).
+/// @param label  op label for trap messages.
+/// @return       the raw value, or a `Trap` on underflow / bad obj / OOB.
+/// @error        fewer than 2 stack slots ; non-object receiver ; negative or
+///               out-of-range offset.
 load_bytes_op :: fn(frame: Frame, width: usize, label: string) -> u64 | Trap {
     if frame.sp < 2 {
         return Trap { .message = "${label} needs object + offset on stack at pc=${frame.pc}" }

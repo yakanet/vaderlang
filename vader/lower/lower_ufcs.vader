@@ -367,10 +367,21 @@ harvest_ufcs_fn_instance :: fn(
         suffix :: call_site_instance_suffix(ctx, fn_sym, mono_args)
         inst_key :: "${fn_sym.id}::${suffix}"
         owner_module :: fn_sym.module
-        // Use the owning module's *display* path (the declared
-        // `module "..."` name) for the mangle, not its filesystem
-        // id. Matches the direct-call path at line 775.
-        // Falls back to fn_sym.module when the lookup misses (defensive).
+        // Use the owning module's *display* path (the declared `module "..."`
+        // name) for the mangle, not its filesystem id. Falls back to
+        // `fn_sym.module` when the lookup misses (defensive).
+        //
+        // DIVERGENCE, known and unfixed: the mangle built below repeats the
+        // module prefix TWICE, where `lower_generic_call.vader` (the direct-call
+        // path) and the canonical `comptime/mangle.vader` emit it once. Both
+        // paths key the instance identically, and
+        // `register_fn_instance_mangle` returns whatever mangle was registered
+        // first — so for one instance, `a.len()` and `len(a)` disagree on the
+        // emitted name and the winner is whichever call the lowering reached
+        // first. Unifying the two builders means re-seeding the bootstrap (every
+        // emitted name changes), so it is a deliberate follow-up, NOT an
+        // oversight. `inline.vader` skips generic instances to keep this
+        // unobservable — do not relax that filter before this is fixed.
         display :: lookup_module_display_path(ctx, owner_module)
         mod_mangle :: mangle_module_id(if display == null { owner_module } else { display })
         base_mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"

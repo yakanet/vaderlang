@@ -1,4 +1,4 @@
-// vader/lsp/resolver — cross-file goto-def + hover support.
+// vader/lsp/analysis/resolver — cross-file goto-def + hover support.
 //
 // When a click falls on a name that doesn't resolve in the current
 // document, we check whether the name was imported. If so, we map the

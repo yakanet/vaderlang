@@ -1,14 +1,22 @@
-// vader/bytecode/emit — LoweredProject → BytecodeModule.
+// vader/bytecode/emit — bytecode-level peepholes over an emitted `BcFunction`.
 //
-// Emits a complete `BytecodeModule` from a `LoweredProject` : the full
-// LoweredExpr / LoweredStmt walk, struct / const decls, impl members +
-// intrinsic routing, vtables, the data pool, and the mid-IR (CFG / DCE /
-// escape) integration — reservation + interning + per-op codegen collapsed
-// into one pass. The compiler self-hosts through this path.
+// Despite the name, nothing here emits: the `LoweredProject` → `BytecodeModule`
+// walk lives in `vader/midir` (`emit_bytecode_from_cfg`), and the `emit_project`
+// tree-walker other comments still name is gone. What is left is the post-emit
+// rewrite layer that emitter calls into, one exported pass each:
+//   - `run_bc_peephole`         — `set N ; get N` → `tee N`, bool-not folds.
+//   - `run_bc_return_lit_fold`  — `<const> ; return` → `ReturnLit`.
+//   - `run_bc_const_fold_arith` — `<const> ; <const> ; <op>` → one const.
+//   - `propagate_const_single_use` / `drop_dead_stores` — local-slot cleanups.
+//   - `build_intrinsic_wrapper_body` — forwarder body for an intrinsic import.
 //
-// Operand stack discipline matches WASM-style stack machine semantics
-// the VM + the C emitter both consume. Each expr emit pushes one
-// value ; each statement is push-then-drop or pure side-effect.
+// Every body-rewriting pass hands back a `BcPeepholeOut` so `jump_table` and
+// `debug` are remapped in lock-step with `body` (`remap_jump_table` /
+// `remap_debug`) : a branch target or a `#line` that lags the rewrite is a silent
+// mis-compile, not a cosmetic slip.
+//
+// The `vader/bytecode/peephole.vader` that comments across the tree point at IS
+// this file. Renaming it is an open follow-up.
 
 module "vader/bytecode"
 
@@ -20,13 +28,6 @@ import "vader/parser"
 Lo :: import "vader/lower"
 
 
-/// In-place peephole over a fn's `body` :
-///   - Rule 1 : `LocalSet N ; LocalGet N` → `LocalTee N`.
-///   - Rule 2 : `<num>.<cmp> ; BoolNot` → `<num>.<inverse cmp>` (NYI).
-///   - Rule 3 : `BoolConst X ; BoolNot` → `BoolConst !X`.
-///   - Rule 4 : `BoolNot ; BoolNot` → ε.
-/// Branch-target safety is preserved because Vader's `br` / `br_if` use
-/// label-stack relative depths.
 /// Rule-5-only pass : `<Const> ; Return` → `ReturnLit { value }`. Used
 /// by the second peephole pass (after drop_dead_stores) — re-running
 /// the full `run_bc_peephole` there would re-fold set+get pairs that
@@ -156,11 +157,6 @@ remap_debug :: fn(old_debug: (DebugPos | null)[], old_to_new: i32[], new_len: us
     return new_debug
 }
 
-/// Const-fold the `<const> ; <const> ; <op>` peephole. Folds
-/// safe integer arith (add / sub / mul / bitwise). Skips div / rem
-/// (trap on rhs=0), shifts (UB on shift ≥ width), and floats (NaN +
-/// signed-zero + precision drift). Returns the folded `Op` (an
-/// `I32Const` / `I64Const`) on a hit, null otherwise.
 /// Standalone const-fold-arith pass. Runs AFTER propagate_const_single_use
 /// so chains like `const ; set N ; get N ; const ; <op>` (post-propagate :
 /// `const ; const ; <op>`) collapse to a single folded const. Returns the
@@ -193,6 +189,10 @@ export run_bc_const_fold_arith :: fn(function: BcFunction) -> BcPeepholeOut {
     return BcPeepholeOut { .body = new_body, .jump_table = new_jt, .debug = new_debug }
 }
 
+// Fold a `<const> ; <const> ; <op>` triple. Safe integer arith only (add / sub /
+// mul / bitwise) : div / rem would trap on rhs=0, shifts are UB past the width,
+// and floats carry NaN / signed-zero / precision drift. Returns the folded
+// `I32Const` / `I64Const` on a hit, null otherwise.
 try_fold_arith :: fn(op: Op, out: Op[], out_len: usize) -> Op | null {
     if out_len < 2 { return null }
     right :: out[out_len - 1]
@@ -216,6 +216,18 @@ try_fold_arith :: fn(op: Op, out: Op[], out_len: usize) -> Op | null {
     return null
 }
 
+/// Peephole over a fn's `body` :
+///   - Rule 1 : `LocalSet N ; LocalGet N` → `LocalTee N`.
+///   - Rule 2 : `<num>.<cmp> ; BoolNot` → `<num>.<inverse cmp>` (NYI).
+///   - Rule 3 : `BoolConst X ; BoolNot` → `BoolConst !X`.
+///   - Rule 4 : `BoolNot ; BoolNot` → ε.
+///
+/// Branch-target safety holds because Vader's `br` / `br_if` use label-stack
+/// relative depths, and `mark_jump_targets` keeps any op a branch lands on from
+/// being folded away.
+///
+/// @param function  the emitted fn to rewrite (not mutated — see the return).
+/// @return          the rewritten body with `jump_table` / `debug` remapped.
 export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
     body :: function.body
     n :: body.len()
@@ -361,7 +373,7 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
 }
 
 /// Append `value` when the cursor is at the end ; overwrite in place
-/// otherwise. Mirrors `push_op_at` in `vader/bytecode/peephole.vader`.
+/// otherwise — the write primitive every peephole in this file goes through.
 push_or_assign :: fn(items: Op[]!, sp: usize, value: Op) -> void {
     if sp == items.len() {
         items.push(value)
@@ -528,7 +540,7 @@ const_fills_slot :: fn(cv: ConstOp, slot: ValType) -> bool {
 }
 
 /// Rule 5 — eliminate locals whose only references are writes. After
-/// `applyLocalRules` collapses every `set N ; get N` adjacency into a
+/// `run_bc_peephole` collapses every `set N ; get N` adjacency into a
 /// tee, the CFG-emit path leaves long tails of dead `local.tee N` (the
 /// value stays on stack for the next op, but the local itself is never
 /// read). Drop those writes and shrink the locals table so the C-emit

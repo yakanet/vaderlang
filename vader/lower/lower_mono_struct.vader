@@ -14,11 +14,13 @@ import "vader/types"
 import "vader/comptime"
 import "vader/resolver/symbol"
 
-// Phase 1 of the two-pass instance materialisation : concrete struct
-// decls only. Returns the dedupe set so the representatives pass
-// (Phase 2, called after fn-instances) can resume with the same
-// state. `pending_reps` is rebuilt inside the second pass from
-// `evaluated.instances` since they're stored on the project ctx.
+// Phase 1 of the two-pass instance materialisation : concrete struct decls only.
+//
+// The returned set is ALWAYS EMPTY — nothing here ever adds to it, and the
+// representatives pass (Phase 2, after fn-instances) rebuilds its own dedupe
+// state from `project_ctx.evaluated.instances`. `lower.vader` proves it: the
+// staging branch passes a plain empty literal instead, equivalently. The return
+// value should go, and with it the caller's threading of it.
 materialize_concrete_struct_instances :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx!,
     project: LoweredProject, diags: Diagnostic[],
@@ -426,7 +428,7 @@ materialize_impl_for_instance :: fn(
     // erase the receiver args the same way (gated on `ImplEntry.is_generic`).
     // Concrete-instantiation impls keep `erased_args == inst.args`, so their
     // suffix stays concrete. Generic impls use the STRUCTURE-FREE
-    // `flat_any_suffix` (one `__Any` per arg) — `args_suffix(erased_args)`
+    // `mixed_any_suffix` (one `__Any` per arg) — `args_suffix(erased_args)`
     // would leak inner shape (`MutableMap<_, _[]>` → `at__Any__Any__`) and
     // diverge from a sibling instance's `at__Any__Any`, breaking the
     // single-body dedupe.
@@ -447,7 +449,7 @@ materialize_impl_for_instance :: fn(
         // instantiation context (`owner_typed`). A generic-impl member referenced
         // from another module (e.g. `Range<T>`'s `Iterator::next`, reached from any
         // module iterating a range) is resolved by the for-in / default-method
-        // lowering under the impl's owning module (GATE B1, lower_for_in.vader:380) ;
+        // lowering under the impl's owning module (GATE B1, see `lower_for_in.vader`) ;
         // materialising it under the caller's module produced a mangle the call
         // sites never reference (`std_collections$…next` vs `std_iter$…next`),
         // dropping the call to the panic fallback. Co-locating with the impl keeps

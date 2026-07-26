@@ -23,7 +23,7 @@ import "vader/types"
 // Concatenate every file of a (possibly multi-file) module into one
 // synthetic Program so the resolver body-walks ALL files, not just
 // files[0].
-// `span_key` is file-aware, so idents from sibling files at the same
+// `Span.hash()` is file-aware, so idents from sibling files at the same
 // (line, column) no longer collide in the merged per-module map.
 merge_module_program :: fn(files: SourceFile[]) -> Program {
     first :: files[0].program
@@ -825,15 +825,13 @@ merge_external_impl_methods :: fn(
                     base_key :: "${type_base_name(for_ty)}::${m.name}"
                     trait_method_ext :: lookup_trait_method(trait_decl_ext, m.name)
                     ufcs_ty :: ufcs_method_type(m, for_ty, trait_method_ext, other, diag_sink())
-                    if ufcs_ty !is null {
-                        entry_ext :: ImplMethod {
-                            .ty = ufcs_ty,
-                            .self_mutable = declares_mutable_self(m, trait_method_ext),
-                        }
-                        entry_typed.impl_methods[key] = entry_ext
-                        entry_typed.impl_methods[base_key] = entry_ext
-                        record_impl_trait(entry_typed, base_key, decl.trait_name)
+                    entry_ext :: ImplMethod {
+                        .ty = ufcs_ty,
+                        .self_mutable = declares_mutable_self(m, trait_method_ext),
                     }
+                    entry_typed.impl_methods[key] = entry_ext
+                    entry_typed.impl_methods[base_key] = entry_ext
+                    record_impl_trait(entry_typed, base_key, decl.trait_name)
                 }
                 // Index Iterator/Into/Index/IndexSet element/key/target
                 // types — shared with the local pre-pass (diags discarded
@@ -1555,8 +1553,9 @@ populate_imported_fn_overloads :: fn(
     // exported fns, so unqualified UFCS / prefix dispatch (`sb.to_string()`)
     // resolves. Formerly EVERY co-loaded module contributed unconditionally,
     // which let a call resolve against a module the file never imported
-    // (SPEC §1610 drift). `importing_paths` is the module's `import_paths` (all
-    // forms: destructure / namespace / wildcard), each a declared module name.
+    // (drift from SPEC.md §"UFCS — Import requirement"). `importing_paths` is the
+    // module's `import_paths` (all forms: destructure / namespace / wildcard),
+    // each a declared module name.
     // Dedup: a path can appear in `import_paths` more than once (re-imported in
     // a `// ---- tests ----` block, or split named groups), and
     // `push_module_exported_fns` would rescan it — idempotent but wasted.
@@ -2029,22 +2028,20 @@ register_impl_metadata :: fn(
         key :: "${display_type_key(for_ty)}::${m.name}"
         base_key :: "${type_base_name(for_ty)}::${m.name}"
         ufcs_ty :: ufcs_method_type(m, for_ty, trait_method, typed, diags)
-        if ufcs_ty != null {
-            // `self!` is read from the impl member when it declares one, else
-            // from the trait's own signature — a blanket impl like
-            // `@intrinsic T[] implements<T> ArrayOps<T>` has NO members at all,
-            // so the trait declaration is the only place the marker exists.
-            entry :: ImplMethod {
-                .ty = ufcs_ty, .self_mutable = declares_mutable_self(m, trait_method),
-            }
-            typed.impl_methods[key] = entry
-            typed.impl_methods[base_key] = entry
-            record_impl_trait(typed, base_key, id.trait_name)
+        // `self!` is read from the impl member when it declares one, else from the
+        // trait's own signature — a blanket impl like
+        // `@intrinsic T[] implements<T> ArrayOps<T>` has NO members at all, so the
+        // trait declaration is the only place the marker exists.
+        entry :: ImplMethod {
+            .ty = ufcs_ty, .self_mutable = declares_mutable_self(m, trait_method),
         }
+        typed.impl_methods[key] = entry
+        typed.impl_methods[base_key] = entry
+        record_impl_trait(typed, base_key, id.trait_name)
         // `Into<T>` impls are indexed under a target-qualified key so
         // multiple `Into` impls for the same source (e.g. `Into<i32>` +
         // `Into<string>`) don't collide.
-        if id.trait_name == TRAIT_INTO && id.trait_args.len() == 1 && m.name == METHOD_INTO && ufcs_ty != null {
+        if id.trait_name == TRAIT_INTO && id.trait_args.len() == 1 && m.name == METHOD_INTO {
             target_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
             into_key :: "${display_type_key(for_ty)}::into::${display_type_key(target_ty)}"
             typed.impl_methods[into_key] = ImplMethod {
@@ -2086,10 +2083,8 @@ walk_fn_body :: fn(
     }
 }
 
-/// Pre-walk an impl method's signature so `self` resolves to the
-/// impl block's for-type and the rest of the params take their
-/// annotated types. Result lands in `param_types` + `decl_types`
-/// so `infer_ident` / `check_fn_body` see concrete types.
+// T3016 / T3017 : report every trait member the impl doesn't provide, unless the
+// trait declares a default body for it.
 check_impl_missing_methods :: fn(
     id: AST.ImplDecl,
     typed: TypedProgram,
@@ -2155,9 +2150,6 @@ impl_has_method :: fn(id: AST.ImplDecl, name: string) -> bool {
     return false
 }
 
-/// UFCS-bound method type : `fn(self, ...rest) -> R` lowers to
-/// `fn(...rest) -> R` since the self is bound from the receiver.
-/// Returns null when the signature is malformed.
 /// True when this method's receiver is declared `self!` — i.e. calling it mutates
 /// the receiver, so it is unavailable on an immutable one (T3071).
 ///
@@ -2187,13 +2179,22 @@ has_mutable_self :: fn(fd: AST.FnDecl) -> bool {
     return first.name == "self" && first.mutable
 }
 
+/// UFCS-bound method type : `fn(self, ...rest) -> R` becomes `fn(...rest) -> R`,
+/// since the receiver binds `self` at the call site. Always returns a type — a
+/// member with no params, or whose first param isn't `self`, just keeps them all.
+///
+/// @param fd            the impl member.
+/// @param for_ty        the impl block's for-type, substituted into each param.
+/// @param trait_method  the matching trait signature, when the impl is for a
+///                      trait ; supplies the return type the member elides.
+/// @return              the receiver-dropped fn type stored in `impl_methods`.
 ufcs_method_type :: fn(
     fd: AST.FnDecl,
     for_ty: Type,
     trait_method: AST.FnDecl | null,
     typed: TypedProgram,
     diags: Diagnostic[]!,
-) -> Type | null {
+) -> Type {
     rest: Type[]! = []
     for i in 0..<fd.params.len() {
         p :: fd.params[i]
@@ -2206,6 +2207,16 @@ ufcs_method_type :: fn(
     return mk_fn(rest, ret)
 }
 
+/// Pre-walk an impl method's signature so `self` resolves to the impl block's
+/// for-type and the rest of the params take their annotated types. Results land
+/// in `param_types` (per-param, span-keyed) and `impl_method_decl_types` (the
+/// whole `FnType`, keyed by the member's `name_span` — impl members are not in
+/// `resolved.symbols`), so `infer_ident` / `check_fn_body` see concrete types.
+///
+/// @param fd            the impl member.
+/// @param for_ty        the impl block's for-type — what `self` resolves to.
+/// @param trait_method  the matching trait signature, when the impl is for a
+///                      trait ; supplies the return type the member elides.
 declare_impl_method_for_trait :: fn(
     fd: AST.FnDecl,
     for_ty: Type,

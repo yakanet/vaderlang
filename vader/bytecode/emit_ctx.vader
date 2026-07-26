@@ -34,8 +34,9 @@ export EmitOptions :: struct {
 /// @return  a fresh `EmitOptions` with `optimize = true`, `want_debug = false`.
 export default_emit_options :: fn() -> EmitOptions = EmitOptions { .optimize = true, .keep_mangles = [], .want_debug = false }
 
-/// Per-project emit context. Built once at the top of `emit_project`,
-/// threaded through every reservation + body-emit call. Carries the
+/// Per-project emit context. Built once at the top of
+/// `midir/emit.vader::emit_bytecode_from_cfg`, threaded through every
+/// reservation + body-emit call it makes. Carries the
 /// type / string / fn / import interning tables plus the inverse
 /// lookups (symbol id → fn / import index) downstream phases query.
 ///
@@ -108,7 +109,7 @@ export EmitterCtx :: struct {
 /// Construct a fresh `EmitterCtx`. Reserves type-table slot 0 for the
 /// `null` primitive (runtime depends on the tag invariant).
 ///
-/// @return  a fresh emitter context ready for `emit_project` to fill.
+/// @return  a fresh emitter context ready for `emit_bytecode_from_cfg` to fill.
 export new_emitter_ctx :: fn() -> EmitterCtx {
     types: BcType[]! = []
     types.push(BcPrimitive { .val = ValType.Null })

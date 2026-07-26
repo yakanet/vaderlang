@@ -34,9 +34,10 @@ export Span :: struct {
 /// its FNV hash) with the start line/column so spans at the same
 /// `(line, column)` in DIFFERENT files of a multi-file module don't
 /// collide when their per-module maps merge. `start`-only by design :
-/// the legacy `span_key` it backs is start-keyed ; `Equals` (start AND
-/// end) still distinguishes an envelope expr from its child in a hash
-/// bucket, so the start-only hash is a valid over-approximation.
+/// every side-table that keys on a span keys on its start ; `Equals`
+/// (start AND end) still distinguishes an envelope expr from its child
+/// in a hash bucket, so the start-only hash is a valid
+/// over-approximation.
 Span implements Hash -> self.start.file.hash() * 1000003 + (u64(self.start.line) << 32) + u64(self.start.column)
 
 /// Structural equality over `(file, line, column)` of both ends — the

@@ -199,12 +199,14 @@ export prepend_stmts_to_block :: fn(prefix: LoweredStmt[], block: LoweredBlock) 
 
 // ---- internal helpers -----------------------------------------------------
 
-// Union types in Vader auto-promote a field only when every variant
-// carries one with an identical name + type. `LoweredExpr.type` and
-// `.span` qualify in theory but the typechecker doesn't surface that
-// yet, so every consumer has to dispatch on the variant — these two
-// helpers centralise the match so passes don't replicate it.
-
+// Union types in Vader auto-promote a field when every variant carries one with
+// an identical name + type, and `LoweredExpr.type` / `.span` both qualify —
+// the typechecker DOES surface them today: `lower_ref.vader::for_each_lowered_expr`
+// reads `e.type` straight off the bare union, no match involved.
+//
+// So the two exhaustive matches below are pure sugar for `expr.type` / `expr.span`
+// and could go away entirely ; what keeps them alive is only their ~140 call
+// sites. Do not add a third one, and prefer the field access in new code.
 
 /// Pull the static `Type` off any `LoweredExpr` variant.
 /// @param expr  the lowered expression node.

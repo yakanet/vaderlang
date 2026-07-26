@@ -169,7 +169,7 @@ build_ufcs_member :: fn(ctx: FnLowerCtx!, target_type: Type, target_name: string
         is StructType as s -> {
             // Generic impl : structure-free `__Any` × arity so the call-site
             // name matches the single deduped body regardless of the receiver's
-            // concrete args (see `flat_any_suffix`). Concrete-instantiation
+            // concrete args (see `mixed_any_suffix`). Concrete-instantiation
             // impls keep their concrete args.
             if entry.is_generic {
                 mixed_any_suffix(s.args)

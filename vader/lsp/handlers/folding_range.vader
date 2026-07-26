@@ -1,4 +1,4 @@
-// vader/lsp/folding_range — `textDocument/foldingRange` handler.
+// vader/lsp/handlers/folding_range — `textDocument/foldingRange` handler.
 //
 // Lets the editor collapse multi-line top-level declarations — fn bodies,
 // struct / enum / trait blocks. Derived from the per-document index's

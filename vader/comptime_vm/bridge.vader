@@ -55,7 +55,7 @@ export value_to_comptime :: fn(value: Vm.Value, ty: Type, span: Span) -> Ct.Comp
 // `u32` as a signed `I32Val` bit pattern, so a high-bit-set `u32` (e.g. MD5_K's
 // `0xd76aa478`) arrives as a negative `i64` — reinterpret it as unsigned so the
 // baked literal and the dump show the true magnitude (mirrors the VM's own
-// `convert_value` u-prefix normalisation, value.vader:176).
+// `convert_value` u-prefix normalisation, `vm/value.vader`).
 int_scalar :: fn(raw: i64, type_name: string) -> Ct.ComptimeValue {
     value :: if type_name == "u8" || type_name == "u16" || type_name == "u32" {
         i64(u32(raw))

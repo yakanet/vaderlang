@@ -161,12 +161,12 @@ export enumerate :: fn<T>(self: Iterator<T>) -> Iterator<[usize, T]> {
     }
 }
 
-/// Apply `f` to each element and concatenate the resulting arrays.
-/// Useful when each input expands to zero-or-more outputs (parsing,
-/// tree flattening).
-/// @param arr  source array.
-/// @param f    mapper from one element to an array of outputs.
-/// @return     concatenation of `f(arr[0]) ++ f(arr[1]) ++ …`.
+/// Apply `f` to each element and yield the elements of every resulting array in
+/// order. Useful when one input expands to zero-or-more outputs (parsing, tree
+/// flattening).
+/// @param self  source iterator.
+/// @param f     mapper from one element to an array of outputs.
+/// @return      an iterator over `f(x0)` then `f(x1)` then … , flattened.
 export flat_map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U[]) -> Iterator<U> {
     for x in self {
         for y in f(x) {

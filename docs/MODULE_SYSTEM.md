@@ -498,7 +498,8 @@ follow-up.
 ### Phase 9 — LSP ✅ done (`33b1af8d`)
 
 - Recognise `module` as a keyword token in
-  `vader/lsp/ast_tokens.vader` and `vader/lsp/semantic.vader`.
+  `vader/lsp/handlers/ast_tokens.vader` and
+  `vader/lsp/handlers/semantic_tokens.vader`.
 - Surface the parser-level diagnostic when the keyword is absent
   (currently the LSP would just show a parse error ; we want a clear
   "missing module declaration" message).

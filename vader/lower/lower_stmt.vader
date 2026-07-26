@@ -296,15 +296,10 @@ lower_let_into :: fn(ctx: FnLowerCtx!, let_stmt: LetStmt, out: LoweredStmt[]!) -
     }
 }
 
-/// Recover the resolver-minted `Symbol` whose `defined_at` matches the
-/// given binding-site span. Local + param symbols don't live in
-/// `resolved.symbols` (that's the top-level table) ; they surface via
-/// `resolved.idents`, the use-site map. Scan its values once and pick
-/// the first symbol whose `defined_at` matches the target span. Returns
-/// `null` when the binding has no use sites (rare in well-formed code).
-/// @param resolved  the module's resolved view (`typed.resolved`).
-/// @param name_span the binding-site name span.
-/// @return          the resolver-minted symbol, or `null` if absent.
+// A synthetic `Local` symbol for a binding the resolver never minted one for —
+// an unused `::` / `:=` whose name has no use site, so it never entered
+// `resolved.idents`. Carries a fresh project-synthetic id and a null
+// `defined_at` (there is no span to point at that any other pass would key on).
 synth_unused_local :: fn(ctx: FnLowerCtx!, name: string) -> Symbol {
     next_id :: next_project_synthetic_id(ctx.project)
     return Symbol {
@@ -317,6 +312,20 @@ synth_unused_local :: fn(ctx: FnLowerCtx!, name: string) -> Symbol {
     }
 }
 
+/// Recover the resolver-minted `Symbol` for a binding site, by its name span.
+///
+/// Local + param symbols don't live in `resolved.symbols` (that's the top-level
+/// table) ; they surface through `resolved.idents`, the use-site map. Rather than
+/// scan it per lookup, this goes through the per-module
+/// `defined-span → Symbol` index (`ensure_local_symbol_index`) : the first call
+/// for a module pays the build, every later one is a single probe.
+///
+/// @param project_ctx  carries the per-module index cache.
+/// @param resolved     the module's resolved view (`typed.resolved`).
+/// @param name_span    the binding site's name span.
+/// @return             the resolver-minted symbol, or `null` when the binding
+///                     has no use site (an unused local — callers fall back to
+///                     `synth_unused_local`).
 export lookup_local_symbol :: fn(
     project_ctx: LowerProjectCtx!, resolved: ResolvedModule, name_span: Span,
 ) -> Symbol | null {
@@ -556,10 +565,11 @@ lower_comptime_for_in :: fn(ctx: FnLowerCtx!, for_stmt: ForStmt, in_form: InFor)
         }
     }
     if prior is null {
-        // Erase the binding from the map. MutableMap has no `delete`,
-        // so leave the last per-iter binding in place — any later use
-        // of the same binding symbol would be a recursion bug rather
-        // than expected.
+        // Erase the binding : the map must come out of the unroll exactly as it
+        // went in. A leftover per-iter entry would keep `comptime_bindings`
+        // non-empty for the whole rest of the body, defeating the `is_empty()`
+        // short-circuit that `lower_ident` relies on for every ident it lowers.
+        _ :: ctx.comptime_bindings.remove(binding_symbol.id)
     } else {
         ctx.comptime_bindings[binding_symbol.id] = prior
     }

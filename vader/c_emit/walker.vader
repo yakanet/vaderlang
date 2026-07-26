@@ -88,12 +88,8 @@ fn_calls_may_alloc :: fn(fn_decl: BcFunction, may_alloc: i32[]) -> bool {
     return false
 }
 
-/// True for ops that allocate a fresh GC object. `struct.new_stack`
-/// (`stack = true`) does NOT — it lands on the C stack. Indirect callers
-/// are conservatively included (unknown target). Open-domain filter over
-/// a few variants → an `if`-chain, not an exhaustive `match`.
-// Drop resolve-CSE cache entries the op invalidates — see `FnState.resolved_arrays`.
-// Called before every op is emitted.
+// Drop the resolve-CSE cache entries this op invalidates — see
+// `FnState.resolved_arrays`. Called before every op is emitted.
 invalidate_resolve_cache :: fn(s: FnState!, op: vm.Op) -> void {
     if op is vm.LocalSet as ls {
         drop_resolved_for_local(s, ls.slot)
@@ -1340,7 +1336,8 @@ emit_fn_ref :: fn(s: FnState!, op: vm.FnRef) -> void {
 /// `make_closure` — pop the captured env (a boxed struct), heap-allocate a
 /// `vader_fn_t` with `code` = the lifted-fn wrapper + `env` = the env ptr,
 /// box it with the closure's fn-type tag. `env_type_id` carries the closure's
-/// own BcFn type (a lowerer misnomer — see `bytecode/emit_body.vader`).
+/// own BcFn type — the field name says `env_type` but the id is the closure's,
+/// a misnomer inherited from the lowered node.
 emit_make_closure :: fn(s: FnState!, op: vm.MakeClosure) -> void {
     env :: pop(s)
     fn_obj :: aux(s, "closure")

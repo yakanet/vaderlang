@@ -95,15 +95,15 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) ->
                 // `emit_generic_fn_call` returned null : `ft` (substituted)
                 // carries no type-param. For a SELF-RECURSIVE call inside a
                 // MANGLE-INDEXED instance (force-concrete, `entry_symbol == null`,
-                // `lower_mono_fn.vader:281`), the params were concretised by this
-                // entry's OWN subst, so the call would fall through to the bare
+                // set in `lower_mono_fn::build_fn_instance_decl`), the params were
+                // concretised by this entry's OWN subst, so the call would fall through to the bare
                 // generic symbol — which has no `function_index_by_symbol_id`
                 // slot → unresolved at emit (GATE-B1). Retry with the RAW (un-
                 // substituted) signature so the self-call re-infers its type args
                 // and routes through the instance mangle. Scoped to genuine self-
                 // recursion in a null-symbol body : every other call is byte-
                 // identical to before — `emit_generic_fn_call` runs no side
-                // effects before its no-param early return (`:101`), so the retry
+                // effects before its no-param early return, so the retry
                 // is clean, and a non-self-recursive null result falls through to
                 // the caller's general handling unchanged. Erased (symbol-indexed)
                 // instances keep resolving their self-calls by symbol-id.
@@ -229,7 +229,7 @@ register_and_emit_generic_call :: fn(
     // for cross-module generic calls (`println` from a snippet's
     // `main`) sends the lookup to the wrong module → returns null →
     // instance never materialises → `emit_call_to_symbol` misses and
-    // the call drops. Mirrors the harvest path at line 1372.
+    // the call drops. Mirrors the harvest in `lower_ufcs::harvest_ufcs_fn_instance`.
     // Strip distinct→backing so this instance keys/dedups as the backing's (see
     // `emit_generic_fn_call`). Distinct ends at the lowering boundary.
     mono_args :: strip_distinct_each(concrete_args)

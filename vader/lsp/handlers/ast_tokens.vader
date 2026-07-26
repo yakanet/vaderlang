@@ -1,4 +1,4 @@
-// vader/lsp/ast_tokens — semantic-token classification driven by the parsed
+// vader/lsp/handlers/ast_tokens — semantic-token classification driven by the parsed
 // AST + the body-walking resolver.
 //
 // Lexer-based classification in `semantic_tokens.vader` covers keywords,

@@ -104,10 +104,6 @@ export LowerProjectCtx :: struct {
     /// lookup simply don't fire).
     module_symbol_cache: MutableMap<string, MutableMap<string, Symbol>>
 
-    /// Per-trait `Symbol | null` cache — populated lazily on first
-    /// `find_core_trait` hit. `null` means "looked up and not found".
-    core_trait_cache:    MutableMap<string, Symbol | null>
-
     /// Global `symbol_id -> ComptimeValue` index over every loaded
     /// module's `evaluated.modules[*].comptime_decls`. Populated once
     /// at the start of `lower_project` so per-ident const-baked lookups
@@ -128,8 +124,10 @@ export LowerProjectCtx :: struct {
 
     /// Synthetic decls produced during lowering — chiefly the lifted
     /// top-level fns and their env structs spawned by lambda lifting.
-    /// Appended to the result project under `synth_module_id` so the
-    /// bytecode emit picks them up alongside user decls.
+    /// Drained into the module being lowered at the time they were spawned —
+    /// `lower.vader::lower_module` brackets each module's walk with a window and
+    /// `lower_finish.vader::drain_synth_window` pushes the window's decls into
+    /// that module, so the emit picks them up alongside user decls.
     synth_decls:         LoweredDecl[]!
 
     /// Synthetic `concat_N` fns, keyed by arity. The string `+`-concat and
@@ -313,7 +311,6 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .impls               = ImplRegistry {},
         .core_symbols        = MutableMap<string, Symbol> {},
         .module_symbol_cache = MutableMap<string, MutableMap<string, Symbol>> {},
-        .core_trait_cache    = MutableMap<string, Symbol | null> {},
         .comptime_value_by_symbol_id = MutableMap<i32, ComptimeValue> {},
         .local_symbol_indices = MutableMap<string, MutableMap<u64, Symbol>> {},
         .closures            = new_closure_analysis(),

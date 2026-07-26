@@ -276,11 +276,13 @@ ref_expr :: fn(e: LoweredExpr, visit_fn: fn(i32, string) -> void, visit_virtual:
         // bytecode emit hits the defensive `Return` stub when it
         // tries to resolve the fn-index.
         //
-        // A `Const` ident is also visited : a fn-wrapped const's accessor
-        // (`inline_consts`) REUSES the const's symbol id, so a reference to
-        // the const must mark the accessor reachable. (A non-fn-wrapped
-        // const has no fn under its id → `visit_fn` is a harmless no-op ;
-        // its decl already survives via the unconditional const seed.)
+        // The `Const` arm below is DEAD and should go: it was written when a
+        // fn-wrapped const's accessor reused the const's symbol id. It no longer
+        // does — `inline_consts::const_accessor_symbol` mints a FRESH negative id
+        // and mangles the name `__const_<mangled>`, so neither the by-id nor the
+        // by-mangle lookup in `dce.vader` can hit from a const ident. Reachability
+        // of the accessors comes from the DCE seeding them as roots outright
+        // (`dce.vader`), not from here.
         is LoweredIdent as ident -> {
             kind :: i32(ident.symbol.kind)
             if kind == i32(SymbolKind.Fn) || kind == i32(SymbolKind.Const) {

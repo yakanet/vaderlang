@@ -877,9 +877,10 @@ empty_struct_offsets :: fn() -> StructOffsets {
 /// Classify each field of `s` into ptr / str / ref offset lists. Used
 /// by the type-info emit's single-pass-per-struct flow.
 ///
-/// Phase 2 covers the ptr / str split ; the ref (B1 nullable-ref
-/// inline rep) bucket lands in Phase 4 alongside
-/// `nullable_ref_variant`.
+/// All three buckets are live: the bucket a field lands in decides which GC
+/// reader scans it, so it MUST match the field's emitted C type — see the T12
+/// note in the body, and `val_type_of_bc_type`, the shared predicate that keeps
+/// the two from drifting.
 classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize) -> StructOffsets {
     cname :: ctx.struct_c_names[type_index]
     offsets :: empty_struct_offsets()

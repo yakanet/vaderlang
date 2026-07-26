@@ -245,8 +245,8 @@ ASCII keyword match) :
 - `stdlib/std/string/string.vader` — `StringChars.next`, `decode_codepoint`
 - `stdlib/std/json/json.vader` — `peek_byte`, `match_keyword`, hex escape
 - `vader/lexer/lexer.vader` — `peek`, `peek_at`, unicode escape decoder, BOM check
-- `vader/lsp/transport.vader` — `trim_ascii`
-- `vader/lsp/semantic_tokens.vader` — `scan_ident_end`, `collect_doc_line_tokens`, `@param` skip loop
+- `vader/lsp/protocol/transport.vader` — `trim_ascii`
+- `vader/lsp/handlers/semantic_tokens.vader` — `scan_ident_end`, `collect_doc_line_tokens`, `@param` skip loop
 
 `.slice()` callers (131 sites) and `s.bytes()` semantics remain Phase 4.
 

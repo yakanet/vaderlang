@@ -640,8 +640,8 @@ check_generic_arg :: fn(
     return arg_ty
 }
 
-/// Type-check a `CallExpr`. `check_expr_fn` is threaded the same way as
-/// in `expr_block.vader` to dodge the cyclic import.
+/// Type-check a `CallExpr`. `check_expr_fn` is threaded the same way as in
+/// `binary.vader::infer_binary`, standing in for `expr.vader::check_expr`.
 ///
 /// @param expected  the slot the call's result flows into, when there is one.
 ///                  Only a generic callee reads it : a type-param no argument

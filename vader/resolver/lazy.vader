@@ -146,8 +146,9 @@ export seed_entry :: fn(
 /// attempt (see the note in `loader.vader`). A no-op for already-cached imports.
 ///
 /// @param sources  the entry/module's parsed files.
-/// @param bases    path-mapping bases.
+/// @param paths    the include paths each import is resolved against.
 /// @param index    the lazy cache to populate.
+/// @param diags    collects R2001 and friends when a path doesn't resolve.
 export preresolve_imports :: fn(
     sources: SourceFile[], paths: IncludePath[],
     index: MutableMap<string, DiscoveredModule>!, diags: Diagnostic[]!,

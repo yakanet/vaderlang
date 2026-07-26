@@ -37,7 +37,8 @@ export ImplEntry :: struct {
     module: string = ""
     /// True when the impl references ≥1 type parameter (`Range<T>
     /// implements<T> …`, `ArrayIterator<T> implements …`). Mirrors
-    /// `is_empty_substitution(build_impl_any_subst(...))` in the lowerer :
+    /// `is_empty_substitution(build_impl_mixed_subst(...))` in the lowerer
+    /// (`lower_mono_struct.vader`) :
     /// generic impls erase their instance args to `Any` when mangling
     /// materialised members (`__Any` suffix), so call-site resolution
     /// (`find_impl_member_for`, `lower_for_in`) must erase the same way.
@@ -113,7 +114,7 @@ collect_impl :: fn(
 }
 
 /// True when the impl references ≥1 type parameter. Mirrors the
-/// discriminator the lowerer's `build_impl_any_subst` computes : the
+/// discriminator the lowerer's `build_impl_mixed_subst` computes : the
 /// `implements<T>` form (`impl_.type_params` non-empty) and the legacy
 /// `Foo<T> implements …` form (a `for_type` arg ident that resolves to a
 /// `TypeParam` symbol) both count. Concrete instantiations

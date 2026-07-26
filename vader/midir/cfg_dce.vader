@@ -38,7 +38,7 @@ export eliminate_dead_cfg :: fn(p: CFGProject!) -> CFGProject {
 
 optimise_function :: fn(f: CFGFunction) -> CFGFunction {
     cur := fold_moves(f)
-    // Run dieOnce to fixpoint (capped) — each iteration may unblock
+    // Run `die_once` to fixpoint (capped) — each iteration may unblock
     // more by shrinking the live set.
     for iter in 0..<8 {
         next :: die_once(cur)

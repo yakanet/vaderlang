@@ -1,4 +1,4 @@
-// vader/lsp/document_highlight — `textDocument/documentHighlight` handler.
+// vader/lsp/handlers/document_highlight — `textDocument/documentHighlight` handler.
 //
 // Highlights every occurrence of the identifier under the cursor within the
 // open file (the soft highlight an editor paints when the caret rests on a

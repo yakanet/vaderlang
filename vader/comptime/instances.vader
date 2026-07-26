@@ -37,7 +37,8 @@ export InstanceRegistry :: struct {
 /// preserved in `order`.
 /// @param registry  the registry.
 /// @param symbol    the generic decl's resolver symbol.
-/// @param args      the concrete type arguments.
+/// @param raw_args  the concrete type arguments ; distinct newtypes are
+///                  stripped to their backing before keying (see the body).
 /// @return          the registered instance.
 export add :: fn(registry: InstanceRegistry!, symbol: Symbol, raw_args: Type[]) -> GenericInstance {
     // Distinct→backing before this instance is keyed or stored: a distinct has

@@ -1,4 +1,4 @@
-// vader/lsp/document_symbol — `textDocument/documentSymbol` handler.
+// vader/lsp/handlers/document_symbol — `textDocument/documentSymbol` handler.
 //
 // Powers the editor outline, breadcrumbs and the Cmd+Shift+O / Ctrl+F12 symbol
 // picker. Maps the per-document index's file-wide `DeclEntry[]`

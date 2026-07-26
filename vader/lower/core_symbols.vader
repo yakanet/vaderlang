@@ -39,14 +39,14 @@ export find_core_type :: fn(ctx: FnLowerCtx, name: string, args: Type[]) -> Type
     }
 }
 
-/// Resolve a `std/core` trait symbol by name. Re-resolves on every
-/// call ; the `core_trait_cache` field on `LowerProjectCtx` is reserved
-/// for a future hash-set-backed negative cache (today's `MutableMap`
-/// cannot distinguish "absent" from "cached as null", and trait lookups
-/// happen at a low enough frequency to not warrant the workaround).
+/// Resolve a `std/core` trait symbol by name.
+///
+/// One probe into the already-built `core_symbols` map plus a kind check —
+/// there is nothing here worth memoising on top.
 /// @param ctx   the project context.
 /// @param name  the source-level trait name (e.g. `"Display"`).
-/// @return      the resolved trait symbol, or `null`.
+/// @return      the resolved trait symbol, or `null` when the name has no entry
+///              or resolves to a non-trait kind.
 export find_core_trait :: fn(ctx: LowerProjectCtx, name: string) -> Symbol | null {
     raw :: ctx.core_symbols[name]
     match raw {

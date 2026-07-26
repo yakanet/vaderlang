@@ -25,8 +25,8 @@ import "vader/diagnostics"
 /// One resolver output entry per source module.
 ///
 /// `symbols` is sorted by name so the dump is stable regardless of decl
-/// order. `idents` is span-keyed via `span_key` (packed `(line << 32) |
-/// column` `i64`) so body-walk consumers can index per-`IdentExpr`
+/// order. `idents` is span-keyed via `Span.hash()` (the file's FNV hash folded
+/// with the start line/column) so body-walk consumers can index per-`IdentExpr`
 /// lookups without re-walking the AST.
 export ResolvedModule :: struct {
     path:    string

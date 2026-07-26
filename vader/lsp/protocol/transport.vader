@@ -1,4 +1,4 @@
-// vader/lsp/transport — JSON-RPC framing over stdin/stdout.
+// vader/lsp/protocol/transport — JSON-RPC framing over stdin/stdout.
 //
 // LSP wraps every JSON message in :
 //

@@ -1451,11 +1451,11 @@ CfgBytecode :: struct {
 
 /// Lower `file` to a `BytecodeModule` via the CFG midir → bytecode path
 /// (the canonical bytecode shared by the bytecode stage and the C stage).
-/// The CFG path materialises 3-address `local.set` / `local.get`
-/// temps ; the legacy `emit_project` tree-walker
-/// elides them and diverges on ~150 snippets, so both `dump --stage`
-/// consumers route through here. Const-fold is deliberately NOT run, since
-/// arith collapse would over-shrink vs the parity snapshot.
+/// It is the only bytecode path left — the tree-walking emitter it replaced
+/// elided the 3-address `local.set` / `local.get` temps this one materialises,
+/// and diverged from it on ~150 snippets. Both `dump --stage` consumers route
+/// through here. Const-fold is deliberately NOT run, since arith collapse would
+/// over-shrink vs the parity snapshot.
 prepare_cfg_bytecode :: fn(file: string, want_debug: bool) -> CfgBytecode = prepare_cfg_bytecode_with(file, want_debug, [])
 
 prepare_cfg_bytecode_with :: fn(file: string, want_debug: bool, include_path_flags: string[]) -> CfgBytecode {

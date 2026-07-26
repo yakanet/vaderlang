@@ -272,8 +272,9 @@ data_item_bits :: fn(el: LoweredExpr, element_name: string) -> i64 | null {
 // real symbol id in the DCE's by-id index. (Reusing the const id, the prior
 // design, let an unrelated id shift collide the accessor with another symbol,
 // so the DCE dropped it and the emit hit a dangling `__const_*` callee — GATE
-// B1.) The lowered DCE seeds every accessor as a root ; `build_const_ref` emits
-// each const reference as a 0-arg `call` to this symbol.
+// B1.) The lowered DCE seeds every accessor as a root ;
+// `midir/build.vader::build_ident` emits each const reference as a 0-arg `call`
+// to this symbol, looked up through `project.const_fn_wrap[const symbol id]`.
 const_accessor_symbol :: fn(orig_sym: Symbol, synth_id: i32) -> Symbol = Symbol {
     .id         = synth_id,
     .kind       = SymbolKind.Fn,

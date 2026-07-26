@@ -204,7 +204,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     // implements Hash`) is only surfaced as an import — without a wrapper,
     // `resolve_vtable_fn_index` misses and the row is silently dropped, so the
     // VM traps "no impl for type N". The wrapper forwards to the host import
-    // via `CallImport`. Mirror of vader/bytecode/emit.vader::synthesise_intrinsic_wrappers.
+    // via `CallImport`.
     synthesise_cfg_intrinsic_wrappers(cfg, ctx)
     // Pre-translate CFG string indices into bytecode pool indices.
     string_index_map: i32[]! = []
@@ -395,10 +395,9 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx!
     return out
 }
 
-// Local equivalent of `build_impl_table` (vader/bytecode/emit.vader),
-// duplicated here so the CFG emit path doesn't need to reach the
-// legacy assemble_module. Yields one BcImplEntry per (struct_type_index,
-// trait_name) seen in the vtable entries.
+// Builds the module's impl table : one BcImplEntry per (struct_type_index,
+// trait_name) seen in the vtable entries. Sole builder — the CFG emit path is
+// the only bytecode emit path there is.
 build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: MutableMap<i32, string[]!>, ctx: EmitterCtx) -> BcImplEntry[] {
     out: BcImplEntry[]! = []
     seen :: MutableMap<string, bool> {}
@@ -1327,7 +1326,6 @@ emit_const_instr :: fn(ctx: FnEmitCfg!, c: InstrConst, pos: i64) -> void {
         // `I64Const` ; narrower types truncate to `I32Const`. Without the
         // width check, a value ≥ 2^31 (e.g. `i32`-min's magnitude `2147483648`
         // wrapped in a `-`) truncated to i32 and the following `i64.neg` then
-        // produced the wrong sign. Mirror of `emit_body.vader::emit_int_lit`.
 
         // Translate CFG string index → bytecode pool index.
         pool_idx :: ctx.string_index_map[usize(sv.index)]

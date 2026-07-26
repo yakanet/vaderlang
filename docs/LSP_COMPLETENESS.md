@@ -9,8 +9,8 @@ The server lives under `vader/lsp/`. New capabilities are advertised in
 `vader/lsp/lifecycle.vader::build_capabilities`, routed in
 `vader/lsp/main.vader::dispatch`, and (almost always) reuse one of two caches
 already built per request: the per-document AST index
-(`vader/lsp/indexer.vader`, keyed by URI) and the typed-project cache
-(`vader/lsp/state.vader::typed_project_for`, the load + typecheck of the
+(`vader/lsp/analysis/indexer.vader`, keyed by URI) and the typed-project cache
+(`vader/lsp/analysis/state.vader::typed_project_for`, the load + typecheck of the
 project rooted at the open file).
 
 ## Current state (implemented)
@@ -333,72 +333,70 @@ New in 3.18 (`@since 3.18.0`) on top of everything above :
 ## Code actions framework
 
 The refactoring layer — `textDocument/codeAction`. Merged here from the former
-`LSP_CODE_ACTIONS.md` design note. **Status**: backlog, post-MVP — documented so
-it can be picked up cleanly; no LSP code is touched until then. The
-`CLAUDE.md` §6 idiomatic-patterns rules (`if` for ≤ 2 cases, `match` for ≥ 3;
-plain `if` for null narrowing; method syntax when an impl exists) surface
-naturally as cursor-driven refactorings, so a small framework pays back from
-action #2 onward — one-off code per action would churn the LSP layer each time.
+`LSP_CODE_ACTIONS.md` design note. **Status**: SHIPPED — the framework and the
+first actions are in the tree; the file names below are the ones that landed,
+which differ from the names this note originally proposed. The `CLAUDE.md` §6
+idiomatic-patterns rules (`if` for ≤ 2 cases, `match` for ≥ 3; plain `if` for
+null narrowing; method syntax when an impl exists) surface naturally as
+cursor-driven refactorings, which is what the framework buys: one-off code per
+action would churn the LSP layer each time.
 
-### Components
+### Components (as built)
 
-1. **Capability declaration** — add `codeActionProvider` to the `initialize`
-   response in `lifecycle.vader` (mirror `inlayHintProvider`).
-2. **Position → expression walker** — new `vader/lsp/expr_at.vader` (~150 LoC):
-   top-down traversal returning the innermost `Expr` enclosing a `(line,
-   column)`. Independent of the hover walker for now; merge later if both
-   converge (open question #4).
-3. **Action registry** — new `vader/lsp/code_actions.vader`: records of
-   `{ kind: string (LSP `CodeActionKind`), title: string, is_applicable :: fn(node: Expr, ctx: ActionCtx) -> bool, apply :: fn(node: Expr, ctx: ActionCtx) -> TextEdit[] }`.
-   `handle_codeAction` runs each predicate against the `expr_at` node and
-   returns the union of titles + edits.
-4. **Edit production** — server-side `TextEdit[]` (no `executeCommand`
-   round-trip); each action re-emits the transformed node through the printer.
-5. **Expression printer adapter** — expose `emit_expr(e: Expr) -> string` from
-   `vader/fmt/printer.vader` (factor a single-expr path out of `emit_program`
-   rather than wrapping a synthetic program). Land this refactor as its own
-   commit before the first action.
+1. **Capability declaration** — `codeActionProvider` in the `initialize`
+   response, `lifecycle.vader`.
+2. **Position → expression walker** — `vader/lsp/analysis/ast_walk.vader::find_expr_at`.
+   Not a separate `expr_at.vader`: it shares the hover walker's driver, so the
+   "merge later" open question resolved itself by never splitting them.
+3. **Action registry** — `vader/lsp/actions/registry.vader`: `Action` records of
+   `{ kind, title, is_applicable :: fn(Expr, ActionCtx) -> bool, apply }`.
+   `run_actions` walks the enclosing-node chain and returns the applicable ones;
+   `run_source_actions` does the same for whole-file (`source.*`) actions.
+   Routed from `vader/lsp/handlers/code_action.vader`.
+4. **Edit production** — server-side text, no `executeCommand` round-trip: each
+   action returns replacement text for `target_span`, re-indented by
+   `registry.vader::reindent`.
+5. **Expression printing** — each action re-emits through `vader/fmt`. No
+   `emit_expr` export was needed in the end.
 
-### First actions to ship
+### Actions shipped
 
 1. **`match` → `if`** when arms ≤ 2 and patterns reduce to boolean predicates
-   (literals, `is Type as alias`, `null` checks).
+   (literals, `is Type as alias`, `null` checks) — `actions/match_to_if.vader`.
+   The null-narrow rewrite this note listed separately is folded in here: the
+   `match x { is null … }` guard idiom is one of its cases, not its own action.
 2. **`if` → `match`** when an `if` / `else if` chain has ≥ 3 branches all
-   discriminating the same scrutinee.
-3. **Null-narrow rewrite** — special case of #1, surfaced independently as a
-   quick-fix on `match x { is null … }`.
-4. **UFCS conversion** — `f(x, …)` ↔ `x.f(…)`, both directions, offered when the
-   receiver type resolves `f` as a method (needs the typed cache). The
-   mechanical way to apply the §6 "prefer method syntax when the impl exists"
-   convention.
-5. **Organize imports** — see the High-value subsection above
-   (`source.organizeImports`): sort / dedup / merge / drop-unused, re-emitting
-   the import block via `vader/fmt`.
+   discriminating the same scrutinee — `actions/if_to_match.vader`.
+3. **UFCS conversion** — `f(x, …)` ↔ `x.f(…)`, both directions, offered when the
+   receiver type resolves `f` as a method — `actions/ufcs.vader`. The mechanical
+   way to apply the §6 "prefer method syntax when the impl exists" convention.
+4. **Organize imports** (`source.organizeImports`) — sort / dedup / merge /
+   drop-unused, re-emitting the import block via `vader/fmt` —
+   `actions/organize_imports.vader`. A whole-file action, so it goes in
+   `all_source_actions`, not `all_actions`.
 
-Each action lives under `vader/lsp/actions/<action_name>.vader` and
-self-registers into the registry.
+Each action lives in `vader/lsp/actions/<action_name>.vader` and is listed
+CENTRALLY in `registry.vader::all_actions` (cursor-driven) or
+`all_source_actions` (whole-file) — there is no self-registration; those are
+functions rather than const arrays so cross-file entries resolve under the
+test-entry compile order.
 
-### Open architectural questions
+### Architectural questions — as resolved
 
-Resolve with the user when implementation starts (CLAUDE.md §8) :
+1. **Registry shape** — array of records. No trait dispatch.
+2. **Printer adapter scope** — neither: no `emit_program` refactor and no
+   synthetic-program wrapper. Actions build their replacement text directly and
+   `reindent` it.
+3. **Action discovery** — central registration in `all_actions` /
+   `all_source_actions`. Not per-file self-registration, not comptime-generated.
+4. **Position walker reuse** — yes, shared: `analysis/ast_walk.vader` serves both
+   the cursor actions (`enclosing_exprs`) and hover (`find_expr_at`).
+5. **Lossy-conversion policy** — decline. An action that cannot convert a case
+   faithfully (guards, struct destructuring) returns false from `is_applicable`
+   so no lightbulb appears, rather than offering a partial rewrite.
 
-1. **Registry shape** — array of records vs. trait-dispatched provider (lean
-   records for MVP).
-2. **Printer adapter scope** — full `emit_program` refactor vs. a thin
-   synthetic-program wrapper.
-3. **Action discovery** — central registration vs. per-file init-time
-   self-registration vs. comptime-generated table (tied to comptime init-effect
-   support).
-4. **Position walker reuse** — does `expr_at` subsume the hover walker?
-5. **Lossy-conversion policy** — when a `match` has patterns that can't be
-   lowered (struct destructuring, guards): refuse, offer-with-warning, or emit a
-   partial conversion?
-
-Caveats (verify before acting): the `vader/lsp` file layout has shifted since
-the original note — re-check line references in `ast_tokens.vader` /
-`semantic_tokens.vader` / `printer.vader`. If `STRUCT_LIT_PAREN_GRAMMAR.md`
-(`Foo(x = 1)`) lands, `expr_at` + the match-pattern actions must handle the new
-struct-lit shape — sequence this work after that grammar decision.
+Still open: if `STRUCT_LIT_PAREN_GRAMMAR.md` (`Foo(x = 1)`) lands, the walker and
+the match-pattern actions must handle the new struct-lit shape.
 
 ### Diagnostic-driven companion (post-v1)
 

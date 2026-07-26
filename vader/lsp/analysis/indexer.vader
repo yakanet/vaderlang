@@ -1,4 +1,4 @@
-// vader/lsp/indexer — per-document index for goto-def + hover.
+// vader/lsp/analysis/indexer — per-document index for goto-def + hover.
 //
 // AST-based since the cross-module struct-collision fix unblocked
 // `parse_source` from the LSP module surface (cf. fix(bytecode) commit).

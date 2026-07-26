@@ -1,4 +1,4 @@
-// vader/lsp/log — server-side logging via LSP `window/logMessage`.
+// vader/lsp/protocol/log — server-side logging via LSP `window/logMessage`.
 //
 // The client (VSCode, IntelliJ, …) renders these as plain lines in the
 // `Vader Language Server` output channel, alongside the JSON-RPC trace.

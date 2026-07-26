@@ -463,7 +463,7 @@ resolve_type_meta_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
 
 declared_type_of_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
     // Most idents (Fn, Const, ImportBinding, …) can't be narrowed —
-    // bail before paying the `span_key` allocation on the hot path.
+    // bail before paying the `Span.hash()` + map probe on the hot path.
     match symbol.kind {
         .Param   -> {}
         .Local   -> {}

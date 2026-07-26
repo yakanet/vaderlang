@@ -1,4 +1,4 @@
-// vader/lsp/document_link — `textDocument/documentLink` handler.
+// vader/lsp/handlers/document_link — `textDocument/documentLink` handler.
 //
 // Makes each `import "path"` clickable : the quoted path string links to the
 // imported module's source so Ctrl/Cmd-click jumps straight there. Targets
