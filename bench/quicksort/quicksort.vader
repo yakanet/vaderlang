@@ -72,7 +72,7 @@ qsort :: fn(a: i32[]!, lo: usize, hi: usize) -> void {
 
 main :: fn() -> i32 {
     n: usize = usize(N)
-    a: i32[] = [0] * n
+    a: i32[]! = [0] * n
     for i in 0..<n {
         a[i] = i32(i64(i) * STRIDE % N_MOD)
     }

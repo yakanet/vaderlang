@@ -18,9 +18,9 @@ main :: fn() -> i32 {
         m[i] = i
     }
     total: i64 = 0
-    for _ in 0..<OUTER_LOOPS {
-        for entry in m {
-            total = total + i64(entry.value)
+    for 0..<OUTER_LOOPS {
+        for [_, value] in m {
+            total = total + i64(value)
         }
     }
     println("map_iter inner=${INNER_KEYS} outer=${OUTER_LOOPS} total=${total}")

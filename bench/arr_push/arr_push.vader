@@ -12,7 +12,7 @@ import "std/io"
 main :: fn() -> i32 {
     total: i64 = 0
     for 0..<200 {
-        a: i32[] = []
+        a: i32[]! = []
         for i in 0..<100000 {
             a.push(i32(i))
         }
