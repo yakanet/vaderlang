@@ -467,20 +467,21 @@ export narrow_for_expected :: fn(got: Type, expected: Type | null) -> Type {
     return got
 }
 
-/// `t` with every ARRAY level's mutability erased — the SHAPE of the type, which
-/// is all a runtime test can observe. An array header carries length, capacity and
-/// element kind, never a read-only bit, so `x is i32[]` and `x is i32[]!` name the
-/// same runtime values and must select the same variant.
+/// `t` with mutability erased at every level — the SHAPE of the type.
 ///
-/// Only arrays are rebuilt: the struct / tuple bit is already outside
-/// `equals_type`, so it never reaches an identity comparison in the first place.
+/// Two callers, both asking a question mutability has no business answering:
+///   - a runtime `is` test (an array header carries length, capacity and element
+///     kind, never a read-only bit, so `x is i32[]` and `x is i32[]!` name the same
+///     runtime values and must select the same variant) ;
+///   - UFCS receiver currying, where the method is picked by shape and T3071 is
+///     what rejects a `self!` method on a read-only receiver.
 ///
 /// @param t  the type to reduce to its shape.
-/// @return   `t` itself when no array appears inside it.
+/// @return   `t` itself when nothing inside it carries a mutability bit.
 export strip_mutability :: fn(t: Type) -> Type = match t {
     is ArrayType  as a -> mk_array(strip_mutability(a.element), true)
-    is TupleType  as p -> mk_tuple(strip_mutability_each(p.elements), p.immutable)
-    is StructType as s -> mk_struct(s.symbol, strip_mutability_each(s.args), s.immutable)
+    is TupleType  as p -> mk_tuple(strip_mutability_each(p.elements), true)
+    is StructType as s -> mk_struct(s.symbol, strip_mutability_each(s.args), true)
     is TraitType  as x -> mk_trait(x.symbol, strip_mutability_each(x.args))
     is UnionType  as u -> mk_union(strip_mutability_each(u.variants))
     is FnType     as f -> FnType {
