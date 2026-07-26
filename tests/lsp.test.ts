@@ -418,6 +418,39 @@ test("lsp: an inlay hint carries the mutability marker", async () => {
   expect(labels).toContain("u32[]!");
 }, { timeout: MEDIUM_BUILD });
 
+// The hint nests BETWEEN the two operator characters (`v :u32[]: …`), so its
+// position must track the real operator — not `value.column - 3`, which assumed
+// exactly one space after it. Here the operator is padded for vertical alignment
+// AND followed by two spaces, the shape that used to push the hint past it.
+const INLAY_SPACING_SOURCE = `module "demo"
+
+main :: fn() -> i32 {
+    n     ::   42
+    return n
+}
+`;
+
+test("lsp: an inlay hint anchors on the operator, whatever the spacing", async () => {
+  const results = await driveLsp(INLAY_SPACING_SOURCE, [
+    {
+      method: "textDocument/inlayHint",
+      range: {
+        start: { line: 0, character: 0 },
+        end: { line: 6, character: 0 },
+      },
+    },
+  ]);
+  const hints = results[0]!.result as {
+    label: string;
+    position: { line: number; character: number };
+  }[];
+  const hint = hints.find((h) => h.label === "i32");
+  expect(hint).toBeDefined();
+  // `    n     ::   42` — the first `:` sits at 1-based column 11, so the hint
+  // inserts before the second one at 0-based character 11.
+  expect(hint!.position).toEqual({ line: 3, character: 11 });
+}, { timeout: MEDIUM_BUILD });
+
 test("lsp: completion shows a local's inferred type as detail", async () => {
   // Line 13 = `    return n` — inside main's body, so `n` and `b` are visible.
   const results = await driveLsp(LOCAL_TYPE_SOURCE, [

@@ -15,7 +15,7 @@ export TokenType :: enum(u8) {
     Type,         // UpperCase ident (struct / trait / enum)
     Function,     // fn name in `name :: fn(...)` and call sites
     Parameter,    // fn params + vaderdoc `@param name`
-    Variable,     // locals, fields, generic catch-all idents
+    Variable,     // locals + generic catch-all idents
     Keyword,      // language keywords + fn/struct/trait/enum/etc.
     String,       // string literals
     Number,       // int / float literals
@@ -23,6 +23,14 @@ export TokenType :: enum(u8) {
     Operator,     // arithmetic / comparison / logical / etc.
     Decorator,    // `@test` / `@extern` decorators, `@size_of(…)` intrinsics, vaderdoc tags
     EnumMember,   // `.Variant` dot-shorthand
+    /// Struct fields — the declaration, `x.field` reads, and `.field = v` in a
+    /// struct literal. Split out of `Variable` so clients colour them as fields
+    /// (LSP4IJ → `INSTANCE_FIELD`) instead of as reassignable locals.
+    ///
+    /// APPEND-ONLY: a variant's index is what travels in the `initialize` legend,
+    /// so new entries go at the END — inserting one above shifts every index
+    /// below it and silently recolours the whole file.
+    Property,
 }
 
 /// One raw token before delta-encoding. `line` is 0-based. `start_offset` /
@@ -49,14 +57,19 @@ export RawToken :: struct {
 /// `Documentation` lives at bit 0 (`1 << 0`).
 export TokenModifier :: enum(u8) {
     Documentation,   // vaderdoc-derived tokens carry this
+    /// Never reassigned. On a module const this pairs with `Static` so clients
+    /// resolve it to their "constant" colour (LSP4IJ → `CONSTANT`).
+    Readonly,
+    /// Module-level rather than local. Same append-only rule as `TokenType`:
+    /// the index IS the bit position in the wire bitmask.
+    Static,
 }
 
-/// Bitmask value for a single modifier.
-export modifier_bit :: fn(m: TokenModifier) -> i32 {
-    match m {
-        .Documentation -> { return 1 }
-    }
-}
+/// Bitmask value for a single modifier. Derived from the variant's ordinal rather
+/// than a hand-written literal per arm: the wire contract already IS "bit position
+/// = index in `TOKEN_MODIFIERS`", so computing it keeps the two in sync by
+/// construction instead of by vigilance.
+export modifier_bit :: fn(m: TokenModifier) -> i32 = 1 << i32(m)
 
 /// LSP semantic-token type names. The index of each entry is what travels on
 /// the wire ; the order MUST stay in sync with the `TokenType` enum above.
@@ -73,10 +86,13 @@ export TOKEN_TYPES :: [
     "operator",
     "decorator",
     "enumMember",
+    "property",
 ]
 
 /// LSP semantic-token modifier names. Index = bit position in the modifier
 /// bitmask ; order MUST stay in sync with `TokenModifier`.
 export TOKEN_MODIFIERS :: [
     "documentation",
+    "readonly",
+    "static",
 ]

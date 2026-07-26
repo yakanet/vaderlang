@@ -1,4 +1,4 @@
-// vader/lsp/inlay_hint — `textDocument/inlayHint` handler.
+// vader/lsp/handlers/inlay_hint — `textDocument/inlayHint` handler.
 //
 // For each `let x := expr` (or `name :: expr`) without an explicit type
 // annotation, emit a hint carrying the inferred type rendered *between*
@@ -45,34 +45,49 @@ export handle_inlay_hint :: fn(state: ServerState!, params: JsonValue) -> JsonVa
     if sf is null { return JsonArray { .items = [] } }
 
     hints: JsonValue[]! = []
+    ctx :: HintCtx {
+        .typed   = result.typed,
+        .content = sf.content,
+        .li      = new_line_index(sf.content, state.position_encoding),
+    }
     for decl in sf.program.decls {
-        collect_from_decl(decl, result.typed, hints)
+        collect_from_decl(decl, ctx, hints)
     }
     return JsonArray { .items = hints }
 }
 
+// What the walkers need at every level : the typed side-tables the hints read
+// from, the file text — `emit_operator_hint` locates the real binding operator in
+// it rather than assuming a canonical spacing — and the line index that turns a
+// byte offset into a `character` in the negotiated encoding.
+HintCtx :: struct {
+    typed:   TypedProgram
+    content: string
+    li:      LineIndex
+}
+
 // ---- AST walkers ---------------------------------------------------------
 
-collect_from_decl :: fn(d: AST.Decl, typed: TypedProgram, out: JsonValue[]!) -> void {
+collect_from_decl :: fn(d: AST.Decl, ctx: HintCtx, out: JsonValue[]!) -> void {
     match d {
         is AST.FnDecl as fd -> {
             match fd.body {
                 is null -> {}
-                is AST.BlockExpr as b -> { collect_from_block(b, typed, out) }
+                is AST.BlockExpr as b -> { collect_from_block(b, ctx, out) }
             }
         }
         is AST.ImplDecl as id -> {
             for m in id.members {
                 match m.body {
                     is null -> {}
-                    is AST.BlockExpr as b -> { collect_from_block(b, typed, out) }
+                    is AST.BlockExpr as b -> { collect_from_block(b, ctx, out) }
                 }
             }
         }
         is AST.ConstDecl as cd -> {
             // Skip when the user already annotated the type.
             match cd.ty {
-                is null -> { emit_const_hint(cd, typed, out) }
+                is null -> { emit_const_hint(cd, ctx, out) }
                 _       -> {}
             }
         }
@@ -80,116 +95,116 @@ collect_from_decl :: fn(d: AST.Decl, typed: TypedProgram, out: JsonValue[]!) -> 
     }
 }
 
-collect_from_block :: fn(b: AST.BlockExpr, typed: TypedProgram, out: JsonValue[]!) -> void {
-    for s in b.stmts { collect_from_stmt(s, typed, out) }
+collect_from_block :: fn(b: AST.BlockExpr, ctx: HintCtx, out: JsonValue[]!) -> void {
+    for s in b.stmts { collect_from_stmt(s, ctx, out) }
     if b.trailing !is null {
-        collect_from_expr(b.trailing, typed, out)
+        collect_from_expr(b.trailing, ctx, out)
     }
 }
 
-collect_from_stmt :: fn(s: AST.Stmt, typed: TypedProgram, out: JsonValue[]!) -> void {
+collect_from_stmt :: fn(s: AST.Stmt, ctx: HintCtx, out: JsonValue[]!) -> void {
     match s {
         is AST.LetStmt as ls -> {
             // Skip when the user already annotated the binding type.
             match ls.ty {
-                is null -> { emit_let_hint(ls, typed, out) }
+                is null -> { emit_let_hint(ls, ctx, out) }
                 _       -> {}
             }
-            collect_from_expr(ls.value, typed, out)
+            collect_from_expr(ls.value, ctx, out)
         }
-        is AST.ExprStmt as es -> { collect_from_expr(es.expr, typed, out) }
+        is AST.ExprStmt as es -> { collect_from_expr(es.expr, ctx, out) }
         is AST.ReturnStmt as rs -> {
             if rs.value !is null {
-                collect_from_expr(rs.value, typed, out)
+                collect_from_expr(rs.value, ctx, out)
             }
         }
-        is AST.YieldStmt as ys -> { collect_from_expr(ys.value, typed, out) }
+        is AST.YieldStmt as ys -> { collect_from_expr(ys.value, ctx, out) }
         is AST.AssignStmt as as_ -> {
-            collect_from_expr(as_.target, typed, out)
-            collect_from_expr(as_.value, typed, out)
+            collect_from_expr(as_.target, ctx, out)
+            collect_from_expr(as_.value, ctx, out)
         }
         is AST.ForStmt as fs -> {
             match fs.form {
-                is AST.WhileFor as w -> { collect_from_expr(w.cond, typed, out) }
-                is AST.InFor    as i -> { collect_from_expr(i.iter, typed, out) }
+                is AST.WhileFor as w -> { collect_from_expr(w.cond, ctx, out) }
+                is AST.InFor    as i -> { collect_from_expr(i.iter, ctx, out) }
                 is AST.InfiniteFor -> {}
             }
-            collect_from_block(fs.body, typed, out)
+            collect_from_block(fs.body, ctx, out)
         }
         is AST.BreakStmt -> {}
         is AST.ContinueStmt -> {}
         is AST.DeferStmt as ds -> {
             match ds.body {
-                is AST.DeferStmtBody  as dsb -> { collect_from_stmt(dsb.stmt, typed, out) }
-                is AST.DeferBlockBody as dbb -> { collect_from_block(dbb.block, typed, out) }
+                is AST.DeferStmtBody  as dsb -> { collect_from_stmt(dsb.stmt, ctx, out) }
+                is AST.DeferBlockBody as dbb -> { collect_from_block(dbb.block, ctx, out) }
             }
         }
     }
 }
 
-collect_from_expr :: fn(e: AST.Expr, typed: TypedProgram, out: JsonValue[]!) -> void {
+collect_from_expr :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]!) -> void {
     // Surface an implicit `.into()` coercion carried on this value, if any.
-    check_into_hint(e, typed, out)
+    check_into_hint(e, ctx, out)
     // Recurse into every child expression : nested coercions (a coerced arg
     // inside `f(g(arr))`) and nested `let`/`const` type hints inside
     // block-bearing exprs both need the full walk.
     match e {
         is AST.CallExpr as c -> {
-            collect_from_expr(c.callee, typed, out)
-            for a in c.args { collect_from_expr(a.value, typed, out) }
+            collect_from_expr(c.callee, ctx, out)
+            for a in c.args { collect_from_expr(a.value, ctx, out) }
         }
-        is AST.FieldExpr as f -> { collect_from_expr(f.target, typed, out) }
+        is AST.FieldExpr as f -> { collect_from_expr(f.target, ctx, out) }
         is AST.IndexExpr as ix -> {
-            collect_from_expr(ix.target, typed, out)
-            collect_from_expr(ix.index, typed, out)
+            collect_from_expr(ix.target, ctx, out)
+            collect_from_expr(ix.index, ctx, out)
         }
-        is AST.UnaryExpr as u -> { collect_from_expr(u.operand, typed, out) }
+        is AST.UnaryExpr as u -> { collect_from_expr(u.operand, ctx, out) }
         is AST.BinaryExpr as b -> {
-            collect_from_expr(b.left, typed, out)
-            collect_from_expr(b.right, typed, out)
+            collect_from_expr(b.left, ctx, out)
+            collect_from_expr(b.right, ctx, out)
         }
-        is AST.BlockExpr as blk -> { collect_from_block(blk, typed, out) }
+        is AST.BlockExpr as blk -> { collect_from_block(blk, ctx, out) }
         is AST.IfExpr as ifx -> {
-            collect_from_expr(ifx.cond, typed, out)
-            collect_from_block(ifx.then_block, typed, out)
+            collect_from_expr(ifx.cond, ctx, out)
+            collect_from_block(ifx.then_block, ctx, out)
             match ifx.else_branch {
                 is null -> {}
-                is AST.IfElseIf    as ei -> { collect_from_expr(ei.branch, typed, out) }
-                is AST.IfElseBlock as eb -> { collect_from_block(eb.block, typed, out) }
+                is AST.IfElseIf    as ei -> { collect_from_expr(ei.branch, ctx, out) }
+                is AST.IfElseBlock as eb -> { collect_from_block(eb.block, ctx, out) }
             }
         }
         is AST.MatchExpr as m -> {
-            collect_from_expr(m.scrutinee, typed, out)
+            collect_from_expr(m.scrutinee, ctx, out)
             for arm in m.arms {
-                if arm.guard != null { collect_from_expr(arm.guard, typed, out) }
-                collect_from_expr(arm.body, typed, out)
+                if arm.guard != null { collect_from_expr(arm.guard, ctx, out) }
+                collect_from_expr(arm.body, ctx, out)
             }
         }
-        is AST.LambdaExpr as l -> { collect_from_block(l.body, typed, out) }
+        is AST.LambdaExpr as l -> { collect_from_block(l.body, ctx, out) }
         is AST.StructLitExpr as sl -> {
             for item in sl.items {
                 match item {
-                    is AST.StructLitField  as fld -> { collect_from_expr(fld.value, typed, out) }
-                    is AST.StructLitSpread as sp  -> { collect_from_expr(sp.expr, typed, out) }
+                    is AST.StructLitField  as fld -> { collect_from_expr(fld.value, ctx, out) }
+                    is AST.StructLitSpread as sp  -> { collect_from_expr(sp.expr, ctx, out) }
                 }
             }
         }
         is AST.SeqLitExpr as seq -> {
-            for el in seq.elements { collect_from_expr(el, typed, out) }
+            for el in seq.elements { collect_from_expr(el, ctx, out) }
         }
         is AST.RangeExpr as r -> {
-            collect_from_expr(r.lower, typed, out)
-            collect_from_expr(r.upper, typed, out)
+            collect_from_expr(r.lower, ctx, out)
+            collect_from_expr(r.upper, ctx, out)
         }
-        is AST.AwaitExpr as t -> { collect_from_expr(t.inner, typed, out) }
-        is AST.CastExpr as cast -> { collect_from_expr(cast.value, typed, out) }
-        is AST.GenericInstExpr as g -> { collect_from_expr(g.callee, typed, out) }
+        is AST.AwaitExpr as t -> { collect_from_expr(t.inner, ctx, out) }
+        is AST.CastExpr as cast -> { collect_from_expr(cast.value, ctx, out) }
+        is AST.GenericInstExpr as g -> { collect_from_expr(g.callee, ctx, out) }
         is AST.IntrinsicCallExpr as ic -> {
-            for a in ic.args { collect_from_expr(a, typed, out) }
+            for a in ic.args { collect_from_expr(a, ctx, out) }
         }
         is AST.StringLitExpr as s -> {
             for part in s.parts {
-                if part is AST.StringLitInterp as si { collect_from_expr(si.expr, typed, out) }
+                if part is AST.StringLitInterp as si { collect_from_expr(si.expr, ctx, out) }
             }
         }
         // Leaves : literals, idents, dot-variants, type-position exprs.
@@ -202,8 +217,8 @@ collect_from_expr :: fn(e: AST.Expr, typed: TypedProgram, out: JsonValue[]!) -> 
 /// `Expr.id`). Anchors right after the value : `span.end` is 1-based and
 /// exclusive, so 0-based column `end.column - 1` lands immediately past the
 /// last char and the zero-padding label reads as `value.into()`.
-check_into_hint :: fn(e: AST.Expr, typed: TypedProgram, out: JsonValue[]!) -> void {
-    if typed.into_coercions[e.id] is null { return }
+check_into_hint :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]!) -> void {
+    if ctx.typed.into_coercions[e.id] is null { return }
     line :: e.span.end.line - 1
     col  :: e.span.end.column - 1
     out.push(build_hint(line, col, ".into()"))
@@ -211,20 +226,85 @@ check_into_hint :: fn(e: AST.Expr, typed: TypedProgram, out: JsonValue[]!) -> vo
 
 // ---- hint emission -------------------------------------------------------
 
-/// Push a type hint nested *inside* the binding operator, so the line reads
-/// `name :u8: value` (`::`) or `name :u8= value` (`:=`) — the type sits
-/// between the operator's two characters.
+/// Where a type hint must be inserted, 0-based as the LSP wants it.
+HintAnchor :: struct {
+    line:      i32
+    character: i32
+}
+
+/// Locate the binding operator between `name_span` and `value_span`, and return
+/// the anchor that lands the hint BETWEEN its two characters.
 ///
-/// Placement anchors on the **value** span, not the name : the operator→value
-/// gap is canonically one space, whereas the name→operator gap is padded under
-/// vertical alignment (`a   :: 1` / `bb  :: 2`). The operator is two chars + one
-/// space before the value, so the second operator char is at the value's 1-based
-/// column `- 2`, i.e. 0-based column `value.column - 3` — exactly where the hint
-/// must insert to land between the two operator chars.
-emit_operator_hint :: fn(value_span: Span, label: string, out: JsonValue[]!) -> void {
-    line :: value_span.start.line - 1
-    col  :: value_span.start.column - 3
-    out.push(build_hint(line, col, label))
+/// The operator is found by scanning the source, not computed from the value's
+/// column. The previous arithmetic (`value.column - 3`) hard-coded "two operator
+/// chars plus exactly one space", so any other spelling misplaced the hint :
+/// `x ::  1` pushed it past the operator, `x::1` before it, and a value on the
+/// NEXT line yielded a negative character (an invalid LSP position). Anchoring on
+/// the operator itself is spacing- and layout-independent.
+///
+/// The scan tracks LINES only ; the character comes from `li_character`, the one
+/// place that knows the negotiated encoding. Counting columns here by hand would
+/// count BYTES — one multi-byte codepoint between the name and the operator (say
+/// `x /* café */ :: 1`) and the hint drifts, which is precisely the class of bug
+/// `protocol/line_index` exists to prevent.
+///
+/// @param li          the document index, in the negotiated position encoding.
+/// @param content     the full file text ; the spans index into it via `offset`.
+/// @param name_span   the bound name — its `end` (exclusive) starts the scan.
+/// @param value_span  the value — its `start` bounds the scan.
+/// @return            the 0-based anchor ; falls back to the value's own position
+///                    less the canonical 3 columns (clamped to 0) when no operator
+///                    is found in range, so a surprising span degrades the
+///                    placement instead of dropping the hint.
+operator_hint_anchor :: fn(
+    li: LineIndex, content: string, name_span: Span, value_span: Span,
+) -> HintAnchor {
+    bytes :: content.bytes()
+    limit :: value_span.start.offset
+    line: i32 = name_span.end.line - 1
+    if limit <= bytes.len() {
+        for off in name_span.end.offset..<limit {
+            byte :: bytes[off]
+            if byte == '\n' {
+                line += 1
+                continue
+            }
+            if byte == '\r' {
+                // CRLF advances on its LF ; a lone CR opens a line on its own.
+                if off + 1 >= limit || bytes[off + 1] != '\n' {
+                    line += 1
+                }
+                continue
+            }
+            // `::` or `:=` — the hint inserts before the operator's SECOND char.
+            if byte == ':' && off + 1 < limit {
+                next :: bytes[off + 1]
+                if next == ':' || next == '=' {
+                    return HintAnchor {
+                        .line = line, .character = li_character(li, line, off + 1),
+                    }
+                }
+            }
+        }
+    }
+    value_line :: value_span.start.line - 1
+    // The historical placement was `value.column - 3` on a 1-BASED column ;
+    // `li_character` is 0-based, so the same spot is `- 2` here.
+    fallback :: li_character(li, value_line, value_span.start.offset) - 2
+    return HintAnchor {
+        .line = value_line,
+        .character = if fallback > 0 { fallback } else { 0 },
+    }
+}
+
+/// Push a type hint nested *inside* the binding operator, so the line reads
+/// `name :u8: value` (`::`) or `name :u8= value` (`:=`) — the type sits between
+/// the operator's two characters. See `operator_hint_anchor` for the placement.
+emit_operator_hint :: fn(
+    ctx: HintCtx, name_span: Span, value_span: Span, label: string, out: JsonValue[]!,
+) -> void {
+    anchor :: operator_hint_anchor(ctx.li, ctx.content, name_span, value_span)
+    out.push(build_hint(anchor.line, anchor.character, label))
 }
 
 /// Emit the inferred-type hint for a `let` binding.
@@ -232,14 +312,14 @@ emit_operator_hint :: fn(value_span: Span, label: string, out: JsonValue[]!) -> 
 /// Currently handles the `SimpleBinding` case ; tuple-destructuring
 /// bindings are skipped (each leaf would need its own hint, and the
 /// static type isn't always useful on the destructure itself).
-emit_let_hint :: fn(ls: AST.LetStmt, typed: TypedProgram, out: JsonValue[]!) -> void {
+emit_let_hint :: fn(ls: AST.LetStmt, ctx: HintCtx, out: JsonValue[]!) -> void {
     match ls.binding {
         is AST.SimpleBinding as sb -> {
-            ty :: typed.local_types[sb.name_span.hash()] ?? return
+            ty :: ctx.typed.local_types[sb.name_span.hash()] ?? return
             if ty is UnresolvedType { return }
             if ty is FreeIntType { return }
             if ty is FreeFloatType { return }
-            emit_operator_hint(ls.value.span, display_type(ty), out)
+            emit_operator_hint(ctx, sb.name_span, ls.value.span, display_type(ty), out)
         }
         _ -> {}
     }
@@ -251,12 +331,12 @@ emit_let_hint :: fn(ls: AST.LetStmt, typed: TypedProgram, out: JsonValue[]!) -> 
 /// keeps the un-defaulted free type. Type-alias constants (`Type ::
 /// i32 | string`) get `TY_TYPE` ; we skip those — they're already
 /// self-describing.
-emit_const_hint :: fn(cd: AST.ConstDecl, typed: TypedProgram, out: JsonValue[]!) -> void {
-    sym :: lookup_const_sym(typed.resolved, cd.name) ?? return
-    ty :: typed.decl_types[sym.id] ?? return
+emit_const_hint :: fn(cd: AST.ConstDecl, ctx: HintCtx, out: JsonValue[]!) -> void {
+    sym :: lookup_const_sym(ctx.typed.resolved, cd.name) ?? return
+    ty :: ctx.typed.decl_types[sym.id] ?? return
     if ty is UnresolvedType { return }
     if ty is TypeMetaType { return }
-    emit_operator_hint(cd.value.span, display_type(ty), out)
+    emit_operator_hint(ctx, cd.name_span, cd.value.span, display_type(ty), out)
 }
 
 lookup_const_sym :: fn(resolved: ResolvedModule, name: string) -> Symbol | null {
@@ -280,5 +360,93 @@ build_hint :: fn(line: i32, character: i32, label: string) -> JsonValue {
     hint["paddingLeft"]  = JsonBool { .value = false }
     hint["paddingRight"] = JsonBool { .value = false }
     return JsonObject { .entries = hint }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+test_pos :: fn(offset: usize, line: i32, column: i32) -> Position =
+    Position { .file = "t.vader", .offset = offset, .line = line, .column = column }
+
+// `operator_hint_anchor` reads only the name's `end` and the value's `start`, so
+// the other endpoint of each span is filler.
+name_ending_at :: fn(offset: usize, line: i32, column: i32) -> Span =
+    Span { .start = test_pos(0, 1, 1), .end = test_pos(offset, line, column) }
+
+// The anchor for `content`, indexed in utf-16 as a default LSP client would
+// negotiate — so the tests exercise the same conversion path as the handler.
+anchor_of :: fn(content: string, name_span: Span, value_span: Span) -> HintAnchor =
+    operator_hint_anchor(new_line_index(content, .Utf16), content, name_span, value_span)
+
+value_starting_at :: fn(offset: usize, line: i32, column: i32) -> Span =
+    Span { .start = test_pos(offset, line, column), .end = test_pos(offset, line, column) }
+
+// A 0-based `character` of C inserts before the (C+1)-th 1-based column, so
+// anchoring on the FIRST operator char's 1-based column lands between the two.
+@test
+test_anchor_canonical_spacing :: fn() -> void {
+    // `x :: 1` — the shape the old arithmetic was tuned for.
+    a :: anchor_of("x :: 1", name_ending_at(1, 1, 2), value_starting_at(5, 1, 6))
+    assert_eq(a.line, 0)
+    assert_eq(a.character, 3)
+}
+
+@test
+test_anchor_survives_extra_space :: fn() -> void {
+    // `x ::  1` — two spaces before the value. `value.column - 3` gave 4, which
+    // pushed the hint PAST the operator.
+    a :: anchor_of("x ::  1", name_ending_at(1, 1, 2), value_starting_at(6, 1, 7))
+    assert_eq(a.character, 3)
+}
+
+@test
+test_anchor_survives_no_space :: fn() -> void {
+    // `x::1` — no spaces at all. `value.column - 3` gave 1, i.e. BEFORE the
+    // operator, splitting `x` from `::`.
+    a :: anchor_of("x::1", name_ending_at(1, 1, 2), value_starting_at(3, 1, 4))
+    assert_eq(a.character, 2)
+}
+
+@test
+test_anchor_accepts_mutable_operator :: fn() -> void {
+    // `:=` anchors exactly like `::`.
+    a :: anchor_of("x := 1", name_ending_at(1, 1, 2), value_starting_at(5, 1, 6))
+    assert_eq(a.character, 3)
+}
+
+@test
+test_anchor_follows_vertical_alignment :: fn() -> void {
+    // `abc  :: 1` — padded name→operator gap, which is why the anchor can't be
+    // derived from the NAME either.
+    a :: anchor_of("abc  :: 1", name_ending_at(3, 1, 4), value_starting_at(8, 1, 9))
+    assert_eq(a.character, 6)
+}
+
+@test
+test_anchor_stays_on_the_operator_line :: fn() -> void {
+    // Value on the NEXT line : the hint belongs on the operator's line, and the
+    // old arithmetic put it on the value's line at a bogus column.
+    a :: anchor_of("x ::\n    1", name_ending_at(1, 1, 2), value_starting_at(9, 2, 5))
+    assert_eq(a.line, 0)
+    assert_eq(a.character, 3)
+}
+
+@test
+test_anchor_falls_back_without_an_operator :: fn() -> void {
+    // No `::` / `:=` in range — degrade to the historical placement rather than
+    // dropping the hint.
+    a :: anchor_of("x = 1", name_ending_at(1, 1, 2), value_starting_at(4, 1, 5))
+    assert_eq(a.line, 0)
+    assert_eq(a.character, 2)
+}
+
+@test
+test_anchor_never_emits_a_negative_character :: fn() -> void {
+    // The fallback is clamped : a value in column 1 would otherwise compute -2,
+    // which is an invalid LSP position.
+    a :: anchor_of("x\n1", name_ending_at(1, 1, 2), value_starting_at(2, 2, 1))
+    assert_eq(a.line, 1)
+    assert_eq(a.character, 0)
 }
 

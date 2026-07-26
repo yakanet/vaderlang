@@ -22,7 +22,11 @@ internal class VaderLanguageServerFactory : LanguageServerFactory {
         VaderConnectionProvider(project)
 
     override fun createClientFeatures(): LSPClientFeatures =
-        LSPClientFeatures().setFormattingFeature(VaderFormattingFeature())
+        LSPClientFeatures()
+            .setFormattingFeature(VaderFormattingFeature())
+            // Without this, semantic tokens have no colour key in IntelliJ and
+            // land on the default foreground — see `VaderSemanticTokensFeature`.
+            .setSemanticTokensFeature(VaderSemanticTokensFeature())
 }
 
 // `.vader` files are mapped to the server by filename glob (TextMate grammar,

@@ -1,0 +1,10 @@
+<?xml version='1.0'?>
+<!-- Light-scheme values for the plugin's own colour keys (see VaderColors.kt).
+     Darker teal so it stays readable on a white background. -->
+<list>
+    <option name="VADER_TYPE">
+        <value>
+            <option name="FOREGROUND" value="267F99" />
+        </value>
+    </option>
+</list>

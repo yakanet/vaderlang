@@ -34,6 +34,10 @@
             id="dev.vaderlang.intellij.config"
             displayName="Vader"
             parentId="tools"/>
+        <!-- Values for the plugin's own colour keys — see VaderColors.kt for why
+             they have to exist at all. -->
+        <additionalTextAttributes scheme="Darcula" file="colorSchemes/VaderDarcula.xml"/>
+        <additionalTextAttributes scheme="Default" file="colorSchemes/VaderDefault.xml"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">

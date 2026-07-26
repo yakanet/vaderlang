@@ -72,11 +72,26 @@ push_module_keyword_span :: fn(md: AST.ModuleDecl, out: RawToken![]!) -> void {
     })
 }
 
-/// Walk every ident through the body-resolver and override matching
-/// Phase-1 tokens with the symbol-kind-derived TokenType.
+/// Walk every ident through the body-resolver and override matching Phase-1
+/// tokens with the symbol-kind-derived TokenType + modifiers.
+///
+/// The root scope is SEEDED with the file's own top-level decls
+/// (`collect_module_no_index` — the mono-file collector, no module index or
+/// loader needed). Without the seed a top-level name never resolves from a body,
+/// so every reference to this file's consts / fns / types fell to the `Variable`
+/// catch-all: a module const then read as a reassignable local rather than a
+/// constant. Seeding also gets shadowing right for free — `Scope.lookup` walks
+/// innermost-out, so a local shadowing a const name still resolves to the local.
+///
+/// Sibling-file and imported names remain unresolved (they need the project-wide
+/// module graph, TODO §1.13d) and keep the `Variable` fallback.
 refine_via_resolver :: fn(program: AST.Program, uri: string, out: RawToken![]!, source: string) -> void {
     factory :: SymbolFactory {}
+    collected :: collect_module_no_index(program, uri, factory)
     seed :: MutableMap<string, Symbol> {}
+    for sym in collected.symbols.values() {
+        seed[sym.name] = sym
+    }
     resolved :: resolve_program(program, seed, uri, factory, MutableMap<string, string[]!> {})
     // `idents` is keyed by `Span.hash()` = (file, line, **codepoint column**),
     // matching the resolver/parser columns. RawTokens now carry only byte
@@ -94,9 +109,11 @@ refine_via_resolver :: fn(program: AST.Program, uri: string, out: RawToken![]!, 
         hit :: resolved.idents[probe.hash()]
         match hit {
             is Symbol as s -> {
-                // Only the token type is refined ; offsets stay canonical and
-                // col/length are still derived later by `reencode_columns`.
+                // Only the token type + modifiers are refined ; offsets stay
+                // canonical and col/length are still derived later by
+                // `reencode_columns`.
                 out[i].tok_type = i32(token_type_of_symbol(s.kind))
+                out[i].modifiers = modifiers_of_symbol(s.kind)
             }
             is null -> {}
         }
@@ -120,6 +137,18 @@ token_type_of_symbol :: fn(k: SymbolKind) -> TokenType {
     if k == SymbolKind.Const         { return .Variable }
     if k == SymbolKind.ImportBinding { return .Variable }
     return .Variable
+}
+
+/// Modifier bitmask for a symbol kind — `0` for kinds carrying none.
+///
+/// A module const is `static` + `readonly`, the pair clients resolve to their
+/// "constant" colour (LSP4IJ → `CONSTANT`); without it a `SCREAMING_SNAKE` const
+/// read as a plain — and worse, reassignable — local.
+modifiers_of_symbol :: fn(k: SymbolKind) -> i32 {
+    if k == SymbolKind.Const {
+        return modifier_bit(.Static) | modifier_bit(.Readonly)
+    }
+    return 0
 }
 
 // ---- raw-token helpers ----------------------------------------------------
@@ -276,7 +305,7 @@ walk_struct_decl :: fn(d: AST.StructDecl, out: RawToken![]!) -> void {
 walk_struct_field :: fn(f: AST.StructField, out: RawToken![]!) -> void {
     // `f.span` runs through the type annotation (`x: i32`) ; tag only the
     // field name so the type token below doesn't overlap it.
-    push_name_token(out, f.span.start, 0, f.name, .Variable)
+    push_name_token(out, f.span.start, 0, f.name, .Property)
     walk_type_expr(f.ty, out)
     walk_opt_expr(f.default, out)
 }
@@ -405,7 +434,12 @@ walk_expr :: fn(e: AST.Expr, out: RawToken![]!) -> void {
         is AST.CallExpr         as x -> { walk_call(x, out) }
         is AST.FieldExpr        as x -> {
             walk_expr(x.target, out)
-            push_span(out, x.field_span, .Variable)
+            // Field READ. `Mode.Fast` and `Prof.PHASE` are also FieldExprs and land
+            // here rather than on `EnumMember` / a const: telling them apart needs
+            // the target's resolved type, which this walker doesn't have. Clients
+            // colour property and enum-member from the same family (LSP4IJ maps them
+            // to `INSTANCE_FIELD` / `STATIC_FIELD`), so the two are visually alike.
+            push_span(out, x.field_span, .Property)
         }
         is AST.IndexExpr        as x -> {
             walk_expr(x.target, out)
@@ -544,7 +578,7 @@ walk_struct_lit :: fn(s: AST.StructLitExpr, out: RawToken![]!) -> void {
     for it in s.items {
         match it {
             is AST.StructLitField as f -> {
-                push_span(out, f.name_span, .Variable)
+                push_span(out, f.name_span, .Property)
                 walk_expr(f.value, out)
             }
             is AST.StructLitSpread as sp -> { walk_expr(sp.expr, out) }

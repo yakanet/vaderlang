@@ -1,0 +1,10 @@
+<?xml version='1.0'?>
+<!-- Dark-scheme values for the plugin's own colour keys (see VaderColors.kt).
+     Teal reads as "type" without competing with the blue used for calls. -->
+<list>
+    <option name="VADER_TYPE">
+        <value>
+            <option name="FOREGROUND" value="4EC9B0" />
+        </value>
+    </option>
+</list>

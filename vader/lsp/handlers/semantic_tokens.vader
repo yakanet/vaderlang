@@ -1,4 +1,4 @@
-// vader/lsp/semantic_tokens — `textDocument/semanticTokens/full` handler.
+// vader/lsp/handlers/semantic_tokens — `textDocument/semanticTokens/full` handler.
 //
 // LSP encodes semantic tokens as a flat `i32[]` array of 5-tuples :
 //
@@ -135,8 +135,6 @@ classify_token :: fn(t: Token) -> i32 = match t.kind {
 
     .IntLit | .FloatLit -> i32(TokenType.Number)
 
-    .CharLit | .StringBegin | .StringPart | .StringEnd -> i32(TokenType.String)
-
     // Operators + interpolation delimiters.
     .InterpOpen | .InterpClose
         | .Plus | .Minus | .Star | .Slash | .Percent
@@ -151,8 +149,19 @@ classify_token :: fn(t: Token) -> i32 = match t.kind {
     // with only the lexer we can't tell function / parameter / variable apart,
     // and mis-typing them makes clients (LSP4IJ) underline every word; the
     // AST-driven pass (`ast_tokens.vader::collect_ast_idents`) paints idents.
+    //
+    // String and char literals are skipped for the same reason one level up: the
+    // lexer sees ONE `StringPart` spanning the whole literal body, so a `string`
+    // token over it FLATTENS what the TextMate grammar paints in two colours —
+    // escape sequences (`\t`, `\n`) lost theirs the moment the LSP loaded. The
+    // shared grammar (`editors/common/vader.tmLanguage.json`) already owns
+    // strings, escapes included, so the semantic layer only degrades them.
+    // `.InterpOpen` / `.InterpClose` keep their operator token above: they
+    // delimit a real expression, not literal text.
+    //
     // Punctuation / brackets / layout / `@` / `$` / `...` carry no token.
     .Ident | .Eof | .Newline | .DotDotDot | .At | .Dollar
+        | .CharLit | .StringBegin | .StringPart | .StringEnd
         | .LParen | .RParen | .LBracket | .RBracket | .LBrace | .RBrace
         | .Comma | .Dot | .Colon -> -1
 }
@@ -387,24 +396,39 @@ test_no_overlapping_tokens :: fn() -> void {
     assert_eq(count_token_overlaps(toks), 0)
 }
 
-// Token lengths must be in codepoints (UTF-16 units), not bytes : a 2-byte
-// `é` is one codepoint, so a token covering an accented literal must not run
-// long and overlap its neighbour. `café` is the StringPart at line 0, col 6 ;
-// its length must be 4 (codepoints), not 5 (bytes). The trailing `'é'` char
-// literal is 3 codepoints, not 4 bytes.
+// Token lengths must be in codepoints (UTF-16 units), not bytes : a 2-byte `é`
+// is one codepoint, so a token covering accented text must not run long and
+// overlap its neighbour. `// café` is 7 codepoints / 8 bytes.
+//
+// Carried by a COMMENT since the string-literal token this used to assert on is
+// no longer emitted (`classify_token` leaves literals to TextMate) — the length
+// path under test (`reencode_columns`) is shared by every producer.
 @test
 test_multibyte_token_length :: fn() -> void {
-    src :: "x :: \"café\"\ny :: 'é'\n"
-    toks :: build_sorted_for_test(src, "file:///t.vader")
+    toks :: build_sorted_for_test("// café\nx :: 1\n", "file:///t.vader")
     found := false
     for t in toks {
-        if t.line == 0 && t.col == 6 {
-            assert_eq(t.length, 4)
+        if t.line == 0 && t.tok_type == i32(TokenType.Comment) {
+            assert_eq(t.length, 7)
             found = true
             break
         }
     }
-    assert(found, "café StringPart token not found at line 0 col 6")
+    assert(found, "comment token not found on line 0")
+}
+
+// The literal-skipping policy itself : a string (with an escape) and a char
+// literal must contribute NO token, or the client's TextMate colouring of the
+// escape is overridden the moment the LSP loads. The interpolation delimiters
+// and the expression inside them still get theirs.
+@test
+test_literals_emit_no_token :: fn() -> void {
+    toks :: build_sorted_for_test("x :: \"a\\tb\"\ny :: 'c'\n", "file:///t.vader")
+    for t in toks {
+        assert(t.tok_type != i32(TokenType.String), "no token may claim TokenType.String")
+    }
+    // Sanity : the pass still runs and paints the non-literal parts.
+    assert(toks.len() > 0, "the token pass still produces tokens")
 }
 
 // Doc-comment tags carry source columns, not within-comment byte offsets : an
@@ -418,6 +442,65 @@ test_doc_tag_columns :: fn() -> void {
     assert_eq(doc_token_col(indented, 1, i32(TokenType.Parameter)), 15)
     multibyte :: build_sorted_for_test("/// café @param y ok.\ng :: fn(y: i32) -> i32\n", "file:///d.vader")
     assert_eq(doc_token_col(multibyte, 0, i32(TokenType.Decorator)), 9)
+}
+
+// Is there a token of `tok_type` at exactly (`line`, `col`) spanning `length`?
+token_at :: fn(toks: RawToken[], line: i32, col: i32, length: i32, tok_type: i32) -> bool {
+    for t in toks {
+        if t.line == line && t.col == col && t.length == length && t.tok_type == tok_type {
+            return true
+        }
+    }
+    return false
+}
+
+// Call sites must carry `Function`, through BOTH callee shapes — a method call
+// (`out.push(…)`, tagged on the field span) and a bare free-fn call
+// (`mk_primitive(…)`). Asserted on the full pipeline, so a later pass
+// overwriting the tag with `Variable` would fail here.
+//
+// This is the server half of the "call-site names lose their colour under the
+// LSP" report: the tag IS emitted, so a client rendering them in the default
+// foreground is missing a semantic-token → attributes mapping.
+@test
+test_call_sites_are_tagged_function :: fn() -> void {
+    src :: "main :: fn() -> void {\n    out.push(1)\n    mk_primitive(\"usize\")\n}\n"
+    toks :: build_sorted_for_test(src, "file:///c.vader")
+    assert(token_at(toks, 1, 8, 4, i32(TokenType.Function)), "`push` tagged Function")
+    assert(token_at(toks, 2, 4, 12, i32(TokenType.Function)), "`mk_primitive` tagged Function")
+}
+
+// Modifier bitmask of the token at (`line`, `col`), or -1 if there is none.
+token_mods_at :: fn(toks: RawToken[], line: i32, col: i32) -> i32 {
+    for t in toks {
+        if t.line == line && t.col == col {
+            return t.modifiers
+        }
+    }
+    return -1
+}
+
+// Struct fields carry `Property`, not the `Variable` catch-all — in all three
+// positions they appear in. Clients colour `Variable` as a *reassignable local*
+// (LSP4IJ underlines it), which is wrong twice over for a field.
+@test
+test_struct_fields_are_property :: fn() -> void {
+    src :: "Opts :: struct { release: bool }\n\nread :: fn(o: Opts) -> bool = o.release\n"
+    toks :: build_sorted_for_test(src, "file:///f.vader")
+    prop :: i32(TokenType.Property)
+    assert(token_at(toks, 0, 17, 7, prop), "field declaration is Property")
+    assert(token_at(toks, 2, 32, 7, prop), "`o.release` read is Property")
+    lit :: build_sorted_for_test("Opts :: struct { release: bool }\n\nmk :: fn() -> Opts = Opts { .release = true }\n", "file:///g.vader")
+    assert(token_at(lit, 2, 29, 7, prop), "`.release = …` in a struct literal is Property")
+}
+
+// A module const is `static` + `readonly`, which is what makes a client resolve it
+// to its constant colour instead of painting `SCREAMING_SNAKE` as a mutable local.
+@test
+test_module_const_carries_static_readonly :: fn() -> void {
+    toks :: build_sorted_for_test("MAX :: 42\n\nget :: fn() -> i32 = MAX\n", "file:///c.vader")
+    expected :: modifier_bit(.Static) | modifier_bit(.Readonly)
+    assert_eq(token_mods_at(toks, 2, 21), expected)
 }
 
 @test
@@ -472,3 +555,5 @@ test_resolver_refines_param_use :: fn() -> void {
     }
     assert_eq(params, 2)
 }
+
+
