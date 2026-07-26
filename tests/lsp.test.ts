@@ -31,8 +31,12 @@ interface Query {
     | "textDocument/definition"
     | "textDocument/hover"
     | "textDocument/completion"
-    | "textDocument/codeAction";
-  position: Position;
+    | "textDocument/codeAction"
+    | "textDocument/inlayHint";
+  // `position` drives hover/definition/completion/codeAction ; `range` drives
+  // inlayHint. Give one of the two — the missing one is derived from it.
+  position?: Position;
+  range?: LocationRange;
 }
 
 interface QueryResult {
@@ -111,17 +115,18 @@ async function driveLsp(
   ];
   for (let i = 0; i < queries.length; i++) {
     const q = queries[i]!;
+    const at = q.position ?? q.range?.start ?? { line: 0, character: 0 };
     requests.push({
       jsonrpc: "2.0",
       id: 100 + i,
       method: q.method,
       // `position` serves hover/def/completion ; `range` + `context` serve
-      // codeAction. Sending all of them is harmless — each handler reads what
-      // it needs.
+      // codeAction and inlayHint. Sending all of them is harmless — each
+      // handler reads what it needs.
       params: {
         textDocument: { uri },
-        position: q.position,
-        range: { start: q.position, end: q.position },
+        position: at,
+        range: q.range ?? { start: at, end: at },
         context: { diagnostics: [] },
       },
     });
