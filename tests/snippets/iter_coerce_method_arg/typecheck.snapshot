@@ -1,0 +1,44 @@
+# Typecheck
+
+## tests/snippets/iter_coerce_method_arg
+  TraitDecl      Adder                :: Adder
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         sum_both             :: fn(Iterator<i32>, Iterator<i32>) -> i32
+  StructDecl     Tally                :: Tally!
+  expr 18:14    IdentExpr      :: Iterator<i32>
+  expr 19:18    IdentExpr      :: i32
+  expr 19:9     BinaryExpr     :: i32
+  expr 19:9     IdentExpr      :: i32
+  expr 21:14    IdentExpr      :: Iterator<i32>
+  expr 22:18    IdentExpr      :: i32
+  expr 22:9     BinaryExpr     :: i32
+  expr 22:9     IdentExpr      :: i32
+  expr 24:12    IdentExpr      :: i32
+  expr 37:16    FieldExpr      :: i32
+  expr 37:16    IdentExpr      :: Tally
+  expr 38:18    IdentExpr      :: Iterator<i32>
+  expr 39:13    BinaryExpr     :: i32
+  expr 39:13    IdentExpr      :: i32
+  expr 39:20    IdentExpr      :: i32
+  expr 41:16    IdentExpr      :: i32
+  expr 46:11    SeqLitExpr     :: i32[]!
+  expr 47:11    SeqLitExpr     :: i32[]!
+  expr 50:13    StringLitExpr  :: string
+  expr 50:21    CallExpr       :: i32
+  expr 50:21    IdentExpr      :: fn(Iterator<i32>, Iterator<i32>) -> i32
+  expr 50:30    IdentExpr      :: i32[]!
+  expr 50:34    IdentExpr      :: i32[]!
+  expr 50:46    CallExpr       :: i32
+  expr 50:46    FieldExpr      :: fn(Iterator<i32>) -> i32
+  expr 50:46    IdentExpr      :: i32[]!
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(T) -> void
+  expr 50:58    IdentExpr      :: i32[]!
+  expr 55:10    StructLitExpr  :: Tally!
+  expr 56:13    StringLitExpr  :: string
+  expr 56:23    CallExpr       :: i32
+  expr 56:23    FieldExpr      :: fn(Iterator<i32>) -> i32
+  expr 56:23    IdentExpr      :: Tally!
+  expr 56:33    IdentExpr      :: i32[]!
+  expr 56:5     CallExpr       :: void
+  expr 56:5     IdentExpr      :: fn(T) -> void

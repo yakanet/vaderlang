@@ -14,6 +14,63 @@ import "vader/resolver/symbol"
 import "vader/types"
 import "std/string_builder"
 
+/// Prepare a lowered value for the slot it flows into — the ONE place that knows
+/// what "reaching a param / field / binding of type T" requires.
+///
+/// Two orthogonal steps, in this order :
+///   1. Widen a scalar literal to the slot's union type, so the node carries the
+///      union and the backend gives it the union's representation.
+///   2. Coerce through `Into` when the value converts to the slot's type — chiefly
+///      a raw `T[]` reaching an `Iterator<T>` param, which wraps as
+///      `ArrayIterator<T>`.
+///
+/// EVERY call-building path must route its args through here, because nothing
+/// downstream repairs a mismatch : `midir/emit.vader` emits call args exactly as
+/// the lowered node typed them, with no param-directed boxing or coercion. The
+/// UFCS paths once prepared only the RECEIVER, so `xs.sum_both(ys)` passed a raw
+/// `i32[]` into an `Iterator<i32>` slot and trapped at the first `next()`
+/// (`vtable miss in Iterator.next`) while the free call `sum_both(xs, ys)` worked.
+///
+/// @param ctx   the fn-body context — an `Into` coercion registers its member.
+/// @param expr  the lowered value.
+/// @param slot  the declared type of the slot it flows into.
+/// @param span  span to attribute a synthesised `into` call to.
+/// @return      the prepared value ; `expr` unchanged when neither step applies.
+prepare_value_for_slot :: fn(
+    ctx: FnLowerCtx!, expr: LoweredExpr, slot: Type, span: Span,
+) -> LoweredExpr {
+    widened :: widen_literal_to_context(expr, slot)
+    return try_emit_into_coercion(ctx, widened, type_of(widened), slot, span) ?? widened
+}
+
+/// Prepare a positional argument list against a callee's declared param types.
+///
+/// `params` is the callee's FULL param list and `first_slot` the index the first
+/// element of `args` binds to — 0 for a plain call, 1 on the UFCS paths where the
+/// receiver already took `params[0]`. Args past the end of `params` (a variadic
+/// tail, or a signature the lowerer couldn't resolve) pass through untouched.
+///
+/// @param ctx         the fn-body context.
+/// @param args        the already-lowered arguments, in source order.
+/// @param arg_spans   parallel to `args` — each argument's own span.
+/// @param params      the callee's declared param types.
+/// @param first_slot  index in `params` that `args[0]` binds to.
+/// @return            a fresh list, each argument prepared for its slot.
+prepare_args_for_params :: fn(
+    ctx: FnLowerCtx!, args: LoweredExpr[], arg_spans: Span[], params: Type[], first_slot: usize,
+) -> LoweredExpr[]! {
+    out: LoweredExpr[]! = []
+    for i in 0..<args.len() {
+        slot :: first_slot + i
+        if slot >= params.len() {
+            out.push(args[i])
+        } else {
+            out.push(prepare_value_for_slot(ctx, args[i], params[slot], arg_spans[i]))
+        }
+    }
+    return out
+}
+
 /// Mangle a module display path into a name-fragment usable in a mangled
 /// symbol: `/` and `.` both become `_`, every other byte passes through.
 /// Centralised here so the lowerer's name-mangling sites and the CLI's

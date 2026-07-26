@@ -18,6 +18,11 @@ UfcsMember :: struct {
     /// `Display.to_string`). `build_member_call_or_inline` then inlines the call
     /// to the receiver instead of emitting a real call. Defaults `false`.
     is_identity: bool = false
+    /// Declared types of the member's arguments, receiver EXCLUDED, so a call site
+    /// can prepare each one for its slot (`helpers::prepare_args_for_params`).
+    /// Sourced from `impl_member_arg_types` ; empty when the member's signature
+    /// isn't in the frontend table, and callers then pass their args through as-is.
+    arg_types: Type[] = []
 }
 
 // True when `m` is the trivial identity `fn(self) = self` — expression-bodied,
@@ -216,7 +221,33 @@ build_ufcs_member :: fn(ctx: FnLowerCtx!, target_type: Type, target_name: string
             .defined_at = null,
         },
         .is_identity = is_identity,
+        .arg_types = impl_member_arg_types(ctx, target_type, method_name),
     }
+}
+
+// Declared types of the member's arguments, receiver EXCLUDED.
+//
+// Read from the frontend's `impl_methods` table — the very table the typer keyed
+// this dispatch on, so the slot types here are the ones it type-checked the call
+// against, and its `ty` is already receiver-dropped (`ufcs_method_type`). The
+// table is complete on the ENTRY module whatever the impl's own module :
+// `merge_external_impl_methods` broadcasts every foreign impl onto it. Keys
+// mirror the typer's two probes — exact display key, then base name.
+//
+// Empty when the member has no entry (a receiver shape the typer keyed
+// differently) — the caller then passes its args through untouched rather than
+// guessing a slot type.
+impl_member_arg_types :: fn(ctx: FnLowerCtx, recv_type: Type, method_name: string) -> Type[] {
+    entry_typed :: ctx.project.typed.modules[ctx.project.loaded.entry] ?? return []
+    direct :: entry_typed.impl_methods["${display_type_key(recv_type)}::${method_name}"]
+    if direct is ImplMethod as d {
+        if d.ty is FnType as ft { return ft.params }
+    }
+    base :: entry_typed.impl_methods["${type_base_name(recv_type)}::${method_name}"]
+    if base is ImplMethod as b {
+        if b.ty is FnType as ft { return ft.params }
+    }
+    return []
 }
 
 /// True when an `@intrinsic` impl. Lets a user impl shadow the builtin in

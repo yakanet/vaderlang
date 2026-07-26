@@ -47,9 +47,10 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
         member :: find_impl_member_for(ctx, recv_type, field_expr.field)
         if !(member is null) {
             if member is UfcsMember as found {
-                args: LoweredExpr[]! = []
-                args.push(receiver)
-                for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
+                // An impl member's recorded signature is receiver-dropped, so its
+                // types line up with the call's own args from slot 0. The receiver
+                // passes through — its slot is the impl's for-type by construction.
+                args :: build_ufcs_args(ctx, receiver, call, found.arg_types, 0)
                 return LoweredCall {
                     .span = call.span, .type = type,
                     .callee = LoweredIdent {
@@ -65,21 +66,12 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
         free :: find_free_fn_ufcs(ctx, recv_type, field_expr.field)
         if !(free is null) {
             if free is UfcsMember as found_free {
-                args: LoweredExpr[]! = []
-                // Coerce the receiver into the fn's first-param type the same
-                // way the canonical call path does (`try_emit_into_coercion`,
-                // shared with lower_call / lower_generic_call) — a raw array
-                // flowing into an `Iterator<T>` param wraps through `into`
-                // (→ `ArrayIterator<T>`), so `a.any(p)` lowers identically to
-                // the free call `any(a, p)`. Non-coercible receivers pass
-                // through unchanged.
-                first_param :: ufcs_first_param_type(ctx, found_free.symbol)
-                recv_arg :: if first_param == null { receiver } else {
-                    coerced :: try_emit_into_coercion(ctx, receiver, type_of(receiver), first_param, field_expr.span)
-                    if coerced == null { receiver } else { coerced }
-                }
-                args.push(recv_arg)
-                for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
+                // Prepare the receiver AND every argument against the free fn's
+                // declared params, so `a.any(p)` lowers exactly like the free call
+                // `any(a, p)` — a raw array reaching an `Iterator<T>` slot wraps
+                // through `into` (→ `ArrayIterator<T>`) on either form.
+                free_params :: ufcs_param_types(ctx, found_free.symbol)
+                args :: build_ufcs_args(ctx, receiver, call, free_params, 1)
                 // UFCS-on-generic-fn instance harvest : when the target
                 // is `fn<T>(x: T) -> T`, register a `GenericFnInstance` so
                 // `drain_generic_fn_instances` emits the body, and point
@@ -176,12 +168,15 @@ find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsM
     return null
 }
 
-// Receiver specificity of `sym`'s first param for `recv_type`. Reads the
-// first-param type via `ufcs_first_param_type` (null when the fn has no params —
-// then 0) and scores it with `overload_specificity`.
+// Receiver specificity of `sym`'s first param for `recv_type` — scores the
+// receiver slot with `overload_specificity`. A fn with no params (or no recorded
+// fn type) scores 0.
 ufcs_specificity :: fn(ctx: FnLowerCtx, recv_type: Type, sym: Symbol) -> i32 {
-    first :: ufcs_first_param_type(ctx, sym) ?? return 0
-    return overload_specificity(recv_type, first)
+    params :: ufcs_param_types(ctx, sym)
+    if params.len() == 0 {
+        return 0
+    }
+    return overload_specificity(recv_type, params[0])
 }
 
 // Specificity of `param0` for a receiver `arg0`: the count of arg0's (union)
@@ -214,16 +209,41 @@ overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
     return 0
 }
 
-// First-param type of a UFCS-resolved free fn, or null when the symbol
-// has no fn type / no params. The receiver is coerced into this type
-// (array → `Iterator<T>` via `into`) before it becomes arg 0.
-ufcs_first_param_type :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type | null {
+// Declared param types of a UFCS-resolved free fn, receiver slot first. Empty
+// when the symbol carries no fn type — arg preparation then leaves the call alone.
+ufcs_param_types :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type[] {
     ft :: lookup_fn_type_anywhere(ctx, sym)
-    if ft is FnType as f {
-        if f.params.len() == 0 { return null }
-        return f.params[0]
+    if ft is FnType as f { return f.params }
+    return []
+}
+
+// Assemble a UFCS call's argument list, every element prepared for the slot it
+// lands in (`helpers::prepare_value_for_slot`). Both UFCS branches — impl member
+// and free fn — build their args here so a method call and its equivalent free
+// call lower identically ; they used to diverge, and only the receiver was ever
+// coerced, so an array argument reached an `Iterator<T>` param unwrapped.
+//
+// `first_slot` says where the call's own args start in `params` : 1 for a free fn,
+// whose `params[0]` is the receiver slot (and whose receiver is prepared for it
+// here) ; 0 for an impl member, whose recorded signature already dropped the
+// receiver (there is no slot to prepare it against — it is the impl's for-type).
+build_ufcs_args :: fn(
+    ctx: FnLowerCtx!, receiver: LoweredExpr, call: CallExpr, params: Type[], first_slot: usize,
+) -> LoweredExpr[]! {
+    args: LoweredExpr[]! = []
+    if first_slot == 1 && params.len() > 0 {
+        args.push(prepare_value_for_slot(ctx, receiver, params[0], call.span))
+    } else {
+        args.push(receiver)
     }
-    return null
+    raw_args: LoweredExpr[]! = []
+    arg_spans: Span[]! = []
+    for call_arg in call.args {
+        raw_args.push(lower_expr(ctx, call_arg.value))
+        arg_spans.push(call_arg.value.span)
+    }
+    args.push_all(prepare_args_for_params(ctx, raw_args, arg_spans, params, first_slot))
+    return args
 }
 
 first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool {

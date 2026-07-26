@@ -133,6 +133,13 @@ const C_PARITY = new Set<string>([
   // The native-run oracle here is the regression guard — the snapshot/VM
   // dimensions stay green even when the native field read is wrong.
   "iter_zip_chain",
+  // A raw `T[]` reaching an `Iterator<T>` param of a METHOD call, on both UFCS
+  // shapes (free fn, impl member). The argument used to stay unwrapped where the
+  // receiver was coerced, so it trapped at the first `next()` — in the native
+  // backend as `unreachable at vtable miss in Iterator.next`, not silently. The
+  // native run is the guard that the `into` wrap the lowerer inserts is the same
+  // one the VM sees.
+  "iter_coerce_method_arg",
   // Captured parameters : a `defer` / lambda body that reads or mutates one of
   // its enclosing fn's PARAMS promotes that param to a heap cell at fn entry
   // (`promote_captured_params`). Exercises cell-new over an ABI param +

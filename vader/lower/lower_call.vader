@@ -69,17 +69,13 @@ lower_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr {
     // fn-type, so take params off `raw_callee` before any result-type
     // retype below.
     param_types :: param_types_of(type_of(raw_callee))
-    args: LoweredExpr[]! = []
-    for i in 0..<call.args.len() {
-        arg :: lower_expr(ctx, call.args[i].value)
-        if i < param_types.len() {
-            widened :: widen_literal_to_context(arg, param_types[i])
-            coerced :: try_emit_into_coercion(ctx, widened, type_of(widened), param_types[i], call.args[i].value.span)
-            if coerced == null { args.push(widened) } else { args.push(coerced) }
-        } else {
-            args.push(arg)
-        }
+    raw_args: LoweredExpr[]! = []
+    arg_spans: Span[]! = []
+    for call_arg in call.args {
+        raw_args.push(lower_expr(ctx, call_arg.value))
+        arg_spans.push(call_arg.value.span)
     }
+    args :: prepare_args_for_params(ctx, raw_args, arg_spans, param_types, 0)
     callee :: retype_overload_callee(ctx, call.callee, raw_callee, type)
     // Direct calls to non-generic stdlib free fns (`StringBuilder {}`,
     // `byte_len(s)`) : harvest so `materialize_nongeneric_imported_fns`

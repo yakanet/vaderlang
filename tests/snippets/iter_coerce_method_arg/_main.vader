@@ -1,0 +1,58 @@
+// Implicit `T[]` → `Iterator<T>` coercion on an ARGUMENT of a method call, for
+// both UFCS shapes: a free fn reached as `recv.f(arg)`, and a real impl member.
+//
+// The receiver was already coerced on those paths; the arguments were not, so a
+// raw array reaching an `Iterator<T>` param stayed unwrapped and trapped at the
+// first `next()` (`vtable miss in Iterator.next`) — while the equivalent free
+// call `f(recv, arg)` worked. Both forms must now agree, argument included, so
+// each case below prints the same number twice.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+// Free fn: reachable as `sum_both(a, b)` and as `a.sum_both(b)`.
+sum_both :: fn(a: Iterator<i32>, b: Iterator<i32>) -> i32 {
+    total: i32 = 0
+    for x in a {
+        total += x
+    }
+    for y in b {
+        total += y
+    }
+    return total
+}
+
+Adder :: trait {
+    add_all :: fn(self, xs: Iterator<i32>) -> i32
+}
+
+Tally :: struct {
+    base: i32
+}
+
+Tally implements Adder {
+    add_all :: fn(self, xs: Iterator<i32>) -> i32 {
+        out := self.base
+        for x in xs {
+            out += x
+        }
+        return out
+    }
+}
+
+main :: fn() -> i32 {
+    xs :: [1, 2, 3]
+    ys :: [10, 20]
+    // Free-fn UFCS: the array argument `ys` must wrap just as it does in the
+    // free form.
+    println("free=${sum_both(xs, ys)} ufcs=${xs.sum_both(ys)}")
+
+    // Impl member: same, with the argument reaching a member's `Iterator<i32>`
+    // param. There is no free form to compare against (an impl member isn't a
+    // top-level name), so the expected total is spelled out: 100 + 1 + 2 + 3.
+    t :: Tally { .base = 100 }
+    println("member=${t.add_all(xs)} want=106")
+    return 0
+}

@@ -156,18 +156,15 @@ emit_generic_fn_call :: fn(
     // disambiguates the mangle and preserves insertion order.
     inst_key :: "${fn_sym.id}::${suffix}"
     mangled :: register_fn_instance_mangle(ctx, fn_sym, concrete_args, module_id, base_mangled, inst_key)
-    // Build args ; a raw array flowing into an `Iterator<T>` param coerces
-    // through `into` (→ `ArrayIterator<T>`), mirroring the non-generic arg path.
-    lowered_args: LoweredExpr[]! = []
-    for i in 0..<call.args.len() {
-        arg_lowered :: lower_expr(ctx, call.args[i].value)
-        if i >= ft.params.len() {
-            lowered_args.push(arg_lowered)
-        } else {
-            coerced :: try_emit_into_coercion(ctx, arg_lowered, type_of(arg_lowered), ft.params[i], call.args[i].value.span)
-            if coerced == null { lowered_args.push(arg_lowered) } else { lowered_args.push(coerced) }
-        }
+    // Build args through the shared slot preparation (literal widening + `into`
+    // coercion), same as the non-generic path.
+    raw_args: LoweredExpr[]! = []
+    arg_spans: Span[]! = []
+    for call_arg in call.args {
+        raw_args.push(lower_expr(ctx, call_arg.value))
+        arg_spans.push(call_arg.value.span)
     }
+    lowered_args :: prepare_args_for_params(ctx, raw_args, arg_spans, ft.params, 0)
     // The callee must carry `fn_sym.id` : the materialised instance registers in
     // `function_index_by_symbol_id` under its origin symbol (= `fn_sym`), so a
     // call keyed on a placeholder id (`0`) misses and is silently dropped.
