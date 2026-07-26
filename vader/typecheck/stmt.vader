@@ -567,7 +567,7 @@ emit_mismatch_if :: fn(
 // Resolve the effective fn-context: the arg-side `ctx` when present, else the
 // walk-global `current_fn_ctx` (the recursive `infer_if` / `infer_match` paths
 // pass `ctx = null`, so the body's return / yield targets need this fallback).
-resolve_ctx :: fn(ctx: FnContext | null, typed: TypedProgram) -> FnContext | null {
+resolve_ctx :: fn(ctx: FnContext | null, typed: TypedProgram) -> FnContext! | null {
     if ctx != null {
         return ctx
     }
@@ -706,7 +706,11 @@ check_assign :: fn(
     // (it has no storage). Deep by construction : `CFG.child.count = 0` is
     // rejected because the predicate walks back to the root.
     if s.target is AST.FieldExpr as fe {
-        root :: expr_is_immutable(fe.target, typed)
+        // Check the CONTAINER first so its type is recorded — the level that decides
+        // is the field's OWNER, and `expr_types` is empty for it until something
+        // checks it (the T3042 branch below does the same for an index receiver).
+        _ :: check_expr_fn(fe.target, null, typed, diags)
+        root :: container_is_immutable(fe.target, typed)
         if push_immutability_diag_hinted(
             root, .CannotMutateImmutableBinding, s.target.span,
             "`${fe.field}` is reached through an immutable path",
@@ -979,13 +983,20 @@ annotate_hint :: fn(root_param: Symbol | null) -> string {
 // from a call.
 record_local_producer :: fn(s: AST.LetStmt, typed: TypedProgram!) -> void {
     // Positive form throughout : an `as` binding does not survive a negated `is`.
-    if s.value is AST.CallExpr as call {
-        if call.callee is AST.IdentExpr as callee {
-            if s.binding is AST.SimpleBinding as sb {
+    // Positive form throughout : an `as` binding does not survive a negated `is`.
+    if s.binding is AST.SimpleBinding as sb {
+        local_sym :: typed.resolved.idents[sb.name_span.hash()] ?? return
+        if s.value is AST.CallExpr as call {
+            if call.callee is AST.IdentExpr as callee {
                 callee_sym :: typed.resolved.idents[callee.span.hash()] ?? return
-                local_sym  :: typed.resolved.idents[sb.name_span.hash()] ?? return
                 typed.local_init_callee[local_sym.id] = callee_sym
             }
+            return
+        }
+        // `top :: stack[i]` — the local IS an element, so its lever is the
+        // collection's element type, exactly as for a loop variable.
+        if s.value is AST.IndexExpr as ix {
+            typed.local_init_index[local_sym.id] = ix.target
         }
     }
 }
@@ -1005,7 +1016,12 @@ record_local_producer :: fn(s: AST.LetStmt, typed: TypedProgram!) -> void {
 ///
 /// @param value  the expression whose write was rejected.
 /// @return       " — …" ready to append to a message, or "" when nothing is nameable.
-export mutation_fix_hint :: fn(value: AST.Expr, typed: TypedProgram) -> string {
+export mutation_fix_hint :: fn(value: AST.Expr, typed: TypedProgram) -> string =
+    mutation_fix_hint_within(value, typed, 4)
+
+// `budget` bounds the narrowing recursion — `is A as a` nests, and a malformed table
+// could otherwise cycle.
+mutation_fix_hint_within :: fn(value: AST.Expr, typed: TypedProgram, budget: i32) -> string {
     sym :: immutable_root_symbol(value, typed) ?? return annotate_hint(immutable_root_param(value, typed))
     prod :: producer_hint_for(sym, typed)
     if prod != "" {
@@ -1019,7 +1035,23 @@ export mutation_fix_hint :: fn(value: AST.Expr, typed: TypedProgram) -> string {
     if konst != "" {
         return konst
     }
-    return annotate_hint(immutable_root_param(value, typed))
+    root :: annotate_hint(immutable_root_param(value, typed))
+    if root != "" {
+        return root
+    }
+    // An `is T as x` binding is not itself annotatable, and its lever is whatever its
+    // SCRUTINEE's lever is — which may be a parameter, a field, another binding.
+    // Recursing here is what covers a write inside a match arm over a borrowed value.
+    if budget > 0 {
+        at :: sym.defined_at
+        if at !is null {
+            scrut :: typed.narrow_binding_scrutinee[at.hash()]
+            if scrut !is null {
+                return mutation_fix_hint_within(scrut, typed, budget - 1)
+            }
+        }
+    }
+    return ""
 }
 
 producer_hint_for :: fn(sym: Symbol, typed: TypedProgram) -> string {
@@ -1047,7 +1079,12 @@ iterable_behind :: fn(sym: Symbol, typed: TypedProgram, budget: i32) -> AST.Expr
     if direct !is null {
         return direct
     }
-    scrut :: typed.narrow_binding_scrutinee[sym.id] ?? return null
+    indexed :: typed.local_init_index[sym.id]
+    if indexed !is null {
+        return indexed
+    }
+    at :: sym.defined_at ?? return null
+    scrut :: typed.narrow_binding_scrutinee[at.hash()] ?? return null
     next :: immutable_root_symbol(scrut, typed) ?? return null
     if next.id == sym.id {
         return null
@@ -1109,6 +1146,46 @@ immutable_root_symbol :: fn(e: AST.Expr, typed: TypedProgram) -> Symbol | null =
 }
 
 /// True when writing THROUGH `e` must be rejected.
+///
+/// @partial: only an access path can be immutable — an ident, or a field / element
+/// reached from one. Every other expression form yields a fresh owned value.
+/// Whether the CONTAINER of a write is read-only, asked of its TYPE.
+///
+/// The type carries the answer per LEVEL, which is the whole point of putting the
+/// marker there: `rows: Cfg![]` hands out mutable elements through a read-only
+/// array, `rows: Cfg[]!` the reverse. A root-based walk gets both wrong — the first
+/// over-strictly (nothing below an unmarked root is writable), the second
+/// over-permissively (everything below a marked root is, so a signature promising
+/// "I may push but won't touch your elements" could lie).
+///
+/// Falls back to the access-path walk when the container's type wasn't recorded,
+/// which keeps the conservative answer rather than silently allowing a write.
+///
+/// @param container  the expression the written field belongs to.
+export container_is_immutable :: fn(container: AST.Expr, typed: TypedProgram) -> bool {
+    // A STORAGELESS module const is frozen whatever its type says : an unannotated
+    // struct const takes its type from a fresh literal, which is mutable, so asking
+    // the type alone would let the write through — and it would be discarded, since
+    // the value is rebuilt at every read. Only the path knows this.
+    if rooted_in_storageless_const(container, typed) {
+        return true
+    }
+    ty :: typed.expr_types[container.id] ?? return expr_is_immutable(container, typed)
+    return type_is_immutable(ty)
+}
+
+// True when the access path starts at a module const with NO runtime storage. A
+// mutable one (`X: i32[]!: …`) has a writable global and is deliberately excluded —
+// `has_mutable_const_storage` is the same gate `ident_is_immutable` uses.
+rooted_in_storageless_const :: fn(e: AST.Expr, typed: TypedProgram) -> bool {
+    sym :: immutable_root_symbol(e, typed) ?? return false
+    if sym.kind != .Const {
+        return false
+    }
+    return !has_mutable_const_storage(typed.decl_types[sym.id])
+}
+
+/// True when writing THROUGH `e` must be rejected, judged on the ACCESS PATH.
 ///
 /// @partial: only an access path can be immutable — an ident, or a field / element
 /// reached from one. Every other expression form yields a fresh owned value.

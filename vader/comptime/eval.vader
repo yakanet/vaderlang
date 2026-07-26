@@ -177,7 +177,7 @@ import "vader/typecheck"
     }
 }
 
-empty_context :: fn() -> ComptimeContext {
+empty_context :: fn() -> ComptimeContext! {
     return ComptimeContext {
         .typed    = empty_typed_program(),
         .bindings = MutableMap<i32, ComptimeValue> {},

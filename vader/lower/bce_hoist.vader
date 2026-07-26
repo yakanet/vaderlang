@@ -260,7 +260,7 @@ bh_pair :: fn(b: LoweredBlock, pctx: BcePurityCtx!) -> void {
 // Consume `the_len`'s recheck marker ; if `the_loop`'s body is BCE-safe (no alloc /
 // impure call / yield / rebind of the bound array), hoist the array's resolve
 // (`resolve_buf`) and elide the loop's synthesized `arr[idx]` checks.
-bh_try_hoist :: fn(the_len: LoweredArrayLen!, the_loop: LoweredLoop, pctx: BcePurityCtx!) -> void {
+bh_try_hoist :: fn(the_len: LoweredArrayLen!, the_loop: LoweredLoop!, pctx: BcePurityCtx!) -> void {
     the_len.bce_recheck = false
     // Guard on the bound array's symbol : rebinding it (`arr = other`) would leave
     // the pinned resolve stale. Synthetic (foreach / fusion) arrays are never
@@ -286,7 +286,7 @@ bh_guard_sym :: fn(al: LoweredArrayLen) -> i32 {
 // but does NOT descend into a nested LoweredLoop — a nested loop's accesses belong
 // to its own (separately paired) len bound.
 
-bh_mark_idx_block :: fn(b: LoweredBlock) -> void {
+bh_mark_idx_block :: fn(b: LoweredBlock!) -> void {
     for st in b.stmts {
         bh_mark_idx_stmt(st)
     }
@@ -296,7 +296,7 @@ bh_mark_idx_block :: fn(b: LoweredBlock) -> void {
     }
 }
 
-bh_mark_idx_stmt :: fn(s: LoweredStmt) -> void {
+bh_mark_idx_stmt :: fn(s: LoweredStmt!) -> void {
     if s is LoweredLet as st {
         bh_mark_idx_expr(st.value)
     } else if s is LoweredAssign as st {
@@ -323,7 +323,7 @@ bh_mark_idx_stmt :: fn(s: LoweredStmt) -> void {
     // Break / Continue / DeferPopExec : nothing.
 }
 
-bh_mark_idx_expr :: fn(e: LoweredExpr) -> void {
+bh_mark_idx_expr :: fn(e: LoweredExpr!) -> void {
     if e is LoweredIndex as x {
         if x.bce_recheck {
             x.bounds_safe = true

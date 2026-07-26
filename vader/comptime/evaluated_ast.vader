@@ -105,7 +105,7 @@ export new_evaluated_program :: fn(typed: TypedProgram) -> EvaluatedProgram {
 /// + the host tables.
 /// @param typed  the typed project to wrap.
 /// @return       a fresh evaluated project with empty side-tables.
-export new_evaluated_project :: fn(typed: TypedProject) -> EvaluatedProject {
+export new_evaluated_project :: fn(typed: TypedProject) -> EvaluatedProject! {
     return EvaluatedProject {
         .typed             = typed,
         .modules           = MutableMap<string, EvaluatedProgram> {},

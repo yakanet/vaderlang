@@ -81,7 +81,7 @@ export Program :: struct {
     id:      usize = UNASSIGNED_NODE_ID
     /// The `module "..."` declaration. Null when absent — the parser
     /// is tolerant ; the resolver's scan emits R2020 on absence.
-    module:  ModuleDecl | null = null
+    module:  ModuleDecl! | null = null
     decls:   Decl[]
 }
 
@@ -144,7 +144,7 @@ export NamedNamespaceImport :: struct {
 /// it as `y`, `z as _` is a pure exclusion. A plain name (no `as`) is an error
 /// (R2033) — the wildcard already brings every export.
 export DestructureImport :: struct {
-    names: ImportName[]
+    names: ImportName![]
     /// True when the source wrote a trailing comma before `}`. Drives the
     /// formatter's Dart-style layout: present -> one name per line.
     trailing_comma: bool = false
@@ -222,7 +222,7 @@ export StructDecl :: struct {
     name_span:     Span
     visibility:    Visibility
     type_params:   TypeParam[]
-    fields:        StructField[]
+    fields:        StructField![]
     decorators:    Decorator[]
 }
 
@@ -246,7 +246,7 @@ export EnumDecl :: struct {
     visibility: Visibility
     // `null` means default `i32` — typechecker resolves the backing type.
     repr:       TypeExpr | null
-    variants:   EnumVariant[]
+    variants:   EnumVariant![]
     decorators: Decorator[]
 }
 
@@ -291,7 +291,7 @@ export ImplDecl :: struct {
     trait_name:       string
     trait_name_span:  Span
     trait_args:       TypeExpr[]
-    members:          FnDecl[]!
+    members:          FnDecl![]!
     decorators:       Decorator[]
 }
 
@@ -416,7 +416,7 @@ export ForStmt :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
     label: string | null
-    form:  ForForm
+    form:  ForForm!
     body:  BlockExpr
     /// `@comptime for x in <arr> { … }` — unroll at lower time. False for
     /// every other form.
@@ -512,7 +512,7 @@ export CharLitExpr :: struct {
 export StringLitExpr :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
-    parts: StringLitPart[]
+    parts: StringLitPart![]
 }
 
 export StringLitText   :: struct { value: string, span: Span, id: usize = UNASSIGNED_NODE_ID }
@@ -538,7 +538,7 @@ export CallExpr :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
     callee: Expr
-    args:   CallArg[]!
+    args:   CallArg![]!
     /// Source wrote a trailing comma before `)` — formatter keeps it exploded.
     trailing_comma: bool = false
 }
@@ -639,7 +639,7 @@ export MatchExpr :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID
     scrutinee: Expr
-    arms:      MatchArm[]
+    arms:      MatchArm![]
     // `@partial match x { … }` opts out of exhaustiveness — no T3013
     // fires for missing variants. Default `false` keeps the regular
     // exhaustive-by-default behaviour ; the dump suppresses the field
@@ -674,7 +674,7 @@ export BlockExpr :: struct {
 export LambdaExpr :: struct {
     span:        Span
     id:          usize = UNASSIGNED_NODE_ID
-    params:      FnParam[]
+    params:      FnParam![]
     return_type: TypeExpr | null
     body:        BlockExpr
     /// True when the source wrote a trailing comma after the last parameter.
@@ -685,7 +685,7 @@ export StructLitExpr :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID
     type_name: TypeExpr
-    items:     (StructLitField | StructLitSpread)[]
+    items:     (StructLitField! | StructLitSpread!)[]
     /// True when the source wrote a trailing comma before `}`. The formatter
     /// reads it as a "keep exploded" directive (Dart-style block layout).
     trailing_comma: bool = false
@@ -790,7 +790,7 @@ export IsPattern :: struct {
 export StructPattern :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
-    fields: StructPatternField[]
+    fields: StructPatternField![]
 }
 
 // Tuple destructure pattern `[p1, p2, ...]`. Element-wise sub-patterns.
@@ -805,7 +805,7 @@ export StructPatternField :: struct {
     id:        usize = UNASSIGNED_NODE_ID
     name:      string
     name_span: Span
-    value:     PatternFieldValue
+    value:     PatternFieldValue!
 }
 
 export PatternBinding :: struct { name: string, span: Span, id: usize = UNASSIGNED_NODE_ID }

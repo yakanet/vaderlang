@@ -548,7 +548,7 @@ lex_char :: fn(l: Lexer!) -> void {
 // ---- string literals ------------------------------------------------------
 
 // Top of the interp stack, or null when not currently inside an interpolation.
-top_interp :: fn(l: Lexer) -> InterpFrame | null {
+top_interp :: fn(l: Lexer) -> InterpFrame! | null {
     n :: l.interp_stack.len()
     if n == 0 { return null }
     return l.interp_stack[n - 1]
@@ -793,21 +793,15 @@ try_lex_operator :: fn(l: Lexer!) -> bool {
         // Track unclosed `{` on the active interp frame so the matching `}`
         // closes the inner expression rather than the interp itself.
         top :: l.top_interp()
-        match top {
-            is InterpFrame -> { top.brace_depth = top.brace_depth + 1 }
-            is null -> { }
-        }
+        if top is InterpFrame { top.brace_depth = top.brace_depth + 1 }
         return l.emit_and_advance(.LBrace, "{")
     }
     if c == '}' {
         top :: l.top_interp()
-        match top {
-            is InterpFrame -> {
-                if top.brace_depth > 0 {
-                    top.brace_depth = top.brace_depth - 1
-                }
+        if top is InterpFrame {
+            if top.brace_depth > 0 {
+                top.brace_depth = top.brace_depth - 1
             }
-            is null -> { }
         }
         return l.emit_and_advance(.RBrace, "}")
     }

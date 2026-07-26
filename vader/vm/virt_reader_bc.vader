@@ -47,7 +47,7 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule {
     impl_table: bc.ImplEntry[]! = []
     vtables: bc.VtableRow[]! = []
     data_pool: bc.BcDataEntry[]! = []
-    functions: bc.BcFunction[]! = []
+    functions: bc.BcFunction![]! = []
     main_index := -1
 
     current_name := ""

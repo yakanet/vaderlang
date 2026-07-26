@@ -94,7 +94,7 @@ export check_module_with_bodies :: fn(
         .typed = result.typed,
         .impls = result.impls,
         .others = [],
-        .all_modules = MutableMap<string, TypedProgram> {},
+        .all_modules = MutableMap<string, TypedProgram!> {},
     }
 }
 
@@ -117,7 +117,7 @@ export check_project_with_bodies :: fn(
             .typed = empty_fallback(project),
             .impls = empty_impls(),
             .others = [],
-            .all_modules = MutableMap<string, TypedProgram> {},
+            .all_modules = MutableMap<string, TypedProgram!> {},
         }
     }
     // Phase A0 : materialise single-abstract-method sugar
@@ -154,7 +154,7 @@ export check_project_with_bodies :: fn(
     entry_typed.dump_types = dump_types
     // Pre-resolve every module first so we can register all type
     // aliases project-wide before any fn signature is lowered.
-    per_module :: MutableMap<string, TypedProgram> {}
+    per_module :: MutableMap<string, TypedProgram!> {}
     per_module[project.entry] = entry_typed
     for [id, other] in project.modules {
         if id == project.entry {
@@ -332,7 +332,7 @@ export check_project_with_bodies :: fn(
     // Index every module's typed program by its declared module name, so the
     // import-respecting overload population (D-a) can resolve each module's
     // `import "..."` paths to the imported module's typed program.
-    typed_by_name :: MutableMap<string, TypedProgram> {}
+    typed_by_name :: MutableMap<string, TypedProgram!> {}
     for [id, lm] in project.modules {
         t :: per_module[id]
         if t != null {
@@ -460,7 +460,7 @@ export check_project_with_bodies :: fn(
 collect_direct_imports :: fn(
     entry_loaded: LoadedModule,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
 ) -> TypedProgram[]! {
     out: TypedProgram[]! = []
     // The loader already resolved every import. A module imported as
@@ -531,7 +531,7 @@ synth_resolved :: fn() -> ResolvedModule {
 populate_external_types :: fn(
     entry_typed: TypedProgram!,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
 ) -> void {
     if entry_typed.import_targets !is null {
         populate_from(entry_typed.import_targets, entry_typed, project, per_module)
@@ -542,7 +542,7 @@ populate_from :: fn(
     targets: ImportTargetTable,
     entry_typed: TypedProgram!,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
 ) -> void {
     for [_, st] in targets.symbol_targets {
         external :: lookup_external_type(st, per_module)
@@ -594,7 +594,7 @@ coherence_key :: fn(for_ty: Type, trait_name: string, args: Type[]) -> string | 
 // could recurse / mis-resolve. Mirror of Rust's E0119 (concrete-receiver subset).
 check_impl_coherence :: fn(
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
     diags: Diagnostic[]!,
 ) -> void {
     seen :: MutableMap<string, Span> {}
@@ -615,7 +615,7 @@ check_impl_coherence :: fn(
 check_module_impl_coherence :: fn(
     id: string,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
     seen: MutableMap<string, Span>!,
     diags: Diagnostic[]!,
 ) -> void {
@@ -653,7 +653,7 @@ check_module_impl_coherence :: fn(
 // directory loads as one module and the first-declared `main` silently wins).
 check_fn_redefinitions :: fn(
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
     diags: Diagnostic[]!,
 ) -> void {
     for [id, _] in project.modules {
@@ -664,7 +664,7 @@ check_fn_redefinitions :: fn(
 check_module_fn_redefinitions :: fn(
     id: string,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
     diags: Diagnostic[]!,
 ) -> void {
     tp :: per_module[id] ?? return
@@ -742,7 +742,7 @@ check_module_fn_redefinitions :: fn(
 imported_fn_sig_keys :: fn(
     loaded: LoadedModule,
     tp: TypedProgram,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
 ) -> MutableMap<string, MutableMap<string, bool>> {
     out :: MutableMap<string, MutableMap<string, bool>> {}
     targets :: tp.import_targets
@@ -795,7 +795,7 @@ fn_signature_key :: fn(fd: AST.FnDecl, resolved: ResolvedModule) -> string | nul
 merge_external_impl_methods :: fn(
     entry_typed: TypedProgram!,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
 ) -> void {
     entry_path :: entry_typed.resolved.path
     for [id, other] in per_module {
@@ -1181,7 +1181,7 @@ register_aliases :: fn(typed: TypedProgram!, decls: AST.Decl[]) -> void {
 // struct tables into every other module's view so the lookup hits
 // regardless of where the struct was declared. Symbol.id is the global
 // key, so a flat merge is enough. Mirror of `broadcast_enum_types`.
-broadcast_struct_decls :: fn(per_module: MutableMap<string, TypedProgram>) -> void {
+broadcast_struct_decls :: fn(per_module: MutableMap<string, TypedProgram!>) -> void {
     all_decls :: MutableMap<i32, AST.StructDecl> {}
     all_fields :: MutableMap<i32, MutableMap<string, Type>> {}
     for [_, typed] in per_module {
@@ -1206,7 +1206,7 @@ broadcast_struct_decls :: fn(per_module: MutableMap<string, TypedProgram>) -> vo
     }
 }
 
-broadcast_enum_types :: fn(per_module: MutableMap<string, TypedProgram>, project: LoadedProject) -> void {
+broadcast_enum_types :: fn(per_module: MutableMap<string, TypedProgram!>, project: LoadedProject) -> void {
     collected :: MutableMap<i32, Type> {}
     for [id, typed] in per_module {
         loaded :: project.modules[id] ?? continue
@@ -1307,7 +1307,7 @@ export is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
 // imported from `./types`) expand at use sites.
 merge_external_alias_types :: fn(
     entry_typed: TypedProgram!,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
 ) -> void {
     entry_path :: entry_typed.resolved.path
     for [_, other] in per_module {
@@ -1328,7 +1328,7 @@ merge_external_alias_types :: fn(
 /// about every project-wide trait, so default-method dispatch from
 /// any body can find the trait declaration regardless of which
 /// module the trait lives in.
-cross_publish_trait_decls :: fn(per_module: MutableMap<string, TypedProgram>) -> void {
+cross_publish_trait_decls :: fn(per_module: MutableMap<string, TypedProgram!>) -> void {
     // Pass 1 : collect every (trait_sym_id, decl, owner) tuple.
     ids: i32[]! = []
     decls: AST.TraitDecl[]! = []
@@ -1358,7 +1358,7 @@ cross_publish_trait_decls :: fn(per_module: MutableMap<string, TypedProgram>) ->
 /// Same idea as `cross_publish_trait_decls` but for `fn_decls`.
 /// Lets T3006 enforcement reach cross-module callees (e.g. checking
 /// bounds on `std/math.min`'s type-params from an entry call site).
-cross_publish_fn_decls :: fn(per_module: MutableMap<string, TypedProgram>) -> void {
+cross_publish_fn_decls :: fn(per_module: MutableMap<string, TypedProgram!>) -> void {
     ids: i32[]! = []
     fdecls: AST.FnDecl[]! = []
     for [_, tp] in per_module {
@@ -1379,7 +1379,7 @@ cross_publish_fn_decls :: fn(per_module: MutableMap<string, TypedProgram>) -> vo
 // struct field definitions when resolving `external_pt.field`.
 merge_struct_decls :: fn(
     entry_typed: TypedProgram!,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
 ) -> void {
     entry_path :: entry_typed.resolved.path
     for [_, other] in per_module {
@@ -1429,7 +1429,7 @@ merge_struct_decls :: fn(
 pull_referenced_external_types :: fn(
     t: Type,
     entry: TypedProgram!,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
 ) -> void {
     match t {
         is StructType as st -> {
@@ -1469,7 +1469,7 @@ pull_referenced_external_types :: fn(
 register_external :: fn(
     sym: Symbol,
     entry: TypedProgram!,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
 ) -> void {
     if entry.external_types[sym.id] !is null { return }
     if sym.module == entry.resolved.path     { return }
@@ -1494,7 +1494,7 @@ register_external :: fn(
 /// import-loop's real `.Full` walk in `check_project_with_bodies`.
 settle_external_expr_bodied_returns :: fn(
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
 ) -> void {
     entry_path :: project.entry
     // Two-pass : expression-bodied fns whose body calls other expr-bodied
@@ -1531,7 +1531,7 @@ settle_external_expr_bodied_returns :: fn(
 populate_imported_fn_overloads :: fn(
     entry_typed: TypedProgram!,
     importing_paths: string[],
-    typed_by_name: MutableMap<string, TypedProgram>,
+    typed_by_name: MutableMap<string, TypedProgram!>,
 ) -> void {
     // First : every named import lands in `imported_fn_overloads`
     // so explicitly-imported helpers (e.g. `import "p" { foo }`)
@@ -1660,7 +1660,7 @@ populate_resolver_imports :: fn(entry_typed: TypedProgram!) -> void {
 populate_resolver_imports_for_others :: fn(
     entry_typed: TypedProgram,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
 ) -> void {
     targets :: entry_typed.import_targets ?? return
     for [id, loaded] in project.modules {
@@ -1678,7 +1678,7 @@ populate_resolver_imports_for_others :: fn(
 populate_core_symbols :: fn(
     entry_typed: TypedProgram!,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
 ) -> void {
     // Resolve `std/async`'s `run_async_main` for the entry (the implicit
     // async-`main` driver) when the program imports `std/async` — independent of
@@ -1731,7 +1731,7 @@ populate_core_symbols_into :: fn(
 build_namespace_exports :: fn(
     mod_id: string,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
 ) -> MutableMap<string, Type> {
     out :: MutableMap<string, Type> {}
     loaded :: project.modules[mod_id] ?? return out
@@ -1771,7 +1771,7 @@ build_namespace_exports :: fn(
 build_namespace_export_params :: fn(
     mod_id: string,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
 ) -> MutableMap<string, AST.FnParam[]> {
     out :: MutableMap<string, AST.FnParam[]> {}
     loaded :: project.modules[mod_id] ?? return out
@@ -1808,7 +1808,7 @@ build_namespace_export_params :: fn(
 prepopulate_namespace_member_types :: fn(
     entry_typed: TypedProgram!,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
     member_cache: MutableMap<string, MutableMap<string, Type>>!,
     private_cache: MutableMap<string, MutableMap<string, bool>>!,
 ) -> void {
@@ -1853,7 +1853,7 @@ build_namespace_private_names :: fn(
 build_namespace_type_members :: fn(
     mod_id: string,
     project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
     cache: MutableMap<string, MutableMap<string, Type>>!,
 ) -> MutableMap<string, Type> {
     hit :: cache[mod_id]
@@ -1890,7 +1890,7 @@ build_namespace_type_members :: fn(
 
 lookup_external_type :: fn(
     st: SymbolTarget,
-    per_module: MutableMap<string, TypedProgram>,
+    per_module: MutableMap<string, TypedProgram!>,
 ) -> Type | null {
     typed :: per_module[st.module_id] ?? return null
     declared :: typed.decl_types[st.symbol.id]

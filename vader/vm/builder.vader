@@ -58,7 +58,7 @@ export ModuleBuilder :: struct {
     string_index: MutableMap<string, i32>
     types: bc.BcType[]!
     imports: bc.BcImport[]!
-    functions: bc.BcFunction[]!
+    functions: bc.BcFunction![]!
     impl_table: bc.ImplEntry[]!
     data_pool: bc.BcDataEntry[]!
     main_index: i32[]!

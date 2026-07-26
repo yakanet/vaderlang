@@ -366,10 +366,21 @@ export TypedProgram :: struct {
     /// reaches `immutable_borrows` — and it is exactly the case with no guessable
     /// lever.
     loop_var_iterable: MutableMap<i32, AST.Expr>
-    /// `is T as x` binding Symbol.id → the scrutinee. One hop further: the binding
-    /// inherits the scrutinee's mutability, so the lever is whatever the scrutinee's
-    /// own lever is.
-    narrow_binding_scrutinee: MutableMap<i32, AST.Expr>
+    /// Local Symbol.id → the collection it was indexed out of (`top :: stack[i]`).
+    /// Same lever as a loop variable — the ELEMENT type — and the same reason the
+    /// reader cannot guess it: marking the local would be a strengthening.
+    local_init_index: MutableMap<i32, AST.Expr>
+
+    /// `is T as x` binding DECLARATION-span hash → the scrutinee. One hop further:
+    /// the binding inherits the scrutinee's mutability, so the lever is whatever the
+    /// scrutinee's own lever is.
+    ///
+    /// Keyed by the span, not the Symbol.id, because a narrowing binding's
+    /// declaration span is not in `resolved.idents` — only its USES are, through
+    /// scope resolution. `Symbol.defined_at` is the bridge, and adding the
+    /// declaration span to `idents` instead is not an option: measured, it triples
+    /// the tree's diagnostics (that table is consulted for other purposes).
+    narrow_binding_scrutinee: MutableMap<i64, AST.Expr>
     /// Const Symbol.id → its declaration, for the span of its written type. A module
     /// const IS reopenable now (a mutable one gets a writable global), so `annotate
     /// \`WORDS!\`` is actionable rather than a dead end.
@@ -486,7 +497,8 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .let_type_aliases = MutableMap<i32, Type> {},
     .local_init_callee = MutableMap<i32, Symbol> {},
     .loop_var_iterable = MutableMap<i32, AST.Expr> {},
-    .narrow_binding_scrutinee = MutableMap<i32, AST.Expr> {},
+    .local_init_index = MutableMap<i32, AST.Expr> {},
+    .narrow_binding_scrutinee = MutableMap<i64, AST.Expr> {},
     .const_decls = MutableMap<i32, ConstDecl> {},
     .bounded_dispatch_trait = MutableMap<usize, string> {},
     .fn_trait_dispatches = MutableMap<usize, bool> {},

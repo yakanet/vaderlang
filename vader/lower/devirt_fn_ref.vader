@@ -51,7 +51,7 @@ export devirtualize_fn_refs :: fn(project: LoweredProject) -> void {
 /// env type the hoisted env local carries (passed as the call's first arg).
 ClosureAlias :: struct { fn_sym: Symbol, env_type: Type }
 
-devirt_body :: fn(body: LoweredBlock) -> void {
+devirt_body :: fn(body: LoweredBlock!) -> void {
     ctx :: AnalyzeCtx {
         .aliases = MutableMap<i32, Symbol> {}, .closures = MutableMap<i32, ClosureAlias> {},
         .escaped = MutableSet<i32> {}, .bound = MutableSet<i32> {},
@@ -189,13 +189,13 @@ analyze_expr :: fn(e: LoweredExpr, ctx: AnalyzeCtx!) -> void {
 // Consults `AnalyzeCtx` directly, gating each candidate on `!escaped.contains` at
 // the use site (no pre-filtered copy of the maps).
 
-rewrite_block :: fn(b: LoweredBlock, ctx: AnalyzeCtx) -> void {
+rewrite_block :: fn(b: LoweredBlock!, ctx: AnalyzeCtx) -> void {
     for s in b.stmts { rewrite_stmt(s, ctx) }
     t :: b.trailing
     if t != null { rewrite_expr(t, ctx) }
 }
 
-rewrite_stmt :: fn(s: LoweredStmt, ctx: AnalyzeCtx) -> void {
+rewrite_stmt :: fn(s: LoweredStmt!, ctx: AnalyzeCtx) -> void {
     match s {
         is LoweredLet as st -> {
             // A devirtualized closure binding is retyped to hold the ENV value
@@ -228,7 +228,7 @@ rewrite_stmt :: fn(s: LoweredStmt, ctx: AnalyzeCtx) -> void {
     }
 }
 
-rewrite_expr :: fn(e: LoweredExpr, ctx: AnalyzeCtx) -> void {
+rewrite_expr :: fn(e: LoweredExpr!, ctx: AnalyzeCtx) -> void {
     match e {
         is LoweredIdent -> {}
         is LoweredCall as c -> {

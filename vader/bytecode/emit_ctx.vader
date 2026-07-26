@@ -59,7 +59,7 @@ export EmitterCtx :: struct {
     /// Function table. Each entry mirrors a top-level `LoweredFnDecl`
     /// (regular fns) ; `is_extern`-flagged decls route to `imports`
     /// instead.
-    functions: BcFunction[]!
+    functions: BcFunction![]!
     /// `MonoEntry.symbol.id` → index into `functions`. Lets call sites
     /// resolve target fn slots through the symbol id rather than the
     /// mangled name.

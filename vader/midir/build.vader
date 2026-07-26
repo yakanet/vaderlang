@@ -82,7 +82,7 @@ FnCtx :: struct {
     params:          CFGParam[]
     locals:          CFGLocal[]!
     local_by_sym_id: MutableMap<i32, LocalId>
-    blocks:          MutableBlock[]!
+    blocks:          MutableBlock![]!
     loop_stack:      LoopFrame[]!
     current:         BlockId | null
 }

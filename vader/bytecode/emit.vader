@@ -287,7 +287,7 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
                         if out_len > 0 {
                             prev :: out[out_len - 1]
                             cv :: const_op_of(prev)
-                            if !(cv is null) { prev_is_const = true }
+                            if cv !is null { prev_is_const = true }
                         }
                         slot_u :: usize(ls.slot)
                         propagate_eligible :: set_count[slot_u] == 1 && get_count[slot_u] == 1 && tee_count[slot_u] == 0

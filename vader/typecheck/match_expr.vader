@@ -62,7 +62,7 @@ export infer_match :: fn(
         // Re-bind the pattern types against the narrowed `remaining`
         // so wildcard/binding arms see only the still-possible
         // variants ("union − matched").
-        bind_pattern_types(arm.pattern, remaining, typed, diags)
+        bind_pattern_types(arm.pattern, remaining, e.scrutinee, typed, diags)
         // Per-arm narrowing — `is T` arms see just T, wildcard /
         // binding arms see `remaining` (subset of `scrut_ty` after
         // earlier arms removed their matched variants).
@@ -358,13 +358,15 @@ scrutinee_field_key :: fn(scrut: AST.Expr, typed: TypedProgram) -> string {
 /// no-ops at MVP — adding StructPattern field binding support
 /// requires the resolver to expose field-name → Symbol mappings,
 /// which lands with the deeper narrowing work.
-bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed: TypedProgram!, diags: Diagnostic[]!) -> void {
+bind_pattern_types :: fn(
+    p: AST.Pattern, scrut: Type, scrut_expr: AST.Expr, typed: TypedProgram!, diags: Diagnostic[]!,
+) -> void {
     match p {
         is AST.TuplePattern as tp   -> {
             tu :: pick_tuple_variant(scrut, tp.elements.len())
             if tu !is null {
                 for i in 0..<tp.elements.len() {
-                    bind_pattern_types(tp.elements[i], tu.elements[i], typed, diags)
+                    bind_pattern_types(tp.elements[i], tu.elements[i], scrut_expr, typed, diags)
                 }
             }
         }
@@ -378,21 +380,24 @@ bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed: TypedProgram!, diag
             narrowed :: pattern_type_of(ip.ty, scrut, typed)
             if ip.bind_as !is null {
                 typed.local_types[ip.span.hash()] = narrowed
+                // Same hop as the `if … is T as x` form (`expr_if.vader`): the binding
+                // inherits the scrutinee's mutability, so a rejected write through it
+                // is fixed wherever the SCRUTINEE's own lever is.
+                typed.narrow_binding_scrutinee[ip.span.hash()] = scrut_expr
             }
             // Nested pattern (e.g. `is T as a { x, y }`) — recurse
             // with the narrowed type so inner StructPattern bindings
             // pick up T's field types.
             if ip.inner !is null {
-                bind_pattern_types(ip.inner, narrowed, typed, diags)
+                bind_pattern_types(ip.inner, narrowed, scrut_expr, typed, diags)
             }
         }
         is AST.StructPattern as sp  -> { bind_struct_pattern(sp, scrut, typed, diags) }
-        is AST.OrPattern as op      -> { for sub in op.patterns { bind_pattern_types(
-            sub,
-            scrut,
-            typed,
-            diags,
-        ) } }
+        is AST.OrPattern as op      -> {
+            for sub in op.patterns {
+                bind_pattern_types(sub, scrut, scrut_expr, typed, diags)
+            }
+        }
         _                           -> {}
     }
 }

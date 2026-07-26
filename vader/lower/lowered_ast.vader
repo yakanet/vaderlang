@@ -126,7 +126,7 @@ export LoweredProject :: struct {
 export LoweredModule :: struct {
     module_id:    string
     display_path: string
-    decls:        LoweredDecl[]!
+    decls:        LoweredDecl![]!
 }
 
 /// Tagged union of every lowered top-level decl shape.
@@ -473,13 +473,13 @@ export LoweredBlock :: struct {
     span:     Span
     type:     Type
     stmts:    LoweredStmt[]
-    trailing: LoweredExpr | null
+    trailing: LoweredExpr! | null
 }
 
 export LoweredStructLit :: struct {
     span:   Span
     type:   Type
-    fields: LoweredStructLitField[]
+    fields: LoweredStructLitField![]
 }
 
 export LoweredStructLitField :: struct {
@@ -661,7 +661,7 @@ export INTRINSIC_ARRAY_CLEAR :: "array.clear"
 /// Construct an empty `LoweredProject`. The lowering orchestrator fills
 /// `modules` and the vtable / data pool tables as it processes each module.
 /// @return  a fresh project with empty modules + side-tables.
-export new_lowered_project :: fn() -> LoweredProject {
+export new_lowered_project :: fn() -> LoweredProject! {
     return LoweredProject {
         .modules        = MutableMap<string, LoweredModule> {},
         .entry          = "",

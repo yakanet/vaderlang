@@ -65,7 +65,7 @@ BlockLayout :: enum(u8) {
     Inline,
 }
 
-export new_printer :: fn(source: string, comments: CommentMap) -> Printer {
+export new_printer :: fn(source: string, comments: CommentMap) -> Printer! {
     return Printer {
         .buf = StringBuilder {},
         .depth = 0,

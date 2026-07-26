@@ -73,7 +73,7 @@ GenStateEntry :: struct { name: string, module: string, id: i32, element: Type }
 /// `decl_types` carries its signature) — `cross_publish_fn_decls` copies fn_decls
 /// but not decl_types, so a copy in a consuming module's `fn_decls` yields
 /// `TY_UNRESOLVED` and is skipped, deduping the collection to one entry per fn.
-export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedProgram>) -> void {
+export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedProgram!>) -> void {
     entries: GenStateEntry[]! = []
     for [_, owner] in per_module {
         sink: Diagnostic[]! = []

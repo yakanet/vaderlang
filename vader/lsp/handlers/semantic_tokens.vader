@@ -79,7 +79,7 @@ produce_tokens :: fn(source: string, uri: string, li: LineIndex) -> JsonValue {
 // Derive every token's `col` + `length` from its byte offsets in the negotiated
 // encoding. Run once, after all producers have filled the offsets. This is the
 // sole place the position encoding is applied — producers stay encoding-agnostic.
-reencode_columns :: fn(out: RawToken[]!, li: LineIndex) -> void {
+reencode_columns :: fn(out: RawToken![]!, li: LineIndex) -> void {
     for i in 0..<out.len() {
         col :: li_character(li, out[i].line, out[i].start_offset)
         out[i].col    = col

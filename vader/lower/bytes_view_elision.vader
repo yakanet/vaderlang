@@ -358,7 +358,7 @@ bve_rewrite_block :: fn(b: LoweredBlock!, ctx: BveCtx) -> void {
     }
 }
 
-bve_rewrite_stmt :: fn(s: LoweredStmt, ctx: BveCtx) -> void {
+bve_rewrite_stmt :: fn(s: LoweredStmt!, ctx: BveCtx) -> void {
     match s {
         is LoweredLet as st -> { st.value = bve_rewrite_expr(st.value, ctx) }
         is LoweredAssign as st -> {
@@ -392,7 +392,7 @@ bve_rewrite_stmt :: fn(s: LoweredStmt, ctx: BveCtx) -> void {
     }
 }
 
-bve_rewrite_expr :: fn(e: LoweredExpr, ctx: BveCtx) -> LoweredExpr {
+bve_rewrite_expr :: fn(e: LoweredExpr!, ctx: BveCtx) -> LoweredExpr {
     match e {
         is LoweredArrayLen as al -> {
             if al.target is LoweredIdent as tid {

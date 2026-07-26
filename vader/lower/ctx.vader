@@ -305,7 +305,7 @@ export GenericFnInstance :: struct {
 /// queues that the lowering passes populate as they run.
 /// @param evaluated  the comptime engine's output for this project.
 /// @return           a fresh project context with empty side-tables.
-export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedProject, typed: TypedProject) -> LowerProjectCtx {
+export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedProject, typed: TypedProject) -> LowerProjectCtx! {
     return LowerProjectCtx {
         .evaluated           = evaluated,
         .loaded              = loaded,
@@ -399,7 +399,7 @@ export LiftedFnContext :: struct {
 /// `@comptime for x in arr { … }` substitutions active inside an
 /// unrolled body.
 export FnLowerCtx :: struct {
-    project:            LowerProjectCtx
+    project:            LowerProjectCtx!
     entry:              MonoEntry
     typed:              TypedProgram
     subst:              Substitution
@@ -488,7 +488,7 @@ export GenInlineSink :: struct {
 export new_fn_lower_ctx :: fn(
     project: LowerProjectCtx, entry: MonoEntry, typed: TypedProgram,
     subst: Substitution, return_type: Type, self_type: Type | null,
-) -> FnLowerCtx {
+) -> FnLowerCtx! {
     return FnLowerCtx {
         .project           = project,
         .entry             = entry,

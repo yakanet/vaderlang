@@ -297,7 +297,7 @@ export read_struct_field :: fn(v: Value, field_index: i32, at_pc: i32, label: st
 
 /// Unwrap an `ArrayVal` from a `Value`. Used by the array-op arms
 /// (`array.push` / `array.get` / `array.set` / `array.len`).
-export read_array :: fn(v: Value, at_pc: i32, label: string) -> ArrayVal | Trap {
+export read_array :: fn(v: Value, at_pc: i32, label: string) -> ArrayVal | Trap! {
     if v is ArrayVal { return v }
     return Trap { .message = "${label} at pc=${at_pc}: expected array, got ${describe_value_tag(v)}" }
 }

@@ -155,7 +155,7 @@ FnState :: struct {
 }
 
 /// Fresh state for `function`, emitting into `out`.
-new_fn_state :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> FnState = FnState {
+new_fn_state :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> FnState! = FnState {
     .ctx = ctx,
     .function = function,
     .out = out,

@@ -494,7 +494,7 @@ stamp_block_spans :: fn(b: AST.BlockExpr!, stamp: StampCtx!) -> void {
     }
 }
 
-stamp_stmt_spans :: fn(s: AST.Stmt, stamp: StampCtx!) -> void {
+stamp_stmt_spans :: fn(s: AST.Stmt!, stamp: StampCtx!) -> void {
     match s {
         is AST.LetStmt as ls -> {
             ls.span = next_clone_span(stamp)
@@ -539,7 +539,7 @@ stamp_stmt_spans :: fn(s: AST.Stmt, stamp: StampCtx!) -> void {
     }
 }
 
-stamp_expr_spans :: fn(e: AST.Expr, stamp: StampCtx!) -> void {
+stamp_expr_spans :: fn(e: AST.Expr!, stamp: StampCtx!) -> void {
     match e {
         is AST.IntLitExpr   as x -> { x.span = next_clone_span(stamp) }
         is AST.FloatLitExpr as x -> { x.span = next_clone_span(stamp) }
@@ -672,7 +672,7 @@ stamp_expr_spans :: fn(e: AST.Expr, stamp: StampCtx!) -> void {
     }
 }
 
-stamp_binding_spans :: fn(b: AST.LetBinding, stamp: StampCtx!) -> void {
+stamp_binding_spans :: fn(b: AST.LetBinding!, stamp: StampCtx!) -> void {
     match b {
         is AST.SimpleBinding as x -> {
             x.span = next_clone_span(stamp)
@@ -690,7 +690,7 @@ stamp_binding_spans :: fn(b: AST.LetBinding, stamp: StampCtx!) -> void {
     }
 }
 
-stamp_pattern_spans :: fn(p: AST.Pattern, stamp: StampCtx!) -> void {
+stamp_pattern_spans :: fn(p: AST.Pattern!, stamp: StampCtx!) -> void {
     match p {
         is AST.IsPattern as ip -> {
             ip.span = next_clone_span(stamp)
