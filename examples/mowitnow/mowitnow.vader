@@ -165,7 +165,7 @@ parse_position :: fn(line: string, lawn: Lawn) -> Mower | ParseError {
 }
 
 parse_commands :: fn(line: string) -> Command[] | ParseError {
-    out: Command[] = []
+    out: Command[]! = []
     for c in line.trim().chars() {
         cmd :: parse_command(c)
         if cmd is ParseError as e { return e }

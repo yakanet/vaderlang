@@ -12,7 +12,7 @@ import "std/io"
 N :: 100
 
 main :: fn() -> i32 {
-    composite: bool[] = []
+    composite: bool[]! = []
     for i in 0..=N {
         composite.push(false)
     }

@@ -61,7 +61,7 @@ is_bf_char :: fn(c: char) -> bool {
 // "array.len receiver: expected array, got struct"). Captured as a regression
 // in `tests/snippets/_diag_iter_collect/`.
 tokenize_bf :: fn(source: string) -> char[] {
-    out: char[] = []
+    out: char[]! = []
     for c in source.chars() {
         if is_bf_char(c) {
             out.push(c)
@@ -77,8 +77,8 @@ tokenize_bf :: fn(source: string) -> char[] {
 // (caller detects and bails). One linear pass — each entry is pushed as
 // `-1` then overwritten on the matching `]`.
 match_brackets :: fn(tokens: char[]) -> i32[] {
-    partner: i32[] = []
-    open_stack: usize[] = []      // grow-only ; `sp` is the logical top
+    partner: i32[]! = []
+    open_stack: usize[]! = []      // grow-only ; `sp` is the logical top
     sp: usize = 0
     for j in 0..<tokens.len() {
         partner.push(-1)

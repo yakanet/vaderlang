@@ -24,9 +24,11 @@ next_cell :: fn(left: i32, mid: i32, right: i32) -> i32 {
     return (RULE >> pattern) & 1
 }
 
-step :: fn(row: i32[]) -> i32[] {
+// Returns `i32[]!` : the row is built fresh here and handed over, so the caller
+// keeps the right to seed / grow it. Reading `row` is enough for us.
+step :: fn(row: i32[]) -> i32[]! {
     n :: row.len()
-    next: i32[] = []
+    next: i32[]! = []
     for i in 0..<n {
         // Wrap-around so the row is a closed loop.
         left  :: row[(i - 1 + n) % n]
@@ -50,7 +52,7 @@ format_row :: fn(row: i32[]) -> string {
 }
 
 main :: fn() -> i32 {
-    row: i32[] = []
+    row: i32[]! = []
     for i in 0..<WIDTH {
         // Seed: a single live cell on the right end.
         row.push(if i == WIDTH - 1 { 1 } else { 0 })
