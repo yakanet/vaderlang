@@ -378,11 +378,11 @@ parse_data_entry_body :: fn(
         return
     }
     if kind_name == "agg" {
-        data_pool.push(parse_agg_decl(payload, strings))
+        data_pool.push(parse_agg_decl(payload, strings, mutable))
         return
     }
     if kind_name == "structs" {
-        data_pool.push(parse_structs_decl(payload, strings))
+        data_pool.push(parse_structs_decl(payload, strings, mutable))
         return
     }
     rb :: payload.bytes()
@@ -437,7 +437,7 @@ parse_quoted_strings :: fn(s: string) -> string[] {
 // Parse the `agg` payload `<elemname> <count> <value>…` into a `BcAggregateData`.
 // Values are count-prefixed (no paren balancing) — see `dump::write_data_value`.
 // `strings` resolves any `strref <i>` leaf back to its pooled value.
-parse_agg_decl :: fn(payload: string, strings: string[]) -> bc.BcAggregateData {
+parse_agg_decl :: fn(payload: string, strings: string[], mutable: bool) -> bc.BcAggregateData {
     tokens :: tokenize_agg(payload)
     if tokens.len() < 2 {
         return bc.BcAggregateData { .element_type_name = "", .elements = [] }
@@ -447,7 +447,7 @@ parse_agg_decl :: fn(payload: string, strings: string[]) -> bc.BcAggregateData {
     pos: i32[]! = [2]
     elements: bc.BcDataValue[]! = []
     for _ in 0..<count { elements.push(parse_data_value(tokens, pos, strings)) }
-    return bc.BcAggregateData { .element_type_name = element_type_name, .elements = elements }
+    return bc.BcAggregateData { .element_type_name = element_type_name, .elements = elements, .mutable = mutable }
 }
 
 // Parse the compact homogeneous-struct form `<symid> <nfields> <count> <field>…`
@@ -457,7 +457,7 @@ parse_agg_decl :: fn(payload: string, strings: string[]) -> bc.BcAggregateData {
 // informational only (both the VM's `bc_value_to_vm` and c-emit resolve struct
 // identity from each element's `symbol_id`, never the aggregate name ; only a
 // nested `BcValArray.element_type_name` is read).
-parse_structs_decl :: fn(payload: string, strings: string[]) -> bc.BcAggregateData {
+parse_structs_decl :: fn(payload: string, strings: string[], mutable: bool) -> bc.BcAggregateData {
     tokens :: tokenize_agg(payload)
     if tokens.len() < 3 {
         return bc.BcAggregateData { .element_type_name = "", .elements = [] }
@@ -472,7 +472,7 @@ parse_structs_decl :: fn(payload: string, strings: string[]) -> bc.BcAggregateDa
         for _ in 0..<nfields { fields.push(parse_data_value(tokens, pos, strings)) }
         elements.push(bc.BcValStruct { .symbol_id = symbol_id, .fields = fields })
     }
-    return bc.BcAggregateData { .element_type_name = "", .elements = elements }
+    return bc.BcAggregateData { .element_type_name = "", .elements = elements, .mutable = mutable }
 }
 
 // Recursive descent over the token stream (`pos` is a 1-element mutable cursor).

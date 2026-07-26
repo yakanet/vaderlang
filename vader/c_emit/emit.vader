@@ -369,8 +369,38 @@ emit_global_const_roots :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
         out.append(" &vader_data_${indices[k]}")
     }
     out.append(" };\n")
+    // A BOXED static buffer is rooted alongside its array. `vader_gc_scan_raw`
+    // forwards `.buf` but never descends into an off-arena object, so a heap value
+    // written into a slot (`SPECS[0] = other`) would be invisible to the collector.
+    // Registering the buffer routes it through `vader_gc_scan_object`'s ARRAY_BUF
+    // branch, which scans the slots. A primitive buffer holds no pointer, so only
+    // the boxed kinds are listed. Post-growth the array points at a heap buffer and
+    // this one is stale — still valid memory, so scanning it is safe ; it just
+    // retains whatever the initial slots held.
+    objs :: boxed_pool_objects(ctx.module.data_pool, indices)
+    out.append("static void* vader_global_const_objs[] = {")
+    for k in 0..<objs.len() {
+        if k > 0 { out.append(",") }
+        out.append(" ${objs[k]}")
+    }
+    out.append(" };\n")
     out.append("static vader_gc_frame_t vader_global_const_frame = ")
-    out.append("{ NULL, 0u, 0u, NULL, NULL, ${indices.len()}u, (void**) vader_global_const_arrays };\n")
+    out.append("{ NULL, 0u, 0u, NULL, NULL, ${objs.len()}u, vader_global_const_objs };\n")
+}
+
+/// The object roots for the mutable pool entries: each array, plus each BOXED
+/// entry's static buffer (whose slots hold heap pointers the collector must see).
+///
+/// @param pool     the module's data pool.
+/// @param indices  the mutable entries' pool indices.
+/// @return         C address expressions, arrays first then their buffers.
+boxed_pool_objects :: fn(pool: BcDataEntry[], indices: usize[]) -> string[] {
+    out: string[]! = []
+    for i in indices { out.push("&vader_data_${i}") }
+    for i in indices {
+        if pool[i] !is BcPrimData { out.push("&vader_data_${i}_buf") }
+    }
+    return out
 }
 
 /// Pool indices of the mutable entries, in pool order — the writable globals that
@@ -397,12 +427,17 @@ emit_agg_data_entry :: fn(out: StringBuilder!, i: usize, ad: BcAggregateData, ar
     for k in 0..<n {
         slot_exprs.push(box_slot_c(ctx, out, ad.elements[k], "vader_data_${i}_e${k}", elem_tag, atom_of))
     }
-    link :: linkage_prefix(ctx.split)
-    out.append("${link}const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[${n}]; } vader_data_${i}_buf = {\n")
+    // The marker is on the ARRAY level only, so the buffer and header lose `const`
+    // while the element objects (emitted by `box_slot_c` above) keep theirs. The
+    // type system is what makes that split safe: the element type stays read-only,
+    // so `SPECS[0] = other` reaches a slot while `SPECS[0].code = 9` is T3070 —
+    // a write into `.rodata` is never reachable.
+    link :: linkage_prefix(ctx.split) + storage_qualifier(ad.mutable)
+    out.append("${link}struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[${n}]; } vader_data_${i}_buf = {\n")
     out.append("    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, ${n}u, ${n}u, ${elem_tag}u, ${boxed_kind}u, { 0u, 0u, 0u },\n")
     out.append("    { ${join_commas(slot_exprs)} }\n")
     out.append("};\n")
-    out.append("${link}const vader_array_t vader_data_${i} = { { ${array_type_id}u, 0u, 0u, 0u, NULL }, ${n}u, ${n}u, 0u, (vader_array_buf_t*) &vader_data_${i}_buf };\n")
+    out.append("${link}vader_array_t vader_data_${i} = { { ${array_type_id}u, 0u, 0u, 0u, NULL }, ${n}u, ${n}u, 0u, (vader_array_buf_t*) &vader_data_${i}_buf };\n")
 }
 
 // Materialise one recursive baked value, emitting any prerequisite statics, and
@@ -570,7 +605,7 @@ storage_qualifier :: fn(mutable: bool) -> string = if mutable { "" } else { "con
 data_entry_mutable :: fn(e: BcDataEntry) -> bool = match e {
     is BcPrimData as pd -> pd.mutable
     is BcStrData  as sd -> sd.mutable
-    is BcAggregateData  -> false
+    is BcAggregateData as ad -> ad.mutable
 }
 
 // One string-array buffer + array header. A string is a `vader_string_t`

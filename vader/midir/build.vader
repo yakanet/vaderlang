@@ -164,7 +164,11 @@ convert_data_pool :: fn(entries: DataPoolEntry[]) -> BcDataEntry[] {
             is AggregateDataPoolEntry as ae -> {
                 elements: BcDataValue[]! = []
                 for el in ae.literal.elements { elements.push(lowered_to_bc_value(el)) }
-                out.push(BcAggregateData { .element_type_name = ae.element_type_name, .elements = elements })
+                out.push(BcAggregateData {
+                    .element_type_name = ae.element_type_name,
+                    .elements          = elements,
+                    .mutable           = ae.mutable,
+                })
             }
         }
     }

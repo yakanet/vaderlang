@@ -1,23 +1,24 @@
 // A `!` on a module const asks for real storage: a writable global that grows like
-// any other array. The restriction is the POOL's, not the collector's — a permanent
-// GC frame roots these globals, so a reallocated buffer is forwarded, not collected.
+// any other array. Any ELEMENT type qualifies — the pool emits a flat buffer for
+// primitives and enums, an aggregate for struct / tuple / nested-array elements, and
+// both carry a storage class. A permanent GC frame roots them, so a reallocated
+// buffer is forwarded rather than collected.
 //
-// A FLAT pool entry (primitive — `string` included, it is an interned u32 atom —
-// enum, or a distinct over one) carries a storage class. An AGGREGATE entry does
-// not: its struct elements are emitted as separate `static const` objects, so a
-// mutable aggregate has two independent levels to decide (the slots, and the
-// elements), and that surface stays closed. A bare struct or map const isn't pooled
-// at all, so it has no storage to make writable. T3076 on each.
+// What does NOT qualify is a marker BELOW the array level. An aggregate entry emits
+// its elements as separate `static const` objects, so `SPECS[0].code = 9` would
+// write into `.rodata`. Keeping the element type read-only is exactly what makes the
+// writable slots safe: `SPECS[0] = other` reaches a slot, the deeper write is T3070.
+// So a marked element is rejected rather than silently unsound.
 //
-// The marker is rejected at ANY level, not just the array's: `Spec![]` promises no
-// more than `Spec[]!` does, so it would only mislead.
+// A non-array const is rejected for a different reason: a bare struct or map isn't
+// pooled at all, so there is no storage to make writable.
 module "snippet"
 
 Spec :: struct { code: i32 }
 
-SPECS:  Spec[]!:  [Spec { .code = 1 }]
-GRID:   i32[][]!: [[1]]
+TPL:    Spec![]:  [Spec { .code = 1 }]
+TPL2:   Spec![]!: [Spec { .code = 2 }]
+INNER:  i32[]![]: [[3]]
 ORIGIN: Spec!:    Spec { .code = 0 }
-TPL:    Spec![]:  [Spec { .code = 2 }]
 
-main :: fn() -> i32 = SPECS[0].code + GRID[0][0] + ORIGIN.code + TPL[0].code
+main :: fn() -> i32 = TPL[0].code + TPL2[0].code + INNER[0][0] + ORIGIN.code

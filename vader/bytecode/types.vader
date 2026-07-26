@@ -451,7 +451,7 @@ export BcStrData :: struct {
     mutable: bool = false
 }
 
-/// A pooled aggregate read-only `T[]` — a struct / tuple array, or any array whose
+/// A pooled aggregate `T[]` — a struct / tuple array, or any array whose
 /// elements aren't uniformly flat primitives / strings. `elements` are recursive
 /// `BcDataValue`s (each itself a struct, array, string, or primitive). Stored as
 /// a Boxed slot buffer at runtime (each element a `vader_box_t` pointing at its
@@ -460,6 +460,9 @@ export BcStrData :: struct {
 export BcAggregateData :: struct {
     element_type_name: string
     elements: BcDataValue[]
+    /// See `BcPrimData.mutable`. Array level only — the element objects stay
+    /// `static const`, which the type system relies on (a read-only element type).
+    mutable: bool = false
 }
 
 /// A single recursive baked value — the element of a `BcAggregateData` or a field

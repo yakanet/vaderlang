@@ -3,18 +3,32 @@ type 0 primitive null
 type 1 primitive usize
 type 2 primitive void
 type 3 primitive i32
-type 4 struct snippet$Spec { name:5,code:3 }
-type 5 primitive string
+type 4 primitive string
+type 5 struct snippet$Spec { name:4,code:3 }
 type 6 primitive bool
 type 7 struct std_core$Buffer {  }
 type 8 primitive i64
 type 9 primitive u64
-type 10 primitive u8
-type 11 array 5
-type 12 array 3
-type 13 array 4
-type 14 struct __Tuple_30 { _0:3,_1:5 }
-type 15 array 6
+type 10 primitive i8
+type 11 primitive i16
+type 12 primitive isize
+type 13 primitive u8
+type 14 primitive u16
+type 15 primitive u32
+type 16 primitive char
+type 17 primitive f32
+type 18 primitive f64
+type 19 array 13
+type 20 struct std_core$FloatDec32 { mantissa:15,exp:3 }
+type 21 struct std_core$Dec64 { mantissa:9,exp:3 }
+type 22 array 4
+type 23 struct __Tuple_31 { _0:9,_1:9,_2:9 }
+type 24 struct __Tuple_32 { _0:9,_1:9 }
+type 25 array 3
+type 26 array 5
+type 27 struct __Tuple_42 { _0:3,_1:4 }
+type 28 array 6
+type 29 array 9
 string 0 "hello"
 string 1 " "
 string 2 "origin"
@@ -30,35 +44,83 @@ string 11 "flags="
 string 12 " len="
 string 13 "grown="
 string 14 "/40 len="
-string 15 "total="
-string 16 "true"
-string 17 "false"
-string 18 "\n"
-string 19 "0"
-string 20 "1"
-string 21 "2"
-string 22 "alpha"
-string 23 "beta"
-string 24 ""
+string 15 "replaced-"
+string 16 "q-"
+string 17 "replaced-2"
+string 18 "queue="
+string 19 "/9 len="
+string 20 "total="
+string 21 "true"
+string 22 "false"
+string 23 "0"
+string 24 "nan"
+string 25 "-inf"
+string 26 "inf"
+string 27 "-0.0"
+string 28 "0.0"
+string 29 "-"
+string 30 ".0"
+string 31 "."
+string 32 "0."
+string 33 "+"
+string 34 "e"
+string 35 ""
+string 36 "\n"
+string 37 "1"
+string 38 "2"
+string 39 "alpha"
+string 40 "beta"
+string 41 "seed"
+string 42 "3"
+string 43 "4"
+string 44 "5"
+string 45 "6"
+string 46 "7"
+string 47 "8"
+string 48 "9"
 data 0 str "0" "1" "2"
 data 1 i32 hex"0a000000140000001e000000"
-data 2 structs 1 2 2 strref 22 i32 01000000 strref 23 i32 02000000
+data 2 structs 1 2 2 strref 39 i32 01000000 strref 40 i32 02000000
 data 3 mut i32 hex"000000000000000000000000"
 data 4 mut str "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
 data 5 mut bool hex"00000000"
+data 6 mut structs 1 2 1 strref 41 i32 00000000
+data 7 u64 hex"01000000000000009a9999999999999915ae47e17a14ae47de24068195438b6c96d40968226c787aab436e861bf0f9612236583849f3c7b46a238dc00e52a687884fd766a541b89f07a6121f51012de6a40951cb8168aed6ea3aa7a234edf1debbc885e8f6f0277ff80dd640beb40c659371de33989070ea43c17e29e0a6f3213735310fcdd78569f9905a3fd7df3721fa7348cc45e65fe75d860d7a3c3d66a5b19ed79463971e51c14b79dd82df7eda68ac5b62d198642a53f0e281a7e0b6eea9264fce524d925841a47eb0b77b5027345065c05fc9a65290a6ea994cd4eb0e800a11c3ad5379b1670874028bdc2dc152a029356fb02434db19ee90f2591d905f29b0b41dc3fb4cb2ba595db135963d2862e17d275eab970d9d68c9d8c9abf23e17ba3a7aa1bc5bcb45fb2ec81acaaf450992b1a6f7dcb204a141c1eb927df503b46767897564c4d2eca5d8db886d6ddb23eb461607be8a49b655d2116cfe6e0e8aefb64f1397b1a5a1bff8720fac271e4e9960c27256b99516c2cd031e57f5abab010b0318ac2a5689346f02e0bcbb89a8edb1d0ccc79207ba578e400ad3db06c8df7100d5a87cd60c66e933bba7fa11d7848729fc52950eacd0d2bac9a8aae3ac1a1e5edcdadd4f8a484b4bb0487ed9a1d3d5d5596dcb7b81dc77117b573c2acf6059825ef2c6bba580476818f56b96840006ed792a23560734a3e18fddd1456cf6e81a73e4a79e56f853e2281d5362578db903db61ebe845a4c7cf484ebc206b836cd9d37163cd119fad28861c9f0bdb18be536bb0e5a21547cb0f89f3ea37bc71784cdbb8445f63c1c6d615c70319e9cd6b45de3836c1411646a263c156ce67abd1811c01dfa5ec5541ce16347f6e4756357d242065253978f7301d80ea84fa2cf9f3b099bb39f74728534e5c5f2e2cd3b9750b7d7f5823dcc7f7d5309926d2f9728c89b48eb8412e8fa3072a72fa9abea54f39bbc1f6f7300919c25e9cf85f5a071468e54960e6e1051020516e1a8581d10c80daf1f5d468821400c44f2b77ed01aa9969d9bcc58a018814eead2c09de68a6ed7c4924d4e453b857ca3a83761d4360793b629ebdc8d166f52b9d7f646d4152c4bc7dccb68a67db69fdcadf8a7772c50f2fab80d5925b0473f28866444249d028f5d3a3a003424d4188b9e9e60268d7cd396154520220797161e786509d998eb568a5d2a64ae13e9120510e1fa21aff404da74acb69f764ceae0b3b3ceec550d88b3cc9c9f137da7909cadb42e9bff6c2a8a9e39bbacc2bcf5321824995708972a91a9d75881a0f8475f7175ea07b7236915fdfe419965bf840194cea47abafc600e147dd3f454ca467ce06b1cc9dd6e952d838270a4b45eedb7959d8a911a2e35f297a13bba7811cb3ba2fa995ec9ae328621775efe0f7380e9d792a591a932dd8b02e5547480fbe798d7cbb0bda7e968f15972fd614ff11a677798cde43ffa751f98eadfdd2fe3f1cc2d88a64423233b00146a2839b8ec25901a303395f1704f6ce839c2d4cac695e729ce38ad6895418f5c605abbd0f548dee056b22fe7276d7be04bc4ecb28c512ffa0f97d78743b51cb4d61fef929c90d090a81cb9421d4d7a077ce7854cfb9bf67f9712ddda594cc1fc7f4bd7d51ddd67f0bee2fc9e82ebeffd624f3a020bf3166781d5c1a1acc27b860e47c7bae09539399a094c5b042eb1ee1e67604270289e5e7eb2b9d85cea0b7d8dfdf616f4a0159ad4ce6e725d5cde0f1d651865177714de857e9d6e8bee87b201321df5332bafc8042e7184328c863666ad827380d0d06eb21adec2ca43d6b564e57bdf01cfe88234a2562b4949641e9d41de829aaab6787dd1720bb2156b9a5958c662b6923c21dded61e89ba82ce1818df4b076235a559f36479d89c883be1f583c7464a6dfc1a2b03069f6e573090ded13ccb7d251a40e5a7303cfe1d48005186c0c9314bd3cdb4a3cd42e91152a4901c3e0221db74500d4acb01b415f7a70a08099b29def8d7dd0ca89142308e134b0a200e028d3e0f3c08803e9b3d65e42c0d0064f8c86eea23a499e9f9d38bbb1c50e1ba94a93c2b61b39bc4ba75c7891a29166a95c4d2a17bba118877d0db9b925d1c40bf802c4975e44933cc33bdd45d506e8fd68fca53c9b3e34b571944a93af68209794703bafbc468d4606ccf2af9070e87347ae52294390b6c902e51b5a9c7d5bca68bda870fd9222e71df906c0c144f8b5a4cda8aa3a9a5a27ba3aea905a9a26a5fd27d54d12082887fdb9777a780ce06667c79f10b01e40a702d8f5ad60050a259240c15459ad981141d70776a7b149b4317c0f24392edc405f2ccc29c0ebed0375b0acee33ecb73f94808b09f6478ec5b0edac07f5060f0af3e7b33664080f3bfcb955270cd665266acefdb59a4b80e85232649aeb693d8d0821e75b08a1ff41a9efdf759d5b229afb1972c7b77f5ba258eac13c558222b097d7a766aad4eefa0fd61c5eebd0b591afee73ab1fc455b5d63a6c88d306baf4a1c85d4d726bcf26ee3d0868ca4c6ea179fb46b705005efdf182a89f3d99d25b3e0547452f6626febcd875da85e82bf220bd3e4b94b68cc1b3c0f6d2979407a2c601824219433c856b346b64d4329a0788f388aaf6ba866277f5aa2bfefb9eb8532154e998c6189d18eaa0ce1d61aa1a7d8ee459b245e9b72277e04491d1849f585fed0a04a13d45d9ecb4d01115253c963df7167da740fa11c19c152482ad980b0ad34510daa8e34e715c40d71ee3e5d1fab9da48d8b651719bc943a7c123cf2f42c439596dbfcf4c3f003111216975d365a04e81cf024fc5690d0ece38c1d30dfd9da23833db1597fe15c39382fb5c2cb68e32d60bf5d35d6531c8be665b12a78a9fa44d76fb5aa260f626adfbf2a22523f4e887f99884edb654a0dcc28744ac56f3ba40987f6a16a5996b6076cf8e7eead56570ce0f33f7e4945acd64cf6ff64d4d189783df8ff834374a19397c6cc9ccf5202b925a447617f0f35c7b7e9d24dccd990d25f210f0b3dc1e75099684bab6167b94014baa2224e539400dd94e84e0b51ed00c887da1712dabd00a06c4846dbaf64cd4cbd060549b13ae27ac80a08a8f42ee8fb39a239535df2ec2ffbb4c7752eea47e69121d922f254068541817ab5f5433837010162c4ee9ff3f10168363a8b19f6279bb95efbd67a5e86e2fa7e2f5691fdd6d0f797e5abdaca780d93798456156f2d714261d0222218af4e6a684de8b479f23e8853a4875d6128ff6cdce9a495680d65ae60a98344ed3db7beb3ba369d8a312c32f62ef0617782131dbde45a4e2c35a97dca8315a556f720fea19caa1d12f9b3311b4add95b6c1ecb55e434ade5e01575ee535d5b11801ac7eb7c422b65a9b799725a1815e154961acb74d9b4b44078123c6d72bacd33e9b053d59bc89dccb159efde063a1e36f1118feb3d19bd27fb55963860ee30e339114e9d10b1c3f8fda76ba7478c631e59024f7ed2d055bb7401d2c8b24047c5fcd7d566f066dc69848c9f07e9fbd9ee006a1c098e6ca4b4dd2800047a24479481dce00d882d02d6d17d83313cea624247946f6a87da43aa08e3dbd74645095e63e31645db7a6aaebcb8db64a57a4aa1213162411dfe9ee0edc4483da8021bfd87c9d02e23381327afd7d684eb8ce509095c9404ac60ba7a677d433086b09ec1ec67629a0dfdbac64a357420019e323eab5df01cdaeb51c88914cce70e25594a6b5ade31ae8774385c457e97b87f935046a7987c971c2bc06108fa5752735ca6ba6a5b7f71fc4a1bc1e1ec65f65d302616463a3ff51dc9b4d501ce9320e7d497173e3208f7c2e0f8285059b7ecabea5019e37afcba19884344bf95809"
+data 8 u64 hex"00000000000000209999999999999919e17a14ae47e17a14e7fba9f1d24d6210a52c431cebe2361a84f068e388b5f814368dedb5a0f7c6105748afbc9af2d71adf398c30e28e7915b294d626e80b2e11b7babdd7d9df7c1b5f956479e17ffd151911ea2d81999711c281764968c2251c019b2ba1869b84169b1556e79eaf03122bbc89d897b2d21c8996d44646f50e17a0ab43d2d15d721234acd2b64fc9831d5d2342920ca19c177d4f9b0e0ab4e31296e55e171020391e4451b21240b32d186aa78ea899c25713aad87ddaf5d0f21ebb13cbaec440c218c90f3cf2369ace1341196050bef6b01f6747b3a6fe5e5a19869fc2ebfe4b48149e7f688965d639109732a7a8d523f619ac5b1fba77e9c41456494cfb92879d10f00e7af8b7a5951a5a722e2d93844415ae8e8b8a429d03114ae478aa9dfb381b6e832d55b12fc715589c577727266c11f4c625f20b3de01bc3381e28a3fd4c169c604b534f31d7116067458518828b1c1ab96a37ad01d616e160552c24ce441235cebb136de33a1d2bd82f768a4f62175513f3c46e0cb512ef1eb8d44a7aee1df24b93106ffbf117f56f0fda58fc2713bb4cb2298e60a61ec9a38e540b1a85180783d8766fae9d13a5d1c057b2b0621f51419aac8ec01b19dacde156a5331614e2d7e7abeac211103626a6acaa04b619c551eb56559d9114d1a722dfdd7d7410810cd13196fc531a343da7f444fd0f155d97525d6a97d9102ef2509510bff51a585bdadda6659115ade2e1171f1e4111480403f364639b1b069d358f1de915166b4a9172e420ab1146aa1b846d01451c05554903be9a9d1637770769feae17125858720e97b1f21c7913f571128e281761dc90c10ed8861202c7e768e48ca41d016cb9201dd7b6173423614d17acf81254386815f2ac5a1e436053445b8a4818cf19a9367c3b6d13b28f0ef1f92b151f28a60bf4c7bcdd18861ed65c0697e413d730f0fad624d41f798d262fdf837619c70a52bfe5cf5e14056f0e9984d94b10d6e4e3f4a0f5121a11b71cf7b3f7db147492b0c55cf9af1054ea806f9428b31a10559abf76205c1573aaaeff5e801611b810b132cb33571b600df48ea25cdf15e63dc3d84e7d7f11d72f058ee42eff1bac8c6a3e1dbf6516563d55984affea115795bbf31032ab1c7977fcc2405bef162df9c968cd1559127c5b767415565b1dfd15c5f6dd447c17ca443792b1d0c912116e58504fb40f1ea7f179733f900c1885f4c7c232403d136fba0c9eb766c81e2695707e2c52a018b8dd2665f074b3138c2f3e08e787851f0a269806ec9f3719d5844605f07f2c14103705d18c992310e724d5b4478fd2191fb7ddc39f72a814192c7e6919c286108f46300f8f36711aa56bf3d8d85e271551898fade04bec10e80e4caf9aac131b5372d625e256a915dcc1deb781455411949c978ccf08ba1b76b0dfd6726d2e1691f3b278f5bdbe111cecb75a2263641c17f05f15b5b5b616ac59e6dd90c42b12acc2a3fc1ad4121dbd9b1cca48434217fde2160807699b122f6bf10cd874c51d8c22c170462ad117d64e678d6bbb0d13247ed87b125f7c1eb731adfc417f6318c52724ca34cc82136f0c6d4321ad371f59708acf4d57f9187af3a13f3eacfa13c3b89c32fd79f71f36fa16c2fdc792195efbab01cb6c751418c9bc67a2f05d10f474943f6ae72f1a5c2add32881ff314b0eeb028a07fc210b44a4e7433ccd01a29a23e908fd67315eeb4cbd972782911b054ac8f848d751b59dd890c6aa4f715ae4a6e70eee9921117114a1a17431e1c12746e7b129c7e16db5c58fc41e3fe115f618d603605cb1c7fe73d4df8d0081732b964d7f9736d12eac13af2c2ec7b1dbb34625b02579617fcf6b4e201acde1294f187373613311edc5a06c69142271817af9ed1a79b52132518311ca692ea1eb7795ae384a8bb18c5c7ae829d53c91309a617d1c885a81f07b8df403a9e531905601967fbe4421437b37a52fc83351059b82ab79339ef19e1f9eef84261bf14e7c758fa9b1a9910a50c8e90f9908e1ab7a3714061da3e15f982f4991a15ff108ed120c35dbb311b0b0ee768b162c1156f3e1f8727826711e663983e3fd0d81b51b64665ff0c4716a75e0551cc70d211d9fd6e4eade7831ce19725a58aeccf16807984ea6ef03f129af5d3104b1a331de22a43da08155c178155cfe1d310b0129c55e5025381e61d16de1dcfa89aeb17787eb1a520e222132797b5a29a369e1e1facf74e15927e184c23c6d8dd749813ad6ba32796545a1fbeefb51f78101519fef2f7b2f9d91014fe5bc6282e7b0d10ca2c0a0e7d2baf196fbda171ca228c148c97b427d51b7010ac25540c55f94c1abdb7a9d610610a15972ceede731ad5105847b064b990ee1a476cf3b6faa68b156c23295f95853c11ac38a8feee08941bbd9386982507101697dc9e131e6ca611bf2dfeb8c9793d1ccc57cb60a1949716091309e74ddd1212dc840ed8affbea1cb0d03e13f362221726dacb75c2e88112d72946899da79c1d46ee04a11786b0176b8b9d4d799ef31278452f7c2897521ec66abfc9861242189f88ff3ad20e681398da989183e40c1f13e2130e361dd718dcb4dca4914adf13602161a182aacb1f4db44db49bbb6f193d90a4f6e2625914cad9b62b4f82471011f68adfb1030c1a0df83b195b69d614a4f92f147c87ab103a5ce6b9f90bac1a2fb01efbfa6f561525c04b2f2ff3111109cd12b27eeb4f1b6d0a0f283289d91557080c2028d47a11590de0ccd9b9f71be03db370e1c75f161acbf5268139e61190de220b358fa31ca64b82a25d3fe916eba2ce4eb132541279d17de44e84531d94a764507203761776ecb6a68ecfc412f1138bd77db2071e27436fac642806181f9cf289502038136593ea0fb433c01e840f2273f6c2991836d9b4f59135ae1324f5ba2283227d1fe99095e868e83019ee7344ed53202714f18f03f10f4d1f101cb305e87faecb19165cd1ecfff1a21412b0da23335b821050b32a06852b6a1a405c556b6abc2115cd4944bceec9e71048a9d3c64a760c1b6c87dc6bd591a3158a9fe3efdda74f1143ff38e62fa6b21b69ff931ef384281687ff0fb2f503ba113fff7fb622d35c1c65ffff91e8a8b016b73233db86ed26125984eb91a4150b1de069bc7450113c17e787635d4074961271d93862cd86bd1dc17a2de83dd2ca179ac88a8631a8081391daaa3d4f40741edaae88643f005d18ae586d50cc997d13e48d481a7a5c2f1f8371a0ae61b0f21836c1e6bee759f513899bd7973ff6ee1fa1afdfdf32f88b19e7f2b24cc2f96f14b9288f709b945910f50de580c5ed281ac4a41d67048bed14691d7e52d008be100f2f30b7b3a7c91ad958f3f8c21f6e15ade0f59335e6241149345686223d6e1b6dc3110582caf115246941379b3b8e1107753525c5c5161cd290f750379e7816750dc6402c18fa11bb48a367e059c31cc9d3b51f4dae0217d40f2be6708b6812edb2113d4e12741d57c2a7fda40e9017799becca50a5d9128ec5ad448108291e3fd1579d9ad3201865a7ac4a15764d136fa57a778856e21e8cb7fbc50612b518702c96d16b0ec4131a47f0e81217a01f146cf35342df4c1943232943687f3d14361c54cfb9323110bdc6b94b2951e81931d2c76f87dab9148d0ed3bfd2ae94104917b8ff1d7e871aa0126099b13139154d75e6ad278efa10afbb70490c7d2a1bf2628d073d97bb158eb50a0664df6211e48877d66c65d11be9d392abf01d4116ee0f0f568db1cd1116b3b189484f7c1cdf288ed406d9c916b220d87605143b12eacd59f13b532b1deed747f42fdc5517bfac6cc38c16ab12"
+data 9 u64 hex"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040000000000000008800000000000000aa00000000000080d4000000000000a0c900000000000004be00000000000085ad000000000040e6d80000000000e88f870000000000e273690000000080dad003000000009088628200000000b42afb220000000061f5b9ab000000a05c3954cb000000c8b34729be000000baa099b32d00004074044090fc000050910550b47b0000a4f50664a1da0080865984dea4a80020e86f2516ced20028e2cbae9b818700596d3f4d01b1f440af488fa041dd7110db1ab30892540eeac8f06f45dbf42824fbeccb16123233ed39e87e9c96febf342451cf211efff7416d2543aae5fef592c8eed3149f7e33b67aea08da465e00b28c924548ec3aa0de2ff7565aa749c8d6fbb4ec30115c7a651df193be8a79ecbf64ed386eed97a7efbd28c7c9e87d51b576791c7eb1eed262d497a3dd5daa877bc97d0c55f594e9ed9dce275519fd116845c271aa5f7cd6c2d6320e95771b8c39c6df28bd2a9157c8b717736c7575adbaa5dd8fc7d2d2989487eab9bcc3839f792965e8abb46407d7737ee2d6e13d4966088f4d26adc66d80caf2e06f5838c9207d2fd98b6e867b34aebd67170534adc119ad415d06819832601892f447a17e1f3c4fdbf8cc246f270b23123700ee4af0cdabd64480a9ddb6602b062bf0890ae438b6c7356c2ccd1dc7a33943877780e4b80c08146995e08ef30785ac615d6c72f049a617ba74478f6cdc8f9de85119d9c3e9796231d30fcf346418bbfdc71303427dde29fdb95842490e2b3a3e74b792dbd1b5c84d51e5775246e33aa1a5de8af30bcec484270b6df08e01f665f1cd88acf28173bf6d41d5ab3731a897e488ca96853d92bd1deb7dfce6ccf62ce525ce5d10401a3caf97427514d0200b9bfd92921904e9cd013d9bfb8fa2b120214682fa330bde68a9d723f9008e15c393cdb69bc078ed597cc0a3c2f0d668709bb04cf3ac0c834cc2dc0f18ece7d16ff9c9131ee761c6cb773c98e560fab7be958bfe1ef9f8652e7b6e5fb39bbbfffc0cc537a082aa3f3c50b6444823954f4be4a32b0d36bd11af6ee67590832cd65a0ae09374a4b78bf10c98dcc8c652f716085f137b7827b51ccaf6d7995671e2a37cf42620d6866de6cdf830a88be8086001f73c92ae220bb8c1b4651badf50613f9503f6218b3c85737e5cf7adedfba2d859ec10cebcb943c13a3f1cfe5feb90bd88bee439f7ea80eceae758a234f29c9404d126deca273fb90205688a78b503ab56836b548577244714183e21aed8e95cd51249b61a8f2fa40e6f7003da9d79ce8ef34418c930dc4e2eb81516ff81075db26f192459b2a294998adf7164275735bbe98b59c925250f2adffe2433767e46e99df6d8a82c04ee5ff57092da370a2debfad4bf8cb0c4bd62f4c2f7bffe7eee55d1ffb59ffa16a5f75e779307f4a45b792304c7e8f4e8bb25b3cdf5d33222e9ff20b5735c0aaf946ef675621b80a5c8cd501ac29660d73ef4a0117b4bfd04fab9d608ed077e2118ba2f9b1c4155bd62d8b77de35dbf14bf96d0aab012977cfbbc4cd1542f354c3ea35409b12302a74658308a10b5e9a681fd24a898ef5c042a7069d2bf23271135148425bd7bf26ac32ed1232cd6f30577fa8977ec08bfc2c9fd21e4f58d71d7ca3a3e6622e4d255b8c8c9ffb79a0ee71af6f877a98486a4e9b0b944c5f6d02114167ba1fb708435511c1a8e7e4ca93aa5571c910cf5e9c8ad526fbd4827643ed8af03a8a235494a8adec643696b45c89ec73fdc3bbe1b3abe790fdb42adaa09621351eb15a8824fe3401655d71aaad3d82c1bfb40d1519cde231f79028ad2fc02d1f35b572983b30f9a682628f7e4a7cb750919d198faead7252f604e0321a590f67330698bf602fd340e003bf779cfd8348d8c4ae9503fda45a0e761a7b443c4e31c989f0ccaae5d0de3bac2c80151f85964ad737e0da6626fc8ee622cc4800989d32a02bff5a00fe843e88f6be71803da64e2ab42e8ee0cccf709a30dd580ce0210dc17c146f0f582a50f19bd94a13eeb4d27601c80ecc147186d4017a12ff59cda8498218d77eb0c0096e516f464f6ed88bc9250b18e389ceee3bef0dde5b2c827585b5c86ab95bf1d2e6e27ac5a7b22d86a09bd9b6511f39544401481293b303699501dad677a004c3fa8190cc95c845ba3c51da9f5d9d8be88be5d007b584aee3ee1ec549e2251a4d55331b6ead57f0a12a00a2c9986d6c4935800afcfe88474e2190865d9fb50ca12934e83407e3cf0a34412202c9db8386c06855a15d69b2a7f0c2aa09b5031fd1ac73154ca2c426034c688d6fe53a78035fc270cb9e4916c4f6f24c7e06dc9b76b42fe01d08d382c9d01dac12e5c3b1fc44255757de34de3b96ee2ced15c255e51d153cb44d99b55e651a4b21a1ffe2b6fee09d6989bfdb319fac02e2b55729fec657835aa3adf3bdb82d24310c997076939cb69ea75f8654b843648691f7e769a654fde775f5a101e854feb06939a50222ea3d1dc4870e82aa648d24b529d291ea5ed836115a4336a5768e84953014834e14b2e5ba3c1912b14c8fcff4c52f56dd1f730372b7bbacd4e74f844ea52aebe4f0b11251a7da261e6d5e572551d1b0650836ad6ea5858e3fc5412c658773718f3652773e69504e33c426158e8364224075709a71a4fd1548498600c786de1a9adba7c0782816a180d2d1f096b25b64902383569e4f197e74ec23ec85a35f9d91e72c67678cf702bb107ca0c0b73ac3e9149bc8b065493324dac1fa1cbf5ba05628b91c7257b9486c72e7a34eade75a074fe14ca298a19864d10c7065ff44bebd0510cc3e3f562e2d07147f0ecf2b3d7c846c0f69615b4c9ba54753c339f21f028f192834c8ee5361f90f99203d55a8b9f753bf688c2a12a8f528ef822f750b899979d5b13d094eebffd74a1e8d0b22e6ff8ddd65708ed5efbf78aa3f06f9caebef1695cf47b7bde6ab5c7ac319e53670eb792c1a30af434c6698b720fcda54df7f7ee528bb112ad71fde1ef329167ae6d34af337da4d19e0881df0c550e11f18eb246cf7a41913ef1297a31a07b0d8aad77c4ce1089c8e950d9c9f190b03797d88c103f0e661d79ceab104ac60ba0d4465de05d7f8a8884affaa63869bc92a1dbf95fc6702bc74e42ebbfb0103abc94efd543de1e1ea7ba23caa8c599a651acbcbd4efef00fff05effe4f595603fac363f5e73bb38cf5704cf3550ea0683b662a1217252e41164bb09aa0e675d563d2a8c54d2c0f42b669ad77483f8781b00810d52a436576240e190664d04edfac88c1a60b022d4bcfa2f21785c2b096cf87b299633760b07f6dab37bc053ce48da68504d58f4802d1083a4606e31e178"
+data 10 u64 hex"000000000000001000000000000000140000000000000019000000000000401f00000000000088130000000000006a18000000000080841e0000000000d01213000000000084d717000000000065cd1d00000000205fa01200000000e876481700000000a2941a1d00000040e59c3012000000901ec4bc160000003426f56b1c000080e03779c3110000a0d8855734160000c84e676dc11b00003d9160e4581100408cb5781daf150050efe2d6e41a1b0092d54d06cff01080f64ae1c7022d1520b49dd97943781a949002282c2a8b10b9340332b7f4ad14e70184fee471d9193081121f2fe727107c21d7e6fae03114dbe98ca039593e195224b00888ef8d1fb3166e05b5b5b813609cc94622e3a61878037cd8ea9bd01e2b824dc772614213b6e22079cff91218641b695743b8171e1eb1a1162ad3ce12661d4a9cf4878217bfa45cc3f129631df7e6191a37fa5d12b560a0e0c478f516e378c818f6d6b21c8d4b7dcf59c6ef11719e5c43f0b76b160dc63354eca5061cc85ba0b4b3278411ba72c8a1a031e515698f3aca087e5e1ba199647ec50e1b110ac0fddd76d261150d307d951447ba1a083e6edd6c6cb4108acdc9148887e114ec40fc196ae9191a93a83d50e2315010b8124de45a3e64146757609df14d7d19416db8046ea1dc1f4844f3c2e4e4e9135a15b0f31d5ee418b11a9c70a5751d1fae90616687697213daf4f93fe9034f181172f88fe3c4621e4a47fb390ebbfd121d197ac8d129bd17649f983a4674ac1d9f639fe4abc88b12863cc7ddd6ba2e17a80b39958c69fa1c49a743ddf7811c121b9194d475a2a31662b5b949138b4c1c5d11140eecd6af11b5159911a7cc1b16225bffd5d0bfa21bf598bf85e2b74511327f2f27db259715ff5efbf051effc1a5f1b9d369315de1037624404f89a1515c57a5505b6015b1abb6c55c311e17810eac72a3456199714e47935c1abdfbc192f6cc158cb0b16103ac7f12ebe8e1b140939aeba6d7222194bc75929090f6b1f8f1cd8b965e9a213b3234e28bfa38b18a0ac61f2ae8cae1ee40b7d57ed172d13dd4e5cade85df8179462b3d86275f61d9c1d70c75d09ba1203254c39b58b6817442e9f87a2ae421deb7cc39425ad4912255cf4f96e18dc162f7371b88a1e931cfde746b316f3db11fca11860dcef52167cca1e78d3abe71b8d3e132b64cb7011300ed8353dfecc15bd114e83cc3d401b16cb10d29f260811dbfd94c647304a15523d3ab859bc9c1a53662413b8f5a110e87fed172673ca14e2dfe89def0ffd19ed8bb1c2f5293e10e9ee5d3373b44d14a36a3500902161194cc54200f469b91f4fbb298038e2d313232a34a0c6dac818ac3441487811fb1eebc0282debea5c1326f172f8a525341870ad8f760f2f411e66cc19aa69bde8127f3fa014c4eca2175f4fc819f5a78b1d9b311d30f9487712027e247c371b1517839d2d5b0562da1c7282fc58437d08120ea33b2f949c8a16d28b0a3bb9432d1c6397e6c4534a9c113c3d20b6e85c03168b4ca8e32234841bd72f49ce95a03211cd7bdb41bb487f15c05a5212ea1adf1ab878734bd270cb10e65650de064dfe149f6ce49548e03d1ae3c3ae5d2dac6610dc741ab538578014141261e2066da0194cab7c4d244404101fd6db602d550514a7cb12b978aa0619917e57e71655481f1aaf96502e358d13e15abce4798270189a71eb5d18a38c1e0027b33aefe51713c0f05f096bdfdd17f0ecb7cb4557d51d16f4529f8b56a5121bb127872eac4e17629df1283a57221d5d02975984763512f5c2fc6f25d4c216b2f3fbcb2e89731c4f787d3fbd35c81163d65c8f2c433a16fc0b34b3f7d3c81b7d8700d07a845d115da9008499e5b415b4d300e5ff1e221b508420ef5f53f51065a5e8ea37a83215becea2e545527f1a36c185af6b938f108431679b4678b314e5fd40425856e019af9e6829f7352c105bc6c2f374433714f277b33052144519ef55e0bc6659961fb5350c36e0f7bd1322438f43d875ad18eb1373544ed3d81e73ecc7f4108447138fe7f931156519187361787e5abe1f1ee83c0b8ff8d6d312220cceb2b6cc88172b8f815fe4ff6a1d7bf9b0bbeedf6212d9379d6aea97fb16d0854405e57dba1ca2d34a23af8ef4118a881dec5ab27116adea24a7f11e0e1cac12770857d3881157d794ca2c08eb152d0d3afd37ca651b3c4844fe629e1f114b5ad5bdfb856715deb04aad7a67c11a8aae4eacace0b8102d5a62d7d718e714b8f03acd0ddf201a73d644a0688b5410100c56c842ae6914148f6b7ad3198419d97206594820e51fc807a4372d34ef13ba098d853801eb18284cf0a686c1251f992f5628f49877137fbb6b32317f55185faa067ffdde6a1e7b2a646f5ecb02131a353d0b367ec31761820c8ec35db41d7cd1c7389aba9012dcc5f9c640e934175337b8f89023021d9422739b3a56211239eb4f42c9aba91607e6e392bb16541cc46fce3b358eb411b50bc28ac2b12116a38e722d331eaa1b259967fcdf524a116f7f81fb97e79c154bdf61fa7d21041b8f2b7dbcee94e21072769c6b2a3a1b150f948306b508621a893c122471457d10accb166dcd969c14977e5cc880bcc3191ecf397dd0551a10e642889c44eb20149f53aac31526291987e894349b6f731f5411dd00c125a813a9551441312f9218146b5991fdbab61eece2d77ade343213a7db8d1916c2fe179152f19f9b72fe1d9bd3f643a107bf128188f49489c96e17a2aa31faeb7b4a1da50a5f7c738d4e124ecd765bd030e216a280547204bd9a1c65d074c722b6e0117f045279abe358169e85a657961cef1b8313c8f6dd71751164187a7455ced2157d9e98d1ea81471b0e63ffc232b10c11d13bbf737fdd4f15c60aaf50dfd4a31abb666d920b65a6106ac008774efecf1485f0ca14e2fd031a53d6fe4cad7e4210e88b3ea0581e5314e22e4ec8eee567199aba617a6adfc11fa0147d8ca22bd913c9599c2f8b76cf183b7083fb2d54031f252632bd9c146213aeaf7eecc3993a18995b9ee73440491e40f9c21021c8ed1290b7f354293aa91774a530aab388931d68675e4a70357c124201f65ccc421b17938133747f13e21cfc30a0a82f4c0d123b3dc8923b9f90168a4c7a770ac7341cd66fac8a66fca011cb8b572d803b0916be6ead38608a8b1b37656c237c363711857e472c1b048515265e59f72145e61ad8da973a35ebcf108ed13d8902e60315f1458d2b83df441ab64b38fbb10b6b10a45e067a9ece85144df687184642a719f0f954cf6b8908106c382ac3c6ab0a1488c6f473b8560d192af8f19066ac501f1a3b971ac06b9213e0093d21b0067718594c8c295cc8941eb7aff79939fd1c13a59b7500883ce4178f029300aa4bdd1d99e15b404a4faa12ffd972d01ce354177f908f04e41b2a1d4fbad9826e513a12e3289023cae5c8161c3374ac3c1f7b1cf19fc8eb85f3cc11eec7ba6667304016e9796940813cd01b32ec41c8d02562113e6752fa44afba150e01e738165b291ba96090e3edd8f910d378745c294f3815089791b3f362861a65fe3a50d8fd9310febd49644efdb8147d2d5cfda13ce7196e9c593ee58530108a03f08d5ea73c146d046c3136d14b198805c7bd83c59e1f75639c56723bc313527c43ec4e0ab418"
+data 11 u64 hex"01000000000000086766666666666606b91e85eb51b81e05fa7e6abc749318042acb10c7bab88d06223cda38622d3e054e637b2de8bd310416d22bafa6fcb506780e238cb8635e052da5b509fa824b04ae6eef75f637df065825595ef85f7f0547847a4b60e6650471a05d129a700907c1e64aa8e126a1056785d5b9e7eb80040b6f22f6a5ac3407a325b59151bdc305e9ea907474979c040eabb4ed53f26007d88890244328e705e0d3a68302edb80466b9d70504488e075294ac04d06c0b06dba9236aa6f0d5042b769f763db4bc07efc4b22b31903006f3038fbc8da6f30451061894af3dec07dad1aca9bf975606e2a7f0baff121205e81f5a6299750e04a6cc296af5887d06ecd687ee5d3a31055612d3bee4612704bd831efe6d69a506979c4bcb24215105ace3a2a250e7400413399e6ae73ece06dc604b55eccb710517e7d5dd89095b04be7189fc420ff806318e07ca683f930528d8d2d453cc7504d959512186e0220747aeda4d6b80b5053958150b893391048ef3ee44dbb84e070bf68b9de293d805d6c43cb11b43ad04bc072eb5929e7b07fdd224c4db7efc05fedb833616ffc9042f936c8a2398a907f3a823d582462106"
+data 12 u64 hex"000000000000001000000000000000140000000000000019000000000000401f00000000000088130000000000006a18000000000080841e0000000000d01213000000000084d717000000000065cd1d00000000205fa01200000000e876481700000000a2941a1d00000040e59c3012000000901ec4bc160000003426f56b1c000080e03779c3110000a0d8855734160000c84e676dc11b00003d9160e4581100408cb5781daf150050efe2d6e41a1b0092d54d06cff01080f64ae1c7022d1520b49dd97943781a949002282c2a8b10b9340332b7f4ad14e70184fee471d9193081121f2fe727107c21d7e6fae03114dbe98ca039593e195224b00888ef8d1fb3166e05b5b5b813609cc94622e3a61878037cd8ea9bd01e2b824dc772614213b6e22079cff91218641b695743b8171e1eb1a1162ad3ce12661d4a9cf4878217bfa45cc3f129631df7e6191a37fa5d12b560a0e0c478f516e378c818f6d6b21c8d4b7dcf59c6ef11719e5c43f0b76b160dc63354eca5061c"
+data 13 str "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"
 import 0 byte_len std_core$byte_len (string) -> usize
-import 1 write std_io$write (i32,string) -> void
-import 2 collect std_runtime$collect () -> void
-import 3 collections std_runtime$collections () -> i32
+import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
+import 2 write std_io$write (i32,string) -> void
+import 3 collect std_runtime$collect () -> void
+import 4 collections std_runtime$collections () -> i32
 impl 7 ByteAccess
+vtable Display.to_string 10 11
+vtable Display.to_string 11 12
+vtable Display.to_string 3 13
+vtable Display.to_string 8 14
+vtable Display.to_string 12 15
+vtable Display.to_string 13 16
+vtable Display.to_string 14 17
+vtable Display.to_string 15 18
+vtable Display.to_string 9 19
+vtable Display.to_string 1 20
+vtable Display.to_string 6 21
+vtable Display.to_string 16 22
+vtable Display.to_string 4 23
+vtable Display.to_string 17 24
+vtable Display.to_string 18 25
 export main 1
 
 fn 0 snippet$bump (usize) -> void
   local $data_const_1 ref
   local $add_5 i32
-  data.const 3 12
+  data.const 3 25
   local.set 1
-  data.const 3 12
+  data.const 3 25
   local.get 0
   load_slot_i32
   i32.const 1
@@ -87,6 +149,7 @@ fn 1 snippet$main () -> i32
   local $cast_215 u64
   local $idx_236 i32
   local $cast_237 i32
+  local $struct_285 ref
   string.const 0
   local.tee 0
   call.import 0
@@ -94,7 +157,7 @@ fn 1 snippet$main () -> i32
   i64.const 27
   local.get 1
   i64.add
-  call 2
+  call 5
   local.set 2
   i64.const 0
   local.set 1
@@ -104,22 +167,22 @@ fn 1 snippet$main () -> i32
   local.get 2
   local.get 1
   local.get 3
-  call 5
+  call 8
   local.set 1
   local.get 2
   local.get 1
   string.const 1
-  call 4
+  call 7
   local.set 1
   local.get 2
   local.get 1
   local.get 0
-  call 4
+  call 7
   local.set 1
   local.get 2
   local.get 1
   string.const 1
-  call 4
+  call 7
   local.set 1
   i32.const 0
   i32.const 0
@@ -128,28 +191,28 @@ fn 1 snippet$main () -> i32
   local.get 2
   local.get 1
   local.get 4
-  call 7
+  call 10
   local.set 1
   local.get 2
   local.get 1
-  call 3
-  call 8
-  data.const 0 11
+  call 6
+  call 56
+  data.const 0 22
   i32.const 1
-  array.get 11
-  ref.cast 5
+  array.get 22
+  ref.cast 4
   local.set 0
-  data.const 2 13
+  data.const 2 26
   i32.const 1
-  array.get 13
-  struct.get 4 0
-  ref.cast 5
+  array.get 26
+  struct.get 5 0
+  ref.cast 4
   local.set 5
   string.const 2
   i32.const 0
-  struct.new_stack 4
-  struct.get 4 0
-  ref.cast 5
+  struct.new_stack 5
+  struct.get 5 0
+  ref.cast 4
   local.set 6
   local.get 0
   call.import 0
@@ -171,21 +234,21 @@ fn 1 snippet$main () -> i32
   i64.const 23
   local.get 1
   i64.add
-  call 2
+  call 5
   local.set 2
   i64.const 0
   local.set 1
   local.get 2
   local.get 1
   local.get 0
-  call 4
+  call 7
   local.set 1
   local.get 2
   local.get 1
   string.const 1
-  call 4
+  call 7
   local.set 1
-  data.const 1 12
+  data.const 1 25
   i32.const 2
   load_slot_i32
   i32.to_i64
@@ -193,46 +256,46 @@ fn 1 snippet$main () -> i32
   local.get 2
   local.get 1
   local.get 3
-  call 5
+  call 8
   local.set 1
   local.get 2
   local.get 1
   string.const 1
-  call 4
+  call 7
   local.set 1
   local.get 2
   local.get 1
   local.get 5
-  call 4
+  call 7
   local.set 1
   local.get 2
   local.get 1
   string.const 1
-  call 4
+  call 7
   local.set 1
   local.get 2
   local.get 1
   local.get 6
-  call 4
+  call 7
   local.set 1
   local.get 2
   local.get 1
-  call 3
-  call 8
+  call 6
+  call 56
   i32.const 7
   local.set 8
   local.get 8
   string.const 3
-  struct.new_stack 14
-  struct.get 14 1
-  ref.cast 5
+  struct.new_stack 27
+  struct.get 27 1
+  ref.cast 4
   local.tee 0
   call.import 0
   local.set 1
   i64.const 20
   local.get 1
   i64.add
-  call 2
+  call 5
   local.set 2
   i64.const 0
   local.set 1
@@ -240,25 +303,25 @@ fn 1 snippet$main () -> i32
   local.set 8
   local.get 8
   string.const 3
-  struct.new_stack 14
-  struct.get 14 0
+  struct.new_stack 27
+  struct.get 27 0
   ref.cast 3
   i32.to_i64
   local.set 3
   local.get 2
   local.get 1
   local.get 3
-  call 5
+  call 8
   local.set 1
   local.get 2
   local.get 1
   local.get 0
-  call 4
+  call 7
   local.set 1
   local.get 2
   local.get 1
-  call 3
-  call 8
+  call 6
+  call 56
   i64.const 0
   call 0
   i64.const 0
@@ -266,16 +329,16 @@ fn 1 snippet$main () -> i32
   i64.const 2
   call 0
   i64.const 69
-  call 2
+  call 5
   local.set 2
   i64.const 0
   local.set 1
   local.get 2
   local.get 1
   string.const 4
-  call 4
+  call 7
   local.set 1
-  data.const 3 12
+  data.const 3 25
   i32.const 0
   load_slot_i32
   i32.to_i64
@@ -283,14 +346,14 @@ fn 1 snippet$main () -> i32
   local.get 2
   local.get 1
   local.get 3
-  call 5
+  call 8
   local.set 1
   local.get 2
   local.get 1
   string.const 5
-  call 4
+  call 7
   local.set 1
-  data.const 3 12
+  data.const 3 25
   i32.const 1
   load_slot_i32
   i32.to_i64
@@ -298,14 +361,14 @@ fn 1 snippet$main () -> i32
   local.get 2
   local.get 1
   local.get 3
-  call 5
+  call 8
   local.set 1
   local.get 2
   local.get 1
   string.const 5
-  call 4
+  call 7
   local.set 1
-  data.const 3 12
+  data.const 3 25
   i32.const 2
   load_slot_i32
   i32.to_i64
@@ -313,12 +376,12 @@ fn 1 snippet$main () -> i32
   local.get 2
   local.get 1
   local.get 3
-  call 5
+  call 8
   local.set 1
   local.get 2
   local.get 1
-  call 3
-  call 8
+  call 6
+  call 56
   i32.const 0
   local.set 9
   block $L0 void
@@ -327,20 +390,20 @@ fn 1 snippet$main () -> i32
       i32.const 24
       i32.lt
       if $L2 void
-        data.const 4 11
+        data.const 4 22
         local.set 2
         local.get 9
         i32.to_i64
         local.set 1
         i64.const 33
-        call 2
+        call 5
         local.set 10
         i64.const 0
         local.set 7
         local.get 10
         local.get 7
         string.const 6
-        call 4
+        call 7
         local.set 7
         local.get 9
         i32.to_i64
@@ -348,16 +411,16 @@ fn 1 snippet$main () -> i32
         local.get 10
         local.get 7
         local.get 3
-        call 5
+        call 8
         local.set 7
         local.get 10
         local.get 7
-        call 3
+        call 6
         local.set 0
         local.get 2
         local.get 1
         local.get 0
-        array.set 11
+        array.set 22
         local.get 9
         i32.const 1
         i32.add
@@ -367,7 +430,7 @@ fn 1 snippet$main () -> i32
       end $L2
     end $L1
   end $L0
-  call.import 2
+  call.import 3
   i32.const 0
   local.set 9
   i32.const 0
@@ -378,25 +441,25 @@ fn 1 snippet$main () -> i32
       i32.const 24
       i32.lt
       if $L5 void
-        data.const 4 11
+        data.const 4 22
         local.set 2
         local.get 11
         i32.to_i64
         local.set 1
         local.get 2
         local.get 1
-        array.get 11
-        ref.cast 5
+        array.get 22
+        ref.cast 4
         local.set 0
         i64.const 33
-        call 2
+        call 5
         local.set 10
         i64.const 0
         local.set 7
         local.get 10
         local.get 7
         string.const 6
-        call 4
+        call 7
         local.set 7
         local.get 11
         i32.to_i64
@@ -404,11 +467,11 @@ fn 1 snippet$main () -> i32
         local.get 10
         local.get 7
         local.get 3
-        call 5
+        call 8
         local.set 7
         local.get 10
         local.get 7
-        call 3
+        call 6
         local.set 5
         local.get 0
         local.get 5
@@ -429,15 +492,15 @@ fn 1 snippet$main () -> i32
       end $L5
     end $L4
   end $L3
-  data.const 4 11
+  data.const 4 22
   i32.const 0
-  array.get 11
-  ref.cast 5
+  array.get 22
+  ref.cast 4
   local.set 0
-  data.const 4 11
+  data.const 4 22
   i32.const 23
-  array.get 11
-  ref.cast 5
+  array.get 22
+  ref.cast 4
   local.set 5
   local.get 0
   call.import 0
@@ -452,34 +515,34 @@ fn 1 snippet$main () -> i32
   i64.const 52
   local.get 1
   i64.add
-  call 2
+  call 5
   local.set 2
   i64.const 0
   local.set 1
   local.get 2
   local.get 1
   string.const 7
-  call 4
+  call 7
   local.set 1
   local.get 2
   local.get 1
   local.get 0
-  call 4
+  call 7
   local.set 1
   local.get 2
   local.get 1
   string.const 8
-  call 4
+  call 7
   local.set 1
   local.get 2
   local.get 1
   local.get 5
-  call 4
+  call 7
   local.set 1
   local.get 2
   local.get 1
   string.const 9
-  call 4
+  call 7
   local.set 1
   local.get 9
   i32.to_i64
@@ -487,83 +550,83 @@ fn 1 snippet$main () -> i32
   local.get 2
   local.get 1
   local.get 3
-  call 5
+  call 8
   local.set 1
   local.get 2
   local.get 1
   string.const 10
-  call 4
+  call 7
   local.set 1
-  call.import 3
+  call.import 4
   i32.const 0
   i32.gt
   local.set 4
   local.get 2
   local.get 1
   local.get 4
-  call 7
+  call 10
   local.set 1
   local.get 2
   local.get 1
-  call 3
-  call 8
-  data.const 5 15
+  call 6
+  call 56
+  data.const 5 28
   i32.const 2
   bool.const true
-  array.set 15
+  array.set 28
   i64.const 42
-  call 2
+  call 5
   local.set 2
   i64.const 0
   local.set 1
   local.get 2
   local.get 1
   string.const 11
-  call 4
+  call 7
   local.set 1
-  data.const 5 15
+  data.const 5 28
   i32.const 0
-  array.get 15
+  array.get 28
   ref.cast 6
   local.set 4
   local.get 2
   local.get 1
   local.get 4
-  call 7
+  call 10
   local.set 1
   local.get 2
   local.get 1
   string.const 5
-  call 4
+  call 7
   local.set 1
-  data.const 5 15
+  data.const 5 28
   i32.const 2
-  array.get 15
+  array.get 28
   ref.cast 6
   local.set 4
   local.get 2
   local.get 1
   local.get 4
-  call 7
+  call 10
   local.set 1
   local.get 2
   local.get 1
   string.const 12
-  call 4
+  call 7
   local.set 1
-  data.const 5 15
+  data.const 5 28
   array.len
   usize.to_i64
   local.set 12
   local.get 2
   local.get 1
   local.get 12
-  call 6
+  call 9
   local.set 1
   local.get 2
   local.get 1
-  call 3
-  call 8
+  call 6
+  call 56
   i32.const 0
   local.set 9
   block $L7 void
@@ -572,7 +635,7 @@ fn 1 snippet$main () -> i32
       i32.const 40
       i32.lt
       if $L9 void
-        data.const 3 12
+        data.const 3 25
         local.set 2
         local.get 9
         local.set 11
@@ -588,7 +651,7 @@ fn 1 snippet$main () -> i32
       end $L9
     end $L8
   end $L7
-  call.import 2
+  call.import 3
   i32.const 0
   local.set 9
   i32.const 0
@@ -599,7 +662,7 @@ fn 1 snippet$main () -> i32
       i32.const 40
       i32.lt
       if $L12 void
-        data.const 3 12
+        data.const 3 25
         local.set 2
         local.get 11
         i32.to_i64
@@ -632,14 +695,14 @@ fn 1 snippet$main () -> i32
     end $L11
   end $L10
   i64.const 54
-  call 2
+  call 5
   local.set 2
   i64.const 0
   local.set 1
   local.get 2
   local.get 1
   string.const 13
-  call 4
+  call 7
   local.set 1
   local.get 9
   i32.to_i64
@@ -647,40 +710,220 @@ fn 1 snippet$main () -> i32
   local.get 2
   local.get 1
   local.get 3
-  call 5
+  call 8
   local.set 1
   local.get 2
   local.get 1
   string.const 14
-  call 4
+  call 7
   local.set 1
-  data.const 3 12
+  data.const 3 25
   array.len
   usize.to_i64
   local.set 12
   local.get 2
   local.get 1
   local.get 12
-  call 6
+  call 9
   local.set 1
   local.get 2
   local.get 1
-  call 3
-  call 8
+  call 6
+  call 56
+  data.const 6 26
+  local.set 2
+  i32.const 2
+  virtual.call 1 Display.to_string
+  local.set 0
+  string.const 15
+  local.get 0
+  call 2
+  i32.const 5
+  struct.new 5
+  local.set 10
+  local.get 2
+  i32.const 0
+  local.get 10
+  array.set 26
   i32.const 0
   local.set 9
-  data.const 1 12
+  block $L14 void
+    loop $L15 void
+      local.get 9
+      i32.const 8
+      i32.lt
+      if $L16 void
+        data.const 6 26
+        local.set 2
+        i64.const 22
+        call 5
+        local.set 10
+        i64.const 0
+        local.set 1
+        local.get 10
+        local.get 1
+        string.const 16
+        call 7
+        local.set 1
+        local.get 9
+        i32.to_i64
+        local.set 3
+        local.get 10
+        local.get 1
+        local.get 3
+        call 8
+        local.set 1
+        local.get 10
+        local.get 1
+        call 6
+        local.set 0
+        local.get 9
+        local.set 11
+        local.get 0
+        local.get 11
+        struct.new 5
+        local.set 15
+        local.get 2
+        local.get 15
+        array.push 5
+        local.get 9
+        i32.const 1
+        i32.add
+        local.set 9
+        br $L15
+      else
+      end $L16
+    end $L15
+  end $L14
+  call.import 3
+  i32.const 0
+  local.set 9
+  data.const 6 26
+  i32.const 0
+  array.get 26
+  struct.get 5 0
+  ref.cast 4
+  string.const 17
+  string.eq
+  if $L17 void
+    local.get 9
+    i32.const 1
+    i32.add
+    local.set 9
+  else
+  end $L17
+  i32.const 0
+  local.set 11
+  block $L18 void
+    loop $L19 void
+      local.get 11
+      i32.const 8
+      i32.lt
+      if $L20 void
+        data.const 6 26
+        local.set 2
+        local.get 11
+        i32.to_i64
+        i64.const 1
+        i64.add
+        local.set 1
+        local.get 2
+        local.get 1
+        array.get 26
+        struct.get 5 0
+        ref.cast 4
+        local.set 0
+        i64.const 22
+        call 5
+        local.set 10
+        i64.const 0
+        local.set 7
+        local.get 10
+        local.get 7
+        string.const 16
+        call 7
+        local.set 7
+        local.get 11
+        i32.to_i64
+        local.set 3
+        local.get 10
+        local.get 7
+        local.get 3
+        call 8
+        local.set 7
+        local.get 10
+        local.get 7
+        call 6
+        local.set 5
+        local.get 0
+        local.get 5
+        string.eq
+        if $L21 void
+          local.get 9
+          i32.const 1
+          i32.add
+          local.set 9
+        else
+        end $L21
+        local.get 11
+        i32.const 1
+        i32.add
+        local.set 11
+        br $L19
+      else
+      end $L20
+    end $L19
+  end $L18
+  i64.const 53
+  call 5
+  local.set 2
+  i64.const 0
+  local.set 1
+  local.get 2
+  local.get 1
+  string.const 18
+  call 7
+  local.set 1
+  local.get 9
+  i32.to_i64
+  local.set 3
+  local.get 2
+  local.get 1
+  local.get 3
+  call 8
+  local.set 1
+  local.get 2
+  local.get 1
+  string.const 19
+  call 7
+  local.set 1
+  data.const 6 26
+  array.len
+  usize.to_i64
+  local.set 12
+  local.get 2
+  local.get 1
+  local.get 12
+  call 9
+  local.set 1
+  local.get 2
+  local.get 1
+  call 6
+  call 56
+  i32.const 0
+  local.set 9
+  data.const 1 25
   local.tee 2
   array.len
   local.set 1
   i64.const 0
   local.set 7
-  block $L14 void
-    loop $L15 void
+  block $L22 void
+    loop $L23 void
       local.get 7
       local.get 1
       u64.lt
-      if $L16 void
+      if $L24 void
         local.get 2
         local.get 7
         load_slot_i32
@@ -693,20 +936,20 @@ fn 1 snippet$main () -> i32
         i64.const 1
         i64.add
         local.set 7
-        br $L15
+        br $L23
       else
-      end $L16
-    end $L15
-  end $L14
+      end $L24
+    end $L23
+  end $L22
   i64.const 26
-  call 2
+  call 5
   local.set 2
   i64.const 0
   local.set 1
   local.get 2
   local.get 1
-  string.const 15
-  call 4
+  string.const 20
+  call 7
   local.set 1
   local.get 9
   i32.to_i64
@@ -714,34 +957,157 @@ fn 1 snippet$main () -> i32
   local.get 2
   local.get 1
   local.get 3
-  call 5
+  call 8
   local.set 1
   local.get 2
   local.get 1
-  call 3
-  call 8
+  call 6
+  call 56
   return.lit i32.const 0
 end
 
-fn 2 std_core$new_byte_buffer (usize) -> ref
+fn 2 concat_2 (string,string) -> string
+  local c0 usize
+  local $call_4 usize
+  local buf ref
   local.get 0
-  call 9
+  call.import 0
+  local.set 2
+  local.get 1
+  call.import 0
+  local.set 3
+  local.get 2
+  local.get 3
+  i64.add
+  local.tee 3
+  call 5
+  local.tee 4
+  i64.const 0
+  local.get 0
+  call 60
+  local.get 4
+  local.get 2
+  local.get 1
+  call 60
+  local.get 4
+  local.get 3
+  call 6
   return
 end
 
-fn 3 std_core$finish_buffer (ref,usize) -> string
+fn 3 concat_3 (string,string,string) -> string
+  local c0 usize
+  local $call_5 usize
+  local $call_8 usize
+  local buf ref
+  local.get 0
+  call.import 0
+  local.set 3
+  local.get 1
+  call.import 0
+  local.set 4
+  local.get 3
+  local.get 4
+  i64.add
+  local.set 4
+  local.get 2
+  call.import 0
+  local.set 5
+  local.get 4
+  local.get 5
+  i64.add
+  local.tee 5
+  call 5
+  local.tee 6
+  i64.const 0
+  local.get 0
+  call 60
+  local.get 6
+  local.get 3
+  local.get 1
+  call 60
+  local.get 6
+  local.get 4
+  local.get 2
+  call 60
+  local.get 6
+  local.get 5
+  call 6
+  return
+end
+
+fn 4 concat_4 (string,string,string,string) -> string
+  local c0 usize
+  local $call_6 usize
+  local $call_9 usize
+  local $call_12 usize
+  local buf ref
+  local.get 0
+  call.import 0
+  local.set 4
+  local.get 1
+  call.import 0
+  local.set 5
+  local.get 4
+  local.get 5
+  i64.add
+  local.set 5
+  local.get 2
+  call.import 0
+  local.set 6
+  local.get 5
+  local.get 6
+  i64.add
+  local.set 6
+  local.get 3
+  call.import 0
+  local.set 7
+  local.get 6
+  local.get 7
+  i64.add
+  local.tee 7
+  call 5
+  local.tee 8
+  i64.const 0
+  local.get 0
+  call 60
+  local.get 8
+  local.get 4
+  local.get 1
+  call 60
+  local.get 8
+  local.get 5
+  local.get 2
+  call 60
+  local.get 8
+  local.get 6
+  local.get 3
+  call 60
+  local.get 8
+  local.get 7
+  call 6
+  return
+end
+
+fn 5 std_core$new_byte_buffer (usize) -> ref
+  local.get 0
+  call 57
+  return
+end
+
+fn 6 std_core$finish_buffer (ref,usize) -> string
   local.get 0
   local.get 1
-  call 11
+  call 59
   return
 end
 
-fn 4 std_core$write_string_at (ref,usize,string) -> usize
+fn 7 std_core$write_string_at (ref,usize,string) -> usize
   local $call_3 usize
   local.get 0
   local.get 1
   local.get 2
-  call 12
+  call 60
   local.get 2
   call.import 0
   local.set 3
@@ -751,7 +1117,7 @@ fn 4 std_core$write_string_at (ref,usize,string) -> usize
   return
 end
 
-fn 5 std_core$write_int (ref,usize,i64) -> usize
+fn 8 std_core$write_int (ref,usize,i64) -> usize
   local neg bool
   local ndigits usize
   local m i64
@@ -765,7 +1131,7 @@ fn 5 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     i32.const 48
-    call 10
+    call 58
     local.get 1
     i64.const 1
     i64.add
@@ -844,7 +1210,7 @@ fn 5 std_core$write_int (ref,usize,i64) -> usize
         local.get 0
         local.get 4
         local.get 8
-        call 10
+        call 58
         local.get 2
         i64.const 10
         i64.div
@@ -859,7 +1225,7 @@ fn 5 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     i32.const 45
-    call 10
+    call 58
   else
   end $L9
   local.get 1
@@ -868,7 +1234,7 @@ fn 5 std_core$write_int (ref,usize,i64) -> usize
   return
 end
 
-fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
+fn 9 std_core$write_unsigned (ref,usize,u64) -> usize
   local ndigits usize
   local m u64
   local i usize
@@ -881,7 +1247,7 @@ fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
     local.get 0
     local.get 1
     i32.const 48
-    call 10
+    call 58
     local.get 1
     i64.const 1
     i64.add
@@ -936,7 +1302,7 @@ fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
         local.get 0
         local.get 5
         local.get 7
-        call 10
+        call 58
         local.get 2
         i64.const 10
         u64.div
@@ -952,39 +1318,2859 @@ fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
   return
 end
 
-fn 7 std_core$write_bool (ref,usize,bool) -> usize
+fn 10 std_core$write_bool (ref,usize,bool) -> usize
   local.get 2
   if $L0 void
     local.get 0
     local.get 1
-    string.const 16
-    call 4
+    string.const 21
+    call 7
     return
   end $L0
   local.get 0
   local.get 1
-  string.const 17
+  string.const 22
+  call 7
+  return
+end
+
+fn 11 std_core$i8$Display$to_string (i8) -> string
+  local.get 0
+  i8.to_i64
+  call 26
+  return
+end
+
+fn 12 std_core$i16$Display$to_string (i16) -> string
+  local.get 0
+  i16.to_i64
+  call 26
+  return
+end
+
+fn 13 std_core$i32$Display$to_string (i32) -> string
+  local.get 0
+  i32.to_i64
+  call 26
+  return
+end
+
+fn 14 std_core$i64$Display$to_string (i64) -> string
+  local.get 0
+  call 26
+  return
+end
+
+fn 15 std_core$isize$Display$to_string (isize) -> string
+  local.get 0
+  isize.to_i64
+  call 26
+  return
+end
+
+fn 16 std_core$u8$Display$to_string (u8) -> string
+  local.get 0
+  u8.to_i64
+  call 27
+  return
+end
+
+fn 17 std_core$u16$Display$to_string (u16) -> string
+  local.get 0
+  u16.to_i64
+  call 27
+  return
+end
+
+fn 18 std_core$u32$Display$to_string (u32) -> string
+  local.get 0
+  u32.to_i64
+  call 27
+  return
+end
+
+fn 19 std_core$u64$Display$to_string (u64) -> string
+  local.get 0
+  call 27
+  return
+end
+
+fn 20 std_core$usize$Display$to_string (usize) -> string
+  local.get 0
+  usize.to_i64
+  call 27
+  return
+end
+
+fn 21 std_core$bool$Display$to_string (bool) -> string
+  local if_res string
+  local.get 0
+  if $L0 void
+    string.const 21
+    local.set 1
+  else
+    string.const 22
+    local.set 1
+  end $L0
+  local.get 1
+  return
+end
+
+fn 22 std_core$char$Display$to_string (char) -> string
+  local.get 0
+  call 28
+  call.import 1
+  return
+end
+
+fn 23 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 24 std_core$f32$Display$to_string (f32) -> string
+  local.get 0
+  call 29
+  return
+end
+
+fn 25 std_core$f64$Display$to_string (f64) -> string
+  local.get 0
+  call 30
+  return
+end
+
+fn 26 std_core$format_signed (i64) -> string
+  local neg bool
+  local ndigits usize
+  local m i64
+  local total usize
+  local buf ref
+  local $cast_33 u8
+  local $add_34 u8
+  local.get 0
+  i64.const 0
+  i64.eq
+  if $L0 void
+    return.lit string.const 23
+  end $L0
+  local.get 0
+  i64.const 0
+  i64.lt
+  local.set 1
+  local.get 0
+  i64.const 0
+  i64.gt
+  if $L1 void
+    local.get 0
+    i64.neg
+    local.set 0
+  else
+  end $L1
+  i64.const 0
+  local.set 2
+  local.get 0
+  local.set 3
+  block $L2 void
+    loop $L3 void
+      local.get 3
+      i64.const 0
+      i64.ne
+      if $L4 void
+        local.get 2
+        i64.const 1
+        i64.add
+        local.set 2
+        local.get 3
+        i64.const 10
+        i64.div
+        local.set 3
+        br $L3
+      else
+      end $L4
+    end $L3
+  end $L2
+  local.get 1
+  if $L5 void
+    local.get 2
+    i64.const 1
+    i64.add
+    local.set 4
+  else
+    local.get 2
+    local.set 4
+  end $L5
+  local.get 4
+  call 57
+  local.set 5
+  local.get 4
+  local.set 2
+  block $L6 void
+    loop $L7 void
+      local.get 0
+      i64.const 0
+      i64.ne
+      if $L8 void
+        local.get 2
+        i64.const 1
+        i64.sub
+        local.set 2
+        local.get 0
+        i64.const 10
+        i64.rem
+        i64.neg
+        i64.to_i32
+        local.set 6
+        i32.const 48
+        local.get 6
+        i32.add
+        local.set 7
+        local.get 5
+        local.get 2
+        local.get 7
+        call 58
+        local.get 0
+        i64.const 10
+        i64.div
+        local.set 0
+        br $L7
+      else
+      end $L8
+    end $L7
+  end $L6
+  local.get 1
+  if $L9 void
+    local.get 5
+    i64.const 0
+    i32.const 45
+    call 58
+  else
+  end $L9
+  local.get 5
+  local.get 4
+  call 59
+  return
+end
+
+fn 27 std_core$format_unsigned (u64) -> string
+  local ndigits usize
+  local m u64
+  local buf ref
+  local i usize
+  local $cast_23 u8
+  local $add_24 u8
+  local.get 0
+  i64.const 0
+  i64.eq
+  if $L0 void
+    return.lit string.const 23
+  end $L0
+  i64.const 0
+  local.set 1
+  local.get 0
+  local.set 2
+  block $L1 void
+    loop $L2 void
+      local.get 2
+      i64.const 0
+      i64.ne
+      if $L3 void
+        local.get 1
+        i64.const 1
+        i64.add
+        local.set 1
+        local.get 2
+        i64.const 10
+        u64.div
+        local.set 2
+        br $L2
+      else
+      end $L3
+    end $L2
+  end $L1
+  local.get 1
+  call 57
+  local.set 3
+  local.get 1
+  local.set 4
+  block $L4 void
+    loop $L5 void
+      local.get 0
+      i64.const 0
+      i64.ne
+      if $L6 void
+        local.get 4
+        i64.const 1
+        i64.sub
+        local.set 4
+        local.get 0
+        i64.const 10
+        u64.rem
+        u64.to_i32
+        local.set 5
+        i32.const 48
+        local.get 5
+        i32.add
+        local.set 6
+        local.get 3
+        local.get 4
+        local.get 6
+        call 58
+        local.get 0
+        i64.const 10
+        u64.div
+        local.set 0
+        br $L5
+      else
+      end $L6
+    end $L5
+  end $L4
+  local.get 3
+  local.get 1
+  call 59
+  return
+end
+
+fn 28 std_core$utf8_encode (char) -> ref
+  local cp u32
+  local out ref
+  local $cast_7 u8
+  local $shr_12 u32
+  local.get 0
+  char.to_i32
+  local.set 1
+  array.new 19 0
+  local.set 2
+  local.get 1
+  i32.const 128
+  u32.lt
+  if $L0 void
+    local.get 1
+    u32.to_i32
+    local.set 3
+    local.get 2
+    local.get 3
+    array.push 13
+  else
+    local.get 1
+    i32.const 2048
+    u32.lt
+    if $L1 void
+      local.get 1
+      i32.const 6
+      u32.shr
+      local.set 4
+      i32.const 192
+      local.get 4
+      i32.bitor
+      u32.to_i32
+      local.set 3
+      local.get 2
+      local.get 3
+      array.push 13
+      local.get 1
+      i32.const 63
+      i32.bitand
+      local.set 4
+      i32.const 128
+      local.get 4
+      i32.bitor
+      u32.to_i32
+      local.set 3
+      local.get 2
+      local.get 3
+      array.push 13
+    else
+      local.get 1
+      i32.const 65536
+      u32.lt
+      if $L2 void
+        local.get 1
+        i32.const 12
+        u32.shr
+        local.set 4
+        i32.const 224
+        local.get 4
+        i32.bitor
+        u32.to_i32
+        local.set 3
+        local.get 2
+        local.get 3
+        array.push 13
+        local.get 1
+        i32.const 6
+        u32.shr
+        i32.const 63
+        i32.bitand
+        local.set 4
+        i32.const 128
+        local.get 4
+        i32.bitor
+        u32.to_i32
+        local.set 3
+        local.get 2
+        local.get 3
+        array.push 13
+        local.get 1
+        i32.const 63
+        i32.bitand
+        local.set 4
+        i32.const 128
+        local.get 4
+        i32.bitor
+        u32.to_i32
+        local.set 3
+        local.get 2
+        local.get 3
+        array.push 13
+      else
+        local.get 1
+        i32.const 18
+        u32.shr
+        local.set 4
+        i32.const 240
+        local.get 4
+        i32.bitor
+        u32.to_i32
+        local.set 3
+        local.get 2
+        local.get 3
+        array.push 13
+        local.get 1
+        i32.const 12
+        u32.shr
+        i32.const 63
+        i32.bitand
+        local.set 4
+        i32.const 128
+        local.get 4
+        i32.bitor
+        u32.to_i32
+        local.set 3
+        local.get 2
+        local.get 3
+        array.push 13
+        local.get 1
+        i32.const 6
+        u32.shr
+        i32.const 63
+        i32.bitand
+        local.set 4
+        i32.const 128
+        local.get 4
+        i32.bitor
+        u32.to_i32
+        local.set 3
+        local.get 2
+        local.get 3
+        array.push 13
+        local.get 1
+        i32.const 63
+        i32.bitand
+        local.set 1
+        i32.const 128
+        local.get 1
+        i32.bitor
+        u32.to_i32
+        local.set 3
+        local.get 2
+        local.get 3
+        array.push 13
+      end $L2
+    end $L1
+  end $L0
+  local.get 2
+  return
+end
+
+fn 29 std_core$format_f32 (f32) -> string
+  local bits u32
+  local sign bool
+  local mantissa u32
+  local if_res string
+  local and_res bool
+  local d ref
+  local $cast_36 u64
+  local $field_37 i32
+  local.get 0
+  call 62
+  local.tee 1
+  i32.const 31
+  u32.shr
+  i32.const 0
+  i32.ne
+  local.set 2
+  local.get 1
+  i32.const 8388607
+  i32.bitand
+  local.set 3
+  local.get 1
+  i32.const 23
+  u32.shr
+  i32.const 255
+  i32.bitand
+  local.tee 1
+  i32.const 255
+  i32.eq
+  if $L0 void
+    local.get 3
+    i32.const 0
+    i32.ne
+    if $L1 void
+      return.lit string.const 24
+    end $L1
+    local.get 2
+    if $L2 void
+      string.const 25
+      local.set 4
+    else
+      string.const 26
+      local.set 4
+    end $L2
+    local.get 4
+    return
+  end $L0
+  local.get 1
+  i32.const 0
+  i32.eq
+  if $L3 void
+    local.get 3
+    i32.const 0
+    i32.eq
+    local.set 5
+  else
+    bool.const false
+    local.set 5
+  end $L3
+  local.get 5
+  if $L4 void
+    local.get 2
+    if $L5 void
+      string.const 27
+      local.set 4
+    else
+      string.const 28
+      local.set 4
+    end $L5
+    local.get 4
+    return
+  end $L4
+  local.get 3
+  local.get 1
+  call 31
+  local.set 6
+  local.field 6 20 0
+  ref.cast 15
+  u32.to_i64
+  local.set 7
+  local.field 6 20 1
+  ref.cast 3
+  local.set 8
+  local.get 7
+  local.get 8
+  local.get 2
+  call 32
+  return
+end
+
+fn 30 std_core$format_f64 (f64) -> string
+  local bits u64
+  local sign bool
+  local mantissa u64
+  local if_res string
+  local and_res bool
+  local d ref
+  local $field_36 i32
+  local.get 0
+  call 61
+  local.tee 1
+  i64.const 63
+  u64.shr
+  i64.const 0
+  i64.ne
+  local.set 2
+  local.get 1
+  i64.const 4503599627370495
+  i64.bitand
+  local.set 3
+  local.get 1
+  i64.const 52
+  u64.shr
+  i64.const 2047
+  i64.bitand
+  local.tee 1
+  i64.const 2047
+  i64.eq
+  if $L0 void
+    local.get 3
+    i64.const 0
+    i64.ne
+    if $L1 void
+      return.lit string.const 24
+    end $L1
+    local.get 2
+    if $L2 void
+      string.const 25
+      local.set 4
+    else
+      string.const 26
+      local.set 4
+    end $L2
+    local.get 4
+    return
+  end $L0
+  local.get 1
+  i64.const 0
+  i64.eq
+  if $L3 void
+    local.get 3
+    i64.const 0
+    i64.eq
+    local.set 5
+  else
+    bool.const false
+    local.set 5
+  end $L3
+  local.get 5
+  if $L4 void
+    local.get 2
+    if $L5 void
+      string.const 27
+      local.set 4
+    else
+      string.const 28
+      local.set 4
+    end $L5
+    local.get 4
+    return
+  end $L4
+  local.get 3
+  local.get 1
+  call 33
+  local.set 6
+  local.field 6 21 0
+  ref.cast 9
+  local.set 1
+  local.field 6 21 1
+  ref.cast 3
+  local.set 7
+  local.get 1
+  local.get 7
+  local.get 2
+  call 32
+  return
+end
+
+fn 31 std_core$f2d (u32,u32) -> ref
+  local e2 i32
+  local m2 u32
+  local accept_bounds bool
+  local mv u32
+  local mp u32
+  local or_res bool
+  local mm_shift u32
+  local vr u32
+  local vp u32
+  local vm u32
+  local e10 i32
+  local vr_is_tz bool
+  local last_removed_digit u32
+  local q i32
+  local $call_73 i32
+  local and_res bool
+  local $div_91 u32
+  local $div_93 u32
+  local $sub_105 i32
+  local $sub_158 i32
+  local and_res bool
+  local.get 1
+  i32.const 0
+  i32.eq
+  if $L0 void
+    i32.const -126
+    i32.const 23
+    i32.sub
+    i32.const 2
+    i32.sub
+    local.set 2
+    local.get 0
+    local.set 3
+  else
+    local.get 1
+    u32.to_i32
+    i32.const 127
+    i32.sub
+    i32.const 23
+    i32.sub
+    i32.const 2
+    i32.sub
+    local.set 2
+    i32.const 1
+    i32.const 23
+    i32.shl
+    local.get 0
+    i32.bitor
+    local.set 3
+  end $L0
+  local.get 3
+  i32.const 1
+  i32.bitand
+  i32.const 0
+  i32.eq
+  local.set 4
+  local.get 3
+  i32.const 4
+  i32.mul
+  local.set 5
+  local.get 3
+  i32.const 4
+  i32.mul
+  i32.const 2
+  i32.add
+  local.set 6
+  local.get 0
+  i32.const 0
+  i32.ne
+  if $L1 void
+    bool.const true
+    local.set 7
+  else
+    local.get 1
+    i32.const 1
+    u32.le
+    local.set 7
+  end $L1
+  local.get 7
+  call 34
+  local.set 8
+  local.get 3
+  i32.const 4
+  i32.mul
+  i32.const 1
+  i32.sub
+  local.get 8
+  i32.sub
+  local.set 3
+  bool.const false
+  local.set 7
+  bool.const false
+  local.set 13
+  i32.const 0
+  local.set 14
+  local.get 2
+  i32.const 0
+  i32.ge
+  if $L2 void
+    local.get 2
+    call 35
+    local.tee 15
+    local.set 12
+    local.get 15
+    call 36
+    local.set 16
+    i32.const 59
+    local.get 16
+    i32.add
+    i32.const 1
+    i32.sub
+    local.set 16
+    local.get 2
+    i32.neg
+    local.get 15
+    i32.add
+    local.get 16
+    i32.add
+    local.set 16
+    local.get 5
+    local.get 15
+    local.get 16
+    call 37
+    local.set 9
+    local.get 6
+    local.get 15
+    local.get 16
+    call 37
+    local.set 10
+    local.get 3
+    local.get 15
+    local.get 16
+    call 37
+    local.set 11
+    local.get 15
+    i32.const 0
+    i32.ne
+    if $L3 void
+      local.get 10
+      i32.const 1
+      i32.sub
+      i32.const 10
+      u32.div
+      local.set 18
+      local.get 11
+      i32.const 10
+      u32.div
+      local.set 19
+      local.get 18
+      local.get 19
+      u32.le
+      local.set 17
+    else
+      bool.const false
+      local.set 17
+    end $L3
+    local.get 17
+    if $L4 void
+      local.get 15
+      i32.const 1
+      i32.sub
+      call 36
+      local.set 16
+      i32.const 59
+      local.get 16
+      i32.add
+      i32.const 1
+      i32.sub
+      local.set 16
+      local.get 15
+      i32.const 1
+      i32.sub
+      local.set 20
+      local.get 2
+      i32.neg
+      local.get 15
+      i32.add
+      i32.const 1
+      i32.sub
+      local.get 16
+      i32.add
+      local.set 16
+      local.get 5
+      local.get 20
+      local.get 16
+      call 37
+      i32.const 10
+      u32.rem
+      local.set 14
+    else
+    end $L4
+    local.get 15
+    i32.const 9
+    i32.le
+    if $L5 void
+      local.get 5
+      i32.const 5
+      u32.rem
+      i32.const 0
+      i32.eq
+      if $L6 void
+        local.get 5
+        local.get 15
+        call 38
+        local.set 13
+      else
+        local.get 4
+        if $L7 void
+          local.get 3
+          local.get 15
+          call 38
+          local.set 7
+        else
+          local.get 6
+          local.get 15
+          call 38
+          call 34
+          local.set 18
+          local.get 10
+          local.get 18
+          i32.sub
+          local.set 10
+        end $L7
+      end $L6
+    else
+    end $L5
+  else
+    local.get 2
+    i32.neg
+    call 39
+    local.tee 15
+    local.get 2
+    i32.add
+    local.set 12
+    local.get 2
+    i32.neg
+    local.get 15
+    i32.sub
+    local.tee 2
+    call 36
+    i32.const 61
+    i32.sub
+    local.set 16
+    local.get 15
+    local.get 16
+    i32.sub
+    local.set 16
+    local.get 5
+    local.get 2
+    local.get 16
+    call 40
+    local.set 9
+    local.get 6
+    local.get 2
+    local.get 16
+    call 40
+    local.set 10
+    local.get 3
+    local.get 2
+    local.get 16
+    call 40
+    local.set 11
+    local.get 15
+    i32.const 0
+    i32.ne
+    if $L8 void
+      local.get 10
+      i32.const 1
+      i32.sub
+      i32.const 10
+      u32.div
+      local.set 3
+      local.get 11
+      i32.const 10
+      u32.div
+      local.set 6
+      local.get 3
+      local.get 6
+      u32.le
+      local.set 17
+    else
+      bool.const false
+      local.set 17
+    end $L8
+    local.get 17
+    if $L9 void
+      local.get 15
+      i32.const 1
+      i32.sub
+      local.set 20
+      local.get 2
+      i32.const 1
+      i32.add
+      call 36
+      i32.const 61
+      i32.sub
+      local.set 21
+      local.get 20
+      local.get 21
+      i32.sub
+      local.set 16
+      local.get 2
+      i32.const 1
+      i32.add
+      local.set 2
+      local.get 5
+      local.get 2
+      local.get 16
+      call 40
+      i32.const 10
+      u32.rem
+      local.set 14
+    else
+    end $L9
+    local.get 15
+    i32.const 1
+    i32.le
+    if $L10 void
+      bool.const true
+      local.set 13
+      local.get 4
+      if $L11 void
+        local.get 8
+        i32.const 1
+        i32.eq
+        local.set 7
+      else
+        local.get 10
+        i32.const 1
+        i32.sub
+        local.set 10
+      end $L11
+    else
+      local.get 15
+      i32.const 31
+      i32.lt
+      if $L12 void
+        local.get 15
+        i32.const 1
+        i32.sub
+        local.set 2
+        local.get 5
+        local.get 2
+        call 41
+        local.set 13
+      else
+      end $L12
+    end $L10
+  end $L2
+  i32.const 0
+  local.set 2
+  local.get 7
+  if $L13 void
+    bool.const true
+    local.set 17
+  else
+    local.get 13
+    local.set 17
+  end $L13
+  local.get 17
+  if $L14 void
+    block $L15 void
+      loop $L16 void
+        local.get 10
+        i32.const 10
+        u32.div
+        local.set 5
+        local.get 11
+        i32.const 10
+        u32.div
+        local.set 6
+        local.get 5
+        local.get 6
+        u32.gt
+        if $L17 void
+          local.get 7
+          if $L18 void
+            local.get 11
+            i32.const 10
+            u32.rem
+            i32.const 0
+            i32.eq
+            local.set 17
+          else
+            bool.const false
+            local.set 17
+          end $L18
+          local.get 17
+          local.set 7
+          local.get 13
+          if $L19 void
+            local.get 14
+            i32.const 0
+            i32.eq
+            local.set 22
+          else
+            bool.const false
+            local.set 22
+          end $L19
+          local.get 22
+          local.set 13
+          local.get 9
+          i32.const 10
+          u32.rem
+          local.set 14
+          local.get 9
+          i32.const 10
+          u32.div
+          local.set 9
+          local.get 10
+          i32.const 10
+          u32.div
+          local.set 10
+          local.get 11
+          i32.const 10
+          u32.div
+          local.set 11
+          local.get 2
+          i32.const 1
+          i32.add
+          local.set 2
+          br $L16
+        else
+        end $L17
+      end $L16
+    end $L15
+    local.get 7
+    if $L20 void
+      block $L21 void
+        loop $L22 void
+          local.get 11
+          i32.const 10
+          u32.rem
+          i32.const 0
+          i32.eq
+          if $L23 void
+            local.get 13
+            if $L24 void
+              local.get 14
+              i32.const 0
+              i32.eq
+              local.set 17
+            else
+              bool.const false
+              local.set 17
+            end $L24
+            local.get 17
+            local.set 13
+            local.get 9
+            i32.const 10
+            u32.rem
+            local.set 14
+            local.get 9
+            i32.const 10
+            u32.div
+            local.set 9
+            local.get 10
+            i32.const 10
+            u32.div
+            local.set 10
+            local.get 11
+            i32.const 10
+            u32.div
+            local.set 11
+            local.get 2
+            i32.const 1
+            i32.add
+            local.set 2
+            br $L22
+          else
+          end $L23
+        end $L22
+      end $L21
+    else
+    end $L20
+    local.get 13
+    if $L25 void
+      local.get 14
+      i32.const 5
+      i32.eq
+      local.set 13
+    else
+      bool.const false
+      local.set 13
+    end $L25
+    local.get 13
+    if $L26 void
+      local.get 9
+      i32.const 2
+      u32.rem
+      i32.const 0
+      i32.eq
+      local.set 13
+    else
+      bool.const false
+      local.set 13
+    end $L26
+    local.get 13
+    if $L27 void
+      i32.const 4
+      local.set 14
+    else
+    end $L27
+    local.get 9
+    local.get 11
+    i32.eq
+    if $L28 void
+      local.get 4
+      bool.not
+      if $L29 void
+        bool.const true
+        local.set 13
+      else
+        local.get 7
+        bool.not
+        local.set 13
+      end $L29
+      local.get 13
+      local.set 7
+    else
+      bool.const false
+      local.set 7
+    end $L28
+    local.get 7
+    if $L30 void
+      bool.const true
+      local.set 4
+    else
+      local.get 14
+      i32.const 5
+      u32.ge
+      local.set 4
+    end $L30
+    local.get 4
+    call 34
+    local.set 5
+    local.get 9
+    local.get 5
+    i32.add
+    local.set 3
+  else
+    block $L31 void
+      loop $L32 void
+        local.get 10
+        i32.const 10
+        u32.div
+        local.set 5
+        local.get 11
+        i32.const 10
+        u32.div
+        local.set 6
+        local.get 5
+        local.get 6
+        u32.gt
+        if $L33 void
+          local.get 9
+          i32.const 10
+          u32.rem
+          local.set 14
+          local.get 9
+          i32.const 10
+          u32.div
+          local.set 9
+          local.get 10
+          i32.const 10
+          u32.div
+          local.set 10
+          local.get 11
+          i32.const 10
+          u32.div
+          local.set 11
+          local.get 2
+          i32.const 1
+          i32.add
+          local.set 2
+          br $L32
+        else
+        end $L33
+      end $L32
+    end $L31
+    local.get 9
+    local.get 11
+    i32.eq
+    if $L34 void
+      bool.const true
+      local.set 4
+    else
+      local.get 14
+      i32.const 5
+      u32.ge
+      local.set 4
+    end $L34
+    local.get 4
+    call 34
+    local.set 5
+    local.get 9
+    local.get 5
+    i32.add
+    local.set 3
+  end $L14
+  local.get 12
+  local.get 2
+  i32.add
+  local.set 2
+  local.get 3
+  local.get 2
+  struct.new 20
+  return
+end
+
+fn 32 std_core$render (u64,i32,bool) -> string
+  local mantissa u64
+  local exp i32
+  local parts ref
+  local k i32
+  local body string
+  local if_res string
+  local.get 0
+  local.set 3
+  local.get 1
+  local.set 4
+  block $L0 void
+    loop $L1 void
+      local.get 3
+      i64.const 10
+      u64.rem
+      i64.const 0
+      i64.eq
+      if $L2 void
+        local.get 3
+        i64.const 10
+        u64.div
+        local.set 3
+        local.get 4
+        i32.const 1
+        i32.add
+        local.set 4
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
+  local.get 3
+  call 42
+  local.tee 5
+  array.len
+  usize.to_i32
+  local.set 6
+  local.get 4
+  local.get 6
+  i32.add
+  local.set 4
+  local.get 5
+  local.get 6
+  local.get 4
+  call 43
+  local.set 7
+  local.get 2
+  if $L3 void
+    string.const 29
+    local.get 7
+    call 2
+    local.set 8
+  else
+    local.get 7
+    local.set 8
+  end $L3
+  local.get 8
+  return
+end
+
+fn 33 std_core$d2d (u64,u64) -> ref
+  local e2 i32
+  local m2 u64
+  local accept_bounds bool
+  local mv u64
+  local or_res bool
+  local mm_shift u64
+  local vr u64
+  local vp u64
+  local vm u64
+  local e10 i32
+  local vr_is_tz bool
+  local $call_60 i32
+  local $call_64 i32
+  local $data_const_73 ref
+  local $cast_74 usize
+  local $mul_92 u64
+  local $idx_130 u64
+  local or_res bool
+  local vr_div10 u64
+  local $mul_172 u64
+  local vr_mod10 u64
+  local and_res bool
+  local.get 1
+  i64.const 0
+  i64.eq
+  if $L0 void
+    i32.const -1022
+    i32.const 52
+    i32.sub
+    i32.const 2
+    i32.sub
+    local.set 2
+    local.get 0
+    local.set 3
+  else
+    local.get 1
+    u64.to_i32
+    i32.const 1023
+    i32.sub
+    i32.const 52
+    i32.sub
+    i32.const 2
+    i32.sub
+    local.set 2
+    i64.const 1
+    i64.const 52
+    i64.shl
+    local.get 0
+    i64.bitor
+    local.set 3
+  end $L0
+  local.get 3
+  i64.const 1
+  i64.bitand
+  i64.const 0
+  i64.eq
+  local.set 4
+  local.get 3
+  i64.const 4
+  i64.mul
+  local.set 5
+  local.get 0
+  i64.const 0
+  i64.ne
+  if $L1 void
+    bool.const true
+    local.set 6
+  else
+    local.get 1
+    i64.const 1
+    u64.le
+    local.set 6
+  end $L1
+  local.get 6
+  call 44
+  local.set 7
+  bool.const false
+  local.set 6
+  bool.const false
+  local.set 12
+  local.get 2
+  i32.const 0
+  i32.ge
+  if $L2 void
+    local.get 2
+    call 35
+    local.set 11
+    local.get 2
+    i32.const 3
+    i32.gt
+    call 45
+    local.set 13
+    local.get 11
+    local.get 13
+    i32.sub
+    local.tee 13
+    local.set 11
+    local.get 13
+    call 36
+    local.set 14
+    i32.const 125
+    local.get 14
+    i32.add
+    i32.const 1
+    i32.sub
+    local.set 14
+    local.get 2
+    i32.neg
+    local.get 13
+    i32.add
+    local.get 14
+    i32.add
+    local.set 14
+    data.const 7 29
+    local.set 15
+    local.get 13
+    i32.to_i64
+    local.set 16
+    local.get 15
+    local.get 16
+    load_slot_i64
+    local.set 8
+    data.const 8 29
+    local.set 15
+    local.get 13
+    i32.to_i64
+    local.set 16
+    local.get 15
+    local.get 16
+    load_slot_i64
+    local.set 9
+    local.get 3
+    local.get 8
+    local.get 9
+    local.get 14
+    local.get 7
+    call 46
+    local.set 15
+    local.field 15 23 0
+    ref.cast 9
+    local.set 8
+    local.field 15 23 1
+    ref.cast 9
+    local.set 9
+    local.field 15 23 2
+    ref.cast 9
+    local.set 10
+    local.get 13
+    i32.const 21
+    i32.le
+    if $L3 void
+      local.get 5
+      i64.const 5
+      u64.div
+      i64.const 5
+      i64.mul
+      local.set 17
+      local.get 5
+      local.get 17
+      i64.sub
+      i64.const 0
+      i64.eq
+      if $L4 void
+        local.get 5
+        local.get 13
+        call 47
+        local.set 12
+      else
+        local.get 4
+        if $L5 void
+          local.get 5
+          i64.const 1
+          i64.sub
+          local.get 7
+          i64.sub
+          local.get 13
+          call 47
+          local.set 6
+        else
+          local.get 5
+          i64.const 2
+          i64.add
+          local.get 13
+          call 47
+          call 44
+          local.set 17
+          local.get 9
+          local.get 17
+          i64.sub
+          local.set 9
+        end $L5
+      end $L4
+    else
+    end $L3
+  else
+    local.get 2
+    i32.neg
+    call 39
+    local.set 13
+    local.get 2
+    i32.neg
+    i32.const 1
+    i32.gt
+    call 45
+    local.set 14
+    local.get 13
+    local.get 14
+    i32.sub
+    local.tee 13
+    local.get 2
+    i32.add
+    local.set 11
+    local.get 2
+    i32.neg
+    local.get 13
+    i32.sub
+    local.tee 2
+    call 36
+    i32.const 125
+    i32.sub
+    local.set 14
+    local.get 13
+    local.get 14
+    i32.sub
+    local.set 14
+    data.const 9 29
+    local.set 15
+    local.get 2
+    i32.to_i64
+    local.set 16
+    local.get 15
+    local.get 16
+    load_slot_i64
+    local.set 17
+    data.const 10 29
+    local.set 15
+    local.get 2
+    i32.to_i64
+    local.set 16
+    local.get 15
+    local.get 16
+    load_slot_i64
+    local.set 18
+    local.get 3
+    local.get 17
+    local.get 18
+    local.get 14
+    local.get 7
+    call 46
+    local.set 15
+    local.field 15 23 0
+    ref.cast 9
+    local.set 8
+    local.field 15 23 1
+    ref.cast 9
+    local.set 9
+    local.field 15 23 2
+    ref.cast 9
+    local.set 10
+    local.get 13
+    i32.const 1
+    i32.le
+    if $L6 void
+      bool.const true
+      local.set 12
+      local.get 4
+      if $L7 void
+        local.get 7
+        i64.const 1
+        i64.eq
+        local.set 6
+      else
+        local.get 9
+        i64.const 1
+        i64.sub
+        local.set 9
+      end $L7
+    else
+      local.get 13
+      i32.const 63
+      i32.lt
+      if $L8 void
+        local.get 5
+        local.get 13
+        call 48
+        local.set 12
+      else
+      end $L8
+    end $L6
+  end $L2
+  i32.const 0
+  local.set 2
+  i64.const 0
+  local.set 3
+  local.get 6
+  if $L9 void
+    bool.const true
+    local.set 19
+  else
+    local.get 12
+    local.set 19
+  end $L9
+  local.get 19
+  if $L10 void
+    block $L11 void
+      loop $L12 void
+        local.get 9
+        i64.const 10
+        u64.div
+        local.set 5
+        local.get 10
+        i64.const 10
+        u64.div
+        local.set 7
+        local.get 5
+        local.get 7
+        u64.le
+        if $L13 void
+        else
+          local.get 7
+          i64.const 10
+          i64.mul
+          local.set 17
+          local.get 10
+          local.get 17
+          i64.sub
+          local.set 18
+          local.get 8
+          i64.const 10
+          u64.div
+          local.tee 20
+          i64.const 10
+          i64.mul
+          local.set 21
+          local.get 8
+          local.get 21
+          i64.sub
+          local.set 22
+          local.get 6
+          if $L14 void
+            local.get 18
+            i64.const 0
+            i64.eq
+            local.set 19
+          else
+            bool.const false
+            local.set 19
+          end $L14
+          local.get 19
+          local.set 6
+          local.get 12
+          if $L15 void
+            local.get 3
+            i64.const 0
+            i64.eq
+            local.set 23
+          else
+            bool.const false
+            local.set 23
+          end $L15
+          local.get 23
+          local.set 12
+          local.get 22
+          local.set 3
+          local.get 20
+          local.set 8
+          local.get 5
+          local.set 9
+          local.get 7
+          local.set 10
+          local.get 2
+          i32.const 1
+          i32.add
+          local.set 2
+          br $L12
+        end $L13
+      end $L12
+    end $L11
+    local.get 6
+    if $L16 void
+      block $L17 void
+        loop $L18 void
+          local.get 10
+          i64.const 10
+          u64.div
+          local.tee 5
+          i64.const 10
+          i64.mul
+          local.set 7
+          local.get 10
+          local.get 7
+          i64.sub
+          i64.const 0
+          i64.ne
+          if $L19 void
+          else
+            local.get 9
+            i64.const 10
+            u64.div
+            local.set 17
+            local.get 8
+            i64.const 10
+            u64.div
+            local.tee 18
+            i64.const 10
+            i64.mul
+            local.set 20
+            local.get 8
+            local.get 20
+            i64.sub
+            local.set 21
+            local.get 12
+            if $L20 void
+              local.get 3
+              i64.const 0
+              i64.eq
+              local.set 19
+            else
+              bool.const false
+              local.set 19
+            end $L20
+            local.get 19
+            local.set 12
+            local.get 21
+            local.set 3
+            local.get 18
+            local.set 8
+            local.get 17
+            local.set 9
+            local.get 5
+            local.set 10
+            local.get 2
+            i32.const 1
+            i32.add
+            local.set 2
+            br $L18
+          end $L19
+        end $L18
+      end $L17
+    else
+    end $L16
+    local.get 12
+    if $L21 void
+      local.get 3
+      i64.const 5
+      i64.eq
+      local.set 12
+    else
+      bool.const false
+      local.set 12
+    end $L21
+    local.get 12
+    if $L22 void
+      local.get 8
+      i64.const 2
+      u64.rem
+      i64.const 0
+      i64.eq
+      local.set 12
+    else
+      bool.const false
+      local.set 12
+    end $L22
+    local.get 12
+    if $L23 void
+      i64.const 4
+      local.set 3
+    else
+    end $L23
+    local.get 8
+    local.get 10
+    i64.eq
+    if $L24 void
+      local.get 4
+      bool.not
+      if $L25 void
+        bool.const true
+        local.set 12
+      else
+        local.get 6
+        bool.not
+        local.set 12
+      end $L25
+      local.get 12
+      local.set 6
+    else
+      bool.const false
+      local.set 6
+    end $L24
+    local.get 6
+    if $L26 void
+      bool.const true
+      local.set 4
+    else
+      local.get 3
+      i64.const 5
+      u64.ge
+      local.set 4
+    end $L26
+    local.get 4
+    call 44
+    local.set 5
+    local.get 8
+    local.get 5
+    i64.add
+    local.set 3
+  else
+    bool.const false
+    local.set 4
+    local.get 9
+    i64.const 100
+    u64.div
+    local.set 5
+    local.get 10
+    i64.const 100
+    u64.div
+    local.set 7
+    local.get 5
+    local.get 7
+    u64.gt
+    if $L27 void
+      local.get 8
+      i64.const 100
+      u64.div
+      local.tee 17
+      i64.const 100
+      i64.mul
+      local.set 18
+      local.get 8
+      local.get 18
+      i64.sub
+      i64.const 50
+      u64.ge
+      local.set 4
+      local.get 17
+      local.set 8
+      local.get 5
+      local.set 9
+      local.get 7
+      local.set 10
+      local.get 2
+      i32.const 2
+      i32.add
+      local.set 2
+    else
+    end $L27
+    block $L28 void
+      loop $L29 void
+        local.get 9
+        i64.const 10
+        u64.div
+        local.set 5
+        local.get 10
+        i64.const 10
+        u64.div
+        local.set 7
+        local.get 5
+        local.get 7
+        u64.le
+        if $L30 void
+        else
+          local.get 8
+          i64.const 10
+          u64.div
+          local.tee 17
+          i64.const 10
+          i64.mul
+          local.set 18
+          local.get 8
+          local.get 18
+          i64.sub
+          i64.const 5
+          u64.ge
+          local.set 4
+          local.get 17
+          local.set 8
+          local.get 5
+          local.set 9
+          local.get 7
+          local.set 10
+          local.get 2
+          i32.const 1
+          i32.add
+          local.set 2
+          br $L29
+        end $L30
+      end $L29
+    end $L28
+    local.get 8
+    local.get 10
+    i64.eq
+    if $L31 void
+      bool.const true
+      local.set 6
+    else
+      local.get 4
+      local.set 6
+    end $L31
+    local.get 6
+    call 44
+    local.set 5
+    local.get 8
+    local.get 5
+    i64.add
+    local.set 3
+  end $L10
+  local.get 11
+  local.get 2
+  i32.add
+  local.set 2
+  local.get 3
+  local.get 2
+  struct.new 21
+  return
+end
+
+fn 34 std_core$b2u32 (bool) -> u32
+  local if_res u32
+  local.get 0
+  if $L0 void
+    i32.const 1
+    local.set 1
+  else
+    i32.const 0
+    local.set 1
+  end $L0
+  local.get 1
+  return
+end
+
+fn 35 std_core$log10_pow2 (i32) -> i32
+  local.get 0
+  i32.to_i64
+  i64.const 78913
+  i64.mul
+  i64.const 18
+  u64.shr
+  u64.to_i32
+  return
+end
+
+fn 36 std_core$pow5bits (i32) -> i32
+  local.get 0
+  i32.to_i64
+  i64.const 1217359
+  i64.mul
+  i64.const 19
+  u64.shr
+  i64.const 1
+  i64.add
+  u64.to_i32
+  return
+end
+
+fn 37 std_core$mul_pow5_inv_div_pow2 (u32,i32,i32) -> u32
+  local $data_const_3 ref
+  local $cast_4 usize
+  local $idx_5 u64
+  data.const 11 29
+  local.set 3
+  local.get 1
+  i32.to_i64
+  local.set 4
+  local.get 3
+  local.get 4
+  load_slot_i64
+  local.set 5
+  local.get 0
+  local.get 5
+  local.get 2
+  call 49
+  return
+end
+
+fn 38 std_core$multiple_of_power_of_5_32 (u32,i32) -> bool
+  local.get 0
+  call 50
+  local.get 1
+  i32.ge
+  return
+end
+
+fn 39 std_core$log10_pow5 (i32) -> i32
+  local.get 0
+  i32.to_i64
+  i64.const 732923
+  i64.mul
+  i64.const 20
+  u64.shr
+  u64.to_i32
+  return
+end
+
+fn 40 std_core$mul_pow5_div_pow2 (u32,i32,i32) -> u32
+  local $data_const_3 ref
+  local $cast_4 usize
+  local $idx_5 u64
+  data.const 12 29
+  local.set 3
+  local.get 1
+  i32.to_i64
+  local.set 4
+  local.get 3
+  local.get 4
+  load_slot_i64
+  local.set 5
+  local.get 0
+  local.get 5
+  local.get 2
+  call 49
+  return
+end
+
+fn 41 std_core$multiple_of_power_of_2_32 (u32,i32) -> bool
+  local $cast_3 u32
+  local.get 1
+  i32.to_i32
+  local.set 2
+  i32.const 1
+  local.get 2
+  i32.shl
+  i32.const 1
+  i32.sub
+  local.set 2
+  local.get 0
+  local.get 2
+  i32.bitand
+  i32.const 0
+  i32.eq
+  return
+end
+
+fn 42 std_core$digits_of (u64) -> ref
+  local rev ref
+  local m u64
+  local $data_const_10 ref
+  local $cast_13 usize
+  local $idx_14 string
+  local i usize
+  local $sub_26 usize
+  local.get 0
+  i64.const 0
+  i64.eq
+  if $L0 void
+    string.const 23
+    array.new 22 1
+    return
+  end $L0
+  array.new 22 0
+  local.set 1
+  local.get 0
+  local.set 2
+  block $L1 void
+    loop $L2 void
+      local.get 2
+      i64.const 0
+      i64.ne
+      if $L3 void
+        data.const 13 22
+        local.set 3
+        local.get 2
+        i64.const 10
+        u64.rem
+        u64.to_i64
+        local.set 4
+        local.get 3
+        local.get 4
+        array.get 22
+        ref.cast 4
+        local.set 5
+        local.get 1
+        local.get 5
+        array.push 4
+        local.get 2
+        i64.const 10
+        u64.div
+        local.set 2
+        br $L2
+      else
+      end $L3
+    end $L2
+  end $L1
+  array.new 22 0
+  local.set 3
+  local.get 1
+  array.len
+  local.set 4
+  i64.const 0
+  local.set 6
+  block $L4 void
+    loop $L5 void
+      local.get 6
+      local.get 4
+      u64.lt
+      if $L6 void
+        local.get 4
+        i64.const 1
+        i64.sub
+        local.get 6
+        i64.sub
+        local.set 7
+        local.get 1
+        local.get 7
+        array.get 22
+        ref.cast 4
+        local.set 5
+        local.get 3
+        local.get 5
+        array.push 4
+        local.get 6
+        i64.const 1
+        i64.add
+        local.set 6
+        br $L5
+      else
+      end $L6
+    end $L5
+  end $L4
+  local.get 3
+  return
+end
+
+fn 43 std_core$format_decimal (ref,i32,i32) -> string
+  local and_res bool
+  local $call_9 string
+  local $call_11 string
+  local e i32
+  local exp_abs i32
+  local $call_62 string
+  local.get 1
+  local.get 2
+  i32.le
+  if $L0 void
+    local.get 2
+    i32.const 21
+    i32.le
+    local.set 3
+  else
+    bool.const false
+    local.set 3
+  end $L0
+  local.get 3
+  if $L1 void
+    local.get 0
+    i32.const 0
+    local.get 1
+    call 51
+    local.set 4
+    local.get 2
+    local.get 1
+    i32.sub
+    call 52
+    local.set 5
+    local.get 4
+    local.get 5
+    string.const 30
+    call 3
+    return
+  end $L1
+  i32.const 0
+  local.get 2
+  i32.lt
+  if $L2 void
+    local.get 2
+    i32.const 21
+    i32.le
+    local.set 3
+  else
+    bool.const false
+    local.set 3
+  end $L2
+  local.get 3
+  if $L3 void
+    local.get 0
+    i32.const 0
+    local.get 2
+    call 51
+    local.set 4
+    local.get 0
+    local.get 2
+    local.get 1
+    call 51
+    local.set 5
+    local.get 4
+    string.const 31
+    local.get 5
+    call 3
+    return
+  end $L3
+  i32.const 6
+  i32.neg
+  local.get 2
+  i32.lt
+  if $L4 void
+    local.get 2
+    i32.const 0
+    i32.le
+    local.set 3
+  else
+    bool.const false
+    local.set 3
+  end $L4
+  local.get 3
+  if $L5 void
+    local.get 2
+    i32.neg
+    call 52
+    local.set 4
+    local.get 0
+    i32.const 0
+    local.get 1
+    call 51
+    local.set 5
+    string.const 32
+    local.get 4
+    local.get 5
+    call 3
+    return
+  end $L5
+  local.get 2
+  i32.const 1
+  i32.sub
+  local.set 6
+  local.get 0
+  i32.const 0
+  i32.const 1
+  call 51
+  local.set 4
+  local.get 1
+  i32.const 1
+  i32.gt
+  if $L6 void
+    local.get 0
+    i32.const 1
+    local.get 1
+    call 51
+    local.set 5
+    local.get 4
+    string.const 31
+    local.get 5
+    call 3
+    local.set 4
+  else
+  end $L6
+  local.get 6
+  i32.const 0
+  i32.lt
+  if $L7 void
+    string.const 29
+    local.set 5
+  else
+    string.const 33
+    local.set 5
+  end $L7
+  local.get 6
+  i32.const 0
+  i32.lt
+  if $L8 void
+    local.get 6
+    i32.neg
+    local.set 7
+  else
+    local.get 6
+    local.set 7
+  end $L8
+  local.get 7
+  i32.to_i64
+  call 27
+  local.set 8
+  local.get 4
+  string.const 34
+  local.get 5
+  local.get 8
   call 4
   return
 end
 
-fn 8 std_io$println__string (string) -> void
-  i32.const 0
+fn 44 std_core$b2u (bool) -> u64
+  local if_res u64
   local.get 0
-  call.import 1
-  i32.const 0
-  string.const 18
-  call.import 1
+  if $L0 void
+    i64.const 1
+    local.set 1
+  else
+    i64.const 0
+    local.set 1
+  end $L0
+  local.get 1
   return
 end
 
-fn 9 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 45 std_core$b2i (bool) -> i32
+  local if_res i32
+  local.get 0
+  if $L0 void
+    i32.const 1
+    local.set 1
+  else
+    i32.const 0
+    local.set 1
+  end $L0
+  local.get 1
+  return
+end
+
+fn 46 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
+  local m u64
+  local __tup_0 ref
+  local tmp u64
+  local lo u64
+  local lo1 u64
+  local $add_28 u64
+  local $cast_41 u64
+  local $sub_50 u64
+  local $cast_63 u64
+  local $sub_79 u64
+  local.get 0
+  i64.const 1
+  i64.shl
+  local.tee 5
+  local.get 1
+  call 53
+  local.set 6
+  local.field 6 24 0
+  ref.cast 9
+  local.set 7
+  local.field 6 24 1
+  ref.cast 9
+  local.set 8
+  local.get 5
+  local.get 2
+  call 53
+  local.set 6
+  local.field 6 24 0
+  ref.cast 9
+  local.set 5
+  local.field 6 24 1
+  ref.cast 9
+  local.set 9
+  local.get 7
+  local.get 9
+  i64.add
+  local.tee 9
+  local.get 7
+  u64.lt
+  call 44
+  local.set 7
+  local.get 5
+  local.get 7
+  i64.add
+  local.set 5
+  local.get 8
+  local.get 1
+  i64.add
+  local.set 7
+  local.get 9
+  local.get 2
+  i64.add
+  local.set 10
+  local.get 7
+  local.get 8
+  u64.lt
+  call 44
+  local.set 7
+  local.get 10
+  local.get 7
+  i64.add
+  local.tee 7
+  local.get 9
+  u64.lt
+  call 44
+  local.set 10
+  local.get 5
+  local.get 10
+  i64.add
+  local.set 10
+  local.get 3
+  i32.const 64
+  i32.sub
+  i32.const 1
+  i32.sub
+  i32.to_i64
+  local.set 11
+  local.get 7
+  local.get 10
+  local.get 11
+  call 54
+  local.set 7
+  local.get 4
+  i64.const 1
+  i64.eq
+  if $L0 void
+    local.get 8
+    local.get 1
+    i64.sub
+    local.set 11
+    local.get 9
+    local.get 2
+    i64.sub
+    local.set 12
+    local.get 11
+    local.get 8
+    u64.gt
+    call 44
+    local.set 11
+    local.get 12
+    local.get 11
+    i64.sub
+    local.tee 11
+    local.get 9
+    u64.gt
+    call 44
+    local.set 12
+    local.get 5
+    local.get 12
+    i64.sub
+    local.set 12
+    local.get 3
+    i32.const 64
+    i32.sub
+    i32.const 1
+    i32.sub
+    i32.to_i64
+    local.set 13
+    local.get 11
+    local.get 12
+    local.get 13
+    call 54
+    local.set 10
+  else
+    local.get 8
+    local.get 8
+    i64.add
+    local.set 11
+    local.get 9
+    local.get 9
+    i64.add
+    local.set 12
+    local.get 11
+    local.get 8
+    u64.lt
+    call 44
+    local.set 8
+    local.get 12
+    local.get 8
+    i64.add
+    local.set 8
+    local.get 5
+    local.get 5
+    i64.add
+    local.set 12
+    local.get 8
+    local.get 9
+    u64.lt
+    call 44
+    local.set 13
+    local.get 12
+    local.get 13
+    i64.add
+    local.set 12
+    local.get 11
+    local.get 1
+    i64.sub
+    local.set 13
+    local.get 8
+    local.get 2
+    i64.sub
+    local.set 14
+    local.get 13
+    local.get 11
+    u64.gt
+    call 44
+    local.set 11
+    local.get 14
+    local.get 11
+    i64.sub
+    local.tee 11
+    local.get 8
+    u64.gt
+    call 44
+    local.set 8
+    local.get 12
+    local.get 8
+    i64.sub
+    local.set 8
+    local.get 3
+    i32.const 64
+    i32.sub
+    i32.to_i64
+    local.set 12
+    local.get 11
+    local.get 8
+    local.get 12
+    call 54
+    local.set 10
+  end $L0
+  local.get 3
+  i32.const 64
+  i32.sub
+  i32.const 1
+  i32.sub
+  i32.to_i64
+  local.set 8
+  local.get 9
+  local.get 5
+  local.get 8
+  call 54
+  local.get 7
+  local.get 10
+  struct.new 23
+  return
+end
+
+fn 47 std_core$multiple_of_power_of_5 (u64,i32) -> bool
+  local.get 0
+  call 55
+  local.get 1
+  i32.ge
+  return
+end
+
+fn 48 std_core$multiple_of_power_of_2 (u64,i32) -> bool
+  local $cast_3 u64
+  local.get 1
+  i32.to_i64
+  local.set 2
+  i64.const 1
+  local.get 2
+  i64.shl
+  i64.const 1
+  i64.sub
+  local.set 2
+  local.get 0
+  local.get 2
+  i64.bitand
+  i64.const 0
+  i64.eq
+  return
+end
+
+fn 49 std_core$mul_shift_32 (u32,u64,i32) -> u32
+  local factor_lo u64
+  local factor_hi u64
+  local.get 1
+  i64.const 4294967295
+  i64.bitand
+  local.set 3
+  local.get 1
+  i64.const 32
+  u64.shr
+  local.set 4
+  local.get 0
+  u32.to_i64
+  local.get 3
+  i64.mul
+  local.set 3
+  local.get 0
+  u32.to_i64
+  local.get 4
+  i64.mul
+  local.set 4
+  local.get 3
+  i64.const 32
+  u64.shr
+  local.get 4
+  i64.add
+  local.set 3
+  local.get 2
+  i32.const 32
+  i32.sub
+  i32.to_i64
+  local.set 4
+  local.get 3
+  local.get 4
+  u64.shr
+  u64.to_i32
+  return
+end
+
+fn 50 std_core$pow5_factor_32 (u32) -> i32
+  local value u32
+  local count i32
+  local.get 0
+  local.set 1
+  i32.const 0
+  local.set 2
+  block $L0 void
+    loop $L1 void
+      local.get 1
+      i32.const 5
+      u32.rem
+      i32.const 0
+      i32.eq
+      if $L2 void
+        local.get 1
+        i32.const 5
+        u32.div
+        local.set 1
+        local.get 2
+        i32.const 1
+        i32.add
+        local.set 2
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
+  local.get 2
+  return
+end
+
+fn 51 std_core$join_range (ref,i32,i32) -> string
+  local out string
+  local i i32
+  local $cast_7 usize
+  local $idx_8 string
+  string.const 35
+  local.set 3
+  local.get 1
+  local.set 4
+  block $L0 void
+    loop $L1 void
+      local.get 4
+      local.get 2
+      i32.lt
+      if $L2 void
+        local.get 4
+        i32.to_i64
+        local.set 5
+        local.get 0
+        local.get 5
+        array.get 22
+        ref.cast 4
+        local.set 6
+        local.get 3
+        local.get 6
+        call 2
+        local.set 3
+        local.get 4
+        i32.const 1
+        i32.add
+        local.set 4
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
+  local.get 3
+  return
+end
+
+fn 52 std_core$zeros (i32) -> string
+  local out string
+  local _ i32
+  string.const 35
+  local.set 1
+  i32.const 0
+  local.set 2
+  block $L0 void
+    loop $L1 void
+      local.get 2
+      local.get 0
+      i32.lt
+      if $L2 void
+        local.get 1
+        string.const 23
+        call 2
+        local.set 1
+        local.get 2
+        i32.const 1
+        i32.add
+        local.set 2
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
+  local.get 1
+  return
+end
+
+fn 53 std_core$umul128 (u64,u64) -> ref
+  local a_lo u64
+  local a_hi u64
+  local b_lo u64
+  local b_hi u64
+  local b00 u64
+  local.get 0
+  i64.const 4294967295
+  i64.bitand
+  local.set 2
+  local.get 0
+  i64.const 32
+  u64.shr
+  local.set 3
+  local.get 1
+  i64.const 4294967295
+  i64.bitand
+  local.set 4
+  local.get 1
+  i64.const 32
+  u64.shr
+  local.set 5
+  local.get 2
+  local.get 4
+  i64.mul
+  local.set 6
+  local.get 2
+  local.get 5
+  i64.mul
+  local.set 2
+  local.get 3
+  local.get 4
+  i64.mul
+  local.set 4
+  local.get 3
+  local.get 5
+  i64.mul
+  local.set 3
+  local.get 6
+  i64.const 32
+  u64.shr
+  local.set 5
+  local.get 4
+  local.get 5
+  i64.add
+  local.tee 4
+  i64.const 4294967295
+  i64.bitand
+  local.set 5
+  local.get 2
+  local.get 5
+  i64.add
+  local.set 2
+  local.get 4
+  i64.const 32
+  u64.shr
+  local.set 4
+  local.get 3
+  local.get 4
+  i64.add
+  local.set 3
+  local.get 2
+  i64.const 32
+  u64.shr
+  local.set 4
+  local.get 3
+  local.get 4
+  i64.add
+  local.set 3
+  local.get 2
+  i64.const 4294967295
+  i64.bitand
+  i64.const 32
+  i64.shl
+  local.set 2
+  local.get 6
+  i64.const 4294967295
+  i64.bitand
+  local.set 4
+  local.get 2
+  local.get 4
+  i64.bitor
+  local.set 2
+  local.get 3
+  local.get 2
+  struct.new 24
+  return
+end
+
+fn 54 std_core$shiftright128 (u64,u64,u64) -> u64
+  local $sub_4 u64
+  local $shr_6 u64
+  i64.const 64
+  local.get 2
+  i64.sub
+  local.set 3
+  local.get 1
+  local.get 3
+  i64.shl
+  local.set 3
+  local.get 0
+  local.get 2
+  u64.shr
+  local.set 4
+  local.get 3
+  local.get 4
+  i64.bitor
+  return
+end
+
+fn 55 std_core$pow5_factor (u64) -> i32
+  local value u64
+  local count i32
+  local.get 0
+  local.set 1
+  i32.const 0
+  local.set 2
+  block $L0 void
+    loop $L1 void
+      local.get 1
+      i64.const -3689348814741910323
+      i64.mul
+      local.tee 1
+      i64.const 3689348814741910323
+      u64.gt
+      if $L2 void
+      else
+        local.get 2
+        i32.const 1
+        i32.add
+        local.set 2
+        br $L1
+      end $L2
+    end $L1
+  end $L0
+  local.get 2
+  return
+end
+
+fn 56 std_io$println__string (string) -> void
+  i32.const 0
+  local.get 0
+  call.import 2
+  i32.const 0
+  string.const 36
+  call.import 2
+  return
+end
+
+fn 57 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 10 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 58 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -992,17 +4178,29 @@ fn 10 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 11 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 59 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 12 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 60 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
   buffer_write_string
+  return
+end
+
+fn 61 std_core$f64$FloatBits$to_bits_vt (f64) -> u64
+  local.get 0
+  f64_to_bits
+  return
+end
+
+fn 62 std_core$f32$Float32Bits$to_bits_vt (f32) -> u32
+  local.get 0
+  f32_to_bits
   return
 end

@@ -685,7 +685,14 @@ bump :: fn(i: usize) -> void { COUNTS[i] = COUNTS[i] + 1 }   // persists across 
 
 A marked const behaves like any other mutable array, **`push` included** — a permanent GC frame roots these globals, so a reallocated buffer is forwarded rather than collected.
 
-`!` is restricted to a **flat element type** — a primitive (`string` included: it is an interned `u32` atom), an enum, or a distinct over one. That is the one pool entry kind carrying a storage class; an aggregate entry emits its struct elements as separate `static const` objects, so a mutable one would have two independent levels to decide. A bare struct or map const isn't pooled at all and has no storage to make writable. That is **T3076**, reported for a marker at any level (`Spec![]` promises no more than `Spec[]!`).
+Any **element type** works — flat (primitive, enum, distinct) or aggregate (struct, tuple, nested array). What is rejected is a marker **below** the array level: an aggregate's elements are emitted as separate read-only statics, so keeping the element type read-only is exactly what makes the writable slots safe (`SPECS[0] = other` reaches a slot; `SPECS[0].code = 9` is T3070). A non-array const isn't pooled at all and has no storage to make writable. Both are **T3076**.
+
+```vader
+SPECS: Spec[]!:  [Spec { .name = "seed", .code = 0 }]   // OK — slots writable
+// SPECS[0].code = 9                                    // T3070 — the element is read-only
+// TPL: Spec![]:  [...]                                  // T3076 — marker below the array
+// ORIGIN: Spec!: Spec { ... }                           // T3076 — not an array
+```
 
 **Inference**: an unannotated module-level array const is automatically pinned read-only — it has no runtime storage, so a write through it would be discarded rather than take effect. Annotating the type explicitly (`X: T[]!: [...]`) opts out. An **annotated local** takes the same read-only default; an unannotated one keeps its inferred type and stays owned.
 

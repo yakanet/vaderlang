@@ -746,15 +746,17 @@ declare_const :: fn(
 
 // A `!` on a module const asks for real storage: a writable global, initialised
 // once, that grows like any other array (`emit_global_const_roots` roots it, so a
-// reallocated buffer is forwarded, not collected).
+// reallocated buffer is forwarded, not collected). Any element type qualifies —
+// the pool emits a flat buffer for primitives / enums and an aggregate for struct,
+// tuple and nested-array elements, and both carry a storage class.
 //
-// The restriction is the POOL's, not the collector's. A flat entry — primitive
-// (`string` included: it is an interned `u32` atom), enum, or a distinct newtype
-// over one — carries a storage class. An aggregate entry does not: its struct
-// elements are themselves emitted as separate `static const` objects, so a mutable
-// aggregate has two independent levels to decide (the slots, and the elements), and
-// that surface stays closed for now. A bare struct or map const isn't pooled at all,
-// so it has no storage to make writable. T3076.
+// What does NOT qualify is a marker BELOW the array level. The element objects of an
+// aggregate entry are emitted as separate `static const`s, so `SPECS[0].code = 9`
+// would write into `.rodata`. Keeping the element type read-only is what makes the
+// writable slots safe — `SPECS[0] = other` reaches a slot, the deeper write is
+// T3070 — so a marked element is rejected rather than silently unsound. Same for a
+// non-array const: a bare struct or map isn't pooled at all, so there is no storage
+// to make writable. T3076.
 reject_mutable_module_const :: fn(
     ty: Type, annotation: AST.TypeExpr, diags: Diagnostic[]!,
 ) -> void {
@@ -766,10 +768,17 @@ reject_mutable_module_const :: fn(
     if !marks_mutable_anywhere(annotation) {
         return
     }
-    // The one shape that can have real storage : the ARRAY level marked, every
-    // element a value.
-    if ty is ArrayType as a {
-        if !a.immutable && is_value_element(a.element) {
+    // The one storable shape : the marker on the ARRAY level and nowhere deeper.
+    if annotation is AST.MutableTypeExpr as m {
+        if m.inner is AST.ArrayTypeExpr {
+            if !marks_mutable_anywhere(m.inner) {
+                return
+            }
+            diags.push(typecheck_error(
+                .ModuleConstMutableElement, annotation.span,
+                "`${display_type(ty)}` — the marker belongs on the ARRAY level only : its "
+                + "elements are emitted as read-only statics, and keeping the element type "
+                + "read-only is what makes the writable slots safe"))
             return
         }
     }
@@ -778,12 +787,11 @@ reject_mutable_module_const :: fn(
     if is_value_only_type(ty) {
         return
     }
-    if ty is ArrayType as a {
+    if ty is ArrayType {
         diags.push(typecheck_error(
             .ModuleConstMutableElement, annotation.span,
-            "`${display_type(ty)}` — only a flat element type can be a writable global, "
-            + "and the ARRAY level takes the marker : a primitive, an enum, or a distinct "
-            + "over one ; `${display_type_key(a.element)}` is pooled as an aggregate"))
+            "`${display_type(ty)}` — the marker belongs on the ARRAY level, which is the "
+            + "level the data pool can make writable"))
         return
     }
     diags.push(typecheck_error(
@@ -812,12 +820,7 @@ marks_mutable_anywhere :: fn(w: AST.TypeExpr) -> bool {
     return false
 }
 
-// Element types the data pool emits as a FLAT buffer, the one shape that carries a
-// storage class today. A distinct newtype is zero-cost, so it follows its backing.
-is_value_element :: fn(t: Type) -> bool {
-    if t is DistinctType as d { return is_value_element(d.backing) }
-    return t is PrimitiveType | EnumType
-}
+
 
 /// Resolve the type a `Name :: <type-expr>` declaration registers. A
 /// **primitive** RHS (`Name :: i64`) becomes a zero-cost `DistinctType`

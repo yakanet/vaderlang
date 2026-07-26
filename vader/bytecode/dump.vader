@@ -115,12 +115,12 @@ write_data_pool :: fn(sb: StringBuilder!, data_pool: BcDataEntry[], strings: str
             out :: StringBuilder {}
             hs :: homogeneous_struct(ad)
             if hs.symbol_id >= 0 {
-                out.append("data ${i} structs ${hs.symbol_id} ${hs.nfields} ${ad.elements.len()}")
+                out.append("data ${i} ${storage_class(ad.mutable)}structs ${hs.symbol_id} ${hs.nfields} ${ad.elements.len()}")
                 for v in ad.elements {
                     if v is BcValStruct as st { for f in st.fields { write_data_value(out, f, str_index) } }
                 }
             } else {
-                out.append("data ${i} agg ${ad.element_type_name} ${ad.elements.len()}")
+                out.append("data ${i} ${storage_class(ad.mutable)}agg ${ad.element_type_name} ${ad.elements.len()}")
                 for v in ad.elements { write_data_value(out, v, str_index) }
             }
             sb.append("${out}\n")

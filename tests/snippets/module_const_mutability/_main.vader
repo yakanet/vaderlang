@@ -10,10 +10,10 @@
 //
 // A marked const behaves like any other mutable array — `push` included: a
 // permanent GC frame roots it (`emit_global_const_roots`), so a reallocated buffer
-// is forwarded rather than collected. `!` is restricted to a FLAT element type (a
-// primitive — `string` included, it is an interned `u32` atom — an enum, or a
-// distinct over one), which is the one pool entry kind that carries a storage
-// class: T3076 (`t3076_mutable_module_const_element`).
+// is forwarded rather than collected. Any ELEMENT type works, flat or aggregate;
+// what is rejected is a marker BELOW the array level, because an aggregate's
+// elements are emitted as read-only statics — T3076
+// (`t3076_mutable_module_const_element`).
 //
 // Two regressions this pins down, both of which lost writes SILENTLY:
 //   - `fold_const_symbol` inlined a mutable array's baked value at each use site,
@@ -81,6 +81,9 @@ COUNTS: i32[]!:    [0, 0, 0]
 // The repeat form is the idiomatic fixed-size table, and it pools like a literal.
 SLOTS:  string[]!: [""] * 24
 FLAGS:  bool[]!:   [false] * 4
+// An AGGREGATE entry is writable at the array level too. Its elements stay
+// read-only statics, so a slot write replaces the whole element.
+QUEUE:  Spec[]!:   [Spec { .name = "seed", .code = 0 }]
 
 bump :: fn(i: usize) -> void {
     COUNTS[i] = COUNTS[i] + 1
@@ -130,6 +133,26 @@ main :: fn() -> i32 {
         }
     }
     println("grown=${grown}/40 len=${COUNTS.len()}")
+
+    // Aggregate slots: replacing an element stores a HEAP object in a static
+    // buffer. `vader_gc_scan_raw` forwards `.buf` but never descends into an
+    // off-arena one, so the buffer is rooted alongside the array — else this
+    // Spec would be collected while still reachable.
+    QUEUE[0] = Spec { .name = "replaced-${1 + 1}", .code = 5 }
+    for i in 0..<8 {
+        QUEUE.push(Spec { .name = "q-${i}", .code = i32(i) })
+    }
+    collect()
+    queue_ok := 0
+    if QUEUE[0].name == "replaced-2" {
+        queue_ok = queue_ok + 1
+    }
+    for i in 0..<8 {
+        if QUEUE[usize(i) + 1].name == "q-${i}" {
+            queue_ok = queue_ok + 1
+        }
+    }
+    println("queue=${queue_ok}/9 len=${QUEUE.len()}")
 
     // Reading is always available ; only writes are gated.
     total := 0

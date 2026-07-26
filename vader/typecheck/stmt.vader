@@ -1002,14 +1002,14 @@ ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
 }
 
 /// True when a module const's declared type is the one shape with real storage:
-/// a MUTABLE array of flat elements, emitted as a writable global. Growing it is
-/// fine — `emit_global_const_roots` roots the array so the collector forwards a
-/// reallocated buffer.
+/// a MUTABLE array, emitted as a writable global. Growing it is fine —
+/// `emit_global_const_roots` roots it so the collector forwards a reallocated
+/// buffer. `declare_const`'s T3076 is what keeps the marker to the array level.
 ///
 /// @param t  the const's declared type, or null when it has none.
 export has_mutable_const_storage :: fn(t: Type | null) -> bool {
     if t is ArrayType as a {
-        return !a.immutable && is_value_element(a.element)
+        return !a.immutable
     }
     return false
 }

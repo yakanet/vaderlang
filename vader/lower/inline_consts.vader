@@ -183,14 +183,13 @@ render_data_pool_entry :: fn(
             .element_type_name = element_name, .items = rendered, .mutable = mutable,
         }
     }
-    // Only a VALUE-element array can be mutable (T3076), so an aggregate reaching
-    // here is always the read-only form.
-    if mutable { return null }
     // Aggregate (struct / nested-array elements) : bakeable only when every leaf
     // is a constant literal and every struct is a named, non-generic struct (its
     // symbol-id keys the baked value ; `midir` recurses over the same literal).
     if is_bakeable_array(lit) {
-        return AggregateDataPoolEntry { .element_type_name = element_name, .literal = lit }
+        return AggregateDataPoolEntry {
+            .element_type_name = element_name, .literal = lit, .mutable = mutable,
+        }
     }
     return null
 }

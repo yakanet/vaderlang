@@ -6,6 +6,7 @@ counts=2,0,1
 slots=runtime-slot-0/runtime-slot-23 lost=0/24 collected=true
 flags=false,true len=4
 grown=40/40 len=43
+queue=9/9 len=9
 total=60
 # exit
 0
