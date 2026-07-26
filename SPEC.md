@@ -1588,6 +1588,8 @@ A composite type has one mutability per level, and `!` marks the level it follow
 
 The default is **recursive**: an unmarked `Cfg[]` freezes the array *and* its elements. It stops at nominal boundaries — the arguments of `Map<K, V>` describe what is *stored*, not slots of the program, so `Map<K, Cfg>` freezes the map and the depth of its values is written `Map<K, Cfg!>`.
 
+> **Not yet enforced at depth on a parameter.** A marked *element* (`Cfg![]`) parses, takes the recursive default, displays and round-trips — but the mutation check still reasons at the root, so on a parameter `Cfg![]` behaves like `Cfg[]` and `rows[0].f = …` is rejected (T3070). The direction is conservative — read-only where the table promises mutable — so nothing unsound follows, but the element level of the table above describes the model, not today's behaviour. The array level (`Cfg[]!`) is enforced.
+
 Writing `!` twice on one level is an error (P1030): `Cfg[]!!` says the same thing twice.
 
 The assignability of an array does **not** descend into a nested array: `T[]![]` and `T[][]` are distinct element types, and arrays are invariant in their element. A builder that fills mutable inner arrays and hands them back read-only copies the outer spine into the promised type rather than propagating `T[]![]` to every consumer.
