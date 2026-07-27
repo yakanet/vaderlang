@@ -328,15 +328,6 @@ export read_bool :: fn(v: Value, at_pc: i32, label: string) -> BoolVal | Trap {
 }
 
 
-/// Read a truthy condition (`if` / `br_if`). Accepts both legacy numeric
-/// form (`I32Val` — non-zero is true) and modern bool form
-/// (`BoolVal`). Other variants Trap.
-export read_truthy :: fn(v: Value, at_pc: i32, label: string) -> bool | Trap {
-    if v is BoolVal { return v.value }
-    if v is I32Val  { return v.value != 0 }
-    return Trap { .message = "${label} at pc=${at_pc}: expected bool or i32, got ${describe_value_tag(v)}" }
-}
-
 /// Unwrap a `FnVal` from a `Value`. Used by the `CallIndirect` arm
 /// to recover the function reference on top of the stack.
 export read_fn :: fn(v: Value, at_pc: i32, label: string) -> FnVal | Trap {

@@ -97,14 +97,6 @@ export local_type :: fn(self: EntryTypes, binding: SimpleBinding) -> Type {
     return apply_or_unresolved(self, self.typed.local_types[binding.name_span.hash()])
 }
 
-/// Per-rest-binding type (rest pattern in destructure).
-/// @param self     the entry-types view.
-/// @param binding  the `RestBinding` AST node.
-/// @return         the resolved type.
-export rest_local_type :: fn(self: EntryTypes, binding: RestBinding) -> Type {
-    return apply_or_unresolved(self, self.typed.local_types[binding.span.hash()])
-}
-
 /// Per-fn-param type.
 /// @param self   the entry-types view.
 /// @param param  the `FnParam` AST node.
@@ -126,10 +118,6 @@ export type_expr_type :: fn(self: EntryTypes, type_expr: TypeExpr) -> Type {
 /// share a name ; match by span via `fn_overloads`.
 export fn_decl_type :: fn(self: EntryTypes, decl: FnDecl) -> Type {
     return fn_decl_type_by_span(self, decl.name, decl.name_span)
-}
-
-export struct_decl_type :: fn(self: EntryTypes, decl: StructDecl) -> Type {
-    return decl_type_by_name(self, decl.name)
 }
 
 export const_decl_type :: fn(self: EntryTypes, decl: ConstDecl) -> Type {

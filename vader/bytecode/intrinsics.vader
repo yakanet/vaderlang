@@ -96,18 +96,6 @@ primitive_cmp_op :: fn(mangled: string) -> Op | null {
 // PrimIntEquals host dispatch : the floats, bool, char, string.
 is_op_eq_prim :: fn(name: string) -> bool = is_primitive_name(name) && !is_int_name(name)
 
-/// `intrinsic_op_for_mangled` keyed on a `Symbol` (the bytecode
-/// emit's natural input). Symbol's `name` carries the mangled form
-/// for the stdlib `@intrinsic` impl members that this dispatcher
-/// recognises.
-///
-/// @param symbol  the call target's resolver symbol.
-/// @return        the matching bytecode op, or `null` when no
-///                intrinsic applies.
-export intrinsic_op_for_symbol_name :: fn(symbol: Symbol) -> Op | null {
-    return intrinsic_op_for_mangled(symbol.name)
-}
-
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"

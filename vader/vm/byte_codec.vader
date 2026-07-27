@@ -49,12 +49,3 @@ export write_le :: fn(bytes: u8[]!, offset: usize, width: usize, value: u64) -> 
         v = v >> 8
     }
 }
-
-/// Read a little-endian u16 at `offset`, zero-extended to u32.
-export read_u16_le :: fn(bytes: u8[], offset: usize) -> u32 = u32(read_le(bytes, offset, 2))
-
-/// Read a little-endian u32 at `offset`.
-export read_u32_le :: fn(bytes: u8[], offset: usize) -> u32 = u32(read_le(bytes, offset, 4))
-
-/// Read a little-endian u64 at `offset`.
-export read_u64_le :: fn(bytes: u8[], offset: usize) -> u64 = read_le(bytes, offset, 8)

@@ -111,26 +111,6 @@ export resolve_module :: fn(program: Program, module_path: string, factory: Symb
     return resolve_module_with_collected_dp(program, module_path, module_path, factory, collected)
 }
 
-/// Variant for callers that have a distinct `display_path` (the
-/// `module "..."` declaration) ; thin wrapper that just threads through.
-export resolve_module_with_display :: fn(
-    program: Program, module_path: string, display_path: string, factory: SymbolFactory!,
-) -> ResolvedModule {
-    collected :: collect_module_no_index(program, module_path, factory)
-    return resolve_module_with_collected_dp(program, module_path, display_path, factory, collected)
-}
-
-/// Variant that reuses a pre-built `CollectedModule` so a caller
-/// that already collected (e.g. the multi-module orchestrator) can
-/// skip the duplicate work and keep Symbol ids stable across passes.
-export resolve_module_with_collected :: fn(
-    program: Program, module_path: string, factory: SymbolFactory!,
-    collected: CollectedModule,
-) -> ResolvedModule {
-    // Back-compat thin wrapper : display_path defaults to module_path.
-    return resolve_module_with_collected_dp(program, module_path, module_path, factory, collected)
-}
-
 /// Variant accepting an explicit `display_path` alongside the filesystem
 /// `module_path`. The orchestrator threads this from
 /// `LoadedModule.module.display_path` so dump + mangling stay stable.

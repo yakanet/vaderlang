@@ -37,6 +37,15 @@
 
 module "vader/vm"
 
+// Several methods here carry `@allow_unused`. The builder is an ASSEMBLER: its
+// value is a complete surface for constructing a module programmatically, and its
+// real consumer lives outside the compiler — `examples/brainfuck` compiles
+// Brainfuck to Vader bytecode through it, using `add_import`, `block`, `loop_`,
+// `br`, `br_if` and `end`. W0012 walks only the compiler's own roots, so it can't
+// see that and reports the whole control-flow group as dead. Deleting on that
+// evidence would break the example; the marker records that the omission is
+// deliberate rather than an oversight.
+
 bc :: import "vader/bytecode"
 
 import "std/collections"
@@ -138,6 +147,7 @@ synth_signature :: fn(parameter_count: usize, has_return: bool) -> bc.BcSignatur
 /// @param parameter_count number of args popped from the caller stack.
 /// @param has_return      `true` if the import pushes one value back.
 /// @return                the index into `self.imports`.
+@allow_unused
 export add_import :: fn(self: ModuleBuilder!, name: string, mangled: string, parameter_count: usize, has_return: bool) -> i32 {
     index :: i32(self.imports.len())
     self.imports.push(bc.BcImport {
@@ -156,6 +166,7 @@ export add_import :: fn(self: ModuleBuilder!, name: string, mangled: string, par
 /// @param self        the builder.
 /// @param entry       the pre-built `BcDataEntry` (kind + raw `u64` bits).
 /// @return            the index into `self.data_pool`.
+@allow_unused
 export add_data_entry :: fn(self: ModuleBuilder!, entry: bc.BcDataEntry) -> i32 {
     index :: i32(self.data_pool.len())
     self.data_pool.push(entry)
@@ -169,6 +180,7 @@ export add_data_entry :: fn(self: ModuleBuilder!, entry: bc.BcDataEntry) -> i32 
 /// @param self        the builder.
 /// @param type_id     the receiver type's index in `self.types`.
 /// @param trait_name  the trait identifier.
+@allow_unused
 export add_impl :: fn(self: ModuleBuilder!, type_id: i32, trait_name: string) -> void {
     self.impl_table.push(bc.ImplEntry { .struct_type_index = type_id, .trait_name = trait_name })
 }
@@ -357,6 +369,7 @@ export block :: fn(self: FunctionBuilder!, label: string) -> void {
 
 /// Open a backward-jumping scope. `table[opener_pc]` points at the
 /// body start (opener_pc + 1) — known immediately and filled now.
+@allow_unused
 export loop_ :: fn(self: FunctionBuilder!, label: string) -> void {
     pc :: i32(self.ops.len())
     self.push(bc.Loop {})
@@ -367,6 +380,7 @@ export loop_ :: fn(self: FunctionBuilder!, label: string) -> void {
 /// Open a conditional scope. The matching `end` will set
 /// `table[opener_pc]` to pc just past the end, or to the `else` op if
 /// one is present.
+@allow_unused
 export if_ :: fn(self: FunctionBuilder!, label: string) -> void {
     pc :: i32(self.ops.len())
     self.push(bc.If {})
@@ -376,6 +390,7 @@ export if_ :: fn(self: FunctionBuilder!, label: string) -> void {
 /// Close the `then` arm and open the `else` arm of the surrounding
 /// `if`. Repurposes the top scope to point at the `else`'s pc so the
 /// matching `end` pairs the else with the past-end pc.
+@allow_unused
 export else_ :: fn(self: FunctionBuilder!) -> void {
     pc :: i32(self.ops.len())
     self.push(bc.Else {})
@@ -412,6 +427,7 @@ export br :: fn(self: FunctionBuilder!, target_label: string) -> void {
 }
 
 /// Conditional branch — same target-resolution rules as `br`.
+@allow_unused
 export br_if :: fn(self: FunctionBuilder!, target_label: string) -> void {
     pc :: i32(self.ops.len())
     self.push(bc.BranchIf {})

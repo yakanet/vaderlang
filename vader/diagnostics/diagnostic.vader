@@ -77,22 +77,6 @@ export empty_span :: fn() -> Span {
 /// The typecheck dump renders these spans as `undefined:undefined`.
 export MATERIALIZED_FILE :: "<materialized>"
 
-/// Span marker for substituted leaves in materialised bodies. Line/column
-/// are 0 (not a valid source position) so a stale reader can't confuse
-/// it with a real location.
-export materialized_span :: fn() -> Span {
-    return Span {
-        .start = Position { .file = MATERIALIZED_FILE, .offset = 0, .line = 0, .column = 0 },
-        .end   = Position { .file = MATERIALIZED_FILE, .offset = 0, .line = 0, .column = 0 },
-    }
-}
-
-/// Detect the materialised marker. Used by the typecheck dump to swap
-/// the loc column for `undefined:undefined` on materialised nodes.
-export is_materialized_span :: fn(s: Span) -> bool {
-    return s.start.file == MATERIALIZED_FILE
-}
-
 /// True when `s` points at a real source location worth surfacing to a user
 /// — a concrete file with a 1-based line. False for every compiler-minted
 /// marker : the `<synthetic>` sentinel (`empty_span`), the `<materialized>`

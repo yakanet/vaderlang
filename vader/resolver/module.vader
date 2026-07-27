@@ -115,29 +115,7 @@ export find_manifest_root :: fn(start: string) -> string | null {
 }
 
 
-/// Canonical module id : just the resolved root path. Same physical
-/// location always maps to the same id.
-export module_id_from_root :: fn(root: string) -> string { return root }
-
 // ----------------------------------------------------- source-file loading
-
-/// Read every `.vader` file under `root_path` (sorted by filename),
-/// parse each, and return the resulting `SourceFile` list.
-export load_module_files :: fn(root_path: string) -> SourceFile[] {
-    out: SourceFile[]! = []
-    files :: list_vader_files(root_path)
-    for f in files {
-        content :: try_read(f) ?? continue
-        parsed :: parse_source(content, f)
-        out.push(SourceFile {
-            .path       = f,
-            .content    = content,
-            .program    = parsed.program,
-            .id_factory = parsed.id_factory,
-        })
-    }
-    return out
-}
 
 export list_vader_files :: fn(root_path: string) -> string[] {
     if !exists(root_path) { return [] }

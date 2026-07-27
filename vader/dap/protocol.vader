@@ -55,15 +55,3 @@ export encode_event :: fn(seq: i32, event: string, body: JsonValue) -> string {
 
 /// An empty JSON object — the `body` for commands / events that carry none.
 export empty_body :: fn() -> JsonValue = JsonObject { .entries = MutableMap<string, JsonValue> {} }
-
-/// A JSON object wrapping a single string field — the common one-key body
-/// shape (`{ output: "…" }`, `{ reason: "…" }`).
-///
-/// @param key    the field name.
-/// @param value  the field value.
-/// @return       a `JsonObject` with the one entry.
-export string_body :: fn(key: string, value: string) -> JsonValue {
-    m :: MutableMap<string, JsonValue> {}
-    m[key] = JsonString { .value = value }
-    return JsonObject { .entries = m }
-}

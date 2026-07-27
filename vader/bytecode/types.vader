@@ -143,11 +143,6 @@ export is_float_val :: fn(v: ValType) -> bool = match v {
     .Any -> false
 }
 
-/// True when the val-type is any kind of number (integer or float).
-/// @param v  the value class to classify.
-/// @return   `true` for any signed/unsigned integer width or float width.
-export is_numeric_val :: fn(v: ValType) -> bool = is_integer_val(v) || is_float_val(v)
-
 /// True when the val-type is a 64-bit-wide integer slot. Used by the
 /// bytecode emitter to pick `I64Const` over `I32Const` for int
 /// literals whose static type binds to one of these widths. The four
@@ -315,30 +310,6 @@ export array_kind_index :: fn(k: ArrayKind) -> i32 = match k {
     .Char -> 11
     .Bool -> 12
     .Ref -> 13
-}
-
-/// Inverse of `array_kind_index`. Returns `null` for unrecognised
-/// indices — the parser uses this for error reporting on malformed
-/// `.virt` data directives.
-/// @param idx  the numeric index from the `.virt` data directive.
-/// @return     the `ArrayKind` variant, or `null` when the index is
-///             outside the recognised `0..12` range.
-export array_kind_from_index :: fn(idx: i32) -> ArrayKind | null {
-    if idx == 0 { return ArrayKind.Boxed }
-    if idx == 1 { return ArrayKind.U8 }
-    if idx == 2 { return ArrayKind.U16 }
-    if idx == 3 { return ArrayKind.U32 }
-    if idx == 4 { return ArrayKind.U64 }
-    if idx == 5 { return ArrayKind.I8 }
-    if idx == 6 { return ArrayKind.I16 }
-    if idx == 7 { return ArrayKind.I32 }
-    if idx == 8 { return ArrayKind.I64 }
-    if idx == 9 { return ArrayKind.F32 }
-    if idx == 10 { return ArrayKind.F64 }
-    if idx == 11 { return ArrayKind.Char }
-    if idx == 12 { return ArrayKind.Bool }
-    if idx == 13 { return ArrayKind.Ref }
-    return null
 }
 
 /// Byte width per slot of a primitive array kind. `Boxed` is the size

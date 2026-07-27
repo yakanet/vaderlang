@@ -123,21 +123,6 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
     is NeverType          -> ValType.Void
 }
 
-/// Context-free `Type` → `BcType`. Classifies primitives precisely ;
-/// composite shapes (struct / array / union / ref / fn) collapse to a
-/// placeholder `BcPrimitive{.val=Ref}` — the runtime sees `vader_box_t`
-/// either way. Accurate composite type-table entries come from the
-/// context-aware `bc_type_of_with_ctx` walker (the production path via
-/// `intern_type`), not from this context-free helper.
-///
-/// Derived from `val_type_of_type` to keep the two classifiers in
-/// lock-step ; a previous double-table drifted when one was updated
-/// without the other.
-///
-/// @param t  the type to translate.
-/// @return   a `BcType` suitable for the type table.
-export bc_type_of :: fn(t: Type) -> BcType = BcPrimitive { .val = val_type_of_type(t) }
-
 /// Context-aware translation : recursively interns element / param /
 /// return types so the resulting `BcType` carries the right type-table
 /// indices for composite shapes : Struct/Trait → `BcRef { trait_name }`,
