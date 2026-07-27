@@ -49,12 +49,23 @@ export prune_unreachable_fns :: fn(lp: LoweredProject!, keep_tests: bool) -> Low
         for d in m.decls {
             if d is LoweredFnDecl as fn_decl {
                 sym :: fn_decl.origin.symbol
+                // Index on exactly what the EMITTER indexes on — whether the decl
+                // carries a symbol (`midir/emit.vader::reserve_cfg_function`) —
+                // never on "is it a generic instance". The two are not the same
+                // question, and answering the second broke the header invariant:
+                //
+                // A non-dispatching (Erased) generic instance KEEPS its symbol, and
+                // the materialiser then collapses every sibling instance of that
+                // symbol onto ONE emitted decl (erasure dedupe, `lower_mono_fn`).
+                // The surviving decl carries whichever suffix sorted first, while
+                // the call sites each name their own — so the emitter resolves them
+                // through `function_index_by_symbol_id`. Indexing such a decl here
+                // by MANGLE made its survival depend on a call site naming that
+                // exact suffix, which is precisely what the dedupe guarantees won't
+                // happen: DCE pruned a decl the emitter was about to resolve, and
+                // the build died on `unresolved callee` (GATE B1).
                 if sym is Symbol as s {
-                    if is_generic_instance(fn_decl) {
-                        by_mangle[fn_decl.mangled] = d
-                    } else {
-                        by_sym_id[s.id] = d
-                    }
+                    by_sym_id[s.id] = d
                 } else {
                     // Materialised impl members (`MutableMap.Index.at`) and
                     // dispatching generic instances (`put__i32__bool`) carry a
@@ -190,18 +201,15 @@ export prune_unreachable_fns :: fn(lp: LoweredProject!, keep_tests: bool) -> Low
 /// keyed / marked / checked by mangle ; everything else by symbol id.
 /// The three sites that branch on this (index, mark, survive) must agree
 /// or DCE-survival ⟺ emit-resolvable silently breaks.
-is_generic_instance :: fn(fn_decl: LoweredFnDecl) = fn_decl.origin.type_arguments.len() > 0
-
-/// Mark a root fn reachable in the index keyed to its kind (mangle for
-/// generic instances, symbol id otherwise).
+/// Mark a root fn reachable under the key its decl is indexed by — symbol id when
+/// it carries a symbol, mangle otherwise. Same split as the indexing above and as
+/// the emitter's reservation; keep the three in step.
 mark_reachable :: fn(fn_decl: LoweredFnDecl, reachable_sym: MutableMap<i32, bool>!, reachable_mangle: MutableMap<string, bool>!) -> void {
     sym :: fn_decl.origin.symbol
     if sym is Symbol as s {
-        if is_generic_instance(fn_decl) {
-            reachable_mangle[fn_decl.mangled] = true
-        } else {
-            reachable_sym[s.id] = true
-        }
+        reachable_sym[s.id] = true
+    } else {
+        reachable_mangle[fn_decl.mangled] = true
     }
 }
 
@@ -212,9 +220,6 @@ fn_survives :: fn(d: LoweredDecl, reachable_sym: MutableMap<i32, bool>, reachabl
     if d is LoweredFnDecl as fn_decl {
         sym :: fn_decl.origin.symbol
         if sym is Symbol as s {
-            if is_generic_instance(fn_decl) {
-                return reachable_mangle[fn_decl.mangled] != null
-            }
             return reachable_sym[s.id] != null
         }
         return true
