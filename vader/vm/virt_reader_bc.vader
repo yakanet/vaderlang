@@ -48,6 +48,19 @@ export VirtParseError :: struct {
     reason:      string
 }
 
+/// Why a module-level directive could not be read — the reason without the
+/// position.
+///
+/// A directive parser knows WHAT is wrong with its line but not WHERE the line
+/// is; `parse_virt_bc` holds the line number and pairs the two into a
+/// `VirtParseError`. Hence a named type rather than a bare `string | null`
+/// return: a string says nothing about whether it is a value or a complaint, and
+/// nothing stops a parser handing back a successful-looking one by accident.
+export DirectiveError :: struct {
+    /// One line, no position, e.g. ``struct `P`: field `a` has no `name:type` separator``.
+    reason: string
+}
+
 /// Render the error as the two-line message both CLI entry points print: a
 /// `command: path:line: reason` header, then the offending line indented under
 /// it. Shared so the two call sites can't drift apart on the format.
@@ -127,12 +140,47 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule | VirtParseError
             // a report), so separating the streams is its own change.
             if head == "#"      { break }
             if head == "module" { module_name = parse_module_name(cleaned) continue }
-            if head == "type"   { parse_type_decl_bc(cleaned, types) continue }
+            if head == "type" {
+                failure :: parse_type_decl_bc(cleaned, types)
+                if failure is DirectiveError as e {
+                    return VirtParseError {
+                        .line_number = line_index, .line = cleaned, .reason = e.reason,
+                    }
+                }
+                continue
+            }
             if head == "string" { parse_string_decl(cleaned, strings) continue }
-            if head == "data"   { parse_data_decl_bc(cleaned, data_pool, strings) continue }
-            if head == "import" { parse_import_decl_bc(cleaned, imports, types) continue }
-            if head == "impl"   { parse_impl_decl_bc(cleaned, impl_table) continue }
-            if head == "vtable" { parse_vtable_decl_bc(cleaned, vtables) continue }
+            // Each of the four below reports why it could not read its line. A
+            // silent drop removed a whole pool entry and renumbered every index
+            // after it — the pool analogue of the pc shift fixed for instructions.
+            if head == "data" {
+                failure :: parse_data_decl_bc(cleaned, data_pool, strings)
+                if failure is DirectiveError as e {
+                    return VirtParseError { .line_number = line_index, .line = cleaned, .reason = e.reason }
+                }
+                continue
+            }
+            if head == "import" {
+                failure :: parse_import_decl_bc(cleaned, imports, types)
+                if failure is DirectiveError as e {
+                    return VirtParseError { .line_number = line_index, .line = cleaned, .reason = e.reason }
+                }
+                continue
+            }
+            if head == "impl" {
+                failure :: parse_impl_decl_bc(cleaned, impl_table)
+                if failure is DirectiveError as e {
+                    return VirtParseError { .line_number = line_index, .line = cleaned, .reason = e.reason }
+                }
+                continue
+            }
+            if head == "vtable" {
+                failure :: parse_vtable_decl_bc(cleaned, vtables)
+                if failure is DirectiveError as e {
+                    return VirtParseError { .line_number = line_index, .line = cleaned, .reason = e.reason }
+                }
+                continue
+            }
             if head == "export" {
                 m :: parse_export_decl_bc(cleaned, exports)
                 if m >= 0 { main_index = m }
@@ -222,46 +270,74 @@ parse_module_name :: fn(cleaned: string) -> string {
     return cb["module ".bytes().len()..<cb.len()].bytes_to_string().trim()
 }
 
-/// Parse `type N <decl>` into the matching `BcType`, appended in ordinal order
-/// (the index is implicit in the array position, so an unknown kind still
-/// pushes a `BcRef` placeholder to keep ordinals aligned).
-parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]!) -> void {
+/// Parse `type N <decl>` into the matching `BcType`, appended in ordinal order —
+/// the index is implicit in the array position.
+///
+/// Returns the reason the line could not be read, or `null` on success. It used to
+/// push a `BcRef { "" }` placeholder for anything it didn't recognise, on the
+/// stated grounds of "keeping ordinals aligned". Aligned ordinals over a wrong
+/// type buy nothing: an opaque ref where the emitter expects a struct makes every
+/// downstream field access a miss, which is precisely blocker #1 of the self-host
+/// bytecode audit (`.claude/CLAUDE.md` §9). A dump this reader cannot type is a
+/// dump it must refuse.
+///
+/// @param cleaned  the `type …` line, comment already stripped.
+/// @param types    the type table, appended to in ordinal order.
+/// @return         `null` when a type was appended, else why it could not be.
+parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]!) -> DirectiveError | null {
     cb :: cleaned.bytes()
     after_type :: cb["type ".bytes().len()..<cb.len()].bytes_to_string().trim()
     first_space :: after_type.index_of(' ', 0)
-    if first_space < 0 { types.push(bc.BcRef { .trait_name = "" }) return }
+    if first_space < 0 {
+        return DirectiveError { .reason = "expected `type <index> <kind> …`, got no kind after the index" }
+    }
     atb :: after_type.bytes()
     rest :: atb[usize(first_space) + 1..<atb.len()].bytes_to_string().trim()
     rb :: rest.bytes()
 
-    if rest.starts_with("struct ") { types.push(parse_struct_type_bc(rest)) return }
+    if rest.starts_with("struct ") {
+        structs: bc.BcStruct![]! = []
+        failure :: parse_struct_type_bc(rest, structs)
+        if failure is DirectiveError {
+            return failure
+        }
+        types.push(structs[0])
+        return null
+    }
     if rest.starts_with("primitive ") {
         kind :: rb["primitive ".bytes().len()..<rb.len()].bytes_to_string().trim()
         types.push(bc.BcPrimitive { .val = vt_or_void(kind) })
-        return
+        return null
     }
     if rest.starts_with("array ") {
         element_text :: rb["array ".bytes().len()..<rb.len()].bytes_to_string().trim()
         parsed :: parse_int_in_base(element_text, 10)
-        if parsed is ParseError { types.push(bc.BcRef { .trait_name = "" }) return }
+        if parsed is ParseError {
+            return DirectiveError { .reason = "array type: element index \"${element_text}\" is not a number" }
+        }
         types.push(bc.BcArray { .element = i32(parsed) })
-        return
+        return null
     }
     if rest.starts_with("ref ") {
         name :: rb["ref ".bytes().len()..<rb.len()].bytes_to_string().trim()
         normalised :: if name == "_" { "" } else { name }
         types.push(bc.BcRef { .trait_name = normalised })
-        return
+        return null
     }
-    if rest.starts_with("fn ") { types.push(parse_fn_type_bc(rest)) return }
-    if rest.starts_with("union ") { types.push(parse_union_type_bc(rest)) return }
-    types.push(bc.BcRef { .trait_name = "" })
+    if rest.starts_with("fn ") { types.push(parse_fn_type_bc(rest)) return null }
+    if rest.starts_with("union ") { types.push(parse_union_type_bc(rest)) return null }
+    return DirectiveError { .reason = "unrecognised type kind in `${rest}`" }
 }
 
 /// Parse `struct NAME { f0:tid0, f1:tid1 }` into a `BcStruct`, recovering the
 /// full `BcField[]` (name + type-index). `symbol_id` isn't carried by `.virt`
 /// → `-1`.
-parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct {
+/// Reason a struct-type line could not be read, or `null` when `out` was filled.
+///
+/// Field order IS the field index, so a dropped field silently renumbers every one
+/// after it — the reader must refuse the line rather than hand back a struct whose
+/// slots no longer line up with the emitter's.
+parse_struct_type_bc :: fn(rest: string, out: bc.BcStruct![]!) -> DirectiveError | null {
     rb :: rest.bytes()
     after_struct :: rb["struct ".bytes().len()..<rb.len()].bytes_to_string()
     open :: after_struct.index_of('{', 0)
@@ -275,26 +351,30 @@ parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct {
     if open >= 0 {
         asb :: after_struct.bytes()
         close :: after_struct.index_of('}', 0)
-        if close >= 0 && close > open + 1 {
-            inner :: asb[usize(open) + 1..<usize(close)].bytes_to_string().trim()
-            if inner.bytes().len() > 0 {
-                for part in inner.split(",") {
-                    pt :: part.trim()
-                    colon :: pt.index_of(':', 0)
-                    if colon >= 0 {
-                        ptb :: pt.bytes()
-                        fname :: ptb[0..<usize(colon)].bytes_to_string().trim()
-                        tidtext :: ptb[usize(colon) + 1..<ptb.len()].bytes_to_string().trim()
-                        tid :: parse_int_in_base(tidtext, 10)
-                        if !(tid is ParseError) {
-                            fields.push(bc.BcField { .name = fname, .type_index = i32(tid) })
-                        }
-                    }
+        if close < 0 || close <= open + 1 {
+            return DirectiveError { .reason = "struct `${name}`: field list is not closed by `}`" }
+        }
+        inner :: asb[usize(open) + 1..<usize(close)].bytes_to_string().trim()
+        if inner.bytes().len() > 0 {
+            for part in inner.split(",") {
+                pt :: part.trim()
+                colon :: pt.index_of(':', 0)
+                if colon < 0 {
+                    return DirectiveError { .reason = "struct `${name}`: field `${pt}` has no `name:type` separator" }
                 }
+                ptb :: pt.bytes()
+                fname :: ptb[0..<usize(colon)].bytes_to_string().trim()
+                tidtext :: ptb[usize(colon) + 1..<ptb.len()].bytes_to_string().trim()
+                tid :: parse_int_in_base(tidtext, 10)
+                if tid is ParseError {
+                    return DirectiveError { .reason = "struct `${name}`: field `${fname}` has a non-numeric type index \"${tidtext}\"" }
+                }
+                fields.push(bc.BcField { .name = fname, .type_index = i32(tid) })
             }
         }
     }
-    return bc.BcStruct { .name = name, .fields = fields, .symbol_id = -1 }
+    out.push(bc.BcStruct { .name = name, .fields = fields, .symbol_id = -1 })
+    return null
 }
 
 /// Parse `fn (tid,tid) -> tid` (a fn-VALUE type — its slots are type indices,
@@ -326,7 +406,7 @@ parse_union_type_bc :: fn(rest: string) -> bc.BcUnion {
 
 /// Parse `import N [extern ]EXTERN_NAME MANGLED (sig) -> ret`. The `extern`
 /// keyword (when present) shifts the name/mangled tokens by one.
-parse_import_decl_bc :: fn(cleaned: string, imports: bc.BcImport[]!, types: bc.BcType[]) -> void {
+parse_import_decl_bc :: fn(cleaned: string, imports: bc.BcImport[]!, types: bc.BcType[]) -> DirectiveError | null {
     cb :: cleaned.bytes()
     after :: cb["import ".bytes().len()..<cb.len()].bytes_to_string()
     open :: after.index_of('(', 0)
@@ -335,7 +415,9 @@ parse_import_decl_bc :: fn(cleaned: string, imports: bc.BcImport[]!, types: bc.B
     is_extern := false
     name_i: usize = 1
     if parts.len() > 1 && parts[1] == "extern" { is_extern = true  name_i = 2 }
-    if parts.len() < name_i + 2 { return }
+    if parts.len() < name_i + 2 {
+        return DirectiveError { .reason = "expected `import <module> <name> …`, got ${parts.len()} field(s)" }
+    }
     extern_name :: parts[name_i]
     mangled :: parts[name_i + 1]
     sig: bc.BcSignature = if open < 0 {
@@ -349,42 +431,57 @@ parse_import_decl_bc :: fn(cleaned: string, imports: bc.BcImport[]!, types: bc.B
         .signature    = sig,
         .is_extern    = is_extern,
     })
+    return null
 }
 
-parse_impl_decl_bc :: fn(cleaned: string, impl_table: bc.ImplEntry[]!) -> void {
+parse_impl_decl_bc :: fn(cleaned: string, impl_table: bc.ImplEntry[]!) -> DirectiveError | null {
     cb :: cleaned.bytes()
     after :: cb["impl ".bytes().len()..<cb.len()].bytes_to_string().trim()
     space :: after.index_of(' ', 0)
-    if space < 0 { return }
+    if space < 0 {
+        return DirectiveError { .reason = "expected `impl <type-index> <trait>`, got `${after}`" }
+    }
     ab :: after.bytes()
     type_id_text :: ab[0..<usize(space)].bytes_to_string().trim()
     parsed :: parse_int_in_base(type_id_text, 10)
-    if parsed is ParseError { return }
+    if parsed is ParseError {
+        return DirectiveError { .reason = "impl: type index \"${type_id_text}\" is not a number" }
+    }
     trait_name :: ab[usize(space) + 1..<ab.len()].bytes_to_string().trim()
     impl_table.push(bc.ImplEntry { .struct_type_index = i32(parsed), .trait_name = trait_name })
+    return null
 }
 
-parse_vtable_decl_bc :: fn(cleaned: string, vtables: bc.VtableRow[]!) -> void {
+parse_vtable_decl_bc :: fn(cleaned: string, vtables: bc.VtableRow[]!) -> DirectiveError | null {
     cb :: cleaned.bytes()
     after :: cb["vtable ".bytes().len()..<cb.len()].bytes_to_string().trim()
     last_space :: last_index_of_space(after)
-    if last_space < 0 { return }
+    if last_space < 0 {
+        return DirectiveError { .reason = "expected `vtable <key> <type-index> <fn-index>`, got `${after}`" }
+    }
     ab :: after.bytes()
     fn_text :: ab[usize(last_space) + 1..<ab.len()].bytes_to_string().trim()
     fn_parsed :: parse_int_in_base(fn_text, 10)
-    if fn_parsed is ParseError { return }
+    if fn_parsed is ParseError {
+        return DirectiveError { .reason = "vtable: fn index \"${fn_text}\" is not a number" }
+    }
     head :: ab[0..<usize(last_space)].bytes_to_string().trim()
     second_space :: last_index_of_space(head)
-    if second_space < 0 { return }
+    if second_space < 0 {
+        return DirectiveError { .reason = "vtable: expected a key and a type index before the fn index, got `${head}`" }
+    }
     hb :: head.bytes()
     type_text :: hb[usize(second_space) + 1..<hb.len()].bytes_to_string().trim()
     type_parsed :: parse_int_in_base(type_text, 10)
-    if type_parsed is ParseError { return }
+    if type_parsed is ParseError {
+        return DirectiveError { .reason = "vtable: receiver type index \"${type_text}\" is not a number" }
+    }
     key :: hb[0..<usize(second_space)].bytes_to_string().trim()
     register_vtable_row(vtables, key, bc.VtableEntry {
         .receiver_type_index = i32(type_parsed),
         .fn_index            = i32(fn_parsed),
     })
+    return null
 }
 
 register_vtable_row :: fn(vtables: bc.VtableRow[]!, key: string, entry: bc.VtableEntry) -> void {
@@ -414,11 +511,13 @@ parse_export_decl_bc :: fn(cleaned: string, exports: bc.BcExport[]!) -> i32 {
 /// `data N str "v0" "v1" …` (each value `quote_string`-escaped). Mirrors
 /// `virt_reader::parse_data_decl` but keeps the unmaterialised form `emit_c`
 /// lowers to `.rodata` (the VM reader materialises to values in `reduce_data_pool`).
-parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[]!, strings: string[]) -> void {
+parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[]!, strings: string[]) -> DirectiveError | null {
     cb :: cleaned.bytes()
     after :: cb["data ".bytes().len()..<cb.len()].bytes_to_string()
     sp1 :: after.index_of(' ', 0)
-    if sp1 < 0 { return }
+    if sp1 < 0 {
+        return DirectiveError { .reason = "expected `data <index> [mut] <kind> <payload>`, got `${after}`" }
+    }
     ab :: after.bytes()
     kind_payload :: ab[usize(sp1) + 1..<ab.len()].bytes_to_string()
     kind_payload_bytes :: kind_payload.bytes()
@@ -432,35 +531,36 @@ parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[]!, strings:
         sp3 :: payload.index_of(' ', 0)
         inner_kind :: if sp3 < 0 { payload } else { pb[0..<usize(sp3)].bytes_to_string() }
         inner_payload :: if sp3 < 0 { "" } else { pb[usize(sp3) + 1..<pb.len()].bytes_to_string() }
-        parse_data_entry_body(inner_kind, inner_payload, true, data_pool, strings)
-        return
+        return parse_data_entry_body(inner_kind, inner_payload, true, data_pool, strings)
     }
-    parse_data_entry_body(kind_name, payload, false, data_pool, strings)
+    return parse_data_entry_body(kind_name, payload, false, data_pool, strings)
 }
 
 parse_data_entry_body :: fn(
     kind_name: string, payload: string, mutable: bool,
     data_pool: bc.BcDataEntry[]!, strings: string[],
-) -> void {
+) -> DirectiveError | null {
     if kind_name == "str" {
         data_pool.push(bc.BcStrData { .values = parse_quoted_strings(payload), .mutable = mutable })
-        return
+        return null
     }
     if kind_name == "agg" {
         data_pool.push(parse_agg_decl(payload, strings, mutable))
-        return
+        return null
     }
     if kind_name == "structs" {
         data_pool.push(parse_structs_decl(payload, strings, mutable))
-        return
+        return null
     }
+    // Every other kind carries a `hex"…"` blob. A malformed one used to be
+    // dropped, which removed a whole pool entry and renumbered every later index.
     rb :: payload.bytes()
-    if rb.len() < 5 { return }
-    if rb[0] != 'h' { return }
-    if rb[1] != 'e' { return }
-    if rb[2] != 'x' { return }
-    if rb[3] != '"' { return }
-    if rb[rb.len() - 1] != '"' { return }
+    if rb.len() < 5 || rb[0] != 'h' || rb[1] != 'e' || rb[2] != 'x' || rb[3] != '"' {
+        return DirectiveError { .reason = "data `${kind_name}`: expected a `hex\"…\"` payload, got `${payload}`" }
+    }
+    if rb[rb.len() - 1] != '"' {
+        return DirectiveError { .reason = "data `${kind_name}`: hex payload is not closed by a quote" }
+    }
     hex_body :: rb[4..<rb.len() - 1].bytes_to_string()
     kind :: bc.array_kind_from_name(kind_name)
     esz :: usize(bc.array_kind_element_size(kind))
@@ -470,6 +570,7 @@ parse_data_entry_body :: fn(
         items = filled_indexed(bytes_arr.len() / esz, (i) -> read_le(bytes_arr, i * esz, esz))
     }
     data_pool.push(bc.BcPrimData { .kind = kind, .items = items, .mutable = mutable })
+    return null
 }
 
 /// Tokenise a `"v0" "v1" …` sequence into the decoded string values. Each token
@@ -896,6 +997,52 @@ import "std/testing"
     }
     assert_eq(m.name, "demo")
     assert_eq(m.functions.len(), 1)
+}
+
+// Directive-level refusals. Each of these used to be swallowed: the parser
+// dropped or degraded the entry and handed back a module that looked complete —
+// a missing `type` collapsed a struct to an opaque ref (blocker #1 of the
+// self-host audit), a dropped pool entry renumbered every index after it.
+@test test_unknown_type_kind_stops_the_parse :: fn() -> void {
+    src :: "module demo\ntype 0 wobble\nexport main 0\n"
+    r :: parse_virt_bc(src)
+    if r is VirtParseError as e {
+        assert_eq(e.line_number, 2)
+        assert("wobble" in e.reason, "the reason should name the kind, got: ${e.reason}")
+    } else {
+        assert(false, "an unknown type kind must not become a BcRef placeholder")
+    }
+}
+
+@test test_malformed_struct_field_stops_the_parse :: fn() -> void {
+    // Field order IS the field index, so dropping one renumbers the rest.
+    src :: "module demo\ntype 0 struct P { a }\nexport main 0\n"
+    r :: parse_virt_bc(src)
+    if r is VirtParseError as e {
+        assert_eq(e.line_number, 2)
+        assert("separator" in e.reason, "should say what the field is missing")
+    } else {
+        assert(false, "a field with no `name:type` must not be skipped")
+    }
+}
+
+@test test_malformed_pool_directives_stop_the_parse :: fn() -> void {
+    // One case per pool: dropping an entry shifts every later index.
+    cases :: [
+        "impl zz Trait",
+        "vtable K zz 1",
+        "data 0 i32 nothex",
+        "import m",
+    ]
+    for bad in cases {
+        r :: parse_virt_bc("module demo\n${bad}\nexport main 0\n")
+        if r is VirtParseError as e {
+            assert_eq(e.line_number, 2)
+            assert(e.reason != "", "`${bad}` should carry a reason")
+        } else {
+            assert(false, "`${bad}` must not be dropped silently")
+        }
+    }
 }
 
 @test test_malformed_operands_stop_the_parse :: fn() -> void {
