@@ -2559,12 +2559,10 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             // `load_slot` / `store_slot` all route through the same logic ; the
             // `…U8` / `…I32` / `…I64` / `…F64` width distinction is a native-only
             // (byte-layout) concern the boxed-Value VM doesn't model.
-            is bc.LoadSlot     -> { if do_load_slot(frame)  is Trap as t { return t } }
             is bc.LoadSlotU8   -> { if do_load_slot(frame)  is Trap as t { return t } }
             is bc.LoadSlotI32  -> { if do_load_slot(frame)  is Trap as t { return t } }
             is bc.LoadSlotI64  -> { if do_load_slot(frame)  is Trap as t { return t } }
             is bc.LoadSlotF64  -> { if do_load_slot(frame)  is Trap as t { return t } }
-            is bc.StoreSlot    -> { if do_store_slot(frame) is Trap as t { return t } }
             is bc.StoreSlotU8  -> { if do_store_slot(frame) is Trap as t { return t } }
             is bc.StoreSlotI32 -> { if do_store_slot(frame) is Trap as t { return t } }
             is bc.StoreSlotI64 -> { if do_store_slot(frame) is Trap as t { return t } }

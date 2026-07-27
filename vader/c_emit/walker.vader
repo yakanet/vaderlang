@@ -142,8 +142,8 @@ keep_pinned_resolves :: fn(s: FnState!) -> void {
 // precisely upstream. Slot stores stay safe : a write never reallocs.
 is_cache_safe :: fn(op: vm.Op) -> bool {
     if op is vm.LocalGet | vm.LocalField | vm.StructGet                                                                        { return true }
-    if op is vm.LoadSlot | vm.LoadSlotU8 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64                                    { return true }
-    if op is vm.StoreSlot | vm.StoreSlotU8 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64                               { return true }
+    if op is vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64                                    { return true }
+    if op is vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64                               { return true }
     if op is vm.ArrayGet | vm.ArraySet | vm.ArrayLen                                                                           { return true }
     if op is vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.LoadU8                                                                  { return true }
     if op is vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.StoreU8                                                              { return true }
@@ -235,7 +235,7 @@ key_mentions_local :: fn(k: string, slot: i32) -> bool {
 op_allocates :: fn(op: vm.Op) -> bool = match op {
     is vm.StructNew as sn -> !sn.stack
     is vm.ObjectNew | vm.ArrayNew | vm.ArrayPush | vm.ArrayRepeat | vm.ArrayPushAll | vm.ArraySlice | vm.StringSliceCodepoints | vm.BufferToString | vm.MakeClosure | vm.CallImport | vm.CallIndirect | vm.VirtualCall -> true
-    is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const | vm.I64Const | vm.Call | vm.FnRef | vm.StructGet | vm.StructSet | vm.LocalField | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst | vm.RefCast | vm.Box | vm.Convert | vm.TypeCheck | vm.TypeConst | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.StringEq | vm.StringNe | vm.RefEq | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlot | vm.LoadSlotU8 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlot | vm.StoreSlotU8 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32 | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear -> false
+    is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const | vm.I64Const | vm.Call | vm.FnRef | vm.StructGet | vm.StructSet | vm.LocalField | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst | vm.RefCast | vm.Box | vm.Convert | vm.TypeCheck | vm.TypeConst | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.StringEq | vm.StringNe | vm.RefEq | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32 | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear -> false
 }
 
 /// One C function definition : `static <sig> { <body> }`. Walks the
@@ -605,12 +605,10 @@ emit_op :: fn(s: FnState!, pc: i32, op: vm.Op) -> void {
         is vm.StoreI32              -> emit_buffer_store(s, "vader_buffer_store_i32", "(int32_t)")
         is vm.StoreI64              -> emit_buffer_store(s, "vader_buffer_store_i64", "(int64_t)")
         is vm.StoreF64              -> emit_buffer_store(s, "vader_buffer_store_f64", "(double)")
-        is vm.LoadSlot              -> emit_slot_load_boxed(s)
         is vm.LoadSlotU8            -> emit_slot_load_prim(s, "uint8_t", .I32, false)
         is vm.LoadSlotI32           -> emit_slot_load_prim(s, "int32_t", .I32, op.bounds_safe)
         is vm.LoadSlotI64           -> emit_slot_load_prim(s, "int64_t", .I64, op.bounds_safe)
         is vm.LoadSlotF64           -> emit_slot_load_prim(s, "double", .F64, op.bounds_safe)
-        is vm.StoreSlot             -> emit_slot_store_boxed(s)
         is vm.StoreSlotU8           -> emit_slot_store_prim(s, "uint8_t", .I32, false)
         is vm.StoreSlotI32          -> emit_slot_store_prim(s, "int32_t", .I32, op.bounds_safe)
         is vm.StoreSlotI64          -> emit_slot_store_prim(s, "int64_t", .I64, op.bounds_safe)
@@ -2217,30 +2215,6 @@ array_hdr_ptr :: fn(v: StackVal) = "((vader_array_t*) ${obj_ptr_of(v)})"
 
 // The absolute slot index into the array's buf : `arr->offset + i`.
 slot_index :: fn(arr: string, idx: StackVal) = "${arr}->offset + (size_t) ${name_of(idx)}"
-
-/// `load_slot` (boxed) — pop array + slot index, push the boxed `Value` at that
-/// slot. The result is a traced reference (stack class `.Ref`).
-emit_slot_load_boxed :: fn(s: FnState!) -> void {
-    idx :: pop(s)
-    obj :: pop(s)
-    arr :: array_hdr_ptr(obj)
-    name :: fresh_tmp(s, .Ref)
-    line(s, "${name} = vader_array_box_slots(${arr}->buf)[${slot_index(arr, idx)}];")
-    push_tmp(s, name, .Ref)
-}
-
-/// `store_slot` (boxed) — pop array + slot index + value box ; store it and fire
-/// the generational write barrier (G2) on the buf (the object that owns the
-/// slot) — the boxed slot may record an old→young edge the minor collector
-/// must see.
-emit_slot_store_boxed :: fn(s: FnState!) -> void {
-    value :: pop(s)
-    idx :: pop(s)
-    obj :: pop(s)
-    arr :: array_hdr_ptr(obj)
-    line(s, "vader_array_box_slots(${arr}->buf)[${slot_index(arr, idx)}] = ${name_of(value)};")
-    line(s, "VADER_WRITE_BARRIER(${arr}->buf);")
-}
 
 /// Bind a `vader_array_t*` C local to `obj` and emit the access guards shared by
 /// the primitive slot load/store : the G1 buf-forwarding resolve (the array box

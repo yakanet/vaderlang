@@ -262,80 +262,50 @@ slot_width_for :: fn(elem: ValType) -> SlotWidth | null = match elem {
     .Any    -> .Boxed
 }
 
-/// Pick the store op for an array element of stack class `elem` (Target ABI S5,
-/// Array-over-Buffer). `Boxed` → `StoreSlot`, which fires the generational write
-/// barrier ; primitive widths → the native-width typed store (no barrier).
-/// Delegates the element classification to `slot_width_for`.
+/// Pick the typed store op for an array element of stack class `elem` (Target ABI
+/// S5, Array-over-Buffer) — the native-width store, no write barrier needed since
+/// no reference is written. `null` means "no typed store for this element": the
+/// caller falls back to the legacy runtime-dispatched `ArraySet`.
+///
+/// Declines on three groups, and each has its reason:
+///   - `.Boxed` (ref / string / `Any`) — an erased `Any[]` struct field may hold a
+///     concrete-kind array at runtime, so only the kind-dispatched legacy op is
+///     sound.
+///   - `.U8` — read-only `u8[]` byte views are borrowed (`buf == NULL`,
+///     atom-backed), which a raw slot op can't address.
+///   - `i16` / `u16` / `f32` — no slot opcode for those widths yet
+///     (`slot_width_for` already answers null).
+///
+/// This IS the flip policy — there is no second predicate to keep in step.
 ///
 /// @param elem  the array's concrete element value class.
-/// @return      the store op, or `null` for a not-yet-supported element width.
+/// @return      the typed store op, or `null` to fall back to `ArraySet`.
 export slot_store_op_for :: fn(elem: ValType, bounds_safe: bool) -> Op | null {
     w :: slot_width_for(elem) ?? return null
     return match w {
-        .U8    -> StoreSlotU8 {}
         .I32   -> StoreSlotI32 { .bounds_safe = bounds_safe }
         .I64   -> StoreSlotI64 { .bounds_safe = bounds_safe }
         .F64   -> StoreSlotF64 { .bounds_safe = bounds_safe }
-        .Boxed -> StoreSlot {}
+        .U8    -> null
+        .Boxed -> null
     }
 }
 
-/// Symmetric `Load*` op for an array element of stack class `elem` — same
-/// classification as `slot_store_op_for` (via `slot_width_for`), the boxed
-/// load traces no barrier (read-only).
+/// Symmetric typed LOAD op — same classification and the same declines as
+/// `slot_store_op_for`, `null` falling back to the legacy `ArrayGet`.
 ///
-/// @param elem  the array's concrete element value class.
-/// @return      the load op, or `null` for a not-yet-supported element width.
+/// @param elem  the array's concrete element value class (the static read type).
+/// @return      the typed load op, or `null` to fall back to `ArrayGet`.
 export slot_load_op_for :: fn(elem: ValType, bounds_safe: bool) -> Op | null {
     w :: slot_width_for(elem) ?? return null
     return match w {
-        .U8    -> LoadSlotU8 {}
         .I32   -> LoadSlotI32 { .bounds_safe = bounds_safe }
         .I64   -> LoadSlotI64 { .bounds_safe = bounds_safe }
         .F64   -> LoadSlotF64 { .bounds_safe = bounds_safe }
-        .Boxed -> LoadSlot {}
+        .U8    -> null
+        .Boxed -> null
     }
 }
-
-/// True when element class `elem` is eligible for the S5 typed-slot access flip
-/// (Solution A) — only the raw-primitive widths `I32`/`I64`/`F64`. Everything
-/// else stays on the legacy runtime-dispatched `ArrayGet`/`ArraySet` :
-///   - `.Boxed` (ref / string / `Any`) — an erased `Any[]` struct field may hold
-///     a concrete-kind array, so only the kind-dispatched legacy op is sound.
-///   - `.U8` — read-only `u8[]` byte views are borrowed (`buf == NULL`, atom-backed),
-///     which the raw slot op can't address.
-///   - sub-word i16/u16/f32 — no slot opcode yet (`slot_width_for` → null).
-///
-/// The single home for the flip policy ; `typed_slot_load_op_for` /
-/// `typed_slot_store_op_for` delegate the op shape to `slot_load_op_for` /
-/// `slot_store_op_for` and only gate on this.
-slot_typed_flippable :: fn(elem: ValType) -> bool {
-    w :: slot_width_for(elem) ?? return false
-    return match w {
-        .I32   -> true
-        .I64   -> true
-        .F64   -> true
-        .U8    -> false
-        .Boxed -> false
-    }
-}
-
-/// Slot LOAD op for the S5 access flip — the typed op when the element is a
-/// flippable concrete primitive (`slot_typed_flippable`), else `null` to fall
-/// back to the legacy `ArrayGet`.
-///
-/// @param elem  the array's concrete element value class (the static read type).
-/// @return      a typed `LoadSlot*` op, or `null` to fall back to `ArrayGet`.
-export typed_slot_load_op_for :: fn(elem: ValType, bounds_safe: bool) -> Op | null =
-    if slot_typed_flippable(elem) { slot_load_op_for(elem, bounds_safe) } else { null }
-
-/// Symmetric typed slot STORE op for the S5 access flip — typed when flippable,
-/// else `null` to fall back to the legacy `ArraySet`.
-///
-/// @param elem  the array's concrete element value class.
-/// @return      a typed `StoreSlot*` op, or `null` to fall back to `ArraySet`.
-export typed_slot_store_op_for :: fn(elem: ValType, bounds_safe: bool) -> Op | null =
-    if slot_typed_flippable(elem) { slot_store_op_for(elem, bounds_safe) } else { null }
 
 // ---- tests ---------------------------------------------------------------
 
@@ -407,18 +377,6 @@ import "std/testing"
     assert_eq("expected U64Mod", "")
 }
 
-@test test_slot_store_boxed_uses_store_slot :: fn() -> void {
-    op :: slot_store_op_for(ValType.String, false)
-    if op is StoreSlot { return }
-    assert_eq("expected StoreSlot for string", "")
-}
-
-@test test_slot_store_ref_uses_store_slot :: fn() -> void {
-    op :: slot_store_op_for(ValType.Ref, false)
-    if op is StoreSlot { return }
-    assert_eq("expected StoreSlot for ref", "")
-}
-
 @test test_slot_store_i32_native_width :: fn() -> void {
     op :: slot_store_op_for(ValType.I32, false)
     if op is StoreSlotI32 { return }
@@ -439,14 +397,6 @@ import "std/testing"
     assert_eq("expected StoreSlotF64 for f64", "")
 }
 
-@test test_slot_store_u8_bool_native_width :: fn() -> void {
-    op_u8 :: slot_store_op_for(ValType.U8, false)
-    if !(op_u8 is StoreSlotU8) { assert_eq("expected StoreSlotU8 for u8", "") }
-    op_bool :: slot_store_op_for(ValType.Bool, false)
-    if op_bool is StoreSlotU8 { return }
-    assert_eq("expected StoreSlotU8 for bool", "")
-}
-
 // `i16` / `u16` / `f32` slots have no dedicated opcode yet — the selector
 // returns null so the lowerer keeps those element kinds off the Vader path.
 @test test_slot_store_deferred_widths_are_null :: fn() -> void {
@@ -456,7 +406,6 @@ import "std/testing"
 }
 
 @test test_slot_load_mirrors_store :: fn() -> void {
-    if !(slot_load_op_for(ValType.Any, false) is LoadSlot) { assert_eq("expected LoadSlot for any", "") }
     if !(slot_load_op_for(ValType.I32, false) is LoadSlotI32) { assert_eq("expected LoadSlotI32 for i32", "") }
     if !(slot_load_op_for(ValType.F64, false) is LoadSlotF64) { assert_eq("expected LoadSlotF64 for f64", "") }
     if slot_load_op_for(ValType.F32, false) != null { assert_eq("expected null for f32", "") }

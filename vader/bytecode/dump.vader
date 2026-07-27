@@ -582,19 +582,19 @@ export write_op :: fn(out: StringBuilder!, op: Op) -> void {
         is CharConst                -> out.append("char.const ${u32(op.value)}")
         is NullConst                -> out.append("null.const")
         is StringConst              -> out.append("string.const ${op.index}")
-        is LocalGet as l            -> out.append("local.get ${l.slot}")
-        is LocalSet as l            -> out.append("local.set ${l.slot}")
-        is LocalTee as l            -> out.append("local.tee ${l.slot}")
-        is LocalField as l          -> out.append("local.field ${l.slot} ${l.type_id} ${l.field_index}")
+        is LocalGet                 -> out.append("local.get ${op.slot}")
+        is LocalSet                 -> out.append("local.set ${op.slot}")
+        is LocalTee                 -> out.append("local.tee ${op.slot}")
+        is LocalField               -> out.append("local.field ${op.slot} ${op.type_id} ${op.field_index}")
         is Return                   -> out.append("return")
-        is ReturnLit as r           -> out.append("return.lit ${format_const_op(r.value)}")
+        is ReturnLit                -> out.append("return.lit ${format_const_op(op.value)}")
         is Drop                     -> out.append("drop")
         is Call                     -> out.append("call ${op.function_index}")
         is CallImport               -> out.append("call.import ${op.index}")
         is CallIndirect             -> out.append("call.indirect ${op.type_id}")
-        is VirtualCall as v         -> out.append("virtual.call ${v.parameter_count} ${v.vtable_key}")
-        is FnRef as f               -> out.append("fn.ref ${f.function_index} ${f.type_id}")
-        is MakeClosure as m         -> out.append("make_closure ${m.function_index} ${m.env_type_id}")
+        is VirtualCall              -> out.append("virtual.call ${op.parameter_count} ${op.vtable_key}")
+        is FnRef                    -> out.append("fn.ref ${op.function_index} ${op.type_id}")
+        is MakeClosure              -> out.append("make_closure ${op.function_index} ${op.env_type_id}")
         is If                       -> out.append("if")
         is Else                     -> out.append("else")
         is End                      -> out.append("end")
@@ -606,22 +606,22 @@ export write_op :: fn(out: StringBuilder!, op: Op) -> void {
         is StructNew                -> if op.stack { out.append("struct.new_stack ${op.type_id}") } else { out.append("struct.new ${op.type_id}") }
         is StructGet                -> out.append("struct.get ${op.type_id} ${op.field_index}")
         is StructSet                -> if op.stack { out.append("struct.set_stack ${op.type_id} ${op.field_index}") } else { out.append("struct.set ${op.type_id} ${op.field_index}") }
-        is ArrayNew as a            -> out.append("array.new ${a.type_id} ${a.length}")
+        is ArrayNew                 -> out.append("array.new ${op.type_id} ${op.length}")
         is ArrayLen                 -> out.append("array.len")
-        is ArrayPush as a           -> out.append("array.push ${a.type_id}")
-        is ArrayGet as a            -> out.append("array.get ${a.type_id}")
-        is ArraySet as a            -> out.append("array.set ${a.type_id}")
-        is ArraySlice as a          -> out.append("array.slice ${a.type_id}")
+        is ArrayPush                -> out.append("array.push ${op.type_id}")
+        is ArrayGet                 -> out.append("array.get ${op.type_id}")
+        is ArraySet                 -> out.append("array.set ${op.type_id}")
+        is ArraySlice               -> out.append("array.slice ${op.type_id}")
         is ArrayRepeat              -> out.append("array.repeat")
         is ArrayPushAll             -> out.append("array.push_all")
         is ArrayCopy                -> out.append("array.copy")
         is ArrayRemoveLast          -> out.append("array.remove_last")
         is ArrayClear               -> out.append("array.clear")
-        is DataConst as d           -> out.append("data.const ${d.pool_index} ${d.type_id}")
-        is TypeConst as t           -> out.append("type.const ${t.type_id}")
-        is TypeCheck as t           -> out.append("type_check ${t.type_id}")
-        is RefCast as r             -> out.append("ref.cast ${r.type_id}")
-        is Box as b                 -> out.append("box ${b.type_id}")
+        is DataConst                -> out.append("data.const ${op.pool_index} ${op.type_id}")
+        is TypeConst                -> out.append("type.const ${op.type_id}")
+        is TypeCheck                -> out.append("type_check ${op.type_id}")
+        is RefCast                  -> out.append("ref.cast ${op.type_id}")
+        is Box                      -> out.append("box ${op.type_id}")
         is Unreachable              -> out.append("unreachable")
         is Convert                  -> out.append("${op.from_name}.to_${convert_target_name(op.target)}")
         is SizeOfType               -> out.append("intrinsic size_of.type")
@@ -696,8 +696,8 @@ export write_op :: fn(out: StringBuilder!, op: Op) -> void {
         is RefEq                    -> out.append("ref.eq")
         is RefNe                    -> out.append("ref.ne")
         is DeferPush                -> out.append("defer.push")
-        is DeferPopExec as d        -> out.append("defer.pop_exec ${d.count}")
-        is ObjectNew as o           -> out.append("object_new ${o.type_id}")
+        is DeferPopExec             -> out.append("defer.pop_exec ${op.count}")
+        is ObjectNew                -> out.append("object_new ${op.type_id}")
         is LoadU8                   -> out.append("load_u8")
         is LoadI32                  -> out.append("load_i32")
         is LoadI64                  -> out.append("load_i64")
@@ -706,13 +706,9 @@ export write_op :: fn(out: StringBuilder!, op: Op) -> void {
         is StoreI32                 -> out.append("store_i32")
         is StoreI64                 -> out.append("store_i64")
         is StoreF64                 -> out.append("store_f64")
-        is LoadSlot                 -> out.append("load_slot")
-        is LoadSlotU8               -> out.append("load_slot_u8")
         is LoadSlotI32              -> out.append("load_slot_i32")
         is LoadSlotI64              -> out.append("load_slot_i64")
         is LoadSlotF64              -> out.append("load_slot_f64")
-        is StoreSlot                -> out.append("store_slot")
-        is StoreSlotU8              -> out.append("store_slot_u8")
         is StoreSlotI32             -> out.append("store_slot_i32")
         is StoreSlotI64             -> out.append("store_slot_i64")
         is StoreSlotF64             -> out.append("store_slot_f64")
@@ -729,13 +725,13 @@ export write_op :: fn(out: StringBuilder!, op: Op) -> void {
 /// Render a `ConstOp` in its native text form (e.g. `i32.const 42`).
 /// Used by `write_op`'s standalone const arms + its `ReturnLit` inner op.
 format_const_op :: fn(c: ConstOp) -> string = match c {
-    is I32Const    as v -> "i32.const ${v.value}"
-    is I64Const    as v -> "i64.const ${v.value}"
-    is F64Const    as v -> "f64.const ${f64_const_operands(v.value)}"
-    is BoolConst   as v -> "bool.const ${v.value}"
-    is CharConst   as v -> "char.const ${u32(v.value)}"
-    is StringConst as v -> "string.const ${v.index}"
-    is NullConst        -> "null.const"
+    is I32Const     -> "i32.const ${c.value}"
+    is I64Const     -> "i64.const ${c.value}"
+    is F64Const     -> "f64.const ${f64_const_operands(c.value)}"
+    is BoolConst    -> "bool.const ${c.value}"
+    is CharConst    -> "char.const ${u32(c.value)}"
+    is StringConst  -> "string.const ${c.index}"
+    is NullConst    -> "null.const"
 }
 
 // ---- annotation (--annotate) ----------------------------------------------

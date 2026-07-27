@@ -1042,7 +1042,7 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         // A1 force-concretes the array constructors, so a concrete `i32[]` value is
         // I32-kind at runtime → the typed read is sound. Boxed / ref / `Any` / `u8`
         // elements stay on the legacy runtime-dispatched `ArrayGet`.
-        load_op :: typed_slot_load_op_for(array_element_val_type(target_type), ag.bounds_safe)
+        load_op :: slot_load_op_for(array_element_val_type(target_type), ag.bounds_safe)
         if load_op is null {
             push_emit(ctx, ArrayGet { .type_id = type_index, .bounds_safe = ag.bounds_safe }, ag.span)
             if needs_ref_cast(ag.type) {
@@ -1063,7 +1063,7 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         // S5 access flip (Solution A) — symmetric with the get above : a
         // concrete-primitive element stores through the typed slot op (no box,
         // no element-kind switch, no write barrier — primitives hold no refs).
-        store_op :: typed_slot_store_op_for(array_element_val_type(target_type), ase.bounds_safe)
+        store_op :: slot_store_op_for(array_element_val_type(target_type), ase.bounds_safe)
         if store_op is null {
             push_emit(ctx, ArraySet { .type_id = type_index, .bounds_safe = ase.bounds_safe }, ase.span)
         } else {
