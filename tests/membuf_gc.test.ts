@@ -3,7 +3,7 @@
 // The 12 memory opcodes are consumer-inert (no .vader source lowers to them
 // until the Buffer type lands), so this exercises them through a hand-authored
 // .virt op stream (tests/fixtures/membuf_gc.virt) compiled via the new
-// `vader build x.virt --target=c/native` path. It asserts two things the unit
+// `vader build --target=c/native x.virt` path. It asserts two things the unit
 // suite cannot: (1) the c-emit arms emit the real `vader_buffer_*` helpers, not
 // `todo()` stubs; (2) a buffer's stored bytes survive a forced *moving*
 // collection — G1, the interior-pointer re-derivation discipline. The fixture

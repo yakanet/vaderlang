@@ -24,7 +24,7 @@
 // Usage :
 //   vader run examples/brainfuck/brainfuck.vader              # defaults to examples/brainfuck/hello.bf
 //   vader run examples/brainfuck/brainfuck.vader path/to.bf   # arbitrary BF source
-//   vader build examples/brainfuck/brainfuck.vader --target=native --out=bf
+//   vader build --target=native --out=bf examples/brainfuck/brainfuck.vader
 //
 // Runs on both the interpreted path (`vader run`) and the native C
 // emitter (`--target=native`) ; the synthetic types the builder
