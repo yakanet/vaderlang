@@ -72,6 +72,18 @@ export DirectiveError :: struct {
 export display_virt_parse_error :: fn(e: VirtParseError, command: string, path: string) -> string =
     "${command}: ${path}:${e.line_number}: ${e.reason}\n  ${e.line}"
 
+// Pair a directive parser's reason with the line it came from. Returns the
+// positioned error, or null when the directive parsed — the caller still does its
+// own `return`, since a helper cannot return on its behalf.
+positioned :: fn(
+    failure: DirectiveError | null, line_number: usize, line: string,
+) -> VirtParseError | null {
+    if failure is DirectiveError as e {
+        return VirtParseError { .line_number = line_number, .line = line, .reason = e.reason }
+    }
+    return null
+}
+
 /// Parse a full `.virt` text dump into a `BytecodeModule` ready for `emit_c`.
 ///
 /// Module-level directives (`module` / `type` / `string` / `data` / `import` /
@@ -83,10 +95,13 @@ export display_virt_parse_error :: fn(e: VirtParseError, command: string, path: 
 /// @param source  the full `.virt` text (UTF-8).
 /// @return        the reconstructed module, or the first line that defeated the
 ///                reader — never a partial module.
-/// @error         `VirtParseError` on an unrecognised module directive, an
-///                unrecognised instruction, or a recognised instruction whose
-///                operands don't parse. All three would otherwise produce a
-///                module that runs with an operation missing.
+/// @error         `VirtParseError` on an unrecognised module directive; a
+///                RECOGNISED directive whose payload doesn't parse (an unknown
+///                type kind, a malformed struct field, a non-numeric index, a
+///                bad hex blob); an unrecognised instruction; or a recognised
+///                instruction whose operands don't parse. Each would otherwise
+///                yield a module missing an operation or a pool entry, with
+///                every index after it shifted.
 export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule | VirtParseError {
     module_name := ""
     strings: string[]! = []
@@ -141,11 +156,9 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule | VirtParseError
             if head == "#"      { break }
             if head == "module" { module_name = parse_module_name(cleaned) continue }
             if head == "type" {
-                failure :: parse_type_decl_bc(cleaned, types)
-                if failure is DirectiveError as e {
-                    return VirtParseError {
-                        .line_number = line_index, .line = cleaned, .reason = e.reason,
-                    }
+                failed :: positioned(parse_type_decl_bc(cleaned, types), line_index, cleaned)
+                if failed is VirtParseError {
+                    return failed
                 }
                 continue
             }
@@ -154,30 +167,34 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule | VirtParseError
             // silent drop removed a whole pool entry and renumbered every index
             // after it — the pool analogue of the pc shift fixed for instructions.
             if head == "data" {
-                failure :: parse_data_decl_bc(cleaned, data_pool, strings)
-                if failure is DirectiveError as e {
-                    return VirtParseError { .line_number = line_index, .line = cleaned, .reason = e.reason }
+                failed :: positioned(
+                    parse_data_decl_bc(cleaned, data_pool, strings), line_index, cleaned,
+                )
+                if failed is VirtParseError {
+                    return failed
                 }
                 continue
             }
             if head == "import" {
-                failure :: parse_import_decl_bc(cleaned, imports, types)
-                if failure is DirectiveError as e {
-                    return VirtParseError { .line_number = line_index, .line = cleaned, .reason = e.reason }
+                failed :: positioned(
+                    parse_import_decl_bc(cleaned, imports, types), line_index, cleaned,
+                )
+                if failed is VirtParseError {
+                    return failed
                 }
                 continue
             }
             if head == "impl" {
-                failure :: parse_impl_decl_bc(cleaned, impl_table)
-                if failure is DirectiveError as e {
-                    return VirtParseError { .line_number = line_index, .line = cleaned, .reason = e.reason }
+                failed :: positioned(parse_impl_decl_bc(cleaned, impl_table), line_index, cleaned)
+                if failed is VirtParseError {
+                    return failed
                 }
                 continue
             }
             if head == "vtable" {
-                failure :: parse_vtable_decl_bc(cleaned, vtables)
-                if failure is DirectiveError as e {
-                    return VirtParseError { .line_number = line_index, .line = cleaned, .reason = e.reason }
+                failed :: positioned(parse_vtable_decl_bc(cleaned, vtables), line_index, cleaned)
+                if failed is VirtParseError {
+                    return failed
                 }
                 continue
             }
@@ -289,19 +306,20 @@ parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]!) -> DirectiveError
     after_type :: cb["type ".bytes().len()..<cb.len()].bytes_to_string().trim()
     first_space :: after_type.index_of(' ', 0)
     if first_space < 0 {
-        return DirectiveError { .reason = "expected `type <index> <kind> …`, got no kind after the index" }
+        return DirectiveError {
+            .reason = "expected `type <index> <kind> …`, got no kind after the index",
+        }
     }
     atb :: after_type.bytes()
     rest :: atb[usize(first_space) + 1..<atb.len()].bytes_to_string().trim()
     rb :: rest.bytes()
 
     if rest.starts_with("struct ") {
-        structs: bc.BcStruct![]! = []
-        failure :: parse_struct_type_bc(rest, structs)
-        if failure is DirectiveError {
-            return failure
+        parsed :: parse_struct_type_bc(rest)
+        if parsed is DirectiveError {
+            return parsed
         }
-        types.push(structs[0])
+        types.push(parsed)
         return null
     }
     if rest.starts_with("primitive ") {
@@ -313,7 +331,9 @@ parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]!) -> DirectiveError
         element_text :: rb["array ".bytes().len()..<rb.len()].bytes_to_string().trim()
         parsed :: parse_int_in_base(element_text, 10)
         if parsed is ParseError {
-            return DirectiveError { .reason = "array type: element index \"${element_text}\" is not a number" }
+            return DirectiveError {
+                .reason = "array type: element index \"${element_text}\" is not a number",
+            }
         }
         types.push(bc.BcArray { .element = i32(parsed) })
         return null
@@ -332,12 +352,14 @@ parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]!) -> DirectiveError
 /// Parse `struct NAME { f0:tid0, f1:tid1 }` into a `BcStruct`, recovering the
 /// full `BcField[]` (name + type-index). `symbol_id` isn't carried by `.virt`
 /// → `-1`.
-/// Reason a struct-type line could not be read, or `null` when `out` was filled.
 ///
 /// Field order IS the field index, so a dropped field silently renumbers every one
-/// after it — the reader must refuse the line rather than hand back a struct whose
+/// after it — the reader refuses the line rather than hand back a struct whose
 /// slots no longer line up with the emitter's.
-parse_struct_type_bc :: fn(rest: string, out: bc.BcStruct![]!) -> DirectiveError | null {
+///
+/// @param rest  the text after `type N `, starting at `struct `.
+/// @return      the parsed struct, or why the line could not be read.
+parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct | DirectiveError {
     rb :: rest.bytes()
     after_struct :: rb["struct ".bytes().len()..<rb.len()].bytes_to_string()
     open :: after_struct.index_of('{', 0)
@@ -360,21 +382,23 @@ parse_struct_type_bc :: fn(rest: string, out: bc.BcStruct![]!) -> DirectiveError
                 pt :: part.trim()
                 colon :: pt.index_of(':', 0)
                 if colon < 0 {
-                    return DirectiveError { .reason = "struct `${name}`: field `${pt}` has no `name:type` separator" }
+                    return DirectiveError {
+                        .reason = "struct `${name}`: field `${pt}` has no `name:type` separator",
+                    }
                 }
                 ptb :: pt.bytes()
                 fname :: ptb[0..<usize(colon)].bytes_to_string().trim()
                 tidtext :: ptb[usize(colon) + 1..<ptb.len()].bytes_to_string().trim()
                 tid :: parse_int_in_base(tidtext, 10)
                 if tid is ParseError {
-                    return DirectiveError { .reason = "struct `${name}`: field `${fname}` has a non-numeric type index \"${tidtext}\"" }
+                    detail :: "field `${fname}` type index \"${tidtext}\" is not a number"
+                    return DirectiveError { .reason = "struct `${name}`: ${detail}" }
                 }
                 fields.push(bc.BcField { .name = fname, .type_index = i32(tid) })
             }
         }
     }
-    out.push(bc.BcStruct { .name = name, .fields = fields, .symbol_id = -1 })
-    return null
+    return bc.BcStruct { .name = name, .fields = fields, .symbol_id = -1 }
 }
 
 /// Parse `fn (tid,tid) -> tid` (a fn-VALUE type — its slots are type indices,
@@ -406,7 +430,9 @@ parse_union_type_bc :: fn(rest: string) -> bc.BcUnion {
 
 /// Parse `import N [extern ]EXTERN_NAME MANGLED (sig) -> ret`. The `extern`
 /// keyword (when present) shifts the name/mangled tokens by one.
-parse_import_decl_bc :: fn(cleaned: string, imports: bc.BcImport[]!, types: bc.BcType[]) -> DirectiveError | null {
+parse_import_decl_bc :: fn(
+    cleaned: string, imports: bc.BcImport[]!, types: bc.BcType[],
+) -> DirectiveError | null {
     cb :: cleaned.bytes()
     after :: cb["import ".bytes().len()..<cb.len()].bytes_to_string()
     open :: after.index_of('(', 0)
@@ -416,7 +442,9 @@ parse_import_decl_bc :: fn(cleaned: string, imports: bc.BcImport[]!, types: bc.B
     name_i: usize = 1
     if parts.len() > 1 && parts[1] == "extern" { is_extern = true  name_i = 2 }
     if parts.len() < name_i + 2 {
-        return DirectiveError { .reason = "expected `import <module> <name> …`, got ${parts.len()} field(s)" }
+        return DirectiveError {
+            .reason = "expected `import <module> <name> …`, got ${parts.len()} field(s)",
+        }
     }
     extern_name :: parts[name_i]
     mangled :: parts[name_i + 1]
@@ -457,7 +485,9 @@ parse_vtable_decl_bc :: fn(cleaned: string, vtables: bc.VtableRow[]!) -> Directi
     after :: cb["vtable ".bytes().len()..<cb.len()].bytes_to_string().trim()
     last_space :: last_index_of_space(after)
     if last_space < 0 {
-        return DirectiveError { .reason = "expected `vtable <key> <type-index> <fn-index>`, got `${after}`" }
+        return DirectiveError {
+            .reason = "expected `vtable <key> <type-index> <fn-index>`, got `${after}`",
+        }
     }
     ab :: after.bytes()
     fn_text :: ab[usize(last_space) + 1..<ab.len()].bytes_to_string().trim()
@@ -468,13 +498,17 @@ parse_vtable_decl_bc :: fn(cleaned: string, vtables: bc.VtableRow[]!) -> Directi
     head :: ab[0..<usize(last_space)].bytes_to_string().trim()
     second_space :: last_index_of_space(head)
     if second_space < 0 {
-        return DirectiveError { .reason = "vtable: expected a key and a type index before the fn index, got `${head}`" }
+        return DirectiveError {
+            .reason = "vtable: expected a key and a type index before the fn index, got `${head}`",
+        }
     }
     hb :: head.bytes()
     type_text :: hb[usize(second_space) + 1..<hb.len()].bytes_to_string().trim()
     type_parsed :: parse_int_in_base(type_text, 10)
     if type_parsed is ParseError {
-        return DirectiveError { .reason = "vtable: receiver type index \"${type_text}\" is not a number" }
+        return DirectiveError {
+            .reason = "vtable: receiver type index \"${type_text}\" is not a number",
+        }
     }
     key :: hb[0..<usize(second_space)].bytes_to_string().trim()
     register_vtable_row(vtables, key, bc.VtableEntry {
@@ -511,12 +545,16 @@ parse_export_decl_bc :: fn(cleaned: string, exports: bc.BcExport[]!) -> i32 {
 /// `data N str "v0" "v1" …` (each value `quote_string`-escaped). Mirrors
 /// `virt_reader::parse_data_decl` but keeps the unmaterialised form `emit_c`
 /// lowers to `.rodata` (the VM reader materialises to values in `reduce_data_pool`).
-parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[]!, strings: string[]) -> DirectiveError | null {
+parse_data_decl_bc :: fn(
+    cleaned: string, data_pool: bc.BcDataEntry[]!, strings: string[],
+) -> DirectiveError | null {
     cb :: cleaned.bytes()
     after :: cb["data ".bytes().len()..<cb.len()].bytes_to_string()
     sp1 :: after.index_of(' ', 0)
     if sp1 < 0 {
-        return DirectiveError { .reason = "expected `data <index> [mut] <kind> <payload>`, got `${after}`" }
+        return DirectiveError {
+            .reason = "expected `data <index> [mut] <kind> <payload>`, got `${after}`",
+        }
     }
     ab :: after.bytes()
     kind_payload :: ab[usize(sp1) + 1..<ab.len()].bytes_to_string()
@@ -556,10 +594,14 @@ parse_data_entry_body :: fn(
     // dropped, which removed a whole pool entry and renumbered every later index.
     rb :: payload.bytes()
     if rb.len() < 5 || rb[0] != 'h' || rb[1] != 'e' || rb[2] != 'x' || rb[3] != '"' {
-        return DirectiveError { .reason = "data `${kind_name}`: expected a `hex\"…\"` payload, got `${payload}`" }
+        return DirectiveError {
+            .reason = "data `${kind_name}`: expected a `hex\"…\"` payload, got `${payload}`",
+        }
     }
     if rb[rb.len() - 1] != '"' {
-        return DirectiveError { .reason = "data `${kind_name}`: hex payload is not closed by a quote" }
+        return DirectiveError {
+            .reason = "data `${kind_name}`: hex payload is not closed by a quote",
+        }
     }
     hex_body :: rb[4..<rb.len() - 1].bytes_to_string()
     kind :: bc.array_kind_from_name(kind_name)
