@@ -1,0 +1,318 @@
+// vader/cli/spec — the CLI surface, declared once.
+//
+// Every action, every flag, every accepted value of an enumerated flag, with the
+// text that documents it. `std/cli` parses from this table and `std/cli/help`
+// renders from it, so a flag described here is a flag the compiler accepts and
+// the help shows — there is no second copy to keep in step.
+//
+// It replaces four things that used to describe the surface separately: the
+// 60-line `HELP` string, the `STAGES_LIST` constant, `cmd_build`'s chain of
+// `target != …` comparisons, and `cmd_dump`'s twelve `stage == …` arms. They had
+// already drifted — `HELP` advertised a `.vir` input the CLI has never
+// recognised, promised a REPL for a bare `vader run`, and listed `fmt`'s flags
+// that live in a parser of their own.
+//
+// Adding a flag means adding it here and reading it in the matching `cmd_*`.
+// Adding a value to an enumerated flag means adding a `ValueSpec` here and an
+// arm to the dispatch; the validation and the error message follow on their own.
+
+module "vader/cli"
+
+import "std/cli"
+Lsp :: import "vader/lsp"
+
+/// One-line description of the program, for the help's title line.
+export TAGLINE :: "the Vader compiler"
+
+/// Flags every action accepts.
+///
+/// All three are parsed and stripped but wired into no pass yet — `GlobalOpts`
+/// is built and never read. They say so rather than describing an effect they
+/// don't have: a help entry that overstates is worse than one admitting its own
+/// emptiness. They used to be "global options" consumed before the action was
+/// even dispatched, which is what let the CLI steal `--allow-env` from a program
+/// run under `vader run`.
+export COMMON_FLAGS: FlagSpec[]: [
+    FlagSpec {
+        .name = "diagnostics", .kind = .Str,
+        .help = "Reserved; diagnostic output format, no effect yet",
+        .value_name = "format", .default_text = "text",
+        .values = [
+            ValueSpec { .name = "text", .help = "Human-readable" },
+            ValueSpec { .name = "json", .help = "Machine-readable" },
+        ],
+    },
+    FlagSpec {
+        .name = "allow-env", .kind = .Bool,
+        .help = "Reserved; no effect yet",
+    },
+    FlagSpec {
+        .name = "no-bytecode-opt", .kind = .Bool,
+        .help = "Reserved; no effect yet",
+    },
+]
+
+// `--target`'s five values. `ir` / `ir-text` / `wasm` are recognised but
+// unimplemented — `cmd_build` says so per target rather than rejecting them as
+// unknown, and the help admits it here instead of listing them as if they work.
+BUILD_TARGETS: ValueSpec[]: [
+    ValueSpec { .name = "native", .help = "Native binary, via the C emitter" },
+    ValueSpec { .name = "c", .help = "The generated C source only" },
+    ValueSpec { .name = "ir", .help = "Binary bytecode module (not yet implemented)" },
+    ValueSpec { .name = "ir-text", .help = "Textual bytecode dump (not yet implemented)" },
+    ValueSpec { .name = "wasm", .help = "WebAssembly module (not yet implemented)" },
+]
+
+BUILD_FLAGS: FlagSpec[]: [
+    FlagSpec {
+        .name = "out", .kind = .Str, .alias = "o",
+        .help = "Output path (`-` streams C to stdout)",
+        .value_name = "path",
+    },
+    FlagSpec {
+        .name = "target", .kind = .Str, .alias = "t", .help = "What to produce",
+        .value_name = "target", .default_text = "native", .values = BUILD_TARGETS,
+    },
+    FlagSpec {
+        .name = "release", .kind = .Bool, .alias = "r",
+        .help = "Optimise; default builds carry debug info",
+    },
+    FlagSpec {
+        .name = "manifest", .kind = .Bool,
+        .help = "Read vader.json instead of a single file (not yet implemented)",
+    },
+    FlagSpec {
+        .name = "cc", .kind = .Str,
+        .help = "Native only: C compiler to invoke",
+        .value_name = "path", .default_text = "cc",
+    },
+    FlagSpec {
+        .name = "ldflags", .kind = .Str,
+        .help = "Native only: raw linker flags appended to the cc invocation",
+        .value_name = "flags",
+    },
+    FlagSpec {
+        .name = "include-paths", .kind = .Str,
+        .help = "Extra module search roots (GCC -I style), highest precedence",
+        .value_name = "a,b",
+    },
+    FlagSpec {
+        .name = "parallel", .kind = .Str,
+        .help = "Native only: compile the C across N parallel jobs",
+        .value_name = "N",
+    },
+]
+
+// The twelve IR stages. This array is the only list of them: `cmd_dump`
+// dispatches on the name, but what is *accepted* — and what an unknown stage
+// reports — comes from here.
+DUMP_STAGES: ValueSpec[]: [
+    ValueSpec { .name = "lexer", .help = "Token stream + diagnostics (text)" },
+    ValueSpec { .name = "ast", .help = "Parser AST (JSON, spans elided)" },
+    ValueSpec { .name = "resolved-ast", .help = "Per-module symbol table + import wiring" },
+    ValueSpec { .name = "typed-ast", .help = "Per-decl + per-expression types" },
+    ValueSpec { .name = "evaluated-ast", .help = "@comptime / @file values + generic instances" },
+    ValueSpec { .name = "lowered-ast", .help = "Desugared tree (match / interpolation / defer expanded)" },
+    ValueSpec { .name = "dced-ast", .help = "Lowered tree post reachability prune" },
+    ValueSpec { .name = "cfg", .help = "Mid-IR CFG (post DCE + escape annotation)" },
+    ValueSpec { .name = "bytecode", .help = "Stack-machine ops + type/string/import tables" },
+    ValueSpec { .name = "bytecode-cfg", .help = "Bytecode with CFG-level const-folding (text)" },
+    ValueSpec { .name = "c", .help = "Generated C source" },
+    ValueSpec { .name = "wasm", .help = "WebAssembly module (not yet implemented)" },
+]
+
+DUMP_FLAGS: FlagSpec[]: [
+    FlagSpec {
+        .name = "stage", .kind = .Str, .alias = "s", .help = "Which IR stage to dump",
+        .value_name = "stage", .values = DUMP_STAGES,
+    },
+    FlagSpec {
+        .name = "module", .kind = .Str,
+        .help = "Scope the module-filtered dumps to these modules + submodules",
+        .value_name = "a,b",
+    },
+    FlagSpec {
+        .name = "annotate", .kind = .Bool,
+        .help = "bytecode only: resolve table indices inline as comments — a disassembly view, NOT re-parsable",
+    },
+]
+
+// `fmt`'s two flags. They lived in `vader/fmt/cli.vader`'s own hand-rolled
+// parser, which pushed any unrecognised token into the path list — so
+// `vader fmt --nope dir/` reported `path not found: --nope` and exited 0.
+FMT_FLAGS: FlagSpec[]: [
+    FlagSpec {
+        .name = "check", .kind = .Bool,
+        .help = "Read-only; exit 1 if any file would change",
+    },
+    FlagSpec {
+        .name = "stdout", .kind = .Bool,
+        .help = "Write formatted output to stdout (single file)",
+    },
+]
+
+/// Every action, in the order the help lists them.
+///
+/// `tail` states what an action does with positionals past the first, which is
+/// what makes the argument boundary self-documenting: only `Forward` hands its
+/// tail to another program, and it is the reason flags must precede the path.
+export COMMANDS: CommandSpec[]: [
+    CommandSpec {
+        .name = "run", .summary = "Compile and run a file on the VM",
+        .usage = "<file> [program args...]", .flags = [], .tail = .Forward,
+    },
+    CommandSpec {
+        .name = "build", .summary = "Compile a Vader source file",
+        .usage = "<file>", .flags = BUILD_FLAGS, .tail = .None,
+    },
+    CommandSpec {
+        .name = "fmt", .summary = "Format Vader sources in place",
+        .usage = "[path]", .flags = FMT_FLAGS, .tail = .Paths,
+    },
+    CommandSpec {
+        .name = "test", .summary = "Run @test functions",
+        .usage = "[path]", .flags = [], .tail = .None,
+    },
+    CommandSpec {
+        .name = "lint", .summary = "Project-wide lints kept out of the default build",
+        .usage = "<file>", .flags = [], .tail = .None,
+    },
+    CommandSpec {
+        .name = "dump", .summary = "Dump an IR stage",
+        .usage = "<file>", .flags = DUMP_FLAGS, .tail = .None,
+    },
+    CommandSpec {
+        .name = "lsp", .summary = "Run the Language Server (JSON-RPC over stdio)",
+        .usage = "", .flags = Lsp.LSP_FLAGS, .tail = .None,
+    },
+    CommandSpec {
+        .name = "dap", .summary = "Run the debug adapter (DAP over stdio)",
+        .usage = "", .flags = [], .tail = .None,
+    },
+    CommandSpec {
+        .name = "help", .summary = "Show this message, or one action's options",
+        .usage = "[action]", .flags = [], .tail = .None,
+    },
+    CommandSpec {
+        .name = "version", .summary = "Show the compiler version",
+        .usage = "", .flags = [], .tail = .None,
+    },
+]
+
+/// Find an action by name.
+///
+/// @param name  the action as typed, e.g. `"build"`.
+/// @return      its spec, or `null` when no action goes by that name.
+export find_command :: fn(name: string) -> CommandSpec | null {
+    for c in COMMANDS {
+        if c.name == name {
+            return c
+        }
+    }
+    return null
+}
+
+/// An action's flags plus the common ones — what `std/cli::parse` is given.
+///
+/// Merged here rather than baked into each `COMMANDS` entry so the common set
+/// stays visible as one list, and so the help can render the two blocks apart.
+///
+/// @param cmd  the action being parsed.
+/// @return     the action's own flags first, then `COMMON_FLAGS`.
+export command_specs :: fn(cmd: CommandSpec) -> FlagSpec[] {
+    // Element-by-element on purpose. `all.push_all(cmd.flags)` SEGFAULTS (exit
+    // 139, no diagnostic) on `vader lsp --stdlib-root=…`, while the identical
+    // call for `build` is fine and the loop below works for both. The distinguishing
+    // feature is that the `lsp` entry's `.flags` is `Lsp.LSP_FLAGS`, a const from a
+    // third module, but that is NOT a proven cause: a reduced snippet doing
+    // `push_all` on a foreign const — directly, and through a local const's struct
+    // field — does not reproduce. So the trigger needs something more than the
+    // cross-module hop, and until it is found this loop stays. See TODO.md.
+    all: FlagSpec[]! = []
+    for f in cmd.flags {
+        all.push(f)
+    }
+    for f in COMMON_FLAGS {
+        all.push(f)
+    }
+    return all
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_every_flag_is_documented :: fn() -> void {
+    // There are no hidden flags: an empty `help` is a spec defect, since the
+    // help renders straight from this table. Reserved flags say they are
+    // reserved rather than carrying an empty description.
+    for c in COMMANDS {
+        for f in command_specs(c) {
+            assert(f.help != "", "flag --${f.name} of `${c.name}` has no description")
+        }
+    }
+}
+
+@test test_str_flags_name_their_value :: fn() -> void {
+    // A `Str` flag without a `value_name` renders as `--x=<value>`, which tells
+    // the reader nothing. Bool flags have no value to name.
+    for c in COMMANDS {
+        for f in command_specs(c) {
+            if f.kind == FlagKind.Str {
+                assert(f.value_name != "", "--${f.name} of `${c.name}` needs a value_name")
+            }
+        }
+    }
+}
+
+@test test_enumerated_values_are_documented :: fn() -> void {
+    for c in COMMANDS {
+        for f in command_specs(c) {
+            for v in f.values {
+                assert(v.help != "", "value `${v.name}` of --${f.name} has no description")
+            }
+        }
+    }
+}
+
+@test test_aliases_are_unique_per_action :: fn() -> void {
+    // Two flags of one action sharing an alias would make the shorter spelling
+    // resolve to whichever came first in the array — a silent shadowing.
+    for c in COMMANDS {
+        specs :: command_specs(c)
+        n :: specs.len()
+        for i in 0..<n {
+            if specs[i].alias == "" {
+                continue
+            }
+            for j in i + 1..<n {
+                assert(specs[i].alias != specs[j].alias,
+                    "`${c.name}`: --${specs[i].name} and --${specs[j].name} share alias -${specs[i].alias}")
+            }
+        }
+    }
+}
+
+@test test_find_command_hits_and_misses :: fn() -> void {
+    build :: find_command("build")
+    if build == null {
+        assert(false, "`build` should be a known action")
+        return
+    }
+    assert_eq(build.name, "build")
+    assert(build.flags.len() > 0, "build carries its own flags")
+    // `== null` rather than `assert_eq(…, null)`: the latter wants `Equals` on
+    // the union and reaches for a host impl that isn't wired for `null`.
+    assert(find_command("nope") == null, "an unknown action resolves to null")
+}
+
+@test test_run_is_the_only_forwarding_action :: fn() -> void {
+    // The boundary's one asymmetry: only `run` hands its tail to another
+    // program. If a second action ever forwards, the help and the "options must
+    // come before the file" error both need to know.
+    for c in COMMANDS {
+        if c.tail == TailKind.Forward {
+            assert_eq(c.name, "run")
+        }
+    }
+}

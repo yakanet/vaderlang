@@ -1,10 +1,16 @@
-// vader/fmt/cli — `vader fmt` argv dispatch + file walk.
+// vader/fmt/cli — the `vader fmt` driver + file walk.
 //
 // Surface mirrors `gofmt`/`prettier --write`/`rustfmt` :
 //   vader fmt              format every .vader under cwd, in place
 //   vader fmt <path>       format file or directory in place
 //   vader fmt --check ...  read-only ; exit 1 if any drift
 //   vader fmt --stdout ... single-file, write to stdout, don't touch disk
+//
+// Argv parsing is NOT done here. The flags above are declared in
+// `vader/cli/spec.vader` and decoded by `std/cli` like every other action's, so
+// `run_fmt` receives them already resolved. This file used to parse its own args
+// in a loop that treated any unrecognised token as a path, which made a mistyped
+// flag a silent no-op.
 
 module "vader/fmt"
 
@@ -28,29 +34,6 @@ Mode :: enum(u8) {
     InPlace,
     Check,
     Stdout,
-}
-
-Options :: struct {
-    mode:  Mode
-    paths: string[]
-}
-
-parse_args :: fn(args: string[]) -> Options {
-    mode := Mode.InPlace
-    paths: string[]! = []
-    for a in args {
-        if a == "--check" {
-            mode = Mode.Check
-            continue
-        }
-        if a == "--stdout" {
-            mode = Mode.Stdout
-            continue
-        }
-        paths.push(a)
-    }
-    if paths.len() == 0 { paths.push(".") }
-    return Options { .mode = mode, .paths = paths }
 }
 
 // Recursive `.vader` collector. Skips hidden entries and known build dirs by
@@ -91,36 +74,52 @@ collect_files :: fn(root: string, out: string[]!) -> void {
 /// Entry point invoked from `vader/cli/main.vader::cmd_fmt` — the CLI's
 /// sole formatter driver.
 ///
-/// @param args  argv tail (everything after `vader fmt`). Recognised
-///              flags : `--check`, `--stdout`. Remaining tokens are file
-///              or directory paths ; directories are walked recursively
-///              for `.vader` files.
-/// @return      OS exit code : 0 on success, 1 on `--check` drift, 2 on
-///              parse-error skips, 3 on IO error.
+/// Takes decoded options rather than a raw argv: `fmt` used to parse its own
+/// args here, in a loop that pushed any unrecognised token into `paths`. A
+/// mistyped flag therefore became a filename — `vader fmt --nope dir/` reported
+/// `path not found: --nope` and exited 0, having formatted nothing. Parsing now
+/// happens once, in `std/cli`, against `spec.vader`'s declared flags.
+///
+/// @param paths   file or directory paths ; directories are walked recursively
+///                for `.vader` files. The caller supplies `["."]` for an empty
+///                argument list.
+/// @param check   read-only mode: report drift, write nothing.
+/// @param stdout  write the formatted output to stdout instead of the file.
+///                Single-file only.
+/// @return        OS exit code : 0 on success, 1 on `--check` drift or a
+///                `--stdout` misuse, 2 on parse-error skips, 3 on IO error.
 /// @example
-///   `run_fmt(["src/main.vader"])             → format in place, return 0`
-///   `run_fmt(["--check", "stdlib/"])         → exit 1 if any file would change`
-///   `run_fmt(["--stdout", "foo.vader"])      → write formatted output to stdout`
-export run_fmt :: fn(args: string[]) -> i32 {
-    opts :: parse_args(args)
+///   `run_fmt(["src/main.vader"], false, false)  → format in place, return 0`
+///   `run_fmt(["stdlib/"], true, false)          → exit 1 if any file would change`
+///   `run_fmt(["foo.vader"], false, true)        → formatted output to stdout`
+export run_fmt :: fn(paths: string[], check: bool, stdout: bool) -> i32 {
+    // `--check` and `--stdout` are mutually exclusive in effect; `--stdout`
+    // wins, matching the old `parse_args` where the last flag seen set the mode.
+    mode :: if stdout {
+        Mode.Stdout
+    } else if check {
+        Mode.Check
+    } else {
+        Mode.InPlace
+    }
 
     // `--stdout` is single-file only.
-    if opts.mode == Mode.Stdout {
-        if opts.paths.len() != 1 {
+    if mode == Mode.Stdout {
+        if paths.len() != 1 {
             eprintln("vader fmt: --stdout requires exactly one file path")
             return i32(FileResult.Drift)
         }
-        return i32(run_one_stdout(opts.paths[0]))
+        return i32(run_one_stdout(paths[0]))
     }
 
     files: string[]! = []
-    for p in opts.paths { collect_files(p, files) }
+    for p in paths { collect_files(p, files) }
 
     drift   := 0
     skipped := 0
     errors  := 0
     for f in files {
-        match run_one(f, opts.mode) {
+        match run_one(f, mode) {
             .Ok        -> {}
             .Drift     -> { drift = drift + 1 }
             .ParseSkip -> { skipped = skipped + 1 }
@@ -129,7 +128,7 @@ export run_fmt :: fn(args: string[]) -> i32 {
     }
 
     if errors > 0 { return i32(FileResult.IoError) }
-    if opts.mode == Mode.Check && drift > 0 { return i32(FileResult.Drift) }
+    if mode == Mode.Check && drift > 0 { return i32(FileResult.Drift) }
     if skipped > 0 { return i32(FileResult.ParseSkip) }
     return i32(FileResult.Ok)
 }

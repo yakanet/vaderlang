@@ -30,7 +30,7 @@ test("panic runs pending defers on the VM before aborting", async () => {
 test("panic runs pending defers on native before aborting", async () => {
   if (!(await haveCc())) return; // native path needs a C toolchain
   const bin = join(tmpdir(), `vader-panic-unwind-${process.pid}`);
-  const build = await runCli(["build", SNIPPET, `--out=${bin}`], undefined, LONG_BUILD);
+  const build = await runCli(["build", `--out=${bin}`, SNIPPET], undefined, LONG_BUILD);
   expect(build.exit).toBe(0);
 
   const proc = Bun.spawn([bin], { stdout: "pipe", stderr: "pipe" });

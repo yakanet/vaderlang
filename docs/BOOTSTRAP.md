@@ -521,7 +521,7 @@ cd "$(dirname "$0")/.."
 cc -O2 -o build/vader build/main1.c runtime/c/vader_runtime.c -Iruntime/c -lm
 
 # (a) full-compiler self-reproduction : vader re-emits main.vader, must match.
-./build/vader build vader/cli/main.vader --target=c --out=build/main2.c
+./build/vader build --target=c --out=build/main2.c vader/cli/main.vader
 if ! cmp -s build/main1.c build/main2.c; then
   echo "FIXED-POINT FAILED — full compiler is not self-reproducing"
   diff -u build/main1.c build/main2.c | head -200
@@ -529,7 +529,7 @@ if ! cmp -s build/main1.c build/main2.c; then
 fi
 
 # (b) seed freshness : vader re-emits bootstrap.vader, must match the committed seed.
-./build/vader build vader/bootstrap/bootstrap.vader --target=c --out=build/bootstrap.new.c
+./build/vader build --target=c --out=build/bootstrap.new.c vader/bootstrap/bootstrap.vader
 if ! cmp -s build/bootstrap.new.c <(gunzip -c bootstrap/bootstrap.c.gz); then
   echo "STALE SEED — bootstrap.c.gz no longer matches bootstrap.vader; run regenerate.sh"
   exit 1

@@ -82,7 +82,7 @@ main :: fn() -> i32 {
 
 ```sh
 vader run examples/hello/hello.vader              # run via the bytecode VM
-vader build examples/hello/hello.vader --out=hello && ./hello   # or compile to native
+vader build --out=hello examples/hello/hello.vader && ./hello   # or compile to native
 ```
 
 Inspect any compilation stage with [`vader dump`](#dump-stages), or emit textual IR with `vader build --target=ir`.
@@ -147,23 +147,33 @@ dist\vader-windows-*\vader.exe --version
 
 ## CLI
 
-Invoke as `vader <command>`. The examples assume `vader` is on your `PATH`; otherwise call it by path (`./build/vader <command>`).
+Invoke as `vader <action> [options] [args]`. The examples assume `vader` is on your `PATH`; otherwise call it by path (`./build/vader <action>`).
+
+**An action's options come before its first positional argument.** Everything after that argument is no longer the compiler's — `vader run prog.vader --verbose` passes `--verbose` straight to the program, no `--` needed. Write `vader build --release --out=x foo.vader`, not `vader build foo.vader --release`; the latter is an error that says so. A leading `--` closes the option zone explicitly, which is how you name a path that starts with a dash (`vader run -- -weird.vader`).
+
+Anything the action doesn't recognise is an error rather than a silently ignored token, in both `--long` and `-s` forms. Run `vader help <action>` for one action's full option list — the help is generated from the same table the parser reads, so it can't drift.
 
 | Command                                        | Status  | What it does                                                                                                                                                                                                                                                              |
 |------------------------------------------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `vader` *(no args)*                            | stub    | Will start a REPL. Not yet implemented.                                                                                                                                                                                                                                   |
-| `vader --help` / `--version`                   | ✓       | Print usage / version.                                                                                                                                                                                                                                                    |
-| `vader run [file]`                             | ✓       | Interpret a `.vader` source or a parsed `.vir` IR through the bytecode VM. Stdout/stderr go to the host.                                                                                                                                                                  |
+| `vader` *(no args)*                            | stub    | Will start a REPL. Not yet implemented. (`vader run` with no file is an error, not a REPL.)                                                                                                                                                                                                                                   |
+| `vader help [action]` / `version`              | ✓       | Print usage (overall, or one action in full) / version. `--help`, `-h`, `--version`, `-v` are accepted spellings.                                                                                                                                                                                                                                                    |
+| `vader run <file> [args…]`                     | ✓       | Interpret a `.vader` source or a `.virt` text bytecode dump through the bytecode VM. Everything after `<file>` becomes the program's own argv. Stdout/stderr go to the host.                                                                                                                                                                  |
 | `vader build [file] [--target=…] [--out=path]` | partial | `--target=native` (default) writes a native binary **and** the generated C (`<out>.c`). `--target=c` writes only the C. `--target=ir` writes textual `.vir`. `--target=wasm` is a stub. `--manifest` is reserved for multi-module projects.                                |
 | `vader fmt [path]`                             | partial | Opinionated formatter, no config. Written in Vader (`vader/fmt/`), dispatched through the VM. Flags: `--check` (read-only, exits 1 on drift), `--stdout` (single-file). Default rewrites in place. Idempotent and parse-equivalent; not yet a byte-for-byte no-op on the stdlib. |
 | `vader test [path]`                            | ✓       | Discover and run `@test` functions under `[path]` (default cwd). Each runs as a separate VM entry; failures report message + source span. Name override: `@test("readable name") my_test :: fn() -> void { … }`. Exits non-zero on any failure.                            |
 | `vader dump --stage=<stage> <file>`            | ✓       | Run the frontend up to `<stage>` and print the result (JSON or text).                                                                                                                                                                                                     |
 
-### Global options
+### Common options
+
+Accepted by every action, after the action name. All three are **reserved** — parsed but not yet wired into any pass.
 
 - `--diagnostics=text|json` — render diagnostics for terminals (default) or as a stable JSON schema for tooling.
 - `--allow-env` — let `@comptime` code read process environment variables (gated to preserve build reproducibility).
-- `--no-bytecode-opt` — disable bytecode peephole optimisations (on by default).
+- `--no-bytecode-opt` — disable bytecode peephole optimisations.
+
+### Short aliases
+
+`-o` (`--out`), `-t` (`--target`), `-r` (`--release`), `-s` (`--stage`), `-h` (`--help`), `-v` (`--version`). A `Str` flag takes its value after `=` or a space, in either spelling: `-o out.c`, `-o=out.c`, `--out out.c`, `--out=out.c` are the same thing.
 
 ### `dump` stages
 
@@ -180,7 +190,7 @@ Invoke as `vader <command>`. The examples assume `vader` is on your `PATH`; othe
 
 ```sh
 vader dump --stage=typed-ast examples/hello/hello.vader   # any stage above
-vader build --target=ir      examples/hello/hello.vader   # → emits hello.vir alongside the source
+vader dump -s typed-ast      examples/hello/hello.vader   # same, via the alias
 ```
 
 ### Build targets
@@ -193,14 +203,14 @@ vader build --target=ir      examples/hello/hello.vader   # → emits hello.vir 
 | `--target=wasm`   | *(not yet implemented)*                                             | Direct WebAssembly emission with the WASM GC proposal. Deferred to post-MVP.                                         |
 
 ```sh
-vader build foo.vader --target=native --out=/tmp/foo            # native binary + foo.c
-vader build foo.vader --target=native --cc=clang --out=/tmp/foo # pick the C compiler (CC env var is a fallback)
+vader build --target=native --out=/tmp/foo foo.vader            # native binary + foo.c
+vader build --target=native --cc=clang --out=/tmp/foo foo.vader # pick the C compiler (CC env var is a fallback)
 ```
 
 **Cross-compile to Windows from macOS/Linux** — install [mingw-w64](https://www.mingw-w64.org/) (`brew install mingw-w64` / `apt install mingw-w64`), then point `vader build` at the cross-compiler. The `.exe` extension is added automatically when the triplet ends in `mingw32-gcc`:
 
 ```sh
-vader build examples/hello/hello.vader --target=native --cc=x86_64-w64-mingw32-gcc --out=/tmp/hello-win
+vader build --target=native --cc=x86_64-w64-mingw32-gcc --out=/tmp/hello-win examples/hello/hello.vader
 file /tmp/hello-win.exe          # → PE32+ executable (console) x86-64, for MS Windows
 ```
 

@@ -1,153 +1,275 @@
-// std/cli — minimal declarative argv parser (MVP).
+// std/cli — declarative argv parser for the `<action> <options>` shape.
 //
-// Designed around the shape of the Vader CLI itself : a fixed set of named
-// flags + a positional argument list. No subcommand machinery yet — callers
-// dispatch on the first positional themselves (see `vader/cli/main.vader`).
+// Built around one boundary rule: **the tool's options come before the first
+// positional argument; everything after it belongs to whatever the action hands
+// it to.** The option zone closes on the first of two events — a positional
+// argument, or a bare `--` (consumed, not passed on). Past the close nothing is
+// interpreted, so an action that forwards its tail (a program runner) hands it
+// over verbatim, flags and all, with no escaping needed.
 //
-// Flag forms recognised :
-//   --name              bool flag, sets `name → "true"`.
-//   --name=value        string flag.
-//   --                  stops flag parsing ; everything after is positional.
-//   <anything-else>     positional.
+// That single rule replaces the earlier layered scheme, where a permissive pass
+// pulled out the flags it knew and let the rest fall through. The old shape made
+// the boundary depend on flag *recognition* rather than position, which meant a
+// forwarding action could never be strict — an unrecognised token was
+// indistinguishable from one meant for the program. See
+// `.claude/plans/2026-07-27-cli-arg-boundary-and-aliases.md`.
 //
-// Combined short flags (`-abc`), space-separated values (`--name value`) and
-// `=` inside values (`--out=a=b`) are out of scope for MVP. Add when a real
-// caller needs them.
+// Flag forms recognised, all equivalent per kind:
+//   --name / -n            bool flag, sets `name → "true"`.
+//   --name=v / -n=v        string flag, inline value.
+//   --name v / -n v        string flag, spaced value.
+//   --                     closes the option zone.
+//   <anything else>        closes the option zone, and is the first positional.
+//
+// Combined short flags (`-abc` for `-a -b -c`) are deliberately unsupported:
+// they only apply to bool flags, of which a CLI this size has a handful, and
+// they make the scan materially harder to read.
 
 module "std/cli"
 
 import "std/collections"
 import "std/string"
 
-/// Kind of a flag — controls how a value (if any) is interpreted.
-/// `Bool` flags don't require a `=value` suffix (presence sets `"true"`).
-/// `Str` flags do — `--name` without a value surfaces an error.
-export FlagKind :: enum { Bool, Str }
+// ---- specs ----------------------------------------------------------------
 
-/// Specification of a single recognised flag. `name` is the canonical
-/// identifier *without* the leading `--`. Pass an array of these to `parse`.
-export FlagSpec :: struct {
+/// Kind of a flag — controls whether a value is required.
+/// `Bool` flags don't need one (presence sets `"true"`); `Str` flags do, and
+/// `--name` with nothing after it surfaces an error.
+export FlagKind :: enum(u8) { Bool, Str }
+
+/// One accepted value of an enumerated flag, with the line documenting it.
+///
+/// A flag whose `values` is non-empty accepts nothing else: the parser rejects
+/// an unlisted value on its own and names the accepted set, so the validation,
+/// the error message and the help all read from this one array.
+export ValueSpec :: struct {
     name: string
-    kind: FlagKind
+    /// One-line description — the help's right-hand column under the flag.
+    help: string
 }
 
-/// Parser output. `flags` carries every recognised flag's literal string
-/// value (bool flags resolve to `"true"`). `positionals` keeps the
-/// non-flag tokens in source order. `errors` lists unknown flags / missing
-/// values — non-fatal ; the caller decides whether to bail out.
+/// Specification of a single recognised flag. Pass an array of these to `parse`.
+///
+/// Everything a help renderer or an error message needs lives here, so the spec
+/// table is the only place a flag is described. A field left empty is a spec
+/// defect, not a feature — there are no undocumented flags.
+export FlagSpec :: struct {
+    /// Canonical identifier, *without* the leading `--`.
+    name:         string
+    kind:         FlagKind
+    /// One-line description, imperative mood. Required — it is what the help
+    /// prints, and a flag nobody described is a spec defect, not a hidden flag.
+    help:         string
+    /// Short alias without the dash, e.g. `"o"`. Empty when the flag has none.
+    /// An alias is a name and nothing else — the `kind` above is what decides
+    /// whether a value is required, identically for both spellings.
+    alias:        string = ""
+    /// Placeholder for a `Str` flag's value: `"path"`, `"N"`, `"a,b"`. Renders
+    /// as `--out=<path>`, and appears in the missing-value error. Ignored for
+    /// `Bool`.
+    value_name:   string = ""
+    /// Shown as `(default: cc)` when non-empty. Documentation only — the caller
+    /// still supplies the fallback to `string_flag`.
+    default_text: string = ""
+    /// Closed value set. Empty means any string is accepted.
+    values:       ValueSpec[] = []
+}
+
+/// What an action does with positionals past the first — drives its usage line
+/// and the error it raises on an unexpected one.
+export TailKind :: enum(u8) {
+    /// Takes one positional; a second is a mistake.
+    None,
+    /// Every positional is a path to operate on.
+    Paths,
+    /// The tail is another program's argv, handed over verbatim.
+    Forward,
+}
+
+/// One action of the CLI — `vader <name> <options>`.
+export CommandSpec :: struct {
+    name:    string
+    /// One-line summary for the action list.
+    summary: string
+    /// Usage tail after the action name, e.g. `"<file>"` / `"[path]"`.
+    usage:   string
+    flags:   FlagSpec[]
+    tail:    TailKind
+}
+
+// ---- parsing ---------------------------------------------------------------
+
+/// Parser output. `flags` carries every recognised flag's literal string value
+/// (bool flags resolve to `"true"`). `positionals` holds the tokens from the
+/// zone close onward, in order and uninspected. `errors` lists unknown flags,
+/// missing values and rejected enumerated values — non-fatal here; the caller
+/// decides whether to bail out.
 export ParsedArgs :: struct {
     flags:       MutableMap<string, string>
     positionals: string[]
     errors:      string[]
 }
 
-/// Parse `args` against `specs`. Stateless one-pass scan ; tolerates
-/// unknown flags by reporting them in `errors` and continuing.
-/// @param args   tokens to parse — typically `argv[1..]` from main.
-/// @param specs  the flag set this caller accepts.
-/// @return       a populated `ParsedArgs`.
+/// Parse `args` against `specs`, stopping at the first positional or `--`.
+///
+/// One pass, no state kept between calls. Unknown flags inside the option zone
+/// are errors, not positionals — that is the whole point of having a zone, and
+/// it is what lets a mistyped flag be caught instead of silently becoming a
+/// filename.
+///
+/// @param args   tokens to parse — for a CLI, everything after the action name.
+/// @param specs  the flags this action accepts.
+/// @return       flags read from the zone, plus every token past its close as
+///               `positionals` (the first being the action's own argument, the
+///               rest being whatever its `TailKind` says).
+/// @error        one entry in `errors` per unknown flag, per `Str` flag with no
+///               value, per `Bool` flag given something other than
+///               `true` / `false`, and per value outside a flag's `values` set.
 export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
-    return parse_inner(args, specs, true)
-}
-
-/// Like `parse`, but unknown flags are routed to `positionals` (verbatim,
-/// keeping the leading `--`) instead of `errors`. Use this when several
-/// parsers share an argv — e.g. a global pass that pulls its 3 flags out
-/// and hands the rest to a sub-command parser.
-/// @param args   tokens to parse.
-/// @param specs  flags this layer consumes ; everything else passes through.
-/// @return       a populated `ParsedArgs` with no "unknown flag" errors.
-export parse_known :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
-    return parse_inner(args, specs, false)
-}
-
-// Bool-value and Str missing-value errors fire in both modes : those signal
-// a malformed *known* flag, which is a caller mistake regardless of how
-// unknown flags are routed.
-parse_inner :: fn(args: string[], specs: FlagSpec[], strict: bool) -> ParsedArgs {
-    flags := MutableMap<string, string> {}
+    flags :: MutableMap<string, string> {}
     positionals: string[]! = []
     errors: string[]! = []
-    stop_flags := false
 
-    for a in args {
-        if stop_flags {
-            positionals.push(a)
-            continue
-        }
+    n :: args.len()
+    i: usize = 0
+
+    // The option zone. Every `continue` here must have advanced `i`.
+    for i < n {
+        a :: args[i]
+
+        // `--` closes the zone and is consumed, so the token after it lands as
+        // `positionals[0]` — that is how a path starting with a dash is
+        // reached (`run -- -weird.vader`).
         if a == "--" {
-            stop_flags = true
-            continue
+            i += 1
+            break
         }
-        if !a.starts_with("--") {
-            positionals.push(a)
-            continue
+        // A bare `-` conventionally means stdin, so it is a positional, not a
+        // malformed flag.
+        if !a.starts_with("-") || a == "-" {
+            break
         }
 
-        // Strip the leading `--` and split on the first `=`. Anything
-        // beyond the first `=` is treated as part of the value when the
-        // flag accepts one ; today `split("=")` keeps every separator so
-        // a `--name=a=b` value would surface as `parts.len() > 2`, which
-        // we collapse by rejoining at MVP scope-out.
+        long :: a.starts_with("--")
         ab :: a.bytes()
-        rest :: ab[2..<ab.len()].bytes_to_string()
-        parts :: rest.split("=")
-        name :: parts[0]
-        has_value :: parts.len() >= 2
-        value :: if has_value { parts[1] } else { "" }
+        body :: ab[if long { 2 } else { 1 }..<ab.len()].bytes_to_string()
+        eq :: body.index_of('=', 0)
+        bb :: body.bytes()
+        name :: if eq < 0 { body } else { bb[0..<usize(eq)].bytes_to_string() }
+        inline_value :: if eq < 0 { "" } else { bb[usize(eq) + 1..<bb.len()].bytes_to_string() }
 
-        spec :: find_spec(specs, name)
-        match spec {
-            is null -> {
-                if strict {
-                    errors.push("unknown flag --${name}")
-                } else {
-                    positionals.push(a)
-                }
-            }
-            is FlagSpec -> {
-                match spec.kind {
-                    .Bool -> {
-                        if has_value {
-                            if value == "true" || value == "false" {
-                                flags[name] = value
-                            } else {
-                                errors.push("--${name}: bool flag accepts true or false, got \"${value}\"")
-                            }
-                        } else {
-                            flags[name] = "true"
-                        }
-                    }
-                    .Str -> {
-                        if has_value {
-                            flags[name] = value
-                        } else {
-                            errors.push("--${name}: missing value, expected --${name}=<value>")
-                        }
-                    }
-                }
-            }
+        spec :: find_spec(specs, name, long)
+        if spec == null {
+            errors.push("unknown flag ${a}")
+            i += 1
+            continue
         }
+
+        if spec.kind == FlagKind.Bool {
+            if eq < 0 {
+                flags[spec.name] = "true"
+            } else if inline_value == "true" || inline_value == "false" {
+                flags[spec.name] = inline_value
+            } else {
+                errors.push("${a}: bool flag accepts true or false, got \"${inline_value}\"")
+            }
+            i += 1
+            continue
+        }
+
+        // `Str`: the value is inline after `=`, or the next token. A spaced
+        // value that looks like a flag is refused rather than swallowed —
+        // `--out --release` is a typo, not a filename — with `-` exempted since
+        // it means stdout. The `=` form stays available for a genuine
+        // dash-leading value.
+        if eq >= 0 {
+            record_str_flag(spec, a, inline_value, flags, errors)
+            i += 1
+            continue
+        }
+        if i + 1 >= n {
+            errors.push("${a}: missing value, expected ${a}=${value_placeholder(spec)} or ${a} ${value_placeholder(spec)}")
+            i += 1
+            continue
+        }
+        next :: args[i + 1]
+        if next.starts_with("-") && next != "-" {
+            errors.push("${a}: missing value — \"${next}\" reads as a flag; use ${a}=${next} if it is the value")
+            i += 1
+            continue
+        }
+        record_str_flag(spec, a, next, flags, errors)
+        i += 2
+    }
+
+    // Past the close: verbatim, uninspected.
+    for i < n {
+        positionals.push(args[i])
+        i += 1
     }
 
     return ParsedArgs { .flags = flags, .positionals = positionals, .errors = errors }
 }
 
-// Linear scan of `specs` — caller-controlled small N (every CLI has a
-// handful of flags), so a hashmap would be overkill.
-find_spec :: fn(specs: FlagSpec[], name: string) -> FlagSpec | null {
+// Store a `Str` flag's value, rejecting it when the spec pins a closed set.
+// `spelling` is the token as the user wrote it (`--stage` or `-s`) so the
+// message echoes their spelling rather than the canonical name.
+record_str_flag :: fn(spec: FlagSpec, spelling: string, value: string, flags: MutableMap<string, string>!, errors: string[]!) -> void {
+    if spec.values.len() > 0 && !accepts_value(spec, value) {
+        errors.push("${spelling}: unknown value \"${value}\" (expected: ${value_list(spec)})")
+        return
+    }
+    flags[spec.name] = value
+}
+
+// Whether `value` is one of a flag's enumerated values.
+accepts_value :: fn(spec: FlagSpec, value: string) -> bool {
+    for v in spec.values {
+        if v.name == value {
+            return true
+        }
+    }
+    return false
+}
+
+// Comma-separated accepted values, for an error message or a usage line. Empty
+// when the flag accepts any string.
+value_list :: fn(spec: FlagSpec) -> string {
+    names: string[]! = []
+    for v in spec.values {
+        names.push(v.name)
+    }
+    return names.join(", ")
+}
+
+// A `Str` flag's value placeholder, angle-bracketed for a usage line: `<path>`
+// from `value_name`, or `<value>` when it is unset.
+value_placeholder :: fn(spec: FlagSpec) -> string =
+    if spec.value_name == "" { "<value>" } else { "<${spec.value_name}>" }
+
+// Linear scan of `specs` — caller-controlled small N (every CLI has a handful of
+// flags), so a hashmap would be overkill. `long` picks which side of the spec
+// the token is matched against: `--name` against `name`, `-n` against `alias`.
+// An empty `alias` can't be matched, since `name` is never empty for a real
+// spec and a bare `-` was handled before we got here.
+find_spec :: fn(specs: FlagSpec[], name: string, long: bool) -> FlagSpec | null {
     for s in specs {
-        if s.name == name {
+        if long && s.name == name {
+            return s
+        }
+        if !long && s.alias != "" && s.alias == name {
             return s
         }
     }
     return null
 }
 
+// ---- reading the result ----------------------------------------------------
+
 /// True iff `name` was seen as a bool flag (or set explicitly to `"true"`).
 /// Missing flag → `false`, no error.
 /// @param self  parser output.
-/// @param name  canonical flag name.
+/// @param name  canonical flag name (not an alias — the parser normalises).
 export bool_flag :: fn(self: ParsedArgs, name: string) -> bool {
     v :: self.flags[name]
     match v {
@@ -158,7 +280,7 @@ export bool_flag :: fn(self: ParsedArgs, name: string) -> bool {
 
 /// Read a string flag, falling back to `default` when absent.
 /// @param self     parser output.
-/// @param name     canonical flag name.
+/// @param name     canonical flag name (not an alias).
 /// @param default  value returned when `name` wasn't on the command line.
 export string_flag :: fn(self: ParsedArgs, name: string, default: string) -> string {
     v :: self.flags[name]
@@ -168,100 +290,208 @@ export string_flag :: fn(self: ParsedArgs, name: string, default: string) -> str
     }
 }
 
-// ---------------------------------------------------------------------- tests
+// ---- tests ----------------------------------------------------------------
 
 import "std/testing"
 
+// Two flags covering both kinds, both with an alias.
+test_specs :: fn() -> FlagSpec[] = [
+    FlagSpec { .name = "verbose", .kind = .Bool, .help = "Say more", .alias = "V" },
+    FlagSpec {
+        .name = "out", .kind = .Str, .help = "Where to write",
+        .alias = "o", .value_name = "path",
+    },
+]
+
 @test test_bool_flag_presence :: fn() -> void {
-    specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
-    parsed :: parse(["--verbose"], specs)
+    parsed :: parse(["--verbose"], test_specs())
     assert_eq(parsed.errors.len(), 0)
     assert(parsed.bool_flag("verbose"), "presence-only --verbose should resolve to true")
 }
 
 @test test_bool_flag_explicit_value :: fn() -> void {
-    specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
-    parsed :: parse(["--verbose=false"], specs)
+    parsed :: parse(["--verbose=false"], test_specs())
     assert_eq(parsed.errors.len(), 0)
     assert(!parsed.bool_flag("verbose"), "--verbose=false should resolve to false")
 }
 
 @test test_bool_flag_rejects_garbage_value :: fn() -> void {
-    specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
-    parsed :: parse(["--verbose=maybe"], specs)
+    parsed :: parse(["--verbose=maybe"], test_specs())
     assert_eq(parsed.errors.len(), 1)
 }
 
 @test test_bool_flag_missing_is_false :: fn() -> void {
-    specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
-    parsed :: parse([], specs)
-    assert(!parsed.bool_flag("verbose"),  "absent bool flag reads as false")
+    parsed :: parse([], test_specs())
+    assert(!parsed.bool_flag("verbose"), "absent bool flag reads as false")
     assert(!parsed.bool_flag("not-a-spec"), "wholly unknown name reads as false")
 }
 
-@test test_str_flag_value :: fn() -> void {
-    specs: FlagSpec[] = [FlagSpec { .name = "out", .kind = .Str }]
-    parsed :: parse(["--out=/tmp/path"], specs)
+@test test_str_flag_inline_value :: fn() -> void {
+    parsed :: parse(["--out=/tmp/path"], test_specs())
     assert_eq(parsed.errors.len(), 0)
     assert_eq(parsed.string_flag("out", ""), "/tmp/path")
 }
 
-@test test_str_flag_missing_value_errors :: fn() -> void {
-    specs: FlagSpec[] = [FlagSpec { .name = "out", .kind = .Str }]
-    parsed :: parse(["--out"], specs)
-    assert_eq(parsed.errors.len(), 1)
-}
-
 @test test_str_flag_default_when_absent :: fn() -> void {
-    specs: FlagSpec[] = [FlagSpec { .name = "out", .kind = .Str }]
-    parsed :: parse([], specs)
+    parsed :: parse([], test_specs())
     assert_eq(parsed.string_flag("out", "fallback"), "fallback")
 }
 
-@test test_unknown_flag_strict_errors :: fn() -> void {
-    specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
-    parsed :: parse(["--unknown"], specs)
+@test test_str_flag_missing_value_errors :: fn() -> void {
+    parsed :: parse(["--out"], test_specs())
     assert_eq(parsed.errors.len(), 1)
-    assert_eq(parsed.positionals.len(), 0)
 }
 
-@test test_positionals_preserve_order :: fn() -> void {
-    specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
-    parsed :: parse(["a", "--verbose", "b", "c"], specs)
+// ---- the boundary ---------------------------------------------------------
+
+@test test_first_positional_closes_the_zone :: fn() -> void {
+    // `--verbose` sits AFTER the positional, so it is not the CLI's to read:
+    // it lands in the tail untouched. This is the rule the whole module turns
+    // on, and the previous parser did the opposite (flags were pulled out from
+    // anywhere in argv).
+    parsed :: parse(["file.vader", "--verbose", "x"], test_specs())
     assert_eq(parsed.errors.len(), 0)
+    assert(!parsed.bool_flag("verbose"), "a flag past the first positional is not read")
     assert_eq(parsed.positionals.len(), 3)
-    assert_eq(parsed.positionals[0], "a")
-    assert_eq(parsed.positionals[1], "b")
-    assert_eq(parsed.positionals[2], "c")
+    assert_eq(parsed.positionals[0], "file.vader")
+    assert_eq(parsed.positionals[1], "--verbose")
+    assert_eq(parsed.positionals[2], "x")
 }
 
-@test test_double_dash_stops_flag_parsing :: fn() -> void {
-    specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
-    parsed :: parse(["--verbose", "--", "--not-a-flag", "x"], specs)
+@test test_flags_before_positional_are_read :: fn() -> void {
+    parsed :: parse(["--verbose", "--out=/tmp/x", "file.vader", "--program-flag"], test_specs())
     assert_eq(parsed.errors.len(), 0)
-    assert(parsed.bool_flag("verbose"), "--verbose seen before `--`")
+    assert(parsed.bool_flag("verbose"), "flag before the positional is the CLI's")
+    assert_eq(parsed.string_flag("out", ""), "/tmp/x")
+    assert_eq(parsed.positionals.len(), 2)
+    assert_eq(parsed.positionals[0], "file.vader")
+    assert_eq(parsed.positionals[1], "--program-flag")
+}
+
+@test test_double_dash_closes_the_zone_and_is_consumed :: fn() -> void {
+    parsed :: parse(["--verbose", "--", "--not-a-flag", "x"], test_specs())
+    assert_eq(parsed.errors.len(), 0)
+    assert(parsed.bool_flag("verbose"), "--verbose seen before the close")
     assert_eq(parsed.positionals.len(), 2)
     assert_eq(parsed.positionals[0], "--not-a-flag")
     assert_eq(parsed.positionals[1], "x")
 }
 
-@test test_parse_known_routes_unknown_to_positionals :: fn() -> void {
-    specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
-    parsed :: parse_known(["--unknown", "--unknown=val", "--verbose", "file"], specs)
+@test test_double_dash_reaches_a_dash_leading_path :: fn() -> void {
+    // The reason `--` survives at all: without it, `-weird.vader` reads as a
+    // flag and there is no way to name the file.
+    parsed :: parse(["--", "-weird.vader"], test_specs())
     assert_eq(parsed.errors.len(), 0)
-    assert(parsed.bool_flag("verbose"), "known flag still consumed")
-    assert_eq(parsed.positionals.len(), 3)
-    // Unknowns pass through verbatim (with their `--` prefix), preserving
-    // argv order against the trailing positional.
-    assert_eq(parsed.positionals[0], "--unknown")
-    assert_eq(parsed.positionals[1], "--unknown=val")
-    assert_eq(parsed.positionals[2], "file")
+    assert_eq(parsed.positionals.len(), 1)
+    assert_eq(parsed.positionals[0], "-weird.vader")
 }
 
-@test test_parse_known_still_errors_on_malformed_known :: fn() -> void {
-    // Permissive mode forgives *unknown* flags, not malformed known flags ;
-    // `--out` alone is a caller mistake regardless of strictness.
-    specs: FlagSpec[] = [FlagSpec { .name = "out", .kind = .Str }]
-    parsed :: parse_known(["--out"], specs)
+@test test_bare_dash_is_a_positional :: fn() -> void {
+    parsed :: parse(["-", "more"], test_specs())
+    assert_eq(parsed.errors.len(), 0)
+    assert_eq(parsed.positionals.len(), 2)
+    assert_eq(parsed.positionals[0], "-")
+}
+
+// ---- strictness -----------------------------------------------------------
+
+@test test_unknown_long_flag_errors :: fn() -> void {
+    parsed :: parse(["--unknown"], test_specs())
     assert_eq(parsed.errors.len(), 1)
+    assert_eq(parsed.positionals.len(), 0)
+    assert("--unknown" in parsed.errors[0], "the error should echo the token")
+}
+
+@test test_unknown_short_flag_errors :: fn() -> void {
+    // The gap this closes: a single-dash token used to be assumed positional,
+    // so `vader build x --target=c -o out` exited 0 having ignored the `-o`.
+    parsed :: parse(["-x"], test_specs())
+    assert_eq(parsed.errors.len(), 1)
+    assert("-x" in parsed.errors[0], "the error should echo the token")
+}
+
+// ---- aliases and spaced values --------------------------------------------
+
+@test test_short_alias_bool :: fn() -> void {
+    parsed :: parse(["-V"], test_specs())
+    assert_eq(parsed.errors.len(), 0)
+    assert(parsed.bool_flag("verbose"), "an alias resolves to the canonical name")
+}
+
+@test test_all_four_spellings_agree :: fn() -> void {
+    // An alias carries no behaviour of its own, and neither does the separator:
+    // one FlagSpec, four ways to write it.
+    long_eq    :: parse(["--out=/tmp/x"], test_specs())
+    long_space :: parse(["--out", "/tmp/x"], test_specs())
+    short_eq   :: parse(["-o=/tmp/x"], test_specs())
+    short_space :: parse(["-o", "/tmp/x"], test_specs())
+    assert_eq(long_eq.string_flag("out", ""), "/tmp/x")
+    assert_eq(long_space.string_flag("out", ""), "/tmp/x")
+    assert_eq(short_eq.string_flag("out", ""), "/tmp/x")
+    assert_eq(short_space.string_flag("out", ""), "/tmp/x")
+}
+
+@test test_spaced_value_does_not_close_the_zone :: fn() -> void {
+    // The ordering constraint the spaced form imposes: the value must be
+    // consumed before the next token is tested for closure, or `/tmp/x` would
+    // read as the first positional and `file.vader` would be lost in the tail.
+    parsed :: parse(["--out", "/tmp/x", "file.vader"], test_specs())
+    assert_eq(parsed.errors.len(), 0)
+    assert_eq(parsed.string_flag("out", ""), "/tmp/x")
+    assert_eq(parsed.positionals.len(), 1)
+    assert_eq(parsed.positionals[0], "file.vader")
+}
+
+@test test_spaced_value_refuses_a_flag_looking_token :: fn() -> void {
+    // `--out --verbose` is a forgotten value, not a filename. Refusing it is
+    // the one place the spaced form is stricter than the `=` form.
+    //
+    // The scan then resumes normally, so `--verbose` is read as the flag it is
+    // — the point is to collect every error in one pass rather than stop at the
+    // first, and the caller bails on a non-empty `errors` either way. What must
+    // NOT happen is `out` silently holding `"--verbose"`.
+    parsed :: parse(["--out", "--verbose"], test_specs())
+    assert_eq(parsed.errors.len(), 1)
+    assert_eq(parsed.string_flag("out", "<unset>"), "<unset>")
+    assert(parsed.bool_flag("verbose"), "the scan resumes, so --verbose is still read")
+}
+
+@test test_spaced_value_accepts_bare_dash :: fn() -> void {
+    // `--out -` means stdout and must survive the guard above.
+    parsed :: parse(["--out", "-"], test_specs())
+    assert_eq(parsed.errors.len(), 0)
+    assert_eq(parsed.string_flag("out", ""), "-")
+}
+
+// ---- enumerated values ----------------------------------------------------
+
+staged_specs :: fn() -> FlagSpec[] = [
+    FlagSpec {
+        .name = "stage", .kind = .Str, .help = "IR stage to dump",
+        .alias = "s", .value_name = "stage", .values = [
+            ValueSpec { .name = "lexer", .help = "Token stream" },
+            ValueSpec { .name = "bytecode", .help = "Stack-machine ops" },
+        ],
+    },
+]
+
+@test test_enumerated_value_accepted :: fn() -> void {
+    parsed :: parse(["--stage=bytecode"], staged_specs())
+    assert_eq(parsed.errors.len(), 0)
+    assert_eq(parsed.string_flag("stage", ""), "bytecode")
+}
+
+@test test_enumerated_value_rejected_and_lists_the_set :: fn() -> void {
+    // One array drives validation, the message and the help — so a new stage
+    // can't be accepted while going undocumented, or vice versa.
+    parsed :: parse(["--stage=nope"], staged_specs())
+    assert_eq(parsed.errors.len(), 1)
+    assert("lexer, bytecode" in parsed.errors[0], "the error should list the accepted set")
+}
+
+@test test_enumerated_value_via_alias_and_space :: fn() -> void {
+    parsed :: parse(["-s", "lexer", "f.vader"], staged_specs())
+    assert_eq(parsed.errors.len(), 0)
+    assert_eq(parsed.string_flag("stage", ""), "lexer")
+    assert_eq(parsed.positionals.len(), 1)
 }

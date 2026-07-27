@@ -27,7 +27,7 @@ test("membuf .virt -> C emits the buffer ABI helpers (not stubs)", async () => {
   const dir = mkdtempSync(join(tmpdir(), "membuf-"));
   const cpath = join(dir, "membuf.c");
   const r = await runCli(
-    ["build", FIXTURE, "--target=c", "--release", `--out=${cpath}`],
+    ["build", "--target=c", "--release", `--out=${cpath}`, FIXTURE],
     {},
     LONG_BUILD,
   );
@@ -47,7 +47,7 @@ test("membuf survives a forced moving collection (G1)", async () => {
   const dir = mkdtempSync(join(tmpdir(), "membuf-"));
   const bin = join(dir, "membuf");
   const b = await runCli(
-    ["build", FIXTURE, "--target=native", "--release", `--out=${bin}`],
+    ["build", "--target=native", "--release", `--out=${bin}`, FIXTURE],
     {},
     LONG_BUILD,
   );

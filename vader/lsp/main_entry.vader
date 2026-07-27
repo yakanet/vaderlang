@@ -8,17 +8,22 @@
 
 module "vader/lsp"
 
+import "std/cli"
+import "std/io"
+
 
 main :: fn(argv: string[]) -> i32 {
-    // argv[0] is the binary path ; everything else flows into the
-    // server (`--stdlib-root=...`, `--vader-root=...`, plus any future
-    // flags). The host shim seeds the two root flags so cross-file
-    // goto-def can resolve `std/*` / `vader/*` imports to absolute
-    // paths.
-    args: string[]! = []
-    n :: argv.len()
-    for i in 1..<n {
-        args.push(argv[i])
+    // argv[0] is the binary path ; the rest is parsed against `LSP_FLAGS` — the
+    // same array the unified CLI's `lsp` action uses, so both entry points
+    // accept exactly the same flags and reject the same typos. The host shim
+    // seeds the two roots so cross-file goto-def can resolve `std/*` / `vader/*`
+    // imports to absolute paths.
+    parsed :: parse(argv[1..<argv.len()], LSP_FLAGS)
+    if parsed.errors.len() > 0 {
+        for e in parsed.errors {
+            eprintln("vader-lsp: ${e}")
+        }
+        return 1
     }
-    return run_server(args)
+    return run_server(parsed.string_flag("stdlib-root", ""), parsed.string_flag("vader-root", ""))
 }

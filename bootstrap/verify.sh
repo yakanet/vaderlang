@@ -11,8 +11,8 @@ cd "$(dirname "$0")/.."
 # (a) fixed point : stage1 and stage2 must emit identical C for main.vader.
 # Re-emit from both with the SAME flags (--target=c, no --release) so the diff
 # reflects only compiler behaviour, not the build's debug/release split.
-./build/stage1 build vader/cli/main.vader --target=c --out=build/fp1.c
-./build/vader  build vader/cli/main.vader --target=c --out=build/fp2.c 2>/dev/null
+./build/stage1 build --target=c --out=build/fp1.c vader/cli/main.vader
+./build/vader  build --target=c --out=build/fp2.c vader/cli/main.vader 2>/dev/null
 if ! cmp -s build/fp1.c build/fp2.c; then
   echo "FIXED-POINT FAILED — stage1 and stage2 disagree on main.vader's C" >&2
   diff -u build/fp1.c build/fp2.c | head -80 >&2
@@ -23,7 +23,7 @@ fi
 # seed. --release mirrors regenerate.sh : it keeps `#line` out of the seed (the
 # c-emit gates them on !release), so a populated debug table doesn't bloat the
 # committed artifact. For --target=c, --release only drops `#line`.
-./build/vader build vader/bootstrap/bootstrap.vader --release --target=c --out=build/bootstrap.new.c
+./build/vader build --release --target=c --out=build/bootstrap.new.c vader/bootstrap/bootstrap.vader
 if ! cmp -s build/bootstrap.new.c bootstrap/bootstrap.c; then
   echo "STALE SEED — bootstrap.c.gz no longer matches bootstrap.vader; run bootstrap/regenerate.sh" >&2
   exit 1

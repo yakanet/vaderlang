@@ -15,32 +15,48 @@
 
 module "vader/lsp"
 
+// `parse as _`: this file needs `FlagSpec` to declare `LSP_FLAGS`, but its frame
+// loop calls `std/json::parse`. Both modules export a `parse`, so dropping
+// `std/cli`'s keeps the JSON one unqualified (R2031 otherwise). The argv parse
+// itself happens in `main_entry.vader` and in the CLI, not here.
+import "std/cli" { parse as _ }
 import "std/io"
 import "std/json"
 P :: import "vader/lsp/protocol"
 A :: import "vader/lsp/analysis"
 H :: import "vader/lsp/handlers"
 
-/// LSP server entry. Blocks reading frames until EOF or `exit`
-/// notification. `args` is parsed for `--stdlib-root=…` and
-/// `--vader-root=…` (seeded by the host shim) ; everything else is
-/// ignored for now.
-export run_server :: fn(args: string[]) -> i32 {
-    stdlib_root := ""
-    vader_root := ""
-    stdlib_prefix :: "--stdlib-root="
-    vader_prefix :: "--vader-root="
-    for a in args {
-        ab :: a.bytes()
-        if a.starts_with(stdlib_prefix) {
-            stdlib_root = ab[stdlib_prefix.bytes().len()..<ab.len()].bytes_to_string()
-            continue
-        }
-        if a.starts_with(vader_prefix) {
-            vader_root = ab[vader_prefix.bytes().len()..<ab.len()].bytes_to_string()
-            continue
-        }
-    }
+/// The two flags the server accepts, declared here rather than in the CLI's
+/// table because they belong to this module — `vader/cli/spec.vader` borrows
+/// them for the `lsp` action, and the standalone `vader-lsp` binary
+/// (`main_entry.vader`) parses against the same array. One declaration, two
+/// entry points, no drift.
+export LSP_FLAGS: FlagSpec[]: [
+    FlagSpec {
+        .name = "stdlib-root", .kind = .Str,
+        .help = "Filesystem root of stdlib/, for cross-file goto-def",
+        .value_name = "path",
+    },
+    FlagSpec {
+        .name = "vader-root", .kind = .Str,
+        .help = "Filesystem root of the compiler tree, same purpose",
+        .value_name = "path",
+    },
+]
+
+/// LSP server entry. Blocks reading frames until EOF or `exit` notification.
+///
+/// Takes its two roots decoded rather than scanning argv: they are declared on
+/// the `lsp` action in `vader/cli/spec.vader` and parsed by `std/cli`, like every
+/// other flag. This function used to walk `args` looking for the two prefixes
+/// itself and ignore everything else, so a mistyped root was a silent fallback
+/// to the empty string — and the server would come up resolving nothing.
+///
+/// @param stdlib_root  filesystem root of `stdlib/`, seeded by the host shim.
+///                     Empty when the client didn't supply one.
+/// @param vader_root   filesystem root of the compiler tree, same contract.
+/// @return             0 on a clean `exit` notification, 1 on an abnormal one.
+export run_server :: fn(stdlib_root: string, vader_root: string) -> i32 {
     state :: A.new_state(stdlib_root, vader_root)
     // Unbuffered stdin so `poll_pending` reflects the bytes actually queued on
     // the pipe (the debounce relies on it). Must run before any `read_frame`.

@@ -33,170 +33,106 @@ import "vader/lsp"
 import "vader/dap"
 // `vader test` (cmd_test) — native @test discovery + per-test isolated run.
 
-// The CLI help text. Triple-quoted strings drop the newline immediately
-// after the opening `"""`, so the body starts at `vader —` ; the closing
-// `"""` sits on its own line so the string ends with a single trailing
-// newline.
-HELP :: """vader ${CLI_VERSION} — the Vader compiler
-
-USAGE:
-  vader [global-options] <command> [options] [args]
-
-COMMANDS:
-  run [file]                       Interpret a Vader file (no args → REPL)
-                                   Accepts .vader source, .vir (binary IR), or .virt (text IR)
-  build [file] [options]           Compile a Vader source file
-                                     --target=native    Native binary (default ; via the C emitter)
-                                     --target=ir        Binary bytecode module (.vir)
-                                     --target=ir-text   Textual bytecode dump   (.virt)
-                                     --target=c         Emit the generated C source only
-                                     --target=wasm      WebAssembly module (not yet implemented)
-                                     --release          Optimise ; default builds carry debug info
-                                     --manifest         Read vader.json instead of a single file
-                                     --out=<path>       Override the default output path (- streams C to stdout)
-                                     --cc=<path>        Native only: C compiler to invoke (default: cc)
-                                     --ldflags="..."    Native only: raw linker flags appended to the cc invocation
-                                     --include-paths=a,b  Extra module search roots (GCC -I style), highest precedence
-                                     --parallel=N       Native only: compile the C across N parallel jobs for a faster build
-  fmt [path] [options]             Format Vader sources (single file or recursive directory walk)
-                                     --check          Read-only ; exit 1 if any file would change
-                                     --stdout         Write formatted output to stdout (single file)
-                                   Default rewrites every `*.vader` under <path> in place ; <path> defaults to `.`.
-  test [path]                      Run @test functions
-  lint [file]                      Project-wide lints kept out of the default build (opt-in / CI)
-                                     unused-export (W0012)  export fns unreachable from the project's roots
-                                   Exit 1 on any finding ; `vader build` never runs these.
-  lsp                              Run the Language Server (JSON-RPC over stdin/stdout)
-                                   Spawned by VSCode and IntelliJ via their LSP clients ;
-                                   provides semantic-tokens highlighting for `.vader` files.
-  dump --stage=<stage> <file>      Dump an IR stage as JSON/text
-                                     lexer          Token stream + diagnostics (text)
-                                     ast            Parser AST (JSON, spans elided)
-                                     resolved-ast   Per-module symbol table + import wiring
-                                     typed-ast      Per-decl + per-expression types
-                                     evaluated-ast  @comptime / @file values + generic instances
-                                     lowered-ast    Desugared tree (match/?/interp/defer expanded)
-                                     dced-ast       Lowered tree post stdlib reachability prune
-                                     cfg            Mid-IR CFG (post DCE + escape annotation)
-                                     bytecode       Stack-machine ops + type/string/import tables
-                                     bytecode-cfg   Bytecode with CFG-level const-folding (text)
-                                     c              Generated C source
-                                     wasm           WebAssembly module (not yet implemented)
-                                   --annotate (bytecode only) resolves each op's table
-                                     indices inline as `; comment` (string/callee/local/
-                                     field/type names) — a disassembly view, not re-parsable
-
-GLOBAL OPTIONS:
-  --help, -h                       Show this message
-  --version, -v                    Show the compiler version
-"""
-
-// Reused for every dump-stage error path so the wording stays in sync.
-STAGES_LIST :: "stages: lexer, ast, resolved-ast, typed-ast, evaluated-ast, lowered-ast, dced-ast, cfg, bytecode, bytecode-cfg, c, wasm"
-
-// Reserved global flags : parsed and stripped from args (so they don't break
-// invocation) but not yet wired into any pass, so they're kept out of HELP
-// until they actually do something.
-export GlobalOpts :: struct {
-    diagnostics:  string
-    allow_env:    bool
-    bytecode_opt: bool
-}
-
-export ParseGlobalsResult :: struct {
-    opts:   GlobalOpts
-    rest:   string[]
-    errors: string[]
-}
-
-parse_global_opts :: fn(args: string[]) -> ParseGlobalsResult {
-    specs: FlagSpec[] = [
-        FlagSpec { .name = "diagnostics",     .kind = .Str },
-        FlagSpec { .name = "allow-env",       .kind = .Bool },
-        FlagSpec { .name = "no-bytecode-opt", .kind = .Bool },
-    ]
-    parsed :: parse_known(args, specs)
-
-    diagnostics := "text"
-    errors: string[]! = []
-
-    diag_raw :: parsed.string_flag("diagnostics", "text")
-    if diag_raw == "text" || diag_raw == "json" {
-        diagnostics = diag_raw
-    } else {
-        errors.push("unknown --diagnostics format \"${diag_raw}\" (expected: text, json)")
-    }
-
-    allow_env    :: parsed.bool_flag("allow-env")
-    bytecode_opt :: !parsed.bool_flag("no-bytecode-opt")
-
-    for e in parsed.errors { errors.push(e) }
-
-    return ParseGlobalsResult {
-        .opts   = GlobalOpts {
-            .diagnostics  = diagnostics,
-            .allow_env    = allow_env,
-            .bytecode_opt = bytecode_opt,
-        },
-        .rest   = parsed.positionals,
-        .errors = errors,
-    }
-}
-
-// First entry of `positionals` that isn't a passthrough unknown flag.
-// `parse_known` keeps unknown `--…` tokens in `positionals` verbatim so the
-// caller can layer parsers ; this helper recovers "the file argument" for
-// sub-commands that don't care about the leaked flags.
-first_file_arg :: fn(positionals: string[]) -> string {
-    for p in positionals {
-        if !p.starts_with("--") {
-            return p
-        }
-    }
-    return ""
-}
 
 // Split a comma-separated `--include-paths=a,b,c` flag value into a list (empty
 // for an absent/empty flag). These prepend the module search order (GCC `-I`).
 parse_include_path_flag :: fn(raw: string) -> string[] =
     if raw == "" { [] } else { raw.split(",") }
 
+// Every invocation is `vader <action> <options>`: the action comes first and
+// owns the whole tail. There is no global option zone ahead of it — the old
+// `parse_global_opts` pass scanned all of argv and pulled its three flags out
+// from anywhere, which is how `vader run prog --allow-env` used to consume the
+// flag instead of forwarding it to the program.
 main :: fn(argv: string[]) -> i32 {
     // argv[0] is the binary path ; meaningful args start at index 1.
     args :: argv[1..<argv.len()]
-    if args.len() == 0 { return cmd_repl() }
-
-    r :: parse_global_opts(args)
-    if r.errors.len() > 0 {
-        for e in r.errors { eprintln("vader: ${e}") }
-        return 1
+    if args.len() == 0 {
+        return cmd_repl()
     }
-    rest :: r.rest
-    if rest.len() == 0 { return cmd_repl() }
 
-    cmd :: rest[0]
-    cmd_args :: rest[1..<rest.len()]
+    action :: args[0]
+    action_args :: args[1..<args.len()]
 
-    if cmd == "--help" || cmd == "-h" || cmd == "help" {
-        println(HELP)
-        return 0
+    // `--help` / `-h` / `--version` / `-v` are spellings of the `help` and
+    // `version` actions, kept because they are what people type.
+    if action == "help" || action == "--help" || action == "-h" {
+        return cmd_help(action_args)
     }
-    if cmd == "--version" || cmd == "-v" || cmd == "version" {
+    if action == "version" || action == "--version" || action == "-v" {
         println(CLI_VERSION)
         return 0
     }
-    if cmd == "run"   { return cmd_run(cmd_args) }
-    if cmd == "build" { return cmd_build(cmd_args) }
-    if cmd == "fmt"   { return cmd_fmt(cmd_args) }
-    if cmd == "test"  { return cmd_test(cmd_args) }
-    if cmd == "dump"  { return cmd_dump(cmd_args) }
-    if cmd == "lsp"   { return cmd_lsp(cmd_args) }
-    if cmd == "dap"   { return cmd_dap(cmd_args) }
-    if cmd == "lint"  { return cmd_lint(cmd_args) }
+    if action == "run"   { return cmd_run(action_args) }
+    if action == "build" { return cmd_build(action_args) }
+    if action == "fmt"   { return cmd_fmt(action_args) }
+    if action == "test"  { return cmd_test(action_args) }
+    if action == "dump"  { return cmd_dump(action_args) }
+    if action == "lsp"   { return cmd_lsp(action_args) }
+    if action == "dap"   { return cmd_dap(action_args) }
+    if action == "lint"  { return cmd_lint(action_args) }
 
-    eprintln("vader: unknown command \"${cmd}\"")
-    eprintln("run \"vader --help\" for usage")
+    eprintln("vader: unknown action \"${action}\"")
+    eprintln("run \"vader help\" for usage")
     return 1
+}
+
+// `vader help` prints the overview ; `vader help <action>` prints one action in
+// full — a view the old single help string couldn't give, and the reason it grew
+// to carry every flag of every action.
+cmd_help :: fn(args: string[]) -> i32 {
+    if args.len() == 0 {
+        print(render_help("vader", CLI_VERSION, TAGLINE, COMMANDS, COMMON_FLAGS))
+        return 0
+    }
+    name :: args[0]
+    cmd :: find_command(name)
+    if cmd == null {
+        eprintln("vader help: unknown action \"${name}\"")
+        return 1
+    }
+    print(render_command_help("vader", cmd, COMMON_FLAGS))
+    return 0
+}
+
+// Parse one action's zone against its own flags plus the common ones, reporting
+// every error under the action's name. Returns null when the args don't parse,
+// so each `cmd_*` is a two-liner guard rather than a copy of this block.
+parse_action :: fn(name: string, args: string[]) -> ParsedArgs | null {
+    cmd :: find_command(name)
+    if cmd == null {
+        eprintln("vader: unknown action \"${name}\"")
+        return null
+    }
+    parsed :: parse(args, command_specs(cmd))
+    if parsed.errors.len() > 0 {
+        for e in parsed.errors {
+            eprintln("vader ${name}: ${e}")
+        }
+        return null
+    }
+    return parsed
+}
+
+// The action's own argument — `positionals[0]`, or `""` when it has none.
+// Anything past it belongs to the action's `TailKind`, never to the CLI.
+action_file :: fn(parsed: ParsedArgs) -> string =
+    if parsed.positionals.len() == 0 { "" } else { parsed.positionals[0] }
+
+// Reject a second positional for an action that takes exactly one. The message
+// names the likely cause: a flag written after the file, which the boundary
+// leaves in the tail rather than reading.
+reject_extra_positionals :: fn(name: string, parsed: ParsedArgs) -> bool {
+    if parsed.positionals.len() <= 1 {
+        return false
+    }
+    extra :: parsed.positionals[1]
+    if extra.starts_with("-") {
+        eprintln("vader ${name}: options must come before the file, got \"${extra}\" after it")
+    } else {
+        eprintln("vader ${name}: unexpected argument \"${extra}\"")
+    }
+    return true
 }
 
 // ----------------------------------------------------------- REPL / run / fmt / test
@@ -206,16 +142,21 @@ cmd_repl :: fn() -> i32 {
     return 2
 }
 
+// The one forwarding action: the CLI reads flags up to the path, and everything
+// after it is the executed program's argv — verbatim, uninspected, `-o` and
+// `--allow-env` alike. No `--` needed:
+//   vader run compiler.virt dump --stage=bytecode vader/cli/main.vader
+// A `--` is still accepted, but as a zone-closer BEFORE the path, which is how a
+// path starting with a dash is named (`vader run -- -weird.vader`).
 cmd_run :: fn(args: string[]) -> i32 {
-    if args.len() == 0 {
+    parsed :: parse_action("run", args) ?? return 1
+    path :: action_file(parsed)
+    if path == "" {
         eprintln("vader run: expected a file argument")
         return 1
     }
-    path :: args[0]
-    // Args after a `--` separator become the executed program's argv, with
-    // `path` as argv[0]. This lets the compiler run itself from bytecode:
-    //   vader run compiler.virt -- dump --stage=bytecode vader/cli/main.vader
-    forward :: forwarded_argv(path, args)
+    // argv[0] is the program path, which the program itself skips.
+    forward :: parsed.positionals
     // `.virt` text bytecode runs directly through the VM. A `.vader`
     // source (or any other extension) is compiled through the full
     // pipeline to a `BytecodeModule`, then executed.
@@ -225,19 +166,9 @@ cmd_run :: fn(args: string[]) -> i32 {
     return run_source(path, forward)
 }
 
-// Build the executed program's argv from the `run` args. argv[0] is `path`
-// (`args[0]`, the program path, which the program skips via
-// `argv[1..<...]`); everything after it is forwarded as the program's
-// own args. A `--` separator is optional — `parse_known` already strips it
-// while keeping the trailing tokens as positionals, so the args land here
-// either way:  vader run prog.virt -- dump --stage=bytecode main.vader
-forwarded_argv :: fn(path: string, args: string[]) -> string[] {
-    out: string[]! = [path]
-    for i in 1..<args.len() {
-        out.push(args[i])
-    }
-    return out
-}
+// `forwarded_argv` is gone: the parser already hands back exactly the argv the
+// program wants — `positionals[0]` is the path (which the program skips as its
+// own argv[0]) and the rest is its tail, untouched.
 
 // Compile a `.vader` source through load → typecheck → comptime → lower →
 // CFG → bytecode (the same path as `dump --stage=bytecode`), then execute
@@ -353,9 +284,22 @@ named_file_main_mangled :: fn(lowered: LoweredProject, file: string) -> string {
     return ""
 }
 
-cmd_fmt :: fn(args: string[]) -> i32 = run_fmt(args)
+// `fmt` used to parse its own args in `vader/fmt/cli.vader`, where any
+// unrecognised token became a path — so `vader fmt --nope dir/` reported
+// `path not found: --nope` and exited 0. It now goes through the shared parser
+// like every other action, and `run_fmt` takes the decoded options.
+cmd_fmt :: fn(args: string[]) -> i32 {
+    parsed :: parse_action("fmt", args) ?? return 1
+    // Pinned to `string[]`: the literal is mutable, `positionals` isn't, and an
+    // unpinned `if` would build a mixed-mutability union (T3074).
+    paths: string[] = if parsed.positionals.len() == 0 { ["."] } else { parsed.positionals }
+    return run_fmt(paths, parsed.bool_flag("check"), parsed.bool_flag("stdout"))
+}
 
-cmd_lsp :: fn(args: string[]) -> i32 = run_server(args)
+cmd_lsp :: fn(args: string[]) -> i32 {
+    parsed :: parse_action("lsp", args) ?? return 1
+    return run_server(parsed.string_flag("stdlib-root", ""), parsed.string_flag("vader-root", ""))
+}
 
 /// `vader lint <file>` — project-wide hygiene lints kept OUT of the default
 /// build (a plain `vader build` never runs any of these). v1 ships a single
@@ -371,7 +315,11 @@ cmd_lsp :: fn(args: string[]) -> i32 = run_server(args)
 /// @return      0 when clean (or a rootless library), 1 on any finding, a
 ///              load/parse error, or a missing file argument.
 cmd_lint :: fn(args: string[]) -> i32 {
-    file :: first_file_arg(args)
+    parsed :: parse_action("lint", args) ?? return 1
+    if reject_extra_positionals("lint", parsed) {
+        return 1
+    }
+    file :: action_file(parsed)
     if file == "" {
         eprintln("vader lint: expected a file argument")
         return 1
@@ -405,7 +353,10 @@ cmd_lint :: fn(args: string[]) -> i32 {
 // bytecode VM. The compile step is injected as a callback so `vader/dap` stays
 // free of a `vader/cli` dependency (which would close an import cycle) — the
 // pipeline (lower → cfg → bytecode → prepare) lives here.
-cmd_dap :: fn(args: string[]) -> i32 = run_dap_server(compile_for_dap)
+cmd_dap :: fn(args: string[]) -> i32 {
+    parse_action("dap", args) ?? return 1
+    return run_dap_server(compile_for_dap)
+}
 
 // Compile a launch-target `.vader` to a `DapProgram`.
 //   want_debug = true  : the DAP path is the debug path — the per-op `debug`
@@ -447,7 +398,12 @@ DiscoveredTest :: struct {
 /// @return      0 when every test passed, 1 on any failure, 2 when no `.vader`
 ///              files / no `@test` fns were found.
 cmd_test :: fn(args: string[]) -> i32 {
-    target :: if args.len() > 0 { args[0] } else { "." }
+    parsed :: parse_action("test", args) ?? return 1
+    if reject_extra_positionals("test", parsed) {
+        return 1
+    }
+    from_args :: action_file(parsed)
+    target :: if from_args == "" { "." } else { from_args }
     files :: discover_vader_files(target)
     if files.len() == 0 {
         eprintln("vader test: no .vader files found under ${target}")
@@ -722,25 +678,8 @@ parse_parallel_units :: fn(s: string) -> i32 {
 }
 
 cmd_build :: fn(args: string[]) -> i32 {
-    specs: FlagSpec[] = [
-        FlagSpec { .name = "target",   .kind = .Str  },
-        FlagSpec { .name = "manifest", .kind = .Bool },
-        FlagSpec { .name = "out",      .kind = .Str  },
-        FlagSpec { .name = "release",  .kind = .Bool },
-        FlagSpec { .name = "cc",       .kind = .Str  },
-        FlagSpec { .name = "ldflags",  .kind = .Str  },
-        FlagSpec { .name = "include-paths", .kind = .Str },
-        FlagSpec { .name = "parallel", .kind = .Str },
-    ]
-    // Strict parse : an unknown `--flag` is an error, not a silently-ignored
-    // token (a `--releaze` typo must not fall through to a default debug build).
-    // Global options were already stripped before dispatch, so nothing valid
-    // leaks here.
-    parsed :: parse(args, specs)
-    if parsed.errors.len() > 0 {
-        for e in parsed.errors {
-            eprintln("vader build: ${e}")
-        }
+    parsed :: parse_action("build", args) ?? return 1
+    if reject_extra_positionals("build", parsed) {
         return 1
     }
 
@@ -753,13 +692,10 @@ cmd_build :: fn(args: string[]) -> i32 {
     parallel_units :: parse_parallel_units(parsed.string_flag("parallel", ""))
     include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
 
-    if target != "native" && target != "wasm" && target != "ir" && target != "ir-text" && target != "c" {
-        eprintln("vader build: unknown target \"${target}\"")
-        eprintln("targets: native, wasm, ir, ir-text, c")
-        return 1
-    }
-
-    file :: first_file_arg(parsed.positionals)
+    // No target validation here: `--target`'s accepted set lives on its
+    // `FlagSpec.values` in `spec.vader`, so the parser already rejected an
+    // unknown one and named the alternatives.
+    file :: action_file(parsed)
 
     if file == "" && !use_manifest {
         eprintln("vader build: expected either a file or --manifest (vader.json)")
@@ -1119,22 +1055,14 @@ write_out :: fn(path: string, content: string) -> i32 {
 // ----------------------------------------------------------- dump
 
 cmd_dump :: fn(args: string[]) -> i32 {
-    specs: FlagSpec[] = [
-        FlagSpec { .name = "stage", .kind = .Str },
-        FlagSpec { .name = "annotate", .kind = .Bool },
-        FlagSpec { .name = "module", .kind = .Str },
-    ]
-    // Strict : an unknown `--flag` errors rather than being silently ignored
-    // (globals are already stripped before dispatch — nothing valid leaks here).
-    parsed :: parse(args, specs)
-    if parsed.errors.len() > 0 {
-        for e in parsed.errors { eprintln("vader dump: ${e}") }
+    parsed :: parse_action("dump", args) ?? return 1
+    if reject_extra_positionals("dump", parsed) {
         return 1
     }
 
     stage    :: parsed.string_flag("stage", "")
     annotate :: parsed.bool_flag("annotate")
-    file     :: first_file_arg(parsed.positionals)
+    file     :: action_file(parsed)
     // `--module=a,b` scopes the module-filtered text dumps (resolver / typecheck
     // / comptime / lower / cfg) to those modules + their submodules ; empty =
     // default to the entry module's subtree. Lets a dump target any subset
@@ -1148,7 +1076,7 @@ cmd_dump :: fn(args: string[]) -> i32 {
 
     if stage == "" || file == "" {
         eprintln("vader dump: expected --stage=<stage> <file>")
-        eprintln(STAGES_LIST)
+        eprintln("run \"vader help dump\" for the stage list")
         return 1
     }
 
@@ -1193,9 +1121,11 @@ cmd_dump :: fn(args: string[]) -> i32 {
         return 2
     }
 
-    eprintln("vader dump: unknown stage \"${stage}\"")
-    eprintln(STAGES_LIST)
-    return 1
+    // Reachable only for a stage listed in `DUMP_STAGES` that has no dispatch
+    // arm above — a spec/dispatch mismatch, not user error. The parser rejects
+    // anything outside the list before we get here.
+    eprintln("vader dump: stage \"${stage}\" is declared but not wired")
+    return 2
 }
 
 // Read `file` for a dump stage. Returns the contents on success or

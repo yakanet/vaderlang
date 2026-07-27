@@ -28,7 +28,7 @@ mkdir -p build
 # tens of thousands of `#line` lines and churn its diff on every source edit.
 # For --target=c, --release ONLY drops `#line` (the bytecode optimiser is always
 # on), so the seed content is otherwise identical to a debug build.
-"$VADER" build vader/bootstrap/bootstrap.vader --release --target=c --out=build/bootstrap.c
+"$VADER" build --release --target=c --out=build/bootstrap.c vader/bootstrap/bootstrap.vader
 gzip -9 -c build/bootstrap.c > bootstrap/bootstrap.c.gz
 
 cat > bootstrap/VERSION <<META

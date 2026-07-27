@@ -5,8 +5,11 @@ import "std/cli"
 
 main :: fn() -> i32 {
     specs: FlagSpec[] = [
-        FlagSpec { .name = "verbose", .kind = .Bool },
-        FlagSpec { .name = "out",     .kind = .Str },
+        FlagSpec { .name = "verbose", .kind = .Bool, .help = "Say more", .alias = "V" },
+        FlagSpec {
+            .name = "out", .kind = .Str, .help = "Where to write",
+            .alias = "o", .value_name = "path",
+        },
     ]
     argv :: ["--verbose", "--out=/tmp/x", "extra"]
     r :: parse(argv, specs)
@@ -19,12 +22,28 @@ main :: fn() -> i32 {
     println("out=${r.string_flag("out", "")}")
     println("default=${r.string_flag("absent", "fallback")}")
 
-    // Error path
-    bad :: parse(["--out", "--unknown"], specs)
-    println("err_count=${bad.errors.len()}")
-    for e in bad.errors {
+    // The boundary: the first positional closes the option zone, so a flag
+    // written after it stays in `positionals` untouched rather than being read.
+    after :: parse(["file.vader", "--verbose"], specs)
+    println("after_verbose=${after.bool_flag("verbose")}")
+    println("after_positionals=${after.positionals.len()}")
+
+    // A short alias and a spaced value are the same flag by another spelling.
+    short :: parse(["-V", "-o", "/tmp/y"], specs)
+    println("short_verbose=${short.bool_flag("verbose")}")
+    println("short_out=${short.string_flag("out", "")}")
+
+    // Error paths: an unknown flag, and a `Str` flag whose spaced value is
+    // missing because the next token reads as a flag.
+    unknown :: parse(["--nope"], specs)
+    println("unknown_errors=${unknown.errors.len()}")
+    for e in unknown.errors {
         println("err=${e}")
     }
+
+    forgotten :: parse(["--out", "--verbose"], specs)
+    println("forgotten_errors=${forgotten.errors.len()}")
+    println("forgotten_out=${forgotten.string_flag("out", "<unset>")}")
 
     return 0
 }

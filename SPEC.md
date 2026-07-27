@@ -2527,7 +2527,7 @@ Two distinct `@extern` decls sharing the same C symbol (`@extern("strlen") a` + 
 ### Linking
 
 ```bash
-vader build prog.vader --target=native --ldflags="helper.o -lcrypto -L/usr/local/lib"
+vader build --target=native --ldflags="helper.o -lcrypto -L/usr/local/lib" prog.vader
 ```
 
 `--ldflags="<raw flags>"` passes a whitespace-split string of linker flags directly to `cc` — append `.o` files, `-l<lib>` libs, `-L<dir>` paths, frameworks, etc. The MVP doesn't ship a manifest format; everything goes through `--ldflags`.
@@ -3175,9 +3175,24 @@ A single C native backend + a single WASM backend + IR text + IR binary emission
 
 ### CLI
 
+Every invocation is `vader <action> [options] [args]`. **An action's options come
+before its first positional argument**; everything after that argument belongs to
+whatever the action passes it to — for `run`, the executed program's argv,
+verbatim and with no `--` needed. A bare `--` closes the option zone explicitly,
+which is how a path beginning with a dash is named. Anything an action doesn't
+recognise is an error, in both `--long` and `-s` forms.
+
+Short aliases: `-o` (`--out`), `-t` (`--target`), `-r` (`--release`), `-s`
+(`--stage`), `-h` (`--help`), `-v` (`--version`). A flag taking a value accepts
+it after `=` or after a space, in either spelling.
+
+Actions, their flags and the accepted values of each enumerated flag are declared
+once in `vader/cli/spec.vader`; `vader help <action>` renders from that same
+table, so the help cannot drift from what the parser accepts.
+
 | Command | Description |
 |---------|-------------|
-| `vader run [file]` | Interpret via VM. No arg → REPL *(REPL not yet implemented in the native CLI)* |
+| `vader run <file> [args…]` | Interpret via VM; everything after `<file>` is the program's argv. A bare `vader` (no action) is where the REPL will live *(not yet implemented)* |
 | `vader build [file\|--manifest]` | Compile to binary (default target = native) |
 | `vader build --target=native` | C-emit → `cc` → native binary (default) |
 | `vader build --target=wasm` | Targets WebAssembly *(not yet implemented)* |
@@ -3186,7 +3201,8 @@ A single C native backend + a single WASM backend + IR text + IR binary emission
 | `vader fmt [path]` | Single opinionated formatter, **no config**; defaults to recursive walk under `.` |
 | `vader test [path]` | Runs all functions marked `@test`, each in an isolated process. |
 | `vader lsp` | Runs the Language Server (JSON-RPC over stdin/stdout). Spawned by VS Code / IntelliJ |
-| `vader dump --stage=<stage> file.vader` | Dumps an IR stage (text or JSON depending on stage) |
+| `vader dump --stage=<stage> <file>` | Dumps an IR stage (text or JSON depending on stage) |
+| `vader help [action]` | Usage overview, or one action's options in full |
 | `vader init [name]` *(post-MVP)* | Scaffolds a new Vader project: directory, `examples/hello.vader`, default `vader.json` |
 
 `vader dump` stages, in pipeline order (`lexer`, `resolved-ast`, `cfg`, `bytecode-cfg`, `c`/`wasm` produce text; the rest produce JSON):

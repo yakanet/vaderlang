@@ -6,8 +6,13 @@ verbose=true
 missing=false
 out=/tmp/x
 default=fallback
-err_count=2
-err=--out: missing value, expected --out=<value>
-err=unknown flag --unknown
+after_verbose=false
+after_positionals=2
+short_verbose=true
+short_out=/tmp/y
+unknown_errors=1
+err=unknown flag --nope
+forgotten_errors=1
+forgotten_out=<unset>
 # exit
 0

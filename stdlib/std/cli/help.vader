@@ -1,0 +1,298 @@
+// std/cli/help — render `--help` text from the spec tables.
+//
+// Sibling of `cli.vader`, which owns the specs and the parser. Keeping the
+// renderer here rather than in each CLI's own source is what makes the spec
+// table the single description of the surface: a flag documented in `FlagSpec`
+// is a flag the help shows, and one the parser accepts, with no second copy to
+// keep in step. The alternative — a hand-written help string — drifts, and
+// measurably does: the compiler's own advertised `.vir` input, `fmt`'s flags and
+// three `--target` values had all stopped matching the code.
+//
+// Pure functions, specs in and string out, so they test without a process.
+// Column alignment is computed from the longest label rather than hardcoded, so
+// adding a long flag name doesn't silently ruin the layout.
+
+module "std/cli"
+
+import "std/string"
+import "std/string_builder"
+
+/// Column where a flag's description starts, unless a label forces it right.
+MIN_DESCRIPTION_COLUMN: usize: 28
+
+/// Two spaces of indent per nesting level, matching the usage block.
+INDENT :: "  "
+
+/// Render the overview: usage line, the action list, the common options.
+///
+/// Deliberately does NOT list every action's own flags — that is what
+/// `render_command_help` is for. A single flat help is how the hand-written one
+/// reached sixty lines.
+///
+/// @param program   the binary's name, e.g. `"vader"`.
+/// @param version   version string, shown on the title line.
+/// @param tagline   one-line description of the program.
+/// @param commands  every action, in the order to list them.
+/// @param common    flags accepted by every action.
+/// @return          the full help text, newline-terminated.
+export render_help :: fn(program: string, version: string, tagline: string, commands: CommandSpec[], common: FlagSpec[]) -> string {
+    out := StringBuilder {}
+    out.append("${program} ${version} — ${tagline}\n\n")
+    out.append("USAGE:\n")
+    out.append("${INDENT}${program} <action> [options] [args]\n\n")
+
+    out.append("ACTIONS:\n")
+    labels: string[]! = []
+    for c in commands {
+        labels.push(action_label(c))
+    }
+    width :: column_of(labels)
+    for i in 0..<commands.len() {
+        out.append("${INDENT}${pad_to(labels[i], width)}${commands[i].summary}\n")
+    }
+
+    if common.len() > 0 {
+        out.append("\nCOMMON OPTIONS:\n")
+        out.append(render_flag_block(common, 1))
+    }
+
+    out.append("\nRun \"${program} help <action>\" for an action's own options.\n")
+    return out.to_string()
+}
+
+/// Render one action in full: its usage line, then every flag it accepts.
+///
+/// This is the view a hand-written help can't give — `vader build --help` had no
+/// answer at all before, which is most of why the overview grew to carry every
+/// flag of every action.
+///
+/// @param program  the binary's name.
+/// @param cmd      the action to describe.
+/// @param common   flags accepted by every action, listed after the action's own.
+/// @return         the action's help text, newline-terminated.
+export render_command_help :: fn(program: string, cmd: CommandSpec, common: FlagSpec[]) -> string {
+    out := StringBuilder {}
+    out.append("${program} ${action_label(cmd)} — ${cmd.summary}\n")
+
+    if cmd.flags.len() > 0 {
+        out.append("\nOPTIONS:\n")
+        out.append(render_flag_block(cmd.flags, 1))
+    }
+    if common.len() > 0 {
+        out.append("\nCOMMON OPTIONS:\n")
+        out.append(render_flag_block(common, 1))
+    }
+    return out.to_string()
+}
+
+// A flag's left-hand label — its spellings and value placeholder. The alias is
+// padded to a fixed lead so aliased and unaliased flags line up their `--` in one
+// column, which is what makes a long list scannable.
+flag_label :: fn(spec: FlagSpec) -> string {
+    lead :: if spec.alias == "" { "    " } else { "-${spec.alias}, " }
+    if spec.kind == FlagKind.Bool {
+        return "${lead}--${spec.name}"
+    }
+    return "${lead}--${spec.name}=${value_placeholder(spec)}"
+}
+
+// An action's label: its name, plus its usage tail when it has one. Shared by
+// the action list and the per-action title so the two can't disagree.
+action_label :: fn(cmd: CommandSpec) -> string =
+    if cmd.usage == "" { cmd.name } else { "${cmd.name} ${cmd.usage}" }
+
+// Render one indented, column-aligned block of flags, including each flag's
+// enumerated values as an inner block. `depth` is in `INDENT` units. Labels are
+// built once and reused for both the measurement and the output — computing them
+// twice is how a label and its column silently disagree.
+render_flag_block :: fn(flags: FlagSpec[], depth: usize) -> string {
+    labels: string[]! = []
+    for f in flags {
+        labels.push(flag_label(f))
+    }
+    width :: column_of(labels)
+
+    out := StringBuilder {}
+    pad :: INDENT.repeat(depth)
+    // Indented past the `--` of the flag above, not merely past its gutter: at
+    // equal depth a value reads as another flag.
+    inner :: INDENT.repeat(depth + 3)
+    for i in 0..<flags.len() {
+        out.append("${pad}${pad_to(labels[i], width)}${flag_description(flags[i])}\n")
+        values :: flags[i].values
+        if values.len() == 0 {
+            continue
+        }
+        names: string[]! = []
+        for v in values {
+            names.push(v.name)
+        }
+        vwidth :: column_of(names)
+        for j in 0..<values.len() {
+            out.append("${inner}${pad_to(names[j], vwidth)}${values[j].help}\n")
+        }
+    }
+    return out.to_string()
+}
+
+// A flag's right-hand column: its description, plus its default when it has one.
+flag_description :: fn(spec: FlagSpec) -> string =
+    if spec.default_text == "" {
+        spec.help
+    } else {
+        "${spec.help} (default: ${spec.default_text})"
+    }
+
+// The column a block's descriptions start at: past its widest label, with two
+// spaces of gutter, and never tighter than MIN_DESCRIPTION_COLUMN so a block of
+// short labels doesn't crowd its text. One function for all three kinds of block
+// (actions, flags, enumerated values) — they only differed in how the label was
+// built, which the caller now does.
+column_of :: fn(labels: string[]) -> usize {
+    widest: usize = 0
+    for l in labels {
+        len :: l.byte_len()
+        if len > widest {
+            widest = len
+        }
+    }
+    want :: widest + 2
+    if want < MIN_DESCRIPTION_COLUMN {
+        return MIN_DESCRIPTION_COLUMN
+    }
+    return want
+}
+
+// Right-pad `s` to `width` bytes. A label longer than the column keeps its own
+// length plus one space rather than being truncated — a long name should
+// misalign, not disappear.
+pad_to :: fn(s: string, width: usize) -> string {
+    len :: s.byte_len()
+    if len >= width {
+        return "${s} "
+    }
+    return "${s}${" ".repeat(width - len)}"
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+sample_flags :: fn() -> FlagSpec[] = [
+    FlagSpec {
+        .name = "out", .kind = .Str, .help = "Where to write",
+        .alias = "o", .value_name = "path",
+    },
+    FlagSpec {
+        .name = "release", .kind = .Bool, .help = "Optimise the build",
+        .alias = "r",
+    },
+    FlagSpec {
+        .name = "cc", .kind = .Str, .help = "C compiler to invoke",
+        .value_name = "path", .default_text = "cc",
+    },
+]
+
+sample_commands :: fn() -> CommandSpec[] = [
+    CommandSpec {
+        .name = "build", .summary = "Compile a Vader source file",
+        .usage = "<file>", .flags = sample_flags(), .tail = .None,
+    },
+    CommandSpec {
+        .name = "lsp", .summary = "Run the Language Server",
+        .usage = "", .flags = [], .tail = .None,
+    },
+]
+
+@test test_flag_label_forms :: fn() -> void {
+    flags :: sample_flags()
+    assert_eq(flag_label(flags[0]), "-o, --out=<path>")
+    assert_eq(flag_label(flags[1]), "-r, --release")
+    // No alias: the lead is blanked so the `--` still lines up with the rest.
+    assert_eq(flag_label(flags[2]), "    --cc=<path>")
+}
+
+@test test_flag_label_uses_value_placeholder_fallback :: fn() -> void {
+    spec :: FlagSpec { .name = "thing", .kind = .Str, .help = "h" }
+    assert_eq(flag_label(spec), "    --thing=<value>")
+}
+
+@test test_command_help_lists_flags_and_default :: fn() -> void {
+    text :: render_command_help("vader", sample_commands()[0], [])
+    assert("vader build <file> — Compile a Vader source file" in text, "title line")
+    assert("-o, --out=<path>" in text, "aliased Str flag")
+    assert("(default: cc)" in text, "default_text is surfaced")
+    assert("OPTIONS:" in text, "options block present")
+}
+
+@test test_command_help_omits_empty_blocks :: fn() -> void {
+    // `lsp` has no flags of its own and we pass no common ones: neither block
+    // should print an empty heading.
+    text :: render_command_help("vader", sample_commands()[1], [])
+    assert(!("OPTIONS:" in text), "no OPTIONS heading for a flagless action")
+    assert("vader lsp — Run the Language Server" in text, "no stray space before the dash")
+}
+
+@test test_help_lists_every_action :: fn() -> void {
+    text :: render_help("vader", "1.2.3", "the Vader compiler", sample_commands(), [])
+    assert("vader 1.2.3 — the Vader compiler" in text, "title")
+    assert("build <file>" in text, "action with a usage tail")
+    assert("lsp" in text, "action without one")
+    assert("ACTIONS:" in text, "action block")
+    // The overview points at the per-action view rather than inlining it.
+    assert("help <action>" in text, "pointer to per-action help")
+}
+
+@test test_help_renders_common_flags_when_given :: fn() -> void {
+    common :: [FlagSpec {
+        .name = "allow-env", .kind = .Bool, .help = "Reserved; no effect yet",
+    }]
+    text :: render_help("vader", "1.2.3", "t", sample_commands(), common)
+    assert("COMMON OPTIONS:" in text, "common block present")
+    assert("Reserved; no effect yet" in text, "a reserved flag says so rather than lying")
+}
+
+@test test_enumerated_values_render_under_their_flag :: fn() -> void {
+    spec :: FlagSpec {
+        .name = "stage", .kind = .Str, .help = "IR stage to dump",
+        .alias = "s", .value_name = "stage", .values = [
+            ValueSpec { .name = "lexer", .help = "Token stream" },
+            ValueSpec { .name = "bytecode", .help = "Stack-machine ops" },
+        ],
+    }
+    cmd :: CommandSpec {
+        .name = "dump", .summary = "Dump an IR stage", .usage = "<file>",
+        .flags = [spec], .tail = .None,
+    }
+    text :: render_command_help("vader", cmd, [])
+    assert("-s, --stage=<stage>" in text, "the flag itself")
+    // The same array the parser validates against — so a stage can't be
+    // accepted while going undocumented.
+    assert("lexer" in text, "value listed")
+    assert("Token stream" in text, "value description listed")
+    assert("bytecode" in text, "second value listed")
+}
+
+@test test_padded_labels_share_one_width :: fn() -> void {
+    // The property that makes a block scannable: every label in it, once
+    // padded, is the same length — so every description starts in one column.
+    // Computing the width instead of fixing it is what keeps that true when a
+    // long flag name is added.
+    labels: string[]! = []
+    for f in sample_flags() {
+        labels.push(flag_label(f))
+    }
+    width :: column_of(labels)
+    expected :: pad_to(labels[0], width).byte_len()
+    for l in labels {
+        assert_eq(pad_to(l, width).byte_len(), expected)
+    }
+    assert(expected >= MIN_DESCRIPTION_COLUMN, "the floor is respected")
+}
+
+@test test_pad_to_never_truncates_a_long_label :: fn() -> void {
+    // A label wider than its column should misalign, not lose characters.
+    long :: "--a-very-long-flag-name-indeed=<value>"
+    padded :: pad_to(long, 10)
+    assert_eq(padded, "${long} ")
+}
