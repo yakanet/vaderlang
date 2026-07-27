@@ -311,7 +311,7 @@ lower_fn_body :: fn(
     entry: MonoEntry, subst: Substitution, return_type: Type,
 ) -> LoweredBlock | null {
     if fn_decl.body == null { return null }
-    fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, return_type, null)
+    fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, return_type)
     block :: lower_block(fn_ctx, fn_decl.body, true, false)
     return promote_captured_params(fn_ctx, fn_decl.params, block)
 }
@@ -432,7 +432,7 @@ lower_const_decl :: fn(
     // emit.
     if type_val is TypeMetaType { return null }
     entry :: stub_entry(const_decl, typed)
-    fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, type_val, null)
+    fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, type_val)
     // Prefer the comptime-baked value when the evaluator was able to fold
     // the const expression, so downstream phases see the materialised
     // literal rather than the source AST.

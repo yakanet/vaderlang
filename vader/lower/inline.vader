@@ -48,8 +48,9 @@ InlineInfo :: struct {
     use_counts: MutableMap<i32, i32>
 }
 
-/// Substitution + inline state threaded through the clone (a struct, not a
-/// closure — `WalkCtx` documents why fn-fields misbehave in the self-host typer).
+/// Substitution + inline state threaded through the clone — a plain struct of
+/// DATA, not a closure or a bundle of callbacks (calling a fn held in a struct
+/// field is a shape this tree avoids ; see `lower_ref::for_each_lowered_ref`).
 /// `param_map` is fresh per inlined call (callee param id → already-cloned arg) ;
 /// it is empty while cloning a top-level body that is merely being scanned for
 /// inlineable calls.

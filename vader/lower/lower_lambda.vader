@@ -47,7 +47,7 @@ export lower_lambda :: fn(ctx: FnLowerCtx!, lambda: AST.LambdaExpr, block_lowere
     // Body lowers in a fresh fn-ctx ; `lifted_context` routes captured
     // ident reads through `env.cap_N` instead of resolving to outer
     // locals that don't exist in the lifted scope.
-    lifted_ctx :: new_fn_lower_ctx(ctx.project, lifted_entry, ctx.typed, ctx.subst, return_type, null)
+    lifted_ctx :: new_fn_lower_ctx(ctx.project, lifted_entry, ctx.typed, ctx.subst, return_type)
     lifted_ctx.lifted_context = LiftedFnContext { .env_symbol = env_param_symbol, .env_type = env_type, .capture_fields = capture_fields_map }
     raw_body :: block_lowerer(lifted_ctx, lambda.body, true, false)
     // A lambda's OWN param can itself be captured by a further-nested lambda ;

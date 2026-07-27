@@ -407,7 +407,6 @@ export FnLowerCtx :: struct {
     types:              EntryTypes
 
     return_type:        Type
-    self_type:          Type | null
     blocks:             BlockCtx[]!
 
     /// Monotonically-increasing counter used to mint unique synthetic
@@ -480,11 +479,10 @@ export GenInlineSink :: struct {
 /// @param typed        the owning module's typed program.
 /// @param subst        the entry's substitution (empty for non-generic).
 /// @param return_type  the entry's resolved return type.
-/// @param self_type    the receiver type for impl members ; null otherwise.
 /// @return             a fresh fn-body context.
 export new_fn_lower_ctx :: fn(
     project: LowerProjectCtx!, entry: MonoEntry, typed: TypedProgram,
-    subst: Substitution, return_type: Type, self_type: Type | null,
+    subst: Substitution, return_type: Type,
 ) -> FnLowerCtx! {
     return FnLowerCtx {
         .project           = project,
@@ -493,7 +491,6 @@ export new_fn_lower_ctx :: fn(
         .subst             = subst,
         .types             = make_entry_types(typed, subst),
         .return_type       = return_type,
-        .self_type         = self_type,
         .blocks            = [],
         .uniq              = 0,
         .lifted_context    = null,

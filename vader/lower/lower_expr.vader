@@ -341,7 +341,7 @@ try_fold_unbaked_const :: fn(ctx: FnLowerCtx!, resolved: Symbol, type: Type) -> 
     // scalar-only shape of the baked-value fold above.
     if !is_scalar_literal_expr(const_decl.value) { return null }
     entry :: stub_entry(const_decl, owner_typed)
-    fn_ctx :: new_fn_lower_ctx(ctx.project, entry, owner_typed, new_substitution(), type, null)
+    fn_ctx :: new_fn_lower_ctx(ctx.project, entry, owner_typed, new_substitution(), type)
     return lower_const_value(const_decl, owner_typed, ctx.project, fn_ctx, type)
 }
 

@@ -176,7 +176,7 @@ lower_generator_body :: fn(
     subst: Substitution, fn_decl: FnDecl, gen_body: BlockExpr,
     params: LoweredParam[], return_type: Type,
 ) -> LoweredBlock {
-    gen_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, return_type, null)
+    gen_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, return_type)
     gen_ctx.in_generator = true
     lowered :: lower_block(gen_ctx, gen_body, true, false)
     return lower_generator_fn(gen_ctx, fn_decl, params, lowered, return_type)
@@ -193,7 +193,7 @@ lower_async_body :: fn(
     subst: Substitution, fn_decl: FnDecl, async_body: BlockExpr,
     params: LoweredParam[], result_type: Type, is_main: bool,
 ) -> LoweredBlock {
-    async_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, result_type, null)
+    async_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, result_type)
     async_ctx.in_async = true
     lowered :: lower_block(async_ctx, async_body, true, false)
     return lower_async_fn(async_ctx, fn_decl, params, lowered, result_type, is_main)

@@ -15,21 +15,15 @@ import "vader/comptime"
 import "vader/resolver/symbol"
 
 // Phase 1 of the two-pass instance materialisation : concrete struct decls only.
-//
-// The returned set is ALWAYS EMPTY — nothing here ever adds to it, and the
-// representatives pass (Phase 2, after fn-instances) rebuilds its own dedupe
-// state from `project_ctx.evaluated.instances`. `lower.vader` proves it: the
-// staging branch passes a plain empty literal instead, equivalently. The return
-// value should go, and with it the caller's threading of it.
+// Phase 2 (`materialize_representatives`, after the fn-instance drain) owns its
+// own dedupe set — nothing is shared between the two passes.
 materialize_concrete_struct_instances :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx!,
     project: LoweredProject, diags: Diagnostic[],
-) -> MutableSet<string> {
-    seen_reps :: new_string_set()
+) -> void {
     for inst in project_ctx.evaluated.instances {
         materialize_one_instance(inst, loaded, typed, project_ctx, project, diags)
     }
-    return seen_reps
 }
 
 // Phase 2 : emit the "any-args" representative struct decls AFTER
@@ -37,8 +31,9 @@ materialize_concrete_struct_instances :: fn(
 //   concrete structs ; fn instances ; representative structs.
 materialize_representatives :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx!,
-    project: LoweredProject, seen_reps: MutableSet<string>!,
+    project: LoweredProject,
 ) -> void {
+    seen_reps :: new_string_set()
     for inst in project_ctx.evaluated.instances {
         materialize_representative(inst, loaded, typed, project_ctx, project, seen_reps)
     }

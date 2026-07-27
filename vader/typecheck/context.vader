@@ -1,43 +1,17 @@
 // vader/typecheck/context — shared context threaded through every typecheck pass.
 //
-// Two layers :
+// `FnContext` is pushed by `check_fn_body` and drives `return` checking plus
+// `Self` substitution inside method bodies.
 //
-//   - `Globals`    — built once per project. Carries cross-module shared
-//                    state : the symbol factory and the auto-imported
-//                    `std/core` symbols.
-//   - `FnContext`  — pushed by `check_fn_body`, drives `return` checking
-//                    and `Self` substitution inside method bodies.
-//
-// Per-module side-tables live on `TypedProgram` directly (see
-// `typed_ast.vader`) rather than being duplicated here — a single
-// representation, no during/after split.
+// Per-module side-tables live on `TypedProgram` directly (see `typed_ast.vader`)
+// rather than being duplicated here — a single representation, no during/after
+// split. Project-level shared state likewise: the symbol factory and the resolved
+// `std/core` symbols are reached through the `TypedProgram` / `LowerProjectCtx`
+// each pass already carries.
 
 module "vader/typecheck"
 
-import "std/collections"
-import "vader/resolver/symbol"
 import "vader/types"
-
-/// Project-level shared state. Built once at the start of `check_project`
-/// and threaded through every pass.
-export Globals :: struct {
-    /// Shared symbol id allocator. Typecheck mints synthetic locals
-    /// (`for <iter>` discard, narrowing temporaries) through this so ids
-    /// stay globally unique across phases.
-    factory: SymbolFactory
-    /// Auto-imported `std/core` symbols, looked up for `Display` /
-    /// `Error` / `Iterator` etc. when a trait reference dodges the
-    /// module's local imports. Populated by `check_project` once the
-    /// core module is resolved ; null pre-MVP / dump-only pipelines.
-    core_symbols: MutableMap<string, Symbol> | null
-}
-
-export new_globals :: fn(factory: SymbolFactory) -> Globals {
-    return Globals {
-        .factory = factory,
-        .core_symbols = null,
-    }
-}
 
 /// Per-fn-body state — pushed by `check_fn_body`, consumed by `ReturnStmt`
 /// checking and `Self` substitution inside method bodies.
@@ -89,16 +63,6 @@ export new_fn_context :: fn(return_type: Type, self_type: Type | null) -> FnCont
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-
-@test
-test_new_globals_factory_starts_at_one :: fn() -> void {
-    factory :: SymbolFactory {}
-    g :: new_globals(factory)
-    assert_eq(g.factory.next, 1)
-    if g.core_symbols !is null {
-        assert(false, "core_symbols should start null")
-    }
-}
 
 @test
 test_new_fn_context_holds_return_type :: fn() -> void {

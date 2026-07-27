@@ -176,9 +176,7 @@ lower_project_impl :: fn(
     // After per-module lowering, materialise generic-struct instances +
     // their matching generic-impl members. Each `evaluated.instances`
     // entry yields a `StructDecl<Concrete>` + per-impl `__T` member fns.
-    rep_seen :: if is_staging {
-        MutableSet<string> {}
-    } else {
+    if !is_staging {
         materialize_concrete_struct_instances(loaded, typed, project_ctx, project, diags)
     }
     // Generic-fn instances + non-generic stdlib free fns are MUTUALLY
@@ -222,7 +220,7 @@ lower_project_impl :: fn(
     flush_generic_fn_instances(project_ctx, project)
     // Representative "any-args" structs come AFTER fn instances so
     // generic_brackets etc. keep a stable emission order.
-    materialize_representatives(loaded, typed, project_ctx, project, rep_seen)
+    materialize_representatives(loaded, typed, project_ctx, project)
     // Transitively materialise generic-struct shapes referenced by the
     // fields of the structs emitted above (concrete + representative),
     // e.g. `MutableSet<i32>`'s erased `inner: MutableMap<Any, bool>` —

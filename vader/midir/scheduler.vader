@@ -17,10 +17,8 @@
 //
 // Vader-specific design : `Set<Instruction>` keyed by object identity
 // doesn't translate ; we use position-encoded keys instead.
-// `pos_key(block, idx) = block × POS_STRIDE + idx`. Consumers
-// query via `skip_set_at` / `skip_first_get_at` so the key encoding
-// stays an implementation detail. POS_STRIDE × max(blocks) must fit
-// in i64 ; with 1 000 000 we get headroom for ~9 × 10¹² blocks.
+// `pos_key(block, idx) = block × POS_STRIDE + idx`. POS_STRIDE × max(blocks)
+// must fit in i64 ; with 1 000 000 we get headroom for ~9 × 10¹² blocks.
 
 module "vader/midir"
 
@@ -29,8 +27,6 @@ import "std/collections"
 export POS_STRIDE :: i64(1000000)
 
 /// Encode a (block, instruction-index) position as a single i64 key.
-/// Used internally by the scheduler producer ; consumers should call
-/// `skip_set_at` / `skip_first_get_at` instead of computing keys.
 export pos_key :: fn(block: BlockId, idx: usize) -> i64 {
     return i64(block) * POS_STRIDE + i64(idx)
 }
@@ -46,18 +42,6 @@ export ScheduleHints :: struct {
     /// Block IDs whose terminator's first read should come from the
     /// stack.
     skip_terminator_get: MutableSet<BlockId>
-}
-
-/// Predicate — should the (block, idx) instruction's result stay on the
-/// stack rather than being stored via `local.set` ?
-export skip_set_at :: fn(h: ScheduleHints, block: BlockId, idx: usize) -> bool {
-    return h.skip_set.contains(pos_key(block, idx))
-}
-
-/// Predicate — should the (block, idx) instruction's first operand be
-/// read off the stack rather than via `local.get` ?
-export skip_first_get_at :: fn(h: ScheduleHints, block: BlockId, idx: usize) -> bool {
-    return h.skip_first_get.contains(pos_key(block, idx))
 }
 
 /// Empty hints — `schedule_stack` callers that disable scheduling get

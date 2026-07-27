@@ -63,7 +63,7 @@ export lower_defer :: fn(
     body_block :: synth_body_block(defer_stmt)
 
     lifted_ctx :: new_fn_lower_ctx(
-        ctx.project, lifted_entry, ctx.typed, ctx.subst, TY_VOID, null,
+        ctx.project, lifted_entry, ctx.typed, ctx.subst, TY_VOID,
     )
     lifted_ctx.lifted_context = LiftedFnContext {
         .env_symbol     = env_param_symbol,
