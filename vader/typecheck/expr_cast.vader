@@ -48,7 +48,7 @@ cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
     if src is DistinctType || target is DistinctType { return true }
     // Identity / compatible either direction : `i32(x: i32)`, a free literal
     // narrowed to the target, a subtype widen (`Animal(cat)`).
-    if is_assignable(src, target, null) || is_assignable(target, src, null) { return true }
+    if is_assignable(src, target) || is_assignable(target, src) { return true }
     // Explicit `Into<Target>` conversion (string-keyed lookup — last resort).
     into_impl :: typed.impl_methods["${display_type_key(src)}::into::${display_type_key(target)}"]
     if into_impl !is null && into_impl.ty is FnType { return true }

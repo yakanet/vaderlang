@@ -537,7 +537,7 @@ emit_return_mismatch_if :: fn(
 // compiler handles the single-expr form fine; the seed does not. Leave it
 // brace-bodied until the seed is advanced past that inliner/interning bug.
 flows_into :: fn(got: Type, expected: Type, node_id: usize, typed: TypedProgram!) -> bool {
-    if is_assignable(got, expected, null) {
+    if is_assignable(got, expected) {
         return true
     }
     return try_into(got, expected, typed, node_id)
@@ -1398,7 +1398,7 @@ check_for :: fn(
             // is iterable (array today ; custom Iterator impls land
             // with coerce.vader). Skip T3019 in that case.
             if got is ArrayType {}
-            else if !is_assignable(got, TY_BOOL, null) {
+            else if !is_assignable(got, TY_BOOL) {
                 /* iterable — no diag */
 
                 diags.push(

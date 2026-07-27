@@ -2,10 +2,10 @@
 // symmetric pre-checks (Unresolved, Never, equals, TypeParam wildcard),
 // then routes to one of the per-variant fns via a single `match from`.
 //
-// All variants pass through `check_common` last : oracle-driven trait
-// widening + `to is Union` element-wise widening. Several "no implicit
-// widening" variants (Primitive, Enum, TypeMeta, Self, …) have no
-// logic beyond the common path and skip the dedicated fn entirely.
+// All variants pass through `check_common` last : `to is Union` element-wise
+// widening. Several "no implicit widening" variants (Primitive, Enum, TypeMeta,
+// Self, …) have no logic beyond the common path and skip the dedicated fn
+// entirely.
 //
 // Why the split : a single fn matching `from × to` over 15 × 15
 // variants compiles to a ~50 k-line C monster ; splitting into one
@@ -16,10 +16,15 @@ module "vader/typecheck"
 
 import "vader/types"
 
-/// Whether `from` can flow into a slot expecting `to` without explicit
-/// coercion. Trait-widening is gated by `oracle` ; pass `null` if the
-/// registry isn't built yet (Phase 1) — widening then falls back to false.
-export is_assignable :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> bool {
+/// Whether `from` can flow into a slot expecting `to` without explicit coercion.
+///
+/// Answers NO for a `to` that is a trait, even when `from` implements it: this
+/// module sees types only, never the impl registry. Trait widening is therefore
+/// somebody else's question — `field.vader::receiver_fits_first_param` asks it
+/// through `try_trait_widen`, which does have the registry. (A callback parameter
+/// for that purpose was once threaded through every fn here; no caller ever
+/// supplied one, so the branch it guarded never ran, and both are gone.)
+export is_assignable :: fn(from: Type, to: Type) -> bool {
     if from is UnresolvedType { return true }
     if to   is UnresolvedType { return true }
     if from is NeverType      { return true }
@@ -40,34 +45,27 @@ export is_assignable :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> 
 
     // @partial: variants with a bespoke rule are listed; everything else shares check_common.
     return @partial match from {
-        is StructType    as s -> is_assignable_struct(from, s, to, oracle)
-        is TraitType     as t -> is_assignable_trait_from(from, t, to, oracle)
-        is TupleType     as t -> is_assignable_tuple(from, t, to, oracle)
-        is ArrayType     as a -> is_assignable_array(from, a, to, oracle)
-        is FnType        as f -> is_assignable_fn(from, f, to, oracle)
-        is UnionType     as u -> is_assignable_union(from, u, to, oracle)
-        is FreeIntType        -> is_assignable_freeint(from, to, oracle)
-        is FreeCharType       -> is_assignable_freechar(from, to, oracle)
-        is FreeFloatType      -> is_assignable_freefloat(from, to, oracle)
-        _ -> check_common(from, to, oracle)
+        is StructType    as s -> is_assignable_struct(from, s, to)
+        is TraitType     as t -> is_assignable_trait_from(from, t, to)
+        is TupleType     as t -> is_assignable_tuple(from, t, to)
+        is ArrayType     as a -> is_assignable_array(from, a, to)
+        is FnType        as f -> is_assignable_fn(from, f, to)
+        is UnionType     as u -> is_assignable_union(from, u, to)
+        is FreeIntType        -> is_assignable_freeint(from, to)
+        is FreeCharType       -> is_assignable_freechar(from, to)
+        is FreeFloatType      -> is_assignable_freefloat(from, to)
+        _ -> check_common(from, to)
     }
 }
 
-/// Common widening checks applied after every variant's specific
-/// dispatch fails : oracle-gated trait widening and union-to walking.
-export check_common :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> bool {
-    if oracle !is null {
-        match to {
-            is TraitType as tt -> {
-                if oracle.has_impl(from, tt) { return true }
-            }
-            _ -> {}
-        }
-    }
+/// The widening every variant falls through to when its own dispatch found
+/// nothing : `to is Union`, walked element-wise. A `to` that is a TRAIT is not
+/// handled — see `is_assignable`'s note on why that answer lives elsewhere.
+export check_common :: fn(from: Type, to: Type) -> bool {
     match to {
         is UnionType as tu -> {
             for v in tu.variants {
-                if is_assignable(from, v, oracle) { return true }
+                if is_assignable(from, v) { return true }
             }
         }
         _ -> {}
@@ -89,39 +87,39 @@ export check_common :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> b
 /// `ArrayType` is the exception, and on purpose : read-only `T[]` is an explicit,
 /// writable annotation that freezes the REFERENT (module consts, `.bytes()`
 /// views), so it stays covariant in `is_assignable_array`.
-export is_assignable_struct :: fn(from: Type, self: StructType, to: Type, oracle: TraitOracle | null) -> bool {
+export is_assignable_struct :: fn(from: Type, self: StructType, to: Type) -> bool {
     match to {
         is StructType as ts -> {
             if self.symbol.id == ts.symbol.id {
-                if struct_args_compatible(self.args, ts.args, oracle) { return true }
+                if struct_args_compatible(self.args, ts.args) { return true }
             }
         }
         _ -> {}
     }
-    return check_common(from, to, oracle)
+    return check_common(from, to)
 }
 
 /// `from is TraitType`. Same nominal-with-args shape as StructType.
-export is_assignable_trait_from :: fn(from: Type, self: TraitType, to: Type, oracle: TraitOracle | null) -> bool {
+export is_assignable_trait_from :: fn(from: Type, self: TraitType, to: Type) -> bool {
     match to {
         is TraitType as tt -> {
             if self.symbol.id == tt.symbol.id {
-                if struct_args_compatible(self.args, tt.args, oracle) { return true }
+                if struct_args_compatible(self.args, tt.args) { return true }
             }
         }
         _ -> {}
     }
-    return check_common(from, to, oracle)
+    return check_common(from, to)
 }
 
 /// `from is TupleType`. Element-wise. No Array ↔ Tuple by design.
 /// Immutability is not part of assignability — see `is_assignable_struct`.
-export is_assignable_tuple :: fn(from: Type, self: TupleType, to: Type, oracle: TraitOracle | null) -> bool {
+export is_assignable_tuple :: fn(from: Type, self: TupleType, to: Type) -> bool {
     match to {
         is TupleType as tt -> {
             if self.elements.len() != tt.elements.len() { return false }
             for i in 0..<self.elements.len() {
-                if !is_assignable(self.elements[i], tt.elements[i], oracle) {
+                if !is_assignable(self.elements[i], tt.elements[i]) {
                     return false
                 }
             }
@@ -129,7 +127,7 @@ export is_assignable_tuple :: fn(from: Type, self: TupleType, to: Type, oracle: 
         }
         _ -> {}
     }
-    return check_common(from, to, oracle)
+    return check_common(from, to)
 }
 
 /// `from is ArrayType`. `T[]! <: T[]` (mutable into read-only ; reverse
@@ -138,14 +136,14 @@ export is_assignable_tuple :: fn(from: Type, self: TupleType, to: Type, oracle: 
 /// unsound (arrays are reference-aliased — SPEC §Arrays — so a write through a
 /// widened alias would violate the source element type). TypeParam / Unresolved
 /// elements stay wildcards (accepted both ways by `is_assignable`).
-export is_assignable_array :: fn(from: Type, self: ArrayType, to: Type, oracle: TraitOracle | null) -> bool {
+export is_assignable_array :: fn(from: Type, self: ArrayType, to: Type) -> bool {
     if to is ArrayType as ta {
         if self.immutable && !ta.immutable { return false }
         // read-only `T[]` (read-only) target : element is covariant — reading a
         // narrower array through a wider read-only view is sound (no write can
         // violate the source element type).
         if ta.immutable {
-            return fn_param_compatible(self.element, ta.element, oracle)
+            return fn_param_compatible(self.element, ta.element)
         }
         // Mutable target : element must be INVARIANT. Bidirectional
         // assignability = invariance for concrete types, while the
@@ -157,31 +155,31 @@ export is_assignable_array :: fn(from: Type, self: ArrayType, to: Type, oracle: 
         // Fast-path the dominant equal-element case (`equals_type` ⟹ assignable
         // both ways) so `T[] → T[]` skips the two `is_assignable` passes.
         if equals_type(self.element, ta.element) { return true }
-        return fn_param_compatible(self.element, ta.element, oracle)
-            && fn_param_compatible(ta.element, self.element, oracle)
+        return fn_param_compatible(self.element, ta.element)
+            && fn_param_compatible(ta.element, self.element)
     }
-    return check_common(from, to, oracle)
+    return check_common(from, to)
 }
 
 /// `from is FnType`. Params contravariant, return covariant. TypeParam
 /// on either side is a wildcard (MVP — bound enforcement lives in unify).
-export is_assignable_fn :: fn(from: Type, self: FnType, to: Type, oracle: TraitOracle | null) -> bool {
+export is_assignable_fn :: fn(from: Type, self: FnType, to: Type) -> bool {
     match to {
         is FnType as ft -> {
             if self.params.len() != ft.params.len() { return false }
             for i in 0..<self.params.len() {
-                if !fn_param_compatible(ft.params[i], self.params[i], oracle) { return false }
+                if !fn_param_compatible(ft.params[i], self.params[i]) { return false }
                 // `!` markers are contravariant, like the param types around them:
                 // a fn that does NOT mutate fits a slot that would allow it (it
                 // simply promises less), while one that DOES mutate cannot be
                 // handed to a caller expecting a read-only borrow.
                 if param_mutable_at(self, i) && !param_mutable_at(ft, i) { return false }
             }
-            return fn_param_compatible(self.return_type, ft.return_type, oracle)
+            return fn_param_compatible(self.return_type, ft.return_type)
         }
         _ -> {}
     }
-    return check_common(from, to, oracle)
+    return check_common(from, to)
 }
 
 /// Whether parameter `i` of `f` carries the `!` mutation marker. Reads through the
@@ -303,45 +301,45 @@ export fn_mutability_widens :: fn(from: Type, to: Type) -> bool {
 }
 
 /// `from is UnionType`. Every variant must be assignable to `to`.
-export is_assignable_union :: fn(from: Type, self: UnionType, to: Type, oracle: TraitOracle | null) -> bool {
+export is_assignable_union :: fn(from: Type, self: UnionType, to: Type) -> bool {
     match to {
         is UnionType -> {
             for v in self.variants {
-                if !is_assignable(v, to, oracle) { return false }
+                if !is_assignable(v, to) { return false }
             }
             return true
         }
         _ -> {}
     }
-    return check_common(from, to, oracle)
+    return check_common(from, to)
 }
 
 /// `from is FreeIntType`. Widens to any integer primitive.
-export is_assignable_freeint :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> bool {
+export is_assignable_freeint :: fn(from: Type, to: Type) -> bool {
     match to {
         is PrimitiveType as tp -> { if is_int_name(tp.name) { return true } }
         _ -> {}
     }
-    return check_common(from, to, oracle)
+    return check_common(from, to)
 }
 
 /// `from is FreeCharType` (a char literal). Widens to any integer primitive
 /// (the codepoint, bounds-checked separately at the pin site) or to `char`.
-export is_assignable_freechar :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> bool {
+export is_assignable_freechar :: fn(from: Type, to: Type) -> bool {
     match to {
         is PrimitiveType as tp -> { if is_int_name(tp.name) || tp.name == "char" { return true } }
         _ -> {}
     }
-    return check_common(from, to, oracle)
+    return check_common(from, to)
 }
 
 /// `from is FreeFloatType`. Widens to any float primitive.
-export is_assignable_freefloat :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> bool {
+export is_assignable_freefloat :: fn(from: Type, to: Type) -> bool {
     match to {
         is PrimitiveType as tp -> { if is_float_name(tp.name) { return true } }
         _ -> {}
     }
-    return check_common(from, to, oracle)
+    return check_common(from, to)
 }
 
 // ---- helpers shared by struct/fn/array variants ---------------------------
@@ -350,8 +348,8 @@ export is_assignable_freefloat :: fn(from: Type, to: Type, oracle: TraitOracle |
 /// TypeParam wildcard is already handled symmetrically by
 /// `is_assignable` itself ; this alias documents the variance intent
 /// at the call site.
-export fn_param_compatible :: fn(a: Type, b: Type, oracle: TraitOracle | null) -> bool {
-    return is_assignable(a, b, oracle)
+export fn_param_compatible :: fn(a: Type, b: Type) -> bool {
+    return is_assignable(a, b)
 }
 
 /// Element-wise compatibility for the args list carried by StructType /
@@ -366,12 +364,12 @@ export fn_param_compatible :: fn(a: Type, b: Type, oracle: TraitOracle | null) -
 /// `is_assignable`), so generic code is unaffected ; only a concrete widen/narrow
 /// between differing args is rejected. The equal-arg fast path keeps the dominant
 /// `Foo<T>` → `Foo<T>` case single-pass.
-export struct_args_compatible :: fn(a: Type[], b: Type[], oracle: TraitOracle | null) -> bool {
+export struct_args_compatible :: fn(a: Type[], b: Type[]) -> bool {
     if a.len() != b.len() { return false }
     for i in 0..<a.len() {
         if equals_type(a[i], b[i]) { continue }
-        if !fn_param_compatible(a[i], b[i], oracle) { return false }
-        if !fn_param_compatible(b[i], a[i], oracle) { return false }
+        if !fn_param_compatible(a[i], b[i]) { return false }
+        if !fn_param_compatible(b[i], a[i]) { return false }
     }
     return true
 }
@@ -382,19 +380,19 @@ import "std/testing"
 
 @test
 test_assignable_identity :: fn() -> void {
-    assert(is_assignable(mk_primitive("i32"), mk_primitive("i32"), null), "i32 → i32")
+    assert(is_assignable(mk_primitive("i32"), mk_primitive("i32")), "i32 → i32")
 }
 
 @test
 test_assignable_free_int_to_primitive :: fn() -> void {
-    assert(is_assignable(TY_FREE_INT, mk_primitive("i64"), null), "FreeInt → i64")
-    assert(!is_assignable(TY_FREE_INT, mk_primitive("string"), null), "FreeInt → string forbidden")
+    assert(is_assignable(TY_FREE_INT, mk_primitive("i64")), "FreeInt → i64")
+    assert(!is_assignable(TY_FREE_INT, mk_primitive("string")), "FreeInt → string forbidden")
 }
 
 @test
 test_assignable_never_to_anything :: fn() -> void {
-    assert(is_assignable(TY_NEVER, mk_primitive("i32"), null), "Never → i32")
-    assert(is_assignable(TY_NEVER, mk_primitive("string"), null), "Never → string")
+    assert(is_assignable(TY_NEVER, mk_primitive("i32")), "Never → i32")
+    assert(is_assignable(TY_NEVER, mk_primitive("string")), "Never → string")
 }
 
 @test
@@ -402,16 +400,16 @@ test_assignable_into_union :: fn() -> void {
     i32_t: Type = mk_primitive("i32")
     str_t: Type = mk_primitive("string")
     u :: mk_union([i32_t, str_t])
-    assert(is_assignable(mk_primitive("i32"), u, null), "i32 → i32 | string")
-    assert(!is_assignable(mk_primitive("bool"), u, null), "bool → i32 | string forbidden")
+    assert(is_assignable(mk_primitive("i32"), u), "i32 → i32 | string")
+    assert(!is_assignable(mk_primitive("bool"), u), "bool → i32 | string forbidden")
 }
 
 @test
 test_assignable_array_mut_into_const :: fn() -> void {
     mut_arr: Type = mk_array(mk_primitive("i32"), false)
     const_arr: Type = mk_array(mk_primitive("i32"), true)
-    assert(is_assignable(mut_arr, const_arr, null), "T[]! → T[]")
-    assert(!is_assignable(const_arr, mut_arr, null), "T[] ↛ T[]!")
+    assert(is_assignable(mut_arr, const_arr), "T[]! → T[]")
+    assert(!is_assignable(const_arr, mut_arr), "T[] ↛ T[]!")
 }
 
 @test
@@ -421,9 +419,11 @@ test_array_mutable_element_invariant :: fn() -> void {
     i32_arr:        Type = mk_array(mk_primitive("i32"), false)
     union_arr_mut:  Type = mk_array(mk_union([mk_primitive("i32"), mk_primitive("string")]), false)
     union_arr_mut2: Type = mk_array(mk_union([mk_primitive("i32"), mk_primitive("string")]), false)
-    assert(!is_assignable(i32_arr, union_arr_mut, null), "i32[] ↛ (i32 | string)[] (mutable — invariant)")
-    assert(!is_assignable(union_arr_mut, i32_arr, null), "(i32 | string)[] ↛ i32[] (mutable)")
-    assert(is_assignable(union_arr_mut, union_arr_mut2, null), "(i32 | string)[] → (i32 | string)[] (equal element)")
+    assert(!is_assignable(i32_arr, union_arr_mut),
+        "i32[] ↛ (i32 | string)[] (mutable — invariant)")
+    assert(!is_assignable(union_arr_mut, i32_arr), "(i32 | string)[] ↛ i32[] (mutable)")
+    assert(is_assignable(union_arr_mut, union_arr_mut2),
+        "(i32 | string)[] → (i32 | string)[] (equal element)")
 }
 
 @test
@@ -433,9 +433,9 @@ test_struct_args_invariant :: fn() -> void {
     // is the reference-aliasing hole rejected here — same as the mutable array.
     i32_t: Type = mk_primitive("i32")
     wide:  Type = mk_union([mk_primitive("i32"), mk_primitive("string")])
-    assert(struct_args_compatible([i32_t], [i32_t], null), "[i32] → [i32] (equal args)")
-    assert(!struct_args_compatible([i32_t], [wide], null), "[i32] ↛ [i32 | string] (invariant)")
-    assert(!struct_args_compatible([wide], [i32_t], null), "[i32 | string] ↛ [i32] (invariant)")
+    assert(struct_args_compatible([i32_t], [i32_t]), "[i32] → [i32] (equal args)")
+    assert(!struct_args_compatible([i32_t], [wide]), "[i32] ↛ [i32 | string] (invariant)")
+    assert(!struct_args_compatible([wide], [i32_t]), "[i32 | string] ↛ [i32] (invariant)")
 }
 
 @test
@@ -443,7 +443,8 @@ test_array_const_element_covariant :: fn() -> void {
     // Covariance into a CONST (read-only) array is sound — accept.
     i32_arr:         Type = mk_array(mk_primitive("i32"), false)
     union_arr_const: Type = mk_array(mk_union([mk_primitive("i32"), mk_primitive("string")]), true)
-    assert(is_assignable(i32_arr, union_arr_const, null), "i32[] → const (i32 | string)[] (covariant read-only)")
+    assert(is_assignable(i32_arr, union_arr_const),
+        "i32[] → const (i32 | string)[] (covariant read-only)")
 }
 
 @test
@@ -452,6 +453,6 @@ test_array_unresolved_element_wildcard :: fn() -> void {
     // wildcard both ways, so invariance never rejects it.
     unresolved_arr: Type = mk_array(TY_UNRESOLVED, false)
     i32_arr:        Type = mk_array(mk_primitive("i32"), false)
-    assert(is_assignable(unresolved_arr, i32_arr, null), "?[] → i32[] (mutable — wildcard)")
-    assert(is_assignable(i32_arr, unresolved_arr, null), "i32[] → ?[] (mutable — wildcard)")
+    assert(is_assignable(unresolved_arr, i32_arr), "?[] → i32[] (mutable — wildcard)")
+    assert(is_assignable(i32_arr, unresolved_arr), "i32[] → ?[] (mutable — wildcard)")
 }

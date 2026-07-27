@@ -310,7 +310,7 @@ check_operator_rhs :: fn(
     if method is FnType as ft {
         if ft.params.len() > 0 {
             rhs :: substitute_self_in(ft.params[0], recv)
-            if !is_assignable(operand, rhs, null) {
+            if !is_assignable(operand, rhs) {
                 diags.push(
                     typecheck_error(
                         .OperatorNotDefined,

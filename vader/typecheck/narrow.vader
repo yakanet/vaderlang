@@ -260,7 +260,7 @@ export invalidate_narrow_on_assign :: fn(target: AST.Expr, value_ty: Type, typed
         cur :: typed.narrowed_bindings[sym.id]
         if cur != null {
             g :: cur_narrow_gen(typed, sym.id)
-            if cur.gen == g && !is_assignable(value_ty, cur.ty, null) {
+            if cur.gen == g && !is_assignable(value_ty, cur.ty) {
                 typed.narrow_kill_gens[sym.id] = g + 1
             }
         }
@@ -280,7 +280,7 @@ export invalidate_narrow_on_assign :: fn(target: AST.Expr, value_ty: Type, typed
         cur :: typed.narrowed_fields[key]
         if cur != null {
             g :: cur_field_narrow_gen(typed, key)
-            if cur.gen == g && !is_assignable(value_ty, cur.ty, null) {
+            if cur.gen == g && !is_assignable(value_ty, cur.ty) {
                 typed.narrow_field_kill_gens[key] = g + 1
             }
         }

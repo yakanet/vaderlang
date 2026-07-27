@@ -49,7 +49,7 @@ check_struct_body :: fn(
                 // fresh value, and reading a read-only struct is always allowed. The
                 // literal's own mutability says nothing about the source's rights — same
                 // rule as `is` tests and UFCS receiver dispatch.
-                if !is_assignable(strip_mutability(got), strip_mutability(st), null) {
+                if !is_assignable(strip_mutability(got), strip_mutability(st)) {
                     diags.push(typecheck_error(.TypeMismatch, sp.span,
                         "spread source must be assignable to ${display_type(st)}, got ${display_type(got)}"))
                 }
@@ -100,7 +100,7 @@ check_field :: fn(
             "field `${f.name}` already provided in this struct literal"))
     }
     provided.push(f.name)
-    if is_assignable(got, expected, null) { return }
+    if is_assignable(got, expected) { return }
     if try_into(got, expected, typed, f.value.id) { return }
     diags.push(typecheck_error(.TypeMismatch, f.span,
         "expected ${display_type(expected)}, got ${display_type(got)}"))

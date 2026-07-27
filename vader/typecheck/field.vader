@@ -293,11 +293,11 @@ union_member_for_free :: fn(free_ty: Type, first_param: Type) -> Type {
         return first_param
     }
     def :: default_if_free(free_ty)
-    if is_assignable(def, first_param, null) {
+    if is_assignable(def, first_param) {
         return def
     }
     for v in first_param.variants {
-        if is_assignable(free_ty, v, null) {
+        if is_assignable(free_ty, v) {
             return v
         }
     }
@@ -1141,7 +1141,7 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
 // while probing the struct-assignability guard, 31 sites degraded that way
 // (`.add` on `MutableSet<usize>`).
 receiver_fits_first_param :: fn(target_ty: Type, first: Type, typed: TypedProgram) -> bool {
-    if is_assignable(strip_mutability(target_ty), strip_mutability(first), null) { return true }
+    if is_assignable(strip_mutability(target_ty), strip_mutability(first)) { return true }
     if first is TypeParamType                { return true }
     if first is TraitType {
         if try_trait_widen(target_ty, first, typed) {

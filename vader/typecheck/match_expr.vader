@@ -81,7 +81,7 @@ export infer_match :: fn(
         }
         if arm.guard !is null {
             got :: check_expr_fn(arm.guard, TY_BOOL, typed, diags)
-            if !is_assignable(got, TY_BOOL, null) {
+            if !is_assignable(got, TY_BOOL) {
                 diags.push(
                     typecheck_error(
                         .ConditionMustBeBool,

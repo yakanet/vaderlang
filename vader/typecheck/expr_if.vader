@@ -71,7 +71,7 @@ export infer_if :: fn(
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     cond_ty :: check_expr_fn(e.cond, TY_BOOL, typed, diags)
-    if !is_assignable(cond_ty, TY_BOOL, null) {
+    if !is_assignable(cond_ty, TY_BOOL) {
         diags.push(typecheck_error(.ConditionMustBeBool, e.cond.span,
             "if condition must be `bool`, got ${display_type(cond_ty)}"))
     }

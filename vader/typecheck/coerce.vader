@@ -25,7 +25,7 @@ export try_into :: fn(got: Type, expected: Type, typed: TypedProgram!, node_id: 
     targeted :: typed.impl_methods["${display_type_key(got)}::into::${display_type_key(expected)}"]
     if targeted !is null {
         if targeted.ty is FnType as f {
-            if is_assignable(f.return_type, expected, null) {
+            if is_assignable(f.return_type, expected) {
                 typed.into_coercions[node_id] = expected
                 return true
             }
@@ -67,12 +67,12 @@ export try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> 
     // Union SOURCE : `A | B` widens into `expected` iff *every* variant does —
     // each via plain assignability or its own trait widen. This is subtyping
     // (no runtime coercion), mirroring `is_assignable_union` but through the
-    // impl-index widening path that `is_assignable`'s null oracle can't reach.
+    // impl-index widening path `is_assignable` has no registry to reach.
     // Lets `MyErr | string` flow into `Error | string` (MyErr <: Error via its
     // `implements Error`, string == string) instead of failing per-variant.
     if got is UnionType {
         for v in got.variants {
-            if !(is_assignable(v, expected, null) || try_trait_widen(v, expected, typed)) {
+            if !(is_assignable(v, expected) || try_trait_widen(v, expected, typed)) {
                 return false
             }
         }

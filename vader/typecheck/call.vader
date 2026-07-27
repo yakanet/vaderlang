@@ -91,7 +91,7 @@ pick_overload :: fn(
         if ft.params.len() == 0 {
             continue
         }
-        if !is_assignable(arg0_ty, ft.params[0], null) {
+        if !is_assignable(arg0_ty, ft.params[0]) {
             continue
         }
         spec :: overload_specificity(arg0_ty, ft.params[0])
@@ -128,7 +128,7 @@ overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
                 if pv is TypeParamType {
                     continue
                 }
-                if is_assignable(av, pv, null) {
+                if is_assignable(av, pv) {
                     score = score + 1
                     break
                 }
@@ -136,7 +136,7 @@ overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
         }
         return score
     }
-    if is_assignable(arg0, param0, null) {
+    if is_assignable(arg0, param0) {
         return 1
     }
     return 0
@@ -524,7 +524,7 @@ ufcs_method_params :: fn(
             }
             ft :: typed.decl_types[sym.id]
             if ft is FnType as f {
-                if f.params.len() > 0 && is_assignable(dispatched_first_param, f.params[0], null) {
+                if f.params.len() > 0 && is_assignable(dispatched_first_param, f.params[0]) {
                     tail: AST.FnParam![]! = []
                     for i in 1..<fd.params.len() {
                         tail.push(fd.params[i])
@@ -834,7 +834,7 @@ export infer_call :: fn(
             want :: substitute_map(callee_ty.params[i], bindings)
             reject_immutable_into_mutable_param(callee_ty, i, c, typed, diags)
             if type_contains_type_param(want)                          { continue }
-            if is_assignable(arg_types[i], want, null)                 { continue }
+            if is_assignable(arg_types[i], want)                 { continue }
             if try_into(arg_types[i], want, typed, c.args[i].value.id) { continue }
             diags.push(mismatch_diagnostic_hinted(
                 arg_types[i], want, c.args[i].span, .TypeMismatch,
@@ -896,7 +896,7 @@ export infer_call :: fn(
         // bit so the generic assignability check doesn't double-report the same
         // problem as T3077 — measured, that double-report alone was 424 of 535 sites.
         // Array mutability still flows through : nothing else checks it here.
-        if is_assignable(arg_mutability_cleared(arg_ty), param_ty, null) { continue }
+        if is_assignable(arg_mutability_cleared(arg_ty), param_ty) { continue }
         if try_into(arg_ty, param_ty, typed, c.args[i].value.id) { continue }
         diags.push(mismatch_diagnostic_hinted(
                 arg_ty, param_ty, c.args[i].span, .TypeMismatch,

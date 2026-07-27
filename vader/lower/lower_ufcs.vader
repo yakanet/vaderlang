@@ -197,7 +197,7 @@ overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
         for av in arg_vars {
             for pv in pu.variants {
                 if pv is TypeParamType { continue }
-                if is_assignable(av, pv, null) {
+                if is_assignable(av, pv) {
                     score = score + 1
                     break
                 }
@@ -205,7 +205,7 @@ overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
         }
         return score
     }
-    if is_assignable(arg0, param0, null) { return 1 }
+    if is_assignable(arg0, param0) { return 1 }
     return 0
 }
 
@@ -258,7 +258,7 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
     if fn_ty is FnType as ft {
         if ft.params.len() == 0 { return false }
         first :: ft.params[0]
-        if is_assignable(recv_type, first, null) { return true }
+        if is_assignable(recv_type, first) { return true }
         if first is TypeParamType { return true }
         // Trait-typed first param (`filter(it: Iterator<T>, …)`) matches a
         // concrete receiver that implements the trait (`StringChars`

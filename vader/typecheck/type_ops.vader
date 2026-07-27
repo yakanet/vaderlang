@@ -1,11 +1,11 @@
-// vader/typecheck/type_ops — equality, assignability, union canonicalisation.
+// vader/typecheck/type_ops — equality, union canonicalisation, immutability bits.
 //
-// The
-// **trait-widening** branch of `is_assignable` and the `intersects` helper
-// both need an `ImplRegistry` to query "does T implement Trait?" — that
-// dependency lives in `impls.vader` (Phase 2.4). Until that lands, the
-// MVP version takes a `TraitOracle` interface so callers can stub the
-// trait check (returns false → no widening).
+// Everything here answers questions about types ALONE: this module never sees the
+// impl registry, so "does T implement Trait?" is not a question it can answer.
+// Trait widening consequently lives with the callers that do hold the registry —
+// `field.vader::receiver_fits_first_param` via `try_trait_widen`. `is_assignable`
+// and its per-variant helpers are in `type_assign.vader`, split out so each
+// variant compiles to a small dedicated C fn rather than one monster cascade.
 
 module "vader/typecheck"
 
@@ -128,24 +128,6 @@ export type_list_equals :: fn(a: Type[], b: Type[]) -> bool {
         if !equals_type(a[i], b[i]) { return false }
     }
     return true
-}
-
-// ---- assignability --------------------------------------------------------
-
-/// Whether `from` can flow into a slot expecting `to` without explicit
-/// coercion. No implicit numeric widening — explicit cast required.
-/// Trait-widening is gated by `oracle` ; pass `null` if the registry
-/// isn't built yet (Phase 1) — widening then falls back to false.
-// `is_assignable` and its per-variant helpers live in `type_assign.vader`
-// — moved out so each variant compiles to a small dedicated C fn instead
-// of one monster cascade.
-
-/// Minimal duck-typed view of the impl registry consumed by trait widening.
-/// Real registry lives in `impls.vader` (Phase 2.4) — this surface lets
-/// `is_assignable` ship before that's built.
-export TraitOracle :: struct {
-    /// Returns true when `from`'s nominal type implements the trait `to`.
-    has_impl: fn(Type, TraitType) -> bool
 }
 
 // ---- immutability ---------------------------------------------------------
