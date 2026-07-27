@@ -3,10 +3,10 @@
 //
 // Each phase owns its own enum so the
 // type checker enforces "the lexer can only emit LexerCode values". The
-// canonical `LXXXX`/`PXXXX`/... wire ID is recovered via `to_id` and the
-// human message via `to_message` — call sites use the variant name
-// (e.g. `.UnexpectedCharacter`) for clarity, the wire format gets the
-// stable string at the JSON boundary.
+// canonical `LXXXX`/`PXXXX`/... wire ID and the human message are recovered
+// together via `<phase>_info(code) -> CodeInfo` — call sites use the variant
+// name (e.g. `.UnexpectedCharacter`) for clarity, the wire format gets the
+// string at the JSON boundary.
 //
 // `DiagCode` is the union of every phase's enum so the central `Diagnostic`
 // shape can carry a code from any phase without losing the per-phase
@@ -16,7 +16,15 @@
 // checks not implemented in the self-host compiler (e.g. import-cycle and
 // arg-spread diagnostics landed only once their pass did). A variant without
 // a `<phase>_error(.Variant, ...)` call site is reserved-for-future, not dead
-// — it keeps its wire ID stable for when the check ships.
+// — it keeps its wire ID for when the check ships.
+//
+// PRE-MVP : IDs are NOT frozen. Nothing outside this repo consumes them, so a
+// code may be renumbered, reused, or given a new meaning — see `.claude/CLAUDE.md`
+// §12. The constraint is per-commit, not forever : one meaning per ID at a time,
+// and the `<phase>_info` message, the `tests/diag_corpus/` fixture and the
+// committed snapshots move together. The retirement comments below are kept as
+// history, not as reservations : reuse those gaps rather than grow the space.
+// This flips to append-only once there are users.
 
 module "vader/diagnostics"
 
@@ -34,8 +42,8 @@ export LexerCode :: enum(u8) {
     IntegerLiteralOverflow,                 // L0011
 }
 
-// Typecheck-pass codes. New codes are appended ; once shipped, a code
-// never changes meaning.
+// Typecheck-pass codes. New codes are appended ; retired IDs may be reused
+// pre-MVP (see the file header).
 export TypecheckCode :: enum(u8) {
     TypeMismatch,                       // T3001
     ExpectedKnownType,                  // T3002
@@ -87,7 +95,7 @@ export TypecheckCode :: enum(u8) {
     OperatorTraitNotImplemented,        // T3043
     GeneratorReturnMustBeIterator,      // T3056
     // T3057 (GeneratorMissingYield) retired : generator-ness is inferred from a
-    // body `yield`, so a yield-less fn is simply not a generator (gap, never reused).
+    // body `yield`, so a yield-less fn is simply not a generator (free to reuse).
     IntegerLiteralOutOfRange,           // T3066
     ReturnValueInGenerator,             // T3058
     YieldOutsideGenerator,              // T3059
@@ -220,20 +228,19 @@ export LowerCode :: enum(u8) {
     ComptimeForNotUnrollable,               // M5010
 }
 
-// `WARNING` — non-fatal diagnostics. New entries appended ; never reused.
+// `WARNING` — non-fatal diagnostics. New entries appended ; retired IDs are
+// free to reuse pre-MVP (see the file header).
 export WarningCode :: enum(u8) {
     UseOfDeprecated,                        // W0001
     UnreachableCode,                        // W0002
     // W0003 (IsAgainstUnion) retired : `is <union>` became a valid membership
     // test once or-patterns made `emit_type_check` union-aware ; the genuine
-    // disjoint-type case is still caught by T3040 (`check_is_overlap`). Per the
-    // "never reused" rule above, W0003 stays a permanent gap.
+    // disjoint-type case is still caught by T3040 (`check_is_overlap`).
     // W0004 (AmbiguousLoopJump) retired : a bare `break`/`continue` targets the
     // innermost loop (blessed) ; reader clarity is served by the LSP go-to-loop, not
     // a lint. Non-innermost jumps name their target (`break <var>` / `<label>`).
-    // Permanent gap, never reused.
     WildcardOnClosedUnion,                  // W0005
-    // W0006 (unused-import) never shipped — see typecheck/dead_code.vader ; permanent gap.
+    // W0006 (unused-import) never shipped — see typecheck/dead_code.vader.
     DeadCode,                               // W0007
     LocalShadowsOuter,                      // W0008
     LocalRedeclaration,                     // W0009
@@ -244,7 +251,7 @@ export WarningCode :: enum(u8) {
     // W0014 (ImplicitImmutableParam) retired : it staged the immutable-by-default
     // rollout, degrading a write through an unmarked parameter to a warning while
     // the tree was annotated. Every module is annotated, so those writes are now
-    // T3070 / T3071 / T3072 outright. Gap, never reused.
+    // T3070 / T3071 / T3072 outright. Free to reuse.
 }
 
 // `(id, message)` for a code, in one shot. The wire ID is the stable

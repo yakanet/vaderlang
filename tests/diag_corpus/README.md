@@ -1,77 +1,79 @@
-# Diagnostic-parity negative corpus
+# Negative diagnostic corpus
 
-Mini single-file snippets that each trigger one specific diagnostic code,
-used by `tests/parity-diagnostics.test.ts` to surface TS↔Vader code
-divergences the broader `tests/snippets/` corpus doesn't naturally hit.
+Mini snippets that each provoke one specific compiler diagnostic, so that
+every allocated code has something pinning the code it *actually* emits.
+The positive snippets under `tests/snippets/` carry their diagnostics
+inside the per-stage snapshots already; this corpus exists for the error
+paths those never reach.
 
-Layout : `tests/diag_corpus/<bucket>/<r-code>_<short-label>/_main.vader`.
+Driven by `tests/diagnostics-corpus.test.ts`, which dumps the native
+compiler at the `lowered-ast` stage — the point where every front-end
+diagnostic has accumulated (lexer → parser → resolver → typecheck →
+comptime) — and snapshots the emitted `[span] severity[CODE]` set per
+fixture. **The self-hosted compiler is the oracle.** The former TS↔Vader
+set-parity was dropped when the TypeScript reference was removed.
+
+## Layout
+
+```
+tests/diag_corpus/<bucket>/<code>_<short-label>/_main.vader
+                                               /diagnostics.snapshot
+```
+
 `listSnippets` from `tests/snapshot.ts` is reused, so the directory shape
-matches `tests/snippets/`. No `.snapshot` files — the suite extracts the
-`error[XXXX]` set from each compiler's stdout and compares as a set.
+matches `tests/snippets/`. Buckets are the emitting phase: `lexer`,
+`parser`, `resolver`, `typecheck`, `comptime`, `lower`, `warning`.
 
-## Buckets
+A fixture may carry extra files next to `_main.vader` (`lib.vader`,
+`helper.vader`) when the diagnostic needs more than one module — import
+cycles, duplicate import bindings, cross-module visibility.
 
-- `resolver/` — R2xxx codes. Vader currently ports R2006 / R2019 only ;
-  every other snippet here flips to `TS-only`.
-- `comptime/` — C4xxx codes. Vader's `codes.vader` defines C4001-C4007
-  with **different meanings** than TS, so several snippets surface as
-  `same code, different sense` ; codes Vader hasn't allocated yet
-  (C4008+) flip to `TS-only`.
-- `warning/` — W0xxx warnings. Vader has W0001 only, so W0002 stays
-  `TS-only` until the port catches up.
+Directory names use the lowercased code (`t3001_type_mismatch`,
+`l0006_typed_suffix_removed`). Some names are historical labels from the
+TS reference; where the native compiler emits a renumbered code, the
+committed snapshot records the code actually emitted, which keeps the
+divergence visible instead of hidden.
 
-## Codes intentionally not covered
+## Adding a fixture
 
-These codes are defined in `src/diagnostics/codes.ts` but **never
-emitted** by the TS pipeline today — no call-site references them. They
-behave like reserved-but-unused identifiers : a snippet targeting them
-would produce no TS diagnostic, so diag-parity couldn't compare
-anything. Tracked here so we know to either add an emit site or retire
-the code on the next pass.
+Every newly allocated diagnostic code gets one — see `.claude/CLAUDE.md`
+§12. Write the smallest `_main.vader` that trips the code, run
+`UPDATE_SNAPSHOTS=1 bun run test`, and **read the generated snapshot**:
+if it contains a code you didn't intend, an earlier phase fired first and
+the fixture is testing something else.
 
-- `R2013` (self only valid as the first parameter of a method)
-- `C4001` (expression cannot be evaluated at compile time)
-- `C4003` (function is not callable in comptime context) — referenced
-  only by a comment in `src/comptime/sandbox.ts`.
-- `C4004` (comptime call stack overflow)
-- `C4007` (comptime value has incompatible type)
-- `C4011` (comptime feature not yet supported) — emitted only via the
-  sandbox `BuiltinResult` for malformed builtin args, hard to hit
-  cleanly from a single-file snippet.
-- `C4012` (`@file` expects a single string-literal argument)
-- `C4013` (decorator arguments must be string literals at comptime)
-- `C4014` (generic instance discovery did not converge)
+Pre-MVP, codes may be renumbered or reused. When that happens the fixture
+directory, the `<phase>_info` message and the snapshot all move in the
+same commit.
 
-## Codes emitted by TS but no clean single-file trigger
+## Coverage
 
-- `C4002` (comptime evaluation panicked) — only reached via VM error
-  fallback in `src/comptime/run.ts` ; div-by-zero / OOB / cycles peel
-  off into C4005 / C4010 / C4009 first, and other VM faults (e.g.
-  arithmetic overflow) get constant-folded before the VM sees them.
-  Existing snippets like `square_call` exercise Vader-emits-C4002 (its
-  unported CallExpr path) without needing a TS-side trigger.
-- `C4008` (ENV access requires `--allow-env`) — `@env` is wired in the
-  sandbox (`src/comptime/sandbox.ts:88`) but not exposed as an
-  intrinsic in `src/parser/intrinsics.ts`, so the surface call
-  `@env("X")` trips P1014 first.
+74 of the 173 codes defined in `vader/diagnostics/codes.vader` have a
+fixture here (2026-07-28). Recompute with:
 
-## Codes that need infra to trigger (multi-file / setup)
+```sh
+python3 - <<'PY'
+import re, pathlib
+defined = set(re.findall(r'"([A-Z][0-9]{4})"',
+    pathlib.Path('vader/diagnostics/codes.vader').read_text()))
+seen = set()
+for f in pathlib.Path('tests/diag_corpus').rglob('diagnostics.snapshot'):
+    seen |= set(re.findall(r'\[([A-Z][0-9]{4})\]', f.read_text()))
+print(sorted(defined - seen))
+PY
+```
 
-These codes can't be triggered with a lone `_main.vader` ; they need
-harness changes or extra fixture files.
+The gap is not all missing work. Three kinds of uncovered code live in
+there, and they need different answers:
 
-- `R2005` (import cycle detected) — needs two files importing each
-  other.
-- `R2011` (duplicate import binding) — needs two `import "..." { x }`
-  lines from different modules colliding ; single-file `_main.vader`
-  hits R2004 first.
-- `R2012` (imported symbol shadows a builtin) — every import of a name
-  matching a builtin (e.g. `i32`) trips R2003 (not exported) first,
-  because no stdlib module exports a builtin-named symbol. Would need
-  a fixture module that re-exports a builtin name.
-- `R2014` (vader.json malformed or unreadable) — needs the snippet to
-  carry a broken `vader.json` and the harness to invoke the
-  `--manifest` path.
-- `R2015` (module folder is empty) — needs an empty subdirectory.
-- `R2017` (feature not yet implemented) — catch-all in the resolver,
-  no stable single-file trigger.
+- **Reserved** — the variant exists, no pass emits it yet. Covered when
+  the check ships, not before.
+- **Shadowed** — an earlier phase always fires first on any input that
+  would reach it (a surface form tripping a parse error before the
+  resolver sees it). Needs a fixture built around the shadowing, or an
+  honest note that it is unreachable today.
+- **Genuinely untested** — reachable, emitted, nothing pins it. These are
+  the ones worth closing.
+
+Sorting the list into those three buckets is a pass nobody has run end to
+end; until then, treat a missing code as "unknown", not as "impossible".
