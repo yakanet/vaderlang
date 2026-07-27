@@ -1,8 +1,8 @@
 // vader/vm/virt_reader — shared `.virt` op-stream parsing.
 //
 // Holds the per-op line parsers + structured control-flow → linear op-stream
-// wiring (`ParserState`, `try_push_op`, `wire_control_flow`, `parse_op_line`,
-// every `parse_<op>` helper) used by the canonical `.virt` reader in
+// wiring (`ParserState`, `wire_control_flow`, `parse_op_line`, every
+// `parse_<op>` helper) used by the canonical `.virt` reader in
 // `virt_reader_bc.vader` (which produces a `BytecodeModule`). The
 // module-level metadata parsers + the VM-`Module` projection that once lived
 // here were retired when `exec` moved onto `BytecodeModule` directly.
@@ -191,34 +191,8 @@ read_fn_mangled_name :: fn(cleaned: string) -> string {
     return parts[1]
 }
 
-/// Push the op for `cleaned` onto `ops`. The per-variant match arms
-/// are required by Vader's exhaustiveness rules — `parse_op_line`
-/// returns `Op | null` and this fn narrows back to each concrete
-/// variant before pushing.
-///
-/// @param cleaned  the .virt line (comment-stripped).
-/// @param head     the line's pre-computed head token (see `head_of`).
-/// @param ops      the current function's op list, appended to in place.
-/// @return         `true` if a known op was recognised and pushed ;
-///                 `false` for unknown lines.
-///
-/// DANGER — an unknown line is dropped SILENTLY, and the caller just moves on.
-/// That is meant for non-instruction lines, but it swallows a real instruction
-/// the reader doesn't know just as quietly: the program then runs with that
-/// operation MISSING, an unbalanced stack, and plausible-looking wrong output —
-/// no diagnostic anywhere. Observed for real when an opcode was removed from the
-/// set and a stale `.virt` still carried it: a path-manipulation snippet printed
-/// empty filenames instead of failing, and `UPDATE_SNAPSHOTS` then wrote those
-/// wrong outputs over nine correct oracles. Telling a non-instruction line apart
-/// from an unknown opcode (and trapping on the latter) is worth doing.
-try_push_op :: fn(cleaned: string, head: string, ops: bc.Op[]!) -> bool {
-    parsed :: parse_op_line(cleaned, head) ?? return false
-    ops.push(parsed)
-    return true
-}
-
 /// Update the scope stack and the jump table for the op at `pc`.
-/// Called after `try_push_op` so the op is already appended.
+/// Called once the op is appended, so `pc` is `ops.len() - 1`.
 ///
 /// @param state    per-function parser scratch state (mutated in place).
 /// @param cleaned  the .virt line (comment-stripped) — still needed by
@@ -342,13 +316,20 @@ drain_pending :: fn(state: ParserState!, label: string, is_loop: bool, opener_pc
     state.pending_sp[0] = new_sp
 }
 
-/// Dispatch on the line's head token to construct the matching `Op`
-/// variant. Unknown ops return `null` ; the parser keeps going past
-/// directives a sprint doesn't yet handle (no pc shift, no diagnostic).
+/// Dispatch on the line's head token to construct the matching `Op` variant.
+///
+/// The dotted width families (`i32.*` / `i64.*` / `u32.*` / `u64.*` / `f64.*`
+/// and every `<from>.to_<to>`) are decoded by the block up front ; the literal
+/// `head == "…"` chain below covers the rest. Between them the two arms must
+/// cover every op `dump.vader::write_op` can emit — a gap there reaches
+/// `parse_virt_bc` as a `VirtParseError` on a dump the compiler itself produced.
 ///
 /// @param cleaned  the .virt line (comment-stripped).
 /// @param head     the line's pre-computed head token (see `head_of`).
-/// @return         the parsed op, or `null` for unrecognised lines.
+/// @return         the parsed op, or `null` when the head is outside the opcode
+///                 set or the operands don't parse. Both are fatal to the caller
+///                 — `parse_virt_bc` turns either into a `VirtParseError` rather
+///                 than step over the line and shift every following pc.
 parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
     dot :: head.index_of('.', 0)
     if dot >= 0 {

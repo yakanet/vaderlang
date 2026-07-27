@@ -2955,16 +2955,22 @@ do_memory_copy :: fn(frame: Frame!) -> Trap | null {
 /// @param path  filesystem path to the `.virt` file.
 /// @return      the i32 the program's `main` returned (or `0` if it
 ///              fell through without an explicit `return`) ; `1` when
-///              the file can't be read or the VM trapped — the error
-///              message goes to stderr in both cases.
-/// @error       missing file ; any VM trap surfaced by `exec`.
+///              the file can't be read, doesn't parse, or the VM trapped —
+///              the error message goes to stderr in all three cases.
+/// @error       missing file ; a line the `.virt` reader can't interpret ;
+///              any VM trap surfaced by `exec`.
 export run_virt :: fn(path: string, host_argv: string[]) -> i32 {
     source :: read_file_string(path)
     if source is IOError {
         eprintln("vader run: cannot read ${path}")
         return 1
     }
-    return match exec(prepare(parse_virt_bc(source)), host_argv) {
+    module :: parse_virt_bc(source)
+    if module is VirtParseError as e {
+        eprintln(e.display_virt_parse_error("vader run", path))
+        return 1
+    }
+    return match exec(prepare(module), host_argv) {
         is Ok   as o -> o.value
         is Trap as t -> {
             eprintln("vader vm: ${t.message}")

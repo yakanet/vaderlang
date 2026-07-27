@@ -5,7 +5,7 @@
 // `vader/bytecode::BytecodeModule` that `c_emit::emit_c` consumes — so a
 // hand-authored or dumped `.virt` can be compiled to C (`vader build x.virt
 // --target=c`). Both readers share the hard part — the structured control-flow
-// → linear op-stream + jump-table wiring (`ParserState`, `try_push_op`,
+// → linear op-stream + jump-table wiring (`ParserState`, `parse_op_line`,
 // `wire_control_flow`) — via same-module visibility, and only diverge in the
 // metadata they keep.
 //
@@ -26,6 +26,39 @@ bc :: import "vader/bytecode"
 import "std/string"
 import "std/numbers"
 
+/// A `.virt` line the reader could not interpret. The parse stops there.
+///
+/// Every non-blank line of a `.virt` dump carries meaning: outside a function
+/// body it is one of the ten module directives, inside one it is an instruction
+/// (comments and blank lines are already gone by the time either is reached). So
+/// an uninterpretable line is never "extra text to step over" — it is a dump this
+/// reader cannot rebuild faithfully, and reading past it would shift every
+/// following pc while looking like a successful parse.
+///
+/// The reader used to step over such a line and carry on, and it cost: when an
+/// opcode left the set while a stale `.virt` still carried it, a path-manipulation
+/// snippet printed empty filenames instead of failing, and `UPDATE_SNAPSHOTS`
+/// wrote that output over nine correct `vm.snapshot` oracles.
+export VirtParseError :: struct {
+    /// 1-based line number, ready for a `path:line:` diagnostic prefix.
+    line_number: usize
+    /// The offending line, comment already stripped — echoed under the message.
+    line:        string
+    /// What went wrong, e.g. ``unrecognised instruction `frobnicate` ``.
+    reason:      string
+}
+
+/// Render the error as the two-line message both CLI entry points print: a
+/// `command: path:line: reason` header, then the offending line indented under
+/// it. Shared so the two call sites can't drift apart on the format.
+///
+/// @param e        the error to render.
+/// @param command  the invoking command, e.g. `"vader run"` — heads the message.
+/// @param path     the `.virt` file the error was read from.
+/// @return         the full message, no trailing newline — `eprintln` adds one.
+export display_virt_parse_error :: fn(e: VirtParseError, command: string, path: string) -> string =
+    "${command}: ${path}:${e.line_number}: ${e.reason}\n  ${e.line}"
+
 /// Parse a full `.virt` text dump into a `BytecodeModule` ready for `emit_c`.
 ///
 /// Module-level directives (`module` / `type` / `string` / `data` / `import` /
@@ -35,10 +68,13 @@ import "std/numbers"
 /// back to the `$main`-suffix heuristic) and flagged `is_main`.
 ///
 /// @param source  the full `.virt` text (UTF-8).
-/// @return        the reconstructed module ; malformed lines are dropped
-///                silently (mirrors `parse_virt`) — a downstream `emit_c`
-///                surfaces any resulting gap.
-export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule {
+/// @return        the reconstructed module, or the first line that defeated the
+///                reader — never a partial module.
+/// @error         `VirtParseError` on an unrecognised module directive, an
+///                unrecognised instruction, or a recognised instruction whose
+///                operands don't parse. All three would otherwise produce a
+///                module that runs with an operation missing.
+export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule | VirtParseError {
     module_name := ""
     strings: string[]! = []
     types: bc.BcType[]! = []
@@ -75,6 +111,21 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule {
         head :: head_of(cleaned)
 
         if !in_function {
+            // `vader dump --stage=bytecode` appends a `# Diagnostics` report
+            // after the module when the compile raised warnings
+            // (`cli/main.vader::run_bytecode_stage` → `diagnostics/render.vader`).
+            // It is prose, always terminal, and never bytecode — so it ends the
+            // stream rather than failing it. Inside a function body a `#` is not
+            // this block (the report is appended past the last `end`) and stays
+            // an error.
+            //
+            // The deeper fix belongs in the CLI, not here: the sibling
+            // `run_c_stage` already routes its diagnostics to STDERR precisely so
+            // they can't contaminate a stdout another tool consumes. The bytecode
+            // stage never got that treatment, and its combined stdout is now
+            // frozen into the snapshot corpus (six `bytecode.snapshot.virt` carry
+            // a report), so separating the streams is its own change.
+            if head == "#"      { break }
             if head == "module" { module_name = parse_module_name(cleaned) continue }
             if head == "type"   { parse_type_decl_bc(cleaned, types) continue }
             if head == "string" { parse_string_decl(cleaned, strings) continue }
@@ -98,7 +149,16 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule {
                 in_function = true
                 continue
             }
-            continue
+            // The directive vocabulary above is closed, so anything left here is
+            // a dump this reader doesn't understand. Skipping it drops a whole
+            // pool entry — a missing `type` collapses a struct to nothing, a
+            // missing `string` shifts every later pool index — with no sign at
+            // the call site that the module came back incomplete.
+            return VirtParseError {
+                .line_number = line_index,
+                .line        = cleaned,
+                .reason      = "unrecognised module directive `${head}`",
+            }
         }
 
         if head == "local" {
@@ -122,8 +182,17 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule {
         }
 
         pc :: i32(state.ops.len())
-        appended :: try_push_op(cleaned, head, state.ops)
-        if !appended { continue }
+        // Inside a body, position alone settles what this line is: comments and
+        // blank lines are gone, `local` and the closing `end` were taken above,
+        // so it is an instruction. A `null` back means either an opcode outside
+        // the set or operands that don't parse — see `VirtParseError` for why
+        // neither can be stepped over.
+        op :: parse_op_line(cleaned, head) ?? return VirtParseError {
+            .line_number = line_index,
+            .line        = cleaned,
+            .reason      = "unrecognised instruction `${head}`",
+        }
+        state.ops.push(op)
         state.table.push(-1)
         wire_control_flow(state, cleaned, head, pc)
     }
@@ -749,6 +818,10 @@ import "std/testing"
     // Single-line `\n`-joined to dodge triple-quote / `$`-interpolation rules.
     src :: "module demo\ntype 0 primitive i32\ntype 1 primitive void\ntype 2 struct Pair { lhs:0, rhs:0 }\nfn 0 add (i32,i32) -> i32\n  local acc i32\n  local.get 0\n  local.get 1\n  i32.add\n  return\nend\nexport main 0\n"
     m :: parse_virt_bc(src)
+    if m is VirtParseError as e {
+        assert(false, "well-formed dump should parse: line ${e.line_number}: ${e.reason}")
+        return
+    }
     assert_eq(m.name, "demo")
     assert_eq(m.types.len(), 3)
     // struct fields recovered (the VM reader keeps only a count)
@@ -779,4 +852,60 @@ import "std/testing"
     // body wired (4 ops) + parallel debug nulls
     assert_eq(f.body.len(), 4)
     assert_eq(f.debug.len(), 4)
+}
+
+// The two silent-skip paths this reader used to have. Each dropped its line and
+// carried on, handing back a module that looked complete: the instruction case
+// shifts every following pc, the directive case leaves a hole in a pool. Both
+// now stop the parse and name the line — see `VirtParseError`.
+
+@test test_unknown_instruction_stops_the_parse :: fn() -> void {
+    // `frobnicate` on line 5, between two real ops, is what a stale dump looks
+    // like after an opcode leaves the set.
+    src :: "module demo\ntype 0 primitive i32\nfn 0 main () -> i32\n  i32.const 1\n  frobnicate 7\n  return\nend\nexport main 0\n"
+    r :: parse_virt_bc(src)
+    if r is VirtParseError as e {
+        assert_eq(e.line_number, 5)
+        assert_eq(e.line, "frobnicate 7")
+        assert("frobnicate" in e.reason, "the reason should name the opcode, got: ${e.reason}")
+    } else {
+        assert(false, "an unknown instruction must not be skipped silently")
+    }
+}
+
+@test test_unknown_directive_stops_the_parse :: fn() -> void {
+    src :: "module demo\ntype 0 primitive i32\nsprocket 3\nfn 0 main () -> i32\n  return\nend\nexport main 0\n"
+    r :: parse_virt_bc(src)
+    if r is VirtParseError as e {
+        assert_eq(e.line_number, 3)
+        assert("sprocket" in e.reason, "the reason should name the directive, got: ${e.reason}")
+    } else {
+        assert(false, "an unknown module directive must not be skipped silently")
+    }
+}
+
+@test test_diagnostics_block_ends_the_module :: fn() -> void {
+    // What `vader dump --stage=bytecode` writes for a compile that warned: the
+    // module, then a report. The report parses as neither directive nor op, so
+    // the reader has to recognise it as the end rather than choke on it.
+    src :: "module demo\ntype 0 primitive i32\nfn 0 main () -> i32\n  return\nend\nexport main 0\n\n# Diagnostics\n[21:10] warning[W0001] use of deprecated declaration: `old_helper`\n"
+    m :: parse_virt_bc(src)
+    if m is VirtParseError as e {
+        assert(false, "a trailing diagnostics block should end the module, not fail it: ${e.reason}")
+        return
+    }
+    assert_eq(m.name, "demo")
+    assert_eq(m.functions.len(), 1)
+}
+
+@test test_malformed_operands_stop_the_parse :: fn() -> void {
+    // A head the reader knows, operands it can't read: `parse_int_const_text`
+    // returns null, the op never lands, and every later pc used to shift by one.
+    src :: "module demo\ntype 0 primitive i32\nfn 0 main () -> i32\n  i32.const\n  return\nend\nexport main 0\n"
+    r :: parse_virt_bc(src)
+    if r is VirtParseError as e {
+        assert_eq(e.line_number, 4)
+    } else {
+        assert(false, "an operand-less i32.const must not be skipped silently")
+    }
 }

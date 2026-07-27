@@ -875,6 +875,10 @@ emit_c_source_from_virt :: fn(file: string, release: bool) -> string | null {
         return null
     }
     module :: parse_virt_bc(src)
+    if module is VirtParseError as e {
+        eprintln(e.display_virt_parse_error("vader build", file))
+        return null
+    }
     return emit_c(module, CEmitOptions {
         .release = release,
         .entry_mangled = virt_entry_mangled(module),

@@ -66,6 +66,10 @@ test_virt_roundtrip :: fn() -> void {
 
     // write_virt → parse_virt_bc must preserve behaviour.
     round_tripped :: parse_virt_bc(write_virt(original))
+    if round_tripped is VirtParseError as e {
+        assert(false, "own dump should parse back: line ${e.line_number}: ${e.reason}")
+        return
+    }
     assert(exec_value(round_tripped) == 82, "round-tripped module should exec to 82")
 }
 
