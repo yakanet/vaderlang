@@ -285,10 +285,10 @@ export skip :: fn<T>(self: Iterator<T>, n: usize) -> Iterator<T> {
 
 // The lazy combinators map/filter/take/skip are now `generator`s (above) — the
 // hand-written MappedIterator/FilterIterator/TakeIterator/SkipIterator state-machine
-// structs they used to return have been removed (stream-fusion-generalization.md,
-// B-terminals Increment 4). Consumed directly (`for` / a terminal), a chain fuses to
-// a flat loop; the generator's own state machine only materialises for an escaping
-// iterator value.
+// structs they used to return have been removed (B-terminals Increment 4).
+// Consumed directly (`for` / a terminal), a chain fuses to a flat loop; the
+// generator's own state machine only materialises for an escaping iterator
+// value.
 
 // ---------------------------------------------------------------------- tests
 

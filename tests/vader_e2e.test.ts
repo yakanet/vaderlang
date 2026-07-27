@@ -61,8 +61,7 @@ function containsTestFn(dir: string): boolean {
 // (a fresh `bootstrap/build.sh` at HEAD~), so NOT introduced by the Target-ABI
 // work. The old suite ran through the TS CLI (more complete, now decommissioned
 // — it can't compile the Target-ABI stdlib), which masked these ; the flip to
-// the self-hosted binary surfaced them. Tracked for focused fixes in
-// `.claude/plans/target-abi-migration.md` §"native vader test gaps".
+// the self-hosted binary surfaced them. Tracked for focused fixes.
 const KNOWN_NATIVE_GAPS = new Set([
   "vader/bytecode",      // passes 223/223, but the VM run exceeds the CI per-test budget
   "vader/lsp",           // passes 134/134, but the VM run (~196s) exceeds the CI per-test budget

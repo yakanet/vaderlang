@@ -826,7 +826,7 @@ marks_mutable_anywhere :: fn(w: AST.TypeExpr) -> bool {
 /// Resolve the type a `Name :: <type-expr>` declaration registers. A
 /// **primitive** RHS (`Name :: i64`) becomes a zero-cost `DistinctType`
 /// (nominal newtype) ; a composite RHS (union / struct / array / fn) stays a
-/// transparent alias. See `.claude/plans/distinct-types.md`.
+/// transparent alias.
 alias_for :: fn(sym: Symbol, alias_ty: Type, decorators: AST.Decorator[]) -> Type {
     if distinct_backing(alias_ty, decorators) {
         return mk_distinct(sym, alias_ty)

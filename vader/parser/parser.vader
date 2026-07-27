@@ -2762,7 +2762,7 @@ parse_expr :: fn(p: Parser!, min_bp: i32) -> Expr {
         // `??` — null-coalescing. Very low precedence (below `||`). The RHS
         // may be a value expression OR a divergent statement (`return` /
         // `break` / `continue`), which the generic infix path can't produce,
-        // so handle it here. See `.claude/plans/null-coalescing-operator.md`.
+        // so handle it here.
         if t.kind == .QuestionQuestion && 6 >= min_bp {
             p.advance()  // `??`
             fallback :: p.parse_coalesce_fallback()

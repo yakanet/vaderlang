@@ -366,7 +366,7 @@ export check_fn_body :: fn(
     // signature must honour it with an `Iterator<T>` return : extract that
     // element type (T3056 if the return isn't `Iterator<T>`). The body yields
     // rather than returning the iterator, so the missing-return / trailing-return
-    // check below is suppressed. See generator-functions-yield.md §3.
+    // check below is suppressed.
     yield_type: Type | null = null
     if is_generator {
         yield_type = generator_element_type(fn_decl, return_type, diags)

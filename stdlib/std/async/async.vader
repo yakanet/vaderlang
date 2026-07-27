@@ -9,7 +9,7 @@
 // compiler routes an `async main` through : it drives the root coroutine, and
 // whenever every task is parked it `sched_park`s (blocks until the nearest
 // timer) rather than spinning — then re-drives. A park with nothing armed is a
-// deadlock. See `.claude/plans/async-await-structured-concurrency.md` §5.
+// deadlock.
 
 module "std/async"
 

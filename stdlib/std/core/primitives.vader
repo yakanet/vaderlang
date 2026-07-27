@@ -306,7 +306,7 @@ char  implements Hash -> u64(self)
 // `string` reads the FNV-1a-64 cached on its interned atom (computed once at
 // intern) — O(1), no per-call byte walk, no `bytes()` view allocation. Backed by
 // `vader_string_hash` (vader.h); the host shims map the mangle. Content-based, so
-// map iteration order stays GC-stable. See .claude/plans/atom-hash-cache.md.
+// map iteration order stays GC-stable.
 @intrinsic string implements Hash
 
 // ---- Comparable -----------------------------------------------------------

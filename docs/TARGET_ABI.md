@@ -212,7 +212,7 @@ first move.
 Low risk first ; each phase is independently shippable. (Implementation shipped
 as finer stages S0–S7 on `feat/target-abi` ; the per-phase status below maps
 them back to these four phases. The detailed stage log lives in the local plan
-`.claude/plans/target-abi-migration.md`.)
+`.claude/plans/2026-06-16-target-abi-migration.md`.)
 
 - **Phase 0 — Document the ABI (this doc).** Freeze the primitive list. No code.
   **✅ DONE.**

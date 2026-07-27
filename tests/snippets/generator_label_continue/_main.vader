@@ -1,7 +1,7 @@
 // A `continue i` (targeting the OUTER loop by its iteration variable) across a
 // `yield` in an ESCAPING generator. It must advance the outer loop; a regression
 // once targeted the innermost loop and spun forever. Companion to
-// generator_label_break. See loop-jump-by-variable.md.
+// generator_label_break.
 module "snippet"
 
 import "std/io"

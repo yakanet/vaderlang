@@ -15,8 +15,7 @@
 // `lower_module`, and auto-wired into the `Iterator::next` vtable by
 // `collect_vtable_entries`. The reusable block-split engine (`GenBuild`, the
 // state-split, spill + routing) now lives in `lower_coroutine.vader`; this file
-// keeps the generator-specific entry that drives it. Approach B — see
-// `.claude/plans/generator-functions-yield.md` §6.
+// keeps the generator-specific entry that drives it.
 
 module "vader/lower"
 

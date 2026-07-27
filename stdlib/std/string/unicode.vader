@@ -5,7 +5,7 @@
 // out of `string.vader` (same `module "std/string"`) so the codec has one home
 // instead of being reinvented in the lexer, the LSP, the JSON parser and regex.
 //
-// Layering (frozen 2026-06-16, `.claude/plans/core-string-utf8-reorg.md` §3.2):
+// Layering (frozen 2026-06-16):
 // the *encoder* `utf8_encode` and the codepoint counter `len` stay in `std/core`
 // (the prelude — char's Display needs the encoder, and core imports nothing);
 // the *decoder* + width/classification helpers live here in `std/string`. The

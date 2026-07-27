@@ -6,7 +6,6 @@
 // self-field routing, and dispatch synthesis. Currently coupled to the generator
 // suspension marker (`LoweredYield`) and the pull-only `next()` protocol;
 // parameterising it for the async `resume(injected)` protocol is a later step.
-// See `.claude/plans/async-await-structured-concurrency.md` §4.
 
 module "vader/lower"
 

@@ -665,7 +665,7 @@ import "std/math"
 /// loaded modules, so any entry whose impl isn't loaded miscompiles. `len` was
 /// the first removed — it lives in `std/core` (the prelude) now. The remaining
 /// string/char entries move to `std/string` / `std/char` (import-required) or
-/// get implemented/dropped per .claude/plans/core-string-utf8-reorg.md.
+/// get implemented/dropped as that reorg lands.
 import "vader/resolver/symbol"
 
 /// When `e.target` is an `IdentExpr` resolving to a namespace

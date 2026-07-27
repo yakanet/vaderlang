@@ -441,7 +441,7 @@ export FnLowerCtx :: struct {
     /// accumulate here as `LoweredAwait` statements ; `lower_block` drains them
     /// (respecting a per-block watermark, so an enclosing `if`-condition's await
     /// isn't stolen by an arm body) into statement position just before the
-    /// statement that used their value. See `.claude/plans/async-await-...` §12.
+    /// statement that used their value.
     pending_awaits:     LoweredStmt[]! = []
 
     /// Non-null while INLINING a generator body at a for-in consumption site

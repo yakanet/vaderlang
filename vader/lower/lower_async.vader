@@ -22,7 +22,6 @@
 // there implement Model A (recursive self-drive): each suspension point stores
 // its child once and re-drives it on every `resume`, reading the completed value
 // back through the child's own `resume` return channel (no external injection).
-// See `.claude/plans/async-await-structured-concurrency.md` §4 / §12.
 
 module "vader/lower"
 

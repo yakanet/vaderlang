@@ -1,8 +1,6 @@
 // vader/lower/lower_iter_fusion — stream-fusion of lazy iterator chains.
 //
-// Extracted from `lower_for_in.vader` (2026-07-01, stream-fusion-generalization.md
-// Phase 1 — a pure refactor, byte-identical output). Turns
-// `for x in (0..<n).map(f).filter(p)` into a single flat counter loop (no
+// Turns `for x in (0..<n).map(f).filter(p)` into a single flat counter loop (no
 // iterator struct, no `next()`, no `Yield` box). The entry `try_lower_chain_fusion`
 // is called first from `lower_for_in`; a `null` result falls through to the other
 // fast paths. Shared loop-building helpers (`bind_loop_var`, `build_int_range_body`,

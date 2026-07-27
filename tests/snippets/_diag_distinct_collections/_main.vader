@@ -5,8 +5,8 @@
 // NOTE (v1 limitation): a distinct type as a *map key* (`MutableMap<Distinct, V>`
 // with custom Hash/Equals impls) is NOT supported — its runtime vtable dispatch
 // needs an identity the distinct's "backend = backing, no runtime identity"
-// model erases, producing a duplicate-case in the emitted C. See
-// `.claude/plans/distinct-types.md` §8.
+// model erases, producing a duplicate-case in the emitted C. A v1 limitation of
+// the distinct-newtype design, not a bug in this snippet.
 //
 // `_diag_` = no snapshot sidecars (temporary `@distinct` gate). Expected exit: 42.
 

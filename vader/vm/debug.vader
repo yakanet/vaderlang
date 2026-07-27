@@ -8,8 +8,8 @@
 //
 // The record is deliberately data + callbacks (no `vader/dap` import) so the
 // VM never depends on the DAP layer — the closures that mutate DAP state live
-// in `vader/dap` and are stored here by value. See the debugger plan
-// (`.claude/plans/vscode-debugger-dap.md`) §4 for the anti-cycle rationale.
+// in `vader/dap` and are stored here by value — that one-way edge is what keeps
+// the two layers acyclic.
 
 module "vader/vm"
 

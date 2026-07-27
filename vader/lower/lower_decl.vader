@@ -251,7 +251,7 @@ lower_fn_decl :: fn(
     entry :: stub_entry(fn_decl, typed)
     // Generators (`generator`) desugar to a state-machine iterator: lower the
     // body in generator mode (yields → `LoweredYield` markers), then rewrite it
-    // + synthesize `g$State` / `Iterator::next` (generator-functions-yield.md §6).
+    // + synthesize `g$State` / `Iterator::next`.
     // Shared with the mono-instance paths via `lower_generator_body`.
     gen_body :: fn_decl.body
     if fn_is_generator(fn_decl) && gen_body != null {

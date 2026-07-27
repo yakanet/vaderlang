@@ -5,7 +5,7 @@
 // narrow-int results wide (`u8 200+100` → 300) while native wrapped (→ 44).
 // Fixed VM-locally by masking to width at the store boundaries — `local.set` /
 // `local.tee` / `Return` / `ReturnLit` / struct-literal fields (`build_struct`).
-// See .claude/plans/narrow-int-width-truncation.md.
+// The VM-side masking lives in `vader/vm/exec.vader`.
 //
 // The wrap bites when the result is STORED into a narrow-typed slot (local /
 // struct field / fn return / narrowing cast then stored): both backends now

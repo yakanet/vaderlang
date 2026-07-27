@@ -1,7 +1,6 @@
 // CLI C-emit parity (TODO §2.2) — Vader's `dump --stage=c` output.
 //
-// Two oracles per allowlisted snippet (see
-// `.claude/plans/cemit-body-walker.md` §1) :
+// Two oracles per allowlisted snippet :
 //   1. regression  — `dump --stage=c` matches the Vader-generated
 //                    `c.snapshot` golden (catches unintended drift).
 //   2. behavioural — the emitted C compiles with `cc` and runs, matching
@@ -240,13 +239,13 @@ const C_PARITY = new Set<string>([
   // `break <var>` / `continue <var>` targeting an outer loop by its iteration
   // variable, over both the int-range and raw-array fast paths. The counter/index
   // increment must run on a var-targeted `continue` (else it spins) — native run
-  // is the guard on that reconciliation. See loop-jump-by-variable.md.
+  // is the guard on that reconciliation.
   "loop_break_by_var",
   // Regression guard for the narrow-int VM width fix (2026-07-16): the VM now
   // truncates narrow-integer arithmetic / casts / returns / struct-literal fields
   // to width (u8 200+100 → 44) at the store boundaries, matching native. Guards
   // native output == vm.snapshot so the VM and native can't drift on narrow-int
-  // wrap again. See .claude/plans/narrow-int-width-truncation.md.
+  // wrap again.
   "narrow_int_wrap",
   // Generic call whose type-param is bound only by the call's expected type,
   // with a lambda factory argument. Native is the oracle that matters here: the

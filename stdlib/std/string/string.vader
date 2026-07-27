@@ -119,8 +119,8 @@ string implements Contains<string> {
 // could only reach it via free-fn UFCS over loaded modules — a mismatch that
 // miscompiled `s.len()` to invalid C unless std/string happened to be loaded.
 // Now a plain core free fn (byte-walk) ; callers drop it from their
-// `import "std/string"` lists. See the core/string/utf8 reorg plan :
-// .claude/plans/core-string-utf8-reorg.md.
+// `import "std/string"` lists. Part of the wider core/string/utf8 layering
+// reorg — see the header of `unicode.vader` for the frozen split.
 
 /// Comparator suitable for `sort(arr, compare_ascending)` : returns `true`
 /// when `a` lexicographically precedes `b` (byte-wise). Mirrors JS

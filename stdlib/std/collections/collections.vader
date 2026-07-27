@@ -22,9 +22,9 @@
 // `ekeys` / `evals` arrays in insertion order, plus a sparse `i32` index
 // (hash slot → entry position). No per-entry node, no `next` pointer, no
 // nullable bucket array — ~3-4× less memory than a chained map, faster
-// insert / iterate, and far faster string-key lookups (see
-// `.claude/plans/compact-dict-mutablemap.md`). The index doubles + rehashes
-// past a 0.75 load factor. `MutableSet` wraps it (each member a `T → true`).
+// insert / iterate, and far faster string-key lookups. The index doubles and
+// rehashes past a 0.75 load factor. `MutableSet` wraps it (each member a
+// `T → true`).
 
 // ===========================================================================
 // MutableMap<K, V> — compact open-addressed hash map. Live entries live in two

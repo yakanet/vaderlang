@@ -613,8 +613,7 @@ export BinaryExpr :: struct {
 /// value when `left` is null : either a value expression assignable to `T`,
 /// or a divergent statement (`return` / `break` / `continue`, typed
 /// `never`). Lowers to `_t :: left ; if _t is null { fallback } else { _t }`,
-/// so the existing narrowing engine refines the result to `T`. See
-/// `.claude/plans/null-coalescing-operator.md`.
+/// so the existing narrowing engine refines the result to `T`.
 export NullCoalesceExpr :: struct {
     span:     Span
     id:       usize = UNASSIGNED_NODE_ID

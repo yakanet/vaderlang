@@ -8,8 +8,7 @@
 // field/UFCS on a CONCRETE nominal receiver, instead of the erased trait
 // receiver that mis-resolves to a virtual dispatch.
 // The state-struct symbol is derived DETERMINISTICALLY from the fn symbol so the
-// lowerer (`lower_generator.vader`) reuses the same one — see
-// `.claude/plans/stream-fusion-generalization.md` §12 "Direction A".
+// lowerer (`lower_generator.vader`) reuses the same one.
 
 module "vader/typecheck"
 

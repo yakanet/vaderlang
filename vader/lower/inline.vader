@@ -170,8 +170,8 @@ CollectCtx :: struct {
     /// CALLER, a `let` would collide across the N inline copies. A trait-member
     /// expression body `= { local ; return E }` lowers to `{ trailing: block{ let
     /// local ; return E } }`, whose trailing block carries statements — this flag
-    /// keeps such a body a real call (the "single expression, no locals" contract
-    /// from `.claude/plans/trivial-method-inliner.md` §4).
+    /// keeps such a body a real call (it breaks the "single expression, no
+    /// locals" contract the inliner requires).
     has_stmt:    bool
 }
 

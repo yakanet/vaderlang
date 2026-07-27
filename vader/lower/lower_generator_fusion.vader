@@ -1,5 +1,5 @@
 // vader/lower/lower_generator_fusion — inline a consumed `generator` body into
-// its for-in (Couche 4, stream-fusion-generalization.md).
+// its for-in.
 //
 // `for v in gen(args) { body }` where `gen` carries `generator` is lowered by
 // inlining gen's body with (a) each param bound to the matching call arg and

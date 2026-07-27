@@ -8,7 +8,7 @@
 > functions** (SPEC:1228) — see §3.
 >
 > **This doc is thin and depends on
-> [`.claude/plans/quasiquote-derive.md`](../.claude/plans/quasiquote-derive.md)** — the `@quote` + `@derive`
+> [`.claude/plans/2026-07-20-quasiquote-derive.md`](../.claude/plans/2026-07-20-quasiquote-derive.md)** — the `@quote` + `@derive`
 > capability. `jason` is milestone **M4** there; it cannot land until M1–M3
 > (injection, hygiene, user-registrable derive) do.
 >
@@ -18,7 +18,7 @@
 > generic `jason.encode<T>`), preserved only in git history. That model — its
 > `@is_*` intrinsic wishlist, the `@construct` intrinsic, the erasure-ordering
 > discussion — is **obsolete**; the `@quote` + `@derive` capability it now rests
-> on is [.claude/plans/quasiquote-derive.md](../.claude/plans/quasiquote-derive.md).
+> on is [.claude/plans/2026-07-20-quasiquote-derive.md](../.claude/plans/2026-07-20-quasiquote-derive.md).
 
 ---
 
@@ -140,7 +140,7 @@ fidelity as v1.
 
 ---
 
-## 6. Phases (all gated on .claude/plans/quasiquote-derive.md M1–M3)
+## 6. Phases (all gated on .claude/plans/2026-07-20-quasiquote-derive.md M1–M3)
 
 1. **`Json` encode handler (M4a)** — emit `T implements JsonEncode { encode_into … }` for
    struct / array / scalar / optional fields, plus the generic `encode_value` helper + per-type

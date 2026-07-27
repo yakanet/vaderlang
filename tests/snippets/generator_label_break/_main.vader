@@ -3,7 +3,7 @@
 // — not fusion — runs). It must terminate the whole loop nest, not just the inner
 // loop. Regression: the block-split resolved `break`/`continue` to the innermost
 // loop, ignoring the target — so `break i` acted like `continue i` (wrong values
-// / infinite loop). See loop-jump-by-variable.md.
+// / infinite loop).
 module "snippet"
 
 import "std/io"
