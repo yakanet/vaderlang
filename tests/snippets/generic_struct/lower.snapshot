@@ -67,11 +67,8 @@
                   __off_1 :usize
                 arg2:
                   cast → i64
-                    call :i32
-                      callee:
-                        snippet$Stack$Stackable$len__i32 :i32
-                      arg0:
-                        s :Stack<i32>!
+                    .size :i32
+                      s :Stack<i32>!
           ~>
             call :string
               callee:
@@ -169,11 +166,8 @@
                   __off_5 :usize
                 arg2:
                   cast → i64
-                    call :i32
-                      callee:
-                        snippet$Stack$Stackable$len__i32 :i32
-                      arg0:
-                        s :Stack<i32>!
+                    .size :i32
+                      s :Stack<i32>!
           ~>
             call :string
               callee:

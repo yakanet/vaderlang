@@ -8,11 +8,16 @@ fn 0 snippet$main () -> i32
   local b i32
   local c i32
   i32.const 7
+  i32.const 7
   call 1
   local.set 0
   i32.const 8
-  call 2
+  i32.const 8
+  call 1
+  i32.const 8
+  call 1
   local.set 1
+  i32.const 2
   i32.const 2
   call 1
   local.set 2
@@ -24,23 +29,7 @@ fn 0 snippet$main () -> i32
   return
 end
 
-fn 1 snippet$double__i32 (i32) -> i32
-  local.get 0
-  local.get 0
-  call 3
-  return
-end
-
-fn 2 snippet$triple__i32 (i32) -> i32
-  local.get 0
-  local.get 0
-  call 3
-  local.get 0
-  call 3
-  return
-end
-
-fn 3 std_core$i32$Add$add_vt (i32,i32) -> i32
+fn 1 std_core$i32$Add$add_vt (i32,i32) -> i32
   local.get 0
   local.get 1
   i32.add

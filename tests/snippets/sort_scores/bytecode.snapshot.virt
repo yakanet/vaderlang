@@ -533,7 +533,7 @@ fn 8 std_sort$insertion_sort_range__i32 (ref,usize,usize,ref) -> void
   return
 end
 
-fn 9 std_iter$std_iter$clone__i32 (ref) -> ref
+fn 9 std_iter$clone__i32 (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
   array.new 9 0

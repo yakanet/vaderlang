@@ -706,29 +706,43 @@
                                                                             __self_7 :__asyncstate_20!
                                                                         value:
                                                                           cast → Async<Any>
-                                                                            call :Async<(i32 | Outage!)[] | Error>
-                                                                              callee:
-                                                                                std_async$try_all__i32__Any :Async<(i32 | Outage!)[] | Error>
-                                                                              arg0:
-                                                                                array :Async<i32 | Outage>[]
-                                                                                  call :Async<i32 | Outage>
-                                                                                    callee:
-                                                                                      fetch :fn(string, i64, bool) -> Async<i32 | Outage>
-                                                                                    arg0:
-                                                                                      "users" :string
-                                                                                    arg1:
-                                                                                      int(3) :i64
-                                                                                    arg2:
-                                                                                      true
-                                                                                  call :Async<i32 | Outage>
-                                                                                    callee:
-                                                                                      fetch :fn(string, i64, bool) -> Async<i32 | Outage>
-                                                                                    arg0:
-                                                                                      "orders" :string
-                                                                                    arg1:
-                                                                                      int(1) :i64
-                                                                                    arg2:
-                                                                                      true
+                                                                            TryAll<i32, Any>! {
+                                                                              inner:
+                                                                                All<Any | Any>! {
+                                                                                  children:
+                                                                                    array :Async<i32 | Outage>[]
+                                                                                      call :Async<i32 | Outage>
+                                                                                        callee:
+                                                                                          fetch :fn(string, i64, bool) -> Async<i32 | Outage>
+                                                                                        arg0:
+                                                                                          "users" :string
+                                                                                        arg1:
+                                                                                          int(3) :i64
+                                                                                        arg2:
+                                                                                          true
+                                                                                      call :Async<i32 | Outage>
+                                                                                        callee:
+                                                                                          fetch :fn(string, i64, bool) -> Async<i32 | Outage>
+                                                                                        arg0:
+                                                                                          "orders" :string
+                                                                                        arg1:
+                                                                                          int(1) :i64
+                                                                                        arg2:
+                                                                                          true
+                                                                                  results:
+                                                                                    MutableMap<usize, Any | Any>! {
+                                                                                      ekeys:
+                                                                                        array :usize[]!
+                                                                                      evals:
+                                                                                        array :Any[]!
+                                                                                      index:
+                                                                                        array :i32[]!
+                                                                                      mask: int(0) :usize
+                                                                                      size: int(0) :usize
+                                                                                      tombs: int(0) :usize
+                                                                                    }
+                                                                                }
+                                                                            }
                                                                       assign
                                                                         target:
                                                                           .state :i32
@@ -878,38 +892,52 @@
                                                                                                 __self_7 :__asyncstate_20!
                                                                                             value:
                                                                                               cast → Async<Any>
-                                                                                                call :Async<(i32 | Outage!)[] | Error>
-                                                                                                  callee:
-                                                                                                    std_async$try_all__i32__Any :Async<(i32 | Outage!)[] | Error>
-                                                                                                  arg0:
-                                                                                                    array :Async<i32 | Outage>[]
-                                                                                                      call :Async<i32 | Outage>
-                                                                                                        callee:
-                                                                                                          fetch :fn(string, i64, bool) -> Async<i32 | Outage>
-                                                                                                        arg0:
-                                                                                                          "users" :string
-                                                                                                        arg1:
-                                                                                                          int(3) :i64
-                                                                                                        arg2:
-                                                                                                          true
-                                                                                                      call :Async<i32 | Outage>
-                                                                                                        callee:
-                                                                                                          fetch :fn(string, i64, bool) -> Async<i32 | Outage>
-                                                                                                        arg0:
-                                                                                                          "orders" :string
-                                                                                                        arg1:
-                                                                                                          int(1) :i64
-                                                                                                        arg2:
-                                                                                                          false
-                                                                                                      call :Async<i32 | Outage>
-                                                                                                        callee:
-                                                                                                          fetch :fn(string, i64, bool) -> Async<i32 | Outage>
-                                                                                                        arg0:
-                                                                                                          "carts" :string
-                                                                                                        arg1:
-                                                                                                          int(2) :i64
-                                                                                                        arg2:
-                                                                                                          true
+                                                                                                TryAll<i32, Any>! {
+                                                                                                  inner:
+                                                                                                    All<Any | Any>! {
+                                                                                                      children:
+                                                                                                        array :Async<i32 | Outage>[]
+                                                                                                          call :Async<i32 | Outage>
+                                                                                                            callee:
+                                                                                                              fetch :fn(string, i64, bool) -> Async<i32 | Outage>
+                                                                                                            arg0:
+                                                                                                              "users" :string
+                                                                                                            arg1:
+                                                                                                              int(3) :i64
+                                                                                                            arg2:
+                                                                                                              true
+                                                                                                          call :Async<i32 | Outage>
+                                                                                                            callee:
+                                                                                                              fetch :fn(string, i64, bool) -> Async<i32 | Outage>
+                                                                                                            arg0:
+                                                                                                              "orders" :string
+                                                                                                            arg1:
+                                                                                                              int(1) :i64
+                                                                                                            arg2:
+                                                                                                              false
+                                                                                                          call :Async<i32 | Outage>
+                                                                                                            callee:
+                                                                                                              fetch :fn(string, i64, bool) -> Async<i32 | Outage>
+                                                                                                            arg0:
+                                                                                                              "carts" :string
+                                                                                                            arg1:
+                                                                                                              int(2) :i64
+                                                                                                            arg2:
+                                                                                                              true
+                                                                                                      results:
+                                                                                                        MutableMap<usize, Any | Any>! {
+                                                                                                          ekeys:
+                                                                                                            array :usize[]!
+                                                                                                          evals:
+                                                                                                            array :Any[]!
+                                                                                                          index:
+                                                                                                            array :i32[]!
+                                                                                                          mask: int(0) :usize
+                                                                                                          size: int(0) :usize
+                                                                                                          tombs: int(0) :usize
+                                                                                                        }
+                                                                                                    }
+                                                                                                }
                                                                                           assign
                                                                                             target:
                                                                                               .state :i32

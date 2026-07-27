@@ -1163,7 +1163,7 @@ fn 17 std_string$compare_ascending (string,string) -> bool
   return
 end
 
-fn 18 std_iter$std_iter$clone__i32 (ref) -> ref
+fn 18 std_iter$clone__i32 (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
   array.new 3 0
@@ -1181,7 +1181,7 @@ fn 18 std_iter$std_iter$clone__i32 (ref) -> ref
   return
 end
 
-fn 19 std_iter$std_iter$clone__string (ref) -> ref
+fn 19 std_iter$clone__string (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
   array.new 5 0

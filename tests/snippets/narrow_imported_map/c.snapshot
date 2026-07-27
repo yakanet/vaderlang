@@ -68,14 +68,12 @@ static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
 static void std_io_println__string(vader_string_t l0);
-static vader_box_t std_collections_MutableMap_Index_at__i32__Any(void* l0, int32_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__i32__Any(void* l0, int32_t l1, vader_box_t l2);
 static size_t std_collections_slot_for(uint64_t l0, size_t l1);
-static void std_collections_std_collections_ensure_index__i32__Any(void* l0);
-static void std_collections_std_collections_rehash__i32__Any(void* l0, size_t l1);
-static void std_collections_std_collections_write_entry__i32__Any(void* l0, int32_t l1, vader_box_t l2);
-static void std_collections_std_collections_put__i32__Any(void* l0, int32_t l1, vader_box_t l2);
-static vader_box_t std_collections_std_collections_get__i32__Any(void* l0, int32_t l1);
+static void std_collections_ensure_index__i32__Any(void* l0);
+static void std_collections_rehash__i32__Any(void* l0, size_t l1);
+static void std_collections_write_entry__i32__Any(void* l0, int32_t l1, vader_box_t l2);
+static void std_collections_put__i32__Any(void* l0, int32_t l1, vader_box_t l2);
+static vader_box_t std_collections_get__i32__Any(void* l0, int32_t l1);
 static vader_box_t snippet_lib_pick(void* l0, int32_t l1);
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
 static void std_core_Buffer_ByteAccess_store_u8_vt(void* l0, size_t l1, uint8_t l2);
@@ -90,7 +88,7 @@ static const uint16_t vader_type_14_ptrs[] = { offsetof(vader_array_t, buf) };
 static const uint16_t vader_type_15_ptrs[] = { offsetof(vader_array_t, buf) };
 static const uint16_t vader_type_18_refs[] = { offsetof(vader_struct_snippet_lib_Wrap_t, f_items) };
 
-const vader_type_info_t vader_type_info_table[20] = {
+const vader_type_info_t vader_type_info_table[19] = {
     [3] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
     [10] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__Any___Any_t), NULL, 0, 0, NULL, 3, vader_type_10_refs },
     [12] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__Any_t), NULL, 0, 0, NULL, 3, vader_type_12_refs },
@@ -100,9 +98,9 @@ const vader_type_info_t vader_type_info_table[20] = {
     [17] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_lib_Out_t), NULL, 0, 0, NULL, 0, NULL },
     [18] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_lib_Wrap_t), NULL, 0, 0, NULL, 1, vader_type_18_refs },
 };
-const size_t vader_type_info_count = 20;
+const size_t vader_type_info_count = 19;
 
-const size_t vader_type_size[20] = {
+const size_t vader_type_size[19] = {
     [0] = 0u,
     [1] = 4u,
     [2] = 8u,
@@ -122,7 +120,6 @@ const size_t vader_type_size[20] = {
     [16] = 16u,
     [17] = 16u,
     [18] = 16u,
-    [19] = 16u,
 };
 
 
@@ -179,7 +176,8 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a5_obj, 18u);
     _a5_obj->f_items = t0;
     l1 = (void*) _a5_obj;
-    std_collections_MutableMap_IndexSet_set_at__i32__Any(l0, INT32_C(1), vader_ref_box(l1));
+#line 260 "stdlib/std/collections/collections.vader"
+    std_collections_put__i32__Any(l0, INT32_C(1), vader_ref_box(l1));
 #line 19 "tests/snippets/narrow_imported_map/_main.vader"
     l3 = snippet_lib_pick(l0, INT32_C(1));
 #line 20 "tests/snippets/narrow_imported_map/_main.vader"
@@ -320,30 +318,12 @@ static void std_io_println__string(vader_string_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-static vader_box_t std_collections_MutableMap_Index_at__i32__Any(void* l0, int32_t l1) {
-    vader_box_t t0;
-#line 256 "stdlib/std/collections/collections.vader"
-    t0 = std_collections_std_collections_get__i32__Any(l0, l1);
-    return t0;
-}
-
-static void std_collections_MutableMap_IndexSet_set_at__i32__Any(void* l0, int32_t l1, vader_box_t l2) {
-    vader_box_t* gc_roots[1] = { &l2 };
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-#line 260 "stdlib/std/collections/collections.vader"
-    std_collections_std_collections_put__i32__Any(l0, l1, l2);
-    { vader_gc_top = gc_frame.prev; return; }
-    vader_gc_top = gc_frame.prev;
-}
-
 static size_t std_collections_slot_for(uint64_t l0, size_t l1) {
 #line 80 "stdlib/std/collections/collections.vader"
     return (size_t) (int64_t) (((int64_t) (uint64_t) l0) & l1);
 }
 
-static void std_collections_std_collections_ensure_index__i32__Any(void* l0) {
+static void std_collections_ensure_index__i32__Any(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -385,7 +365,7 @@ static void std_collections_std_collections_ensure_index__i32__Any(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-static void std_collections_std_collections_rehash__i32__Any(void* l0, size_t l1) {
+static void std_collections_rehash__i32__Any(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -470,7 +450,7 @@ static void std_collections_std_collections_rehash__i32__Any(void* l0, size_t l1
     vader_gc_top = gc_frame.prev;
 }
 
-static void std_collections_std_collections_write_entry__i32__Any(void* l0, int32_t l1, vader_box_t l2) {
+static void std_collections_write_entry__i32__Any(void* l0, int32_t l1, vader_box_t l2) {
     size_t l3, l4;
     void* l5 = NULL;
     vader_box_t* gc_roots[1] = { &l2 };
@@ -509,7 +489,7 @@ static void std_collections_std_collections_write_entry__i32__Any(void* l0, int3
     vader_gc_top = gc_frame.prev;
 }
 
-static void std_collections_std_collections_put__i32__Any(void* l0, int32_t l1, vader_box_t l2) {
+static void std_collections_put__i32__Any(void* l0, int32_t l1, vader_box_t l2) {
     size_t l3, l4, l5, l8, l9;
     uint64_t l6;
     int64_t l7;
@@ -523,7 +503,7 @@ static void std_collections_std_collections_put__i32__Any(void* l0, int32_t l1, 
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 129 "stdlib/std/collections/collections.vader"
-    std_collections_std_collections_ensure_index__i32__Any(l0);
+    std_collections_ensure_index__i32__Any(l0);
 #line 133 "stdlib/std/collections/collections.vader"
     l3 = ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0)->f_size;
     l4 = ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0)->f_tombs;
@@ -552,7 +532,7 @@ static void std_collections_std_collections_put__i32__Any(void* l0, int32_t l1, 
             }
         }
 #line 136 "stdlib/std/collections/collections.vader"
-        std_collections_std_collections_rehash__i32__Any(l0, l3);
+        std_collections_rehash__i32__Any(l0, l3);
 #line 133 "stdlib/std/collections/collections.vader"
     } else {
     }
@@ -644,7 +624,7 @@ static void std_collections_std_collections_put__i32__Any(void* l0, int32_t l1, 
     } else {
     }
 #line 151 "stdlib/std/collections/collections.vader"
-    std_collections_std_collections_write_entry__i32__Any(l0, l1, l2);
+    std_collections_write_entry__i32__Any(l0, l1, l2);
 #line 152 "stdlib/std/collections/collections.vader"
     l10 = ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0)->f_index;
     t1 = ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0)->f_size;
@@ -664,7 +644,7 @@ static void std_collections_std_collections_put__i32__Any(void* l0, int32_t l1, 
     vader_gc_top = gc_frame.prev;
 }
 
-static vader_box_t std_collections_std_collections_get__i32__Any(void* l0, int32_t l1) {
+static vader_box_t std_collections_get__i32__Any(void* l0, int32_t l1) {
     uint64_t l2;
     size_t l3, l4, l5, l6, l7;
     size_t t0;
@@ -754,8 +734,10 @@ static vader_box_t snippet_lib_pick(void* l0, int32_t l1) {
     void** gc_raw_roots[2] = { &l0, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
+#line 256 "stdlib/std/collections/collections.vader"
+    t0 = std_collections_get__i32__Any(l0, l1);
 #line 14 "tests/snippets/narrow_imported_map/lib/lib.vader"
-    l2 = std_collections_MutableMap_Index_at__i32__Any(l0, l1);
+    l2 = t0;
 #line 15 "tests/snippets/narrow_imported_map/lib/lib.vader"
     if (l2.tag == 0u) {
         t0 = vader_box_obj(0u, NULL);

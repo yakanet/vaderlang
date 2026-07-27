@@ -5,39 +5,20 @@ type 2 struct snippet$Pair__i32__i32 { first:1,second:1 }
 export main 0
 
 fn 0 snippet$main () -> i32
-  local a i32
-  local b i32
   local p ref
-  i32.const 10
-  call 1
-  local.set 0
-  i32.const 1
-  i32.const 2
-  call 2
-  local.set 1
+  local $add_8 i32
+  local $field_9 i32
   i32.const 30
   i32.const 0
   struct.new_stack 2
-  local.set 2
-  local.get 0
-  local.get 1
-  i32.add
   local.set 0
-  local.field 2 2 0
-  ref.cast 1
+  i32.const 12
   local.set 1
-  local.get 0
+  local.field 0 2 0
+  ref.cast 1
+  local.set 2
   local.get 1
+  local.get 2
   i32.add
-  return
-end
-
-fn 1 snippet$identity__i32 (i32) -> i32
-  local.get 0
-  return
-end
-
-fn 2 snippet$swap__i32__i32 (i32,i32) -> i32
-  local.get 1
   return
 end

@@ -19,19 +19,22 @@
     let total: i32 = int(0) :i32
     block :void
       let __iter_0: Iterator<i32> =
-        call :__genstate_filter<i32>!
-          callee:
-            std_iter$std_iter$filter__i32 :__genstate_filter<i32>!
-          arg0:
-            call :__genstate_map<i32>!
-              callee:
-                std_iter$std_iter$map__i32__i32 :__genstate_map<i32>!
-              arg0:
-                it :Iterator<i32>
-              arg1:
-                triple :fn(i32) -> i32
-          arg1:
-            keep_hi :fn(i32) -> bool
+        __gen_state_18! {
+          s0:
+            __gen_state_13! {
+              s0: it :Iterator<i32>
+              s1: triple :fn(i32) -> i32
+              s2: null
+              s3: null
+              s4: int(0) :i32
+              state: int(11) :i32
+            }
+          s1: keep_hi :fn(i32) -> bool
+          s2: null
+          s3: null
+          s4: int(0) :i32
+          state: int(13) :i32
+        }
       loop
         let __step_1: Yield<i32>! | null =
           vcall Iterator.next :Yield<i32>! | null
@@ -62,15 +65,16 @@
     return
       call :i32[]!
         callee:
-          std_iter$std_iter$collect__i32 :i32[]!
+          std_iter$collect__i32 :i32[]!
         arg0:
-          call :__genstate_map<i32>!
-            callee:
-              std_iter$std_iter$map__i32__i32 :__genstate_map<i32>!
-            arg0:
-              it :Iterator<i32>
-            arg1:
-              triple :fn(i32) -> i32
+          __gen_state_13! {
+            s0: it :Iterator<i32>
+            s1: triple :fn(i32) -> i32
+            s2: null
+            s3: null
+            s4: int(0) :i32
+            state: int(11) :i32
+          }
   fn snippet$main() -> i32
     let s: i32 =
       call :i32

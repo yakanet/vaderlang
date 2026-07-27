@@ -169,11 +169,9 @@
                                 __self_3 :__asyncstate_4!
                             value:
                               cast → Async<Any>
-                                call :Async<i32>
-                                  callee:
-                                    snippet$viagen__i32 :Async<i32>
-                                  arg0:
-                                    int(5) :i32
+                                Box<i32>! {
+                                  v: int(5) :i32
+                                }
                           assign
                             target:
                               .state :i32

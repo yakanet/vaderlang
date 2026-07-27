@@ -1,26 +1,9 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 primitive string
 string 0 "hello"
 export main 0
 
 fn 0 snippet$main () -> i32
-  string.const 0
-  call 1
-  drop
-  i32.const 1
-  i32.const 2
-  call 2
-  return
-end
-
-fn 1 snippet$needs_add__string (string) -> string
-  local.get 0
-  return
-end
-
-fn 2 snippet$bar__i32__i32 (i32,i32) -> i32
-  local.get 1
-  return
+  return.lit i32.const 2
 end

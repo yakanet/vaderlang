@@ -412,10 +412,8 @@
                                 __self_1 :__asyncstate_17!
                             value:
                               cast → Async<Any>
-                                call :Async<string>
-                                  callee:
-                                    std_async$race__string :Async<string>
-                                  arg0:
+                                Race<string>! {
+                                  children:
                                     array :Async<string>[]
                                       call :Async<string>
                                         callee:
@@ -431,6 +429,7 @@
                                           "slow" :string
                                         arg1:
                                           int(100) :i64
+                                }
                           assign
                             target:
                               .state :i32

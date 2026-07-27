@@ -486,15 +486,19 @@
                                             __self_1 :__asyncstate_17!
                                         value:
                                           cast → Async<Any>
-                                            call :Async<string | TimeoutError>
-                                              callee:
-                                                std_async$timeout__string :Async<string | TimeoutError>
-                                              arg0:
-                                                int(10) :i64
-                                              arg1:
+                                            Timeout<string>! {
+                                              child:
                                                 call :Async<string>
                                                   callee:
                                                     work :fn() -> Async<string>
+                                              timer:
+                                                call :Async<null>
+                                                  callee:
+                                                    sleep :fn(i64) -> Async<null>
+                                                  arg0:
+                                                    int(10) :i64
+                                              ms: int(10) :i64
+                                            }
                                       assign
                                         target:
                                           .state :i32

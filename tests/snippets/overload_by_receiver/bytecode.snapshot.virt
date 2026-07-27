@@ -136,7 +136,7 @@ fn 2 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 3 snippet$snippet$pick__i32 (any,i32) -> i32
+fn 3 snippet$pick__i32 (any,i32) -> i32
   local.get 0
   type_check 0
   if $L0 void
@@ -148,7 +148,7 @@ fn 3 snippet$snippet$pick__i32 (any,i32) -> i32
   return
 end
 
-fn 4 snippet$snippet$pick__i32_1 (any,i32) -> i32
+fn 4 snippet$pick__i32_1 (any,i32) -> i32
   local.get 0
   type_check 1
   if $L0 void

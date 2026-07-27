@@ -27,7 +27,6 @@ type 24 struct __Tuple_34 { _0:14,_1:1 }
 type 25 struct __Tuple_35 { _0:8,_1:26 }
 type 26 ref _
 type 27 struct __Tuple_37 { _0:8,_1:14 }
-type 28 ref __genstate_flat_map
 string 0 "count="
 string 1 "clone[0]="
 string 2 "a"
@@ -54,7 +53,7 @@ impl 22 Iterator
 vtable Iterator.next 4 2
 vtable Iterator.next 9 3
 vtable Iterator.next 12 4
-vtable Iterator.next 22 16
+vtable Iterator.next 22 15
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -74,8 +73,8 @@ fn 0 snippet$main () -> i32
   local __off_7 usize
   local $call_150 usize
   local __off_20 usize
-  local __iter_26 any
-  local __step_27 any
+  local $k_174 any
+  local $k_175 any
   i32.const 10
   i32.const 20
   i32.const 30
@@ -416,9 +415,23 @@ fn 0 snippet$main () -> i32
   struct.new 2
   make_closure 1 21
   local.set 1
+  null.const
+  local.set 16
+  null.const
+  local.set 17
+  null.const
+  local.set 9
   local.get 0
   local.get 1
-  call 15
+  local.get 16
+  local.get 17
+  i32.const 0
+  local.get 9
+  i64.const 0
+  i64.const 0
+  i32.const 0
+  i32.const 16
+  struct.new 22
   local.set 16
   block $L13 void
     loop $L14 void
@@ -627,14 +640,14 @@ end
 
 fn 5 std_core$new_byte_buffer (usize) -> ref
   local.get 0
-  call 17
+  call 16
   return
 end
 
 fn 6 std_core$finish_buffer (ref,usize) -> string
   local.get 0
   local.get 1
-  call 19
+  call 18
   return
 end
 
@@ -643,7 +656,7 @@ fn 7 std_core$write_string_at (ref,usize,string) -> usize
   local.get 0
   local.get 1
   local.get 2
-  call 20
+  call 19
   local.get 2
   call.import 0
   local.set 3
@@ -667,7 +680,7 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     i32.const 48
-    call 18
+    call 17
     local.get 1
     i64.const 1
     i64.add
@@ -746,7 +759,7 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
         local.get 0
         local.get 4
         local.get 8
-        call 18
+        call 17
         local.get 2
         i64.const 10
         i64.div
@@ -761,7 +774,7 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     i32.const 45
-    call 18
+    call 17
   else
   end $L9
   local.get 1
@@ -783,7 +796,7 @@ fn 9 std_core$write_unsigned (ref,usize,u64) -> usize
     local.get 0
     local.get 1
     i32.const 48
-    call 18
+    call 17
     local.get 1
     i64.const 1
     i64.add
@@ -838,7 +851,7 @@ fn 9 std_core$write_unsigned (ref,usize,u64) -> usize
         local.get 0
         local.get 5
         local.get 7
-        call 18
+        call 17
         local.get 2
         i64.const 10
         u64.div
@@ -943,7 +956,7 @@ fn 13 std_io$println__string (string) -> void
   return
 end
 
-fn 14 std_iter$std_iter$clone__i32 (ref) -> ref
+fn 14 std_iter$clone__i32 (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
   array.new 3 0
@@ -961,31 +974,7 @@ fn 14 std_iter$std_iter$clone__i32 (ref) -> ref
   return
 end
 
-fn 15 std_iter$flat_map__i32__i32 (any,ref) -> any
-  local $k_2 any
-  local $k_3 any
-  local $k_5 ref
-  null.const
-  local.set 2
-  null.const
-  local.set 3
-  null.const
-  local.set 4
-  local.get 0
-  local.get 1
-  local.get 2
-  local.get 3
-  i32.const 0
-  local.get 4
-  i64.const 0
-  i64.const 0
-  i32.const 0
-  i32.const 16
-  struct.new 22
-  return
-end
-
-fn 16 std_iter$__gen_state_44$Iterator$next (ref) -> any
+fn 15 std_iter$__gen_state_44$Iterator$next (ref) -> any
   local $field_36 usize
   local $field_37 usize
   local $add_46 usize
@@ -1271,13 +1260,13 @@ fn 16 std_iter$__gen_state_44$Iterator$next (ref) -> any
   return
 end
 
-fn 17 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 16 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   buffer.new
   return
 end
 
-fn 18 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 17 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -1285,14 +1274,14 @@ fn 18 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 19 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 18 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 20 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 19 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2

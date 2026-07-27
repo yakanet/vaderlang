@@ -5,20 +5,32 @@
     let a: i32 =
       call :i32
         callee:
-          snippet$double__i32 :i32
+          std_core$i32$Add$add :i32
         arg0:
+          int(7) :i32
+        arg1:
           int(7) :i32
     let b: i32 =
       call :i32
         callee:
-          snippet$triple__i32 :i32
+          std_core$i32$Add$add :i32
         arg0:
+          call :i32
+            callee:
+              std_core$i32$Add$add :i32
+            arg0:
+              int(8) :i32
+            arg1:
+              int(8) :i32
+        arg1:
           int(8) :i32
     let c: i32 =
       call :i32
         callee:
-          snippet$double__i32 :i32
+          std_core$i32$Add$add :i32
         arg0:
+          int(2) :i32
+        arg1:
           int(2) :i32
     return
       add :i32

@@ -120,18 +120,13 @@ static int32_t std_async_run_async_main(vader_box_t l0);
 static vader_box_t std_async_Sleep_Async_resume(void* l0);
 static void std_async_Sleep_Async_cancel(void* l0);
 static int32_t std_async_block_on__i32(vader_box_t l0);
-static vader_box_t std_async_any__string__Any(void* l0);
-static bool std_collections_MutableSet_Contains_contains__usize(void* l0, size_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__usize__bool(void* l0, size_t l1, bool l2);
-static bool std_collections_MutableMap_Contains_contains__usize__bool(void* l0, size_t l1);
 static size_t std_collections_slot_for(uint64_t l0, size_t l1);
-static void std_collections_std_collections_ensure_index__usize__bool(void* l0);
-static void std_collections_std_collections_rehash__usize__bool(void* l0, size_t l1);
-static void std_collections_std_collections_write_entry__usize__bool(void* l0, size_t l1, bool l2);
-static void std_collections_std_collections_put__usize__bool(void* l0, size_t l1, bool l2);
-static bool std_collections_std_collections_contains_key__usize__bool(void* l0, size_t l1);
-static bool std_collections_std_collections_add__usize(void* l0, size_t l1);
-static size_t std_collections_std_collections_len__usize(void* l0);
+static void std_collections_ensure_index__usize__bool(void* l0);
+static void std_collections_rehash__usize__bool(void* l0, size_t l1);
+static void std_collections_write_entry__usize__bool(void* l0, size_t l1, bool l2);
+static void std_collections_put__usize__bool(void* l0, size_t l1, bool l2);
+static bool std_collections_contains_key__usize__bool(void* l0, size_t l1);
+static bool std_collections_add__usize(void* l0, size_t l1);
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
 static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size_t l1);
 static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vader_string_t l2);
@@ -636,15 +631,20 @@ static void snippet___asyncstate_11_Async_cancel(void* l0) {
 }
 
 static vader_box_t snippet___asyncstate_23_Async_resume(void* l0) {
-    vader_box_t l1 = vader_box_null(), l4 = vader_box_null(), l5 = vader_box_null(), l6 = vader_box_null(), l7 = vader_box_null(), l8 = vader_box_null(), l9 = vader_box_null();
+    vader_box_t l1 = vader_box_null(), l4 = vader_box_null(), l5 = vader_box_null(), l6 = vader_box_null(), l7 = vader_box_null(), l8 = vader_box_null(), l14 = vader_box_null();
     vader_string_t l2, l3;
+    void* l9 = NULL;
+    void* l10 = NULL;
+    void* l11 = NULL;
+    void* l12 = NULL;
+    void* l13 = NULL;
     int32_t t0;
     vader_string_t t1;
     void* t2 = NULL;
     vader_box_t t3 = vader_box_null();
-    vader_box_t* gc_roots[8] = { &l1, &l4, &l5, &l6, &l7, &l8, &l9, &t3 };
-    void** gc_raw_roots[2] = { &l0, &t2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 8u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_box_t* gc_roots[8] = { &l1, &l4, &l5, &l6, &l7, &l8, &l14, &t3 };
+    void** gc_raw_roots[7] = { &l0, &l9, &l10, &l11, &l12, &l13, &t2 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 8u, 7u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 26 "tests/snippets/async_any/_main.vader"
     {
@@ -734,19 +734,48 @@ static vader_box_t snippet___asyncstate_23_Async_resume(void* l0) {
                     vader_array_t* _a1_arr = vader_array_new(39u, 2u, 0u, 3u);
                     vader_array_box_slots(_a1_arr->buf)[_a1_arr->offset + 1u] = l8;
                     vader_array_box_slots(_a1_arr->buf)[_a1_arr->offset + 0u] = l7;
-                    t2 = (void*) _a1_arr;
-                    t3 = std_async_any__string__Any(t2);
+                    l9 = (void*) _a1_arr;
+#line 54 "stdlib/std/collections/collections.vader"
+                    vader_array_t* _a2_arr = vader_array_new(37u, 0u, 4u, 19u);
+                    l10 = (void*) _a2_arr;
+#line 57 "stdlib/std/collections/collections.vader"
+                    vader_array_t* _a3_arr = vader_array_new(36u, 0u, 12u, 18u);
+                    l11 = (void*) _a3_arr;
+#line 62 "stdlib/std/collections/collections.vader"
+                    vader_array_t* _a4_arr = vader_array_new(35u, 0u, 7u, 4u);
+                    l12 = (void*) _a4_arr;
+#line 315 "stdlib/std/collections/collections.vader"
+                    vader_struct_std_collections_MutableMap__usize__bool_t* _a5_obj = (vader_struct_std_collections_MutableMap__usize__bool_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__usize__bool_t));
+                    vader_obj_header_init(_a5_obj, 34u);
+                    _a5_obj->f_ekeys = l10;
+                    _a5_obj->f_evals = l11;
+                    _a5_obj->f_index = l12;
+                    _a5_obj->f_mask = (size_t) (int64_t) INT64_C(0);
+                    _a5_obj->f_size = (size_t) (int64_t) INT64_C(0);
+                    _a5_obj->f_tombs = (size_t) (int64_t) INT64_C(0);
+                    t2 = (void*) _a5_obj;
+#line 260 "stdlib/std/async/async.vader"
+                    vader_struct_std_collections_MutableSet__usize_t* _a6_obj = (vader_struct_std_collections_MutableSet__usize_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableSet__usize_t));
+                    vader_obj_header_init(_a6_obj, 32u);
+                    _a6_obj->f_inner = t2;
+                    l13 = (void*) _a6_obj;
+                    vader_struct_std_async_Any__string__Any_t* _a7_obj = (vader_struct_std_async_Any__string__Any_t*) vader_gc_alloc(sizeof(vader_struct_std_async_Any__string__Any_t));
+                    vader_obj_header_init(_a7_obj, 23u);
+                    _a7_obj->f_children = l9;
+                    _a7_obj->f_errors = l13;
+                    _a7_obj->f_last = vader_box_obj(0u, NULL);
+                    t2 = (void*) _a7_obj;
 #line 26 "tests/snippets/async_any/_main.vader"
-                    l9 = t3;
-                    ((vader_struct___asyncstate_23_t*) l0)->f_awaited = l9;
+                    l14 = vader_ref_box(t2);
+                    ((vader_struct___asyncstate_23_t*) l0)->f_awaited = l14;
                     VADER_WRITE_BARRIER((vader_struct___asyncstate_23_t*) l0);
                     ((vader_struct___asyncstate_23_t*) l0)->f_state = INT32_C(6);
                     VADER_WRITE_BARRIER((vader_struct___asyncstate_23_t*) l0);
                     goto loop_1;
                 }
-                vader_struct_std_core_Suspended_t* _a2_obj = (vader_struct_std_core_Suspended_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Suspended_t));
-                vader_obj_header_init(_a2_obj, 7u);
-                t2 = (void*) _a2_obj;
+                vader_struct_std_core_Suspended_t* _a8_obj = (vader_struct_std_core_Suspended_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Suspended_t));
+                vader_obj_header_init(_a8_obj, 7u);
+                t2 = (void*) _a8_obj;
                 { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
             }
         }
@@ -849,7 +878,10 @@ static vader_box_t std_async_Any_Async_resume__string__Any(void* l0) {
         loop_6: {
             if ((l2 < l1)) {
 #line 228 "stdlib/std/async/async.vader"
-                t0 = std_collections_MutableSet_Contains_contains__usize(((vader_struct_std_async_Any__string__Any_t*) l0)->f_errors, l2);
+#line 350 "stdlib/std/collections/collections.vader"
+#line 264 "stdlib/std/collections/collections.vader"
+                t0 = std_collections_contains_key__usize__bool(((vader_struct_std_collections_MutableSet__usize_t*) ((vader_struct_std_async_Any__string__Any_t*) l0)->f_errors)->f_inner, l2);
+#line 228 "stdlib/std/async/async.vader"
                 if (t0) {
 #line 227 "stdlib/std/async/async.vader"
                     t1 = (l2 + INT64_C(1));
@@ -874,7 +906,7 @@ static vader_box_t std_async_Any_Async_resume__string__Any(void* l0) {
 #line 231 "stdlib/std/async/async.vader"
                 if ((l3.tag == 17u) || (l3.tag == 1u)) {
 #line 232 "stdlib/std/async/async.vader"
-                    std_collections_std_collections_add__usize(((vader_struct_std_async_Any__string__Any_t*) l0)->f_errors, l2);
+                    std_collections_add__usize(((vader_struct_std_async_Any__string__Any_t*) l0)->f_errors, l2);
 #line 233 "stdlib/std/async/async.vader"
                     l4 = l3;
                     ((vader_struct_std_async_Any__string__Any_t*) l0)->f_last = l4;
@@ -889,7 +921,7 @@ static vader_box_t std_async_Any_Async_resume__string__Any(void* l0) {
 #line 236 "stdlib/std/async/async.vader"
                 l5 = (size_t) (int64_t) INT64_C(0);
                 {
-                    loop_55: {
+                    loop_56: {
                         if ((l5 < l1)) {
 #line 237 "stdlib/std/async/async.vader"
                             if (l5 != l2) {
@@ -903,7 +935,7 @@ static vader_box_t std_async_Any_Async_resume__string__Any(void* l0) {
 #line 236 "stdlib/std/async/async.vader"
                             t1 = (l5 + INT64_C(1));
                             l5 = (size_t) (int64_t) t1;
-                            goto loop_55;
+                            goto loop_56;
                         } else {
                         }
                     }
@@ -916,7 +948,9 @@ static vader_box_t std_async_Any_Async_resume__string__Any(void* l0) {
         }
     }
 #line 241 "stdlib/std/async/async.vader"
-    t3 = std_collections_std_collections_len__usize(((vader_struct_std_async_Any__string__Any_t*) l0)->f_errors);
+#line 337 "stdlib/std/collections/collections.vader"
+    t3 = ((vader_struct_std_collections_MutableMap__usize__bool_t*) ((vader_struct_std_collections_MutableSet__usize_t*) ((vader_struct_std_async_Any__string__Any_t*) l0)->f_errors)->f_inner)->f_size;
+#line 241 "stdlib/std/async/async.vader"
     if (t3 == l1) {
 #line 242 "stdlib/std/async/async.vader"
         l3 = ((vader_struct_std_async_Any__string__Any_t*) l0)->f_last;
@@ -1082,78 +1116,12 @@ static int32_t std_async_block_on__i32(vader_box_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-static vader_box_t std_async_any__string__Any(void* l0) {
-    void* l1 = NULL;
-    void* l2 = NULL;
-    void* l3 = NULL;
-    void* t0 = NULL;
-    void** gc_raw_roots[5] = { &l0, &l1, &l2, &l3, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-#line 54 "stdlib/std/collections/collections.vader"
-    vader_array_t* _a0_arr = vader_array_new(37u, 0u, 4u, 19u);
-    l1 = (void*) _a0_arr;
-#line 57 "stdlib/std/collections/collections.vader"
-    vader_array_t* _a1_arr = vader_array_new(36u, 0u, 12u, 18u);
-    l2 = (void*) _a1_arr;
-#line 62 "stdlib/std/collections/collections.vader"
-    vader_array_t* _a2_arr = vader_array_new(35u, 0u, 7u, 4u);
-    l3 = (void*) _a2_arr;
-#line 315 "stdlib/std/collections/collections.vader"
-    vader_struct_std_collections_MutableMap__usize__bool_t* _a3_obj = (vader_struct_std_collections_MutableMap__usize__bool_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__usize__bool_t));
-    vader_obj_header_init(_a3_obj, 34u);
-    _a3_obj->f_ekeys = l1;
-    _a3_obj->f_evals = l2;
-    _a3_obj->f_index = l3;
-    _a3_obj->f_mask = (size_t) (int64_t) INT64_C(0);
-    _a3_obj->f_size = (size_t) (int64_t) INT64_C(0);
-    _a3_obj->f_tombs = (size_t) (int64_t) INT64_C(0);
-    t0 = (void*) _a3_obj;
-#line 260 "stdlib/std/async/async.vader"
-    vader_struct_std_collections_MutableSet__usize_t* _a4_obj = (vader_struct_std_collections_MutableSet__usize_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableSet__usize_t));
-    vader_obj_header_init(_a4_obj, 32u);
-    _a4_obj->f_inner = t0;
-    l1 = (void*) _a4_obj;
-    vader_struct_std_async_Any__string__Any_t* _a5_obj = (vader_struct_std_async_Any__string__Any_t*) vader_gc_alloc(sizeof(vader_struct_std_async_Any__string__Any_t));
-    vader_obj_header_init(_a5_obj, 23u);
-    _a5_obj->f_children = l0;
-    _a5_obj->f_errors = l1;
-    _a5_obj->f_last = vader_box_obj(0u, NULL);
-    t0 = (void*) _a5_obj;
-    { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
-}
-
-static bool std_collections_MutableSet_Contains_contains__usize(void* l0, size_t l1) {
-    bool t0;
-#line 350 "stdlib/std/collections/collections.vader"
-    t0 = std_collections_MutableMap_Contains_contains__usize__bool(((vader_struct_std_collections_MutableSet__usize_t*) l0)->f_inner, l1);
-    return t0;
-}
-
-static void std_collections_MutableMap_IndexSet_set_at__usize__bool(void* l0, size_t l1, bool l2) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-#line 260 "stdlib/std/collections/collections.vader"
-    std_collections_std_collections_put__usize__bool(l0, l1, l2);
-    { vader_gc_top = gc_frame.prev; return; }
-    vader_gc_top = gc_frame.prev;
-}
-
-static bool std_collections_MutableMap_Contains_contains__usize__bool(void* l0, size_t l1) {
-    bool t0;
-#line 264 "stdlib/std/collections/collections.vader"
-    t0 = std_collections_std_collections_contains_key__usize__bool(l0, l1);
-    return t0;
-}
-
 static size_t std_collections_slot_for(uint64_t l0, size_t l1) {
 #line 80 "stdlib/std/collections/collections.vader"
     return (size_t) (int64_t) (((int64_t) (uint64_t) l0) & l1);
 }
 
-static void std_collections_std_collections_ensure_index__usize__bool(void* l0) {
+static void std_collections_ensure_index__usize__bool(void* l0) {
     void* l1 = NULL;
     size_t l2;
     size_t t0;
@@ -1195,7 +1163,7 @@ static void std_collections_std_collections_ensure_index__usize__bool(void* l0) 
     vader_gc_top = gc_frame.prev;
 }
 
-static void std_collections_std_collections_rehash__usize__bool(void* l0, size_t l1) {
+static void std_collections_rehash__usize__bool(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -1280,7 +1248,7 @@ static void std_collections_std_collections_rehash__usize__bool(void* l0, size_t
     vader_gc_top = gc_frame.prev;
 }
 
-static void std_collections_std_collections_write_entry__usize__bool(void* l0, size_t l1, bool l2) {
+static void std_collections_write_entry__usize__bool(void* l0, size_t l1, bool l2) {
     size_t l3, l4;
     void* l5 = NULL;
     void** gc_raw_roots[2] = { &l0, &l5 };
@@ -1317,7 +1285,7 @@ static void std_collections_std_collections_write_entry__usize__bool(void* l0, s
     vader_gc_top = gc_frame.prev;
 }
 
-static void std_collections_std_collections_put__usize__bool(void* l0, size_t l1, bool l2) {
+static void std_collections_put__usize__bool(void* l0, size_t l1, bool l2) {
     size_t l3, l4, l5, l8, l9;
     uint64_t l6;
     int64_t l7;
@@ -1330,7 +1298,7 @@ static void std_collections_std_collections_put__usize__bool(void* l0, size_t l1
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 129 "stdlib/std/collections/collections.vader"
-    std_collections_std_collections_ensure_index__usize__bool(l0);
+    std_collections_ensure_index__usize__bool(l0);
 #line 133 "stdlib/std/collections/collections.vader"
     l3 = ((vader_struct_std_collections_MutableMap__usize__bool_t*) l0)->f_size;
     l4 = ((vader_struct_std_collections_MutableMap__usize__bool_t*) l0)->f_tombs;
@@ -1359,7 +1327,7 @@ static void std_collections_std_collections_put__usize__bool(void* l0, size_t l1
             }
         }
 #line 136 "stdlib/std/collections/collections.vader"
-        std_collections_std_collections_rehash__usize__bool(l0, l3);
+        std_collections_rehash__usize__bool(l0, l3);
 #line 133 "stdlib/std/collections/collections.vader"
     } else {
     }
@@ -1450,7 +1418,7 @@ static void std_collections_std_collections_put__usize__bool(void* l0, size_t l1
     } else {
     }
 #line 151 "stdlib/std/collections/collections.vader"
-    std_collections_std_collections_write_entry__usize__bool(l0, l1, l2);
+    std_collections_write_entry__usize__bool(l0, l1, l2);
 #line 152 "stdlib/std/collections/collections.vader"
     l10 = ((vader_struct_std_collections_MutableMap__usize__bool_t*) l0)->f_index;
     t1 = ((vader_struct_std_collections_MutableMap__usize__bool_t*) l0)->f_size;
@@ -1470,7 +1438,7 @@ static void std_collections_std_collections_put__usize__bool(void* l0, size_t l1
     vader_gc_top = gc_frame.prev;
 }
 
-static bool std_collections_std_collections_contains_key__usize__bool(void* l0, size_t l1) {
+static bool std_collections_contains_key__usize__bool(void* l0, size_t l1) {
     uint64_t l2;
     size_t l3, l4, l5, l6, l7;
     size_t t0;
@@ -1544,28 +1512,24 @@ static bool std_collections_std_collections_contains_key__usize__bool(void* l0, 
     return false;
 }
 
-static bool std_collections_std_collections_add__usize(void* l0, size_t l1) {
+static bool std_collections_add__usize(void* l0, size_t l1) {
     bool t0;
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 324 "stdlib/std/collections/collections.vader"
-    t0 = std_collections_MutableMap_Contains_contains__usize__bool(((vader_struct_std_collections_MutableSet__usize_t*) l0)->f_inner, l1);
+#line 264 "stdlib/std/collections/collections.vader"
+    t0 = std_collections_contains_key__usize__bool(((vader_struct_std_collections_MutableSet__usize_t*) l0)->f_inner, l1);
+#line 324 "stdlib/std/collections/collections.vader"
     if (t0) {
         { vader_gc_top = gc_frame.prev; return false; }
     }
 #line 325 "stdlib/std/collections/collections.vader"
-    std_collections_MutableMap_IndexSet_set_at__usize__bool(((vader_struct_std_collections_MutableSet__usize_t*) l0)->f_inner, l1, true);
+#line 260 "stdlib/std/collections/collections.vader"
+    std_collections_put__usize__bool(((vader_struct_std_collections_MutableSet__usize_t*) l0)->f_inner, l1, true);
 #line 326 "stdlib/std/collections/collections.vader"
     { vader_gc_top = gc_frame.prev; return true; }
     vader_gc_top = gc_frame.prev;
-}
-
-static size_t std_collections_std_collections_len__usize(void* l0) {
-    size_t t0;
-#line 337 "stdlib/std/collections/collections.vader"
-    t0 = ((vader_struct_std_collections_MutableMap__usize__bool_t*) ((vader_struct_std_collections_MutableSet__usize_t*) l0)->f_inner)->f_size;
-    return t0;
 }
 
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0) {

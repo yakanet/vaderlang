@@ -1703,7 +1703,7 @@ fn 18 std_crypto$append_u32_be (ref,u32) -> void
   return
 end
 
-fn 19 std_iter$std_iter$clone__u32 (ref) -> ref
+fn 19 std_iter$clone__u32 (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
   array.new 13 0
@@ -1721,7 +1721,7 @@ fn 19 std_iter$std_iter$clone__u32 (ref) -> ref
   return
 end
 
-fn 20 std_iter$std_iter$clone__u8 (ref) -> ref
+fn 20 std_iter$clone__u8 (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
   array.new 6 0

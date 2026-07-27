@@ -638,10 +638,8 @@
                                             __self_1 :__asyncstate_23!
                                         value:
                                           cast → Async<Any>
-                                            call :Async<Boom! | string>
-                                              callee:
-                                                std_async$any__string__Any :Async<Boom! | string>
-                                              arg0:
+                                            Any<string, Any>! {
+                                              children:
                                                 array :Async<Boom | string>[]
                                                   call :Async<Boom | string>
                                                     callee:
@@ -649,6 +647,23 @@
                                                   call :Async<Boom | string>
                                                     callee:
                                                       win_slow :fn() -> Async<Boom | string>
+                                              errors:
+                                                MutableSet<usize>! {
+                                                  inner:
+                                                    MutableMap<usize, bool>! {
+                                                      ekeys:
+                                                        array :usize[]!
+                                                      evals:
+                                                        array :bool[]!
+                                                      index:
+                                                        array :i32[]!
+                                                      mask: int(0) :usize
+                                                      size: int(0) :usize
+                                                      tombs: int(0) :usize
+                                                    }
+                                                }
+                                              last: null
+                                            }
                                       assign
                                         target:
                                           .state :i32

@@ -30,20 +30,12 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            snippet$Wrap$Display$to_string__Any :string
-          arg0:
-            a :Wrap<Cat>!
+        "wrapped" :string
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            snippet$Wrap$Display$to_string__Any :string
-          arg0:
-            b :Wrap<Dog>!
+        "wrapped" :string
     return int(0) :i32
   struct snippet$Wrap__Cat { value: Any }
   fn snippet$Wrap$Display$to_string__Any(self: Wrap<Any>!) -> string

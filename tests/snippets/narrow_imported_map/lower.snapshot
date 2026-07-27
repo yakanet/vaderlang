@@ -16,7 +16,7 @@
       }
     call :void
       callee:
-        std_collections$MutableMap$IndexSet$set_at__i32__Any :void
+        std_collections$put__i32__Any :void
       arg0:
         m :MutableMap<i32, i32 | Wrap>!
       arg1:
@@ -88,9 +88,9 @@
 ## snippet/lib
   fn snippet_lib$pick(m: MutableMap<i32, i32 | Wrap>, k: i32) -> null | Out
     let v: i32 | null | Wrap =
-      call :i32 | null | Wrap
+      call :Any | null
         callee:
-          std_collections$MutableMap$Index$at__i32__Any :i32 | null | Wrap
+          std_collections$get__i32__Any :Any | null
         arg0:
           m :MutableMap<i32, i32 | Wrap>
         arg1:

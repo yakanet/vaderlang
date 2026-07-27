@@ -56,7 +56,7 @@
                 arg2:
                   call :bool
                     callee:
-                      std_collections$std_collections$add__i32 :bool
+                      std_collections$add__i32 :bool
                     arg0:
                       s :MutableSet<i32>!
                     arg1:
@@ -108,7 +108,7 @@
                 arg2:
                   call :bool
                     callee:
-                      std_collections$std_collections$add__i32 :bool
+                      std_collections$add__i32 :bool
                     arg0:
                       s :MutableSet<i32>!
                     arg1:
@@ -160,7 +160,7 @@
                 arg2:
                   call :bool
                     callee:
-                      std_collections$std_collections$add__i32 :bool
+                      std_collections$add__i32 :bool
                     arg0:
                       s :MutableSet<i32>!
                     arg1:
@@ -211,10 +211,8 @@
                   __off_7 :usize
                 arg2:
                   cast → u64
-                    call :usize
-                      callee:
-                        std_collections$std_collections$len__i32 :usize
-                      arg0:
+                    .size :usize
+                      .inner :MutableMap<i32, bool>
                         s :MutableSet<i32>!
           ~>
             call :string
@@ -263,9 +261,10 @@
                 arg2:
                   call :bool
                     callee:
-                      std_collections$MutableSet$Contains$contains__i32 :bool
+                      std_collections$contains_key__i32__bool :bool
                     arg0:
-                      s :MutableSet<i32>!
+                      .inner :MutableMap<i32, bool>
+                        s :MutableSet<i32>!
                     arg1:
                       int(10) :i32
           ~>
@@ -315,9 +314,10 @@
                 arg2:
                   call :bool
                     callee:
-                      std_collections$MutableSet$Contains$contains__i32 :bool
+                      std_collections$contains_key__i32__bool :bool
                     arg0:
-                      s :MutableSet<i32>!
+                      .inner :MutableMap<i32, bool>
+                        s :MutableSet<i32>!
                     arg1:
                       int(30) :i32
           ~>

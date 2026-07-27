@@ -181,12 +181,10 @@
                   __off_5 :usize
                 arg2:
                   cast → i64
-                    call :i32
-                      callee:
-                        snippet$read_nth__Cell :i32
-                      arg0:
+                    vcall Index.at :i32
+                      recv:
                         cell :Cell!
-                      arg1:
+                      arg0:
                         int(2) :usize
           ~>
             call :string
@@ -243,12 +241,10 @@
                   __off_7 :usize
                 arg2:
                   cast → i64
-                    call :i32
-                      callee:
-                        snippet$read_nth__Cell :i32
-                      arg0:
+                    vcall Index.at :i32
+                      recv:
                         cell :Cell!
-                      arg1:
+                      arg0:
                         int(2) :usize
           ~>
             call :string

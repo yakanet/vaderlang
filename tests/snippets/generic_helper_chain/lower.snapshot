@@ -3,17 +3,19 @@
 ## snippet
   fn snippet$main() -> i32
     let a: Box<Box<i32>> =
-      call :Box<Box<i32>>
-        callee:
-          snippet$outer__i32 :Box<Box<i32>>
-        arg0:
-          int(42) :i32
+      Box<Box<Any>>! {
+        value:
+          Box<i32>! {
+            value: int(42) :i32
+          }
+      }
     let b: Box<Box<string>> =
-      call :Box<Box<string>>
-        callee:
-          snippet$outer__string :Box<Box<string>>
-        arg0:
-          "ok" :string
+      Box<Box<Any>>! {
+        value:
+          Box<string>! {
+            value: "ok" :string
+          }
+      }
     call :void
       callee:
         std_io$println__string :void
@@ -69,42 +71,28 @@
   fn snippet$middle__i32(x: i32) -> Box<i32>
     return
       Box<i32>! {
-        value:
-          call :i32
-            callee:
-              snippet$inner__i32 :i32
-            arg0:
-              x :i32
+        value: x :i32
       }
   fn snippet$middle__string(x: string) -> Box<string>
     return
       Box<string>! {
-        value:
-          call :string
-            callee:
-              snippet$inner__string :string
-            arg0:
-              x :string
+        value: x :string
       }
   fn snippet$outer__i32(x: i32) -> Box<Box<i32>>
     return
       Box<Box<Any>>! {
         value:
-          call :Box<i32>
-            callee:
-              snippet$middle__i32 :Box<i32>
-            arg0:
-              x :i32
+          Box<i32>! {
+            value: x :i32
+          }
       }
   fn snippet$outer__string(x: string) -> Box<Box<string>>
     return
       Box<Box<Any>>! {
         value:
-          call :Box<string>
-            callee:
-              snippet$middle__string :Box<string>
-            arg0:
-              x :string
+          Box<string>! {
+            value: x :string
+          }
       }
   struct snippet$Box__Any { value: Any }
   struct snippet$Box__Box_Any { value: Any }

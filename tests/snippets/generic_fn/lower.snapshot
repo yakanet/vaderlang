@@ -2,12 +2,7 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let n: i32 =
-      call :i32
-        callee:
-          snippet$snippet$identity__i32 :i32
-        arg0:
-          int(42) :i32
+    let n: i32 = int(42) :i32
     call :void
       callee:
         std_io$println__string :void
@@ -63,7 +58,7 @@
     let v: i32 =
       call :i32
         callee:
-          snippet$snippet$first__i32 :i32
+          snippet$first__i32 :i32
         arg0:
           arr :i32[]!
         arg1:
@@ -116,9 +111,9 @@
               arg1:
                 __off_3 :usize
     return int(0) :i32
-  fn snippet$snippet$identity__i32(x: i32) -> i32
+  fn snippet$identity__i32(x: i32) -> i32
     return x :i32
-  fn snippet$snippet$first__i32(arr: i32[], fallback: i32) -> i32
+  fn snippet$first__i32(arr: i32[], fallback: i32) -> i32
     if :void
       cond:
         gt :bool

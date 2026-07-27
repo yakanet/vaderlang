@@ -15,19 +15,25 @@
     let first: i32 = int(0) :i32
     block :void
       let __iter_0: Iterator<i32> =
-        call :__genstate_chain<i32>!
-          callee:
-            std_iter$std_iter$chain__i32 :__genstate_chain<i32>!
-          arg0:
+        __gen_state_58! {
+          s0:
             ArrayIterator<i32>! {
               arr: a :i32[]!
               cursor: int(0) :usize
             }
-          arg1:
+          s1:
             ArrayIterator<i32>! {
               arr: b :i32[]!
               cursor: int(0) :usize
             }
+          s2: null
+          s3: null
+          s4: int(0) :i32
+          s5: null
+          s6: null
+          s7: int(0) :i32
+          state: int(22) :i32
+        }
       loop
         let __step_1: Yield<i32>! | null =
           vcall Iterator.next :Yield<i32>! | null
@@ -125,19 +131,25 @@
     let second: i32 = int(0) :i32
     block :void
       let __iter_4: Iterator<i32> =
-        call :__genstate_chain<i32>!
-          callee:
-            std_iter$std_iter$chain__i32 :__genstate_chain<i32>!
-          arg0:
+        __gen_state_58! {
+          s0:
             ArrayIterator<i32>! {
               arr: a :i32[]!
               cursor: int(0) :usize
             }
-          arg1:
+          s1:
             ArrayIterator<i32>! {
               arr: b :i32[]!
               cursor: int(0) :usize
             }
+          s2: null
+          s3: null
+          s4: int(0) :i32
+          s5: null
+          s6: null
+          s7: int(0) :i32
+          state: int(22) :i32
+        }
       loop
         let __step_5: Yield<i32>! | null =
           vcall Iterator.next :Yield<i32>! | null
@@ -235,19 +247,25 @@
     let labelled: i32 = int(0) :i32
     block :void
       let __iter_8: Iterator<i32> =
-        call :__genstate_chain<i32>!
-          callee:
-            std_iter$std_iter$chain__i32 :__genstate_chain<i32>!
-          arg0:
+        __gen_state_58! {
+          s0:
             ArrayIterator<i32>! {
               arr: a :i32[]!
               cursor: int(0) :usize
             }
-          arg1:
+          s1:
             ArrayIterator<i32>! {
               arr: b :i32[]!
               cursor: int(0) :usize
             }
+          s2: null
+          s3: null
+          s4: int(0) :i32
+          s5: null
+          s6: null
+          s7: int(0) :i32
+          state: int(22) :i32
+        }
       loop :y
         let __step_9: Yield<i32>! | null =
           vcall Iterator.next :Yield<i32>! | null

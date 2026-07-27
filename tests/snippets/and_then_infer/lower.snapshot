@@ -40,7 +40,7 @@
     let r1: Error | i32 =
       call :Error | i32
         callee:
-          std_option$std_option$and_then__i32__i32 :Error | i32
+          std_option$and_then__i32__i32 :Error | i32
         arg0:
           call :Error | i32
             callee:
@@ -76,7 +76,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        std_option$std_option$or__i32 :i32
+                        std_option$or__i32 :i32
                       arg0:
                         r1 :Error | i32
                       arg1:
@@ -93,7 +93,7 @@
     let r2: Error | i32 =
       call :Error | i32
         callee:
-          std_option$std_option$and_then__i32__i32 :Error | i32
+          std_option$and_then__i32__i32 :Error | i32
         arg0:
           call :Error | i32
             callee:
@@ -129,7 +129,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        std_option$std_option$or__i32 :i32
+                        std_option$or__i32 :i32
                       arg0:
                         r2 :Error | i32
                       arg1:

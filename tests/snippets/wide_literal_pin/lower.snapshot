@@ -41,7 +41,7 @@
     let anchor: i64 = int(9000000000) :i64
     call :void
       callee:
-        std_collections$MutableMap$IndexSet$set_at__i64__i32 :void
+        std_collections$put__i64__i32 :void
       arg0:
         keyed :MutableMap<i64, i32>!
       arg1:
@@ -92,7 +92,7 @@
                       arg0:
                         call :i32 | null
                           callee:
-                            std_collections$MutableMap$Index$at__i64__i32 :i32 | null
+                            std_collections$get__i64__i32 :i32 | null
                           arg0:
                             keyed :MutableMap<i64, i32>!
                           arg1:
@@ -119,7 +119,7 @@
       }
     call :void
       callee:
-        std_collections$MutableMap$IndexSet$set_at__i32__i64 :void
+        std_collections$put__i32__i64 :void
       arg0:
         valued :MutableMap<i32, i64>!
       arg1:
@@ -169,7 +169,7 @@
                     arg0:
                       call :i64 | null
                         callee:
-                          std_collections$MutableMap$Index$at__i32__i64 :i64 | null
+                          std_collections$get__i32__i64 :i64 | null
                         arg0:
                           valued :MutableMap<i32, i64>!
                         arg1:
@@ -196,7 +196,7 @@
       }
     call :void
       callee:
-        std_collections$MutableMap$IndexSet$set_at__i64__i32 :void
+        std_collections$put__i64__i32 :void
       arg0:
         setkey :MutableMap<i64, i32>!
       arg1:
@@ -248,7 +248,7 @@
                       arg0:
                         call :i32 | null
                           callee:
-                            std_collections$MutableMap$Index$at__i64__i32 :i32 | null
+                            std_collections$get__i64__i32 :i32 | null
                           arg0:
                             setkey :MutableMap<i64, i32>!
                           arg1:
@@ -261,12 +261,7 @@
                 __buf_4 :Buffer
               arg1:
                 __off_5 :usize
-    let face3: i64 =
-      call :i64
-        callee:
-          snippet$takes__i64 :i64
-        arg0:
-          int(9000000000) :i64
+    let face3: i64 = int(9000000000) :i64
     call :void
       callee:
         std_io$println__string :void

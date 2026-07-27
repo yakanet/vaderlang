@@ -29,7 +29,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$outer__i32 :i32
+                        snippet$inner_count__i32 :i32
                       arg0:
                         array :i32[]
                           int(1) :i32
@@ -72,7 +72,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$outer__string :i32
+                        snippet$inner_count__string :i32
                       arg0:
                         array :string[]
                           "a" :string

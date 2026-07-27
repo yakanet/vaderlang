@@ -107,19 +107,6 @@ build_inline_index :: fn(project: LoweredProject) -> MutableMap<string, InlineIn
 
 inlineable_info :: fn(fd: LoweredFnDecl) -> InlineInfo | null {
     body :: fd.body ?? return null
-    // Skip generic INSTANCES — LOAD-BEARING, do not relax. A generic-instance
-    // mangle is built in TWO places that disagree: `lower_generic_call.vader`
-    // emits the canonical SINGLE module prefix, while the UFCS harvest
-    // (`lower_ufcs.vader::harvest_ufcs_fn_instance`) DOUBLES it
-    // (`mod$mod$name<suffix>`). Both register under the same instance key
-    // (`"<fn_sym.id>::<suffix>"`), so the surviving mangle is whichever syntactic
-    // path the project reached first — `a.len()` and `len(a)` do not agree on the
-    // name. Cloning such a body here would splice calls whose mangle need not
-    // match any emitted definition. Unify the two mangle builders FIRST; until
-    // then this filter is what keeps the divergence unobservable. The high-value
-    // targets — `Display.to_string`, `Comparable`, accessors — are impls on
-    // CONCRETE types (`type_arguments` empty), so they inline regardless.
-    if !fd.origin.type_arguments.is_empty() { return null }
     result :: single_expr_result(body) ?? return null
     counts :: param_use_counts(result, fd.params, fd.mangled) ?? return null
     return InlineInfo { .body = result, .params = fd.params, .use_counts = counts }

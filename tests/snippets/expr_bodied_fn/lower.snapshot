@@ -173,11 +173,7 @@
                   __off_5 :usize
                 arg2:
                   cast → i64
-                    call :i32
-                      callee:
-                        snippet$id__i32 :i32
-                      arg0:
-                        int(42) :i32
+                    int(42) :i32
           ~>
             call :string
               callee:
@@ -194,20 +190,12 @@
           callee:
             format_f64 :fn(f64) -> string
           arg0:
-            call :f64
-              callee:
-                snippet$id__f64 :f64
-              arg0:
-                float(7.5) :f64
+            float(7.5) :f64
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            snippet$id__string :string
-          arg0:
-            "hello" :string
+        "hello" :string
     return int(0) :i32
   fn snippet$id__f64(x: f64) -> f64
     ~>

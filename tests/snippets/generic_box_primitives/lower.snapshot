@@ -462,27 +462,18 @@
                   callee:
                     utf8_encode :fn(char) -> u8[]
                   arg0:
-                    call :char
-                      callee:
-                        snippet$unwrap__char :char
-                      arg0:
-                        bc :Box<char>!
+                    .v :char
+                      bc :Box<char>!
           let __p_9: string =
             call :string
               callee:
                 format_f32 :fn(f32) -> string
               arg0:
-                call :f32
-                  callee:
-                    snippet$unwrap__f32 :f32
-                  arg0:
-                    bf32 :Box<f32>!
+                .v :f32
+                  bf32 :Box<f32>!
           let __p_10: string =
-            call :string
-              callee:
-                snippet$unwrap__string :string
-              arg0:
-                bs :Box<string>!
+            .v :string
+              bs :Box<string>!
           let __buf_11: Buffer =
             call :Buffer
               callee:
@@ -540,11 +531,8 @@
                   __off_12 :usize
                 arg2:
                   cast → u64
-                    call :u8
-                      callee:
-                        snippet$unwrap__u8 :u8
-                      arg0:
-                        bu8 :Box<u8>!
+                    .v :u8
+                      bu8 :Box<u8>!
           assign
             target:
               __off_12 :usize
@@ -570,11 +558,8 @@
                 arg1:
                   __off_12 :usize
                 arg2:
-                  call :bool
-                    callee:
-                      snippet$unwrap__bool :bool
-                    arg0:
-                      bb :Box<bool>!
+                  .v :bool
+                    bb :Box<bool>!
           assign
             target:
               __off_12 :usize
@@ -653,11 +638,8 @@
                   __off_12 :usize
                 arg2:
                   cast → i64
-                    call :i16
-                      callee:
-                        snippet$unwrap__i16 :i16
-                      arg0:
-                        bi16 :Box<i16>!
+                    .v :i16
+                      bi16 :Box<i16>!
           assign
             target:
               __off_12 :usize
@@ -683,11 +665,8 @@
                 arg1:
                   __off_12 :usize
                 arg2:
-                  call :i64
-                    callee:
-                      snippet$unwrap__i64 :i64
-                    arg0:
-                      bi64 :Box<i64>!
+                  .v :i64
+                    bi64 :Box<i64>!
           assign
             target:
               __off_12 :usize

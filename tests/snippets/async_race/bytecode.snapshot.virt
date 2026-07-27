@@ -410,7 +410,8 @@ fn 5 snippet$__asyncstate_17$Async$resume (ref) -> any
           local.get 5
           local.get 6
           array.new 24 2
-          call 18
+          struct.new 19
+          ref.cast 15
           local.set 7
           local.get 0
           local.get 7
@@ -465,11 +466,11 @@ fn 7 concat_2 (string,string) -> string
   local.tee 4
   i64.const 0
   local.get 0
-  call 21
+  call 20
   local.get 4
   local.get 2
   local.get 1
-  call 21
+  call 20
   local.get 4
   local.get 3
   call 9
@@ -478,14 +479,14 @@ end
 
 fn 8 std_core$new_byte_buffer (usize) -> ref
   local.get 0
-  call 19
+  call 18
   return
 end
 
 fn 9 std_core$finish_buffer (ref,usize) -> string
   local.get 0
   local.get 1
-  call 20
+  call 19
   return
 end
 
@@ -689,26 +690,20 @@ fn 17 std_async$block_on__i32 (any) -> i32
   return
 end
 
-fn 18 std_async$race__string (ref) -> any
-  local.get 0
-  struct.new 19
-  return
-end
-
-fn 19 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 18 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   buffer.new
   return
 end
 
-fn 20 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 19 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 21 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 20 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2

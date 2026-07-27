@@ -972,7 +972,7 @@ fn 17 std_random$next_u32 (ref) -> u32
   return
 end
 
-fn 18 std_random$std_random$shuffle__i32 (ref,ref) -> void
+fn 18 std_random$shuffle__i32 (ref,ref) -> void
   local n usize
   local $cast_14 u32
   local j usize

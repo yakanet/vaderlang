@@ -65,15 +65,15 @@ fn 0 snippet$main () -> i32
   local.tee 0
   string.const 0
   i32.const 1
-  call 8
+  call 14
   local.get 0
   string.const 1
   i32.const 2
-  call 8
+  call 14
   local.get 0
   string.const 2
   i32.const 3
-  call 8
+  call 14
   i32.const 0
   local.set 3
   local.field 0 12 0
@@ -157,15 +157,15 @@ fn 0 snippet$main () -> i32
   struct.new 13
   local.tee 0
   i32.const 10
-  call 19
+  call 16
   drop
   local.get 0
   i32.const 20
-  call 19
+  call 16
   drop
   local.get 0
   i32.const 30
-  call 19
+  call 16
   drop
   i32.const 0
   local.set 3
@@ -228,14 +228,14 @@ end
 
 fn 1 std_core$new_byte_buffer (usize) -> ref
   local.get 0
-  call 20
+  call 17
   return
 end
 
 fn 2 std_core$finish_buffer (ref,usize) -> string
   local.get 0
   local.get 1
-  call 22
+  call 19
   return
 end
 
@@ -244,7 +244,7 @@ fn 3 std_core$write_string_at (ref,usize,string) -> usize
   local.get 0
   local.get 1
   local.get 2
-  call 23
+  call 20
   local.get 2
   call.import 0
   local.set 3
@@ -268,7 +268,7 @@ fn 4 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     i32.const 48
-    call 21
+    call 18
     local.get 1
     i64.const 1
     i64.add
@@ -347,7 +347,7 @@ fn 4 std_core$write_int (ref,usize,i64) -> usize
         local.get 0
         local.get 4
         local.get 8
-        call 21
+        call 18
         local.get 2
         i64.const 10
         i64.div
@@ -362,7 +362,7 @@ fn 4 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     i32.const 45
-    call 21
+    call 18
   else
   end $L9
   local.get 1
@@ -381,30 +381,7 @@ fn 5 std_io$println__string (string) -> void
   return
 end
 
-fn 6 std_collections$MutableMap$IndexSet$set_at__i32__bool (ref,i32,bool) -> void
-  local.get 0
-  local.get 1
-  local.get 2
-  call 16
-  return
-end
-
-fn 7 std_collections$MutableMap$Contains$contains__i32__bool (ref,i32) -> bool
-  local.get 0
-  local.get 1
-  call 18
-  return
-end
-
-fn 8 std_collections$MutableMap$IndexSet$set_at__string__i32 (ref,string,i32) -> void
-  local.get 0
-  local.get 1
-  local.get 2
-  call 17
-  return
-end
-
-fn 9 std_collections$slot_for (u64,usize) -> usize
+fn 6 std_collections$slot_for (u64,usize) -> usize
   local.get 0
   u64.to_i64
   local.get 1
@@ -412,7 +389,7 @@ fn 9 std_collections$slot_for (u64,usize) -> usize
   return
 end
 
-fn 10 std_collections$std_collections$ensure_index__i32__bool (ref) -> void
+fn 7 std_collections$ensure_index__i32__bool (ref) -> void
   local idx ref
   local __for_discard_0 usize
   local.field 0 11 2
@@ -455,7 +432,7 @@ fn 10 std_collections$std_collections$ensure_index__i32__bool (ref) -> void
   return
 end
 
-fn 11 std_collections$std_collections$ensure_index__string__i32 (ref) -> void
+fn 8 std_collections$ensure_index__string__i32 (ref) -> void
   local idx ref
   local __for_discard_0 usize
   local.field 0 12 2
@@ -498,7 +475,7 @@ fn 11 std_collections$std_collections$ensure_index__string__i32 (ref) -> void
   return
 end
 
-fn 12 std_collections$std_collections$rehash__i32__bool (ref,usize) -> void
+fn 9 std_collections$rehash__i32__bool (ref,usize) -> void
   local fresh ref
   local __for_discard_0 usize
   local e usize
@@ -547,7 +524,7 @@ fn 12 std_collections$std_collections$rehash__i32__bool (ref,usize) -> void
         load_slot_i32
         i32.to_i64
         local.get 3
-        call 9
+        call 6
         local.set 6
         block $L6 void
           loop $L7 void
@@ -598,7 +575,7 @@ fn 12 std_collections$std_collections$rehash__i32__bool (ref,usize) -> void
   return
 end
 
-fn 13 std_collections$std_collections$rehash__string__i32 (ref,usize) -> void
+fn 10 std_collections$rehash__string__i32 (ref,usize) -> void
   local fresh ref
   local __for_discard_0 usize
   local e usize
@@ -646,9 +623,9 @@ fn 13 std_collections$std_collections$rehash__string__i32 (ref,usize) -> void
         local.get 4
         array.get 10
         ref.cast 5
-        call 24
+        call 21
         local.get 3
-        call 9
+        call 6
         local.set 6
         block $L6 void
           loop $L7 void
@@ -699,7 +676,7 @@ fn 13 std_collections$std_collections$rehash__string__i32 (ref,usize) -> void
   return
 end
 
-fn 14 std_collections$std_collections$write_entry__i32__bool (ref,i32,bool) -> void
+fn 11 std_collections$write_entry__i32__bool (ref,i32,bool) -> void
   local $field_3 usize
   local $len_5 usize
   local $field_7 ref
@@ -742,7 +719,7 @@ fn 14 std_collections$std_collections$write_entry__i32__bool (ref,i32,bool) -> v
   return
 end
 
-fn 15 std_collections$std_collections$write_entry__string__i32 (ref,string,i32) -> void
+fn 12 std_collections$write_entry__string__i32 (ref,string,i32) -> void
   local $field_3 usize
   local $len_5 usize
   local $field_7 ref
@@ -785,7 +762,7 @@ fn 15 std_collections$std_collections$write_entry__string__i32 (ref,string,i32) 
   return
 end
 
-fn 16 std_collections$std_collections$put__i32__bool (ref,i32,bool) -> void
+fn 13 std_collections$put__i32__bool (ref,i32,bool) -> void
   local $field_3 usize
   local $field_4 usize
   local $mul_24 usize
@@ -796,7 +773,7 @@ fn 16 std_collections$std_collections$put__i32__bool (ref,i32,bool) -> void
   local $field_69 ref
   local $cast_73 i32
   local.get 0
-  call 10
+  call 7
   local.field 0 11 4
   ref.cast 3
   local.set 3
@@ -852,7 +829,7 @@ fn 16 std_collections$std_collections$put__i32__bool (ref,i32,bool) -> void
     end $L1
     local.get 0
     local.get 3
-    call 12
+    call 9
   else
   end $L0
   local.get 1
@@ -863,7 +840,7 @@ fn 16 std_collections$std_collections$put__i32__bool (ref,i32,bool) -> void
   local.set 3
   local.get 6
   local.get 3
-  call 9
+  call 6
   local.set 3
   i64.const 1
   i64.neg
@@ -971,7 +948,7 @@ fn 16 std_collections$std_collections$put__i32__bool (ref,i32,bool) -> void
   local.get 0
   local.get 1
   local.get 2
-  call 14
+  call 11
   local.field 0 11 2
   local.set 10
   local.field 0 11 4
@@ -995,7 +972,7 @@ fn 16 std_collections$std_collections$put__i32__bool (ref,i32,bool) -> void
   return
 end
 
-fn 17 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
+fn 14 std_collections$put__string__i32 (ref,string,i32) -> void
   local $field_3 usize
   local $field_4 usize
   local $mul_24 usize
@@ -1006,7 +983,7 @@ fn 17 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   local $field_69 ref
   local $cast_73 i32
   local.get 0
-  call 11
+  call 8
   local.field 0 12 4
   ref.cast 3
   local.set 3
@@ -1062,18 +1039,18 @@ fn 17 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
     end $L1
     local.get 0
     local.get 3
-    call 13
+    call 10
   else
   end $L0
   local.get 1
-  call 24
+  call 21
   local.set 6
   local.field 0 12 3
   ref.cast 3
   local.set 3
   local.get 6
   local.get 3
-  call 9
+  call 6
   local.set 3
   i64.const 1
   i64.neg
@@ -1182,7 +1159,7 @@ fn 17 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   local.get 0
   local.get 1
   local.get 2
-  call 15
+  call 12
   local.field 0 12 2
   local.set 10
   local.field 0 12 4
@@ -1206,7 +1183,7 @@ fn 17 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   return
 end
 
-fn 18 std_collections$std_collections$contains_key__i32__bool (ref,i32) -> bool
+fn 15 std_collections$contains_key__i32__bool (ref,i32) -> bool
   local $cast_7 u64
   local $field_8 usize
   local ei usize
@@ -1228,7 +1205,7 @@ fn 18 std_collections$std_collections$contains_key__i32__bool (ref,i32) -> bool
   local.set 3
   local.get 2
   local.get 3
-  call 9
+  call 6
   local.set 3
   block $L1 void
     loop $L2 void
@@ -1295,27 +1272,27 @@ fn 18 std_collections$std_collections$contains_key__i32__bool (ref,i32) -> bool
   return.lit bool.const false
 end
 
-fn 19 std_collections$std_collections$add__i32 (ref,i32) -> bool
+fn 16 std_collections$add__i32 (ref,i32) -> bool
   local.field 0 13 0
   local.get 1
-  call 7
+  call 15
   if $L0 void
     return.lit bool.const false
   end $L0
   local.field 0 13 0
   local.get 1
   bool.const true
-  call 6
+  call 13
   return.lit bool.const true
 end
 
-fn 20 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 17 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   buffer.new
   return
 end
 
-fn 21 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 18 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -1323,14 +1300,14 @@ fn 21 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 22 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 19 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 23 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 20 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -1338,7 +1315,7 @@ fn 23 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   return
 end
 
-fn 24 std_core$string$Hash$hash_vt (string) -> u64
+fn 21 std_core$string$Hash$hash_vt (string) -> u64
   local.get 0
   call.import 1
   return

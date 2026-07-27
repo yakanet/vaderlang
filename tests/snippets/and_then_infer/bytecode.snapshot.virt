@@ -272,7 +272,7 @@ fn 8 std_io$println__string (string) -> void
   return
 end
 
-fn 9 std_option$std_option$or__i32 (any,i32) -> i32
+fn 9 std_option$or__i32 (any,i32) -> i32
   local.get 0
   type_check 5
   if $L0 void
@@ -284,7 +284,7 @@ fn 9 std_option$std_option$or__i32 (any,i32) -> i32
   return
 end
 
-fn 10 std_option$std_option$and_then__i32__i32 (any,ref) -> any
+fn 10 std_option$and_then__i32__i32 (any,ref) -> any
   local.get 0
   type_check 5
   if $L0 void

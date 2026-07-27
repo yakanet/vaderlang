@@ -20,7 +20,7 @@
       }
     call :void
       callee:
-        std_collections$MutableMap$IndexSet$set_at__string__i32 :void
+        std_collections$put__string__i32 :void
       arg0:
         .by_name :MutableMap<string, i32>
           c :Counts!
@@ -31,7 +31,7 @@
     let v: i32 | null =
       call :i32 | null
         callee:
-          std_collections$MutableMap$Index$at__string__i32 :i32 | null
+          std_collections$get__string__i32 :i32 | null
         arg0:
           .by_name :MutableMap<string, i32>
             c :Counts!

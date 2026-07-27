@@ -16,7 +16,7 @@
       }
     call :void
       callee:
-        std_collections$MutableMap$IndexSet$set_at__string__i32 :void
+        std_collections$put__string__i32 :void
       arg0:
         m :MutableMap<string, i32>!
       arg1:
@@ -25,7 +25,7 @@
         int(1) :i32
     call :void
       callee:
-        std_collections$MutableMap$IndexSet$set_at__string__i32 :void
+        std_collections$put__string__i32 :void
       arg0:
         m :MutableMap<string, i32>!
       arg1:
@@ -34,7 +34,7 @@
         int(2) :i32
     call :void
       callee:
-        std_collections$MutableMap$IndexSet$set_at__string__i32 :void
+        std_collections$put__string__i32 :void
       arg0:
         m :MutableMap<string, i32>!
       arg1:
@@ -79,11 +79,8 @@
                   __off_1 :usize
                 arg2:
                   cast → u64
-                    call :usize
-                      callee:
-                        std_collections$std_collections$len__string__i32 :usize
-                      arg0:
-                        m :MutableMap<string, i32>!
+                    .size :usize
+                      m :MutableMap<string, i32>!
           ~>
             call :string
               callee:
@@ -95,7 +92,7 @@
     let v1: i32 | null =
       call :i32 | null
         callee:
-          std_collections$MutableMap$Index$at__string__i32 :i32 | null
+          std_collections$get__string__i32 :i32 | null
         arg0:
           m :MutableMap<string, i32>!
         arg1:
@@ -179,7 +176,7 @@
     let v2: i32 | null =
       call :i32 | null
         callee:
-          std_collections$MutableMap$Index$at__string__i32 :i32 | null
+          std_collections$get__string__i32 :i32 | null
         arg0:
           m :MutableMap<string, i32>!
         arg1:
@@ -263,7 +260,7 @@
     let v3: i32 | null =
       call :i32 | null
         callee:
-          std_collections$MutableMap$Index$at__string__i32 :i32 | null
+          std_collections$get__string__i32 :i32 | null
         arg0:
           m :MutableMap<string, i32>!
         arg1:
@@ -383,7 +380,7 @@
                 arg2:
                   call :bool
                     callee:
-                      std_collections$MutableMap$Contains$contains__string__i32 :bool
+                      std_collections$contains_key__string__i32 :bool
                     arg0:
                       m :MutableMap<string, i32>!
                     arg1:
@@ -435,7 +432,7 @@
                 arg2:
                   call :bool
                     callee:
-                      std_collections$MutableMap$Contains$contains__string__i32 :bool
+                      std_collections$contains_key__string__i32 :bool
                     arg0:
                       m :MutableMap<string, i32>!
                     arg1:
@@ -450,7 +447,7 @@
                 __off_11 :usize
     call :void
       callee:
-        std_collections$MutableMap$IndexSet$set_at__string__i32 :void
+        std_collections$put__string__i32 :void
       arg0:
         m :MutableMap<string, i32>!
       arg1:
@@ -460,7 +457,7 @@
     let v1b: i32 | null =
       call :i32 | null
         callee:
-          std_collections$MutableMap$Index$at__string__i32 :i32 | null
+          std_collections$get__string__i32 :i32 | null
         arg0:
           m :MutableMap<string, i32>!
         arg1:

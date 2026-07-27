@@ -572,10 +572,8 @@
                                                 __self_6 :__asyncstate_16!
                                             value:
                                               cast → Async<Any>
-                                                call :Async<i32[]!>
-                                                  callee:
-                                                    std_async$all__i32 :Async<i32[]!>
-                                                  arg0:
+                                                All<i32>! {
+                                                  children:
                                                     array :Async<i32>[]
                                                       call :Async<i32>
                                                         callee:
@@ -591,6 +589,19 @@
                                                           int(100) :i32
                                                         arg1:
                                                           int(2) :i32
+                                                  results:
+                                                    MutableMap<usize, i32>! {
+                                                      ekeys:
+                                                        array :usize[]!
+                                                      evals:
+                                                        array :i32[]!
+                                                      index:
+                                                        array :i32[]!
+                                                      mask: int(0) :usize
+                                                      size: int(0) :usize
+                                                      tombs: int(0) :usize
+                                                    }
+                                                }
                                           assign
                                             target:
                                               .state :i32

@@ -18,12 +18,7 @@
   fn snippet$assert_cmp(cond: bool, msg: string) -> bool
     return cond :bool
   fn snippet$main() -> i32
-    let n: i32 =
-      call :i32
-        callee:
-          snippet$snippet$identity__i32 :i32
-        arg0:
-          int(42) :i32
+    let n: i32 = int(42) :i32
     call :void
       callee:
         std_io$println__string :void
@@ -71,12 +66,7 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
-    let e: i32 =
-      call :i32
-        callee:
-          snippet$snippet$identity__i32 :i32
-        arg0:
-          int(42) :i32
+    let e: i32 = int(42) :i32
     call :void
       callee:
         std_io$println__string :void
@@ -125,11 +115,9 @@
               arg1:
                 __off_3 :usize
     let b: Box<i32> =
-      call :Box<i32>
-        callee:
-          snippet$snippet$make_box__i32 :Box<i32>
-        arg0:
-          int(7) :i32
+      Box<i32>! {
+        value: int(7) :i32
+      }
     call :void
       callee:
         std_io$println__string :void
@@ -181,7 +169,7 @@
     let nested: Box<Box<i32>> =
       call :Box<Box<i32>>
         callee:
-          snippet$snippet$make_nested__i32 :Box<Box<i32>>
+          snippet$make_nested__i32 :Box<Box<i32>>
         arg0:
           int(99) :i32
     call :void
@@ -286,9 +274,9 @@
     return int(0) :i32
   struct snippet$Box__i32 { value: i32 }
   struct snippet$Box__Box_i32_ { value: Any }
-  fn snippet$snippet$identity__i32(x: i32) -> i32
+  fn snippet$identity__i32(x: i32) -> i32
     return x :i32
-  fn snippet$snippet$make_nested__i32(v: i32) -> Box<Box<i32>>
+  fn snippet$make_nested__i32(v: i32) -> Box<Box<i32>>
     let inner: Box<i32>! =
       Box<i32>! {
         value: v :i32
@@ -297,7 +285,7 @@
       Box<Box<Any>>! {
         value: inner :Box<i32>!
       }
-  fn snippet$snippet$make_box__i32(v: i32) -> Box<i32>
+  fn snippet$make_box__i32(v: i32) -> Box<i32>
     return
       Box<i32>! {
         value: v :i32

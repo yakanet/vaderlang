@@ -57,7 +57,7 @@
     let cloned: i32[]! =
       call :i32[]!
         callee:
-          std_iter$std_iter$clone__i32 :i32[]!
+          std_iter$clone__i32 :i32[]!
         arg0:
           nums :i32[]!
     call :void
@@ -504,10 +504,8 @@
               r:
                 int(1) :usize
     let bursts: __genstate_flat_map<i32>! =
-      call :__genstate_flat_map<i32>!
-        callee:
-          std_iter$flat_map__i32__i32 :__genstate_flat_map<i32>!
-        arg0:
+      __gen_state_44! {
+        s0:
           ArrayIterator<i32>! {
             arr:
               array :i32[]!
@@ -516,8 +514,17 @@
                 int(3) :i32
             cursor: int(0) :usize
           }
-        arg1:
+        s1:
           LoweredMakeClosure
+        s2: null
+        s3: null
+        s4: int(0) :i32
+        s5: null
+        s6: int(0) :usize
+        s7: int(0) :usize
+        s8: int(0) :i32
+        state: int(16) :i32
+      }
     block :void
       let __iter_26: Iterator<i32> = bursts :__genstate_flat_map<i32>!
       loop

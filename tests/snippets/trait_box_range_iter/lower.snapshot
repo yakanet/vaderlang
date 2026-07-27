@@ -51,17 +51,13 @@
             cursor: int(0) :usize
           }
     let c: i32 =
-      call :i32
-        callee:
-          snippet$invoke__i32 :i32
-        arg0:
+      vcall Greeter.greet :i32
+        recv:
           Hello! {
           }
     let d: i32 =
-      call :i32
-        callee:
-          snippet$twice__i32 :i32
-        arg0:
+      vcall Doubler.doubled :i32
+        recv:
           int(7) :Doubler<i32>
     return
       add :i32

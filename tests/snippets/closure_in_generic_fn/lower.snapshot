@@ -54,11 +54,9 @@
     return
       call :i32
         callee:
-          snippet$apply__i32 :i32
+          id :fn(i32) -> i32
         arg0:
           x :i32
-        arg1:
-          id :fn(i32) -> i32
   struct __lambda_env_10 {  }
   fn __lambda_9(__env_0: __lambda_env_10!, v: i32) -> i32
     ~>

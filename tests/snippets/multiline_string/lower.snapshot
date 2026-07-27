@@ -5,8 +5,10 @@
     let s: string = "line one\nline two\n" :string
     call :void
       callee:
-        std_io$print__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         s :string
     let n: i32 = int(42) :i32
     let msg: string =
@@ -68,14 +70,18 @@
               __off_1 :usize
     call :void
       callee:
-        std_io$print__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         msg :string
     let escaped: string = "tab:\there\n" :string
     call :void
       callee:
-        std_io$print__string :void
+        write :fn(Stream, string) -> void
       arg0:
+        int(0) :i32
+      arg1:
         escaped :string
     let prefix: string = "start" :string
     let combined: string =

@@ -49,7 +49,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$pick__i32 :i32
+                        snippet$pick__i32 :i32
                       arg0:
                         call :i32 | null
                           callee:
@@ -93,7 +93,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$pick__i32 :i32
+                        snippet$pick__i32 :i32
                       arg0:
                         call :i32 | null
                           callee:
@@ -137,7 +137,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$pick__i32_1 :i32
+                        snippet$pick__i32_1 :i32
                       arg0:
                         call :Boom | i32
                           callee:
@@ -182,7 +182,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$pick__i32_1 :i32
+                        snippet$pick__i32_1 :i32
                       arg0:
                         call :Boom | i32
                           callee:
@@ -201,7 +201,7 @@
               arg1:
                 __off_7 :usize
     return int(0) :i32
-  fn snippet$snippet$pick__i32(x: i32 | null, d: i32) -> i32
+  fn snippet$pick__i32(x: i32 | null, d: i32) -> i32
     if :void
       cond:
         is null :bool
@@ -211,7 +211,7 @@
     return
       cast → i32
         x :i32 | null
-  fn snippet$snippet$pick__i32_1(x: Boom | i32, d: i32) -> i32
+  fn snippet$pick__i32_1(x: Boom | i32, d: i32) -> i32
     if :void
       cond:
         is Boom! :bool

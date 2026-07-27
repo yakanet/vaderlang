@@ -44,8 +44,8 @@ static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
 static void std_io_println__string(vader_string_t l0);
-static int32_t std_option_std_option_or__i32(vader_box_t l0, int32_t l1);
-static vader_box_t std_option_std_option_and_then__i32__i32(vader_box_t l0, void* l1);
+static int32_t std_option_or__i32(vader_box_t l0, int32_t l1);
+static vader_box_t std_option_and_then__i32__i32(vader_box_t l0, void* l1);
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
 static void std_core_Buffer_ByteAccess_store_u8_vt(void* l0, size_t l1, uint8_t l2);
 static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size_t l1);
@@ -162,12 +162,12 @@ static int32_t snippet_main(void) {
     _a1_closure->code = (void*) &vader_fn_lift_3;
     _a1_closure->env = t0;
     l1 = (void*) _a1_closure;
-    l0 = std_option_std_option_and_then__i32__i32(l0, l1);
+    l0 = std_option_and_then__i32__i32(l0, l1);
 #line 22 "tests/snippets/and_then_infer/_main.vader"
     l1 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(20));
     l2 = (size_t) (int64_t) INT64_C(0);
     l3 = -(INT32_C(1));
-    t1 = std_option_std_option_or__i32(l0, l3);
+    t1 = std_option_or__i32(l0, l3);
     l4 = ((int64_t) (int32_t) t1);
     l2 = std_core_write_int(l1, l2, l4);
     t2 = std_core_finish_buffer(l1, l2);
@@ -182,12 +182,12 @@ static int32_t snippet_main(void) {
     _a3_closure->code = (void*) &vader_fn_lift_4;
     _a3_closure->env = t0;
     l1 = (void*) _a3_closure;
-    l0 = std_option_std_option_and_then__i32__i32(l0, l1);
+    l0 = std_option_and_then__i32__i32(l0, l1);
 #line 25 "tests/snippets/and_then_infer/_main.vader"
     l1 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(20));
     l2 = (size_t) (int64_t) INT64_C(0);
     l3 = -(INT32_C(1));
-    t1 = std_option_std_option_or__i32(l0, l3);
+    t1 = std_option_or__i32(l0, l3);
     l4 = ((int64_t) (int32_t) t1);
     l2 = std_core_write_int(l1, l2, l4);
     t2 = std_core_finish_buffer(l1, l2);
@@ -337,7 +337,7 @@ static void std_io_println__string(vader_string_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-static int32_t std_option_std_option_or__i32(vader_box_t l0, int32_t l1) {
+static int32_t std_option_or__i32(vader_box_t l0, int32_t l1) {
     int32_t t0;
 #line 53 "stdlib/std/option/option.vader"
     if ((l0.tag == 5u) || (l0.tag == 1u)) {
@@ -348,7 +348,7 @@ static int32_t std_option_std_option_or__i32(vader_box_t l0, int32_t l1) {
     return t0;
 }
 
-static vader_box_t std_option_std_option_and_then__i32__i32(vader_box_t l0, void* l1) {
+static vader_box_t std_option_and_then__i32__i32(vader_box_t l0, void* l1) {
     int32_t t0;
     vader_box_t t1 = vader_box_null();
     vader_box_t* gc_roots[2] = { &l0, &t1 };
