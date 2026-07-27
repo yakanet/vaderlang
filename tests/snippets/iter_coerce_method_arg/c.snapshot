@@ -124,30 +124,6 @@ const size_t vader_type_size[19] = {
     [18] = 0u,
 };
 
-
-/* ----------------------------------------------------------- vtables
- * Per-tag method dispatch tables consumed by
- * `vader_virtual_dispatch(tag, slot)`. Built from the bytecode's
- * `(trait.method)` → `(typeIndex → fnIndex)` map; slot indices are
- * derived deterministically by sorting the trait-method keys
- * alphabetically. Pinned stdlib slots: Hash.hash=0, Equals.equals=1, Ord.compare=2, Display.display=3.
- */
-static const vader_vtable_t vt_4 = { .slots = {
-    [8] = (void*)std_core_Range_Iterator_next__i32, /* Iterator.next */
-}};
-static const vader_vtable_t vt_9 = { .slots = {
-    [8] = (void*)std_core_Range_Iterator_next__usize, /* Iterator.next */
-}};
-static const vader_vtable_t vt_12 = { .slots = {
-    [8] = (void*)std_core_ArrayIterator_Iterator_next__i32, /* Iterator.next */
-}};
-
-const vader_vtable_t* const vader_vtable_table[13] = {
-    [4] = &vt_4,
-    [9] = &vt_9,
-    [12] = &vt_12,
-};
-const size_t vader_vtable_count = 13;
 static size_t vader_import_0(vader_string_t a0) { return vader_string_byte_len(a0); }
 static void vader_import_1(int32_t a0, vader_string_t a1) { vader_write(a0, a1); }
 

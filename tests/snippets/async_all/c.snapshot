@@ -153,38 +153,6 @@ const size_t vader_type_size[27] = {
     [26] = 16u,
 };
 
-
-/* ----------------------------------------------------------- vtables
- * Per-tag method dispatch tables consumed by
- * `vader_virtual_dispatch(tag, slot)`. Built from the bytecode's
- * `(trait.method)` → `(typeIndex → fnIndex)` map; slot indices are
- * derived deterministically by sorting the trait-method keys
- * alphabetically. Pinned stdlib slots: Hash.hash=0, Equals.equals=1, Ord.compare=2, Display.display=3.
- */
-static const vader_vtable_t vt_3 = { .slots = {
-    [8] = (void*)snippet___asyncstate_2_Async_cancel, /* Async.cancel */
-    [9] = (void*)snippet___asyncstate_2_Async_resume, /* Async.resume */
-}};
-static const vader_vtable_t vt_7 = { .slots = {
-    [8] = (void*)snippet___asyncstate_13_Async_cancel, /* Async.cancel */
-    [9] = (void*)snippet___asyncstate_13_Async_resume, /* Async.resume */
-}};
-static const vader_vtable_t vt_18 = { .slots = {
-    [8] = (void*)std_async_All_Async_cancel__i32, /* Async.cancel */
-    [9] = (void*)std_async_All_Async_resume__i32, /* Async.resume */
-}};
-static const vader_vtable_t vt_21 = { .slots = {
-    [8] = (void*)std_async_Sleep_Async_cancel, /* Async.cancel */
-    [9] = (void*)std_async_Sleep_Async_resume, /* Async.resume */
-}};
-
-const vader_vtable_t* const vader_vtable_table[22] = {
-    [3] = &vt_3,
-    [7] = &vt_7,
-    [18] = &vt_18,
-    [21] = &vt_21,
-};
-const size_t vader_vtable_count = 22;
 static void vader_import_0(int32_t a0, vader_string_t a1) { vader_write(a0, a1); }
 static int64_t vader_import_1(void) { return vader_sched_now(); }
 static void vader_import_2(int64_t a0) { vader_sched_arm(a0); }

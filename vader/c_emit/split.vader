@@ -10,10 +10,10 @@
 //                     fn-sig typedefs, ALL fn / import-shim / dispatcher /
 //                     closure prototypes, the atom-count macro, and `extern`
 //                     decls for the data globals defined in the globals TU.
-//                     (`vader_type_info_table` / `vader_vtable_table` are
-//                     already extern'd by `vader.h`.)
+//                     (`vader_type_info_table` is already extern'd by
+//                     `vader.h`.)
 //   - `<base>.g.c`  — the data-global DEFINITIONS : atom table, data pool,
-//                     type-info + size tables, vtables. Pure data, no code.
+//                     type-info + size tables. Pure data, no code.
 //   - `<base>.<k>.c`— the function bodies, partitioned into N buckets by body
 //                     size in mangle-sorted order (deterministic → stable for
 //                     the bootstrap fixed point). Unit 0 also carries the
@@ -139,8 +139,8 @@ comptime_atom_count :: fn(ctx: EmitCtx) -> i32 {
 
 /// `extern` decls for the data globals defined in the globals TU and read from
 /// the function units : the data-pool arrays (`data.const`), the atom table
-/// (`main`), and the size table (`@size_of`). `vader_type_info_table` /
-/// `vader_vtable_table` + their counts are already declared by `vader.h`.
+/// (`main`), and the size table (`@size_of`). `vader_type_info_table` and its
+/// count are already declared by `vader.h`.
 emit_data_global_externs :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     for i in 0..<ctx.module.data_pool.len() {
         // The qualifier must match the definition in the globals TU — a mutable

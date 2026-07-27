@@ -220,47 +220,6 @@ const size_t vader_type_size[41] = {
     [40] = 16u,
 };
 
-
-/* ----------------------------------------------------------- vtables
- * Per-tag method dispatch tables consumed by
- * `vader_virtual_dispatch(tag, slot)`. Built from the bytecode's
- * `(trait.method)` → `(typeIndex → fnIndex)` map; slot indices are
- * derived deterministically by sorting the trait-method keys
- * alphabetically. Pinned stdlib slots: Hash.hash=0, Equals.equals=1, Ord.compare=2, Display.display=3.
- */
-static const vader_vtable_t vt_1 = { .slots = {
-    [10] = (void*)snippet_Boom_Error_message, /* Error.message */
-}};
-static const vader_vtable_t vt_5 = { .slots = {
-    [8] = (void*)snippet___asyncstate_2_Async_cancel, /* Async.cancel */
-    [9] = (void*)snippet___asyncstate_2_Async_resume, /* Async.resume */
-}};
-static const vader_vtable_t vt_10 = { .slots = {
-    [8] = (void*)snippet___asyncstate_11_Async_cancel, /* Async.cancel */
-    [9] = (void*)snippet___asyncstate_11_Async_resume, /* Async.resume */
-}};
-static const vader_vtable_t vt_11 = { .slots = {
-    [8] = (void*)snippet___asyncstate_23_Async_cancel, /* Async.cancel */
-    [9] = (void*)snippet___asyncstate_23_Async_resume, /* Async.resume */
-}};
-static const vader_vtable_t vt_23 = { .slots = {
-    [8] = (void*)std_async_Any_Async_cancel__string__Any, /* Async.cancel */
-    [9] = (void*)std_async_Any_Async_resume__string__Any, /* Async.resume */
-}};
-static const vader_vtable_t vt_28 = { .slots = {
-    [8] = (void*)std_async_Sleep_Async_cancel, /* Async.cancel */
-    [9] = (void*)std_async_Sleep_Async_resume, /* Async.resume */
-}};
-
-const vader_vtable_t* const vader_vtable_table[29] = {
-    [1] = &vt_1,
-    [5] = &vt_5,
-    [10] = &vt_10,
-    [11] = &vt_11,
-    [23] = &vt_23,
-    [28] = &vt_28,
-};
-const size_t vader_vtable_count = 29;
 static size_t vader_import_0(vader_string_t a0) { return vader_string_byte_len(a0); }
 static void vader_import_1(int32_t a0, vader_string_t a1) { vader_write(a0, a1); }
 static int64_t vader_import_2(void) { return vader_sched_now(); }

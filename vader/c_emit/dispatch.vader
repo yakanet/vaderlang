@@ -1,19 +1,24 @@
-// vader/c_emit/dispatch — trait-method dispatch tables + per-key helpers.
+// vader/c_emit/dispatch — trait-method dispatchers for the generated C.
 //
-// Two outputs feed virtual dispatch in the generated C :
+// One output feeds virtual dispatch in the generated C: a per-`(trait.method)`
+// dispatcher function (`vader_vt_<key>`) that the `virtual.call` op invokes — a
+// `switch (recv.tag)` forwarding to the matching impl fn, boxing args and result
+// to the erased ABI so heterogeneous monomorphised impls can share one
+// dispatcher.
 //
-//   1. Per-tag slot tables (`vt_<typeIdx>` + `vader_vtable_table[]`) that
-//      override the runtime's weak fallback and back the generic
-//      `vader_virtual_dispatch(tag, slot)` helper.
-//   2. Per-`(trait.method)` dispatcher functions (`vader_vt_<key>`) that the
-//      `virtual.call` op actually invokes — a `switch (recv.tag)` forwarding
-//      to the matching impl fn, boxing args / result to the erased ABI so
-//      heterogeneous monomorphised impls can share one dispatcher.
+// There used to be a second: per-tag slot tables (`vt_<typeIdx>` +
+// `vader_vtable_table[]`) behind a generic `vader_virtual_dispatch(tag, slot)`
+// helper. Removed 2026-07-28 — the helper had no caller anywhere, so the tables
+// were 33 × 64 pointers plus a 561-entry index, ~21 KB of dead data in every
+// binary. They kept nothing alive either: the 34 functions they addressed are all
+// called elsewhere. With them went the slot registry (the pinned `Hash.hash`=0 /
+// `Equals.equals`=1 / … numbering) that existed only to lay them out.
 //
-// Slot indices are a C-emit-only concept here : the Vader VM dispatches a
-// `virtual.call` by `(vtable_key → receiver tag)` directly (see
-// `vader/bytecode/op.vader::VirtualCall`), never by slot — so the registry lives in
-// this module and exists purely to lay out the runtime slot tables.
+// The runtime half — `vader_vtable_t`, `vader_virtual_dispatch`, and the weak
+// fallback globals in `vader_runtime.c` — has to outlive this commit by one
+// bootstrap cycle: the committed seed still emits the tables, and its C only
+// links against a `vader.h` that declares them. Drop it once a seed built from
+// this commit is in.
 
 module "vader/c_emit"
 
@@ -22,70 +27,6 @@ import "std/string_builder"
 import "std/collections"
 import "std/sort"
 import "vader/bytecode"
-
-// ---- slot registry --------------------------------------------------------
-
-/// First slot index available to user-defined trait methods. Slots `0..7`
-/// are reserved for the pinned stdlib traits (`pinned_slot`).
-FIRST_USER_SLOT :: 8
-
-/// Fixed slot for a pinned stdlib trait method, or `-1` when `key` isn't
-/// pinned. Hard-coded so the runtime helpers + bench tools can reference
-/// these without a built registry.
-pinned_slot :: fn(key: string) -> i32 {
-    if key == "Hash.hash"       { return 0 }
-    if key == "Equals.equals"   { return 1 }
-    if key == "Ord.compare"     { return 2 }
-    if key == "Display.display" { return 3 }
-    return -1
-}
-
-/// `${trait}.${method}` → slot index. Pinned methods keep their fixed slot ;
-/// every other method sorts alphabetically and is assigned a slot from
-/// `FIRST_USER_SLOT` up, so independent builds of the same project agree.
-SlotRegistry :: struct {
-    slots: MutableMap<string, i32>
-}
-
-/// Build the registry from the module's vtable keys. Pinned keys seed the
-/// map ; the rest are assigned in alphabetical order from `FIRST_USER_SLOT`.
-///
-/// @param keys  every `${trait}.${method}` key in the module's vtables.
-/// @return      a registry mapping each key to its dispatch slot.
-build_slot_registry_from_keys :: fn(keys: string[]) -> SlotRegistry {
-    slots := MutableMap<string, i32> {}
-    slots["Hash.hash"]       = 0
-    slots["Equals.equals"]   = 1
-    slots["Ord.compare"]     = 2
-    slots["Display.display"] = 3
-
-    unpinned: string[]! = [] * keys.len()
-    for k in keys {
-        if pinned_slot(k) < 0 {
-            unpinned.push(k)
-        }
-    }
-    sorted :: sort(unpinned, (a: string, b: string) -> compare_ascending(a, b))
-    next: i32 = FIRST_USER_SLOT
-    for k in sorted {
-        if !(k in slots) {
-            slots[k] = next
-            next += 1
-        }
-    }
-    return SlotRegistry { .slots = slots }
-}
-
-/// Slot for a `${trait}.${method}` key, or `-1` if unregistered.
-slot_lookup :: fn(self: SlotRegistry, key: string) -> i32 {
-    v :: self.slots[key] ?? return -1
-    return v
-}
-
-/// Stable list of pinned trait-method slots, formatted as
-/// `"Hash.hash=0, Equals.equals=1, Ord.compare=2, Display.display=3"` for the
-/// generated comment block.
-pinned_slot_summary :: fn() -> string ="Hash.hash=0, Equals.equals=1, Ord.compare=2, Display.display=3"
 
 // ---- per-key dispatcher metadata ------------------------------------------
 
@@ -144,13 +85,6 @@ dispatcher_formal :: fn(sig: BcSignature) -> string {
 
 // ---- emit -----------------------------------------------------------------
 
-/// One projected `(type, slot) → fn` row of the per-tag slot table.
-VtSlot :: struct {
-    type_index: i32
-    slot:       i32
-    fn_index:   i32
-    key:        string
-}
 
 /// Forward-declare every dispatcher so user fns calling them compile before
 /// the bodies are emitted.
@@ -236,80 +170,4 @@ dispatcher_result :: fn(types: BcType[], call_expr: string, impl_result: ValType
     return call_expr
 }
 
-/// Per-tag slot tables + the `vader_vtable_table[]` index + count. Always
-/// emitted — the strong symbols override the runtime's weak empty fallback,
-/// keeping the link-time takeover deterministic.
-emit_vtables :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
-    // Column-0 body : triple-quoted strings take their content verbatim
-    // (only the newline right after the opening `"""` is stripped), so the
-    // C comment can't be indented. The leading blank line supplies the `\n`
-    // separator before the block.
-    out.append("""
 
-/* ----------------------------------------------------------- vtables
- * Per-tag method dispatch tables consumed by
- * `vader_virtual_dispatch(tag, slot)`. Built from the bytecode's
- * `(trait.method)` → `(typeIndex → fnIndex)` map; slot indices are
- * derived deterministically by sorting the trait-method keys
- * alphabetically. Pinned stdlib slots: ${pinned_slot_summary()}.
- */
-""")
-
-    rows :: ctx.module.vtables
-    reg :: build_slot_registry_from_keys(vtable_keys(rows))
-    entries: VtSlot![]! = []
-    max_tag: i32 = -1
-    for row in rows {
-        if row.entries.len() == 0 { continue }
-        slot :: slot_lookup(reg, row.key)
-        if slot < 0 { continue }
-        for e in row.entries {
-            if e.receiver_type_index > max_tag { max_tag = e.receiver_type_index }
-            entries.push(VtSlot {
-                .type_index = e.receiver_type_index,
-                .slot       = slot,
-                .fn_index   = e.fn_index,
-                .key        = row.key,
-            })
-        }
-    }
-    if entries.len() == 0 {
-        out.append("const vader_vtable_t* const vader_vtable_table[1] = { NULL };\n")
-        out.append("const size_t                vader_vtable_count    = 0;\n")
-        return
-    }
-
-    // Group the flat entry list by receiver tag in one pass, then emit the
-    // per-tag `vt_<tag>` structs + the index table (each tag's slots sorted).
-    table_size :: max_tag + 1
-    groups: VtSlot![]![] = filled(usize(table_size), () -> [])
-    for e in entries { groups[usize(e.type_index)].push(e) }
-
-    for tag in 0..<table_size {
-        slots :: groups[usize(tag)]
-        if slots.len() == 0 { continue }
-        sorted :: sort(slots, (a: VtSlot, b: VtSlot) -> a.slot < b.slot)
-        out.append("${linkage_prefix(ctx.split)}const vader_vtable_t vt_${tag} = { .slots = {\n")
-        for ent in sorted {
-            out.append("    [${ent.slot}] = (void*)${sanitise(ctx.module.functions[usize(ent.fn_index)].name)}, /* ${ent.key} */\n")
-        }
-        out.append("}};\n")
-    }
-
-    out.append("\n")
-    out.append("const vader_vtable_t* const vader_vtable_table[${table_size}] = {\n")
-    for tag in 0..<table_size {
-        if groups[usize(tag)].len() > 0 {
-            out.append("    [${tag}] = &vt_${tag},\n")
-        }
-    }
-    out.append("};\n")
-    out.append("const size_t vader_vtable_count = ${table_size};\n")
-}
-
-/// Every `${trait}.${method}` key in `rows`, for the slot registry.
-vtable_keys :: fn(rows: VtableRow[]) -> string[] {
-    out: string[]! = []
-    for row in rows { out.push(row.key) }
-    return out
-}

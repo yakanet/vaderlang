@@ -241,47 +241,6 @@ const size_t vader_type_size[44] = {
     [43] = 16u,
 };
 
-
-/* ----------------------------------------------------------- vtables
- * Per-tag method dispatch tables consumed by
- * `vader_virtual_dispatch(tag, slot)`. Built from the bytecode's
- * `(trait.method)` → `(typeIndex → fnIndex)` map; slot indices are
- * derived deterministically by sorting the trait-method keys
- * alphabetically. Pinned stdlib slots: Hash.hash=0, Equals.equals=1, Ord.compare=2, Display.display=3.
- */
-static const vader_vtable_t vt_1 = { .slots = {
-    [10] = (void*)snippet_Outage_Error_message, /* Error.message */
-}};
-static const vader_vtable_t vt_7 = { .slots = {
-    [8] = (void*)snippet___asyncstate_8_Async_cancel, /* Async.cancel */
-    [9] = (void*)snippet___asyncstate_8_Async_resume, /* Async.resume */
-}};
-static const vader_vtable_t vt_11 = { .slots = {
-    [8] = (void*)snippet___asyncstate_20_Async_cancel, /* Async.cancel */
-    [9] = (void*)snippet___asyncstate_20_Async_resume, /* Async.resume */
-}};
-static const vader_vtable_t vt_23 = { .slots = {
-    [8] = (void*)std_async_All_Async_cancel__Any, /* Async.cancel */
-    [9] = (void*)std_async_All_Async_resume__Any, /* Async.resume */
-}};
-static const vader_vtable_t vt_26 = { .slots = {
-    [8] = (void*)std_async_TryAll_Async_cancel__i32__Any, /* Async.cancel */
-    [9] = (void*)std_async_TryAll_Async_resume__i32__Any, /* Async.resume */
-}};
-static const vader_vtable_t vt_32 = { .slots = {
-    [8] = (void*)std_async_Sleep_Async_cancel, /* Async.cancel */
-    [9] = (void*)std_async_Sleep_Async_resume, /* Async.resume */
-}};
-
-const vader_vtable_t* const vader_vtable_table[33] = {
-    [1] = &vt_1,
-    [7] = &vt_7,
-    [11] = &vt_11,
-    [23] = &vt_23,
-    [26] = &vt_26,
-    [32] = &vt_32,
-};
-const size_t vader_vtable_count = 33;
 static size_t vader_import_0(vader_string_t a0) { return vader_string_byte_len(a0); }
 static void vader_import_1(int32_t a0, vader_string_t a1) { vader_write(a0, a1); }
 static int64_t vader_import_2(void) { return vader_sched_now(); }

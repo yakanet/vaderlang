@@ -849,11 +849,6 @@ emit_type_info_table :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     }
     out.append("};\n")
     out.append("\n")
-
-    // Per-tag trait-method vtables. Always emitted — override the weak
-    // fallback in `vader_runtime.c` so `vader_virtual_dispatch`
-    // resolves correctly for any concrete type implementing a trait.
-    emit_vtables(ctx, out)
 }
 
 /// Per-struct field classification carrier. Captured once by
@@ -954,9 +949,9 @@ emit_struct_info_row :: fn(ctx: EmitCtx, _s: BcStruct, offs: StructOffsets, type
 // `emit_import_shims` lives in `host.vader` (same module) — the
 // `call.import` host-fn dispatch is a distinct responsibility.
 //
-// The vtable section emitters (`emit_vtable_forward_decls` / `emit_vtables` /
-// `emit_vtable_dispatchers`) + the slot registry live in `dispatch.vader`
-// (same module) — trait-method dispatch is its own responsibility.
+// The vtable dispatchers (`emit_vtable_forward_decls` /
+// `emit_vtable_dispatchers`) live in `dispatch.vader` (same module) —
+// trait-method dispatch is its own responsibility.
 
 /// `int main(...)` shim. No `is_main` fn → the `return 0;` stub. Otherwise
 /// a signature-aware entry : `vader_atom`/`vader_gc` init, optional

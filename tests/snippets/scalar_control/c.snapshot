@@ -25,16 +25,6 @@ const size_t vader_type_size[2] = {
 };
 
 
-/* ----------------------------------------------------------- vtables
- * Per-tag method dispatch tables consumed by
- * `vader_virtual_dispatch(tag, slot)`. Built from the bytecode's
- * `(trait.method)` → `(typeIndex → fnIndex)` map; slot indices are
- * derived deterministically by sorting the trait-method keys
- * alphabetically. Pinned stdlib slots: Hash.hash=0, Equals.equals=1, Ord.compare=2, Display.display=3.
- */
-const vader_vtable_t* const vader_vtable_table[1] = { NULL };
-const size_t                vader_vtable_count    = 0;
-
 static int32_t snippet_main(void) {
     int32_t l0, l1;
 #line 13 "tests/snippets/scalar_control/_main.vader"
