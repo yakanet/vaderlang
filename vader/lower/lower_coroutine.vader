@@ -1,11 +1,11 @@
 // vader/lower/lower_coroutine — the reusable coroutine state-machine engine.
 //
 // Extracted from `lower_generator.vader` (P1.0 of the async/await plan) so both
-// `generator` and (future) `async` lowering can share the block-split: the
+// `generator` and `async` lowering share the block-split: the
 // structured-lowered-CFG → numbered-states transform, spill collection,
-// self-field routing, and dispatch synthesis. Currently coupled to the generator
-// suspension marker (`LoweredYield`) and the pull-only `next()` protocol;
-// parameterising it for the async `resume(injected)` protocol is a later step.
+// self-field routing, and dispatch synthesis. Both drive it today —
+// `lower_generator.vader` on the pull-only `next()` protocol,
+// `lower_async.vader` on `resume(injected)`.
 
 module "vader/lower"
 

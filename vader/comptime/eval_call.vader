@@ -8,9 +8,10 @@
 // `idents[p.span.hash()] = sym` write), then evaluates the callee's
 // body in a fresh `ComptimeContext` carrying the bindings.
 //
-// Out of scope for now : recursion bound, side effects, `if` / `match`
-// in the body. The body must be a single `return <expr>` statement or
-// a trailing-expr block. Anything else falls back to C4001.
+// Out of scope : side effects, `if` / `match` in the body. The body must be a
+// single `return <expr>` statement or a trailing-expr block ; anything else
+// falls back to C4001. Recursion IS bounded — the caller's depth is carried into
+// the callee context so the guard also covers cyclic comptime calls.
 
 module "vader/comptime"
 

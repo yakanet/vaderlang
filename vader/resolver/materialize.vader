@@ -1,8 +1,7 @@
 // vader/resolver/materialize — synthetic trait method injection.
 //
-// Three entry points each
-// expand an `ImplDecl.members` array with synthesised method declarations
-// drawn from the trait :
+// Each entry point expands an `ImplDecl.members` array with synthesised method
+// declarations drawn from the trait :
 //
 //   1. `materialize_intrinsic_members` — @intrinsic impl with an empty
 //      body : push one stub FnDecl per trait method, signature only.

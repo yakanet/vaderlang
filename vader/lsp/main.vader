@@ -1,20 +1,12 @@
 // vader/lsp/main — LSP event loop.
 //
-// Reads JSON-RPC frames from stdin in a loop, dispatches on `method`,
-// writes responses to stdout. Lifecycle :
+// Reads JSON-RPC frames from stdin in a loop, dispatches on `method`, writes
+// responses to stdout. The dispatch `match` below is the authoritative method
+// list — it is not restated here, because it grows. Anything it does not name is
+// answered with a JSON-RPC `MethodNotFound` so the client degrades gracefully.
 //
-//   1. `initialize` (request)        → capabilities + server info
-//   2. `initialized` (notification)  → no-op
-//   3. `textDocument/didOpen` (notification)   → store document source
-//   4. `textDocument/didChange` (notification) → replace document source
-//   5. `textDocument/didClose` (notification)  → drop document source
-//   6. `textDocument/semanticTokens/full` (request) → produce tokens
-//   7. `shutdown` (request)          → respond null, prepare for exit
-//   8. `exit` (notification)         → terminate (exit 0 if shutdown was
-//                                      received, exit 1 otherwise)
-//
-// Anything else is answered with a JSON-RPC `MethodNotFound` error so the
-// client gracefully degrades.
+// Exit contract : `shutdown` responds null and arms the flag ; `exit` terminates
+// with 0 if `shutdown` was received first, 1 otherwise.
 //
 // The server is split across three submodules reached via aliases here :
 //   - `P` (vader/lsp/protocol) : JSON-RPC framing, encoders, logging.

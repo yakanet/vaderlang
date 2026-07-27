@@ -11,11 +11,12 @@
 // surviving fn bodies to compute a reachability set, then drops
 // entries that nothing alive references.
 //
-// **Whole-program DCE** on the LoweredProject is NOT done here — Vader's
-// lower currently filters stdlib at the module level, so the
-// LoweredProject already excludes most unreachable decls. The four
-// EmitterCtx-level prunes here run after the body emit, so they're
-// the most impactful for the emitted bytecode.
+// **Whole-program DCE** happens earlier and elsewhere :
+// `vader/lower/dce.vader::prune_unreachable_fns`, on the LoweredProject, before
+// the CFG build. What is left for here is what only exists AFTER the body emit —
+// the emitter's own import / fn / type tables, their dense renumbering, and
+// reachability facts no earlier pass can see (which `virtual.call` keys actually
+// survived, the `_vt` thunks emit synthesises). The two are not redundant.
 
 module "vader/bytecode"
 

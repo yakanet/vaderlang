@@ -6,23 +6,10 @@
 // family) used across the C-emit pipeline. The per-op / per-fn body walker
 // lives in `walker.vader` (same module).
 //
-// Two categories of public helpers :
-//
-//   1. C identifier / literal escaping :
-//        - `sanitise` — replace non-ident chars with `_`, suffix with
-//                       `_v` when the result collides with a C keyword.
-//        - `c_string_lit` — quote-wrap a string with `\x` escapes for
-//                           any byte outside printable ASCII.
-//
-//   2. `BcType` / `ValType` → C type mapping :
-//        - `c_type_for_val_bare` — primitive `ValType` → C type
-//                                  (`int32_t`, `vader_string_t`, …).
-//        - `c_type_for` — `BcType` → C type ; heap shapes collapse to
-//                         `vader_box_t`.
-//        - `val_type_of_bc_type` — stack-erased classifier (every heap
-//                                  shape lands in `Ref`).
-//        - `struct_c_name` — `vader_struct_<sanitised>_t` ; the canonical
-//                            C type name for a `BcStruct` slot.
+// The one thing worth knowing before picking a helper : every heap shape
+// collapses to `vader_box_t` on the C side and to `Ref` on the stack side, so
+// `c_type_for` / `val_type_of_bc_type` are lossy by design — reach for
+// `struct_c_name` when you need the concrete `vader_struct_<name>_t`.
 
 module "vader/c_emit"
 

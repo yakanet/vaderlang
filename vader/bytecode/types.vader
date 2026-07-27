@@ -7,15 +7,11 @@
 // module to C ; the VM uses the subset it needs for `type_check` /
 // `struct.get` diagnostics.
 //
-// Two top-level types :
-//   - `ValType` — stack-machine value class. Closed enum over every
-//                 supported primitive plus the two reference shapes
-//                 (`ref`, `any`).
-//   - `BcType`  — type-table entry. One variant per kind ; type-index
-//                 references in `BcField`, `BcArray.element`, `BcFn`
-//                 are simple `i32`s into the parent module's type list.
+// Type-index references (`BcField`, `BcArray.element`, `BcFn`) are plain `i32`s
+// into the parent module's type list, never direct references — the table is
+// assembled once and addressed positionally from then on.
 //
-// Both shapes are intentionally read-only after construction (the
+// Every shape declared here is intentionally read-only after construction (the
 // emitter assembles each module once, the C-emit then walks it).
 
 /// Stack-machine value class — every operand the VM / C-emit can carry

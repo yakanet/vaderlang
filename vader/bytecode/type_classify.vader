@@ -5,21 +5,13 @@
 // (e.g. the data-pool encoder, the WASM emit, the LSP type-info
 // renderer).
 //
-// Four helpers :
-//   - `type_intern_key(t)` — string used as cache key by `intern_type`.
-//     Primitives use the bare name (no allocation) ; every composite
-//     shape falls back to `display_type(t)`.
-//   - `val_type_of_type(t)` — stack-class of a `Type`. Primitives map
-//     by name ; every composite (struct / array / union / ref / fn)
-//     collapses to `Ref` so the operand stack carries a uniform
-//     reference width.
-//   - `bc_type_of(t)` — context-free `Type` → `BcType`. Classifies
-//     primitives precisely ; every composite collapses to a
-//     `BcPrimitive{.val=Ref}` placeholder.
-//   - `bc_type_of_with_ctx(t, ctx, slot)` — the context-aware walker :
-//     recursively interns nested types so composites carry accurate
-//     `BcArray` / `BcUnion` / `BcFn` / `BcStruct` shapes. This is the
-//     production path, reached through `intern_type`.
+// The trap to know before touching anything here : `bc_type_of` is the
+// CONTEXT-FREE projection and collapses every composite to a
+// `BcPrimitive{.val=Ref}` placeholder ; `bc_type_of_with_ctx` is the production
+// path (reached through `intern_type`) and is the only one that recursively
+// interns nested types into accurate `BcArray` / `BcUnion` / `BcFn` / `BcStruct`
+// shapes. Reaching for the former where the latter is meant degrades the type
+// silently — a missing arm there once collapsed every tuple to an opaque `ref`.
 
 module "vader/bytecode"
 
