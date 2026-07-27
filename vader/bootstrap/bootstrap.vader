@@ -2,15 +2,25 @@
 //
 // A minimal compiler whose only job is `<input.vader> -> <output.c>`. It is the
 // source the committed C seed (`bootstrap/bootstrap.c.gz`) is generated from —
-// see docs/BOOTSTRAP.md. Compiling it yields `stage1`, which carries the full
-// compilation pipeline and can therefore compile any `.vader` (including
-// `vader/cli/main.vader` -> the full compiler).
+// see docs/BOOTSTRAP.md. `cc`-ing that seed yields **stage0**, whose single
+// invocation (`bootstrap/build.sh`) is `stage0 vader/cli/main.vader stage1.c` —
+// stage0 therefore has to carry a complete compilation pipeline, even though it
+// only ever compiles that one input.
 //
 // The point of a dedicated entrypoint (rather than seeding from
-// `vader/cli/main.vader`) is to DECOUPLE the seed from the CLI : it imports the
-// compilation pipeline ONLY — never `vader/vm`, `vader/fmt`, or `vader/lsp` — so
-// growing the lsp / formatter / interpreter never re-bumps the seed. Only a
+// `vader/cli/main.vader`) is to DECOUPLE the seed from the CLI : it never
+// imports `vader/fmt`, `vader/lsp`, `vader/dap` or the CLI itself, so growing
+// the formatter / language server / debugger never re-bumps the seed. Only a
 // pipeline change does.
+//
+// It pull `vader/vm` in, transitively — `vader/comptime_vm` (imported
+// below) embeds the VM to bake loop-bearing `@comptime` decls, and `std/core`
+// (the implicit prelude, hence always loaded) has nine of them in
+// `dtoa_tables.vader` / `parse_float_tables.vader`. That is load-bearing, not an
+// oversight, but it is not free : `vader/vm` is ~17 % of the emitted seed, of
+// which `exec_entry` alone is ~14 %. Dropping it would mean freezing those
+// tables as literals — a deliberate reversal of the dtoa chantier, not a
+// cleanup.
 //
 // The pipeline-driver helpers below are duplicated from `vader/cli/main.vader`
 // (deliberate trade-off : no shared `driver` module, see docs/BOOTSTRAP.md).
