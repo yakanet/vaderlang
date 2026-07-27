@@ -84,39 +84,81 @@ export filename :: fn(self: Path) -> string {
     return rb[usize(idx) + 1..<rb.len()].bytes_to_string()
 }
 
-/// A filename split into its name and extension parts, as returned by
-/// `basename`. The two fields recombine to the full segment as
-/// `name + "." + extension` when an extension is present.
+/// The two halves of a filename, as returned by `basename`.
+///
+/// RETAINED against its own redundancy: `filename()` / `name()` / `extension()`
+/// cover every use, and this should have gone with them — but removing it makes
+/// `vader test stdlib/std/path` panic in `to_posix`, a function it never touched
+/// (`no field replace_chars_where on Path`). Bisected: ADDING the three views is
+/// fine, REMOVING this is what breaks, so it is a materialisation bug the removal
+/// merely exposes. `tests/vader_e2e.test.ts` runs that isolated mode per stdlib
+/// module, so the panic is CI-visible. See TODO.md; delete this once fixed.
 export Basename :: struct {
-    /// The filename without its final extension — `"archive.tar"`. Equal to
-    /// the whole filename when there is no extension.
+    /// The filename without its final extension — `"archive.tar"`.
     name:      string
-    /// The final extension without the leading dot — `"gz"`. Empty when the
-    /// filename has no extension, or is a dotfile like `.gitignore`.
+    /// The final extension without the leading dot — `"gz"`.
     extension: string
 }
 
-/// Split the path's final segment into its name and extension at the last
-/// `.`. A leading dot is not a separator, so a dotfile (`.gitignore`) has an
-/// empty `extension` and keeps its full name.
+/// Both halves of the final segment at once. Prefer `name()` / `extension()`.
 /// @param self  the path receiver.
-/// @return      `{ name, extension }` — `name` is the filename without its
-///              extension, `extension` the extension without the dot.
+/// @return      `{ name, extension }`, split at the last dot of the filename.
+export basename :: fn(self: Path) -> Basename =
+    Basename { .name = self.name(), .extension = self.extension() }
+
+// Byte offset of the extension-separating dot inside a FILENAME (never a full
+// path), or -1 when there is none. The `min_index` of 1 is the whole subtlety: a
+// leading dot marks a hidden file rather than an extension, and it only means
+// that at the start of the filename — which is why callers must have narrowed to
+// `filename()` first. `last_index_of` returns a BYTE offset, so every caller
+// slices `bytes()` and not the codepoint-indexed `s[a..<b]`; mixing the two turns
+// `café.vader` into `ader`.
+extension_dot :: fn(fname: string) -> isize = fname.last_index_of('.', 1)
+
+/// The final segment without its extension.
+///
+/// One of three views on the last segment, none of them overlapping:
+/// `filename()` gives `toto.zip`, `name()` gives `toto`, `extension()` gives
+/// `zip`.
+///
+/// @param self  the path receiver.
+/// @return      the filename with its extension and dot removed, or the filename
+///              unchanged when it has no extension — a dotfile keeps its full
+///              name (`.gitignore` → `.gitignore`), since its leading dot is not
+///              an extension separator.
 /// @example
-///   b :: to_path("src/archive.tar.gz").basename()
-///   b.name       // "archive.tar"
-///   b.extension  // "gz"
-export basename :: fn(self: Path) -> Basename {
+///   "src/archive.tar.gz".to_path().name()  // "archive.tar"
+///   "dir/.gitignore".to_path().name()      // ".gitignore"
+export name :: fn(self: Path) -> string {
     fname :: self.filename()
-    idx :: fname.last_index_of('.', 1)
+    idx :: extension_dot(fname)
     if idx < 0 {
-        return Basename { .name = fname, .extension = "" }
+        return fname
     }
-    nb :: fname.bytes()
-    return Basename {
-        .name = nb[0..<usize(idx)].bytes_to_string(),
-        .extension = nb[usize(idx) + 1..<nb.len()].bytes_to_string(),
+    return fname.bytes()[0..<usize(idx)].bytes_to_string()
+}
+
+/// The final segment's extension, without the dot.
+///
+/// One of three views on the last segment, none of them overlapping:
+/// `filename()` gives `toto.zip`, `name()` gives `toto`, `extension()` gives
+/// `zip`. Kept separate rather than returning both halves at once, so a caller
+/// wanting one doesn't pay for the other being built.
+///
+/// @param self  the path receiver.
+/// @return      the extension without its dot, or `""` when the final segment
+///              has none — a dotfile and a trailing dot both count as none.
+/// @example
+///   "src/archive.tar.gz".to_path().extension()  // "gz"
+///   "dir/.gitignore".to_path().extension()      // ""
+export extension :: fn(self: Path) -> string {
+    fname :: self.filename()
+    idx :: extension_dot(fname)
+    if idx < 0 {
+        return ""
     }
+    fb :: fname.bytes()
+    return fb[usize(idx) + 1..<fb.len()].bytes_to_string()
 }
 
 // ---- combinators ----------------------------------------------------------
@@ -205,10 +247,10 @@ export ends_with :: fn(self: Path, suffix: Path) -> bool {
 /// absolute prefix when present.
 ///
 /// Examples :
-///   `to_path("a/./b").normalize()       → "a/b"`
-///   `to_path("a/b/..").normalize()      → "a"`
-///   `to_path("/a/../b").normalize()     → "/b"`
-///   `to_path("../foo").normalize()      → "../foo"` (can't escape rel root)
+///   `"a/./b".to_path().normalize()       → "a/b"`
+///   `"a/b/..".to_path().normalize()      → "a"`
+///   `"/a/../b".to_path().normalize()     → "/b"`
+///   `"../foo".to_path().normalize()      → "../foo"` (can't escape rel root)
 ///
 /// @param self  the path receiver.
 /// @return      a fresh, lexically-normalised `Path`.
@@ -277,7 +319,7 @@ export normalize :: fn(self: Path) -> Path {
 import "std/testing"
 
 @test test_to_path :: fn() -> void {
-    p :: to_path("a/b/c")
+    p :: "a/b/c".to_path()
     assert_eq(p.as_string(), "a/b/c")
 }
 
@@ -287,50 +329,64 @@ import "std/testing"
 }
 
 @test test_is_absolute :: fn() -> void {
-    assert(to_path("/usr/bin").is_absolute(), "/usr/bin is absolute")
-    assert(!to_path("relative/path").is_absolute(), "relative/path is not absolute")
+    assert("/usr/bin".to_path().is_absolute(), "/usr/bin is absolute")
+    assert(!"relative/path".to_path().is_absolute(), "relative/path is not absolute")
     assert(!empty_path().is_absolute(), "empty path is not absolute")
 }
 
 @test test_parent :: fn() -> void {
-    assert_eq(to_path("a/b/c").parent().as_string(), "a/b")
-    assert_eq(to_path("a").parent().as_string(), "")
-    assert_eq(to_path("/usr/bin/cat").parent().as_string(), "/usr/bin")
+    assert_eq("a/b/c".to_path().parent().as_string(), "a/b")
+    assert_eq("a".to_path().parent().as_string(), "")
+    assert_eq("/usr/bin/cat".to_path().parent().as_string(), "/usr/bin")
 }
 
 @test test_filename :: fn() -> void {
-    assert_eq(to_path("a/b/c").filename(), "c")
-    assert_eq(to_path("file.txt").filename(), "file.txt")
-    assert_eq(to_path("a/b/").filename(), "")
+    assert_eq("a/b/c".to_path().filename(), "c")
+    assert_eq("file.txt".to_path().filename(), "file.txt")
+    assert_eq("a/b/".to_path().filename(), "")
 }
 
-@test test_basename :: fn() -> void {
-    txt :: to_path("file.txt").basename()
-    assert_eq(txt.name, "file")
-    assert_eq(txt.extension, "txt")
+// The three views on a final segment, checked together so they can't drift:
+// `filename` = `name` + `.` + `extension` whenever an extension is present.
+@test test_name_and_extension :: fn() -> void {
+    assert_eq("file.txt".to_path().name(), "file")
+    assert_eq("file.txt".to_path().extension(), "txt")
 
-    tgz :: to_path("a/b/c.tar.gz").basename()
-    assert_eq(tgz.name, "c.tar")
-    assert_eq(tgz.extension, "gz")
+    // The LAST dot splits, so a double extension keeps the first half in `name`.
+    assert_eq("a/b/c.tar.gz".to_path().name(), "c.tar")
+    assert_eq("a/b/c.tar.gz".to_path().extension(), "gz")
 
-    none :: to_path("README").basename()
-    assert_eq(none.name, "README")
-    assert_eq(none.extension, "")
+    // No extension: `name` is the whole filename, `extension` empty.
+    assert_eq("README".to_path().name(), "README")
+    assert_eq("README".to_path().extension(), "")
 
-    // A leading dot is not an extension separator.
-    dot :: to_path(".gitignore").basename()
-    assert_eq(dot.name, ".gitignore")
-    assert_eq(dot.extension, "")
+    // A leading dot marks a hidden file, it is not an extension separator —
+    // and that holds in a subdirectory too, which is why the search runs on
+    // `filename()` rather than on the whole path.
+    assert_eq(".gitignore".to_path().name(), ".gitignore")
+    assert_eq(".gitignore".to_path().extension(), "")
+    assert_eq("dir/.gitignore".to_path().name(), ".gitignore")
+    assert_eq("dir/.gitignore".to_path().extension(), "")
+
+    // A trailing dot leaves nothing after it.
+    assert_eq("trailing.".to_path().name(), "trailing")
+    assert_eq("trailing.".to_path().extension(), "")
+
+    // Multi-byte characters before the dot: the cut is on bytes, so it lands
+    // where the dot actually is. A codepoint-indexed slice yields `ader` here.
+    assert_eq("café.vader".to_path().name(), "café")
+    assert_eq("café.vader".to_path().extension(), "vader")
+    assert_eq("données/café.tar.gz".to_path().extension(), "gz")
 }
 
 @test test_join :: fn() -> void {
-    assert_eq(to_path("a").join("b").as_string(), "a/b")
-    assert_eq(to_path("a/").join("b").as_string(), "a/b")
+    assert_eq("a".to_path().join("b").as_string(), "a/b")
+    assert_eq("a/".to_path().join("b").as_string(), "a/b")
     assert_eq(empty_path().join("b").as_string(), "b")
 }
 
 @test test_starts_ends_with :: fn() -> void {
-    assert(to_path("a/b/c").starts_with(to_path("a/b")), "a/b/c starts with a/b")
-    assert(to_path("a/b/c").ends_with(to_path("b/c")), "a/b/c ends with b/c")
-    assert(!to_path("a/b/c").starts_with(to_path("x")), "a/b/c does not start with x")
+    assert("a/b/c".to_path().starts_with("a/b".to_path()), "a/b/c starts with a/b")
+    assert("a/b/c".to_path().ends_with("b/c".to_path()), "a/b/c ends with b/c")
+    assert(!"a/b/c".to_path().starts_with("x".to_path()), "a/b/c does not start with x")
 }

@@ -49,12 +49,6 @@
                 filename :string
               arg0:
                 p :Path
-    let bn: Basename =
-      call :Basename
-        callee:
-          basename :Basename
-        arg0:
-          p :Path
     call :void
       callee:
         std_io$println__string :void
@@ -65,8 +59,11 @@
           arg0:
             "name=" :string
           arg1:
-            .name :string
-              bn :Basename
+            call :string
+              callee:
+                name :string
+              arg0:
+                p :Path
     call :void
       callee:
         std_io$println__string :void
@@ -77,8 +74,11 @@
           arg0:
             "extension=" :string
           arg1:
-            .extension :string
-              bn :Basename
+            call :string
+              callee:
+                extension :string
+              arg0:
+                p :Path
     call :void
       callee:
         show_path :fn(string, Path) -> void

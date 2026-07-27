@@ -214,27 +214,6 @@
             }
           },
           {
-            "kind": "LetStmt",
-            "mutable": false,
-            "binding": {
-              "kind": "SimpleBinding",
-              "name": "bn"
-            },
-            "type": null,
-            "value": {
-              "kind": "CallExpr",
-              "callee": {
-                "kind": "FieldExpr",
-                "target": {
-                  "kind": "IdentExpr",
-                  "name": "p"
-                },
-                "field": "basename"
-              },
-              "args": []
-            }
-          },
-          {
             "kind": "ExprStmt",
             "expr": {
               "kind": "CallExpr",
@@ -255,12 +234,16 @@
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "FieldExpr",
-                          "target": {
-                            "kind": "IdentExpr",
-                            "name": "bn"
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "p"
+                            },
+                            "field": "name"
                           },
-                          "field": "name"
+                          "args": []
                         }
                       }
                     ]
@@ -291,12 +274,16 @@
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "FieldExpr",
-                          "target": {
-                            "kind": "IdentExpr",
-                            "name": "bn"
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "p"
+                            },
+                            "field": "extension"
                           },
-                          "field": "extension"
+                          "args": []
                         }
                       }
                     ]

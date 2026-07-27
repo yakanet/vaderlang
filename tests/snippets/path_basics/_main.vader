@@ -11,9 +11,8 @@ main :: fn() -> i32 {
     p :: "src/parser/expr.ts".to_path()
     show_path("path", p)
     println("filename=${p.filename()}")
-    bn :: p.basename()
-    println("name=${bn.name}")
-    println("extension=${bn.extension}")
+    println("name=${p.name()}")
+    println("extension=${p.extension()}")
     show_path("parent", p.parent())
     show_path("grand", p.parent().parent())
 
