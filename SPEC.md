@@ -3187,8 +3187,10 @@ Short aliases: `-o` (`--out`), `-t` (`--target`), `-r` (`--release`), `-s`
 it after `=` or after a space, in either spelling.
 
 Actions, their flags and the accepted values of each enumerated flag are declared
-once in `vader/cli/spec.vader`; `vader help <action>` renders from that same
-table, so the help cannot drift from what the parser accepts.
+once in `vader/cli/spec.vader`; `vader <action> --help` (equivalently `-h`, or
+`vader help <action>`) renders from that same table, so the help cannot drift
+from what the parser accepts. A `--help` written past a `run` path is forwarded
+to the program like any other argument.
 
 | Command | Description |
 |---------|-------------|

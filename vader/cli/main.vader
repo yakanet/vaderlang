@@ -96,20 +96,25 @@ cmd_help :: fn(args: string[]) -> i32 {
 }
 
 // Parse one action's zone against its own flags plus the common ones, reporting
-// every error under the action's name. Returns null when the args don't parse,
-// so each `cmd_*` is a two-liner guard rather than a copy of this block.
-parse_action :: fn(name: string, args: string[]) -> ParsedArgs | null {
+// every error under the action's name.
+parse_action :: fn(name: string, args: string[]) -> ParsedArgs | i32 {
     cmd :: find_command(name)
     if cmd == null {
         eprintln("vader: unknown action \"${name}\"")
-        return null
+        return 1
     }
     parsed :: parse(args, command_specs(cmd))
+    // `--help` outranks a parse error: someone who mistyped a flag AND asked for
+    // help wants the option list, not the complaint about the typo.
+    if parsed.bool_flag("help") {
+        print(render_command_help("vader", cmd, COMMON_FLAGS))
+        return 0
+    }
     if parsed.errors.len() > 0 {
         for e in parsed.errors {
             eprintln("vader ${name}: ${e}")
         }
-        return null
+        return 1
     }
     return parsed
 }
@@ -149,7 +154,10 @@ cmd_repl :: fn() -> i32 {
 // A `--` is still accepted, but as a zone-closer BEFORE the path, which is how a
 // path starting with a dash is named (`vader run -- -weird.vader`).
 cmd_run :: fn(args: string[]) -> i32 {
-    parsed :: parse_action("run", args) ?? return 1
+    parsed :: parse_action("run", args)
+    if parsed is i32 as code {
+        return code
+    }
     path :: action_file(parsed)
     if path == "" {
         eprintln("vader run: expected a file argument")
@@ -289,7 +297,10 @@ named_file_main_mangled :: fn(lowered: LoweredProject, file: string) -> string {
 // `path not found: --nope` and exited 0. It now goes through the shared parser
 // like every other action, and `run_fmt` takes the decoded options.
 cmd_fmt :: fn(args: string[]) -> i32 {
-    parsed :: parse_action("fmt", args) ?? return 1
+    parsed :: parse_action("fmt", args)
+    if parsed is i32 as code {
+        return code
+    }
     // Pinned to `string[]`: the literal is mutable, `positionals` isn't, and an
     // unpinned `if` would build a mixed-mutability union (T3074).
     paths: string[] = if parsed.positionals.len() == 0 { ["."] } else { parsed.positionals }
@@ -297,7 +308,10 @@ cmd_fmt :: fn(args: string[]) -> i32 {
 }
 
 cmd_lsp :: fn(args: string[]) -> i32 {
-    parsed :: parse_action("lsp", args) ?? return 1
+    parsed :: parse_action("lsp", args)
+    if parsed is i32 as code {
+        return code
+    }
     return run_server(parsed.string_flag("stdlib-root", ""), parsed.string_flag("vader-root", ""))
 }
 
@@ -315,7 +329,10 @@ cmd_lsp :: fn(args: string[]) -> i32 {
 /// @return      0 when clean (or a rootless library), 1 on any finding, a
 ///              load/parse error, or a missing file argument.
 cmd_lint :: fn(args: string[]) -> i32 {
-    parsed :: parse_action("lint", args) ?? return 1
+    parsed :: parse_action("lint", args)
+    if parsed is i32 as code {
+        return code
+    }
     if reject_extra_positionals("lint", parsed) {
         return 1
     }
@@ -354,7 +371,10 @@ cmd_lint :: fn(args: string[]) -> i32 {
 // free of a `vader/cli` dependency (which would close an import cycle) — the
 // pipeline (lower → cfg → bytecode → prepare) lives here.
 cmd_dap :: fn(args: string[]) -> i32 {
-    parse_action("dap", args) ?? return 1
+    parsed :: parse_action("dap", args)
+    if parsed is i32 as code {
+        return code
+    }
     return run_dap_server(compile_for_dap)
 }
 
@@ -398,7 +418,10 @@ DiscoveredTest :: struct {
 /// @return      0 when every test passed, 1 on any failure, 2 when no `.vader`
 ///              files / no `@test` fns were found.
 cmd_test :: fn(args: string[]) -> i32 {
-    parsed :: parse_action("test", args) ?? return 1
+    parsed :: parse_action("test", args)
+    if parsed is i32 as code {
+        return code
+    }
     if reject_extra_positionals("test", parsed) {
         return 1
     }
@@ -669,16 +692,16 @@ runtime_c_root :: fn() = resolve_sidecar("runtime/c", "vader.h")
 // slower binary for that iteration. Cases:
 //   - absent (or malformed / < 1) → 1 → monolithic (`emit_c`, single TU) ;
 //   - `N` (N ≥ 2)                 → N function TUs compiled in parallel.
-parse_parallel_units :: fn(s: string) -> i32 {
-    if s == "" { return 1 }
-    n :: parse_int(s)
-    if n is ParseError { return 1 }
-    if n < 1 { return 1 }
-    return n
-}
+// `--parallel` is declared `.Int`, so the parser already rejected a non-numeric
+// value with a proper message — this only applies the floor. It used to swallow
+// `--parallel=abc` as 1 without a word.
+clamp_parallel_units :: fn(n: i32) -> i32 = if n < 1 { 1 } else { n }
 
 cmd_build :: fn(args: string[]) -> i32 {
-    parsed :: parse_action("build", args) ?? return 1
+    parsed :: parse_action("build", args)
+    if parsed is i32 as code {
+        return code
+    }
     if reject_extra_positionals("build", parsed) {
         return 1
     }
@@ -689,7 +712,7 @@ cmd_build :: fn(args: string[]) -> i32 {
     release      :: parsed.bool_flag("release")
     cc           :: parsed.string_flag("cc", "cc")
     ldflags      :: parsed.string_flag("ldflags", "")
-    parallel_units :: parse_parallel_units(parsed.string_flag("parallel", ""))
+    parallel_units :: clamp_parallel_units(parsed.int_flag("parallel", 1))
     include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
 
     // No target validation here: `--target`'s accepted set lives on its
@@ -1055,7 +1078,10 @@ write_out :: fn(path: string, content: string) -> i32 {
 // ----------------------------------------------------------- dump
 
 cmd_dump :: fn(args: string[]) -> i32 {
-    parsed :: parse_action("dump", args) ?? return 1
+    parsed :: parse_action("dump", args)
+    if parsed is i32 as code {
+        return code
+    }
     if reject_extra_positionals("dump", parsed) {
         return 1
     }

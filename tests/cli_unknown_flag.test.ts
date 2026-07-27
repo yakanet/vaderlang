@@ -121,6 +121,43 @@ test("run forwards everything past the path, flags included", async () => {
   }
 }, MEDIUM_BUILD);
 
+test("--help on an action prints that action's options", async () => {
+  // What anyone types. `vader help build` works too, but this is the reflex, and
+  // it exits 0 — asking for help is a success, not a usage error.
+  const viaFlag = await runCli(["build", "--help"], undefined, MEDIUM_BUILD);
+  expect(viaFlag.exit).toBe(0);
+  expect(viaFlag.stdout).toContain("vader build <file>");
+  expect(viaFlag.stdout).toContain("-o, --out=<path>");
+
+  // The alias, and the same text either way.
+  const viaAlias = await runCli(["build", "-h"], undefined, MEDIUM_BUILD);
+  expect(viaAlias.stdout).toBe(viaFlag.stdout);
+  const viaAction = await runCli(["help", "build"], undefined, MEDIUM_BUILD);
+  expect(viaAction.stdout).toBe(viaFlag.stdout);
+
+  // A typo alongside `--help` gets the help, not the complaint: that is what
+  // the person is asking for.
+  const withTypo = await runCli(["build", "--nope", "--help"], undefined, MEDIUM_BUILD);
+  expect(withTypo.exit).toBe(0);
+  expect(withTypo.stdout).toContain("vader build <file>");
+}, MEDIUM_BUILD);
+
+test("--help past a run path belongs to the program", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "vader-cli-help-fwd-"));
+  try {
+    const file = join(dir, "echo.vader");
+    writeFileSync(file, ECHO_ARGV);
+
+    // The boundary's payoff: a program run under `vader run` keeps its own
+    // `--help`. Before the zone existed, the CLI would have had to choose.
+    const { stdout, exit } = await runCli(["run", file, "--help"], undefined, MEDIUM_BUILD);
+    expect(exit).toBe(0);
+    expect(stdout.trim()).toBe("--help");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}, MEDIUM_BUILD);
+
 test("help is generated per action, not one flat string", async () => {
   // `vader build --help` had no answer at all before: a single hand-written
   // help string can't render one action in isolation.

@@ -33,12 +33,12 @@ H :: import "vader/lsp/handlers"
 /// entry points, no drift.
 export LSP_FLAGS: FlagSpec[]: [
     FlagSpec {
-        .name = "stdlib-root", .kind = .Str,
+        .name = "stdlib-root",
         .help = "Filesystem root of stdlib/, for cross-file goto-def",
         .value_name = "path",
     },
     FlagSpec {
-        .name = "vader-root", .kind = .Str,
+        .name = "vader-root",
         .help = "Filesystem root of the compiler tree, same purpose",
         .value_name = "path",
     },

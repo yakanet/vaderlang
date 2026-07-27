@@ -32,10 +32,13 @@ import "std/string"
 
 // ---- specs ----------------------------------------------------------------
 
-/// Kind of a flag — controls whether a value is required.
-/// `Bool` flags don't need one (presence sets `"true"`); `Str` flags do, and
-/// `--name` with nothing after it surfaces an error.
-export FlagKind :: enum(u8) { Bool, Str }
+/// Kind of a flag — controls whether a value is required and how it is checked.
+///
+/// `Str` is the default because it is what most flags are (11 of the compiler's
+/// 19). `Bool` needs no value: presence alone sets `"true"`. `Int` is a `Str`
+/// whose value must parse as an integer, so a typo'd number is caught at the
+/// boundary instead of being silently clamped by the caller.
+export FlagKind :: enum(u8) { Bool, Str, Int }
 
 /// One accepted value of an enumerated flag, with the line documenting it.
 ///
@@ -56,7 +59,6 @@ export ValueSpec :: struct {
 export FlagSpec :: struct {
     /// Canonical identifier, *without* the leading `--`.
     name:         string
-    kind:         FlagKind
     /// One-line description, imperative mood. Required — it is what the help
     /// prints, and a flag nobody described is a spec defect, not a hidden flag.
     help:         string
@@ -71,7 +73,12 @@ export FlagSpec :: struct {
     /// Shown as `(default: cc)` when non-empty. Documentation only — the caller
     /// still supplies the fallback to `string_flag`.
     default_text: string = ""
-    /// Closed value set. Empty means any string is accepted.
+    /// Defaults to `Str`, the common case. A `Bool` must say so — declaring one
+    /// by accident makes it demand a value and swallow the next token, which the
+    /// `value_name` check in `vader/cli/spec.vader`'s tests is there to catch.
+    kind:         FlagKind = .Str
+    /// Closed value set. Empty means any string is accepted. Meaningless on
+    /// `Bool`, and on `Int` the range check is the caller's business.
     values:       ValueSpec[] = []
 }
 
@@ -177,11 +184,8 @@ export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
             continue
         }
 
-        // `Str`: the value is inline after `=`, or the next token. A spaced
-        // value that looks like a flag is refused rather than swallowed —
-        // `--out --release` is a typo, not a filename — with `-` exempted since
-        // it means stdout. The `=` form stays available for a genuine
-        // dash-leading value.
+        // `Str` / `Int`: the value is inline after `=`, or the next token. The `=`
+        // form is always available for a value the spaced form would refuse.
         if eq >= 0 {
             record_str_flag(spec, a, inline_value, flags, errors)
             i += 1
@@ -193,7 +197,13 @@ export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
             continue
         }
         next :: args[i + 1]
-        if next.starts_with("-") && next != "-" {
+        // A spaced value that reads as a flag is refused rather than swallowed —
+        // `--out --release` is a forgotten value, not a filename. Two exceptions:
+        // `-` means stdin/stdout, and on an `Int` flag a negative number is not
+        // ambiguous with anything, since no flag is named `3`.
+        looks_like_flag :: next.starts_with("-") && next != "-"
+        negative_number :: spec.kind == FlagKind.Int && !(parse_int(next) is ParseError)
+        if looks_like_flag && !negative_number {
             errors.push("${a}: missing value — \"${next}\" reads as a flag; use ${a}=${next} if it is the value")
             i += 1
             continue
@@ -217,6 +227,13 @@ export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
 record_str_flag :: fn(spec: FlagSpec, spelling: string, value: string, flags: MutableMap<string, string>!, errors: string[]!) -> void {
     if spec.values.len() > 0 && !accepts_value(spec, value) {
         errors.push("${spelling}: unknown value \"${value}\" (expected: ${value_list(spec)})")
+        return
+    }
+    // An `Int` is checked here rather than by the caller, so a bad number is a
+    // boundary error like any other. `--parallel=abc` used to be clamped to 1 by
+    // the reader and never mentioned.
+    if spec.kind == FlagKind.Int && parse_int(value) is ParseError {
+        errors.push("${spelling}: expected an integer, got \"${value}\"")
         return
     }
     flags[spec.name] = value
@@ -288,6 +305,29 @@ export string_flag :: fn(self: ParsedArgs, name: string, default: string) -> str
         is null   -> { return default }
         is string -> { return v }
     }
+}
+
+/// Read an `Int` flag, falling back to `default` when absent.
+///
+/// The value is already known to parse — `parse` rejected it otherwise — so this
+/// cannot fail. It still falls back on an unparseable value rather than trapping,
+/// for the case a caller reads an `Int` flag from a `ParsedArgs` it never checked
+/// `errors` on. Range limits stay the caller's: `--parallel` wants ≥ 1, which is
+/// its business, not the parser's.
+///
+/// @param self     parser output.
+/// @param name     canonical flag name (not an alias).
+/// @param default  value returned when `name` is absent or somehow unparseable.
+export int_flag :: fn(self: ParsedArgs, name: string, default: i32) -> i32 {
+    v :: self.flags[name]
+    if v == null {
+        return default
+    }
+    n :: parse_int(v)
+    if n is ParseError {
+        return default
+    }
+    return n
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -487,6 +527,51 @@ staged_specs :: fn() -> FlagSpec[] = [
     parsed :: parse(["--stage=nope"], staged_specs())
     assert_eq(parsed.errors.len(), 1)
     assert("lexer, bytecode" in parsed.errors[0], "the error should list the accepted set")
+}
+
+@test test_kind_defaults_to_str :: fn() -> void {
+    // `Str` is the majority case, so it is what an omitted `kind` means. A `Bool`
+    // has to say so — see the spec-table test that every valued flag names its
+    // value, which is what catches a `Bool` declared by omission.
+    specs: FlagSpec[] = [FlagSpec { .name = "out", .help = "h", .value_name = "path" }]
+    parsed :: parse(["--out=/tmp/x"], specs)
+    assert_eq(parsed.errors.len(), 0)
+    assert_eq(parsed.string_flag("out", ""), "/tmp/x")
+    // Being `Str` means it demands a value, unlike a Bool.
+    bare :: parse(["--out"], specs)
+    assert_eq(bare.errors.len(), 1)
+}
+
+@test test_int_flag_accepts_and_reads :: fn() -> void {
+    specs: FlagSpec[] = [
+        FlagSpec { .name = "jobs", .kind = .Int, .help = "h", .value_name = "N" },
+    ]
+    parsed :: parse(["--jobs=8"], specs)
+    assert_eq(parsed.errors.len(), 0)
+    assert_eq(parsed.int_flag("jobs", 1), 8)
+    // Negative is a number too — a floor is the caller's policy, not the parser's.
+    neg :: parse(["--jobs", "-3"], specs)
+    assert_eq(neg.errors.len(), 0)
+    assert_eq(neg.int_flag("jobs", 1), -3)
+}
+
+@test test_int_flag_rejects_a_non_number :: fn() -> void {
+    // The gap `.Int` closes: `--parallel=abc` used to be clamped to 1 by the
+    // reader, with nothing said.
+    specs: FlagSpec[] = [
+        FlagSpec { .name = "jobs", .kind = .Int, .help = "h", .value_name = "N" },
+    ]
+    parsed :: parse(["--jobs=abc"], specs)
+    assert_eq(parsed.errors.len(), 1)
+    assert("expected an integer" in parsed.errors[0], "the message should say what was wanted")
+    assert_eq(parsed.int_flag("jobs", 1), 1)
+}
+
+@test test_int_flag_absent_uses_default :: fn() -> void {
+    specs: FlagSpec[] = [
+        FlagSpec { .name = "jobs", .kind = .Int, .help = "h", .value_name = "N" },
+    ]
+    assert_eq(parse([], specs).int_flag("jobs", 4), 4)
 }
 
 @test test_enumerated_value_via_alias_and_space :: fn() -> void {

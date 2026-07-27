@@ -6,21 +6,21 @@
       array :FlagSpec[]
         FlagSpec! {
           name: "verbose" :string
-          kind: int(0) :u8
           help: "Say more" :string
           alias: "V" :string
           value_name: "" :string
           default_text: "" :string
+          kind: int(0) :u8
           values:
             array :ValueSpec![]!
         }
         FlagSpec! {
           name: "out" :string
-          kind: int(1) :u8
           help: "Where to write" :string
           alias: "o" :string
           value_name: "path" :string
           default_text: "" :string
+          kind: int(1) :u8
           values:
             array :ValueSpec![]!
         }
