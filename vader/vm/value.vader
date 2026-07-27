@@ -327,21 +327,6 @@ export read_bool :: fn(v: Value, at_pc: i32, label: string) -> BoolVal | Trap {
     return Trap { .message = "${label} at pc=${at_pc}: expected bool, got ${describe_value_tag(v)}" }
 }
 
-/// Unwrap a `CharVal` from a `Value`. `i32.to_char` / `u32.to_char`
-/// lower to a no-op `Convert` so the source integer passes through ;
-/// re-wrap as `CharVal` so consumers see the codepoint with the
-/// expected tag. `I64Val` arrivals come from `u32.const N` (the parser
-/// promotes to I64Const to preserve the full unsigned range) and need a
-/// truncated reinterpretation.
-export read_char :: fn(v: Value, at_pc: i32, label: string) -> CharVal | Trap {
-    // @partial: char/i32/i64 carriers unwrap; every other Value variant traps.
-    return @partial match v {
-        is CharVal as c -> c
-        is I32Val  as i -> CharVal { .value = char(u32(i.value)) }
-        is I64Val  as i -> CharVal { .value = char(u32(i32(i.value))) }
-        _ -> Trap { .message = "${label} at pc=${at_pc}: expected char, got ${describe_value_tag(v)}" }
-    }
-}
 
 /// Read a truthy condition (`if` / `br_if`). Accepts both legacy numeric
 /// form (`I32Val` — non-zero is true) and modern bool form

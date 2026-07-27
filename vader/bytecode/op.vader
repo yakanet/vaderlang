@@ -123,17 +123,9 @@ export Op :: Unreachable
     | BoolAnd
     | BoolOr
     | BoolNot
-    | CharEq
-    | CharNe
-    | CharLt
-    | CharLe
-    | CharGt
-    | CharGe
     | StringEq
     | StringNe
     | StringSliceCodepoints
-    | IntToChar
-    | CharToInt
     | RefEq
     | RefNe
     | Drop
@@ -585,18 +577,6 @@ export BoolAnd :: struct {}
 export BoolOr :: struct {}
 /// Pop one bool ; push `BoolVal` (logical NOT). Sprint 5a addition.
 export BoolNot :: struct {}
-/// Pop two chars ; push `BoolVal` (equal). Sprint 5a addition.
-export CharEq :: struct {}
-/// Pop two chars ; push `BoolVal` (not equal). Sprint 5a addition.
-export CharNe :: struct {}
-/// Pop two chars (left, right) ; push `BoolVal` (left < right).
-export CharLt :: struct {}
-/// Pop two chars (left, right) ; push `BoolVal` (left <= right).
-export CharLe :: struct {}
-/// Pop two chars (left, right) ; push `BoolVal` (left > right).
-export CharGt :: struct {}
-/// Pop two chars (left, right) ; push `BoolVal` (left >= right).
-export CharGe :: struct {}
 /// Pop two strings (left, right) ; push `BoolVal` for byte-equality.
 export StringEq :: struct {}
 /// Pop two strings (left, right) ; push `BoolVal` for byte-inequality.
@@ -606,15 +586,6 @@ export StringNe :: struct {}
 /// form `s[r]` where `r : Range[usize]`. Out-of-bounds clamps (no
 /// trap). Walks UTF-8 — O(n) in the byte length.
 export StringSliceCodepoints :: struct {}
-/// Pop a value (`I32Val` or `CharVal`) ; push a `CharVal` carrying the
-/// same codepoint. Emitted for every `<int>.to_char` Convert op so the
-/// downstream `display_value` arm formats the value as a UTF-8 character
-/// rather than its decimal codepoint.
-export IntToChar :: struct {}
-/// Pop a value (`CharVal` or `I32Val`) ; push an `I32Val` carrying the
-/// same codepoint. Emitted for every `char.to_<int>` Convert op so the
-/// downstream integer arms see the expected tag.
-export CharToInt :: struct {}
 /// Pop two references ; push `BoolVal` for identity equality. Delegates to
 /// `vm/value.vader::value_ref_eq`, which compares `null` + primitive operands
 /// and traps on heap-allocated variants (struct / array / fn). Dormant in the

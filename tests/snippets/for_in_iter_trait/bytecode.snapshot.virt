@@ -83,7 +83,7 @@ end
 fn 1 snippet$is_l (char) -> bool
   local.get 0
   char.const 108
-  char.eq
+  i32.eq
   return
 end
 

@@ -501,7 +501,7 @@ fn 13 std_string$index_of (string,char,usize) -> isize
         local.set 8
         local.get 7
         local.get 1
-        char.eq
+        i32.eq
         if $L3 void
           local.get 5
           usize.to_i64

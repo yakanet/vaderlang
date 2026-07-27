@@ -1716,7 +1716,7 @@ fn 16 std_semver$validate_prerelease_id (string) -> string
         if $L4 void
           local.get 4
           char.const 45
-          char.ne
+          i32.ne
           local.set 5
         else
           bool.const false
@@ -1799,7 +1799,7 @@ fn 17 std_semver$validate_build_id (string) -> string
         if $L4 void
           local.get 3
           char.const 45
-          char.ne
+          i32.ne
           local.set 4
         else
           bool.const false
@@ -1933,11 +1933,11 @@ fn 19 std_semver$is_bare_operator (string) -> bool
         ref.cast 4
         local.tee 3
         char.const 60
-        char.ne
+        i32.ne
         if $L4 void
           local.get 3
           char.const 62
-          char.ne
+          i32.ne
           local.set 4
         else
           bool.const false
@@ -1947,7 +1947,7 @@ fn 19 std_semver$is_bare_operator (string) -> bool
         if $L5 void
           local.get 3
           char.const 61
-          char.ne
+          i32.ne
           local.set 5
         else
           bool.const false
@@ -1957,7 +1957,7 @@ fn 19 std_semver$is_bare_operator (string) -> bool
         if $L6 void
           local.get 3
           char.const 126
-          char.ne
+          i32.ne
           local.set 6
         else
           bool.const false
@@ -1967,7 +1967,7 @@ fn 19 std_semver$is_bare_operator (string) -> bool
         if $L7 void
           local.get 3
           char.const 94
-          char.ne
+          i32.ne
           local.set 7
         else
           bool.const false
@@ -7102,14 +7102,14 @@ fn 60 std_char$is_white_char (char) -> bool
   local or_res bool
   local.get 0
   char.const 32
-  char.eq
+  i32.eq
   if $L0 void
     bool.const true
     local.set 1
   else
     local.get 0
     char.const 9
-    char.eq
+    i32.eq
     local.set 1
   end $L0
   local.get 1
@@ -7119,7 +7119,7 @@ fn 60 std_char$is_white_char (char) -> bool
   else
     local.get 0
     char.const 10
-    char.eq
+    i32.eq
     local.set 1
   end $L1
   local.get 1
@@ -7129,7 +7129,7 @@ fn 60 std_char$is_white_char (char) -> bool
   else
     local.get 0
     char.const 13
-    char.eq
+    i32.eq
     local.set 1
   end $L2
   local.get 1

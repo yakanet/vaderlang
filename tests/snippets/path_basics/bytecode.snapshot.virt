@@ -704,7 +704,7 @@ fn 16 std_path$join (string,string) -> string
   i32.const 0
   call 33
   char.const 47
-  char.eq
+  i32.eq
   if $L1 void
     local.get 1
     return
@@ -725,7 +725,7 @@ fn 16 std_path$join (string,string) -> string
   local.get 3
   call 33
   char.const 47
-  char.eq
+  i32.eq
   if $L3 void
     local.get 2
     local.get 1
@@ -780,7 +780,7 @@ fn 17 std_path$starts_with (string,string) -> bool
     local.get 4
     call 33
     char.const 47
-    char.eq
+    i32.eq
     local.set 6
   else
     bool.const false
@@ -794,7 +794,7 @@ fn 17 std_path$starts_with (string,string) -> bool
   local.get 5
   call 33
   char.const 47
-  char.eq
+  i32.eq
   return
 end
 
@@ -839,7 +839,7 @@ fn 18 std_path$ends_with (string,string) -> bool
     i32.const 0
     call 33
     char.const 47
-    char.eq
+    i32.eq
     local.set 6
   else
     bool.const false
@@ -857,7 +857,7 @@ fn 18 std_path$ends_with (string,string) -> bool
   local.get 4
   call 33
   char.const 47
-  char.eq
+  i32.eq
   return
 end
 
@@ -924,7 +924,7 @@ fn 19 std_path$normalize (string) -> string
           local.get 7
           call 33
           char.const 47
-          char.eq
+          i32.eq
           local.set 10
         else
           bool.const false
@@ -1159,7 +1159,7 @@ fn 20 std_string$last_index_of (string,char,isize) -> isize
         if $L3 void
           local.get 8
           local.get 1
-          char.eq
+          i32.eq
           local.set 10
         else
           bool.const false

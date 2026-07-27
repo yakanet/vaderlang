@@ -92,7 +92,7 @@ fn 0 snippet$is_non_id (char) -> bool
   end $L5
   local.get 0
   char.const 95
-  char.eq
+  i32.eq
   if $L6 void
     return.lit bool.const false
   end $L6
@@ -1081,14 +1081,14 @@ fn 20 std_char$is_white_char (char) -> bool
   local or_res bool
   local.get 0
   char.const 32
-  char.eq
+  i32.eq
   if $L0 void
     bool.const true
     local.set 1
   else
     local.get 0
     char.const 9
-    char.eq
+    i32.eq
     local.set 1
   end $L0
   local.get 1
@@ -1098,7 +1098,7 @@ fn 20 std_char$is_white_char (char) -> bool
   else
     local.get 0
     char.const 10
-    char.eq
+    i32.eq
     local.set 1
   end $L1
   local.get 1
@@ -1108,7 +1108,7 @@ fn 20 std_char$is_white_char (char) -> bool
   else
     local.get 0
     char.const 13
-    char.eq
+    i32.eq
     local.set 1
   end $L2
   local.get 1

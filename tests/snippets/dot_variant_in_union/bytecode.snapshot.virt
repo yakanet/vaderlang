@@ -20,7 +20,7 @@ export main 2
 fn 0 snippet$parse (char) -> any
   local.get 0
   char.const 78
-  char.eq
+  i32.eq
   if $L0 void
     i32.const 0
     box 3
@@ -28,7 +28,7 @@ fn 0 snippet$parse (char) -> any
   end $L0
   local.get 0
   char.const 69
-  char.eq
+  i32.eq
   if $L1 void
     i32.const 1
     box 3
@@ -36,7 +36,7 @@ fn 0 snippet$parse (char) -> any
   end $L1
   local.get 0
   char.const 83
-  char.eq
+  i32.eq
   if $L2 void
     i32.const 2
     box 3
@@ -44,7 +44,7 @@ fn 0 snippet$parse (char) -> any
   end $L2
   local.get 0
   char.const 87
-  char.eq
+  i32.eq
   if $L3 void
     i32.const 3
     box 3

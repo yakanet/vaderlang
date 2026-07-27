@@ -2271,72 +2271,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.tag[frame.sp - 1] = StackTag.Bool
                 frame.pc = frame.pc + 1
             }
-            is bc.CharEq -> {
-                left  :: read_char(peek_val(frame, frame.sp - 2), frame.pc, "char.eq")
-                if left  is Trap { return left  }
-                right :: read_char(peek_val(frame, frame.sp - 1), frame.pc, "char.eq")
-                if right is Trap { return right }
-                stack_ensure(frame, frame.sp - 2)
-                frame.payload[frame.sp - 2] = if left.value == right.value { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.CharNe -> {
-                left  :: read_char(peek_val(frame, frame.sp - 2), frame.pc, "char.ne")
-                if left  is Trap { return left  }
-                right :: read_char(peek_val(frame, frame.sp - 1), frame.pc, "char.ne")
-                if right is Trap { return right }
-                stack_ensure(frame, frame.sp - 2)
-                frame.payload[frame.sp - 2] = if left.value != right.value { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.CharLt -> {
-                left  :: read_char(peek_val(frame, frame.sp - 2), frame.pc, "char.lt")
-                if left  is Trap { return left  }
-                right :: read_char(peek_val(frame, frame.sp - 1), frame.pc, "char.lt")
-                if right is Trap { return right }
-                stack_ensure(frame, frame.sp - 2)
-                frame.payload[frame.sp - 2] = if left.value < right.value { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.CharLe -> {
-                left  :: read_char(peek_val(frame, frame.sp - 2), frame.pc, "char.le")
-                if left  is Trap { return left  }
-                right :: read_char(peek_val(frame, frame.sp - 1), frame.pc, "char.le")
-                if right is Trap { return right }
-                stack_ensure(frame, frame.sp - 2)
-                frame.payload[frame.sp - 2] = if left.value <= right.value { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.CharGt -> {
-                left  :: read_char(peek_val(frame, frame.sp - 2), frame.pc, "char.gt")
-                if left  is Trap { return left  }
-                right :: read_char(peek_val(frame, frame.sp - 1), frame.pc, "char.gt")
-                if right is Trap { return right }
-                stack_ensure(frame, frame.sp - 2)
-                frame.payload[frame.sp - 2] = if left.value > right.value { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.CharGe -> {
-                left  :: read_char(peek_val(frame, frame.sp - 2), frame.pc, "char.ge")
-                if left  is Trap { return left  }
-                right :: read_char(peek_val(frame, frame.sp - 1), frame.pc, "char.ge")
-                if right is Trap { return right }
-                stack_ensure(frame, frame.sp - 2)
-                frame.payload[frame.sp - 2] = if left.value >= right.value { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
             is bc.StringEq -> {
                 left  :: read_string(peek_val(frame, frame.sp - 2), frame.pc, "string.eq")
                 if left  is Trap { return left  }
@@ -2357,24 +2291,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.payload[frame.sp - 2] = if left.value != right.value { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = StackTag.Bool
                 frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.IntToChar -> {
-                if frame.sp == 0 { return Trap { .message = "<int>.to_char on empty stack at pc=${frame.pc}" } }
-                source :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "<int>.to_char")
-                if source is Trap { return source }
-                stack_ensure(frame, frame.sp - 1)
-                frame.payload[frame.sp - 1] = i64(u32(char(u32(source.value))))
-                frame.tag[frame.sp - 1] = StackTag.Char
-                frame.pc = frame.pc + 1
-            }
-            is bc.CharToInt -> {
-                if frame.sp == 0 { return Trap { .message = "char.to_<int> on empty stack at pc=${frame.pc}" } }
-                source :: read_char(peek_val(frame, frame.sp - 1), frame.pc, "char.to_<int>")
-                if source is Trap { return source }
-                stack_ensure(frame, frame.sp - 1)
-                frame.payload[frame.sp - 1] = i64(i32(u32(source.value)))
-                frame.tag[frame.sp - 1] = StackTag.I32
                 frame.pc = frame.pc + 1
             }
             is bc.StringSliceCodepoints -> {

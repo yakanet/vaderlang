@@ -1530,7 +1530,7 @@ fn 17 std_regex$run_vm (ref,ref,usize,bool) -> any
                   local.set 23
                   local.get 12
                   local.get 23
-                  char.eq
+                  i32.eq
                   local.set 22
                 else
                   bool.const false
@@ -1584,7 +1584,7 @@ fn 17 std_regex$run_vm (ref,ref,usize,bool) -> any
                 if $L11 void
                   local.get 12
                   char.const 10
-                  char.ne
+                  i32.ne
                   local.set 29
                 else
                   bool.const false

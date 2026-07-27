@@ -32,21 +32,21 @@ fn 0 snippet$describe_char (char) -> string
   local if_res string
   local.get 0
   char.const 62
-  char.eq
+  i32.eq
   if $L0 void
     string.const 0
     local.set 1
   else
     local.get 0
     char.const 60
-    char.eq
+    i32.eq
     if $L1 void
       string.const 1
       local.set 1
     else
       local.get 0
       char.const 43
-      char.eq
+      i32.eq
       if $L2 void
         string.const 2
         local.set 1

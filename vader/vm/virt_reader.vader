@@ -200,8 +200,17 @@ read_fn_mangled_name :: fn(cleaned: string) -> string {
 /// @param head     the line's pre-computed head token (see `head_of`).
 /// @param ops      the current function's op list, appended to in place.
 /// @return         `true` if a known op was recognised and pushed ;
-///                 `false` for unknown lines (silently dropped so they
-///                 don't shift pc indices).
+///                 `false` for unknown lines.
+///
+/// DANGER — an unknown line is dropped SILENTLY, and the caller just moves on.
+/// That is meant for non-instruction lines, but it swallows a real instruction
+/// the reader doesn't know just as quietly: the program then runs with that
+/// operation MISSING, an unbalanced stack, and plausible-looking wrong output —
+/// no diagnostic anywhere. Observed for real when an opcode was removed from the
+/// set and a stale `.virt` still carried it: a path-manipulation snippet printed
+/// empty filenames instead of failing, and `UPDATE_SNAPSHOTS` then wrote those
+/// wrong outputs over nine correct oracles. Telling a non-instruction line apart
+/// from an unknown opcode (and trapping on the latter) is worth doing.
 try_push_op :: fn(cleaned: string, head: string, ops: bc.Op[]!) -> bool {
     parsed :: parse_op_line(cleaned, head) ?? return false
     ops.push(parsed)
@@ -363,15 +372,17 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
             }
             if suffix == "const" && is_f64 { return parse_f64_const(cleaned) }
 
-            // <from>.to_<to>. `char.to_<int>` and `<int>.to_char` get
-            // dedicated ops ; everything else routes through `parse_convert`.
-            // `f32` stays a valid from-type for forward compatibility even
-            // though the bytecode emit doesn't currently produce it.
-            if width == "char" && suffix.starts_with("to_") { return bc.CharToInt {} }
-            if suffix == "to_char" { return bc.IntToChar {} }
+            // `<from>.to_<to>` — every width, `char` included, becomes the one
+            // `Convert` op the bytecode emitter itself produces. Reading a dump
+            // back must yield the SAME op the compiler emitted: char conversions
+            // used to be relabelled into dedicated `IntToChar` / `CharToInt` ops
+            // here, so a program run from a `.virt` executed a different
+            // implementation than the same program run from memory — and the two
+            // did not accept the same inputs. `f32` stays a valid from-type for
+            // forward compatibility even though the emit doesn't produce it.
             if suffix.starts_with("to_") {
                 target :: suffix.bytes()["to_".bytes().len()..<suffix.bytes().len()].bytes_to_string()
-                if is_numeric_name(target) { return parse_convert(cleaned) }
+                if is_numeric_name(target) || target == "char" { return parse_convert(cleaned) }
             }
 
             if is_int {
@@ -437,12 +448,6 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
     if head == "bool.or"        { return bc.BoolOr {} }
     if head == "bool.not"       { return bc.BoolNot {} }
     if head == "char.const"     { return parse_char_const(cleaned) }
-    if head == "char.eq"        { return bc.CharEq {} }
-    if head == "char.ne"        { return bc.CharNe {} }
-    if head == "char.lt"        { return bc.CharLt {} }
-    if head == "char.le"        { return bc.CharLe {} }
-    if head == "char.gt"        { return bc.CharGt {} }
-    if head == "char.ge"        { return bc.CharGe {} }
     if head == "string.eq"      { return bc.StringEq {} }
     if head == "string.ne"      { return bc.StringNe {} }
     if head == "string.slice_codepoints" { return bc.StringSliceCodepoints {} }

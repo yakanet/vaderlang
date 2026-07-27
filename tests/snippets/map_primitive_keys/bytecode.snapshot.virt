@@ -2394,7 +2394,7 @@ fn 44 std_collections$std_collections$put__char__i32 (ref,char,i32) -> void
         local.get 4
         load_slot_i32
         local.get 1
-        char.eq
+        i32.eq
         if $L9 void
           local.field 0 2 1
           local.get 4
@@ -3576,7 +3576,7 @@ fn 50 std_collections$std_collections$get__char__i32 (ref,char) -> any
           local.get 4
           load_slot_i32
           local.get 1
-          char.eq
+          i32.eq
           if $L5 void
             local.field 0 2 1
             local.get 4

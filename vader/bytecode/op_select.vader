@@ -146,7 +146,6 @@ shr_op :: fn(lhs: ValType) -> Op {
 
 cmp_eq :: fn(lhs: ValType) -> Op {
     if lhs == ValType.Bool   { return BoolEq {} }
-    if lhs == ValType.Char   { return CharEq {} }
     if lhs == ValType.String { return StringEq {} }
     if is_float_val(lhs)     { return F64Eq {} }
     if is_64_bit_int_val(lhs) { return I64Eq {} }
@@ -156,7 +155,6 @@ cmp_eq :: fn(lhs: ValType) -> Op {
 
 cmp_ne :: fn(lhs: ValType) -> Op {
     if lhs == ValType.Bool   { return BoolNe {} }
-    if lhs == ValType.Char   { return CharNe {} }
     if lhs == ValType.String { return StringNe {} }
     if is_float_val(lhs)     { return F64Ne {} }
     if is_64_bit_int_val(lhs) { return I64Ne {} }

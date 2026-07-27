@@ -130,7 +130,7 @@ fn 0 snippet$main () -> i32
   local.set 1
   char.const 61
   char.const 61
-  char.eq
+  i32.eq
   local.set 3
   local.get 0
   local.get 1
