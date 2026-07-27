@@ -279,21 +279,9 @@ export find_command :: fn(name: string) -> CommandSpec | null {
 /// @param cmd  the action being parsed.
 /// @return     the action's own flags first, then `COMMON_FLAGS`.
 export command_specs :: fn(cmd: CommandSpec) -> FlagSpec[] {
-    // Element-by-element on purpose. `all.push_all(cmd.flags)` SEGFAULTS (exit
-    // 139, no diagnostic) on `vader lsp --stdlib-root=…`, while the identical
-    // call for `build` is fine and the loop below works for both. The distinguishing
-    // feature is that the `lsp` entry's `.flags` is `Lsp.LSP_FLAGS`, a const from a
-    // third module, but that is NOT a proven cause: a reduced snippet doing
-    // `push_all` on a foreign const — directly, and through a local const's struct
-    // field — does not reproduce. So the trigger needs something more than the
-    // cross-module hop, and until it is found this loop stays. See TODO.md.
     all: FlagSpec[]! = []
-    for f in cmd.flags {
-        all.push(f)
-    }
-    for f in COMMON_FLAGS {
-        all.push(f)
-    }
+    all.push_all(cmd.flags)
+    all.push_all(COMMON_FLAGS)
     return all
 }
 

@@ -2813,6 +2813,35 @@ vader_array_t* vader_array_repeat(vader_array_t* src, size_t n) {
     return out;
 }
 
+/* Load slot `i` of `buf` as a box — the symmetric read of
+ * `vader_array_store_slot`. Access sites normally open-code their reads (see that
+ * function's note), so this exists for the one case that cannot: copying between
+ * two arrays whose element representations differ, in `vader_array_push_all`. */
+static vader_box_t vader_array_load_slot(vader_array_buf_t* buf, size_t i) {
+    uint32_t tag = buf->element_tag;
+    uint8_t* base = buf->slots;
+    vader_box_t out;
+    out._pad = 0;
+    switch (buf->element_kind) {
+        case VADER_ARRAY_KIND_BOXED: out = vader_array_box_slots(buf)[i]; break;
+        case VADER_ARRAY_KIND_U8:   out.tag = tag; out.payload.i = ((uint8_t*)  base)[i]; break;
+        case VADER_ARRAY_KIND_U16:  out.tag = tag; out.payload.i = ((uint16_t*) base)[i]; break;
+        case VADER_ARRAY_KIND_U32:  out.tag = tag; out.payload.i = ((uint32_t*) base)[i]; break;
+        case VADER_ARRAY_KIND_U64:  out.tag = tag; out.payload.i = (vader_i64_t) ((uint64_t*) base)[i]; break;
+        case VADER_ARRAY_KIND_I8:   out.tag = tag; out.payload.i = ((int8_t*)   base)[i]; break;
+        case VADER_ARRAY_KIND_I16:  out.tag = tag; out.payload.i = ((int16_t*)  base)[i]; break;
+        case VADER_ARRAY_KIND_I32:  out.tag = tag; out.payload.i = ((int32_t*)  base)[i]; break;
+        case VADER_ARRAY_KIND_I64:  out.tag = tag; out.payload.i = ((int64_t*)  base)[i]; break;
+        case VADER_ARRAY_KIND_F32:  out.tag = tag; out.payload.f = (vader_f64_t) ((float*) base)[i]; break;
+        case VADER_ARRAY_KIND_F64:  out.tag = tag; out.payload.f = ((double*)   base)[i]; break;
+        case VADER_ARRAY_KIND_CHAR: out.tag = tag; out.payload.i = ((uint32_t*) base)[i]; break;
+        case VADER_ARRAY_KIND_BOOL: out.tag = tag; out.payload.b = ((uint8_t*)  base)[i] != 0; break;
+        case VADER_ARRAY_KIND_REF:  out = vader_ref_box(((void**) base)[i]); break;
+        default: vader_trap("vader_array_load_slot: unknown element kind");
+    }
+    return out;
+}
+
 /* `dst.push_all(src)` — append every element of `src` to `dst`, growing `dst`
  * once if needed. Mirrors `vader_array_push`'s grow + rooting (the buf alloc may
  * collect twice, forwarding both arrays and `dst`'s old buf). Handles
@@ -2861,8 +2890,28 @@ void vader_array_push_all(vader_array_t* dst, vader_array_t* src) {
      * relocation. No safepoint from here to return, so the pointers are stable. */
     uint8_t kind; uint32_t tag; size_t esz;
     const uint8_t* src_data = vader_array_src_region(src, 0, &kind, &tag, &esz);
-    uint8_t* dst_data = dst->buf->slots + (dst->offset + dst->length) * esz;
-    memcpy(dst_data, src_data, add * esz);
+    if (kind == dst->buf->element_kind) {
+        uint8_t* dst_data = dst->buf->slots + (dst->offset + dst->length) * esz;
+        memcpy(dst_data, src_data, add * esz);
+    } else {
+        /* The two arrays store their elements differently, so a memcpy would
+         * write source-shaped slots at source-shaped strides into a buffer laid
+         * out for the destination's — 24-byte `vader_box_t`s into 8-byte raw-ref
+         * slots, say, overrunning the buffer and leaving the reader to treat
+         * boxes as pointers. It happens for real: a module const materialises
+         * BOXED while a freshly allocated array of the same element type is
+         * KIND_REF, so `all.push_all(some_const)` used to segfault.
+         *
+         * Go through the boxed form instead, which is what the per-element `push`
+         * path does. Neither helper allocates, so the no-safepoint contract above
+         * still holds. */
+        vader_array_buf_t* src_buf = src->buf;
+        size_t src_base = src->offset;
+        for (size_t i = 0; i < add; i++) {
+            vader_box_t v = vader_array_load_slot(src_buf, src_base + i);
+            vader_array_store_slot(dst->buf, dst->offset + dst->length + i, v);
+        }
+    }
     dst->length += add;
     if (dst->offset + dst->length > dst->buf->length) {
         dst->buf->length = dst->offset + dst->length;

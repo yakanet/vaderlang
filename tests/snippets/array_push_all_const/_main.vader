@@ -1,0 +1,49 @@
+// `push_all` from a module const into a freshly allocated array — the two carry
+// their elements in DIFFERENT representations, and the runtime used to memcpy
+// between them regardless.
+//
+// A module const materialises its array with BOXED slots (24-byte `vader_box_t`),
+// while `dst: Item[]! = []` allocates KIND_REF slots (8-byte raw pointers).
+// `vader_array_push_all` copied with the SOURCE's element size and never compared
+// the two `element_kind`s, so it wrote 24-byte boxes at 24-byte strides into an
+// 8-byte-stride buffer — overrunning it, and leaving the reader to treat boxes as
+// pointers. Segfault at the first element read, with the length already correct
+// (that is the tell: `len=2` printed, then death).
+//
+// The nested array field is what makes the const materialise BOXED; a struct of
+// scalars alone does not reproduce. Found 2026-07-27 via `vader lsp
+// --stdlib-root=…`, where `command_specs` did `push_all` on a flag-spec const.
+
+module "snippet"
+
+import "std/io"
+
+Inner :: struct {
+    tag: string
+}
+
+Item :: struct {
+    name:  string
+    inner: Inner[]
+}
+
+ITEMS: Item[]: [
+    Item { .name = "first", .inner = [Inner { .tag = "a" }] },
+    Item { .name = "second", .inner = [] },
+]
+
+main :: fn() -> i32 {
+    dst: Item[]! = []
+    dst.push_all(ITEMS)
+    println("len=${dst.len()}")
+    for it in dst {
+        println("${it.name} inner=${it.inner.len()}")
+    }
+
+    // Appending twice must not lose the first batch: the copy has to land past
+    // the existing length, at the destination's stride.
+    dst.push_all(ITEMS)
+    println("doubled=${dst.len()}")
+    println("last=${dst[3].name}")
+    return 0
+}

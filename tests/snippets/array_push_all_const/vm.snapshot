@@ -1,0 +1,8 @@
+# stdout
+len=2
+first inner=1
+second inner=0
+doubled=4
+last=second
+# exit
+0

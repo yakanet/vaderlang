@@ -1,0 +1,53 @@
+# Typecheck
+
+## tests/snippets/array_push_all_const
+  StructDecl     Inner                :: Inner!
+  StructDecl     Item                 :: Item!
+  ConstDecl      ITEMS                :: Item[]
+  FnDecl         main                 :: fn() -> i32
+  expr 30:16    SeqLitExpr     :: Item[]
+  expr 31:20    StringLitExpr  :: string
+  expr 31:38    SeqLitExpr     :: Inner[]
+  expr 31:39    StructLitExpr  :: Inner!
+  expr 31:5     StructLitExpr  :: Item!
+  expr 31:54    StringLitExpr  :: string
+  expr 32:20    StringLitExpr  :: string
+  expr 32:39    SeqLitExpr     :: Inner[]
+  expr 32:5     StructLitExpr  :: Item!
+  expr 36:20    SeqLitExpr     :: Item[]!
+  expr 37:18    IdentExpr      :: Item[]
+  expr 37:5     CallExpr       :: void
+  expr 37:5     FieldExpr      :: fn(Item[]) -> void
+  expr 37:5     IdentExpr      :: Item[]!
+  expr 38:13    StringLitExpr  :: string
+  expr 38:20    CallExpr       :: usize
+  expr 38:20    FieldExpr      :: fn() -> usize
+  expr 38:20    IdentExpr      :: Item[]!
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 39:15    IdentExpr      :: Item[]!
+  expr 40:17    StringLitExpr  :: string
+  expr 40:20    FieldExpr      :: string
+  expr 40:20    IdentExpr      :: Item
+  expr 40:37    CallExpr       :: usize
+  expr 40:37    FieldExpr      :: Inner[]
+  expr 40:37    FieldExpr      :: fn() -> usize
+  expr 40:37    IdentExpr      :: Item
+  expr 40:9     CallExpr       :: void
+  expr 40:9     IdentExpr      :: fn(T) -> void
+  expr 45:18    IdentExpr      :: Item[]
+  expr 45:5     CallExpr       :: void
+  expr 45:5     FieldExpr      :: fn(Item[]) -> void
+  expr 45:5     IdentExpr      :: Item[]!
+  expr 46:13    StringLitExpr  :: string
+  expr 46:24    CallExpr       :: usize
+  expr 46:24    FieldExpr      :: fn() -> usize
+  expr 46:24    IdentExpr      :: Item[]!
+  expr 46:5     CallExpr       :: void
+  expr 46:5     IdentExpr      :: fn(T) -> void
+  expr 47:13    StringLitExpr  :: string
+  expr 47:21    FieldExpr      :: string
+  expr 47:21    IdentExpr      :: Item[]!
+  expr 47:21    IndexExpr      :: Item
+  expr 47:5     CallExpr       :: void
+  expr 47:5     IdentExpr      :: fn(T) -> void
