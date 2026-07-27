@@ -42,10 +42,10 @@ export intrinsic_op_for_mangled :: fn(mangled: string) -> Op | null {
     cmp :: primitive_cmp_op(mangled)
     if cmp != null { return cmp }
     // Target ABI memory opcodes — the abstract `Buffer`'s `@intrinsic` methods
-    // (`stdlib/std/core/buffer.vader`). `object_new`'s `type_id` immediate is a
-    // placeholder : c-emit always tags the box with the BUFFER sentinel and the
-    // VM stores it only as an opaque tag, so a constant `0` is sufficient.
-    if mangled == r"std_core$usize$BufferAlloc$new_buffer"  { return ObjectNew { .type_id = 0 } }
+    // (`stdlib/std/core/buffer.vader`). `buffer.new` takes no operand — the
+    // allocated object is always a `Buffer`, so its type is the BUFFER sentinel
+    // by definition.
+    if mangled == r"std_core$usize$BufferAlloc$new_buffer"  { return BufferNew {} }
     if mangled == r"std_core$Buffer$ByteAccess$load_u8"     { return LoadU8 {} }
     if mangled == r"std_core$Buffer$ByteAccess$store_u8"    { return StoreU8 {} }
     if mangled == r"std_core$Buffer$ByteAccess$memory_copy" { return MemoryCopy {} }

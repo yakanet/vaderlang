@@ -303,7 +303,7 @@ export read_array :: fn(v: Value, at_pc: i32, label: string) -> ArrayVal | Trap 
 }
 
 /// Unwrap an `ObjVal` from a `Value`. Used by the memory-op arms
-/// (`object_new` / `load_*` / `store_*` / `memory_copy`) to recover the
+/// (`buffer.new` / `load_*` / `store_*` / `memory_copy`) to recover the
 /// object handle on the stack.
 export read_obj :: fn(v: Value, at_pc: i32, label: string) -> ObjVal | Trap {
     if v is ObjVal { return v }

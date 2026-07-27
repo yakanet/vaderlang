@@ -138,7 +138,7 @@ export Op :: Unreachable
     | BranchIf
     | Return
     | ReturnLit
-    | ObjectNew
+    | BufferNew
     | LoadU8
     | LoadI32
     | LoadI64
@@ -633,13 +633,27 @@ export ReturnLit :: struct { value: ConstOp }
 // never reshaped (the union tags are positional). Inert until S3 — nothing in
 // the lowerer emits them yet. See docs/TARGET_ABI.md §5 for the frozen contract.
 
-/// GC-allocate a fresh object of `size` bytes (popped) and push the handle.
-/// `type_id` is an inline immediate (decision D2) — for a `Buffer` it is the
-/// dedicated `VADER_TYPE_INDEX_BUFFER` sentinel (D3) — so the GC reads a
-/// static, never runtime-trusted, type. Generalises `StructNew` / `ArrayNew`.
-/// C lowering is the two-step `vader_gc_alloc(size)` + `vader_obj_header_init(
-/// obj, type_id)` inline — no new runtime symbol (D1).
-export ObjectNew :: struct { type_id: i32 }
+/// GC-allocate a zero-filled byte region of `size` bytes (popped) and push the
+/// handle. The CONSTRUCTOR of the Target ABI memory family — `Load*` / `Store*` /
+/// `MemoryCopy` / `BufferToString` / `BufferWriteString` are its accessors.
+///
+/// Carries no operand: the allocated object is always a `Buffer`, so its type is
+/// the `VADER_TYPE_INDEX_BUFFER` sentinel by definition, never a parameter. (It
+/// used to be `ObjectNew` with a `type_id` immediate, which promised a generic
+/// allocator it never was: the C emit hard-wires the sentinel and ignored the
+/// field, and the one thing it ever allocated was a `Buffer`.)
+///
+/// C lowering is a call to the runtime's `vader_buffer_new(size)`, which zeroes
+/// the region and stamps the header with that same sentinel — the GC forwards a
+/// boxed reference through the header, so the two must agree.
+///
+/// Emitted from exactly one place — `<byte-count>.new_buffer()`, mapped in
+/// `bytecode/intrinsics.vader`. Its accessors have no Vader-level trigger at all;
+/// what exercises the whole family end to end, this op included, is the
+/// hand-authored `tests/fixtures/membuf_gc.virt` (down to surviving a moving
+/// collection). A caller count alone therefore understates what removing any of
+/// them would break.
+export BufferNew :: struct {}
 
 // The multi-byte members of this family (`LoadI32` / `I64` / `F64` and their
 // `Store*` twins) are COMPLETE but have no way to fire: the VM executes them

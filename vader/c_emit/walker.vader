@@ -234,7 +234,7 @@ key_mentions_local :: fn(k: string, slot: i32) -> bool {
 // arm iff its emitted C reaches `vader_gc_alloc` (directly or transitively).
 op_allocates :: fn(op: vm.Op) -> bool = match op {
     is vm.StructNew as sn -> !sn.stack
-    is vm.ObjectNew | vm.ArrayNew | vm.ArrayPush | vm.ArrayRepeat | vm.ArrayPushAll | vm.ArraySlice | vm.StringSliceCodepoints | vm.BufferToString | vm.MakeClosure | vm.CallImport | vm.CallIndirect | vm.VirtualCall -> true
+    is vm.BufferNew | vm.ArrayNew | vm.ArrayPush | vm.ArrayRepeat | vm.ArrayPushAll | vm.ArraySlice | vm.StringSliceCodepoints | vm.BufferToString | vm.MakeClosure | vm.CallImport | vm.CallIndirect | vm.VirtualCall -> true
     is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const | vm.I64Const | vm.Call | vm.FnRef | vm.StructGet | vm.StructSet | vm.LocalField | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst | vm.RefCast | vm.Box | vm.Convert | vm.TypeCheck | vm.TypeConst | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.StringEq | vm.StringNe | vm.RefEq | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32 | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear -> false
 }
 
@@ -596,7 +596,7 @@ emit_op :: fn(s: FnState!, pc: i32, op: vm.Op) -> void {
         is vm.RefNe                 -> push_binop_any(s, "!=", .Bool)
         is vm.DeferPush             -> emit_defer_push(s)
         is vm.DeferPopExec          -> emit_defer_pop_exec(s, op)
-        is vm.ObjectNew             -> emit_object_new(s, op)
+        is vm.BufferNew             -> emit_buffer_new(s)
         is vm.LoadU8                -> emit_buffer_load(s, "vader_buffer_load_u8", .I32)
         is vm.LoadI32               -> emit_buffer_load(s, "vader_buffer_load_i32", .I32)
         is vm.LoadI64               -> emit_buffer_load(s, "vader_buffer_load_i64", .I64)
@@ -621,7 +621,7 @@ emit_op :: fn(s: FnState!, pc: i32, op: vm.Op) -> void {
         is vm.F32ToBits             -> emit_f32_to_bits(s)
         is vm.BitsToF32             -> emit_bits_to_f32(s)
     }    // ---- memory opcodes (Target ABI) -----------------------------------
-    // Bytes-only Buffer (S2b). object_new allocates a `vader_buffer_t`; the
+    // Bytes-only Buffer (S2b). `buffer.new` allocates a `vader_buffer_t`; the
     // typed load/store + memory_copy go through the `static inline
     // vader_buffer_*` helpers in vader.h, re-deriving the buffer pointer
     // from its rooted box on every op (G1 — no caching across an allocating
@@ -2102,12 +2102,10 @@ emit_box_op :: fn(s: FnState!, op: vm.Box) -> void {
 /// right-to-left into source order.
 // ---- memory opcodes (Target ABI, bytes-only Buffer) ----------------------
 
-/// `object_new` — allocate a fresh zeroed `vader_buffer_t` of the popped byte
-/// size, push the boxed reference. The `type_id` immediate tags the box
-/// (informational — the heap object always carries the BUFFER sentinel). The
-/// size operand is a primitive, so there is no in-flight reference to root
-/// across the allocation.
-emit_object_new :: fn(s: FnState!, op: vm.ObjectNew) -> void {
+/// `buffer.new` — allocate a fresh zeroed `vader_buffer_t` of the popped byte
+/// size and push the reference. The size operand is a primitive, so there is no
+/// in-flight reference to root across the allocation.
+emit_buffer_new :: fn(s: FnState!) -> void {
     size :: pop(s)
     name :: fresh_tmp(s, .Ref)
     // Tag the box with the BUFFER sentinel — NOT `op.type_id`. The box tag must

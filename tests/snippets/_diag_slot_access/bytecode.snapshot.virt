@@ -2161,7 +2161,7 @@ end
 
 fn 28 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
-  object_new 0
+  buffer.new
   return
 end
 

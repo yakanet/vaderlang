@@ -697,7 +697,7 @@ export write_op :: fn(out: StringBuilder!, op: Op) -> void {
         is RefNe                    -> out.append("ref.ne")
         is DeferPush                -> out.append("defer.push")
         is DeferPopExec             -> out.append("defer.pop_exec ${op.count}")
-        is ObjectNew                -> out.append("object_new ${op.type_id}")
+        is BufferNew                -> out.append("buffer.new")
         is LoadU8                   -> out.append("load_u8")
         is LoadI32                  -> out.append("load_i32")
         is LoadI64                  -> out.append("load_i64")
@@ -783,7 +783,6 @@ annotate_op :: fn(module: BytecodeModule, locals: BcLocal[], param_count: i32, o
     if op is FnRef as f        { return fn_label(module, f.function_index) }
     if op is MakeClosure as m  { return fn_label(module, m.function_index) }
     if op is DataConst as d    { return "pool[${d.pool_index}] : ${type_label(module, d.type_id)}" }
-    if op is ObjectNew as o    { return type_label(module, o.type_id) }
     return ""
 }
 

@@ -469,14 +469,11 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
     // `reason` is not serialised to `.virt` — the round-trip VM traps with a
     // generic message ; the in-memory run and the native build keep the reason.
     if head == "unreachable"    { return bc.Unreachable { .reason = "" } }
-    // Memory opcodes (Target ABI). `object_new` carries a `type_id` immediate
+    // Memory opcodes (Target ABI). `buffer.new` carries no operand
     // (decision D2) ; the rest are all-stack, no operands. Landed alongside
     // write_op's arms so a known op never silently drops here (which would
     // shift every following pc).
-    if head == "object_new" {
-        parsed :: parse_int_after_prefix(cleaned, "object_new ") ?? return null
-        return bc.ObjectNew { .type_id = parsed }
-    }
+    if head == "buffer.new"     { return bc.BufferNew {} }
     if head == "load_u8"        { return bc.LoadU8 {} }
     if head == "load_i32"       { return bc.LoadI32 {} }
     if head == "load_i64"       { return bc.LoadI64 {} }
@@ -973,12 +970,12 @@ roundtrip_op_text :: fn(op: bc.Op) -> string {
 }
 
 @test test_memory_opcode_roundtrip :: fn() -> void {
-    // The Target ABI memory opcodes. `object_new` carries a `type_id`
+    // The Target ABI memory opcodes. `buffer.new` carries no operand
     // immediate ; the rest are operand-free. Each must survive write_op →
     // parse_op_line → write_op unchanged — proving parse ≠ null and that the
     // op (and its immediate) is preserved, so a synthetic op stream keeps its
     // pc indices. Includes the S5 width-typed array slot family.
-    assert_eq(roundtrip_op_text(bc.ObjectNew { .type_id = 7 }), "object_new 7")
+    assert_eq(roundtrip_op_text(bc.BufferNew {}),  "buffer.new")
     assert_eq(roundtrip_op_text(bc.LoadU8 {}),     "load_u8")
     assert_eq(roundtrip_op_text(bc.LoadI32 {}),    "load_i32")
     assert_eq(roundtrip_op_text(bc.LoadI64 {}),    "load_i64")
