@@ -353,7 +353,19 @@ emit_value_cast :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredEx
     inner :: if coerced == null { arg } else { coerced }
     if type is PrimitiveType as pt {
         if pt.name == "string" || pt.name == "bool" || pt.name == "void" || pt.name == "null" {
-            return inner
+            // A true identity cast (`string(s)` on a `string`) hands the arg back
+            // untouched. UNWRAPPING a distinct is not that: `string(n)` where
+            // `n : Name` must stamp `string`, or the lowered tree keeps carrying
+            // `Name` and anything reading the result's type resolves against the
+            // distinct. That is how `string(n).trim()` lowered to a field access
+            // and panicked in midir with "no field `trim` on `Name`" — while
+            // binding the cast first, or calling `trim(string(n))`, both worked.
+            // The wrap direction below already stamps; this is the missing half.
+            // Free at runtime: `bc_type_of(distinct) == bc_type_of(backing)`.
+            if equals_type(type_of(inner), type) {
+                return inner
+            }
+            return LoweredCast { .span = call.span, .type = type, .value = inner }
         }
         return LoweredCast { .span = call.span, .type = type, .value = inner }
     }

@@ -552,8 +552,8 @@ fn 11 std_path$filename (string) -> string
   local s string
   local idx isize
   local rb ref
-  local $add_12 usize
-  local $len_13 usize
+  local $add_13 usize
+  local $len_14 usize
   local.get 0
   local.tee 1
   char.const 47
@@ -653,8 +653,8 @@ end
 fn 14 std_path$parent (string) -> string
   local s string
   local idx isize
-  local $call_14 ref
-  local $cast_16 usize
+  local $call_15 ref
+  local $cast_17 usize
   local.get 0
   local.tee 1
   char.const 47
@@ -700,7 +700,7 @@ end
 
 fn 17 std_path$join (string,string) -> string
   local s string
-  local $sub_13 usize
+  local $sub_14 usize
   local.get 1
   call 24
   if $L0 void
@@ -883,9 +883,9 @@ fn 20 std_path$normalize (string) -> string
   local seg string
   local or_res bool
   local can_pop bool
-  local $sub_42 usize
-  local $len_50 usize
-  local $len_54 usize
+  local $sub_43 usize
+  local $len_51 usize
+  local $len_55 usize
   local.get 0
   local.tee 1
   call 24

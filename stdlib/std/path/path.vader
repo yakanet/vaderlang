@@ -22,6 +22,12 @@ export SEP_STR :: "/"
 /// an OS boundary that may carry `\` (Windows CLI arguments, env vars) must be
 /// funnelled through here first, otherwise `parent` / `filename` (which split
 /// on `SEP`) silently return empty. POSIX paths pass through unchanged.
+/// Takes and returns a raw `string`, not a `Path`: the compiler internals it
+/// serves (`vader/resolver::loader`, `vader/lsp/protocol::uri`) are string-based,
+/// and the CLI-side `Path` conversion stops at their boundary. Nothing technical
+/// forces this any more — a `Path -> Path` signature used to panic in midir on the
+/// chained cast inside, which is fixed — it is scope.
+///
 /// @param s  a path string, possibly using `\` separators.
 /// @return   the same path with every `\` rewritten to `/`.
 export to_posix :: fn(s: string) -> string = s.replace_chars_where((c: char) -> c == '\\', SEP_STR)

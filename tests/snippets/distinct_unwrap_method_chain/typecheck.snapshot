@@ -1,0 +1,110 @@
+# Typecheck
+
+## tests/snippets/distinct_unwrap_method_chain
+  FnDecl         backed_bool          :: fn(Flag) -> string
+  FnDecl         backed_int           :: fn(Count) -> string
+  FnDecl         bound                :: fn(Name) -> string
+  ConstDecl      Count                :: type
+  ConstDecl      Flag                 :: type
+  FnDecl         freefn               :: fn(Name) -> string
+  FnDecl         identity             :: fn(string) -> string
+  FnDecl         inline_trim          :: fn(Name) -> string
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      Name                 :: type
+  FnDecl         shout                :: fn(Name) -> Name
+  expr 24:40    CallExpr       :: string
+  expr 24:40    CallExpr       :: string
+  expr 24:40    FieldExpr      :: fn() -> string
+  expr 24:40    IdentExpr      :: type
+  expr 24:47    IdentExpr      :: Name
+  expr 28:10    CallExpr       :: string
+  expr 28:10    CallExpr       :: string
+  expr 28:10    FieldExpr      :: fn(fn(char) -> bool, string) -> string
+  expr 28:10    IdentExpr      :: type
+  expr 28:17    IdentExpr      :: Name
+  expr 28:40    LambdaExpr     :: fn(char) -> bool
+  expr 28:5     CallExpr       :: Name
+  expr 28:5     IdentExpr      :: type
+  expr 28:53    BinaryExpr     :: bool
+  expr 28:53    IdentExpr      :: char
+  expr 28:63    StringLitExpr  :: string
+  expr 32:13    CallExpr       :: string
+  expr 32:13    IdentExpr      :: type
+  expr 32:20    IdentExpr      :: Name
+  expr 33:12    CallExpr       :: string
+  expr 33:12    FieldExpr      :: fn() -> string
+  expr 33:12    IdentExpr      :: string
+  expr 35:35    CallExpr       :: string
+  expr 35:35    IdentExpr      :: fn(string) -> string
+  expr 35:40    CallExpr       :: string
+  expr 35:40    IdentExpr      :: type
+  expr 35:47    IdentExpr      :: Name
+  expr 38:39    CallExpr       :: string
+  expr 38:39    CallExpr       :: string
+  expr 38:39    FieldExpr      :: fn() -> string
+  expr 38:39    IdentExpr      :: type
+  expr 38:46    IdentExpr      :: string
+  expr 44:40    CallExpr       :: i64
+  expr 44:40    CallExpr       :: string
+  expr 44:40    FieldExpr      :: fn() -> string
+  expr 44:40    IdentExpr      :: type
+  expr 44:44    IdentExpr      :: Count
+  expr 45:40    CallExpr       :: bool
+  expr 45:40    CallExpr       :: string
+  expr 45:40    FieldExpr      :: fn() -> string
+  expr 45:40    IdentExpr      :: type
+  expr 45:45    IdentExpr      :: Flag
+  expr 48:13    StringLitExpr  :: string
+  expr 48:23    CallExpr       :: string
+  expr 48:23    IdentExpr      :: fn(Name) -> string
+  expr 48:35    CallExpr       :: Name
+  expr 48:35    IdentExpr      :: type
+  expr 48:40    StringLitExpr  :: string
+  expr 48:5     CallExpr       :: void
+  expr 48:5     IdentExpr      :: fn(T) -> void
+  expr 49:13    StringLitExpr  :: string
+  expr 49:22    CallExpr       :: string
+  expr 49:22    IdentExpr      :: type
+  expr 49:29    CallExpr       :: Name
+  expr 49:29    IdentExpr      :: fn(Name) -> Name
+  expr 49:35    CallExpr       :: Name
+  expr 49:35    IdentExpr      :: type
+  expr 49:40    StringLitExpr  :: string
+  expr 49:5     CallExpr       :: void
+  expr 49:5     IdentExpr      :: fn(T) -> void
+  expr 50:13    StringLitExpr  :: string
+  expr 50:22    CallExpr       :: string
+  expr 50:22    IdentExpr      :: fn(Name) -> string
+  expr 50:28    CallExpr       :: Name
+  expr 50:28    IdentExpr      :: type
+  expr 50:33    StringLitExpr  :: string
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(T) -> void
+  expr 51:13    StringLitExpr  :: string
+  expr 51:23    CallExpr       :: string
+  expr 51:23    IdentExpr      :: fn(Name) -> string
+  expr 51:30    CallExpr       :: Name
+  expr 51:30    IdentExpr      :: type
+  expr 51:35    StringLitExpr  :: string
+  expr 51:5     CallExpr       :: void
+  expr 51:5     IdentExpr      :: fn(T) -> void
+  expr 52:13    StringLitExpr  :: string
+  expr 52:25    CallExpr       :: string
+  expr 52:25    IdentExpr      :: fn(string) -> string
+  expr 52:34    StringLitExpr  :: string
+  expr 52:5     CallExpr       :: void
+  expr 52:5     IdentExpr      :: fn(T) -> void
+  expr 53:13    StringLitExpr  :: string
+  expr 53:20    CallExpr       :: string
+  expr 53:20    IdentExpr      :: fn(Count) -> string
+  expr 53:31    CallExpr       :: Count
+  expr 53:31    IdentExpr      :: type
+  expr 53:5     CallExpr       :: void
+  expr 53:5     IdentExpr      :: fn(T) -> void
+  expr 54:13    StringLitExpr  :: string
+  expr 54:21    CallExpr       :: string
+  expr 54:21    IdentExpr      :: fn(Flag) -> string
+  expr 54:33    CallExpr       :: Flag
+  expr 54:33    IdentExpr      :: type
+  expr 54:5     CallExpr       :: void
+  expr 54:5     IdentExpr      :: fn(T) -> void

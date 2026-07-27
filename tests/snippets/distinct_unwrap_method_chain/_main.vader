@@ -1,0 +1,56 @@
+// Unwrapping a distinct type and chaining a method on the result, inline.
+//
+// `string(n).trim()` on a string-backed distinct used to panic in midir:
+// `no field 'trim' on 'Name' — a method reference on a primitive isn't a
+// first-class value`. `emit_value_cast` returned the argument verbatim for a
+// string / bool / void / null target, so the lowered tree kept carrying the
+// distinct and the method resolved against it instead of the backing type. The
+// WRAP direction already stamped its type; this was the missing half.
+//
+// Binding the cast first, or calling the free-fn form, always worked — which is
+// what made the bug look narrower than it was. Any method chained on any distinct
+// unwrap hit it.
+
+module "snippet"
+
+import "std/io"
+import "std/string"
+
+Name  :: string
+Count :: i64
+Flag  :: bool
+
+// The shape that panicked.
+inline_trim :: fn(n: Name) -> string = string(n).trim()
+
+// Same, with a method taking a lambda, wrapped back into the distinct.
+shout :: fn(n: Name) -> Name =
+    Name(string(n).replace_chars_where((c: char) -> c == 'a', "A"))
+
+// The two forms that already worked — guard against over-correction.
+bound :: fn(n: Name) -> string {
+    base :: string(n)
+    return base.trim()
+}
+freefn :: fn(n: Name) -> string = trim(string(n))
+
+// A true identity cast stays a no-op: no stamping, nothing to convert.
+identity :: fn(s: string) -> string = string(s).trim()
+
+// Unwrapping a distinct is one operation whatever the backing type is: `string(p)`
+// on a string-backed one and `i64(d)` on an i64-backed one are the same thing. The
+// numeric arm always stamped its target type, so only the string / bool / void /
+// null arm was broken — hence a case for each here.
+backed_int :: fn(c: Count) -> string = i64(c).to_string()
+backed_bool :: fn(f: Flag) -> string = bool(f).to_string()
+
+main :: fn() -> i32 {
+    println("inline=${inline_trim(Name("  hi  "))}")
+    println("shout=${string(shout(Name("banana")))}")
+    println("bound=${bound(Name("  ho  "))}")
+    println("freefn=${freefn(Name("  he  "))}")
+    println("identity=${identity("  hu  ")}")
+    println("int=${backed_int(Count(42))}")
+    println("bool=${backed_bool(Flag(true))}")
+    return 0
+}

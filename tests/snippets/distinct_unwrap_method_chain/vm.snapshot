@@ -1,0 +1,10 @@
+# stdout
+inline=hi
+shout=bAnAnA
+bound=ho
+freefn=he
+identity=hu
+int=42
+bool=true
+# exit
+0
