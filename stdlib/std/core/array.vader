@@ -37,6 +37,32 @@ export ArrayOps :: trait<T> {
 
 @intrinsic T[] implements<T> ArrayOps<T>
 
+/// `a + b` — a fresh array holding `a`'s elements then `b`'s.
+///
+/// Mirrors `string + string`, which concatenates rather than adding: an array is
+/// the same kind of sequence, so `+` reads the same way. Neither operand is
+/// touched; the result is a new allocation, so `a + b` in a loop allocates each
+/// time — build with `push_all` when that matters.
+///
+/// The result is immutable (`Out` is `Self`), even though it is a fresh allocation
+/// nobody else holds. Declaring `Add<T[], T[]!>` to hand back a writable buffer
+/// does not work today: the marker is lost rebuilding the operator's result type,
+/// so `x: T[]! = a + b` still reports `expected T[]!, got T[]`. Build with an
+/// explicit `T[]!` and `push_all` when you need to keep appending; `+` is for
+/// producing a value, not a work buffer.
+// Tests for `+` do NOT live in this file, unlike everything else here: using the
+// impl from inside `std/core` itself trips GATE B1 at materialisation
+// (`unresolved callee 'std_core$[]$Add$add__i32'`). Any other module resolves it
+// fine, so the coverage lives in `tests/snippets/array_add_concat/`.
+T[] implements<T> Add<T[]> {
+    add :: fn(self, other: T[]) -> T[] {
+        out: T[]! = []
+        out.push_all(self)
+        out.push_all(other)
+        return out
+    }
+}
+
 // ---- construction ---------------------------------------------------------
 
 /// Build an array of `n` elements, calling `make` once per slot.

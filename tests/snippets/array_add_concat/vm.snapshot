@@ -1,0 +1,8 @@
+# stdout
+len=3 first=1 last=3
+sources=2,1
+with_empty=2,2,0
+chained=4
+structs=2 a/1 b/0
+# exit
+0

@@ -1,0 +1,41 @@
+// `a + b` on arrays — concatenation, mirroring `string + string`.
+//
+// Not colocated in `stdlib/std/core/array.vader` where the impl lives: calling it
+// from inside `std/core` itself trips GATE B1 at impl-member materialisation
+// (`unresolved callee 'std_core$[]$Add$add__i32'`). Every other module resolves
+// it, which is what this snippet covers.
+
+module "snippet"
+
+import "std/io"
+
+Item :: struct {
+    name:  string
+    inner: string[]
+}
+
+LEFT: Item[]: [Item { .name = "a", .inner = ["x"] }]
+RIGHT: Item[]: [Item { .name = "b", .inner = [] }]
+
+main :: fn() -> i32 {
+    a: i32[] = [1, 2]
+    b: i32[] = [3]
+    joined :: a + b
+    println("len=${joined.len()} first=${joined[0]} last=${joined[2]}")
+    // Neither operand is touched: the result is a fresh allocation.
+    println("sources=${a.len()},${b.len()}")
+
+    // An empty operand still copies, so the result never aliases its source.
+    empty: i32[] = []
+    println("with_empty=${(a + empty).len()},${(empty + a).len()},${(empty + empty).len()}")
+
+    // Chains left to right.
+    c: i32[] = [4]
+    println("chained=${(a + b + c).len()}")
+
+    // Structs carrying a nested array — the element shape that made a raw
+    // memcpy in `push_all` segfault, and which `+` goes through.
+    both :: LEFT + RIGHT
+    println("structs=${both.len()} ${both[0].name}/${both[0].inner.len()} ${both[1].name}/${both[1].inner.len()}")
+    return 0
+}

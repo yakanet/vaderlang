@@ -278,12 +278,7 @@ export find_command :: fn(name: string) -> CommandSpec | null {
 ///
 /// @param cmd  the action being parsed.
 /// @return     the action's own flags first, then `COMMON_FLAGS`.
-export command_specs :: fn(cmd: CommandSpec) -> FlagSpec[] {
-    all: FlagSpec[]! = []
-    all.push_all(cmd.flags)
-    all.push_all(COMMON_FLAGS)
-    return all
-}
+export command_specs :: fn(cmd: CommandSpec) -> FlagSpec[] = cmd.flags + COMMON_FLAGS
 
 // ---- tests ----------------------------------------------------------------
 
