@@ -312,7 +312,7 @@ impl_targets_name :: fn(for_type: Expr, name: string) -> bool {
 /// `T(value)` cast-call detector. Returns a `LoweredCast` when the callee
 /// is a type-shaped symbol (builtin primitive, struct, or type alias) with
 /// a single arg. For non-numeric targets the typer already routed the arg
-/// through `tryInto` ; we emit the lowered arg verbatim.
+/// through `try_into` ; we emit the lowered arg verbatim.
 try_lower_cast_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr | null {
     if call.args.len() != 1 { return null }
     callee_ident :: as_ident(call.callee) ?? return null

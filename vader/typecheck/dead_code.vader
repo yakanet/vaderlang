@@ -13,7 +13,8 @@
 // but merges EVERY module's decls and drops the `export`-is-a-root clause, so a
 // public fn unreachable across the whole project — invisible to the per-module
 // W0007 and to a lowered-project DCE diff (lazy lowering never materialises it) —
-// is flagged. It runs only under `vader lint`, never on the default build.
+// is flagged. Never on the default build — `vader lint` and the LSP's diagnostic
+// pass (`lsp/analysis/diagnostics.vader`) are its only two callers.
 //
 // Name-based by design. Resolving every reference to a `Symbol.id` is the gap
 // that sank the unused-import attempt (W0006) : `resolved.idents` is span-keyed,

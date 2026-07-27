@@ -13,8 +13,9 @@
 // resolution returns the same `DiscoveredModule` the eager scan would have
 // indexed for a well-formed project, so the self-compile stays byte-identical.
 //
-// Sibling of `discover.vader` (the eager scanner, still used by nothing on the
-// load path once this lands ; kept for reference / direct callers).
+// `discover.vader` no longer holds the eager scanner this replaced — it is now
+// just the shared records (`DiscoveredModule` / `FolderBucket`) that this file
+// produces and consumes.
 
 module "vader/resolver"
 

@@ -1,9 +1,11 @@
 // vader/typecheck/type_ops — equality, union canonicalisation, immutability bits.
 //
-// Everything here answers questions about types ALONE: this module never sees the
-// impl registry, so "does T implement Trait?" is not a question it can answer.
-// Trait widening consequently lives with the callers that do hold the registry —
-// `field.vader::receiver_fits_first_param` via `try_trait_widen`. `is_assignable`
+// Nothing here touches the `ImplRegistry` (`impls.vader`) — trait questions are
+// answered only from the precomputed side-tables on `TypedProgram`
+// (`struct_implemented_traits` / `struct_trait_args`), which is why
+// `struct_implements_trait` can live here while the registry-driven widening
+// stays with its callers — `field.vader::receiver_fits_first_param` via
+// `try_trait_widen`. `is_assignable`
 // and its per-variant helpers are in `type_assign.vader`, split out so each
 // variant compiles to a small dedicated C fn rather than one monster cascade.
 
