@@ -4,7 +4,7 @@
 #   stage0 ─emit C→ cc→    build/stage1   (intermediate full compiler)
 #   stage1 ─build native→  build/vader    (= stage2, the shipped compiler)
 #
-# Needs only a C compiler and gzip — no Bun, no TS, no pre-existing vader binary.
+# Needs only a C compiler — no Bun, no TS, no pre-existing vader binary.
 # The C compiler defaults to `cc`; override with `CC=clang bootstrap/build.sh`. It
 # is resolved to an absolute path and passed to stage1 via --cc, so the compiler
 # stage1 spawns is exactly the one used here. stage0 & stage1 are throwaways built
@@ -43,8 +43,7 @@ step() { printf '%b==>%b %s\n' "$b" "$r" "$*"; }
 mkdir -p build
 
 step "[1/3] Building stage0 (bootstrap compiler, from the seed)  [$CC_ABS $STAGE0_CFLAGS]"
-cp bootstrap/bootstrap.c build/bootstrap.c
-"$CC_ABS" $STAGE0_CFLAGS -o build/stage0 build/bootstrap.c "$runtime" -Iruntime/c -lm
+"$CC_ABS" $STAGE0_CFLAGS -o build/stage0 bootstrap/bootstrap.c "$runtime" -Iruntime/c -lm
 
 step "[2/3] Building stage1 (full compiler, via stage0)  — self-compiles"
 ./build/stage0 vader/cli/main.vader build/stage1.c

@@ -2,12 +2,16 @@
 
 Full design: [docs/BOOTSTRAP.md](../docs/BOOTSTRAP.md).
 
-`bootstrap.c.gz` is the gzip-compressed C of `vader/bootstrap/bootstrap.vader`
-— a build-only `<input.vader> → <output.c>` compiler — produced by
-`vader build --target=c`. Any C compiler turns it into **stage0**, which carries
-the full compilation pipeline; the build then bootstraps in three stages to the
-shipped compiler. No pre-existing `vader` toolchain needed — only a C compiler
-and `gzip`.
+`bootstrap.c` is the C of `vader/bootstrap/bootstrap.vader` — a build-only
+`<input.vader> → <output.c>` compiler — produced by `vader build --target=c`.
+Any C compiler turns it into **stage0**, which carries the full compilation
+pipeline; the build then bootstraps in three stages to the shipped compiler. No
+pre-existing `vader` toolchain needed — only a C compiler.
+
+It is committed **uncompressed**, which is what lets git delta successive
+reseeds: two consecutive seeds differ by ~0.1 % as C but 100 % as gzip bytes, so
+the compressed form cost a full megabyte of history per reseed. Measured on four
+real consecutive seeds, the pack goes from 4.3 MB to 1.6 MB.
 
 ## Build from the C seed
 
@@ -29,8 +33,7 @@ auto-grow, so self-compiling needs no env tuning.
   is `-O3`. `--dist` bundles `dist/vader-<os>-<arch>/` (binary + stdlib + runtime/c) —
   a self-contained toolchain that runs from any directory (the binary resolves
   `stdlib/` + `runtime/c/` next to its own executable).
-- `build.ps1` — Windows counterpart (mingw-w64 gcc/clang ; decompresses the seed
-  via .NET `GZipStream`, so no `gzip` is needed). Run with
+- `build.ps1` — Windows counterpart (mingw-w64 gcc/clang). Run with
   `powershell -ExecutionPolicy Bypass -File bootstrap\build.ps1` ; `-CC clang`
   picks a different compiler, `-Dist` bundles `dist\vader-windows-<arch>\`.
 - `regenerate.sh` — re-emit the seed from `bootstrap.vader` (needs a `vader`

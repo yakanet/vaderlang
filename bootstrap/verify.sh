@@ -25,7 +25,7 @@ fi
 # committed artifact. For --target=c, --release only drops `#line`.
 ./build/vader build --release --target=c --out=build/bootstrap.new.c vader/bootstrap/bootstrap.vader
 if ! cmp -s build/bootstrap.new.c bootstrap/bootstrap.c; then
-  echo "STALE SEED — bootstrap.c.gz no longer matches bootstrap.vader; run bootstrap/regenerate.sh" >&2
+  echo "STALE SEED — bootstrap.c no longer matches bootstrap.vader; run bootstrap/regenerate.sh" >&2
   exit 1
 fi
 

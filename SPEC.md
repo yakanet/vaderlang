@@ -3370,8 +3370,8 @@ emitter, which is post-MVP.
 ### Bootstrap status — achieved
 
 The fixed point has been reached: the Vader-built compiler reproduces its own
-generated C **byte-for-byte** (`stage1.c == stage2.c`), and a committed,
-gzip-compressed C seed (`bootstrap/bootstrap.c.gz`) lets any machine with a C
+generated C **byte-for-byte** (`stage1.c == stage2.c`), and a committed C seed
+(`bootstrap/bootstrap.c`) lets any machine with a C
 compiler rebuild the entire toolchain from source with no Bun or TypeScript in
 the cold-start path — see [`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md). CI rebuilds
 from the seed on every push.

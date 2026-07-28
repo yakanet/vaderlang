@@ -1,7 +1,7 @@
 // vader/bootstrap/bootstrap — build-only compiler entrypoint (the seed source).
 //
 // A minimal compiler whose only job is `<input.vader> -> <output.c>`. It is the
-// source the committed C seed (`bootstrap/bootstrap.c.gz`) is generated from —
+// source the committed C seed (`bootstrap/bootstrap.c`) is generated from —
 // see docs/BOOTSTRAP.md. `cc`-ing that seed yields **stage0**, whose single
 // invocation (`bootstrap/build.sh`) is `stage0 vader/cli/main.vader stage1.c` —
 // stage0 therefore has to carry a complete compilation pipeline, even though it

@@ -117,7 +117,7 @@ xattr -d com.apple.quarantine ./vader-darwin-arm64/vader
 
 ## Build from source
 
-Vader is self-hosted, so building from a checkout needs only a **C compiler** and **gzip**. It bootstraps in three stages from a small, committed C **seed** (`bootstrap/bootstrap.c.gz`) — the exact chain CI replays on every push:
+Vader is self-hosted, so building from a checkout needs only a **C compiler**. It bootstraps in three stages from a committed C **seed** (`bootstrap/bootstrap.c`) — the exact chain CI replays on every push:
 
 - **seed → stage0.** The seed is frozen C, once emitted by a Vader compiler for the build-only entrypoint `vader/bootstrap/bootstrap.vader`. `cc` turns it into `build/stage0`. This trusted starting point needs no pre-existing Vader toolchain — that's what breaks the chicken-and-egg.
 - **stage0 → stage1 → stage2.** stage0 builds the full compiler (`build/stage1`), which builds itself once more into `build/vader` (stage2). A fixed-point check confirms stage1 and stage2 emit identical C.
@@ -141,7 +141,7 @@ powershell -ExecutionPolicy Bypass -File bootstrap\build.ps1 -Dist  # → dist\v
 dist\vader-windows-*\vader.exe --version
 ```
 
-`build.ps1` decompresses the seed via .NET's `GZipStream` (no `gzip` needed); pass `-CC clang` to pick a different compiler, or drop `-Dist` to just build `build\vader.exe`. Alternatively, the MSYS2 *MINGW64* shell bundles `bash`, `gcc`, and `gzip` (`pacman -S mingw-w64-x86_64-gcc gzip`), so the Unix commands run unchanged. (WSL builds a *Linux* binary, not a Windows `.exe`.)
+Pass `-CC clang` to pick a different compiler, or drop `-Dist` to just build `build\vader.exe`. Alternatively, the MSYS2 *MINGW64* shell bundles `bash` and `gcc` (`pacman -S mingw-w64-x86_64-gcc`), so the Unix commands run unchanged. (WSL builds a *Linux* binary, not a Windows `.exe`.)
 
 ---
 

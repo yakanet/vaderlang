@@ -42,7 +42,7 @@ function binaryMtime(): number {
 }
 
 // Build instructions surfaced when the binary is missing or stale. The seed
-// path needs only a C compiler + gzip (no TS); `build:cli` is the fast local
+// path needs only a C compiler (no TS); `build:cli` is the fast local
 // shortcut while src/ still exists.
 const BUILD_HINT =
   `  bun run build:cli                              # fast, while src/ exists\n` +

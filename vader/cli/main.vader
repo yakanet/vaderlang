@@ -780,7 +780,7 @@ flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
 }
 
 // `--target=c` : write the generated C to `--out` (default `<file>.c`).
-// `--out=-` streams it to stdout — the bootstrap seed pipes that into gzip.
+// `--out=-` streams it to stdout, for piping into another tool.
 build_c :: fn(file: Path, out_flag: string, release: bool, include_path_flags: string[], units: i32) -> i32 {
     if units >= 2 {
         out :: if out_flag != "" { out_flag.to_path() } else { strip_input_suffix(file) }

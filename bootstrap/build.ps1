@@ -5,8 +5,8 @@
 #   stage1 -build native->  build\vader.exe    (= stage2, the shipped compiler)
 #
 # Needs a mingw-w64 C compiler (gcc or clang) on PATH -- MSVC is NOT supported
-# (the runtime uses __attribute__((weak))). gzip is NOT required: the seed is
-# decompressed through .NET's GZipStream. The compiler defaults to gcc; override
+# (the runtime uses __attribute__((weak))). The seed is plain C, compiled where
+# it is tracked -- nothing to decompress. The compiler defaults to gcc; override
 # with `-CC clang` or $env:CC. It is resolved to an absolute path and passed to
 # stage1 via --cc. stage0 & stage1 are throwaways built -O0 ($env:STAGE0_CFLAGS);
 # only stage2/vader is built -O3 (via stage1's --release). Pass -Dist to also
@@ -16,10 +16,9 @@ param([string]$CC = $(if ($env:CC) { $env:CC } else { 'gcc' }), [switch]$Dist)
 
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path -Parent $PSScriptRoot)
-# Set-Location only updates $PWD ; .NET file APIs (OpenRead/Create below) resolve
-# relative paths against [Environment]::CurrentDirectory, which Set-Location never
-# touches. Sync it so the seed decompression and the cc/stage child processes all
-# resolve relative paths against the repo root.
+# Set-Location only updates $PWD ; .NET resolves relative paths against
+# [Environment]::CurrentDirectory, which Set-Location never touches. Sync it so
+# the cc/stage child processes resolve relative paths against the repo root.
 [Environment]::CurrentDirectory = $PWD.Path
 
 $ccCmd = Get-Command $CC -ErrorAction SilentlyContinue
@@ -39,11 +38,7 @@ function Step($msg) { Write-Host "==> $msg" -ForegroundColor Cyan }
 New-Item -ItemType Directory -Force build | Out-Null
 
 Step "[1/3] Building stage0 (bootstrap compiler, from the seed)  [$ccAbs $stage0cflags]"
-$in  = [IO.File]::OpenRead("bootstrap\bootstrap.c.gz")
-$gz  = [IO.Compression.GZipStream]::new($in, [IO.Compression.CompressionMode]::Decompress)
-$out = [IO.File]::Create("build\bootstrap.c")
-try { $gz.CopyTo($out) } finally { $out.Close(); $gz.Close(); $in.Close() }
-& $ccAbs $stage0cflags -o build\stage0.exe build\bootstrap.c $runtime -Iruntime\c -lm
+& $ccAbs $stage0cflags -o build\stage0.exe bootstrap\bootstrap.c $runtime -Iruntime\c -lm
 if ($LASTEXITCODE -ne 0) { throw "stage0 compilation failed (exit $LASTEXITCODE)" }
 
 Step "[2/3] Building stage1 (full compiler, via stage0)  -- self-compiles"
