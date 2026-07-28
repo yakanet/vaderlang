@@ -155,6 +155,13 @@ Keep LoweredAST distinct. Tree rewrites (match/try/for-in/range desugar) are cle
 
   Only the seed uses it. `regenerate.sh:31` and `verify.sh:26` emit the seed with the *same* command, so adding the flag to both keeps `verify.sh:27`'s byte-for-byte `cmp` valid with no filter of its own — the freshness guard stays exactly as it is. stage1 / stage2 (`build.sh`, `verify.sh`'s `fp1.c` / `fp2.c`) don't pass it and stay readable, which is what `--target=c` exists for.
 
+  **`minify_c` itself is ~20 lines — prototyped and run against the real seed.** Split on newline, `trim()` each line, drop the empties, re-join. Two details are the whole difficulty, and both are cheap:
+
+  - **Continuation lines.** A line ending in `\` means the next line's leading whitespace belongs to a string literal or macro body, so both must pass through untouched. The emitter produces **zero** of them today (checked across all 215k lines of the seed), which is why the crude `sed` measurement was safe — but the guard is four lines and makes the function correct regardless of what the emitter does later. Verified on a `#define A(x) \` / indented body pair: preserved intact.
+  - **The trailing newline.** `join("\n")` drops the file's final newline, so the output differs from the source by exactly that one byte. Re-add it when the input had one, or the artefact churns for no reason.
+
+  Measured on the 11.6 MB seed: **0.39 s**, output identical to the `sed` reference modulo that trailing newline. Cost is negligible at reseed.
+
   Going further than indentation + blank lines (collapsing statements onto one line, spaces around operators) buys the rest of the 20 % but needs real C tokenisation to stay safe inside string literals — a different project. Stripping leading whitespace is safe as-is: C has no literal newline inside a string.
 
   **The trap, whichever shape is chosen: the minified form must appear on BOTH sides of every comparison.** `verify.sh:27` does `cmp -s build/bootstrap.new.c <(gunzip -c bootstrap/bootstrap.c.gz)` — freshly-emitted C against the committed seed. Minify only the seed and it reports **STALE SEED on every run**, forever; `verify.sh` runs in CI, so that is a permanently red job, and the likely reaction — muting the check — costs far more than 114 KB. Passing the flag at both emit sites is what avoids this, and is the reason the flag beats an external filter: there is nothing to keep in sync.
