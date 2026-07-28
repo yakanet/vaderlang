@@ -155,6 +155,10 @@ Keep LoweredAST distinct. Tree rewrites (match/try/for-in/range desugar) are cle
 
   Only the seed uses it. `regenerate.sh:31` and `verify.sh:26` emit the seed with the *same* command, so adding the flag to both keeps `verify.sh:27`'s byte-for-byte `cmp` valid with no filter of its own — the freshness guard stays exactly as it is. stage1 / stage2 (`build.sh`, `verify.sh`'s `fp1.c` / `fp2.c`) don't pass it and stay readable, which is what `--target=c` exists for.
 
+  **`--pretty=false` and `--release` are independent, and it is worth not conflating them.** The worry that minifying a debug build would wreck the `#line` directives does not hold: all 48 844 of them sit in column 0, so stripping indentation leaves them untouched — checked, the minified debug C still compiles and keeps them. The gain is comparable either way (9.5 % debug, 10.6 % release). What `--release` removes is the `#line` lines themselves, which are worth 1.2× on their own; what `--pretty=false` removes is whitespace. Different axes.
+
+  So don't make the flag *require* `--release`. Combining them is simply what the seed wants — a minified debug C has no use, since debug info exists to be read and minification is for what isn't. Document the pairing rather than enforcing it; `--annotate` is the precedent for a flag that is documented as belonging to one stage without the parser policing it.
+
   **`minify_c` itself is ~20 lines — prototyped and run against the real seed.** Split on newline, `trim()` each line, drop the empties, re-join. Two details are the whole difficulty, and both are cheap:
 
   - **Continuation lines.** A line ending in `\` means the next line's leading whitespace belongs to a string literal or macro body, so both must pass through untouched. The emitter produces **zero** of them today (checked across all 215k lines of the seed), which is why the crude `sed` measurement was safe — but the guard is four lines and makes the function correct regardless of what the emitter does later. Verified on a `#define A(x) \` / indented body pair: preserved intact.
