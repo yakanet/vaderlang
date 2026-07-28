@@ -71,10 +71,10 @@ export check_block :: fn(
     // scopes don't see the narrowed shape.
     for dn in divergent_narrows {
         if dn.field_key == "" {
-            pop_narrow(typed, dn.sym_id, dn.prev, dn.static_ty)
+            pop_narrow(typed, dn.sym_id, dn.prev)
         }
         else {
-            pop_field_narrow(typed, dn.field_key, dn.prev, dn.static_ty)
+            pop_field_narrow(typed, dn.field_key, dn.prev)
         }
     }
     // Don't clobber the trailing expression's `expr_kinds` entry —
@@ -1582,7 +1582,6 @@ bump_loop_depth :: fn(ctx: FnContext! | null) -> FnContext | null {
 DivergentNarrow :: struct {
     sym_id: i32
     prev: NarrowSlot | null
-    static_ty: Type
     field_key: string = ""
 }
 
@@ -1604,20 +1603,13 @@ push_divergent_narrow_if :: fn(
     if narrowing.field_key == "" {
         prev :: push_narrow(typed, narrowing.sym_id, narrowing.else_ty)
         stack.push(
-            DivergentNarrow {
-                .sym_id = narrowing.sym_id,
-                .prev = prev,
-                .static_ty = narrowing.static_ty,
-            },
+            DivergentNarrow { .sym_id = narrowing.sym_id, .prev = prev },
         )
     } else {
         prev :: push_field_narrow(typed, narrowing.field_key, narrowing.else_ty)
         stack.push(
             DivergentNarrow {
-                .sym_id = narrowing.sym_id,
-                .prev = prev,
-                .static_ty = narrowing.static_ty,
-                .field_key = narrowing.field_key,
+                .sym_id = narrowing.sym_id, .prev = prev, .field_key = narrowing.field_key,
             },
         )
     }

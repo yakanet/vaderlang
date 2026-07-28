@@ -135,16 +135,14 @@ check_else_with_narrow :: fn(
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     prev: NarrowSlot | null = null
-    static_ty: Type = TY_UNRESOLVED
     if narrowing is IsNarrow as n {
-        static_ty = n.static_ty
         if n.field_key == "" { prev = push_narrow(typed, n.sym_id, n.else_ty) }
         else { prev = push_field_narrow(typed, n.field_key, n.else_ty) }
     }
     result :: check_block(block, expected, typed, diags, ctx, check_expr_fn)
     if narrowing is IsNarrow as n {
-        if n.field_key == "" { pop_narrow(typed, n.sym_id, prev, static_ty) }
-        else { pop_field_narrow(typed, n.field_key, prev, static_ty) }
+        if n.field_key == "" { pop_narrow(typed, n.sym_id, prev) }
+        else { pop_field_narrow(typed, n.field_key, prev) }
     }
     return result
 }
@@ -155,16 +153,14 @@ check_else_branch_expr :: fn(
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     prev: NarrowSlot | null = null
-    static_ty: Type = TY_UNRESOLVED
     if narrowing is IsNarrow as n {
-        static_ty = n.static_ty
         if n.field_key == "" { prev = push_narrow(typed, n.sym_id, n.else_ty) }
         else { prev = push_field_narrow(typed, n.field_key, n.else_ty) }
     }
     result :: check_expr_fn(inner, expected, typed, diags)
     if narrowing is IsNarrow as n {
-        if n.field_key == "" { pop_narrow(typed, n.sym_id, prev, static_ty) }
-        else { pop_field_narrow(typed, n.field_key, prev, static_ty) }
+        if n.field_key == "" { pop_narrow(typed, n.sym_id, prev) }
+        else { pop_field_narrow(typed, n.field_key, prev) }
     }
     return result
 }
@@ -190,7 +186,6 @@ PushedNarrow :: struct {
     sym_id:    i32
     field_key: string
     prev:      NarrowSlot | null
-    static_ty: Type
 }
 
 // Collect the scrutinee / field narrowings introduced by a `&&` condition
@@ -220,10 +215,10 @@ push_then_narrows :: fn(narrows: IsNarrow[], typed: TypedProgram!) -> PushedNarr
     for n in narrows {
         if n.field_key == "" {
             prev :: push_narrow(typed, n.sym_id, n.then_ty)
-            pushed.push(PushedNarrow { .sym_id = n.sym_id, .field_key = "", .prev = prev, .static_ty = n.static_ty })
+            pushed.push(PushedNarrow { .sym_id = n.sym_id, .field_key = "", .prev = prev })
         } else {
             prev :: push_field_narrow(typed, n.field_key, n.then_ty)
-            pushed.push(PushedNarrow { .sym_id = n.sym_id, .field_key = n.field_key, .prev = prev, .static_ty = n.static_ty })
+            pushed.push(PushedNarrow { .sym_id = n.sym_id, .field_key = n.field_key, .prev = prev })
         }
     }
     return pushed
@@ -233,8 +228,8 @@ push_then_narrows :: fn(narrows: IsNarrow[], typed: TypedProgram!) -> PushedNarr
 pop_then_narrows :: fn(pushed: PushedNarrow[], typed: TypedProgram!) -> void {
     for k in 0..<pushed.len() {
         rec :: pushed[pushed.len() - 1 - k]
-        if rec.field_key == "" { pop_narrow(typed, rec.sym_id, rec.prev, rec.static_ty) }
-        else { pop_field_narrow(typed, rec.field_key, rec.prev, rec.static_ty) }
+        if rec.field_key == "" { pop_narrow(typed, rec.sym_id, rec.prev) }
+        else { pop_field_narrow(typed, rec.field_key, rec.prev) }
     }
 }
 

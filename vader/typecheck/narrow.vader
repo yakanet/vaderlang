@@ -64,10 +64,13 @@ export push_narrow :: fn(typed: TypedProgram!, sym_id: i32, narrowed: Type) -> N
 /// walk — e.g. the premature imported-body walk in
 /// `settle_external_expr_bodied_returns`, which runs before a module's
 /// imports are wired and so sees `?` for `m[k]`-bound locals — must not
-/// outlive its scope and poison the authoritative re-walk. (`static_ty`
-/// is retained in the signature for symmetry with the restore machinery
-/// that threads it through `IsNarrow` / `DivergentNarrow`.)
-export pop_narrow :: fn(typed: TypedProgram!, sym_id: i32, prev: NarrowSlot | null, static_ty: Type) -> void {
+/// outlive its scope and poison the authoritative re-walk.
+///
+/// Takes no `static_ty`: it had one for symmetry with the restore machinery that
+/// threads the type through `IsNarrow` / `DivergentNarrow`, but this function
+/// never read it — and a parameter nothing reads is a signature that lies about
+/// what the call needs.
+export pop_narrow :: fn(typed: TypedProgram!, sym_id: i32, prev: NarrowSlot | null) -> void {
     if prev == null {
         _ :: typed.narrowed_bindings.remove(sym_id)
     } else {
@@ -201,12 +204,7 @@ export push_field_narrow :: fn(typed: TypedProgram!, key: string, narrowed: Type
 /// When `prev` is null the slot is *removed* so subsequent
 /// `narrow_for_field` lookups fall through to the field's then-current
 /// static type. See `pop_narrow` for why removal (not overwrite) matters.
-export pop_field_narrow :: fn(
-    typed: TypedProgram!,
-    key: string,
-    prev: NarrowSlot | null,
-    static_ty: Type,
-) -> void {
+export pop_field_narrow :: fn(typed: TypedProgram!, key: string, prev: NarrowSlot | null) -> void {
     if prev == null {
         typed.narrowed_fields.remove(key)
         return

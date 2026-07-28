@@ -94,12 +94,12 @@ export infer_match :: fn(
         arm_types.push(check_expr_fn(arm.body, expected, typed, diags))
         if scrut_sym_id != -1 {
             if arm_narrow !is null {
-                pop_narrow(typed, scrut_sym_id, prev_arm, scrut_ty)
+                pop_narrow(typed, scrut_sym_id, prev_arm)
             }
         }
         if scrut_field_key != "" {
             if arm_narrow !is null {
-                pop_field_narrow(typed, scrut_field_key, prev_field, scrut_ty)
+                pop_field_narrow(typed, scrut_field_key, prev_field)
             }
         }
         // Subtract the matched type from `remaining` for subsequent
