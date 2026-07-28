@@ -14,11 +14,10 @@
 // called elsewhere. With them went the slot registry (the pinned `Hash.hash`=0 /
 // `Equals.equals`=1 / … numbering) that existed only to lay them out.
 //
-// The runtime half — `vader_vtable_t`, `vader_virtual_dispatch`, and the weak
-// fallback globals in `vader_runtime.c` — has to outlive this commit by one
-// bootstrap cycle: the committed seed still emits the tables, and its C only
-// links against a `vader.h` that declares them. Drop it once a seed built from
-// this commit is in.
+// The runtime half went with it a commit later, once a seed that no longer emits
+// the tables was committed — `vader.h` had to keep declaring `vader_vtable_t`
+// while the old seed's C still referenced it. Any change of this shape (the emit
+// stops producing something the runtime declares) needs the same two steps.
 
 module "vader/c_emit"
 
