@@ -38,10 +38,29 @@ auto-grow, so self-compiling needs no env tuning.
   picks a different compiler, `-Dist` bundles `dist\vader-windows-<arch>\`.
 - `regenerate.sh` — re-emit the seed from `bootstrap.vader` (needs a `vader`
   binary + a clean `vader/` tree). Commit the bump as a separate
-  `chore(bootstrap): bump seed` commit.
+  `chore(bootstrap): bump seed` commit. A no-op when the seed comes out
+  byte-identical — it leaves `VERSION` untouched rather than manufacturing a diff.
+- `check-seed.sh` — is the committed seed what the current sources would emit?
+  `0` fresh, `1` stale, `2` could-not-tell (no usable compiler). ~4 s.
+- `push.sh` — push, reseeding and committing first if the seed is stale. The
+  one-command path for the per-push reseed cadence; arguments go to `git push`.
 - `verify.sh` — fixed-point check: builds the toolchain via `build.sh`, then
   confirms stage1 and stage2 emit identical C for `main.vader` and the committed
   seed is fresh.
+
+## Reseed cadence — once per push
+
+Reseed at the **push** boundary, not after every chantier: batching that way takes
+the accumulated history from 460 KB to 60 KB over the same development interval
+(−87 %, measured on 8 real consecutive seeds). Use `push.sh`, and enable the
+safety net once per clone:
+
+```sh
+git config core.hooksPath .githooks     # activates .githooks/pre-push
+```
+
+The hook blocks a plain `git push` when the seed is stale (`--no-verify` bypasses
+it). Full rationale in docs/BOOTSTRAP.md § "Who bumps, and when".
 
 Regenerate the seed only when the compilation pipeline reachable from
 `bootstrap.vader` changes — see docs/BOOTSTRAP.md § "Seed lifecycle management".

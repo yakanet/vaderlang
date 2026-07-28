@@ -27,7 +27,20 @@ VADER="${VADER:-$(command -v vader || echo ./build/vader)}"
 # tens of thousands of `#line` lines and churn its diff on every source edit.
 # For --target=c, --release ONLY drops `#line` (the bytecode optimiser is always
 # on), so the seed content is otherwise identical to a debug build.
-"$VADER" build --release --target=c --out=bootstrap/bootstrap.c vader/bootstrap/bootstrap.vader
+mkdir -p build
+"$VADER" build --release --target=c --out=build/bootstrap.regen.c vader/bootstrap/bootstrap.vader
+
+# Emit to build/ first so a no-op reseed stays a no-op. Writing VERSION
+# unconditionally would manufacture a diff (`regenerated_at` and
+# `vader_source_sha` move on every run) for a seed that did not change — which
+# now matters, since the per-push cadence means this script gets run after
+# pushes that only touched docs, tests, the lsp or the formatter.
+if cmp -s build/bootstrap.regen.c bootstrap/bootstrap.c; then
+  echo "seed already fresh — byte-identical, nothing to commit (VERSION left alone)."
+  exit 0
+fi
+
+mv build/bootstrap.regen.c bootstrap/bootstrap.c
 
 cat > bootstrap/VERSION <<META
 vader_source_sha: $(git rev-parse HEAD)

@@ -626,9 +626,56 @@ bump when it changes the **emitted call shape** (a pure `.c` body change does no
 - Bug fixes that don't change emitted C — verify with a dry-run :
   if `regenerate.sh` produces a byte-identical seed, no bump needed.
 
-### Who bumps
+### Who bumps, and when — **once per push** (revised 2026-07-28)
 
-The contributor whose PR triggers the need. CI failure on step 3 (see
+**The cadence is one reseed per push, not one per chantier.** Measured on 8 real
+consecutive seeds over the same development interval, batching this way takes the
+accumulated history from 460 KB to 60 KB (**−87 %**) ; at the observed rates
+(~10 reseeds/day against ~1.5 pushes/day) that is ~19.8 MB/month down to ~3 MB.
+The saving is not churn cancelling out — that accounts for only 11 % — but delta
+encoding being far more efficient on one batched change than on seven scattered
+ones.
+
+The invariant this trades into: **every *pushed* commit carries a byte-fresh
+seed**, rather than every commit. Intermediate local commits may carry a slightly
+stale one, which still builds the tree — exactly what the CI `seed-rebuild` job
+proves on every push.
+
+Two things enforce it:
+
+- **`bootstrap/push.sh`** — the happy path. Checks freshness, reseeds and commits
+  if needed, then pushes. Arguments are forwarded to `git push`.
+- **`.githooks/pre-push`** — the safety net for a plain `git push`. Blocks the
+  push when the seed is stale. Enable it once per clone with
+  `git config core.hooksPath .githooks`. `git push --no-verify` bypasses it ; the
+  next push then blocks until you reseed.
+
+Both defer to **`bootstrap/check-seed.sh`**, which owns the question and answers
+in exit codes: `0` fresh, `1` stale, `2` could-not-tell. That third code is the
+load-bearing one — a compiler older than the sources would compare its own stale
+output against itself and report *fresh*, a self-consistent lie. Hence the
+asymmetry:
+
+- the **hook** treats `2` as a warning and lets the push through. Requiring a
+  ~1 min 40 `bun run build` before every push would cost far more than the ~60 KB
+  a missed reseed adds, and CI still checks that the seed can build the tree.
+- **`push.sh` refuses outright** on `2`, because it is about to *write* the seed,
+  and reseeding with an out-of-date compiler bakes that compiler's old codegen
+  into the committed artefact — where it would then look fresh to anything using
+  the same binary.
+
+The hook's cheap short-circuit costs 0 s: if nothing under `vader/`, `stdlib/` or
+`runtime/c/` changed since the last reseed commit, the seed is fresh with nothing
+to compile. That path set is deliberately broader than `bootstrap.vader`'s actual
+import closure — a hand-maintained closure list would silently rot the day an
+import changes, and a false *fresh* is the one answer these tools must never give.
+
+`regenerate.sh` is a no-op when the seed comes out byte-identical: it leaves
+`VERSION` alone rather than manufacturing a diff from `regenerated_at`. That
+matters under the per-push cadence, which runs it after pushes that only touched
+docs, tests, the lsp or the formatter.
+
+Otherwise: the contributor whose PR triggers the need. CI failure on step 2 (see
 Phase 3) is the signal. If a PR changes the compiler such that the
 seed becomes stale :
 
