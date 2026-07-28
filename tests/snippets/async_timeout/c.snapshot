@@ -285,7 +285,7 @@ static vader_box_t snippet___asyncstate_5_Async_resume(void* l0) {
                     t2 = (t1 - INT64_C(1));
                     l2 = (size_t) (int64_t) t2;
                     vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
-                    while (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = (vader_array_buf_t*) _a0_slotarr->buf->header.forward; }
+                    if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
                     if ((size_t) l2 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
                     t3 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l2);
                     vader_fn_t* _a1_fnobj = (vader_fn_t*) t3;
@@ -399,7 +399,7 @@ static void snippet___asyncstate_5_Async_cancel(void* l0) {
                 t1 = (t0 - INT64_C(1));
                 l2 = (size_t) (int64_t) t1;
                 vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
-                while (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = (vader_array_buf_t*) _a0_slotarr->buf->header.forward; }
+                if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
                 if ((size_t) l2 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
                 t2 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l2);
                 vader_fn_t* _a1_fnobj = (vader_fn_t*) t2;

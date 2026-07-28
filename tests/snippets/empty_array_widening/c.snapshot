@@ -87,7 +87,7 @@ static int32_t snippet_sum_of(void* l0) {
 #line 17 "tests/snippets/empty_array_widening/_main.vader"
     l2 = l0;
     vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
-    while (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = (vader_array_buf_t*) _a0_slotarr->buf->header.forward; }
+    if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
     l3 = ((vader_array_t*) l2)->length;
     l4 = (size_t) (int64_t) INT64_C(0);
     {
@@ -152,14 +152,14 @@ static int32_t snippet_main(void) {
     l3 = std_core_write_unsigned(l2, l3, l4);
     l3 = std_core_write_string_at(l2, l3, 2u);
     vader_array_t* _a1_slotarr = ((vader_array_t*) l0);
-    while (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = (vader_array_buf_t*) _a1_slotarr->buf->header.forward; }
+    if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
     if ((size_t) INT32_C(0) >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
     t2 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) INT32_C(0)];
     l5 = ((int64_t) (int32_t) t2);
     l3 = std_core_write_int(l2, l3, l5);
     l3 = std_core_write_string_at(l2, l3, 3u);
     vader_array_t* _a2_slotarr = ((vader_array_t*) l0);
-    while (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = (vader_array_buf_t*) _a2_slotarr->buf->header.forward; }
+    if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
     if ((size_t) INT32_C(8) >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
     t2 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) INT32_C(8)];
     l5 = ((int64_t) (int32_t) t2);
@@ -195,7 +195,7 @@ static int32_t snippet_main(void) {
     }
 #line 36 "tests/snippets/empty_array_widening/_main.vader"
     vader_array_t* _a4_slotarr = ((vader_array_t*) l0);
-    while (_a4_slotarr->buf != NULL && _a4_slotarr->buf->header.forward != NULL) { _a4_slotarr->buf = (vader_array_buf_t*) _a4_slotarr->buf->header.forward; }
+    if (_a4_slotarr->buf != NULL && _a4_slotarr->buf->header.forward != NULL) { _a4_slotarr->buf = vader_array_buf_forward(_a4_slotarr->buf); }
     if ((size_t) INT32_C(0) >= _a4_slotarr->length) { vader_trap("array index out of bounds"); }
     t4 = vader_array_box_slots(_a4_slotarr->buf)[_a4_slotarr->offset + (size_t) INT32_C(0)];
     l6 = t4.payload.s;
@@ -247,7 +247,7 @@ static int32_t snippet_main(void) {
     l3 = std_core_write_unsigned(l2, l3, l4);
     l3 = std_core_write_string_at(l2, l3, 3u);
     vader_array_t* _a6_slotarr = ((vader_array_t*) l0);
-    while (_a6_slotarr->buf != NULL && _a6_slotarr->buf->header.forward != NULL) { _a6_slotarr->buf = (vader_array_buf_t*) _a6_slotarr->buf->header.forward; }
+    if (_a6_slotarr->buf != NULL && _a6_slotarr->buf->header.forward != NULL) { _a6_slotarr->buf = vader_array_buf_forward(_a6_slotarr->buf); }
     if ((size_t) INT32_C(8) >= _a6_slotarr->length) { vader_trap("array index out of bounds"); }
     t2 = ((int32_t*) _a6_slotarr->buf->slots)[_a6_slotarr->offset + (size_t) INT32_C(8)];
     l5 = ((int64_t) (int32_t) t2);

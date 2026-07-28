@@ -252,7 +252,7 @@ static size_t snippet_zip_with__string(void* l0, void* l1) {
         loop_11: {
             if ((l5 < l4)) {
                 vader_array_t* _a1_slotarr = ((vader_array_t*) l3);
-                while (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = (vader_array_buf_t*) _a1_slotarr->buf->header.forward; }
+                if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l5 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l5];
                 t1 = t0.payload.s;

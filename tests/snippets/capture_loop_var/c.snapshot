@@ -223,7 +223,7 @@ static int32_t snippet_main(void) {
         loop_13: {
             if ((l3 < l2)) {
                 vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
-                while (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = (vader_array_buf_t*) _a2_slotarr->buf->header.forward; }
+                if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
                 if ((size_t) l3 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
                 t0 = vader_array_box_slots(_a2_slotarr->buf)[_a2_slotarr->offset + (size_t) l3];
                 t1 = t0.payload.s;
@@ -257,7 +257,7 @@ static int32_t snippet_main(void) {
         loop_44: {
             if ((l3 < l2)) {
                 vader_array_t* _a6_slotarr = ((vader_array_t*) l0);
-                while (_a6_slotarr->buf != NULL && _a6_slotarr->buf->header.forward != NULL) { _a6_slotarr->buf = (vader_array_buf_t*) _a6_slotarr->buf->header.forward; }
+                if (_a6_slotarr->buf != NULL && _a6_slotarr->buf->header.forward != NULL) { _a6_slotarr->buf = vader_array_buf_forward(_a6_slotarr->buf); }
                 if ((size_t) l3 >= _a6_slotarr->length) { vader_trap("array index out of bounds"); }
                 t2 = vader_array_ref_load_obj(_a6_slotarr->buf, _a6_slotarr->offset + (size_t) l3);
                 vader_fn_t* _a7_fnobj = (vader_fn_t*) t2;
@@ -345,7 +345,7 @@ static int32_t snippet_main(void) {
         loop_142: {
             if ((l3 < l2)) {
                 vader_array_t* _a15_slotarr = ((vader_array_t*) l0);
-                while (_a15_slotarr->buf != NULL && _a15_slotarr->buf->header.forward != NULL) { _a15_slotarr->buf = (vader_array_buf_t*) _a15_slotarr->buf->header.forward; }
+                if (_a15_slotarr->buf != NULL && _a15_slotarr->buf->header.forward != NULL) { _a15_slotarr->buf = vader_array_buf_forward(_a15_slotarr->buf); }
                 if ((size_t) l3 >= _a15_slotarr->length) { vader_trap("array index out of bounds"); }
                 t2 = vader_array_ref_load_obj(_a15_slotarr->buf, _a15_slotarr->offset + (size_t) l3);
                 vader_fn_t* _a16_fnobj = (vader_fn_t*) t2;

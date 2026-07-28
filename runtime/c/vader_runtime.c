@@ -2636,9 +2636,20 @@ static vader_array_t* vader_array_resolve(vader_array_t* a) {
  * untouched. Sites that read `a->buf->slots` after a possible safepoint call
  * this; the symmetric counterpart of `vader_array_resolve`. */
 static void vader_array_resolve_buf(vader_array_t* a) {
-    while (a->buf != NULL && a->buf->header.forward != NULL) {
-        a->buf = (vader_array_buf_t*) a->buf->header.forward;
+    if (a->buf != NULL && a->buf->header.forward != NULL) {
+        a->buf = vader_array_buf_forward(a->buf);
     }
+}
+
+/* Out-of-line half of the emitter's per-access buf resolve — see the contract
+ * on the declaration in `vader.h`. The caller has already established that
+ * `buf` is non-NULL and carries a live forward, so the first iteration always
+ * advances; the loop then drains a chain longer than one link. */
+VADER_PURE VADER_NOINLINE vader_array_buf_t* vader_array_buf_forward(vader_array_buf_t* buf) {
+    while (buf->header.forward != NULL) {
+        buf = (vader_array_buf_t*) buf->header.forward;
+    }
+    return buf;
 }
 
 void vader_array_push(vader_array_t* a, vader_box_t v) {
@@ -2674,8 +2685,8 @@ void vader_array_push(vader_array_t* a, vader_box_t v) {
         vader_array_buf_t* fresh = vader_array_buf_alloc(cap, kind, a->buf->element_tag);
         a = (vader_array_t*) a_box.payload.obj;
         vader_array_buf_t* old = a->buf;
-        while (old != NULL && old->header.forward != NULL) {
-            old = (vader_array_buf_t*) old->header.forward;
+        if (old != NULL && old->header.forward != NULL) {
+            old = vader_array_buf_forward(old);
         }
         if (a->length > 0 && old != NULL) {
             memcpy(fresh->slots, old->slots + src_off * elem_size, a->length * elem_size);
@@ -2865,7 +2876,7 @@ void vader_array_push_all(vader_array_t* dst, vader_array_t* src) {
         dst = (vader_array_t*) d_box.payload.obj;
         src = (vader_array_t*) s_box.payload.obj;
         vader_array_buf_t* old = dst->buf;
-        while (old != NULL && old->header.forward != NULL) old = (vader_array_buf_t*) old->header.forward;
+        if (old != NULL && old->header.forward != NULL) old = vader_array_buf_forward(old);
         if (dst->length > 0 && old != NULL) {
             memcpy(fresh->slots, old->slots + src_off * esz, dst->length * esz);
         }

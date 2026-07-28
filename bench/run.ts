@@ -141,7 +141,7 @@ const IMPLS: readonly Impl[] = [
       ? Promise.resolve()
       : runBuild("./build/vader", ["build", "--target=native", "--release", `bench/${w}/${w}.vader`], `vader build for ${w}`),
     run: (w) => w === "selfcompile_c"
-      ? { cmd: "./build/vader", args: ["build", "vader/cli/main.vader", "--target=c", "--release", "--out=build/_bench_selfcompile.c"] }
+      ? { cmd: "./build/vader", args: ["build", "--target=c", "--release", "--out=build/_bench_selfcompile.c", "vader/cli/main.vader"] }
       : { cmd: `./bench/${w}/${w}`, args: [] },
   },
   {

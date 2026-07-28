@@ -81,7 +81,7 @@ static int32_t snippet_main(void) {
         loop_13: {
             if ((l2 < l1)) {
                 vader_array_t* _a1_slotarr = ((vader_array_t*) l0);
-                while (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = (vader_array_buf_t*) _a1_slotarr->buf->header.forward; }
+                if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l2 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l3 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l2];
 #line 8 "tests/snippets/generator_filter/_main.vader"

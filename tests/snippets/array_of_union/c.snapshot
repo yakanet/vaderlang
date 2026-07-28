@@ -110,7 +110,7 @@ static int32_t snippet_main(void) {
     std_io_println__string(t2);
 #line 15 "tests/snippets/array_of_union/_main.vader"
     vader_array_t* _a2_slotarr = ((vader_array_t*) l0);
-    while (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = (vader_array_buf_t*) _a2_slotarr->buf->header.forward; }
+    if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
     if ((size_t) INT32_C(1) >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
     l4 = vader_array_ref_load_box(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) INT32_C(1));
 #line 17 "tests/snippets/array_of_union/_main.vader"

@@ -102,10 +102,39 @@ invalidate_resolve_cache :: fn(s: FnState!, op: vm.Op) -> void {
     if is_cache_safe(op) {
         return
     }
-    // The op ends the straight-line region. A PINNED resolve (BCE hoist) survives
-    // a PURE control-flow op — such an op can't move a buffer, so the hoisted
-    // resolve stays valid across the loop's Loop / Branch / End. Anything else
-    // (a call / alloc — a real GC safepoint) drops everything, pins included.
+    // The op ends the straight-line region. Two rules can still save entries.
+
+    // (1) ENTERING a nested scope keeps the WHOLE cache : the region being opened
+    // is dominated by the code that produced those resolves, and their
+    // `_slotarrK` C locals are declared in the enclosing block, so they stay both
+    // live and in C scope inside it. A probe loop then resolves once per
+    // iteration instead of once per array test.
+    //
+    // Sound only in a `no_frame` fn : `no_frame` is `!(fn in ctx.may_alloc)`, and
+    // `compute_may_alloc` is the safepoint-reachability closure, so a `no_frame`
+    // body provably reaches NO GC safepoint and no buffer can move inside the
+    // scope. That is a second reading of the bit — `FnState.no_frame` documents
+    // itself in terms of frame emission — so the two contracts are cross-linked
+    // there ; keep them in sync.
+    //
+    // Deliberately the cheap slice of a dominance design, not its ceiling : a
+    // framed fn could keep entries too if each carried its declaring scope depth
+    // and a safepoint epoch. That bookkeeping isn't here, so framed fns still
+    // fall through to (2).
+    //
+    // LEAVING a scope must NOT keep the cache : the code that follows is no
+    // longer dominated (the resolve may sit in a branch that didn't run) and its
+    // C local has gone out of scope. Hence the scope-OPENING subset only.
+    if s.no_frame && is_scope_opening(op) {
+        return
+    }
+
+    // (2) A PINNED resolve (BCE hoist) survives a PURE control-flow op — such an
+    // op can't move a buffer, so the hoisted resolve stays valid across the
+    // loop's Loop / Branch / End. Pins are minted only by `emit_array_len`'s
+    // preheader hoist, which declares its C local OUTSIDE the loop — that is what
+    // makes keeping them across a scope EXIT sound, where (1) would not be.
+    // Anything else (a call / alloc — a real GC safepoint) drops everything.
     if is_pure_control_flow(op) && s.pinned_resolves.len() > 0 {
         keep_pinned_resolves(s)
     } else {
@@ -120,13 +149,25 @@ is_pure_control_flow :: fn(op: vm.Op) -> bool {
     return op is vm.Block | vm.Loop | vm.If | vm.End | vm.Branch | vm.BranchIf | vm.Return
 }
 
+// The subset of `is_pure_control_flow` that OPENS a nested scope (pushes a C
+// block) rather than closing one. Split out because only the opening half keeps
+// a cached resolve dominating — and in C scope — for the code it admits. Extend
+// both predicates together if a new structured op lands.
+is_scope_opening :: fn(op: vm.Op) -> bool = op is vm.Block | vm.Loop | vm.If
+
 // Drop every non-pinned resolve, keep the pinned ones (their buffer can't have
 // moved across a pure control-flow op). `pinned_resolves` keys all remain present.
+// Driven from `pinned_resolves`, not `resolved_arrays` : pins come from the one
+// BCE preheader site so the set is tiny, while the cache holds every CSE'd array
+// of the region. `pinned_resolves ⊆ keys(resolved_arrays)` — both are written
+// together in `resolve_array_local` and dropped together in
+// `drop_resolved_for_local` — so nothing is lost by iterating the smaller side.
 keep_pinned_resolves :: fn(s: FnState!) -> void {
     kept :: MutableMap<string, string> {}
-    for [k, v] in s.resolved_arrays {
-        if k in s.pinned_resolves {
-            kept[k] = v
+    for k in s.pinned_resolves {
+        hit :: s.resolved_arrays[k]
+        if hit is string as local {
+            kept[k] = local
         }
     }
     s.resolved_arrays = kept
@@ -2217,7 +2258,7 @@ slot_index :: fn(arr: string, idx: StackVal) = "${arr}->offset + (size_t) ${name
 /// Bind a `vader_array_t*` C local to `obj` and emit the access guards shared by
 /// the primitive slot load/store : the G1 buf-forwarding resolve (the array box
 /// is a gc_root so the array itself is current, but a minor may have relocated
-/// its buf — follow the forward pointer like `vader_array_get`) and the D7
+/// its buf — chase the forward chain via `vader_array_buf_forward`) and the D7
 /// always-on bounds check (trap on out-of-range). Returns the local's name.
 // Resolve `key`'s array buffer-forward chain into a cached `_slotarrK` C local
 // and return its name. Reuses an earlier resolve on the same array in this
@@ -2234,9 +2275,14 @@ resolve_array_local :: fn(s: FnState!, key: string, pin: bool) -> string {
     }
     arr :: aux(s, "slotarr")
     line(s, "vader_array_t* ${arr} = ${key};")
+    // Only the GUARD is open-coded here ; the chain walk lives out-of-line in
+    // `vader_array_buf_forward`. Its declaration in `runtime/c/vader.h` owns the
+    // rationale (why out-of-line, why `VADER_PURE` is load-bearing, why the chain
+    // can exceed one link) — do not restate the numbers here. Do NOT fold the
+    // loop back in.
     line(
         s,
-        "while (${arr}->buf != NULL && ${arr}->buf->header.forward != NULL) { ${arr}->buf = (vader_array_buf_t*) ${arr}->buf->header.forward; }",
+        "if (${arr}->buf != NULL && ${arr}->buf->header.forward != NULL) { ${arr}->buf = vader_array_buf_forward(${arr}->buf); }",
     )
     s.resolved_arrays[key] = arr
     if pin {

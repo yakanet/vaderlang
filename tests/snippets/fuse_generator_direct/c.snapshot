@@ -91,7 +91,7 @@ static int32_t snippet_main(void) {
         loop_10: {
             if ((l2 < l1)) {
                 vader_array_t* _a1_slotarr = ((vader_array_t*) l0);
-                while (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = (vader_array_buf_t*) _a1_slotarr->buf->header.forward; }
+                if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l2 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 t0 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l2];
 #line 13 "tests/snippets/fuse_generator_direct/_main.vader"
@@ -126,7 +126,7 @@ static int32_t snippet_main(void) {
         loop_65: {
             if ((l2 < l1)) {
                 vader_array_t* _a3_slotarr = ((vader_array_t*) l0);
-                while (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = (vader_array_buf_t*) _a3_slotarr->buf->header.forward; }
+                if (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = vader_array_buf_forward(_a3_slotarr->buf); }
                 if ((size_t) l2 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
                 l3 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l2];
 #line 18 "tests/snippets/fuse_generator_direct/_main.vader"
@@ -175,7 +175,7 @@ static int32_t snippet_main(void) {
         loop_135: {
             if ((l2 < l1)) {
                 vader_array_t* _a8_slotarr = ((vader_array_t*) l0);
-                while (_a8_slotarr->buf != NULL && _a8_slotarr->buf->header.forward != NULL) { _a8_slotarr->buf = (vader_array_buf_t*) _a8_slotarr->buf->header.forward; }
+                if (_a8_slotarr->buf != NULL && _a8_slotarr->buf->header.forward != NULL) { _a8_slotarr->buf = vader_array_buf_forward(_a8_slotarr->buf); }
                 if ((size_t) l2 >= _a8_slotarr->length) { vader_trap("array index out of bounds"); }
                 l4 = vader_array_ref_load_obj(_a8_slotarr->buf, _a8_slotarr->offset + (size_t) l2);
 #line 24 "tests/snippets/fuse_generator_direct/_main.vader"
@@ -185,7 +185,7 @@ static int32_t snippet_main(void) {
                     loop_149: {
                         if ((l9 < l5)) {
                             vader_array_t* _a9_slotarr = ((vader_array_t*) l4);
-                            while (_a9_slotarr->buf != NULL && _a9_slotarr->buf->header.forward != NULL) { _a9_slotarr->buf = (vader_array_buf_t*) _a9_slotarr->buf->header.forward; }
+                            if (_a9_slotarr->buf != NULL && _a9_slotarr->buf->header.forward != NULL) { _a9_slotarr->buf = vader_array_buf_forward(_a9_slotarr->buf); }
                             if ((size_t) l9 >= _a9_slotarr->length) { vader_trap("array index out of bounds"); }
                             l3 = ((int32_t*) _a9_slotarr->buf->slots)[_a9_slotarr->offset + (size_t) l9];
 #line 31 "tests/snippets/fuse_generator_direct/_main.vader"

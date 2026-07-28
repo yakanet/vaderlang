@@ -56,9 +56,21 @@
 #if defined(__GNUC__) || defined(__clang__)
 #  define VADER_LIKELY(x)   __builtin_expect(!!(x), 1)
 #  define VADER_UNLIKELY(x) __builtin_expect(!!(x), 0)
+#  define VADER_NOINLINE    __attribute__((noinline))
+/* Reads memory, writes none — lets the optimiser CSE the call and, crucially,
+ * keep hoisting loop-invariant loads across it. Without this an out-of-line
+ * helper is an opaque barrier that clobbers every alias. */
+#  define VADER_PURE        __attribute__((pure))
+#elif defined(_MSC_VER)
+#  define VADER_LIKELY(x)   (x)
+#  define VADER_UNLIKELY(x) (x)
+#  define VADER_NOINLINE    __declspec(noinline)
+#  define VADER_PURE
 #else
 #  define VADER_LIKELY(x)   (x)
 #  define VADER_UNLIKELY(x) (x)
+#  define VADER_NOINLINE
+#  define VADER_PURE
 #endif
 
 /* ------------------------------------------------------ scalar primitives */
@@ -669,6 +681,29 @@ static inline void vader_buffer_write_string(vader_buffer_t* dst, size_t off, va
 }
 
 vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t element_kind, uint32_t element_tag);
+
+/* Walk a buf's forwarding chain to its final address — the single home of that
+ * loop. Every buf resolver guards with `buf != NULL && buf->header.forward !=
+ * NULL` and delegates here (`vader_array_resolve_buf` and the two grow paths in
+ * `vader_array_push` / `vader_array_push_all`, plus every emitted access site);
+ * callers must have made that check, so the first hop always advances. The
+ * sibling `vader_array_resolve` walks the array HEADER's chain, a different
+ * object, and keeps its own loop.
+ *
+ * The chain can exceed one link : a single `vader_gc_alloc` may run a minor THEN
+ * a major (whose first step is an internal minor, `MAJOR_DRAIN`), forwarding the
+ * same buf twice at one allocation site. So this must stay a loop, and no caller
+ * may weaken its guard into a one-step resolve.
+ *
+ * Out-of-line on purpose : the emitter open-codes the guard at every array
+ * access, and the body is reached on a vanishingly small fraction of them.
+ * Inlining the loop at all ~4.7 k sites instead handed LLVM 4.7 k tiny loops to
+ * rotate and LICM — 5.4 s of a 28 s self-build for a body that essentially never
+ * runs. `VADER_PURE` is load-bearing, not decorative : without it the call is an
+ * opaque barrier that clobbers every alias and kills the BCE resolve-hoist (the
+ * `arr_set` bench went +257 %). */
+VADER_PURE VADER_NOINLINE struct vader_array_buf* vader_array_buf_forward(struct vader_array_buf* buf);
+
 /* vader_array_get / vader_array_set are RETIRED — the C emitter open-codes every
  * `arr[i]` / `arr[i] = v` over the kept layout (typed slots inline, boxed via
  * `vader_array_box_slots` + the write barrier, u8 via `vader_array_read_u8`), so

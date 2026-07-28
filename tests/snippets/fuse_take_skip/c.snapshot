@@ -90,7 +90,7 @@ static int32_t snippet_main(void) {
         loop_14: {
             if ((l3 < l2)) {
                 vader_array_t* _a1_slotarr = ((vader_array_t*) l1);
-                while (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = (vader_array_buf_t*) _a1_slotarr->buf->header.forward; }
+                if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                 if ((size_t) l3 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
                 l4 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l3];
 #line 270 "stdlib/std/iter/iter.vader"
@@ -136,7 +136,7 @@ static int32_t snippet_main(void) {
         loop_80: {
             if ((l3 < l2)) {
                 vader_array_t* _a3_slotarr = ((vader_array_t*) l1);
-                while (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = (vader_array_buf_t*) _a3_slotarr->buf->header.forward; }
+                if (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = vader_array_buf_forward(_a3_slotarr->buf); }
                 if ((size_t) l3 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
                 l4 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l3];
 #line 281 "stdlib/std/iter/iter.vader"
@@ -182,7 +182,7 @@ static int32_t snippet_main(void) {
         loop_148: {
             if ((l7 < l3)) {
                 vader_array_t* _a5_slotarr = ((vader_array_t*) l1);
-                while (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = (vader_array_buf_t*) _a5_slotarr->buf->header.forward; }
+                if (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = vader_array_buf_forward(_a5_slotarr->buf); }
                 if ((size_t) l7 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
                 l4 = ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l7];
 #line 281 "stdlib/std/iter/iter.vader"

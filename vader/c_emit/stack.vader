@@ -122,6 +122,15 @@ FnState :: struct {
     /// it gets no GC shadow-stack frame, so `return` skips the `gc_top`
     /// restore and ref slots skip the `= vader_box_null()` root-init. Set by
     /// `emit_function_body` ; default `true` (the scalar / stack subset).
+    ///
+    /// SECOND CONSUMER — `invalidate_resolve_cache` reads this bit for a
+    /// stronger property than frame emission : "this body reaches no GC
+    /// safepoint at all", which is what lets a resolve survive entering a
+    /// nested scope. That holds because `may_alloc` IS the safepoint-
+    /// reachability closure (`compute_may_alloc`), not by coincidence. If the
+    /// frame decision ever stops tracking safepoint-freedom exactly — a
+    /// no-alloc fn given a frame for debugging, say — split the two before
+    /// changing this, or the resolve cache silently goes unsound.
     no_frame: bool
     /// Resolve-CSE cache : array C-expr (`((vader_array_t*) lN.payload.obj)`) →
     /// the `_slotarrK` local that already chased its buf-forward chain in this
