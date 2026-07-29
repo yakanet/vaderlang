@@ -10,9 +10,12 @@
 #
 #     every PUSHED commit carries a byte-fresh seed.
 #
-# Intermediate *local* commits may carry a slightly stale one. That is fine and
-# is the whole point: a stale seed still builds the tree, which the CI
-# `seed-rebuild` job proves on every push.
+# Intermediate *local* commits may carry a slightly stale one. That is fine and is
+# the whole point: a stale seed still builds the tree, which the CI `seed-rebuild`
+# job proves on every push.
+#
+# The freshness question itself belongs to bootstrap/check-seed.sh — including its
+# cheap git-only path, so a docs-only push costs no compile at all.
 #
 # The happy path in one command:  bootstrap/push.sh
 # To publish anyway:              git push --no-verify
@@ -21,52 +24,34 @@
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
-if [ -t 2 ]; then b='\033[1m'; y='\033[1;33m'; r='\033[0m'; else b=''; y=''; r=''; fi
-say()  { printf '%b[pre-push]%b %s\n' "$b" "$r" "$*" >&2; }
-warn() { printf '%b[pre-push]%b %s\n' "$y" "$r" "$*" >&2; }
+if [ -t 2 ]; then bold='\033[1m'; yellow='\033[1;33m'; reset='\033[0m'; else bold=''; yellow=''; reset=''; fi
+log() { printf '%b[pre-push]%b %s\n' "$1" "$reset" "$2" >&2; }
 
 # ---- is this push even publishing HEAD? -----------------------------------
 
 # git feeds us one `<local ref> <local sha> <remote ref> <remote sha>` line per
-# ref. A tag of an older commit, or a branch deletion, says nothing about the
-# seed at HEAD — don't vet those.
+# ref. A tag of an older commit, or a branch deletion, says nothing about the seed
+# at HEAD — don't vet those. Defaults to vetting, so an empty stdin (or a shape we
+# don't recognise) errs towards checking rather than towards silence.
 head_sha="$(git rev-parse HEAD)"
-saw_line=0
-pushing_head=0
+vet=1
 while read -r _local_ref local_sha _remote_ref _remote_sha; do
-  saw_line=1
+  vet=0
   if [ "$local_sha" = "$head_sha" ]; then
-    pushing_head=1
+    vet=1
+    break
   fi
 done
-if [ "$saw_line" = 1 ] && [ "$pushing_head" = 0 ]; then
+if [ "$vet" = 0 ]; then
   exit 0
 fi
 
-# ---- cheap short-circuit --------------------------------------------------
+# ---- ask the one script that owns the question ----------------------------
 
-# If nothing the emitted C could depend on has changed since the last reseed,
-# the seed is fresh and there is nothing to compile.
-#
-# The path set is deliberately BROAD — all of vader/, stdlib/, runtime/c/ —
-# rather than bootstrap.vader's actual import closure. A hand-maintained closure
-# list would silently rot the day an import changes, and a false "fresh" is
-# precisely the answer this hook must never give. Being over-conservative only
-# costs the few seconds of the real check below, and this still short-circuits
-# the common docs- / tests- / plans-only push to zero.
-last_reseed="$(git rev-list -1 HEAD -- bootstrap/bootstrap.c || true)"
-if [ -n "$last_reseed" ] &&
-   [ -z "$(git diff --name-only "$last_reseed" HEAD -- vader/ stdlib/ runtime/c/)" ]; then
-  exit 0
-fi
-
-# ---- the real check -------------------------------------------------------
-
-# check-seed.sh reports its own diagnosis on stderr, so call it exactly once —
-# it costs a full seed re-emission (~4 s) and running it twice for a nicer
-# message would be silly.
+# stdout carries the resolved compiler path, which is of no interest here — only
+# the verdict (exit code) and the diagnosis (stderr) are.
 set +e
-./bootstrap/check-seed.sh
+./bootstrap/check-seed.sh >/dev/null
 verdict=$?
 set -e
 
@@ -75,21 +60,21 @@ case "$verdict" in
   2)
     # Could not conclude. Warn, but let the push through: demanding a full
     # `bun run build` (~1 min 40) before every push would cost far more than the
-    # ~60 KB a missed reseed adds, and CI still checks that the seed can build
-    # the tree on every push.
-    warn "letting the push through — 'unknown' is not 'stale'."
+    # ~60 KB a missed reseed adds, and CI still checks that the seed can build the
+    # tree on every push.
+    log "$yellow" "letting the push through — 'unknown' is not 'stale'."
     exit 0
     ;;
 esac
 
-say "STALE SEED — bootstrap/bootstrap.c no longer matches bootstrap.vader."
-say ""
-say "  Every pushed commit is meant to carry a byte-fresh seed. Reseed, then push:"
-say ""
-say "    bootstrap/regenerate.sh"
-say "    git commit -m 'chore(bootstrap): bump seed' bootstrap/bootstrap.c bootstrap/VERSION"
-say "    git push"
-say ""
-say "  Or in one command:  bootstrap/push.sh"
-say "  To publish anyway:  git push --no-verify"
+log "$bold" "STALE SEED — bootstrap/bootstrap.c no longer matches bootstrap.vader."
+log "$bold" ""
+log "$bold" "  Every pushed commit is meant to carry a byte-fresh seed. Reseed, then push:"
+log "$bold" ""
+log "$bold" "    bootstrap/regenerate.sh"
+log "$bold" "    git commit -m 'chore(bootstrap): bump seed' bootstrap/bootstrap.c bootstrap/VERSION"
+log "$bold" "    git push"
+log "$bold" ""
+log "$bold" "  Or in one command:  bootstrap/push.sh"
+log "$bold" "  To publish anyway:  git push --no-verify"
 exit 1

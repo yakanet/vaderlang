@@ -40,8 +40,16 @@ auto-grow, so self-compiling needs no env tuning.
   binary + a clean `vader/` tree). Commit the bump as a separate
   `chore(bootstrap): bump seed` commit. A no-op when the seed comes out
   byte-identical — it leaves `VERSION` untouched rather than manufacturing a diff.
-- `check-seed.sh` — is the committed seed what the current sources would emit?
-  `0` fresh, `1` stale, `2` could-not-tell (no usable compiler). ~4 s.
+- `check-seed.sh` — **owns** the question "is the committed seed what the current
+  sources would emit?". `regenerate.sh`, `push.sh`, `verify.sh` and the pre-push
+  hook all defer to it rather than re-emitting the seed themselves, so the
+  emission flags and the compiler lookup exist in exactly one place. Exit `0`
+  fresh, `1` stale, `2` could-not-tell (no usable compiler, or one older than the
+  sources — never reported as "stale"). Answers from git alone when nothing
+  affecting the seed has changed (~0.3 s), otherwise re-emits (~4 s); `--full`
+  forces the re-emission. On `1` it leaves the fresh C at
+  `build/bootstrap.check.c`, which is what `regenerate.sh` moves into place — one
+  compile per reseed, not two.
 - `push.sh` — push, reseeding and committing first if the seed is stale. The
   one-command path for the per-push reseed cadence; arguments go to `git push`.
 - `verify.sh` — fixed-point check: builds the toolchain via `build.sh`, then

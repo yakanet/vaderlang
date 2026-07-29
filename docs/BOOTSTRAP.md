@@ -858,9 +858,36 @@ seed, where compression is a net loss by an order of magnitude.
 Growth *did* become a problem — 430 MB of it — and the fix was neither of the
 two escape hatches below but the storage format itself (§ *Why the seed is stored
 uncompressed*), which keeps the seed in-tree and every commit self-sufficient.
-The ~400 MB already spent on gzipped blobs is recoverable only by rewriting
-history ; that is Phase 3 of `.claude/plans/2026-07-28-seed-size.md`, deliberately
-left until last since it is the one irreversible step.
+The ~400 MB already spent on gzipped blobs was recoverable only by rewriting
+history, and **that was done on 2026-07-28** (Phase 3 of
+`.claude/plans/2026-07-28-seed-size.md` — do not confuse it with this document's
+own Phase 3, which is CI integration). Every historical `bootstrap.c.gz` blob
+became its decompressed `bootstrap.c`, keeping all 400 seeds and all 2328 commits;
+verified lossless by comparing the SHA-256 sets of the decompressed originals
+against the rewritten blobs. `.git` went from **535 MB to 61 MB** locally, and a
+fresh clone from GitHub is **83 MB** (GitHub repacks with its own settings, so
+that is the figure a third party sees). Every SHA changed; `main` moved
+`841cdd8f8` → `361ce4036` and the tag `v0.0.0-pre-mvp-final-ts`
+`e2b434022` → `083fac484`.
+
+Two things about that rewrite are worth carrying forward, because both would
+otherwise be rediscovered the hard way:
+
+- **The aggressive repack is where the win lives.** The rewrite alone took `.git`
+  only 535 → 452 MB (−15 %); `git gc --aggressive --prune=now` then took it to
+  61 MB, in 9 min 50 s. 400 large blobs arriving at once among 75 918 objects
+  defeat the default `pack.window=10`. This is a one-off: a repo holding only the
+  seeds packs identically under default and aggressive gc, so ordinary reseeds
+  need no special treatment.
+- **Renaming the seed in history breaks the scripts that read it.** Left alone,
+  every pre-rewrite commit kept its seed but its `bootstrap/build.sh` still looked
+  for a `.gz` — which would have destroyed the very property that justifies
+  keeping all 400 seeds. The rewrite therefore also repointed `build.sh`,
+  `verify.sh` and `.gitattributes` in history. `build.ps1` was deliberately left
+  alone (a 4-line PowerShell block across 20 versions; a half-working regex is
+  worse than a loud failure), so *historical* Windows builds fail. Confirmed by
+  building the full 3-stage toolchain from four historical commits spanning
+  2026-06-05 to 2026-07-14, including the oldest seed of all.
 
 Should pressure return, the escape hatches are non-breaking for the user-facing
 `bootstrap/build.sh` contract — only seed *acquisition* changes :

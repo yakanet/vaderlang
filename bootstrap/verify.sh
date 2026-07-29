@@ -19,12 +19,17 @@ if ! cmp -s build/fp1.c build/fp2.c; then
   exit 1
 fi
 
-# (c) seed freshness : vader re-emits bootstrap.vader, must match the committed
-# seed. --release mirrors regenerate.sh : it keeps `#line` out of the seed (the
-# c-emit gates them on !release), so a populated debug table doesn't bloat the
-# committed artifact. For --target=c, --release only drops `#line`.
-./build/vader build --release --target=c --out=build/bootstrap.new.c vader/bootstrap/bootstrap.vader
-if ! cmp -s build/bootstrap.new.c bootstrap/bootstrap.c; then
+# (c) seed freshness : delegated to check-seed.sh, which owns the emission flags
+# (`--release` keeps `#line` out of the seed) — duplicating them here is how a
+# release gate silently stops certifying what it claims to. `--full` forces the
+# real re-emission rather than its git-only shortcut: this is the pre-release
+# check, so it earns the 4 s. VADER pins the compiler to the one build.sh just
+# produced above, so the freshness verdict is about *this* toolchain.
+set +e
+VADER=./build/vader ./bootstrap/check-seed.sh --full --quiet >/dev/null
+seed_verdict=$?
+set -e
+if [ "$seed_verdict" != 0 ]; then
   echo "STALE SEED — bootstrap.c no longer matches bootstrap.vader; run bootstrap/regenerate.sh" >&2
   exit 1
 fi

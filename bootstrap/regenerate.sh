@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
-# Regenerate bootstrap/bootstrap.c from vader/bootstrap/bootstrap.vader, using
-# an existing `vader` binary (on PATH or ./build/vader). The seed is the plain C
-# of the build-only entrypoint — stored uncompressed so git can delta successive
+# Regenerate bootstrap/bootstrap.c from vader/bootstrap/bootstrap.vader, using an
+# existing `vader` binary (on PATH or ./build/vader). The seed is the plain C of
+# the build-only entrypoint — stored uncompressed so git can delta successive
 # reseeds; see docs/BOOTSTRAP.md § "Seed lifecycle management".
+#
+# The emission itself belongs to bootstrap/check-seed.sh, which this script calls:
+# it resolves the compiler, emits, and compares in one pass, so a reseed costs one
+# compile rather than two and the flags cannot drift between checker and writer.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -12,35 +16,28 @@ if ! git diff-index --quiet HEAD -- vader/; then
   exit 1
 fi
 
-# Need a `vader` binary carrying the wired `cmd_build --target=c`.
-if ! command -v vader >/dev/null && [ ! -x ./build/vader ]; then
-  echo "error: no vader binary available. Build one first:" >&2
-  echo "  bootstrap/build.sh                 # from the committed C seed" >&2
-  exit 1
-fi
-VADER="${VADER:-$(command -v vader || echo ./build/vader)}"
+# check-seed.sh prints the compiler it used on stdout and the diagnosis on stderr;
+# --full skips its git short-circuit, since a reseed must compare real output.
+set +e
+VADER="$(./bootstrap/check-seed.sh --full)"
+verdict=$?
+set -e
 
-# --release keeps `#line` directives OUT of the seed (c-emit gates them on
-# !release). The seed is a bootstrap artifact — stage0 is a throwaway -O0
-# binary, so source line info in it is useless, while a populated debug table
-# (Phase 0 of the DAP debugger) would otherwise bloat the committed seed with
-# tens of thousands of `#line` lines and churn its diff on every source edit.
-# For --target=c, --release ONLY drops `#line` (the bytecode optimiser is always
-# on), so the seed content is otherwise identical to a debug build.
-mkdir -p build
-"$VADER" build --release --target=c --out=build/bootstrap.regen.c vader/bootstrap/bootstrap.vader
+case "$verdict" in
+  0)
+    echo "seed already fresh — byte-identical, nothing to commit (VERSION left alone)."
+    echo "(rewriting VERSION would manufacture a diff for a seed that did not move.)"
+    exit 0
+    ;;
+  2)
+    echo "error: cannot determine seed freshness, so refusing to write one." >&2
+    echo "  Reseeding with an out-of-date or missing compiler would commit its old codegen." >&2
+    exit 1
+    ;;
+esac
 
-# Emit to build/ first so a no-op reseed stays a no-op. Writing VERSION
-# unconditionally would manufacture a diff (`regenerated_at` and
-# `vader_source_sha` move on every run) for a seed that did not change — which
-# now matters, since the per-push cadence means this script gets run after
-# pushes that only touched docs, tests, the lsp or the formatter.
-if cmp -s build/bootstrap.regen.c bootstrap/bootstrap.c; then
-  echo "seed already fresh — byte-identical, nothing to commit (VERSION left alone)."
-  exit 0
-fi
-
-mv build/bootstrap.regen.c bootstrap/bootstrap.c
+# STALE: build/bootstrap.check.c is the fresh emission check-seed.sh just made.
+mv build/bootstrap.check.c bootstrap/bootstrap.c
 
 cat > bootstrap/VERSION <<META
 vader_source_sha: $(git rev-parse HEAD)
