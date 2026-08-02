@@ -131,24 +131,18 @@ export check_project_with_bodies :: fn(
     // unresolved idents instead of deferring to typecheck.
     core_seed :: build_core_seed(project)
     mod_index :: module_index_by_name(project)
+    // Both aggregates rebuild an array / a map per call, so bind them once and
+    // hand the same pair to the seed and the ambiguity scan.
+    entry_paths :: all_wildcard_paths(entry_loaded.collected)
+    entry_excludes :: all_wildcard_excludes(entry_loaded.collected)
     entry_rm :: resolve_module_with_collected_dp_seeded(
         merge_module_program(entry_loaded.module.files),
         project.entry,
         entry_loaded.module.display_path,
         project.factory,
         entry_loaded.collected,
-        build_wildcard_seed(
-            mod_index,
-            entry_loaded.collected.wildcard_paths,
-            entry_loaded.collected.wildcard_excludes,
-            core_seed,
-        ),
-        wildcard_ambiguities(
-            mod_index,
-            entry_loaded.collected.wildcard_paths,
-            entry_loaded.collected.wildcard_excludes,
-            core_seed,
-        ),
+        build_wildcard_seed(mod_index, entry_paths, entry_excludes, core_seed),
+        wildcard_ambiguities(mod_index, entry_paths, entry_excludes, core_seed),
     )
     entry_typed :: new_typed_program(entry_rm)
     entry_typed.dump_types = dump_types
@@ -160,24 +154,16 @@ export check_project_with_bodies :: fn(
         if id == project.entry {
             continue
         }
+        other_paths :: all_wildcard_paths(other.collected)
+        other_excludes :: all_wildcard_excludes(other.collected)
         rm :: resolve_module_with_collected_dp_seeded(
             merge_module_program(other.module.files),
             id,
             other.module.display_path,
             project.factory,
             other.collected,
-            build_wildcard_seed(
-                mod_index,
-                other.collected.wildcard_paths,
-                other.collected.wildcard_excludes,
-                core_seed,
-            ),
-            wildcard_ambiguities(
-                mod_index,
-                other.collected.wildcard_paths,
-                other.collected.wildcard_excludes,
-                core_seed,
-            ),
+            build_wildcard_seed(mod_index, other_paths, other_excludes, core_seed),
+            wildcard_ambiguities(mod_index, other_paths, other_excludes, core_seed),
         )
         typed :: new_typed_program(rm)
         typed.dump_types = dump_types
@@ -351,12 +337,12 @@ export check_project_with_bodies :: fn(
         }
         other_typed :: per_module[id]
         if other_typed != null {
-            populate_imported_fn_overloads(other_typed, lm.collected.wildcard_paths, typed_by_name)
+            populate_imported_fn_overloads(other_typed, lm.collected.wildcards, typed_by_name)
         }
     }
     settle_external_expr_bodied_returns(project, per_module)
     populate_external_types(entry_typed, project, per_module)
-    populate_imported_fn_overloads(entry_typed, entry_loaded.collected.wildcard_paths, typed_by_name)
+    populate_imported_fn_overloads(entry_typed, entry_loaded.collected.wildcards, typed_by_name)
     merge_struct_decls(entry_typed, per_module)
     merge_external_impl_methods(entry_typed, project, per_module)
     // Coherence : at most one impl per (concrete type, trait, trait-args) across
@@ -421,7 +407,7 @@ export check_project_with_bodies :: fn(
         // ahead of the settled `fn(i64) -> i64` — no `clear` needed. (That
         // stale-ahead ordering is what `pick_overload` first-matched into `?` →
         // `any` → wide-int compares truncated to `i32.lt`, the `abs` bug.)
-        populate_imported_fn_overloads(other_typed, other.collected.wildcard_paths, typed_by_name)
+        populate_imported_fn_overloads(other_typed, other.collected.wildcards, typed_by_name)
         merge_external_impl_methods(other_typed, project, per_module)
         other_decls :: merge_module_program(other.module.files).decls
         if has_expr_bodied_fn(other_decls) {
@@ -1526,71 +1512,108 @@ settle_external_expr_bodied_returns :: fn(
     }
 }
 
+// Build one overload table per FILE of the module, from that file's own
+// wildcard imports. Imports are file-scoped (SPEC §"Modules"), so two files of
+// one module see different names — including the same path imported bare in one
+// and under a modifier list in the other, which is real in-tree usage
+// (`vader/lsp/main_entry.vader` vs `vader/lsp/main.vader` on `std/cli`).
+//
+// Only the forms that put names in UNQUALIFIED scope feed a table: bare
+// `import "p"`, `import "p" { … }` minus what its modifiers drop, the names a
+// modifier list REBINDS, and the always-in-scope `std/core` prelude. A namespace
+// alias (`P :: import "p"`) contributes nothing — it binds one name and
+// qualifies the rest, so `x.f()` must fail exactly where `f(x)` is R2006, the
+// divergence SPEC §UFCS rules out ("resolves … exactly as `foo(x)` would").
 populate_imported_fn_overloads :: fn(
     entry_typed: TypedProgram!,
-    wildcard_paths: string[],
+    wildcards: FileWildcards[],
     typed_by_name: MutableMap<string, TypedProgram!>,
 ) -> void {
-    // First : every named import lands in `imported_fn_overloads`
-    // so explicitly-imported helpers (e.g. `import "p" { foo as bar }`)
-    // dispatch via UFCS on their declared first param.
-    targets :: entry_typed.import_targets
-    if targets !is null {
-        for [sym_id, st] in targets.symbol_targets {
-            ty :: entry_typed.external_types[st.symbol.id] ?? continue
-            if ty is FnType as ft {
-                push_overload(entry_typed, st.symbol.name, ft)
-                for s in entry_typed.resolved.symbols {
-                    if s.id == sym_id && s.name != st.symbol.name {
-                        push_overload(entry_typed, s.name, ft)
-                    }
-                }
+    // Loop-invariant : the prelude is the same module for every file.
+    core :: typed_by_name["std/core"]
+    for fw in wildcards {
+        table :: file_overload_table(entry_typed, fw.file)
+        // Dedup: a path can appear more than once in one file (re-imported in a
+        // `// ---- tests ----` block), and `push_module_exported_fns` would
+        // rescan it — idempotent but wasted.
+        seen :: MutableMap<string, bool> {}
+        for path in fw.paths {
+            if seen[path] != null {
+                continue
+            }
+            seen[path] = true
+            other :: typed_by_name[path]
+            if other != null {
+                // A modifier drops its source name from that path's wildcard, so
+                // the UFCS table must drop it too — else `{ x as _ }` leaves
+                // `recv.x()` callable while `x(recv)` is R2006.
+                push_module_exported_fns(other, entry_typed, table, fw.excludes[path] ?? [])
             }
         }
+        if core != null {
+            // Re-pushed per file rather than shared: `push_overload` mutates a
+            // bucket in place, so one array reachable from two files' tables
+            // would let a file's own overload of that name leak into a sibling.
+            // The prelude is in scope with no import, so it honours no modifier
+            // list, and at ~30 fns a per-file copy costs little.
+            push_module_exported_fns(core, entry_typed, table, [])
+        }
     }
-    // Then (D-a: import-respecting) : only the modules THIS module actually
-    // imports — plus the always-in-scope `std/core` prelude — contribute their
-    // exported fns, so unqualified UFCS / prefix dispatch (`sb.to_string()`)
-    // resolves. Formerly EVERY co-loaded module contributed unconditionally,
-    // which let a call resolve against a module the file never imported
-    // (drift from SPEC.md §"UFCS — Import requirement").
-    //
-    // Keyed on `wildcard_paths`, NOT `import_paths`: only the forms that put
-    // names in UNQUALIFIED scope (bare `import "p"` and `import "p" { … }`) may
-    // feed this table. A namespace alias (`P :: import "p"`) binds one name and
-    // qualifies the rest, so feeding it here made `x.f()` resolve where the bare
-    // `f(x)` is R2006 — the divergence SPEC §UFCS rules out ("resolves … exactly
-    // as `foo(x)` would").
-    // Dedup: a path can appear more than once (re-imported in a
-    // `// ---- tests ----` block, or split named groups), and
-    // `push_module_exported_fns` would rescan it — idempotent but wasted.
-    //
-    // Still module-wide, and knowingly so : a modifier-list exclusion
-    // (`import "p" { x as _ }`) is not honoured here, because imports are
-    // file-scoped (SPEC §"Modules") and this table is not — see TODO, same
-    // granularity gap as the `files[0]`-only body walker (§1.13d).
-    seen :: MutableMap<string, bool> {}
-    for path in wildcard_paths {
-        if seen[path] != null {
+    // Renamed imports (`import "p" { foo as bar }`) bind ONE name, in the file
+    // that wrote them — under the local name only, since the same modifier
+    // excluded the source name from that path's wildcard just above.
+    push_renamed_imports(entry_typed)
+}
+
+// The table `file` reads its imported overloads from, created on first use.
+//
+// Registered under the file's own path AND under the `<clone>:` form a
+// materialised trait-default body carries (`resolver/substitute_body.vader`):
+// such a body has no file of its own, and the names it may use are the ones its
+// impl's file can see. Maps hold references, so the alias costs one entry.
+file_overload_table :: fn(typed: TypedProgram!, file: string) -> MutableMap<string, FnType[]!>! {
+    existing :: typed.imported_fn_overloads[file]
+    if existing !is null {
+        return existing
+    }
+    table :: MutableMap<string, FnType[]!> {}
+    typed.imported_fn_overloads[file] = table
+    typed.imported_fn_overloads["${CLONE_FILE_PREFIX}${file}"] = table
+    return table
+}
+
+// `import "p" { foo as bar }` — dispatch `bar` via UFCS on its declared first
+// param, in the file that bound it. `symbol_targets` is module-wide, so the
+// owning file comes from the local symbol's own span.
+push_renamed_imports :: fn(entry_typed: TypedProgram!) -> void {
+    targets :: entry_typed.import_targets ?? return
+    for [sym_id, st] in targets.symbol_targets {
+        ty :: entry_typed.external_types[st.symbol.id] ?? continue
+        if ty !is FnType {
             continue
         }
-        seen[path] = true
-        other :: typed_by_name[path]
-        if other != null {
-            push_module_exported_fns(other, entry_typed)
-        }
-    }
-    core :: typed_by_name["std/core"]
-    if core != null {
-        push_module_exported_fns(core, entry_typed)
+        local :: symbol_by_id(sym_id, entry_typed) ?? continue
+        where :: local.defined_at ?? continue
+        push_overload(file_overload_table(entry_typed, where.start.file), local.name, ty)
     }
 }
 
-// Push every fn overload of `from` into `into.imported_fn_overloads`, keyed by
-// name (`push_overload` is replace-on-signature). We iterate `fn_overloads`
-// (not `symbols`) so every overload of the same name lands in the bucket. Skips
-// the self case (a module never contributes to its own import table).
-push_module_exported_fns :: fn(from: TypedProgram, into: TypedProgram!) -> void {
+// Push every fn overload of `from` into `table`, keyed by name (`push_overload`
+// is replace-on-signature). We iterate `fn_overloads` (not `symbols`) so every
+// overload of the same name lands in the bucket. Skips the self case (a module
+// never contributes to its own import table).
+//
+// `excluded` holds the source names the importing file's modifier list drops
+// from this path's wildcard. They stay out of `table` but are still typed into
+// `into.external_types` — that table is keyed by symbol id and answers "what
+// type is this?", not "is this name in scope here?", and a rename reads its
+// target's type from it.
+push_module_exported_fns :: fn(
+    from: TypedProgram,
+    into: TypedProgram!,
+    table: MutableMap<string, FnType[]!>!,
+    excluded: string[],
+) -> void {
     if from.resolved.path == into.resolved.path {
         return
     }
@@ -1606,7 +1629,9 @@ push_module_exported_fns :: fn(from: TypedProgram, into: TypedProgram!) -> void 
             }
             ty :: from.decl_types[sym.id] ?? continue
             if ty is FnType as ft {
-                push_overload(into, name, ft)
+                if name !in excluded {
+                    push_overload(table, name, ft)
+                }
                 into.external_types[sym.id] = ft
             }
         }
@@ -1628,20 +1653,20 @@ push_module_exported_fns :: fn(from: TypedProgram, into: TypedProgram!) -> void 
     }
 }
 
-push_overload :: fn(typed: TypedProgram!, name: string, ft: FnType) -> void {
-    bucket :: typed.imported_fn_overloads[name]
+push_overload :: fn(table: MutableMap<string, FnType[]!>!, name: string, ft: FnType) -> void {
+    bucket :: table[name]
     if bucket is null {
-        typed.imported_fn_overloads[name] = [ft]
+        table[name] = [ft]
     } else {
         for i in 0..<bucket.len() {
             if type_list_equals(bucket[i].params, ft.params) {
                 bucket[i] = ft
-                typed.imported_fn_overloads[name] = bucket
+                table[name] = bucket
                 return
             }
         }
         bucket.push(ft)
-        typed.imported_fn_overloads[name] = bucket
+        table[name] = bucket
     }
 }
 

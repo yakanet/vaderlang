@@ -1,0 +1,13 @@
+// Same module as `_main.vader`, different imports — `bump` is dropped from this
+// file's wildcard, so BOTH call forms must fail here while the sibling keeps them.
+// Only the UFCS one is this fixture's subject; the bare `bump(c)` is left out
+// because it reports from the resolver (R2006), which is already covered.
+
+module "snippet"
+
+import "snippet/provider" { bump as _ }
+
+from_sibling :: fn() -> i32 {
+    c :: Counter { .n = 0 }
+    return c.bump()
+}

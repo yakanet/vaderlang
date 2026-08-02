@@ -13,6 +13,7 @@ module "vader/lexer"
 
 import "std/string"
 import "std/numbers"
+import "std/string_builder"
 import "vader/text"
 // Diagnostic info is now resolved at construction time — see vader/diagnostics.
 

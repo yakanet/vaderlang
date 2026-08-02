@@ -4,6 +4,7 @@
 module "vader/lower"
 
 import "std/collections"
+import "std/iter"
 
 import "vader/parser"
 import "vader/diagnostics"

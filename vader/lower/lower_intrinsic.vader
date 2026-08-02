@@ -3,6 +3,7 @@
 
 module "vader/lower"
 
+import "std/collections"
 import "vader/parser"
 import "vader/diagnostics"
 import "vader/typecheck"

@@ -1,0 +1,28 @@
+// Imports are FILE-scoped (SPEC §"Modules"), and UFCS follows them: a modifier
+// list's exclusion binds the file that wrote it, and only that file.
+//
+// This file wildcard-imports `snippet/provider` with no modifiers, so `bump` is
+// in scope here. Its sibling `other.vader` drops `bump` from its own wildcard,
+// and the T3009 in the snapshot is that sibling's `c.bump()` — not this file's,
+// which resolves. Before per-file overload tables the sibling's call resolved
+// too (one table for the whole module), which is the divergence SPEC §UFCS
+// rules out.
+//
+// The snapshot's second entry — R2006 on `bump(c)` BELOW, in a file that
+// imports the name — is a KNOWN REMAINING BUG, kept visible on purpose. The
+// resolver still seeds unqualified names per MODULE, unioning every file's
+// exclusions, so the bare form is refused here while the UFCS form on the line
+// above resolves: the same bare-vs-UFCS divergence, now surviving only on the
+// resolver side. Closing it is the `files[0]`-only / per-file-seed work
+// (TODO §1.13d); when that lands, this R2006 disappears and the snapshot moves.
+
+module "snippet"
+
+import "snippet/provider"
+
+main :: fn() -> i32 {
+    c :: Counter { .n = 0 }
+    _ :: c.bump()
+    _ :: bump(c)
+    return from_sibling()
+}

@@ -30,6 +30,7 @@ module "vader/typecheck"
 
 import "std/collections"
 import "std/iter"
+import "std/string"
 import "vader/diagnostics"
 import "vader/resolver"
 AST :: import "vader/parser"

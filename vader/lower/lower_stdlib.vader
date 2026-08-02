@@ -4,6 +4,7 @@
 module "vader/lower"
 
 import "std/string"
+import "std/collections"
 
 import "vader/parser"
 import "vader/resolver"

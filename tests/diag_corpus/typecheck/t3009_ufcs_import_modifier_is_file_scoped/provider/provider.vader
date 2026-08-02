@@ -1,0 +1,15 @@
+// snippet/provider — wildcard-imported bare by `_main.vader`, and with a
+// `{ bump as _ }` modifier by its sibling `other.vader`.
+
+module "snippet/provider"
+
+/// Struct receiver for the UFCS call under test.
+export Counter :: struct {
+    n: i32 = 0
+}
+
+/// The name one file keeps and the other drops.
+export bump :: fn(self: Counter!) -> i32 {
+    self.n += 1
+    return self.n
+}

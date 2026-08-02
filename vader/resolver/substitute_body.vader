@@ -479,6 +479,13 @@ export substitute_block_materialized :: fn(
 /// typecheck/lower materialisation generations (the source file is invariant).
 export StampCtx :: struct { base_line: i32, counter: i32, file: string }
 
+/// Prefix marking a materialised clone's synthetic file path — the rest of the
+/// string is the impl's real source file. Read by anything that has to map a
+/// cloned node back to the file whose imports it resolves against
+/// (`typecheck/orchestrate.vader::file_overload_table`), so producer and
+/// consumer share this one definition rather than each spelling the literal.
+export CLONE_FILE_PREFIX :: "<clone>:"
+
 export next_clone_span :: fn(stamp: StampCtx!) -> Span {
     col :: stamp.counter
     stamp.counter = stamp.counter + 1

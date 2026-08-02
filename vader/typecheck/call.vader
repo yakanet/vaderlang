@@ -67,7 +67,7 @@ pick_overload :: fn(
         }
     }
     name :: c.callee.name
-    candidates :: collect_overload_candidates(name, typed)
+    candidates :: collect_overload_candidates(name, c.callee.span.start.file, typed)
     if candidates.len() < 2 {
         return initial
     }
@@ -185,16 +185,14 @@ primary_overload_ft :: fn(callee: AST.Expr, typed: TypedProgram) -> Type | null 
             return ft
         }
     }
-    imported :: typed.imported_fn_overloads[callee.name]
-    if imported is FnType[] as fts {
-        if fts.len() > 0 {
-            return fts[0]
-        }
+    fts :: imported_overloads_in(typed, callee.span.start.file, callee.name)
+    if fts.len() > 0 {
+        return fts[0]
     }
     return null
 }
 
-collect_overload_candidates :: fn(name: string, typed: TypedProgram) -> FnType[] {
+collect_overload_candidates :: fn(name: string, file: string, typed: TypedProgram) -> FnType[] {
     out: FnType[]! = []
     bucket :: typed.resolved.fn_overloads[name]
     if bucket !is null {
@@ -205,11 +203,9 @@ collect_overload_candidates :: fn(name: string, typed: TypedProgram) -> FnType[]
             }
         }
     }
-    imported :: typed.imported_fn_overloads[name]
-    if imported !is null {
-        for ft in imported {
-            out.push(ft)
-        }
+    // Scoped to the call site's file — imports are file-scoped (SPEC §"Modules").
+    for ft in imported_overloads_in(typed, file, name) {
+        out.push(ft)
     }
     return out
 }

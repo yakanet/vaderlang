@@ -49,6 +49,7 @@ module "vader/vm"
 bc :: import "vader/bytecode"
 
 import "std/collections"
+import "std/string"
 
 // ----------------------------------------------------------------- module
 

@@ -310,7 +310,10 @@ member_completion :: fn(state: ServerState!, uri: string, line0: i32, dot_col: i
     // those against EVERY free fn (type_assign.vader), so the loop would be noise —
     // a bound type param's real methods come from the bound walk just below.
     if !(recv_type is UnresolvedType) && !(recv_type is TypeParamType) {
-        for um in ufcs_methods_for(recv_type, cached.result.typed) {
+        // `sf.program.file`, not `file_path` : the overload table is keyed by
+        // the path the parser stamped into the file's spans, and only that form
+        // matches. Imports are file-scoped, so completion offers this file's.
+        for um in ufcs_methods_for(recv_type, sf.program.file, cached.result.typed) {
             if seen[um.name] != null { continue }
             seen[um.name] = true
             items.push(completion_item(um.name, .Method, display_type(um.curried)))

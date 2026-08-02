@@ -34,6 +34,35 @@ export lookup_const_symbol :: fn(decl: AST.ConstDecl, typed: TypedProgram) -> Sy
     return null
 }
 
+/// Every imported overload in scope in `file`, keyed by name — the file's own
+/// wildcard imports plus the `std/core` prelude. Null when the file imported
+/// nothing, which is a normal answer, not a missing table.
+///
+/// The single read path for `imported_fn_overloads`: go through this (or one of
+/// the two helpers below) rather than indexing the field, so every consumer
+/// agrees on what a key is.
+///
+/// @param typed  the module's typechecked program.
+/// @param file   the source file the lookup is on behalf of — `Span.start.file`
+///               of the node being resolved, never a hard-coded path.
+/// @return       that file's name → overloads table, or null.
+export imported_overloads_table_in :: fn(
+    typed: TypedProgram, file: string,
+) -> MutableMap<string, FnType[]!> | null = typed.imported_fn_overloads[file]
+
+/// Imported fn overloads named `name` that are in scope in `file`. Empty when
+/// the file imports nothing that provides the name, which is exactly what makes
+/// the unqualified call and the UFCS call agree (SPEC §UFCS).
+///
+/// @param typed  the module's typechecked program.
+/// @param file   the source file the call site sits in.
+/// @param name   the fn name being dispatched.
+/// @return       the candidate signatures, in the order they were imported.
+export imported_overloads_in :: fn(typed: TypedProgram, file: string, name: string) -> FnType[] {
+    table :: imported_overloads_table_in(typed, file) ?? return []
+    return table[name] ?? []
+}
+
 /// Find a resolved symbol by id. The sibling of `lookup_const_symbol` for the
 /// tables keyed by `Symbol.id` (import targets, namespace bindings) rather than
 /// by name — same linear scan, same negligible cost at module scale.
@@ -242,12 +271,23 @@ export TypedProgram :: struct {
     /// (for `sleep`), so it is always present when needed.
     run_async_main_symbol: Symbol | null = null
 
-    /// Imported fn overloads indexed by simple name. Populated by
-    /// the orchestrator after wiring imports. Consumed by
-    /// `field.vader::try_free_fn_ufcs` so `x.method()` can dispatch
-    /// to a fn imported from another module without requiring the
-    /// method body to live in the entry module.
-    imported_fn_overloads: MutableMap<string, FnType[]!>
+    /// Imported fn overloads, indexed by SOURCE FILE and then by simple name.
+    /// Populated by the orchestrator after wiring imports. Consumed by
+    /// `field.vader::try_free_fn_ufcs` so `x.method()` can dispatch to a fn
+    /// imported from another module without requiring the method body to live
+    /// in the entry module.
+    ///
+    /// Keyed per file because imports are file-scoped (SPEC §"Modules") while a
+    /// `TypedProgram` covers a whole module: two files of one module may import
+    /// different modules, or the same one under different modifier lists, and
+    /// neither may lend its names to the other.
+    ///
+    /// Read it through `imported_overloads_table_in` and friends, never by
+    /// indexing: each table is registered under TWO keys — the file's path and
+    /// the `<clone>:` form a materialised trait-default body carries — so the
+    /// map holds two entries per file, both pointing at the same table. Counting
+    /// its entries does not count the module's files.
+    imported_fn_overloads: MutableMap<string, MutableMap<string, FnType[]!>!>
 
     /// `display_type(for_ty) → element` for every `X implements
     /// Iterator<T>` impl reached during type-checking. Consumed by
@@ -501,7 +541,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .range_symbol    = null,
     .field_symbol    = null,
     .async_symbol    = null,
-    .imported_fn_overloads = MutableMap<string, FnType[]!> {},
+    .imported_fn_overloads = MutableMap<string, MutableMap<string, FnType[]!>!> {},
     .iter_element_types = MutableMap<string, Type> {},
     .index_target_types = MutableMap<string, Type> {},
     .index_key_types = MutableMap<string, Type> {},

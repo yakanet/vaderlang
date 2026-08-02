@@ -8,6 +8,7 @@
 
 module "vader/comptime"
 
+import "std/collections"
 import "vader/typecheck"
 import "vader/types"
 import "vader/diagnostics"

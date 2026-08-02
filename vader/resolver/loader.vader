@@ -425,6 +425,9 @@ merge_collected :: fn(dst: CollectedModule!, src: CollectedModule, diags: Diagno
             }
         }
     }
+    // Not `merge_bucket_map` : `CollectedModule.fn_overloads` is declared
+    // read-only at the map level, so it cannot fill that helper's `!` slot
+    // (T3077). Widening the field's type reaches well past this pass.
     for [name, bucket] in src.fn_overloads {
         existing :: dst.fn_overloads[name]
         match existing {
@@ -439,15 +442,10 @@ merge_collected :: fn(dst: CollectedModule!, src: CollectedModule, diags: Diagno
         dst.imports[id] = info
     }
     for p in src.import_paths { dst.import_paths.push(p) }
-    for p in src.wildcard_paths { dst.wildcard_paths.push(p) }
-    for [path, names] in src.wildcard_excludes {
-        existing :: dst.wildcard_excludes[path]
-        if existing is null {
-            dst.wildcard_excludes[path] = names
-        } else {
-            for n in names { existing.push(n) }
-            dst.wildcard_excludes[path] = existing
-        }
-    }
+    // APPENDED, not unioned : each entry stays attached to the file that wrote
+    // those imports, because imports are file-scoped (SPEC §"Modules"). Merging
+    // them would let one file's `{ x as _ }` silence a sibling's plain wildcard
+    // of the same path.
+    for fw in src.wildcards { dst.wildcards.push(fw) }
 }
 

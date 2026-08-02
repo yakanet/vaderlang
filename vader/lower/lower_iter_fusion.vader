@@ -9,6 +9,7 @@
 
 module "vader/lower"
 
+import "vader/comptime"
 import "vader/diagnostics"
 AST :: import "vader/parser"
 import "vader/resolver/symbol"

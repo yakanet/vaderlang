@@ -231,7 +231,7 @@ try_free_fn_ufcs_dispatch :: fn(
     typed: TypedProgram!,
     diags: Diagnostic[]!,
 ) -> Type | null {
-    free_ufcs :: try_free_fn_ufcs_with_first(e.field, target_ty, typed) ?? return null
+    free_ufcs :: try_free_fn_ufcs_with_first(e.field, target_ty, e.span.start.file, typed) ?? return null
     typed.ufcs_receiver_types[e.id] = free_ufcs.first_param
     // T3071 on THIS dispatch path too. A mutator declared as a free fn called via
     // UFCS — `put`, `remove`, `clear`, `append` — is the dominant stdlib style, and
@@ -389,13 +389,14 @@ try_enum_variant_dispatch :: fn(
     return target_ty
 }
 
-// True when `name` has UFCS free-fn candidates (local or imported) — i.e. a
-// method by that name exists, so a failed dispatch is "no overload fit the
-// receiver", not "unknown method". Drives the tailored union-receiver hint.
-ufcs_name_has_candidates :: fn(name: string, typed: TypedProgram) -> bool {
+// True when `name` has UFCS free-fn candidates visible in `file` (declared by
+// the module, or imported by that file) — i.e. a method by that name exists, so
+// a failed dispatch is "no overload fit the receiver", not "unknown method".
+// Drives the tailored union-receiver hint.
+ufcs_name_has_candidates :: fn(name: string, file: string, typed: TypedProgram) -> bool {
     if typed.resolved.fn_overloads[name] != null { return true }
-    if typed.imported_fn_overloads[name] != null { return true }
-    return false
+    imported :: imported_overloads_table_in(typed, file) ?? return false
+    return imported[name] != null
 }
 
 // T3078 — the receiver has no such member, but a module imported under a
@@ -467,7 +468,7 @@ resolve_struct_field :: fn(
         // (`or` / `map` / …) fed a union with more than one "unhappy" variant
         // (e.g. `T | Error | null` fits neither the `T | null` nor the `T | Error`
         // overload). Point at narrowing rather than the bare "not indexable".
-        if target_ty is UnionType && ufcs_name_has_candidates(e.field, typed) {
+        if target_ty is UnionType && ufcs_name_has_candidates(e.field, e.span.start.file, typed) {
             diags.push(
                 typecheck_error(
                     .NotIndexable,
@@ -1052,6 +1053,7 @@ UfcsResult :: struct {
 try_free_fn_ufcs_with_first :: fn(
     name: string,
     target_ty: Type,
+    file: string,
     typed: TypedProgram,
 ) -> UfcsResult | null {
     // Gather every overload whose first param accepts the receiver (curry
@@ -1079,21 +1081,20 @@ try_free_fn_ufcs_with_first :: fn(
             }
         }
     }
-    imported :: typed.imported_fn_overloads[name]
-    if imported !is null {
-        for ft in imported {
-            if ft.params.len() == 0 {
-                continue
+    // The importED half is scoped to the CALL SITE's file, not the module: two
+    // files of one module import different things (SPEC §"Modules").
+    for ft in imported_overloads_in(typed, file, name) {
+        if ft.params.len() == 0 {
+            continue
+        }
+        curried :: try_curry_receiver(ft, target_ty, typed) ?? continue
+        spec :: overload_specificity(target_ty, ft.params[0])
+        if spec > best_spec {
+            best = UfcsResult {
+                .curried = curried, .first_param = ft.params[0],
+                .self_mutable = param_mutable_at(ft, 0),
             }
-            curried :: try_curry_receiver(ft, target_ty, typed) ?? continue
-            spec :: overload_specificity(target_ty, ft.params[0])
-            if spec > best_spec {
-                best = UfcsResult {
-                    .curried = curried, .first_param = ft.params[0],
-                    .self_mutable = param_mutable_at(ft, 0),
-                }
-                best_spec = spec
-            }
+            best_spec = spec
         }
     }
     return best
@@ -1111,7 +1112,12 @@ export UfcsMethod :: struct {
 /// receiver), deduplicated by name. Enumerates the module's own overloads then
 /// the imported ones — the same two buckets `try_free_fn_ufcs_with_first`
 /// resolves a single call against, but surfaced as a list for completion.
-export ufcs_methods_for :: fn(target_ty: Type, typed: TypedProgram) -> UfcsMethod[] {
+///
+/// @param target_ty  the receiver type the completion is being offered on.
+/// @param file       the file the completion fires in — imports are file-scoped,
+///                   so a sibling file's imports must not be offered here.
+/// @param typed      the module's typechecked program.
+export ufcs_methods_for :: fn(target_ty: Type, file: string, typed: TypedProgram) -> UfcsMethod[] {
     out: UfcsMethod[]! = []
     seen :: MutableMap<string, bool> {}
     for [name, bucket] in typed.resolved.fn_overloads {
@@ -1129,15 +1135,18 @@ export ufcs_methods_for :: fn(target_ty: Type, typed: TypedProgram) -> UfcsMetho
             break
         }
     }
-    for [name, fts] in typed.imported_fn_overloads {
-        if seen[name] != null {
-            continue
-        }
-        for ft in fts {
-            curried :: try_curry_receiver(ft, target_ty, typed) ?? continue
-            seen[name] = true
-            out.push(UfcsMethod { .name = name, .curried = curried })
-            break
+    imported :: imported_overloads_table_in(typed, file)
+    if imported !is null {
+        for [name, fts] in imported {
+            if seen[name] != null {
+                continue
+            }
+            for ft in fts {
+                curried :: try_curry_receiver(ft, target_ty, typed) ?? continue
+                seen[name] = true
+                out.push(UfcsMethod { .name = name, .curried = curried })
+                break
+            }
         }
     }
     return out

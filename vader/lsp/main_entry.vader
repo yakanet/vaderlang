@@ -10,6 +10,12 @@ module "vader/lsp"
 
 import "std/cli"
 import "std/io"
+// `parse` alone is ambiguous ACROSS THIS MODULE: the sibling `main.vader` needs
+// `std/json`'s and drops `std/cli`'s (`{ parse as _ }`), and the resolver seeds
+// unqualified names per MODULE, not per file — so the two files cannot each get
+// the `parse` they want from the bare name. Qualify this one. The wildcard above
+// stays: `ParsedArgs`, `string_flag` and `errors` are all still reached from it.
+CLI :: import "std/cli"
 
 
 main :: fn(argv: string[]) -> i32 {
@@ -18,7 +24,7 @@ main :: fn(argv: string[]) -> i32 {
     // accept exactly the same flags and reject the same typos. The host shim
     // seeds the two roots so cross-file goto-def can resolve `std/*` / `vader/*`
     // imports to absolute paths.
-    parsed :: parse(argv[1..<argv.len()], LSP_FLAGS)
+    parsed :: CLI.parse(argv[1..<argv.len()], LSP_FLAGS)
     if parsed.errors.len() > 0 {
         for e in parsed.errors {
             eprintln("vader-lsp: ${e}")

@@ -14,6 +14,7 @@ module "vader/c_emit"
 import "std/string"
 import "std/string_builder"
 import "std/abort"
+import "std/collections"
 import "vader/bytecode"
 // The opcode union pulls in ~120 names ; the namespace form keeps the
 // import to one line and tags every op site as `vm.<Op>` at the match.

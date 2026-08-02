@@ -1230,11 +1230,14 @@ resolve_loaded_project :: fn(project: LoadedProject!, scope: string[]) -> Resolv
     resolved_by_id :: MutableMap<string, ResolvedModule> {}
     for [id, lm] in project.modules {
         if !module_in_scope(lm.module.display_path, scope) { continue }
+        // One rebuild each, shared by the seed and the ambiguity scan.
+        mod_paths :: all_wildcard_paths(lm.collected)
+        mod_excludes :: all_wildcard_excludes(lm.collected)
         rm :: resolve_module_with_collected_dp_seeded(
             lm.module.files[0].program, lm.module.files[0].path,
             lm.module.display_path, project.factory, lm.collected,
-            build_wildcard_seed(mod_index, lm.collected.wildcard_paths, lm.collected.wildcard_excludes, core_seed),
-            wildcard_ambiguities(mod_index, lm.collected.wildcard_paths, lm.collected.wildcard_excludes, core_seed),
+            build_wildcard_seed(mod_index, mod_paths, mod_excludes, core_seed),
+            wildcard_ambiguities(mod_index, mod_paths, mod_excludes, core_seed),
         )
         modules.push(rm)
         resolved_by_id[id] = rm
