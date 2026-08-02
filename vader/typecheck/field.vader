@@ -398,6 +398,51 @@ ufcs_name_has_candidates :: fn(name: string, typed: TypedProgram) -> bool {
     return false
 }
 
+// T3078 — the receiver has no such member, but a module imported under a
+// NAMESPACE ALIAS exports a free fn by that name whose first param accepts it.
+// An alias binds one name and qualifies the rest, so the fn is out of
+// unqualified scope in both call forms (`f(x)` is R2006, `x.f()` lands here) —
+// SPEC §UFCS, "resolves … exactly as `foo(x)` would". Point at the qualified
+// form instead of leaving the reader with a bare "no such field".
+//
+// Returns true when it reported, so the caller skips the generic diagnostic.
+report_namespace_alias_method :: fn(
+    e: AST.FieldExpr,
+    target_ty: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[]!,
+) -> bool {
+    targets :: typed.import_targets ?? return false
+    for [sym_id, mod_id] in targets.namespace_targets {
+        exports :: typed.namespace_exports[mod_id] ?? continue
+        ft :: exports[e.field] ?? continue
+        if ft !is FnType {
+            continue
+        }
+        if ft.params.len() == 0 {
+            continue
+        }
+        // Same receiver test the UFCS dispatch itself runs — an alias exporting
+        // an unrelated `f(i32)` explains nothing about `recv.f()`.
+        if try_curry_receiver(ft, target_ty, typed) == null {
+            continue
+        }
+        alias :: symbol_by_id(sym_id, typed) ?? continue
+        // The alias, not the module: `mod_id` is the target's FOLDER, which is
+        // not what the import spelled (R2008 on a namespace member is likewise
+        // module-free). The repair is the qualified call, so that is the detail.
+        diags.push(
+            typecheck_error(
+                .MethodOnlyBehindNamespaceAlias,
+                e.field_span,
+                "write `${alias.name}.${e.field}(${path_name(e.target, "…")})`",
+            ),
+        )
+        return true
+    }
+    return false
+}
+
 // Terminal struct-field lookup + the catch-all diagnostics for any
 // other unsupported shape. Returns a real Type (not Type | null)
 // since this is the last fallthrough.
@@ -412,6 +457,11 @@ resolve_struct_field :: fn(
     // keeps its nominal identity for trait-impl dispatch.
     st :: struct_backing(target_ty)
     if st == null {
+        // Checked before the shape-based diagnostics: "the name is behind an
+        // alias" explains the miss, where "non-struct type" only describes it.
+        if report_namespace_alias_method(e, target_ty, typed, diags) {
+            return TY_UNRESOLVED
+        }
         // A UFCS method by this name exists, but no overload's first param
         // accepts this union receiver — the common case being a value combinator
         // (`or` / `map` / …) fed a union with more than one "unhappy" variant
@@ -447,6 +497,9 @@ resolve_struct_field :: fn(
     check_internal_field(st, decl, e.field, e.field_span, typed, diags)
     found :: resolved_field_type(st.symbol.id, decl, e.field, typed, diags)
     if found == null {
+        if report_namespace_alias_method(e, target_ty, typed, diags) {
+            return TY_UNRESOLVED
+        }
         diags.push(
             typecheck_error(
                 .FieldDoesNotExist,

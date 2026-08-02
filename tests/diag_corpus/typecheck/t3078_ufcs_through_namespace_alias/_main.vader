@@ -1,0 +1,20 @@
+// T3078: a namespace alias qualifies its module's exports — it puts nothing in
+// unqualified scope, in EITHER call form. `bump(c)` is R2006 and `c.bump()` must
+// fail the same way (SPEC §UFCS: "resolves … exactly as `foo(x)` would"), with a
+// diagnostic naming the alias instead of a bare "no such field".
+//
+// `twice` covers the non-struct receiver path, which reports from the other
+// `resolve_struct_field` exit. `unrelated` is the negative: the alias exports
+// that name but no overload takes the receiver, so the generic T3009 stands.
+
+module "snippet"
+
+P :: import "snippet/provider"
+
+main :: fn() -> i32 {
+    c :: P.Counter { .n = 0 }
+    _ :: c.bump()
+    _ :: 21.twice()
+    _ :: c.unrelated()
+    return 0
+}

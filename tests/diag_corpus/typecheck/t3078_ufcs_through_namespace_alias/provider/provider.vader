@@ -1,0 +1,20 @@
+// snippet/provider — reached only through the entry's `P ::` namespace alias.
+
+module "snippet/provider"
+
+/// Struct receiver, so UFCS on it is the natural shape.
+export Counter :: struct {
+    n: i32 = 0
+}
+
+/// Free fn whose first param is the struct receiver.
+export bump :: fn(self: Counter!) -> i32 {
+    self.n += 1
+    return self.n
+}
+
+/// Scalar receiver — the non-struct miss path.
+export twice :: fn(self: i32) -> i32 = self * 2
+
+/// No overload of this name takes a `Counter`, so it must not be suggested.
+export unrelated :: fn(flag: bool) -> bool = !flag

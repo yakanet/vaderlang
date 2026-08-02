@@ -351,12 +351,12 @@ export check_project_with_bodies :: fn(
         }
         other_typed :: per_module[id]
         if other_typed != null {
-            populate_imported_fn_overloads(other_typed, lm.collected.import_paths, typed_by_name)
+            populate_imported_fn_overloads(other_typed, lm.collected.wildcard_paths, typed_by_name)
         }
     }
     settle_external_expr_bodied_returns(project, per_module)
     populate_external_types(entry_typed, project, per_module)
-    populate_imported_fn_overloads(entry_typed, entry_loaded.collected.import_paths, typed_by_name)
+    populate_imported_fn_overloads(entry_typed, entry_loaded.collected.wildcard_paths, typed_by_name)
     merge_struct_decls(entry_typed, per_module)
     merge_external_impl_methods(entry_typed, project, per_module)
     // Coherence : at most one impl per (concrete type, trait, trait-args) across
@@ -421,7 +421,7 @@ export check_project_with_bodies :: fn(
         // ahead of the settled `fn(i64) -> i64` — no `clear` needed. (That
         // stale-ahead ordering is what `pick_overload` first-matched into `?` →
         // `any` → wide-int compares truncated to `i32.lt`, the `abs` bug.)
-        populate_imported_fn_overloads(other_typed, other.collected.import_paths, typed_by_name)
+        populate_imported_fn_overloads(other_typed, other.collected.wildcard_paths, typed_by_name)
         merge_external_impl_methods(other_typed, project, per_module)
         other_decls :: merge_module_program(other.module.files).decls
         if has_expr_bodied_fn(other_decls) {
@@ -1528,11 +1528,11 @@ settle_external_expr_bodied_returns :: fn(
 
 populate_imported_fn_overloads :: fn(
     entry_typed: TypedProgram!,
-    importing_paths: string[],
+    wildcard_paths: string[],
     typed_by_name: MutableMap<string, TypedProgram!>,
 ) -> void {
     // First : every named import lands in `imported_fn_overloads`
-    // so explicitly-imported helpers (e.g. `import "p" { foo }`)
+    // so explicitly-imported helpers (e.g. `import "p" { foo as bar }`)
     // dispatch via UFCS on their declared first param.
     targets :: entry_typed.import_targets
     if targets !is null {
@@ -1553,14 +1553,24 @@ populate_imported_fn_overloads :: fn(
     // exported fns, so unqualified UFCS / prefix dispatch (`sb.to_string()`)
     // resolves. Formerly EVERY co-loaded module contributed unconditionally,
     // which let a call resolve against a module the file never imported
-    // (drift from SPEC.md §"UFCS — Import requirement"). `importing_paths` is the
-    // module's `import_paths` (all forms: destructure / namespace / wildcard),
-    // each a declared module name.
-    // Dedup: a path can appear in `import_paths` more than once (re-imported in
-    // a `// ---- tests ----` block, or split named groups), and
+    // (drift from SPEC.md §"UFCS — Import requirement").
+    //
+    // Keyed on `wildcard_paths`, NOT `import_paths`: only the forms that put
+    // names in UNQUALIFIED scope (bare `import "p"` and `import "p" { … }`) may
+    // feed this table. A namespace alias (`P :: import "p"`) binds one name and
+    // qualifies the rest, so feeding it here made `x.f()` resolve where the bare
+    // `f(x)` is R2006 — the divergence SPEC §UFCS rules out ("resolves … exactly
+    // as `foo(x)` would").
+    // Dedup: a path can appear more than once (re-imported in a
+    // `// ---- tests ----` block, or split named groups), and
     // `push_module_exported_fns` would rescan it — idempotent but wasted.
+    //
+    // Still module-wide, and knowingly so : a modifier-list exclusion
+    // (`import "p" { x as _ }`) is not honoured here, because imports are
+    // file-scoped (SPEC §"Modules") and this table is not — see TODO, same
+    // granularity gap as the `files[0]`-only body walker (§1.13d).
     seen :: MutableMap<string, bool> {}
-    for path in importing_paths {
+    for path in wildcard_paths {
         if seen[path] != null {
             continue
         }

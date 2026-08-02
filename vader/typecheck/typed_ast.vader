@@ -34,6 +34,20 @@ export lookup_const_symbol :: fn(decl: AST.ConstDecl, typed: TypedProgram) -> Sy
     return null
 }
 
+/// Find a resolved symbol by id. The sibling of `lookup_const_symbol` for the
+/// tables keyed by `Symbol.id` (import targets, namespace bindings) rather than
+/// by name — same linear scan, same negligible cost at module scale.
+///
+/// @param sym_id  the id to look up, as it appears in an id-keyed table.
+/// @param typed   the typechecked program carrying the resolved symbol table.
+/// @return        the matching `Symbol`, or `null` when the id is not local.
+export symbol_by_id :: fn(sym_id: i32, typed: TypedProgram) -> Symbol | null {
+    for symbol in typed.resolved.symbols {
+        if symbol.id == sym_id { return symbol }
+    }
+    return null
+}
+
 /// One UFCS-dispatchable impl method: its signature plus whether it may mutate
 /// its receiver.
 ///

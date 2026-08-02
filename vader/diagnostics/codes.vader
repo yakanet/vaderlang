@@ -117,6 +117,7 @@ export TypecheckCode :: enum(u8) {
     MutabilityMarkerOnValueType,        // T3075
     ModuleConstMutableElement,          // T3076
     ImmutableValueIntoMutableSlot,      // T3077
+    MethodOnlyBehindNamespaceAlias,     // T3078
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -456,6 +457,7 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .MutabilityMarkerOnValueType        -> CodeInfo { .id = "T3075", .message = "a `!` that grants nothing" }
     .ModuleConstMutableElement          -> CodeInfo { .id = "T3076", .message = "a mutable module const needs a flat element type" }
     .ImmutableValueIntoMutableSlot      -> CodeInfo { .id = "T3077", .message = "a read-only value cannot fill a slot that promises mutation" }
+    .MethodOnlyBehindNamespaceAlias     -> CodeInfo { .id = "T3078", .message = "this free function is only in scope through its namespace alias" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

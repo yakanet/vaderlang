@@ -1103,7 +1103,7 @@ producer_hint_for :: fn(sym: Symbol, typed: TypedProgram) -> string {
 element_hint_for :: fn(sym: Symbol, typed: TypedProgram) -> string {
     iter :: iterable_behind(sym, typed, 4) ?? return ""
     at :: iterable_type_span(iter, typed) ?? return ""
-    return " — its elements come from `${path_name(iter)}` : annotate that element type at ${where_of(at)}"
+    return " — its elements come from `${path_name(iter, "the collection")}` : annotate that element type at ${where_of(at)}"
 }
 
 // `budget` bounds the narrowing chain : `is A as a` inside `is B as b` nests, and a
@@ -1159,10 +1159,14 @@ iterable_type_span :: fn(iter: AST.Expr, typed: TypedProgram) -> Span | null {
     return null
 }
 
-path_name :: fn(e: AST.Expr) -> string {
-    if e is AST.FieldExpr as fe { return "${path_name(fe.target)}.${fe.field}" }
+// An access path rendered back to source, for a diagnostic that wants to name
+// the value the user wrote. Only ident + field chains are reproducible from the
+// AST ; anything else takes `fallback`, which each caller phrases for its own
+// sentence ("the collection", a placeholder in a suggested rewrite, …).
+path_name :: fn(e: AST.Expr, fallback: string) -> string {
+    if e is AST.FieldExpr as fe { return "${path_name(fe.target, fallback)}.${fe.field}" }
     if e is AST.IdentExpr as id { return id.name }
-    return "the collection"
+    return fallback
 }
 
 where_of :: fn(s: Span) -> string = "${s.start.file}:${s.start.line}:${s.start.column}"
