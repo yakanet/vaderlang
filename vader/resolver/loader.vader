@@ -446,6 +446,6 @@ merge_collected :: fn(dst: CollectedModule!, src: CollectedModule, diags: Diagno
     // those imports, because imports are file-scoped (SPEC §"Modules"). Merging
     // them would let one file's `{ x as _ }` silence a sibling's plain wildcard
     // of the same path.
-    for fw in src.wildcards { dst.wildcards.push(fw) }
+    dst.wildcards.push_all(src.wildcards)
 }
 

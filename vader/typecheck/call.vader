@@ -204,9 +204,7 @@ collect_overload_candidates :: fn(name: string, file: string, typed: TypedProgra
         }
     }
     // Scoped to the call site's file — imports are file-scoped (SPEC §"Modules").
-    for ft in imported_overloads_in(typed, file, name) {
-        out.push(ft)
-    }
+    out.push_all(imported_overloads_in(typed, file, name))
     return out
 }
 

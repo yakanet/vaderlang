@@ -394,7 +394,9 @@ try_enum_variant_dispatch :: fn(
 // a failed dispatch is "no overload fit the receiver", not "unknown method".
 // Drives the tailored union-receiver hint.
 ufcs_name_has_candidates :: fn(name: string, file: string, typed: TypedProgram) -> bool {
-    if typed.resolved.fn_overloads[name] != null { return true }
+    if typed.resolved.fn_overloads[name] != null {
+        return true
+    }
     imported :: imported_overloads_table_in(typed, file) ?? return false
     return imported[name] != null
 }
