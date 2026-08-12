@@ -32,7 +32,7 @@
           let x: i32 =
             mul :i32
               l:
-                x :?
+                x :i32
               r:
                 int(2) :i32
           if :void
@@ -41,9 +41,9 @@
                 callee:
                   pred :fn(i32) -> bool
                 arg0:
-                  x :?
+                  x :i32
             then:
-              let __elem_1: i32 = x :?
+              let __elem_1: i32 = x :i32
               LoweredArrayPush
           assign
             target:
@@ -210,9 +210,9 @@
                 callee:
                   pred :fn(i32) -> bool
                 arg0:
-                  x :?
+                  x :i32
             then:
-              let __elem_10: i32 = x :?
+              let __elem_10: i32 = x :i32
               LoweredArrayPush
           assign
             target:

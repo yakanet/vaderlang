@@ -97,6 +97,37 @@ export local_type :: fn(self: EntryTypes, binding: SimpleBinding) -> Type {
     return apply_or_unresolved(self, self.typed.local_types[binding.name_span.hash()])
 }
 
+/// The type recorded under `key`, concretised through the entry's substitution
+/// — or null when the slot holds nothing a lowering pass can use.
+///
+/// For the SPAN-keyed slots a loop variable lands in (`loop_var_type_key`).
+/// Those are shared: a generic combinator's `for x in self` over an
+/// `Iterator<T>` param records the declared `T` ONCE, for every instance that
+/// will ever be lowered. Reading it raw hands `T` to whatever builds the
+/// element type — `find_core_type("Yield", [T])` — and midir then looks for
+/// `value` on a `Yield<T>` no instance ever materialised.
+///
+/// Null means "ask your own fallback", and covers three cases: no entry, an
+/// entry the typer left unresolved, and a type param that outlived the
+/// substitution — the last one meaning this body is being lowered generically
+/// rather than as an instance, so only the caller's iterator type (or fused
+/// chain element) is concrete.
+///
+/// @param self  the entry-types view.
+/// @param key   the span hash the type was recorded under.
+/// @return      the concrete type, or null when the caller must fall back.
+export concrete_local_type :: fn(self: EntryTypes, key: u64) -> Type | null {
+    raw :: self.typed.local_types[key] ?? return null
+    if raw is UnresolvedType {
+        return null
+    }
+    concrete :: apply(self, raw)
+    if type_contains_type_param(concrete) {
+        return null
+    }
+    return concrete
+}
+
 /// Per-fn-param type.
 /// @param self   the entry-types view.
 /// @param param  the `FnParam` AST node.
@@ -158,6 +189,51 @@ import "vader/resolver/symbol"
     view  :: make_entry_types(typed, new_substitution())
     same  :: apply(view, mk_primitive("i64"))
     assert_eq(display_type(same), "i64")
+}
+
+// The loop-var slot a generic combinator's `for x in self` writes: one entry,
+// span-keyed, shared by every instance lowered from that body.
+LOOP_VAR_KEY: u64: 42
+
+type_param_t :: fn() = Symbol {
+    .id         = 7,
+    .kind       = SymbolKind.TypeParam,
+    .name       = "T",
+    .module     = "test",
+    .visibility = Visibility.Private,
+    .defined_at = null,
+}
+
+@test test_concrete_local_type_refuses_an_unsubstituted_param :: fn() -> void {
+    typed :: empty_typed_program()
+    typed.local_types[LOOP_VAR_KEY] = mk_type_param(type_param_t())
+    // Empty substitution — the body is being lowered generically, not as an
+    // instance. Carrying `T` out of here is what built a `Yield<T>` whose
+    // `value` field no instance ever materialised.
+    view :: make_entry_types(typed, new_substitution())
+    assert(concrete_local_type(view, LOOP_VAR_KEY) == null, "an unbound `T` yields null")
+}
+
+@test test_concrete_local_type_applies_the_instance_substitution :: fn() -> void {
+    typed :: empty_typed_program()
+    typed.local_types[LOOP_VAR_KEY] = mk_type_param(type_param_t())
+    subst :: new_substitution()
+    subst.type_params[7] = mk_primitive("string")
+    view :: make_entry_types(typed, subst)
+    got :: concrete_local_type(view, LOOP_VAR_KEY) ?? TY_UNRESOLVED
+    assert_eq(display_type(got), "string")
+}
+
+@test test_concrete_local_type_refuses_an_unresolved_slot :: fn() -> void {
+    typed :: empty_typed_program()
+    typed.local_types[LOOP_VAR_KEY] = TY_UNRESOLVED
+    view :: make_entry_types(typed, new_substitution())
+    assert(concrete_local_type(view, LOOP_VAR_KEY) == null, "`?` is not an answer")
+}
+
+@test test_concrete_local_type_misses_on_an_absent_slot :: fn() -> void {
+    view :: make_entry_types(empty_typed_program(), new_substitution())
+    assert(concrete_local_type(view, LOOP_VAR_KEY) == null, "no entry yields null")
 }
 
 @test test_apply_substitutes_type_param :: fn() -> void {

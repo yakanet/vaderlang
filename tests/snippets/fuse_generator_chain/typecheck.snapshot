@@ -7,13 +7,13 @@
   expr 17:14    IdentExpr      :: Iterator<T>
   expr 17:27    CallExpr       :: U
   expr 17:27    IdentExpr      :: fn(T) -> U
-  expr 17:29    IdentExpr      :: ?
+  expr 17:29    IdentExpr      :: T
   expr 21:14    IdentExpr      :: Iterator<T>
   expr 21:21    IfExpr         :: void
   expr 21:24    CallExpr       :: bool
   expr 21:24    IdentExpr      :: fn(T) -> bool
-  expr 21:29    IdentExpr      :: ?
-  expr 21:40    IdentExpr      :: ?
+  expr 21:29    IdentExpr      :: T
+  expr 21:40    IdentExpr      :: T
   expr 26:14    CallExpr       :: __genstate_my_map<i32>!
   expr 26:14    FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
   expr 26:14    SeqLitExpr     :: i32[]!

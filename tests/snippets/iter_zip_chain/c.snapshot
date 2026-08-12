@@ -14,7 +14,6 @@ typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
 typedef struct vader_struct___gen_state_44_t vader_struct___gen_state_44_t;
 typedef struct vader_struct___Tuple_34_t vader_struct___Tuple_34_t;
 typedef struct vader_struct___Tuple_35_t vader_struct___Tuple_35_t;
-typedef struct vader_struct___Tuple_37_t vader_struct___Tuple_37_t;
 
 struct vader_struct___lambda_env_27_t {
     vader_obj_header_t header;
@@ -68,11 +67,6 @@ struct vader_struct___Tuple_34_t {
     int32_t f__1;
 };
 struct vader_struct___Tuple_35_t {
-    vader_obj_header_t header;
-    size_t f__0;
-    vader_box_t f__1;
-};
-struct vader_struct___Tuple_37_t {
     vader_obj_header_t header;
     size_t f__0;
     vader_string_t f__1;
@@ -150,10 +144,9 @@ static const uint16_t vader_type_21_ptrs[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_type_22_ptrs[] = { offsetof(vader_struct___gen_state_44_t, f_s0), offsetof(vader_struct___gen_state_44_t, f_s2), offsetof(vader_struct___gen_state_44_t, f_s3) };
 static const uint16_t vader_type_22_refs[] = { offsetof(vader_struct___gen_state_44_t, f_s1), offsetof(vader_struct___gen_state_44_t, f_s5) };
 static const uint16_t vader_type_24_strs[] = { offsetof(vader_struct___Tuple_34_t, f__0) };
-static const uint16_t vader_type_25_ptrs[] = { offsetof(vader_struct___Tuple_35_t, f__1) };
-static const uint16_t vader_type_27_strs[] = { offsetof(vader_struct___Tuple_37_t, f__1) };
+static const uint16_t vader_type_25_strs[] = { offsetof(vader_struct___Tuple_35_t, f__1) };
 
-const vader_type_info_t vader_type_info_table[28] = {
+const vader_type_info_t vader_type_info_table[26] = {
     [2] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___lambda_env_27_t), NULL, 0, 0, NULL, 0, NULL },
     [3] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_3_ptrs, 1, 0, NULL, 0, NULL },
     [4] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Range__i32_t), NULL, 0, 0, NULL, 0, NULL },
@@ -166,12 +159,11 @@ const vader_type_info_t vader_type_info_table[28] = {
     [21] = { VADER_TYPE_KIND_FN, sizeof(vader_fn_t), vader_type_21_ptrs, 1, 0, NULL, 0, NULL },
     [22] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___gen_state_44_t), vader_type_22_ptrs, 3, 0, NULL, 2, vader_type_22_refs },
     [24] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___Tuple_34_t), NULL, 0, 1, vader_type_24_strs, 0, NULL },
-    [25] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___Tuple_35_t), vader_type_25_ptrs, 1, 0, NULL, 0, NULL },
-    [27] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___Tuple_37_t), NULL, 0, 1, vader_type_27_strs, 0, NULL },
+    [25] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___Tuple_35_t), NULL, 0, 1, vader_type_25_strs, 0, NULL },
 };
-const size_t vader_type_info_count = 28;
+const size_t vader_type_info_count = 26;
 
-const size_t vader_type_size[28] = {
+const size_t vader_type_size[26] = {
     [0] = 0u,
     [1] = 4u,
     [2] = 16u,
@@ -198,8 +190,6 @@ const size_t vader_type_size[28] = {
     [23] = 16u,
     [24] = 16u,
     [25] = 16u,
-    [26] = 16u,
-    [27] = 16u,
 };
 
 static size_t vader_import_0(vader_string_t a0) { return vader_string_byte_len(a0); }
@@ -409,11 +399,11 @@ static int32_t snippet_main(void) {
                 vader_struct___Tuple_35_t* _a15_obj = &_a14_storage;
                 vader_obj_header_init(_a15_obj, 25u);
                 _a15_obj->f__0 = l2;
-                _a15_obj->f__1 = vader_box_string(14u, l7);
+                _a15_obj->f__1 = l7;
                 l1 = (void*) _a15_obj;
 #line 29 "tests/snippets/iter_zip_chain/_main.vader"
-                l13 = (((vader_obj_header_t*) l1)->type_index == 25u ? ((vader_struct___Tuple_35_t*) l1)->f__0 : ((vader_struct___Tuple_37_t*) l1)->f__0);
-                l11 = (((vader_obj_header_t*) l1)->type_index == 25u ? ((vader_struct___Tuple_35_t*) l1)->f__1.payload.s : ((vader_struct___Tuple_37_t*) l1)->f__1);
+                l13 = ((vader_struct___Tuple_35_t*) l1)->f__0;
+                l11 = ((vader_struct___Tuple_35_t*) l1)->f__1;
 #line 30 "tests/snippets/iter_zip_chain/_main.vader"
                 l14 = vader_import_0(l11);
                 l9 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(22) + l14));
@@ -1046,9 +1036,10 @@ static vader_box_t std_iter___gen_state_44_Iterator_next(void* l0) {
                 t0 = ((vader_struct___gen_state_44_t*) l0)->f_state;
                 if (t0 == INT32_C(12)) {
                     l7 = ((vader_struct___gen_state_44_t*) l0)->f_s1;
+                    t0 = ((vader_struct___gen_state_44_t*) l0)->f_s4;
 #line 172 "stdlib/std/iter/iter.vader"
                     vader_fn_t* _a1_fnobj = (vader_fn_t*) l7;
-                    t3 = ((vader_fn_erased_sig_1_t) _a1_fnobj->code)(_a1_fnobj->env, vader_box_i32(1u, ((vader_struct___gen_state_44_t*) l0)->f_s4));
+                    t3 = ((vader_fn_erased_sig_1_t) _a1_fnobj->code)(_a1_fnobj->env, vader_box_i32(1u, t0));
                     l8 = t3.payload.obj;
                     ((vader_struct___gen_state_44_t*) l0)->f_s5 = l8;
                     VADER_WRITE_BARRIER((vader_struct___gen_state_44_t*) l0);

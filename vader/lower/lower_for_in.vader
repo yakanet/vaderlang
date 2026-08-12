@@ -360,9 +360,9 @@ try_wrap_array_iter :: fn(
 //    well-formed shape (the typer's earlier diagnostics already
 //    surfaced the missing impl).
 resolve_element_type :: fn(ctx: FnLowerCtx, raw_iter_type: Type, iter_type: Type, binding_key: u64) -> Type {
-    from_typed_binding :: ctx.typed.local_types[binding_key]
+    from_typed_binding :: concrete_local_type(ctx.types, binding_key)
     if !(from_typed_binding is null) {
-        if !(from_typed_binding is UnresolvedType) { return from_typed_binding }
+        return from_typed_binding
     }
     match iter_type {
         is StructType as st -> {

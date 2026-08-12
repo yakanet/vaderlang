@@ -373,7 +373,7 @@
               __fuse_arr_12 :i32[]!
             ix:
               __fuse_i_14 :usize
-        let x: i32 = x :?
+        let x: i32 = x :i32
         if :void
           cond:
             or :bool
@@ -430,7 +430,7 @@
               __fuse_arr_15 :i32[]!
             ix:
               __fuse_i_17 :usize
-        let x: i32 = y :?
+        let x: i32 = y :i32
         if :void
           cond:
             or :bool
@@ -549,7 +549,7 @@
               __fuse_arr_20 :i32[]!
             ix:
               __fuse_i_22 :usize
-        let x: i32 = x :?
+        let x: i32 = x :i32
         assign
           target:
             whole :i32
@@ -579,7 +579,7 @@
               __fuse_arr_23 :i32[]!
             ix:
               __fuse_i_25 :usize
-        let x: i32 = y :?
+        let x: i32 = y :i32
         assign
           target:
             whole :i32
@@ -677,7 +677,7 @@
         let x: i32 =
           mul :i32
             l:
-              x :?
+              x :i32
             r:
               int(10) :i32
         if :void
@@ -780,7 +780,7 @@
               __fuse_arr_37 :i32[]!
             ix:
               __fuse_i_39 :usize
-        let x: i32 = x :?
+        let x: i32 = x :i32
         block :void
           let __for_arr_34: i32[]! = a :i32[]!
           let __for_len_35: usize =
@@ -840,7 +840,7 @@
               __fuse_arr_40 :i32[]!
             ix:
               __fuse_i_42 :usize
-        let x: i32 = y :?
+        let x: i32 = y :i32
         block :void
           let __for_arr_34: i32[]! = a :i32[]!
           let __for_len_35: usize =

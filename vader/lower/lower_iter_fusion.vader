@@ -136,19 +136,12 @@ try_lower_chain_fusion :: fn(
 // type over the chain's fused `output_elem` — the latter is `TY_ANY` for an
 // all-reference combinator instance (`.Erased` flavor), so `for m in
 // chain(structs) { m.field }` would bind `m: Any` and fail field access in
-// mid-IR. The typer already typed the loop var concretely (the same
-// `ctx.typed.local_types` slot the un-fused `resolve_element_type` reads). Fall
-// back to the fused element for destructuring / unresolved bindings.
-fused_loop_element_type :: fn(ctx: FnLowerCtx, loop_var: AST.LoopVar, span: Span, chain: IterChain) -> Type {
-    typed :: ctx.typed.local_types[loop_var_type_key(loop_var, span)]
-    if typed == null {
-        return chain_element_type(chain)
-    }
-    if typed is UnresolvedType {
-        return chain_element_type(chain)
-    }
-    return typed
-}
+// mid-IR. `concrete_local_type` reads the same slot the un-fused
+// `resolve_element_type` does, and answers null for the cases the fused element
+// covers better: destructuring, an unresolved binding, and a generic body whose
+// `T` no instance substitution has bound.
+fused_loop_element_type :: fn(ctx: FnLowerCtx, loop_var: AST.LoopVar, span: Span, chain: IterChain) -> Type =
+    concrete_local_type(ctx.types, loop_var_type_key(loop_var, span)) ?? chain_element_type(chain)
 
 BodyTemplate :: struct {
     binding_name:   string

@@ -41,9 +41,9 @@
           let __elem_1: i32 =
             mul :i32
               l:
-                x :?
+                x :i32
               r:
-                x :?
+                x :i32
           LoweredArrayPush
           assign
             target:
@@ -89,13 +89,13 @@
                 l:
                   mod :i32
                     l:
-                      x :?
+                      x :i32
                     r:
                       int(2) :i32
                 r:
                   int(0) :i32
             then:
-              let __elem_7: i32 = x :?
+              let __elem_7: i32 = x :i32
               LoweredArrayPush
           assign
             target:

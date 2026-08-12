@@ -24,9 +24,7 @@ type 21 fn (1) -> 3
 type 22 struct __gen_state_44 { s0:17,s1:21,s2:17,s3:23,s4:1,s5:3,s6:8,s7:8,s8:1,state:1 }
 type 23 union 7,0
 type 24 struct __Tuple_34 { _0:14,_1:1 }
-type 25 struct __Tuple_35 { _0:8,_1:26 }
-type 26 ref _
-type 27 struct __Tuple_37 { _0:8,_1:14 }
+type 25 struct __Tuple_35 { _0:8,_1:14 }
 string 0 "count="
 string 1 "clone[0]="
 string 2 "a"
@@ -355,10 +353,10 @@ fn 0 snippet$main () -> i32
         local.get 7
         struct.new_stack 25
         local.set 1
-        local.field 1 27 0
+        local.field 1 25 0
         ref.cast 8
         local.set 13
-        local.field 1 27 1
+        local.field 1 25 1
         ref.cast 14
         local.tee 11
         call.import 0
@@ -1158,6 +1156,7 @@ fn 15 std_iter$__gen_state_44$Iterator$next (ref) -> any
           local.field 0 22 1
           local.set 7
           local.field 0 22 4
+          ref.cast 1
           local.get 7
           call.indirect 21
           local.set 8

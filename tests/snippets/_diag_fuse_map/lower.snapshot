@@ -19,7 +19,7 @@
             callee:
               double :fn(i32) -> i32
             arg0:
-              x :?
+              x :i32
         assign
           target:
             total :i32

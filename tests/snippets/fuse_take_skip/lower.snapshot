@@ -31,7 +31,7 @@
                 n :usize
           then:
             break
-        let v: i32 = x :?
+        let v: i32 = x :i32
         call :void
           callee:
             std_io$println__string :void
@@ -125,7 +125,7 @@
               r:
                 n :usize
           then:
-            let v: i32 = x :?
+            let v: i32 = x :i32
             call :void
               callee:
                 std_io$println__string :void
@@ -221,7 +221,7 @@
               r:
                 n :usize
           then:
-            let x: i32 = x :?
+            let x: i32 = x :i32
             if :void
               cond:
                 gte :bool
@@ -231,7 +231,7 @@
                     n :usize
               then:
                 break
-            let v: i32 = x :?
+            let v: i32 = x :i32
             call :void
               callee:
                 std_io$println__string :void

@@ -46,16 +46,16 @@
             callee:
               double :fn(i32) -> i32
             arg0:
-              x :?
+              x :i32
         if :void
           cond:
             call :bool
               callee:
                 is_twenty_multiple :fn(i32) -> bool
               arg0:
-                x :?
+                x :i32
           then:
-            let v: i32 = x :?
+            let v: i32 = x :i32
             call :void
               callee:
                 std_io$println__string :void

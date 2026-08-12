@@ -22,9 +22,9 @@
                 callee:
                   keep :fn(i32) -> bool
                 arg0:
-                  x :?
+                  x :i32
             then:
-              let __elem_1: i32 = x :?
+              let __elem_1: i32 = x :i32
               LoweredArrayPush
           assign
             target:

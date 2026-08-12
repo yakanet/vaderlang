@@ -34,7 +34,7 @@
                 __fuse_arr_2 :Rec[]
               ix:
                 __fuse_i_4 :usize
-          let __elem_1: Rec! = x :?
+          let __elem_1: Rec! = x :Any
           LoweredArrayPush
           assign
             target:
@@ -56,7 +56,7 @@
                 __fuse_arr_5 :Rec[]
               ix:
                 __fuse_i_7 :usize
-          let __elem_1: Rec! = y :?
+          let __elem_1: Rec! = y :Any
           LoweredArrayPush
           assign
             target:
@@ -231,12 +231,12 @@
             Rec! {
               name:
                 .name :string
-                  x :?
+                  x :Any
               value:
                 mul :i32
                   l:
                     .value :i32
-                      x :?
+                      x :Any
                   r:
                     int(2) :i32
             }
@@ -381,11 +381,11 @@
               gte :bool
                 l:
                   .value :i32
-                    x :?
+                    x :Any
                 r:
                   int(2) :i32
             then:
-              let __elem_29: Rec! = x :?
+              let __elem_29: Rec! = x :Any
               LoweredArrayPush
           assign
             target:
@@ -516,7 +516,7 @@
               __fuse_arr_43 :Rec[]
             ix:
               __fuse_i_45 :usize
-        let m: Rec! = x :?
+        let m: Rec! = x :Any
         call :void
           callee:
             std_io$println__string :void
@@ -622,7 +622,7 @@
               __fuse_arr_46 :Rec[]
             ix:
               __fuse_i_48 :usize
-        let m: Rec! = y :?
+        let m: Rec! = y :Any
         call :void
           callee:
             std_io$println__string :void
@@ -729,7 +729,7 @@
               __fuse_arr_52 :Rec[]
             ix:
               __fuse_i_54 :usize
-        let m: Rec! = x :?
+        let m: Rec! = x :Any
         call :void
           callee:
             std_io$println__string :void
@@ -835,7 +835,7 @@
               __fuse_arr_55 :Rec[]
             ix:
               __fuse_i_57 :usize
-        let m: Rec! = y :?
+        let m: Rec! = y :Any
         call :void
           callee:
             std_io$println__string :void

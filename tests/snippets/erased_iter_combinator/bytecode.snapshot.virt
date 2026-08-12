@@ -845,6 +845,7 @@ fn 18 std_iter$__gen_state_18$Iterator$next (ref) -> any
           local.field 0 20 1
           local.set 1
           local.field 0 20 4
+          ref.cast 1
           local.get 1
           call.indirect 19
           if $L12 void
@@ -935,6 +936,7 @@ fn 18 std_iter$__gen_state_18$Iterator$next (ref) -> any
   i32.const 7
   struct.set 20 5
   local.field 0 20 4
+  ref.cast 1
   struct.new 7
   return
 end
@@ -1108,6 +1110,7 @@ fn 19 std_iter$__gen_state_13$Iterator$next (ref) -> any
   local.field 0 23 1
   local.set 1
   local.field 0 23 4
+  ref.cast 1
   local.get 1
   call.indirect 22
   struct.new 7

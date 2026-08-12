@@ -1855,17 +1855,14 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
             // Without this a `for x in it` over such a value leaves the loop var
             // unresolved → it defaults to `i32`, which happens to match an i32
             // element but mis-types every other (e.g. `Iterator<string>` → `i32.add`).
-            // Only a FULLY-CONCRETE element is returned : any type-param-bearing
-            // element — a bare `T` (in a generic body like `any<T>(it: Iterator<T>)`)
-            // or a composite like `[K, V]` / `T[]` — must stay unresolved so
-            // per-instance monomorphisation substitutes it ; returning it here would
-            // strand un-subbed params in the resulting `Yield<…>`.
-
-            elem :: iterator_element_of(tt) ?? return TY_UNRESOLVED
-            if type_contains_type_param(elem) {
-                return TY_UNRESOLVED
-            }
-            return elem
+            //
+            // A type-param-bearing element — a bare `T` inside a generic combinator
+            // (`my_map<T, U>(self: Iterator<T>, …)`), or a composite like `[K, V]` /
+            // `T[]` — is returned AS WRITTEN. It is the honest type of the loop var
+            // in that body, and it is what LSP hover and the typecheck snapshots
+            // read. Concretising it is the LOWERER's job, per instance: the entry's
+            // `Substitution` binds `T`, and `resolve_element_type` applies it.
+            return iterator_element_of(tt) ?? TY_UNRESOLVED
         }
         _                   -> { return TY_UNRESOLVED }
     }

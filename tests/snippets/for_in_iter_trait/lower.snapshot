@@ -73,9 +73,9 @@
                     callee:
                       is_l :fn(char) -> bool
                     arg0:
-                      x :?
+                      x :char
                 then:
-                  let __elem_1: char = x :?
+                  let __elem_1: char = x :char
                   assign
                     target:
                       __count_0 :usize

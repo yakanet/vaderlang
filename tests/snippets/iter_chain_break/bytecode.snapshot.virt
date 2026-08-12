@@ -5510,6 +5510,7 @@ fn 12 std_iter$__gen_state_58$Iterator$next (ref) -> any
           i32.const 17
           struct.set 18 8
           local.field 0 18 4
+          ref.cast 1
           struct.new 5
           return
         end $L21
@@ -5590,6 +5591,7 @@ fn 12 std_iter$__gen_state_58$Iterator$next (ref) -> any
   i32.const 6
   struct.set 18 8
   local.field 0 18 7
+  ref.cast 1
   struct.new 5
   return
 end

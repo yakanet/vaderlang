@@ -187,7 +187,7 @@
               callee:
                 is_even :fn(i32) -> bool
               arg0:
-                x :?
+                x :i32
           then:
             let z: ? =
               LoweredCellNew

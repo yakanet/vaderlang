@@ -41,16 +41,16 @@
             callee:
               f :fn(i32) -> i32
             arg0:
-              x :?
+              x :i32
         if :void
           cond:
             call :bool
               callee:
                 keep_hi :fn(i32) -> bool
               arg0:
-                x :?
+                x :i32
           then:
-            let x: i32 = x :?
+            let x: i32 = x :i32
             assign
               target:
                 total :i32
@@ -93,7 +93,7 @@
               callee:
                 f :fn(i32) -> i32
               arg0:
-                x :?
+                x :i32
           LoweredArrayPush
           assign
             target:

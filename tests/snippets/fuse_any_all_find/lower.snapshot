@@ -31,7 +31,7 @@
               callee:
                 f :fn(i32) -> i32
               arg0:
-                x :?
+                x :i32
           if :void
             cond:
               call :bool
@@ -79,9 +79,9 @@
                 callee:
                   pred :fn(i32) -> bool
                 arg0:
-                  x :?
+                  x :i32
             then:
-              let __elem_8: i32 = x :?
+              let __elem_8: i32 = x :i32
               if :void
                 cond:
                   not :bool
@@ -129,7 +129,7 @@
               callee:
                 f :fn(i32) -> i32
               arg0:
-                x :?
+                x :i32
           if :void
             cond:
               not :bool
@@ -275,7 +275,7 @@
               callee:
                 f :fn(i32) -> i32
               arg0:
-                x :?
+                x :i32
           if :void
             cond:
               call :bool
@@ -384,9 +384,9 @@
                 callee:
                   pred :fn(i32) -> bool
                 arg0:
-                  x :?
+                  x :i32
             then:
-              let __elem_33: i32 = x :?
+              let __elem_33: i32 = x :i32
               if :void
                 cond:
                   call :bool

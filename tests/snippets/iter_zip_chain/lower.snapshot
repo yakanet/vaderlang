@@ -262,7 +262,7 @@
               __fuse_arr_11 :i32[]!
             ix:
               __fuse_i_13 :usize
-        let x: i32 = x :?
+        let x: i32 = x :i32
         call :void
           callee:
             std_io$println__string :void
@@ -330,7 +330,7 @@
               __fuse_arr_14 :i32[]!
             ix:
               __fuse_i_16 :usize
-        let x: i32 = y :?
+        let x: i32 = y :i32
         call :void
           callee:
             std_io$println__string :void
@@ -406,9 +406,9 @@
             ix:
               __fuse_i_24 :usize
         let __gen_elem_21: [usize, string] =
-          [usize, ?]! {
+          [usize, string]! {
             _0: i :usize
-            _1: x :?
+            _1: x :string
           }
         let i: usize =
           ._0 :usize
