@@ -52,6 +52,16 @@ export BuildContext :: struct {
     /// empty by `new_build_context` — a driver either fills it or calls
     /// `load_from_vader_config`.
     include_paths:  string[]!
+    /// Folder holding the `vader` executable that started this build, and
+    /// therefore its `stdlib/` and `runtime/c/`. Passed as `args[2]`.
+    ///
+    /// `@internal`: a driver has no use for it, and it is not the driver's to
+    /// choose. It exists because a driver runs as `<project>/build/driver/driver`,
+    /// so the sidecar probe that finds the stdlib beside the compiler would look
+    /// inside the project instead. Empty when the driver was invoked by hand, in
+    /// which case every lookup falls back to that probe — today's behaviour.
+    @internal
+    toolchain_root: string = ""
     /// Where generated modules land, relative to `project_root`.
     ///
     /// `@internal`, and deliberately not part of the configuration surface: the
@@ -113,14 +123,17 @@ export DEFAULT_GENERATED_ROOT :: GENERATED_ROOT_DIR
 /// The compiler passes the root it resolved as `args[1]`; invoked bare, the root
 /// is left empty rather than guessed.
 ///
-/// @param args  the driver's argv. `args[0]` is the driver binary, `args[1]`
-///              the project root when the compiler supplied one.
+/// @param args  the driver's argv, as the compiler passes it: `args[0]` the
+///              driver binary, `args[1]` the project root, `args[2]` the folder
+///              holding the compiler that started the build. A driver invoked by
+///              hand may supply fewer; each missing one falls back.
 /// @return      a context with `project_root` set (empty when `args` carried
 ///              none) and no include paths. Returned MUTABLE: the whole contract
 ///              is that the driver fills it in, so an immutable result would
 ///              refuse `ctx.out = …` (T3070).
 export new_build_context :: fn(args: string[]) -> BuildContext! = BuildContext {
     .project_root   = project_root_from(args),
+    .toolchain_root = arg_or_empty(args, 2),
     .include_paths  = [],
     .generated_root = DEFAULT_GENERATED_ROOT,
     .out            = "",
@@ -144,6 +157,47 @@ export BuildTarget :: enum(u8) {
 /// toolchain: it is what every platform's default install provides.
 export DEFAULT_CC :: "cc"
 
+// Module search roots for the front end: what the driver configured, then the
+// compiler's own `stdlib/`.
+//
+// The stdlib root is appended HERE rather than seeded into `ctx.include_paths`,
+// because `load_from_vader_config` REPLACES that list — a driver calling it would
+// silently drop the stdlib and get `R2001 module not found: std/io`.
+search_roots :: fn(ctx: BuildContext) -> string[] {
+    roots: string[]! = []
+    for p in ctx.include_paths {
+        roots.push(p)
+    }
+    stdlib :: toolchain_sidecar(ctx, "stdlib", "std/io/io.vader")
+    if stdlib != "" {
+        roots.push(stdlib)
+    }
+    return roots
+}
+
+// The compiler's own C runtime, or "" to let the link step probe for itself.
+runtime_root_of :: fn(ctx: BuildContext) -> string =
+    toolchain_sidecar(ctx, "runtime/c", "vader.h")
+
+// A sidecar of the compiler that started this build, VERIFIED to be there, or ""
+// to fall back to the probe the CLI uses.
+//
+// The check is the whole point. A bundle has `stdlib/` and `runtime/c/` beside
+// its binary; a CHECKOUT has the binary in `build/` with neither beside it, and
+// handing the link step a `<repo>/build/runtime/c` that does not exist made `cc`
+// fail where the old relative fallback had worked. Same marker-probe shape as
+// `resolver::resolve_sidecar`, for the same reason: a path is not a layout.
+toolchain_sidecar :: fn(ctx: BuildContext, subdir: string, marker: string) -> string {
+    if ctx.toolchain_root == "" {
+        return ""
+    }
+    candidate :: join_path(ctx.toolchain_root, subdir)
+    if !exists(join_path(candidate, marker)) {
+        return ""
+    }
+    return candidate
+}
+
 // The driver file's name, restated from `vader/cli::DRIVER_FILENAME` for the same
 // reason `GENERATED_BANNER` is restated there: `vader/cli` importing this module
 // would pull the whole driver contract into the compiler's own closure, and this
@@ -161,9 +215,13 @@ driver_span :: fn(ctx: BuildContext) -> Span =
 // driver was invoked bare. An empty root is not an error here — a driver may set
 // `project_root` itself; the compiler reports H6xxx when the build starts with
 // no usable root.
-project_root_from :: fn(args: string[]) -> string {
-    if args.len() >= 2 {
-        return args[1]
+project_root_from :: fn(args: string[]) -> string = arg_or_empty(args, 1)
+
+// `args[i]`, or "" when argv is shorter. A driver run by hand has neither the
+// project root nor the toolchain root, and both fall back rather than fail.
+arg_or_empty :: fn(args: string[], i: usize) -> string {
+    if args.len() > i {
+        return args[i]
     }
     return ""
 }

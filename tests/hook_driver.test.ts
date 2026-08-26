@@ -44,6 +44,56 @@ function stage(fixture: string): string {
 
 const staged: string[] = [];
 
+// A `dist/` bundle is a LAYOUT, not a build: binary at the root, `stdlib/`,
+// `runtime/c/` and `lib/vader/` beside it. Assembling one by copy + symlink costs
+// nothing, and it is the only way to exercise what a real install does — the
+// staged-project symlinks the other tests use are exactly what masked the gap
+// this pins.
+//
+// The binary is COPIED, not symlinked: `current_executable_location()` resolves
+// through a symlink (realpath), which would report the repo's `build/` as the
+// toolchain root and defeat the point. Copying an arm64 binary invalidates its
+// signature on macOS, hence the ad-hoc re-sign.
+function stageBundle(): string {
+  const dir = mkdtempSync(`${tmpdir()}/vader-bundle-`);
+  mkdirSync(`${dir}/runtime`);
+  mkdirSync(`${dir}/lib`);
+  cpSync(CLI, `${dir}/vader`);
+  if (process.platform === "darwin") {
+    Bun.spawnSync(["codesign", "-s", "-", `${dir}/vader`]);
+  }
+  symlinkSync(`${REPO}/stdlib`, `${dir}/stdlib`);
+  symlinkSync(`${REPO}/runtime/c`, `${dir}/runtime/c`);
+  symlinkSync(`${REPO}/vader`, `${dir}/lib/vader`);
+  return dir;
+}
+
+test("a bundle drives a build with nothing beside the project", async () => {
+  // The whole point of shipping `vader/` in `--dist`, and of passing the
+  // toolchain root to the driver. Three separate lookups have to land: the
+  // driver's own `import "vader/hooks"` (bundle `lib/vader/`), the project's
+  // `std/*` (bundle `stdlib/`), and `vader_runtime.c` at the link step (bundle
+  // `runtime/c/`). The project directory has NO symlinks — the driver runs as
+  // `<project>/build/driver/driver`, so every probe relative to ITSELF looks
+  // inside the project and finds nothing.
+  const bundle = stageBundle();
+  staged.push(bundle);
+  const dir = mkdtempSync(`${tmpdir()}/vader-bundleproj-`);
+  staged.push(dir);
+  cpSync(JSON_DERIVE, dir, { recursive: true });
+  expect(readdirSync(dir).sort()).toEqual(["build.vader", "src"]);
+
+  const proc = Bun.spawn([`${bundle}/vader`, "build"], { cwd: dir, stdout: "pipe", stderr: "pipe" });
+  const [err, exit] = await Promise.all([new Response(proc.stderr).text(), proc.exited]);
+  expect(err).not.toContain("R2001");
+  expect(err).not.toContain("error[");
+  expect(exit).toBe(0);
+
+  const ran = Bun.spawn([`${dir}/app`], { stdout: "pipe", stderr: "pipe" });
+  const [ranOut] = await Promise.all([new Response(ran.stdout).text(), ran.exited]);
+  expect(ranOut).toContain('"home":{"city":"Lyon","zip":69001}');
+}, LONG_BUILD);
+
 async function runIn(fixture: string, args: string[]) {
   const dir = stage(fixture);
   staged.push(dir);

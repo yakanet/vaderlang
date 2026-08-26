@@ -240,7 +240,7 @@ build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldfl
     if c_src is null {
         return 1
     }
-    return link_native(c_src, out, cc, release, ldflags)
+    return link_native(c_src, out, cc, release, ldflags, "")
 }
 
 // ----------------------------------------------------------- split build

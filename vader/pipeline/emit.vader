@@ -73,10 +73,16 @@ export push_ldflags :: fn(argv: string[]!, ldflags: string) -> void {
 /// Runtime include, the emitted unit, the runtime unit, opt flags, user
 /// `ldflags`, then `-o <out> -lm`. `-lm` satisfies the runtime's `floor` /
 /// `fmod` on glibc and is a no-op elsewhere.
-export cc_argv :: fn(cc: string, c_file: string, out: Path, release: bool, ldflags: string) -> string[] {
+/// @param runtime_root  directory holding `vader_runtime.c` + `vader.h`, or ""
+///                      to probe beside the running executable. A build DRIVER
+///                      must pass it: the driver binary lives under the
+///                      project's `build/`, so the probe would look there.
+export cc_argv :: fn(
+    cc: string, c_file: string, out: Path, release: bool, ldflags: string, runtime_root: string,
+) -> string[] {
     argv: string[]! = [cc]
     argv.push_all(cc_opt_flags(release))
-    rt :: runtime_c_root()
+    rt :: if runtime_root == "" { runtime_c_root() } else { runtime_root }
     argv.push("-I")
     argv.push(rt)
     argv.push(c_file)
@@ -116,12 +122,14 @@ export write_out :: fn(path: Path, content: string) -> i32 {
 /// @param ldflags  raw linker flags, appended verbatim.
 /// @return         0 on success, 1 when the C could not be written or `cc`
 ///                 failed. `cc`'s own stderr is forwarded as-is.
-export link_native :: fn(c: string, out: Path, cc: string, release: bool, ldflags: string) -> i32 {
+export link_native :: fn(
+    c: string, out: Path, cc: string, release: bool, ldflags: string, runtime_root: string,
+) -> i32 {
     c_file :: "${out}.c".to_path()
     if write_out(c_file, c) != 0 {
         return 1
     }
-    res :: spawn(cc_argv(cc, c_file.as_string(), out, release, ldflags))
+    res :: spawn(cc_argv(cc, c_file.as_string(), out, release, ldflags, runtime_root))
     if res is ProcessError as pe {
         eprintln("vader build: ${pe.message()}")
         eprintln("(generated C kept at ${c_file})")

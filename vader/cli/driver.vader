@@ -286,7 +286,14 @@ export run_build_driver :: fn(root: string, cc: string, ldflags: string, units: 
     // `timeout` cancels its child on expiry, and `SpawnAsync.cancel` kills the
     // process — without that override the parent would unblock while the runaway
     // driver kept spinning a core.
-    outcome :: block_on(timeout(DRIVER_TIMEOUT_MS, spawn_async([binary, root])))
+    // `args[2]` is the toolchain root — the folder holding THIS executable, and
+    // therefore its `stdlib/` and `runtime/c/`. The driver cannot work it out
+    // itself: it runs as `<project>/build/driver/driver`, so its own sidecar
+    // probe looks inside the project. Without this a driven build only resolves
+    // `std/*` when the project happens to have a `stdlib/` beside it, which is
+    // what the fixtures' symlinks were quietly providing.
+    toolchain :: current_executable_location().dir_of()
+    outcome :: block_on(timeout(DRIVER_TIMEOUT_MS, spawn_async([binary, root, toolchain])))
     if outcome is TimeoutError {
         eprintln("vader build: the build driver did not finish within ${DRIVER_TIMEOUT_MS / 1000}s — killed")
         eprintln("(a loop in `${DRIVER_FILENAME}`? build with --no-hooks to skip it)")
