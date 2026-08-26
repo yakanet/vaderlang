@@ -158,6 +158,7 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     // the handle (a0) is a bare i64.
     .ProcessSpawnStart      -> { return "${head} { return vader_spawn_start((vader_array_t*) a0); }" }
     .ProcessSpawnPoll       -> { return "${head} { return vader_spawn_poll(a0); }" }
+    .ProcessSpawnKill       -> { return "${head} { vader_spawn_kill(a0); }" }
     .ProcessSpawnTakeStdout -> { return "${head} { return vader_spawn_take_stdout(a0); }" }
     .ProcessSpawnTakeStderr -> { return "${head} { return vader_spawn_take_stderr(a0); }" }
 

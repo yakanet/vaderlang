@@ -1,13 +1,19 @@
 // A driver that configures nothing: it drains `messages()` without ever calling
-// `add_build_file`. The compiler must say so (H6003) rather than finish cleanly
-// having compiled nothing.
+// `add_build_file`. The compiler must say so (H6003) AND fail — a build that
+// compiled nothing while exiting 0 is the worst possible answer.
 
 module "build"
 
 import "vader/hooks"
 
-build :: fn(args: string[]) -> void {
+build :: fn(args: string[]) -> i32 {
     ctx :: new_build_context(args)
-    for _ in ctx.messages() {}
+    exit := 0
+    for msg in ctx.messages() {
+        if msg is CompleteMessage as c {
+            exit = c.code
+        }
+    }
     _ :: ctx.flush_reports()
+    return exit
 }

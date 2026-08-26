@@ -3496,10 +3496,19 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
 static int vader_mkdir_one(const char* p) {
 #if defined(_WIN32)
     if (CreateDirectoryA(p, NULL)) return 0;
-    return (GetLastError() == ERROR_ALREADY_EXISTS) ? 0 : -1;
+    if (GetLastError() != ERROR_ALREADY_EXISTS) return -1;
+    /* EEXIST is only success when what exists is a DIRECTORY. A regular file
+     * there is a failure the caller must hear about — otherwise `create_dir`
+     * returns null and the error resurfaces later as an unrelated write
+     * failure, which is what the stdlib doc promises against. */
+    DWORD attr = GetFileAttributesA(p);
+    return (attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY)) ? 0 : -1;
 #else
     if (mkdir(p, 0777) == 0) return 0;
-    return (errno == EEXIST) ? 0 : -1;
+    if (errno != EEXIST) return -1;
+    struct stat st;
+    if (stat(p, &st) != 0) return -1;
+    return S_ISDIR(st.st_mode) ? 0 : -1;
 #endif
 }
 
@@ -4090,6 +4099,47 @@ vader_i32_t vader_spawn_poll(vader_i64_t handle) {
 }
 
 #endif  /* _WIN32 / POSIX */
+
+/* `vader_spawn_kill` backs `std/process::spawn_kill`. Terminates a child that a
+ * caller has given up on — a timeout fired, and without this the process keeps
+ * running after its parent stops caring, spinning a core and holding its slot
+ * (freed only by `spawn_take_stderr`, which a timed-out caller never reaches).
+ *
+ * SIGKILL rather than SIGTERM: this is the path for code that is not responding,
+ * so a handler it might install is not worth waiting on. Reaps immediately so
+ * the slot returns to the table. Idempotent — killing a finished child is a
+ * no-op, not an error, since the caller cannot know which it has. */
+#if !defined(_WIN32)
+#include <signal.h>
+#include <sys/wait.h>
+#endif
+
+void vader_spawn_kill(vader_i64_t handle) {
+    if (handle < 0 || handle >= VADER_MAX_CHILDREN) return;
+    vader_child_t* c = &g_children[(int) handle];
+    if (!c->in_use) return;
+#if defined(_WIN32)
+    if (c->hProcess != NULL) {
+        TerminateProcess(c->hProcess, 1);
+        WaitForSingleObject(c->hProcess, 2000);
+        CloseHandle(c->hProcess);
+        c->hProcess = NULL;
+    }
+#else
+    if (c->pid > 0) {
+        kill(c->pid, SIGKILL);
+        int status = 0;
+        waitpid(c->pid, &status, 0);
+        c->pid = 0;
+    }
+    if (c->out_fd >= 0) { close(c->out_fd); c->out_fd = -1; }
+    if (c->err_fd >= 0) { close(c->err_fd); c->err_fd = -1; }
+#endif
+    free(c->out_buf);
+    free(c->err_buf);
+    memset(c, 0, sizeof(vader_child_t));
+}
+
 
 /* Intern a captured pipe buffer into a Vader string (`vader_string_new` copies
  * into the atom table), then free the transit buffer and clear the slot fields. */

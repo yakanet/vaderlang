@@ -1124,6 +1124,10 @@ vader_box_t vader_create_dir(vader_string_t path, uint32_t err_tag);
 /* `std/io::remove_file` — delete a file. Directories and missing paths are
  * errors. */
 vader_box_t vader_remove_file(vader_string_t path, uint32_t err_tag);
+
+/* `std/process::spawn_kill` — SIGKILL a child and reap it, freeing its slot.
+ * Idempotent; a finished or unknown handle is a no-op. */
+void vader_spawn_kill(vader_i64_t handle);
 /* The OS temp directory, `/`-separated, no trailing separator. Honours $TMPDIR
  * (POSIX) / GetTempPath (Windows), falling back to "/tmp". Backs the
  * `std/io::temp_dir` intrinsic. */

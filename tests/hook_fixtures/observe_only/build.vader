@@ -7,7 +7,7 @@ module "build"
 import "std/io"
 import "vader/hooks"
 
-build :: fn(args: string[]) -> void {
+build :: fn(args: string[]) -> i32 {
     ctx :: new_build_context(args)
     ctx.add_build_file("src/main.vader")
     ctx.out = "should-not-exist"
@@ -24,4 +24,5 @@ build :: fn(args: string[]) -> void {
         }
     }
     println("observed ${seen} module(s), built nothing")
+    return 0
 }
