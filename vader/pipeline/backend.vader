@@ -31,6 +31,10 @@ Prof :: import "vader/profile"
 /// Windows hands `\` paths; the resolver keeps `/` as its single internal
 /// separator, so every path entering the pipeline passes through here.
 export canonicalise :: fn(p: Path) -> Path = p.as_string().to_posix().to_path()
+// Canonical `/`-separated form of a path that may have arrived with OS-native
+// separators (Windows argv, env vars). `std/path::to_posix` deliberately works on
+// the raw string — the compiler's internals are all string-based — so this is the
+// one place the CLI does the Path → string → Path round trip.
 /// The module filter to dump, defaulting to the entry's own module.
 ///
 /// `--module=a,b` narrows a dump; with no filter the entry module alone is in

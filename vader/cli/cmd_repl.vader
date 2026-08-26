@@ -1,0 +1,16 @@
+// vader/cli/repl — the `vader` bare invocation.
+//
+// A placeholder: with no action given the CLI says so rather than dropping into
+// something half-built. Its own file so the day a real REPL lands, it has
+// somewhere to go.
+//
+// Same module as `main.vader`: imports are file-scoped, declarations are not.
+
+module "vader/cli"
+
+import "std/io"
+
+cmd_repl :: fn() -> i32 {
+    eprintln("vader REPL: not yet implemented")
+    return 2
+}

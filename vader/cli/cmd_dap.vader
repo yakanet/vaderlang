@@ -1,0 +1,55 @@
+// vader/cli/dap — the `vader dap` command.
+//
+// Serves the Debug Adapter Protocol over stdio, driving the embedded VM as a
+// step debugger. Compiles with `want_debug` so the bytecode carries per-op
+// positions, which is what makes stepping map back to source lines.
+//
+// Same module as `main.vader`: imports are file-scoped, declarations are not.
+
+module "vader/cli"
+
+import "std/io"
+import "std/path"
+import "std/cli"
+import "vader/bytecode"
+import "vader/midir"
+import "vader/pipeline"
+import "vader/diagnostics"
+import "vader/vm"
+import "vader/dap"
+
+// `vader dap` : Debug Adapter Protocol server on stdio (VSCode F5). Drives the
+// bytecode VM. The compile step is injected as a callback so `vader/dap` stays
+// free of a `vader/cli` dependency (which would close an import cycle) — the
+// pipeline (lower → cfg → bytecode → prepare) lives here.
+cmd_dap :: fn(args: string[]) -> i32 {
+    parsed :: parse_action("dap", args)
+    if parsed is i32 as code {
+        return code
+    }
+    return run_dap_server(compile_for_dap)
+}
+
+// Compile a launch-target `.vader` to a `DapProgram`.
+//   want_debug = true  : the DAP path is the debug path — the per-op `debug`
+//                        table backs breakpoints, stepping, and the stack view.
+//   optimize   = false : the "-O0 of the debugger" (plan §3 Decision B). Skips
+//                        slot coalescing + the single-expr inliner, so slots map
+//                        1:1 to source locals (accurate Variables view) and
+//                        lines stay monotone (clean stepping). A one-off
+//                        debuggee doesn't need the optimiser.
+compile_for_dap :: fn(program: string) -> DapProgram {
+    // The DAP layer hands over a raw string (it is compiler internals, outside
+    // this refactor); wrap once here so the body speaks `Path` like the rest.
+    path :: program.to_path()
+    le :: lower_to_entry(path)
+    if any_error_diag(le.pre_diags) {
+        rendered :: merge_diagnostics(le.pre_diags, le.lower_diags).dump_diagnostics_with_file()
+        return DapProgram { .state = null, .entry_index = -1, .error = rendered }
+    }
+    pruned :: prune_unreachable_fns(le.lowered, false)
+    module :: cfg_to_bytecode(pruned, module_name_from_file(path), EmitOptions { .optimize = false, .keep_mangles = [], .want_debug = true })
+    state :: prepare(module)
+    entry :: entry_index_for_file(module, le.lowered, path, state.main_index)
+    return DapProgram { .state = state, .entry_index = entry, .error = "" }
+}

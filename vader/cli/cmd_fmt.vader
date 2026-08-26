@@ -1,0 +1,28 @@
+// vader/cli/fmt — the `vader fmt` command.
+//
+// Formats in place, or checks. The formatter itself is `vader/fmt`; this is the
+// CLI surface over it, kept separate so the two are versioned independently.
+//
+// Same module as `main.vader`: imports are file-scoped, declarations are not.
+
+module "vader/cli"
+
+import "std/io"
+import "std/path"
+import "std/cli"
+import "vader/fmt"
+
+// `fmt` used to parse its own args in `vader/fmt/cli.vader`, where any
+// unrecognised token became a path — so `vader fmt --nope dir/` reported
+// `path not found: --nope` and exited 0. It now goes through the shared parser
+// like every other action, and `run_fmt` takes the decoded options.
+cmd_fmt :: fn(args: string[]) -> i32 {
+    parsed :: parse_action("fmt", args)
+    if parsed is i32 as code {
+        return code
+    }
+    // Pinned to `string[]`: the literal is mutable, `positionals` isn't, and an
+    // unpinned `if` would build a mixed-mutability union (T3074).
+    paths: string[] = if parsed.positionals.len() == 0 { ["."] } else { parsed.positionals }
+    return run_fmt(paths, parsed.bool_flag("check"), parsed.bool_flag("stdout"))
+}

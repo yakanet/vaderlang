@@ -1,0 +1,29 @@
+// vader/cli/cmd_help — the `help` action, and `--help` on any action.
+//
+// Renders from `spec.vader` rather than from prose, so a flag cannot exist
+// without appearing here — the CLI tests assert exactly that.
+//
+// Same module as `main.vader`: imports are file-scoped, declarations are not.
+
+module "vader/cli"
+
+import "std/io"
+import "std/cli"
+
+// `vader help` prints the overview ; `vader help <action>` prints one action in
+// full — a view the old single help string couldn't give, and the reason it grew
+// to carry every flag of every action.
+cmd_help :: fn(args: string[]) -> i32 {
+    if args.len() == 0 {
+        print(render_help("vader", CLI_VERSION, TAGLINE, COMMANDS, COMMON_FLAGS))
+        return 0
+    }
+    name :: args[0]
+    cmd :: find_command(name)
+    if cmd == null {
+        eprintln("vader help: unknown action \"${name}\"")
+        return 1
+    }
+    print(render_command_help("vader", cmd, COMMON_FLAGS))
+    return 0
+}
