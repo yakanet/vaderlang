@@ -1,11 +1,12 @@
 # Comptime
 
-## tests/snippets/_diag_in_forward_const_array
+## tests/snippets/forward_module_const
   @comptime  LIMIT                = 42_i32
   @comptime  NAMES                = ["alice", "bob"]
   @comptime  NUMERIC              = ["i32", "f64"]
 
 ## generic instances
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
@@ -29,4 +30,3 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
-  ArrayOps<T>

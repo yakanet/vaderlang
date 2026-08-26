@@ -130,7 +130,36 @@
     },
     {
       "kind": "FnDecl",
-      "name": "first_numeric",
+      "name": "count_numeric",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "usize"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [],
+        "trailing": {
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "FieldExpr",
+            "target": {
+              "kind": "IdentExpr",
+              "name": "NUMERIC"
+            },
+            "field": "len"
+          },
+          "args": []
+        }
+      },
+      "decorators": [],
+      "isExpressionBodied": true
+    },
+    {
+      "kind": "FnDecl",
+      "name": "first_name",
       "visibility": "private",
       "typeParams": [],
       "params": [],
@@ -145,7 +174,7 @@
           "kind": "IndexExpr",
           "target": {
             "kind": "IdentExpr",
-            "name": "NUMERIC"
+            "name": "NAMES"
           },
           "index": {
             "kind": "IntLitExpr",
@@ -158,35 +187,119 @@
     },
     {
       "kind": "FnDecl",
-      "name": "limit",
+      "name": "joined",
       "visibility": "private",
       "typeParams": [],
       "params": [],
       "returnType": {
         "kind": "IdentExpr",
-        "name": "i32"
+        "name": "string"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "out"
+            },
+            "type": null,
+            "value": {
+              "kind": "StringLitExpr",
+              "parts": []
+            }
+          },
+          {
+            "kind": "ForStmt",
+            "label": null,
+            "form": {
+              "kind": "in",
+              "binding": "n",
+              "iter": {
+                "kind": "IdentExpr",
+                "name": "NAMES"
+              }
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [
+                {
+                  "kind": "AssignStmt",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "out"
+                  },
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IdentExpr",
+                          "name": "out"
+                        }
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IdentExpr",
+                          "name": "n"
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": ","
+                      }
+                    ]
+                  }
+                }
+              ],
+              "trailing": null
+            },
+            "isComptime": false
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IdentExpr",
+              "name": "out"
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "limit_text",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "string"
       },
       "body": {
         "kind": "BlockExpr",
         "stmts": [],
         "trailing": {
-          "kind": "IdentExpr",
-          "name": "LIMIT"
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "FieldExpr",
+            "target": {
+              "kind": "IdentExpr",
+              "name": "LIMIT"
+            },
+            "field": "to_string"
+          },
+          "args": []
         }
       },
       "decorators": [],
       "isExpressionBodied": true
-    },
-    {
-      "kind": "ConstDecl",
-      "name": "LIMIT",
-      "visibility": "private",
-      "type": null,
-      "value": {
-        "kind": "IntLitExpr",
-        "value": "42n"
-      },
-      "decorators": []
     },
     {
       "kind": "ConstDecl",
@@ -249,6 +362,17 @@
       "decorators": []
     },
     {
+      "kind": "ConstDecl",
+      "name": "LIMIT",
+      "visibility": "private",
+      "type": null,
+      "value": {
+        "kind": "IntLitExpr",
+        "value": "42n"
+      },
+      "decorators": []
+    },
+    {
       "kind": "FnDecl",
       "name": "main",
       "visibility": "private",
@@ -261,53 +385,6 @@
       "body": {
         "kind": "BlockExpr",
         "stmts": [
-          {
-            "kind": "ExprStmt",
-            "expr": {
-              "kind": "CallExpr",
-              "callee": {
-                "kind": "IdentExpr",
-                "name": "println"
-              },
-              "args": [
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "StringLitExpr",
-                    "parts": [
-                      {
-                        "kind": "interp",
-                        "expr": {
-                          "kind": "CallExpr",
-                          "callee": {
-                            "kind": "IdentExpr",
-                            "name": "first_numeric"
-                          },
-                          "args": []
-                        }
-                      },
-                      {
-                        "kind": "text",
-                        "value": " "
-                      },
-                      {
-                        "kind": "interp",
-                        "expr": {
-                          "kind": "CallExpr",
-                          "callee": {
-                            "kind": "IdentExpr",
-                            "name": "limit"
-                          },
-                          "args": []
-                        }
-                      }
-                    ]
-                  },
-                  "spread": false
-                }
-              ]
-            }
-          },
           {
             "kind": "ExprStmt",
             "expr": {
@@ -403,6 +480,83 @@
                               "spread": false
                             }
                           ]
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "IdentExpr",
+                            "name": "count_numeric"
+                          },
+                          "args": []
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "IdentExpr",
+                            "name": "first_name"
+                          },
+                          "args": []
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "IdentExpr",
+                            "name": "joined"
+                          },
+                          "args": []
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "IdentExpr",
+                            "name": "limit_text"
+                          },
+                          "args": []
                         }
                       }
                     ]

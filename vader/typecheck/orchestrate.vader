@@ -1981,13 +1981,34 @@ export walk_bodies :: fn(
             register_impl_metadata(id, typed, diags)
         }
     }
+    // Const VALUES that need no fn body are typed BEFORE the bodies. That is
+    // where an un-annotated const's type is inferred (`check_const_value` writes
+    // `decl_types[sym.id]`), so walking them only in the file-ordered loop below
+    // meant a fn referencing a const declared LATER read its type as `?` — and a
+    // `?` receiver panics the emitter (`no field len on ?`) or, for `in`, lowers
+    // silently to `unreachable`. Worse, it meant those sites were never type
+    // CHECKED at all.
+    for decl in decls {
+        if decl is AST.ConstDecl as cd {
+            if is_body_independent_value(cd.value) {
+                check_const_value(cd, typed, diags)
+            }
+        }
+    }
     for decl in decls {
         match decl {
             is AST.FnDecl as fd     -> {
                 walk_fn_body(fd, typed, diags, mode)
             }
+            // Literal-valued consts were typed in the pre-pass above. Checking
+            // one twice is not idempotent: the second call reads the type the
+            // first wrote as its EXPECTED type, and re-recording the value
+            // against it drops the array literal's `!` marker (`i32[]!` became
+            // `i32[]`, caught by the `const_array_*` snapshots).
             is AST.ConstDecl as cd  -> {
-                check_const_value(cd, typed, diags)
+                if !is_body_independent_value(cd.value) {
+                    check_const_value(cd, typed, diags)
+                }
             }
             is AST.AssertDecl as ad -> {
                 check_expr(ad.condition, null, typed, diags)
@@ -2330,6 +2351,37 @@ param_type :: fn(
     return apply_readonly_default(
         substitute_self(type_from_expr(p.ty, typed.resolved, diags), for_ty), p.ty,
     )
+}
+
+/// True when a const's value can be typed WITHOUT any fn body having been typed
+/// first — a literal, or a sequence of them.
+///
+/// Deliberately conservative. A const whose value CALLS something must stay in
+/// file order among the bodies: `std/core`'s `POW5_128 :: @comptime { … }` runs
+/// `build_pow5_split`. Note that `@comptime` there is a prefix on the VALUE, not
+/// a decorator on the declaration, so `cd.decorators` does not see it.
+is_body_independent_value :: fn(e: AST.Expr) -> bool {
+    if e is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.CharLitExpr {
+        return true
+    }
+    if e is AST.StringLitExpr as sl {
+        // An interpolated part holds an arbitrary expression.
+        for part in sl.parts {
+            if part !is AST.StringLitText {
+                return false
+            }
+        }
+        return true
+    }
+    if e is AST.SeqLitExpr as seq {
+        for element in seq.elements {
+            if !is_body_independent_value(element) {
+                return false
+            }
+        }
+        return true
+    }
+    return false
 }
 
 check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram!, diags: Diagnostic[]!) -> void {
