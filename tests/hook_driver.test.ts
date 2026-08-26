@@ -155,6 +155,27 @@ test("a driver generates a module, and the built binary runs it", async () => {
   expect(ranExit).toBe(0);
 }, LONG_BUILD);
 
+test("`vader run` sees the generated code the build produced", async () => {
+  // The hole this closes: generated modules used to be visible ONLY to the driven
+  // build, so a project that generated compiled green under `vader build` and
+  // failed under every other command. The generated root is derived by the LOADER
+  // from the project root now, not threaded from the driver, so `run` / `test` /
+  // `lint` / `dump` and the LSP all see it.
+  //
+  // Safe on the shared staged tree: `vader run` executes through the VM and
+  // writes nothing.
+  const { dir } = await generateBuild();
+  const proc = Bun.spawn([CLI, "run", "src/main.vader"], { cwd: dir, stdout: "pipe", stderr: "pipe" });
+  const [out, err, exit] = await Promise.all([
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text(),
+    proc.exited,
+  ]);
+  expect(err).not.toContain("R2001");
+  expect(out).toContain("Point(x, y) / Point = 1 + 2");
+  expect(exit).toBe(0);
+}, LONG_BUILD);
+
 test("the round where the generated import could not resolve reports nothing", async () => {
   // `src/main.vader` imports `gen/describe`, which cannot exist on round 1: only
   // the LAST round's diagnostics are surfaced. Without that, every generating

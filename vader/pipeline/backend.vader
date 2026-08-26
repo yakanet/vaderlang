@@ -181,7 +181,7 @@ export lower_to_entry :: fn(file: Path) -> LoweredEntry = lower_to_entry_with(fi
 /// @param file                entry source.
 /// @param include_path_flags  extra module search roots.
 export lower_to_entry_with :: fn(file: Path, include_path_flags: string[]) -> LoweredEntry =
-    lower_to_entry_from(prepare_evaluated_project_with(file, include_path_flags, ""))
+    lower_to_entry_from(prepare_evaluated_project_with(file, include_path_flags))
 
 /// Lower an ALREADY-EVALUATED pipeline.
 ///

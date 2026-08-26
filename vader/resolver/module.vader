@@ -32,6 +32,18 @@ export STDLIB_PREFIX :: "std/"
 /// for this name to anchor bare-name imports.
 export MANIFEST_FILENAME :: "vader.json"
 
+/// Where a driven build's generated modules live, relative to the project root.
+///
+/// Owned by the resolver because the resolver is what READS them: when this
+/// directory exists under the project root, it becomes a merge root
+/// (`lazy::IncludePath.merge`), so `vader run` / `test` / `lint` / `dump` and the
+/// LSP see generated code exactly as `vader build` does. A build driver writes
+/// here (`vader/hooks`), it does not decide the location — the two halves have to
+/// agree, and only one of them can be authoritative.
+///
+/// Under `build/` so a checkout's existing ignore rules already cover it.
+export GENERATED_ROOT_DIR :: "build/generated"
+
 /// True when `display_path` falls within the dump scope `scope` — it equals a
 /// scope entry or is a submodule of one (`M` or `M/...`). The IR dumps
 /// (`dump --stage=…`) render only in-scope modules ; the scope defaults to the

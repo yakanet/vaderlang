@@ -2421,13 +2421,20 @@ The folder remains the colocation unit (one folder ≤ one module), but the modu
 
 A module's files normally all live in **one** folder: include paths are searched in order and the
 first folder declaring the module wins, so a second folder declaring the same module is ignored.
-The **one exception** is the *generated root* of a driven build (`build.vader` — below): it does not
-shadow a module an earlier root provided, its files are **appended** to it. That is what lets a
-driver's `ctx.emit_module("app", …)` extend the project's own `app` — the generated file becomes a
-module sibling, so it sees the module's declarations (and is seen by them) with no `import` in
-either direction, which no separate module could do without a cycle. The module's identity stays
-its primary folder; generated files come after the hand-written ones, so file order — and therefore
-symbol-id assignment — remains a function of the content alone.
+The **one exception** is `build/generated/` under the project root — where a driven build
+(`build.vader` — below) puts generated modules. It does not shadow a module an earlier root
+provided; its files are **appended** to it. That is what lets a driver's `ctx.emit_module("app", …)`
+extend the project's own `app` — the generated file becomes a module sibling, so it sees the
+module's declarations (and is seen by them) with no `import` in either direction, which no separate
+module could do without a cycle. The module's identity stays its primary folder; generated files
+come after the hand-written ones, so file order — and therefore symbol-id assignment — remains a
+function of the content alone.
+
+The directory is found by the **loader**, not supplied by whoever asked for the compilation: it is
+probed under the project root (the folder holding `vader.json`, or the invocation directory when the
+project has no manifest) and contributes nothing when absent or empty. So `vader run`, `test`,
+`lint`, `dump` and the LSP see generated code exactly as `vader build` does — a project that
+generates is not buildable by one command only.
 
 ### Programmable build API — `build.vader`
 
@@ -2458,8 +2465,9 @@ the last point at which leaving the loop writes nothing, which is how a lint-onl
 build without an opt-out flag.
 
 A driver can also **generate code**: `ctx.emit_module(name, source)` hands the compiler module text,
-which is materialised as an ordinary `.vader` file under `build/generated/`, added to the module
-search roots, and compiled like any hand-written module — real spans, readable, formattable. `name`
+which is materialised as an ordinary `.vader` file under `build/generated/` and compiled like any
+hand-written module — real spans, readable, formattable, and found by every command, not just this
+one (see the folder-rule exception above). `name`
 may be a **new** module the project imports, or an **existing** one, in which case the generated
 file joins it as a sibling (see the folder-rule exception above). The front end then runs again, and
 the generated declarations come back through the stream, so transitive generation needs no mechanism
