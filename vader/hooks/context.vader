@@ -163,6 +163,14 @@ export load_from_vader_config :: fn(ctx: BuildContext!) -> void {
 ///             `CompleteMessage` — the caller reports H6003.
 /// @return     a lazy stream of messages, in pipeline order.
 export messages :: fn(ctx: BuildContext!) -> Iterator<Message> {
+    // A driver that configured nothing gets told so, rather than a silent
+    // success: the shape of the mistake is "forgot `add_build_file`", and a
+    // build that compiles nothing while reporting no problem is the worst
+    // possible answer.
+    if ctx.build_files.len() == 0 {
+        ctx.diagnostics.push(hook_error(.NoBuildFiles, empty_span(),
+            "call `ctx.add_build_file(...)` before iterating `messages()`"))
+    }
     for file in ctx.build_files {
         entry :: join_path(ctx.project_root, file)
         pipeline :: prepare_evaluated_project_with(Path(entry), ctx.include_paths)
@@ -293,4 +301,14 @@ import "std/testing"
 @test test_no_reports_by_default :: fn() -> void {
     ctx :: new_build_context(["driver", "/tmp/proj"])
     assert_eq(ctx.reports_of().len(), 0)
+}
+
+@test test_messages_without_entries_reports_h6003 :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    // Draining the stream is what triggers the check ; a configured-but-unread
+    // context is not yet a mistake.
+    for _ in ctx.messages() {}
+    reports :: ctx.reports_of()
+    assert_eq(reports.len(), 1)
+    assert_eq(reports[0].code.id, "H6003")
 }
