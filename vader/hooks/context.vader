@@ -8,12 +8,16 @@
 //
 //     import "vader/hooks"
 //
-//     build :: fn(args: string[]) -> void {
+//     build :: fn(args: string[]) -> i32 {
 //         ctx :: new_build_context(args)
 //         ctx.load_from_vader_config()
 //         ctx.add_build_file("src/main.vader")
 //         for msg in ctx.messages() { … }
 //     }
+//
+// This file is the CONTRACT — what a driver fills in, and what it reads back.
+// Draining the stream is `drive.vader`; writing generated modules is
+// `generate.vader`. All three share this module, so nothing crosses a boundary.
 //
 // `build` is a reserved name in `build.vader`, the way `main` is in a program —
 // no decorator is involved. The driver is compiled and run NATIVELY, not through
@@ -25,13 +29,8 @@
 module "vader/hooks"
 
 import "vader/diagnostics"
-import "std/collections"
 import "std/io"
-import "std/path"
 import "vader/resolver"
-import "std/string" { join as join_strings }
-import "vader/pipeline"
-AST :: import "vader/parser"
 
 // ---- context --------------------------------------------------------------
 
@@ -188,252 +187,6 @@ export load_from_vader_config :: fn(ctx: BuildContext!) -> void {
     ctx.include_paths = fresh
 }
 
-// ---- driving the compilation ----------------------------------------------
-
-/// Drive the compilation and yield what the pipeline produces.
-///
-/// Nothing compiles until the first message is pulled, so a driver configures
-/// the context first and iterates second. Each queued entry file is run through
-/// the front end (`load → resolve + typecheck → comptime`), yielding one
-/// `TypecheckedMessage` per module, then a `PhaseMessage`, and finally one
-/// `CompleteMessage` for the whole run.
-///
-/// **Every** typed module is yielded, the stdlib included — a driver that only
-/// cares about its own code filters on `module_name`. Reporting the full set is
-/// the honest default: which modules are "the project" is the driver's policy,
-/// not this function's.
-///
-/// Every declaration is delivered exactly ONCE per queued entry, however many
-/// generation rounds that entry takes — see `TypecheckedMessage`. A module with
-/// nothing new is not yielded at all. The "once" is per ENTRY, not per build: two
-/// entries sharing a module both report it, which is already true of the stdlib.
-///
-/// Batched per file rather than streamed per declaration: Vader is
-/// single-threaded here, so the compiler fills a phase and hands it over. The
-/// loop shape is the same either way, and the order is specified rather than
-/// dependent on scheduling — which is what keeps a driven build reproducible.
-///
-/// A driver that generates code makes the stream LOOP: the phases from
-/// `Typechecked` to `BeforeEmit` repeat once per generation round, and the back
-/// end runs only after the last one. Declarations are still delivered once each
-/// (see `emit_module`), so an observing driver cannot tell the difference.
-///
-/// @param ctx  the configured context. An empty `build_files` yields only
-///             `CompleteMessage` — the caller reports H6003.
-/// @return     a lazy stream of messages, in pipeline order.
-/// @error      H6006 when generation never settles ; H6008 when a generated
-///             module cannot be written. Both land on `ctx.diagnostics`.
-export messages :: fn(ctx: BuildContext!) -> Iterator<Message> {
-    // Configuration is read ONCE, here. Mutating `ctx.out` / `ctx.release` / …
-    // after the first pull is therefore ignored uniformly, rather than honoured
-    // for entries not yet reached — a stream cannot re-read what it already
-    // acted on, and half-applying a change is worse than ignoring it.
-    target  :: ctx.target
-    release :: ctx.release
-    cc      :: ctx.cc
-    ldflags :: ctx.ldflags
-    out     :: ctx.out
-    if ctx.build_files.len() == 0 {
-        ctx.diagnostics.push(hook_error(.NoBuildFiles, empty_span(),
-            "call `ctx.add_build_file(...)` before iterating `messages()`"))
-        yield CompleteMessage { .code = 1 }
-        return
-    }
-    // Generated modules of an EARLIER build would still resolve, and — file
-    // names being content hashes — a module whose text changed would sit beside
-    // its own previous version and collide with it. Swept BEFORE the first front
-    // end rather than after the last: a build that fails never reaches its own
-    // cleanup, and the guarantee that matters is about the build starting now.
-    // NOT an ordinary include path: the generated root MERGES into a module an
-    // earlier root already provided, which is what lets a driver emit into the
-    // project's own module instead of a separate one it would have to import
-    // (and could not, without a cycle).
-    generated :: generated_root_of(ctx)
-    _ :: sweep_generated(generated)
-    code := 0
-    for file in ctx.build_files {
-        entry :: Path(join_path(ctx.project_root, file))
-        // Declarations are delivered ONCE per build — the Jai property, without
-        // Jai's incremental typechecker. What is tracked is the FILE, not the
-        // module, and that precision is load-bearing: when a driver emits into a
-        // module it also inspects (the `@derive` shape — read `app`'s structs,
-        // generate into `app`), the next round re-delivers that module carrying
-        // ONLY the generated file's declarations. A lint rule over the
-        // hand-written ones therefore still fires exactly once. File paths are
-        // stable across rounds — a generated one IS its own content hash.
-        //
-        // So a driver accumulates in its own variables across rounds rather than
-        // guarding against seeing the same declaration twice.
-        delivered :: MutableSet<string> {}
-        round := 0
-        for {
-            // Front end. The pipeline stays live to the end of the round, which
-            // is what lets the back end reuse it instead of re-running ~45% of
-            // the build.
-            pipeline :: prepare_evaluated_project_with(entry, ctx.include_paths, generated)
-            for [_, loaded] in pipeline.loaded.modules {
-                fresh :: undelivered_decls(loaded.module.files, delivered)
-                // Nothing new in this module: say nothing about it at all,
-                // rather than yield an empty message a driver would have to
-                // skip.
-                if fresh.len() == 0 {
-                    continue
-                }
-                yield TypecheckedMessage {
-                    .module_name  = loaded.module.module_name,
-                    .declarations = fresh,
-                }
-            }
-            yield PhaseMessage { .phase = .Typechecked }
-            yield PhaseMessage { .phase = .Evaluated }
-
-            // Last exit before anything is written. A driver that only observes
-            // leaves the loop here — and one that generates has had every chance
-            // to call `emit_module` by now, which is why the flush FOLLOWS this
-            // yield instead of preceding it.
-            yield PhaseMessage { .phase = .BeforeEmit }
-            regenerated :: flush_generated(ctx)
-            if regenerated.len() > 0 {
-                round += 1
-                if round < MAX_GENERATION_ROUNDS {
-                    continue
-                }
-                // Not a hang — a driver whose emitted text never stabilises. The
-                // detail names what was still moving, since that is the only
-                // clue to which rule is unstable.
-                ctx.diagnostics.push(hook_error(.GenerationDidNotSettle, empty_span(),
-                    "`${join_strings(regenerated, "`, `")}` still changed after ${MAX_GENERATION_ROUNDS} rounds"))
-                code = 1
-                break
-            }
-            // Nothing moved: this is the fixed point, and the last round's
-            // pipeline is the one the back end gets.
-            if target == .None {
-                break
-            }
-            lowered :: lower_to_entry_from(pipeline)
-            yield PhaseMessage { .phase = .Lowered }
-
-            built :: emit_one(ctx, lowered, entry, target, release, cc, ldflags, out, ctx.build_files.len())
-            if built != 0 {
-                code = built
-            }
-            yield PhaseMessage { .phase = .OutputWritten }
-            break
-        }
-    }
-    yield CompleteMessage { .code = code }
-}
-
-
-// Top-level declarations of the files not yet delivered, marking them delivered
-// as it goes. Returns empty when the module has nothing new — see the delivery
-// note in `messages`.
-//
-// Filters the FILES and hands them to `concat_file_decls`, rather than
-// concatenating here: that keeps its single-file fast path, which returns the
-// file's own `decls` with no copy. Single-file modules are the common case, and
-// this runs for every module of the project on every round.
-undelivered_decls :: fn(files: SourceFile[], delivered: MutableSet<string>!) -> AST.Decl[] {
-    fresh: SourceFile[]! = []
-    for f in files {
-        if f.path in delivered {
-            continue
-        }
-        _ :: delivered.add(f.path)
-        fresh.push(f)
-    }
-    return concat_file_decls(fresh)
-}
-
-// Carry one lowered entry to its output, per `ctx.target`. Diagnostics land on
-// the context so they interleave with the driver's own reports in order.
-emit_one :: fn(
-    ctx: BuildContext!, lowered: LoweredEntry!, entry: Path,
-    target: BuildTarget, release: bool, cc: string, ldflags: string, out: string, entries: usize,
-) -> i32 {
-    // One `out` cannot name N binaries: the second would overwrite the first in
-    // silence. Refuse rather than pick a winner.
-    if out != "" && entries > 1 {
-        ctx.diagnostics.push(hook_error(.AmbiguousOutput, empty_span(),
-            "`ctx.out` names one binary but ${entries} entries are queued — leave it empty to derive a name per entry"))
-        return 1
-    }
-    cfg :: prepare_cfg_bytecode_from(lowered, entry, !release)
-    for d in cfg.pre_diags {
-        ctx.diagnostics.push(d)
-    }
-    for d in cfg.lower_diags {
-        ctx.diagnostics.push(d)
-    }
-    // BOTH bags, as `flush_build_diags` does for `vader build <file>`: a lowering
-    // error still leaves bytecode behind, so gating on `pre_diags` alone would
-    // emit C from it, link a binary, and report success — a silently wrong build.
-    if any_error_diag(cfg.pre_diags) || any_error_diag(cfg.lower_diags) {
-        return 1
-    }
-    c :: c_source_of(cfg, release)
-    if target == .C {
-        ctx.c_sources.push(c)
-        return 0
-    }
-    binary :: if out != "" {
-        join_path(ctx.project_root, out)
-    } else {
-        strip_input_suffix(entry).as_string()
-    }
-    return link_native(c, Path(binary), cc, release, ldflags)
-}
-
-// ---- producing output -----------------------------------------------------
-
-/// Compile the queued entries into native binaries.
-///
-/// This is what makes a driver a build system rather than an observer. Each
-/// queued file is compiled to `ctx.out` — or, when that is empty, to the entry's
-/// own name minus its extension, which is what `vader build` does without
-/// `--out`.
-///
-/// Front-end and lowering diagnostics are **accumulated onto the context**, not
-/// printed, so they interleave with the driver's own reports in the order they
-/// happened and `flush_reports` prints them all at once.
-///
-/// @param ctx  the configured context ; queue entries with `add_build_file`.
-/// @return     0 when every entry built, 1 as soon as one failed. A driver
-///             normally returns this from `build`.
-export emit_native :: fn(ctx: BuildContext!) -> i32 {
-    ctx.target = .Native
-    return drain(ctx)
-}
-
-/// Compile the queued entries to C, without linking.
-///
-/// The counterpart of `emit_native` for a driver that wants the source — to
-/// post-process it, to hand it to another toolchain, or just to look. Mirrors
-/// `--target=c`.
-///
-/// @param ctx  the configured context ; queue entries with `add_build_file`.
-/// @return     one C source per queued entry, in queue order. Empty when a
-///             front end rejected an entry — the reports say why.
-export emit_c :: fn(ctx: BuildContext!) -> string[] {
-    ctx.target = .C
-    _ :: drain(ctx)
-    return ctx.c_sources
-}
-
-// Drain the stream, ignoring every message but the last. This is what makes
-// `emit_native` / `emit_c` shortcuts rather than a second implementation: there
-// is one build path, and a driver that observes sees the same one.
-drain :: fn(ctx: BuildContext!) -> i32 {
-    code := 1
-    for msg in ctx.messages() {
-        if msg is CompleteMessage as c {
-            code = c.code
-        }
-    }
-    return code
-}
-
 // ---- reporting ------------------------------------------------------------
 
 /// Report a problem from the driver, anchored in the user's source.
@@ -552,12 +305,3 @@ import "std/testing"
     assert_eq(ctx.reports_of().len(), 0)
 }
 
-@test test_messages_without_entries_reports_h6003 :: fn() -> void {
-    ctx :: new_build_context(["driver", "/tmp/proj"])
-    // Draining the stream is what triggers the check ; a configured-but-unread
-    // context is not yet a mistake.
-    for _ in ctx.messages() {}
-    reports :: ctx.reports_of()
-    assert_eq(reports.len(), 1)
-    assert_eq(reports[0].code.id, "H6003")
-}
