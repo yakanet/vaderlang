@@ -2,6 +2,10 @@
 //
 // `vader build` with no file argument finds this file, compiles it, and runs
 // `build` — which then decides what to compile. See vader/cli/driver.vader.
+//
+// Draining `messages()` IS the build: the front end runs once and the back end
+// reuses it. A driver that only wanted to lint would leave the loop at
+// `BeforeEmit`, which writes nothing.
 
 module "build"
 
@@ -13,7 +17,9 @@ AST :: import "vader/parser"
 build :: fn(args: string[]) -> void {
     ctx :: new_build_context(args)
     ctx.add_build_file("src/main.vader")
+    ctx.out = "hello"
 
+    exit := 0
     for msg in ctx.messages() {
         if msg is TypecheckedMessage as t {
             // Every typed module is yielded, stdlib included — which modules
@@ -30,12 +36,11 @@ build :: fn(args: string[]) -> void {
                 }
             }
         }
+        if msg is CompleteMessage as c {
+            exit = c.code
+        }
     }
 
-    // The rule is advisory here: report, then build anyway, so the fixture
-    // exercises both halves — observation AND output.
-    ctx.out = "hello"
-    code :: ctx.emit_native()
     _ :: ctx.flush_reports()
-    println("driver: ${ctx.reports_of().len()} report(s), build exit ${code}")
+    println("driver: ${ctx.reports_of().len()} report(s), build exit ${exit}")
 }

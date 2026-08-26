@@ -121,8 +121,17 @@ export LoweredEntry :: struct {
 /// the emitter's own tables at the memory peak.
 export lower_to_entry :: fn(file: Path) -> LoweredEntry = lower_to_entry_with(file, [])
 
-export lower_to_entry_with :: fn(file: Path, include_path_flags: string[]) -> LoweredEntry {
-    pipeline :: prepare_evaluated_project_with(file, include_path_flags)
+export lower_to_entry_with :: fn(file: Path, include_path_flags: string[]) -> LoweredEntry =
+    lower_to_entry_from(prepare_evaluated_project_with(file, include_path_flags))
+
+/// Lower an ALREADY-EVALUATED pipeline.
+///
+/// Split out so a caller holding a pipeline does not pay the front end twice —
+/// which is ~45% of a build. `lower_to_entry_with` is this, preceded by the
+/// front end.
+///
+/// @param pipeline  the evaluated project to lower.
+export lower_to_entry_from :: fn(pipeline: EvaluatedPipeline) -> LoweredEntry {
     entry :: entry_main_name(pipeline.typed, pipeline.loaded.entry)
     pre_diags :: gather_pipeline_diags(pipeline)
     // Don't lower a program the front end rejected : feeding the bytecode
@@ -169,8 +178,19 @@ export CfgBytecode :: struct {
 /// over-shrink vs the parity snapshot.
 export prepare_cfg_bytecode :: fn(file: Path, want_debug: bool) -> CfgBytecode = prepare_cfg_bytecode_with(file, want_debug, [])
 
-export prepare_cfg_bytecode_with :: fn(file: Path, want_debug: bool, include_path_flags: string[]) -> CfgBytecode {
-    le :: lower_to_entry_with(file, include_path_flags)
+export prepare_cfg_bytecode_with :: fn(file: Path, want_debug: bool, include_path_flags: string[]) -> CfgBytecode =
+    prepare_cfg_bytecode_from(lower_to_entry_with(file, include_path_flags), file, want_debug)
+
+/// Carry an ALREADY-LOWERED entry through prune → CFG → bytecode.
+///
+/// Same reason as `lower_to_entry_from`: a caller that already lowered does not
+/// re-run the front end to reach the bytecode.
+///
+/// @param le          the lowered entry. Taken `!`: the prune pass rewrites it.
+/// @param file        entry path — names the bytecode module.
+/// @param want_debug  populate the per-op debug table (kept only when the C
+///                    emit will keep `#line`).
+export prepare_cfg_bytecode_from :: fn(le: LoweredEntry!, file: Path, want_debug: bool) -> CfgBytecode {
     // profiling brackets — inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
     Prof.prof_begin(Prof.PHASE_PRUNE)
     pruned :: prune_unreachable_fns(le.lowered, false)
