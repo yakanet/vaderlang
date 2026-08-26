@@ -185,27 +185,6 @@ cmd_run :: fn(args: string[]) -> i32 {
 // `dump_bytecode` / `parse_virt_bc` — the in-memory equivalent of
 // `vader dump --stage=bytecode … | vader run` — preserving the exact `.virt`
 // behaviour the VM corpus is validated against.
-// CFG → `BytecodeModule` : the shared optimise-and-emit tail every real emit
-// path runs. Build the CFG, then DCE + escape annotation + the array-load-forward
-// opt, then bytecode emit. A new CFG optimisation pass is wired in HERE, once —
-// not at each call site. The phase brackets are inert unless `$VADER_PROFILE`, so
-// the non-profiled callers pay nothing.
-cfg_to_bytecode :: fn(pruned: LoweredProject, name: string, opts: EmitOptions) -> BytecodeModule {
-    Prof.prof_begin(Prof.PHASE_CFG_BUILD)
-    cfg :: build_cfg_project(pruned)
-    Prof.prof_end(Prof.PHASE_CFG_BUILD)
-    Prof.prof_begin(Prof.PHASE_CFG_DCE)
-    dced :: eliminate_dead_cfg(cfg)
-    Prof.prof_end(Prof.PHASE_CFG_DCE)
-    Prof.prof_begin(Prof.PHASE_ESCAPE)
-    escaped :: annotate_escape(dced).project
-    Prof.prof_end(Prof.PHASE_ESCAPE)
-    forwarded :: array_load_forward_project(escaped)
-    Prof.prof_begin(Prof.PHASE_BYTECODE)
-    module :: emit_bytecode_from_cfg(forwarded, name, opts)
-    Prof.prof_end(Prof.PHASE_BYTECODE)
-    return module
-}
 
 run_source :: fn(file: Path, host_argv: string[]) -> i32 {
     // `lower_to_entry` drops the typed/evaluated/loaded pipeline (its per-module
@@ -662,7 +641,7 @@ import_last_segment :: fn(line: string) -> string {
 // separators (Windows argv, env vars). `std/path::to_posix` deliberately works on
 // the raw string — the compiler's internals are all string-based — so this is the
 // one place the CLI does the Path → string → Path round trip.
-canonicalise :: fn(p: Path) -> Path = p.as_string().to_posix().to_path()
+
 
 // ----------------------------------------------------------- build
 
@@ -1195,26 +1174,6 @@ run_parser_stage :: fn(file: Path) -> i32 {
 // The explicit `--module` list, else the entry's own module as the default
 // scope. The two-arg form lets a caller that already holds the entry's display
 // path (the typecheck stage, which has no `LoadedProject`) reuse the default.
-scope_or_entry :: fn(module_filter: string[], entry_display_path: string) -> string[] {
-    if module_filter.len() > 0 {
-        return module_filter
-    }
-    return [entry_display_path]
-}
-
-// The display-path scope for a module-filtered dump : `--module` if given, else
-// the entry module's own display path (so the dump shows the entry's subtree).
-// `loaded.entry` is the entry FOLDER (the modules-map key), so look up its
-// `LoadedModule` to recover the user-declared display path. See `module_in_scope`.
-dump_scope :: fn(module_filter: string[], loaded: LoadedProject) -> string[] {
-    entry_module :: loaded.modules[loaded.entry]
-    entry_dp :: if entry_module is LoadedModule as em {
-        em.module.display_path
-    } else {
-        loaded.entry
-    }
-    return scope_or_entry(module_filter, entry_dp)
-}
 
 run_resolver_stage :: fn(file: Path, module_filter: string[]) -> i32 {
     project :: load_project(file.as_string(), [])
@@ -1335,96 +1294,6 @@ run_bytecode_cfg_stage :: fn(file: Path) -> i32 {
 /// `vader/lower/lowered_ast.vader`), so nothing here references the typecheck
 /// side-table maps that dominate the live set — returning this lets the caller
 /// run emit without those maps coexisting with the emitter's own tables.
-LoweredEntry :: struct {
-    lowered:     LoweredProject
-    /// Entry-fn mangle (`…$main`) for the `export main` directive — resolved
-    /// from the typed AST before the pipeline is released.
-    entry:       string
-    /// Loader + resolver + typecheck + comptime diags, pre-flattened in the
-    /// canonical order (`gather_pipeline_diags`).
-    pre_diags:   Diagnostic[]
-    lower_diags: Diagnostic[]
-    /// Files of the modules in the entry's subtree — lets the bytecode / C dump
-    /// stages filter diagnostics to the code under inspection once the
-    /// `LoadedProject` is released. `build` ignores it (it surfaces all modules).
-    in_scope_files: string[]
-}
-
-/// Run load → typecheck → comptime → lower, resolve the entry-fn name and
-/// harvest the diagnostics, then return — letting the `EvaluatedPipeline` and
-/// its per-module `MutableMap` side-tables leave scope before the caller's
-/// CFG → bytecode tail. This is the live-set lever for `vader run` and
-/// `dump --stage=bytecode|c` : the typecheck-era maps no longer coexist with
-/// the emitter's own tables at the memory peak.
-lower_to_entry :: fn(file: Path) -> LoweredEntry = lower_to_entry_with(file, [])
-
-lower_to_entry_with :: fn(file: Path, include_path_flags: string[]) -> LoweredEntry {
-    pipeline :: prepare_evaluated_project_with(file, include_path_flags)
-    entry :: entry_main_name(pipeline.typed, pipeline.loaded.entry)
-    pre_diags :: gather_pipeline_diags(pipeline)
-    // Don't lower a program the front end rejected : feeding the bytecode
-    // emitter an ill-typed shape (e.g. a UFCS method on an unimported
-    // primitive) trips its `emit_bytecode_from_cfg` backstop panic before the
-    // caller's `flush_build_diags` gate runs — a plain user error would ICE.
-    lower_diags: Diagnostic[]! = []
-    // profiling bracket — inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
-    Prof.prof_begin(Prof.PHASE_LOWER)
-    lowered :: if any_error_diag(pre_diags) {
-        new_lowered_project()
-    } else {
-        lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
-    }
-    Prof.prof_end(Prof.PHASE_LOWER)
-    return LoweredEntry {
-        .lowered     = lowered,
-        .entry       = entry,
-        .pre_diags   = pre_diags,
-        .lower_diags = lower_diags,
-        .in_scope_files = in_scope_diag_files(pipeline.loaded, dump_scope([], pipeline.loaded)),
-    }
-}
-
-/// Result of `prepare_cfg_bytecode` — the canonical bytecode module plus
-/// the bits the caller still needs for diagnostics + entry resolution.
-CfgBytecode :: struct {
-    /// Entry-fn mangle (`…$main`), resolved inside `lower_to_entry`.
-    entry:       string
-    /// Loader + resolver + typecheck + comptime diags, canonical order.
-    pre_diags:   Diagnostic[]
-    lower_diags: Diagnostic[]
-    /// Entry-subtree file set for the dump diagnostic filter (see `LoweredEntry`).
-    in_scope_files: string[]
-    module:      BytecodeModule
-}
-
-/// Lower `file` to a `BytecodeModule` via the CFG midir → bytecode path
-/// (the canonical bytecode shared by the bytecode stage and the C stage).
-/// It is the only bytecode path left — the tree-walking emitter it replaced
-/// elided the 3-address `local.set` / `local.get` temps this one materialises,
-/// and diverged from it on ~150 snippets. Both `dump --stage` consumers route
-/// through here. Const-fold is deliberately NOT run, since arith collapse would
-/// over-shrink vs the parity snapshot.
-prepare_cfg_bytecode :: fn(file: Path, want_debug: bool) -> CfgBytecode = prepare_cfg_bytecode_with(file, want_debug, [])
-
-prepare_cfg_bytecode_with :: fn(file: Path, want_debug: bool, include_path_flags: string[]) -> CfgBytecode {
-    le :: lower_to_entry_with(file, include_path_flags)
-    // profiling brackets — inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
-    Prof.prof_begin(Prof.PHASE_PRUNE)
-    pruned :: prune_unreachable_fns(le.lowered, false)
-    Prof.prof_end(Prof.PHASE_PRUNE)
-    // `want_debug` populates the per-op `debug` table only when the emitted C
-    // will keep `#line` (non-release c-emit / `dump --stage=c`) ; the VM /
-    // bytecode-dump callers pass false to skip the per-op DebugPos alloc.
-    opts :: EmitOptions { .optimize = true, .keep_mangles = [], .want_debug = want_debug }
-    module :: cfg_to_bytecode(pruned, module_name_from_file(file), opts)
-    return CfgBytecode {
-        .entry       = le.entry,
-        .pre_diags   = le.pre_diags,
-        .lower_diags = le.lower_diags,
-        .in_scope_files = le.in_scope_files,
-        .module      = module,
-    }
-}
 
 run_bytecode_stage :: fn(file: Path, annotate: bool) -> i32 {
     // The bytecode dump never renders `debug`, so skip populating it.
@@ -1486,14 +1355,6 @@ run_c_stage :: fn(file: Path) -> i32 {
 // `resolved.display_path` (`/` and `.` → `_`) reproduces exactly the name the
 // lowerer minted for that module's `main`. Returns "" when the entry module
 // isn't resolvable, which suppresses the directive.
-entry_main_name :: fn(typed: TypedProject, entry: string) -> string {
-    tp :: typed.modules[entry] ?? return ""
-    return "${mangle_module_id(tp.resolved.display_path)}\$main"
-}
-
-// Module name = the entry file's basename minus the `.vader` extension.
-// `to_posix` first so the basename scan works on Windows `\` paths too.
-module_name_from_file :: fn(file: Path) -> string = canonicalise(file).name()
 
 run_lower_stage :: fn(file: Path, module_filter: string[]) -> i32 {
     pipeline :: prepare_evaluated_project(file)
@@ -1529,15 +1390,6 @@ run_dced_stage :: fn(file: Path, module_filter: string[]) -> i32 {
 // inspection. These two helpers implement that per-caller scoping: gather the
 // file paths of the in-scope modules, then drop any diagnostic anchored outside
 // them. `build` never calls these — `flush_build_diags` shows the full set.
-in_scope_diag_files :: fn(loaded: LoadedProject, scope: string[]) -> string[] {
-    out: string[]! = []
-    for [id, lm] in loaded.modules {
-        if module_in_scope(lm.module.display_path, scope) {
-            for f in lm.module.files { out.push(f.path) }
-        }
-    }
-    return out
-}
 
 filter_diags_in_scope :: fn(diags: Diagnostic[], files: string[]) -> Diagnostic[] {
     out: Diagnostic[]! = []
@@ -1565,14 +1417,6 @@ print_dump_diags :: fn(b: CfgBytecode) -> void {
 // Flatten the loader + resolver + typecheck + comptime diagnostic bags into one
 // list, in the canonical order the dump stages expect. Pulled out so
 // `lower_to_entry` can snapshot the diags before releasing the pipeline.
-gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] {
-    out: Diagnostic[]! = []
-    for d in pipeline.loaded.diags    { out.push(d) }
-    for d in pipeline.resolver_diags  { out.push(d) }
-    for d in pipeline.typecheck_diags { out.push(d) }
-    for d in pipeline.comptime_diags  { out.push(d) }
-    return out
-}
 
 // Concatenate two diagnostic bags into one list, preserving order (`head`
 // then `extra`). Shared by the dump-stage renderer (`print_merged_diags`,
