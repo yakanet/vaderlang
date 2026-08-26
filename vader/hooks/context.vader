@@ -24,6 +24,7 @@
 
 module "vader/hooks"
 
+import "vader/diagnostics"
 import "vader/resolver"
 
 // ---- context --------------------------------------------------------------
@@ -52,6 +53,10 @@ export BuildContext :: struct {
     /// reproducible, so it stays behind `add_build_file`.
     @internal
     build_files:    string[]! = []
+    /// Diagnostics the driver reported, in the order it reported them. Drained
+    /// by the compiler once the driver returns.
+    @internal
+    diagnostics:    Diagnostic[]! = []
 }
 
 /// Default location of generated modules, relative to the project root.
@@ -131,6 +136,31 @@ export load_from_vader_config :: fn(ctx: BuildContext!) -> void {
     ctx.include_paths = fresh
 }
 
+// ---- reporting ------------------------------------------------------------
+
+/// Report a problem from the driver, anchored in the user's source.
+///
+/// The driver describes the problem; the registry owns the code (`H6004`). That
+/// split is deliberate — a project's lint rules should never have to allocate
+/// diagnostic ids, and every driver report stays greppable under one code.
+///
+/// Pass the tightest span the user can act on: a decl's `name_span` rather than
+/// its `span`, a field rather than the struct holding it.
+///
+/// @param ctx      the context accumulating the report.
+/// @param span     smallest source range the user can act on.
+/// @param message  what is wrong, lowercase and without a trailing period —
+///                 backtick identifiers, as the registry style requires.
+export report :: fn(ctx: BuildContext!, span: Span, message: string) -> void {
+    ctx.diagnostics.push(hook_error(.HookReport, span, message))
+}
+
+/// Reports accumulated so far, in order.
+///
+/// @return the driver's diagnostics — the compiler drains these and merges them
+///         into its own output, so a driver never prints them itself.
+export reports_of :: fn(ctx: BuildContext) -> Diagnostic[] = ctx.diagnostics
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
@@ -182,4 +212,25 @@ import "std/testing"
     ctx :: new_build_context(["driver", "/nonexistent-project-root"])
     ctx.load_from_vader_config()
     assert_eq(ctx.include_paths.len(), 0)
+}
+
+@test test_report_accumulates_in_order :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    ctx.report(empty_span(), "first problem")
+    ctx.report(empty_span(), "second problem")
+    reports :: ctx.reports_of()
+    assert_eq(reports.len(), 2)
+    assert_eq(reports[0].detail, "first problem")
+    assert_eq(reports[1].detail, "second problem")
+}
+
+@test test_report_carries_the_registry_code :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    ctx.report(empty_span(), "something")
+    assert_eq(ctx.reports_of()[0].code.id, "H6004")
+}
+
+@test test_no_reports_by_default :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    assert_eq(ctx.reports_of().len(), 0)
 }
