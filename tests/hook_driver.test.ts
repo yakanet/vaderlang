@@ -54,6 +54,19 @@ async function runIn(fixture: string, args: string[]) {
   return { out: `${stdout}\n${stderr}`, exit, dir };
 }
 
+// Five tests below drive the SAME build of the same fixture and only differ in
+// what they inspect. Running it once and sharing the result cuts four full
+// compiler builds — each of these tests compiles the driver, which pulls the
+// whole `vader/` closure, so the saving is most of this file's runtime.
+let sharedLint: Promise<{ out: string; exit: number; dir: string }> | null = null;
+
+function lintBuild() {
+  if (sharedLint === null) {
+    sharedLint = runIn(LINT, ["build"]);
+  }
+  return sharedLint;
+}
+
 afterAll(() => {
   for (const dir of staged) {
     rmSync(dir, { recursive: true, force: true });
@@ -63,10 +76,7 @@ afterAll(() => {
 test("the driver produces a working binary", async () => {
   // The whole point of decision 13: a driver is a build system, not an
   // observer. It compiles the project and the result runs.
-  const dir = stage(LINT);
-  staged.push(dir);
-  const build = Bun.spawn([CLI, "build"], { cwd: dir, stdout: "pipe", stderr: "pipe" });
-  await build.exited;
+  const { dir } = await lintBuild();
   expect(existsSync(`${dir}/hello`)).toBe(true);
   const ran = Bun.spawn([`${dir}/hello`], { stdout: "pipe", stderr: "pipe" });
   const [out, exit] = await Promise.all([new Response(ran.stdout).text(), ran.exited]);
@@ -77,17 +87,14 @@ test("the driver produces a working binary", async () => {
 test("the driven build leaves no artefact in the project root", async () => {
   // Artefacts belong under `build/`, and the entry shim must be unlinked rather
   // than blanked — a leftover `.vader` declaring nothing would break the next run.
-  const dir = stage(LINT);
-  staged.push(dir);
-  const proc = Bun.spawn([CLI, "build"], { cwd: dir, stdout: "pipe", stderr: "pipe" });
-  await proc.exited;
+  const { dir } = await lintBuild();
   expect(existsSync(`${dir}/vader_build_entry.vader`)).toBe(false);
   expect(existsSync(`${dir}/vader_build_driver`)).toBe(false);
   expect(existsSync(`${dir}/build/driver/driver`)).toBe(true);
 }, LONG_BUILD);
 
 test("a project's build.vader runs and reports its own rule", async () => {
-  const { out, exit } = await runIn(LINT, ["build"]);
+  const { out, exit } = await lintBuild();
   // Exactly one H6004, on the offending struct, anchored in the project's
   // source rather than in the generated entry.
   const rule = out.split("\n").filter(l => l.includes("H6004"));
@@ -105,7 +112,7 @@ test("the driver sees project modules, not just the stdlib", async () => {
   // `module_name`. If that field carried the loader's filesystem key instead of
   // the declared name, the filter would match nothing and the rule would run
   // over the stdlib too — which is exactly the bug this pins.
-  const { out } = await runIn(LINT, ["build"]);
+  const { out } = await lintBuild();
   expect(out).not.toContain("std/io");
   expect(out).toContain("badlyNamed");
 }, LONG_BUILD);
@@ -178,10 +185,7 @@ test("the front end runs ONCE for a driver that observes and builds", async () =
   // end, which is ~45% of a build. Profiled on the DRIVER's own process — a
   // `vader build` profile also contains the compiler's pass over the driver
   // itself, which would make the count meaningless.
-  const dir = stage(LINT);
-  staged.push(dir);
-  await Bun.spawn([CLI, "build"], { cwd: dir, stdout: "pipe", stderr: "pipe" }).exited;
-
+  const { dir } = await lintBuild();
   const driver = Bun.spawn([`${dir}/build/driver/driver`, dir], {
     cwd: dir, stdout: "pipe", stderr: "pipe", env: { ...process.env, VADER_PROFILE: "1" },
   });
