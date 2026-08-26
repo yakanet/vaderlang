@@ -1,0 +1,14 @@
+module "src"
+
+import "std/io"
+
+// Deliberately violates the driver's rule — the fixture's whole point.
+badlyNamed :: struct { x: i32 }
+
+// Satisfies it, so the rule is shown to discriminate rather than fire always.
+WellNamed :: struct { y: i32 }
+
+main :: fn() -> i32 {
+    println("hello")
+    return 0
+}

@@ -1,0 +1,3 @@
+module "src"
+
+main :: fn() -> i32 = 0
