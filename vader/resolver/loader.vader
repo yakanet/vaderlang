@@ -365,7 +365,13 @@ project_include_paths :: fn(
 
 entry_folder_of :: fn(path: string) -> string {
     if exists(path) && is_dir(path) { return path }
-    return dir_of(path)
+    folder :: dir_of(path)
+    // A bare filename ("main.vader", no separator) has no parent, and `read_dir`
+    // of "" fails — which surfaced as `entry file's folder declares no module`,
+    // a message pointing at the module declaration rather than at the path. The
+    // invocation directory is what the user meant.
+    if folder == "" { return "." }
+    return folder
 }
 
 has_module :: fn(modules: MutableMap<string, LoadedModule>, id: string) -> bool {
