@@ -11,7 +11,7 @@
 // the suite by a wide margin: budget accordingly rather than trimming coverage.
 
 import { test, expect, afterAll } from "bun:test";
-import { rmSync, writeFileSync, readFileSync, cpSync, mkdtempSync, symlinkSync } from "node:fs";
+import { rmSync, writeFileSync, readFileSync, cpSync, mkdtempSync, symlinkSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { ensureCliBuilt, CLI_BIN, LONG_BUILD } from "./cli-bin.ts";
@@ -59,6 +59,18 @@ afterAll(() => {
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("the driven build leaves no artefact in the project root", async () => {
+  // Artefacts belong under `build/`, and the entry shim must be unlinked rather
+  // than blanked — a leftover `.vader` declaring nothing would break the next run.
+  const dir = stage(LINT);
+  staged.push(dir);
+  const proc = Bun.spawn([CLI, "build"], { cwd: dir, stdout: "pipe", stderr: "pipe" });
+  await proc.exited;
+  expect(existsSync(`${dir}/vader_build_entry.vader`)).toBe(false);
+  expect(existsSync(`${dir}/vader_build_driver`)).toBe(false);
+  expect(existsSync(`${dir}/build/driver/driver`)).toBe(true);
+}, LONG_BUILD);
 
 test("a project's build.vader runs and reports its own rule", async () => {
   const { out } = await runIn(LINT, ["build"]);

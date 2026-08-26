@@ -48,6 +48,11 @@ export DRIVER_MODULE :: "build"
 /// as machine-written in a directory listing.
 export DRIVER_ENTRY_FILENAME :: "vader_build_entry.vader"
 
+/// Where a driven build puts the driver's binary and generated C, relative to
+/// the project root. Under `build/` so a checkout's existing ignore rules cover
+/// it — the driver is a build artefact like any other.
+export DRIVER_ARTEFACT_DIR :: "build/driver"
+
 /// Locate the project's build driver.
 ///
 /// Looked up in `root` only — no walk up the tree. A driver governs the project
@@ -228,7 +233,17 @@ export run_build_driver :: fn(root: string, cc: string, ldflags: string, units: 
         return 1
     }
 
-    binary :: join_path(root, "vader_build_driver")
+    // Artefacts go under `build/`, not the project root: a driven build should
+    // not litter the directory the user works in. `create_dir` makes the path
+    // rather than requiring it to exist.
+    artefacts :: join_path(root, DRIVER_ARTEFACT_DIR)
+    made :: create_dir(artefacts)
+    if made is IOError as ce {
+        eprintln("vader build: cannot create ${artefacts}: ${ce.msg}")
+        remove_entry(entry)
+        return 1
+    }
+    binary :: join_path(artefacts, "driver")
     // The driver is a normal native build; `vader/hooks` resolves through the
     // compiler's own sources, and the driver's module through the entry's folder.
     code :: build_native(Path(entry), binary, false, cc, ldflags, [compiler_source_root(root)], units)
@@ -249,10 +264,11 @@ export run_build_driver :: fn(root: string, cc: string, ldflags: string, units: 
     return result.exit
 }
 
-// Best-effort deletion — a leftover shim is a nuisance, not a failure, and
-// `std/io` has no remove, so an empty overwrite is the closest thing available.
+// Best-effort deletion: a leftover shim is a nuisance, not a failure, so the
+// error is dropped. It matters that this really unlinks — a blanked file left in
+// the project root would be a `.vader` that declares nothing.
 remove_entry :: fn(path: string) -> void {
-    _ :: write_file_string(path, "")
+    _ :: remove_file(path)
 }
 
 // ---- tests ----------------------------------------------------------------
