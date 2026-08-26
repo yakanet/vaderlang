@@ -49,6 +49,13 @@ export DRIVER_MODULE :: "build"
 /// as machine-written in a directory listing.
 export DRIVER_ENTRY_FILENAME :: "vader_build_entry.vader"
 
+/// Subdirectory of a `dist/` bundle holding the compiler's own sources.
+///
+/// The bundled binary is named `vader`, so the sources cannot live at
+/// `<bundle>/vader/` — hence one level of indirection. `bootstrap/build.sh
+/// --dist` writes them here and `compiler_source_root` looks for them here.
+export BUNDLED_SOURCE_DIR :: "lib"
+
 /// Where a driven build puts the driver's binary and generated C, relative to
 /// the project root. Under `build/` so a checkout's existing ignore rules cover
 /// it — the driver is a build artefact like any other.
@@ -75,11 +82,17 @@ export find_build_driver :: fn(root: string) -> string | null {
 
 /// Include-path root under which `vader/hooks` resolves.
 ///
-/// Mirrors `resolver::resolve_sidecar`'s shape: prefer the folder holding the
-/// running binary (the `dist/` bundle layout, once it ships `vader/`), and fall
-/// back to `root` — which is what a checkout gives, where `vader/` sits at the
-/// project root. Returns a root CONTAINING `vader/`, not `vader/` itself, since
-/// include paths are searched by module name.
+/// Mirrors `resolver::resolve_sidecar`'s shape: prefer a location tied to the
+/// running binary, and fall back to `root` — which is what a checkout gives,
+/// where `vader/` sits at the project root. Returns a root CONTAINING `vader/`,
+/// not `vader/` itself, since include paths are searched by module name.
+///
+/// Two binary-relative layouts, in order:
+///
+///   * `<binary dir>/vader/` — a checkout whose binary sits at the root.
+///   * `<binary dir>/lib/vader/` — the `dist/` bundle. The indirection is
+///     forced: the bundled binary is itself NAMED `vader`, so the sources
+///     cannot sit at `<binary dir>/vader/` without colliding with it.
 ///
 /// @param root  invocation directory, used as the checkout fallback.
 /// @return      a directory under which `vader/hooks/` is expected to resolve.
@@ -87,6 +100,10 @@ export compiler_source_root :: fn(root: string) -> string {
     beside_binary :: current_executable_location().dir_of()
     if exists(join_path(beside_binary, "vader/hooks")) {
         return beside_binary
+    }
+    bundled :: join_path(beside_binary, BUNDLED_SOURCE_DIR)
+    if exists(join_path(bundled, "vader/hooks")) {
+        return bundled
     }
     // NOT a walk up the filesystem. An unbounded search would find some
     // unrelated checkout's `vader/` and compile the driver against a different
@@ -175,13 +192,6 @@ export validate_driver :: fn(path: string) -> Diagnostic | null {
     // and `empty_span()` would render as `<synthetic>`, naming no file at all.
     return hook_error(.MissingBuildEntry, file_head_span(path),
         "add `${DRIVER_MODULE_ENTRY} :: fn(args: string[]) -> void`")
-}
-
-// A span at the head of `path` — for a problem that is about the file itself
-// rather than about anything written in it.
-file_head_span :: fn(path: string) -> Span {
-    at :: Position { .file = path, .offset = 0, .line = 1, .column = 1 }
-    return Span { .start = at, .end = at }
 }
 
 /// Name of the fn a driver file must declare — reserved, the way `main` is.
