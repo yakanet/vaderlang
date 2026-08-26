@@ -50,6 +50,11 @@ export COMMON_FLAGS: FlagSpec[]: [
         ],
     },
     FlagSpec {
+        .name = "no-hooks",
+        .kind = .Bool,
+        .help = "Ignore the project's `build.vader`, and stay quiet about it",
+    },
+    FlagSpec {
         .name = "allow-env",
         .kind = .Bool,
         .help = "Reserved; no effect yet",
