@@ -65,10 +65,6 @@ export BuildContext :: struct {
     /// system builds; a driver that only observes leaves the loop at
     /// `BeforeEmit` rather than setting this.
     target:         BuildTarget
-    /// Set once the stream starts. Configuration read after that would be
-    /// ignored, so the setters refuse rather than lie.
-    @internal
-    started:        bool = false
     /// C emitted by a `.C`-targeted drain, in queue order.
     @internal
     c_sources:      string[]! = []
@@ -192,7 +188,7 @@ export load_from_vader_config :: fn(ctx: BuildContext!) -> void {
 /// `CompleteMessage` for the whole run.
 ///
 /// **Every** typed module is yielded, the stdlib included — a driver that only
-/// cares about its own code filters on `module_path`. Reporting the full set is
+/// cares about its own code filters on `module_name`. Reporting the full set is
 /// the honest default: which modules are "the project" is the driver's policy,
 /// not this function's.
 ///
@@ -205,7 +201,15 @@ export load_from_vader_config :: fn(ctx: BuildContext!) -> void {
 ///             `CompleteMessage` — the caller reports H6003.
 /// @return     a lazy stream of messages, in pipeline order.
 export messages :: fn(ctx: BuildContext!) -> Iterator<Message> {
-    ctx.started = true
+    // Configuration is read ONCE, here. Mutating `ctx.out` / `ctx.release` / …
+    // after the first pull is therefore ignored uniformly, rather than honoured
+    // for entries not yet reached — a stream cannot re-read what it already
+    // acted on, and half-applying a change is worse than ignoring it.
+    target  :: ctx.target
+    release :: ctx.release
+    cc      :: ctx.cc
+    ldflags :: ctx.ldflags
+    out     :: ctx.out
     if ctx.build_files.len() == 0 {
         ctx.diagnostics.push(hook_error(.NoBuildFiles, empty_span(),
             "call `ctx.add_build_file(...)` before iterating `messages()`"))
@@ -232,14 +236,14 @@ export messages :: fn(ctx: BuildContext!) -> Iterator<Message> {
         // Last exit before anything is written. A driver that only observes
         // leaves the loop here.
         yield PhaseMessage { .phase = .BeforeEmit }
-        if ctx.target == .None {
+        if target == .None {
             continue
         }
 
         lowered :: lower_to_entry_from(pipeline)
         yield PhaseMessage { .phase = .Lowered }
 
-        built :: emit_one(ctx, lowered, entry)
+        built :: emit_one(ctx, lowered, entry, target, release, cc, ldflags, out, ctx.build_files.len())
         if built != 0 {
             code = built
         }
@@ -250,8 +254,18 @@ export messages :: fn(ctx: BuildContext!) -> Iterator<Message> {
 
 // Carry one lowered entry to its output, per `ctx.target`. Diagnostics land on
 // the context so they interleave with the driver's own reports in order.
-emit_one :: fn(ctx: BuildContext!, lowered: LoweredEntry!, entry: Path) -> i32 {
-    cfg :: prepare_cfg_bytecode_from(lowered, entry, !ctx.release)
+emit_one :: fn(
+    ctx: BuildContext!, lowered: LoweredEntry!, entry: Path,
+    target: BuildTarget, release: bool, cc: string, ldflags: string, out: string, entries: usize,
+) -> i32 {
+    // One `out` cannot name N binaries: the second would overwrite the first in
+    // silence. Refuse rather than pick a winner.
+    if out != "" && entries > 1 {
+        ctx.diagnostics.push(hook_error(.AmbiguousOutput, empty_span(),
+            "`ctx.out` names one binary but ${entries} entries are queued — leave it empty to derive a name per entry"))
+        return 1
+    }
+    cfg :: prepare_cfg_bytecode_from(lowered, entry, !release)
     for d in cfg.pre_diags {
         ctx.diagnostics.push(d)
     }
@@ -264,17 +278,17 @@ emit_one :: fn(ctx: BuildContext!, lowered: LoweredEntry!, entry: Path) -> i32 {
     if any_error_diag(cfg.pre_diags) || any_error_diag(cfg.lower_diags) {
         return 1
     }
-    c :: c_source_of(cfg, ctx.release)
-    if ctx.target == .C {
+    c :: c_source_of(cfg, release)
+    if target == .C {
         ctx.c_sources.push(c)
         return 0
     }
-    out :: if ctx.out != "" {
-        join_path(ctx.project_root, ctx.out)
+    binary :: if out != "" {
+        join_path(ctx.project_root, out)
     } else {
         strip_input_suffix(entry).as_string()
     }
-    return link_native(c, Path(out), ctx.cc, ctx.release, ctx.ldflags)
+    return link_native(c, Path(binary), cc, release, ldflags)
 }
 
 // ---- producing output -----------------------------------------------------

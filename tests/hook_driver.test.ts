@@ -11,7 +11,7 @@
 // the suite by a wide margin: budget accordingly rather than trimming coverage.
 
 import { test, expect, afterAll } from "bun:test";
-import { rmSync, writeFileSync, readFileSync, cpSync, mkdtempSync, symlinkSync, existsSync } from "node:fs";
+import { rmSync, writeFileSync, cpSync, mkdtempSync, symlinkSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { ensureCliBuilt, CLI_BIN, LONG_BUILD } from "./cli-bin.ts";
@@ -51,7 +51,7 @@ async function runIn(fixture: string, args: string[]) {
     new Response(proc.stderr).text(),
     proc.exited,
   ]);
-  return { out: `${stdout}\n${stderr}`, exit };
+  return { out: `${stdout}\n${stderr}`, exit, dir };
 }
 
 afterAll(() => {
@@ -110,33 +110,45 @@ test("the driver sees project modules, not just the stdlib", async () => {
   expect(out).toContain("badlyNamed");
 }, LONG_BUILD);
 
+// Run with the fixture's driver REPLACED, writing to the staged copy rather
+// than to the checkout. Editing the tracked fixture and restoring it in
+// `finally` leaves the repo dirty whenever a 120 s test is killed — and every
+// later test staging that fixture then fails for an unrelated reason.
+async function runWithDriver(fixture: string, source: string, args: string[]) {
+  const dir = stage(fixture);
+  staged.push(dir);
+  writeFileSync(`${dir}/build.vader`, source);
+  const proc = Bun.spawn([CLI, ...args], { cwd: dir, stdout: "pipe", stderr: "pipe" });
+  const [stdout, stderr, exit] = await Promise.all([
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text(),
+    proc.exited,
+  ]);
+  return { out: `${stdout}\n${stderr}`, exit, dir };
+}
+
 test("a build.vader with no `build` fn is rejected as H6001", async () => {
-  const driver = `${LINT}/build.vader`;
-  const original = readFileSync(driver, "utf8");
-  writeFileSync(driver, 'module "build"\n\nother :: fn() -> void {}\n');
-  try {
-    const { out, exit } = await runIn(LINT, ["build"]);
-    expect(out).toContain("H6001");
-    // Anchored on the driver itself, not on the generated entry.
-    expect(out).toMatch(/build\.vader:\d+:\d+/);
-    expect(out).not.toContain("vader_build_entry");
-    expect(exit).not.toBe(0);
-  } finally {
-    writeFileSync(driver, original);
-  }
+  const { out, exit } = await runWithDriver(LINT,
+    'module "build"\n\nother :: fn() -> void {}\n', ["build"]);
+  expect(out).toContain("H6001");
+  // Anchored on the driver itself, not on the generated entry.
+  expect(out).toMatch(/build\.vader:\d+:\d+/);
+  expect(out).not.toContain("vader_build_entry");
+  expect(exit).not.toBe(0);
 }, LONG_BUILD);
 
 test("a `build` of the wrong arity is rejected as H6002", async () => {
-  const driver = `${LINT}/build.vader`;
-  const original = readFileSync(driver, "utf8");
-  writeFileSync(driver, 'module "build"\n\nbuild :: fn() -> void {}\n');
-  try {
-    const { out, exit } = await runIn(LINT, ["build"]);
-    expect(out).toContain("H6002");
-    expect(exit).not.toBe(0);
-  } finally {
-    writeFileSync(driver, original);
-  }
+  const { out, exit } = await runWithDriver(LINT,
+    'module "build"\n\nbuild :: fn() -> i32 { return 0 }\n', ["build"]);
+  expect(out).toContain("H6002");
+  expect(exit).not.toBe(0);
+}, LONG_BUILD);
+
+test("a `void` build is rejected as H6002 — it could not carry an exit status", async () => {
+  const { out, exit } = await runWithDriver(LINT,
+    'module "build"\n\nbuild :: fn(args: string[]) -> void {}\n', ["build"]);
+  expect(out).toContain("H6002");
+  expect(exit).not.toBe(0);
 }, LONG_BUILD);
 
 test("a driver that queues nothing is reported as H6003", async () => {
@@ -152,9 +164,13 @@ test("a driver that queues nothing is reported as H6003", async () => {
 test("leaving the stream at BeforeEmit builds nothing", async () => {
   // The property that lets a lint-only driver exist without an opt-out flag:
   // `BeforeEmit` is the last point at which declining is clean.
-  const { out } = await runIn(`${FIXTURES}/observe_only`, ["build"]);
+  const { out, dir } = await runIn(`${FIXTURES}/observe_only`, ["build"]);
   expect(out).toContain("built nothing");
   expect(out).toMatch(/observed [1-9]\d* module/);
+  // The property the test is named for: the fixture plants this name as a
+  // canary. Without the assertion, moving emission above `BeforeEmit` would
+  // write the binary and the test would still pass.
+  expect(existsSync(`${dir}/should-not-exist`)).toBe(false);
 }, LONG_BUILD);
 
 test("the front end runs ONCE for a driver that observes and builds", async () => {
