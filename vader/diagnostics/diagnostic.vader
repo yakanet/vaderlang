@@ -101,10 +101,6 @@ export Diagnostic :: struct {
     primary:  Span
 }
 
-/// Generic constructor for a fully-resolved `Diagnostic` record. Callers
-/// normally reach for one of the typed `*_error` / `*_warning` shortcuts
-/// below ; `new_diagnostic` is exposed for the rare emitter that knows
-/// its `CodeInfo` ahead of time (snapshot loaders, JSON re-import).
 /// True when any diagnostic in `diags` is error-severity.
 ///
 /// The gate every stage uses before doing work a rejected program does not
@@ -121,6 +117,10 @@ export any_error_diag :: fn(diags: Diagnostic[]) -> bool {
     return false
 }
 
+/// Generic constructor for a fully-resolved `Diagnostic` record. Callers
+/// normally reach for one of the typed `*_error` / `*_warning` shortcuts
+/// below ; `new_diagnostic` is exposed for the rare emitter that knows
+/// its `CodeInfo` ahead of time (snapshot loaders, JSON re-import).
 export new_diagnostic :: fn(severity: Severity, code: CodeInfo, primary: Span, detail: string) =
     Diagnostic { .severity = severity, .code = code, .detail = detail, .primary = primary }
 

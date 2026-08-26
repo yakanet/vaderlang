@@ -28,12 +28,27 @@ import "vader/c_emit" { EmitOptions as CEmitOptions, default_emit_options as def
 // Runtime root for `--target=native` linking — resolved next to the executable
 // (dist bundle) then the cwd, via the shared `resolve_sidecar` probe (marker
 // `vader.h`), so a bundled `vader` finds `runtime/c/` next to itself.
+/// Directory holding the C runtime, for `--target=native` linking.
+///
+/// Beside the executable first (the `dist/` bundle layout), then the invocation
+/// directory — the same sidecar probe the stdlib resolution uses.
 export runtime_c_root :: fn() = resolve_sidecar("runtime/c", "vader.h")
+/// Optimisation flags for the C compiler.
+///
+/// Release adds `-falign-functions=64`, measured as worth it on this codebase;
+/// debug keeps `-O0 -g` so a `#line`-carrying build is steppable.
 export cc_opt_flags :: fn(release: bool) -> string[] =
     if release { ["-std=c11", "-O3", "-DNDEBUG", "-falign-functions=64"] } else { ["-std=c11", "-O0", "-g"] }
 
 // Append whitespace-split user `--ldflags` tokens to `argv` — no shell quoting
 // (a path with spaces is a user bug).
+/// Append whitespace-split `--ldflags` tokens to a command line.
+///
+/// No shell quoting: a path with spaces is a user error, not something to guess
+/// at.
+///
+/// @param argv     the command line being built, appended to in place.
+/// @param ldflags  the raw flag string.
 export push_ldflags :: fn(argv: string[]!, ldflags: string) -> void {
     for tok in ldflags.trim().split(" ") {
         if tok != "" {
@@ -45,6 +60,11 @@ export push_ldflags :: fn(argv: string[]!, ldflags: string) -> void {
 // Assemble the `cc` command line : runtime include + the emitted C unit + the
 // external runtime unit, opt flags, any user `--ldflags`, then `-o <out> -lm`.
 // `-lm` satisfies the runtime's `floor` / `fmod` on glibc ; no-op on macOS / MinGW.
+/// Assemble the `cc` command line for a native link.
+///
+/// Runtime include, the emitted unit, the runtime unit, opt flags, user
+/// `ldflags`, then `-o <out> -lm`. `-lm` satisfies the runtime's `floor` /
+/// `fmod` on glibc and is a no-op elsewhere.
 export cc_argv :: fn(cc: string, c_file: string, out: Path, release: bool, ldflags: string) -> string[] {
     argv: string[]! = [cc]
     argv.push_all(cc_opt_flags(release))
@@ -60,6 +80,9 @@ export cc_argv :: fn(cc: string, c_file: string, out: Path, release: bool, ldfla
     return argv
 }
 // Write `content` to `path`, surfacing a write failure as exit 1.
+/// Write `content` to `path`, reporting a failure as exit 1.
+///
+/// @return 0 on success; 1 after printing why, so a caller can just propagate.
 export write_out :: fn(path: Path, content: string) -> i32 {
     wr :: write_file_string(path.as_string(), content)
     if wr is IOError {
@@ -70,43 +93,6 @@ export write_out :: fn(path: Path, content: string) -> i32 {
 }
 
 // ---- native output --------------------------------------------------------
-
-/// Compile `file` all the way to a native binary.
-///
-/// The monolithic path — one C unit plus the external runtime, one `cc`. The
-/// split path (`--parallel`) stays in the CLI, which owns that flag; the
-/// monolithic build is the canonical one anyway, byte-identical and fully
-/// inlined.
-///
-/// Diagnostics are RETURNED rather than printed: a build driver decides how to
-/// surface them (and in what order), and the CLI already has its own renderer.
-/// An empty list with a non-zero code means the failure was the link, not the
-/// program — `cc`'s own output has already gone to stderr.
-///
-/// The generated `.c` is KEPT on a link failure and named in the message, so
-/// the user can inspect what the compiler actually produced.
-///
-/// @param file           entry source.
-/// @param out            binary to produce ; the C lands at `<out>.c`.
-/// @param release        optimise, and drop `#line` from the emitted C.
-/// @param cc             C compiler to invoke.
-/// @param ldflags        raw linker flags, whitespace-split, appended verbatim.
-/// @param include_paths  extra module search roots.
-/// @return               `NativeBuild { code, diagnostics }` — `code` 0 on
-///                       success, 1 otherwise.
-export build_to_native :: fn(
-    file: Path, out: Path, release: bool, cc: string, ldflags: string, include_paths: string[],
-) -> NativeBuild {
-    b :: prepare_cfg_bytecode_with(file, !release, include_paths)
-    diags :: merge_diags(b.pre_diags, b.lower_diags)
-    // Never emit for a program the front end rejected: the C emitter reads the
-    // same bytecode tables and would produce something that links but is wrong.
-    if any_error_diag(diags) {
-        return NativeBuild { .code = 1, .diagnostics = diags }
-    }
-    c :: emit_c(b.module, CEmitOptions { .release = release, .entry_mangled = b.entry })
-    return NativeBuild { .code = link_native(c, out, cc, release, ldflags), .diagnostics = diags }
-}
 
 /// Write `c` beside `out` and link it into a native binary.
 ///
@@ -143,6 +129,21 @@ export link_native :: fn(c: string, out: Path, cc: string, release: bool, ldflag
     return 0
 }
 
+/// Default output name for an input: its path minus the recognised suffix.
+///
+/// What `vader build` derives when `--out` is absent, and what a driver gets
+/// when it leaves `ctx.out` empty — the two must agree, which is why this lives
+/// here rather than in either caller.
+///
+/// @param file  entry source, or a `.virt` bytecode dump.
+/// @return      the path with `.vader` / `.virt` removed; unchanged otherwise.
+export strip_input_suffix :: fn(file: Path) -> Path =
+    if file.extension() == "virt" {
+        file.as_string().trim_suffix(".virt").to_path()
+    } else {
+        file.as_string().trim_suffix(".vader").to_path()
+    }
+
 /// Emit C from an ALREADY-BUILT bytecode module.
 ///
 /// The seam a single-stream driver needs: it holds the `CfgBytecode` from its
@@ -156,46 +157,3 @@ export link_native :: fn(c: string, out: Path, cc: string, release: bool, ldflag
 export c_source_of :: fn(cfg: CfgBytecode, release: bool) -> string =
     emit_c(cfg.module, CEmitOptions { .release = release, .entry_mangled = cfg.entry })
 
-/// Compile `file` to C, without linking.
-///
-/// The other half of decision 13: a driver that wants to post-process the C — or
-/// hand it to a toolchain this compiler knows nothing about — should not have to
-/// go without. Mirrors `--target=c`.
-///
-/// @param file           entry source.
-/// @param release        optimise, and drop `#line` from the emitted C.
-/// @param include_paths  extra module search roots.
-/// @return               `CBuild { source, diagnostics }` ; `source` is empty
-///                       when the front end rejected the program, which the
-///                       diagnostics explain.
-export build_to_c :: fn(file: Path, release: bool, include_paths: string[]) -> CBuild {
-    b :: prepare_cfg_bytecode_with(file, !release, include_paths)
-    diags :: merge_diags(b.pre_diags, b.lower_diags)
-    if any_error_diag(diags) {
-        return CBuild { .source = "", .diagnostics = diags }
-    }
-    c :: emit_c(b.module, CEmitOptions { .release = release, .entry_mangled = b.entry })
-    return CBuild { .source = c, .diagnostics = diags }
-}
-
-/// Outcome of `build_to_c`: the generated C, or "" with the diagnostics that
-/// explain why there is none.
-export CBuild :: struct {
-    source:      string
-    diagnostics: Diagnostic[]
-}
-
-/// Outcome of `build_to_native`: an exit code plus whatever the front end and
-/// lowerer had to say, so the caller renders them in its own order.
-export NativeBuild :: struct {
-    code:        i32
-    diagnostics: Diagnostic[]
-}
-
-// Front-end + lower diags in the canonical order the CLI renders them.
-merge_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> Diagnostic[] {
-    out: Diagnostic[]! = []
-    for d in pre    { out.push(d) }
-    for d in lower  { out.push(d) }
-    return out
-}
