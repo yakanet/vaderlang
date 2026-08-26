@@ -682,16 +682,28 @@ cmd_build :: fn(args: string[]) -> i32 {
     // unknown one and named the alternatives.
     file :: action_file(parsed)
 
+    no_hooks :: parsed.bool_flag("no-hooks")
+    root :: current_working_directory()
+    driver :: if no_hooks { null } else { find_build_driver(root) }
+
     // No file: the project may drive its own build. A `build.vader` at the
     // invocation root takes over from here — it decides what to compile, since
     // the compiler is part of its own import closure. See `driver.vader`.
     if file == "" && !use_manifest {
-        root :: current_working_directory()
-        if find_build_driver(root) != null {
+        if driver != null {
             return run_build_driver(root, cc, ldflags, parallel_units)
         }
         eprintln("vader build: expected a file, --manifest (vader.json), or a `${DRIVER_FILENAME}` here")
         return 1
+    }
+
+    // A named file wins over the driver, and has to: `bootstrap/build.sh`
+    // compiles the compiler by name, and could not depend on a driver to do it.
+    // But silently skipping a project's own rules is worse than the extra line —
+    // a house rule that stops applying the moment you name a file is a rule
+    // nobody can trust. `--no-hooks` says "I know" and quiets this.
+    if driver != null {
+        eprintln("vader build: `${DRIVER_FILENAME}` not applied — a named file bypasses it (use `vader build` alone, or --no-hooks to silence)")
     }
 
     if use_manifest {
@@ -839,29 +851,14 @@ build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldfl
     if units >= 2 {
         return build_native_split(file, out, release, cc, ldflags, include_path_flags, units)
     }
+    // The CLI keeps its own C emission — it handles a `.virt` input and prints
+    // diagnostics through `flush_build_diags` — but the LINK is shared with
+    // `vader/pipeline`, so the two cannot drift on flags.
     c_src :: emit_c_for_input(file, release, include_path_flags)
     if c_src is null {
         return 1
     }
-    c_file :: "${out}.c".to_path()
-    if write_out(c_file, c_src) != 0 {
-        return 1
-    }
-
-    res :: spawn(cc_argv(cc, c_file.as_string(), out, release, ldflags))
-    if res is ProcessError {
-        eprintln("vader build: ${res.message()}")
-        eprintln("(generated C kept at ${c_file})")
-        return 1
-    }
-    if res.exit != 0 {
-        eprintln("vader build: ${cc} failed (exit ${res.exit})")
-        eprintln(res.stderr)
-        eprintln("(generated C kept at ${c_file})")
-        return 1
-    }
-    eprintln("vader build: wrote ${out} (and ${c_file})")
-    return 0
+    return link_native(c_src, out, cc, release, ldflags)
 }
 
 // ----------------------------------------------------------- split build

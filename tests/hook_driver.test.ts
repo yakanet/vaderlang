@@ -145,6 +145,33 @@ test("a driver that queues nothing is reported as H6003", async () => {
   expect(out).toContain("add_build_file");
 }, LONG_BUILD);
 
+test("a named file bypasses the driver, and says so", async () => {
+  // `bootstrap/build.sh` compiles the compiler by name, so a named file has to
+  // win — but silently dropping a project's rules would make them untrustworthy.
+  const dir = stage(LINT);
+  staged.push(dir);
+  const proc = Bun.spawn([CLI, "build", "--target=c", "--out=-", "src/main.vader"],
+    { cwd: dir, stdout: "pipe", stderr: "pipe" });
+  const [err, exit] = await Promise.all([new Response(proc.stderr).text(), proc.exited]);
+  expect(err).toContain("not applied");
+  expect(exit).toBe(0);
+}, LONG_BUILD);
+
+test("--no-hooks silences that, and skips the driver entirely", async () => {
+  const dir = stage(LINT);
+  staged.push(dir);
+  const quiet = Bun.spawn([CLI, "build", "--target=c", "--out=-", "--no-hooks", "src/main.vader"],
+    { cwd: dir, stdout: "pipe", stderr: "pipe" });
+  const [err] = await Promise.all([new Response(quiet.stderr).text(), quiet.exited]);
+  expect(err).not.toContain("not applied");
+
+  // With no file either, --no-hooks means the driver is not even looked for.
+  const bare = Bun.spawn([CLI, "build", "--no-hooks"], { cwd: dir, stdout: "pipe", stderr: "pipe" });
+  const [bareErr, bareExit] = await Promise.all([new Response(bare.stderr).text(), bare.exited]);
+  expect(bareErr).toContain("expected a file");
+  expect(bareExit).toBe(1);
+}, LONG_BUILD);
+
 test("`vader build` without a driver still asks for a file", async () => {
   // The default path must be untouched: no `build.vader` in this fixture, so the
   // CLI keeps its own error — now naming the driver as a third option.

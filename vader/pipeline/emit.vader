@@ -105,21 +105,42 @@ export build_to_native :: fn(
         return NativeBuild { .code = 1, .diagnostics = diags }
     }
     c :: emit_c(b.module, CEmitOptions { .release = release, .entry_mangled = b.entry })
+    return NativeBuild { .code = link_native(c, out, cc, release, ldflags), .diagnostics = diags }
+}
+
+/// Write `c` beside `out` and link it into a native binary.
+///
+/// The single link path: every caller that produces a native binary goes
+/// through here, so the flags cannot drift between them — release opts, the
+/// runtime include, `ldflags`, `-lm`. The generated `.c` is KEPT on failure and
+/// named in the message, so the user can inspect what was actually produced.
+///
+/// @param c        the emitted C source.
+/// @param out      binary to produce ; the C lands at `<out>.c`.
+/// @param release  passed to the opt flags.
+/// @param cc       C compiler to invoke.
+/// @param ldflags  raw linker flags, appended verbatim.
+/// @return         0 on success, 1 when the C could not be written or `cc`
+///                 failed. `cc`'s own stderr is forwarded as-is.
+export link_native :: fn(c: string, out: Path, cc: string, release: bool, ldflags: string) -> i32 {
     c_file :: "${out}.c".to_path()
     if write_out(c_file, c) != 0 {
-        return NativeBuild { .code = 1, .diagnostics = diags }
+        return 1
     }
     res :: spawn(cc_argv(cc, c_file.as_string(), out, release, ldflags))
     if res is ProcessError as pe {
-        eprintln("${cc}: ${pe.message()} (generated C kept at ${c_file})")
-        return NativeBuild { .code = 1, .diagnostics = diags }
+        eprintln("vader build: ${pe.message()}")
+        eprintln("(generated C kept at ${c_file})")
+        return 1
     }
     if res.exit != 0 {
+        eprintln("vader build: ${cc} failed (exit ${res.exit})")
         eprintln(res.stderr)
-        eprintln("${cc} failed (exit ${res.exit}) — generated C kept at ${c_file}")
-        return NativeBuild { .code = 1, .diagnostics = diags }
+        eprintln("(generated C kept at ${c_file})")
+        return 1
     }
-    return NativeBuild { .code = 0, .diagnostics = diags }
+    eprintln("vader build: wrote ${out} (and ${c_file})")
+    return 0
 }
 
 /// Compile `file` to C, without linking.
