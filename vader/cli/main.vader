@@ -706,8 +706,15 @@ cmd_build :: fn(args: string[]) -> i32 {
     // unknown one and named the alternatives.
     file :: action_file(parsed)
 
+    // No file: the project may drive its own build. A `build.vader` at the
+    // invocation root takes over from here — it decides what to compile, since
+    // the compiler is part of its own import closure. See `driver.vader`.
     if file == "" && !use_manifest {
-        eprintln("vader build: expected either a file or --manifest (vader.json)")
+        root :: current_working_directory()
+        if find_build_driver(root) != null {
+            return run_build_driver(root, cc, ldflags, parallel_units)
+        }
+        eprintln("vader build: expected a file, --manifest (vader.json), or a `${DRIVER_FILENAME}` here")
         return 1
     }
 
