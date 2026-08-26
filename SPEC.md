@@ -2419,9 +2419,56 @@ Earlier iterations of Vader used "one folder = one module" as identity: the reso
 
 The folder remains the colocation unit (one folder ≤ one module), but the module's name and identity come from the source file, not the directory.
 
-### Future: programmable build API
+A module's files normally all live in **one** folder: include paths are searched in order and the
+first folder declaring the module wins, so a second folder declaring the same module is ignored.
+The **one exception** is the *generated root* of a driven build (`build.vader` — below): it does not
+shadow a module an earlier root provided, its files are **appended** to it. That is what lets a
+driver's `ctx.emit_module("app", …)` extend the project's own `app` — the generated file becomes a
+module sibling, so it sees the module's declarations (and is seen by them) with no `import` in
+either direction, which no separate module could do without a cycle. The module's identity stays
+its primary folder; generated files come after the hand-written ones, so file order — and therefore
+symbol-id assignment — remains a function of the content alone.
 
-Post-MVP: a `build.vader` file that drives the build via Vader code (instead of a declarative manifest).
+### Programmable build API — `build.vader`
+
+A project drives its own build by putting a `build.vader` at its root. `vader build` with **no file
+argument** finds it, compiles it, and runs it; the driver then decides what to compile, because the
+compiler is part of its own import closure. A named file (`vader build src/main.vader`) bypasses the
+driver and says so; `--no-hooks` skips it silently.
+
+`build.vader` declares `module "build"` and a `build` fn — a **reserved name**, the way `main` is in
+a program, with no decorator involved:
+
+```vader
+module "build"
+
+import "vader/hooks"
+
+build :: fn(args: string[]) -> i32 {
+    ctx :: new_build_context(args)
+    ctx.add_build_file("src/main.vader")
+    return ctx.emit_native()
+}
+```
+
+`vader/hooks` is the one module a driver imports (plus `vader/parser`, to name AST types). Draining
+`ctx.messages()` **is** the build: it yields each module's typed declarations, then the phase
+boundaries, and the back end reuses the front end rather than re-running it. `Phase.BeforeEmit` is
+the last point at which leaving the loop writes nothing, which is how a lint-only driver declines to
+build without an opt-out flag.
+
+A driver can also **generate code**: `ctx.emit_module(name, source)` hands the compiler module text,
+which is materialised as an ordinary `.vader` file under `build/generated/`, added to the module
+search roots, and compiled like any hand-written module — real spans, readable, formattable. `name`
+may be a **new** module the project imports, or an **existing** one, in which case the generated
+file joins it as a sibling (see the folder-rule exception above). The front end then runs again, and
+the generated declarations come back through the stream, so transitive generation needs no mechanism
+of its own — and every declaration is still delivered exactly once per build, so a rule applied to
+the stream fires once however many rounds run. Generation stops at a fixed point (a round that
+writes nothing new); `H6006` reports a driver whose output never stabilises.
+
+Driver-contract failures are the `H6xxx` family (§12 / `vader/diagnostics/codes.vader`); a driver's
+own rules are reported through `ctx.report`, which carries `H6004`.
 
 ---
 
@@ -3579,13 +3626,13 @@ WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance })
 - Continuation-passing coroutines
 - Native threads (`std/thread`)
 - Networking, regex, time, random
-- Programmable build API (`build.vader`)
 - External packages
 - Pure WASM compilation without WASI
 - Full array slicing
 - `vader init [name]`: project scaffolder (creates the dir, an `examples/hello.vader`, and a default `vader.json`)
 
 Already landed (cross-reference for B's reader):
+- Programmable build API (`build.vader` — §11 *Programmable build API*, `vader/hooks`)
 - `std/json` (in MVP — §15 `std/json`)
 - LSP (`vader/lsp/`, partial — server + completion / hover / definition / semantic tokens)
 - Resolver self-host (`vader/resolver/` — 9 modules)

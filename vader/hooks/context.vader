@@ -25,11 +25,13 @@
 module "vader/hooks"
 
 import "vader/diagnostics"
+import "std/collections"
 import "std/io"
 import "std/path"
 import "vader/resolver"
-import "std/string"
+import "std/string" { join as join_strings }
 import "vader/pipeline"
+AST :: import "vader/parser"
 
 // ---- context --------------------------------------------------------------
 
@@ -68,6 +70,15 @@ export BuildContext :: struct {
     /// C emitted by a `.C`-targeted drain, in queue order.
     @internal
     c_sources:      string[]! = []
+    /// Modules the driver asked for in the CURRENT round, awaiting a flush.
+    /// Emptied by `flush_generated` once the round reaches `BeforeEmit` — the
+    /// driver has had every chance to emit by then.
+    @internal
+    pending:        GeneratedModule[]! = []
+    /// Generated files written this build, in the order they landed. The sweep
+    /// runs before the first round, so this set is authoritative for this run.
+    @internal
+    generated:      string[]! = []
     /// Entry files, in the order `add_build_file` queued them. Read by the
     /// driver loop, never written directly — the order is what makes a build
     /// reproducible, so it stays behind `add_build_file`.
@@ -192,14 +203,26 @@ export load_from_vader_config :: fn(ctx: BuildContext!) -> void {
 /// the honest default: which modules are "the project" is the driver's policy,
 /// not this function's.
 ///
+/// Every declaration is delivered exactly ONCE per queued entry, however many
+/// generation rounds that entry takes — see `TypecheckedMessage`. A module with
+/// nothing new is not yielded at all. The "once" is per ENTRY, not per build: two
+/// entries sharing a module both report it, which is already true of the stdlib.
+///
 /// Batched per file rather than streamed per declaration: Vader is
 /// single-threaded here, so the compiler fills a phase and hands it over. The
 /// loop shape is the same either way, and the order is specified rather than
 /// dependent on scheduling — which is what keeps a driven build reproducible.
 ///
+/// A driver that generates code makes the stream LOOP: the phases from
+/// `Typechecked` to `BeforeEmit` repeat once per generation round, and the back
+/// end runs only after the last one. Declarations are still delivered once each
+/// (see `emit_module`), so an observing driver cannot tell the difference.
+///
 /// @param ctx  the configured context. An empty `build_files` yields only
 ///             `CompleteMessage` — the caller reports H6003.
 /// @return     a lazy stream of messages, in pipeline order.
+/// @error      H6006 when generation never settles ; H6008 when a generated
+///             module cannot be written. Both land on `ctx.diagnostics`.
 export messages :: fn(ctx: BuildContext!) -> Iterator<Message> {
     // Configuration is read ONCE, here. Mutating `ctx.out` / `ctx.release` / …
     // after the first pull is therefore ignored uniformly, rather than honoured
@@ -216,40 +239,111 @@ export messages :: fn(ctx: BuildContext!) -> Iterator<Message> {
         yield CompleteMessage { .code = 1 }
         return
     }
+    // Generated modules of an EARLIER build would still resolve, and — file
+    // names being content hashes — a module whose text changed would sit beside
+    // its own previous version and collide with it. Swept BEFORE the first front
+    // end rather than after the last: a build that fails never reaches its own
+    // cleanup, and the guarantee that matters is about the build starting now.
+    // NOT an ordinary include path: the generated root MERGES into a module an
+    // earlier root already provided, which is what lets a driver emit into the
+    // project's own module instead of a separate one it would have to import
+    // (and could not, without a cycle).
+    generated :: generated_root_of(ctx)
+    _ :: sweep_generated(generated)
     code := 0
     for file in ctx.build_files {
         entry :: Path(join_path(ctx.project_root, file))
-
-        // Front end. The pipeline stays live from here to the end of this
-        // iteration, which is what lets the back end reuse it instead of
-        // re-running ~45% of the build.
-        pipeline :: prepare_evaluated_project_with(entry, ctx.include_paths)
-        for [_, loaded] in pipeline.loaded.modules {
-            yield TypecheckedMessage {
-                .module_name  = loaded.module.module_name,
-                .declarations = concat_file_decls(loaded.module.files),
+        // Declarations are delivered ONCE per build — the Jai property, without
+        // Jai's incremental typechecker. What is tracked is the FILE, not the
+        // module, and that precision is load-bearing: when a driver emits into a
+        // module it also inspects (the `@derive` shape — read `app`'s structs,
+        // generate into `app`), the next round re-delivers that module carrying
+        // ONLY the generated file's declarations. A lint rule over the
+        // hand-written ones therefore still fires exactly once. File paths are
+        // stable across rounds — a generated one IS its own content hash.
+        //
+        // So a driver accumulates in its own variables across rounds rather than
+        // guarding against seeing the same declaration twice.
+        delivered :: MutableSet<string> {}
+        round := 0
+        for {
+            // Front end. The pipeline stays live to the end of the round, which
+            // is what lets the back end reuse it instead of re-running ~45% of
+            // the build.
+            pipeline :: prepare_evaluated_project_with(entry, ctx.include_paths, generated)
+            for [_, loaded] in pipeline.loaded.modules {
+                fresh :: undelivered_decls(loaded.module.files, delivered)
+                // Nothing new in this module: say nothing about it at all,
+                // rather than yield an empty message a driver would have to
+                // skip.
+                if fresh.len() == 0 {
+                    continue
+                }
+                yield TypecheckedMessage {
+                    .module_name  = loaded.module.module_name,
+                    .declarations = fresh,
+                }
             }
-        }
-        yield PhaseMessage { .phase = .Typechecked }
-        yield PhaseMessage { .phase = .Evaluated }
+            yield PhaseMessage { .phase = .Typechecked }
+            yield PhaseMessage { .phase = .Evaluated }
 
-        // Last exit before anything is written. A driver that only observes
-        // leaves the loop here.
-        yield PhaseMessage { .phase = .BeforeEmit }
-        if target == .None {
-            continue
-        }
+            // Last exit before anything is written. A driver that only observes
+            // leaves the loop here — and one that generates has had every chance
+            // to call `emit_module` by now, which is why the flush FOLLOWS this
+            // yield instead of preceding it.
+            yield PhaseMessage { .phase = .BeforeEmit }
+            regenerated :: flush_generated(ctx)
+            if regenerated.len() > 0 {
+                round += 1
+                if round < MAX_GENERATION_ROUNDS {
+                    continue
+                }
+                // Not a hang — a driver whose emitted text never stabilises. The
+                // detail names what was still moving, since that is the only
+                // clue to which rule is unstable.
+                ctx.diagnostics.push(hook_error(.GenerationDidNotSettle, empty_span(),
+                    "`${join_strings(regenerated, "`, `")}` still changed after ${MAX_GENERATION_ROUNDS} rounds"))
+                code = 1
+                break
+            }
+            // Nothing moved: this is the fixed point, and the last round's
+            // pipeline is the one the back end gets.
+            if target == .None {
+                break
+            }
+            lowered :: lower_to_entry_from(pipeline)
+            yield PhaseMessage { .phase = .Lowered }
 
-        lowered :: lower_to_entry_from(pipeline)
-        yield PhaseMessage { .phase = .Lowered }
-
-        built :: emit_one(ctx, lowered, entry, target, release, cc, ldflags, out, ctx.build_files.len())
-        if built != 0 {
-            code = built
+            built :: emit_one(ctx, lowered, entry, target, release, cc, ldflags, out, ctx.build_files.len())
+            if built != 0 {
+                code = built
+            }
+            yield PhaseMessage { .phase = .OutputWritten }
+            break
         }
-        yield PhaseMessage { .phase = .OutputWritten }
     }
     yield CompleteMessage { .code = code }
+}
+
+
+// Top-level declarations of the files not yet delivered, marking them delivered
+// as it goes. Returns empty when the module has nothing new — see the delivery
+// note in `messages`.
+//
+// Filters the FILES and hands them to `concat_file_decls`, rather than
+// concatenating here: that keeps its single-file fast path, which returns the
+// file's own `decls` with no copy. Single-file modules are the common case, and
+// this runs for every module of the project on every round.
+undelivered_decls :: fn(files: SourceFile[], delivered: MutableSet<string>!) -> AST.Decl[] {
+    fresh: SourceFile[]! = []
+    for f in files {
+        if f.path in delivered {
+            continue
+        }
+        _ :: delivered.add(f.path)
+        fresh.push(f)
+    }
+    return concat_file_decls(fresh)
 }
 
 // Carry one lowered entry to its output, per `ctx.target`. Diagnostics land on

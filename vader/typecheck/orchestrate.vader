@@ -69,7 +69,10 @@ export check_file :: fn(
     include_path_flags: string[],
     dump_types: bool,
 ) -> FileCheck {
-    project :: load_project_with_overlay(entry_path, overlay, include_path_flags)
+    // No generated root: the LSP does not drive a project's `build.vader`, so it
+    // sees hand-written modules only. Teaching it to read the generated tree is
+    // a separate step (the plan's M1).
+    project :: load_project_with_overlay(entry_path, overlay, include_path_flags, "")
     diags: Diagnostic[]! = []
     result :: check_project_with_bodies(project, diags, dump_types)
     return FileCheck {

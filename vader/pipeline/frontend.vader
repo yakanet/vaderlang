@@ -35,12 +35,15 @@ export EvaluatedPipeline :: struct {
     comptime_diags:  Diagnostic[]
 }
 
-export prepare_evaluated_project :: fn(file: Path) -> EvaluatedPipeline = prepare_evaluated_project_with(file, [])
+export prepare_evaluated_project :: fn(file: Path) -> EvaluatedPipeline =
+    prepare_evaluated_project_with(file, [], "")
 
 // Like `prepare_evaluated_project`, with extra `--include-paths` search roots
 // threaded to the loader (build / run honour the flag ; dump stages use [] via
 // the no-flag wrapper above).
-export prepare_evaluated_project_with :: fn(file: Path, include_path_flags: string[]) -> EvaluatedPipeline {
+export prepare_evaluated_project_with :: fn(
+    file: Path, include_path_flags: string[], generated_root: string,
+) -> EvaluatedPipeline {
     // Per-pass profiling brackets (here + in lower_to_entry_with /
     // prepare_cfg_bytecode_with / emit_c_source). `prof_begin` / `prof_end` are
     // no-ops — one cached env check + early return — unless $VADER_PROFILE is
@@ -50,7 +53,11 @@ export prepare_evaluated_project_with :: fn(file: Path, include_path_flags: stri
     // never read the clock when off and never touch the emitted output. See
     // vader/profile.
     Prof.prof_begin(Prof.PHASE_LOAD)
-    loaded :: load_project(file.as_string(), include_path_flags)
+    // `load_project_with_overlay` rather than `load_project`: the generated root
+    // is the one thing the two-argument convenience does not carry, and only the
+    // front end ever has one. The empty overlay is what `load_project` passes too.
+    loaded :: load_project_with_overlay(
+        file.as_string(), MutableMap<string, string> {}, include_path_flags, generated_root)
     Prof.prof_end(Prof.PHASE_LOAD)
     typecheck_diags: Diagnostic[]! = []
     Prof.prof_begin(Prof.PHASE_TYPECHECK)

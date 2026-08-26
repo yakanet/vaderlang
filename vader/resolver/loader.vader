@@ -80,7 +80,7 @@ export LoadedModule :: struct {
 /// project ; callers feed it to `resolve_project` / `check_project`.
 /// Reads every module from disk.
 export load_project :: fn(entry_path: string, include_path_flags: string[]) -> LoadedProject {
-    return load_project_with_overlay(entry_path, MutableMap<string, string> {}, include_path_flags)
+    return load_project_with_overlay(entry_path, MutableMap<string, string> {}, include_path_flags, "")
 }
 
 /// Like `load_project`, but consults an in-memory `overlay` (filesystem path
@@ -97,10 +97,17 @@ export load_project :: fn(entry_path: string, include_path_flags: string[]) -> L
 /// bucketed by the stale on-disk header. Threading the overlay into discovery
 /// (both the dir enumeration and the header read) is a follow-up.
 ///
-/// @param entry_path  the entry file's path.
-/// @param overlay     filesystem path → current source text ; consulted
-///                    before the disk in `parse_module_files`.
-export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<string, string>, include_path_flags: string[]) -> LoadedProject {
+/// @param entry_path      the entry file's path.
+/// @param overlay         filesystem path → current source text ; consulted
+///                        before the disk in `parse_module_files`.
+/// @param generated_root  root holding a build driver's generated modules, or ""
+///                        when nothing generates. Unlike an ordinary include path
+///                        it MERGES into a module an earlier root already
+///                        provided — see `lazy::IncludePath.merge`.
+export load_project_with_overlay :: fn(
+    entry_path: string, overlay: MutableMap<string, string>,
+    include_path_flags: string[], generated_root: string,
+) -> LoadedProject {
     factory :: SymbolFactory {}
     // ONE node-id factory for the whole project so AST node ids are globally
     // unique across modules (see `parse_module_files`). Threaded into every
@@ -134,7 +141,7 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
     // binary-adjacent stdlib default ; GCC `-I` style, first match wins).
     index: MutableMap<string, DiscoveredModule> = MutableMap<string, DiscoveredModule> {}
 
-    entry_module :: seed_entry(entry_folder, index, loader_diags)
+    entry_module :: seed_entry(entry_folder, loader_diags)
     match entry_module {
         is null -> {
             loader_diags.push(resolver_error(.ModuleNotFound, zero_span(entry),
@@ -145,8 +152,16 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
             }
         }
         is DiscoveredModule as em -> {
-            bases :: include_paths(em.name, em.folder, plain_roots)
-            queue: DiscoveredModule[]! = [em]
+            bases :: include_paths(em.name, em.folder, plain_roots, generated_root)
+            // Re-resolve the entry through the generic path now that the roots
+            // exist. `paths[0]` is the entry's own folder rooted at its declared
+            // name, so this finds the same primary — and then applies the merge
+            // rule, so a generated file can join the ENTRY module without
+            // `seed_entry` re-implementing the rule. Falls back to the discovered
+            // module if resolution somehow misses, which it cannot: `paths[0]`
+            // matches by construction.
+            entry_resolved :: resolve_lazy(em.name, bases, index, loader_diags) ?? em
+            queue: DiscoveredModule[]! = [entry_resolved]
             core :: resolve_lazy("std/core", bases, index, loader_diags)
             match core {
                 is DiscoveredModule as cm -> {

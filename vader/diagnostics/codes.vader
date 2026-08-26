@@ -271,6 +271,9 @@ export HookCode :: enum(u8) {
     NoBuildFiles,                           // H6003
     HookReport,                             // H6004
     AmbiguousOutput,                        // H6005
+    GenerationDidNotSettle,                 // H6006
+    InvalidGeneratedModuleName,             // H6007
+    GeneratedModuleNotWritten,              // H6008
 }
 
 export CodeInfo :: struct {
@@ -284,6 +287,9 @@ export hook_info :: fn(c: HookCode) = match c {
     .NoBuildFiles               -> CodeInfo { .id = "H6003", .message = "the build driver queued no entry file" }
     .HookReport                 -> CodeInfo { .id = "H6004", .message = "build driver reported a problem" }
     .AmbiguousOutput            -> CodeInfo { .id = "H6005", .message = "one output name for several entries" }
+    .GenerationDidNotSettle     -> CodeInfo { .id = "H6006", .message = "code generation did not reach a fixed point" }
+    .InvalidGeneratedModuleName -> CodeInfo { .id = "H6007", .message = "invalid generated module name" }
+    .GeneratedModuleNotWritten  -> CodeInfo { .id = "H6008", .message = "cannot write a generated module" }
 }
 
 export lexer_info :: fn(c: LexerCode) = match c {

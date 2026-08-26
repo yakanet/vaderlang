@@ -1,0 +1,103 @@
+// A driver that WRITES code, not just observes it — in both shapes.
+//
+// For each struct in the project it emits:
+//   * `gen/describe`, a module of its own that `src/main.vader` imports;
+//   * a file that joins `app`, the entry module itself, which is what lets the
+//     generated code take `Point` BY TYPE (no import either way, so no cycle).
+//
+// The compiler materialises both under `build/generated/`, treats that root as a
+// MERGE root (it extends `app` rather than shadowing it), and runs the front end
+// again — so generated code is loaded and typechecked like any other.
+//
+// The driver is idempotent by construction: it emits the same text every round,
+// which lands at the same content-addressed path, so the second round changes
+// nothing and the build settles.
+
+module "build"
+
+import "std/io"
+import "std/string_builder"
+import "vader/hooks"
+AST :: import "vader/parser"
+
+build :: fn(args: string[]) -> i32 {
+    ctx :: new_build_context(args)
+    ctx.add_build_file("src/main.vader")
+    ctx.out = "app"
+
+    rounds := 0
+    exit   := 0
+    // Counters printed at the end. `points` is the one that matters: the driver
+    // emits INTO `app`, so `app` is delivered again next round — but carrying
+    // only the generated file's declarations, so the struct is seen ONCE. That is
+    // what keeps a lint rule from firing twice.
+    points   := 0
+    generated_decls := 0
+    for msg in ctx.messages() {
+        if msg is TypecheckedMessage as t {
+            if t.module_name != "app" && t.module_name != "gen/describe" {
+                continue
+            }
+            for d in t.declarations {
+                if d is AST.StructDecl as s {
+                    points += 1
+                    ctx.emit_module("gen/describe", render_standalone(s))
+                    ctx.emit_module("app", render_in_module(s))
+                }
+                if d is AST.FnDecl as f {
+                    // Only generated code declares fns in these two modules
+                    // besides `main`, so this counts what came back.
+                    if f.name != "main" {
+                        generated_decls += 1
+                    }
+                }
+            }
+        }
+        if msg is PhaseMessage as p {
+            if p.phase == .Typechecked {
+                rounds += 1
+            }
+        }
+        if msg is CompleteMessage as c {
+            exit = c.code
+        }
+    }
+
+    println("driver: ${rounds} round(s), ${ctx.generated_files_of().len()} generated file(s)")
+    println("driver: struct seen ${points}x, generated decls back ${generated_decls}")
+    if ctx.flush_reports() {
+        return 1
+    }
+    return exit
+}
+
+// A module of its own: it cannot name `Point`, so it reports field names as text.
+render_standalone :: fn(s: AST.StructDecl) -> string {
+    out :: StringBuilder {}
+    out.append("/// Generated from `${s.name}` by this project's build driver.\n")
+    out.append("export describe_${s.name} :: fn() -> string = \"${s.name}(")
+    for i in 0..<s.fields.len() {
+        if i > 0 {
+            out.append(", ")
+        }
+        out.append(s.fields[i].name)
+    }
+    out.append(")\"\n")
+    return out.to_string()
+}
+
+// Inside the struct's OWN module: it can take the struct by type and read its
+// fields. No `export` — a module sibling needs none.
+render_in_module :: fn(s: AST.StructDecl) -> string {
+    out :: StringBuilder {}
+    out.append("/// Generated from `${s.name}`, into its own module.\n")
+    out.append("describe :: fn(p: ${s.name}) -> string = \"${s.name} = ")
+    for i in 0..<s.fields.len() {
+        if i > 0 {
+            out.append(" + ")
+        }
+        out.append("\${p.${s.fields[i].name}}")
+    }
+    out.append("\"\n")
+    return out.to_string()
+}
