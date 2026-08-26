@@ -1,0 +1,49 @@
+# Typecheck
+
+## tests/snippets/_diag_in_forward_const_array
+  FnDecl         first_numeric        :: fn() -> string
+  FnDecl         kind                 :: fn(string) -> string
+  ConstDecl      LIMIT                :: i32
+  FnDecl         limit                :: fn() -> i32
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      NAMES                :: string[]
+  ConstDecl      NUMERIC              :: string[]
+  expr 51:16    IdentExpr      :: ?
+  expr 51:5     IfExpr         :: void
+  expr 51:8     BinaryExpr     :: bool
+  expr 51:8     IdentExpr      :: string
+  expr 52:16    StringLitExpr  :: string
+  expr 54:16    IdentExpr      :: ?
+  expr 54:5     IfExpr         :: void
+  expr 54:8     BinaryExpr     :: bool
+  expr 54:8     IdentExpr      :: string
+  expr 55:16    StringLitExpr  :: string
+  expr 57:12    StringLitExpr  :: string
+  expr 61:35    IdentExpr      :: ?
+  expr 61:35    IndexExpr      :: ?
+  expr 62:32    IdentExpr      :: ?
+  expr 65:12    SeqLitExpr     :: string[]!
+  expr 65:13    StringLitExpr  :: string
+  expr 65:20    StringLitExpr  :: string
+  expr 66:12    SeqLitExpr     :: string[]!
+  expr 66:13    StringLitExpr  :: string
+  expr 66:22    StringLitExpr  :: string
+  expr 70:13    StringLitExpr  :: string
+  expr 70:16    CallExpr       :: string
+  expr 70:16    IdentExpr      :: fn() -> string
+  expr 70:35    CallExpr       :: i32
+  expr 70:35    IdentExpr      :: fn() -> i32
+  expr 70:5     CallExpr       :: void
+  expr 70:5     IdentExpr      :: fn(T) -> void
+  expr 72:13    StringLitExpr  :: string
+  expr 72:16    CallExpr       :: string
+  expr 72:16    IdentExpr      :: fn(string) -> string
+  expr 72:21    StringLitExpr  :: string
+  expr 72:31    CallExpr       :: string
+  expr 72:31    IdentExpr      :: fn(string) -> string
+  expr 72:36    StringLitExpr  :: string
+  expr 72:48    CallExpr       :: string
+  expr 72:48    IdentExpr      :: fn(string) -> string
+  expr 72:5     CallExpr       :: void
+  expr 72:5     IdentExpr      :: fn(T) -> void
+  expr 72:53    StringLitExpr  :: string

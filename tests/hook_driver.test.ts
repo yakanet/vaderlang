@@ -22,6 +22,7 @@ const CLI = resolve(CLI_BIN);
 const FIXTURES = "tests/hook_fixtures";
 const LINT = `${FIXTURES}/pascal_case_lint`;
 const GENERATE = `${FIXTURES}/generate_module`;
+const JSON_DERIVE = `${FIXTURES}/json_derive`;
 
 // A driven build needs `stdlib/`, `runtime/c/` and `vader/` reachable from the
 // project: the first two because the compiler resolves them beside the binary or
@@ -99,6 +100,52 @@ afterAll(() => {
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+// The first real CLIENT of generation, so it gets its own shared build — same
+// reasoning and same three hazards as `lintBuild`; these tests only read.
+let sharedJson: Promise<{ out: string; exit: number; dir: string }> | null = null;
+
+function jsonBuild() {
+  if (sharedJson === null) {
+    sharedJson = runIn(JSON_DERIVE, ["build"]);
+  }
+  return sharedJson;
+}
+
+test("a driver derives JSON serialisers from the structs' field types", async () => {
+  // The dogfood test: no `to_json` exists anywhere in the fixture's tree. The
+  // driver walked each struct's FIELD TYPES and wrote one serialiser per struct,
+  // and the assertion is the running binary's output — so the generated code is
+  // proven correct, not merely proven to compile.
+  const { out, exit, dir } = await jsonBuild();
+  expect(out).not.toContain("error[");
+  expect(exit).toBe(0);
+
+  const ran = Bun.spawn([`${dir}/app`], { stdout: "pipe", stderr: "pipe" });
+  const [ranOut, ranExit] = await Promise.all([new Response(ran.stdout).text(), ran.exited]);
+  expect(ranExit).toBe(0);
+  // Every mapping the generator makes, in one line: a string with a quote in it
+  // (escaped by `std/json`, not by hand), an i32 as a bare number, a bool, a
+  // NESTED struct recursed through its own generated overload, and an array.
+  expect(ranOut.trim()).toBe(
+    '{"name":"A\\"B","age":41,"active":true,"home":{"city":"Lyon","zip":69001},"tags":["x","y"]}');
+}, LONG_BUILD);
+
+test("the derived serialisers are overloads in the struct's own module", async () => {
+  // Why they must live there: `to_json_value(v: Person)` names `Person`. A
+  // separate module could not — it would have to import `app`, which imports it.
+  // And one module holds one serialiser per struct because they are overloads on
+  // the parameter type.
+  const { dir } = await jsonBuild();
+  const files = readdirSync(`${dir}/build/generated/app`);
+  expect(files.length).toBe(1);
+  const text = readFileSync(`${dir}/build/generated/app/${files[0]}`, "utf8");
+  expect(text).toContain('module "app"');
+  expect(text).toContain("to_json_value :: fn(v: Address)");
+  expect(text).toContain("to_json_value :: fn(v: Person)");
+  // The nested field recursed rather than being skipped or stringified.
+  expect(text).toContain('entries["home"] = to_json_value(v.home)');
+}, LONG_BUILD);
 
 function generatedFiles(dir: string, module = "gen/describe") {
   return readdirSync(`${dir}/build/generated/${module}`);

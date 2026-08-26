@@ -1,0 +1,150 @@
+// The first real client of the generation mechanism: a JSON serialiser derived
+// from each struct's field TYPES.
+//
+// Selection is the driver's, not the language's: every struct of the modules
+// listed in `DERIVED_MODULES` gets a serialiser. No decorator is involved — the
+// compiler's decorator whitelist is closed (R2010), and opening it is a language
+// decision that this client is meant to inform rather than presuppose.
+//
+// The code is emitted INTO the struct's own module, which is what lets it name
+// the type. An imported module could not: it would have to import `app` back,
+// and `app` imports it — a cycle.
+
+module "build"
+
+import "std/io"
+import "std/string_builder"
+import "vader/hooks"
+AST :: import "vader/parser"
+
+/// Modules whose structs get a serialiser.
+DERIVED_MODULES :: ["app"]
+
+// Declared BEFORE its use on purpose: `x in CONST` mis-compiles when the const
+// array is declared later in the file — a silent wrong-code bug, reproduced at
+// tests/snippets/_diag_in_forward_const_array/.
+NUMERIC_TYPES :: [
+    "i8", "i16", "i32", "i64", "isize",
+    "u8", "u16", "u32", "u64", "usize",
+    "f32", "f64",
+]
+
+build :: fn(args: string[]) -> i32 {
+    ctx :: new_build_context(args)
+    ctx.add_build_file("src/main.vader")
+    ctx.out = "app"
+
+    exit := 0
+    for msg in ctx.messages() {
+        if msg is TypecheckedMessage as t {
+            if !(t.module_name in DERIVED_MODULES) {
+                continue
+            }
+            derive_module(ctx, t)
+        }
+        if msg is CompleteMessage as c {
+            exit = c.code
+        }
+    }
+
+    if ctx.flush_reports() {
+        return 1
+    }
+    return exit
+}
+
+// Two passes over one module's declarations: collect the struct names first, so a
+// field whose type is a sibling struct is recognised as one however the file
+// orders them, then render.
+derive_module :: fn(ctx: BuildContext!, t: TypecheckedMessage) -> void {
+    structs: AST.StructDecl[]! = []
+    for d in t.declarations {
+        if d is AST.StructDecl as s {
+            structs.push(s)
+        }
+    }
+    if structs.len() == 0 {
+        return
+    }
+    names: string[]! = []
+    for s in structs {
+        names.push(s.name)
+    }
+    out :: StringBuilder {}
+    out.append("import \"std/collections\"\n")
+    out.append("J :: import \"std/json\"\n")
+    for s in structs {
+        render_struct(ctx, out, s, names)
+    }
+    ctx.emit_module(t.module_name, out.to_string())
+}
+
+// One `to_json_value` + one `to_json` per struct. They are overloads on the
+// parameter type, which is what lets a module hold a serialiser per struct.
+render_struct :: fn(
+    ctx: BuildContext!, out: StringBuilder!, s: AST.StructDecl, siblings: string[],
+) -> void {
+    out.append("\n/// Generated from `${s.name}` by this project's build driver.\n")
+    out.append("to_json_value :: fn(v: ${s.name}) -> J.JsonValue {\n")
+    out.append("    entries :: MutableMap<string, J.JsonValue> {}\n")
+    for f in s.fields {
+        rendered :: render_field(ctx, f, siblings)
+        if rendered == "" {
+            continue
+        }
+        out.append(rendered)
+    }
+    out.append("    return J.JsonObject { .entries = entries }\n")
+    out.append("}\n")
+    out.append("\n/// JSON text for a `${s.name}`.\n")
+    out.append("to_json :: fn(v: ${s.name}) -> string = J.stringify(to_json_value(v))\n")
+}
+
+// The statements that put one field into `entries`, or "" when the field's type
+// has no JSON mapping — reported against the field, so the user sees which one.
+render_field :: fn(ctx: BuildContext!, f: AST.StructField, siblings: string[]) -> string {
+    access :: "v.${f.name}"
+    scalar :: scalar_value(f.ty, access, siblings)
+    if scalar != "" {
+        return "    entries[\"${f.name}\"] = ${scalar}\n"
+    }
+    if f.ty is AST.ArrayTypeExpr as arr {
+        element :: scalar_value(arr.element, "element", siblings)
+        if element != "" {
+            items :: "items_${f.name}"
+            body :: StringBuilder {}
+            body.append("    ${items}: J.JsonValue[]! = []\n")
+            body.append("    for element in ${access} {\n")
+            body.append("        ${items}.push(${element})\n")
+            body.append("    }\n")
+            body.append("    entries[\"${f.name}\"] = J.JsonArray { .items = ${items} }\n")
+            return body.to_string()
+        }
+    }
+    ctx.report(f.span, "field `${f.name}` has no JSON mapping — skipped by the derived serialiser")
+    return ""
+}
+
+// The `JsonValue` expression for a value of type `ty`, or "" when there is none.
+// Numbers go through `f64`, which is what `JsonNumber` carries; `stringify`
+// prints an integral one without a decimal point.
+scalar_value :: fn(ty: AST.TypeExpr, access: string, siblings: string[]) -> string {
+    if ty is AST.IdentExpr as id {
+        if id.name in NUMERIC_TYPES {
+            return "J.JsonNumber { .value = f64(${access}) }"
+        }
+        if id.name == "string" {
+            return "J.JsonString { .value = ${access} }"
+        }
+        if id.name == "bool" {
+            return "J.JsonBool { .value = ${access} }"
+        }
+        // A sibling struct: recurse through its own generated serialiser. Only a
+        // struct the driver actually saw — anything else would not compile, and a
+        // report is better than emitting code that fails against the user.
+        if id.name in siblings {
+            return "to_json_value(${access})"
+        }
+    }
+    return ""
+}

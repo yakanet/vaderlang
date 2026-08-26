@@ -1,0 +1,36 @@
+// A project whose JSON serialisers are written by its own build driver.
+//
+// There is no `to_json` anywhere in this tree: `build.vader` reads the typed
+// declarations, walks each struct's FIELD TYPES, and generates one serialiser per
+// struct into the struct's own module. So `to_json` below resolves to generated
+// code — and it can take `Person` by type because the generated file is a module
+// sibling, not an imported module.
+
+module "app"
+
+import "std/io"
+
+Address :: struct {
+    city: string
+    zip:  i32
+}
+
+Person :: struct {
+    name:   string
+    age:    i32
+    active: bool
+    home:   Address
+    tags:   string[]
+}
+
+main :: fn() -> i32 {
+    p :: Person {
+        .name   = "A\"B",
+        .age    = 41,
+        .active = true,
+        .home   = Address { .city = "Lyon", .zip = 69001 },
+        .tags   = ["x", "y"],
+    }
+    println(to_json(p))
+    return 0
+}
