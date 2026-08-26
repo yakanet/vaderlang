@@ -32,6 +32,8 @@ import "std/io"
 import "std/path"
 import "std/string_builder"
 import "std/process"
+import "vader/diagnostics"
+AST :: import "vader/parser"
 import "vader/resolver"
 
 // ---- discovery ------------------------------------------------------------
@@ -117,6 +119,69 @@ export render_driver_entry :: fn() -> string {
 export driver_entry_path :: fn(root: string) -> string =
     join_path(root, DRIVER_ENTRY_FILENAME)
 
+// ---- validation -----------------------------------------------------------
+
+/// Check that a driver file declares a usable `build`, before anything is built.
+///
+/// Without this the failure surfaces as a compile error inside the GENERATED
+/// entry — pointing at machine-written code for a mistake in the user's file.
+/// Parsing the driver first costs one parse and lets the diagnostic land on the
+/// driver itself, or on nothing at all when the fn is simply absent.
+///
+/// Parse errors are left alone: the real build reports them against the driver
+/// with full spans, and duplicating them here would double every message.
+///
+/// @param path  the driver file, already known to exist.
+/// @return      the diagnostic to report, or `null` when the driver is usable.
+/// @error       H6001 when no `build` fn is declared ; H6002 when one is declared
+///              with a signature the generated entry cannot call.
+export validate_driver :: fn(path: string) -> Diagnostic | null {
+    source :: match read_file_string(path) {
+        is string as s -> s
+        is IOError     -> ""
+    }
+    if source == "" {
+        return null
+    }
+    parsed :: AST.parse_source(source, path)
+    if parsed.errors.len() > 0 {
+        return null
+    }
+    for d in parsed.program.decls {
+        if d is AST.FnDecl as f {
+            if f.name == DRIVER_MODULE_ENTRY {
+                return signature_problem(f)
+            }
+        }
+    }
+    // Anchor on the file's first character: there is no declaration to point at,
+    // and `empty_span()` would render as `<synthetic>`, naming no file at all.
+    return hook_error(.MissingBuildEntry, file_head_span(path),
+        "add `${DRIVER_MODULE_ENTRY} :: fn(args: string[]) -> void`")
+}
+
+// A span at the head of `path` — for a problem that is about the file itself
+// rather than about anything written in it.
+file_head_span :: fn(path: string) -> Span {
+    at :: Position { .file = path, .offset = 0, .line = 1, .column = 1 }
+    return Span { .start = at, .end = at }
+}
+
+/// Name of the fn a driver file must declare — reserved, the way `main` is.
+export DRIVER_MODULE_ENTRY :: "build"
+
+// The generated entry calls `build(args)` and ignores its result, so the one
+// shape that has to hold is a single parameter. A wrong arity is caught here;
+// a wrong parameter TYPE is left to the typechecker, which names the expected
+// and actual types better than this could.
+signature_problem :: fn(f: AST.FnDecl) -> Diagnostic | null {
+    if f.params.len() != 1 {
+        return hook_error(.InvalidBuildEntrySignature, f.name_span,
+            "`${DRIVER_MODULE_ENTRY}` takes one parameter, `args: string[]`, and got ${f.params.len()}")
+    }
+    return null
+}
+
 // ---- running the driver ---------------------------------------------------
 
 /// Compile the project's driver and run it.
@@ -136,6 +201,13 @@ export driver_entry_path :: fn(root: string) -> string =
 /// @error          H6001 when the driver declares no `build` — surfaced as a
 ///                 compile error on the generated entry's call to it.
 export run_build_driver :: fn(root: string, cc: string, ldflags: string, units: i32) -> i32 {
+    driver :: find_build_driver(root) ?? return 1
+    problem :: validate_driver(driver)
+    if problem is Diagnostic as d {
+        eprintln(dump_diagnostics_with_file([d]))
+        return 1
+    }
+
     entry :: driver_entry_path(root)
     written :: write_file_string(entry, render_driver_entry())
     if written is IOError as e {
@@ -213,4 +285,39 @@ import "std/testing"
     root :: compiler_source_root("/some-project")
     assert(root == "/some-project" || exists(join_path(root, "vader/hooks")),
         "either the fallback root, or a real sidecar layout")
+}
+
+@test test_validate_driver_missing_build :: fn() -> void {
+    // A driver with no `build` must be caught before anything is generated.
+    path :: join_path(temp_dir(), "vader_driver_probe_missing.vader")
+    _ :: write_file_string(path, "module \"build\"\n\nother :: fn() -> void {}\n")
+    problem :: validate_driver(path)
+    assert(problem is Diagnostic, "a driver without `build` is a problem")
+    if problem is Diagnostic as d {
+        assert_eq(d.code.id, "H6001")
+    }
+}
+
+@test test_validate_driver_wrong_arity :: fn() -> void {
+    path :: join_path(temp_dir(), "vader_driver_probe_arity.vader")
+    _ :: write_file_string(path, "module \"build\"\n\nbuild :: fn() -> void {}\n")
+    problem :: validate_driver(path)
+    assert(problem is Diagnostic, "a nullary `build` cannot be called by the entry")
+    if problem is Diagnostic as d {
+        assert_eq(d.code.id, "H6002")
+    }
+}
+
+@test test_validate_driver_accepts_the_expected_shape :: fn() -> void {
+    path :: join_path(temp_dir(), "vader_driver_probe_ok.vader")
+    _ :: write_file_string(path, "module \"build\"\n\nbuild :: fn(args: string[]) -> void {}\n")
+    assert(validate_driver(path) == null, "the documented shape validates")
+}
+
+@test test_validate_driver_stays_quiet_on_parse_errors :: fn() -> void {
+    // The real build reports these against the driver with full spans; saying
+    // it twice would double every message.
+    path :: join_path(temp_dir(), "vader_driver_probe_broken.vader")
+    _ :: write_file_string(path, "module \"build\"\n\nbuild :: fn(args: string[]) -> void { (((\n")
+    assert(validate_driver(path) == null, "parse errors are left to the real build")
 }
