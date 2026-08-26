@@ -14,6 +14,11 @@ export const CLI_BIN = `build/vader${process.platform === "win32" ? ".exe" : ""}
 // Per-test timeout budgets shared across the CLI / VM / format suites.
 export const MEDIUM_BUILD = 30_000;
 export const LONG_BUILD = 120_000;
+// For a test that compiles a driver it cannot share with any other test. A driver
+// compile pulls the whole `vader/` closure at -O0 — the same order of work as the
+// CI step that builds the CLI from the seed, which takes 3-4 minutes on a runner.
+// 11 s locally, past 120 s there.
+export const HEAVY_BUILD = 300_000;
 
 // Newest mtime across the .vader sources the compiler is built from. src/ (the
 // TS compiler) is intentionally excluded — the binary is produced from these

@@ -12,9 +12,9 @@
 
 import { test, expect, afterAll } from "bun:test";
 import { rmSync, writeFileSync, readFileSync, readdirSync, mkdirSync, cpSync, mkdtempSync, symlinkSync, existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { basename, resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { ensureCliBuilt, CLI_BIN, LONG_BUILD } from "./cli-bin.ts";
+import { ensureCliBuilt, CLI_BIN, LONG_BUILD, HEAVY_BUILD } from "./cli-bin.ts";
 
 ensureCliBuilt();
 
@@ -58,14 +58,22 @@ function stageBundle(): string {
   const dir = mkdtempSync(`${tmpdir()}/vader-bundle-`);
   mkdirSync(`${dir}/runtime`);
   mkdirSync(`${dir}/lib`);
-  cpSync(CLI, `${dir}/vader`);
+  // Keep the platform's executable NAME: on Windows it is `vader.exe`, and a
+  // bundle holding a `vader` cannot be spawned (`ENOENT` from `uv_spawn`).
+  const exe = `${dir}/${basename(CLI_BIN)}`;
+  cpSync(CLI, exe);
   if (process.platform === "darwin") {
-    Bun.spawnSync(["codesign", "-s", "-", `${dir}/vader`]);
+    Bun.spawnSync(["codesign", "-s", "-", exe]);
   }
   symlinkSync(`${REPO}/stdlib`, `${dir}/stdlib`);
   symlinkSync(`${REPO}/runtime/c`, `${dir}/runtime/c`);
   symlinkSync(`${REPO}/vader`, `${dir}/lib/vader`);
   return dir;
+}
+
+// The bundle's own executable, by the platform's name for it.
+function bundleExe(bundle: string): string {
+  return `${bundle}/${basename(CLI_BIN)}`;
 }
 
 test("a bundle drives a build with nothing beside the project", async () => {
@@ -83,7 +91,7 @@ test("a bundle drives a build with nothing beside the project", async () => {
   cpSync(JSON_DERIVE, dir, { recursive: true });
   expect(readdirSync(dir).sort()).toEqual(["build.vader", "src"]);
 
-  const proc = Bun.spawn([`${bundle}/vader`, "build"], { cwd: dir, stdout: "pipe", stderr: "pipe" });
+  const proc = Bun.spawn([bundleExe(bundle), "build"], { cwd: dir, stdout: "pipe", stderr: "pipe" });
   const [err, exit] = await Promise.all([new Response(proc.stderr).text(), proc.exited]);
   expect(err).not.toContain("R2001");
   expect(err).not.toContain("error[");
@@ -92,7 +100,7 @@ test("a bundle drives a build with nothing beside the project", async () => {
   const ran = Bun.spawn([`${dir}/app`], { stdout: "pipe", stderr: "pipe" });
   const [ranOut] = await Promise.all([new Response(ran.stdout).text(), ran.exited]);
   expect(ranOut).toContain('"home":{"city":"Lyon","zip":69001}');
-}, LONG_BUILD);
+}, HEAVY_BUILD);
 
 async function runIn(fixture: string, args: string[]) {
   const dir = stage(fixture);
