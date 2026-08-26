@@ -1,0 +1,6 @@
+# stdout
+i32 42
+# stderr
+vader vm: local.set on empty stack at pc=35 in 'snippet$main'
+# exit
+1
