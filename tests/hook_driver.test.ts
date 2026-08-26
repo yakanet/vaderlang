@@ -123,6 +123,14 @@ test("a `build` of the wrong arity is rejected as H6002", async () => {
   }
 }, LONG_BUILD);
 
+test("a driver that queues nothing is reported as H6003", async () => {
+  // Draining an empty stream used to finish cleanly: a build that compiled
+  // nothing while reporting no problem.
+  const { out } = await runIn(`${FIXTURES}/no_entry_queued`, ["build"]);
+  expect(out).toContain("H6003");
+  expect(out).toContain("add_build_file");
+}, LONG_BUILD);
+
 test("`vader build` without a driver still asks for a file", async () => {
   // The default path must be untouched: no `build.vader` in this fixture, so the
   // CLI keeps its own error — now naming the driver as a third option.

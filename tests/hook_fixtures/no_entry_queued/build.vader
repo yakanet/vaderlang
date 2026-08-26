@@ -1,0 +1,13 @@
+// A driver that configures nothing: it drains `messages()` without ever calling
+// `add_build_file`. The compiler must say so (H6003) rather than finish cleanly
+// having compiled nothing.
+
+module "build"
+
+import "vader/hooks"
+
+build :: fn(args: string[]) -> void {
+    ctx :: new_build_context(args)
+    for _ in ctx.messages() {}
+    _ :: ctx.flush_reports()
+}
