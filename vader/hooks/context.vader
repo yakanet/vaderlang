@@ -1,0 +1,185 @@
+// vader/hooks/context — the build-driver contract.
+//
+// `vader/hooks` is the ONE module a project's `build.vader` imports; everything
+// else under `vader/` is compiler implementation. A driver builds a context,
+// configures it, then pulls `messages()` to drive the compilation:
+//
+//     module "build"
+//
+//     import "vader/hooks"
+//
+//     build :: fn(args: string[]) -> void {
+//         ctx :: new_build_context(args)
+//         ctx.load_from_vader_config()
+//         ctx.add_build_file("src/main.vader")
+//         for msg in ctx.messages() { … }
+//     }
+//
+// `build` is a reserved name in `build.vader`, the way `main` is in a program —
+// no decorator is involved. The driver is compiled and run NATIVELY, not through
+// the comptime VM: it reads the compiler's own AST nodes, and the VM has its own
+// value representation (per-module type indices and atom ids), which no shared
+// layout can reconcile. See
+// `.claude/plans/2026-08-26-metacompilation-hook.md` §4 and §11.
+
+module "vader/hooks"
+
+import "vader/resolver"
+
+// ---- context --------------------------------------------------------------
+
+/// Everything a build driver configures, plus the entry files it queues.
+///
+/// A driver mutates this in place, so it takes `BuildContext!` wherever it is
+/// threaded. The fields carry what `vader.json` and the `vader build` flags
+/// carry today; a driver that sets them is authoritative — the manifest is only
+/// consulted when it asks, via `load_from_vader_config`.
+export BuildContext :: struct {
+    /// Project root as the compiler resolved it: the folder holding
+    /// `vader.json`, or the invocation folder when the project has no manifest.
+    /// NOT guaranteed absolute — the stdlib exposes no `cwd()`, so this is
+    /// whatever the compiler passed, which may be relative to the invocation
+    /// directory. Join onto it rather than assuming a prefix.
+    project_root:   string
+    /// Module search roots, GCC `-I` style, highest precedence first. Left
+    /// empty by `new_build_context` — a driver either fills it or calls
+    /// `load_from_vader_config`.
+    include_paths:  string[]!
+    /// Where generated modules land, relative to `project_root`.
+    generated_root: string
+    /// Entry files, in the order `add_build_file` queued them. Read by the
+    /// driver loop, never written directly — the order is what makes a build
+    /// reproducible, so it stays behind `add_build_file`.
+    @internal
+    build_files:    string[]! = []
+}
+
+/// Default location of generated modules, relative to the project root.
+///
+/// Gitignored by convention (`build/` already is): the generated tree is a
+/// build artefact, reproducible from the driver plus the sources it reads.
+export DEFAULT_GENERATED_ROOT :: "build/generated"
+
+/// Build a context carrying the defaults a driver would otherwise restate.
+///
+/// The project root comes from `args`, not from the process working directory:
+/// the stdlib exposes no `cwd()` (`std/env` has only `get_env`, and the C runtime
+/// no `getcwd`), so threading it is the only way a driver can know where it is.
+/// The compiler passes the root it resolved as `args[1]`; invoked bare, the root
+/// is left empty rather than guessed.
+///
+/// @param args  the driver's argv. `args[0]` is the driver binary, `args[1]`
+///              the project root when the compiler supplied one.
+/// @return      a context with `project_root` set (empty when `args` carried
+///              none), no include paths, and `generated_root` at
+///              `DEFAULT_GENERATED_ROOT`.
+export new_build_context :: fn(args: string[]) -> BuildContext = BuildContext {
+    .project_root   = project_root_from(args),
+    .include_paths  = [],
+    .generated_root = DEFAULT_GENERATED_ROOT,
+}
+
+// Project root as `args` reports it, falling back to the empty string when the
+// driver was invoked bare. An empty root is not an error here — a driver may set
+// `project_root` itself; the compiler reports H6xxx when the build starts with
+// no usable root.
+project_root_from :: fn(args: string[]) -> string {
+    if args.len() >= 2 {
+        return args[1]
+    }
+    return ""
+}
+
+// ---- configuration --------------------------------------------------------
+
+/// Queue an entry file for compilation.
+///
+/// Order is preserved and load-bearing: it fixes the order modules are read,
+/// and therefore symbol-id assignment, which is what keeps a build byte-identical
+/// across runs.
+///
+/// @param ctx   the context being configured.
+/// @param path  entry `.vader` file, relative to `project_root`.
+export add_build_file :: fn(ctx: BuildContext!, path: string) -> void {
+    ctx.build_files.push(path)
+}
+
+/// Entry files queued so far, in order.
+///
+/// @return the queued paths — empty when the driver has queued none, which the
+///         compiler surfaces as an error rather than compiling nothing.
+export build_files_of :: fn(ctx: BuildContext) -> string[] = ctx.build_files
+
+/// Refill `include_paths` from the project `vader.json`.
+///
+/// A convenience for projects that keep a manifest — never a prerequisite. A
+/// driver that sets `include_paths` itself has no reason to call this, and a
+/// project without a manifest gets an empty list rather than a diagnostic.
+///
+/// @param ctx  the context being configured; its `include_paths` is REPLACED,
+///             not appended to, so calling this after setting them by hand
+///             discards the hand-set values.
+export load_from_vader_config :: fn(ctx: BuildContext!) -> void {
+    if ctx.project_root == "" {
+        return
+    }
+    manifest :: read_manifest(ctx.project_root)
+    fresh: string[]! = []
+    for p in manifest.include_paths {
+        fresh.push(p)
+    }
+    ctx.include_paths = fresh
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_new_context_takes_root_from_args :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    assert_eq(ctx.project_root, "/tmp/proj")
+}
+
+@test test_new_context_bare_args_leaves_root_empty :: fn() -> void {
+    ctx :: new_build_context(["driver"])
+    assert_eq(ctx.project_root, "")
+}
+
+@test test_new_context_defaults_generated_root :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    assert_eq(ctx.generated_root, DEFAULT_GENERATED_ROOT)
+}
+
+@test test_new_context_has_no_include_paths :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    assert_eq(ctx.include_paths.len(), 0)
+}
+
+@test test_add_build_file_preserves_order :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    ctx.add_build_file("a.vader")
+    ctx.add_build_file("b.vader")
+    queued :: ctx.build_files_of()
+    assert_eq(queued.len(), 2)
+    assert_eq(queued[0], "a.vader")
+    assert_eq(queued[1], "b.vader")
+}
+
+@test test_no_build_files_by_default :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    assert_eq(ctx.build_files_of().len(), 0)
+}
+
+@test test_load_config_without_root_is_a_noop :: fn() -> void {
+    ctx :: new_build_context(["driver"])
+    ctx.load_from_vader_config()
+    assert_eq(ctx.include_paths.len(), 0)
+}
+
+@test test_load_config_missing_manifest_yields_empty :: fn() -> void {
+    // `read_manifest` returns an empty Manifest for a missing / malformed file,
+    // so a project without `vader.json` is not an error — it just has no roots.
+    ctx :: new_build_context(["driver", "/nonexistent-project-root"])
+    ctx.load_from_vader_config()
+    assert_eq(ctx.include_paths.len(), 0)
+}
