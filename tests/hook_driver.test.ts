@@ -56,8 +56,22 @@ async function runIn(fixture: string, args: string[]) {
 
 // Five tests below drive the SAME build of the same fixture and only differ in
 // what they inspect. Running it once and sharing the result cuts four full
-// compiler builds — each of these tests compiles the driver, which pulls the
-// whole `vader/` closure, so the saving is most of this file's runtime.
+// compiler builds — each compiles the driver, which pulls the whole `vader/`
+// closure at -O0 — taking this file from ~160 s to ~69 s.
+//
+// ⚠️ THREE WAYS THIS BITES, if you touch it:
+//   1. The five share a staged directory and only READ from it. A test that
+//      writes there breaks its neighbours, and the failure surfaces in a test
+//      that did nothing wrong. Tests needing clean state (driver replacement,
+//      `observe_only`, `no_driver`) stage privately — keep that split.
+//   2. If the shared build fails, FIVE tests fail at once and none says which
+//      is at fault: one broken `lintBuild()` reads as five regressions.
+//   3. The first test to call `lintBuild()` pays the compile, so its
+//      `LONG_BUILD` budget must stay sized for a full build even though the
+//      other four are instant. Reordering the file moves that cost.
+//
+// If this becomes a nuisance, switch to an explicit `beforeAll`: the cost
+// becomes visible and a failure is attributable to setup, not to a test.
 let sharedLint: Promise<{ out: string; exit: number; dir: string }> | null = null;
 
 function lintBuild() {
