@@ -219,42 +219,16 @@ pick_module_representatives :: fn(files: Path[]) -> Path[] {
     for [d, group] in by_dir {
         if group.len() <= 1 {
             out.push(group[0])
-        } else if is_folder_module(group) {
-            out.push(d.to_path())
         } else {
-            imported :: collect_sibling_imports(group)
-            for f in group {
-                if !(f.name() in imported) { out.push(f) }
-            }
-        }
-    }
-    return out
-}
-
-is_folder_module :: fn(group: Path[]) -> bool = collect_sibling_imports(group).len() == 0
-
-/// Basenames (no `.vader`) of files in `group` that some sibling imports by
-/// name. An empty result means the dir is a folder module (siblings share one
-/// scope, no by-name imports).
-collect_sibling_imports :: fn(group: Path[]) -> string[] {
-    names: string[]! = []
-    for f in group {
-        names.push(f.name())
-    }
-    out: string[]! = []
-    for f in group {
-        src :: read_file_string(f.as_string())
-        if src is IOError {
-            continue
-        }
-        for line in src.split("\n") {
-            seg :: import_last_segment(line)
-            if seg == "" {
-                continue
-            }
-            if seg in names {
-                if !(seg in out) {
-                    out.push(seg)
+            facts :: group_facts(group)
+            if is_folder_module(facts) {
+                out.push(d.to_path())
+            } else {
+                imported :: sibling_imported_modules(facts)
+                for i in 0..<group.len() {
+                    if !(facts[i].declared in imported) {
+                        out.push(group[i])
+                    }
                 }
             }
         }
@@ -262,9 +236,102 @@ collect_sibling_imports :: fn(group: Path[]) -> string[] {
     return out
 }
 
-/// Last path segment of an `import "PATH" …` line's PATH, or `""` when the line
-/// is not an import.
-import_last_segment :: fn(line: string) -> string {
+/// What test discovery needs from one file: the module it declares, and the
+/// module paths it imports.
+///
+/// Read ONCE per file. The previous shape re-read every file for each question it
+/// asked, and this function's whole history is about discovery being slow.
+FileFacts :: struct {
+    declared: string
+    imports:  string[]
+}
+
+// The declared module + imported module paths of every file in `group`, in order.
+group_facts :: fn(group: Path[]) -> FileFacts[] {
+    out: FileFacts[]! = []
+    for f in group {
+        out.push(file_facts(f))
+    }
+    return out
+}
+
+// `declared` is "" for a file that declares no module (R2020 territory) or cannot
+// be read — the callers treat that as "not a folder module", the conservative
+// answer.
+file_facts :: fn(f: Path) -> FileFacts {
+    src :: read_file_string(f.as_string())
+    if src is IOError {
+        return FileFacts { .declared = "", .imports = [] }
+    }
+    header :: parse_module_header(src, f.as_string())
+    declared :: if header is ModuleHeader as h { h.name } else { "" }
+    imports: string[]! = []
+    for line in src.split("\n") {
+        path :: import_path(line)
+        if path != "" && !(path in imports) {
+            imports.push(path)
+        }
+    }
+    return FileFacts { .declared = declared, .imports = imports }
+}
+
+/// True when every file declares the SAME module — the language's own definition
+/// of a folder module (a folder holds at most one module; mixed names are R2022).
+///
+/// ⚠️ This used to ask a PROXY question — "does a sibling import one of these
+/// basenames?" — and got it wrong for any import whose LAST SEGMENT matched a
+/// neighbour's filename. `import "vader/dap"` beside a `dap.vader` read as a
+/// sibling import, so the directory stopped being a folder module and every file
+/// in it became its own test representative. Measured: `vader test vader/cli`
+/// went from 17 s to 114 s — six compilations of the whole compiler instead of
+/// one, against a 120 s harness budget. The `cmd_*` prefix on the command files
+/// sidestepped it; this is the actual fix.
+is_folder_module :: fn(facts: FileFacts[]) -> bool {
+    if facts.len() == 0 {
+        return false
+    }
+    first :: facts[0].declared
+    if first == "" {
+        return false
+    }
+    for f in facts {
+        if f.declared != first {
+            return false
+        }
+    }
+    return true
+}
+
+/// Module paths declared in the group that ANOTHER file of the group imports.
+///
+/// Compared as full module paths, which is what makes it exact. A non-empty
+/// result means these files are separate modules and the importers are the entry
+/// points, so the imported ones need no representative of their own.
+sibling_imported_modules :: fn(facts: FileFacts[]) -> string[] {
+    declared: string[]! = []
+    for f in facts {
+        if f.declared != "" {
+            declared.push(f.declared)
+        }
+    }
+    out: string[]! = []
+    for f in facts {
+        for path in f.imports {
+            // A file importing its OWN module is not a sibling import.
+            if path == f.declared {
+                continue
+            }
+            if path in declared && !(path in out) {
+                out.push(path)
+            }
+        }
+    }
+    return out
+}
+
+/// The module path of an `import "PATH" …` line, or `""` when the line is not an
+/// import. The FULL path — comparing last segments is what the bug above was.
+import_path :: fn(line: string) -> string {
     t :: line.trim()
     if !t.starts_with("import ") {
         return ""
@@ -278,5 +345,69 @@ import_last_segment :: fn(line: string) -> string {
     if q2 < 0 {
         return ""
     }
-    return tb[usize(q1) + 1..<usize(q2)].bytes_to_string().to_path().filename()
+    return tb[usize(q1) + 1..<usize(q2)].bytes_to_string()
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_same_declared_module_is_a_folder_module :: fn() -> void {
+    facts :: [
+        FileFacts { .declared = "probe", .imports = ["std/string", "std/testing"] },
+        FileFacts { .declared = "probe", .imports = [] },
+    ]
+    assert(is_folder_module(facts), "files declaring one module are one folder module")
+}
+
+@test test_a_colliding_import_is_not_a_sibling_import :: fn() -> void {
+    // The bug this replaced: `import "std/string"` beside a `string.vader` read
+    // as a sibling import because only the LAST SEGMENT was compared. The folder
+    // stopped being one module and every file became its own test
+    // representative — `vader test vader/cli` went 17 s → 114 s.
+    facts :: [
+        FileFacts { .declared = "probe", .imports = ["std/string"] },
+        FileFacts { .declared = "probe", .imports = [] },
+    ]
+    assert_eq(sibling_imported_modules(facts).len(), 0)
+}
+
+@test test_per_file_modules_are_not_a_folder_module :: fn() -> void {
+    facts :: [
+        FileFacts { .declared = "probe/entry", .imports = ["probe/lib"] },
+        FileFacts { .declared = "probe/lib", .imports = [] },
+    ]
+    assert(!is_folder_module(facts), "different declared modules are not one module")
+}
+
+@test test_sibling_import_is_matched_on_the_full_path :: fn() -> void {
+    facts :: [
+        FileFacts { .declared = "probe/entry", .imports = ["probe/lib"] },
+        FileFacts { .declared = "probe/lib", .imports = [] },
+    ]
+    imported :: sibling_imported_modules(facts)
+    assert_eq(imported.len(), 1)
+    assert_eq(imported[0], "probe/lib")
+}
+
+@test test_importing_your_own_module_is_not_a_sibling_import :: fn() -> void {
+    facts :: [FileFacts { .declared = "probe", .imports = ["probe"] }]
+    assert_eq(sibling_imported_modules(facts).len(), 0)
+}
+
+@test test_a_file_without_a_module_decl_is_not_a_folder_module :: fn() -> void {
+    // Conservative: an unreadable or header-less file means "treat each file
+    // separately" rather than silently collapsing the group.
+    facts :: [
+        FileFacts { .declared = "", .imports = [] },
+        FileFacts { .declared = "probe", .imports = [] },
+    ]
+    assert(!is_folder_module(facts), "a missing module decl blocks the collapse")
+}
+
+@test test_import_path_keeps_the_whole_path :: fn() -> void {
+    assert_eq(import_path("import \"vader/dap\""), "vader/dap")
+    assert_eq(import_path("  import \"std/io\"  "), "std/io")
+    assert_eq(import_path("// import \"std/io\""), "")
+    assert_eq(import_path("x :: 1"), "")
 }
