@@ -1,0 +1,27 @@
+// A driver that only observes: it leaves the stream at `BeforeEmit`, so nothing
+// is written. That phase is the last point where declining is clean — after it,
+// a `break` would leave a partial binary.
+
+module "build"
+
+import "std/io"
+import "vader/hooks"
+
+build :: fn(args: string[]) -> void {
+    ctx :: new_build_context(args)
+    ctx.add_build_file("src/main.vader")
+    ctx.out = "should-not-exist"
+
+    seen := 0
+    for msg in ctx.messages() {
+        if msg is TypecheckedMessage {
+            seen += 1
+        }
+        if msg is PhaseMessage as p {
+            if p.phase == .BeforeEmit {
+                break
+            }
+        }
+    }
+    println("observed ${seen} module(s), built nothing")
+}

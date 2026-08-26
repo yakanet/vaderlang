@@ -145,6 +145,31 @@ test("a driver that queues nothing is reported as H6003", async () => {
   expect(out).toContain("add_build_file");
 }, LONG_BUILD);
 
+test("leaving the stream at BeforeEmit builds nothing", async () => {
+  // The property that lets a lint-only driver exist without an opt-out flag:
+  // `BeforeEmit` is the last point at which declining is clean.
+  const { out } = await runIn(`${FIXTURES}/observe_only`, ["build"]);
+  expect(out).toContain("built nothing");
+  expect(out).toMatch(/observed [1-9]\d* module/);
+}, LONG_BUILD);
+
+test("the front end runs ONCE for a driver that observes and builds", async () => {
+  // The whole point of the single stream: observing used to re-run the front
+  // end, which is ~45% of a build. Profiled on the DRIVER's own process — a
+  // `vader build` profile also contains the compiler's pass over the driver
+  // itself, which would make the count meaningless.
+  const dir = stage(LINT);
+  staged.push(dir);
+  await Bun.spawn([CLI, "build"], { cwd: dir, stdout: "pipe", stderr: "pipe" }).exited;
+
+  const driver = Bun.spawn([`${dir}/build/driver/driver`, dir], {
+    cwd: dir, stdout: "pipe", stderr: "pipe", env: { ...process.env, VADER_PROFILE: "1" },
+  });
+  const [err] = await Promise.all([new Response(driver.stderr).text(), driver.exited]);
+  const typechecks = (err.match(/^\s+typecheck\s/gm) ?? []).length;
+  expect(typechecks).toBe(1);
+}, LONG_BUILD);
+
 test("a named file bypasses the driver, and says so", async () => {
   // `bootstrap/build.sh` compiles the compiler by name, so a named file has to
   // win — but silently dropping a project's rules would make them untrustworthy.

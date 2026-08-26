@@ -37,45 +37,40 @@ export PhaseMessage :: struct {
 }
 
 /// The build finished; no further message follows.
-export CompleteMessage :: struct {}
-
-/// The sole `CompleteMessage` value — it never carries data.
-export MSG_COMPLETE :: CompleteMessage {}
+///
+/// Carries the exit code, since a stream has no return value: a driver that
+/// drains to the end reads its build's outcome here.
+export CompleteMessage :: struct {
+    code: i32
+}
 
 // ---- phases ---------------------------------------------------------------
 
 /// Where the pipeline is, ordered as the stages run.
 ///
-/// `Lowered` and `OutputWritten` are **reserved**, and will stay so until one
-/// API question is answered. `messages()` covers the FRONT END: a driver
-/// observes, then calls `emit_native` / `emit_c` to produce output. The two
-/// back-end phases have no channel — they happen inside a call that returns an
-/// exit code, not inside the stream.
-///
-/// Reaching them means making the stream cover the whole build, the way Jai's
-/// message loop does (its phases run through to `POST_WRITE_EXECUTABLE`), so
-/// that draining `messages()` IS the build and `emit_native` becomes a shortcut
-/// for drivers that do not observe. That is a contract change, not a missing
-/// emission site — hence reserved rather than removed: they hold their position
-/// so answering the question later does not renumber the enum.
+/// Every variant has an emission site: draining `messages()` walks the whole
+/// build, so there is no reserved half of this enum. `BeforeEmit` is the one to
+/// know about — it is the last point at which leaving the loop produces nothing,
+/// which is how a driver that only wants to observe declines to build.
 export Phase :: enum(u8) {
-    /// Every module parsed and its top-level symbols collected.
-    SourceLoaded,
-    /// Every module typechecked. The only phase emitted today.
+    /// Every module parsed, collected, resolved and typechecked.
     Typechecked,
     /// `@comptime` values evaluated, generic instances harvested.
     Evaluated,
-    /// Reserved — the lowered tree is available.
+    /// Last point before output. `break` here writes nothing; `break` after
+    /// leaves a partial binary.
+    BeforeEmit,
+    /// The lowered tree exists — desugared, before CFG and bytecode.
     Lowered,
-    /// Reserved — the output file has been written.
+    /// The output file has been written.
     OutputWritten,
 }
 
 /// Render a phase as the name a driver would print in a log line.
 export display_phase :: fn(p: Phase) -> string = match p {
-    .SourceLoaded  -> "source-loaded"
     .Typechecked   -> "typechecked"
     .Evaluated     -> "evaluated"
+    .BeforeEmit    -> "before-emit"
     .Lowered       -> "lowered"
     .OutputWritten -> "output-written"
 }
@@ -88,12 +83,15 @@ import "std/testing"
     assert_eq(display_phase(.Typechecked), "typechecked")
 }
 
-@test test_display_phase_reserved :: fn() -> void {
-    // The reserved variants still render — a driver logging them must not see "".
-    assert_eq(display_phase(.OutputWritten), "output-written")
+@test test_display_phase_before_emit :: fn() -> void {
+    // The phase a driver leaves the loop on to decline building.
+    assert_eq(display_phase(.BeforeEmit), "before-emit")
 }
 
-@test test_complete_singleton_is_a_message :: fn() -> void {
-    m: Message = MSG_COMPLETE
-    assert(m is CompleteMessage, "MSG_COMPLETE narrows to CompleteMessage")
+@test test_complete_carries_the_exit_code :: fn() -> void {
+    m: Message = CompleteMessage { .code = 1 }
+    assert(m is CompleteMessage, "completion narrows")
+    if m is CompleteMessage as c {
+        assert_eq(c.code, 1)
+    }
 }
