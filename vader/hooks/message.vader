@@ -1,0 +1,88 @@
+// vader/hooks/message — the pipeline events a build driver observes.
+//
+// A project's `build.vader` pulls these from `BuildContext.messages()`
+// (`context.vader`) and reacts to them. `Message` is a closed union, so a
+// `match` over it is exhaustive and adding an event forces every existing
+// driver to acknowledge it rather than silently ignore it.
+//
+// Phase names track Vader's own pipeline stages — the ones `vader dump
+// --stage=…` prints — rather than another toolchain's vocabulary.
+
+module "vader/hooks"
+
+AST :: import "vader/parser"
+
+// ---- events ---------------------------------------------------------------
+
+/// One event the compiler hands a build driver.
+export Message :: TypecheckedMessage | PhaseMessage | CompleteMessage
+
+/// Every top-level declaration of one module, after typecheck.
+///
+/// The declarations are the compiler's own nodes, not copies — reading a field
+/// costs nothing, and a span taken from one anchors a diagnostic directly in the
+/// user's source. This is why a driver runs natively rather than through the
+/// comptime VM; see the plan referenced in `context.vader`.
+export TypecheckedMessage :: struct {
+    /// Module id as the loader knows it — e.g. `"vader/lexer"`.
+    module_path:  string
+    declarations: AST.Decl[]
+}
+
+/// The pipeline crossed a stage boundary.
+export PhaseMessage :: struct {
+    phase: Phase
+}
+
+/// The build finished; no further message follows.
+export CompleteMessage :: struct {}
+
+/// The sole `CompleteMessage` value — it never carries data.
+export MSG_COMPLETE :: CompleteMessage {}
+
+// ---- phases ---------------------------------------------------------------
+
+/// Where the pipeline is, ordered as the stages run.
+///
+/// `Lowered` and `OutputWritten` are **reserved**: they hold their position for
+/// events a driver cannot usefully observe yet (nothing emits them). Keeping
+/// them here means adding the emission site later does not renumber the enum.
+export Phase :: enum(u8) {
+    /// Every module parsed and its top-level symbols collected.
+    SourceLoaded,
+    /// Every module typechecked. The only phase emitted today.
+    Typechecked,
+    /// `@comptime` values evaluated, generic instances harvested.
+    Evaluated,
+    /// Reserved — the lowered tree is available.
+    Lowered,
+    /// Reserved — the output file has been written.
+    OutputWritten,
+}
+
+/// Render a phase as the name a driver would print in a log line.
+export display_phase :: fn(p: Phase) -> string = match p {
+    .SourceLoaded  -> "source-loaded"
+    .Typechecked   -> "typechecked"
+    .Evaluated     -> "evaluated"
+    .Lowered       -> "lowered"
+    .OutputWritten -> "output-written"
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_display_phase_typechecked :: fn() -> void {
+    assert_eq(display_phase(.Typechecked), "typechecked")
+}
+
+@test test_display_phase_reserved :: fn() -> void {
+    // The reserved variants still render — a driver logging them must not see "".
+    assert_eq(display_phase(.OutputWritten), "output-written")
+}
+
+@test test_complete_singleton_is_a_message :: fn() -> void {
+    m: Message = MSG_COMPLETE
+    assert(m is CompleteMessage, "MSG_COMPLETE narrows to CompleteMessage")
+}
