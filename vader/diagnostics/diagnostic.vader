@@ -72,6 +72,19 @@ export empty_span :: fn() -> Span {
     }
 }
 
+/// A `Span` at the head of `path` — for a problem that is about the FILE rather
+/// than about anything written in it.
+///
+/// The alternative is `empty_span`, which renders as `<synthetic>` and names no
+/// file at all: a reader then has to guess which file to open. Use this whenever
+/// the faulty file is known even though the faulty line is not.
+///
+/// @param path  the file the diagnostic is about.
+export file_head_span :: fn(path: string) -> Span {
+    at :: Position { .file = path, .offset = 0, .line = 1, .column = 1 }
+    return Span { .start = at, .end = at }
+}
+
 /// Sentinel file name on spans that belong to AST nodes cloned from a
 /// trait's default-method body into an implementing struct's impl.
 /// The typecheck dump renders these spans as `undefined:undefined`.

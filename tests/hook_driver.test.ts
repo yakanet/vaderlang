@@ -292,6 +292,7 @@ build :: fn(args: string[]) -> i32 {
 `, ["build"]);
   expect(out).toContain("H6006");
   expect(out).toContain("gen/tick");
+  expect(out).toMatch(/build\.vader:\d+:\d+\] error\[H6006\]/);
   expect(exit).not.toBe(0);
 }, LONG_BUILD);
 
@@ -386,6 +387,9 @@ test("a driver that queues nothing is reported as H6003", async () => {
   const { out, exit } = await runIn(`${FIXTURES}/no_entry_queued`, ["build"]);
   expect(out).toContain("H6003");
   expect(out).toContain("add_build_file");
+  // Anchored on the driver, not on `<synthetic>`: the faulty line is unknown (it
+  // is a behaviour, not a statement) but the faulty FILE never is.
+  expect(out).toMatch(/build\.vader:\d+:\d+\] error\[H6003\]/);
   // …and fails: compiling nothing while exiting 0 was the original bug.
   expect(exit).not.toBe(0);
 }, LONG_BUILD);

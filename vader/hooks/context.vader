@@ -30,6 +30,7 @@ module "vader/hooks"
 
 import "vader/diagnostics"
 import "std/io"
+import "std/path"
 import "vader/resolver"
 
 // ---- context --------------------------------------------------------------
@@ -142,6 +143,19 @@ export BuildTarget :: enum(u8) {
 /// C compiler assumed when a driver names none. `cc` rather than a specific
 /// toolchain: it is what every platform's default install provides.
 export DEFAULT_CC :: "cc"
+
+// The driver file's name, restated from `vader/cli::DRIVER_FILENAME` for the same
+// reason `GENERATED_BANNER` is restated there: `vader/cli` importing this module
+// would pull the whole driver contract into the compiler's own closure, and this
+// module cannot import `vader/cli` without a cycle. Keep the two in step.
+DRIVER_FILE :: "build.vader"
+
+// Where to anchor a diagnostic about the DRIVER's behaviour — an entry it failed
+// to queue, output it named ambiguously, a module name it built badly. The faulty
+// line is unknown (it is a behaviour, not a statement) but the faulty FILE never
+// is, and `empty_span` would render as `<synthetic>`, naming nothing.
+driver_span :: fn(ctx: BuildContext) -> Span =
+    file_head_span(join_path(ctx.project_root, DRIVER_FILE))
 
 // Project root as `args` reports it, falling back to the empty string when the
 // driver was invoked bare. An empty root is not an error here — a driver may set
