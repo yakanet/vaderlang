@@ -153,6 +153,14 @@ export write_file_string :: fn(path: string, content: string) -> null | IOError 
 /// @return  the executable's own path.
 @intrinsic export current_executable_location :: fn() -> string
 
+/// Directory the process was invoked from, `/`-separated and WITHOUT a trailing
+/// separator — join with `"/name"` to build a path. Distinct from
+/// `current_executable_location`, which answers where the *binary* lives: use
+/// this one to resolve a path the user typed, that one for resources shipped
+/// beside the executable. Falls back to `"."` if the OS query fails.
+/// @return  the working directory.
+@intrinsic export current_working_directory :: fn() -> string
+
 /// OS scratch directory for temporary files, `/`-separated and WITHOUT a
 /// trailing separator — join with `"/name"` to build a path. Honours the
 /// platform temp-dir environment (`$TMPDIR` on POSIX, `%TMP%` / `%TEMP%` via

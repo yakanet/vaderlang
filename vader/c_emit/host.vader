@@ -90,6 +90,7 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     .IoExists -> { return "${head} { return vader_exists(a0); }" }
     .IoIsDir -> { return "${head} { return vader_is_dir(a0); }" }
     .IoCurrentExecutableLocation -> { return "${head} { return vader_current_executable_location(); }" }
+    .IoCurrentWorkingDirectory -> { return "${head} { return vader_current_working_directory(); }" }
     .IoTempDir -> { return "${head} { return vader_temp_dir(); }" }
     .IoReadDir -> {
         if ctx.string_tag < 0 { return "${head} { vader_trap(\"read_dir: no string type\"); }" }
