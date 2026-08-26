@@ -122,6 +122,35 @@ export build_to_native :: fn(
     return NativeBuild { .code = 0, .diagnostics = diags }
 }
 
+/// Compile `file` to C, without linking.
+///
+/// The other half of decision 13: a driver that wants to post-process the C — or
+/// hand it to a toolchain this compiler knows nothing about — should not have to
+/// go without. Mirrors `--target=c`.
+///
+/// @param file           entry source.
+/// @param release        optimise, and drop `#line` from the emitted C.
+/// @param include_paths  extra module search roots.
+/// @return               `CBuild { source, diagnostics }` ; `source` is empty
+///                       when the front end rejected the program, which the
+///                       diagnostics explain.
+export build_to_c :: fn(file: Path, release: bool, include_paths: string[]) -> CBuild {
+    b :: prepare_cfg_bytecode_with(file, !release, include_paths)
+    diags :: merge_diags(b.pre_diags, b.lower_diags)
+    if any_error_diag(diags) {
+        return CBuild { .source = "", .diagnostics = diags }
+    }
+    c :: emit_c(b.module, CEmitOptions { .release = release, .entry_mangled = b.entry })
+    return CBuild { .source = c, .diagnostics = diags }
+}
+
+/// Outcome of `build_to_c`: the generated C, or "" with the diagnostics that
+/// explain why there is none.
+export CBuild :: struct {
+    source:      string
+    diagnostics: Diagnostic[]
+}
+
 /// Outcome of `build_to_native`: an exit code plus whatever the front end and
 /// lowerer had to say, so the caller renders them in its own order.
 export NativeBuild :: struct {

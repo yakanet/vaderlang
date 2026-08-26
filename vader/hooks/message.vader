@@ -46,9 +46,18 @@ export MSG_COMPLETE :: CompleteMessage {}
 
 /// Where the pipeline is, ordered as the stages run.
 ///
-/// `Lowered` and `OutputWritten` are **reserved**: they hold their position for
-/// events a driver cannot usefully observe yet (nothing emits them). Keeping
-/// them here means adding the emission site later does not renumber the enum.
+/// `Lowered` and `OutputWritten` are **reserved**, and will stay so until one
+/// API question is answered. `messages()` covers the FRONT END: a driver
+/// observes, then calls `emit_native` / `emit_c` to produce output. The two
+/// back-end phases have no channel — they happen inside a call that returns an
+/// exit code, not inside the stream.
+///
+/// Reaching them means making the stream cover the whole build, the way Jai's
+/// message loop does (its phases run through to `POST_WRITE_EXECUTABLE`), so
+/// that draining `messages()` IS the build and `emit_native` becomes a shortcut
+/// for drivers that do not observe. That is a contract change, not a missing
+/// emission site — hence reserved rather than removed: they hold their position
+/// so answering the question later does not renumber the enum.
 export Phase :: enum(u8) {
     /// Every module parsed and its top-level symbols collected.
     SourceLoaded,

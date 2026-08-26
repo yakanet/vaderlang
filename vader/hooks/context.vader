@@ -246,6 +246,38 @@ export emit_native :: fn(ctx: BuildContext!) -> i32 {
     return 0
 }
 
+/// Compile the queued entries to C, without linking.
+///
+/// The counterpart of `emit_native` for a driver that wants the source — to
+/// post-process it, to hand it to another toolchain, or just to look. Mirrors
+/// `--target=c`.
+///
+/// Diagnostics land on the context exactly as `emit_native` leaves them, so a
+/// driver reports the same way whichever it calls.
+///
+/// @param ctx  the configured context ; queue entries with `add_build_file`.
+/// @return     one C source per queued entry, in queue order. Empty when a
+///             front end rejected an entry — the reports say why.
+export emit_c :: fn(ctx: BuildContext!) -> string[] {
+    if ctx.build_files.len() == 0 {
+        ctx.diagnostics.push(hook_error(.NoBuildFiles, empty_span(),
+            "call `ctx.add_build_file(...)` before `emit_c()`"))
+        return []
+    }
+    out: string[]! = []
+    for file in ctx.build_files {
+        built :: build_to_c(Path(join_path(ctx.project_root, file)), ctx.release, ctx.include_paths)
+        for d in built.diagnostics {
+            ctx.diagnostics.push(d)
+        }
+        if built.source == "" {
+            return []
+        }
+        out.push(built.source)
+    }
+    return out
+}
+
 // Default output name: the entry minus its `.vader` suffix, matching what
 // `vader build` derives when `--out` is absent.
 strip_vader_suffix :: fn(path: string) -> string {
