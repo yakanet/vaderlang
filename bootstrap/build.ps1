@@ -58,12 +58,14 @@ if ($Dist) {
     $arch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x64' }
     $distDir = "dist\vader-windows-$arch"
 
-    Step "[dist] Bundling $distDir  (vader + stdlib + runtime/c)"
+    Step "[dist] Bundling $distDir  (vader + stdlib + runtime/c + lib/vader)"
     if (Test-Path $distDir) { Remove-Item -Recurse -Force $distDir }
     New-Item -ItemType Directory -Force "$distDir\runtime" | Out-Null
+    New-Item -ItemType Directory -Force "$distDir\lib" | Out-Null
     Copy-Item build\vader.exe "$distDir\vader.exe"
     Copy-Item -Recurse stdlib "$distDir\stdlib"
     Copy-Item -Recurse runtime\c "$distDir\runtime\c"
+    Copy-Item -Recurse vader "$distDir\lib\vader"
 
-    Write-Host "==> dist  $distDir ready -- a self-contained toolchain (resolves stdlib\ + runtime\c\ next to the binary, so it runs from any directory)." -ForegroundColor Green
+    Write-Host "==> dist  $distDir ready -- a self-contained toolchain (resolves stdlib\ + runtime\c\ + lib\vader\ next to the binary, so it runs -- and drives builds -- from any directory)." -ForegroundColor Green
 }

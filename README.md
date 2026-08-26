@@ -106,7 +106,7 @@ tar -xzf vader-linux-x64.tar.gz && ./vader-linux-x64/vader --version
 tar -xf vader-windows-x64.zip && vader-windows-x64\vader.exe --version
 ```
 
-The prebuilt `vader` is the native self-hosted compiler, built from the committed C seed (see [Build from source](#build-from-source)) and packaged as a self-contained bundle — it loads `stdlib/` and `runtime/c/` from next to itself, so keep the extracted folder intact.
+The prebuilt `vader` is the native self-hosted compiler, built from the committed C seed (see [Build from source](#build-from-source)) and packaged as a self-contained bundle — it loads `stdlib/`, `runtime/c/` and `lib/vader/` (the compiler's own sources, which a project's `build.vader` imports) from next to itself, so keep the extracted folder intact.
 
 On macOS, Gatekeeper blocks the unsigned binary on first launch — strip the quarantine attribute:
 
