@@ -1,0 +1,133 @@
+// vader/pipeline/frontend — the front end as a callable unit.
+//
+// `load → resolve + typecheck → comptime`, ending in an `EvaluatedPipeline` that
+// carries every table a later stage or an observer needs. Lifted out of
+// `vader/cli/main.vader` unchanged: the CLI was its only caller, and a build
+// driver (`vader/hooks`) needs the same sequence, so leaving it private would
+// have forced a second implementation — the one thing guaranteed to drift.
+//
+// Sits below both callers in the import graph (`vader/cli` and `vader/hooks`
+// import this; it imports neither), so no cycle forms.
+
+module "vader/pipeline"
+
+import "std/collections"
+import "std/path"
+import "vader/diagnostics"
+import "vader/resolver"
+import "vader/typecheck"
+import "vader/comptime"
+import "vader/comptime_vm"
+Prof :: import "vader/profile"
+
+// Pipeline state shared by the comptime + lowerer dump stages : both
+// run load → typecheck → comptime and only diverge on the final dump.
+export EvaluatedPipeline :: struct {
+    loaded:          LoadedProject
+    typed:           TypedProject
+    evaluated:       EvaluatedProject
+    /// Body-walker diagnostics harvested from each `ResolvedModule.diags`.
+    /// `check_project_with_bodies` already resolves every module ; this
+    /// pipeline just collects the per-module bag so downstream stages
+    /// surface the same `# Diagnostics` block as the resolver stage.
+    resolver_diags:  Diagnostic[]
+    typecheck_diags: Diagnostic[]
+    comptime_diags:  Diagnostic[]
+}
+
+export prepare_evaluated_project :: fn(file: Path) -> EvaluatedPipeline = prepare_evaluated_project_with(file, [])
+
+// Like `prepare_evaluated_project`, with extra `--include-paths` search roots
+// threaded to the loader (build / run honour the flag ; dump stages use [] via
+// the no-flag wrapper above).
+export prepare_evaluated_project_with :: fn(file: Path, include_path_flags: string[]) -> EvaluatedPipeline {
+    // Per-pass profiling brackets (here + in lower_to_entry_with /
+    // prepare_cfg_bytecode_with / emit_c_source). `prof_begin` / `prof_end` are
+    // no-ops — one cached env check + early return — unless $VADER_PROFILE is
+    // set, in which case the runtime accumulates the per-pass wall / RSS / GC
+    // table dumped at the end of the compile. Kept in the pipeline so the
+    // self-compile profile (`bun run bench:profile`) stays one flag away ; they
+    // never read the clock when off and never touch the emitted output. See
+    // vader/profile.
+    Prof.prof_begin(Prof.PHASE_LOAD)
+    loaded :: load_project(file.as_string(), include_path_flags)
+    Prof.prof_end(Prof.PHASE_LOAD)
+    typecheck_diags: Diagnostic[]! = []
+    Prof.prof_begin(Prof.PHASE_TYPECHECK)
+    result :: check_project_with_bodies(loaded, typecheck_diags, false)
+    resolver_diags :: collect_body_diags(result)
+    typed :: assemble_typed_project(result)
+    Prof.prof_end(Prof.PHASE_TYPECHECK)
+    comptime_diags: Diagnostic[]! = []
+    Prof.prof_begin(Prof.PHASE_COMPTIME)
+    // The tree-walk `evaluate_project` always runs : it does the `@comptime`
+    // dependency ordering (source of the C4009 cycle diagnostic), folds
+    // tree-walkable `@comptime` decls, harvests the generic instances the
+    // lowerer needs (e.g. `concat_N`), and force-loads std/core. Only the
+    // VM-backed baking is gated on front-end errors — it emits the WHOLE project
+    // to bytecode and runs it, which ICEs on the unresolved / malformed IR of a
+    // front-end-errored program (a single prelude `@comptime` like std/core's
+    // parse-float table would otherwise ICE every errored user compile). A
+    // program with front-end errors never reaches codegen, so nothing to bake.
+    evaluated :: evaluate_project(loaded, typed, comptime_diags)
+    // Only bake when the project is error-free — front end AND comptime. The
+    // VM-backed baking stages the WHOLE project to bytecode ; on a front-end-
+    // errored program that ICEs on malformed IR, and on a program with a
+    // comptime error (e.g. a C4009 `@comptime` dependency cycle) the staging
+    // lower recurses on the un-baked cyclic consts and stack-overflows (SIGSEGV).
+    // A broken program never reaches codegen, so there is nothing to bake.
+    front_end_ok :: !any_error_diag(loaded.diags)
+        && !any_error_diag(resolver_diags)
+        && !any_error_diag(typecheck_diags)
+    if front_end_ok && !any_error_diag(comptime_diags) {
+        // Bake any loop-bearing `@comptime` decls the tree-walk deferred (S2
+        // two-pass — see vader/comptime_vm). No-op when none deferred.
+        resolve_vm_required_decls(loaded, typed, evaluated, comptime_diags)
+    }
+    Prof.prof_end(Prof.PHASE_COMPTIME)
+    return EvaluatedPipeline {
+        .loaded          = loaded,
+        .typed           = typed,
+        .evaluated       = evaluated,
+        .resolver_diags  = resolver_diags,
+        .typecheck_diags = typecheck_diags,
+        .comptime_diags  = comptime_diags,
+    }
+}
+
+/// Drain non-entry modules' `resolved.diags` (body-walker output)
+/// into one flat list. The entry module's R-codes are already
+/// forwarded by `check_project_with_bodies` into `typecheck_diags`
+/// (orchestrate.vader:163), so we'd double-fire if we pushed them
+/// here too.
+export collect_body_diags :: fn(result: CheckResult) -> Diagnostic[] {
+    out: Diagnostic[]! = []
+    if result.all_modules.is_empty() { return out }
+    for [module_id, module_typed] in result.all_modules {
+        if module_id == result.typed.resolved.path { continue }
+        for d in module_typed.resolved.diags { out.push(d) }
+    }
+    return out
+}
+
+// Bridge the typecheck orchestrator's `CheckResult` (entry + others)
+// into the `TypedProject` shape the comptime engine expects.
+export assemble_typed_project :: fn(result: CheckResult) -> TypedProject {
+    project :: new_typed_project()
+    project.modules[result.typed.resolved.path] = result.typed
+    // Drain every typed module the orchestrator built — entry + direct
+    // imports + std/* — so downstream passes that need impl-by-trait
+    // queries (lower, bytecode emit) see std-defined impls.
+    if !result.all_modules.is_empty() {
+        for [module_id, module_typed] in result.all_modules {
+            project.modules[module_id] = module_typed
+        }
+        return project
+    }
+    // Fallback for single-module / shortcut callers : iterate the
+    // legacy `others` filter (skips std/*).
+    for other in result.others {
+        project.modules[other.resolved.path] = other
+    }
+    return project
+}
