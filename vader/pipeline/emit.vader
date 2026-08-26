@@ -1,0 +1,138 @@
+// vader/pipeline/emit — the native link.
+//
+// Bytecode → C → binary, monolithic: one C unit plus the external runtime, one
+// `cc`. The split path (`--parallel`) stays in the CLI, which owns that flag;
+// the monolithic build is the canonical one anyway (byte-identical, fully
+// inlined).
+//
+// Here rather than in the CLI because a build driver has to be able to produce
+// output, and re-implementing the link in every project is how flags drift —
+// release opts, the runtime include path, `ldflags`. See the plan's §15
+// (decision 13: the driver returns a binary).
+//
+// The CLI keeps its own `emit_c_source` / `prepared_module` pair: those carry
+// its diagnostic renderer and its `.virt` input path, neither of which a driver
+// wants. Only the link helpers moved.
+
+module "vader/pipeline"
+
+import "std/io"
+import "std/path"
+import "std/string"
+import "std/process"
+import "vader/diagnostics"
+import "vader/resolver"
+import "vader/bytecode"
+import "vader/c_emit" { EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
+
+// Runtime root for `--target=native` linking — resolved next to the executable
+// (dist bundle) then the cwd, via the shared `resolve_sidecar` probe (marker
+// `vader.h`), so a bundled `vader` finds `runtime/c/` next to itself.
+export runtime_c_root :: fn() = resolve_sidecar("runtime/c", "vader.h")
+export cc_opt_flags :: fn(release: bool) -> string[] =
+    if release { ["-std=c11", "-O3", "-DNDEBUG", "-falign-functions=64"] } else { ["-std=c11", "-O0", "-g"] }
+
+// Append whitespace-split user `--ldflags` tokens to `argv` — no shell quoting
+// (a path with spaces is a user bug).
+export push_ldflags :: fn(argv: string[]!, ldflags: string) -> void {
+    for tok in ldflags.trim().split(" ") {
+        if tok != "" {
+            argv.push(tok)
+        }
+    }
+}
+
+// Assemble the `cc` command line : runtime include + the emitted C unit + the
+// external runtime unit, opt flags, any user `--ldflags`, then `-o <out> -lm`.
+// `-lm` satisfies the runtime's `floor` / `fmod` on glibc ; no-op on macOS / MinGW.
+export cc_argv :: fn(cc: string, c_file: string, out: Path, release: bool, ldflags: string) -> string[] {
+    argv: string[]! = [cc]
+    argv.push_all(cc_opt_flags(release))
+    rt :: runtime_c_root()
+    argv.push("-I")
+    argv.push(rt)
+    argv.push(c_file)
+    argv.push("${rt}/vader_runtime.c")
+    push_ldflags(argv, ldflags)
+    argv.push("-o")
+    argv.push(out.as_string())
+    argv.push("-lm")
+    return argv
+}
+// Write `content` to `path`, surfacing a write failure as exit 1.
+export write_out :: fn(path: Path, content: string) -> i32 {
+    wr :: write_file_string(path.as_string(), content)
+    if wr is IOError {
+        eprintln("vader build: cannot write `${path}`: ${wr.message()}")
+        return 1
+    }
+    return 0
+}
+
+// ---- native output --------------------------------------------------------
+
+/// Compile `file` all the way to a native binary.
+///
+/// The monolithic path — one C unit plus the external runtime, one `cc`. The
+/// split path (`--parallel`) stays in the CLI, which owns that flag; the
+/// monolithic build is the canonical one anyway, byte-identical and fully
+/// inlined.
+///
+/// Diagnostics are RETURNED rather than printed: a build driver decides how to
+/// surface them (and in what order), and the CLI already has its own renderer.
+/// An empty list with a non-zero code means the failure was the link, not the
+/// program — `cc`'s own output has already gone to stderr.
+///
+/// The generated `.c` is KEPT on a link failure and named in the message, so
+/// the user can inspect what the compiler actually produced.
+///
+/// @param file           entry source.
+/// @param out            binary to produce ; the C lands at `<out>.c`.
+/// @param release        optimise, and drop `#line` from the emitted C.
+/// @param cc             C compiler to invoke.
+/// @param ldflags        raw linker flags, whitespace-split, appended verbatim.
+/// @param include_paths  extra module search roots.
+/// @return               `NativeBuild { code, diagnostics }` — `code` 0 on
+///                       success, 1 otherwise.
+export build_to_native :: fn(
+    file: Path, out: Path, release: bool, cc: string, ldflags: string, include_paths: string[],
+) -> NativeBuild {
+    b :: prepare_cfg_bytecode_with(file, !release, include_paths)
+    diags :: merge_diags(b.pre_diags, b.lower_diags)
+    // Never emit for a program the front end rejected: the C emitter reads the
+    // same bytecode tables and would produce something that links but is wrong.
+    if any_error_diag(diags) {
+        return NativeBuild { .code = 1, .diagnostics = diags }
+    }
+    c :: emit_c(b.module, CEmitOptions { .release = release, .entry_mangled = b.entry })
+    c_file :: "${out}.c".to_path()
+    if write_out(c_file, c) != 0 {
+        return NativeBuild { .code = 1, .diagnostics = diags }
+    }
+    res :: spawn(cc_argv(cc, c_file.as_string(), out, release, ldflags))
+    if res is ProcessError as pe {
+        eprintln("${cc}: ${pe.message()} (generated C kept at ${c_file})")
+        return NativeBuild { .code = 1, .diagnostics = diags }
+    }
+    if res.exit != 0 {
+        eprintln(res.stderr)
+        eprintln("${cc} failed (exit ${res.exit}) — generated C kept at ${c_file}")
+        return NativeBuild { .code = 1, .diagnostics = diags }
+    }
+    return NativeBuild { .code = 0, .diagnostics = diags }
+}
+
+/// Outcome of `build_to_native`: an exit code plus whatever the front end and
+/// lowerer had to say, so the caller renders them in its own order.
+export NativeBuild :: struct {
+    code:        i32
+    diagnostics: Diagnostic[]
+}
+
+// Front-end + lower diags in the canonical order the CLI renders them.
+merge_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> Diagnostic[] {
+    out: Diagnostic[]! = []
+    for d in pre    { out.push(d) }
+    for d in lower  { out.push(d) }
+    return out
+}

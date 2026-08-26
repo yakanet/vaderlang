@@ -32,7 +32,10 @@ build :: fn(args: string[]) -> void {
         }
     }
 
-    if ctx.flush_reports() {
-        println("build stopped: ${ctx.reports_of().len()} rule violation(s)")
-    }
+    // The rule is advisory here: report, then build anyway, so the fixture
+    // exercises both halves — observation AND output.
+    ctx.out = "hello"
+    code :: ctx.emit_native()
+    _ :: ctx.flush_reports()
+    println("driver: ${ctx.reports_of().len()} report(s), build exit ${code}")
 }

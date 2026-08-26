@@ -60,6 +60,20 @@ afterAll(() => {
   }
 });
 
+test("the driver produces a working binary", async () => {
+  // The whole point of decision 13: a driver is a build system, not an
+  // observer. It compiles the project and the result runs.
+  const dir = stage(LINT);
+  staged.push(dir);
+  const build = Bun.spawn([CLI, "build"], { cwd: dir, stdout: "pipe", stderr: "pipe" });
+  await build.exited;
+  expect(existsSync(`${dir}/hello`)).toBe(true);
+  const ran = Bun.spawn([`${dir}/hello`], { stdout: "pipe", stderr: "pipe" });
+  const [out, exit] = await Promise.all([new Response(ran.stdout).text(), ran.exited]);
+  expect(out).toContain("hello");
+  expect(exit).toBe(0);
+}, LONG_BUILD);
+
 test("the driven build leaves no artefact in the project root", async () => {
   // Artefacts belong under `build/`, and the entry shim must be unlinked rather
   // than blanked — a leftover `.vader` declaring nothing would break the next run.
@@ -74,14 +88,14 @@ test("the driven build leaves no artefact in the project root", async () => {
 
 test("a project's build.vader runs and reports its own rule", async () => {
   const { out } = await runIn(LINT, ["build"]);
-  // The rule fired on the offending struct, anchored in the project's source
-  // rather than in the generated entry.
-  expect(out).toContain("H6004");
-  expect(out).toContain("badlyNamed");
-  expect(out).toMatch(/src\/main\.vader:\d+:\d+/);
-  // …and discriminates: the compliant struct is not reported.
-  expect(out).not.toContain("WellNamed");
-  expect(out).toContain("1 rule violation(s)");
+  // Exactly one H6004, on the offending struct, anchored in the project's
+  // source rather than in the generated entry.
+  const rule = out.split("\n").filter(l => l.includes("H6004"));
+  expect(rule.length).toBe(1);
+  expect(rule[0]).toContain("badlyNamed");
+  expect(rule[0]).toMatch(/src\/main\.vader:\d+:\d+/);
+  // …and discriminates: the compliant struct is not what the rule reported.
+  expect(rule[0]).not.toContain("WellNamed");
 }, LONG_BUILD);
 
 test("the driver sees project modules, not just the stdlib", async () => {

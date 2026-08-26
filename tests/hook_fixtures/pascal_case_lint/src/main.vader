@@ -9,6 +9,9 @@ badlyNamed :: struct { x: i32 }
 WellNamed :: struct { y: i32 }
 
 main :: fn() -> i32 {
-    println("hello")
+    // Both used, so the only diagnostic is the driver's own rule.
+    a :: badlyNamed { .x = 1 }
+    b :: WellNamed { .y = 2 }
+    println("hello ${a.x + b.y}")
     return 0
 }
