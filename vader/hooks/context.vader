@@ -258,7 +258,10 @@ emit_one :: fn(ctx: BuildContext!, lowered: LoweredEntry!, entry: Path) -> i32 {
     for d in cfg.lower_diags {
         ctx.diagnostics.push(d)
     }
-    if any_error_diag(cfg.pre_diags) {
+    // BOTH bags, as `flush_build_diags` does for `vader build <file>`: a lowering
+    // error still leaves bytecode behind, so gating on `pre_diags` alone would
+    // emit C from it, link a binary, and report success — a silently wrong build.
+    if any_error_diag(cfg.pre_diags) || any_error_diag(cfg.lower_diags) {
         return 1
     }
     c :: c_source_of(cfg, ctx.release)

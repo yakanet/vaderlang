@@ -87,11 +87,13 @@ test("the driven build leaves no artefact in the project root", async () => {
 }, LONG_BUILD);
 
 test("a project's build.vader runs and reports its own rule", async () => {
-  const { out } = await runIn(LINT, ["build"]);
+  const { out, exit } = await runIn(LINT, ["build"]);
   // Exactly one H6004, on the offending struct, anchored in the project's
   // source rather than in the generated entry.
   const rule = out.split("\n").filter(l => l.includes("H6004"));
   expect(rule.length).toBe(1);
+  // A reported rule violation must FAIL the build — it used to exit 0.
+  expect(exit).not.toBe(0);
   expect(rule[0]).toContain("badlyNamed");
   expect(rule[0]).toMatch(/src\/main\.vader:\d+:\d+/);
   // …and discriminates: the compliant struct is not what the rule reported.
@@ -140,9 +142,11 @@ test("a `build` of the wrong arity is rejected as H6002", async () => {
 test("a driver that queues nothing is reported as H6003", async () => {
   // Draining an empty stream used to finish cleanly: a build that compiled
   // nothing while reporting no problem.
-  const { out } = await runIn(`${FIXTURES}/no_entry_queued`, ["build"]);
+  const { out, exit } = await runIn(`${FIXTURES}/no_entry_queued`, ["build"]);
   expect(out).toContain("H6003");
   expect(out).toContain("add_build_file");
+  // …and fails: compiling nothing while exiting 0 was the original bug.
+  expect(exit).not.toBe(0);
 }, LONG_BUILD);
 
 test("leaving the stream at BeforeEmit builds nothing", async () => {

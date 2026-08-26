@@ -126,8 +126,7 @@ export render_driver_entry :: fn() -> string {
     out.append("module \"${DRIVER_MODULE}\"\n")
     out.append("\n")
     out.append("main :: fn(args: string[]) -> i32 {\n")
-    out.append("    build(args)\n")
-    out.append("    return 0\n")
+    out.append("    return build(args)\n")
     out.append("}\n")
     return out.to_string()
 }
@@ -189,16 +188,31 @@ file_head_span :: fn(path: string) -> Span {
 /// Name of the fn a driver file must declare — reserved, the way `main` is.
 export DRIVER_MODULE_ENTRY :: "build"
 
-// The generated entry calls `build(args)` and ignores its result, so the one
-// shape that has to hold is a single parameter. A wrong arity is caught here;
-// a wrong parameter TYPE is left to the typechecker, which names the expected
-// and actual types better than this could.
+// The generated entry does `return build(args)`, so two shapes have to hold: one
+// parameter, and an `i32` result. The result matters — a `void` driver could not
+// fail a build, which is how a reported problem used to exit 0. A wrong parameter
+// TYPE is still left to the typechecker, which names expected and actual better
+// than this could.
 signature_problem :: fn(f: AST.FnDecl) -> Diagnostic | null {
     if f.params.len() != 1 {
         return hook_error(.InvalidBuildEntrySignature, f.name_span,
             "`${DRIVER_MODULE_ENTRY}` takes one parameter, `args: string[]`, and got ${f.params.len()}")
     }
+    if !returns_i32(f) {
+        return hook_error(.InvalidBuildEntrySignature, f.name_span,
+            "`${DRIVER_MODULE_ENTRY}` must return `i32` — the build's exit status")
+    }
     return null
+}
+
+// True when the declared return type is spelled `i32`. Textual on purpose: this
+// runs on a parsed, un-resolved AST, where there is no type to compare against.
+returns_i32 :: fn(f: AST.FnDecl) -> bool {
+    rt :: f.return_type ?? return false
+    if rt is AST.IdentExpr as id {
+        return id.name == "i32"
+    }
+    return false
 }
 
 // ---- running the driver ---------------------------------------------------
@@ -260,9 +274,12 @@ export run_build_driver :: fn(root: string, cc: string, ldflags: string, units: 
     // a child process, so a timeout costs nothing more than naming one — no
     // instruction budget is possible (the driver is native, not VM-interpreted),
     // but a wall-clock bound is what actually catches an infinite loop.
+    // `timeout` cancels its child on expiry, and `SpawnAsync.cancel` kills the
+    // process — without that override the parent would unblock while the runaway
+    // driver kept spinning a core.
     outcome :: block_on(timeout(DRIVER_TIMEOUT_MS, spawn_async([binary, root])))
     if outcome is TimeoutError {
-        eprintln("vader build: the build driver did not finish within ${DRIVER_TIMEOUT_MS / 1000}s")
+        eprintln("vader build: the build driver did not finish within ${DRIVER_TIMEOUT_MS / 1000}s — killed")
         eprintln("(a loop in `${DRIVER_FILENAME}`? build with --no-hooks to skip it)")
         return 1
     }
@@ -361,14 +378,26 @@ import "std/testing"
 
 @test test_validate_driver_accepts_the_expected_shape :: fn() -> void {
     path :: join_path(temp_dir(), "vader_driver_probe_ok.vader")
-    _ :: write_file_string(path, "module \"build\"\n\nbuild :: fn(args: string[]) -> void {}\n")
+    _ :: write_file_string(path, "module \"build\"\n\nbuild :: fn(args: string[]) -> i32 { return 0 }\n")
     assert(validate_driver(path) == null, "the documented shape validates")
+}
+
+@test test_validate_driver_rejects_a_void_build :: fn() -> void {
+    // A `void` driver could not fail a build — that is how a reported problem
+    // used to exit 0.
+    path :: join_path(temp_dir(), "vader_driver_probe_void.vader")
+    _ :: write_file_string(path, "module \"build\"\n\nbuild :: fn(args: string[]) -> void {}\n")
+    problem :: validate_driver(path)
+    assert(problem is Diagnostic, "a void `build` cannot carry an exit status")
+    if problem is Diagnostic as d {
+        assert_eq(d.code.id, "H6002")
+    }
 }
 
 @test test_validate_driver_stays_quiet_on_parse_errors :: fn() -> void {
     // The real build reports these against the driver with full spans; saying
     // it twice would double every message.
     path :: join_path(temp_dir(), "vader_driver_probe_broken.vader")
-    _ :: write_file_string(path, "module \"build\"\n\nbuild :: fn(args: string[]) -> void { (((\n")
+    _ :: write_file_string(path, "module \"build\"\n\nbuild :: fn(args: string[]) -> i32 { (((\n")
     assert(validate_driver(path) == null, "parse errors are left to the real build")
 }

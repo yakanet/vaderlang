@@ -60,6 +60,17 @@ export ProcessResult :: struct {
 /// else the exit code (>= 0).
 @intrinsic export spawn_poll :: fn(handle: i64) -> i32
 
+/// Terminate a spawned child and reap it, freeing its slot.
+///
+/// For a caller that has given up — a timeout fired, and without this the child
+/// keeps running after its parent stopped caring, holding a core and its table
+/// slot. SIGKILL rather than a polite signal: this is the path for code that is
+/// not responding. Idempotent — killing a finished or unknown handle does
+/// nothing, since a caller cannot know which it holds.
+///
+/// @param handle  the handle `spawn_start` returned.
+@intrinsic export spawn_kill :: fn(handle: i64) -> void
+
 /// Intern the child's captured stdout (call after `spawn_poll` reports done).
 @intrinsic export spawn_take_stdout :: fn(handle: i64) -> string
 
@@ -81,6 +92,17 @@ SpawnAsync :: struct {
 }
 
 SpawnAsync implements Async<ProcessResult | ProcessError> {
+    /// Kill the child and free its slot. Overriding this matters: `Async`'s
+    /// default `cancel` is a v1 no-op, so a `timeout` over a spawn would
+    /// otherwise unblock the CALLER while the child kept running — spinning a
+    /// core and holding its table slot for the life of the process. A cancelled
+    /// spawn has to actually stop.
+    cancel :: fn(self) -> void {
+        if self.handle >= 0 {
+            spawn_kill(self.handle)
+        }
+    }
+
     resume :: fn(self!) -> ProcessResult | ProcessError | Suspended {
         if !self.started {
             self.started = true

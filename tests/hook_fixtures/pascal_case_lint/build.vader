@@ -14,7 +14,7 @@ import "std/string"
 import "vader/hooks"
 AST :: import "vader/parser"
 
-build :: fn(args: string[]) -> void {
+build :: fn(args: string[]) -> i32 {
     ctx :: new_build_context(args)
     ctx.add_build_file("src/main.vader")
     ctx.out = "hello"
@@ -41,6 +41,11 @@ build :: fn(args: string[]) -> void {
         }
     }
 
-    _ :: ctx.flush_reports()
-    println("driver: ${ctx.reports_of().len()} report(s), build exit ${exit}")
+    // A reported rule violation fails the build — that is the point of a house
+    // rule. Without this the driver would report and still exit 0.
+    if ctx.flush_reports() {
+        println("driver: ${ctx.reports_of().len()} report(s) — build failed")
+        return 1
+    }
+    return exit
 }

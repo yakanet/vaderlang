@@ -448,6 +448,12 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         }
         return HostOk { .value = I64Val { .value = spawn_start(argv_strings) } }
     }
+    .ProcessSpawnKill -> {
+        handle :: read_i64(stack[arg_base], at_pc, "spawn_kill handle")
+        if handle is Trap { return handle }
+        spawn_kill(handle.value)
+        return HostOk { .value = zero_value() }
+    }
     .ProcessSpawnPoll -> {
         h :: read_i64(stack[arg_base], at_pc, "spawn_poll handle")
         if h is Trap { return h }
@@ -522,7 +528,8 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
         | .IoSetStdinUnbuffered | .IoCurrentExecutableLocation
         | .IoCurrentWorkingDirectory | .IoCreateDir | .IoRemoveFile -> true
     .TimeNowUnixMs | .TimeMonotonicNs -> true
-    .ProcessSpawnStart | .ProcessSpawnPoll | .ProcessSpawnTakeStdout | .ProcessSpawnTakeStderr -> true
+    .ProcessSpawnStart | .ProcessSpawnPoll | .ProcessSpawnKill
+        | .ProcessSpawnTakeStdout | .ProcessSpawnTakeStderr -> true
     .TtyIsTty | .EnvGetEnv -> true
     // Scheduler : reads/advances the async clock — not reproducible at comptime
     // (you cannot `sleep` while baking a constant).
