@@ -68,12 +68,20 @@ if [ "$dist" = 1 ]; then
   esac
   out="dist/vader-${os}-${arch}"
 
-  step "[dist] Bundling $out  (vader + stdlib + runtime/c)"
+  step "[dist] Bundling $out  (vader + stdlib + runtime/c + lib/vader)"
   rm -rf "$out"
-  mkdir -p "$out/runtime"
+  mkdir -p "$out/runtime" "$out/lib"
   cp build/vader "$out/vader"
   cp -R stdlib "$out/stdlib"
   cp -R runtime/c "$out/runtime/"
+  # The compiler's own sources, so a project's `build.vader` can `import
+  # "vader/hooks"` — without them a driven build only works from a checkout.
+  # Under `lib/` because the bundled binary is itself named `vader`, so
+  # `$out/vader/` would collide with it; `compiler_source_root` looks here
+  # (vader/cli/driver.vader, BUNDLED_SOURCE_DIR). Paired with the binary by
+  # construction: both come from this run, and the binary-relative lookup wins
+  # over whatever checkout the user happens to be standing in.
+  cp -R vader "$out/lib/vader"
 
-  printf '%b==> dist%b  %s ready — a self-contained toolchain (resolves stdlib/ + runtime/c/ next to the binary, so it runs from any directory).\n' "$g" "$r" "$out"
+  printf '%b==> dist%b  %s ready — a self-contained toolchain (resolves stdlib/ + runtime/c/ + lib/vader/ next to the binary, so it runs — and drives builds — from any directory).\n' "$g" "$r" "$out"
 fi
