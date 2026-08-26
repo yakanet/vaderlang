@@ -52,6 +52,13 @@ export BuildContext :: struct {
     /// `load_from_vader_config`.
     include_paths:  string[]!
     /// Where generated modules land, relative to `project_root`.
+    ///
+    /// `@internal`, and deliberately not part of the configuration surface: the
+    /// RESOLVER decides where generated modules are read from
+    /// (`resolver::GENERATED_ROOT_DIR`, probed under the project root), so a
+    /// driver that could move where it writes would write somewhere the compiler
+    /// never looks. One of the two halves has to be authoritative.
+    @internal
     generated_root: string
     /// Binary to produce, relative to `project_root`. Empty means "derive it
     /// from the entry file", the way `vader build` does without `--out`.
@@ -89,11 +96,13 @@ export BuildContext :: struct {
     diagnostics:    Diagnostic[]! = []
 }
 
-/// Default location of generated modules, relative to the project root.
+/// Where generated modules land, relative to the project root.
 ///
-/// Gitignored by convention (`build/` already is): the generated tree is a
-/// build artefact, reproducible from the driver plus the sources it reads.
-export DEFAULT_GENERATED_ROOT :: "build/generated"
+/// The resolver's own constant, restated here so a driver reading this contract
+/// does not have to reach into `vader/resolver` for it — and so there is exactly
+/// one string. Gitignored by convention (`build/` already is): the generated tree
+/// is a build artefact, reproducible from the driver plus the sources it reads.
+export DEFAULT_GENERATED_ROOT :: GENERATED_ROOT_DIR
 
 /// Build a context carrying the defaults a driver would otherwise restate.
 ///
@@ -106,8 +115,7 @@ export DEFAULT_GENERATED_ROOT :: "build/generated"
 /// @param args  the driver's argv. `args[0]` is the driver binary, `args[1]`
 ///              the project root when the compiler supplied one.
 /// @return      a context with `project_root` set (empty when `args` carried
-///              none), no include paths, and `generated_root` at
-///              `DEFAULT_GENERATED_ROOT`. Returned MUTABLE: the whole contract
+///              none) and no include paths. Returned MUTABLE: the whole contract
 ///              is that the driver fills it in, so an immutable result would
 ///              refuse `ctx.out = …` (T3070).
 export new_build_context :: fn(args: string[]) -> BuildContext! = BuildContext {

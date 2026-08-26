@@ -87,12 +87,7 @@ export messages :: fn(ctx: BuildContext!) -> Iterator<Message> {
     // its own previous version and collide with it. Swept BEFORE the first front
     // end rather than after the last: a build that fails never reaches its own
     // cleanup, and the guarantee that matters is about the build starting now.
-    // NOT an ordinary include path: the generated root MERGES into a module an
-    // earlier root already provided, which is what lets a driver emit into the
-    // project's own module instead of a separate one it would have to import
-    // (and could not, without a cycle).
-    generated :: generated_root_of(ctx)
-    _ :: sweep_generated(generated)
+    _ :: sweep_generated(generated_root_of(ctx))
     code := 0
     for file in ctx.build_files {
         entry :: Path(join_path(ctx.project_root, file))
@@ -113,7 +108,10 @@ export messages :: fn(ctx: BuildContext!) -> Iterator<Message> {
             // Front end. The pipeline stays live to the end of the round, which
             // is what lets the back end reuse it instead of re-running ~45% of
             // the build.
-            pipeline :: prepare_evaluated_project_with(entry, ctx.include_paths, generated)
+            // The generated tree is not passed: the loader derives it from the
+            // project root, so what this build reads is what `vader run` and the
+            // LSP read too.
+            pipeline :: prepare_evaluated_project_with(entry, ctx.include_paths)
             for [_, loaded] in pipeline.loaded.modules {
                 fresh :: undelivered_decls(loaded.module.files, delivered)
                 // Nothing new in this module: say nothing about it at all,
