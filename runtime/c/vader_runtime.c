@@ -3518,6 +3518,32 @@ vader_string_t vader_current_executable_location(void) {
     return vader_string_new(buf, n);
 }
 
+/* `vader_current_working_directory` backs the `std/io` intrinsic. The process
+ * working directory, `/`-separated and WITHOUT a trailing separator, falling
+ * back to "." when the platform query fails — so a caller joining onto it stays
+ * cwd-relative rather than producing an absolute path it cannot trust.
+ *
+ * Distinct from `vader_current_executable_location`: that one answers "where is
+ * the binary", this one "where was it invoked from". The resolver wants the
+ * former for sidecar layout; a build driver wants the latter to find the file
+ * the user meant. */
+vader_string_t vader_current_working_directory(void) {
+    char buf[4096];
+    size_t n = 0;
+#if defined(_WIN32)
+    DWORD len = GetCurrentDirectoryA((DWORD) sizeof(buf), buf);
+    if (len > 0 && len < sizeof(buf)) n = (size_t) len;
+#else
+    if (getcwd(buf, sizeof(buf)) != NULL) n = strlen(buf);
+#endif
+    if (n == 0) return vader_string_new(".", 1);
+    vader_path_to_slash(buf, n);
+    /* Drop a trailing separator so callers join with "/name" uniformly. The
+     * filesystem root ("/" on POSIX, "C:/" on Windows) keeps its separator. */
+    while (n > 1 && buf[n - 1] == '/' && buf[n - 2] != ':') n--;
+    return vader_string_new(buf, n);
+}
+
 /* `vader_temp_dir` backs the `std/io::temp_dir` intrinsic — the OS scratch
  * directory for temporary files, `/`-separated and WITHOUT a trailing
  * separator (callers join with "/name"). Honours $TMPDIR (POSIX) / GetTempPath

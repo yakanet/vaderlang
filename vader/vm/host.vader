@@ -404,6 +404,11 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         // wrong sidecar just fails the marker check and falls back to cwd.
         return HostOk { .value = StringVal { .value = current_executable_location() } }
     }
+    .IoCurrentWorkingDirectory -> {
+        // Same reason as the arm above: a compile running in the self-host VM
+        // must still be able to ask where it was invoked from.
+        return HostOk { .value = StringVal { .value = current_working_directory() } }
+    }
     .IoReadDir -> {
         path :: read_string(stack[arg_base], at_pc, "read_dir")
         if path is Trap { return path }
@@ -500,7 +505,8 @@ export is_impure_comptime_trap_message :: fn(message: string) -> bool =
 is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     .IoExists | .IoIsDir | .IoTempDir | .IoReadDir | .IoReadFileBytes
         | .IoWriteFileBytes | .IoReadLine | .IoReadStdin | .IoPollStdin
-        | .IoSetStdinUnbuffered | .IoCurrentExecutableLocation -> true
+        | .IoSetStdinUnbuffered | .IoCurrentExecutableLocation
+        | .IoCurrentWorkingDirectory -> true
     .TimeNowUnixMs | .TimeMonotonicNs -> true
     .ProcessSpawnStart | .ProcessSpawnPoll | .ProcessSpawnTakeStdout | .ProcessSpawnTakeStderr -> true
     .TtyIsTty | .EnvGetEnv -> true
