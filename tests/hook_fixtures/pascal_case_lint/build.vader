@@ -1,0 +1,38 @@
+// A project driving its own build: one house rule, checked at compile time.
+//
+// `vader build` with no file argument finds this file, compiles it, and runs
+// `build` — which then decides what to compile. See vader/cli/driver.vader.
+
+module "build"
+
+import "std/io"
+import "std/string"
+import "vader/hooks"
+AST :: import "vader/parser"
+
+build :: fn(args: string[]) -> void {
+    ctx :: new_build_context(args)
+    ctx.add_build_file("src/main.vader")
+
+    for msg in ctx.messages() {
+        if msg is TypecheckedMessage as t {
+            // Every typed module is yielded, stdlib included — which modules
+            // are "this project" is the driver's call.
+            if t.module_name.starts_with("std/") {
+                continue
+            }
+            for d in t.declarations {
+                if d is AST.StructDecl as s {
+                    first :: s.name[0..<1]
+                    if first.to_upper() != first {
+                        ctx.report(s.name_span, "struct `${s.name}` should be PascalCase")
+                    }
+                }
+            }
+        }
+    }
+
+    if ctx.flush_reports() {
+        println("build stopped: ${ctx.reports_of().len()} rule violation(s)")
+    }
+}

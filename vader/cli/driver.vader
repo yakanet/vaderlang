@@ -82,7 +82,20 @@ export compiler_source_root :: fn(root: string) -> string {
     if exists(join_path(beside_binary, "vader/hooks")) {
         return beside_binary
     }
-    return root
+    // Walk up from the project. A checkout has `vader/` at its top, and a
+    // project nested inside one — a test fixture, a sub-package — would
+    // otherwise never see it. Same shape as `find_manifest_root`.
+    dir := root
+    for {
+        if exists(join_path(dir, "vader/hooks")) {
+            return dir
+        }
+        parent :: dir.dir_of()
+        if parent == dir {
+            return root
+        }
+        dir = parent
+    }
 }
 
 // ---- generated entry ------------------------------------------------------
