@@ -17,10 +17,10 @@
   Any<U, E>
   Any<U, E>
   Any<U, E>
-  Timeout<T>
-  Timeout<T>
-  Timeout<T>
   ArrayOps<T>
+  Timeout<T>
+  Timeout<T>
+  Timeout<T>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, i32>

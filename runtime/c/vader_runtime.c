@@ -3486,6 +3486,77 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
 
 #endif  /* _WIN32 / POSIX */
 
+/* `vader_create_dir` backs `std/io::create_dir`. Creates `path` and every
+ * missing parent, so a caller can name a nested destination without walking it
+ * itself — the shape every generated-output path needs. An existing directory
+ * is success, not an error: the caller asked for it to exist, and it does.
+ *
+ * Walks the path forward, creating each prefix in turn. Mode 0777 is masked by
+ * the process umask, matching `mkdir -p`. */
+static int vader_mkdir_one(const char* p) {
+#if defined(_WIN32)
+    if (CreateDirectoryA(p, NULL)) return 0;
+    return (GetLastError() == ERROR_ALREADY_EXISTS) ? 0 : -1;
+#else
+    if (mkdir(p, 0777) == 0) return 0;
+    return (errno == EEXIST) ? 0 : -1;
+#endif
+}
+
+vader_box_t vader_create_dir(vader_string_t path, uint32_t err_tag) {
+    const char* p = vader_atom_to_cstr(path);
+    size_t n = strlen(p);
+    if (n == 0) {
+        vader_atom_cstr_free(p);
+        return vader_box_string(err_tag, vader_string_new("empty path", 10));
+    }
+    if (n >= 4096) {
+        vader_atom_cstr_free(p);
+        return vader_box_string(err_tag, vader_string_new("path too long", 13));
+    }
+
+    char buf[4096];
+    memcpy(buf, p, n);
+    buf[n] = '\0';
+    vader_atom_cstr_free(p);
+
+    /* Create each prefix. Start at 1 so a leading "/" is not treated as a
+     * component to create, and skip repeated separators. */
+    for (size_t i = 1; i < n; i++) {
+        if (buf[i] != '/') continue;
+        if (buf[i - 1] == '/') continue;
+        buf[i] = '\0';
+        int rc = vader_mkdir_one(buf);
+        buf[i] = '/';
+        if (rc != 0) return vader_box_string(err_tag, vader_string_new("cannot create parent", 20));
+    }
+    if (vader_mkdir_one(buf) != 0) {
+        return vader_box_string(err_tag, vader_string_new("cannot create directory", 23));
+    }
+    return vader_box_null();
+}
+
+/* `vader_remove_file` backs `std/io::remove_file`. Deletes a FILE; a directory
+ * is refused by the platform rather than silently recursed into, which is the
+ * conservative default for something irreversible. A missing path is an error,
+ * not success: a caller that does not care checks `exists` first, and one that
+ * does would rather hear about it. */
+vader_box_t vader_remove_file(vader_string_t path, uint32_t err_tag) {
+    const char* p = vader_atom_to_cstr(path);
+    /* NOT `remove()`: on POSIX that falls back to `rmdir` for a directory, so an
+     * empty one would silently vanish through a function named remove_FILE.
+     * `unlink` / `DeleteFileA` both refuse a directory outright. */
+#if defined(_WIN32)
+    int rc = DeleteFileA(p) ? 0 : -1;
+#else
+    int rc = unlink(p);
+#endif
+    vader_atom_cstr_free(p);
+    if (rc != 0) return vader_box_string(err_tag, vader_string_new("cannot remove file", 18));
+    return vader_box_null();
+}
+
+
 /* ----------------------------------------------------------------- location
  *
  * `vader_current_executable_location` backs the `std/io` intrinsic the resolver
