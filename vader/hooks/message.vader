@@ -24,8 +24,10 @@ export Message :: TypecheckedMessage | PhaseMessage | CompleteMessage
 /// user's source. This is why a driver runs natively rather than through the
 /// comptime VM; see the plan referenced in `context.vader`.
 export TypecheckedMessage :: struct {
-    /// Module id as the loader knows it — e.g. `"vader/lexer"`.
-    module_path:  string
+    /// The module's declared name — `"std/io"`, `"vader/lexer"`. This is what a
+    /// driver filters on; the loader's own key is an absolute filesystem path,
+    /// which no rule can usefully match against.
+    module_name:  string
     declarations: AST.Decl[]
 }
 

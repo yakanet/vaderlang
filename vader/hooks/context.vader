@@ -25,7 +25,10 @@
 module "vader/hooks"
 
 import "vader/diagnostics"
+import "std/io"
+import "std/path"
 import "vader/resolver"
+import "vader/pipeline"
 
 // ---- context --------------------------------------------------------------
 
@@ -136,13 +139,52 @@ export load_from_vader_config :: fn(ctx: BuildContext!) -> void {
     ctx.include_paths = fresh
 }
 
+// ---- driving the compilation ----------------------------------------------
+
+/// Drive the compilation and yield what the pipeline produces.
+///
+/// Nothing compiles until the first message is pulled, so a driver configures
+/// the context first and iterates second. Each queued entry file is run through
+/// the front end (`load → resolve + typecheck → comptime`), yielding one
+/// `TypecheckedMessage` per module, then a `PhaseMessage`, and finally one
+/// `CompleteMessage` for the whole run.
+///
+/// **Every** typed module is yielded, the stdlib included — a driver that only
+/// cares about its own code filters on `module_path`. Reporting the full set is
+/// the honest default: which modules are "the project" is the driver's policy,
+/// not this function's.
+///
+/// Batched per file rather than streamed per declaration: Vader is
+/// single-threaded here, so the compiler fills a phase and hands it over. The
+/// loop shape is the same either way, and the order is specified rather than
+/// dependent on scheduling — which is what keeps a driven build reproducible.
+///
+/// @param ctx  the configured context. An empty `build_files` yields only
+///             `CompleteMessage` — the caller reports H6003.
+/// @return     a lazy stream of messages, in pipeline order.
+export messages :: fn(ctx: BuildContext!) -> Iterator<Message> {
+    for file in ctx.build_files {
+        entry :: join_path(ctx.project_root, file)
+        pipeline :: prepare_evaluated_project_with(Path(entry), ctx.include_paths)
+        for [_, loaded] in pipeline.loaded.modules {
+            yield TypecheckedMessage {
+                .module_name  = loaded.module.module_name,
+                .declarations = concat_file_decls(loaded.module.files),
+            }
+        }
+        yield PhaseMessage { .phase = .Typechecked }
+    }
+    yield MSG_COMPLETE
+}
+
 // ---- reporting ------------------------------------------------------------
 
 /// Report a problem from the driver, anchored in the user's source.
 ///
-/// The driver describes the problem; the registry owns the code (`H6004`). That
-/// split is deliberate — a project's lint rules should never have to allocate
-/// diagnostic ids, and every driver report stays greppable under one code.
+/// Accumulates; `flush_reports` prints. The driver describes the problem and the
+/// registry owns the code (`H6004`) — a project's lint rules should never have
+/// to allocate diagnostic ids, and every driver report stays greppable under one
+/// code.
 ///
 /// Pass the tightest span the user can act on: a decl's `name_span` rather than
 /// its `span`, a field rather than the struct holding it.
@@ -157,9 +199,27 @@ export report :: fn(ctx: BuildContext!, span: Span, message: string) -> void {
 
 /// Reports accumulated so far, in order.
 ///
-/// @return the driver's diagnostics — the compiler drains these and merges them
-///         into its own output, so a driver never prints them itself.
+/// @return the driver's diagnostics. Inspect them to decide an exit status;
+///         `flush_reports` is what puts them on the wire.
 export reports_of :: fn(ctx: BuildContext) -> Diagnostic[] = ctx.diagnostics
+
+/// Print every accumulated report, in the compiler's own diagnostic format.
+///
+/// A driver has to call this: under this model the driver IS the process, so
+/// there is no host left to drain the reports for it. Accumulating first and
+/// printing once keeps the order the driver produced — which is what makes a
+/// driven build's output reproducible.
+///
+/// @param ctx  the context holding the reports.
+/// @return     true when at least one report was printed, so a driver can pick
+///             its exit status without counting them itself.
+export flush_reports :: fn(ctx: BuildContext) -> bool {
+    if ctx.diagnostics.len() == 0 {
+        return false
+    }
+    eprintln(dump_diagnostics_with_file(ctx.diagnostics))
+    return true
+}
 
 // ---- tests ----------------------------------------------------------------
 
