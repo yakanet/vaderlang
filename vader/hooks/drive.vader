@@ -77,7 +77,7 @@ export messages :: fn(ctx: BuildContext!) -> Iterator<Message> {
     ldflags :: ctx.ldflags
     out     :: ctx.out
     if ctx.build_files.len() == 0 {
-        ctx.diagnostics.push(hook_error(.NoBuildFiles, empty_span(),
+        ctx.diagnostics.push(hook_error(.NoBuildFiles, driver_span(ctx),
             "call `ctx.add_build_file(...)` before iterating `messages()`"))
         yield CompleteMessage { .code = 1 }
         return
@@ -142,7 +142,7 @@ export messages :: fn(ctx: BuildContext!) -> Iterator<Message> {
                 // Not a hang — a driver whose emitted text never stabilises. The
                 // detail names what was still moving, since that is the only
                 // clue to which rule is unstable.
-                ctx.diagnostics.push(hook_error(.GenerationDidNotSettle, empty_span(),
+                ctx.diagnostics.push(hook_error(.GenerationDidNotSettle, driver_span(ctx),
                     "`${join_strings(regenerated, "`, `")}` still changed after ${MAX_GENERATION_ROUNDS} rounds"))
                 code = 1
                 break
@@ -196,7 +196,7 @@ emit_one :: fn(
     // One `out` cannot name N binaries: the second would overwrite the first in
     // silence. Refuse rather than pick a winner.
     if out != "" && entries > 1 {
-        ctx.diagnostics.push(hook_error(.AmbiguousOutput, empty_span(),
+        ctx.diagnostics.push(hook_error(.AmbiguousOutput, driver_span(ctx),
             "`ctx.out` names one binary but ${entries} entries are queued — leave it empty to derive a name per entry"))
         return 1
     }

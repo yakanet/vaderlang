@@ -87,7 +87,7 @@ export MAX_GENERATION_ROUNDS :: 8
 export emit_module :: fn(ctx: BuildContext!, name: string, source: string) -> void {
     problem :: generated_name_problem(name)
     if problem != "" {
-        ctx.diagnostics.push(hook_error(.InvalidGeneratedModuleName, empty_span(), problem))
+        ctx.diagnostics.push(hook_error(.InvalidGeneratedModuleName, driver_span(ctx), problem))
         return
     }
     ctx.pending.push(GeneratedModule { .name = name, .source = source })
@@ -206,13 +206,13 @@ export flush_generated :: fn(ctx: BuildContext!) -> string[] {
         }
         made :: create_dir(dir)
         if made is IOError as de {
-            ctx.diagnostics.push(hook_error(.GeneratedModuleNotWritten, empty_span(),
+            ctx.diagnostics.push(hook_error(.GeneratedModuleNotWritten, driver_span(ctx),
                 "`${dir}` for module `${g.name}`: ${de.msg}"))
             continue
         }
         written :: write_file_string(path, content)
         if written is IOError as we {
-            ctx.diagnostics.push(hook_error(.GeneratedModuleNotWritten, empty_span(),
+            ctx.diagnostics.push(hook_error(.GeneratedModuleNotWritten, driver_span(ctx),
                 "`${path}`: ${we.msg}"))
             continue
         }
