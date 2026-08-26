@@ -105,6 +105,22 @@ export Diagnostic :: struct {
 /// normally reach for one of the typed `*_error` / `*_warning` shortcuts
 /// below ; `new_diagnostic` is exposed for the rare emitter that knows
 /// its `CodeInfo` ahead of time (snapshot loaders, JSON re-import).
+/// True when any diagnostic in `diags` is error-severity.
+///
+/// The gate every stage uses before doing work a rejected program does not
+/// deserve — the lowerer refuses to lower, the comptime pass refuses to bake.
+///
+/// @param diags  the accumulated diagnostics of a phase, or several merged.
+/// @return       true as soon as one carries `.Error` ; warnings do not count.
+export any_error_diag :: fn(diags: Diagnostic[]) -> bool {
+    for d in diags {
+        if d.severity == .Error {
+            return true
+        }
+    }
+    return false
+}
+
 export new_diagnostic :: fn(severity: Severity, code: CodeInfo, primary: Span, detail: string) =
     Diagnostic { .severity = severity, .code = code, .detail = detail, .primary = primary }
 
