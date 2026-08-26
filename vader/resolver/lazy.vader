@@ -37,6 +37,17 @@ AST :: import "vader/parser"
 export IncludePath :: struct {
     dir:    string
     prefix: string
+    /// A merge root does NOT shadow a module an earlier root already provided —
+    /// its files are APPENDED to it. It is the one exception to "a module lives
+    /// in one folder", and the generated tree is its only user: a driver's
+    /// `emit_module("app", …)` has to extend the project's own `app`, whose
+    /// primary folder is elsewhere, so the generated file can see its module
+    /// siblings' declarations without an import (and without the cycle an import
+    /// would create).
+    ///
+    /// A merge root still PROVIDES a module nothing else declares, so a
+    /// generated-only module resolves through it like any other root.
+    merge:  bool = false
 }
 
 /// The ordered include-paths for lazy resolution. The entry roots its declared
@@ -52,12 +63,19 @@ export IncludePath :: struct {
 /// @param entry_module  the entry's declared module name — the namespace it roots.
 /// @param entry_folder  the folder the entry file lives in (the namespace root).
 /// @param plain         the ordered plain include-paths (no namespace prefix).
+/// @param generated     root holding a build driver's generated modules, or ""
+///                      when nothing generates. Appended LAST and flagged
+///                      `merge`, so it extends a module rather than shadowing
+///                      one — see `IncludePath.merge`.
 export include_paths :: fn(
-    entry_module: string, entry_folder: string, plain: string[],
+    entry_module: string, entry_folder: string, plain: string[], generated: string,
 ) -> IncludePath[] {
     paths: IncludePath[]! = [IncludePath { .dir = entry_folder, .prefix = entry_module }]
     for pi in 0..<plain.len() {
         paths.push(IncludePath { .dir = plain[pi], .prefix = "" })
+    }
+    if generated != "" {
+        paths.push(IncludePath { .dir = generated, .prefix = "", .merge = true })
     }
     return paths
 }
@@ -89,17 +107,43 @@ export resolve_lazy :: fn(
 ) -> DiscoveredModule | null {
     cached :: index[name]
     if cached is DiscoveredModule as dm { return dm }
+    // The folder that OWNS the module — the first root to declare it, and the
+    // module's identity. Every later contribution is appended to `files`, in root
+    // order, so generated files land after the hand-written ones and file order
+    // stays a function of the content alone.
+    home: string | null = null
+    files: string[]! = []
     for pi in 0..<paths.len() {
+        // Once the module is found, only a MERGE root is still worth probing:
+        // every other root is shadowed, first match wins. Skipping BEFORE the
+        // `is_dir` / `scan_folder` is what keeps this free — a build with no
+        // generated root has no merge root at all, so it does exactly the work
+        // it did when this loop returned on first match.
+        if home != null && !paths[pi].merge {
+            continue
+        }
         cand_opt :: rooted_candidate(paths[pi], name) ?? continue
         cand :: cand_opt
         if !is_dir(cand) { continue }
         bucket :: scan_folder(cand, diags) ?? continue
         if bucket.name != name { continue }   // folder exists but declares another module
-        resolved :: DiscoveredModule { .name = name, .folder = cand, .files = bucket.files }
-        index[name] = resolved
-        return resolved
+        if home == null {
+            home = cand
+            files.push_all(bucket.files)
+            continue
+        }
+        // Same folder reached through two roots (a generated root also listed in
+        // `--include-paths`) — appending would duplicate every declaration in it,
+        // which reads as T3053 on code the user did not write twice.
+        if cand == home {
+            continue
+        }
+        files.push_all(bucket.files)
     }
-    return null
+    folder :: home ?? return null
+    resolved :: DiscoveredModule { .name = name, .folder = folder, .files = files }
+    index[name] = resolved
+    return resolved
 }
 
 /// When `name` failed to resolve, report whether some include-path holds a
@@ -123,21 +167,28 @@ export misplaced_module_at :: fn(name: string, paths: IncludePath[]) -> string |
     return null
 }
 
-/// Seed the entry module directly from its own folder — it is the BFS root, not
+/// Discover the entry module from its own folder — it is the BFS root, not
 /// reached through an import, so path-mapping doesn't apply.
 ///
+/// Its declared NAME is the point: the include-paths root the entry's namespace
+/// at its own folder, so they cannot be built until this has run. The loader then
+/// resolves the entry through `resolve_lazy` like any other module, which is what
+/// keeps the merge rule (`IncludePath.merge`) written once.
+///
 /// @param entry_folder  the folder containing the entry file.
-/// @param index         the lazy cache (the entry is registered by its name).
-/// @return              the seeded module, or null for a folder with no module
-///                      decl (→ the caller emits R2001, matching the eager
+/// @return              the discovered module, or null for a folder with no
+///                      module decl (→ the caller emits R2001, matching the eager
 ///                      `find_by_folder` miss).
 export seed_entry :: fn(
-    entry_folder: string, index: MutableMap<string, DiscoveredModule>!, diags: Diagnostic[]!,
+    entry_folder: string, diags: Diagnostic[]!,
 ) -> DiscoveredModule | null {
     bucket :: scan_folder(entry_folder, diags) ?? return null
     if bucket.name == "" { return null }
     seeded :: DiscoveredModule { .name = bucket.name, .folder = entry_folder, .files = bucket.files }
-    index[bucket.name] = seeded
+    // NOT cached in `index`: the loader re-resolves the entry through
+    // `resolve_lazy` once the include-paths exist, and a cached entry here would
+    // shadow that with an un-merged module. This function's job is to DISCOVER
+    // the entry's declared name — which is what building the include-paths needs.
     return seeded
 }
 

@@ -1,0 +1,22 @@
+// A project whose driver generates part of it — both ways round.
+//
+// `describe_Point` comes from a generated module this file IMPORTS. `describe`
+// comes from a generated file that joined THIS module, so there is no import for
+// it and it can take `Point` by type — which an imported module could not, since
+// it would have to import `app` back and that is a cycle.
+
+module "app"
+
+import "std/io"
+import "gen/describe"
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1, .y = 2 }
+    println("${describe_Point()} / ${describe(p)}")
+    return 0
+}

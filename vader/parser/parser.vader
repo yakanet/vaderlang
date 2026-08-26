@@ -483,11 +483,17 @@ parse_optional_module_decl :: fn(p: Parser!) -> ModuleDecl | null {
     }
 }
 
-// Hand-rolled grammar check for the pattern
-// `/^[a-z][a-z0-9_]*(\/[a-z][a-z0-9_]*)*$/`. Avoiding `std/regex` keeps the
-// parser dependency surface minimal. Predicates take `char` to align
-// with the lexer's `is_ident_start` / `is_ident_continue` idiom.
-is_valid_module_name :: fn(name: string) -> bool {
+/// True when `name` is a legal module path: `^[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*)*$`.
+///
+/// Backs `P1028` on a `module` declaration, and exported so a build driver's
+/// `emit_module` can refuse a name BEFORE writing a file the parser would then
+/// reject — a diagnostic on machine-written code is a diagnostic the user cannot
+/// act on. Hand-rolled rather than `std/regex` to keep the parser's dependency
+/// surface minimal; the predicates take `char` to match the lexer's
+/// `is_ident_start` / `is_ident_continue` idiom.
+///
+/// @param name  the declared module path.
+export is_valid_module_name :: fn(name: string) -> bool {
     expect_segment_start := true
     seen_any := false
     for c in name.chars() {
