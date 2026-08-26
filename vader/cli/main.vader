@@ -835,14 +835,6 @@ virt_entry_mangled :: fn(module: BytecodeModule) -> string {
     return ""
 }
 
-// Default output base name : strip the recognised source / IR suffix.
-strip_input_suffix :: fn(file: Path) -> Path =
-    if file.extension() == "virt" {
-        file.as_string().trim_suffix(".virt").to_path()
-    } else {
-        file.as_string().trim_suffix(".vader").to_path()
-    }
-
 // `--target=native` : emit the C next to the binary, then invoke the C
 // compiler to link it against the external runtime (`runtime/c/`). The `.c`
 // is kept on a `cc` failure so the user can inspect the generated source.

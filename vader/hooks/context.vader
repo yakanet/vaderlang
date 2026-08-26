@@ -272,7 +272,7 @@ emit_one :: fn(ctx: BuildContext!, lowered: LoweredEntry!, entry: Path) -> i32 {
     out :: if ctx.out != "" {
         join_path(ctx.project_root, ctx.out)
     } else {
-        strip_vader_suffix(entry.as_string())
+        strip_input_suffix(entry).as_string()
     }
     return link_native(c, Path(out), ctx.cc, ctx.release, ctx.ldflags)
 }
@@ -324,15 +324,6 @@ drain :: fn(ctx: BuildContext!) -> i32 {
         }
     }
     return code
-}
-
-// Default output name: the entry minus its `.vader` suffix, matching what
-// `vader build` derives when `--out` is absent.
-strip_vader_suffix :: fn(path: string) -> string {
-    if path.ends_with(".vader") {
-        return path.trim_suffix(".vader")
-    }
-    return path
 }
 
 // ---- reporting ------------------------------------------------------------
