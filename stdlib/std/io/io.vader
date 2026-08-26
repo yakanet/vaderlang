@@ -108,6 +108,30 @@ export eprintln :: fn<T: Display>(msg: T) -> void {
 /// @error          `IOError` if the file can't be opened or written.
 @intrinsic export write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError
 
+/// Create `path` and every missing parent, the way `mkdir -p` does.
+///
+/// An existing directory is success, not an error: the caller asked for it to
+/// exist, and it does. Permissions follow the process umask.
+///
+/// @param path  directory to create, `/`-separated.
+/// @return      `null` on success.
+/// @error       `IOError` when a component cannot be created — a parent that is
+///              a file, a read-only mount, a path over 4096 bytes.
+@intrinsic export create_dir :: fn(path: string) -> null | IOError
+
+/// Delete the file at `path`.
+///
+/// Files only. A directory is refused by the platform rather than silently
+/// recursed into — the conservative default for something irreversible. A
+/// missing path is an error too: a caller that does not care checks `exists`
+/// first, and one that does would rather hear about it.
+///
+/// @param path  file to delete.
+/// @return      `null` on success.
+/// @error       `IOError` when the path is missing, is a directory, or is not
+///              removable.
+@intrinsic export remove_file :: fn(path: string) -> null | IOError
+
 /// Read a file fully into a UTF-8 string — a thin text decode over
 /// `read_file_bytes`. Use `read_file_bytes` directly for binary data.
 /// @param path  filesystem path (absolute or cwd-relative).

@@ -404,6 +404,20 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         // wrong sidecar just fails the marker check and falls back to cwd.
         return HostOk { .value = StringVal { .value = current_executable_location() } }
     }
+    .IoCreateDir -> {
+        path :: read_string(stack[arg_base], at_pc, "create_dir")
+        if path is Trap { return path }
+        result :: create_dir(path.value)
+        if result is IOError { return HostOk { .value = mk_io_error(result.msg, io_error_type_id) } }
+        return HostOk { .value = NullVal {} }
+    }
+    .IoRemoveFile -> {
+        path :: read_string(stack[arg_base], at_pc, "remove_file")
+        if path is Trap { return path }
+        result :: remove_file(path.value)
+        if result is IOError { return HostOk { .value = mk_io_error(result.msg, io_error_type_id) } }
+        return HostOk { .value = NullVal {} }
+    }
     .IoCurrentWorkingDirectory -> {
         // Same reason as the arm above: a compile running in the self-host VM
         // must still be able to ask where it was invoked from.
@@ -506,7 +520,7 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     .IoExists | .IoIsDir | .IoTempDir | .IoReadDir | .IoReadFileBytes
         | .IoWriteFileBytes | .IoReadLine | .IoReadStdin | .IoPollStdin
         | .IoSetStdinUnbuffered | .IoCurrentExecutableLocation
-        | .IoCurrentWorkingDirectory -> true
+        | .IoCurrentWorkingDirectory | .IoCreateDir | .IoRemoveFile -> true
     .TimeNowUnixMs | .TimeMonotonicNs -> true
     .ProcessSpawnStart | .ProcessSpawnPoll | .ProcessSpawnTakeStdout | .ProcessSpawnTakeStderr -> true
     .TtyIsTty | .EnvGetEnv -> true

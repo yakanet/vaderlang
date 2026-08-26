@@ -1116,6 +1116,14 @@ vader_string_t vader_current_executable_location(void);
 /* `std/io::current_working_directory` — the process working directory,
  * `/`-separated, no trailing separator. "." when the query fails. */
 vader_string_t vader_current_working_directory(void);
+
+/* `std/io::create_dir` — create a directory and every missing parent. An
+ * existing directory is success. */
+vader_box_t vader_create_dir(vader_string_t path, uint32_t err_tag);
+
+/* `std/io::remove_file` — delete a file. Directories and missing paths are
+ * errors. */
+vader_box_t vader_remove_file(vader_string_t path, uint32_t err_tag);
 /* The OS temp directory, `/`-separated, no trailing separator. Honours $TMPDIR
  * (POSIX) / GetTempPath (Windows), falling back to "/tmp". Backs the
  * `std/io::temp_dir` intrinsic. */
