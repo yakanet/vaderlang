@@ -310,7 +310,7 @@ export run_build_driver :: fn(root: string, cc: string, ldflags: string, units: 
 /// legitimately takes minutes. This is a backstop against a hang, not a
 /// performance budget — a driver that needs longer is better served by
 /// `--no-hooks` and a manual build than by raising this.
-export DRIVER_TIMEOUT_MS :: 600_000
+export DRIVER_TIMEOUT_MS: i64: 600_000
 
 // Best-effort deletion: a leftover shim is a nuisance, not a failure, so the
 // error is dropped. It matters that this really unlinks — a blanked file left in

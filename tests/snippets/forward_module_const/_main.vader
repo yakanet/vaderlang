@@ -1,0 +1,63 @@
+// A module constant used BEFORE its declaration — every shape that used to break.
+//
+// Top-level declarations are order-independent, but an un-annotated const's TYPE
+// is inferred by typechecking its value, and that ran in the same file-ordered
+// pass as the function bodies. A body referencing a later const therefore read
+// its type as `?`, which meant the use site was never type-checked at all, and
+// then failed in three different ways downstream:
+//
+//   * `x in LATE`        → lowered SILENTLY to `unreachable` (wrong code, no
+//                          diagnostic) — `lower_binary.vader` resolves `Contains`
+//                          on the operand's type and fell through on `?`.
+//   * `LATE.len()`       → `midir/emit: no field len on ?` (compiler panic).
+//   * `for _ in LATE`    → `midir/emit: unresolved callee 'next'` (panic).
+//   * `LIMIT.to_string()`→ same panic on a scalar const.
+//
+// Indexing (`LATE[0]`) and `string.len()` always worked — neither dispatches on
+// the receiver's type — which is what made the bug look narrower than it was.
+//
+// Fixed by typing literal-valued consts in a pre-pass before the bodies
+// (`typecheck/orchestrate.vader`). A const whose value CALLS something keeps the
+// old ordering, because it genuinely depends on those bodies.
+//
+// Found by dogfooding the build driver: a `build.vader` with its lookup tables at
+// the bottom of the file.
+
+module "snippet"
+
+import "std/io"
+
+// Every use precedes every declaration below.
+kind :: fn(name: string) -> string {
+    if name in NUMERIC {
+        return "number"
+    }
+    if name in NAMES {
+        return "name"
+    }
+    return "other"
+}
+
+count_numeric :: fn() -> usize = NUMERIC.len()
+
+first_name :: fn() -> string = NAMES[0]
+
+joined :: fn() -> string {
+    out := ""
+    for n in NAMES {
+        out = "${out}${n},"
+    }
+    return out
+}
+
+limit_text :: fn() -> string = LIMIT.to_string()
+
+NUMERIC :: ["i32", "f64"]
+NAMES   :: ["alice", "bob"]
+LIMIT   :: 42
+
+main :: fn() -> i32 {
+    println("${kind("i32")} ${kind("alice")} ${kind("zzz")}")
+    println("${count_numeric()} ${first_name()} ${joined()} ${limit_text()}")
+    return 0
+}
