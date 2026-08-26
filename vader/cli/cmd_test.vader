@@ -1,0 +1,282 @@
+// vader/cli/test — the `vader test` command.
+//
+// Discovers `@test` fns under a path, compiles ONE representative per module
+// (so a test sees only that module's own import closure — the gotcha CLAUDE §11
+// documents), runs them, and reports. The largest single command, split out so
+// the dispatch in `main.vader` stays readable.
+//
+// Same module as `main.vader`: imports are file-scoped, declarations are not.
+
+module "vader/cli"
+
+import "std/io"
+import "std/path"
+import "std/string"
+import "std/collections"
+import "std/cli"
+import "std/process"
+import "vader/parser"
+import "vader/resolver"
+import "vader/typecheck"
+import "vader/lower"
+import "vader/bytecode"
+import "vader/midir"
+import "vader/pipeline"
+import "vader/diagnostics"
+import "vader/vm"
+Prof :: import "vader/profile"
+
+/// `vader test [path]` — discover `@test` fns under `path` (default `.`),
+/// compile each module keeping the tests as roots, and run every test in
+/// isolation on the VM. A trap (e.g. a failed `assert`) is a FAIL ; clean
+/// return is a pass. Runs NATIVE, so the memory-ABI opcodes are testable.
+///
+/// @param args  positional args ; `args[0]` is the target path (file or dir).
+/// @return      0 when every test passed, 1 on any failure, 2 when no `.vader`
+///              files / no `@test` fns were found.
+cmd_test :: fn(args: string[]) -> i32 {
+    parsed :: parse_action("test", args)
+    if parsed is i32 as code {
+        return code
+    }
+    if reject_extra_positionals("test", parsed) {
+        return 1
+    }
+    from_args :: parsed.action_file()
+    target :: if from_args.as_string() == "" { ".".to_path() } else { from_args }
+    files :: discover_vader_files(target)
+    if files.len() == 0 {
+        eprintln("vader test: no .vader files found under ${target}")
+        return 2
+    }
+    reps :: pick_module_representatives(files)
+    ran :: MutableSet<string> {}
+    total_pass := 0
+    total_fail := 0
+    files_with_tests := 0
+    for rep in reps {
+        le :: lower_to_entry(rep)
+        if !flush_build_diags(le.pre_diags, le.lower_diags) {
+            total_fail += 1
+            continue
+        }
+        // keep_tests=true : `@test` fns survive the lower-level prune ; the
+        // emit-level prune keeps them via EmitOptions.keep_mangles below.
+        pruned :: prune_unreachable_fns(le.lowered, true)
+        all_tests :: find_tests(pruned)
+        // Stdlib modules surface under nearly every rep (imported transitively) ;
+        // run each unique @test once across the whole invocation.
+        fresh: DiscoveredTest[]! = []
+        for t in all_tests {
+            if !(t.mangled in ran) { fresh.push(t) }
+        }
+        if fresh.len() == 0 {
+            continue
+        }
+        files_with_tests += 1
+        println(rep)
+        mangles: string[]! = []
+        for t in fresh { mangles.push(t.mangled) }
+        module :: cfg_to_bytecode(
+            pruned, module_name_from_file(rep),
+            // `vader test` runs bytecode in the VM, which never reads `debug`.
+            EmitOptions { .optimize = true, .keep_mangles = mangles, .want_debug = false },
+        )
+        state :: prepare(module)
+        for t in fresh {
+            ran.add(t.mangled)
+            match exec_fn(state, t.mangled) {
+                is Ok -> {
+                    println("  ${TTY.green("ok")} ${t.display}")
+                    total_pass += 1
+                }
+                is Trap as tr -> {
+                    println("  ${TTY.red("FAIL")} ${t.display}")
+                    println("    ${tr.message}")
+                    total_fail += 1
+                }
+            }
+        }
+    }
+    total :: total_pass + total_fail
+    if total == 0 && files_with_tests == 0 {
+        eprintln("vader test: no @test functions found under ${target}")
+        return 2
+    }
+    println("")
+    pass_part :: TTY.green("${total_pass} pass")
+    fail_text :: "${total_fail} fail"
+    fail_part :: if total_fail > 0 { TTY.red(fail_text) } else { fail_text }
+    println("${total} tests | ${pass_part} | ${fail_part}")
+    if total_fail == 0 {
+        return 0
+    }
+    return 1
+}
+
+// Directories never descended into during `@test` discovery.
+SKIP_TEST_DIRS: string[]: ["node_modules", "dist", "build", ".git", "target"]
+
+/// One discovered `@test` fn : its mangled name (the VM entry) + the display
+/// name shown in the report (the fn's source name).
+DiscoveredTest :: struct {
+    mangled: string
+    display: string
+}
+
+/// Collect every `@test` fn in a lowered project : a `LoweredFnDecl` with a body
+/// whose origin AST `FnDecl` carries a `@test` decorator. Display name is the
+/// fn's source name (the rare `@test("custom")` string arg is not surfaced).
+find_tests :: fn(lp: LoweredProject) -> DiscoveredTest[] {
+    out: DiscoveredTest[]! = []
+    for [_, m] in lp.modules {
+        for d in m.decls {
+            if d is LoweredFnDecl as fd {
+                if fd.body == null {
+                    continue
+                }
+                if fd.origin.decl is FnDecl as ast {
+                    if has_test_decorator(ast) {
+                        out.push(DiscoveredTest {
+                            .mangled = fd.mangled,
+                            .display = ast.name,
+                        })
+                    }
+                }
+            }
+        }
+    }
+    return out
+}
+
+has_test_decorator :: fn(ast: FnDecl) -> bool {
+    for dec in ast.decorators {
+        if dec.name == "test" {
+            return true
+        }
+    }
+    return false
+}
+
+/// Recursively collect every `.vader` file under `target` (or `target` itself
+/// when it's a single `.vader` file). Skips `SKIP_TEST_DIRS` + dot-entries.
+discover_vader_files :: fn(target: Path) -> Path[] {
+    out: Path[]! = []
+    if !exists(target.as_string()) { return out }
+    if is_dir(target.as_string()) {
+        walk_test_dir(target, out)
+    } else if target.extension() == "vader" {
+        out.push(target)
+    }
+    return out
+}
+
+walk_test_dir :: fn(dir: Path, out: Path[]!) -> void {
+    entries :: read_dir(dir.as_string())
+    if entries is IOError {
+        return
+    }
+    for name in entries {
+        if name.starts_with(".") {
+            continue
+        }
+        if name in SKIP_TEST_DIRS {
+            continue
+        }
+        // `dir / name` is `join` — it handles the separator, unlike the
+        // "${dir}/${name}" this used to build, which doubled the slash on a `dir`
+        // already ending in one.
+        full :: dir / name
+        if is_dir(full.as_string()) {
+            walk_test_dir(full, out)
+        } else if name.ends_with(".vader") {
+            out.push(full)
+        }
+    }
+}
+
+/// Pick a minimal set of entry paths that transitively cover every file.
+/// Single-file dir → the file. Folder module (no sibling-name imports) → the
+/// dir (the resolver loads every sibling as one module). Per-file modules
+/// (siblings import each other) → only the files no sibling imports, the
+/// entries whose transitive imports drag the rest in.
+pick_module_representatives :: fn(files: Path[]) -> Path[] {
+    by_dir :: MutableMap<string, Path[]!> {}
+    for f in files {
+        // `parent()` yields "" for a bare filename ; the old `dir_of` said "."
+        // and the grouping below keys on it, so preserve that.
+        parent_dir :: f.parent().as_string()
+        d :: if parent_dir == "" { "." } else { parent_dir }
+        existing :: by_dir[d]
+        if existing is Path[] {
+            existing.push(f)
+        } else {
+            bucket: Path[]! = [f]
+            by_dir[d] = bucket
+        }
+    }
+    out: Path[]! = []
+    for [d, group] in by_dir {
+        if group.len() <= 1 {
+            out.push(group[0])
+        } else if is_folder_module(group) {
+            out.push(d.to_path())
+        } else {
+            imported :: collect_sibling_imports(group)
+            for f in group {
+                if !(f.name() in imported) { out.push(f) }
+            }
+        }
+    }
+    return out
+}
+
+is_folder_module :: fn(group: Path[]) -> bool = collect_sibling_imports(group).len() == 0
+
+/// Basenames (no `.vader`) of files in `group` that some sibling imports by
+/// name. An empty result means the dir is a folder module (siblings share one
+/// scope, no by-name imports).
+collect_sibling_imports :: fn(group: Path[]) -> string[] {
+    names: string[]! = []
+    for f in group {
+        names.push(f.name())
+    }
+    out: string[]! = []
+    for f in group {
+        src :: read_file_string(f.as_string())
+        if src is IOError {
+            continue
+        }
+        for line in src.split("\n") {
+            seg :: import_last_segment(line)
+            if seg == "" {
+                continue
+            }
+            if seg in names {
+                if !(seg in out) {
+                    out.push(seg)
+                }
+            }
+        }
+    }
+    return out
+}
+
+/// Last path segment of an `import "PATH" …` line's PATH, or `""` when the line
+/// is not an import.
+import_last_segment :: fn(line: string) -> string {
+    t :: line.trim()
+    if !t.starts_with("import ") {
+        return ""
+    }
+    tb :: t.bytes()
+    q1 :: t.index_of('"', 0)
+    if q1 < 0 {
+        return ""
+    }
+    q2 :: t.index_of('"', usize(q1) + 1)
+    if q2 < 0 {
+        return ""
+    }
+    return tb[usize(q1) + 1..<usize(q2)].bytes_to_string().to_path().filename()
+}

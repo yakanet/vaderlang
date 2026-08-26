@@ -1,0 +1,429 @@
+// vader/cli/dump — the `vader dump --stage=<s>` command.
+//
+// One `run_<stage>_stage` per IR stage, each rendering that stage's own dump
+// format and its diagnostics. Split out of `main.vader` unchanged: it was the
+// largest single responsibility there, and a dump stage is added here rather
+// than in the middle of the command dispatch.
+//
+// Same module as `main.vader`, so the pipeline helpers stay reachable without
+// exporting them — imports are file-scoped, declarations are not.
+
+module "vader/cli"
+
+import "std/io"
+import "std/path"
+import "std/string"
+import "std/cli"
+import "vader/lexer"
+import "vader/parser"
+import "vader/resolver"
+import "vader/typecheck"
+import "vader/comptime"
+import "vader/lower"
+import "vader/bytecode"
+import "vader/midir"
+import "vader/pipeline"
+import "vader/diagnostics"
+import "vader/c_emit" { EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
+Prof :: import "vader/profile"
+
+// ----------------------------------------------------------- dump
+
+cmd_dump :: fn(args: string[]) -> i32 {
+    parsed :: parse_action("dump", args)
+    if parsed is i32 as code {
+        return code
+    }
+    if reject_extra_positionals("dump", parsed) {
+        return 1
+    }
+
+    stage    :: parsed.string_flag("stage", "")
+    annotate :: parsed.bool_flag("annotate")
+    file     :: parsed.action_file()
+    // `--module=a,b` scopes the module-filtered text dumps (resolver / typecheck
+    // / comptime / lower / cfg) to those modules + their submodules ; empty =
+    // default to the entry module's subtree. Lets a dump target any subset
+    // (e.g. `--module=vader` for the whole self-compiler) instead of the old
+    // stdlib-vs-user split.
+    module_arg :: parsed.string_flag("module", "")
+    module_filter: string[] = []
+    if module_arg != "" {
+        module_filter = module_arg.split(",")
+    }
+
+    if stage == "" || file == "" {
+        eprintln("vader dump: expected --stage=<stage> <file>")
+        eprintln("run \"vader help dump\" for the stage list")
+        return 1
+    }
+
+    if stage == "lexer" {
+        return run_lexer_stage(file)
+    }
+    if stage == "ast" {
+        return run_parser_stage(file)
+    }
+    if stage == "resolved-ast" {
+        return run_resolver_stage(file, module_filter)
+    }
+    if stage == "typed-ast" {
+        return run_typecheck_stage(file, module_filter)
+    }
+    if stage == "evaluated-ast" {
+        return run_comptime_stage(file, module_filter)
+    }
+    if stage == "lowered-ast" {
+        return run_lower_stage(file, module_filter)
+    }
+    if stage == "bytecode" {
+        return run_bytecode_stage(file, annotate)
+    }
+    if stage == "cfg" {
+        return run_cfg_stage(file, module_filter)
+    }
+    if stage == "bytecode-cfg" {
+        return run_bytecode_cfg_stage(file)
+    }
+    if stage == "c" {
+        return run_c_stage(file)
+    }
+
+    if stage == "dced-ast" {
+        return run_dced_stage(file, module_filter)
+    }
+
+    // Recognised stages we know about but can't run yet.
+    if stage == "wasm" {
+        eprintln("vader dump: stage \"${stage}\" not yet implemented")
+        return 2
+    }
+
+    // Reachable only for a stage listed in `DUMP_STAGES` that has no dispatch
+    // arm above — a spec/dispatch mismatch, not user error. The parser rejects
+    // anything outside the list before we get here.
+    eprintln("vader dump: stage \"${stage}\" is declared but not wired")
+    return 2
+}
+
+// Read `file` for a dump stage. Returns the contents on success or
+// null after writing the canonical "vader: cannot read …" line to
+// stderr — every stage that consumes a source file shares this path.
+read_source :: fn(file: Path) -> string | null {
+    src_or_err :: file.as_string().read_file_string()
+    match src_or_err {
+        is string -> { return src_or_err }
+        is IOError  -> {
+            eprintln("vader: cannot read `${file}`: ${src_or_err.message()}")
+            return null
+        }
+    }
+}
+
+// Token + diagnostic dump go to stdout — the snapshot suite snapshots
+// stdout only, so this stays unchanged. Only the file-read failure path
+// moves to stderr.
+run_lexer_stage :: fn(file: Path) -> i32 {
+    src :: read_source(file) ?? return 1
+    l :: tokenize(src, file.as_string())
+    println(l.dump_tokens())
+    if l.errors.len() > 0 {
+        println(l.errors.dump_diagnostics())
+    }
+    return 0
+}
+
+// Parser dump : `# AST\n` + 2-space-indented JSON to stdout, plus the same
+// `# Diagnostics` block on stdout.
+run_parser_stage :: fn(file: Path) -> i32 {
+    src :: read_source(file) ?? return 1
+    parsed :: parse_source(src, file.as_string())
+    println(dump_program(parsed.program))
+    if parsed.errors.len() > 0 {
+        println(parsed.errors.dump_diagnostics())
+    }
+    return 0
+}
+
+// Resolver dump : per-module symbol summary. Output covers every user
+// module the loader pulled in, plus a `# Diagnostics` block at the end
+// that aggregates loader-time R2xxx (R2020/R2022/R2023 from discover,
+// R2001/R2024/R2025/R2028 from import-path resolution, R2002/R2004/
+// R2011 from collect) and per-module body-walker R2xxx (R2006/R2019).
+// The explicit `--module` list, else the entry's own module as the default
+// scope. The two-arg form lets a caller that already holds the entry's display
+// path (the typecheck stage, which has no `LoadedProject`) reuse the default.
+
+run_resolver_stage :: fn(file: Path, module_filter: string[]) -> i32 {
+    project :: load_project(file.as_string(), [])
+    resolved :: resolve_loaded_project(project, dump_scope(module_filter, project))
+    println(dump_project(resolved))
+    diags :: collect_resolver_diags(project, resolved)
+    if diags.len() > 0 {
+        println(diags.dump_diagnostics())
+    }
+    return 0
+}
+
+// Resolve every loaded module. Out-of-scope modules (dependencies, by default
+// everything outside the entry's subtree) stay loaded for import targets but
+// aren't surfaced in the dump. `ResolvedModule.path` is the first file's path.
+resolve_loaded_project :: fn(project: LoadedProject!, scope: string[]) -> ResolvedProject {
+    materialize_all_sams_pre_resolve(project)
+    core_seed :: build_core_seed(project)
+    mod_index :: module_index_by_name(project)
+    modules: ResolvedModule[]! = []
+    resolved_by_id :: MutableMap<string, ResolvedModule> {}
+    for [id, lm] in project.modules {
+        if !module_in_scope(lm.module.display_path, scope) { continue }
+        // One rebuild each, shared by the seed and the ambiguity scan.
+        mod_paths :: all_wildcard_paths(lm.collected)
+        mod_excludes :: all_wildcard_excludes(lm.collected)
+        rm :: resolve_module_with_collected_dp_seeded(
+            lm.module.files[0].program, lm.module.files[0].path,
+            lm.module.display_path, project.factory, lm.collected,
+            build_wildcard_seed(mod_index, mod_paths, mod_excludes, core_seed),
+            wildcard_ambiguities(mod_index, mod_paths, mod_excludes, core_seed),
+        )
+        modules.push(rm)
+        resolved_by_id[id] = rm
+    }
+    wire_targets :: wire_imports(project)
+    // R2018 orphan-rule pre-resolve check. Runs after wire_imports so
+    // ImportBinding redirects resolve to the concrete owner module.
+    for [id, lm] in project.modules {
+        rm :: resolved_by_id[id] ?? continue
+        run_orphan_rule_check_for_module(lm, id, rm.idents, wire_targets, rm.diags)
+    }
+    return ResolvedProject { .modules = modules }
+}
+
+
+// Merge loader-time and body-walker diagnostics into one ordered list.
+// Body diags carry no global span ordering ; concatenated by module-
+// iteration order.
+collect_resolver_diags :: fn(project: LoadedProject, resolved: ResolvedProject) -> Diagnostic[] {
+    all: Diagnostic[]! = []
+    for d in project.diags { all.push(d) }
+    for m in resolved.modules { for d in m.diags { all.push(d) } }
+    return all
+}
+
+// Typecheck dump : per-module decl + expression types. MVP output covers
+// top-level decl types only — expression / local types arrive with Phase 3
+// (body checking). The dump format is stable so snapshots can byte-diff
+// stdout.
+run_typecheck_stage :: fn(file: Path, module_filter: string[]) -> i32 {
+    // `check_file` is the shared load+typecheck+merge the LSP also routes
+    // through, so the editor's squiggles and this dump never diverge.
+    // `dump_types = true` : this stage renders the `expr_kinds` / `node_spans`
+    // side-tables, so ask the typecheck to populate them (the only path that does).
+    fc :: check_file(file.as_string(), MutableMap<string, string> {}, [], true)
+    // No `LoadedProject` here ; the entry typed module (`fc.result.typed`)
+    // carries its own display path for the default scope.
+    scope :: scope_or_entry(module_filter, fc.result.typed.resolved.display_path)
+    println(dump_program_with_others(fc.result.typed, true, fc.result.others, scope))
+    if fc.diags.len() > 0 {
+        println(fc.diags.dump_diagnostics())
+    }
+    return 0
+}
+
+run_comptime_stage :: fn(file: Path, module_filter: string[]) -> i32 {
+    pipeline :: prepare_evaluated_project(file)
+    println(dump_evaluated(pipeline.evaluated, dump_scope(module_filter, pipeline.loaded)))
+    // Mirror `run_lower_stage` / `run_bytecode_stage` : surface the merged
+    // typecheck + comptime diags as a single `# Diagnostics` block —
+    // resolve + typecheck + comptime accumulate into one collector, so the
+    // recorded snapshots only line up when this stage does the same.
+    print_pipeline_diags(pipeline, [], dump_scope(module_filter, pipeline.loaded))
+    return 0
+}
+
+run_cfg_stage :: fn(file: Path, module_filter: string[]) -> i32 {
+    pipeline :: prepare_evaluated_project(file)
+    lower_diags: Diagnostic[]! = []
+    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
+    cfg :: build_cfg_project(lowered)
+    // Scope the dump to the entry's subtree (or `--module`) without the string
+    // pool, so `dump --stage=cfg` reads as the code under inspection.
+    opts :: DumpCfgOptions {
+        .scope = dump_scope(module_filter, pipeline.loaded), .include_strings = false,
+    }
+    print(dump_cfg_project(cfg, opts))
+    print_pipeline_diags(pipeline, lower_diags, dump_scope(module_filter, pipeline.loaded))
+    return 0
+}
+
+run_bytecode_cfg_stage :: fn(file: Path) -> i32 {
+    pipeline :: prepare_evaluated_project(file)
+    lower_diags: Diagnostic[]! = []
+    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
+    cfg :: build_cfg_project(lowered)
+    folded :: const_fold_project(cfg)
+    module :: emit_bytecode_from_cfg(folded, module_name_from_file(file), default_emit_options())
+    print(dump_bytecode(module, entry_main_name(pipeline.typed, pipeline.loaded.entry)))
+    print_pipeline_diags(pipeline, lower_diags, dump_scope([], pipeline.loaded))
+    return 0
+}
+
+/// Lowered IR plus the few bits the CFG → bytecode tail still needs, with the
+/// `EvaluatedPipeline` (`loaded` + `typed` + `evaluated`) already out of scope.
+/// `LoweredProject` carries a static `Type` on every expression (see
+/// `vader/lower/lowered_ast.vader`), so nothing here references the typecheck
+/// side-table maps that dominate the live set — returning this lets the caller
+/// run emit without those maps coexisting with the emitter's own tables.
+
+run_bytecode_stage :: fn(file: Path, annotate: bool) -> i32 {
+    // The bytecode dump never renders `debug`, so skip populating it.
+    b :: prepare_cfg_bytecode(file, false)
+    // A front-end-rejected program emits no bytecode (`lower_to_entry_with`
+    // skips lowering on a front-end error) — print only the diagnostics, never
+    // a bare `module` shell for code that was never compiled. Gate on
+    // `pre_diags` (loader / resolver / typecheck / comptime) only : a
+    // lower-stage diagnostic still leaves real, runnable bytecode behind (the
+    // VM-parity corpus runs some of it), so it must not blank the dump.
+    if any_error_diag(b.pre_diags) {
+        print_dump_diags(b)
+        return 0
+    }
+    // `dump_bytecode` already returns a trailing-newline-terminated
+    // string ; use `print` (no auto-newline) so the output isn't
+    // double-newlined. `--annotate` routes through the disassembly
+    // variant — NOT round-trippable, so it never feeds `parse_virt` or
+    // the parity snapshots.
+    out_text :: if annotate { dump_bytecode_annotated(b.module, b.entry) } else { dump_bytecode(b.module, b.entry) }
+    print(out_text)
+    print_dump_diags(b)
+    return 0
+}
+
+run_c_stage :: fn(file: Path) -> i32 {
+    // `dump --stage=c` is a non-release C view : populate `debug` so the
+    // emitted C carries `#line` (matches a debug `build --target=c`).
+    b :: prepare_cfg_bytecode(file, true)
+    // No C for a front-end-rejected program — print only the diagnostics,
+    // mirroring `run_bytecode_stage` (front-end errors only ; see its note).
+    if any_error_diag(b.pre_diags) {
+        print_dump_diags(b)
+        return 0
+    }
+    // Designate the program entry by name (same source as the bytecode
+    // stage's `export main N`) so the `main()` shim resolves the entry
+    // module's `main` — a multi-module input (the compiler imports
+    // `vader/lsp`, which has its own `main`) flags several fns `is_main`.
+    // `emit_c` already returns a trailing-newline-terminated string ; use
+    // `print` (no auto-newline) so the output isn't double-newlined.
+    print(emit_c(b.module, CEmitOptions { .release = false, .entry_mangled = b.entry }))
+    // Diagnostics go to STDERR here, unlike every other dump stage: this stage's
+    // stdout is C source that gets fed straight to a compiler, so a `# Diagnostics`
+    // block appended to it is read as a preprocessor directive and the build dies.
+    // Harmless while nothing warned on these inputs ; the W0014 rollout made every
+    // such dump emit one.
+    eprint_dump_diags(b)
+    return 0
+}
+
+/// Strips the directory components and the `.vader` extension so a file like
+/// `tests/snippets/arith/_main.vader` becomes the bytecode module name
+/// `_main`.
+// Mangled name of the entry module's `main` (e.g. `vader_cli$main`), used to
+// emit the `export main <index>` directive so the VM picks the right entry
+// among several modules' `main` fns. The entry module is keyed in
+// `typed.modules` by the entry id (`loaded.entry`) ; mangling its
+// `resolved.display_path` (`/` and `.` → `_`) reproduces exactly the name the
+// lowerer minted for that module's `main`. Returns "" when the entry module
+// isn't resolvable, which suppresses the directive.
+
+run_lower_stage :: fn(file: Path, module_filter: string[]) -> i32 {
+    pipeline :: prepare_evaluated_project(file)
+    lower_diags: Diagnostic[]! = []
+    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
+    println(dump_lowered(lowered, dump_scope(module_filter, pipeline.loaded)))
+    print_pipeline_diags(pipeline, lower_diags, dump_scope(module_filter, pipeline.loaded))
+    return 0
+}
+
+// Lowered tree after whole-program dead-function elimination. Roots are
+// `main` + `@export` / `@extern` (tests dropped — this is the run/build
+// view, not the test-runner view). Validates the call-graph reachability
+// walk before it's wired into the emit paths.
+run_dced_stage :: fn(file: Path, module_filter: string[]) -> i32 {
+    pipeline :: prepare_evaluated_project(file)
+    lower_diags: Diagnostic[]! = []
+    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
+    pruned :: prune_unreachable_fns(lowered, false)
+    println(dump_lowered(pruned, dump_scope(module_filter, pipeline.loaded)))
+    print_pipeline_diags(pipeline, lower_diags, dump_scope(module_filter, pipeline.loaded))
+    return 0
+}
+
+// Print the merged loader + typecheck + comptime + caller-supplied
+// diags as a single `# Diagnostics` block.
+// Order : loader first (parse / discover /
+// import-path / collect), then typecheck (with resolver-side
+// forwards via orchestrate.vader:168), then comptime, then `extra`
+// (the per-stage tail — currently lower).
+// Collection is total (build surfaces every module's diagnostics — see
+// `orchestrate.vader`), but a `dump` stage shows only the modules under
+// inspection. These two helpers implement that per-caller scoping: gather the
+// file paths of the in-scope modules, then drop any diagnostic anchored outside
+// them. `build` never calls these — `flush_build_diags` shows the full set.
+
+filter_diags_in_scope :: fn(diags: Diagnostic[], files: string[]) -> Diagnostic[] {
+    out: Diagnostic[]! = []
+    for d in diags {
+        if d.primary.start.file in files { out.push(d) }
+    }
+    return out
+}
+
+print_pipeline_diags :: fn(pipeline: EvaluatedPipeline, extra: Diagnostic[], scope: string[]) -> void {
+    all :: merge_diagnostics(gather_pipeline_diags(pipeline), extra)
+    files :: in_scope_diag_files(pipeline.loaded, scope)
+    print_merged_diags(filter_diags_in_scope(all, files), [])
+}
+
+// Render a bytecode / C dump's diagnostics, scoped to the modules under
+// inspection via the file set snapshotted in `CfgBytecode.in_scope_files`.
+print_dump_diags :: fn(b: CfgBytecode) -> void {
+    print_merged_diags(
+        filter_diags_in_scope(b.pre_diags, b.in_scope_files),
+        filter_diags_in_scope(b.lower_diags, b.in_scope_files),
+    )
+}
+
+// Flatten the loader + resolver + typecheck + comptime diagnostic bags into one
+// list, in the canonical order the dump stages expect. Pulled out so
+// `lower_to_entry` can snapshot the diags before releasing the pipeline.
+
+// Concatenate two diagnostic bags into one list, preserving order (`head`
+// then `extra`). Shared by the dump-stage renderer (`print_merged_diags`,
+// stdout) and the build renderer (`flush_build_diags`, stderr + fail-on-error).
+merge_diagnostics :: fn(head: Diagnostic[], extra: Diagnostic[]) -> Diagnostic[] {
+    all: Diagnostic[]! = []
+    for d in head  { all.push(d) }
+    for d in extra { all.push(d) }
+    return all
+}
+
+// Print `head` then `extra` as a single `# Diagnostics` block (nothing when
+// both are empty).
+print_merged_diags :: fn(head: Diagnostic[], extra: Diagnostic[]) -> void {
+    all_diags :: merge_diagnostics(head, extra)
+    if all_diags.len() > 0 {
+        println(all_diags.dump_diagnostics())
+    }
+}
+
+// Same rendering as `print_dump_diags`, on stderr — for the C stage, whose stdout
+// must stay valid C.
+eprint_dump_diags :: fn(b: CfgBytecode) -> void {
+    all_diags :: merge_diagnostics(
+        filter_diags_in_scope(b.pre_diags, b.in_scope_files),
+        filter_diags_in_scope(b.lower_diags, b.in_scope_files),
+    )
+    if all_diags.len() > 0 {
+        eprintln(all_diags.dump_diagnostics())
+    }
+}

@@ -40,6 +40,14 @@ export runtime_c_root :: fn() = resolve_sidecar("runtime/c", "vader.h")
 export cc_opt_flags :: fn(release: bool) -> string[] =
     if release { ["-std=c11", "-O3", "-DNDEBUG", "-falign-functions=64"] } else { ["-std=c11", "-O0", "-g"] }
 
+// Compiler + `-std=c11` + optimisation flags — the single source of truth for
+// codegen policy across the mono (`cc_argv`) and split (`cc_compile_argv`)
+// builds, so they can't silently drift. `-falign-functions=64` keeps a hot
+// loop's alignment stable against unrelated code growth (without it, adding a
+// few lines to one runtime fn can shift e.g. `vader_array_push` onto a bad %64
+// offset and slow its byte-identical loop ~1.6× — the arr_push regression ;
+// +1.3 % binary, neutral on self-compile).
+
 // Append whitespace-split user `--ldflags` tokens to `argv` — no shell quoting
 // (a path with spaces is a user bug).
 /// Append whitespace-split `--ldflags` tokens to a command line.

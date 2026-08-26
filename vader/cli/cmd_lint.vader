@@ -1,0 +1,69 @@
+// vader/cli/lint — the `vader lint` command.
+//
+// Whole-project name reachability: the unused-export lint (W0012), which only
+// exists at project scale and so cannot live in a colocated `@test`. The dead-
+// code half (W0007) is the typechecker's, reached by any build.
+//
+// Same module as `main.vader`: imports are file-scoped, declarations are not.
+
+module "vader/cli"
+
+import "std/io"
+import "std/path"
+import "std/cli"
+import "vader/parser"
+import "vader/resolver"
+import "vader/typecheck"
+import "vader/pipeline"
+import "vader/diagnostics"
+
+/// `vader lint <file>` — project-wide hygiene lints kept OUT of the default
+/// build (a plain `vader build` never runs any of these). v1 ships a single
+/// rule, `unused-export` (W0012) : every `export`-keyword fn unreachable from
+/// the project's roots across ALL modules — what the per-module W0007
+/// structurally can't see (`vader/typecheck/dead_code.vader::dead_exports`).
+///
+/// Runs on load + parse only (a name-reachability walk needs no types), so it
+/// is cheap and, unlike a lowered-project diff, immune to lazy lowering hiding
+/// an unreached imported-module export.
+///
+/// @param args  positional args ; `args[0]` is the entry `.vader` file.
+/// @return      0 when clean (or a rootless library), 1 on any finding, a
+///              load/parse error, or a missing file argument.
+cmd_lint :: fn(args: string[]) -> i32 {
+    parsed :: parse_action("lint", args)
+    if parsed is i32 as code {
+        return code
+    }
+    if reject_extra_positionals("lint", parsed) {
+        return 1
+    }
+    file :: action_file(parsed)
+    if file == "" {
+        eprintln("vader lint: expected a file argument")
+        return 1
+    }
+    loaded :: load_project(file.as_string(), [])
+    // A parse / import error leaves no trustworthy reference graph — surface it
+    // and bail. (Type errors don't matter to a name-reachability walk, so the
+    // load stage — not a full typecheck — is the right gate.)
+    if any_error_diag(loaded.diags) {
+        eprintln(loaded.diags.dump_diagnostics_with_file())
+        return 1
+    }
+    // Lint the loaded project (shared engine — see `dead_exports_of_project`).
+    report :: dead_exports_of_project(loaded)
+    // A rootless library (no `main`) has no reachability seed, so every export
+    // would look dead — the classic false-positive. Under-report instead : warn,
+    // report nothing. Rooting a project's own API needs an entry policy (`vader
+    // lint` D-roots) that v1 does not yet ship.
+    if !report.has_main {
+        eprintln("vader lint: `${file}` exposes no `main` — unused-export under-reports a rootless library (its exports need an entry policy to lint)")
+        return 0
+    }
+    if report.findings.len() == 0 {
+        return 0
+    }
+    eprintln(dead_export_diags(report.findings).dump_diagnostics_with_file())
+    return 1
+}
