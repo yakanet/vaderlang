@@ -28,6 +28,7 @@ import "vader/diagnostics"
 import "std/io"
 import "std/path"
 import "vader/resolver"
+import "std/string"
 import "vader/pipeline"
 
 // ---- context --------------------------------------------------------------
@@ -51,6 +52,15 @@ export BuildContext :: struct {
     include_paths:  string[]!
     /// Where generated modules land, relative to `project_root`.
     generated_root: string
+    /// Binary to produce, relative to `project_root`. Empty means "derive it
+    /// from the entry file", the way `vader build` does without `--out`.
+    out:            string
+    /// Optimise, and drop `#line` from the emitted C.
+    release:        bool
+    /// C compiler for the link step.
+    cc:             string
+    /// Raw linker flags, whitespace-split and appended verbatim.
+    ldflags:        string
     /// Entry files, in the order `add_build_file` queued them. Read by the
     /// driver loop, never written directly — the order is what makes a build
     /// reproducible, so it stays behind `add_build_file`.
@@ -80,12 +90,22 @@ export DEFAULT_GENERATED_ROOT :: "build/generated"
 ///              the project root when the compiler supplied one.
 /// @return      a context with `project_root` set (empty when `args` carried
 ///              none), no include paths, and `generated_root` at
-///              `DEFAULT_GENERATED_ROOT`.
-export new_build_context :: fn(args: string[]) -> BuildContext = BuildContext {
+///              `DEFAULT_GENERATED_ROOT`. Returned MUTABLE: the whole contract
+///              is that the driver fills it in, so an immutable result would
+///              refuse `ctx.out = …` (T3070).
+export new_build_context :: fn(args: string[]) -> BuildContext! = BuildContext {
     .project_root   = project_root_from(args),
     .include_paths  = [],
     .generated_root = DEFAULT_GENERATED_ROOT,
+    .out            = "",
+    .release        = false,
+    .cc             = DEFAULT_CC,
+    .ldflags        = "",
 }
+
+/// C compiler assumed when a driver names none. `cc` rather than a specific
+/// toolchain: it is what every platform's default install provides.
+export DEFAULT_CC :: "cc"
 
 // Project root as `args` reports it, falling back to the empty string when the
 // driver was invoked bare. An empty root is not an error here — a driver may set
@@ -183,6 +203,56 @@ export messages :: fn(ctx: BuildContext!) -> Iterator<Message> {
         yield PhaseMessage { .phase = .Typechecked }
     }
     yield MSG_COMPLETE
+}
+
+// ---- producing output -----------------------------------------------------
+
+/// Compile the queued entries into native binaries.
+///
+/// This is what makes a driver a build system rather than an observer. Each
+/// queued file is compiled to `ctx.out` — or, when that is empty, to the entry's
+/// own name minus its extension, which is what `vader build` does without
+/// `--out`.
+///
+/// Front-end and lowering diagnostics are **accumulated onto the context**, not
+/// printed, so they interleave with the driver's own reports in the order they
+/// happened and `flush_reports` prints them all at once.
+///
+/// @param ctx  the configured context ; queue entries with `add_build_file`.
+/// @return     0 when every entry built, 1 as soon as one failed. A driver
+///             normally returns this from `build`.
+export emit_native :: fn(ctx: BuildContext!) -> i32 {
+    if ctx.build_files.len() == 0 {
+        ctx.diagnostics.push(hook_error(.NoBuildFiles, empty_span(),
+            "call `ctx.add_build_file(...)` before `emit_native()`"))
+        return 1
+    }
+    for file in ctx.build_files {
+        entry :: join_path(ctx.project_root, file)
+        out :: if ctx.out != "" {
+            join_path(ctx.project_root, ctx.out)
+        } else {
+            strip_vader_suffix(entry)
+        }
+        built :: build_to_native(Path(entry), Path(out), ctx.release, ctx.cc, ctx.ldflags,
+            ctx.include_paths)
+        for d in built.diagnostics {
+            ctx.diagnostics.push(d)
+        }
+        if built.code != 0 {
+            return built.code
+        }
+    }
+    return 0
+}
+
+// Default output name: the entry minus its `.vader` suffix, matching what
+// `vader build` derives when `--out` is absent.
+strip_vader_suffix :: fn(path: string) -> string {
+    if path.ends_with(".vader") {
+        return path.trim_suffix(".vader")
+    }
+    return path
 }
 
 // ---- reporting ------------------------------------------------------------

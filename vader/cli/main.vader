@@ -645,10 +645,6 @@ import_last_segment :: fn(line: string) -> string {
 
 // ----------------------------------------------------------- build
 
-// Runtime root for `--target=native` linking — resolved next to the executable
-// (dist bundle) then the cwd, via the shared `resolve_sidecar` probe (marker
-// `vader.h`), so a bundled `vader` finds `runtime/c/` next to itself.
-runtime_c_root :: fn() = resolve_sidecar("runtime/c", "vader.h")
 
 // Split-unit count for `--parallel[=N]` (`s` is the raw flag value, `""` when
 // absent). Parallel split is OPT-IN — the default is the monolithic emitter,
@@ -1007,46 +1003,7 @@ cc_link_argv :: fn(cc: string, objs: string[], out: Path, ldflags: string) -> st
 // few lines to one runtime fn can shift e.g. `vader_array_push` onto a bad %64
 // offset and slow its byte-identical loop ~1.6× — the arr_push regression ;
 // +1.3 % binary, neutral on self-compile).
-cc_opt_flags :: fn(release: bool) -> string[] =
-    if release { ["-std=c11", "-O3", "-DNDEBUG", "-falign-functions=64"] } else { ["-std=c11", "-O0", "-g"] }
 
-// Append whitespace-split user `--ldflags` tokens to `argv` — no shell quoting
-// (a path with spaces is a user bug).
-push_ldflags :: fn(argv: string[]!, ldflags: string) -> void {
-    for tok in ldflags.trim().split(" ") {
-        if tok != "" {
-            argv.push(tok)
-        }
-    }
-}
-
-// Assemble the `cc` command line : runtime include + the emitted C unit + the
-// external runtime unit, opt flags, any user `--ldflags`, then `-o <out> -lm`.
-// `-lm` satisfies the runtime's `floor` / `fmod` on glibc ; no-op on macOS / MinGW.
-cc_argv :: fn(cc: string, c_file: string, out: Path, release: bool, ldflags: string) -> string[] {
-    argv: string[]! = [cc]
-    argv.push_all(cc_opt_flags(release))
-    rt :: runtime_c_root()
-    argv.push("-I")
-    argv.push(rt)
-    argv.push(c_file)
-    argv.push("${rt}/vader_runtime.c")
-    push_ldflags(argv, ldflags)
-    argv.push("-o")
-    argv.push(out.as_string())
-    argv.push("-lm")
-    return argv
-}
-
-// Write `content` to `path`, surfacing a write failure as exit 1.
-write_out :: fn(path: Path, content: string) -> i32 {
-    wr :: write_file_string(path.as_string(), content)
-    if wr is IOError {
-        eprintln("vader build: cannot write `${path}`: ${wr.message()}")
-        return 1
-    }
-    return 0
-}
 
 // ----------------------------------------------------------- dump
 
