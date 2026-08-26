@@ -702,7 +702,7 @@ cmd_build :: fn(args: string[]) -> i32 {
     // But silently skipping a project's own rules is worse than the extra line —
     // a house rule that stops applying the moment you name a file is a rule
     // nobody can trust. `--no-hooks` says "I know" and quiets this.
-    if driver != null {
+    if driver != null && file != "" {
         eprintln("vader build: `${DRIVER_FILENAME}` not applied — a named file bypasses it (use `vader build` alone, or --no-hooks to silence)")
     }
 

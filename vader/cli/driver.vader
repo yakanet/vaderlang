@@ -88,20 +88,13 @@ export compiler_source_root :: fn(root: string) -> string {
     if exists(join_path(beside_binary, "vader/hooks")) {
         return beside_binary
     }
-    // Walk up from the project. A checkout has `vader/` at its top, and a
-    // project nested inside one — a test fixture, a sub-package — would
-    // otherwise never see it. Same shape as `find_manifest_root`.
-    dir := root
-    for {
-        if exists(join_path(dir, "vader/hooks")) {
-            return dir
-        }
-        parent :: dir.dir_of()
-        if parent == dir {
-            return root
-        }
-        dir = parent
-    }
+    // NOT a walk up the filesystem. An unbounded search would find some
+    // unrelated checkout's `vader/` and compile the driver against a different
+    // AST than the binary running it — the same reason `find_build_driver` looks
+    // in one directory only. Either the sources sit beside the binary (a bundle)
+    // or at the project root (a checkout); anything else is a setup the user
+    // should be told about rather than guessed around.
+    return root
 }
 
 // ---- generated entry ------------------------------------------------------

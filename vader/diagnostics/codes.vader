@@ -270,6 +270,7 @@ export HookCode :: enum(u8) {
     InvalidBuildEntrySignature,             // H6002
     NoBuildFiles,                           // H6003
     HookReport,                             // H6004
+    AmbiguousOutput,                        // H6005
 }
 
 export CodeInfo :: struct {
@@ -282,6 +283,7 @@ export hook_info :: fn(c: HookCode) = match c {
     .InvalidBuildEntrySignature -> CodeInfo { .id = "H6002", .message = "invalid `build` signature" }
     .NoBuildFiles               -> CodeInfo { .id = "H6003", .message = "the build driver queued no entry file" }
     .HookReport                 -> CodeInfo { .id = "H6004", .message = "build driver reported a problem" }
+    .AmbiguousOutput            -> CodeInfo { .id = "H6005", .message = "one output name for several entries" }
 }
 
 export lexer_info :: fn(c: LexerCode) = match c {
