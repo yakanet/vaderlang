@@ -131,5 +131,8 @@ export comptime_error :: fn(code: ComptimeCode, primary: Span, detail: string) =
 export lower_error :: fn(code: LowerCode, primary: Span, detail: string) =
     new_diagnostic(.Error, lower_info(code), primary, detail)
 
+export hook_error :: fn(code: HookCode, primary: Span, detail: string) =
+    new_diagnostic(.Error, hook_info(code), primary, detail)
+
 export warning :: fn(code: WarningCode, primary: Span, detail: string) =
     new_diagnostic(.Warning, warning_info(code), primary, detail)
