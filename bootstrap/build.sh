@@ -87,10 +87,15 @@ if [ "$dist" = 1 ]; then
   # Drop the human front-ends: reached through the binary, never imported by a
   # driver. bootstrap/dist-exclude.txt is the one definition and says why the
   # list names what to DROP rather than what to keep.
-  while read -r excluded; do
-    case "$excluded" in ""|\#*) continue ;; esac
-    rm -rf "$out/src/vader/$excluded"
-  done < bootstrap/dist-exclude.txt
+  # Trim then filter, matching build.ps1's `-match '^\s*(#|$)'` + `.Trim()` and the
+  # test's `.trim()` + `startsWith("#")`. Three readers of one file need one RULE,
+  # not just one list: untrimmed, an indented comment became part of an `rm -rf`
+  # path and a trailing space on an entry silently shipped the front-end it names.
+  sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' bootstrap/dist-exclude.txt \
+    | grep -Ev '^(#|$)' \
+    | while read -r excluded; do
+        rm -rf "$out/src/vader/$excluded"
+      done
   cp -R runtime/c "$out/runtime/"
 
   printf '%b==> dist%b  %s ready — a self-contained toolchain (resolves lib/ + runtime/c/ next to the binary, so it runs — and drives builds — from any directory).\n' "$g" "$r" "$out"

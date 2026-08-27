@@ -102,6 +102,7 @@ cmd_check() {
         local last_reseed
         last_reseed="$(git rev-list -1 HEAD -- bootstrap/bootstrap.c 2>/dev/null || true)"
         if [ -n "$last_reseed" ] &&
+           [ -z "$(git status --porcelain -- $SEED_SOURCE_DIRS)" ] &&
            git diff --quiet HEAD -- $SEED_SOURCE_DIRS bootstrap/bootstrap.c 2>/dev/null &&
            [ -z "$(git diff --name-only "$last_reseed" HEAD -- $SEED_SOURCE_DIRS)" ]; then
             note "seed is fresh (nothing affecting it changed since the last reseed)."

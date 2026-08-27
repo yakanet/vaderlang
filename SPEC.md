@@ -3114,7 +3114,7 @@ the runtime captures the most recent run's output into module-level buffers;
 calling `spawn` again replaces them. Returns `ProcessError` when argv is
 empty, the program can't be launched, or the child is killed by a signal.
 
-### `std/json`
+### `json`
 
 Recursive-descent JSON parse + stringify, pure Vader. Numbers are stored as `f64` (loses precision past 2^53 — fine for compiler use cases).
 
@@ -3139,27 +3139,36 @@ stringify_pretty :: fn(v: JsonValue, indent: i32)     -> string
 ### Out of MVP
 
 - networking (no HTTP / sockets in stdlib)
-- compile-time-generated JSON parsers (runtime parser ships today via `std/json`)
+- compile-time-generated JSON parsers (runtime parser ships today via `json`)
 - threads / async
 - compression
 
 ### Landed in stdlib (beyond the core MVP set)
 
-The following modules ship in `lib/std/` today, alongside the core MVP set documented above:
+These ship today alongside the core MVP set. `std/` holds the language's own
+vocabulary; the rest are libraries with namespaces of their own, all under the
+same `lib/` root and all shipped in a bundle — the prefix says which is which, it
+does not say which is present.
+
+Under `std/`:
 
 - `std/abort` — `panic` / `todo` / `unreachable` (the diverging-fn primitives; prelude-level).
-- `std/base64` — encode / decode.
-- `std/cli` — declarative flag parsing (`FlagSpec`, `parse_known`).
-- `std/crypto` — basic hashing primitives.
-- `std/semver` — `Version` / `VersionRange` parsing and comparison.
-- `std/json` — runtime parser + emitter.
 - `std/path` — POSIX path manipulation (`Path.join`, `Path.parent`, `Path.normalize`).
 - `std/process` — process spawning / argv.
-- `std/random` — PRNG.
-- `std/regex` — minimal regex engine.
 - `std/sort` — stable mergesort.
 - `std/testing` — `assert` / `assert_eq` consumed by `@test` functions.
 - `std/time` — clock / formatting.
+
+Namespaces of their own — `import "json"`, not `import "std/json"`:
+
+- `base64` — encode / decode.
+- `cli` — declarative flag parsing (`FlagSpec`, `parse_known`).
+- `crypto` — basic hashing primitives.
+- `images/ppm` — PPM (P6) encode / decode.
+- `json` — runtime parser + emitter.
+- `random` — PRNG.
+- `regex` — minimal regex engine.
+- `semver` — `Version` / `VersionRange` parsing and comparison.
 
 Listed here because they're in-tree but not part of the frozen v1.0 surface in §15.
 
@@ -3645,7 +3654,7 @@ WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance })
 
 Already landed (cross-reference for B's reader):
 - Programmable build API (`build.vader` — §11 *Programmable build API*, `toolchain/build`)
-- `std/json` (in MVP — §15 `std/json`)
+- `json` (in MVP — §15 `json`)
 - LSP (`vader/lsp/`, partial — server + completion / hover / definition / semantic tokens)
 - Resolver self-host (`vader/resolver/` — 9 modules)
 - Reflection intrinsics `@type_of`, `@fields`, `@type_args`, `@field`, `@comptime for` loop unrolling

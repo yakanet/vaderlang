@@ -8,7 +8,9 @@
 #
 # Read by bootstrap/build.sh, bootstrap/build.ps1 and
 # tests/hook_driver.test.ts::stageBundle, which mirrors the trim so the
-# dist-bundle test exercises what a real install actually has.
+# dist-bundle test exercises what a real install actually has. All three trim
+# each line and skip blanks and `#` comments — one file with three readers needs
+# one RULE, not just one list.
 #
 # WHY AN EXCLUSION LIST AND NOT AN INCLUSION ONE. Both are named lists, and a
 # named list silently stops tracking what is added next — that is how `lib/std`

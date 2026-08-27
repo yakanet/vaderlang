@@ -129,7 +129,7 @@ bash bootstrap/build.sh --dist        # seed → stage0 → stage1 → vader (st
 dist/vader-*/vader --version          # the bundle is self-contained — run it from anywhere
 ```
 
-The `dist/vader-<os>-<arch>/` bundle (binary + `lib/` + C runtime) resolves `lib/` and `runtime/c/` next to its own executable, so it runs from any directory. Omit `--dist` to stop at `build/vader`. Override the compiler with `CC=clang bootstrap/build.sh`; the GC arenas auto-grow, so self-compiling needs no environment tuning. See [`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md) for the seed lifecycle, regeneration (`bootstrap/regenerate.sh`), and fixed-point verification (`bootstrap/verify.sh`).
+The `dist/vader-<os>-<arch>/` bundle (binary + `lib/` + C runtime) resolves `lib/` and `runtime/c/` next to its own executable, so it runs from any directory. Omit `--dist` to stop at `build/vader`. Override the compiler with `CC=clang bootstrap/build.sh`; the GC arenas auto-grow, so self-compiling needs no environment tuning. See [`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md) for the seed lifecycle, regeneration (`bootstrap/seed.sh regenerate`), and fixed-point verification (`bootstrap/verify.sh`).
 
 ### On Windows
 
