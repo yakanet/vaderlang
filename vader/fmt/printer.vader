@@ -1813,13 +1813,49 @@ compute_if_align :: fn(stmts: p.Stmt[], source: string) -> usize[] {
     return out
 }
 
+// Does this block's INLINE form (`{ <one stmt or trailing expr> }`) fit on the
+// current line ? `4` covers the braces and their two spaces. True for any block
+// shape that has no inline form to begin with (empty, or more than one entry) —
+// those are decided elsewhere and must not be forced to expand here.
+inline_block_fits :: fn(self: Printer, b: p.BlockExpr) -> bool {
+    tr :: b.trailing
+    if b.stmts.len() == 0 {
+        if tr == null {
+            return true
+        }
+        return self.column + 4 + flat_width(self.source, tr) <= usize(MAX_LINE)
+    }
+    if b.stmts.len() == 1 && tr == null {
+        return self.column + 4 + flat_stmt_width(self.source, b.stmts[0]) <= usize(MAX_LINE)
+    }
+    return true
+}
+
 emit_block_expr :: fn(self: Printer!, b: p.BlockExpr) -> void {
     // Inline this block ? `.Expand` never, `.Inline` always, else preserve the
     // source's single-line form. Set by the enclosing stmt loop.
+    //
+    // `.Preserve` needs the FIT test too, not just the source's shape. A block
+    // written on one line whose body is too wide for `MAX_LINE` used to keep its
+    // inline braces while the body exploded inside them, which is not idempotent:
+    //
+    //     f :: fn() -> T | null = if c { null } else { g(
+    //         a, b, c,
+    //     ) }
+    //
+    // A second `vader fmt` reads that block as multi-line and expands the braces,
+    // so `fmt(fmt(x)) != fmt(x)`.
+    //
+    // `.Inline` keeps its UNCONDITIONAL answer, and that is measured rather than
+    // assumed: a lookup-table `if`-chain stays inline by contract (CLAUDE §4), and
+    // giving it the fit test too takes tree-wide idempotency from 272/285 to
+    // 267/285 — a member that expands stops the run from reading as a chain on the
+    // next pass, so the alignment moves instead. The chain members that do not fit
+    // are a SEPARATE non-idempotency, not this one.
     inline_ok :: match self.block_mode {
         .Expand   -> false
         .Inline   -> true
-        .Preserve -> b.span.start.line == b.span.end.line
+        .Preserve -> b.span.start.line == b.span.end.line && self.inline_block_fits(b)
     }
     // Empty block.
     if b.stmts.len() == 0 {
@@ -2016,6 +2052,14 @@ flat_width :: fn(source: string, e: p.Expr) -> usize {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.flat = true
     sub.emit_expr(e)
+    return sub.finish().bytes().len()
+}
+
+// Same, for a statement — the inline-block fit decision in `emit_block_expr`.
+flat_stmt_width :: fn(source: string, st: p.Stmt) -> usize {
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.flat = true
+    sub.emit_stmt(st)
     return sub.finish().bytes().len()
 }
 
