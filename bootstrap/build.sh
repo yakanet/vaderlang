@@ -68,25 +68,28 @@ if [ "$dist" = 1 ]; then
   esac
   out="dist/vader-${os}-${arch}"
 
-  step "[dist] Bundling $out  (vader + lib/{std,vader} + runtime/c)"
+  step "[dist] Bundling $out  (vader + lib/ + src/vader + runtime/c)"
   rm -rf "$out"
-  mkdir -p "$out/runtime"
+  mkdir -p "$out/runtime" "$out/src"
   cp build/vader "$out/vader"
-  # One module root. `lib/` holds every namespace the toolchain ships, so it is
-  # copied WHOLE rather than namespace by namespace — a named list silently stops
+  # `lib/` holds every namespace the toolchain ships FOR CONSUMPTION, copied
+  # WHOLE rather than namespace by namespace — a named list silently stops
   # shipping the next namespace added, which is exactly how `toolchain/` came to
-  # be missing from a bundle while the checkout was fine. The compiler's own
-  # sources join it so a project's `build.vader` can import them.
-  # `default_library_root` probes `<exe>/lib` with the `std/io/io.vader` marker,
-  # which is what makes this layout resolve.
+  # be missing from a bundle while the checkout was fine.
+  # `default_library_root` probes `<exe>/lib` with the `std/io/io.vader` marker.
+  #
+  # The compiler's sources go to `src/`, NOT into `lib/`: they must ship (a
+  # `build.vader` is compiled, and an import resolves from source), but the
+  # compiler is not a library — it is the implementation a driver links. Keeping
+  # it out of `lib/` makes that structural rather than policed.
   cp -R lib "$out/lib"
-  cp -R vader "$out/lib/vader"
+  cp -R vader "$out/src/vader"
   # Drop the human front-ends: reached through the binary, never imported by a
   # driver. bootstrap/dist-exclude.txt is the one definition and says why the
   # list names what to DROP rather than what to keep.
   while read -r excluded; do
     case "$excluded" in ""|\#*) continue ;; esac
-    rm -rf "$out/lib/vader/$excluded"
+    rm -rf "$out/src/vader/$excluded"
   done < bootstrap/dist-exclude.txt
   cp -R runtime/c "$out/runtime/"
 

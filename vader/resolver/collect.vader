@@ -421,10 +421,12 @@ diagnose_import_path :: fn(
     //
     // Two exemptions, and BOTH are load-bearing. `toolchain/build` is the driver
     // contract, and a driver links the compiler by design. And the compiler may
-    // import ITSELF: a `dist/` bundle ships its sources AT `<bundle>/lib/vader/`,
-    // which is under the library root, so without this every bundled driven build
-    // fails with R2034 on the compiler's own imports. Caught by the dist-bundle
-    // test, which is the only shape that has the compiler inside `lib/`.
+    // import ITSELF. That one is now a BELT: a bundle ships the compiler at
+    // `<bundle>/src/vader/`, outside the library root, so nothing trips it. It
+    // used to be at `<bundle>/lib/vader/` — inside — and every bundled driven
+    // build failed with R2034 on the compiler's own imports until this arm
+    // existed. Kept because it is what makes the rule independent of the bundle's
+    // layout: put the compiler back under `lib/` and the guard still behaves.
     //
     // Provenance decides who is a library — a user module may legitimately be
     // called `json`, and only where it was loaded FROM says whether it is ours —

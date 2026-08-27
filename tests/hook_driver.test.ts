@@ -363,10 +363,10 @@ function stageBundle(): string {
     readFileSync(`${REPO}/bootstrap/dist-exclude.txt`, "utf8")
       .split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("#")),
   );
-  mkdirSync(`${dir}/lib/vader`);
+  mkdirSync(`${dir}/src/vader`, { recursive: true });
   for (const sub of readdirSync(`${REPO}/vader`)) {
     if (excluded.has(sub)) continue;
-    symlinkSync(`${REPO}/vader/${sub}`, `${dir}/lib/vader/${sub}`);
+    symlinkSync(`${REPO}/vader/${sub}`, `${dir}/src/vader/${sub}`);
   }
   symlinkSync(`${REPO}/runtime/c`, `${dir}/runtime/c`);
   return dir;

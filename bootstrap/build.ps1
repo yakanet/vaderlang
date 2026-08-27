@@ -58,17 +58,18 @@ if ($Dist) {
     $arch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x64' }
     $distDir = "dist\vader-windows-$arch"
 
-    Step "[dist] Bundling $distDir  (vader + lib/{std,vader} + runtime/c)"
+    Step "[dist] Bundling $distDir  (vader + lib/ + src/vader + runtime/c)"
     if (Test-Path $distDir) { Remove-Item -Recurse -Force $distDir }
     New-Item -ItemType Directory -Force "$distDir\runtime" | Out-Null
+    New-Item -ItemType Directory -Force "$distDir\src" | Out-Null
     Copy-Item build\vader.exe "$distDir\vader.exe"
     # One module root, copied whole -- see the matching block in bootstrap/build.sh.
     Copy-Item -Recurse lib "$distDir\lib"
-    Copy-Item -Recurse vader "$distDir\lib\vader"
+    Copy-Item -Recurse vader "$distDir\src\vader"
     # Drop the human front-ends -- see bootstrap/dist-exclude.txt.
     foreach ($excluded in Get-Content bootstrap\dist-exclude.txt) {
         if ($excluded -match '^\s*(#|$)') { continue }
-        Remove-Item -Recurse -Force "$distDir\lib\vader\$($excluded.Trim())" -ErrorAction SilentlyContinue
+        Remove-Item -Recurse -Force "$distDir\src\vader\$($excluded.Trim())" -ErrorAction SilentlyContinue
     }
     Copy-Item -Recurse runtime\c "$distDir\runtime\c"
 
