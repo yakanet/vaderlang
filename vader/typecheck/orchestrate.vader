@@ -464,7 +464,7 @@ collect_direct_imports :: fn(
     // module came FROM, not by a `std/` name prefix: `lib/` hosts every namespace
     // the toolchain ships, so after the library split a `json` or `regex` import
     // would start dragging modules in here that the prefix test kept out.
-    lib_roots :: library_roots()
+    lib_roots :: project.library_roots
     seen :: MutableMap<string, bool> {}
     for raw in entry_loaded.collected.import_paths {
         target_id :: id_by_name[raw] ?? continue
