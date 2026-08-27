@@ -33,8 +33,8 @@ H :: import "vader/lsp/handlers"
 /// entry points, no drift.
 export LSP_FLAGS: FlagSpec[]: [
     FlagSpec {
-        .name = "stdlib-root",
-        .help = "Filesystem root of stdlib/, for cross-file goto-def",
+        .name = "library-root",
+        .help = "Filesystem root of lib/, for cross-file goto-def",
         .value_name = "path",
     },
     FlagSpec {
@@ -52,12 +52,12 @@ export LSP_FLAGS: FlagSpec[]: [
 /// itself and ignore everything else, so a mistyped root was a silent fallback
 /// to the empty string — and the server would come up resolving nothing.
 ///
-/// @param stdlib_root  filesystem root of `stdlib/`, seeded by the host shim.
+/// @param library_root  filesystem root of `lib/`, seeded by the host shim.
 ///                     Empty when the client didn't supply one.
 /// @param vader_root   filesystem root of the compiler tree, same contract.
 /// @return             0 on a clean `exit` notification, 1 on an abnormal one.
-export run_server :: fn(stdlib_root: string, vader_root: string) -> i32 {
-    state :: A.new_state(stdlib_root, vader_root)
+export run_server :: fn(library_root: string, vader_root: string) -> i32 {
+    state :: A.new_state(library_root, vader_root)
     // Unbuffered stdin so `poll_pending` reflects the bytes actually queued on
     // the pipe (the debounce relies on it). Must run before any `read_frame`.
     P.unbuffer_stdin()

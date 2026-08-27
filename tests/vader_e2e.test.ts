@@ -10,8 +10,6 @@
 // rather than serialising them inside the CLI.
 
 import { test, expect } from "bun:test";
-import { readdirSync } from "node:fs";
-import { join } from "node:path";
 
 // Drives the NATIVE `vader test` (build/vader) — native `cmd_test` runs the
 // discovered `@test` fns on the bytecode VM. The TS CLI is decommissioned and
@@ -19,25 +17,7 @@ import { join } from "node:path";
 // `std/core` `bytes` primitive, the memory opcodes), so this suite must spawn
 // the self-hosted binary, which is the snapshot/run oracle everywhere else.
 import { runCli, LONG_BUILD } from "./cli-bin.ts";
-import { containsTestFn, holdsTestFile } from "./vader-sources.ts";
-
-/** Top-level subdirs of `root` that contain at least one `.vader` file
- *  carrying a `@test` decorator. Filtering keeps `vader test <dir>` from
- *  failing with "no @test functions found" (exit 2) on modules that have
- *  no tests yet (e.g. `lib/std/core`, `lib/std/runtime`). */
-function findTestModules(root: string): string[] {
-  const dirs: string[] = [];
-  for (const ent of readdirSync(root, { withFileTypes: true })) {
-    if (!ent.isDirectory()) continue;
-    // Normalise to `/` : these are Vader module paths (always slash-separated),
-    // and `join` yields `\` on Windows — which would miss the `KNOWN_NATIVE_GAPS`
-    // lookup below and run a skipped-everywhere-else module to a CI timeout.
-    const sub = join(root, ent.name).replaceAll("\\", "/");
-    if (containsTestFn(sub)) dirs.push(sub);
-  }
-  return dirs.sort();
-}
-
+import { findTestModules } from "./vader-sources.ts";
 
 // Modules whose @tests don't yet pass under the NATIVE `vader test`. Each is a
 // pre-existing native-compiler gap — confirmed identical on the pre-S3 baseline
@@ -71,35 +51,7 @@ function registerModuleTest(dir: string): void {
   }, { timeout: LONG_BUILD });
 }
 
-/** Every module directory at or under `root` that carries a `@test`.
- *
- *  Recursive, unlike `findTestModules`, because `lib/` is not one level deep:
- *  `lib/std/json` is a module and so is `lib/json`, and so is `lib/images/ppm`.
- *  Naming the levels is how discovery silently loses modules — first `lib/std`
- *  by name when the build contract moved out of `vader/` (33 tests, no warning),
- *  then `lib/<ns>` when the libraries left `std/` and every one of them became a
- *  leaf (25 more). An undiscovered module is simply skipped (CLAUDE §11.1), so
- *  the walk asks the only question that cannot drift: does this directory hold a
- *  test? */
-function findTestModulesDeep(root: string): string[] {
-  const dirs: string[] = [];
-  const visit = (dir: string) => {
-    // Vader module paths are always slash-separated; `join` yields `\` on
-    // Windows, which would miss the `KNOWN_NATIVE_GAPS` lookup.
-    const norm = dir.replaceAll("\\", "/");
-    // DIRECTLY, not transitively: `containsTestFn` recurses, which would also
-    // register the container directories (`lib/std`, `lib/toolchain`,
-    // `lib/images`) as if they were modules and re-run their whole subtree.
-    if (holdsTestFile(norm)) dirs.push(norm);
-    for (const ent of readdirSync(dir, { withFileTypes: true })) {
-      if (ent.isDirectory()) visit(join(dir, ent.name));
-    }
-  };
-  for (const ent of readdirSync(root, { withFileTypes: true })) {
-    if (ent.isDirectory()) visit(join(root, ent.name));
-  }
-  return dirs.sort();
-}
-
-for (const dir of findTestModulesDeep("lib")) registerModuleTest(dir);
+// Filtering keeps `vader test <dir>` from failing with "no @test functions found"
+// (exit 2) on modules that have none yet (`lib/std/core`, `lib/std/runtime`).
+for (const dir of findTestModules("lib")) registerModuleTest(dir);
 for (const dir of findTestModules("vader")) registerModuleTest(dir);

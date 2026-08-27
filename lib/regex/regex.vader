@@ -1,4 +1,4 @@
-// std/regex — Thompson NFA regex engine.
+// regex — Thompson NFA regex engine.
 //
 // MVP scope :
 //   * Literal bytes, `.`, escapes (`\n` / `\t` / `\r` / `\\` / `\.` …).

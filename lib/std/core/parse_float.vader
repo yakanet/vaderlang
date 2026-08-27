@@ -1,4 +1,4 @@
-// stdlib/std/core/parse_float — correctly-rounded decimal string -> f64.
+// std/core/parse_float — correctly-rounded decimal string -> f64.
 //
 // Eisel-Lemire fast path (Daniel Lemire, "Number Parsing at a Gigabyte per
 // Second", 2021 ; the Mushtak-Lemire "no fallback" variant is exact for <= 19

@@ -148,6 +148,9 @@ export load_project_with_overlay :: fn(
     // name, then `plain_roots` (manifest dir + `vader.json includePaths` +
     // binary-adjacent stdlib default ; GCC `-I` style, first match wins).
     index: MutableMap<string, DiscoveredModule> = MutableMap<string, DiscoveredModule> {}
+    // Once, ahead of the match: both return arms carry it, and it costs one
+    // `exists()` per root.
+    lib_roots :: library_roots(plain_roots)
 
     entry_module :: seed_entry(entry_folder, loader_diags)
     match entry_module {
@@ -156,7 +159,7 @@ export load_project_with_overlay :: fn(
                 "entry file's folder declares no module"))
             return LoadedProject {
                 .entry = entry_folder, .modules = modules, .factory = factory,
-                .project_root = project_root, .library_roots = library_roots(plain_roots),
+                .project_root = project_root, .library_roots = lib_roots,
                 .diags = loader_diags,
             }
         }
@@ -203,7 +206,7 @@ export load_project_with_overlay :: fn(
             detect_import_cycles(modules, index, loader_diags)
             return LoadedProject {
                 .entry = em.folder, .modules = modules, .factory = factory,
-                .project_root = project_root, .library_roots = library_roots(plain_roots),
+                .project_root = project_root, .library_roots = lib_roots,
                 .diags = loader_diags,
             }
         }
@@ -390,7 +393,12 @@ project_include_paths :: fn(
 ) -> string[] {
     roots: string[]! = []
     for p in flag_paths { roots.push(p) }
-    bundled :: bundled_library_root()
+    // One probe for both positions. `default_library_root()` is `sidecar_root()`
+    // with a cwd fallback, so calling both asked the OS for the executable's real
+    // path twice (a `realpath` walk) and listed the same bundled root twice — in a
+    // bundle as position 1 AND last, in a checkout as the bare `lib` twice, which
+    // every downstream `library_roots` / `path_from_library` then walked.
+    bundled :: sidecar_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
     if bundled != null {
         roots.push(bundled)
     }
@@ -401,7 +409,9 @@ project_include_paths :: fn(
         }
         is null -> {}
     }
-    roots.push(default_library_root())
+    if bundled == null {
+        roots.push(LIBRARY_ROOT_DIR)
+    }
     return roots
 }
 

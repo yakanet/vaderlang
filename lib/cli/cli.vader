@@ -1,4 +1,4 @@
-// std/cli — declarative argv parser for the `<action> <options>` shape.
+// cli — declarative argv parser for the `<action> <options>` shape.
 //
 // Built around one boundary rule: **the tool's options come before the first
 // positional argument; everything after it belongs to whatever the action hands

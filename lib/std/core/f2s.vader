@@ -1,4 +1,4 @@
-// stdlib/std/core/f2s.vader — pure-Vader shortest-f32 formatter (Ryu f2s).
+// std/core/f2s.vader — pure-Vader shortest-f32 formatter (Ryu f2s).
 //
 // Faithful port of Ulf Adams' Ryu f2s (the 32-bit sibling of d2s in
 // `dtoa.vader`). Turns an `f32` into the shortest decimal string that

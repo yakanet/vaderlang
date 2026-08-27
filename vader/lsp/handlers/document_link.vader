@@ -39,9 +39,14 @@ export handle_document_link :: fn(state: ServerState, params: JsonValue) -> Json
     // only, no resolve) to walk the import decls. documentLink isn't hot.
     parsed :: parse_source(idx.source, uri)
     links: JsonValue[]! = []
+    // Once, not per import: the roots come from one `vader.json` walk-up, and the
+    // library root costs a manifest read + JSON parse to find. Resolving them
+    // inside the loop cost that per import declaration — 8 manifest parses for a
+    // compiler file, for one request.
+    roots :: import_roots(state, uri)
     for d in parsed.program.decls {
         if d is ImportDecl as imp {
-            link :: import_link(imp, idx.source, state, uri, idx.line_index)
+            link :: import_link(imp, idx.source, roots, uri, idx.line_index)
             if link != null { links.push(link) }
         }
     }
@@ -52,8 +57,8 @@ export handle_document_link :: fn(state: ServerState, params: JsonValue) -> Json
 
 // One `DocumentLink` for an import, or null when the path can't be resolved to
 // an on-disk file (unknown root prefix, missing module, empty directory).
-import_link :: fn(imp: ImportDecl, source: string, state: ServerState, from_uri: string, li: LineIndex) -> JsonValue | null {
-    abs :: module_path_to_absolute(imp.path, state, from_uri)
+import_link :: fn(imp: ImportDecl, source: string, roots: ImportRoots, from_uri: string, li: LineIndex) -> JsonValue | null {
+    abs :: module_path_to_absolute(imp.path, roots, from_uri)
     if abs == "" { return null }
     target :: representative_file(abs)
     if target == "" { return null }

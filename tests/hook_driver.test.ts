@@ -357,9 +357,9 @@ function stageBundle(): string {
     symlinkSync(`${REPO}/lib/${ns}`, `${dir}/lib/${ns}`);
   }
   // Mirror the dist trim rather than linking `vader/` whole: the point of this
-  // staging is to exercise what a real install HAS, and a bundle drops the human
-  // front-ends. Linking everything would make the test pass on a bundle that
-  // cannot build — which is the only failure this staging exists to catch.
+  // staging is to exercise what a real install HAS. Linking everything would make
+  // the test pass on a bundle that cannot build — the only failure this staging
+  // exists to catch. See bootstrap/dist-exclude.txt for the list and the rule.
   const excluded = new Set(
     readFileSync(`${REPO}/bootstrap/dist-exclude.txt`, "utf8")
       .split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("#")),

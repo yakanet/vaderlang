@@ -1,4 +1,4 @@
-// stdlib/std/core/dtoa.vader — pure-Vader shortest-double formatter (Ryu).
+// std/core/dtoa.vader — pure-Vader shortest-double formatter (Ryu).
 //
 // Faithful port of Ulf Adams' Ryu algorithm (PLDI 2018, ulfjack/ryu
 // ryu/d2s.c). Turns an `f64` into the shortest decimal string that round-trips

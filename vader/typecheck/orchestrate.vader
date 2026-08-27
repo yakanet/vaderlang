@@ -15,7 +15,6 @@ import "std/collections"
 import "std/iter"
 import "vader/diagnostics"
 AST :: import "toolchain/ast"
-import "vader/parser"
 import "vader/resolver"
 import "vader/resolver/symbol"
 import "vader/types"
@@ -462,7 +461,7 @@ collect_direct_imports :: fn(
     lib_roots :: project.library_roots
     id_by_name :: MutableMap<string, string> {}
     for [id, lm] in project.modules {
-        if module_from_library(lm.module, lib_roots) { continue }
+        if path_from_library(lm.module.root_dir, lib_roots) { continue }
         id_by_name[lm.module.module_name] = id
     }
     // Excluded by where a module came FROM, not by a `std/` name prefix: `lib/`

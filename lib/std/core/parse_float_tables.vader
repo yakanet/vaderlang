@@ -1,4 +1,4 @@
-// stdlib/std/core/parse_float_tables.vader — Eisel-Lemire power-of-5 table,
+// std/core/parse_float_tables.vader — Eisel-Lemire power-of-5 table,
 // computed at compile time (no committed data, no external generator).
 //
 // One 128-bit power of five per decimal exponent q in [-342, 308] (651

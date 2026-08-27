@@ -1,4 +1,4 @@
-// stdlib/std/core/buffer.vader — the abstract byte buffer behind the Target ABI.
+// std/core/buffer.vader — the abstract byte buffer behind the Target ABI.
 //
 // `Buffer` is an opaque, GC-managed handle to a contiguous run of bytes. It is
 // the single low-level primitive the higher-level growable types (StringBuilder

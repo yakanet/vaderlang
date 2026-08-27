@@ -1,4 +1,4 @@
-// std/random — pseudo-random number generator.
+// random — pseudo-random number generator.
 //
 // Algorithm : xoroshiro128++ (Blackman & Vigna, 2021). u64 output, 2^128
 // period, passes the BigCrush statistical battery. Fast on every modern

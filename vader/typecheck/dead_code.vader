@@ -299,16 +299,8 @@ is_public :: fn(v: AST.Visibility) = v == AST.Visibility.Public
 /// decoy). The single root list shared by both name-reachability lints : W0007
 /// (`is_root_decl`) adds the public surface on top ; W0012 (`dead_exports`) uses
 /// this alone, so a project-dead PUBLIC fn stays flaggable.
-is_wired_root :: fn(decorators: AST.Decorator[], name: string, module_name: string) -> bool {
+is_wired_root :: fn(decorators: AST.Decorator[], name: string) -> bool {
     if name == "main" {
-        return true
-    }
-    // A build driver's entry, which is an entry point exactly as `main` is —
-    // reserved by NAME in its module, with no decorator to mark it. Its only
-    // caller is the shim `vader build` writes beside it and removes afterwards,
-    // so from the module's own point of view nothing reaches it. Without this the
-    // lint tells every driver author their `build` is dead code.
-    if module_name == DRIVER_MODULE && name == DRIVER_ENTRY {
         return true
     }
     for dec in decorators {
@@ -323,11 +315,21 @@ is_wired_root :: fn(decorators: AST.Decorator[], name: string, module_name: stri
     return false
 }
 
-// A W0007 reachability root : the public surface (`export`) plus every
-// wired-or-exempt root. Never flagged, its refs kept live.
+// A W0007 reachability root : the public surface (`export`), every wired-or-exempt
+// root, plus a build driver's entry. Never flagged, its refs kept live.
+//
+// `build` in `build.vader` is an entry point exactly as `main` is — reserved by
+// NAME in its module, with no decorator to mark it. Its only caller is the shim
+// `vader build` writes beside it and removes afterwards, so from the module's own
+// point of view nothing reaches it ; without this the lint tells every driver
+// author their `build` is dead code. The test sits HERE and not in
+// `is_wired_root` because only a per-module walk has a module name to test: W0012
+// merges every module's decls, so the same test there would root a fn named
+// `build` in any module at all.
 is_root_decl :: fn(
     v: AST.Visibility, decorators: AST.Decorator[], name: string, module_name: string,
-) = is_public(v) || is_wired_root(decorators, name, module_name)
+) = is_public(v) || is_wired_root(decorators, name)
+    || (module_name == DRIVER_MODULE && name == DRIVER_ENTRY)
 
 // ---- shared traversal (W0007 + W0012) -------------------------------------
 
@@ -557,7 +559,7 @@ export DeadExport :: struct {
 ///
 /// @param decls  the merged top-level decls of every non-stdlib module.
 /// @return       every dead exported fn, in the order encountered.
-export dead_exports :: fn(decls: AST.Decl[], module_name: string) -> DeadExport[] {
+export dead_exports :: fn(decls: AST.Decl[]) -> DeadExport[] {
     refs_by_name :: MutableMap<string, string[]!> {}
     root_names: string[]! = []
     seed_refs: string[]! = []
@@ -568,7 +570,7 @@ export dead_exports :: fn(decls: AST.Decl[], module_name: string) -> DeadExport[
             continue
         }
         register_refs(refs_by_name, nd.name, nd.refs)
-        if is_wired_root(nd.decorators, nd.name, module_name) {
+        if is_wired_root(nd.decorators, nd.name) {
             root_names.push(nd.name)
         } else if nd.is_fn && is_public(nd.visibility) {
             // The only kind v1 flags : a plain public non-root fn. Its refs are
@@ -599,7 +601,7 @@ export dead_exports :: fn(decls: AST.Decl[], module_name: string) -> DeadExport[
 /// driver does not reach then reports as unused (51 of them, measured), all of
 /// them alive and called by `vader/cli`, which is not in that closure. Running it
 /// needs a scope predicate first: "was this module provided by a TOOLCHAIN root or
-/// by the project?", which `module_from_library` answers for `lib/` but not for
+/// by the project?", which `path_from_library` answers for `lib/` but not for
 /// the compiler, since a checkout reaches `vader/` through the project root — and
 /// there the compiler IS the project, where the lint must keep working.
 export UnusedExportReport :: struct {
@@ -623,7 +625,7 @@ export dead_exports_of_project :: fn(project: LoadedProject) -> UnusedExportRepo
     // split lands — reporting W0012 on every export the toolchain provides.
     lib_roots :: project.library_roots
     for [_, lm] in project.modules {
-        if module_from_library(lm.module, lib_roots) {
+        if path_from_library(lm.module.root_dir, lib_roots) {
             continue
         }
         for d in concat_file_decls(lm.module.files) {
@@ -643,15 +645,7 @@ export dead_exports_of_project :: fn(project: LoadedProject) -> UnusedExportRepo
     }
     return UnusedExportReport {
         .has_main = true,
-        // `""`, deliberately: this walk MERGES every module's decls, so it has no
-        // per-decl module to test — passing `DRIVER_MODULE` rooted a fn named
-        // `build` in ANY module, which is the opposite of what a comment here used
-        // to claim and was reproduced (an unreached `export build` in `module
-        // "app"` went unreported, and its refs were seeded live, hiding further
-        // dead exports behind it). Nothing is lost: W0012 never runs on a driven
-        // project at all, since `has_main` is `main`-only for the reasons on
-        // `UnusedExportReport`.
-        .findings = dead_exports(all_decls, ""),
+        .findings = dead_exports(all_decls),
     }
 }
 

@@ -34,9 +34,6 @@
 # second ~4 s compile of the identical input.
 set -euo pipefail
 
-# Absolute self-path, captured BEFORE the cd: `regenerate` re-enters this script
-# to ask `check` for its verdict, and a relative $0 would stop resolving.
-SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 cd "$(dirname "$0")/.."
 
 if [ -t 1 ]; then b='\033[1m'; g='\033[1;32m'; r='\033[0m'; else b=''; g=''; r=''; fi
@@ -98,12 +95,16 @@ cmd_check() {
     # itself. The second half matters because the real check below emits from the
     # WORKING TREE, not from HEAD — without it, an uncommitted source edit (or a
     # hand-edited seed) would be short-circuited away as "fresh".
+    #
+    # `status --porcelain` and not `diff --quiet HEAD`: only the former reports an
+    # UNTRACKED file, and a new `.vader` is exactly the edit that changes the seed
+    # while leaving every diff clean. It subsumes the diff, so one process covers
+    # both.
     if [ "$full" = 0 ]; then
         local last_reseed
         last_reseed="$(git rev-list -1 HEAD -- bootstrap/bootstrap.c 2>/dev/null || true)"
         if [ -n "$last_reseed" ] &&
-           [ -z "$(git status --porcelain -- $SEED_SOURCE_DIRS)" ] &&
-           git diff --quiet HEAD -- $SEED_SOURCE_DIRS bootstrap/bootstrap.c 2>/dev/null &&
+           [ -z "$(git status --porcelain -- $SEED_SOURCE_DIRS bootstrap/bootstrap.c)" ] &&
            [ -z "$(git diff --name-only "$last_reseed" HEAD -- $SEED_SOURCE_DIRS)" ]; then
             note "seed is fresh (nothing affecting it changed since the last reseed)."
             exit 0
@@ -168,32 +169,20 @@ cmd_check() {
 cmd_regenerate() {
     [ "$#" -eq 0 ] || { echo "seed.sh regenerate: takes no arguments" >&2; exit 2; }
 
-    # A missing tree would make the cleanliness test below pass vacuously, the
-    # same way it defeats every freshness test in `check`.
-    local missing
-    missing="$(seed_missing_dirs)"
-    if [ -n "$missing" ]; then
-        echo "error: seed source tree(s) missing:$missing — refusing to write a seed" >&2
-        echo "  SEED_SOURCE_DIRS in bootstrap/seed.sh lists them; update it if the layout moved." >&2
-        exit 1
-    fi
-
-    # Require a clean working tree across ALL of them so the recorded SHA is
-    # meaningful: the emission reads the working tree, and VERSION records HEAD, so
-    # an uncommitted edit anywhere in the seed's sources makes the two disagree.
-    # vader/ alone was not enough — the seed embeds the stdlib it was compiled with.
-    if ! git diff-index --quiet HEAD -- $SEED_SOURCE_DIRS; then
-        echo "error: $SEED_SOURCE_DIRS has uncommitted changes — commit first" >&2
-        exit 1
-    fi
-
     # Ask `check` rather than re-emitting: it prints the compiler it used on stdout
     # and the diagnosis on stderr, and --full skips its git short-circuit since a
     # reseed must compare real output. One compile for both the verdict and the
     # emission, and the flags cannot drift between checker and writer.
+    #
+    # FIRST, before the clean-tree test below: `check` already refuses when a seed
+    # source tree is missing, and that case has to be caught before a test that
+    # would pass vacuously on an absent path.
+    #
+    # A function in `$( )` runs in a subshell, so its `exit` reports as the
+    # substitution's status instead of ending this script.
     local VADER verdict
     set +e
-    VADER="$("$SELF" check --full)"
+    VADER="$(cmd_check --full)"
     verdict=$?
     set -e
 
@@ -209,6 +198,15 @@ cmd_regenerate() {
         exit 1
         ;;
     esac
+
+    # Require a clean working tree across ALL of them so the recorded SHA is
+    # meaningful: the emission reads the working tree, and VERSION records HEAD, so
+    # an uncommitted edit anywhere in the seed's sources makes the two disagree.
+    # vader/ alone was not enough — the seed embeds the stdlib it was compiled with.
+    if ! git diff-index --quiet HEAD -- $SEED_SOURCE_DIRS; then
+        echo "error: $SEED_SOURCE_DIRS has uncommitted changes — commit first" >&2
+        exit 1
+    fi
 
     # STALE: build/bootstrap.check.c is the fresh emission `check` just made.
     mv build/bootstrap.check.c bootstrap/bootstrap.c
@@ -247,7 +245,9 @@ cmd_push() {
     # WRITE the committed artefact, so an unusable compiler is a hard stop. Its own
     # guards carry the messages, so there is nothing to pre-check here.
     step "Reseeding if the committed seed is stale"
-    "$SELF" regenerate
+    # Parenthesised: `regenerate` exits 0 on "already fresh", and a subshell keeps
+    # that from ending the push.
+    ( cmd_regenerate )
 
     if git diff --quiet -- bootstrap/bootstrap.c bootstrap/VERSION; then
         step "Nothing to commit"
