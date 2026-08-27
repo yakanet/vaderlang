@@ -601,7 +601,7 @@ export dead_exports :: fn(decls: AST.Decl[]) -> DeadExport[] {
 /// driver does not reach then reports as unused (51 of them, measured), all of
 /// them alive and called by `vader/cli`, which is not in that closure. Running it
 /// needs a scope predicate first: "was this module provided by a TOOLCHAIN root or
-/// by the project?", which `path_from_library` answers for `lib/` but not for
+/// by the project?", which `Module.origin` answers for `lib/` but not for
 /// the compiler, since a checkout reaches `vader/` through the project root — and
 /// there the compiler IS the project, where the lint must keep working.
 export UnusedExportReport :: struct {
@@ -621,11 +621,10 @@ export dead_exports_of_project :: fn(project: LoadedProject) -> UnusedExportRepo
     has_main := false
     // Where a module came from, not what it is called: `lib/` hosts every
     // namespace the toolchain ships, so a `std/` name test would put `json`,
-    // `regex` and `toolchain` inside a project's lint scope once the library
-    // split lands — reporting W0012 on every export the toolchain provides.
-    lib_roots :: project.library_roots
+    // `regex` and `toolchain` inside a project's lint scope — reporting W0012 on
+    // every export the toolchain provides.
     for [_, lm] in project.modules {
-        if path_from_library(lm.module.root_dir, lib_roots) {
+        if lm.module.origin == .Toolchain {
             continue
         }
         for d in concat_file_decls(lm.module.files) {

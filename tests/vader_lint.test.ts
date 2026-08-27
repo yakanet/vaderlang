@@ -80,7 +80,7 @@ test("vader lint scopes by provenance, not by a `std/` name", async () => {
 
     // BY ABSOLUTE PATH, from elsewhere — the case a review reproduced and this
     // test originally missed. The library root is then `<dir>/lib`, an absolute
-    // path, where the first cut of `library_roots()` returned a fixed list
+    // path, where the first cut of the root-provenance test used a fixed list
     // containing only the bare `"lib"`: provenance matched nothing, the whole
     // stdlib was classified as the project's own, and the run reported 24 W0012
     // naming `print`, `eprintln`, `assert_ne`… The two invocations must agree.

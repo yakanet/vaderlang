@@ -52,12 +52,6 @@ export LoadedProject :: struct {
     modules:      MutableMap<string, LoadedModule>
     factory:      SymbolFactory
     project_root: string | null
-    /// Which of the search roots hold the toolchain's namespaces — recorded here
-    /// because only the loader knows the roots it actually assembled, and a
-    /// consumer guessing them gets it wrong in both directions (see
-    /// `module::library_roots`). Read by the lint scope and the per-module walk to
-    /// tell the toolchain's code from the project's.
-    library_roots: string[] = []
     diags:        Diagnostic[]!
 }
 
@@ -148,9 +142,6 @@ export load_project_with_overlay :: fn(
     // name, then `plain_roots` (manifest dir + `vader.json includePaths` +
     // binary-adjacent stdlib default ; GCC `-I` style, first match wins).
     index: MutableMap<string, DiscoveredModule> = MutableMap<string, DiscoveredModule> {}
-    // Once, ahead of the match: both return arms carry it, and it costs one
-    // `exists()` per root.
-    lib_roots :: library_roots(plain_roots)
 
     entry_module :: seed_entry(entry_folder, loader_diags)
     match entry_module {
@@ -159,7 +150,7 @@ export load_project_with_overlay :: fn(
                 "entry file's folder declares no module"))
             return LoadedProject {
                 .entry = entry_folder, .modules = modules, .factory = factory,
-                .project_root = project_root, .library_roots = lib_roots,
+                .project_root = project_root,
                 .diags = loader_diags,
             }
         }
@@ -206,7 +197,7 @@ export load_project_with_overlay :: fn(
             detect_import_cycles(modules, index, loader_diags)
             return LoadedProject {
                 .entry = em.folder, .modules = modules, .factory = factory,
-                .project_root = project_root, .library_roots = lib_roots,
+                .project_root = project_root,
                 .diags = loader_diags,
             }
         }
@@ -316,7 +307,7 @@ ingest_module :: fn(
             // `# Typecheck` dumps stable.
             .display_path = m.name,
             .module_name  = m.name,
-            .root_dir     = m.folder,
+            .origin       = m.origin,
             .files        = sources,
         },
         .collected       = collected,
@@ -388,31 +379,52 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[]!, overlay: Mutable
 // root is authoritative (the toolchain put it there, and the marker proves it),
 // whereas a bare `<cwd>/lib` is a guess — and a project that keeps its own code
 // under `lib/` must not have that searched ahead of its own modules.
+// It returns the ORIGIN with each root, and that is the point: this is the only
+// place that knows. A flag came from the caller, the sidecar probe found a root the
+// toolchain planted, a manifest entry may be either. See `ModuleOrigin`.
 project_include_paths :: fn(
     project_root: string | null, manifest: Manifest, flag_paths: string[],
-) -> string[] {
-    roots: string[]! = []
-    for p in flag_paths { roots.push(p) }
-    // One probe for both positions. `default_library_root()` is `sidecar_root()`
-    // with a cwd fallback, so calling both asked the OS for the executable's real
-    // path twice (a `realpath` walk) and listed the same bundled root twice — in a
-    // bundle as position 1 AND last, in a checkout as the bare `lib` twice, which
-    // every downstream `library_roots` / `path_from_library` then walked.
+) -> IncludePath[] {
+    roots: IncludePath[]! = []
+    // A flag is probed exactly like a manifest entry — the marker decides, never
+    // where the path came from. Hard-coding `.Build` here bought nothing (an
+    // importer under `vader/` is already exempt from R2034 by NAME) and cost an
+    // inconsistency: `--include-paths lib` and `vader.json includePaths: ["lib"]`
+    // name the same directory and would answer differently.
+    for p in flag_paths { roots.push(plain_root(p, origin_of_root(p))) }
+    // One probe, read twice. `default_library_root()` is `sidecar_root()` with a
+    // cwd fallback, so calling both listed the SAME bundled root twice — position 1
+    // and last. Not a cost worth naming (one syscall); it is that a duplicate root
+    // is a duplicate answer, and the fallback below must fire only when there is no
+    // bundle to fall back from.
     bundled :: sidecar_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
     if bundled != null {
-        roots.push(bundled)
+        roots.push(plain_root(bundled, .Toolchain))
     }
     match project_root {
         is string as pr -> {
-            roots.push(pr)
-            for p in manifest.include_paths { roots.push(join_path(pr, p)) }
+            roots.push(plain_root(pr, .Build))
+            // A manifest entry can be either, and the MARKER is what says which —
+            // never the spelling. This repo's own `includePaths: ["lib"]` is how a
+            // checkout reaches the shipped namespaces, while a project keeping its
+            // own code under a directory of any name is its own. One probe per
+            // entry, once per load.
+            for p in manifest.include_paths {
+                dir :: join_path(pr, p)
+                roots.push(plain_root(dir, origin_of_root(dir)))
+            }
         }
         is null -> {}
     }
     if bundled == null {
-        roots.push(LIBRARY_ROOT_DIR)
+        roots.push(plain_root(LIBRARY_ROOT_DIR, origin_of_root(LIBRARY_ROOT_DIR)))
     }
     return roots
+}
+
+// An unrooted include-path — no `prefix`, so it serves every module name.
+plain_root :: fn(dir: string, origin: ModuleOrigin) = IncludePath {
+    .dir = dir, .prefix = "", .origin = origin,
 }
 
 // The project's generated-module tree, or "" when it has none.
@@ -536,3 +548,34 @@ merge_collected :: fn(dst: CollectedModule!, src: CollectedModule, diags: Diagno
     dst.wildcards.push_all(src.wildcards)
 }
 
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_project_include_paths_labels_a_manifest_library_root :: fn() -> void {
+    // A manifest entry can be either, and this repo is the case that matters: its
+    // `includePaths: ["lib"]` is how a checkout reaches the shipped namespaces, so
+    // that entry must come back `.Toolchain` — the classification the deleted
+    // path-matching got wrong in both directions.
+    paths :: project_include_paths("", Manifest { .include_paths = ["lib"] }, [])
+    for p in paths {
+        if p.dir == LIBRARY_ROOT_DIR {
+            assert_eq(p.origin, ModuleOrigin.Toolchain)
+            return
+        }
+    }
+    assert(false, "the manifest's `lib` never reached the include-paths")
+}
+
+@test
+test_project_include_paths_calls_a_flag_the_builds_own :: fn() -> void {
+    // A `--include-paths` flag is whatever the caller pointed at — including, in a
+    // driven build, the compiler's own sources. Never the toolchain's, so R2034
+    // does not fire on the compiler importing itself through that root.
+    paths :: project_include_paths(null, Manifest { .include_paths = [] }, ["some/where"])
+    assert(paths.len() >= 1, "the flag is a root")
+    assert_eq(paths[0].dir, "some/where")
+    assert_eq(paths[0].origin, ModuleOrigin.Build)
+}

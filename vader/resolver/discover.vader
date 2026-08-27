@@ -18,6 +18,10 @@ export DiscoveredModule :: struct {
     name:   string
     folder: string
     files:  string[]
+    /// Who provided it — the origin of the include-path root that declared it, see
+    /// `ModuleOrigin`. Required, matching `Module.origin`: a default here would be
+    /// the one kind of wrong answer that compiles.
+    origin: ModuleOrigin
 }
 
 /// Per-folder accumulator built by `lazy::scan_folder`. `name` is "" until the

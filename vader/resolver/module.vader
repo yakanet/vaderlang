@@ -109,6 +109,39 @@ export concat_file_decls :: fn(files: SourceFile[]) -> Decl[] {
     return out
 }
 
+/// Who brought a root into the module search — and so who provided the modules
+/// found under it. The question every policy site actually asks: a shipped
+/// library must not import the compiler (R2034), and the toolchain's own exports
+/// are outside a project's lint scope (W0012).
+///
+/// Decided ONCE, where the roots are assembled (`loader::project_include_paths`),
+/// and carried from there — never recomputed by matching a module's folder
+/// against a list of roots, which is what this replaces.
+export ModuleOrigin :: enum(u8) {
+    /// This build named it: the entry's own folder, a `--include-paths` flag (in a
+    /// driven build the compiler's own sources arrive this way), the project root,
+    /// a `vader.json includePaths` entry holding no library marker, the generated
+    /// tree.
+    ///
+    /// The ENTRY is always this, whatever it sits under — a root exists because the
+    /// caller named that file, so `vader test lib/std/path` is building the
+    /// project's own code by definition. `paths[0]` is that root and first match
+    /// wins, so the entry never picks up another root's origin.
+    ///
+    /// ⚠️ That has one OBSERVABLE consequence, reproduced: R2034 does not fire on a
+    /// library module compiled as the ENTRY. `vader build lib/probe/probe.vader`
+    /// stays silent where `vader build app.vader` importing the same `probe`
+    /// reports it — and `vader test <a stdlib module>` is the corpus a library
+    /// author runs first. Closing it needs the entry folder's ANCESTRY tested
+    /// against the marker (the marker sits at the library ROOT, `lib/`, not at
+    /// `lib/probe/`), which is the path-matching this type exists to remove. The
+    /// trade is open, not settled by omission.
+    Build,
+    /// The toolchain ships it: a root holding `LIBRARY_ROOT_MARKER`, whether found
+    /// beside the binary in a bundle or declared by the project's manifest.
+    Toolchain,
+}
+
 /// A resolved module : `id` is its canonical absolute root path,
 /// `display_path` is what users see in the dump, `module_name` is
 /// the declared `module "..."` identifier used as the key for
@@ -118,7 +151,12 @@ export Module :: struct {
     id: string
     display_path: string
     module_name: string
-    root_dir: string
+    /// Who provided this module — see `ModuleOrigin`. It replaces `root_dir`, a
+    /// byte-identical duplicate of `id` with no reader, which is what makes the
+    /// tag free. Required, with no default: the predecessor it replaces was a
+    /// defaulted list on `LoadedProject`, and a literal that omitted it answered
+    /// "nothing came from the toolchain" rather than failing to compile.
+    origin: ModuleOrigin
     files: SourceFile[]
 }
 
@@ -260,55 +298,24 @@ export default_library_root :: fn() = resolve_sidecar(LIBRARY_ROOT_DIR, LIBRARY_
 /// Marker proving a candidate directory really is a library root.
 export LIBRARY_ROOT_MARKER :: "std/io/io.vader"
 
+/// `.Toolchain` when `dir` holds the library marker, else `.Build`.
+///
+/// The marker is the whole test: a directory is the toolchain's because it contains
+/// `std/io/io.vader`, never because it is spelled `lib`. Exported for the LSP, which
+/// asks the same question of a manifest's `includePaths` so the editor and the
+/// compiler cannot disagree about which root is which.
+///
+/// @param dir  a candidate include-path root.
+export origin_of_root :: fn(dir: string) -> ModuleOrigin {
+    if exists(join_path(dir, LIBRARY_ROOT_MARKER)) {
+        return .Toolchain
+    }
+    return .Build
+}
+
+
 /// Directory name a bundled library root goes by, beside the binary.
 export LIBRARY_ROOT_DIR :: "lib"
-
-/// Which of `search_roots` are library roots — those holding `LIBRARY_ROOT_MARKER`.
-///
-/// ⚠️ **Ask the roots actually in use ; never guess them.** A directory is a
-/// library root because it holds `std/io/io.vader`, not because it is spelled
-/// `lib`. A fixed list is wrong in both directions: it misses the root a
-/// project's `vader.json` derives (`join_path(project_root, "lib")`), and it
-/// claims a project keeping its own code under `lib/`.
-///
-/// @param search_roots  the include-path roots in use — `LoadedProject.library_roots`
-///                      for a loaded project, `IncludePath.dir`s at import time.
-export library_roots :: fn(search_roots: string[]) -> string[] {
-    roots: string[]! = []
-    for r in search_roots {
-        if exists(join_path(r, LIBRARY_ROOT_MARKER)) {
-            roots.push(r)
-        }
-    }
-    return roots
-}
-
-/// True when `path` was loaded from a toolchain-shipped namespace — i.e. sits
-/// under one of `roots`.
-///
-/// Asks where a module CAME FROM, not what it is called: `starts_with("std/")`
-/// was the old proxy, and it answers "no" for `json` / `toolchain` / `regex`,
-/// which would put the toolchain's own code inside a project's lint scope. Pass
-/// `Module.root_dir` for a loaded module, or the span's file for an import site
-/// (a `Span` carries a file, never a `Module`).
-///
-/// @param path   a file or directory path, in the same form as the roots
-///               (relative in a checkout, absolute in a bundle) — which
-///               `Module.root_dir` is, being the providing root joined with the
-///               module name.
-/// @param roots  from `library_roots()`, hoisted by callers that loop.
-export path_from_library :: fn(path: string, roots: string[]) -> bool {
-    p :: path.to_path()
-    for r in roots {
-        if r == "" { continue }
-        // `std/path::starts_with`, never a hand-rolled `== r || "${r}/"` prefix: the
-        // roots come from a user's `vader.json`, and a root written with a trailing
-        // slash made the hand-rolled form answer FALSE FOR EVERYTHING — reproduced,
-        // 1 W0012 with `["lib"]` against 24 with `["lib/"]`.
-        if p.starts_with(r.to_path()) { return true }
-    }
-    return false
-}
 
 /// The one module under the library root allowed to import `vader/**` — the
 /// build-driver contract, which exists to drive the compiler.
@@ -385,76 +392,18 @@ test_read_manifest_reads_repo_include_paths :: fn() -> void {
 }
 
 @test
+test_origin_of_root_asks_the_marker_not_the_name :: fn() -> void {
+    // A directory is the toolchain's because it holds `std/io/io.vader`, never
+    // because it is spelled `lib`. This repo's own tree is the fixture.
+    assert_eq(origin_of_root(LIBRARY_ROOT_DIR), ModuleOrigin.Toolchain)
+    assert_eq(origin_of_root("vader"), ModuleOrigin.Build)
+    assert_eq(origin_of_root("runtime"), ModuleOrigin.Build)
+    assert_eq(origin_of_root("/no/such/dir"), ModuleOrigin.Build)
+}
+
+@test
 test_read_manifest_missing_is_empty :: fn() -> void {
     m :: read_manifest("/no/such/project/root")
     assert(m.include_paths.len() == 0, "absent manifest yields no include-paths")
 }
 
-@test
-test_path_from_library_matches_a_root_and_its_subtree :: fn() -> void {
-    roots :: ["lib"]
-    assert(path_from_library("lib", roots), "the root itself is the library")
-    assert(path_from_library("lib/std/io", roots), "so is anything under it")
-    assert(path_from_library("lib/json", roots), "including a namespace beside std/")
-}
-
-@test
-test_path_from_library_rejects_a_name_that_merely_starts_the_same :: fn() -> void {
-    // The trap a bare `starts_with` would fall into: `libre/` is not under `lib/`.
-    // The predicate compares PATH segments, so the separator is load-bearing.
-    assert(!path_from_library("libre/json", ["lib"]), "`libre/` is a different directory")
-    assert(!path_from_library("mylib", ["lib"]), "and so is `mylib`")
-}
-
-@test
-test_path_from_library_accepts_a_root_however_it_is_spelled :: fn() -> void {
-    // The roots come from a user's `vader.json includePaths`, so their spelling is
-    // not ours to assume. A hand-rolled `== r || starts_with("${r}/")` answered
-    // false for EVERYTHING on `"lib/"` — reproduced end to end as 24 spurious
-    // W0012 against 1, the bug this predicate exists to prevent.
-    assert(path_from_library("lib/std/io", ["lib/"]), "a trailing slash is still the root")
-    assert(path_from_library("lib/std/io", ["lib"]), "and so is the bare form")
-}
-
-@test
-test_path_from_library_rejects_a_project_path :: fn() -> void {
-    // The whole point: a module the PROJECT provides is not the toolchain's, even
-    // when it is called something the toolchain also ships.
-    assert(!path_from_library("myproject/json", ["lib"]), "a project module is the project's")
-}
-
-@test
-test_path_from_library_tries_every_root :: fn() -> void {
-    // A bundle has two: its own authoritative `<exe>/lib` and the cwd-relative
-    // fallback. A module reached through either is the toolchain's.
-    roots :: ["/opt/vader/lib", "lib"]
-    assert(path_from_library("/opt/vader/lib/std/io", roots), "the bundled root counts")
-    assert(path_from_library("lib/std/io", roots), "and so does the fallback")
-    assert(!path_from_library("/opt/other/lib/std/io", roots), "an unrelated one does not")
-}
-
-@test
-test_library_roots_picks_by_marker_not_by_name :: fn() -> void {
-    // Tests run with the repo root as cwd. `lib` holds `std/io/io.vader`; `vader`
-    // and `runtime` do not. The whole point: a directory is a library root because
-    // of what it CONTAINS, not because it is spelled `lib` — a project keeping its
-    // own code under `lib/` must not be mistaken for the toolchain.
-    picked :: library_roots(["vader", "lib", "runtime"])
-    // only the marker-holding root counts
-    assert_eq(picked.len(), usize(1))
-    assert_eq(picked[0], "lib")
-}
-
-@test
-test_library_roots_is_empty_when_no_root_holds_the_marker :: fn() -> void {
-    assert_eq(library_roots(["vader", "runtime", "/no/such/dir"]).len(), usize(0))
-}
-
-@test
-test_path_from_library_reads_the_providing_root :: fn() -> void {
-    // `Module.root_dir` is the providing root joined with the module name, which
-    // is why the predicate can ask where a module came from at all. Two modules
-    // with the same NAME, told apart by provenance alone.
-    assert(path_from_library("lib/json", ["lib"]), "loaded from the library root")
-    assert(!path_from_library("app/json", ["lib"]), "same NAME, different provenance")
-}

@@ -247,13 +247,14 @@ manifest_root_of :: fn(from_uri: string) -> string {
 }
 
 // The library root serving `project_root` : the host-seeded `--library-root` when
-// present, else the project's own `includePaths` filtered by marker, else the
-// exe-sidecar / cwd probe the project loader uses (`default_library_root`).
-// Editors don't pass `--library-root`, so the derived roots are what actually fire.
+// present, else the first of the project's own `includePaths` to hold the marker,
+// else the exe-sidecar / cwd probe the project loader uses
+// (`default_library_root`). Editors don't pass `--library-root`, so the derived
+// roots are what actually fire.
 //
-// Asked of the manifest and filtered by MARKER, exactly as the loader does — a
+// Asked of the manifest and settled by MARKER, exactly as the loader does — a
 // first cut joined `LIBRARY_ROOT_DIR` here, guessing the root by its NAME, which
-// is the class of bug `resolver::library_roots` exists to end.
+// is the class of bug `ModuleOrigin` exists to end.
 //
 // Keeping the answer ABSOLUTE is load-bearing: `default_library_root()` falls back
 // to the RELATIVE "lib" (the exe-sidecar probe misses — the LSP exe lives in
@@ -262,12 +263,10 @@ manifest_root_of :: fn(from_uri: string) -> string {
 library_root_under :: fn(state: ServerState, project_root: string) -> string {
     if state.library_root.bytes().len() > 0 { return state.library_root }
     if project_root.bytes().len() > 0 {
-        candidates: string[]! = []
         for p in read_manifest(project_root).include_paths {
-            candidates.push(join_path(project_root, p))
+            dir :: join_path(project_root, p)
+            if origin_of_root(dir) == .Toolchain { return dir }
         }
-        picked :: library_roots(candidates)
-        if picked.len() > 0 { return picked[0] }
     }
     return default_library_root()
 }

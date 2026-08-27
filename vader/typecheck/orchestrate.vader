@@ -458,16 +458,15 @@ collect_direct_imports :: fn(
     // Toolchain-shipped modules are filtered HERE rather than at the lookup: every
     // value of this map is a key of `project.modules`, so a later `?? null` read
     // could not fail and only cost a second lookup per import.
-    lib_roots :: project.library_roots
+    //
+    // Excluded by where a module came FROM, never by a `std/` name prefix: `lib/`
+    // hosts every namespace the toolchain ships, so a `json` or `regex` import
+    // would drag in modules a prefix test kept out.
     id_by_name :: MutableMap<string, string> {}
     for [id, lm] in project.modules {
-        if path_from_library(lm.module.root_dir, lib_roots) { continue }
+        if lm.module.origin == .Toolchain { continue }
         id_by_name[lm.module.module_name] = id
     }
-    // Excluded by where a module came FROM, not by a `std/` name prefix: `lib/`
-    // hosts every namespace the toolchain ships, so after the library split a
-    // `json` or `regex` import would start dragging modules in here that the
-    // prefix test kept out. The index above already dropped them.
     seen :: MutableMap<string, bool> {}
     for raw in entry_loaded.collected.import_paths {
         target_id :: id_by_name[raw] ?? continue

@@ -393,6 +393,17 @@ names_equal :: fn(a: string | null, b: string | null) -> bool {
     return a == b
 }
 
+// Who provided the module currently being collected. `index` is keyed by declared
+// module name and `from_module_name` is that key, so this is a lookup rather than
+// the path-matching it replaces. `.Build` when the index has no entry: the mono-file
+// callers pass an empty one, and a module nothing provided is no shipped library.
+importer_origin :: fn(
+    index: MutableMap<string, DiscoveredModule>, from_module_name: string,
+) -> ModuleOrigin {
+    from :: index[from_module_name] ?? return .Build
+    return from.origin
+}
+
 /// Resolve `import "name"` against the project-wide module index.
 /// Emits R2025 (relative path), R2024 (self-import), R2028 (explicit
 /// `std/core`), R2001 (unknown module) on the respective failure
@@ -425,13 +436,29 @@ diagnose_import_path :: fn(
     // back under `lib/` and the guard still behaves.
     //
     // Provenance decides who is a library — a user module may legitimately be
-    // called `json`, and only where it was loaded FROM says whether it is ours —
-    // while the module NAME decides who is the compiler, since `vader/*` is
-    // exactly what the compiler's modules are called.
+    // called `json`, and only who PROVIDED it says whether it is ours — while the
+    // module NAME decides who is the compiler, since `vader/*` is exactly what the
+    // compiler's modules are called.
+    //
+    // The asymmetry is forced, and NOT by resolution order — the target IS
+    // available here, since `preresolve_imports` resolves every import declaration
+    // into `index` before `collect_files` runs. Two things force it:
+    //
+    // The rule is about the ATTEMPT. R2034 must fire on an import of `vader/*` that
+    // does not resolve from where the library sits, which is the case a bundled
+    // library is in — so the check has to stay ABOVE the module-not-found lookup
+    // below. Moving it under a `target` read turns R2034 into R2001 and drops the
+    // layering guard in silence; `hook_driver.test.ts` pins exactly that, with a
+    // probe importing `vader/lexer` from a staged root where it cannot resolve.
+    //
+    // And even with the target in hand, `ModuleOrigin` could not identify it:
+    // `vader/` is `.Build` in a checkout (the project root) as in a bundle (a flag
+    // root), because there is deliberately no `.Compiler` variant. Naming is the
+    // only predicate available.
     if raw_path.starts_with("vader/")
         && !from_module_name.starts_with("vader/")
         && from_module_name != DRIVER_CONTRACT_MODULE
-        && path_from_library(dir_of(span.start.file), library_roots(root_dirs(paths))) {
+        && importer_origin(index, from_module_name) == .Toolchain {
         diags.push(resolver_error(.CompilerImportFromLibrary, span,
             "`${from_module_name}` is shipped under the library root, so it cannot import `${raw_path}` — only `${DRIVER_CONTRACT_MODULE}` may"))
         return null

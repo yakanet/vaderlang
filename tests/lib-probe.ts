@@ -16,9 +16,11 @@
 // that is 14 workers, one of which was loading `snapshot.test.ts`. The run went
 // from 3402 tests to 909, with one unnamed failure and no hint of the cause.
 //
-// Staging in /tmp works because the cwd-relative `lib` is one of the roots
-// `library_roots()` returns, so the same predicate is exercised — while the
-// checkout is left untouched and the tests stay parallel-safe.
+// Staging in /tmp works because the cwd-relative `lib` is one of the roots the
+// loader assembles, and it holds the library marker there, so it is tagged
+// `.Toolchain` exactly as a bundled root would be — the same policy path is
+// exercised, while the checkout is left untouched and the tests stay
+// parallel-safe.
 
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
