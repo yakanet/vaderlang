@@ -22,11 +22,14 @@ export const CLI_BIN = exePath("build/vader");
 // Per-test timeout budgets shared across the CLI / VM / format suites.
 export const MEDIUM_BUILD = 30_000;
 export const LONG_BUILD = 120_000;
-// For a test that compiles a driver it cannot share with any other test. A driver
-// compile pulls the whole `vader/` closure at -O0 — the same order of work as the
-// CI step that builds the CLI from the seed, which takes 3-4 minutes on a runner.
-// 11 s locally, past 120 s there.
-export const HEAVY_BUILD = 300_000;
+// For a test that compiles a driver. A driver compile pulls the whole `vader/`
+// closure at -O0 — the same order of work as the CI step that builds the CLI from
+// the seed. Measured: 7 s locally, and 139-272 s per driven build on a Windows
+// runner (job log, run #224), the spread being the wait for a slot in
+// `hook_driver`'s four-deep gate. 300 s left the slowest of those 30 s from the
+// cap, which is a flake waiting to happen — hence twice that. This is a KILL
+// CEILING, not a target: raising it costs nothing until something hangs.
+export const HEAVY_BUILD = 600_000;
 
 // Newest mtime across the .vader sources the compiler is built from. src/ (the
 // TS compiler) is intentionally excluded — the binary is produced from these
