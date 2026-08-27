@@ -61,3 +61,14 @@ tests/snippets/*/_main
 tests/snippets/*/_main.c
 tests/snippets/*/native
 tests/snippets/*/native.c
+
+# Hook-fixture artefacts — left behind when a dev, or the IDE, runs `vader build`
+# inside `tests/hook_fixtures/<name>/`. The driver's own binary and its 12 MB of C
+# sit under `build/` and are covered at the top of this file ; a driven build ALSO
+# writes the PROJECT's binary and C at the fixture root, named by that fixture's
+# `ctx.out`. `observe_only`'s `should-not-exist` is deliberately NOT listed: it is
+# a canary, and it appearing in `git status` is the point.
+tests/hook_fixtures/*/app
+tests/hook_fixtures/*/hello
+tests/hook_fixtures/*/*.c
+tests/hook_fixtures/*/*.exe

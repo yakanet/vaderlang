@@ -10,6 +10,9 @@ import "vader/hooks"
 build :: fn(args: string[]) -> i32 {
     ctx :: new_build_context(args)
     ctx.add_build_file("src/main.vader")
+    // A canary, not a name: if emission ever moved above `BeforeEmit`, the build
+    // would print `wrote <project>/should-not-exist` and the committed
+    // expectation would fail on that line.
     ctx.out = "should-not-exist"
 
     seen := 0

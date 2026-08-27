@@ -11,11 +11,11 @@
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
+import { EXE_SUFFIX } from "./cli-bin.ts";
 import { VM_ERROR_PREFIXES, listSnippets } from "./snapshot.ts";
 
 const RUNTIME_ROOT = resolve(import.meta.dir, "../runtime/c");
 const VADER_BIN = resolve(import.meta.dir, "../build/vader");
-const EXE_EXT = process.platform === "win32" ? ".exe" : "";
 
 interface Result {
   name: string;
@@ -56,7 +56,7 @@ function parseLeaksOutput(text: string): { nodes: number; bytes: number; leakedN
 
 async function check(s: { name: string; dir: string; mainPath: string }): Promise<Result> {
   const cFile = join(s.dir, "native.c");
-  const binFile = join(s.dir, `native${EXE_EXT}`);
+  const binFile = join(s.dir, `native${EXE_SUFFIX}`);
 
   // Error snapshots never produce a clean native run — classify them up front
   // so a non-zero `dump` exit on them counts as a skip, not an emit failure.

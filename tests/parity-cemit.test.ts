@@ -17,12 +17,11 @@ import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { writeFileSync } from "node:fs";
 
-import { LONG_BUILD, runCli } from "./cli-bin.ts";
+import { EXE_SUFFIX, LONG_BUILD, runCli } from "./cli-bin.ts";
 import { VM_ERROR_PREFIXES, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 
 const RUNTIME_ROOT = resolve(import.meta.dir, "../runtime/c");
-const EXE_EXT = process.platform === "win32" ? ".exe" : "";
 
 const CC_AVAILABLE = await (async () => {
   try {
@@ -302,7 +301,7 @@ for (const s of scenarios) {
     if (!CC_AVAILABLE) return;
     const dump = await runCli(["dump", "--stage=c", s.mainPath]);
     const cFile = join(tmpdir(), `vader-cemit-${s.name}.c`);
-    const binFile = join(tmpdir(), `vader-cemit-${s.name}${EXE_EXT}`);
+    const binFile = join(tmpdir(), `vader-cemit-${s.name}${EXE_SUFFIX}`);
     writeFileSync(cFile, dump.stdout);
 
     const build = Bun.spawn([

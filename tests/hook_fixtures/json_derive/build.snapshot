@@ -1,0 +1,5 @@
+# stderr
+vader build: wrote <project>/build/driver/driver
+vader build: wrote <project>/app (and <project>/app.c)
+# exit
+0

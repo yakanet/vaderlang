@@ -7,9 +7,17 @@
 
 import { beforeAll } from "bun:test";
 import { readdirSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
-export const CLI_BIN = `build/vader${process.platform === "win32" ? ".exe" : ""}`;
+// The suffix a LINKER appends to an executable name. `cc -o hello` writes
+// `hello` on Unix and `hello.exe` on Windows — verified with mingw-w64: gcc
+// appends it when `-o` carries no extension. Every path to a BUILT binary goes
+// through `exePath`, or the assertion passes on one OS and fails on the other.
+export const EXE_SUFFIX = process.platform === "win32" ? ".exe" : "";
+
+export const exePath = (base: string) => `${base}${EXE_SUFFIX}`;
+
+export const CLI_BIN = exePath("build/vader");
 
 // Per-test timeout budgets shared across the CLI / VM / format suites.
 export const MEDIUM_BUILD = 30_000;
@@ -91,17 +99,32 @@ const DEFAULT_CLI_TIMEOUT_MS = 90_000;
 
 // Both pipes are drained concurrently — leaving stderr unread can deadlock
 // the child once the 64 KB pipe buffer fills on a verbose trap.
-export async function runCli(
-  args: string[],
-  env?: Record<string, string>,
-  timeoutMs: number = DEFAULT_CLI_TIMEOUT_MS,
-): Promise<CliResult> {
-  const proc = Bun.spawn([CLI_BIN, ...args], {
+export interface SpawnOptions {
+  /** Binary to run. Defaults to the CLI — override for a `dist/` bundle's own
+   *  `vader`, or for a binary the CLI just produced. */
+  readonly bin?: string;
+  /** Working directory. Load bearing for a driven build: `build.vader` is
+   *  discovered relative to the INVOCATION directory, not to the binary. */
+  readonly cwd?: string;
+  readonly env?: Record<string, string>;
+  readonly timeoutMs?: number;
+}
+
+// One spawn implementation for every test that drives a binary, so the pipe
+// drain and the kill timer below are written once. `runCli` is the positional
+// shorthand over it, kept for the suites that only ever run the CLI in place.
+export async function spawnCapture(args: string[], opts: SpawnOptions = {}): Promise<CliResult> {
+  // Resolved against the TEST PROCESS's cwd (the repo root), never against
+  // `opts.cwd`: `CLI_BIN` is repo-relative, so a `cwd` override would otherwise
+  // look for `build/vader` inside the staged project and fail with ENOENT.
+  const bin = resolve(opts.bin ?? CLI_BIN);
+  const proc = Bun.spawn([bin, ...args], {
+    cwd: opts.cwd,
     stdout: "pipe",
     stderr: "pipe",
-    env: { ...process.env, ...(env ?? {}) },
+    env: { ...process.env, ...(opts.env ?? {}) },
   });
-  const killTimer = setTimeout(() => proc.kill("SIGKILL"), timeoutMs);
+  const killTimer = setTimeout(() => proc.kill("SIGKILL"), opts.timeoutMs ?? DEFAULT_CLI_TIMEOUT_MS);
   try {
     const [stdout, stderr, exit] = await Promise.all([
       new Response(proc.stdout).text(),
@@ -112,4 +135,12 @@ export async function runCli(
   } finally {
     clearTimeout(killTimer);
   }
+}
+
+export async function runCli(
+  args: string[],
+  env?: Record<string, string>,
+  timeoutMs: number = DEFAULT_CLI_TIMEOUT_MS,
+): Promise<CliResult> {
+  return spawnCapture(args, { env, timeoutMs });
 }

@@ -1,0 +1,10 @@
+# stdout
+driver: 1 report(s) — build failed
+# stderr
+vader build: wrote <project>/build/driver/driver
+vader build: wrote <project>/hello (and <project>/hello.c)
+
+# Diagnostics
+[<project>/src/main.vader:6:1] error[H6004] build driver reported a problem: struct `badlyNamed` should be PascalCase
+# exit
+1

@@ -1,0 +1,31 @@
+// A driver whose emitted text changes on every round — reported as H6006.
+//
+// Generation is a fixed-point loop: each round re-runs the front end over what
+// the previous round wrote, and stops when nothing new is emitted. A driver that
+// never converges would hang the build, so the round cap turns it into a
+// diagnostic that NAMES the module that kept moving (`gen/tick` here) rather
+// than a timeout with nothing to act on.
+
+module "build"
+
+import "std/io"
+import "vader/hooks"
+
+build :: fn(args: string[]) -> i32 {
+    ctx :: new_build_context(args)
+    ctx.add_build_file("src/main.vader")
+    ctx.out = "app"
+    rounds := 0
+    for msg in ctx.messages() {
+        if msg is PhaseMessage as p {
+            if p.phase == .Typechecked {
+                rounds += 1
+                ctx.emit_module("gen/tick", "export tick_${rounds} :: fn() -> i32 = ${rounds}")
+            }
+        }
+    }
+    if ctx.flush_reports() {
+        return 1
+    }
+    return 0
+}

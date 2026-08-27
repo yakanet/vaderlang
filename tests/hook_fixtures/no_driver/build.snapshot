@@ -1,0 +1,4 @@
+# stderr
+vader build: expected a file, --manifest (vader.json), or a `build.vader` here
+# exit
+1

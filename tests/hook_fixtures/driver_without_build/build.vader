@@ -1,0 +1,10 @@
+// A `build.vader` with no `build` fn at all — rejected as H6001.
+//
+// The check is static: `validate_driver` reads the parsed driver before anything
+// is compiled, so this costs no compile. The diagnostic must be anchored on THIS
+// file, not on the generated entry the CLI writes to call the driver — a span
+// pointing at `vader_build_entry` would name a file the user never wrote.
+
+module "build"
+
+other :: fn() -> void {}

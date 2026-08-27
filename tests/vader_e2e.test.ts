@@ -10,7 +10,7 @@
 // rather than serialising them inside the CLI.
 
 import { test, expect } from "bun:test";
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import { join } from "node:path";
 
 // Drives the NATIVE `vader test` (build/vader) — native `cmd_test` runs the
@@ -19,6 +19,7 @@ import { join } from "node:path";
 // `std/core` `bytes` primitive, the memory opcodes), so this suite must spawn
 // the self-hosted binary, which is the snapshot/run oracle everywhere else.
 import { runCli, LONG_BUILD } from "./cli-bin.ts";
+import { containsTestFn } from "./vader-sources.ts";
 
 /** Top-level subdirs of `root` that contain at least one `.vader` file
  *  carrying a `@test` decorator. Filtering keeps `vader test <dir>` from
@@ -37,24 +38,6 @@ function findTestModules(root: string): string[] {
   return dirs.sort();
 }
 
-// Anchor on `^@test\s` rather than a substring search : `std/testing` itself
-// only mentions `@test` in its module-level doc-comment, which would
-// otherwise look like a test-bearing module to the walker. Decorators are
-// always at column 0 (no Vader file uses indented `@test`).
-const TEST_DECORATOR_RE = /^@test\s/m;
-
-function containsTestFn(dir: string): boolean {
-  for (const ent of readdirSync(dir, { withFileTypes: true })) {
-    const p = join(dir, ent.name);
-    if (ent.isDirectory()) {
-      if (containsTestFn(p)) return true;
-      continue;
-    }
-    if (!ent.name.endsWith(".vader")) continue;
-    if (TEST_DECORATOR_RE.test(readFileSync(p, "utf8"))) return true;
-  }
-  return false;
-}
 
 // Modules whose @tests don't yet pass under the NATIVE `vader test`. Each is a
 // pre-existing native-compiler gap — confirmed identical on the pre-S3 baseline

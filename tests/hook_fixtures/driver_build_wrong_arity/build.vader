@@ -1,0 +1,9 @@
+// A `build` that takes no arguments — rejected as H6002.
+//
+// The driver contract is `fn(args: string[]) -> i32`: the CLI passes the project
+// root and the toolchain root positionally, so a nullary `build` could not
+// receive them.
+
+module "build"
+
+build :: fn() -> i32 { return 0 }
