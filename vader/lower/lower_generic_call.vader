@@ -13,6 +13,7 @@ import "vader/resolver/symbol"
 import "vader/types"
 import "vader/comptime"
 import "vader/resolver"
+import "toolchain/span"
 
 /// `fn<T, U>(a, b)` call to a top-level generic fn lowers to a direct
 /// call against the monomorphized instance. Detection : callee is an

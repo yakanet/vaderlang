@@ -146,6 +146,7 @@ generic_callee_name :: fn(gi: GenericInstExpr) -> string = @partial match gi.cal
 
 import "std/testing"
 import "vader/diagnostics"
+import "toolchain/span"
 
 @test test_mangle_non_generic_same_name :: fn() -> void {
     args: Type[] = []

@@ -21,6 +21,7 @@ import "vader/diagnostics"
 AST :: import "vader/parser"
 import "vader/parser"
 import "vader/resolver/symbol"
+import "toolchain/span"
 
 /// Per-file resolution output. `idents` keys every resolved `AST.IdentExpr`
 /// by its span via `Span.hash()` (the file's FNV hash folded with the start

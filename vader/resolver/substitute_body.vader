@@ -430,6 +430,7 @@ export substitute_pattern :: fn(p: AST.Pattern, subst: Subst) -> AST.Pattern {
 // ---- materialised-body wrapper -------------------------------------------
 
 import "vader/parser"
+import "toolchain/span"
 
 /// Clone `b` via `substitute_block` and mint fresh node IDs on the
 /// result. Cloned bodies keep trait-source spans.

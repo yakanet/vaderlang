@@ -10,6 +10,7 @@ import "vader/parser"
 import "vader/diagnostics"
 import "vader/resolver/symbol"
 import "vader/types"
+import "toolchain/span"
 
 lower_struct_lit :: fn(ctx: FnLowerCtx!, lit: StructLitExpr, type: Type) -> LoweredExpr {
     // Index the literal's provided values by name so we can walk the

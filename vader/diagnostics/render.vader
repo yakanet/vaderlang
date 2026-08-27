@@ -124,6 +124,7 @@ format_diagnostic :: fn(sb: StringBuilder!, d: Diagnostic, show_file: bool) -> v
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "toolchain/span"
 
 mk_diag_span :: fn(start: i32, end: i32) -> Span = Span {
     .start = Position { .file = "t.vader", .offset = usize(start), .line = 1, .column = start + 1 },

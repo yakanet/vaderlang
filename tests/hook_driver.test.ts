@@ -338,9 +338,9 @@ for (const name of fixtures) {
 function stageBundle(): string {
   const dir = mkdtempSync(`${tmpdir()}/vader-bundle-`);
   mkdirSync(`${dir}/runtime`);
-  // `lib/` is a real directory, not a link to the repo's: the bundle puts TWO
-  // namespaces under it — `std/` from the checkout's `lib/`, and the compiler's
-  // own sources — and they come from different places in the tree.
+  // `lib/` is a real directory, not a link to the repo's: the bundle puts the
+  // checkout's own namespaces under it AND the compiler's sources, which come
+  // from different places in the tree.
   mkdirSync(`${dir}/lib`);
   // Keep the platform's executable NAME: on Windows it is `vader.exe`, and a
   // bundle holding a `vader` cannot be spawned (`ENOENT` from `uv_spawn`).
@@ -349,7 +349,12 @@ function stageBundle(): string {
   if (process.platform === "darwin") {
     Bun.spawnSync(["codesign", "-s", "-", exe]);
   }
-  symlinkSync(`${REPO}/lib/std`, `${dir}/lib/std`);
+  // Every namespace the checkout ships, not a named list: a list silently stops
+  // staging the next namespace added, and the bundle then fails on a module the
+  // checkout resolves fine.
+  for (const ns of readdirSync(`${REPO}/lib`)) {
+    symlinkSync(`${REPO}/lib/${ns}`, `${dir}/lib/${ns}`);
+  }
   symlinkSync(`${REPO}/vader`, `${dir}/lib/vader`);
   symlinkSync(`${REPO}/runtime/c`, `${dir}/runtime/c`);
   return dir;

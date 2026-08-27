@@ -22,6 +22,7 @@ import "vader/parser"
 import "vader/resolver"
 import "vader/lsp/protocol"
 import "vader/lsp/analysis"
+import "toolchain/span"
 
 /// Build the `DocumentLink[]` response for the document named in `params`
 /// (`{ textDocument: { uri } }`).

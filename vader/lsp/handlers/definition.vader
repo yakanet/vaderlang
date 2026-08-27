@@ -21,6 +21,7 @@ import "std/collections"
 import "vader/diagnostics"
 import "vader/lsp/protocol"
 import "vader/lsp/analysis"
+import "toolchain/span"
 
 /// Resolve goto-def for the position carried in `params`. Returns
 /// `LocationLink[]` (when `linkSupport`) or a bare `Location`, or

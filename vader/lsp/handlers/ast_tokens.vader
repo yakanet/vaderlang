@@ -24,6 +24,7 @@ import "vader/resolver"
 import "vader/resolver/symbol"
 import "vader/types"
 import "vader/lsp/protocol"
+import "toolchain/span"
 
 /// Primitive type names recognised by the lexer / typechecker but not as
 /// individual keywords. When an `IdentExpr` carries one of these names in

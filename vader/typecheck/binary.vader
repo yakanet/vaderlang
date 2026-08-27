@@ -833,6 +833,7 @@ push_op_undefined :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagn
 import "std/testing"
 import "vader/parser"
 import "vader/resolver"
+import "toolchain/span"
 
 binary_check_stub :: fn(
     e: AST.Expr,

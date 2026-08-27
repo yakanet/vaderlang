@@ -1,107 +1,21 @@
 // vader/diagnostics/diagnostic — structured diagnostic shape consumed by the
 // terminal renderer and (eventually) the LSP. Carries the Severity /
-// Position / Span / Diagnostic shapes the LSP serialises to JSON.
+// Diagnostic shapes the LSP serialises to JSON.
+//
+// Where a diagnostic POINTS is `toolchain/span`, not here: `toolchain/ast` needs
+// `Span` and nothing else from this module, and a library shipping a build-time
+// generator must be able to depend on that without depending on the compiler.
 
 module "vader/diagnostics"
 
 import "std/string"
+import "toolchain/span"
 
 export Severity :: enum {
     Error,
     Warning,
     Info,
     Hint,
-}
-
-// Source position. `offset` is a raw UTF-8 byte offset ; `column` is a
-// 1-based **codepoint** index within the line (the lexer counts leading
-// bytes). The LSP boundary translates to UTF-16 column counts when
-// needed.
-export Position :: struct {
-    file: string
-    offset: usize
-    line: i32
-    column: i32
-}
-
-// Half-open span [start, end) in source.
-export Span :: struct {
-    start: Position
-    end: Position
-}
-
-/// Position key for span-keyed side-tables. Folds the source file (via
-/// its FNV hash) with the start line/column so spans at the same
-/// `(line, column)` in DIFFERENT files of a multi-file module don't
-/// collide when their per-module maps merge. `start`-only by design :
-/// every side-table that keys on a span keys on its start ; `Equals`
-/// (start AND end) still distinguishes an envelope expr from its child
-/// in a hash bucket, so the start-only hash is a valid
-/// over-approximation.
-Span implements Hash -> self.start.file.hash() * 1000003 + (u64(self.start.line) << 32) + u64(self.start.column)
-
-/// Structural equality over `(file, line, column)` of both ends — the
-/// full key the typed-ast side-tables need to tell an envelope expr
-/// apart from a child that shares its start position.
-Span implements Equals {
-    equals :: fn(self, other: Span) -> bool {
-        return self.start.file == other.start.file &&
-            self.start.line == other.start.line &&
-            self.start.column == other.start.column &&
-            self.end.line == other.end.line &&
-            self.end.column == other.end.column
-    }
-}
-
-/// `lineS:colS-lineE:colE` — human-readable form for diagnostics and
-/// for keying side-tables that need an envelope expr to stay disjoint
-/// from a child sharing its start position.
-Span implements Display -> "${self.start.line}:${self.start.column}-${self.end.line}:${self.end.column}"
-
-/// Sentinel file name on spans minted by the compiler with no real source
-/// origin (test fixtures, intrinsic stubs, lowering-synthesised nodes).
-export SYNTHETIC_FILE :: "<synthetic>"
-
-/// Synthetic `Span` for AST nodes minted by the compiler (test fixtures,
-/// materialised trait methods, intrinsic stubs). Points to a dummy 1:1
-/// position so renderers and span-keyed side-tables stay happy.
-export empty_span :: fn() -> Span {
-    return Span {
-        .start = Position { .file = SYNTHETIC_FILE, .offset = 0, .line = 1, .column = 1 },
-        .end   = Position { .file = SYNTHETIC_FILE, .offset = 1, .line = 1, .column = 2 },
-    }
-}
-
-/// A `Span` at the head of `path` — for a problem that is about the FILE rather
-/// than about anything written in it.
-///
-/// The alternative is `empty_span`, which renders as `<synthetic>` and names no
-/// file at all: a reader then has to guess which file to open. Use this whenever
-/// the faulty file is known even though the faulty line is not.
-///
-/// @param path  the file the diagnostic is about.
-export file_head_span :: fn(path: string) -> Span {
-    at :: Position { .file = path, .offset = 0, .line = 1, .column = 1 }
-    return Span { .start = at, .end = at }
-}
-
-/// Sentinel file name on spans that belong to AST nodes cloned from a
-/// trait's default-method body into an implementing struct's impl.
-/// The typecheck dump renders these spans as `undefined:undefined`.
-export MATERIALIZED_FILE :: "<materialized>"
-
-/// True when `s` points at a real source location worth surfacing to a user
-/// — a concrete file with a 1-based line. False for every compiler-minted
-/// marker : the `<synthetic>` sentinel (`empty_span`), the `<materialized>`
-/// marker (`materialized_span`, line 0), a blank file (`empty_span(file)`
-/// with no file), or any non-positive line. Callers gate per-op `#line` /
-/// `DebugPos` emission on this so no bogus `#line 0 "<materialized>"` reaches
-/// the C output or the debugger.
-export has_source_position :: fn(s: Span) -> bool {
-    if s.start.file == "" { return false }
-    if s.start.file == SYNTHETIC_FILE { return false }
-    if s.start.file == MATERIALIZED_FILE { return false }
-    return s.start.line > 0
 }
 
 export Diagnostic :: struct {

@@ -19,6 +19,7 @@ module "vader/lsp/actions"
 import "std/string"
 import "vader/diagnostics"
 AST :: import "vader/parser"
+import "toolchain/span"
 
 /// What an action needs to produce its edit. Carries the document source so
 /// actions can render rewrites (and slice reused sub-expressions) against it.

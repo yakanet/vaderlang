@@ -21,6 +21,7 @@ import "vader/diagnostics"
 import "vader/resolver"
 import "vader/lsp/protocol"
 import "vader/lsp/analysis"
+import "toolchain/span"
 
 /// Validate that the cursor sits on a renameable identifier and return its
 /// range (LSP `prepareRename`). Returns `JsonNull` when the cursor isn't on a

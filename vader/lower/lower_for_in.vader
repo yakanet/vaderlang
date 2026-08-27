@@ -28,6 +28,7 @@ AST :: import "vader/parser"
 import "vader/resolver/symbol"
 import "vader/typecheck"
 import "vader/types"
+import "toolchain/span"
 
 /// Lower a `for x in iter { body }` statement to a step-loop driven
 /// by the `Iterator<T>.next()` dispatch.

@@ -15,6 +15,7 @@ AST :: import "vader/parser"
 import "vader/resolver/symbol"
 import "vader/types"
 import "vader/typecheck"
+import "toolchain/span"
 
 // ---- chain fusion ---------------------------------------------------------
 

@@ -27,6 +27,7 @@ import "vader/resolver/symbol"
 AST :: import "vader/parser"
 import "vader/parser"
 import "vader/types"
+import "toolchain/span"
 
 /// Walk every top-level decl in `program.decls` and mint its `Type` into
 /// `typed.decl_types`. The pass is single-shot — re-running it is

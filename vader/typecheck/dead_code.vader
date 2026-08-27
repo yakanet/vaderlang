@@ -34,6 +34,7 @@ import "std/string"
 import "vader/diagnostics"
 import "vader/resolver"
 AST :: import "vader/parser"
+import "toolchain/span"
 
 // A private top-level declaration that may be dead — keyed for the final report.
 DeadDecl :: struct {

@@ -31,6 +31,7 @@ import "std/sort"
 import "std/iter"
 import "vader/diagnostics"
 AST :: import "vader/parser"
+import "toolchain/span"
 
 /// The organize-imports source action. Registered in `registry::all_source_actions`.
 organize_imports_action :: fn() -> SourceAction = SourceAction {

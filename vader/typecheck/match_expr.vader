@@ -474,6 +474,7 @@ import "std/testing"
 import "vader/parser"
 import "vader/resolver"
 import "vader/resolver/symbol"
+import "toolchain/span"
 
 match_expr_check_stub :: fn(
     e: AST.Expr,

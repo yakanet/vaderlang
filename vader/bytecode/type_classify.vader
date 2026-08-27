@@ -201,6 +201,7 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx!, slot_index: i32) -> 
 OPAQUE_REF :: BcRef { .trait_name = "" }
 
 import "vader/lower"
+import "toolchain/span"
 
 /// Map a primitive name to its `ValType`. Unknown names degrade to
 /// `Any` so the upstream typechecker has the only say in rejecting

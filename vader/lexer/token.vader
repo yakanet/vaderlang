@@ -8,6 +8,7 @@
 module "vader/lexer"
 
 import "vader/diagnostics"
+import "toolchain/span"
 
 export TokenKind :: enum(u8) {
     // Layout

@@ -19,6 +19,7 @@ import "vader/parser"
 import "vader/resolver"
 import "vader/resolver/symbol"
 import "vader/types"
+import "toolchain/span"
 
 // Concatenate every file of a (possibly multi-file) module into one
 // synthetic Program so the resolver body-walks ALL files, not just

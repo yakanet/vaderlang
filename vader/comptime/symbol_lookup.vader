@@ -11,6 +11,7 @@ import "vader/parser"
 import "vader/typecheck"
 import "vader/resolver/symbol"
 import "vader/diagnostics"
+import "toolchain/span"
 
 /// Resolve `decl` to the resolver `Symbol` minted for it, matching fn
 /// overloads by declaration span.

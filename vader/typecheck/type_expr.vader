@@ -419,6 +419,7 @@ params_mutable_of :: fn(ps: AST.FnParam[]) -> bool[] {
 
 import "std/testing"
 import "vader/parser"
+import "toolchain/span"
 
 resolve_test_module :: fn(src: string) -> ResolvedModule {
     parsed :: parse_source(src, "t.vader")

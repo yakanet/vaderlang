@@ -70,13 +70,16 @@ if [ "$dist" = 1 ]; then
 
   step "[dist] Bundling $out  (vader + lib/{std,vader} + runtime/c)"
   rm -rf "$out"
-  mkdir -p "$out/runtime" "$out/lib"
+  mkdir -p "$out/runtime"
   cp build/vader "$out/vader"
-  # One module root. `lib/` holds every namespace the toolchain ships — `std/`
-  # from the checkout's own `lib/`, plus the compiler's sources so a project's
-  # `build.vader` can import them. `default_library_root` probes `<exe>/lib`
-  # with the `std/io/io.vader` marker, which is what makes this layout resolve.
-  cp -R lib/std "$out/lib/std"
+  # One module root. `lib/` holds every namespace the toolchain ships, so it is
+  # copied WHOLE rather than namespace by namespace — a named list silently stops
+  # shipping the next namespace added, which is exactly how `toolchain/` came to
+  # be missing from a bundle while the checkout was fine. The compiler's own
+  # sources join it so a project's `build.vader` can import them.
+  # `default_library_root` probes `<exe>/lib` with the `std/io/io.vader` marker,
+  # which is what makes this layout resolve.
+  cp -R lib "$out/lib"
   cp -R vader "$out/lib/vader"
   cp -R runtime/c "$out/runtime/"
 

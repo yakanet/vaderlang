@@ -32,6 +32,7 @@ import "vader/diagnostics"
 import "std/io"
 import "std/path"
 import "vader/resolver"
+import "toolchain/span"
 
 // ---- context --------------------------------------------------------------
 

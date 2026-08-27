@@ -21,6 +21,7 @@ import "vader/lexer"
 import "vader/diagnostics"
 import "vader/lsp/protocol"
 import "vader/lsp/analysis"
+import "toolchain/span"
 
 /// Build the `DocumentHighlight[]` response for the identifier at the position
 /// carried in `params` (`{ textDocument: { uri }, position }`).

@@ -11,6 +11,7 @@ import "vader/typecheck"
 import "vader/types"
 import "vader/comptime"
 import "vader/resolver/symbol"
+import "toolchain/span"
 
 // Each `T implements Trait { method ... }` member surfaces as a fn
 // decl with mangled name `<module>$<for-type>$<trait>$<method>`.

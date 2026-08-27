@@ -20,6 +20,7 @@ import "vader/parser"
 import "vader/diagnostics"
 import "vader/resolver/symbol"
 import "vader/types"
+import "toolchain/span"
 
 lower_string_lit :: fn(ctx: FnLowerCtx!, expr: StringLitExpr, type: Type) -> LoweredExpr {
     string_type :: TY_STRING

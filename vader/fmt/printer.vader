@@ -12,6 +12,7 @@ import "std/string_builder"
 import "std/io"
 import "vader/diagnostics"
 p :: import "vader/parser"
+import "toolchain/span"
 
 // ============================================================================
 // Printer
