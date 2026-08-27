@@ -1,7 +1,16 @@
 name: CI
 
 on:
+  # `gate` exists to MEASURE, not to configure. A driven build costs 21 s alone on
+  # a Windows runner and 139-272 s inside the suite ; how many run at once is the
+  # last untested cause (TODO.md, "CI review"). Empty on every push and PR, which
+  # leaves the default of 4 — see `tests/hook_driver.test.ts::gateSize`.
   workflow_dispatch:
+    inputs:
+      gate:
+        description: 'VADER_TEST_GATE — concurrent driver builds in hook_driver (empty = 4)'
+        required: false
+        default: ''
   push:
     branches: [main]
     tags: ['v*']
@@ -77,6 +86,8 @@ jobs:
       # --only-failures: hide passing tests, keep the log to failures + summary
       # (the local `bun run test` stays verbose for interactive use).
       - name: Test
+        env:
+          VADER_TEST_GATE: ${{ inputs.gate }}
         run: bun run test --only-failures
 
   # Real Windows build + test. Faithful (unlike wine) and a regression guard for
@@ -120,75 +131,9 @@ jobs:
         run: pwsh bootstrap/build.ps1
 
       - name: Test
+        env:
+          VADER_TEST_GATE: ${{ inputs.gate }}
         run: bun run test --only-failures
-
-  # Why the Windows job costs what it does — measurement, not inference, and
-  # dispatch-only so a PR never pays for it.
-  #
-  # What is known so far: `tests/hook_driver.test.ts` needs ~86 s of CPU in total
-  # (measured locally across gate sizes 1..8), which on four runner cores is a
-  # ~50 s floor. The Windows job spends 272 s on that file. Five times its own
-  # CPU-bound floor is not a scheduling problem — something is STALLING, and the
-  # two candidates are the ones this job separates:
-  #
-  #   1. Defender. A driven build writes 21 files / 33 MB (9 `.c`, 10 `.o`, the
-  #      exe) because the driver's `cc` step is split into `DRIVER_CC_UNITS` = 8
-  #      units. Six of those per job is ~140 files and ~230 MB, each write scanned
-  #      by real-time protection.
-  #   2. The split itself. Measured locally at -O0: mono 9,48 s vs 8 units 5,89 s
-  #      for the SAME 9,0-9,4 s of CPU — a 1,6x win that exists only while cores
-  #      are idle. On a saturated 4-core runner it should buy nothing and cost 15
-  #      extra files per build.
-  #
-  # Four builds of the compiler, the two variables crossed. If (1) dominates, the
-  # fix is a workflow step. If (2) does, `DRIVER_CC_UNITS` has to become a default
-  # instead of the hard floor it is today (`vader/cli/driver.vader`), so a build
-  # can ask for one unit.
-  windows-io-profile:
-    name: Windows I/O profile
-    runs-on: windows-latest
-    if: github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Verify a mingw-w64 gcc is on PATH
-        shell: pwsh
-        run: |
-          $triple = & gcc -dumpmachine
-          if ($triple -ne "x86_64-w64-mingw32") { throw "gcc targets '$triple'" }
-
-      - name: Build Vader CLI from the C seed (Windows)
-        shell: pwsh
-        run: pwsh bootstrap/build.ps1
-
-      # `-Force` because the runner user is an admin but the cmdlet is absent on
-      # images without Defender ; the step must not gate the measurement.
-      - name: Measure — Defender ON, then OFF
-        shell: pwsh
-        continue-on-error: true
-        run: |
-          $rows = @()
-          function Timed([string]$label, [string[]]$vaderArgs) {
-            $t = Measure-Command { & ./build/vader.exe @vaderArgs *> $null }
-            $script:rows += "{0,-34} {1,8:N1} s" -f $label, $t.TotalSeconds
-          }
-          $entry = "vader/cli/main.vader"
-          $out   = "$env:RUNNER_TEMP/probe"
-          Timed "defender on  · mono"    @("build","--target=native","--out=$out-a",$entry)
-          Timed "defender on  · 8 units" @("build","--target=native","--parallel=8","--out=$out-b",$entry)
-
-          try {
-            Add-MpPreference -ExclusionPath $env:RUNNER_TEMP, $env:GITHUB_WORKSPACE -ErrorAction Stop
-            $excluded = "yes"
-          } catch { $excluded = "FAILED: $($_.Exception.Message)" }
-          $rows += "exclusion applied: $excluded"
-
-          Timed "defender off · mono"    @("build","--target=native","--out=$out-c",$entry)
-          Timed "defender off · 8 units" @("build","--target=native","--parallel=8","--out=$out-d",$entry)
-
-          $rows
-          $md = @("### Windows I/O profile", "", '```') + $rows + '```'
-          $md | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
 
   # Heavy fixed-point check: build the toolchain, confirm stage1 and stage2 emit
   # identical C for main.vader, and the committed seed is fresh. Bun-free, gated
