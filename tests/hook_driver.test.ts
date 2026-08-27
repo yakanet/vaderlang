@@ -55,7 +55,7 @@ const JSON_DERIVE = `${FIXTURES}/json_derive`;
 // A driven build needs `lib/`, `runtime/c/` and `vader/` reachable from the
 // project: the first two because the compiler resolves them beside the binary or
 // relative to the invocation directory, the third because a driver imports
-// `vader/hooks`. That is the layout a `dist/` bundle ships, so each run stages
+// `toolchain/build`. That is the layout a `dist/` bundle ships, so each run stages
 // the fixture into a temp directory and symlinks the three in — reproducing an
 // installed toolchain without polluting the checkout, and without touching
 // `resolve_sidecar`, which the rest of the suite depends on.
@@ -362,7 +362,7 @@ function stageBundle(): string {
 
 test.concurrent("a bundle drives a build with nothing beside the project", async () => {
   // REASON: a bundle is not a staged project, and three separate lookups have to
-  // land: the driver's own `import "vader/hooks"` (bundle `lib/vader/`), the
+  // land: the driver's own `import "toolchain/build"` (bundle `lib/toolchain/`), the
   // project's `std/*` (bundle `lib/std/`), and `vader_runtime.c` at the link step
   // (bundle `runtime/c/`). The project directory has NO symlinks — the driver
   // runs as `<project>/build/driver/driver`, so every probe relative to ITSELF

@@ -1,12 +1,12 @@
-// vader/hooks/context — the build-driver contract.
+// toolchain/build/context — the build-driver contract.
 //
-// `vader/hooks` is the ONE module a project's `build.vader` imports; everything
+// `toolchain/build` is the ONE module a project's `build.vader` imports; everything
 // else under `vader/` is compiler implementation. A driver builds a context,
 // configures it, then pulls `messages()` to drive the compilation:
 //
 //     module "build"
 //
-//     import "vader/hooks"
+//     import "toolchain/build"
 //
 //     build :: fn(args: string[]) -> i32 {
 //         ctx :: new_build_context(args)
@@ -26,7 +26,7 @@
 // layout can reconcile. See
 // `.claude/plans/2026-08-26-metacompilation-hook.md` §4 and §11.
 
-module "vader/hooks"
+module "toolchain/build"
 
 import "vader/diagnostics"
 import "std/io"

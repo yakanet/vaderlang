@@ -71,5 +71,11 @@ function registerModuleTest(dir: string): void {
   }, { timeout: LONG_BUILD });
 }
 
-for (const dir of findTestModules("lib/std")) registerModuleTest(dir);
+// Every namespace under `lib/`, not `lib/std` by name: a named root silently
+// stops discovering the next namespace added, and an undiscovered module is
+// simply skipped (no failure, no warning). That is how moving the build contract
+// out of `vader/` took 33 tests out of the suite without a word.
+for (const ns of readdirSync("lib")) {
+  for (const dir of findTestModules(join("lib", ns))) registerModuleTest(dir);
+}
 for (const dir of findTestModules("vader")) registerModuleTest(dir);

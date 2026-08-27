@@ -1,4 +1,4 @@
-// vader/hooks/message — the pipeline events a build driver observes.
+// toolchain/build/message — the pipeline events a build driver observes.
 //
 // A project's `build.vader` pulls these from `BuildContext.messages()`
 // (`context.vader`) and reacts to them. `Message` is a closed union, so a
@@ -8,7 +8,7 @@
 // Phase names track Vader's own pipeline stages — the ones `vader dump
 // --stage=…` prints — rather than another toolchain's vocabulary.
 
-module "vader/hooks"
+module "toolchain/build"
 
 AST :: import "toolchain/ast"
 

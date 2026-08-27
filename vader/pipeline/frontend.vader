@@ -3,10 +3,10 @@
 // `load → resolve + typecheck → comptime`, ending in an `EvaluatedPipeline` that
 // carries every table a later stage or an observer needs. Lifted out of
 // `vader/cli/main.vader` unchanged: the CLI was its only caller, and a build
-// driver (`vader/hooks`) needs the same sequence, so leaving it private would
+// driver (`toolchain/build`) needs the same sequence, so leaving it private would
 // have forced a second implementation — the one thing guaranteed to drift.
 //
-// Sits below both callers in the import graph (`vader/cli` and `vader/hooks`
+// Sits below both callers in the import graph (`vader/cli` and `toolchain/build`
 // import this; it imports neither), so no cycle forms.
 
 module "vader/pipeline"

@@ -11,7 +11,7 @@ module "build"
 
 import "std/io"
 import "std/string"
-import "vader/hooks"
+import "toolchain/build"
 AST :: import "toolchain/ast"
 
 build :: fn(args: string[]) -> i32 {

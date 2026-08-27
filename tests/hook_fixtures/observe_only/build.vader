@@ -5,7 +5,7 @@
 module "build"
 
 import "std/io"
-import "vader/hooks"
+import "toolchain/build"
 
 build :: fn(args: string[]) -> i32 {
     ctx :: new_build_context(args)
