@@ -46,9 +46,6 @@ import "toolchain/span"
 /// Filename a project uses to drive its own build.
 export DRIVER_FILENAME :: "build.vader"
 
-/// Module name the driver file declares, and the entry module imports.
-export DRIVER_MODULE :: "build"
-
 /// Filename of the generated entry, written beside the driver. Named so it reads
 /// as machine-written in a directory listing.
 export DRIVER_ENTRY_FILENAME :: "vader_build_entry.vader"
@@ -272,7 +269,7 @@ export validate_driver :: fn(path: string) -> Diagnostic | null {
     }
     for d in parsed.program.decls {
         if d is AST.FnDecl as f {
-            if f.name == DRIVER_MODULE_ENTRY {
+            if f.name == DRIVER_ENTRY {
                 return signature_problem(f)
             }
         }
@@ -280,11 +277,8 @@ export validate_driver :: fn(path: string) -> Diagnostic | null {
     // Anchor on the file's first character: there is no declaration to point at,
     // and `empty_span()` would render as `<synthetic>`, naming no file at all.
     return hook_error(.MissingBuildEntry, file_head_span(path),
-        "add `${DRIVER_MODULE_ENTRY} :: fn(args: string[]) -> void`")
+        "add `${DRIVER_ENTRY} :: fn(args: string[]) -> void`")
 }
-
-/// Name of the fn a driver file must declare — reserved, the way `main` is.
-export DRIVER_MODULE_ENTRY :: "build"
 
 // The generated entry does `return build(args)`, so two shapes have to hold: one
 // parameter, and an `i32` result. The result matters — a `void` driver could not
@@ -294,11 +288,11 @@ export DRIVER_MODULE_ENTRY :: "build"
 signature_problem :: fn(f: AST.FnDecl) -> Diagnostic | null {
     if f.params.len() != 1 {
         return hook_error(.InvalidBuildEntrySignature, f.name_span,
-            "`${DRIVER_MODULE_ENTRY}` takes one parameter, `args: string[]`, and got ${f.params.len()}")
+            "`${DRIVER_ENTRY}` takes one parameter, `args: string[]`, and got ${f.params.len()}")
     }
     if !returns_i32(f) {
         return hook_error(.InvalidBuildEntrySignature, f.name_span,
-            "`${DRIVER_MODULE_ENTRY}` must return `i32` — the build's exit status")
+            "`${DRIVER_ENTRY}` must return `i32` — the build's exit status")
     }
     return null
 }

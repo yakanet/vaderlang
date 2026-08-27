@@ -40,6 +40,19 @@ export STDLIB_PREFIX :: "std/"
 /// for this name to anchor bare-name imports.
 export MANIFEST_FILENAME :: "vader.json"
 
+/// Module a project's build driver declares, and the entry shim shares.
+///
+/// Lives here, not in `vader/cli`, because two passes need it and only one of
+/// them may import a front-end: the CLI writes the shim, and the dead-code lint
+/// has to know that `DRIVER_ENTRY` in this module is an ENTRY POINT. Without
+/// that, `build` reads as unreachable — nothing in the project calls it, since
+/// its only caller is a shim that exists solely during a driven build.
+export DRIVER_MODULE :: "build"
+
+/// Function a build driver must declare — reserved in `DRIVER_MODULE` the way
+/// `main` is reserved in a program, with no decorator involved.
+export DRIVER_ENTRY :: "build"
+
 /// Where a driven build's generated modules live, relative to the project root.
 ///
 /// Owned by the resolver because the resolver is what READS them: when this
