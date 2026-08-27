@@ -371,7 +371,9 @@ test("the driven build leaves no artefact in the project root", async () => {
   const { dir } = await lintBuild();
   expect(existsSync(`${dir}/vader_build_entry.vader`)).toBe(false);
   expect(existsSync(`${dir}/vader_build_driver`)).toBe(false);
-  expect(existsSync(`${dir}/build/driver/driver`)).toBe(true);
+  // `cc -o driver` yields `driver.exe` on Windows — the linker names it, not us.
+  const driverExe = process.platform === "win32" ? "driver.exe" : "driver";
+  expect(existsSync(`${dir}/build/driver/${driverExe}`)).toBe(true);
 }, LONG_BUILD);
 
 test("a project's build.vader runs and reports its own rule", async () => {

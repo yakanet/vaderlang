@@ -165,6 +165,27 @@ driver_input_key :: fn(driver_path: string) -> string {
     return "${driver_hash}-${compiler_hash}"
 }
 
+/// The driver binary as the LINKER named it, or null when it produced none.
+///
+/// `cc -o driver` writes `driver` on Unix and **`driver.exe`** on Windows —
+/// verified with mingw-w64: gcc appends `.exe` when `-o` carries no extension.
+/// The stdlib exposes no platform query, so rather than guess the suffix this
+/// asks the filesystem which name appeared. Without it a driven build cannot work
+/// on Windows at all: the spawn misses, so the driver never runs and the project
+/// is never built.
+///
+/// @param base  the `-o` path handed to the linker.
+linked_binary :: fn(base: string) -> string | null {
+    if exists(base) {
+        return base
+    }
+    with_exe :: "${base}.exe"
+    if exists(with_exe) {
+        return with_exe
+    }
+    return null
+}
+
 /// True when the cached driver binary can be reused for `key`.
 ///
 /// Both halves matter: the stamp says what the binary was built from, and the
@@ -174,7 +195,7 @@ driver_input_key :: fn(driver_path: string) -> string {
 /// @param stamp   the file recording its input key.
 /// @param key     the key of the current inputs.
 driver_is_fresh :: fn(binary: string, stamp: string, key: string) -> bool {
-    if !exists(binary) {
+    if linked_binary(binary) == null {
         return false
     }
     recorded :: read_file_string(stamp)
@@ -337,6 +358,11 @@ export run_build_driver :: fn(root: string, cc: string, ldflags: string, units: 
             return build_code
         }
     }
+    exe :: linked_binary(binary)
+    if exe == null {
+        eprintln("vader build: the driver build left no binary at ${binary}")
+        return 1
+    }
 
     // Bounded: a driver is user code with no supervisor, and a `for { }` in one
     // would otherwise hang the build with no message and no way out. It runs as
@@ -353,7 +379,7 @@ export run_build_driver :: fn(root: string, cc: string, ldflags: string, units: 
     // `std/*` when the project happens to have a `stdlib/` beside it, which is
     // what the fixtures' symlinks were quietly providing.
     toolchain :: current_executable_location().dir_of()
-    outcome :: block_on(timeout(DRIVER_TIMEOUT_MS, spawn_async([binary, root, toolchain])))
+    outcome :: block_on(timeout(DRIVER_TIMEOUT_MS, spawn_async([exe, root, toolchain])))
     if outcome is TimeoutError {
         eprintln("vader build: the build driver did not finish within ${DRIVER_TIMEOUT_MS / 1000}s — killed")
         eprintln("(a loop in `${DRIVER_FILENAME}`? build with --no-hooks to skip it)")

@@ -77,8 +77,14 @@ function registerModuleTest(dir: string): void {
     return;
   }
   test(`vader test ${dir}`, async () => {
-    const { exit } = await runCli(["test", dir], undefined, LONG_BUILD);
-    expect(exit).toBe(0);
+    const { exit, stdout, stderr } = await runCli(["test", dir], undefined, LONG_BUILD);
+    // Surface the subprocess output on failure. Asserting the exit code alone
+    // made a red CI say only "expected 0, received 1" for a run of dozens of
+    // module tests — the one that actually failed, and its trap message, were
+    // thrown away. Diagnosing it then needed a machine of that OS.
+    if (exit !== 0) {
+      throw new Error(`vader test ${dir} exited ${exit}\n--- stdout ---\n${stdout}\n--- stderr ---\n${stderr}`);
+    }
   }, { timeout: LONG_BUILD });
 }
 
