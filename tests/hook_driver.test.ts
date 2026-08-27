@@ -37,6 +37,7 @@
 
 import { test, expect, afterAll } from "bun:test";
 import { rmSync, writeFileSync, readFileSync, readdirSync, mkdirSync, cpSync, mkdtempSync, symlinkSync, existsSync, realpathSync } from "node:fs";
+import { withStagedLibraryRoot } from "./lib-probe.ts";
 import { basename, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { ensureCliBuilt, CLI_BIN, EXE_SUFFIX, HEAVY_BUILD, exePath, spawnCapture } from "./cli-bin.ts";
@@ -414,30 +415,25 @@ test("a shipped library cannot import the compiler (R2034)", async () => {
   //
   // Not parallel, and it writes into the checkout: the probe has to live under
   // `lib/` for the provenance test to see it. Removed in `finally`.
-  const ns = `${REPO}/lib/r2034probe`;
-  rmSync(ns, { recursive: true, force: true });
-  mkdirSync(ns, { recursive: true });
-  const proj = mkdtempSync(`${tmpdir()}/vader-r2034-`);
-  staged.push(proj);
-  try {
+  await withStagedLibraryRoot({
+    r2034probe: {
+      "r2034probe.vader":
+        'module "r2034probe"\n\nimport "vader/lexer"\n\nexport peek :: fn() -> i32 = 1\n',
+    },
+  }, async (dir) => {
     writeFileSync(
-      `${ns}/r2034probe.vader`,
-      'module "r2034probe"\n\nimport "vader/lexer"\n\nexport peek :: fn() -> i32 = 1\n',
-    );
-    writeFileSync(
-      `${proj}/app.vader`,
+      `${dir}/app.vader`,
       'module "app"\n\nimport "std/io"\nimport "r2034probe"\n\n'
         + 'main :: fn() -> i32 {\n    println("${peek()}")\n    return 0\n}\n',
     );
-    // From the REPO, not the temp dir: the probe lives under the checkout's `lib/`,
-    // which the cwd-relative library root is what finds. A temp cwd resolves no
-    // toolchain at all and the run dies on `std/io` before reaching the point.
-    const ran = await run(["run", `${proj}/app.vader`], { cwd: REPO });
+    // `cwd: dir` is what makes `<dir>/lib` the library root, and so what puts the
+    // probe under it. R2034 is checked before the module-not-found lookup, so it
+    // fires whether or not `vader/lexer` resolves from here — the rule is about
+    // the attempt.
+    const ran = await run(["run", "app.vader"], { cwd: dir });
     expect(ran.stderr).toContain("R2034");
     expect(ran.stderr).toContain("only `toolchain/build` may");
-  } finally {
-    rmSync(ns, { recursive: true, force: true });
-  }
+  });
 }, HEAVY_BUILD);
 
 test.concurrent("a bundled namespace outranks a project module of the same name", async () => {

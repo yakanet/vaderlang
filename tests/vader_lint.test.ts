@@ -5,7 +5,10 @@
 // half of the shared engine; this drives the W0012 half end to end.
 
 import { test, expect } from "bun:test";
-import { ensureCliBuilt, runCli, MEDIUM_BUILD } from "./cli-bin.ts";
+import { ensureCliBuilt, runCli, spawnCapture, MEDIUM_BUILD } from "./cli-bin.ts";
+import { withStagedLibraryRoot } from "./lib-probe.ts";
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 ensureCliBuilt();
 
@@ -47,4 +50,32 @@ test("vader lint reports a usage error when no file is given", async () => {
   const { stderr, exit } = await runCli(["lint"]);
   expect(stderr).toContain("expected a file");
   expect(exit).toBe(1);
+}, MEDIUM_BUILD);
+
+test("vader lint scopes by provenance, not by a `std/` name", async () => {
+  // REASON: this replaced a name test (`display_path.starts_with("std/")`) with a
+  // provenance test, and the difference only shows on a shipped namespace that is
+  // NOT called `std/…`. Before the library split there was none, so a fixture
+  // would have passed against the old code too and pinned nothing. `lib/` now
+  // hosts json, regex, toolchain and the rest — get this wrong and every user
+  // project is told the toolchain's own exports are unused.
+  await withStagedLibraryRoot({
+    lintprobe: {
+      "lintprobe.vader":
+        'module "lintprobe"\n\n'
+        + '/// Reached by nothing. Shipped, so out of a project\'s scope.\n'
+        + 'export never_used_in_probe :: fn() -> i32 = 1\n',
+    },
+  }, async (dir) => {
+    writeFileSync(join(dir, "app.vader"),
+      'module "app"\n\nimport "std/io"\nimport "lintprobe"\n\n'
+      + '/// Reached by nothing, and the project\'s own — so it IS in scope.\n'
+      + 'export never_used_in_app :: fn() -> i32 = 2\n\n'
+      + 'main :: fn() -> i32 {\n    println("${never_used_in_probe()}")\n    return 0\n}\n');
+    // `cwd: dir` makes `<dir>/lib` the library root — that is the whole setup.
+    const { stdout, stderr } = await spawnCapture(["lint", "app.vader"], { cwd: dir });
+    const out = stdout + stderr;
+    expect(out).toContain("never_used_in_app");
+    expect(out).not.toContain("never_used_in_probe");
+  });
 }, MEDIUM_BUILD);

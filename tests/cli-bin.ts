@@ -58,12 +58,15 @@ function binaryMtime(): number {
 }
 
 // Build instructions surfaced when the binary is missing or stale. The seed
-// path needs only a C compiler (no TS); `build:cli` is the fast local
-// shortcut while src/ still exists.
+// path needs only a C compiler. The `src/`-based shortcut this used to name is
+// gone — that was the TypeScript compiler, deleted when the tree started
+// self-hosting from the seed, and `src/` now means something else entirely (the
+// compiler's own sources inside a dist bundle).
 const BUILD_HINT =
-  `  bun run build:cli                              # fast, while src/ exists\n` +
-  `  # or from the committed C seed (no TS — see bootstrap/README.md):\n` +
-  `  bash bootstrap/build.sh                         # 3-stage bootstrap → ${CLI_BIN}`;
+  `  bun run build                                  # 3-stage bootstrap from the committed C seed\n` +
+  `  bun run build:cli                              # the same, plus a dist/ bundle\n` +
+  `  # equivalently, without Bun (see bootstrap/README.md):\n` +
+  `  bash bootstrap/build.sh                         # → ${CLI_BIN}`;
 
 // Assert a prebuilt, up-to-date compiler binary is present — never build it.
 // Missing or stale-vs-sources is a hard failure with rebuild instructions, so
