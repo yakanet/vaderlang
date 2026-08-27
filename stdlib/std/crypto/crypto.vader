@@ -269,11 +269,11 @@ export md5 :: fn(input: string) -> string {
         block_offset :: block_idx * 64
         m: u32[]! = []
         for i in usize(0)..<16 {
-            b0 :: u32(msg[block_offset + i * 4 + 0])
-            b1 :: u32(msg[block_offset + i * 4 + 1])
-            b2 :: u32(msg[block_offset + i * 4 + 2])
-            b3 :: u32(msg[block_offset + i * 4 + 3])
-            m.push(mask32(b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)))
+            byte0 :: u32(msg[block_offset + i * 4 + 0])
+            byte1 :: u32(msg[block_offset + i * 4 + 1])
+            byte2 :: u32(msg[block_offset + i * 4 + 2])
+            byte3 :: u32(msg[block_offset + i * 4 + 3])
+            m.push(mask32(byte0 | (byte1 << 8) | (byte2 << 16) | (byte3 << 24)))
         }
 
         a := a0
