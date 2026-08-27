@@ -14,7 +14,7 @@
 // premise (a TS shim over the VM, ~2-3 s per call) went away with `src/`.
 
 import { test, expect } from "bun:test";
-import { readFileSync, rmSync } from "node:fs";
+import { readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { CLI_BIN, MEDIUM_BUILD, runCli } from "./cli-bin.ts";
 import { listVaderFiles } from "./vader-sources.ts";
@@ -75,7 +75,10 @@ function fmtStdout(path: string): string {
 
 function fmtString(source: string): string {
   const tmp = join(process.cwd(), ".tmp-fmt-stdlib-roundtrip.vader");
-  Bun.write(tmp, source);
+  // `writeFileSync`, not `Bun.write` — see the twin in `formatter.test.ts`: this
+  // helper is synchronous, so an un-awaited write is still in flight when
+  // `fmtStdout` spawns, and whether that works is platform-dependent.
+  writeFileSync(tmp, source);
   try {
     return fmtStdout(tmp);
   } finally {
