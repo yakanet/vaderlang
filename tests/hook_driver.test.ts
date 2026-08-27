@@ -384,6 +384,49 @@ test.concurrent("a bundle drives a build with nothing beside the project", async
   expect(ran.stdout).toContain('"home":{"city":"Lyon","zip":69001}');
 }, HEAVY_BUILD);
 
+test.concurrent("a bundled namespace outranks a project module of the same name", async () => {
+  // REASON: `lib/` hosts every namespace the toolchain ships, and those are
+  // ORDINARY directory names — `std` today, `json` / `cli` / `images` once the
+  // library split lands. Include-paths are first-match-wins, so with the project
+  // searched first a project declaring `module "cli"` silently wins over the
+  // shipped one. Bad alone, worse in a driven build: the compiler's sources are
+  // compiled in the SAME unit as the project, so `vader/cli` would be built
+  // against the user's module. Reproduced before the fix, pinned here.
+  //
+  // A bundle is the shape where it bites — that is where a library root is
+  // authoritative. Only the BUNDLED root is promoted ahead of the project; the
+  // cwd-relative fallback stays last, so a project keeping its own code under
+  // `lib/` is unaffected. Hence a staged bundle rather than a staged project.
+  const bundle = stageBundle();
+  staged.push(bundle);
+  // A top-level namespace in the bundle, standing in for the post-split layout.
+  mkdirSync(`${bundle}/lib/reserved`, { recursive: true });
+  writeFileSync(
+    `${bundle}/lib/reserved/reserved.vader`,
+    'module "reserved"\n\nexport who :: fn() -> i32 = 1\n',
+  );
+
+  const dir = mkdtempSync(`${tmpdir()}/vader-reserved-`);
+  staged.push(dir);
+  // The manifest is what makes the project root a search root at all — without
+  // one, only the entry's own folder is searched and the clash cannot arise.
+  writeFileSync(`${dir}/vader.json`, '{ "name": "reserved-clash" }\n');
+  mkdirSync(`${dir}/reserved`, { recursive: true });
+  writeFileSync(
+    `${dir}/reserved/reserved.vader`,
+    'module "reserved"\n\nexport who :: fn() -> i32 = 999\n',
+  );
+  writeFileSync(
+    `${dir}/app.vader`,
+    'module "app"\n\nimport "std/io"\nimport "reserved"\n\n'
+      + 'main :: fn() -> i32 {\n    println("who=${who()}")\n    return 0\n}\n',
+  );
+
+  const ran = await run(["run", "app.vader"], { bin: `${bundle}/${basename(CLI_BIN)}`, cwd: dir });
+  expect(ran.stdout).toContain("who=1");
+  expect(ran.stdout).not.toContain("who=999");
+}, HEAVY_BUILD);
+
 test.concurrent("a driven build sweeps the previous build's generated modules", async () => {
   // REASON: the only TWO-BUILD property in the corpus. Generated names are
   // content hashes, so a module whose text CHANGED leaves its old file in the

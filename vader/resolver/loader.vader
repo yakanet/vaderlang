@@ -356,17 +356,34 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[]!, overlay: Mutable
 }
 
 // Assemble the plain (unrooted) include-paths for a project — GCC `-I` style,
-// first-match-wins : the manifest dir itself (so a project's own modules resolve
-// by their folder-relative name), then each `vader.json includePaths` entry
-// joined onto it (e.g. `"lib"` → `<root>/lib`, hosting `std/*`), then the
-// binary-adjacent library default (so a deployed binary finds its bundled stdlib
-// when the entry has no manifest). The `--include-paths` flag entries come first
-// (highest precedence).
+// first-match-wins : the `--include-paths` flag entries (highest precedence, and
+// what a driven build injects the compiler's own sources through), then a BUNDLED
+// library root when the binary is part of one, then the manifest dir itself (so a
+// project's own modules resolve by their folder-relative name), then each
+// `vader.json includePaths` entry joined onto it, then the cwd-relative library
+// fallback.
+//
+// Why the bundled root outranks the project — NAMESPACE RESERVATION. `lib/` hosts
+// every namespace the toolchain ships, and those names are ordinary directory
+// names (`std`, and in time `json`, `cli`, `images`, …). With the project first, a
+// project declaring `module "cli"` silently wins over the shipped `cli`, which is
+// bad on its own and worse in a DRIVEN build: the compiler's sources are compiled
+// in the same unit as the project, so `vader/cli` would be built against the
+// user's module. Reproduced before fixing.
+//
+// Only the BUNDLED root is promoted, never the cwd-relative fallback: the bundle's
+// root is authoritative (the toolchain put it there, and the marker proves it),
+// whereas a bare `<cwd>/lib` is a guess — and a project that keeps its own code
+// under `lib/` must not have that searched ahead of its own modules.
 project_include_paths :: fn(
     project_root: string | null, manifest: Manifest, flag_paths: string[],
 ) -> string[] {
     roots: string[]! = []
     for p in flag_paths { roots.push(p) }
+    bundled :: bundled_library_root()
+    if bundled != null {
+        roots.push(bundled)
+    }
     match project_root {
         is string as pr -> {
             roots.push(pr)

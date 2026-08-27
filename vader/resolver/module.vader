@@ -188,10 +188,22 @@ export dir_of :: fn(path: string) -> string { return path.to_path().parent().as_
 /// the resolved root becomes a module-id prefix, and an absolute root reshuffles
 /// map-keyed insertion order (the comptime generic-instance collection), drifting
 /// snapshots. Relative keeps the historical cwd-relative ids.
-export resolve_sidecar :: fn(subdir: string, marker: string) -> string {
+export resolve_sidecar :: fn(subdir: string, marker: string) -> string =
+    sidecar_root(subdir, marker) ?? subdir
+
+/// The executable-adjacent `<base>/subdir`, or null when it does not hold
+/// `marker` — i.e. when the running binary is not part of a bundle.
+///
+/// Separate from `resolve_sidecar` because the distinction is load-bearing for
+/// namespace reservation: a bundle's library root is AUTHORITATIVE (the toolchain
+/// put it there, verified by the marker), so it is searched before the project;
+/// the bare cwd-relative fallback is a guess, and a project that happens to have
+/// its own `lib/` must not have it searched ahead of its own modules. See
+/// `loader::project_include_paths`.
+export sidecar_root :: fn(subdir: string, marker: string) -> string | null {
     exe_root :: join_path(current_executable_location().dir_of(), subdir)
     if exists(join_path(exe_root, marker)) { return exe_root }
-    return subdir
+    return null
 }
 
 /// Library root, resolved next to the executable (then cwd) — see `resolve_sidecar`.
@@ -203,7 +215,14 @@ export resolve_sidecar :: fn(subdir: string, marker: string) -> string {
 /// exe-sidecar branch, forcing every binary onto the `<cwd>/lib` fallback
 /// (so a `dist/` bundle could never find its own stdlib unless run from a dir
 /// that happened to hold one).
-export default_library_root :: fn() = resolve_sidecar("lib", "std/io/io.vader")
+export default_library_root :: fn() = resolve_sidecar("lib", LIBRARY_ROOT_MARKER)
+
+/// Marker proving a candidate directory really is a library root.
+export LIBRARY_ROOT_MARKER :: "std/io/io.vader"
+
+/// The bundled library root, or null when the running binary is not bundled.
+/// The authoritative half of `default_library_root` — see `sidecar_root`.
+export bundled_library_root :: fn() = sidecar_root("lib", LIBRARY_ROOT_MARKER)
 
 import "std/json"
 
