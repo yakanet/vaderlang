@@ -39,7 +39,7 @@ import { test, expect, afterAll } from "bun:test";
 import { rmSync, writeFileSync, readFileSync, readdirSync, mkdirSync, cpSync, mkdtempSync, symlinkSync, existsSync, realpathSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { ensureCliBuilt, CLI_BIN, HEAVY_BUILD, exePath, spawnCapture } from "./cli-bin.ts";
+import { ensureCliBuilt, CLI_BIN, EXE_SUFFIX, HEAVY_BUILD, exePath, spawnCapture } from "./cli-bin.ts";
 import type { CliResult, SpawnOptions } from "./cli-bin.ts";
 import { formatRun, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
@@ -178,12 +178,23 @@ function drivenBuild(name: string): Promise<Built> {
 // content hash. `realpathSync` too — macOS reports `/private/var/…` for the
 // `/var/…` that `mkdtemp` handed back, and the CLI prints the resolved form.
 function normalise(text: string, dir: string): string {
+  // One spelling before any matching. Windows prints `\`, and `mkdtemp` hands
+  // back a MIX (`C:\…\Temp/vader-hook-x`), so converting both sides first is
+  // what keeps the substitution from missing entirely and leaving a
+  // machine-specific path in a committed expectation.
+  const slash = (p: string) => p.replaceAll("\\", "/");
   // Longest path FIRST: macOS hands back `/var/folders/…` and reports
   // `/private/var/folders/…`, so replacing the short form first would leave
   // `/private<project>` behind.
-  const real = realpathSync(dir);
-  let out = real === dir ? text : text.replaceAll(real, "<project>");
-  out = out.replaceAll(dir, "<project>");
+  const real = slash(realpathSync(dir));
+  let out = slash(text).replaceAll(real, "<project>");
+  out = out.replaceAll(slash(dir), "<project>");
+  if (EXE_SUFFIX !== "") {
+    // The LINKER names the binary, so a `wrote <project>/hello` line reads
+    // `hello.exe` on Windows. One spelling in the expectation, and a no-op off
+    // Windows since the suffix is empty there.
+    out = out.replaceAll(EXE_SUFFIX, "");
+  }
   return out
     .replace(/_[0-9a-f]{8,}\.vader/g, "_<hash>.vader")
     // How the driver's own binary got linked is machine-dependent: the split
