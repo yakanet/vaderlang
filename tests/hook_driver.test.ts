@@ -96,20 +96,30 @@ afterAll(() => {
 
 // ---- the gate --------------------------------------------------------------
 
-// Cap on driver builds in flight. Measured with `VADER_PROFILE=1` on
-// `pascal_case_lint`: one driver build peaks at 815 MB RSS and pins one core, so
-// the eight-odd in this file would want 6.5 GB and eight cores at once. A CI
-// runner has four cores and shares its RAM with the three other test workers —
-// past four in flight there is no throughput left to win, only memory to lose.
-// A measured default, then, not a fact about every machine: raise it only with a
-// measurement, and remember that a bigger number buys nothing while the builds
-// stay CPU-bound.
+// Slots for driver builds in flight. Measured on this file, 14-core Mac:
+//
+//   cap=1   56,1 s wall / 75,1 s CPU      cap=4   18,4 s / 85,8 s
+//   cap=2   29,3 s      / 77,4 s          cap=8   14,3 s / 86,3 s
+//
+// So oversubscription costs ~15 % CPU and buys back near-linear wall time: the
+// cap is about MEMORY, not scheduling. One driver build peaks at 815 MB RSS
+// (`VADER_PROFILE=1`, `pascal_case_lint`) and fans out to `DRIVER_CC_UNITS` = 8
+// parallel `cc` — so four in flight is already ~3 GB and ~40 processes, which is
+// as far as a 16 GB CI runner should be pushed. Bun applies no cap of its own.
+//
+// `VADER_TEST_GATE` overrides it — that is how the table above was taken, and
+// how to retake it on another machine.
 //
 // FIFO, and `while` rather than `if` on the check: a waiter woken by the
 // `finally` resolves on a microtask, so a caller arriving synchronously in
 // between can take the freed slot first. Re-checking is what keeps the cap
 // honest.
-const MAX_DRIVER_BUILDS = 4;
+const MAX_DRIVER_BUILDS = gateSize();
+
+function gateSize(): number {
+  const raw = Number(process.env["VADER_TEST_GATE"]);
+  return Number.isInteger(raw) && raw > 0 ? raw : 4;
+}
 let inFlight = 0;
 const waiting: (() => void)[] = [];
 
