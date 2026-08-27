@@ -163,12 +163,29 @@ export module_path_to_absolute :: fn(raw: string, state: ServerState, from_uri: 
         return path_join(dir, raw)
     }
     // Any non-relative name may be a toolchain namespace: `lib/` hosts every one
-    // the toolchain ships, so gating on `std/` would lose go-to-definition,
-    // cross-module hover and `textDocument/documentLink` for `toolchain/*`,
-    // `json/*` and every namespace the library split adds. Probed rather than
-    // assumed — an unconditional join would point goto-def at `<lib>/myapp/foo`
-    // for a project-local import, which is worse than answering "unknown".
-    lib_root :: stdlib_root_for(state, from_uri)
+    // the toolchain ships, so gating on `std/` would lose the clickable import
+    // path for `toolchain/*`, `json/*` and every namespace the library split adds.
+    // Probed rather than assumed — an unconditional join would point a link at
+    // `<lib>/myapp/foo` for a project-local import, which is worse than answering
+    // "unknown".
+    //
+    // ⚠️ The PROJECT is probed first, and the order is the point. Since the split,
+    // `json` / `cli` / `regex` / `semver` / `random` / `crypto` / `base64` are
+    // ordinary top-level names a project may also declare, and the compiler
+    // resolves such a name through the project root — which
+    // `project_include_paths` searches ahead of the cwd-relative library fallback.
+    // Probing the library first made the editor disagree with the compiler in
+    // exactly the colliding case: ctrl-click landed in the toolchain's file while
+    // the build used the project's.
+    // One walk-up for both: the project root and the library root beneath it come
+    // from the same `vader.json`, and `document_link` calls this once per import
+    // decl with an unchanging `from_uri`.
+    project_root :: manifest_root_of(from_uri)
+    if project_root.bytes().len() > 0 {
+        own :: path_join(project_root, raw)
+        if exists(own) { return own }
+    }
+    lib_root :: library_root_under(state, project_root)
     if lib_root.bytes().len() > 0 {
         candidate :: path_join(lib_root, raw)
         if exists(candidate) { return candidate }
@@ -199,6 +216,15 @@ export module_path_to_absolute :: fn(raw: string, state: ServerState, from_uri: 
 // is load-bearing: a relative root leaks into the goto-def URI as
 // `path_to_uri("lib/…") → file:///lib/…`, which the editor reads as the
 // root-absolute `/lib/…` → "the file was not found".
+// The directory holding the importing file's `vader.json`, or "" when it has none.
+// `manifest_subdir_root` with no subdir — kept separate because a project root is
+// not a "subdir root" and reads better named for what it is.
+manifest_root_of :: fn(from_uri: string) -> string {
+    from_path :: uri_to_path(from_uri)
+    if from_path.bytes().len() == 0 { return "" }
+    return find_manifest_root(from_path) ?? ""
+}
+
 manifest_subdir_root :: fn(from_uri: string, subdir: string) -> string {
     from_path :: uri_to_path(from_uri)
     if from_path.bytes().len() == 0 { return "" }
@@ -206,13 +232,17 @@ manifest_subdir_root :: fn(from_uri: string, subdir: string) -> string {
     return path_join(mr, subdir)
 }
 
-stdlib_root_for :: fn(state: ServerState, from_uri: string) -> string {
+// Takes the manifest root the caller already found rather than walking up again.
+library_root_under :: fn(state: ServerState, project_root: string) -> string {
     if state.stdlib_root.bytes().len() > 0 { return state.stdlib_root }
     // `default_library_root()` falls back to the RELATIVE "lib" (the exe-sidecar
-    // probe misses — the LSP exe lives in `build/`, not next to `lib/`), so
-    // prefer the manifest-derived absolute root (see `manifest_subdir_root`).
-    r :: manifest_subdir_root(from_uri, "lib")
-    if r.bytes().len() > 0 { return r }
+    // probe misses — the LSP exe lives in `build/`, not next to `lib/`), so prefer
+    // the manifest-derived absolute root. Keeping it ABSOLUTE is load-bearing: a
+    // relative root leaks into the link target as `path_to_uri("lib/…") →
+    // file:///lib/…`, which the editor reads as root-absolute.
+    if project_root.bytes().len() > 0 {
+        return path_join(project_root, LIBRARY_ROOT_DIR)
+    }
     return default_library_root()
 }
 

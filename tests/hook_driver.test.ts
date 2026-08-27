@@ -402,7 +402,7 @@ test.concurrent("a bundle drives a build with nothing beside the project", async
   expect(ran.stdout).toContain('"home":{"city":"Lyon","zip":69001}');
 }, HEAVY_BUILD);
 
-test("a shipped library cannot import the compiler (R2034)", async () => {
+test.concurrent("a shipped library cannot import the compiler (R2034)", async () => {
   // REASON: the layering invariant, and it needs a file UNDER the library root to
   // state it — which no diag_corpus fixture can be (that harness dumps a single
   // file wherever it sits) and no snippet either. Same reason the H6xxx family
@@ -413,8 +413,9 @@ test("a shipped library cannot import the compiler (R2034)", async () => {
   // compiler into its runtime closure. `toolchain/build` is the sole exemption,
   // because a driver LINKS the compiler by design.
   //
-  // Not parallel, and it writes into the checkout: the probe has to live under
-  // `lib/` for the provenance test to see it. Removed in `finally`.
+  // The probe is a library root staged in /tmp, not a directory written into the
+  // checkout — see tests/lib-probe.ts for why that distinction broke the suite
+  // once. Which also means this test is parallel-safe.
   await withStagedLibraryRoot({
     r2034probe: {
       "r2034probe.vader":

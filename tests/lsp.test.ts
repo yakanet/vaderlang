@@ -1314,3 +1314,23 @@ test("lsp: documentLink resolves an import to every shipped namespace", async ()
   // would hand the editor `<lib>/nosuchns/thing`, a link to nowhere.
   expect(byLine.has(5)).toBe(false);
 }, MEDIUM_BUILD);
+
+test("lsp: a project module outranks a shipped namespace of the same name", async () => {
+  // REASON: since the library split, `json` / `cli` / `regex` / `semver` /
+  // `random` / `crypto` / `base64` are ordinary top-level names a project may also
+  // declare — and the compiler resolves such a name through the PROJECT root,
+  // which `project_include_paths` searches ahead of the cwd-relative library
+  // fallback. Probing the library first made the editor disagree with the compiler
+  // in exactly that case: ctrl-click landed in the toolchain's file while the
+  // build used the project's. Found by review, untested until now.
+  const source = 'module "t"\n\nimport "json"\n\nmain :: fn() -> i32 = 0\n';
+  const [res] = await driveLsp(source, [{ method: "textDocument/documentLink" }], {
+    // The manifest is what makes the temp dir a project root at all.
+    "vader.json": '{ "name": "collide" }\n',
+    "json/json.vader": 'module "json"\n\nexport mine :: fn() -> i32 = 1\n',
+  });
+  const links = (res!.result as { range: { start: { line: number } }, target: string }[]) ?? [];
+  const target = links.find((l) => l.range.start.line === 2)?.target ?? "";
+  expect(target).toContain("/json/json.vader");
+  expect(target).not.toContain("/lib/json/");
+}, MEDIUM_BUILD);

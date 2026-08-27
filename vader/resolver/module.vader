@@ -27,15 +27,6 @@ import "std/string"
 import "toolchain/ast"
 import "vader/parser"
 
-/// `import "std/..."` and stdlib display paths share this prefix.
-///
-/// ⚠️ A NAME test, and the wrong question for policy: `lib/` hosts every namespace
-/// the toolchain ships, so "is this the toolchain's code?" is answered by
-/// `library_roots` / `module_from_library` below, which ask where the module came
-/// FROM. This constant survives for the places that genuinely mean the `std/`
-/// namespace itself.
-export STDLIB_PREFIX :: "std/"
-
 /// Project-root marker file. `find_manifest_root` walks up looking
 /// for this name to anchor bare-name imports.
 export MANIFEST_FILENAME :: "vader.json"
@@ -264,14 +255,17 @@ export sidecar_root :: fn(subdir: string, marker: string) -> string | null {
 /// exe-sidecar branch, forcing every binary onto the `<cwd>/lib` fallback
 /// (so a `dist/` bundle could never find its own stdlib unless run from a dir
 /// that happened to hold one).
-export default_library_root :: fn() = resolve_sidecar("lib", LIBRARY_ROOT_MARKER)
+export default_library_root :: fn() = resolve_sidecar(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
 
 /// Marker proving a candidate directory really is a library root.
 export LIBRARY_ROOT_MARKER :: "std/io/io.vader"
 
+/// Directory name a bundled library root goes by, beside the binary.
+export LIBRARY_ROOT_DIR :: "lib"
+
 /// The bundled library root, or null when the running binary is not bundled.
 /// The authoritative half of `default_library_root` — see `sidecar_root`.
-export bundled_library_root :: fn() = sidecar_root("lib", LIBRARY_ROOT_MARKER)
+export bundled_library_root :: fn() = sidecar_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
 
 /// Which of `search_roots` are library roots — those holding `LIBRARY_ROOT_MARKER`.
 ///

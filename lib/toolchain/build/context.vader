@@ -169,7 +169,7 @@ search_roots :: fn(ctx: BuildContext) -> string[] {
     for p in ctx.include_paths {
         roots.push(p)
     }
-    library :: toolchain_sidecar(ctx, "lib", "std/io/io.vader")
+    library :: toolchain_sidecar(ctx, LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
     if library != "" {
         roots.push(library)
     }

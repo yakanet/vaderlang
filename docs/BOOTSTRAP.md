@@ -408,7 +408,12 @@ The "one file, no flags" bundled form stays the eventual target (it de-risks the
 §2.8 deletion of `src/`), but it is reclassified as an *Improvement* — **not** a
 blocker for the first seed.
 
-### `bootstrap/regenerate.sh`
+### `bootstrap/regenerate.sh` — HISTORICAL
+
+> The script below is the Phase-2 design as first written. It no longer exists:
+> the seed's lifecycle is now `bootstrap/seed.sh check | regenerate | push`, one
+> script because it is one artefact. Kept as the record of what was designed, not
+> as instructions — see `bootstrap/README.md` for the current commands.
 
 ```sh
 #!/usr/bin/env bash
