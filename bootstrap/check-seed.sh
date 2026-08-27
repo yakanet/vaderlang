@@ -25,11 +25,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-# Every source tree the emitted seed can depend on. Deliberately BROADER than
-# bootstrap.vader's real import closure — a hand-maintained closure list would rot
-# the day an import changes, and a false FRESH is the one answer this must never
-# give. This list is the single definition; do not re-type it in sibling scripts.
-SEED_SOURCE_DIRS="vader/ stdlib/ runtime/c/"
+# The source trees the seed can depend on, and the probe for their absence.
+. "$(dirname "$0")/seed-sources.sh"
 
 quiet=0
 full=0
@@ -41,6 +38,19 @@ for arg in "$@"; do
   esac
 done
 note() { [ "$quiet" = 1 ] || printf '%s\n' "$*" >&2; }
+
+# ---- the source trees must still be where the list says --------------------
+
+# Checked before anything else, because every test below silently passes on an
+# absent path (see seed-sources.sh). UNKNOWN, not STALE: the seed may well be
+# fine — what is broken is this script's ability to tell.
+missing="$(seed_missing_dirs)"
+if [ -n "$missing" ]; then
+    note "seed source tree(s) missing: $missing"
+    note "  bootstrap/seed-sources.sh lists them — update it if the layout moved."
+    note "  cannot conclude on seed freshness."
+    exit 2
+fi
 
 # ---- cheap path: prove freshness from git alone, no compiler ---------------
 
@@ -82,7 +92,7 @@ fi
 # itself and report FRESH — a self-consistent lie, and the one answer that must
 # never be given. `bun run build` (bootstrap/build.sh) rebuilds ./build/vader from
 # the current tree, which is what makes the check mean anything.
-if [ -n "$(find vader stdlib -name '*.vader' -newer "$VADER" -print -quit 2>/dev/null)" ]; then
+if [ -n "$(find $SEED_SOURCE_DIRS -name '*.vader' -newer "$VADER" -print -quit)" ]; then
     note "$VADER is older than the .vader sources — cannot conclude on seed freshness."
     note "  rebuild it first:  bun run build"
     exit 2

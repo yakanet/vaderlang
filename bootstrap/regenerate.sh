@@ -10,9 +10,24 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-# Require a clean working tree on vader/ so the recorded SHA is meaningful.
-if ! git diff-index --quiet HEAD -- vader/; then
-  echo "error: vader/ has uncommitted changes — commit first" >&2
+# The seed's source trees, from the one place that defines them.
+. "$(dirname "$0")/seed-sources.sh"
+
+# A missing tree would make the cleanliness test below pass vacuously, the same
+# way it defeats every freshness test in check-seed.sh.
+missing="$(seed_missing_dirs)"
+if [ -n "$missing" ]; then
+  echo "error: seed source tree(s) missing:$missing — refusing to write a seed" >&2
+  echo "  bootstrap/seed-sources.sh lists them; update it if the layout moved." >&2
+  exit 1
+fi
+
+# Require a clean working tree across ALL of them so the recorded SHA is
+# meaningful: the emission reads the working tree, and VERSION records HEAD, so
+# an uncommitted edit anywhere in the seed's sources makes the two disagree.
+# vader/ alone was not enough — the seed embeds the stdlib it was compiled with.
+if ! git diff-index --quiet HEAD -- $SEED_SOURCE_DIRS; then
+  echo "error: $SEED_SOURCE_DIRS has uncommitted changes — commit first" >&2
   exit 1
 fi
 
