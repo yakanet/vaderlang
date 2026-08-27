@@ -32,9 +32,11 @@ interface Query {
     | "textDocument/hover"
     | "textDocument/completion"
     | "textDocument/codeAction"
-    | "textDocument/inlayHint";
+    | "textDocument/inlayHint"
+    | "textDocument/documentLink";
   // `position` drives hover/definition/completion/codeAction ; `range` drives
-  // inlayHint. Give one of the two — the missing one is derived from it.
+  // inlayHint ; documentLink needs neither — it answers for the whole document,
+  // and the params it ignores are harmless.
   position?: Position;
   range?: LocationRange;
 }
@@ -1280,3 +1282,35 @@ test("lsp: initialize advertises definition + hover providers", async () => {
   expect(caps!.definitionProvider).toBe(true);
   expect(caps!.hoverProvider).toBe(true);
 }, { timeout: MEDIUM_BUILD });
+
+test("lsp: documentLink resolves an import to every shipped namespace", async () => {
+  // REASON: `module_path_to_absolute` used to gate on `std/` and `vader/`, so
+  // every namespace the library split created — `toolchain/*`, `json`, `regex`
+  // and the rest — mapped to NOTHING: no clickable import path. It now probes the
+  // library root for any non-relative name. This is that function's only caller,
+  // and the repo's first documentLink test, so the capability announced in
+  // `lifecycle.vader` was until now entirely unexercised.
+  //
+  // Ordered by what each line proves, and the source's line numbers are the
+  // assertion keys — documentLink answers for the whole document at once.
+  const source = 'module "t"\n'
+    + '\n'
+    + 'import "std/io"\n'              // 2: the case that always worked
+    + 'AST :: import "toolchain/ast"\n' // 3: the public API — the point of this test
+    + 'J :: import "json"\n'            // 4: a library that left std/
+    + 'import "nosuchns/thing"\n'       // 5: must yield NO link, not a path to nowhere
+    + '\n'
+    + 'main :: fn() -> i32 = 0\n';
+  const [res] = await driveLsp(source, [{ method: "textDocument/documentLink" }]);
+  const links = (res!.result as { range: { start: { line: number } }, target: string }[]) ?? [];
+  const byLine = new Map(links.map((l) => [l.range.start.line, l.target]));
+
+  expect(byLine.get(2) ?? "").toContain("/lib/std/io/");
+  // The one the split created: `toolchain/ast` is neither `std/` nor `vader/`, so
+  // the old prefix gate returned "" for it.
+  expect(byLine.get(3) ?? "").toContain("/lib/toolchain/ast/");
+  expect(byLine.get(4) ?? "").toContain("/lib/json/");
+  // The existence check, which came in with the probe: an unconditional join
+  // would hand the editor `<lib>/nosuchns/thing`, a link to nowhere.
+  expect(byLine.has(5)).toBe(false);
+}, MEDIUM_BUILD);

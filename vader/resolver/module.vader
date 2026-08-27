@@ -364,3 +364,52 @@ test_read_manifest_missing_is_empty :: fn() -> void {
     m :: read_manifest("/no/such/project/root")
     assert(m.include_paths.len() == 0, "absent manifest yields no include-paths")
 }
+
+@test
+test_path_from_library_matches_a_root_and_its_subtree :: fn() -> void {
+    roots :: ["lib"]
+    assert(path_from_library("lib", roots), "the root itself is the library")
+    assert(path_from_library("lib/std/io", roots), "so is anything under it")
+    assert(path_from_library("lib/json", roots), "including a namespace beside std/")
+}
+
+@test
+test_path_from_library_rejects_a_name_that_merely_starts_the_same :: fn() -> void {
+    // The trap a bare `starts_with` would fall into: `libre/` is not under `lib/`.
+    // The predicate compares PATH segments, so the separator is load-bearing.
+    assert(!path_from_library("libre/json", ["lib"]), "`libre/` is a different directory")
+    assert(!path_from_library("mylib", ["lib"]), "and so is `mylib`")
+}
+
+@test
+test_path_from_library_rejects_a_project_path :: fn() -> void {
+    // The whole point: a module the PROJECT provides is not the toolchain's, even
+    // when it is called something the toolchain also ships.
+    assert(!path_from_library("myproject/json", ["lib"]), "a project module is the project's")
+}
+
+@test
+test_path_from_library_tries_every_root :: fn() -> void {
+    // A bundle has two: its own authoritative `<exe>/lib` and the cwd-relative
+    // fallback. A module reached through either is the toolchain's.
+    roots :: ["/opt/vader/lib", "lib"]
+    assert(path_from_library("/opt/vader/lib/std/io", roots), "the bundled root counts")
+    assert(path_from_library("lib/std/io", roots), "and so does the fallback")
+    assert(!path_from_library("/opt/other/lib/std/io", roots), "an unrelated one does not")
+}
+
+@test
+test_module_from_library_reads_the_providing_root :: fn() -> void {
+    // `Module.root_dir` is the providing root joined with the module name, which
+    // is why the predicate can ask where a module came from at all.
+    shipped :: Module {
+        .id = "lib/json", .display_path = "json", .module_name = "json",
+        .root_dir = "lib/json", .files = [],
+    }
+    theirs :: Module {
+        .id = "app/json", .display_path = "json", .module_name = "json",
+        .root_dir = "app/json", .files = [],
+    }
+    assert(module_from_library(shipped, ["lib"]), "loaded from the library root")
+    assert(!module_from_library(theirs, ["lib"]), "same NAME, different provenance")
+}
