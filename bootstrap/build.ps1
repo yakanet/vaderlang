@@ -65,6 +65,11 @@ if ($Dist) {
     # One module root, copied whole -- see the matching block in bootstrap/build.sh.
     Copy-Item -Recurse lib "$distDir\lib"
     Copy-Item -Recurse vader "$distDir\lib\vader"
+    # Drop the human front-ends -- see bootstrap/dist-exclude.txt.
+    foreach ($excluded in Get-Content bootstrap\dist-exclude.txt) {
+        if ($excluded -match '^\s*(#|$)') { continue }
+        Remove-Item -Recurse -Force "$distDir\lib\vader\$($excluded.Trim())" -ErrorAction SilentlyContinue
+    }
     Copy-Item -Recurse runtime\c "$distDir\runtime\c"
 
     Write-Host "==> dist  $distDir ready -- a self-contained toolchain (resolves lib\ + runtime\c\ next to the binary, so it runs -- and drives builds -- from any directory)." -ForegroundColor Green

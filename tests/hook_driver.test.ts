@@ -355,7 +355,19 @@ function stageBundle(): string {
   for (const ns of readdirSync(`${REPO}/lib`)) {
     symlinkSync(`${REPO}/lib/${ns}`, `${dir}/lib/${ns}`);
   }
-  symlinkSync(`${REPO}/vader`, `${dir}/lib/vader`);
+  // Mirror the dist trim rather than linking `vader/` whole: the point of this
+  // staging is to exercise what a real install HAS, and a bundle drops the human
+  // front-ends. Linking everything would make the test pass on a bundle that
+  // cannot build — which is the only failure this staging exists to catch.
+  const excluded = new Set(
+    readFileSync(`${REPO}/bootstrap/dist-exclude.txt`, "utf8")
+      .split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("#")),
+  );
+  mkdirSync(`${dir}/lib/vader`);
+  for (const sub of readdirSync(`${REPO}/vader`)) {
+    if (excluded.has(sub)) continue;
+    symlinkSync(`${REPO}/vader/${sub}`, `${dir}/lib/vader/${sub}`);
+  }
   symlinkSync(`${REPO}/runtime/c`, `${dir}/runtime/c`);
   return dir;
 }
