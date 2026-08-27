@@ -1,0 +1,8 @@
+// A `build` returning `void` — rejected as H6002.
+//
+// Same contract, the other half: a driven build has to be able to FAIL, and a
+// `void` build carries no exit status to fail with.
+
+module "build"
+
+build :: fn(args: string[]) -> void {}

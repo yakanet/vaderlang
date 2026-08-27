@@ -1,0 +1,6 @@
+// Nothing here imports `gen/tick`: what fails to settle is the GENERATION loop,
+// not this file's view of it.
+
+module "src"
+
+main :: fn() -> i32 = 0

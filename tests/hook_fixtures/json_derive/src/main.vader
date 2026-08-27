@@ -34,3 +34,43 @@ main :: fn() -> i32 {
     println(to_json(p))
     return 0
 }
+
+// ---- tests ----------------------------------------------------------------
+//
+// These are the assertions this fixture makes, and they are Vader rather than
+// TypeScript on purpose: what they call — `to_json`, written by `build.vader` —
+// exists only because the driven build produced it. `build/generated/` is a merge
+// root for the resolver, so a hand-written test reaches generated declarations
+// like any other. Before a build they are `R2006`, which is what makes them a
+// proof that generation worked rather than a test of hand-written code.
+//
+// The consequence, so it is not mistaken for a bug: an EDITOR flags `to_json`
+// below as unresolved. Resolving it needs the generated tree on disk, and nothing
+// that comes out of a build is committed — `generated.snapshot` beside this file
+// is what carries the generator's text for review instead.
+
+import "std/testing"
+
+@test
+test_nested_struct_has_its_own_serialiser :: fn() -> void {
+    // One serialiser per struct, so `Address` is serialisable on its own — not
+    // only as a field of `Person`.
+    assert_eq(to_json(Address { .city = "Lyon", .zip = 69001 }),
+              "{\"city\":\"Lyon\",\"zip\":69001}")
+}
+
+@test
+test_every_field_kind_maps :: fn() -> void {
+    // Every mapping the generator makes, in one value: a string carrying a quote
+    // (escaped by `std/json`, not by hand), an i32 as a bare number, a bool, a
+    // NESTED struct recursed through its own generated overload, and an array.
+    p :: Person {
+        .name   = "A\"B",
+        .age    = 41,
+        .active = true,
+        .home   = Address { .city = "Lyon", .zip = 69001 },
+        .tags   = ["x", "y"],
+    }
+    assert_eq(to_json(p),
+              "{\"name\":\"A\\\"B\",\"age\":41,\"active\":true,\"home\":{\"city\":\"Lyon\",\"zip\":69001},\"tags\":[\"x\",\"y\"]}")
+}

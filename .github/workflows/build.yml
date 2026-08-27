@@ -94,6 +94,38 @@ jobs:
         with:
           bun-version: 1.3.13
 
+      # Is a usable mingw-w64 gcc ALREADY on the image? The runner manifest lists
+      # gcc 15.2.0 + GNU Binutils 2.46, which would make the `choco install`
+      # below 56 s of CI time we can delete outright. It only counts if
+      # `-dumpmachine` reports `x86_64-w64-mingw32`: MSYS2 ships at C:\msys64 and
+      # its `usr\bin\gcc` targets the msys runtime, which would link the compiler
+      # against `msys-2.0.dll`. Probe only — it reports, it never gates, and it
+      # runs BEFORE choco so it sees the pristine image. The verdict lands in the
+      # run summary, so answering this needs no log digging. Delete once answered.
+      - name: Probe for a preinstalled gcc (reports only)
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $lines = @()
+          $onPath = Get-Command gcc -ErrorAction SilentlyContinue
+          if ($onPath) {
+            $lines += "on PATH: $($onPath.Source) -> $(& gcc -dumpmachine)"
+          } else {
+            $lines += "on PATH: none"
+          }
+          foreach ($p in @(
+            "C:\mingw64\bin\gcc.exe",
+            "C:\msys64\mingw64\bin\gcc.exe",
+            "C:\msys64\usr\bin\gcc.exe",
+            "C:\ProgramData\mingw64\mingw64\bin\gcc.exe",
+            "C:\Strawberry\c\bin\gcc.exe")) {
+            if (Test-Path $p) { $lines += "$p -> $(& $p -dumpmachine)" }
+            else { $lines += "$p -> absent" }
+          }
+          $lines
+          $md = @("### Preinstalled gcc probe", "", '```') + $lines + '```'
+          $md | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+
       # bootstrap/build.ps1 needs a mingw-w64 gcc on PATH — MSVC is unsupported
       # (the runtime uses `__attribute__((weak))`). If this path is wrong on the
       # runner image, the `gcc --version` step below fails loudly ; adjust then.

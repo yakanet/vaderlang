@@ -1,0 +1,6 @@
+# stderr
+
+# Diagnostics
+[<project>/build.vader:9:1] error[H6002] invalid `build` signature: `build` takes one parameter, `args: string[]`, and got 0
+# exit
+1

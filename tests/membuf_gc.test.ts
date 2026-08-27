@@ -14,7 +14,7 @@
 // box-scanner skipping the BUFFER sentinel tag) reads back 0, failing here.
 
 import { test, expect } from "bun:test";
-import { ensureCliBuilt, runCli, LONG_BUILD } from "./cli-bin.ts";
+import { ensureCliBuilt, exePath, runCli, LONG_BUILD } from "./cli-bin.ts";
 import { readFileSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -45,8 +45,7 @@ test("membuf .virt -> C emits the buffer ABI helpers (not stubs)", async () => {
 
 test("membuf survives a forced moving collection (G1)", async () => {
   const dir = mkdtempSync(join(tmpdir(), "membuf-"));
-  // `cc -o membuf` writes `membuf.exe` on Windows — the linker names it, not us.
-  const bin = join(dir, process.platform === "win32" ? "membuf.exe" : "membuf");
+  const bin = join(dir, exePath("membuf"));
   const b = await runCli(
     ["build", "--target=native", "--release", `--out=${bin}`, FIXTURE],
     {},

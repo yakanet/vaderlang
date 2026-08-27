@@ -24,6 +24,11 @@ build :: fn(args: string[]) -> i32 {
         if msg is TypecheckedMessage as t {
             // Every typed module is yielded, stdlib included — which modules
             // are "this project" is the driver's call.
+            //
+            // The filter is on the DECLARED module name. When `module_name`
+            // carried the loader's filesystem key instead, this matched nothing
+            // and the rule ran over the stdlib too — so the committed
+            // expectation showing no `std/…` report is what pins that fix.
             if t.module_name.starts_with("std/") {
                 continue
             }

@@ -7,18 +7,46 @@
 // directory the CLI is run *inside*, since the driver is discovered relative to
 // the invocation directory.
 //
+// CORPUS-DRIVEN, in the shape of `snapshot.test.ts`: what a fixture asserts lives
+// BESIDE it, not in this file.
+//
+//   <fixture>/build.vader          the driver under test
+//   <fixture>/src/*.vader          the project — and its `@test` fns
+//   <fixture>/build.snapshot       the driven build's output + exit status
+//   <fixture>/generated.snapshot   the text the driver GENERATED, where it does
+//
+// The `@test` half is what makes generated code provable in Vader instead of by
+// string-matching a binary's stdout from TypeScript: once `build/generated/`
+// exists it becomes a MERGE ROOT for the resolver
+// (`vader/resolver/module.vader::GENERATED_ROOT_DIR`), so a hand-written test
+// calls generated functions like any other — in both shapes, an imported
+// generated module and one that joined the entry module. Run `vader test src`
+// WITHOUT building first and the same test fails `R2006`, which is what makes the
+// ordering a proof rather than a convention.
+//
 // The driver compiles itself before running, so these are the slowest tests in
 // the suite by a wide margin: budget accordingly rather than trimming coverage.
+//
+// Every test here is `test.concurrent`, and that is not a per-test call: Bun
+// overlaps a RUN of adjacent concurrent tests, so one plain `test` left between
+// two of them is a barrier that serialises the whole file again. With the driver
+// builds overlapping instead of queueing, the file goes from 57 s to 18 s
+// locally. Two consequences, both load bearing: every run goes through `gated()`
+// below, and every budget is `HEAVY_BUILD` — a test's wall clock now includes its
+// wait for a slot.
 
 import { test, expect, afterAll } from "bun:test";
-import { rmSync, writeFileSync, readFileSync, readdirSync, mkdirSync, cpSync, mkdtempSync, symlinkSync, existsSync } from "node:fs";
-import { basename, resolve } from "node:path";
+import { rmSync, writeFileSync, readFileSync, readdirSync, mkdirSync, cpSync, mkdtempSync, symlinkSync, existsSync, realpathSync } from "node:fs";
+import { basename, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { ensureCliBuilt, CLI_BIN, LONG_BUILD, HEAVY_BUILD } from "./cli-bin.ts";
+import { ensureCliBuilt, CLI_BIN, HEAVY_BUILD, exePath, spawnCapture } from "./cli-bin.ts";
+import type { CliResult, SpawnOptions } from "./cli-bin.ts";
+import { formatRun, snapshotEquals } from "./snapshot.ts";
+import { snapshotDiff } from "./diff.ts";
+import { containsTestFn } from "./vader-sources.ts";
 
 ensureCliBuilt();
 
-const CLI = resolve(CLI_BIN);
 const FIXTURES = "tests/hook_fixtures";
 const LINT = `${FIXTURES}/pascal_case_lint`;
 const GENERATE = `${FIXTURES}/generate_module`;
@@ -33,27 +61,252 @@ const JSON_DERIVE = `${FIXTURES}/json_derive`;
 // `resolve_sidecar`, which the rest of the suite depends on.
 const REPO = resolve(".");
 
+// What a driven build needs beside the project. Named once because two places
+// read it in opposite directions: `stage()` links these in, and the bundle test
+// asserts their ABSENCE — a drift between the two would quietly weaken the very
+// thing that test pins.
+const TOOLCHAIN_LINKS = ["stdlib", "runtime", "vader"] as const;
+
+// The staged copy starts CLEAN. Nothing under `build/` is committed, but a dev who
+// ran `vader build` inside a fixture leaves a driver binary and its C there, and
+// copying that in would have the build reuse a stale driver — and would give the
+// sweep something to sweep in every fixture instead of only where one is planted
+// deliberately.
+function copyFixture(fixture: string, dir: string): void {
+  cpSync(fixture, dir, { recursive: true });
+  rmSync(join(dir, "build"), { recursive: true, force: true });
+}
+
 function stage(fixture: string): string {
   const dir = mkdtempSync(`${tmpdir()}/vader-hook-`);
-  cpSync(fixture, dir, { recursive: true });
-  for (const name of ["stdlib", "runtime", "vader"]) {
+  copyFixture(fixture, dir);
+  for (const name of TOOLCHAIN_LINKS) {
     symlinkSync(`${REPO}/${name}`, `${dir}/${name}`);
   }
   return dir;
 }
 
-// A linked executable as the LINKER named it. `cc -o hello` writes `hello` on
-// Unix and `hello.exe` on Windows — verified with mingw-w64: gcc appends the
-// suffix when `-o` carries no extension. Every assertion about a built binary has
-// to go through this, or it passes on one OS and fails on the other.
-const exeName = (base: string) => (process.platform === "win32" ? `${base}.exe` : base);
-
 const staged: string[] = [];
 
-// A `dist/` bundle is a LAYOUT, not a build: binary at the root, `stdlib/`,
+afterAll(() => {
+  for (const dir of staged) {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// ---- the gate --------------------------------------------------------------
+
+// Cap on driver builds in flight. Measured with `VADER_PROFILE=1` on
+// `pascal_case_lint`: one driver build peaks at 815 MB RSS and pins one core, so
+// the eight-odd in this file would want 6.5 GB and eight cores at once. A CI
+// runner has four cores and shares its RAM with the three other test workers —
+// past four in flight there is no throughput left to win, only memory to lose.
+// A measured default, then, not a fact about every machine: raise it only with a
+// measurement, and remember that a bigger number buys nothing while the builds
+// stay CPU-bound.
+//
+// FIFO, and `while` rather than `if` on the check: a waiter woken by the
+// `finally` resolves on a microtask, so a caller arriving synchronously in
+// between can take the freed slot first. Re-checking is what keeps the cap
+// honest.
+const MAX_DRIVER_BUILDS = 4;
+let inFlight = 0;
+const waiting: (() => void)[] = [];
+
+async function gated<T>(work: () => Promise<T>): Promise<T> {
+  while (inFlight >= MAX_DRIVER_BUILDS) {
+    await new Promise<void>(resolve => waiting.push(resolve));
+  }
+  inFlight++;
+  try {
+    return await work();
+  } finally {
+    inFlight--;
+    waiting.shift()?.();
+  }
+}
+
+// Every binary this file drives goes through `cli-bin.ts::spawnCapture` — one
+// pipe drain, one kill timer — with the budget a driver build needs rather than
+// the 90 s default.
+//
+// `run` is for anything that COMPILES, and takes a gate slot. `runBinary` is for
+// executing something already linked: milliseconds and no memory to speak of, so
+// making it queue behind four whole-compiler builds would impose a latency the
+// gate exists to prevent, not to cause.
+type RunOptions = Omit<SpawnOptions, "timeoutMs"> & { cwd: string };
+
+function run(args: string[], opts: RunOptions) {
+  return gated(() => spawnCapture(args, { ...opts, timeoutMs: HEAVY_BUILD }));
+}
+
+function runBinary(bin: string, cwd: string, env?: Record<string, string>) {
+  return spawnCapture([], { bin, cwd, env, timeoutMs: HEAVY_BUILD });
+}
+
+// ---- the corpus ------------------------------------------------------------
+
+interface Built extends CliResult {
+  readonly dir: string;
+}
+
+// One driven build per fixture, started lazily and shared: the corpus test
+// asserts on its output, and a hand-written test below can await the same build
+// by name instead of paying a second whole-compiler compile.
+//
+// ⚠️ Everything awaiting a shared build only READS the staged tree. A test that
+// WRITES there stages privately (the stale-sweep one does) — otherwise the
+// failure surfaces in a neighbour that did nothing wrong.
+const builds = new Map<string, Promise<Built>>();
+
+function drivenBuild(name: string): Promise<Built> {
+  let pending = builds.get(name);
+  if (pending === undefined) {
+    pending = (async () => {
+      const dir = stage(`${FIXTURES}/${name}`);
+      staged.push(dir);
+      const r = await run(["build"], { cwd: dir });
+      return { dir, ...r };
+    })();
+    builds.set(name, pending);
+  }
+  return pending;
+}
+
+// Neither the staged directory nor a generated filename can appear in a committed
+// expectation: the first is a fresh `mkdtemp` per run, the second carries a
+// content hash. `realpathSync` too — macOS reports `/private/var/…` for the
+// `/var/…` that `mkdtemp` handed back, and the CLI prints the resolved form.
+function normalise(text: string, dir: string): string {
+  // Longest path FIRST: macOS hands back `/var/folders/…` and reports
+  // `/private/var/folders/…`, so replacing the short form first would leave
+  // `/private<project>` behind.
+  const real = realpathSync(dir);
+  let out = real === dir ? text : text.replaceAll(real, "<project>");
+  out = out.replaceAll(dir, "<project>");
+  return out
+    .replace(/_[0-9a-f]{8,}\.vader/g, "_<hash>.vader")
+    // How the driver's own binary got linked is machine-dependent: the split
+    // count follows the core count, and a single-unit build words the line
+    // differently. What the expectation is about is that it was written at all.
+    .replace(/^(vader build: wrote <project>\/build\/driver\/driver).*$/gm, "$1");
+}
+
+// Where a driven build writes its generated modules, relative to the project —
+// `vader/resolver/module.vader::GENERATED_ROOT_DIR`, which the resolver reads.
+const GENERATED = "build/generated";
+
+// A generated tree as one text blob: sorted `--- <relpath>` headers plus each
+// file's contents. Names carry a content hash, so a changed generator shows up
+// twice over — in the name and in the body.
+function readGeneratedTree(root: string): string {
+  const base = join(root, GENERATED);
+  if (!existsSync(base)) {
+    return "";
+  }
+  return (readdirSync(base, { recursive: true }) as string[])
+    .filter(p => p.endsWith(".vader"))
+    .map(p => p.replaceAll("\\", "/"))
+    .sort()
+    .map(p => `--- ${p}\n${readFileSync(join(base, p), "utf8")}`)
+    .join("");
+}
+
+// What the driver GENERATED, pinned as text beside the fixture rather than as
+// files inside it: nothing that comes out of a build belongs in git, and
+// `build/generated/` is build output. The snapshot keeps what mattered anyway —
+// the generator's own text, reviewable in a diff instead of only its stdout.
+//
+// The cost, stated because it will bite the next reader: an editor flags the
+// fixtures' calls into generated code as unresolved. Resolving them needs the
+// tree ON DISK (the resolver treats `build/generated/` as a merge root when it
+// exists), and it only ever exists inside a staged build.
+//
+// Only for a build that SUCCEEDED: a failed build's tree is whatever its last
+// round happened to write (`generation_never_settles`), which is noise. And only
+// where there is something to say — an empty expectation in the fixtures that
+// generate nothing would be eight files saying nothing.
+function expectGeneratedTree(fixture: string, dir: string): void {
+  const actual = readGeneratedTree(dir);
+  const snapName = "generated.snapshot";
+  if (actual === "" && !existsSync(join(fixture, snapName))) {
+    return;
+  }
+  const snap = snapshotEquals(fixture, snapName, actual);
+  if (!snap.ok) {
+    throw new Error(
+      `Generated text differs from ${snap.snapPath}\n` +
+      `Run with UPDATE_SNAPSHOTS=1 to refresh — and READ the diff: this is the ` +
+      `generator's own output.\n\n` +
+      snapshotDiff(snap.snapPath, snap.expected, actual),
+    );
+  }
+}
+
+// Does the fixture's own source assert anything? A fixture with no `@test` is a
+// diagnostic case: its build fails, so there is no program to run tests in.
+function declaresTests(fixture: string): boolean {
+  const src = join(fixture, "src");
+  return existsSync(src) && containsTestFn(src);
+}
+
+const fixtures = readdirSync(FIXTURES, { withFileTypes: true })
+  .filter(e => e.isDirectory())
+  .map(e => e.name)
+  .sort();
+
+test.concurrent("hook fixtures: at least one discovered", () => {
+  expect(fixtures.length).toBeGreaterThan(0);
+});
+
+for (const name of fixtures) {
+  test.concurrent(`driven build: ${name}`, async () => {
+    const b = await drivenBuild(name);
+    const actual = normalise(formatRun(b.stdout, b.stderr, b.exit), b.dir);
+    const snap = snapshotEquals(`${FIXTURES}/${name}`, "build.snapshot", actual);
+    if (!snap.ok) {
+      throw new Error(
+        `Snapshot mismatch: ${name} (${snap.snapPath})\n` +
+        `Run with UPDATE_SNAPSHOTS=1 to refresh.\n\n` +
+        snapshotDiff(snap.snapPath, snap.expected, actual),
+      );
+    }
+    if (b.exit === 0) {
+      expectGeneratedTree(`${FIXTURES}/${name}`, b.dir);
+    }
+    // Universal to every driven build, so it belongs here rather than in one
+    // hand-written test: artefacts go under `build/`, and the generated entry
+    // shim is UNLINKED rather than blanked — a leftover `.vader` declaring
+    // nothing would break the next run.
+    expect(existsSync(`${b.dir}/vader_build_entry.vader`)).toBe(false);
+    expect(existsSync(`${b.dir}/vader_build_driver`)).toBe(false);
+    // The fixture's own `@test` fns are what prove the GENERATED code correct.
+    // They run after the build on purpose: without `build/generated/` they fail
+    // `R2006`, so a green run says the generated declarations were really there.
+    if (declaresTests(`${FIXTURES}/${name}`)) {
+      const t = await run(["test", "src"], { cwd: b.dir });
+      if (t.exit !== 0) {
+        throw new Error(
+          `${name}: \`vader test src\` failed after the driven build — the ` +
+          `fixture's own @test fns are what assert the generated code.\n` +
+          `${t.stdout}${t.stderr}`,
+        );
+      }
+    }
+  }, HEAVY_BUILD);
+}
+
+// ---- what a corpus entry cannot carry --------------------------------------
+
+// Everything below is hand-written, each for a stated reason. A corpus entry is
+// one `vader build` in a clean project, its output compared to a committed
+// expectation, and the project's own tests run afterwards. These are the
+// properties that do not fit that shape.
+
+// A `dist/` bundle is a LAYOUT, not a project — binary at the root, `stdlib/`,
 // `runtime/c/` and `lib/vader/` beside it. Assembling one by copy + symlink costs
-// nothing, and it is the only way to exercise what a real install does — the
-// staged-project symlinks the other tests use are exactly what masked the gap
+// nothing, and it is the only way to exercise what a real install does: the
+// staged-project symlinks every other test uses are exactly what masked the gap
 // this pins.
 //
 // The binary is COPIED, not symlinked: `current_executable_location()` resolves
@@ -67,7 +320,7 @@ function stageBundle(): string {
   // Keep the platform's executable NAME: on Windows it is `vader.exe`, and a
   // bundle holding a `vader` cannot be spawned (`ENOENT` from `uv_spawn`).
   const exe = `${dir}/${basename(CLI_BIN)}`;
-  cpSync(CLI, exe);
+  cpSync(CLI_BIN, exe);
   if (process.platform === "darwin") {
     Bun.spawnSync(["codesign", "-s", "-", exe]);
   }
@@ -77,234 +330,43 @@ function stageBundle(): string {
   return dir;
 }
 
-// The bundle's own executable, by the platform's name for it.
-function bundleExe(bundle: string): string {
-  return `${bundle}/${basename(CLI_BIN)}`;
-}
-
-test("a bundle drives a build with nothing beside the project", async () => {
-  // The whole point of shipping `vader/` in `--dist`, and of passing the
-  // toolchain root to the driver. Three separate lookups have to land: the
-  // driver's own `import "vader/hooks"` (bundle `lib/vader/`), the project's
-  // `std/*` (bundle `stdlib/`), and `vader_runtime.c` at the link step (bundle
-  // `runtime/c/`). The project directory has NO symlinks — the driver runs as
-  // `<project>/build/driver/driver`, so every probe relative to ITSELF looks
-  // inside the project and finds nothing.
+test.concurrent("a bundle drives a build with nothing beside the project", async () => {
+  // REASON: a bundle is not a staged project, and three separate lookups have to
+  // land: the driver's own `import "vader/hooks"` (bundle `lib/vader/`), the
+  // project's `std/*` (bundle `stdlib/`), and `vader_runtime.c` at the link step
+  // (bundle `runtime/c/`). The project directory has NO symlinks — the driver
+  // runs as `<project>/build/driver/driver`, so every probe relative to ITSELF
+  // looks inside the project and finds nothing.
   const bundle = stageBundle();
   staged.push(bundle);
   const dir = mkdtempSync(`${tmpdir()}/vader-bundleproj-`);
   staged.push(dir);
-  cpSync(JSON_DERIVE, dir, { recursive: true });
-  expect(readdirSync(dir).sort()).toEqual(["build.vader", "src"]);
+  copyFixture(JSON_DERIVE, dir);
+  // The canary: NO toolchain beside this project, so everything the build needs
+  // has to come from the bundle. Stated as absences rather than as a directory
+  // listing — the fixture also holds its committed expectation, and a listing
+  // would then depend on whether the corpus test had written it yet.
+  for (const beside of TOOLCHAIN_LINKS) {
+    expect(existsSync(`${dir}/${beside}`)).toBe(false);
+  }
 
-  const proc = Bun.spawn([bundleExe(bundle), "build"], { cwd: dir, stdout: "pipe", stderr: "pipe" });
-  const [err, exit] = await Promise.all([new Response(proc.stderr).text(), proc.exited]);
-  expect(err).not.toContain("R2001");
-  expect(err).not.toContain("error[");
-  expect(exit).toBe(0);
+  const built = await run(["build"], { bin: `${bundle}/${basename(CLI_BIN)}`, cwd: dir });
+  expect(built.stderr).not.toContain("R2001");
+  expect(built.stderr).not.toContain("error[");
+  expect(built.exit).toBe(0);
 
-  const ran = Bun.spawn([exeName(`${dir}/app`)], { stdout: "pipe", stderr: "pipe" });
-  const [ranOut] = await Promise.all([new Response(ran.stdout).text(), ran.exited]);
-  expect(ranOut).toContain('"home":{"city":"Lyon","zip":69001}');
+  const ran = await runBinary(exePath(`${dir}/app`), dir);
+  expect(ran.stdout).toContain('"home":{"city":"Lyon","zip":69001}');
 }, HEAVY_BUILD);
 
-async function runIn(fixture: string, args: string[]) {
-  const dir = stage(fixture);
-  staged.push(dir);
-  const proc = Bun.spawn([CLI, ...args], { cwd: dir, stdout: "pipe", stderr: "pipe" });
-  const [stdout, stderr, exit] = await Promise.all([
-    new Response(proc.stdout).text(),
-    new Response(proc.stderr).text(),
-    proc.exited,
-  ]);
-  return { out: `${stdout}\n${stderr}`, exit, dir };
-}
-
-// Five tests below drive the SAME build of the same fixture and only differ in
-// what they inspect. Running it once and sharing the result cuts four full
-// compiler builds — each compiles the driver, which pulls the whole `vader/`
-// closure at -O0 — taking this file from ~160 s to ~69 s.
-//
-// ⚠️ THREE WAYS THIS BITES, if you touch it:
-//   1. The five share a staged directory and only READ from it. A test that
-//      writes there breaks its neighbours, and the failure surfaces in a test
-//      that did nothing wrong. Tests needing clean state (driver replacement,
-//      `observe_only`, `no_driver`) stage privately — keep that split.
-//   2. If the shared build fails, FIVE tests fail at once and none says which
-//      is at fault: one broken `lintBuild()` reads as five regressions.
-//   3. The first test to call `lintBuild()` pays the compile, so its
-//      `LONG_BUILD` budget must stay sized for a full build even though the
-//      other four are instant. Reordering the file moves that cost.
-//
-// If this becomes a nuisance, switch to an explicit `beforeAll`: the cost
-// becomes visible and a failure is attributable to setup, not to a test.
-let sharedLint: Promise<{ out: string; exit: number; dir: string }> | null = null;
-
-function lintBuild() {
-  if (sharedLint === null) {
-    sharedLint = runIn(LINT, ["build"]);
-  }
-  return sharedLint;
-}
-
-// The generation fixture gets its own shared build, for the same reason and with
-// the same three hazards as `lintBuild`: the tests below only READ the staged
-// tree. A test that needs to edit it (the stale-sweep one) stages privately.
-let sharedGenerate: Promise<{ out: string; exit: number; dir: string }> | null = null;
-
-function generateBuild() {
-  if (sharedGenerate === null) {
-    sharedGenerate = runIn(GENERATE, ["build"]);
-  }
-  return sharedGenerate;
-}
-
-afterAll(() => {
-  for (const dir of staged) {
-    rmSync(dir, { recursive: true, force: true });
-  }
-});
-
-// The first real CLIENT of generation, so it gets its own shared build — same
-// reasoning and same three hazards as `lintBuild`; these tests only read.
-let sharedJson: Promise<{ out: string; exit: number; dir: string }> | null = null;
-
-function jsonBuild() {
-  if (sharedJson === null) {
-    sharedJson = runIn(JSON_DERIVE, ["build"]);
-  }
-  return sharedJson;
-}
-
-test("a driver derives JSON serialisers from the structs' field types", async () => {
-  // The dogfood test: no `to_json` exists anywhere in the fixture's tree. The
-  // driver walked each struct's FIELD TYPES and wrote one serialiser per struct,
-  // and the assertion is the running binary's output — so the generated code is
-  // proven correct, not merely proven to compile.
-  const { out, exit, dir } = await jsonBuild();
-  expect(out).not.toContain("error[");
-  expect(exit).toBe(0);
-
-  const ran = Bun.spawn([exeName(`${dir}/app`)], { stdout: "pipe", stderr: "pipe" });
-  const [ranOut, ranExit] = await Promise.all([new Response(ran.stdout).text(), ran.exited]);
-  expect(ranExit).toBe(0);
-  // Every mapping the generator makes, in one line: a string with a quote in it
-  // (escaped by `std/json`, not by hand), an i32 as a bare number, a bool, a
-  // NESTED struct recursed through its own generated overload, and an array.
-  expect(ranOut.trim()).toBe(
-    '{"name":"A\\"B","age":41,"active":true,"home":{"city":"Lyon","zip":69001},"tags":["x","y"]}');
-}, LONG_BUILD);
-
-test("the derived serialisers are overloads in the struct's own module", async () => {
-  // Why they must live there: `to_json_value(v: Person)` names `Person`. A
-  // separate module could not — it would have to import `app`, which imports it.
-  // And one module holds one serialiser per struct because they are overloads on
-  // the parameter type.
-  const { dir } = await jsonBuild();
-  const files = readdirSync(`${dir}/build/generated/app`);
-  expect(files.length).toBe(1);
-  const text = readFileSync(`${dir}/build/generated/app/${files[0]}`, "utf8");
-  expect(text).toContain('module "app"');
-  expect(text).toContain("to_json_value :: fn(v: Address)");
-  expect(text).toContain("to_json_value :: fn(v: Person)");
-  // The nested field recursed rather than being skipped or stringified.
-  expect(text).toContain('entries["home"] = to_json_value(v.home)');
-}, LONG_BUILD);
-
-function generatedFiles(dir: string, module = "gen/describe") {
-  return readdirSync(`${dir}/build/generated/${module}`);
-}
-
-function generatedText(dir: string, module: string) {
-  const files = generatedFiles(dir, module);
-  expect(files.length).toBe(1);
-  return { name: files[0], text: readFileSync(`${dir}/build/generated/${module}/${files[0]}`, "utf8") };
-}
-
-test("a driver generates a module, and the built binary runs it", async () => {
-  // The original ask: generate code inside the compilation unit. Neither
-  // `describe_Point` nor `describe` exists anywhere in the tree — the driver
-  // wrote both, mid-build.
-  const { out, exit, dir } = await generateBuild();
-  expect(exit).toBe(0);
-  // Two rounds: one to see `Point`, one to compile what seeing it produced. A
-  // third would mean the driver is not idempotent.
-  expect(out).toContain("driver: 2 round(s), 2 generated file(s)");
-  // The delivery contract, in one line. `struct seen 1x` is the sharp half: the
-  // driver emits INTO `app`, so `app` IS delivered again on round 2 — but
-  // carrying only the generated file's declarations, never `Point` a second
-  // time. That is what keeps a lint rule from firing twice. `generated decls
-  // back 2` is the other half: generated code re-enters the stream, so a driver
-  // can derive from it — transitive generation, with no mechanism of its own.
-  expect(out).toContain("driver: struct seen 1x, generated decls back 2");
-
-  // Shape 1: a module of its own, which `src/main.vader` imports.
-  const own = generatedText(dir, "gen/describe");
-  // `<leaf>_<content hash>.vader` — the naming that makes re-emission a no-op.
-  expect(own.name).toMatch(/^describe_[0-9a-f]+\.vader$/);
-  // The banner is load-bearing: the stale sweep deletes on it.
-  expect(own.text.startsWith("// Generated by `vader build`")).toBe(true);
-  // The compiler writes the header, not the driver, so name and path cannot drift.
-  expect(own.text).toContain('module "gen/describe"');
-  expect(own.text).toContain("describe_Point");
-
-  // Shape 2: a file that JOINED the entry module, whose own folder is `src/`.
-  // It declares `module "app"` from outside `src/` — the merge-root exception —
-  // and that is what lets it take `Point` by type. An imported module could not:
-  // it would have to import `app` back, which is a cycle.
-  const joined = generatedText(dir, "app");
-  expect(joined.text).toContain('module "app"');
-  expect(joined.text).toContain("describe :: fn(p: Point)");
-  // …and it stayed out of the source tree.
-  expect(readdirSync(`${dir}/src`)).toEqual(["main.vader"]);
-
-  const ran = Bun.spawn([exeName(`${dir}/app`)], { stdout: "pipe", stderr: "pipe" });
-  const [ranOut, ranExit] = await Promise.all([new Response(ran.stdout).text(), ran.exited]);
-  // Left of the slash: the imported module. Right: the file that joined `app`
-  // and read the struct's fields.
-  expect(ranOut).toContain("Point(x, y) / Point = 1 + 2");
-  expect(ranExit).toBe(0);
-}, LONG_BUILD);
-
-test("`vader run` sees the generated code the build produced", async () => {
-  // The hole this closes: generated modules used to be visible ONLY to the driven
-  // build, so a project that generated compiled green under `vader build` and
-  // failed under every other command. The generated root is derived by the LOADER
-  // from the project root now, not threaded from the driver, so `run` / `test` /
-  // `lint` / `dump` and the LSP all see it.
-  //
-  // Safe on the shared staged tree: `vader run` executes through the VM and
-  // writes nothing.
-  const { dir } = await generateBuild();
-  const proc = Bun.spawn([CLI, "run", "src/main.vader"], { cwd: dir, stdout: "pipe", stderr: "pipe" });
-  const [out, err, exit] = await Promise.all([
-    new Response(proc.stdout).text(),
-    new Response(proc.stderr).text(),
-    proc.exited,
-  ]);
-  expect(err).not.toContain("R2001");
-  expect(out).toContain("Point(x, y) / Point = 1 + 2");
-  expect(exit).toBe(0);
-}, LONG_BUILD);
-
-test("the round where the generated import could not resolve reports nothing", async () => {
-  // `src/main.vader` imports `gen/describe`, which cannot exist on round 1: only
-  // the LAST round's diagnostics are surfaced. Without that, every generating
-  // project would report a module-not-found on every build — which is what makes
-  // this the materialised equivalent of Jai's `#placeholder`.
-  const { out } = await generateBuild();
-  expect(out).not.toContain("error[");
-  expect(out).not.toContain("warning[");
-}, LONG_BUILD);
-
-test("a driven build sweeps the previous build's generated modules", async () => {
-  // Why the sweep is not optional: names are content hashes, so a module whose
-  // text CHANGED leaves its old file in the same folder — where it still
-  // compiles. Plant exactly that leftover, declaring the same symbol the driver
-  // is about to generate. Unswept, the build dies on a duplicate declaration;
-  // swept, it produces the real thing.
-  //
-  // It writes into the staged tree, so it stages privately (see `lintBuild`).
+test.concurrent("a driven build sweeps the previous build's generated modules", async () => {
+  // REASON: the only TWO-BUILD property in the corpus. Generated names are
+  // content hashes, so a module whose text CHANGED leaves its old file in the
+  // same folder — where it still compiles, declaring the same symbol twice
+  // (T3053, fatal). A clean project can never exhibit that state: a fresh build
+  // leaves exactly one file and the sweep has nothing to sweep. So the leftover
+  // has to be PLANTED, which is setup no corpus entry can express — and it writes
+  // into the staged tree, hence a private stage.
   const dir = stage(GENERATE);
   staged.push(dir);
   const genDir = `${dir}/build/generated/gen/describe`;
@@ -314,209 +376,66 @@ test("a driven build sweeps the previous build's generated modules", async () =>
     '// Generated by `vader build` — do not edit.\n\nmodule "gen/describe"\n\n' +
     'export describe_Point :: fn() -> string = "STALE"\n');
 
-  const proc = Bun.spawn([CLI, "build"], { cwd: dir, stdout: "pipe", stderr: "pipe" });
-  const [err, exit] = await Promise.all([new Response(proc.stderr).text(), proc.exited]);
-  expect(err).not.toContain("error[");
-  expect(exit).toBe(0);
+  const built = await run(["build"], { cwd: dir });
+  expect(built.stderr).not.toContain("error[");
+  expect(built.exit).toBe(0);
   expect(existsSync(stale)).toBe(false);
-  expect(generatedFiles(dir).length).toBe(1);
+  expect(readdirSync(genDir).length).toBe(1);
 
-  const ran = Bun.spawn([exeName(`${dir}/app`)], { stdout: "pipe", stderr: "pipe" });
-  const [ranOut] = await Promise.all([new Response(ran.stdout).text(), ran.exited]);
-  expect(ranOut).toContain("Point(x, y) /");
-  expect(ranOut).not.toContain("STALE");
-}, LONG_BUILD);
+  const ran = await runBinary(exePath(`${dir}/app`), dir);
+  expect(ran.stdout).toContain("Point(x, y) /");
+  expect(ran.stdout).not.toContain("STALE");
+}, HEAVY_BUILD);
 
-test("generation that never settles is reported as H6006", async () => {
-  // A driver whose emitted text changes every round. Not a hang — the round cap
-  // turns it into a diagnostic naming what kept moving.
-  const { out, exit } = await runWithDriver(LINT, `module "build"
+test.concurrent("the driver produces a working binary", async () => {
+  // REASON: it RUNS what the build produced. A committed expectation covers the
+  // build's output, and the corpus loop covers the project root staying clean —
+  // neither can say the binary works.
+  const { dir } = await drivenBuild("pascal_case_lint");
+  expect(existsSync(exePath(`${dir}/build/driver/driver`))).toBe(true);
 
-import "std/io"
-import "vader/hooks"
+  // The whole point of decision 13: a driver is a build system, not an observer.
+  // It compiles the project and the result runs — even though the driver went on
+  // to report a rule violation.
+  const ran = await runBinary(exePath(`${dir}/hello`), dir);
+  expect(ran.stdout).toContain("hello");
+  expect(ran.exit).toBe(0);
+}, HEAVY_BUILD);
 
-build :: fn(args: string[]) -> i32 {
-    ctx :: new_build_context(args)
-    ctx.add_build_file("src/main.vader")
-    ctx.out = "app"
-    rounds := 0
-    for msg in ctx.messages() {
-        if msg is PhaseMessage as p {
-            if p.phase == .Typechecked {
-                rounds += 1
-                ctx.emit_module("gen/tick", "export tick_\${rounds} :: fn() -> i32 = \${rounds}")
-            }
-        }
-    }
-    if ctx.flush_reports() {
-        return 1
-    }
-    return 0
-}
-`, ["build"]);
-  expect(out).toContain("H6006");
-  expect(out).toContain("gen/tick");
-  expect(out).toMatch(/build\.vader:\d+:\d+\] error\[H6006\]/);
-  expect(exit).not.toBe(0);
-}, LONG_BUILD);
-
-test("the driver produces a working binary", async () => {
-  // The whole point of decision 13: a driver is a build system, not an
-  // observer. It compiles the project and the result runs.
-  const { dir } = await lintBuild();
-  expect(existsSync(exeName(`${dir}/hello`))).toBe(true);
-  const ran = Bun.spawn([exeName(`${dir}/hello`)], { stdout: "pipe", stderr: "pipe" });
-  const [out, exit] = await Promise.all([new Response(ran.stdout).text(), ran.exited]);
-  expect(out).toContain("hello");
-  expect(exit).toBe(0);
-}, LONG_BUILD);
-
-test("the driven build leaves no artefact in the project root", async () => {
-  // Artefacts belong under `build/`, and the entry shim must be unlinked rather
-  // than blanked — a leftover `.vader` declaring nothing would break the next run.
-  const { dir } = await lintBuild();
-  expect(existsSync(`${dir}/vader_build_entry.vader`)).toBe(false);
-  expect(existsSync(`${dir}/vader_build_driver`)).toBe(false);
-  expect(existsSync(exeName(`${dir}/build/driver/driver`))).toBe(true);
-}, LONG_BUILD);
-
-test("a project's build.vader runs and reports its own rule", async () => {
-  const { out, exit } = await lintBuild();
-  // Exactly one H6004, on the offending struct, anchored in the project's
-  // source rather than in the generated entry.
-  const rule = out.split("\n").filter(l => l.includes("H6004"));
-  expect(rule.length).toBe(1);
-  // A reported rule violation must FAIL the build — it used to exit 0.
-  expect(exit).not.toBe(0);
-  expect(rule[0]).toContain("badlyNamed");
-  expect(rule[0]).toMatch(/src\/main\.vader:\d+:\d+/);
-  // …and discriminates: the compliant struct is not what the rule reported.
-  expect(rule[0]).not.toContain("WellNamed");
-}, LONG_BUILD);
-
-test("the driver sees project modules, not just the stdlib", async () => {
-  // `messages()` yields every typed module; the fixture filters on
-  // `module_name`. If that field carried the loader's filesystem key instead of
-  // the declared name, the filter would match nothing and the rule would run
-  // over the stdlib too — which is exactly the bug this pins.
-  const { out } = await lintBuild();
-  expect(out).not.toContain("std/io");
-  expect(out).toContain("badlyNamed");
-}, LONG_BUILD);
-
-// Run with the fixture's driver REPLACED, writing to the staged copy rather
-// than to the checkout. Editing the tracked fixture and restoring it in
-// `finally` leaves the repo dirty whenever a 120 s test is killed — and every
-// later test staging that fixture then fails for an unrelated reason.
-async function runWithDriver(fixture: string, source: string, args: string[]) {
-  const dir = stage(fixture);
-  staged.push(dir);
-  writeFileSync(`${dir}/build.vader`, source);
-  const proc = Bun.spawn([CLI, ...args], { cwd: dir, stdout: "pipe", stderr: "pipe" });
-  const [stdout, stderr, exit] = await Promise.all([
-    new Response(proc.stdout).text(),
-    new Response(proc.stderr).text(),
-    proc.exited,
-  ]);
-  return { out: `${stdout}\n${stderr}`, exit, dir };
-}
-
-test("a build.vader with no `build` fn is rejected as H6001", async () => {
-  const { out, exit } = await runWithDriver(LINT,
-    'module "build"\n\nother :: fn() -> void {}\n', ["build"]);
-  expect(out).toContain("H6001");
-  // Anchored on the driver itself, not on the generated entry.
-  expect(out).toMatch(/build\.vader:\d+:\d+/);
-  expect(out).not.toContain("vader_build_entry");
-  expect(exit).not.toBe(0);
-}, LONG_BUILD);
-
-test("a `build` of the wrong arity is rejected as H6002", async () => {
-  const { out, exit } = await runWithDriver(LINT,
-    'module "build"\n\nbuild :: fn() -> i32 { return 0 }\n', ["build"]);
-  expect(out).toContain("H6002");
-  expect(exit).not.toBe(0);
-}, LONG_BUILD);
-
-test("a `void` build is rejected as H6002 — it could not carry an exit status", async () => {
-  const { out, exit } = await runWithDriver(LINT,
-    'module "build"\n\nbuild :: fn(args: string[]) -> void {}\n', ["build"]);
-  expect(out).toContain("H6002");
-  expect(exit).not.toBe(0);
-}, LONG_BUILD);
-
-test("a driver that queues nothing is reported as H6003", async () => {
-  // Draining an empty stream used to finish cleanly: a build that compiled
-  // nothing while reporting no problem.
-  const { out, exit } = await runIn(`${FIXTURES}/no_entry_queued`, ["build"]);
-  expect(out).toContain("H6003");
-  expect(out).toContain("add_build_file");
-  // Anchored on the driver, not on `<synthetic>`: the faulty line is unknown (it
-  // is a behaviour, not a statement) but the faulty FILE never is.
-  expect(out).toMatch(/build\.vader:\d+:\d+\] error\[H6003\]/);
-  // …and fails: compiling nothing while exiting 0 was the original bug.
-  expect(exit).not.toBe(0);
-}, LONG_BUILD);
-
-test("leaving the stream at BeforeEmit builds nothing", async () => {
-  // The property that lets a lint-only driver exist without an opt-out flag:
-  // `BeforeEmit` is the last point at which declining is clean.
-  const { out, dir } = await runIn(`${FIXTURES}/observe_only`, ["build"]);
-  expect(out).toContain("built nothing");
-  expect(out).toMatch(/observed [1-9]\d* module/);
-  // The property the test is named for: the fixture plants this name as a
-  // canary. Without the assertion, moving emission above `BeforeEmit` would
-  // write the binary and the test would still pass.
-  expect(existsSync(`${dir}/should-not-exist`)).toBe(false);
-  expect(existsSync(exeName(`${dir}/should-not-exist`))).toBe(false);
-}, LONG_BUILD);
-
-test("the front end runs ONCE for a driver that observes and builds", async () => {
-  // The whole point of the single stream: observing used to re-run the front
-  // end, which is ~45% of a build. Profiled on the DRIVER's own process — a
-  // `vader build` profile also contains the compiler's pass over the driver
-  // itself, which would make the count meaningless.
-  const { dir } = await lintBuild();
-  const driver = Bun.spawn([exeName(`${dir}/build/driver/driver`), dir], {
-    cwd: dir, stdout: "pipe", stderr: "pipe", env: { ...process.env, VADER_PROFILE: "1" },
-  });
-  const [err] = await Promise.all([new Response(driver.stderr).text(), driver.exited]);
-  const typechecks = (err.match(/^\s+typecheck\s/gm) ?? []).length;
+test.concurrent("the front end runs ONCE for a driver that observes and builds", async () => {
+  // REASON: asserts on a PROFILE of the driver's own process, not on the build.
+  // Observing used to re-run the front end, which is ~45% of a build. Profiled on
+  // the DRIVER's process on purpose — a `vader build` profile also contains the
+  // compiler's pass over the driver itself, which would make the count
+  // meaningless.
+  const { dir } = await drivenBuild("pascal_case_lint");
+  const profiled = await runBinary(
+    exePath(`${dir}/build/driver/driver`), dir, { VADER_PROFILE: "1" });
+  const typechecks = (profiled.stderr.match(/^\s+typecheck\s/gm) ?? []).length;
   expect(typechecks).toBe(1);
-}, LONG_BUILD);
+}, HEAVY_BUILD);
 
-test("a named file bypasses the driver, and says so", async () => {
-  // `bootstrap/build.sh` compiles the compiler by name, so a named file has to
-  // win — but silently dropping a project's rules would make them untrustworthy.
+test.concurrent("a named file bypasses the driver, and says so", async () => {
+  // REASON: not a driven build — the CLI is given a file, which is the path
+  // `bootstrap/build.sh` takes to compile the compiler, so it has to win. But
+  // silently dropping a project's rules would make them untrustworthy.
   const dir = stage(LINT);
   staged.push(dir);
-  const proc = Bun.spawn([CLI, "build", "--target=c", "--out=-", "src/main.vader"],
-    { cwd: dir, stdout: "pipe", stderr: "pipe" });
-  const [err, exit] = await Promise.all([new Response(proc.stderr).text(), proc.exited]);
-  expect(err).toContain("not applied");
-  expect(exit).toBe(0);
-}, LONG_BUILD);
+  const r = await run(["build", "--target=c", "--out=-", "src/main.vader"], { cwd: dir });
+  expect(r.stderr).toContain("not applied");
+  expect(r.exit).toBe(0);
+}, HEAVY_BUILD);
 
-test("--no-hooks silences that, and skips the driver entirely", async () => {
+test.concurrent("--no-hooks silences that, and skips the driver entirely", async () => {
+  // REASON: same — a flag's effect on the non-driven path.
   const dir = stage(LINT);
   staged.push(dir);
-  const quiet = Bun.spawn([CLI, "build", "--target=c", "--out=-", "--no-hooks", "src/main.vader"],
-    { cwd: dir, stdout: "pipe", stderr: "pipe" });
-  const [err] = await Promise.all([new Response(quiet.stderr).text(), quiet.exited]);
-  expect(err).not.toContain("not applied");
+  const quiet =
+    await run(["build", "--target=c", "--out=-", "--no-hooks", "src/main.vader"], { cwd: dir });
+  expect(quiet.stderr).not.toContain("not applied");
 
   // With no file either, --no-hooks means the driver is not even looked for.
-  const bare = Bun.spawn([CLI, "build", "--no-hooks"], { cwd: dir, stdout: "pipe", stderr: "pipe" });
-  const [bareErr, bareExit] = await Promise.all([new Response(bare.stderr).text(), bare.exited]);
-  expect(bareErr).toContain("expected a file");
-  expect(bareExit).toBe(1);
-}, LONG_BUILD);
-
-test("`vader build` without a driver still asks for a file", async () => {
-  // The default path must be untouched: no `build.vader` in this fixture, so the
-  // CLI keeps its own error — now naming the driver as a third option.
-  const { out, exit } = await runIn(`${FIXTURES}/no_driver`, ["build"]);
-  expect(out).toContain("expected a file");
-  expect(out).toContain("build.vader");
-  expect(exit).toBe(1);
-}, LONG_BUILD);
+  const bare = await run(["build", "--no-hooks"], { cwd: dir });
+  expect(bare.stderr).toContain("expected a file");
+  expect(bare.exit).toBe(1);
+}, HEAVY_BUILD);

@@ -20,3 +20,27 @@ main :: fn() -> i32 {
     println("${describe_Point()} / ${describe(p)}")
     return 0
 }
+
+// ---- tests ----------------------------------------------------------------
+//
+// Both shapes of generation, asserted in Vader: `describe_Point` comes from a
+// generated module this file IMPORTS, `describe` from a generated file that
+// JOINED this module. Neither exists until the driven build has run — before it,
+// these two lines are `R2006`, and an EDITOR will flag them for the same reason:
+// nothing that comes out of a build is committed, so there is no tree on disk for
+// it to resolve through. `generated.snapshot` beside this file carries the
+// generator's text for review instead.
+
+import "std/testing"
+
+@test
+test_generated_module_is_callable :: fn() -> void {
+    assert_eq(describe_Point(), "Point(x, y)")
+}
+
+@test
+test_generated_same_module_decl_takes_the_local_type :: fn() -> void {
+    // The reason this shape has to exist: `describe` names `Point`, so it cannot
+    // live in an imported module — that module would have to import `app` back.
+    assert_eq(describe(Point { .x = 1, .y = 2 }), "Point = 1 + 2")
+}
