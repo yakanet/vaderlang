@@ -411,10 +411,6 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
-  "selfhost_lexer_basic": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
   "seq_lit_inference": {
     "leakedNodes": 0,
     "leakedBytes": 0
