@@ -10,7 +10,7 @@
 // 256 consecutive u64s. For a cryptographic PRNG plug `std/crypto`
 // (post-MVP).
 
-module "std/random"
+module "random"
 
 import "std/time"
 

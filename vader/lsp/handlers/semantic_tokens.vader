@@ -17,7 +17,7 @@
 module "vader/lsp/handlers"
 
 import "std/string"
-import "std/json"
+import "json"
 import "std/collections"
 import "vader/lexer"
 import "vader/fmt"

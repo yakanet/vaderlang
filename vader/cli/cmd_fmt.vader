@@ -9,7 +9,7 @@ module "vader/cli"
 
 import "std/io"
 import "std/path"
-import "std/cli"
+import "cli"
 import "vader/fmt"
 
 // `fmt` used to parse its own args in `vader/fmt/cli.vader`, where any

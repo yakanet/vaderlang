@@ -4,7 +4,7 @@
 module "snippet"
 
 import "std/io"
-import "std/crypto"
+import "crypto"
 
 main :: fn() -> i32 {
     println("sha256-empty=${sha256("")}")

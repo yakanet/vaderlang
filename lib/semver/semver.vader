@@ -24,7 +24,7 @@
 // pre-release tag only satisfies a clause containing a comparator with
 // the same `[major, minor, patch]` tuple AND a pre-release tag.
 
-module "std/semver"
+module "semver"
 
 import "std/string"
 import "std/char"

@@ -14,7 +14,7 @@
 module "vader/lsp/protocol"
 
 import "std/string_builder"
-import "std/json"
+import "json"
 import "std/collections"
 
 // ---- field accessors ------------------------------------------------------

@@ -16,7 +16,7 @@
     },
     {
       "kind": "ImportDecl",
-      "path": "std/json",
+      "path": "json",
       "binding": {
         "kind": "wildcard"
       },

@@ -19,7 +19,7 @@
 
 module "vader/dap"
 
-import "std/json"
+import "json"
 import "std/collections"
 import "std/string"
 import "std/path"

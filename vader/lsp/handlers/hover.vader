@@ -13,7 +13,7 @@
 module "vader/lsp/handlers"
 
 import "std/string"
-import "std/json"
+import "json"
 import "std/collections"
 import "vader/types"
 import "vader/lsp/protocol"

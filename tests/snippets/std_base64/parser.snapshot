@@ -16,7 +16,7 @@
     },
     {
       "kind": "ImportDecl",
-      "path": "std/base64",
+      "path": "base64",
       "binding": {
         "kind": "wildcard"
       },

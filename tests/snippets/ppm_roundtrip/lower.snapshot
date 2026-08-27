@@ -188,7 +188,7 @@
       arg0:
         call :string
           callee:
-            std_images_ppm$Ppm$Display$to_string :string
+            images_ppm$Ppm$Display$to_string :string
           arg0:
             cast → Ppm
               dec :Ppm | PpmError

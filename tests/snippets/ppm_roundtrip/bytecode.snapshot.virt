@@ -12,12 +12,12 @@ type 9 primitive void
 type 10 struct std_io$IOError { msg:2 }
 type 11 union 10,8
 type 12 union 10,0
-type 13 struct std_images_ppm$Ppm { width:17,height:17,maxval:17,pixels:8 }
+type 13 struct images_ppm$Ppm { width:17,height:17,maxval:17,pixels:8 }
 type 14 union 15,8
-type 15 struct std_images_ppm$PpmError { msg:2 }
+type 15 struct images_ppm$PpmError { msg:2 }
 type 16 union 13,15
 type 17 primitive u32
-type 18 struct std_images_ppm$ScanInt { value:17,pos:4,found:3 }
+type 18 struct images_ppm$ScanInt { value:17,pos:4,found:3 }
 type 19 ref Error
 string 0 "/vader_ppm_roundtrip.ppm"
 string 1 "encode failed"
@@ -383,7 +383,7 @@ fn 6 std_io$println__string (string) -> void
   return
 end
 
-fn 7 std_images_ppm$encode (ref) -> any
+fn 7 images_ppm$encode (ref) -> any
   local or_res bool
   local __buf_0 ref
   local __off_1 usize
@@ -579,7 +579,7 @@ fn 7 std_images_ppm$encode (ref) -> any
   return
 end
 
-fn 8 std_images_ppm$decode (ref) -> any
+fn 8 images_ppm$decode (ref) -> any
   local or_res bool
   local p0 usize
   local w ref
@@ -856,7 +856,7 @@ fn 8 std_images_ppm$decode (ref) -> any
   return
 end
 
-fn 9 std_images_ppm$bytes_per_sample (u32) -> usize
+fn 9 images_ppm$bytes_per_sample (u32) -> usize
   local if_res usize
   local.get 0
   i32.const 256
@@ -872,7 +872,7 @@ fn 9 std_images_ppm$bytes_per_sample (u32) -> usize
   return
 end
 
-fn 10 std_images_ppm$skip_ws (ref,usize) -> usize
+fn 10 images_ppm$skip_ws (ref,usize) -> usize
   local n usize
   local p usize
   local b u8
@@ -945,7 +945,7 @@ fn 10 std_images_ppm$skip_ws (ref,usize) -> usize
   return
 end
 
-fn 11 std_images_ppm$scan_uint (ref,usize) -> ref
+fn 11 images_ppm$scan_uint (ref,usize) -> ref
   local n usize
   local p usize
   local v u32
@@ -1029,7 +1029,7 @@ fn 11 std_images_ppm$scan_uint (ref,usize) -> ref
   return
 end
 
-fn 12 std_images_ppm$is_ws_byte (u8) -> bool
+fn 12 images_ppm$is_ws_byte (u8) -> bool
   local or_res bool
   local.get 0
   i32.const 32
@@ -1087,7 +1087,7 @@ fn 12 std_images_ppm$is_ws_byte (u8) -> bool
   return
 end
 
-fn 13 std_images_ppm$is_digit_byte (u8) -> bool
+fn 13 images_ppm$is_digit_byte (u8) -> bool
   local and_res bool
   local.get 0
   i32.const 48
@@ -1105,7 +1105,7 @@ fn 13 std_images_ppm$is_digit_byte (u8) -> bool
   return
 end
 
-fn 14 std_images_ppm$Ppm$Display$to_string (ref) -> string
+fn 14 images_ppm$Ppm$Display$to_string (ref) -> string
   local depth string
   local $call_10 usize
   local __buf_1 ref

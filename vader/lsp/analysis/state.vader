@@ -6,7 +6,7 @@
 
 module "vader/lsp/analysis"
 
-import "std/json"
+import "json"
 import "std/collections"
 import "vader/resolver"
 import "vader/typecheck"

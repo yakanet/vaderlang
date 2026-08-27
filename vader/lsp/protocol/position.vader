@@ -13,7 +13,7 @@
 
 module "vader/lsp/protocol"
 
-import "std/json"
+import "json"
 import "std/collections"
 import "vader/diagnostics"
 import "toolchain/span"

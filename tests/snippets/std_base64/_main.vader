@@ -4,7 +4,7 @@
 module "snippet"
 
 import "std/io"
-import "std/base64"
+import "base64"
 
 show_decode :: fn(label: string, input: string) -> void {
     out :: decode(input)

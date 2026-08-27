@@ -8,14 +8,14 @@
 
 module "vader/lsp"
 
-import "std/cli"
+import "cli"
 import "std/io"
 // `parse` alone is ambiguous ACROSS THIS MODULE: the sibling `main.vader` needs
 // `std/json`'s and drops `std/cli`'s (`{ parse as _ }`), and the resolver seeds
 // unqualified names per MODULE, not per file — so the two files cannot each get
 // the `parse` they want from the bare name. Qualify this one. The wildcard above
 // stays: `ParsedArgs`, `string_flag` and `errors` are all still reached from it.
-CLI :: import "std/cli"
+CLI :: import "cli"
 
 
 main :: fn(argv: string[]) -> i32 {

@@ -13,7 +13,7 @@
 module "vader/dap"
 
 import "std/collections"
-import "std/json"
+import "json"
 
 // ---- DAP response / event encoders ----------------------------------------
 

@@ -8,7 +8,7 @@
 
 module "vader/lsp/protocol"
 
-import "std/json"
+import "json"
 import "std/collections"
 
 /// Severity tag per LSP spec.

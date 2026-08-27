@@ -19,9 +19,9 @@ module "vader/lsp"
 // loop calls `std/json::parse`. Both modules export a `parse`, so dropping
 // `std/cli`'s keeps the JSON one unqualified (R2031 otherwise). The argv parse
 // itself happens in `main_entry.vader` and in the CLI, not here.
-import "std/cli" { parse as _ }
+import "cli" { parse as _ }
 import "std/io"
-import "std/json"
+import "json"
 P :: import "vader/lsp/protocol"
 A :: import "vader/lsp/analysis"
 H :: import "vader/lsp/handlers"

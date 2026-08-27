@@ -395,7 +395,7 @@
         int(8) :i32
     call :void
       callee:
-        std_random$shuffle__i32 :void
+        random$shuffle__i32 :void
       arg0:
         s :Rng
       arg1:

@@ -25,7 +25,7 @@
 // they only apply to bool flags, of which a CLI this size has a handful, and
 // they make the scan materially harder to read.
 
-module "std/cli"
+module "cli"
 
 import "std/collections"
 import "std/string"

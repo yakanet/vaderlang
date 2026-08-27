@@ -6,7 +6,7 @@
 module "snippet"
 
 import "std/io"
-import "std/regex"
+import "regex"
 
 run_match :: fn(label: string, p: Pattern, input: string) -> void {
     println("${label}=${p.matches(input)}")

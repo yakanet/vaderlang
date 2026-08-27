@@ -1,4 +1,4 @@
-// std/cli/help — render `--help` text from the spec tables.
+// cli/help — render `--help` text from the spec tables.
 //
 // Sibling of `cli.vader`, which owns the specs and the parser. Keeping the
 // renderer here rather than in each CLI's own source is what makes the spec
@@ -12,7 +12,7 @@
 // Column alignment is computed from the longest label rather than hardcoded, so
 // adding a long flag name doesn't silently ruin the layout.
 
-module "std/cli"
+module "cli"
 
 import "std/string"
 import "std/string_builder"

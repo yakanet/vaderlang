@@ -16,7 +16,7 @@
 
 module "vader/lsp/handlers"
 
-import "std/json"
+import "json"
 import "vader/types"
 import "vader/resolver/symbol"
 import "vader/lsp/protocol"

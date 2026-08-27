@@ -26,15 +26,15 @@ type 23 struct __Tuple_33 { _0:16,_1:16,_2:16 }
 type 24 array 1
 type 25 ref _
 type 26 union 27,28,29,30,31,32,33
-type 27 struct std_json$JsonArray { items:44 }
-type 28 struct std_json$JsonBool { value:5 }
-type 29 struct std_json$JsonError { msg:1,pos:8 }
-type 30 struct std_json$JsonNull {  }
-type 31 struct std_json$JsonNumber { value:11 }
-type 32 struct std_json$JsonObject { entries:45 }
-type 33 struct std_json$JsonString { value:1 }
+type 27 struct json$JsonArray { items:44 }
+type 28 struct json$JsonBool { value:5 }
+type 29 struct json$JsonError { msg:1,pos:8 }
+type 30 struct json$JsonNull {  }
+type 31 struct json$JsonNumber { value:11 }
+type 32 struct json$JsonObject { entries:45 }
+type 33 struct json$JsonString { value:1 }
 type 34 union 27,28,30,31,32,33
-type 35 struct std_json$Parser { src:1,bytes:12,pos:8,eof:8 }
+type 35 struct json$Parser { src:1,bytes:12,pos:8,eof:8 }
 type 36 struct std_string_builder$StringBuilder { parts:24 }
 type 37 union 29,1
 type 38 union 29,32
@@ -4534,7 +4534,7 @@ fn 45 std_io$println__string (string) -> void
   return
 end
 
-fn 46 std_json$parse (string) -> any
+fn 46 json$parse (string) -> any
   local p ref
   local v any
   local.get 0
@@ -4564,7 +4564,7 @@ fn 46 std_json$parse (string) -> any
   return
 end
 
-fn 47 std_json$stringify (any) -> string
+fn 47 json$stringify (any) -> string
   local sb ref
   array.new 24 0
   struct.new 36
@@ -4578,7 +4578,7 @@ fn 47 std_json$stringify (any) -> string
   return
 end
 
-fn 48 std_json$new_parser (string) -> ref
+fn 48 json$new_parser (string) -> ref
   local $call_1 ref
   local $call_3 usize
   local.get 0
@@ -4595,7 +4595,7 @@ fn 48 std_json$new_parser (string) -> ref
   return
 end
 
-fn 49 std_json$parse_value (ref,i32) -> any
+fn 49 json$parse_value (ref,i32) -> any
   local c char
   local s any
   local or_res bool
@@ -4750,7 +4750,7 @@ fn 49 std_json$parse_value (ref,i32) -> any
   return
 end
 
-fn 50 std_json$skip_ws (ref) -> void
+fn 50 json$skip_ws (ref) -> void
   block $L0 void
     loop $L1 void
       local.get 0
@@ -4773,7 +4773,7 @@ fn 50 std_json$skip_ws (ref) -> void
   return
 end
 
-fn 51 std_json$at_end (ref) -> bool
+fn 51 json$at_end (ref) -> bool
   local $field_1 usize
   local $field_2 usize
   local.field 0 35 2
@@ -4788,7 +4788,7 @@ fn 51 std_json$at_end (ref) -> bool
   return
 end
 
-fn 52 std_json$fail (ref,string) -> ref
+fn 52 json$fail (ref,string) -> ref
   local $field_2 usize
   local.field 0 35 2
   ref.cast 8
@@ -4799,7 +4799,7 @@ fn 52 std_json$fail (ref,string) -> ref
   return
 end
 
-fn 53 std_json$write_value (ref,any,i32,i32) -> void
+fn 53 json$write_value (ref,any,i32,i32) -> void
   local $field_13 f64
   local $field_16 string
   local $cast_18 ref
@@ -4884,7 +4884,7 @@ fn 53 std_json$write_value (ref,any,i32,i32) -> void
   return
 end
 
-fn 54 std_json$peek_byte (ref) -> char
+fn 54 json$peek_byte (ref) -> char
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref
@@ -4911,7 +4911,7 @@ fn 54 std_json$peek_byte (ref) -> char
   return
 end
 
-fn 55 std_json$parse_string (ref) -> any
+fn 55 json$parse_string (ref) -> any
   local start usize
   local scan usize
   local $field_12 usize
@@ -5007,7 +5007,7 @@ fn 55 std_json$parse_string (ref) -> any
   return
 end
 
-fn 56 std_json$parse_object (ref,i32) -> any
+fn 56 json$parse_object (ref,i32) -> any
   local $arr_9 ref
   local $arr_10 ref
   local $arr_11 ref
@@ -5163,7 +5163,7 @@ fn 56 std_json$parse_object (ref,i32) -> any
   return
 end
 
-fn 57 std_json$parse_array (ref,i32) -> any
+fn 57 json$parse_array (ref,i32) -> any
   local items ref
   local and_res bool
   local $add_22 i32
@@ -5277,7 +5277,7 @@ fn 57 std_json$parse_array (ref,i32) -> any
   return
 end
 
-fn 58 std_json$parse_bool (ref) -> any
+fn 58 json$parse_bool (ref) -> any
   local.get 0
   string.const 3
   call 68
@@ -5300,7 +5300,7 @@ fn 58 std_json$parse_bool (ref) -> any
   return
 end
 
-fn 59 std_json$parse_null (ref) -> any
+fn 59 json$parse_null (ref) -> any
   local.get 0
   string.const 2
   call 68
@@ -5315,7 +5315,7 @@ fn 59 std_json$parse_null (ref) -> any
   return
 end
 
-fn 60 std_json$parse_number (ref) -> any
+fn 60 json$parse_number (ref) -> any
   local start usize
   local or_res bool
   local first_digit char
@@ -5844,7 +5844,7 @@ fn 60 std_json$parse_number (ref) -> any
   return
 end
 
-fn 61 std_json$advance (ref) -> void
+fn 61 json$advance (ref) -> void
   local $add_3 usize
   local.field 0 35 2
   ref.cast 8
@@ -5857,7 +5857,7 @@ fn 61 std_json$advance (ref) -> void
   return
 end
 
-fn 62 std_json$write_object (ref,ref,i32,i32) -> void
+fn 62 json$write_object (ref,ref,i32,i32) -> void
   local first bool
   local self ref
   local other ref
@@ -5997,7 +5997,7 @@ fn 62 std_json$write_object (ref,ref,i32,i32) -> void
   return
 end
 
-fn 63 std_json$write_array (ref,ref,i32,i32) -> void
+fn 63 json$write_array (ref,ref,i32,i32) -> void
   local first bool
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -6082,7 +6082,7 @@ fn 63 std_json$write_array (ref,ref,i32,i32) -> void
   return
 end
 
-fn 64 std_json$write_string (ref,string) -> void
+fn 64 json$write_string (ref,string) -> void
   local __iter_0 ref
   local __step_1 any
   local c char
@@ -6186,7 +6186,7 @@ fn 64 std_json$write_string (ref,string) -> void
   return
 end
 
-fn 65 std_json$write_number (ref,f64) -> void
+fn 65 json$write_number (ref,f64) -> void
   local $call_2 string
   local.get 1
   call 99
@@ -6197,7 +6197,7 @@ fn 65 std_json$write_number (ref,f64) -> void
   return
 end
 
-fn 66 std_json$expect_byte (ref,char) -> any
+fn 66 json$expect_byte (ref,char) -> any
   local.get 0
   call 51
   if $L0 void
@@ -6223,7 +6223,7 @@ fn 66 std_json$expect_byte (ref,char) -> any
   return
 end
 
-fn 67 std_json$parse_string_with_escapes (ref,ref) -> any
+fn 67 json$parse_string_with_escapes (ref,ref) -> any
   local c char
   local esc char
   local $cast_38 char
@@ -6395,7 +6395,7 @@ fn 67 std_json$parse_string_with_escapes (ref,ref) -> any
   return
 end
 
-fn 68 std_json$match_keyword (ref,string) -> bool
+fn 68 json$match_keyword (ref,string) -> bool
   local n usize
   local $add_5 usize
   local $field_6 usize
@@ -6469,7 +6469,7 @@ fn 68 std_json$match_keyword (ref,string) -> bool
   return.lit bool.const true
 end
 
-fn 69 std_json$write_indent (ref,i32,i32) -> void
+fn 69 json$write_indent (ref,i32,i32) -> void
   local $mul_7 i32
   local.get 1
   i32.const 0
@@ -6491,7 +6491,7 @@ fn 69 std_json$write_indent (ref,i32,i32) -> void
   return
 end
 
-fn 70 std_json$decode_unicode_escape (ref,ref) -> bool
+fn 70 json$decode_unicode_escape (ref,ref) -> bool
   local hi_val i32
   local hi char
   local $add_15 usize
@@ -6641,7 +6641,7 @@ fn 70 std_json$decode_unicode_escape (ref,ref) -> bool
   return.lit bool.const true
 end
 
-fn 71 std_json$read_hex4 (ref) -> i32
+fn 71 json$read_hex4 (ref) -> i32
   local $add_3 usize
   local $field_4 usize
   local v i32
