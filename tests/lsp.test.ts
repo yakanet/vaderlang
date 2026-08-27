@@ -16,6 +16,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
 import { CLI_BIN, MEDIUM_BUILD, ensureCliBuilt } from "./cli-bin.ts";
+import { pathToUri } from "./lsp-uri.ts";
 
 ensureCliBuilt();
 
@@ -107,10 +108,10 @@ async function driveLsp(
     mkdirSync(dirname(p), { recursive: true });
     writeFileSync(p, content);
   }
-  const uri = `file://${file}`;
+  const uri = pathToUri(file);
   const requests: object[] = [
     { jsonrpc: "2.0", id: 1, method: "initialize",
-      params: { rootUri: `file://${dir}`, capabilities: {} } },
+      params: { rootUri: pathToUri(dir), capabilities: {} } },
     { jsonrpc: "2.0", method: "initialized", params: {} },
     { jsonrpc: "2.0", method: "textDocument/didOpen",
       params: { textDocument: { uri, languageId: "vader", version: 1, text: source } } },
@@ -1163,10 +1164,10 @@ main :: fn() -> i32 {
   const dir = mkdtempSync(join(tmpdir(), "vlsp-"));
   const file = join(dir, "link-support.vader");
   writeFileSync(file, src);
-  const URI = `file://${file}`;
+  const URI = pathToUri(file);
   const requests: object[] = [
     { jsonrpc: "2.0", id: 1, method: "initialize", params: {
-      rootUri: `file://${dir}`,
+      rootUri: pathToUri(dir),
       capabilities: { textDocument: { definition: { linkSupport: true } } },
     } },
     { jsonrpc: "2.0", method: "initialized", params: {} },

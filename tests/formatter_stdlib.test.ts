@@ -15,7 +15,7 @@
 
 import { test, expect } from "bun:test";
 import { readFileSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { CLI_BIN, MEDIUM_BUILD, runCli } from "./cli-bin.ts";
 import { listVaderFiles } from "./vader-sources.ts";
 
@@ -96,7 +96,13 @@ async function reparseErrors(path: string): Promise<string> {
 }
 
 for (const path of listLibraryFiles()) {
-  const base = path.slice(path.lastIndexOf("/") + 1);
+  // `basename`, not `slice(lastIndexOf("/"))`: `listVaderFiles` joins with the
+  // platform separator, so on Windows the hand-rolled form found no `/`, returned
+  // the WHOLE absolute path, and every temp file became
+  // `.tmp-fmt-stdlib-reparse-D:\a\...\base64.vader` — an ENOENT on mkdir. It also
+  // defeated the `UNSTABLE_IDEMPOTENCY` / `NO_OP_FILES` lookups below, which key on
+  // a bare filename. Pre-existing, and invisible while the suite sat behind a gate.
+  const base = basename(path);
 
   test(`library reparse after format : ${base}`, async () => {
     const formatted = fmtStdout(path);
