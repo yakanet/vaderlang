@@ -55,7 +55,7 @@ export DRIVER_ENTRY_FILENAME :: "vader_build_entry.vader"
 /// The bundled binary is named `vader`, so the sources cannot live at
 /// `<bundle>/vader/` — hence one level of indirection. `bootstrap/build.sh
 /// --dist` writes them here and `compiler_source_root` looks for them here.
-export BUNDLED_SOURCE_DIR :: "lib"
+export BUNDLED_SOURCE_DIR :: "src"
 
 /// Directory proving a candidate root really holds the compiler's sources.
 ///
@@ -113,9 +113,14 @@ export find_build_driver :: fn(root: string) -> string | null {
 /// Two binary-relative layouts, in order:
 ///
 ///   * `<binary dir>/vader/` — a checkout whose binary sits at the root.
-///   * `<binary dir>/lib/vader/` — the `dist/` bundle. The indirection is
-///     forced: the bundled binary is itself NAMED `vader`, so the sources
-///     cannot sit at `<binary dir>/vader/` without colliding with it.
+///   * `<binary dir>/src/vader/` — the `dist/` bundle. Two reasons for the
+///     indirection, and the second is why it is `src/` and not `lib/`: the
+///     bundled binary is itself NAMED `vader`, so the sources cannot sit at
+///     `<binary dir>/vader/` without colliding with it; and the compiler is not
+///     a library the toolchain ships for consumption, it is the implementation a
+///     driver links, so `lib/` — which holds `std/`, `toolchain/` and the rest —
+///     is the wrong neighbourhood for it. Keeping it out also makes the layering
+///     structural rather than policed: nothing under `lib/` is the compiler.
 ///
 /// ⚠️ The marker is `vader/pipeline`, and it must stay a module the driver's own
 /// closure needs. It used to be `vader/hooks` — the contract itself — which broke
