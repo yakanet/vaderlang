@@ -11,7 +11,7 @@
 // the profiler brackets are emitted unconditionally, the C linker bound them
 // natively, and the VM had no handler.
 //
-// `stdlib/` is deliberately NOT covered: it uses `@intrinsic`, which the manifest
+// `lib/std/` is deliberately NOT covered: it uses `@intrinsic`, which the manifest
 // (`intrinsic_id_for`) already validates at build time — an unwired one fails the
 // build rather than reaching the VM.
 //

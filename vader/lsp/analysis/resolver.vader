@@ -184,15 +184,15 @@ export module_path_to_absolute :: fn(raw: string, state: ServerState, from_uri: 
 
 // Stdlib root for cross-file resolution : the host-seeded `--stdlib-root`
 // when present, otherwise the same exe-sidecar / cwd probe the project
-// loader uses (`default_stdlib_root`). Editors don't pass `--stdlib-root`,
+// loader uses (`default_library_root`). Editors don't pass `--stdlib-root`,
 // so the fallback is what actually fires in practice — without it goto-def
 // into every `std/*` symbol silently returned "".
 // Absolute `<manifest_root>/<subdir>` derived from the importing file's URI (the
 // directory holding its `vader.json`), or "" when there's no URI / no manifest.
 // The shared basis for `std/` and `vader/` import resolution. Keeping it ABSOLUTE
 // is load-bearing: a relative root leaks into the goto-def URI as
-// `path_to_uri("stdlib/…") → file:///stdlib/…`, which the editor reads as the
-// root-absolute `/stdlib/…` → "the file was not found".
+// `path_to_uri("lib/…") → file:///lib/…`, which the editor reads as the
+// root-absolute `/lib/…` → "the file was not found".
 manifest_subdir_root :: fn(from_uri: string, subdir: string) -> string {
     from_path :: uri_to_path(from_uri)
     if from_path.bytes().len() == 0 { return "" }
@@ -202,12 +202,12 @@ manifest_subdir_root :: fn(from_uri: string, subdir: string) -> string {
 
 stdlib_root_for :: fn(state: ServerState, from_uri: string) -> string {
     if state.stdlib_root.bytes().len() > 0 { return state.stdlib_root }
-    // `default_stdlib_root()` falls back to the RELATIVE "stdlib" (the exe-sidecar
-    // probe misses — the LSP exe lives in `build/`, not next to `stdlib/`), so
+    // `default_library_root()` falls back to the RELATIVE "lib" (the exe-sidecar
+    // probe misses — the LSP exe lives in `build/`, not next to `lib/`), so
     // prefer the manifest-derived absolute root (see `manifest_subdir_root`).
-    r :: manifest_subdir_root(from_uri, "stdlib")
+    r :: manifest_subdir_root(from_uri, "lib")
     if r.bytes().len() > 0 { return r }
-    return default_stdlib_root()
+    return default_library_root()
 }
 
 // `vader/` source root : the host-seeded `--vader-root`, else `<project>/vader`

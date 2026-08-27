@@ -9,7 +9,7 @@
 > **Implemented (2026-06-06) — read before the per-Phase prose below.** The build is now a
 > **3-stage bootstrap**: `cc` the seed → `build/stage0`, stage0 → `build/stage1`, then
 > `stage1 build --target=native` → `build/vader` (stage2, the shipped compiler). The built
-> compiler resolves `stdlib/` + `runtime/c/` **next to its own executable** (the `std/io`
+> compiler resolves `lib/` + `runtime/c/` **next to its own executable** (the `std/io`
 > intrinsics `current_executable_location` / `current_working_dir`, with a cwd fallback), so a
 > `bash bootstrap/build.sh --dist` bundle runs from any directory. `bootstrap/{build.sh,build.ps1,verify.sh}`
 > are the source of truth. **The per-Phase prose below predates this**: it still calls the *seed
@@ -664,7 +664,7 @@ asymmetry:
   into the committed artefact — where it would then look fresh to anything using
   the same binary.
 
-The hook's cheap short-circuit costs 0 s: if nothing under `vader/`, `stdlib/` or
+The hook's cheap short-circuit costs 0 s: if nothing under `vader/`, `lib/` or
 `runtime/c/` changed since the last reseed commit, the seed is fresh with nothing
 to compile. That path set is deliberately broader than `bootstrap.vader`'s actual
 import closure — a hand-maintained closure list would silently rot the day an

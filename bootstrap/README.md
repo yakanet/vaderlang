@@ -30,9 +30,9 @@ auto-grow, so self-compiling needs no env tuning.
 - `build.sh` — the 3-stage bootstrap in one shot (logs each stage). Honours `$CC`
   (default `cc`, resolved to an absolute path and passed to stage1 via `--cc`).
   stage0 & stage1 are throwaways built `-O0` (`$STAGE0_CFLAGS`); only stage2/`vader`
-  is `-O3`. `--dist` bundles `dist/vader-<os>-<arch>/` (binary + stdlib + runtime/c) —
+  is `-O3`. `--dist` bundles `dist/vader-<os>-<arch>/` (binary + lib/ + runtime/c) —
   a self-contained toolchain that runs from any directory (the binary resolves
-  `stdlib/` + `runtime/c/` next to its own executable).
+  `lib/` + `runtime/c/` next to its own executable).
 - `build.ps1` — Windows counterpart (mingw-w64 gcc/clang). Run with
   `powershell -ExecutionPolicy Bypass -File bootstrap\build.ps1` ; `-CC clang`
   picks a different compiler, `-Dist` bundles `dist\vader-windows-<arch>\`.

@@ -200,7 +200,7 @@ static void* std_core_new_byte_buffer(size_t l0) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 112 "stdlib/std/core/primitives.vader"
+#line 112 "lib/std/core/primitives.vader"
     t0 = std_core_usize_BufferAlloc_new_buffer_vt(l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -211,7 +211,7 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 115 "stdlib/std/core/primitives.vader"
+#line 115 "lib/std/core/primitives.vader"
     t0 = std_core_Buffer_ByteAccess_intern_string_vt(l0, l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -220,11 +220,11 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
 static void std_io_println__string(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 50 "stdlib/std/io/io.vader"
+#line 50 "lib/std/io/io.vader"
     vader_import_1(INT32_C(0), l0);
-#line 51 "stdlib/std/io/io.vader"
+#line 51 "lib/std/io/io.vader"
     vader_import_1(INT32_C(0), 5u);
-#line 49 "stdlib/std/io/io.vader"
+#line 49 "lib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }

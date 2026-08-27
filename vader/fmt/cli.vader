@@ -90,7 +90,7 @@ collect_files :: fn(root: string, out: string[]!) -> void {
 ///                `--stdout` misuse, 2 on parse-error skips, 3 on IO error.
 /// @example
 ///   `run_fmt(["src/main.vader"], false, false)  → format in place, return 0`
-///   `run_fmt(["stdlib/"], true, false)          → exit 1 if any file would change`
+///   `run_fmt(["lib/"], true, false)             → exit 1 if any file would change`
 ///   `run_fmt(["foo.vader"], false, true)        → formatted output to stdout`
 export run_fmt :: fn(paths: string[], check: bool, stdout: bool) -> i32 {
     // `--check` and `--stdout` are mutually exclusive in effect; `--stdout`

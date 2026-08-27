@@ -1,4 +1,4 @@
-// Stdlib formatter checks over EVERY `stdlib/**/*.vader` (recursively). Three
+// Stdlib formatter checks over EVERY `lib/std/**/*.vader` (recursively). Three
 // contracts, weakest to strongest :
 //
 //   1. reparse-after-format — the formatted output parses with zero errors.
@@ -19,9 +19,9 @@ import { CLI_BIN, MEDIUM_BUILD, runCli } from "./cli-bin.ts";
 
 const ENABLED = process.env.RUN_FMT_TESTS === "1";
 
-const STDLIB_ROOT = join(process.cwd(), "stdlib", "std");
+const STDLIB_ROOT = join(process.cwd(), "lib", "std");
 
-// Every `*.vader` anywhere under `stdlib/std/`. The stdlib is organised into
+// Every `*.vader` anywhere under `lib/std/`. The stdlib is organised into
 // per-module folders (`core/`, `string/`, `collections/`, …), so this MUST
 // recurse — a flat `readdirSync` finds nothing and silently tests zero files.
 function listStdlibFiles(): string[] {

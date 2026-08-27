@@ -10,7 +10,7 @@
 # stage1 spawns is exactly the one used here. stage0 & stage1 are throwaways built
 # -O0 (STAGE0_CFLAGS); only stage2/vader is built -O3 (via stage1's --release).
 # Pass --dist to also assemble a self-contained dist/vader-<os>-<arch>/ bundle
-# (binary + stdlib + runtime/c). See docs/BOOTSTRAP.md.
+# (binary + lib/ + runtime/c). See docs/BOOTSTRAP.md.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -68,13 +68,17 @@ if [ "$dist" = 1 ]; then
   esac
   out="dist/vader-${os}-${arch}"
 
-  step "[dist] Bundling $out  (vader + stdlib + runtime/c + lib/vader)"
+  step "[dist] Bundling $out  (vader + lib/{std,vader} + runtime/c)"
   rm -rf "$out"
   mkdir -p "$out/runtime" "$out/lib"
   cp build/vader "$out/vader"
-  cp -R stdlib "$out/stdlib"
-  cp -R runtime/c "$out/runtime/"
+  # One module root. `lib/` holds every namespace the toolchain ships — `std/`
+  # from the checkout's own `lib/`, plus the compiler's sources so a project's
+  # `build.vader` can import them. `default_library_root` probes `<exe>/lib`
+  # with the `std/io/io.vader` marker, which is what makes this layout resolve.
+  cp -R lib/std "$out/lib/std"
   cp -R vader "$out/lib/vader"
+  cp -R runtime/c "$out/runtime/"
 
-  printf '%b==> dist%b  %s ready — a self-contained toolchain (resolves stdlib/ + runtime/c/ + lib/vader/ next to the binary, so it runs — and drives builds — from any directory).\n' "$g" "$r" "$out"
+  printf '%b==> dist%b  %s ready — a self-contained toolchain (resolves lib/ + runtime/c/ next to the binary, so it runs — and drives builds — from any directory).\n' "$g" "$r" "$out"
 fi

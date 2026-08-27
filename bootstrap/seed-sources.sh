@@ -8,7 +8,7 @@
 # Sourced by bootstrap/check-seed.sh and bootstrap/regenerate.sh. Anything that
 # reasons about seed freshness reads the list from here instead of re-typing it,
 # because re-typing is how the checker and the writer drift apart.
-SEED_SOURCE_DIRS="vader/ stdlib/ runtime/c/"
+SEED_SOURCE_DIRS="vader/ lib/ runtime/c/"
 
 # The subset of SEED_SOURCE_DIRS that no longer exists, space-separated; empty
 # when the layout is intact.

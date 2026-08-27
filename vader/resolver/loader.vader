@@ -358,8 +358,8 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[]!, overlay: Mutable
 // Assemble the plain (unrooted) include-paths for a project — GCC `-I` style,
 // first-match-wins : the manifest dir itself (so a project's own modules resolve
 // by their folder-relative name), then each `vader.json includePaths` entry
-// joined onto it (e.g. `"stdlib"` → `<root>/stdlib`, hosting `std/*`), then the
-// binary-adjacent stdlib default (so a deployed binary finds its bundled stdlib
+// joined onto it (e.g. `"lib"` → `<root>/lib`, hosting `std/*`), then the
+// binary-adjacent library default (so a deployed binary finds its bundled stdlib
 // when the entry has no manifest). The `--include-paths` flag entries come first
 // (highest precedence).
 project_include_paths :: fn(
@@ -374,7 +374,7 @@ project_include_paths :: fn(
         }
         is null -> {}
     }
-    roots.push(default_stdlib_root())
+    roots.push(default_library_root())
     return roots
 }
 

@@ -145,7 +145,7 @@ async function driveLsp(
   }
 
   const proc = Bun.spawn({
-    cmd: [CLI_BIN, "lsp", `--stdlib-root=${process.cwd()}/stdlib`, `--vader-root=${process.cwd()}/vader`],
+    cmd: [CLI_BIN, "lsp", `--stdlib-root=${process.cwd()}/lib`, `--vader-root=${process.cwd()}/vader`],
     cwd: process.cwd(),
     stdin: "pipe",
     stdout: "pipe",
@@ -1188,7 +1188,7 @@ main :: fn() -> i32 {
     offset += f.byteLength;
   }
   const proc = Bun.spawn({
-    cmd: [CLI_BIN, "lsp", `--stdlib-root=${process.cwd()}/stdlib`, `--vader-root=${process.cwd()}/vader`],
+    cmd: [CLI_BIN, "lsp", `--stdlib-root=${process.cwd()}/lib`, `--vader-root=${process.cwd()}/vader`],
     cwd: process.cwd(),
     stdin: "pipe", stdout: "pipe", stderr: "pipe",
   });
@@ -1252,7 +1252,7 @@ test("lsp: initialize advertises definition + hover providers", async () => {
   }
 
   const proc = Bun.spawn({
-    cmd: [CLI_BIN, "lsp", `--stdlib-root=${process.cwd()}/stdlib`, `--vader-root=${process.cwd()}/vader`],
+    cmd: [CLI_BIN, "lsp", `--stdlib-root=${process.cwd()}/lib`, `--vader-root=${process.cwd()}/vader`],
     cwd: process.cwd(),
     stdin: "pipe",
     stdout: "pipe",
