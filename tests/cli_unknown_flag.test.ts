@@ -9,7 +9,7 @@
 //
 // Covers, per test below: unknown flags on both dash lengths, options written
 // after the file, the forwarding boundary on `run`, and the generated help.
-// The parser's own unit tests live in `stdlib/std/cli/cli.vader`.
+// The parser's own unit tests live in `lib/std/cli/cli.vader`.
 
 import { test, expect } from "bun:test";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";

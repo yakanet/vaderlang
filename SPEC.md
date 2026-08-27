@@ -2349,10 +2349,14 @@ When `vader.json` is absent or omits `modules`, the scan covers only the entry f
 
 #### Stdlib resolution
 
-The stdlib is resolved out-of-band, independently of `vader.json`:
+`std/` lives under the toolchain's **library root**, `lib/` — a module root that hosts every namespace the toolchain ships, not the stdlib's own directory. It is resolved out-of-band, independently of `vader.json`:
 
-- **Release** — sidecar of the binary at `<dir-of-binary>/stdlib/`.
-- **Dev** — hard-coded `<workspace>/stdlib/` when running from source.
+- **Sidecar of the binary** — `<dir-of-binary>/lib/`, probed with the marker `std/io/io.vader`. This is what a `dist/` bundle uses.
+- **Relative fallback** — the bare `lib/`, i.e. `<cwd>/lib`, which is what a source checkout uses.
+
+The fallback is deliberately *relative*: the resolved root becomes a module-id prefix, and an absolute root reshuffles map-keyed insertion order, drifting snapshots.
+
+A `vader.json` may also name it through `includePaths` (`["lib"]`), which is searched **before** the out-of-band probe. That ordering is load-bearing during a layout migration: a binary whose probe is baked to the previous layout still resolves against the renamed tree, which is what makes the bootstrap seed survive the rename.
 
 The stdlib's modules participate in the global index like any other scope; they're simply discovered through a fixed path.
 
@@ -3141,7 +3145,7 @@ stringify_pretty :: fn(v: JsonValue, indent: i32)     -> string
 
 ### Landed in stdlib (beyond the core MVP set)
 
-The following modules ship in `stdlib/std/` today, alongside the core MVP set documented above:
+The following modules ship in `lib/std/` today, alongside the core MVP set documented above:
 
 - `std/abort` — `panic` / `todo` / `unreachable` (the diverging-fn primitives; prelude-level).
 - `std/base64` — encode / decode.

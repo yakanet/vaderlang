@@ -6,8 +6,9 @@
 // `import "./foo"` / `import "../foo"` are not a language form and are
 // rejected (R2025).
 //
-//   - `import "std/foo"`  — resolves against the stdlib root (probed
-//     next to the executable, then `<cwd>/stdlib` — see `resolve_sidecar`).
+//   - `import "std/foo"`  — resolves against the library root `lib/`, which
+//     hosts every namespace the toolchain ships (probed next to the
+//     executable, then `<cwd>/lib` — see `resolve_sidecar`).
 //   - `import "vader/parser"` — a bare name resolved against the project
 //     root and each `includePaths` entry, first match wins.
 //
@@ -193,13 +194,16 @@ export resolve_sidecar :: fn(subdir: string, marker: string) -> string {
     return subdir
 }
 
-/// Stdlib root, resolved next to the executable (then cwd) — see `resolve_sidecar`.
+/// Library root, resolved next to the executable (then cwd) — see `resolve_sidecar`.
+///
+/// `lib/` hosts every namespace the toolchain ships, `std/` among them — it is not
+/// the stdlib's own directory, which is why the name says library and not stdlib.
 /// The marker is `std/io/io.vader` : `std/io` is a folder module, so the bare
 /// `std/io.vader` file no longer exists — a stale marker silently defeated the
-/// exe-sidecar branch, forcing every binary onto the `<cwd>/stdlib` fallback
+/// exe-sidecar branch, forcing every binary onto the `<cwd>/lib` fallback
 /// (so a `dist/` bundle could never find its own stdlib unless run from a dir
 /// that happened to hold one).
-export default_stdlib_root :: fn() = resolve_sidecar("stdlib", "std/io/io.vader")
+export default_library_root :: fn() = resolve_sidecar("lib", "std/io/io.vader")
 
 import "std/json"
 
@@ -208,7 +212,7 @@ export Manifest :: struct {
     /// Extra module search roots (`includePaths` key), each relative to the
     /// project root. Joined onto the project root and searched (after the
     /// manifest dir itself) by lazy resolution — GCC `-I` style. E.g.
-    /// `["stdlib"]` makes `module "std/io"` resolve at `<root>/stdlib/std/io`.
+    /// `["lib"]` makes `module "std/io"` resolve at `<root>/lib/std/io`.
     include_paths: string[]
 }
 
@@ -244,16 +248,18 @@ import "std/testing"
 @test
 test_read_manifest_reads_repo_include_paths :: fn() -> void {
     // Tests run with the repo root as cwd, so `""` joins to `"vader.json"`.
-    // The Vader repo declares its stdlib root via `"includePaths": ["stdlib"]`
+    // The Vader repo declares its library root via `"includePaths": ["lib"]`
     // — guards against a renamed key or a regressed parse silently dropping the
-    // search roots (which would break every `std/*` import).
+    // search roots (which would break every `std/*` import). It is also the
+    // BRIDGE that lets a seed-built binary, whose sidecar probe is baked to the
+    // previous layout, resolve against a renamed tree; see docs/BOOTSTRAP.md.
     m :: read_manifest("")
     assert(m.include_paths.len() > 0, "repo manifest lists includePaths")
-    found_stdlib := false
+    found_lib := false
     for p in m.include_paths {
-        if p == "stdlib" { found_stdlib = true }
+        if p == "lib" { found_lib = true }
     }
-    assert(found_stdlib, "repo includePaths contains `stdlib`")
+    assert(found_lib, "repo includePaths contains `lib`")
 }
 
 @test

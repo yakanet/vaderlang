@@ -49,7 +49,7 @@ function newestSourceMtime(): number {
     }
   };
   walk("vader");
-  walk("stdlib");
+  walk("lib");
   return max;
 }
 
@@ -76,7 +76,7 @@ export function ensureCliBuilt(): void {
       throw new Error(`${CLI_BIN} not found — build the compiler first:\n${BUILD_HINT}`);
     }
     if (bin < newestSourceMtime()) {
-      throw new Error(`${CLI_BIN} is stale (older than vader/ or stdlib/ sources) — rebuild it:\n${BUILD_HINT}`);
+      throw new Error(`${CLI_BIN} is stale (older than vader/ or lib/ sources) — rebuild it:\n${BUILD_HINT}`);
     }
   });
 }

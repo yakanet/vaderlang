@@ -1,5 +1,5 @@
 // Broad-corpus parity — stress the Vader self-host typechecker against
-// the real `vader/` and `stdlib/` source tree. The 251 snippet-based
+// the real `vader/` and `lib/` source tree. The 251 snippet-based
 // tests give isolated coverage ; this suite ensures the typechecker
 // survives the codebase it's meant to self-compile.
 //
@@ -55,7 +55,7 @@ function collectModuleDirs(root: string): string[] {
 }
 
 const modules: string[] = RUN_BROAD
-  ? [...collectModuleDirs("vader"), ...collectModuleDirs("stdlib")]
+  ? [...collectModuleDirs("vader"), ...collectModuleDirs("lib")]
   : [];
 
 test("broad-parity: gated by RUN_BROAD_PARITY=1", () => {

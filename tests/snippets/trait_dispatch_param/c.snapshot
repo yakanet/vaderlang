@@ -29,11 +29,11 @@ static int32_t snippet_main(void) {
     uint64_t l0, l1;
     int64_t t0;
 #line 11 "tests/snippets/trait_dispatch_param/_main.vader"
-#line 296 "stdlib/std/core/primitives.vader"
+#line 296 "lib/std/core/primitives.vader"
     t0 = ((int64_t) (int32_t) INT32_C(7));
     l0 = (uint64_t) (int64_t) t0;
 #line 11 "tests/snippets/trait_dispatch_param/_main.vader"
-#line 296 "stdlib/std/core/primitives.vader"
+#line 296 "lib/std/core/primitives.vader"
     t0 = ((int64_t) (int32_t) INT32_C(7));
     l1 = (uint64_t) (int64_t) t0;
 #line 7 "tests/snippets/trait_dispatch_param/_main.vader"

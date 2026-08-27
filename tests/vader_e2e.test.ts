@@ -3,8 +3,8 @@
 // the runner walks the target directory, builds each entry through the
 // normal pipeline, and runs the discovered tests via the bytecode VM.
 //
-// One Bun test per top-level module (`stdlib/std/<name>` and `vader/<name>`)
-// rather than a single aggregated `vader test stdlib` call : the per-test
+// One Bun test per top-level module (`lib/std/<name>` and `vader/<name>`)
+// rather than a single aggregated `vader test lib` call : the per-test
 // timeout budget then applies to one module instead of the full transitive
 // closure, and `test.concurrent` parallelises modules through Bun's worker
 // rather than serialising them inside the CLI.
@@ -24,7 +24,7 @@ import { containsTestFn } from "./vader-sources.ts";
 /** Top-level subdirs of `root` that contain at least one `.vader` file
  *  carrying a `@test` decorator. Filtering keeps `vader test <dir>` from
  *  failing with "no @test functions found" (exit 2) on modules that have
- *  no tests yet (e.g. `stdlib/std/core`, `stdlib/std/runtime`). */
+ *  no tests yet (e.g. `lib/std/core`, `lib/std/runtime`). */
 function findTestModules(root: string): string[] {
   const dirs: string[] = [];
   for (const ent of readdirSync(root, { withFileTypes: true })) {
@@ -71,5 +71,5 @@ function registerModuleTest(dir: string): void {
   }, { timeout: LONG_BUILD });
 }
 
-for (const dir of findTestModules("stdlib/std")) registerModuleTest(dir);
+for (const dir of findTestModules("lib/std")) registerModuleTest(dir);
 for (const dir of findTestModules("vader")) registerModuleTest(dir);

@@ -52,7 +52,7 @@ const LINT = `${FIXTURES}/pascal_case_lint`;
 const GENERATE = `${FIXTURES}/generate_module`;
 const JSON_DERIVE = `${FIXTURES}/json_derive`;
 
-// A driven build needs `stdlib/`, `runtime/c/` and `vader/` reachable from the
+// A driven build needs `lib/`, `runtime/c/` and `vader/` reachable from the
 // project: the first two because the compiler resolves them beside the binary or
 // relative to the invocation directory, the third because a driver imports
 // `vader/hooks`. That is the layout a `dist/` bundle ships, so each run stages
@@ -65,7 +65,7 @@ const REPO = resolve(".");
 // read it in opposite directions: `stage()` links these in, and the bundle test
 // asserts their ABSENCE — a drift between the two would quietly weaken the very
 // thing that test pins.
-const TOOLCHAIN_LINKS = ["stdlib", "runtime", "vader"] as const;
+const TOOLCHAIN_LINKS = ["lib", "runtime", "vader"] as const;
 
 // The staged copy starts CLEAN. Nothing under `build/` is committed, but a dev who
 // ran `vader build` inside a fixture leaves a driver binary and its C there, and
@@ -324,8 +324,9 @@ for (const name of fixtures) {
 // expectation, and the project's own tests run afterwards. These are the
 // properties that do not fit that shape.
 
-// A `dist/` bundle is a LAYOUT, not a project — binary at the root, `stdlib/`,
-// `runtime/c/` and `lib/vader/` beside it. Assembling one by copy + symlink costs
+// A `dist/` bundle is a LAYOUT, not a project — binary at the root, then ONE
+// module root `lib/` (holding `std/` and the compiler's `vader/`) plus
+// `runtime/c/` beside it. Assembling one by copy + symlink costs
 // nothing, and it is the only way to exercise what a real install does: the
 // staged-project symlinks every other test uses are exactly what masked the gap
 // this pins.
@@ -337,6 +338,9 @@ for (const name of fixtures) {
 function stageBundle(): string {
   const dir = mkdtempSync(`${tmpdir()}/vader-bundle-`);
   mkdirSync(`${dir}/runtime`);
+  // `lib/` is a real directory, not a link to the repo's: the bundle puts TWO
+  // namespaces under it — `std/` from the checkout's `lib/`, and the compiler's
+  // own sources — and they come from different places in the tree.
   mkdirSync(`${dir}/lib`);
   // Keep the platform's executable NAME: on Windows it is `vader.exe`, and a
   // bundle holding a `vader` cannot be spawned (`ENOENT` from `uv_spawn`).
@@ -345,16 +349,16 @@ function stageBundle(): string {
   if (process.platform === "darwin") {
     Bun.spawnSync(["codesign", "-s", "-", exe]);
   }
-  symlinkSync(`${REPO}/stdlib`, `${dir}/stdlib`);
-  symlinkSync(`${REPO}/runtime/c`, `${dir}/runtime/c`);
+  symlinkSync(`${REPO}/lib/std`, `${dir}/lib/std`);
   symlinkSync(`${REPO}/vader`, `${dir}/lib/vader`);
+  symlinkSync(`${REPO}/runtime/c`, `${dir}/runtime/c`);
   return dir;
 }
 
 test.concurrent("a bundle drives a build with nothing beside the project", async () => {
   // REASON: a bundle is not a staged project, and three separate lookups have to
   // land: the driver's own `import "vader/hooks"` (bundle `lib/vader/`), the
-  // project's `std/*` (bundle `stdlib/`), and `vader_runtime.c` at the link step
+  // project's `std/*` (bundle `lib/std/`), and `vader_runtime.c` at the link step
   // (bundle `runtime/c/`). The project directory has NO symlinks — the driver
   // runs as `<project>/build/driver/driver`, so every probe relative to ITSELF
   // looks inside the project and finds nothing.
