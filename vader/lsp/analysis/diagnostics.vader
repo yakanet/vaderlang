@@ -15,7 +15,7 @@
 module "vader/lsp/analysis"
 
 import "std/collections"
-import "std/json"
+import "json"
 import "vader/diagnostics"
 import "vader/resolver"
 import "vader/typecheck"

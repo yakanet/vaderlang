@@ -26,7 +26,7 @@
                   arg0:
                     call :string
                       callee:
-                        std_semver$Version$Display$to_string :string
+                        semver$Version$Display$to_string :string
                       arg0:
                         ver :Version
                 let base: Version =
@@ -84,7 +84,7 @@
                                   cond:
                                     call :bool
                                       callee:
-                                        std_semver$VersionRange$Contains$contains :bool
+                                        semver$VersionRange$Contains$contains :bool
                                       arg0:
                                         rg :VersionRange
                                       arg1:

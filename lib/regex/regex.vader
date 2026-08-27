@@ -24,7 +24,7 @@
 //
 // Pure Vader, zero host imports — WASM-ready as-is.
 
-module "std/regex"
+module "regex"
 
 import "std/string"
 import "std/string_builder"

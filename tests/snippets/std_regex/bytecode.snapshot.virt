@@ -1,7 +1,7 @@
 module _main
 type 0 primitive null
 type 1 primitive string
-type 2 struct std_regex$Pattern { insts:25,group_count:7 }
+type 2 struct regex$Pattern { insts:25,group_count:7 }
 type 3 primitive void
 type 4 primitive i32
 type 5 primitive char
@@ -13,32 +13,32 @@ type 10 array 11
 type 11 primitive u8
 type 12 array 1
 type 13 union 14,0
-type 14 struct std_regex$Match { start:7,end:7,groups:12 }
+type 14 struct regex$Match { start:7,end:7,groups:12 }
 type 15 union 2,16
-type 16 struct std_regex$RegexError { msg:1,position:7 }
+type 16 struct regex$RegexError { msg:1,position:7 }
 type 17 array 14
-type 18 struct std_regex$Parser { bytes:10,cursor:7,insts:25,next_group_id:7,depth:7 }
+type 18 struct regex$Parser { bytes:10,cursor:7,insts:25,next_group_id:7,depth:7 }
 type 19 union 0,16
 type 20 struct std_string_builder$StringBuilder { parts:12 }
 type 21 array 22
-type 22 struct std_regex$Thread { pc:7,groups:23 }
+type 22 struct regex$Thread { pc:7,groups:23 }
 type 23 array 7
-type 24 struct std_regex$InstClass { ranges:37,negated:6 }
+type 24 struct regex$InstClass { ranges:37,negated:6 }
 type 25 array 26
 type 26 union 27,28,29,30,24,31,32,33,34
-type 27 struct std_regex$InstAnchorEnd {  }
-type 28 struct std_regex$InstAnchorStart {  }
-type 29 struct std_regex$InstAny {  }
-type 30 struct std_regex$InstChar { c:5 }
-type 31 struct std_regex$InstJump { target:7 }
-type 32 struct std_regex$InstMatch {  }
-type 33 struct std_regex$InstSave { slot:7 }
-type 34 struct std_regex$InstSplit { a:7,b:7 }
+type 27 struct regex$InstAnchorEnd {  }
+type 28 struct regex$InstAnchorStart {  }
+type 29 struct regex$InstAny {  }
+type 30 struct regex$InstChar { c:5 }
+type 31 struct regex$InstJump { target:7 }
+type 32 struct regex$InstMatch {  }
+type 33 struct regex$InstSave { slot:7 }
+type 34 struct regex$InstSplit { a:7,b:7 }
 type 35 union 16,7
 type 36 union 5,16
 type 37 array 38
-type 38 struct std_regex$CharRange { lo:5,hi:5 }
-type 39 struct std_regex$WorkItem { pc:7,groups:23 }
+type 38 struct regex$CharRange { lo:5,hi:5 }
+type 39 struct regex$WorkItem { pc:7,groups:23 }
 type 40 struct __Tuple_60 { _0:5,_1:7 }
 type 41 array 39
 type 42 union 29,30,24,32
@@ -1002,7 +1002,7 @@ fn 11 std_io$println__string (string) -> void
   return
 end
 
-fn 12 std_regex$matches (ref,string) -> bool
+fn 12 regex$matches (ref,string) -> bool
   local $call_2 ref
   local.get 1
   call.import 2
@@ -1016,7 +1016,7 @@ fn 12 std_regex$matches (ref,string) -> bool
   return
 end
 
-fn 13 std_regex$find (ref,string) -> any
+fn 13 regex$find (ref,string) -> any
   local ib ref
   local start usize
   local $len_6 usize
@@ -1077,7 +1077,7 @@ fn 13 std_regex$find (ref,string) -> any
   return
 end
 
-fn 14 std_regex$compile (string) -> any
+fn 14 regex$compile (string) -> any
   local $call_1 ref
   local $arr_3 ref
   local $struct_10 ref
@@ -1176,7 +1176,7 @@ fn 14 std_regex$compile (string) -> any
   return
 end
 
-fn 15 std_regex$find_all (ref,string) -> ref
+fn 15 regex$find_all (ref,string) -> ref
   local ib ref
   local out ref
   local start usize
@@ -1277,7 +1277,7 @@ fn 15 std_regex$find_all (ref,string) -> ref
   return
 end
 
-fn 16 std_regex$replace_all (ref,string,string) -> string
+fn 16 regex$replace_all (ref,string,string) -> string
   local ib ref
   local rb ref
   local sb ref
@@ -1371,7 +1371,7 @@ fn 16 std_regex$replace_all (ref,string,string) -> string
   return
 end
 
-fn 17 std_regex$run_vm (ref,ref,usize,bool) -> any
+fn 17 regex$run_vm (ref,ref,usize,bool) -> any
   local $add_7 usize
   local current ref
   local next ref
@@ -1852,7 +1852,7 @@ fn 17 std_regex$run_vm (ref,ref,usize,bool) -> any
   return
 end
 
-fn 18 std_regex$run_at (ref,ref,usize) -> any
+fn 18 regex$run_at (ref,ref,usize) -> any
   local.get 0
   local.get 1
   local.get 2
@@ -1861,7 +1861,7 @@ fn 18 std_regex$run_at (ref,ref,usize) -> any
   return
 end
 
-fn 19 std_regex$codepoint_byte_advance (ref,usize) -> usize
+fn 19 regex$codepoint_byte_advance (ref,usize) -> usize
   local.get 0
   local.get 1
   call 45
@@ -1870,7 +1870,7 @@ fn 19 std_regex$codepoint_byte_advance (ref,usize) -> usize
   return
 end
 
-fn 20 std_regex$parse_alternation (ref) -> any
+fn 20 regex$parse_alternation (ref) -> any
   local branch_start usize
   local err1 any
   local $field_8 usize
@@ -2228,7 +2228,7 @@ fn 20 std_regex$parse_alternation (ref) -> any
   return
 end
 
-fn 21 std_regex$expand_replacement (ref,ref,ref) -> void
+fn 21 regex$expand_replacement (ref,ref,ref) -> void
   local n usize
   local i usize
   local and_res bool
@@ -2365,7 +2365,7 @@ fn 21 std_regex$expand_replacement (ref,ref,ref) -> void
   return
 end
 
-fn 22 std_regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
+fn 22 regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
   local stack ref
   local $sub_16 usize
   local item ref
@@ -2556,7 +2556,7 @@ fn 22 std_regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
   return
 end
 
-fn 23 std_regex$resolve_slot (usize,usize) -> usize
+fn 23 regex$resolve_slot (usize,usize) -> usize
   local.get 0
   i64.const -1
   i64.eq
@@ -2568,7 +2568,7 @@ fn 23 std_regex$resolve_slot (usize,usize) -> usize
   return
 end
 
-fn 24 std_regex$captured_groups (ref,ref) -> ref
+fn 24 regex$captured_groups (ref,ref) -> ref
   local n_groups usize
   local out ref
   local i usize
@@ -2658,7 +2658,7 @@ fn 24 std_regex$captured_groups (ref,ref) -> ref
   return
 end
 
-fn 25 std_regex$truncate_threads (ref,usize) -> ref
+fn 25 regex$truncate_threads (ref,usize) -> ref
   local out ref
   local i usize
   local $idx_7 ref
@@ -2692,7 +2692,7 @@ fn 25 std_regex$truncate_threads (ref,usize) -> ref
   return
 end
 
-fn 26 std_regex$class_matches (ref,char) -> bool
+fn 26 regex$class_matches (ref,char) -> bool
   local n usize
   local i usize
   local r ref
@@ -2752,7 +2752,7 @@ fn 26 std_regex$class_matches (ref,char) -> bool
   return
 end
 
-fn 27 std_regex$parse_concat (ref) -> any
+fn 27 regex$parse_concat (ref) -> any
   local $field_1 usize
   local $len_3 usize
   local $field_5 ref
@@ -2816,7 +2816,7 @@ fn 27 std_regex$parse_concat (ref) -> any
   return
 end
 
-fn 28 std_regex$extract_range (ref,usize,usize) -> ref
+fn 28 regex$extract_range (ref,usize,usize) -> ref
   local view ref
   local $arr_5 ref
   local $len_6 usize
@@ -2840,7 +2840,7 @@ fn 28 std_regex$extract_range (ref,usize,usize) -> ref
   return
 end
 
-fn 29 std_regex$truncate_to (ref,usize) -> ref
+fn 29 regex$truncate_to (ref,usize) -> ref
   local.get 0
   i64.const 0
   local.get 1
@@ -2848,7 +2848,7 @@ fn 29 std_regex$truncate_to (ref,usize) -> ref
   return
 end
 
-fn 30 std_regex$push_fragment_rebased (ref,ref,usize,usize,usize) -> void
+fn 30 regex$push_fragment_rebased (ref,ref,usize,usize,usize) -> void
   local shift usize
   local i usize
   local inst any
@@ -2932,7 +2932,7 @@ fn 30 std_regex$push_fragment_rebased (ref,ref,usize,usize,usize) -> void
   return
 end
 
-fn 31 std_regex$parse_atom_with_quantifier (ref) -> any
+fn 31 regex$parse_atom_with_quantifier (ref) -> any
   local atom_start usize
   local err any
   local $field_8 usize
@@ -3045,7 +3045,7 @@ fn 31 std_regex$parse_atom_with_quantifier (ref) -> any
   return
 end
 
-fn 32 std_regex$parse_atom (ref) -> any
+fn 32 regex$parse_atom (ref) -> any
   local $field_1 usize
   local $len_3 usize
   local $field_8 ref
@@ -3363,7 +3363,7 @@ fn 32 std_regex$parse_atom (ref) -> any
   return
 end
 
-fn 33 std_regex$apply_star (ref,usize) -> void
+fn 33 regex$apply_star (ref,usize) -> void
   local $field_2 ref
   local $len_4 usize
   local $call_8 ref
@@ -3430,7 +3430,7 @@ fn 33 std_regex$apply_star (ref,usize) -> void
   return
 end
 
-fn 34 std_regex$apply_plus (ref,usize) -> void
+fn 34 regex$apply_plus (ref,usize) -> void
   local split_pos usize
   local $field_5 ref
   local $struct_8 ref
@@ -3463,7 +3463,7 @@ fn 34 std_regex$apply_plus (ref,usize) -> void
   return
 end
 
-fn 35 std_regex$apply_optional (ref,usize) -> void
+fn 35 regex$apply_optional (ref,usize) -> void
   local $field_2 ref
   local $len_4 usize
   local $call_8 ref
@@ -3521,7 +3521,7 @@ fn 35 std_regex$apply_optional (ref,usize) -> void
   return
 end
 
-fn 36 std_regex$apply_counted (ref,usize) -> any
+fn 36 regex$apply_counted (ref,usize) -> any
   local $field_2 ref
   local $field_3 usize
   local $add_12 usize
@@ -4735,7 +4735,7 @@ fn 36 std_regex$apply_counted (ref,usize) -> any
   return
 end
 
-fn 37 std_regex$parse_char_class (ref) -> any
+fn 37 regex$parse_char_class (ref) -> any
   local start_pos usize
   local $add_5 usize
   local negated bool
@@ -5017,7 +5017,7 @@ fn 37 std_regex$parse_char_class (ref) -> any
   return
 end
 
-fn 38 std_regex$parse_escape (ref) -> any
+fn 38 regex$parse_escape (ref) -> any
   local $add_3 usize
   local $len_6 usize
   local $field_11 ref
@@ -5238,7 +5238,7 @@ fn 38 std_regex$parse_escape (ref) -> any
   return
 end
 
-fn 39 std_regex$push_atom_rebased (ref,ref,usize) -> void
+fn 39 regex$push_atom_rebased (ref,ref,usize) -> void
   local $len_4 usize
   local.get 1
   array.len
@@ -5252,7 +5252,7 @@ fn 39 std_regex$push_atom_rebased (ref,ref,usize) -> void
   return
 end
 
-fn 40 std_regex$parse_decimal_usize (ref) -> any
+fn 40 regex$parse_decimal_usize (ref) -> any
   local $field_1 usize
   local $len_3 usize
   local or_res bool
@@ -5410,7 +5410,7 @@ fn 40 std_regex$parse_decimal_usize (ref) -> any
   return
 end
 
-fn 41 std_regex$read_class_char (ref) -> any
+fn 41 regex$read_class_char (ref) -> any
   local $field_1 usize
   local $len_3 usize
   local $field_8 ref
@@ -5542,7 +5542,7 @@ fn 41 std_regex$read_class_char (ref) -> any
   return
 end
 
-fn 42 std_regex$word_class_ranges () -> ref
+fn 42 regex$word_class_ranges () -> ref
   local $struct_2 ref
   local $struct_5 ref
   local $struct_8 ref
@@ -5571,7 +5571,7 @@ fn 42 std_regex$word_class_ranges () -> ref
   return
 end
 
-fn 43 std_regex$space_class_ranges () -> ref
+fn 43 regex$space_class_ranges () -> ref
   local $struct_2 ref
   local $struct_5 ref
   local $struct_8 ref

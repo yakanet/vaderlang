@@ -8,7 +8,7 @@
 module "vader/cli"
 
 import "std/io"
-import "std/cli"
+import "cli"
 
 // `vader help` prints the overview ; `vader help <action>` prints one action in
 // full — a view the old single help string couldn't give, and the reason it grew

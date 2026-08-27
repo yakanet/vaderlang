@@ -62,7 +62,7 @@ test_nested_struct_has_its_own_serialiser :: fn() -> void {
 @test
 test_every_field_kind_maps :: fn() -> void {
     // Every mapping the generator makes, in one value: a string carrying a quote
-    // (escaped by `std/json`, not by hand), an i32 as a bare number, a bool, a
+    // (escaped by `json`, not by hand), an i32 as a bare number, a bool, a
     // NESTED struct recursed through its own generated overload, and an array.
     p :: Person {
         .name   = "A\"B",

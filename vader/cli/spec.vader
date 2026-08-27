@@ -18,7 +18,7 @@
 
 module "vader/cli"
 
-import "std/cli"
+import "cli"
 Lsp :: import "vader/lsp"
 
 /// One-line description of the program, for the help's title line.

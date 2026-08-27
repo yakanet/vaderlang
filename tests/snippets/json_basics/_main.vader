@@ -1,7 +1,7 @@
 module "snippet"
 
 import "std/io"
-import "std/json"
+import "json"
 
 export show :: fn(label: string, src: string) -> void {
     parsed := parse(src)

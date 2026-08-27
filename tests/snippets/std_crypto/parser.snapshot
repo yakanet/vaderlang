@@ -16,7 +16,7 @@
     },
     {
       "kind": "ImportDecl",
-      "path": "std/crypto",
+      "path": "crypto",
       "binding": {
         "kind": "wildcard"
       },

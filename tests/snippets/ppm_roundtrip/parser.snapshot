@@ -16,7 +16,7 @@
     },
     {
       "kind": "ImportDecl",
-      "path": "std/images/ppm",
+      "path": "images/ppm",
       "binding": {
         "kind": "wildcard"
       },

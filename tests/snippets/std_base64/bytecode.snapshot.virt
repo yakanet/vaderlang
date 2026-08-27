@@ -12,7 +12,7 @@ type 9 array 10
 type 10 primitive u8
 type 11 array 1
 type 12 union 13,9
-type 13 struct std_base64$Base64Error { msg:1 }
+type 13 struct base64$Base64Error { msg:1 }
 type 14 struct std_string_builder$StringBuilder { parts:11 }
 string 0 "=ERR:"
 string 1 "="
@@ -634,7 +634,7 @@ fn 10 std_io$println__string (string) -> void
   return
 end
 
-fn 11 std_base64$decode (string) -> any
+fn 11 base64$decode (string) -> any
   local n usize
   local pad_count usize
   local $sub_15 usize
@@ -1710,7 +1710,7 @@ fn 11 std_base64$decode (string) -> any
   return
 end
 
-fn 12 std_base64$encode (ref) -> string
+fn 12 base64$encode (ref) -> string
   local bs ref
   local n usize
   local sb ref
@@ -1983,7 +1983,7 @@ fn 12 std_base64$encode (ref) -> string
   return
 end
 
-fn 13 std_base64$decode_byte (u8) -> i32
+fn 13 base64$decode_byte (u8) -> i32
   local and_res bool
   local if_res i32
   local.get 0

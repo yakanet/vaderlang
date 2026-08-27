@@ -16,7 +16,7 @@
     },
     {
       "kind": "ImportDecl",
-      "path": "std/cli",
+      "path": "cli",
       "binding": {
         "kind": "wildcard"
       },

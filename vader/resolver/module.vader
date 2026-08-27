@@ -269,7 +269,7 @@ export module_from_library :: fn(m: Module, roots: string[]) -> bool {
     return false
 }
 
-import "std/json"
+import "json"
 
 /// The loader-relevant fields of a project `vader.json`, read in one pass.
 export Manifest :: struct {

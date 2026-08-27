@@ -8,7 +8,7 @@
   "decls": [
     {
       "kind": "ImportDecl",
-      "path": "std/semver",
+      "path": "semver",
       "binding": {
         "kind": "wildcard"
       },

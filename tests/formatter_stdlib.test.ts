@@ -1,4 +1,5 @@
-// Stdlib formatter checks over EVERY `lib/std/**/*.vader` (recursively). Three
+// Formatter checks over EVERY `lib/**/*.vader` — every namespace the toolchain
+// ships, not `std/` alone (see `listLibraryFiles`). Three
 // contracts, weakest to strongest :
 //
 //   1. reparse-after-format — the formatted output parses with zero errors.
@@ -19,13 +20,16 @@ import { CLI_BIN, MEDIUM_BUILD, runCli } from "./cli-bin.ts";
 
 const ENABLED = process.env.RUN_FMT_TESTS === "1";
 
-const STDLIB_ROOT = join(process.cwd(), "lib", "std");
+const LIBRARY_ROOT = join(process.cwd(), "lib");
 
-// Every `*.vader` anywhere under `lib/std/`. The stdlib is organised into
-// per-module folders (`core/`, `string/`, `collections/`, …), so this MUST
-// recurse — a flat `readdirSync` finds nothing and silently tests zero files.
-function listStdlibFiles(): string[] {
-  if (!existsSync(STDLIB_ROOT)) return [];
+// Every `*.vader` anywhere under `lib/`. Two ways this silently tests less than
+// it claims, both paid for: it MUST recurse, since modules are per-folder
+// (`std/core/`, `std/string/`, …) and a flat `readdirSync` finds nothing; and it
+// must start at `lib/`, not `lib/std/`, since the libraries that left `std/`
+// (json, regex, semver, cli, crypto, base64, random, images) are namespaces of
+// their own — naming `std` dropped 5 446 LoC from this corpus without a word.
+function listLibraryFiles(): string[] {
+  if (!existsSync(LIBRARY_ROOT)) return [];
   const out: string[] = [];
   const walk = (dir: string) => {
     for (const ent of readdirSync(dir, { withFileTypes: true })) {
@@ -34,7 +38,7 @@ function listStdlibFiles(): string[] {
       else if (ent.name.endsWith(".vader")) out.push(full);
     }
   };
-  walk(STDLIB_ROOT);
+  walk(LIBRARY_ROOT);
   return out.sort();
 }
 
@@ -91,10 +95,10 @@ async function reparseErrors(path: string): Promise<string> {
   return (stdout + stderr).split("\n").filter((l) => l.includes("error[")).join("\n");
 }
 
-for (const path of listStdlibFiles()) {
+for (const path of listLibraryFiles()) {
   const base = path.slice(path.lastIndexOf("/") + 1);
 
-  test(`stdlib reparse after format : ${base}`, async () => {
+  test(`library reparse after format : ${base}`, async () => {
     if (!ENABLED) return;
     const formatted = fmtStdout(path);
     const tmp = join(process.cwd(), `.tmp-fmt-stdlib-reparse-${base}`);
@@ -106,7 +110,7 @@ for (const path of listStdlibFiles()) {
     }
   }, { timeout: MEDIUM_BUILD });
 
-  test(`stdlib idempotent : ${base}`, async () => {
+  test(`library idempotent : ${base}`, async () => {
     if (!ENABLED) return;
     if (UNSTABLE_IDEMPOTENCY.has(base)) return;
     const f1 = fmtStdout(path);
@@ -115,7 +119,7 @@ for (const path of listStdlibFiles()) {
   }, { timeout: MEDIUM_BUILD });
 
   if (NO_OP_FILES.has(base)) {
-    test(`stdlib byte-for-byte no-op : ${base}`, async () => {
+    test(`library byte-for-byte no-op : ${base}`, async () => {
       if (!ENABLED) return;
       const src = readFileSync(path, "utf8");
       const formatted = fmtStdout(path);

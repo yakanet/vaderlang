@@ -19,7 +19,7 @@ import { join } from "node:path";
 // `std/core` `bytes` primitive, the memory opcodes), so this suite must spawn
 // the self-hosted binary, which is the snapshot/run oracle everywhere else.
 import { runCli, LONG_BUILD } from "./cli-bin.ts";
-import { containsTestFn } from "./vader-sources.ts";
+import { containsTestFn, holdsTestFile } from "./vader-sources.ts";
 
 /** Top-level subdirs of `root` that contain at least one `.vader` file
  *  carrying a `@test` decorator. Filtering keeps `vader test <dir>` from
@@ -71,11 +71,35 @@ function registerModuleTest(dir: string): void {
   }, { timeout: LONG_BUILD });
 }
 
-// Every namespace under `lib/`, not `lib/std` by name: a named root silently
-// stops discovering the next namespace added, and an undiscovered module is
-// simply skipped (no failure, no warning). That is how moving the build contract
-// out of `vader/` took 33 tests out of the suite without a word.
-for (const ns of readdirSync("lib")) {
-  for (const dir of findTestModules(join("lib", ns))) registerModuleTest(dir);
+/** Every module directory at or under `root` that carries a `@test`.
+ *
+ *  Recursive, unlike `findTestModules`, because `lib/` is not one level deep:
+ *  `lib/std/json` is a module and so is `lib/json`, and so is `lib/images/ppm`.
+ *  Naming the levels is how discovery silently loses modules — first `lib/std`
+ *  by name when the build contract moved out of `vader/` (33 tests, no warning),
+ *  then `lib/<ns>` when the libraries left `std/` and every one of them became a
+ *  leaf (25 more). An undiscovered module is simply skipped (CLAUDE §11.1), so
+ *  the walk asks the only question that cannot drift: does this directory hold a
+ *  test? */
+function findTestModulesDeep(root: string): string[] {
+  const dirs: string[] = [];
+  const visit = (dir: string) => {
+    // Vader module paths are always slash-separated; `join` yields `\` on
+    // Windows, which would miss the `KNOWN_NATIVE_GAPS` lookup.
+    const norm = dir.replaceAll("\\", "/");
+    // DIRECTLY, not transitively: `containsTestFn` recurses, which would also
+    // register the container directories (`lib/std`, `lib/toolchain`,
+    // `lib/images`) as if they were modules and re-run their whole subtree.
+    if (holdsTestFile(norm)) dirs.push(norm);
+    for (const ent of readdirSync(dir, { withFileTypes: true })) {
+      if (ent.isDirectory()) visit(join(dir, ent.name));
+    }
+  };
+  for (const ent of readdirSync(root, { withFileTypes: true })) {
+    if (ent.isDirectory()) visit(join(root, ent.name));
+  }
+  return dirs.sort();
 }
+
+for (const dir of findTestModulesDeep("lib")) registerModuleTest(dir);
 for (const dir of findTestModules("vader")) registerModuleTest(dir);

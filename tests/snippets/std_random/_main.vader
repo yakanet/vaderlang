@@ -6,7 +6,7 @@
 module "snippet"
 
 import "std/io"
-import "std/random"
+import "random"
 
 main :: fn() -> i32 {
     // Determinism : two RNGs with the same seed produce the same first

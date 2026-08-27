@@ -72,7 +72,7 @@ derive_module :: fn(ctx: BuildContext!, t: TypecheckedMessage) -> void {
     }
     out :: StringBuilder {}
     out.append("import \"std/collections\"\n")
-    out.append("J :: import \"std/json\"\n")
+    out.append("J :: import \"json\"\n")
     for s in structs {
         render_struct(ctx, out, s, names)
     }
