@@ -592,6 +592,16 @@ export dead_exports :: fn(decls: AST.Decl[], module_name: string) -> DeadExport[
 /// whether the project exposed a `main` (its reachability seed). A rootless
 /// project (`has_main == false`) yields no findings — callers surface an
 /// under-report warning instead of trusting the empty list.
+///
+/// ⚠️ A build driver's `build` is deliberately NOT accepted as that seed, unlike
+/// in W0007's per-module roots. Rooting it makes the lint RUN on a driven
+/// project, whose closure is the whole compiler — and every compiler export the
+/// driver does not reach then reports as unused (51 of them, measured), all of
+/// them alive and called by `vader/cli`, which is not in that closure. Running it
+/// needs a scope predicate first: "was this module provided by a TOOLCHAIN root or
+/// by the project?", which `module_from_library` answers for `lib/` but not for
+/// the compiler, since a checkout reaches `vader/` through the project root — and
+/// there the compiler IS the project, where the lint must keep working.
 export UnusedExportReport :: struct {
     has_main: bool
     findings: DeadExport[]
