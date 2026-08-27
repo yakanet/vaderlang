@@ -30,10 +30,12 @@ module "vader/cli"
 
 import "std/io"
 import "std/path"
+import "std/string"
 import "std/string_builder"
 import "std/async"
 import "std/process"
 import "vader/diagnostics"
+import "std/crypto"
 AST :: import "vader/parser"
 import "vader/resolver"
 
@@ -60,6 +62,9 @@ export BUNDLED_SOURCE_DIR :: "lib"
 /// the project root. Under `build/` so a checkout's existing ignore rules cover
 /// it — the driver is a build artefact like any other.
 export DRIVER_ARTEFACT_DIR :: "build/driver"
+
+/// Stamp recording what the cached driver binary was built from, beside it.
+export DRIVER_STAMP_FILENAME :: "driver.stamp"
 
 /// Locate the project's build driver.
 ///
@@ -112,6 +117,62 @@ export compiler_source_root :: fn(root: string) -> string {
     // or at the project root (a checkout); anything else is a setup the user
     // should be told about rather than guessed around.
     return root
+}
+
+// ---- caching the driver binary --------------------------------------------
+
+/// Key identifying what the cached driver binary was built from.
+///
+/// Two inputs decide that binary: the driver source, and the compiler that
+/// compiles it. `build.vader` is hashed by content; the compiler by a SHA-256 of
+/// its own executable — **38 ms for 3.4 MB natively**, against an 8.2 s driver
+/// build, which is what makes checking cheaper than rebuilding.
+///
+/// ⚠️ Measure natively, not through `vader run`: the same hash takes 27 s in the
+/// VM, and reading that as a `std/crypto` problem is a mistake I made. The VM
+/// only ever runs the comptime table construction here.
+///
+/// What it deliberately does NOT catch: editing `vader/` or `stdlib/` sources
+/// WITHOUT rebuilding the compiler. The driver is compiled from those sources, so
+/// a cached driver would then be stale. Hashing both trees is affordable too
+/// (284 files, 4.6 MB) but the case is a compiler-developer one, and this repo's
+/// own test harness already refuses to run against a `build/vader` older than its
+/// sources — so the binary hash tracks it in practice. Delete `build/driver/` to
+/// force a rebuild.
+///
+/// @param driver_path  the project's `build.vader`.
+/// @return             a key that changes when either input does.
+driver_input_key :: fn(driver_path: string) -> string {
+    src :: read_file_string(driver_path)
+    driver_hash :: match src {
+        is string as text -> text.hash()
+        is IOError        -> 0
+    }
+    exe :: read_file_bytes(current_executable_location())
+    compiler_hash :: match exe {
+        is u8[] as bytes -> sha256(bytes)
+        is IOError       -> ""
+    }
+    return "${driver_hash}-${compiler_hash}"
+}
+
+/// True when the cached driver binary can be reused for `key`.
+///
+/// Both halves matter: the stamp says what the binary was built from, and the
+/// binary has to still be there — `build/` is a directory users delete.
+///
+/// @param binary  the cached driver binary.
+/// @param stamp   the file recording its input key.
+/// @param key     the key of the current inputs.
+driver_is_fresh :: fn(binary: string, stamp: string, key: string) -> bool {
+    if !exists(binary) {
+        return false
+    }
+    recorded :: read_file_string(stamp)
+    if recorded is IOError {
+        return false
+    }
+    return recorded.trim() == key
 }
 
 // ---- generated entry ------------------------------------------------------
@@ -250,32 +311,22 @@ export run_build_driver :: fn(root: string, cc: string, ldflags: string, units: 
         return 1
     }
 
-    entry :: driver_entry_path(root)
-    written :: write_file_string(entry, render_driver_entry())
-    if written is IOError as e {
-        eprintln("vader build: cannot write the build entry at ${entry}: ${e.msg}")
-        return 1
-    }
-
     // Artefacts go under `build/`, not the project root: a driven build should
     // not litter the directory the user works in. `create_dir` makes the path
     // rather than requiring it to exist.
     artefacts :: join_path(root, DRIVER_ARTEFACT_DIR)
-    made :: create_dir(artefacts)
-    if made is IOError as ce {
-        eprintln("vader build: cannot create ${artefacts}: ${ce.msg}")
-        remove_entry(entry)
-        return 1
-    }
     binary :: join_path(artefacts, "driver")
-    // The driver is a normal native build; `vader/hooks` resolves through the
-    // compiler's own sources, and the driver's module through the entry's folder.
-    code :: build_native(Path(entry), binary, false, cc, ldflags, [compiler_source_root(root)], units)
-    // Remove the shim whether or not the build worked: leaving a generated file
-    // behind after a failure is how a stale one gets compiled next time.
-    remove_entry(entry)
-    if code != 0 {
-        return code
+    stamp  :: join_path(artefacts, DRIVER_STAMP_FILENAME)
+    key    :: driver_input_key(driver)
+
+    // Compiling a driver compiles the WHOLE compiler — 274k lines of C, 8.2 s —
+    // and it produces the same binary every time its inputs are unchanged, which
+    // for anyone iterating on their project is every build but the first.
+    if !driver_is_fresh(binary, stamp, key) {
+        build_code :: rebuild_driver(root, artefacts, binary, stamp, key, cc, ldflags, units)
+        if build_code != 0 {
+            return build_code
+        }
     }
 
     // Bounded: a driver is user code with no supervisor, and a `for { }` in one
@@ -309,6 +360,40 @@ export run_build_driver :: fn(root: string, cc: string, ldflags: string, units: 
         return result.exit
     }
     return 1
+}
+
+// Write the entry shim, compile the driver, record what it was built from.
+//
+// The shim is removed whether or not the build worked: leaving a generated file
+// behind after a failure is how a stale one gets compiled next time. The stamp is
+// written only on success, so a failed build never looks fresh.
+rebuild_driver :: fn(
+    root: string, artefacts: string, binary: string, stamp: string, key: string,
+    cc: string, ldflags: string, units: i32,
+) -> i32 {
+    entry :: driver_entry_path(root)
+    written :: write_file_string(entry, render_driver_entry())
+    if written is IOError as e {
+        eprintln("vader build: cannot write the build entry at ${entry}: ${e.msg}")
+        return 1
+    }
+    made :: create_dir(artefacts)
+    if made is IOError as ce {
+        eprintln("vader build: cannot create ${artefacts}: ${ce.msg}")
+        remove_entry(entry)
+        return 1
+    }
+    // The driver is a normal native build; `vader/hooks` resolves through the
+    // compiler's own sources, and the driver's module through the entry's folder.
+    code :: build_native(Path(entry), binary, false, cc, ldflags, [compiler_source_root(root)], units)
+    remove_entry(entry)
+    if code != 0 {
+        return code
+    }
+    // A stamp we cannot write is not fatal — it only costs the next build a
+    // rebuild, which is what happens today anyway.
+    _ :: write_file_string(stamp, key)
+    return 0
 }
 
 /// How long a driver may run before the build gives up on it.
