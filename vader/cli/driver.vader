@@ -66,6 +66,15 @@ export DRIVER_ARTEFACT_DIR :: "build/driver"
 /// Stamp recording what the cached driver binary was built from, beside it.
 export DRIVER_STAMP_FILENAME :: "driver.stamp"
 
+/// Split-unit count for the driver's own `cc` step, floor.
+///
+/// `--parallel` is opt-in for a normal build because a split build is not
+/// byte-identical to the mono one. That argument does not apply to a driver: it
+/// is a build artefact nobody diffs or ships. Measured 8.2 s mono against 5.2 s
+/// at 8 units, for the SAME total CPU (7.84 s vs 7.91 s user) — so it spends idle
+/// cores when there are any and costs nothing when there are not.
+export DRIVER_CC_UNITS :: 8
+
 /// Locate the project's build driver.
 ///
 /// Looked up in `root` only — no walk up the tree. A driver governs the project
@@ -385,7 +394,10 @@ rebuild_driver :: fn(
     }
     // The driver is a normal native build; `vader/hooks` resolves through the
     // compiler's own sources, and the driver's module through the entry's folder.
-    code :: build_native(Path(entry), binary, false, cc, ldflags, [compiler_source_root(root)], units)
+    // Never fewer units than `DRIVER_CC_UNITS`, whatever the user asked of their
+    // own build — see the constant.
+    driver_units :: if units > DRIVER_CC_UNITS { units } else { DRIVER_CC_UNITS }
+    code :: build_native(Path(entry), binary, false, cc, ldflags, [compiler_source_root(root)], driver_units)
     remove_entry(entry)
     if code != 0 {
         return code
