@@ -165,27 +165,6 @@ driver_input_key :: fn(driver_path: string) -> string {
     return "${driver_hash}-${compiler_hash}"
 }
 
-/// The driver binary as the LINKER named it, or null when it produced none.
-///
-/// `cc -o driver` writes `driver` on Unix and **`driver.exe`** on Windows —
-/// verified with mingw-w64: gcc appends `.exe` when `-o` carries no extension.
-/// The stdlib exposes no platform query, so rather than guess the suffix this
-/// asks the filesystem which name appeared. Without it a driven build cannot work
-/// on Windows at all: the spawn misses, so the driver never runs and the project
-/// is never built.
-///
-/// @param base  the `-o` path handed to the linker.
-linked_binary :: fn(base: string) -> string | null {
-    if exists(base) {
-        return base
-    }
-    with_exe :: "${base}.exe"
-    if exists(with_exe) {
-        return with_exe
-    }
-    return null
-}
-
 /// True when the cached driver binary can be reused for `key`.
 ///
 /// Both halves matter: the stamp says what the binary was built from, and the

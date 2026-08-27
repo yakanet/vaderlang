@@ -141,8 +141,36 @@ export link_native :: fn(
         eprintln("(generated C kept at ${c_file})")
         return 1
     }
-    eprintln("vader build: wrote ${out} (and ${c_file})")
+    // Report the file that EXISTS, not the `-o` we asked for: on Windows they
+    // differ, and naming one the user cannot find is worse than naming the
+    // platform's own convention.
+    linked :: linked_binary(out.as_string()) ?? out.as_string()
+    eprintln("vader build: wrote ${linked} (and ${c_file})")
     return 0
+}
+
+/// A linked executable as the LINKER named it, or null when none appeared.
+///
+/// `cc -o app` writes `app` on Unix and **`app.exe`** on Windows — gcc appends
+/// the suffix when `-o` carries no extension, verified with mingw-w64. The stdlib
+/// exposes no platform query, so rather than guess the suffix this asks the
+/// filesystem which name turned up.
+///
+/// This does NOT make `vader build --out=app && ./app` portable, and no design
+/// would: on Windows the artefact IS `app.exe`, because an extension-less file is
+/// not executable there. What it fixes is the compiler claiming a name it did not
+/// produce, and callers that assumed the bare one.
+///
+/// @param base  the `-o` path handed to the linker.
+export linked_binary :: fn(base: string) -> string | null {
+    if exists(base) {
+        return base
+    }
+    with_exe :: "${base}.exe"
+    if exists(with_exe) {
+        return with_exe
+    }
+    return null
 }
 
 /// Default output name for an input: its path minus the recognised suffix.

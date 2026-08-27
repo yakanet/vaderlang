@@ -45,7 +45,8 @@ test("membuf .virt -> C emits the buffer ABI helpers (not stubs)", async () => {
 
 test("membuf survives a forced moving collection (G1)", async () => {
   const dir = mkdtempSync(join(tmpdir(), "membuf-"));
-  const bin = join(dir, "membuf");
+  // `cc -o membuf` writes `membuf.exe` on Windows — the linker names it, not us.
+  const bin = join(dir, process.platform === "win32" ? "membuf.exe" : "membuf");
   const b = await runCli(
     ["build", "--target=native", "--release", `--out=${bin}`, FIXTURE],
     {},
