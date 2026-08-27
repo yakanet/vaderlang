@@ -36,22 +36,28 @@ auto-grow, so self-compiling needs no env tuning.
 - `build.ps1` — Windows counterpart (mingw-w64 gcc/clang). Run with
   `powershell -ExecutionPolicy Bypass -File bootstrap\build.ps1` ; `-CC clang`
   picks a different compiler, `-Dist` bundles `dist\vader-windows-<arch>\`.
-- `regenerate.sh` — re-emit the seed from `bootstrap.vader` (needs a `vader`
-  binary + a clean `vader/` tree). Commit the bump as a separate
-  `chore(bootstrap): bump seed` commit. A no-op when the seed comes out
-  byte-identical — it leaves `VERSION` untouched rather than manufacturing a diff.
-- `check-seed.sh` — **owns** the question "is the committed seed what the current
-  sources would emit?". `regenerate.sh`, `push.sh`, `verify.sh` and the pre-push
-  hook all defer to it rather than re-emitting the seed themselves, so the
-  emission flags and the compiler lookup exist in exactly one place. Exit `0`
-  fresh, `1` stale, `2` could-not-tell (no usable compiler, or one older than the
-  sources — never reported as "stale"). Answers from git alone when nothing
-  affecting the seed has changed (~0.3 s), otherwise re-emits (~4 s); `--full`
-  forces the re-emission. On `1` it leaves the fresh C at
-  `build/bootstrap.check.c`, which is what `regenerate.sh` moves into place — one
-  compile per reseed, not two.
-- `push.sh` — push, reseeding and committing first if the seed is stale. The
-  one-command path for the per-push reseed cadence; arguments go to `git push`.
+- `seed.sh` — the seed's whole lifecycle, in three subcommands. It is one script
+  because it is one artefact: the list of source trees the seed depends on, and
+  the probe for one of them having moved, are shared by all three, and four
+  separate files are what let that list drift out of step with itself.
+  - `seed.sh check [--quiet] [--full]` — **owns** the question "is the committed
+    seed what the current sources would emit?". `regenerate`, `push`, `verify.sh`
+    and the pre-push hook all defer to it rather than re-emitting the seed
+    themselves, so the emission flags and the compiler lookup exist in exactly one
+    place. Exit `0` fresh, `1` stale, `2` could-not-tell (no usable compiler, one
+    older than the sources, or a source tree missing — never reported as "stale").
+    Answers from git alone when nothing affecting the seed has changed (~0.3 s),
+    otherwise re-emits (~4 s); `--full` forces the re-emission. On `1` it leaves
+    the fresh C at `build/bootstrap.check.c`, which is what `regenerate` moves
+    into place — one compile per reseed, not two.
+  - `seed.sh regenerate` — re-emit the seed from `bootstrap.vader` (needs a
+    `vader` binary + a clean tree across every source dir the seed depends on, not
+    just `vader/`: the seed embeds the stdlib it compiled). Commit the bump as a
+    separate `chore(bootstrap): bump seed` commit. A no-op when the seed comes out
+    byte-identical — it leaves `VERSION` untouched rather than manufacturing a
+    diff.
+  - `seed.sh push [git push args…]` — push, reseeding and committing first if the
+    seed is stale. The one-command path for the per-push reseed cadence.
 - `verify.sh` — fixed-point check: builds the toolchain via `build.sh`, then
   confirms stage1 and stage2 emit identical C for `main.vader` and the committed
   seed is fresh.
@@ -60,7 +66,7 @@ auto-grow, so self-compiling needs no env tuning.
 
 Reseed at the **push** boundary, not after every chantier: batching that way takes
 the accumulated history from 460 KB to 60 KB over the same development interval
-(−87 %, measured on 8 real consecutive seeds). Use `push.sh`, and enable the
+(−87 %, measured on 8 real consecutive seeds). Use `seed.sh push`, and enable the
 safety net once per clone:
 
 ```sh

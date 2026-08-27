@@ -14,10 +14,10 @@
 # the whole point: a stale seed still builds the tree, which the CI `seed-rebuild`
 # job proves on every push.
 #
-# The freshness question itself belongs to bootstrap/check-seed.sh — including its
+# The freshness question itself belongs to `bootstrap/seed.sh check` — including its
 # cheap git-only path, so a docs-only push costs no compile at all.
 #
-# The happy path in one command:  bootstrap/push.sh
+# The happy path in one command:  bootstrap/seed.sh push
 # To publish anyway:              git push --no-verify
 #
 # Installed via `git config core.hooksPath .githooks` — see bootstrap/README.md.
@@ -51,7 +51,7 @@ fi
 # stdout carries the resolved compiler path, which is of no interest here — only
 # the verdict (exit code) and the diagnosis (stderr) are.
 set +e
-./bootstrap/check-seed.sh >/dev/null
+./bootstrap/seed.sh check >/dev/null
 verdict=$?
 set -e
 
@@ -71,10 +71,10 @@ log "$bold" "STALE SEED — bootstrap/bootstrap.c no longer matches bootstrap.va
 log "$bold" ""
 log "$bold" "  Every pushed commit is meant to carry a byte-fresh seed. Reseed, then push:"
 log "$bold" ""
-log "$bold" "    bootstrap/regenerate.sh"
+log "$bold" "    bootstrap/seed.sh regenerate"
 log "$bold" "    git commit -m 'chore(bootstrap): bump seed' bootstrap/bootstrap.c bootstrap/VERSION"
 log "$bold" "    git push"
 log "$bold" ""
-log "$bold" "  Or in one command:  bootstrap/push.sh"
+log "$bold" "  Or in one command:  bootstrap/seed.sh push"
 log "$bold" "  To publish anyway:  git push --no-verify"
 exit 1
