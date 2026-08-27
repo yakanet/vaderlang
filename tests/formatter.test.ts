@@ -13,7 +13,7 @@
 // registers and passes.
 
 import { test, expect } from "bun:test";
-import { existsSync, rmSync } from "node:fs";
+import { existsSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { CLI_BIN, MEDIUM_BUILD, runCli } from "./cli-bin.ts";
@@ -69,7 +69,15 @@ function fmtStdout(path: string): string {
 // have an in-memory string.
 function fmtString(source: string): string {
   const tmp = join(process.cwd(), ".tmp-fmt-roundtrip.vader");
-  Bun.write(tmp, source);
+  // `writeFileSync`, not `Bun.write`: this helper is SYNCHRONOUS, so an un-awaited
+  // `Bun.write` leaves the write in flight when `fmtStdout` spawns. Whether the
+  // bytes are there by then is platform-dependent — macOS says yes, Windows said
+  // no, and the whole file went red with an empty `fmt` output. It only ever
+  // worked because the cleanup was ALSO a deferred promise, so the file survived
+  // into the next call; making the delete synchronous exposed it. With all three
+  // steps synchronous nothing can interleave, which is also why the fixed temp
+  // name is safe.
+  writeFileSync(tmp, source);
   try {
     return fmtStdout(tmp);
   } finally {
