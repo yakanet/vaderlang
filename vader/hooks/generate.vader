@@ -281,6 +281,29 @@ export sweep_generated :: fn(dir: string) -> usize {
 
 import "std/testing"
 
+// Why a flush produced nothing — the four causes, spelled out for a CI log.
+//
+// `flush_generated` returning 0 has exactly four explanations: nothing was queued,
+// the target already existed, `create_dir` failed, or the write failed. The last
+// two leave an H6008 report that an `assert_eq` on the count alone throws away.
+// Three of these tests were red on Windows for weeks of CI runs saying only
+// "expected 1, got 0"; this is what makes the next failure diagnosable.
+flush_diagnosis :: fn(ctx: BuildContext, fresh: string[]) -> string {
+    out :: StringBuilder {}
+    out.append("fresh=${fresh.len()}")
+    out.append(" root=${generated_root_of(ctx)}")
+    out.append(" root_is_dir=${is_dir(generated_root_of(ctx))}")
+    out.append(" pending=${ctx.pending.len()}")
+    out.append(" written=${ctx.generated.len()}")
+    for f in ctx.generated {
+        out.append(" [${f} exists=${exists(f)}]")
+    }
+    for d in ctx.reports_of() {
+        out.append(" {${d.code.id}: ${d.detail}}")
+    }
+    return out.to_string()
+}
+
 @test test_render_declares_the_module :: fn() -> void {
     src :: render_generated_module("gen/serde", "to_json :: fn() -> string = \"{}\"\n")
     assert("module \"gen/serde\"" in src, "the compiler writes the header")
@@ -372,7 +395,7 @@ import "std/testing"
     _ :: sweep_generated(generated_root_of(ctx))
     ctx.emit_module("gen/probe", "probe :: fn() -> i32 = 7\n")
     fresh :: ctx.flush_generated()
-    assert_eq(fresh.len(), 1)
+    assert(fresh.len() == 1, "one module should have been written — ${flush_diagnosis(ctx, fresh)}")
     assert_eq(fresh[0], "gen/probe")
     files :: ctx.generated_files_of()
     assert_eq(files.len(), 1)
@@ -388,7 +411,7 @@ import "std/testing"
     _ :: sweep_generated(generated_root_of(ctx))
     ctx.emit_module("gen/probe", "probe :: fn() -> i32 = 7\n")
     first :: ctx.flush_generated()
-    assert_eq(first.len(), 1)
+    assert(first.len() == 1, "the first flush should write — ${flush_diagnosis(ctx, first)}")
     ctx.emit_module("gen/probe", "probe :: fn() -> i32 = 7\n")
     again :: ctx.flush_generated()
     assert_eq(again.len(), 0)
@@ -411,9 +434,10 @@ import "std/testing"
     ctx :: new_build_context(["driver", temp_dir()])
     ctx.generated_root = "vader_gen_probe_sweep"
     ctx.emit_module("gen/probe", "probe :: fn() -> i32 = 7\n")
-    _ :: ctx.flush_generated()
+    flushed :: ctx.flush_generated()
     removed :: sweep_generated(root)
-    assert_eq(removed, 1)
+    assert(removed == 1,
+        "the sweep should remove the one generated file — removed=${removed} ${flush_diagnosis(ctx, flushed)}")
     assert(exists(mine), "a file without the banner is not ours to delete")
     _ :: remove_file(mine)
 }
