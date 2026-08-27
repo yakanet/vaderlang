@@ -1,0 +1,25 @@
+# Subdirectories of vader/ a dist bundle does NOT ship — one per line.
+#
+# The bundle carries the compiler's sources so a project's `build.vader` can be
+# compiled against them. These six are outside that closure: they are the HUMAN
+# front-ends, reached through the binary rather than imported by a driver, and
+# nothing in the driver's closure imports them. Measured on the real import
+# graph: 622 KB of 3 966, 16 % of the shipped sources.
+#
+# Read by bootstrap/build.sh, bootstrap/build.ps1 and
+# tests/hook_driver.test.ts::stageBundle, which mirrors the trim so the
+# dist-bundle test exercises what a real install actually has.
+#
+# WHY AN EXCLUSION LIST AND NOT AN INCLUSION ONE. Both are named lists, and a
+# named list silently stops tracking what is added next — that is how `lib/std`
+# came to be copied by name while `toolchain/` never shipped. Here the direction
+# decides the failure mode: forget to exclude a new front-end and the bundle is
+# merely bigger than it needs to be; forget to include a new core module and
+# every driven build breaks. So the list names what to DROP, and being
+# out of date costs bytes rather than correctness.
+lsp
+fmt
+cli
+dap
+bootstrap
+version

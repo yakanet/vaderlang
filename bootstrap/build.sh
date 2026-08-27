@@ -81,6 +81,13 @@ if [ "$dist" = 1 ]; then
   # which is what makes this layout resolve.
   cp -R lib "$out/lib"
   cp -R vader "$out/lib/vader"
+  # Drop the human front-ends: reached through the binary, never imported by a
+  # driver. bootstrap/dist-exclude.txt is the one definition and says why the
+  # list names what to DROP rather than what to keep.
+  while read -r excluded; do
+    case "$excluded" in ""|\#*) continue ;; esac
+    rm -rf "$out/lib/vader/$excluded"
+  done < bootstrap/dist-exclude.txt
   cp -R runtime/c "$out/runtime/"
 
   printf '%b==> dist%b  %s ready — a self-contained toolchain (resolves lib/ + runtime/c/ next to the binary, so it runs — and drives builds — from any directory).\n' "$g" "$r" "$out"
