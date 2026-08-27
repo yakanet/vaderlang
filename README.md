@@ -143,6 +143,8 @@ dist\vader-windows-*\vader.exe --version
 
 Pass `-CC clang` to pick a different compiler, or drop `-Dist` to just build `build\vader.exe`. Alternatively, the MSYS2 *MINGW64* shell bundles `bash` and `gcc` (`pacman -S mingw-w64-x86_64-gcc`), so the Unix commands run unchanged. (WSL builds a *Linux* binary, not a Windows `.exe`.)
 
+**On Windows ARM64** neither of those works: WinLibs and MSYS2 ship x86_64/i686 hosts only, and mingw-w64 GCC still has no usable `aarch64-w64-mingw32` host build (native support is expected in GCC 17). Use [llvm-mingw](https://github.com/mstorsjo/llvm-mingw)'s `ucrt-aarch64` release with `-CC clang`. The x64 WinLibs toolchain does run under Prism emulation, which is the way to reproduce the exact `x86_64-w64-mingw32` triple CI builds with.
+
 ---
 
 ## CLI
@@ -238,6 +240,19 @@ bun run test:update                        # refresh snapshots after intentional
 bun run bench                              # measure + compare to bench/baseline.json (exits non-zero on >15% regression)
 RUN_FMT_TESTS=1 bun run test               # also exercise the Vader formatter end-to-end (slow, ~2 min)
 ```
+
+### Running the suite on Windows
+
+[`tools/windows-vm/`](./tools/windows-vm/) holds a Vagrant definition for a headless **Windows 11 ARM64** guest, so the `_WIN32` paths can be built and tested from a macOS or Linux terminal without waiting on CI. Unlike wine it is a real NT kernel, which is what makes it an oracle for the Windows-only surface — drive roots, path separators, CRLF stdio, pipes, process spawn.
+
+```sh
+cd tools/windows-vm && vagrant up   # once: boots the guest, installs clang/bun/pwsh
+bin/vwin build                      # push the tree, then the 3-stage bootstrap
+bin/vwin test                       # push the tree, then bun run test --only-failures
+bin/vwin test tests/lsp             # …scoped to a path
+```
+
+Measured: a full bootstrap in the guest runs in **~80 s** on an M-series Mac (6 vCPU), against ~4 min for the bootstrap step alone on a GitHub runner. It builds `aarch64` with clang, so it covers OS behaviour rather than the `x86_64-w64-mingw32` codegen CI uses — see the directory's README for that distinction and the rest of the setup.
 
 Snapshot tests live under `tests/snapshots/<phase>/<scenario>/` (an `input.vader` + a `*.snap`); set `UPDATE_SNAPSHOTS=1` to regenerate, then `git diff` to review. Contributor conventions: the AST is never mutated (each phase produces side-tables keyed by node identity), every phase emits `Diagnostic`s rather than throwing (codes namespaced `L0`/`P1`/`R2`/`T3`/`C4`/`W0`), and a single midir backbone feeds the VM, the C emitter, and the future WASM emitter. The architecture is documented in [`SPEC.md` §2](./SPEC.md); house rules are in [`CLAUDE.md`](./CLAUDE.md).
 

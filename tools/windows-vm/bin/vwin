@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+# tools/windows-vm/bin/vwin -- the one thing Vagrant does not provide for this
+# guest: getting the working tree onto it.
+#
+#   vwin sync [--clean]   push the tree onto the guest's NTFS at C:\vader
+#   vwin build [args]     sync, then bootstrap/build.ps1 -CC clang
+#   vwin test  [args]     sync, then bun run test --only-failures
+#
+# Everything else is plain Vagrant, run from tools/windows-vm:
+#
+#   vagrant up | halt | destroy | status | provision
+#   vagrant ssh                                  interactive PowerShell
+#   vagrant ssh -c "Set-Location C:/vader; ..."  one-off command
+#
+# `sync` exists because synced folders are deliberately off (see the
+# Vagrantfile) and `vagrant upload` cannot filter by .gitignore -- it would ship
+# node_modules/ and build/. So the tree is tarred through `git ls-files` first,
+# then handed to `vagrant upload`, which speaks the configured communicator.
+# Nothing is written outside .vagrant/: no host ssh config, no key in ~/.ssh.
+
+set -euo pipefail
+
+VM_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO="$(git -C "$VM_DIR" rev-parse --show-toplevel)"
+# Forward slashes throughout: every Win32 API accepts them, and they survive the
+# round trip through bash, ssh and PowerShell without backslash escaping.
+GUEST_REPO="C:/vader"
+GUEST_TARBALL="C:/Users/vagrant/vader-sync.tgz"
+
+vagrant_() { (cd "$VM_DIR" && vagrant "$@"); }
+
+# The guest's login shell is PowerShell (config.winssh.shell), which returns 0
+# whatever the command did -- hence the explicit exit, or a failed build would
+# read as a pass.
+guest() {
+    vagrant_ ssh -c "$1; if (\$null -ne \$LASTEXITCODE) { exit \$LASTEXITCODE }"
+}
+
+cmd_sync() {
+    local wipe=""
+    if [ "${1:-}" = "--clean" ]; then
+        wipe="Remove-Item -Recurse -Force $GUEST_REPO -ErrorAction SilentlyContinue; "
+    fi
+
+    local tarball
+    tarball="$(mktemp -t vader-sync)"
+
+    # --no-mac-metadata is load-bearing. macOS 26 stamps `com.apple.provenance`
+    # on every file; bsdtar on the Windows side turns each one back into a
+    # 163-byte AppleDouble sidecar, which handed the compiler 4215 bogus
+    # `._*.vader` sources and 31k R2020 diagnostics on the first real build.
+    # Two measured dead ends: `--no-xattrs` does NOT prevent it, and the flag
+    # only works on the CREATE side -- passing it to the guest's `tar -x`
+    # changes nothing. Never pass both flags: together they emit an empty
+    # archive.
+    git -C "$REPO" ls-files -z --cached --others --exclude-standard \
+        | tar --no-mac-metadata -czf "$tarball" -C "$REPO" --null -T -
+
+    vagrant_ upload "$tarball" "$GUEST_TARBALL" >/dev/null
+    rm -f "$tarball"
+    guest "${wipe}New-Item -ItemType Directory -Force $GUEST_REPO | Out-Null; tar -xzf $GUEST_TARBALL -C $GUEST_REPO; Remove-Item $GUEST_TARBALL"
+
+    printf 'synced %s -> %s\n' "$REPO" "$GUEST_REPO"
+}
+
+# pwsh, not powershell: the exact invocation .github/workflows/build.yml uses, so
+# a divergence here is a real divergence and not a shell artefact.
+cmd_build() {
+    cmd_sync
+    guest "Set-Location $GUEST_REPO; pwsh -NoProfile -File bootstrap/build.ps1 -CC clang $*"
+}
+
+cmd_test() {
+    cmd_sync
+    guest "Set-Location $GUEST_REPO; bun run test --only-failures $*"
+}
+
+case "${1:-}" in
+    sync)  shift; cmd_sync "$@" ;;
+    build) shift; cmd_build "$@" ;;
+    test)  shift; cmd_test "$@" ;;
+    ""|-h|--help|help)
+        awk 'NR == 1 { next } /^#/ { sub(/^# ?/, ""); print; next } { exit }' "${BASH_SOURCE[0]}" ;;
+    *)     printf 'vwin: unknown command %s -- try %s help\n' "$1" "vwin" >&2; exit 1 ;;
+esac

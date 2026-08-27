@@ -1,0 +1,82 @@
+# tools/windows-vm/Vagrantfile -- a headless Windows 11 ARM64 guest, driven
+# entirely from a macOS terminal over SSH.
+#
+# Why it exists: wine is not a Windows oracle (TODO.md, "Where wine belongs" --
+# its GetFileAttributesA("C:") succeeds, so it never reproduced the drive-root
+# bug), and the real `windows-latest` CI job costs a ~12 min round trip. This is
+# a genuine NT kernel on Apple Silicon, accelerated by Hypervisor.framework, so
+# the 28 `_WIN32` branches of runtime/c/vader_runtime.c can be exercised here.
+#
+# What it does NOT cover: CI targets x86_64-w64-mingw32 with gcc, this guest
+# builds aarch64 with clang. It is an oracle for OS semantics -- drive roots,
+# path separators, CRLF, pipes, process spawn -- not for x86 codegen. Install an
+# x86_64 mingw here and let Prism emulate it if that axis ever matters.
+#
+# Everything is driven by bin/vwin. See README.md.
+
+Vagrant.configure("2") do |config|
+  # The Windows 11 box published for arm64 (VirtualBox + VMware Fusion only).
+  # Packer-built from Microsoft media, released monthly. `box_architecture` is
+  # mandatory -- the registry serves amd64 by default, which would fall back to
+  # TCG emulation and turn a 90 s bootstrap into a night.
+  config.vm.box              = "gusztavvargadr/windows-11-25h2-professional"
+  config.vm.box_architecture = "arm64"
+
+  # The box's own Vagrantfile declares `winrm`; we override it. The image
+  # already auto-starts sshd with the insecure Vagrant key installed at
+  # C:/Users/vagrant/.ssh/authorized_keys (upstream
+  # src/windows/vagrant/Autounattend.ps1), and `winssh` is Vagrant's
+  # Windows-over-OpenSSH communicator -- that is what makes `vagrant ssh`, and
+  # plain `ssh vader-win`, work from a macOS terminal with no UI in the loop.
+  config.vm.guest        = :windows
+  config.vm.communicator = "winssh"
+  config.winssh.shell    = "powershell"
+
+  # A Windows first boot on a fresh disk blows straight through Vagrant's 300 s
+  # default: the measured run reached the guest, retried twice on "Connection
+  # reset", and was cut off mid key-rotation.
+  config.vm.boot_timeout = 600
+
+  # Keep the well-known insecure key instead of rotating in a fresh one. The
+  # rotation is what timed out above -- on a Windows guest it costs five
+  # PowerShell round trips (mkdir, dir, download, upload, Set-Acl+Move) and
+  # re-runs on every connection until it lands. It buys nothing here either:
+  # VirtualBox binds the ssh forward to 127.0.0.1 only (verified with
+  # `VBoxManage showvminfo`), and the guest is disposable by design.
+  #
+  # BOTH lines are needed. The winssh communicator reads `config.winssh`, a
+  # separate SSHConfig instance -- `plugins/communicators/winssh/communicator.rb`
+  # defines `machine_config_ssh` as `@machine.config.winssh` -- so setting only
+  # `config.ssh.insert_key` leaves the rotation on. `config.ssh` still governs
+  # the connection parameters, hence keeping it too.
+  config.ssh.insert_key    = false
+  config.winssh.insert_key = false
+
+  # The box forwards RDP on every host interface. We never use it -- this is an
+  # SSH-only, headless guest -- so pin it to loopback. The id is how Vagrant
+  # matches and overrides the box's own rule: it defaults to
+  # "#{host_ip}#{protocol}#{host_port}", which for the box's declaration is
+  # "tcp53389".
+  config.vm.network :forwarded_port,
+    id: "tcp53389", guest: 3389, host: 53389, host_ip: "127.0.0.1", auto_correct: true
+
+  # Never build from a shared folder: vboxsf/HGFS change the very filesystem
+  # semantics this VM exists to test. The box ships no Guest Additions anyway
+  # (upstream builds it with `guest_additions_mode = "disable"`). `vwin sync`
+  # pushes the tree onto the guest's own NTFS instead.
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.gui    = false
+    vb.cpus   = Integer(ENV.fetch("VADER_WIN_CPUS",   "6"))
+    vb.memory = Integer(ENV.fetch("VADER_WIN_MEMORY", "8192"))
+  end
+
+  # privileged: false is load-bearing -- a privileged Windows provisioner runs
+  # through a scheduled task under another account, and the script pins the
+  # toolchain on the *user* PATH of the account we SSH in as.
+  config.vm.provision "shell",
+    name:       "toolchain",
+    path:       "provision/toolchain.ps1",
+    privileged: false
+end
