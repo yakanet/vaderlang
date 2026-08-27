@@ -81,6 +81,16 @@ export include_paths :: fn(
     return paths
 }
 
+/// The directories of `paths`, in order — what `module::library_roots` needs to
+/// tell which of the roots in use hold the toolchain's namespaces.
+export root_dirs :: fn(paths: IncludePath[]) -> string[] {
+    out: string[]! = []
+    for ip in paths {
+        out.push(ip.dir)
+    }
+    return out
+}
+
 // The folder `name` maps to under `ip`, or null when `name` isn't in this root's
 // namespace. Plain root (`prefix == ""`) : `<dir>/name`. Rooted : `name == prefix`
 // → `dir` ; `name` under `prefix/` → `<dir>/<name minus prefix/>`.

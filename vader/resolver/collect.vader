@@ -435,7 +435,7 @@ diagnose_import_path :: fn(
     if raw_path.starts_with("vader/")
         && !from_module_name.starts_with("vader/")
         && from_module_name != DRIVER_CONTRACT_MODULE {
-        if path_from_library(dir_of(span.start.file), library_roots()) {
+        if path_from_library(dir_of(span.start.file), library_roots(root_dirs(paths))) {
             diags.push(resolver_error(.CompilerImportFromLibrary, span,
                 "`${from_module_name}` is shipped under the library root, so it cannot import `${raw_path}` — only `${DRIVER_CONTRACT_MODULE}` may"))
             return null

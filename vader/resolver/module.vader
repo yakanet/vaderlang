@@ -76,8 +76,12 @@ export GENERATED_ROOT_DIR :: "build/generated"
 /// @param scope         the in-scope module ids / prefixes.
 export module_in_scope :: fn(display_path: string, scope: string[]) -> bool {
     for m in scope {
-        if display_path == m { return true }
-        if display_path.starts_with("${m}/") { return true }
+        if display_path == m {
+            return true
+        }
+        if display_path.starts_with("${m}/") {
+            return true
+        }
     }
     return false
 }
@@ -87,9 +91,9 @@ export module_in_scope :: fn(display_path: string, scope: string[]) -> bool {
 /// to `LoadedModule` so cloned default-method bodies inserted by
 /// `materialize.vader` mint IDs in the same namespace as parse-time IDs.
 export SourceFile :: struct {
-    path:       string
-    content:    string
-    program:    Program
+    path: string
+    content: string
+    program: Program
     id_factory: NodeIdFactory
 }
 
@@ -102,10 +106,14 @@ export SourceFile :: struct {
 /// @return       every file's decls in file order ; the sole file's decls
 ///               verbatim for a single-file module.
 export concat_file_decls :: fn(files: SourceFile[]) -> Decl[] {
-    if files.len() == 1 { return files[0].program.decls }
+    if files.len() == 1 {
+        return files[0].program.decls
+    }
     out: Decl[]! = []
     for f in files {
-        for d in f.program.decls { out.push(d) }
+        for d in f.program.decls {
+            out.push(d)
+        }
     }
     return out
 }
@@ -116,11 +124,11 @@ export concat_file_decls :: fn(files: SourceFile[]) -> Decl[] {
 /// `import "..."` lookups, `files` is every file participating in
 /// the module (one for single-file, N for folders).
 export Module :: struct {
-    id:           string
+    id: string
     display_path: string
-    module_name:  string
-    root_dir:     string
-    files:        SourceFile[]
+    module_name: string
+    root_dir: string
+    files: SourceFile[]
 }
 
 // ---------------------------------------------------------------- discovery
@@ -134,32 +142,43 @@ export find_manifest_root :: fn(start: string) -> string | null {
     // a file, walk-up begins at its parent.
     dir := start
     if exists(dir) {
-        if !is_dir(dir) { dir = dir_of(dir) }
+        if !is_dir(dir) {
+            dir = dir_of(dir)
+        }
     } else {
         dir = dir_of(dir)
     }
     for {
         candidate :: join_path(dir, MANIFEST_FILENAME)
-        if exists(candidate) { return dir }
+        if exists(candidate) {
+            return dir
+        }
         parent_dir :: dir_of(dir)
-        if parent_dir == dir { return null }
+        if parent_dir == dir {
+            return null
+        }
         dir = parent_dir
     }
 }
 
-
 // ----------------------------------------------------- source-file loading
 
 export list_vader_files :: fn(root_path: string) -> string[] {
-    if !exists(root_path) { return [] }
+    if !exists(root_path) {
+        return []
+    }
     if !is_dir(root_path) {
-        if root_path.ends_with(".vader") { return [root_path] }
+        if root_path.ends_with(".vader") {
+            return [root_path]
+        }
         return []
     }
     raw :: try_read_dir(root_path) ?? return []
     files: string[]! = []
     for name in raw {
-        if !name.ends_with(".vader") { continue }
+        if !name.ends_with(".vader") {
+            continue
+        }
         files.push(join_path(root_path, name))
     }
     return sort(files, (a: string, b: string) -> compare_ascending(a, b))
@@ -167,13 +186,17 @@ export list_vader_files :: fn(root_path: string) -> string[] {
 
 try_read :: fn(path: string) -> string | null {
     result :: read_file_string(path)
-    if result is string as s { return s }
+    if result is string as s {
+        return s
+    }
     return null
 }
 
 try_read_dir :: fn(path: string) -> string[] | null {
     result :: read_dir(path)
-    if result is string[] as ss { return ss }
+    if result is string[] as ss {
+        return ss
+    }
     return null
 }
 
@@ -187,7 +210,9 @@ export join_path :: fn(base: string, seg: string) -> string {
     // stay normalised — `from/./mod_a` would render as `## from/./mod_a`
     // in the typecheck dump.
     s :: trim_prefix(seg, "./")
-    if base == "" { return s }
+    if base == "" {
+        return s
+    }
     baseb :: base.bytes()
     if baseb[baseb.len() - 1] == '/' {
         return "${base}${s}"
@@ -208,8 +233,10 @@ export dir_of :: fn(path: string) -> string { return path.to_path().parent().as_
 /// the resolved root becomes a module-id prefix, and an absolute root reshuffles
 /// map-keyed insertion order (the comptime generic-instance collection), drifting
 /// snapshots. Relative keeps the historical cwd-relative ids.
-export resolve_sidecar :: fn(subdir: string, marker: string) -> string =
-    sidecar_root(subdir, marker) ?? subdir
+export resolve_sidecar :: fn(subdir: string, marker: string) -> string = sidecar_root(
+    subdir,
+    marker,
+) ?? subdir
 
 /// The executable-adjacent `<base>/subdir`, or null when it does not hold
 /// `marker` — i.e. when the running binary is not part of a bundle.
@@ -222,7 +249,9 @@ export resolve_sidecar :: fn(subdir: string, marker: string) -> string =
 /// `loader::project_include_paths`.
 export sidecar_root :: fn(subdir: string, marker: string) -> string | null {
     exe_root :: join_path(current_executable_location().dir_of(), subdir)
-    if exists(join_path(exe_root, marker)) { return exe_root }
+    if exists(join_path(exe_root, marker)) {
+        return exe_root
+    }
     return null
 }
 
@@ -244,19 +273,31 @@ export LIBRARY_ROOT_MARKER :: "std/io/io.vader"
 /// The authoritative half of `default_library_root` — see `sidecar_root`.
 export bundled_library_root :: fn() = sidecar_root("lib", LIBRARY_ROOT_MARKER)
 
-/// Every root under which a toolchain-shipped namespace can live, in the order
-/// `loader::project_include_paths` searches them.
+/// Which of `search_roots` are library roots — those holding `LIBRARY_ROOT_MARKER`.
 ///
-/// Two, not one: a bundle's authoritative `<exe>/lib` and the cwd-relative `lib`
-/// a checkout resolves through. A module reached through either is the
-/// toolchain's, not the project's.
-export library_roots :: fn() -> string[] {
+/// ⚠️ **Asked of the roots actually in use, never guessed.** The first cut
+/// returned a fixed `[<exe>/lib, "lib"]` and was wrong in both directions, both
+/// reproduced. It MISSED the manifest-derived root: a project whose `vader.json`
+/// says `includePaths: ["lib"]` is served through `join_path(project_root, "lib")`,
+/// so linting it by absolute path from elsewhere classified the whole stdlib as
+/// the project's own — 24 spurious W0012 — and R2034 stopped firing entirely.
+/// This repo hid it because its own project root is the empty string, which joins
+/// to the bare `"lib"` the fixed list happened to contain. And it OVER-matched: a
+/// project keeping its own code under `lib/` had those modules called
+/// toolchain-shipped, earning a spurious R2034 and losing W0012 coverage.
+///
+/// The marker settles both: a directory is a library root when it holds
+/// `std/io/io.vader`, not when it is spelled `lib`.
+///
+/// @param search_roots  the include-path roots in use — `LoadedProject.library_roots`
+///                      for a loaded project, `IncludePath.dir`s at import time.
+export library_roots :: fn(search_roots: string[]) -> string[] {
     roots: string[]! = []
-    bundled :: bundled_library_root()
-    if bundled != null {
-        roots.push(bundled)
+    for r in search_roots {
+        if exists(join_path(r, LIBRARY_ROOT_MARKER)) {
+            roots.push(r)
+        }
     }
-    roots.push("lib")
     return roots
 }
 
@@ -273,8 +314,10 @@ export library_roots :: fn() -> string[] {
 ///
 /// @param m      the loaded module.
 /// @param roots  from `library_roots()`, hoisted by callers that loop.
-export module_from_library :: fn(m: Module, roots: string[]) -> bool =
-    path_from_library(m.root_dir, roots)
+export module_from_library :: fn(m: Module, roots: string[]) -> bool = path_from_library(
+    m.root_dir,
+    roots,
+)
 
 /// True when `path` sits under one of `roots`.
 ///
@@ -286,9 +329,11 @@ export module_from_library :: fn(m: Module, roots: string[]) -> bool =
 /// @param roots  from `library_roots()`.
 export path_from_library :: fn(path: string, roots: string[]) -> bool {
     for r in roots {
-        if r == "" { continue }
+        if r == ""   { continue }
         if path == r { return true }
-        if path.starts_with("${r}/") { return true }
+        if path.starts_with("${r}/") {
+            return true
+        }
     }
     return false
 }
@@ -322,16 +367,22 @@ export Manifest :: struct {
 export read_manifest :: fn(project_root: string) -> Manifest {
     include_paths: string[]! = []
     manifest_path :: join_path(project_root, MANIFEST_FILENAME)
-    if !exists(manifest_path) { return Manifest { .include_paths = include_paths } }
+    if !exists(manifest_path) {
+        return Manifest { .include_paths = include_paths }
+    }
     content :: try_read(manifest_path)
     raw :: if content == null { "" } else { content }
-    if raw == "" { return Manifest { .include_paths = include_paths } }
+    if raw == "" {
+        return Manifest { .include_paths = include_paths }
+    }
     parsed :: parse(raw)
     if parsed is JsonObject as obj {
         entry :: obj.entries["includePaths"]
         if entry is JsonArray as arr {
             for item in arr.items {
-                if item is JsonString as s { include_paths.push(s.value) }
+                if item is JsonString as s {
+                    include_paths.push(s.value)
+                }
             }
         }
     }
@@ -354,7 +405,9 @@ test_read_manifest_reads_repo_include_paths :: fn() -> void {
     assert(m.include_paths.len() > 0, "repo manifest lists includePaths")
     found_lib := false
     for p in m.include_paths {
-        if p == "lib" { found_lib = true }
+        if p == "lib" {
+            found_lib = true
+        }
     }
     assert(found_lib, "repo includePaths contains `lib`")
 }
@@ -399,16 +452,39 @@ test_path_from_library_tries_every_root :: fn() -> void {
 }
 
 @test
+test_library_roots_picks_by_marker_not_by_name :: fn() -> void {
+    // Tests run with the repo root as cwd. `lib` holds `std/io/io.vader`; `vader`
+    // and `runtime` do not. The whole point: a directory is a library root because
+    // of what it CONTAINS, not because it is spelled `lib` — a project keeping its
+    // own code under `lib/` must not be mistaken for the toolchain.
+    picked :: library_roots(["vader", "lib", "runtime"])
+    // only the marker-holding root counts
+    assert_eq(picked.len(), usize(1))
+    assert_eq(picked[0], "lib")
+}
+
+@test
+test_library_roots_is_empty_when_no_root_holds_the_marker :: fn() -> void {
+    assert_eq(library_roots(["vader", "runtime", "/no/such/dir"]).len(), usize(0))
+}
+
+@test
 test_module_from_library_reads_the_providing_root :: fn() -> void {
     // `Module.root_dir` is the providing root joined with the module name, which
     // is why the predicate can ask where a module came from at all.
     shipped :: Module {
-        .id = "lib/json", .display_path = "json", .module_name = "json",
-        .root_dir = "lib/json", .files = [],
+        .id = "lib/json",
+        .display_path = "json",
+        .module_name = "json",
+        .root_dir = "lib/json",
+        .files = [],
     }
     theirs :: Module {
-        .id = "app/json", .display_path = "json", .module_name = "json",
-        .root_dir = "app/json", .files = [],
+        .id = "app/json",
+        .display_path = "json",
+        .module_name = "json",
+        .root_dir = "app/json",
+        .files = [],
     }
     assert(module_from_library(shipped, ["lib"]), "loaded from the library root")
     assert(!module_from_library(theirs, ["lib"]), "same NAME, different provenance")

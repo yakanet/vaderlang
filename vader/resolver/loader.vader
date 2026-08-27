@@ -52,6 +52,12 @@ export LoadedProject :: struct {
     modules:      MutableMap<string, LoadedModule>
     factory:      SymbolFactory
     project_root: string | null
+    /// Which of the search roots hold the toolchain's namespaces — recorded here
+    /// because only the loader knows the roots it actually assembled, and a
+    /// consumer guessing them gets it wrong in both directions (see
+    /// `module::library_roots`). Read by the lint scope and the per-module walk to
+    /// tell the toolchain's code from the project's.
+    library_roots: string[] = []
     diags:        Diagnostic[]!
 }
 
@@ -150,7 +156,8 @@ export load_project_with_overlay :: fn(
                 "entry file's folder declares no module"))
             return LoadedProject {
                 .entry = entry_folder, .modules = modules, .factory = factory,
-                .project_root = project_root, .diags = loader_diags,
+                .project_root = project_root, .library_roots = library_roots(plain_roots),
+                .diags = loader_diags,
             }
         }
         is DiscoveredModule as em -> {
@@ -196,7 +203,8 @@ export load_project_with_overlay :: fn(
             detect_import_cycles(modules, index, loader_diags)
             return LoadedProject {
                 .entry = em.folder, .modules = modules, .factory = factory,
-                .project_root = project_root, .diags = loader_diags,
+                .project_root = project_root, .library_roots = library_roots(plain_roots),
+                .diags = loader_diags,
             }
         }
     }

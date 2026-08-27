@@ -73,9 +73,39 @@ test("vader lint scopes by provenance, not by a `std/` name", async () => {
       + 'export never_used_in_app :: fn() -> i32 = 2\n\n'
       + 'main :: fn() -> i32 {\n    println("${never_used_in_probe()}")\n    return 0\n}\n');
     // `cwd: dir` makes `<dir>/lib` the library root — that is the whole setup.
+    const rel = await spawnCapture(["lint", "app.vader"], { cwd: dir });
+    const relOut = rel.stdout + rel.stderr;
+    expect(relOut).toContain("never_used_in_app");
+    expect(relOut).not.toContain("never_used_in_probe");
+
+    // BY ABSOLUTE PATH, from elsewhere — the case a review reproduced and this
+    // test originally missed. The library root is then `<dir>/lib`, an absolute
+    // path, where the first cut of `library_roots()` returned a fixed list
+    // containing only the bare `"lib"`: provenance matched nothing, the whole
+    // stdlib was classified as the project's own, and the run reported 24 W0012
+    // naming `print`, `eprintln`, `assert_ne`… The two invocations must agree.
+    writeFileSync(join(dir, "vader.json"), '{ "name": "p", "includePaths": ["lib"] }\n');
+    const abs = await spawnCapture(["lint", join(dir, "app.vader")]);
+    const absOut = abs.stdout + abs.stderr;
+    expect(absOut).toContain("never_used_in_app");
+    expect(absOut).not.toContain("never_used_in_probe");
+    expect(absOut).not.toContain("eprintln");
+  });
+}, MEDIUM_BUILD);
+
+test("vader lint flags a `build` that is not a driver entry", async () => {
+  // REASON: W0007 roots `build` in the `build` module, as an entry point. W0012's
+  // project-wide walk MERGES every module's decls, so it has no per-decl module —
+  // and passing it `DRIVER_MODULE` rooted a fn named `build` ANYWHERE, silently.
+  // Reproduced by a review: an unreached `export build` in `module "app"` went
+  // unreported, and its refs were seeded live, hiding dead exports behind it.
+  await withStagedLibraryRoot({}, async (dir) => {
+    writeFileSync(join(dir, "app.vader"),
+      'module "app"\n\nimport "std/io"\n\n'
+      + '/// Reached by nothing, and NOT a driver entry — `app` is not `build`.\n'
+      + 'export build :: fn(args: string[]) -> i32 = 7\n\n'
+      + 'main :: fn() -> i32 {\n    println("x")\n    return 0\n}\n');
     const { stdout, stderr } = await spawnCapture(["lint", "app.vader"], { cwd: dir });
-    const out = stdout + stderr;
-    expect(out).toContain("never_used_in_app");
-    expect(out).not.toContain("never_used_in_probe");
+    expect(stdout + stderr).toContain("`build` is never used");
   });
 }, MEDIUM_BUILD);

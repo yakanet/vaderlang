@@ -621,7 +621,7 @@ export dead_exports_of_project :: fn(project: LoadedProject) -> UnusedExportRepo
     // namespace the toolchain ships, so a `std/` name test would put `json`,
     // `regex` and `toolchain` inside a project's lint scope once the library
     // split lands — reporting W0012 on every export the toolchain provides.
-    lib_roots :: library_roots()
+    lib_roots :: project.library_roots
     for [_, lm] in project.modules {
         if module_from_library(lm.module, lib_roots) {
             continue
@@ -643,10 +643,15 @@ export dead_exports_of_project :: fn(project: LoadedProject) -> UnusedExportRepo
     }
     return UnusedExportReport {
         .has_main = true,
-        // The merged walk has no single module, so the driver's own module is
-        // what roots its entry — every other module's `build`, if any, is an
-        // ordinary fn and stays flaggable.
-        .findings = dead_exports(all_decls, DRIVER_MODULE),
+        // `""`, deliberately: this walk MERGES every module's decls, so it has no
+        // per-decl module to test — passing `DRIVER_MODULE` rooted a fn named
+        // `build` in ANY module, which is the opposite of what a comment here used
+        // to claim and was reproduced (an unreached `export build` in `module
+        // "app"` went unreported, and its refs were seeded live, hiding further
+        // dead exports behind it). Nothing is lost: W0012 never runs on a driven
+        // project at all, since `has_main` is `main`-only for the reasons on
+        // `UnusedExportReport`.
+        .findings = dead_exports(all_decls, ""),
     }
 }
 
