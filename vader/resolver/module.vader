@@ -27,6 +27,12 @@ import "std/string"
 import "vader/parser"
 
 /// `import "std/..."` and stdlib display paths share this prefix.
+///
+/// ⚠️ A NAME test, and the wrong question for policy: `lib/` hosts every namespace
+/// the toolchain ships, so "is this the toolchain's code?" is answered by
+/// `library_roots` / `module_from_library` below, which ask where the module came
+/// FROM. This constant survives for the places that genuinely mean the `std/`
+/// namespace itself.
 export STDLIB_PREFIX :: "std/"
 
 /// Project-root marker file. `find_manifest_root` walks up looking
@@ -223,6 +229,44 @@ export LIBRARY_ROOT_MARKER :: "std/io/io.vader"
 /// The bundled library root, or null when the running binary is not bundled.
 /// The authoritative half of `default_library_root` — see `sidecar_root`.
 export bundled_library_root :: fn() = sidecar_root("lib", LIBRARY_ROOT_MARKER)
+
+/// Every root under which a toolchain-shipped namespace can live, in the order
+/// `loader::project_include_paths` searches them.
+///
+/// Two, not one: a bundle's authoritative `<exe>/lib` and the cwd-relative `lib`
+/// a checkout resolves through. A module reached through either is the
+/// toolchain's, not the project's.
+export library_roots :: fn() -> string[] {
+    roots: string[]! = []
+    bundled :: bundled_library_root()
+    if bundled != null {
+        roots.push(bundled)
+    }
+    roots.push("lib")
+    return roots
+}
+
+/// True when `m` was loaded from a toolchain-shipped namespace.
+///
+/// Asks where the module CAME FROM, not what it is called — the question every
+/// policy site actually means. `starts_with("std/")` was the old proxy, and it
+/// answers "no" for `json` / `toolchain` / `regex` once the library split lands,
+/// which would put the toolchain's own code inside a project's lint scope.
+///
+/// `Module.root_dir` is the providing root joined with the module name, so it
+/// carries that root's own form — relative in a checkout, absolute in a bundle,
+/// matching `library_roots` on both sides.
+///
+/// @param m      the loaded module.
+/// @param roots  from `library_roots()`, hoisted by callers that loop.
+export module_from_library :: fn(m: Module, roots: string[]) -> bool {
+    for r in roots {
+        if r == "" { continue }
+        if m.root_dir == r { return true }
+        if m.root_dir.starts_with("${r}/") { return true }
+    }
+    return false
+}
 
 import "std/json"
 

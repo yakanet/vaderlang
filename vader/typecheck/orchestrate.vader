@@ -458,14 +458,20 @@ collect_direct_imports :: fn(
     for [id, lm] in project.modules {
         id_by_name[lm.module.module_name] = id
     }
+    // Toolchain-shipped modules are excluded from this walk. Tested by where the
+    // module came FROM, not by a `std/` name prefix: `lib/` hosts every namespace
+    // the toolchain ships, so after the library split a `json` or `regex` import
+    // would start dragging modules in here that the prefix test kept out.
+    lib_roots :: library_roots()
     seen :: MutableMap<string, bool> {}
     for raw in entry_loaded.collected.import_paths {
-        if starts_with(raw, "std/") {
-            continue
-        }
         target_id :: id_by_name[raw] ?? continue
         if target_id == project.entry { continue }
         if seen[target_id] !is null   { continue }
+        target :: project.modules[target_id]
+        if target != null {
+            if module_from_library(target.module, lib_roots) { continue }
+        }
         seen[target_id] = true
         tp :: per_module[target_id]
         if tp !is null {
