@@ -13,10 +13,10 @@
 // registers and passes.
 
 import { test, expect } from "bun:test";
-import { existsSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
-import { CLI_BIN, MEDIUM_BUILD, runCli } from "./cli-bin.ts";
+import { MEDIUM_BUILD, fmtStdout, fmtString, runCli } from "./cli-bin.ts";
 
 // A representative cross-section of the snippet corpus. Adding every
 // snippet would push the runtime past 5 minutes — pick fixtures that
@@ -47,43 +47,6 @@ const SNIPPETS = [
   "not_paren",
   "precedence_parens",
 ];
-
-function fmtStdout(path: string): string {
-  const proc = Bun.spawnSync({
-    cmd: [CLI_BIN, "fmt", "--stdout", path],
-    cwd: process.cwd(),
-    stdout: "pipe",
-    stderr: "pipe",
-  });
-  if (proc.exitCode !== 0) {
-    throw new Error(
-      `vader fmt failed on ${path} (exit ${proc.exitCode}) :\n` +
-      new TextDecoder().decode(proc.stderr),
-    );
-  }
-  return new TextDecoder().decode(proc.stdout);
-}
-
-// Round-trip a string through the formatter via a temp file (the formatter
-// expects a path argument). Used for idempotency checks where we already
-// have an in-memory string.
-function fmtString(source: string): string {
-  const tmp = join(process.cwd(), ".tmp-fmt-roundtrip.vader");
-  // `writeFileSync`, not `Bun.write`: this helper is SYNCHRONOUS, so an un-awaited
-  // `Bun.write` leaves the write in flight when `fmtStdout` spawns. Whether the
-  // bytes are there by then is platform-dependent — macOS says yes, Windows said
-  // no, and the whole file went red with an empty `fmt` output. It only ever
-  // worked because the cleanup was ALSO a deferred promise, so the file survived
-  // into the next call; making the delete synchronous exposed it. With all three
-  // steps synchronous nothing can interleave, which is also why the fixed temp
-  // name is safe.
-  writeFileSync(tmp, source);
-  try {
-    return fmtStdout(tmp);
-  } finally {
-    rmSync(tmp, { force: true });
-  }
-}
 
 // Structural AST via the Vader CLI. `dump --stage=ast` elides spans and
 // embeds no file path, so two dumps are directly comparable ; the module
@@ -258,12 +221,12 @@ for (const { name, source } of REGRESSIONS) {
     const fmtd = join(process.cwd(), `.tmp-fmt-reg-out-${name}.vader`);
     await Bun.write(orig, source);
     try {
-      const formatted = fmtStdout(orig);
+      const formatted = await fmtStdout(orig);
       await Bun.write(fmtd, formatted);
       // Structural round-trip : formatted output reparses to the source AST.
       expect(await astDump(fmtd)).toBe(await astDump(orig));
       // Idempotency.
-      expect(fmtString(formatted)).toBe(formatted);
+      expect(await fmtString(formatted, ".tmp-fmt-roundtrip")).toBe(formatted);
     } finally {
       // `rmSync(force)` and not `Bun.file().delete()`: the latter returns a PROMISE,
       // so an ENOENT (the output file is never written when fmt itself fails) escapes
@@ -317,7 +280,7 @@ for (const { name, source } of COMMENT_STABILITY) {
     const src = join(process.cwd(), `.tmp-fmt-cmt-${name}.vader`);
     await Bun.write(src, source);
     try {
-      expect(fmtStdout(src)).toBe(source);
+      expect(await fmtStdout(src)).toBe(source);
     } finally {
       rmSync(src, { force: true });
     }
@@ -362,7 +325,7 @@ for (const { name, source } of MATCH_ALIGN) {
     const src = join(process.cwd(), `.tmp-fmt-align-${name}.vader`);
     await Bun.write(src, source);
     try {
-      expect(fmtStdout(src)).toBe(source);
+      expect(await fmtStdout(src)).toBe(source);
     } finally {
       rmSync(src, { force: true });
     }
@@ -375,8 +338,8 @@ for (const name of SNIPPETS) {
     if (!existsSync(path)) {
       throw new Error(`snippet missing : ${path}`);
     }
-    const f1 = fmtStdout(path);
-    const f2 = fmtString(f1);
+    const f1 = await fmtStdout(path);
+    const f2 = await fmtString(f1, ".tmp-fmt-roundtrip");
     expect(f2).toBe(f1);
   }, { timeout: MEDIUM_BUILD });
 
@@ -385,7 +348,7 @@ for (const name of SNIPPETS) {
     if (!existsSync(path)) {
       throw new Error(`snippet missing : ${path}`);
     }
-    const formatted = fmtStdout(path);
+    const formatted = await fmtStdout(path);
     const tmp = join(process.cwd(), `.tmp-fmt-ast-${name}.vader`);
     await Bun.write(tmp, formatted);
     try {

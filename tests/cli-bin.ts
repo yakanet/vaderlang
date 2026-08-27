@@ -6,8 +6,8 @@
 // committed C seed (see bootstrap/README.md).
 
 import { beforeAll } from "bun:test";
-import { statSync } from "node:fs";
-import { resolve } from "node:path";
+import { rmSync, statSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { listVaderFiles } from "./vader-sources.ts";
 
 // The suffix a LINKER appends to an executable name. `cc -o hello` writes
@@ -147,4 +147,46 @@ export async function runCli(
   timeoutMs: number = DEFAULT_CLI_TIMEOUT_MS,
 ): Promise<CliResult> {
   return spawnCapture(args, { env, timeoutMs });
+}
+
+// ---- formatter helpers ----------------------------------------------------
+//
+// Both formatter suites need these, and the second one to need them had copied
+// the first verbatim — 26 lines including an 11-line justification.
+
+/// Format `path` through `vader fmt --stdout` and return the output.
+///
+/// Goes through the ASYNC `runCli` rather than `Bun.spawnSync`: under `bun test
+/// --parallel`, `spawnSync` intermittently returns exit 0 with ZERO bytes on BOTH
+/// pipes for a perfectly good file — measured on `lib/std/time/stopwatch.vader`
+/// (1690 bytes on disk, `stdoutLen=0`, `stderrLen=0`, `signal=undefined`), which
+/// reads as "the formatter emitted nothing" and failed one or two random tests in
+/// ~40 % of suite runs. The binary is not at fault: 392 concurrent spawns of the
+/// same command from a shell, at the same 14-way parallelism, lost output zero
+/// times. The two files that flaked were the only two using `spawnSync`; every
+/// other suite drives the CLI through `runCli` and none has shown this.
+export async function fmtStdout(path: string): Promise<string> {
+  const { stdout, stderr, exit } = await runCli(["fmt", "--stdout", path]);
+  if (exit !== 0) {
+    throw new Error(`vader fmt failed on ${path} (exit ${exit}) :\n${stderr}`);
+  }
+  return stdout;
+}
+
+/// Round-trip a string through the formatter via a temp file (it takes a path).
+///
+/// `tmpStem` must differ per CALLER, not just per process: the pid separates
+/// workers, but two suites in the same worker would collide on one name. Written
+/// with `writeFileSync`, never an un-awaited `Bun.write` — the Windows job caught
+/// that ordering when the cleanup became synchronous.
+export async function fmtString(source: string, tmpStem: string): Promise<string> {
+  const tmp = join(process.cwd(), `${tmpStem}-${process.pid}.vader`);
+  writeFileSync(tmp, source);
+  try {
+    return await fmtStdout(tmp);
+  } finally {
+    // `rmSync(force)`, not `Bun.file().delete()` — the latter returns a promise, so
+    // its rejection escapes the surrounding try/catch and fails the NEXT test.
+    rmSync(tmp, { force: true });
+  }
 }

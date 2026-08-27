@@ -14,9 +14,9 @@
 // premise (a TS shim over the VM, ~2-3 s per call) went away with `src/`.
 
 import { test, expect } from "bun:test";
-import { readFileSync, rmSync, writeFileSync } from "node:fs";
+import { readFileSync, rmSync } from "node:fs";
 import { basename, join } from "node:path";
-import { CLI_BIN, MEDIUM_BUILD, runCli } from "./cli-bin.ts";
+import { MEDIUM_BUILD, fmtStdout, fmtString, runCli } from "./cli-bin.ts";
 import { listVaderFiles } from "./vader-sources.ts";
 
 const LIBRARY_ROOT = join(process.cwd(), "lib");
@@ -57,35 +57,6 @@ const UNSTABLE_IDEMPOTENCY = new Set([
   "parse_float.vader",
 ]);
 
-function fmtStdout(path: string): string {
-  const proc = Bun.spawnSync({
-    cmd: [CLI_BIN, "fmt", "--stdout", path],
-    cwd: process.cwd(),
-    stdout: "pipe",
-    stderr: "pipe",
-  });
-  if (proc.exitCode !== 0) {
-    throw new Error(
-      `vader fmt failed on ${path} (exit ${proc.exitCode}) :\n` +
-      new TextDecoder().decode(proc.stderr),
-    );
-  }
-  return new TextDecoder().decode(proc.stdout);
-}
-
-function fmtString(source: string): string {
-  const tmp = join(process.cwd(), ".tmp-fmt-stdlib-roundtrip.vader");
-  // `writeFileSync`, not `Bun.write` — see the twin in `formatter.test.ts`: this
-  // helper is synchronous, so an un-awaited write is still in flight when
-  // `fmtStdout` spawns, and whether that works is platform-dependent.
-  writeFileSync(tmp, source);
-  try {
-    return fmtStdout(tmp);
-  } finally {
-    rmSync(tmp, { force: true });
-  }
-}
-
 // The `error[...]` lines `dump --stage=ast` prints for a file that fails to
 // parse. `dump` reports diagnostics on stdout and always exits 0, so scan the
 // text rather than the exit code. Empty string ⇒ clean reparse. Goes through
@@ -105,7 +76,7 @@ for (const path of listLibraryFiles()) {
   const base = basename(path);
 
   test(`library reparse after format : ${base}`, async () => {
-    const formatted = fmtStdout(path);
+    const formatted = await fmtStdout(path);
     const tmp = join(process.cwd(), `.tmp-fmt-stdlib-reparse-${base}`);
     await Bun.write(tmp, formatted);
     try {
@@ -119,15 +90,15 @@ for (const path of listLibraryFiles()) {
 
   test(`library idempotent : ${base}`, async () => {
     if (UNSTABLE_IDEMPOTENCY.has(base)) return;
-    const f1 = fmtStdout(path);
-    const f2 = fmtString(f1);
+    const f1 = await fmtStdout(path);
+    const f2 = await fmtString(f1, ".tmp-fmt-stdlib-roundtrip");
     expect(f2).toBe(f1);
   }, { timeout: MEDIUM_BUILD });
 
   if (NO_OP_FILES.has(base)) {
     test(`library byte-for-byte no-op : ${base}`, async () => {
       const src = readFileSync(path, "utf8");
-      const formatted = fmtStdout(path);
+      const formatted = await fmtStdout(path);
       expect(formatted).toBe(src);
     }, { timeout: MEDIUM_BUILD });
   }
