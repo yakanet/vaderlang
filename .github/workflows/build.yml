@@ -94,49 +94,25 @@ jobs:
         with:
           bun-version: 1.3.13
 
-      # Is a usable mingw-w64 gcc ALREADY on the image? The runner manifest lists
-      # gcc 15.2.0 + GNU Binutils 2.46, which would make the `choco install`
-      # below 56 s of CI time we can delete outright. It only counts if
-      # `-dumpmachine` reports `x86_64-w64-mingw32`: MSYS2 ships at C:\msys64 and
-      # its `usr\bin\gcc` targets the msys runtime, which would link the compiler
-      # against `msys-2.0.dll`. Probe only — it reports, it never gates, and it
-      # runs BEFORE choco so it sees the pristine image. The verdict lands in the
-      # run summary, so answering this needs no log digging. Delete once answered.
-      - name: Probe for a preinstalled gcc (reports only)
-        shell: pwsh
-        continue-on-error: true
-        run: |
-          $lines = @()
-          $onPath = Get-Command gcc -ErrorAction SilentlyContinue
-          if ($onPath) {
-            $lines += "on PATH: $($onPath.Source) -> $(& gcc -dumpmachine)"
-          } else {
-            $lines += "on PATH: none"
-          }
-          foreach ($p in @(
-            "C:\mingw64\bin\gcc.exe",
-            "C:\msys64\mingw64\bin\gcc.exe",
-            "C:\msys64\usr\bin\gcc.exe",
-            "C:\ProgramData\mingw64\mingw64\bin\gcc.exe",
-            "C:\Strawberry\c\bin\gcc.exe")) {
-            if (Test-Path $p) { $lines += "$p -> $(& $p -dumpmachine)" }
-            else { $lines += "$p -> absent" }
-          }
-          $lines
-          $md = @("### Preinstalled gcc probe", "", '```') + $lines + '```'
-          $md | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-
-      # bootstrap/build.ps1 needs a mingw-w64 gcc on PATH — MSVC is unsupported
-      # (the runtime uses `__attribute__((weak))`). If this path is wrong on the
-      # runner image, the `gcc --version` step below fails loudly ; adjust then.
-      - name: Set up mingw-w64
+      # No toolchain install: `windows-latest` already ships a mingw-w64 gcc on
+      # PATH at `C:\mingw64\bin\gcc.exe`, reporting `x86_64-w64-mingw32` — probed on
+      # run #224, where choco's own target was still empty beforehand. Dropping
+      # that `choco install mingw` step is worth 56 s per run. It also changed the
+      # compiler doing the work: choco's mingw was gcc 16.1.0, the image's is 15.2.0.
+      #
+      # The step below is the loud failure if a future image stops shipping it. It
+      # checks `-dumpmachine`, not just the version, because the real hazard is not
+      # absence: an MSYS2 `usr\bin\gcc` targets the msys runtime and would link the
+      # compiler against `msys-2.0.dll`. MSVC is unsupported either way — the
+      # runtime uses `__attribute__((weak))`.
+      - name: Verify a mingw-w64 gcc is on PATH
         shell: pwsh
         run: |
-          choco install mingw --no-progress -y
-          echo "C:\ProgramData\mingw64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
-      - name: Verify gcc on PATH
-        shell: pwsh
-        run: gcc --version
+          gcc --version
+          $triple = & gcc -dumpmachine
+          if ($triple -ne "x86_64-w64-mingw32") {
+            throw "gcc targets '$triple', not x86_64-w64-mingw32 — bootstrap/build.ps1 needs mingw-w64"
+          }
 
       # 3-stage bootstrap from the committed C seed (PowerShell entry point).
       - name: Build Vader CLI from the C seed (Windows)
