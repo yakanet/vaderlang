@@ -24,7 +24,7 @@ module "vader/lsp/analysis"
 import "vader/types"
 import "vader/typecheck"
 import "vader/lsp/protocol"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 // ---- smallest typed expression at a position ------------------------------
 

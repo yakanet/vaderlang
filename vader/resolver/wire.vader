@@ -55,7 +55,7 @@ export wire_imports :: fn(project: LoadedProject!) -> ImportTargetTable {
 }
 
 import "vader/diagnostics"
-import "vader/parser"
+import "toolchain/ast"
 
 wire_module :: fn(
     loaded: LoadedModule, path_index: MutableMap<string, string>,

@@ -12,7 +12,7 @@ import "vader/diagnostics"
 import "vader/types"
 // `display_type` and `is_numeric` live in sibling files of this module and are
 // referenced directly (a re-import would trip R2026 duplicate-declaration).
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// Type-check a `CastExpr`. Returns the cast's target type.
 ///

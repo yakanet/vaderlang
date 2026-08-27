@@ -15,7 +15,7 @@ module "build"
 import "std/io"
 import "std/string_builder"
 import "vader/hooks"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// Modules whose structs get a serialiser.
 DERIVED_MODULES :: ["app"]

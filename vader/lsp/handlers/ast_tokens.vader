@@ -18,7 +18,7 @@ module "vader/lsp/handlers"
 
 import "std/collections"
 import "vader/parser"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 import "vader/diagnostics"
 import "vader/resolver"
 import "vader/resolver/symbol"

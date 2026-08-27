@@ -33,7 +33,8 @@ import "std/iter"
 import "std/string"
 import "vader/diagnostics"
 import "vader/resolver"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
+Parse :: import "vader/parser"
 import "toolchain/span"
 
 // A private top-level declaration that may be dead — keyed for the final report.
@@ -656,7 +657,7 @@ import "std/testing"
 // Parse `src` as a single-file module and return the number of W0007 the pass
 // raises — the reachability BFS exercised end to end on a synthetic graph.
 dead_count :: fn(src: string) -> usize {
-    parsed :: AST.parse_source(src, "t.vader")
+    parsed :: Parse.parse_source(src, "t.vader")
     diags: Diagnostic[]! = []
     check_dead_code(parsed.program.decls, diags)
     return diags.len()

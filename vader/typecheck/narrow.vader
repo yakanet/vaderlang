@@ -27,7 +27,7 @@ module "vader/typecheck"
 import "std/collections"
 import "std/string"
 import "vader/types"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// One narrowing-table entry : the narrowed type plus the slot's kill
 /// generation captured at push time. `narrow_for_binding` /

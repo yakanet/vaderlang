@@ -3,7 +3,7 @@
 
 module "vader/lower"
 
-import "vader/parser"
+import "toolchain/ast"
 import "vader/diagnostics"
 import "vader/resolver/symbol"
 import "vader/types"

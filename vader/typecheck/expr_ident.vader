@@ -22,7 +22,7 @@ module "vader/typecheck"
 
 import "std/collections"
 import "vader/resolver/symbol"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 import "vader/types"
 
 /// Return the Type of an `IdentExpr` in value position. Returns

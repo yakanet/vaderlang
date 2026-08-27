@@ -1,4 +1,17 @@
-// vader/parser/ast — AST node types.
+// toolchain/ast/ast.vader — the shape of written Vader, as data.
+//
+// The public contract a build-time metaprogram reads. It lives outside `vader/`
+// because of what depends on it: a library shipping a generator must be able to
+// walk declarations without depending on the compiler, and this module needs
+// nothing from the compiler either — only `toolchain/span`, for where each node
+// came from. Everything that INTERPRETS these nodes (resolve, typecheck, lower)
+// stays in `vader/`.
+//
+// It is the tree AS WRITTEN, before resolution: an `IdentExpr("Id")` is the name
+// the author typed, not the type it denotes. A generator that needs to know
+// whether that name is a primitive, an alias, an imported struct or a distinct
+// newtype cannot answer it from here — see the note on resolved declarations in
+// the TODO's toolchain item.
 //
 // Layout note : declaration order is free — the resolver collects every
 // decl name in a first pass before walking types in the second, so a
@@ -7,9 +20,8 @@
 // keyword) ; the dumper emits the JSON key as `"type"` so snapshots
 // stay stable.
 
-module "vader/parser"
+module "toolchain/ast"
 
-import "vader/diagnostics"
 import "toolchain/span"
 
 // Sentinel id used at parser construction time, before a future

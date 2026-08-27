@@ -36,7 +36,7 @@ import "std/path"
 import "std/string"
 import "std/string_builder"
 import "vader/diagnostics"
-AST :: import "vader/parser"
+Parse :: import "vader/parser"
 
 // ---- the contract ---------------------------------------------------------
 
@@ -105,7 +105,7 @@ export generated_files_of :: fn(ctx: BuildContext) -> string[] = ctx.generated
 
 // Why `name` cannot be used as a module path, or "" when it can.
 //
-// The grammar belongs to the parser — `AST.is_valid_module_name` backs P1028 on a
+// The grammar belongs to the parser — `Parse.is_valid_module_name` backs P1028 on a
 // `module` declaration — so this defers to it rather than restating it. Restating
 // it was a real gap, not only duplication: a laxer check here let
 // `emit_module("Gen/Serde", …)` write a file the parser then rejected with P1028,
@@ -120,7 +120,7 @@ generated_name_problem :: fn(name: string) -> string {
     if name == "" {
         return "the module name is empty"
     }
-    if !AST.is_valid_module_name(name) {
+    if !Parse.is_valid_module_name(name) {
         return "`${name}` is not a module path — lowercase `[a-z][a-z0-9_]*` segments joined by `/`"
     }
     return ""

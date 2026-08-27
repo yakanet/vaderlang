@@ -20,7 +20,7 @@
 module "vader/typecheck"
 
 import "vader/diagnostics"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 import "vader/types"
 import "toolchain/span"
 

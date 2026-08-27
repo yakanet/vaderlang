@@ -10,7 +10,7 @@ module "vader/comptime"
 
 import "std/collections"
 import "vader/types"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 export evaluate_seq_lit :: fn(
     expr: AST.SeqLitExpr, context: ComptimeContext!,

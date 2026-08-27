@@ -36,7 +36,8 @@ import "std/async"
 import "std/process"
 import "vader/diagnostics"
 import "std/crypto"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
+Parse :: import "vader/parser"
 import "vader/resolver"
 import "toolchain/span"
 
@@ -248,7 +249,7 @@ export validate_driver :: fn(path: string) -> Diagnostic | null {
     if source == "" {
         return null
     }
-    parsed :: AST.parse_source(source, path)
+    parsed :: Parse.parse_source(source, path)
     if parsed.errors.len() > 0 {
         return null
     }

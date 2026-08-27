@@ -11,6 +11,7 @@ module "vader/parser"
 import "std/string"
 import "std/string_builder"
 import "std/numbers"
+import "toolchain/ast"
 
 export dump_program :: fn(prog: Program) -> string {
     sb := StringBuilder {}

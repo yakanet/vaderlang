@@ -6,7 +6,7 @@ module "vader/lower"
 import "std/sort"
 import "std/string"
 
-import "vader/parser"
+import "toolchain/ast"
 import "vader/resolver"
 import "vader/typecheck"
 import "vader/types"

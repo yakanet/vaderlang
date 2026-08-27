@@ -13,7 +13,7 @@ module "vader/typecheck"
 
 import "vader/diagnostics"
 import "vader/types"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// Combine the two branch types of an `if`/`else`. A free numeric-literal branch
 /// coerces to a concrete sibling of its own family — `if c { x: i32 } else { 0 }`

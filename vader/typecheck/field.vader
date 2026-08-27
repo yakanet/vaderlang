@@ -17,7 +17,7 @@ module "vader/typecheck"
 
 import "std/string"
 import "vader/diagnostics"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 import "vader/resolver"
 import "vader/types"
 

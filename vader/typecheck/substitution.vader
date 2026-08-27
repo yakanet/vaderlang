@@ -96,7 +96,7 @@ substitute_each :: fn(types: Type[], subst: Substitution) -> Type[] {
 
 import "std/testing"
 import "vader/resolver/symbol"
-import "vader/parser"
+import "toolchain/ast"
 
 fresh_type_param :: fn(symbol_id: i32, name: string) -> Symbol {
     return Symbol {

@@ -9,7 +9,7 @@ module "vader/typecheck"
 
 import "vader/diagnostics"
 import "vader/types"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// Type-check `target[index]`. Returns `T` when `target: T[]`.
 export infer_index :: fn(

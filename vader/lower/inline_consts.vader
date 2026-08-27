@@ -33,7 +33,7 @@
 module "vader/lower"
 
 import "std/collections"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 import "vader/resolver/symbol"
 import "vader/comptime"
 import "vader/types"

@@ -186,6 +186,7 @@ lookup_decl_type :: fn(typed: TypedProgram, s: Symbol) -> string {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "toolchain/ast"
 import "vader/parser"
 import "vader/diagnostics"
 

@@ -9,7 +9,7 @@
 module "vader/comptime"
 
 import "vader/diagnostics"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// Tree-walk dispatcher. Returns whatever the per-variant helper
 /// reports ; unrecognised variants surface as C4001.

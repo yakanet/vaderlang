@@ -12,7 +12,7 @@ module "vader/comptime"
 import "vader/diagnostics"
 import "vader/typecheck"
 import "std/collections"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// Walk `decls` for `AssertDecl`s, evaluate each via the tree-walker,
 /// and emit `C4015` when the condition is statically `false`. Used by

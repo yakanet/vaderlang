@@ -6,6 +6,8 @@
 
 module "vader/parser"
 
+import "toolchain/ast"
+
 export IntrinsicArgKind :: enum(u8) {
     Type,
     Value,

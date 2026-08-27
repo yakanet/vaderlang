@@ -5,7 +5,7 @@ module "vader/lower"
 
 import "std/collections"
 
-import "vader/parser"
+import "toolchain/ast"
 import "vader/types"
 
 // Peel a narrowing `LoweredCast` off a type-check operand. `lower_ident`

@@ -713,7 +713,7 @@ export strip_distinct_each :: fn(args: Type[]) -> Type[] {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/parser"
+import "toolchain/ast"
 
 @test
 test_display_primitive :: fn() -> void {

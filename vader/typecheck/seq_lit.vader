@@ -17,7 +17,7 @@ import "std/math"
 import "std/iter"
 import "vader/diagnostics"
 import "vader/types"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// Type a bracketed literal contextually : returns `Tuple(...)` when
 /// `expected` is a tuple-shaped slot, `Array(...)` otherwise.

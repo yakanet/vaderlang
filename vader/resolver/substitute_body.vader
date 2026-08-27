@@ -22,7 +22,7 @@ module "vader/resolver"
 
 import "std/collections"
 import "vader/diagnostics"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 
 /// Clone a BlockExpr, recursively substituting TypeParam idents.
 export substitute_block :: fn(b: AST.BlockExpr, subst: Subst) -> AST.BlockExpr {

@@ -11,7 +11,7 @@ module "vader/typecheck"
 
 import "std/collections"
 import "vader/diagnostics"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 import "vader/types"
 
 /// Check every statement in `block`, then type the trailing expression

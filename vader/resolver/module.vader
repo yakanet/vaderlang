@@ -24,6 +24,7 @@ import "std/io"
 import "std/path"
 import "std/sort"
 import "std/string"
+import "toolchain/ast"
 import "vader/parser"
 
 /// `import "std/..."` and stdlib display paths share this prefix.

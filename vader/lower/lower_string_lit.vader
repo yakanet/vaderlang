@@ -16,7 +16,7 @@ module "vader/lower"
 import "std/collections"
 import "std/abort"
 
-import "vader/parser"
+import "toolchain/ast"
 import "vader/diagnostics"
 import "vader/resolver/symbol"
 import "vader/types"

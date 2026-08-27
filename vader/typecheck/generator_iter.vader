@@ -12,7 +12,7 @@
 
 module "vader/typecheck"
 
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 import "vader/parser"
 import "vader/diagnostics"
 import "vader/resolver/symbol"

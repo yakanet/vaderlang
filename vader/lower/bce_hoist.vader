@@ -384,7 +384,7 @@ import "vader/types"
 import "vader/resolver/symbol"
 import "vader/typecheck"
 import "vader/comptime"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 import "toolchain/span"
 
 // Minimal fixtures. `bce_fn_pure` reads only `fd.mangled` + `fd.body` and, via

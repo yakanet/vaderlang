@@ -236,7 +236,7 @@ FnMetadata :: struct {
     is_exported: bool
 }
 
-import "vader/parser"
+import "toolchain/ast"
 import "toolchain/span"
 
 /// Extract source-level metadata bytecode-emit needs to route a fn to

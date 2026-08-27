@@ -8,7 +8,7 @@
 module "vader/resolver/symbol"
 
 import "vader/diagnostics"
-import "vader/parser"
+import "toolchain/ast"
 import "toolchain/span"
 
 // SymbolKind values are kept as i32 (rather than an enum) so an empty list

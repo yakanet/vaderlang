@@ -24,7 +24,7 @@ module "vader/lower"
 
 import "std/collections"
 import "vader/diagnostics"
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
 import "vader/resolver/symbol"
 import "vader/typecheck"
 import "vader/types"
