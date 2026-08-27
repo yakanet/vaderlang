@@ -155,10 +155,23 @@ lookup_in_file :: fn(path: string, name: string, encoding: PositionEncoding, exp
 /// directory for `./` paths. Returns `""` for unresolvable / unknown-root paths.
 /// Shared with `handlers/document_link` for clickable import links.
 export module_path_to_absolute :: fn(raw: string, state: ServerState, from_uri: string) -> string {
-    if raw.starts_with("std/") {
-        root :: stdlib_root_for(state, from_uri)
-        if root.bytes().len() == 0 { return "" }
-        return path_join(root, raw)
+    if raw.starts_with("./") || raw.starts_with("../") {
+        from_path :: uri_to_path(from_uri)
+        if from_path.bytes().len() == 0 { return "" }
+        // Join with the file's parent dir.
+        dir :: dirname_path(from_path)
+        return path_join(dir, raw)
+    }
+    // Any non-relative name may be a toolchain namespace: `lib/` hosts every one
+    // the toolchain ships, so gating on `std/` would lose go-to-definition,
+    // cross-module hover and `textDocument/documentLink` for `toolchain/*`,
+    // `json/*` and every namespace the library split adds. Probed rather than
+    // assumed — an unconditional join would point goto-def at `<lib>/myapp/foo`
+    // for a project-local import, which is worse than answering "unknown".
+    lib_root :: stdlib_root_for(state, from_uri)
+    if lib_root.bytes().len() > 0 {
+        candidate :: path_join(lib_root, raw)
+        if exists(candidate) { return candidate }
     }
     if raw.starts_with("vader/") {
         root :: vader_root_for(state, from_uri)
@@ -168,13 +181,6 @@ export module_path_to_absolute :: fn(raw: string, state: ServerState, from_uri: 
         rb :: raw.bytes()
         suffix :: rb[6..<rb.len()].bytes_to_string()
         return path_join(root, suffix)
-    }
-    if raw.starts_with("./") || raw.starts_with("../") {
-        from_path :: uri_to_path(from_uri)
-        if from_path.bytes().len() == 0 { return "" }
-        // Join with the file's parent dir.
-        dir :: dirname_path(from_path)
-        return path_join(dir, raw)
     }
     // Unrecognised prefix — likely a third-party / project-root import.
     // Project-root resolution would need the workspace root from the

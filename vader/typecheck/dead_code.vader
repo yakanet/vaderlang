@@ -596,8 +596,13 @@ export UnusedExportReport :: struct {
 export dead_exports_of_project :: fn(project: LoadedProject) -> UnusedExportReport {
     all_decls: AST.Decl[]! = []
     has_main := false
+    // Where a module came from, not what it is called: `lib/` hosts every
+    // namespace the toolchain ships, so a `std/` name test would put `json`,
+    // `regex` and `toolchain` inside a project's lint scope once the library
+    // split lands — reporting W0012 on every export the toolchain provides.
+    lib_roots :: library_roots()
     for [_, lm] in project.modules {
-        if lm.module.display_path.starts_with(STDLIB_PREFIX) {
+        if module_from_library(lm.module, lib_roots) {
             continue
         }
         for d in concat_file_decls(lm.module.files) {
