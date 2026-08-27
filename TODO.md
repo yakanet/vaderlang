@@ -218,6 +218,9 @@ Patterns counted on the existing Vader code that paid an outsized boilerplate co
 ### 1.15 Formatter — partial
 > Shipped: AST → formatted source + idempotency check (`vader/fmt/printer.vader` + `format.vader`, `vader fmt --check`). The canonical no-options layout is codified in `vader/fmt/style.vader`.
 - [ ] Define formatting rules — write up the canonical layout as a design-freeze doc (the layout already ships in `style.vader`; this tracks the written spec). See the `vader fmt` MVP under "Priority — next up".
+- [ ] **`fmt` relocates trailing line-comments** — `EMPTY_SLOT :: i32(0)    // why` comes back as two lines, the comment moved above the NEXT declaration. Measured over `vader/` + `lib/`: **447 trailing comments across 59 files**. It is also the root cause of the two `UNSTABLE_IDEMPOTENCY` entries in `tests/formatter_stdlib.test.ts` — moving the comment splits a `::` alignment group, so pass 2 computes a narrower column.
+- [ ] **`fmt` is not idempotent on 13 files** (272/285 across `vader/` + `lib/`). Two distinct causes: the comment relocation above, and a lookup-table `if`-chain member whose body does not fit — pass 1 explodes the body inside the inline braces, pass 2 stops reading the run as a chain. ⚠️ Giving `.Inline` the same fit test as `.Preserve` makes it **worse** (272 → 267): the member expands, the run stops being a chain, and the alignment moves instead. Measured, not assumed.
+- [ ] Bring `vader/**` into a formatter corpus. `tests/formatter_stdlib.test.ts` covers `lib/` only, which is why 11 of the 13 non-idempotent files went unseen.
 
 ### 1.16 Examples — partial
 > Shipped: `hello`, `fibonacci`, `fizzbuzz`, `rule110`, `primes` (+ `brainfuck`, `mandelbrot`, `mowitnow` — see git).

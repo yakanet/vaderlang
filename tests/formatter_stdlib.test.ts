@@ -9,37 +9,25 @@
 //   2. idempotency — `fmt(fmt(src)) === fmt(src)`.
 //   3. byte-for-byte no-op — `fmt(src) === src` for the curated set below.
 //
-// Same `RUN_FMT_TESTS=1` opt-in gate as `formatter.test.ts` — each file costs
-// two to three native `build/vader` spawns, so the whole suite is skipped
-// unless requested.
+// Each file costs two to three native `build/vader` spawns, ~20 ms each. This ran
+// behind the same `RUN_FMT_TESTS=1` gate as `formatter.test.ts` until the gate's
+// premise (a TS shim over the VM, ~2-3 s per call) went away with `src/`.
 
 import { test, expect } from "bun:test";
-import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { CLI_BIN, MEDIUM_BUILD, runCli } from "./cli-bin.ts";
-
-const ENABLED = process.env.RUN_FMT_TESTS === "1";
+import { listVaderFiles } from "./vader-sources.ts";
 
 const LIBRARY_ROOT = join(process.cwd(), "lib");
 
-// Every `*.vader` anywhere under `lib/`. Two ways this silently tests less than
-// it claims, both paid for: it MUST recurse, since modules are per-folder
-// (`std/core/`, `std/string/`, …) and a flat `readdirSync` finds nothing; and it
-// must start at `lib/`, not `lib/std/`, since the libraries that left `std/`
-// (json, regex, semver, cli, crypto, base64, random, images) are namespaces of
-// their own — naming `std` dropped 5 446 LoC from this corpus without a word.
+// Every `*.vader` anywhere under `lib/` — recursively, since modules are
+// per-folder (`std/core/`, `std/string/`, …), and starting at `lib/` and not
+// `lib/std/`, since the libraries that left `std/` (json, regex, semver, cli,
+// crypto, base64, random, images) are namespaces of their own — naming `std`
+// dropped 5 446 LoC from this corpus without a word.
 function listLibraryFiles(): string[] {
-  if (!existsSync(LIBRARY_ROOT)) return [];
-  const out: string[] = [];
-  const walk = (dir: string) => {
-    for (const ent of readdirSync(dir, { withFileTypes: true })) {
-      const full = join(dir, ent.name);
-      if (ent.isDirectory()) walk(full);
-      else if (ent.name.endsWith(".vader")) out.push(full);
-    }
-  };
-  walk(LIBRARY_ROOT);
-  return out.sort();
+  return listVaderFiles(LIBRARY_ROOT).sort();
 }
 
 // Files that round-trip byte-for-byte today. Grow this set whenever a
@@ -50,11 +38,20 @@ const NO_OP_FILES = new Set([
   "runtime.vader",
 ]);
 
-// Files with a KNOWN, pre-existing idempotency wobble unrelated to round-trip
-// safety : a name-column alignment group whose width shifts on the second pass
-// when an interleaved comment splits the group (e.g. `TOMB_SLOT  ::` →
-// `TOMB_SLOT ::`). They still reparse cleanly (contract 1 holds) — only the
-// stronger `fmt(fmt) === fmt` is skipped until the alignment pass is tightened.
+// Files with a KNOWN, pre-existing idempotency wobble. The visible symptom is a
+// name-column alignment group narrowing on the second pass (`TOMB_SLOT  ::` →
+// `TOMB_SLOT ::`), but the CAUSE is upstream of the alignment pass: `fmt` relocates
+// a TRAILING line-comment onto its own line above the next declaration —
+//
+//     EMPTY_SLOT :: i32(0)    // index slot holds no entry
+//   becomes
+//     EMPTY_SLOT :: i32(0)
+//     // index slot holds no entry
+//
+// which splits the `::` group, so pass 2 computes a different column. Measured over
+// `vader/` + `lib/`: 447 trailing comments across 59 files move this way. Tracked in
+// TODO.md; both files still reparse cleanly (contract 1 holds), so only the stronger
+// `fmt(fmt) === fmt` is skipped.
 const UNSTABLE_IDEMPOTENCY = new Set([
   "collections.vader",
   "parse_float.vader",
@@ -82,7 +79,7 @@ function fmtString(source: string): string {
   try {
     return fmtStdout(tmp);
   } finally {
-    try { Bun.file(tmp).delete?.(); } catch { /* ignore */ }
+    rmSync(tmp, { force: true });
   }
 }
 
@@ -99,19 +96,19 @@ for (const path of listLibraryFiles()) {
   const base = path.slice(path.lastIndexOf("/") + 1);
 
   test(`library reparse after format : ${base}`, async () => {
-    if (!ENABLED) return;
     const formatted = fmtStdout(path);
     const tmp = join(process.cwd(), `.tmp-fmt-stdlib-reparse-${base}`);
     await Bun.write(tmp, formatted);
     try {
       expect(await reparseErrors(tmp)).toBe("");
     } finally {
-      try { Bun.file(tmp).delete?.(); } catch { /* ignore */ }
+      // `rmSync(force)`, not `Bun.file().delete()` — the latter returns a promise, so
+      // its rejection escapes this try/catch and fails the NEXT test instead.
+      rmSync(tmp, { force: true });
     }
   }, { timeout: MEDIUM_BUILD });
 
   test(`library idempotent : ${base}`, async () => {
-    if (!ENABLED) return;
     if (UNSTABLE_IDEMPOTENCY.has(base)) return;
     const f1 = fmtStdout(path);
     const f2 = fmtString(f1);
@@ -120,7 +117,6 @@ for (const path of listLibraryFiles()) {
 
   if (NO_OP_FILES.has(base)) {
     test(`library byte-for-byte no-op : ${base}`, async () => {
-      if (!ENABLED) return;
       const src = readFileSync(path, "utf8");
       const formatted = fmtStdout(path);
       expect(formatted).toBe(src);

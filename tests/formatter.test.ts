@@ -6,19 +6,17 @@
 //    modulo spans. Demonstrates that the format pass doesn't change the
 //    program's structural meaning.
 //
-// The formatter is a Vader program executed through the bytecode VM (cf.
-// `src/cli/commands/fmt.ts` shim), so each `Bun.spawnSync` invocation pays a
-// ~2-3 s VM-bootstrap cost. To keep `bun test` snappy this suite is gated
-// behind `RUN_FMT_TESTS=1` ; the gate skips every test rather than declaring
-// them failed when not set.
+// Each check spawns the native `build/vader` once (~20 ms). This suite used to be
+// gated behind `RUN_FMT_TESTS=1` because `vader fmt` ran through a TS shim over
+// the bytecode VM and paid a ~2-3 s bootstrap per call; that shim went with
+// `src/`, and the gate outlived its reason — silently, since a gated test
+// registers and passes.
 
 import { test, expect } from "bun:test";
-import { existsSync } from "node:fs";
+import { existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
 import { CLI_BIN, MEDIUM_BUILD, runCli } from "./cli-bin.ts";
-
-const ENABLED = process.env.RUN_FMT_TESTS === "1";
 
 // A representative cross-section of the snippet corpus. Adding every
 // snippet would push the runtime past 5 minutes — pick fixtures that
@@ -75,7 +73,7 @@ function fmtString(source: string): string {
   try {
     return fmtStdout(tmp);
   } finally {
-    try { Bun.file(tmp).delete?.(); } catch { /* ignore */ }
+    rmSync(tmp, { force: true });
   }
 }
 
@@ -205,10 +203,15 @@ S :: struct {
   },
   {
     // Mutable-parameter marker `!`. It has TWO surfaces for one notion, and each
-    // must survive a round-trip: on the NAME in a declaration (`buf!: u8[]`, and
-    // `self!`, which has no written type to hang it on), and on the TYPE inside a
-    // fn type (`fn(u8[]!) -> void`), where there are no parameter names at all.
-    // Dropping either one silently widens a read-only borrow into a mutable slot.
+    // must survive a round-trip: on the TYPE (`buf: u8[]!`, including inside a fn
+    // type, `fn(u8[]!) -> void`, where there are no parameter names at all), and on
+    // `self!`, the one place it still rides the name — `self` has no written type to
+    // hang it on. Dropping either silently widens a read-only borrow into a mutable
+    // slot.
+    //
+    // `buf!: u8[]` was the original spelling and is now P1031: this fixture kept it
+    // for a while after the marker moved onto the type, and nothing said so, because
+    // the whole file sat behind an opt-in gate.
     name: "mutable_param_marker",
     source: `module "reg/mutable_param_marker"
 
@@ -226,15 +229,15 @@ Counter implements Bumpable {
     }
 }
 
-fill :: fn(buf!: u8[], byte: u8) -> void {
+fill :: fn(buf: u8[]!, byte: u8) -> void {
     buf.push(byte)
 }
 
-apply :: fn(f: fn(u8[]!) -> void, xs!: u8[]) -> void {
+apply :: fn(f: fn(u8[]!) -> void, xs: u8[]!) -> void {
     f(xs)
 }
 
-mixed :: fn(a: u8[], b!: u8[], c: i32) -> void {
+mixed :: fn(a: u8[], b: u8[]!, c: i32) -> void {
     b.push(c)
 }
 `,
@@ -243,7 +246,6 @@ mixed :: fn(a: u8[], b!: u8[], c: i32) -> void {
 
 for (const { name, source } of REGRESSIONS) {
   test(`fmt regression round-trip : ${name}`, async () => {
-    if (!ENABLED) return;
     const orig = join(process.cwd(), `.tmp-fmt-reg-src-${name}.vader`);
     const fmtd = join(process.cwd(), `.tmp-fmt-reg-out-${name}.vader`);
     await Bun.write(orig, source);
@@ -255,9 +257,11 @@ for (const { name, source } of REGRESSIONS) {
       // Idempotency.
       expect(fmtString(formatted)).toBe(formatted);
     } finally {
-      for (const p of [orig, fmtd]) {
-        try { Bun.file(p).delete?.(); } catch { /* ignore */ }
-      }
+      // `rmSync(force)` and not `Bun.file().delete()`: the latter returns a PROMISE,
+      // so an ENOENT (the output file is never written when fmt itself fails) escapes
+      // the surrounding try/catch as an unhandled rejection and fails the NEXT test
+      // instead. One stale fixture reported as three failures that way.
+      for (const p of [orig, fmtd]) rmSync(p, { force: true });
     }
   }, { timeout: MEDIUM_BUILD });
 }
@@ -302,13 +306,12 @@ classify :: fn(x: i32) -> i32 {
 
 for (const { name, source } of COMMENT_STABILITY) {
   test(`fmt comment stability : ${name}`, async () => {
-    if (!ENABLED) return;
     const src = join(process.cwd(), `.tmp-fmt-cmt-${name}.vader`);
     await Bun.write(src, source);
     try {
       expect(fmtStdout(src)).toBe(source);
     } finally {
-      try { Bun.file(src).delete?.(); } catch { /* ignore */ }
+      rmSync(src, { force: true });
     }
   }, { timeout: MEDIUM_BUILD });
 }
@@ -348,20 +351,18 @@ f :: fn(x: T) -> i32 {
 
 for (const { name, source } of MATCH_ALIGN) {
   test(`fmt match-arm alignment : ${name}`, async () => {
-    if (!ENABLED) return;
     const src = join(process.cwd(), `.tmp-fmt-align-${name}.vader`);
     await Bun.write(src, source);
     try {
       expect(fmtStdout(src)).toBe(source);
     } finally {
-      try { Bun.file(src).delete?.(); } catch { /* ignore */ }
+      rmSync(src, { force: true });
     }
   }, { timeout: MEDIUM_BUILD });
 }
 
 for (const name of SNIPPETS) {
   test(`fmt idempotency : ${name}`, async () => {
-    if (!ENABLED) return;
     const path = join("tests", "snippets", name, "_main.vader");
     if (!existsSync(path)) {
       throw new Error(`snippet missing : ${path}`);
@@ -372,7 +373,6 @@ for (const name of SNIPPETS) {
   }, { timeout: MEDIUM_BUILD });
 
   test(`fmt parse round-trip : ${name}`, async () => {
-    if (!ENABLED) return;
     const path = join("tests", "snippets", name, "_main.vader");
     if (!existsSync(path)) {
       throw new Error(`snippet missing : ${path}`);
@@ -383,7 +383,7 @@ for (const name of SNIPPETS) {
     try {
       expect(await astDump(tmp)).toBe(await astDump(path));
     } finally {
-      try { Bun.file(tmp).delete?.(); } catch { /* ignore */ }
+      rmSync(tmp, { force: true });
     }
   }, { timeout: MEDIUM_BUILD });
 }
