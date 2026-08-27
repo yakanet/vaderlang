@@ -8,6 +8,7 @@ import "vader/parser"
 import "vader/diagnostics"
 import "vader/resolver/symbol"
 import "vader/types"
+import "toolchain/span"
 
 lower_assign :: fn(ctx: FnLowerCtx!, assign_stmt: AssignStmt) -> LoweredStmt {
     // `m[k] = v` over an IndexSet-impl receiver lowers to a static

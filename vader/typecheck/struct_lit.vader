@@ -142,6 +142,7 @@ import "std/testing"
 import "vader/parser"
 import "vader/resolver"
 import "vader/resolver/symbol"
+import "toolchain/span"
 
 struct_lit_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram!, diags: Diagnostic[]!,

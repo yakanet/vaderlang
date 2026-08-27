@@ -12,6 +12,7 @@ import "vader/diagnostics"
 import "vader/parser"
 import "vader/resolver/symbol"
 import "vader/types"
+import "toolchain/span"
 import "std/string_builder"
 
 /// Prepare a lowered value for the slot it flows into — the ONE place that knows

@@ -23,6 +23,7 @@ import "vader/diagnostics"
 import "vader/types"
 Ct :: import "vader/comptime"
 Vm :: import "vader/vm"
+import "toolchain/span"
 
 /// Convert a VM `Value` into a `ComptimeValue`, naming scalars from the
 /// typechecker-resolved `ty` rather than the runtime tag.

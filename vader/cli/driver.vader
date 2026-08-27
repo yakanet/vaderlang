@@ -38,6 +38,7 @@ import "vader/diagnostics"
 import "std/crypto"
 AST :: import "vader/parser"
 import "vader/resolver"
+import "toolchain/span"
 
 // ---- discovery ------------------------------------------------------------
 

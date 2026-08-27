@@ -21,6 +21,7 @@ import "std/path"
 import "vader/diagnostics"
 import "vader/parser"
 import "vader/resolver/symbol"
+import "toolchain/span"
 
 /// Synthetic 1:1 span anchored on a file path. Used by R2001 when the
 /// entry folder lies outside every scoped root — there is no source-

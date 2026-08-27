@@ -503,6 +503,7 @@ export EnclosingLoop :: struct {
 }
 
 import "vader/diagnostics"
+import "toolchain/span"
 
 
 /// Across the whole project — multi-module aggregation. Populated by

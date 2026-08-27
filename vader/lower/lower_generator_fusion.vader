@@ -23,6 +23,7 @@ AST :: import "vader/parser"
 import "vader/resolver/symbol"
 import "vader/types"
 import "vader/typecheck"
+import "toolchain/span"
 
 // Recognise `for v in <gen-call>` where the callee is a directly-called
 // `generator` fn (generic or not), and inline its yield-loop in place of the

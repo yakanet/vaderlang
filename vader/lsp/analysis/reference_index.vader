@@ -32,6 +32,7 @@ import "vader/resolver"
 import "vader/resolver/symbol"
 import "vader/typecheck"
 AST :: import "vader/parser"
+import "toolchain/span"
 
 /// One recorded reference : a source span + the (import-resolved) Symbol id it
 /// refers to. `is_decl` marks a top-level declaration site (so

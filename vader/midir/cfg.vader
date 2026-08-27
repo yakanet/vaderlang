@@ -18,6 +18,7 @@ import "vader/resolver/symbol"
 import "vader/comptime"
 import "vader/bytecode"
 import "vader/lower"
+import "toolchain/span"
 import "std/collections"
 
 // ---- index types ----------------------------------------------------------

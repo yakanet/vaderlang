@@ -27,6 +27,7 @@ import "std/testing"
 import "vader/diagnostics"
 import "vader/parser"
 AST :: import "vader/parser"
+import "toolchain/span"
 
 /// `@intrinsic impl ... {}` carries an empty body : fill it with one
 /// stub FnDecl per trait method so downstream phases see the impl's

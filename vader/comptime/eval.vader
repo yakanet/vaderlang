@@ -128,6 +128,7 @@ expr_kind_label :: fn(expr: AST.Expr) -> string = @partial match expr {
 import "std/collections"
 import "std/testing"
 import "vader/typecheck"
+import "toolchain/span"
 
 @test test_evaluate_int_literal :: fn() -> void {
     expr :: AST.IntLitExpr { .span = empty_span(), .id = 0, .value = 42 }

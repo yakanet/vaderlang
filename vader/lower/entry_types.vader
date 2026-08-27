@@ -183,6 +183,7 @@ fn_decl_type_by_span :: fn(self: EntryTypes, name: string, name_span: Span) -> T
 
 import "std/testing"
 import "vader/resolver/symbol"
+import "toolchain/span"
 
 @test test_apply_is_identity_under_empty_subst :: fn() -> void {
     typed :: empty_typed_program()

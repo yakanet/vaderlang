@@ -22,6 +22,7 @@ module "vader/typecheck"
 import "vader/diagnostics"
 AST :: import "vader/parser"
 import "vader/types"
+import "toolchain/span"
 
 /// Type-check `expr`. `expected` provides bidirectional context — pass
 /// `null` for fresh-position uses. The returned `Type` is the post-

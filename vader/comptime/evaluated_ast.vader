@@ -13,6 +13,7 @@ import "std/collections"
 import "vader/types"
 import "vader/typecheck"
 import "vader/diagnostics"
+import "toolchain/span"
 
 /// A `@comptime` decl the tree-walk evaluator deferred to the VM (it returned
 /// `vm_required` rather than a value). `evaluate_project` records these instead

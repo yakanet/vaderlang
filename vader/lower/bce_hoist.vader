@@ -385,6 +385,7 @@ import "vader/resolver/symbol"
 import "vader/typecheck"
 import "vader/comptime"
 AST :: import "vader/parser"
+import "toolchain/span"
 
 // Minimal fixtures. `bce_fn_pure` reads only `fd.mangled` + `fd.body` and, via
 // the ctx, resolves callees by mangle / symbol id — the rest of the MonoEntry /

@@ -12,6 +12,7 @@ import "vader/resolver/symbol"
 import "vader/types"
 import "vader/comptime"
 import "vader/resolver"
+import "toolchain/span"
 
 /// Lower a `BlockExpr` to a `LoweredBlock`. Block frames are pushed onto
 /// `ctx.blocks` so the defers registered in a frame are replayed (in

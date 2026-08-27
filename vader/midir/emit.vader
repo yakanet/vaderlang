@@ -31,6 +31,7 @@ import "vader/bytecode" {
     ImplEntry as BcImplEntry,
 }
 import "vader/resolver/symbol"
+import "toolchain/span"
 
 // ============================================================================
 // CFG-input reserve helpers (mirror bytecode/emit reserve_fn / etc. for CFG

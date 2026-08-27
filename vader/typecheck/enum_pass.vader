@@ -16,6 +16,7 @@ import "std/collections"
 import "vader/diagnostics"
 import "vader/parser"
 import "vader/types"
+import "toolchain/span"
 
 /// Compute the canonical `name → value` map for `decl`. `repr` is the
 /// already-resolved backing type name (e.g. `"i32"`, `"u8"`) ; pass

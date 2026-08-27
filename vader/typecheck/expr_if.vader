@@ -403,6 +403,7 @@ import "std/testing"
 import "vader/parser"
 import "vader/resolver"
 import "vader/resolver/symbol"
+import "toolchain/span"
 
 expr_if_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram!, diags: Diagnostic[]!,

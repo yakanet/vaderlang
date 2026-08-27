@@ -10,6 +10,7 @@
 module "vader/parser"
 
 import "vader/diagnostics"
+import "toolchain/span"
 
 // Sentinel id used at parser construction time, before a future
 // `assign_node_ids` walker replaces it with a fresh unique value (≥ 1).

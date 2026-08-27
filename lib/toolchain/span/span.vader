@@ -1,0 +1,151 @@
+// toolchain/span/span.vader — where a piece of source is, and nothing else.
+//
+// The leaf of the toolchain's public API: a compiler-free module that anything
+// reading Vader source needs and that nothing needs a compiler to understand.
+// `toolchain/ast` is built on it, `vader/diagnostics` anchors its diagnostics on
+// it, and a build-time generator shipped by a library reports through it.
+//
+// It lives HERE rather than in `vader/diagnostics` because of what depends on it.
+// A library that ships a generator must not depend on the compiler, and the whole
+// of `toolchain/ast` needs exactly one thing from the diagnostics module — `Span`.
+// Splitting that one thing out is what makes the AST extractable at all; the rest
+// of the diagnostic machinery (severities, codes, the phase enums, rendering)
+// stays behind, because a generator has no use for it.
+//
+// The three `Span` impls travel with the type, not with its consumers: an impl
+// belongs to the module declaring the type, and `vader test` compiles one
+// representative per module, so an impl left behind would be missing from every
+// closure that does not happen to import its old home.
+
+module "toolchain/span"
+
+// ---- positions ------------------------------------------------------------
+
+/// A point in a source file.
+///
+/// `offset` is a raw UTF-8 byte offset ; `column` is a 1-based **codepoint**
+/// index within the line (the lexer counts leading bytes). The LSP boundary
+/// translates to UTF-16 column counts when needed.
+export Position :: struct {
+    file: string
+    offset: usize
+    line: i32
+    column: i32
+}
+
+/// Half-open span `[start, end)` in source.
+export Span :: struct {
+    start: Position
+    end: Position
+}
+
+/// Position key for span-keyed side-tables. Folds the source file (via
+/// its FNV hash) with the start line/column so spans at the same
+/// `(line, column)` in DIFFERENT files of a multi-file module don't
+/// collide when their per-module maps merge. `start`-only by design :
+/// every side-table that keys on a span keys on its start ; `Equals`
+/// (start AND end) still distinguishes an envelope expr from its child
+/// in a hash bucket, so the start-only hash is a valid
+/// over-approximation.
+Span implements Hash -> self.start.file.hash() * 1000003 + (u64(self.start.line) << 32) + u64(self.start.column)
+
+/// Structural equality over `(file, line, column)` of both ends — the
+/// full key the typed-ast side-tables need to tell an envelope expr
+/// apart from a child that shares its start position.
+Span implements Equals {
+    equals :: fn(self, other: Span) -> bool {
+        return self.start.file == other.start.file &&
+            self.start.line == other.start.line &&
+            self.start.column == other.start.column &&
+            self.end.line == other.end.line &&
+            self.end.column == other.end.column
+    }
+}
+
+/// `lineS:colS-lineE:colE` — human-readable form for diagnostics and
+/// for keying side-tables that need an envelope expr to stay disjoint
+/// from a child sharing its start position.
+Span implements Display -> "${self.start.line}:${self.start.column}-${self.end.line}:${self.end.column}"
+
+// ---- compiler-minted spans ------------------------------------------------
+
+/// Sentinel file name on spans minted by the compiler with no real source
+/// origin (test fixtures, intrinsic stubs, lowering-synthesised nodes).
+export SYNTHETIC_FILE :: "<synthetic>"
+
+/// Sentinel file name on spans that belong to AST nodes cloned from a
+/// trait's default-method body into an implementing struct's impl.
+/// The typecheck dump renders these spans as `undefined:undefined`.
+export MATERIALIZED_FILE :: "<materialized>"
+
+/// Synthetic `Span` for AST nodes minted by the compiler (test fixtures,
+/// materialised trait methods, intrinsic stubs). Points to a dummy 1:1
+/// position so renderers and span-keyed side-tables stay happy.
+export empty_span :: fn() -> Span {
+    return Span {
+        .start = Position { .file = SYNTHETIC_FILE, .offset = 0, .line = 1, .column = 1 },
+        .end   = Position { .file = SYNTHETIC_FILE, .offset = 1, .line = 1, .column = 2 },
+    }
+}
+
+/// A `Span` at the head of `path` — for a problem that is about the FILE rather
+/// than about anything written in it.
+///
+/// The alternative is `empty_span`, which renders as `<synthetic>` and names no
+/// file at all: a reader then has to guess which file to open. Use this whenever
+/// the faulty file is known even though the faulty line is not.
+///
+/// @param path  the file the diagnostic is about.
+export file_head_span :: fn(path: string) -> Span {
+    at :: Position { .file = path, .offset = 0, .line = 1, .column = 1 }
+    return Span { .start = at, .end = at }
+}
+
+/// True when `s` points at a real source location worth surfacing to a user
+/// — a concrete file with a 1-based line. False for every compiler-minted
+/// marker : the `<synthetic>` sentinel (`empty_span`), the `<materialized>`
+/// marker (`materialized_span`, line 0), a blank file (`empty_span(file)`
+/// with no file), or any non-positive line. Callers gate per-op `#line` /
+/// `DebugPos` emission on this so no bogus `#line 0 "<materialized>"` reaches
+/// the C output or the debugger.
+///
+/// @param s  the span to judge.
+/// @return   true when the span names a real file at a real line.
+export has_source_position :: fn(s: Span) -> bool {
+    if s.start.file == "" { return false }
+    if s.start.file == SYNTHETIC_FILE { return false }
+    if s.start.file == MATERIALIZED_FILE { return false }
+    return s.start.line > 0
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_empty_span_is_not_a_source_position :: fn() -> void {
+    assert(!has_source_position(empty_span()), "the synthetic sentinel names no source")
+}
+
+@test test_file_head_span_is_a_source_position :: fn() -> void {
+    // The whole point of `file_head_span` over `empty_span`: it names the file,
+    // so a reader knows what to open.
+    s :: file_head_span("src/main.vader")
+    assert(has_source_position(s), "a file-head span is real")
+    assert_eq(s.start.file, "src/main.vader")
+}
+
+@test test_materialized_file_is_not_a_source_position :: fn() -> void {
+    at :: Position { .file = MATERIALIZED_FILE, .offset = 0, .line = 1, .column = 1 }
+    assert(!has_source_position(Span { .start = at, .end = at }), "cloned bodies name no source")
+}
+
+@test test_span_equality_distinguishes_the_end :: fn() -> void {
+    // Why `Equals` covers both ends while `Hash` covers only the start: an
+    // envelope expression and its child share a start position, and the
+    // span-keyed side-tables must tell them apart.
+    start :: Position { .file = "a.vader", .offset = 0, .line = 1, .column = 1 }
+    short :: Position { .file = "a.vader", .offset = 3, .line = 1, .column = 4 }
+    long  :: Position { .file = "a.vader", .offset = 9, .line = 1, .column = 10 }
+    assert(Span { .start = start, .end = short } != Span { .start = start, .end = long },
+        "same start, different end — distinct spans")
+}

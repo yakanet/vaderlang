@@ -27,6 +27,7 @@ export ImportInfo :: struct {
 }
 
 import "vader/diagnostics"
+import "toolchain/span"
 
 export new_import_table :: fn() -> MutableMap<i32, ImportInfo> {
     return MutableMap<i32, ImportInfo> {}

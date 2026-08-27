@@ -26,6 +26,7 @@ import "std/string"
 import "vader/diagnostics"
 import "vader/parser"
 AST :: import "vader/parser"
+import "toolchain/span"
 
 /// One module search root (GCC `-I` style). A module name maps to a folder under
 /// `dir`. `prefix` names the namespace `dir` roots : the entry declares

@@ -61,10 +61,9 @@ if ($Dist) {
     Step "[dist] Bundling $distDir  (vader + lib/{std,vader} + runtime/c)"
     if (Test-Path $distDir) { Remove-Item -Recurse -Force $distDir }
     New-Item -ItemType Directory -Force "$distDir\runtime" | Out-Null
-    New-Item -ItemType Directory -Force "$distDir\lib" | Out-Null
     Copy-Item build\vader.exe "$distDir\vader.exe"
-    # One module root -- see the matching block in bootstrap/build.sh.
-    Copy-Item -Recurse lib\std "$distDir\lib\std"
+    # One module root, copied whole -- see the matching block in bootstrap/build.sh.
+    Copy-Item -Recurse lib "$distDir\lib"
     Copy-Item -Recurse vader "$distDir\lib\vader"
     Copy-Item -Recurse runtime\c "$distDir\runtime\c"
 

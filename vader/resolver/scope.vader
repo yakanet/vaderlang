@@ -92,6 +92,7 @@ export lookup_frame_index :: fn(self: Scope, name: string) -> i32 {
 
 import "std/testing"
 import "vader/parser"
+import "toolchain/span"
 
 @test
 test_scope_lookup_finds_root_binding :: fn() -> void {

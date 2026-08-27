@@ -29,6 +29,7 @@ import "vader/lexer"
 import "vader/diagnostics"
 import "vader/fmt"
 import "vader/lsp/protocol"
+import "toolchain/span"
 
 /// What kind of declaration a DeclEntry points at. Drives the hover
 /// signature template + helps clients decide on icon / styling.

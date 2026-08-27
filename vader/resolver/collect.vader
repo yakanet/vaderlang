@@ -17,6 +17,7 @@ import "std/string"
 import "vader/diagnostics"
 import "vader/parser"
 import "vader/resolver/symbol"
+import "toolchain/span"
 
 /// Output of one module's collect pass.
 /// `symbols` is keyed by local name ; `fn_overloads` carries every fn

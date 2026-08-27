@@ -1998,6 +1998,7 @@ into_tuple_target :: fn(declared: Type, arity: usize, typed: TypedProgram) -> Ty
 import "std/testing"
 import "vader/parser"
 import "vader/resolver"
+import "toolchain/span"
 // Bundles parse + resolve + declare + walks fn bodies with the stub.
 // Returns both `typed` and `diags` so test sites can assert on either.
 StubResult :: struct {

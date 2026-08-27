@@ -1342,6 +1342,7 @@ export find_struct_field_type :: fn(
 
 import "std/testing"
 import "vader/parser"
+import "toolchain/span"
 
 // Stub that handles only the variants the field tests touch — Ident
 // (for `p` in `p.x`), Field (for nested `obj.a.b`), and Int literals.

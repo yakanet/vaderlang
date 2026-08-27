@@ -19,6 +19,7 @@ import "std/char"
 import "std/string_builder"
 import "std/numbers"
 import "vader/diagnostics"
+import "toolchain/span"
 // Position/Span are re-imported transparently via token.vader (same module);
 // no need to import them again here — that would trigger R2011.
 

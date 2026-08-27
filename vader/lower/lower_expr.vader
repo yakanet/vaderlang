@@ -23,6 +23,7 @@ import "vader/typecheck"
 import "vader/resolver/symbol"
 import "vader/types"
 import "vader/comptime"
+import "toolchain/span"
 
 /// Lower an `AST.Expr` to its `LoweredExpr` form.
 /// @param ctx   the fn-body context.
