@@ -1,4 +1,4 @@
-// stdlib/std/core/bigint.vader — fixed-width big-integer kernel.
+// std/core/bigint.vader — fixed-width big-integer kernel.
 //
 // `BigInt` is a natural (unsigned) arbitrary-precision integer stored as
 // little-endian base-2^32 limbs. It is the shared foundation for the

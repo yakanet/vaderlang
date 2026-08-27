@@ -16,5 +16,5 @@ cmd_lsp :: fn(args: string[]) -> i32 {
     if parsed is i32 as code {
         return code
     }
-    return run_server(parsed.string_flag("stdlib-root", ""), parsed.string_flag("vader-root", ""))
+    return run_server(parsed.string_flag("library-root", ""), parsed.string_flag("vader-root", ""))
 }

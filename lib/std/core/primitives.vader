@@ -1,4 +1,4 @@
-// stdlib/std/core/primitives.vader — primitive-type trait impls.
+// std/core/primitives.vader — primitive-type trait impls.
 //
 // Split out of core.vader so neither file outgrows the ~500-LoC budget. Carries
 // the Display / Equals / Hash / Comparable / Step / arithmetic impls for the

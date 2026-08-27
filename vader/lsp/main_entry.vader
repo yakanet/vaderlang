@@ -31,5 +31,5 @@ main :: fn(argv: string[]) -> i32 {
         }
         return 1
     }
-    return run_server(parsed.string_flag("stdlib-root", ""), parsed.string_flag("vader-root", ""))
+    return run_server(parsed.string_flag("library-root", ""), parsed.string_flag("vader-root", ""))
 }

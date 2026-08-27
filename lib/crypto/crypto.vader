@@ -1,4 +1,4 @@
-// std/crypto — hashing & digest functions (SHA-256, MD5).
+// crypto — hashing & digest functions (SHA-256, MD5).
 //
 // MVP scope : SHA-256 and MD5, for content fingerprinting and integrity
 // checking. SHA-256 is a real cryptographic hash and reproduces

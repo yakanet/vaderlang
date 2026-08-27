@@ -1,4 +1,4 @@
-// std/base64 — RFC 4648 base64 encode + decode.
+// base64 — RFC 4648 base64 encode + decode.
 //
 // MVP scope : standard alphabet only (`A-Z a-z 0-9 + /`), strict
 // padding with `=`. URL-safe variant (`- _`, optional padding) is a

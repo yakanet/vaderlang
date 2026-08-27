@@ -24,14 +24,13 @@ module "toolchain/ast"
 
 import "toolchain/span"
 
-// Sentinel id used at parser construction time, before a future
-// `assign_node_ids` walker replaces it with a fresh unique value (≥ 1).
-// Used as a struct-field default so node constructions can omit `.id`.
 /// Sentinel `id` on a node the parser has just minted.
 ///
-/// Node ids are assigned in a later pass (`vader/parser::assign_program_ids`), so a
-/// freshly parsed tree carries this everywhere. A generator reading a typechecked
-/// tree sees real ids; one building nodes by hand leaves them at the default.
+/// Node ids are assigned in a later pass (`vader/parser::assign_program_ids`), which
+/// replaces this with a fresh unique value (≥ 1), so a freshly parsed tree carries
+/// the sentinel everywhere. A generator reading a typechecked tree sees real ids;
+/// one building nodes by hand leaves them at the default — it is every node's
+/// `.id` default, so a construction may omit the field.
 export UNASSIGNED_NODE_ID :: usize(0)
 
 // ============================================================================
@@ -86,17 +85,17 @@ export coalesce_fallback_expr :: fn(f: CoalesceFallback) -> Expr | null = match 
     is Expr as e -> e
 }
 
-// Type-position expressions parse as regular `Expr` nodes — what counts
-// as a « type expression » is determined by *position* (the slot demanding
-// a type) rather than by AST shape. The alias documents intent at slot
-// declarations (e.g. `StructField.ty: TypeExpr`) ; variants mirror `Expr`.
 /// A type AS WRITTEN — the same node set as `Expr`, deliberately.
 ///
 /// Vader's type grammar is a subset of its expression grammar (`i32`, `Foo<T>`,
 /// `A | B`, `fn(i32) -> bool`, `T[]`), so the parser reuses the expression nodes
-/// rather than duplicating them. A reader must not assume an `IdentExpr` in type
-/// position denotes a type it can name: `Id` may be an alias, an imported struct or
-/// a distinct newtype, and only the resolver knows which.
+/// rather than duplicating them. What counts as a type expression is decided by
+/// POSITION — the slot demanding a type — never by node shape; the alias exists to
+/// say so at each slot (`StructField.ty: TypeExpr`).
+///
+/// A reader must not assume an `IdentExpr` in type position denotes a type it can
+/// name: `Id` may be an alias, an imported struct or a distinct newtype, and only
+/// the resolver knows which.
 export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | MutableTypeExpr | AwaitExpr
 
 // ============================================================================
@@ -214,9 +213,6 @@ export ImportName :: struct {
 
 // ---- Fn -------------------------------------------------------------------
 
-// `sam_synthetic` and `is_expression_bodied` are `bool` (defaults `false`)
-// rather than `bool | null` — Vader has no optional fields. The dumper emits
-// them only when `true`.
 /// A function declaration, `name :: fn(...) -> T { ... }`.
 ///
 /// Four flags mark functions the user did not write. `sam_synthetic` is a
@@ -225,6 +221,9 @@ export ImportName :: struct {
 /// `comptime_synthetic` a declaration the comptime engine produced. And
 /// `is_expression_bodied` distinguishes `f :: fn() = expr` from a braced body,
 /// which the formatter needs and a generator emitting source should preserve.
+///
+/// Each is a plain `bool` defaulting to `false`, never `bool | null` — Vader has no
+/// optional fields — and the dumper emits one only when `true`.
 export FnDecl :: struct {
     span:                  Span
     id:                  usize = UNASSIGNED_NODE_ID
@@ -339,16 +338,10 @@ export EnumVariant :: struct {
 
 // ---- Trait ----------------------------------------------------------------
 
-// `requires` carries the trait composition expression for either form :
-//   `Numeric :: trait<T> = Add & Sub`        (alias form, members empty)
-//   `Hashable :: trait<T> : Hash & Eq { ... }` (declared methods + composition)
-// Stored as a parsed type expression — typically a `BinaryExpr(.BitAnd)` chain
-// over trait names but a single trait reference is also valid. `null` for a
-// plain `trait { ... }` declaration without composition.
 /// A trait declaration.
 ///
 /// `members` are its methods, each an `FnDecl`; one with a `body` is a default
-/// method. `requires` is a supertrait bound.
+/// method.
 export TraitDecl :: struct {
     span:        Span
     id:          usize = UNASSIGNED_NODE_ID
@@ -356,6 +349,11 @@ export TraitDecl :: struct {
     name_span:   Span
     visibility:  Visibility
     type_params: TypeParam[]
+    /// The supertrait bound, for either form — `Numeric :: trait<T> = Add & Sub`
+    /// (alias form, `members` empty) or `Hashable :: trait<T> : Hash & Eq { … }`
+    /// (methods plus composition). A parsed type expression: typically a
+    /// `BinaryExpr(.BitAnd)` chain over trait names, though a single trait
+    /// reference is valid too. `null` for a plain `trait { … }`.
     requires:    TypeExpr | null
     members:     FnDecl[]
     decorators:  Decorator[]
@@ -420,10 +418,10 @@ export ConstDecl :: struct {
     comptime_body: Expr | null = null
 }
 
-// `@assert(cond)` — top-level compile-time assertion. The condition
-// is evaluated by the comptime VM ; the build fails with C4015 if
-// the result is `false`. No runtime emission.
 /// An `@assert` at the top level — a build-time invariant.
+///
+/// `condition` is evaluated by the comptime VM and the build fails with C4015 when
+/// it is `false`. Nothing is emitted at runtime.
 export AssertDecl :: struct {
     span:       Span
     id:         usize = UNASSIGNED_NODE_ID
@@ -449,10 +447,9 @@ export LetStmt :: struct {
     value:   Expr
 }
 
-// Recursive let-binding tree. Leaves are `SimpleBinding` (introduces a name)
-// or `WildcardBinding` (ignores the slot). `TupleBinding` matches tuple-typed
-// values element-wise.
-/// A local bound to one name.
+/// A local bound to one name — a leaf of the recursive binding tree, whose other
+/// leaf is `WildcardBinding` (ignores the slot) and whose only branch is
+/// `TupleBinding` (matches a tuple-typed value element-wise).
 ///
 /// `name_span` covers the name alone — the precise target a rename needs, which the
 /// whole-binding `span` is too wide for.
@@ -476,10 +473,10 @@ export WildcardBinding :: struct {
     id: usize = UNASSIGNED_NODE_ID
 }
 
-// `...name` rest-element of a bracketed binding — collects every slot not
-// consumed by sibling SimpleBindings into a fresh array. Only valid as the
-// last element of a TupleBinding whose source is array-typed.
-/// The `...rest` tail of a destructuring local.
+/// The `...rest` tail of a destructuring local — collects every slot its sibling
+/// `SimpleBinding`s did not consume into a fresh array.
+///
+/// Valid only as the LAST element of a `TupleBinding` whose source is array-typed.
 export RestBinding :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID
@@ -582,10 +579,11 @@ export DeferStmtBody  :: struct { stmt: Stmt }
 /// A `defer` deferring a block.
 export DeferBlockBody :: struct { block: BlockExpr }
 
-// `Stmt` / `DeferBody` declared after their variant structs — the
-// resolver collects all decl names first then resolves types in a
-// second pass, so use-before-decl order works.
 /// Anything that can appear as a statement in a block.
+///
+/// Declared AFTER its variant structs, as `DeferBody` is: the resolver collects
+/// every decl name before resolving types, so either order works and this one
+/// reads top-down.
 export Stmt :: LetStmt | AssignStmt | ExprStmt | ReturnStmt | YieldStmt | ForStmt | BreakStmt | ContinueStmt | DeferStmt
 /// What a `defer` defers: one statement, or a block.
 export DeferBody :: DeferStmtBody | DeferBlockBody
@@ -658,17 +656,14 @@ export StringLitInterp :: struct { expr:  Expr,   span: Span, id: usize = UNASSI
 
 // ---- naming / access ------------------------------------------------------
 
-// `implicit_dot` is set when the source spelling was a leading-dot
-// reference (`.Foo`) — resolution defers to the surrounding context.
-// `is_type_param_intro` is set when the source was a dollar-prefixed
-// name — a legacy type-param introduction in a generic signature. Both
-// are `bool` (defaults `false`) ; the dumper emits the JSON keys
-// `implicitDot` / `isTypeParamIntro` only when `true`.
 /// A bare name, in value or type position.
 ///
-/// `implicit_dot` marks the `.Variant` form, where the enum type is inferred from
-/// context. `is_type_param_intro` marks a name introducing a type parameter rather
-/// than referring to one.
+/// `implicit_dot` marks the leading-dot spelling (`.Variant`), where resolution
+/// defers to the surrounding context. `is_type_param_intro` marks a dollar-prefixed
+/// name introducing a type parameter rather than referring to one.
+///
+/// Both are plain `bool`s defaulting to `false`, and the dumper emits their JSON
+/// keys (`implicitDot` / `isTypeParamIntro`) only when `true`.
 export IdentExpr :: struct {
     span:                Span
     id:                  usize = UNASSIGNED_NODE_ID
@@ -883,7 +878,6 @@ export StructLitField :: struct {
     value:     Expr
 }
 
-// `...expr` clause in a struct literal.
 /// A `...expr` entry of a struct literal.
 export StructLitSpread :: struct {
     span: Span
@@ -891,9 +885,10 @@ export StructLitSpread :: struct {
     expr: Expr
 }
 
-// Bracketed literal `[e1, e2, ...]`. The parser does not commit to "array"
-// vs "tuple" — the typechecker decides via contextual disambiguation.
 /// An array or tuple literal, `[a, b, c]`.
+///
+/// One node for both: the parser does not commit to array or tuple, and the
+/// typechecker decides from context.
 export SeqLitExpr :: struct {
     span:     Span
     id:       usize = UNASSIGNED_NODE_ID
@@ -942,13 +937,11 @@ export GenericInstExpr :: struct {
     type_args: TypeExpr[]
 }
 
-// Compiler-built reflection / introspection call : `@size_of(T)`,
-// `@type_name(T)`, `@file("path")`, etc. `name` is the intrinsic ident
-// *without* the leading `@`. The set of recognised names lives in
-// `vader/parser/intrinsics.vader` ; the parser only produces this node for
-// known names — unknown `@name(...)` in expression position still raises
-// P1014.
-/// A call to a compiler intrinsic, `@size_of(T)`.
+/// A call to a compiler intrinsic — `@size_of(T)`, `@type_name(T)`, `@file("path")`.
+///
+/// `name` is the intrinsic ident WITHOUT the leading `@`. The recognised set lives
+/// in `vader/parser/intrinsics.vader`, and the parser mints this node only for a
+/// known name — an unknown `@name(...)` in expression position raises P1014.
 export IntrinsicCallExpr :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID
@@ -989,8 +982,7 @@ export StructPattern :: struct {
     fields: StructPatternField![]
 }
 
-// Tuple destructure pattern `[p1, p2, ...]`. Element-wise sub-patterns.
-/// A tuple destructuring pattern.
+/// A tuple destructuring pattern, `[p1, p2, ...]` — element-wise sub-patterns.
 export TuplePattern :: struct {
     span:     Span
     id:       usize = UNASSIGNED_NODE_ID
@@ -1069,9 +1061,8 @@ export OrPattern :: struct {
 // Type expressions
 // ============================================================================
 
-// Function type `fn(T1, T2) -> R` — type-only AST node (no value-side
-// counterpart).
-/// A function type as written, `fn(i32) -> bool`.
+/// A function type as written, `fn(i32) -> bool` — type-only, with no value-side
+/// counterpart.
 ///
 /// `params_mutable` carries the `!` of each parameter, positionally.
 export FnTypeExpr :: struct {
@@ -1087,10 +1078,11 @@ export FnTypeExpr :: struct {
     return_type: TypeExpr | null
 }
 
-// Postfix array type `T[]` — type-only AST node. The bracketed form
-// `[T1, T2]` parses as `SeqLitExpr` (tuple type) instead. Mutability is not a
-// field here : it is the `MutableTypeExpr` wrapper below, one level at a time.
-/// An array type as written, `T[]`.
+/// An array type as written, `T[]` — type-only.
+///
+/// The bracketed form `[T1, T2]` parses as a `SeqLitExpr` (tuple type) instead. No
+/// mutability field here: that is the `MutableTypeExpr` wrapper below, which marks
+/// one level of the type at a time.
 export ArrayTypeExpr :: struct {
     span:    Span
     id:      usize = UNASSIGNED_NODE_ID

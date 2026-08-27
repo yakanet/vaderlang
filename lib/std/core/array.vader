@@ -1,4 +1,4 @@
-// stdlib/std/core/array.vader — built-in array methods, declared as intrinsics.
+// std/core/array.vader — built-in array methods, declared as intrinsics.
 //
 // The growable array `T[]` is a compiler built-in (no struct declaration), but
 // its mutation / query methods live here as a bodyless `@intrinsic T[] implements

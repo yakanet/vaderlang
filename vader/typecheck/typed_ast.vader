@@ -12,7 +12,6 @@
 module "vader/typecheck"
 
 import "std/collections"
-import "vader/parser"
 AST :: import "toolchain/ast"
 import "vader/resolver"
 import "vader/resolver/symbol"

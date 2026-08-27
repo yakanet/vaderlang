@@ -57,9 +57,9 @@ export ServerState :: struct {
     dirty:                      MutableMap<string, bool>
     /// Absolute path to the standard-library root (the dir that
     /// contains `std/io/io.vader` etc.). Empty when the host didn't
-    /// supply `--stdlib-root` — cross-file goto-def on `std/*`
+    /// supply `--library-root` — cross-file goto-def on `std/*`
     /// imports degrades to `null` then.
-    stdlib_root:                string
+    library_root:                string
     /// Absolute path to the self-host Vader source root (the dir that
     /// contains `lsp/`, `parser/`, `fmt/`, …). Empty when missing.
     vader_root:                 string
@@ -85,13 +85,13 @@ export ServerState :: struct {
     next_request_id:            i64
 }
 
-export new_state :: fn(stdlib_root: string, vader_root: string) -> ServerState {
+export new_state :: fn(library_root: string, vader_root: string) -> ServerState {
     return ServerState {
         .docs                    = MutableMap<string, string> {},
         .cache                   = null,
         .indices                 = MutableMap<string, DocIndex> {},
         .dirty                   = MutableMap<string, bool> {},
-        .stdlib_root             = stdlib_root,
+        .library_root             = library_root,
         .vader_root              = vader_root,
         .definition_link_support = false,
         .position_encoding       = .Utf16,

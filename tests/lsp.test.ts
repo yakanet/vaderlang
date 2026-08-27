@@ -147,7 +147,7 @@ async function driveLsp(
   }
 
   const proc = Bun.spawn({
-    cmd: [CLI_BIN, "lsp", `--stdlib-root=${process.cwd()}/lib`, `--vader-root=${process.cwd()}/vader`],
+    cmd: [CLI_BIN, "lsp", `--library-root=${process.cwd()}/lib`, `--vader-root=${process.cwd()}/vader`],
     cwd: process.cwd(),
     stdin: "pipe",
     stdout: "pipe",
@@ -1082,7 +1082,7 @@ main :: fn() -> i32 {
 
 // Cross-file goto-def : the indexer scans `import { ... }` bindings, the
 // resolver maps `std/*` / `vader/*` module paths to absolute file
-// paths via `stdlib_root` / `vader_root` (seeded by the host shim),
+// paths via `library_root` / `vader_root` (seeded by the host shim),
 // opens the source file, and returns the LSP Location pointing at the
 // origin's name_span. Hover renders the source decl's signature + doc
 // the same way.
@@ -1190,7 +1190,7 @@ main :: fn() -> i32 {
     offset += f.byteLength;
   }
   const proc = Bun.spawn({
-    cmd: [CLI_BIN, "lsp", `--stdlib-root=${process.cwd()}/lib`, `--vader-root=${process.cwd()}/vader`],
+    cmd: [CLI_BIN, "lsp", `--library-root=${process.cwd()}/lib`, `--vader-root=${process.cwd()}/vader`],
     cwd: process.cwd(),
     stdin: "pipe", stdout: "pipe", stderr: "pipe",
   });
@@ -1254,7 +1254,7 @@ test("lsp: initialize advertises definition + hover providers", async () => {
   }
 
   const proc = Bun.spawn({
-    cmd: [CLI_BIN, "lsp", `--stdlib-root=${process.cwd()}/lib`, `--vader-root=${process.cwd()}/vader`],
+    cmd: [CLI_BIN, "lsp", `--library-root=${process.cwd()}/lib`, `--vader-root=${process.cwd()}/vader`],
     cwd: process.cwd(),
     stdin: "pipe",
     stdout: "pipe",

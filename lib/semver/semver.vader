@@ -1,4 +1,4 @@
-// std/semver — Semantic Versioning 2.0.0 + npm-style range matching.
+// semver — Semantic Versioning 2.0.0 + npm-style range matching.
 //
 // Reference specs (locked in 2026-05-26) :
 //   - https://semver.org/spec/v2.0.0.html — version-string grammar +

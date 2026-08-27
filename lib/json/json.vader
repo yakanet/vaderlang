@@ -1,4 +1,4 @@
-// std/json — recursive-descent JSON parse + stringify.
+// json — recursive-descent JSON parse + stringify.
 //
 // `JsonValue` is the tagged union of every JSON shape. `parse` returns
 // `JsonValue | JsonError` ; parse failures surface as the `JsonError` variant,

@@ -6,8 +6,9 @@
 // committed C seed (see bootstrap/README.md).
 
 import { beforeAll } from "bun:test";
-import { readdirSync, statSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { statSync } from "node:fs";
+import { resolve } from "node:path";
+import { listVaderFiles } from "./vader-sources.ts";
 
 // The suffix a LINKER appends to an executable name. `cc -o hello` writes
 // `hello` on Unix and `hello.exe` on Windows — verified with mingw-w64: gcc
@@ -34,22 +35,19 @@ export const HEAVY_BUILD = 600_000;
 // Newest mtime across the .vader sources the compiler is built from. src/ (the
 // TS compiler) is intentionally excluded — the binary is produced from these
 // .vader sources, not TS, so a TS edit must not flag the binary stale. Post-§2.8
-// src/ is gone entirely. Called once per worker (from the global beforeAll), so
-// no memoization.
+// src/ is gone entirely.
+//
+// Called once per test FILE, not once per worker: bun gives each `*.test.ts` its
+// own realm, so the `--preload` module is re-evaluated per file and neither a
+// module-level nor a `globalThis` cache survives. Measured: 19 files × 285 stats
+// ≈ 20-67 ms across a ~6 min suite, which is why there is no memoization rather
+// than a cheap one.
 function newestSourceMtime(): number {
   let max = 0;
-  const walk = (dir: string): void => {
-    for (const ent of readdirSync(dir, { withFileTypes: true })) {
-      const p = join(dir, ent.name);
-      if (ent.isDirectory()) walk(p);
-      else if (ent.name.endsWith(".vader")) {
-        const m = statSync(p).mtimeMs;
-        if (m > max) max = m;
-      }
-    }
-  };
-  walk("vader");
-  walk("lib");
+  for (const p of [...listVaderFiles("vader"), ...listVaderFiles("lib")]) {
+    const m = statSync(p).mtimeMs;
+    if (m > max) max = m;
+  }
   return max;
 }
 

@@ -1,4 +1,4 @@
-// stdlib/std/core/dtoa_tables.vader — Ryu power-of-5 lookup tables,
+// std/core/dtoa_tables.vader — Ryu power-of-5 lookup tables,
 // computed at compile time (no committed data, no external generator).
 //
 // Drives the pure-Vader shortest-double formatter in dtoa.vader (Ryu, Adams

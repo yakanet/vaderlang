@@ -84,13 +84,9 @@ if [ "$dist" = 1 ]; then
   # it out of `lib/` makes that structural rather than policed.
   cp -R lib "$out/lib"
   cp -R vader "$out/src/vader"
-  # Drop the human front-ends: reached through the binary, never imported by a
-  # driver. bootstrap/dist-exclude.txt is the one definition and says why the
-  # list names what to DROP rather than what to keep.
-  # Trim then filter, matching build.ps1's `-match '^\s*(#|$)'` + `.Trim()` and the
-  # test's `.trim()` + `startsWith("#")`. Three readers of one file need one RULE,
-  # not just one list: untrimmed, an indented comment became part of an `rm -rf`
-  # path and a trailing space on an entry silently shipped the front-end it names.
+  # Drop the human front-ends -- see bootstrap/dist-exclude.txt, which carries the
+  # list, the reason it names what to DROP, and the trim-then-filter rule its three
+  # readers share.
   sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' bootstrap/dist-exclude.txt \
     | grep -Ev '^(#|$)' \
     | while read -r excluded; do
