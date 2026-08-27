@@ -12,7 +12,7 @@
 // every other dependency was already exported by `vader/resolver` or
 // `vader/lower`.
 //
-// Sits below its callers in the import graph: `vader/cli` and `vader/hooks`
+// Sits below its callers in the import graph: `vader/cli` and `toolchain/build`
 // import this; it imports neither.
 
 module "vader/pipeline"

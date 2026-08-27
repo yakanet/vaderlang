@@ -60,6 +60,12 @@ export DRIVER_ENTRY_FILENAME :: "vader_build_entry.vader"
 /// --dist` writes them here and `compiler_source_root` looks for them here.
 export BUNDLED_SOURCE_DIR :: "lib"
 
+/// Directory proving a candidate root really holds the compiler's sources.
+///
+/// A module the driver's own closure needs, so a root that lacks it is genuinely
+/// unusable rather than merely incomplete.
+export COMPILER_SOURCE_MARKER :: "vader/pipeline"
+
 /// Where a driven build puts the driver's binary and generated C, relative to
 /// the project root. Under `build/` so a checkout's existing ignore rules cover
 /// it — the driver is a build artefact like any other.
@@ -96,7 +102,11 @@ export find_build_driver :: fn(root: string) -> string | null {
 
 // ---- compiler-source resolution -------------------------------------------
 
-/// Include-path root under which `vader/hooks` resolves.
+/// Include-path root under which the COMPILER's own modules resolve.
+///
+/// A driver imports `toolchain/build`, which the library root already provides —
+/// but that module imports `vader/pipeline`, and `vader/` is not an include-path
+/// root anywhere. This is what supplies it, injected for driver builds only.
 ///
 /// Mirrors `resolver::resolve_sidecar`'s shape: prefer a location tied to the
 /// running binary, and fall back to `root` — which is what a checkout gives,
@@ -110,15 +120,22 @@ export find_build_driver :: fn(root: string) -> string | null {
 ///     forced: the bundled binary is itself NAMED `vader`, so the sources
 ///     cannot sit at `<binary dir>/vader/` without colliding with it.
 ///
+/// ⚠️ The marker is `vader/pipeline`, and it must stay a module the driver's own
+/// closure needs. It used to be `vader/hooks` — the contract itself — which broke
+/// the moment that moved out to `toolchain/build`: both probes then missed and the
+/// function fell through to `root`, which a CHECKOUT masks (the repo root does
+/// hold `vader/`) and a BUNDLE does not. The dist-bundle case of
+/// `tests/hook_driver.test.ts` is what catches it.
+///
 /// @param root  invocation directory, used as the checkout fallback.
-/// @return      a directory under which `vader/hooks/` is expected to resolve.
+/// @return      a directory under which `vader/pipeline/` is expected to resolve.
 export compiler_source_root :: fn(root: string) -> string {
     beside_binary :: current_executable_location().dir_of()
-    if exists(join_path(beside_binary, "vader/hooks")) {
+    if exists(join_path(beside_binary, COMPILER_SOURCE_MARKER)) {
         return beside_binary
     }
     bundled :: join_path(beside_binary, BUNDLED_SOURCE_DIR)
-    if exists(join_path(bundled, "vader/hooks")) {
+    if exists(join_path(bundled, COMPILER_SOURCE_MARKER)) {
         return bundled
     }
     // NOT a walk up the filesystem. An unbounded search would find some
@@ -198,8 +215,8 @@ driver_is_fresh :: fn(binary: string, stamp: string, key: string) -> bool {
 ///         named `DRIVER_ENTRY_MODULE`.
 export render_driver_entry :: fn() -> string {
     out :: StringBuilder {}
-    // Byte-identical to `vader/hooks::GENERATED_BANNER`, deliberately duplicated
-    // rather than imported: `vader/cli` importing `vader/hooks` would pull the
+    // Byte-identical to `toolchain/build::GENERATED_BANNER`, deliberately duplicated
+    // rather than imported: `vader/cli` importing `toolchain/build` would pull the
     // whole driver contract into the compiler's own closure for one string. Keep
     // the two in step — the banner is what `sweep_generated` deletes on, and this
     // shim only escapes the sweep because it is written at the project root,
@@ -303,7 +320,7 @@ returns_i32 :: fn(f: AST.FnDecl) -> bool {
 /// The driver decides what to compile, so this function's whole job is to hand
 /// control over: write the entry shim, build it, run it with the project root as
 /// `args[1]`, and clean the shim up. The compiler's own sources are added to the
-/// include paths so `import "vader/hooks"` resolves without the user configuring
+/// include paths so `import "toolchain/build"` resolves without the user configuring
 /// anything.
 ///
 /// @param root     project root — where the driver and the shim live.
@@ -399,7 +416,7 @@ rebuild_driver :: fn(
         remove_entry(entry)
         return 1
     }
-    // The driver is a normal native build; `vader/hooks` resolves through the
+    // The driver is a normal native build; `toolchain/build` resolves through the
     // compiler's own sources, and the driver's module through the entry's folder.
     // Never fewer units than `DRIVER_CC_UNITS`, whatever the user asked of their
     // own build — see the constant.
@@ -468,10 +485,10 @@ import "std/testing"
 }
 
 @test test_compiler_source_root_falls_back_to_root :: fn() -> void {
-    // No `vader/hooks` beside a bogus binary location, so the checkout fallback
+    // No compiler sources beside a bogus binary location, so the checkout fallback
     // wins — which is what a clone gives.
     root :: compiler_source_root("/some-project")
-    assert(root == "/some-project" || exists(join_path(root, "vader/hooks")),
+    assert(root == "/some-project" || exists(join_path(root, COMPILER_SOURCE_MARKER)),
         "either the fallback root, or a real sidecar layout")
 }
 

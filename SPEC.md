@@ -2453,7 +2453,7 @@ a program, with no decorator involved:
 ```vader
 module "build"
 
-import "vader/hooks"
+import "toolchain/build"
 
 build :: fn(args: string[]) -> i32 {
     ctx :: new_build_context(args)
@@ -2462,7 +2462,7 @@ build :: fn(args: string[]) -> i32 {
 }
 ```
 
-`vader/hooks` is the one module a driver imports (plus `vader/parser`, to name AST types). Draining
+`toolchain/build` is the one module a driver imports (plus `toolchain/ast`, to name AST types). Draining
 `ctx.messages()` **is** the build: it yields each module's typed declarations, then the phase
 boundaries, and the back end reuses the front end rather than re-running it. `Phase.BeforeEmit` is
 the last point at which leaving the loop writes nothing, which is how a lint-only driver declines to
@@ -3644,7 +3644,7 @@ WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance })
 - `vader init [name]`: project scaffolder (creates the dir, an `examples/hello.vader`, and a default `vader.json`)
 
 Already landed (cross-reference for B's reader):
-- Programmable build API (`build.vader` — §11 *Programmable build API*, `vader/hooks`)
+- Programmable build API (`build.vader` — §11 *Programmable build API*, `toolchain/build`)
 - `std/json` (in MVP — §15 `std/json`)
 - LSP (`vader/lsp/`, partial — server + completion / hover / definition / semantic tokens)
 - Resolver self-host (`vader/resolver/` — 9 modules)
